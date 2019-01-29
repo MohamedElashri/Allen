@@ -3,7 +3,8 @@
 #include "UTEventModel.cuh"
 #include "UTDefinitions.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsCommon.cuh"
+#include "ArgumentsUT.cuh"
 
 __global__ void ut_find_permutation(
   uint32_t* dev_ut_hits,

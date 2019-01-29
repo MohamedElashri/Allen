@@ -2,7 +2,8 @@
 
 #include "UTDefinitions.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsCommon.cuh"
+#include "ArgumentsUT.cuh"
 #include "UTEventModel.cuh"
 
 __global__ void ut_decode_raw_banks_in_order(

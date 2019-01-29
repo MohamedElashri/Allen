@@ -2,7 +2,10 @@
 
 #include "PrForwardTools.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+// #include "ArgumentsCommon.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsUT.cuh"
+#include "ArgumentsSciFi.cuh"
 
 /** @class PrForward PrForward.h
    *

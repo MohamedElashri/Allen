@@ -5,7 +5,8 @@
 #include "PrVeloUTMagnetToolDefinitions.h"
 #include "PrVeloUT.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsUT.cuh"
 #include "UTEventModel.cuh"
 
 __global__ void veloUT(

@@ -3,7 +3,8 @@
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsCommon.cuh"
+#include "ArgumentsSciFi.cuh"
 
 __device__ void make_cluster_v4 (
   const int hit_index,

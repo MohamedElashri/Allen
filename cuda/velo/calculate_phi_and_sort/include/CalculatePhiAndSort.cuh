@@ -4,7 +4,7 @@
 #include <cassert>
 #include "VeloDefinitions.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
 
 __device__ void calculate_phi(
   const uint* module_hitStarts,

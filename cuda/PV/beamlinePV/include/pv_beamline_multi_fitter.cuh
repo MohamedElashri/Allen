@@ -3,11 +3,13 @@
 #include "BeamlinePVConstants.cuh"
 #include "Common.h"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsPV.cuh"
 #include "TrackBeamLineVertexFinder.cuh"
 #include "VeloConsolidated.cuh"
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
+#include "FloatOperations.cuh"
 #include <cstdint>
 
 __global__ void pv_beamline_multi_fitter(

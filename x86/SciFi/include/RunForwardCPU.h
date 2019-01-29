@@ -7,7 +7,10 @@
 #include "VeloEventModel.cuh"
 #include "CpuHandler.cuh"
 #include "PrepareTracks.h"
-#include "Arguments.cuh"
+#include "ArgumentsCommon.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsUT.cuh"
+#include "ArgumentsSciFi.cuh"
 
 int run_forward_on_CPU (
   SciFi::TrackHits* host_scifi_tracks_events,

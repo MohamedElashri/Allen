@@ -45,7 +45,7 @@ struct IsInAlgorithmsArguments<T, std::tuple<last_t>> : std::false_type {};
 
 template<typename T, typename Algorithm, typename... Algorithms>
 struct IsInAlgorithmsArguments<T, std::tuple<Algorithm, Algorithms...>> :
-  std::conditional_t<TupleContains<T, Algorithm::Arguments>::value, std::true_type,
+  std::conditional_t<TupleContains<T, typename Algorithm::Arguments>::value, std::true_type,
     IsInAlgorithmsArguments<T, std::tuple<Algorithms...>>>
   {};
 
@@ -87,9 +87,9 @@ struct OutDependenciesImpl;
 template<typename OutputArguments, typename Algorithm>
 struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm, last_t>> {
   using t = std::tuple<last_t, std::tuple<typename TupleElementsNotIn<
-    Algorithm::Arguments,
+    typename Algorithm::Arguments,
     OutputArguments>::t
-  >>>;
+  >>;
 };
 
 template<typename OutputArguments, typename Algorithm, typename NextAlgorithm, typename... Algorithms>
@@ -98,7 +98,7 @@ struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm, NextAlgorithm,
   using t = typename TupleAppend<previous_t,
     ScheduledDependencies<NextAlgorithm,
       typename TupleElementsNotIn<
-        typename ArgumentsNotIn<Algorithm::Arguments, std::tuple<NextAlgorithm, Algorithms...>>::t,
+        typename ArgumentsNotIn<typename Algorithm::Arguments, std::tuple<NextAlgorithm, Algorithms...>>::t,
         OutputArguments
       >::t
     >
@@ -106,24 +106,22 @@ struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm, NextAlgorithm,
 };
 
 // Helper to calculate OUT dependencies
-template<typename ConfiguredSequence, typename OutputArguments, typename AlgorithmsDeps>
+template<typename ConfiguredSequence, typename OutputArguments>
 struct OutDependencies;
 
 template<
   typename FirstAlgorithmInSequence,
   typename... RestOfSequence,
-  typename OutputArguments,
-  typename AlgorithmsDeps>
+  typename OutputArguments>
 struct OutDependencies<
   std::tuple<FirstAlgorithmInSequence, RestOfSequence...>,
-  OutputArguments,
-  AlgorithmsDeps> {
+  OutputArguments> {
   using t =
     typename TupleReverse<
       typename TupleAppend<
         typename OutDependenciesImpl<OutputArguments,
           typename TupleAppend<
-            typename TupleReverse<std::tuple<FirstAlgorithmInSequence, RestOfSequence...>>::t,
+            std::tuple<FirstAlgorithmInSequence, RestOfSequence...>,
             last_t
           >::t
         >::t,
@@ -132,26 +130,26 @@ struct OutDependencies<
     >::t;
 };
 
-template<typename ConfiguredSequence, typename OutputArguments>
-struct OutDependencies<ConfiguredSequence, OutputArguments, std::tuple<>> {
-  using t = std::tuple<ScheduledDependencies<last_t, std::tuple<>>>;
-};
-
 // Consume the algorithms and put their dependencies one by one
 template<typename Algorithms>
-struct InDependencies;
+struct InDependenciesImpl;
 
 template<>
-struct InDependencies<std::tuple<>> {
+struct InDependenciesImpl<std::tuple<>> {
   using t = std::tuple<>;
 };
 
 template<typename Algorithm, typename... Algorithms>
-struct InDependencies<std::tuple<Algorithm, Algorithms...>> {
-  using previous_t = typename InDependencies<std::tuple<Algorithms...>>::t;
+struct InDependenciesImpl<std::tuple<Algorithm, Algorithms...>> {
+  using previous_t = typename InDependenciesImpl<std::tuple<Algorithms...>>::t;
   using t = typename TupleAppend<previous_t,
-    ScheduledDependencies<Algorithm, typename ArgumentsNotIn<Algorithm::Arguments, std::tuple<Algorithms...>>::t>>::t;
+    ScheduledDependencies<Algorithm, typename ArgumentsNotIn<typename Algorithm::Arguments, std::tuple<Algorithms...>>::t>>::t;
 };
+
+template<typename ConfiguredSequence>
+  using InDependencies = InDependenciesImpl<
+    typename TupleReverse<ConfiguredSequence>::t
+  >;
 
 // Fetches all arguments from ie. InDependencies into a tuple
 template<typename in_deps>

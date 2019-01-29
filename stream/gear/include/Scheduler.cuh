@@ -5,7 +5,7 @@
 #include "ArgumentManager.cuh"
 #include "Logger.h"
 
-template<typename ConfiguredSequence, typename AlgorithmsDependencies, typename OutputArguments>
+template<typename ConfiguredSequence, typename OutputArguments>
 struct Scheduler {
   // Dependencies calculated at compile time
   // Determines what to free (out_deps) and reserve (in_deps)

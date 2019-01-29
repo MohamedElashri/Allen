@@ -4,6 +4,8 @@
 #include <cassert>
 #include "ClusteringDefinitions.cuh"
 #include "Handler.cuh"
+#include "ArgumentsCommon.cuh"
+#include "ArgumentsVelo.cuh"
 
 __global__ void estimate_input_size(
   char* dev_raw_input,

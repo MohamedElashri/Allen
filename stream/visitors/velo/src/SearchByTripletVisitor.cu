@@ -8,7 +8,7 @@ void SequenceVisitor::set_arguments_size<velo_search_by_triplet_t>(
   const HostBuffers& host_buffers,
   argument_manager_t& arguments)
 {
-  arguments.set_size<dev_tracks>(host_buffers.host_number_of_selected_events[0] * Velo::Constants::max_tracks);
+  arguments.set_size<dev_tracks>(host_buffers.host_number_of_selected_events[0] * Velo::Constants::max_tracks * sizeof(Velo::TrackHits));
   arguments.set_size<dev_tracklets>(host_buffers.host_number_of_selected_events[0] * Velo::Tracking::ttf_modulo);
   arguments.set_size<dev_tracks_to_follow>(host_buffers.host_number_of_selected_events[0] * Velo::Tracking::ttf_modulo);
   arguments.set_size<dev_weak_tracks>(host_buffers.host_number_of_selected_events[0] * Velo::Tracking::max_weak_tracks);

@@ -3,7 +3,8 @@
 #include "Handler.cuh"
 #include "MuonDefinitions.cuh"
 #include "MiniState.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsSciFi.cuh"
+#include "ArgumentsMuon.cuh"
 
 enum offset {
   DTS   = 0,

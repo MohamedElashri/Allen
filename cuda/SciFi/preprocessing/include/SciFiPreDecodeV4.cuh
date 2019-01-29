@@ -3,7 +3,8 @@
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsCommon.cuh"
+#include "ArgumentsSciFi.cuh"
 
 __device__ void store_sorted_cluster_reference_v4 (
   const SciFi::HitCount& hit_count,

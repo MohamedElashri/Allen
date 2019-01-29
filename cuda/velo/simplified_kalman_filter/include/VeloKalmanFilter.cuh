@@ -6,6 +6,7 @@
 #include "Common.h"
 #include "Handler.cuh"
 #include "VeloConsolidated.cuh"
+#include "ArgumentsVelo.cuh"
 
 __device__ float velo_kalman_filter_step(
   const float z,

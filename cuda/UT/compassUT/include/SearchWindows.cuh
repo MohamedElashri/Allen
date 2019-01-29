@@ -3,7 +3,8 @@
 #include "UTDefinitions.cuh"
 #include "PrVeloUTMagnetToolDefinitions.h"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsUT.cuh"
 
 __global__ void ut_search_windows(
   uint* dev_ut_hits,

@@ -5,7 +5,7 @@
 #include "SciFiDefinitions.cuh"
 #include "MiniState.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsSciFi.cuh"
 
 __global__ void consolidate_scifi_tracks(
   uint* dev_scifi_hits,

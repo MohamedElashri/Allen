@@ -6,7 +6,8 @@
 #include "VeloEventModel.cuh"
 #include "Common.h"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsPV.cuh"
 #include "VeloConsolidated.cuh"
 
 __global__ void get_seeds(

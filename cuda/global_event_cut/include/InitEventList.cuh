@@ -2,7 +2,7 @@
 
 #include "Common.h"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsCommon.cuh"
 
 __global__ void init_event_list( uint* dev_event_list ); 
  

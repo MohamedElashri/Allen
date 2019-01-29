@@ -4,6 +4,7 @@
 #include "VeloConsolidated.cuh"
 #include "Common.h"
 #include "Handler.cuh"
+#include "ArgumentsVelo.cuh"
 #include <cstdint>
 
 __device__ VeloState means_square_fit(

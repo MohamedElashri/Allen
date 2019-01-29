@@ -3,7 +3,8 @@
 #include <stdint.h>
 #include "Common.h"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsPV.cuh"
 #include "patPV_Definitions.cuh"
 #include "VeloEventModel.cuh"
 #include "VeloConsolidated.cuh"

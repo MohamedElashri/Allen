@@ -20,14 +20,13 @@
 #include "SequenceVisitor.cuh"
 #include "SchedulerMachinery.cuh"
 #include "Scheduler.cuh"
-#include "AlgorithmDependencies.cuh"
+#include "OutputArguments.cuh"
 #include "CheckerInvoker.h"
-
 
 class Timer;
 
 struct Stream {
-  using scheduler_t = Scheduler<configured_sequence_t, algorithms_dependencies_t, output_arguments_t>;
+  using scheduler_t = Scheduler<configured_sequence_t, output_arguments_t>;
   using argument_manager_t = ArgumentManager<scheduler_t::arguments_tuple_t>;
 
   // Sequence and arguments

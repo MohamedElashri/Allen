@@ -2,7 +2,7 @@
 
 #include "Handler.cuh"
 #include "MuonDefinitions.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsMuon.cuh"
 
 __global__ void muon_catboost_evaluator(
   const float* dev_muon_catboost_features,

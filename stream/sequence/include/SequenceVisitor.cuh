@@ -8,12 +8,11 @@
 #include "Constants.cuh"
 #include "Scheduler.cuh"
 #include "ConfiguredSequence.cuh"
-#include "AlgorithmDependencies.cuh"
-#include "Arguments.cuh"
+#include "OutputArguments.cuh"
 #include "CheckerInvoker.h"
 
 struct SequenceVisitor {
-  using scheduler_t = Scheduler<configured_sequence_t, algorithms_dependencies_t, output_arguments_t>;
+  using scheduler_t = Scheduler<configured_sequence_t, output_arguments_t>;
   using argument_manager_t = ArgumentManager<scheduler_t::arguments_tuple_t>;
 
   /**

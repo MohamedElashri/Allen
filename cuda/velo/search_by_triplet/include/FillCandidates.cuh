@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
 
 __device__ void fill_candidates_impl(
   short* h0_candidates,

@@ -6,7 +6,8 @@
 #include "CompassUTDefinitions.cuh"
 #include "FindBestHits.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsUT.cuh"
 #include "UTEventModel.cuh"
 
 //=========================================================================

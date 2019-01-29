@@ -2,7 +2,7 @@
 
 #include "VeloEventModel.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
 #include "States.cuh"
 
 __device__ void weak_tracks_adder_impl(

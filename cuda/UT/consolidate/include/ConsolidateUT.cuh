@@ -4,7 +4,7 @@
 #include "UTEventModel.cuh"
 #include "UTConsolidated.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsUT.cuh"
 
 __global__ void consolidate_ut_tracks(
   uint* dev_ut_hits,

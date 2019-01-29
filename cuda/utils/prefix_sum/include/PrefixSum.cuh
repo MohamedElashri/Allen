@@ -6,7 +6,9 @@
 #include "UTDefinitions.cuh"
 #include "SciFiDefinitions.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsUT.cuh"
+#include "ArgumentsSciFi.cuh"
 
 __global__ void prefix_sum_reduce(
   uint* dev_main_array,

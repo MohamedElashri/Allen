@@ -4,7 +4,8 @@
 #include <cassert>
 #include "ClusteringDefinitions.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsCommon.cuh"
+#include "ArgumentsVelo.cuh"
 
 __global__ void masked_velo_clustering(
   char* dev_raw_input,

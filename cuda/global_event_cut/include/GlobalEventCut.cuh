@@ -4,6 +4,7 @@
 #include "Handler.cuh" 
 #include "SciFiRaw.cuh"
 #include "UTRaw.cuh"
+#include "ArgumentsCommon.cuh"
 
 static constexpr uint maxSciFiUTClusters = 9750; // check tha this removes 10% of the events!
 

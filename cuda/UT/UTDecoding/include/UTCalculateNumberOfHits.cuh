@@ -2,7 +2,8 @@
 
 #include "UTDefinitions.cuh"
 #include "Handler.cuh"
-#include "Arguments.cuh"
+#include "ArgumentsCommon.cuh"
+#include "ArgumentsUT.cuh"
 
 __global__ void ut_calculate_number_of_hits (
   const char* dev_ut_raw_input,
