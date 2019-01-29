@@ -17,4 +17,14 @@ __global__ void estimate_input_size(
   uint8_t* dev_velo_candidate_ks
 );
 
-ALGORITHM(estimate_input_size, velo_estimate_input_size_t)
+ALGORITHM(estimate_input_size, velo_estimate_input_size_t,
+  ARGUMENTS(
+    dev_velo_raw_input,                             
+    dev_velo_raw_input_offsets,                     
+    dev_estimated_input_size,                       
+    dev_module_cluster_num,
+    dev_module_candidate_num,
+    dev_cluster_candidates,
+    dev_event_list,
+    dev_event_order
+))

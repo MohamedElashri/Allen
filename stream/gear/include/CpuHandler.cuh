@@ -9,9 +9,10 @@
  *             A struct is created with name EXPOSED_TYPE_NAME that encapsulates
  *             a CpuHandler of type FUNCTION_NAME.
  */
-#define CPU_ALGORITHM(FUNCTION_NAME, EXPOSED_TYPE_NAME)                \
+#define CPU_ALGORITHM(FUNCTION_NAME, EXPOSED_TYPE_NAME, DEPENDENCIES)  \
   struct EXPOSED_TYPE_NAME {                                           \
     constexpr static auto name {#EXPOSED_TYPE_NAME};                   \
+    using Arguments = DEPENDENCIES;                                    \
     decltype(make_cpu_handler(FUNCTION_NAME)) handler {FUNCTION_NAME}; \
     template<typename... T>                                            \
     auto invoke(T&&... arguments)                                      \

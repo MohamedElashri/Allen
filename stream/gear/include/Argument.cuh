@@ -3,6 +3,11 @@
 #include <tuple>
 
 /**
+ * @brief Macro for defining arguments in a Handler.
+ */
+#define ARGUMENTS(...) std::tuple<__VA_ARGS__>
+
+/**
  * @brief Macro for defining arguments. An argument has an identifier
  *        and a type.
  */
@@ -18,10 +23,10 @@
  * @tparam T The algorithm type.
  * @tparam Args The dependencies.
  */
-template<typename T, typename... Args>
+template<typename T, typename ArgumentsTuple>
 struct AlgorithmDependencies {
   using Algorithm = T;
-  using Arguments = std::tuple<Args...>;
+  using Arguments = ArgumentsTuple;
 };
 
 /**

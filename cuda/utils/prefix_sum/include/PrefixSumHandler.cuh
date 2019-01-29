@@ -11,10 +11,11 @@
  *          handlers to provide a prefix sum over the desired datatype.
  *          An auxiliary array must be provided.
  */
-#define PREFIX_SUM_ALGORITHM(EXPOSED_TYPE_NAME)                                                      \
+#define PREFIX_SUM_ALGORITHM(EXPOSED_TYPE_NAME, DEPENDENCIES)                                        \
   struct EXPOSED_TYPE_NAME {                                                                         \
     constexpr static auto name {#EXPOSED_TYPE_NAME};                                                 \
     constexpr static size_t aux_array_size(size_t array_size) { return (array_size + 511) / 512; }   \
+    using Arguments = DEPENDENCIES;                                                                  \
     size_t array_size;                                                                               \
     size_t auxiliary_array_size;                                                                     \
     size_t number_of_scan_blocks;                                                                    \
@@ -48,9 +49,26 @@
     }                                                                                                \
   };
 
-PREFIX_SUM_ALGORITHM(prefix_sum_velo_clusters_t)
-PREFIX_SUM_ALGORITHM(prefix_sum_velo_track_hit_number_t)
-PREFIX_SUM_ALGORITHM(prefix_sum_ut_track_hit_number_t)
-PREFIX_SUM_ALGORITHM(prefix_sum_ut_hits_t)
-PREFIX_SUM_ALGORITHM(prefix_sum_scifi_track_hit_number_t)
-PREFIX_SUM_ALGORITHM(prefix_sum_scifi_hits_t)
+PREFIX_SUM_ALGORITHM(prefix_sum_velo_clusters_t,
+  ARGUMENTS(dev_estimated_input_size,
+    dev_cluster_offset))
+
+PREFIX_SUM_ALGORITHM(prefix_sum_velo_track_hit_number_t,
+  ARGUMENTS(dev_velo_track_hit_number,
+    dev_prefix_sum_auxiliary_array_2))
+
+PREFIX_SUM_ALGORITHM(prefix_sum_ut_track_hit_number_t,
+  ARGUMENTS(dev_ut_track_hit_number,
+    dev_prefix_sum_auxiliary_array_5))
+
+PREFIX_SUM_ALGORITHM(prefix_sum_ut_hits_t,
+  ARGUMENTS(dev_ut_hit_offsets,
+    dev_prefix_sum_auxiliary_array_3))
+
+PREFIX_SUM_ALGORITHM(prefix_sum_scifi_track_hit_number_t,
+  ARGUMENTS(dev_scifi_track_hit_number,
+    dev_prefix_sum_auxiliary_array_6))
+
+PREFIX_SUM_ALGORITHM(prefix_sum_scifi_hits_t,
+  ARGUMENTS(dev_scifi_hit_count,
+    dev_prefix_sum_auxiliary_array_4))

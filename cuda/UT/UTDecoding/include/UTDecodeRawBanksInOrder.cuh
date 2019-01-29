@@ -2,6 +2,7 @@
 
 #include "UTDefinitions.cuh"
 #include "Handler.cuh"
+#include "Arguments.cuh"
 #include "UTEventModel.cuh"
 
 __global__ void ut_decode_raw_banks_in_order(
@@ -17,4 +18,11 @@ __global__ void ut_decode_raw_banks_in_order(
   uint32_t *dev_ut_hit_count,
   uint* dev_hit_permutations);
 
-ALGORITHM(ut_decode_raw_banks_in_order, ut_decode_raw_banks_in_order_t)
+ALGORITHM(ut_decode_raw_banks_in_order, ut_decode_raw_banks_in_order_t,
+  ARGUMENTS(dev_ut_raw_input,
+    dev_ut_raw_input_offsets,
+    dev_ut_hits,
+    dev_ut_hit_offsets,
+    dev_ut_hit_count,
+    dev_ut_hit_permutations,
+    dev_event_list))

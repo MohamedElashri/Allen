@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "Common.h"
 #include "Handler.cuh"
+#include "Arguments.cuh"
 #include "patPV_Definitions.cuh"
 #include "VeloEventModel.cuh"
 #include "VeloConsolidated.cuh"
@@ -25,4 +26,13 @@ __device__ bool fit_vertex(PatPV::XYZPoint& seedPoint,
 
 __device__ float get_tukey_weight(float trchi2, int iter) ;
 
-ALGORITHM(fit_seeds, pv_fit_seeds_t)
+ALGORITHM(fit_seeds, pv_fit_seeds_t,
+  ARGUMENTS(
+    dev_vertex,
+    dev_number_vertex,
+    dev_seeds,
+    dev_number_seeds,
+    dev_velo_kalman_beamline_states,
+    dev_atomics_velo,
+    dev_velo_track_hit_number
+))
