@@ -13,7 +13,9 @@
   struct EXPOSED_TYPE_NAME {                                           \
     constexpr static auto name {#EXPOSED_TYPE_NAME};                   \
     using Arguments = DEPENDENCIES;                                    \
+    Arguments& arguments;                                              \
     decltype(make_cpu_handler(FUNCTION_NAME)) handler {FUNCTION_NAME}; \
+    EXPOSED_TYPE_NAME(Arguments& args) : arguments(args) {}            \
     template<typename... T>                                            \
     auto invoke(T&&... arguments)                                      \
     {                                                                  \

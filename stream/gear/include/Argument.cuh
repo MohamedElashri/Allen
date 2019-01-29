@@ -11,15 +11,17 @@
  * @brief Macro for defining arguments. An argument has an identifier
  *        and a type.
  */
-#define ARGUMENT(ARGUMENT_NAME, ARGUMENT_TYPE) \
-  struct ARGUMENT_NAME {\
-    constexpr static auto name {#ARGUMENT_NAME};\
-    using type = ARGUMENT_TYPE;\
+#define ARGUMENT(ARGUMENT_NAME, ARGUMENT_TYPE)   \
+  struct ARGUMENT_NAME {                         \
+    constexpr static auto name {#ARGUMENT_NAME}; \
+    using type = ARGUMENT_TYPE;                  \
+    size_t size;                                 \
+    uint offset;                                 \
   };
 
 /**
  * @brief Defines dependencies for an algorithm.
- * 
+ *
  * @tparam T The algorithm type.
  * @tparam Args The dependencies.
  */

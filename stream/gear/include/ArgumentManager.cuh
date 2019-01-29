@@ -9,6 +9,8 @@
  */
 template<typename Tuple>
 struct ArgumentManager {
+  using tuple = Tuple;
+
   char* base_pointer;
   std::array<size_t, std::tuple_size<Tuple>::value> argument_sizes;
   std::array<uint, std::tuple_size<Tuple>::value> argument_offsets;

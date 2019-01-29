@@ -29,8 +29,10 @@ struct Stream {
   using scheduler_t = Scheduler<configured_sequence_t, output_arguments_t>;
   using argument_manager_t = ArgumentManager<scheduler_t::arguments_tuple_t>;
 
-  // Sequence and arguments
-  configured_sequence_t sequence_tuple;
+  Stream() = default;
+
+  // Dynamic scheduler
+  scheduler_t scheduler;
 
   // Stream datatypes
   cudaStream_t cuda_stream;
@@ -39,9 +41,6 @@ struct Stream {
 
   // Launch options
   bool do_print_memory_manager;
-
-  // Dynamic scheduler
-  scheduler_t scheduler;
 
   // Host buffers
   HostBuffers host_buffers;
