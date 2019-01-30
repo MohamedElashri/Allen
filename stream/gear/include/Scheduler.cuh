@@ -10,30 +10,28 @@
 template<typename ArgumentsTuple, typename Argument>
 struct ProduceSingleArgument {
   constexpr static Argument& produce(ArgumentsTuple& arguments_tuple) {
-    return std::get<Argument>(arguments_tuple);
+    Argument& argument = std::get<Argument>(arguments_tuple);
+    return argument;
   }
 };
 
 
-template<typename ArgumentsTuple, typename Arguments>
-struct ProduceArguments;
+template<typename ArgumentsTuple, typename Algorithm, typename Arguments>
+struct ProduceAlgorithmHelper;
 
-template<typename ArgumentsTuple, typename... Arguments>
-struct ProduceArguments<ArgumentsTuple, std::tuple<Arguments...>> {
-  constexpr static std::tuple<Arguments&...> produce(ArgumentsTuple& arguments_tuple) {
-    return {
+template<typename ArgumentsTuple, typename Algorithm, typename... Arguments>
+struct ProduceAlgorithmHelper<ArgumentsTuple, Algorithm, std::tuple<Arguments...>> {
+  constexpr static Algorithm produce(ArgumentsTuple& arguments_tuple) {
+    return Algorithm{
       ProduceSingleArgument<ArgumentsTuple, Arguments>::produce(arguments_tuple)...
     };
   }
 };
 
-
 template<typename ArgumentsTuple, typename Algorithm>
 struct ProduceAlgorithm {
   constexpr static Algorithm produce(ArgumentsTuple& arguments_tuple) {
-    return Algorithm{
-      ProduceArguments<ArgumentsTuple, typename Algorithm::Arguments>::produce(arguments_tuple)
-    };
+    return ProduceAlgorithmHelper<ArgumentsTuple, Algorithm, typename Algorithm::Arguments>::produce(arguments_tuple);
   }
 };
 
@@ -77,7 +75,7 @@ struct Scheduler {
   // std::tuple<init_event_list_t> sequence_tuple {init_event_list_t{arguments_tuple}};
 
   Scheduler() = default;
-  Scheduler(const Scheduler&) = default;
+  Scheduler(const Scheduler&) = delete;
 
   void initialize(
     const bool param_do_print,

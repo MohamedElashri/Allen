@@ -25,7 +25,9 @@
     using Arguments = DEPENDENCIES;                                                                  \
     using arguments_t = ArgumentRefManager<Arguments>;                                               \
     arguments_t arguments;                                                                           \
-    EXPOSED_TYPE_NAME(arguments_t args) : arguments(args) {}                                         \
+    template<typename... T>                                                                          \
+    EXPOSED_TYPE_NAME(T&... args) : arguments(std::forward_as_tuple(args...))                        \
+    {}                                                                                               \
     void set_size(size_t param_array_size)                                                           \
     {                                                                                                \
       array_size = param_array_size;                                                                 \

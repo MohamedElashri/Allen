@@ -27,7 +27,7 @@ void SequenceVisitor::visit<init_event_list_t>(
   HostBuffers& host_buffers,
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
-{ 
+{
   // Setup opts and arguments for kernel call
   state.set_opts(dim3(1), dim3(runtime_options.number_of_events), cuda_stream);
   state.set_arguments(
