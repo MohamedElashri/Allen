@@ -6,7 +6,6 @@
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
 #include "Constants.cuh"
-#include "ConfiguredSequence.cuh"
 #include "OutputArguments.cuh"
 
 struct SequenceVisitor {

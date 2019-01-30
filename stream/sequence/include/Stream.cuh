@@ -22,6 +22,7 @@
 #include "Scheduler.cuh"
 #include "OutputArguments.cuh"
 #include "CheckerInvoker.h"
+#include "ConfiguredSequence.cuh"
 
 class Timer;
 
