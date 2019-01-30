@@ -168,7 +168,7 @@ struct ArgumentsTuple<std::tuple<ScheduledDependencies<Algorithm, std::tuple<>>,
 template<typename Algorithm, typename Arg, typename... Args, typename... Algorithms>
 struct ArgumentsTuple<std::tuple<ScheduledDependencies<Algorithm, std::tuple<Arg, Args...>>, Algorithms...>> {
   using previous_t = typename ArgumentsTuple<std::tuple<ScheduledDependencies<Algorithm, std::tuple<Args...>>, Algorithms...>>::t;
-  using t = typename TupleAppend<previous_t, Arg>::t;
+  using t = typename TupleAppendFirst<Arg, previous_t>::t;
 };
 
 // Helper to just print the arguments
@@ -270,9 +270,9 @@ struct RunSequenceTupleImpl<Scheduler, Functor, Tuple, std::tuple<SetSizeArgumen
     using t = typename std::tuple_element<I, Tuple>::type;
 
     // Sets the arguments sizes, setups the scheduler and visits the algorithm.
-    functor.template set_arguments_size<t>(std::forward<SetSizeArguments>(set_size_arguments)...);
+    functor.template set_arguments_size<t>(std::get<I>(tuple).arguments, std::forward<SetSizeArguments>(set_size_arguments)...);
     scheduler.template setup<I, t>();
-    functor.template visit<t>(std::get<I>(tuple), std::forward<VisitArguments>(visit_arguments)...);
+    functor.template visit<t>(std::get<I>(tuple), std::get<I>(tuple).arguments, std::forward<VisitArguments>(visit_arguments)...);
 
     RunSequenceTupleImpl<
       Scheduler,

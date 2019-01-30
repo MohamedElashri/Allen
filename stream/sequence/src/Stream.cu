@@ -59,13 +59,11 @@ cudaError_t Stream::run_sequence(const RuntimeOptions& runtime_options) {
       std::tuple<
         const RuntimeOptions&,
         const Constants&,
-        const HostBuffers&,
-        argument_manager_t&
+        const HostBuffers&
       >,
       std::tuple<
         const RuntimeOptions&,
         const Constants&,
-        argument_manager_t&,
         HostBuffers&,
         cudaStream_t&,
         cudaEvent_t&
@@ -78,11 +76,9 @@ cudaError_t Stream::run_sequence(const RuntimeOptions& runtime_options) {
       runtime_options,
       constants,
       host_buffers,
-      scheduler.arguments(),
       // Arguments to visit
       runtime_options,
       constants,
-      scheduler.arguments(),
       host_buffers,
       cuda_stream,
       cuda_generic_event);

@@ -4,51 +4,52 @@
 #include "SchedulerMachinery.cuh"
 #include "ArgumentManager.cuh"
 #include "Logger.h"
-
 #include "InitEventList.cuh"
+#include <utility>
 
-// I need an std::tuple<Arguments...&>
-template<typename Arguments, typename Indices, typename ArgumentsTuple>
-struct ProduceArgumentsTuple;
+template<typename ArgumentsTuple, typename Argument>
+struct ProduceSingleArgument {
+  constexpr static Argument& produce(ArgumentsTuple& arguments_tuple) {
+    return std::get<Argument>(arguments_tuple);
+  }
+};
 
-template<typename... Arguments, unsigned long... Is, typename ArgumentsTuple>
-struct ProduceArgumentsTuple<std::tuple<Arguments...>, std::index_sequence<Is...>, ArgumentsTuple> {
-  constexpr static auto create_arguments_tuple(ArgumentsTuple& arguments_tuple) {
+
+template<typename ArgumentsTuple, typename Arguments>
+struct ProduceArguments;
+
+template<typename ArgumentsTuple, typename... Arguments>
+struct ProduceArguments<ArgumentsTuple, std::tuple<Arguments...>> {
+  constexpr static std::tuple<Arguments&...> produce(ArgumentsTuple& arguments_tuple) {
     return {
-      std::get<Is>(arguments_tuple)...
+      ProduceSingleArgument<ArgumentsTuple, Arguments>::produce(arguments_tuple)...
     };
   }
 };
 
-template<typename ArgumentsTuple, typename Indices, typename Algorithms>
-struct ProduceSequenceHelper;
 
-template<typename ArgumentsTuple, unsigned long... Is, typename Algorithms>
-struct ProduceSequenceHelper<ArgumentsTuple, Algorithms, std::index_sequence<Is...>> {
-  constexpr static auto create_sequence(ArgumentsTuple& arguments_tuple) {
-    return {
-      ProduceArgumentsTuple<
-        typename std::tuple_element<Is, Algorithms>::type::Arguments,
-        std::make_index_sequence<std::tuple_size<typename std::tuple_element<Is, Algorithms>::type::Arguments>::value>(),
-        ArgumentsTuple
-      >::create_arguments_tuple(arguments_tuple)...
+template<typename ArgumentsTuple, typename Algorithm>
+struct ProduceAlgorithm {
+  constexpr static Algorithm produce(ArgumentsTuple& arguments_tuple) {
+    return Algorithm{
+      ProduceArguments<ArgumentsTuple, typename Algorithm::Arguments>::produce(arguments_tuple)
     };
   }
 };
+
 
 template<typename ArgumentsTuple, typename Algorithms>
 struct ProduceSequence;
 
 template<typename ArgumentsTuple, typename... Algorithms>
 struct ProduceSequence<ArgumentsTuple, std::tuple<Algorithms...>> {
-  constexpr static auto create_sequence(ArgumentsTuple& arguments_tuple) {
-    return ProduceSequenceHelper<
-      ArgumentsTuple,
-      std::make_index_sequence<sizeof...(Algorithms)>(),
-      std::tuple<Algorithms...>
-    >::create_sequence(arguments_tuple);
+  constexpr static std::tuple<Algorithms...> produce(ArgumentsTuple& arguments_tuple) {
+    return std::tuple<Algorithms...>{
+      ProduceAlgorithm<ArgumentsTuple, Algorithms>::produce(arguments_tuple)...
+    };
   }
 };
+
 
 template<typename ConfiguredSequence, typename OutputArguments>
 struct Scheduler {
@@ -64,17 +65,19 @@ struct Scheduler {
   out_deps_t out_deps;
   MemoryManager memory_manager;
   argument_manager_t argument_manager;
-  arguments_tuple_t arguments_tuple;
   bool do_print = false;
 
   // Sequence and arguments
-  ConfiguredSequence sequence_tuple {ProduceSequence<arguments_tuple_t, ConfiguredSequence>::create_sequence(arguments_tuple)};
+  ConfiguredSequence sequence_tuple {
+    ProduceSequence<arguments_tuple_t, ConfiguredSequence>::produce(argument_manager.arguments_tuple)
+  };
   
   // ConfiguredSequence sequence_tuple {{arguments_tuple}};
   // std::tuple<init_event_list_t> sequence_tuple {arguments_tuple};
   // std::tuple<init_event_list_t> sequence_tuple {init_event_list_t{arguments_tuple}};
 
   Scheduler() = default;
+  Scheduler(const Scheduler&) = default;
 
   void initialize(
     const bool param_do_print,
@@ -94,13 +97,6 @@ struct Scheduler {
       // verbose_cout << "OUT deps" << std::endl;
       // Sch::PrintAlgorithmDependencies<out_deps_t>::print();
     }
-  }
-
-  /**
-   * @brief Returns the argument manager of the scheduler.
-   */
-  argument_manager_t& arguments() {
-    return argument_manager;
   }
 
   /**

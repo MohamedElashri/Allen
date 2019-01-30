@@ -16,7 +16,7 @@
     constexpr static auto name {#ARGUMENT_NAME}; \
     using type = ARGUMENT_TYPE;                  \
     size_t size;                                 \
-    uint offset;                                 \
+    char* offset;                                \
   };
 
 /**
