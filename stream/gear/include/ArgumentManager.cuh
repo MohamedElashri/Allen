@@ -65,6 +65,6 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
 
   template<typename T>
   void set_size(size_t size) {
-    std::get<T&>(m_arguments).size = size;
+    std::get<T&>(m_arguments).size = size * sizeof(typename T::type);
   }
 };
