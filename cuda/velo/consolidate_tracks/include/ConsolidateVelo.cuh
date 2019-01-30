@@ -4,6 +4,7 @@
 #include "VeloConsolidated.cuh"
 #include "Common.h"
 #include "Handler.cuh"
+#include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include <cstdint>
 
@@ -36,5 +37,6 @@ ALGORITHM(consolidate_velo_tracks, consolidate_velo_tracks_t,
     dev_estimated_input_size,
     dev_module_cluster_num,
     dev_velo_track_hits,
-    dev_velo_states
+    dev_velo_states,
+    dev_accepted_velo_tracks
 ))

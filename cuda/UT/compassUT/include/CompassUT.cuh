@@ -6,6 +6,7 @@
 #include "CompassUTDefinitions.cuh"
 #include "FindBestHits.cuh"
 #include "Handler.cuh"
+#include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "UTEventModel.cuh"
@@ -27,7 +28,8 @@ __global__ void compass_ut(
   const float* dev_unique_sector_xs,
   UT::TrackHits* dev_compassUT_tracks,
   int* dev_atomics_compassUT,
-  int* dev_windows_layers);
+  int* dev_windows_layers,
+  bool* dev_accepted_velo_tracks);
 
 __device__ void compass_ut_tracking(
   const int* dev_windows_layers,
@@ -82,4 +84,5 @@ ALGORITHM(compass_ut, compass_ut_t,
     dev_ut_tracks,
     dev_atomics_ut,
     dev_active_tracks,
-    dev_windows_layers))
+    dev_windows_layers,
+    dev_accepted_velo_tracks))

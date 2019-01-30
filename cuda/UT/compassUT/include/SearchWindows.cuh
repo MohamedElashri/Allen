@@ -3,6 +3,7 @@
 #include "UTDefinitions.cuh"
 #include "PrVeloUTMagnetToolDefinitions.h"
 #include "Handler.cuh"
+#include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 
@@ -16,7 +17,8 @@ __global__ void ut_search_windows(
   const float* dev_ut_dxDy,
   const uint* dev_unique_x_sector_layer_offsets,
   const float* dev_unique_sector_xs,
-  int* dev_windows_layers);
+  int* dev_windows_layers,
+  bool* dev_accepted_velo_tracks);
 
 ALGORITHM(ut_search_windows, ut_search_windows_t,
   ARGUMENTS(
@@ -26,4 +28,5 @@ ALGORITHM(ut_search_windows, ut_search_windows_t,
     dev_velo_track_hit_number,
     dev_velo_track_hits,
     dev_velo_states,
-    dev_windows_layers))
+    dev_windows_layers,
+    dev_accepted_velo_tracks))
