@@ -7,48 +7,6 @@
 #include "InitEventList.cuh"
 #include <utility>
 
-template<typename ArgumentsTuple, typename Argument>
-struct ProduceSingleArgument {
-  constexpr static Argument& produce(ArgumentsTuple& arguments_tuple) {
-    Argument& argument = std::get<Argument>(arguments_tuple);
-    return argument;
-  }
-};
-
-
-template<typename ArgumentsTuple, typename Algorithm, typename Arguments>
-struct ProduceAlgorithmHelper;
-
-template<typename ArgumentsTuple, typename Algorithm, typename... Arguments>
-struct ProduceAlgorithmHelper<ArgumentsTuple, Algorithm, std::tuple<Arguments...>> {
-  constexpr static Algorithm produce(ArgumentsTuple& arguments_tuple) {
-    return Algorithm{
-      ProduceSingleArgument<ArgumentsTuple, Arguments>::produce(arguments_tuple)...
-    };
-  }
-};
-
-template<typename ArgumentsTuple, typename Algorithm>
-struct ProduceAlgorithm {
-  constexpr static Algorithm produce(ArgumentsTuple& arguments_tuple) {
-    return ProduceAlgorithmHelper<ArgumentsTuple, Algorithm, typename Algorithm::Arguments>::produce(arguments_tuple);
-  }
-};
-
-
-template<typename ArgumentsTuple, typename Algorithms>
-struct ProduceSequence;
-
-template<typename ArgumentsTuple, typename... Algorithms>
-struct ProduceSequence<ArgumentsTuple, std::tuple<Algorithms...>> {
-  constexpr static std::tuple<Algorithms...> produce(ArgumentsTuple& arguments_tuple) {
-    return std::tuple<Algorithms...>{
-      ProduceAlgorithm<ArgumentsTuple, Algorithms>::produce(arguments_tuple)...
-    };
-  }
-};
-
-
 template<typename ConfiguredSequence, typename OutputArguments>
 struct Scheduler {
   // Dependencies calculated at compile time
@@ -65,15 +23,11 @@ struct Scheduler {
   argument_manager_t argument_manager;
   bool do_print = false;
 
-  // Sequence and arguments
+  // Configured sequence
   ConfiguredSequence sequence_tuple {
-    ProduceSequence<arguments_tuple_t, ConfiguredSequence>::produce(argument_manager.arguments_tuple)
+    Sch::ProduceSequence<arguments_tuple_t, ConfiguredSequence>::produce(argument_manager.arguments_tuple)
   };
   
-  // ConfiguredSequence sequence_tuple {{arguments_tuple}};
-  // std::tuple<init_event_list_t> sequence_tuple {arguments_tuple};
-  // std::tuple<init_event_list_t> sequence_tuple {init_event_list_t{arguments_tuple}};
-
   Scheduler() = default;
   Scheduler(const Scheduler&) = delete;
 

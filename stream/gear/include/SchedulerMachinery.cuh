@@ -228,6 +228,57 @@ struct PrintAlgorithmSequence<std::tuple<Algorithm, Algorithms...>> {
 };
 
 /**
+ * @brief Produces a single argument reference.
+ */
+template<typename ArgumentsTuple, typename Argument>
+struct ProduceSingleArgument {
+  constexpr static Argument& produce(ArgumentsTuple& arguments_tuple) {
+    Argument& argument = std::get<Argument>(arguments_tuple);
+    return argument;
+  }
+};
+
+/**
+ * @brief Produces a list of argument references.
+ */
+template<typename ArgumentsTuple, typename Algorithm, typename Arguments>
+struct ProduceAlgorithmHelper;
+
+template<typename ArgumentsTuple, typename Algorithm, typename... Arguments>
+struct ProduceAlgorithmHelper<ArgumentsTuple, Algorithm, std::tuple<Arguments...>> {
+  constexpr static Algorithm produce(ArgumentsTuple& arguments_tuple) {
+    return Algorithm{
+      ProduceSingleArgument<ArgumentsTuple, Arguments>::produce(arguments_tuple)...
+    };
+  }
+};
+
+/**
+ * @brief Produces a single algorithm with references to arguments.
+ */
+template<typename ArgumentsTuple, typename Algorithm>
+struct ProduceAlgorithm {
+  constexpr static Algorithm produce(ArgumentsTuple& arguments_tuple) {
+    return ProduceAlgorithmHelper<ArgumentsTuple, Algorithm, typename Algorithm::Arguments>::produce(arguments_tuple);
+  }
+};
+
+/**
+ * @brief Produces a sequence tuple constructor with references to arguments.
+ */
+template<typename ArgumentsTuple, typename Algorithms>
+struct ProduceSequence;
+
+template<typename ArgumentsTuple, typename... Algorithms>
+struct ProduceSequence<ArgumentsTuple, std::tuple<Algorithms...>> {
+  constexpr static std::tuple<Algorithms...> produce(ArgumentsTuple& arguments_tuple) {
+    return std::tuple<Algorithms...>{
+      ProduceAlgorithm<ArgumentsTuple, Algorithms>::produce(arguments_tuple)...
+    };
+  }
+};
+
+/**
  * @brief Runs the sequence tuple (implementation).
  */
 template<typename Scheduler,
