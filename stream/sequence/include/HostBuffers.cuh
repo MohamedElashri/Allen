@@ -44,6 +44,9 @@ struct HostBuffers {
   uint* host_ut_track_hit_number;
   char* host_ut_track_hits;
   float* host_ut_qop;
+  float* host_ut_x;
+  float* host_ut_tx;
+  float* host_ut_z;
   uint*  host_ut_track_velo_indices;
   
   // SciFi 
@@ -64,6 +67,10 @@ struct HostBuffers {
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;
   std::vector<char> host_velo_states;
+  //std::vector<uint> n_scifi_tracks;
+  std::vector< std::vector< std::vector< uint32_t > > > scifi_ids_ut_tracks;
+  std::vector<uint> host_scifi_hits;
+  std::vector<uint> host_scifi_hit_count;
   
   /**
    * @brief Reserves all host buffers.

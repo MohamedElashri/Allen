@@ -375,14 +375,14 @@ struct RunChecker;
 template<typename Functor, typename... Arguments>
 struct RunChecker<Functor, std::tuple<>, std::tuple<Arguments...>> {
   constexpr static void check(
-    const Functor& functor,
+    Functor& functor,
     Arguments&&... arguments) {}
 };
 
 template<typename Functor, typename Algorithm, typename... Algorithms, typename... Arguments>
 struct RunChecker<Functor, std::tuple<Algorithm, Algorithms...>, std::tuple<Arguments...>> {
   constexpr static void check(
-    const Functor& functor,
+    Functor& functor,
     Arguments&&... arguments) 
   {
     functor.template check<Algorithm>(std::forward<Arguments>(arguments)...);

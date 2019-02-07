@@ -62,6 +62,8 @@ struct Hit {
 
 struct TrackHits {
   float qop;
+  float x, z;
+  float tx;
   short hits[UT::Constants::max_track_size];
   unsigned short hits_num = 0;
   unsigned short velo_track_index;

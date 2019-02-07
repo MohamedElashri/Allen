@@ -28,20 +28,18 @@ void SequenceVisitor::visit<cpu_scifi_pr_forward_t>(
   cudaEventSynchronize(cuda_generic_event);
 
   // Run Forward on x86 architecture
-  std::vector<uint> host_scifi_hits (host_buffers.scifi_hits_uints());
   // ATTENTION: when using SciFi raw bank version 5, 
   // need: 2*host_buffers.host_number_of_selected_events[0]*...
-  std::vector<uint> host_scifi_hit_count (host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats + 1);
   host_buffers.host_velo_states.resize(arguments.size<dev_velo_states>());
 
   cudaCheck(cudaMemcpy(
-    host_scifi_hits.data(),
+    host_buffers.host_scifi_hits.data(),
     arguments.offset<dev_scifi_hits>(),
     arguments.size<dev_scifi_hits>(),
     cudaMemcpyDeviceToHost));
 
   cudaCheck(cudaMemcpy(
-    host_scifi_hit_count.data(),
+    host_buffers.host_scifi_hit_count.data(),
     arguments.offset<dev_scifi_hit_count>(),
     arguments.size<dev_scifi_hit_count>(),
     cudaMemcpyDeviceToHost));
@@ -56,8 +54,8 @@ void SequenceVisitor::visit<cpu_scifi_pr_forward_t>(
   int rv = state.invoke(
     host_buffers.scifi_tracks_events.data(),
     host_buffers.host_atomics_scifi,
-    host_scifi_hits.data(),
-    host_scifi_hit_count.data(),
+    host_buffers.host_scifi_hits.data(),
+    host_buffers.host_scifi_hit_count.data(),
     constants.host_scifi_geometry,
     constants.host_inv_clus_res, 
     host_buffers.host_atomics_velo,

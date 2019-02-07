@@ -40,6 +40,7 @@
 #include "RunForwardCPU.h"
 #include "IPCut.cuh"
 #include "VeloPVIP.cuh"
+#include "RunMomentumForwardCPU.h"
 #include "RunBeamlinePVOnCPU.h"
 #include "MuonFeaturesExtraction.cuh"
 #include "MuonCatboostEvaluator.cuh"

@@ -161,6 +161,7 @@ __device__ BestParams pkick_fit(
   float rhs[2] = {wb * xMidField, wb * xMidField * UT::Constants::zDiff};
 
   // add hits
+  float last_z = -10000.f;
   #pragma unroll
   for (int i = 0; i < UT::Constants::n_layers; ++i) {
     int hit_index = best_hits[i];
@@ -169,7 +170,9 @@ __device__ BestParams pkick_fit(
       const int plane_code = forward ? i : UT::Constants::n_layers - 1 - i;
       const float dxDy = ut_dxDy[plane_code];
       const float ci = ut_hits.cosT(hit_index, dxDy);
-      const float dz = 0.001f * (ut_hits.zAtYEq0[hit_index] - UT::Constants::zMidUT);
+      last_z = ut_hits.zAtYEq0[hit_index];
+      const float dz = 0.001f * (last_z - UT::Constants::zMidUT);
+      
       // x_pos_layer
       const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit_index]);
       const float ui = ut_hits.xAt(hit_index, yy, dxDy);
@@ -227,6 +230,9 @@ __device__ BestParams pkick_fit(
     best_params.qp = sinInX - sinOutX;
     best_params.chi2UT = chi2UT;
     best_params.n_hits = total_num_hits;
+    best_params.x  = xUTFit;
+    best_params.z  = last_z;
+    best_params.tx = xSlopeUTFit;
   }
 
   return best_params;

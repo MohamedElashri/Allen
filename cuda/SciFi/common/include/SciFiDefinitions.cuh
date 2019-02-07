@@ -63,7 +63,7 @@ namespace Constants {
   static constexpr uint max_numhits_per_event = 10000;
   static constexpr uint max_hit_candidates_per_layer = 200;
 
-  const int max_tracks = 200;
+  const int max_tracks = 2500; 
   const int max_track_size = Tracking::max_scifi_hits;
 } // Constants
 

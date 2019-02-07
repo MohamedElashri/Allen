@@ -347,6 +347,9 @@ __device__ void save_track(
   UT::TrackHits track;
   track.velo_track_index = i_track;
   track.qop = qop;
+  track.x = best_params.x;
+  track.z = best_params.z;
+  track.tx = best_params.tx;
   track.hits_num = 0;
 
   // Adding hits to track

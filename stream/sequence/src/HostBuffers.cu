@@ -22,6 +22,9 @@ void HostBuffers::reserve(const uint max_number_of_events) {
   cudaCheck(cudaMallocHost((void**)&host_ut_track_hit_number, max_number_of_events * UT::Constants::max_num_tracks * sizeof(uint)));
   cudaCheck(cudaMallocHost((void**)&host_ut_track_hits, max_number_of_events * UT::Constants::max_num_tracks * UT::Constants::max_track_size * sizeof(UT::Hit) ));
   cudaCheck(cudaMallocHost((void**)&host_ut_qop, max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
+  cudaCheck(cudaMallocHost((void**)&host_ut_x, max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
+  cudaCheck(cudaMallocHost((void**)&host_ut_tx, max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
+  cudaCheck(cudaMallocHost((void**)&host_ut_z, max_number_of_events * UT::Constants::max_num_tracks * sizeof(float)));
   cudaCheck(cudaMallocHost((void**)&host_ut_track_velo_indices, max_number_of_events * UT::Constants::max_num_tracks * sizeof(int)));
   
   cudaCheck(cudaMallocHost((void**)&host_accumulated_number_of_scifi_hits, sizeof(uint)));

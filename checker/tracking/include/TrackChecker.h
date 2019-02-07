@@ -112,6 +112,7 @@ protected:
     TH1D* h_ghost_nPV;
     TH1D* h_total_nPV;
     TH2D* h_momentum_resolution;
+    TH2D* h_qop_diff;
     TH1D* h_momentum_matched;
 #endif
     void initHistos(const std::vector<HistoCategory>& histo_categories);
@@ -121,7 +122,7 @@ protected:
                                  HistoCategory &category);
     void fillTotalHistos(const MCParticle &mcp);
     void fillGhostHistos(const MCParticle &mcp);
-    void fillMomentumResolutionHisto(const MCParticle &mcp, const float p);
+    void fillMomentumResolutionHisto(const MCParticle &mcp, const float p, const float qop);
     void deleteHistos(const std::vector<HistoCategory>& histo_categories);
   };
  
@@ -137,7 +138,7 @@ protected:
 public:
   TrackChecker(){};
   ~TrackChecker();
-  void operator()(const trackChecker::Tracks &tracks,
+  std::vector<uint32_t> operator()(const trackChecker::Tracks &tracks,
                   const MCAssociator &mcassoc, const MCParticles &mcps);
   const std::vector<HistoCategory>& histo_categories() const {
     return m_histo_categories;

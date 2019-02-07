@@ -35,11 +35,15 @@ struct BestParams {
   float qp;
   float chi2UT;
   int n_hits;
+  float x, z, tx;
 
   __host__ __device__ BestParams () 
   {
     qp = 0.0f;
     chi2UT = UT::Constants::maxPseudoChi2;
     n_hits = 0;
+    x = -10000;
+    tx = -10000;
+    z = - 10000;
   }
 };

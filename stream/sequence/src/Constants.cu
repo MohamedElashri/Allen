@@ -62,7 +62,6 @@ void Constants::initialize_constants() {
   host_inv_clus_res = {1/0.05, 1/0.08, 1/0.11, 1/0.14, 1/0.17, 1/0.20, 1/0.23, 1/0.26, 1/0.29};
   cudaCheck(cudaMemcpy(dev_inv_clus_res, &host_inv_clus_res, host_inv_clus_res.size() * sizeof(float), cudaMemcpyHostToDevice));
 
-  
   // Kalman filter constants.
   ParKalmanFilter::KalmanParametrizations host_kalman_params;
   host_kalman_params.SetParameters(
@@ -70,7 +69,6 @@ void Constants::initialize_constants() {
     ParKalmanFilter::Polarity::Down
   );
   cudaCheck(cudaMemcpy(dev_kalman_params, &host_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations), cudaMemcpyHostToDevice));
-
 }
 
 void Constants::initialize_ut_decoding_constants(

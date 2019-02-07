@@ -42,7 +42,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/patPV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/velo/clustering/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/UT/PrVeloUT/include)
-include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/PrForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/MomentumForward/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/pv/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
@@ -111,6 +112,7 @@ target_link_libraries(Stream PRIVATE
   Kalman
   SciFi
   x86Forward
+  x86MomentumForward
   x86VeloUT
   Muon)
 

@@ -7,6 +7,9 @@ __global__ void consolidate_ut_tracks(
   int* dev_atomics_ut,
   uint* dev_ut_track_hit_number,
   float* dev_ut_qop,
+  float* dev_ut_x,
+  float* dev_ut_tx,
+  float* dev_ut_z,
   uint* dev_ut_track_velo_indices,
   const UT::TrackHits* dev_veloUT_tracks,
   const uint* dev_unique_x_sector_layer_offsets)
@@ -29,11 +32,16 @@ __global__ void consolidate_ut_tracks(
                                       event_number,
                                       number_of_events};
   const uint number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
+  const uint event_tracks_offset = ut_tracks.tracks_offset(event_number);
 
   // Loop over tracks.
   for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     ut_tracks.velo_track[i] = event_veloUT_tracks[i].velo_track_index;
     ut_tracks.qop[i] = event_veloUT_tracks[i].qop;
+    const int track_index = event_tracks_offset + i;
+    dev_ut_x[track_index]  = event_veloUT_tracks[i].x;
+    dev_ut_z[track_index]  = event_veloUT_tracks[i].z;
+    dev_ut_tx[track_index] = event_veloUT_tracks[i].tx;
     UT::Consolidated::Hits consolidated_hits = ut_tracks.get_hits(dev_ut_track_hits, i);
     const UT::TrackHits track = event_veloUT_tracks[i];
 
