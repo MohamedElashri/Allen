@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<init_event_list_t>(
-  init_event_list_t::arguments_t& arguments,
+  init_event_list_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)
@@ -28,6 +28,7 @@ void SequenceVisitor::visit<init_event_list_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
+  // TODO: Make the sequence work with 0 events
   assert(runtime_options.number_of_events > 0);
 
   // Setup opts and arguments for kernel call

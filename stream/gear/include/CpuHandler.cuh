@@ -15,11 +15,7 @@
     constexpr static auto name {#EXPOSED_TYPE_NAME};                          \
     using Arguments = DEPENDENCIES;                                           \
     using arguments_t = ArgumentRefManager<Arguments>;                        \
-    arguments_t arguments;                                                    \
     decltype(make_cpu_handler(FUNCTION_NAME)) handler {FUNCTION_NAME};        \
-    template<typename... T>                                                   \
-    EXPOSED_TYPE_NAME(T&... args) : arguments(std::forward_as_tuple(args...)) \
-    {}                                                                        \
     template<typename... T>                                                   \
     auto invoke(T&&... arguments)                                             \
     {                                                                         \

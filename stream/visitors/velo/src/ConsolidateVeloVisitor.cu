@@ -4,7 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<consolidate_velo_tracks_t>(
-  consolidate_velo_tracks_t::arguments_t& arguments,
+  consolidate_velo_tracks_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)

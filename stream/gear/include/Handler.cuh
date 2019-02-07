@@ -14,11 +14,7 @@
     constexpr static auto name {#EXPOSED_TYPE_NAME};                                                 \
     using Arguments = DEPENDENCIES;                                                                  \
     using arguments_t = ArgumentRefManager<Arguments>;                                               \
-    arguments_t arguments;                                                                           \
     decltype(make_handler(FUNCTION_NAME)) handler {FUNCTION_NAME};                                   \
-    template<typename... T>                                                                          \
-    EXPOSED_TYPE_NAME(T&... args) : arguments(std::forward_as_tuple(args...))                        \
-    {}                                                                                               \
     void set_opts(                                                                                   \
       const dim3& param_num_blocks,                                                                  \
       const dim3& param_num_threads,                                                                 \

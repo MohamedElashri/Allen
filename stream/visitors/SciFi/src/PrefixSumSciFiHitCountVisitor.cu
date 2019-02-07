@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<prefix_sum_scifi_hits_t>(
-  prefix_sum_scifi_hits_t::arguments_t& arguments,
+  prefix_sum_scifi_hits_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)

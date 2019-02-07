@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<scifi_calculate_cluster_count_v4_t>(
-  scifi_calculate_cluster_count_v4_t::arguments_t& arguments,
+  scifi_calculate_cluster_count_v4_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)

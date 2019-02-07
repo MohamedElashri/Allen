@@ -25,10 +25,6 @@
     decltype(make_handler(prefix_sum_scan)) handler_scan {prefix_sum_scan};                          \
     using Arguments = DEPENDENCIES;                                                                  \
     using arguments_t = ArgumentRefManager<Arguments>;                                               \
-    arguments_t arguments;                                                                           \
-    template<typename... T>                                                                          \
-    EXPOSED_TYPE_NAME(T&... args) : arguments(std::forward_as_tuple(args...))                        \
-    {}                                                                                               \
     void set_size(size_t param_array_size)                                                           \
     {                                                                                                \
       array_size = param_array_size;                                                                 \

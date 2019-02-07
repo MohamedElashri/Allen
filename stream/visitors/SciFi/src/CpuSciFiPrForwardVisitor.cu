@@ -4,7 +4,7 @@
 
 template<> 
 void SequenceVisitor::set_arguments_size<cpu_scifi_pr_forward_t>(
-  cpu_scifi_pr_forward_t::arguments_t& arguments,
+  cpu_scifi_pr_forward_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)

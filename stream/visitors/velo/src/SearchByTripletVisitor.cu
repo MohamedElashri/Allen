@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<velo_search_by_triplet_t>(
-  velo_search_by_triplet_t::arguments_t& arguments,
+  velo_search_by_triplet_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)

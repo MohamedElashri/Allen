@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<scifi_pre_decode_v4_t>(
-  scifi_pre_decode_v4_t::arguments_t& arguments,
+  scifi_pre_decode_v4_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)

@@ -14,7 +14,7 @@ struct SequenceVisitor {
    */
   template<typename T>
   void set_arguments_size(
-    typename T::arguments_t& arguments,
+    typename T::arguments_t arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     const HostBuffers& host_buffers);
@@ -53,7 +53,7 @@ struct SequenceVisitor {
 #define DEFINE_EMPTY_SET_ARGUMENTS_SIZE(_TYPE) \
   template<>\
   void SequenceVisitor::set_arguments_size<_TYPE>(\
-    typename _TYPE::arguments_t&,\
+    typename _TYPE::arguments_t,\
     const RuntimeOptions&,\
     const Constants&,\
     const HostBuffers&) {}

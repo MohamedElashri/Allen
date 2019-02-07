@@ -241,14 +241,16 @@ struct ProduceSingleArgument {
 /**
  * @brief Produces a list of argument references.
  */
-template<typename ArgumentsTuple, typename Algorithm, typename Arguments>
-struct ProduceAlgorithmHelper;
+template<typename ArgumentsTuple, typename ArgumentRefManager, typename Arguments>
+struct ProduceArgumentsTupleHelper;
 
-template<typename ArgumentsTuple, typename Algorithm, typename... Arguments>
-struct ProduceAlgorithmHelper<ArgumentsTuple, Algorithm, std::tuple<Arguments...>> {
-  constexpr static Algorithm produce(ArgumentsTuple& arguments_tuple) {
-    return Algorithm{
-      ProduceSingleArgument<ArgumentsTuple, Arguments>::produce(arguments_tuple)...
+template<typename ArgumentsTuple, typename ArgumentRefManager, typename... Arguments>
+struct ProduceArgumentsTupleHelper<ArgumentsTuple, ArgumentRefManager, std::tuple<Arguments...>> {
+  constexpr static ArgumentRefManager produce(ArgumentsTuple& arguments_tuple) {
+    return ArgumentRefManager{
+      std::forward_as_tuple(
+        ProduceSingleArgument<ArgumentsTuple, Arguments>::produce(arguments_tuple)...
+      )
     };
   }
 };
@@ -257,24 +259,13 @@ struct ProduceAlgorithmHelper<ArgumentsTuple, Algorithm, std::tuple<Arguments...
  * @brief Produces a single algorithm with references to arguments.
  */
 template<typename ArgumentsTuple, typename Algorithm>
-struct ProduceAlgorithm {
-  constexpr static Algorithm produce(ArgumentsTuple& arguments_tuple) {
-    return ProduceAlgorithmHelper<ArgumentsTuple, Algorithm, typename Algorithm::Arguments>::produce(arguments_tuple);
-  }
-};
-
-/**
- * @brief Produces a sequence tuple constructor with references to arguments.
- */
-template<typename ArgumentsTuple, typename Algorithms>
-struct ProduceSequence;
-
-template<typename ArgumentsTuple, typename... Algorithms>
-struct ProduceSequence<ArgumentsTuple, std::tuple<Algorithms...>> {
-  constexpr static std::tuple<Algorithms...> produce(ArgumentsTuple& arguments_tuple) {
-    return std::tuple<Algorithms...>{
-      ProduceAlgorithm<ArgumentsTuple, Algorithms>::produce(arguments_tuple)...
-    };
+struct ProduceArgumentsTuple {
+  constexpr static typename Algorithm::arguments_t produce(ArgumentsTuple& arguments_tuple) {
+    return ProduceArgumentsTupleHelper<
+      ArgumentsTuple,
+      typename Algorithm::arguments_t,
+      typename Algorithm::Arguments
+    >::produce(arguments_tuple);
   }
 };
 
@@ -321,9 +312,18 @@ struct RunSequenceTupleImpl<Scheduler, Functor, Tuple, std::tuple<SetSizeArgumen
     using t = typename std::tuple_element<I, Tuple>::type;
 
     // Sets the arguments sizes, setups the scheduler and visits the algorithm.
-    functor.template set_arguments_size<t>(std::get<I>(tuple).arguments, std::forward<SetSizeArguments>(set_size_arguments)...);
+    functor.template set_arguments_size<t>(
+      ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(scheduler.argument_manager.arguments_tuple),
+      std::forward<SetSizeArguments>(set_size_arguments)...
+    );
+
     scheduler.template setup<I, t>();
-    functor.template visit<t>(std::get<I>(tuple), std::get<I>(tuple).arguments, std::forward<VisitArguments>(visit_arguments)...);
+    
+    functor.template visit<t>(
+      std::get<I>(tuple),
+      ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(scheduler.argument_manager.arguments_tuple),
+      std::forward<VisitArguments>(visit_arguments)...
+    );
 
     RunSequenceTupleImpl<
       Scheduler,

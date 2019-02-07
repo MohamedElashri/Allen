@@ -24,9 +24,7 @@ struct Scheduler {
   bool do_print = false;
 
   // Configured sequence
-  ConfiguredSequence sequence_tuple {
-    Sch::ProduceSequence<arguments_tuple_t, ConfiguredSequence>::produce(argument_manager.arguments_tuple)
-  };
+  ConfiguredSequence sequence_tuple;
   
   Scheduler() = default;
   Scheduler(const Scheduler&) = delete;
