@@ -31,6 +31,8 @@ void SequenceVisitor::visit<cpu_scifi_pr_forward_t>(
   // ATTENTION: when using SciFi raw bank version 5, 
   // need: 2*host_buffers.host_number_of_selected_events[0]*...
   host_buffers.host_velo_states.resize(arguments.size<dev_velo_states>());
+  host_buffers.host_scifi_hits.resize(arguments.size<dev_scifi_hits>());
+  host_buffers.host_scifi_hit_count.resize(arguments.size<dev_scifi_hit_count>());
 
   cudaCheck(cudaMemcpy(
     host_buffers.host_scifi_hits.data(),
