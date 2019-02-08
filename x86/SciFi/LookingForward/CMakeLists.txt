@@ -14,18 +14,18 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
-file(GLOB x86MomentumForward "src/*cpp" )
+file(GLOB x86LookingForward "src/*cpp" )
 
-add_library(x86MomentumForward STATIC
-  ${x86MomentumForward}
+add_library(x86LookingForward STATIC
+	${x86LookingForward}
 )
-set_property(TARGET x86MomentumForward PROPERTY
+set_property(TARGET x86LookingForward PROPERTY
              CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
 if ( ROOT_FOUND )
-  target_compile_definitions(x86MomentumForward PUBLIC WITH_ROOT)
-  target_link_libraries(x86MomentumForward PRIVATE
+	target_compile_definitions(x86LookingForward PUBLIC WITH_ROOT)
+	target_link_libraries(x86LookingForward PRIVATE
     ${ROOT_LIBRARIES}
   )
-  target_include_directories(x86MomentumForward BEFORE PRIVATE ${ROOT_INCLUDE_DIRS})
+  target_include_directories(x86LookingForward BEFORE PRIVATE ${ROOT_INCLUDE_DIRS})
 endif()

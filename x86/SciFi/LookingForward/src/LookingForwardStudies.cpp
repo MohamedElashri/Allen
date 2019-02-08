@@ -1,5 +1,7 @@
 #include "LookingForwardStudies.h"
 
+// #define WITH_ROOT 1
+
 #ifdef WITH_ROOT
 #include "TH1D.h"
 #include "TFile.h"
@@ -7,7 +9,7 @@
 #endif
 
 
-int momentum_forward_studies(
+int looking_forward_studies(
   const uint* host_scifi_hits,
   const uint* host_scifi_hit_count,
   const char* host_scifi_geometry,
@@ -27,16 +29,6 @@ int momentum_forward_studies(
   const uint number_of_events
 ) {
 
-  // initialize parameters
-  //char name_coef_T1[200] = "../input/test_UT_T1.tab";
-  char name_coef_T1[200] = "../input/UT_T1_shift_50_tilt_new.tab";
-  debug_cout << "Reading coefs for extrapolation to T1: " << name_coef_T1 << std::endl;
-  SciFi::Parameters scifi_params_T1 = SciFi::Parameters(name_coef_T1);
-  
-  char name_coef_T3[200] = "../input/test_UT_T3.tab";
-  debug_cout << "Reading coefs for extrapolation to T3: " << name_coef_T3 << std::endl;
-  SciFi::Parameters scifi_params_T3 = SciFi::Parameters(name_coef_T3);
-
 #ifdef WITH_ROOT
   // Histograms only for checking and debugging
   TFile *f = new TFile("../output/scifi.root", "RECREATE");
@@ -52,16 +44,16 @@ int momentum_forward_studies(
   float qop;
   int n_tracks;
   float state_x, state_y, state_z, state_tx, state_ty;
-  float xf_t1, yf_t1, txf_t1, tyf_t1, der_xf_qop_t1, qop_update_t1;
-  float res_x_0_t1, res_x_3_t1, dx_t1, x_extrap_t1, true_x_t1, res_x_other_t1, true_z_t1;
-  float true_x_t1_other;
+//  float xf_t1, yf_t1, txf_t1, tyf_t1, der_xf_qop_t1, qop_update_t1;
+//  float res_x_0_t1, res_x_3_t1, dx_t1, x_extrap_t1, true_x_t1, res_x_other_t1, true_z_t1;
+//  float true_x_t1_other;
   float UT_x, UT_y, UT_z, UT_tx, UT_ty, ut_qop;
   float velo_x_extrap, velo_tx;
-  int n_hits_in_window_0_t1 = 0, n_hits_in_window_0_t1_true_p = 0, n_hits_in_window_3_t1 = 0;
-  int n_hits_in_zone_t1 = 0, n_hits_in_window_other_t1 = 0, n_hits_in_window_other_t1_tx = 0;
-  float p_diff_before_update_t1, p_diff_after_update_t1, p_diff_before_after_t1, p_resolution_after_update_t1;
-  float qop_diff_before_update_t1, qop_diff_after_update_t1, qop_diff_before_after_t1, qop_resolution_after_update_t1;
-  float tx_x_hits_t1, res_x_u_t1, res_x_v_t1, res_x_u_slope_t1, res_x_v_slope_t1;
+//  int n_hits_in_window_0_t1 = 0, n_hits_in_window_0_t1_true_p = 0, n_hits_in_window_3_t1 = 0;
+//  int n_hits_in_zone_t1 = 0, n_hits_in_window_other_t1 = 0, n_hits_in_window_other_t1_tx = 0;
+//  float p_diff_before_update_t1, p_diff_after_update_t1, p_diff_before_after_t1, p_resolution_after_update_t1;
+//  float qop_diff_before_update_t1, qop_diff_after_update_t1, qop_diff_before_after_t1, qop_resolution_after_update_t1;
+//  float tx_x_hits_t1, res_x_u_t1, res_x_v_t1, res_x_u_slope_t1, res_x_v_slope_t1;
   float res_x_T2_0, res_x_T2_3, res_x_T3_0, res_x_T3_3;
 
   float xf_t3, yf_t3, txf_t3, tyf_t3, der_xf_qop_t3, qop_update_t3;
@@ -87,46 +79,46 @@ int momentum_forward_studies(
   t_scifi_hits->Branch("yMin", &yMin);
   t_scifi_hits->Branch("yMax", &yMax);
 
-  t_extrap_T1->Branch("xf", &xf_t1);
-  t_extrap_T1->Branch("yf", &yf_t1);
-  t_extrap_T1->Branch("txf", &txf_t1);
-  t_extrap_T1->Branch("tyf", &tyf_t1);
-  t_extrap_T1->Branch("der_xf_qop", &der_xf_qop_t1);
-  t_extrap_T1->Branch("res_x_0", &res_x_0_t1);
-  t_extrap_T1->Branch("res_x_other", &res_x_other_t1);
-  t_extrap_T1->Branch("true_x", &true_x_t1);
-  t_extrap_T1->Branch("true_z", &true_z_t1);
-  t_extrap_T1->Branch("x_extrap", &x_extrap_t1);
-  t_extrap_T1->Branch("dx", &dx_t1);
-  t_extrap_T1->Branch("qop_update", &qop_update_t1);
-  t_extrap_T1->Branch("p_diff_before_update", &p_diff_before_update_t1);
-  t_extrap_T1->Branch("p_diff_after_update", &p_diff_after_update_t1);
-  t_extrap_T1->Branch("p_resolution_after_update", &p_resolution_after_update_t1);
-  t_extrap_T1->Branch("qop_diff_before_update", &qop_diff_before_update_t1);
-  t_extrap_T1->Branch("qop_diff_after_update", &qop_diff_after_update_t1);
-  t_extrap_T1->Branch("qop_resolution_after_update", &qop_resolution_after_update_t1);
-  t_extrap_T1->Branch("n_hits_in_window_0", &n_hits_in_window_0_t1);
-  t_extrap_T1->Branch("n_hits_in_zone", &n_hits_in_zone_t1);
-  t_extrap_T1->Branch("isLong", &isLong);
-  t_extrap_T1->Branch("p_true", &p_true);
-  t_extrap_T1->Branch("match", &match_t1);
-  t_extrap_T1->Branch("match_other", &match_t1_other);
-  t_extrap_T1->Branch("ut_qop", &ut_qop);
-  t_extrap_T1->Branch("tx_x_hits", &tx_x_hits_t1);
-  t_extrap_T1->Branch("res_x_u", &res_x_u_t1);
-  t_extrap_T1->Branch("res_x_u_slope", &res_x_u_slope_t1);
-  t_extrap_T1->Branch("match_u", &match_t1_u);
-  t_extrap_T1->Branch("res_x_v", &res_x_v_t1);
-  t_extrap_T1->Branch("res_x_v_slope", &res_x_v_slope_t1);
-  t_extrap_T1->Branch("match_v", &match_t1_v);
-  t_extrap_T1->Branch("match_T2_0", &match_T2_0);
-  t_extrap_T1->Branch("match_T2_3", &match_T2_3);
-  t_extrap_T1->Branch("res_x_T2_0", &res_x_T2_0);
-  t_extrap_T1->Branch("res_x_T2_3", &res_x_T2_3);
-  t_extrap_T1->Branch("match_T3_0", &match_T3_0);
-  t_extrap_T1->Branch("match_T3_3", &match_T3_3);
-  t_extrap_T1->Branch("res_x_T3_0", &res_x_T3_0);
-  t_extrap_T1->Branch("res_x_T3_3", &res_x_T3_3);
+//  t_extrap_T1->Branch("xf", &xf_t1);
+//  t_extrap_T1->Branch("yf", &yf_t1);
+//  t_extrap_T1->Branch("txf", &txf_t1);
+//  t_extrap_T1->Branch("tyf", &tyf_t1);
+//  t_extrap_T1->Branch("der_xf_qop", &der_xf_qop_t1);
+//  t_extrap_T1->Branch("res_x_0", &res_x_0_t1);
+//  t_extrap_T1->Branch("res_x_other", &res_x_other_t1);
+//  t_extrap_T1->Branch("true_x", &true_x_t1);
+//  t_extrap_T1->Branch("true_z", &true_z_t1);
+//  t_extrap_T1->Branch("x_extrap", &x_extrap_t1);
+//  t_extrap_T1->Branch("dx", &dx_t1);
+//  t_extrap_T1->Branch("qop_update", &qop_update_t1);
+//  t_extrap_T1->Branch("p_diff_before_update", &p_diff_before_update_t1);
+//  t_extrap_T1->Branch("p_diff_after_update", &p_diff_after_update_t1);
+//  t_extrap_T1->Branch("p_resolution_after_update", &p_resolution_after_update_t1);
+//  t_extrap_T1->Branch("qop_diff_before_update", &qop_diff_before_update_t1);
+//  t_extrap_T1->Branch("qop_diff_after_update", &qop_diff_after_update_t1);
+//  t_extrap_T1->Branch("qop_resolution_after_update", &qop_resolution_after_update_t1);
+//  t_extrap_T1->Branch("n_hits_in_window_0", &n_hits_in_window_0_t1);
+//  t_extrap_T1->Branch("n_hits_in_zone", &n_hits_in_zone_t1);
+//  t_extrap_T1->Branch("isLong", &isLong);
+//  t_extrap_T1->Branch("p_true", &p_true);
+//  t_extrap_T1->Branch("match", &match_t1);
+//  t_extrap_T1->Branch("match_other", &match_t1_other);
+//  t_extrap_T1->Branch("ut_qop", &ut_qop);
+//  t_extrap_T1->Branch("tx_x_hits", &tx_x_hits_t1);
+//  t_extrap_T1->Branch("res_x_u", &res_x_u_t1);
+//  t_extrap_T1->Branch("res_x_u_slope", &res_x_u_slope_t1);
+//  t_extrap_T1->Branch("match_u", &match_t1_u);
+//  t_extrap_T1->Branch("res_x_v", &res_x_v_t1);
+//  t_extrap_T1->Branch("res_x_v_slope", &res_x_v_slope_t1);
+//  t_extrap_T1->Branch("match_v", &match_t1_v);
+//  t_extrap_T1->Branch("match_T2_0", &match_T2_0);
+//  t_extrap_T1->Branch("match_T2_3", &match_T2_3);
+//  t_extrap_T1->Branch("res_x_T2_0", &res_x_T2_0);
+//  t_extrap_T1->Branch("res_x_T2_3", &res_x_T2_3);
+//  t_extrap_T1->Branch("match_T3_0", &match_T3_0);
+//  t_extrap_T1->Branch("match_T3_3", &match_T3_3);
+//  t_extrap_T1->Branch("res_x_T3_0", &res_x_T3_0);
+//  t_extrap_T1->Branch("res_x_T3_3", &res_x_T3_3);
 
   
   t_extrap_T3->Branch("xf", &xf_t3);
@@ -168,8 +160,8 @@ int momentum_forward_studies(
   t_ut_tracks->Branch("isLong", &isLong);
   t_ut_tracks->Branch("p_true", &p_true);
 
-  t_other_x_layer_t1->Branch("n_hits_in_window_other", &n_hits_in_window_other_t1);
-  t_other_x_layer_t1->Branch("n_hits_in_window_other_tx", &n_hits_in_window_other_t1_tx);
+//  t_other_x_layer_t1->Branch("n_hits_in_window_other", &n_hits_in_window_other_t1);
+//  t_other_x_layer_t1->Branch("n_hits_in_window_other_tx", &n_hits_in_window_other_t1_tx);
 
   t_other_x_layer_t3->Branch("n_hits_in_window_other", &n_hits_in_window_other_t3);
 #endif
@@ -178,9 +170,6 @@ int momentum_forward_studies(
   int n_extrap_T1 = 0;
   int n_extrap_T3 = 0;
   
-  ofstream output_pierre;
-  output_pierre.open("output_pierre.txt"); 
-
   for ( uint i_event = 0; i_event < number_of_events; ++i_event ) {
 
     // Velo consolidated types
@@ -262,15 +251,15 @@ int momentum_forward_studies(
       state_UT.y = y_at_z(velo_state, ut_z);
       
       // extrapolate state to last UT plane (needed as input for parametrization)
-      MiniState UT_state_from_velo = state_at_z(velo_state, SciFi::MomentumForward::z_last_UT_plane);
-      MiniState UT_state = state_at_z(state_UT, SciFi::MomentumForward::z_last_UT_plane);
+      MiniState UT_state_from_velo = state_at_z(velo_state, SciFi::LookingForward::z_last_UT_plane);
+      MiniState UT_state = state_at_z(state_UT, SciFi::LookingForward::z_last_UT_plane);
            
       t1_extrap_worked = false;
       t3_extrap_worked = false;
       isLong = false;
       match_t1 = false;
       match_t3 = false;
-      n_hits_in_window_0_t1 = 0;
+      // n_hits_in_window_0_t1 = 0;
       n_hits_in_window_0_t3 = 0;
       match_T2_0 = false;
       match_T2_3 = false;
@@ -291,35 +280,27 @@ int momentum_forward_studies(
       ut_qop = qop;
 #endif
 
-      // propagation to first layer of T1
-      int ret = extrap(
-        UT_state.x, UT_state.y,
-        UT_state.tx, UT_state.ty,
-        qop, scifi_params_T1,
-        xf_t1, yf_t1, txf_t1, tyf_t1, der_xf_qop_t1);
-      
-      if ( ret ) {
-        n_extrap_T1++;
-        t1_extrap_worked = true;
-        
-        // access hits in first layer of T1, layer 0 = zone 0 (y < 0) + zone 1 (y > 0)
-        int x_zone_offset, n_hits;
-        get_offset_and_n_hits_for_layer(0, scifi_hit_count, yf_t1, n_hits, x_zone_offset);
+      // propagation to first layer of T3
+      MiniState SciFi_state_T3;
+      SciFi_state_T3 = propagate_state_from_velo(UT_state, qop, 8);
+      // access hits in first layer of T1, layer 0 = zone 0 (y < 0) + zone 1 (y > 0)
+      int x_zone_offset, n_hits;
+      get_offset_and_n_hits_for_layer(16, scifi_hit_count, SciFi_state_T3.y, n_hits, x_zone_offset);
 
-        // access hits in last layer of T1, layer 3 = zone 6 (y < 0) + zone 7 (y > 0)
-        int n_hits_other, x_zone_offset_other;
-        get_offset_and_n_hits_for_layer(6, scifi_hit_count, yf_t1, n_hits_other, x_zone_offset_other);
+      // access hits in last layer of T1, layer 3 = zone 6 (y < 0) + zone 7 (y > 0)
+      int n_hits_other, x_zone_offset_other;
+      get_offset_and_n_hits_for_layer(22, scifi_hit_count, SciFi_state_T3.y, n_hits_other, x_zone_offset_other);
 
-        // access hits in u-layer of T1, layer 1 = zone 2 (y < 0) + zone 3 (y > 0)
-        int n_hits_u, x_zone_offset_u;
-        get_offset_and_n_hits_for_layer(2, scifi_hit_count, yf_t1, n_hits_u, x_zone_offset_u);
+      // access hits in u-layer of T1, layer 1 = zone 2 (y < 0) + zone 3 (y > 0)
+      int n_hits_u, x_zone_offset_u;
+      get_offset_and_n_hits_for_layer(18, scifi_hit_count, SciFi_state_T3.y, n_hits_u, x_zone_offset_u);
 
-        // access hits in v-layer of T1, layer 1 = zone 4 (y < 0) + zone 5 (y > 0)
-        int n_hits_v, x_zone_offset_v;
-        get_offset_and_n_hits_for_layer(4, scifi_hit_count, yf_t1, n_hits_v, x_zone_offset_v);
-        
-        // find x hit(s) in layer 0 that 
-        // were truth matched to the veloUT track
+      // access hits in v-layer of T1, layer 1 = zone 4 (y < 0) + zone 5 (y > 0)
+      int n_hits_v, x_zone_offset_v;
+      get_offset_and_n_hits_for_layer(20, scifi_hit_count, SciFi_state_T3.y, n_hits_v, x_zone_offset_v);
+
+      // find x hit(s) in layer 0 that
+      // were truth matched to the veloUT track
         if ( true_scifi_ids.size() > 0 ) {
           isLong = true;
           match_t1 = false;
@@ -328,318 +309,17 @@ int momentum_forward_studies(
               const int hit_index = x_zone_offset + i_hit;
               const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
               if ( true_id == lhcbid ) {
-                res_x_0_t1 = xf_t1 - scifi_hits.x0[hit_index];
-                true_x_t1 = scifi_hits.x0[hit_index];
-                true_z_t1 = scifi_hits.z0[hit_index];
-                x_extrap_t1 = xf_t1 + der_xf_qop_t1 * (xf_t1 - true_x_t1);
-                match_t1 = true;
-                break;
-              }
-            }
-            if ( match_t1 ) break;
-          }
-          
-          // Update momentum estimate with true x hit position
-          // caution: xf, yf etc. are changed in the qop update step
-          // -> they are not the same as above when checking the resolution (res_x_0_t1)
-          if ( match_t1 ) {
-
-            if ( i_event < 100 ) {
-              output_pierre << qop << "\t" << UT_x << "\t" << UT_tx << "\t" << UT_y <<  "\t" << UT_ty << "\t" << UT_z  << "\t" << 1./p_true << "\t" << true_x_t1 << endl;
-            }
-
-            int ret_qop = update_qop_estimate(
-              UT_state, qop,
-              true_x_t1, scifi_params_T1, 
-              xf_t1, yf_t1, txf_t1, tyf_t1, der_xf_qop_t1, qop_update_t1);
-            
-            if ( ret_qop ) {
-              // check momentum resolution
-              p_diff_after_update_t1 = std::abs(p_true) - std::abs( 1.f/qop_update_t1 );
-              p_diff_before_update_t1 = std::abs(p_true) - std::abs( 1.f/qop );
-              p_resolution_after_update_t1 = (std::abs(p_true) - std::abs( 1.f/qop_update_t1 )) / std::abs(p_true);
-              qop_diff_after_update_t1 = 1./p_true - qop_update_t1;
-              qop_diff_before_update_t1 = 1./p_true - qop;
-              qop_diff_before_after_t1 = qop - qop_update_t1;
-              qop_resolution_after_update_t1 = (1./p_true - qop_update_t1) * p_true;
-            }
-
-            // Distance in x to true hit in other x layer of station
-            match_t1_other = false;
-            for ( const auto true_id : true_scifi_ids ) {
-              for ( int i_hit = 0; i_hit < n_hits_other; ++i_hit ) { 
-                const int hit_index = x_zone_offset_other + i_hit;
-                const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
-                if ( true_id == lhcbid ) {
-                  true_x_t1_other = scifi_hits.x0[hit_index];
-                  res_x_other_t1 = true_x_t1 - true_x_t1_other;
-                  match_t1_other = true;
-                  tx_x_hits_t1 = (true_x_t1_other - true_x_t1) / SciFi::MomentumForward::dz_x_layers; // dz of x-layers within one station = 210 mm
-                  break;
-                }
-              }
-              if ( match_t1_other ) break;
-            }
-            
-            // Check x-resolution in x-layers of T2
-            // using a straight line to extrapolate
-            if ( match_t1 && match_t1_other ) {
-              // first x layer of T2
-              const float x_pred_T2_0 = true_x_t1 + tx_x_hits_t1 * SciFi::MomentumForward::dz_x_T1_0_T2_0;
-              // second x layer of T2
-             const float x_pred_T2_3 = true_x_t1 + tx_x_hits_t1 * SciFi::MomentumForward::dz_x_T1_0_T2_3; 
-             // access hits in first layer of T2, layer 4 = zone 8 (y < 0) + zone 9 (y > 0)
-             int zone_offset_T2, n_hits_T2;
-             get_offset_and_n_hits_for_layer(8, scifi_hit_count, yf_t1, n_hits_T2, zone_offset_T2);
-             for ( const auto true_id : true_scifi_ids ) {
-               for ( int i_hit = 0; i_hit < n_hits_T2; ++i_hit ) { 
-                 const int hit_index = zone_offset_T2 + i_hit;
-                 const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
-                 if ( true_id == lhcbid ) {
-                   float x_hit = scifi_hits.x0[hit_index];
-                   res_x_T2_0 = x_hit = x_pred_T2_0;
-                   match_T2_0 = true;
-                 }
-               }
-             }
-             // access hits in last layer of T2, layer 7 = zone 14 (y < 0) + zone 15 (y > 0)
-             get_offset_and_n_hits_for_layer(14, scifi_hit_count, yf_t1, n_hits_T2, zone_offset_T2);
-             for ( const auto true_id : true_scifi_ids ) {
-               for ( int i_hit = 0; i_hit < n_hits_T2; ++i_hit ) { 
-                 const int hit_index = zone_offset_T2 + i_hit;
-                 const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
-                 if ( true_id == lhcbid ) {
-                   float x_hit = scifi_hits.x0[hit_index];
-                   res_x_T2_3 = x_hit = x_pred_T2_3;
-                   match_T2_3 = true;
-                 }
-               }
-             }
-             
-             // first x layer of T3
-             const float x_pred_T3_0 = true_x_t1 + tx_x_hits_t1 * SciFi::MomentumForward::dz_x_T1_0_T3_0;
-             // second x layer of T3
-             const float x_pred_T3_3 = true_x_t1 + tx_x_hits_t1 * SciFi::MomentumForward::dz_x_T1_0_T3_3; 
-             // access hits in first layer of T3, layer 8 = zone 16 (y < 0) + zone 17 (y > 0)
-             int zone_offset_T3, n_hits_T3;
-             get_offset_and_n_hits_for_layer(16, scifi_hit_count, yf_t1, n_hits_T3, zone_offset_T3);
-             for ( const auto true_id : true_scifi_ids ) {
-               for ( int i_hit = 0; i_hit < n_hits_T3; ++i_hit ) { 
-                 const int hit_index = zone_offset_T3 + i_hit;
-                 const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
-                 if ( true_id == lhcbid ) {
-                   float x_hit = scifi_hits.x0[hit_index];
-                   res_x_T3_0 = x_hit = x_pred_T3_0;
-                   match_T3_0 = true;
-                 }
-               }
-             }
-             // access hits in last layer of T3, layer 11 = zone 22 (y < 0) + zone 23 (y > 0)
-             get_offset_and_n_hits_for_layer(22, scifi_hit_count, yf_t1, n_hits_T3, zone_offset_T3);
-             for ( const auto true_id : true_scifi_ids ) {
-               for ( int i_hit = 0; i_hit < n_hits_T3; ++i_hit ) { 
-                 const int hit_index = zone_offset_T3 + i_hit;
-                 const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
-                 if ( true_id == lhcbid ) {
-                   float x_hit = scifi_hits.x0[hit_index];
-                   res_x_T3_3 = x_hit = x_pred_T3_3;
-                   match_T3_3 = true;
-                 }
-               }
-             }
-            }
-          
-            // Check y-resolution in u-layer using x(y=0) values
-            if ( match_t1_other ) {
-              float x_at_u = true_x_t1 + tx_x_hits_t1 * SciFi::MomentumForward::dz_x_u_layers;
-              match_t1_u = false;
-              for ( const auto true_id : true_scifi_ids ) {
-                for ( int i_hit = 0; i_hit < n_hits_u; ++i_hit ) { 
-                  const int hit_index = x_zone_offset_u + i_hit;
-                  const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
-                  if ( true_id == lhcbid ) {
-                    float x_hit = scifi_hits.x0[hit_index] + yf_t1 * scifi_hits.dxdy(hit_index);
-                    res_x_u_t1 = x_hit - xf_t1;
-                    res_x_u_slope_t1 = x_hit - x_at_u;
-                    match_t1_u = true;
-                    break;
-                  }
-                }
-                if ( match_t1_u ) break;
-              }
-            }
-            
-            // Check y-resolution in v-layer using x(y=0) values
-            if ( match_t1_other ) {
-              float x_at_v = true_x_t1 + tx_x_hits_t1 * SciFi::MomentumForward::dz_x_v_layers;
-              match_t1_v = false;
-              for ( const auto true_id : true_scifi_ids ) {
-                for ( int i_hit = 0; i_hit < n_hits_v; ++i_hit ) { 
-                  const int hit_index = x_zone_offset_v + i_hit;
-                  const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
-                  if ( true_id == lhcbid ) {
-                    float x_hit = scifi_hits.x0[hit_index] + yf_t1 * scifi_hits.dxdy(hit_index);
-                    res_x_v_t1 = x_hit - xf_t1;
-                    res_x_v_slope_t1 = x_hit - x_at_v;
-                    match_t1_v = true;
-                    break;
-                  }
-                }
-                if ( match_t1_v ) break;
-              }
-            }
-            
-          } // match in first layer of T1
-        
-        } // # of true SciFi IDs > 0
-        
-        // check combinatorics within search window in layer 0
-        float slope1, slope2;
-        if ( qop < 0 ) {
-          slope1 = SciFi::MomentumForward::x_diff_layer_qop_slope_a;
-          slope2 = SciFi::MomentumForward::x_diff_layer_qop_slope_b;
-        } else {
-          slope1 = -1.f * SciFi::MomentumForward::x_diff_layer_qop_slope_b;
-          slope2 = -1.f * SciFi::MomentumForward::x_diff_layer_qop_slope_a;
-        }
-                        
-        for ( int i_hit = 0; i_hit < n_hits; ++i_hit ) { 
-          const int hit_index = x_zone_offset + i_hit;
-          const float x = scifi_hits.x0[hit_index];
-          if ( fabsf(x-xf_t1) < SciFi::MomentumForward::dx_extrap_qop_offset_T1 + SciFi::MomentumForward::dx_extrap_qop_slope_T1 * fabsf(qop) ) {
-            n_hits_in_window_0_t1++;
-            // check combinatorics in other x-layer of last station
-            n_hits_in_window_other_t1 = 0;
-            n_hits_in_window_other_t1_tx = 0;
-            for ( int i_hit_other = 0; i_hit_other < n_hits_other; ++i_hit_other ) { 
-              const int hit_index_other = x_zone_offset_other + i_hit_other;
-              const float x_other = scifi_hits.x0[hit_index_other];
-              if ( fabsf(x-x_other) < SciFi::MomentumForward::x_diff_layer_qop_offset - slope1 * qop 
-                   && fabsf(x-x_other) > -1.f * SciFi::MomentumForward::x_diff_layer_qop_offset - slope2 * qop) {
-                n_hits_in_window_other_t1++;
-                
-                // cut on tx 
-                float tx_hits = (x_other-x)/SciFi::MomentumForward::dz_x_layers;
-                if ( std::abs(tx_hits - txf_t1) < SciFi::MomentumForward::max_tx_diff)
-                  n_hits_in_window_other_t1_tx++;
-              }
-            }
-            t_other_x_layer_t1->Fill();
-          }
-        }
-        n_hits_in_zone_t1 = n_hits;
-      
-        t_extrap_T1->Fill();
-        
-      } // extrapolation to T1 worked
-      
-      
-      // extrapolate to last layer of T3 (layer 11)
-      ret = extrap(
-        UT_state.x, UT_state.y,
-        UT_state.tx, UT_state.ty,
-        qop, scifi_params_T3,
-        xf_t3, yf_t3, txf_t3, tyf_t3, der_xf_qop_t3);
-      
-      if ( ret ) {
-        n_extrap_T3++;
-        t3_extrap_worked = true;
-        
-        
-        // Access hits in last layer of T3: layer 11 = zone 22 (y < 0) + zone 23 (y > 0)
-        int x_zone_offset, n_hits;
-        get_offset_and_n_hits_for_layer(22, scifi_hit_count, yf_t3, n_hits, x_zone_offset);
-        
-        // Access hits in first layer of T3, layer 8 = zone 16 (y < 0) + zone 17 (y > 0)
-        int x_zone_offset_other, n_hits_other;
-        get_offset_and_n_hits_for_layer(16, scifi_hit_count, yf_t3, n_hits_other, x_zone_offset_other);
-        // find x hit(s) in layer 11 that 
-        // were truth matched to the veloUT track
-        if ( true_scifi_ids.size() > 0 ) {
-          match_t3 = false;
-          for ( const auto true_id : true_scifi_ids ) {
-            for ( int i_hit = 0; i_hit < n_hits; ++i_hit ) { 
-              const int hit_index = x_zone_offset + i_hit;
-              const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
-              if ( true_id == lhcbid ) {
-                res_x_0_t3 = xf_t3 - scifi_hits.x0[hit_index];
+                res_x_0_t3 = SciFi_state_T3.x - scifi_hits.x0[hit_index];
                 true_x_t3 = scifi_hits.x0[hit_index];
-                x_extrap_t3 = xf_t3 + der_xf_qop_t3 * (xf_t3 - true_x_t3);
+                x_extrap_t3 = SciFi_state_T3.x + qop * (SciFi_state_T3.x - true_x_t3);
                 match_t3 = true;
+                t_extrap_T3->Fill();
                 break;
               }
             }
-            if ( match_t3 ) break;
-          }
-        
-          // Update momentum estimate with true x hit position
-          if ( match_t3 ) {
-            int ret_qop = update_qop_estimate(
-              UT_state, qop,
-              true_x_t3, scifi_params_T3, 
-              xf_t3, yf_t3, txf_t3, tyf_t3, der_xf_qop_t3, qop_update_t3);
-            
-            if ( ret_qop ) {
-              // check momentum resolution
-              p_diff_after_update_t3 = std::abs(p_true) - std::abs( 1.f/qop_update_t3 );
-              p_diff_before_update_t3 = std::abs(p_true) - std::abs( 1.f/qop );
-              p_resolution_after_update_t3 = (std::abs(p_true) - std::abs( 1.f/qop_update_t3 )) / std::abs(p_true);
-              qop_diff_after_update_t3 = 1./p_true - qop_update_t3;
-              qop_diff_before_update_t3 = 1./p_true - qop;
-              qop_resolution_after_update_t3 = (1./p_true - qop_update_t3) * p_true;
-            }
-            
-            // Distance in x to correct hit in other x layer of station
-            match_t3_other = false;
-            for ( const auto true_id : true_scifi_ids ) {
-              for ( int i_hit = 0; i_hit < n_hits_other; ++i_hit ) { 
-                const int hit_index = x_zone_offset_other + i_hit;
-                const uint32_t lhcbid = scifi_hits.LHCbID(hit_index);
-                if ( true_id == lhcbid ) {
-                  float true_x_t3_other = scifi_hits.x0[hit_index];
-                  res_x_other_t3 = true_x_t3 - true_x_t3_other;
-                  tx_x_hits_t3 = (true_x_t3_other - true_x_t3) / SciFi::MomentumForward::dz_x_layers; // dz of x-layers within one station = 210 mm
-                  match_t3_other = true;
-                  break;
-                }
-              }
-              if ( match_t3_other ) break;
-            }
+            if (match_t3) break;
           }
           
-        } // # of true SciFi IDs > 0
-        
-        // check combinatorics within search window in layer 11
-        float slope1, slope2;
-        if ( qop < 0 ) {
-          slope1 = -1.f * SciFi::MomentumForward::x_diff_layer_qop_slope_b;
-          slope2 = -1.f * SciFi::MomentumForward::x_diff_layer_qop_slope_a;
-        } else {
-          slope1 = SciFi::MomentumForward::x_diff_layer_qop_slope_a;
-          slope2 = SciFi::MomentumForward::x_diff_layer_qop_slope_b;
-        }
-        for ( int i_hit = 0; i_hit < n_hits; ++i_hit ) { 
-          const int hit_index = x_zone_offset + i_hit;
-          const float x = scifi_hits.x0[hit_index];
-          if ( fabsf(x-xf_t3) < SciFi::MomentumForward::dx_extrap_qop_offset_T3 + SciFi::MomentumForward::dx_extrap_qop_slope_T3 * fabsf(qop) ) {
-            n_hits_in_window_0_t3++;
-            // check combinatorics in other x-layer of last station
-            n_hits_in_window_other_t3 = 0;
-            for ( int i_hit_other = 0; i_hit_other < n_hits_other; ++i_hit_other ) { 
-              const int hit_index_other = x_zone_offset_other + i_hit_other;
-              const float x_other = scifi_hits.x0[hit_index_other];
-              if ( fabsf(x-x_other) < SciFi::MomentumForward::x_diff_layer_qop_offset + slope1 * qop 
-                   && fabsf(x-x_other) > -1.f * SciFi::MomentumForward::x_diff_layer_qop_offset + slope2 * qop) {
-                n_hits_in_window_other_t3++;
-              }
-            }
-            t_other_x_layer_t3->Fill();
-          }
-        }
-        n_hits_in_zone_t3 = n_hits;
-
-        t_extrap_T3->Fill();
-        
       } // extrapolation to T3 worked
 #ifdef WITH_ROOT
       t_ut_tracks->Fill();
@@ -651,11 +331,6 @@ int momentum_forward_studies(
   f->Write();
   f->Close();
 #endif
-
-  info_cout << "Extrapolation to T1 worked: " << float(n_extrap_T1) / n_veloUT_tracks << std::endl;
-  info_cout << "Extrapolation to T3 worked: " << float(n_extrap_T3) / n_veloUT_tracks << std::endl;
-
-  output_pierre.close();
 
   return 0;
 }

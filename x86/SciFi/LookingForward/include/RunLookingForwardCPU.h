@@ -20,15 +20,15 @@
 #include "SciFiDefinitions.cuh"
 #include "SciFiParametrization.h"
 
-#include "MomentumForwardUtils.h"
-#include "MomentumForwardConstants.h"
+#include "LookingForwardUtils.h"
+#include "LookingForwardConstants.h"
 
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
 
-int run_momentum_forward_CPU (
+int run_looking_forward_CPU (
   SciFi::TrackHits* host_scifi_tracks_events,
   int* host_scifi_n_tracks,
   const uint* host_scifi_hits,
@@ -47,7 +47,7 @@ int run_momentum_forward_CPU (
   const uint* host_ut_track_velo_indices,
   const uint number_of_events);
 
-CPU_ALGORITHM(run_momentum_forward_CPU, cpu_scifi_momentum_forward_t,
+CPU_ALGORITHM(run_looking_forward_CPU, cpu_scifi_looking_forward_t,
   ARGUMENTS(
     dev_scifi_tracks,
     dev_atomics_scifi,

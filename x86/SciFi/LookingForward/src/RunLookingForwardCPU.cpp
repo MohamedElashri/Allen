@@ -1,13 +1,12 @@
-#include "RunMomentumForwardCPU.h"
+#include "RunLookingForwardCPU.h"
 
-#include "TH1D.h"
 #ifdef WITH_ROOT
 #include "TH1D.h"
 #include "TFile.h"
 #include "TTree.h"
 #endif
 
-int run_momentum_forward_CPU  (
+int run_looking_forward_CPU  (
   SciFi::TrackHits* host_scifi_tracks,
   int* host_scifi_n_tracks,
   const uint* host_scifi_hits,

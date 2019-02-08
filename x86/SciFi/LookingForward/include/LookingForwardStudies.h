@@ -20,12 +20,10 @@
 #include "SciFiDefinitions.cuh"
 #include "SciFiParametrization.h"
 
-#include "MomentumForwardUtils.h"
-#include "MomentumForwardConstants.h"
+#include "LookingForwardUtils.h"
+#include "LookingForwardConstants.h"
 
-MiniState state_at_z(const MiniState state, const float z);
-
-int momentum_forward_studies (
+int looking_forward_studies (
   const uint* host_scifi_hits,
   const uint* host_scifi_hit_count,
   const char* host_scifi_geometry, 
