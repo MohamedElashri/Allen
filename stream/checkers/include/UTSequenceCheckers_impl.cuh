@@ -1,6 +1,6 @@
-#include "VeloUT.cuh"
 #include "MomentumForwardStudies.h"
 #include "LookingForwardStudies.h"
+#include "VeloUT.cuh"
 
 /**
  * @brief Specialization for any Velo reconstruction algorithm invoking
@@ -27,11 +27,8 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
     host_buffers.host_ut_qop,
     host_buffers.host_number_of_selected_events[0]);
 
-  std::vector< std::vector< float> > p_events;
-  host_buffers.scifi_ids_ut_tracks = checker_invoker.check<TrackCheckerVeloUT>(
-    start_event_offset, 
-    tracks,
-    p_events);
+  std::vector<std::vector<float>> p_events;
+  host_buffers.scifi_ids_ut_tracks = checker_invoker.check<TrackCheckerVeloUT>(start_event_offset, tracks, p_events);
 
   // Run MomentumForward on x86
    looking_forward_studies(
@@ -52,5 +49,4 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
      host_buffers.scifi_ids_ut_tracks,
      p_events,
      host_buffers.host_number_of_selected_events[0]);
-  
 }

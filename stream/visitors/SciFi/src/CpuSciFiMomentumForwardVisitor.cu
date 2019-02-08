@@ -32,6 +32,8 @@ void SequenceVisitor::visit<cpu_scifi_momentum_forward_t>(
   // ATTENTION: when using SciFi raw bank version 5, 
   // need: 2*host_buffers.host_number_of_selected_events[0]*...
   host_buffers.host_velo_states.resize(arguments.size<dev_velo_states>());
+  host_buffers.host_scifi_hits.resize(arguments.size<dev_scifi_hits>());
+  host_buffers.host_scifi_hit_count.resize(arguments.size<dev_scifi_hit_count>());
 
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_scifi_hits.data(),
@@ -53,44 +55,44 @@ void SequenceVisitor::visit<cpu_scifi_momentum_forward_t>(
     arguments.size<dev_velo_states>(),
     cudaMemcpyDeviceToHost));
 
-  int rv = state.invoke(
-    host_buffers.scifi_tracks_events.data(),
-    host_buffers.host_atomics_scifi,
-    host_buffers.host_scifi_hits.data(),
-    host_buffers.host_scifi_hit_count.data(),
-    constants.host_scifi_geometry,
-    constants.host_inv_clus_res, 
-    host_buffers.host_atomics_velo,
-    host_buffers.host_velo_track_hit_number,
-    host_buffers.host_velo_states.data(),
-    host_buffers.host_atomics_ut,
-    host_buffers.host_ut_track_hit_number,
-    host_buffers.host_ut_qop,
-    host_buffers.host_ut_x,
-    host_buffers.host_ut_tx,
-    host_buffers.host_ut_z,
-    host_buffers.host_ut_track_velo_indices,
-    host_buffers.host_number_of_selected_events[0]);
+  // int rv = state.invoke(
+  //   host_buffers.scifi_tracks_events.data(),
+  //   host_buffers.host_atomics_scifi,
+  //   host_buffers.host_scifi_hits.data(),
+  //   host_buffers.host_scifi_hit_count.data(),
+  //   constants.host_scifi_geometry,
+  //   constants.host_inv_clus_res, 
+  //   host_buffers.host_atomics_velo,
+  //   host_buffers.host_velo_track_hit_number,
+  //   host_buffers.host_velo_states.data(),
+  //   host_buffers.host_atomics_ut,
+  //   host_buffers.host_ut_track_hit_number,
+  //   host_buffers.host_ut_qop,
+  //   host_buffers.host_ut_x,
+  //   host_buffers.host_ut_tx,
+  //   host_buffers.host_ut_z,
+  //   host_buffers.host_ut_track_velo_indices,
+  //   host_buffers.host_number_of_selected_events[0]);
 
-  for ( int i = 0; i < host_buffers.host_number_of_selected_events[0]; ++i ) 
-    debug_cout << "Visitor: found " << host_buffers.host_atomics_scifi[i] << " tracks in event " << i << std::endl;
+  // for ( int i = 0; i < host_buffers.host_number_of_selected_events[0]; ++i ) 
+  //   debug_cout << "Visitor: found " << host_buffers.host_atomics_scifi[i] << " tracks in event " << i << std::endl;
   
-  // copy SciFi tracks to device for consolidation
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_atomics_scifi>(), 
-    host_buffers.host_atomics_scifi,
-    arguments.size<dev_atomics_scifi>(),
-    cudaMemcpyHostToDevice, 
-    cuda_stream));
+  // // copy SciFi tracks to device for consolidation
+  // cudaCheck(cudaMemcpyAsync(
+  //   arguments.offset<dev_atomics_scifi>(), 
+  //   host_buffers.host_atomics_scifi,
+  //   arguments.size<dev_atomics_scifi>(),
+  //   cudaMemcpyHostToDevice, 
+  //   cuda_stream));
 
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_scifi_tracks>(),
-    host_buffers.scifi_tracks_events.data(),
-    arguments.size<dev_scifi_tracks>(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
+  // cudaCheck(cudaMemcpyAsync(
+  //   arguments.offset<dev_scifi_tracks>(),
+  //   host_buffers.scifi_tracks_events.data(),
+  //   arguments.size<dev_scifi_tracks>(),
+  //   cudaMemcpyHostToDevice,
+  //   cuda_stream));
   
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
+  // cudaEventRecord(cuda_generic_event, cuda_stream);
+  // cudaEventSynchronize(cuda_generic_event);
   
 }
