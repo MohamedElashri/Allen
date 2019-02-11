@@ -31,7 +31,7 @@
 
 class TrackChecker {
 protected:
-  using AcceptFn = std::function<bool(MCParticles::const_reference &)>;
+  using AcceptFn = std::function<bool(MCParticles::const_reference&)>;
   struct TrackEffReport {
     std::string m_name;
     AcceptFn m_accept;
@@ -49,26 +49,26 @@ protected:
     /// no default construction
     TrackEffReport() = delete;
     /// usual copy construction
-    TrackEffReport(const TrackEffReport &) = default;
+    TrackEffReport(const TrackEffReport&) = default;
     /// usual move construction
-    TrackEffReport(TrackEffReport &&) = default;
+    TrackEffReport(TrackEffReport&&) = default;
     /// usual copy assignment
-    TrackEffReport &operator=(const TrackEffReport &) = default;
+    TrackEffReport& operator=(const TrackEffReport&) = default;
     /// usual move assignment
-    TrackEffReport &operator=(TrackEffReport &&) = default;
+    TrackEffReport& operator=(TrackEffReport&&) = default;
     /// construction from name and accept criterion for eff. denom.
-    template <typename F>
-    TrackEffReport(const std::string &name, const F &accept)
-        : m_name(name), m_accept(accept) {}
+    template<typename F>
+    TrackEffReport(const std::string& name, const F& accept) : m_name(name), m_accept(accept)
+    {}
     /// construction from name and accept criterion for eff. denom.
-    template <typename F>
-    TrackEffReport(std::string &&name, F &&accept)
-        : m_name(std::move(name)), m_accept(std::move(accept)) {}
+    template<typename F>
+    TrackEffReport(std::string&& name, F&& accept) : m_name(std::move(name)), m_accept(std::move(accept))
+    {}
     /// register MC particles
-    void operator()(const MCParticles &mcps);
+    void operator()(const MCParticles& mcps);
     /// register track and its MC association
-    void operator()(trackChecker::Tracks::const_reference &track,
-                    MCParticles::const_reference &mcp, const float weight);
+    void
+    operator()(trackChecker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight);
     /// notify of end of event
     void evtEnds();
     /// free resources, and print result
@@ -81,13 +81,13 @@ protected:
     std::set<uint32_t> m_keysseen;
 
     /// construction from name and accept criterion for eff. denom.
-    template <typename F>
-    HistoCategory(const std::string &name, const F &accept)
-        : m_name(name), m_accept(accept) {}
+    template<typename F>
+    HistoCategory(const std::string& name, const F& accept) : m_name(name), m_accept(accept)
+    {}
     /// construction from name and accept criterion for eff. denom.
-    template <typename F>
-    HistoCategory(std::string &&name, F &&accept)
-        : m_name(std::move(name)), m_accept(std::move(accept)) {}
+    template<typename F>
+    HistoCategory(std::string&& name, F&& accept) : m_name(std::move(name)), m_accept(std::move(accept))
+    {}
     /// notify of end of event
     void evtEnds();
   };
@@ -125,7 +125,7 @@ protected:
     void fillMomentumResolutionHisto(const MCParticle &mcp, const float p, const float qop);
     void deleteHistos(const std::vector<HistoCategory>& histo_categories);
   };
- 
+
   const float m_minweight = 0.7f;
   std::size_t m_nevents = 0;
   std::size_t m_ntracks = 0;
@@ -136,7 +136,7 @@ protected:
   virtual void SetCategories() = 0;
 
 public:
-  TrackChecker(){};
+  TrackChecker() {};
   ~TrackChecker();
   std::vector<uint32_t> operator()(const trackChecker::Tracks &tracks,
                   const MCAssociator &mcassoc, const MCParticles &mcps);
@@ -150,7 +150,8 @@ class TrackCheckerVelo : public TrackChecker {
 public:
   void SetCategories();
   void SetHistoCategories();
-  TrackCheckerVelo() {
+  TrackCheckerVelo()
+  {
     SetCategories();
     SetHistoCategories();
     m_trackerName = "Velo";
@@ -161,7 +162,8 @@ class TrackCheckerVeloUT : public TrackChecker {
 public:
   void SetCategories();
   void SetHistoCategories();
-  TrackCheckerVeloUT() {
+  TrackCheckerVeloUT()
+  {
     SetCategories();
     SetHistoCategories();
     m_trackerName = "VeloUT";
@@ -172,7 +174,8 @@ class TrackCheckerForward : public TrackChecker {
 public:
   void SetCategories();
   void SetHistoCategories();
-  TrackCheckerForward() {
+  TrackCheckerForward()
+  {
     SetCategories();
     SetHistoCategories();
     m_trackerName = "Forward";

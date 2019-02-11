@@ -1,4 +1,4 @@
-#include "SequenceVisitor.cuh" 
+#include "SequenceVisitor.cuh"
 #include "InitEventList.cuh"
 
 template<>
@@ -11,13 +11,13 @@ void SequenceVisitor::set_arguments_size<init_event_list_t>(
   arguments.set_size<dev_velo_raw_input>(runtime_options.host_velopix_events_size);
   arguments.set_size<dev_velo_raw_input_offsets>(runtime_options.host_velopix_event_offsets_size);
   arguments.set_size<dev_ut_raw_input>(runtime_options.host_ut_events_size);
-  arguments.set_size<dev_ut_raw_input_offsets>(runtime_options.host_ut_event_offsets_size); 
+  arguments.set_size<dev_ut_raw_input_offsets>(runtime_options.host_ut_event_offsets_size);
   arguments.set_size<dev_scifi_raw_input>(runtime_options.host_scifi_events_size);
-  arguments.set_size<dev_scifi_raw_input_offsets>(runtime_options.host_scifi_event_offsets_size); 
+  arguments.set_size<dev_scifi_raw_input_offsets>(runtime_options.host_scifi_event_offsets_size);
   arguments.set_size<dev_event_list>(runtime_options.number_of_events);
   arguments.set_size<dev_number_of_selected_events>(1);
-} 
- 
+}
+
 template<>
 void SequenceVisitor::visit<init_event_list_t>(
   init_event_list_t& state,
@@ -38,20 +38,21 @@ void SequenceVisitor::visit<init_event_list_t>(
     cuda_stream);
 
   state.set_arguments(arguments.offset<dev_event_list>());
-  
+
   // Fetch required arguments for the global event cuts algorithm and
-  // the various decoding algorithms 
+  // the various decoding algorithms
   cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_velo_raw_input>(), 
-    runtime_options.host_velopix_events, 
-    arguments.size<dev_velo_raw_input>(), 
-    cudaMemcpyHostToDevice, 
+    arguments.offset<dev_velo_raw_input>(),
+    runtime_options.host_velopix_events,
+    arguments.size<dev_velo_raw_input>(),
+    cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_velo_raw_input_offsets>(), 
-    runtime_options.host_velopix_event_offsets, 
-    arguments.size<dev_velo_raw_input_offsets>(), 
-    cudaMemcpyHostToDevice, cuda_stream)); 
+    arguments.offset<dev_velo_raw_input_offsets>(),
+    runtime_options.host_velopix_event_offsets,
+    arguments.size<dev_velo_raw_input_offsets>(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_ut_raw_input>(),
     runtime_options.host_ut_events,
@@ -63,17 +64,19 @@ void SequenceVisitor::visit<init_event_list_t>(
     runtime_options.host_ut_event_offsets,
     runtime_options.host_ut_event_offsets_size * sizeof(uint32_t),
     cudaMemcpyHostToDevice,
-    cuda_stream)); 
-  cudaCheck(cudaMemcpyAsync(arguments.offset<dev_scifi_raw_input>(),
+    cuda_stream));
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_scifi_raw_input>(),
     runtime_options.host_scifi_events,
     runtime_options.host_scifi_events_size,
     cudaMemcpyHostToDevice,
     cuda_stream));
-  cudaCheck(cudaMemcpyAsync(arguments.offset<dev_scifi_raw_input_offsets>(),
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_scifi_raw_input_offsets>(),
     runtime_options.host_scifi_event_offsets,
     runtime_options.host_scifi_event_offsets_size * sizeof(uint),
     cudaMemcpyHostToDevice,
-    cuda_stream)); 
+    cuda_stream));
 
   state.invoke();
 
@@ -81,7 +84,7 @@ void SequenceVisitor::visit<init_event_list_t>(
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_event_list,
     arguments.offset<dev_event_list>(),
-    runtime_options.number_of_events*sizeof(uint),
-    cudaMemcpyDeviceToHost, 
+    runtime_options.number_of_events * sizeof(uint),
+    cudaMemcpyDeviceToHost,
     cuda_stream));
 }

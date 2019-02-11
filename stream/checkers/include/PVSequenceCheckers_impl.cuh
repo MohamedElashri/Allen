@@ -9,7 +9,7 @@ void SequenceVisitor::check<pv_fit_seeds_t>(
   const uint& number_of_events_requested,
   HostBuffers& host_buffers,
   const Constants& constants,
-  const CheckerInvoker& checker_invoker)
+  const CheckerInvoker& checker_invoker) const
 {
 
   info_cout << "Checking GPU PVs " << std::endl;
@@ -33,7 +33,7 @@ void SequenceVisitor::check<cpu_pv_beamline_t>(
   const uint& number_of_events_requested,
   HostBuffers& host_buffers,
   const Constants& constants,
-  const CheckerInvoker& checker_invoker) 
+  const CheckerInvoker& checker_invoker) const
 {
   /*
   for(int i_event = 0; i_event < host_buffers.host_number_of_selected_events[0]; i_event++ ) {
@@ -68,7 +68,7 @@ void SequenceVisitor::check<pv_beamline_multi_fitter_t>(
   const uint& number_of_events_requested,
   HostBuffers& host_buffers,
   const Constants& constants,
-  const CheckerInvoker& checker_invoker)
+  const CheckerInvoker& checker_invoker) const
 {
   /*
   for(int i_event = 0; i_event < host_buffers.host_number_of_selected_events[0]; i_event++ ) {

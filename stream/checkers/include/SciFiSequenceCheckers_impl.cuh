@@ -10,7 +10,7 @@ void SequenceVisitor::check<consolidate_scifi_tracks_t>(
   const uint& number_of_events_requested,
   HostBuffers& host_buffers,
   const Constants& constants,
-  const CheckerInvoker& checker_invoker)
+  const CheckerInvoker& checker_invoker) const
 {
   info_cout << "Checking SciFi tracks" << std::endl;
 
@@ -32,11 +32,7 @@ void SequenceVisitor::check<consolidate_scifi_tracks_t>(
     constants.host_scifi_geometry,
     constants.host_inv_clus_res,
     host_buffers.host_number_of_selected_events[0]);
-  
-  std::vector< std::vector< float> > p_events;
-  checker_invoker.check<TrackCheckerForward>(
-    start_event_offset,
-    tracks,
-    p_events);
+
+  std::vector<std::vector<float>> p_events;
+  checker_invoker.check<TrackCheckerForward>(start_event_offset, tracks, p_events);
 }
- 

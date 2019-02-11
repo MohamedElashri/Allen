@@ -11,7 +11,7 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
   const uint& number_of_events_requested,
   HostBuffers& host_buffers,
   const Constants& constants,
-  const CheckerInvoker& checker_invoker)
+  const CheckerInvoker& checker_invoker) const
 {
   info_cout << "Checking Velo+UT tracks" << std::endl;
 
