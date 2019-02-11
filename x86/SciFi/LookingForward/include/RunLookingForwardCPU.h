@@ -18,8 +18,8 @@
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
-#include "SciFiParametrization.h"
 
+#include "LookingForwardSciFiParametrization.h"
 #include "LookingForwardUtils.h"
 #include "LookingForwardConstants.h"
 

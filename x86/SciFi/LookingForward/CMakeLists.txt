@@ -1,5 +1,6 @@
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/MomentumForward/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/common/include)
@@ -20,9 +21,9 @@ add_library(x86LookingForward STATIC
 	${x86LookingForward}
 )
 
-set_property(TARGET x86Forward PROPERTY
+set_property(TARGET x86LookingForward PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)
-set_property(TARGET x86Forward PROPERTY
+set_property(TARGET x86LookingForward PROPERTY
              CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
 if ( ROOT_FOUND )

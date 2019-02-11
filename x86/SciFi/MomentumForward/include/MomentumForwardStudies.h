@@ -25,23 +25,21 @@
 
 MiniState state_at_z(const MiniState state, const float z);
 
-int momentum_forward_studies (
+int momentum_forward_studies(
   const uint* host_scifi_hits,
   const uint* host_scifi_hit_count,
-  const char* host_scifi_geometry, 
+  const char* host_scifi_geometry,
   const std::array<float, 9>& host_inv_clus_res,
   const uint* host_velo_tracks_atomics,
   const uint* host_velo_track_hit_number,
   const char* host_velo_states,
-  const int * host_atomics_ut,
+  const int* host_atomics_ut,
   const uint* host_ut_track_hit_number,
   const float* host_ut_qop,
   const float* host_ut_x,
   const float* host_ut_tx,
   const float* host_ut_z,
   const uint* host_ut_track_velo_indices,
-  const std::vector< std::vector< std::vector< uint32_t > > > scifi_ids_ut_tracks,
-  const std::vector< std::vector< float > > p_events,
+  const std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_ut_tracks,
+  const std::vector<std::vector<float>> p_events,
   const uint number_of_events);
-
-

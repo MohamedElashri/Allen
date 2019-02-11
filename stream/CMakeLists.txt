@@ -113,6 +113,7 @@ target_link_libraries(Stream PRIVATE
   Kalman
   SciFi
   x86Forward
+  x86LookingForward
   x86MomentumForward
   x86VeloUT
   Muon)
