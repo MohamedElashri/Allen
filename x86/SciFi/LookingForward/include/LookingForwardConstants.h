@@ -222,7 +222,6 @@ namespace SciFi {
                                            -34.5437};
 
     constexpr float x_diff_layer_qop_offset = 20.f * Gaudi::Units::mm;
-    ;
     constexpr float x_diff_layer_qop_slope_a = 0.3e6;
     constexpr float x_diff_layer_qop_slope_b = 0.2e6;
 
@@ -268,6 +267,5 @@ namespace SciFi {
         hit_indices[hitsNum++] = hit;
       }
     };
-
   } // namespace LookingForward
 } // namespace SciFi

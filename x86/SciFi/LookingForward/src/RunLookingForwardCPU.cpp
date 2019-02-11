@@ -1,5 +1,8 @@
 #include "RunLookingForwardCPU.h"
 
+#include "SciFiParametrization.h"
+#include "MomentumForwardConstants.h"
+
 #ifdef WITH_ROOT
 #include "TH1D.h"
 #include "TFile.h"
