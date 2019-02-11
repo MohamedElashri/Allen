@@ -38,7 +38,7 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
      constants.host_inv_clus_res,
      host_buffers.host_atomics_velo,
      host_buffers.host_velo_track_hit_number,
-     host_buffers.host_velo_states,
+     host_buffers.host_velo_states.data(),
      host_buffers.host_atomics_ut,
      host_buffers.host_ut_track_hit_number,
      host_buffers.host_ut_qop,

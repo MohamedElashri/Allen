@@ -19,7 +19,10 @@ file(GLOB x86LookingForward "src/*cpp" )
 add_library(x86LookingForward STATIC
 	${x86LookingForward}
 )
-set_property(TARGET x86LookingForward PROPERTY
+
+set_property(TARGET x86Forward PROPERTY
+             CUDA_SEPARABLE_COMPILATION ON)
+set_property(TARGET x86Forward PROPERTY
              CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
 if ( ROOT_FOUND )
