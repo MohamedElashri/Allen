@@ -27,7 +27,6 @@ int looking_forward_studies(
   const std::vector<std::vector<float>>& p_events,
   const uint number_of_events)
 {
-
 #ifdef WITH_ROOT
   // Histograms only for checking and debugging
   TFile* f = new TFile("../output/scifi.root", "RECREATE");
@@ -170,7 +169,6 @@ int looking_forward_studies(
   int n_extrap_T3 = 0;
 
   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
-
     // Velo consolidated types
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) host_velo_tracks_atomics, (uint*) host_velo_track_hit_number, i_event, number_of_events};

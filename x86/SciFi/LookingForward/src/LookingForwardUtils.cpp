@@ -1,46 +1,5 @@
 #include "LookingForwardUtils.h"
 
-// access hits from a layer
-// first zone number: y < 0
-// second zone number: y > 0
-void get_offset_and_n_hits_for_layer(
-  const int first_zone,
-  const SciFi::HitCount& SciFi_hit_count,
-  const float y,
-  int& n_hits,
-  int& zone_offset)
-{
-  assert(first_zone < SciFi::Constants::n_zones - 1);
-
-  if (y < 0) {
-    n_hits = SciFi_hit_count.zone_number_of_hits(first_zone);
-    zone_offset = SciFi_hit_count.zone_offset(first_zone);
-  }
-  else {
-    n_hits = SciFi_hit_count.zone_number_of_hits(first_zone + 1);
-    zone_offset = SciFi_hit_count.zone_offset(first_zone + 1);
-  }
-}
-
-// straight line extrapolation of MiniState to other z position
-MiniState state_at_z(const MiniState& state, const float z)
-{
-  MiniState extrap_state;
-  extrap_state.tx = state.tx;
-  extrap_state.ty = state.ty;
-  extrap_state.x = state.x + (z - state.z) * state.tx;
-  extrap_state.y = state.y + (z - state.z) * state.ty;
-  extrap_state.z = z;
-  return extrap_state;
-}
-
-// straight line extrapolation of y to other z position
-float y_at_z(const MiniState& state, const float z)
-{
-  float yf = state.y + (z - state.z) * state.ty;
-  return yf;
-}
-
 float x_at_z(const MiniState& state, const float z)
 {
   float xf = state.x + (z - state.z) * state.tx;
