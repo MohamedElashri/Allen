@@ -55,9 +55,8 @@ struct Constants {
   char* dev_ut_boards;
   char* dev_ut_geometry;
   char* dev_scifi_geometry;
-  const char* host_scifi_geometry; 
+  const char* host_scifi_geometry;
   PrUTMagnetTool* dev_ut_magnet_tool;
-    
   // Muon classification model constants
   int muon_catboost_n_features;
   int muon_catboost_n_trees;
@@ -74,7 +73,8 @@ struct Constants {
   /**
    * @brief Reserves and initializes constants.
    */
-  void reserve_and_initialize() {
+  void reserve_and_initialize()
+  {
     reserve_constants();
     initialize_constants();
   }
@@ -112,7 +112,5 @@ struct Constants {
     const std::vector<float>& leaf_values,
     const std::vector<int>& leaf_offsets,
     const std::vector<float>& split_borders,
-    const std::vector<int>& split_features
-  );
-
+    const std::vector<int>& split_features);
 };
