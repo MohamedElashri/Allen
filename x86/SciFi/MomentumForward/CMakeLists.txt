@@ -19,6 +19,9 @@ file(GLOB x86MomentumForward "src/*cpp" )
 add_library(x86MomentumForward STATIC
   ${x86MomentumForward}
 )
+
+set_property(TARGET x86Forward PROPERTY
+             CUDA_SEPARABLE_COMPILATION ON)
 set_property(TARGET x86MomentumForward PROPERTY
              CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
