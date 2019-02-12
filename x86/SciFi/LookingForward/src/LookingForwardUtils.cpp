@@ -26,7 +26,7 @@ MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int la
   if (qop > 0) {
     y_mag_correction = SciFi::LookingForward::dp_y_mag_plus[layer][0] +
                        magnet_state.y * SciFi::LookingForward::dp_y_mag_plus[layer][1] +
-                       magnet_state.y * magnet_state.y * SciFi::LookingForward::dp_y_mag_plus[layer][2] + 10;
+                       magnet_state.y * magnet_state.y * SciFi::LookingForward::dp_y_mag_plus[layer][2];
     // SciFi::LookingForward::dp_plus_offset[layer];
 
     x_mag_correction =
@@ -39,7 +39,7 @@ MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int la
   else {
     y_mag_correction = SciFi::LookingForward::dp_y_mag_minus[layer][0] +
                        magnet_state.y * SciFi::LookingForward::dp_y_mag_minus[layer][1] +
-                       magnet_state.y * magnet_state.y * SciFi::LookingForward::dp_y_mag_minus[layer][2] - 10; //+
+                       magnet_state.y * magnet_state.y * SciFi::LookingForward::dp_y_mag_minus[layer][2]; //+
     // SciFi::LookingForward::dp_minus_offset[layer];
 
     x_mag_correction =

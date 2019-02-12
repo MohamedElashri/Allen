@@ -1,6 +1,6 @@
 #include "LookingForwardStudies.h"
 
-// #define WITH_ROOT 1
+#define WITH_ROOT 1
 
 #ifdef WITH_ROOT
 #include "TH1D.h"
@@ -54,14 +54,13 @@ int looking_forward_studies(
   //  qop_resolution_after_update_t1; float tx_x_hits_t1, res_x_u_t1, res_x_v_t1, res_x_u_slope_t1, res_x_v_slope_t1;
   float res_x_T2_0, res_x_T2_3, res_x_T3_0, res_x_T3_3;
 
-  float xf_t3, yf_t3, txf_t3, tyf_t3, der_xf_qop_t3, qop_update_t3;
+  float xf_t3, yf_t3, txf_t3, tyf_t3, der_xf_qop_t3, qop_update_t3, x_mag, y_mag;
   float res_x_0_t3, res_x_3_t3, dx_t3, x_extrap_t3, true_x_t3, res_x_other_t3;
   ;
   int n_hits_in_window_0_t3 = 0, n_hits_in_window_0_t3_true_p = 0, n_hits_in_window_3_t3 = 0;
   int n_hits_in_zone_t3 = 0, n_hits_in_window_other_t3 = 0;
   float p_diff_before_update_t3, p_diff_after_update_t3, p_resolution_after_update_t3;
   float qop_diff_before_update_t3, qop_diff_after_update_t3, qop_diff_before_after_t3, qop_resolution_after_update_t3;
-  float tx_x_hits_t3;
 
   bool t1_extrap_worked, t3_extrap_worked, isLong;
   float p_true;
@@ -141,9 +140,11 @@ int looking_forward_studies(
   t_extrap_T3->Branch("isLong", &isLong);
   t_extrap_T3->Branch("p_true", &p_true);
   t_extrap_T3->Branch("ut_qop", &ut_qop);
-  t_extrap_T3->Branch("tx_x_hits", &tx_x_hits_t3);
+  t_extrap_T3->Branch("UT_tx", &UT_tx);
   t_extrap_T3->Branch("match", &match_t3);
   t_extrap_T3->Branch("match_other", &match_t3_other);
+  t_extrap_T3->Branch("x_mag", &x_mag);
+  t_extrap_T3->Branch("y_mag", &y_mag);
 
   t_ut_tracks->Branch("ut_x", &UT_x);
   t_ut_tracks->Branch("ut_y", &UT_y);
@@ -250,6 +251,9 @@ int looking_forward_studies(
       MiniState UT_state_from_velo = state_at_z(velo_state, SciFi::LookingForward::z_last_UT_plane);
       MiniState UT_state = state_at_z(state_UT, SciFi::LookingForward::z_last_UT_plane);
 
+      // DEBUG this is just a test
+      // UT_state = UT_state_from_velo;
+
       t1_extrap_worked = false;
       t3_extrap_worked = false;
       isLong = false;
@@ -274,10 +278,13 @@ int looking_forward_studies(
       UT_tx = UT_state.tx;
       UT_ty = UT_state.ty;
       ut_qop = qop;
+      x_mag = x_at_z(UT_state, SciFi::LookingForward::zMagnetParams[0]);
+      y_mag = y_at_z(UT_state, SciFi::LookingForward::zMagnetParams[0]);
 #endif
 
       // propagation to first layer of T3
       MiniState SciFi_state_T3;
+      int q = (ut_qop > 0 ? 1 : -1);
       SciFi_state_T3 = propagate_state_from_velo(UT_state, qop, 8);
       // access hits in first layer of T1, layer 0 = zone 0 (y < 0) + zone 1 (y > 0)
       int x_zone_offset, n_hits;
@@ -307,7 +314,7 @@ int looking_forward_studies(
             if (true_id == lhcbid) {
               res_x_0_t3 = SciFi_state_T3.x - scifi_hits.x0[hit_index];
               true_x_t3 = scifi_hits.x0[hit_index];
-              x_extrap_t3 = SciFi_state_T3.x + qop * (SciFi_state_T3.x - true_x_t3);
+              x_extrap_t3 = SciFi_state_T3.x;
               match_t3 = true;
               t_extrap_T3->Fill();
               break;
