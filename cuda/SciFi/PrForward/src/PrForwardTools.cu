@@ -256,7 +256,7 @@ __host__ __device__ SciFi::TrackHits makeTrack(SciFi::Tracking::Track track)
 {
   SciFi::TrackHits tr;
   tr.qop = track.qop;
-  tr.chi2 = track.chi2;
+  tr.quality = track.quality;
 
   // add state at zEndT
   const float z = SciFi::Constants::ZEndT;
