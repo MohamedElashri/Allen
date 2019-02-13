@@ -236,7 +236,11 @@ constexpr float max_tx_diff = 0.05f * Gaudi::Units::mm;
 constexpr float dz_layers_station = 70. * Gaudi::Units::mm;
 constexpr float dz_x_layers = 3.f * dz_layers_station;
 constexpr float dz_x_u_layers = 1.f * dz_layers_station;
+constexpr float dz_u_v_layers = 1.f * dz_layers_station;
 constexpr float dz_x_v_layers = 2.f * dz_layers_station;
+
+// z at the center of the magnet
+constexpr float z_magnet = 5212.38;
 
 // z distance between various layers of different stations
 constexpr float dz_x_T1_0_T2_0 = 682 * Gaudi::Units::mm;
@@ -257,6 +261,17 @@ constexpr float z_last_UT_plane = 2642.f;
 // combinatorics cut-offs, to be tuned!!
 // max # of quadruplets per veloUT input track
 constexpr int max_quadruplets = 100;
+
+// detector limits
+constexpr float        xMin     	          = -4090.;
+constexpr float        xMax	 	              = 4090.;
+constexpr float        yUpMin             	  = -50.;
+constexpr float        yUpMax            	  = 3030.;
+constexpr float        yDownMin            	  = -3030.;
+constexpr float        yDownMax            	  = 50.;
+
+// dxdy for the layers in one station
+constexpr float        Zone_dxdy[4]      	  = {0, 0.0874892, -0.0874892, 0};
 
 struct Track {
     int hit_indices[SciFi::Tracking::max_scifi_hits];

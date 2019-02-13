@@ -192,17 +192,17 @@ namespace SciFi {
    * Track object used for storing tracks
    */
   struct TrackHits {
-    short hits[SciFi::Constants::max_track_size];
+    int hits[SciFi::Constants::max_track_size];
     float qop;
     unsigned short hitsNum = 0;
-    float chi2;
+    float quality;
     unsigned int UTTrackIndex; // Index of velo-UT track
     MiniState state;
 
     __host__ __device__ TrackHits() {};
 
     __host__ __device__ TrackHits(const TrackHits& other) :
-      qop(other.qop), hitsNum(other.hitsNum), chi2(other.chi2), UTTrackIndex(other.UTTrackIndex), state(other.state)
+      qop(other.qop), hitsNum(other.hitsNum), quality(other.quality), UTTrackIndex(other.UTTrackIndex), state(other.state)
     {
       for (int i = 0; i < SciFi::Constants::max_track_size; ++i) {
         hits[i] = other.hits[i];
