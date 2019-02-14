@@ -68,6 +68,7 @@ bool select_hits(
   const SciFi::HitCount& hit_count,
   const int station,
   std::vector<SciFi::TrackHits>& track_candidate,
+  std::array<std::vector<Window_stat>, 4>& window_stats,
   const SciFiWindowsParams& window_params)
 {
   bool ret_val = false;
@@ -108,7 +109,7 @@ bool select_hits(
       proj_state[0].x + dx_plane_0,
       min_idx[0],
       max_idx[0]);
-    // track_candidate.window_stats[8].emplace_back(Window_stat(max_it[0] - min_it[0], x_proj[0], dx_plane_0));
+    window_stats[0].emplace_back(Window_stat(max_idx[0] - min_idx[0], proj_state[0].x, dx_plane_0));
     for (auto hit_layer_0_it = min_idx[0]; hit_layer_0_it != max_idx[0]; hit_layer_0_it++) {
       projected_slope = (x_mag - hits.x0[hit_layer_0_it]) / (z_mag - proj_state[0].z);
       proj_state[3].x = linear_propagation(hits.x0[hit_layer_0_it], projected_slope, proj_state[3].z - proj_state[0].z);
@@ -122,8 +123,8 @@ bool select_hits(
         proj_state[3].x + window_params.max_window_layer3,
         min_idx[3],
         max_idx[3]);
-      // track_candidate.window_stats[11].emplace_back(Window_stat(max_it[3] - min_it[3], x_proj[3],
-      // window_params.max_window_layer3));
+      window_stats[3].emplace_back(
+        Window_stat(max_idx[3] - min_idx[3], proj_state[3].x, window_params.max_window_layer3));
       for (auto hit_layer_3_it = min_idx[3]; hit_layer_3_it != max_idx[3]; hit_layer_3_it++) {
         const float slope_layer_3_layer_0 =
           (hits.x0[hit_layer_0_it] - hits.x0[hit_layer_3_it]) / (SciFi::LookingForward::dz_x_layers);
@@ -143,8 +144,8 @@ bool select_hits(
           min_idx[1],
           max_idx[1]);
 
-        // track_candidate.window_stats[9].emplace_back(Window_stat(max_it[1] - min_it[1], x_proj[1],
-        // window_params.max_window_layer3));
+        window_stats[1].emplace_back(
+          Window_stat(max_idx[1] - min_idx[1], proj_state[1].x, window_params.max_window_layer1));
 
         proj_state[2].x =
           linear_propagation(hits.x0[hit_layer_0_it], slope_layer_3_layer_0, SciFi::LookingForward::dz_x_v_layers) -
@@ -160,8 +161,8 @@ bool select_hits(
           min_idx[2],
           max_idx[2]);
 
-        // track_candidate.window_stats[10].emplace_back(Window_stat(max_it[2] - min_it[2], x_proj[2],
-        // window_params.max_window_layer2));
+        window_stats[2].emplace_back(
+          Window_stat(max_idx[2] - min_idx[2], proj_state[2].x, window_params.max_window_layer1));
 
         for (auto hit_layer_1_it = min_idx[1]; hit_layer_1_it != max_idx[1]; hit_layer_1_it++) {
           float y_layer_1;
@@ -218,7 +219,8 @@ bool select_hits(
 float dx_calc(float qop, const SciFiWindowsParams& window_params)
 {
   // TODO the slope should be redefined in order to avoid divisions
-  float ret_val = std::abs(window_params.dx_slope / qop);
+  // float ret_val = std::abs(window_params.dx_slope / qop);
+  float ret_val = std::abs(window_params.dx_slope * qop);
   if (ret_val > window_params.max_window_layer0) {
     ret_val = window_params.max_window_layer0;
   }

@@ -198,6 +198,7 @@ int looking_forward_studies(
   int n_triplets = 0;
   int n_reconstructible_scifi_tracks_from_ut_tracks = 0;
   int n_both_x_stations = 0;
+  int n_hits_in_first_window = 0;
 
   int n_reconstructible_found_tracks = 0;
   std::array<int, 12> n_found_hits {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -340,13 +341,14 @@ int looking_forward_studies(
 
         // running the hit selection algorithm
         std::vector<SciFi::TrackHits> track_candidates;
+        std::array<std::vector<Window_stat>, 4> window_stats;
         SciFiWindowsParams window_params;
-        window_params.dx_slope = 5e-4;
-        window_params.max_window_layer0 = 200;
-        window_params.max_window_layer1 = 40;
-        window_params.max_window_layer2 = 40;
+        window_params.dx_slope = 4500000;
+        window_params.max_window_layer0 = 600;
+        window_params.max_window_layer1 = 10;
+        window_params.max_window_layer2 = 10;
         window_params.max_window_layer3 = 80;
-        
+
         bool track_match;
         track_match = select_hits(
           UT_state,
@@ -356,6 +358,7 @@ int looking_forward_studies(
           scifi_hit_count,
           3,
           track_candidates,
+          window_stats,
           window_params);
 
         num_candidates = track_candidates.size();
@@ -395,6 +398,14 @@ int looking_forward_studies(
           n_quadruplets++;
         }
 
+        if (track_match) {
+          if (
+            is_t3_quadruplet && scifi_hits.x0[true_scifi_indices_per_layer[8]] < window_stats[0][0].x_max &&
+            scifi_hits.x0[true_scifi_indices_per_layer[8]] > window_stats[0][0].x_min) {
+            n_hits_in_first_window++;
+          }
+        }
+
         bool is_t3_triplet = false;
         if (
           !is_t3_quadruplet && true_scifi_indices_per_layer[8] != -1 && true_scifi_indices_per_layer[9] != -1 &&
@@ -423,7 +434,7 @@ int looking_forward_studies(
                 matched_hits++;
               }
 
-              for (int j=0; j<12; ++j) {
+              for (int j = 0; j < 12; ++j) {
                 if (hit == true_scifi_indices_per_layer[j]) {
                   found[j] = true;
                 }
@@ -441,7 +452,7 @@ int looking_forward_studies(
             }
           }
 
-          for (int i=0; i<12; ++i) {
+          for (int i = 0; i < 12; ++i) {
             if (found[i]) {
               n_found_hits[i]++;
             }
@@ -483,23 +494,27 @@ int looking_forward_studies(
     "Number of T3 triplets with hits on both x layers (does not include quadruplets)",
     n_triplets,
     n_reconstructible_scifi_tracks_from_ut_tracks);
-  
+
   info_cout << std::endl << "-- Algorithm specific --" << std::endl;
-  
+
+  print_nice("Number of tracks with a hit in the layer 8 window ", n_hits_in_first_window, n_quadruplets);
   print_nice(
-    "Found out of reconstructible tracks", n_reconstructible_found_tracks, n_reconstructible_scifi_tracks_from_ut_tracks);
+    "Found out of reconstructible tracks",
+    n_reconstructible_found_tracks,
+    n_reconstructible_scifi_tracks_from_ut_tracks);
 
   const auto t3_quads_triplets = n_triplets + n_quadruplets;
-  print_nice(
-    "Found out of T3 quadruplets and triplets", n_reconstructible_found_tracks, t3_quads_triplets);
+  print_nice("Found out of T3 quadruplets and triplets", n_reconstructible_found_tracks, t3_quads_triplets);
 
-  for (int i=0; i<12; ++i) {
-    print_nice("Number of hits found in layer " + std::to_string(i) + ", out of T3 quads and triplets",
-      n_found_hits[i], n_layer_with_T3_quad_triplets[i]);
+  for (int i = 0; i < 12; ++i) {
+    print_nice(
+      "Number of hits found in layer " + std::to_string(i) + ", out of T3 quads and triplets",
+      n_found_hits[i],
+      n_layer_with_T3_quad_triplets[i]);
   }
 
   info_cout << std::endl;
-  
+
 #ifdef WITH_ROOT
   f->Write();
   f->Close();

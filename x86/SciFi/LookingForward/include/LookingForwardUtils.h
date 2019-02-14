@@ -24,6 +24,31 @@ struct SciFiWindowsParams {
   float chi2_cut = 100;         // 40;
 };
 
+class Window_stat {
+public:
+  Window_stat() {}
+
+  Window_stat(int num_hits, float x_center, float dx)
+  {
+    this->num_hits = num_hits;
+    this->x_center = x_center;
+    this->x_min = x_center - dx;
+    this->x_max = x_center + dx;
+  }
+
+  Window_stat(int num_hits, float x_center, float x_min, float x_max)
+  {
+    this->num_hits = num_hits;
+    this->x_center = x_center;
+    this->x_min = x_min;
+    this->x_max = x_max;
+  }
+
+  int num_hits;
+  float x_center;
+  float x_min, x_max;
+};
+
 float x_at_z(const MiniState& state, const float z);
 
 MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int layer);
@@ -36,6 +61,7 @@ bool select_hits(
   const SciFi::HitCount& hit_count,
   const int station,
   std::vector<SciFi::TrackHits>& track_candidate,
+  std::array<std::vector<Window_stat>, 4>& window_stats,
   const SciFiWindowsParams& window_params);
 
 float dx_calc(float qop, const SciFiWindowsParams& window_params);
