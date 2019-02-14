@@ -104,7 +104,6 @@ bool select_hits(
       proj_state[0].x - dx_plane_0,
       proj_state[0].x + dx_plane_0);
 
-    // track_candidate.window_stats[8].emplace_back(Window_stat(max_it[0] - min_it[0], x_proj[0], dx_plane_0));
     window_stats[0].emplace_back(
       Window_stat(std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates), proj_state[0].x, dx_plane_0));
     for (auto hit_layer_0_it = std::get<0>(layer0_candidates); hit_layer_0_it != std::get<1>(layer0_candidates);
@@ -219,7 +218,7 @@ bool select_hits(
 float dx_calc(float qop, const SciFiWindowsParams& window_params)
 {
   // TODO the slope should be redefined in order to avoid divisions
-  float ret_val = std::abs(window_params.dx_slope * qop);
+  float ret_val = std::abs(window_params.dx_slope * qop + window_params.dx_min);
   if (ret_val > window_params.max_window_layer0) {
     ret_val = window_params.max_window_layer0;
   }

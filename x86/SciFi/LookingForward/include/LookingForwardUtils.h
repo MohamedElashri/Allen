@@ -17,8 +17,9 @@
 #include <functional>
 
 struct SciFiWindowsParams {
-  float dx_slope = 5e-4;
-  float max_window_layer0 = 200;
+  float dx_slope = 4000000;
+  float dx_min = 200;
+  float max_window_layer0 = 600;
   float max_window_layer1 = 10; // 20;
   float max_window_layer2 = 10; // 20;
   float max_window_layer3 = 20; // 40;

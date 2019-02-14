@@ -343,8 +343,9 @@ int looking_forward_studies(
         std::vector<SciFi::TrackHits> track_candidates;
         std::array<std::vector<Window_stat>, 4> window_stats;
         SciFiWindowsParams window_params;
-        window_params.dx_slope = 4500000;
-        window_params.max_window_layer0 = 600;
+        window_params.dx_slope = 4000000;
+        window_params.dx_min = 1000;
+        window_params.max_window_layer0 = 1000;
         window_params.max_window_layer1 = 10;
         window_params.max_window_layer2 = 10;
         window_params.max_window_layer3 = 80;
@@ -499,7 +500,8 @@ int looking_forward_studies(
 
   info_cout << std::endl << "-- Algorithm specific --" << std::endl;
 
-  print_nice("Number of tracks with a hit in the layer 8 window ", n_hits_in_first_window, n_quadruplets);
+  print_nice(
+    "Number of tracks with a hit in the layer 8 window, out of T3 quads", n_hits_in_first_window, n_quadruplets);
   print_nice(
     "Found out of reconstructible tracks",
     n_reconstructible_found_tracks,
