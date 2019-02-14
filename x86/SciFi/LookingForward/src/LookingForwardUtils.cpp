@@ -69,10 +69,8 @@ bool select_hits(
   std::vector<SciFi::TrackHits>& track_candidate,
   const SciFiWindowsParams& window_params)
 {
-  bool ret_val = false;
-  std::array<int, 4> n_hits;
-  std::array<int, 4> zone_offset;
   std::array<MiniState, 4> proj_state;
+  bool ret_val = false;
   float x_mag, y_mag, z_mag;
   float dx_plane_0;
   float projected_slope;
@@ -96,11 +94,11 @@ bool select_hits(
 
     dx_plane_0 = dx_calc(UT_qop, window_params);
 
-    get_offset_and_n_hits_for_layer(16, hit_count, proj_state[0].y, n_hits[0], zone_offset[0]);
+    const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, proj_state[0].y);
     const auto layer0_candidates = find_x_in_window(
       hits,
-      n_hits[0],
-      zone_offset[0],
+      std::get<0>(layer0_offset_nhits),
+      std::get<1>(layer0_offset_nhits),
       proj_state[0].x - dx_plane_0,
       proj_state[0].x + dx_plane_0);
 
@@ -109,11 +107,11 @@ bool select_hits(
       projected_slope = (x_mag - hits.x0[hit_layer_0_it]) / (z_mag - proj_state[0].z);
       proj_state[3].x = linear_propagation(hits.x0[hit_layer_0_it], projected_slope, proj_state[3].z - proj_state[0].z);
       // TODO check if this could be done only once, particles close to y 0 may cross the zone
-      get_offset_and_n_hits_for_layer(22, hit_count, proj_state[3].y, n_hits[3], zone_offset[3]);
+      const auto layer3_offset_nhits = get_offset_and_n_hits_for_layer(22, hit_count, proj_state[3].y);
       const auto layer3_candidates = find_x_in_window(
         hits,
-        n_hits[3],
-        zone_offset[3],
+        std::get<0>(layer3_offset_nhits),
+        std::get<1>(layer3_offset_nhits),
         proj_state[3].x - window_params.max_window_layer3,
         proj_state[3].x + window_params.max_window_layer3);
 
@@ -128,11 +126,11 @@ bool select_hits(
         proj_state[1].x =
           linear_propagation(hits.x0[hit_layer_0_it], slope_layer_3_layer_0, SciFi::LookingForward::dz_x_u_layers) -
           SciFi::LookingForward::Zone_dxdy[1] * proj_state[1].y;
-        get_offset_and_n_hits_for_layer(18, hit_count, proj_state[1].y, n_hits[1], zone_offset[1]);
+        const auto layer1_offset_nhits = get_offset_and_n_hits_for_layer(18, hit_count, proj_state[1].y);
         const auto layer1_candidates = find_x_in_window(
           hits,
-          n_hits[1],
-          zone_offset[1],
+          std::get<0>(layer1_offset_nhits),
+          std::get<1>(layer1_offset_nhits),
           proj_state[1].x - window_params.max_window_layer1,
           proj_state[1].x + window_params.max_window_layer1);
 
@@ -143,11 +141,11 @@ bool select_hits(
           linear_propagation(hits.x0[hit_layer_0_it], slope_layer_3_layer_0, SciFi::LookingForward::dz_x_v_layers) -
           SciFi::LookingForward::Zone_dxdy[2] * proj_state[2].y;
 
-        get_offset_and_n_hits_for_layer(20, hit_count, proj_state[2].y, n_hits[2], zone_offset[2]);
+        const auto layer2_offset_nhits = get_offset_and_n_hits_for_layer(20, hit_count, proj_state[2].y);
         const auto layer2_candidates = find_x_in_window(
           hits,
-          n_hits[2],
-          zone_offset[2],
+          std::get<0>(layer2_offset_nhits),
+          std::get<1>(layer2_offset_nhits),
           proj_state[2].x - window_params.max_window_layer2,
           proj_state[2].x + window_params.max_window_layer2);
 
@@ -216,8 +214,8 @@ float dx_calc(float qop, const SciFiWindowsParams& window_params)
 
 std::tuple<int, int> find_x_in_window(
   const SciFi::Hits& hits,
-  const int num_hits,
   const int zone_offset,
+  const int num_hits,
   const float x_min,
   const float x_max)
 {
