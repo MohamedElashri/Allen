@@ -341,10 +341,11 @@ int looking_forward_studies(
         // running the hit selection algorithm
         std::vector<SciFi::TrackHits> track_candidates;
         SciFiWindowsParams window_params;
-        window_params.max_window_layer0 = 600;
-        // window_params.max_window_layer1 = 100;
-        // window_params.max_window_layer2 = 100;
-        // window_params.max_window_layer3 = 300;
+        window_params.dx_slope = 5e-4;
+        window_params.max_window_layer0 = 200;
+        window_params.max_window_layer1 = 40;
+        window_params.max_window_layer2 = 40;
+        window_params.max_window_layer3 = 80;
         
         bool track_match;
         track_match = select_hits(
