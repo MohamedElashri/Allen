@@ -1,7 +1,6 @@
 #include "BinarySearch.cuh"
 #include "VeloTools.cuh"
 #include "CalculateWindows.cuh"
-#include "BinarySearchFirstCandidate.cuh"
 
 //=============================================================================
 // Reject tracks outside of acceptance or pointing to the beam pipe

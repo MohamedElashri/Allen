@@ -1,7 +1,5 @@
 #include "CompassUT.cuh"
-
 #include "BinarySearch.cuh"
-#include "BinarySearchFirstCandidate.cuh"
 #include "CalculateWindows.cuh"
 
 __global__ void compass_ut(

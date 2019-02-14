@@ -12,6 +12,7 @@
 #include "SciFiEventModel.cuh"
 #include "LookingForwardConstants.h"
 #include "MomentumForwardUtils.h"
+#include "BinarySearch.cuh"
 
 #include <functional>
 
@@ -66,14 +67,12 @@ bool select_hits(
 
 float dx_calc(float qop, const SciFiWindowsParams& window_params);
 
-void find_x_in_window(
+std::tuple<int, int> find_x_in_window(
   const SciFi::Hits& hits,
   const int num_hits,
   const int zone_offset,
   const float x_min,
-  const float x_max,
-  int& offset_begin,
-  int& offset_end);
+  const float x_max);
 
 float linear_propagation(float x_0, float tx, float dz);
 

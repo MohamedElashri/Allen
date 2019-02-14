@@ -372,8 +372,10 @@ int looking_forward_studies(
         std::array<int, 12> layer_last_hits;
 
         for (int i = 0; i < 12; ++i) {
-          get_offset_and_n_hits_for_layer(
-            i * 2, scifi_hit_count, SciFi_state_T3.y, layer_number_of_hits[i], layer_offsets[i]);
+          const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(i * 2, scifi_hit_count, SciFi_state_T3.y);
+
+          layer_offsets[i] = std::get<0>(layer_offset_nhits);
+          layer_number_of_hits[i] = std::get<1>(layer_offset_nhits);
           layer_last_hits[i] = layer_offsets[i] + layer_number_of_hits[i];
         }
 

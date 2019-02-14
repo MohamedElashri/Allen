@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VeloEventModel.cuh"
+#include "BinarySearch.cuh"
 #include <tuple>
 
 __device__ void track_forwarding(
