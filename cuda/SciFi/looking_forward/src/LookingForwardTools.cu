@@ -69,3 +69,69 @@ __device__ float LookingForward::dx_calc(const float qop)
   }
   return ret_val;
 }
+
+__device__ void LookingForward::linear_regression(
+  const std::vector<float>& x,
+  const std::vector<float>& y,
+  float& m,
+  float& q,
+  float& chi_2)
+{
+  float x_avg = 0;
+  float x_var = 0;
+  float x_y_covar = 0;
+  float y_avg = 0;
+  m = 0;
+  q = 0;
+  chi_2 = 0;
+  for (int k = 0; k < x.size(); k++) {
+    x_avg += x[k];
+    y_avg += y[k];
+  }
+  x_avg /= x.size();
+  y_avg /= x.size();
+
+  for (int k = 0; k < x.size(); k++) {
+    x_y_covar += (x[k] - x_avg) * (y[k] - y_avg);
+    x_var += (x[k] - x_avg) * (x[k] - x_avg);
+  }
+
+  m = x_y_covar / x_var;
+
+  q = y_avg - m * x_avg;
+  chi_2 = get_chi_2(x, y, [&m, &q](double x) { return m * x + q; });
+}
+
+__device__ float LookingForward::get_chi_2(
+  const std::vector<float>& x,
+  const std::vector<float>& y,
+  std::function<float(float)> expected_function)
+{
+  float chi_2 = 0;
+  for (int k = 0; k < x.size(); k++) {
+    const float expected_y = expected_function(x[k]);
+    chi_2 += (y[k] - expected_y) * (y[k] - expected_y);
+  }
+
+  return chi_2;
+}
+
+__device__ std::tuple<int, int> LookingForward::find_x_in_window(
+  const SciFi::Hits& hits,
+  const int zone_offset,
+  const int num_hits,
+  const float x_min,
+  const float x_max)
+{
+  int first_candidate = binary_search_leftmost(hits.x0 + zone_offset, num_hits, x_min);
+  int last_candidate = -1;
+
+  if (first_candidate != -1) {
+    last_candidate = binary_search_leftmost(hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, x_max);
+
+    first_candidate = zone_offset + first_candidate;
+    last_candidate = last_candidate != -1 ? first_candidate + last_candidate : -1;
+  }
+
+  return {first_candidate, last_candidate};
+}
