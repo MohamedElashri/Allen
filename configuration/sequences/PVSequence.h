@@ -20,4 +20,5 @@ SEQUENCE_T(
   pv_beamline_extrapolate_t,
   pv_beamline_histo_t,
   pv_beamline_peak_t,
-  pv_beamline_multi_fitter_t)
+  pv_beamline_multi_fitter_t,
+  pv_beamline_cleanup_t)
