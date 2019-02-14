@@ -193,13 +193,15 @@ int looking_forward_studies(
   int n_extrap_T1 = 0;
   int n_extrap_T3 = 0;
 
+  std::array<int, 12> n_layer {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int n_quadruplets = 0;
   int n_triplets = 0;
   int n_reconstructible_scifi_tracks_from_ut_tracks = 0;
-  int n_reconstructible_found_tracks = 0;
-  std::array<int, 12> n_layer {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
   int n_both_x_stations = 0;
+
+  int n_reconstructible_found_tracks = 0;
+  std::array<int, 12> n_found_hits {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  std::array<int, 12> n_layer_with_T3_quad_triplets {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
     // Velo consolidated types
@@ -343,6 +345,7 @@ int looking_forward_studies(
         // window_params.max_window_layer1 = 100;
         // window_params.max_window_layer2 = 100;
         // window_params.max_window_layer3 = 300;
+        
         bool track_match;
         track_match = select_hits(
           UT_state,
@@ -370,8 +373,8 @@ int looking_forward_studies(
           layer_last_hits[i] = layer_offsets[i] + layer_number_of_hits[i];
         }
 
-        // Simplified model: This is not realistic though,
-        // since we could have repeated hits on stations
+        // Simplified model: One hit per layer.
+        // This is not realistic though, since we could have repeated hits on stations
         std::array<int, 12> true_scifi_indices_per_layer {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
         for (int i = 0; i < 12; ++i) {
@@ -407,6 +410,8 @@ int looking_forward_studies(
 
         // Check the efficiency of the algorithm declared above
         if (is_t3_quadruplet || is_t3_triplet) {
+          std::array<bool, 12> found {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
           for (auto& candidate : track_candidates) {
             int matched_hits = 0;
             for (int i = 0; i < candidate.hitsNum; ++i) {
@@ -415,6 +420,12 @@ int looking_forward_studies(
                 std::find(std::begin(true_scifi_indices), std::end(true_scifi_indices), hit) !=
                 std::end(true_scifi_indices)) {
                 matched_hits++;
+              }
+
+              for (int j=0; j<12; ++j) {
+                if (hit == true_scifi_indices_per_layer[j]) {
+                  found[j] = true;
+                }
               }
             }
 
@@ -426,6 +437,16 @@ int looking_forward_studies(
             if (is_t3_triplet && matched_hits == 3) {
               n_reconstructible_found_tracks++;
               break;
+            }
+          }
+
+          for (int i=0; i<12; ++i) {
+            if (found[i]) {
+              n_found_hits[i]++;
+            }
+
+            if (n_layer[i]) {
+              n_layer_with_T3_quad_triplets[i]++;
             }
           }
         }
@@ -446,15 +467,6 @@ int looking_forward_studies(
     "Number of reconstructible forward tracks coming from found UT tracks",
     n_reconstructible_scifi_tracks_from_ut_tracks,
     n_veloUT_tracks);
-  print_nice("Number of T3 quadruplets", n_quadruplets, n_reconstructible_scifi_tracks_from_ut_tracks);
-  print_nice(
-    "Number of T3 triplets with hits on both x layers (does not include quadruplets)",
-    n_triplets,
-    n_reconstructible_scifi_tracks_from_ut_tracks);
-  print_nice(
-    "Found reconstructible tracks", n_reconstructible_found_tracks, n_reconstructible_scifi_tracks_from_ut_tracks);
-
-  info_cout << std::endl;
 
   for (int i = 0; i < 12; ++i) {
     print_nice(
@@ -465,6 +477,28 @@ int looking_forward_studies(
 
   info_cout << std::endl;
 
+  print_nice("Number of T3 quadruplets", n_quadruplets, n_reconstructible_scifi_tracks_from_ut_tracks);
+  print_nice(
+    "Number of T3 triplets with hits on both x layers (does not include quadruplets)",
+    n_triplets,
+    n_reconstructible_scifi_tracks_from_ut_tracks);
+  
+  info_cout << std::endl << "-- Algorithm specific --" << std::endl;
+  
+  print_nice(
+    "Found out of reconstructible tracks", n_reconstructible_found_tracks, n_reconstructible_scifi_tracks_from_ut_tracks);
+
+  const auto t3_quads_triplets = n_triplets + n_quadruplets;
+  print_nice(
+    "Found out of T3 quadruplets and triplets", n_reconstructible_found_tracks, t3_quads_triplets);
+
+  for (int i=0; i<12; ++i) {
+    print_nice("Number of hits found in layer " + std::to_string(i) + ", out of T3 quads and triplets",
+      n_found_hits[i], n_layer_with_T3_quad_triplets[i]);
+  }
+
+  info_cout << std::endl;
+  
 #ifdef WITH_ROOT
   f->Write();
   f->Close();
