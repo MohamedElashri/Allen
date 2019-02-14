@@ -14,7 +14,6 @@ MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int la
   MiniState magnet_state;
 
   float x_mag_correction;
-
   float y_mag_correction;
 
   // center of the magnet
