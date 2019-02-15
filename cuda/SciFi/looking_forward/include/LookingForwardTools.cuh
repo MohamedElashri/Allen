@@ -36,4 +36,34 @@ namespace LookingForward {
   // second zone number: y > 0
   __device__ std::tuple<int, int>
   get_offset_and_n_hits_for_layer(const int first_zone, const SciFi::HitCount& scifi_hit_count, const float y);
+
+  /**
+   * @brief Variadic templated chi2.
+   */
+  template<typename Function, typename Pairs>
+  struct chi2_impl;
+
+  template<typename Function>
+  struct chi2_impl<Function, std::tuple<>> {
+    __device__ constexpr static float calculate(const Function& f) {
+      return 0.f;
+    }
+  };
+
+  template<typename Function, typename X, typename Y, typename... Pairs>
+  struct chi2_impl<Function, std::tuple<std::tuple<X, Y>, Pairs...>> {
+    __device__ constexpr static float calculate(const Function& f, std::tuple<X, Y> pair, Pairs... pairs) {
+      const auto expected_y = f(std::get<0>(pair));
+      const auto contribution = (std::get<1>(pair) - expected_y) * (std::get<1>(pair) - expected_y);
+      return chi2_impl<Function, std::tuple<Pairs...>>::calculate(f, pairs...) + contribution;
+    }
+  };
+
+  template<typename Function, typename... T>
+  __device__ constexpr float chi2(
+    const Function& f,
+    const T&... pairs)
+  {
+    return chi2_impl<Function, std::tuple<T...>>::calculate(f, pairs...);
+  }
 } // namespace LookingForward

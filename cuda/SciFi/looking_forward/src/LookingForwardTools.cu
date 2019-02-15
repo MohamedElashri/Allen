@@ -54,7 +54,7 @@ __device__ MiniState LookingForward::propagate_state_from_velo(
   return final_state;
 }
 
-__device__ float dx_calc(const float state_tx, float qop)
+__device__ float LookingForward::dx_calc(const float state_tx, float qop)
 {
   float ret_val;
   float qop_window = std::abs(LookingForward::dx_slope * qop + LookingForward::dx_min);

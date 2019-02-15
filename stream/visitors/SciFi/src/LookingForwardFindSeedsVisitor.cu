@@ -26,7 +26,7 @@ void SequenceVisitor::visit<looking_forward_find_seeds_t>(
     cudaMemsetAsync(arguments.offset<dev_atomics_scifi>(), 0, arguments.size<dev_atomics_scifi>(), cuda_stream));
 
   // host_buffers.host_number_of_selected_events[0]
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(1), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
@@ -50,25 +50,25 @@ void SequenceVisitor::visit<looking_forward_find_seeds_t>(
 
   state.invoke();
 
-  std::vector<SciFi::TrackCandidate> scifi_track_candidates (arguments.size<dev_scifi_track_candidates>() / sizeof(SciFi::TrackCandidate));
+  // std::vector<SciFi::TrackCandidate> scifi_track_candidates (arguments.size<dev_scifi_track_candidates>() / sizeof(SciFi::TrackCandidate));
 
-  cudaCheck(cudaMemcpyAsync(host_buffers.host_atomics_scifi,
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.size<dev_atomics_scifi>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  // cudaCheck(cudaMemcpyAsync(host_buffers.host_atomics_scifi,
+  //   arguments.offset<dev_atomics_scifi>(),
+  //   arguments.size<dev_atomics_scifi>(),
+  //   cudaMemcpyDeviceToHost,
+  //   cuda_stream));
 
-  cudaCheck(cudaMemcpyAsync(scifi_track_candidates.data(),
-    arguments.offset<dev_scifi_track_candidates>(),
-    arguments.size<dev_scifi_track_candidates>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  // cudaCheck(cudaMemcpyAsync(scifi_track_candidates.data(),
+  //   arguments.offset<dev_scifi_track_candidates>(),
+  //   arguments.size<dev_scifi_track_candidates>(),
+  //   cudaMemcpyDeviceToHost,
+  //   cuda_stream));
 
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
+  // cudaEventRecord(cuda_generic_event, cuda_stream);
+  // cudaEventSynchronize(cuda_generic_event);
 
-  for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
-    info_cout << "Event " << i
-      << ", number of tracks " << host_buffers.host_atomics_scifi[i] << std::endl;
-  }
+  // for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
+  //   info_cout << "Event " << i
+  //     << ", number of tracks " << host_buffers.host_atomics_scifi[i] << std::endl;
+  // }
 }

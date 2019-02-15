@@ -8,11 +8,12 @@ namespace LookingForward {
   constexpr float tx_slope = 1250.f;
   constexpr float tx_min = 500.f;
   constexpr float tx_weight = 0.6f;
-  constexpr float dx_weight = 0.5f;
+  constexpr float dx_weight = 0.4f;
   constexpr float max_window_layer0 = 1500.f;
   constexpr float max_window_layer1 = 20.f;
   constexpr float max_window_layer2 = 20.f;
-  constexpr float max_window_layer3 = 50.f;
+  constexpr float max_window_layer3 = 20.f;
+  constexpr float chi2_cut = 5.f;
 
   /**
    * Station where seeding starts from

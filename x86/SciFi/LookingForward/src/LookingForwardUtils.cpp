@@ -70,7 +70,6 @@ bool select_hits(
   const SciFiWindowsParams& window_params)
 {
   bool ret_val = false;
-  std::array<int, 4> zone_offset;
   std::array<MiniState, 4> proj_state;
   float x_mag, y_mag, z_mag;
   float dx_plane_0;
@@ -96,6 +95,7 @@ bool select_hits(
     dx_plane_0 = dx_calc(proj_state[0], UT_qop, window_params);
 
     const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, proj_state[0].y);
+
     const auto layer0_candidates = find_x_in_window(
       hits,
       std::get<0>(layer0_offset_nhits),
@@ -164,6 +164,7 @@ bool select_hits(
 
         for (auto hit_layer_1_it = std::get<0>(layer1_candidates); hit_layer_1_it != std::get<1>(layer1_candidates);
              hit_layer_1_it++) {
+
           float y_layer_1;
           // TODO check i we can reuse the linear propagation
           y_layer_1 = (hits.x0[hit_layer_0_it] +
@@ -197,8 +198,10 @@ bool select_hits(
             x_coordinates[3] = hits.x0[hit_layer_3_it];
             m = slope_layer_3_layer_0;
             q = x_coordinates[0] - z_coordinates[0] * m;
+
             // linear_regression(z_coordinates, x_coordinates, m, q, chi_2);
             chi_2 = get_chi_2(z_coordinates, x_coordinates, [&m, &q](double x) { return m * x + q; });
+
             if (chi_2 < window_params.chi2_cut) {
               // if (average_distance > -20. && average_distance < 20.) {
               SciFi::TrackHits new_track_hits;

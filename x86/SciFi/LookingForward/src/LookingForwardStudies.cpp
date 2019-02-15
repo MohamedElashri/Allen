@@ -299,7 +299,7 @@ int looking_forward_studies(
       const std::vector<int> true_scifi_indices =
         make_index_list_of_reconstructible(scifi_ids_ut_tracks[i_event][i_veloUT_track]);
 
-      if (true_scifi_indices.size() >= 10) {
+      // if (true_scifi_indices.size() >= 10) {
         n_reconstructible_scifi_tracks_from_ut_tracks++;
 
         // extrapolate velo y & ty to z of UT x and tx
@@ -355,7 +355,7 @@ int looking_forward_studies(
         window_params.tx_slope = 1250;
         window_params.tx_min = 500;
         window_params.tx_weight = 0.6;
-        window_params.dx_weight = 1 - window_params.dx_weight;
+        window_params.dx_weight = 1 - window_params.tx_weight;
         window_params.max_window_layer0 = 1500;
         window_params.max_window_layer1 = 20;
         window_params.max_window_layer2 = 20;
@@ -493,7 +493,7 @@ int looking_forward_studies(
               n_layer_with_T3_quad_triplets[i]++;
             }
           }
-        }
+        // }
       }
     } // extrapolation to T3 worked
 
