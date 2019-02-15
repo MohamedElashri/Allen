@@ -11,7 +11,7 @@ __device__ void looking_forward_find_seeds_impl(
   const int station,
   const LookingForward::Constants* dev_looking_forward_constants,
   int* track_insert_atomic,
-  SciFi::TrackHits* scifi_tracks)
+  SciFi::TrackCandidate* scifi_track_candidates)
 {
   ProjectionState proj_states [4];
   proj_states[0] = propagate_state_from_velo(velo_ut_state, ut_qop, (station - 1) * 4, dev_looking_forward_constants);
@@ -94,21 +94,19 @@ __device__ void looking_forward_find_seeds_impl(
                         dev_looking_forward_constants->Zone_dxdy[2];
             
             const auto average_distance = linear_propagation(y_layer_1, y_slope, LookingForward::dz_u_v_layers) - y_layer_2;
-            
-            SciFi::TrackHits track;
-            track.qop = ut_qop;
-            track.quality = average_distance;
-            track.UTTrackIndex = ut_track_index;
-            track.addHit(hit_layer_0_it);
-            track.addHit(hit_layer_1_it);
-            track.addHit(hit_layer_2_it);
-            track.addHit(hit_layer_3_it);
-            
             const int current_insert_index = atomicAdd(track_insert_atomic, 1);
 
             // There is an upper limit to the tracks we can insert
-            if (current_insert_index < SciFi::Constants::max_tracks) {
-              scifi_tracks[current_insert_index] = track;
+            if (current_insert_index < SciFi::Constants::max_track_candidates) {
+              scifi_track_candidates[current_insert_index] = SciFi::TrackCandidate{
+                hit_layer_0_it,
+                hit_layer_1_it,
+                hit_layer_2_it,
+                hit_layer_3_it,
+                ut_track_index,
+                ut_qop,
+                average_distance
+              };
             }
             else {
               track_limit_surpassed = true;

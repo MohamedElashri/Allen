@@ -14,7 +14,7 @@ __global__ void looking_forward_find_seeds(
   const float* dev_ut_z,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
-  SciFi::TrackHits* dev_scifi_tracks,
+  SciFi::TrackCandidate* dev_scifi_track_candidates,
   int* dev_atomics_scifi,
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
@@ -47,8 +47,8 @@ __global__ void looking_forward_find_seeds(
   SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
 
   // SciFi un-consolidated track types
-  SciFi::TrackHits* scifi_tracks_event = dev_scifi_tracks + event_number * SciFi::Constants::max_tracks;
-  int* atomics_scifi_event = dev_atomics_scifi + event_number;
+  SciFi::TrackCandidate* scifi_track_candidates = dev_scifi_track_candidates + event_number * SciFi::Constants::max_track_candidates;
+  int* atomics_scifi = dev_atomics_scifi + event_number;
 
   // Loop over the veloUT input tracks
   for (int i=threadIdx.x; i<ut_event_number_of_tracks; i+=blockDim.x) {
@@ -79,7 +79,7 @@ __global__ void looking_forward_find_seeds(
       scifi_hit_count,
       station,
       dev_looking_forward_constants,
-      atomics_scifi_event,
-      scifi_tracks_event);
+      atomics_scifi,
+      scifi_track_candidates);
   }
 }

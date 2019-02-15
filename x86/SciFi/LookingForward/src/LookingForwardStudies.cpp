@@ -259,6 +259,7 @@ int looking_forward_studies(
 
     // extrapolate veloUT tracks
     float tx, ty, qop;
+    int number_of_track_candidates = 0;
 
     for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
       // veloUT track variables
@@ -423,6 +424,8 @@ int looking_forward_studies(
           }
         }
 
+        number_of_track_candidates += track_candidates.size();
+
         // Check the efficiency of the algorithm declared above
         if (is_t3_quadruplet || is_t3_triplet) {
           std::array<bool, 12> found {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -467,6 +470,9 @@ int looking_forward_studies(
         }
       }
     } // extrapolation to T3 worked
+
+    info_cout << "Event " << i_event
+      << ", number of candidates: " << number_of_track_candidates << std::endl;
 #ifdef WITH_ROOT
     t_ut_tracks->Fill();
 #endif

@@ -25,7 +25,7 @@ __global__ void looking_forward_find_seeds(
   const float* dev_ut_z,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
-  SciFi::TrackHits* dev_scifi_tracks,
+  SciFi::TrackCandidate* dev_scifi_track_candidates,
   int* dev_atomics_scifi,
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
@@ -49,5 +49,5 @@ ALGORITHM(
     dev_ut_tx,
     dev_ut_qop,
     dev_ut_track_velo_indices,
-    dev_scifi_tracks,
+    dev_scifi_track_candidates,
     dev_atomics_scifi))
