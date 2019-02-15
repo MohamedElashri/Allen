@@ -47,6 +47,7 @@
 #include "ParKalmanFilter.cuh"
 #include "RunLookingForwardCPU.h"
 #include "LookingForwardFindSeeds.cuh"
+#include "LFCalculateFirstLayerWindow.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

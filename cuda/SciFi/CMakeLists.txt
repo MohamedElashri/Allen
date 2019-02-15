@@ -1,6 +1,8 @@
 file(GLOB scifi_common "common/src/*cu")
 file(GLOB scifi_preprocessing "preprocessing/src/*cu")
-file(GLOB scifi_looking_forward "looking_forward/src/*cu")
+file(GLOB scifi_lf_common "looking_forward/common/src/*cu")
+file(GLOB scifi_lf_find_seeds "looking_forward/find_seeds/src/*cu")
+file(GLOB scifi_lf_calculate_first_layer_window "looking_forward/calculate_first_layer_window/src/*cu")
 file(GLOB scifi_prforward "PrForward/src/*cu")
 file(GLOB scifi_consolidate "consolidate/src/*cu")
 
@@ -21,14 +23,18 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(common/include)
 include_directories(preprocessing/include)
-include_directories(looking_forward/include)
+include_directories(looking_forward/common/include)
+include_directories(looking_forward/find_seeds/include)
+include_directories(looking_forward/calculate_first_layer_window/include)
 include_directories(PrForward/include)
 include_directories(consolidate/include)
 
 add_library(SciFi STATIC
   ${scifi_common}
   ${scifi_preprocessing}
-  ${scifi_looking_forward}
+  ${scifi_lf_common}
+  ${scifi_lf_find_seeds}
+  ${scifi_lf_calculate_first_layer_window}
   ${scifi_prforward}
   ${scifi_consolidate}
 )

@@ -21,3 +21,5 @@ ARGUMENT(dev_scifi_track_hits, char)
 ARGUMENT(dev_scifi_qop, float)
 ARGUMENT(dev_scifi_states, MiniState)
 ARGUMENT(dev_scifi_track_ut_indices, uint)
+
+ARGUMENT(dev_scifi_lf_first_layer_candidates, short)

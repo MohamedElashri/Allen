@@ -19,6 +19,7 @@ namespace LookingForward {
    * Station where seeding starts from
    */
   constexpr uint seeding_station = 3;
+  constexpr int seeding_first_layer = 8;
 
   constexpr float x_diff_layer_qop_offset = 20.f * Gaudi::Units::mm;
   constexpr float x_diff_layer_qop_slope_a = 0.3e6;

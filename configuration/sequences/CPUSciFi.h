@@ -37,7 +37,10 @@ SEQUENCE_T(
   scifi_pre_decode_v4_t,
   scifi_raw_bank_decoder_v4_t,
   scifi_direct_decoder_v4_t,
-  looking_forward_find_seeds_t,
+  
+  lf_calculate_first_layer_window_t,
+  // looking_forward_find_seeds_t,
+
   // cpu_scifi_momentum_forward_t,
   // copy_and_prefix_sum_single_block_scifi_t,
   // copy_scifi_track_hit_number_t,
