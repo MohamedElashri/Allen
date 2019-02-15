@@ -57,9 +57,11 @@ int looking_forward_studies(
   float res_x_T2_0, res_x_T2_3, res_x_T3_0, res_x_T3_3;
 
   float xf_t3, yf_t3, txf_t3, tyf_t3, der_xf_qop_t3, qop_update_t3, x_mag, y_mag;
-  float res_x_0_t3, res_x_3_t3, dx_t3, x_extrap_t3, true_x_t3, res_x_other_t3;
+  float layer8_win_size;
+  int layer8_win_pop;
+  float res_x_0_t3, res_x_3_t3, dx_t3, x_extrap_t3, y_extrap_t3, true_x_t3, res_x_other_t3;
 
-  float delta_y, delta_y_good;
+  float quality, delta_y_good;
   int num_candidates, good_hits;
   int n_hits_in_window_0_t3 = 0, n_hits_in_window_0_t3_true_p = 0, n_hits_in_window_3_t3 = 0;
   int n_hits_in_zone_t3 = 0, n_hits_in_window_other_t3 = 0;
@@ -131,6 +133,7 @@ int looking_forward_studies(
   t_extrap_T3->Branch("res_x_other", &res_x_other_t3);
   t_extrap_T3->Branch("true_x", &true_x_t3);
   t_extrap_T3->Branch("x_extrap", &x_extrap_t3);
+  t_extrap_T3->Branch("y_extrap", &y_extrap_t3);
   t_extrap_T3->Branch("dx", &dx_t3);
   t_extrap_T3->Branch("qop_update", &qop_update_t3);
   t_extrap_T3->Branch("p_diff_before_update", &p_diff_before_update_t3);
@@ -149,13 +152,16 @@ int looking_forward_studies(
   t_extrap_T3->Branch("match_other", &match_t3_other);
   t_extrap_T3->Branch("x_mag", &x_mag);
   t_extrap_T3->Branch("y_mag", &y_mag);
+  t_extrap_T3->Branch("layer8_win_size", &layer8_win_size);
+  t_extrap_T3->Branch("layer8_win_pop", &layer8_win_pop);
+  t_extrap_T3->Branch("num_candidates", &num_candidates);
 
-  t_track_candidates->Branch("delta_y", &delta_y);
+  t_track_candidates->Branch("quality", &quality);
   t_track_candidates->Branch("num_candidates", &num_candidates);
   t_track_candidates->Branch("good_hits", &good_hits);
   t_track_candidates->Branch("UT_qop", &ut_qop);
 
-  t_good_tracks->Branch("delta_y", &delta_y);
+  t_good_tracks->Branch("quality", &quality);
   t_good_tracks->Branch("num_candidates", &num_candidates);
   t_good_tracks->Branch("good_hits", &good_hits);
   t_good_tracks->Branch("UT_qop", &ut_qop);
@@ -343,12 +349,16 @@ int looking_forward_studies(
         std::vector<SciFi::TrackHits> track_candidates;
         std::array<std::vector<Window_stat>, 4> window_stats;
         SciFiWindowsParams window_params;
-        window_params.dx_slope = 4000000;
-        window_params.dx_min = 1000;
-        window_params.max_window_layer0 = 1000;
-        window_params.max_window_layer1 = 10;
-        window_params.max_window_layer2 = 10;
-        window_params.max_window_layer3 = 80;
+        window_params.dx_slope = 2e4;
+        window_params.dx_min = 500;
+        window_params.tx_slope = 1250;
+        window_params.tx_min = 500;
+        window_params.tx_weight = 0.6;
+        window_params.dx_weight = 1 - window_params.dx_weight;
+        window_params.max_window_layer0 = 1500;
+        window_params.max_window_layer1 = 20;
+        window_params.max_window_layer2 = 20;
+        window_params.max_window_layer3 = 50;
 
         bool track_match;
         track_match = select_hits(
@@ -401,12 +411,24 @@ int looking_forward_studies(
           n_quadruplets++;
         }
 
+        if (is_t3_quadruplet) {
+          true_x_t3 = scifi_hits.x0[true_scifi_indices_per_layer[8]];
+          x_extrap_t3 = SciFi_state_T3.x;
+          y_extrap_t3 = SciFi_state_T3.y;
+          tyf_t3 = SciFi_state_T3.ty;
+          txf_t3 = SciFi_state_T3.tx;
+          // t_extrap_T3->Fill();
+        }
+
         if (track_match) {
           if (
             is_t3_quadruplet && scifi_hits.x0[true_scifi_indices_per_layer[8]] < window_stats[0][0].x_max &&
             scifi_hits.x0[true_scifi_indices_per_layer[8]] > window_stats[0][0].x_min) {
             n_hits_in_first_window++;
           }
+          layer8_win_size = window_stats[0][0].x_max - window_stats[0][0].x_min;
+          layer8_win_pop = window_stats[0][0].num_hits;
+          t_extrap_T3->Fill();
         }
 
         bool is_t3_triplet = false;
@@ -429,6 +451,8 @@ int looking_forward_studies(
 
           for (auto& candidate : track_candidates) {
             int matched_hits = 0;
+            quality = candidate.quality;
+            t_track_candidates->Fill();
             for (int i = 0; i < candidate.hitsNum; ++i) {
               const auto hit = candidate.hits[i];
               if (
@@ -446,10 +470,11 @@ int looking_forward_studies(
 
             if (is_t3_quadruplet && matched_hits == 4) {
               n_reconstructible_found_tracks++;
+              t_good_tracks->Fill();
               break;
             }
 
-            if (is_t3_triplet && matched_hits == 3) {
+            if (is_t3_triplet && matched_hits == 4) {
               n_reconstructible_found_tracks++;
               break;
             }
@@ -509,6 +534,7 @@ int looking_forward_studies(
 
   const auto t3_quads_triplets = n_triplets + n_quadruplets;
   print_nice("Found out of T3 quadruplets and triplets", n_reconstructible_found_tracks, t3_quads_triplets);
+  print_nice("Found out of T3 quadruplets", n_reconstructible_found_tracks, n_quadruplets);
 
   for (int i = 0; i < 12; ++i) {
     print_nice(

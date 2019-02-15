@@ -19,6 +19,10 @@
 struct SciFiWindowsParams {
   float dx_slope = 4000000;
   float dx_min = 200;
+  float dx_weight = 0.5;
+  float tx_slope = 4000000;
+  float tx_min = 200;
+  float tx_weight = 0.5;
   float max_window_layer0 = 600;
   float max_window_layer1 = 10; // 20;
   float max_window_layer2 = 10; // 20;
@@ -66,7 +70,7 @@ bool select_hits(
   std::array<std::vector<Window_stat>, 4>& window_stats,
   const SciFiWindowsParams& window_params);
 
-float dx_calc(float qop, const SciFiWindowsParams& window_params);
+float dx_calc(const MiniState& state, float qop, const SciFiWindowsParams& window_params);
 
 std::tuple<int, int> find_x_in_window(
   const SciFi::Hits& hits,
