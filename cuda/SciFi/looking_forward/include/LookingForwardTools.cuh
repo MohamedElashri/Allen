@@ -22,7 +22,7 @@ namespace LookingForward {
     int layer,
     const LookingForward::Constants* dev_looking_forward_constants);
 
-  __device__ float dx_calc(const float qop);
+  __device__ float dx_calc(const float state_tx, float qop);
 
   __device__ std::tuple<int, int> find_x_in_window(
     const SciFi::Hits& hits,

@@ -3,13 +3,16 @@
 #include "SystemOfUnits.h"
 
 namespace LookingForward {
-  constexpr float dx_slope = 4000000.f;
-  constexpr float dx_min = 1000.f;
-  constexpr float max_window_layer0 = 1000.f;
-  constexpr float max_window_layer1 = 10.f;
-  constexpr float max_window_layer2 = 10.f;
-  constexpr float max_window_layer3 = 80.f;
-  constexpr float chi2_cut = 100.f;
+  constexpr float dx_slope = 2e4f;
+  constexpr float dx_min = 500.f;
+  constexpr float tx_slope = 1250.f;
+  constexpr float tx_min = 500.f;
+  constexpr float tx_weight = 0.6f;
+  constexpr float dx_weight = 0.5f;
+  constexpr float max_window_layer0 = 1500.f;
+  constexpr float max_window_layer1 = 20.f;
+  constexpr float max_window_layer2 = 20.f;
+  constexpr float max_window_layer3 = 50.f;
 
   /**
    * Station where seeding starts from

@@ -13,8 +13,11 @@ __device__ void looking_forward_find_seeds_impl(
   int* track_insert_atomic,
   SciFi::TrackCandidate* scifi_track_candidates)
 {
+  const MiniState propagated_state = propagate_state_from_velo(velo_ut_state, ut_qop, (station - 1) * 4, dev_looking_forward_constants);
+  
   ProjectionState proj_states [4];
-  proj_states[0] = propagate_state_from_velo(velo_ut_state, ut_qop, (station - 1) * 4, dev_looking_forward_constants);
+  proj_states[0] = propagated_state;
+  const auto proj_state_0_tx = propagated_state.tx;
 
   // There is an upper limit of the tracks we can add
   bool track_limit_surpassed = false;
@@ -33,7 +36,7 @@ __device__ void looking_forward_find_seeds_impl(
     (proj_states[0].x > LookingForward::xMin && proj_states[0].x < LookingForward::xMax) &&
     (proj_states[0].y > LookingForward::yDownMin && proj_states[0].y < LookingForward::yUpMax)) {
 
-    const auto dx_plane_0 = dx_calc(ut_qop);
+    const auto dx_plane_0 = dx_calc(proj_state_0_tx, ut_qop);
     const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, proj_states[0].y);
     const auto layer0_candidates = find_x_in_window(
       hits,
