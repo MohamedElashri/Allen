@@ -186,24 +186,34 @@ bool select_hits(
             // average_distance = (distance_layer1 + distance_layer2)*0.5;
             average_distance = linear_propagation(y_layer_1, y_slope, SciFi::LookingForward::dz_u_v_layers) - y_layer_2;
             // if (std::abs(average_distance) < 0.8){
-            // float m,q,chi_2;
-            // m = slope_layer_3_layer_0;
-            // q = x_coordinates[0] - z_coordinates[0]*m;
+            float m, q, chi_2;
+            std::vector<float> x_coordinates(4, 0), z_coordinates(4, 0);
+            for (int k = 0; k < 4; k++) {
+              z_coordinates[k] = proj_state[k].z;
+            }
+            x_coordinates[0] = hits.x0[hit_layer_0_it];
+            x_coordinates[1] = hits.x0[hit_layer_1_it] + proj_state[1].y * SciFi::LookingForward::Zone_dxdy[1];
+            x_coordinates[2] = hits.x0[hit_layer_2_it] + proj_state[2].y * SciFi::LookingForward::Zone_dxdy[2];
+            x_coordinates[3] = hits.x0[hit_layer_3_it];
+            m = slope_layer_3_layer_0;
+            q = x_coordinates[0] - z_coordinates[0] * m;
             // linear_regression(z_coordinates, x_coordinates, m, q, chi_2);
-            // chi_2 = get_chi_2(z_coordinates, x_coordinates, [&m,&q](double x){return m*x+q;});
-            // if (chi_2 < window_params.chi2_cut){
-            // if (average_distance > -20. && average_distance < 20.){
-            SciFi::TrackHits new_track_hits;
-            // TODO this should be the update qop using the SciFi hits
-            new_track_hits.qop = UT_qop;
-            // This is now the chi2 but has the same function
-            new_track_hits.quality = average_distance;
-            new_track_hits.addHit(hit_layer_0_it);
-            new_track_hits.addHit(hit_layer_1_it);
-            new_track_hits.addHit(hit_layer_2_it);
-            new_track_hits.addHit(hit_layer_3_it);
-            track_candidate.emplace_back(new_track_hits);
-            ret_val = true;
+            chi_2 = get_chi_2(z_coordinates, x_coordinates, [&m, &q](double x) { return m * x + q; });
+            if (chi_2 < window_params.chi2_cut) {
+              // if (average_distance > -20. && average_distance < 20.) {
+              SciFi::TrackHits new_track_hits;
+              // TODO this should be the update qop using the SciFi hits
+              new_track_hits.qop = UT_qop;
+              // This is now the chi2 but has the same function
+              new_track_hits.quality = chi_2;
+              // new_track_hits.quality = average_distance;
+              new_track_hits.addHit(hit_layer_0_it);
+              new_track_hits.addHit(hit_layer_1_it);
+              new_track_hits.addHit(hit_layer_2_it);
+              new_track_hits.addHit(hit_layer_3_it);
+              track_candidate.emplace_back(new_track_hits);
+              ret_val = true;
+            }
           }
         }
       }
@@ -228,25 +238,26 @@ void linear_regression(const std::vector<float>& x, const std::vector<float>& y,
 {
   float x_avg = 0;
   float x_var = 0;
-  float x_y_covar = 0;
   float y_avg = 0;
   m = 0;
   q = 0;
   chi_2 = 0;
   for (int k = 0; k < x.size(); k++) {
     x_avg += x[k];
+    x_var += x[k] * x[k];
     y_avg += y[k];
   }
   x_avg /= x.size();
   y_avg /= x.size();
+  x_var /= x.size();
+
+  x_var = x_var - x_avg * x_avg;
 
   for (int k = 0; k < x.size(); k++) {
-    x_y_covar += (x[k] - x_avg) * (y[k] - y_avg);
-    x_var += (x[k] - x_avg) * (x[k] - x_avg);
+    m += (x[k] - x_avg) * (y[k] - y_avg);
   }
 
-  m = x_y_covar / x_var;
-
+  m /= x_var;
   q = y_avg - m * x_avg;
   chi_2 = get_chi_2(x, y, [&m, &q](double x) { return m * x + q; });
 }
