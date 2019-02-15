@@ -93,7 +93,7 @@ bool select_hits(
     (proj_state[0].x > SciFi::LookingForward::xMin && proj_state[0].x < SciFi::LookingForward::xMax) &&
     (proj_state[0].y > SciFi::LookingForward::yDownMin && proj_state[0].y < SciFi::LookingForward::yUpMax)) {
 
-    dx_plane_0 = dx_calc(UT_qop, window_params);
+    dx_plane_0 = dx_calc(proj_state[0], UT_qop, window_params);
 
     const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, proj_state[0].y);
     const auto layer0_candidates = find_x_in_window(
@@ -125,7 +125,7 @@ bool select_hits(
       for (auto hit_layer_3_it = std::get<0>(layer3_candidates); hit_layer_3_it != std::get<1>(layer3_candidates);
            hit_layer_3_it++) {
         const float slope_layer_3_layer_0 =
-          (hits.x0[hit_layer_0_it] - hits.x0[hit_layer_3_it]) / (SciFi::LookingForward::dz_x_layers);
+          (hits.x0[hit_layer_3_it] - hits.x0[hit_layer_0_it]) / (SciFi::LookingForward::dz_x_layers);
         // TODO add layer[2]
         float hit_on_layer_1;
         float hit_on_layer_2;
@@ -181,10 +181,8 @@ bool select_hits(
             y_layer_2 = (hits.x0[hit_layer_0_it] +
                          slope_layer_3_layer_0 * (SciFi::LookingForward::dz_x_v_layers) -hits.x0[hit_layer_2_it]) /
                         SciFi::LookingForward::Zone_dxdy[2];
-            // distance_layer1 = (hit_on_layer_1 - hit_layer_1_it->x());
-            // distance_layer2 = (hit_on_layer_2 - hit_layer_2_it->x());
-            distance_layer1 = (hit_on_layer_1 - hits.x0[hit_layer_1_it]);
-            distance_layer2 = (hit_on_layer_2 - hits.x0[hit_layer_2_it]);
+            distance_layer1 = (proj_state[1].x - hits.x0[hit_layer_1_it]);
+            distance_layer2 = (proj_state[2].x - hits.x0[hit_layer_2_it]);
             // average_distance = (distance_layer1 + distance_layer2)*0.5;
             average_distance = linear_propagation(y_layer_1, y_slope, SciFi::LookingForward::dz_u_v_layers) - y_layer_2;
             // if (std::abs(average_distance) < 0.8){
@@ -214,10 +212,12 @@ bool select_hits(
   return ret_val;
 }
 
-float dx_calc(float qop, const SciFiWindowsParams& window_params)
+float dx_calc(const MiniState& state, float qop, const SciFiWindowsParams& window_params)
 {
-  // TODO the slope should be redefined in order to avoid divisions
-  float ret_val = std::abs(window_params.dx_slope * qop + window_params.dx_min);
+  float ret_val;
+  float qop_window = std::abs(window_params.dx_slope * qop + window_params.dx_min);
+  float tx_window = std::abs(window_params.tx_slope * state.tx + window_params.tx_min);
+  ret_val = window_params.tx_weight * tx_window + window_params.dx_weight * qop_window;
   if (ret_val > window_params.max_window_layer0) {
     ret_val = window_params.max_window_layer0;
   }
