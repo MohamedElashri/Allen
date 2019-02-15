@@ -15,6 +15,7 @@ void Constants::reserve_constants()
     (void**) &dev_ut_region_offsets, (UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1) * sizeof(uint)));
   cudaCheck(cudaMalloc((void**) &dev_inv_clus_res, host_inv_clus_res.size() * sizeof(float)));
   cudaCheck(cudaMalloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations)));
+  cudaCheck(cudaMalloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants)));
 }
 
 void Constants::initialize_constants()
@@ -82,6 +83,9 @@ void Constants::initialize_constants()
   host_kalman_params.SetParameters("../cuda/kalman/params/FT6x2", ParKalmanFilter::Polarity::Down);
   cudaCheck(cudaMemcpy(
     dev_kalman_params, &host_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations), cudaMemcpyHostToDevice));
+
+  cudaCheck(cudaMemcpy(
+    dev_looking_forward_constants, &host_looking_forward_constants, sizeof(LookingForward::Constants), cudaMemcpyHostToDevice))
 }
 
 void Constants::initialize_ut_decoding_constants(const std::vector<char>& ut_geometry)

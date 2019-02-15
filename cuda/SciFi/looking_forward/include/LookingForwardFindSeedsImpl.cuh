@@ -10,6 +10,7 @@ __device__ void looking_forward_find_seeds_impl(
   const SciFi::Hits& hits,
   const SciFi::HitCount& hit_count,
   const int station,
-  int* atomics,
+  const LookingForward::Constants* dev_looking_forward_constants,
+  int* track_insert_atomic,
   SciFi::TrackHits* scifi_tracks);
 

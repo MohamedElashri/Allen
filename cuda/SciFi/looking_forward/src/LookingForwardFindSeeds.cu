@@ -17,6 +17,8 @@ __global__ void looking_forward_find_seeds(
   SciFi::TrackHits* dev_scifi_tracks,
   int* dev_atomics_scifi,
   const char* dev_scifi_geometry,
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* dev_inv_clus_res,
   const uint station)
 {
   const auto number_of_events = gridDim.x;
@@ -36,7 +38,7 @@ __global__ void looking_forward_find_seeds(
                                       event_number,
                                       number_of_events};
   const int ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
-  const int ut_event_tracks_offset = ut_tracks.tracks_offset(i_event);
+  const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
 
   // SciFi hits
   const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
@@ -67,7 +69,7 @@ __global__ void looking_forward_find_seeds(
     // extrapolate velo y & ty to z of UT x and tx
     // use ty from Velo state
     const MiniState ut_state {ut_x, LookingForward::y_at_z(velo_state, ut_z), ut_z, ut_tx, velo_state.ty};
-    const MiniState state_at_z_last_ut_plane = LookingForward::state_at_z(ut_state, SciFi::LookingForward::z_last_UT_plane);
+    const MiniState state_at_z_last_ut_plane = LookingForward::state_at_z(ut_state, LookingForward::z_last_UT_plane);
 
     looking_forward_find_seeds_impl(
       state_at_z_last_ut_plane,
@@ -76,6 +78,7 @@ __global__ void looking_forward_find_seeds(
       scifi_hits,
       scifi_hit_count,
       station,
+      dev_looking_forward_constants,
       atomics_scifi_event,
       scifi_tracks_event);
   }

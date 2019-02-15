@@ -3,7 +3,9 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "LookingForwardFindSeedsImpl.cuh"
-
+#include "VeloConsolidated.cuh"
+#include "UTConsolidated.cuh"
+#include "SciFiEventModel.cuh"
 #include "Handler.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
@@ -26,6 +28,8 @@ __global__ void looking_forward_find_seeds(
   SciFi::TrackHits* dev_scifi_tracks,
   int* dev_atomics_scifi,
   const char* dev_scifi_geometry,
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* dev_inv_clus_res,
   const uint station);
 
 ALGORITHM(

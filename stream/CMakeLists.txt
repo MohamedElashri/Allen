@@ -33,6 +33,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/simplified_kalman_filter/inclu
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)

@@ -44,6 +44,8 @@ void SequenceVisitor::visit<looking_forward_find_seeds_t>(
     arguments.offset<dev_scifi_tracks>(),
     arguments.offset<dev_atomics_scifi>(),
     constants.dev_scifi_geometry,
+    constants.dev_looking_forward_constants,
+    constants.dev_inv_clus_res,
     LookingForward::seeding_station);
 
   state.invoke();
