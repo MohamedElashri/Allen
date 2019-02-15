@@ -358,7 +358,8 @@ int looking_forward_studies(
         window_params.max_window_layer0 = 1500;
         window_params.max_window_layer1 = 20;
         window_params.max_window_layer2 = 20;
-        window_params.max_window_layer3 = 50;
+        window_params.max_window_layer3 = 20;
+        window_params.chi2_cut = 5;
 
         bool track_match;
         track_match = select_hits(
