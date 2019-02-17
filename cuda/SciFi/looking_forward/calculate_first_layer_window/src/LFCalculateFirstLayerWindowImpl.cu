@@ -37,7 +37,7 @@ __device__ void lf_calculate_first_layer_window_impl(
       propagated_state.x - dx_plane_0,
       propagated_state.x + dx_plane_0);
 
-    first_candidates[threadIdx.x] = std::get<0>(layer0_candidates);
-    last_candidates[threadIdx.x] = std::get<1>(layer0_candidates);
+    first_candidates[threadIdx.x] = std::get<0>(layer0_candidates) - hit_count.event_offset();
+    last_candidates[threadIdx.x] = std::get<1>(layer0_candidates) - hit_count.event_offset();
   }
 }

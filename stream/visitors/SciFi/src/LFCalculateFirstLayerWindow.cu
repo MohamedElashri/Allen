@@ -22,6 +22,13 @@ void SequenceVisitor::visit<lf_calculate_first_layer_window_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_scifi_lf_first_layer_candidates>(),
+    -1,
+    arguments.size<dev_scifi_lf_first_layer_candidates>(),
+    cuda_stream
+  ));
+
   // host_buffers.host_number_of_selected_events[0]
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);
   state.set_arguments(
@@ -60,6 +67,6 @@ void SequenceVisitor::visit<lf_calculate_first_layer_window_t>(
   const auto number_of_ut_tracks = host_buffers.host_atomics_ut[2 * host_buffers.host_number_of_selected_events[0]];
   for (uint i=0; i<number_of_ut_tracks; ++i) {
     info_cout << "UT track " << i << ", window: (" << lf_first_layer_candidates[i]
-      << ", " << lf_first_layer_candidates[number_of_ut_tracks + i] << std::endl;
+      << ", " << lf_first_layer_candidates[number_of_ut_tracks + i] << ")" << std::endl;
   }
 }

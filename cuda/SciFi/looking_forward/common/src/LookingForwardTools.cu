@@ -80,7 +80,7 @@ __device__ std::tuple<int, int> LookingForward::find_x_in_window(
     last_candidate = binary_search_leftmost(hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, x_max);
 
     first_candidate = zone_offset + first_candidate;
-    last_candidate = last_candidate != -1 ? first_candidate + last_candidate : -1;
+    last_candidate = last_candidate != -1 ? first_candidate + last_candidate + 1 : -1;
   }
 
   return {first_candidate, last_candidate};

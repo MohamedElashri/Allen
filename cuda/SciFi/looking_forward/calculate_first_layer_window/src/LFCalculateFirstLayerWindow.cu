@@ -47,7 +47,7 @@ __global__ void lf_calculate_first_layer_window(
 
   // SciFi un-consolidated track types
   short* first_candidates = dev_first_layer_candidates + ut_event_tracks_offset;
-  short* last_candidates  = dev_first_layer_candidates + ut_event_tracks_offset + ut_event_number_of_tracks;
+  short* last_candidates  = dev_first_layer_candidates + ut_event_tracks_offset + ut_tracks.total_number_of_tracks;
 
   // Loop over the veloUT input tracks
   for (int i=threadIdx.x; i<ut_event_number_of_tracks; i+=blockDim.x) {
