@@ -9,8 +9,8 @@ __device__ void lf_calculate_first_layer_window_impl(
   const SciFi::HitCount& hit_count,
   const int seeding_first_layer,
   const LookingForward::Constants* dev_looking_forward_constants,
-  short* first_candidates,
-  short* last_candidates)
+  uint* first_candidates,
+  uint* number_of_candidates)
 {
   MiniState propagated_state =
     propagate_state_from_velo(velo_ut_state, ut_qop, seeding_first_layer, dev_looking_forward_constants);
@@ -28,7 +28,7 @@ __device__ void lf_calculate_first_layer_window_impl(
     (propagated_state.y > LookingForward::yDownMin && propagated_state.y < LookingForward::yUpMax)) {
 
     const auto dx_plane_0 = dx_calc(propagated_state.tx, ut_qop);
-    const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, propagated_state.y);
+    const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(2 * seeding_first_layer, hit_count, propagated_state.y);
 
     const auto layer0_candidates = find_x_in_window(
       hits,
@@ -38,6 +38,6 @@ __device__ void lf_calculate_first_layer_window_impl(
       propagated_state.x + dx_plane_0);
 
     first_candidates[threadIdx.x] = std::get<0>(layer0_candidates) - hit_count.event_offset();
-    last_candidates[threadIdx.x] = std::get<1>(layer0_candidates) - hit_count.event_offset();
+    number_of_candidates[threadIdx.x] = std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates);
   }
 }

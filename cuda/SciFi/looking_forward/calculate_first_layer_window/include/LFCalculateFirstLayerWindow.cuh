@@ -28,7 +28,7 @@ __global__ void lf_calculate_first_layer_window(
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
-  short* dev_first_layer_candidates,
+  uint* dev_first_layer_candidates,
   const int seeding_first_layer);
 
 ALGORITHM(

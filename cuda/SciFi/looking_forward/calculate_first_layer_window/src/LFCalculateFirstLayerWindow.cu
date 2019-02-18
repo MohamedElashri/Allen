@@ -17,7 +17,7 @@ __global__ void lf_calculate_first_layer_window(
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
-  short* dev_first_layer_candidates,
+  uint* dev_first_layer_candidates,
   const int seeding_first_layer)
 {
   const auto number_of_events = gridDim.x;
@@ -46,8 +46,8 @@ __global__ void lf_calculate_first_layer_window(
   const SciFi::Hits scifi_hits {dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
 
   // SciFi un-consolidated track types
-  short* first_candidates = dev_first_layer_candidates + ut_event_tracks_offset;
-  short* last_candidates  = dev_first_layer_candidates + ut_event_tracks_offset + ut_tracks.total_number_of_tracks;
+  uint* first_candidates = dev_first_layer_candidates + ut_event_tracks_offset;
+  uint* number_of_candidates = dev_first_layer_candidates + ut_event_tracks_offset + ut_tracks.total_number_of_tracks;
 
   // Loop over the veloUT input tracks
   for (int i=threadIdx.x; i<ut_event_number_of_tracks; i+=blockDim.x) {
@@ -78,6 +78,6 @@ __global__ void lf_calculate_first_layer_window(
       seeding_first_layer,
       dev_looking_forward_constants,
       first_candidates,
-      last_candidates);
+      number_of_candidates);
   }
 }

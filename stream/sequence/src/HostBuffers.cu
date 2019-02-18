@@ -55,6 +55,7 @@ void HostBuffers::reserve(const uint max_number_of_events)
     (void**) &host_scifi_states, max_number_of_events * SciFi::Constants::max_tracks * sizeof(MiniState)));
   cudaCheck(cudaMallocHost(
     (void**) &host_scifi_track_ut_indices, max_number_of_events * SciFi::Constants::max_tracks * sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_lf_total_size_first_window_layer, sizeof(uint)));
 
   cudaCheck(cudaMallocHost(
     (void**) &host_reconstructed_pvs, max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));

@@ -22,4 +22,6 @@ ARGUMENT(dev_scifi_qop, float)
 ARGUMENT(dev_scifi_states, MiniState)
 ARGUMENT(dev_scifi_track_ut_indices, uint)
 
-ARGUMENT(dev_scifi_lf_first_layer_candidates, short)
+ARGUMENT(dev_scifi_lf_first_layer_candidates, uint)
+ARGUMENT(dev_prefix_sum_auxiliary_array_7, uint)
+ARGUMENT(dev_scifi_lf_second_layer_candidates, unsigned short)
