@@ -10,7 +10,8 @@ __device__ void lf_calculate_first_layer_window_impl(
   const int seeding_first_layer,
   const LookingForward::Constants* dev_looking_forward_constants,
   uint* first_candidates,
-  uint* number_of_candidates)
+  uint* number_of_candidates,
+  const int candidate_index)
 {
   MiniState propagated_state =
     propagate_state_from_velo(velo_ut_state, ut_qop, seeding_first_layer, dev_looking_forward_constants);
@@ -37,7 +38,7 @@ __device__ void lf_calculate_first_layer_window_impl(
       propagated_state.x - dx_plane_0,
       propagated_state.x + dx_plane_0);
 
-    first_candidates[threadIdx.x] = std::get<0>(layer0_candidates) - hit_count.event_offset();
-    number_of_candidates[threadIdx.x] = std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates);
+    first_candidates[candidate_index] = std::get<0>(layer0_candidates) - hit_count.event_offset();
+    number_of_candidates[candidate_index] = std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates);
   }
 }

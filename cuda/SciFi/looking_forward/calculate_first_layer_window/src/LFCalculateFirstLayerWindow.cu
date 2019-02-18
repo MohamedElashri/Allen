@@ -53,7 +53,6 @@ __global__ void lf_calculate_first_layer_window(
   for (int i=threadIdx.x; i<ut_event_number_of_tracks; i+=blockDim.x) {
     const int velo_track_index = ut_tracks.velo_track[i];
     const int ut_track_index = ut_event_tracks_offset + i;
-    
     const float ut_qop = ut_tracks.qop[i];
 
     // Note: These data should be accessed like
@@ -78,6 +77,7 @@ __global__ void lf_calculate_first_layer_window(
       seeding_first_layer,
       dev_looking_forward_constants,
       first_candidates,
-      number_of_candidates);
+      number_of_candidates,
+      i);
   }
 }

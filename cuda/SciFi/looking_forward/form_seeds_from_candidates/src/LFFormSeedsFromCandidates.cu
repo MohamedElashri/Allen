@@ -71,8 +71,8 @@ __global__ void lf_form_seeds_from_candidates(
       const auto second_candidate_offset = second_candidate_start_p[i];
       const auto second_candidate_size = second_candidate_size_p[i];
 
-      const int velo_track_index = ut_tracks.velo_track[rel_ut_track_index];
       const int ut_track_index = ut_event_tracks_offset + rel_ut_track_index;
+      const int velo_track_index = ut_tracks.velo_track[rel_ut_track_index];
       const float ut_qop = ut_tracks.qop[rel_ut_track_index];
 
       // Note: These data should be accessed like

@@ -64,8 +64,8 @@ __global__ void lf_calculate_second_layer_window(
       unsigned short* second_candidate_start = dev_second_layer_candidates + 2 * total_number_of_candidates + offset_first_candidate;
       unsigned short* second_candidate_size = dev_second_layer_candidates + 3 * total_number_of_candidates + offset_first_candidate;
 
-      const int velo_track_index = ut_tracks.velo_track[i];
       const int ut_track_index = ut_event_tracks_offset + i;
+      const int velo_track_index = ut_tracks.velo_track[i];
       const float ut_qop = ut_tracks.qop[i];
 
       // Note: These data should be accessed like

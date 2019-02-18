@@ -30,7 +30,7 @@ void SequenceVisitor::visit<lf_calculate_first_layer_window_t>(
   ));
 
   // host_buffers.host_number_of_selected_events[0]
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(64), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
