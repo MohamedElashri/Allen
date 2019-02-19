@@ -357,7 +357,7 @@ int looking_forward_studies(
       window_params.tx_min = 500;
       window_params.tx_weight = 0.6;
       window_params.dx_weight = 1 - window_params.tx_weight;
-      window_params.max_window_layer0 = 200;
+      window_params.max_window_layer0 = 1500;
       window_params.max_window_layer1 = 20;
       window_params.max_window_layer2 = 20;
       window_params.max_window_layer3 = 20;
