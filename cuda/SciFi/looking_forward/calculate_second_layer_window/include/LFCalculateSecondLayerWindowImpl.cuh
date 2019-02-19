@@ -17,4 +17,8 @@ __device__ void lf_calculate_second_layer_window_impl(
   unsigned short* second_candidate_ut_track,
   unsigned short* second_candidate_first_candidate,
   unsigned short* second_candidate_start,
-  unsigned short* second_candidate_size);
+  unsigned short* second_candidate_size,
+  unsigned short* second_candidate_l1_start,
+  unsigned short* second_candidate_l1_size,
+  unsigned short* second_candidate_l2_start,
+  unsigned short* second_candidate_l2_size);

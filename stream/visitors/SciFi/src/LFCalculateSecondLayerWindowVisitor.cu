@@ -8,7 +8,7 @@ void SequenceVisitor::set_arguments_size<lf_calculate_second_layer_window_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_scifi_lf_second_layer_candidates>(4 * host_buffers.host_lf_total_size_first_window_layer[0] + 1);
+  arguments.set_size<dev_scifi_lf_second_layer_candidates>(8 * host_buffers.host_lf_total_size_first_window_layer[0] + 1);
 }
 
 template<>
@@ -29,7 +29,7 @@ void SequenceVisitor::visit<lf_calculate_second_layer_window_t>(
   ));
 
   // host_buffers.host_number_of_selected_events[0]
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(2, 32), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(4, 16), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
@@ -73,6 +73,10 @@ void SequenceVisitor::visit<lf_calculate_second_layer_window_t>(
   //     << ", " << lf_second_layer_candidates[host_buffers.host_lf_total_size_first_window_layer[0] + i]
   //     << ", " << lf_second_layer_candidates[2 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
   //     << ", " << lf_second_layer_candidates[3 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
+  //     << ", " << lf_second_layer_candidates[4 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
+  //     << ", " << lf_second_layer_candidates[5 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
+  //     << ", " << lf_second_layer_candidates[6 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
+  //     << ", " << lf_second_layer_candidates[7 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
   //     << ")" << std::endl;
 
   //   total_number_of_candidates += lf_second_layer_candidates[3 * host_buffers.host_lf_total_size_first_window_layer[0] + i];

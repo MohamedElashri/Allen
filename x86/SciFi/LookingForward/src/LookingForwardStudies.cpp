@@ -498,7 +498,7 @@ int looking_forward_studies(
               break;
             }
 
-            if (is_t3_triplet && matched_hits == 3) {
+            if ((is_t3_triplet || is_t3_quadruplet) && matched_hits == 3) {
               n_reconstructible_found_tracks++;
               break;
             }

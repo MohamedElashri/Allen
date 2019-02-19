@@ -63,6 +63,10 @@ __global__ void lf_calculate_second_layer_window(
       unsigned short* second_candidate_first_candidate = dev_second_layer_candidates + total_number_of_candidates + offset_first_candidate;
       unsigned short* second_candidate_start = dev_second_layer_candidates + 2 * total_number_of_candidates + offset_first_candidate;
       unsigned short* second_candidate_size = dev_second_layer_candidates + 3 * total_number_of_candidates + offset_first_candidate;
+      unsigned short* second_candidate_l1_start = dev_second_layer_candidates + 4 * total_number_of_candidates + offset_first_candidate;
+      unsigned short* second_candidate_l1_size  = dev_second_layer_candidates + 5 * total_number_of_candidates + offset_first_candidate;
+      unsigned short* second_candidate_l2_start = dev_second_layer_candidates + 6 * total_number_of_candidates + offset_first_candidate;
+      unsigned short* second_candidate_l2_size  = dev_second_layer_candidates + 7 * total_number_of_candidates + offset_first_candidate;
 
       const int ut_track_index = ut_event_tracks_offset + i;
       const int velo_track_index = ut_tracks.velo_track[i];
@@ -96,7 +100,11 @@ __global__ void lf_calculate_second_layer_window(
         second_candidate_ut_track,
         second_candidate_first_candidate,
         second_candidate_start,
-        second_candidate_size);
+        second_candidate_size,
+        second_candidate_l1_start,
+        second_candidate_l1_size,
+        second_candidate_l2_start,
+        second_candidate_l2_size);
     }
   }
 }
