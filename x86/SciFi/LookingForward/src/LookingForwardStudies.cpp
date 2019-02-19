@@ -300,9 +300,6 @@ int looking_forward_studies(
       const std::vector<int> true_scifi_indices =
         make_index_list_of_reconstructible(scifi_ids_ut_tracks[i_event][i_veloUT_track]);
 
-    
-      n_reconstructible_scifi_tracks_from_ut_tracks++;
-
       // extrapolate velo y & ty to z of UT x and tx
       // use ty from Velo state
       MiniState state_UT;
@@ -356,12 +353,19 @@ int looking_forward_studies(
       window_params.tx_slope = 1250;
       window_params.tx_min = 500;
       window_params.tx_weight = 0.6;
-      window_params.dx_weight = 1 - window_params.tx_weight;
-      window_params.max_window_layer0 = 1500;
+      window_params.dx_weight = 0.4;
+      window_params.max_window_layer0 = 500;
       window_params.max_window_layer1 = 20;
       window_params.max_window_layer2 = 20;
       window_params.max_window_layer3 = 20;
-      window_params.chi2_cut = 5;
+      window_params.chi2_cut = 2;
+
+      // win_dx = min_win_dx + qop*dx_slope
+
+      // dx_calc:
+      //  float qop_window = std::abs(window_params.dx_min + window_params.dx_slope * qop);
+      //  float tx_window = std::abs(window_params.tx_min + window_params.tx_slope * state.tx);
+      //  window_params.tx_weight * tx_window + window_params.dx_weight * qop_window
 
       bool track_match;
       track_match = select_hits(
@@ -396,6 +400,8 @@ int looking_forward_studies(
       number_of_track_candidates += track_candidates.size();
 
       if (true_scifi_indices.size() >= 10) {
+        n_reconstructible_scifi_tracks_from_ut_tracks++;
+
         // Simplified model: One hit per layer.
         // This is not realistic though, since we could have repeated hits on stations
         std::array<int, 12> true_scifi_indices_per_layer {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
@@ -548,14 +554,16 @@ int looking_forward_studies(
   print_nice("Found out of T3 quadruplets and triplets", n_reconstructible_found_tracks, t3_quads_triplets);
   print_nice("Found out of T3 quadruplets", n_reconstructible_found_tracks, n_quadruplets);
 
-  for (int i = 0; i < 12; ++i) {
+  for (int i = 8; i < 12; ++i) {
     print_nice(
       "Number of hits found in layer " + std::to_string(i) + ", out of T3 quads and triplets",
       n_found_hits[i],
       n_layer_with_T3_quad_triplets[i]);
   }
 
-  print_nice("Number of candidates per ut velo track", number_of_track_candidates, n_veloUT_tracks);
+  info_cout << "Number of candidates per ut velo track: "
+    << number_of_track_candidates / ((float) n_veloUT_tracks)
+    << std::endl;
 
   info_cout << std::endl;
 
