@@ -87,3 +87,13 @@ float get_chi_2(
   std::function<float(float)> expected_function);
 
 void linear_regression(const std::vector<float>& x, const std::vector<float>& y, float& m, float& q, float& chi_2);
+
+std::tuple<int, float> get_best_hit(
+  const SciFi::Hits& hits,
+  int layer_0_idx,
+  int layer_3_idx,
+  float slope,
+  const std::tuple<int, int>& layer_candidates,
+  const std::array<MiniState, 4>& proj_states,
+  const SciFiWindowsParams& window_params,
+  int layer);
