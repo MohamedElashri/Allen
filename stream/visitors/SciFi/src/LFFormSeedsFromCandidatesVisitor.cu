@@ -66,6 +66,6 @@ void SequenceVisitor::visit<lf_form_seeds_from_candidates_t>(
 
   // for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
   //   info_cout << "Event " << i
-  //     << ", number of tracks " << scifi_atomics[i] << std::endl;
+  //     << ", number of track candidates " << scifi_atomics[i] << std::endl;
   // }
 }

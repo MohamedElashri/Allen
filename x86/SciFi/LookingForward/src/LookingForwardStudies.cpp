@@ -238,6 +238,8 @@ int looking_forward_studies(
 
     const SciFi::SciFiGeometry scifi_geometry(host_scifi_geometry);
 
+    int number_of_candidates_event = 0;
+
     SciFi::Hits scifi_hits(
       (uint*) host_scifi_hits,
       total_number_of_hits,
@@ -352,10 +354,10 @@ int looking_forward_studies(
       SciFiWindowsParams window_params;
       window_params.dx_slope = 1e5;
       window_params.dx_min = 200;
+      window_params.dx_weight = 0.6;
       window_params.tx_slope = 1250;
       window_params.tx_min = 200;
       window_params.tx_weight = 0.4;
-      window_params.dx_weight = 0.6;
       window_params.max_window_layer0 = 400;
       window_params.max_window_layer1 = 2;
       window_params.max_window_layer2 = 2;
@@ -382,6 +384,7 @@ int looking_forward_studies(
         window_params);
 
       num_candidates = track_candidates.size();
+      number_of_candidates_event += track_candidates.size();
 
       // propagation to first layer of T3
       MiniState SciFi_state_T3;
@@ -514,8 +517,8 @@ int looking_forward_studies(
       }
     } // extrapolation to T3 worked
 
-    // info_cout << "Event " << i_event
-    //   << ", number of candidates: " << number_of_track_candidates << std::endl;
+    // info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
+
 #ifdef WITH_ROOT
     t_ut_tracks->Fill();
 #endif

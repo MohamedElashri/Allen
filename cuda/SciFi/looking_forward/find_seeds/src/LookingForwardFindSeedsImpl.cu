@@ -112,7 +112,8 @@ __device__ void looking_forward_find_seeds_impl(
             const auto q = hits.x0[hit_layer_0_it] - proj_states[0].z * m;
 
             const auto chi_2 = chi2(
-              [m, q](float x) { return m * x + q; },
+              m,
+              q,
               std::make_tuple(proj_states[0].z, hits.x0[hit_layer_0_it]),
               std::make_tuple(proj_states[1].z, hits.x0[hit_layer_1_it] + proj_states[1].y * dev_looking_forward_constants->Zone_dxdy[1]),
               std::make_tuple(proj_states[2].z, hits.x0[hit_layer_2_it] + proj_states[2].y * dev_looking_forward_constants->Zone_dxdy[2]),
@@ -126,8 +127,8 @@ __device__ void looking_forward_find_seeds_impl(
 
               // There is an upper limit to the tracks we can insert
               if (current_insert_index < SciFi::Constants::max_track_candidates) {
-                scifi_track_candidates[current_insert_index] = SciFi::TrackCandidate {
-                  hit_layer_0_it, hit_layer_1_it, hit_layer_2_it, hit_layer_3_it, ut_track_index, ut_qop, chi_2};
+                // scifi_track_candidates[current_insert_index] = SciFi::TrackCandidate {
+                //   hit_layer_0_it, hit_layer_1_it, hit_layer_2_it, hit_layer_3_it, ut_track_index, ut_qop, chi_2};
               }
               else {
                 track_limit_surpassed = true;

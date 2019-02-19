@@ -99,3 +99,40 @@ __device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(
     scifi_hit_count.zone_number_of_hits(first_zone + offset)
   };
 }
+
+__device__ std::tuple<int, float> LookingForward::get_best_hit(
+  const SciFi::Hits& hits,
+  const float m,
+  const std::tuple<int, int>& layer_candidates,
+  const std::tuple<float, float>& hit_layer_0_z_x,
+  const std::tuple<float, float>& hit_layer_3_z_x,
+  const float layer_projected_state_z,
+  const float layer_projected_state_y,
+  const int layer,
+  const LookingForward::Constants* dev_looking_forward_constants)
+{
+  const auto q = std::get<1>(hit_layer_0_z_x) - std::get<0>(hit_layer_0_z_x) * m;
+  const auto x_adjustment = layer_projected_state_y * dev_looking_forward_constants->Zone_dxdy[layer];
+
+  int best_index = -1;
+  float min_chi2 = LookingForward::chi2_cut;
+  for (auto hit_index = std::get<0>(layer_candidates);
+       hit_index != std::get<1>(layer_candidates);
+       hit_index++)
+  {
+    const auto chi_2 = chi2(
+      m,
+      q,
+      hit_layer_0_z_x,
+      std::make_tuple(layer_projected_state_z, hits.x0[hit_index] + x_adjustment),
+      hit_layer_3_z_x
+    );
+
+    if (chi_2 < min_chi2) {
+      best_index = hit_index;
+      min_chi2 = chi_2;
+    }
+  }
+
+  return {best_index, min_chi2};
+}
