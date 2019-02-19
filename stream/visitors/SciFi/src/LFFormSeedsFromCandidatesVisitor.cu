@@ -26,7 +26,7 @@ void SequenceVisitor::visit<lf_form_seeds_from_candidates_t>(
   cudaCheck(
     cudaMemsetAsync(arguments.offset<dev_atomics_scifi>(), 0, arguments.size<dev_atomics_scifi>(), cuda_stream));
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32, 4), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(LookingForward::form_seeds_x_threads, 1), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),

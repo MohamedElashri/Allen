@@ -22,6 +22,19 @@ namespace LookingForward {
   constexpr int seeding_first_layer = 8;
   constexpr int seeding_second_layer = 11;
 
+  /**
+   * Number of Y threads of form_seeds_from_first_layer_window
+   */
+  constexpr int lf_form_seeds_from_first_layer_window_y_threads = 32;
+  constexpr int form_seeds_candidates_per_thread = 4;
+  constexpr int form_seeds_stop_after_number_of_candidates = 10;
+
+  /**
+   * Form seeds from candidates
+   */
+  constexpr int maximum_considered_tracks_per_thread = 4;
+  constexpr int form_seeds_x_threads = 32;
+
   constexpr float x_diff_layer_qop_offset = 20.f * Gaudi::Units::mm;
   constexpr float x_diff_layer_qop_slope_a = 0.3e6;
   constexpr float x_diff_layer_qop_slope_b = 0.2e6;
