@@ -74,6 +74,43 @@ bool select_hits(
   float x_mag, y_mag, z_mag;
   float dx_plane_0;
   float projected_slope;
+  int found_candidates = 0;
+
+  // Number of found tracks after which the algorithm will stop searching
+  const int stop_after = 100;
+
+  // Number of candidates maximum of each ut track
+  // Only the best will be kept
+  std::array<SciFi::TrackHits, 20> best_candidates;
+  for (int i=0; i<best_candidates.size(); ++i) {
+    best_candidates[i].quality = 2 * window_params.chi2_cut;
+    best_candidates[i].hitsNum = 0;
+  }
+
+  const auto insert_candidate = [&best_candidates] (const SciFi::TrackHits& candidate) {
+    int worst_candidate = 0;
+    int hitsNum = best_candidates[worst_candidate].hitsNum;
+    float quality = best_candidates[worst_candidate].quality;
+
+    for (int i=1; i<best_candidates.size(); ++i) {
+      if (best_candidates[i].hitsNum < hitsNum ||
+          (best_candidates[i].hitsNum == hitsNum &&
+          best_candidates[i].quality > quality))
+      {
+        worst_candidate = i;
+        hitsNum = best_candidates[i].hitsNum;
+        quality = best_candidates[i].quality;
+      }
+    }
+
+    if (candidate.hitsNum > hitsNum ||
+        (candidate.hitsNum == hitsNum &&
+        candidate.quality < quality))
+    {
+      best_candidates[worst_candidate] = candidate;
+    } 
+  };
+
 
   proj_state[0] = propagate_state_from_velo(velo_UT_state, UT_qop, (station - 1) * 4);
 
@@ -105,7 +142,8 @@ bool select_hits(
 
     window_stats[0].emplace_back(
       Window_stat(std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates), proj_state[0].x, dx_plane_0));
-    for (auto hit_layer_0_idx = std::get<0>(layer0_candidates); hit_layer_0_idx != std::get<1>(layer0_candidates);
+    for (auto hit_layer_0_idx = std::get<0>(layer0_candidates);
+         found_candidates < stop_after && hit_layer_0_idx != std::get<1>(layer0_candidates);
          hit_layer_0_idx++) {
       projected_slope = (x_mag - hits.x0[hit_layer_0_idx]) / (z_mag - proj_state[0].z);
       proj_state[3].x =
@@ -174,7 +212,8 @@ bool select_hits(
           proj_state[3].x,
           window_params.max_window_layer3)));
 
-        for (auto hit_layer_3_idx = std::get<0>(layer3_candidates); hit_layer_3_idx != std::get<1>(layer3_candidates);
+        for (auto hit_layer_3_idx = std::get<0>(layer3_candidates);
+             found_candidates < stop_after && hit_layer_3_idx != std::get<1>(layer3_candidates);
              hit_layer_3_idx++) {
           const float slope_layer_3_layer_0 =
             (hits.x0[hit_layer_3_idx] - hits.x0[hit_layer_0_idx]) / (SciFi::LookingForward::dz_x_layers);
@@ -225,12 +264,22 @@ bool select_hits(
             }
             new_track_hits.addHit(hit_layer_3_idx);
             ret_val = true;
-            track_candidate.emplace_back(new_track_hits);
+
+            insert_candidate(new_track_hits);
+            found_candidates++;
+            // track_candidate.emplace_back(new_track_hits);
           }
         }
       }
     }
   }
+
+  for (int i=0; i<best_candidates.size(); ++i) {
+    if (best_candidates[i].hitsNum > 0) {
+      track_candidate.push_back(best_candidates[i]);
+    }
+  }
+
   return ret_val;
 }
 
