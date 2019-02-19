@@ -210,6 +210,8 @@ int looking_forward_studies(
   std::array<int, 12> n_found_hits {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   std::array<int, 12> n_layer_with_T3_quad_triplets {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+  int number_of_track_candidates = 0;
+
   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
     // Velo consolidated types
     const Velo::Consolidated::Tracks velo_tracks {
@@ -265,7 +267,6 @@ int looking_forward_studies(
 
     // extrapolate veloUT tracks
     float tx, ty, qop;
-    int number_of_track_candidates = 0;
 
     for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
       // veloUT track variables
@@ -299,99 +300,102 @@ int looking_forward_studies(
       const std::vector<int> true_scifi_indices =
         make_index_list_of_reconstructible(scifi_ids_ut_tracks[i_event][i_veloUT_track]);
 
-      // if (true_scifi_indices.size() >= 10) {
-        n_reconstructible_scifi_tracks_from_ut_tracks++;
+    
+      n_reconstructible_scifi_tracks_from_ut_tracks++;
 
-        // extrapolate velo y & ty to z of UT x and tx
-        // use ty from Velo state
-        MiniState state_UT;
-        state_UT.x = ut_x;
-        state_UT.tx = ut_tx;
-        state_UT.z = ut_z;
-        state_UT.ty = velo_state.ty;
-        state_UT.y = y_at_z(velo_state, ut_z);
+      // extrapolate velo y & ty to z of UT x and tx
+      // use ty from Velo state
+      MiniState state_UT;
+      state_UT.x = ut_x;
+      state_UT.tx = ut_tx;
+      state_UT.z = ut_z;
+      state_UT.ty = velo_state.ty;
+      state_UT.y = y_at_z(velo_state, ut_z);
 
-        // extrapolate state to last UT plane (needed as input for parametrization)
-        MiniState UT_state_from_velo = state_at_z(velo_state, SciFi::LookingForward::z_last_UT_plane);
-        MiniState UT_state = state_at_z(state_UT, SciFi::LookingForward::z_last_UT_plane);
+      // extrapolate state to last UT plane (needed as input for parametrization)
+      MiniState UT_state_from_velo = state_at_z(velo_state, SciFi::LookingForward::z_last_UT_plane);
+      MiniState UT_state = state_at_z(state_UT, SciFi::LookingForward::z_last_UT_plane);
 
-        // DEBUG this is just a test
-        // UT_state = UT_state_from_velo;
+      // DEBUG this is just a test
+      // UT_state = UT_state_from_velo;
 
-        t1_extrap_worked = false;
-        t3_extrap_worked = false;
-        isLong = false;
-        match_t1 = false;
-        match_t3 = false;
-        // n_hits_in_window_0_t1 = 0;
-        n_hits_in_window_0_t3 = 0;
-        match_T2_0 = false;
-        match_T2_3 = false;
-        match_T3_0 = false;
-        match_T3_3 = false;
+      t1_extrap_worked = false;
+      t3_extrap_worked = false;
+      isLong = false;
+      match_t1 = false;
+      match_t3 = false;
+      // n_hits_in_window_0_t1 = 0;
+      n_hits_in_window_0_t3 = 0;
+      match_T2_0 = false;
+      match_T2_3 = false;
+      match_T3_0 = false;
+      match_T3_3 = false;
 
-        // sign of momentum -> charge of MCP
-        // Caution: this is only set correctly if the veloUT track was matched to an MCP
-        // set to 1e9 if not matched
-        p_true = p_events[i_event][i_veloUT_track];
+      // sign of momentum -> charge of MCP
+      // Caution: this is only set correctly if the veloUT track was matched to an MCP
+      // set to 1e9 if not matched
+      p_true = p_events[i_event][i_veloUT_track];
 
 #ifdef WITH_ROOT
-        UT_x = UT_state.x;
-        UT_y = UT_state.y;
-        UT_z = UT_state.z;
-        UT_tx = UT_state.tx;
-        UT_ty = UT_state.ty;
-        ut_qop = qop;
-        x_mag = x_at_z(UT_state, SciFi::LookingForward::zMagnetParams[0]);
-        y_mag = y_at_z(UT_state, SciFi::LookingForward::zMagnetParams[0]);
+      UT_x = UT_state.x;
+      UT_y = UT_state.y;
+      UT_z = UT_state.z;
+      UT_tx = UT_state.tx;
+      UT_ty = UT_state.ty;
+      ut_qop = qop;
+      x_mag = x_at_z(UT_state, SciFi::LookingForward::zMagnetParams[0]);
+      y_mag = y_at_z(UT_state, SciFi::LookingForward::zMagnetParams[0]);
 #endif
 
-        // running the hit selection algorithm
-        std::vector<SciFi::TrackHits> track_candidates;
-        std::array<std::vector<Window_stat>, 4> window_stats;
-        SciFiWindowsParams window_params;
-        window_params.dx_slope = 2e4;
-        window_params.dx_min = 500;
-        window_params.tx_slope = 1250;
-        window_params.tx_min = 500;
-        window_params.tx_weight = 0.6;
-        window_params.dx_weight = 1 - window_params.tx_weight;
-        window_params.max_window_layer0 = 1500;
-        window_params.max_window_layer1 = 20;
-        window_params.max_window_layer2 = 20;
-        window_params.max_window_layer3 = 20;
-        window_params.chi2_cut = 5;
+      // running the hit selection algorithm
+      std::vector<SciFi::TrackHits> track_candidates;
+      std::array<std::vector<Window_stat>, 4> window_stats;
+      SciFiWindowsParams window_params;
+      window_params.dx_slope = 2e4;
+      window_params.dx_min = 500;
+      window_params.tx_slope = 1250;
+      window_params.tx_min = 500;
+      window_params.tx_weight = 0.6;
+      window_params.dx_weight = 1 - window_params.tx_weight;
+      window_params.max_window_layer0 = 200;
+      window_params.max_window_layer1 = 20;
+      window_params.max_window_layer2 = 20;
+      window_params.max_window_layer3 = 20;
+      window_params.chi2_cut = 5;
 
-        bool track_match;
-        track_match = select_hits(
-          UT_state,
-          ut_tracks.qop[i_veloUT_track],
-          i_veloUT_track,
-          scifi_hits,
-          scifi_hit_count,
-          3,
-          track_candidates,
-          window_stats,
-          window_params);
+      bool track_match;
+      track_match = select_hits(
+        UT_state,
+        ut_tracks.qop[i_veloUT_track],
+        i_veloUT_track,
+        scifi_hits,
+        scifi_hit_count,
+        3,
+        track_candidates,
+        window_stats,
+        window_params);
 
-        num_candidates = track_candidates.size();
+      num_candidates = track_candidates.size();
 
-        // propagation to first layer of T3
-        MiniState SciFi_state_T3;
-        SciFi_state_T3 = propagate_state_from_velo(UT_state, qop, 8);
+      // propagation to first layer of T3
+      MiniState SciFi_state_T3;
+      SciFi_state_T3 = propagate_state_from_velo(UT_state, qop, 8);
 
-        std::array<int, 12> layer_offsets;
-        std::array<int, 12> layer_number_of_hits;
-        std::array<int, 12> layer_last_hits;
+      std::array<int, 12> layer_offsets;
+      std::array<int, 12> layer_number_of_hits;
+      std::array<int, 12> layer_last_hits;
 
-        for (int i = 0; i < 12; ++i) {
-          const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(i * 2, scifi_hit_count, SciFi_state_T3.y);
+      for (int i = 0; i < 12; ++i) {
+        const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(i * 2, scifi_hit_count, SciFi_state_T3.y);
 
-          layer_offsets[i] = std::get<0>(layer_offset_nhits);
-          layer_number_of_hits[i] = std::get<1>(layer_offset_nhits);
-          layer_last_hits[i] = layer_offsets[i] + layer_number_of_hits[i];
-        }
+        layer_offsets[i] = std::get<0>(layer_offset_nhits);
+        layer_number_of_hits[i] = std::get<1>(layer_offset_nhits);
+        layer_last_hits[i] = layer_offsets[i] + layer_number_of_hits[i];
+      }
 
+      number_of_track_candidates += track_candidates.size();
+
+      if (true_scifi_indices.size() >= 10) {
         // Simplified model: One hit per layer.
         // This is not realistic though, since we could have repeated hits on stations
         std::array<int, 12> true_scifi_indices_per_layer {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
@@ -413,6 +417,14 @@ int looking_forward_studies(
           n_quadruplets++;
         }
 
+        bool is_t3_triplet = false;
+        if (
+          !is_t3_quadruplet && true_scifi_indices_per_layer[8] != -1 && true_scifi_indices_per_layer[9] != -1 &&
+          (true_scifi_indices_per_layer[10] != -1 || true_scifi_indices_per_layer[11] != -1)) {
+          is_t3_triplet = true;
+          n_triplets++;
+        }
+
         if (is_t3_quadruplet) {
           true_x_t3 = scifi_hits.x0[true_scifi_indices_per_layer[8]];
           x_extrap_t3 = SciFi_state_T3.x;
@@ -422,23 +434,17 @@ int looking_forward_studies(
           // t_extrap_T3->Fill();
         }
 
+        if (
+          (is_t3_quadruplet || is_t3_triplet) && window_stats.size() > 0 && window_stats[0].size() > 0
+          && scifi_hits.x0[true_scifi_indices_per_layer[8]] < window_stats[0][0].x_max 
+          && scifi_hits.x0[true_scifi_indices_per_layer[8]] > window_stats[0][0].x_min) {
+          n_hits_in_first_window++;
+        }
+
         if (track_match) {
-          if (
-            is_t3_quadruplet && scifi_hits.x0[true_scifi_indices_per_layer[8]] < window_stats[0][0].x_max &&
-            scifi_hits.x0[true_scifi_indices_per_layer[8]] > window_stats[0][0].x_min) {
-            n_hits_in_first_window++;
-          }
           layer8_win_size = window_stats[0][0].x_max - window_stats[0][0].x_min;
           layer8_win_pop = window_stats[0][0].num_hits;
           t_extrap_T3->Fill();
-        }
-
-        bool is_t3_triplet = false;
-        if (
-          !is_t3_quadruplet && true_scifi_indices_per_layer[8] != -1 && true_scifi_indices_per_layer[9] != -1 &&
-          (true_scifi_indices_per_layer[10] != -1 || true_scifi_indices_per_layer[11] != -1)) {
-          is_t3_triplet = true;
-          n_triplets++;
         }
 
         for (int i = 0; i < 12; ++i) {
@@ -446,8 +452,6 @@ int looking_forward_studies(
             n_layer[i]++;
           }
         }
-
-        number_of_track_candidates += track_candidates.size();
 
         // Check the efficiency of the algorithm declared above
         if (is_t3_quadruplet || is_t3_triplet) {
@@ -493,16 +497,18 @@ int looking_forward_studies(
               n_layer_with_T3_quad_triplets[i]++;
             }
           }
-        // }
+        }
       }
     } // extrapolation to T3 worked
 
-    info_cout << "Event " << i_event
-      << ", number of candidates: " << number_of_track_candidates << std::endl;
+    // info_cout << "Event " << i_event
+    //   << ", number of candidates: " << number_of_track_candidates << std::endl;
 #ifdef WITH_ROOT
     t_ut_tracks->Fill();
 #endif
   } // loop over veloUT tracks
+
+  const auto t3_quads_triplets = n_triplets + n_quadruplets;
 
   const auto print_nice = [](const std::string& name, const int value, const int denominator) {
     info_cout << name << ": " << value << " (" << (100.f * value) / ((float) denominator) << "%)" << std::endl;
@@ -533,13 +539,12 @@ int looking_forward_studies(
   info_cout << std::endl << "-- Algorithm specific --" << std::endl;
 
   print_nice(
-    "Number of tracks with a hit in the layer 8 window, out of T3 quads", n_hits_in_first_window, n_quadruplets);
+    "Number of tracks with a hit in the layer 8 window, out of T3 quads", n_hits_in_first_window, t3_quads_triplets);
   print_nice(
     "Found out of reconstructible tracks",
     n_reconstructible_found_tracks,
     n_reconstructible_scifi_tracks_from_ut_tracks);
 
-  const auto t3_quads_triplets = n_triplets + n_quadruplets;
   print_nice("Found out of T3 quadruplets and triplets", n_reconstructible_found_tracks, t3_quads_triplets);
   print_nice("Found out of T3 quadruplets", n_reconstructible_found_tracks, n_quadruplets);
 
@@ -549,6 +554,8 @@ int looking_forward_studies(
       n_found_hits[i],
       n_layer_with_T3_quad_triplets[i]);
   }
+
+  print_nice("Number of candidates per ut velo track", number_of_track_candidates, n_veloUT_tracks);
 
   info_cout << std::endl;
 
