@@ -161,9 +161,7 @@ bool select_hits(
           proj_state[3].x,
           window_params.max_window_layer3)));
 
-        bool has_layer_1 = std::get<0>(layer1_candidates) != std::get<1>(layer1_candidates);
-        bool has_layer_2 = std::get<0>(layer2_candidates) != std::get<1>(layer2_candidates);
-        auto hit_layer_1_chi_idx = get_best_hit(
+        auto hit_layer_1_idx_chi2 = get_best_hit(
           hits,
           hit_layer_0_idx,
           hit_layer_3_idx,
@@ -173,7 +171,7 @@ bool select_hits(
           window_params,
           1);
 
-        auto hit_layer_2_chi_idx = get_best_hit(
+        auto hit_layer_2_idx_chi2 = get_best_hit(
           hits,
           hit_layer_0_idx,
           hit_layer_3_idx,
@@ -183,27 +181,23 @@ bool select_hits(
           window_params,
           2);
 
-        if ((std::get<0>(hit_layer_1_chi_idx) != -1) || (std::get<0>(hit_layer_2_chi_idx) != -1)) {
+        if ((std::get<0>(hit_layer_1_idx_chi2) != -1) || (std::get<0>(hit_layer_2_idx_chi2) != -1)) {
           SciFi::TrackHits new_track_hits;
           // TODO this should be the update qop using the SciFi hits
           new_track_hits.qop = UT_qop;
-          new_track_hits.quality = std::get<1>(hit_layer_1_chi_idx) + std::get<1>(hit_layer_2_chi_idx);
+          new_track_hits.quality = 0;
           new_track_hits.addHit(hit_layer_0_idx);
-          new_track_hits.addHit(hit_layer_3_idx);
 
-          if (std::get<0>(hit_layer_2_chi_idx) == -1) {
-            new_track_hits.addHit(std::get<0>(hit_layer_1_chi_idx));
-            new_track_hits.quality = std::get<1>(hit_layer_1_chi_idx);
+          if (std::get<0>(hit_layer_1_idx_chi2) != -1) {
+            new_track_hits.addHit(std::get<0>(hit_layer_1_idx_chi2));
+            new_track_hits.quality += std::get<1>(hit_layer_1_idx_chi2);
           }
-          else if (std::get<0>(hit_layer_1_chi_idx) == -1) {
-            new_track_hits.addHit(std::get<0>(hit_layer_2_chi_idx));
-            new_track_hits.quality = std::get<1>(hit_layer_2_chi_idx);
+
+          if (std::get<0>(hit_layer_2_idx_chi2) != -1) {
+            new_track_hits.addHit(std::get<0>(hit_layer_2_idx_chi2));
+            new_track_hits.quality += std::get<1>(hit_layer_2_idx_chi2);
           }
-          else {
-            new_track_hits.addHit(std::get<0>(hit_layer_1_chi_idx));
-            new_track_hits.addHit(std::get<0>(hit_layer_2_chi_idx));
-            new_track_hits.quality = std::get<1>(hit_layer_1_chi_idx) + std::get<1>(hit_layer_2_chi_idx);
-          }
+          new_track_hits.addHit(hit_layer_3_idx);
           ret_val = true;
           track_candidate.emplace_back(new_track_hits);
         }
