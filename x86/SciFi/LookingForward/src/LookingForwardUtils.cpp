@@ -228,6 +228,9 @@ float dx_calc(const MiniState& state, float qop, const SciFiWindowsParams& windo
   float ret_val;
   float qop_window = std::abs(window_params.dx_slope * qop + window_params.dx_min);
   float tx_window = std::abs(window_params.tx_slope * state.tx + window_params.tx_min);
+  
+  // info_cout << "QOP and tx windows: " << qop_window << ", " << tx_window << std::endl;
+
   ret_val = window_params.tx_weight * tx_window + window_params.dx_weight * qop_window;
   if (ret_val > window_params.max_window_layer0) {
     ret_val = window_params.max_window_layer0;

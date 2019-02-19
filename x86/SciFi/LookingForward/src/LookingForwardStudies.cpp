@@ -211,6 +211,8 @@ int looking_forward_studies(
   std::array<int, 12> n_layer_with_T3_quad_triplets {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   int number_of_track_candidates = 0;
+  int n_total_hits_in_first_window = 0;
+  int n_veloUT_tracks_with_window = 0;
 
   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
     // Velo consolidated types
@@ -348,15 +350,15 @@ int looking_forward_studies(
       std::vector<SciFi::TrackHits> track_candidates;
       std::array<std::vector<Window_stat>, 4> window_stats;
       SciFiWindowsParams window_params;
-      window_params.dx_slope = 2e4;
-      window_params.dx_min = 500;
+      window_params.dx_slope = 1e5;
+      window_params.dx_min = 200;
       window_params.tx_slope = 1250;
-      window_params.tx_min = 500;
-      window_params.tx_weight = 0.6;
-      window_params.dx_weight = 0.4;
-      window_params.max_window_layer0 = 500;
-      window_params.max_window_layer1 = 20;
-      window_params.max_window_layer2 = 20;
+      window_params.tx_min = 200;
+      window_params.tx_weight = 0.4;
+      window_params.dx_weight = 0.6;
+      window_params.max_window_layer0 = 400;
+      window_params.max_window_layer1 = 2;
+      window_params.max_window_layer2 = 2;
       window_params.max_window_layer3 = 20;
       window_params.chi2_cut = 2;
 
@@ -398,6 +400,11 @@ int looking_forward_studies(
       }
 
       number_of_track_candidates += track_candidates.size();
+
+      if (window_stats[0].size()) {
+        n_total_hits_in_first_window += window_stats[0][0].num_hits;
+        n_veloUT_tracks_with_window++;
+      }
 
       if (true_scifi_indices.size() >= 10) {
         n_reconstructible_scifi_tracks_from_ut_tracks++;
@@ -563,6 +570,14 @@ int looking_forward_studies(
 
   info_cout << "Number of candidates per ut velo track: "
     << number_of_track_candidates / ((float) n_veloUT_tracks)
+    << std::endl;
+
+  info_cout << "Number of candidates in first window per ut velo track: "
+    << n_total_hits_in_first_window / ((float) n_veloUT_tracks_with_window)
+    << std::endl;
+
+  info_cout << "Total number of candidates in " << number_of_events << " events: "
+    << number_of_track_candidates
     << std::endl;
 
   info_cout << std::endl;
