@@ -44,15 +44,16 @@ void HostBuffers::reserve(const uint max_number_of_events)
   cudaCheck(cudaMallocHost((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_reconstructed_scifi_tracks, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_hits_in_scifi_tracks, sizeof(uint)));
-  cudaCheck(cudaMallocHost(
-    (void**) &host_scifi_track_hit_number, max_number_of_events * SciFi::Constants::max_tracks * sizeof(uint)));
-  cudaCheck(cudaMallocHost(
-    (void**) &host_scifi_track_hits,
-    max_number_of_events * SciFi::Constants::max_tracks * SciFi::Constants::max_track_size * sizeof(SciFi::Hit)));
-  cudaCheck(
-    cudaMallocHost((void**) &host_scifi_qop, max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));
-  cudaCheck(cudaMallocHost(
-    (void**) &host_scifi_states, max_number_of_events * SciFi::Constants::max_tracks * sizeof(MiniState)));
+  
+  // cudaCheck(cudaMallocHost(
+  //   (void**) &host_scifi_track_hit_number, max_number_of_events * SciFi::Constants::max_tracks * sizeof(uint)));
+  // cudaCheck(cudaMallocHost(
+  //   (void**) &host_scifi_track_hits,
+  //   max_number_of_events * SciFi::Constants::max_tracks * SciFi::Constants::max_track_size * sizeof(SciFi::Hit)));
+  // cudaCheck(
+  //   cudaMallocHost((void**) &host_scifi_qop, max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));
+  // cudaCheck(cudaMallocHost(
+  //   (void**) &host_scifi_states, max_number_of_events * SciFi::Constants::max_tracks * sizeof(MiniState)));
   cudaCheck(cudaMallocHost(
     (void**) &host_scifi_track_ut_indices, max_number_of_events * SciFi::Constants::max_tracks * sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_lf_total_size_first_window_layer, sizeof(uint)));
@@ -70,9 +71,9 @@ void HostBuffers::reserve(const uint max_number_of_events)
     (void**) &host_reconstructed_multi_pvs, max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_multivertex, max_number_of_events * sizeof(int)));
 
-  cudaCheck(cudaMallocHost(
-    (void**) &host_kf_tracks,
-    max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
+  // cudaCheck(cudaMallocHost(
+  //   (void**) &host_kf_tracks,
+  //   max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
 }
 
 size_t HostBuffers::velo_track_hit_number_size() const { return host_number_of_reconstructed_velo_tracks[0] + 1; }

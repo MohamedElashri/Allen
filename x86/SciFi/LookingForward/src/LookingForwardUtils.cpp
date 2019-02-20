@@ -133,18 +133,29 @@ bool select_hits(
       proj_state[0].x - dx_plane_0,
       proj_state[0].x + dx_plane_0);
 
-    // 749720 - 12412 (49.7335%)
-    // 686143 - 12330 (49.4050%)
+    // No correction: 859422, 51.2702%
+    // 10-40 linear: 608419, 49.0444%
+    // 10-40 quadratic: 658121, 49.8758%
+    // 10-50 quadratic, 0.4f: 693444, 50.1082%
+    // step at 20, 0.8f: 733594, 50.3085%
+    // step at 20, 0.7f: 670149, 49.5672%
 
-    // if (std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates) > 40) {
-    //   dx_plane_0 *= 0.6;
-    //   layer0_candidates = find_x_in_window(
-    //     hits,
-    //     std::get<0>(layer0_offset_nhits),
-    //     std::get<1>(layer0_offset_nhits),
-    //     proj_state[0].x - dx_plane_0,
-    //     proj_state[0].x + dx_plane_0);
-    // }
+    const auto number_of_l0_candidates = std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates);
+    if (number_of_l0_candidates > 10) {
+      if (number_of_l0_candidates > 50) {
+        dx_plane_0 *= 0.4f;
+      } else {
+        const auto x = (0.025f * (number_of_l0_candidates - 10.f));
+        dx_plane_0 *= 1.f - 0.6f * x * x;
+      }
+
+      layer0_candidates = find_x_in_window(
+        hits,
+        std::get<0>(layer0_offset_nhits),
+        std::get<1>(layer0_offset_nhits),
+        proj_state[0].x - dx_plane_0,
+        proj_state[0].x + dx_plane_0);
+    }
 
     window_stats[0].emplace_back(
       Window_stat(std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates), proj_state[0].x, dx_plane_0));

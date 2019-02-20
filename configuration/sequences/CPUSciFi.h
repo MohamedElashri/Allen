@@ -4,7 +4,7 @@
  */
 SEQUENCE_T(
   init_event_list_t,
-  // global_event_cut_t,
+  global_event_cut_t,
   velo_estimate_input_size_t,
   prefix_sum_velo_clusters_t,
   velo_masked_clustering_t,
@@ -43,7 +43,7 @@ SEQUENCE_T(
   lf_calculate_second_layer_window_t,
   lf_form_seeds_from_candidates_t,
 
-  cpu_scifi_momentum_forward_t,
+  // cpu_scifi_momentum_forward_t,
   // copy_and_prefix_sum_single_block_scifi_t,
   // copy_scifi_track_hit_number_t,
   // prefix_sum_scifi_track_hit_number_t,

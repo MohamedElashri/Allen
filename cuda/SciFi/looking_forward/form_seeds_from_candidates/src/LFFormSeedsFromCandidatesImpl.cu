@@ -12,13 +12,15 @@ __device__ void lf_form_seeds_from_candidates_impl(
   const LookingForward::Constants* dev_looking_forward_constants,
   int* track_insert_atomic,
   SciFi::TrackCandidate* scifi_track_candidates,
-  const unsigned short first_candidate_index,
-  const unsigned short second_candidate_offset,
-  const unsigned short second_candidate_size,
-  const unsigned short second_candidate_l1_start,
-  const unsigned short second_candidate_l1_size,
-  const unsigned short second_candidate_l2_start,
-  const unsigned short second_candidate_l2_size)
+  const unsigned short* second_candidate_ut_track_p,
+  const uint total_number_of_candidates)
+  // const unsigned short first_candidate_index,
+  // const unsigned short second_candidate_offset,
+  // const unsigned short second_candidate_size,
+  // const unsigned short second_candidate_l1_start,
+  // const unsigned short second_candidate_l1_size,
+  // const unsigned short second_candidate_l2_start,
+  // const unsigned short second_candidate_l2_size)
 {
   const auto first_layer = (station - 1) * 4;
 
@@ -31,11 +33,11 @@ __device__ void lf_form_seeds_from_candidates_impl(
   }
 
   // Convert to global index
-  const auto hit_layer_0 = hit_count.event_offset() + first_candidate_index;
+  const auto hit_layer_0 = hit_count.event_offset() + second_candidate_ut_track_p[total_number_of_candidates];
   const auto hit_layer_0_x = hits.x0[hit_layer_0];
 
-  for (int i = 0; i < LookingForward::maximum_iteration_l3_window && i < second_candidate_size; i++) {
-    const auto hit_layer_3 = hit_count.event_offset() + second_candidate_offset + i;
+  for (int i = 0; i < LookingForward::maximum_iteration_l3_window && i < second_candidate_ut_track_p[3*total_number_of_candidates]; i++) {
+    const auto hit_layer_3 = hit_count.event_offset() + second_candidate_ut_track_p[2*total_number_of_candidates] + i;
     const auto hit_layer_3_x = hits.x0[hit_layer_3];
     const auto slope_layer_3_layer_0 = (hit_layer_3_x - hit_layer_0_x) / (LookingForward::dz_x_layers);
 
@@ -43,7 +45,7 @@ __device__ void lf_form_seeds_from_candidates_impl(
       hits,
       hit_count,
       slope_layer_3_layer_0,
-      std::make_tuple(second_candidate_l1_start, second_candidate_l1_size),
+      std::make_tuple(second_candidate_ut_track_p[4*total_number_of_candidates], second_candidate_ut_track_p[5*total_number_of_candidates]),
       std::make_tuple(dev_looking_forward_constants->Zone_zPos[first_layer], hit_layer_0_x),
       std::make_tuple(dev_looking_forward_constants->Zone_zPos[first_layer + 3], hit_layer_3_x),
       dev_looking_forward_constants->Zone_zPos[first_layer + 1],
@@ -55,7 +57,7 @@ __device__ void lf_form_seeds_from_candidates_impl(
       hits,
       hit_count,
       slope_layer_3_layer_0,
-      std::make_tuple(second_candidate_l2_start, second_candidate_l2_size),
+      std::make_tuple(second_candidate_ut_track_p[6*total_number_of_candidates], second_candidate_ut_track_p[7*total_number_of_candidates]),
       std::make_tuple(dev_looking_forward_constants->Zone_zPos[first_layer], hit_layer_0_x),
       std::make_tuple(dev_looking_forward_constants->Zone_zPos[first_layer + 3], hit_layer_3_x),
       dev_looking_forward_constants->Zone_zPos[first_layer + 2],

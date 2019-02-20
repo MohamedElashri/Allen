@@ -41,19 +41,25 @@ __device__ void lf_calculate_first_layer_window_impl(
     auto layer0_first_candidate = std::get<0>(layer0_candidates);
     auto layer0_size = std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates);
 
-    // if (layer0_size > 20) {
-    //   dx_plane_0 *= 0.6;
+    if (layer0_size > 10) {
+      if (layer0_size > 50) {
+        dx_plane_0 *= 0.4f;
+      } else {
+        const auto x = (0.025f * (layer0_size - 10.f));
+        dx_plane_0 *= 1.f - 0.6f * x * x;
+      }
 
-    //   const auto layer0_candidates_2 = find_x_in_window(
-    //     hits,
-    //     std::get<0>(layer0_offset_nhits),
-    //     std::get<1>(layer0_offset_nhits),
-    //     propagated_state.x - dx_plane_0,
-    //     propagated_state.x + dx_plane_0);
 
-    //   layer0_first_candidate = std::get<0>(layer0_candidates_2);
-    //   layer0_size = std::get<1>(layer0_candidates_2) - std::get<0>(layer0_candidates_2);
-    // }
+      const auto layer0_candidates_2 = find_x_in_window(
+        hits,
+        std::get<0>(layer0_offset_nhits),
+        std::get<1>(layer0_offset_nhits),
+        propagated_state.x - dx_plane_0,
+        propagated_state.x + dx_plane_0);
+
+      layer0_first_candidate = std::get<0>(layer0_candidates_2);
+      layer0_size = std::get<1>(layer0_candidates_2) - std::get<0>(layer0_candidates_2);
+    }
 
     first_candidates[candidate_index] = layer0_first_candidate - hit_count.event_offset();
     number_of_candidates[candidate_index] = layer0_size;

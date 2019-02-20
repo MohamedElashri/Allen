@@ -28,8 +28,11 @@ void SequenceVisitor::visit<lf_calculate_second_layer_window_t>(
     cuda_stream
   ));
 
-  // host_buffers.host_number_of_selected_events[0]
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(4, 16), cuda_stream);
+  // 1, 32: 19.06%
+  // 2, 16: 15.58%
+  // 4, 16: 15.83%
+  // 8, 16: 16.79%
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(2, 16), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
