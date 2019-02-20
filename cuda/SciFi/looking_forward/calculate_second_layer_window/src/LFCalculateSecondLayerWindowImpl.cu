@@ -66,7 +66,7 @@ __device__ void lf_calculate_second_layer_window_impl(
       linear_propagation(hit_layer_0_x, slope_layer_3_layer_0_maximum, LookingForward::dz_x_u_layers) -
       dev_looking_forward_constants->Zone_dxdy[1] * layer_1_projected_state_y;
 
-    const auto layer1_offset_nhits = get_offset_and_n_hits_for_layer(18, hit_count, layer_1_projected_state_y);
+    const auto layer1_offset_nhits = get_offset_and_n_hits_for_layer(2*(seeding_first_layer+1), hit_count, layer_1_projected_state_y);
     const auto layer1_candidates = find_x_in_window(
       hits,
       std::get<0>(layer1_offset_nhits),
@@ -84,7 +84,7 @@ __device__ void lf_calculate_second_layer_window_impl(
       linear_propagation(hit_layer_0_x, slope_layer_3_layer_0_maximum, LookingForward::dz_x_v_layers) -
       dev_looking_forward_constants->Zone_dxdy[2] * layer_2_projected_state_y;
 
-    const auto layer2_offset_nhits = get_offset_and_n_hits_for_layer(20, hit_count, layer_2_projected_state_y);
+    const auto layer2_offset_nhits = get_offset_and_n_hits_for_layer(2*(seeding_first_layer+2), hit_count, layer_2_projected_state_y);
     const auto layer2_candidates = find_x_in_window(
       hits,
       std::get<0>(layer2_offset_nhits),

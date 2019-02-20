@@ -75,42 +75,35 @@ bool select_hits(
   float dx_plane_0;
   float projected_slope;
   int found_candidates = 0;
+  int maximum_iteration_l3_window = 4;
 
-  // Number of found tracks after which the algorithm will stop searching
-  const int stop_after = 100;
+  // // Number of candidates maximum of each ut track
+  // // Only the best will be kept
+  // std::array<SciFi::TrackHits, 20> best_candidates;
+  // for (int i = 0; i < best_candidates.size(); ++i) {
+  //   best_candidates[i].quality = 2 * window_params.chi2_cut;
+  //   best_candidates[i].hitsNum = 0;
+  // }
 
-  // Number of candidates maximum of each ut track
-  // Only the best will be kept
-  std::array<SciFi::TrackHits, 20> best_candidates;
-  for (int i=0; i<best_candidates.size(); ++i) {
-    best_candidates[i].quality = 2 * window_params.chi2_cut;
-    best_candidates[i].hitsNum = 0;
-  }
-
-  const auto insert_candidate = [&best_candidates] (const SciFi::TrackHits& candidate) {
+  const auto insert_candidate = [] (const SciFi::TrackHits& candidate, auto& best_candidates) {
     int worst_candidate = 0;
     int hitsNum = best_candidates[worst_candidate].hitsNum;
     float quality = best_candidates[worst_candidate].quality;
 
-    for (int i=1; i<best_candidates.size(); ++i) {
-      if (best_candidates[i].hitsNum < hitsNum ||
-          (best_candidates[i].hitsNum == hitsNum &&
-          best_candidates[i].quality > quality))
-      {
+    for (int i = 1; i < best_candidates.size(); ++i) {
+      if (
+        best_candidates[i].hitsNum < hitsNum ||
+        (best_candidates[i].hitsNum == hitsNum && best_candidates[i].quality > quality)) {
         worst_candidate = i;
         hitsNum = best_candidates[i].hitsNum;
         quality = best_candidates[i].quality;
       }
     }
 
-    if (candidate.hitsNum > hitsNum ||
-        (candidate.hitsNum == hitsNum &&
-        candidate.quality < quality))
-    {
+    if (candidate.hitsNum > hitsNum || (candidate.hitsNum == hitsNum && candidate.quality < quality)) {
       best_candidates[worst_candidate] = candidate;
-    } 
+    }
   };
-
 
   proj_state[0] = propagate_state_from_velo(velo_UT_state, UT_qop, (station - 1) * 4);
 
@@ -133,17 +126,29 @@ bool select_hits(
 
     const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, proj_state[0].y);
 
-    const auto layer0_candidates = find_x_in_window(
+    auto layer0_candidates = find_x_in_window(
       hits,
       std::get<0>(layer0_offset_nhits),
       std::get<1>(layer0_offset_nhits),
       proj_state[0].x - dx_plane_0,
       proj_state[0].x + dx_plane_0);
 
+    // 749720 - 12412 (49.7335%)
+    // 686143 - 12330 (49.4050%)
+
+    // if (std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates) > 40) {
+    //   dx_plane_0 *= 0.6;
+    //   layer0_candidates = find_x_in_window(
+    //     hits,
+    //     std::get<0>(layer0_offset_nhits),
+    //     std::get<1>(layer0_offset_nhits),
+    //     proj_state[0].x - dx_plane_0,
+    //     proj_state[0].x + dx_plane_0);
+    // }
+
     window_stats[0].emplace_back(
       Window_stat(std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates), proj_state[0].x, dx_plane_0));
-    for (auto hit_layer_0_idx = std::get<0>(layer0_candidates);
-         found_candidates < stop_after && hit_layer_0_idx != std::get<1>(layer0_candidates);
+    for (auto hit_layer_0_idx = std::get<0>(layer0_candidates); hit_layer_0_idx != std::get<1>(layer0_candidates);
          hit_layer_0_idx++) {
       projected_slope = (x_mag - hits.x0[hit_layer_0_idx]) / (z_mag - proj_state[0].z);
       proj_state[3].x =
@@ -167,17 +172,17 @@ bool select_hits(
         const float slope_layer_3_layer_0_minx =
           (hits.x0[std::get<0>(layer3_candidates)] - hits.x0[hit_layer_0_idx]) / (SciFi::LookingForward::dz_x_layers);
         const float slope_layer_3_layer_0_maxx =
-          (hits.x0[std::get<1>(layer3_candidates) - 1] - hits.x0[hit_layer_0_idx]) / (SciFi::LookingForward::dz_x_layers);
+          (hits.x0[std::get<1>(layer3_candidates) - 1] - hits.x0[hit_layer_0_idx]) /
+          (SciFi::LookingForward::dz_x_layers);
 
         const auto proj_state_1_minx =
-          linear_propagation(hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_minx, SciFi::LookingForward::dz_x_u_layers) -
+          linear_propagation(
+            hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_minx, SciFi::LookingForward::dz_x_u_layers) -
           SciFi::LookingForward::Zone_dxdy[1] * proj_state[1].y;
         const auto proj_state_1_maxx =
-          linear_propagation(hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_maxx, SciFi::LookingForward::dz_x_u_layers) -
+          linear_propagation(
+            hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_maxx, SciFi::LookingForward::dz_x_u_layers) -
           SciFi::LookingForward::Zone_dxdy[1] * proj_state[1].y;
-
-        // info_cout << proj_state_1_minx - window_params.max_window_layer1 << ", "
-        //   << proj_state_1_maxx + window_params.max_window_layer1 << std::endl;
 
         const auto layer1_offset_nhits = get_offset_and_n_hits_for_layer(18, hit_count, proj_state[1].y);
         const auto layer1_candidates = find_x_in_window(
@@ -193,10 +198,12 @@ bool select_hits(
           window_params.max_window_layer3)));
 
         const auto proj_state_2_minx =
-          linear_propagation(hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_minx, SciFi::LookingForward::dz_x_u_layers) -
+          linear_propagation(
+            hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_minx, SciFi::LookingForward::dz_x_v_layers) -
           SciFi::LookingForward::Zone_dxdy[2] * proj_state[2].y;
         const auto proj_state_2_maxx =
-          linear_propagation(hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_maxx, SciFi::LookingForward::dz_x_u_layers) -
+          linear_propagation(
+            hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_maxx, SciFi::LookingForward::dz_x_v_layers) -
           SciFi::LookingForward::Zone_dxdy[2] * proj_state[2].y;
 
         const auto layer2_offset_nhits = get_offset_and_n_hits_for_layer(20, hit_count, proj_state[2].y);
@@ -212,9 +219,19 @@ bool select_hits(
           proj_state[3].x,
           window_params.max_window_layer3)));
 
-        for (auto hit_layer_3_idx = std::get<0>(layer3_candidates);
-             found_candidates < stop_after && hit_layer_3_idx != std::get<1>(layer3_candidates);
-             hit_layer_3_idx++) {
+        std::array<SciFi::TrackHits, 2> best_candidates;
+        for (int i=0; i<best_candidates.size(); ++i) {
+          best_candidates[i].quality = 2 * window_params.chi2_cut;
+          best_candidates[i].hitsNum = 0;
+        }
+
+        const auto number_of_l3_candidates = std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates);
+        for (int hit_layer_3_rel_idx = 0;
+             hit_layer_3_rel_idx < maximum_iteration_l3_window &&
+             hit_layer_3_rel_idx < number_of_l3_candidates;
+             ++hit_layer_3_rel_idx) {
+          const auto hit_layer_3_idx = std::get<0>(layer3_candidates) + hit_layer_3_rel_idx;
+
           const float slope_layer_3_layer_0 =
             (hits.x0[hit_layer_3_idx] - hits.x0[hit_layer_0_idx]) / (SciFi::LookingForward::dz_x_layers);
 
@@ -249,9 +266,11 @@ bool select_hits(
           if ((std::get<0>(hit_layer_1_idx_chi2) != -1) || (std::get<0>(hit_layer_2_idx_chi2) != -1)) {
             SciFi::TrackHits new_track_hits;
             // TODO this should be the update qop using the SciFi hits
+            new_track_hits.hitsNum = 0;
             new_track_hits.qop = UT_qop;
             new_track_hits.quality = 0;
             new_track_hits.addHit(hit_layer_0_idx);
+            new_track_hits.addHit(hit_layer_3_idx);
 
             if (std::get<0>(hit_layer_1_idx_chi2) != -1) {
               new_track_hits.addHit(std::get<0>(hit_layer_1_idx_chi2));
@@ -262,23 +281,48 @@ bool select_hits(
               new_track_hits.addHit(std::get<0>(hit_layer_2_idx_chi2));
               new_track_hits.quality += std::get<1>(hit_layer_2_idx_chi2);
             }
-            new_track_hits.addHit(hit_layer_3_idx);
             ret_val = true;
 
-            insert_candidate(new_track_hits);
-            found_candidates++;
+            const int worst_candidate = (best_candidates[0].hitsNum > best_candidates[1].hitsNum) ||
+              ((best_candidates[0].hitsNum == best_candidates[1].hitsNum) &&
+              best_candidates[0].quality < best_candidates[1].quality) ? 1 : 0;
+
+            if (
+              new_track_hits.hitsNum > best_candidates[worst_candidate].hitsNum ||
+              (new_track_hits.hitsNum == best_candidates[worst_candidate].hitsNum &&
+              new_track_hits.quality < best_candidates[worst_candidate].quality)) {
+
+              best_candidates[worst_candidate] = new_track_hits;
+            }
+
+            // insert_candidate(new_track_hits, best_candidates);
+            // found_candidates++;
+            //
             // track_candidate.emplace_back(new_track_hits);
           }
         }
+
+        for (int i = 0; i < best_candidates.size(); ++i) {
+          if (best_candidates[i].hitsNum > 2) {
+            // printf("%i, %i, %i, %i\n", best_candidates[i].hits[0],
+            //   best_candidates[i].hits[1], best_candidates[i].hits[2], best_candidates[i].hits[3]);
+
+            track_candidate.push_back(best_candidates[i]);
+          }
+        }
+
+        // if (best_candidate.hitsNum > 2) {
+        //   track_candidate.emplace_back(best_candidate);
+        // }
       }
     }
   }
 
-  for (int i=0; i<best_candidates.size(); ++i) {
-    if (best_candidates[i].hitsNum > 0) {
-      track_candidate.push_back(best_candidates[i]);
-    }
-  }
+  // for (int i = 0; i < best_candidates.size(); ++i) {
+  //   if (best_candidates[i].hitsNum > 0) {
+  //     track_candidate.push_back(best_candidates[i]);
+  //   }
+  // }
 
   return ret_val;
 }
@@ -305,7 +349,7 @@ float dx_calc(const MiniState& state, float qop, const SciFiWindowsParams& windo
   float ret_val;
   float qop_window = std::abs(window_params.dx_slope * qop + window_params.dx_min);
   float tx_window = std::abs(window_params.tx_slope * state.tx + window_params.tx_min);
-  
+
   // info_cout << "QOP and tx windows: " << qop_window << ", " << tx_window << std::endl;
 
   ret_val = window_params.tx_weight * tx_window + window_params.dx_weight * qop_window;
@@ -400,7 +444,7 @@ std::tuple<int, float> get_best_hit(
   for (auto hit_layer_idx = std::get<0>(layer_candidates); hit_layer_idx != std::get<1>(layer_candidates);
        hit_layer_idx++) {
     x_coordinates[1] = hits.x0[hit_layer_idx] + proj_states[layer].y * SciFi::LookingForward::Zone_dxdy[layer];
-    chi_2 = get_chi_2(z_coordinates, x_coordinates, [m, q](double x) { return m * x + q; });
+    chi_2 = get_chi_2(z_coordinates, x_coordinates, [m, q](float x) { return m * x + q; });
 
     if (chi_2 < min_chi2) {
       best_idx = hit_layer_idx;

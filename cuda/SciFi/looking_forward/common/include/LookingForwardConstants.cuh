@@ -32,8 +32,8 @@ namespace LookingForward {
   /**
    * Form seeds from candidates
    */
-  constexpr int maximum_considered_tracks_per_thread = 2;
-  constexpr int maximum_iteration_l3_window = 2;
+  constexpr int maximum_iteration_l3_window = 4;
+  constexpr int track_candidates_per_window = 2;
 
   constexpr float x_diff_layer_qop_offset = 20.f * Gaudi::Units::mm;
   constexpr float x_diff_layer_qop_slope_a = 0.3e6;
