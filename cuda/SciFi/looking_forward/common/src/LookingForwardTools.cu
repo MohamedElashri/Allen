@@ -102,6 +102,7 @@ __device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(
 
 __device__ std::tuple<int, float> LookingForward::get_best_hit(
   const SciFi::Hits& hits,
+  const SciFi::HitCount& hit_count,
   const float m,
   const std::tuple<int, int>& layer_candidates,
   const std::tuple<float, float>& hit_layer_0_z_x,
@@ -116,10 +117,9 @@ __device__ std::tuple<int, float> LookingForward::get_best_hit(
 
   int best_index = -1;
   float min_chi2 = LookingForward::chi2_cut;
-  for (auto hit_index = std::get<0>(layer_candidates);
-       hit_index != std::get<1>(layer_candidates);
-       hit_index++)
+  for (int i = 0; i < std::get<1>(layer_candidates); i++)
   {
+    const auto hit_index = hit_count.event_offset() + std::get<0>(layer_candidates) + i;
     const auto chi_2 = chi2(
       m,
       q,

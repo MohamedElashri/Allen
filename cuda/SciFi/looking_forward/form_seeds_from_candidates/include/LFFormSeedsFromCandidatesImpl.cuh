@@ -19,5 +19,4 @@ __device__ void lf_form_seeds_from_candidates_impl(
   const unsigned short second_candidate_l1_start,
   const unsigned short second_candidate_l1_size,
   const unsigned short second_candidate_l2_start,
-  const unsigned short second_candidate_l2_size,
-  SciFi::TrackCandidate* shared_track_candidates);
+  const unsigned short second_candidate_l2_size);

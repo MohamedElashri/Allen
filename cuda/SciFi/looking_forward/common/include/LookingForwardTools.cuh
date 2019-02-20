@@ -70,6 +70,7 @@ namespace LookingForward {
 
   __device__ std::tuple<int, float> get_best_hit(
     const SciFi::Hits& hits,
+    const SciFi::HitCount& hit_count,
     const float m,
     const std::tuple<int, int>& layer_candidates,
     const std::tuple<float, float>& hit_layer_0_z_x,

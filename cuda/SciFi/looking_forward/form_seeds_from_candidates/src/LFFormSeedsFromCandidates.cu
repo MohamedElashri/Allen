@@ -26,11 +26,6 @@ __global__ void lf_form_seeds_from_candidates(
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
-  __shared__ char shared_track_candidates
-    [LookingForward::form_seeds_candidates_per_thread *
-     LookingForward::form_seeds_x_threads *
-     sizeof(SciFi::TrackCandidate)];
-
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
     (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
@@ -58,7 +53,7 @@ __global__ void lf_form_seeds_from_candidates(
   int* atomics_scifi = dev_atomics_scifi + event_number;
 
   // Looking Forward offset and size of this event
-  const uint* offset_size_first_candidate_pointer = dev_first_layer_candidates + ut_event_tracks_offset + ut_tracks.total_number_of_tracks;
+  const uint* offset_size_first_candidate_pointer = dev_first_layer_candidates + ut_tracks.total_number_of_tracks + ut_event_tracks_offset;
   const uint offset_first_candidate = *offset_size_first_candidate_pointer;
   const uint size_first_candidate = *(offset_size_first_candidate_pointer + ut_event_number_of_tracks) - offset_first_candidate;
   const uint total_number_of_candidates = *(dev_first_layer_candidates + 2 * ut_tracks.total_number_of_tracks);
@@ -75,7 +70,7 @@ __global__ void lf_form_seeds_from_candidates(
     const unsigned short* second_candidate_l2_size_p  = dev_second_layer_candidates + 7 * total_number_of_candidates + offset_first_candidate;
 
     for (int i=threadIdx.x; i<size_first_candidate; i+=blockDim.x) {
-      const auto rel_ut_track_index = second_candidate_ut_track_p[i];
+      const int rel_ut_track_index = second_candidate_ut_track_p[i];
       const auto first_candidate_index = second_candidate_first_candidate_p[i];
       const auto second_candidate_offset = second_candidate_start_p[i];
       const auto second_candidate_size = second_candidate_size_p[i];
@@ -118,8 +113,7 @@ __global__ void lf_form_seeds_from_candidates(
         second_candidate_l1_start,
         second_candidate_l1_size,
         second_candidate_l2_start,
-        second_candidate_l2_size,
-        (SciFi::TrackCandidate*) shared_track_candidates);
+        second_candidate_l2_size);
     }
   }
 }

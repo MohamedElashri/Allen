@@ -223,29 +223,34 @@ namespace SciFi {
   struct TrackCandidate {
     short hits[SciFi::Constants::max_track_candidate_size];
     unsigned short ut_track_index; // Index of velo-UT track
+    unsigned short hitsNum = 0;
     float qop;
-    float quality;
-    uint8_t hitsNum = 0;
+    float quality = 0.f;
 
     __host__ __device__ TrackCandidate() {};
+
+    __host__ __device__ TrackCandidate(float param_quality) : quality(param_quality), hitsNum(0) {}
 
     __host__ __device__ TrackCandidate(
       const short h0,
       const short h1,
-      const unsigned short ut_track_index,
-      const float qop) :
-      ut_track_index(ut_track_index), qop(qop), hitsNum(2) {
+      const unsigned short param_ut_track_index,
+      const float param_qop) :
+      ut_track_index(param_ut_track_index), hitsNum(2), qop(param_qop) {
         hits[0] = h0;
         hits[1] = h1;
+        hits[2] = -1;
+        hits[3] = -1;
+        quality = 0.f;
       };
 
-    __host__ __device__ TrackCandidate(const TrackCandidate& other) :
-      qop(other.qop), hitsNum(other.hitsNum), quality(other.quality), ut_track_index(other.ut_track_index)
-    {
-      for (int i = 0; i < SciFi::Constants::max_track_candidate_size; ++i) {
-        hits[i] = other.hits[i];
-      }
-    }
+    // __host__ __device__ TrackCandidate(const TrackCandidate& other) :
+    //   qop(other.qop), hitsNum(other.hitsNum), quality(other.quality), ut_track_index(other.ut_track_index)
+    // {
+    //   for (int i = 0; i < SciFi::Constants::max_track_candidate_size; ++i) {
+    //     hits[i] = other.hits[i];
+    //   }
+    // }
 
     __host__ __device__ void add_hit(short idx)
     {
@@ -254,6 +259,7 @@ namespace SciFi {
     }
 
     __host__ __device__ void add_hit_with_quality(short idx, float chi2) {
+      assert(hitsNum < SciFi::Constants::max_track_candidate_size);
       hits[hitsNum++] = idx;
       quality += chi2;
     }

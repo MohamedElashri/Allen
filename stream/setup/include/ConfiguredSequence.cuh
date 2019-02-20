@@ -50,7 +50,6 @@
 #include "LFCalculateFirstLayerWindow.cuh"
 #include "LFCalculateSecondLayerWindow.cuh"
 #include "LFFormSeedsFromCandidates.cuh"
-// #include "LFFormSeedsFromFirstLayerWindow.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 
