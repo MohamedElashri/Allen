@@ -61,7 +61,7 @@ __global__ void lf_calculate_second_layer_window(
     const uint size_first_candidate = offset_size_first_candidate_pointer[i + 1] - offset_size_first_candidate_pointer[i];
 
     if (size_first_candidate > 0) {
-      unsigned short* second_candidate_ut_track = dev_second_layer_candidates + offset_first_candidate;
+      unsigned short* second_candidate_p = dev_second_layer_candidates + offset_first_candidate;
 
       __syncthreads();
 
@@ -85,7 +85,7 @@ __global__ void lf_calculate_second_layer_window(
       }
 
       __syncthreads();
-
+      
       lf_calculate_second_layer_window_impl(
         states_at_z_last_ut_plane,
         ut_tracks.qop[i],
@@ -97,7 +97,7 @@ __global__ void lf_calculate_second_layer_window(
         i,
         local_hit_offset_first_candidate,
         size_first_candidate,
-        second_candidate_ut_track,
+        second_candidate_p,
         total_number_of_candidates);
     }
   }

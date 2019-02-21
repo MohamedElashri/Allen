@@ -49,7 +49,6 @@ __device__ void lf_calculate_first_layer_window_impl(
         dx_plane_0 *= 1.f - 0.6f * x * x;
       }
 
-
       const auto layer0_candidates_2 = find_x_in_window(
         hits,
         std::get<0>(layer0_offset_nhits),

@@ -13,5 +13,5 @@ __device__ void lf_form_seeds_from_candidates_impl(
   const LookingForward::Constants* dev_looking_forward_constants,
   int* track_insert_atomic,
   SciFi::TrackCandidate* scifi_track_candidates,
-  const unsigned short* second_candidate_ut_track_p,
+  const unsigned short* second_candidate_p,
   const uint total_number_of_candidates);
