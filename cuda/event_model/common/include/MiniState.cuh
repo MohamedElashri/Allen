@@ -19,3 +19,12 @@ struct MiniState {
     x(_x), y(_y), z(_z), tx(_tx), ty(_ty)
   {}
 };
+
+struct ProjectionState {
+  float x, y, z;
+
+  __host__ __device__ ProjectionState() {}
+
+  __host__ __device__ ProjectionState(const MiniState& mini_state) : 
+    x(mini_state.x), y(mini_state.y), z(mini_state.z) {}
+};

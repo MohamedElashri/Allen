@@ -60,6 +60,7 @@ struct HostBuffers {
   float* host_scifi_qop;
   MiniState* host_scifi_states;
   uint* host_scifi_track_ut_indices;
+  uint* host_lf_total_size_first_window_layer;
 
   // Kalman
   ParKalmanFilter::FittedTrack* host_kf_tracks;

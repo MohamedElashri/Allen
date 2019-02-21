@@ -74,7 +74,6 @@ MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int la
   MiniState magnet_state;
 
   float x_mag_correction;
-
   float y_mag_correction;
 
   // center of the magnet
@@ -131,7 +130,6 @@ bool select_hits(
   const SciFiWindowsParams& window_params)
 {
   bool ret_val = false;
-  std::array<int, 4> zone_offset;
   std::array<MiniState, 4> proj_state;
   float x_mag, y_mag, z_mag;
   float dx_plane_0;
@@ -157,6 +155,7 @@ bool select_hits(
     dx_plane_0 = dx_calc(proj_state[0], UT_qop, window_params);
 
     const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, proj_state[0].y);
+
     const auto layer0_candidates = find_x_in_window(
       hits,
       std::get<0>(layer0_offset_nhits),
