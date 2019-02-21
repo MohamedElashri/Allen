@@ -10,6 +10,8 @@ namespace SciFi {
 
     constexpr float zMagnetParams[4] = {5212.38, 406.609, -1102.35, -498.039};
 
+    constexpr float forward_param = 2.44997116e-02;
+
     constexpr float ds_p_param[12] =
       // updated value for layer 8
       {1307.09, 1288.22, 899.152, 1304.91, 1304.63, 1293.6, 50.6114, 1303.6, 1207.72, 1297.08, 1299.11, 1308.75};

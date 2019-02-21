@@ -8,6 +8,66 @@ float x_at_z(const MiniState& state, const float z)
 
 float linear_propagation(float x_0, float tx, float dz) { return x_0 + tx * dz; }
 
+float scifi_propagation(const float x_0, const float z_0, const float tx, const float qop, const float z)
+{
+  return linear_propagation(x_0, tx, z - z_0) + SciFi::LookingForward::forward_param * qop * z * z;
+}
+
+float qop_upgrade(const MiniState& UT_state, float hit_layer_0, float hit_layer_3, int layer)
+{
+  const float slope = (hit_layer_3 - hit_layer_0) / SciFi::LookingForward::dz_x_layers;
+  return (slope - UT_state.tx) / SciFi::LookingForward::ds_p_param[layer];
+  // float slope = (hit_layer_3 - hit_layer_0) / SciFi::LookingForward::dz_x_layers;
+  //  MiniState initial_state;
+  //  MiniState magnet_state;
+  //  float x_mag_correction;
+  //  float y_mag_correction;
+
+  //  initial_state = state_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
+
+  //  initial_state.tx = (hit_layer_3 - hit_layer_0) / SciFi::LookingForward::dz_x_layers;
+
+  //  initial_state.x = hit_layer_0;
+
+  //  float delta_slope = initial_state.tx - UT_state.tx;
+
+  //  magnet_state = state_at_z(initial_state, SciFi::LookingForward::z_magnet);
+
+  //  if (delta_slope > 0) {
+  //    y_mag_correction = SciFi::LookingForward::dp_y_mag_plus[layer][0] +
+  //                       magnet_state.y * SciFi::LookingForward::dp_y_mag_plus[layer][1] +
+  //                       magnet_state.y * magnet_state.y * SciFi::LookingForward::dp_y_mag_plus[layer][2];
+  //    // SciFi::LookingForward::dp_plus_offset[layer];
+
+  //    x_mag_correction =
+  //      SciFi::LookingForward::dp_x_mag_plus[layer][0] + magnet_state.x *
+  //      SciFi::LookingForward::dp_x_mag_plus[layer][1] + magnet_state.x * magnet_state.x *
+  //      SciFi::LookingForward::dp_x_mag_plus[layer][2] + magnet_state.x * magnet_state.x * magnet_state.x *
+  //      SciFi::LookingForward::dp_x_mag_plus[layer][3] + magnet_state.x * magnet_state.x * magnet_state.x *
+  //      magnet_state.x *
+  //        SciFi::LookingForward::dp_x_mag_plus[layer][4];
+  //  }
+  //  else {
+  //    y_mag_correction = SciFi::LookingForward::dp_y_mag_minus[layer][0] +
+  //                       magnet_state.y * SciFi::LookingForward::dp_y_mag_minus[layer][1] +
+  //                       magnet_state.y * magnet_state.y * SciFi::LookingForward::dp_y_mag_minus[layer][2]; //+
+  //    // SciFi::LookingForward::dp_minus_offset[layer];
+
+  //    x_mag_correction =
+  //      SciFi::LookingForward::dp_x_mag_minus[layer][0] +
+  //      magnet_state.x * SciFi::LookingForward::dp_x_mag_minus[layer][1] +
+  //      magnet_state.x * magnet_state.x * SciFi::LookingForward::dp_x_mag_minus[layer][2] +
+  //      magnet_state.x * magnet_state.x * magnet_state.x * SciFi::LookingForward::dp_x_mag_minus[layer][3] +
+  //      magnet_state.x * magnet_state.x * magnet_state.x * magnet_state.x *
+  //        SciFi::LookingForward::dp_x_mag_minus[layer][4];
+  //  }
+
+  //  float new_slope = (hit_layer_0 - x_mag_correction - y_mag_correction - magnet_state.x) /
+  //                    (SciFi::LookingForward::Zone_zPos[layer] - SciFi::LookingForward::z_magnet);
+
+  //  return (new_slope - UT_state.tx) / SciFi::LookingForward::ds_p_param[layer];
+}
+
 MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int layer)
 {
   MiniState final_state;
@@ -203,23 +263,6 @@ bool select_hits(
         }
       }
     }
-  }
-  return ret_val;
-}
-
-float check_track_quality(
-  const std::vector<float>& z_coordinates,
-  const std::vector<float>& x_coordinates,
-  float chi2_cut)
-{
-  float ret_val = -1;
-  const float m = (x_coordinates[3] - x_coordinates[0]) / (SciFi::LookingForward::dz_x_layers);
-  const float q = x_coordinates[0] - z_coordinates[0] * m;
-  const float chi_2 = get_chi_2(z_coordinates, x_coordinates, [&m, &q](double x) { return m * x + q; });
-  if (chi_2 < chi2_cut) {
-    SciFi::TrackHits new_track_hits;
-    // TODO this should be the update qop using the SciFi hits
-    ret_val = chi_2;
   }
   return ret_val;
 }
