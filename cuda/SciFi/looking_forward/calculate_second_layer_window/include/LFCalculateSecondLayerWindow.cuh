@@ -30,6 +30,7 @@ __global__ void lf_calculate_second_layer_window(
   const float* dev_inv_clus_res,
   uint* dev_first_layer_candidates,
   unsigned short* dev_second_layer_candidates,
+  const MiniState* dev_ut_states,
   const int seeding_first_layer,
   const int seeding_second_layer);
 
@@ -50,5 +51,6 @@ ALGORITHM(
     dev_ut_tx,
     dev_ut_qop,
     dev_ut_track_velo_indices,
+    dev_ut_states,
     dev_scifi_lf_first_layer_candidates,
     dev_scifi_lf_second_layer_candidates))

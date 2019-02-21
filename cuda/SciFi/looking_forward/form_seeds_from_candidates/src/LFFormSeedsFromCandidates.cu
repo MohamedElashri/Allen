@@ -21,6 +21,7 @@ __global__ void lf_form_seeds_from_candidates(
   const float* dev_inv_clus_res,
   const uint* dev_first_layer_candidates,
   const unsigned short* dev_second_layer_candidates,
+  const MiniState* dev_ut_states,
   const uint station)
 {
   const auto number_of_events = gridDim.x;
@@ -60,46 +61,22 @@ __global__ void lf_form_seeds_from_candidates(
 
   // Only proceed if we have candidates in the first window
   if (size_first_candidate > 0) {
-    const unsigned short* second_candidate_ut_track_p = dev_second_layer_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_first_candidate_p = dev_second_layer_candidates + total_number_of_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_start_p = dev_second_layer_candidates + 2 * total_number_of_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_size_p = dev_second_layer_candidates + 3 * total_number_of_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_l1_start_p = dev_second_layer_candidates + 4 * total_number_of_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_l1_size_p  = dev_second_layer_candidates + 5 * total_number_of_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_l2_start_p = dev_second_layer_candidates + 6 * total_number_of_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_l2_size_p  = dev_second_layer_candidates + 7 * total_number_of_candidates + offset_first_candidate;
+    const unsigned short* second_candidate_p = dev_second_layer_candidates + offset_first_candidate;
 
     for (int i=threadIdx.x; i<size_first_candidate; i+=blockDim.x) {
-      const int rel_ut_track_index = second_candidate_ut_track_p[i];
-      const auto first_candidate_index = second_candidate_first_candidate_p[i];
-      const auto second_candidate_offset = second_candidate_start_p[i];
-      const auto second_candidate_size = second_candidate_size_p[i];
-      const auto second_candidate_l1_start = second_candidate_l1_start_p[i];
-      const auto second_candidate_l1_size = second_candidate_l1_size_p[i];
-      const auto second_candidate_l2_start = second_candidate_l2_start_p[i];
-      const auto second_candidate_l2_size = second_candidate_l2_size_p[i];
-
-      const int ut_track_index = ut_event_tracks_offset + rel_ut_track_index;
-      const int velo_track_index = ut_tracks.velo_track[rel_ut_track_index];
-      const float ut_qop = ut_tracks.qop[rel_ut_track_index];
-
-      // Note: These data should be accessed like
-      //       the previous ut_tracks.qop[i] in the future
-      const float ut_x = dev_ut_x[ut_track_index];
-      const float ut_tx = dev_ut_tx[ut_track_index];
-      const float ut_z = dev_ut_z[ut_track_index];
-
-      const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
-      const MiniState velo_state {velo_states, velo_states_index};
-
-      // extrapolate velo y & ty to z of UT x and tx
-      // use ty from Velo state
-      const MiniState ut_state {ut_x, LookingForward::y_at_z(velo_state, ut_z), ut_z, ut_tx, velo_state.ty};
-      const MiniState state_at_z_last_ut_plane = LookingForward::state_at_z(ut_state, LookingForward::z_last_UT_plane);
+      const auto rel_ut_track_index = second_candidate_p[i];
+      const auto first_candidate_index = second_candidate_p[total_number_of_candidates + i];
+      const auto second_candidate_offset = second_candidate_p[2*total_number_of_candidates + i];
+      const auto second_candidate_size = second_candidate_p[3*total_number_of_candidates + i];
+      const auto second_candidate_l1_start = second_candidate_p[4*total_number_of_candidates + i];
+      const auto second_candidate_l1_size = second_candidate_p[5*total_number_of_candidates + i];
+      const auto second_candidate_l2_start = second_candidate_p[6*total_number_of_candidates + i];
+      const auto second_candidate_l2_size = second_candidate_p[7*total_number_of_candidates + i];
+      const MiniState state_at_z_last_ut_plane = dev_ut_states[ut_event_tracks_offset + rel_ut_track_index];
 
       lf_form_seeds_from_candidates_impl(
         state_at_z_last_ut_plane,
-        ut_qop,
+        ut_tracks.qop[rel_ut_track_index],
         rel_ut_track_index,
         scifi_hits,
         scifi_hit_count,

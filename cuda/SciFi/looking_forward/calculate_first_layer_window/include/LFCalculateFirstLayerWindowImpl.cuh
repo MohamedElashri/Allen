@@ -12,4 +12,5 @@ __device__ void lf_calculate_first_layer_window_impl(
   const LookingForward::Constants* dev_looking_forward_constants,
   uint* first_candidates,
   uint* number_of_candidates,
+  MiniState* ut_states,
   const int candidate_index);

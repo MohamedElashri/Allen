@@ -52,6 +52,7 @@ void SequenceVisitor::visit<lf_calculate_second_layer_window_t>(
     constants.dev_inv_clus_res,
     arguments.offset<dev_scifi_lf_first_layer_candidates>(),
     arguments.offset<dev_scifi_lf_second_layer_candidates>(),
+    arguments.offset<dev_ut_states>(),
     LookingForward::seeding_first_layer,
     LookingForward::seeding_second_layer);
 

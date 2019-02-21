@@ -48,6 +48,7 @@ void SequenceVisitor::visit<lf_form_seeds_from_candidates_t>(
     constants.dev_inv_clus_res,
     arguments.offset<dev_scifi_lf_first_layer_candidates>(),
     arguments.offset<dev_scifi_lf_second_layer_candidates>(),
+    arguments.offset<dev_ut_states>(),
     LookingForward::seeding_station);
 
   state.invoke();

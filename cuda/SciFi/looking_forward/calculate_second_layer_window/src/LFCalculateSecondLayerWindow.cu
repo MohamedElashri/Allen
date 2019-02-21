@@ -19,6 +19,7 @@ __global__ void lf_calculate_second_layer_window(
   const float* dev_inv_clus_res,
   uint* dev_first_layer_candidates,
   unsigned short* dev_second_layer_candidates,
+  const MiniState* dev_ut_states,
   const int seeding_first_layer,
   const int seeding_second_layer)
 {
@@ -67,21 +68,7 @@ __global__ void lf_calculate_second_layer_window(
 
       if (threadIdx.y == 0) {
         const int ut_track_index = ut_event_tracks_offset + i;
-
-        // Note: These data should be accessed like
-        //       the previous ut_tracks.qop[i] in the future
-        const float ut_x = dev_ut_x[ut_track_index];
-        const float ut_tx = dev_ut_tx[ut_track_index];
-        const float ut_z = dev_ut_z[ut_track_index];
-        const int velo_track_index = ut_tracks.velo_track[i];
-
-        const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
-        const MiniState velo_state {velo_states, velo_states_index};
-
-        // extrapolate velo y & ty to z of UT x and tx
-        // use ty from Velo state
-        const MiniState ut_state {ut_x, LookingForward::y_at_z(velo_state, ut_z), ut_z, ut_tx, velo_state.ty};
-        states_at_z_last_ut_plane[threadIdx.x] = LookingForward::state_at_z(ut_state, LookingForward::z_last_UT_plane);
+        states_at_z_last_ut_plane[threadIdx.x] = dev_ut_states[ut_track_index];
       }
 
       __syncthreads();

@@ -11,6 +11,7 @@ __device__ void lf_calculate_first_layer_window_impl(
   const LookingForward::Constants* dev_looking_forward_constants,
   uint* first_candidates,
   uint* number_of_candidates,
+  MiniState* ut_states,
   const int candidate_index)
 {
   MiniState propagated_state =
@@ -62,5 +63,6 @@ __device__ void lf_calculate_first_layer_window_impl(
 
     first_candidates[candidate_index] = layer0_first_candidate - hit_count.event_offset();
     number_of_candidates[candidate_index] = layer0_size;
+    ut_states[candidate_index] = velo_ut_state;
   }
 }
