@@ -9,9 +9,6 @@ __global__ void lf_calculate_second_layer_window(
   const int* dev_atomics_ut,
   const char* dev_ut_track_hits,
   const uint* dev_ut_track_hit_number,
-  const float* dev_ut_x,
-  const float* dev_ut_tx,
-  const float* dev_ut_z,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
   const char* dev_scifi_geometry,
@@ -19,9 +16,12 @@ __global__ void lf_calculate_second_layer_window(
   const float* dev_inv_clus_res,
   uint* dev_first_layer_candidates,
   unsigned short* dev_second_layer_candidates,
+  const MiniState* dev_ut_states,
   const int seeding_first_layer,
   const int seeding_second_layer)
 {
+  __shared__ MiniState states_at_z_last_ut_plane [2];
+
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
@@ -59,32 +59,20 @@ __global__ void lf_calculate_second_layer_window(
     const uint size_first_candidate = offset_size_first_candidate_pointer[i + 1] - offset_size_first_candidate_pointer[i];
 
     if (size_first_candidate > 0) {
-      unsigned short* second_candidate_ut_track = dev_second_layer_candidates + offset_first_candidate;
-      unsigned short* second_candidate_first_candidate = dev_second_layer_candidates + total_number_of_candidates + offset_first_candidate;
-      unsigned short* second_candidate_start = dev_second_layer_candidates + 2 * total_number_of_candidates + offset_first_candidate;
-      unsigned short* second_candidate_size = dev_second_layer_candidates + 3 * total_number_of_candidates + offset_first_candidate;
+      unsigned short* second_candidate_p = dev_second_layer_candidates + offset_first_candidate;
 
-      const int ut_track_index = ut_event_tracks_offset + i;
-      const int velo_track_index = ut_tracks.velo_track[i];
-      const float ut_qop = ut_tracks.qop[i];
+      __syncthreads();
 
-      // Note: These data should be accessed like
-      //       the previous ut_tracks.qop[i] in the future
-      const float ut_x = dev_ut_x[ut_track_index];
-      const float ut_tx = dev_ut_tx[ut_track_index];
-      const float ut_z = dev_ut_z[ut_track_index];
+      if (threadIdx.y == 0) {
+        const int ut_track_index = ut_event_tracks_offset + i;
+        states_at_z_last_ut_plane[threadIdx.x] = dev_ut_states[ut_track_index];
+      }
 
-      const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
-      const MiniState velo_state {velo_states, velo_states_index};
-
-      // extrapolate velo y & ty to z of UT x and tx
-      // use ty from Velo state
-      const MiniState ut_state {ut_x, LookingForward::y_at_z(velo_state, ut_z), ut_z, ut_tx, velo_state.ty};
-      const MiniState state_at_z_last_ut_plane = LookingForward::state_at_z(ut_state, LookingForward::z_last_UT_plane);
-
+      __syncthreads();
+      
       lf_calculate_second_layer_window_impl(
-        state_at_z_last_ut_plane,
-        ut_qop,
+        states_at_z_last_ut_plane,
+        ut_tracks.qop[i],
         scifi_hits,
         scifi_hit_count,
         seeding_first_layer,
@@ -93,10 +81,8 @@ __global__ void lf_calculate_second_layer_window(
         i,
         local_hit_offset_first_candidate,
         size_first_candidate,
-        second_candidate_ut_track,
-        second_candidate_first_candidate,
-        second_candidate_start,
-        second_candidate_size);
+        second_candidate_p,
+        total_number_of_candidates);
     }
   }
 }

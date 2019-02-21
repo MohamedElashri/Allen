@@ -20,7 +20,6 @@ void Constants::reserve_constants()
 
 void Constants::initialize_constants()
 {
-
   // Velo module constants
   const std::array<float, Velo::Constants::n_modules> velo_module_zs = {
     -287.5, -275,  -262.5, -250,  -237.5, -225,  -212.5, -200,  -137.5, -125,  -62.5, -50,   -37.5,

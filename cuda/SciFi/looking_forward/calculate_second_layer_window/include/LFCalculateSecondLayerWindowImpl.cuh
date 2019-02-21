@@ -4,7 +4,7 @@
 #include "LookingForwardTools.cuh"
 
 __device__ void lf_calculate_second_layer_window_impl(
-  const MiniState& velo_ut_state,
+  MiniState* states_at_z_last_ut_plane,
   const float ut_qop,
   const SciFi::Hits& hits,
   const SciFi::HitCount& hit_count,
@@ -15,6 +15,4 @@ __device__ void lf_calculate_second_layer_window_impl(
   const uint local_hit_offset_first_candidate,
   const uint size_first_candidate,
   unsigned short* second_candidate_ut_track,
-  unsigned short* second_candidate_first_candidate,
-  unsigned short* second_candidate_start,
-  unsigned short* second_candidate_size);
+  const uint total_number_of_candidates);

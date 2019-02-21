@@ -9,9 +9,6 @@ __global__ void lf_form_seeds_from_candidates(
   const int* dev_atomics_ut,
   const char* dev_ut_track_hits,
   const uint* dev_ut_track_hit_number,
-  const float* dev_ut_x,
-  const float* dev_ut_tx,
-  const float* dev_ut_z,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
   SciFi::TrackCandidate* dev_scifi_track_candidates,
@@ -21,8 +18,20 @@ __global__ void lf_form_seeds_from_candidates(
   const float* dev_inv_clus_res,
   const uint* dev_first_layer_candidates,
   const unsigned short* dev_second_layer_candidates,
+  const MiniState* dev_ut_states,
   const uint station)
 {
+  __shared__ float looking_forward_constants [8];
+
+  const auto first_layer = (station - 1) * 4;
+  
+  for (int i=threadIdx.x; i<4; i+=blockDim.x) {
+    looking_forward_constants[i] = dev_looking_forward_constants->Zone_zPos[first_layer + i];
+    looking_forward_constants[4 + i] = dev_looking_forward_constants->Zone_dxdy[i];
+  }
+  
+  __syncthreads();
+
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
@@ -53,55 +62,42 @@ __global__ void lf_form_seeds_from_candidates(
   int* atomics_scifi = dev_atomics_scifi + event_number;
 
   // Looking Forward offset and size of this event
-  const uint* offset_size_first_candidate_pointer = dev_first_layer_candidates + ut_event_tracks_offset + ut_tracks.total_number_of_tracks;
+  const uint* offset_size_first_candidate_pointer = dev_first_layer_candidates + ut_tracks.total_number_of_tracks + ut_event_tracks_offset;
   const uint offset_first_candidate = *offset_size_first_candidate_pointer;
   const uint size_first_candidate = *(offset_size_first_candidate_pointer + ut_event_number_of_tracks) - offset_first_candidate;
   const uint total_number_of_candidates = *(dev_first_layer_candidates + 2 * ut_tracks.total_number_of_tracks);
 
   // Only proceed if we have candidates in the first window
   if (size_first_candidate > 0) {
-    const unsigned short* second_candidate_ut_track_p = dev_second_layer_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_first_candidate_p = dev_second_layer_candidates + total_number_of_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_start_p = dev_second_layer_candidates + 2 * total_number_of_candidates + offset_first_candidate;
-    const unsigned short* second_candidate_size_p = dev_second_layer_candidates + 3 * total_number_of_candidates + offset_first_candidate;
+    const unsigned short* second_candidate_p = dev_second_layer_candidates + offset_first_candidate;
 
     for (int i=threadIdx.x; i<size_first_candidate; i+=blockDim.x) {
-      const auto rel_ut_track_index = second_candidate_ut_track_p[i];
-      const auto first_candidate_index = second_candidate_first_candidate_p[i];
-      const auto second_candidate_offset = second_candidate_start_p[i];
-      const auto second_candidate_size = second_candidate_size_p[i];
-
-      const int ut_track_index = ut_event_tracks_offset + rel_ut_track_index;
-      const int velo_track_index = ut_tracks.velo_track[rel_ut_track_index];
-      const float ut_qop = ut_tracks.qop[rel_ut_track_index];
-
-      // Note: These data should be accessed like
-      //       the previous ut_tracks.qop[i] in the future
-      const float ut_x = dev_ut_x[ut_track_index];
-      const float ut_tx = dev_ut_tx[ut_track_index];
-      const float ut_z = dev_ut_z[ut_track_index];
-
-      const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
-      const MiniState velo_state {velo_states, velo_states_index};
-
-      // extrapolate velo y & ty to z of UT x and tx
-      // use ty from Velo state
-      const MiniState ut_state {ut_x, LookingForward::y_at_z(velo_state, ut_z), ut_z, ut_tx, velo_state.ty};
-      const MiniState state_at_z_last_ut_plane = LookingForward::state_at_z(ut_state, LookingForward::z_last_UT_plane);
+      const auto rel_ut_track_index = second_candidate_p[i];
+      const auto first_candidate_index = second_candidate_p[total_number_of_candidates + i];
+      const auto second_candidate_offset = second_candidate_p[2*total_number_of_candidates + i];
+      const auto second_candidate_size = second_candidate_p[3*total_number_of_candidates + i];
+      const auto second_candidate_l1_start = second_candidate_p[4*total_number_of_candidates + i];
+      const auto second_candidate_l1_size = second_candidate_p[5*total_number_of_candidates + i];
+      const auto second_candidate_l2_start = second_candidate_p[6*total_number_of_candidates + i];
+      const auto second_candidate_l2_size = second_candidate_p[7*total_number_of_candidates + i];
+      const MiniState state_at_z_last_ut_plane = dev_ut_states[ut_event_tracks_offset + rel_ut_track_index];
 
       lf_form_seeds_from_candidates_impl(
         state_at_z_last_ut_plane,
-        ut_qop,
+        ut_tracks.qop[rel_ut_track_index],
         rel_ut_track_index,
         scifi_hits,
         scifi_hit_count,
-        station,
-        dev_looking_forward_constants,
+        looking_forward_constants,
         atomics_scifi,
         scifi_track_candidates,
         first_candidate_index,
         second_candidate_offset,
-        second_candidate_size);
+        second_candidate_size,
+        second_candidate_l1_start,
+        second_candidate_l1_size,
+        second_candidate_l2_start,
+        second_candidate_l2_size);
     }
   }
 }

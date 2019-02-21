@@ -20,9 +20,6 @@ __global__ void lf_form_seeds_from_candidates(
   const int* dev_atomics_ut,
   const char* dev_ut_track_hits,
   const uint* dev_ut_track_hit_number,
-  const float* dev_ut_x,
-  const float* dev_ut_tx,
-  const float* dev_ut_z,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
   SciFi::TrackCandidate* dev_scifi_track_candidates,
@@ -32,6 +29,7 @@ __global__ void lf_form_seeds_from_candidates(
   const float* dev_inv_clus_res,
   const uint* dev_first_layer_candidates,
   const unsigned short* dev_second_layer_candidates,
+  const MiniState* dev_ut_states,
   const uint station);
 
 ALGORITHM(
@@ -46,11 +44,9 @@ ALGORITHM(
     dev_atomics_ut,
     dev_ut_track_hits,
     dev_ut_track_hit_number,
-    dev_ut_x,
-    dev_ut_z,
-    dev_ut_tx,
     dev_ut_qop,
     dev_ut_track_velo_indices,
+    dev_ut_states,
     dev_scifi_track_candidates,
     dev_atomics_scifi,
     dev_scifi_lf_first_layer_candidates,

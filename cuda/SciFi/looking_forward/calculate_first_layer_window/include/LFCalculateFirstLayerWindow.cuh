@@ -29,6 +29,7 @@ __global__ void lf_calculate_first_layer_window(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
   uint* dev_first_layer_candidates,
+  MiniState* dev_ut_states,
   const int seeding_first_layer);
 
 ALGORITHM(
@@ -48,4 +49,5 @@ ALGORITHM(
     dev_ut_tx,
     dev_ut_qop,
     dev_ut_track_velo_indices,
+    dev_ut_states,
     dev_scifi_lf_first_layer_candidates))

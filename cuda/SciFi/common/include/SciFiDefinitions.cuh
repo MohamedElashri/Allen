@@ -66,7 +66,7 @@ namespace SciFi {
     static constexpr int max_track_size = 12;
     // static constexpr int max_track_size = Tracking::max_scifi_hits;
 
-    static constexpr int max_track_candidates = 10000;
+    static constexpr int max_track_candidates = 2000;
     static constexpr int max_track_candidate_size = 4;
   } // namespace Constants
 

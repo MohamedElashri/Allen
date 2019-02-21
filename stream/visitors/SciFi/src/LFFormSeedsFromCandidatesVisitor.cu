@@ -26,7 +26,7 @@ void SequenceVisitor::visit<lf_form_seeds_from_candidates_t>(
   cudaCheck(
     cudaMemsetAsync(arguments.offset<dev_atomics_scifi>(), 0, arguments.size<dev_atomics_scifi>(), cuda_stream));
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32, 4), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(1024), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
@@ -36,9 +36,6 @@ void SequenceVisitor::visit<lf_form_seeds_from_candidates_t>(
     arguments.offset<dev_atomics_ut>(),
     arguments.offset<dev_ut_track_hits>(),
     arguments.offset<dev_ut_track_hit_number>(),
-    arguments.offset<dev_ut_x>(),
-    arguments.offset<dev_ut_tx>(),
-    arguments.offset<dev_ut_z>(),
     arguments.offset<dev_ut_qop>(),
     arguments.offset<dev_ut_track_velo_indices>(),
     arguments.offset<dev_scifi_track_candidates>(),
@@ -48,6 +45,7 @@ void SequenceVisitor::visit<lf_form_seeds_from_candidates_t>(
     constants.dev_inv_clus_res,
     arguments.offset<dev_scifi_lf_first_layer_candidates>(),
     arguments.offset<dev_scifi_lf_second_layer_candidates>(),
+    arguments.offset<dev_ut_states>(),
     LookingForward::seeding_station);
 
   state.invoke();
@@ -66,6 +64,6 @@ void SequenceVisitor::visit<lf_form_seeds_from_candidates_t>(
 
   // for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
   //   info_cout << "Event " << i
-  //     << ", number of tracks " << scifi_atomics[i] << std::endl;
+  //     << ", number of track candidates " << scifi_atomics[i] << std::endl;
   // }
 }

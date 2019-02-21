@@ -18,6 +18,7 @@ __global__ void lf_calculate_first_layer_window(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
   uint* dev_first_layer_candidates,
+  MiniState* dev_ut_states,
   const int seeding_first_layer)
 {
   const auto number_of_events = gridDim.x;
@@ -48,6 +49,7 @@ __global__ void lf_calculate_first_layer_window(
   // SciFi un-consolidated track types
   uint* first_candidates = dev_first_layer_candidates + ut_event_tracks_offset;
   uint* number_of_candidates = dev_first_layer_candidates + ut_event_tracks_offset + ut_tracks.total_number_of_tracks;
+  MiniState* ut_states = dev_ut_states + ut_event_tracks_offset;
 
   // Loop over the veloUT input tracks
   for (int i=threadIdx.x; i<ut_event_number_of_tracks; i+=blockDim.x) {
@@ -78,6 +80,7 @@ __global__ void lf_calculate_first_layer_window(
       dev_looking_forward_constants,
       first_candidates,
       number_of_candidates,
+      ut_states,
       i);
   }
 }

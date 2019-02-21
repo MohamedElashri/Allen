@@ -10,6 +10,7 @@ void SequenceVisitor::set_arguments_size<lf_calculate_first_layer_window_t>(
 {
   const auto number_of_ut_tracks = host_buffers.host_atomics_ut[2 * host_buffers.host_number_of_selected_events[0]];
   arguments.set_size<dev_scifi_lf_first_layer_candidates>(2 * number_of_ut_tracks + 1);
+  arguments.set_size<dev_ut_states>(number_of_ut_tracks);
 }
 
 template<>
@@ -49,6 +50,7 @@ void SequenceVisitor::visit<lf_calculate_first_layer_window_t>(
     constants.dev_looking_forward_constants,
     constants.dev_inv_clus_res,
     arguments.offset<dev_scifi_lf_first_layer_candidates>(),
+    arguments.offset<dev_ut_states>(),
     LookingForward::seeding_first_layer);
 
   state.invoke();
