@@ -21,6 +21,17 @@ __global__ void lf_form_seeds_from_candidates(
   const MiniState* dev_ut_states,
   const uint station)
 {
+  __shared__ float looking_forward_constants [8];
+
+  const auto first_layer = (station - 1) * 4;
+  
+  for (int i=threadIdx.x; i<4; i+=blockDim.x) {
+    looking_forward_constants[i] = dev_looking_forward_constants->Zone_zPos[first_layer + i];
+    looking_forward_constants[4 + i] = dev_looking_forward_constants->Zone_dxdy[i];
+  }
+  
+  __syncthreads();
+
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
@@ -77,8 +88,7 @@ __global__ void lf_form_seeds_from_candidates(
         rel_ut_track_index,
         scifi_hits,
         scifi_hit_count,
-        station,
-        dev_looking_forward_constants,
+        looking_forward_constants,
         atomics_scifi,
         scifi_track_candidates,
         first_candidate_index,

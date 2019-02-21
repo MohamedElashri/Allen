@@ -77,6 +77,5 @@ namespace LookingForward {
     const std::tuple<float, float>& hit_layer_3_z_x,
     const float layer_projected_state_z,
     const float layer_projected_state_y,
-    const int layer,
-    const LookingForward::Constants* dev_looking_forward_constants);
+    const float dxdy);
 } // namespace LookingForward

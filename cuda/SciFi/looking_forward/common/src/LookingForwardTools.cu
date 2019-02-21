@@ -104,11 +104,10 @@ __device__ std::tuple<int, float> LookingForward::get_best_hit(
   const std::tuple<float, float>& hit_layer_3_z_x,
   const float layer_projected_state_z,
   const float layer_projected_state_y,
-  const int layer,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const float dxdy)
 {
   const auto q = std::get<1>(hit_layer_0_z_x) - std::get<0>(hit_layer_0_z_x) * m;
-  const auto x_adjustment = layer_projected_state_y * dev_looking_forward_constants->Zone_dxdy[layer];
+  const auto x_adjustment = layer_projected_state_y * dxdy;
 
   int best_index = -1;
   float min_chi2 = LookingForward::chi2_cut;

@@ -8,8 +8,7 @@ __device__ void lf_form_seeds_from_candidates_impl(
   const unsigned short rel_ut_track_index,
   const SciFi::Hits& hits,
   const SciFi::HitCount& hit_count,
-  const int station,
-  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* looking_forward_constants,
   int* track_insert_atomic,
   SciFi::TrackCandidate* scifi_track_candidates,
   const unsigned short first_candidate_index,
@@ -20,8 +19,6 @@ __device__ void lf_form_seeds_from_candidates_impl(
   const unsigned short second_candidate_l2_start,
   const unsigned short second_candidate_l2_size)
 {
-  const auto first_layer = (station - 1) * 4;
-
   // We will use this candidate and override it as we go on
   SciFi::TrackCandidate track_candidates [LookingForward::track_candidates_per_window];
 
@@ -44,24 +41,22 @@ __device__ void lf_form_seeds_from_candidates_impl(
       hit_count,
       slope_layer_3_layer_0,
       std::make_tuple(second_candidate_l1_start, second_candidate_l1_size),
-      std::make_tuple(dev_looking_forward_constants->Zone_zPos[first_layer], hit_layer_0_x),
-      std::make_tuple(dev_looking_forward_constants->Zone_zPos[first_layer + 3], hit_layer_3_x),
-      dev_looking_forward_constants->Zone_zPos[first_layer + 1],
-      y_at_z(velo_ut_state, dev_looking_forward_constants->Zone_zPos[first_layer + 1]),
-      1,
-      dev_looking_forward_constants);
+      std::make_tuple(looking_forward_constants[0], hit_layer_0_x),
+      std::make_tuple(looking_forward_constants[3], hit_layer_3_x),
+      looking_forward_constants[1],
+      y_at_z(velo_ut_state, looking_forward_constants[1]),
+      looking_forward_constants[4 + 1]);
 
     const auto hit_layer_2_idx_chi2 = get_best_hit(
       hits,
       hit_count,
       slope_layer_3_layer_0,
       std::make_tuple(second_candidate_l2_start, second_candidate_l2_size),
-      std::make_tuple(dev_looking_forward_constants->Zone_zPos[first_layer], hit_layer_0_x),
-      std::make_tuple(dev_looking_forward_constants->Zone_zPos[first_layer + 3], hit_layer_3_x),
-      dev_looking_forward_constants->Zone_zPos[first_layer + 2],
-      y_at_z(velo_ut_state, dev_looking_forward_constants->Zone_zPos[first_layer + 2]),
-      2,
-      dev_looking_forward_constants);
+      std::make_tuple(looking_forward_constants[0], hit_layer_0_x),
+      std::make_tuple(looking_forward_constants[3], hit_layer_3_x),
+      looking_forward_constants[2],
+      y_at_z(velo_ut_state, looking_forward_constants[2]),
+      looking_forward_constants[4 + 2]);
 
     if ((std::get<0>(hit_layer_1_idx_chi2) != -1) || (std::get<0>(hit_layer_2_idx_chi2) != -1)) {
       unsigned short number_of_hits = 2;
