@@ -17,10 +17,28 @@ __global__ void lf_calculate_second_layer_window(
   uint* dev_first_layer_candidates,
   unsigned short* dev_second_layer_candidates,
   const MiniState* dev_ut_states,
-  const int seeding_first_layer,
-  const int seeding_second_layer)
+  const int station)
 {
   __shared__ MiniState states_at_z_last_ut_plane [2];
+  __shared__ float looking_forward_constants [7];
+
+  const auto first_layer = (station - 1) * 4;
+  
+  if (threadIdx.x == 0) {
+    for (int i=threadIdx.y; i<4; i+=blockDim.y) {
+      looking_forward_constants[i] = dev_looking_forward_constants->Zone_zPos[first_layer + i];
+    }
+
+    if (threadIdx.y == 0) {
+      looking_forward_constants[4] = dev_looking_forward_constants->zMagnetParams[0];
+    }
+
+    for (int i=threadIdx.y; i<2; i+=blockDim.y) {
+      looking_forward_constants[5 + i] = dev_looking_forward_constants->Zone_dxdy[1 + i];
+    }
+  }
+  
+  __syncthreads();
 
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -75,9 +93,8 @@ __global__ void lf_calculate_second_layer_window(
         ut_tracks.qop[i],
         scifi_hits,
         scifi_hit_count,
-        seeding_first_layer,
-        seeding_second_layer,
-        dev_looking_forward_constants,
+        first_layer,
+        looking_forward_constants,
         i,
         local_hit_offset_first_candidate,
         size_first_candidate,

@@ -28,8 +28,7 @@ __global__ void lf_calculate_second_layer_window(
   uint* dev_first_layer_candidates,
   unsigned short* dev_second_layer_candidates,
   const MiniState* dev_ut_states,
-  const int seeding_first_layer,
-  const int seeding_second_layer);
+  const int station);
 
 ALGORITHM(
   lf_calculate_second_layer_window,
