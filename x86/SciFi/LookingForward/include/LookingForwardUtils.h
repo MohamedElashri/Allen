@@ -82,6 +82,18 @@ std::tuple<int, int>  get_u_or_v_layer_candidates(
   std::vector<Window_stat>& window_stats,
   const float max_window);
 
+std::tuple<int, float> select_best_u_or_v_hit(
+  const float slope_layer_3_layer_0,
+  const int hit_layer_0_idx,
+  const int hit_layer_3_idx,
+  std::array<MiniState, 4>& proj_state,
+  const int layer,
+  const SciFi::Hits& hits,
+  const float dz,
+  const float dxdy,
+  const std::tuple<int, int>& layer_candidates,
+  const SciFiWindowsParams& window_params);
+
 float propagate_x_from_previous_station(  
   const SciFi::Hits& hits, 
   const SciFi::TrackHits& candidate,

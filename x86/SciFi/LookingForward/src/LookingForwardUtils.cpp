@@ -154,6 +154,33 @@ std::tuple<int, int> get_u_or_v_layer_candidates(
   return layer_candidates;
 }
 
+std::tuple<int, float> select_best_u_or_v_hit(
+  const float slope_layer_3_layer_0,
+  const int hit_layer_0_idx,
+  const int hit_layer_3_idx,
+  std::array<MiniState, 4>& proj_state,
+  const int layer,
+  const SciFi::Hits& hits,
+  const float dz,
+  const float dxdy,
+  const std::tuple<int, int>& layer_candidates,
+  const SciFiWindowsParams& window_params)
+{
+ 
+  proj_state[layer].x =
+    linear_propagation(hits.x0[hit_layer_0_idx], slope_layer_3_layer_0, dz) - dxdy * proj_state[layer].y;
+  
+  return get_best_hit(
+    hits,
+    hit_layer_0_idx,
+    hit_layer_3_idx,
+    slope_layer_3_layer_0,
+    layer_candidates,
+    proj_state,
+    window_params,
+    layer);
+}
+
 // the vector of TrackHits is there just for debugging in the real implementation this will be a C-like array
 bool select_hits(
   const MiniState& velo_UT_state,
@@ -329,33 +356,30 @@ bool select_hits(
           const float slope_layer_3_layer_0 =
             (hits.x0[hit_layer_3_idx] - hits.x0[hit_layer_0_idx]) / (SciFi::LookingForward::dz_x_layers);
 
-          proj_state[1].x =
-            linear_propagation(hits.x0[hit_layer_0_idx], slope_layer_3_layer_0, SciFi::LookingForward::dz_x_u_layers) -
-            SciFi::LookingForward::Zone_dxdy[1] * proj_state[1].y;
-
-          proj_state[2].x =
-            linear_propagation(hits.x0[hit_layer_0_idx], slope_layer_3_layer_0, SciFi::LookingForward::dz_x_v_layers) -
-            SciFi::LookingForward::Zone_dxdy[2] * proj_state[2].y;
-
-          auto hit_layer_1_idx_chi2 = get_best_hit(
-            hits,
+          auto hit_layer_1_idx_chi2 = select_best_u_or_v_hit(
+            slope_layer_3_layer_0,
             hit_layer_0_idx,
             hit_layer_3_idx,
-            slope_layer_3_layer_0,
+            proj_state,
+            1,
+            hits,
+            SciFi::LookingForward::dz_x_u_layers,
+            SciFi::LookingForward::Zone_dxdy[1],
             layer1_candidates,
-            proj_state,
-            window_params,
-            1);
-
-          auto hit_layer_2_idx_chi2 = get_best_hit(
-            hits,
+            window_params);
+          
+          auto hit_layer_2_idx_chi2 = select_best_u_or_v_hit(
+            slope_layer_3_layer_0,
             hit_layer_0_idx,
             hit_layer_3_idx,
-            slope_layer_3_layer_0,
-            layer2_candidates,
             proj_state,
-            window_params,
-            2);
+            2,
+            hits,
+            SciFi::LookingForward::dz_x_v_layers,
+            SciFi::LookingForward::Zone_dxdy[2],
+            layer2_candidates,
+            window_params);
+
 
           if ((std::get<0>(hit_layer_1_idx_chi2) != -1) || (std::get<0>(hit_layer_2_idx_chi2) != -1)) {
             SciFi::TrackHits new_track_hits;
@@ -508,13 +532,49 @@ bool propagate_candidates(
         proj_state[3].x,
         window_params.max_window_layer3)));
 
+        if (std::get<0>(layer3_candidates) != -1) {
+       
+        const float slope_layer_3_layer_0_minx =
+          (hits.x0[std::get<0>(layer3_candidates)] - hits.x0[hit_layer_0_idx]) / (SciFi::LookingForward::dz_x_layers);
+        const float slope_layer_3_layer_0_maxx =
+          (hits.x0[std::get<1>(layer3_candidates) - 1] - hits.x0[hit_layer_0_idx]) /
+          (SciFi::LookingForward::dz_x_layers);
         
-    
+        const auto layer1_candidates = get_u_or_v_layer_candidates(
+          hits,
+          hit_count,
+          hit_layer_0_idx,
+          slope_layer_3_layer_0_minx,
+          slope_layer_3_layer_0_maxx,
+          proj_state[1],
+          SciFi::LookingForward::Zone_dxdy[2],
+          12,
+          SciFi::LookingForward::dz_x_v_layers,
+          window_stats[1],
+          window_params.max_window_layer1);
         
+        const auto layer2_candidates = get_u_or_v_layer_candidates(
+          hits,
+          hit_count,
+          hit_layer_0_idx,
+          slope_layer_3_layer_0_minx,
+          slope_layer_3_layer_0_maxx,
+          proj_state[2],
+          SciFi::LookingForward::Zone_dxdy[1],
+          10,
+          SciFi::LookingForward::dz_x_u_layers,
+          window_stats[2],
+          window_params.max_window_layer2);
+
+       
+        
+        
+        
+
+
+        } // found candidates in l3
       } // loop over layer 0 hits
-      
     } // within SciFi boundaries
-    
   } // loop over candidates
 
   return ret_val;
