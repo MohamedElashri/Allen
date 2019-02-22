@@ -70,6 +70,32 @@ bool select_hits(
   std::array<std::vector<Window_stat>, 4>& window_stats,
   const SciFiWindowsParams& window_params);
 
+std::tuple<int, int>  get_u_or_v_layer_candidates(  
+  const SciFi::Hits& hits,
+  const SciFi::HitCount& hit_count,
+  const int hit_layer_0_idx,
+  const float slope_layer_3_layer_0_minx,
+  const float slope_layer_3_layer_0_maxx,
+  const MiniState& proj_state,
+  const float dxdy,
+  const int zone,
+  std::vector<Window_stat>& window_stats,
+  const float max_window);
+
+float propagate_x_from_previous_station(  
+  const SciFi::Hits& hits, 
+  const SciFi::TrackHits& candidate,
+  const int layer_0);
+
+bool propagate_candidates( 
+  const int station,
+  const SciFi::Hits& hits,
+  const SciFi::HitCount& hit_count,
+  const MiniState& velo_UT_state,
+  std::vector<SciFi::TrackHits>& track_candidates,
+  std::array<std::vector<Window_stat>, 4>& window_stats,
+  const SciFiWindowsParams& window_params);
+
 float dx_calc(const MiniState& state, float qop, const SciFiWindowsParams& window_params);
 
 std::tuple<int, int> find_x_in_window(

@@ -117,6 +117,43 @@ MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int la
   return final_state;
 }
 
+std::tuple<int, int> get_u_or_v_layer_candidates(  
+  const SciFi::Hits& hits,
+  const SciFi::HitCount& hit_count,
+  const int hit_layer_0_idx,
+  const float slope_layer_3_layer_0_minx,
+  const float slope_layer_3_layer_0_maxx,
+  const MiniState& proj_state,
+  const float dxdy,
+  const int zone,
+  const float dz,
+  std::vector<Window_stat>& window_stats,
+  const float max_window) 
+{
+  
+  const auto proj_state_minx =
+    linear_propagation(
+      hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_minx, dz) - dxdy * proj_state.y;
+  const auto proj_state_maxx =
+    linear_propagation(
+      hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_maxx, dz) - dxdy * proj_state.y;
+
+  const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(zone, hit_count, proj_state.y);
+  const auto layer_candidates = find_x_in_window(
+    hits,
+    std::get<0>(layer_offset_nhits),
+    std::get<1>(layer_offset_nhits),
+    proj_state_minx - max_window,
+    proj_state_maxx + max_window);
+  
+  window_stats.emplace_back(Window_stat(Window_stat(
+    std::get<1>(layer_candidates) - std::get<0>(layer_candidates),
+    proj_state.x,
+    max_window)));
+
+  return layer_candidates;
+}
+
 // the vector of TrackHits is there just for debugging in the real implementation this will be a C-like array
 bool select_hits(
   const MiniState& velo_UT_state,
@@ -184,6 +221,8 @@ bool select_hits(
 
     dx_plane_0 = dx_calc(proj_state[0], UT_qop, window_params);
 
+    debug_cout << "dx_plane_0 = " << dx_plane_0 << std::endl;
+
     const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, proj_state[0].y);
 
     auto layer0_candidates = find_x_in_window(
@@ -227,76 +266,60 @@ bool select_hits(
         linear_propagation(hits.x0[hit_layer_0_idx], projected_slope, proj_state[3].z - proj_state[0].z);
       // TODO check if this could be done only once, particles close to y 0 may cross the zone
       const auto layer3_offset_nhits = get_offset_and_n_hits_for_layer(22, hit_count, proj_state[3].y);
+      
       const auto layer3_candidates = find_x_in_window(
         hits,
         std::get<0>(layer3_offset_nhits),
         std::get<1>(layer3_offset_nhits),
         proj_state[3].x - window_params.max_window_layer3,
         proj_state[3].x + window_params.max_window_layer3);
-
+  
       window_stats[3].emplace_back(Window_stat(Window_stat(
-        std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates),
-        proj_state[3].x,
-        window_params.max_window_layer3)));
+          std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates),
+          proj_state[3].x,
+          window_params.max_window_layer3)));
 
+    
       if (std::get<0>(layer3_candidates) != -1) {
-        // Calculate layer1_candidates
+       
         const float slope_layer_3_layer_0_minx =
           (hits.x0[std::get<0>(layer3_candidates)] - hits.x0[hit_layer_0_idx]) / (SciFi::LookingForward::dz_x_layers);
         const float slope_layer_3_layer_0_maxx =
           (hits.x0[std::get<1>(layer3_candidates) - 1] - hits.x0[hit_layer_0_idx]) /
           (SciFi::LookingForward::dz_x_layers);
-
-        const auto proj_state_1_minx =
-          linear_propagation(
-            hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_minx, SciFi::LookingForward::dz_x_u_layers) -
-          SciFi::LookingForward::Zone_dxdy[1] * proj_state[1].y;
-        const auto proj_state_1_maxx =
-          linear_propagation(
-            hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_maxx, SciFi::LookingForward::dz_x_u_layers) -
-          SciFi::LookingForward::Zone_dxdy[1] * proj_state[1].y;
-
-        const auto layer1_offset_nhits = get_offset_and_n_hits_for_layer(18, hit_count, proj_state[1].y);
-        const auto layer1_candidates = find_x_in_window(
+        
+        const auto layer1_candidates = get_u_or_v_layer_candidates(
           hits,
-          std::get<0>(layer1_offset_nhits),
-          std::get<1>(layer1_offset_nhits),
-          proj_state_1_minx - window_params.max_window_layer1,
-          proj_state_1_maxx + window_params.max_window_layer1);
-
-        window_stats[1].emplace_back(Window_stat(Window_stat(
-          std::get<1>(layer1_candidates) - std::get<0>(layer1_candidates),
-          proj_state[3].x,
-          window_params.max_window_layer3)));
-
-        const auto proj_state_2_minx =
-          linear_propagation(
-            hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_minx, SciFi::LookingForward::dz_x_v_layers) -
-          SciFi::LookingForward::Zone_dxdy[2] * proj_state[2].y;
-        const auto proj_state_2_maxx =
-          linear_propagation(
-            hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_maxx, SciFi::LookingForward::dz_x_v_layers) -
-          SciFi::LookingForward::Zone_dxdy[2] * proj_state[2].y;
-
-        const auto layer2_offset_nhits = get_offset_and_n_hits_for_layer(20, hit_count, proj_state[2].y);
-        const auto layer2_candidates = find_x_in_window(
+          hit_count,
+          hit_layer_0_idx,
+          slope_layer_3_layer_0_minx,
+          slope_layer_3_layer_0_maxx,
+          proj_state[1],
+          SciFi::LookingForward::Zone_dxdy[1],
+          18,
+          SciFi::LookingForward::dz_x_u_layers,
+          window_stats[1],
+          window_params.max_window_layer1);
+        
+        const auto layer2_candidates = get_u_or_v_layer_candidates(
           hits,
-          std::get<0>(layer2_offset_nhits),
-          std::get<1>(layer2_offset_nhits),
-          proj_state_2_minx - window_params.max_window_layer2,
-          proj_state_2_maxx + window_params.max_window_layer2);
-
-        window_stats[2].emplace_back(Window_stat(Window_stat(
-          std::get<1>(layer2_candidates) - std::get<0>(layer2_candidates),
-          proj_state[3].x,
-          window_params.max_window_layer3)));
+          hit_count,
+          hit_layer_0_idx,
+          slope_layer_3_layer_0_minx,
+          slope_layer_3_layer_0_maxx,
+          proj_state[2],
+          SciFi::LookingForward::Zone_dxdy[2],
+          20,
+          SciFi::LookingForward::dz_x_v_layers,
+          window_stats[2],
+          window_params.max_window_layer2);
 
         std::array<SciFi::TrackHits, 2> best_candidates;
         for (int i = 0; i < best_candidates.size(); ++i) {
           best_candidates[i].quality = 2 * window_params.chi2_cut;
           best_candidates[i].hitsNum = 0;
         }
-
+      
         const auto number_of_l3_candidates = std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates);
         for (int hit_layer_3_rel_idx = 0;
              hit_layer_3_rel_idx < maximum_iteration_l3_window && hit_layer_3_rel_idx < number_of_l3_candidates;
@@ -336,9 +359,13 @@ bool select_hits(
 
           if ((std::get<0>(hit_layer_1_idx_chi2) != -1) || (std::get<0>(hit_layer_2_idx_chi2) != -1)) {
             SciFi::TrackHits new_track_hits;
-            // TODO this should be the update qop using the SciFi hits
+            float updated_qop = qop_upgrade(
+                velo_UT_state,
+                hits.x0[hit_layer_0_idx],
+                hits.x0[hit_layer_3_idx],
+                8);
             new_track_hits.hitsNum = 0;
-            new_track_hits.qop = UT_qop;
+            new_track_hits.qop = updated_qop;
             new_track_hits.quality = 0;
             new_track_hits.addHit(hit_layer_0_idx);
             new_track_hits.addHit(hit_layer_3_idx);
@@ -396,6 +423,99 @@ bool select_hits(
   //     track_candidate.push_back(best_candidates[i]);
   //   }
   // }
+
+  return ret_val;
+}
+
+
+float propagate_x_from_previous_station(  
+  const SciFi::Hits& hits, 
+  const SciFi::TrackHits& candidate,
+  const int layer_0)
+{
+  float reco_slope =
+    (hits.x0[candidate.hits[1]] - hits.x0[candidate.hits[0]]) /
+    SciFi::LookingForward::dz_x_layers;
+  const float x = scifi_propagation(
+    hits.x0[candidate.hits[0]],
+    reco_slope,
+    candidate.qop,
+    SciFi::LookingForward::Zone_zPos[layer_0] - SciFi::LookingForward::Zone_zPos[layer_0+1]);
+  return x;
+}
+
+bool propagate_candidates( 
+  const int station,
+  const SciFi::Hits& hits,
+  const SciFi::HitCount& hit_count,
+  const MiniState& velo_UT_state,
+  std::vector<SciFi::TrackHits>& track_candidates,
+  std::array<std::vector<Window_stat>, 4>& window_stats,
+  const SciFiWindowsParams& window_params)
+{
+  bool ret_val = false;
+  const int layer_0 = station * 4 - 1; // layer 0 of current station
+
+  for ( auto& candidate : track_candidates ) {
+    
+    std::array<MiniState, 4> proj_state;
+    for (int k = 1; k < 4; k++) {
+      const int layer_k = station * 4 - 1 - k;
+      proj_state[k].z = SciFi::LookingForward::Zone_zPos[layer_k];
+      //proj_state[k].y = y_at_z(velo_UT_state, proj_state[k].z);
+    }
+    // state on first layer
+    proj_state[0].x = propagate_x_from_previous_station(hits, candidate, layer_0);
+    proj_state[0].z = SciFi::LookingForward::Zone_zPos[layer_0];
+    proj_state[0].y = y_at_z(velo_UT_state, proj_state[0].z);
+    
+    if (
+    (proj_state[0].x > SciFi::LookingForward::xMin && proj_state[0].x < SciFi::LookingForward::xMax) &&
+    (proj_state[0].y > SciFi::LookingForward::yDownMin && proj_state[0].y < SciFi::LookingForward::yUpMax)) {
+
+      // find hits on first layer
+      const float dx_plane_0 = 2.; // test other values for this
+      const int min_zone = 2 * layer_0;
+      const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(min_zone, hit_count, proj_state[0].y);
+
+      auto layer0_candidates = find_x_in_window(
+        hits,
+        std::get<0>(layer0_offset_nhits),
+        std::get<1>(layer0_offset_nhits),
+        proj_state[0].x - dx_plane_0,
+        proj_state[0].x + dx_plane_0);
+      
+      window_stats[0].emplace_back(
+      Window_stat(std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates), proj_state[0].x, dx_plane_0));
+      
+      for (auto hit_layer_0_idx = std::get<0>(layer0_candidates); hit_layer_0_idx != std::get<1>(layer0_candidates);
+           hit_layer_0_idx++) {
+        // For now use slope between hit in layer 0 and hit from last layer of prevoius station
+        const float tx = (hits.x0[hit_layer_0_idx] - hits.x0[candidate.hits[0]]) / (proj_state[0].z - SciFi::LookingForward::Zone_zPos[layer_0+1] );
+        proj_state[3].x =
+          linear_propagation(hits.x0[hit_layer_0_idx], tx, proj_state[3].z - proj_state[0].z);
+        
+        const auto layer3_offset_nhits = get_offset_and_n_hits_for_layer(14, hit_count, proj_state[3].y);
+        const auto layer3_candidates = find_x_in_window(
+        hits,
+        std::get<0>(layer3_offset_nhits),
+        std::get<1>(layer3_offset_nhits),
+        proj_state[3].x - window_params.max_window_layer3,
+        proj_state[3].x + window_params.max_window_layer3);
+
+        window_stats[3].emplace_back(Window_stat(Window_stat(
+        std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates),
+        proj_state[3].x,
+        window_params.max_window_layer3)));
+
+        
+    
+        
+      } // loop over layer 0 hits
+      
+    } // within SciFi boundaries
+    
+  } // loop over candidates
 
   return ret_val;
 }

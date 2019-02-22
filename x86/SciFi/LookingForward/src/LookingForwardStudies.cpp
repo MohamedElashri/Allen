@@ -170,6 +170,8 @@ int looking_forward_studies(
   for (int k = 0; k < 8; k++) {
     t_good_tracks->Branch(("forwarding_res_plane" + to_string(k)).c_str(), &forwarding_res[k]);
   }
+  t_good_tracks->Branch("qop_update", &qop_update_t3);
+  t_good_tracks->Branch("p_true", &p_true);
 
   t_ut_tracks->Branch("ut_x", &UT_x);
   t_ut_tracks->Branch("ut_y", &UT_y);
@@ -356,6 +358,7 @@ int looking_forward_studies(
       // running the hit selection algorithm
       std::vector<SciFi::TrackHits> track_candidates;
       std::array<std::vector<Window_stat>, 4> window_stats;
+      std::array<std::vector<Window_stat>, 4> window_stats_station_2;
       SciFiWindowsParams window_params;
       window_params.dx_slope = 1e5;
       window_params.dx_min = 200;
@@ -390,6 +393,15 @@ int looking_forward_studies(
 
       num_candidates = track_candidates.size();
       number_of_candidates_event += track_candidates.size();
+      
+      bool froward = propagate_candidates(
+        2,
+        scifi_hits,
+        scifi_hit_count, 
+        UT_state,
+        track_candidates,
+        window_stats_station_2,
+        window_params);
 
       // propagation to first layer of T3
       MiniState SciFi_state_T3;
@@ -516,10 +528,11 @@ int looking_forward_studies(
                                        reco_slope,
                                        updated_qop,
                                        SciFi::LookingForward::Zone_zPos[k] - SciFi::LookingForward::Zone_zPos[8]) -
-                                     real_x) /
-                                    real_x;
+                                     real_x); // /
+                  //real_x;
               }
               qop_resolution_after_update_t3 = (updated_qop - 1 / p_true) * p_true;
+              qop_update_t3 = updated_qop;
               t_good_tracks->Fill();
               break;
             }
