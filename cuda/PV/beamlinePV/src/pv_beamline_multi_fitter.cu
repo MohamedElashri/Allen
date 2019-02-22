@@ -39,7 +39,7 @@ __global__ void pv_beamline_multi_fitter(
     // initial vertex posisiton, use x,y of the beamline and z of the seed
     float2 vtxpos_xy {beamline.x, beamline.y};
     auto vtxpos_z = zseeds[i_thisseed];
-    const auto maxDeltaZConverged {0.001f};
+    const auto maxDeltaZConverged {0.0005f};
     auto chi2tot = 0.f;
     unsigned short nselectedtracks = 0;
     unsigned short iter = 0;
@@ -50,6 +50,8 @@ __global__ void pv_beamline_multi_fitter(
       auto halfD2Chi2DX2_20 = 0.f;
       auto halfD2Chi2DX2_21 = 0.f;
       auto halfD2Chi2DX2_22 = 0.f;
+      auto sum_weights = 0.f;
+      auto sum_tracks = 0.f;
       float3 halfDChi2DX {0.f, 0.f, 0.f};
       chi2tot = 0.f;
       nselectedtracks = 0;
@@ -58,7 +60,7 @@ __global__ void pv_beamline_multi_fitter(
         // compute the chi2
         PVTrackInVertex trk = tracks[i];
         // skip tracks lying outside histogram range
-        if (zmin > trk.z || trk.z > zmax) continue;
+      //  if (zmin > trk.z || trk.z > zmax) continue;
         const auto dz = vtxpos_z - trk.z;
         float2 res {0.f, 0.f};
         res = vtxpos_xy - (trk.x + trk.tx * dz);
@@ -66,7 +68,7 @@ __global__ void pv_beamline_multi_fitter(
         // debug_cout << "chi2 = " << chi2 << ", max = " << chi2max << std::endl;
         // compute the weight.
         trk.weight = 0.f;
-        if (chi2 < maxDeltaChi2) { // to branch or not, that is the question!
+        if (chi2 < 9) { // to branch or not, that is the question!
                                    // if (true) {
           ++nselectedtracks;
           // for more information on the weighted fitting, see e.g.
@@ -76,11 +78,14 @@ __global__ void pv_beamline_multi_fitter(
           // float T = 1.f;
 
           // try out varying chi2_cut during iterations instead of T
-          const auto chi2_cut = 0.1f + 0.01f * maxFitIter / (iter + 1);
+          const auto chi2_cut = 25.f;
 
           trk.weight = exp(-chi2 * 0.5f);
-          auto denom = exp(-chi2_cut * 0.5f);
+          //this seems to be a more reasonable way to calculate weights
+          auto denom = exp(-chi2_cut * 0.5f) + trk.weight;
+          auto my_nom = 0.f;
           for (int i_otherseed = 0; i_otherseed < number_of_seeds; i_otherseed++) {
+           // if(i_thisseed == i_otherseed) continue;
             float2 res_otherseed {0.f, 0.f};
             const auto dz = zseeds[i_otherseed] - trk.z;
 
@@ -91,11 +96,14 @@ __global__ void pv_beamline_multi_fitter(
             const auto chi2_otherseed =
               res_otherseed.x * res_otherseed.x * trk.W_00 + res_otherseed.y * res_otherseed.y * trk.W_11;
             denom += exp(-chi2_otherseed * 0.5f);
+            if(i_thisseed == i_otherseed) my_nom = exp(-chi2_otherseed * 0.5f);
           }
-          trk.weight = trk.weight / denom;
+          //trk.weight = trk.weight / denom;
+          trk.weight = my_nom / denom;
 
           // unfortunately branchy, but reduces fake rate
-          if (trk.weight < minWeight) continue;
+          //if (trk.weight < 0.99f) continue;
+          if (trk.weight < 0.3f) continue;
           // trk.weight = sqr( 1.f - chi2 / chi2max ) ;
           // trk.weight = chi2 < 1 ? 1 : sqr( 1. - (chi2-1) / (chi2max-1) ) ;
           // += operator does not work for mixed FP types
@@ -117,20 +125,32 @@ __global__ void pv_beamline_multi_fitter(
           halfD2Chi2DX2_22 += trk.weight * trk.HWH_22;
 
           chi2tot += trk.weight * chi2;
+          sum_weights += trk.weight;
+          sum_tracks += 1.;
         }
       }
       __syncthreads();
 
       if (nselectedtracks >= 2) {
+      //  sum_weights = sum_tracks/sum_weights;
+        sum_weights = 1.f;
         // compute the new vertex covariance using analytical inversion
+        halfD2Chi2DX2_00 /= sum_weights;
+        halfD2Chi2DX2_11 /= sum_weights;
+        halfD2Chi2DX2_20 /= sum_weights;
+        halfD2Chi2DX2_21 /= sum_weights;
+        halfD2Chi2DX2_22 /= sum_weights;
         const auto a00 = halfD2Chi2DX2_00;
         const auto a11 = halfD2Chi2DX2_11;
         const auto a20 = halfD2Chi2DX2_20;
         const auto a21 = halfD2Chi2DX2_21;
         const auto a22 = halfD2Chi2DX2_22;
+        halfDChi2DX = halfDChi2DX / sum_weights;
 
         const auto det = a00 * (a22 * a11 - a21 * a21) + a20 * (-a11 * a20);
         const auto inv_det = 1.f / det;
+        //try out fudge factor
+       // const auto inv_det = 1.f / det * 1.5f;
         // maybe we should catch the case when det = 0
         // if (det == 0) return false;
 

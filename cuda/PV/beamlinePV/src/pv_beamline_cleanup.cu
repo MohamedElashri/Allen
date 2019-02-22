@@ -22,7 +22,7 @@ __global__ void pv_beamline_cleanup(
       bool unique = true;
       PV::Vertex vertex1 = vertices[i_pv];
       //PVs with such a small z uncertainty are very likely fakes 
-      if (vertex1.cov22 < 0.000000001) continue;
+      if (vertex1.cov22 < 0.000000001f) continue;
       for(int j_pv = 0; j_pv < tmp_number_vertices; j_pv++) {
         PV::Vertex vertex2 = final_vertices[j_pv];
         float z1 = vertex1.position.z;
@@ -31,7 +31,7 @@ __global__ void pv_beamline_cleanup(
         float variance2 = vertex2.cov22;
         float chi2_dist = (z1-z2)*(z1-z2);
         chi2_dist = chi2_dist/(variance1+variance2);
-        if(chi2_dist < 9) unique = false;
+        if(chi2_dist < 16.f) unique = false;
 
       }
       if (unique) {

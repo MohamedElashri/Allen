@@ -114,24 +114,29 @@ namespace {
           float2 res {0.f, 0.f};
           res = vtxposvec - (trk.x);
           double chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
-          debug_cout << "chi2 = " << chi2 << ", max = " << chi2max << std::endl;
+        //  debug_cout << "chi2 = " << chi2 << ", max = " << chi2max << std::endl;
           // compute the weight.
           trk.weight = 0;
           // probabaly no point to consider tracks with to high chi2
           // if( chi2 < chi2max ) { // to branch or not, that is the question!
-          if (true) {
+          if (chi2 < 25.) {
             ++nselectedtracks;
             // Tukey's weight
             // double T = 1. + maxNumIter / (iter+1) * 0.05;
             double T = 1.f;
 
             // try out varying chi2_cut during iterations instead of T
-            double chi2_cut = 0.1f + 0.01f * maxNumIter / (iter + 1);
+            double chi2_cut = 25.;
             // double chi2_cut = 16.;
 
             trk.weight = exp(-chi2 / 2. / T);
-            double denom = exp(-chi2_cut / 2. / T);
+            double denom = exp(-chi2_cut / 2. / T) + trk.weight;
+            //try out different weight calucaltion
+            double my_nom = 0;
+           // std::cout << "my chi2: " << chi2 << " " <<res.x << " " << res.y << " " << trk.W_00 << " " << trk.W_11<<  std::endl;
             for (int i_otherseed = 0; i_otherseed < number_of_seeds; i_otherseed++) {
+              //if(i_thisseed == i_otherseed) continue;
+
               float2 tmp_res {0.f, 0.f};
               float3 otherseedpos = seedpositions[i_otherseed];
               float2 otherseedvtx {otherseedpos.x, otherseedpos.y};
@@ -140,11 +145,16 @@ namespace {
               tmp_res = otherseedvtx - (tmp_trk.x);
               // at the moment this term reuses W'matrix at z of point of closest approach -> use seed positions
               // instead?
+            //  std::cout << "zeds: " << vtxpos.z << " " << s.z << " " << seedpositions[i_otherseed].z << std::endl;
               double tmp_chi2 = tmp_res.x * tmp_res.x * tmp_trk.W_00 + tmp_res.y * tmp_res.y * tmp_trk.W_11;
+          //    std::cout << "other chi2 " << tmp_chi2 << " " <<tmp_res.x << " " << tmp_res.y << " " << tmp_trk.W_00 << " " << tmp_trk.W_11<<  std::endl;
               denom += exp(-tmp_chi2 / 2.f / T);
+              if(i_thisseed == i_otherseed) my_nom = exp(-tmp_chi2 / 2.f / T);
             }
 
-            trk.weight = trk.weight / denom;
+            trk.weight = my_nom / denom;
+            std::cout.precision(7);
+            //std::cout << "weight: " << trk.weight << " " << " " << my_nom << " " << denom << std::endl;
 #ifdef WITH_ROOT
             i_event = i_thisseed;
             b_weight = trk.weight;
