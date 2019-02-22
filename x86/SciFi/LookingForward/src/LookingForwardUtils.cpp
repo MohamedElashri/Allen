@@ -8,9 +8,9 @@ float x_at_z(const MiniState& state, const float z)
 
 float linear_propagation(float x_0, float tx, float dz) { return x_0 + tx * dz; }
 
-float scifi_propagation(const float x_0, const float z_0, const float tx, const float qop, const float z)
+float scifi_propagation(const float x_0, const float tx, const float qop, const float dz)
 {
-  return linear_propagation(x_0, tx, z - z_0) + SciFi::LookingForward::forward_param * qop * z * z;
+  return linear_propagation(x_0, tx, dz) + SciFi::LookingForward::forward_param * qop * dz * dz;
 }
 
 float qop_upgrade(const MiniState& UT_state, float hit_layer_0, float hit_layer_3, int layer)
@@ -145,7 +145,7 @@ bool select_hits(
   //   best_candidates[i].hitsNum = 0;
   // }
 
-  const auto insert_candidate = [] (const SciFi::TrackHits& candidate, auto& best_candidates) {
+  const auto insert_candidate = [](const SciFi::TrackHits& candidate, auto& best_candidates) {
     int worst_candidate = 0;
     int hitsNum = best_candidates[worst_candidate].hitsNum;
     float quality = best_candidates[worst_candidate].quality;
@@ -204,7 +204,8 @@ bool select_hits(
     if (number_of_l0_candidates > 10) {
       if (number_of_l0_candidates > 50) {
         dx_plane_0 *= 0.4f;
-      } else {
+      }
+      else {
         const auto x = (0.025f * (number_of_l0_candidates - 10.f));
         dx_plane_0 *= 1.f - 0.6f * x * x;
       }
@@ -291,15 +292,14 @@ bool select_hits(
           window_params.max_window_layer3)));
 
         std::array<SciFi::TrackHits, 2> best_candidates;
-        for (int i=0; i<best_candidates.size(); ++i) {
+        for (int i = 0; i < best_candidates.size(); ++i) {
           best_candidates[i].quality = 2 * window_params.chi2_cut;
           best_candidates[i].hitsNum = 0;
         }
 
         const auto number_of_l3_candidates = std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates);
         for (int hit_layer_3_rel_idx = 0;
-             hit_layer_3_rel_idx < maximum_iteration_l3_window &&
-             hit_layer_3_rel_idx < number_of_l3_candidates;
+             hit_layer_3_rel_idx < maximum_iteration_l3_window && hit_layer_3_rel_idx < number_of_l3_candidates;
              ++hit_layer_3_rel_idx) {
           const auto hit_layer_3_idx = std::get<0>(layer3_candidates) + hit_layer_3_rel_idx;
 
@@ -355,13 +355,15 @@ bool select_hits(
             ret_val = true;
 
             const int worst_candidate = (best_candidates[0].hitsNum > best_candidates[1].hitsNum) ||
-              ((best_candidates[0].hitsNum == best_candidates[1].hitsNum) &&
-              best_candidates[0].quality < best_candidates[1].quality) ? 1 : 0;
+                                            ((best_candidates[0].hitsNum == best_candidates[1].hitsNum) &&
+                                             best_candidates[0].quality < best_candidates[1].quality) ?
+                                          1 :
+                                          0;
 
             if (
               new_track_hits.hitsNum > best_candidates[worst_candidate].hitsNum ||
               (new_track_hits.hitsNum == best_candidates[worst_candidate].hitsNum &&
-              new_track_hits.quality < best_candidates[worst_candidate].quality)) {
+               new_track_hits.quality < best_candidates[worst_candidate].quality)) {
 
               best_candidates[worst_candidate] = new_track_hits;
             }

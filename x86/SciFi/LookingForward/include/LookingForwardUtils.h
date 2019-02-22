@@ -81,7 +81,7 @@ std::tuple<int, int> find_x_in_window(
 
 float linear_propagation(float x_0, float tx, float dz);
 
-float scifi_propagation(const float x_0, const float z_0, const float tx, const float qop, const float z);
+float scifi_propagation(const float x_0, const float tx, const float qop, const float dz);
 
 float qop_upgrade(const MiniState& UT_state, float hit_layer_0, float hit_layer_3, int layer);
 

@@ -456,9 +456,9 @@ int looking_forward_studies(
         }
 
         if (
-          (is_t3_quadruplet || is_t3_triplet) && window_stats.size() > 0 && window_stats[0].size() > 0
-          && scifi_hits.x0[true_scifi_indices_per_layer[8]] < window_stats[0][0].x_max 
-          && scifi_hits.x0[true_scifi_indices_per_layer[8]] > window_stats[0][0].x_min) {
+          (is_t3_quadruplet || is_t3_triplet) && window_stats.size() > 0 && window_stats[0].size() > 0 &&
+          scifi_hits.x0[true_scifi_indices_per_layer[8]] < window_stats[0][0].x_max &&
+          scifi_hits.x0[true_scifi_indices_per_layer[8]] > window_stats[0][0].x_min) {
           n_hits_in_first_window++;
         }
 
@@ -508,21 +508,21 @@ int looking_forward_studies(
                 scifi_hits.x0[true_scifi_indices_per_layer[11]],
                 8);
               for (int k = 0; k < 8; k++) {
-                forwarding_res[k] =
-                  scifi_propagation(
-                    scifi_hits.x0[true_scifi_indices_per_layer[8]],
-                    SciFi::LookingForward::Zone_zPos[8],
-                    reco_slope,
-                    updated_qop,
-                    SciFi::LookingForward::Zone_zPos[k]) -
+                const float real_x =
                   (scifi_hits.x0[true_scifi_indices_per_layer[k]] +
                    SciFi::LookingForward::Zone_dxdy[k % 4] * y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[k]));
+                forwarding_res[k] = (scifi_propagation(
+                                       scifi_hits.x0[true_scifi_indices_per_layer[8]],
+                                       reco_slope,
+                                       updated_qop,
+                                       SciFi::LookingForward::Zone_zPos[k] - SciFi::LookingForward::Zone_zPos[8]) -
+                                     real_x) /
+                                    real_x;
               }
               qop_resolution_after_update_t3 = (updated_qop - 1 / p_true) * p_true;
               t_good_tracks->Fill();
               break;
             }
-
           }
 
           for (int i = 0; i < 12; ++i) {
@@ -592,17 +592,14 @@ int looking_forward_studies(
       n_layer_with_T3_quad_triplets[i]);
   }
 
-  info_cout << "Number of candidates per ut velo track: "
-    << number_of_track_candidates / ((float) n_veloUT_tracks)
-    << std::endl;
+  info_cout << "Number of candidates per ut velo track: " << number_of_track_candidates / ((float) n_veloUT_tracks)
+            << std::endl;
 
   info_cout << "Number of candidates in first window per ut velo track: "
-    << n_total_hits_in_first_window / ((float) n_veloUT_tracks_with_window)
-    << std::endl;
+            << n_total_hits_in_first_window / ((float) n_veloUT_tracks_with_window) << std::endl;
 
-  info_cout << "Total number of candidates in " << number_of_events << " events: "
-    << number_of_track_candidates
-    << std::endl;
+  info_cout << "Total number of candidates in " << number_of_events << " events: " << number_of_track_candidates
+            << std::endl;
 
   info_cout << std::endl;
 
