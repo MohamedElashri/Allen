@@ -220,6 +220,8 @@ int looking_forward_studies(
   int number_of_track_candidates = 0;
   int n_total_hits_in_first_window = 0;
   int n_veloUT_tracks_with_window = 0;
+  
+  int number_of_track_candidates_after_station_2 = 0;
 
   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
     // Velo consolidated types
@@ -395,16 +397,21 @@ int looking_forward_studies(
       num_candidates = track_candidates.size();
       number_of_candidates_event += track_candidates.size();
       
-      bool froward = propagate_candidates(
-        2,
-        scifi_hits,
-        scifi_hit_count, 
-        UT_state,
-        track_candidates,
-        track_candidates_station_2,
-        window_stats_station_2,
-        window_params);
-
+      const int layer_0 = 2 * 4 - 1; // layer 0 of current station
+      for ( auto& candidate : track_candidates ) {
+        
+        bool forward = propagate_candidate(
+          2,
+          layer_0,
+          scifi_hits,
+          scifi_hit_count, 
+          UT_state,
+          candidate,
+          track_candidates_station_2,
+          window_stats_station_2,
+          window_params);
+      }
+      
       // propagation to first layer of T3
       MiniState SciFi_state_T3;
       SciFi_state_T3 = propagate_state_from_velo(UT_state, qop, 8);
@@ -422,6 +429,7 @@ int looking_forward_studies(
       }
 
       number_of_track_candidates += track_candidates.size();
+      number_of_track_candidates_after_station_2 += track_candidates_station_2.size();
 
       if (window_stats[0].size()) {
         n_total_hits_in_first_window += window_stats[0][0].num_hits;
@@ -511,9 +519,9 @@ int looking_forward_studies(
               }
             }
 
-            for (auto& candidate : track_candidates_station_2) {
-              debug_cout << "# of hits = " << candidate.hitsNum << std::endl;
-            }
+            // for (auto& candidate : track_candidates_station_2) {
+            //   debug_cout << "# of hits = " << candidate.hitsNum << std::endl;
+            // }
 
             if ((is_t3_triplet || is_t3_quadruplet) && matched_hits >= 3) {
               n_reconstructible_found_tracks++;
@@ -612,6 +620,8 @@ int looking_forward_studies(
   }
 
   info_cout << "Number of candidates per ut velo track: " << number_of_track_candidates / ((float) n_veloUT_tracks)
+            << std::endl;
+  info_cout << "Number of candidates after station 2 per ut velo track: " << number_of_track_candidates_after_station_2 / ((float) n_veloUT_tracks)
             << std::endl;
 
   info_cout << "Number of candidates in first window per ut velo track: "

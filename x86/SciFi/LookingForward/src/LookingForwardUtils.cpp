@@ -466,23 +466,22 @@ float propagate_x_from_previous_station(
   return x;
 }
 
-bool propagate_candidates( 
+bool propagate_candidate( 
   const int station,
+  const int layer_0,
   const SciFi::Hits& hits,
   const SciFi::HitCount& hit_count,
   const MiniState& velo_UT_state,
-  std::vector<SciFi::TrackHits>& track_candidates,
+  const SciFi::TrackHits& candidate,
   std::vector<SciFi::TrackHits>& output_tracks,
   std::array<std::vector<Window_stat>, 4>& window_stats,
   const SciFiWindowsParams& window_params)
 {
   bool ret_val = false;
-  const int layer_0 = station * 4 - 1; // layer 0 of current station
-  int maximum_iteration_l3_window = 4;
   
-  for ( auto& candidate : track_candidates ) {
+  int maximum_iteration_l3_window = 4;
+  //for ( auto& candidate : track_candidates ) {
     
-   
     std::array<MiniState, 4> proj_state;
     for (int k = 1; k < 4; k++) {
       const int layer_k = station * 4 - 1 - k;
@@ -667,8 +666,7 @@ bool propagate_candidates(
       } // loop over layer 0 hits
     } // within SciFi boundaries
    
-  } // loop over candidates
-
+    //}
   return ret_val;
 }
 

@@ -99,12 +99,13 @@ float propagate_x_from_previous_station(
   const SciFi::TrackHits& candidate,
   const int layer_0);
 
-bool propagate_candidates( 
+bool propagate_candidate( 
   const int station,
+  const int layer_0,
   const SciFi::Hits& hits,
   const SciFi::HitCount& hit_count,
   const MiniState& velo_UT_state,
-  std::vector<SciFi::TrackHits>& track_candidates,
+  const SciFi::TrackHits& candidate,
   std::vector<SciFi::TrackHits>& output_tracks,
   std::array<std::vector<Window_stat>, 4>& window_stats,
   const SciFiWindowsParams& window_params);
