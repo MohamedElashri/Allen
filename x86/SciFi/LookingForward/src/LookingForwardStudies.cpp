@@ -357,6 +357,7 @@ int looking_forward_studies(
 
       // running the hit selection algorithm
       std::vector<SciFi::TrackHits> track_candidates;
+      std::vector<SciFi::TrackHits> track_candidates_station_2;
       std::array<std::vector<Window_stat>, 4> window_stats;
       std::array<std::vector<Window_stat>, 4> window_stats_station_2;
       SciFiWindowsParams window_params;
@@ -400,6 +401,7 @@ int looking_forward_studies(
         scifi_hit_count, 
         UT_state,
         track_candidates,
+        track_candidates_station_2,
         window_stats_station_2,
         window_params);
 
@@ -507,6 +509,10 @@ int looking_forward_studies(
                   found[j] = true;
                 }
               }
+            }
+
+            for (auto& candidate : track_candidates_station_2) {
+              debug_cout << "# of hits = " << candidate.hitsNum << std::endl;
             }
 
             if ((is_t3_triplet || is_t3_quadruplet) && matched_hits >= 3) {

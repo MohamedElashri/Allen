@@ -248,8 +248,6 @@ bool select_hits(
 
     dx_plane_0 = dx_calc(proj_state[0], UT_qop, window_params);
 
-    debug_cout << "dx_plane_0 = " << dx_plane_0 << std::endl;
-
     const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, proj_state[0].y);
 
     auto layer0_candidates = find_x_in_window(
@@ -404,12 +402,12 @@ bool select_hits(
               new_track_hits.quality += std::get<1>(hit_layer_2_idx_chi2);
             }
             ret_val = true;
-
+            
             const int worst_candidate = (best_candidates[0].hitsNum > best_candidates[1].hitsNum) ||
                                             ((best_candidates[0].hitsNum == best_candidates[1].hitsNum) &&
                                              best_candidates[0].quality < best_candidates[1].quality) ?
                                           1 :
-                                          0;
+              0;
 
             if (
               new_track_hits.hitsNum > best_candidates[worst_candidate].hitsNum ||
@@ -474,22 +472,17 @@ bool propagate_candidates(
   const SciFi::HitCount& hit_count,
   const MiniState& velo_UT_state,
   std::vector<SciFi::TrackHits>& track_candidates,
+  std::vector<SciFi::TrackHits>& output_tracks,
   std::array<std::vector<Window_stat>, 4>& window_stats,
   const SciFiWindowsParams& window_params)
 {
   bool ret_val = false;
   const int layer_0 = station * 4 - 1; // layer 0 of current station
   int maximum_iteration_l3_window = 4;
-  const int n_best_candidates = 2;
-
+  
   for ( auto& candidate : track_candidates ) {
     
-    std::array<SciFi::TrackHits, n_best_candidates> best_candidates;
-    for (int i = 0; i < best_candidates.size(); ++i) {
-      best_candidates[i].quality = 2 * window_params.chi2_cut;
-      best_candidates[i].hitsNum = 0;
-    }
-
+   
     std::array<MiniState, 4> proj_state;
     for (int k = 1; k < 4; k++) {
       const int layer_k = station * 4 - 1 - k;
@@ -574,7 +567,11 @@ bool propagate_candidates(
             window_stats[2],
             window_params.max_window_layer2);
           
-         
+          std::array<SciFi::TrackHits, 2> best_candidates;
+          for (int i = 0; i < best_candidates.size(); ++i) {
+            best_candidates[i].quality = 2 * window_params.chi2_cut;
+            best_candidates[i].hitsNum = 0;
+          }
 
           const auto number_of_l3_candidates = std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates);
           
@@ -647,21 +644,29 @@ bool propagate_candidates(
             } // Found u and/or v hit(s)
           } // loop over layer 3 hits
           
+          for (int j = 0; j < best_candidates.size(); ++j) {
+            if (best_candidates[j].hitsNum > 2) {
+              SciFi::TrackHits output_track;
+              output_track.hitsNum = 0;
+              output_track.qop = candidate.qop;
+              output_track.quality = candidate.quality;
+              for ( int i = 0; i < candidate.hitsNum; ++i ) {
+                output_track.addHit(candidate.hits[i]);
+              }
+              output_track.quality += best_candidates[j].quality;
+              //debug_cout << "adding " << best_candidates[j].hitsNum << " hits to track " << std::endl;
+              for ( int i = 0; i < best_candidates[j].hitsNum; ++i ) {
+                if (best_candidates[j].hitsNum > 2) {
+                output_track.addHit(best_candidates[j].hits[i]);
+                }
+              }
+              output_tracks.push_back(output_track);
+            }
+          }
         } // found candidates in l3
       } // loop over layer 0 hits
     } // within SciFi boundaries
-    
-    // Add best hits of best 3/4-hit candidate to candidate from previous station
-    if (best_candidates[0].hitsNum > 2 || best_candidates[1].hitsNum > 2) {
-      const int best_candidate = (best_candidates[0].hitsNum > best_candidates[1].hitsNum) ||
-        ((best_candidates[0].hitsNum == best_candidates[1].hitsNum) &&
-         best_candidates[0].quality < best_candidates[1].quality) ?
-        0 : 1;
-      for ( int j = 0; j < best_candidates[best_candidate].hitsNum; ++j ) {
-        candidate.addHit(best_candidates[best_candidate].hits[j]);
-      }
-    }
-
+   
   } // loop over candidates
 
   return ret_val;

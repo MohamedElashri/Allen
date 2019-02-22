@@ -105,6 +105,7 @@ bool propagate_candidates(
   const SciFi::HitCount& hit_count,
   const MiniState& velo_UT_state,
   std::vector<SciFi::TrackHits>& track_candidates,
+  std::vector<SciFi::TrackHits>& output_tracks,
   std::array<std::vector<Window_stat>, 4>& window_stats,
   const SciFiWindowsParams& window_params);
 
