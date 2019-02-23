@@ -521,10 +521,17 @@ bool single_candidate_propagation(
 
   // Pick the best, according to chi2
   int best_idx = -1;
-  float best_chi2 = layer < 4 ? 1000.f : 10.f;
-  const auto m = reco_slope;
-  const auto q = x_at_layer_8 - SciFi::LookingForward::Zone_zPos[8] * m;
-  
+  float best_chi2 = 10.f;
+
+  // We need a new lambda to compare in chi2
+  const auto chi2_fn = [&x_at_layer_8, &reco_slope, &candidate] (const float z) {
+    return scifi_propagation(
+      x_at_layer_8,
+      reco_slope,
+      candidate.qop,
+      z - SciFi::LookingForward::Zone_zPos[8]);
+  };
+
   std::vector<float> x_coordinates {
     x_at_layer_8,
     hits.x0[candidate.hits[1]],
@@ -537,7 +544,7 @@ bool single_candidate_propagation(
 
   for (auto hit_index = std::get<0>(layer_candidates); hit_index != std::get<1>(layer_candidates); hit_index++) {
     x_coordinates[2] = hits.x0[hit_index] + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)];
-    const auto chi2 = get_chi_2(z_coordinates, x_coordinates, [m, q](float x) { return m * x + q; });
+    const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
 
     if (chi2 < best_chi2) {
       best_chi2 = chi2;
@@ -593,10 +600,17 @@ void single_track_propagation(
 
   // Pick the best, according to chi2
   int best_idx = -1;
-  float best_chi2 = layer < 4 ? 1000.f : 10.f;
-  const auto m = reco_slope;
-  const auto q = x_at_layer_8 - SciFi::LookingForward::Zone_zPos[8] * m;
-  
+  float best_chi2 = 10.f;
+
+  // We need a new lambda to compare in chi2
+  const auto chi2_fn = [&x_at_layer_8, &reco_slope, &track] (const float z) {
+    return scifi_propagation(
+      x_at_layer_8,
+      reco_slope,
+      track.qop,
+      z - SciFi::LookingForward::Zone_zPos[8]);
+  };
+
   std::vector<float> x_coordinates {
     x_at_layer_8,
     hits.x0[track.hits[1]],
@@ -609,7 +623,7 @@ void single_track_propagation(
 
   for (auto hit_index = std::get<0>(layer_candidates); hit_index != std::get<1>(layer_candidates); hit_index++) {
     x_coordinates[2] = hits.x0[hit_index] + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)];
-    const auto chi2 = get_chi_2(z_coordinates, x_coordinates, [m, q](float x) { return m * x + q; });
+    const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
 
     if (chi2 < best_chi2) {
       best_chi2 = chi2;
