@@ -67,6 +67,7 @@ int looking_forward_studies(
   int n_hits_in_zone_t3 = 0, n_hits_in_window_other_t3 = 0;
   float p_diff_before_update_t3, p_diff_after_update_t3, p_resolution_after_update_t3;
   float qop_diff_before_update_t3, qop_diff_after_update_t3, qop_diff_before_after_t3, qop_resolution_after_update_t3;
+  std::array<float, 8> forwarding_res;
 
   bool t1_extrap_worked, t3_extrap_worked, isLong;
   float p_true;
@@ -165,6 +166,12 @@ int looking_forward_studies(
   t_good_tracks->Branch("num_candidates", &num_candidates);
   t_good_tracks->Branch("good_hits", &good_hits);
   t_good_tracks->Branch("UT_qop", &ut_qop);
+  t_good_tracks->Branch("qop_update_res", &qop_resolution_after_update_t3);
+  for (int k = 0; k < 8; k++) {
+    t_good_tracks->Branch(("forwarding_res_plane" + to_string(k)).c_str(), &forwarding_res[k]);
+  }
+  t_good_tracks->Branch("qop_update", &qop_update_t3);
+  t_good_tracks->Branch("p_true", &p_true);
 
   t_ut_tracks->Branch("ut_x", &UT_x);
   t_ut_tracks->Branch("ut_y", &UT_y);
@@ -213,6 +220,8 @@ int looking_forward_studies(
   int number_of_track_candidates = 0;
   int n_total_hits_in_first_window = 0;
   int n_veloUT_tracks_with_window = 0;
+  
+  int number_of_track_candidates_after_station_2 = 0;
 
   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
     // Velo consolidated types
@@ -350,7 +359,9 @@ int looking_forward_studies(
 
       // running the hit selection algorithm
       std::vector<SciFi::TrackHits> track_candidates;
+      std::vector<SciFi::TrackHits> track_candidates_station_2;
       std::array<std::vector<Window_stat>, 4> window_stats;
+      std::array<std::vector<Window_stat>, 4> window_stats_station_2;
       SciFiWindowsParams window_params;
       window_params.dx_slope = 1e5;
       window_params.dx_min = 200;
@@ -385,7 +396,22 @@ int looking_forward_studies(
 
       num_candidates = track_candidates.size();
       number_of_candidates_event += track_candidates.size();
-
+      
+      const int layer_0 = 2 * 4 - 1; // layer 0 of current station
+      for ( auto& candidate : track_candidates ) {
+        
+        bool forward = propagate_candidate(
+          2,
+          layer_0,
+          scifi_hits,
+          scifi_hit_count, 
+          UT_state,
+          candidate,
+          track_candidates_station_2,
+          window_stats_station_2,
+          window_params);
+      }
+      
       // propagation to first layer of T3
       MiniState SciFi_state_T3;
       SciFi_state_T3 = propagate_state_from_velo(UT_state, qop, 8);
@@ -403,6 +429,7 @@ int looking_forward_studies(
       }
 
       number_of_track_candidates += track_candidates.size();
+      number_of_track_candidates_after_station_2 += track_candidates_station_2.size();
 
       if (window_stats[0].size()) {
         n_total_hits_in_first_window += window_stats[0][0].num_hits;
@@ -451,9 +478,9 @@ int looking_forward_studies(
         }
 
         if (
-          (is_t3_quadruplet || is_t3_triplet) && window_stats.size() > 0 && window_stats[0].size() > 0
-          && scifi_hits.x0[true_scifi_indices_per_layer[8]] < window_stats[0][0].x_max 
-          && scifi_hits.x0[true_scifi_indices_per_layer[8]] > window_stats[0][0].x_min) {
+          (is_t3_quadruplet || is_t3_triplet) && window_stats.size() > 0 && window_stats[0].size() > 0 &&
+          scifi_hits.x0[true_scifi_indices_per_layer[8]] < window_stats[0][0].x_max &&
+          scifi_hits.x0[true_scifi_indices_per_layer[8]] > window_stats[0][0].x_min) {
           n_hits_in_first_window++;
         }
 
@@ -492,14 +519,35 @@ int looking_forward_studies(
               }
             }
 
-            if (is_t3_quadruplet && matched_hits == 4) {
-              n_reconstructible_found_tracks++;
-              t_good_tracks->Fill();
-              break;
-            }
+            // for (auto& candidate : track_candidates_station_2) {
+            //   debug_cout << "# of hits = " << candidate.hitsNum << std::endl;
+            // }
 
-            if ((is_t3_triplet || is_t3_quadruplet) && matched_hits == 3) {
+            if ((is_t3_triplet || is_t3_quadruplet) && matched_hits >= 3) {
               n_reconstructible_found_tracks++;
+              float reco_slope =
+                (scifi_hits.x0[true_scifi_indices_per_layer[11]] - scifi_hits.x0[true_scifi_indices_per_layer[8]]) /
+                SciFi::LookingForward::dz_x_layers;
+              float updated_qop = qop_upgrade(
+                UT_state,
+                scifi_hits.x0[true_scifi_indices_per_layer[8]],
+                scifi_hits.x0[true_scifi_indices_per_layer[11]],
+                8);
+              for (int k = 0; k < 8; k++) {
+                const float real_x =
+                  (scifi_hits.x0[true_scifi_indices_per_layer[k]] +
+                   SciFi::LookingForward::Zone_dxdy[k % 4] * y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[k]));
+                forwarding_res[k] = (scifi_propagation(
+                                       scifi_hits.x0[true_scifi_indices_per_layer[8]],
+                                       reco_slope,
+                                       updated_qop,
+                                       SciFi::LookingForward::Zone_zPos[k] - SciFi::LookingForward::Zone_zPos[8]) -
+                                     real_x); // /
+                  //real_x;
+              }
+              qop_resolution_after_update_t3 = (updated_qop - 1 / p_true) * p_true;
+              qop_update_t3 = updated_qop;
+              t_good_tracks->Fill();
               break;
             }
           }
@@ -571,17 +619,16 @@ int looking_forward_studies(
       n_layer_with_T3_quad_triplets[i]);
   }
 
-  info_cout << "Number of candidates per ut velo track: "
-    << number_of_track_candidates / ((float) n_veloUT_tracks)
-    << std::endl;
+  info_cout << "Number of candidates per ut velo track: " << number_of_track_candidates / ((float) n_veloUT_tracks)
+            << std::endl;
+  info_cout << "Number of candidates after station 2 per ut velo track: " << number_of_track_candidates_after_station_2 / ((float) n_veloUT_tracks)
+            << std::endl;
 
   info_cout << "Number of candidates in first window per ut velo track: "
-    << n_total_hits_in_first_window / ((float) n_veloUT_tracks_with_window)
-    << std::endl;
+            << n_total_hits_in_first_window / ((float) n_veloUT_tracks_with_window) << std::endl;
 
-  info_cout << "Total number of candidates in " << number_of_events << " events: "
-    << number_of_track_candidates
-    << std::endl;
+  info_cout << "Total number of candidates in " << number_of_events << " events: " << number_of_track_candidates
+            << std::endl;
 
   info_cout << std::endl;
 
