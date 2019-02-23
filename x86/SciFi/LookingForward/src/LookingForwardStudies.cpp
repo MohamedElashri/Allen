@@ -8,7 +8,7 @@
 #include "TTree.h"
 #endif
 
-int looking_forward_studies(
+std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const uint* host_scifi_hits,
   const uint* host_scifi_hit_count,
   const char* host_scifi_geometry,
@@ -27,6 +27,8 @@ int looking_forward_studies(
   const std::vector<std::vector<float>>& p_events,
   const uint number_of_events)
 {
+  std::vector<std::vector<SciFi::TrackHits>> trackhits;
+
 #ifdef WITH_ROOT
   // Histograms only for checking and debugging
   TFile* f = new TFile("../output/scifi.root", "RECREATE");
@@ -220,10 +222,13 @@ int looking_forward_studies(
   int number_of_track_candidates = 0;
   int n_total_hits_in_first_window = 0;
   int n_veloUT_tracks_with_window = 0;
-  
+
   int number_of_track_candidates_after_station_2 = 0;
 
   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
+    // Tracks found for this event
+    std::vector<SciFi::TrackHits> event_trackhits;
+
     // Velo consolidated types
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) host_velo_tracks_atomics, (uint*) host_velo_track_hit_number, i_event, number_of_events};
@@ -359,9 +364,7 @@ int looking_forward_studies(
 
       // running the hit selection algorithm
       std::vector<SciFi::TrackHits> track_candidates;
-      std::vector<SciFi::TrackHits> track_candidates_station_2;
       std::array<std::vector<Window_stat>, 4> window_stats;
-      std::array<std::vector<Window_stat>, 4> window_stats_station_2;
       SciFiWindowsParams window_params;
       window_params.dx_slope = 1e5;
       window_params.dx_min = 200;
@@ -394,24 +397,64 @@ int looking_forward_studies(
         window_stats,
         window_params);
 
+      std::vector<bool> extrapolated_track_candidates (track_candidates.size(), false);
+      std::vector<SciFi::TrackHits> scifi_tracks;
+
+      // Extrapolate from candidates into tracks
+      propagate_candidates(
+        7,
+        scifi_hits,
+        scifi_hit_count,
+        UT_state,
+        track_candidates,
+        extrapolated_track_candidates,
+        scifi_tracks,
+        10.f);
+
+      // Extrapolate scifi tracks
+      propagate_tracks(
+        6,
+        scifi_hits,
+        scifi_hit_count,
+        UT_state,
+        scifi_tracks,
+        10.f);
+
+      // Extrapolate from candidates into tracks
+      // Only extrapolate those candidates that were
+      // not extrapolated to layer 7
+      // Note: Maybe not needed
+      propagate_candidates(
+        6,
+        scifi_hits,
+        scifi_hit_count,
+        UT_state,
+        track_candidates,
+        extrapolated_track_candidates,
+        scifi_tracks,
+        10.f);
+
+      for (int i=5; i>=0; --i) {
+        // Extrapolate scifi tracks
+        propagate_tracks(
+          i,
+          scifi_hits,
+          scifi_hit_count,
+          UT_state,
+          scifi_tracks,
+          10.f);
+      }
+
+      // Populate trackhits
+      for (auto& t : scifi_tracks) {
+        if (t.hitsNum >= 10) {
+          event_trackhits.push_back(t);
+        }
+      }
+
       num_candidates = track_candidates.size();
       number_of_candidates_event += track_candidates.size();
-      
-      const int layer_0 = 2 * 4 - 1; // layer 0 of current station
-      for ( auto& candidate : track_candidates ) {
-        
-        bool forward = propagate_candidate(
-          2,
-          layer_0,
-          scifi_hits,
-          scifi_hit_count, 
-          UT_state,
-          candidate,
-          track_candidates_station_2,
-          window_stats_station_2,
-          window_params);
-      }
-      
+
       // propagation to first layer of T3
       MiniState SciFi_state_T3;
       SciFi_state_T3 = propagate_state_from_velo(UT_state, qop, 8);
@@ -429,7 +472,7 @@ int looking_forward_studies(
       }
 
       number_of_track_candidates += track_candidates.size();
-      number_of_track_candidates_after_station_2 += track_candidates_station_2.size();
+      // number_of_track_candidates_after_station_2 += track_candidates_station_2.size();
 
       if (window_stats[0].size()) {
         n_total_hits_in_first_window += window_stats[0][0].num_hits;
@@ -500,7 +543,7 @@ int looking_forward_studies(
         if (is_t3_quadruplet || is_t3_triplet) {
           std::array<bool, 12> found {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-          for (auto& candidate : track_candidates) {
+          for (auto& candidate : scifi_tracks) {
             int matched_hits = 0;
             quality = candidate.quality;
             t_track_candidates->Fill();
@@ -519,10 +562,6 @@ int looking_forward_studies(
               }
             }
 
-            // for (auto& candidate : track_candidates_station_2) {
-            //   debug_cout << "# of hits = " << candidate.hitsNum << std::endl;
-            // }
-
             if ((is_t3_triplet || is_t3_quadruplet) && matched_hits >= 3) {
               n_reconstructible_found_tracks++;
               float reco_slope =
@@ -537,13 +576,14 @@ int looking_forward_studies(
                 const float real_x =
                   (scifi_hits.x0[true_scifi_indices_per_layer[k]] +
                    SciFi::LookingForward::Zone_dxdy[k % 4] * y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[k]));
-                forwarding_res[k] = (scifi_propagation(
-                                       scifi_hits.x0[true_scifi_indices_per_layer[8]],
-                                       reco_slope,
-                                       updated_qop,
-                                       SciFi::LookingForward::Zone_zPos[k] - SciFi::LookingForward::Zone_zPos[8]) -
-                                     real_x); // /
-                  //real_x;
+                forwarding_res[k] =
+                  (scifi_propagation(
+                     scifi_hits.x0[true_scifi_indices_per_layer[8]],
+                     reco_slope,
+                     updated_qop,
+                     SciFi::LookingForward::Zone_zPos[k] - SciFi::LookingForward::Zone_zPos[8]) -
+                   real_x); // /
+                            // real_x;
               }
               qop_resolution_after_update_t3 = (updated_qop - 1 / p_true) * p_true;
               qop_update_t3 = updated_qop;
@@ -567,10 +607,17 @@ int looking_forward_studies(
 
     // info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
 
+    trackhits.emplace_back(event_trackhits);
+
 #ifdef WITH_ROOT
     t_ut_tracks->Fill();
 #endif
   } // loop over veloUT tracks
+
+  uint total_number_of_tracks_found = 0;
+  for (const auto& t : trackhits) {
+    total_number_of_tracks_found += t.size();
+  }
 
   const auto t3_quads_triplets = n_triplets + n_quadruplets;
 
@@ -612,7 +659,7 @@ int looking_forward_studies(
   print_nice("Found out of T3 quadruplets and triplets", n_reconstructible_found_tracks, t3_quads_triplets);
   print_nice("Found out of T3 quadruplets", n_reconstructible_found_tracks, n_quadruplets);
 
-  for (int i = 8; i < 12; ++i) {
+  for (int i = 0; i < 12; ++i) {
     print_nice(
       "Number of hits found in layer " + std::to_string(i) + ", out of T3 quads and triplets",
       n_found_hits[i],
@@ -621,14 +668,17 @@ int looking_forward_studies(
 
   info_cout << "Number of candidates per ut velo track: " << number_of_track_candidates / ((float) n_veloUT_tracks)
             << std::endl;
-  info_cout << "Number of candidates after station 2 per ut velo track: " << number_of_track_candidates_after_station_2 / ((float) n_veloUT_tracks)
-            << std::endl;
+  info_cout << "Number of candidates after station 2 per ut velo track: "
+            << number_of_track_candidates_after_station_2 / ((float) n_veloUT_tracks) << std::endl;
 
   info_cout << "Number of candidates in first window per ut velo track: "
             << n_total_hits_in_first_window / ((float) n_veloUT_tracks_with_window) << std::endl;
 
   info_cout << "Total number of candidates in " << number_of_events << " events: " << number_of_track_candidates
             << std::endl;
+
+  info_cout << "Total number of tracks found with >=10 hits: " << total_number_of_tracks_found
+    << ", average per event: " << total_number_of_tracks_found / ((float) number_of_events) << std::endl;
 
   info_cout << std::endl;
 
@@ -637,5 +687,5 @@ int looking_forward_studies(
   f->Close();
 #endif
 
-  return 0;
+  return trackhits;
 }

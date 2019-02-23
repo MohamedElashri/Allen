@@ -249,6 +249,7 @@ namespace SciFi {
     // z distance between various layers of a station
     constexpr float dz_layers_station = 70. * Gaudi::Units::mm;
     constexpr float dz_x_layers = 3.f * dz_layers_station;
+    constexpr float dz_x_layers_inverse =  1.f / dz_x_layers;
     constexpr float dz_x_u_layers = 1.f * dz_layers_station;
     constexpr float dz_u_v_layers = 1.f * dz_layers_station;
     constexpr float dz_x_v_layers = 2.f * dz_layers_station;

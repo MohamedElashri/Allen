@@ -23,7 +23,7 @@
 #include "LookingForwardUtils.h"
 #include "LookingForwardConstants.h"
 
-int looking_forward_studies(
+std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const uint* host_scifi_hits,
   const uint* host_scifi_hit_count,
   const char* host_scifi_geometry,

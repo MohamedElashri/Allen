@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include "UTDefinitions.cuh"
 #include "SciFiDefinitions.cuh"
+#include "SciFiEventModel.cuh"
 #include "UTEventModel.cuh"
 #include "MiniState.cuh"
 
@@ -51,4 +52,17 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
   const MiniState* scifi_states,
   const char* host_scifi_geometry,
   const std::array<float, 9>& host_inv_clus_res,
+  const uint number_of_events);
+
+std::vector<trackChecker::Tracks> prepareSciFiTracks(
+  const uint* velo_track_atomics,
+  const uint* velo_track_hit_number,
+  const char* velo_track_hits,
+  const int* ut_track_atomics,
+  const uint* ut_track_hit_number,
+  const char* ut_track_hits,
+  const uint* ut_track_velo_indices,
+  const float* ut_qop,
+  const std::vector<std::vector<SciFi::TrackHits>>& scifi_tracks,
+  const SciFi::Hits& scifi_hits,
   const uint number_of_events);

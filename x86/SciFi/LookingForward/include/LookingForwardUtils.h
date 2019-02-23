@@ -99,6 +99,41 @@ float propagate_x_from_previous_station(
   const SciFi::TrackHits& candidate,
   const int layer_0);
 
+void propagate_candidates(
+  const int layer,
+  const SciFi::Hits& hits,
+  const SciFi::HitCount& hit_count,
+  const MiniState& velo_UT_state,
+  const std::vector<SciFi::TrackHits>& candidates,
+  std::vector<bool>& candidates_extrapolated,
+  std::vector<SciFi::TrackHits>& tracks,
+  const float dx_plane);
+
+void propagate_tracks(
+  const int layer,
+  const SciFi::Hits& hits,
+  const SciFi::HitCount& hit_count,
+  const MiniState& velo_UT_state,
+  std::vector<SciFi::TrackHits>& tracks,
+  const float dx_plane);
+
+bool single_candidate_propagation(
+  const int layer,
+  const SciFi::Hits& hits,
+  const SciFi::HitCount& hit_count,
+  const MiniState& velo_UT_state,
+  const SciFi::TrackHits& candidate,
+  std::vector<SciFi::TrackHits>& tracks,
+  const float dx_plane);
+
+void single_track_propagation(
+  const int layer,
+  const SciFi::Hits& hits,
+  const SciFi::HitCount& hit_count,
+  const MiniState& velo_UT_state,
+  SciFi::TrackHits& track,
+  const float dx_plane);
+
 bool propagate_candidate( 
   const int station,
   const int layer_0,

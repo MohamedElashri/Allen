@@ -179,3 +179,67 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
 
   return checker_tracks;
 }
+
+std::vector<trackChecker::Tracks> prepareSciFiTracks(
+  const uint* velo_track_atomics,
+  const uint* velo_track_hit_number,
+  const char* velo_track_hits,
+  const int* ut_track_atomics,
+  const uint* ut_track_hit_number,
+  const char* ut_track_hits,
+  const uint* ut_track_velo_indices,
+  const float* ut_qop,
+  const std::vector<std::vector<SciFi::TrackHits>>& scifi_tracks,
+  const SciFi::Hits& scifi_hits,
+  const uint number_of_events)
+{
+  std::vector<trackChecker::Tracks> checker_tracks; // all tracks from all events
+  for (uint i_event = 0; i_event < number_of_events; i_event++) {
+    trackChecker::Tracks tracks; // all tracks within one event
+
+    const Velo::Consolidated::Tracks velo_tracks {
+      (uint*) velo_track_atomics, (uint*) velo_track_hit_number, i_event, number_of_events};
+    const UT::Consolidated::Tracks ut_tracks {(uint*) ut_track_atomics,
+                                              (uint*) ut_track_hit_number,
+                                              (float*) ut_qop,
+                                              (uint*) ut_track_velo_indices,
+                                              i_event,
+                                              number_of_events};
+
+    const auto& scifi_tracks_event = scifi_tracks[i_event];
+    for (uint i_track = 0; i_track < scifi_tracks_event.size(); i_track++) {
+      const auto& scifi_track = scifi_tracks_event[i_track];
+      trackChecker::Track t;
+
+      // momentum
+      const float qop = scifi_track.qop;
+      t.p = 1.f / std::abs(qop);
+      t.qop = qop;
+
+      // add SciFi hits
+      for (int i_hit = 0; i_hit < scifi_track.hitsNum; ++i_hit) {
+        t.addId(scifi_hits.LHCbID(scifi_track.hits[i_hit]));
+      }
+
+      // add UT hits
+      const uint UT_track_index = scifi_track.UTTrackIndex;
+      const uint ut_track_number_of_hits = ut_tracks.number_of_hits(UT_track_index);
+      const UT::Consolidated::Hits track_hits_ut = ut_tracks.get_hits((char*) ut_track_hits, UT_track_index);
+      for (int i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
+        t.addId(track_hits_ut.LHCbID[i_hit]);
+      }
+
+      // add Velo hits
+      const int velo_track_index = ut_tracks.velo_track[UT_track_index];
+      const uint velo_track_number_of_hits = velo_tracks.number_of_hits(velo_track_index);
+      const Velo::Consolidated::Hits track_hits_velo = velo_tracks.get_hits((char*) velo_track_hits, velo_track_index);
+      for (int i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
+        t.addId(track_hits_velo.LHCbID[i_hit]);
+      }
+      tracks.push_back(t);
+    } // tracks
+    checker_tracks.emplace_back(tracks);
+  }
+
+  return checker_tracks;
+}
