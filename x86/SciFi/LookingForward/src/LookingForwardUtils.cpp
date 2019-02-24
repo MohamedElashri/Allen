@@ -145,7 +145,6 @@ bool select_hits(
   float dx_plane_0;
   float projected_slope;
   int found_candidates = 0;
-  int maximum_iteration_l3_window = 4;
 
   // // Number of candidates maximum of each ut track
   // // Only the best will be kept
@@ -295,7 +294,7 @@ bool select_hits(
 
         const auto number_of_l3_candidates = std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates);
         for (int hit_layer_3_rel_idx = 0;
-             hit_layer_3_rel_idx < maximum_iteration_l3_window && hit_layer_3_rel_idx < number_of_l3_candidates;
+             hit_layer_3_rel_idx < window_params.maximum_iteration_l3_window && hit_layer_3_rel_idx < number_of_l3_candidates;
              ++hit_layer_3_rel_idx) {
           const auto hit_layer_3_idx = std::get<0>(layer3_candidates) + hit_layer_3_rel_idx;
 
@@ -354,18 +353,18 @@ bool select_hits(
             }
             ret_val = true;
 
-            const int worst_candidate = (best_candidates[0].hitsNum > best_candidates[1].hitsNum) ||
-                                            ((best_candidates[0].hitsNum == best_candidates[1].hitsNum) &&
-                                             best_candidates[0].quality < best_candidates[1].quality) ?
-                                          1 :
-                                          0;
+            // const int worst_candidate = (best_candidates[0].hitsNum > best_candidates[1].hitsNum) ||
+            //                                 ((best_candidates[0].hitsNum == best_candidates[1].hitsNum) &&
+            //                                  best_candidates[0].quality < best_candidates[1].quality) ?
+            //                               1 :
+            //                               0;
 
             if (
-              new_track_hits.hitsNum > best_candidates[worst_candidate].hitsNum ||
-              (new_track_hits.hitsNum == best_candidates[worst_candidate].hitsNum &&
-               new_track_hits.quality < best_candidates[worst_candidate].quality)) {
+              new_track_hits.hitsNum > best_candidates[0].hitsNum ||
+              (new_track_hits.hitsNum == best_candidates[0].hitsNum &&
+               new_track_hits.quality < best_candidates[0].quality)) {
 
-              best_candidates[worst_candidate] = new_track_hits;
+              best_candidates[0] = new_track_hits;
             }
 
             // insert_candidate(new_track_hits, best_candidates);

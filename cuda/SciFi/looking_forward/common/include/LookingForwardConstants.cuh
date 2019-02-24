@@ -4,16 +4,16 @@
 
 namespace LookingForward {
   constexpr float dx_slope = 1e5f;
-  constexpr float dx_min = 200.f;
+  constexpr float dx_min = 300.f;
   constexpr float dx_weight = 0.6f;
   constexpr float tx_slope = 1250.f;
-  constexpr float tx_min = 200.f;
+  constexpr float tx_min = 300.f;
   constexpr float tx_weight = 0.4f;
-  constexpr float max_window_layer0 = 400.f;
+  constexpr float max_window_layer0 = 600.f;
   constexpr float max_window_layer1 = 2.f;
   constexpr float max_window_layer2 = 2.f;
   constexpr float max_window_layer3 = 20.f;
-  constexpr float chi2_cut = 2.f;
+  constexpr float chi2_cut = 4.f;
 
   /**
    * Station where seeding starts from
@@ -22,18 +22,18 @@ namespace LookingForward {
   constexpr int seeding_first_layer = 8;
   constexpr int seeding_second_layer = 11;
 
-  /**
-   * Number of Y threads of form_seeds_from_first_layer_window
-   */
-  constexpr int lf_form_seeds_from_first_layer_window_y_threads = 32;
-  constexpr int form_seeds_candidates_per_thread = 4;
-  constexpr int form_seeds_stop_after_number_of_candidates = 10;
+  // /**
+  //  * Number of Y threads of form_seeds_from_first_layer_window
+  //  */
+  // constexpr int lf_form_seeds_from_first_layer_window_y_threads = 32;
+  // constexpr int form_seeds_candidates_per_thread = 4;
+  // constexpr int form_seeds_stop_after_number_of_candidates = 10;
 
   /**
    * Form seeds from candidates
    */
   constexpr int maximum_iteration_l3_window = 4;
-  constexpr int track_candidates_per_window = 2;
+  constexpr int track_candidates_per_window = 1;
 
   constexpr float x_diff_layer_qop_offset = 20.f * Gaudi::Units::mm;
   constexpr float x_diff_layer_qop_slope_a = 0.3e6;

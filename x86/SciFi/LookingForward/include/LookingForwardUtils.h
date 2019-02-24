@@ -28,6 +28,7 @@ struct SciFiWindowsParams {
   float max_window_layer2 = 10; // 20;
   float max_window_layer3 = 20; // 40;
   float chi2_cut = 100;         // 40;
+  int maximum_iteration_l3_window = 4;
   float extrapolation_stddev [8] {3.63f, 3.73f, 3.51f, 2.99f, 1.50f, 2.34f, 2.30f, 1.f};
   float chi2_extrap_mean   [8] {13.21f, 13.93f, 12.34f,  8.96f,  2.29f,  5.52f, 5.35f, 1.03f};
   float chi2_extrap_stddev [8] {116.5f, 104.5f, 98.35f, 80.66f, 24.11f, 35.91f, 36.7f, 9.72f};

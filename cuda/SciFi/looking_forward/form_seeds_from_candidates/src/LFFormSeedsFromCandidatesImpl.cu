@@ -72,10 +72,11 @@ __device__ void lf_form_seeds_from_candidates_impl(
         quality += std::get<1>(hit_layer_2_idx_chi2);
       }
 
-      // Note: This is hardcoded for 2 candidates
-      const int worst_candidate = (track_candidates[0].hitsNum > track_candidates[1].hitsNum) ||
-        ((track_candidates[0].hitsNum == track_candidates[1].hitsNum) &&
-        track_candidates[0].quality < track_candidates[1].quality) ? 1 : 0;
+      // // Note: This is hardcoded for 2 candidates
+      // const int worst_candidate = (track_candidates[0].hitsNum > track_candidates[1].hitsNum) ||
+      //   ((track_candidates[0].hitsNum == track_candidates[1].hitsNum) &&
+      //   track_candidates[0].quality < track_candidates[1].quality) ? 1 : 0;
+      const auto worst_candidate = 0;
 
       if (
         number_of_hits > track_candidates[worst_candidate].hitsNum ||

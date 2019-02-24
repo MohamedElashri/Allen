@@ -739,7 +739,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       }
     } // extrapolation to T3 worked
 
-    // info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
+    info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
 
     trackhits.emplace_back(event_trackhits);
 
