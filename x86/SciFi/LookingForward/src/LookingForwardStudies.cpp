@@ -77,6 +77,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   float p_true;
   bool match_t1, match_t3, match_t1_other, match_t3_other, match_t1_u, match_t1_v;
   bool match_T2_0, match_T2_3, match_T3_0, match_T3_3;
+  float chi2_track;
 
   t_scifi_hits->Branch("planeCode", &planeCode);
   t_scifi_hits->Branch("LHCbID", &LHCbID);
@@ -177,6 +178,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   }
   t_good_tracks->Branch("qop_update", &qop_update_t3);
   t_good_tracks->Branch("p_true", &p_true);
+  t_good_tracks->Branch("chi2_track", &chi2_track);
 
   t_ut_tracks->Branch("ut_x", &UT_x);
   t_ut_tracks->Branch("ut_y", &UT_y);
@@ -507,7 +509,45 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // Populate trackhits
       for (auto& t : scifi_tracks) {
         if (t.hitsNum >= 10) {
-          event_trackhits.push_back(t);
+          // // Prepare chi2 cut
+          // const auto x_at_layer_8 = scifi_hits.x0[t.hits[0]];
+          // const auto x_at_layer_11 = scifi_hits.x0[t.hits[1]];
+          // const float reco_slope =
+          //   (x_at_layer_11 - x_at_layer_8) /
+          //   SciFi::LookingForward::dz_x_layers;
+          
+          // const float updated_qop = qop_update(
+          //   UT_state,
+          //   x_at_layer_8,
+          //   x_at_layer_11,
+          //   8);
+
+          // // We need a new lambda to compare in chi2
+          // const auto chi2_fn = [&x_at_layer_8, &reco_slope, &updated_qop] (const float z) {
+          //   return scifi_propagation(
+          //     x_at_layer_8,
+          //     reco_slope,
+          //     updated_qop,
+          //     z - SciFi::LookingForward::Zone_zPos[8]);
+          // };
+
+          // std::vector<float> x_coordinates_full_track;
+          // std::vector<float> z_coordinates_full_track;
+          // int total_number_of_hits_track = 0;
+          // for (int i=0; i<t.hitsNum; ++i) {
+          //   total_number_of_hits_track++;
+          //   const auto layer = t.layer[i];
+          //   z_coordinates_full_track.push_back(SciFi::LookingForward::Zone_zPos[layer]);
+
+          //   const float real_x = scifi_hits.x0[t.hits[i]];
+          //   const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
+          //   x_coordinates_full_track.push_back(real_x + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)]);
+          // }
+          // chi2_track = get_chi_2(z_coordinates_full_track, x_coordinates_full_track, chi2_fn) / ((float) total_number_of_hits_track);
+
+          // if (chi2_track < 2 * window_params.chi2_track_mean) {
+            event_trackhits.push_back(t);
+          // }
         }
       }
 
@@ -534,8 +574,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
         bool is_t3_triplet = false;
         if (
-          !is_t3_quadruplet && true_scifi_indices_per_layer[8] != -1 && true_scifi_indices_per_layer[9] != -1 &&
-          (true_scifi_indices_per_layer[10] != -1 || true_scifi_indices_per_layer[11] != -1)) {
+          !is_t3_quadruplet && true_scifi_indices_per_layer[8] != -1 && true_scifi_indices_per_layer[11] != -1 &&
+          (true_scifi_indices_per_layer[9] != -1 || true_scifi_indices_per_layer[10] != -1)) {
           is_t3_triplet = true;
           n_triplets++;
         }
@@ -572,7 +612,11 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         if (is_t3_quadruplet || is_t3_triplet) {
           std::array<bool, 12> found {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-          for (auto& candidate : scifi_tracks) {
+          // Find best candidate (one matching more hits)
+          int best_candidate = -1;
+          int highest_match = 0;
+          for (int i_candidate = 0; i_candidate < scifi_tracks.size(); ++i_candidate) {
+            const auto candidate = scifi_tracks[i_candidate];
             int matched_hits = 0;
             quality = candidate.quality;
             t_track_candidates->Fill();
@@ -583,85 +627,109 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
                 std::end(true_scifi_indices)) {
                 matched_hits++;
               }
+              if (matched_hits > highest_match) {
+                highest_match = matched_hits;
+                best_candidate = i_candidate;
+              }
+            }
+          }
 
+          if (highest_match >= 10) {
+            n_reconstructible_found_tracks++;
+          }
+
+          if (best_candidate != -1) {
+            const auto candidate = scifi_tracks[best_candidate];
+            for (int i = 0; i < candidate.hitsNum; ++i) {
+              const auto hit = candidate.hits[i];
               for (int j = 0; j < 12; ++j) {
                 if (hit == true_scifi_indices_per_layer[j]) {
                   found[j] = true;
                 }
               }
             }
-
-            if ((is_t3_triplet || is_t3_quadruplet) && matched_hits >= 3) {
-              n_reconstructible_found_tracks++;
-              float reco_slope =
-                (scifi_hits.x0[true_scifi_indices_per_layer[11]] - scifi_hits.x0[true_scifi_indices_per_layer[8]]) /
-                SciFi::LookingForward::dz_x_layers;
-              
-              float updated_qop = qop_update(
-                UT_state,
-                scifi_hits.x0[true_scifi_indices_per_layer[8]],
-                scifi_hits.x0[true_scifi_indices_per_layer[11]],
-                8);
-
-              const auto x_at_layer_8 = scifi_hits.x0[true_scifi_indices_per_layer[8]];
-              for (int k = 0; k < 8; k++) {
-                if (true_scifi_indices_per_layer[k] != -1) {
-                  const float real_x = scifi_hits.x0[true_scifi_indices_per_layer[k]];
-
-                  const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[k]);
-                  const auto projection_x = scifi_propagation(
-                   x_at_layer_8,
-                   reco_slope,
-                   updated_qop,
-                   SciFi::LookingForward::Zone_zPos[k] - SciFi::LookingForward::Zone_zPos[8])
-                  - SciFi::LookingForward::Zone_dxdy[k % 4] * projection_y;
-
-                  forwarding_res[k] = (projection_x - real_x); // real_x;
-
-                  // We need a new lambda to compare in chi2
-                  const auto chi2_fn = [&x_at_layer_8, &reco_slope, &updated_qop] (const float z) {
-                    return scifi_propagation(
-                      x_at_layer_8,
-                      reco_slope,
-                      updated_qop,
-                      z - SciFi::LookingForward::Zone_zPos[8]);
-                  };
-
-                  std::vector<float> x_coordinates {
-                    x_at_layer_8,
-                    scifi_hits.x0[true_scifi_indices_per_layer[11]],
-                    real_x + projection_y * SciFi::LookingForward::Zone_dxdy[(k % 4)]
-                  };
-
-                  std::vector<float> z_coordinates {
-                    SciFi::LookingForward::Zone_zPos[8],
-                    SciFi::LookingForward::Zone_zPos[11],
-                    SciFi::LookingForward::Zone_zPos[k]
-                  };
-
-                  forwarding_chi2[k] = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
-                } else {
-                  forwarding_chi2[k] = 0.f;
-                  forwarding_res[k] = 0.f;
-                }
+            for (int i = 0; i < 12; ++i) {
+              if (found[i]) {
+                n_found_hits[i]++;
               }
-
-              qop_resolution_after_update_t3 = (updated_qop - 1 / p_true) * p_true;
-              qop_update_t3 = updated_qop;
-              t_good_tracks->Fill();
-              break;
+              if (n_layer[i]) {
+                n_layer_with_T3_quad_triplets[i]++;
+              }
             }
           }
 
-          for (int i = 0; i < 12; ++i) {
-            if (found[i]) {
-              n_found_hits[i]++;
-            }
+          float reco_slope =
+            (scifi_hits.x0[true_scifi_indices_per_layer[11]] - scifi_hits.x0[true_scifi_indices_per_layer[8]]) /
+            SciFi::LookingForward::dz_x_layers;
+          
+          float updated_qop = qop_update(
+            UT_state,
+            scifi_hits.x0[true_scifi_indices_per_layer[8]],
+            scifi_hits.x0[true_scifi_indices_per_layer[11]],
+            8);
 
-            if (n_layer[i]) {
-              n_layer_with_T3_quad_triplets[i]++;
+          const auto x_at_layer_8 = scifi_hits.x0[true_scifi_indices_per_layer[8]];
+
+          // We need a new lambda to compare in chi2
+          const auto chi2_fn = [&x_at_layer_8, &reco_slope, &updated_qop] (const float z) {
+            return scifi_propagation(
+              x_at_layer_8,
+              reco_slope,
+              updated_qop,
+              z - SciFi::LookingForward::Zone_zPos[8]);
+          };
+
+          std::vector<float> x_coordinates_full_track;
+          std::vector<float> z_coordinates_full_track;
+          int total_number_of_hits_track = 0;
+          for (int i=0; i<12; ++i) {
+            if (true_scifi_indices_per_layer[i] != -1) {
+              total_number_of_hits_track++;
+              z_coordinates_full_track.push_back(SciFi::LookingForward::Zone_zPos[i]);
+
+              const float real_x = scifi_hits.x0[true_scifi_indices_per_layer[i]];
+              const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[i]);
+              x_coordinates_full_track.push_back(real_x + projection_y * SciFi::LookingForward::Zone_dxdy[(i % 4)]);
             }
           }
+          chi2_track = get_chi_2(z_coordinates_full_track, x_coordinates_full_track, chi2_fn) / ((float) total_number_of_hits_track);
+
+          for (int k = 0; k < 8; k++) {
+            if (true_scifi_indices_per_layer[k] != -1) {
+              const float real_x = scifi_hits.x0[true_scifi_indices_per_layer[k]];
+
+              const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[k]);
+              const auto projection_x = scifi_propagation(
+               x_at_layer_8,
+               reco_slope,
+               updated_qop,
+               SciFi::LookingForward::Zone_zPos[k] - SciFi::LookingForward::Zone_zPos[8])
+              - SciFi::LookingForward::Zone_dxdy[k % 4] * projection_y;
+
+              forwarding_res[k] = (projection_x - real_x); // real_x;
+
+              std::vector<float> x_coordinates {
+                x_at_layer_8,
+                scifi_hits.x0[true_scifi_indices_per_layer[11]],
+                real_x + projection_y * SciFi::LookingForward::Zone_dxdy[(k % 4)]
+              };
+
+              std::vector<float> z_coordinates {
+                SciFi::LookingForward::Zone_zPos[8],
+                SciFi::LookingForward::Zone_zPos[11],
+                SciFi::LookingForward::Zone_zPos[k]
+              };
+
+              forwarding_chi2[k] = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
+            } else {
+              forwarding_chi2[k] = 0.f;
+              forwarding_res[k] = 0.f;
+            }
+          }
+
+          qop_resolution_after_update_t3 = (updated_qop - 1 / p_true) * p_true;
+          qop_update_t3 = updated_qop;
+          t_good_tracks->Fill();
         }
       }
     } // extrapolation to T3 worked
@@ -729,8 +797,6 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
   info_cout << "Number of candidates per ut velo track: " << number_of_track_candidates / ((float) n_veloUT_tracks)
             << std::endl;
-  info_cout << "Number of candidates after station 2 per ut velo track: "
-            << number_of_track_candidates_after_station_2 / ((float) n_veloUT_tracks) << std::endl;
 
   info_cout << "Number of candidates in first window per ut velo track: "
             << n_total_hits_in_first_window / ((float) n_veloUT_tracks_with_window) << std::endl;

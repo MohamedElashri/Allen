@@ -193,6 +193,7 @@ namespace SciFi {
    */
   struct TrackHits {
     int hits[SciFi::Constants::max_track_size];
+    int layer[SciFi::Constants::max_track_size];
     float qop;
     unsigned short hitsNum = 0;
     float quality;
@@ -207,6 +208,7 @@ namespace SciFi {
     {
       for (int i = 0; i < SciFi::Constants::max_track_size; ++i) {
         hits[i] = other.hits[i];
+        layer[i] = other.layer[i];
       }
     }
 
@@ -214,6 +216,13 @@ namespace SciFi {
     {
       assert(hitsNum < SciFi::Constants::max_track_size);
       hits[hitsNum++] = idx;
+    }
+
+    __host__ __device__ void addHit(unsigned int idx, unsigned int l)
+    {
+      assert(hitsNum < SciFi::Constants::max_track_size);
+      hits[hitsNum] = idx;
+      layer[hitsNum++] = l;
     }
   };
 

@@ -28,9 +28,11 @@ struct SciFiWindowsParams {
   float max_window_layer2 = 10; // 20;
   float max_window_layer3 = 20; // 40;
   float chi2_cut = 100;         // 40;
-  float extrapolation_stddev [8] {3.37f, 3.50f, 3.23f, 2.76f, 1.37f, 2.22f, 2.18f, 0.93f};
-  float chi2_extrap_mean   [8] {11.38f, 12.28f, 10.44f,  7.64f,  1.92f,    5.f, 4.77f, 0.91f};
-  float chi2_extrap_stddev [8] {91.29f, 81.25f, 70.68f, 59.99f, 15.43f, 30.72f, 31.9f, 8.88f};
+  float extrapolation_stddev [8] {3.63f, 3.73f, 3.51f, 2.99f, 1.50f, 2.34f, 2.30f, 1.f};
+  float chi2_extrap_mean   [8] {13.21f, 13.93f, 12.34f,  8.96f,  2.29f,  5.52f, 5.35f, 1.03f};
+  float chi2_extrap_stddev [8] {116.5f, 104.5f, 98.35f, 80.66f, 24.11f, 35.91f, 36.7f, 9.72f};
+  float chi2_track_mean = 6.78f;
+  float chi2_track_stddev = 45.28f;
 };
 
 class Window_stat {
@@ -140,17 +142,6 @@ void single_track_propagation(
   const float extrapolation_stddev,
   const float chi2_extrap_mean,
   const float chi2_extrap_stddev);
-
-bool propagate_candidate( 
-  const int station,
-  const int layer_0,
-  const SciFi::Hits& hits,
-  const SciFi::HitCount& hit_count,
-  const MiniState& velo_UT_state,
-  const SciFi::TrackHits& candidate,
-  std::vector<SciFi::TrackHits>& output_tracks,
-  std::array<std::vector<Window_stat>, 4>& window_stats,
-  const SciFiWindowsParams& window_params);
 
 float dx_calc(const MiniState& state, float qop, const SciFiWindowsParams& window_params);
 

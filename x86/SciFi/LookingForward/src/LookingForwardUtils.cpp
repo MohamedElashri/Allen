@@ -13,7 +13,11 @@ float scifi_propagation(const float x_0, const float tx, const float qop, const 
   return linear_propagation(x_0, tx, dz) + SciFi::LookingForward::forward_param * qop * dz * dz;
 }
 
-float qop_update(const MiniState& UT_state, float hit_layer_0, float hit_layer_3, int layer)
+float qop_update(
+  const MiniState& UT_state,
+  float hit_layer_0,
+  float hit_layer_3,
+  int layer)
 {
   const float slope = (hit_layer_3 - hit_layer_0) / SciFi::LookingForward::dz_x_layers;
   return (slope - UT_state.tx) / SciFi::LookingForward::ds_p_param[layer];
@@ -278,7 +282,7 @@ bool select_hits(
           window_stats[2],
           window_params.max_window_layer2);
 
-        std::array<SciFi::TrackHits, 2> best_candidates;
+        std::array<SciFi::TrackHits, 1> best_candidates;
         for (int i = 0; i < best_candidates.size(); ++i) {
           best_candidates[i].quality = 2 * window_params.chi2_cut;
           best_candidates[i].hitsNum = 0;
@@ -324,16 +328,16 @@ bool select_hits(
             new_track_hits.hitsNum = 0;
             new_track_hits.qop = updated_qop;
             new_track_hits.quality = 0;
-            new_track_hits.addHit(hit_layer_0_idx);
-            new_track_hits.addHit(hit_layer_3_idx);
+            new_track_hits.addHit(hit_layer_0_idx, 8);
+            new_track_hits.addHit(hit_layer_3_idx, 11);
 
             if (std::get<0>(hit_layer_1_idx_chi2) != -1) {
-              new_track_hits.addHit(std::get<0>(hit_layer_1_idx_chi2));
+              new_track_hits.addHit(std::get<0>(hit_layer_1_idx_chi2), 9);
               new_track_hits.quality += std::get<1>(hit_layer_1_idx_chi2);
             }
 
             if (std::get<0>(hit_layer_2_idx_chi2) != -1) {
-              new_track_hits.addHit(std::get<0>(hit_layer_2_idx_chi2));
+              new_track_hits.addHit(std::get<0>(hit_layer_2_idx_chi2), 10);
               new_track_hits.quality += std::get<1>(hit_layer_2_idx_chi2);
             }
             ret_val = true;
@@ -478,7 +482,7 @@ bool single_candidate_propagation(
 
   // Pick the best, according to chi2
   int best_idx = -1;
-  float best_chi2 = chi2_extrap_mean + 3 * chi2_extrap_stddev;
+  float best_chi2 = chi2_extrap_mean + 2 * chi2_extrap_stddev;
 
   // We need a new lambda to compare in chi2
   const auto chi2_fn = [&x_at_layer_8, &reco_slope, &candidate] (const float z) {
@@ -512,7 +516,7 @@ bool single_candidate_propagation(
   if (best_idx != -1) {
     found_candidates_in_layer = true;
     SciFi::TrackHits new_candidate = candidate;
-    new_candidate.addHit(best_idx);
+    new_candidate.addHit(best_idx, layer);
     tracks.emplace_back(new_candidate);
   }
 
@@ -559,7 +563,7 @@ void single_track_propagation(
 
   // Pick the best, according to chi2
   int best_idx = -1;
-  float best_chi2 = chi2_extrap_mean + 3 * chi2_extrap_stddev;
+  float best_chi2 = chi2_extrap_mean + 2 * chi2_extrap_stddev;
 
   // We need a new lambda to compare in chi2
   const auto chi2_fn = [&x_at_layer_8, &reco_slope, &track] (const float z) {
@@ -591,212 +595,8 @@ void single_track_propagation(
   }
 
   if (best_idx != -1) {
-    track.addHit(best_idx);
+    track.addHit(best_idx, layer);
   }
-}
-
-bool propagate_candidate(
-  const int station,
-  const int layer_0,
-  const SciFi::Hits& hits,
-  const SciFi::HitCount& hit_count,
-  const MiniState& velo_UT_state,
-  const SciFi::TrackHits& candidate,
-  std::vector<SciFi::TrackHits>& output_tracks,
-  std::array<std::vector<Window_stat>, 4>& window_stats,
-  const SciFiWindowsParams& window_params)
-{
-  bool ret_val = false;
-
-  int maximum_iteration_l3_window = 4;
-  // for ( auto& candidate : track_candidates ) {
-
-  std::array<MiniState, 4> proj_state;
-  for (int k = 1; k < 4; k++) {
-    const int layer_k = station * 4 - 1 - k;
-    proj_state[k].z = SciFi::LookingForward::Zone_zPos[layer_k];
-    // proj_state[k].y = y_at_z(velo_UT_state, proj_state[k].z);
-  }
-  // state on first layer
-  proj_state[0].x = propagate_x_from_previous_station(hits, candidate, layer_0);
-  proj_state[0].z = SciFi::LookingForward::Zone_zPos[layer_0];
-  proj_state[0].y = y_at_z(velo_UT_state, proj_state[0].z);
-
-  if (
-    (proj_state[0].x > SciFi::LookingForward::xMin && proj_state[0].x < SciFi::LookingForward::xMax) &&
-    (proj_state[0].y > SciFi::LookingForward::yDownMin && proj_state[0].y < SciFi::LookingForward::yUpMax)) {
-
-    // find hits on first layer
-    const float dx_plane_0 = 2.; // test other values for this
-    const int min_zone = 2 * layer_0;
-    const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(min_zone, hit_count, proj_state[0].y);
-
-    auto layer0_candidates = find_x_in_window(
-      hits,
-      std::get<0>(layer0_offset_nhits),
-      std::get<1>(layer0_offset_nhits),
-      proj_state[0].x - dx_plane_0,
-      proj_state[0].x + dx_plane_0);
-
-    window_stats[0].emplace_back(
-      Window_stat(std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates), proj_state[0].x, dx_plane_0));
-
-    for (auto hit_layer_0_idx = std::get<0>(layer0_candidates); hit_layer_0_idx != std::get<1>(layer0_candidates);
-         hit_layer_0_idx++) {
-      // For now use slope between hit in layer 0 and hit from last layer of prevoius station
-      const float tx = (hits.x0[hit_layer_0_idx] - hits.x0[candidate.hits[0]]) /
-                       (proj_state[0].z - SciFi::LookingForward::Zone_zPos[layer_0 + 1]);
-      proj_state[3].x = linear_propagation(hits.x0[hit_layer_0_idx], tx, proj_state[3].z - proj_state[0].z);
-
-      const auto layer3_offset_nhits = get_offset_and_n_hits_for_layer(14, hit_count, proj_state[3].y);
-      const auto layer3_candidates = find_x_in_window(
-        hits,
-        std::get<0>(layer3_offset_nhits),
-        std::get<1>(layer3_offset_nhits),
-        proj_state[3].x - window_params.max_window_layer3,
-        proj_state[3].x + window_params.max_window_layer3);
-
-      window_stats[3].emplace_back(Window_stat(Window_stat(
-        std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates),
-        proj_state[3].x,
-        window_params.max_window_layer3)));
-
-      if (std::get<0>(layer3_candidates) != -1) {
-
-        const float slope_layer_3_layer_0_minx =
-          (hits.x0[std::get<0>(layer3_candidates)] - hits.x0[hit_layer_0_idx]) / (SciFi::LookingForward::dz_x_layers);
-        const float slope_layer_3_layer_0_maxx =
-          (hits.x0[std::get<1>(layer3_candidates) - 1] - hits.x0[hit_layer_0_idx]) /
-          (SciFi::LookingForward::dz_x_layers);
-
-        const auto layer1_candidates = get_u_or_v_layer_candidates(
-          hits,
-          hit_count,
-          hit_layer_0_idx,
-          slope_layer_3_layer_0_minx,
-          slope_layer_3_layer_0_maxx,
-          proj_state[1],
-          SciFi::LookingForward::Zone_dxdy[2],
-          12,
-          SciFi::LookingForward::dz_x_u_layers, // v-layer, but backwards propagation
-          window_stats[1],
-          window_params.max_window_layer1);
-
-        const auto layer2_candidates = get_u_or_v_layer_candidates(
-          hits,
-          hit_count,
-          hit_layer_0_idx,
-          slope_layer_3_layer_0_minx,
-          slope_layer_3_layer_0_maxx,
-          proj_state[2],
-          SciFi::LookingForward::Zone_dxdy[1],
-          10,
-          SciFi::LookingForward::dz_x_v_layers, // u-layer, but backwards propagation
-          window_stats[2],
-          window_params.max_window_layer2);
-
-        std::array<SciFi::TrackHits, 2> best_candidates;
-        for (int i = 0; i < best_candidates.size(); ++i) {
-          best_candidates[i].quality = 2 * window_params.chi2_cut;
-          best_candidates[i].hitsNum = 0;
-        }
-
-        const auto number_of_l3_candidates = std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates);
-
-        for (int hit_layer_3_rel_idx = 0;
-             hit_layer_3_rel_idx < maximum_iteration_l3_window && hit_layer_3_rel_idx < number_of_l3_candidates;
-             ++hit_layer_3_rel_idx) {
-          const auto hit_layer_3_idx = std::get<0>(layer3_candidates) + hit_layer_3_rel_idx;
-
-          const float slope_layer_3_layer_0 =
-            (hits.x0[hit_layer_3_idx] - hits.x0[hit_layer_0_idx]) / (SciFi::LookingForward::dz_x_layers);
-
-          auto hit_layer_1_idx_chi2 = select_best_u_or_v_hit(
-            slope_layer_3_layer_0,
-            hit_layer_0_idx,
-            hit_layer_3_idx,
-            proj_state,
-            1,
-            hits,
-            SciFi::LookingForward::dz_x_u_layers, // v layer, but backwards propagation
-            SciFi::LookingForward::Zone_dxdy[2],
-            layer1_candidates,
-            window_params);
-
-          auto hit_layer_2_idx_chi2 = select_best_u_or_v_hit(
-            slope_layer_3_layer_0,
-            hit_layer_0_idx,
-            hit_layer_3_idx,
-            proj_state,
-            2,
-            hits,
-            SciFi::LookingForward::dz_x_v_layers, // u layer, but backwards propagation
-            SciFi::LookingForward::Zone_dxdy[1],
-            layer2_candidates,
-            window_params);
-
-          if ((std::get<0>(hit_layer_1_idx_chi2) != -1) || (std::get<0>(hit_layer_2_idx_chi2) != -1)) {
-            // For now, only check track quality within this station
-            // -> only four hits
-            // to do: use all hits on the track and something better than a straight line fit
-            SciFi::TrackHits new_track_hits;
-            new_track_hits.hitsNum = 0;
-            new_track_hits.quality = 0;
-            new_track_hits.addHit(hit_layer_0_idx);
-            new_track_hits.addHit(hit_layer_3_idx);
-
-            if (std::get<0>(hit_layer_1_idx_chi2) != -1) {
-              new_track_hits.addHit(std::get<0>(hit_layer_1_idx_chi2));
-              new_track_hits.quality += std::get<1>(hit_layer_1_idx_chi2);
-            }
-
-            if (std::get<0>(hit_layer_2_idx_chi2) != -1) {
-              new_track_hits.addHit(std::get<0>(hit_layer_2_idx_chi2));
-              new_track_hits.quality += std::get<1>(hit_layer_2_idx_chi2);
-            }
-            ret_val = true;
-
-            const int worst_candidate = (best_candidates[0].hitsNum > best_candidates[1].hitsNum) ||
-                                            ((best_candidates[0].hitsNum == best_candidates[1].hitsNum) &&
-                                             best_candidates[0].quality < best_candidates[1].quality) ?
-                                          1 :
-                                          0;
-
-            if (
-              new_track_hits.hitsNum > best_candidates[worst_candidate].hitsNum ||
-              (new_track_hits.hitsNum == best_candidates[worst_candidate].hitsNum &&
-               new_track_hits.quality < best_candidates[worst_candidate].quality)) {
-
-              best_candidates[worst_candidate] = new_track_hits;
-            }
-          } // Found u and/or v hit(s)
-        }   // loop over layer 3 hits
-
-        for (int j = 0; j < best_candidates.size(); ++j) {
-          if (best_candidates[j].hitsNum > 2) {
-            SciFi::TrackHits output_track;
-            output_track.hitsNum = 0;
-            output_track.qop = candidate.qop;
-            output_track.quality = candidate.quality;
-            for (int i = 0; i < candidate.hitsNum; ++i) {
-              output_track.addHit(candidate.hits[i]);
-            }
-            output_track.quality += best_candidates[j].quality;
-            // debug_cout << "adding " << best_candidates[j].hitsNum << " hits to track " << std::endl;
-            for (int i = 0; i < best_candidates[j].hitsNum; ++i) {
-              if (best_candidates[j].hitsNum > 2) {
-                output_track.addHit(best_candidates[j].hits[i]);
-              }
-            }
-            output_tracks.push_back(output_track);
-          }
-        }
-      } // found candidates in l3
-    }   // loop over layer 0 hits
-  }     // within SciFi boundaries
-
-  //}
-  return ret_val;
 }
 
 float dx_calc(const MiniState& state, float qop, const SciFiWindowsParams& window_params)
