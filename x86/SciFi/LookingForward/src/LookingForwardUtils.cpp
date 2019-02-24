@@ -210,6 +210,9 @@ bool select_hits(
     // step at 20, 0.8f: 733594, 50.3085%
     // step at 20, 0.7f: 670149, 49.5672%
 
+    // 10-50 quadratic, 0.4f: 72.34%
+    // 10-50 quadratic, 0.5f: 72.83%
+
     const auto number_of_l0_candidates = std::get<1>(layer0_candidates) - std::get<0>(layer0_candidates);
     if (number_of_l0_candidates > 10) {
       if (number_of_l0_candidates > 50) {

@@ -400,16 +400,16 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       std::array<std::vector<Window_stat>, 4> window_stats;
       SciFiWindowsParams window_params;
       window_params.dx_slope = 1e5;
-      window_params.dx_min = 200;
+      window_params.dx_min = 300;
       window_params.dx_weight = 0.6;
       window_params.tx_slope = 1250;
-      window_params.tx_min = 200;
+      window_params.tx_min = 300;
       window_params.tx_weight = 0.4;
-      window_params.max_window_layer0 = 400;
+      window_params.max_window_layer0 = 600;
       window_params.max_window_layer1 = 2;
       window_params.max_window_layer2 = 2;
       window_params.max_window_layer3 = 20;
-      window_params.chi2_cut = 2;
+      window_params.chi2_cut = 4;
 
       // Find track seeds
       bool track_match;
