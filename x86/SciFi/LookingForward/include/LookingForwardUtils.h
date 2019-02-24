@@ -28,6 +28,9 @@ struct SciFiWindowsParams {
   float max_window_layer2 = 10; // 20;
   float max_window_layer3 = 20; // 40;
   float chi2_cut = 100;         // 40;
+  float extrapolation_stddev [8] {3.37f, 3.50f, 3.23f, 2.76f, 1.37f, 2.22f, 2.18f, 0.93f};
+  float chi2_extrap_mean   [8] {11.38f, 12.28f, 10.44f,  7.64f,  1.92f,    5.f, 4.77f, 0.91f};
+  float chi2_extrap_stddev [8] {91.29f, 81.25f, 70.68f, 59.99f, 15.43f, 30.72f, 31.9f, 8.88f};
 };
 
 class Window_stat {
@@ -107,7 +110,7 @@ void propagate_candidates(
   const std::vector<SciFi::TrackHits>& candidates,
   std::vector<bool>& candidates_extrapolated,
   std::vector<SciFi::TrackHits>& tracks,
-  const float dx_plane);
+  const SciFiWindowsParams& window_params);
 
 void propagate_tracks(
   const int layer,
@@ -115,7 +118,7 @@ void propagate_tracks(
   const SciFi::HitCount& hit_count,
   const MiniState& velo_UT_state,
   std::vector<SciFi::TrackHits>& tracks,
-  const float dx_plane);
+  const SciFiWindowsParams& window_params);
 
 bool single_candidate_propagation(
   const int layer,
@@ -124,7 +127,9 @@ bool single_candidate_propagation(
   const MiniState& velo_UT_state,
   const SciFi::TrackHits& candidate,
   std::vector<SciFi::TrackHits>& tracks,
-  const float dx_plane);
+  const float extrapolation_stddev,
+  const float chi2_extrap_mean,
+  const float chi2_extrap_stddev);
 
 void single_track_propagation(
   const int layer,
@@ -132,7 +137,9 @@ void single_track_propagation(
   const SciFi::HitCount& hit_count,
   const MiniState& velo_UT_state,
   SciFi::TrackHits& track,
-  const float dx_plane);
+  const float extrapolation_stddev,
+  const float chi2_extrap_mean,
+  const float chi2_extrap_stddev);
 
 bool propagate_candidate( 
   const int station,
@@ -158,7 +165,7 @@ float linear_propagation(float x_0, float tx, float dz);
 
 float scifi_propagation(const float x_0, const float tx, const float qop, const float dz);
 
-float qop_upgrade(const MiniState& UT_state, float hit_layer_0, float hit_layer_3, int layer);
+float qop_update(const MiniState& UT_state, float hit_layer_0, float hit_layer_3, int layer);
 
 float get_chi_2(
   const std::vector<float>& x,

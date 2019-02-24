@@ -13,59 +13,10 @@ float scifi_propagation(const float x_0, const float tx, const float qop, const 
   return linear_propagation(x_0, tx, dz) + SciFi::LookingForward::forward_param * qop * dz * dz;
 }
 
-float qop_upgrade(const MiniState& UT_state, float hit_layer_0, float hit_layer_3, int layer)
+float qop_update(const MiniState& UT_state, float hit_layer_0, float hit_layer_3, int layer)
 {
   const float slope = (hit_layer_3 - hit_layer_0) / SciFi::LookingForward::dz_x_layers;
   return (slope - UT_state.tx) / SciFi::LookingForward::ds_p_param[layer];
-  // float slope = (hit_layer_3 - hit_layer_0) / SciFi::LookingForward::dz_x_layers;
-  //  MiniState initial_state;
-  //  MiniState magnet_state;
-  //  float x_mag_correction;
-  //  float y_mag_correction;
-
-  //  initial_state = state_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
-
-  //  initial_state.tx = (hit_layer_3 - hit_layer_0) / SciFi::LookingForward::dz_x_layers;
-
-  //  initial_state.x = hit_layer_0;
-
-  //  float delta_slope = initial_state.tx - UT_state.tx;
-
-  //  magnet_state = state_at_z(initial_state, SciFi::LookingForward::z_magnet);
-
-  //  if (delta_slope > 0) {
-  //    y_mag_correction = SciFi::LookingForward::dp_y_mag_plus[layer][0] +
-  //                       magnet_state.y * SciFi::LookingForward::dp_y_mag_plus[layer][1] +
-  //                       magnet_state.y * magnet_state.y * SciFi::LookingForward::dp_y_mag_plus[layer][2];
-  //    // SciFi::LookingForward::dp_plus_offset[layer];
-
-  //    x_mag_correction =
-  //      SciFi::LookingForward::dp_x_mag_plus[layer][0] + magnet_state.x *
-  //      SciFi::LookingForward::dp_x_mag_plus[layer][1] + magnet_state.x * magnet_state.x *
-  //      SciFi::LookingForward::dp_x_mag_plus[layer][2] + magnet_state.x * magnet_state.x * magnet_state.x *
-  //      SciFi::LookingForward::dp_x_mag_plus[layer][3] + magnet_state.x * magnet_state.x * magnet_state.x *
-  //      magnet_state.x *
-  //        SciFi::LookingForward::dp_x_mag_plus[layer][4];
-  //  }
-  //  else {
-  //    y_mag_correction = SciFi::LookingForward::dp_y_mag_minus[layer][0] +
-  //                       magnet_state.y * SciFi::LookingForward::dp_y_mag_minus[layer][1] +
-  //                       magnet_state.y * magnet_state.y * SciFi::LookingForward::dp_y_mag_minus[layer][2]; //+
-  //    // SciFi::LookingForward::dp_minus_offset[layer];
-
-  //    x_mag_correction =
-  //      SciFi::LookingForward::dp_x_mag_minus[layer][0] +
-  //      magnet_state.x * SciFi::LookingForward::dp_x_mag_minus[layer][1] +
-  //      magnet_state.x * magnet_state.x * SciFi::LookingForward::dp_x_mag_minus[layer][2] +
-  //      magnet_state.x * magnet_state.x * magnet_state.x * SciFi::LookingForward::dp_x_mag_minus[layer][3] +
-  //      magnet_state.x * magnet_state.x * magnet_state.x * magnet_state.x *
-  //        SciFi::LookingForward::dp_x_mag_minus[layer][4];
-  //  }
-
-  //  float new_slope = (hit_layer_0 - x_mag_correction - y_mag_correction - magnet_state.x) /
-  //                    (SciFi::LookingForward::Zone_zPos[layer] - SciFi::LookingForward::z_magnet);
-
-  //  return (new_slope - UT_state.tx) / SciFi::LookingForward::ds_p_param[layer];
 }
 
 MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int layer)
@@ -368,7 +319,7 @@ bool select_hits(
 
           if ((std::get<0>(hit_layer_1_idx_chi2) != -1) || (std::get<0>(hit_layer_2_idx_chi2) != -1)) {
             SciFi::TrackHits new_track_hits;
-            float updated_qop = qop_upgrade(velo_UT_state, hits.x0[hit_layer_0_idx], hits.x0[hit_layer_3_idx], 8);
+            float updated_qop = qop_update(velo_UT_state, hits.x0[hit_layer_0_idx], hits.x0[hit_layer_3_idx], 8);
             new_track_hits.UTTrackIndex = UT_track_index;
             new_track_hits.hitsNum = 0;
             new_track_hits.qop = updated_qop;
@@ -453,7 +404,7 @@ void propagate_candidates(
   const std::vector<SciFi::TrackHits>& candidates,
   std::vector<bool>& candidates_extrapolated,
   std::vector<SciFi::TrackHits>& tracks,
-  const float dx_plane)
+  const SciFiWindowsParams& window_params)
 {
   for (int i=0; i<candidates.size(); ++i) {
     if (!candidates_extrapolated[i]) {
@@ -464,7 +415,9 @@ void propagate_candidates(
         velo_UT_state,
         candidates[i],
         tracks,
-        dx_plane);
+        window_params.extrapolation_stddev[layer],
+        window_params.chi2_extrap_mean[layer],
+        window_params.chi2_extrap_stddev[layer]);
     }
   }
 }
@@ -475,7 +428,7 @@ void propagate_tracks(
   const SciFi::HitCount& hit_count,
   const MiniState& velo_UT_state,
   std::vector<SciFi::TrackHits>& tracks,
-  const float dx_plane)
+  const SciFiWindowsParams& window_params)
 {
   for (int i=0; i<tracks.size(); ++i) {
     single_track_propagation(
@@ -484,7 +437,9 @@ void propagate_tracks(
       hit_count,
       velo_UT_state,
       tracks[i],
-      dx_plane);
+      window_params.extrapolation_stddev[layer],
+      window_params.chi2_extrap_mean[layer],
+      window_params.chi2_extrap_stddev[layer]);
   }
 }
 
@@ -495,7 +450,9 @@ bool single_candidate_propagation(
   const MiniState& velo_UT_state,
   const SciFi::TrackHits& candidate,
   std::vector<SciFi::TrackHits>& tracks,
-  const float dx_plane)
+  const float extrapolation_stddev,
+  const float chi2_extrap_mean,
+  const float chi2_extrap_stddev)
 {
   bool found_candidates_in_layer = false;
   const auto projection_y = y_at_z(velo_UT_state, SciFi::LookingForward::Zone_zPos[layer]);
@@ -516,12 +473,12 @@ bool single_candidate_propagation(
     hits,
     std::get<0>(layer_offset_nhits),
     std::get<1>(layer_offset_nhits),
-    projection_x - dx_plane,
-    projection_x + dx_plane);
+    projection_x - 3 * extrapolation_stddev,
+    projection_x + 3 * extrapolation_stddev);
 
   // Pick the best, according to chi2
   int best_idx = -1;
-  float best_chi2 = 10.f;
+  float best_chi2 = chi2_extrap_mean + 3 * chi2_extrap_stddev;
 
   // We need a new lambda to compare in chi2
   const auto chi2_fn = [&x_at_layer_8, &reco_slope, &candidate] (const float z) {
@@ -575,7 +532,9 @@ void single_track_propagation(
   const SciFi::HitCount& hit_count,
   const MiniState& velo_UT_state,
   SciFi::TrackHits& track,
-  const float dx_plane)
+  const float extrapolation_stddev,
+  const float chi2_extrap_mean,
+  const float chi2_extrap_stddev)
 {
   const auto projection_y = y_at_z(velo_UT_state, SciFi::LookingForward::Zone_zPos[layer]);
 
@@ -595,12 +554,12 @@ void single_track_propagation(
     hits,
     std::get<0>(layer_offset_nhits),
     std::get<1>(layer_offset_nhits),
-    projection_x - dx_plane,
-    projection_x + dx_plane);
+    projection_x - 3 * extrapolation_stddev,
+    projection_x + 3 * extrapolation_stddev);
 
   // Pick the best, according to chi2
   int best_idx = -1;
-  float best_chi2 = 10.f;
+  float best_chi2 = chi2_extrap_mean + 3 * chi2_extrap_stddev;
 
   // We need a new lambda to compare in chi2
   const auto chi2_fn = [&x_at_layer_8, &reco_slope, &track] (const float z) {
