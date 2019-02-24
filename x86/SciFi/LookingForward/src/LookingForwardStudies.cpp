@@ -426,30 +426,33 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
       // // Fetch real track seeds
       // if (true_scifi_indices_per_layer[8] != -1 &&
-      //     true_scifi_indices_per_layer[11] != -1 &&
+      //     true_scifi_indices_per_layer[11] != -1 && 
       //     (true_scifi_indices_per_layer[9] != -1 ||
       //     true_scifi_indices_per_layer[10] != -1))
       // {
+      //   const auto populated_layer = true_scifi_indices_per_layer[11] != -1 ? 11 :
+      //     (true_scifi_indices_per_layer[10] != -1 ? 10 : 9);
+
       //   SciFi::TrackHits candidate;
       //   candidate.UTTrackIndex = i_veloUT_track;
       //   candidate.qop = qop_update(
       //     UT_state,
       //     scifi_hits.x0[true_scifi_indices_per_layer[8]],
-      //     scifi_hits.x0[true_scifi_indices_per_layer[11]],
+      //     scifi_hits.x0[true_scifi_indices_per_layer[populated_layer]],
+      //     SciFi::LookingForward::Zone_zPos[8],
+      //     SciFi::LookingForward::Zone_zPos[populated_layer],
       //     8);
 
-      //   candidate.addHit(true_scifi_indices_per_layer[8]);
-      //   candidate.addHit(true_scifi_indices_per_layer[11]);
+      //   candidate.addHit(true_scifi_indices_per_layer[8], 8);
+      //   candidate.addHit(true_scifi_indices_per_layer[populated_layer], populated_layer);
 
-      //   if (true_scifi_indices_per_layer[9] != -1) {
-      //     candidate.addHit(true_scifi_indices_per_layer[9]);
+      //   for (int i=9; i<11; ++i) {
+      //     if (i != populated_layer && true_scifi_indices_per_layer[i] != -1) {
+      //       candidate.addHit(true_scifi_indices_per_layer[i], i);
+      //     }
       //   }
 
-      //   if (true_scifi_indices_per_layer[10] != -1) {
-      //     candidate.addHit(true_scifi_indices_per_layer[10]);
-      //   }
-
-      //   // for (int i=0; i<8; ++i) {
+      //   // for (int i=0; i<12; ++i) {
       //   //   if (true_scifi_indices_per_layer[i] != -1) {
       //   //     candidate.addHit(true_scifi_indices_per_layer[i]);
       //   //   }
@@ -666,6 +669,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
             UT_state,
             scifi_hits.x0[true_scifi_indices_per_layer[8]],
             scifi_hits.x0[true_scifi_indices_per_layer[11]],
+            8,
+            11,
             8);
 
           const auto x_at_layer_8 = scifi_hits.x0[true_scifi_indices_per_layer[8]];

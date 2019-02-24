@@ -156,7 +156,13 @@ float linear_propagation(float x_0, float tx, float dz);
 
 float scifi_propagation(const float x_0, const float tx, const float qop, const float dz);
 
-float qop_update(const MiniState& UT_state, float hit_layer_0, float hit_layer_3, int layer);
+float qop_update(
+  const MiniState& UT_state,
+  const float h0_x,
+  const float h1_x,
+  const float h0_z,
+  const float h1_z,
+  int layer);
 
 float get_chi_2(
   const std::vector<float>& x,

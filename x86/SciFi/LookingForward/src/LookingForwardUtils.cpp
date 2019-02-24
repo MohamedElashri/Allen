@@ -15,11 +15,13 @@ float scifi_propagation(const float x_0, const float tx, const float qop, const 
 
 float qop_update(
   const MiniState& UT_state,
-  float hit_layer_0,
-  float hit_layer_3,
+  const float h0_x,
+  const float h1_x,
+  const float h0_z,
+  const float h1_z,
   int layer)
 {
-  const float slope = (hit_layer_3 - hit_layer_0) / SciFi::LookingForward::dz_x_layers;
+  const float slope = (h1_x - h0_x) / (h1_z - h0_z);
   return (slope - UT_state.tx) / SciFi::LookingForward::ds_p_param[layer];
 }
 
@@ -323,7 +325,14 @@ bool select_hits(
 
           if ((std::get<0>(hit_layer_1_idx_chi2) != -1) || (std::get<0>(hit_layer_2_idx_chi2) != -1)) {
             SciFi::TrackHits new_track_hits;
-            float updated_qop = qop_update(velo_UT_state, hits.x0[hit_layer_0_idx], hits.x0[hit_layer_3_idx], 8);
+            float updated_qop = qop_update(
+              velo_UT_state,
+              hits.x0[hit_layer_0_idx],
+              hits.x0[hit_layer_3_idx],
+              SciFi::LookingForward::Zone_zPos[8],
+              SciFi::LookingForward::Zone_zPos[11],
+              8);
+
             new_track_hits.UTTrackIndex = UT_track_index;
             new_track_hits.hitsNum = 0;
             new_track_hits.qop = updated_qop;
@@ -463,7 +472,10 @@ bool single_candidate_propagation(
 
   // do the propagation
   const auto x_at_layer_8 = hits.x0[candidate.hits[0]];
-  const auto reco_slope = (hits.x0[candidate.hits[1]] - x_at_layer_8) * SciFi::LookingForward::dz_x_layers_inverse;
+  const auto reco_slope = (hits.x0[candidate.hits[1]] - x_at_layer_8) /
+    (SciFi::LookingForward::Zone_zPos[candidate.layer[1]] -
+     SciFi::LookingForward::Zone_zPos[8]);
+
   const auto projection_x = scifi_propagation(
                               x_at_layer_8,
                               reco_slope,
@@ -482,7 +494,7 @@ bool single_candidate_propagation(
 
   // Pick the best, according to chi2
   int best_idx = -1;
-  float best_chi2 = chi2_extrap_mean + 2 * chi2_extrap_stddev;
+  float best_chi2 = chi2_extrap_mean + 2.f * chi2_extrap_stddev;
 
   // We need a new lambda to compare in chi2
   const auto chi2_fn = [&x_at_layer_8, &reco_slope, &candidate] (const float z) {
@@ -500,7 +512,7 @@ bool single_candidate_propagation(
 
   std::vector<float> z_coordinates {
     SciFi::LookingForward::Zone_zPos[8],
-    SciFi::LookingForward::Zone_zPos[11],
+    SciFi::LookingForward::Zone_zPos[candidate.layer[1]],
     SciFi::LookingForward::Zone_zPos[layer]};
 
   for (auto hit_index = std::get<0>(layer_candidates); hit_index != std::get<1>(layer_candidates); hit_index++) {
@@ -544,7 +556,10 @@ void single_track_propagation(
 
   // do the propagation
   const auto x_at_layer_8 = hits.x0[track.hits[0]];
-  const auto reco_slope = (hits.x0[track.hits[1]] - x_at_layer_8) * SciFi::LookingForward::dz_x_layers_inverse;
+  const auto reco_slope = (hits.x0[track.hits[1]] - x_at_layer_8) /
+    (SciFi::LookingForward::Zone_zPos[track.layer[1]] -
+     SciFi::LookingForward::Zone_zPos[8]);
+
   const auto projection_x = scifi_propagation(
                               x_at_layer_8,
                               reco_slope,
@@ -563,7 +578,7 @@ void single_track_propagation(
 
   // Pick the best, according to chi2
   int best_idx = -1;
-  float best_chi2 = chi2_extrap_mean + 2 * chi2_extrap_stddev;
+  float best_chi2 = chi2_extrap_mean + 2.f * chi2_extrap_stddev;
 
   // We need a new lambda to compare in chi2
   const auto chi2_fn = [&x_at_layer_8, &reco_slope, &track] (const float z) {
@@ -581,7 +596,7 @@ void single_track_propagation(
 
   std::vector<float> z_coordinates {
     SciFi::LookingForward::Zone_zPos[8],
-    SciFi::LookingForward::Zone_zPos[11],
+    SciFi::LookingForward::Zone_zPos[track.layer[1]],
     SciFi::LookingForward::Zone_zPos[layer]};
 
   for (auto hit_index = std::get<0>(layer_candidates); hit_index != std::get<1>(layer_candidates); hit_index++) {
