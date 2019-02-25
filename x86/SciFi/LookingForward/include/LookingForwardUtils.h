@@ -146,12 +146,20 @@ void single_track_propagation(
 
 float dx_calc(const MiniState& state, float qop, const SciFiWindowsParams& window_params);
 
-std::tuple<int, int> find_x_in_window(
+std::tuple<int, int> find_x_in_window_margin(
   const SciFi::Hits& hits,
-  const int num_hits,
   const int zone_offset,
-  const float x_min,
-  const float x_max);
+  const int num_hits,
+  const float value,
+  const float margin);
+
+std::tuple<int, int> find_x_in_window_margin(
+  const SciFi::Hits& hits,
+  const int zone_offset,
+  const int num_hits,
+  const float value0,
+  const float value1,
+  const float margin);
 
 float linear_propagation(float x_0, float tx, float dz);
 

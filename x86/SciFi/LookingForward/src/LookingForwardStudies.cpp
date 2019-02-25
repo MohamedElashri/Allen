@@ -95,14 +95,16 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   std::array<float, 6> window_dx;
   std::array<float, 6> window_flavio_dx;
   std::array<float, 6> real_dx;
-  std::array<float, 6> diff_dx;
+  std::array<float, 6> diff_window_dx;
+  std::array<float, 6> diff_window_flavio_dx;
 
   for (int i=0; i<6; ++i) {
     t_windows_x->Branch(("window_x" + std::to_string(i+1)).c_str(), (int*) &(window_size[i]));
     t_windows_x->Branch(("window_dx" + std::to_string(i+1)).c_str(), (float*) &(window_dx[i]));
     t_windows_x->Branch(("window_flavio_dx" + std::to_string(i+1)).c_str(), (float*) &(window_flavio_dx[i]));
     t_windows_x->Branch(("real_dx" + std::to_string(i+1)).c_str(), (float*) &(real_dx[i]));
-    t_windows_x->Branch(("diff_dx" + std::to_string(i+1)).c_str(), (float*) &(diff_dx[i]));
+    t_windows_x->Branch(("diff_window_dx" + std::to_string(i+1)).c_str(), (float*) &(diff_window_dx[i]));
+    t_windows_x->Branch(("diff_window_flavio_dx" + std::to_string(i+1)).c_str(), (float*) &(diff_window_flavio_dx[i]));
   }
 
   //  t_extrap_T1->Branch("xf", &xf_t1);
@@ -459,6 +461,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
       std::array<int, 2 * 6> windows_x;
       std::array<int, 6> layers {0, 3, 4, 7, 8, 11};
+      std::array<float, 6> layer_multiplier {0.6f, 0.65f, 0.7f, 0.8f, 0.8f, 0.9f};
       for (int i=0; i<6; ++i) {
         const auto layer = layers[i];
 
@@ -470,31 +473,51 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         const float xInZone = state_in_zone.x;
 
         // extrapolate dxRef (x window on reference plane) to plane of current zone
-        const float xTol = (zZone < SciFi::Tracking::zReference) ?
+        float xTol = (zZone < SciFi::Tracking::zReference) ?
                              dxRef * zZone / SciFi::Tracking::zReference :
                              dxRef * (zZone - zMag) / (SciFi::Tracking::zReference - zMag);
-        const float xMin = xInZone - xTol;
-        const float xMax = xInZone + xTol;
+        float flavio_dx = dx_calc(propagate_state_from_velo(UT_state, qop, layer), qop, window_params);
 
-        const auto window = find_x_in_window(
+        auto window = find_x_in_window_margin(
           scifi_hits,
           std::get<0>(offset_n_hits),
           std::get<1>(offset_n_hits),
-          xMin,
-          xMax);
+          xInZone,
+          xTol);
+
+        // const auto number_of_l0_candidates = std::get<1>(window) - std::get<0>(window);
+        // if (number_of_l0_candidates > 10) {
+        //   if (number_of_l0_candidates > 50) {
+        //     xTol *= 0.4f;
+        //   }
+        //   else {
+        //     const auto x = (0.025f * (number_of_l0_candidates - 10.f));
+        //     xTol *= 1.f - 0.6f * x * x;
+        //   }
+        //   // xTol *= layer_multiplier[i];
+
+        //   window = find_x_in_window_margin(
+        //     scifi_hits,
+        //     std::get<0>(offset_n_hits),
+        //     std::get<1>(offset_n_hits),
+        //     xInZone,
+        //     xTol);
+        // }
 
         windows_x[i*2] = std::get<0>(window);
         windows_x[i*2 + 1] = std::get<1>(window) - std::get<0>(window);
 
 
         window_dx[i] = xTol;
-        window_flavio_dx[i] = dx_calc(propagate_state_from_velo(UT_state, qop, layer), qop, window_params);
+        window_flavio_dx[i] = flavio_dx;
         real_dx[i] = 0;
-        diff_dx[i] = 0;
+        diff_window_dx[i] = 0;
+        diff_window_flavio_dx[i] = 0;
 
         if (true_scifi_indices_per_layer[layer] != 1) {
           real_dx[i] = scifi_hits.x0[true_scifi_indices_per_layer[layer]] - xInZone;
-          diff_dx[i] = xTol - std::abs(real_dx[i]);
+          diff_window_dx[i] = xTol - std::abs(real_dx[i]);
+          diff_window_flavio_dx[i] = window_flavio_dx[i] - std::abs(real_dx[i]);
         }
       }
 
@@ -514,7 +537,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         const auto layer = layers[i];
 
         if (true_scifi_indices_per_layer[layer] != -1) {
-          if (true_scifi_indices_per_layer[layer] > windows_x[2*i] ||
+          if (true_scifi_indices_per_layer[layer] > windows_x[2*i] &&
             true_scifi_indices_per_layer[layer] <= (windows_x[2*i] + windows_x[2*i+1])) {
             within_bounds[i] = true;
           }

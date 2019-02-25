@@ -94,12 +94,13 @@ std::tuple<int, int> get_u_or_v_layer_candidates(
     linear_propagation(hits.x0[hit_layer_0_idx], slope_layer_3_layer_0_maxx, dz) - dxdy * proj_state.y;
 
   const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(zone, hit_count, proj_state.y);
-  const auto layer_candidates = find_x_in_window(
+  const auto layer_candidates = find_x_in_window_margin(
     hits,
     std::get<0>(layer_offset_nhits),
     std::get<1>(layer_offset_nhits),
-    proj_state_minx - max_window,
-    proj_state_maxx + max_window);
+    proj_state_minx,
+    proj_state_maxx,
+    max_window);
 
   window_stats.emplace_back(
     Window_stat(Window_stat(std::get<1>(layer_candidates) - std::get<0>(layer_candidates), proj_state.x, max_window)));
@@ -195,12 +196,12 @@ bool select_hits(
 
     const auto layer0_offset_nhits = get_offset_and_n_hits_for_layer(16, hit_count, proj_state[0].y);
 
-    auto layer0_candidates = find_x_in_window(
+    auto layer0_candidates = find_x_in_window_margin(
       hits,
       std::get<0>(layer0_offset_nhits),
       std::get<1>(layer0_offset_nhits),
-      proj_state[0].x - dx_plane_0,
-      proj_state[0].x + dx_plane_0);
+      proj_state[0].x,
+      dx_plane_0);
 
     // No correction: 859422, 51.2702%
     // 10-40 linear: 608419, 49.0444%
@@ -222,12 +223,12 @@ bool select_hits(
         dx_plane_0 *= 1.f - 0.6f * x * x;
       }
 
-      layer0_candidates = find_x_in_window(
+      layer0_candidates = find_x_in_window_margin(
         hits,
         std::get<0>(layer0_offset_nhits),
         std::get<1>(layer0_offset_nhits),
-        proj_state[0].x - dx_plane_0,
-        proj_state[0].x + dx_plane_0);
+        proj_state[0].x,
+        dx_plane_0);
     }
 
     window_stats[0].emplace_back(
@@ -240,12 +241,12 @@ bool select_hits(
       // TODO check if this could be done only once, particles close to y 0 may cross the zone
       const auto layer3_offset_nhits = get_offset_and_n_hits_for_layer(22, hit_count, proj_state[3].y);
 
-      const auto layer3_candidates = find_x_in_window(
+      const auto layer3_candidates = find_x_in_window_margin(
         hits,
         std::get<0>(layer3_offset_nhits),
         std::get<1>(layer3_offset_nhits),
-        proj_state[3].x - window_params.max_window_layer3,
-        proj_state[3].x + window_params.max_window_layer3);
+        proj_state[3].x,
+        window_params.max_window_layer3);
 
       window_stats[3].emplace_back(Window_stat(Window_stat(
         std::get<1>(layer3_candidates) - std::get<0>(layer3_candidates),
@@ -487,12 +488,12 @@ bool single_candidate_propagation(
 
   const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(2 * layer, hit_count, projection_y);
 
-  const auto layer_candidates = find_x_in_window(
+  const auto layer_candidates = find_x_in_window_margin(
     hits,
     std::get<0>(layer_offset_nhits),
     std::get<1>(layer_offset_nhits),
-    projection_x - 3 * extrapolation_stddev,
-    projection_x + 3 * extrapolation_stddev);
+    projection_x,
+    3 * extrapolation_stddev);
 
   // Pick the best, according to chi2
   int best_idx = -1;
@@ -571,12 +572,12 @@ void single_track_propagation(
 
   const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(2 * layer, hit_count, projection_y);
 
-  const auto layer_candidates = find_x_in_window(
+  const auto layer_candidates = find_x_in_window_margin(
     hits,
     std::get<0>(layer_offset_nhits),
     std::get<1>(layer_offset_nhits),
-    projection_x - 3 * extrapolation_stddev,
-    projection_x + 3 * extrapolation_stddev);
+    projection_x,
+    3 * extrapolation_stddev);
 
   // Pick the best, according to chi2
   int best_idx = -1;
@@ -668,18 +669,29 @@ float get_chi_2(const std::vector<float>& x, const std::vector<float>& y, std::f
   return chi_2;
 }
 
-std::tuple<int, int> find_x_in_window(
+std::tuple<int, int> find_x_in_window_margin(
   const SciFi::Hits& hits,
   const int zone_offset,
   const int num_hits,
-  const float x_min,
-  const float x_max)
+  const float value,
+  const float margin)
 {
-  int first_candidate = binary_search_leftmost(hits.x0 + zone_offset, num_hits, x_min);
+  return find_x_in_window_margin(hits, zone_offset, num_hits, value, value, margin);
+}
+
+std::tuple<int, int> find_x_in_window_margin(
+  const SciFi::Hits& hits,
+  const int zone_offset,
+  const int num_hits,
+  const float value0,
+  const float value1,
+  const float margin)
+{
+  int first_candidate = binary_search_first_candidate(hits.x0 + zone_offset, num_hits, value0, margin);
   int last_candidate = -1;
 
   if (first_candidate != -1) {
-    last_candidate = binary_search_leftmost(hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, x_max);
+    last_candidate = binary_search_second_candidate(hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, value1, margin);
 
     first_candidate = zone_offset + first_candidate;
     last_candidate = last_candidate != -1 ? first_candidate + last_candidate + 1 : -1;
