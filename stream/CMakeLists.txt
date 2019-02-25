@@ -38,6 +38,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/find_seeds/in
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_first_layer_window/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_second_layer_window/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/form_seeds_from_candidates/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_candidate_extrapolation_window/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extrapolate_candidates/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)

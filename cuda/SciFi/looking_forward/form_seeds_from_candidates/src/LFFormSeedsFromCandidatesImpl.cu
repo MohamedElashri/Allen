@@ -5,7 +5,7 @@ using namespace LookingForward;
 __device__ void lf_form_seeds_from_candidates_impl(
   const MiniState& velo_ut_state,
   const float ut_qop,
-  const unsigned short rel_ut_track_index,
+  const uint16_t rel_ut_track_index,
   const SciFi::Hits& hits,
   const SciFi::HitCount& hit_count,
   const float* looking_forward_constants,
@@ -81,19 +81,20 @@ __device__ void lf_form_seeds_from_candidates_impl(
       if (
         number_of_hits > track_candidates[worst_candidate].hitsNum ||
         (number_of_hits == track_candidates[worst_candidate].hitsNum && quality < track_candidates[worst_candidate].quality)) {
-        track_candidates[worst_candidate] = SciFi::TrackCandidate {(short) (hit_layer_0 - hit_count.event_offset()),
-                                                 (short) (hit_layer_3 - hit_count.event_offset()),
-                                                 rel_ut_track_index,
-                                                 ut_qop};
+        track_candidates[worst_candidate] = SciFi::TrackCandidate {
+          (uint16_t) (hit_layer_0 - hit_count.event_offset()),
+          (uint16_t) (hit_layer_3 - hit_count.event_offset()),
+          rel_ut_track_index,
+          ut_qop};
 
         if (std::get<0>(hit_layer_1_idx_chi2) != -1) {
           track_candidates[worst_candidate].add_hit_with_quality(
-            (short) (std::get<0>(hit_layer_1_idx_chi2) - hit_count.event_offset()), std::get<1>(hit_layer_1_idx_chi2));
+            (uint16_t) (std::get<0>(hit_layer_1_idx_chi2) - hit_count.event_offset()), std::get<1>(hit_layer_1_idx_chi2));
         }
 
         if (std::get<0>(hit_layer_2_idx_chi2) != -1) {
           track_candidates[worst_candidate].add_hit_with_quality(
-            ((short) std::get<0>(hit_layer_2_idx_chi2) - hit_count.event_offset()), std::get<1>(hit_layer_2_idx_chi2));
+            (uint16_t) (std::get<0>(hit_layer_2_idx_chi2) - hit_count.event_offset()), std::get<1>(hit_layer_2_idx_chi2));
         }
       }
     }

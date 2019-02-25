@@ -46,6 +46,7 @@ namespace LookingForward {
   // z distance between various layers of a station
   constexpr float dz_layers_station = 70. * Gaudi::Units::mm;
   constexpr float dz_x_layers = 3.f * dz_layers_station;
+  constexpr float inverse_dz_x_layers = 1.f / dz_x_layers;
   constexpr float dz_x_u_layers = 1.f * dz_layers_station;
   constexpr float dz_u_v_layers = 1.f * dz_layers_station;
   constexpr float dz_x_v_layers = 2.f * dz_layers_station;
@@ -81,7 +82,16 @@ namespace LookingForward {
   constexpr float yDownMin = -3030.f;
   constexpr float yDownMax = 50.f;
 
+  // Parameter for forwarding through SciFi layers
+  constexpr float forward_param = 2.41902127e-02;
+  constexpr float chi2_track_mean = 6.78f;
+  constexpr float chi2_track_stddev = 45.28f;
+
   struct Constants {
+    float extrapolation_stddev [8] {3.63f, 3.73f, 3.51f, 2.99f, 1.50f, 2.34f, 2.30f, 1.f};
+    float chi2_extrap_mean   [8] {13.21f, 13.93f, 12.34f,  8.96f,  2.29f,  5.52f, 5.35f, 1.03f};
+    float chi2_extrap_stddev [8] {116.5f, 104.5f, 98.35f, 80.66f, 24.11f, 35.91f, 36.7f, 9.72f};
+    
     float Zone_zPos[12] = {7826., 7896., 7966., 8036., 8508., 8578., 8648., 8718., 9193., 9263., 9333., 9403.};
 
     float zMagnetParams[4] = {5212.38, 406.609, -1102.35, -498.039};

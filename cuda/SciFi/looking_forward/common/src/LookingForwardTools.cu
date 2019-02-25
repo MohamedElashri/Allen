@@ -128,3 +128,8 @@ __device__ std::tuple<int, float> LookingForward::get_best_hit(
 
   return {best_index, min_chi2};
 }
+
+__device__ float LookingForward::scifi_propagation(const float x_0, const float tx, const float qop, const float dz)
+{
+  return linear_propagation(x_0, tx, dz) + LookingForward::forward_param * qop * dz * dz;
+}

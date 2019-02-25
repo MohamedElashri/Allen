@@ -16,6 +16,8 @@ namespace LookingForward {
 
   __device__ float linear_propagation(float x_0, float tx, float dz);
 
+  __device__ float scifi_propagation(const float x_0, const float tx, const float qop, const float dz);
+
   __device__ MiniState propagate_state_from_velo(
     const MiniState& UT_state,
     float qop,
@@ -66,6 +68,71 @@ namespace LookingForward {
     const T&... pairs)
   {
     return chi2_impl<std::tuple<T...>>::calculate(m, q, pairs...);
+  }
+
+  // // We need a new lambda to compare in chi2
+  // const auto chi2_fn = [&x_at_layer_8, &reco_slope, &candidate] (const float z) {
+  //   return scifi_propagation(
+  //     x_at_layer_8,
+  //     reco_slope,
+  //     candidate.qop,
+  //     z - SciFi::LookingForward::Zone_zPos[8]);
+  // };
+  
+  /**
+   * @brief Variadic templated chi2.
+   */
+  template<typename Pairs>
+  struct chi2_extrapolation_impl;
+
+  template<>
+  struct chi2_extrapolation_impl<std::tuple<>> {
+    __device__ constexpr static float calculate(
+      const float x_at_layer_8,
+      const float z_at_layer_8,
+      const float reco_slope,
+      const float qop)
+    {
+      return 0.f;
+    }
+  };
+
+  template<typename X, typename Y, typename... Pairs>
+  struct chi2_extrapolation_impl<std::tuple<std::tuple<X, Y>, Pairs...>> {
+    __device__ constexpr static float calculate(
+      const float x_at_layer_8,
+      const float z_at_layer_8,
+      const float reco_slope,
+      const float qop,
+      std::tuple<X, Y> pair,
+      Pairs... pairs)
+    {
+      const auto expected_y = scifi_propagation(
+        x_at_layer_8,
+        reco_slope,
+        candidate.qop,
+        std::get<0>(pair) - SciFi::LookingForward::Zone_zPos[8]);
+
+      const auto contribution = (std::get<1>(pair) - expected_y) * (std::get<1>(pair) - expected_y);
+      return chi2_extrapolation_impl<std::tuple<Pairs...>>::calculate(
+        x_at_layer_8,
+        z_at_layer_8,
+        reco_slope,
+        qop,
+        pairs...) + contribution;
+    }
+  };
+  
+  template<typename... T>
+  __device__ constexpr float chi2_extrapolation(
+    const float x_at_layer_8,
+    const float z_at_layer_8,
+    const float reco_slope,
+    const float qop,
+    const T&... pairs)
+  {
+    return chi2_extrapolation_impl<std::tuple<T...>>::calculate(
+      x_at_layer_8, z_at_layer_8, reco_slope, qop, pairs...);
   }
 
   __device__ std::tuple<int, float> get_best_hit(
