@@ -74,9 +74,6 @@ struct CheckerInvoker {
             // Find this MCP
             for ( const auto mcp : mc_event.scifi_mcps ) {
               if ( mcp.key == key ) {
-                // only use pi (211), K (321), mu (13) for studies
-                if ( std::abs(mcp.pid) != 13 && std::abs(mcp.pid) != 211 && std::abs(mcp.pid) != 321 )
-                  break;
                 // mu- (13): positive PID
                 float charge;
                 if ( std::abs(mcp.pid) == 13 ) { 

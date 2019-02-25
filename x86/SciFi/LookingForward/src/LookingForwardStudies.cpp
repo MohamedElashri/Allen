@@ -1,4 +1,5 @@
 #include "LookingForwardStudies.h"
+#include "TrackUtils.cuh"
 
 #define WITH_ROOT 1
 
@@ -40,6 +41,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   TTree* t_ut_tracks = new TTree("ut_tracks", "ut_tracks");
   TTree* t_other_x_layer_t1 = new TTree("other_x_layer_T1", "other_x_layer_T1");
   TTree* t_other_x_layer_t3 = new TTree("other_x_layer_T3", "other_x_layer_T3");
+  TTree* t_windows_x = new TTree("windows_x", "windows_x");
   // TTree* t_extrapolation_tracks = new TTree("extrapolation_tracks", "extrapolation_tracks");
 
   uint planeCode, LHCbID;
@@ -88,6 +90,20 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   t_scifi_hits->Branch("dzdy", &dzdy);
   t_scifi_hits->Branch("yMin", &yMin);
   t_scifi_hits->Branch("yMax", &yMax);
+
+  std::array<int, 6> window_size;
+  std::array<float, 6> window_dx;
+  std::array<float, 6> window_flavio_dx;
+  std::array<float, 6> real_dx;
+  std::array<float, 6> diff_dx;
+
+  for (int i=0; i<6; ++i) {
+    t_windows_x->Branch(("window_x" + std::to_string(i+1)).c_str(), (int*) &(window_size[i]));
+    t_windows_x->Branch(("window_dx" + std::to_string(i+1)).c_str(), (float*) &(window_dx[i]));
+    t_windows_x->Branch(("window_flavio_dx" + std::to_string(i+1)).c_str(), (float*) &(window_flavio_dx[i]));
+    t_windows_x->Branch(("real_dx" + std::to_string(i+1)).c_str(), (float*) &(real_dx[i]));
+    t_windows_x->Branch(("diff_dx" + std::to_string(i+1)).c_str(), (float*) &(diff_dx[i]));
+  }
 
   //  t_extrap_T1->Branch("xf", &xf_t1);
   //  t_extrap_T1->Branch("yf", &yf_t1);
@@ -411,18 +427,118 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       window_params.max_window_layer3 = 20;
       window_params.chi2_cut = 4;
 
-      // Find track seeds
-      bool track_match;
-      track_match = select_hits(
-        UT_state,
-        ut_tracks.qop[i_veloUT_track],
-        i_veloUT_track,
-        scifi_hits,
-        scifi_hit_count,
-        3,
-        track_candidates,
-        window_stats,
-        window_params);
+      // // Find track seeds
+      // bool track_match;
+      // track_match = select_hits(
+      //   UT_state,
+      //   ut_tracks.qop[i_veloUT_track],
+      //   i_veloUT_track,
+      //   scifi_hits,
+      //   scifi_hit_count,
+      //   3,
+      //   track_candidates,
+      //   window_stats,
+      //   window_params);
+
+      // In order to determine side
+      const float y_projection = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[0]);
+
+      const float zRef_track = SciFi::Tracking::zReference;
+      const float xAtRef = xFromVelo(zRef_track, UT_state);
+      const float xParams_seed[2] = {xAtRef, UT_state.tx};
+      const float dxRef = 0.9f * calcDxRef(SciFi::Tracking::minPt, UT_state);
+
+      const float zMag =
+        SciFi::LookingForward::zMagnetParams[0] + SciFi::LookingForward::zMagnetParams[2] * UT_state.tx * UT_state.tx +
+        SciFi::LookingForward::zMagnetParams[3] * UT_state.ty * UT_state.ty;
+
+      const float q = qop > 0.f ? 1.f : -1.f;
+      const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
+      const float slope2 = UT_state.tx * UT_state.tx + UT_state.ty * UT_state.ty;
+      const float pt = sqrtf(fabsf(1.f / (qop * qop))) * (slope2) / (1.f + slope2);
+
+      std::array<int, 2 * 6> windows_x;
+      std::array<int, 6> layers {0, 3, 4, 7, 8, 11};
+      for (int i=0; i<6; ++i) {
+        const auto layer = layers[i];
+
+        const auto offset_n_hits = get_offset_and_n_hits_for_layer(2*layer, scifi_hit_count, y_projection);
+        const float zZone = SciFi::LookingForward::Zone_zPos[layer];
+        // const float dz = zZone - SciFi::Tracking::zReference;
+        // const float xInZone_original = xParams_seed[0] + xParams_seed[1] * dz;
+        const auto state_in_zone = propagate_state_from_velo(UT_state, qop, layers[i]);
+        const float xInZone = state_in_zone.x;
+
+        // extrapolate dxRef (x window on reference plane) to plane of current zone
+        const float xTol = (zZone < SciFi::Tracking::zReference) ?
+                             dxRef * zZone / SciFi::Tracking::zReference :
+                             dxRef * (zZone - zMag) / (SciFi::Tracking::zReference - zMag);
+        const float xMin = xInZone - xTol;
+        const float xMax = xInZone + xTol;
+
+        const auto window = find_x_in_window(
+          scifi_hits,
+          std::get<0>(offset_n_hits),
+          std::get<1>(offset_n_hits),
+          xMin,
+          xMax);
+
+        windows_x[i*2] = std::get<0>(window);
+        windows_x[i*2 + 1] = std::get<1>(window) - std::get<0>(window);
+
+
+        window_dx[i] = xTol;
+        window_flavio_dx[i] = dx_calc(propagate_state_from_velo(UT_state, qop, layer), qop, window_params);
+        real_dx[i] = 0;
+        diff_dx[i] = 0;
+
+        if (true_scifi_indices_per_layer[layer] != 1) {
+          real_dx[i] = scifi_hits.x0[true_scifi_indices_per_layer[layer]] - xInZone;
+          diff_dx[i] = xTol - std::abs(real_dx[i]);
+        }
+      }
+
+      for (int i=0; i<6; ++i) {
+        window_size[i] = windows_x[i*2 + 1];
+      }
+      t_windows_x->Fill();
+
+      // info_cout << "Windows for track #" << i_veloUT_track << std::endl;
+      // for (int i=0; i<6; ++i) {
+      //   info_cout << " (" << windows_x[i*2] << ", " << windows_x[i*2+1] << ")" << std::endl;
+      // }
+
+      // Create SciFi track if it is within the windows
+      std::array<bool, 6> within_bounds {false, false, false, false, false, false};
+      for (int i=0; i<6; ++i) {
+        const auto layer = layers[i];
+
+        if (true_scifi_indices_per_layer[layer] != -1) {
+          if (true_scifi_indices_per_layer[layer] > windows_x[2*i] ||
+            true_scifi_indices_per_layer[layer] <= (windows_x[2*i] + windows_x[2*i+1])) {
+            within_bounds[i] = true;
+          }
+        }
+      }
+
+      // Check for triplets
+      const bool triplet_0 = within_bounds[0] && within_bounds[1] && within_bounds[2];
+      const bool triplet_1 = within_bounds[3] && within_bounds[1] && within_bounds[2];
+      const bool triplet_2 = within_bounds[3] && within_bounds[4] && within_bounds[2];
+      const bool triplet_3 = within_bounds[3] && within_bounds[4] && within_bounds[5];
+      if (triplet_0 || triplet_1 || triplet_2 || triplet_3) {
+        SciFi::TrackHits candidate;
+        candidate.UTTrackIndex = i_veloUT_track;
+
+        for (int i=0; i<12; ++i) {
+          if (true_scifi_indices_per_layer[i] != -1) {
+            candidate.addHit(true_scifi_indices_per_layer[i]);
+          }
+        }
+
+        scifi_tracks.push_back(candidate);
+      }
+
 
       // // Fetch real track seeds
       // if (true_scifi_indices_per_layer[8] != -1 &&
@@ -462,56 +578,56 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       //   // scifi_tracks.push_back(candidate);
       // }
 
-      std::vector<bool> extrapolated_track_candidates (track_candidates.size(), false);
+      // std::vector<bool> extrapolated_track_candidates (track_candidates.size(), false);
 
-      // Extrapolate from candidates into tracks
-      propagate_candidates(
-        7,
-        scifi_hits,
-        scifi_hit_count,
-        UT_state,
-        track_candidates,
-        extrapolated_track_candidates,
-        scifi_tracks,
-        window_params);
+      // // Extrapolate from candidates into tracks
+      // propagate_candidates(
+      //   7,
+      //   scifi_hits,
+      //   scifi_hit_count,
+      //   UT_state,
+      //   track_candidates,
+      //   extrapolated_track_candidates,
+      //   scifi_tracks,
+      //   window_params);
 
-      // Extrapolate scifi tracks
-      propagate_tracks(
-        6,
-        scifi_hits,
-        scifi_hit_count,
-        UT_state,
-        scifi_tracks,
-        window_params);
+      // // Extrapolate scifi tracks
+      // propagate_tracks(
+      //   6,
+      //   scifi_hits,
+      //   scifi_hit_count,
+      //   UT_state,
+      //   scifi_tracks,
+      //   window_params);
 
-      // Extrapolate from candidates into tracks
-      // Only extrapolate those candidates that were
-      // not extrapolated to layer 7
-      // Note: Maybe not needed
-      propagate_candidates(
-        6,
-        scifi_hits,
-        scifi_hit_count,
-        UT_state,
-        track_candidates,
-        extrapolated_track_candidates,
-        scifi_tracks,
-        window_params);
+      // // Extrapolate from candidates into tracks
+      // // Only extrapolate those candidates that were
+      // // not extrapolated to layer 7
+      // // Note: Maybe not needed
+      // propagate_candidates(
+      //   6,
+      //   scifi_hits,
+      //   scifi_hit_count,
+      //   UT_state,
+      //   track_candidates,
+      //   extrapolated_track_candidates,
+      //   scifi_tracks,
+      //   window_params);
 
-      for (int i=5; i>=0; --i) {
-        // Extrapolate scifi tracks
-        propagate_tracks(
-          i,
-          scifi_hits,
-          scifi_hit_count,
-          UT_state,
-          scifi_tracks,
-          window_params);
-      }
+      // for (int i=5; i>=0; --i) {
+      //   // Extrapolate scifi tracks
+      //   propagate_tracks(
+      //     i,
+      //     scifi_hits,
+      //     scifi_hit_count,
+      //     UT_state,
+      //     scifi_tracks,
+      //     window_params);
+      // }
 
       // Populate trackhits
       for (auto& t : scifi_tracks) {
-        if (t.hitsNum >= 10) {
+        if (t.hitsNum >= 9) {
           // // Prepare chi2 cut
           // const auto x_at_layer_8 = scifi_hits.x0[t.hits[0]];
           // const auto x_at_layer_11 = scifi_hits.x0[t.hits[1]];
@@ -739,7 +855,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       }
     } // extrapolation to T3 worked
 
-    info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
+    // info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
 
     trackhits.emplace_back(event_trackhits);
 
