@@ -273,7 +273,7 @@ namespace SciFi {
       quality += chi2;
     }
 
-    __host__ __device__ float get_quality() {
+    __host__ __device__ float get_quality() const {
       assert(hitsNum > 2);
       return quality / ((float) hitsNum - 2);
     }

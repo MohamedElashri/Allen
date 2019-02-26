@@ -52,6 +52,7 @@
 #include "LFCalculateCandidateExtrapolationWindow.cuh"
 #include "LFPromoteCandidates.cuh"
 #include "LFCalculateTrackExtrapolationWindow.cuh"
+#include "LFExtendTracks.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

@@ -148,6 +148,7 @@ include_directories(cuda/SciFi/looking_forward/form_seeds_from_candidates/includ
 include_directories(cuda/SciFi/looking_forward/calculate_candidate_extrapolation_window/include)
 include_directories(cuda/SciFi/looking_forward/promote_candidates/include)
 include_directories(cuda/SciFi/looking_forward/calculate_track_extrapolation_window/include)
+include_directories(cuda/SciFi/looking_forward/extend_tracks/include)
 include_directories(cuda/SciFi/PrForward/include)
 include_directories(cuda/SciFi/consolidate/include)
 include_directories(cuda/muon/common/include)

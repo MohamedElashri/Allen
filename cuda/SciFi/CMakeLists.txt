@@ -7,6 +7,7 @@ file(GLOB scifi_lf_form_seeds_from_candidates "looking_forward/form_seeds_from_c
 file(GLOB scifi_lf_calculate_candidate_extrapolation_window "looking_forward/calculate_candidate_extrapolation_window/src/*cu")
 file(GLOB scifi_lf_promote_candidates "looking_forward/promote_candidates/src/*cu")
 file(GLOB scifi_lf_calculate_track_extrapolation_window "looking_forward/calculate_track_extrapolation_window/src/*cu")
+file(GLOB scifi_lf_extend_tracks "looking_forward/extend_tracks/src/*cu")
 file(GLOB scifi_prforward "PrForward/src/*cu")
 file(GLOB scifi_consolidate "consolidate/src/*cu")
 
@@ -34,6 +35,7 @@ include_directories(looking_forward/form_seeds_from_candidates/include)
 include_directories(looking_forward/calculate_candidate_extrapolation_window/include)
 include_directories(looking_forward/promote_candidates/include)
 include_directories(looking_forward/calculate_track_extrapolation_window/include)
+include_directories(looking_forward/extend_tracks/include)
 include_directories(PrForward/include)
 include_directories(consolidate/include)
 
@@ -47,6 +49,7 @@ add_library(SciFi STATIC
   ${scifi_lf_calculate_candidate_extrapolation_window}
   ${scifi_lf_promote_candidates}
   ${scifi_lf_calculate_track_extrapolation_window}
+  ${scifi_lf_extend_tracks}
   ${scifi_prforward}
   ${scifi_consolidate}
 )
