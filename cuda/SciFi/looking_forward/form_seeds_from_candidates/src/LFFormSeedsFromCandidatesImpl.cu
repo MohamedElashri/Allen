@@ -81,6 +81,7 @@ __device__ void lf_form_seeds_from_candidates_impl(
       if (
         number_of_hits > track_candidates[worst_candidate].hitsNum ||
         (number_of_hits == track_candidates[worst_candidate].hitsNum && quality < track_candidates[worst_candidate].quality)) {
+
         track_candidates[worst_candidate] = SciFi::TrackCandidate {
           (uint16_t) (hit_layer_0 - hit_count.event_offset()),
           (uint16_t) (hit_layer_3 - hit_count.event_offset()),
@@ -106,10 +107,6 @@ __device__ void lf_form_seeds_from_candidates_impl(
 
       // There is an upper limit to the tracks we can insert
       if (current_insert_index < SciFi::Constants::max_track_candidates) {
-        if (blockIdx.x == 1) {
-          printf("candidate %i, %i, %i\n", track_candidates[i].hits[0], 
-            track_candidates[i].hits[1], track_candidates[i].hits[2]);
-        }
         scifi_track_candidates[current_insert_index] = track_candidates[i];
       }
     }
