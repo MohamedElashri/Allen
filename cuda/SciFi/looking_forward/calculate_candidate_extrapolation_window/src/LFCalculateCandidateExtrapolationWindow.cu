@@ -26,7 +26,7 @@ __global__ void lf_calculate_candidate_extrapolation_window(
   SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
 
   // SciFi un-consolidated track types
-  int number_of_candidates = *(dev_atomics_scifi + event_number);
+  const int number_of_candidates = dev_atomics_scifi[event_number];
 
   // Only proceed if we have candidates in the first window
   for (int i=threadIdx.x; i<number_of_candidates; i+=blockDim.x) {

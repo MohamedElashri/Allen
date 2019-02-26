@@ -44,6 +44,7 @@ SEQUENCE_T(
   lf_form_seeds_from_candidates_t,
   lf_calculate_candidate_extrapolation_window_t,
   lf_promote_candidates_t,
+  lf_calculate_track_extrapolation_window_t,
 
   cpu_scifi_momentum_forward_t,
   // copy_and_prefix_sum_single_block_scifi_t,
