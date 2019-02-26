@@ -120,7 +120,6 @@ std::tuple<int, float> select_best_u_or_v_hit(
   const std::tuple<int, int>& layer_candidates,
   const SciFiWindowsParams& window_params)
 {
-
   proj_state[layer].x =
     linear_propagation(hits.x0[hit_layer_0_idx], slope_layer_3_layer_0, dz) - dxdy * proj_state[layer].y;
 
@@ -725,7 +724,8 @@ std::tuple<int, float> get_best_hit(
 
   best_idx = -1;
   min_chi2 = window_params.chi2_cut;
-  for (auto hit_layer_idx = std::get<0>(layer_candidates); hit_layer_idx != std::get<1>(layer_candidates);
+  for (auto hit_layer_idx = std::get<0>(layer_candidates);
+       hit_layer_idx != std::get<1>(layer_candidates);
        hit_layer_idx++) {
     x_coordinates[1] = hits.x0[hit_layer_idx] + proj_states[layer].y * SciFi::LookingForward::Zone_dxdy[layer];
     chi_2 = get_chi_2(z_coordinates, x_coordinates, [m, q](float x) { return m * x + q; });
