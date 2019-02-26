@@ -5,6 +5,9 @@
 
 namespace SciFi {
   namespace LookingForward {
+    // more Parametrizations
+    constexpr float xParams[2] = {18.6195, -5.55793};
+
     constexpr float Zone_zPos[12] =
       {7826., 7896., 7966., 8036., 8508., 8578., 8648., 8718., 9193., 9263., 9333., 9403.};
 

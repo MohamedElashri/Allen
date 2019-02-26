@@ -270,8 +270,10 @@ __host__ __device__ void selectXCandidates(
   while (it1 < itEnd) {
     // find next unused Hits
     assert(it1 < n_x_hits);
-    while (it1 + pars.minXHits - 1 < itEnd && usedHits[it1])
+    while (it1 + pars.minXHits - 1 < itEnd && usedHits[it1]) {
       ++it1;
+    }
+
     it2 = it1 + pars.minXHits;
     if (it2 > itEnd) break;
     assert(it2 - 1 < n_x_hits);
@@ -282,7 +284,9 @@ __host__ __device__ void selectXCandidates(
     // Second part of 1D Hough transform:
     // find a cluster of x positions on the reference plane that are close to each other
     // TODO better xWindow calculation?? how to tune this???
-    const float xWindow = pars.maxXWindow + (fabsf(coordX[it1]) + fabsf(coordX[it1] - xTrack)) * pars.maxXWindowSlope;
+    const float xWindow = pars.maxXWindow + 
+      (fabsf(coordX[it1]) + fabsf(coordX[it1] - xTrack)) * pars.maxXWindowSlope;
+
     if ((coordX[it2 - 1] - coordX[it1]) > xWindow) {
       ++it1;
       continue;

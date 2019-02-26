@@ -1,5 +1,7 @@
 #include "LookingForwardStudies.h"
 #include "TrackUtils.cuh"
+#include <numeric>
+#include <iomanip>
 
 #define WITH_ROOT 1
 
@@ -249,6 +251,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   int number_of_track_candidates_after_station_2 = 0;
 
   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
+    info_cout << std::endl << "Event #" << i_event << std::endl;
     // Tracks found for this event
     std::vector<SciFi::TrackHits> event_trackhits;
 
@@ -456,12 +459,11 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
       const float q = qop > 0.f ? 1.f : -1.f;
       const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
-      const float slope2 = UT_state.tx * UT_state.tx + UT_state.ty * UT_state.ty;
-      const float pt = sqrtf(fabsf(1.f / (qop * qop))) * (slope2) / (1.f + slope2);
+      // const float slope2 = UT_state.tx * UT_state.tx + UT_state.ty * UT_state.ty;
+      // const float pt = sqrtf(fabsf(1.f / (qop * qop))) * (slope2) / (1.f + slope2);
 
       std::array<int, 2 * 6> windows_x;
       std::array<int, 6> layers {0, 3, 4, 7, 8, 11};
-      std::array<float, 6> layer_multiplier {0.6f, 0.65f, 0.7f, 0.8f, 0.8f, 0.9f};
       for (int i=0; i<6; ++i) {
         const auto layer = layers[i];
 
@@ -520,6 +522,131 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           diff_window_flavio_dx[i] = window_flavio_dx[i] - std::abs(real_dx[i]);
         }
       }
+
+      // We have in window all windows for x layers
+      // Save in coordX all extrapolated hits in the above windows
+      std::vector<float> coordX;
+      std::vector<int8_t> monte_carlo_particles;
+      std::vector<uint8_t> hit_layers;
+      
+      for (int i=0; i<6; ++i) {
+        const auto window_start = windows_x[2*i];
+        const auto window_size = windows_x[2*i+1];
+
+        if (window_size > 0) {
+          const float zHit = scifi_hits.z0[window_start];
+          const float xFromVelo_Hit = xParams_seed[0] + xParams_seed[1] * zHit;
+          const float dSlopeDivPart = 1.f / (zHit - SciFi::LookingForward::zMagnetParams[0]);
+          const float dz = 1.e-3f * (zHit - SciFi::Tracking::zReference);
+
+          for (int j=0; j<window_size; ++j) {
+            const auto hit_index = window_start + j;
+
+            // TODO: Put in check for UV
+
+            float xHit = scifi_hits.x0[hit_index];
+            float dSlope = (xFromVelo_Hit - xHit) * dSlopeDivPart;
+            float zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
+            float xMag = xFromVelo_Hit + UT_state.tx * (zMag_corrected - zHit);
+
+            // calculate x position on reference plane (save in coodX)
+            // dxCoef: account for additional bending of track due to fringe field in first station
+            // expressed by quadratic and cubic term in z
+            float dxCoef = dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1]) * dSlope;
+            float ratio = (SciFi::Tracking::zReference - zMag_corrected) / (zHit - zMag_corrected);
+            coordX.emplace_back(xMag + ratio * (xHit + dxCoef - xMag));
+            hit_layers.emplace_back(0x1 << (6 - i));
+            if (std::find(true_scifi_indices.begin(), true_scifi_indices.end(), hit_index) != true_scifi_indices.end()) {
+              monte_carlo_particles.emplace_back(1);
+            } else {
+              monte_carlo_particles.emplace_back(0);
+            }
+          }
+        }
+      }
+
+      // // Print coordX
+      // int counter = 0;
+      // for (int i=0; i<6; ++i) {
+      //   const auto window_size = windows_x[2*i+1];
+      //   info_cout << "Window " << i << ": ";
+      //   for (int j = 0; j<window_size; ++j) {
+      //     const auto index = counter + j;
+      //     info_cout << coordX[index] << ", ";
+      //   }
+      //   info_cout << std::endl;
+      //   counter += window_size;
+      // }
+      
+      // Get sorted keys, sort coordX
+      std::vector<int> keys (coordX.size());
+      std::iota(keys.begin(), keys.end(), 0);      
+      std::sort(keys.begin(), keys.end(), [&coordX](const int a, const int b) {
+        return coordX[a] < coordX[b];
+      });
+
+      // // Check the distance of our MC particles in the Hough
+      // info_cout << "MC particle indices locations (presort): ";
+      // for (int i=0; i<monte_carlo_particles.size(); ++i) {
+      //   if (monte_carlo_particles[i] == 1) {
+      //     info_cout << i << ", ";
+      //   }
+      // }
+      // info_cout << std::endl;
+
+      std::sort(coordX.begin(), coordX.end());
+
+      decltype(monte_carlo_particles) sorted_monte_carlo_particles (monte_carlo_particles.size());
+      for (int i=0; i<monte_carlo_particles.size(); ++i) {
+        sorted_monte_carlo_particles[i] = monte_carlo_particles[keys[i]];
+      }
+      monte_carlo_particles = sorted_monte_carlo_particles;
+
+      decltype(hit_layers) sorted_hit_layers (hit_layers.size());
+      for (int i=0; i<hit_layers.size(); ++i) {
+        sorted_hit_layers[i] = hit_layers[keys[i]];
+      }
+      hit_layers = sorted_hit_layers;
+
+
+      if (true_scifi_indices.size() >= 9) {
+        // Check the distance of our MC particles in the Hough
+        info_cout << "MC particle indices locations: ";
+        for (int i=0; i<monte_carlo_particles.size(); ++i) {
+          if (monte_carlo_particles[i] == 1) {
+            info_cout << i << ", ";
+          }
+        }
+        // info_cout << "(" << std::setprecision(4) << std::scientific << p_true << ")" << std::endl;
+        info_cout << std::endl;
+      }
+
+      int times_condition_is_met = 0;
+      for (int i=0; i<coordX.size(); ++i) {
+        const auto j = i+6;
+
+        if (j < coordX.size()) {
+          bool has_any_mc_index = false;
+          for (int k=i; k<j; ++k) {
+            has_any_mc_index |= monte_carlo_particles[k];
+          }
+
+          if (!has_any_mc_index) {
+            bool condition_is_met = false;
+            uint different_layers = 0;
+            for (int k=i; k<j; ++k) {
+              different_layers |= hit_layers[k];
+            }
+            int number_of_layers = __builtin_popcount(different_layers);
+            // info_cout << number_of_layers << ", " << std::flush;
+            if (number_of_layers >= 4) {
+              times_condition_is_met++;
+            }
+          }
+        }
+      }
+
+      // info_cout << "Times condition is met: " << times_condition_is_met << std::endl;
 
       for (int i=0; i<6; ++i) {
         window_size[i] = windows_x[i*2 + 1];
