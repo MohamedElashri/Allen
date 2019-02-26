@@ -30,8 +30,16 @@ namespace LookingForward {
     const SciFi::Hits& hits,
     const int zone_offset,
     const int num_hits,
-    const float x_min,
-    const float x_max);
+    const float value,
+    const float margin);
+
+  __device__ std::tuple<int, int> find_x_in_window(
+    const SciFi::Hits& hits,
+    const int zone_offset,
+    const int num_hits,
+    const float value0,
+    const float value1,
+    const float margin);
 
   // access hits from a layer
   // first zone number: y < 0
@@ -110,8 +118,8 @@ namespace LookingForward {
       const auto expected_y = scifi_propagation(
         x_at_layer_8,
         reco_slope,
-        candidate.qop,
-        std::get<0>(pair) - SciFi::LookingForward::Zone_zPos[8]);
+        qop,
+        std::get<0>(pair) - z_at_layer_8);
 
       const auto contribution = (std::get<1>(pair) - expected_y) * (std::get<1>(pair) - expected_y);
       return chi2_extrapolation_impl<std::tuple<Pairs...>>::calculate(

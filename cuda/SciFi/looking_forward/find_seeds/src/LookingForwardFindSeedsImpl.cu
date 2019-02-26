@@ -44,8 +44,8 @@ __device__ void looking_forward_find_seeds_impl(
       hits,
       std::get<0>(layer0_offset_nhits),
       std::get<1>(layer0_offset_nhits),
-      proj_states[0].x - dx_plane_0,
-      proj_states[0].x + dx_plane_0);
+      proj_states[0].x,
+      dx_plane_0);
 
     // track_candidate.window_stats[8].emplace_back(Window_stat(max_it[0] - min_it[0], x_proj[0], dx_plane_0));
     for (auto hit_layer_0_it = std::get<0>(layer0_candidates);
@@ -60,8 +60,8 @@ __device__ void looking_forward_find_seeds_impl(
         hits,
         std::get<0>(layer3_offset_nhits),
         std::get<1>(layer3_offset_nhits),
-        proj_states[3].x - LookingForward::max_window_layer3,
-        proj_states[3].x + LookingForward::max_window_layer3);
+        proj_states[3].x,
+        LookingForward::max_window_layer3);
 
       for (auto hit_layer_3_it = std::get<0>(layer3_candidates);
            !track_limit_surpassed && hit_layer_3_it != std::get<1>(layer3_candidates);
@@ -77,8 +77,8 @@ __device__ void looking_forward_find_seeds_impl(
           hits,
           std::get<0>(layer1_offset_nhits),
           std::get<1>(layer1_offset_nhits),
-          proj_states[1].x - LookingForward::max_window_layer1,
-          proj_states[1].x + LookingForward::max_window_layer1);
+          proj_states[1].x,
+          LookingForward::max_window_layer1);
 
         proj_states[2].x =
           linear_propagation(hits.x0[hit_layer_0_it], slope_layer_3_layer_0, LookingForward::dz_x_v_layers) -
@@ -89,8 +89,8 @@ __device__ void looking_forward_find_seeds_impl(
           hits,
           std::get<0>(layer2_offset_nhits),
           std::get<1>(layer2_offset_nhits),
-          proj_states[2].x - LookingForward::max_window_layer2,
-          proj_states[2].x + LookingForward::max_window_layer2);
+          proj_states[2].x,
+          LookingForward::max_window_layer2);
 
         for (auto hit_layer_1_it = std::get<0>(layer1_candidates);
              !track_limit_surpassed && hit_layer_1_it != std::get<1>(layer1_candidates);

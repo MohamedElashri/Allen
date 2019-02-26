@@ -227,13 +227,13 @@ __host__ __device__ void find_forward_tracks(
       if (!(track.quality > minQuality)) {
 
         SciFi::TrackHits tr = makeTrack(track);
-        tr.UTTrackIndex = i_veloUT_track;
+        tr.ut_track_index = i_veloUT_track;
 
         // add LHCbIDs from SciFi part of the track
         for (int i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
           // save local hit index within event to be able to use short
           const int local_hit_index = track.hit_indices[i_hit] - event_hit_offset;
-          tr.addHit(local_hit_index);
+          tr.add_hit(local_hit_index);
         }
         assert(tr.hitsNum < SciFi::Constants::max_track_size);
 
@@ -262,7 +262,8 @@ __host__ __device__ SciFi::TrackHits makeTrack(SciFi::Tracking::Track track)
   const float z = SciFi::Constants::ZEndT;
   MiniState state(track.x(z), track.y(z), z, track.xSlope(z), track.ySlope(z));
 
-  tr.state = state;
+  // TODO
+  // tr.state = state;
 
   return tr;
 }

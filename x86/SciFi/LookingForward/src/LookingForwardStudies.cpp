@@ -443,18 +443,18 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       //     SciFi::LookingForward::Zone_zPos[populated_layer],
       //     8);
 
-      //   candidate.addHit(true_scifi_indices_per_layer[8], 8);
-      //   candidate.addHit(true_scifi_indices_per_layer[populated_layer], populated_layer);
+      //   candidate.add_hit(true_scifi_indices_per_layer[8] - scifi_hit_count.event_offset());
+      //   candidate.add_hit(true_scifi_indices_per_layer[populated_layer] - scifi_hit_count.event_offset());
 
       //   for (int i=9; i<11; ++i) {
       //     if (i != populated_layer && true_scifi_indices_per_layer[i] != -1) {
-      //       candidate.addHit(true_scifi_indices_per_layer[i], i);
+      //       candidate.add_hit(true_scifi_indices_per_layer[i] - scifi_hit_count.event_offset());
       //     }
       //   }
 
       //   // for (int i=0; i<12; ++i) {
       //   //   if (true_scifi_indices_per_layer[i] != -1) {
-      //   //     candidate.addHit(true_scifi_indices_per_layer[i]);
+      //   //     candidate.add_hit(true_scifi_indices_per_layer[i] - scifi_hit_count.event_offset());
       //   //   }
       //   // }
 
@@ -513,8 +513,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       for (auto& t : scifi_tracks) {
         if (t.hitsNum >= 10) {
           // // Prepare chi2 cut
-          // const auto x_at_layer_8 = scifi_hits.x0[t.hits[0]];
-          // const auto x_at_layer_11 = scifi_hits.x0[t.hits[1]];
+          // const auto x_at_layer_8 = scifi_hits.x0[scifi_hit_count.event_offset() + t.hits[0]];
+          // const auto x_at_layer_11 = scifi_hits.x0[scifi_hit_count.event_offset() + t.hits[1]];
           // const float reco_slope =
           //   (x_at_layer_11 - x_at_layer_8) /
           //   SciFi::LookingForward::dz_x_layers;
@@ -542,7 +542,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           //   const auto layer = t.layer[i];
           //   z_coordinates_full_track.push_back(SciFi::LookingForward::Zone_zPos[layer]);
 
-          //   const float real_x = scifi_hits.x0[t.hits[i]];
+          //   const float real_x = scifi_hits.x0[scifi_hit_count.event_offset() + t.hits[i]];
           //   const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
           //   x_coordinates_full_track.push_back(real_x + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)]);
           // }
@@ -739,7 +739,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       }
     } // extrapolation to T3 worked
 
-    info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
+    // info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
 
     trackhits.emplace_back(event_trackhits);
 

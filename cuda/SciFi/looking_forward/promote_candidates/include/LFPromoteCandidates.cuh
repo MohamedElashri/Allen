@@ -13,6 +13,7 @@ __global__ void lf_promote_candidates(
   const uint32_t* dev_scifi_hit_count,
   const int* dev_atomics_ut,
   const SciFi::TrackCandidate* dev_scifi_track_candidates,
+  const unsigned short* dev_extrapolation_layer_candidates,
   SciFi::TrackHits* dev_scifi_tracks,
   bool* dev_scifi_track_promoted_candidates,
   int* dev_atomics_scifi,
@@ -33,4 +34,5 @@ ALGORITHM(
     dev_scifi_track_candidates,
     dev_scifi_tracks,
     dev_scifi_track_promoted_candidates,
-    dev_atomics_scifi))
+    dev_atomics_scifi,
+    dev_extrapolation_layer_candidates))

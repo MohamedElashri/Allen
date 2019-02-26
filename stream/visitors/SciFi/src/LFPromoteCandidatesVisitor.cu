@@ -10,6 +10,8 @@ void SequenceVisitor::set_arguments_size<lf_promote_candidates_t>(
 {
   arguments.set_size<dev_scifi_track_promoted_candidates>(
     host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_track_candidates);
+  arguments.set_size<dev_scifi_tracks>(
+    host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_tracks);
 }
 
 template<>
@@ -33,23 +35,34 @@ void SequenceVisitor::visit<lf_promote_candidates_t>(
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_velo_states>(),
     arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_ut_track_hits>(),
-    arguments.offset<dev_ut_track_hit_number>(),
-    arguments.offset<dev_ut_qop>(),
-    arguments.offset<dev_ut_track_velo_indices>(),
     arguments.offset<dev_scifi_track_candidates>(),
+    arguments.offset<dev_extrapolation_layer_candidates>(),
+    arguments.offset<dev_scifi_tracks>(),
     arguments.offset<dev_scifi_track_promoted_candidates>(),
     arguments.offset<dev_atomics_scifi>(),
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
     constants.dev_inv_clus_res,
-    arguments.offset<dev_scifi_lf_first_layer_candidates>(),
-    arguments.offset<dev_scifi_lf_second_layer_candidates>(),
-    arguments.offset<dev_ut_states>());
+    arguments.offset<dev_ut_states>(),
+    7);
 
   state.invoke();
+
+  std::vector<int> scifi_atomics(arguments.size<dev_atomics_scifi>() / sizeof(int));
+
+  cudaCheck(cudaMemcpyAsync(
+    scifi_atomics.data(),
+    arguments.offset<dev_atomics_scifi>(),
+    arguments.size<dev_atomics_scifi>(),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
+
+  cudaEventRecord(cuda_generic_event, cuda_stream);
+  cudaEventSynchronize(cuda_generic_event);
+
+  for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
+    info_cout << "Event " << i
+      << ", number of tracks " << scifi_atomics[host_buffers.host_number_of_selected_events[0] + i] << std::endl;
+  }
 }

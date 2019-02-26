@@ -191,6 +191,7 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
   const float* ut_qop,
   const std::vector<std::vector<SciFi::TrackHits>>& scifi_tracks,
   const SciFi::Hits& scifi_hits,
+  const uint* host_scifi_hit_count,
   const uint number_of_events)
 {
   std::vector<trackChecker::Tracks> checker_tracks; // all tracks from all events
@@ -206,6 +207,9 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
                                               i_event,
                                               number_of_events};
 
+    const uint total_number_of_hits = host_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+    const SciFi::HitCount scifi_hit_count {(uint32_t*) host_scifi_hit_count, i_event};
+
     const auto& scifi_tracks_event = scifi_tracks[i_event];
     for (uint i_track = 0; i_track < scifi_tracks_event.size(); i_track++) {
       const auto& scifi_track = scifi_tracks_event[i_track];
@@ -218,11 +222,11 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
 
       // add SciFi hits
       for (int i_hit = 0; i_hit < scifi_track.hitsNum; ++i_hit) {
-        t.addId(scifi_hits.LHCbID(scifi_track.hits[i_hit]));
+        t.addId(scifi_hits.LHCbID(scifi_hit_count.event_offset() + scifi_track.hits[i_hit]));
       }
 
       // add UT hits
-      const uint UT_track_index = scifi_track.UTTrackIndex;
+      const uint UT_track_index = scifi_track.ut_track_index;
       const uint ut_track_number_of_hits = ut_tracks.number_of_hits(UT_track_index);
       const UT::Consolidated::Hits track_hits_ut = ut_tracks.get_hits((char*) ut_track_hits, UT_track_index);
       for (int i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {

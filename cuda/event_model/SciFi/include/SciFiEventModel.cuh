@@ -200,8 +200,13 @@ namespace SciFi {
 
     __host__ __device__ TrackCandidate() {};
 
-    __host__ __device__ TrackCandidate(const TrackCandidate&) {
-      // TODO
+    __host__ __device__ TrackCandidate(const TrackCandidate& candidate) :
+      quality(candidate.quality), qop(candidate.qop), ut_track_index(candidate.ut_track_index),
+      hitsNum(candidate.hitsNum)
+    {
+      for (int i=0; i<hitsNum; ++i) {
+        hits[i] = candidate.hits[i];
+      }
     }
 
     __host__ __device__ TrackCandidate(
@@ -209,7 +214,7 @@ namespace SciFi {
       const uint16_t h1,
       const uint16_t param_ut_track_index,
       const float param_qop) :
-      ut_track_index(param_ut_track_index), hitsNum(2), qop(param_qop) {
+      quality(0.f), qop(param_qop), ut_track_index(param_ut_track_index), hitsNum(2) {
         hits[0] = h0;
         hits[1] = h1;
       };
@@ -240,7 +245,7 @@ namespace SciFi {
     __host__ __device__ TrackHits() {};
 
     __host__ __device__ TrackHits(const TrackHits& other) :
-      quality(other.quality), ut_track_index(other.ut_track_index), hitsNum(other.hitsNum), qop(other.qop)
+      quality(other.quality), qop(other.qop), ut_track_index(other.ut_track_index), hitsNum(other.hitsNum)
     {
       for (int i = 0; i < hitsNum; ++i) {
         hits[i] = other.hits[i];
@@ -248,11 +253,11 @@ namespace SciFi {
     }
 
     __host__ __device__ TrackHits(const TrackCandidate& candidate) :
-      quality(candidate.quality), ut_track_index(candidate.ut_track_index), hitsNum(candidate.hitsNum),
-      qop(candidate.qop)
+      quality(candidate.quality), qop(candidate.qop), ut_track_index(candidate.ut_track_index),
+      hitsNum(candidate.hitsNum)
     {
       for (int i = 0; i < hitsNum; ++i) {
-        hits[i] = other.hits[i];
+        hits[i] = candidate.hits[i];
       }
     }
 
@@ -261,11 +266,16 @@ namespace SciFi {
       assert(hitsNum < SciFi::Constants::max_track_size);
       hits[hitsNum++] = hit_index;
     }
+    
+    __host__ __device__ void add_hit_with_quality(uint16_t hit_index, float chi2) {
+      assert(hitsNum < SciFi::Constants::max_track_size);
+      hits[hitsNum++] = hit_index;
+      quality += chi2;
+    }
 
     __host__ __device__ float get_quality() {
       assert(hitsNum > 2);
       return quality / ((float) hitsNum - 2);
     }
   };
-
 } // namespace SciFi

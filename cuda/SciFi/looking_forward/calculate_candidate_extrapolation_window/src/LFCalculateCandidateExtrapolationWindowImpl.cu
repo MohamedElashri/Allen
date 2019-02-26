@@ -28,8 +28,14 @@ __device__ void lf_calculate_candidate_extrapolation_window_impl(
     hits,
     std::get<0>(layer_offset_nhits),
     std::get<1>(layer_offset_nhits),
-    projection_x - 3 * dev_looking_forward_constants->extrapolation_stddev[layer],
-    projection_x + 3 * dev_looking_forward_constants->extrapolation_stddev[layer]);
+    projection_x,
+    3 * dev_looking_forward_constants->extrapolation_stddev[layer]);
+
+  printf("event %i, params %f, %f, %f, %f, candidate %i, %i, %i, found candidate %i - %i\n",
+    blockIdx.x,
+    x_at_layer_8, reco_slope, projection_x, projection_y,
+    track_candidate.hits[0], track_candidate.hits[1], track_candidate.hits[2],
+    std::get<0>(layer_candidates), std::get<1>(layer_candidates));
 
   extrapolation_layer_candidates[0] = std::get<0>(layer_candidates) - hit_count.event_offset();
   extrapolation_layer_candidates[extrapolation_candidates_offset] = std::get<1>(layer_candidates) - std::get<0>(layer_candidates);
