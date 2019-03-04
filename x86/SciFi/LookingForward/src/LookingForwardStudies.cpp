@@ -49,6 +49,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   TTree* t_xcalc_x = new TTree("xcalc_x", "xcalc_x");
   TTree* t_chi2_triplet_1 = new TTree("chi2_triplet1", "chi2_triplet1");
   TTree* t_chi2_random_triplet = new TTree("chi2_random_triplet", "chi2_random_triplet");
+  TTree* t_distance_candidate_extrap_mc = new TTree("distance_candidate_extrap_mc", "distance_candidate_extrap_mc");
   // TTree* t_extrapolation_tracks = new TTree("extrapolation_tracks", "extrapolation_tracks");
 
   uint planeCode, LHCbID;
@@ -124,46 +125,10 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   float chi2_random_triplet;
   t_chi2_random_triplet->Branch("t_chi2_random_triplet", &chi2_random_triplet);
 
-  //  t_extrap_T1->Branch("xf", &xf_t1);
-  //  t_extrap_T1->Branch("yf", &yf_t1);
-  //  t_extrap_T1->Branch("txf", &txf_t1);
-  //  t_extrap_T1->Branch("tyf", &tyf_t1);
-  //  t_extrap_T1->Branch("der_xf_qop", &der_xf_qop_t1);
-  //  t_extrap_T1->Branch("res_x_0", &res_x_0_t1);
-  //  t_extrap_T1->Branch("res_x_other", &res_x_other_t1);
-  //  t_extrap_T1->Branch("true_x", &true_x_t1);
-  //  t_extrap_T1->Branch("true_z", &true_z_t1);
-  //  t_extrap_T1->Branch("x_extrap", &x_extrap_t1);
-  //  t_extrap_T1->Branch("dx", &dx_t1);
-  //  t_extrap_T1->Branch("qop_update", &qop_update_t1);
-  //  t_extrap_T1->Branch("p_diff_before_update", &p_diff_before_update_t1);
-  //  t_extrap_T1->Branch("p_diff_after_update", &p_diff_after_update_t1);
-  //  t_extrap_T1->Branch("p_resolution_after_update", &p_resolution_after_update_t1);
-  //  t_extrap_T1->Branch("qop_diff_before_update", &qop_diff_before_update_t1);
-  //  t_extrap_T1->Branch("qop_diff_after_update", &qop_diff_after_update_t1);
-  //  t_extrap_T1->Branch("qop_resolution_after_update", &qop_resolution_after_update_t1);
-  //  t_extrap_T1->Branch("n_hits_in_window_0", &n_hits_in_window_0_t1);
-  //  t_extrap_T1->Branch("n_hits_in_zone", &n_hits_in_zone_t1);
-  //  t_extrap_T1->Branch("isLong", &isLong);
-  //  t_extrap_T1->Branch("p_true", &p_true);
-  //  t_extrap_T1->Branch("match", &match_t1);
-  //  t_extrap_T1->Branch("match_other", &match_t1_other);
-  //  t_extrap_T1->Branch("ut_qop", &ut_qop);
-  //  t_extrap_T1->Branch("tx_x_hits", &tx_x_hits_t1);
-  //  t_extrap_T1->Branch("res_x_u", &res_x_u_t1);
-  //  t_extrap_T1->Branch("res_x_u_slope", &res_x_u_slope_t1);
-  //  t_extrap_T1->Branch("match_u", &match_t1_u);
-  //  t_extrap_T1->Branch("res_x_v", &res_x_v_t1);
-  //  t_extrap_T1->Branch("res_x_v_slope", &res_x_v_slope_t1);
-  //  t_extrap_T1->Branch("match_v", &match_t1_v);
-  //  t_extrap_T1->Branch("match_T2_0", &match_T2_0);
-  //  t_extrap_T1->Branch("match_T2_3", &match_T2_3);
-  //  t_extrap_T1->Branch("res_x_T2_0", &res_x_T2_0);
-  //  t_extrap_T1->Branch("res_x_T2_3", &res_x_T2_3);
-  //  t_extrap_T1->Branch("match_T3_0", &match_T3_0);
-  //  t_extrap_T1->Branch("match_T3_3", &match_T3_3);
-  //  t_extrap_T1->Branch("res_x_T3_0", &res_x_T3_0);
-  //  t_extrap_T1->Branch("res_x_T3_3", &res_x_T3_3);
+  float distance_candidate_extrap_x3_x0_mc;
+  float distance_candidate_extrap_x3_x4_mc;
+  t_distance_candidate_extrap_mc->Branch("distance_candidate_extrap_x3_x0_mc", &distance_candidate_extrap_x3_x0_mc);
+  t_distance_candidate_extrap_mc->Branch("distance_candidate_extrap_x3_x4_mc", &distance_candidate_extrap_x3_x4_mc);
 
   t_extrap_T3->Branch("xf", &xf_t3);
   t_extrap_T3->Branch("yf", &yf_t3);
@@ -485,27 +450,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         windows_uv,
         parameters_uv);
 
-      std::array<std::vector<int>, 6> hits_in_layers;
-
-      for (int i = 0; i < 6; ++i) {
-        const auto window_start = windows_x[2 * i];
-        const auto window_size = windows_x[2 * i + 1];
-        if (window_size > 0) {
-          const float zHit = scifi_hits.z0[window_start];
-          for (int j = 0; j < window_size; ++j) {
-            const auto hit_index = window_start + j;
-            float xHit = scifi_hits.x0[hit_index];
-            const float xPredUv = parameters_uv[4 * i] + xHit * parameters_uv[4 * i + 1];
-            const float maxDx =
-              parameters_uv[4 * i + 2] + fabsf(xHit - parameters_uv[4 * i + 3]) * SciFi::Tracking::tolYSlopeCollectX;
-            const float xMinUV = xPredUv - maxDx;
-            const float xMaxUV = xPredUv + maxDx;
-            if (matchStereoHit(windows_uv[i * 2], windows_uv[i * 2 + 1], scifi_hits, xMinUV, xMaxUV)) {
-              hits_in_layers[i].push_back(hit_index);
-            }
-          }
-        }
-      }
+      std::array<std::vector<int>, 6> hits_in_layers =
+        collect_x_candidates(scifi_hits, windows_x, windows_uv, parameters_uv);
 
       // info_cout << "Candidate sizes: ";
       // for (int i=0; i<6; ++i) {
@@ -513,63 +459,194 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // }
       // info_cout << std::endl;
 
-      // Create SciFi track if it is within the windows
-      std::array<bool, 6> within_bounds {false, false, false, false, false, false};
-      std::array<int, 6> compatible_scifi_hits {-1, -1, -1, -1, -1, -1};
-      for (int i = 0; i < 6; ++i) {
-        bool found = false;
-        for (const auto index : true_scifi_indices) {
-          if (std::find(hits_in_layers[i].begin(), hits_in_layers[i].end(), index) != hits_in_layers[i].end()) {
-            found = true;
-            compatible_scifi_hits[i] = index;
-            break;
+      const float xParams_seed[2] = {xAtRef, UT_state.tx};
+      const float yParams_seed[2] = {yAtRef, UT_state.ty};
+
+      const float zMag = SciFi::LookingForward::zMagnetParams[0] +
+                         SciFi::LookingForward::zMagnetParams[2] * UT_state.tx * UT_state.tx +
+                         SciFi::LookingForward::zMagnetParams[3] * UT_state.ty * UT_state.ty;
+
+      // Find window on x0 from x1, and window on x2 from x1
+      const std::array<float, 2> dx_stddev {52.19, 104.2};
+      std::vector<std::tuple<int, int, int, int>> compatible_hits_x0_x2;
+
+      if (hits_in_layers[0].size() > 0 && hits_in_layers[1].size() > 0 && hits_in_layers[2].size() > 0) {
+        const float z0 = scifi_hits.z0[hits_in_layers[0][0]];
+        const float z1 = scifi_hits.z0[hits_in_layers[1][0]];
+        const float z2 = scifi_hits.z0[hits_in_layers[2][0]];
+
+        const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
+        const auto dz0 = 1.e-3f * (z1 - z0);
+        const auto dz2 = 1.e-3f * (z2 - z1);
+
+        const float xFromVelo_Hit = xParams_seed[0] + xParams_seed[1] * z1;
+
+        for (int h1_rel = 0; h1_rel < hits_in_layers[1].size(); ++h1_rel) {
+          const auto h1_index = hits_in_layers[1][h1_rel];
+          const auto x1 = scifi_hits.x0[h1_index];
+
+          const auto dSlope = (xFromVelo_Hit - x1) * dSlopeDivPart;
+          const auto zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
+          const auto xMag = xFromVelo_Hit + UT_state.tx * (zMag_corrected - z1);
+
+          // calculate x position on reference plane (save in coodX)
+          // dxCoef: account for additional bending of track due to fringe field in first station
+          // expressed by quadratic and cubic term in z
+          auto dxCoef =
+            dz0 * dz0 * (SciFi::LookingForward::xParams[0] + dz0 * SciFi::LookingForward::xParams[1]) * dSlope;
+          auto ratio = (z0 - zMag_corrected) / (z1 - zMag_corrected);
+          auto extrapolated_value = xMag + ratio * (x1 + dxCoef - xMag);
+
+          int first_x0_candidate = -1;
+          int last_x0_candidate = -1;
+          for (int h0_rel = 0; h0_rel < hits_in_layers[0].size(); ++h0_rel) {
+            const auto h0_index = hits_in_layers[0][h0_rel];
+            const auto x0 = scifi_hits.x0[h0_index];
+
+            if (first_x0_candidate == -1 && std::abs(x0 - extrapolated_value) < 2 * dx_stddev[0]) {
+              first_x0_candidate = h0_rel;
+            }
+            else if (
+              first_x0_candidate != -1 && last_x0_candidate == -1 && std::abs(x0 - extrapolated_value) > 2 * dx_stddev[0]) {
+              last_x0_candidate = h0_rel;
+              break;
+            }
           }
+
+          if (first_x0_candidate != -1 && last_x0_candidate == -1) {
+            last_x0_candidate = hits_in_layers[0].size();
+          }
+
+          // calculate x position on reference plane (save in coodX)
+          // dxCoef: account for additional bending of track due to fringe field in first station
+          // expressed by quadratic and cubic term in z
+          dxCoef = dz2 * dz2 * (SciFi::LookingForward::xParams[0] + dz2 * SciFi::LookingForward::xParams[1]) * dSlope;
+          ratio = (z2 - zMag_corrected) / (z1 - zMag_corrected);
+          extrapolated_value = xMag + ratio * (x1 + dxCoef - xMag);
+
+          int first_x2_candidate = -1;
+          int last_x2_candidate = -1;
+          for (int h2_rel = 0; h2_rel < hits_in_layers[2].size(); ++h2_rel) {
+            const auto h2_index = hits_in_layers[2][h2_rel];
+            const auto x0 = scifi_hits.x0[h2_index];
+
+            if (first_x2_candidate == -1 && std::abs(x0 - extrapolated_value) < 2 * dx_stddev[1]) {
+              first_x2_candidate = h2_rel;
+            }
+            else if (
+              first_x2_candidate != -1 && last_x2_candidate == -1 && std::abs(x0 - extrapolated_value) > 2 * dx_stddev[1]) {
+              last_x2_candidate = h2_rel;
+              break;
+            }
+          }
+
+          if (first_x2_candidate != -1 && last_x2_candidate == -1) {
+            last_x2_candidate = hits_in_layers[2].size();
+          }
+
+          compatible_hits_x0_x2.push_back(std::make_tuple(first_x0_candidate, last_x0_candidate, first_x2_candidate, last_x2_candidate));
         }
-        within_bounds[i] = found;
       }
 
-      std::vector<std::tuple<int, int, int, float>> triplets;
-      for (const auto h0 : hits_in_layers[0]) {
-        for (const auto h1 : hits_in_layers[1]) {
-          for (const auto h2 : hits_in_layers[2]) {
-            const auto chi2 = chi2_triplet(
-              scifi_hits,
-              qop,
-              h0,
-              h1,
-              h2,
-              layers[0],
-              layers[1],
-              layers[2]);
+      // if (true_scifi_indices_per_layer[0] != -1 &&
+      //     true_scifi_indices_per_layer[1] != -1 &&
+      //     true_scifi_indices_per_layer[2] != -1) {
+      //   const float z0 = scifi_hits.z0[true_scifi_indices_per_layer[0]];
+      //   const float z1 = scifi_hits.z0[true_scifi_indices_per_layer[1]];
+      //   const float z2 = scifi_hits.z0[true_scifi_indices_per_layer[2]];
 
-            if (chi2 < 4.f) {
-              triplets.push_back({h0, h1, h2, chi2});
+      //   const float xFromVelo_Hit = xParams_seed[0] + xParams_seed[1] * z1;
+      //   const float xHit = scifi_hits.x0[true_scifi_indices_per_layer[1]];
+
+      //   {
+      //     const auto dz = 1.e-3f * (z1 - z0);
+      //     const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
+      //     const auto dSlope = (xFromVelo_Hit - xHit) * dSlopeDivPart;
+      //     const auto zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
+      //     const auto xMag = xFromVelo_Hit + UT_state.tx * (zMag_corrected - z1);
+
+      //     // calculate x position on reference plane (save in coodX)
+      //     // dxCoef: account for additional bending of track due to fringe field in first station
+      //     // expressed by quadratic and cubic term in z
+      //     const auto dxCoef = dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1])
+      //     * dSlope; const auto ratio = (z0 - zMag_corrected) / (z1 - zMag_corrected); const auto extrapolated_value =
+      //     xMag + ratio * (xHit + dxCoef - xMag);
+
+      //     const auto mc_x0 = scifi_hits.x0[true_scifi_indices_per_layer[0]];
+      //     distance_candidate_extrap_x3_x0_mc = extrapolated_value - mc_x0;
+      //   }
+
+      //   {
+      //     const auto dz = 1.e-3f * (z2 - z1);
+      //     const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
+      //     const auto dSlope = (xFromVelo_Hit - xHit) * dSlopeDivPart;
+      //     const auto zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
+      //     const auto xMag = xFromVelo_Hit + UT_state.tx * (zMag_corrected - z1);
+
+      //     // calculate x position on reference plane (save in coodX)
+      //     // dxCoef: account for additional bending of track due to fringe field in first station
+      //     // expressed by quadratic and cubic term in z
+      //     const auto dxCoef = dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1])
+      //     * dSlope; const auto ratio = (z2 - zMag_corrected) / (z1 - zMag_corrected); const auto extrapolated_value =
+      //     xMag + ratio * (xHit + dxCoef - xMag);
+
+      //     const auto mc_x2 = scifi_hits.x0[true_scifi_indices_per_layer[2]];
+      //     distance_candidate_extrap_x3_x4_mc = extrapolated_value - mc_x2;
+      //   }
+
+      //   t_distance_candidate_extrap_mc->Fill();
+      //   // std::cout << "Diff: " << std::abs(extrapolated_value - mc_x0) << std::endl;
+      // }
+
+      // Create SciFi track if it is within the windows
+      auto found_triplet = false;
+      if (
+        true_scifi_indices_per_layer[0] != -1 && true_scifi_indices_per_layer[3] != -1 &&
+        true_scifi_indices_per_layer[4] != -1 && hits_in_layers[0].size() > 0 && hits_in_layers[1].size() > 0 &&
+        hits_in_layers[2].size() > 0) {
+        // for (int i = 0; i < hits_in_layers[1].size(); ++i) {
+        //   const auto start_h0 = std::get<0>(compatible_hits_x0_x2[i]);
+        //   const auto size_h0 = std::get<1>(compatible_hits_x0_x2[i]) - start_h0;
+        //   const auto start_h2 = std::get<2>(compatible_hits_x0_x2[i]);
+        //   const auto size_h2 = std::get<3>(compatible_hits_x0_x2[i]) - start_h2;
+
+        //   info_cout << "Compatible hits: " << start_h0 << ", " << size_h0 << " (" << hits_in_layers[0].size() << "),
+        //   "
+        //     << start_h2 << ", " << size_h2 << " (" << hits_in_layers[2].size() << ")" << std::endl;
+        // }
+
+        for (int i = 0; i < hits_in_layers[1].size(); ++i) {
+          const bool found_h1 = std::find(true_scifi_indices.begin(), true_scifi_indices.end(), hits_in_layers[1][i]) !=
+                                true_scifi_indices.end();
+          if (found_h1) {
+            const auto start_h0 = std::get<0>(compatible_hits_x0_x2[i]);
+            const auto size_h0 = std::get<1>(compatible_hits_x0_x2[i]) - start_h0;
+
+            const auto start_h2 = std::get<2>(compatible_hits_x0_x2[i]);
+            const auto size_h2 = std::get<3>(compatible_hits_x0_x2[i]) - start_h2;
+
+            if (size_h0 > 0 && size_h2 > 0) {
+              for (int j = 0; !found_triplet && j < size_h0; ++j) {
+                const bool found_h0 =
+                  std::find(true_scifi_indices.begin(), true_scifi_indices.end(), hits_in_layers[0][start_h0 + j]) !=
+                  true_scifi_indices.end();
+
+                if (found_h0) {
+                  for (int k = 0; !found_triplet && k < size_h2; ++k) {
+                    const bool found_h2 =
+                      std::find(
+                        true_scifi_indices.begin(), true_scifi_indices.end(), hits_in_layers[2][start_h2 + k]) !=
+                      true_scifi_indices.end();
+
+                    found_triplet |= (found_h0 && found_h1 && found_h2);
+                  }
+                }
+              }
             }
           }
         }
       }
-      std::sort(triplets.begin(), triplets.end(), [] (const auto a, const auto b) {
-        return std::get<3>(a) < std::get<3>(b);
-      });
 
-      // info_cout << triplets.size() << std::endl;
-
-      // Create SciFi track if it is within the windows
-      bool found_triplet = false;
-      for (int i=0; i<triplets.size() && i<20; ++i) {
-        const auto triplet = triplets[i];
-        const bool found_h0 = std::find(true_scifi_indices.begin(), true_scifi_indices.end(), std::get<0>(triplet)) != true_scifi_indices.end();
-        const bool found_h1 = std::find(true_scifi_indices.begin(), true_scifi_indices.end(), std::get<1>(triplet)) != true_scifi_indices.end();
-        const bool found_h2 = std::find(true_scifi_indices.begin(), true_scifi_indices.end(), std::get<2>(triplet)) != true_scifi_indices.end();
-        found_triplet |= (found_h0 && found_h1 && found_h2);
-      }
-
-      // Check for triplets
-      const bool triplet_0 = within_bounds[0] && within_bounds[1] && within_bounds[2];
-      const bool triplet_1 = within_bounds[3] && within_bounds[1] && within_bounds[2];
-      const bool triplet_2 = within_bounds[3] && within_bounds[4] && within_bounds[2];
-      const bool triplet_3 = within_bounds[3] && within_bounds[4] && within_bounds[5];
-      //  || triplet_1 || triplet_2 || triplet_3
       if (found_triplet) {
         SciFi::TrackHits candidate;
         candidate.UTTrackIndex = i_veloUT_track;
@@ -581,24 +658,232 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         scifi_tracks.push_back(candidate);
       }
 
-      for (int i = 0; i < 6; ++i) {
-        window_size[i] = hits_in_layers[i].size();
-      }
-      t_windows_x->Fill();
+      // // We have in window all windows for x layers
+      // // Save in coordX all extrapolated hits in the above windows
+      // std::vector<float> coordX;
+      // std::vector<int8_t> monte_carlo_particles;
+      // std::vector<uint8_t> hit_layers;
 
-      if (triplet_0) {
-        chi2_triplet_1 = chi2_triplet(
-          scifi_hits,
-          qop,
-          compatible_scifi_hits[0],
-          compatible_scifi_hits[1],
-          compatible_scifi_hits[2],
-          layers[0],
-          layers[1],
-          layers[2]);
+      // for (int i=0; i<3; ++i) {
+      //   const auto window_size = hits_in_layers[i].size();
 
-        t_chi2_triplet_1->Fill();
-      }
+      //   if (window_size > 0) {
+      //     const float zHit = scifi_hits.z0[hits_in_layers[i][0]];
+      //     const float xFromVelo_Hit = xParams_seed[0] + xParams_seed[1] * zHit;
+      //     const float dSlopeDivPart = 1.f / (zHit - SciFi::LookingForward::zMagnetParams[0]);
+      //     const float dz = 1.e-3f * (zHit - SciFi::Tracking::zReference);
+
+      //     for (int j=0; j<window_size; ++j) {
+      //       const auto hit_index = hits_in_layers[i][j];
+      //       const float xHit = scifi_hits.x0[hit_index];
+
+      //       float dSlope = (xFromVelo_Hit - xHit) * dSlopeDivPart;
+      //       float zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
+      //       float xMag = xFromVelo_Hit + UT_state.tx * (zMag_corrected - zHit);
+
+      //       // calculate x position on reference plane (save in coodX)
+      //       // dxCoef: account for additional bending of track due to fringe field in first station
+      //       // expressed by quadratic and cubic term in z
+      //       float dxCoef = dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1]) *
+      //       dSlope; float ratio = (SciFi::Tracking::zReference - zMag_corrected) / (zHit - zMag_corrected);
+      //       coordX.emplace_back(xMag + ratio * (xHit + dxCoef - xMag));
+      //       hit_layers.emplace_back(0x1 << (6 - i));
+      //       if (std::find(true_scifi_indices.begin(), true_scifi_indices.end(), hit_index) !=
+      //       true_scifi_indices.end()) {
+      //         monte_carlo_particles.emplace_back(1);
+      //       } else {
+      //         monte_carlo_particles.emplace_back(0);
+      //       }
+      //     }
+      //   }
+      // }
+
+      // // // Print coordX
+      // // int counter = 0;
+      // // for (int i=0; i<6; ++i) {
+      // //   const auto window_size = windows_x[2*i+1];
+      // //   info_cout << "Window " << i << ": ";
+      // //   for (int j = 0; j<window_size; ++j) {
+      // //     const auto index = counter + j;
+      // //     info_cout << coordX[index] << ", ";
+      // //   }
+      // //   info_cout << std::endl;
+      // //   counter += window_size;
+      // // }
+
+      // // Get sorted keys, sort coordX
+      // std::vector<int> keys (coordX.size());
+      // std::iota(keys.begin(), keys.end(), 0);
+      // std::sort(keys.begin(), keys.end(), [&coordX](const int a, const int b) {
+      //   return coordX[a] < coordX[b];
+      // });
+
+      // // // Check the distance of our MC particles in the Hough
+      // // info_cout << "MC particle indices locations (presort): ";
+      // // for (int i=0; i<monte_carlo_particles.size(); ++i) {
+      // //   if (monte_carlo_particles[i] == 1) {
+      // //     info_cout << i << ", ";
+      // //   }
+      // // }
+      // // info_cout << std::endl;
+
+      // std::sort(coordX.begin(), coordX.end());
+
+      // decltype(monte_carlo_particles) sorted_monte_carlo_particles (monte_carlo_particles.size());
+      // for (int i=0; i<monte_carlo_particles.size(); ++i) {
+      //   sorted_monte_carlo_particles[i] = monte_carlo_particles[keys[i]];
+      // }
+      // monte_carlo_particles = sorted_monte_carlo_particles;
+
+      // decltype(hit_layers) sorted_hit_layers (hit_layers.size());
+      // for (int i=0; i<hit_layers.size(); ++i) {
+      //   sorted_hit_layers[i] = hit_layers[keys[i]];
+      // }
+      // hit_layers = sorted_hit_layers;
+
+      // if (true_scifi_indices.size() >= 9) {
+      //   // Check the distance of our MC particles in the Hough
+      //   std::vector<float> xcoord_mc_hits;
+
+      //   info_cout << "MC particle indices locations: ";
+      //   for (int i=0; i<monte_carlo_particles.size(); ++i) {
+      //     if (monte_carlo_particles[i] == 1) {
+      //       xcoord_mc_hits.push_back(coordX[i]);
+      //       info_cout << i << ", ";
+      //     }
+      //   }
+      //   // info_cout << "(" << std::setprecision(4) << std::scientific << p_true << ")" << std::endl;
+      //   info_cout << "(" << monte_carlo_particles.size() << ")";
+      //   float max_distance = 0.f;
+      //   for (int i=0; i<xcoord_mc_hits.size(); ++i) {
+      //     for (int j=i+1; j<xcoord_mc_hits.size(); ++j) {
+      //       const auto distance = std::abs(xcoord_mc_hits[i] - xcoord_mc_hits[j]);
+      //       if (distance > max_distance) {
+      //         max_distance = distance;
+
+      //         // Histogram
+      //         xcalc_distance_MC = distance;
+      //         t_xcalc_x->Fill();
+      //       }
+      //     }
+      //   }
+      //   info_cout << ", max distance " << max_distance << std::endl;
+      // }
+
+      // int times_condition_is_met = 0;
+      // for (int i=0; i<coordX.size(); ++i) {
+      //   const auto j = i+6;
+
+      //   if (j < coordX.size()) {
+      //     bool has_any_mc_index = false;
+      //     for (int k=i; k<j; ++k) {
+      //       has_any_mc_index |= monte_carlo_particles[k];
+      //     }
+
+      //     if (!has_any_mc_index) {
+      //       bool condition_is_met = false;
+      //       uint different_layers = 0;
+      //       for (int k=i; k<j; ++k) {
+      //         different_layers |= hit_layers[k];
+      //       }
+      //       int number_of_layers = __builtin_popcount(different_layers);
+      //       // info_cout << number_of_layers << ", " << std::flush;
+      //       if (number_of_layers >= 4) {
+      //         times_condition_is_met++;
+      //       }
+      //     }
+      //   }
+      // }
+
+      // // info_cout << "Times condition is met: " << times_condition_is_met << std::endl;
+
+      // // Create SciFi track if it is within the windows
+      // std::array<bool, 6> within_bounds {false, false, false, false, false, false};
+      // std::array<int, 6> compatible_scifi_hits {-1, -1, -1, -1, -1, -1};
+      // for (int i = 0; i < 6; ++i) {
+      //   bool found = false;
+      //   for (const auto index : true_scifi_indices) {
+      //     if (std::find(hits_in_layers[i].begin(), hits_in_layers[i].end(), index) != hits_in_layers[i].end()) {
+      //       found = true;
+      //       compatible_scifi_hits[i] = index;
+      //       break;
+      //     }
+      //   }
+      //   within_bounds[i] = found;
+      // }
+
+      // std::vector<std::tuple<int, int, int, float>> triplets;
+      // for (const auto h0 : hits_in_layers[0]) {
+      //   for (const auto h1 : hits_in_layers[1]) {
+      //     for (const auto h2 : hits_in_layers[2]) {
+      //       const auto chi2 = chi2_triplet(
+      //         scifi_hits,
+      //         qop,
+      //         h0,
+      //         h1,
+      //         h2,
+      //         layers[0],
+      //         layers[1],
+      //         layers[2]);
+
+      //       if (chi2 < 4.f) {
+      //         triplets.push_back({h0, h1, h2, chi2});
+      //       }
+      //     }
+      //   }
+      // }
+      // std::sort(triplets.begin(), triplets.end(), [] (const auto a, const auto b) {
+      //   return std::get<3>(a) < std::get<3>(b);
+      // });
+
+      // // info_cout << triplets.size() << std::endl;
+
+      // // Create SciFi track if it is within the windows
+      // bool found_triplet = false;
+      // for (int i=0; i<triplets.size() && i<20; ++i) {
+      //   const auto triplet = triplets[i];
+      //   const bool found_h0 = std::find(true_scifi_indices.begin(), true_scifi_indices.end(), std::get<0>(triplet))
+      //   != true_scifi_indices.end(); const bool found_h1 = std::find(true_scifi_indices.begin(),
+      //   true_scifi_indices.end(), std::get<1>(triplet)) != true_scifi_indices.end(); const bool found_h2 =
+      //   std::find(true_scifi_indices.begin(), true_scifi_indices.end(), std::get<2>(triplet)) !=
+      //   true_scifi_indices.end(); found_triplet |= (found_h0 && found_h1 && found_h2);
+      // }
+
+      // // Check for triplets
+      // const bool triplet_0 = within_bounds[0] && within_bounds[1] && within_bounds[2];
+      // const bool triplet_1 = within_bounds[3] && within_bounds[1] && within_bounds[2];
+      // const bool triplet_2 = within_bounds[3] && within_bounds[4] && within_bounds[2];
+      // const bool triplet_3 = within_bounds[3] && within_bounds[4] && within_bounds[5];
+      // //  || triplet_1 || triplet_2 || triplet_3
+      // if (triplet_0) {
+      //   SciFi::TrackHits candidate;
+      //   candidate.UTTrackIndex = i_veloUT_track;
+      //   for (int i = 0; i < 12; ++i) {
+      //     if (true_scifi_indices_per_layer[i] != -1) {
+      //       candidate.addHit(true_scifi_indices_per_layer[i]);
+      //     }
+      //   }
+      //   scifi_tracks.push_back(candidate);
+      // }
+
+      // for (int i = 0; i < 6; ++i) {
+      //   window_size[i] = hits_in_layers[i].size();
+      // }
+      // t_windows_x->Fill();
+
+      // if (triplet_0) {
+      //   chi2_triplet_1 = chi2_triplet(
+      //     scifi_hits,
+      //     qop,
+      //     compatible_scifi_hits[0],
+      //     compatible_scifi_hits[1],
+      //     compatible_scifi_hits[2],
+      //     layers[0],
+      //     layers[1],
+      //     layers[2]);
+
+      //   t_chi2_triplet_1->Fill();
+      // }
 
       // // Fetch real track seeds
       // if (true_scifi_indices_per_layer[8] != -1 &&
