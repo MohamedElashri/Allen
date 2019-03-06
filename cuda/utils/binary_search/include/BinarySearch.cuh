@@ -110,3 +110,64 @@ binary_search_second_candidate(const T* array, const uint array_size, const T& v
   const bool last_compatible = std::abs(value - array[l]) < margin;
   return last_compatible ? l + 1 : l;
 }
+
+/**
+ * @brief Finds the first candidate performing a binary search leftmost,
+ *        with a configurable margin and the "<" compare function:
+ *
+ *        std::abs(value - array_element) < margin
+ */
+template<typename T, typename R>
+__host__ __device__ int
+binary_search_first_candidate(const T* index_array, const int index_array_size, const R* data_array, const R& value, const float margin)
+{
+  if (index_array_size == 0) {
+    return -1;
+  }
+
+  bool found = false;
+  int l = 0;
+  int r = index_array_size - 1;
+  while (l < r) {
+    const int m = (l + r) / 2;
+    const auto array_element = data_array[index_array[m]];
+    found |= std::abs(value - array_element) < margin;
+    if (value - margin > array_element) {
+      l = m + 1;
+    }
+    else {
+      r = m;
+    }
+  }
+  found |= std::abs(value - data_array[index_array[l]]) < margin;
+  return found ? l : -1;
+}
+
+/**
+ * @brief Finds a second candidate performing a binary search leftmost,
+ *        with a configurable margin and the ">" compare function:
+ *
+ *        value + margin > array[m]
+ */
+template<typename T, typename R>
+__host__ __device__ int
+binary_search_second_candidate(const T* index_array, const int index_array_size, const R* data_array, const R& value, const float margin)
+{
+  if (index_array_size == 0) {
+    return -1;
+  }
+  
+  int l = 0;
+  int r = index_array_size - 1;
+  while (l < r) {
+    const int m = (l + r) / 2;
+    if (value + margin > data_array[index_array[m]]) {
+      l = m + 1;
+    }
+    else {
+      r = m;
+    }
+  }
+  const bool last_compatible = std::abs(value - data_array[index_array[l]]) < margin;
+  return last_compatible ? l + 1 : l;
+}
