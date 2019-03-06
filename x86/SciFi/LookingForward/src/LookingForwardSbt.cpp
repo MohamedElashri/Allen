@@ -134,22 +134,48 @@ float chi2_triplet(
   std::vector<float> x_coordinates {x_at_layer_0, x_at_layer_1, x_at_layer_2};
   std::vector<float> z_coordinates {z_at_layer_0, z_at_layer_1, z_at_layer_2};
 
-  return get_chi_2(z_coordinates, x_coordinates, chi2_fn);
+  const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
 
-  // dz0 = (z0 - z0);
-  // dz1 = (z1 - z0);
-  // dz2 = (z2 - z0);
+  // {
+  //   const auto z0 = z_at_layer_0;
+  //   const auto z1 = z_at_layer_1;
+  //   const auto z2 = z_at_layer_2;
+  //   const auto x0 = x_at_layer_0;
+  //   const auto x1 = x_at_layer_1;
+  //   const auto x2 = x_at_layer_2;
 
-  // extrap0 = SciFi::LookingForward::forward_param * qop * dz0 * dz0;
-  // extrap1 = SciFi::LookingForward::forward_param * qop * dz1 * dz1;
-  // extrap2 = SciFi::LookingForward::forward_param * qop * dz2 * dz2;
+  //   const auto dz0 = (z0 - z0);
+  //   const auto dz1 = (z1 - z0);
+  //   const auto dz2 = (z2 - z0);
+  //   const auto zdiff_inv = 1.f / (z1 - z0);
 
-  // // 5 ops on TC gets 4 chi2s
-  // tx = x1 * zdiff_inv - x0 * zdiff_inv;
-  // ydiff0 = x0 - z0 + tx * dz0 + extrap0;
-  // ydiff1 = x1 - z1 + tx * dz1 + extrap1;
-  // ydiff2 = x2 - z2 + tx * dz2 + extrap2;
-  // chi2 = ydiff0*ydiff0 + ydiff1*ydiff1 + ydiff2*ydiff2;
+  //   const auto extrap0 = SciFi::LookingForward::forward_param * qop * dz0 * dz0;
+  //   const auto extrap1 = SciFi::LookingForward::forward_param * qop * dz1 * dz1;
+  //   const auto extrap2 = SciFi::LookingForward::forward_param * qop * dz2 * dz2;
+
+  //   const auto tx = x1 * zdiff_inv - x0 * zdiff_inv;
+  //   float custom_chi2 = 0.f;
+  //   const float expected_x2 = x0 + tx * dz2 + SciFi::LookingForward::forward_param * qop * dz2 * dz2;
+  //   custom_chi2 += (SciFi::LookingForward::forward_param * qop * dz1 * dz1) * (SciFi::LookingForward::forward_param * qop * dz1 * dz1);
+  //   custom_chi2 += (x2 - expected_x2) * (x2 - expected_x2);
+
+  //   const auto simplified_chi2 =
+  //     x2
+  //     - x0
+  //     - x1 * zdiff_inv * dz2
+  //     + x0 * zdiff_inv * dz2
+  //     - SciFi::LookingForward::forward_param * qop * dz2 * dz2;
+
+  //   if (chi2 < 10.f) {
+  //     info_cout << chi2 << ", " << custom_chi2 << ", ("
+  //       << simplified_chi2 << ", "
+  //       << (SciFi::LookingForward::forward_param * qop * dz1 * dz1) * (SciFi::LookingForward::forward_param * qop * dz1 * dz1) << ")"
+  //       << ", (" << z0 << ", " << z1 << ", " << z2 << ")"
+  //       << std::endl;
+  //   }
+  // }
+
+  return chi2;
 };
 
 std::vector<std::tuple<int, int>> find_compatible_window(
