@@ -3,6 +3,16 @@
 #include "LookingForwardUtils.h"
 #include "FindXHits.cuh"
 
+// Quick class for tracklets
+struct Tracklet {
+  int hits[6];
+  int numHits = 0;
+  Tracklet() : numHits(0) {}
+  void add_hit(const int hit) {
+    hits[numHits++] = hit;
+  }
+};
+
 std::array<std::vector<int>, 6> collect_x_candidates(
   const SciFi::Hits& scifi_hits,
   const std::array<int, 2 * 6>& windows_x,
@@ -50,3 +60,46 @@ std::tuple<int, float> single_candidate_propagation(
   const int layer0,
   const int layer1,
   const int layer2);
+
+std::vector<std::tuple<int, int, int, float>> find_triplets(
+  const SciFi::Hits& scifi_hits,
+  const float qop,
+  const std::vector<std::tuple<int, int>>& compatible_hits_x0,
+  const std::vector<std::tuple<int, int>>& compatible_hits_x2,
+  const std::vector<bool>& flag,
+  const int event_offset,
+  const std::array<int, 6>& layers,
+  const std::array<std::vector<int>, 6>& hits_in_layers,
+  const int relative_layer0,
+  const int relative_layer1,
+  const int relative_layer2,
+  const int max_candidates_triplet,
+  const float max_triplet_chi2);
+
+std::vector<std::tuple<int, int>> find_extend_windows(
+  const SciFi::Hits& scifi_hits,
+  const MiniState& UT_state,
+  const float qop,
+  const std::array<int, 6>& layers,
+  const std::array<std::vector<int>, 6>& hits_in_layers,
+  const int relative_layer0,
+  const int relative_layer1,
+  const int relative_layer2,
+  const int dx_extrapolation_max,
+  const std::vector<std::tuple<int, int, int, float>>& triplets);
+
+void extend_triplets (
+  const SciFi::Hits& scifi_hits,
+  const MiniState& UT_state,
+  const float qop,
+  const std::array<int, 6>& layers,
+  const std::array<std::vector<int>, 6>& hits_in_layers,
+  const int relative_layer0,
+  const int relative_layer1,
+  const int relative_layer2,
+  const std::vector<std::tuple<int, int, int, float>>& triplets,
+  const std::vector<std::tuple<int, int>>& extend_candidates_windows,
+  const int event_offset,
+  const float max_chi2,
+  std::vector<Tracklet>& tracklets,
+  std::vector<bool>& flag);

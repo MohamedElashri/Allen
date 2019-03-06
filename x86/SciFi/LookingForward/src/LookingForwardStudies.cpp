@@ -503,6 +503,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const std::array<float, 4> dx_stddev_triplet_x2 {117.1f, 42.68f, 88.74f, 33.79f};
       const std::array<float, 4> chi2_mean_triplet {2.35f, 3.14f, 2.17f, 3.95f};
       const std::array<float, 4> chi2_stddev_triplet {14.05f, 7.49f, 9.97f, 7.97f};
+      const std::array<int, 4> max_candidates_triplets {20, 20, 20, 20};
 
       const std::array<float, 3> dx_stddev_extrapolation_to_x_layers {1.50f, 1.40f, 1.74f};
       const std::array<float, 3> chi2_mean_extrapolation_to_x_layers {3.09f, 1.98f, 3.89f};
@@ -524,154 +525,83 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       //   info_cout << "Compatible hits: " << start_h0 << ", " << size_h0 << " (" << hits_in_layers[0].size() << "),"
       //     << start_h2 << ", " << size_h2 << " (" << hits_in_layers[2].size() << ")" << std::endl;
       // }
+      
+      // Flagging mechanism
+      const auto event_offset = scifi_hit_count.event_offset();
+      std::vector<bool> flag (scifi_hit_count.event_number_of_hits(), false);
 
       // Get all compatible triplets in window
-      const auto max_triplet0_chi2 = chi2_mean_triplet[0] + 2 * chi2_stddev_triplet[0];
-      const auto max_candidate_triplet0 = 20;
-
-      struct Tracklet {
-        int hits[6];
-        int numHits=0;
-
-        void add_hit(const int hit) {
-          hits[numHits++] = hit;
-        }
-      };
-
-      std::vector<std::tuple<int, int, int, float>> triplets;
-      for (int i = 0; i < hits_in_layers[1].size(); ++i) {
-        const auto window_0_start = std::get<0>(compatible_hits_x0[i]);
-        const auto window_0_size = std::get<1>(compatible_hits_x0[i]) - window_0_start;
-        const auto window_2_start = std::get<0>(compatible_hits_x2[i]);
-        const auto window_2_size = std::get<1>(compatible_hits_x2[i]) - window_2_start;
-        const auto h1 = hits_in_layers[1][i];
-
-        for (int j = 0; j < window_0_size; ++j) {
-          const auto h0_index = window_0_start + j;
-          const auto h0 = hits_in_layers[0][h0_index];
-
-          for (int k = 0; k < window_2_size; ++k) {
-            const auto h2_index = window_2_start + k;
-            const auto h2 = hits_in_layers[2][h2_index];
-
-            // info_cout << h0 << ", " << h1 << ", " << h2 << std::endl;
-            const auto chi2 = chi2_triplet(scifi_hits, qop, h0, h1, h2, layers[0], layers[1], layers[2]);
-
-            if (chi2 < max_triplet0_chi2) {
-              triplets.push_back({h0, h1, h2, chi2});
-            }
-          }
-        }
-      }
-      std::sort(
-        triplets.begin(), triplets.end(), [](const auto a, const auto b) { return std::get<3>(a) < std::get<3>(b); });
-
-      // Restrict number of candidates
-      triplets.resize(max_candidate_triplet0);
-
-      // Find candidates in next layer
-      std::vector<std::tuple<int, int>> extend_candidates;
-      for (const auto& candidate : triplets) {
-        const auto layer0 = layers[1];
-        const auto layer1 = layers[2];
-        const auto layer2 = layers[3];
-        const auto h0 = std::get<1>(candidate);
-        const auto h1 = std::get<2>(candidate);
-
-        const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer2]);
-
-        // do the propagation
-        const auto x_at_layer0 = scifi_hits.x0[h0];
-        const auto x_at_layer1 = scifi_hits.x0[h1];
-
-        const auto reco_slope = (x_at_layer1 - x_at_layer0) /
-          (SciFi::LookingForward::Zone_zPos[layer1] -
-           SciFi::LookingForward::Zone_zPos[layer0]);
-
-        const auto projection_x = scifi_propagation(
-                                    x_at_layer0,
-                                    reco_slope,
-                                    qop,
-                                    SciFi::LookingForward::Zone_zPos[layer2] - SciFi::LookingForward::Zone_zPos[layer0]);
-
-        // Find candidates in the projection
-        const auto x2_candidates = find_x_in_window(
-          hits_in_layers[3],
-          scifi_hits,
-          hits_in_layers[3].size(),
-          projection_x,
-          2 * dx_stddev_extrapolation_to_x_layers[0]);
-
-        extend_candidates.push_back(x2_candidates);
-      }
-
-      // Fetch only the best candidate
       std::vector<Tracklet> tracklets;
-      for (int i=0; i<triplets.size(); ++i) {
-        const auto first_candidate = std::get<0>(extend_candidates[i]);
-        const auto number_of_candidates = std::get<1>(extend_candidates[i]) - first_candidate;
-        const auto h0 = std::get<1>(triplets[i]);
-        const auto h1 = std::get<2>(triplets[i]);
-        const auto layer0 = layers[1];
-        const auto layer1 = layers[2];
-        const auto layer2 = layers[3];
+      std::vector<std::tuple<int, int, int, float>> triplets = find_triplets(
+        scifi_hits,
+        qop,
+        compatible_hits_x0,
+        compatible_hits_x2,
+        flag,
+        event_offset,
+        layers,
+        hits_in_layers,
+        0,
+        1,
+        2,
+        max_candidates_triplets[0],
+        chi2_mean_triplet[0] + 2 * chi2_stddev_triplet[0]);
 
-        // Prepare the chi2
-        const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer2]);
-        const auto x_at_layer0 = scifi_hits.x0[h0];
-        const auto x_at_layer1 = scifi_hits.x0[h1];
-        const auto reco_slope = (x_at_layer1 - x_at_layer0) /
-          (SciFi::LookingForward::Zone_zPos[layer1] -
-           SciFi::LookingForward::Zone_zPos[layer0]);
-        const auto projection_x = scifi_propagation(
-                                    x_at_layer0,
-                                    reco_slope,
-                                    qop,
-                                    SciFi::LookingForward::Zone_zPos[layer2] - SciFi::LookingForward::Zone_zPos[layer0]);
+      std::vector<std::tuple<int, int>> extend_candidates_windows;
 
-        const auto chi2_fn = [&x_at_layer0, &reco_slope, &qop, &layer0] (const float z) {
-          return scifi_propagation(
-            x_at_layer0,
-            reco_slope,
-            qop,
-            z - SciFi::LookingForward::Zone_zPos[layer0]);
-        };
+      for (int i=0; i<3; ++i) {
+        // Find candidates in next layer
+        extend_candidates_windows = find_extend_windows(
+          scifi_hits,
+          UT_state,
+          qop,
+          layers,
+          hits_in_layers,
+          i+1,
+          i+2,
+          i+3,
+          2 * dx_stddev_extrapolation_to_x_layers[i],
+          triplets);
 
-        float best_chi2 = chi2_mean_extrapolation_to_x_layers[0] + 2 * chi2_stddev_extrapolation_to_x_layers[0];
-        int best_index = -1;
+        // Fetch only the best candidate
+        extend_triplets(
+          scifi_hits,
+          UT_state,
+          qop,
+          layers,
+          hits_in_layers,
+          i+1,
+          i+2,
+          i+3,
+          triplets,
+          extend_candidates_windows,
+          event_offset,
+          chi2_mean_extrapolation_to_x_layers[i] + 2 * chi2_stddev_extrapolation_to_x_layers[i],
+          tracklets,
+          flag);
 
-        for (int j=0; j<number_of_candidates; ++j) {
-          const auto candidate_rel_index = first_candidate + j;
-          const auto candidate_index = hits_in_layers[3][candidate_rel_index];
+        // Find window on x0 from x1, and window on x2 from x1
+        compatible_hits_x0 = find_compatible_window(
+          scifi_hits, layers[i+2], layers[i+1], hits_in_layers[i+2], hits_in_layers[i+1], dx_stddev_triplet_x0[i+1], UT_state, xAtRef, zMag);
 
-          // Get chi2
-          std::vector<float> x_coordinates {
-            x_at_layer0,
-            x_at_layer1,
-            scifi_hits.x0[candidate_index]};
+        compatible_hits_x2 = find_compatible_window(
+          scifi_hits, layers[i+2], layers[i+3], hits_in_layers[i+2], hits_in_layers[i+3], dx_stddev_triplet_x2[i+1], UT_state, xAtRef, zMag);
 
-          std::vector<float> z_coordinates {
-            SciFi::LookingForward::Zone_zPos[layer0],
-            SciFi::LookingForward::Zone_zPos[layer1],
-            SciFi::LookingForward::Zone_zPos[layer2]};
-
-          const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
-
-          if (chi2 < best_chi2) {
-            best_chi2 = chi2;
-            best_index = candidate_index;
-          }
-        }
-
-        if (best_index != -1) {
-          Tracklet t;
-          t.add_hit(std::get<0>(triplets[i]));
-          t.add_hit(std::get<1>(triplets[i]));
-          t.add_hit(std::get<2>(triplets[i]));
-          t.add_hit(best_index);
-
-          tracklets.push_back(t);
-        }
+        // Find new triplets
+        triplets = find_triplets(
+          scifi_hits,
+          qop,
+          compatible_hits_x0,
+          compatible_hits_x2,
+          flag,
+          event_offset,
+          layers,
+          hits_in_layers,
+          i+1,
+          i+2,
+          i+3,
+          max_candidates_triplets[i+1],
+          chi2_mean_triplet[i+1] + 2 * chi2_stddev_triplet[i+1]);
       }
 
       // Generate MC data about triplet creation
