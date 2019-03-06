@@ -604,6 +604,15 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           chi2_mean_triplet[i+1] + 2 * chi2_stddev_triplet[i+1]);
       }
 
+      for (const auto& triplet : triplets) {
+        Tracklet t;
+        t.add_hit(std::get<0>(triplet));
+        t.add_hit(std::get<1>(triplet));
+        t.add_hit(std::get<2>(triplet));
+
+        tracklets.push_back(t);
+      }
+
       // Generate MC data about triplet creation
       // for (int i=0; i<4; ++i) {
       //   const auto layer0 = layers[i];
@@ -1032,7 +1041,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // // info_cout << triplets.size() << std::endl;
 
       // Create SciFi track if it is within the windows
-      bool found_quadruplet = false;
+      bool found_triplet = false;
       for (int i = 0; i < tracklets.size(); ++i) {
         const auto tracklet = tracklets[i];
 
@@ -1046,7 +1055,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           }
         }
 
-        found_quadruplet |= (number_found == 4);
+        found_triplet |= (number_found >= 3);
       }
 
       // // Check for triplets
@@ -1055,7 +1064,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // const bool triplet_2 = within_bounds[3] && within_bounds[4] && within_bounds[2];
       // const bool triplet_3 = within_bounds[3] && within_bounds[4] && within_bounds[5];
       // //  || triplet_1 || triplet_2 || triplet_3
-      if (found_quadruplet) {
+      if (found_triplet) {
         SciFi::TrackHits candidate;
         candidate.UTTrackIndex = i_veloUT_track;
         for (int i = 0; i < 12; ++i) {

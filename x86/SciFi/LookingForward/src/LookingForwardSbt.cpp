@@ -254,12 +254,13 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
         const auto h2_index = window_2_start + k;
         const auto h2 = hits_in_layers[relative_layer2][h2_index];
 
-        if (!flag[h0 - event_offset] && !flag[h1 - event_offset] && !flag[h2 - event_offset]) {
+        // Flagging
+        // if (!flag[h0 - event_offset] && !flag[h1 - event_offset] && !flag[h2 - event_offset]) {
           const auto chi2 = chi2_triplet(scifi_hits, qop, h0, h1, h2, layer0, layer1, layer2);
           if (chi2 < max_triplet_chi2) {
             triplets.push_back({h0, h1, h2, chi2});
           }
-        }
+        // }
       }
     }
   }
@@ -410,6 +411,13 @@ void extend_triplets (
       flag[t.hits[1] - event_offset] = true;
       flag[t.hits[2] - event_offset] = true;
       flag[t.hits[3] - event_offset] = true;
+
+      tracklets.push_back(t);
+    } else {
+      Tracklet t;
+      t.add_hit(std::get<0>(triplets[i]));
+      t.add_hit(std::get<1>(triplets[i]));
+      t.add_hit(std::get<2>(triplets[i]));
 
       tracklets.push_back(t);
     }
