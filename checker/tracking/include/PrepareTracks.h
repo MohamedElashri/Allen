@@ -65,4 +65,5 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
   const float* ut_qop,
   const std::vector<std::vector<SciFi::TrackHits>>& scifi_tracks,
   const SciFi::Hits& scifi_hits,
+  const uint* host_scifi_hit_count,
   const uint number_of_events);

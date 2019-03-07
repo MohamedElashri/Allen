@@ -46,10 +46,13 @@
 #include "MuonCatboostEvaluator.cuh"
 #include "ParKalmanFilter.cuh"
 #include "RunLookingForwardCPU.h"
-#include "LookingForwardFindSeeds.cuh"
 #include "LFCalculateFirstLayerWindow.cuh"
 #include "LFCalculateSecondLayerWindow.cuh"
 #include "LFFormSeedsFromCandidates.cuh"
+#include "LFCalculateCandidateExtrapolationWindow.cuh"
+#include "LFPromoteCandidates.cuh"
+#include "LFCalculateTrackExtrapolationWindow.cuh"
+#include "LFExtendTracks.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

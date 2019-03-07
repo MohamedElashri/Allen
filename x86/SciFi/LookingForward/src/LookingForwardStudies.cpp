@@ -58,6 +58,12 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   TTree* t_triplet_2 = new TTree("t_triplet_2", "t_triplet_2");
   TTree* t_triplet_3 = new TTree("t_triplet_3", "t_triplet_3");
   TTree* t_extrap_l5 = new TTree("extrap_l5", "extrap_l5");
+  TTree* t_extrapolate_tracks_0 = new TTree("t_extrapolate_tracks_0", "t_extrapolate_tracks_0");
+  TTree* t_extrapolate_tracks_1 = new TTree("t_extrapolate_tracks_1", "t_extrapolate_tracks_1");
+  TTree* t_extrapolate_tracks_2 = new TTree("t_extrapolate_tracks_2", "t_extrapolate_tracks_2");
+  TTree* t_extrapolate_tracks_3 = new TTree("t_extrapolate_tracks_3", "t_extrapolate_tracks_3");
+  TTree* t_extrapolate_tracks_4 = new TTree("t_extrapolate_tracks_4", "t_extrapolate_tracks_4");
+  TTree* t_extrapolate_tracks_5 = new TTree("t_extrapolate_tracks_5", "t_extrapolate_tracks_5");
 
   uint planeCode, LHCbID;
   float x0, z0, w, dxdy, dzdy, yMin, yMax;
@@ -139,8 +145,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   t_distance_candidate_extrap_mc->Branch("distance_candidate_extrap_x3_x0_mc", &distance_candidate_extrap_x3_x0_mc);
   t_distance_candidate_extrap_mc->Branch("distance_candidate_extrap_x3_x4_mc", &distance_candidate_extrap_x3_x4_mc);
 
-  float extend_track_diff_x [3];
-  float extend_track_chi2 [3];
+  float extend_track_diff_x[3];
+  float extend_track_chi2[3];
   t_extend_tracks0->Branch("extend_track_diff_x", (float*) &(extend_track_diff_x[0]));
   t_extend_tracks0->Branch("extend_track_chi2", (float*) &(extend_track_chi2[0]));
   t_extend_tracks1->Branch("extend_track_diff_x", (float*) &(extend_track_diff_x[1]));
@@ -148,9 +154,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   t_extend_tracks2->Branch("extend_track_diff_x", (float*) &(extend_track_diff_x[2]));
   t_extend_tracks2->Branch("extend_track_chi2", (float*) &(extend_track_chi2[2]));
 
-  float triplet_diff_x0 [4];
-  float triplet_diff_x2 [4];
-  float triplet_chi2 [4];
+  float triplet_diff_x0[4];
+  float triplet_diff_x2[4];
+  float triplet_chi2[4];
   t_triplet_0->Branch("triplet_diff_x0", (float*) &(triplet_diff_x0[0]));
   t_triplet_0->Branch("triplet_diff_x2", (float*) &(triplet_diff_x2[0]));
   t_triplet_0->Branch("triplet_chi2", (float*) &(triplet_chi2[0]));
@@ -163,6 +169,21 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   t_triplet_3->Branch("triplet_diff_x0", (float*) &(triplet_diff_x0[3]));
   t_triplet_3->Branch("triplet_diff_x2", (float*) &(triplet_diff_x2[3]));
   t_triplet_3->Branch("triplet_chi2", (float*) &(triplet_chi2[3]));
+
+  float extrapolate_diff_x [6];
+  float extrapolate_chi2 [6];
+  t_extrapolate_tracks_0->Branch("extrapolate_diff_x", (float*) &(extrapolate_diff_x[0]));
+  t_extrapolate_tracks_0->Branch("extrapolate_chi2", (float*) &(extrapolate_chi2[0]));
+  t_extrapolate_tracks_1->Branch("extrapolate_diff_x", (float*) &(extrapolate_diff_x[1]));
+  t_extrapolate_tracks_1->Branch("extrapolate_chi2", (float*) &(extrapolate_chi2[1]));
+  t_extrapolate_tracks_2->Branch("extrapolate_diff_x", (float*) &(extrapolate_diff_x[2]));
+  t_extrapolate_tracks_2->Branch("extrapolate_chi2", (float*) &(extrapolate_chi2[2]));
+  t_extrapolate_tracks_3->Branch("extrapolate_diff_x", (float*) &(extrapolate_diff_x[3]));
+  t_extrapolate_tracks_3->Branch("extrapolate_chi2", (float*) &(extrapolate_chi2[3]));
+  t_extrapolate_tracks_4->Branch("extrapolate_diff_x", (float*) &(extrapolate_diff_x[4]));
+  t_extrapolate_tracks_4->Branch("extrapolate_chi2", (float*) &(extrapolate_chi2[4]));
+  t_extrapolate_tracks_5->Branch("extrapolate_diff_x", (float*) &(extrapolate_diff_x[5]));
+  t_extrapolate_tracks_5->Branch("extrapolate_chi2", (float*) &(extrapolate_chi2[5]));
 
   t_extrap_T3->Branch("xf", &xf_t3);
   t_extrap_T3->Branch("yf", &yf_t3);
@@ -479,6 +500,11 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       float bs_y[4] {yAtRef, UT_state.ty, 0, 0};
 
       SciFi::Tracking::Arrays constArrays;
+      SciFi::Tracking::TMVA tmva1;
+      SciFi::Tracking::TMVA1_Init(tmva1);
+      SciFi::Tracking::TMVA tmva2;
+      SciFi::Tracking::TMVA2_Init(tmva2);
+
       collectAllXHits_proto(
         scifi_hits,
         scifi_hit_count,
@@ -509,41 +535,82 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
                          SciFi::LookingForward::zMagnetParams[2] * UT_state.tx * UT_state.tx +
                          SciFi::LookingForward::zMagnetParams[3] * UT_state.ty * UT_state.ty;
 
-      // Constants from BsPhiPhi Monte Carlo
-      const std::array<float, 4> dx_stddev_triplet_x0  {53.01f, 97.43f, 39.89f, 77.55f};
-      const std::array<float, 4> dx_stddev_triplet_x2  {117.1f, 42.68f, 88.74f, 33.79f};
-      const std::array<float, 4> chi2_mean_triplet     { 2.35f,  3.14f,  2.17f,  3.95f};
-      const std::array<float, 4> chi2_stddev_triplet   {14.05f,  7.49f,  9.97f,  7.97f};
-      const std::array<int, 4> max_candidates_triplets {20, 20, 20, 20};
+      // Configuration of sbt
+      // Triplet creation
+      const std::array<float, 4> dx_stddev_triplet_x0 {53.01f, 97.43f, 39.89f, 77.55f};
+      const std::array<float, 4> dx_stddev_triplet_x2 {117.1f, 42.68f, 88.74f, 33.79f};
+      const std::array<float, 4> chi2_mean_triplet {2.35f, 3.14f, 2.17f, 3.95f};
+      const std::array<float, 4> chi2_stddev_triplet {14.05f, 7.49f, 9.97f, 7.97f};
 
-      const std::array<float, 3> dx_stddev_extrapolation_to_x_layers   {1.50f, 1.40f, 1.74f};
-      const std::array<float, 3> chi2_mean_extrapolation_to_x_layers   {3.09f, 1.98f, 3.89f};
+      // Extrapolation
+      const std::array<float, 3> dx_stddev_extrapolation_to_x_layers {1.50f, 1.40f, 1.74f};
+      const std::array<float, 3> chi2_mean_extrapolation_to_x_layers {3.09f, 1.98f, 3.89f};
       const std::array<float, 3> chi2_stddev_extrapolation_to_x_layers {6.33f, 5.09f, 7.42f};
 
-      // Find window on x0 from x1, and window on x2 from x1
-      std::vector<std::tuple<int, int>> compatible_hits_x0 = find_compatible_window(
-        scifi_hits, layers[1], layers[0], hits_in_layers[1], hits_in_layers[0], dx_stddev_triplet_x0[0], UT_state, xAtRef, zMag);
+      const std::array<int, 4> max_candidates_triplets {20, 20, 20, 20};
+      const float factor_chi2_triplet = 2.5f;
+      const float factor_chi2_extend = 2.5f;
+      const float compatible_window_factor = 4.f;
+      const float compatible_window_factor_extend = 4.f;
+      const bool use_flagging = true;
 
-      std::vector<std::tuple<int, int>> compatible_hits_x2 = find_compatible_window(
-        scifi_hits, layers[1], layers[2], hits_in_layers[1], hits_in_layers[2], dx_stddev_triplet_x2[0], UT_state, xAtRef, zMag);
+      // Extra triplets
+      std::array<std::tuple<int, int, int>, 0> extra_triplets {};
+       // {
+       //                                                          std::make_tuple(0, 2, 4),
+       //                                                          std::make_tuple(0, 2, 5),
+       //                                                          std::make_tuple(1, 2, 4),
+       //                                                          std::make_tuple(1, 2, 5)
+       //                                                          // std::make_tuple(0, 3, 4),
+       //                                                          // std::make_tuple(0, 3, 5),
+       //                                                          // std::make_tuple(1, 3, 4),
+       //                                                          // std::make_tuple(1, 3, 5)
+       //                                                       };
+      const float dx_stddev_triplet_x0_extra = 97.43f;
+      const float dx_stddev_triplet_x2_extra = 117.1f;
+      const float chi2_mean_triplet_extra = 3.95f;
+      const float chi2_stddev_triplet_extra = 14.05f;
+      const int max_candidates_triplets_extra = 20;
 
-      // for (int i = 0; i < hits_in_layers[1].size(); ++i) {
-      //   const auto start_h0 = std::get<0>(compatible_hits_x0[i]);
-      //   const auto size_h0 = std::get<1>(compatible_hits_x0[i]) - start_h0;
-      //   const auto start_h2 = std::get<0>(compatible_hits_x2[i]);
-      //   const auto size_h2 = std::get<1>(compatible_hits_x2[i]) - start_h2;
-
-      //   info_cout << "Compatible hits: " << start_h0 << ", " << size_h0 << " (" << hits_in_layers[0].size() << "),"
-      //     << start_h2 << ", " << size_h2 << " (" << hits_in_layers[2].size() << ")" << std::endl;
-      // }
-      
-      // Flagging mechanism
+      // Datatypes for algorithm
+      std::vector<Tracklet> tracklets;
+      std::vector<std::tuple<int, int, int, float>> triplets;
       const auto event_offset = scifi_hit_count.event_offset();
-      std::vector<bool> flag (scifi_hit_count.event_number_of_hits(), false);
+      // Compatible hits
+      std::vector<std::tuple<int, int>> compatible_hits_x0;
+      std::vector<std::tuple<int, int>> compatible_hits_x2;
+      // Flagging mechanism
+      std::vector<bool> flag(scifi_hit_count.event_number_of_hits(), false);
+      // Track extension
+      std::vector<std::tuple<int, int>> extend_candidates_windows;
+      
+      // Find window on x0 from x1, and window on x2 from x1
+      compatible_hits_x0 = find_compatible_window(
+        scifi_hits,
+        layers[1],
+        layers[0],
+        hits_in_layers[1],
+        hits_in_layers[0],
+        dx_stddev_triplet_x0[0],
+        compatible_window_factor,
+        UT_state,
+        xAtRef,
+        zMag);
+
+      compatible_hits_x2 = find_compatible_window(
+        scifi_hits,
+        layers[1],
+        layers[2],
+        hits_in_layers[1],
+        hits_in_layers[2],
+        dx_stddev_triplet_x2[0],
+        compatible_window_factor,
+        UT_state,
+        xAtRef,
+        zMag);
 
       // Get all compatible triplets in window
-      std::vector<Tracklet> tracklets;
-      std::vector<std::tuple<int, int, int, float>> triplets = find_triplets(
+      find_triplets(
         scifi_hits,
         qop,
         compatible_hits_x0,
@@ -556,63 +623,53 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         1,
         2,
         max_candidates_triplets[0],
-        chi2_mean_triplet[0] + 2 * chi2_stddev_triplet[0]);
+        chi2_mean_triplet[0] + factor_chi2_triplet * chi2_stddev_triplet[0],
+        use_flagging,
+        i_veloUT_track,
+        UT_state,
+        scifi_tracks);
 
-      std::vector<std::tuple<int, int>> extend_candidates_windows;
-
-      for (int i=0; i<3; ++i) {
-        // Extend forming tracklets
+      for (int i = 0; i < 3; ++i) {
+        // Extend forming tracks
         extend_tracklets(
           scifi_hits,
           UT_state,
           qop,
           layers,
           hits_in_layers,
-          i+3,
+          i + 3,
           event_offset,
-          chi2_mean_extrapolation_to_x_layers[i] + 2 * chi2_stddev_extrapolation_to_x_layers[i],
-          tracklets,
-          flag);
-
-        // Find candidates in next layer for triplets
-        extend_candidates_windows = find_extend_windows(
-          scifi_hits,
-          UT_state,
-          qop,
-          layers,
-          hits_in_layers,
-          i+1,
-          i+2,
-          i+3,
-          2 * dx_stddev_extrapolation_to_x_layers[i],
-          triplets);
-
-        // Fetch only the best candidate
-        extend_triplets(
-          scifi_hits,
-          UT_state,
-          qop,
-          layers,
-          hits_in_layers,
-          i+1,
-          i+2,
-          i+3,
-          triplets,
-          extend_candidates_windows,
-          event_offset,
-          chi2_mean_extrapolation_to_x_layers[i] + 2 * chi2_stddev_extrapolation_to_x_layers[i],
-          tracklets,
+          chi2_mean_extrapolation_to_x_layers[i] + factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[i],
+          scifi_tracks,
           flag);
 
         // Find window on x0 from x1, and window on x2 from x1
         compatible_hits_x0 = find_compatible_window(
-          scifi_hits, layers[i+2], layers[i+1], hits_in_layers[i+2], hits_in_layers[i+1], dx_stddev_triplet_x0[i+1], UT_state, xAtRef, zMag);
+          scifi_hits,
+          layers[i + 2],
+          layers[i + 1],
+          hits_in_layers[i + 2],
+          hits_in_layers[i + 1],
+          dx_stddev_triplet_x0[i + 1],
+          compatible_window_factor,
+          UT_state,
+          xAtRef,
+          zMag);
 
         compatible_hits_x2 = find_compatible_window(
-          scifi_hits, layers[i+2], layers[i+3], hits_in_layers[i+2], hits_in_layers[i+3], dx_stddev_triplet_x2[i+1], UT_state, xAtRef, zMag);
+          scifi_hits,
+          layers[i + 2],
+          layers[i + 3],
+          hits_in_layers[i + 2],
+          hits_in_layers[i + 3],
+          dx_stddev_triplet_x2[i + 1],
+          compatible_window_factor,
+          UT_state,
+          xAtRef,
+          zMag);
 
         // Find new triplets
-        triplets = find_triplets(
+        find_triplets(
           scifi_hits,
           qop,
           compatible_hits_x0,
@@ -621,666 +678,75 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           event_offset,
           layers,
           hits_in_layers,
-          i+1,
-          i+2,
-          i+3,
-          max_candidates_triplets[i+1],
-          chi2_mean_triplet[i+1] + 2 * chi2_stddev_triplet[i+1]);
+          i + 1,
+          i + 2,
+          i + 3,
+          max_candidates_triplets[i + 1],
+          chi2_mean_triplet[i + 1] + factor_chi2_triplet * chi2_stddev_triplet[i + 1],
+          use_flagging,
+          i_veloUT_track,
+          UT_state,
+          scifi_tracks);
       }
 
-      for (const auto& triplet : triplets) {
-        Tracklet t;
-        t.add_hit(std::get<0>(triplet));
-        t.add_hit(std::get<1>(triplet));
-        t.add_hit(std::get<2>(triplet));
+      // Extrapolate tracks
+      const std::array<int, 6> extrapolation_layers {1, 2, 5, 6, 9, 10};
+      const std::array<float, 6> extrapolation_stddev {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
+      const std::array<float, 6> chi2_extrapolation_mean {1.304f, 1.384f, 4.577f, 6.587f, 36.1f, 44.67f};
+      const std::array<float, 6> chi2_extrapolation_stddev {10.6f, 11.82f, 17.84f, 23.2f, 68.05f, 81.47f};
 
-        tracklets.push_back(t);
+      for (int i=0; i<extrapolation_layers.size(); ++i) {
+        const int layer = extrapolation_layers[i];
+        const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
+
+        for (auto& track : scifi_tracks) {
+          single_track_propagation(
+            scifi_hits,
+            scifi_hit_count,
+            layer,
+            projection_y,
+            track,
+            extrapolation_stddev[i],
+            chi2_extrapolation_mean[i],
+            chi2_extrapolation_stddev[i],
+            event_offset);
+        }
       }
 
-      // Extra triplets
-      std::array<std::tuple<int, int, int>, 4> extra_triplets {
-        std::make_tuple(0, 2, 4),
-        std::make_tuple(0, 2, 5),
-        std::make_tuple(1, 3, 4),
-        std::make_tuple(1, 3, 5)
-      };
-
-      const float dx_stddev_triplet_x0_extra = 97.43f;
-      const float dx_stddev_triplet_x2_extra = 117.1f;
-      const float chi2_mean_triplet_extra = 3.95f;
-      const float chi2_stddev_triplet_extra = 14.05f;
-      const int max_candidates_triplets_extra = 20;
-
-      for (const auto& extra_triplet : extra_triplets) {
-        const auto relative_layer0 = std::get<0>(extra_triplet);
-        const auto relative_layer1 = std::get<1>(extra_triplet);
-        const auto relative_layer2 = std::get<2>(extra_triplet);
-
-        compatible_hits_x0 = find_compatible_window(
-          scifi_hits, layers[relative_layer1], layers[relative_layer0], hits_in_layers[relative_layer1], hits_in_layers[relative_layer0], dx_stddev_triplet_x0_extra, UT_state, xAtRef, zMag);
-
-        compatible_hits_x2 = find_compatible_window(
-          scifi_hits, layers[relative_layer1], layers[relative_layer2], hits_in_layers[relative_layer1], hits_in_layers[relative_layer2], dx_stddev_triplet_x2_extra, UT_state, xAtRef, zMag);
-
-        triplets = find_triplets(
-          scifi_hits,
+      filter_tracks_with_TMVA(
+          scifi_tracks,
+          event_trackhits,
+          velo_state,
           qop,
-          compatible_hits_x0,
-          compatible_hits_x2,
-          flag,
-          event_offset,
-          layers,
-          hits_in_layers,
-          relative_layer0,
-          relative_layer1,
-          relative_layer2,
-          max_candidates_triplets_extra,
-          chi2_mean_triplet_extra + 2 * chi2_stddev_triplet_extra);
+          &constArrays,
+          &tmva1,
+          &tmva2,
+          scifi_hits,
+          scifi_hit_count.event_offset());
 
-        for (const auto& triplet : triplets) {
-          Tracklet t;
-          t.add_hit(std::get<0>(triplet));
-          t.add_hit(std::get<1>(triplet));
-          t.add_hit(std::get<2>(triplet));
-          tracklets.push_back(t);
-        }        
-      }
+      // float best_fit = 100.f;
+      // int best_track = -1;
+
+      // for (int i=0; i<scifi_tracks.size(); ++i) {
+      //   const auto track = scifi_tracks[i];
+      //   if (track.hitsNum >= 9) {
+      //     if (track.get_quality() < best_fit) {
+      //       best_fit = track.get_quality();
+      //       best_track = i;
+      //     }
+      //   }
+      // }
+
+      // // Populate trackhits
+      // if (best_track != -1) {
+      //   event_trackhits.push_back(scifi_tracks[best_track]);
+      // }
       
-      // Generate MC data about triplet creation
-      // for (int i=0; i<4; ++i) {
-      //   const auto layer0 = layers[i];
-      //   const auto layer1 = layers[i+1];
-      //   const auto layer2 = layers[i+2];
-      //   const auto h0 = true_scifi_indices_per_layer[layer0];
-      //   const auto h1 = true_scifi_indices_per_layer[layer1];
-      //   const auto h2 = true_scifi_indices_per_layer[layer2];
-
-      //   if (h0 != -1 && h1 != -1 && h2 != -1) {
-      //     {
-      //       const auto z1 = SciFi::LookingForward::Zone_zPos[layer1];
-      //       const auto z0 = SciFi::LookingForward::Zone_zPos[layer0];
-      //       const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
-      //       const auto dz = 1.e-3f * std::abs(z1 - z0);
-      //       const float x_from_velo_hit = xAtRef + UT_state.tx * z1;
-
-      //       const auto x1 = scifi_hits.x0[h1];
-      //       const auto dSlope = (x_from_velo_hit - x1) * dSlopeDivPart;
-      //       const auto zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
-      //       const auto xMag = x_from_velo_hit + UT_state.tx * (zMag_corrected - z1);
-
-      //       // calculate x position on reference plane (save in coodX)
-      //       // dxCoef: account for additional bending of track due to fringe field in first station
-      //       // expressed by quadratic and cubic term in z
-      //       auto dxCoef =
-      //         dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1]) * dSlope;
-      //       auto ratio = (z0 - zMag_corrected) / (z1 - zMag_corrected);
-      //       auto extrapolated_value = xMag + ratio * (x1 + dxCoef - xMag);
-      //       const auto x0 = scifi_hits.x0[h0];
-            
-      //       triplet_diff_x0[i] = x0 - extrapolated_value;
-      //     }
-
-      //     {
-      //       const auto z1 = SciFi::LookingForward::Zone_zPos[layer1];
-      //       const auto z2 = SciFi::LookingForward::Zone_zPos[layer2];
-      //       const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
-      //       const auto dz = 1.e-3f * std::abs(z1 - z2);
-      //       const float x_from_velo_hit = xAtRef + UT_state.tx * z1;
-
-      //       const auto x1 = scifi_hits.x0[h1];
-      //       const auto dSlope = (x_from_velo_hit - x1) * dSlopeDivPart;
-      //       const auto zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
-      //       const auto xMag = x_from_velo_hit + UT_state.tx * (zMag_corrected - z1);
-
-      //       // calculate x position on reference plane (save in coodX)
-      //       // dxCoef: account for additional bending of track due to fringe field in first station
-      //       // expressed by quadratic and cubic term in z
-      //       auto dxCoef =
-      //         dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1]) * dSlope;
-      //       auto ratio = (z2 - zMag_corrected) / (z1 - zMag_corrected);
-      //       auto extrapolated_value = xMag + ratio * (x1 + dxCoef - xMag);
-      //       const auto x2 = scifi_hits.x0[h2];
-            
-      //       triplet_diff_x2[i] = x2 - extrapolated_value;
-      //     }
-          
-      //     triplet_chi2[i] = chi2_triplet(scifi_hits, qop, h0, h1, h2, layer0, layer1, layer2);
-
-      //     if (triplet_chi2[i] < 1000.f) {
-      //       if (i==0) {
-      //         t_triplet_0->Fill();
-      //       } else if (i==1) {
-      //         t_triplet_1->Fill();
-      //       } else if (i==2) {
-      //         t_triplet_2->Fill();
-      //       } else if (i==3) {
-      //         t_triplet_3->Fill();
-      //       }
-      //     }
+      // for (const auto& track : scifi_tracks) {
+      //   if (track.hitsNum >= 9) {
+      //     event_trackhits.push_back(track);
       //   }
       // }
-
-      // Generate MC data about extrapolation
-      // for (int i=0; i<3; ++i) {
-      //   const auto layer0 = layers[1+i];
-      //   const auto layer1 = layers[2+i];
-      //   const auto layer2 = layers[3+i];
-      //   const auto h0 = true_scifi_indices_per_layer[layer0];
-      //   const auto h1 = true_scifi_indices_per_layer[layer1];
-      //   const auto h2 = true_scifi_indices_per_layer[layer2];
-
-      //   if (h0 != -1 && h1 != -1 && h2 != -1) {
-      //     const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer2]);
-
-      //     // do the propagation
-      //     const auto x_at_layer0 = scifi_hits.x0[h0];
-      //     const auto x_at_layer1 = scifi_hits.x0[h1];
-      //     const auto x_at_layer2 = scifi_hits.x0[h2];
-
-      //     const auto reco_slope = (x_at_layer1 - x_at_layer0) /
-      //       (SciFi::LookingForward::Zone_zPos[layer1] -
-      //        SciFi::LookingForward::Zone_zPos[layer0]);
-
-      //     const auto projection_x = scifi_propagation(
-      //                                 x_at_layer0,
-      //                                 reco_slope,
-      //                                 qop,
-      //                                 SciFi::LookingForward::Zone_zPos[layer2] - SciFi::LookingForward::Zone_zPos[layer0]);
-
-      //     const auto diff_x = x_at_layer2 - projection_x;
-
-      //     const auto chi2_fn = [&x_at_layer0, &reco_slope, &qop, &layer0] (const float z) {
-      //       return scifi_propagation(
-      //         x_at_layer0,
-      //         reco_slope,
-      //         qop,
-      //         z - SciFi::LookingForward::Zone_zPos[layer0]);
-      //     };
-
-      //     std::vector<float> x_coordinates {
-      //       x_at_layer0,
-      //       x_at_layer1,
-      //       x_at_layer2};
-
-      //     std::vector<float> z_coordinates {
-      //       SciFi::LookingForward::Zone_zPos[layer0],
-      //       SciFi::LookingForward::Zone_zPos[layer1],
-      //       SciFi::LookingForward::Zone_zPos[layer2]};
-
-      //     const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
-
-      //     extend_track_diff_x[i] = diff_x;
-      //     extend_track_chi2[i] = chi2;
-
-      //     if (chi2 < 100.f) {
-      //       if (i==0) {
-      //         t_extend_tracks0->Fill();
-      //       } else if (i==1) {
-      //         t_extend_tracks1->Fill();
-      //       } else if (i==2) {
-      //         t_extend_tracks2->Fill();
-      //       }
-      //     }
-      //   }
-      // }
-
-      // if (true_scifi_indices_per_layer[0] != -1 &&
-      //     true_scifi_indices_per_layer[1] != -1 &&
-      //     true_scifi_indices_per_layer[2] != -1) {
-      //   const float z0 = scifi_hits.z0[true_scifi_indices_per_layer[0]];
-      //   const float z1 = scifi_hits.z0[true_scifi_indices_per_layer[1]];
-      //   const float z2 = scifi_hits.z0[true_scifi_indices_per_layer[2]];
-
-      //   const float xFromVelo_Hit = xParams_seed[0] + xParams_seed[1] * z1;
-      //   const float xHit = scifi_hits.x0[true_scifi_indices_per_layer[1]];
-
-      //   {
-      //     const auto dz = 1.e-3f * (z1 - z0);
-      //     const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
-      //     const auto dSlope = (xFromVelo_Hit - xHit) * dSlopeDivPart;
-      //     const auto zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
-      //     const auto xMag = xFromVelo_Hit + UT_state.tx * (zMag_corrected - z1);
-
-      //     // calculate x position on reference plane (save in coodX)
-      //     // dxCoef: account for additional bending of track due to fringe field in first station
-      //     // expressed by quadratic and cubic term in z
-      //     const auto dxCoef = dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1])
-      //     * dSlope; const auto ratio = (z0 - zMag_corrected) / (z1 - zMag_corrected); const auto extrapolated_value =
-      //     xMag + ratio * (xHit + dxCoef - xMag);
-
-      //     const auto mc_x0 = scifi_hits.x0[true_scifi_indices_per_layer[0]];
-      //     distance_candidate_extrap_x3_x0_mc = extrapolated_value - mc_x0;
-      //   }
-
-      //   {
-      //     const auto dz = 1.e-3f * (z2 - z1);
-      //     const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
-      //     const auto dSlope = (xFromVelo_Hit - xHit) * dSlopeDivPart;
-      //     const auto zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
-      //     const auto xMag = xFromVelo_Hit + UT_state.tx * (zMag_corrected - z1);
-
-      //     // calculate x position on reference plane (save in coodX)
-      //     // dxCoef: account for additional bending of track due to fringe field in first station
-      //     // expressed by quadratic and cubic term in z
-      //     const auto dxCoef = dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1])
-      //     * dSlope; const auto ratio = (z2 - zMag_corrected) / (z1 - zMag_corrected); const auto extrapolated_value =
-      //     xMag + ratio * (xHit + dxCoef - xMag);
-
-      //     const auto mc_x2 = scifi_hits.x0[true_scifi_indices_per_layer[2]];
-      //     distance_candidate_extrap_x3_x4_mc = extrapolated_value - mc_x2;
-      //   }
-
-      //   t_distance_candidate_extrap_mc->Fill();
-      //   // std::cout << "Diff: " << std::abs(extrapolated_value - mc_x0) << std::endl;
-      // }
-
-      // // Create SciFi track if it is within the windows
-      // auto found_triplet = false;
-      // if (
-      //   true_scifi_indices_per_layer[0] != -1 && true_scifi_indices_per_layer[3] != -1 &&
-      //   true_scifi_indices_per_layer[4] != -1 && hits_in_layers[0].size() > 0 && hits_in_layers[1].size() > 0 &&
-      //   hits_in_layers[2].size() > 0) {
-      //   // for (int i = 0; i < hits_in_layers[1].size(); ++i) {
-      //   //   const auto start_h0 = std::get<0>(compatible_hits_x0[i]);
-      //   //   const auto size_h0 = std::get<1>(compatible_hits_x0[i]) - start_h0;
-      //   //   const auto start_h2 = std::get<0>(compatible_hits_x2[i]);
-      //   //   const auto size_h2 = std::get<1>(compatible_hits_x2[i]) - start_h2;
-
-      //   //   info_cout << "Compatible hits: " << start_h0 << ", " << size_h0 << " (" << hits_in_layers[0].size() << "),"
-      //   //     << start_h2 << ", " << size_h2 << " (" << hits_in_layers[2].size() << ")" << std::endl;
-      //   // }
-
-      //   for (int i = 0; i < hits_in_layers[1].size(); ++i) {
-      //     const bool found_h1 = std::find(true_scifi_indices.begin(), true_scifi_indices.end(), hits_in_layers[1][i]) !=
-      //                           true_scifi_indices.end();
-      //     if (found_h1) {
-      //       const auto start_h0 = std::get<0>(compatible_hits_x0[i]);
-      //       const auto size_h0 = std::get<1>(compatible_hits_x0[i]) - start_h0;
-
-      //       const auto start_h2 = std::get<0>(compatible_hits_x2[i]);
-      //       const auto size_h2 = std::get<1>(compatible_hits_x2[i]) - start_h2;
-
-      //       if (size_h0 > 0 && size_h2 > 0) {
-      //         for (int j = 0; !found_triplet && j < size_h0; ++j) {
-      //           const bool found_h0 =
-      //             std::find(true_scifi_indices.begin(), true_scifi_indices.end(), hits_in_layers[0][start_h0 + j]) !=
-      //             true_scifi_indices.end();
-
-      //           if (found_h0) {
-      //             for (int k = 0; !found_triplet && k < size_h2; ++k) {
-      //               const bool found_h2 =
-      //                 std::find(
-      //                   true_scifi_indices.begin(), true_scifi_indices.end(), hits_in_layers[2][start_h2 + k]) !=
-      //                 true_scifi_indices.end();
-
-      //               found_triplet |= (found_h0 && found_h1 && found_h2);
-      //             }
-      //           }
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
-
-      // if (found_triplet) {
-      //   SciFi::TrackHits candidate;
-      //   candidate.UTTrackIndex = i_veloUT_track;
-      //   for (int i = 0; i < 12; ++i) {
-      //     if (true_scifi_indices_per_layer[i] != -1) {
-      //       candidate.addHit(true_scifi_indices_per_layer[i]);
-      //     }
-      //   }
-      //   scifi_tracks.push_back(candidate);
-      // }
-
-      // // We have in window all windows for x layers
-      // // Save in coordX all extrapolated hits in the above windows
-      // std::vector<float> coordX;
-      // std::vector<int8_t> monte_carlo_particles;
-      // std::vector<uint8_t> hit_layers;
-
-      // for (int i=0; i<3; ++i) {
-      //   const auto window_size = hits_in_layers[i].size();
-
-      //   if (window_size > 0) {
-      //     const float zHit = scifi_hits.z0[hits_in_layers[i][0]];
-      //     const float xFromVelo_Hit = xParams_seed[0] + xParams_seed[1] * zHit;
-      //     const float dSlopeDivPart = 1.f / (zHit - SciFi::LookingForward::zMagnetParams[0]);
-      //     const float dz = 1.e-3f * (zHit - SciFi::Tracking::zReference);
-
-      //     for (int j=0; j<window_size; ++j) {
-      //       const auto hit_index = hits_in_layers[i][j];
-      //       const float xHit = scifi_hits.x0[hit_index];
-
-      //       float dSlope = (xFromVelo_Hit - xHit) * dSlopeDivPart;
-      //       float zMag_corrected = zMag + SciFi::LookingForward::zMagnetParams[1] * dSlope * dSlope;
-      //       float xMag = xFromVelo_Hit + UT_state.tx * (zMag_corrected - zHit);
-
-      //       // calculate x position on reference plane (save in coodX)
-      //       // dxCoef: account for additional bending of track due to fringe field in first station
-      //       // expressed by quadratic and cubic term in z
-      //       float dxCoef = dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1]) *
-      //       dSlope; float ratio = (SciFi::Tracking::zReference - zMag_corrected) / (zHit - zMag_corrected);
-      //       coordX.emplace_back(xMag + ratio * (xHit + dxCoef - xMag));
-      //       hit_layers.emplace_back(0x1 << (6 - i));
-      //       if (std::find(true_scifi_indices.begin(), true_scifi_indices.end(), hit_index) !=
-      //       true_scifi_indices.end()) {
-      //         monte_carlo_particles.emplace_back(1);
-      //       } else {
-      //         monte_carlo_particles.emplace_back(0);
-      //       }
-      //     }
-      //   }
-      // }
-
-      // // // Print coordX
-      // // int counter = 0;
-      // // for (int i=0; i<6; ++i) {
-      // //   const auto window_size = windows_x[2*i+1];
-      // //   info_cout << "Window " << i << ": ";
-      // //   for (int j = 0; j<window_size; ++j) {
-      // //     const auto index = counter + j;
-      // //     info_cout << coordX[index] << ", ";
-      // //   }
-      // //   info_cout << std::endl;
-      // //   counter += window_size;
-      // // }
-
-      // // Get sorted keys, sort coordX
-      // std::vector<int> keys (coordX.size());
-      // std::iota(keys.begin(), keys.end(), 0);
-      // std::sort(keys.begin(), keys.end(), [&coordX](const int a, const int b) {
-      //   return coordX[a] < coordX[b];
-      // });
-
-      // // // Check the distance of our MC particles in the Hough
-      // // info_cout << "MC particle indices locations (presort): ";
-      // // for (int i=0; i<monte_carlo_particles.size(); ++i) {
-      // //   if (monte_carlo_particles[i] == 1) {
-      // //     info_cout << i << ", ";
-      // //   }
-      // // }
-      // // info_cout << std::endl;
-
-      // std::sort(coordX.begin(), coordX.end());
-
-      // decltype(monte_carlo_particles) sorted_monte_carlo_particles (monte_carlo_particles.size());
-      // for (int i=0; i<monte_carlo_particles.size(); ++i) {
-      //   sorted_monte_carlo_particles[i] = monte_carlo_particles[keys[i]];
-      // }
-      // monte_carlo_particles = sorted_monte_carlo_particles;
-
-      // decltype(hit_layers) sorted_hit_layers (hit_layers.size());
-      // for (int i=0; i<hit_layers.size(); ++i) {
-      //   sorted_hit_layers[i] = hit_layers[keys[i]];
-      // }
-      // hit_layers = sorted_hit_layers;
-
-      // if (true_scifi_indices.size() >= 9) {
-      //   // Check the distance of our MC particles in the Hough
-      //   std::vector<float> xcoord_mc_hits;
-
-      //   info_cout << "MC particle indices locations: ";
-      //   for (int i=0; i<monte_carlo_particles.size(); ++i) {
-      //     if (monte_carlo_particles[i] == 1) {
-      //       xcoord_mc_hits.push_back(coordX[i]);
-      //       info_cout << i << ", ";
-      //     }
-      //   }
-      //   // info_cout << "(" << std::setprecision(4) << std::scientific << p_true << ")" << std::endl;
-      //   info_cout << "(" << monte_carlo_particles.size() << ")";
-      //   float max_distance = 0.f;
-      //   for (int i=0; i<xcoord_mc_hits.size(); ++i) {
-      //     for (int j=i+1; j<xcoord_mc_hits.size(); ++j) {
-      //       const auto distance = std::abs(xcoord_mc_hits[i] - xcoord_mc_hits[j]);
-      //       if (distance > max_distance) {
-      //         max_distance = distance;
-
-      //         // Histogram
-      //         xcalc_distance_MC = distance;
-      //         t_xcalc_x->Fill();
-      //       }
-      //     }
-      //   }
-      //   info_cout << ", max distance " << max_distance << std::endl;
-      // }
-
-      // int times_condition_is_met = 0;
-      // for (int i=0; i<coordX.size(); ++i) {
-      //   const auto j = i+6;
-
-      //   if (j < coordX.size()) {
-      //     bool has_any_mc_index = false;
-      //     for (int k=i; k<j; ++k) {
-      //       has_any_mc_index |= monte_carlo_particles[k];
-      //     }
-
-      //     if (!has_any_mc_index) {
-      //       bool condition_is_met = false;
-      //       uint different_layers = 0;
-      //       for (int k=i; k<j; ++k) {
-      //         different_layers |= hit_layers[k];
-      //       }
-      //       int number_of_layers = __builtin_popcount(different_layers);
-      //       // info_cout << number_of_layers << ", " << std::flush;
-      //       if (number_of_layers >= 4) {
-      //         times_condition_is_met++;
-      //       }
-      //     }
-      //   }
-      // }
-
-      // // info_cout << "Times condition is met: " << times_condition_is_met << std::endl;
-
-      // Create SciFi track if it is within the windows
-      std::array<bool, 6> within_bounds {false, false, false, false, false, false};
-      std::array<int, 6> compatible_scifi_hits {-1, -1, -1, -1, -1, -1};
-      for (int i = 0; i < 6; ++i) {
-        bool found = false;
-        for (const auto index : true_scifi_indices) {
-          if (std::find(hits_in_layers[i].begin(), hits_in_layers[i].end(), index) != hits_in_layers[i].end()) {
-            found = true;
-            compatible_scifi_hits[i] = index;
-            break;
-          }
-        }
-        within_bounds[i] = found;
-      }
-
-      // std::vector<std::tuple<int, int, int, float>> triplets;
-      // for (const auto h0 : hits_in_layers[0]) {
-      //   for (const auto h1 : hits_in_layers[1]) {
-      //     for (const auto h2 : hits_in_layers[2]) {
-      //       const auto chi2 = chi2_triplet(
-      //         scifi_hits,
-      //         qop,
-      //         h0,
-      //         h1,
-      //         h2,
-      //         layers[0],
-      //         layers[1],
-      //         layers[2]);
-
-      //       if (chi2 < 4.f) {
-      //         triplets.push_back({h0, h1, h2, chi2});
-      //       }
-      //     }
-      //   }
-      // }
-      // std::sort(triplets.begin(), triplets.end(), [] (const auto a, const auto b) {
-      //   return std::get<3>(a) < std::get<3>(b);
-      // });
-
-      // // info_cout << triplets.size() << std::endl;
-
-      // Create SciFi track if it is within the windows
-      bool found_triplet = false;
-      for (int i = 0; i < tracklets.size(); ++i) {
-        const auto tracklet = tracklets[i];
-
-        int number_found = 0;
-        for (int j=0; j<tracklet.numHits; ++j) {
-          const auto hit_index = tracklet.hits[j];
-          const bool found = std::find(true_scifi_indices.begin(), true_scifi_indices.end(), hit_index) !=
-                             true_scifi_indices.end();
-          if (found) {
-            ++number_found;
-          }
-        }
-
-        found_triplet |= (number_found >= 3);
-      }
-
-      // // Check for triplets
-      const bool triplet_0 = within_bounds[0] && within_bounds[1] && within_bounds[2];
-      const bool triplet_1 = within_bounds[3] && within_bounds[1] && within_bounds[2];
-      const bool triplet_2 = within_bounds[3] && within_bounds[4] && within_bounds[2];
-      const bool triplet_3 = within_bounds[3] && within_bounds[4] && within_bounds[5];
-
-      const bool triplet_extra_0 = within_bounds[0] && within_bounds[2] && within_bounds[4];
-      const bool triplet_extra_1 = within_bounds[0] && within_bounds[2] && within_bounds[5];
-      const bool triplet_extra_2 = within_bounds[1] && within_bounds[3] && within_bounds[4];
-      const bool triplet_extra_3 = within_bounds[1] && within_bounds[3] && within_bounds[5];
-
-      const bool manuels_triplet_condition = (within_bounds[0] || within_bounds[1])
-        && (within_bounds[2] || within_bounds[3])
-        && (within_bounds[4] || within_bounds[5]);
-
-      // //  || triplet_1 || triplet_2 || triplet_3
-      if (found_triplet) {
-        SciFi::TrackHits candidate;
-        candidate.UTTrackIndex = i_veloUT_track;
-        for (int i = 0; i < 12; ++i) {
-          if (true_scifi_indices_per_layer[i] != -1) {
-            candidate.addHit(true_scifi_indices_per_layer[i]);
-          }
-        }
-        scifi_tracks.push_back(candidate);
-      }
-
-      // for (int i = 0; i < 6; ++i) {
-      //   window_size[i] = hits_in_layers[i].size();
-      // }
-      // t_windows_x->Fill();
-
-      // if (triplet_0) {
-      //   chi2_triplet_1 = chi2_triplet(
-      //     scifi_hits,
-      //     qop,
-      //     compatible_scifi_hits[0],
-      //     compatible_scifi_hits[1],
-      //     compatible_scifi_hits[2],
-      //     layers[0],
-      //     layers[1],
-      //     layers[2]);
-
-      //   t_chi2_triplet_1->Fill();
-      // }
-
-      // // Fetch real track seeds
-      // if (true_scifi_indices_per_layer[8] != -1 &&
-      //     true_scifi_indices_per_layer[11] != -1 &&
-      //     (true_scifi_indices_per_layer[9] != -1 ||
-      //     true_scifi_indices_per_layer[10] != -1))
-      // {
-      //   const auto populated_layer = true_scifi_indices_per_layer[11] != -1 ? 11 :
-      //     (true_scifi_indices_per_layer[10] != -1 ? 10 : 9);
-
-      //   SciFi::TrackHits candidate;
-      //   candidate.UTTrackIndex = i_veloUT_track;
-      //   candidate.qop = qop_update(
-      //     UT_state,
-      //     scifi_hits.x0[true_scifi_indices_per_layer[8]],
-      //     scifi_hits.x0[true_scifi_indices_per_layer[populated_layer]],
-      //     SciFi::LookingForward::Zone_zPos[8],
-      //     SciFi::LookingForward::Zone_zPos[populated_layer],
-      //     8);
-
-      //   candidate.addHit(true_scifi_indices_per_layer[8], 8);
-      //   candidate.addHit(true_scifi_indices_per_layer[populated_layer], populated_layer);
-
-      //   for (int i=9; i<11; ++i) {
-      //     if (i != populated_layer && true_scifi_indices_per_layer[i] != -1) {
-      //       candidate.addHit(true_scifi_indices_per_layer[i], i);
-      //     }
-      //   }
-
-      //   // for (int i=0; i<12; ++i) {
-      //   //   if (true_scifi_indices_per_layer[i] != -1) {
-      //   //     candidate.addHit(true_scifi_indices_per_layer[i]);
-      //   //   }
-      //   // }
-
-      //   track_candidates.push_back(candidate);
-      //   // scifi_tracks.push_back(candidate);
-      // }
-
-      // // Find track seeds
-      // bool track_match;
-      // track_match = select_hits(
-      //   UT_state,
-      //   ut_tracks.qop[i_veloUT_track],
-      //   i_veloUT_track,
-      //   scifi_hits,
-      //   scifi_hit_count,
-      //   3,
-      //   track_candidates,
-      //   window_stats,
-      //   window_params);
-
-      // std::vector<bool> extrapolated_track_candidates (track_candidates.size(), false);
-
-      // // Extrapolate from candidates into tracks
-      // propagate_candidates(
-      //   7,
-      //   scifi_hits,
-      //   scifi_hit_count,
-      //   UT_state,
-      //   track_candidates,
-      //   extrapolated_track_candidates,
-      //   scifi_tracks,
-      //   window_params);
-
-      // // Extrapolate scifi tracks
-      // propagate_tracks(
-      //   6,
-      //   scifi_hits,
-      //   scifi_hit_count,
-      //   UT_state,
-      //   scifi_tracks,
-      //   window_params);
-
-      // // Extrapolate from candidates into tracks
-      // // Only extrapolate those candidates that were
-      // // not extrapolated to layer 7
-      // // Note: Maybe not needed
-      // propagate_candidates(
-      //   6,
-      //   scifi_hits,
-      //   scifi_hit_count,
-      //   UT_state,
-      //   track_candidates,
-      //   extrapolated_track_candidates,
-      //   scifi_tracks,
-      //   window_params);
-
-      // for (int i=5; i>=0; --i) {
-      //   // Extrapolate scifi tracks
-      //   propagate_tracks(
-      //     i,
-      //     scifi_hits,
-      //     scifi_hit_count,
-      //     UT_state,
-      //     scifi_tracks,
-      //     window_params);
-      // }
-
-      // Populate trackhits
-      for (auto& t : scifi_tracks) {
-        if (t.hitsNum >= 9) {
-          event_trackhits.push_back(t);
-        }
-      }
 
       num_candidates = track_candidates.size();
       number_of_candidates_event += track_candidates.size();

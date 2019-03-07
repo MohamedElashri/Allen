@@ -23,6 +23,10 @@
 #include "LookingForwardUtils.h"
 #include "LookingForwardConstants.h"
 
+#include "TMVA_Forward.cuh"
+#include "TMVA_Forward_1.cuh"
+#include "TMVA_Forward_2.cuh"
+
 std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const uint* host_scifi_hits,
   const uint* host_scifi_hit_count,

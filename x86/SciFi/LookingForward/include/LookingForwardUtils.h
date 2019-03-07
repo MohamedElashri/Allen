@@ -8,11 +8,18 @@
 
 #include <cassert>
 
+
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 #include "LookingForwardConstants.h"
 #include "MomentumForwardUtils.h"
 #include "BinarySearch.cuh"
+#include "SciFiParametrization.h"
+#include "TrackUtils.cuh"
+#include "LookingForwardFitting.h"
+#include "TMVA_Forward.cuh"
+#include "TMVA_Forward_1.cuh"
+#include "TMVA_Forward_2.cuh"
 
 #include <functional>
 
@@ -100,11 +107,6 @@ std::tuple<int, float> select_best_u_or_v_hit(
   const std::tuple<int, int>& layer_candidates,
   const SciFiWindowsParams& window_params);
 
-float propagate_x_from_previous_station(  
-  const SciFi::Hits& hits, 
-  const SciFi::TrackHits& candidate,
-  const int layer_0);
-
 void propagate_candidates(
   const int layer,
   const SciFi::Hits& hits,
@@ -146,14 +148,14 @@ void single_track_propagation(
 
 float dx_calc(const MiniState& state, float qop, const SciFiWindowsParams& window_params);
 
-std::tuple<int, int> find_x_in_window_margin(
+std::tuple<int, int> find_x_in_window(
   const SciFi::Hits& hits,
   const int zone_offset,
   const int num_hits,
   const float value,
   const float margin);
 
-std::tuple<int, int> find_x_in_window_margin(
+std::tuple<int, int> find_x_in_window(
   const SciFi::Hits& hits,
   const int zone_offset,
   const int num_hits,
@@ -189,3 +191,15 @@ std::tuple<int, float> get_best_hit(
   const std::array<MiniState, 4>& proj_states,
   const SciFiWindowsParams& window_params,
   int layer);
+
+void filter_tracks_with_TMVA( 
+  std::vector<SciFi::TrackHits>& tracks,
+  std::vector<SciFi::TrackHits>& selected_tracks,
+  const MiniState& velo_state,
+  const float VeloUT_qOverP,
+  const SciFi::Tracking::Arrays* constArrays,
+  const SciFi::Tracking::TMVA* tmva1,
+  const SciFi::Tracking::TMVA* tmva2,
+  const SciFi::Hits& scifi_hits,
+  const int event_offset);
+

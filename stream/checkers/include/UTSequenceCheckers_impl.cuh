@@ -71,6 +71,7 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
     host_buffers.host_ut_qop,
     scifi_trackhits,
     scifi_hits,
+    host_buffers.host_scifi_hit_count.data(),
     host_buffers.host_number_of_selected_events[0]);
 
   std::vector<std::vector<float>> p_events_scifi;

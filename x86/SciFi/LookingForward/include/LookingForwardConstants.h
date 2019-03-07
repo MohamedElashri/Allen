@@ -5,6 +5,8 @@
 
 namespace SciFi {
   namespace LookingForward {
+    constexpr int minHits = 9;
+    
     // more Parametrizations
     constexpr float xParams[2] = {18.6195, -5.55793};
 
