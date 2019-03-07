@@ -173,6 +173,7 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const std::vector<int>& hits_in_layer_from,
   const std::vector<int>& hits_in_layer_to,
   const float dx_stddev,
+  const float compatible_window_factor,
   const MiniState& UT_state,
   const float x_at_ref,
   const float z_mag)
@@ -201,7 +202,7 @@ std::vector<std::tuple<int, int>> find_compatible_window(
     auto extrapolated_value = xMag + ratio * (x1 + dxCoef - xMag);
 
     const auto x0_candidates =
-      find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), extrapolated_value, 2 * dx_stddev);
+      find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), extrapolated_value, compatible_window_factor * dx_stddev);
 
     compatible_hits_x0.push_back(x0_candidates);
   }
@@ -241,7 +242,8 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
   const int relative_layer1,
   const int relative_layer2,
   const int max_candidates_triplet,
-  const float max_triplet_chi2)
+  const float max_triplet_chi2,
+  const bool use_flagging)
 {
   const auto layer0 = layers[relative_layer0];
   const auto layer1 = layers[relative_layer1];
@@ -265,7 +267,54 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
         const auto h2 = hits_in_layers[relative_layer2][h2_index];
 
         // Flagging
-        if (!flag[h0 - event_offset] && !flag[h1 - event_offset] && !flag[h2 - event_offset]) {
+        if (!use_flagging || (!flag[h0 - event_offset] && !flag[h1 - event_offset] && !flag[h2 - event_offset])) {
+          const auto chi2 = chi2_triplet(scifi_hits, qop, h0, h1, h2, layer0, layer1, layer2);
+          if (chi2 < max_triplet_chi2) {
+            triplets.push_back({h0, h1, h2, chi2});
+          }
+        }
+      }
+    }
+  }
+  std::sort(
+    triplets.begin(), triplets.end(), [](const auto a, const auto b) { return std::get<3>(a) < std::get<3>(b); });
+
+  // Restrict number of candidates
+  if (triplets.size() > max_candidates_triplet) {
+    triplets.resize(max_candidates_triplet);
+  }
+
+  return triplets;
+}
+
+std::vector<std::tuple<int, int, int, float>> find_triplets(
+  const SciFi::Hits& scifi_hits,
+  const float qop,
+  const std::vector<bool>& flag,
+  const int event_offset,
+  const std::array<int, 6>& layers,
+  const std::array<std::vector<int>, 6>& hits_in_layers,
+  const int relative_layer0,
+  const int relative_layer1,
+  const int relative_layer2,
+  const int max_candidates_triplet,
+  const float max_triplet_chi2,
+  const bool use_flagging)
+{
+  const auto layer0 = layers[relative_layer0];
+  const auto layer1 = layers[relative_layer1];
+  const auto layer2 = layers[relative_layer2];
+
+  std::vector<std::tuple<int, int, int, float>> triplets;
+
+  for (int i = 0; i < hits_in_layers[relative_layer1].size(); ++i) {
+    const auto h1 = hits_in_layers[relative_layer1][i];
+
+    for (const auto h0 : hits_in_layers[relative_layer0]) {
+      for (const auto h2 : hits_in_layers[relative_layer2]) {
+
+        // Flagging
+        if (!use_flagging || (!flag[h0 - event_offset] && !flag[h1 - event_offset] && !flag[h2 - event_offset])) {
           const auto chi2 = chi2_triplet(scifi_hits, qop, h0, h1, h2, layer0, layer1, layer2);
           if (chi2 < max_triplet_chi2) {
             triplets.push_back({h0, h1, h2, chi2});
