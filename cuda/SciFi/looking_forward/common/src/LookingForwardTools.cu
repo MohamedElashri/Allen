@@ -68,14 +68,25 @@ __device__ std::tuple<int, int> LookingForward::find_x_in_window(
   const SciFi::Hits& hits,
   const int zone_offset,
   const int num_hits,
-  const float x_min,
-  const float x_max)
+  const float value,
+  const float margin)
 {
-  int first_candidate = binary_search_leftmost(hits.x0 + zone_offset, num_hits, x_min);
+  return find_x_in_window(hits, zone_offset, num_hits, value, value, margin);
+}
+
+__device__ std::tuple<int, int> LookingForward::find_x_in_window(
+  const SciFi::Hits& hits,
+  const int zone_offset,
+  const int num_hits,
+  const float value0,
+  const float value1,
+  const float margin)
+{
+  int first_candidate = binary_search_first_candidate(hits.x0 + zone_offset, num_hits, value0, margin);
   int last_candidate = -1;
 
   if (first_candidate != -1) {
-    last_candidate = binary_search_leftmost(hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, x_max);
+    last_candidate = binary_search_second_candidate(hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, value1, margin);
 
     first_candidate = zone_offset + first_candidate;
     last_candidate = last_candidate != -1 ? first_candidate + last_candidate + 1 : -1;
@@ -127,4 +138,9 @@ __device__ std::tuple<int, float> LookingForward::get_best_hit(
   }
 
   return {best_index, min_chi2};
+}
+
+__device__ float LookingForward::scifi_propagation(const float x_0, const float tx, const float qop, const float dz)
+{
+  return linear_propagation(x_0, tx, dz) + LookingForward::forward_param * qop * dz * dz;
 }

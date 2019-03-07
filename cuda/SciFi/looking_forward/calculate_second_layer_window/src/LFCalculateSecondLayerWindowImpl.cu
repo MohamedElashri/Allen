@@ -37,8 +37,8 @@ __device__ void lf_calculate_second_layer_window_impl(
       hits,
       std::get<0>(layer3_offset_nhits),
       std::get<1>(layer3_offset_nhits),
-      layer_3_projected_state.x - LookingForward::max_window_layer3,
-      layer_3_projected_state.x + LookingForward::max_window_layer3);
+      layer_3_projected_state.x,
+      LookingForward::max_window_layer3);
 
     second_candidate_p[i] = relative_ut_track_index;
     second_candidate_p[total_number_of_candidates + i] = local_hit_offset_first_candidate + i;
@@ -68,8 +68,9 @@ __device__ void lf_calculate_second_layer_window_impl(
       hits,
       std::get<0>(layer1_offset_nhits),
       std::get<1>(layer1_offset_nhits),
-      layer_1_projected_state_minimum_x - LookingForward::max_window_layer1,
-      layer_1_projected_state_maximum_x + LookingForward::max_window_layer1);
+      layer_1_projected_state_minimum_x,
+      layer_1_projected_state_maximum_x,
+      LookingForward::max_window_layer1);
 
     second_candidate_p[4*total_number_of_candidates + i] = std::get<0>(layer1_candidates) - hit_count.event_offset();
     second_candidate_p[5*total_number_of_candidates + i]  = std::get<1>(layer1_candidates) - std::get<0>(layer1_candidates);
@@ -86,8 +87,9 @@ __device__ void lf_calculate_second_layer_window_impl(
       hits,
       std::get<0>(layer2_offset_nhits),
       std::get<1>(layer2_offset_nhits),
-      layer_2_projected_state_minimum_x - LookingForward::max_window_layer2,
-      layer_2_projected_state_maximum_x + LookingForward::max_window_layer2);
+      layer_2_projected_state_minimum_x,
+      layer_2_projected_state_maximum_x,
+      LookingForward::max_window_layer2);
 
     second_candidate_p[6*total_number_of_candidates + i] = std::get<0>(layer2_candidates) - hit_count.event_offset();
     second_candidate_p[7*total_number_of_candidates + i]  = std::get<1>(layer2_candidates) - std::get<0>(layer2_candidates);
