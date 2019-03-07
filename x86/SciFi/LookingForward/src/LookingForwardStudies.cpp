@@ -511,23 +511,44 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const std::array<float, 3> chi2_stddev_extrapolation_to_x_layers {6.33f, 5.09f, 7.42f};
 
       const std::array<int, 4> max_candidates_triplets {20, 20, 20, 20};
-      const float factor_chi2_triplet = 2.f;
-      const float factor_chi2_extend = 2.f;
-      const float compatible_window_factor = 2.5f;
-      const float compatible_window_factor_extend = 2.5f;
+      const float factor_chi2_triplet = 2.5f;
+      const float factor_chi2_extend = 2.5f;
+      const float compatible_window_factor = 4.f;
+      const float compatible_window_factor_extend = 4.f;
       const bool use_flagging = true;
 
       // Extra triplets
-      std::array<std::tuple<int, int, int>, 4> extra_triplets {
-        std::make_tuple(0, 2, 4), std::make_tuple(0, 2, 5), std::make_tuple(1, 3, 4), std::make_tuple(1, 3, 5)};
+      std::array<std::tuple<int, int, int>, 0> extra_triplets {};
+       // {
+       //                                                          std::make_tuple(0, 2, 4),
+       //                                                          std::make_tuple(0, 2, 5),
+       //                                                          std::make_tuple(1, 2, 4),
+       //                                                          std::make_tuple(1, 2, 5)
+       //                                                          // std::make_tuple(0, 3, 4),
+       //                                                          // std::make_tuple(0, 3, 5),
+       //                                                          // std::make_tuple(1, 3, 4),
+       //                                                          // std::make_tuple(1, 3, 5)
+       //                                                       };
       const float dx_stddev_triplet_x0_extra = 97.43f;
       const float dx_stddev_triplet_x2_extra = 117.1f;
       const float chi2_mean_triplet_extra = 3.95f;
       const float chi2_stddev_triplet_extra = 14.05f;
       const int max_candidates_triplets_extra = 20;
 
+      // Datatypes for algorithm
+      std::vector<Tracklet> tracklets;
+      std::vector<std::tuple<int, int, int, float>> triplets;
+      const auto event_offset = scifi_hit_count.event_offset();
+      // Compatible hits
+      std::vector<std::tuple<int, int>> compatible_hits_x0;
+      std::vector<std::tuple<int, int>> compatible_hits_x2;
+      // Flagging mechanism
+      std::vector<bool> flag(scifi_hit_count.event_number_of_hits(), false);
+      // Track extension
+      std::vector<std::tuple<int, int>> extend_candidates_windows;
+      
       // Find window on x0 from x1, and window on x2 from x1
-      std::vector<std::tuple<int, int>> compatible_hits_x0 = find_compatible_window(
+      compatible_hits_x0 = find_compatible_window(
         scifi_hits,
         layers[1],
         layers[0],
@@ -539,7 +560,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         xAtRef,
         zMag);
 
-      std::vector<std::tuple<int, int>> compatible_hits_x2 = find_compatible_window(
+      compatible_hits_x2 = find_compatible_window(
         scifi_hits,
         layers[1],
         layers[2],
@@ -561,13 +582,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       //     << start_h2 << ", " << size_h2 << " (" << hits_in_layers[2].size() << ")" << std::endl;
       // }
 
-      // Flagging mechanism
-      const auto event_offset = scifi_hit_count.event_offset();
-      std::vector<bool> flag(scifi_hit_count.event_number_of_hits(), false);
-
       // Get all compatible triplets in window
-      std::vector<Tracklet> tracklets;
-      std::vector<std::tuple<int, int, int, float>> triplets = find_triplets(
+      triplets = find_triplets(
         scifi_hits,
         qop,
         compatible_hits_x0,
@@ -582,8 +598,6 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         max_candidates_triplets[0],
         chi2_mean_triplet[0] + factor_chi2_triplet * chi2_stddev_triplet[0],
         use_flagging);
-
-      std::vector<std::tuple<int, int>> extend_candidates_windows;
 
       for (int i = 0; i < 3; ++i) {
         // Extend forming tracklets
@@ -681,60 +695,62 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         tracklets.push_back(t);
       }
 
-      // Extra triplets
-      for (const auto& extra_triplet : extra_triplets) {
-        const auto relative_layer0 = std::get<0>(extra_triplet);
-        const auto relative_layer1 = std::get<1>(extra_triplet);
-        const auto relative_layer2 = std::get<2>(extra_triplet);
+      info_cout << tracklets.size() << std::endl;
 
-        compatible_hits_x0 = find_compatible_window(
-          scifi_hits,
-          layers[relative_layer1],
-          layers[relative_layer0],
-          hits_in_layers[relative_layer1],
-          hits_in_layers[relative_layer0],
-          dx_stddev_triplet_x0_extra,
-          compatible_window_factor,
-          UT_state,
-          xAtRef,
-          zMag);
+      // // Extra triplets
+      // for (const auto& extra_triplet : extra_triplets) {
+      //   const auto relative_layer0 = std::get<0>(extra_triplet);
+      //   const auto relative_layer1 = std::get<1>(extra_triplet);
+      //   const auto relative_layer2 = std::get<2>(extra_triplet);
 
-        compatible_hits_x2 = find_compatible_window(
-          scifi_hits,
-          layers[relative_layer1],
-          layers[relative_layer2],
-          hits_in_layers[relative_layer1],
-          hits_in_layers[relative_layer2],
-          dx_stddev_triplet_x2_extra,
-          compatible_window_factor,
-          UT_state,
-          xAtRef,
-          zMag);
+      //   compatible_hits_x0 = find_compatible_window(
+      //     scifi_hits,
+      //     layers[relative_layer1],
+      //     layers[relative_layer0],
+      //     hits_in_layers[relative_layer1],
+      //     hits_in_layers[relative_layer0],
+      //     dx_stddev_triplet_x0_extra,
+      //     compatible_window_factor,
+      //     UT_state,
+      //     xAtRef,
+      //     zMag);
 
-        triplets = find_triplets(
-          scifi_hits,
-          qop,
-          compatible_hits_x0,
-          compatible_hits_x2,
-          flag,
-          event_offset,
-          layers,
-          hits_in_layers,
-          relative_layer0,
-          relative_layer1,
-          relative_layer2,
-          max_candidates_triplets_extra,
-          chi2_mean_triplet_extra + factor_chi2_triplet * chi2_stddev_triplet_extra,
-          use_flagging);
+      //   compatible_hits_x2 = find_compatible_window(
+      //     scifi_hits,
+      //     layers[relative_layer1],
+      //     layers[relative_layer2],
+      //     hits_in_layers[relative_layer1],
+      //     hits_in_layers[relative_layer2],
+      //     dx_stddev_triplet_x2_extra,
+      //     compatible_window_factor,
+      //     UT_state,
+      //     xAtRef,
+      //     zMag);
 
-        for (const auto& triplet : triplets) {
-          Tracklet t;
-          t.add_hit(std::get<0>(triplet));
-          t.add_hit(std::get<1>(triplet));
-          t.add_hit(std::get<2>(triplet));
-          tracklets.push_back(t);
-        }
-      }
+      //   triplets = find_triplets(
+      //     scifi_hits,
+      //     qop,
+      //     compatible_hits_x0,
+      //     compatible_hits_x2,
+      //     flag,
+      //     event_offset,
+      //     layers,
+      //     hits_in_layers,
+      //     relative_layer0,
+      //     relative_layer1,
+      //     relative_layer2,
+      //     max_candidates_triplets_extra,
+      //     chi2_mean_triplet_extra + factor_chi2_triplet * chi2_stddev_triplet_extra,
+      //     use_flagging);
+
+      //   for (const auto& triplet : triplets) {
+      //     Tracklet t;
+      //     t.add_hit(std::get<0>(triplet));
+      //     t.add_hit(std::get<1>(triplet));
+      //     t.add_hit(std::get<2>(triplet));
+      //     tracklets.push_back(t);
+      //   }
+      // }
 
       // Generate MC data about triplet creation
       // for (int i=0; i<4; ++i) {
