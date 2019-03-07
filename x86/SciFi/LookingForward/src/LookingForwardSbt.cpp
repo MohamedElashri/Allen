@@ -453,7 +453,9 @@ void single_track_propagation(
   const float extrapolation_stddev,
   const float chi2_extrap_mean,
   const float chi2_extrap_stddev,
-  const int event_offset)
+  const int event_offset,
+  const std::vector<bool>& flag,
+  const bool use_flagging)
 {
   // const auto projection_y = y_at_z(velo_UT_state, SciFi::LookingForward::Zone_zPos[layer]);
 
@@ -507,12 +509,14 @@ void single_track_propagation(
     SciFi::LookingForward::Zone_zPos[layer]};
 
   for (auto hit_index = std::get<0>(layer_candidates); hit_index != std::get<1>(layer_candidates); hit_index++) {
-    x_coordinates[2] = scifi_hits.x0[hit_index] + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)];
-    const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
+    if (hit_index != h0 && hit_index != h1) {
+      x_coordinates[2] = scifi_hits.x0[hit_index] + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)];
+      const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
 
-    if (chi2 < best_chi2) {
-      best_chi2 = chi2;
-      best_idx = hit_index;
+      if (chi2 < best_chi2) {
+        best_chi2 = chi2;
+        best_idx = hit_index;
+      }
     }
   }
 

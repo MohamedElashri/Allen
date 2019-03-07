@@ -167,8 +167,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   t_triplet_3->Branch("triplet_diff_x2", (float*) &(triplet_diff_x2[3]));
   t_triplet_3->Branch("triplet_chi2", (float*) &(triplet_chi2[3]));
 
-  float extrapolate_diff_x [6];
-  float extrapolate_chi2 [6];
+  float extrapolate_diff_x[6];
+  float extrapolate_chi2[6];
   t_extrapolate_tracks_0->Branch("extrapolate_diff_x", (float*) &(extrapolate_diff_x[0]));
   t_extrapolate_tracks_0->Branch("extrapolate_chi2", (float*) &(extrapolate_chi2[0]));
   t_extrapolate_tracks_1->Branch("extrapolate_diff_x", (float*) &(extrapolate_diff_x[1]));
@@ -544,17 +544,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const bool use_flagging = true;
 
       // Extra triplets
-      std::array<std::tuple<int, int, int>, 0> extra_triplets {};
-       // {
-       //                                                          std::make_tuple(0, 2, 4),
-       //                                                          std::make_tuple(0, 2, 5),
-       //                                                          std::make_tuple(1, 2, 4),
-       //                                                          std::make_tuple(1, 2, 5)
-       //                                                          // std::make_tuple(0, 3, 4),
-       //                                                          // std::make_tuple(0, 3, 5),
-       //                                                          // std::make_tuple(1, 3, 4),
-       //                                                          // std::make_tuple(1, 3, 5)
-       //                                                       };
+      // std::array<std::tuple<int, int, int>, 2> extra_triplets {{std::make_tuple(0, 1, 5), std::make_tuple(0, 4, 5)}};
+      std::array<std::tuple<int, int, int>, 0> extra_triplets;
+
       const float dx_stddev_triplet_x0_extra = 97.43f;
       const float dx_stddev_triplet_x2_extra = 117.1f;
       const float chi2_mean_triplet_extra = 3.95f;
@@ -572,7 +564,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       std::vector<bool> flag(scifi_hit_count.event_number_of_hits(), false);
       // Track extension
       std::vector<std::tuple<int, int>> extend_candidates_windows;
-      
+
       // Find window on x0 from x1, and window on x2 from x1
       compatible_hits_x0 = find_compatible_window(
         scifi_hits,
@@ -678,13 +670,63 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           scifi_tracks);
       }
 
+      // Extra triplets
+      for (const auto& extra_triplet : extra_triplets) {
+        const auto relative_layer0 = std::get<0>(extra_triplet);
+        const auto relative_layer1 = std::get<1>(extra_triplet);
+        const auto relative_layer2 = std::get<2>(extra_triplet);
+
+        compatible_hits_x0 = find_compatible_window(
+          scifi_hits,
+          layers[relative_layer1],
+          layers[relative_layer0],
+          hits_in_layers[relative_layer1],
+          hits_in_layers[relative_layer0],
+          dx_stddev_triplet_x0_extra,
+          compatible_window_factor,
+          UT_state,
+          xAtRef,
+          zMag);
+
+        compatible_hits_x2 = find_compatible_window(
+          scifi_hits,
+          layers[relative_layer1],
+          layers[relative_layer2],
+          hits_in_layers[relative_layer1],
+          hits_in_layers[relative_layer2],
+          dx_stddev_triplet_x2_extra,
+          compatible_window_factor,
+          UT_state,
+          xAtRef,
+          zMag);
+
+        find_triplets(
+          scifi_hits,
+          qop,
+          compatible_hits_x0,
+          compatible_hits_x2,
+          flag,
+          event_offset,
+          layers,
+          hits_in_layers,
+          relative_layer0,
+          relative_layer1,
+          relative_layer2,
+          max_candidates_triplets_extra,
+          chi2_mean_triplet_extra + factor_chi2_triplet * chi2_stddev_triplet_extra,
+          use_flagging,
+          i_veloUT_track,
+          UT_state,
+          scifi_tracks);
+      }
+
       // Extrapolate tracks
       const std::array<int, 6> extrapolation_layers {1, 2, 5, 6, 9, 10};
       const std::array<float, 6> extrapolation_stddev {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
       const std::array<float, 6> chi2_extrapolation_mean {1.304f, 1.384f, 4.577f, 6.587f, 36.1f, 44.67f};
       const std::array<float, 6> chi2_extrapolation_stddev {10.6f, 11.82f, 17.84f, 23.2f, 68.05f, 81.47f};
 
-      for (int i=0; i<extrapolation_layers.size(); ++i) {
+      for (int i = 0; i < extrapolation_layers.size(); ++i) {
         const int layer = extrapolation_layers[i];
         const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
 
@@ -698,7 +740,29 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
             extrapolation_stddev[i],
             chi2_extrapolation_mean[i],
             chi2_extrapolation_stddev[i],
-            event_offset);
+            event_offset,
+            flag);
+        }
+      }
+
+      const std::array<int, 2> final_layers {0, 3};
+      for (int i=0; i<final_layers.size(); ++i) {
+        const int layer = final_layers[i];
+        const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
+
+        for (auto& track : scifi_tracks) {
+          single_track_propagation(
+            scifi_hits,
+            scifi_hit_count,
+            layer,
+            projection_y,
+            track,
+            extrapolation_stddev[i],
+            chi2_extrapolation_mean[i],
+            chi2_extrapolation_stddev[i],
+            event_offset,
+            flag,
+            use_flagging);
         }
       }
 
@@ -730,7 +794,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // if (best_track != -1) {
       //   event_trackhits.push_back(scifi_tracks[best_track]);
       // }
-      
+
       // for (const auto& track : scifi_tracks) {
       //   if (track.hitsNum >= 9) {
       //     event_trackhits.push_back(track);
@@ -986,7 +1050,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   info_cout << "Total number of candidates in " << number_of_events << " events: " << number_of_track_candidates
             << std::endl;
 
-  info_cout << "Total number of tracks found with >=10 hits: " << total_number_of_tracks_found
+  info_cout << "Total number of tracks found with >=9 hits: " << total_number_of_tracks_found
             << ", average per event: " << total_number_of_tracks_found / ((float) number_of_events) << std::endl;
 
   info_cout << std::endl;
