@@ -695,7 +695,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         tracklets.push_back(t);
       }
 
-      info_cout << tracklets.size() << std::endl;
+      // info_cout << tracklets.size() << std::endl;
 
       // // Extra triplets
       // for (const auto& extra_triplet : extra_triplets) {
