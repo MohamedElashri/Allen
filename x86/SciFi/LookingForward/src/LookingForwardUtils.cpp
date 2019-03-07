@@ -40,7 +40,7 @@ MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int la
 
   final_state.tx = SciFi::LookingForward::ds_p_param[layer] * qop + UT_state.tx;
 
-  // TODO this could be done withoud brancing
+  // TODO this could be done withoud branching
   if (qop > 0) {
     y_mag_correction = SciFi::LookingForward::dp_y_mag_plus[layer][0] +
                        magnet_state.y * SciFi::LookingForward::dp_y_mag_plus[layer][1] +

@@ -57,6 +57,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   TTree* t_triplet_1 = new TTree("t_triplet_1", "t_triplet_1");
   TTree* t_triplet_2 = new TTree("t_triplet_2", "t_triplet_2");
   TTree* t_triplet_3 = new TTree("t_triplet_3", "t_triplet_3");
+  TTree* t_extrap_l5 = new TTree("extrap_l5", "extrap_l5");
 
   uint planeCode, LHCbID;
   float x0, z0, w, dxdy, dzdy, yMin, yMax;
@@ -94,6 +95,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   bool match_t1, match_t3, match_t1_other, match_t3_other, match_t1_u, match_t1_v;
   bool match_T2_0, match_T2_3, match_T3_0, match_T3_3;
   float chi2_track;
+
+  float x_propagation_layer_5, x_from_velo_layer_5, true_x_layer_5;
 
   t_scifi_hits->Branch("planeCode", &planeCode);
   t_scifi_hits->Branch("LHCbID", &LHCbID);
@@ -192,6 +195,10 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   t_extrap_T3->Branch("layer8_win_size", &layer8_win_size);
   t_extrap_T3->Branch("layer8_win_pop", &layer8_win_pop);
   t_extrap_T3->Branch("num_candidates", &num_candidates);
+
+  t_extrap_l5->Branch("true_x_layer_5", &true_x_layer_5);
+  t_extrap_l5->Branch("x_from_velo_layer_5", &x_from_velo_layer_5);
+  t_extrap_l5->Branch("x_propagation_layer_5", &x_propagation_layer_5);
 
   t_track_candidates->Branch("quality", &quality);
   t_track_candidates->Branch("num_candidates", &num_candidates);
@@ -442,7 +449,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           }
         }
       }
-
+    
       std::array<int, 2 * 6> windows_x;
       std::array<int, 2 * 6> windows_uv;
       std::array<float, 4 * 6> parameters_uv;
@@ -461,9 +468,13 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const float y_projection = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[0]);
       const float zRef_track = SciFi::Tracking::zReference;
       const float xAtRef = xFromVelo(zRef_track, UT_state);
+      const auto state_zRef = propagate_state_from_velo(UT_state, qop, 5); // zRef is between layer 4 and 5
+      //const float xAtRef = state_zRef.x;
+      // const float xAtRef_ = xFromVelo(zRef_track, UT_state);
+      //debug_cout << "x from propagation = " << state_zRef.x << ", xFromVelo = " << xAtRef << ", zRef = " << zRef_track << std::endl;
       const float yAtRef = yFromVelo(zRef_track, UT_state);
       std::array<int, 6> layers {0, 3, 4, 7, 8, 11};
-
+    
       float bs_x[4] {xAtRef, UT_state.tx, 0, 0};
       float bs_y[4] {yAtRef, UT_state.ty, 0, 0};
 
@@ -674,7 +685,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           tracklets.push_back(t);
         }        
       }
-
+      
       // Generate MC data about triplet creation
       // for (int i=0; i<4; ++i) {
       //   const auto layer0 = layers[i];
@@ -1377,7 +1388,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
               }
             }
           }
-
+          
+          
           float reco_slope =
             (scifi_hits.x0[true_scifi_indices_per_layer[11]] - scifi_hits.x0[true_scifi_indices_per_layer[8]]) /
             SciFi::LookingForward::dz_x_layers;
@@ -1448,7 +1460,15 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           t_good_tracks->Fill();
         }
       }
-    } // extrapolation to T3 worked
+      // check resolution of extrapolation to layer 5 (near zRef)
+      if ( true_scifi_indices_per_layer[5] != -1 ) {
+        x_propagation_layer_5 = state_zRef.x;
+        x_from_velo_layer_5 = xFromVelo(SciFi::LookingForward::Zone_zPos[5], UT_state);
+        true_x_layer_5 = scifi_hits.x0[true_scifi_indices_per_layer[5]];
+        t_extrap_l5->Fill();
+      }
+      
+    }
 
     // info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
 
