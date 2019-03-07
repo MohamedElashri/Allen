@@ -103,3 +103,15 @@ void extend_triplets (
   const float max_chi2,
   std::vector<Tracklet>& tracklets,
   std::vector<bool>& flag);
+
+void extend_tracklets(
+  const SciFi::Hits& scifi_hits,
+  const MiniState& UT_state,
+  const float qop,
+  const std::array<int, 6>& layers,
+  const std::array<std::vector<int>, 6>& hits_in_layers,
+  const int relative_layer2,
+  const int event_offset,
+  const float max_chi2,
+  std::vector<Tracklet>& tracklets,
+  std::vector<bool>& flag);

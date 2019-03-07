@@ -499,14 +499,14 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
                          SciFi::LookingForward::zMagnetParams[3] * UT_state.ty * UT_state.ty;
 
       // Constants from BsPhiPhi Monte Carlo
-      const std::array<float, 4> dx_stddev_triplet_x0 {53.01f, 97.43f, 39.89f, 77.55f};
-      const std::array<float, 4> dx_stddev_triplet_x2 {117.1f, 42.68f, 88.74f, 33.79f};
-      const std::array<float, 4> chi2_mean_triplet {2.35f, 3.14f, 2.17f, 3.95f};
-      const std::array<float, 4> chi2_stddev_triplet {14.05f, 7.49f, 9.97f, 7.97f};
+      const std::array<float, 4> dx_stddev_triplet_x0  {53.01f, 97.43f, 39.89f, 77.55f};
+      const std::array<float, 4> dx_stddev_triplet_x2  {117.1f, 42.68f, 88.74f, 33.79f};
+      const std::array<float, 4> chi2_mean_triplet     { 2.35f,  3.14f,  2.17f,  3.95f};
+      const std::array<float, 4> chi2_stddev_triplet   {14.05f,  7.49f,  9.97f,  7.97f};
       const std::array<int, 4> max_candidates_triplets {20, 20, 20, 20};
 
-      const std::array<float, 3> dx_stddev_extrapolation_to_x_layers {1.50f, 1.40f, 1.74f};
-      const std::array<float, 3> chi2_mean_extrapolation_to_x_layers {3.09f, 1.98f, 3.89f};
+      const std::array<float, 3> dx_stddev_extrapolation_to_x_layers   {1.50f, 1.40f, 1.74f};
+      const std::array<float, 3> chi2_mean_extrapolation_to_x_layers   {3.09f, 1.98f, 3.89f};
       const std::array<float, 3> chi2_stddev_extrapolation_to_x_layers {6.33f, 5.09f, 7.42f};
 
       // Find window on x0 from x1, and window on x2 from x1
@@ -550,7 +550,20 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       std::vector<std::tuple<int, int>> extend_candidates_windows;
 
       for (int i=0; i<3; ++i) {
-        // Find candidates in next layer
+        // Extend forming tracklets
+        extend_tracklets(
+          scifi_hits,
+          UT_state,
+          qop,
+          layers,
+          hits_in_layers,
+          i+3,
+          event_offset,
+          chi2_mean_extrapolation_to_x_layers[i] + 2 * chi2_stddev_extrapolation_to_x_layers[i],
+          tracklets,
+          flag);
+
+        // Find candidates in next layer for triplets
         extend_candidates_windows = find_extend_windows(
           scifi_hits,
           UT_state,
@@ -611,6 +624,55 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         t.add_hit(std::get<2>(triplet));
 
         tracklets.push_back(t);
+      }
+
+      // Extra triplets
+      std::array<std::tuple<int, int, int>, 4> extra_triplets {
+        std::make_tuple(0, 2, 4),
+        std::make_tuple(0, 2, 5),
+        std::make_tuple(1, 3, 4),
+        std::make_tuple(1, 3, 5)
+      };
+
+      const float dx_stddev_triplet_x0_extra = 97.43f;
+      const float dx_stddev_triplet_x2_extra = 117.1f;
+      const float chi2_mean_triplet_extra = 3.95f;
+      const float chi2_stddev_triplet_extra = 14.05f;
+      const int max_candidates_triplets_extra = 20;
+
+      for (const auto& extra_triplet : extra_triplets) {
+        const auto relative_layer0 = std::get<0>(extra_triplet);
+        const auto relative_layer1 = std::get<1>(extra_triplet);
+        const auto relative_layer2 = std::get<2>(extra_triplet);
+
+        compatible_hits_x0 = find_compatible_window(
+          scifi_hits, layers[relative_layer1], layers[relative_layer0], hits_in_layers[relative_layer1], hits_in_layers[relative_layer0], dx_stddev_triplet_x0_extra, UT_state, xAtRef, zMag);
+
+        compatible_hits_x2 = find_compatible_window(
+          scifi_hits, layers[relative_layer1], layers[relative_layer2], hits_in_layers[relative_layer1], hits_in_layers[relative_layer2], dx_stddev_triplet_x2_extra, UT_state, xAtRef, zMag);
+
+        triplets = find_triplets(
+          scifi_hits,
+          qop,
+          compatible_hits_x0,
+          compatible_hits_x2,
+          flag,
+          event_offset,
+          layers,
+          hits_in_layers,
+          relative_layer0,
+          relative_layer1,
+          relative_layer2,
+          max_candidates_triplets_extra,
+          chi2_mean_triplet_extra + 2 * chi2_stddev_triplet_extra);
+
+        for (const auto& triplet : triplets) {
+          Tracklet t;
+          t.add_hit(std::get<0>(triplet));
+          t.add_hit(std::get<1>(triplet));
+          t.add_hit(std::get<2>(triplet));
+          tracklets.push_back(t);
+        }        
       }
 
       // Generate MC data about triplet creation
@@ -1059,10 +1121,20 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       }
 
       // // Check for triplets
-      // const bool triplet_0 = within_bounds[0] && within_bounds[1] && within_bounds[2];
-      // const bool triplet_1 = within_bounds[3] && within_bounds[1] && within_bounds[2];
-      // const bool triplet_2 = within_bounds[3] && within_bounds[4] && within_bounds[2];
-      // const bool triplet_3 = within_bounds[3] && within_bounds[4] && within_bounds[5];
+      const bool triplet_0 = within_bounds[0] && within_bounds[1] && within_bounds[2];
+      const bool triplet_1 = within_bounds[3] && within_bounds[1] && within_bounds[2];
+      const bool triplet_2 = within_bounds[3] && within_bounds[4] && within_bounds[2];
+      const bool triplet_3 = within_bounds[3] && within_bounds[4] && within_bounds[5];
+
+      const bool triplet_extra_0 = within_bounds[0] && within_bounds[2] && within_bounds[4];
+      const bool triplet_extra_1 = within_bounds[0] && within_bounds[2] && within_bounds[5];
+      const bool triplet_extra_2 = within_bounds[1] && within_bounds[3] && within_bounds[4];
+      const bool triplet_extra_3 = within_bounds[1] && within_bounds[3] && within_bounds[5];
+
+      const bool manuels_triplet_condition = (within_bounds[0] || within_bounds[1])
+        && (within_bounds[2] || within_bounds[3])
+        && (within_bounds[4] || within_bounds[5]);
+
       // //  || triplet_1 || triplet_2 || triplet_3
       if (found_triplet) {
         SciFi::TrackHits candidate;
