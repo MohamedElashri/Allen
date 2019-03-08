@@ -9,6 +9,8 @@
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
+#include "LookingForwardConstants.cuh"
+#include "LookingForwardTools.cuh"
 
 __global__ void lf_search_initial_windows(
   uint32_t* dev_scifi_hits,
@@ -19,12 +21,16 @@ __global__ void lf_search_initial_windows(
   const int* dev_atomics_ut,
   const char* dev_ut_track_hits,
   const uint* dev_ut_track_hit_number,
+  const float* dev_ut_x,
+  const float* dev_ut_tx,
+  const float* dev_ut_z,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const SciFi::Tracking::Arrays* dev_constArrays,
-  int* dev_forward_windows);
+  int* dev_initial_windows,
+  MiniState* dev_ut_states);
 
 ALGORITHM(
   lf_search_initial_windows,
@@ -38,7 +44,10 @@ ALGORITHM(
     dev_atomics_ut,
     dev_ut_track_hits,
     dev_ut_track_hit_number,
+    dev_ut_x,
+    dev_ut_tx,
+    dev_ut_z,
     dev_ut_qop,
     dev_ut_track_velo_indices,
-    dev_scifi_lf_initial_windows
-))
+    dev_ut_states,
+    dev_scifi_lf_initial_windows))

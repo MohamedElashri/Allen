@@ -386,7 +386,6 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       state_UT.y = y_at_z(velo_state, ut_z);
 
       // extrapolate state to last UT plane (needed as input for parametrization)
-      MiniState UT_state_from_velo = state_at_z(velo_state, SciFi::LookingForward::z_last_UT_plane);
       MiniState UT_state = state_at_z(state_UT, SciFi::LookingForward::z_last_UT_plane);
 
       // DEBUG this is just a test
@@ -510,6 +509,16 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // Collect all X candidates
       std::array<std::vector<int>, 6> hits_in_layers =
         collect_x_candidates(scifi_hits, windows_x, windows_uv, parameters_uv);
+
+      // info_cout << "#" << i_veloUT_track << ": " << std::endl;
+      // for (int i = 0; i < 6; ++i) {
+      //   info_cout << " {" << windows_x[2 * i] << ", " << windows_x[2 * i + 1] << "}, "
+      //     << "{" << windows_uv[2 * i] << ", " << windows_uv[2 * i + 1] << "}, "
+      //     << "{" << parameters_uv[4 * i] << ", " << parameters_uv[4 * i + 1] << ", "
+      //            << parameters_uv[4 * i + 2] << ", " << parameters_uv[4 * i + 3] << "}"
+      //     << std::endl;
+      // }
+      // info_cout << std::endl;
 
       // info_cout << "Candidate sizes: ";
       // for (int i=0; i<6; ++i) {

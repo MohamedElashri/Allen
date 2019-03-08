@@ -29,4 +29,5 @@ __host__ __device__ void lf_search_initial_windows_impl(
   const SciFi::Tracking::Arrays* constArrays,
   const float qOverP,
   const int side,
-  int* forward_windows);
+  int* initial_windows,
+  const int number_of_tracks);

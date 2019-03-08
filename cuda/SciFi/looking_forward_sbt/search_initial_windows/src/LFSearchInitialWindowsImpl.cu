@@ -1,25 +1,11 @@
 #include "LFSearchInitialWindowsImpl.cuh"
 
-__host__ __device__ inline float evalCubicParameterization(
-  const float value_at_ref,
-  const float t,
-  const float z)
+__host__ __device__ inline float evalCubicParameterization(const float value_at_ref, const float t, const float z)
 {
   float dz = z - SciFi::Tracking::zReference;
   return value_at_ref + t * dz;
 }
 
-//=========================================================================
-// From LHCb Forward tracking description
-//
-// Collect all X hits, within a window defined by the minimum Pt.
-// Better restrictions possible, if we use the momentum of the input track.
-// Ask for the presence of a stereo hit in the same biLayer compatible.
-// This reduces the efficiency. X-alone hits to be re-added later in the processing
-//
-// side = 1  -> upper y half
-// side = -1 -> lower y half
-//=========================================================================
 __host__ __device__ void lf_search_initial_windows_impl(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& scifi_hit_count,
@@ -29,7 +15,8 @@ __host__ __device__ void lf_search_initial_windows_impl(
   const SciFi::Tracking::Arrays* constArrays,
   const float qOverP,
   const int side,
-  int* forward_windows)
+  int* initial_windows,
+  const int number_of_tracks)
 {
   // Find size of search window on reference plane, using Velo slopes and min pT as input
   float dxRef = 0.9f * calcDxRef(SciFi::Tracking::minPt, velo_state);
@@ -56,10 +43,6 @@ __host__ __device__ void lf_search_initial_windows_impl(
   for (int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
     // Initialize windows
     const auto relative_iZone = iZone - iZoneStartingPoint;
-    forward_windows[relative_iZone * 4 + 0] = -1;
-    forward_windows[relative_iZone * 4 + 1] = -1;
-    forward_windows[relative_iZone * 4 + 2] = -1;
-    forward_windows[relative_iZone * 4 + 3] = -1;
 
     assert(iZone - iZoneStartingPoint < SciFi::Constants::n_zones);
     assert(iZone - iZoneStartingPoint < 12);
@@ -114,15 +97,15 @@ __host__ __device__ void lf_search_initial_windows_impl(
     // Get the hits within the bounds
     assert(iZone < SciFi::Constants::n_layers);
     assert(constArrays->xZones[iZone] < SciFi::Constants::n_zones);
-    int x_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->xZones[iZone]);
-    int x_zone_offset_end = x_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
+    const int x_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->xZones[iZone]);
+    const int x_zone_offset_end = x_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
     const int itH = getLowerBound(scifi_hits.x0, xMin, x_zone_offset_begin, x_zone_offset_end);
     const int itEnd = getLowerBound(scifi_hits.x0, xMax, x_zone_offset_begin, x_zone_offset_end);
 
     // Initialize windows
-    forward_windows[relative_iZone * 4 + 0] = itH;
-    forward_windows[relative_iZone * 4 + 1] = itEnd;
-    
+    initial_windows[relative_iZone * 8 * number_of_tracks] = itH;
+    initial_windows[(relative_iZone * 8 + 1) * number_of_tracks] = itEnd - itH;
+
     assert(itH >= x_zone_offset_begin && itH <= x_zone_offset_end);
     assert(itEnd >= x_zone_offset_begin && itEnd <= x_zone_offset_end);
 
@@ -147,18 +130,19 @@ __host__ __device__ void lf_search_initial_windows_impl(
     const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
     const int uv_zone_offset_end =
       uv_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
-    const int triangleOffset = side > 0 ? -1 : 1;
-    assert(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset] < SciFi::Constants::n_zones);
-    const int triangle_zone_offset_begin =
-      scifi_hit_count.zone_offset(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset]);
-    assert(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset] < SciFi::Constants::n_zones);
-    const int triangle_zone_offset_end =
-      triangle_zone_offset_begin +
-      scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset]);
-    int itUV1 = getLowerBound(scifi_hits.x0, xMinUV, uv_zone_offset_begin, uv_zone_offset_end);
-    int itUV2 = getLowerBound(scifi_hits.x0, xMinUV, triangle_zone_offset_begin, triangle_zone_offset_end);
 
-    forward_windows[relative_iZone * 4 + 2] = itUV1;
-    forward_windows[relative_iZone * 4 + 3] = itUV2;
+    const int itUV1 = getLowerBound(scifi_hits.x0, xMinUV, uv_zone_offset_begin, uv_zone_offset_end);
+
+    const float xPredUVProto = xInUv - xInZone * zRatio - dx;
+    const float maxDxProto = SciFi::Tracking::tolYCollectX + fabsf(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
+
+    initial_windows[(relative_iZone * 8 + 2) * number_of_tracks] = itUV1;
+    initial_windows[(relative_iZone * 8 + 3) * number_of_tracks] = uv_zone_offset_end;
+
+    float* initial_windows_f = (float*) &initial_windows[0];
+    initial_windows_f[(relative_iZone * 8 + 4) * number_of_tracks] = xPredUVProto;
+    initial_windows_f[(relative_iZone * 8 + 5) * number_of_tracks] = zRatio;
+    initial_windows_f[(relative_iZone * 8 + 6) * number_of_tracks] = maxDxProto;
+    initial_windows_f[(relative_iZone * 8 + 7) * number_of_tracks] = xCentral;
   }
 }

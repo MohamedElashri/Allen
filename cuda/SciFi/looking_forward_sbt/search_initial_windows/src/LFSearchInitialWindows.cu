@@ -10,12 +10,16 @@ __global__ void lf_search_initial_windows(
   const int* dev_atomics_ut,
   const char* dev_ut_track_hits,
   const uint* dev_ut_track_hit_number,
+  const float* dev_ut_x,
+  const float* dev_ut_tx,
+  const float* dev_ut_z,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const SciFi::Tracking::Arrays* dev_constArrays,
-  int* dev_forward_windows)
+  int* dev_initial_windows,
+  MiniState* dev_ut_states)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -34,52 +38,56 @@ __global__ void lf_search_initial_windows(
                                       event_number,
                                       number_of_events};
 
-  const int n_veloUT_tracks_event = ut_tracks.number_of_tracks(event_number);
+  const int ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
+  const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
 
   // SciFi hits
   const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
   const SciFi::HitCount scifi_hit_count {(uint32_t*) dev_scifi_hit_count, event_number};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
-  SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
+  const SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
 
-  // Loop over the veloUT input tracks
-  for (int i_veloUT_track = threadIdx.x; i_veloUT_track < n_veloUT_tracks_event; i_veloUT_track += blockDim.x) {
-    const float qop_ut = ut_tracks.qop[i_veloUT_track];
-    const int i_velo_track = ut_tracks.velo_track[i_veloUT_track];
-    const uint velo_states_index = velo_tracks_offset_event + i_velo_track;
+  MiniState* ut_states = dev_ut_states + ut_event_tracks_offset;
+
+  for (int i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
+    const int velo_track_index = ut_tracks.velo_track[i];
+    const int ut_track_index = ut_event_tracks_offset + i;
+    const float ut_qop = ut_tracks.qop[i];
+
+    // Note: These data should be accessed like
+    //       the previous ut_tracks.qop[i] in the future
+    const float ut_x = dev_ut_x[ut_track_index];
+    const float ut_tx = dev_ut_tx[ut_track_index];
+    const float ut_z = dev_ut_z[ut_track_index];
+
+    const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
     const MiniState velo_state {velo_states, velo_states_index};
 
+    // extrapolate velo y & ty to z of UT x and tx
+    // use ty from Velo state
+    const MiniState ut_state {ut_x, LookingForward::y_at_z(velo_state, ut_z), ut_z, ut_tx, velo_state.ty};
+    const MiniState state_at_z_last_ut_plane = LookingForward::state_at_z(ut_state, LookingForward::z_last_UT_plane);
+
+    // Store state for access in other algorithms
+    ut_states[i] = state_at_z_last_ut_plane;
+
+    // Parameters for the calculation of the windows
+    const float y_projection = LookingForward::y_at_z(state_at_z_last_ut_plane, dev_constArrays->xZone_zPos[0]);
+
     const float zRef_track = SciFi::Tracking::zReference;
-    const float xAtRef = xFromVelo(zRef_track, velo_state);
-    const float yAtRef = yFromVelo(zRef_track, velo_state);
+    const float xAtRef = xFromVelo(zRef_track, state_at_z_last_ut_plane);
+    const float yAtRef = yFromVelo(zRef_track, state_at_z_last_ut_plane);
 
-    if (yAtRef > -5.f) {
-      int forward_windows[4 * SciFi::Tracking::zoneoffsetpar];
-      
-      lf_search_initial_windows_impl(
-        scifi_hits, scifi_hit_count, xAtRef, yAtRef, velo_state, dev_constArrays, qop_ut, 1, forward_windows);
-
-      for (int i = 0; i < 4 * SciFi::Tracking::zoneoffsetpar; ++i) {
-        dev_forward_windows[
-          i * number_of_events * ut_tracks.total_number_of_tracks +
-          ut_tracks.tracks_offset(event_number) +
-          i_veloUT_track] = forward_windows[i];
-      }
-    }
-
-    if (yAtRef < 5.f) {
-      int forward_windows[4 * SciFi::Tracking::zoneoffsetpar];
-
-      lf_search_initial_windows_impl(
-        scifi_hits, scifi_hit_count, xAtRef, yAtRef, velo_state, dev_constArrays, qop_ut, -1, forward_windows);
-
-      for (int i = 0; i < 4 * SciFi::Tracking::zoneoffsetpar; ++i) {
-        dev_forward_windows[
-          4 * SciFi::Tracking::zoneoffsetpar * number_of_events * ut_tracks.total_number_of_tracks +
-          i * number_of_events * ut_tracks.total_number_of_tracks +
-          ut_tracks.tracks_offset(event_number) +
-          i_veloUT_track] = forward_windows[i];
-      }
-    }
+    lf_search_initial_windows_impl(
+      scifi_hits,
+      scifi_hit_count,
+      xAtRef,
+      yAtRef,
+      state_at_z_last_ut_plane,
+      dev_constArrays,
+      ut_qop,
+      (y_projection < 0 ? -1 : 1),
+      dev_initial_windows + ut_event_tracks_offset + i,
+      ut_tracks.total_number_of_tracks);
   }
 }
