@@ -489,7 +489,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const float y_projection = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[0]);
       const float zRef_track = SciFi::Tracking::zReference;
       const float xAtRef = xFromVelo(zRef_track, UT_state);
-      const auto state_zRef = propagate_state_from_velo(UT_state, qop, 5); // zRef is between layer 4 and 5
+      const auto state_zRef = propagate_state_from_velo(UT_state, qop, 5); // zRef is between layers 4 and 5
+      const float dxRef_calc = dx_calc(UT_state, qop, window_params);
       //const float xAtRef = state_zRef.x;
       // const float xAtRef_ = xFromVelo(zRef_track, UT_state);
       //debug_cout << "x from propagation = " << state_zRef.x << ", xFromVelo = " << xAtRef << ", zRef = " << zRef_track << std::endl;
@@ -505,6 +506,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       SciFi::Tracking::TMVA tmva2;
       SciFi::Tracking::TMVA2_Init(tmva2);
 
+      debug_cout << "Collecting hits for track " << i_veloUT_track << std::endl;
       collectAllXHits_proto(
         scifi_hits,
         scifi_hit_count,
@@ -516,7 +518,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         (y_projection < 0 ? -1 : 1),
         windows_x,
         windows_uv,
-        parameters_uv);
+        parameters_uv,
+        true_scifi_indices_per_layer,
+        dxRef_calc);
 
       // Collect all X candidates
       std::array<std::vector<int>, 6> hits_in_layers =

@@ -15,6 +15,8 @@
 #include "PrVeloUT.cuh"
 #include "SciFiEventModel.cuh"
 
+#include "LookingForwardUtils.h"
+
 /**
    Functions related to selecting hits on the x planes,
    which match to the VeloUT input track
@@ -31,7 +33,9 @@ __host__ void collectAllXHits_proto(
   int side,
   std::array<int, 2 * 6>& windows_x,
   std::array<int, 2 * 6>& windows_uv,
-  std::array<float, 4 * 6>& parameters_uv);
+  std::array<float, 4 * 6>& parameters_uv,
+  const std::array<int, 12>& true_scifi_indices_per_layer,
+  const float dx_calc);
 
 __host__ __device__ void collectAllXHits(
   const SciFi::Hits& scifi_hits,

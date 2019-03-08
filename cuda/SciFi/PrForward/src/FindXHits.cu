@@ -1,5 +1,6 @@
 #include "FindXHits.cuh"
 
+
 __host__ void collectAllXHits_proto(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& scifi_hit_count,
@@ -11,10 +12,14 @@ __host__ void collectAllXHits_proto(
   int side,
   std::array<int, 2 * 6>& windows_x,
   std::array<int, 2 * 6>& windows_uv,
-  std::array<float, 4 * 6>& parameters_uv)
+  std::array<float, 4 * 6>& parameters_uv,
+  const std::array<int, 12>& true_scifi_indices_per_layer,
+  const float dxRef_calc)
 {
   // Find size of search window on reference plane, using Velo slopes and min pT as input
+  // to do: do this once per veloUT input track
   float dxRef = 0.9f * calcDxRef(SciFi::Tracking::minPt, velo_state);
+  //float dxRef = dxRef_calc;
   // find position within magnet where bending happens
   float zMag = zMagnet(velo_state, constArrays);
 
@@ -33,10 +38,6 @@ __host__ void collectAllXHits_proto(
                        velo_state); // make windows a bit too small - FIXME check effect of this, seems wrong
   }
 
-  int iZoneEnd[7]; // 6 x planes
-  iZoneEnd[0] = 0;
-  int cptZone = 1;
-
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
 
   for (unsigned int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
@@ -45,17 +46,9 @@ __host__ void collectAllXHits_proto(
 
     const auto izone_rel = iZone - iZoneStartingPoint;
     const float zZone = constArrays->xZone_zPos[izone_rel];
-    const float xInZone = evalCubicParameterization(xParams_seed, zZone);
-    const float yInZone = evalCubicParameterization(yParams_seed, zZone);
+    const float xInZone = straightLinePropagation(xParams_seed, zZone);
+    const float yInZone = straightLinePropagation(yParams_seed, zZone);
 
-    // Now the code checks if the x and y are in the zone limits. I am really not sure
-    // why this is done here, surely could just check if within limits for the last zone
-    // in T3 and go from there? Need to think more about this.
-    //
-    // Here for now I assume the same min/max x and y for all stations, this again needs to
-    // be read from some file blablabla although actually I suspect having some general tolerances
-    // here is anyway good enough since we are doing a straight line extrapolation in the first place
-    // check (roughly) whether the extrapolated velo track is within the current zone
     if (side > 0) {
       if (
         !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
@@ -76,6 +69,7 @@ __host__ void collectAllXHits_proto(
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
 
+    
     if (SciFi::Tracking::useMomentumEstimate) { // For VeloUT tracks, suppress check if track actually has qOverP set,
                                                 // get the option right!
       float xTolWS = 0.0;
@@ -92,6 +86,12 @@ __host__ void collectAllXHits_proto(
       }
     }
 
+    const int layer = constArrays->xZones[iZone] / 2;
+    if ( true_scifi_indices_per_layer[layer] != -1 ) {
+      debug_cout << "xMin = " << xMin << ", xMax = " << xMax << ", true x = " << scifi_hits.x0[true_scifi_indices_per_layer[layer]] << std::endl;
+    }
+
+
     // Get the hits within the bounds
     assert(iZone < SciFi::Constants::n_layers);
     assert(constArrays->xZones[iZone] < SciFi::Constants::n_zones);
@@ -104,13 +104,13 @@ __host__ void collectAllXHits_proto(
 
     windows_x[2*izone_rel] = itH;
     windows_x[2*izone_rel+1] = itEnd - itH;
-
+    
     // Skip making range but continue if the end is before or equal to the start
     if (!(itEnd > itH)) continue;
 
     // Now match the stereo hits
     const float this_uv_z = constArrays->uvZone_zPos[iZone - iZoneStartingPoint];
-    const float xInUv = evalCubicParameterization(xParams_seed, this_uv_z);
+    const float xInUv = straightLinePropagation(xParams_seed, this_uv_z);
     const float zRatio = (this_uv_z - zMag) / (zZone - zMag);
     const float dx = yInZone * constArrays->uvZone_dxdy[iZone - iZoneStartingPoint];
     const float xCentral = xInZone + dx;

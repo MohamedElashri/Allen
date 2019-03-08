@@ -31,6 +31,12 @@ __host__ __device__ inline float evalCubicParameterization(const float params[4]
   return params[0] + (params[1] + (params[2] + params[3] * dz) * dz) * dz;
 }
 
+__host__ __device__ inline float straightLinePropagation(const float params[4], float z)
+{
+  float dz = z - SciFi::Tracking::zReference;
+  return params[0] + params[1] * dz;
+}
+
 __host__ __device__ void getTrackParameters(
   float xAtRef,
   MiniState velo_state,
