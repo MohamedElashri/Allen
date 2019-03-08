@@ -520,7 +520,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // }
       // info_cout << std::endl;
 
-      // info_cout << "Candidate sizes: ";
+      // info_cout << "Candidates #" << i_veloUT_track << ": ";
       // for (int i=0; i<6; ++i) {
       //   info_cout << hits_in_layers[i].size() << ", ";
       // }

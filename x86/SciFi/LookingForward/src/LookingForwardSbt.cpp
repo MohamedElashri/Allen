@@ -1,4 +1,5 @@
 #include "LookingForwardSbt.h"
+#include "BinarySearchTools.cuh"
 
 std::array<std::vector<int>, 6> collect_x_candidates(
   const SciFi::Hits& scifi_hits,
@@ -11,19 +12,17 @@ std::array<std::vector<int>, 6> collect_x_candidates(
   for (int i = 0; i < 6; ++i) {
     const auto window_start = windows_x[2 * i];
     const auto window_size = windows_x[2 * i + 1];
-    if (window_size > 0) {
-      const float zHit = scifi_hits.z0[window_start];
-      for (int j = 0; j < window_size; ++j) {
-        const auto hit_index = window_start + j;
-        float xHit = scifi_hits.x0[hit_index];
-        const float xPredUv = parameters_uv[4 * i] + xHit * parameters_uv[4 * i + 1];
-        const float maxDx =
-          parameters_uv[4 * i + 2] + fabsf(xHit - parameters_uv[4 * i + 3]) * SciFi::Tracking::tolYSlopeCollectX;
-        const float xMinUV = xPredUv - maxDx;
-        const float xMaxUV = xPredUv + maxDx;
-        if (matchStereoHit(windows_uv[i * 2], windows_uv[i * 2 + 1], scifi_hits, xMinUV, xMaxUV)) {
-          hits_in_layers[i].push_back(hit_index);
-        }
+    for (int j = 0; j < window_size; ++j) {
+      const auto hit_index = window_start + j;
+      float xHit = scifi_hits.x0[hit_index];
+      const float xPredUv = parameters_uv[4 * i] + xHit * parameters_uv[4 * i + 1];
+      const float maxDx =
+        parameters_uv[4 * i + 2] + fabsf(xHit - parameters_uv[4 * i + 3]) * SciFi::Tracking::tolYSlopeCollectX;
+      const float xMinUV = xPredUv - maxDx;
+      const float xMaxUV = xPredUv + maxDx;
+
+      if (binary_search_match_stereo_hit(scifi_hits, windows_uv[i * 2], windows_uv[i * 2 + 1], xMinUV, xMaxUV)) {
+        hits_in_layers[i].push_back(hit_index);
       }
     }
   }

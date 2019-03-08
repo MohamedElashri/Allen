@@ -39,6 +39,12 @@ namespace LookingForward {
   constexpr float x_diff_layer_qop_slope_a = 0.3e6;
   constexpr float x_diff_layer_qop_slope_b = 0.2e6;
 
+  /**
+   * Constants for lf search by triplet
+   */
+  constexpr int number_of_x_layers = 6;
+  constexpr int maximum_number_of_candidates = 64;
+
   // cut on the difference between tx from the extrapolation and
   // tx from the hits in the two x layers
   constexpr float max_tx_diff = 0.05f * Gaudi::Units::mm;

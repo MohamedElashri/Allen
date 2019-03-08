@@ -39,6 +39,7 @@ SEQUENCE_T(
   scifi_direct_decoder_v4_t,
 
   lf_search_initial_windows_t,
+  lf_collect_candidates_t,
 
   // lf_calculate_first_layer_window_t,
   // lf_prefix_sum_first_layer_window_size_t,
