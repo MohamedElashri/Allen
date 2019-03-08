@@ -251,6 +251,10 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
     const auto window_2_size = std::get<1>(compatible_hits_x2[i]) - window_2_start;
     const auto h1 = hits_in_layers[relative_layer1][i];
 
+    auto best_chi2 = max_triplet_chi2;
+    int best_h0 = -1;
+    int best_h2 = -1;
+
     for (int j = 0; j < window_0_size; ++j) {
       const auto h0_index = window_0_start + j;
       const auto h0 = hits_in_layers[relative_layer0][h0_index];
@@ -262,11 +266,18 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
         // Flagging
         if (!use_flagging || (!flag[h0 - event_offset] && !flag[h1 - event_offset] && !flag[h2 - event_offset])) {
           const auto chi2 = chi2_triplet(scifi_hits, qop, h0, h1, h2, layer0, layer1, layer2);
-          if (chi2 < max_triplet_chi2) {
-            triplets.push_back({h0, h1, h2, chi2});
+          if (chi2 < best_chi2) {
+            best_chi2 = chi2;
+            best_h0 = h0;
+            best_h2 = h2;
+            // triplets.push_back({h0, h1, h2, chi2});
           }
         }
       }
+    }
+
+    if (best_h0 != -1 && best_h2 != -1) {
+      triplets.push_back({best_h0, h1, best_h2, best_chi2});
     }
   }
   std::sort(

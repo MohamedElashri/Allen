@@ -28,3 +28,5 @@ ARGUMENT(dev_scifi_lf_second_layer_candidates, unsigned short)
 ARGUMENT(dev_ut_states, MiniState)
 ARGUMENT(dev_extrapolation_layer_candidates, unsigned short)
 ARGUMENT(dev_scifi_track_promoted_candidates, bool)
+
+ARGUMENT(dev_scifi_lf_initial_windows, int)

@@ -41,6 +41,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_can
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/promote_candidates/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_track_extrapolation_window/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/search_initial_windows/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
