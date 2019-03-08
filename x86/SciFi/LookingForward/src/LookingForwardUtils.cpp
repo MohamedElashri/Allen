@@ -705,21 +705,31 @@ void filter_tracks_with_TMVA(
     if (candidate.hitsNum < SciFi::LookingForward::minHits) continue;
 
     // use only hits from x-planes to calculate the average x position on the reference plane
-    std::vector<int> x_hits;
-    std::vector<int> uv_hits;
+    int hits[SciFi::Constants::max_track_size];
+    int uv_hits[SciFi::Constants::max_track_size]; // to do: make smaller
+    int n_hits = 0;
+    int n_uv_hits = 0;
     for (int i = 0; i < candidate.hitsNum; ++i) {
       if (scifi_hits.dxdy(candidate.hits[i] + event_offset) == 0) {
-        x_hits.push_back(candidate.hits[i] + event_offset);
+        // first store only x hits in hits array
+        hits[n_hits++] = candidate.hits[i] + event_offset;
       }
       else {
-        uv_hits.push_back(candidate.hits[i] + event_offset);
+        uv_hits[n_uv_hits++] = candidate.hits[i] + event_offset;
       }
     }
     const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
     const float xParams_seed[4] = {xAtRef_initial, velo_state.tx, 0.f, 0.f};
     float zMag_initial = zMagnet(velo_state, constArrays);
     float xAtRef_average =
-      get_average_x_at_reference_plane(x_hits, scifi_hits, xParams_seed, constArrays, velo_state, zMag_initial);
+      get_average_x_at_reference_plane(
+        hits, 
+        n_hits,
+        scifi_hits, 
+        xParams_seed, 
+        constArrays, 
+        velo_state, 
+        zMag_initial);
 
     // initial track parameters
     float trackParams[SciFi::Tracking::nTrackParams];
@@ -731,31 +741,42 @@ void filter_tracks_with_TMVA(
       velo_state,
       constArrays,
       uv_hits,
+      n_uv_hits,
       scifi_hits,
       trackParams) )continue;
   
+    // ad uv hits to hits array
+    for ( int i_hit = 0; i_hit < n_uv_hits; ++i_hit ) {
+      hits[n_hits++] = uv_hits[i_hit];
+    }
+    
     // make a fit of all hits using their x coordinate
     // update trackParams [0] [1] [2] (x coordinate related)
-      // to do: get array with global hit offsets to pass on 
-    debug_cout << "BEFORE: [0] = " << trackParams[0] << ", [1] = " << trackParams[1] << ", [2] = " << trackParams[2] << std::endl;
-    x_hits.insert( x_hits.end(), uv_hits.begin(), uv_hits.end() );
-    if (!fitParabola_proto(
-      scifi_hits, 
-      x_hits.data(), 
-      x_hits.size(), 
-      trackParams, 
-      true)) continue;
-    debug_cout << "AFTER: [0] = " << trackParams[0] << ", [1] = " << trackParams[1] << ", [2] = " << trackParams[2] << std::endl;
-    
-    // chi2 & nDoF: trackParams [7] [8]
-    if ( !getChi2(
-      scifi_hits, 
-      x_hits.data(), 
-      x_hits.size(), 
-      trackParams, 
-      true)) continue;
-    debug_cout << "chi2 = " << trackParams[7] << ", nDoF = " << trackParams[8] << std::endl;
+    // if (!fitParabola_proto(
+    //   scifi_hits, 
+    //   hits, 
+    //   n_hits, 
+    //   trackParams, 
+    //   true)) continue;
+        
+    // // chi2 & nDoF: trackParams [7] [8]
+    // if ( !getChi2(
+    //   scifi_hits, 
+    //   hits, 
+    //   n_hits, 
+    //   trackParams, 
+    //   true)) continue;
 
+    // make a fit of all hits using their x coordinate
+    // update trackParams [0] [1] [2] (x coordinate related)
+    // remove outliers with worst chi2
+    if ( !quadraticFitX_proto(
+      scifi_hits,
+      hits,
+      n_hits,
+      trackParams,
+      true) ) continue;
+    
     // Calculate q/p
     const float qOverP = calcqOverP(trackParams[1], constArrays, velo_state);
     const float xAtRef = trackParams[0];

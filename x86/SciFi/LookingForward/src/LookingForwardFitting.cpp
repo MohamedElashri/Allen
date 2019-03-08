@@ -3,7 +3,8 @@
 #include <cstdlib>
 
 float get_average_x_at_reference_plane(
-  std::vector<int> x_hits,
+  const int* hits,
+  const int n_hits,
   const SciFi::Hits& scifi_hits,
   const float xParams_seed[4],
   const SciFi::Tracking::Arrays* constArrays,
@@ -12,7 +13,8 @@ float get_average_x_at_reference_plane(
 {
   
   float average_x = 0;
-  for ( const auto hit : x_hits ) {
+  for ( int i_hit = 0; i_hit < n_hits; ++i_hit ) {
+    const int hit = hits[i_hit];
     const float zHit = scifi_hits.z0[hit]; 
     const float xFromVelo_Hit = evalCubicParameterization(xParams_seed, zHit);
     const float dSlopeDivPart = 1.f / (zHit - constArrays->zMagnetParams[0]);
@@ -24,14 +26,15 @@ float get_average_x_at_reference_plane(
     float zMag = zMagSlope + constArrays->zMagnetParams[1] * dSlope * dSlope;
     float xMag = xFromVelo_Hit + velo_state.tx * (zMag - zHit);
     // calculate x position on reference plane
-    // dxCoef: account for additional bending of track due to fringe field in first station
+    // dxCoef: account for additional bending of track 
+    // due to fringe field in first station
     // expressed by quadratic and cubic term in z
     float dxCoef = dz * dz * (constArrays->xParams[0] + dz * constArrays->xParams[1]) * dSlope;
     float ratio = (SciFi::Tracking::zReference - zMag) / (zHit - zMag);
     
     average_x += xMag + ratio * (xHit + dxCoef - xMag);
   }
-  average_x /= x_hits.size();
+  average_x /= n_hits;
   
   return average_x;
 }
@@ -40,7 +43,8 @@ float get_average_x_at_reference_plane(
 bool fitYProjection_proto(
   MiniState velo_state,
   const SciFi::Tracking::Arrays* constArrays,
-  const std::vector<int>& uv_hits,
+  const int* uv_hits,
+  const int n_uv_hits,
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams])
 {
@@ -67,7 +71,7 @@ bool fitYProjection_proto(
   float sdz = wMag * dyMag * zMag;
 
   // First straight line fit  
-  for (int i_hit = 0; i_hit < uv_hits.size(); ++i_hit) {
+  for (int i_hit = 0; i_hit < n_uv_hits; ++i_hit) {
     int hit = uv_hits[i_hit];
     const float d = -trackToHitDistance(trackParams, scifi_hits, hit) /
       scifi_hits.dxdy(hit); // TODO multiplication much faster than division!
@@ -90,11 +94,10 @@ bool fitYProjection_proto(
   
   // Then parabola fit
   // position in magnet not used for parabola fit, hardly any influence on efficiency
-  const int* uv_hits_array = uv_hits.data();
   if ( !fitParabola_proto(
     scifi_hits, 
-    uv_hits_array, 
-    uv_hits.size(), 
+    uv_hits, 
+    n_uv_hits, 
     trackParams, 
     false) )
     return false;
@@ -185,5 +188,75 @@ int getChi2(
   trackParameters[7] = totChi2;
   trackParameters[8] = (float) nDoF;
 
+  return true;
+}
+
+void removeOutlier_proto(
+  const SciFi::Hits& scifi_hits,
+  int* coordToFit,
+  int& n_coordToFit,
+  const int worst)
+{
+  int coordToFit_temp[SciFi::Constants::max_track_candidate_size];
+  int i_hit_temp = 0;
+  for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
+    int hit = coordToFit[i_hit];
+    if (hit != worst) coordToFit_temp[i_hit_temp++] = hit;
+  }
+  n_coordToFit = i_hit_temp;
+  for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
+    coordToFit[i_hit] = coordToFit_temp[i_hit];
+  }
+}
+
+bool quadraticFitX_proto(
+  const SciFi::Hits& scifi_hits,
+  int* coordToFit,
+  int& n_coordToFit,
+  float trackParameters[SciFi::Tracking::nTrackParams],
+  const bool xFit)
+{
+ if (n_coordToFit < SciFi::LookingForward::minHits) return false; 
+  bool doFit = true;
+  while (doFit) {
+    fitParabola_proto(
+      scifi_hits, 
+      coordToFit, 
+      n_coordToFit, 
+      trackParameters, 
+      true);
+
+    float maxChi2 = 0.f;
+    float totChi2 = 0.f;
+    int nDoF = -3; // fitted 3 parameters
+
+    int worst = n_coordToFit;
+    for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
+      int hit = coordToFit[i_hit];
+      float d = trackToHitDistance(trackParameters, scifi_hits, hit);
+      float chi2 = d * d * scifi_hits.w(hit);
+      //debug_cout << "d = " << d << ", w = " << scifi_hits.w(hit) << ", chi2 = " << chi2 << std::endl;
+      totChi2 += chi2;
+      ++nDoF;
+      if (chi2 > maxChi2) {
+        maxChi2 = chi2;
+        worst = i_hit;
+      }
+    }
+    if (nDoF < 1) return false;
+    trackParameters[7] = totChi2;
+    trackParameters[8] = (float) nDoF;
+
+    //debug_cout << "maxChi2 = " << maxChi2 << ", maxChi2XProjection = " << SciFi::Tracking::maxChi2XProjection << ", totChi2/nDoF = " << totChi2 / nDoF << ", maxChi2PerDoF = " << SciFi::Tracking::maxChi2PerDoF << ", worst hit = " << worst << ", # of hits = " << n_coordToFit << std::endl;
+
+    doFit = false;
+    //if (totChi2 / nDoF > SciFi::Tracking::maxChi2PerDoF || maxChi2 > SciFi::Tracking::maxChi2XProjection) {
+    if ( maxChi2 > 2000) {
+    //if ( totChi2 / nDoF > 5000 ) {
+      removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, coordToFit[worst]);
+      if (n_coordToFit < SciFi::LookingForward::minHits) return false;
+      doFit = true;
+    }
+  }
   return true;
 }
