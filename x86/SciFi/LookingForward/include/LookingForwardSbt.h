@@ -142,4 +142,6 @@ void single_track_propagation(
   const float extrapolation_stddev,
   const float chi2_extrap_mean,
   const float chi2_extrap_stddev,
-  const int event_offset);
+  const int event_offset,
+  const std::vector<bool>& flag,
+  const bool use_flagging = false);
