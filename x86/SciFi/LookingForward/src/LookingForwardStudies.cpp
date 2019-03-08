@@ -64,6 +64,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   TTree* t_extrapolate_tracks_3 = new TTree("t_extrapolate_tracks_3", "t_extrapolate_tracks_3");
   TTree* t_extrapolate_tracks_4 = new TTree("t_extrapolate_tracks_4", "t_extrapolate_tracks_4");
   TTree* t_extrapolate_tracks_5 = new TTree("t_extrapolate_tracks_5", "t_extrapolate_tracks_5");
+  TTree* t_scifi_tracks = new TTree("scifi_tracks", "scifi_tracks");
 
   uint planeCode, LHCbID;
   float x0, z0, w, dxdy, dzdy, yMin, yMax;
@@ -101,7 +102,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   bool match_t1, match_t3, match_t1_other, match_t3_other, match_t1_u, match_t1_v;
   bool match_T2_0, match_T2_3, match_T3_0, match_T3_3;
   float chi2_track;
-
+  float qop_track, qop_true;
   float x_propagation_layer_5, x_from_velo_layer_5, true_x_layer_5;
 
   t_scifi_hits->Branch("planeCode", &planeCode);
@@ -113,6 +114,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   t_scifi_hits->Branch("dzdy", &dzdy);
   t_scifi_hits->Branch("yMin", &yMin);
   t_scifi_hits->Branch("yMax", &yMax);
+
+  t_scifi_tracks->Branch("qop_true", &qop_true);
+  t_scifi_tracks->Branch("qop", &qop_track);
 
   std::array<int, 6> window_size;
   std::array<float, 6> window_dx;
@@ -781,6 +785,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         }
       }
 
+      const int size_before = event_trackhits.size();
       filter_tracks_with_TMVA(
           scifi_tracks,
           event_trackhits,
@@ -791,6 +796,11 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           &tmva2,
           scifi_hits,
           scifi_hit_count.event_offset());
+      if ( event_trackhits.size() > size_before) {
+        qop_track = event_trackhits[size_before].qop;
+        qop_true = 1.f/p_true;
+        t_scifi_tracks->Fill();
+      }
 
       // float best_fit = 100.f;
       // int best_track = -1;
@@ -1001,7 +1011,6 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         true_x_layer_5 = scifi_hits.x0[true_scifi_indices_per_layer[5]];
         t_extrap_l5->Fill();
       }
-      
     }
 
     // info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;

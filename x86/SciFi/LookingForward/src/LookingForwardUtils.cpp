@@ -706,9 +706,13 @@ void filter_tracks_with_TMVA(
 
     // use only hits from x-planes to calculate the average x position on the reference plane
     std::vector<int> x_hits;
+    std::vector<int> uv_hits;
     for (int i = 0; i < candidate.hitsNum; ++i) {
       if (scifi_hits.dxdy(candidate.hits[i] + event_offset) == 0) {
         x_hits.push_back(candidate.hits[i] + event_offset);
+      }
+      else {
+        uv_hits.push_back(candidate.hits[i] + event_offset);
       }
     }
     const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
@@ -717,22 +721,40 @@ void filter_tracks_with_TMVA(
     float xAtRef_average =
       get_average_x_at_reference_plane(x_hits, scifi_hits, xParams_seed, constArrays, velo_state, zMag_initial);
 
-    // debug_cout << "Found " << x_hits.size() << " x hits on track, average ref = " << xAtRef_average << std::endl;
     // initial track parameters
     float trackParams[SciFi::Tracking::nTrackParams];
     getTrackParameters(xAtRef_average, velo_state, constArrays, trackParams);
-    // debug_cout << "BEFORE" << std::endl;
-    // debug_cout << "0 = " << trackParams[0] << ", 1 = " << trackParams[1] << ", 2 = " << trackParams[2] << ", 3 = " <<
-    // trackParams[3] << ", 4 = " << trackParams[4] << ", 5 = " << trackParams[5] << ", 6 = " << trackParams[6] << ", 7
-    // = " << trackParams[7] << ", 8 = " << trackParams[8] << std::endl;
-
-    // make a fit of ALL hits using their x coordinate
-    if (!fitParabola(candidate, scifi_hits, event_offset, trackParams)) continue;
-
-    // debug_cout << "AFTER" << std::endl;
-    // debug_cout << "0 = " << trackParams[0] << ", 1 = " << trackParams[1] << ", 2 = " << trackParams[2] << ", 3 = " <<
-    // trackParams[3] << ", 4 = " << trackParams[4] << ", 5 = " << trackParams[5] << ", 6 = " << trackParams[6] << ", 7
-    // = " << trackParams[7] << ", 8 = " << trackParams[8] << std::endl;
+    
+    // fit uv hits to update parameters related to y coordinate
+    // update trackParams [4] [5] [6]
+    if ( !fitYProjection_proto(
+      velo_state,
+      constArrays,
+      uv_hits,
+      scifi_hits,
+      trackParams) )continue;
+  
+    // make a fit of all hits using their x coordinate
+    // update trackParams [0] [1] [2] (x coordinate related)
+      // to do: get array with global hit offsets to pass on 
+    debug_cout << "BEFORE: [0] = " << trackParams[0] << ", [1] = " << trackParams[1] << ", [2] = " << trackParams[2] << std::endl;
+    x_hits.insert( x_hits.end(), uv_hits.begin(), uv_hits.end() );
+    if (!fitParabola_proto(
+      scifi_hits, 
+      x_hits.data(), 
+      x_hits.size(), 
+      trackParams, 
+      true)) continue;
+    debug_cout << "AFTER: [0] = " << trackParams[0] << ", [1] = " << trackParams[1] << ", [2] = " << trackParams[2] << std::endl;
+    
+    // chi2 & nDoF: trackParams [7] [8]
+    if ( !getChi2(
+      scifi_hits, 
+      x_hits.data(), 
+      x_hits.size(), 
+      trackParams, 
+      true)) continue;
+    debug_cout << "chi2 = " << trackParams[7] << ", nDoF = " << trackParams[8] << std::endl;
 
     // Calculate q/p
     const float qOverP = calcqOverP(trackParams[1], constArrays, velo_state);
@@ -751,9 +773,9 @@ void filter_tracks_with_TMVA(
     float ay = velo_state.y + (SciFi::Tracking::zReference - velo_state.z) * velo_state.ty;
     float by = velo_state.ty + dyCoef * SciFi::Tracking::byParams;
 
-    const float ay1 = trackParams[4];
-    const float by1 = trackParams[5];
-    const float bx1 = trackParams[1];
+    const float ay1 = trackParams[4]; // y at zRef, from velo state
+    const float by1 = trackParams[5]; // 
+    const float bx1 = trackParams[1]; // slope between zRef and zMag (-> in the SciFi)
 
     // Pipe into TMVA, get track quality
     float mlpInput[7] = {0};
@@ -765,9 +787,12 @@ void filter_tracks_with_TMVA(
     mlpInput[4] = by - by1;
     mlpInput[5] = bx - bx1;
     mlpInput[6] = ay - ay1;
+    
+    debug_cout << "qOverP = " << qOverP << ", qop diff = " << mlpInput[2] << ", tx^2+ty^2 = " <<  mlpInput[3] << ", by-by1 = " << mlpInput[4] << ", bx-bx1 = " << mlpInput[5] << ", ay-ay1 = " << mlpInput[6] << std::endl;
 
     float quality = GetMvaValue(mlpInput, tmva1);
     quality = 1.f - quality;
+    candidate.qop = qOverP;
 
     // if (quality < SciFi::Tracking::maxQuality) {
     //   SciFi::TrackHits final_track = candidate;

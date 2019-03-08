@@ -7,17 +7,13 @@
 
  inline float evalCubicParameterization(const float params[4], float z);
 
-int fitParabola(
-  SciFi::TrackHits& track,
-  const SciFi::Hits& scifi_hits,
-  const int event_offset,
-  float trackParameters[SciFi::Tracking::nTrackParams]);
 
-bool quadraticFitX(
+int fitParabola_proto(
   const SciFi::Hits& scifi_hits,
-  const int event_offset,
+  const int* coordToFit,
+  const int n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
-  SciFi::TrackHits& track);
+  const bool xFit);
 
 float get_average_x_at_reference_plane(
   std::vector<int> x_hits,
@@ -26,3 +22,17 @@ float get_average_x_at_reference_plane(
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState velo_state,
   const float zMagSlope);
+
+int getChi2( 
+  const SciFi::Hits& scifi_hits,
+  int* coordToFit,
+  const int n_coordToFit,
+  float trackParameters[SciFi::Tracking::nTrackParams],
+  const bool xFit);
+
+bool fitYProjection_proto(
+  MiniState velo_state,
+  const SciFi::Tracking::Arrays* constArrays,
+  const std::vector<int>& uv_hits,
+  const SciFi::Hits& scifi_hits,
+  float trackParams[SciFi::Tracking::nTrackParams]);

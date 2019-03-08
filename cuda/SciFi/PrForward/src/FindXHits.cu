@@ -86,11 +86,10 @@ __host__ void collectAllXHits_proto(
       }
     }
 
-    const int layer = constArrays->xZones[iZone] / 2;
-    if ( true_scifi_indices_per_layer[layer] != -1 ) {
-      debug_cout << "xMin = " << xMin << ", xMax = " << xMax << ", true x = " << scifi_hits.x0[true_scifi_indices_per_layer[layer]] << std::endl;
-    }
-
+    // const int layer = constArrays->xZones[iZone] / 2;
+    // if ( true_scifi_indices_per_layer[layer] != -1 ) {
+    //   debug_cout << "xMin = " << xMin << ", xMax = " << xMax << ", true x = " << scifi_hits.x0[true_scifi_indices_per_layer[layer]] << std::endl;
+    // }
 
     // Get the hits within the bounds
     assert(iZone < SciFi::Constants::n_layers);

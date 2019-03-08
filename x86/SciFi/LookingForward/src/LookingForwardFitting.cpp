@@ -36,62 +36,79 @@ float get_average_x_at_reference_plane(
   return average_x;
 }
 
-// the track parameterization is cubic in (z-zRef),
-// however only the first three parametres are varied in this fit only
-// -> this is a quadratic fit
- bool quadraticFitX(
+
+bool fitYProjection_proto(
+  MiniState velo_state,
+  const SciFi::Tracking::Arrays* constArrays,
+  const std::vector<int>& uv_hits,
   const SciFi::Hits& scifi_hits,
-  const int event_offset,
-  float trackParameters[SciFi::Tracking::nTrackParams],
-  SciFi::TrackHits& track)
+  float trackParams[SciFi::Tracking::nTrackParams])
 {
 
-  bool doFit = true;
-  while (doFit) {
+  float maxChi2 = 1.e9f;
+  bool parabola = false; // first linear than parabola
+  //== Fit a line
+  const float txs = trackParams[0]; // simplify overgeneral c++ calculation
+  const float tsxz = velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx;
+  const float tolYMag = SciFi::Tracking::tolYMag + SciFi::Tracking::tolYMagSlope * fabsf(txs - tsxz);
+  const float wMag = 1.f / (tolYMag * tolYMag);
 
-    fitParabola(track, scifi_hits, event_offset, trackParameters);
+  // Use position in magnet as constrain in fit
+  // although because wMag is quite small only little influence...
+  float zMag = zMagnet(velo_state, constArrays);
+  const float tys = trackParams[4] + (zMag - SciFi::Tracking::zReference) * trackParams[5];
+  const float tsyz = velo_state.y + (zMag - velo_state.z) * velo_state.ty;
+  const float dyMag = tys - tsyz;
+  zMag -= SciFi::Tracking::zReference;
+  float s0 = wMag;
+  float sz = wMag * zMag;
+  float sz2 = wMag * zMag * zMag;
+  float sd = wMag * dyMag;
+  float sdz = wMag * dyMag * zMag;
 
-    doFit = false;
-    
-    // float maxChi2 = 0.f;
-    // float totChi2 = 0.f;
-    // int nDoF = -3; // fitted 3 parameters
-    // const bool notMultiple = true;
-
-    // int worst = n_coordToFit;
-    // for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
-    //   int hit = coordToFit[i_hit];
-    //   float d = trackToHitDistance(trackParameters, scifi_hits, hit);
-    //   float chi2 = d * d * scifi_hits.w(hit);
-    //   totChi2 += chi2;
-    //   ++nDoF;
-    //   if (chi2 > maxChi2 && (notMultiple || planeCounter.nbInPlane(scifi_hits.planeCode(hit) / 2) > 1)) {
-    //     maxChi2 = chi2;
-    //     worst = i_hit;
-    //   }
-    // }
-    // if (nDoF < 1) return false;
-    // trackParameters[7] = totChi2;
-    // trackParameters[8] = (float) nDoF;
-
-    // if (worst == n_coordToFit) {
-    //   return true;
-    // }
-    // doFit = false;
-    // if (totChi2 / nDoF > SciFi::Tracking::maxChi2PerDoF || maxChi2 > SciFi::Tracking::maxChi2XProjection) {
-    //   removeOutlier(scifi_hits, planeCounter, coordToFit, n_coordToFit, coordToFit[worst]);
-    //   if (track.hitsNum < SciFi::LookingForward::minHits) return false;
-    //   doFit = true;
-    // }
+  // First straight line fit  
+  for (int i_hit = 0; i_hit < uv_hits.size(); ++i_hit) {
+    int hit = uv_hits[i_hit];
+    const float d = -trackToHitDistance(trackParams, scifi_hits, hit) /
+      scifi_hits.dxdy(hit); // TODO multiplication much faster than division!
+    const float w = scifi_hits.w(hit);
+    const float z = scifi_hits.z0[hit] - SciFi::Tracking::zReference;
+    s0 += w;
+    sz += w * z;
+    sz2 += w * z * z;
+    sd += w * d;
+    sdz += w * d * z;
   }
+  const float den = (s0 * sz2 - sz * sz);
+  if (!(fabsf(den) > 1e-5)) {
+    return false;
+  }
+  const float da = (sd * sz2 - sdz * sz) / den;
+  const float db = (sdz * s0 - sd * sz) / den;
+  trackParams[4] += da;
+  trackParams[5] += db;
+  
+  // Then parabola fit
+  // position in magnet not used for parabola fit, hardly any influence on efficiency
+  const int* uv_hits_array = uv_hits.data();
+  if ( !fitParabola_proto(
+    scifi_hits, 
+    uv_hits_array, 
+    uv_hits.size(), 
+    trackParams, 
+    false) )
+    return false;
+  
   return true;
-}
- 
-int fitParabola(
-  SciFi::TrackHits& track,
+} 
+
+
+int fitParabola_proto(
   const SciFi::Hits& scifi_hits,
-  const int event_offset,
-  float trackParameters[SciFi::Tracking::nTrackParams])
+  const int* coordToFit,
+  const int n_coordToFit,
+  float trackParameters[SciFi::Tracking::nTrackParams],
+  const bool xFit)
 {
 
   //== Fit a cubic
@@ -104,9 +121,11 @@ int fitParabola(
   float sdz = 0.f;
   float sdz2 = 0.f;
 
-  for (int i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
-    int hit = track.hits[i_hit] + event_offset;
+  for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
+    int hit = coordToFit[i_hit];
     float d = trackToHitDistance(trackParameters, scifi_hits, hit);
+    if (!xFit) 
+      d *= -1.f / scifi_hits.dxdy(hit); 
     float w = scifi_hits.w(hit);
     float z = .001f * (scifi_hits.z0[hit] - SciFi::Tracking::zReference);
     s0 += w;
@@ -129,16 +148,34 @@ int fitParabola(
   const float db = (d1 * c2 - d2 * c1) / den;
   const float dc = (d2 * b1 - d1 * b2) / den;
   const float da = (sd - db * sz - dc * sz2) / s0;
-  trackParameters[0] += da;
-  trackParameters[1] += db * 1.e-3f;
-  trackParameters[2] += dc * 1.e-6f;
+  if ( xFit) {
+    trackParameters[0] += da;
+    trackParameters[1] += db * 1.e-3f;
+    trackParameters[2] += dc * 1.e-6f;
+  }
+  else {
+    trackParameters[4] += da;
+    trackParameters[5] += db * 1.e-3f;
+    trackParameters[6] += dc * 1.e-6f;
+  }
   
-  // calculate chi2
+  return true;
+}
+
+int getChi2( 
+  const SciFi::Hits& scifi_hits,
+  int* coordToFit,
+  const int n_coordToFit,
+  float trackParameters[SciFi::Tracking::nTrackParams],
+  const bool xFit) 
+{
   float totChi2 = 0.f;
   int nDoF = -3; // fitted 3 parameters
-  for (int i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
-    int hit = track.hits[i_hit] + event_offset;
+  for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
+    int hit = coordToFit[i_hit];
     float d = trackToHitDistance(trackParameters, scifi_hits, hit);
+    if (!xFit) 
+      d *= -1.f / scifi_hits.dxdy(hit); 
     float w = scifi_hits.w(hit);
     float chi2 = d * d * w;
     totChi2 += chi2;
