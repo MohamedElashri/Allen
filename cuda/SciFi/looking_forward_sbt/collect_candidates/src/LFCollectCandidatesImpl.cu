@@ -5,7 +5,7 @@ __device__ void lf_collect_candidates_impl(
   const SciFi::Hits& scifi_hits,
   const int* initial_windows,
   const int number_of_tracks,
-  int* number_of_candidates,
+  uint* number_of_candidates,
   short* candidates,
   const int event_offset)
 {
@@ -19,7 +19,7 @@ __device__ void lf_collect_candidates_impl(
     const auto param_uv_1 = initial_windows_f[(i * 8 + 5) * number_of_tracks];
     const auto param_uv_2 = initial_windows_f[(i * 8 + 6) * number_of_tracks];
     const auto param_uv_3 = initial_windows_f[(i * 8 + 7) * number_of_tracks];
-    int8_t candidate_counter = 0;
+    uint8_t candidate_counter = 0;
 
     for (int j = 0; j < window_size && candidate_counter < LookingForward::maximum_number_of_candidates; ++j) {
       const auto hit_index = window_start + j;
@@ -37,7 +37,7 @@ __device__ void lf_collect_candidates_impl(
             search_window_size,
             xMinUV,
             xMaxUV)) {
-        candidates[((candidate_counter++) * LookingForward::number_of_x_layers + i) * number_of_tracks] =
+        candidates[i * LookingForward::maximum_number_of_candidates + candidate_counter++] =
           (short) (hit_index - event_offset);
       }
     }

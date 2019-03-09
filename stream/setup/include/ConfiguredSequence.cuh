@@ -55,6 +55,7 @@
 #include "LFExtendTracks.cuh"
 #include "LFSearchInitialWindows.cuh"
 #include "LFCollectCandidates.cuh"
+#include "LFFindCompatibleWindows.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

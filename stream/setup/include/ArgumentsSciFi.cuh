@@ -30,5 +30,6 @@ ARGUMENT(dev_extrapolation_layer_candidates, unsigned short)
 ARGUMENT(dev_scifi_track_promoted_candidates, bool)
 
 ARGUMENT(dev_scifi_lf_initial_windows, int)
-ARGUMENT(dev_scifi_lf_number_of_candidates, int)
+ARGUMENT(dev_scifi_lf_number_of_candidates, uint)
 ARGUMENT(dev_scifi_lf_candidates, short)
+ARGUMENT(dev_scifi_lf_compatible_windows, short)

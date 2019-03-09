@@ -43,6 +43,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_tra
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/search_initial_windows/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/collect_candidates/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/find_compatible_windows/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)

@@ -8,7 +8,7 @@ __global__ void lf_collect_candidates(
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const int* dev_initial_windows,
-  int* dev_scifi_lf_number_of_candidates,
+  uint* dev_scifi_lf_number_of_candidates,
   short* dev_scifi_lf_candidates)
 {
   const uint number_of_events = gridDim.x;
@@ -31,7 +31,8 @@ __global__ void lf_collect_candidates(
       dev_initial_windows + ut_event_tracks_offset + i,
       ut_total_number_of_tracks,
       dev_scifi_lf_number_of_candidates + LookingForward::number_of_x_layers * (ut_event_tracks_offset + i),
-      dev_scifi_lf_candidates + ut_event_tracks_offset + i,
+      dev_scifi_lf_candidates + (ut_event_tracks_offset + i)
+        * LookingForward::number_of_x_layers * LookingForward::maximum_number_of_candidates,
       scifi_hit_count.event_offset());
   }
 }

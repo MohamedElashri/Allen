@@ -61,6 +61,7 @@ struct HostBuffers {
   MiniState* host_scifi_states;
   uint* host_scifi_track_ut_indices;
   uint* host_lf_total_size_first_window_layer;
+  uint* host_lf_total_number_of_candidates;
 
   // Kalman
   ParKalmanFilter::FittedTrack* host_kf_tracks;

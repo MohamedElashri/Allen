@@ -44,6 +44,7 @@ void HostBuffers::reserve(const uint max_number_of_events)
   cudaCheck(cudaMallocHost((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_reconstructed_scifi_tracks, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_hits_in_scifi_tracks, sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_lf_total_number_of_candidates, sizeof(uint)));
   
   // cudaCheck(cudaMallocHost(
   //   (void**) &host_scifi_track_hit_number, max_number_of_events * SciFi::Constants::max_tracks * sizeof(uint)));

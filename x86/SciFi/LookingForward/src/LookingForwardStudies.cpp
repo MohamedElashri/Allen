@@ -510,6 +510,13 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       std::array<std::vector<int>, 6> hits_in_layers =
         collect_x_candidates(scifi_hits, windows_x, windows_uv, parameters_uv);
 
+      // Restrict to a max number of hits
+      for (int i=0; i<6; ++i) {
+        if (hits_in_layers[i].size() > 64) {
+          hits_in_layers[i].resize(64);
+        }
+      }
+
       // info_cout << "#" << i_veloUT_track << ": " << std::endl;
       // for (int i = 0; i < 6; ++i) {
       //   info_cout << " {" << windows_x[2 * i] << ", " << windows_x[2 * i + 1] << "}, "
@@ -586,7 +593,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         compatible_window_factor,
         UT_state,
         xAtRef,
-        zMag);
+        zMag,
+        i_veloUT_track < 1);
 
       compatible_hits_x2 = find_compatible_window(
         scifi_hits,
@@ -599,6 +607,26 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         UT_state,
         xAtRef,
         zMag);
+
+      // if (i_veloUT_track < 2) {
+      //   info_cout << " Track #" << i_veloUT_track << ":" << std::endl
+      //     << "  Candidates from layer 3 to layer 0:" << std::endl;
+      //   for (int i=0; i<compatible_hits_x0.size(); ++i) {
+      //     if (std::get<1>(compatible_hits_x0[i]) != -1) {
+      //       info_cout << "   #" << i << ": " << std::get<0>(compatible_hits_x0[i]) << ", " <<
+      //         (std::get<1>(compatible_hits_x0[i]) - std::get<0>(compatible_hits_x0[i])) << std::endl;
+      //     }
+      //   }
+
+      //   info_cout << "  Candidates from layer 3 to layer 4:" << std::endl;
+      //   for (int i=0; i<compatible_hits_x2.size(); ++i) {
+      //     if (std::get<1>(compatible_hits_x2[i]) != -1) {
+      //       info_cout << "   #" << i << ": " << std::get<0>(compatible_hits_x2[i]) << ", " <<
+      //         (std::get<1>(compatible_hits_x2[i]) - std::get<0>(compatible_hits_x2[i])) << std::endl;
+      //     }
+      //   }
+      //   info_cout << std::endl;
+      // }
 
       // Get all compatible triplets in window
       find_triplets(

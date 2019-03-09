@@ -41,7 +41,8 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const float compatible_window_factor,
   const MiniState& UT_state,
   const float x_at_ref,
-  const float z_mag);
+  const float z_mag,
+  const bool do_print = false);
 
 float chi2_triplet(
   const SciFi::Hits& scifi_hits,

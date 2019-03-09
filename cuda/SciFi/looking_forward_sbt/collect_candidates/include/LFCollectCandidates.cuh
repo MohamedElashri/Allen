@@ -19,7 +19,7 @@ __global__ void lf_collect_candidates(
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const int* dev_initial_windows,
-  int* dev_scifi_lf_number_of_candidates,
+  uint* dev_scifi_lf_number_of_candidates,
   short* dev_scifi_lf_candidates);
 
 ALGORITHM(

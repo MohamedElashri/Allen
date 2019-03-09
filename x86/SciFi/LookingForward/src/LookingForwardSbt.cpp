@@ -113,7 +113,8 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const float compatible_window_factor,
   const MiniState& UT_state,
   const float x_at_ref,
-  const float z_mag)
+  const float z_mag,
+  const bool do_print)
 {
   std::vector<std::tuple<int, int>> compatible_hits_x0;
 
@@ -138,8 +139,9 @@ std::vector<std::tuple<int, int>> find_compatible_window(
     auto ratio = (z0 - zMag_corrected) / (z1 - zMag_corrected);
     auto extrapolated_value = xMag + ratio * (x1 + dxCoef - xMag);
 
-    const auto x0_candidates =
-      find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), extrapolated_value, compatible_window_factor * dx_stddev);
+    auto x0_candidates =
+      find_x_in_window((int*) hits_in_layer_to.data(), scifi_hits, hits_in_layer_to.size(), extrapolated_value, compatible_window_factor * dx_stddev, 0);
+    std::get<1>(x0_candidates) += std::get<0>(x0_candidates);
 
     compatible_hits_x0.push_back(x0_candidates);
   }

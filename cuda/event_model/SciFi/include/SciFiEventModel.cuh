@@ -116,6 +116,7 @@ namespace SciFi {
     uint32_t* channel;
     uint32_t* assembled_datatype;
 
+    // TODO: Move this out of the class
     const SciFiGeometry* geom;
     const float* dev_inv_clus_res;
 

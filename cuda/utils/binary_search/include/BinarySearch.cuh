@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdio>
+
 /**
  * @brief  Binary search leftmost
  * @detail This implementation finds the "leftmost element",
@@ -110,13 +112,13 @@ binary_search_second_candidate(const T* array, const uint array_size, const T& v
  */
 template<typename T, typename R>
 __host__ __device__ int
-binary_search_first_candidate(const T* index_array, const int index_array_size, const R* data_array, const R& value, const float margin)
+binary_search_first_candidate(const T* index_array, const int index_array_size, const R* data_array, const R& value, const float margin, const int offset = 0)
 {
   int l = 0;
   int r = index_array_size;
   while (l < r) {
     const int m = (l + r) / 2;
-    const auto array_element = data_array[index_array[m]];
+    const auto array_element = data_array[offset + index_array[m]];
     if (value - margin > array_element) {
       l = m + 1;
     }
@@ -136,17 +138,13 @@ binary_search_first_candidate(const T* index_array, const int index_array_size, 
  */
 template<typename T, typename R>
 __host__ __device__ int
-binary_search_second_candidate(const T* index_array, const int index_array_size, const R* data_array, const R& value, const float margin)
+binary_search_second_candidate(const T* index_array, const int index_array_size, const R* data_array, const R& value, const float margin, const int offset = 0)
 {
-  if (index_array_size == 0) {
-    return -1;
-  }
-  
   int l = 0;
   int r = index_array_size;
   while (l < r) {
     const int m = (l + r) / 2;
-    if (value + margin > data_array[index_array[m]]) {
+    if (value + margin > data_array[offset + index_array[m]]) {
       l = m + 1;
     }
     else {
