@@ -17,27 +17,50 @@ __host__ void collectAllXHits_proto(
   const float dxRef_calc)
 {
   // Find size of search window on reference plane, using Velo slopes and min pT as input
-  // to do: do this once per veloUT input track
   float dxRef = 0.9f * calcDxRef(SciFi::Tracking::minPt, velo_state);
   //float dxRef = dxRef_calc;
   // find position within magnet where bending happens
   float zMag = zMagnet(velo_state, constArrays);
+  const float dzInv = 1.f / ( SciFi::Tracking::zReference - zMag );
 
   const float q = qOverP > 0.f ? 1.f : -1.f;
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
-
-  float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
-  const float pt = sqrtf(fabsf(1.f / (qOverP * qOverP))) * (slope2) / (1.f + slope2);
-  const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
+  const float tx2 = velo_state.tx*velo_state.tx;
+  const float ty2 = velo_state.ty*velo_state.ty;
+  const float slope2 = tx2 + ty2;
+  const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qOverP);
+  const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow 
+    && pt > SciFi::Tracking::wrongSignPT;
 
   float dxRefWS = 0.f;
   if (wSignTreatment) {
-    // DvB: what happens if we use the actual momentum from VeloUT here instead of a constant?
-    dxRefWS = 0.9f * calcDxRef(
-                       SciFi::Tracking::wrongSignPT,
-                       velo_state); // make windows a bit too small - FIXME check effect of this, seems wrong
+    // make windows a bit too small - FIXME check effect of this, seems wrong
+    dxRefWS = 0.9f * calcDxRef( SciFi::Tracking::wrongSignPT, velo_state); 
   }
+  
+  // Momentum guided search window
+  const float p = 1.f / std::abs(qOverP);
+  const float InvPz = std::sqrt( slope2 ) / pt;
+  // calculate the extrapolation at the Reference plane
+  const float xExt = ( SciFi::Tracking::xExtParams[0] + SciFi::Tracking::xExtParams[1] * InvPz ) * InvPz
+    + SciFi::Tracking::xExtParams[2] * std::abs( velo_state.tx ) 
+    + SciFi::Tracking::xExtParams[3] * tx2 
+    + SciFi::Tracking::xExtParams[4] * std::abs( velo_state.ty ) 
+    + SciFi::Tracking::xExtParams[5] * ty2;
 
+  // Calculate the search window in the direction and inverse direction of bending
+  const float upLimit = xExt + ( SciFi::Tracking::pUp[0] 
+                                 + SciFi::Tracking::pUp[1] 
+                                 * std::exp( SciFi::Tracking::pUp[2] * p ) );
+  const float loLimit = xExt - ( SciFi::Tracking::pLo[0] 
+                                 + SciFi::Tracking::pLo[1] 
+                                 * std::exp( SciFi::Tracking::pLo[2] * p ) );
+  
+  // the search window should be limited inside the minPt cut window
+  if ( dxRef > upLimit ) { dxRef = upLimit; }
+  
+  if ( loLimit > -dxRefWS && loLimit < dxRef ) { dxRefWS = -loLimit; }
+  
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
 
   for (unsigned int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
@@ -46,6 +69,7 @@ __host__ void collectAllXHits_proto(
 
     const auto izone_rel = iZone - iZoneStartingPoint;
     const float zZone = constArrays->xZone_zPos[izone_rel];
+
     const float xInZone = straightLinePropagation(xParams_seed, zZone);
     const float yInZone = straightLinePropagation(yParams_seed, zZone);
 
@@ -63,9 +87,10 @@ __host__ void collectAllXHits_proto(
     }
 
     // extrapolate dxRef (x window on reference plane) to plane of current zone
-    const float xTol = (zZone < SciFi::Tracking::zReference) ?
-                         dxRef * zZone / SciFi::Tracking::zReference :
-                         dxRef * (zZone - zMag) / (SciFi::Tracking::zReference - zMag);
+    const float ratio = (zZone > SciFi::Tracking::zReference) 
+      ? ( zZone - zMag ) * dzInv
+      : zZone * SciFi::Tracking::zRefInv;
+    const float xTol = dxRef * ratio;
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
 
@@ -74,9 +99,7 @@ __host__ void collectAllXHits_proto(
                                                 // get the option right!
       float xTolWS = 0.0;
       if (wSignTreatment) {
-        xTolWS = (zZone < SciFi::Tracking::zReference) ?
-                   dxRefWS * zZone / SciFi::Tracking::zReference :
-                   dxRefWS * (zZone - zMag) / (SciFi::Tracking::zReference - zMag);
+        xTolWS = dxRefWS * ratio;
       }
       if (dir > 0) {
         xMin = xInZone - xTolWS;
@@ -85,12 +108,7 @@ __host__ void collectAllXHits_proto(
         xMax = xInZone + xTolWS;
       }
     }
-
-    // const int layer = constArrays->xZones[iZone] / 2;
-    // if ( true_scifi_indices_per_layer[layer] != -1 ) {
-    //   debug_cout << "xMin = " << xMin << ", xMax = " << xMax << ", true x = " << scifi_hits.x0[true_scifi_indices_per_layer[layer]] << std::endl;
-    // }
-
+    
     // Get the hits within the bounds
     assert(iZone < SciFi::Constants::n_layers);
     assert(constArrays->xZones[iZone] < SciFi::Constants::n_zones);
@@ -183,7 +201,7 @@ __host__ __device__ void collectAllXHits(
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
 
   float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
-  const float pt = sqrtf(fabsf(1.f / (qOverP * qOverP))) * (slope2) / (1.f + slope2);
+  const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qOverP);
   const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
 
   float dxRefWS = 0.f;

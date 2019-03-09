@@ -499,6 +499,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // const float xAtRef_ = xFromVelo(zRef_track, UT_state);
       //debug_cout << "x from propagation = " << state_zRef.x << ", xFromVelo = " << xAtRef << ", zRef = " << zRef_track << std::endl;
       const float yAtRef = yFromVelo(zRef_track, UT_state);
+      
+     
+
       std::array<int, 6> layers {0, 3, 4, 7, 8, 11};
     
       float bs_x[4] {xAtRef, UT_state.tx, 0, 0};
@@ -517,7 +520,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         bs_x,
         bs_y,
         &constArrays,
-        UT_state,
+        velo_state,
         qop,
         (y_projection < 0 ? -1 : 1),
         windows_x,
@@ -525,7 +528,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         parameters_uv,
         true_scifi_indices_per_layer,
         dxRef_calc);
-
+    
       // Collect all X candidates
       std::array<std::vector<int>, 6> hits_in_layers =
         collect_x_candidates(scifi_hits, windows_x, windows_uv, parameters_uv);

@@ -809,7 +809,7 @@ void filter_tracks_with_TMVA(
     mlpInput[5] = bx - bx1;
     mlpInput[6] = ay - ay1;
     
-    debug_cout << "qOverP = " << qOverP << ", qop diff = " << mlpInput[2] << ", tx^2+ty^2 = " <<  mlpInput[3] << ", by-by1 = " << mlpInput[4] << ", bx-bx1 = " << mlpInput[5] << ", ay-ay1 = " << mlpInput[6] << std::endl;
+    //debug_cout << "qOverP = " << qOverP << ", qop diff = " << mlpInput[2] << ", tx^2+ty^2 = " <<  mlpInput[3] << ", by-by1 = " << mlpInput[4] << ", bx-bx1 = " << mlpInput[5] << ", ay-ay1 = " << mlpInput[6] << std::endl;
 
     float quality = GetMvaValue(mlpInput, tmva1);
     quality = 1.f - quality;
