@@ -542,6 +542,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const float compatible_window_factor = 4.f;
       const float compatible_window_factor_extend = 4.f;
       const bool use_flagging = true;
+      const bool use_flagging_propagation_l0_l3 = false;
 
       // Extra triplets
       // std::array<std::tuple<int, int, int>, 2> extra_triplets {{std::make_tuple(0, 1, 5), std::make_tuple(0, 4, 5)}};
@@ -762,7 +763,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
             chi2_extrapolation_stddev[i],
             event_offset,
             flag,
-            use_flagging);
+            use_flagging_propagation_l0_l3);
         }
       }
 
