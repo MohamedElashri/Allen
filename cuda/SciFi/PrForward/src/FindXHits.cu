@@ -125,13 +125,7 @@ __host__ void collectAllXHits_proto(
     assert(constArrays->uvZones[iZone] < SciFi::Constants::n_zones);
     const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
     const int uv_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
-
-    int itUV1_prev = getLowerBound(scifi_hits.x0, xMinUV, uv_zone_offset_begin, uv_zone_offset_begin + uv_zone_size) - uv_zone_offset_begin;
-    int itUV1 = binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
-
-    if (itUV1_prev != itUV1) {
-      info_cout << itUV1_prev << " != " << itUV1;
-    }
+    const int itUV1 = binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
 
     const float xPredUVProto = xInUv - xInZone * zRatio - dx;
     const float maxDxProto = SciFi::Tracking::tolYCollectX + fabsf(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
