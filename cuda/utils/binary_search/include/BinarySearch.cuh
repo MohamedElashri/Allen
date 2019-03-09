@@ -10,7 +10,7 @@ template<typename T>
 __host__ __device__ int binary_search_leftmost(const T* array, const uint array_size, const T& value)
 {
   int l = 0;
-  int r = array_size - 1;
+  int r = array_size;
   while (l < r) {
     const int m = (l + r) / 2;
     const auto array_element = array[m];
@@ -36,16 +36,11 @@ __host__ __device__ int binary_search_first_candidate(
   const float margin,
   const R& comparator)
 {
-  bool found = false;
   int l = 0;
-  int r = array_size - 1;
+  int r = array_size;
   while (l < r) {
     const int m = (l + r) / 2;
     const auto array_element = array[m];
-
-    // found |= std::abs(value - array_element) < margin;
-    found |= comparator(value, array_element, m, margin);
-
     if (value - margin > array_element) {
       l = m + 1;
     }
@@ -53,8 +48,7 @@ __host__ __device__ int binary_search_first_candidate(
       r = m;
     }
   }
-  // found |= std::abs(value - array[l]) < margin;
-  found |= comparator(value, array[l], l, margin);
+  const bool found = (l != array_size) && comparator(value, array[l], l, margin);
   return found ? l : -1;
 }
 
@@ -68,13 +62,11 @@ template<typename T>
 __host__ __device__ int
 binary_search_first_candidate(const T* array, const uint array_size, const T& value, const float margin)
 {
-  bool found = false;
   int l = 0;
-  int r = array_size - 1;
+  int r = array_size;
   while (l < r) {
     const int m = (l + r) / 2;
     const auto array_element = array[m];
-    found |= std::abs(value - array_element) < margin;
     if (value - margin > array_element) {
       l = m + 1;
     }
@@ -82,7 +74,7 @@ binary_search_first_candidate(const T* array, const uint array_size, const T& va
       r = m;
     }
   }
-  found |= std::abs(value - array[l]) < margin;
+  const bool found = (l != array_size) && (std::abs(value - array[l]) < margin);
   return found ? l : -1;
 }
 
@@ -97,7 +89,7 @@ __host__ __device__ int
 binary_search_second_candidate(const T* array, const uint array_size, const T& value, const float margin)
 {
   int l = 0;
-  int r = array_size - 1;
+  int r = array_size;
   while (l < r) {
     const int m = (l + r) / 2;
     if (value + margin > array[m]) {
@@ -107,8 +99,7 @@ binary_search_second_candidate(const T* array, const uint array_size, const T& v
       r = m;
     }
   }
-  const bool last_compatible = std::abs(value - array[l]) < margin;
-  return last_compatible ? l + 1 : l;
+  return l;
 }
 
 /**
@@ -121,17 +112,11 @@ template<typename T, typename R>
 __host__ __device__ int
 binary_search_first_candidate(const T* index_array, const int index_array_size, const R* data_array, const R& value, const float margin)
 {
-  if (index_array_size == 0) {
-    return -1;
-  }
-
-  bool found = false;
   int l = 0;
-  int r = index_array_size - 1;
+  int r = index_array_size;
   while (l < r) {
     const int m = (l + r) / 2;
     const auto array_element = data_array[index_array[m]];
-    found |= std::abs(value - array_element) < margin;
     if (value - margin > array_element) {
       l = m + 1;
     }
@@ -139,7 +124,7 @@ binary_search_first_candidate(const T* index_array, const int index_array_size, 
       r = m;
     }
   }
-  found |= std::abs(value - data_array[index_array[l]]) < margin;
+  const bool found = (l != index_array_size) && (std::abs(value - data_array[index_array[l]]) < margin);
   return found ? l : -1;
 }
 
@@ -158,7 +143,7 @@ binary_search_second_candidate(const T* index_array, const int index_array_size,
   }
   
   int l = 0;
-  int r = index_array_size - 1;
+  int r = index_array_size;
   while (l < r) {
     const int m = (l + r) / 2;
     if (value + margin > data_array[index_array[m]]) {
@@ -168,6 +153,5 @@ binary_search_second_candidate(const T* index_array, const int index_array_size,
       r = m;
     }
   }
-  const bool last_compatible = std::abs(value - data_array[index_array[l]]) < margin;
-  return last_compatible ? l + 1 : l;
+  return l;
 }

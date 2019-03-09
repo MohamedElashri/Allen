@@ -15,12 +15,12 @@
 #include "PrVeloUT.cuh"
 #include "SciFiEventModel.cuh"
 
-__host__ __device__ inline float evalCubicParameterization(
+__device__ inline float evalCubicParameterization(
   const float value_at_ref,
   const float t,
   const float z);
 
-__host__ __device__ void lf_search_initial_windows_impl(
+__device__ void lf_search_initial_windows_impl(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& scifi_hit_count,
   const float xAtRef,

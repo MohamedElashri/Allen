@@ -1,19 +1,21 @@
 #include "LFSearchInitialWindowsImpl.cuh"
+#include "LookingForwardConstants.cuh"
+#include "BinarySearch.cuh"
 
-__host__ __device__ inline float evalCubicParameterization(const float value_at_ref, const float t, const float z)
+__device__ inline float linear_parameterization(const float value_at_ref, const float t, const float z)
 {
   float dz = z - SciFi::Tracking::zReference;
   return value_at_ref + t * dz;
 }
 
-__host__ __device__ void lf_search_initial_windows_impl(
+__device__ void lf_search_initial_windows_impl(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& scifi_hit_count,
   const float xAtRef,
   const float yAtRef,
   const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
-  const float qOverP,
+  const float qop,
   const int side,
   int* initial_windows,
   const int number_of_tracks)
@@ -23,11 +25,12 @@ __host__ __device__ void lf_search_initial_windows_impl(
   // find position within magnet where bending happens
   float zMag = zMagnet(velo_state, constArrays);
 
-  const float q = qOverP > 0.f ? 1.f : -1.f;
+  const float q = qop > 0.f ? 1.f : -1.f;
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
 
   float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
-  const float pt = sqrtf(fabsf(1.f / (qOverP * qOverP))) * (slope2) / (1.f + slope2);
+  // std::sqrt(std::abs(1.f / (qop * qop))) == std::abs(1.f / qop)
+  const float pt = std::abs(slope2 / qop) / (1.f + slope2);
   const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
 
   float dxRefWS = 0.f;
@@ -40,15 +43,11 @@ __host__ __device__ void lf_search_initial_windows_impl(
 
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
 
-  for (int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
-    // Initialize windows
-    const auto relative_iZone = iZone - iZoneStartingPoint;
-
-    assert(iZone - iZoneStartingPoint < SciFi::Constants::n_zones);
-    assert(iZone - iZoneStartingPoint < 12);
+  for (int i=threadIdx.y; i<LookingForward::number_of_x_layers; i+=blockDim.y) { 
+    const auto iZone = iZoneStartingPoint + i;
     const float zZone = constArrays->xZone_zPos[iZone - iZoneStartingPoint];
-    const float xInZone = evalCubicParameterization(xAtRef, velo_state.tx, zZone);
-    const float yInZone = evalCubicParameterization(yAtRef, velo_state.ty, zZone);
+    const float xInZone = linear_parameterization(xAtRef, velo_state.tx, zZone);
+    const float yInZone = linear_parameterization(yAtRef, velo_state.ty, zZone);
 
     // Now the code checks if the x and y are in the zone limits. I am really not sure
     // why this is done here, surely could just check if within limits for the last zone
@@ -78,7 +77,7 @@ __host__ __device__ void lf_search_initial_windows_impl(
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
 
-    if (SciFi::Tracking::useMomentumEstimate) { // For VeloUT tracks, suppress check if track actually has qOverP set,
+    if (SciFi::Tracking::useMomentumEstimate) { // For VeloUT tracks, suppress check if track actually has qop set,
                                                 // get the option right!
       float xTolWS = 0.0;
       if (wSignTreatment) {
@@ -95,54 +94,46 @@ __host__ __device__ void lf_search_initial_windows_impl(
     }
 
     // Get the hits within the bounds
-    assert(iZone < SciFi::Constants::n_layers);
-    assert(constArrays->xZones[iZone] < SciFi::Constants::n_zones);
     const int x_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->xZones[iZone]);
-    const int x_zone_offset_end = x_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
-    const int itH = getLowerBound(scifi_hits.x0, xMin, x_zone_offset_begin, x_zone_offset_end);
-    const int itEnd = getLowerBound(scifi_hits.x0, xMax, x_zone_offset_begin, x_zone_offset_end);
+    const int x_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
+    int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
+    const int hits_within_bounds_size = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
+    hits_within_bounds_start += x_zone_offset_begin;
 
     // Initialize windows
-    initial_windows[relative_iZone * 8 * number_of_tracks] = itH;
-    initial_windows[(relative_iZone * 8 + 1) * number_of_tracks] = itEnd - itH;
+    initial_windows[i * 8 * number_of_tracks] = hits_within_bounds_start;
+    initial_windows[(i * 8 + 1) * number_of_tracks] = hits_within_bounds_size;
 
-    assert(itH >= x_zone_offset_begin && itH <= x_zone_offset_end);
-    assert(itEnd >= x_zone_offset_begin && itEnd <= x_zone_offset_end);
+    // Skip making range but continue if the size is zero
+    if (hits_within_bounds_size > 0) {
+      // Now match the stereo hits
+      const float this_uv_z = constArrays->uvZone_zPos[iZone - iZoneStartingPoint];
+      const float xInUv = linear_parameterization(xAtRef, velo_state.tx, this_uv_z);
+      const float zRatio = (this_uv_z - zMag) / (zZone - zMag);
+      const float dx = yInZone * constArrays->uvZone_dxdy[iZone - iZoneStartingPoint];
+      const float xCentral = xInZone + dx;
+      const float xPredUv = xInUv + (scifi_hits.x0[hits_within_bounds_start] - xInZone) * zRatio - dx;
+      const float maxDx = SciFi::Tracking::tolYCollectX +
+                          (std::abs(scifi_hits.x0[hits_within_bounds_start] - xCentral) + std::abs(yInZone)) * SciFi::Tracking::tolYSlopeCollectX;
+      const float xMinUV = xPredUv - maxDx;
+      const float xPredUVProto = xInUv - xInZone * zRatio - dx;
+      const float maxDxProto = SciFi::Tracking::tolYCollectX + std::abs(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
 
-    // Skip making range but continue if the end is before or equal to the start
-    if (!(itEnd > itH)) continue;
+      // Get bounds in UV layers
+      // do one search on the same side as the x module
+      // if we are close to y = 0, also look within a region on the other side module ("triangle search")
+      const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
+      const int uv_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
+      const int hits_within_uv_bounds = binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
 
-    // Now match the stereo hits
-    const float this_uv_z = constArrays->uvZone_zPos[iZone - iZoneStartingPoint];
-    const float xInUv = evalCubicParameterization(xAtRef, velo_state.tx, this_uv_z);
-    const float zRatio = (this_uv_z - zMag) / (zZone - zMag);
-    const float dx = yInZone * constArrays->uvZone_dxdy[iZone - iZoneStartingPoint];
-    const float xCentral = xInZone + dx;
-    const float xPredUv = xInUv + (scifi_hits.x0[itH] - xInZone) * zRatio - dx;
-    const float maxDx = SciFi::Tracking::tolYCollectX +
-                        (fabsf(scifi_hits.x0[itH] - xCentral) + fabsf(yInZone)) * SciFi::Tracking::tolYSlopeCollectX;
-    const float xMinUV = xPredUv - maxDx;
+      initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_uv_bounds + uv_zone_offset_begin;
+      initial_windows[(i * 8 + 3) * number_of_tracks] = uv_zone_size - hits_within_uv_bounds;
 
-    // Get bounds in UV layers
-    // do one search on the same side as the x module
-    // if we are close to y = 0, also look within a region on the other side module ("triangle search")
-    assert(constArrays->uvZones[iZone] < SciFi::Constants::n_zones);
-    const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
-    const int uv_zone_offset_end =
-      uv_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
-
-    const int itUV1 = getLowerBound(scifi_hits.x0, xMinUV, uv_zone_offset_begin, uv_zone_offset_end);
-
-    const float xPredUVProto = xInUv - xInZone * zRatio - dx;
-    const float maxDxProto = SciFi::Tracking::tolYCollectX + fabsf(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
-
-    initial_windows[(relative_iZone * 8 + 2) * number_of_tracks] = itUV1;
-    initial_windows[(relative_iZone * 8 + 3) * number_of_tracks] = uv_zone_offset_end;
-
-    float* initial_windows_f = (float*) &initial_windows[0];
-    initial_windows_f[(relative_iZone * 8 + 4) * number_of_tracks] = xPredUVProto;
-    initial_windows_f[(relative_iZone * 8 + 5) * number_of_tracks] = zRatio;
-    initial_windows_f[(relative_iZone * 8 + 6) * number_of_tracks] = maxDxProto;
-    initial_windows_f[(relative_iZone * 8 + 7) * number_of_tracks] = xCentral;
+      float* initial_windows_f = (float*) &initial_windows[0];
+      initial_windows_f[(i * 8 + 4) * number_of_tracks] = xPredUVProto;
+      initial_windows_f[(i * 8 + 5) * number_of_tracks] = zRatio;
+      initial_windows_f[(i * 8 + 6) * number_of_tracks] = maxDxProto;
+      initial_windows_f[(i * 8 + 7) * number_of_tracks] = xCentral;
+    }
   }
 }

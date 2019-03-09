@@ -519,7 +519,7 @@ void single_track_propagation(
     SciFi::LookingForward::Zone_zPos[layer]};
 
   for (auto hit_index = std::get<0>(layer_candidates); hit_index != std::get<1>(layer_candidates); hit_index++) {
-    if (hit_index != h0 && hit_index != h1) {
+    if (hit_index != h0 && hit_index != h1 && (!use_flagging || !flag[hit_index])) {
       x_coordinates[2] = scifi_hits.x0[hit_index] + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)];
       const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
 

@@ -1,4 +1,5 @@
 #include "FindXHits.cuh"
+#include "BinarySearch.cuh"
 
 __host__ void collectAllXHits_proto(
   const SciFi::Hits& scifi_hits,
@@ -22,7 +23,8 @@ __host__ void collectAllXHits_proto(
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
 
   float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
-  const float pt = sqrtf(fabsf(1.f / (qOverP * qOverP))) * (slope2) / (1.f + slope2);
+  // const float pt = sqrtf(fabsf(1.f / (qOverP * qOverP))) * (slope2) / (1.f + slope2);
+  const float pt = std::abs(slope2 / qOverP) / (1.f + slope2);
   const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
 
   float dxRefWS = 0.f;
@@ -32,10 +34,6 @@ __host__ void collectAllXHits_proto(
                        SciFi::Tracking::wrongSignPT,
                        velo_state); // make windows a bit too small - FIXME check effect of this, seems wrong
   }
-
-  int iZoneEnd[7]; // 6 x planes
-  iZoneEnd[0] = 0;
-  int cptZone = 1;
 
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
 
@@ -96,17 +94,19 @@ __host__ void collectAllXHits_proto(
     assert(iZone < SciFi::Constants::n_layers);
     assert(constArrays->xZones[iZone] < SciFi::Constants::n_zones);
     int x_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->xZones[iZone]);
-    int x_zone_offset_end = x_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
-    const int itH = getLowerBound(scifi_hits.x0, xMin, x_zone_offset_begin, x_zone_offset_end);
-    const int itEnd = getLowerBound(scifi_hits.x0, xMax, x_zone_offset_begin, x_zone_offset_end);
-    assert(itH >= x_zone_offset_begin && itH <= x_zone_offset_end);
-    assert(itEnd >= x_zone_offset_begin && itEnd <= x_zone_offset_end);
+    int x_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
+    // const int itH = getLowerBound(scifi_hits.x0, xMin, x_zone_offset_begin, x_zone_offset_begin + x_zone_size);
+    // const int itEnd = getLowerBound(scifi_hits.x0, xMax, x_zone_offset_begin, x_zone_offset_begin + x_zone_size);
+    // const int itSize = itEnd - itH;
+    int itH = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
+    const int itSize = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin + itH, x_zone_size - itH, xMax);
+    itH += x_zone_offset_begin;
 
     windows_x[2*izone_rel] = itH;
-    windows_x[2*izone_rel+1] = itEnd - itH;
+    windows_x[2*izone_rel+1] = itSize;
 
-    // Skip making range but continue if the end is before or equal to the start
-    if (!(itEnd > itH)) continue;
+    // Skip making range but continue if the size is zero
+    if (itSize == 0) continue;
 
     // Now match the stereo hits
     const float this_uv_z = constArrays->uvZone_zPos[iZone - iZoneStartingPoint];
@@ -124,24 +124,20 @@ __host__ void collectAllXHits_proto(
     // if we are close to y = 0, also look within a region on the other side module ("triangle search")
     assert(constArrays->uvZones[iZone] < SciFi::Constants::n_zones);
     const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
-    const int uv_zone_offset_end =
-      uv_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
-    const int triangleOffset = side > 0 ? -1 : 1;
-    assert(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset] < SciFi::Constants::n_zones);
-    const int triangle_zone_offset_begin =
-      scifi_hit_count.zone_offset(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset]);
-    assert(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset] < SciFi::Constants::n_zones);
-    const int triangle_zone_offset_end =
-      triangle_zone_offset_begin +
-      scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset]);
-    int itUV1 = getLowerBound(scifi_hits.x0, xMinUV, uv_zone_offset_begin, uv_zone_offset_end);
-    int itUV2 = getLowerBound(scifi_hits.x0, xMinUV, triangle_zone_offset_begin, triangle_zone_offset_end);
+    const int uv_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
+
+    int itUV1_prev = getLowerBound(scifi_hits.x0, xMinUV, uv_zone_offset_begin, uv_zone_offset_begin + uv_zone_size) - uv_zone_offset_begin;
+    int itUV1 = binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
+
+    if (itUV1_prev != itUV1) {
+      info_cout << itUV1_prev << " != " << itUV1;
+    }
 
     const float xPredUVProto = xInUv - xInZone * zRatio - dx;
     const float maxDxProto = SciFi::Tracking::tolYCollectX + fabsf(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
 
-    windows_uv[2*izone_rel] = itUV1;
-    windows_uv[2*izone_rel+1] = uv_zone_offset_end;
+    windows_uv[2*izone_rel] = itUV1 + uv_zone_offset_begin;
+    windows_uv[2*izone_rel+1] = uv_zone_size - itUV1;
     
     parameters_uv[4*izone_rel] = xPredUVProto;
     parameters_uv[4*izone_rel+1] = zRatio;
