@@ -464,63 +464,66 @@ void single_track_propagation(
   const auto h1 = event_offset + track.hits[1];
   const auto layer0 = scifi_hits.planeCode(h0) / 2;
   const auto layer1 = scifi_hits.planeCode(h1) / 2;
-  const auto x_at_layer_0 = scifi_hits.x0[h0];
-  const auto x_at_layer_1 = scifi_hits.x0[h1];
-  const auto z_at_layer_0 = SciFi::LookingForward::Zone_zPos[layer0];
-  const auto z_at_layer_1 = SciFi::LookingForward::Zone_zPos[layer1];
 
-  const auto reco_slope = (x_at_layer_1 - x_at_layer_0) / (z_at_layer_1 - z_at_layer_0);
-  const auto projection_x = scifi_propagation(
-                              x_at_layer_0,
-                              reco_slope,
-                              track.qop,
-                              SciFi::LookingForward::Zone_zPos[layer] - SciFi::LookingForward::Zone_zPos[layer0]) -
-                            SciFi::LookingForward::Zone_dxdy[(layer % 4)] * projection_y;
+  if (layer0 != layer && layer1 != layer) {
+    const auto x_at_layer_0 = scifi_hits.x0[h0];
+    const auto x_at_layer_1 = scifi_hits.x0[h1];
+    const auto z_at_layer_0 = SciFi::LookingForward::Zone_zPos[layer0];
+    const auto z_at_layer_1 = SciFi::LookingForward::Zone_zPos[layer1];
 
-  const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(2 * layer, hit_count, projection_y);
-  const auto layer_candidates = find_x_in_window(
-    scifi_hits,
-    std::get<0>(layer_offset_nhits),
-    std::get<1>(layer_offset_nhits),
-    projection_x,
-    3 * extrapolation_stddev);
+    const auto reco_slope = (x_at_layer_1 - x_at_layer_0) / (z_at_layer_1 - z_at_layer_0);
+    const auto projection_x = scifi_propagation(
+                                x_at_layer_0,
+                                reco_slope,
+                                track.qop,
+                                SciFi::LookingForward::Zone_zPos[layer] - SciFi::LookingForward::Zone_zPos[layer0]) -
+                              SciFi::LookingForward::Zone_dxdy[(layer % 4)] * projection_y;
 
-  // Pick the best, according to chi2
-  int best_idx = -1;
-  float best_chi2 = chi2_extrap_mean + 2.f * chi2_extrap_stddev;
+    const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(2 * layer, hit_count, projection_y);
+    const auto layer_candidates = find_x_in_window(
+      scifi_hits,
+      std::get<0>(layer_offset_nhits),
+      std::get<1>(layer_offset_nhits),
+      projection_x,
+      3 * extrapolation_stddev);
 
-  // We need a new lambda to compare in chi2
-  const auto chi2_fn = [&x_at_layer_0, &layer0, &reco_slope, &track] (const float z) {
-    return scifi_propagation(
+    // Pick the best, according to chi2
+    int best_idx = -1;
+    float best_chi2 = chi2_extrap_mean + 2.f * chi2_extrap_stddev;
+
+    // We need a new lambda to compare in chi2
+    const auto chi2_fn = [&x_at_layer_0, &layer0, &reco_slope, &track] (const float z) {
+      return scifi_propagation(
+        x_at_layer_0,
+        reco_slope,
+        track.qop,
+        z - SciFi::LookingForward::Zone_zPos[layer0]);
+    };
+
+    std::vector<float> x_coordinates {
       x_at_layer_0,
-      reco_slope,
-      track.qop,
-      z - SciFi::LookingForward::Zone_zPos[layer0]);
-  };
+      x_at_layer_1,
+      0.f};
 
-  std::vector<float> x_coordinates {
-    x_at_layer_0,
-    x_at_layer_1,
-    0.f};
+    std::vector<float> z_coordinates {
+      z_at_layer_0,
+      z_at_layer_1,
+      SciFi::LookingForward::Zone_zPos[layer]};
 
-  std::vector<float> z_coordinates {
-    z_at_layer_0,
-    z_at_layer_1,
-    SciFi::LookingForward::Zone_zPos[layer]};
+    for (auto hit_index = std::get<0>(layer_candidates); hit_index != std::get<1>(layer_candidates); hit_index++) {
+      if (!use_flagging || !flag[hit_index]) {
+        x_coordinates[2] = scifi_hits.x0[hit_index] + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)];
+        const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
 
-  for (auto hit_index = std::get<0>(layer_candidates); hit_index != std::get<1>(layer_candidates); hit_index++) {
-    if (hit_index != h0 && hit_index != h1 && (!use_flagging || !flag[hit_index])) {
-      x_coordinates[2] = scifi_hits.x0[hit_index] + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)];
-      const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
-
-      if (chi2 < best_chi2) {
-        best_chi2 = chi2;
-        best_idx = hit_index;
+        if (chi2 < best_chi2) {
+          best_chi2 = chi2;
+          best_idx = hit_index;
+        }
       }
     }
-  }
 
-  if (best_idx != -1) {
-    track.add_hit_with_quality((uint16_t) (best_idx - event_offset), best_chi2);
+    if (best_idx != -1) {
+      track.add_hit_with_quality((uint16_t) (best_idx - event_offset), best_chi2);
+    }
   }
 }
