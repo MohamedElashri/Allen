@@ -1,6 +1,7 @@
 #include "CompassUT.cuh"
 #include "BinarySearch.cuh"
 #include "CalculateWindows.cuh"
+#include "UTFastFitter.cuh"
 
 __global__ void compass_ut(
   uint* dev_ut_hits, // actual hit content
@@ -315,8 +316,17 @@ __device__ void save_track(
   }
   bdl += addBdlVal;
 
-  const float qpxz2p = -1 * std::sqrt(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
-  const float qop = (std::abs(bdl) < 1.e-8f) ? 0.0f : best_params.qp * qpxz2p;
+  float finalParams[4] = { 
+    best_params.x, 
+    best_params.tx, 
+    velo_state.y + velo_state.ty*(UT::Constants::zMidUT-velo_state.z), 
+    best_params.chi2UT }; 
+
+  //const float qpxz2p = -1 * std::sqrt(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
+  const float qpxz2p = -1.f / bdl * 3.3356f / Gaudi::Units::GeV;
+  //const float qp = best_params.qp;
+  const float qp = fastfitter( best_params, velo_state, finalParams, qpxz2p, ut_dxDy);
+  const float qop = (std::abs(bdl) < 1.e-8f) ? 0.0f : qp* qpxz2p;
 
   // -- Don't make tracks that have grossly too low momentum
   // -- Beware of the momentum resolution!
