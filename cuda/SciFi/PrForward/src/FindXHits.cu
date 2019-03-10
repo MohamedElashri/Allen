@@ -23,8 +23,7 @@ __host__ void collectAllXHits_proto(
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
 
   float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
-  // const float pt = sqrtf(fabsf(1.f / (qOverP * qOverP))) * (slope2) / (1.f + slope2);
-  const float pt = std::abs(slope2 / qOverP) / (1.f + slope2);
+  const float pt = std::sqrt(slope2 / (1.f + slope2)) / std::abs(qOverP);
   const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
 
   float dxRefWS = 0.f;
@@ -54,18 +53,18 @@ __host__ void collectAllXHits_proto(
     // be read from some file blablabla although actually I suspect having some general tolerances
     // here is anyway good enough since we are doing a straight line extrapolation in the first place
     // check (roughly) whether the extrapolated velo track is within the current zone
-    if (side > 0) {
-      if (
-        !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
-        !isInside(yInZone, SciFi::Tracking::yLim_Min, SciFi::Tracking::yLim_Max))
-        continue;
-    }
-    else {
-      if (
-        !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
-        !isInside(yInZone, side * SciFi::Tracking::yLim_Max, side * SciFi::Tracking::yLim_Min))
-        continue;
-    }
+    // if (side > 0) {
+    //   if (
+    //     !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
+    //     !isInside(yInZone, SciFi::Tracking::yLim_Min, SciFi::Tracking::yLim_Max))
+    //     continue;
+    // }
+    // else {
+    //   if (
+    //     !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
+    //     !isInside(yInZone, side * SciFi::Tracking::yLim_Max, side * SciFi::Tracking::yLim_Min))
+    //     continue;
+    // }
 
     // extrapolate dxRef (x window on reference plane) to plane of current zone
     const float xTol = (zZone < SciFi::Tracking::zReference) ?
@@ -102,8 +101,8 @@ __host__ void collectAllXHits_proto(
     const int itSize = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin + itH, x_zone_size - itH, xMax);
     itH += x_zone_offset_begin;
 
-    windows_x[2*izone_rel] = itH;
-    windows_x[2*izone_rel+1] = itSize;
+    windows_x[2 * izone_rel] = itH;
+    windows_x[2 * izone_rel + 1] = itSize;
 
     // Skip making range but continue if the size is zero
     if (itSize == 0) continue;
@@ -130,13 +129,13 @@ __host__ void collectAllXHits_proto(
     const float xPredUVProto = xInUv - xInZone * zRatio - dx;
     const float maxDxProto = SciFi::Tracking::tolYCollectX + fabsf(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
 
-    windows_uv[2*izone_rel] = itUV1 + uv_zone_offset_begin;
-    windows_uv[2*izone_rel+1] = uv_zone_size - itUV1;
-    
-    parameters_uv[4*izone_rel] = xPredUVProto;
-    parameters_uv[4*izone_rel+1] = zRatio;
-    parameters_uv[4*izone_rel+2] = maxDxProto;
-    parameters_uv[4*izone_rel+3] = xCentral;
+    windows_uv[2 * izone_rel] = itUV1 + uv_zone_offset_begin;
+    windows_uv[2 * izone_rel + 1] = uv_zone_size - itUV1;
+
+    parameters_uv[4 * izone_rel] = xPredUVProto;
+    parameters_uv[4 * izone_rel + 1] = zRatio;
+    parameters_uv[4 * izone_rel + 2] = maxDxProto;
+    parameters_uv[4 * izone_rel + 3] = xCentral;
   }
 }
 
@@ -174,7 +173,7 @@ __host__ __device__ void collectAllXHits(
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
 
   float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
-  const float pt = sqrtf(fabsf(1.f / (qOverP * qOverP))) * (slope2) / (1.f + slope2);
+  const float pt = std::sqrt(slope2 / (1.f + slope2)) / std::abs(qOverP);
   const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
 
   float dxRefWS = 0.f;
@@ -424,8 +423,7 @@ __host__ __device__ void selectXCandidates(
     // Second part of 1D Hough transform:
     // find a cluster of x positions on the reference plane that are close to each other
     // TODO better xWindow calculation?? how to tune this???
-    const float xWindow = pars.maxXWindow + 
-      (fabsf(coordX[it1]) + fabsf(coordX[it1] - xTrack)) * pars.maxXWindowSlope;
+    const float xWindow = pars.maxXWindow + (fabsf(coordX[it1]) + fabsf(coordX[it1] - xTrack)) * pars.maxXWindowSlope;
 
     if ((coordX[it2 - 1] - coordX[it1]) > xWindow) {
       ++it1;

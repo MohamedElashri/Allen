@@ -28,9 +28,8 @@ __device__ void lf_search_initial_windows_impl(
   const float q = qop > 0.f ? 1.f : -1.f;
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
 
-  float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
-  // std::sqrt(std::abs(1.f / (qop * qop))) == std::abs(1.f / qop)
-  const float pt = std::abs(slope2 / qop) / (1.f + slope2);
+  const float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
+  const float pt = std::sqrt(slope2 / (1.f + slope2)) / std::abs(qop);
   const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
 
   float dxRefWS = 0.f;
@@ -49,26 +48,18 @@ __device__ void lf_search_initial_windows_impl(
     const float xInZone = linear_parameterization(xAtRef, velo_state.tx, zZone);
     const float yInZone = linear_parameterization(yAtRef, velo_state.ty, zZone);
 
-    // Now the code checks if the x and y are in the zone limits. I am really not sure
-    // why this is done here, surely could just check if within limits for the last zone
-    // in T3 and go from there? Need to think more about this.
-    //
-    // Here for now I assume the same min/max x and y for all stations, this again needs to
-    // be read from some file blablabla although actually I suspect having some general tolerances
-    // here is anyway good enough since we are doing a straight line extrapolation in the first place
-    // check (roughly) whether the extrapolated velo track is within the current zone
-    if (side > 0) {
-      if (
-        !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
-        !isInside(yInZone, SciFi::Tracking::yLim_Min, SciFi::Tracking::yLim_Max))
-        continue;
-    }
-    else {
-      if (
-        !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
-        !isInside(yInZone, side * SciFi::Tracking::yLim_Max, side * SciFi::Tracking::yLim_Min))
-        continue;
-    }
+    // if (side > 0) {
+    //   if (
+    //     !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
+    //     !isInside(yInZone, SciFi::Tracking::yLim_Min, SciFi::Tracking::yLim_Max))
+    //     continue;
+    // }
+    // else {
+    //   if (
+    //     !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
+    //     !isInside(yInZone, side * SciFi::Tracking::yLim_Max, side * SciFi::Tracking::yLim_Min))
+    //     continue;
+    // }
 
     // extrapolate dxRef (x window on reference plane) to plane of current zone
     const float xTol = (zZone < SciFi::Tracking::zReference) ?

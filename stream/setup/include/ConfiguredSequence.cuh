@@ -56,6 +56,7 @@
 #include "LFSearchInitialWindows.cuh"
 #include "LFCollectCandidates.cuh"
 #include "LFFindCompatibleWindows.cuh"
+#include "LFTripletSeeding.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 
