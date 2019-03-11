@@ -344,6 +344,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
     // extrapolate veloUT tracks
     float tx, ty, qop;
 
+    // TODO: n_veloUT_tracks_event
     for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
       // veloUT track variables
       const float qop = ut_tracks.qop[i_veloUT_track];
@@ -628,6 +629,21 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       //   info_cout << std::endl;
       // }
 
+      // Check the chi2 of all triplets
+      // find_triplets(
+      //   scifi_hits,
+      //   qop,
+      //   flag,
+      //   event_offset,
+      //   layers,
+      //   hits_in_layers,
+      //   0,
+      //   1,
+      //   2,
+      //   max_candidates_triplets[0],
+      //   chi2_mean_triplet[0] + factor_chi2_triplet * chi2_stddev_triplet[0],
+      //   use_flagging);
+
       // Get all compatible triplets in window
       find_triplets(
         scifi_hits,
@@ -647,6 +663,15 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         i_veloUT_track,
         UT_state,
         scifi_tracks);
+
+      // number_of_candidates_event += scifi_tracks.size();
+      // for (const auto& track : scifi_tracks) {
+      //   info_cout << "Track " << track.hits[0] << ", "
+      //     << track.hits[1] << ", "
+      //     << track.hits[2] << ", "
+      //     << track.quality
+      //     << std::endl;
+      // }
 
       for (int i = 0; i < 3; ++i) {
         // Extend forming tracks
@@ -840,7 +865,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // }
 
       num_candidates = track_candidates.size();
-      number_of_candidates_event += track_candidates.size();
+      // number_of_candidates_event += track_candidates.size();
       number_of_track_candidates += track_candidates.size();
 
       if (window_stats[0].size()) {

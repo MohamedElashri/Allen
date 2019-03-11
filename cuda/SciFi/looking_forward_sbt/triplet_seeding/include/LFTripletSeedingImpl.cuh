@@ -7,9 +7,6 @@
 
 __device__ void lf_triplet_seeding_impl(
   const SciFi::Hits& scifi_hits,
-  const uint h0_candidate_offset,
-  const uint h1_candidate_offset,
-  const uint h2_candidate_offset,
   const uint8_t h0_candidate_size,
   const uint8_t h1_candidate_size,
   const uint8_t h2_candidate_size,
@@ -18,4 +15,8 @@ __device__ void lf_triplet_seeding_impl(
   const float max_chi2,
   float* best_chi2,
   int8_t* best_h0_h2,
-  const uint event_offset);
+  const uint event_offset,
+  const float z0,
+  const float z1,
+  const float z2,
+  const float qop);

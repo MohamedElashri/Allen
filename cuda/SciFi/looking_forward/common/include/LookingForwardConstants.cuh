@@ -106,6 +106,7 @@ namespace LookingForward {
     float chi2_extrap_stddev[8] {116.5f, 104.5f, 98.35f, 80.66f, 24.11f, 35.91f, 36.7f, 9.72f};
 
     float Zone_zPos[12] {7826., 7896., 7966., 8036., 8508., 8578., 8648., 8718., 9193., 9263., 9333., 9403.};
+    float Zone_zPos_xlayers[6] {7826., 8036., 8508., 8718., 9193., 9403.};
     float zMagnetParams[4] {5212.38, 406.609, -1102.35, -498.039};
 
     // Configuration of sbt

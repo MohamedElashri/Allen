@@ -246,10 +246,17 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
   std::vector<std::tuple<int, int, int, float>> triplets;
 
   for (int i = 0; i < hits_in_layers[relative_layer1].size(); ++i) {
-    const auto window_0_start = std::get<0>(compatible_hits_x0[i]);
-    const auto window_0_size = std::get<1>(compatible_hits_x0[i]) - window_0_start;
-    const auto window_2_start = std::get<0>(compatible_hits_x2[i]);
-    const auto window_2_size = std::get<1>(compatible_hits_x2[i]) - window_2_start;
+    // const auto window_0_start = std::get<0>(compatible_hits_x0[i]);
+    // const auto window_0_size = std::get<1>(compatible_hits_x0[i]) - window_0_start;
+    // const auto window_2_start = std::get<0>(compatible_hits_x2[i]);
+    // const auto window_2_size = std::get<1>(compatible_hits_x2[i]) - window_2_start;
+
+    // TODO: Try all possibilities, to replicate GPU algorithm
+    const auto window_0_start = 0;
+    const auto window_2_start = 0;
+    const auto window_0_size = hits_in_layers[relative_layer0].size();
+    const auto window_2_size = hits_in_layers[relative_layer2].size();
+
     const auto h1 = hits_in_layers[relative_layer1][i];
 
     auto best_chi2 = max_triplet_chi2;
@@ -281,13 +288,13 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
       triplets.push_back({best_h0, h1, best_h2, best_chi2});
     }
   }
-  std::sort(
-    triplets.begin(), triplets.end(), [](const auto a, const auto b) { return std::get<3>(a) < std::get<3>(b); });
+  // std::sort(
+  //   triplets.begin(), triplets.end(), [](const auto a, const auto b) { return std::get<3>(a) < std::get<3>(b); });
 
-  // Restrict number of candidates
-  if (triplets.size() > max_candidates_triplet) {
-    triplets.resize(max_candidates_triplet);
-  }
+  // // Restrict number of candidates
+  // if (triplets.size() > max_candidates_triplet) {
+  //   triplets.resize(max_candidates_triplet);
+  // }
 
   return triplets;
 }
@@ -321,12 +328,17 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
         // Flagging
         if (!use_flagging || (!flag[h0 - event_offset] && !flag[h1 - event_offset] && !flag[h2 - event_offset])) {
           const auto chi2 = chi2_triplet(scifi_hits, qop, h0, h1, h2, layer0, layer1, layer2);
+
+          info_cout << "Hits chi2: " << h0 << ", " << h1 << ", " << h2 << ": " << chi2 << std::endl;
+          
           if (chi2 < max_triplet_chi2) {
             triplets.push_back({h0, h1, h2, chi2});
           }
         }
       }
     }
+
+    break;
   }
   std::sort(
     triplets.begin(), triplets.end(), [](const auto a, const auto b) { return std::get<3>(a) < std::get<3>(b); });
