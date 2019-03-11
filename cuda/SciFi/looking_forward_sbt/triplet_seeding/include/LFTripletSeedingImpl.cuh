@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mma.h>
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 #include "UTDefinitions.cuh"
@@ -11,12 +12,12 @@ __device__ void lf_triplet_seeding_impl(
   const uint8_t h1_candidate_size,
   const uint8_t h2_candidate_size,
   const uint8_t relative_middle_layer,
-  const short* dev_scifi_lf_candidates,
   const float max_chi2,
   float* best_chi2,
   int8_t* best_h0_h2,
-  const uint event_offset,
+  const short* scifi_lf_candidates,
   const float z0,
   const float z1,
   const float z2,
-  const float qop);
+  const float qop,
+  const int event_offset);

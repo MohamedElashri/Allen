@@ -34,6 +34,7 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
   // 1, 256: 23.23%
   // 4, 32: 19.69%
   // 32, 64: 13.04% (sbt: 11.24%)
+  // 32, 64, half: 12.38% (sbt: 11.36%)
 
   // With wmma section (on normal cuda):
   // 1, 64: 21.94%
@@ -44,6 +45,13 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
   // 128, 64: 15.30% (sbt: 10.73%)
   // 32, 32: 18.80% (sbt: 10.49%)
   // 32, 64: 14.44% (sbt: 11.18%)
+
+  // 32, 64, half (casting): 13.79% (sbt: 10.97%)
+  // 32, 64, half, with preloaded half x: 13.58% (sbt: 10.77%)
+  // as before, common initialization of shared_partial_chi2: 13.53% (11.27%)
+
+  // 32, 64, "minor" improvements in the hot loop: 8.77% (11.97%)
+  // 32, 64, optimized math in hottest loop: 8.23% (11.59%)
 
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(64), cuda_stream);
   state.set_arguments(

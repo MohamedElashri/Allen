@@ -344,6 +344,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
     // extrapolate veloUT tracks
     float tx, ty, qop;
 
+    // n_veloUT_tracks_event
     for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
       // veloUT track variables
       const float qop = ut_tracks.qop[i_veloUT_track];
