@@ -53,4 +53,7 @@ namespace PrVeloUTConst {
 
   constexpr float magFieldParams[3] = { 2010.0f, -2240.0f, -71330.f };
   
+  static constexpr float LD3Hits = -0.5f;
+  static constexpr float LD4Hits = -0.5f;
+
 } // namespace PrVeloUTConst
