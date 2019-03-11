@@ -340,8 +340,8 @@ __device__ void save_track(
   const float p = 1.3f * std::abs(1.f / qop);
   const float pt = p * std::sqrt(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty);
 
-  //if (p < UT::Constants::minMomentumFinal || pt < UT::Constants::minPTFinal) return; 
-  if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return; 
+  if (p < UT::Constants::minMomentumFinal || pt < UT::Constants::minPTFinal) return; 
+  //if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return; 
 
   const float xUT  = finalParams[0];  
   const float txUT = finalParams[1];   
