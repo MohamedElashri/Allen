@@ -2,26 +2,30 @@
 
 __host__ __device__
 float fastfitter(
-  BestParams best_params, 
+  const BestParams best_params, 
   const MiniState& velo_state, 
-  float improvedParams[4], 
+  const int best_hits[UT::Constants::n_layers],
   const float qpxz2p,
-  const float* ut_dxDy)
+  const float* ut_dxDy,
+  const UT::Hits& ut_hits,
+  float improvedParams[4])
 {
     
-  const float ty        = velo_state.ty;
-    const float zKink     = magFieldParams[0] - ty*ty*magFieldParams[1] - ty*ty*ty*ty*magFieldParams[2];
-    const float xMidField = velo_state.x + velo_state.tx*(zKink-velo_state.z);
+  const float ty = velo_state.ty;
+  const float zKink = PrVeloUTConst::magFieldParams[0] - ty*ty*PrVeloUTConst::magFieldParams[1] - ty*ty*ty*ty*PrVeloUTConst::magFieldParams[2];
+  const float xMidField = velo_state.x + velo_state.tx*(zKink-velo_state.z);
 
     const float zDiff     = 0.001f * (zKink - UT::Constants::zMidUT);
 
     // -- This is to avoid division by zero...
     const float pHelper   = std::max( float(std::abs(best_params.qp * qpxz2p)), float(1e-9));
-    const float invP      = pHelper*vdt::fast_isqrtf(1.0f+ty*ty);
+    const float invP      = pHelper*sqrtf(1.0f+ty*ty);
     
     // these resolution are semi-empirical, could be tuned and might not be correct for low momentum.
-    const float error1    = 0.14f + 10000.0f*invP; // this is the resolution due to multiple scattering between Velo and UT
-    const float error2    = 0.12f + 3000.0f*invP;  // this is the resolution due to the finite Velo resolution
+    // this is the resolution due to multiple scattering between Velo and UT
+    const float error1    = 0.14f + 10000.0f*invP; 
+    // this is the resolution due to the finite Velo resolution
+    const float error2    = 0.12f + 3000.0f*invP;  
     const float error     = error1*error1 + error2*error2;
     const float weight    = 1.0f/error;
     
@@ -46,28 +50,30 @@ float fastfitter(
         
         const float t = ut_hits.sinT(hit, dxDy); 
         
-        mat[0] += w;
-        mat[1] += w * dz;
-        mat[2] += w * dz * dz;
-        mat[3] += w * t;
-        mat[4] += w * dz * t;
-        mat[5] += w * t * t;
-        rhs[0] += w * ui;
-        rhs[1] += w * ui * dz;
-        rhs[2] += w * ui * t;
+        mat[0] += w; // s0
+        mat[1] += w * dz;  // sz
+        mat[2] += w * dz * dz; // sz2
+        mat[3] += w * t; // u0
+        mat[4] += w * dz * t; // uz
+        mat[5] += w * t * t; // uz2
+
+        rhs[0] += w * ui; // s0
+        rhs[1] += w * ui * dz; // sxz
+        rhs[2] += w * ui * t; // uy
       }
     }
 
-    // ROOT::Math::CholeskyDecomp<float, 3> decomp(mat);
-    // if (UNLIKELY(!decomp)){
-    //   return best_params.qp;
-    // }else{
-    //   decomp.Solve(rhs);
-    // }
+    const float denomu = 1.0f / (mat[0] * mat[2] - mat[1] * mat[1]);
+    const float xSlopeUTFit = 0.001f * (mat[0] * rhs[1] - mat[1] * rhs[0]) * denomu;
+    const float xUTFit = (mat[2] * rhs[0] - mat[1] * rhs[1]) * denomu;
+    
+    const float denomt = 1.0f / (mat[3] * mat[5] - mat[4] * mat[4]);
+    const float offsetY = (rhs[2] * mat[5] - mat[4] * rhs[1]) * denomt;
 
-    const float xSlopeUTFit = 0.001f * rhs[1];
-    const float xUTFit      = rhs[0];
-    const float offsetY     = rhs[2];
+
+    // const float xSlopeUTFit = 0.001f * rhs[1];
+    // const float xUTFit      = rhs[0];
+    // const float offsetY     = rhs[2];
 
     const float distX = (xMidField - xUTFit  - xSlopeUTFit*(zKink - UT::Constants::zMidUT));
     // -- This takes into account that the distance between a point and track is smaller than the distance on the x-axis
@@ -94,10 +100,13 @@ float fastfitter(
     const float xb = 0.5f*((xUTFit + xSlopeUTFit * (zKink - UT::Constants::zMidUT)) + xMidField); // the 0.5 is empirical
     const float xSlopeVeloFit = (xb - velo_state.x) / (zKink - velo_state.z);
     
-    improvedParams = { xUTFit, xSlopeUTFit, velo_state.y + velo_state.ty*(UT::Constants::zMidUT-velo_state.z) + offsetY, chi2 };
-    
+    improvedParams[0] = xUTFit;
+    improvedParams[1] = xSlopeUTFit;
+    improvedParams[2] = velo_state.y + velo_state.ty*(UT::Constants::zMidUT-velo_state.z) + offsetY;
+    improvedParams[3] = chi2;
+
     // calculate q/p
-    const float sinInX = xSlopeVeloFit * vdt::fast_isqrtf(1.0f + xSlopeVeloFit * xSlopeVeloFit + ty * ty);
-    const float sinOutX = xSlopeUTFit * vdt::fast_isqrtf(1.0f  + xSlopeUTFit * xSlopeUTFit     + ty * ty);
+    const float sinInX = xSlopeVeloFit * sqrtf(1.0f + xSlopeVeloFit * xSlopeVeloFit + ty * ty);
+    const float sinOutX = xSlopeUTFit * sqrtf(1.0f  + xSlopeUTFit * xSlopeUTFit     + ty * ty);
     return (sinInX - sinOutX);
 }

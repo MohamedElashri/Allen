@@ -325,7 +325,14 @@ __device__ void save_track(
   //const float qpxz2p = -1 * std::sqrt(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
   const float qpxz2p = -1.f / bdl * 3.3356f / Gaudi::Units::GeV;
   //const float qp = best_params.qp;
-  const float qp = fastfitter( best_params, velo_state, finalParams, qpxz2p, ut_dxDy);
+  const float qp = fastfitter( 
+    best_params, 
+    velo_state, 
+    best_hits,
+    qpxz2p, 
+    ut_dxDy,
+    ut_hits,
+    finalParams);
   const float qop = (std::abs(bdl) < 1.e-8f) ? 0.0f : qp* qpxz2p;
 
   // -- Don't make tracks that have grossly too low momentum
