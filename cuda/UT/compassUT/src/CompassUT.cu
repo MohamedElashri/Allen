@@ -340,7 +340,8 @@ __device__ void save_track(
   const float p = 1.3f * std::abs(1.f / qop);
   const float pt = p * std::sqrt(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty);
 
-  if (p < UT::Constants::minMomentumFinal || pt < UT::Constants::minPT) return;
+  //if (p < UT::Constants::minMomentumFinal || pt < UT::Constants::minPTFinal) return; 
+  if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return; 
 
   const float xUT  = finalParams[0];  
   const float txUT = finalParams[1];   
@@ -359,19 +360,17 @@ __device__ void save_track(
 
   
   // -- evaluate the linear discriminant and reject ghosts
-  // -- the values only make sense if the final fit (fastfitter) is performed
+  // -- the values only make sense if the fastfitter is performed
   int nHits = 0;
   for (int i = 0; i < UT::Constants::n_layers; ++i) {
     if (best_hits[i] != -1) {
       nHits++;
     }
   }
-  if( nHits == 3 ){
-    if(  evaluateLinearDiscriminant<3>( { p, pt, finalParams[3]} ) < PrVeloUTConst::LD3Hits ) return;
-  }else{
-    if(  evaluateLinearDiscriminant<4>( { p, pt, finalParams[3]} ) < PrVeloUTConst::LD4Hits ) return;
-  }
-
+  const float evalParams[3] = {p, pt, finalParams[3]};
+  const float discriminant = evaluateLinearDiscriminant(evalParams, nHits);
+  if( discriminant  < PrVeloUTConst::LD3Hits ) return;
+    
   // the track will be added
   int n_tracks = atomicAdd(n_veloUT_tracks, 1);
 

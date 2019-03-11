@@ -1,6 +1,57 @@
 #include "UTFastFitter.cuh" 
 
 __host__ __device__
+float eval(
+  const int N,
+  float& init,
+  const float* a,
+  const float* b) 
+{
+  for ( int i = 0; i < N; ++i ) {
+    init = init + a[i] * logf(b[i]);
+  }
+  return init;
+}
+
+// T inner_product(InputIt1 first1, InputIt1 last1,
+//                 InputIt2 first2, T init,
+//                 BinaryOperation1 op1
+//                 BinaryOperation2 op2)
+// {
+//     while (first1 != last1) {
+//          init = op1(std::move(init), op2(*first1, *first2)); // std::move since C++20
+//          ++first1;
+//          ++first2;
+//     }
+//     return init;
+
+// -- Evaluate the linear discriminant
+// -- Coefficients derived with LD method for p, pT and chi2 with TMVA
+__host__ __device__
+float evaluateLinearDiscriminant(const float inputValues[3], const int nHits)
+{ 
+  float coeffs[4];
+  if ( nHits == 3 ) {
+    coeffs[0] = 0.162880166064f;
+    coeffs[1] = -0.107081172665f;
+    coeffs[2] = 0.134153123662f;
+    coeffs[3] = -0.137764853657f; 
+  } else {
+    coeffs[0] = 0.235010729187f;
+    coeffs[1] = -0.0938323617311f;
+    coeffs[2] = 0.110823681145f;
+    coeffs[3] = -0.170467109599f; 
+  } 
+  return eval(3, coeffs[0], &coeffs[1], &inputValues[0]);
+  //assert(coeffs.size()==inputValues.size()+1);
+  // return std::inner_product( std::next(coeffs.begin()), coeffs.end(),
+  //                            inputValues.begin(), 
+  //                            coeffs.front(),
+  //                            std::plus<>{}, 
+  //                            [](float c, float iv) { return c*vdt::fast_logf(iv); } ); 
+}
+
+__host__ __device__
 float fastfitter(
   const BestParams best_params, 
   const MiniState& velo_state, 
@@ -38,8 +89,6 @@ float fastfitter(
       if (best_hits[i] != -1) {
         const auto hit = best_hits[i];
         
-        // check: is the ui calculated correctly?
-        //const float ui = hit->x;
         // check: is this plane code correct?
         const int plane_code = i;
         const float dxDy = ut_dxDy[plane_code];
@@ -47,34 +96,38 @@ float fastfitter(
         const float ui = ut_hits.xAt(hit, yy, dxDy);
         const float dz = 0.001f * (ut_hits.zAtYEq0[hit] - UT::Constants::zMidUT);
         const float w = ut_hits.weight[hit];  
-        
         const float t = ut_hits.sinT(hit, dxDy); 
         
-        mat[0] += w; // s0
-        mat[1] += w * dz;  // sz
-        mat[2] += w * dz * dz; // sz2
-        mat[3] += w * t; // u0
-        mat[4] += w * dz * t; // uz
-        mat[5] += w * t * t; // uz2
+        mat[0] += w;
+        mat[1] += w * dz; 
+        mat[2] += w * dz * dz; 
+        mat[3] += w * t; 
+        mat[4] += w * dz * t; 
+        mat[5] += w * t * t; 
 
-        rhs[0] += w * ui; // s0
-        rhs[1] += w * ui * dz; // sxz
-        rhs[2] += w * ui * t; // uy
+        rhs[0] += w * ui; 
+        rhs[1] += w * ui * dz; 
+        rhs[2] += w * ui * t; 
       }
     }
 
-    const float denomu = 1.0f / (mat[0] * mat[2] - mat[1] * mat[1]);
-    const float xSlopeUTFit = 0.001f * (mat[0] * rhs[1] - mat[1] * rhs[0]) * denomu;
-    const float xUTFit = (mat[2] * rhs[0] - mat[1] * rhs[1]) * denomu;
+    const float a11 = mat[2]*mat[5] - mat[4]*mat[4];
+    const float a12 = mat[4]*mat[3] - mat[1]*mat[5];
+    const float a13 = mat[1]*mat[4] - mat[2]*mat[3];
+    const float a22 = mat[0]*mat[5] - mat[3]*mat[3];
+    const float a23 = mat[1]*mat[3] - mat[0]*mat[4];
+    const float a33 = mat[0]*mat[2] - mat[1]*mat[1];
     
-    const float denomt = 1.0f / (mat[3] * mat[5] - mat[4] * mat[4]);
-    const float offsetY = (rhs[2] * mat[5] - mat[4] * rhs[1]) * denomt;
-
-
-    // const float xSlopeUTFit = 0.001f * rhs[1];
-    // const float xUTFit      = rhs[0];
-    // const float offsetY     = rhs[2];
-
+    const float det_inv = 1.f / (mat[0]*a11 + mat[1]*a12 + mat[3]*a13);
+    
+    const float sol0 = det_inv * ( a11*rhs[0] + a12*rhs[1] + a13*rhs[2]);
+    const float sol1 = det_inv * ( a12*rhs[0] + a22*rhs[1] + a23*rhs[2]);
+    const float sol2 = det_inv * ( a13*rhs[0] + a23*rhs[1] + a33*rhs[2]);
+ 
+    const float xUTFit = sol0;
+    const float xSlopeUTFit = 0.001f * sol1;
+    const float offsetY = sol2;
+    
     const float distX = (xMidField - xUTFit  - xSlopeUTFit*(zKink - UT::Constants::zMidUT));
     // -- This takes into account that the distance between a point and track is smaller than the distance on the x-axis
     const float distCorrectionX2 = 1.0f/(1 + xSlopeUTFit*xSlopeUTFit);

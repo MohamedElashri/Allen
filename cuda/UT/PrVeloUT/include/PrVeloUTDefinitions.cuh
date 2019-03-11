@@ -55,5 +55,5 @@ namespace PrVeloUTConst {
   
   static constexpr float LD3Hits = -0.5f;
   static constexpr float LD4Hits = -0.5f;
-
+  
 } // namespace PrVeloUTConst

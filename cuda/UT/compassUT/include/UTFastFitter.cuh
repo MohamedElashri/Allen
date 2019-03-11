@@ -6,7 +6,16 @@
 #include "UTEventModel.cuh"
 
 __host__ __device__
+float eval(
+  const int N,
+  float& init,
+  const float* a,
+  const float* b);
 
+__host__ __device__
+float evaluateLinearDiscriminant(const float inputValues[3], const int nHits);
+
+__host__ __device__
 float fastfitter(
   const BestParams best_params, 
   const MiniState& velo_state, 
