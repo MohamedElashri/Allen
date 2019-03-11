@@ -53,6 +53,8 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
   // 32, 64, "minor" improvements in the hot loop: 8.77% (11.97%)
   // 32, 64, optimized math in hottest loop: 8.23% (11.59%)
 
+  // With a max_candidates_size of 32: 6.62% (11.91%) (not much faster going from 64 to 32)
+
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(64), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
