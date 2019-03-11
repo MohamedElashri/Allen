@@ -29,7 +29,23 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
     arguments.size<dev_atomics_scifi>(),
     cuda_stream));
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);
+  // No wmma section:
+  // 1, 64: 19.53%
+  // 1, 256: 23.23%
+  // 4, 32: 19.69%
+  // 32, 64: 13.04% (sbt: 11.24%)
+
+  // With wmma section (on normal cuda):
+  // 1, 64: 21.94%
+  // 4, 32: 21.67%
+  // 8, 64: 15.23%
+  // 16, 64: 14.58%
+  // 64, 64: 14.72% (sbt: 11.12%)
+  // 128, 64: 15.30% (sbt: 10.73%)
+  // 32, 32: 18.80% (sbt: 10.49%)
+  // 32, 64: 14.44% (sbt: 11.18%)
+
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(64), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
