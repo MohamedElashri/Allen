@@ -44,6 +44,7 @@ namespace LookingForward {
    */
   constexpr int number_of_x_layers = 6;
   constexpr int maximum_number_of_candidates = 64;
+  constexpr int maximum_number_of_triplets_per_ut_track = 20;
 
   // cut on the difference between tx from the extrapolation and
   // tx from the hits in the two x layers
@@ -122,10 +123,10 @@ namespace LookingForward {
     int max_candidates_triplets[4] {20, 20, 20, 20};
 
     float ds_p_param[12]
-      // updated value for layer 8
       {1307.09, 1288.22, 899.152, 1304.91, 1304.63, 1293.6, 50.6114, 1303.6, 1207.72, 1297.08, 1299.11, 1308.75};
-    // original values from the velo
-    // {1307.09, 1288.22, 899.152, 1304.91, 1304.63, 1293.6, 50.6114, 1303.6, 1309.73, 1297.08, 1299.11, 1308.75};
+
+    float ds_p_param_layer_inv[6]
+      {0.000765058, 0.000766336, 0.000766501, 0.000767106, 0.000828006, 0.000764088};
 
     float dp_y_mag_plus[12][3] {
       {-9.57809, 0.0665787, -0.000144284},

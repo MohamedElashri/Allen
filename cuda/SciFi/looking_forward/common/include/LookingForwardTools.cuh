@@ -153,4 +153,12 @@ namespace LookingForward {
     const float layer_projected_state_z,
     const float layer_projected_state_y,
     const float dxdy);
+
+  __device__ float qop_update(
+    const float ut_state_tx,
+    const float h0_x,
+    const float h0_z,
+    const float h1_x,
+    const float h1_z,
+    const float ds_p_param_layer_inv);
 } // namespace LookingForward

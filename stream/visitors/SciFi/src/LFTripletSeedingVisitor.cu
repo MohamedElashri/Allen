@@ -51,7 +51,8 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
   // as before, common initialization of shared_partial_chi2: 13.53% (11.27%)
 
   // 32, 64, "minor" improvements in the hot loop: 8.77% (11.97%)
-  // 32, 64, optimized math in hottest loop: 8.23% (11.59%)
+  // 32, 64, optimized math in hottest loop: 8.23% (11.59%) - 0.710094909
+  // 32, 64, optimized, with insertion sort and keeping best 20 candidates: 8.81% (11.83%) - 0.744716822
 
   // With a max_candidates_size of 32: 6.62% (11.91%) (not much faster going from 64 to 32)
 

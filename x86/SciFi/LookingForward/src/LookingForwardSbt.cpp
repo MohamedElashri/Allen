@@ -288,13 +288,13 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
       triplets.push_back({best_h0, h1, best_h2, best_chi2});
     }
   }
-  // std::sort(
-  //   triplets.begin(), triplets.end(), [](const auto a, const auto b) { return std::get<3>(a) < std::get<3>(b); });
+  std::sort(
+    triplets.begin(), triplets.end(), [](const auto a, const auto b) { return std::get<3>(a) < std::get<3>(b); });
 
-  // // Restrict number of candidates
-  // if (triplets.size() > max_candidates_triplet) {
-  //   triplets.resize(max_candidates_triplet);
-  // }
+  // Restrict number of candidates
+  if (triplets.size() > max_candidates_triplet) {
+    triplets.resize(max_candidates_triplet);
+  }
 
   return triplets;
 }
