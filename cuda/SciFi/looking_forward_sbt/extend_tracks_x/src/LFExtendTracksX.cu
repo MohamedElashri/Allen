@@ -11,6 +11,7 @@ __global__ void lf_extend_tracks_x(
   const float* dev_inv_clus_res,
   const uint* dev_scifi_lf_number_of_candidates,
   const short* dev_scifi_lf_candidates,
+  bool* dev_scifi_lf_candidates_flag,
   const uint8_t relative_extrapolation_layer)
 {
   const auto number_of_events = gridDim.x;
@@ -38,9 +39,10 @@ __global__ void lf_extend_tracks_x(
       + (current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer)
       * LookingForward::maximum_number_of_candidates;
 
+    const auto scifi_lf_candidates_offset = dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer];
     const int8_t number_of_candidates =
       dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer + 1] -
-      dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer];
+      scifi_lf_candidates_offset;
 
     const auto h0 = track.hits[track.hitsNum - 2];
     const auto h1 = track.hits[track.hitsNum - 1];
@@ -54,14 +56,6 @@ __global__ void lf_extend_tracks_x(
     const auto z1 = dev_looking_forward_constants->Zone_zPos[layer1];
     const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_extrapolation_layer];
 
-    // if (track.hits[0] == 99 && track.hits[1] == 1453 && track.hits[2] == 1920) {
-    //   printf("Candidates for track 99, 1453, 1920:\n");
-    //   for (int8_t j=0; j<number_of_candidates; ++j) {
-    //     printf("%i, ", scifi_lf_candidates[j]);
-    //   }
-    //   printf("\n\n");
-    // }
-
     lf_extend_tracks_x_impl(
       scifi_hits,
       scifi_lf_candidates,
@@ -74,6 +68,7 @@ __global__ void lf_extend_tracks_x(
       z2,
       dev_looking_forward_constants->chi2_mean_extrapolation_to_x_layers[relative_extrapolation_layer - 3]
         + 2.5f * dev_looking_forward_constants->chi2_stddev_extrapolation_to_x_layers[relative_extrapolation_layer - 3],
-      event_offset);
+      event_offset,
+      dev_scifi_lf_candidates_flag + scifi_lf_candidates_offset);
   }
 }

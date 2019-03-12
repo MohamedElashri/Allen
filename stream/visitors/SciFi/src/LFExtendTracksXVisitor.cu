@@ -25,6 +25,7 @@ void SequenceVisitor::visit<lf_extend_tracks_x_t>(
     constants.dev_inv_clus_res,
     arguments.offset<dev_scifi_lf_number_of_candidates>(),
     arguments.offset<dev_scifi_lf_candidates>(),
+    arguments.offset<dev_scifi_lf_candidates_flag>(),
     3);
 
   state.invoke();

@@ -14,4 +14,5 @@ __device__ void lf_extend_tracks_x_impl(
   const float z1,
   const float z2,
   const float max_chi2,
-  const uint event_offset);
+  const uint event_offset,
+  bool* candidates_flag);

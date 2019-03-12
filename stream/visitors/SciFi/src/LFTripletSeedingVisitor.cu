@@ -28,6 +28,12 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
     0,
     arguments.size<dev_atomics_scifi>(),
     cuda_stream));
+  
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_scifi_lf_candidates_flag>(),
+    0,
+    arguments.size<dev_scifi_lf_candidates_flag>(),
+    cuda_stream));
 
   // 1, 64: 21.94%
   // 4, 32: 21.67%
