@@ -30,7 +30,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const uint* host_ut_track_velo_indices,
   const std::vector<std::vector<std::vector<uint32_t>>>& scifi_ids_ut_tracks,
   const std::vector<std::vector<float>>& p_events,
-  const uint number_of_events)
+  const uint number_of_events,
+  const SciFi::TrackHits* host_scifi_tracks,
+  const int* host_atomics_scifi)
 {
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
@@ -281,6 +283,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   int n_veloUT_tracks_with_window = 0;
 
   int number_of_track_candidates_after_station_2 = 0;
+  int number_of_quadruplet_tracks = 0;
 
   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
     // info_cout << std::endl << "Event #" << i_event << std::endl;
@@ -344,7 +347,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
     // extrapolate veloUT tracks
     float tx, ty, qop;
 
-    // n_veloUT_tracks_event
+    // TODO: n_veloUT_tracks_event
     for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
       // veloUT track variables
       const float qop = ut_tracks.qop[i_veloUT_track];
@@ -673,12 +676,12 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       //     << std::endl;
       // }
 
-      for (int i = 0; i < 3; ++i) {
+      // TODO: Put 3 here
+      for (int i = 0; i < 1; ++i) {
         // Extend forming tracks
         extend_tracklets(
           scifi_hits,
           UT_state,
-          qop,
           layers,
           hits_in_layers,
           i + 3,
@@ -687,158 +690,171 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           scifi_tracks,
           flag);
 
-        // Find window on x0 from x1, and window on x2 from x1
-        compatible_hits_x0 = find_compatible_window(
-          scifi_hits,
-          layers[i + 2],
-          layers[i + 1],
-          hits_in_layers[i + 2],
-          hits_in_layers[i + 1],
-          dx_stddev_triplet_x0[i + 1],
-          compatible_window_factor,
-          UT_state,
-          xAtRef,
-          zMag);
+        // for (const auto& track : scifi_tracks) {
+        //   if (track.hitsNum >= 4) {
+        //     number_of_quadruplet_tracks++;
+        //     info_cout << "Track ";
 
-        compatible_hits_x2 = find_compatible_window(
-          scifi_hits,
-          layers[i + 2],
-          layers[i + 3],
-          hits_in_layers[i + 2],
-          hits_in_layers[i + 3],
-          dx_stddev_triplet_x2[i + 1],
-          compatible_window_factor,
-          UT_state,
-          xAtRef,
-          zMag);
+        //     for (int j=0; j<track.hitsNum; ++j) {
+        //       info_cout << track.hits[j] << ", ";
+        //     }
+            
+        //     info_cout << track.get_quality() << std::endl;
+        //   }
+        // }
 
-        // Find new triplets
-        find_triplets(
-          scifi_hits,
-          qop,
-          compatible_hits_x0,
-          compatible_hits_x2,
-          flag,
-          event_offset,
-          layers,
-          hits_in_layers,
-          i + 1,
-          i + 2,
-          i + 3,
-          max_candidates_triplets[i + 1],
-          chi2_mean_triplet[i + 1] + factor_chi2_triplet * chi2_stddev_triplet[i + 1],
-          use_flagging,
-          i_veloUT_track,
-          UT_state,
-          scifi_tracks);
+        // // Find window on x0 from x1, and window on x2 from x1
+        // compatible_hits_x0 = find_compatible_window(
+        //   scifi_hits,
+        //   layers[i + 2],
+        //   layers[i + 1],
+        //   hits_in_layers[i + 2],
+        //   hits_in_layers[i + 1],
+        //   dx_stddev_triplet_x0[i + 1],
+        //   compatible_window_factor,
+        //   UT_state,
+        //   xAtRef,
+        //   zMag);
+
+        // compatible_hits_x2 = find_compatible_window(
+        //   scifi_hits,
+        //   layers[i + 2],
+        //   layers[i + 3],
+        //   hits_in_layers[i + 2],
+        //   hits_in_layers[i + 3],
+        //   dx_stddev_triplet_x2[i + 1],
+        //   compatible_window_factor,
+        //   UT_state,
+        //   xAtRef,
+        //   zMag);
+
+        // // Find new triplets
+        // find_triplets(
+        //   scifi_hits,
+        //   qop,
+        //   compatible_hits_x0,
+        //   compatible_hits_x2,
+        //   flag,
+        //   event_offset,
+        //   layers,
+        //   hits_in_layers,
+        //   i + 1,
+        //   i + 2,
+        //   i + 3,
+        //   max_candidates_triplets[i + 1],
+        //   chi2_mean_triplet[i + 1] + factor_chi2_triplet * chi2_stddev_triplet[i + 1],
+        //   use_flagging,
+        //   i_veloUT_track,
+        //   UT_state,
+        //   scifi_tracks);
       }
 
-      // Extra triplets
-      for (const auto& extra_triplet : extra_triplets) {
-        const auto relative_layer0 = std::get<0>(extra_triplet);
-        const auto relative_layer1 = std::get<1>(extra_triplet);
-        const auto relative_layer2 = std::get<2>(extra_triplet);
+      // // Extra triplets
+      // for (const auto& extra_triplet : extra_triplets) {
+      //   const auto relative_layer0 = std::get<0>(extra_triplet);
+      //   const auto relative_layer1 = std::get<1>(extra_triplet);
+      //   const auto relative_layer2 = std::get<2>(extra_triplet);
 
-        compatible_hits_x0 = find_compatible_window(
-          scifi_hits,
-          layers[relative_layer1],
-          layers[relative_layer0],
-          hits_in_layers[relative_layer1],
-          hits_in_layers[relative_layer0],
-          dx_stddev_triplet_x0_extra,
-          compatible_window_factor,
-          UT_state,
-          xAtRef,
-          zMag);
+      //   compatible_hits_x0 = find_compatible_window(
+      //     scifi_hits,
+      //     layers[relative_layer1],
+      //     layers[relative_layer0],
+      //     hits_in_layers[relative_layer1],
+      //     hits_in_layers[relative_layer0],
+      //     dx_stddev_triplet_x0_extra,
+      //     compatible_window_factor,
+      //     UT_state,
+      //     xAtRef,
+      //     zMag);
 
-        compatible_hits_x2 = find_compatible_window(
-          scifi_hits,
-          layers[relative_layer1],
-          layers[relative_layer2],
-          hits_in_layers[relative_layer1],
-          hits_in_layers[relative_layer2],
-          dx_stddev_triplet_x2_extra,
-          compatible_window_factor,
-          UT_state,
-          xAtRef,
-          zMag);
+      //   compatible_hits_x2 = find_compatible_window(
+      //     scifi_hits,
+      //     layers[relative_layer1],
+      //     layers[relative_layer2],
+      //     hits_in_layers[relative_layer1],
+      //     hits_in_layers[relative_layer2],
+      //     dx_stddev_triplet_x2_extra,
+      //     compatible_window_factor,
+      //     UT_state,
+      //     xAtRef,
+      //     zMag);
 
-        find_triplets(
-          scifi_hits,
-          qop,
-          compatible_hits_x0,
-          compatible_hits_x2,
-          flag,
-          event_offset,
-          layers,
-          hits_in_layers,
-          relative_layer0,
-          relative_layer1,
-          relative_layer2,
-          max_candidates_triplets_extra,
-          chi2_mean_triplet_extra + factor_chi2_triplet * chi2_stddev_triplet_extra,
-          use_flagging,
-          i_veloUT_track,
-          UT_state,
-          scifi_tracks);
-      }
+      //   find_triplets(
+      //     scifi_hits,
+      //     qop,
+      //     compatible_hits_x0,
+      //     compatible_hits_x2,
+      //     flag,
+      //     event_offset,
+      //     layers,
+      //     hits_in_layers,
+      //     relative_layer0,
+      //     relative_layer1,
+      //     relative_layer2,
+      //     max_candidates_triplets_extra,
+      //     chi2_mean_triplet_extra + factor_chi2_triplet * chi2_stddev_triplet_extra,
+      //     use_flagging,
+      //     i_veloUT_track,
+      //     UT_state,
+      //     scifi_tracks);
+      // }
 
-      // Extrapolate tracks
-      const std::array<int, 6> extrapolation_layers {1, 2, 5, 6, 9, 10};
-      const std::array<float, 6> extrapolation_stddev {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
-      const std::array<float, 6> chi2_extrapolation_mean {1.304f, 1.384f, 4.577f, 6.587f, 36.1f, 44.67f};
-      const std::array<float, 6> chi2_extrapolation_stddev {10.6f, 11.82f, 17.84f, 23.2f, 68.05f, 81.47f};
+      // // Extrapolate tracks
+      // const std::array<int, 6> extrapolation_layers {1, 2, 5, 6, 9, 10};
+      // const std::array<float, 6> extrapolation_stddev {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
+      // const std::array<float, 6> chi2_extrapolation_mean {1.304f, 1.384f, 4.577f, 6.587f, 36.1f, 44.67f};
+      // const std::array<float, 6> chi2_extrapolation_stddev {10.6f, 11.82f, 17.84f, 23.2f, 68.05f, 81.47f};
 
-      for (int i = 0; i < extrapolation_layers.size(); ++i) {
-        const int layer = extrapolation_layers[i];
-        const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
+      // for (int i = 0; i < extrapolation_layers.size(); ++i) {
+      //   const int layer = extrapolation_layers[i];
+      //   const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
 
-        for (auto& track : scifi_tracks) {
-          single_track_propagation(
-            scifi_hits,
-            scifi_hit_count,
-            layer,
-            projection_y,
-            track,
-            extrapolation_stddev[i],
-            chi2_extrapolation_mean[i],
-            chi2_extrapolation_stddev[i],
-            event_offset,
-            flag);
-        }
-      }
+      //   for (auto& track : scifi_tracks) {
+      //     single_track_propagation(
+      //       scifi_hits,
+      //       scifi_hit_count,
+      //       layer,
+      //       projection_y,
+      //       track,
+      //       extrapolation_stddev[i],
+      //       chi2_extrapolation_mean[i],
+      //       chi2_extrapolation_stddev[i],
+      //       event_offset,
+      //       flag);
+      //   }
+      // }
 
-      const std::array<int, 2> final_layers {0, 3};
-      for (int i=0; i<final_layers.size(); ++i) {
-        const int layer = final_layers[i];
-        const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
+      // const std::array<int, 2> final_layers {0, 3};
+      // for (int i=0; i<final_layers.size(); ++i) {
+      //   const int layer = final_layers[i];
+      //   const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer]);
 
-        for (auto& track : scifi_tracks) {
-          single_track_propagation(
-            scifi_hits,
-            scifi_hit_count,
-            layer,
-            projection_y,
-            track,
-            extrapolation_stddev[i],
-            chi2_extrapolation_mean[i],
-            chi2_extrapolation_stddev[i],
-            event_offset,
-            flag,
-            use_flagging_in_l0_l3_layers);
-        }
-      }
+      //   for (auto& track : scifi_tracks) {
+      //     single_track_propagation(
+      //       scifi_hits,
+      //       scifi_hit_count,
+      //       layer,
+      //       projection_y,
+      //       track,
+      //       extrapolation_stddev[i],
+      //       chi2_extrapolation_mean[i],
+      //       chi2_extrapolation_stddev[i],
+      //       event_offset,
+      //       flag,
+      //       use_flagging_in_l0_l3_layers);
+      //   }
+      // }
 
-      filter_tracks_with_TMVA(
-          scifi_tracks,
-          event_trackhits,
-          velo_state,
-          qop,
-          &constArrays,
-          &tmva1,
-          &tmva2,
-          scifi_hits,
-          scifi_hit_count.event_offset());
+      // filter_tracks_with_TMVA(
+      //     scifi_tracks,
+      //     event_trackhits,
+      //     velo_state,
+      //     qop,
+      //     &constArrays,
+      //     &tmva1,
+      //     &tmva2,
+      //     scifi_hits,
+      //     scifi_hit_count.event_offset());
 
       // float best_fit = 100.f;
       // int best_track = -1;
@@ -858,11 +874,11 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       //   event_trackhits.push_back(scifi_tracks[best_track]);
       // }
 
-      // for (const auto& track : scifi_tracks) {
+      for (const auto& track : scifi_tracks) {
       //   if (track.hitsNum >= 9) {
-      //     event_trackhits.push_back(track);
+          event_trackhits.push_back(track);
       //   }
-      // }
+      }
 
       num_candidates = track_candidates.size();
       // number_of_candidates_event += track_candidates.size();
@@ -1043,7 +1059,58 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       }
     } // extrapolation to T3 worked
 
-    // info_cout << "Event " << i_event << ", number of candidates: " << number_of_candidates_event << std::endl;
+    // const auto print_track = [] (const SciFi::TrackHits& track) {
+    //   info_cout << "{" << ((int) track.hitsNum) << " hits: ";
+    //   for (int i=0; i<track.hitsNum; ++i) {
+    //     info_cout << track.hits[i] << ", ";
+    //   }
+    //   info_cout << track.get_quality() << "}";
+    // };
+
+    // const auto number_of_tracks_gpu = host_atomics_scifi[i_event];
+    // for (const auto& track : event_trackhits) {
+    //   bool found = false;
+    //   for (int i = 0; i < number_of_tracks_gpu; ++i) {
+    //     const auto& gpu_track = host_scifi_tracks[i];
+
+    //     if (track.hitsNum == gpu_track.hitsNum) {
+    //       bool same = true;
+    //       for (int j=0; j<track.hitsNum; ++j) {
+    //         same &= track.hits[j] == gpu_track.hits[j];
+    //       }
+    //       found |= same;
+    //     }
+    //   }
+
+    //   if (!found) {
+    //     info_cout << "Track ";
+    //     print_track(track);
+    //     info_cout << " not found in GPU tracks" << std::endl;
+    //   }
+    // }
+
+    // info_cout << std::endl;
+    // for (int i = 0; i < number_of_tracks_gpu; ++i) {
+    //   const auto& gpu_track = host_scifi_tracks[i];
+    //   bool found = false;
+    //   for (const auto& track : event_trackhits) {
+
+    //     if (track.hitsNum == gpu_track.hitsNum) {
+    //       bool same = true;
+    //       for (int j=0; j<track.hitsNum; ++j) {
+    //         same &= track.hits[j] == gpu_track.hits[j];
+    //       }
+    //       found |= same;
+    //     }
+    //   }
+
+    //   if (!found) {
+    //     info_cout << "Track ";
+    //     print_track(gpu_track);
+    //     info_cout << " not found in CPU tracks" << std::endl;
+    //   }
+    // }
+    // info_cout << std::endl;
 
     trackhits.emplace_back(event_trackhits);
 

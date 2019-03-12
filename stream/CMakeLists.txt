@@ -45,6 +45,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/search_in
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/collect_candidates/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/find_compatible_windows/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/triplet_seeding/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_x/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)

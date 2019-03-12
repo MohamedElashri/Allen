@@ -125,7 +125,6 @@ std::vector<std::tuple<int, int>> find_extend_windows(
 void extend_tracklets(
   const SciFi::Hits& scifi_hits,
   const MiniState& UT_state,
-  const float qop,
   const std::array<int, 6>& layers,
   const std::array<std::vector<int>, 6>& hits_in_layers,
   const int relative_layer2,

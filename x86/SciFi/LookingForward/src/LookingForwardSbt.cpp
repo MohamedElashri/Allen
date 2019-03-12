@@ -67,21 +67,33 @@ float chi2_triplet(
   //   const auto x0 = x_at_layer_0;
   //   const auto x1 = x_at_layer_1;
   //   const auto x2 = x_at_layer_2;
-
+  // 
   //   const auto dz0 = (z0 - z0);
   //   const auto dz1 = (z1 - z0);
   //   const auto dz2 = (z2 - z0);
-  //   const auto zdiff_inv = 1.f / (z1 - z0);
-
+  //   const auto tx = (x1 - x0) / dz1;
+  // 
   //   const auto extrap0 = SciFi::LookingForward::forward_param * qop * dz0 * dz0;
   //   const auto extrap1 = SciFi::LookingForward::forward_param * qop * dz1 * dz1;
   //   const auto extrap2 = SciFi::LookingForward::forward_param * qop * dz2 * dz2;
+  //   
+  //   const float expected_x0 = x0 + tx * dz0 + extrap0;
+  //   const float expected_x1 = x0 + tx * dz1 + extrap1;
+  //   const float expected_x2 = x0 + tx * dz2 + extrap2;
+  //
+  //   const float chi2 = (x0 - expected_x0) ^ 2 + (x1 - expected_x1) ^ 2 + (x2 - expected_x2) ^ 2;
+  // 
+  // Another formulation:
+  // const float partial_chi2 = (SciFi::LookingForward::forward_param * qop * dz1 * dz1) ^ 2;
+  // const float expected_x2 = x0 + tx * dz2 + SciFi::LookingForward::forward_param * qop * dz2 * dz2;
+  // const float chi2 = (x2 - expected_x2) ^ 2;
 
+  //   
   //   const auto tx = x1 * zdiff_inv - x0 * zdiff_inv;
   //   float custom_chi2 = 0.f;
-  //   const float expected_x2 = x0 + tx * dz2 + SciFi::LookingForward::forward_param * qop * dz2 * dz2;
   //   custom_chi2 += (SciFi::LookingForward::forward_param * qop * dz1 * dz1) * (SciFi::LookingForward::forward_param *
-  //   qop * dz1 * dz1); custom_chi2 += (x2 - expected_x2) * (x2 - expected_x2);
+  //   qop * dz1 * dz1);
+  //   custom_chi2 += (x2 - expected_x2) * (x2 - expected_x2);
 
   //   const auto simplified_chi2 =
   //     x2
@@ -405,7 +417,6 @@ std::vector<std::tuple<int, int>> find_extend_windows(
 void extend_tracklets(
   const SciFi::Hits& scifi_hits,
   const MiniState& UT_state,
-  const float qop,
   const std::array<int, 6>& layers,
   const std::array<std::vector<int>, 6>& hits_in_layers,
   const int relative_layer2,
@@ -430,11 +441,11 @@ void extend_tracklets(
     const auto projection_x = scifi_propagation(
       x_at_layer0,
       reco_slope,
-      qop,
+      tracklet.qop,
       SciFi::LookingForward::Zone_zPos[layer2] - SciFi::LookingForward::Zone_zPos[layer0]);
 
-    const auto chi2_fn = [&x_at_layer0, &reco_slope, &qop, &layer0](const float z) {
-      return scifi_propagation(x_at_layer0, reco_slope, qop, z - SciFi::LookingForward::Zone_zPos[layer0]);
+    const auto chi2_fn = [&x_at_layer0, &reco_slope, &tracklet, &layer0](const float z) {
+      return scifi_propagation(x_at_layer0, reco_slope, tracklet.qop, z - SciFi::LookingForward::Zone_zPos[layer0]);
     };
 
     float best_chi2 = max_chi2;
@@ -449,6 +460,28 @@ void extend_tracklets(
       // Get chi2
       x_coordinates[2] = scifi_hits.x0[candidate_index];
       const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
+
+      // // TODO
+      // const auto dz1 = (z_coordinates[1] - z_coordinates[0]);
+      // const auto dz2 = (z_coordinates[2] - z_coordinates[0]);
+      // const auto tx = (x_coordinates[1] - x_coordinates[0]) / dz1;
+      // const float expected_x2 = x_coordinates[0] + tx * dz2 + SciFi::LookingForward::forward_param * qop * dz2 * dz2;
+      // float extrap1 = SciFi::LookingForward::forward_param * qop * dz1 * dz1;
+      // extrap1 *= extrap1;
+      // const float custom_chi2 = extrap1 + (x_coordinates[2] - expected_x2) * (x_coordinates[2] - expected_x2);
+
+      // // 116, 1445, 1890, 3171
+
+      // if (tracklet.hits[0] == 116 && tracklet.hits[0] == 1445 && tracklet.hits[0] == 1890 &&
+      //   (candidate_index - event_offset) == 3171) {
+      //   info_cout << "xs: " << x_coordinates[0] << ", " << x_coordinates[1]
+      // }
+
+      // if (relative_layer2 == 3 && std::abs(chi2 - custom_chi2) > 1.f) {
+      //   info_cout << x_coordinates[0] << ", " << x_coordinates[1] << ", " << x_coordinates[2] << ", "
+      //     << z_coordinates[0] << ", " << z_coordinates[1] << ", " << z_coordinates[2]
+      //     << ": " << chi2 << ", " << custom_chi2 << std::endl;
+      // }
 
       if (chi2 < best_chi2) {
         best_chi2 = chi2;

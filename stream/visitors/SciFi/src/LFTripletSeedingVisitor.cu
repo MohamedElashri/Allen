@@ -29,14 +29,6 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
     arguments.size<dev_atomics_scifi>(),
     cuda_stream));
 
-  // No wmma section:
-  // 1, 64: 19.53%
-  // 1, 256: 23.23%
-  // 4, 32: 19.69%
-  // 32, 64: 13.04% (sbt: 11.24%)
-  // 32, 64, half: 12.38% (sbt: 11.36%)
-
-  // With wmma section (on normal cuda):
   // 1, 64: 21.94%
   // 4, 32: 21.67%
   // 8, 64: 15.23%

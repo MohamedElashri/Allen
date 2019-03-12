@@ -44,4 +44,6 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const uint* host_ut_track_velo_indices,
   const std::vector<std::vector<std::vector<uint32_t>>>& scifi_ids_ut_tracks,
   const std::vector<std::vector<float>>& p_events,
-  const uint number_of_events);
+  const uint number_of_events,
+  const SciFi::TrackHits* host_scifi_tracks,
+  const int* host_atomics_scifi);

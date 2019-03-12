@@ -48,7 +48,9 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
     host_buffers.host_ut_track_velo_indices,
     host_buffers.scifi_ids_ut_tracks,
     p_events,
-    host_buffers.host_number_of_selected_events[0]);
+    host_buffers.host_number_of_selected_events[0],
+    host_buffers.host_scifi_tracks,
+    host_buffers.host_atomics_scifi);
 
   // Convert tracks to format expected by checker
   const uint total_number_of_hits = host_buffers.host_scifi_hit_count[

@@ -42,4 +42,5 @@ SEQUENCE_T(
   lf_collect_candidates_t,
   lf_prefix_sum_candidates_t,
   lf_triplet_seeding_t,
+  lf_extend_tracks_x_t,
 )
