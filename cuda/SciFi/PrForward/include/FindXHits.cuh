@@ -22,6 +22,17 @@
    which match to the VeloUT input track
  */
 
+__host__ void x_limits_from_dxRef( 
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const float InvPz,
+  const float p,
+  const float tx2,
+  const float ty2, 
+  const bool wSignTreatment, 
+  float& xBoundOnRef,
+  float& xBoundOnRefWS); 
+
 __host__ void collectAllXHits_proto(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& scifi_hit_count,
@@ -29,12 +40,13 @@ __host__ void collectAllXHits_proto(
   const float yParams_seed[4],
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
+  const MiniState& UT_state,
   const float qOverP,
   int side,
   std::array<int, 2 * 6>& windows_x,
   std::array<int, 2 * 6>& windows_uv,
   std::array<float, 4 * 6>& parameters_uv,
-  const std::array<int, 12>& true_scifi_indices_per_layer,
+  const SciFiWindowsParams& window_params, 
   const float dx_calc);
 
 __host__ __device__ void collectAllXHits(

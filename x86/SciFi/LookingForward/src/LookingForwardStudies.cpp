@@ -103,7 +103,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   bool match_T2_0, match_T2_3, match_T3_0, match_T3_3;
   float chi2_track;
   float qop_track, qop_true;
-  float x_propagation_layer_5, x_from_velo_layer_5, true_x_layer_5;
+  float x_propagation_layer_5, x_from_velo_layer_5, true_x_layer_5, x_Ext_layer_5;
 
   t_scifi_hits->Branch("planeCode", &planeCode);
   t_scifi_hits->Branch("LHCbID", &LHCbID);
@@ -223,7 +223,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
   t_extrap_l5->Branch("true_x_layer_5", &true_x_layer_5);
   t_extrap_l5->Branch("x_from_velo_layer_5", &x_from_velo_layer_5);
-  t_extrap_l5->Branch("x_propagation_layer_5", &x_propagation_layer_5);
+  t_extrap_l5->Branch("x_propagation_layer_5", &x_propagation_layer_5); 
+  t_extrap_l5->Branch("x_Ext_layer_5", &x_Ext_layer_5); 
 
   t_track_candidates->Branch("quality", &quality);
   t_track_candidates->Branch("num_candidates", &num_candidates);
@@ -493,15 +494,11 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const float y_projection = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[0]);
       const float zRef_track = SciFi::Tracking::zReference;
       const float xAtRef = xFromVelo(zRef_track, UT_state);
-      const auto state_zRef = propagate_state_from_velo(UT_state, qop, 5); // zRef is between layers 4 and 5
-      const float dxRef_calc = dx_calc(UT_state, qop, window_params);
+      const auto state_zRef = propagate_state_from_velo(UT_state, qop, 5); // zRef is between layers 4 and 5 
+      const float dxRef_calc = dx_calc(UT_state, qop, window_params); 
       //const float xAtRef = state_zRef.x;
-      // const float xAtRef_ = xFromVelo(zRef_track, UT_state);
-      //debug_cout << "x from propagation = " << state_zRef.x << ", xFromVelo = " << xAtRef << ", zRef = " << zRef_track << std::endl;
       const float yAtRef = yFromVelo(zRef_track, UT_state);
       
-     
-
       std::array<int, 6> layers {0, 3, 4, 7, 8, 11};
     
       float bs_x[4] {xAtRef, UT_state.tx, 0, 0};
@@ -521,14 +518,14 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         bs_y,
         &constArrays,
         velo_state,
+        UT_state,
         qop,
         (y_projection < 0 ? -1 : 1),
         windows_x,
         windows_uv,
         parameters_uv,
-        true_scifi_indices_per_layer,
+        window_params,
         dxRef_calc);
-    
       // Collect all X candidates
       std::array<std::vector<int>, 6> hits_in_layers =
         collect_x_candidates(scifi_hits, windows_x, windows_uv, parameters_uv);
@@ -539,10 +536,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // }
       // info_cout << std::endl;
 
-      const float xParams_seed[2] = {xAtRef, UT_state.tx};
-      const float yParams_seed[2] = {yAtRef, UT_state.ty};
-
-      const float zMag = SciFi::LookingForward::zMagnetParams[0] +
+       const float zMag = SciFi::LookingForward::zMagnetParams[0] +
                          SciFi::LookingForward::zMagnetParams[2] * UT_state.tx * UT_state.tx +
                          SciFi::LookingForward::zMagnetParams[3] * UT_state.ty * UT_state.ty;
 
@@ -1012,6 +1006,16 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       if ( true_scifi_indices_per_layer[5] != -1 ) {
         x_propagation_layer_5 = state_zRef.x;
         x_from_velo_layer_5 = xFromVelo(SciFi::LookingForward::Zone_zPos[5], UT_state);
+        const float tx2 = velo_state.tx*velo_state.tx;
+        const float ty2 = velo_state.ty*velo_state.ty;
+        const float slope2 = tx2 + ty2; 
+        const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qop); 
+        const float InvPz = std::sqrt( slope2 ) / pt; 
+        x_Ext_layer_5 = ( SciFi::Tracking::xExtParams[0] + SciFi::Tracking::xExtParams[1] * InvPz ) * InvPz
+          + SciFi::Tracking::xExtParams[2] * std::abs( velo_state.tx ) 
+          + SciFi::Tracking::xExtParams[3] * tx2 
+          + SciFi::Tracking::xExtParams[4] * std::abs( velo_state.ty ) 
+          + SciFi::Tracking::xExtParams[5] * ty2; 
         true_x_layer_5 = scifi_hits.x0[true_scifi_indices_per_layer[5]];
         t_extrap_l5->Fill();
       }

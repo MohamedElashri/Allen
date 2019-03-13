@@ -374,6 +374,7 @@ __device__ void save_track(
   // the track will be added
   int n_tracks = atomicAdd(n_veloUT_tracks, 1);
 
+  // to do: maybe save y from fit
   UT::TrackHits track;
   track.velo_track_index = i_track;
   track.qop = qop;

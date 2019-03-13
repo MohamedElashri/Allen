@@ -117,12 +117,13 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const float z_mag)
 {
   std::vector<std::tuple<int, int>> compatible_hits_x0;
-
+  
+  // extrapolation to reference plane taken from ReferencePlaneProjection.cu
   const auto z1 = SciFi::LookingForward::Zone_zPos[layer_from];
   const auto z0 = SciFi::LookingForward::Zone_zPos[layer_to];
   const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
   const auto dz = 1.e-3f * std::abs(z1 - z0);
-  const float x_from_velo_hit = x_at_ref + UT_state.tx * z1;
+  const float x_from_velo_hit = x_at_ref + UT_state.tx * (z1 - SciFi::Tracking::zReference);
 
   for (int h1_rel = 0; h1_rel < hits_in_layer_from.size(); ++h1_rel) {
     const auto h1_index = hits_in_layer_from[h1_rel];

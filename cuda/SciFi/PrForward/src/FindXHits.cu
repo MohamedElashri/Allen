@@ -1,37 +1,19 @@
 #include "FindXHits.cuh"
 
-
-__host__ void collectAllXHits_proto(
-  const SciFi::Hits& scifi_hits,
-  const SciFi::HitCount& scifi_hit_count,
-  const float xParams_seed[4],
-  const float yParams_seed[4],
+__host__ void x_limits_from_dxRef( 
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
-  const float qOverP,
-  int side,
-  std::array<int, 2 * 6>& windows_x,
-  std::array<int, 2 * 6>& windows_uv,
-  std::array<float, 4 * 6>& parameters_uv,
-  const std::array<int, 12>& true_scifi_indices_per_layer,
-  const float dxRef_calc)
+  const float InvPz,
+  const float p,
+  const float tx2,
+  const float ty2, 
+  const bool wSignTreatment, 
+  float& xBoundOnRef,
+  float& xBoundOnRefWS) 
 {
   // Find size of search window on reference plane, using Velo slopes and min pT as input
   float dxRef = 0.9f * calcDxRef(SciFi::Tracking::minPt, velo_state);
-  //float dxRef = dxRef_calc;
-  // find position within magnet where bending happens
-  float zMag = zMagnet(velo_state, constArrays);
-  const float dzInv = 1.f / ( SciFi::Tracking::zReference - zMag );
-
-  const float q = qOverP > 0.f ? 1.f : -1.f;
-  const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
-  const float tx2 = velo_state.tx*velo_state.tx;
-  const float ty2 = velo_state.ty*velo_state.ty;
-  const float slope2 = tx2 + ty2;
-  const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qOverP);
-  const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow 
-    && pt > SciFi::Tracking::wrongSignPT;
-
+      
   float dxRefWS = 0.f;
   if (wSignTreatment) {
     // make windows a bit too small - FIXME check effect of this, seems wrong
@@ -39,14 +21,13 @@ __host__ void collectAllXHits_proto(
   }
   
   // Momentum guided search window
-  const float p = 1.f / std::abs(qOverP);
-  const float InvPz = std::sqrt( slope2 ) / pt;
+
   // calculate the extrapolation at the Reference plane
   const float xExt = ( SciFi::Tracking::xExtParams[0] + SciFi::Tracking::xExtParams[1] * InvPz ) * InvPz
     + SciFi::Tracking::xExtParams[2] * std::abs( velo_state.tx ) 
     + SciFi::Tracking::xExtParams[3] * tx2 
     + SciFi::Tracking::xExtParams[4] * std::abs( velo_state.ty ) 
-    + SciFi::Tracking::xExtParams[5] * ty2;
+    + SciFi::Tracking::xExtParams[5] * ty2; 
 
   // Calculate the search window in the direction and inverse direction of bending
   const float upLimit = xExt + ( SciFi::Tracking::pUp[0] 
@@ -58,9 +39,60 @@ __host__ void collectAllXHits_proto(
   
   // the search window should be limited inside the minPt cut window
   if ( dxRef > upLimit ) { dxRef = upLimit; }
-  
+  xBoundOnRef = dxRef;
   if ( loLimit > -dxRefWS && loLimit < dxRef ) { dxRefWS = -loLimit; }
+  xBoundOnRefWS = dxRefWS;
+}
+
+__host__ void collectAllXHits_proto(
+  const SciFi::Hits& scifi_hits,
+  const SciFi::HitCount& scifi_hit_count,
+  const float xParams_seed[4],
+  const float yParams_seed[4],
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const MiniState& UT_state,
+  const float qOverP,
+  int side, 
+  std::array<int, 2 * 6>& windows_x,
+  std::array<int, 2 * 6>& windows_uv,
+  std::array<float, 4 * 6>& parameters_uv,
+  const SciFiWindowsParams& window_params, 
+  const float dxRef_calc)
+{
+  // find position within magnet where bending happens
+  float zMag = zMagnet(velo_state, constArrays);
+  const float dzInv = 1.f / ( SciFi::Tracking::zReference - zMag ); 
+
+  const float tx2 = velo_state.tx*velo_state.tx;
+  const float ty2 = velo_state.ty*velo_state.ty;
+  const float slope2 = tx2 + ty2;
+  const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qOverP);
+
+  const float p = 1.f / std::abs(qOverP);
+  const float InvPz = std::sqrt( slope2 ) / pt; 
+ 
+  const float q = qOverP > 0.f ? 1.f : -1.f;
+  const float dir = q * SciFi::Tracking::magscalefactor * (-1.f); 
+  const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow 
+    && pt > SciFi::Tracking::wrongSignPT; 
   
+  float xBoundOnRef, xBoundOnRefWS;
+  x_limits_from_dxRef(
+    constArrays,
+    velo_state,
+    InvPz,
+    p,
+    tx2,
+    ty2,
+    wSignTreatment,
+    xBoundOnRef,
+    xBoundOnRefWS);
+ 
+  // use parametrization to propagate from UT to SciFi
+  // const auto state_zRef = propagate_state_from_velo(UT_state, qOverP, 5);  // zRef is between layers 4 and 5 
+  // xBoundOnRef = 5000.f * dx_calc(state_zRef, qOverP, window_params); 
+ 
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
 
   for (unsigned int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
@@ -69,10 +101,14 @@ __host__ void collectAllXHits_proto(
 
     const auto izone_rel = iZone - iZoneStartingPoint;
     const float zZone = constArrays->xZone_zPos[izone_rel];
-
+    
+    const int layer = constArrays->xZones[iZone] / 2;
+    int direction = (zZone > SciFi::Tracking::zReference) ? 1 : -1;  
+    const float dz_x = direction * (zZone - SciFi::Tracking::zReference);
+    //const float xInZone = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_x);  
     const float xInZone = straightLinePropagation(xParams_seed, zZone);
     const float yInZone = straightLinePropagation(yParams_seed, zZone);
-
+ 
     if (side > 0) {
       if (
         !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
@@ -86,20 +122,21 @@ __host__ void collectAllXHits_proto(
         continue;
     }
 
-    // extrapolate dxRef (x window on reference plane) to plane of current zone
-    const float ratio = (zZone > SciFi::Tracking::zReference) 
+    // extrapolate xBoundOnRef (x window on reference plane) to plane of current zone
+    const float ratio = (zZone > SciFi::Tracking::zReference)  
       ? ( zZone - zMag ) * dzInv
       : zZone * SciFi::Tracking::zRefInv;
-    const float xTol = dxRef * ratio;
+    const float xTol = xBoundOnRef * ratio;
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
-
     
+    //    debug_cout << "xMin = " << xMin << ", xMax = " << xMax << std::endl;
+
     if (SciFi::Tracking::useMomentumEstimate) { // For VeloUT tracks, suppress check if track actually has qOverP set,
                                                 // get the option right!
       float xTolWS = 0.0;
       if (wSignTreatment) {
-        xTolWS = dxRefWS * ratio;
+        xTolWS = xBoundOnRefWS * ratio;
       }
       if (dir > 0) {
         xMin = xInZone - xTolWS;
@@ -108,7 +145,7 @@ __host__ void collectAllXHits_proto(
         xMax = xInZone + xTolWS;
       }
     }
-    
+  
     // Get the hits within the bounds
     assert(iZone < SciFi::Constants::n_layers);
     assert(constArrays->xZones[iZone] < SciFi::Constants::n_zones);
@@ -119,6 +156,8 @@ __host__ void collectAllXHits_proto(
     assert(itH >= x_zone_offset_begin && itH <= x_zone_offset_end);
     assert(itEnd >= x_zone_offset_begin && itEnd <= x_zone_offset_end);
 
+    //    debug_cout << "itH = " << itH << ", begin = " << x_zone_offset_begin << ", itEnd = " << itEnd << ", zone end = " << x_zone_offset_end << std::endl;
+
     windows_x[2*izone_rel] = itH;
     windows_x[2*izone_rel+1] = itEnd - itH;
     
@@ -128,13 +167,20 @@ __host__ void collectAllXHits_proto(
     // Now match the stereo hits
     const float this_uv_z = constArrays->uvZone_zPos[iZone - iZoneStartingPoint];
     const float xInUv = straightLinePropagation(xParams_seed, this_uv_z);
+    //const int this_uv_layer = constArrays->uvZones[iZone] / 2;
+    direction = (this_uv_z > SciFi::Tracking::zReference) ? 1 : -1;  
+    const float dz_uv = direction * (this_uv_z - SciFi::Tracking::zReference);
+    const float dx = yInZone * constArrays->uvZone_dxdy[iZone - iZoneStartingPoint]; 
+    //const float xPredUv = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_uv) - dx;  
     const float zRatio = (this_uv_z - zMag) / (zZone - zMag);
-    const float dx = yInZone * constArrays->uvZone_dxdy[iZone - iZoneStartingPoint];
+    //const float maxDx = xBoundOnRef * ratio;
+
     const float xCentral = xInZone + dx;
     const float xPredUv = xInUv + (scifi_hits.x0[itH] - xInZone) * zRatio - dx;
     const float maxDx = SciFi::Tracking::tolYCollectX +
-                        (fabsf(scifi_hits.x0[itH] - xCentral) + fabsf(yInZone)) * SciFi::Tracking::tolYSlopeCollectX;
+                        (fabsf(scifi_hits.x0[itH] - xCentral) + fabsf(yInZone)) * SciFi::Tracking::tolYSlopeCollectX;  
     const float xMinUV = xPredUv - maxDx;
+    const float xMaxUV = xPredUv + maxDx;
 
     // Get bounds in UV layers
     // do one search on the same side as the x module
