@@ -15,4 +15,5 @@ __device__ void lf_extend_tracks_x_impl(
   const float z2,
   const float max_chi2,
   const uint event_offset,
-  bool* candidates_flag);
+  bool* candidates_flag,
+  const uint8_t relative_extrapolation_layer);

@@ -35,21 +35,21 @@ __global__ void lf_extend_tracks_x(
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
 
     // Candidates pointer for current UT track
-    const auto scifi_lf_candidates = dev_scifi_lf_candidates
-      + current_ut_track_index * LookingForward::number_of_x_layers
-      * LookingForward::maximum_number_of_candidates;
+    const auto scifi_lf_candidates = dev_scifi_lf_candidates + current_ut_track_index * LookingForward::number_of_x_layers *
+                                                           LookingForward::maximum_number_of_candidates;
 
     const int8_t number_of_candidates =
       dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer + 1] -
       dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer];
 
-    const auto h0 = scifi_lf_candidates[track.hits[track.hitsNum - 2]];
-    const auto h1 = scifi_lf_candidates[track.hits[track.hitsNum - 1]];
+    const auto h0 = event_offset + scifi_lf_candidates[track.hits[track.hitsNum - 2]];
+    const auto h1 = event_offset + scifi_lf_candidates[track.hits[track.hitsNum - 1]];
+    
     const auto layer0 = scifi_hits.planeCode(h0) >> 1;
     const auto layer1 = scifi_hits.planeCode(h1) >> 1;
 
-    const auto x0 = scifi_hits.x0[event_offset + h0];
-    const auto x1 = scifi_hits.x0[event_offset + h1];
+    const auto x0 = scifi_hits.x0[h0];
+    const auto x1 = scifi_hits.x0[h1];
 
     const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];
     const auto z1 = dev_looking_forward_constants->Zone_zPos[layer1];
@@ -70,6 +70,7 @@ __global__ void lf_extend_tracks_x(
         + 2.5f * dev_looking_forward_constants->chi2_stddev_extrapolation_to_x_layers[relative_extrapolation_layer - 3],
       event_offset,
       dev_scifi_lf_candidates_flag
-        + dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers]);
+        + dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers],
+      relative_extrapolation_layer);
   }
 }

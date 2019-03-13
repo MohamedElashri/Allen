@@ -59,6 +59,7 @@
 #include "LFInitialTripletSeeding.cuh"
 #include "LFExtendTracksX.cuh"
 #include "LFTripletSeeding.cuh"
+#include "LFConvertTrackIndices.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

@@ -14,7 +14,8 @@ __device__ void lf_extend_tracks_x_impl(
   const float z2,
   const float max_chi2,
   const uint event_offset,
-  bool* candidates_flag)
+  bool* candidates_flag,
+  const uint8_t relative_extrapolation_layer)
 {
   // Precalculate chi2 related variables
   const auto dz1 = (z1 - z0);
@@ -39,7 +40,9 @@ __device__ void lf_extend_tracks_x_impl(
   }
 
   if (best_index != -1) {
-    track.add_hit_with_quality((uint16_t) best_index, best_chi2);
+    track.add_hit_with_quality(
+      (uint16_t) (relative_extrapolation_layer * LookingForward::maximum_number_of_candidates
+      + best_index), best_chi2);
 
     // TODO: Try with and without flagging
     candidates_flag[track.hits[track.hitsNum - 4]] = true;
