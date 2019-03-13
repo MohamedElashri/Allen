@@ -263,8 +263,6 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
     const std::array<int, 4> max_candidates_triplets {20, 20, 20, 20};
     const float factor_chi2_triplet = 2.5f;
     const float factor_chi2_extend = 2.5f;
-    const float compatible_window_factor = 4.f;
-    const float compatible_window_factor_extend = 4.f;
     const bool use_flagging = true;
     const bool use_flagging_in_l0_l3_layers = false;
     const bool use_multi_flags = true;
