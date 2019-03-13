@@ -39,7 +39,7 @@ __device__ void lf_extend_tracks_x_impl(
   }
 
   if (best_index != -1) {
-    track.add_hit_with_quality((uint16_t) scifi_lf_candidates[best_index], best_chi2);
+    track.add_hit_with_quality((uint16_t) best_index, best_chi2);
 
     // TODO: Try with and without flagging
     candidates_flag[track.hits[track.hitsNum - 4]] = true;

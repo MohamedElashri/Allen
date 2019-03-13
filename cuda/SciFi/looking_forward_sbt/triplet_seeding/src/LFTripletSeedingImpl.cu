@@ -33,31 +33,31 @@ __device__ void lf_triplet_seeding_impl(
   // In further iterations, we can prune the candidates by checking their flag.
   // shared_candidates fetches all active candidates in order
   for (int16_t h0_rel = threadIdx.x; h0_rel < h0_candidate_size; h0_rel += blockDim.x) {
-    const auto h0 = candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + h0_rel];
-    if (!candidates_flag[h0]) {
+    const auto h0_candidate_index = (relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + h0_rel;
+    if (!candidates_flag[h0_candidate_index]) {
       const auto insert_index = atomicAdd(atomics_seeding, 1);
       if (insert_index < LookingForward::maximum_number_of_candidates_flagged) {
-        shared_candidates[insert_index] = h0;
+        shared_candidates[insert_index] = candidates[h0_candidate_index];
       }
     }
   }
 
   for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
-    const auto h1 = candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates + h1_rel];
-    if (!candidates_flag[h1]) {
+    const auto h1_candidate_index = relative_middle_layer * LookingForward::maximum_number_of_candidates + h1_rel;
+    if (!candidates_flag[h1_candidate_index]) {
       const auto insert_index = atomicAdd(atomics_seeding + 1, 1);
       if (insert_index < LookingForward::maximum_number_of_candidates_flagged) {
-        shared_candidates[LookingForward::maximum_number_of_candidates_flagged + insert_index] = h1;
+        shared_candidates[LookingForward::maximum_number_of_candidates_flagged + insert_index] = candidates[h1_candidate_index];
       }
     }
   }
 
   for (int16_t h2_rel = threadIdx.x; h2_rel < h2_candidate_size; h2_rel += blockDim.x) {
-    const auto h2 = candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + h2_rel];
-    if (!candidates_flag[h2]) {
+    const auto h2_candidate_index = (relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + h2_rel;
+    if (!candidates_flag[h2_candidate_index]) {
       const auto insert_index = atomicAdd(atomics_seeding + 2, 1);
       if (insert_index < LookingForward::maximum_number_of_candidates_flagged) {
-        shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged + insert_index] = h2;
+        shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged + insert_index] = candidates[h2_candidate_index];
       }
     }
   }

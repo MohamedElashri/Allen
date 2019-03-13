@@ -10,7 +10,7 @@ void SequenceVisitor::set_arguments_size<lf_initial_triplet_seeding_t>(
 {
   arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_tracks);
   arguments.set_size<dev_atomics_scifi>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics);
-  arguments.set_size<dev_scifi_lf_candidates_flag>(host_buffers.host_accumulated_number_of_scifi_hits[0]);
+  arguments.set_size<dev_scifi_lf_candidates_flag>(host_buffers.host_lf_total_number_of_candidates[0]);
 }
 
 template<>

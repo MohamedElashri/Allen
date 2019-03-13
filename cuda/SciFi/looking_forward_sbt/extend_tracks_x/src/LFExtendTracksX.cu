@@ -36,15 +36,15 @@ __global__ void lf_extend_tracks_x(
 
     // Candidates pointer for current UT track
     const auto scifi_lf_candidates = dev_scifi_lf_candidates
-      + (current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer)
+      + current_ut_track_index * LookingForward::number_of_x_layers
       * LookingForward::maximum_number_of_candidates;
 
     const int8_t number_of_candidates =
       dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer + 1] -
       dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer];
 
-    const auto h0 = track.hits[track.hitsNum - 2];
-    const auto h1 = track.hits[track.hitsNum - 1];
+    const auto h0 = scifi_lf_candidates[track.hits[track.hitsNum - 2]];
+    const auto h1 = scifi_lf_candidates[track.hits[track.hitsNum - 1]];
     const auto layer0 = scifi_hits.planeCode(h0) >> 1;
     const auto layer1 = scifi_hits.planeCode(h1) >> 1;
 
@@ -57,7 +57,8 @@ __global__ void lf_extend_tracks_x(
 
     lf_extend_tracks_x_impl(
       scifi_hits,
-      scifi_lf_candidates,
+      scifi_lf_candidates
+        + relative_extrapolation_layer * LookingForward::maximum_number_of_candidates,
       number_of_candidates,
       track,
       x0,
@@ -68,6 +69,7 @@ __global__ void lf_extend_tracks_x(
       dev_looking_forward_constants->chi2_mean_extrapolation_to_x_layers[relative_extrapolation_layer - 3]
         + 2.5f * dev_looking_forward_constants->chi2_stddev_extrapolation_to_x_layers[relative_extrapolation_layer - 3],
       event_offset,
-      dev_scifi_lf_candidates_flag + event_offset);
+      dev_scifi_lf_candidates_flag
+        + dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers]);
   }
 }

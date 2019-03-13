@@ -42,10 +42,9 @@ __global__ void lf_triplet_seeding(
   const SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
   const auto event_offset = scifi_hit_count.event_offset();
 
-  // ut_event_number_of_tracks
-  for (uint16_t i = blockIdx.y; i < 1; i += gridDim.y) {
+  for (uint16_t i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_track_index = ut_event_tracks_offset + i;
-    auto scifi_lf_candidates = dev_scifi_lf_candidates + current_track_index * LookingForward::number_of_x_layers *
+    const auto scifi_lf_candidates = dev_scifi_lf_candidates + current_track_index * LookingForward::number_of_x_layers *
                                                            LookingForward::maximum_number_of_candidates;
 
     // Initialize shared memory buffers
@@ -92,7 +91,8 @@ __global__ void lf_triplet_seeding(
       best_chi2,
       best_h0_h2,
       scifi_lf_candidates,
-      dev_scifi_lf_candidates_flag + event_offset,
+      dev_scifi_lf_candidates_flag
+        + dev_scifi_lf_number_of_candidates[current_track_index * LookingForward::number_of_x_layers],
       shared_candidates,
       dev_scifi_lf_candidate_atomics + event_number * SciFi::Constants::max_tracks + 3 * i,
       z0,
@@ -148,14 +148,13 @@ __global__ void lf_triplet_seeding(
         // Create triplet candidate with all information we have
         const int current_insert_index = insertion_offset[0] + j;
         if (current_insert_index < SciFi::Constants::max_tracks) {
-          const uint16_t h0 = (uint16_t) shared_candidates[best_h0_h2[k]];
-          const uint16_t h1 =
-            (uint16_t) shared_candidates[LookingForward::maximum_number_of_candidates_flagged + k];
-          const uint16_t h2 = (uint16_t) 
-            shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged +
-            best_h0_h2[LookingForward::maximum_number_of_candidates_flagged + k]];
-          const float x0 = scifi_hits.x0[event_offset + h0];
-          const float x1 = scifi_hits.x0[event_offset + h1];
+          const uint16_t h0 = (uint16_t) ((relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + best_h0_h2[k]);
+          const uint16_t h1 = (uint16_t) (relative_middle_layer * LookingForward::maximum_number_of_candidates + k);
+          const uint16_t h2 = (uint16_t) ((relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates +
+             best_h0_h2[LookingForward::maximum_number_of_candidates + k]);
+
+          const float x0 = scifi_hits.x0[event_offset + scifi_lf_candidates[h0]];
+          const float x1 = scifi_hits.x0[event_offset + scifi_lf_candidates[h1]];
 
           dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + current_insert_index] =
             SciFi::TrackHits {h0,
