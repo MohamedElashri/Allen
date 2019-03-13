@@ -64,8 +64,6 @@ std::tuple<int, int> find_x_in_window(
 void find_triplets(
   const SciFi::Hits& scifi_hits,
   const float qop,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x0,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x2,
   const std::vector<bool>& flag,
   const int event_offset,
   const std::array<int, 6>& layers,
@@ -83,22 +81,6 @@ void find_triplets(
 std::vector<std::tuple<int, int, int, float>> find_triplets(
   const SciFi::Hits& scifi_hits,
   const float qop,
-  const std::vector<bool>& flag,
-  const int event_offset,
-  const std::array<int, 6>& layers,
-  const std::array<std::vector<int>, 6>& hits_in_layers,
-  const int relative_layer0,
-  const int relative_layer1,
-  const int relative_layer2,
-  const int max_candidates_triplet,
-  const float max_triplet_chi2,
-  const bool use_flagging);
-
-std::vector<std::tuple<int, int, int, float>> find_triplets(
-  const SciFi::Hits& scifi_hits,
-  const float qop,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x0,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x2,
   const std::vector<bool>& flag,
   const int event_offset,
   const std::array<int, 6>& layers,

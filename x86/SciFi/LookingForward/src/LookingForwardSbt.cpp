@@ -134,7 +134,7 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const auto z0 = SciFi::LookingForward::Zone_zPos[layer_to];
   const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
   const auto dz = 1.e-3f * std::abs(z1 - z0);
-  const float x_from_velo_hit = x_at_ref + UT_state.tx * z1;
+  const auto x_from_velo_hit = x_at_ref + UT_state.tx * (z1 - SciFi::Tracking::zReference);
 
   for (int h1_rel = 0; h1_rel < hits_in_layer_from.size(); ++h1_rel) {
     const auto h1_index = hits_in_layer_from[h1_rel];
@@ -183,8 +183,6 @@ std::tuple<int, int> find_x_in_window(
 void find_triplets(
   const SciFi::Hits& scifi_hits,
   const float qop,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x0,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x2,
   const std::vector<bool>& flag,
   const int event_offset,
   const std::array<int, 6>& layers,
@@ -202,8 +200,6 @@ void find_triplets(
   const auto triplets = find_triplets(
     scifi_hits,
     qop,
-    compatible_hits_x0,
-    compatible_hits_x2,
     flag,
     event_offset,
     layers,
@@ -238,8 +234,6 @@ void find_triplets(
 std::vector<std::tuple<int, int, int, float>> find_triplets(
   const SciFi::Hits& scifi_hits,
   const float qop,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x0,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x2,
   const std::vector<bool>& flag,
   const int event_offset,
   const std::array<int, 6>& layers,
@@ -299,58 +293,6 @@ std::vector<std::tuple<int, int, int, float>> find_triplets(
     if (best_h0 != -1 && best_h2 != -1) {
       triplets.push_back({best_h0, h1, best_h2, best_chi2});
     }
-  }
-  std::sort(
-    triplets.begin(), triplets.end(), [](const auto a, const auto b) { return std::get<3>(a) < std::get<3>(b); });
-
-  // Restrict number of candidates
-  if (triplets.size() > max_candidates_triplet) {
-    triplets.resize(max_candidates_triplet);
-  }
-
-  return triplets;
-}
-
-std::vector<std::tuple<int, int, int, float>> find_triplets(
-  const SciFi::Hits& scifi_hits,
-  const float qop,
-  const std::vector<bool>& flag,
-  const int event_offset,
-  const std::array<int, 6>& layers,
-  const std::array<std::vector<int>, 6>& hits_in_layers,
-  const int relative_layer0,
-  const int relative_layer1,
-  const int relative_layer2,
-  const int max_candidates_triplet,
-  const float max_triplet_chi2,
-  const bool use_flagging)
-{
-  const auto layer0 = layers[relative_layer0];
-  const auto layer1 = layers[relative_layer1];
-  const auto layer2 = layers[relative_layer2];
-
-  std::vector<std::tuple<int, int, int, float>> triplets;
-
-  for (int i = 0; i < hits_in_layers[relative_layer1].size(); ++i) {
-    const auto h1 = hits_in_layers[relative_layer1][i];
-
-    for (const auto h0 : hits_in_layers[relative_layer0]) {
-      for (const auto h2 : hits_in_layers[relative_layer2]) {
-
-        // Flagging
-        if (!use_flagging || (!flag[h0 - event_offset] && !flag[h1 - event_offset] && !flag[h2 - event_offset])) {
-          const auto chi2 = chi2_triplet(scifi_hits, qop, h0, h1, h2, layer0, layer1, layer2);
-
-          info_cout << "Hits chi2: " << h0 << ", " << h1 << ", " << h2 << ": " << chi2 << std::endl;
-          
-          if (chi2 < max_triplet_chi2) {
-            triplets.push_back({h0, h1, h2, chi2});
-          }
-        }
-      }
-    }
-
-    break;
   }
   std::sort(
     triplets.begin(), triplets.end(), [](const auto a, const auto b) { return std::get<3>(a) < std::get<3>(b); });
@@ -492,17 +434,17 @@ void extend_tracklets(
     if (best_index != -1) {
       tracklet.add_hit_with_quality((uint16_t) (best_index - event_offset), best_chi2);
 
-      const short index_to_check = 1446;
-      if (tracklet.hits[tracklet.hitsNum - 4] == index_to_check ||
-        tracklet.hits[tracklet.hitsNum - 3] == index_to_check ||
-        tracklet.hits[tracklet.hitsNum - 2] == index_to_check ||
-        tracklet.hits[tracklet.hitsNum - 1] == index_to_check)
-      {
-        printf("CPU tracklet hits: %i, %i, %i, %i\n",
-          tracklet.hits[tracklet.hitsNum - 4], tracklet.hits[tracklet.hitsNum - 3],
-          tracklet.hits[tracklet.hitsNum - 2], tracklet.hits[tracklet.hitsNum - 1]
-        );
-      }
+      // const short index_to_check = 1446;
+      // if (tracklet.hits[tracklet.hitsNum - 4] == index_to_check ||
+      //   tracklet.hits[tracklet.hitsNum - 3] == index_to_check ||
+      //   tracklet.hits[tracklet.hitsNum - 2] == index_to_check ||
+      //   tracklet.hits[tracklet.hitsNum - 1] == index_to_check)
+      // {
+      //   printf("CPU tracklet hits: %i, %i, %i, %i\n",
+      //     tracklet.hits[tracklet.hitsNum - 4], tracklet.hits[tracklet.hitsNum - 3],
+      //     tracklet.hits[tracklet.hitsNum - 2], tracklet.hits[tracklet.hitsNum - 1]
+      //   );
+      // }
 
       // Flag last four
       flag[tracklet.hits[tracklet.hitsNum - 4]] = true;

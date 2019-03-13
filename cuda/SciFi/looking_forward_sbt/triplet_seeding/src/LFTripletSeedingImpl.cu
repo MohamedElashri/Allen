@@ -69,22 +69,22 @@ __device__ void lf_triplet_seeding_impl(
   h1_candidate_size = (uint8_t) atomics_seeding[1];
   h2_candidate_size = (uint8_t) atomics_seeding[2];
 
-  if (threadIdx.x == 0) {
-    for (int i=0; i<h0_candidate_size; ++i) {
-      printf("%i, ", shared_candidates[i]);
-    }
-    printf("\n");
+  // if (threadIdx.x == 0) {
+  //   for (int i=0; i<h0_candidate_size; ++i) {
+  //     printf("%i, ", shared_candidates[i]);
+  //   }
+  //   printf("\n");
 
-    for (int i=0; i<h1_candidate_size; ++i) {
-      printf("%i, ", shared_candidates[LookingForward::maximum_number_of_candidates_flagged + i]);
-    }
-    printf("\n");
+  //   for (int i=0; i<h1_candidate_size; ++i) {
+  //     printf("%i, ", shared_candidates[LookingForward::maximum_number_of_candidates_flagged + i]);
+  //   }
+  //   printf("\n");
 
-    for (int i=0; i<h1_candidate_size; ++i) {
-      printf("%i, ", shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged + i]);
-    }
-    printf("\n");
-  }
+  //   for (int i=0; i<h1_candidate_size; ++i) {
+  //     printf("%i, ", shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged + i]);
+  //   }
+  //   printf("\n");
+  // }
 
   if (h0_candidate_size > 0 && h1_candidate_size > 0 && h2_candidate_size > 0) {
 
