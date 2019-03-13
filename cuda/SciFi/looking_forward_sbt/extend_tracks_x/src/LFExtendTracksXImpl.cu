@@ -46,5 +46,17 @@ __device__ void lf_extend_tracks_x_impl(
     candidates_flag[track.hits[track.hitsNum - 3]] = true;
     candidates_flag[track.hits[track.hitsNum - 2]] = true;
     candidates_flag[track.hits[track.hitsNum - 1]] = true;
+
+    const short index_to_check = 1446;
+    if (track.hits[track.hitsNum - 4] == index_to_check ||
+      track.hits[track.hitsNum - 3] == index_to_check ||
+      track.hits[track.hitsNum - 2] == index_to_check ||
+      track.hits[track.hitsNum - 1] == index_to_check)
+    {
+      printf("track hits: %i, %i, %i, %i\n",
+        track.hits[track.hitsNum - 4], track.hits[track.hitsNum - 3],
+        track.hits[track.hitsNum - 2], track.hits[track.hitsNum - 1]
+      );
+    }
   }
 }

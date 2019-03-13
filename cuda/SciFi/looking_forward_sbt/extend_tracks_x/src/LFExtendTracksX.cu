@@ -39,10 +39,9 @@ __global__ void lf_extend_tracks_x(
       + (current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer)
       * LookingForward::maximum_number_of_candidates;
 
-    const auto scifi_lf_candidates_offset = dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer];
     const int8_t number_of_candidates =
       dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer + 1] -
-      scifi_lf_candidates_offset;
+      dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer];
 
     const auto h0 = track.hits[track.hitsNum - 2];
     const auto h1 = track.hits[track.hitsNum - 1];
@@ -69,6 +68,6 @@ __global__ void lf_extend_tracks_x(
       dev_looking_forward_constants->chi2_mean_extrapolation_to_x_layers[relative_extrapolation_layer - 3]
         + 2.5f * dev_looking_forward_constants->chi2_stddev_extrapolation_to_x_layers[relative_extrapolation_layer - 3],
       event_offset,
-      dev_scifi_lf_candidates_flag + scifi_lf_candidates_offset);
+      dev_scifi_lf_candidates_flag + event_offset);
   }
 }

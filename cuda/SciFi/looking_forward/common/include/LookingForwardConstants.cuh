@@ -44,7 +44,9 @@ namespace LookingForward {
    */
   constexpr int number_of_x_layers = 6;
   constexpr int maximum_number_of_candidates = 64;
+  constexpr int maximum_number_of_candidates_flagged = 64;
   constexpr int maximum_number_of_triplets_per_ut_track = 20;
+  constexpr int num_atomics = 1;
 
   // cut on the difference between tx from the extrapolation and
   // tx from the hits in the two x layers

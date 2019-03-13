@@ -64,32 +64,32 @@ void SequenceVisitor::visit<lf_extend_tracks_x_t>(
   //     }
   //   }
 
-    // info_cout << "Event " << i << ", number of quadruplet tracks " << number_of_quadruplets << std::endl;
+  //   info_cout << "Event " << i << ", number of quadruplet tracks " << number_of_quadruplets << std::endl;
 
-    // for (int j=0; j<number_of_tracks; ++j) {
-    //   const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
-    //   if (track.hitsNum >= 4) {
-    //     info_cout << "Track ";
-    //     for (int k=0; k<track.hitsNum; ++k) {
-    //       info_cout << track.hits[k] << ", ";
-    //     }
-    //     info_cout << track.get_quality() << std::endl;
-    //   }
-    // }
-    // info_cout << std::endl;
+  //   for (int j=0; j<number_of_tracks; ++j) {
+  //     const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
+  //     if (track.hitsNum >= 4) {
+  //       info_cout << "Track ";
+  //       for (int k=0; k<track.hitsNum; ++k) {
+  //         info_cout << track.hits[k] << ", ";
+  //       }
+  //       info_cout << track.get_quality() << std::endl;
+  //     }
+  //   }
+  //   info_cout << std::endl;
 
-    // info_cout << "Event " << i << ", number of tracks " << number_of_tracks << std::endl;
+  //   info_cout << "Event " << i << ", number of tracks " << number_of_tracks << std::endl;
 
-    // for (int j=0; j<number_of_tracks; ++j) {
-    //   const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
-    //   info_cout << " Track #" << j << " from ut track " << track.ut_track_index
-    //     << ", quality " << track.get_quality()
-    //     << ", hits: ";
+  //   for (int j=0; j<number_of_tracks; ++j) {
+  //     const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
+  //     info_cout << " Track #" << j << " from ut track " << track.ut_track_index
+  //       << ", quality " << track.get_quality()
+  //       << ", hits: ";
 
-    //   for (int k=0; k<track.hitsNum; ++k) {
-    //     info_cout << track.hits[k] << ", ";
-    //   }
-    //   info_cout << std::endl;
-    // }
+  //     for (int k=0; k<track.hitsNum; ++k) {
+  //       info_cout << track.hits[k] << ", ";
+  //     }
+  //     info_cout << std::endl;
+  //   }
   // }
 }

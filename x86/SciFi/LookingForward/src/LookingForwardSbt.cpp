@@ -492,6 +492,18 @@ void extend_tracklets(
     if (best_index != -1) {
       tracklet.add_hit_with_quality((uint16_t) (best_index - event_offset), best_chi2);
 
+      const short index_to_check = 1446;
+      if (tracklet.hits[tracklet.hitsNum - 4] == index_to_check ||
+        tracklet.hits[tracklet.hitsNum - 3] == index_to_check ||
+        tracklet.hits[tracklet.hitsNum - 2] == index_to_check ||
+        tracklet.hits[tracklet.hitsNum - 1] == index_to_check)
+      {
+        printf("CPU tracklet hits: %i, %i, %i, %i\n",
+          tracklet.hits[tracklet.hitsNum - 4], tracklet.hits[tracklet.hitsNum - 3],
+          tracklet.hits[tracklet.hitsNum - 2], tracklet.hits[tracklet.hitsNum - 1]
+        );
+      }
+
       // Flag last four
       flag[tracklet.hits[tracklet.hitsNum - 4]] = true;
       flag[tracklet.hits[tracklet.hitsNum - 3]] = true;
