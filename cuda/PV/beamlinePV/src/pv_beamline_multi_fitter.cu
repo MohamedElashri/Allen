@@ -133,7 +133,6 @@ __global__ void pv_beamline_multi_fitter(
         vtxcov[4] = -(a21 * a00) * inv_det;
         vtxcov[5] = (a11 * a00) * inv_det;
 
-        // compute the delta w.r.t. the reference
         const float2 delta_xy {
           -1.f * (vtxcov[0] * halfDChi2DX.x + vtxcov[1] * halfDChi2DX.y + vtxcov[3] * halfDChi2DX.z),
           -1.f * (vtxcov[1] * halfDChi2DX.x + vtxcov[2] * halfDChi2DX.y + vtxcov[4] * halfDChi2DX.z)};

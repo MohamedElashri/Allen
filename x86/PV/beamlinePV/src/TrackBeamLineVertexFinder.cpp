@@ -53,14 +53,12 @@ namespace {
 
   // This naively implements the adapative multi-vertex fit.
   void multifitAdaptive(
-    const VeloState* velostates,
     const PVTrack* tracks,
     uint number_of_tracks,
-    const float3* seedpositions,
+    const float* zseeds,
     uint number_of_seeds,
     PV::Vertex* vertices,
-    unsigned short maxNumIter = 5,
-    float chi2max = 9.f)
+    int* total_number_of_vertices)
   {
 #ifdef WITH_ROOT
     TFile* weightfile = new TFile("weights.root", "RECREATE");
@@ -73,6 +71,8 @@ namespace {
     weight_tree->Branch("nr_track", &i_track);
 #endif
 
+    PV::Vertex vertex;
+    int number_of_vertices = 0;
     // loop over all seeds, on GPU do this in parallel
     for (int i_thisseed = 0; i_thisseed < number_of_seeds; i_thisseed++) {
       bool converged = false;
@@ -83,13 +83,14 @@ namespace {
       vtxcov[3] = 0.f;
       vtxcov[4] = 0.f;
       vtxcov[5] = 0.f;
-      float3 vtxpos = seedpositions[i_thisseed];
-      const float maxDeltaZConverged {0.001};
+      float2 vtxpos_xy {beamline.x, beamline.y};
+      auto vtxpos_z = zseeds[i_thisseed];
+
       float chi2tot = 0;
       unsigned short nselectedtracks = 0;
       unsigned short iter = 0;
       debug_cout << "next vertex " << std::endl;
-      for (; iter < maxNumIter && !converged; ++iter) {
+      for (; iter < maxFitIter && !converged; ++iter) {
         float halfD2Chi2DX2_00 = 0.f;
         float halfD2Chi2DX2_10 = 0.f;
         float halfD2Chi2DX2_11 = 0.f;
@@ -99,62 +100,41 @@ namespace {
         float3 halfDChi2DX {0.f, 0.f, 0.f};
         chi2tot = 0.f;
         nselectedtracks = 0;
-        float2 vtxposvec {vtxpos.x, vtxpos.y};
         debug_cout << "next track" << std::endl;
         for (int i = 0; i < number_of_tracks; i++) {
-          const VeloState s = velostates[i];
           // compute the (chance in) z of the poca to the beam axis
-          const auto tx = s.tx;
-          const auto ty = s.ty;
+          PVTrackInVertex trk = tracks[i];
           // extrapolate state to seed position
-          const float dz = vtxpos.z - s.z;
-          PVTrackInVertex trk = PVTrack {s, dz};
+          const float dz = vtxpos_z - trk.z;
+
           // compute the chi2
-          // PVTrackInVertex trk = tracks[i];
           float2 res {0.f, 0.f};
-          res = vtxposvec - (trk.x);
+          res = vtxpos_xy - (trk.x + trk.tx * dz);
           double chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
         //  debug_cout << "chi2 = " << chi2 << ", max = " << chi2max << std::endl;
           // compute the weight.
           trk.weight = 0;
-          // probabaly no point to consider tracks with to high chi2
-          // if( chi2 < chi2max ) { // to branch or not, that is the question!
-          if (chi2 < 25.) {
+          if (chi2 < maxChi2) {
             ++nselectedtracks;
             // Tukey's weight
             // double T = 1. + maxNumIter / (iter+1) * 0.05;
             double T = 1.f;
-
-            // try out varying chi2_cut during iterations instead of T
-            double chi2_cut = 25.;
-            // double chi2_cut = 16.;
-
             trk.weight = exp(-chi2 / 2. / T);
-            double denom = exp(-chi2_cut / 2. / T) + trk.weight;
+            double denom = exp(-chi2Cut / 2. / T) + trk.weight;
             //try out different weight calucaltion
             double my_nom = 0;
-           // std::cout << "my chi2: " << chi2 << " " <<res.x << " " << res.y << " " << trk.W_00 << " " << trk.W_11<<  std::endl;
             for (int i_otherseed = 0; i_otherseed < number_of_seeds; i_otherseed++) {
-              //if(i_thisseed == i_otherseed) continue;
-
-              float2 tmp_res {0.f, 0.f};
-              float3 otherseedpos = seedpositions[i_otherseed];
-              float2 otherseedvtx {otherseedpos.x, otherseedpos.y};
-              const float dz = seedpositions[i_otherseed].z - s.z;
-              PVTrackInVertex tmp_trk = PVTrack {s, dz};
-              tmp_res = otherseedvtx - (tmp_trk.x);
-              // at the moment this term reuses W'matrix at z of point of closest approach -> use seed positions
-              // instead?
-            //  std::cout << "zeds: " << vtxpos.z << " " << s.z << " " << seedpositions[i_otherseed].z << std::endl;
-              double tmp_chi2 = tmp_res.x * tmp_res.x * tmp_trk.W_00 + tmp_res.y * tmp_res.y * tmp_trk.W_11;
-          //    std::cout << "other chi2 " << tmp_chi2 << " " <<tmp_res.x << " " << tmp_res.y << " " << tmp_trk.W_00 << " " << tmp_trk.W_11<<  std::endl;
-              denom += exp(-tmp_chi2 / 2.f / T);
-              if(i_thisseed == i_otherseed) my_nom = exp(-tmp_chi2 / 2.f / T);
+              float2 res_otherseed {0.f, 0.f};
+              const auto dz = zseeds[i_otherseed] - trk.z;
+              res_otherseed = res_otherseed - (trk.x + trk.tx * dz);
+              // at the moment this term reuses W matrix at z of point of closest approach -> use seed positions instead?
+              const auto chi2_otherseed =
+                res_otherseed.x * res_otherseed.x * trk.W_00 + res_otherseed.y * res_otherseed.y * trk.W_11;
+              denom += exp(-chi2_otherseed * 0.5f);
+              if(i_thisseed == i_otherseed) my_nom = exp(-chi2_otherseed * 0.5f);
             }
 
             trk.weight = my_nom / denom;
-            std::cout.precision(7);
-            //std::cout << "weight: " << trk.weight << " " << " " << my_nom << " " << denom << std::endl;
 #ifdef WITH_ROOT
             i_event = i_thisseed;
             b_weight = trk.weight;
@@ -163,7 +143,7 @@ namespace {
             weight_tree->Fill();
 #endif
 
-            if (trk.weight < 0.3f) continue;
+            if (trk.weight < maxWeight) continue;
 
             float3 HWr;
             HWr.x = res.x * trk.W_00;
@@ -173,7 +153,6 @@ namespace {
             halfDChi2DX = halfDChi2DX + HWr * trk.weight;
 
             halfD2Chi2DX2_00 += trk.weight * trk.HWH_00;
-            halfD2Chi2DX2_10 += 0.f;
             halfD2Chi2DX2_11 += trk.weight * trk.HWH_11;
             halfD2Chi2DX2_20 += trk.weight * trk.HWH_20;
             halfD2Chi2DX2_21 += trk.weight * trk.HWH_21;
@@ -184,63 +163,70 @@ namespace {
         }
         if (nselectedtracks >= 2) {
           // compute the new vertex covariance using analytical inversion
-          float a00 = halfD2Chi2DX2_00;
-          float a10 = halfD2Chi2DX2_10;
-          float a11 = halfD2Chi2DX2_11;
-          float a20 = halfD2Chi2DX2_20;
-          float a21 = halfD2Chi2DX2_21;
-          float a22 = halfD2Chi2DX2_22;
+          const auto a00 = halfD2Chi2DX2_00;
+          const auto a11 = halfD2Chi2DX2_11;
+          const auto a20 = halfD2Chi2DX2_20;
+          const auto a21 = halfD2Chi2DX2_21;
+          const auto a22 = halfD2Chi2DX2_22;
 
-          float det = a00 * (a22 * a11 - a21 * a21) - a10 * (a22 * a10 - a21 * a20) + a20 * (a21 * a10 - a11 * a20);
+          const auto det = a00 * (a22 * a11 - a21 * a21) + a20 * (-a11 * a20);
+          const auto inv_det = 1.f / det;
+
+          // maybe we should catch the case when det = 0
           // if (det == 0) return false;
 
-          vtxcov[0] = (a22 * a11 - a21 * a21) / det;
-          vtxcov[1] = -(a22 * a10 - a20 * a21) / det;
-          vtxcov[2] = (a22 * a00 - a20 * a20) / det;
-          vtxcov[3] = (a21 * a10 - a20 * a11) / det;
-          vtxcov[4] = -(a21 * a00 - a20 * a10) / det;
-          vtxcov[5] = (a11 * a00 - a10 * a10) / det;
+          vtxcov[0] = (a22 * a11 - a21 * a21) * inv_det;
+          vtxcov[1] = -(-a20 * a21) * inv_det;
+          vtxcov[2] = (a22 * a00 - a20 * a20) * inv_det;
+          vtxcov[3] = (-a20 * a11) * inv_det;
+          vtxcov[4] = -(a21 * a00) * inv_det;
+          vtxcov[5] = (a11 * a00) * inv_det;
 
-          // compute the delta w.r.t. the reference
-          float3 delta {0.f, 0.f, 0.f};
-          // CHECK this
-          delta.x = -1.f * (vtxcov[0] * halfDChi2DX.x + vtxcov[1] * halfDChi2DX.y + vtxcov[3] * halfDChi2DX.z);
-          delta.y = -1.f * (vtxcov[1] * halfDChi2DX.x + vtxcov[2] * halfDChi2DX.y + vtxcov[4] * halfDChi2DX.z);
-          delta.z = -1.f * (vtxcov[3] * halfDChi2DX.x + vtxcov[4] * halfDChi2DX.y + vtxcov[5] * halfDChi2DX.z);
+          const float2 delta_xy {
+          -1.f * (vtxcov[0] * halfDChi2DX.x + vtxcov[1] * halfDChi2DX.y + vtxcov[3] * halfDChi2DX.z),
+          -1.f * (vtxcov[1] * halfDChi2DX.x + vtxcov[2] * halfDChi2DX.y + vtxcov[4] * halfDChi2DX.z)};
 
-          // note: this is only correct if chi2 was chi2 of reference!
-          chi2tot += delta.x * halfDChi2DX.x + delta.y * halfDChi2DX.y + delta.z * halfDChi2DX.z;
+          const auto delta_z = -1.f * (vtxcov[3] * halfDChi2DX.x + vtxcov[4] * halfDChi2DX.y + vtxcov[5] * halfDChi2DX.z);
+          chi2tot += delta_xy.x * halfDChi2DX.x + delta_xy.y * halfDChi2DX.y + delta_z * halfDChi2DX.z;
 
           // update the position
-          vtxpos = vtxpos + delta;
-          converged = std::abs(delta.z) < maxDeltaZConverged;
+          vtxpos_xy = vtxpos_xy + delta_xy;
+          vtxpos_z = vtxpos_z + delta_z;
+          converged = std::abs(delta_z) < maxDeltaZConverged;
         }
-        else {
-          PV::Vertex vertex;
+         else {
           float3 fakepos {-99999.f, -99999.f, -99999.f};
           vertex.setPosition(fakepos);
-          vertices[i_thisseed] = vertex;
           break;
         }
       } // end iteration loop
       // std::cout << "Number of iterations: " << iter << " " << nselectedtracks << std::endl ;
       PV::Vertex vertex;
       vertex.chi2 = chi2tot;
-      vertex.setPosition(vtxpos);
+      vertex.setPosition(vtxpos_xy, vtxpos_z);
       // vtxcov[5] = 100.;
       vertex.setCovMatrix(vtxcov);
       for (int i = 0; i < number_of_tracks; i++) {
         PVTrackInVertex trk = tracks[i];
         if (trk.weight > 0) vertex.n_tracks++;
       }
-      vertices[i_thisseed] = vertex;
+      const float2 beamline {0.f, 0.f};
+      const auto beamlinedx = vertex.position.x - beamline.x;
+      const auto beamlinedy = vertex.position.y - beamline.y;
+      const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
+      if (vertex.n_tracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
+        vertices[number_of_vertices] = vertex;
+        number_of_vertices++;
+      }
     }
+    *total_number_of_vertices = number_of_vertices;
 #ifdef WITH_ROOT
     weight_tree->Write();
     weightfile->Close();
 #endif
   }
 
+/*
   // This implements the adapative vertex fit with Tukey's weights.
   PV::Vertex fitAdaptive(
     const PVTrack* tracks,
@@ -364,7 +350,7 @@ namespace {
       if (trk.weight > 0) vertex.n_tracks++;
     }
     return vertex;
-  }
+  }*/
 
 } // namespace
 
@@ -745,23 +731,28 @@ void findPVs(
       debug_cout << "Associated " << seed.end - seed.begin << " tracks to seed " << std::endl;
     }
 
+    float zpeaks[PV::max_number_vertices];
+    int number_of_peaks = 0;
+    for (int i = 0; i < number_of_clusters; ++i) {
+      zpeaks[number_of_peaks] = zClusterMean(clusters[i].izmax);
+      number_of_peaks++;
+    }
+
     // Step 5: perform the adaptive vertex fit for each seed.
     // PV::Vertex preselected_vertices[PV::max_number_vertices];
-    uint number_preselected_vertices = 0;
-    float3 seed_positions[number_of_seedsZWIP];
-    for (int i = 0; i < number_of_seedsZWIP; i++) {
-      seed_positions[i] = float3 {beamline.x, beamline.y, seedsZWithIteratorPair[i].z};
-    }
-    PV::Vertex preselected_vertices[number_of_seedsZWIP];
+    int number_preselected_vertices = 0;
+
+    PV::Vertex preselected_vertices[PV::max_number_vertices];
+
     multifitAdaptive(
-      event_velo_states,
       pvtracks,
       number_of_tracks_in_zrange,
-      seed_positions,
-      number_of_seedsZWIP,
-      preselected_vertices);
+      zpeaks,
+      number_of_peaks,
+      preselected_vertices,
+      &number_preselected_vertices);
 
-    number_preselected_vertices = number_of_seedsZWIP;
+  //  number_preselected_vertices = number_of_seedsZWIP;
     /*
        for ( int i = 0; i < number_of_seedsZWIP; i++ ) {
          SeedZWithIteratorPair seed = seedsZWithIteratorPair[i];
@@ -786,23 +777,35 @@ void findPVs(
     // * merge vertices that are close
 
     // create the output container
-    const auto maxVertexRho2 = maxVertexRho * maxVertexRho;
     for (int i = 0; i < number_preselected_vertices; i++) {
       PV::Vertex vertex = preselected_vertices[i];
 
-      const auto beamlinedx = vertex.position.x - beamline.x;
-      const auto beamlinedy = vertex.position.y - beamline.y;
-      const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
+
 #ifdef WITH_ROOT
       h_vx[event_number]->Fill(vertex.position.x);
       h_vy[event_number]->Fill(vertex.position.y);
       h_vz[event_number]->Fill(vertex.position.z);
 #endif
-      if (vertex.n_tracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
-        reconstructed_pvs[PV::max_number_vertices * event_number + n_pvs++] = vertex;
+
+      if (vertex.cov22 < 0.000000001f) continue;
+
+      bool unique = true;
+      for(int j_pv = 0; j_pv < n_pvs; j_pv++) {
+        PV::Vertex vertex2 = reconstructed_pvs[j_pv];
+        float z1 = vertex.position.z;
+        float z2 = vertex2.position.z;
+        float variance1 = vertex.cov22;
+        float variance2 = vertex2.cov22;
+        float chi2_dist = (z1-z2)*(z1-z2);
+        chi2_dist = chi2_dist/(variance1+variance2);
+        if(chi2_dist < minChi2Dist) unique = false;
+
+      }
+      if(unique) {
+        reconstructed_pvs[PV::max_number_vertices * event_number + n_pvs] = vertex;
+        n_pvs++;
       }
     }
-
   } // event loop
 
 #ifdef WITH_ROOT
