@@ -31,7 +31,7 @@ __global__ void pv_beamline_cleanup(
         float variance2 = vertex2.cov22;
         float chi2_dist = (z1-z2)*(z1-z2);
         chi2_dist = chi2_dist/(variance1+variance2);
-        if(chi2_dist < 16.f) unique = false;
+        if(chi2_dist < minChi2Dist) unique = false;
 
       }
       if (unique) {

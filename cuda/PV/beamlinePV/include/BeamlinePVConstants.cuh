@@ -16,6 +16,12 @@ static constexpr unsigned int maxFitIter = 7; // "Maximum number of iterations f
 static constexpr float maxDeltaChi2 = 9.f;    //"Maximum chi2 contribution of track to vertex fit"
 static constexpr float minWeight = 0.3f;      //"minimum value of adaptive weight of track in multi fit"
 static constexpr int order_polynomial = 2;    // order of the polynomial used to approximate Gaussian
+static constexpr float maxChi2 = 9.f;        // Maximum chi2 for track to be used in fit
+static constexpr float maxWeight = 0.3f;     //Maximum weight for track to be used in fit
+static constexpr float chi2Cut = 25.f;       // chi2 cut in multi-fitter
+static constexpr float maxDeltaZConverged = 0.0005f; //convergence criterion for fit
+
+static constexpr float minChi2Dist = 16.f ;  //minimum chi2 distance of two recosntructed PVs for them to be considere unique
 
 // Get the beamline. this only accounts for position, not
 // rotation. that's something to improve!
