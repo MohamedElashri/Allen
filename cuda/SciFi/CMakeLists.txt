@@ -50,6 +50,7 @@ include_directories(looking_forward_sbt/initial_triplet_seeding/include)
 include_directories(looking_forward_sbt/extend_tracks_x/include)
 include_directories(looking_forward_sbt/triplet_seeding/include)
 include_directories(looking_forward_sbt/convert_track_indices/include)
+include_directories(looking_forward_sbt/composite_track_seeding/include)
 include_directories(PrForward/include)
 include_directories(consolidate/include)
 

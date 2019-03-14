@@ -156,6 +156,7 @@ include_directories(cuda/SciFi/looking_forward_sbt/initial_triplet_seeding/inclu
 include_directories(cuda/SciFi/looking_forward_sbt/extend_tracks_x/include)
 include_directories(cuda/SciFi/looking_forward_sbt/triplet_seeding/include)
 include_directories(cuda/SciFi/looking_forward_sbt/convert_track_indices/include)
+include_directories(cuda/SciFi/looking_forward_sbt/composite_track_seeding/include)
 include_directories(cuda/SciFi/PrForward/include)
 include_directories(cuda/SciFi/consolidate/include)
 include_directories(cuda/muon/common/include)

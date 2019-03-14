@@ -1,6 +1,5 @@
 #pragma once
 
-#include <mma.h>
 #include "PrForwardConstants.cuh"
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"

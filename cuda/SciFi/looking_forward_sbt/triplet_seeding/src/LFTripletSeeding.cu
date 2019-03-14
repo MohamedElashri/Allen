@@ -151,7 +151,7 @@ __global__ void lf_triplet_seeding(
           const uint16_t h0 = (uint16_t) ((relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + best_h0_h2[k]);
           const uint16_t h1 = (uint16_t) (relative_middle_layer * LookingForward::maximum_number_of_candidates + k);
           const uint16_t h2 = (uint16_t) ((relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates +
-             best_h0_h2[LookingForward::maximum_number_of_candidates + k]);
+             best_h0_h2[LookingForward::maximum_number_of_candidates_flagged + k]);
 
           const float x0 = scifi_hits.x0[event_offset + scifi_lf_candidates[h0]];
           const float x1 = scifi_hits.x0[event_offset + scifi_lf_candidates[h1]];

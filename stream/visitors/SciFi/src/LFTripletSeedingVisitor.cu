@@ -46,7 +46,7 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
     arguments.offset<dev_scifi_lf_candidates_flag>(),
     2);
 
-  // state.invoke();
+  state.invoke();
 
   // cudaCheck(cudaMemcpyAsync(
   //   host_buffers.host_atomics_scifi,
