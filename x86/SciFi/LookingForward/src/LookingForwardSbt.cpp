@@ -365,7 +365,8 @@ void extend_tracklets(
   const int event_offset,
   const float max_chi2,
   std::vector<SciFi::TrackHits>& tracklets,
-  std::vector<bool>& flag)
+  std::vector<bool>& flag,
+  const uint i_veloUT_track)
 {
   for (auto& tracklet : tracklets) {
     const auto h0 = event_offset + tracklet.hits[tracklet.hitsNum - 2];
@@ -403,28 +404,6 @@ void extend_tracklets(
       x_coordinates[2] = scifi_hits.x0[candidate_index];
       const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
 
-      // // TODO
-      // const auto dz1 = (z_coordinates[1] - z_coordinates[0]);
-      // const auto dz2 = (z_coordinates[2] - z_coordinates[0]);
-      // const auto tx = (x_coordinates[1] - x_coordinates[0]) / dz1;
-      // const float expected_x2 = x_coordinates[0] + tx * dz2 + SciFi::LookingForward::forward_param * qop * dz2 * dz2;
-      // float extrap1 = SciFi::LookingForward::forward_param * qop * dz1 * dz1;
-      // extrap1 *= extrap1;
-      // const float custom_chi2 = extrap1 + (x_coordinates[2] - expected_x2) * (x_coordinates[2] - expected_x2);
-
-      // // 116, 1445, 1890, 3171
-
-      // if (tracklet.hits[0] == 116 && tracklet.hits[0] == 1445 && tracklet.hits[0] == 1890 &&
-      //   (candidate_index - event_offset) == 3171) {
-      //   info_cout << "xs: " << x_coordinates[0] << ", " << x_coordinates[1]
-      // }
-
-      // if (relative_layer2 == 3 && std::abs(chi2 - custom_chi2) > 1.f) {
-      //   info_cout << x_coordinates[0] << ", " << x_coordinates[1] << ", " << x_coordinates[2] << ", "
-      //     << z_coordinates[0] << ", " << z_coordinates[1] << ", " << z_coordinates[2]
-      //     << ": " << chi2 << ", " << custom_chi2 << std::endl;
-      // }
-
       if (chi2 < best_chi2) {
         best_chi2 = chi2;
         best_index = candidate_index;
@@ -440,7 +419,8 @@ void extend_tracklets(
       //   tracklet.hits[tracklet.hitsNum - 2] == index_to_check ||
       //   tracklet.hits[tracklet.hitsNum - 1] == index_to_check)
       // {
-      //   printf("CPU tracklet hits: %i, %i, %i, %i\n",
+      //   printf("CPU UT velo track %i hits: %i, %i, %i, %i\n",
+      //     i_veloUT_track,
       //     tracklet.hits[tracklet.hitsNum - 4], tracklet.hits[tracklet.hitsNum - 3],
       //     tracklet.hits[tracklet.hitsNum - 2], tracklet.hits[tracklet.hitsNum - 1]
       //   );

@@ -66,26 +66,26 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
     forwarding_set_arguments(4 + i);
     seeding_set_arguments(3 + i);
 
-    // state.handler_lf_extend_tracks_x.invoke();
-    // state.handler_lf_triplet_seeding.invoke();
+    state.handler_lf_extend_tracks_x.invoke();
+    state.handler_lf_triplet_seeding.invoke();
   }
 
-  // cudaCheck(cudaMemcpyAsync(
-  //   host_buffers.host_atomics_scifi,
-  //   arguments.offset<dev_atomics_scifi>(),
-  //   arguments.size<dev_atomics_scifi>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_atomics_scifi,
+    arguments.offset<dev_atomics_scifi>(),
+    arguments.size<dev_atomics_scifi>(),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
 
-  // cudaCheck(cudaMemcpyAsync(
-  //   host_buffers.host_scifi_tracks,
-  //   arguments.offset<dev_scifi_tracks>(),
-  //   arguments.size<dev_scifi_tracks>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_scifi_tracks,
+    arguments.offset<dev_scifi_tracks>(),
+    arguments.size<dev_scifi_tracks>(),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
 
-  // cudaEventRecord(cuda_generic_event, cuda_stream);
-  // cudaEventSynchronize(cuda_generic_event);
+  cudaEventRecord(cuda_generic_event, cuda_stream);
+  cudaEventSynchronize(cuda_generic_event);
 
   // for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
   //   const auto number_of_tracks = scifi_atomics[i];

@@ -3,6 +3,9 @@
 
 __device__ void lf_triplet_seeding_impl(
   const SciFi::Hits& scifi_hits,
+  const uint candidate_h0_offset,
+  const uint candidate_h1_offset,
+  const uint candidate_h2_offset,
   uint8_t h0_candidate_size,
   uint8_t h1_candidate_size,
   uint8_t h2_candidate_size,
@@ -33,31 +36,31 @@ __device__ void lf_triplet_seeding_impl(
   // In further iterations, we can prune the candidates by checking their flag.
   // shared_candidates fetches all active candidates in order
   for (int16_t h0_rel = threadIdx.x; h0_rel < h0_candidate_size; h0_rel += blockDim.x) {
-    const auto h0_candidate_index = (relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + h0_rel;
-    if (!candidates_flag[h0_candidate_index]) {
+    if (!candidates_flag[candidate_h0_offset + h0_rel]) {
       const auto insert_index = atomicAdd(atomics_seeding, 1);
       if (insert_index < LookingForward::maximum_number_of_candidates_flagged) {
-        shared_candidates[insert_index] = candidates[h0_candidate_index];
+        shared_candidates[insert_index] =
+          candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + h0_rel];
       }
     }
   }
 
   for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
-    const auto h1_candidate_index = relative_middle_layer * LookingForward::maximum_number_of_candidates + h1_rel;
-    if (!candidates_flag[h1_candidate_index]) {
+    if (!candidates_flag[candidate_h1_offset + h1_rel]) {
       const auto insert_index = atomicAdd(atomics_seeding + 1, 1);
       if (insert_index < LookingForward::maximum_number_of_candidates_flagged) {
-        shared_candidates[LookingForward::maximum_number_of_candidates_flagged + insert_index] = candidates[h1_candidate_index];
+        shared_candidates[LookingForward::maximum_number_of_candidates_flagged + insert_index] =
+          candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates + h1_rel];
       }
     }
   }
 
   for (int16_t h2_rel = threadIdx.x; h2_rel < h2_candidate_size; h2_rel += blockDim.x) {
-    const auto h2_candidate_index = (relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + h2_rel;
-    if (!candidates_flag[h2_candidate_index]) {
+    if (!candidates_flag[candidate_h2_offset + h2_rel]) {
       const auto insert_index = atomicAdd(atomics_seeding + 2, 1);
       if (insert_index < LookingForward::maximum_number_of_candidates_flagged) {
-        shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged + insert_index] = candidates[h2_candidate_index];
+        shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged + insert_index] =
+          candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + h2_rel];
       }
     }
   }
@@ -68,23 +71,6 @@ __device__ void lf_triplet_seeding_impl(
   h0_candidate_size = (uint8_t) atomics_seeding[0];
   h1_candidate_size = (uint8_t) atomics_seeding[1];
   h2_candidate_size = (uint8_t) atomics_seeding[2];
-
-  // if (threadIdx.x == 0) {
-  //   for (int i=0; i<h0_candidate_size; ++i) {
-  //     printf("%i, ", shared_candidates[i]);
-  //   }
-  //   printf("\n");
-
-  //   for (int i=0; i<h1_candidate_size; ++i) {
-  //     printf("%i, ", shared_candidates[LookingForward::maximum_number_of_candidates_flagged + i]);
-  //   }
-  //   printf("\n");
-
-  //   for (int i=0; i<h1_candidate_size; ++i) {
-  //     printf("%i, ", shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged + i]);
-  //   }
-  //   printf("\n");
-  // }
 
   if (h0_candidate_size > 0 && h1_candidate_size > 0 && h2_candidate_size > 0) {
 
@@ -111,7 +97,7 @@ __device__ void lf_triplet_seeding_impl(
           const int8_t h0_rel = i * tile_size + (k % tile_size);
           const int8_t h2_rel = j * tile_size + (k / tile_size);
 
-          auto partial_chi2 = max_chi2;
+          auto partial_chi2 = 1000.f * max_chi2;
           if (h0_rel < h0_candidate_size && h2_rel < h2_candidate_size) {
             const auto x0 = scifi_hits.x0[event_offset + shared_candidates[h0_rel]];
             const auto x2 =

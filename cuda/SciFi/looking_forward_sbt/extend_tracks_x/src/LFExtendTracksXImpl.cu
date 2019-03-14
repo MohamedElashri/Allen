@@ -15,7 +15,11 @@ __device__ void lf_extend_tracks_x_impl(
   const float max_chi2,
   const uint event_offset,
   bool* candidates_flag,
-  const uint8_t relative_extrapolation_layer)
+  const uint8_t relative_extrapolation_layer,
+  const uint l_prev_offset,
+  const uint l0_offset,
+  const uint l1_offset,
+  const uint extrapolation_layer_offset)
 {
   // Precalculate chi2 related variables
   const auto dz1 = (z1 - z0);
@@ -40,25 +44,36 @@ __device__ void lf_extend_tracks_x_impl(
   }
 
   if (best_index != -1) {
-    track.add_hit_with_quality(
-      (uint16_t) (relative_extrapolation_layer * LookingForward::maximum_number_of_candidates
-      + best_index), best_chi2);
+    track.add_hit_with_candidate_and_quality(
+      (uint16_t) scifi_lf_candidates[best_index],
+      best_index,
+      best_chi2);
 
-    // TODO: Try with and without flagging
-    candidates_flag[track.hits[track.hitsNum - 4]] = true;
-    candidates_flag[track.hits[track.hitsNum - 3]] = true;
-    candidates_flag[track.hits[track.hitsNum - 2]] = true;
-    candidates_flag[track.hits[track.hitsNum - 1]] = true;
+    candidates_flag[l_prev_offset + track.hits[SciFi::Constants::hit_candidate_offset + track.hitsNum - 4]] = true;
+    candidates_flag[l0_offset + track.hits[SciFi::Constants::hit_candidate_offset + track.hitsNum - 3]] = true;
+    candidates_flag[l1_offset + track.hits[SciFi::Constants::hit_candidate_offset + track.hitsNum - 2]] = true;
+    candidates_flag[extrapolation_layer_offset + track.hits[SciFi::Constants::hit_candidate_offset + track.hitsNum - 1]] = true;
 
     // const short index_to_check = 1446;
-    // if (track.hits[track.hitsNum - 4] == index_to_check ||
-    //   track.hits[track.hitsNum - 3] == index_to_check ||
-    //   track.hits[track.hitsNum - 2] == index_to_check ||
-    //   track.hits[track.hitsNum - 1] == index_to_check)
+    // if ((track.hits[track.hitsNum - 4]) == index_to_check ||
+    //   (track.hits[track.hitsNum - 3]) == index_to_check ||
+    //   (track.hits[track.hitsNum - 2]) == index_to_check ||
+    //   (track.hits[track.hitsNum - 1]) == index_to_check)
     // {
-    //   printf("track hits: %i, %i, %i, %i\n",
-    //     track.hits[track.hitsNum - 4], track.hits[track.hitsNum - 3],
-    //     track.hits[track.hitsNum - 2], track.hits[track.hitsNum - 1]
+    //   printf("UT track %i, hits: %i, %i, %i, %i, candidates: %i, %i, %i, %i, offsets: %i, %i, %i, %i\n",
+    //     current_ut_track_index,
+    //     track.hits[track.hitsNum - 4],
+    //     track.hits[track.hitsNum - 3],
+    //     track.hits[track.hitsNum - 2],
+    //     track.hits[track.hitsNum - 1],
+    //     track.hits[SciFi::Constants::hit_candidate_offset + track.hitsNum - 4],
+    //     track.hits[SciFi::Constants::hit_candidate_offset + track.hitsNum - 3],
+    //     track.hits[SciFi::Constants::hit_candidate_offset + track.hitsNum - 2],
+    //     track.hits[SciFi::Constants::hit_candidate_offset + track.hitsNum - 1],
+    //     l_prev_offset,
+    //     l0_offset,
+    //     l1_offset,
+    //     extrapolation_layer_offset
     //   );
     // }
   }

@@ -47,7 +47,7 @@ __device__ void lf_initial_triplet_seeding_impl(
         const int8_t h0_rel = i * tile_size + (k % tile_size);
         const int8_t h2_rel = j * tile_size + (k / tile_size);
 
-        auto partial_chi2 = max_chi2;
+        auto partial_chi2 = 1000.f * max_chi2;
         if (h0_rel < h0_candidate_size && h2_rel < h2_candidate_size) {
           const auto x0 = scifi_hits.x0[event_offset +
             scifi_lf_candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + h0_rel]];

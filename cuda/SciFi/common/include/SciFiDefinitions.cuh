@@ -68,6 +68,7 @@ namespace SciFi {
 
     static constexpr int max_track_candidates = 2000;
     static constexpr int max_track_candidate_size = 4;
+    static constexpr int hit_candidate_offset = 6;
   } // namespace Constants
 
   /**

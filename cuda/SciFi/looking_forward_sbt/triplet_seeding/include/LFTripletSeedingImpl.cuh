@@ -8,6 +8,9 @@
 
 __device__ void lf_triplet_seeding_impl(
   const SciFi::Hits& scifi_hits,
+  const uint candidate_h0_offset,
+  const uint candidate_h1_offset,
+  const uint candidate_h2_offset,
   uint8_t h0_candidate_size,
   uint8_t h1_candidate_size,
   uint8_t h2_candidate_size,

@@ -279,6 +279,29 @@ namespace SciFi {
       hits[2] = h2;
     }
 
+    __host__ __device__ TrackHits(
+      const uint16_t h0,
+      const uint16_t h1,
+      const uint16_t h2,
+      const uint16_t candidate_h0,
+      const uint16_t candidate_h1,
+      const uint16_t candidate_h2,
+      const float chi2,
+      const float qop,
+      const uint16_t ut_track_index) :
+      quality(chi2),
+      qop(qop),
+      ut_track_index(ut_track_index)
+    {
+      hitsNum = 3;
+      hits[0] = h0;
+      hits[1] = h1;
+      hits[2] = h2;
+      hits[SciFi::Constants::hit_candidate_offset] = candidate_h0;
+      hits[SciFi::Constants::hit_candidate_offset + 1] = candidate_h1;
+      hits[SciFi::Constants::hit_candidate_offset + 2] = candidate_h2;
+    }
+
     __host__ __device__ void add_hit(uint16_t hit_index)
     {
       assert(hitsNum < SciFi::Constants::max_track_size);
@@ -289,6 +312,15 @@ namespace SciFi {
     {
       assert(hitsNum < SciFi::Constants::max_track_size);
       hits[hitsNum++] = hit_index;
+      quality += chi2;
+    }
+
+    __host__ __device__ void add_hit_with_candidate_and_quality(
+      uint16_t hit_index, uint16_t hit_candidate_index, float chi2)
+    {
+      assert(hitsNum < SciFi::Constants::max_track_size);
+      hits[hitsNum] = hit_index;
+      hits[SciFi::Constants::hit_candidate_offset + hitsNum++] = hit_candidate_index;
       quality += chi2;
     }
 

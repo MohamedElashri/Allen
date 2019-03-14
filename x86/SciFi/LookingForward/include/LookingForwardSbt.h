@@ -113,7 +113,8 @@ void extend_tracklets(
   const int event_offset,
   const float max_chi2,
   std::vector<SciFi::TrackHits>& tracklets,
-  std::vector<bool>& flag);
+  std::vector<bool>& flag,
+  const uint i_veloUT_track);
 
 void single_track_propagation(
   const SciFi::Hits& scifi_hits,

@@ -313,7 +313,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         event_offset,
         chi2_mean_extrapolation_to_x_layers[extend_layer - 3] + factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
         scifi_tracks,
-        flag);
+        flag,
+        i_veloUT_track);
     }
 
     for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
@@ -339,8 +340,46 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         event_UT_state[i_veloUT_track],
         scifi_tracks);
 
+      // Extend to next layer
+      const auto extend_layer = 4;
+      extend_tracklets(
+        scifi_hits,
+        event_UT_state[i_veloUT_track],
+        layers,
+        event_hits_in_layers[i_veloUT_track],
+        extend_layer,
+        event_offset,
+        chi2_mean_extrapolation_to_x_layers[extend_layer - 3] + factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
+        scifi_tracks,
+        flag,
+        i_veloUT_track);
+    }
+
+    for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
+      auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
+      auto& flag = use_multi_flags ? event_multi_flag[i_veloUT_track] : event_common_flag;
+
+      // Get triplets of layers 2, 3, 4
+      const auto triplets_middle_layer = 3;
+      find_triplets(
+        scifi_hits,
+        event_qop[i_veloUT_track],
+        flag,
+        event_offset,
+        layers,
+        event_hits_in_layers[i_veloUT_track],
+        triplets_middle_layer-1,
+        triplets_middle_layer,
+        triplets_middle_layer+1,
+        max_candidates_triplets[triplets_middle_layer-1],
+        chi2_mean_triplet[triplets_middle_layer-1] + factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer-1],
+        use_flagging,
+        i_veloUT_track,
+        event_UT_state[i_veloUT_track],
+        scifi_tracks);
+
       // // Extend to next layer
-      // const auto extend_layer = 4;
+      // const auto extend_layer = 5;
       // extend_tracklets(
       //   scifi_hits,
       //   event_UT_state[i_veloUT_track],
@@ -350,45 +389,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       //   event_offset,
       //   chi2_mean_extrapolation_to_x_layers[extend_layer - 3] + factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
       //   scifi_tracks,
-      //   flag);
+      //   flag,
+      //   i_veloUT_track);
     }
-
-    // for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
-    //   auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
-    //   auto& flag = use_multi_flags ? event_multi_flag[i_veloUT_track] : event_common_flag;
-
-    //   // Get triplets of layers 2, 3, 4
-    //   const auto triplets_middle_layer = 3;
-    //   find_triplets(
-    //     scifi_hits,
-    //     event_qop[i_veloUT_track],
-    //     flag,
-    //     event_offset,
-    //     layers,
-    //     event_hits_in_layers[i_veloUT_track],
-    //     triplets_middle_layer-1,
-    //     triplets_middle_layer,
-    //     triplets_middle_layer+1,
-    //     max_candidates_triplets[triplets_middle_layer-1],
-    //     chi2_mean_triplet[triplets_middle_layer-1] + factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer-1],
-    //     use_flagging,
-    //     i_veloUT_track,
-    //     event_UT_state[i_veloUT_track],
-    //     scifi_tracks);
-
-    //   // Extend to next layer
-    //   const auto extend_layer = 5;
-    //   extend_tracklets(
-    //     scifi_hits,
-    //     event_UT_state[i_veloUT_track],
-    //     layers,
-    //     event_hits_in_layers[i_veloUT_track],
-    //     extend_layer,
-    //     event_offset,
-    //     chi2_mean_extrapolation_to_x_layers[extend_layer - 3] + factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
-    //     scifi_tracks,
-    //     flag);
-    // }
 
     // for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
     //   auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
@@ -536,7 +539,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
     if (compare_cpu_gpu_tracks) {
       const auto print_track = [] (const SciFi::TrackHits& track) {
-        info_cout << "{" << ((int) track.hitsNum) << " hits: ";
+        info_cout << "{ut track " << track.ut_track_index << ", "
+          << ((int) track.hitsNum) << " hits: ";
+
         for (int i=0; i<track.hitsNum; ++i) {
           info_cout << track.hits[i] << ", ";
         }
