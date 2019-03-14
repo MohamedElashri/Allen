@@ -1,5 +1,35 @@
 #include "LookingForwardSbt.h"
 
+std::array<std::vector<int>, 6> collect_x_candidates_p(
+  const SciFi::Hits& scifi_hits,
+  const std::array<int, 2 * 6>& windows_x,
+  const std::array<int, 2 * 6>& windows_uv,
+  const float qOverP) 
+{
+  std::array<std::vector<int>, 6> hits_in_layers;
+
+  for (int i = 0; i < 6; ++i) {
+    const auto window_start = windows_x[2 * i];
+    const auto window_size = windows_x[2 * i + 1];
+    if (window_size > 0) {
+      const float zHit = scifi_hits.z0[window_start];
+      for (int j = 0; j < window_size; ++j) {
+        const auto hit_index = window_start + j;
+        float xHit = scifi_hits.x0[hit_index];
+        
+        const float maxDx = 25 + 6e5 * qOverP * std::copysign(1.f, qOverP);
+        const float xMinUV = xHit - maxDx;
+        const float xMaxUV = xHit + maxDx;
+        if (matchStereoHit(windows_uv[i * 2], windows_uv[i * 2 + 1], scifi_hits, xMinUV, xMaxUV)) {
+          hits_in_layers[i].push_back(hit_index);
+        }  
+      }
+    }
+  }
+  
+  return hits_in_layers;
+} 
+
 std::array<std::vector<int>, 6> collect_x_candidates(
   const SciFi::Hits& scifi_hits,
   const std::array<int, 2 * 6>& windows_x,
@@ -16,6 +46,7 @@ std::array<std::vector<int>, 6> collect_x_candidates(
       for (int j = 0; j < window_size; ++j) {
         const auto hit_index = window_start + j;
         float xHit = scifi_hits.x0[hit_index];
+        
         const float xPredUv = parameters_uv[4 * i] + xHit * parameters_uv[4 * i + 1];
         const float maxDx =
           parameters_uv[4 * i + 2] + fabsf(xHit - parameters_uv[4 * i + 3]) * SciFi::Tracking::tolYSlopeCollectX;
@@ -23,13 +54,13 @@ std::array<std::vector<int>, 6> collect_x_candidates(
         const float xMaxUV = xPredUv + maxDx;
         if (matchStereoHit(windows_uv[i * 2], windows_uv[i * 2 + 1], scifi_hits, xMinUV, xMaxUV)) {
           hits_in_layers[i].push_back(hit_index);
-        }
+        }  
       }
     }
   }
-
+  
   return hits_in_layers;
-}
+} 
 
 float chi2_triplet(
   const SciFi::Hits& scifi_hits,
@@ -104,6 +135,48 @@ float chi2_triplet(
   return chi2;
 };
 
+std::vector<std::tuple<int, int>> find_compatible_window_p(
+  const SciFi::Hits& scifi_hits,
+  const int layer_from,
+  const int layer_to,
+  const std::vector<int>& hits_in_layer_from,
+  const std::vector<int>& hits_in_layer_to,
+  const bool forward,
+  const float qOverP)   
+{
+  std::vector<std::tuple<int, int>> compatible_hits_x0;
+  
+  for (int h1_rel = 0; h1_rel < hits_in_layer_from.size(); ++h1_rel) {
+    const auto h1_index = hits_in_layer_from[h1_rel];
+    const auto x1 = scifi_hits.x0[h1_index];
+    
+    // for x hits from different stations
+    float dxMax, dxMin;
+    if( qOverP < 0 ) {
+      dxMax = 30.f - 1e6f * qOverP;
+      dxMin = -30.f -4e5f * qOverP;
+    } else {
+      dxMax = 30 - 4e5f * qOverP;
+      dxMin = -30 - 1e6f * qOverP;
+    }
+    float xMax, xMin;
+    if ( forward) {
+      xMax = x1 - dxMin;
+      xMin = x1 - dxMax; 
+    } else {
+      xMax = x1 + dxMin;
+      xMin = x1 + dxMax; 
+    }
+    
+    const auto x0_candidates =
+      find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), xMin, xMax, 0.f); 
+    
+    compatible_hits_x0.push_back(x0_candidates);   
+  }
+
+  return compatible_hits_x0;
+}
+  
 std::vector<std::tuple<int, int>> find_compatible_window(
   const SciFi::Hits& scifi_hits,
   const int layer_from,
@@ -114,6 +187,8 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const float compatible_window_factor,
   const MiniState& UT_state,
   const float x_at_ref,
+  const float tx, 
+  const float qOverP, 
   const float z_mag)
 {
   std::vector<std::tuple<int, int>> compatible_hits_x0;
@@ -124,6 +199,9 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
   const auto dz = 1.e-3f * std::abs(z1 - z0);
   const float x_from_velo_hit = x_at_ref + UT_state.tx * (z1 - SciFi::Tracking::zReference);
+
+  //const float dz_x = (z0 - SciFi::Tracking::zReference); 
+  //auto extrapolated_value = scifi_propagation(x_at_ref, tx, qOverP, dz_x);    
 
   for (int h1_rel = 0; h1_rel < hits_in_layer_from.size(); ++h1_rel) {
     const auto h1_index = hits_in_layer_from[h1_rel];
@@ -139,14 +217,35 @@ std::vector<std::tuple<int, int>> find_compatible_window(
     auto dxCoef = dz * dz * (SciFi::LookingForward::xParams[0] + dz * SciFi::LookingForward::xParams[1]) * dSlope;
     auto ratio = (z0 - zMag_corrected) / (z1 - zMag_corrected);
     auto extrapolated_value = xMag + ratio * (x1 + dxCoef - xMag);
+    
 
     const auto x0_candidates =
-      find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), extrapolated_value, compatible_window_factor * dx_stddev);
-
+    find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), extrapolated_value, compatible_window_factor * dx_stddev); 
     compatible_hits_x0.push_back(x0_candidates);
   }
 
   return compatible_hits_x0;
+}
+ 
+std::tuple<int, int> find_x_in_window(
+  const std::vector<int>& candidates,
+  const SciFi::Hits& hits,
+  const int num_hits,
+  const float value0,
+  const float value1,
+  const float margin) {
+  
+  int first_candidate = binary_search_first_candidate((int*) candidates.data(), num_hits, hits.x0, value0, margin);
+  int last_candidate = -1;
+
+  if (first_candidate != -1) {
+    last_candidate = binary_search_second_candidate(
+      (int*) (candidates.data() + first_candidate), num_hits - first_candidate, hits.x0, value1, margin);
+    last_candidate = first_candidate + last_candidate;
+  }
+
+  return {first_candidate, last_candidate}; 
+
 }
 
 std::tuple<int, int> find_x_in_window(
@@ -154,7 +253,7 @@ std::tuple<int, int> find_x_in_window(
   const SciFi::Hits& hits,
   const int num_hits,
   const float value,
-  const float margin)
+  const float margin)  
 {
   int first_candidate = binary_search_first_candidate((int*) candidates.data(), num_hits, hits.x0, value, margin);
   int last_candidate = -1;
@@ -165,7 +264,7 @@ std::tuple<int, int> find_x_in_window(
     last_candidate = first_candidate + last_candidate;
   }
 
-  return {first_candidate, last_candidate};
+  return {first_candidate, last_candidate}; 
 }
 
 void find_triplets(
@@ -382,7 +481,6 @@ std::vector<std::tuple<int, int>> find_extend_windows(
 void extend_tracklets(
   const SciFi::Hits& scifi_hits,
   const MiniState& UT_state,
-  const float qop,
   const std::array<int, 6>& layers,
   const std::array<std::vector<int>, 6>& hits_in_layers,
   const int relative_layer2,
@@ -397,6 +495,7 @@ void extend_tracklets(
     const auto layer0 = scifi_hits.planeCode(h0) / 2;
     const auto layer1 = scifi_hits.planeCode(h1) / 2;
     const auto layer2 = layers[relative_layer2];
+    const auto qop = tracklet.qop;
 
     // Prepare the chi2
     const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer2]);

@@ -21,6 +21,19 @@
    Functions related to selecting hits on the x planes,
    which match to the VeloUT input track
  */
+__host__ void collectAllXHits_proto_p(
+  const SciFi::Hits& scifi_hits,
+  const SciFi::HitCount& scifi_hit_count,
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const MiniState& UT_state,
+  const float qOverP,
+  int side, 
+  std::array<int, 2 * 6>& windows_x,
+  std::array<int, 2 * 6>& windows_uv,
+  std::array<float, 4 * 6>& parameters_uv,
+  const SciFiWindowsParams& window_params,
+  const std::array<int, 12> true_scifi_indices_per_layer);
 
 __host__ void x_limits_from_dxRef( 
   const SciFi::Tracking::Arrays* constArrays,
