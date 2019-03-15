@@ -22,6 +22,7 @@ __global__ void pv_beamline_cleanup(
       bool unique = true;
       PV::Vertex vertex1 = vertices[i_pv];
       //PVs with such a small z uncertainty are very likely fakes 
+      if (vertex1.cov22 > 100.f) continue;
       if (vertex1.cov22 < 0.000000001f) continue;
       for(int j_pv = 0; j_pv < tmp_number_vertices; j_pv++) {
         PV::Vertex vertex2 = final_vertices[j_pv];

@@ -1213,6 +1213,7 @@ void cleanup(PV::Vertex* dev_multi_fit_vertices,
     bool unique = true;
     PV::Vertex vertex1 = vertices[i_pv];
     //PVs with such a small z uncertainty are very likely fakes 
+    if (vertex1.cov22 > 100.f) continue;
     if (vertex1.cov22 < 0.000000001f) continue;
     for(int j_pv = 0; j_pv < tmp_number_vertices; j_pv++) {
       PV::Vertex vertex2 = final_vertices[j_pv];
@@ -1294,16 +1295,5 @@ void findPVs(
       number_of_pvs,
       i_event,
       number_of_events);
-    //std::cout << "nubmer pv " << number_of_multi_final_vertices[i_event] << std::endl;
-    //std::cout << multi_final_vertices[i_event].position.x << " "  << multi_final_vertices[i_event].position.y << " " <<  multi_final_vertices[i_event].position.z << std::endl;
   }
-
-  //reconstructed_pvs = multi_final_vertices;
-  //number_of_pvs = number_of_multi_final_vertices;
-
-
-
-
-
- 
 }
