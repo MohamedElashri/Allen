@@ -57,6 +57,8 @@ std::vector<std::tuple<int, int>> find_compatible_window_p(
   const int layer_to,
   const std::vector<int>& hits_in_layer_from,
   const std::vector<int>& hits_in_layer_to,
+  const float dx_stddev,
+  const float compatible_window_factor, 
   const bool forward,
   const float qOverP);
 

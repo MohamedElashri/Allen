@@ -532,7 +532,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         const float xMax = x4 + dxMin;
         const float xMin = x4 + dxMax;
         
-        debug_cout << "true x3 = " << scifi_hits.x0[true_scifi_indices_per_layer[3]] << ", xMin = " << xMin << ", xMax = " << xMax << ", dxMin = " << dxMin << ", dxMax = " << dxMax << std::endl; 
+        //        debug_cout << "true x3 = " << scifi_hits.x0[true_scifi_indices_per_layer[3]] << ", xMin = " << xMin << ", xMax = " << xMax << ", dxMin = " << dxMin << ", dxMax = " << dxMax << std::endl; 
          
       }  
       if ( true_scifi_indices_per_layer[4] != -1 && true_scifi_indices_per_layer[7] != -1 ) {
@@ -685,7 +685,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       //   hits_in_layers[1],
       //   hits_in_layers[0],
       //   dx_stddev_triplet_x0[0],
-      //   compatible_window_factor,
+      //   compatible_window_factor, 
       //   UT_state,
       //   xAtRef,
       //   state_zRef.tx,
@@ -698,6 +698,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         layers[0],
         hits_in_layers[1],
         hits_in_layers[0],
+        dx_stddev_triplet_x0[0],
+        compatible_window_factor,  
         false,
         qop); 
 
@@ -721,6 +723,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         layers[2],
         hits_in_layers[1],
         hits_in_layers[2],
+        dx_stddev_triplet_x0[0],
+        compatible_window_factor,  
         true,
         qop); 
 
@@ -778,6 +782,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           layers[i + 1],
           hits_in_layers[i + 2],
           hits_in_layers[i + 1],
+          dx_stddev_triplet_x0[0],
+          compatible_window_factor,  
           false,
           qop); 
 
@@ -800,6 +806,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           layers[i + 3],
           hits_in_layers[i + 2],
           hits_in_layers[i + 3],
+          dx_stddev_triplet_x0[0],
+          compatible_window_factor,  
           true,
           qop); 
 
@@ -849,6 +857,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           layers[relative_layer0],
           hits_in_layers[relative_layer1],
           hits_in_layers[relative_layer0],
+          dx_stddev_triplet_x0[0],
+          compatible_window_factor,  
           false,
           qop); 
 
@@ -872,6 +882,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           layers[relative_layer2],
           hits_in_layers[relative_layer1],
           hits_in_layers[relative_layer2],
+          dx_stddev_triplet_x0[0],
+          compatible_window_factor,  
           true,
           qop); 
 

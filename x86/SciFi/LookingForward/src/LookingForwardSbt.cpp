@@ -141,6 +141,8 @@ std::vector<std::tuple<int, int>> find_compatible_window_p(
   const int layer_to,
   const std::vector<int>& hits_in_layer_from,
   const std::vector<int>& hits_in_layer_to,
+  const float dx_stddev,
+  const float compatible_window_factor, 
   const bool forward,
   const float qOverP)   
 {
@@ -164,13 +166,26 @@ std::vector<std::tuple<int, int>> find_compatible_window_p(
       xMax = x1 - dxMin;
       xMin = x1 - dxMax; 
     } else {
-      xMax = x1 + dxMin;
-      xMin = x1 + dxMax; 
+      xMin = x1 + dxMin;
+      xMax = x1 + dxMax; 
     }
     
+    //   if ( xMin > xMax ) 
+    //debug_cout << "xMin > xMax, qop = " << qOverP << ", forward = " << int(forward) << std::endl;
+
     const auto x0_candidates =
-      find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), xMin, xMax, 0.f); 
+      find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), xMin, xMax, 0.f ); 
     
+    const float lowX = scifi_hits.x0[std::get<0>(x0_candidates)];
+    const float highX = scifi_hits.x0[std::get<1>(x0_candidates)];
+
+    debug_cout << "low index = " << std::get<0>(x0_candidates) << ", high index = " << std::get<1>(x0_candidates) << std::endl;
+
+    debug_cout << "xMin = " << xMin << ", xMax = " << xMax << ", lowest x = " << lowX << ", highest x = " << highX << std::endl;
+    // for ( const auto hit : hits_in_layer_to ) {
+    //   debug_cout << "\t x = " << scifi_hits.x0[hit] << std::endl;
+    // } 
+  
     compatible_hits_x0.push_back(x0_candidates);   
   }
 
@@ -184,7 +199,7 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const std::vector<int>& hits_in_layer_from,
   const std::vector<int>& hits_in_layer_to,
   const float dx_stddev,
-  const float compatible_window_factor,
+  const float compatible_window_factor, 
   const MiniState& UT_state,
   const float x_at_ref,
   const float tx, 
@@ -218,9 +233,8 @@ std::vector<std::tuple<int, int>> find_compatible_window(
     auto ratio = (z0 - zMag_corrected) / (z1 - zMag_corrected);
     auto extrapolated_value = xMag + ratio * (x1 + dxCoef - xMag);
     
-
     const auto x0_candidates =
-    find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), extrapolated_value, compatible_window_factor * dx_stddev); 
+      find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), extrapolated_value, compatible_window_factor * dx_stddev);  
     compatible_hits_x0.push_back(x0_candidates);
   }
 
@@ -235,11 +249,12 @@ std::tuple<int, int> find_x_in_window(
   const float value1,
   const float margin) {
   
-  int first_candidate = binary_search_first_candidate((int*) candidates.data(), num_hits, hits.x0, value0, margin);
+  int first_candidate = binary_search_leftmost((int*) candidates.data(), num_hits, hits.x0, value0);
+
   int last_candidate = -1;
 
   if (first_candidate != -1) {
-    last_candidate = binary_search_second_candidate(
+    last_candidate = binary_search_leftmost(
       (int*) (candidates.data() + first_candidate), num_hits - first_candidate, hits.x0, value1, margin);
     last_candidate = first_candidate + last_candidate;
   }
