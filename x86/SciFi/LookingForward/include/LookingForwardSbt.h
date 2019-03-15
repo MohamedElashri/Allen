@@ -120,11 +120,25 @@ void single_track_propagation(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& hit_count,
   const int layer,
-  const float projection_y,
   SciFi::TrackHits& track,
   const float extrapolation_stddev,
   const float chi2_extrap_mean,
   const float chi2_extrap_stddev,
   const int event_offset,
   const std::vector<bool>& flag,
+  const float projection_y,
   const bool use_flagging = false);
+
+void single_track_propagation(
+  const SciFi::Hits& scifi_hits,
+  const SciFi::HitCount& hit_count,
+  const int relative_layer,
+  const int layer,
+  SciFi::TrackHits& track,
+  const float extrapolation_stddev,
+  const float chi2_extrap_mean,
+  const float chi2_extrap_stddev,
+  const int event_offset,
+  const std::vector<bool>& flag,
+  const std::array<std::vector<int>, 6>& hits_in_layers,
+  const bool use_flagging);

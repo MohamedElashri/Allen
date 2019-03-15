@@ -43,5 +43,5 @@ SEQUENCE_T(
   lf_prefix_sum_candidates_t,
   lf_initial_triplet_seeding_t,
   lf_composite_track_seeding_t,
-  // lf_convert_track_indices_t,
+  lf_extend_tracks_first_layers_x_t,
 )

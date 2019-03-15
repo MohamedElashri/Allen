@@ -417,6 +417,48 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         scifi_tracks);
     }
 
+    const std::array<int, 2> final_layers {0, 3};
+    for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
+      auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
+      auto& flag = use_multi_flags ? event_multi_flag[i_veloUT_track] : event_common_flag;
+
+      for (int i=0; i<final_layers.size(); ++i) {
+        const auto j = 1 - i;
+
+        const int layer = final_layers[j];
+        const auto projection_y = y_at_z(event_UT_state[i_veloUT_track], SciFi::LookingForward::Zone_zPos[layer]);
+
+        for (auto& track : scifi_tracks) {
+          // single_track_propagation(
+          //   scifi_hits,
+          //   scifi_hit_count,
+          //   layer,
+          //   track,
+          //   extrapolation_stddev[0],
+          //   chi2_extrapolation_mean[0],
+          //   chi2_extrapolation_stddev[0],
+          //   event_offset,
+          //   flag,
+          //   projection_y,
+          //   use_flagging_in_l0_l3_layers);
+
+          single_track_propagation(
+            scifi_hits,
+            scifi_hit_count,
+            j,
+            layer,
+            track,
+            extrapolation_stddev[0],
+            chi2_mean_extrapolation_to_x_layers[0],
+            chi2_stddev_extrapolation_to_x_layers[0],
+            event_offset,
+            flag,
+            event_hits_in_layers[i_veloUT_track],
+            use_flagging_in_l0_l3_layers);
+        }
+      }
+    }
+
     // for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
     //   auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
     //   auto& flag = use_multi_flags ? event_multi_flag[i_veloUT_track] : event_common_flag;
@@ -461,27 +503,6 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
     //         chi2_extrapolation_stddev[i],
     //         event_offset,
     //         flag);
-    //     }
-    //   }
-
-    //   const std::array<int, 2> final_layers {0, 3};
-    //   for (int i=0; i<final_layers.size(); ++i) {
-    //     const int layer = final_layers[i];
-    //     const auto projection_y = y_at_z(event_UT_state[i_veloUT_track], SciFi::LookingForward::Zone_zPos[layer]);
-
-    //     for (auto& track : scifi_tracks) {
-    //       single_track_propagation(
-    //         scifi_hits,
-    //         scifi_hit_count,
-    //         layer,
-    //         projection_y,
-    //         track,
-    //         extrapolation_stddev[i],
-    //         chi2_extrapolation_mean[i],
-    //         chi2_extrapolation_stddev[i],
-    //         event_offset,
-    //         flag,
-    //         use_flagging_in_l0_l3_layers);
     //     }
     //   }
 
