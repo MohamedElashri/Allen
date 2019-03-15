@@ -9,7 +9,8 @@ void SequenceVisitor::set_arguments_size<pv_beamline_cleanup_t>(
   const HostBuffers& host_buffers)
 {
   // Set arguments size
-  arguments.set_size<dev_multi_final_vertices>(host_buffers.host_number_of_selected_events[0] * PV::max_number_vertices);
+  arguments.set_size<dev_multi_final_vertices>(
+    host_buffers.host_number_of_selected_events[0] * PV::max_number_vertices);
   arguments.set_size<dev_number_of_multi_final_vertices>(host_buffers.host_number_of_selected_events[0]);
 }
 
@@ -37,10 +38,9 @@ void SequenceVisitor::visit<pv_beamline_cleanup_t>(
     cuda_stream));
 
   state.invoke();
-   // Wait to receive the result
+  // Wait to receive the result
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
-
 
   // Retrieve result
   cudaCheck(cudaMemcpyAsync(

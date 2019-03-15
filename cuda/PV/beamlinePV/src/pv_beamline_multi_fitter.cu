@@ -57,7 +57,7 @@ __global__ void pv_beamline_multi_fitter(
         // compute the chi2
         PVTrackInVertex trk = tracks[i];
         // skip tracks lying outside histogram range
-      //  if (zmin > trk.z || trk.z > zmax) continue;
+        //  if (zmin > trk.z || trk.z > zmax) continue;
         const auto dz = vtxpos_z - trk.z;
         float2 res {0.f, 0.f};
         res = vtxpos_xy - (trk.x + trk.tx * dz);
@@ -66,7 +66,7 @@ __global__ void pv_beamline_multi_fitter(
         // compute the weight.
         trk.weight = 0.f;
         if (chi2 < maxChi2) { // to branch or not, that is the question!
-                                   // if (true) {
+                              // if (true) {
           ++nselectedtracks;
           // for more information on the weighted fitting, see e.g.
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
@@ -76,7 +76,7 @@ __global__ void pv_beamline_multi_fitter(
           auto denom = exp(-chi2Cut * 0.5f) + trk.weight;
           auto my_nom = 0.f;
           for (int i_otherseed = 0; i_otherseed < number_of_seeds; i_otherseed++) {
-           // if(i_thisseed == i_otherseed) continue;
+            // if(i_thisseed == i_otherseed) continue;
             float2 res_otherseed {0.f, 0.f};
             const auto dz = zseeds[i_otherseed] - trk.z;
 
@@ -87,7 +87,7 @@ __global__ void pv_beamline_multi_fitter(
             const auto chi2_otherseed =
               res_otherseed.x * res_otherseed.x * trk.W_00 + res_otherseed.y * res_otherseed.y * trk.W_11;
             denom += exp(-chi2_otherseed * 0.5f);
-            if(i_thisseed == i_otherseed) my_nom = exp(-chi2_otherseed * 0.5f);
+            if (i_thisseed == i_otherseed) my_nom = exp(-chi2_otherseed * 0.5f);
           }
           trk.weight = my_nom / denom;
 
@@ -107,7 +107,6 @@ __global__ void pv_beamline_multi_fitter(
           halfD2Chi2DX2_22 += trk.weight * trk.HWH_22;
 
           chi2tot += trk.weight * chi2;
-
         }
       }
       __syncthreads();
