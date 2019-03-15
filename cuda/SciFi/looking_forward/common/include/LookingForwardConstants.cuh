@@ -125,7 +125,9 @@ namespace LookingForward {
     float chi2_stddev_extrapolation_to_x_layers[3] {6.33f, 5.09f, 7.42f};
     int max_candidates_triplets[4] {20, 20, 20, 20};
 
-    uint8_t convert_layer [12] = {0, 0, 0, 1, 2, 2, 2, 3, 4, 4, 4, 5};
+    uint8_t convert_layer [12] = {0, 0, 0, 1,
+                                  2, 2, 2, 3,
+                                  4, 4, 4, 5};
 
     float ds_p_param[12]
       {1307.09, 1288.22, 899.152, 1304.91, 1304.63, 1293.6, 50.6114, 1303.6, 1207.72, 1297.08, 1299.11, 1308.75};

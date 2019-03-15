@@ -56,7 +56,7 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
   // * Seed mid layer 3
   // * Forward to layer 5
   // * Seed mid layer 4
-  for (int i=0; i<1; ++i) {
+  for (int i=0; i<2; ++i) {
     cudaCheck(cudaMemsetAsync(
       arguments.offset<dev_scifi_lf_candidate_atomics>(),
       0,

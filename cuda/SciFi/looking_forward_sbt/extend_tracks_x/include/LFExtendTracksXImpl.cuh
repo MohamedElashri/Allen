@@ -20,4 +20,5 @@ __device__ void lf_extend_tracks_x_impl(
   const uint l_prev_offset,
   const uint l0_offset,
   const uint l1_offset,
-  const uint extrapolation_layer_offset);
+  const uint extrapolation_layer_offset,
+  const int current_ut_track_index);

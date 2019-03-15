@@ -24,7 +24,7 @@ __global__ void lf_triplet_seeding(
   __shared__ float best_chi2[LookingForward::maximum_number_of_candidates_flagged];
   __shared__ int8_t best_h0_h2[2 * LookingForward::maximum_number_of_candidates_flagged];
   __shared__ int8_t best_triplets[LookingForward::maximum_number_of_triplets_per_ut_track];
-  __shared__ short shared_candidates[3 * LookingForward::maximum_number_of_candidates_flagged];
+  __shared__ int8_t shared_candidates[3 * LookingForward::maximum_number_of_candidates_flagged];
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -60,6 +60,12 @@ __global__ void lf_triplet_seeding(
       // This is on purpose, it doesn't need to be
       best_h0_h2[j] = -1;
     }
+
+    // Initialize best_triplets to -1
+    for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_triplets_per_ut_track; j += blockDim.x) {
+      best_triplets[j] = -1;
+    }
+
     __syncthreads();
 
     const auto qop = dev_ut_qop[current_track_index];
@@ -70,6 +76,7 @@ __global__ void lf_triplet_seeding(
       [current_track_index * LookingForward::number_of_x_layers + relative_middle_layer];
     const auto candidate_h2_offset = dev_scifi_lf_number_of_candidates
       [current_track_index * LookingForward::number_of_x_layers + relative_middle_layer + 1];
+    
     const uint8_t candidate_h0_size = candidate_h1_offset - candidate_h0_offset;
     const uint8_t candidate_h1_size = candidate_h2_offset - candidate_h1_offset;
     const uint8_t candidate_h2_size =
@@ -96,19 +103,13 @@ __global__ void lf_triplet_seeding(
       scifi_lf_candidates,
       dev_scifi_lf_candidates_flag,
       shared_candidates,
-      dev_scifi_lf_candidate_atomics + event_number * SciFi::Constants::max_tracks + 3 * i,
+      dev_scifi_lf_candidate_atomics + 3 * current_track_index,
       z0,
       z1,
       z2,
       qop,
-      event_offset);
-
-    // Initialize best_triplets to -1
-    for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_triplets_per_ut_track; j += blockDim.x) {
-      best_triplets[j] = -1;
-    }
-
-    __syncthreads();
+      event_offset,
+      current_track_index);
 
     // Now, we have the best candidates populated in best_chi2 and best_h0_h2
     // Sort the candidates (insertion sort) into best_triplets
@@ -137,10 +138,23 @@ __global__ void lf_triplet_seeding(
         // Create triplet candidate with all information we have
         const int current_insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
         if (current_insert_index < SciFi::Constants::max_tracks) {
-          const uint16_t h0 = (uint16_t) shared_candidates[best_h0_h2[k]];
-          const uint16_t h1 = (uint16_t) shared_candidates[LookingForward::maximum_number_of_candidates_flagged + k];
-          const uint16_t h2 = (uint16_t) shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged
+          // Note: To access saved candidates:
+          // candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + h0_rel]
+          // candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates + h1_rel];
+          // candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + h2_rel];
+          const uint16_t h0_candidate_index = shared_candidates[best_h0_h2[k]];
+          const uint16_t h1_candidate_index = shared_candidates[LookingForward::maximum_number_of_candidates_flagged + k];
+          const uint16_t h2_candidate_index = shared_candidates[2 * LookingForward::maximum_number_of_candidates_flagged
             + best_h0_h2[LookingForward::maximum_number_of_candidates_flagged + k]];
+
+          const uint16_t h0 = (uint16_t) scifi_lf_candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates
+            + h0_candidate_index];
+
+          const uint16_t h1 = (uint16_t) scifi_lf_candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates
+            + h1_candidate_index];
+
+          const uint16_t h2 = (uint16_t) scifi_lf_candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates
+            + h2_candidate_index];
 
           const float x0 = scifi_hits.x0[event_offset + h0];
           const float x1 = scifi_hits.x0[event_offset + h1];
@@ -149,9 +163,9 @@ __global__ void lf_triplet_seeding(
             SciFi::TrackHits {h0,
                               h1,
                               h2,
-                              best_h0_h2[k],
-                              k,
-                              best_h0_h2[LookingForward::maximum_number_of_candidates_flagged + k],
+                              h0_candidate_index,
+                              h1_candidate_index,
+                              h2_candidate_index,
                               best_chi2[k],
                               LookingForward::qop_update(
                                 dev_ut_states[current_track_index].tx,

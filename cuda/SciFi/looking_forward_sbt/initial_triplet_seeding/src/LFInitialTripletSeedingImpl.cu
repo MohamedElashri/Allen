@@ -44,8 +44,8 @@ __device__ void lf_initial_triplet_seeding_impl(
 
       // Note: This block of code is doable by wmma
       for (int16_t k = threadIdx.x; k < tile_size * tile_size; k += blockDim.x) {
-        const int8_t h0_rel = i * tile_size + (k % tile_size);
-        const int8_t h2_rel = j * tile_size + (k / tile_size);
+        const int8_t h0_rel = i * tile_size + (k & tile_size_mask);
+        const int8_t h2_rel = j * tile_size + (k >> tile_size_shift_div);
 
         auto partial_chi2 = 1000.f * max_chi2;
         if (h0_rel < h0_candidate_size && h2_rel < h2_candidate_size) {

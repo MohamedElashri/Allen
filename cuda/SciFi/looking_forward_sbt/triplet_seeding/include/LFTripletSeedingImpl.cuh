@@ -20,10 +20,11 @@ __device__ void lf_triplet_seeding_impl(
   int8_t* best_h0_h2,
   const short* candidates,
   const bool* candidates_flag,
-  short* shared_candidates,
+  int8_t* shared_candidates,
   int* atomics_seeding,
   const float z0,
   const float z1,
   const float z2,
   const float qop,
-  const int event_offset);
+  const int event_offset,
+  const int ut_track_index);

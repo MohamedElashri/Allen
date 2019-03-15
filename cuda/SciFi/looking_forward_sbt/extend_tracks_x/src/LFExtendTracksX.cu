@@ -95,6 +95,7 @@ __global__ void lf_extend_tracks_x(
       l_prev_offset,
       l0_offset,
       l1_offset,
-      extrapolation_layer_offset);
+      extrapolation_layer_offset,
+      current_ut_track_index);
   }
 }
