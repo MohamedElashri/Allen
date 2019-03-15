@@ -547,11 +547,18 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         info_cout << track.get_quality() << "}";
       };
 
+      bool validated = true;
       const auto number_of_tracks_gpu = host_atomics_scifi[i_event];
+      if (event_trackhits.size() != number_of_tracks_gpu) {
+        validated = false;
+        info_cout << "Number of tracks CPU: " << event_trackhits.size() << std::endl
+          << "Number of tracks GPU: " << number_of_tracks_gpu << std::endl;
+      }
+
       for (const auto& track : event_trackhits) {
         bool found = false;
         for (int i = 0; i < number_of_tracks_gpu; ++i) {
-          const auto& gpu_track = host_scifi_tracks[i];
+          const auto& gpu_track = host_scifi_tracks[i_event * SciFi::Constants::max_tracks + i];
 
           if (track.hitsNum == gpu_track.hitsNum) {
             bool same = true;
@@ -563,15 +570,19 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         }
 
         if (!found) {
+          validated = false;
           info_cout << "Track ";
           print_track(track);
           info_cout << " not found in GPU tracks" << std::endl;
         }
       }
 
-      info_cout << std::endl;
+      if (!validated) {
+        info_cout << std::endl;
+      }
+
       for (int i = 0; i < number_of_tracks_gpu; ++i) {
-        const auto& gpu_track = host_scifi_tracks[i];
+        const auto& gpu_track = host_scifi_tracks[i_event * SciFi::Constants::max_tracks + i];
         bool found = false;
         for (const auto& track : event_trackhits) {
 
@@ -585,12 +596,20 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         }
 
         if (!found) {
+          validated = false;
           info_cout << "Track ";
           print_track(gpu_track);
           info_cout << " not found in CPU tracks" << std::endl;
         }
       }
-      info_cout << std::endl;
+
+      if (!validated) {
+        info_cout << std::endl;
+      }
+
+      if (validated) {
+        info_cout << "Event " << i_event << " validated" << std::endl;
+      }
     }
 
     trackhits.emplace_back(event_trackhits);

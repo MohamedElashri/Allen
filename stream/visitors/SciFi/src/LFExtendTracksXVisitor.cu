@@ -13,12 +13,6 @@ void SequenceVisitor::visit<lf_extend_tracks_x_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  // config - percentage of utilization (sbt)
-  // 512 - 1.78% (11.41%)
-  // 256 - 1.33% (11.17%)
-  // 128 - 1.27% (11.47%)
-  // 64 - 1.31% (11.32%)
-
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
