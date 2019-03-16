@@ -716,17 +716,16 @@ void filter_tracks_with_TMVA(
     int n_hits = 0;
     int n_uv_hits = 0;
 
-    if (candidate.hitsNum > SciFi::Constants::max_track_size) {
-      printf("Candidate hits num too big: %i\n", candidate.hitsNum);
-    }
+    assert(candidate.hitsNum <= SciFi::Constants::max_track_size);
 
     for (int i = 0; i < candidate.hitsNum; ++i) {
       if (scifi_hits.dxdy(candidate.hits[i] + event_offset) == 0) {
+        assert(n_hits <= 6);
         // first store only x hits in hits array
         hits[n_hits++] = candidate.hits[i] + event_offset;
       }
       else {
-        info_cout << "n uv hits: " << n_uv_hits << std::endl;
+        assert(n_uv_hits <= 6);
         uv_hits[n_uv_hits++] = candidate.hits[i] + event_offset;
       }
     }
@@ -793,7 +792,7 @@ void filter_tracks_with_TMVA(
     const float bx1 = trackParams[1]; // slope between zRef and zMag (-> in the SciFi)
 
     // Pipe into TMVA, get track quality
-    float mlpInput[7] = {0};
+    float mlpInput[7] = {0, 0, 0, 0, 0, 0, 0};
     mlpInput[0] = candidate.hitsNum; // should be nbDifferent, but we only allow hits from different planes anyway
     mlpInput[1] = qOverP;
     mlpInput[2] = VeloUT_qOverP - qOverP;                // veloUT - scifi
