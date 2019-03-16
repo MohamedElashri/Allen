@@ -2,7 +2,7 @@
 
 __host__ __device__ void getTrackParameters(
   float xAtRef,
-  MiniState velo_state,
+  const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
   float trackParams[SciFi::Tracking::nTrackParams])
 {
@@ -28,7 +28,7 @@ __host__ __device__ void getTrackParameters(
   trackParams[8] = 0.0f; // last elements are chi2 and ndof, as float
 }
 
-__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, MiniState velo_state)
+__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, const MiniState& velo_state)
 {
 
   float qop(1.0f / Gaudi::Units::GeV);
@@ -50,7 +50,7 @@ __host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* co
 // the second parameter([1]) is multiplied by the difference in slope before and
 // after the kick, this slope is calculated from zMag and the x position of the track
 // at the reference plane -> it is calculated iteratively later
-__host__ __device__ float zMagnet(MiniState velo_state, const SciFi::Tracking::Arrays* constArrays)
+__host__ __device__ float zMagnet(const MiniState& velo_state, const SciFi::Tracking::Arrays* constArrays)
 {
 
   return (
@@ -60,7 +60,7 @@ __host__ __device__ float zMagnet(MiniState velo_state, const SciFi::Tracking::A
 
 // calculate difference between straight line extrapolation and
 // where a track with wrongSignPT (2 GeV) would be on the reference plane (?)
-__host__ __device__ float calcDxRef(float pt, MiniState velo_state)
+__host__ __device__ float calcDxRef(float pt, const MiniState& velo_state)
 {
   const float tx2 = velo_state.tx * velo_state.tx;
   const float ty2 = velo_state.ty * velo_state.ty;
@@ -144,7 +144,7 @@ __host__ __device__ bool fitYProjection(
   int stereoHits[SciFi::Tracking::max_stereo_hits],
   int& n_stereoHits,
   PlaneCounter& planeCounter,
-  MiniState velo_state,
+  const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
   SciFi::Tracking::HitSearchCuts& pars)
 {

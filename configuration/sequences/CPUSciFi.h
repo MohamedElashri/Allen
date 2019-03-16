@@ -45,6 +45,11 @@ SEQUENCE_T(
   lf_composite_track_seeding_t,
   lf_extend_tracks_first_layers_x_t,
   lf_extend_tracks_uv_t,
+  
+  copy_and_prefix_sum_single_block_scifi_t,
+  copy_scifi_track_hit_number_t,
+  prefix_sum_scifi_track_hit_number_t,
+  consolidate_scifi_tracks_t,
 
   // lf_calculate_first_layer_window_t,
   // lf_prefix_sum_first_layer_window_size_t,

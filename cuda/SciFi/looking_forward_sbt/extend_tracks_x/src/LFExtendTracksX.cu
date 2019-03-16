@@ -29,7 +29,9 @@ __global__ void lf_extend_tracks_x(
   const auto event_offset = scifi_hit_count.event_offset();
 
   // SciFi un-consolidated track types
-  const int number_of_tracks = dev_atomics_scifi[event_number];
+  int number_of_tracks = dev_atomics_scifi[event_number];
+  number_of_tracks = (number_of_tracks > SciFi::Constants::max_tracks) ?
+    SciFi::Constants::max_tracks : number_of_tracks;
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + i];

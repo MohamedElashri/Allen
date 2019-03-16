@@ -14,13 +14,13 @@
  */
 
 // extrapolate x position from given state to z
-__host__ __device__ inline float xFromVelo(const float z, MiniState velo_state)
+__host__ __device__ inline float xFromVelo(const float z, const MiniState& velo_state)
 {
   return velo_state.x + (z - velo_state.z) * velo_state.tx;
 }
 
 // extrapolate y position from given state to z
-__host__ __device__ inline float yFromVelo(const float z, MiniState velo_state)
+__host__ __device__ inline float yFromVelo(const float z, const MiniState& velo_state)
 {
   return velo_state.y + (z - velo_state.z) * velo_state.ty;
 }
@@ -33,15 +33,15 @@ __host__ __device__ inline float evalCubicParameterization(const float params[4]
 
 __host__ __device__ void getTrackParameters(
   float xAtRef,
-  MiniState velo_state,
+  const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
   float trackParams[SciFi::Tracking::nTrackParams]);
 
-__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, MiniState velo_state);
+__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, const MiniState& velo_state);
 
-__host__ __device__ float zMagnet(MiniState velo_state, const SciFi::Tracking::Arrays* constArrays);
+__host__ __device__ float zMagnet(const MiniState& velo_state, const SciFi::Tracking::Arrays* constArrays);
 
-__host__ __device__ float calcDxRef(float pt, MiniState velo_state);
+__host__ __device__ float calcDxRef(float pt, const MiniState& velo_state);
 
 __host__ __device__ float
 trackToHitDistance(float trackParameters[SciFi::Tracking::nTrackParams], const SciFi::Hits& scifi_hits, int hit);
@@ -67,6 +67,6 @@ __host__ __device__ bool fitYProjection(
   int stereoHits[SciFi::Tracking::max_stereo_hits],
   int& n_stereoHits,
   PlaneCounter& planeCounter,
-  MiniState velo_state,
+  const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
   SciFi::Tracking::HitSearchCuts& pars_cur);

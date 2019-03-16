@@ -13,7 +13,7 @@ __global__ void lf_extend_tracks_first_layers_x(
   const uint32_t* dev_scifi_hit_count,
   const int* dev_atomics_ut,
   SciFi::TrackHits* dev_scifi_tracks,
-  const int* dev_atomics_scifi,
+  int* dev_atomics_scifi,
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,

@@ -5,7 +5,7 @@ __global__ void lf_extend_tracks_first_layers_x(
   const uint32_t* dev_scifi_hit_count,
   const int* dev_atomics_ut,
   SciFi::TrackHits* dev_scifi_tracks,
-  const int* dev_atomics_scifi,
+  int* dev_atomics_scifi,
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
@@ -26,6 +26,16 @@ __global__ void lf_extend_tracks_first_layers_x(
   const SciFi::Hits scifi_hits {
     const_cast<uint32_t*>(dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
+
+  // TODO: Maybe move this somewhere else
+  if (threadIdx.x == 0) {
+    const int temp_number_of_tracks = dev_atomics_scifi[event_number];
+    if (temp_number_of_tracks > SciFi::Constants::max_tracks) {
+      dev_atomics_scifi[event_number] = SciFi::Constants::max_tracks;
+    }
+  }
+
+  __syncthreads();
 
   // SciFi un-consolidated track types
   const int number_of_tracks = dev_atomics_scifi[event_number];
