@@ -127,7 +127,8 @@ void single_track_propagation(
   const int event_offset,
   const std::vector<bool>& flag,
   const float projection_y,
-  const bool use_flagging = false);
+  const bool use_flagging = false,
+  const bool iterate_all_hits = false);
 
 void single_track_propagation(
   const SciFi::Hits& scifi_hits,

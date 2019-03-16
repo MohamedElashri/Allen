@@ -446,7 +446,8 @@ void single_track_propagation(
   const int event_offset,
   const std::vector<bool>& flag,
   const float projection_y,
-  const bool use_flagging)
+  const bool use_flagging,
+  const bool iterate_all_hits)
 {
   // do the propagation
   const auto h0 = event_offset + track.hits[0];
@@ -461,19 +462,28 @@ void single_track_propagation(
     const auto z_at_layer_1 = SciFi::LookingForward::Zone_zPos[layer1];
 
     const auto reco_slope = (x_at_layer_1 - x_at_layer_0) / (z_at_layer_1 - z_at_layer_0);
-    const auto projection_x = scifi_propagation(
+
+    const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(2 * layer, hit_count, projection_y);
+    std::tuple<int, int> layer_candidates = std::make_tuple(
+      std::get<0>(layer_offset_nhits),
+      std::get<0>(layer_offset_nhits) + std::get<1>(layer_offset_nhits)
+    );
+
+    if (!iterate_all_hits) {
+      const auto projection_x = scifi_propagation(
                                 x_at_layer_0,
                                 reco_slope,
                                 track.qop,
-                                SciFi::LookingForward::Zone_zPos[layer] - SciFi::LookingForward::Zone_zPos[layer0]);
+                                SciFi::LookingForward::Zone_zPos[layer] - SciFi::LookingForward::Zone_zPos[layer0])
+                              - SciFi::LookingForward::Zone_dxdy[(layer % 4)] * projection_y;
 
-    const auto layer_offset_nhits = get_offset_and_n_hits_for_layer(2 * layer, hit_count, projection_y);
-    const auto layer_candidates = find_x_in_window(
-      scifi_hits,
-      std::get<0>(layer_offset_nhits),
-      std::get<1>(layer_offset_nhits),
-      projection_x,
-      3 * extrapolation_stddev);
+      layer_candidates = find_x_in_window(
+        scifi_hits,
+        std::get<0>(layer_offset_nhits),
+        std::get<1>(layer_offset_nhits),
+        projection_x,
+        3 * extrapolation_stddev);
+    }
 
     // Pick the best, according to chi2
     int best_idx = -1;
@@ -500,7 +510,7 @@ void single_track_propagation(
 
     for (auto hit_index = std::get<0>(layer_candidates); hit_index != std::get<1>(layer_candidates); hit_index++) {
       if (!use_flagging || !flag[hit_index]) {
-        x_coordinates[2] = scifi_hits.x0[hit_index];
+        x_coordinates[2] = scifi_hits.x0[hit_index] + projection_y * SciFi::LookingForward::Zone_dxdy[(layer % 4)];
         const auto chi2 = get_chi_2(z_coordinates, x_coordinates, chi2_fn);
 
         if (chi2 < best_chi2) {

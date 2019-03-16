@@ -125,6 +125,12 @@ namespace LookingForward {
     float chi2_stddev_extrapolation_to_x_layers[3] {6.33f, 5.09f, 7.42f};
     int max_candidates_triplets[4] {20, 20, 20, 20};
 
+    // Extrapolation to UV 
+    int extrapolation_uv_layers [6] {1, 2, 5, 6, 9, 10};
+    float extrapolation_uv_stddev [6] {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
+    float chi2_extrapolation_uv_mean [6] {1.304f, 1.384f, 4.577f, 6.587f, 36.1f, 44.67f};
+    float chi2_extrapolation_uv_stddev [6] {10.6f, 11.82f, 17.84f, 23.2f, 68.05f, 81.47f};
+
     uint8_t convert_layer [12] = {0, 0, 0, 1,
                                   2, 2, 2, 3,
                                   4, 4, 4, 5};

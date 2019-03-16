@@ -44,6 +44,7 @@ SEQUENCE_T(
   lf_initial_triplet_seeding_t,
   lf_composite_track_seeding_t,
   lf_extend_tracks_first_layers_x_t,
+  lf_extend_tracks_uv_t,
 
   // lf_calculate_first_layer_window_t,
   // lf_prefix_sum_first_layer_window_size_t,

@@ -13,4 +13,4 @@ __device__ void lf_extend_tracks_first_layers_x_impl(
   const float z0,
   const float z1,
   const float z2,
-  float best_chi2);
+  const float max_chi2);

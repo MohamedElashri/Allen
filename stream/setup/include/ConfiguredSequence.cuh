@@ -61,6 +61,7 @@
 #include "LFTripletSeeding.cuh"
 #include "LFCompositeTrackSeeding.cuh"
 #include "LFExtendTracksFirstLayersX.cuh"
+#include "LFExtendTracksUV.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 
