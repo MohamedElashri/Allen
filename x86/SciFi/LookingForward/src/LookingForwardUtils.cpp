@@ -715,15 +715,24 @@ float TMVA_quality (SciFi::TrackHits& track,
 
   assert(track.hitsNum <= SciFi::Constants::max_track_size);
 
+  // printf("Track: ut_track_index %i, hitsNum %i, hits: ", track.ut_track_index, track.hitsNum);
+  // for (int i=0; i<track.hitsNum; ++i) {
+  //   printf("%i, ", track.hits[i]);
+  // }
+  // printf("\n");
+
   for (int i = 0; i < track.hitsNum; ++i) {
-    if (scifi_hits.dxdy(track.hits[i] + event_offset) == 0) {
+    const int offset = event_offset + ((int) track.hits[i]);
+    const int plane_code = scifi_hits.planeCode(offset);
+
+    if (((plane_code - (plane_code & 0x1)) % 2) == 0) {
       assert(n_hits <= 6);
       // first store only x hits in hits array
-      hits[n_hits++] = track.hits[i] + event_offset;
+      hits[n_hits++] = offset;
     }
     else {
       assert(n_uv_hits <= 6);
-      uv_hits[n_uv_hits++] = track.hits[i] + event_offset;
+      uv_hits[n_uv_hits++] = offset;
     }
   }
   const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
