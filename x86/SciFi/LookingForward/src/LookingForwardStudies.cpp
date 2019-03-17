@@ -31,7 +31,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
   if (run_algorithm) {
-    const bool compare_cpu_gpu_tracks = false;
+    const bool compare_cpu_gpu_tracks = true;
 
     const auto lhcb_id_find_id =
       [](int start_id, const int last_id, const uint32_t lhcb_id, const SciFi::Hits& scifi_hits) {

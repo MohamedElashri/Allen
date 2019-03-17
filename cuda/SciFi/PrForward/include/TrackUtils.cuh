@@ -14,22 +14,14 @@
  */
 
 // extrapolate x position from given state to z
-__host__ __device__ inline float xFromVelo(const float z, const MiniState& velo_state)
-{
-  return velo_state.x + (z - velo_state.z) * velo_state.tx;
-}
+__host__ __device__ float xFromVelo(const float z, const MiniState& velo_state);
 
 // extrapolate y position from given state to z
-__host__ __device__ inline float yFromVelo(const float z, const MiniState& velo_state)
-{
-  return velo_state.y + (z - velo_state.z) * velo_state.ty;
-}
+__host__ __device__ float yFromVelo(const float z, const MiniState& velo_state);
 
-__host__ __device__ inline float evalCubicParameterization(const float params[4], float z)
-{
-  float dz = z - SciFi::Tracking::zReference;
-  return params[0] + (params[1] + (params[2] + params[3] * dz) * dz) * dz;
-}
+__host__ __device__ float evalCubicParameterization(const float params[4], float z);
+
+__host__ __device__ bool lowerByQuality(SciFi::Tracking::Track t1, SciFi::Tracking::Track t2);
 
 __host__ __device__ void getTrackParameters(
   float xAtRef,
@@ -45,11 +37,6 @@ __host__ __device__ float calcDxRef(float pt, const MiniState& velo_state);
 
 __host__ __device__ float
 trackToHitDistance(float trackParameters[SciFi::Tracking::nTrackParams], const SciFi::Hits& scifi_hits, int hit);
-
-__host__ __device__ static inline bool lowerByQuality(SciFi::Tracking::Track t1, SciFi::Tracking::Track t2)
-{
-  return t1.quality < t2.quality;
-}
 
 __host__ __device__ float chi2XHit(const float parsX[4], const SciFi::Hits& scifi_hits, const int hit);
 

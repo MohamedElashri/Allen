@@ -1,5 +1,28 @@
 #include "TrackUtils.cuh"
 
+// extrapolate x position from given state to z
+__host__ __device__ float xFromVelo(const float z, const MiniState& velo_state)
+{
+  return velo_state.x + (z - velo_state.z) * velo_state.tx;
+}
+
+// extrapolate y position from given state to z
+__host__ __device__ float yFromVelo(const float z, const MiniState& velo_state)
+{
+  return velo_state.y + (z - velo_state.z) * velo_state.ty;
+}
+
+__host__ __device__ float evalCubicParameterization(const float params[4], float z)
+{
+  float dz = z - SciFi::Tracking::zReference;
+  return params[0] + (params[1] + (params[2] + params[3] * dz) * dz) * dz;
+}
+
+__host__ __device__ bool lowerByQuality(SciFi::Tracking::Track t1, SciFi::Tracking::Track t2)
+{
+  return t1.quality < t2.quality;
+}
+
 __host__ __device__ void getTrackParameters(
   float xAtRef,
   const MiniState& velo_state,
@@ -31,7 +54,7 @@ __host__ __device__ void getTrackParameters(
 __host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, const MiniState& velo_state)
 {
 
-  float qop(1.0f / Gaudi::Units::GeV);
+  float qop = 1.0f / Gaudi::Units::GeV;
   const float bx2 = bx * bx;
   const float ty2 = velo_state.ty * velo_state.ty;
   const float coef =

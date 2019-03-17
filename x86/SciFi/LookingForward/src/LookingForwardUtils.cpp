@@ -701,7 +701,7 @@ float TMVA_quality (SciFi::TrackHits& track,
   const SciFi::Hits& scifi_hits,
   const int event_offset)
 {
-  float quality = SciFi::Tracking::maxQuality;
+  float quality = LookingForward::track_min_quality;
 
   if (track.hitsNum < SciFi::LookingForward::minHits) {
     return quality;
@@ -721,11 +721,12 @@ float TMVA_quality (SciFi::TrackHits& track,
   // }
   // printf("\n");
 
+  const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
   for (int i = 0; i < track.hitsNum; ++i) {
     const int offset = event_offset + ((int) track.hits[i]);
-    const int plane_code = scifi_hits.planeCode(offset);
+    const int plane_code = scifi_hits.planeCode(offset) >> 1;
 
-    if (((plane_code - (plane_code & 0x1)) % 2) == 0) {
+    if (is_x_plane[plane_code]) {
       assert(n_hits <= 6);
       // first store only x hits in hits array
       hits[n_hits++] = offset;

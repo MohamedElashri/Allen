@@ -5,9 +5,6 @@
 #include "SciFiEventModel.cuh"
 #include "TrackUtils.cuh"
 
- inline float evalCubicParameterization(const float params[4], float z);
-
-
 int fitParabola_proto(
   const SciFi::Hits& scifi_hits,
   const int* coordToFit,

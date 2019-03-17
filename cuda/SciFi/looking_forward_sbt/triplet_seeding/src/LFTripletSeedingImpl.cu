@@ -88,10 +88,10 @@ __device__ void lf_triplet_seeding_impl(
 
     // Search best triplet
     // Tiled processing of h0 and h2
-    for (int8_t i = 0; i<(h0_candidate_size + tile_size + 1) >> tile_size_shift_div; ++i) {
+    for (int8_t i = 0; i<(h0_candidate_size + tile_size - 1) >> tile_size_shift_div; ++i) {
       // Note: Part of wmma can be allocated here
 
-      for (int8_t j = 0; j<(h2_candidate_size + tile_size + 1) >> tile_size_shift_div; ++j) {
+      for (int8_t j = 0; j<(h2_candidate_size + tile_size - 1) >> tile_size_shift_div; ++j) {
         // Note: The other part of wmma can be allocated here
 
         __syncthreads();

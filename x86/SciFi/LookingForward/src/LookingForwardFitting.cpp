@@ -11,7 +11,6 @@ float get_average_x_at_reference_plane(
   const MiniState& velo_state,
   const float zMagSlope) 
 {
-  
   float average_x = 0;
   for ( int i_hit = 0; i_hit < n_hits; ++i_hit ) {
     const int hit = hits[i_hit];
@@ -251,12 +250,14 @@ bool quadraticFitX_proto(
 
     doFit = false;
     //if (totChi2 / nDoF > SciFi::Tracking::maxChi2PerDoF || maxChi2 > SciFi::Tracking::maxChi2XProjection) {
-    if ( maxChi2 > 2000) {
-    //if ( totChi2 / nDoF > 5000 ) {
-      removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, coordToFit[worst]);
-      if (n_coordToFit < SciFi::LookingForward::minHits) return false;
-      doFit = true;
-    }
+    
+    // TODO: Uncomment removeOutlier
+    // if ( maxChi2 > 2000) {
+    // //if ( totChi2 / nDoF > 5000 ) {
+    //   removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, coordToFit[worst]);
+    //   if (n_coordToFit < SciFi::LookingForward::minHits) return false;
+    //   doFit = true;
+    // }
   }
   return true;
 }
