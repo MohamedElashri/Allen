@@ -25,16 +25,16 @@ __global__ void lf_quality_filter(
   const uint* dev_ut_track_hit_number,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
-  SciFi::TrackHits* dev_scifi_tracks,
-  const int* dev_atomics_scifi,
+  SciFi::TrackHits* dev_scifi_lf_tracks,
+  const int* dev_scifi_lf_atomics,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const MiniState* dev_ut_states,
   const SciFi::Tracking::TMVA* dev_tmva1,
   const SciFi::Tracking::TMVA* dev_tmva2,
   const SciFi::Tracking::Arrays* constArrays,
-  int* dev_scifi_lf_filtered_tracks_atomics,
-  SciFi::TrackHits* dev_scifi_lf_filtered_tracks);
+  int* dev_atomics_scifi,
+  SciFi::TrackHits* dev_scifi_tracks);
 
 ALGORITHM(
   lf_quality_filter,
@@ -55,5 +55,5 @@ ALGORITHM(
     dev_scifi_lf_number_of_candidates,
     dev_scifi_lf_candidates,
     dev_ut_states,
-    dev_scifi_lf_filtered_tracks_atomics,
-    dev_scifi_lf_filtered_tracks))
+    dev_scifi_lf_atomics,
+    dev_scifi_lf_tracks))

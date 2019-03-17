@@ -20,15 +20,15 @@ void SequenceVisitor::visit<lf_extend_tracks_uv_t>(
       arguments.offset<dev_scifi_hits>(),
       arguments.offset<dev_scifi_hit_count>(),
       arguments.offset<dev_atomics_ut>(),
-      arguments.offset<dev_scifi_tracks>(),
-      arguments.offset<dev_atomics_scifi>(),
+      arguments.offset<dev_scifi_lf_tracks>(),
+      arguments.offset<dev_scifi_lf_atomics>(),
       constants.dev_scifi_geometry,
       constants.dev_looking_forward_constants,
       constants.dev_inv_clus_res,
       arguments.offset<dev_ut_states>(),
       relative_extrapolation_layer);
   };
-
+  
   // * Forward to UV layers
   for (int i=0; i<6; ++i) {
     forwarding_set_arguments(i);

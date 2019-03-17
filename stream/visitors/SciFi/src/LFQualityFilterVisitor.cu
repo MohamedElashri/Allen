@@ -8,8 +8,8 @@ void SequenceVisitor::set_arguments_size<lf_quality_filter_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_scifi_lf_filtered_tracks_atomics>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
-  arguments.set_size<dev_scifi_lf_filtered_tracks>(host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_tracks);
+  arguments.set_size<dev_atomics_scifi>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
+  arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_tracks);
 }
 
 template<>
@@ -23,13 +23,13 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
   cudaEvent_t& cuda_generic_event)
 {
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_scifi_lf_filtered_tracks_atomics>(),
+    arguments.offset<dev_atomics_scifi>(),
     0,
-    arguments.size<dev_scifi_lf_filtered_tracks_atomics>(),
+    arguments.size<dev_atomics_scifi>(),
     cuda_stream));
 
   // TODO: Number of threads
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(1), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
       arguments.offset<dev_scifi_hits>(),
       arguments.offset<dev_scifi_hit_count>(),
@@ -41,30 +41,30 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
       arguments.offset<dev_ut_track_hit_number>(),
       arguments.offset<dev_ut_qop>(),
       arguments.offset<dev_ut_track_velo_indices>(),
-      arguments.offset<dev_scifi_tracks>(),
-      arguments.offset<dev_atomics_scifi>(),
+      arguments.offset<dev_scifi_lf_tracks>(),
+      arguments.offset<dev_scifi_lf_atomics>(),
       constants.dev_scifi_geometry,
       constants.dev_inv_clus_res,
       arguments.offset<dev_ut_states>(),
       constants.dev_scifi_tmva1,
       constants.dev_scifi_tmva2,
       constants.dev_scifi_constArrays,
-      arguments.offset<dev_scifi_lf_filtered_tracks_atomics>(),
-      arguments.offset<dev_scifi_lf_filtered_tracks>());
+      arguments.offset<dev_atomics_scifi>(),
+      arguments.offset<dev_scifi_tracks>());
   
   state.invoke();
 
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_atomics_scifi,
-    arguments.offset<dev_scifi_lf_filtered_tracks_atomics>(),
-    arguments.size<dev_scifi_lf_filtered_tracks_atomics>(),
+    arguments.offset<dev_atomics_scifi>(),
+    arguments.size<dev_atomics_scifi>(),
     cudaMemcpyDeviceToHost,
     cuda_stream));
 
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_scifi_tracks,
-    arguments.offset<dev_scifi_lf_filtered_tracks>(),
-    arguments.size<dev_scifi_lf_filtered_tracks>(),
+    arguments.offset<dev_scifi_tracks>(),
+    arguments.size<dev_scifi_tracks>(),
     cudaMemcpyDeviceToHost,
     cuda_stream));
 

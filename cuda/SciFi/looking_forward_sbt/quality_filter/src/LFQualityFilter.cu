@@ -11,16 +11,16 @@ __global__ void lf_quality_filter(
   const uint* dev_ut_track_hit_number,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
-  SciFi::TrackHits* dev_scifi_tracks,
-  const int* dev_atomics_scifi,
+  SciFi::TrackHits* dev_scifi_lf_tracks,
+  const int* dev_scifi_lf_atomics,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const MiniState* dev_ut_states,
   const SciFi::Tracking::TMVA* dev_tmva1,
   const SciFi::Tracking::TMVA* dev_tmva2,
   const SciFi::Tracking::Arrays* constArrays,
-  int* dev_scifi_lf_filtered_tracks_atomics,
-  SciFi::TrackHits* dev_scifi_lf_filtered_tracks)
+  int* dev_atomics_scifi,
+  SciFi::TrackHits* dev_scifi_tracks)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -49,12 +49,12 @@ __global__ void lf_quality_filter(
   const auto event_offset = scifi_hit_count.event_offset();
 
   // SciFi un-consolidated track types
-  const int number_of_tracks = dev_atomics_scifi[event_number];
+  const int number_of_tracks = dev_scifi_lf_atomics[event_number];
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + i];
+    SciFi::TrackHits& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_tracks + i];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
-    const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[current_ut_track_index];
+    const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
     const MiniState velo_state {velo_states, velo_states_index};
 
     track.quality = lf_track_quality(
@@ -70,7 +70,7 @@ __global__ void lf_quality_filter(
 
     // TODO: This should be very slow
     for (int j = 0; j < number_of_tracks; ++j) {
-      const SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + j];
+      const SciFi::TrackHits& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_tracks + j];
       if (track.ut_track_index == i && track.quality > best_quality) {
         best_quality = track.quality;
         best_track_index = j;
@@ -78,23 +78,20 @@ __global__ void lf_quality_filter(
     }
 
     if (best_track_index != -1) {
-      const auto& track = dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + best_track_index];
-
-      printf("Best track: ut_track_index %i, number of hits %i, hits: ",
-        track.ut_track_index,
-        track.hitsNum);
-      for (int k=0; k<track.hitsNum; ++k) {
-        printf("%i, ", track.hits[k]);
-      }
-      printf("\n");
-
-      const auto insert_index = atomicAdd(dev_scifi_lf_filtered_tracks_atomics + event_number, 1);
+      const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
       if (insert_index < SciFi::Constants::max_tracks) {
-        dev_scifi_lf_filtered_tracks[event_number * SciFi::Constants::max_tracks + insert_index] =
-          track;
-      }
+        const auto& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_tracks + best_track_index];
 
-      printf("Number of tracks: %i", dev_scifi_lf_filtered_tracks_atomics[event_number]);
+        // printf("Best track: ut_track_index %i, number of hits %i, hits: ",
+        //   track.ut_track_index,
+        //   track.hitsNum);
+        // for (int k=0; k<track.hitsNum; ++k) {
+        //   printf("%i, ", track.hits[k]);
+        // }
+        // printf("\n");
+
+        dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + insert_index] = track;
+      }
     }
   }
 }
