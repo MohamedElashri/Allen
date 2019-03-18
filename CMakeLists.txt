@@ -24,7 +24,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 
 # Configuration of CUDA compute architecture
-set(CUDA_ARCH "MIN" CACHE STRING "Cuda architecture")
+set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
 
 if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
   set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
