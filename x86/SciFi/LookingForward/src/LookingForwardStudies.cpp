@@ -27,11 +27,11 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const SciFi::TrackHits* host_scifi_tracks,
   const int* host_atomics_scifi)
 {
-  const bool run_algorithm = false;
+  const bool run_algorithm = true;
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
   if (run_algorithm) {
-    const bool compare_cpu_gpu_tracks = true;
+    const bool compare_cpu_gpu_tracks = false;
 
     const auto lhcb_id_find_id =
       [](int start_id, const int last_id, const uint32_t lhcb_id, const SciFi::Hits& scifi_hits) {
@@ -420,6 +420,33 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           event_UT_state[i_veloUT_track],
           scifi_tracks);
       }
+
+      // int total_tracks = 0;
+      // int cut_tracks = 0;
+
+      // // Early chi2 cut
+      // const float chi2_track_x_cut = 10.f;
+      // for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
+      //   auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
+      //   for (auto it = scifi_tracks.begin(); it != scifi_tracks.end();) {
+      //     const auto& track = *it;
+      //     if (track.get_quality() > chi2_track_x_cut) {
+      //       cut_tracks++;
+      //       total_tracks++;
+      //       it = scifi_tracks.erase(it);
+      //     } else {
+      //       ++it;
+      //       total_tracks++;
+      //     }
+      //   }
+      // }
+
+      // if (total_tracks > 0) {
+      //   info_cout << "Percentage of cut tracks: "
+      //     << (100.f * ((float) cut_tracks) / ((float) total_tracks))
+      //     << " (" << cut_tracks << " out of " << total_tracks << ")"
+      //     << std::endl;
+      // }
 
       const std::array<int, 2> final_layers {0, 3};
       for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {

@@ -12,8 +12,8 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
   float quality = LookingForward::track_min_quality;
 
   // LookingForward::track_min_starting_quality
-  if (track.hitsNum < LookingForward::track_min_hits ||
-    track.get_quality() > 20.f) {
+  // || track.get_quality() > 20.f
+  if (track.hitsNum < LookingForward::track_min_hits) {
     return quality;
   }
 
