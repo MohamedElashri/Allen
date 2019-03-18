@@ -30,8 +30,8 @@ __global__ void lf_extend_tracks_first_layers_x(
   // TODO: Maybe move this somewhere else
   if (threadIdx.x == 0) {
     const int temp_number_of_tracks = dev_atomics_scifi[event_number];
-    if (temp_number_of_tracks > SciFi::Constants::max_tracks) {
-      dev_atomics_scifi[event_number] = SciFi::Constants::max_tracks;
+    if (temp_number_of_tracks > SciFi::Constants::max_lf_tracks) {
+      dev_atomics_scifi[event_number] = SciFi::Constants::max_lf_tracks;
     }
   }
 
@@ -41,7 +41,7 @@ __global__ void lf_extend_tracks_first_layers_x(
   const int number_of_tracks = dev_atomics_scifi[event_number];
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + i];
+    SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_lf_tracks + i];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
 
     // Candidates pointer for current UT track

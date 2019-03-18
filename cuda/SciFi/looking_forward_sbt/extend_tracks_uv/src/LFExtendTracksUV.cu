@@ -30,7 +30,7 @@ __global__ void lf_extend_tracks_uv(
   const int number_of_tracks = dev_atomics_scifi[event_number];
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + i];
+    SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_lf_tracks + i];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
 
     const auto h0 = event_offset + track.hits[0];

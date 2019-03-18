@@ -127,7 +127,7 @@ __global__ void lf_initial_triplet_seeding(
       if (k != -1) {
         // Create triplet candidate with all information we have
         const int current_insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-        if (current_insert_index < SciFi::Constants::max_tracks) {
+        if (current_insert_index < SciFi::Constants::max_lf_tracks) {
           const uint16_t h0 = (uint16_t) scifi_lf_candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + best_h0_h2[k]];
           const uint16_t h1 = (uint16_t) scifi_lf_candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates + k];
           const uint16_t h2 = (uint16_t) scifi_lf_candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates +
@@ -136,7 +136,7 @@ __global__ void lf_initial_triplet_seeding(
           const float x0 = scifi_hits.x0[event_offset + h0];
           const float x1 = scifi_hits.x0[event_offset + h1];
 
-          dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + current_insert_index] =
+          dev_scifi_tracks[event_number * SciFi::Constants::max_lf_tracks + current_insert_index] =
             SciFi::TrackHits {h0,
                               h1,
                               h2,

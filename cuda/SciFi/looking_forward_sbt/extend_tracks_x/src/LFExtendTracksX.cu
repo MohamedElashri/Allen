@@ -30,11 +30,11 @@ __global__ void lf_extend_tracks_x(
 
   // SciFi un-consolidated track types
   int number_of_tracks = dev_atomics_scifi[event_number];
-  number_of_tracks = (number_of_tracks > SciFi::Constants::max_tracks) ?
-    SciFi::Constants::max_tracks : number_of_tracks;
+  number_of_tracks = (number_of_tracks > SciFi::Constants::max_lf_tracks) ?
+    SciFi::Constants::max_lf_tracks : number_of_tracks;
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + i];
+    SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_lf_tracks + i];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
 
     // Candidates pointer for current UT track

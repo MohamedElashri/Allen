@@ -8,7 +8,7 @@ void SequenceVisitor::set_arguments_size<lf_composite_track_seeding_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_scifi_lf_candidate_atomics>(3 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_tracks);
+  arguments.set_size<dev_scifi_lf_candidate_atomics>(3 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_lf_tracks);
 }
 
 template<>

@@ -52,7 +52,7 @@ __global__ void lf_quality_filter(
   const int number_of_tracks = dev_scifi_lf_atomics[event_number];
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    SciFi::TrackHits& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_tracks + i];
+    SciFi::TrackHits& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_lf_tracks + i];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
     const MiniState velo_state {velo_states, velo_states_index};
@@ -70,7 +70,7 @@ __global__ void lf_quality_filter(
 
     // TODO: This should be very slow
     for (int j = 0; j < number_of_tracks; ++j) {
-      const SciFi::TrackHits& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_tracks + j];
+      const SciFi::TrackHits& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_lf_tracks + j];
       if (track.ut_track_index == i && track.quality > best_quality) {
         best_quality = track.quality;
         best_track_index = j;
@@ -80,7 +80,7 @@ __global__ void lf_quality_filter(
     if (best_track_index != -1) {
       const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
       if (insert_index < SciFi::Constants::max_tracks) {
-        const auto& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_tracks + best_track_index];
+        const auto& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_lf_tracks + best_track_index];
 
         // printf("Best track: ut_track_index %i, number of hits %i, hits: ",
         //   track.ut_track_index,
@@ -93,5 +93,11 @@ __global__ void lf_quality_filter(
         dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + insert_index] = track;
       }
     }
+  }
+
+  __syncthreads();
+
+  if (threadIdx.x == 0 && dev_atomics_scifi[event_number] > SciFi::Constants::max_tracks) {
+    dev_atomics_scifi[event_number] = SciFi::Constants::max_tracks;
   }
 }

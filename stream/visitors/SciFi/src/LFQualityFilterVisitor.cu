@@ -28,7 +28,11 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
     arguments.size<dev_atomics_scifi>(),
     cuda_stream));
 
-  // TODO: Number of threads
+  // Scan:
+  // 64 - 28.48%
+  // 256 - 17.80%
+  // 1024 - 
+
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
       arguments.offset<dev_scifi_hits>(),
