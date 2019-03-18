@@ -40,6 +40,8 @@ pv_beamline_histo(int* dev_atomics_storage, uint* dev_velo_track_hit_number, PVT
       PVTrack trk = dev_pvtracks[event_tracks_offset + index];
       // apply the z cut here
       if (zmin < trk.z && trk.z < zmax) {
+        const float rho2 = (trk.x.x - beamline.x)*(trk.x.x - beamline.x) + (trk.x.y-beamline.y)*(trk.x.y-beamline.y);
+        if(rho2 > 2.f * maxVertexRho2) continue;
 
         // bin in which z0 is, in floating point
         const float zbin = (trk.z - zmin) / dz;
