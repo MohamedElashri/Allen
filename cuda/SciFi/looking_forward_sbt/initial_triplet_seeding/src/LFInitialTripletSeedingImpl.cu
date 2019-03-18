@@ -90,7 +90,7 @@ __device__ void lf_initial_triplet_seeding_impl(
 
       // Magic :)
       nvcuda::wmma::mma_sync(d_frag, a_frag, b_frag, c_frag);
-      nvcuda::wmma::store_matrix_sync(shared_partial_chi2, d_frag, tile_size, nvcuda::wmma::mem_col_major);
+      nvcuda::wmma::store_matrix_sync(shared_partial_chi2, d_frag, tile_size, nvcuda::wmma::mem_row_major);
 
       // Iterate over all h1s
       // Find best chi2, h0 and h2 using the partial chi2 from before
@@ -113,8 +113,8 @@ __device__ void lf_initial_triplet_seeding_impl(
 
         if (local_best_k != -1 && local_best_chi2 < best_chi2[h1_rel]) {
           best_chi2[h1_rel] = local_best_chi2;
-          best_h0_h2[h1_rel] = i * tile_size + (local_best_k & tile_size_mask);
-          best_h0_h2[LookingForward::maximum_number_of_candidates + h1_rel] = j * tile_size + (local_best_k >> tile_size_shift_div);
+          best_h0_h2[h1_rel] = i * tile_size + (local_best_k >> tile_size_shift_div);
+          best_h0_h2[LookingForward::maximum_number_of_candidates + h1_rel] = j * tile_size + (local_best_k & tile_size_mask);
         }
       }
     }
