@@ -23,7 +23,10 @@ __global__ void pv_beamline_extrapolate(
       PatPV::XYZPoint beamline {0.f, 0.f, 0.f};
       const auto tx = s.tx;
       const auto ty = s.ty;
-      const float dz = (tx * (beamline.x - s.x) + ty * (beamline.y - s.y)) / (tx * tx + ty * ty);
+      float dz = (tx * (beamline.x - s.x) + ty * (beamline.y - s.y)) / (tx * tx + ty * ty);
+
+      //if(dz * s.c20 < 0.f) continue;
+      if(dz * s.c20 < 0.f) dz = -9999.f;
       PVTrack pvtrack = PVTrack {s, dz};
       dev_pvtracks[event_tracks_offset + index] = pvtrack;
     }
