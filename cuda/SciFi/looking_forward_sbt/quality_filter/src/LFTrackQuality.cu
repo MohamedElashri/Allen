@@ -11,7 +11,9 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
 {
   float quality = LookingForward::track_min_quality;
 
-  if (track.hitsNum < LookingForward::track_min_hits) {
+  // LookingForward::track_min_starting_quality
+  if (track.hitsNum < LookingForward::track_min_hits ||
+    track.get_quality() > 20.f) {
     return quality;
   }
 
@@ -50,10 +52,12 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
   float xAtRef_average =
     LookingForward::get_average_x_at_reference_plane(hits, n_hits, scifi_hits, xParams_seed, constArrays, velo_state, zMag_initial);
 
+  // 5.30 -> 4.93%
   // initial track parameters
   float trackParams[SciFi::Tracking::nTrackParams];
   getTrackParameters(xAtRef_average, velo_state, constArrays, trackParams);
 
+  // 8.70 -> 5.30%
   // fit uv hits to update parameters related to y coordinate
   // update trackParams [4] [5] [6]
   if (!LookingForward::fitYProjection_proto(velo_state, constArrays, uv_hits, n_uv_hits, scifi_hits, trackParams)) {
@@ -65,23 +69,7 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
     hits[n_hits++] = uv_hits[i_hit];
   }
 
-  // make a fit of all hits using their x coordinate
-  // update trackParams [0] [1] [2] (x coordinate related)
-  // if (!fitParabola_proto(
-  //   scifi_hits,
-  //   hits,
-  //   n_hits,
-  //   trackParams,
-  //   true)) continue;
-
-  // // chi2 & nDoF: trackParams [7] [8]
-  // if ( !getChi2(
-  //   scifi_hits,
-  //   hits,
-  //   n_hits,
-  //   trackParams,
-  //   true)) continue;
-
+  // 15.37 -> 8.70%
   // make a fit of all hits using their x coordinate
   // update trackParams [0] [1] [2] (x coordinate related)
   // remove outliers with worst chi2
@@ -121,18 +109,9 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
   mlpInput[5] = bx - bx1;
   mlpInput[6] = ay - ay1;
 
-  // debug_cout << "qOverP = " << qOverP << ", qop diff = " << mlpInput[2] << ", tx^2+ty^2 = " <<  mlpInput[3] << ",
-  // by-by1 = " << mlpInput[4] << ", bx-bx1 = " << mlpInput[5] << ", ay-ay1 = " << mlpInput[6] << std::endl;
-
+  // 18 -> 15.37%
   quality = GetMvaValue(mlpInput, tmva1);
   track.qop = qOverP;
-
-  // if (quality < SciFi::Tracking::maxQuality) {
-  //   SciFi::TrackHits final_track = track;
-  //   track.quality = float(trackParams[7]) / float(trackParams[8]); // chi2/nDoF
-  //   track.qop = qOverP;
-  //   selected_tracks.push_back(final_track);
-  // }
 
   return quality;
 }

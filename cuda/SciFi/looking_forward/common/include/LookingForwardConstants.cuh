@@ -48,7 +48,7 @@ namespace LookingForward {
   constexpr int maximum_number_of_candidates_flagged = 64;
   constexpr int maximum_number_of_triplets_per_ut_track = 20;
   constexpr int num_atomics = 1;
-  constexpr float track_min_quality = 0.2f;
+  constexpr float track_min_quality = 0.1f;
   constexpr int track_min_hits = 9;
 
   // cut on the difference between tx from the extrapolation and

@@ -63,12 +63,11 @@ __global__ void lf_quality_filter(
 
   __syncthreads();
 
-  // TODO: This could be done much faster, just a quick implementation
+  // TODO: This could be done faster, just a quick implementation
   for (int i = threadIdx.x; i < ut_tracks.number_of_tracks(event_number); i += blockDim.x) {
     float best_quality = LookingForward::track_min_quality;
     short best_track_index = -1;
 
-    // TODO: This should be very slow
     for (int j = 0; j < number_of_tracks; ++j) {
       const SciFi::TrackHits& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_lf_tracks + j];
       if (track.ut_track_index == i && track.quality > best_quality) {

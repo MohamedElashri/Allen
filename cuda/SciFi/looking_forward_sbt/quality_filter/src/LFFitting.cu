@@ -9,13 +9,13 @@ __device__ float LookingForward::get_average_x_at_reference_plane(
   const float xParams_seed[4],
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
-  const float zMagSlope) 
+  const float zMagSlope)
 {
-  
+
   float average_x = 0;
-  for ( int i_hit = 0; i_hit < n_hits; ++i_hit ) {
+  for (int i_hit = 0; i_hit < n_hits; ++i_hit) {
     const int hit = hits[i_hit];
-    const float zHit = scifi_hits.z0[hit]; 
+    const float zHit = scifi_hits.z0[hit];
     const float xFromVelo_Hit = evalCubicParameterization(xParams_seed, zHit);
     const float dSlopeDivPart = 1.f / (zHit - constArrays->zMagnetParams[0]);
     const float dz = 1.e-3f * (zHit - SciFi::Tracking::zReference);
@@ -26,19 +26,18 @@ __device__ float LookingForward::get_average_x_at_reference_plane(
     float zMag = zMagSlope + constArrays->zMagnetParams[1] * dSlope * dSlope;
     float xMag = xFromVelo_Hit + velo_state.tx * (zMag - zHit);
     // calculate x position on reference plane
-    // dxCoef: account for additional bending of track 
+    // dxCoef: account for additional bending of track
     // due to fringe field in first station
     // expressed by quadratic and cubic term in z
     float dxCoef = dz * dz * (constArrays->xParams[0] + dz * constArrays->xParams[1]) * dSlope;
     float ratio = (SciFi::Tracking::zReference - zMag) / (zHit - zMag);
-    
+
     average_x += xMag + ratio * (xHit + dxCoef - xMag);
   }
   average_x /= n_hits;
-  
+
   return average_x;
 }
-
 
 __device__ bool LookingForward::fitYProjection_proto(
   const MiniState& velo_state,
@@ -67,11 +66,11 @@ __device__ bool LookingForward::fitYProjection_proto(
   float sd = wMag * dyMag;
   float sdz = wMag * dyMag * zMag;
 
-  // First straight line fit  
+  // First straight line fit
   for (int i_hit = 0; i_hit < n_uv_hits; ++i_hit) {
     int hit = uv_hits[i_hit];
     const float d = -trackToHitDistance(trackParams, scifi_hits, hit) /
-      scifi_hits.dxdy(hit); // TODO multiplication much faster than division!
+                    scifi_hits.dxdy(hit); // TODO multiplication much faster than division!
     const float w = scifi_hits.w(hit);
     const float z = scifi_hits.z0[hit] - SciFi::Tracking::zReference;
     s0 += w;
@@ -88,20 +87,13 @@ __device__ bool LookingForward::fitYProjection_proto(
   const float db = (sdz * s0 - sd * sz) / den;
   trackParams[4] += da;
   trackParams[5] += db;
-  
+
   // Then parabola fit
   // position in magnet not used for parabola fit, hardly any influence on efficiency
-  if ( !fitParabola_proto(
-    scifi_hits, 
-    uv_hits, 
-    n_uv_hits, 
-    trackParams, 
-    false) )
-    return false;
-  
-  return true;
-} 
+  if (!fitParabola_proto(scifi_hits, uv_hits, n_uv_hits, trackParams, false)) return false;
 
+  return true;
+}
 
 __device__ int LookingForward::fitParabola_proto(
   const SciFi::Hits& scifi_hits,
@@ -124,8 +116,7 @@ __device__ int LookingForward::fitParabola_proto(
   for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
     int hit = coordToFit[i_hit];
     float d = trackToHitDistance(trackParameters, scifi_hits, hit);
-    if (!xFit) 
-      d *= -1.f / scifi_hits.dxdy(hit); 
+    if (!xFit) d *= -1.f / scifi_hits.dxdy(hit);
     float w = scifi_hits.w(hit);
     float z = .001f * (scifi_hits.z0[hit] - SciFi::Tracking::zReference);
     s0 += w;
@@ -148,7 +139,7 @@ __device__ int LookingForward::fitParabola_proto(
   const float db = (d1 * c2 - d2 * c1) / den;
   const float dc = (d2 * b1 - d1 * b2) / den;
   const float da = (sd - db * sz - dc * sz2) / s0;
-  if ( xFit) {
+  if (xFit) {
     trackParameters[0] += da;
     trackParameters[1] += db * 1.e-3f;
     trackParameters[2] += dc * 1.e-6f;
@@ -158,41 +149,37 @@ __device__ int LookingForward::fitParabola_proto(
     trackParameters[5] += db * 1.e-3f;
     trackParameters[6] += dc * 1.e-6f;
   }
-  
+
   return true;
 }
 
-__device__ int LookingForward::getChi2( 
+__device__ int LookingForward::getChi2(
   const SciFi::Hits& scifi_hits,
   int* coordToFit,
   const int n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
-  const bool xFit) 
+  const bool xFit)
 {
   float totChi2 = 0.f;
   int nDoF = -3; // fitted 3 parameters
   for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
     int hit = coordToFit[i_hit];
     float d = trackToHitDistance(trackParameters, scifi_hits, hit);
-    if (!xFit) 
-      d *= -1.f / scifi_hits.dxdy(hit); 
+    if (!xFit) d *= -1.f / scifi_hits.dxdy(hit);
     float w = scifi_hits.w(hit);
     float chi2 = d * d * w;
     totChi2 += chi2;
     ++nDoF;
   }
-  if ( nDoF < 1 ) return false;
+  if (nDoF < 1) return false;
   trackParameters[7] = totChi2;
   trackParameters[8] = (float) nDoF;
 
   return true;
 }
 
-__device__ void LookingForward::removeOutlier_proto(
-  const SciFi::Hits& scifi_hits,
-  int* coordToFit,
-  int& n_coordToFit,
-  const int worst)
+__device__ void
+LookingForward::removeOutlier_proto(const SciFi::Hits& scifi_hits, int* coordToFit, int& n_coordToFit, const int worst)
 {
   int coordToFit_temp[SciFi::Constants::max_track_candidate_size];
   int i_hit_temp = 0;
@@ -213,15 +200,10 @@ __device__ bool LookingForward::quadraticFitX_proto(
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit)
 {
- if (n_coordToFit < LookingForward::track_min_hits) return false; 
+  if (n_coordToFit < LookingForward::track_min_hits) return false;
   bool doFit = true;
   while (doFit) {
-    fitParabola_proto(
-      scifi_hits, 
-      coordToFit, 
-      n_coordToFit, 
-      trackParameters, 
-      true);
+    fitParabola_proto(scifi_hits, coordToFit, n_coordToFit, trackParameters, true);
 
     float maxChi2 = 0.f;
     float totChi2 = 0.f;
@@ -232,7 +214,7 @@ __device__ bool LookingForward::quadraticFitX_proto(
       int hit = coordToFit[i_hit];
       float d = trackToHitDistance(trackParameters, scifi_hits, hit);
       float chi2 = d * d * scifi_hits.w(hit);
-      //debug_cout << "d = " << d << ", w = " << scifi_hits.w(hit) << ", chi2 = " << chi2 << std::endl;
+      // debug_cout << "d = " << d << ", w = " << scifi_hits.w(hit) << ", chi2 = " << chi2 << std::endl;
       totChi2 += chi2;
       ++nDoF;
       if (chi2 > maxChi2) {
@@ -244,11 +226,13 @@ __device__ bool LookingForward::quadraticFitX_proto(
     trackParameters[7] = totChi2;
     trackParameters[8] = (float) nDoF;
 
-    //debug_cout << "maxChi2 = " << maxChi2 << ", maxChi2XProjection = " << SciFi::Tracking::maxChi2XProjection << ", totChi2/nDoF = " << totChi2 / nDoF << ", maxChi2PerDoF = " << SciFi::Tracking::maxChi2PerDoF << ", worst hit = " << worst << ", # of hits = " << n_coordToFit << std::endl;
+    // debug_cout << "maxChi2 = " << maxChi2 << ", maxChi2XProjection = " << SciFi::Tracking::maxChi2XProjection << ",
+    // totChi2/nDoF = " << totChi2 / nDoF << ", maxChi2PerDoF = " << SciFi::Tracking::maxChi2PerDoF << ", worst hit = "
+    // << worst << ", # of hits = " << n_coordToFit << std::endl;
 
     doFit = false;
-    //if (totChi2 / nDoF > SciFi::Tracking::maxChi2PerDoF || maxChi2 > SciFi::Tracking::maxChi2XProjection) {
-    
+    // if (totChi2 / nDoF > SciFi::Tracking::maxChi2PerDoF || maxChi2 > SciFi::Tracking::maxChi2XProjection) {
+
     // TODO: Commented out
     // if ( maxChi2 > 2000) {
     // //if ( totChi2 / nDoF > 5000 ) {
