@@ -1,15 +1,7 @@
 #include "LFCompositeTrackSeeding.cuh"
 #include "SequenceVisitor.cuh"
 
-template<>
-void SequenceVisitor::set_arguments_size<lf_composite_track_seeding_t>(
-  lf_composite_track_seeding_t::arguments_t arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers)
-{
-  arguments.set_size<dev_scifi_lf_candidate_atomics>(3 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_lf_tracks);
-}
+DEFINE_EMPTY_SET_ARGUMENTS_SIZE(lf_composite_track_seeding_t)
 
 template<>
 void SequenceVisitor::visit<lf_composite_track_seeding_t>(
@@ -22,7 +14,7 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
   cudaEvent_t& cuda_generic_event)
 {
   const auto seeding_set_arguments = [&state, &constants, &arguments] (const uint8_t relative_middle_layer) {
-    state.handler_lf_triplet_seeding.set_arguments(
+    state.handler_lf_initial_triplet_seeding.set_arguments(
       arguments.offset<dev_scifi_hits>(),
       arguments.offset<dev_scifi_hit_count>(),
       arguments.offset<dev_atomics_ut>(),
@@ -35,8 +27,6 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
       constants.dev_looking_forward_constants,
       arguments.offset<dev_scifi_lf_tracks>(),
       arguments.offset<dev_scifi_lf_atomics>(),
-      arguments.offset<dev_scifi_lf_candidate_atomics>(),
-      arguments.offset<dev_scifi_lf_candidates_flag>(),
       relative_middle_layer);
   };
 
@@ -52,12 +42,11 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
       constants.dev_inv_clus_res,
       arguments.offset<dev_scifi_lf_number_of_candidates>(),
       arguments.offset<dev_scifi_lf_candidates>(),
-      arguments.offset<dev_scifi_lf_candidates_flag>(),
       relative_extrapolation_layer);
   };
 
   state.handler_lf_extend_tracks_x.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream);
-  state.handler_lf_triplet_seeding.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(64), cuda_stream);
+  state.handler_lf_initial_triplet_seeding.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(32), cuda_stream);
 
   // We need to:
   // * Forward to layer 3
@@ -67,17 +56,11 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
   // * Forward to layer 5
   // * Seed mid layer 4
   for (int i=0; i<3; ++i) {
-    cudaCheck(cudaMemsetAsync(
-      arguments.offset<dev_scifi_lf_candidate_atomics>(),
-      0,
-      arguments.size<dev_scifi_lf_candidate_atomics>(),
-      cuda_stream));
-
     forwarding_set_arguments(3 + i);
     seeding_set_arguments(2 + i);
 
     state.handler_lf_extend_tracks_x.invoke();
-    state.handler_lf_triplet_seeding.invoke();
+    state.handler_lf_initial_triplet_seeding.invoke();
   }
 
   // cudaCheck(cudaMemcpyAsync(

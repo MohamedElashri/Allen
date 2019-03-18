@@ -44,8 +44,8 @@ namespace LookingForward {
    * Constants for lf search by triplet
    */
   constexpr int number_of_x_layers = 6;
-  constexpr int maximum_number_of_candidates = 64;
-  constexpr int maximum_number_of_candidates_flagged = 64;
+  constexpr int maximum_number_of_candidates = 32;
+  constexpr int maximum_number_of_candidates_flagged = 32;
   constexpr int maximum_number_of_triplets_per_ut_track = 20;
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.1f;

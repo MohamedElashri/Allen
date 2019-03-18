@@ -17,6 +17,7 @@ file(GLOB scifi_lf_triplet_seeding "looking_forward_sbt/triplet_seeding/src/*cu"
 file(GLOB scifi_lf_extend_tracks_first_layers_x "looking_forward_sbt/extend_tracks_first_layers_x/src/*cu")
 file(GLOB scifi_lf_extend_tracks_uv "looking_forward_sbt/extend_tracks_uv/src/*cu")
 file(GLOB scifi_lf_quality_filter "looking_forward_sbt/quality_filter/src/*cu")
+file(GLOB scifi_lf_quality_filter_x "looking_forward_sbt/quality_filter_x/src/*cu")
 file(GLOB scifi_prforward "PrForward/src/*cu")
 file(GLOB scifi_consolidate "consolidate/src/*cu")
 
@@ -55,6 +56,7 @@ include_directories(looking_forward_sbt/composite_track_seeding/include)
 include_directories(looking_forward_sbt/extend_tracks_first_layers_x/include)
 include_directories(looking_forward_sbt/extend_tracks_uv/include)
 include_directories(looking_forward_sbt/quality_filter/include)
+include_directories(looking_forward_sbt/quality_filter_x/include)
 include_directories(PrForward/include)
 include_directories(consolidate/include)
 
@@ -78,6 +80,7 @@ add_library(SciFi STATIC
   ${scifi_lf_extend_tracks_first_layers_x}
   ${scifi_lf_extend_tracks_uv}
   ${scifi_lf_quality_filter}
+  ${scifi_lf_quality_filter_x}
   ${scifi_prforward}
   ${scifi_consolidate}
 )

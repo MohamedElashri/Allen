@@ -19,7 +19,6 @@ __global__ void lf_extend_tracks_x(
   const float* dev_inv_clus_res,
   const uint* dev_scifi_lf_number_of_candidates,
   const short* dev_scifi_lf_candidates,
-  bool* dev_scifi_lf_candidates_flag,
   const uint8_t relative_extrapolation_layer);
 
 ALGORITHM(
@@ -32,5 +31,4 @@ ALGORITHM(
     dev_scifi_tracks,
     dev_atomics_scifi,
     dev_scifi_lf_number_of_candidates,
-    dev_scifi_lf_candidates,
-    dev_scifi_lf_candidates_flag))
+    dev_scifi_lf_candidates))

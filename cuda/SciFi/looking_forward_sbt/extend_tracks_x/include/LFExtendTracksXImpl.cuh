@@ -4,7 +4,7 @@
 #include "LookingForwardTools.cuh"
 
 __device__ void lf_extend_tracks_x_impl(
-  const SciFi::Hits& scifi_hits,
+  const float* scifi_hits_x0,
   const short* scifi_lf_candidates,
   const int8_t number_of_candidates,
   SciFi::TrackHits& track,
@@ -13,12 +13,4 @@ __device__ void lf_extend_tracks_x_impl(
   const float z0,
   const float z1,
   const float z2,
-  const float max_chi2,
-  const uint event_offset,
-  bool* candidates_flag,
-  const uint8_t relative_extrapolation_layer,
-  const uint l_prev_offset,
-  const uint l0_offset,
-  const uint l1_offset,
-  const uint extrapolation_layer_offset,
-  const int current_ut_track_index);
+  const float max_chi2);

@@ -27,7 +27,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const SciFi::TrackHits* host_scifi_tracks,
   const int* host_atomics_scifi)
 {
-  const bool run_algorithm = true;
+  const bool run_algorithm = false;
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
   if (run_algorithm) {
@@ -421,25 +421,26 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           scifi_tracks);
       }
 
-      // int total_tracks = 0;
-      // int cut_tracks = 0;
+      int total_tracks = 0;
+      int cut_tracks = 0;
 
-      // // Early chi2 cut
-      // const float chi2_track_x_cut = 10.f;
-      // for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
-      //   auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
-      //   for (auto it = scifi_tracks.begin(); it != scifi_tracks.end();) {
-      //     const auto& track = *it;
-      //     if (track.get_quality() > chi2_track_x_cut) {
-      //       cut_tracks++;
-      //       total_tracks++;
-      //       it = scifi_tracks.erase(it);
-      //     } else {
-      //       ++it;
-      //       total_tracks++;
-      //     }
-      //   }
-      // }
+      // Early chi2 cut for short tracks
+      // Note: By this point, about 75% of the tracks are 3-hit
+      const float chi2_track_x_cut = 1.f;
+      for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
+        auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
+        for (auto it = scifi_tracks.begin(); it != scifi_tracks.end();) {
+          const auto& track = *it;
+          if (track.hitsNum > 3 || (track.hitsNum == 3 && track.quality < chi2_track_x_cut)) {
+            ++it;
+            total_tracks++;
+          } else {
+            cut_tracks++;
+            total_tracks++;
+            it = scifi_tracks.erase(it);
+          }
+        }
+      }
 
       // if (total_tracks > 0) {
       //   info_cout << "Percentage of cut tracks: "
@@ -539,22 +540,22 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           }
         }
 
-        filter_tracks_with_TMVA(
-            scifi_tracks,
-            event_trackhits,
-            event_velo_state[i_veloUT_track],
-            event_qop[i_veloUT_track],
-            &constArrays,
-            &tmva1,
-            &tmva2,
-            scifi_hits,
-            scifi_hit_count.event_offset());
+        // filter_tracks_with_TMVA(
+        //     scifi_tracks,
+        //     event_trackhits,
+        //     event_velo_state[i_veloUT_track],
+        //     event_qop[i_veloUT_track],
+        //     &constArrays,
+        //     &tmva1,
+        //     &tmva2,
+        //     scifi_hits,
+        //     scifi_hit_count.event_offset());
 
-      //   // for (const auto& track : scifi_tracks) {
-      //   //   if (track.hitsNum >= 9) {
-      //   //     event_trackhits.push_back(track);
-      //   //   }
-      //   // }
+        for (const auto& track : scifi_tracks) {
+          if (track.hitsNum >= 9) {
+            event_trackhits.push_back(track);
+          }
+        }
       }
 
       // float best_fit = 100.f;

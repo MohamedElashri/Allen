@@ -6,7 +6,7 @@
 #include "LookingForwardConstants.cuh"
 
 __device__ void lf_initial_triplet_seeding_impl(
-  const SciFi::Hits& scifi_hits,
+  const float* scifi_hits_x0,
   const uint8_t h0_candidate_size,
   const uint8_t h1_candidate_size,
   const uint8_t h2_candidate_size,
@@ -18,5 +18,4 @@ __device__ void lf_initial_triplet_seeding_impl(
   const float z0,
   const float z1,
   const float z2,
-  const float qop,
-  const int event_offset);
+  const float qop);

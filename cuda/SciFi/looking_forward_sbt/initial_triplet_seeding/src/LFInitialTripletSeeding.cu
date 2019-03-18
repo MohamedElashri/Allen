@@ -78,7 +78,7 @@ __global__ void lf_initial_triplet_seeding(
     const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_middle_layer + 1];
 
     lf_initial_triplet_seeding_impl(
-      scifi_hits,
+      scifi_hits.x0 + event_offset,
       candidate_h0_size,
       candidate_h1_size,
       candidate_h2_size,
@@ -91,8 +91,7 @@ __global__ void lf_initial_triplet_seeding(
       z0,
       z1,
       z2,
-      qop,
-      event_offset);
+      qop);
 
     // Initialize best_triplets to -1
     for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_triplets_per_ut_track; j += blockDim.x) {

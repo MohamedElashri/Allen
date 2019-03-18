@@ -159,6 +159,7 @@ include_directories(cuda/SciFi/looking_forward_sbt/composite_track_seeding/inclu
 include_directories(cuda/SciFi/looking_forward_sbt/extend_tracks_first_layers_x/include)
 include_directories(cuda/SciFi/looking_forward_sbt/extend_tracks_uv/include)
 include_directories(cuda/SciFi/looking_forward_sbt/quality_filter/include)
+include_directories(cuda/SciFi/looking_forward_sbt/quality_filter_x/include)
 include_directories(cuda/SciFi/PrForward/include)
 include_directories(cuda/SciFi/consolidate/include)
 include_directories(cuda/muon/common/include)

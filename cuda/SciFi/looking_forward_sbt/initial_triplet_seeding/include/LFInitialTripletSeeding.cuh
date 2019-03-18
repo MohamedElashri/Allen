@@ -39,5 +39,4 @@ ALGORITHM(
     dev_scifi_lf_number_of_candidates,
     dev_scifi_lf_candidates,
     dev_scifi_lf_tracks,
-    dev_scifi_lf_atomics,
-    dev_scifi_lf_candidates_flag))
+    dev_scifi_lf_atomics))

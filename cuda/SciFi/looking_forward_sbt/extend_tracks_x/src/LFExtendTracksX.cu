@@ -11,7 +11,6 @@ __global__ void lf_extend_tracks_x(
   const float* dev_inv_clus_res,
   const uint* dev_scifi_lf_number_of_candidates,
   const short* dev_scifi_lf_candidates,
-  bool* dev_scifi_lf_candidates_flag,
   const uint8_t relative_extrapolation_layer)
 {
   const auto number_of_events = gridDim.x;
@@ -61,26 +60,8 @@ __global__ void lf_extend_tracks_x(
     const auto z1 = dev_looking_forward_constants->Zone_zPos[layer1];
     const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_extrapolation_layer];
 
-    // For the flags
-    const auto h_prev = event_offset + track.hits[track.hitsNum - 3];
-    const auto layer_prev = scifi_hits.planeCode(h_prev) >> 1;
-    const auto l_prev_offset = dev_scifi_lf_number_of_candidates
-      [current_ut_track_index * LookingForward::number_of_x_layers +
-       dev_looking_forward_constants->convert_layer[layer_prev]];
-
-    const auto l0_offset = dev_scifi_lf_number_of_candidates
-      [current_ut_track_index * LookingForward::number_of_x_layers +
-       dev_looking_forward_constants->convert_layer[layer0]];
-
-    const auto l1_offset = dev_scifi_lf_number_of_candidates
-      [current_ut_track_index * LookingForward::number_of_x_layers +
-       dev_looking_forward_constants->convert_layer[layer1]];
-
-    const auto extrapolation_layer_offset = dev_scifi_lf_number_of_candidates
-      [current_ut_track_index * LookingForward::number_of_x_layers + relative_extrapolation_layer];
-
     lf_extend_tracks_x_impl(
-      scifi_hits,
+      scifi_hits.x0 + event_offset,
       scifi_lf_candidates + relative_extrapolation_layer * LookingForward::maximum_number_of_candidates,
       number_of_candidates,
       track,
@@ -90,14 +71,6 @@ __global__ void lf_extend_tracks_x(
       z1,
       z2,
       dev_looking_forward_constants->chi2_mean_extrapolation_to_x_layers[relative_extrapolation_layer - 3] +
-        2.5f * dev_looking_forward_constants->chi2_stddev_extrapolation_to_x_layers[relative_extrapolation_layer - 3],
-      event_offset,
-      dev_scifi_lf_candidates_flag,
-      relative_extrapolation_layer,
-      l_prev_offset,
-      l0_offset,
-      l1_offset,
-      extrapolation_layer_offset,
-      current_ut_track_index);
+        2.5f * dev_looking_forward_constants->chi2_stddev_extrapolation_to_x_layers[relative_extrapolation_layer - 3]);
   }
 }

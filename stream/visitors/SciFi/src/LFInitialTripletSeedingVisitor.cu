@@ -10,7 +10,6 @@ void SequenceVisitor::set_arguments_size<lf_initial_triplet_seeding_t>(
 {
   arguments.set_size<dev_scifi_lf_tracks>(host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_lf_tracks);
   arguments.set_size<dev_scifi_lf_atomics>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
-  arguments.set_size<dev_scifi_lf_candidates_flag>(host_buffers.host_lf_total_number_of_candidates[0]);
 }
 
 template<>
@@ -29,12 +28,6 @@ void SequenceVisitor::visit<lf_initial_triplet_seeding_t>(
     arguments.size<dev_scifi_lf_atomics>(),
     cuda_stream));
   
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_scifi_lf_candidates_flag>(),
-    0,
-    arguments.size<dev_scifi_lf_candidates_flag>(),
-    cuda_stream));
-
   // 1, 64: 21.94%
   // 4, 32: 21.67%
   // 8, 64: 15.23%
@@ -54,7 +47,7 @@ void SequenceVisitor::visit<lf_initial_triplet_seeding_t>(
 
   // With a max_candidates_size of 32: 6.62% (11.91%) (not much faster going from 64 to 32)
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(64), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(32), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
