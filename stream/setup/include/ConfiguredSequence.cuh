@@ -64,6 +64,7 @@
 #include "LFExtendTracksUV.cuh"
 #include "LFQualityFilter.cuh"
 #include "LFQualityFilterX.cuh"
+#include "LFQualityFilterLength.cuh"
 #include "LFSearchUVWindows.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
