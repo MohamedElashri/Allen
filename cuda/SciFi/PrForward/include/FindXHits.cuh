@@ -52,16 +52,13 @@ __host__ void collectAllXHits_proto(
   const float xParams_seed[4],
   const float yParams_seed[4],
   const SciFi::Tracking::Arrays* constArrays,
-  const MiniState& velo_state,
   const MiniState& UT_state,
   const float qOverP,
   int side,
   std::array<int, 2 * 6>& windows_x,
   std::array<int, 2 * 6>& windows_uv,
-  std::array<float, 4 * 6>& parameters_uv,
-  const SciFiWindowsParams& window_params, 
-  const float dx_calc);
-
+  std::array<float, 4 * 6>& parameters_uv);
+  
 __host__ __device__ void collectAllXHits(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& scifi_hit_count,

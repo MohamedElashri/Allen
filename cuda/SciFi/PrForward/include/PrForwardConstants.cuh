@@ -117,6 +117,7 @@ namespace SciFi {
 
     // TO BE READ FROM XML EVENTUALLY
     constexpr float magscalefactor = -1;
+    constexpr int zoneoffsetpar = 6;
 
     struct Arrays {
       // the Magnet Parametrization

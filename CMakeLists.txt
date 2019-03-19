@@ -24,7 +24,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 
 # Configuration of CUDA compute architecture
-set(CUDA_ARCH "MIN" CACHE STRING "Cuda architecture")
+set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
 
 if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
   set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
@@ -149,6 +149,16 @@ include_directories(cuda/SciFi/looking_forward/calculate_candidate_extrapolation
 include_directories(cuda/SciFi/looking_forward/promote_candidates/include)
 include_directories(cuda/SciFi/looking_forward/calculate_track_extrapolation_window/include)
 include_directories(cuda/SciFi/looking_forward/extend_tracks/include)
+include_directories(cuda/SciFi/looking_forward_sbt/search_initial_windows/include)
+include_directories(cuda/SciFi/looking_forward_sbt/collect_candidates/include)
+include_directories(cuda/SciFi/looking_forward_sbt/find_compatible_windows/include)
+include_directories(cuda/SciFi/looking_forward_sbt/triplet_seeding/include)
+include_directories(cuda/SciFi/looking_forward_sbt/extend_tracks_x/include)
+include_directories(cuda/SciFi/looking_forward_sbt/composite_track_seeding/include)
+include_directories(cuda/SciFi/looking_forward_sbt/extend_tracks_first_layers_x/include)
+include_directories(cuda/SciFi/looking_forward_sbt/extend_tracks_uv/include)
+include_directories(cuda/SciFi/looking_forward_sbt/quality_filter/include)
+include_directories(cuda/SciFi/looking_forward_sbt/quality_filter_x/include)
 include_directories(cuda/SciFi/PrForward/include)
 include_directories(cuda/SciFi/consolidate/include)
 include_directories(cuda/muon/common/include)

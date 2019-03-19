@@ -4,17 +4,43 @@
 #include <tuple>
 #include <utility>
 
+// template<typename Arguments>
+// struct PrintArguments;
+
+// template<>
+// struct PrintArguments<std::tuple<>> {
+//   static constexpr void print() {}
+// };
+
+// template<typename Argument, typename... Arguments>
+// struct PrintArguments<std::tuple<Argument, Arguments...>> {
+//   static constexpr void print()
+//   {
+//     info_cout << Argument::name << ", ";
+//     PrintArguments<std::tuple<Arguments...>>::print();
+//   }
+// };
+
+// template<typename... T>
+// auto composite_handler (std::tuple<T...> t) {
+//   return std::tuple<decltype(make_handler(t))...>{
+//     make_handler(t)...
+//   };
+// }
+
+// #define FUNCTION_PACK(...) std::tuple<__VA_ARGS__>
+
 /**
  * @brief      Macro for defining algorithms defined by a function name.
  *             A struct is created with name EXPOSED_TYPE_NAME that encapsulates
- *             a Handler of type FUNCTION_NAME.
+ *             a Handler of type FUNCTION.
  */
-#define ALGORITHM(FUNCTION_NAME, EXPOSED_TYPE_NAME, DEPENDENCIES)                                    \
+#define ALGORITHM(FUNCTION, EXPOSED_TYPE_NAME, DEPENDENCIES)                                    \
   struct EXPOSED_TYPE_NAME {                                                                         \
     constexpr static auto name {#EXPOSED_TYPE_NAME};                                                 \
     using Arguments = DEPENDENCIES;                                                                  \
     using arguments_t = ArgumentRefManager<Arguments>;                                               \
-    decltype(make_handler(FUNCTION_NAME)) handler {FUNCTION_NAME};                                   \
+    decltype(make_handler(FUNCTION)) handler {FUNCTION};                                   \
     void set_opts(                                                                                   \
       const dim3& param_num_blocks,                                                                  \
       const dim3& param_num_threads,                                                                 \

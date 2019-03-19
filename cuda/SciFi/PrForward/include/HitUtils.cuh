@@ -157,16 +157,16 @@ __host__ __device__ bool matchStereoHit(
   const int itUV1,
   const int uv_zone_offset_end,
   const SciFi::Hits& scifi_hits,
-  const int xMinUV,
-  const int xMaxUV);
+  const float xMinUV,
+  const float xMaxUV);
 
 __host__ __device__ bool matchStereoHitWithTriangle(
   const int itUV2,
   const int triangle_zone_offset_end,
   const float yInZone,
   const SciFi::Hits& scifi_hits,
-  const int xMinUV,
-  const int xMaxUV,
+  const float xMinUV,
+  const float xMaxUV,
   const int side);
 
 __host__ __device__ void removeOutlier(

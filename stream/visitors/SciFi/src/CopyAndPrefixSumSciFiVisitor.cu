@@ -33,5 +33,7 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_scifi_t>(
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
 
-  debug_cout << "Total # of SciFi tracks = " << host_buffers.host_number_of_reconstructed_scifi_tracks[0] << std::endl;
+  if (logger::ll.verbosityLevel >= logger::debug) {
+    debug_cout << "Total # of SciFi tracks = " << host_buffers.host_number_of_reconstructed_scifi_tracks[0] << std::endl;
+  }
 }

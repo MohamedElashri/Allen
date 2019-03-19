@@ -9,7 +9,6 @@
 
 #include <cassert>
 
-
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 #include "LookingForwardConstants.h"
@@ -21,6 +20,7 @@
 #include "TMVA_Forward.cuh"
 #include "TMVA_Forward_1.cuh"
 #include "TMVA_Forward_2.cuh"
+#include "LookingForwardConstants.cuh"
 
 #include <functional>
 
@@ -194,6 +194,15 @@ std::tuple<int, float> get_best_hit(
   const std::array<MiniState, 4>& proj_states,
   const SciFiWindowsParams& window_params,
   int layer);
+
+float TMVA_quality (SciFi::TrackHits& track,
+  const MiniState& velo_state,
+  const float VeloUT_qOverP,
+  const SciFi::Tracking::Arrays* constArrays,
+  const SciFi::Tracking::TMVA* tmva1,
+  const SciFi::Tracking::TMVA* tmva2,
+  const SciFi::Hits& scifi_hits,
+  const int event_offset);
 
 void filter_tracks_with_TMVA( 
   std::vector<SciFi::TrackHits>& tracks,

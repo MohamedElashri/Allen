@@ -25,6 +25,7 @@ int momentum_forward_studies(
   const std::vector<std::vector<float>> p_events,
   const uint number_of_events)
 {
+#ifdef WITH_ROOT
   // initialize parameters
   // char name_coef_T1[200] = "../input/test_UT_T1.tab";
   char name_coef_T1[200] = "../input/UT_T1_shift_50_tilt_new.tab";
@@ -35,7 +36,6 @@ int momentum_forward_studies(
   debug_cout << "Reading coefs for extrapolation to T3: " << name_coef_T3 << std::endl;
   SciFi::Parameters scifi_params_T3 = SciFi::Parameters(name_coef_T3);
 
-#ifdef WITH_ROOT
   // Histograms only for checking and debugging
   TFile* f = new TFile("../output/scifi.root", "RECREATE");
   TTree* t_scifi_hits = new TTree("scifi_hits", "scifi_hits");
@@ -170,7 +170,6 @@ int momentum_forward_studies(
   t_other_x_layer_t1->Branch("n_hits_in_window_other_tx", &n_hits_in_window_other_t1_tx);
 
   t_other_x_layer_t3->Branch("n_hits_in_window_other", &n_hits_in_window_other_t3);
-#endif
 
   int n_veloUT_tracks = 0;
   int n_extrap_T1 = 0;
@@ -210,7 +209,6 @@ int momentum_forward_studies(
       &scifi_geometry,
       reinterpret_cast<const float*>(host_inv_clus_res.data()));
 
-#ifdef WITH_ROOT
     // store hit variables in tree
     for (size_t zone = 0; zone < SciFi::Constants::n_zones; zone++) {
       const auto zone_offset = scifi_hit_count.zone_offset(zone);
@@ -229,7 +227,6 @@ int momentum_forward_studies(
         t_scifi_hits->Fill();
       }
     }
-#endif
 
     /* etrapolation to first SciFi station using parametrization*/
 
@@ -262,6 +259,11 @@ int momentum_forward_studies(
       MiniState UT_state_from_velo = state_at_z(velo_state, SciFi::MomentumForward::z_last_UT_plane);
       MiniState UT_state = state_at_z(state_UT, SciFi::MomentumForward::z_last_UT_plane);
 
+      // sign of momentum -> charge of MCP
+      // Caution: this is only set correctly if the veloUT track was matched to an MCP
+      // set to 1e9 if not matched
+      p_true = p_events[i_event][i_veloUT_track];
+
       t1_extrap_worked = false;
       t3_extrap_worked = false;
       isLong = false;
@@ -274,19 +276,12 @@ int momentum_forward_studies(
       match_T3_0 = false;
       match_T3_3 = false;
 
-      // sign of momentum -> charge of MCP
-      // Caution: this is only set correctly if the veloUT track was matched to an MCP
-      // set to 1e9 if not matched
-      p_true = p_events[i_event][i_veloUT_track];
-
-#ifdef WITH_ROOT
       UT_x = UT_state.x;
       UT_y = UT_state.y;
       UT_z = UT_state.z;
       UT_tx = UT_state.tx;
       UT_ty = UT_state.ty;
       ut_qop = qop;
-#endif
 
       // propagation to first layer of T1
       int ret = extrap(
@@ -656,21 +651,18 @@ int momentum_forward_studies(
         t_extrap_T3->Fill();
 
       } // extrapolation to T3 worked
-#ifdef WITH_ROOT
       t_ut_tracks->Fill();
-#endif
     } // loop over veloUT tracks
   }
 
-#ifdef WITH_ROOT
   f->Write();
   f->Close();
-#endif
 
   info_cout << "Extrapolation to T1 worked: " << float(n_extrap_T1) / n_veloUT_tracks << std::endl;
   info_cout << "Extrapolation to T3 worked: " << float(n_extrap_T3) / n_veloUT_tracks << std::endl;
 
   output_pierre.close();
+#endif
 
   return 0;
 }

@@ -144,3 +144,15 @@ __device__ float LookingForward::scifi_propagation(const float x_0, const float 
 {
   return linear_propagation(x_0, tx, dz) + LookingForward::forward_param * qop * dz * dz;
 }
+
+__device__ float LookingForward::qop_update(
+    const float ut_state_tx,
+    const float h0_x,
+    const float h0_z,
+    const float h1_x,
+    const float h1_z,
+    const float ds_p_param_layer_inv)
+{
+  const float slope = (h1_x - h0_x) / std::abs(h1_z - h0_z);
+  return (slope - ut_state_tx) * ds_p_param_layer_inv;
+}

@@ -8,10 +8,9 @@ float get_average_x_at_reference_plane(
   const SciFi::Hits& scifi_hits,
   const float xParams_seed[4],
   const SciFi::Tracking::Arrays* constArrays,
-  const MiniState velo_state,
+  const MiniState& velo_state,
   const float zMagSlope) 
 {
-  
   float average_x = 0;
   for ( int i_hit = 0; i_hit < n_hits; ++i_hit ) {
     const int hit = hits[i_hit];
@@ -41,7 +40,7 @@ float get_average_x_at_reference_plane(
 
 
 bool fitYProjection_proto(
-  MiniState velo_state,
+  const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
   const int* uv_hits,
   const int n_uv_hits,
@@ -251,12 +250,13 @@ bool quadraticFitX_proto(
 
     doFit = false;
     //if (totChi2 / nDoF > SciFi::Tracking::maxChi2PerDoF || maxChi2 > SciFi::Tracking::maxChi2XProjection) {
-    if ( maxChi2 > 2000) {
-    //if ( totChi2 / nDoF > 5000 ) {
-      removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, coordToFit[worst]);
-      if (n_coordToFit < SciFi::LookingForward::minHits) return false;
-      doFit = true;
-    }
+    // TODO: Uncomment removeOutlier
+    // if ( maxChi2 > 2000) {
+    // //if ( totChi2 / nDoF > 5000 ) {
+    //   removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, coordToFit[worst]);
+    //   if (n_coordToFit < SciFi::LookingForward::minHits) return false;
+    //   doFit = true;
+    // }
   }
   return true;
 }

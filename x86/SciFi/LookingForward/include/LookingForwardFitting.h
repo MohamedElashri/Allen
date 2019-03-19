@@ -5,9 +5,6 @@
 #include "SciFiEventModel.cuh"
 #include "TrackUtils.cuh"
 
- inline float evalCubicParameterization(const float params[4], float z);
-
-
 int fitParabola_proto(
   const SciFi::Hits& scifi_hits,
   const int* coordToFit,
@@ -21,7 +18,7 @@ float get_average_x_at_reference_plane(
   const SciFi::Hits& scifi_hits,
   const float xParams_seed[4],
   const SciFi::Tracking::Arrays* constArrays,
-  const MiniState velo_state,
+  const MiniState& velo_state,
   const float zMagSlope);
 
 int getChi2( 
@@ -38,7 +35,7 @@ void removeOutlier_proto(
   const int worst);
 
 bool fitYProjection_proto(
-  MiniState velo_state,
+  const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
   const int* uv_hits,
   const int n_uv_hits,

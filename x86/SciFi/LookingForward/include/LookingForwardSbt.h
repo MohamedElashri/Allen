@@ -47,9 +47,8 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const float compatible_window_factor,
   const MiniState& UT_state,
   const float x_at_ref,
-  const float tx, 
-  const float qOverP, 
-  const float z_mag);
+  const float z_mag,
+  const bool do_print = false);
 
 std::vector<std::tuple<int, int>> find_compatible_window_p(
   const SciFi::Hits& scifi_hits,
@@ -91,8 +90,6 @@ std::tuple<int, int> find_x_in_window(
 void find_triplets(
   const SciFi::Hits& scifi_hits,
   const float qop,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x0,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x2,
   const std::vector<bool>& flag,
   const int event_offset,
   const std::array<int, 6>& layers,
@@ -110,22 +107,6 @@ void find_triplets(
 std::vector<std::tuple<int, int, int, float>> find_triplets(
   const SciFi::Hits& scifi_hits,
   const float qop,
-  const std::vector<bool>& flag,
-  const int event_offset,
-  const std::array<int, 6>& layers,
-  const std::array<std::vector<int>, 6>& hits_in_layers,
-  const int relative_layer0,
-  const int relative_layer1,
-  const int relative_layer2,
-  const int max_candidates_triplet,
-  const float max_triplet_chi2,
-  const bool use_flagging);
-
-std::vector<std::tuple<int, int, int, float>> find_triplets(
-  const SciFi::Hits& scifi_hits,
-  const float qop,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x0,
-  const std::vector<std::tuple<int, int>>& compatible_hits_x2,
   const std::vector<bool>& flag,
   const int event_offset,
   const std::array<int, 6>& layers,
@@ -158,17 +139,33 @@ void extend_tracklets(
   const int event_offset,
   const float max_chi2,
   std::vector<SciFi::TrackHits>& tracklets,
-  std::vector<bool>& flag);
+  std::vector<bool>& flag,
+  const uint i_veloUT_track);
 
 void single_track_propagation(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& hit_count,
   const int layer,
-  const float projection_y,
   SciFi::TrackHits& track,
   const float extrapolation_stddev,
   const float chi2_extrap_mean,
   const float chi2_extrap_stddev,
   const int event_offset,
   const std::vector<bool>& flag,
-  const bool use_flagging = false);
+  const float projection_y,
+  const bool use_flagging = false,
+  const bool iterate_all_hits = false);
+
+void single_track_propagation(
+  const SciFi::Hits& scifi_hits,
+  const SciFi::HitCount& hit_count,
+  const int relative_layer,
+  const int layer,
+  SciFi::TrackHits& track,
+  const float extrapolation_stddev,
+  const float chi2_extrap_mean,
+  const float chi2_extrap_stddev,
+  const int event_offset,
+  const std::vector<bool>& flag,
+  const std::array<std::vector<int>, 6>& hits_in_layers,
+  const bool use_flagging);
