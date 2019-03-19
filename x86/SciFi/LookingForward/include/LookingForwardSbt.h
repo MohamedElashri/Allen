@@ -60,6 +60,7 @@ std::vector<std::tuple<int, int>> find_compatible_window_p(
   const float dx_stddev,
   const float compatible_window_factor, 
   const bool forward,
+  const float pt,
   const float qOverP);
 
 float chi2_triplet(

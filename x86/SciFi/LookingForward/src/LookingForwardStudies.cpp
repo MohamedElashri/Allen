@@ -384,6 +384,10 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const float ut_x = host_ut_x[ut_track_index];
       const float ut_tx = host_ut_tx[ut_track_index];
       const float ut_z = host_ut_z[ut_track_index];
+      const float tx2 = velo_state.tx*velo_state.tx;
+      const float ty2 = velo_state.ty*velo_state.ty;
+      const float slope2 = tx2 + ty2; 
+      const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qop); 
 
       const auto make_index_list_of_reconstructible =
         [&scifi_hit_count, &scifi_hits, &lhcb_id_find_id](const std::vector<uint>& true_scifi_ids) {
@@ -701,6 +705,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         dx_stddev_triplet_x0[0],
         compatible_window_factor,  
         false,
+        pt,
         qop); 
 
       // compatible_hits_x2 = find_compatible_window(
@@ -726,6 +731,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         dx_stddev_triplet_x0[0],
         compatible_window_factor,  
         true,
+        pt,
         qop); 
 
       // Get all compatible triplets in window
@@ -785,6 +791,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           dx_stddev_triplet_x0[0],
           compatible_window_factor,  
           false,
+          pt,
           qop); 
 
         // compatible_hits_x2 = find_compatible_window(
@@ -809,6 +816,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           dx_stddev_triplet_x0[0],
           compatible_window_factor,  
           true,
+          pt,
           qop); 
 
         // Find new triplets
@@ -860,6 +868,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           dx_stddev_triplet_x0[0],
           compatible_window_factor,  
           false,
+          pt,
           qop); 
 
         // compatible_hits_x2 = find_compatible_window(
@@ -885,6 +894,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           dx_stddev_triplet_x0[0],
           compatible_window_factor,  
           true,
+          pt,
           qop); 
 
         find_triplets(
@@ -1176,10 +1186,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       if ( true_scifi_indices_per_layer[5] != -1 ) {
         x_propagation_layer_5 = state_zRef.x;
         x_from_velo_layer_5 = xFromVelo(SciFi::LookingForward::Zone_zPos[5], UT_state);
-        const float tx2 = velo_state.tx*velo_state.tx;
-        const float ty2 = velo_state.ty*velo_state.ty;
-        const float slope2 = tx2 + ty2; 
-        const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qop); 
+        
         const float InvPz = std::sqrt( slope2 ) / pt; 
         x_Ext_layer_5 = ( SciFi::Tracking::xExtParams[0] + SciFi::Tracking::xExtParams[1] * InvPz ) * InvPz
           + SciFi::Tracking::xExtParams[2] * std::abs( velo_state.tx ) 

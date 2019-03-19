@@ -19,20 +19,17 @@ __host__ void collectAllXHits_proto_p(
   const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qOverP); 
 
   const float p = 1.f / std::abs(qOverP);
-  const float InvPz = std::sqrt( slope2 ) / pt; 
-  const float zMag = zMagnet(velo_state, constArrays); 
-  const float dzInv = 1.f / ( SciFi::Tracking::zReference - zMag );  
-
+  
   const float q = qOverP > 0.f ? 1.f : -1.f;
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f); 
      
-  //const bool wSignTreatment = pt > SciFi::Tracking::wrongSignPT; 
-  // const float qop_WS = sqrtf(slope2 / (1.f + slope2) ) / pt; 
+  const bool wSignTreatment = false; //pt > SciFi::Tracking::wrongSignPT; 
+  const float qop_WS = sqrtf(slope2 / (1.f + slope2) ) / pt; 
   
   // use parametrization to propagate from UT to SciFi
   const auto state_zRef = propagate_state_from_velo(UT_state, qOverP, 5);  // zRef is between layers 4 and 5 
-   const float xBoundOnRef = dx_calc(state_zRef, qOverP, window_params);    
-   //const float xTolWS = dx_calc(state_zRef, qop_WS, window_params);      
+  const float xTol = 2.f * dx_calc(velo_state, qOverP, window_params);    
+  const float xTolWS = dx_calc(velo_state, qop_WS, window_params);      
   
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
 
@@ -48,13 +45,6 @@ __host__ void collectAllXHits_proto_p(
     const float xInZone = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_x);   
     const float yInZone = yFromVelo(zZone, velo_state); 
  
-    if ( true_scifi_indices_per_layer[layer] != -1 ) {
-      //  debug_cout << "in zone " << izone_rel << ", in layer " << layer << ", true x = " << scifi_hits.x0[true_scifi_indices_per_layer[layer]] << ", xInZone = " << xInZone  << ", pt = " << pt << ", p = " << p << std::endl;
-      //debug_cout << "true track" << std::endl;
-    } 
-
-    //debug_cout << "xInZone = " << xInZone << ", yInZone = " << yInZone << std::endl;
-
     if (side > 0) {
       if (
         !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
@@ -68,23 +58,19 @@ __host__ void collectAllXHits_proto_p(
         continue;
     }  
 
-    // extrapolate xBoundOnRef (x window on reference plane) to plane of current zone
-    const float ratio = (zZone > SciFi::Tracking::zReference)  
-      ? ( zZone - zMag ) * dzInv
-      : zZone * SciFi::Tracking::zRefInv;
-    const float xTol = xBoundOnRef * ratio;
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
- 
-    // debug_cout << "\t before WS treatment: xMin = " << xMin << ", xMax = " << xMax << std::endl;     if (wSignTreatment) {
-    //   if (dir > 0) {
-    //     xMin = xInZone - xTolWS;
-    //   }
-    //   else {
-    //     xMax = xInZone + xTolWS;
-    //   }
-    // }
-    // debug_cout << "\t after WS treatment: xMin = " << xMin << ", xMax = " << xMax << std::endl;  
+    
+    if (wSignTreatment) {
+      debug_cout << "\t before WS treatment: xMin = " << xMin << ", xMax = " << xMax << ", WS = " << int(wSignTreatment) << ", pt = " << pt << std::endl;     
+      if (dir > 0) {
+        xMin = -1.f * xInZone - xTolWS;
+      }
+      else {
+        xMax = -1.f * xInZone + xTolWS;
+      }
+      debug_cout << "\t after WS treatment: xMin = " << xMin << ", xMax = " << xMax << std::endl;  
+    }
  
     // Get the hits within the bounds
     assert(iZone < SciFi::Constants::n_layers);
@@ -99,9 +85,6 @@ __host__ void collectAllXHits_proto_p(
     windows_x[2*izone_rel] = itH;
     windows_x[2*izone_rel+1] = itEnd - itH;
     
-    // Skip making range but continue if the end is before or equal to the start
-    //if (!(itEnd > itH)) continue; CHECK if this is needed! 
-
     // Now match the stereo hits
     const float this_uv_z = constArrays->uvZone_zPos[izone_rel];
     const float dz_uv = this_uv_z - SciFi::Tracking::zReference;
@@ -111,7 +94,6 @@ __host__ void collectAllXHits_proto_p(
     const int uv_layer = constArrays->uvZones[iZone] / 2; 
     // To Do: study this window
     const float xBound = 100.f * window_params.extrapolation_stddev[uv_layer];
-    const float zRatio = (this_uv_z - zMag) / (zZone - zMag);
     const float maxDx = xBound; // * ratio;
 
     const float xMinUV = xPredUv - maxDx;
@@ -238,10 +220,6 @@ __host__ void collectAllXHits_proto(
     xBoundOnRef,
     xBoundOnRefWS);
    
-  // use parametrization to propagate from UT to SciFi
-  //const auto state_zRef = propagate_state_from_velo(UT_state, qOverP, 5);  // zRef is between layers 4 and 5 
-  //xBoundOnRef = 100.f * dx_calc(state_zRef, qOverP, window_params);  
- 
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
 
   for (unsigned int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
@@ -250,10 +228,6 @@ __host__ void collectAllXHits_proto(
 
     const auto izone_rel = iZone - iZoneStartingPoint;
     const float zZone = constArrays->xZone_zPos[izone_rel];
-    
-    const int layer = constArrays->xZones[iZone] / 2;
-    //const float dz_x = (zZone - SciFi::Tracking::zReference); 
-    //const float xInZone = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_x);   
     const float xInZone = straightLinePropagationFromReferencePlane(xParams_seed, zZone);
     const float yInZone = straightLinePropagationFromReferencePlane(yParams_seed, zZone);
  
@@ -311,18 +285,14 @@ __host__ void collectAllXHits_proto(
     // Now match the stereo hits
     const float this_uv_z = constArrays->uvZone_zPos[iZone - iZoneStartingPoint];
     const float xInUv = straightLinePropagationFromReferencePlane(xParams_seed, this_uv_z);
-    //const float dz_uv = this_uv_z - SciFi::Tracking::zReference;
     const float dx = yInZone * constArrays->uvZone_dxdy[iZone - iZoneStartingPoint]; 
-    //const float xPredUv = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_uv) - dx;  
     const float zRatio = (this_uv_z - zMag) / (zZone - zMag);
-    //const float maxDx = xBoundOnRef * ratio;
-
+    
     const float xCentral = xInZone + dx;
     const float xPredUv = xInUv + (scifi_hits.x0[itH] - xInZone) * zRatio - dx;
     const float maxDx = SciFi::Tracking::tolYCollectX +
                       (fabsf(scifi_hits.x0[itH] - xCentral) + fabsf(yInZone)) * SciFi::Tracking::tolYSlopeCollectX;  
     const float xMinUV = xPredUv - maxDx;
-    const float xMaxUV = xPredUv + maxDx;
 
     // Get bounds in UV layers
     // do one search on the same side as the x module

@@ -17,7 +17,7 @@ std::array<std::vector<int>, 6> collect_x_candidates_p(
         const auto hit_index = window_start + j;
         float xHit = scifi_hits.x0[hit_index];
         
-        const float maxDx = 25 + 6e5 * qOverP * std::copysign(1.f, qOverP);
+        const float maxDx = 25 + 6e5 * std::abs(qOverP); 
         const float xMinUV = xHit - maxDx;
         const float xMaxUV = xHit + maxDx;
         if (matchStereoHit(windows_uv[i * 2], windows_uv[i * 2 + 1], scifi_hits, xMinUV, xMaxUV)) {
@@ -144,6 +144,7 @@ std::vector<std::tuple<int, int>> find_compatible_window_p(
   const float dx_stddev,
   const float compatible_window_factor, 
   const bool forward,
+  const float pt,
   const float qOverP)   
 {
   std::vector<std::tuple<int, int>> compatible_hits_x0;
@@ -156,11 +157,15 @@ std::vector<std::tuple<int, int>> find_compatible_window_p(
     float dxMax, dxMin;
     if( qOverP < 0 ) {
       dxMax = 30.f - 1e6f * qOverP;
-      dxMin = -30.f -4e5f * qOverP;
+      dxMin = -30.f - 4e5f * qOverP;
     } else {
       dxMax = 30 - 4e5f * qOverP;
       dxMin = -30 - 1e6f * qOverP;
     }
+    // if ( pt > SciFi::Tracking::wrongSignPT ) {
+    //   dxMin = -30.f - 4e5f * std::abs(qOverP);
+    //   dxMax = 30.f + 1e6f * std::abs(qOverP);
+    // }
     float xMax, xMin;
     if ( forward) {
       xMax = x1 - dxMin;
@@ -179,9 +184,9 @@ std::vector<std::tuple<int, int>> find_compatible_window_p(
     const float lowX = scifi_hits.x0[std::get<0>(x0_candidates)];
     const float highX = scifi_hits.x0[std::get<1>(x0_candidates)];
 
-    debug_cout << "low index = " << std::get<0>(x0_candidates) << ", high index = " << std::get<1>(x0_candidates) << std::endl;
+    //debug_cout << "low index = " << std::get<0>(x0_candidates) << ", high index = " << std::get<1>(x0_candidates) << std::endl;
 
-    debug_cout << "xMin = " << xMin << ", xMax = " << xMax << ", lowest x = " << lowX << ", highest x = " << highX << std::endl;
+    //debug_cout << "xMin = " << xMin << ", xMax = " << xMax << ", lowest x = " << lowX << ", highest x = " << highX << std::endl;
     // for ( const auto hit : hits_in_layer_to ) {
     //   debug_cout << "\t x = " << scifi_hits.x0[hit] << std::endl;
     // } 
