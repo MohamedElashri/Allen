@@ -24,7 +24,7 @@ __host__ __device__ int binary_search_leftmost(const T* array, const uint array_
   return l;
 } 
 
-template<typename T, typenameR>
+template<typename T, typename R>
 __host__ __device__ int binary_search_leftmost(const T* index_array, const uint index_array_size, const R* data_array, const R& value)
 {
   int l = 0;
@@ -39,10 +39,7 @@ __host__ __device__ int binary_search_leftmost(const T* index_array, const uint 
       r = m;
     }
   }
-  //return l;
-
-  const bool found = (l != array_size);
-  return found ? l : -1; 
+  return l;
 }
 /**
  * @brief Finds the first candidate performing a binary search leftmost,

@@ -253,11 +253,11 @@ std::tuple<int, int> find_x_in_window(
 
   int last_candidate = -1;
 
-  if (first_candidate != -1) {
-    last_candidate = binary_search_leftmost(
-      (int*) (candidates.data() + first_candidate), num_hits - first_candidate, hits.x0, value1, margin);
-    last_candidate = first_candidate + last_candidate;
-  }
+  //if (first_candidate != -1) {
+  last_candidate = binary_search_leftmost(
+                                          (int*) (candidates.data() + first_candidate), num_hits - first_candidate, hits.x0, value1);
+  last_candidate = first_candidate + last_candidate;
+  //}
 
   return {first_candidate, last_candidate}; 
 
