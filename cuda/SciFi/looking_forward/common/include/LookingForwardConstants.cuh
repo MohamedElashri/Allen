@@ -51,6 +51,8 @@ namespace LookingForward {
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.1f;
   constexpr int track_min_hits = 9;
+  constexpr float filter_x_max_chi2 = 1.f;
+  constexpr int filter_x_max_number_of_tracks = 1000;
 
   // cut on the difference between tx from the extrapolation and
   // tx from the hits in the two x layers
