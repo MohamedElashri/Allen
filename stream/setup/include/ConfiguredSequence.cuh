@@ -59,10 +59,12 @@
 #include "LFExtendTracksX.cuh"
 #include "LFTripletSeeding.cuh"
 #include "LFCompositeTrackSeeding.cuh"
+#include "LFCompositeExtendTracksUV.cuh"
 #include "LFExtendTracksFirstLayersX.cuh"
 #include "LFExtendTracksUV.cuh"
 #include "LFQualityFilter.cuh"
 #include "LFQualityFilterX.cuh"
+#include "LFSearchUVWindows.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

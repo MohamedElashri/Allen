@@ -5,8 +5,8 @@
 
 __device__ void lf_extend_tracks_uv_impl(
   const float* scifi_hits_x0,
-  const uint16_t layer_offset,
-  const uint16_t layer_number_of_hits,
+  const short layer_offset,
+  const short layer_number_of_hits,
   SciFi::TrackHits& track,
   const float x0,
   const float x1,

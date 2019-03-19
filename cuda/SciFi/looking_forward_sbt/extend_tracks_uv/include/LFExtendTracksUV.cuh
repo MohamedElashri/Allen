@@ -18,7 +18,7 @@ __global__ void lf_extend_tracks_uv(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
   const MiniState* dev_ut_states,
-  const uint8_t relative_extrapolation_layer);
+  const short* dev_scifi_lf_uv_windows);
 
 ALGORITHM(
   lf_extend_tracks_uv,
@@ -31,4 +31,5 @@ ALGORITHM(
     dev_scifi_lf_filtered_atomics,
     dev_scifi_lf_number_of_candidates,
     dev_scifi_lf_candidates,
-    dev_ut_states))
+    dev_ut_states,
+    dev_scifi_lf_uv_windows))

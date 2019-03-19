@@ -41,6 +41,13 @@ namespace LookingForward {
     const float value1,
     const float margin);
 
+  __device__ std::tuple<short, short> find_x_in_window(
+    const float* hits_x0,
+    const int zone_offset,
+    const int num_hits,
+    const float value,
+    const float margin);
+
   // access hits from a layer
   // first zone number: y < 0
   // second zone number: y > 0
