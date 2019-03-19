@@ -1,7 +1,16 @@
 #include "LFCompositeTrackSeeding.cuh"
 #include "SequenceVisitor.cuh"
 
-DEFINE_EMPTY_SET_ARGUMENTS_SIZE(lf_composite_track_seeding_t)
+template<>
+void SequenceVisitor::set_arguments_size<lf_composite_track_seeding_t>(
+  lf_composite_track_seeding_t::arguments_t arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers)
+{
+  arguments.set_size<dev_scifi_lf_tracks>(host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_lf_tracks);
+  arguments.set_size<dev_scifi_lf_atomics>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
+}
 
 template<>
 void SequenceVisitor::visit<lf_composite_track_seeding_t>(
@@ -14,7 +23,7 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
   cudaEvent_t& cuda_generic_event)
 {
   const auto seeding_set_arguments = [&state, &constants, &arguments] (const uint8_t relative_middle_layer) {
-    state.handler_lf_initial_triplet_seeding.set_arguments(
+    state.handler_lf_triplet_seeding.set_arguments(
       arguments.offset<dev_scifi_hits>(),
       arguments.offset<dev_scifi_hit_count>(),
       arguments.offset<dev_atomics_ut>(),
@@ -46,77 +55,30 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
   };
 
   state.handler_lf_extend_tracks_x.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream);
-  state.handler_lf_initial_triplet_seeding.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(32), cuda_stream);
+  state.handler_lf_triplet_seeding.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(32), cuda_stream);
 
   // We need to:
+  // * Seed mid layer 1
   // * Forward to layer 3
   // * Seed mid layer 2
   // * Forward to layer 4
   // * Seed mid layer 3
   // * Forward to layer 5
-  // * Seed mid layer 4
+  // * Seed mid layer 4 
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_scifi_lf_atomics>(),
+    0,
+    arguments.size<dev_scifi_lf_atomics>(),
+    cuda_stream));
+  
+  seeding_set_arguments(1);
+  state.handler_lf_triplet_seeding.invoke();
+
   for (int i=0; i<3; ++i) {
     forwarding_set_arguments(3 + i);
     seeding_set_arguments(2 + i);
 
     state.handler_lf_extend_tracks_x.invoke();
-    state.handler_lf_initial_triplet_seeding.invoke();
+    state.handler_lf_triplet_seeding.invoke();
   }
-
-  // cudaCheck(cudaMemcpyAsync(
-  //   host_buffers.host_atomics_scifi,
-  //   arguments.offset<dev_atomics_scifi>(),
-  //   arguments.size<dev_atomics_scifi>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
-
-  // cudaCheck(cudaMemcpyAsync(
-  //   host_buffers.host_scifi_tracks,
-  //   arguments.offset<dev_scifi_tracks>(),
-  //   arguments.size<dev_scifi_tracks>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
-
-  // cudaEventRecord(cuda_generic_event, cuda_stream);
-  // cudaEventSynchronize(cuda_generic_event);
-
-  // for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
-  //   const auto number_of_tracks = scifi_atomics[i];
-  //   int number_of_quadruplets = 0;
-
-  //   for (int j=0; j<number_of_tracks; ++j) {
-  //     const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
-  //     if (track.hitsNum == 4) {
-  //       ++number_of_quadruplets;
-  //     }
-  //   }
-
-  //   info_cout << "Event " << i << ", number of quadruplet tracks " << number_of_quadruplets << std::endl;
-
-  //   for (int j=0; j<number_of_tracks; ++j) {
-  //     const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
-  //     if (track.hitsNum >= 4) {
-  //       info_cout << "Track ";
-  //       for (int k=0; k<track.hitsNum; ++k) {
-  //         info_cout << track.hits[k] << ", ";
-  //       }
-  //       info_cout << track.get_quality() << std::endl;
-  //     }
-  //   }
-  //   info_cout << std::endl;
-
-  //   info_cout << "Event " << i << ", number of tracks " << number_of_tracks << std::endl;
-
-  //   for (int j=0; j<number_of_tracks; ++j) {
-  //     const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
-  //     info_cout << " Track #" << j << " from ut track " << track.ut_track_index
-  //       << ", quality " << track.get_quality()
-  //       << ", hits: ";
-
-  //     for (int k=0; k<track.hitsNum; ++k) {
-  //       info_cout << track.hits[k] << ", ";
-  //     }
-  //     info_cout << std::endl;
-  //   }
-  // }
 }

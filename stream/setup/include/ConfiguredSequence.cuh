@@ -56,7 +56,6 @@
 #include "LFSearchInitialWindows.cuh"
 #include "LFCollectCandidates.cuh"
 #include "LFFindCompatibleWindows.cuh"
-#include "LFInitialTripletSeeding.cuh"
 #include "LFExtendTracksX.cuh"
 #include "LFTripletSeeding.cuh"
 #include "LFCompositeTrackSeeding.cuh"

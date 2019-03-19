@@ -4,7 +4,6 @@
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
-#include "LFInitialTripletSeeding.cuh"
 #include "LFTripletSeeding.cuh"
 #include "LFExtendTracksX.cuh"
 
@@ -30,10 +29,9 @@ struct lf_composite_track_seeding_t {
 
   using arguments_t = ArgumentRefManager<Arguments>;
 
-  decltype(make_handler(lf_initial_triplet_seeding)) handler_lf_initial_triplet_seeding {lf_initial_triplet_seeding};
+  decltype(make_handler(lf_triplet_seeding)) handler_lf_triplet_seeding {lf_triplet_seeding};
   decltype(make_handler(lf_extend_tracks_x)) handler_lf_extend_tracks_x {lf_extend_tracks_x};
 };
-
 
 // COMPOSITE_ALGORITHM(
 //   lf_triplet_seeding,

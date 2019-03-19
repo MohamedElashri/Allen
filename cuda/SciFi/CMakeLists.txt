@@ -11,7 +11,6 @@ file(GLOB scifi_lf_extend_tracks "looking_forward/extend_tracks/src/*cu")
 file(GLOB scifi_lf_search_initial_windows "looking_forward_sbt/search_initial_windows/src/*cu")
 file(GLOB scifi_lf_collect_candidates "looking_forward_sbt/collect_candidates/src/*cu")
 file(GLOB scifi_lf_find_compatible_windows "looking_forward_sbt/find_compatible_windows/src/*cu")
-file(GLOB scifi_lf_initial_triplet_seeding "looking_forward_sbt/initial_triplet_seeding/src/*cu")
 file(GLOB scifi_lf_extend_tracks_x "looking_forward_sbt/extend_tracks_x/src/*cu")
 file(GLOB scifi_lf_triplet_seeding "looking_forward_sbt/triplet_seeding/src/*cu")
 file(GLOB scifi_lf_extend_tracks_first_layers_x "looking_forward_sbt/extend_tracks_first_layers_x/src/*cu")
@@ -49,7 +48,6 @@ include_directories(looking_forward/extend_tracks/include)
 include_directories(looking_forward_sbt/search_initial_windows/include)
 include_directories(looking_forward_sbt/collect_candidates/include)
 include_directories(looking_forward_sbt/find_compatible_windows/include)
-include_directories(looking_forward_sbt/initial_triplet_seeding/include)
 include_directories(looking_forward_sbt/extend_tracks_x/include)
 include_directories(looking_forward_sbt/triplet_seeding/include)
 include_directories(looking_forward_sbt/composite_track_seeding/include)
@@ -74,7 +72,6 @@ add_library(SciFi STATIC
   ${scifi_lf_search_initial_windows}
   ${scifi_lf_collect_candidates}
   ${scifi_lf_find_compatible_windows}
-  ${scifi_lf_initial_triplet_seeding}
   ${scifi_lf_extend_tracks_x}
   ${scifi_lf_triplet_seeding}
   ${scifi_lf_extend_tracks_first_layers_x}

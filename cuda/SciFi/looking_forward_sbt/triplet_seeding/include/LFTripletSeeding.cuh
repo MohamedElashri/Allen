@@ -25,8 +25,6 @@ __global__ void lf_triplet_seeding(
   const LookingForward::Constants* dev_looking_forward_constants,
   SciFi::TrackHits* dev_scifi_tracks,
   int* dev_atomics_scifi,
-  int* dev_scifi_lf_candidate_atomics,
-  const bool* dev_scifi_lf_candidates_flag,
   const uint8_t relative_middle_layer);
 
 ALGORITHM(
@@ -40,7 +38,5 @@ ALGORITHM(
     dev_ut_states,
     dev_scifi_lf_number_of_candidates,
     dev_scifi_lf_candidates,
-    dev_scifi_tracks,
-    dev_atomics_scifi,
-    dev_scifi_lf_candidate_atomics,
-    dev_scifi_lf_candidates_flag))
+    dev_scifi_lf_tracks,
+    dev_scifi_lf_atomics))
