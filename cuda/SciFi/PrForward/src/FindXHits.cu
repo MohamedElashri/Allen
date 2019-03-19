@@ -30,7 +30,7 @@ __host__ void collectAllXHits_proto_p(
   
   // use parametrization to propagate from UT to SciFi
   const auto state_zRef = propagate_state_from_velo(UT_state, qOverP, 5);  // zRef is between layers 4 and 5 
-  const float xTol = 2.f * dx_calc(velo_state, qOverP, window_params);    
+  const float xTol = dx_calc(velo_state, qOverP, window_params);    
   const float xTolWS = dx_calc(velo_state, qop_WS, window_params);      
   
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
@@ -95,20 +95,12 @@ __host__ void collectAllXHits_proto_p(
     const float xPredUv = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_uv) - dx;  
     const int uv_layer = constArrays->uvZones[iZone] / 2; 
     // To Do: study this window
-    const float xBound = 100.f * window_params.extrapolation_stddev[uv_layer];
+    const float xBound = 70.f * window_params.extrapolation_stddev[uv_layer];
     const float maxDx = xBound; // * ratio;
 
     const float xMinUV = xPredUv - maxDx;
     const float xMaxUV = xPredUv + maxDx; 
-    // if ( true_scifi_indices_per_layer[uv_layer] != -1 ) {
-    //   debug_cout << "in layer " << layer << ", true x = " << scifi_hits.x0[true_scifi_indices_per_layer[uv_layer]] << ", xMinUV = " << xMinUV << ", xMaxUV = " << xMaxUV << std::endl;
-    // }  
-
-    if ( true_scifi_indices_per_layer[layer] != -1 && true_scifi_indices_per_layer[uv_layer] != -1 ) {
-      const float max_diff = 25 + 6e5 * qOverP * std::copysign(1.f, qOverP);
-      // debug_cout << "true diff = " << scifi_hits.x0[true_scifi_indices_per_layer[layer]] - scifi_hits.x0[true_scifi_indices_per_layer[uv_layer]] << ", max diff = " << max_diff <<  std::endl; 
-    }
-
+    
     // Get bounds in UV layers
     // do one search on the same side as the x module
     // if we are close to y = 0, also look within a region on the other side module ("triangle search")

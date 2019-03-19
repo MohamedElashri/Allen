@@ -27,7 +27,7 @@ __device__ void lf_collect_candidates_impl(
 
       const auto xPredUv = param_uv_0 + xHit * param_uv_1;
       const auto maxDx = param_uv_2 + std::abs(xHit - param_uv_3) * SciFi::Tracking::tolYSlopeCollectX;
-
+ 
       const auto xMinUV = xPredUv - maxDx;
       const auto xMaxUV = xPredUv + maxDx;
 
