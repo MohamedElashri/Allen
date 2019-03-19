@@ -27,7 +27,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const SciFi::TrackHits* host_scifi_tracks,
   const int* host_atomics_scifi)
 {
-  const bool run_algorithm = false;
+  const bool run_algorithm = true;
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
   if (run_algorithm) {
@@ -266,7 +266,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const std::array<int, 4> max_candidates_triplets {20, 20, 20, 20};
       const float factor_chi2_triplet = 2.5f;
       const float factor_chi2_extend = 2.5f;
-      const bool use_flagging = true;
+      const bool use_flagging = false;
       const bool use_flagging_in_l0_l3_layers = false;
       const bool use_multi_flags = true;
       const bool iterate_all_hits_uv = true;
@@ -540,22 +540,22 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           }
         }
 
-        // filter_tracks_with_TMVA(
-        //     scifi_tracks,
-        //     event_trackhits,
-        //     event_velo_state[i_veloUT_track],
-        //     event_qop[i_veloUT_track],
-        //     &constArrays,
-        //     &tmva1,
-        //     &tmva2,
-        //     scifi_hits,
-        //     scifi_hit_count.event_offset());
+        filter_tracks_with_TMVA(
+            scifi_tracks,
+            event_trackhits,
+            event_velo_state[i_veloUT_track],
+            event_qop[i_veloUT_track],
+            &constArrays,
+            &tmva1,
+            &tmva2,
+            scifi_hits,
+            scifi_hit_count.event_offset());
 
-        for (const auto& track : scifi_tracks) {
-          if (track.hitsNum >= 9) {
-            event_trackhits.push_back(track);
-          }
-        }
+        // for (const auto& track : scifi_tracks) {
+        //   if (track.hitsNum >= 9) {
+        //     event_trackhits.push_back(track);
+        //   }
+        // }
       }
 
       // float best_fit = 100.f;
