@@ -87,12 +87,27 @@ __device__ std::tuple<int, int> LookingForward::find_x_in_window(
 
   if (first_candidate != -1) {
     last_candidate = binary_search_second_candidate(hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, value1, margin);
-
     first_candidate = zone_offset + first_candidate;
-    last_candidate = last_candidate != -1 ? first_candidate + last_candidate + 1 : -1;
+    last_candidate += first_candidate;
   }
 
   return {first_candidate, last_candidate};
+}
+
+__device__ std::tuple<short, short> LookingForward::find_x_in_window(
+  const float* hits_x0,
+  const int zone_offset,
+  const int num_hits,
+  const float value,
+  const float margin)
+{
+  short first_candidate = (short) binary_search_first_candidate(hits_x0 + zone_offset, num_hits, value, margin);
+  short candidate_size = 0;
+  if (first_candidate != -1) {
+    candidate_size = (short) binary_search_second_candidate(hits_x0 + zone_offset + first_candidate, num_hits - first_candidate, value, margin);
+    first_candidate += zone_offset;
+  }
+  return {first_candidate, candidate_size};
 }
 
 __device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(

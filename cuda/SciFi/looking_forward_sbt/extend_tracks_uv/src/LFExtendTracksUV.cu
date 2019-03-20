@@ -10,7 +10,7 @@ __global__ void lf_extend_tracks_uv(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
   const MiniState* dev_ut_states,
-  const uint8_t relative_extrapolation_layer)
+  const short* dev_scifi_lf_uv_windows)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -45,23 +45,38 @@ __global__ void lf_extend_tracks_uv(
     const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];
     const auto z1 = dev_looking_forward_constants->Zone_zPos[layer1];
 
-    const auto layer2 = dev_looking_forward_constants->extrapolation_uv_layers[relative_extrapolation_layer];
-    const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
-    const auto projection_y = LookingForward::y_at_z(dev_ut_states[current_ut_track_index], z2);
-    const auto layer_offset_nhits = LookingForward::get_offset_and_n_hits_for_layer(2 * layer2, scifi_hit_count, projection_y);
+    for (int relative_extrapolation_layer = threadIdx.y; relative_extrapolation_layer < 6; relative_extrapolation_layer += blockDim.y) {
+      const auto layer2 = dev_looking_forward_constants->extrapolation_uv_layers[relative_extrapolation_layer];
+      const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
+      const auto projection_y = LookingForward::y_at_z(dev_ut_states[current_ut_track_index], z2);
+      
+      // Use UV windows
+      const auto uv_window_start = dev_scifi_lf_uv_windows[
+        event_number * 6 * SciFi::Constants::max_lf_tracks
+        + relative_extrapolation_layer * SciFi::Constants::max_lf_tracks
+        + i
+      ];
 
-    lf_extend_tracks_uv_impl(
-      scifi_hits.x0 + event_offset,
-      (uint16_t) (std::get<0>(layer_offset_nhits) - event_offset),
-      (uint16_t) (std::get<1>(layer_offset_nhits)),
-      track,
-      x0,
-      x1,
-      z0,
-      z1,
-      z2,
-      projection_y * dev_looking_forward_constants->Zone_dxdy[layer2 & 0x3],
-      dev_looking_forward_constants->chi2_extrapolation_uv_mean[relative_extrapolation_layer] +
-        2.5f * dev_looking_forward_constants->chi2_extrapolation_uv_stddev[relative_extrapolation_layer]);
+      const auto uv_window_size = dev_scifi_lf_uv_windows[
+        number_of_events * 6 * SciFi::Constants::max_lf_tracks
+        + event_number * 6 * SciFi::Constants::max_lf_tracks
+        + relative_extrapolation_layer * SciFi::Constants::max_lf_tracks
+        + i
+      ];
+
+      lf_extend_tracks_uv_impl(
+        scifi_hits.x0 + event_offset,
+        uv_window_start,
+        uv_window_size,
+        track,
+        x0,
+        x1,
+        z0,
+        z1,
+        z2,
+        projection_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_extrapolation_layer & 0x1],
+        dev_looking_forward_constants->chi2_extrapolation_uv_mean[relative_extrapolation_layer] +
+          2.5f * dev_looking_forward_constants->chi2_extrapolation_uv_stddev[relative_extrapolation_layer]);
+    }
   }
 }
