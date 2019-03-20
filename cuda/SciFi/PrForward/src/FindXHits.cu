@@ -25,9 +25,16 @@ __host__ void collectAllXHits_proto_p(
   const float q = qOverP > 0.f ? 1.f : -1.f;
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f); 
      
-  const bool wSignTreatment = false; //pt > SciFi::Tracking::wrongSignPT; 
+  const bool wSignTreatment = pt > SciFi::Tracking::wrongSignPT; 
+  float zMag = zMagnet(velo_state, constArrays);
   const float qop_WS = sqrtf(slope2 / (1.f + slope2) ) / pt; 
-  
+  float dxRefWS = 0.f;
+  if ( wSignTreatment ) {
+    dxRefWS = 0.9f * calcDxRef(SciFi::Tracking::wrongSignPT, velo_state); 
+  }
+  const float xAtRef = xFromVelo(SciFi::Tracking::zReference, UT_state);
+  float xParams_seed[4] {xAtRef, UT_state.tx, 0, 0};
+
   // use parametrization to propagate from UT to SciFi
   const auto state_zRef = propagate_state_from_velo(UT_state, qOverP, 5);  // zRef is between layers 4 and 5 
   const float xTol = dx_calc(velo_state, qOverP, window_params);    
@@ -47,6 +54,8 @@ __host__ void collectAllXHits_proto_p(
     const float xInZone = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_x);   
     const float yInZone = yFromVelo(zZone, velo_state); 
  
+    const float xInZoneStraight = evalCubicParameterization(xParams_seed, zZone);
+
     if (side > 0) {
       if (
         !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
@@ -63,16 +72,27 @@ __host__ void collectAllXHits_proto_p(
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
     
-    if (wSignTreatment) {
-      debug_cout << "\t before WS treatment: xMin = " << xMin << ", xMax = " << xMax << ", WS = " << int(wSignTreatment) << ", pt = " << pt << std::endl;     
-      if (dir > 0) {
-        xMin = -1.f * xInZone - xTolWS;
-      }
-      else {
-        xMax = -1.f * xInZone + xTolWS;
-      }
-      debug_cout << "\t after WS treatment: xMin = " << xMin << ", xMax = " << xMax << std::endl;  
-    }
+    //float xTolWS = 0.0;
+    // if (wSignTreatment) {
+    //   // xTolWS = (zZone < SciFi::Tracking::zReference) ?
+    //   //   dxRefWS * zZone / SciFi::Tracking::zReference :
+    //   //   dxRefWS * (zZone - zMag) / (SciFi::Tracking::zReference - zMag);
+    //   // if (dir > 0) {
+    //   //   xMin = xInZone - xTolWS;
+    //   // }
+    //   // else {
+    //   //   xMax = xInZone + xTolWS;
+    //   // }
+    
+    //   debug_cout << "\t before WS treatment: xMin = " << xMin << ", xMax = " << xMax << ", WS = " << int(wSignTreatment) << ", pt = " << pt << std::endl;     
+    //   if (dir > 0) {
+    //     xMin = -1.f * xInZone - xTolWS;
+    //   }
+    //   else {
+    //     xMax = xInZone + xTolWS;
+    //   }
+    //   debug_cout << "\t after WS treatment: xMin = " << xMin << ", xMax = " << xMax << std::endl;  
+    // }
  
     // Get the hits within the bounds
     assert(iZone < SciFi::Constants::n_layers);
@@ -211,7 +231,7 @@ __host__ void collectAllXHits_proto(
       }
       else {
         xMax = xInZone + xTolWS;
-      }
+      } 
     }
 
     // Get the hits within the bounds
