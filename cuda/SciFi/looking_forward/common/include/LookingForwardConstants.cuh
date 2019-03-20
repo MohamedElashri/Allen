@@ -44,12 +44,15 @@ namespace LookingForward {
    * Constants for lf search by triplet
    */
   constexpr int number_of_x_layers = 6;
+  constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 32;
   constexpr int maximum_number_of_candidates_flagged = 32;
   constexpr int maximum_number_of_triplets_per_ut_track = 20;
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.1f;
   constexpr int track_min_hits = 9;
+  constexpr float filter_x_max_chi2 = 1.f;
+  constexpr int filter_x_max_number_of_tracks = 1000;
 
   // cut on the difference between tx from the extrapolation and
   // tx from the hits in the two x layers
@@ -113,7 +116,11 @@ namespace LookingForward {
 
     float Zone_zPos[12] {7826., 7896., 7966., 8036., 8508., 8578., 8648., 8718., 9193., 9263., 9333., 9403.};
     float Zone_zPos_xlayers[6] {7826., 8036., 8508., 8718., 9193., 9403.};
+    float Zone_zPos_uvlayers[6] {7896., 7966., 8578., 8648., 9263., 9333.};
     float zMagnetParams[4] {5212.38, 406.609, -1102.35, -498.039};
+
+    float Zone_dxdy[4] {0, 0.0874892, -0.0874892, 0};
+    float Zone_dxdy_uvlayers[6] {0.0874892, -0.0874892};
 
     // Configuration of sbt
     // Triplet creation
@@ -125,10 +132,10 @@ namespace LookingForward {
     float dx_stddev_extrapolation_to_x_layers[3] {1.50f, 1.40f, 1.74f};
     float chi2_mean_extrapolation_to_x_layers[3] {3.09f, 1.98f, 3.89f};
     float chi2_stddev_extrapolation_to_x_layers[3] {6.33f, 5.09f, 7.42f};
-    int max_candidates_triplets[4] {20, 20, 20, 20};
+    uint8_t max_candidates_triplets[4] {20, 20, 20, 20};
 
     // Extrapolation to UV 
-    int extrapolation_uv_layers [6] {1, 2, 5, 6, 9, 10};
+    uint8_t extrapolation_uv_layers [6] {1, 2, 5, 6, 9, 10};
     float extrapolation_uv_stddev [6] {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
     float chi2_extrapolation_uv_mean [6] {1.304f, 1.384f, 4.577f, 6.587f, 36.1f, 44.67f};
     float chi2_extrapolation_uv_stddev [6] {10.6f, 11.82f, 17.84f, 23.2f, 68.05f, 81.47f};
@@ -372,8 +379,5 @@ namespace LookingForward {
                                      -36.6656,
                                      -38.7877,
                                      -34.5437};
-
-    // dxdy for the layers in one station
-    float Zone_dxdy[4] {0, 0.0874892, -0.0874892, 0};
   };
 } // namespace LookingForward
