@@ -29,6 +29,7 @@ __global__ void lf_search_initial_windows(
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const SciFi::Tracking::Arrays* dev_constArrays,
+  const LookingForward::Constants* dev_looking_forward_constants,
   int* dev_initial_windows,
   MiniState* dev_ut_states);
 

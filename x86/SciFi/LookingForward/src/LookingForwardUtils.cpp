@@ -30,7 +30,7 @@ float propagate_x_from_velo(const MiniState& UT_state, float qop, int layer)
   const auto propagated_state = propagate_state_from_velo(UT_state, qop, layer);
   return propagated_state.x;
 }
-
+ 
 MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int layer)
 {
   MiniState final_state;

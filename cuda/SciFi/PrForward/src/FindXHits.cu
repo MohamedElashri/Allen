@@ -40,7 +40,7 @@ __host__ void collectAllXHits_proto_p(
   const float xTol = dx_calc(velo_state, qOverP, window_params);    
   const float xTolWS = dx_calc(velo_state, qop_WS, window_params);      
   
-  int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
+  int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0; 
 
   for (unsigned int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
     assert(iZone - iZoneStartingPoint < SciFi::Constants::n_zones);
@@ -71,7 +71,7 @@ __host__ void collectAllXHits_proto_p(
 
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
-    
+     
     //float xTolWS = 0.0;
     // if (wSignTreatment) {
     //   // xTolWS = (zZone < SciFi::Tracking::zReference) ?
@@ -143,7 +143,7 @@ __host__ void collectAllXHits_proto_p(
     windows_uv[2*izone_rel] = itUVStart;
     windows_uv[2*izone_rel+1] = itUVEnd;
     
-  } 
+  }  
 }
 
 __host__ void collectAllXHits_proto(
