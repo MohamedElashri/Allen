@@ -10,7 +10,7 @@ __device__ void lf_collect_candidates_impl(
   short* candidates,
   const int event_offset)
 {
-  //float* initial_windows_f = (float*) &initial_windows[0];
+  //loat* initial_windows_f = (float*) &initial_windows[0];
   for (int i = threadIdx.y; i < LookingForward::number_of_x_layers; i += blockDim.y) {
     const auto window_start = initial_windows[i * 8 * number_of_tracks];
     const auto window_size = initial_windows[(i * 8 + 1) * number_of_tracks];
@@ -31,9 +31,12 @@ __device__ void lf_collect_candidates_impl(
       // const auto xMinUV = xPredUv - maxDx;
       // const auto xMaxUV = xPredUv + maxDx;
       
-      const float maxDx = 25 + 6e5 * std::abs(qop); 
-      const float xMinUV = xHit - maxDx;
-      const float xMaxUV = xHit + maxDx;
+      const float maxDx = 25.f + 6e5f * std::abs(qop); 
+      //const float xPredUV = param_uv_0;
+      const float xMinUV = (xHit - maxDx); 
+      const float xMaxUV = (xHit + maxDx); 
+
+      //printf("PrForward: xMinUV = %f, xMaxUV =%f, search window: xMinUV = %f, xMaxUV = %f \n", xMinUV, xMaxUV, xMinUV_, xMaxUV_); 
 
       if (binary_search_match_stereo_hit(
             scifi_hits,

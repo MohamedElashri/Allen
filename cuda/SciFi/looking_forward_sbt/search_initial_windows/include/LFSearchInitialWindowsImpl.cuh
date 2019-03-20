@@ -21,16 +21,6 @@ __device__ inline float evalCubicParameterization(
   const float t,
   const float z);
 
-__device__ MiniState get_state_at_z(const MiniState state, const float z);
-
-__device__ MiniState propagate_state_from_velo_to_SciFi(
-  const MiniState& UT_state, 
-  float qop, 
-  int layer,
-  const LookingForward::Constants* looking_forward_constants);
-
-__device__ float xTol_calc(const MiniState& state, const float qop);
-
 __device__ void lf_search_initial_windows_p_impl(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& scifi_hit_count,
