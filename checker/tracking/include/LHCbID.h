@@ -13,6 +13,7 @@
 #include <array>
 #include <cstdint>
 #include <cmath>
+#include <vector>
 
 /// encapsulate an LHCbID
 class LHCbID {

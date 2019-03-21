@@ -71,7 +71,8 @@ protected:
     void operator()(const MCParticles& mcps);
     /// register track and its MC association
     void
-    operator()(Checker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight);
+    operator()(Checker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight,
+      const std::function<uint32_t(const MCParticle&)>& get_num_hits);
     /// notify of end of event
     void evtEnds();
     /// free resources, and print result
@@ -141,15 +142,17 @@ protected:
 public:
   TrackChecker() {};
   ~TrackChecker();
-  std::vector<uint32_t> operator()(const Checker::Tracks &tracks, const MCEvent &mc_event);
+  std::vector<uint32_t> operator()(const Checker::Tracks &tracks, const MCEvent &mc_event,
+    const std::function<uint32_t(const MCParticle&)>& get_num_hits);
   const std::vector<HistoCategory>& histo_categories() const {
     return m_histo_categories;
   }
   Histos histos;
 };
 
-class TrackCheckerVelo : public TrackChecker {
-public:
+struct TrackCheckerVelo : public TrackChecker {
+  using subdetector_t = Checker::Subdetector::Velo;
+
   void SetCategories();
   void SetHistoCategories();
   TrackCheckerVelo()
@@ -160,8 +163,9 @@ public:
   };
 };
 
-class TrackCheckerVeloUT : public TrackChecker {
-public:
+struct TrackCheckerVeloUT : public TrackChecker {
+  using subdetector_t = Checker::Subdetector::UT;
+
   void SetCategories();
   void SetHistoCategories();
   TrackCheckerVeloUT()
@@ -172,8 +176,9 @@ public:
   };
 };
 
-class TrackCheckerForward : public TrackChecker {
-public:
+struct TrackCheckerForward : public TrackChecker {
+  using subdetector_t = Checker::Subdetector::SciFi;
+  
   void SetCategories();
   void SetHistoCategories();
   TrackCheckerForward()

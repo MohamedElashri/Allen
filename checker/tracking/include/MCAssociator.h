@@ -169,8 +169,6 @@ struct MCAssociator {
     // count how often each particle appears
     // and how many hits of the reconstructed track are matched
     // to the MCP
-    
-    
     for (; last != first; ++first) {
       const auto it = find_id(*first);
       if (it == m_map.end()) continue;

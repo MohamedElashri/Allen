@@ -637,10 +637,10 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         }
 
         if (best_track != -1) {
-          auto& track = scifi_tracks[best_track];
-          for (int i=0; i<track.hitsNum; ++i) {
-            track.hits[i] = 10000;
-          }
+          // auto& track = scifi_tracks[best_track];
+          // for (int i=0; i<track.hitsNum; ++i) {
+          //   track.hits[i] = 10000;
+          // }
 
           event_trackhits.push_back(scifi_tracks[best_track]);
         }

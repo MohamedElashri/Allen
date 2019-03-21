@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "CheckerTypes.h"
+
 // Monte Carlo information
 struct MCParticle {
   uint32_t key;
@@ -30,6 +32,9 @@ struct MCParticle {
   bool fromStrangeDecay;
   uint32_t motherKey;
   float charge;
+  uint32_t velo_num_hits;
+  uint32_t ut_num_hits;
+  uint32_t scifi_num_hits;
   uint32_t numHits;
   uint32_t nPV; // # of reconstructible primary vertices in event
   std::vector<uint32_t> hits;
@@ -37,5 +42,8 @@ struct MCParticle {
   bool isElectron() const { return 11 == std::abs(pid); };
   bool inEta2_5() const { return (eta < 5. && eta > 2.); };
 };
+
+template<typename T>
+uint32_t get_num_hits(const MCParticle& mc_particle);
 
 using MCParticles = std::vector<MCParticle>;
