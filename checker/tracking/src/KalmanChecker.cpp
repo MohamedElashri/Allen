@@ -3,7 +3,7 @@
 
 void checkKalmanTracks(
   const uint start_event_offset,
-  const std::vector<trackChecker::Tracks>& tracks,
+  const std::vector<Checker::Tracks>& tracks,
   const MCEvents selected_mc_events)
 {
 
@@ -34,7 +34,7 @@ void checkKalmanTracks(
   for (int i_event; i_event < selected_mc_events.size(); ++i_event) {
 
     const auto& mc_event = selected_mc_events[i_event];
-    const auto& mcps = mc_event.mc_particles<TrackCheckerForward>();
+    const auto& mcps = mc_event.m_mcps;
     const auto& event_tracks = tracks[i_event];
     MCAssociator mcassoc {mcps};
 

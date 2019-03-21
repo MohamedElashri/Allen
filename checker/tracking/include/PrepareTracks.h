@@ -12,7 +12,7 @@
 /**
  * @brief Prepares tracks for Velo consolidated datatypes.
  */
-std::vector<trackChecker::Tracks> prepareVeloTracks(
+std::vector<Checker::Tracks> prepareVeloTracks(
   const uint* track_atomics,
   const uint* track_hit_number,
   const char* track_hits,
@@ -21,7 +21,7 @@ std::vector<trackChecker::Tracks> prepareVeloTracks(
 /**
  * @brief Prepares tracks for Velo, UT consolidated datatypes.
  */
-std::vector<trackChecker::Tracks> prepareUTTracks(
+std::vector<Checker::Tracks> prepareUTTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
@@ -35,7 +35,7 @@ std::vector<trackChecker::Tracks> prepareUTTracks(
 /**
  * @brief Prepares tracks for Velo, UT, SciFi consolidated datatypes.
  */
-std::vector<trackChecker::Tracks> prepareSciFiTracks(
+std::vector<Checker::Tracks> prepareSciFiTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
@@ -54,7 +54,7 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
   const std::array<float, 9>& host_inv_clus_res,
   const uint number_of_events);
 
-std::vector<trackChecker::Tracks> prepareSciFiTracks(
+std::vector<Checker::Tracks> prepareSciFiTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,

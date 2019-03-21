@@ -45,26 +45,26 @@ struct CheckerInvoker {
   template<typename T>
   std::vector<std::vector<std::vector<uint32_t>>> check(
     const uint start_event_offset,
-    const std::vector<trackChecker::Tracks>& tracks,
+    const std::vector<Checker::Tracks>& tracks,
     std::vector<std::vector<float>>& p_events) const
   {
     std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_events;
 
     if (is_mc_folder_populated) {
-      T trackChecker {};
+      T track_checker {};
 #ifdef WITH_ROOT
-      trackChecker.histos.initHistos(trackChecker.histo_categories());
+      track_checker.histos.initHistos(track_checker.histo_categories());
 #endif
       int n_other_pids = 0;
       int n_pids = 0;
       for (int evnum = 0; evnum < selected_mc_events.size(); ++evnum) {
         const auto& mc_event = selected_mc_events[evnum];
         const auto& event_tracks = tracks[evnum];
+        
+        // const auto& mcps = mc_event.mc_particles<T>();
+        // MCAssociator mcassoc {mcps};
 
-        const auto& mcps = mc_event.mc_particles<T>();
-        MCAssociator mcassoc {mcps};
-
-        std::vector<uint32_t> matched_mcp_keys = trackChecker(event_tracks, mcassoc, mcps);
+        std::vector<uint32_t> matched_mcp_keys = track_checker(event_tracks, mc_event);
         std::vector<std::vector<uint32_t>> scifi_ids_tracks;
         std::vector<float> p_tracks;
         for (const auto key : matched_mcp_keys) {
@@ -72,7 +72,7 @@ struct CheckerInvoker {
           float p = 1e9;
           if (!(key == 0xFFFFFF)) { // track was matched to an MCP
             // Find this MCP
-            for (const auto mcp : mc_event.scifi_mcps) {
+            for (const auto mcp : mc_event.m_mcps) {
               if (mcp.key == key) {
                 // mu- (13): positive PID
                 float charge;

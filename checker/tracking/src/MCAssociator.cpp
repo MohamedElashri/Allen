@@ -30,18 +30,15 @@ MCAssociator::MCAssociator(const MCParticles& mcps) : m_mcps(mcps)
   });
 }
 
-MCAssociator::AssocMap::const_iterator MCAssociator::find(LHCbID id) const noexcept
+MCAssociator::AssocMap::const_iterator MCAssociator::find_id(const LHCbID& id) const noexcept
 {
-  // dcampora: Relaxed check
-  // auto it = std::find_if(m_map.begin(), m_map.end(), [&id] (const LHCbIDWithIndex& a) {
-  //   return a.first == id;
-  // });
-  // return it;
-
   auto it = std::lower_bound(
     m_map.begin(), m_map.end(), id, [](const LHCbIDWithIndex& a, const LHCbID& b) noexcept { return a.first < b; });
-  if (m_map.end() == it) return it;
-  if (id != it->first) return m_map.end();
+  
+  if (it != m_map.end() && id != it->first) {
+    it = m_map.end();
+  }
+
   return it;
 }
 

@@ -5,29 +5,29 @@
 #include "SciFiConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
 #include "TrackChecker.h"
-#include "Tracks.h"
+#include "CheckerTypes.h"
 #include "UTConsolidated.cuh"
 #include "UTDefinitions.cuh"
 #include "VeloConsolidated.cuh"
 #include "VeloEventModel.cuh"
 
-std::vector<trackChecker::Tracks> prepareVeloTracks(
+std::vector<Checker::Tracks> prepareVeloTracks(
   const uint* track_atomics,
   const uint* track_hit_number,
   const char* track_hits,
   const uint number_of_events)
 {
   /* Tracks to be checked, save in format for checker */
-  std::vector<trackChecker::Tracks> checker_tracks; // all tracks from all events
+  std::vector<Checker::Tracks> checker_tracks; // all tracks from all events
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
-    trackChecker::Tracks tracks; // all tracks within one event
+    Checker::Tracks tracks; // all tracks within one event
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) track_atomics, (uint*) track_hit_number, i_event, number_of_events};
     const uint number_of_tracks_event = velo_tracks.number_of_tracks(i_event);
 
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
-      trackChecker::Track t;
+      Checker::Track t;
       t.p = 0.f;
 
       const uint velo_track_number_of_hits = velo_tracks.number_of_hits(i_track);
@@ -44,7 +44,7 @@ std::vector<trackChecker::Tracks> prepareVeloTracks(
   return checker_tracks;
 }
 
-std::vector<trackChecker::Tracks> prepareUTTracks(
+std::vector<Checker::Tracks> prepareUTTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
@@ -55,9 +55,9 @@ std::vector<trackChecker::Tracks> prepareUTTracks(
   const float* ut_qop,
   const uint number_of_events)
 {
-  std::vector<trackChecker::Tracks> checker_tracks; // all tracks from all events
+  std::vector<Checker::Tracks> checker_tracks; // all tracks from all events
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
-    trackChecker::Tracks tracks; // all tracks within one event
+    Checker::Tracks tracks; // all tracks within one event
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) velo_track_atomics, (uint*) velo_track_hit_number, i_event, number_of_events};
@@ -70,7 +70,7 @@ std::vector<trackChecker::Tracks> prepareUTTracks(
     const uint number_of_tracks_event = ut_tracks.number_of_tracks(i_event);
 
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
-      trackChecker::Track t;
+      Checker::Track t;
 
       // momentum
       const float qop = ut_tracks.qop[i_track];
@@ -99,7 +99,7 @@ std::vector<trackChecker::Tracks> prepareUTTracks(
   return checker_tracks;
 }
 
-std::vector<trackChecker::Tracks> prepareSciFiTracks(
+std::vector<Checker::Tracks> prepareSciFiTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
@@ -119,9 +119,9 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
   const uint number_of_events)
 {
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
-  std::vector<trackChecker::Tracks> checker_tracks; // all tracks from all events
+  std::vector<Checker::Tracks> checker_tracks; // all tracks from all events
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
-    trackChecker::Tracks tracks; // all tracks within one event
+    Checker::Tracks tracks; // all tracks within one event
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) velo_track_atomics, (uint*) velo_track_hit_number, i_event, number_of_events};
@@ -142,7 +142,7 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
     const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
 
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
-      trackChecker::Track t;
+      Checker::Track t;
 
       // momentum
       const float qop = scifi_tracks.qop[i_track];
@@ -180,7 +180,7 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
   return checker_tracks;
 }
 
-std::vector<trackChecker::Tracks> prepareSciFiTracks(
+std::vector<Checker::Tracks> prepareSciFiTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
@@ -194,9 +194,9 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
   const uint* host_scifi_hit_count,
   const uint number_of_events)
 {
-  std::vector<trackChecker::Tracks> checker_tracks; // all tracks from all events
+  std::vector<Checker::Tracks> checker_tracks; // all tracks from all events
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
-    trackChecker::Tracks tracks; // all tracks within one event
+    Checker::Tracks tracks; // all tracks within one event
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) velo_track_atomics, (uint*) velo_track_hit_number, i_event, number_of_events};
@@ -213,7 +213,7 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
     const auto& scifi_tracks_event = scifi_tracks[i_event];
     for (uint i_track = 0; i_track < scifi_tracks_event.size(); i_track++) {
       const auto& scifi_track = scifi_tracks_event[i_track];
-      trackChecker::Track t;
+      Checker::Track t;
 
       // momentum
       const float qop = scifi_track.qop;
@@ -240,6 +240,7 @@ std::vector<trackChecker::Tracks> prepareSciFiTracks(
       for (int i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_velo.LHCbID[i_hit]);
       }
+
       tracks.push_back(t);
     } // tracks
     checker_tracks.emplace_back(tracks);

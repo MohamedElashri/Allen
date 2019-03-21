@@ -20,7 +20,8 @@
 #include <vector>
 #include "Logger.h"
 #include "MCAssociator.h"
-#include "Tracks.h"
+#include "CheckerTypes.h"
+#include "MCEvent.h"
 
 #ifdef WITH_ROOT
 #include "TDirectory.h"
@@ -31,6 +32,8 @@
 
 class TrackChecker {
 protected:
+  bool m_print = false;
+
   using AcceptFn = std::function<bool(MCParticles::const_reference&)>;
   struct TrackEffReport {
     std::string m_name;
@@ -68,7 +71,7 @@ protected:
     void operator()(const MCParticles& mcps);
     /// register track and its MC association
     void
-    operator()(trackChecker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight);
+    operator()(Checker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight);
     /// notify of end of event
     void evtEnds();
     /// free resources, and print result
@@ -138,8 +141,7 @@ protected:
 public:
   TrackChecker() {};
   ~TrackChecker();
-  std::vector<uint32_t> operator()(const trackChecker::Tracks &tracks,
-                  const MCAssociator &mcassoc, const MCParticles &mcps);
+  std::vector<uint32_t> operator()(const Checker::Tracks &tracks, const MCEvent &mc_event);
   const std::vector<HistoCategory>& histo_categories() const {
     return m_histo_categories;
   }
@@ -176,6 +178,7 @@ public:
   void SetHistoCategories();
   TrackCheckerForward()
   {
+    m_print = true;
     SetCategories();
     SetHistoCategories();
     m_trackerName = "Forward";

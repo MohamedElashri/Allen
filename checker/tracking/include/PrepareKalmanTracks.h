@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "Tracks.h"
+#include "CheckerTypes.h"
 #include "Logger.h"
 #include "InputTools.h"
 #include "UTDefinitions.cuh"
@@ -14,7 +14,7 @@
 #include "SciFiConsolidated.cuh"
 #include "ParKalmanDefinitions.cuh"
 
-std::vector<trackChecker::Tracks> prepareKalmanTracks(
+std::vector<Checker::Tracks> prepareKalmanTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,

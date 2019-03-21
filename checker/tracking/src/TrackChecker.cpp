@@ -86,7 +86,7 @@ void TrackChecker::TrackEffReport::operator()(const MCParticles& mcps)
 }
 
 void TrackChecker::TrackEffReport::
-operator()(trackChecker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight)
+operator()(Checker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight)
 {
 
   if (!m_accept(mcp)) return;
@@ -301,38 +301,126 @@ void TrackChecker::Histos::fillMomentumResolutionHisto(const MCParticle& mcp, co
 #endif
 }
 
-// TODO: dcampora
-std::vector<uint32_t> TrackChecker::
-operator()(const trackChecker::Tracks& tracks, const MCAssociator& mcassoc, const MCParticles& mcps)
+std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks &tracks, const MCEvent &mc_event)
 {
   // register MC particles
-  for (auto& report : m_categories)
-    report(mcps);
-  // fill histograms of reconstructible MC particles in various categories
-  for (auto& histo_cat : m_histo_categories) {
-    histos.fillReconstructibleHistos(mcps, histo_cat);
+  for (auto& report : m_categories) {
+    report(mc_event.m_mcps);
   }
 
-  // go through tracks
+  // fill histograms of reconstructible MC particles in various categories
+  for (auto& histo_cat : m_histo_categories) {
+    histos.fillReconstructibleHistos(mc_event.m_mcps, histo_cat);
+  }
+
+  MCAssociator mc_assoc {mc_event.m_mcps};
+
+  // Iterate through tracks
   const std::size_t ntracksperevt = tracks.size();
   std::size_t nghostsperevt = 0;
   std::vector<uint32_t> matched_mcp_keys;
   for (auto track : tracks) {
-    histos.fillTotalHistos(mcps[0]);
+    histos.fillTotalHistos(mc_event.m_mcps[0]);
+
+    // Note: This code is based heavily on
+    //       https://gitlab.cern.ch/lhcb/Rec/blob/master/Pr/PrMCTools/src/PrTrackAssociator.cpp
+    //       
     // check LHCbIDs for MC association
+    Checker::TruthCounter total_counter;
+    std::map<LHCbID, Checker::TruthCounter> truth_counters;
+    uint n_meas = 0;
+
     const auto& ids = track.ids();
-    const auto assoc = mcassoc(ids.begin(), ids.end(), track.n_matched_total);
+    for (const auto& id : ids) {
+      if (mc_event.is_subdetector<Checker::Subdetector::Velo>(id)) {
+        n_meas++;
+        total_counter.n_velo++;
+        const auto it = mc_assoc.find_id(id);
+        if (it == mc_assoc.m_map.end()) {
+          continue;
+        }
+        truth_counters[it->second].n_velo++;
+        // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
+      } else if (mc_event.is_subdetector<Checker::Subdetector::UT>(id)) {
+        n_meas++;
+        total_counter.n_ut++;
+        const auto it = mc_assoc.find_id(id);
+        if (it == mc_assoc.m_map.end()) {
+          continue;
+        }
+        truth_counters[it->second].n_ut++;
+        // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
+      } else if (mc_event.is_subdetector<Checker::Subdetector::SciFi>(id)) {
+        n_meas++;
+        total_counter.n_scifi++;
+        const auto it = mc_assoc.find_id(id);
+        if (it == mc_assoc.m_map.end()) {
+          continue;
+        }
+        truth_counters[it->second].n_scifi++;
+        // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
+      }
+    }
+
+    // Note: Placeholder for "cumul mother and daughter"
+
+    std::vector<MCAssociator::MCParticleWithWeight> assoc_vector;
+    for (const auto& id_counter : truth_counters) {
+      bool velo_ok = true;
+      bool scifi_ok = true;
+
+      if (total_counter.n_velo > 2) {
+        const auto weight = id_counter.second.n_velo / ((float) total_counter.n_velo);
+        velo_ok = weight >= m_minweight;
+      }
+
+      if (total_counter.n_scifi > 2) {
+        const auto weight = id_counter.second.n_scifi / ((float) total_counter.n_scifi);
+        scifi_ok = weight >= m_minweight;
+      }
+      
+      const bool ut_ok = (id_counter.second.n_ut + 2 > total_counter.n_ut) ||
+        (total_counter.n_velo > 2 && total_counter.n_scifi > 2);
+
+      // Decision
+      if (velo_ok && ut_ok && scifi_ok && n_meas > 0) {
+        const auto counter_sum = id_counter.second.n_velo + id_counter.second.n_ut + id_counter.second.n_scifi;
+        assoc_vector.push_back({id_counter.first, counter_sum / ((float) n_meas)});
+      }
+    }
+
+    // Sort assoc_vector
+    std::sort(assoc_vector.begin(), assoc_vector.end(), [](const MCAssociator::MCParticleWithWeight& a, const MCAssociator::MCParticleWithWeight& b) noexcept {
+      return a.m_w > b.m_w;
+    });
+
+    // Form return type of MCAssociator
+    MCAssociator::MCAssocResult assoc {std::move(assoc_vector), mc_event.m_mcps};
+
+    // const auto assoc = mcassoc(ids.begin(), ids.end(), track.n_matched_total);
     if (!assoc) {
       ++nghostsperevt;
-      histos.fillGhostHistos(mcps[0]);
+      histos.fillGhostHistos(mc_event.m_mcps[0]);
       matched_mcp_keys.push_back(0xFFFFFFFF);
       continue;
     }
+
     // have MC association, check weight
     const auto weight = assoc.front().second;
+
+    if (m_print) {
+      std::cout << "Track with " << track.allids.size() << " hits: ";
+      for (int i=0; i<track.allids.size(); ++i) {
+        std::cout << track.allids[i] << ", ";
+      }
+      std::cout << std::endl;
+
+      info_cout << weight << std::endl;
+    }
+
     if (weight < m_minweight) {
       ++nghostsperevt;
-      histos.fillGhostHistos(mcps[0]);
+      histos.fillGhostHistos(mc_event.m_mcps[0]);
       matched_mcp_keys.push_back(0xFFFFFFFF);
       continue;
     }
@@ -362,7 +450,8 @@ operator()(const trackChecker::Tracks& tracks, const MCAssociator& mcassoc, cons
   if (ntracksperevt) {
     m_ghostperevent += (float(nghostsperevt) / float(ntracksperevt)) / float(m_nevents);
   }
-  m_nghosts += nghostsperevt, m_ntracks += ntracksperevt;
+  m_nghosts += nghostsperevt;
+  m_ntracks += ntracksperevt;
 
   return matched_mcp_keys;
 }

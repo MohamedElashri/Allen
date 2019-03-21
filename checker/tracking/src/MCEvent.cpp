@@ -13,6 +13,15 @@
 
 #include "MCEvent.h"
 
+void MCEvent::check_mcp(const MCParticle& mcp) {
+  assert(!std::isnan(mcp.p));
+  assert(!std::isnan(mcp.pt));
+  assert(!std::isnan(mcp.eta));
+  assert(!std::isinf(mcp.p));
+  assert(!std::isinf(mcp.pt));
+  assert(!std::isinf(mcp.eta));
+}
+
 MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
 {
   uint8_t* input = (uint8_t*) event.data();
@@ -53,41 +62,30 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
     p.nPV = *((uint32_t*) input);
     input += sizeof(uint32_t);
 
-    int num_Velo_hits = *((uint32_t*) input);
+    const auto num_Velo_hits = *((uint32_t*) input);
     input += sizeof(uint32_t);
     std::vector<uint32_t> hits;
     std::copy_n((uint32_t*) input, num_Velo_hits, std::back_inserter(hits));
+    std::copy_n((uint32_t*) input, num_Velo_hits, std::back_inserter(m_velo_lhcb_ids));
     input += sizeof(uint32_t) * num_Velo_hits;
 
-    // Add the mcp to velo_mcps
-    p.numHits = (uint) hits.size();
-    p.hits = hits;
-    if (num_Velo_hits > 0) {
-      velo_mcps.push_back(p);
-    }
-
-    int num_UT_hits = *((uint32_t*) input);
+    const auto num_UT_hits = *((uint32_t*) input);
     input += sizeof(uint32_t);
     std::copy_n((uint32_t*) input, num_UT_hits, std::back_inserter(hits));
+    std::copy_n((uint32_t*) input, num_UT_hits, std::back_inserter(m_ut_lhcb_ids));
     input += sizeof(uint32_t) * num_UT_hits;
 
-    // Add the mcp to ut_mcps
-    p.numHits = (uint) hits.size();
-    p.hits = hits;
-    if (num_Velo_hits > 0 || num_UT_hits > 0) {
-      ut_mcps.push_back(p);
-    }
-
-    int num_SciFi_hits = *((uint32_t*) input);
+    const auto num_SciFi_hits = *((uint32_t*) input);
     input += sizeof(uint32_t);
     std::copy_n((uint32_t*) input, num_SciFi_hits, std::back_inserter(hits));
+    std::copy_n((uint32_t*) input, num_SciFi_hits, std::back_inserter(m_scifi_lhcb_ids));
     input += sizeof(uint32_t) * num_SciFi_hits;
 
-    // Add the mcp to scifi_mcps
+    // Add the mcp to mcps
     p.numHits = (uint) hits.size();
     p.hits = hits;
     if (num_Velo_hits > 0 || num_UT_hits > 0 || num_SciFi_hits > 0) {
-      scifi_mcps.push_back(p);
+      m_mcps.push_back(p);
     }
   }
 
@@ -99,67 +97,36 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
   }
 
   if (checkEvent) {
-    // Check all floats are valid
-    const auto check_mcp = [](const MCParticle& mcp) {
-      assert(!std::isnan(mcp.p));
-      assert(!std::isnan(mcp.pt));
-      assert(!std::isnan(mcp.eta));
-      assert(!std::isinf(mcp.p));
-      assert(!std::isinf(mcp.pt));
-      assert(!std::isinf(mcp.eta));
-    };
-
-    for (const auto& mcp : velo_mcps) {
-      check_mcp(mcp);
-    }
-    for (const auto& mcp : ut_mcps) {
-      check_mcp(mcp);
-    }
-    for (const auto& mcp : scifi_mcps) {
+    for (const auto& mcp : m_mcps) {
       check_mcp(mcp);
     }
   }
+
+  // Sort the LHCb IDs
+  std::sort(std::begin(m_velo_lhcb_ids), std::end(m_velo_lhcb_ids));
+  std::sort(std::begin(m_ut_lhcb_ids), std::end(m_ut_lhcb_ids));
+  std::sort(std::begin(m_scifi_lhcb_ids), std::end(m_scifi_lhcb_ids));
 }
 
-void MCEvent::print(const MCParticles& mcps) const
-{
-  info_cout << " #MC particles " << mcps.size() << std::endl;
-
-  // Print first MCParticle
-  if (mcps.size() > 0) {
-    auto& p = mcps[0];
-    info_cout << " First MC particle" << std::endl
-              << "  key " << p.key << std::endl
-              << "  id " << p.pid << std::endl
-              << "  p " << p.p << std::endl
-              << "  pt " << p.pt << std::endl
-              << "  eta " << p.eta << std::endl
-              << "  isLong " << p.isLong << std::endl
-              << "  isDown " << p.isDown << std::endl
-              << "  hasVelo " << p.hasVelo << std::endl
-              << "  hasUT " << p.hasUT << std::endl
-              << "  hasSciFi " << p.hasSciFi << std::endl
-              << "  fromBeautyDecay " << p.fromBeautyDecay << std::endl
-              << "  fromCharmDecay " << p.fromCharmDecay << std::endl
-              << "  fromStrangeDecay " << p.fromStrangeDecay << std::endl
-              << "  numHits " << p.numHits << std::endl;
+bool MCEvent::is_subdetector_impl(const LHCbIDs& vector, const LHCbID& id) const {
+  const auto it = std::lower_bound(std::begin(vector), std::end(vector), id);
+  if (it != std::end(vector) && *it == id) {
+    return true;
   }
+  return false;
 }
 
 template<>
-const MCParticles& MCEvent::mc_particles<TrackCheckerVelo>() const
-{
-  return velo_mcps;
+bool MCEvent::is_subdetector<Checker::Subdetector::Velo>(const LHCbID& id) const {
+  return is_subdetector_impl(m_velo_lhcb_ids, id);
 }
 
 template<>
-const MCParticles& MCEvent::mc_particles<TrackCheckerVeloUT>() const
-{
-  return ut_mcps;
+bool MCEvent::is_subdetector<Checker::Subdetector::UT>(const LHCbID& id) const {
+  return is_subdetector_impl(m_ut_lhcb_ids, id);
 }
 
 template<>
-const MCParticles& MCEvent::mc_particles<TrackCheckerForward>() const
-{
-  return scifi_mcps;
+bool MCEvent::is_subdetector<Checker::Subdetector::SciFi>(const LHCbID& id) const {
+  return is_subdetector_impl(m_scifi_lhcb_ids, id);
 }
