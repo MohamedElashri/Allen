@@ -65,4 +65,4 @@ public:
   // numbers for hits etc.
 };
 
-typedef std::vector<LHCbID> SomeLHCbIDs;
+typedef std::vector<LHCbID> LHCbIDs;

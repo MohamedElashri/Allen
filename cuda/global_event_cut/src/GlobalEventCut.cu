@@ -8,7 +8,6 @@ __global__ void global_event_cut(
   uint* number_of_selected_events,
   uint* event_list)
 {
-
   const uint event_number = blockIdx.x;
 
   // Check SciFi clusters

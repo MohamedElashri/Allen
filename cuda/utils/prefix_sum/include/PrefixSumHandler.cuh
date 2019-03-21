@@ -72,3 +72,11 @@ PREFIX_SUM_ALGORITHM(
   ARGUMENTS(dev_scifi_track_hit_number, dev_prefix_sum_auxiliary_array_6))
 
 PREFIX_SUM_ALGORITHM(prefix_sum_scifi_hits_t, ARGUMENTS(dev_scifi_hit_count, dev_prefix_sum_auxiliary_array_4))
+
+PREFIX_SUM_ALGORITHM(
+  lf_prefix_sum_first_layer_window_size_t,
+  ARGUMENTS(dev_scifi_lf_first_layer_candidates, dev_prefix_sum_auxiliary_array_7))
+
+PREFIX_SUM_ALGORITHM(
+  lf_prefix_sum_candidates_t,
+  ARGUMENTS(dev_scifi_lf_number_of_candidates, dev_prefix_sum_auxiliary_array_7))

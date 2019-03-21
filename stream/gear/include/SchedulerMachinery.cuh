@@ -8,7 +8,6 @@
 #include "TupleTools.cuh"
 
 namespace Sch {
-
   // Motivation:
   //
   // I need somehow a struct with the inputs (things to malloc),

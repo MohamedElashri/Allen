@@ -5,9 +5,6 @@
 #include "UTSequenceCheckers_impl.cuh"
 #include "SciFiSequenceCheckers_impl.cuh"
 #include "PVSequenceCheckers_impl.cuh"
-
-// For checking kalman filter.
-#include "ParKalmanDefinitions.cuh"
 #include "KalmanSequenceCheckers_impl.cuh"
 
 /**
@@ -100,6 +97,6 @@ void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint numbe
   Sch::RunChecker<
     SequenceVisitor,
     configured_sequence_t,
-    std::tuple<const uint&, const uint&, const HostBuffers&, const Constants&, const CheckerInvoker&>>::
+    std::tuple<const uint&, const uint&, HostBuffers&, const Constants&, const CheckerInvoker&>>::
     check(sequence_visitor, start_event_offset, number_of_events_requested, host_buffers, constants, checker_invoker);
 }

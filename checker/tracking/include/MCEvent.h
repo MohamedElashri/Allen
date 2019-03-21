@@ -18,15 +18,18 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include "MCParticle.h"
 #include "Common.h"
 #include "Logger.h"
-#include "MCParticle.h"
-#include "TrackChecker.h"
+#include "LHCbID.h"
+#include "CheckerTypes.h"
 
 struct MCEvent {
-  MCParticles velo_mcps;
-  MCParticles ut_mcps;
-  MCParticles scifi_mcps;
+  MCParticles m_mcps;
+  
+  LHCbIDs m_velo_lhcb_ids;
+  LHCbIDs m_ut_lhcb_ids;
+  LHCbIDs m_scifi_lhcb_ids;
 
   uint32_t size;
 
@@ -34,22 +37,15 @@ struct MCEvent {
   MCEvent() {};
   MCEvent(const std::vector<char>& _event, const bool checkFile = true);
 
-  /**
-   * @brief Print a specific set of MC particles.
-   */
-  void print(const MCParticles& mcps) const;
-
+  // Checks if a LHCb ID is in a particular subdetector
+  bool is_subdetector_impl(const LHCbIDs& vector, const LHCbID& id) const;
+  
+  // Subdetector-specialized check
   template<typename T>
-  const MCParticles& mc_particles() const;
+  bool is_subdetector(const LHCbID& id) const;
 
-  /**
-   * @brief Print the set of MC particles of type T.
-   */
-  template<typename T>
-  void print() const
-  {
-    print(mc_particles<T>());
-  }
+  // Checks an MCP does not contain invalid values
+  void check_mcp(const MCParticle& mcp);
 };
 
 using MCEvents = std::vector<MCEvent>;

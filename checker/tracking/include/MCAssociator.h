@@ -18,10 +18,10 @@
 #include "LHCbID.h"
 #include "MCParticle.h"
 #include "Logger.h"
+#include "CheckerTypes.h"
 
 /// simple MC associator
-class MCAssociator {
-private:
+struct MCAssociator {
   using LHCbIDWithIndex = std::pair<LHCbID, uint>;
   using AssocMap = std::vector<LHCbIDWithIndex>;
 
@@ -39,9 +39,8 @@ private:
   AssocMap m_map;            // association LHCbID -> MCParticle index
 
   // little helper which does the hard work
-  AssocMap::const_iterator find(LHCbID id) const noexcept;
+  AssocMap::const_iterator find_id(const LHCbID&) const noexcept;
 
-public:
   MCAssociator(const MCParticles& mcps);
   MCAssociator(const MCAssociator&) = default;
   MCAssociator(MCAssociator&&) = default;
@@ -148,16 +147,16 @@ public:
     std::pair<MCParticles::const_reference, float> back() const noexcept { return *--end(); }
   };
 
-private:
+// private:
   using AssocPreResult = std::map<std::size_t, std::size_t>;
   /// little helper for the final step of multi-MCP association
   MCAssocResult buildResult(const AssocPreResult& assocmap, std::size_t total) const noexcept;
 
-public:
+// public:
   /// associate a single LHCbID
   MCAssocResult operator()(LHCbID id) const noexcept
   {
-    auto it = find(id);
+    auto it = find_id(id);
     if (m_map.end() == it) return MCAssocResult({}, m_mcps);
     return MCAssocResult({{it->second, 1.f}}, m_mcps);
   }
@@ -170,10 +169,12 @@ public:
     // count how often each particle appears
     // and how many hits of the reconstructed track are matched
     // to the MCP
+    
+    
     for (; last != first; ++first) {
-      auto it = find(*first);
-      if (m_map.end() == it) continue;
-      // std::cout << "Matched LHCbID to MCP: " << std::hex << *first << std::endl;
+      const auto it = find_id(*first);
+      if (it == m_map.end()) continue;
+      // std::cout << "Matched LHCbID to MCP: " << *first << " to " << it->second << std::endl;
       ++n_matched_total;
       ++assoc[it->second];
     }

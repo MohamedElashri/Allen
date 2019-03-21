@@ -36,9 +36,9 @@ __global__ void consolidate_scifi_tracks(
 
   // Loop over tracks.
   for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
-    scifi_tracks.ut_track[i] = event_scifi_tracks[i].UTTrackIndex;
+    scifi_tracks.ut_track[i] = event_scifi_tracks[i].ut_track_index;
     scifi_tracks.qop[i] = event_scifi_tracks[i].qop;
-    scifi_tracks.states[i] = event_scifi_tracks[i].state;
+    // scifi_tracks.states[i] = event_scifi_tracks[i].state;
     SciFi::Consolidated::Hits consolidated_hits =
       scifi_tracks.get_hits(dev_scifi_consolidated_hits, i, &scifi_geometry, dev_inv_clus_res);
     SciFi::TrackHits track = event_scifi_tracks[i];

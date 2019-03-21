@@ -15,6 +15,8 @@
 #include "Logger.h"
 #include "PrVeloUTMagnetToolDefinitions.h"
 #include "KalmanParametrizations.cuh"
+#include "SciFiParametrization.h"
+#include "LookingForwardConstants.cuh"
 
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
@@ -33,6 +35,7 @@ struct Constants {
   std::array<uint, UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1> host_ut_region_offsets;
   std::array<uint8_t, VeloClustering::lookup_table_size> host_candidate_ks;
   std::array<float, 9> host_inv_clus_res;
+  LookingForward::Constants host_looking_forward_constants;
 
   float* dev_velo_module_zs;
   uint8_t* dev_velo_candidate_ks;
@@ -56,8 +59,7 @@ struct Constants {
   char* dev_scifi_geometry;
   const char* host_scifi_geometry;
   PrUTMagnetTool* dev_ut_magnet_tool;
-
-  // Muon classification model constatns
+  // Muon classification model constants
   int muon_catboost_n_features;
   int muon_catboost_n_trees;
   int* dev_muon_catboost_tree_depths;
@@ -66,6 +68,7 @@ struct Constants {
   float* dev_muon_catboost_split_borders;
   float* dev_muon_catboost_leaf_values;
   int* dev_muon_catboost_leaf_offsets;
+  LookingForward::Constants* dev_looking_forward_constants;
 
   // Kalman filter.
   ParKalmanFilter::KalmanParametrizations* dev_kalman_params;

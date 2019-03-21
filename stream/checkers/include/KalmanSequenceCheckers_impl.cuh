@@ -1,3 +1,4 @@
+#include "ParKalmanDefinitions.cuh"
 #include "ParKalmanFilter.cuh"
 #include "KalmanChecker.h"
 #include "PrepareKalmanTracks.h"
@@ -6,7 +7,7 @@ template<>
 void SequenceVisitor::check<kalman_filter_t>(
   const uint& start_event_offset,
   const uint& number_of_events_requested,
-  const HostBuffers& host_buffers,
+  HostBuffers& host_buffers,
   const Constants& constants,
   const CheckerInvoker& checker_invoker) const
 {

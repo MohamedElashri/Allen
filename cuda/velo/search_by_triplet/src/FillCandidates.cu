@@ -1,6 +1,7 @@
 #include "FillCandidates.cuh"
 #include "VeloEventModel.cuh"
 #include "VeloTools.cuh"
+#include "BinarySearch.cuh"
 #include <cassert>
 #include <cstdio>
 #include <tuple>

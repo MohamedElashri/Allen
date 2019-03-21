@@ -1,6 +1,6 @@
 #include "PrepareKalmanTracks.h"
 
-std::vector<trackChecker::Tracks> prepareKalmanTracks(
+std::vector<Checker::Tracks> prepareKalmanTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
@@ -22,11 +22,11 @@ std::vector<trackChecker::Tracks> prepareKalmanTracks(
 {
 
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
-  std::vector<trackChecker::Tracks> checker_tracks;
+  std::vector<Checker::Tracks> checker_tracks;
 
   // Loop over events.
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
-    trackChecker::Tracks tracks; // All tracks from one event.
+    Checker::Tracks tracks; // All tracks from one event.
 
     // Make the consolidated tracks.
     const Velo::Consolidated::Tracks velo_tracks {
@@ -48,7 +48,7 @@ std::vector<trackChecker::Tracks> prepareKalmanTracks(
     // Loop over tracks.
     const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
-      trackChecker::Track t;
+      Checker::Track t;
 
       // Add SciFi hits.
       const uint scifi_track_number_of_hits = scifi_tracks.number_of_hits(i_track);
