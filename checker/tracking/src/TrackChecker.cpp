@@ -77,7 +77,8 @@ void TrackChecker::TrackEffReport::operator()(const MCParticles& mcps)
   // find number of MCPs within category
   for (auto mcp : mcps) {
     if (m_accept(mcp)) {
-      ++m_naccept, ++m_nacceptperevt;
+      ++m_naccept;
+      ++m_nacceptperevt;
     }
   }
 }
@@ -88,7 +89,8 @@ operator()(trackChecker::Tracks::const_reference& track, MCParticles::const_refe
 
   if (!m_accept(mcp)) return;
   if (!m_keysseen.count(mcp.key)) {
-    ++m_nfound, ++m_nfoundperevt;
+    ++m_nfound;
+    ++m_nfoundperevt;
     m_keysseen.insert(mcp.key);
   }
   else {
@@ -290,6 +292,7 @@ void TrackChecker::Histos::fillMomentumResolutionHisto(const MCParticle& mcp, co
 #endif
 }
 
+// TODO: dcampora
 std::vector<uint32_t> TrackChecker::
 operator()(const trackChecker::Tracks& tracks, const MCAssociator& mcassoc, const MCParticles& mcps)
 {

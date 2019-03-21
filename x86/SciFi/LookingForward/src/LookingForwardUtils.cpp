@@ -692,6 +692,70 @@ std::tuple<int, float> get_best_hit(
   return {best_idx, min_chi2};
 }
 
+void single_track_quality_update (SciFi::TrackHits& track,
+  const MiniState& velo_state,
+  const float VeloUT_qOverP,
+  const SciFi::Tracking::Arrays* constArrays,
+  const SciFi::Tracking::TMVA* tmva1,
+  const SciFi::Tracking::TMVA* tmva2,
+  const SciFi::Hits& scifi_hits,
+  const int event_offset)
+{
+  float quality = LookingForward::track_min_quality;
+
+  // use only hits from x-planes to calculate the average x position on the reference plane
+  int hits[SciFi::Constants::max_track_size];
+  int uv_hits[SciFi::Constants::max_track_size]; // to do: make smaller
+  int n_hits = 0;
+  int n_uv_hits = 0;
+
+  const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
+  for (int i = 0; i < track.hitsNum; ++i) {
+    const int offset = event_offset + ((int) track.hits[i]);
+    const int plane_code = scifi_hits.planeCode(offset) >> 1;
+
+    if (is_x_plane[plane_code]) {
+      assert(n_hits <= 6);
+      // first store only x hits in hits array
+      hits[n_hits++] = offset;
+    }
+    else {
+      assert(n_uv_hits <= 6);
+      uv_hits[n_uv_hits++] = offset;
+    }
+  }
+  const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
+  const float xParams_seed[4] = {xAtRef_initial, velo_state.tx, 0.f, 0.f};
+  float zMag_initial = zMagnet(velo_state, constArrays);
+  float xAtRef_average =
+    get_average_x_at_reference_plane(hits, n_hits, scifi_hits, xParams_seed, constArrays, velo_state, zMag_initial);
+
+  // initial track parameters
+  float trackParams[SciFi::Tracking::nTrackParams];
+  getTrackParameters(xAtRef_average, velo_state, constArrays, trackParams);
+
+
+  // fit uv hits to update parameters related to y coordinate
+  // update trackParams [4] [5] [6]
+  fitYProjection_proto(velo_state, constArrays, uv_hits, n_uv_hits, scifi_hits, trackParams);
+
+  // ad uv hits to hits array
+  for (int i_hit = 0; i_hit < n_uv_hits; ++i_hit) {
+    hits[n_hits++] = uv_hits[i_hit];
+  }
+
+  // make a fit of all hits using their x coordinate
+  // update trackParams [0] [1] [2] (x coordinate related)
+  // remove outliers with worst chi2
+  quadraticFitX_proto(scifi_hits, hits, n_hits, trackParams, true);
+
+  for (int i=0; i<n_hits; ++i) {
+    track.hits[i] = hits[i] - event_offset; // hits[i] - event_offset
+  }
+  track.hitsNum = n_hits;
+  track.quality = trackParams[7] / ((float) trackParams[8]);
+}
+
 float TMVA_quality (SciFi::TrackHits& track,
   const MiniState& velo_state,
   const float VeloUT_qOverP,

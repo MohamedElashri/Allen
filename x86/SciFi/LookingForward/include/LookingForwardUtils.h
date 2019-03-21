@@ -212,3 +212,11 @@ void filter_tracks_with_TMVA(
   const SciFi::Hits& scifi_hits,
   const int event_offset);
 
+void single_track_quality_update (SciFi::TrackHits& track,
+  const MiniState& velo_state,
+  const float VeloUT_qOverP,
+  const SciFi::Tracking::Arrays* constArrays,
+  const SciFi::Tracking::TMVA* tmva1,
+  const SciFi::Tracking::TMVA* tmva2,
+  const SciFi::Hits& scifi_hits,
+  const int event_offset);

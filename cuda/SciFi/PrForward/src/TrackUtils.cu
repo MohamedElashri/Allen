@@ -29,7 +29,6 @@ __host__ __device__ void getTrackParameters(
   const SciFi::Tracking::Arrays* constArrays,
   float trackParams[SciFi::Tracking::nTrackParams])
 {
-
   float dSlope = (xFromVelo(SciFi::Tracking::zReference, velo_state) - xAtRef) /
                  (SciFi::Tracking::zReference - constArrays->zMagnetParams[0]);
   const float zMagSlope = constArrays->zMagnetParams[2] * velo_state.tx * velo_state.tx +

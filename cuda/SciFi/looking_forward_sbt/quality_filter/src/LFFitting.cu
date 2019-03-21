@@ -178,19 +178,19 @@ __device__ int LookingForward::getChi2(
   return true;
 }
 
-__device__ void
-LookingForward::removeOutlier_proto(const SciFi::Hits& scifi_hits, int* coordToFit, int& n_coordToFit, const int worst)
+__device__ void LookingForward::removeOutlier_proto(
+  const SciFi::Hits& scifi_hits,
+  int* coordToFit,
+  int& n_coordToFit,
+  const int worst)
 {
-  int coordToFit_temp[SciFi::Constants::max_track_candidate_size];
-  int i_hit_temp = 0;
-  for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
-    int hit = coordToFit[i_hit];
-    if (hit != worst) coordToFit_temp[i_hit_temp++] = hit;
+  int it = 0;
+  for (int i=0; i<n_coordToFit; ++i) {
+    if (i != worst) {
+      coordToFit[it++] = coordToFit[i];
+    }
   }
-  n_coordToFit = i_hit_temp;
-  for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
-    coordToFit[i_hit] = coordToFit_temp[i_hit];
-  }
+  n_coordToFit = it;
 }
 
 __device__ bool LookingForward::quadraticFitX_proto(
@@ -205,11 +205,11 @@ __device__ bool LookingForward::quadraticFitX_proto(
   while (doFit) {
     fitParabola_proto(scifi_hits, coordToFit, n_coordToFit, trackParameters, true);
 
-    float maxChi2 = 0.f;
+    float maxChi2 = 2000.f;
     float totChi2 = 0.f;
     int nDoF = -3; // fitted 3 parameters
 
-    int worst = n_coordToFit;
+    int worst = -1;
     for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
       int hit = coordToFit[i_hit];
       float d = trackToHitDistance(trackParameters, scifi_hits, hit);
@@ -222,6 +222,7 @@ __device__ bool LookingForward::quadraticFitX_proto(
         worst = i_hit;
       }
     }
+
     if (nDoF < 1) return false;
     trackParameters[7] = totChi2;
     trackParameters[8] = (float) nDoF;
@@ -233,10 +234,9 @@ __device__ bool LookingForward::quadraticFitX_proto(
     doFit = false;
     // if (totChi2 / nDoF > SciFi::Tracking::maxChi2PerDoF || maxChi2 > SciFi::Tracking::maxChi2XProjection) {
 
-    // TODO: Commented out
-    // if ( maxChi2 > 2000) {
-    // //if ( totChi2 / nDoF > 5000 ) {
-    //   removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, coordToFit[worst]);
+    // if (worst != -1) {
+    //   // if ( totChi2 / nDoF > 5000 ) {
+    //   removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, worst);
     //   if (n_coordToFit < LookingForward::track_min_hits) return false;
     //   doFit = true;
     // }

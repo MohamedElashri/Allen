@@ -27,8 +27,18 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const SciFi::TrackHits* host_scifi_tracks,
   const int* host_atomics_scifi)
 {
-  const bool run_algorithm = false;
+  const bool run_algorithm = true;
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
+
+  const auto print_track = [] (const SciFi::TrackHits& track) {
+    info_cout << "{ut track " << track.ut_track_index << ", "
+      << ((int) track.hitsNum) << " hits: ";
+
+    for (int i=0; i<track.hitsNum; ++i) {
+      info_cout << track.hits[i] << ", ";
+    }
+    info_cout << track.get_quality() << "}";
+  };
 
   if (run_algorithm) {
     const bool compare_cpu_gpu_tracks = false;
@@ -427,11 +437,13 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // Early chi2 cut for short tracks
       // Note: By this point, about 75% of the tracks are 3-hit
       const float chi2_track_x_cut = 1.f;
+      const int max_num_track = 1000;
       for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
         auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
+        const int number_of_tracks = scifi_tracks.size();
         for (auto it = scifi_tracks.begin(); it != scifi_tracks.end();) {
           const auto& track = *it;
-          if (track.hitsNum > 3 || (track.hitsNum == 3 && track.quality < chi2_track_x_cut)) {
+          if (track.hitsNum > 3 || (track.hitsNum == 3 && track.quality < chi2_track_x_cut && number_of_tracks < max_num_track)) {
             ++it;
             total_tracks++;
           } else {
@@ -539,7 +551,24 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
               iterate_all_hits_uv);
           }
         }
+      }
 
+      // Cut tracks with less than 9 hits
+      for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
+        auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
+        for (auto it = scifi_tracks.begin(); it != scifi_tracks.end();) {
+          const auto& track = *it;
+          if (track.hitsNum >= 9) {
+            ++it;
+          } else {
+            it = scifi_tracks.erase(it);
+          }
+        }
+      }
+
+      for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
+        auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
+        
         // filter_tracks_with_TMVA(
         //     scifi_tracks,
         //     event_trackhits,
@@ -551,10 +580,34 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         //     scifi_hits,
         //     scifi_hit_count.event_offset());
 
-        for (const auto& track : scifi_tracks) {
-          if (track.hitsNum >= 9) {
-            event_trackhits.push_back(track);
+        // for (const auto& track : scifi_tracks) {
+        //   event_trackhits.push_back(track);
+        // }
+        
+        int best_track = -1;
+        float best_quality = 100000.f;
+
+        for (int i=0; i<scifi_tracks.size(); ++i) {
+          auto& track = scifi_tracks[i];
+
+          single_track_quality_update(
+            track,
+            event_velo_state[i_veloUT_track],
+            event_qop[i_veloUT_track],
+            &constArrays,
+            &tmva1,
+            &tmva2,
+            scifi_hits,
+            scifi_hit_count.event_offset());
+
+          if (track.hitsNum >= 9 && track.quality < best_quality) {
+            best_track = i;
+            best_quality = track.quality;
           }
+        }
+
+        if (best_track != -1) {
+          event_trackhits.push_back(scifi_tracks[best_track]);
         }
       }
 
@@ -594,16 +647,6 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       // }
 
       if (compare_cpu_gpu_tracks) {
-        const auto print_track = [] (const SciFi::TrackHits& track) {
-          info_cout << "{ut track " << track.ut_track_index << ", "
-            << ((int) track.hitsNum) << " hits: ";
-
-          for (int i=0; i<track.hitsNum; ++i) {
-            info_cout << track.hits[i] << ", ";
-          }
-          info_cout << track.get_quality() << "}";
-        };
-
         bool validated = true;
         const auto number_of_tracks_gpu = host_atomics_scifi[i_event];
         if (event_trackhits.size() != number_of_tracks_gpu) {
