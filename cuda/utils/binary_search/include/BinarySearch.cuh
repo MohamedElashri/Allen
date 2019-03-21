@@ -24,8 +24,25 @@ __host__ __device__ int binary_search_leftmost(const T* array, const uint array_
     }
   }
   return l;
-}
+} 
 
+template<typename T, typename R>
+__host__ __device__ int binary_search_leftmost(const T* index_array, const uint index_array_size, const R* data_array, const R& value)
+{
+  int l = 0;
+  int r = index_array_size;
+  while (l < r) {
+    const int m = (l + r) / 2;
+    const auto array_element = data_array[index_array[m]];
+    if (value > array_element) {
+      l = m + 1;
+    }
+    else {
+      r = m;
+    }
+  }
+  return l;
+}
 /**
  * @brief Finds the first candidate performing a binary search leftmost,
  *        with a configurable margin and comparator.

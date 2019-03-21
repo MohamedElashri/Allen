@@ -1,5 +1,6 @@
 include_directories(include)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
@@ -15,6 +16,10 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/sorting)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/LookingForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/MomentumForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/binary_search/include)
+
 
 file(GLOB x86Forward_src "src/*cpp")
 

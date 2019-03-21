@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <cmath>
@@ -69,6 +70,8 @@ public:
 };
 
 float x_at_z(const MiniState& state, const float z);
+
+float propagate_x_from_velo(const MiniState& UT_state, float qop, int layer);
 
 MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int layer);
 

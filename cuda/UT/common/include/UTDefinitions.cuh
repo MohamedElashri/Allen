@@ -58,7 +58,9 @@ namespace UT {
     static constexpr float zKink = 1780.0f;
 
     static constexpr float minMomentum = 1.5f * Gaudi::Units::GeV;
+    static constexpr float minMomentumFinal = 2.5f * Gaudi::Units::GeV;
     static constexpr float minPT = 0.3f * Gaudi::Units::GeV;
+    static constexpr float minPTFinal = 0.425f * Gaudi::Units::GeV;
     static constexpr float maxPseudoChi2 = 1280.0f;
     static constexpr float yTol = 0.5f * Gaudi::Units::mm;
     static constexpr float yTolSlope = 0.08f;

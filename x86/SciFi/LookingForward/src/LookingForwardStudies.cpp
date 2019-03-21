@@ -99,6 +99,19 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const auto event_offset = scifi_hit_count.event_offset();
       const std::array<int, 6> layers {0, 3, 4, 7, 8, 11};
 
+      SciFiWindowsParams window_params;
+      window_params.dx_slope = 1e5;
+      window_params.dx_min = 300;
+      window_params.dx_weight = 0.6;
+      window_params.tx_slope = 1250;
+      window_params.tx_min = 300;
+      window_params.tx_weight = 0.4;
+      window_params.max_window_layer0 = 600;
+      window_params.max_window_layer1 = 2;
+      window_params.max_window_layer2 = 2;
+      window_params.max_window_layer3 = 20;
+      window_params.chi2_cut = 4;
+
       // For ghost killing
       SciFi::Tracking::Arrays constArrays;
       SciFi::Tracking::TMVA tmva1;
@@ -208,26 +221,43 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         const float zRef_track = SciFi::Tracking::zReference;
         const float xAtRef = xFromVelo(zRef_track, UT_state);
         const float yAtRef = yFromVelo(zRef_track, UT_state);
-
+      
         float bs_x[4] {xAtRef, UT_state.tx, 0, 0};
         float bs_y[4] {yAtRef, UT_state.ty, 0, 0};
+      
+        // collectAllXHits_proto(
+        //   scifi_hits,
+        //   scifi_hit_count,
+        //   bs_x,
+        //   bs_y,
+        //   &constArrays,
+        //   UT_state,
+        //   qop,
+        //   (y_projection < 0 ? -1 : 1),
+        //   windows_x,
+        //   windows_uv,
+        //   parameters_uv);
 
-        collectAllXHits_proto(
+        collectAllXHits_proto_p(
           scifi_hits,
           scifi_hit_count,
-          bs_x,
-          bs_y,
           &constArrays,
+          velo_state,
           UT_state,
           qop,
           (y_projection < 0 ? -1 : 1),
           windows_x,
           windows_uv,
-          parameters_uv);
-
+          parameters_uv,
+          window_params,
+          true_scifi_indices_per_layer);
+         
         // Collect all X candidates
+        // std::array<std::vector<int>, 6> hits_in_layers =
+        //   collect_x_candidates(scifi_hits, windows_x, windows_uv, parameters_uv);
+        
         std::array<std::vector<int>, 6> hits_in_layers =
-          collect_x_candidates(scifi_hits, windows_x, windows_uv, parameters_uv);
+          collect_x_candidates_p(scifi_hits, windows_x, windows_uv, qop);
 
         // Restrict to a max number of hits
         for (int i=0; i<6; ++i) {
@@ -276,7 +306,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const std::array<int, 4> max_candidates_triplets {20, 20, 20, 20};
       const float factor_chi2_triplet = 2.5f;
       const float factor_chi2_extend = 2.5f;
-      const bool use_flagging = true;
+      const bool use_flagging = false;
       const bool use_flagging_in_l0_l3_layers = false;
       const bool use_multi_flags = true;
       const bool iterate_all_hits_uv = true;

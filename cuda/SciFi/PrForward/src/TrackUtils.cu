@@ -251,4 +251,4 @@ __host__ __device__ bool fitYProjection(
     break;
   }
   return true;
-}
+} 

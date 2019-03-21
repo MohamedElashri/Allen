@@ -23,6 +23,18 @@ __host__ __device__ float evalCubicParameterization(const float params[4], float
 
 __host__ __device__ bool lowerByQuality(SciFi::Tracking::Track t1, SciFi::Tracking::Track t2);
 
+__host__ __device__ inline float straightLinePropagationFromReferencePlane(const float params[4], float z)
+{
+  float dz = z - SciFi::Tracking::zReference;
+  return params[0] + params[1] * dz;
+} 
+
+__host__ __device__ inline float straightLinePropagationFromReferencePlane(const float x0, const float tx, float z)
+{
+  float dz = z - SciFi::Tracking::zReference;
+  return x0 + tx * dz;
+} 
+
 __host__ __device__ void getTrackParameters(
   float xAtRef,
   const MiniState& velo_state,

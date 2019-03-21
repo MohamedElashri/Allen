@@ -18,6 +18,12 @@ namespace LookingForward {
 
   __device__ float scifi_propagation(const float x_0, const float tx, const float qop, const float dz);
 
+__device__ float propagate_x_from_velo(
+  const MiniState& UT_state,
+  const float qop,
+  const int layer,
+  const LookingForward::Constants* dev_looking_forward_constants);
+
   __device__ MiniState propagate_state_from_velo(
     const MiniState& UT_state,
     float qop,

@@ -25,6 +25,12 @@ struct Tracklet {
   }
 };
 
+std::array<std::vector<int>, 6> collect_x_candidates_p(
+  const SciFi::Hits& scifi_hits,
+  const std::array<int, 2 * 6>& windows_x,
+  const std::array<int, 2 * 6>& windows_uv,
+  const float qOverP);
+
 std::array<std::vector<int>, 6> collect_x_candidates(
   const SciFi::Hits& scifi_hits,
   const std::array<int, 2 * 6>& windows_x,
@@ -44,6 +50,18 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const float z_mag,
   const bool do_print = false);
 
+std::vector<std::tuple<int, int>> find_compatible_window_p(
+  const SciFi::Hits& scifi_hits,
+  const int layer_from,
+  const int layer_to,
+  const std::vector<int>& hits_in_layer_from,
+  const std::vector<int>& hits_in_layer_to,
+  const float dx_stddev,
+  const float compatible_window_factor, 
+  const bool forward,
+  const float pt,
+  const float qOverP);
+
 float chi2_triplet(
   const SciFi::Hits& scifi_hits,
   const float qop,
@@ -59,6 +77,14 @@ std::tuple<int, int> find_x_in_window(
   const SciFi::Hits& hits,
   const int num_hits,
   const float value,
+  const float margin);
+
+std::tuple<int, int> find_x_in_window(
+  const std::vector<int>& candidates,
+  const SciFi::Hits& hits,
+  const int num_hits,
+  const float value0,
+  const float value1,
   const float margin);
 
 void find_triplets(

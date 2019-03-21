@@ -18,6 +18,7 @@ __global__ void lf_search_initial_windows(
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const SciFi::Tracking::Arrays* dev_constArrays,
+  const LookingForward::Constants* dev_looking_forward_constants,
   int* dev_initial_windows,
   MiniState* dev_ut_states)
 {
@@ -76,17 +77,29 @@ __global__ void lf_search_initial_windows(
     // Parameters for the calculation of the windows
     const float y_projection = LookingForward::y_at_z(state_at_z_last_ut_plane, dev_constArrays->xZone_zPos[0]);
 
-    const float zRef_track = SciFi::Tracking::zReference;
-    const float xAtRef = xFromVelo(zRef_track, state_at_z_last_ut_plane);
-    const float yAtRef = yFromVelo(zRef_track, state_at_z_last_ut_plane);
+    // const float zRef_track = SciFi::Tracking::zReference;
+    // const float xAtRef = xFromVelo(zRef_track, state_at_z_last_ut_plane);
+    // const float yAtRef = yFromVelo(zRef_track, state_at_z_last_ut_plane);
 
-    lf_search_initial_windows_impl(
+    // lf_search_initial_windows_impl(
+    //   scifi_hits,
+    //   scifi_hit_count,
+    //   xAtRef,
+    //   yAtRef,
+    //   state_at_z_last_ut_plane,
+    //   dev_constArrays,
+    //   ut_qop,
+    //   (y_projection < 0 ? -1 : 1),
+    //   dev_initial_windows + ut_event_tracks_offset + i,
+    //   ut_tracks.total_number_of_tracks);
+
+    lf_search_initial_windows_p_impl(
       scifi_hits,
       scifi_hit_count,
-      xAtRef,
-      yAtRef,
+      velo_state,
       state_at_z_last_ut_plane,
       dev_constArrays,
+      dev_looking_forward_constants,
       ut_qop,
       (y_projection < 0 ? -1 : 1),
       dev_initial_windows + ut_event_tracks_offset + i,

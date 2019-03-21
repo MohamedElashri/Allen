@@ -1,6 +1,36 @@
 #include "LookingForwardSbt.h"
 #include "BinarySearchTools.cuh"
 
+std::array<std::vector<int>, 6> collect_x_candidates_p(
+  const SciFi::Hits& scifi_hits,
+  const std::array<int, 2 * 6>& windows_x,
+  const std::array<int, 2 * 6>& windows_uv,
+  const float qOverP) 
+{
+  std::array<std::vector<int>, 6> hits_in_layers;
+
+  for (int i = 0; i < 6; ++i) {
+    const auto window_start = windows_x[2 * i];
+    const auto window_size = windows_x[2 * i + 1];
+    if (window_size > 0) {
+      const float zHit = scifi_hits.z0[window_start];
+      for (int j = 0; j < window_size; ++j) {
+        const auto hit_index = window_start + j;
+        float xHit = scifi_hits.x0[hit_index];
+        
+        const float maxDx = 25 + 6e5 * std::abs(qOverP); 
+        const float xMinUV = xHit - maxDx;
+        const float xMaxUV = xHit + maxDx;
+        if (matchStereoHit(windows_uv[i * 2], windows_uv[i * 2 + 1], scifi_hits, xMinUV, xMaxUV)) {
+          hits_in_layers[i].push_back(hit_index);
+        }  
+      }
+    }
+  }
+  
+  return hits_in_layers;
+} 
+
 std::array<std::vector<int>, 6> collect_x_candidates(
   const SciFi::Hits& scifi_hits,
   const std::array<int, 2 * 6>& windows_x,
@@ -26,9 +56,9 @@ std::array<std::vector<int>, 6> collect_x_candidates(
       }
     }
   }
-
+  
   return hits_in_layers;
-}
+} 
 
 float chi2_triplet(
   const SciFi::Hits& scifi_hits,
@@ -115,6 +145,68 @@ float chi2_triplet(
   return chi2;
 };
 
+std::vector<std::tuple<int, int>> find_compatible_window_p(
+  const SciFi::Hits& scifi_hits,
+  const int layer_from,
+  const int layer_to,
+  const std::vector<int>& hits_in_layer_from,
+  const std::vector<int>& hits_in_layer_to,
+  const float dx_stddev,
+  const float compatible_window_factor, 
+  const bool forward,
+  const float pt,
+  const float qOverP)   
+{
+  std::vector<std::tuple<int, int>> compatible_hits_x0;
+  
+  for (int h1_rel = 0; h1_rel < hits_in_layer_from.size(); ++h1_rel) {
+    const auto h1_index = hits_in_layer_from[h1_rel];
+    const auto x1 = scifi_hits.x0[h1_index];
+    
+    // for x hits from different stations
+    float dxMax, dxMin;
+    if( qOverP < 0 ) {
+      dxMax = 30.f - 1e6f * qOverP;
+      dxMin = -30.f - 4e5f * qOverP;
+    } else {
+      dxMax = 30 - 4e5f * qOverP;
+      dxMin = -30 - 1e6f * qOverP;
+    }
+    // if ( pt > SciFi::Tracking::wrongSignPT ) {
+    //   dxMin = -30.f - 4e5f * std::abs(qOverP);
+    //   dxMax = 30.f + 1e6f * std::abs(qOverP);
+    // }
+    float xMax, xMin;
+    if ( forward) {
+      xMax = x1 - dxMin;
+      xMin = x1 - dxMax; 
+    } else {
+      xMin = x1 + dxMin;
+      xMax = x1 + dxMax; 
+    }
+    
+    //   if ( xMin > xMax ) 
+    //debug_cout << "xMin > xMax, qop = " << qOverP << ", forward = " << int(forward) << std::endl;
+
+    const auto x0_candidates =
+      find_x_in_window(hits_in_layer_to, scifi_hits, hits_in_layer_to.size(), xMin, xMax, 0.f ); 
+    
+    const float lowX = scifi_hits.x0[std::get<0>(x0_candidates)];
+    const float highX = scifi_hits.x0[std::get<1>(x0_candidates)];
+
+    //debug_cout << "low index = " << std::get<0>(x0_candidates) << ", high index = " << std::get<1>(x0_candidates) << std::endl;
+
+    //debug_cout << "xMin = " << xMin << ", xMax = " << xMax << ", lowest x = " << lowX << ", highest x = " << highX << std::endl;
+    // for ( const auto hit : hits_in_layer_to ) {
+    //   debug_cout << "\t x = " << scifi_hits.x0[hit] << std::endl;
+    // } 
+  
+    compatible_hits_x0.push_back(x0_candidates);   
+  }
+
+  return compatible_hits_x0;
+}
+  
 std::vector<std::tuple<int, int>> find_compatible_window(
   const SciFi::Hits& scifi_hits,
   const int layer_from,
@@ -122,14 +214,15 @@ std::vector<std::tuple<int, int>> find_compatible_window(
   const std::vector<int>& hits_in_layer_from,
   const std::vector<int>& hits_in_layer_to,
   const float dx_stddev,
-  const float compatible_window_factor,
+  const float compatible_window_factor, 
   const MiniState& UT_state,
   const float x_at_ref,
   const float z_mag,
   const bool do_print)
 {
   std::vector<std::tuple<int, int>> compatible_hits_x0;
-
+  
+  // extrapolation to reference plane taken from ReferencePlaneProjection.cu
   const auto z1 = SciFi::LookingForward::Zone_zPos[layer_from];
   const auto z0 = SciFi::LookingForward::Zone_zPos[layer_to];
   const auto dSlopeDivPart = 1.f / (z1 - SciFi::LookingForward::zMagnetParams[0]);
@@ -160,13 +253,35 @@ std::vector<std::tuple<int, int>> find_compatible_window(
 
   return compatible_hits_x0;
 }
+ 
+std::tuple<int, int> find_x_in_window(
+  const std::vector<int>& candidates,
+  const SciFi::Hits& hits,
+  const int num_hits,
+  const float value0,
+  const float value1,
+  const float margin) {
+  
+  int first_candidate = binary_search_leftmost((int*) candidates.data(), num_hits, hits.x0, value0);
+
+  int last_candidate = -1;
+
+  //if (first_candidate != -1) {
+  last_candidate = binary_search_leftmost(
+                                          (int*) (candidates.data() + first_candidate), num_hits - first_candidate, hits.x0, value1);
+  last_candidate = first_candidate + last_candidate;
+  //}
+
+  return {first_candidate, last_candidate}; 
+
+}
 
 std::tuple<int, int> find_x_in_window(
   const std::vector<int>& candidates,
   const SciFi::Hits& hits,
   const int num_hits,
   const float value,
-  const float margin)
+  const float margin)  
 {
   int first_candidate = binary_search_first_candidate((int*) candidates.data(), num_hits, hits.x0, value, margin);
   int last_candidate = -1;
@@ -177,7 +292,7 @@ std::tuple<int, int> find_x_in_window(
     last_candidate = first_candidate + last_candidate;
   }
 
-  return {first_candidate, last_candidate};
+  return {first_candidate, last_candidate}; 
 }
 
 void find_triplets(
@@ -374,6 +489,7 @@ void extend_tracklets(
     const auto layer0 = scifi_hits.planeCode(h0) / 2;
     const auto layer1 = scifi_hits.planeCode(h1) / 2;
     const auto layer2 = layers[relative_layer2];
+    const auto qop = tracklet.qop;
 
     // Prepare the chi2
     const auto projection_y = y_at_z(UT_state, SciFi::LookingForward::Zone_zPos[layer2]);

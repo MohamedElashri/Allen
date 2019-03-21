@@ -181,6 +181,7 @@ __device__ BestParams pkick_fit(
       mat[0] += wi * ci;
       mat[1] += wi * ci * dz;
       mat[2] += wi * ci * dz * dz;
+
       rhs[0] += wi * ui;
       rhs[1] += wi * ui * dz;
     }

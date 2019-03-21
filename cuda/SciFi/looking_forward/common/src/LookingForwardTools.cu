@@ -52,6 +52,36 @@ __device__ MiniState LookingForward::propagate_state_from_velo(
   return final_state;
 }
 
+__device__ float LookingForward::propagate_x_from_velo(
+  const MiniState& UT_state,
+  const float qop,
+  const int layer,
+  const LookingForward::Constants* dev_looking_forward_constants)
+{
+  // get x and y at center of magnet
+  const auto magnet_x = linear_propagation(UT_state.x, UT_state.tx, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
+  const auto magnet_y = linear_propagation(UT_state.y, UT_state.ty, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
+
+  const auto dp_x_mag =
+    (qop > 0) ? dev_looking_forward_constants->dp_x_mag_plus : dev_looking_forward_constants->dp_x_mag_minus;
+  const auto dp_y_mag =
+    (qop > 0) ? dev_looking_forward_constants->dp_y_mag_plus : dev_looking_forward_constants->dp_y_mag_minus;
+
+  const float x_mag_correction = dp_x_mag[layer][0] + magnet_x * dp_x_mag[layer][1] +
+                                 magnet_x * magnet_x * dp_x_mag[layer][2] +
+                                 magnet_x * magnet_x * magnet_x * dp_x_mag[layer][3] +
+                                 magnet_x * magnet_x * magnet_x * magnet_x * dp_x_mag[layer][4];
+
+  const float y_mag_correction =
+    dp_y_mag[layer][0] + magnet_y * dp_y_mag[layer][1] + magnet_y * magnet_y * dp_y_mag[layer][2];
+
+  const float final_tx = dev_looking_forward_constants->ds_p_param[layer] * qop + UT_state.tx;
+  float final_x = linear_propagation(magnet_x, final_tx, dev_looking_forward_constants->Zone_zPos[layer] - dev_looking_forward_constants->zMagnetParams[0]);
+  final_x += - y_mag_correction - x_mag_correction;
+
+  return final_x;
+}
+
 __device__ float LookingForward::dx_calc(const float state_tx, float qop)
 {
   float ret_val;
