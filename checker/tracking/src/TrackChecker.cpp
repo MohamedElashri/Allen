@@ -301,7 +301,7 @@ void TrackChecker::Histos::fillMomentumResolutionHisto(const MCParticle& mcp, co
 #endif
 }
 
-std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks &tracks, const MCEvent &mc_event)
+std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, const MCEvent& mc_event)
 {
   // register MC particles
   for (auto& report : m_categories) {
@@ -324,7 +324,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks &tracks, co
 
     // Note: This code is based heavily on
     //       https://gitlab.cern.ch/lhcb/Rec/blob/master/Pr/PrMCTools/src/PrTrackAssociator.cpp
-    //       
+    //
     // check LHCbIDs for MC association
     Checker::TruthCounter total_counter;
     std::map<LHCbID, Checker::TruthCounter> truth_counters;
@@ -340,8 +340,9 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks &tracks, co
           continue;
         }
         truth_counters[it->second].n_velo++;
-        // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
-      } else if (mc_event.is_subdetector<Checker::Subdetector::UT>(id)) {
+        info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
+      }
+      else if (mc_event.is_subdetector<Checker::Subdetector::UT>(id)) {
         n_meas++;
         total_counter.n_ut++;
         const auto it = mc_assoc.find_id(id);
@@ -349,8 +350,9 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks &tracks, co
           continue;
         }
         truth_counters[it->second].n_ut++;
-        // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
-      } else if (mc_event.is_subdetector<Checker::Subdetector::SciFi>(id)) {
+        info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
+      }
+      else if (mc_event.is_subdetector<Checker::Subdetector::SciFi>(id)) {
         n_meas++;
         total_counter.n_scifi++;
         const auto it = mc_assoc.find_id(id);
@@ -358,7 +360,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks &tracks, co
           continue;
         }
         truth_counters[it->second].n_scifi++;
-        // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
+        info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
       }
     }
 
@@ -378,19 +380,23 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks &tracks, co
         const auto weight = id_counter.second.n_scifi / ((float) total_counter.n_scifi);
         scifi_ok = weight >= m_minweight;
       }
-      
-      const bool ut_ok = (id_counter.second.n_ut + 2 > total_counter.n_ut) ||
-        (total_counter.n_velo > 2 && total_counter.n_scifi > 2);
+
+      const bool ut_ok =
+        (id_counter.second.n_ut + 2 > total_counter.n_ut) || (total_counter.n_velo > 2 && total_counter.n_scifi > 2);
 
       // Decision
       if (velo_ok && ut_ok && scifi_ok && n_meas > 0) {
         const auto counter_sum = id_counter.second.n_velo + id_counter.second.n_ut + id_counter.second.n_scifi;
-        assoc_vector.push_back({id_counter.first, counter_sum / ((float) n_meas)});
+        info_cout << "Number of hits in track: " << counter_sum << ", n meas: " << n_meas
+          << ", assoc vector push: " << id_counter.first << ", " << ((float) counter_sum) / ((float) n_meas)
+          << std::endl;
+        assoc_vector.push_back({id_counter.first, ((float) counter_sum) / ((float) n_meas)});
       }
     }
 
     // Sort assoc_vector
-    std::sort(assoc_vector.begin(), assoc_vector.end(), [](const MCAssociator::MCParticleWithWeight& a, const MCAssociator::MCParticleWithWeight& b) noexcept {
+    std::sort(assoc_vector.begin(), assoc_vector.end(), [
+    ](const MCAssociator::MCParticleWithWeight& a, const MCAssociator::MCParticleWithWeight& b) noexcept {
       return a.m_w > b.m_w;
     });
 
@@ -408,15 +414,15 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks &tracks, co
     // have MC association, check weight
     const auto weight = assoc.front().second;
 
-    if (m_print) {
-      std::cout << "Track with " << track.allids.size() << " hits: ";
-      for (int i=0; i<track.allids.size(); ++i) {
-        std::cout << track.allids[i] << ", ";
-      }
-      std::cout << std::endl;
+    // if (m_print) {
+    //   std::cout << "Track with " << track.allids.size() << " hits: ";
+    //   for (int i=0; i<track.allids.size(); ++i) {
+    //     std::cout << track.allids[i] << ", ";
+    //   }
+    //   std::cout << std::endl;
 
-      info_cout << weight << std::endl;
-    }
+    //   info_cout << weight << std::endl;
+    // }
 
     if (weight < m_minweight) {
       ++nghostsperevt;
@@ -442,8 +448,10 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks &tracks, co
   }
   // almost done, notify of end of event...
   ++m_nevents;
-  for (auto& report : m_categories)
+  for (auto& report : m_categories) {
     report.evtEnds();
+  }
+
   for (auto& histo_cat : m_histo_categories)
     histo_cat.evtEnds();
   m_ghostperevent *= float(m_nevents - 1) / float(m_nevents);
