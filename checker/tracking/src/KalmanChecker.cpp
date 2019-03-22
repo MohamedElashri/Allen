@@ -45,7 +45,7 @@ void checkKalmanTracks(
       if (!assoc)
         trk_ghost = 1.;
       else {
-        const auto weight = assoc.front().second;
+        const auto weight = std::get<1>(assoc.front());
         if (weight < 0.7)
           trk_ghost = 1.;
         else

@@ -48,7 +48,7 @@ MCAssociator::MCAssocResult MCAssociator::buildResult(const MCAssociator::AssocP
   std::vector<MCParticleWithWeight> retVal;
   retVal.reserve(assocmap.size());
   for (auto&& el : assocmap)
-    retVal.emplace_back(el.first, float(el.second) / float(total));
+    retVal.emplace_back(el.first, float(el.second) / float(total), total);
   // sort such that high weights come first
   std::sort(retVal.begin(), retVal.end(), [](const MCParticleWithWeight& a, const MCParticleWithWeight& b) noexcept {
     return a.m_w > b.m_w;

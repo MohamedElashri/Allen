@@ -29,7 +29,8 @@ struct MCAssociator {
   struct MCParticleWithWeight {
     std::size_t m_idx;
     float m_w;
-    MCParticleWithWeight(std::size_t idx, float w) : m_idx(idx), m_w(w) {}
+    uint m_counter_sum;
+    MCParticleWithWeight(std::size_t idx, float w, uint counter_sum) : m_idx(idx), m_w(w), m_counter_sum(counter_sum) {}
     MCParticleWithWeight(const MCParticleWithWeight&) = default;
     MCParticleWithWeight(MCParticleWithWeight&&) = default;
     MCParticleWithWeight& operator=(const MCParticleWithWeight&) = default;
@@ -135,16 +136,16 @@ struct MCAssociator {
         const auto& b = reinterpret_cast<const AssocVector::const_iterator&>(other);
         return a >= b;
       }
-      std::pair<MCParticles::const_reference, float> operator*() const noexcept
+      std::tuple<MCParticles::const_reference, float, int> operator*() const noexcept
       {
         AssocVector::const_reference ref = reinterpret_cast<const AssocVector::const_iterator&>(*this).operator*();
-        return {m_mcps[ref.m_idx], ref.m_w};
+        return {m_mcps[ref.m_idx], ref.m_w, ref.m_counter_sum};
       }
     };
     iterator begin() const noexcept { return iterator(m_assoc.begin(), m_mcps); }
     iterator end() const noexcept { return iterator(m_assoc.end(), m_mcps); }
-    std::pair<MCParticles::const_reference, float> front() const noexcept { return *begin(); }
-    std::pair<MCParticles::const_reference, float> back() const noexcept { return *--end(); }
+    std::tuple<MCParticles::const_reference, float, int> front() const noexcept { return *begin(); }
+    std::tuple<MCParticles::const_reference, float, int> back() const noexcept { return *--end(); }
   };
 
 // private:
@@ -158,7 +159,7 @@ struct MCAssociator {
   {
     auto it = find_id(id);
     if (m_map.end() == it) return MCAssocResult({}, m_mcps);
-    return MCAssocResult({{it->second, 1.f}}, m_mcps);
+    return MCAssocResult({{it->second, 1.f, 1}}, m_mcps);
   }
   /// associate a range of LHCbIDs
   template<typename IT>
