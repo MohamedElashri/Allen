@@ -15,6 +15,8 @@
 #include <cmath>
 #include <vector>
 
+
+
 /// encapsulate an LHCbID
 class LHCbID {
 private:
@@ -22,6 +24,12 @@ private:
 
 public:
   constexpr LHCbID(uint32_t id) : m_id(id) {}
+  
+  enum channelIDtype{ 
+    Velo=0x8,
+    FT=0xa,
+    UT=0x0
+  };
 
   LHCbID() = default;
   LHCbID(const LHCbID& other) = default;
@@ -62,8 +70,20 @@ public:
   /// ordering of LHCbIDs
   constexpr bool operator>=(const LHCbID& other) const noexcept { return m_id >= other.m_id; }
 
-  // FIXME: ultimately, more methods are needed to e.g. get Velo sensor
-  // numbers for hits etc.
+  // get subdetector
+  inline uint32_t detectorType() const {
+    return (unsigned int)((m_id & 0xF0000000L) >> 28);
+  }
+  bool isVelo() const {
+    return (Velo == detectorType());
+  };
+  bool isUT() const {
+    return (UT == detectorType());
+  };
+  bool isSciFi() const {
+    return (FT == detectorType());
+  };
+
 };
 
 typedef std::vector<LHCbID> LHCbIDs;

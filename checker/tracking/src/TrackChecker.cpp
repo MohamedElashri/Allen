@@ -334,7 +334,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
 
     const auto& ids = track.ids();
     for (const auto& id : ids) {
-      if (mc_event.is_subdetector<Checker::Subdetector::Velo>(id)) {
+      if ( id.isVelo() ) {
         track.n_matched_total++;
         total_counter.n_velo++;
         const auto it = mc_assoc.find_id(id);
@@ -344,7 +344,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
         truth_counters[it->second].n_velo++;
         // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
       }
-      else if (mc_event.is_subdetector<Checker::Subdetector::UT>(id)) {
+      else if ( id.isUT() ) {
         track.n_matched_total++;
         total_counter.n_ut++;
         const auto it = mc_assoc.find_id(id);
@@ -354,7 +354,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
         truth_counters[it->second].n_ut++;
         // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
       }
-      else if (mc_event.is_subdetector<Checker::Subdetector::SciFi>(id)) {
+      else if ( id.isSciFi() ) {
         track.n_matched_total++;
         total_counter.n_scifi++;
         const auto it = mc_assoc.find_id(id);
@@ -364,6 +364,9 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
         truth_counters[it->second].n_scifi++;
         // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
       }
+      // else {
+      //   debug_cout << "ID not assigned to a subdetector" << std::endl;
+      // } 
     }
 
     // Note: Placeholder for "cumul mother and daughter"
