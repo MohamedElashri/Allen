@@ -104,7 +104,7 @@ operator()(Checker::Tracks::const_reference& track, MCParticles::const_reference
   m_hitpur *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
   m_hitpur += weight / float(m_nfound + m_nclones);
   // update hit efficiency
-  auto hiteff = track.n_matched_total * weight / float(get_num_hits(mcp));
+  auto hiteff = track.n_matched_total / float(get_num_hits(mcp));
   m_hiteff *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
   m_hiteff += hiteff / float(m_nfound + m_nclones);
 }
