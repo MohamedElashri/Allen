@@ -331,11 +331,13 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
     Checker::TruthCounter total_counter;
     std::map<LHCbID, Checker::TruthCounter> truth_counters;
     track.n_matched_total = 0;
+    int nMeas = 0;
 
     const auto& ids = track.ids();
     for (const auto& id : ids) {
       if ( id.isVelo() ) {
-        track.n_matched_total++;
+        //track.n_matched_total++;
+        nMeas++;
         total_counter.n_velo++;
         const auto it = mc_assoc.find_id(id);
         // if (it == mc_assoc.m_map.end()) {
@@ -345,7 +347,8 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
         // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
       }
       else if ( id.isUT() ) {
-        track.n_matched_total++;
+        //track.n_matched_total++;
+        nMeas++;
         total_counter.n_ut++;
         const auto it = mc_assoc.find_id(id);
         // if (it == mc_assoc.m_map.end()) {
@@ -355,7 +358,8 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
         // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
       }
       else if ( id.isSciFi() ) {
-        track.n_matched_total++;
+        //track.n_matched_total++;
+        nMeas++;
         total_counter.n_scifi++;
         const auto it = mc_assoc.find_id(id);
         // if (it == mc_assoc.m_map.end()) {
@@ -369,7 +373,44 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
       // } 
     }
 
-    // Note: Placeholder for "cumul mother and daughter"
+    // If the Track has total # Velo hits > 2 AND total # SciFi hits > 2, combine matching of mother and daughter particles
+    // if ( ( 2 < total.nVelo ) && ( 2 < total.nT ) ) {
+    //   for ( std::vector<TruthCounter>::iterator it1 = truthCounters.begin(); truthCounters.end() != it1; ++it1 ) {
+    //     if ( ( *it1 ).nT == 0 ) continue;
+    //     const LHCb::MCVertex* vOrigin = ( *it1 ).particle->originVertex();
+    //     if ( 0 != vOrigin ) {
+    //       const LHCb::MCParticle* mother = vOrigin->mother();
+    //       if ( 0 == mother ) continue; // no ancestor;
+    //       for ( std::vector<TruthCounter>::iterator it2 = truthCounters.begin(); truthCounters.end() != it2; ++it2 ) {
+    //         if ( mother == ( *it2 ).particle ) {
+    //           if ( ( *it2 ).nVelo == 0 ) continue;
+
+    //           if ( msgLevel( MSG::DEBUG ) )
+    //             debug() << "  *** Particle " << ( *it1 ).particle->key() << "[" << ( *it1 ).particle->particleID().pid()
+    //                     << "] (" << ( *it1 ).nVelo << "," << ( *it1 ).nTT << "," << ( *it1 ).nT << ")"
+    //                     << " is daughter of " << ( *it2 ).particle->key() << "["
+    //                     << ( *it2 ).particle->particleID().pid() << "] (" << ( *it2 ).nVelo << "," << ( *it2 ).nTT
+    //                     << "," << ( *it2 ).nT << ")"
+    //                     << " type " << vOrigin->type() << ". Merge hits to tag both." << endmsg;
+
+    //           //== Daughter hits are added to mother.
+    //           ( *it2 ).nVelo += ( *it1 ).nVelo;
+    //           ( *it2 ).nTT += ( *it1 ).nTT;
+    //           ( *it2 ).nT += ( *it1 ).nT;
+    //           if ( ( *it2 ).nVelo > total.nVelo ) ( *it2 ).nVelo = total.nVelo;
+    //           if ( ( *it2 ).nTT > total.nTT ) ( *it2 ).nTT = total.nTT;
+    //           if ( ( *it2 ).nT > total.nT ) ( *it2 ).nT = total.nT;
+
+    //           //== Mother hits overwrite Daughter hits
+    //           ( *it1 ).nVelo = ( *it2 ).nVelo;
+    //           ( *it1 ).nTT   = ( *it2 ).nTT;
+    //           ( *it1 ).nT    = ( *it2 ).nT;
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
+    
 
     std::vector<MCAssociator::MCParticleWithWeight> assoc_vector;
     for (const auto& id_counter : truth_counters) {
@@ -389,13 +430,15 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
       const bool ut_ok =
         (id_counter.second.n_ut + 2 > total_counter.n_ut) || (total_counter.n_velo > 2 && total_counter.n_scifi > 2);
 
+      const auto counter_sum = id_counter.second.n_velo + id_counter.second.n_ut + id_counter.second.n_scifi; 
+      track.n_matched_total = counter_sum;
+
       // Decision
-      if (velo_ok && ut_ok && scifi_ok && track.n_matched_total > 0) {
-        const auto counter_sum = id_counter.second.n_velo + id_counter.second.n_ut + id_counter.second.n_scifi;
+      if (velo_ok && ut_ok && scifi_ok && nMeas > 0) {
         // info_cout << "Number of hits in track: " << counter_sum << ", n meas: " << track.n_matched_total
         //   << ", assoc vector push: " << id_counter.first << ", " << ((float) counter_sum) / ((float) track.n_matched_total)
         //   << std::endl;
-        assoc_vector.push_back({id_counter.first, ((float) counter_sum) / ((float) track.n_matched_total)});
+        assoc_vector.push_back({id_counter.first, ((float) counter_sum) / ((float) nMeas)});
       }
     }
 
