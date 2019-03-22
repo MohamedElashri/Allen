@@ -27,7 +27,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const SciFi::TrackHits* host_scifi_tracks,
   const int* host_atomics_scifi)
 {
-  const bool run_algorithm = true;
+  const bool run_algorithm = false;
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
   const auto print_track = [] (const SciFi::TrackHits& track) {
