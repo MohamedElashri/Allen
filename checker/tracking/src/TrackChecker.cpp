@@ -329,87 +329,74 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
     //
     // check LHCbIDs for MC association
     Checker::TruthCounter total_counter;
-    std::map<LHCbID, Checker::TruthCounter> truth_counters;
+    std::map<uint, Checker::TruthCounter> truth_counters;
     track.n_matched_total = 0;
     int n_meas = 0;
 
     const auto& ids = track.ids();
     for (const auto& id : ids) {
       if ( id.isVelo() ) {
-        //track.n_matched_total++;
         n_meas++;
         total_counter.n_velo++;
         const auto it = mc_assoc.find_id(id);
         if (it != mc_assoc.m_map.end()) {
           truth_counters[it->second].n_velo++;
         }
-        // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
       }
       else if ( id.isUT() ) {
-        //track.n_matched_total++;
         n_meas++;
         total_counter.n_ut++;
         const auto it = mc_assoc.find_id(id);
         if (it != mc_assoc.m_map.end()) {
           truth_counters[it->second].n_ut++;
         }
-        // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
       }
       else if ( id.isSciFi() ) {
-        //track.n_matched_total++;
         n_meas++;
         total_counter.n_scifi++;
         const auto it = mc_assoc.find_id(id);
         if (it != mc_assoc.m_map.end()) {
           truth_counters[it->second].n_scifi++;
         }
-        // info_cout << "Matched LHCbID to MCP: " << id << " to " << it->second << std::endl;
       }
-      // else {
-      //   debug_cout << "ID not assigned to a subdetector" << std::endl;
-      // } 
     }
 
     // If the Track has total # Velo hits > 2 AND total # SciFi hits > 2, combine matching of mother and daughter particles
-    // if ( ( 2 < total.nVelo ) && ( 2 < total.nT ) ) {
-    //   for ( std::vector<TruthCounter>::iterator it1 = truthCounters.begin(); truthCounters.end() != it1; ++it1 ) {
-    //     if ( ( *it1 ).nT == 0 ) continue;
-    //     const LHCb::MCVertex* vOrigin = ( *it1 ).particle->originVertex();
-    //     if ( 0 != vOrigin ) {
-    //       const LHCb::MCParticle* mother = vOrigin->mother();
-    //       if ( 0 == mother ) continue; // no ancestor;
-    //       for ( std::vector<TruthCounter>::iterator it2 = truthCounters.begin(); truthCounters.end() != it2; ++it2 ) {
-    //         if ( mother == ( *it2 ).particle ) {
-    //           if ( ( *it2 ).nVelo == 0 ) continue;
-
-    //           if ( msgLevel( MSG::DEBUG ) )
-    //             debug() << "  *** Particle " << ( *it1 ).particle->key() << "[" << ( *it1 ).particle->particleID().pid()
-    //                     << "] (" << ( *it1 ).nVelo << "," << ( *it1 ).nTT << "," << ( *it1 ).nT << ")"
-    //                     << " is daughter of " << ( *it2 ).particle->key() << "["
-    //                     << ( *it2 ).particle->particleID().pid() << "] (" << ( *it2 ).nVelo << "," << ( *it2 ).nTT
-    //                     << "," << ( *it2 ).nT << ")"
-    //                     << " type " << vOrigin->type() << ". Merge hits to tag both." << endmsg;
-
-    //           //== Daughter hits are added to mother.
-    //           ( *it2 ).nVelo += ( *it1 ).nVelo;
-    //           ( *it2 ).nTT += ( *it1 ).nTT;
-    //           ( *it2 ).nT += ( *it1 ).nT;
-    //           if ( ( *it2 ).nVelo > total.nVelo ) ( *it2 ).nVelo = total.nVelo;
-    //           if ( ( *it2 ).nTT > total.nTT ) ( *it2 ).nTT = total.nTT;
-    //           if ( ( *it2 ).nT > total.nT ) ( *it2 ).nT = total.nT;
-
-    //           //== Mother hits overwrite Daughter hits
-    //           ( *it1 ).nVelo = ( *it2 ).nVelo;
-    //           ( *it1 ).nTT   = ( *it2 ).nTT;
-    //           ( *it1 ).nT    = ( *it2 ).nT;
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
+    if ( ( total_counter.n_velo > 2 ) && ( total_counter.n_scifi > 2 ) ) {
+      for (auto it1 = truth_counters.begin(); truth_counters.end() != it1; ++it1) {  
+        if ( ((*it1).second).n_scifi == 0 ) continue; 
+        const int mother_key = (mc_event.m_mcps[(*it1).first]).motherKey; 
+        for (auto it2 = truth_counters.begin(); truth_counters.end() != it2; ++it2) {  
+          if ( it1 == it2 ) continue;
+          const int key = (mc_event.m_mcps[(*it2).first]).key; 
+          if ( key == mother_key ) {
+            if ( ((*it2).second).n_velo == 0 ) continue; 
+              
+            debug_cout << "Particle with key " << key << " and PID " << (mc_event.m_mcps[(*it1).first]).pid << " is daughter of particle with PID " << (mc_event.m_mcps[(*it2).first]).pid << std::endl;
+  
+            //== Daughter hits are added to mother. 
+            ((*it2).second).n_velo += ((*it1).second).n_velo;
+            ((*it2).second).n_ut += ((*it1).second).n_ut;
+            ((*it2).second).n_scifi += ((*it1).second).n_scifi;
+            if ( ((*it2).second).n_velo > total_counter.n_velo ) 
+              ((*it2).second).n_velo = total_counter.n_velo;
+            if ( ((*it2).second).n_ut > total_counter.n_ut ) 
+              ((*it2).second).n_ut = total_counter.n_ut;
+            if ( ((*it2).second).n_scifi > total_counter.n_scifi ) 
+              ((*it2).second).n_scifi = total_counter.n_scifi;
+ 
+              //== Mother hits overwrite Daughter hits
+            ((*it1).second).n_velo = ((*it2).second).n_velo;
+            ((*it1).second).n_ut = ((*it2).second).n_ut;
+            ((*it1).second).n_scifi = ((*it2).second).n_scifi; 
+   
+           }
+        }
+      }
+    }
+ 
     std::vector<MCAssociator::MCParticleWithWeight> assoc_vector;
-    for (const auto& id_counter : truth_counters) {
+    for (const auto& id_counter : truth_counters) { 
       bool velo_ok = true;
       bool scifi_ok = true;
 
