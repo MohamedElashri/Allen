@@ -26,11 +26,6 @@
 
 struct MCEvent {
   MCParticles m_mcps;
-  
-  LHCbIDs m_velo_lhcb_ids;
-  LHCbIDs m_ut_lhcb_ids;
-  LHCbIDs m_scifi_lhcb_ids;
-
   uint32_t size;
 
   // Constructor

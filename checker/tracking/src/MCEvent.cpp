@@ -70,7 +70,6 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
     input += sizeof(uint32_t);
     std::vector<uint32_t> hits;
     std::copy_n((uint32_t*) input, num_Velo_hits, std::back_inserter(hits));
-    std::copy_n((uint32_t*) input, num_Velo_hits, std::back_inserter(m_velo_lhcb_ids));
     input += sizeof(uint32_t) * num_Velo_hits;
 
     p.velo_num_hits = (uint) hits.size();
@@ -78,7 +77,6 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
     const auto num_UT_hits = *((uint32_t*) input);
     input += sizeof(uint32_t);
     std::copy_n((uint32_t*) input, num_UT_hits, std::back_inserter(hits));
-    std::copy_n((uint32_t*) input, num_UT_hits, std::back_inserter(m_ut_lhcb_ids));
     input += sizeof(uint32_t) * num_UT_hits;
 
     p.ut_num_hits = (uint) hits.size();
@@ -86,7 +84,6 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
     const auto num_SciFi_hits = *((uint32_t*) input);
     input += sizeof(uint32_t);
     std::copy_n((uint32_t*) input, num_SciFi_hits, std::back_inserter(hits));
-    std::copy_n((uint32_t*) input, num_SciFi_hits, std::back_inserter(m_scifi_lhcb_ids));
     input += sizeof(uint32_t) * num_SciFi_hits;
 
     // Add the mcp to mcps
@@ -110,11 +107,7 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
       check_mcp(mcp);
     }
   }
-
-  // Sort the LHCb IDs
-  std::sort(std::begin(m_velo_lhcb_ids), std::end(m_velo_lhcb_ids));
-  std::sort(std::begin(m_ut_lhcb_ids), std::end(m_ut_lhcb_ids));
-  std::sort(std::begin(m_scifi_lhcb_ids), std::end(m_scifi_lhcb_ids));
+  
 }
 
 bool MCEvent::is_subdetector_impl(const LHCbIDs& vector, const LHCbID& id) const {
@@ -123,19 +116,4 @@ bool MCEvent::is_subdetector_impl(const LHCbIDs& vector, const LHCbID& id) const
     return true;
   }
   return false;
-}
-
-template<>
-bool MCEvent::is_subdetector<Checker::Subdetector::Velo>(const LHCbID& id) const {
-  return is_subdetector_impl(m_velo_lhcb_ids, id);
-}
-
-template<>
-bool MCEvent::is_subdetector<Checker::Subdetector::UT>(const LHCbID& id) const {
-  return is_subdetector_impl(m_ut_lhcb_ids, id);
-}
-
-template<>
-bool MCEvent::is_subdetector<Checker::Subdetector::SciFi>(const LHCbID& id) const {
-  return is_subdetector_impl(m_scifi_lhcb_ids, id);
 }
