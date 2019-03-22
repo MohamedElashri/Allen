@@ -433,7 +433,6 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
     // Return type of MCAssociator
     MCAssociator::MCAssocResult assoc {std::move(assoc_vector), mc_event.m_mcps};
 
-    // const auto assoc = mcassoc(ids.begin(), ids.end(), track.n_matched_total);
     if (!assoc) {
       ++nghostsperevt;
       histos.fillGhostHistos(mc_event.m_mcps[0]);
@@ -441,28 +440,11 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
       continue;
     }
 
-    // have MC association, check weight
+    // have MC association
     const auto weight = std::get<1>(assoc.front());
     track.n_matched_total = std::get<2>(assoc.front());
-
-    // if (m_print) {
-    //   std::cout << "Track with " << track.allids.size() << " hits: ";
-    //   for (int i=0; i<track.allids.size(); ++i) {
-    //     std::cout << track.allids[i] << ", ";
-    //   }
-    //   std::cout << std::endl;
-
-    //   info_cout << weight << std::endl;
-    // }
-
-    if (weight < m_minweight) {
-      ++nghostsperevt;
-      histos.fillGhostHistos(mc_event.m_mcps[0]);
-      matched_mcp_keys.push_back(0xFFFFFFFF);
-      continue;
-    }
-    // okay, sufficient to proceed...
     const auto mcp = std::get<0>(assoc.front());
+    
     // add to various categories
     for (auto& report : m_categories) {
       report(track, mcp, weight, get_num_hits);
