@@ -28,7 +28,7 @@ public:
   enum channelIDtype{ 
     Velo=0x8,
     FT=0xa,
-    UT=0x0
+    UT=0xb // 0x0
   };
 
   LHCbID() = default;
