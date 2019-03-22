@@ -336,6 +336,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
     const auto& ids = track.ids();
     for (const auto& id : ids) {
       if ( id.isVelo() ) {
+        debug_cout << "Found Velo ID" << std::endl; 
         n_meas++;
         total_counter.n_velo++;
         const auto it = mc_assoc.find_id(id);
@@ -344,6 +345,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
         }
       }
       else if ( id.isUT() ) {
+        debug_cout << "Found UT ID" << std::endl; 
         n_meas++;
         total_counter.n_ut++;
         const auto it = mc_assoc.find_id(id);
@@ -352,12 +354,16 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
         }
       }
       else if ( id.isSciFi() ) {
+        debug_cout << "Found SciFi ID" << std::endl; 
         n_meas++;
         total_counter.n_scifi++;
         const auto it = mc_assoc.find_id(id);
         if (it != mc_assoc.m_map.end()) {
           truth_counters[it->second].n_scifi++;
         }
+      }
+      else {
+        debug_cout << "ID not matched to any subdetector" << std::endl;
       }
     }
 
