@@ -13,7 +13,8 @@
 
 #include "MCEvent.h"
 
-void MCEvent::check_mcp(const MCParticle& mcp) {
+void MCEvent::check_mcp(const MCParticle& mcp)
+{
   assert(!std::isnan(mcp.p));
   assert(!std::isnan(mcp.pt));
   assert(!std::isnan(mcp.eta));
@@ -107,10 +108,10 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
       check_mcp(mcp);
     }
   }
-  
 }
 
-bool MCEvent::is_subdetector_impl(const LHCbIDs& vector, const LHCbID& id) const {
+bool MCEvent::is_subdetector_impl(const LHCbIDs& vector, const LHCbID& id) const
+{
   const auto it = std::lower_bound(std::begin(vector), std::end(vector), id);
   if (it != std::end(vector) && *it == id) {
     return true;

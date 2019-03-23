@@ -62,7 +62,7 @@ SEQUENCE_T(
   // lf_extend_tracks_t,
 
   cpu_scifi_momentum_forward_t,
-   
+
   // copy_and_prefix_sum_single_block_scifi_t,
   // copy_scifi_track_hit_number_t,
   // prefix_sum_scifi_track_hit_number_t,

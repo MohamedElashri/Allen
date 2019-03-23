@@ -20,7 +20,7 @@ namespace Checker {
     struct Velo;
     struct UT;
     struct SciFi;
-  }
+  } // namespace Subdetector
 
   struct TruthCounter {
     uint n_velo {0};

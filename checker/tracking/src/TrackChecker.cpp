@@ -85,8 +85,10 @@ void TrackChecker::TrackEffReport::operator()(const MCParticles& mcps)
   }
 }
 
-void TrackChecker::TrackEffReport::
-operator()(Checker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight,
+void TrackChecker::TrackEffReport::operator()(
+  Checker::Tracks::const_reference& track,
+  MCParticles::const_reference& mcp,
+  const float weight,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits)
 {
 
@@ -302,7 +304,9 @@ void TrackChecker::Histos::fillMomentumResolutionHisto(const MCParticle& mcp, co
 #endif
 }
 
-std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, const MCEvent& mc_event,
+std::vector<uint32_t> TrackChecker::operator()(
+  const Checker::Tracks& tracks,
+  const MCEvent& mc_event,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits)
 {
   // register MC particles
@@ -335,7 +339,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
 
     const auto& ids = track.ids();
     for (const auto& id : ids) {
-      if ( id.isVelo() ) {
+      if (id.isVelo()) {
         n_meas++;
         total_counter.n_velo++;
         const auto it = mc_assoc.find_id(id);
@@ -343,7 +347,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
           truth_counters[it->second].n_velo++;
         }
       }
-      else if ( id.isUT() ) {
+      else if (id.isUT()) {
         n_meas++;
         total_counter.n_ut++;
         const auto it = mc_assoc.find_id(id);
@@ -351,7 +355,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
           truth_counters[it->second].n_ut++;
         }
       }
-      else if ( id.isSciFi() ) {
+      else if (id.isSciFi()) {
         n_meas++;
         total_counter.n_scifi++;
         const auto it = mc_assoc.find_id(id);
@@ -361,42 +365,40 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
       }
     }
 
-    // If the Track has total # Velo hits > 2 AND total # SciFi hits > 2, combine matching of mother and daughter particles
-    if ( ( total_counter.n_velo > 2 ) && ( total_counter.n_scifi > 2 ) ) {
-      for (auto it1 = truth_counters.begin(); truth_counters.end() != it1; ++it1) {  
-        if ( ((*it1).second).n_scifi == 0 ) continue; 
-        const int mother_key = (mc_event.m_mcps[(*it1).first]).motherKey; 
-        for (auto it2 = truth_counters.begin(); truth_counters.end() != it2; ++it2) {  
-          if ( it1 == it2 ) continue;
-          const int key = (mc_event.m_mcps[(*it2).first]).key; 
-          if ( key == mother_key ) {
-            if ( ((*it2).second).n_velo == 0 ) continue; 
-              
-            debug_cout << "Particle with key " << key << " and PID " << (mc_event.m_mcps[(*it1).first]).pid << " is daughter of particle with PID " << (mc_event.m_mcps[(*it2).first]).pid << std::endl;
-  
-            //== Daughter hits are added to mother. 
+    // If the Track has total # Velo hits > 2 AND total # SciFi hits > 2, combine matching of mother and daughter
+    // particles
+    if ((total_counter.n_velo > 2) && (total_counter.n_scifi > 2)) {
+      for (auto it1 = truth_counters.begin(); truth_counters.end() != it1; ++it1) {
+        if (((*it1).second).n_scifi == 0) continue;
+        const int mother_key = (mc_event.m_mcps[(*it1).first]).motherKey;
+        for (auto it2 = truth_counters.begin(); truth_counters.end() != it2; ++it2) {
+          if (it1 == it2) continue;
+          const int key = (mc_event.m_mcps[(*it2).first]).key;
+          if (key == mother_key) {
+            if (((*it2).second).n_velo == 0) continue;
+
+            debug_cout << "Particle with key " << key << " and PID " << (mc_event.m_mcps[(*it1).first]).pid
+                       << " is daughter of particle with PID " << (mc_event.m_mcps[(*it2).first]).pid << std::endl;
+
+            //== Daughter hits are added to mother.
             ((*it2).second).n_velo += ((*it1).second).n_velo;
             ((*it2).second).n_ut += ((*it1).second).n_ut;
             ((*it2).second).n_scifi += ((*it1).second).n_scifi;
-            if ( ((*it2).second).n_velo > total_counter.n_velo ) 
-              ((*it2).second).n_velo = total_counter.n_velo;
-            if ( ((*it2).second).n_ut > total_counter.n_ut ) 
-              ((*it2).second).n_ut = total_counter.n_ut;
-            if ( ((*it2).second).n_scifi > total_counter.n_scifi ) 
-              ((*it2).second).n_scifi = total_counter.n_scifi;
- 
-              //== Mother hits overwrite Daughter hits
+            if (((*it2).second).n_velo > total_counter.n_velo) ((*it2).second).n_velo = total_counter.n_velo;
+            if (((*it2).second).n_ut > total_counter.n_ut) ((*it2).second).n_ut = total_counter.n_ut;
+            if (((*it2).second).n_scifi > total_counter.n_scifi) ((*it2).second).n_scifi = total_counter.n_scifi;
+
+            //== Mother hits overwrite Daughter hits
             ((*it1).second).n_velo = ((*it2).second).n_velo;
             ((*it1).second).n_ut = ((*it2).second).n_ut;
-            ((*it1).second).n_scifi = ((*it2).second).n_scifi; 
-   
-           }
+            ((*it1).second).n_scifi = ((*it2).second).n_scifi;
+          }
         }
       }
     }
- 
+
     std::vector<MCAssociator::MCParticleWithWeight> assoc_vector;
-    for (const auto& id_counter : truth_counters) { 
+    for (const auto& id_counter : truth_counters) {
       bool velo_ok = true;
       bool scifi_ok = true;
 
@@ -413,12 +415,13 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
       const bool ut_ok =
         (id_counter.second.n_ut + 2 > total_counter.n_ut) || (total_counter.n_velo > 2 && total_counter.n_scifi > 2);
 
-      const auto counter_sum = id_counter.second.n_velo + id_counter.second.n_ut + id_counter.second.n_scifi; 
+      const auto counter_sum = id_counter.second.n_velo + id_counter.second.n_ut + id_counter.second.n_scifi;
 
       // Decision
       if (velo_ok && ut_ok && scifi_ok && n_meas > 0) {
         // info_cout << "Number of hits in track: " << counter_sum << ", n meas: " << track.n_matched_total
-        //   << ", assoc vector push: " << id_counter.first << ", " << ((float) counter_sum) / ((float) track.n_matched_total)
+        //   << ", assoc vector push: " << id_counter.first << ", " << ((float) counter_sum) / ((float)
+        //   track.n_matched_total)
         //   << std::endl;
         assoc_vector.push_back({id_counter.first, ((float) counter_sum) / ((float) n_meas), counter_sum});
       }

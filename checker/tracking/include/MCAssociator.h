@@ -148,12 +148,12 @@ struct MCAssociator {
     std::tuple<MCParticles::const_reference, float, int> back() const noexcept { return *--end(); }
   };
 
-// private:
+  // private:
   using AssocPreResult = std::map<std::size_t, std::size_t>;
   /// little helper for the final step of multi-MCP association
   MCAssocResult buildResult(const AssocPreResult& assocmap, std::size_t total) const noexcept;
 
-// public:
+  // public:
   /// associate a single LHCbID
   MCAssocResult operator()(LHCbID id) const noexcept
   {

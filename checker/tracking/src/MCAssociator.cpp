@@ -34,7 +34,7 @@ MCAssociator::AssocMap::const_iterator MCAssociator::find_id(const LHCbID& id) c
 {
   auto it = std::lower_bound(
     m_map.begin(), m_map.end(), id, [](const LHCbIDWithIndex& a, const LHCbID& b) noexcept { return a.first < b; });
-  
+
   if (it != m_map.end() && id != it->first) {
     it = m_map.end();
   }

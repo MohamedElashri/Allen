@@ -21,18 +21,14 @@ float get_average_x_at_reference_plane(
   const MiniState& velo_state,
   const float zMagSlope);
 
-int getChi2( 
+int getChi2(
   const SciFi::Hits& scifi_hits,
   int* coordToFit,
   const int n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit);
 
-void removeOutlier_proto(
-  const SciFi::Hits& scifi_hits,
-  int* coordToFit,
-  int& n_coordToFit,
-  const int worst);
+void removeOutlier_proto(const SciFi::Hits& scifi_hits, int* coordToFit, int& n_coordToFit, const int worst);
 
 bool fitYProjection_proto(
   const MiniState& velo_state,
