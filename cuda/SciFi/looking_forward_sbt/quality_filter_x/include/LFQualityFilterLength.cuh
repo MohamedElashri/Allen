@@ -18,6 +18,7 @@ ALGORITHM(
   ARGUMENTS(
     dev_scifi_lf_filtered_tracks,
     dev_scifi_lf_filtered_atomics,
+    dev_scifi_lf_tracks,
+    dev_scifi_lf_atomics,
     dev_scifi_tracks,
-    dev_atomics_scifi
-    ))
+    dev_atomics_scifi))

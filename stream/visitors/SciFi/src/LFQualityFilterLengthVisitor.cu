@@ -28,13 +28,28 @@ void SequenceVisitor::visit<lf_quality_filter_length_t>(
     arguments.size<dev_atomics_scifi>(),
     cuda_stream));
 
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_scifi_lf_atomics>(),
+    0,
+    arguments.size<dev_scifi_lf_atomics>(),
+    cuda_stream));
+
+  // // Code for running this algorithm last, in the SciFi sequence
+  // state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
+  // state.set_arguments(
+  //   arguments.offset<dev_scifi_lf_filtered_tracks>(),
+  //   arguments.offset<dev_scifi_lf_filtered_atomics>(),
+  //   arguments.offset<dev_scifi_tracks>(),
+  //   arguments.offset<dev_atomics_scifi>());
+  // state.invoke();
+
+  // Code for running the quality filter after this algorithm
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_lf_filtered_tracks>(),
     arguments.offset<dev_scifi_lf_filtered_atomics>(),
-    arguments.offset<dev_scifi_tracks>(),
-    arguments.offset<dev_atomics_scifi>());
-  
+    arguments.offset<dev_scifi_lf_tracks>(),
+    arguments.offset<dev_scifi_lf_atomics>());
   state.invoke();
 
   // cudaCheck(cudaMemcpyAsync(
