@@ -41,6 +41,8 @@ struct MCAssociator {
 
   // little helper which does the hard work
   AssocMap::const_iterator find_id(const LHCbID&) const noexcept;
+  AssocMap::const_iterator find_id(const LHCbID&, const AssocMap::const_iterator& begin) const noexcept;
+  std::vector<AssocMap::const_iterator> find_ids(const LHCbID&) const noexcept;
 
   MCAssociator(const MCParticles& mcps);
   MCAssociator(const MCAssociator&) = default;
