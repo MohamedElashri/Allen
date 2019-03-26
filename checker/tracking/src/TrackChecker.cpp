@@ -85,28 +85,37 @@ void TrackChecker::TrackEffReport::operator()(const MCParticles& mcps)
   }
 }
 
-void TrackChecker::TrackEffReport::
-operator()(Checker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight,
-  const std::function<uint32_t(const MCParticle&)>& get_num_hits)
+void TrackChecker::TrackEffReport::operator()(
+  const std::vector<MCAssociator::TrackWithWeight> tracks, 
+  MCParticles::const_reference& mcp,
+  const std::function<uint32_t(const MCParticle&)>& get_num_hits) 
 {
-
   if (!m_accept(mcp)) return;
-  if (!m_keysseen.count(mcp.key)) {
-    ++m_nfound;
-    ++m_nfoundperevt;
-    m_keysseen.insert(mcp.key);
+  
+  ++m_nfound;
+  ++m_nfoundperevt;
+  
+  bool found = false;
+  float weight;
+  int n_matched_total;
+  for ( const auto& track : tracks ) {
+    if ( !found ) {
+      found = true;
+      weight = track.m_w;
+      n_matched_total = track.m_counter_sum;
+    } else {
+      ++m_nclones;
+    }
   }
-  else {
-    ++m_nclones;
+  if ( found ) {
+    // update purity
+    m_hitpur *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
+    m_hitpur += weight / float(m_nfound + m_nclones);
+    // update hit efficiency
+    auto hiteff = n_matched_total / float(get_num_hits(mcp));
+    m_hiteff *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
+    m_hiteff += hiteff / float(m_nfound + m_nclones);
   }
-
-  // update purity
-  m_hitpur *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
-  m_hitpur += weight / float(m_nfound + m_nclones);
-  // update hit efficiency
-  auto hiteff = track.n_matched_total / float(get_num_hits(mcp));
-  m_hiteff *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
-  m_hiteff += hiteff / float(m_nfound + m_nclones);
 }
 
 void TrackChecker::TrackEffReport::evtEnds()
@@ -123,7 +132,8 @@ void TrackChecker::TrackEffReport::evtEnds()
 TrackChecker::TrackEffReport::~TrackEffReport()
 {
   auto clonerate = 0.f, eff = 0.f;
-  if (m_nfound) clonerate = float(m_nclones) / float(m_nfound + m_nfound);
+  const float n_tot = float(m_nfound + m_nclones);
+  if (m_nfound) clonerate = float(m_nclones) / n_tot; 
   if (m_naccept) eff = float(m_nfound) / float(m_naccept);
 
   if (m_naccept > 0) {
@@ -294,6 +304,114 @@ void TrackChecker::Histos::fillMomentumResolutionHisto(const MCParticle& mcp, co
 #endif
 }
 
+bool TrackChecker::match_track_to_MCPs(
+  MCAssociator mc_assoc,
+  const Checker::Tracks& tracks,
+  const int i_track,
+  std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight> >& assoc_table) 
+{
+  const auto& track = tracks[i_track];
+
+  // Note: This code is based heavily on
+  //       https://gitlab.cern.ch/lhcb/Rec/blob/master/Pr/PrMCTools/src/PrTrackAssociator.cpp
+  //
+  // check LHCbIDs for MC association
+  Checker::TruthCounter total_counter;
+  std::map<uint, Checker::TruthCounter> truth_counters;
+  int n_meas = 0;
+  
+  const auto& ids = track.ids();
+  for (const auto& id : ids) {
+    if ( id.isVelo() ) {
+      n_meas++;
+      total_counter.n_velo++;
+      const auto it_vec = mc_assoc.find_ids(id);
+      for ( const auto it : it_vec ) {
+        truth_counters[it->second].n_velo++;
+      }
+    }
+    else if ( id.isUT() ) {
+      n_meas++;
+      total_counter.n_ut++;
+      const auto it_vec = mc_assoc.find_ids(id);
+      for ( const auto it : it_vec ) {
+        truth_counters[it->second].n_ut++;
+      }
+    }
+    else if ( id.isSciFi() ) {
+      n_meas++;
+      total_counter.n_scifi++;
+      const auto it_vec = mc_assoc.find_ids(id);
+      for ( const auto it : it_vec ) {
+        truth_counters[it->second].n_scifi++;
+      }
+    }
+    else {
+      debug_cout << "ID not matched to any subdetector" << std::endl;
+    }
+  }
+  
+  // If the Track has total # Velo hits > 2 AND total # SciFi hits > 2, combine matching of mother and daughter particles
+  if ( ( total_counter.n_velo > 2 ) && ( total_counter.n_scifi > 2 ) ) {
+    for ( auto& id_counter_1 : truth_counters ) {
+      if ( (id_counter_1.second).n_scifi == 0 ) continue; 
+      const int mother_key = (mc_assoc.m_mcps[id_counter_1.first]).motherKey; 
+      for ( auto& id_counter_2 : truth_counters ) {
+        if ( &id_counter_1 == &id_counter_2 ) continue;
+        const int key = (mc_assoc.m_mcps[id_counter_2.first]).key; 
+        if ( key == mother_key ) {
+          if ( (id_counter_2.second).n_velo == 0 ) continue; 
+          debug_cout << "\t Particle with key " << key << " and PID " << (mc_assoc.m_mcps[id_counter_1.first]).pid << " is daughter of particle with PID " << (mc_assoc.m_mcps[id_counter_2.first]).pid << std::endl;
+          
+          //== Daughter hits are added to mother. 
+          (id_counter_2.second).n_velo += (id_counter_1.second).n_velo;
+          (id_counter_2.second).n_ut += (id_counter_1.second).n_ut;
+          (id_counter_2.second).n_scifi += (id_counter_1.second).n_scifi;
+          if ( (id_counter_2.second).n_velo > total_counter.n_velo ) 
+            (id_counter_2.second).n_velo = total_counter.n_velo;
+          if ( (id_counter_2.second).n_ut > total_counter.n_ut ) 
+            (id_counter_2.second).n_ut = total_counter.n_ut;
+          if ( (id_counter_2.second).n_scifi > total_counter.n_scifi ) 
+            (id_counter_2.second).n_scifi = total_counter.n_scifi;
+          
+          //== Mother hits overwrite Daughter hits
+          (id_counter_1.second).n_velo = (id_counter_2.second).n_velo;
+          (id_counter_1.second).n_ut = (id_counter_2.second).n_ut;
+          (id_counter_1.second).n_scifi = (id_counter_2.second).n_scifi; 
+          
+        }
+      }
+    }
+  }
+  
+  bool match = false;
+  for (const auto& id_counter : truth_counters) { 
+    bool velo_ok = true;
+    bool scifi_ok = true;
+    
+    if (total_counter.n_velo > 2) {
+      const auto weight = id_counter.second.n_velo / ((float) total_counter.n_velo);
+      velo_ok = weight >= m_minweight;
+    }
+    if (total_counter.n_scifi > 2) {
+      const auto weight = id_counter.second.n_scifi / ((float) total_counter.n_scifi);
+      scifi_ok = weight >= m_minweight;
+    }
+    const bool ut_ok =
+      (id_counter.second.n_ut + 2 > total_counter.n_ut) || (total_counter.n_velo > 2 && total_counter.n_scifi > 2);
+    const auto counter_sum = id_counter.second.n_velo + id_counter.second.n_ut + id_counter.second.n_scifi; 
+    // Decision
+    if (velo_ok && ut_ok && scifi_ok && n_meas > 0) {
+      debug_cout << "\t Matched track " << i_track << " to MCP " << (mc_assoc.m_mcps[id_counter.first]).key << std::endl; 
+      const MCAssociator::TrackWithWeight track_weight = {i_track, ((float) counter_sum) / ((float) n_meas), counter_sum};
+      assoc_table[ (mc_assoc.m_mcps[id_counter.first]).key ].push_back( track_weight );
+      match = true;
+    }
+  } 
+
+  return match;
+}
+
 std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, const MCEvent& mc_event,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits)
 {
@@ -311,7 +429,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
   // linker table between MCParticles and matched tracks with weights
   std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight> > assoc_table;
 
-  // Iterate through tracks
+  // Match tracks to MCPs
   const std::size_t ntracksperevt = tracks.size();
   std::size_t nghostsperevt = 0;
   std::vector<uint32_t> matched_mcp_keys;
@@ -319,129 +437,24 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
     auto track = tracks[i_track];
     histos.fillTotalHistos(mc_event.m_mcps[0]);
 
-    // Note: This code is based heavily on
-    //       https://gitlab.cern.ch/lhcb/Rec/blob/master/Pr/PrMCTools/src/PrTrackAssociator.cpp
-    //
-    // check LHCbIDs for MC association
-    Checker::TruthCounter total_counter;
-    std::map<uint, Checker::TruthCounter> truth_counters;
-    track.n_matched_total = 0;
-    int n_meas = 0;
-
-    const auto& ids = track.ids();
-    for (const auto& id : ids) {
-      if ( id.isVelo() ) {
-        n_meas++;
-        total_counter.n_velo++;
-        const auto it_vec = mc_assoc.find_ids(id);
-        for ( const auto it : it_vec ) {
-          truth_counters[it->second].n_velo++;
-        }
-      }
-      else if ( id.isUT() ) {
-        n_meas++;
-        total_counter.n_ut++;
-        const auto it_vec = mc_assoc.find_ids(id);
-        for ( const auto it : it_vec ) {
-          truth_counters[it->second].n_ut++;
-        }
-      }
-      else if ( id.isSciFi() ) {
-        n_meas++;
-        total_counter.n_scifi++;
-        const auto it_vec = mc_assoc.find_ids(id);
-        for ( const auto it : it_vec ) {
-          truth_counters[it->second].n_scifi++;
-        }
-      }
-      else {
-        debug_cout << "ID not matched to any subdetector" << std::endl;
-      }
-    }
-
-    // If the Track has total # Velo hits > 2 AND total # SciFi hits > 2, combine matching of mother and daughter particles
-    if ( ( total_counter.n_velo > 2 ) && ( total_counter.n_scifi > 2 ) ) {
-      for (auto it1 = truth_counters.begin(); truth_counters.end() != it1; ++it1) {  
-        if ( ((*it1).second).n_scifi == 0 ) continue; 
-        const int mother_key = (mc_event.m_mcps[(*it1).first]).motherKey; 
-        for (auto it2 = truth_counters.begin(); truth_counters.end() != it2; ++it2) {  
-          if ( it1 == it2 ) continue;
-          const int key = (mc_event.m_mcps[(*it2).first]).key; 
-          if ( key == mother_key ) {
-            if ( ((*it2).second).n_velo == 0 ) continue; 
-            //debug_cout << "\t Particle with key " << key << " and PID " << (mc_event.m_mcps[(*it1).first]).pid << " is daughter of particle with PID " << (mc_event.m_mcps[(*it2).first]).pid << std::endl;
-  
-            //== Daughter hits are added to mother. 
-            ((*it2).second).n_velo += ((*it1).second).n_velo;
-            ((*it2).second).n_ut += ((*it1).second).n_ut;
-            ((*it2).second).n_scifi += ((*it1).second).n_scifi;
-            if ( ((*it2).second).n_velo > total_counter.n_velo ) 
-              ((*it2).second).n_velo = total_counter.n_velo;
-            if ( ((*it2).second).n_ut > total_counter.n_ut ) 
-              ((*it2).second).n_ut = total_counter.n_ut;
-            if ( ((*it2).second).n_scifi > total_counter.n_scifi ) 
-              ((*it2).second).n_scifi = total_counter.n_scifi;
- 
-              //== Mother hits overwrite Daughter hits
-            ((*it1).second).n_velo = ((*it2).second).n_velo;
-            ((*it1).second).n_ut = ((*it2).second).n_ut;
-            ((*it1).second).n_scifi = ((*it2).second).n_scifi; 
+    bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
    
-           }
-        }
-      }
-    }
-    
-    //std::vector<MCAssociator::MCParticleWithWeight> assoc_vector;
-    bool match = false;
-    for (const auto& id_counter : truth_counters) { 
-      bool velo_ok = true;
-      bool scifi_ok = true;
-
-      if (total_counter.n_velo > 2) {
-        const auto weight = id_counter.second.n_velo / ((float) total_counter.n_velo);
-        velo_ok = weight >= m_minweight;
-      }
-      if (total_counter.n_scifi > 2) {
-        const auto weight = id_counter.second.n_scifi / ((float) total_counter.n_scifi);
-        scifi_ok = weight >= m_minweight;
-      }
-      const bool ut_ok =
-        (id_counter.second.n_ut + 2 > total_counter.n_ut) || (total_counter.n_velo > 2 && total_counter.n_scifi > 2);
-      const auto counter_sum = id_counter.second.n_velo + id_counter.second.n_ut + id_counter.second.n_scifi; 
-      // Decision
-      if (velo_ok && ut_ok && scifi_ok && n_meas > 0) {
-        debug_cout << "\t Matched track " << i_track << " to MCP " << (mc_event.m_mcps[id_counter.first]).key << std::endl; 
-        //assoc_vector.push_back({id_counter.first, ((float) counter_sum) / ((float) n_meas), counter_sum});
-        const MCAssociator::TrackWithWeight track_weight = {i_track, ((float) counter_sum) / ((float) n_meas), counter_sum};
-        assoc_table[ (mc_event.m_mcps[id_counter.first]).key ].push_back( track_weight );
-        match = true;
-      }
-    }
     if ( !match ) {
       ++nghostsperevt;
       histos.fillGhostHistos(mc_event.m_mcps[0]);
       matched_mcp_keys.push_back(0xFFFFFFFF);
     }
     
-  } // loop over tracks
-    
-    // // Sort assoc_vector
-    // std::sort(assoc_vector.begin(), assoc_vector.end(), [
-    // ](const MCAssociator::MCParticleWithWeight& a, const MCAssociator::MCParticleWithWeight& b) noexcept {
-    //   return a.m_w > b.m_w;
-    // });
-
-  // Return type of MCAssociator
-  //MCAssociator::MCAssocResult assoc {std::move(assoc_vector), mc_event.m_mcps};
+  } 
   
+  // Iterator over MCPs
+  // Check which ones were matched to a track
   for ( const auto mcp : mc_event.m_mcps ) {
     const auto key = mcp.key;
     
     if ( assoc_table.find(key) == assoc_table.end() ) // no track matched to MCP
       continue;
     
-
     // have MC association
     // find track with highest weight
     auto matched_tracks = assoc_table[key];
@@ -453,11 +466,12 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
     const auto track_with_weight = matched_tracks.front();
     const auto weight = track_with_weight.m_w;
     auto track = tracks[track_with_weight.m_idx];
-    track.n_matched_total = track_with_weight.m_counter_sum;
+    //track.n_matched_total = track_with_weight.m_counter_sum;
     
     // add to various categories
     for (auto& report : m_categories) {
-      report(track, mcp, weight, get_num_hits);
+      //report(track, mcp, weight, get_num_hits);
+      report(matched_tracks, mcp, get_num_hits);
     }
     // write out matched MCP key
     matched_mcp_keys.push_back(key);

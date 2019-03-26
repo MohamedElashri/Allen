@@ -70,8 +70,9 @@ protected:
     /// register MC particles
     void operator()(const MCParticles& mcps);
     /// register track and its MC association
-    void
-    operator()(Checker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight,
+    void operator()(
+      const std::vector<MCAssociator::TrackWithWeight> tracks, 
+      MCParticles::const_reference& mcp,
       const std::function<uint32_t(const MCParticle&)>& get_num_hits);
     /// notify of end of event
     void evtEnds();
@@ -147,6 +148,12 @@ public:
   const std::vector<HistoCategory>& histo_categories() const {
     return m_histo_categories;
   }
+  bool match_track_to_MCPs(
+    MCAssociator mc_assoc,
+    const Checker::Tracks& tracks,
+    const int i_track,
+    std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight> >& assoc_table);
+      
   Histos histos;
 };
 

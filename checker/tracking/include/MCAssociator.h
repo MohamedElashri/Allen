@@ -38,10 +38,10 @@ struct MCAssociator {
   };
   // internal structure with index into tracks matched to an MCP
   struct TrackWithWeight {
-    std::size_t m_idx;
+    int m_idx;
     float m_w;
     uint m_counter_sum;
-    TrackWithWeight(std::size_t idx, float w, uint counter_sum) : m_idx(idx), m_w(w), m_counter_sum(counter_sum) {}
+    TrackWithWeight(int idx, float w, uint counter_sum) : m_idx(idx), m_w(w), m_counter_sum(counter_sum) {}
     TrackWithWeight(const TrackWithWeight&) = default;
     TrackWithWeight(TrackWithWeight&&) = default;
     TrackWithWeight& operator=(const TrackWithWeight&) = default;
