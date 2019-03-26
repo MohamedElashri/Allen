@@ -72,7 +72,7 @@ protected:
     void operator()(
       const std::vector<MCAssociator::TrackWithWeight> tracks, 
       MCParticles::const_reference& mcp,
-      const std::function<uint32_t(const MCParticle&)>& get_num_hits);
+      const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
     /// free resources, and print result
     ~TrackEffReport();
   };
@@ -137,8 +137,10 @@ protected:
 public:
   TrackChecker() {};
   ~TrackChecker();
-  std::vector<uint32_t> operator()(const Checker::Tracks &tracks, const MCEvent &mc_event,
-    const std::function<uint32_t(const MCParticle&)>& get_num_hits);
+  std::vector<uint32_t> operator()(
+    const Checker::Tracks &tracks, 
+    const MCEvent &mc_event,
+    const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
   const std::vector<HistoCategory>& histo_categories() const {
     return m_histo_categories;
   }

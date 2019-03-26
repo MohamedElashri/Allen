@@ -79,7 +79,7 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
     std::copy_n((uint32_t*) input, num_UT_hits, std::back_inserter(hits));
     input += sizeof(uint32_t) * num_UT_hits;
 
-    p.ut_num_hits = (uint) hits.size();
+    p.ut_num_hits = (uint) hits.size() - p.velo_num_hits;
 
     const auto num_SciFi_hits = *((uint32_t*) input);
     input += sizeof(uint32_t);
@@ -87,7 +87,7 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
     input += sizeof(uint32_t) * num_SciFi_hits;
 
     // Add the mcp to mcps
-    p.scifi_num_hits = (uint) hits.size();
+    p.scifi_num_hits = (uint) hits.size() - p.ut_num_hits - p.velo_num_hits;
     p.numHits = (uint) hits.size();
     p.hits = hits;
     if (num_Velo_hits > 0 || num_UT_hits > 0 || num_SciFi_hits > 0) {

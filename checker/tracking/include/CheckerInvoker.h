@@ -6,6 +6,7 @@
 #include "MCEvent.h"
 #include "InputTools.h"
 
+
 struct CheckerInvoker {
   std::string mc_folder;
   uint start_event_offset;
@@ -59,11 +60,10 @@ struct CheckerInvoker {
         const auto& mc_event = selected_mc_events[evnum];
         const auto& event_tracks = tracks[evnum];
         
-        // const auto& mcps = mc_event.mc_particles<T>();
-        // MCAssociator mcassoc {mcps};
-
-        std::vector<uint32_t> matched_mcp_keys = track_checker(event_tracks, mc_event,
-          get_num_hits<typename T::subdetector_t>);
+        std::vector<uint32_t> matched_mcp_keys = track_checker(
+          event_tracks, 
+          mc_event,
+          get_num_hits_subdetector<typename T::subdetector_t>);
         std::vector<std::vector<uint32_t>> scifi_ids_tracks;
         std::vector<float> p_tracks;
         for (const auto key : matched_mcp_keys) {

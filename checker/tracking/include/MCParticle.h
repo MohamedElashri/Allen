@@ -46,4 +46,7 @@ struct MCParticle {
 template<typename T>
 uint32_t get_num_hits(const MCParticle& mc_particle);
 
+template<typename T>
+uint32_t get_num_hits_subdetector(const MCParticle& mc_particle);
+
 using MCParticles = std::vector<MCParticle>;

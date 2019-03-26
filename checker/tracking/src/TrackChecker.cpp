@@ -86,7 +86,7 @@ void TrackChecker::TrackEffReport::operator()(const MCParticles& mcps)
 void TrackChecker::TrackEffReport::operator()(
   const std::vector<MCAssociator::TrackWithWeight> tracks, 
   MCParticles::const_reference& mcp,
-  const std::function<uint32_t(const MCParticle&)>& get_num_hits) 
+  const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector) 
 {
   if (!m_accept(mcp)) return;
   
@@ -96,19 +96,14 @@ void TrackChecker::TrackEffReport::operator()(
   for ( const auto& track : tracks ) {
     if ( !found ) {
       found = true;
-      n_matched_total = track.m_counter_sum;
     } else {
       ++m_nclones;
     }
     // update purity
     m_hitpur *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
     m_hitpur += track.m_w / float(m_nfound + m_nclones);
-    
-  }
-  if ( found ) {
-    
     // update hit efficiency
-    auto hiteff = n_matched_total / float(get_num_hits(mcp));
+    auto hiteff = track.m_counter_subdetector / float(get_num_hits_subdetector(mcp));
     m_hiteff *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
     m_hiteff += hiteff / float(m_nfound + m_nclones);
   }
@@ -383,7 +378,16 @@ bool TrackChecker::match_track_to_MCPs(
     // Decision
     if (velo_ok && ut_ok && scifi_ok && n_meas > 0) {
       debug_cout << "\t Matched track " << i_track << " to MCP " << (mc_assoc.m_mcps[id_counter.first]).key << std::endl; 
-      const MCAssociator::TrackWithWeight track_weight = {i_track, ((float) counter_sum) / ((float) n_meas), counter_sum};
+      // save matched hits per subdetector
+      // -> needed for hit efficiency
+      int subdetector_counter = 0;
+      if ( m_trackerName == "Velo" )
+        subdetector_counter = id_counter.second.n_velo;
+      else if ( m_trackerName == "VeloUT" )
+        subdetector_counter = id_counter.second.n_ut;
+      else if ( m_trackerName == "Forward" )
+        subdetector_counter = id_counter.second.n_scifi;
+      const MCAssociator::TrackWithWeight track_weight = {i_track, ((float) counter_sum) / ((float) n_meas), subdetector_counter};
       assoc_table[ (mc_assoc.m_mcps[id_counter.first]).key ].push_back( track_weight );
       match = true;
     }
@@ -392,8 +396,10 @@ bool TrackChecker::match_track_to_MCPs(
   return match;
 }
 
-std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, const MCEvent& mc_event,
-  const std::function<uint32_t(const MCParticle&)>& get_num_hits)
+std::vector<uint32_t> TrackChecker::operator()(
+  const Checker::Tracks& tracks, 
+  const MCEvent& mc_event,
+  const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector)
 {
   // register MC particles
   for (auto& report : m_categories) {
@@ -451,7 +457,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
     // add to various categories
     for (auto& report : m_categories) {
       //report(track, mcp, weight, get_num_hits);
-      report(matched_tracks, mcp, get_num_hits);
+      report(matched_tracks, mcp, get_num_hits_subdetector);
     }
     // write out matched MCP key
     matched_mcp_keys.push_back(key);

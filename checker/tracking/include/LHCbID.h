@@ -87,3 +87,6 @@ public:
 };
 
 typedef std::vector<LHCbID> LHCbIDs;
+
+template<typename T>
+bool is_subdetector(const LHCbID& id);
