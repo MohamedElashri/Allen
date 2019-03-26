@@ -22,12 +22,11 @@
 TrackChecker::~TrackChecker()
 {
   std::printf(
-    "%-50s: %9lu/%9lu %6.2f%% (%6.2f%%) ghosts\n",
+    "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
     "TrackChecker output",
     m_nghosts,
     m_ntracks,
-    100.f * float(m_nghosts) / float(m_ntracks),
-    100.f * m_ghostperevent);
+    100.f * float(m_nghosts) / float(m_ntracks));
   m_categories.clear();
   std::printf("\n");
 
@@ -80,7 +79,6 @@ void TrackChecker::TrackEffReport::operator()(const MCParticles& mcps)
   for (auto mcp : mcps) {
     if (m_accept(mcp)) {
       ++m_naccept;
-      ++m_nacceptperevt;
     }
   }
 }
@@ -93,8 +91,6 @@ void TrackChecker::TrackEffReport::operator()(
   if (!m_accept(mcp)) return;
   
   ++m_nfound;
-  ++m_nfoundperevt;
-  
   bool found = false;
   int n_matched_total;
   for ( const auto& track : tracks ) {
@@ -118,16 +114,6 @@ void TrackChecker::TrackEffReport::operator()(
   }
 }
 
-void TrackChecker::TrackEffReport::evtEnds()
-{
-  if (m_nacceptperevt) {
-    m_effperevt *= float(m_nevents) / float(m_nevents + 1);
-    ++m_nevents;
-    m_effperevt += (float(m_nfoundperevt) / float(m_nacceptperevt)) / float(m_nevents);
-  }
-  m_nfoundperevt = m_nacceptperevt = 0;
-}
-
 TrackChecker::TrackEffReport::~TrackEffReport()
 {
   auto clonerate = 0.f, eff = 0.f;
@@ -137,13 +123,12 @@ TrackChecker::TrackEffReport::~TrackEffReport()
 
   if (m_naccept > 0) {
     std::printf(
-      "%-50s: %9lu/%9lu %6.2f%% (%6.2f%%), "
+      "%-50s: %9lu/%9lu %6.2f%%, "
       "%9lu (%6.2f%%) clones, pur %6.2f%%, hit eff %6.2f%%\n",
       m_name.c_str(),
       m_nfound,
       m_naccept,
       100.f * eff,
-      100.f * m_effperevt,
       m_nclones,
       100.f * clonerate,
       100.f * m_hitpur,
@@ -481,15 +466,12 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
   
   // almost done, notify of end of event...
   ++m_nevents;
-  for (auto& report : m_categories) {
-    report.evtEnds();
-  }
-
+ 
   for (auto& histo_cat : m_histo_categories)
   m_ghostperevent *= float(m_nevents - 1) / float(m_nevents);
   if (ntracksperevt) {
     m_ghostperevent += (float(nghostsperevt) / float(ntracksperevt)) / float(m_nevents);
-  }
+  } 
   m_nghosts += nghostsperevt;
   m_ntracks += ntracksperevt;
 

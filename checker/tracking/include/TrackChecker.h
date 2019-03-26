@@ -73,8 +73,6 @@ protected:
       const std::vector<MCAssociator::TrackWithWeight> tracks, 
       MCParticles::const_reference& mcp,
       const std::function<uint32_t(const MCParticle&)>& get_num_hits);
-    /// notify of end of event
-    void evtEnds();
     /// free resources, and print result
     ~TrackEffReport();
   };
