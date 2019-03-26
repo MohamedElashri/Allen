@@ -336,7 +336,7 @@ bool TrackChecker::match_track_to_MCPs(
         const int key = (mc_assoc.m_mcps[id_counter_2.first]).key; 
         if ( key == mother_key ) {
           if ( (id_counter_2.second).n_velo == 0 ) continue; 
-          debug_cout << "\t Particle with key " << key << " and PID " << (mc_assoc.m_mcps[id_counter_1.first]).pid << " is daughter of particle with PID " << (mc_assoc.m_mcps[id_counter_2.first]).pid << std::endl;
+          //debug_cout << "\t Particle with key " << key << " and PID " << (mc_assoc.m_mcps[id_counter_1.first]).pid << " is daughter of particle with PID " << (mc_assoc.m_mcps[id_counter_2.first]).pid << std::endl;
           
           //== Daughter hits are added to mother. 
           (id_counter_2.second).n_velo += (id_counter_1.second).n_velo;
@@ -377,7 +377,7 @@ bool TrackChecker::match_track_to_MCPs(
     const auto counter_sum = id_counter.second.n_velo + id_counter.second.n_ut + id_counter.second.n_scifi; 
     // Decision
     if (velo_ok && ut_ok && scifi_ok && n_meas > 0) {
-      debug_cout << "\t Matched track " << i_track << " to MCP " << (mc_assoc.m_mcps[id_counter.first]).key << std::endl; 
+      //debug_cout << "\t Matched track " << i_track << " to MCP " << (mc_assoc.m_mcps[id_counter.first]).key << std::endl; 
       // save matched hits per subdetector
       // -> needed for hit efficiency
       int subdetector_counter = 0;
@@ -416,8 +416,8 @@ std::vector<uint32_t> TrackChecker::operator()(
   std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight> > assoc_table;
 
   // Match tracks to MCPs
-  const std::size_t ntracksperevt = tracks.size();
   std::size_t nghostsperevt = 0;
+  std::size_t ntracksperevt = 0;
   std::vector<uint32_t> matched_mcp_keys;
   for ( int i_track = 0; i_track < tracks.size(); ++i_track ) {
     auto track = tracks[i_track];
@@ -425,13 +425,15 @@ std::vector<uint32_t> TrackChecker::operator()(
 
     bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
    
+    bool eta25 = track.eta > 2.f && track.eta < 5.f;
+    if ( !eta25 ) continue;
+    ++ntracksperevt;
     if ( !match ) {
+      matched_mcp_keys.push_back(0xFFFFFFFF);
       ++nghostsperevt;
       histos.fillGhostHistos(mc_event.m_mcps[0]);
-      matched_mcp_keys.push_back(0xFFFFFFFF);
     }
-    
-  } 
+  }
   
   // Iterator over MCPs
   // Check which ones were matched to a track
@@ -452,7 +454,6 @@ std::vector<uint32_t> TrackChecker::operator()(
     const auto track_with_weight = matched_tracks.front();
     const auto weight = track_with_weight.m_w;
     auto track = tracks[track_with_weight.m_idx];
-    //track.n_matched_total = track_with_weight.m_counter_sum;
     
     // add to various categories
     for (auto& report : m_categories) {

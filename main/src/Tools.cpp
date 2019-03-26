@@ -155,17 +155,21 @@ std::vector<Checker::Tracks> read_forward_tracks(
     const char* raw_input = events + event_offsets[i_event];
     const uint32_t n_tracks = *((uint32_t*) raw_input);
     raw_input += sizeof(uint32_t);
-    debug_cout << "Event " << i_event << " has " << n_tracks << " tracks " << std::endl;
     Checker::Tracks tracks_event;
     for ( int i_track = 0; i_track < n_tracks; ++i_track ) {
-      const uint32_t n_IDs = *((uint32_t*) raw_input);
       Checker::Track track;
+      track.eta =  *((float*) raw_input);
+      raw_input += sizeof(float);
+      track.p =  *((float*) raw_input);
+      raw_input += sizeof(float);
+      track.pt =  *((float*) raw_input);
+      raw_input += sizeof(float);
+      
+      const uint32_t n_IDs = *((uint32_t*) raw_input);
       raw_input += sizeof(uint32_t);
-      debug_cout << "\t track " << i_track << " has " << n_IDs << " IDs " << std::endl;
       for ( int i_ID = 0; i_ID < n_IDs; ++i_ID ) {
         const uint32_t ID = *((uint32_t*) raw_input);
         raw_input += sizeof(uint32_t);
-        debug_cout << "\t \t \t ID = " << std::hex << ID << ", detector type = " << (unsigned int)((ID & 0xF0000000L) >> 28) << std::dec << std::endl;
         track.addId(ID);
       }
       tracks_event.push_back(track);
