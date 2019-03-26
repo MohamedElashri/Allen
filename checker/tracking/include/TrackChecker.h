@@ -47,7 +47,6 @@ protected:
     float m_effperevt = 0.f;
     float m_hitpur = 0.f;
     float m_hiteff = 0.f;
-    std::set<uint32_t> m_keysseen;
 
     /// no default construction
     TrackEffReport() = delete;
@@ -83,7 +82,6 @@ protected:
   struct HistoCategory {
     std::string m_name;
     AcceptFn m_accept;
-    std::set<uint32_t> m_keysseen;
 
     /// construction from name and accept criterion for eff. denom.
     template<typename F>
@@ -93,8 +91,6 @@ protected:
     template<typename F>
     HistoCategory(std::string&& name, F&& accept) : m_name(std::move(name)), m_accept(std::move(accept))
     {}
-    /// notify of end of event
-    void evtEnds();
   };
 
   std::vector<TrackEffReport> m_categories;

@@ -96,21 +96,21 @@ void TrackChecker::TrackEffReport::operator()(
   ++m_nfoundperevt;
   
   bool found = false;
-  float weight;
   int n_matched_total;
   for ( const auto& track : tracks ) {
     if ( !found ) {
       found = true;
-      weight = track.m_w;
       n_matched_total = track.m_counter_sum;
     } else {
       ++m_nclones;
     }
-  }
-  if ( found ) {
     // update purity
     m_hitpur *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
-    m_hitpur += weight / float(m_nfound + m_nclones);
+    m_hitpur += track.m_w / float(m_nfound + m_nclones);
+    
+  }
+  if ( found ) {
+    
     // update hit efficiency
     auto hiteff = n_matched_total / float(get_num_hits(mcp));
     m_hiteff *= float(m_nfound + m_nclones - 1) / float(m_nfound + m_nclones);
@@ -120,7 +120,6 @@ void TrackChecker::TrackEffReport::operator()(
 
 void TrackChecker::TrackEffReport::evtEnds()
 {
-  m_keysseen.clear();
   if (m_nacceptperevt) {
     m_effperevt *= float(m_nevents) / float(m_nevents + 1);
     ++m_nevents;
@@ -151,8 +150,6 @@ TrackChecker::TrackEffReport::~TrackEffReport()
       100.f * m_hiteff);
   }
 }
-
-void TrackChecker::HistoCategory::evtEnds() { m_keysseen.clear(); }
 
 void TrackChecker::Histos::initHistos(const std::vector<HistoCategory>& histo_categories)
 {
@@ -262,9 +259,7 @@ void TrackChecker::Histos::fillReconstructedHistos(const MCParticle& mcp, HistoC
 {
 #ifdef WITH_ROOT
   if (!(category.m_accept(mcp))) return;
-  if ((category.m_keysseen).count(mcp.key)) return; // clone track
-  (category.m_keysseen).insert(mcp.key);            // not clone track, mark as matched
-
+ 
   const std::string eta_name = category.m_name + "_Eta_reconstructed";
   const std::string p_name = category.m_name + "_P_reconstructed";
   const std::string pt_name = category.m_name + "_Pt_reconstructed";
@@ -483,6 +478,7 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
     // fill histogram of momentum resolution
     histos.fillMomentumResolutionHisto(mcp, track.p, track.qop);
   }
+  
   // almost done, notify of end of event...
   ++m_nevents;
   for (auto& report : m_categories) {
@@ -490,7 +486,6 @@ std::vector<uint32_t> TrackChecker::operator()(const Checker::Tracks& tracks, co
   }
 
   for (auto& histo_cat : m_histo_categories)
-    histo_cat.evtEnds();
   m_ghostperevent *= float(m_nevents - 1) / float(m_nevents);
   if (ntracksperevt) {
     m_ghostperevent += (float(nghostsperevt) / float(ntracksperevt)) / float(m_nevents);
