@@ -57,7 +57,7 @@ __global__ void pv_beamline_multi_fitter(
         // compute the chi2
         PVTrackInVertex trk = tracks[i];
         // skip tracks lying outside histogram range
-        //  if (zmin > trk.z || trk.z > zmax) continue;
+        if (zmin > trk.z || trk.z > zmax) continue;
         const auto dz = vtxpos_z - trk.z;
         float2 res {0.f, 0.f};
         res = vtxpos_xy - (trk.x + trk.tx * dz);
