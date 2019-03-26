@@ -130,6 +130,9 @@ protected:
   std::size_t m_ntracks = 0;
   std::size_t m_nghosts = 0;
   float m_ghostperevent = 0.f;
+  float m_ghosttriggerperevent = 0.f;
+  std::size_t m_ntrackstrigger = 0;
+  std::size_t m_nghoststrigger = 0;
 
   virtual void SetHistoCategories() = 0;
   virtual void SetCategories() = 0;

@@ -27,6 +27,12 @@ TrackChecker::~TrackChecker()
     m_nghosts,
     m_ntracks,
     100.f * float(m_nghosts) / float(m_ntracks));
+  std::printf(
+    "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
+    "for P>3GeV,Pt>0.5GeV",
+    m_nghoststrigger,
+    m_ntrackstrigger,
+    100.f * float(m_nghoststrigger) / float(m_ntrackstrigger));
   m_categories.clear();
   std::printf("\n");
 
@@ -418,6 +424,8 @@ std::vector<uint32_t> TrackChecker::operator()(
   // Match tracks to MCPs
   std::size_t nghostsperevt = 0;
   std::size_t ntracksperevt = 0;
+  std::size_t nghoststriggerperevt = 0;
+  std::size_t ntrackstriggerperevt = 0;
   std::vector<uint32_t> matched_mcp_keys;
   for ( int i_track = 0; i_track < tracks.size(); ++i_track ) {
     auto track = tracks[i_track];
@@ -428,10 +436,16 @@ std::vector<uint32_t> TrackChecker::operator()(
     bool eta25 = track.eta > 2.f && track.eta < 5.f;
     if ( !eta25 ) continue;
     ++ntracksperevt;
+    const bool triggerCondition = track.p > 3000.f && track.pt > 500.f;
+    if ( triggerCondition ) {
+      ntrackstriggerperevt++;
+    }
     if ( !match ) {
       matched_mcp_keys.push_back(0xFFFFFFFF);
       ++nghostsperevt;
       histos.fillGhostHistos(mc_event.m_mcps[0]);
+      if ( triggerCondition )
+        ++nghoststriggerperevt;
     }
   }
   
@@ -474,13 +488,19 @@ std::vector<uint32_t> TrackChecker::operator()(
   // almost done, notify of end of event...
   ++m_nevents;
  
-  for (auto& histo_cat : m_histo_categories)
   m_ghostperevent *= float(m_nevents - 1) / float(m_nevents);
   if (ntracksperevt) {
     m_ghostperevent += (float(nghostsperevt) / float(ntracksperevt)) / float(m_nevents);
   } 
   m_nghosts += nghostsperevt;
   m_ntracks += ntracksperevt;
+
+  m_ghosttriggerperevent *= float(m_nevents - 1) / float(m_nevents);
+  if (ntrackstriggerperevt) {
+    m_ghosttriggerperevent += (float(nghoststriggerperevt) / float(ntrackstriggerperevt)) / float(m_nevents);
+  } 
+  m_nghoststrigger += nghoststriggerperevt;
+  m_ntrackstrigger += ntrackstriggerperevt;
 
   return matched_mcp_keys;
 }
