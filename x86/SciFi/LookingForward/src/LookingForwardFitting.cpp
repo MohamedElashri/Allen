@@ -180,14 +180,10 @@ int getChi2(
   return true;
 }
 
-void removeOutlier_proto(
-  const SciFi::Hits& scifi_hits,
-  int* coordToFit,
-  int& n_coordToFit,
-  const int worst)
+void removeOutlier_proto(const SciFi::Hits& scifi_hits, int* coordToFit, int& n_coordToFit, const int worst)
 {
   int it = 0;
-  for (int i=0; i<n_coordToFit; ++i) {
+  for (int i = 0; i < n_coordToFit; ++i) {
     if (i != worst) {
       coordToFit[it++] = coordToFit[i];
     }

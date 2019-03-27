@@ -37,9 +37,9 @@ struct SciFiWindowsParams {
   float max_window_layer3 = 20; // 40;
   float chi2_cut = 100;         // 40;
   int maximum_iteration_l3_window = 4;
-  float extrapolation_stddev [8] {3.63f, 3.73f, 3.51f, 2.99f, 1.50f, 2.34f, 2.30f, 1.f};
-  float chi2_extrap_mean   [8] {13.21f, 13.93f, 12.34f,  8.96f,  2.29f,  5.52f, 5.35f, 1.03f};
-  float chi2_extrap_stddev [8] {116.5f, 104.5f, 98.35f, 80.66f, 24.11f, 35.91f, 36.7f, 9.72f};
+  float extrapolation_stddev[8] {3.63f, 3.73f, 3.51f, 2.99f, 1.50f, 2.34f, 2.30f, 1.f};
+  float chi2_extrap_mean[8] {13.21f, 13.93f, 12.34f, 8.96f, 2.29f, 5.52f, 5.35f, 1.03f};
+  float chi2_extrap_stddev[8] {116.5f, 104.5f, 98.35f, 80.66f, 24.11f, 35.91f, 36.7f, 9.72f};
   float chi2_track_mean = 6.78f;
   float chi2_track_stddev = 45.28f;
 };
@@ -86,7 +86,7 @@ bool select_hits(
   std::array<std::vector<Window_stat>, 4>& window_stats,
   const SciFiWindowsParams& window_params);
 
-std::tuple<int, int>  get_u_or_v_layer_candidates(  
+std::tuple<int, int> get_u_or_v_layer_candidates(
   const SciFi::Hits& hits,
   const SciFi::HitCount& hit_count,
   const int hit_layer_0_idx,
@@ -195,7 +195,8 @@ std::tuple<int, float> get_best_hit(
   const SciFiWindowsParams& window_params,
   int layer);
 
-float TMVA_quality (SciFi::TrackHits& track,
+float TMVA_quality(
+  SciFi::TrackHits& track,
   const MiniState& velo_state,
   const float VeloUT_qOverP,
   const SciFi::Tracking::Arrays* constArrays,
@@ -204,7 +205,7 @@ float TMVA_quality (SciFi::TrackHits& track,
   const SciFi::Hits& scifi_hits,
   const int event_offset);
 
-void filter_tracks_with_TMVA( 
+void filter_tracks_with_TMVA(
   std::vector<SciFi::TrackHits>& tracks,
   std::vector<SciFi::TrackHits>& selected_tracks,
   const MiniState& velo_state,
@@ -215,7 +216,8 @@ void filter_tracks_with_TMVA(
   const SciFi::Hits& scifi_hits,
   const int event_offset);
 
-void single_track_quality_update (SciFi::TrackHits& track,
+void single_track_quality_update(
+  SciFi::TrackHits& track,
   const MiniState& velo_state,
   const float VeloUT_qOverP,
   const SciFi::Tracking::Arrays* constArrays,

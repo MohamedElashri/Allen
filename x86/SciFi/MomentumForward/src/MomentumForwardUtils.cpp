@@ -3,18 +3,13 @@
 // access hits from a layer
 // first zone number: y < 0
 // second zone number: y > 0
-std::tuple<int, int> get_offset_and_n_hits_for_layer(
-  const int first_zone,
-  const SciFi::HitCount& scifi_hit_count,
-  const float y)
+std::tuple<int, int>
+get_offset_and_n_hits_for_layer(const int first_zone, const SciFi::HitCount& scifi_hit_count, const float y)
 {
   assert(first_zone < SciFi::Constants::n_zones - 1);
   const auto offset = (y < 0) ? 0 : 1;
-  
-  return {
-    scifi_hit_count.zone_offset(first_zone + offset),
-    scifi_hit_count.zone_number_of_hits(first_zone + offset)
-  };
+
+  return {scifi_hit_count.zone_offset(first_zone + offset), scifi_hit_count.zone_number_of_hits(first_zone + offset)};
 }
 
 void get_offset_and_n_hits_for_layer(
@@ -26,7 +21,7 @@ void get_offset_and_n_hits_for_layer(
 {
   assert(first_zone < SciFi::Constants::n_zones - 1);
   const auto offset = (y < 0) ? 0 : 1;
-  
+
   zone_offset = scifi_hit_count.zone_offset(first_zone + offset);
   zone_number_of_hits = scifi_hit_count.zone_number_of_hits(first_zone + offset);
 }

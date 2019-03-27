@@ -70,7 +70,7 @@ protected:
     void operator()(const MCParticles& mcps);
     /// register track and its MC association
     void operator()(
-      const std::vector<MCAssociator::TrackWithWeight> tracks, 
+      const std::vector<MCAssociator::TrackWithWeight> tracks,
       MCParticles::const_reference& mcp,
       const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
     /// free resources, and print result
@@ -141,18 +141,16 @@ public:
   TrackChecker() {};
   ~TrackChecker();
   std::vector<uint32_t> operator()(
-    const Checker::Tracks &tracks, 
-    const MCEvent &mc_event,
+    const Checker::Tracks& tracks,
+    const MCEvent& mc_event,
     const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
-  const std::vector<HistoCategory>& histo_categories() const {
-    return m_histo_categories;
-  }
+  const std::vector<HistoCategory>& histo_categories() const { return m_histo_categories; }
   bool match_track_to_MCPs(
     MCAssociator mc_assoc,
     const Checker::Tracks& tracks,
     const int i_track,
-    std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight> >& assoc_table);
-      
+    std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table);
+
   Histos histos;
 };
 
@@ -184,7 +182,7 @@ struct TrackCheckerVeloUT : public TrackChecker {
 
 struct TrackCheckerForward : public TrackChecker {
   using subdetector_t = Checker::Subdetector::SciFi;
-  
+
   void SetCategories();
   void SetHistoCategories();
   TrackCheckerForward()

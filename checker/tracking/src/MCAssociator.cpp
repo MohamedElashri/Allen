@@ -34,7 +34,7 @@ MCAssociator::AssocMap::const_iterator MCAssociator::find_id(const LHCbID& id) c
 {
   auto it = std::lower_bound(
     m_map.begin(), m_map.end(), id, [](const LHCbIDWithIndex& a, const LHCbID& b) noexcept { return a.first < b; });
-  
+
   if (it != m_map.end() && id != it->first) {
     it = m_map.end();
   }
@@ -42,11 +42,13 @@ MCAssociator::AssocMap::const_iterator MCAssociator::find_id(const LHCbID& id) c
   return it;
 }
 
-MCAssociator::AssocMap::const_iterator MCAssociator::find_id(const LHCbID& id, const MCAssociator::AssocMap::const_iterator& begin) const noexcept
+MCAssociator::AssocMap::const_iterator MCAssociator::find_id(
+  const LHCbID& id,
+  const MCAssociator::AssocMap::const_iterator& begin) const noexcept
 {
   auto it = std::lower_bound(
     begin, m_map.end(), id, [](const LHCbIDWithIndex& a, const LHCbID& b) noexcept { return a.first < b; });
-  
+
   if (it != m_map.end() && id != it->first) {
     it = m_map.end();
   }
@@ -57,9 +59,9 @@ MCAssociator::AssocMap::const_iterator MCAssociator::find_id(const LHCbID& id, c
 std::vector<MCAssociator::AssocMap::const_iterator> MCAssociator::find_ids(const LHCbID& id) const noexcept
 {
   std::vector<MCAssociator::AssocMap::const_iterator> matched_MCPs;
-  for ( auto it = find_id(id, m_map.begin()); it != m_map.end(); it = find_id(id, it+1) ) {
+  for (auto it = find_id(id, m_map.begin()); it != m_map.end(); it = find_id(id, it + 1)) {
     matched_MCPs.push_back(it);
-    }
+  }
 
   return matched_MCPs;
 }

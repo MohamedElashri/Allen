@@ -11,10 +11,8 @@
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 
-std::tuple<int, int> get_offset_and_n_hits_for_layer(
-  const int first_zone,
-  const SciFi::HitCount& scifi_hit_count,
-  const float y);
+std::tuple<int, int>
+get_offset_and_n_hits_for_layer(const int first_zone, const SciFi::HitCount& scifi_hit_count, const float y);
 
 // Deprecated
 void get_offset_and_n_hits_for_layer(
