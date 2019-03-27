@@ -9,7 +9,7 @@ void SequenceVisitor::set_arguments_size<consolidate_scifi_tracks_t>(
   const HostBuffers& host_buffers)
 {
   arguments.set_size<dev_scifi_track_hits>(
-    host_buffers.host_accumulated_number_of_scifi_hits[0] * sizeof(SciFi::Hit));
+    host_buffers.host_accumulated_number_of_hits_in_scifi_tracks[0] * sizeof(SciFi::Hit));
   arguments.set_size<dev_scifi_qop>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
   arguments.set_size<dev_scifi_track_ut_indices>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
   arguments.set_size<dev_scifi_states>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
@@ -40,9 +40,6 @@ void SequenceVisitor::visit<consolidate_scifi_tracks_t>(
     constants.dev_inv_clus_res);
 
   state.invoke();
-
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
 
   // Transmission device to host of Scifi consolidated tracks
   cudaCheck(cudaMemcpyAsync(
@@ -79,4 +76,7 @@ void SequenceVisitor::visit<consolidate_scifi_tracks_t>(
     arguments.size<dev_scifi_track_ut_indices>(),
     cudaMemcpyDeviceToHost,
     cuda_stream));
+
+  cudaEventRecord(cuda_generic_event, cuda_stream);
+  cudaEventSynchronize(cuda_generic_event);
 }

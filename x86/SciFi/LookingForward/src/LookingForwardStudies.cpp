@@ -27,7 +27,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const SciFi::TrackHits* host_scifi_tracks,
   const int* host_atomics_scifi)
 {
-  const bool run_algorithm = true;
+  const bool run_algorithm = false;
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
   const auto print_track = [](const SciFi::TrackHits& track) {
@@ -308,7 +308,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const bool use_flagging = false;
       const bool use_flagging_in_l0_l3_layers = false;
       const bool use_multi_flags = true;
-      const bool iterate_all_hits_uv = true;
+      const bool iterate_all_hits_uv = false;
 
       // Extra triplets
       // std::array<std::tuple<int, int, int>, 2> extra_triplets {{std::make_tuple(0, 1, 5), std::make_tuple(0, 4, 5)}};
@@ -620,40 +620,40 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         //     scifi_hits,
         //     scifi_hit_count.event_offset());
 
-        // for (const auto& track : scifi_tracks) {
-        //   event_trackhits.push_back(track);
+        for (const auto& track : scifi_tracks) {
+          event_trackhits.push_back(track);
+        }
+
+        // int best_track = -1;
+        // float best_quality = 100000.f;
+        // for (int i=0; i<scifi_tracks.size(); ++i) {
+        //   auto& track = scifi_tracks[i];
+        //   single_track_quality_update(
+        //     track,
+        //     event_velo_state[i_veloUT_track],
+        //     event_qop[i_veloUT_track],
+        //     &constArrays,
+        //     &tmva1,
+        //     &tmva2,
+        //     scifi_hits,
+        //     scifi_hit_count.event_offset());
+
+        //   if (track.hitsNum >= 9 && track.quality < best_quality) {
+        //     best_track = i;
+        //     best_quality = track.quality;
+        //   }
         // }
 
-        int best_track = -1;
-        float best_quality = 100000.f;
+        // if (best_track != -1) {
+        //   // auto& track = scifi_tracks[best_track];
+        //   // for (int i=0; i<track.hitsNum; ++i) {
+        //   //   track.hits[i] = 10000;
+        //   // }
 
-        for (int i = 0; i < scifi_tracks.size(); ++i) {
-          auto& track = scifi_tracks[i];
+        //   // Check if track has MC hit
 
-          single_track_quality_update(
-            track,
-            event_velo_state[i_veloUT_track],
-            event_qop[i_veloUT_track],
-            &constArrays,
-            &tmva1,
-            &tmva2,
-            scifi_hits,
-            scifi_hit_count.event_offset());
-
-          if (track.hitsNum >= 9 && track.quality < best_quality) {
-            best_track = i;
-            best_quality = track.quality;
-          }
-        }
-
-        if (best_track != -1) {
-          // auto& track = scifi_tracks[best_track];
-          // for (int i=0; i<track.hitsNum; ++i) {
-          //   track.hits[i] = 10000;
-          // }
-
-          event_trackhits.push_back(scifi_tracks[best_track]);
-        }
+        //   event_trackhits.push_back(scifi_tracks[best_track]);
+        // }
       }
 
       // float best_fit = 100.f;
