@@ -38,7 +38,8 @@ struct StreamWrapper {
     const bool print_memory_usage,
     const uint start_event_offset,
     const size_t reserve_mb,
-    const Constants& constants);
+    const Constants& constants,
+    const bool do_check);
 
   /**
    * @brief Runs stream.

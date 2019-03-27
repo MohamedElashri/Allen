@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
   // Create streams
   StreamWrapper stream_wrapper;
   stream_wrapper.initialize_streams(
-    number_of_threads, number_of_events_requested, print_memory_usage, start_event_offset, reserve_mb, constants);
+    number_of_threads, number_of_events_requested, print_memory_usage, start_event_offset, reserve_mb, constants, do_check);
 
   // Notify used memory if requested verbose mode
   if (logger::ll.verbosityLevel >= logger::verbose) {
@@ -252,7 +252,8 @@ int main(int argc, char* argv[])
                                            event_reader->offsets(BankTypes::FT).size(),
                                            muon_hits_events,
                                            number_of_events_requested,
-                                           number_of_repetitions};
+                                           number_of_repetitions,
+                                           do_check};
 
     stream_wrapper.run_stream(i, runtime_options);
   };

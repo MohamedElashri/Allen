@@ -16,7 +16,8 @@ cudaError_t Stream::initialize(
   const uint param_start_event_offset,
   const size_t reserve_mb,
   const uint param_stream_number,
-  const Constants& param_constants)
+  const Constants& param_constants,
+  const bool do_check)
 {
   // Set stream and events
   cudaCheck(cudaStreamCreate(&cuda_stream));
@@ -29,7 +30,7 @@ cudaError_t Stream::initialize(
   constants = param_constants;
 
   // Reserve host buffers
-  host_buffers.reserve(max_number_of_events);
+  host_buffers.reserve(max_number_of_events, do_check);
 
   // Malloc a configurable reserved memory
   cudaCheck(cudaMalloc((void**) &dev_base_pointer, reserve_mb * 1024 * 1024));

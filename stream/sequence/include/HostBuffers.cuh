@@ -77,7 +77,7 @@ struct HostBuffers {
   /**
    * @brief Reserves all host buffers.
    */
-  void reserve(const uint max_number_of_events);
+  void reserve(const uint max_number_of_events, const bool do_check);
 
   /**
    * @brief Returns total number of velo track hits.

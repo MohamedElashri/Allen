@@ -42,26 +42,28 @@ void SequenceVisitor::visit<consolidate_velo_tracks_t>(
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_accepted_velo_tracks>(), 1, arguments.size<dev_accepted_velo_tracks>(), cuda_stream));
 
-  // // Transmission device to host
-  // // Velo tracks
-  // cudaCheck(cudaMemcpyAsync(
-  //   host_buffers.host_atomics_velo,
-  //   arguments.offset<dev_atomics_velo>(),
-  //   (2 * host_buffers.host_number_of_selected_events[0] + 1) * sizeof(uint),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
+  if (runtime_options.do_check) {
+    // Transmission device to host
+    // Velo tracks
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_atomics_velo,
+      arguments.offset<dev_atomics_velo>(),
+      (2 * host_buffers.host_number_of_selected_events[0] + 1) * sizeof(uint),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  // cudaCheck(cudaMemcpyAsync(
-  //   host_buffers.host_velo_track_hit_number,
-  //   arguments.offset<dev_velo_track_hit_number>(),
-  //   arguments.size<dev_velo_track_hit_number>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_velo_track_hit_number,
+      arguments.offset<dev_velo_track_hit_number>(),
+      arguments.size<dev_velo_track_hit_number>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  // cudaCheck(cudaMemcpyAsync(
-  //   host_buffers.host_velo_track_hits,
-  //   arguments.offset<dev_velo_track_hits>(),
-  //   host_buffers.host_accumulated_number_of_hits_in_velo_tracks[0] * sizeof(Velo::Hit),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_velo_track_hits,
+      arguments.offset<dev_velo_track_hits>(),
+      host_buffers.host_accumulated_number_of_hits_in_velo_tracks[0] * sizeof(Velo::Hit),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }
