@@ -27,12 +27,14 @@ TrackChecker::~TrackChecker()
     m_nghosts,
     m_ntracks,
     100.f * float(m_nghosts) / float(m_ntracks));
-  std::printf(
-    "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
-    "for P>3GeV,Pt>0.5GeV",
-    m_nghoststrigger,
-    m_ntrackstrigger,
-    100.f * float(m_nghoststrigger) / float(m_ntrackstrigger));
+  if ( m_trackerName == "Forward" ) {
+    std::printf(
+      "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
+      "for P>3GeV,Pt>0.5GeV",
+      m_nghoststrigger,
+      m_ntrackstrigger,
+      100.f * float(m_nghoststrigger) / float(m_ntrackstrigger));
+  }
   m_categories.clear();
   std::printf("\n");
 
@@ -434,7 +436,9 @@ std::vector<uint32_t> TrackChecker::operator()(
     bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
    
     bool eta25 = track.eta > 2.f && track.eta < 5.f;
-    if ( !eta25 ) continue;
+    bool skipEtaCut = (m_trackerName == "Velo");
+    bool eta25Cut = eta25 | skipEtaCut;
+    if ( !eta25Cut ) continue;
     ++ntracksperevt;
     const bool triggerCondition = track.p > 3000.f && track.pt > 500.f;
     if ( triggerCondition ) {

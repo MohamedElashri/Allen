@@ -11,6 +11,30 @@
 #include "VeloConsolidated.cuh"
 #include "VeloEventModel.cuh"
 
+// LHCb::Track::pseudoRapidity() is based on slopes vector (Gaudi::XYZVector = ROOT::Match::XYZVector)
+// slopes = (Tx=dx/dz,Ty=dy/dz,1.)
+// eta() for XYZVector: https://root.cern.ch/doc/v608/namespaceROOT_1_1Math_1_1Impl.html#a7d4efefe2855d886fdbae73c81adc574
+// z = 1.f -> can simplify eta_from_rho_z
+float eta_from_rho(const float rho) {
+  const float z = 1.f;
+  if (rho > 0.f) {
+    
+    // value to control Taylor expansion of sqrt
+    static const float big_z_scaled =
+      std::pow(std::numeric_limits<float>::epsilon(),static_cast<float>(-.25));
+    
+    float z_scaled = z/rho;
+    if (std::fabs(z_scaled) < big_z_scaled) {
+      return std::log(z_scaled+std::sqrt(z_scaled*z_scaled+1.f));
+    } else {
+      // apply correction using first order Taylor expansion of sqrt
+      return  z>0.f ? std::log(2.f*z_scaled + 0.5f/z_scaled) : -std::log(-2.f*z_scaled);
+    }
+  }
+  // case vector has rho = 0
+  return z + 22756.f;
+}
+
 std::vector<Checker::Tracks> prepareVeloTracks(
   const uint* track_atomics,
   const uint* track_hit_number,
@@ -48,6 +72,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
+  const char* kalman_velo_states,
   const int* ut_track_atomics,
   const uint* ut_track_hit_number,
   const char* ut_track_hits,
@@ -61,6 +86,9 @@ std::vector<Checker::Tracks> prepareUTTracks(
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) velo_track_atomics, (uint*) velo_track_hit_number, i_event, number_of_events};
+    const Velo::Consolidated::States velo_states {
+      (char*) kalman_velo_states, velo_tracks.total_number_of_tracks};
+    const uint velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
     const UT::Consolidated::Tracks ut_tracks {(uint*) ut_track_atomics,
                                               (uint*) ut_track_hit_number,
                                               (float*) ut_qop,
@@ -70,12 +98,24 @@ std::vector<Checker::Tracks> prepareUTTracks(
     const uint number_of_tracks_event = ut_tracks.number_of_tracks(i_event);
 
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
+      const int velo_track_index = ut_tracks.velo_track[i_track];
+      const uint velo_state_index = velo_event_tracks_offset + velo_track_index;
+      const VeloState velo_state  = velo_states.get(velo_state_index);
+
       Checker::Track t;
 
       // momentum
       const float qop = ut_tracks.qop[i_track];
       t.p = 1.f / std::abs(qop);
       t.qop = qop;
+      // direction at first state -> velo state of track
+      const float tx = velo_state.tx;
+      const float ty = velo_state.ty;
+      const float slope2 = tx*tx + ty*ty;
+      t.pt = std::sqrt(slope2 / (1.f + slope2) ) / std::fabs(qop);
+      // pseudorapidity
+      const float rho = std::sqrt(slope2);
+      t.eta = eta_from_rho(rho);
 
       // hits in UT
       const uint ut_track_number_of_hits = ut_tracks.number_of_hits(i_track);
@@ -84,7 +124,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
         t.addId(track_hits_ut.LHCbID[i_hit]);
       }
       // get index to corresponding velo track
-      const int velo_track_index = ut_tracks.velo_track[i_track];
+      
       const uint velo_track_number_of_hits = velo_tracks.number_of_hits(velo_track_index);
       const Velo::Consolidated::Hits track_hits_velo = velo_tracks.get_hits((char*) velo_track_hits, velo_track_index);
       // hits in Velo
@@ -103,6 +143,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
+  const char* kalman_velo_states,
   const int* ut_track_atomics,
   const uint* ut_track_hit_number,
   const char* ut_track_hits,
@@ -125,13 +166,15 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) velo_track_atomics, (uint*) velo_track_hit_number, i_event, number_of_events};
+    const Velo::Consolidated::States velo_states {(char*) kalman_velo_states, velo_tracks.total_number_of_tracks};
+    const uint velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
     const UT::Consolidated::Tracks ut_tracks {(uint*) ut_track_atomics,
                                               (uint*) ut_track_hit_number,
                                               (float*) ut_qop,
                                               (uint*) ut_track_velo_indices,
                                               i_event,
                                               number_of_events};
-
+    
     SciFi::Consolidated::Tracks scifi_tracks {(uint*) scifi_track_atomics,
                                               (uint*) scifi_track_hit_number,
                                               (float*) scifi_qop,
@@ -140,14 +183,28 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
                                               i_event,
                                               number_of_events};
     const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
-
+    
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
+      const uint UT_track_index = scifi_tracks.ut_track[i_track];
+      const int velo_track_index = ut_tracks.velo_track[UT_track_index];
+      const uint velo_state_index = velo_event_tracks_offset + velo_track_index;
+      const VeloState velo_state  = velo_states.get(velo_state_index);
+      
       Checker::Track t;
 
       // momentum
       const float qop = scifi_tracks.qop[i_track];
       t.p = 1.f / std::abs(qop);
       t.qop = qop;
+      // direction at first state -> velo state of track
+      const float tx = velo_state.tx;
+      const float ty = velo_state.ty;
+      const float slope2 = tx*tx + ty*ty;
+      t.pt = std::sqrt(slope2 / (1.f + slope2) ) / std::fabs(qop);
+      // pseudorapidity
+      const float rho = std::sqrt(slope2);
+      t.eta = eta_from_rho(rho);
+      debug_cout << "rho = " << rho << ", eta = " << t.eta << std::endl;
 
       // add SciFi hits
       const uint scifi_track_number_of_hits = scifi_tracks.number_of_hits(i_track);
@@ -158,7 +215,6 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       }
 
       // add UT hits
-      const uint UT_track_index = scifi_tracks.ut_track[i_track];
       const uint ut_track_number_of_hits = ut_tracks.number_of_hits(UT_track_index);
       const UT::Consolidated::Hits track_hits_ut = ut_tracks.get_hits((char*) ut_track_hits, UT_track_index);
       for (int i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
@@ -166,7 +222,6 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       }
 
       // add Velo hits
-      const int velo_track_index = ut_tracks.velo_track[UT_track_index];
       const uint velo_track_number_of_hits = velo_tracks.number_of_hits(velo_track_index);
       const Velo::Consolidated::Hits track_hits_velo = velo_tracks.get_hits((char*) velo_track_hits, velo_track_index);
       for (int i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {

@@ -9,6 +9,8 @@
 #include "UTEventModel.cuh"
 #include "MiniState.cuh"
 
+float eta_from_rho(const float rho);
+
 /**
  * @brief Prepares tracks for Velo consolidated datatypes.
  */
@@ -25,6 +27,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
+  const char* kalman_velo_states,
   const int* ut_track_atomics,
   const uint* ut_track_hit_number,
   const char* ut_track_hits,
@@ -39,6 +42,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
+  const char* kalman_velo_states,
   const int* ut_track_atomics,
   const uint* ut_track_hit_number,
   const char* ut_track_hits,
