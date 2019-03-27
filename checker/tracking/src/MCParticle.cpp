@@ -35,4 +35,3 @@ uint32_t get_num_hits_subdetector<Checker::Subdetector::SciFi>(const MCParticle&
 {
   return mc_particle.scifi_num_hits;
 }
-
