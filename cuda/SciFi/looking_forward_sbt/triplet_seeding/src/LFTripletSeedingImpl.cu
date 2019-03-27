@@ -48,7 +48,7 @@ __device__ void lf_triplet_seeding_impl(
   // Initialize wmma shared memory arrays
   for (int16_t k = threadIdx.x; k < tile_size * tile_size; k += blockDim.x) {
     shared_wmma_a[k] = 0;
-    shared_wmma_a[k] = 0;
+    shared_wmma_b[k] = 0;
   }
   for (int16_t k = threadIdx.x; k < tile_size; k += blockDim.x) {
     shared_wmma_a[k] = 1;
