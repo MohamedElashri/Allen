@@ -23,7 +23,7 @@ void SequenceVisitor::visit<lf_prefix_sum_candidates_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  const auto number_of_ut_tracks = host_buffers.host_atomics_ut[2 * host_buffers.host_number_of_selected_events[0]];
+  const auto number_of_ut_tracks = host_buffers.host_number_of_reconstructed_ut_tracks[0];
 
   // Set size of the main array to be prefix summed
   state.set_size(number_of_ut_tracks * LookingForward::number_of_x_layers);
@@ -59,7 +59,7 @@ void SequenceVisitor::visit<lf_prefix_sum_candidates_t>(
   //   arguments.size<dev_scifi_lf_number_of_candidates>(),
   //   cudaMemcpyDeviceToHost));
 
-  // // const auto ut_total_number_of_tracks = host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] * 2];
+  // // const auto ut_total_number_of_tracks = host_buffers.host_number_of_reconstructed_ut_tracks[0];
   // for (size_t event_number=0; event_number<host_buffers.host_number_of_selected_events[0]; ++event_number) {
   //   const auto offset = host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] + event_number];
   //   const auto number_of_ut_tracks = host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] + event_number+1] - offset;

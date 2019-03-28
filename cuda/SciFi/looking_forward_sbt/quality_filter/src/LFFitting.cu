@@ -205,11 +205,11 @@ __device__ bool LookingForward::quadraticFitX_proto(
   while (doFit) {
     fitParabola_proto(scifi_hits, coordToFit, n_coordToFit, trackParameters, true);
 
-    float maxChi2 = 0.f;
+    float maxChi2 = 100.f;
     float totChi2 = 0.f;
     int nDoF = -3; // fitted 3 parameters
 
-    int worst = n_coordToFit;
+    int worst = -1;
     for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
       int hit = coordToFit[i_hit];
       float d = trackToHitDistance(trackParameters, scifi_hits, hit);

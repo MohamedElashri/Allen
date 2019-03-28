@@ -203,7 +203,7 @@ bool quadraticFitX_proto(
   while (doFit) {
     fitParabola_proto(scifi_hits, coordToFit, n_coordToFit, trackParameters, true);
 
-    float maxChi2 = 2000.f;
+    float maxChi2 = 100.f;
     float totChi2 = 0.f;
     int nDoF = -3; // fitted 3 parameters
 

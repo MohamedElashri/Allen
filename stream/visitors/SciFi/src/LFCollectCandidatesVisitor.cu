@@ -9,12 +9,12 @@ void SequenceVisitor::set_arguments_size<lf_collect_candidates_t>(
   const HostBuffers& host_buffers)
 {
   arguments.set_size<dev_scifi_lf_number_of_candidates>(
-    host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] * 2]
+    host_buffers.host_number_of_reconstructed_ut_tracks[0]
     * LookingForward::number_of_x_layers
     + 1);
 
   arguments.set_size<dev_scifi_lf_candidates>(
-    host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] * 2]
+    host_buffers.host_number_of_reconstructed_ut_tracks[0]
     * SciFi::Tracking::zoneoffsetpar
     * LookingForward::maximum_number_of_candidates);
 }
@@ -59,7 +59,7 @@ void SequenceVisitor::visit<lf_collect_candidates_t>(
   //   arguments.size<dev_scifi_lf_number_of_candidates>(),
   //   cudaMemcpyDeviceToHost));
 
-  // // const auto ut_total_number_of_tracks = host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] * 2];
+  // // const auto ut_total_number_of_tracks = host_buffers.host_number_of_reconstructed_ut_tracks[0];
   // for (size_t event_number=0; event_number<host_buffers.host_number_of_selected_events[0]; ++event_number) {
   //   const auto offset = host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] + event_number];
   //   const auto number_of_ut_tracks = host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] + event_number+1] - offset;

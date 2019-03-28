@@ -8,9 +8,8 @@ void SequenceVisitor::set_arguments_size<lf_search_initial_windows_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  const auto total_number_of_ut_tracks = host_buffers.host_atomics_ut[2 * host_buffers.host_number_of_selected_events[0]];
-  arguments.set_size<dev_scifi_lf_initial_windows>(total_number_of_ut_tracks * LookingForward::number_of_x_layers * 8);
-  arguments.set_size<dev_ut_states>(total_number_of_ut_tracks);
+  arguments.set_size<dev_scifi_lf_initial_windows>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::number_of_x_layers * 8);
+  arguments.set_size<dev_ut_states>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
 }
 
 template<>
