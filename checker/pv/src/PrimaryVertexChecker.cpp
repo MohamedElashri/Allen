@@ -192,7 +192,6 @@ void checkPVs(
       int nmrc = 0;
 
       // count not reconstructible MC PVs
-      std::cout << "----" << std::endl;
       std::vector<MCPVInfo>::iterator itmc;
       for (itmc = mcpvvec.begin(); mcpvvec.end() != itmc; itmc++) {
         rblemcpv.push_back(*itmc);
@@ -205,7 +204,6 @@ void checkPVs(
           vec_mc_x.push_back(itmc->pMCPV->x);
         vec_mc_y.push_back(itmc->pMCPV->y);
         vec_mc_z.push_back(itmc->pMCPV->z);
-        //std::cout << "MC vertex: " << itmc->pMCPV->x << " " << itmc->pMCPV->y << " " << itmc->pMCPV->z << std::endl;
         }
         if (itmc->nRecTracks < nTracksToBeRecble && itmc->nRecTracks > 1) {
           not_rble_but_visible.push_back(*itmc);
@@ -224,7 +222,6 @@ void checkPVs(
 
       int nFalsePV = 0;
       int nFalsePV_real = 0;
-      //std::cout << "----" << std::endl;
       for (int ipv = 0; ipv < (int) recpvvec.size(); ipv++) {
         int fake = 0;
         double x = recpvvec[ipv].x;
@@ -251,7 +248,6 @@ void checkPVs(
 
         if (recpvvec[ipv].indexMCPVInfo < 0) {
           nFalsePV++;
-          std::cout <<  "fake PV:" << recpvvec[ipv].x << " " << recpvvec[ipv].y << " " << recpvvec[ipv].z << std::endl;
           fake = 1;
           bool vis_found = false;
           for (unsigned int imc = 0; imc < not_rble_but_visible.size(); imc++) {
@@ -265,7 +261,6 @@ void checkPVs(
           } // imc
           if (!vis_found) nFalsePV_real++;
         }
-        //else std::cout <<"real PV:" << recpvvec[ipv].x << " " << recpvvec[ipv].y << " " << recpvvec[ipv].z << std::endl;
       }
 
       // Fill distance to closest recble MC PV and its multiplicity
@@ -329,7 +324,6 @@ void checkPVs(
         int rec_index = mc_vertex_info.indexRecPVInfo;
         MCVertex* mc_vertex = mc_vertex_info.pMCPV;
         if (rec_index < 0) {
-          //std::cout << "umatched mc vtx: " << mc_vertex->x << " " << mc_vertex->y << " " << mc_vertex->z << std::endl;
           continue;
         }
 
@@ -454,7 +448,6 @@ void checkPVs(
       erry = rec_pv.positionSigma.y;
       errz = rec_pv.positionSigma.z;
       isFake = rec_pv.indexMCPVInfo < 0;
-      //if(isFake) std::cout<<"fake: "
       allPV->Fill();
     }
     allPV->Write();
