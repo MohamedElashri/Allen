@@ -18,6 +18,7 @@ void SequenceVisitor::check<consolidate_scifi_tracks_t>(
     host_buffers.host_atomics_velo,
     host_buffers.host_velo_track_hit_number,
     host_buffers.host_velo_track_hits,
+    host_buffers.host_kalmanvelo_states,
     host_buffers.host_atomics_ut,
     host_buffers.host_ut_track_hit_number,
     host_buffers.host_ut_track_hits,

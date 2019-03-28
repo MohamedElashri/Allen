@@ -23,7 +23,7 @@ private:
 public:
   constexpr LHCbID(uint32_t id) : m_id(id) {}
 
-  enum channelIDtype { Velo = 0x8, FT = 0xa, UT = 0x0 };
+  enum channelIDtype { Velo = 0x8, FT = 0xa, UT = 0xb };
 
   LHCbID() = default;
   LHCbID(const LHCbID& other) = default;

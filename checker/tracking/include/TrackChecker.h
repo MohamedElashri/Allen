@@ -47,7 +47,6 @@ protected:
     float m_effperevt = 0.f;
     float m_hitpur = 0.f;
     float m_hiteff = 0.f;
-    std::set<uint32_t> m_keysseen;
 
     /// no default construction
     TrackEffReport() = delete;
@@ -71,12 +70,9 @@ protected:
     void operator()(const MCParticles& mcps);
     /// register track and its MC association
     void operator()(
-      Checker::Tracks::const_reference& track,
+      const std::vector<MCAssociator::TrackWithWeight> tracks,
       MCParticles::const_reference& mcp,
-      const float weight,
-      const std::function<uint32_t(const MCParticle&)>& get_num_hits);
-    /// notify of end of event
-    void evtEnds();
+      const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
     /// free resources, and print result
     ~TrackEffReport();
   };
@@ -84,7 +80,6 @@ protected:
   struct HistoCategory {
     std::string m_name;
     AcceptFn m_accept;
-    std::set<uint32_t> m_keysseen;
 
     /// construction from name and accept criterion for eff. denom.
     template<typename F>
@@ -94,8 +89,6 @@ protected:
     template<typename F>
     HistoCategory(std::string&& name, F&& accept) : m_name(std::move(name)), m_accept(std::move(accept))
     {}
-    /// notify of end of event
-    void evtEnds();
   };
 
   std::vector<TrackEffReport> m_categories;
@@ -137,6 +130,9 @@ protected:
   std::size_t m_ntracks = 0;
   std::size_t m_nghosts = 0;
   float m_ghostperevent = 0.f;
+  float m_ghosttriggerperevent = 0.f;
+  std::size_t m_ntrackstrigger = 0;
+  std::size_t m_nghoststrigger = 0;
 
   virtual void SetHistoCategories() = 0;
   virtual void SetCategories() = 0;
@@ -147,8 +143,14 @@ public:
   std::vector<uint32_t> operator()(
     const Checker::Tracks& tracks,
     const MCEvent& mc_event,
-    const std::function<uint32_t(const MCParticle&)>& get_num_hits);
+    const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
   const std::vector<HistoCategory>& histo_categories() const { return m_histo_categories; }
+  bool match_track_to_MCPs(
+    MCAssociator mc_assoc,
+    const Checker::Tracks& tracks,
+    const int i_track,
+    std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table);
+
   Histos histos;
 };
 

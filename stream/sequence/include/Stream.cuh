@@ -67,7 +67,7 @@ struct Stream {
     const Constants& param_constants,
     const bool do_check);
 
-  void run_monte_carlo_test(const std::string& mc_folder, const uint number_of_events_requested);
+  void run_monte_carlo_test(const std::string& mc_folder, const uint number_of_events_requested, const std::vector<Checker::Tracks>& forward_tracks);
 
   cudaError_t run_sequence(const RuntimeOptions& runtime_options);
 };

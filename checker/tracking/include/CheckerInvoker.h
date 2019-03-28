@@ -55,17 +55,13 @@ struct CheckerInvoker {
 #ifdef WITH_ROOT
       track_checker.histos.initHistos(track_checker.histo_categories());
 #endif
-      int n_other_pids = 0;
-      int n_pids = 0;
       for (int evnum = 0; evnum < selected_mc_events.size(); ++evnum) {
         const auto& mc_event = selected_mc_events[evnum];
         const auto& event_tracks = tracks[evnum];
 
-        // const auto& mcps = mc_event.mc_particles<T>();
-        // MCAssociator mcassoc {mcps};
-
         std::vector<uint32_t> matched_mcp_keys =
-          track_checker(event_tracks, mc_event, get_num_hits<typename T::subdetector_t>);
+          track_checker(event_tracks, mc_event, get_num_hits_subdetector<typename T::subdetector_t>);
+
         std::vector<std::vector<uint32_t>> scifi_ids_tracks;
         std::vector<float> p_tracks;
         for (const auto key : matched_mcp_keys) {
@@ -75,16 +71,8 @@ struct CheckerInvoker {
             // Find this MCP
             for (const auto mcp : mc_event.m_mcps) {
               if (mcp.key == key) {
-                // mu- (13): positive PID
-                float charge;
-                if (std::abs(mcp.pid) == 13) {
-                  charge = -1. * std::copysign(1., mcp.pid);
-                }
-                // pi+, K+: positive PID
-                else
-                  charge = std::copysign(1., mcp.pid);
                 // Save momentum and charge of this MCP
-                p = mcp.p * charge;
+                p = mcp.p * mcp.charge;
                 // debug_cout << "Adding particle with PID = " << mcp.pid << " and charge " << charge << std::endl;
                 // Find SciFi IDs of this MCP
                 if (mcp.isLong) { // found matched long MCP
@@ -122,7 +110,6 @@ struct CheckerInvoker {
           }
         }
       }
-      debug_cout << "Fraction of PIDs w/o charge ID = " << float(n_other_pids) / n_pids << std::endl;
     }
     return scifi_ids_events;
   }

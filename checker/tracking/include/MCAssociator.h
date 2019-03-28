@@ -36,11 +36,26 @@ struct MCAssociator {
     MCParticleWithWeight& operator=(const MCParticleWithWeight&) = default;
     MCParticleWithWeight& operator=(MCParticleWithWeight&&) = default;
   };
+  // internal structure with index into tracks matched to an MCP
+  struct TrackWithWeight {
+    int m_idx;
+    float m_w;
+    int m_counter_subdetector;
+    TrackWithWeight(int idx, float w, int counter_subdetector) :
+      m_idx(idx), m_w(w), m_counter_subdetector(counter_subdetector)
+    {}
+    TrackWithWeight(const TrackWithWeight&) = default;
+    TrackWithWeight(TrackWithWeight&&) = default;
+    TrackWithWeight& operator=(const TrackWithWeight&) = default;
+    TrackWithWeight& operator=(TrackWithWeight&&) = default;
+  };
   const MCParticles& m_mcps; // keep a reference to MCParticles
   AssocMap m_map;            // association LHCbID -> MCParticle index
 
   // little helper which does the hard work
   AssocMap::const_iterator find_id(const LHCbID&) const noexcept;
+  AssocMap::const_iterator find_id(const LHCbID&, const AssocMap::const_iterator& begin) const noexcept;
+  std::vector<AssocMap::const_iterator> find_ids(const LHCbID&) const noexcept;
 
   MCAssociator(const MCParticles& mcps);
   MCAssociator(const MCAssociator&) = default;
@@ -52,6 +67,7 @@ struct MCAssociator {
   class MCAssocResult {
   private:
     using AssocVector = std::vector<MCParticleWithWeight>;
+    using AssocTable = std::map<MCParticle, std::vector<TrackWithWeight>>;
     AssocVector m_assoc;
     const MCParticles& m_mcps;
 
