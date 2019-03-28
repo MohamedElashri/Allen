@@ -31,16 +31,14 @@ __global__ void pv_beamline_cleanup(
         float variance2 = vertex2.cov22;
         float chi2_dist = (z1 - z2) * (z1 - z2);
         chi2_dist = chi2_dist / (variance1 + variance2);
-        if (chi2_dist < minChi2Dist || (z1 - z2) * (z1 - z2) < 1.f) {unique = false;
-        //  vertex1.position.z = 0.5f * (z1+z2);
-        //  vertex1.cov22 = 0.5f * (vertex1.cov22 + vertex2.cov22);
+        if (chi2_dist < minChi2Dist || (z1 - z2) * (z1 - z2) < 1.f) {
+          unique = false;
         }
       }
       if (unique) {
         final_vertices[tmp_number_vertices] = vertex1;
         tmp_number_vertices++;
       }
-      //else vertices[i_pv] = vertex1;
     }
     dev_number_of_multi_final_vertices[event_number] = tmp_number_vertices;
   }

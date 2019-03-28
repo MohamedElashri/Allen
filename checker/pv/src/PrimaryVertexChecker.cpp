@@ -195,15 +195,14 @@ void checkPVs(
       std::vector<MCPVInfo>::iterator itmc;
       for (itmc = mcpvvec.begin(); mcpvvec.end() != itmc; itmc++) {
         rblemcpv.push_back(*itmc);
-        
 
         if (itmc->nRecTracks < nTracksToBeRecble) {
           nmrc++;
         }
         else {
           vec_mc_x.push_back(itmc->pMCPV->x);
-        vec_mc_y.push_back(itmc->pMCPV->y);
-        vec_mc_z.push_back(itmc->pMCPV->z);
+          vec_mc_y.push_back(itmc->pMCPV->y);
+          vec_mc_z.push_back(itmc->pMCPV->z);
         }
         if (itmc->nRecTracks < nTracksToBeRecble && itmc->nRecTracks > 1) {
           not_rble_but_visible.push_back(*itmc);
@@ -317,7 +316,7 @@ void checkPVs(
       sum_nFalsePV_real += nFalsePV_real;
 
       int counter_ghosts = 0;
-      int norm_ghosts    = 0;
+      int norm_ghosts = 0;
 
       // loop over matched MC PVs and get pull and errors
       for (auto mc_vertex_info : rblemcpv) {
@@ -327,11 +326,11 @@ void checkPVs(
           continue;
         }
 
-        //counter_ghosts += mc_vertex_info.number_rec_vtx;
-        //norm_ghosts++;
+        // counter_ghosts += mc_vertex_info.number_rec_vtx;
+        // norm_ghosts++;
         sum_clones += mc_vertex_info.number_rec_vtx;
         sum_norm_clones++;
-        
+
         double diff_x = recpvvec[rec_index].x - mc_vertex->x;
         double diff_y = recpvvec[rec_index].y - mc_vertex->y;
         double diff_z = recpvvec[rec_index].z - mc_vertex->z;
@@ -373,8 +372,7 @@ void checkPVs(
     printRat("False rate", sum_nFalsePV, sum_nRecMCPV + sum_nFalsePV);
     printRat("Real false rate", sum_nFalsePV_real, sum_nRecMCPV + sum_nFalsePV_real);
 
-
-    info_cout << "ghosts: " << 1.0f *sum_clones/sum_norm_clones - 1.f << std::endl << std::endl;
+    info_cout << "ghosts: " << 1.0f * sum_clones / sum_norm_clones - 1.f << std::endl << std::endl;
 
 // save information about matched reconstructed PVs for pulls distributions
 #ifdef WITH_ROOT
@@ -416,21 +414,21 @@ void checkPVs(
     }
     tree->Write();
 
-    double mc_x,mc_y,mc_z;
+    double mc_x, mc_y, mc_z;
 
-    TTree * mctree = new TTree("MC_tree","MC_tree");
-    mctree->Branch("x",&mc_x);
-    mctree->Branch("y",&mc_y);
-    mctree->Branch("z",&mc_z);
-    for(int j = 0; j < vec_mc_x.size();j++) {
+    TTree* mctree = new TTree("MC_tree", "MC_tree");
+    mctree->Branch("x", &mc_x);
+    mctree->Branch("y", &mc_y);
+    mctree->Branch("z", &mc_z);
+    for (int j = 0; j < vec_mc_x.size(); j++) {
       mc_x = vec_mc_x.at(j);
       mc_y = vec_mc_y.at(j);
       mc_z = vec_mc_z.at(j);
       mctree->Fill();
     }
 
-    TTree * allPV = new TTree("allPV","allPV");
-    double x,y,z,errx,erry,errz;
+    TTree* allPV = new TTree("allPV", "allPV");
+    double x, y, z, errx, erry, errz;
     bool isFake;
     allPV->Branch("x", &x);
     allPV->Branch("y", &y);
@@ -440,7 +438,7 @@ void checkPVs(
     allPV->Branch("errz", &errz);
     allPV->Branch("isFake", &isFake);
 
-    for(auto rec_pv : vec_all_rec) {
+    for (auto rec_pv : vec_all_rec) {
       x = rec_pv.x;
       y = rec_pv.y;
       z = rec_pv.z;
