@@ -30,7 +30,7 @@ float propagate_x_from_velo(const MiniState& UT_state, float qop, int layer)
   const auto propagated_state = propagate_state_from_velo(UT_state, qop, layer);
   return propagated_state.x;
 }
- 
+
 MiniState propagate_state_from_velo(const MiniState& UT_state, float qop, int layer)
 {
   MiniState final_state;
@@ -692,7 +692,8 @@ std::tuple<int, float> get_best_hit(
   return {best_idx, min_chi2};
 }
 
-void single_track_quality_update (SciFi::TrackHits& track,
+void single_track_quality_update(
+  SciFi::TrackHits& track,
   const MiniState& velo_state,
   const float VeloUT_qOverP,
   const SciFi::Tracking::Arrays* constArrays,
@@ -709,7 +710,7 @@ void single_track_quality_update (SciFi::TrackHits& track,
   int n_hits = 0;
   int n_uv_hits = 0;
 
-  const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
+  const bool is_x_plane[12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
   for (int i = 0; i < track.hitsNum; ++i) {
     const int offset = event_offset + ((int) track.hits[i]);
     const int plane_code = scifi_hits.planeCode(offset) >> 1;
@@ -734,7 +735,6 @@ void single_track_quality_update (SciFi::TrackHits& track,
   float trackParams[SciFi::Tracking::nTrackParams];
   getTrackParameters(xAtRef_average, velo_state, constArrays, trackParams);
 
-
   // fit uv hits to update parameters related to y coordinate
   // update trackParams [4] [5] [6]
   fitYProjection_proto(velo_state, constArrays, uv_hits, n_uv_hits, scifi_hits, trackParams);
@@ -749,14 +749,15 @@ void single_track_quality_update (SciFi::TrackHits& track,
   // remove outliers with worst chi2
   quadraticFitX_proto(scifi_hits, hits, n_hits, trackParams, true);
 
-  for (int i=0; i<n_hits; ++i) {
+  for (int i = 0; i < n_hits; ++i) {
     track.hits[i] = hits[i] - event_offset; // hits[i] - event_offset
   }
   track.hitsNum = n_hits;
   track.quality = trackParams[7] / ((float) trackParams[8]);
 }
 
-float TMVA_quality (SciFi::TrackHits& track,
+float TMVA_quality(
+  SciFi::TrackHits& track,
   const MiniState& velo_state,
   const float VeloUT_qOverP,
   const SciFi::Tracking::Arrays* constArrays,
@@ -785,7 +786,7 @@ float TMVA_quality (SciFi::TrackHits& track,
   // }
   // printf("\n");
 
-  const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
+  const bool is_x_plane[12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
   for (int i = 0; i < track.hitsNum; ++i) {
     const int offset = event_offset + ((int) track.hits[i]);
     const int plane_code = scifi_hits.planeCode(offset) >> 1;
@@ -850,8 +851,8 @@ float TMVA_quality (SciFi::TrackHits& track,
   const float xAtRef = trackParams[0];
   float dSlope = (velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx - xAtRef) /
                  (SciFi::Tracking::zReference - constArrays->zMagnetParams[0]);
-  const float zMagSlope =
-    constArrays->zMagnetParams[2] * velo_state.tx * velo_state.tx + constArrays->zMagnetParams[3] * velo_state.ty * velo_state.ty;
+  const float zMagSlope = constArrays->zMagnetParams[2] * velo_state.tx * velo_state.tx +
+                          constArrays->zMagnetParams[3] * velo_state.ty * velo_state.ty;
   const float zMag = constArrays->zMagnetParams[0] + constArrays->zMagnetParams[1] * dSlope * dSlope + zMagSlope;
   const float xMag = velo_state.x + (zMag - velo_state.z) * velo_state.tx;
   const float slopeT = (xAtRef - xMag) / (SciFi::Tracking::zReference - zMag);
@@ -909,14 +910,8 @@ void filter_tracks_with_TMVA(
   int best_track = -1;
 
   for (int k = 0; k < tracks.size(); ++k) {
-    const auto quality = TMVA_quality(tracks[k],
-      velo_state,
-      VeloUT_qOverP,
-      constArrays,
-      tmva1,
-      tmva2,
-      scifi_hits,
-      event_offset);
+    const auto quality =
+      TMVA_quality(tracks[k], velo_state, VeloUT_qOverP, constArrays, tmva1, tmva2, scifi_hits, event_offset);
 
     if (quality > best_quality) {
       best_quality = quality;

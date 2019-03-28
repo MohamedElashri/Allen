@@ -27,14 +27,13 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const SciFi::TrackHits* host_scifi_tracks,
   const int* host_atomics_scifi)
 {
-  const bool run_algorithm = true;
+  const bool run_algorithm = false;
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
-  const auto print_track = [] (const SciFi::TrackHits& track) {
-    info_cout << "{ut track " << track.ut_track_index << ", "
-      << ((int) track.hitsNum) << " hits: ";
+  const auto print_track = [](const SciFi::TrackHits& track) {
+    info_cout << "{ut track " << track.ut_track_index << ", " << ((int) track.hitsNum) << " hits: ";
 
-    for (int i=0; i<track.hitsNum; ++i) {
+    for (int i = 0; i < track.hitsNum; ++i) {
       info_cout << track.hits[i] << ", ";
     }
     info_cout << track.get_quality() << "}";
@@ -74,7 +73,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const int ut_event_tracks_offset = ut_tracks.tracks_offset(i_event);
 
       // SciFi non-consolidated types
-      const uint total_number_of_hits = host_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+      const uint total_number_of_hits =
+        host_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
       SciFi::HitCount scifi_hit_count {(uint32_t*) host_scifi_hit_count, i_event};
 
       const SciFi::SciFiGeometry scifi_geometry(host_scifi_geometry);
@@ -89,9 +89,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       float tx, ty;
 
       // Flagging mechanism
-      std::vector<bool> event_common_flag (scifi_hit_count.event_number_of_hits(), false);
+      std::vector<bool> event_common_flag(scifi_hit_count.event_number_of_hits(), false);
       std::vector<std::vector<bool>> event_multi_flag;
-      for (int i=0; i<n_veloUT_tracks_event; ++i) {
+      for (int i = 0; i < n_veloUT_tracks_event; ++i) {
         std::vector<bool> flag(scifi_hit_count.event_number_of_hits(), false);
         event_multi_flag.push_back(flag);
       }
@@ -221,10 +221,10 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         const float zRef_track = SciFi::Tracking::zReference;
         const float xAtRef = xFromVelo(zRef_track, UT_state);
         const float yAtRef = yFromVelo(zRef_track, UT_state);
-      
+
         float bs_x[4] {xAtRef, UT_state.tx, 0, 0};
         float bs_y[4] {yAtRef, UT_state.ty, 0, 0};
-      
+
         // collectAllXHits_proto(
         //   scifi_hits,
         //   scifi_hit_count,
@@ -251,16 +251,15 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           parameters_uv,
           window_params,
           true_scifi_indices_per_layer);
-         
+
         // Collect all X candidates
         // std::array<std::vector<int>, 6> hits_in_layers =
         //   collect_x_candidates(scifi_hits, windows_x, windows_uv, parameters_uv);
-        
-        std::array<std::vector<int>, 6> hits_in_layers =
-          collect_x_candidates_p(scifi_hits, windows_x, windows_uv, qop);
+
+        std::array<std::vector<int>, 6> hits_in_layers = collect_x_candidates_p(scifi_hits, windows_x, windows_uv, qop);
 
         // Restrict to a max number of hits
-        for (int i=0; i<6; ++i) {
+        for (int i = 0; i < 6; ++i) {
           if (hits_in_layers[i].size() > LookingForward::maximum_number_of_candidates) {
             hits_in_layers[i].resize(LookingForward::maximum_number_of_candidates);
           }
@@ -297,7 +296,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const std::array<float, 3> chi2_mean_extrapolation_to_x_layers {3.09f, 1.98f, 3.89f};
       const std::array<float, 3> chi2_stddev_extrapolation_to_x_layers {6.33f, 5.09f, 7.42f};
 
-      // Extrapolation to UV 
+      // Extrapolation to UV
       const std::array<int, 6> extrapolation_layers {1, 2, 5, 6, 9, 10};
       const std::array<float, 6> extrapolation_stddev {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
       const std::array<float, 6> chi2_extrapolation_mean {1.304f, 1.384f, 4.577f, 6.587f, 36.1f, 44.67f};
@@ -309,7 +308,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const bool use_flagging = false;
       const bool use_flagging_in_l0_l3_layers = false;
       const bool use_multi_flags = true;
-      const bool iterate_all_hits_uv = true;
+      const bool iterate_all_hits_uv = false;
 
       // Extra triplets
       // std::array<std::tuple<int, int, int>, 2> extra_triplets {{std::make_tuple(0, 1, 5), std::make_tuple(0, 4, 5)}};
@@ -321,7 +320,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
       const float chi2_stddev_triplet_extra = 14.05f;
       const int max_candidates_triplets_extra = 20;
 
-      std::vector<std::vector<SciFi::TrackHits>> event_scifi_tracks (n_veloUT_tracks_event);
+      std::vector<std::vector<SciFi::TrackHits>> event_scifi_tracks(n_veloUT_tracks_event);
 
       for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
         auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
@@ -336,11 +335,12 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           event_offset,
           layers,
           event_hits_in_layers[i_veloUT_track],
-          triplets_middle_layer-1,
+          triplets_middle_layer - 1,
           triplets_middle_layer,
-          triplets_middle_layer+1,
-          max_candidates_triplets[triplets_middle_layer-1],
-          chi2_mean_triplet[triplets_middle_layer-1] + factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer-1],
+          triplets_middle_layer + 1,
+          max_candidates_triplets[triplets_middle_layer - 1],
+          chi2_mean_triplet[triplets_middle_layer - 1] +
+            factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer - 1],
           false,
           i_veloUT_track,
           event_UT_state[i_veloUT_track],
@@ -355,7 +355,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           event_hits_in_layers[i_veloUT_track],
           extend_layer,
           event_offset,
-          chi2_mean_extrapolation_to_x_layers[extend_layer - 3] + factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
+          chi2_mean_extrapolation_to_x_layers[extend_layer - 3] +
+            factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
           scifi_tracks,
           flag,
           i_veloUT_track);
@@ -374,11 +375,12 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           event_offset,
           layers,
           event_hits_in_layers[i_veloUT_track],
-          triplets_middle_layer-1,
+          triplets_middle_layer - 1,
           triplets_middle_layer,
-          triplets_middle_layer+1,
-          max_candidates_triplets[triplets_middle_layer-1],
-          chi2_mean_triplet[triplets_middle_layer-1] + factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer-1],
+          triplets_middle_layer + 1,
+          max_candidates_triplets[triplets_middle_layer - 1],
+          chi2_mean_triplet[triplets_middle_layer - 1] +
+            factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer - 1],
           use_flagging,
           i_veloUT_track,
           event_UT_state[i_veloUT_track],
@@ -393,7 +395,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           event_hits_in_layers[i_veloUT_track],
           extend_layer,
           event_offset,
-          chi2_mean_extrapolation_to_x_layers[extend_layer - 3] + factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
+          chi2_mean_extrapolation_to_x_layers[extend_layer - 3] +
+            factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
           scifi_tracks,
           flag,
           i_veloUT_track);
@@ -412,11 +415,12 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           event_offset,
           layers,
           event_hits_in_layers[i_veloUT_track],
-          triplets_middle_layer-1,
+          triplets_middle_layer - 1,
           triplets_middle_layer,
-          triplets_middle_layer+1,
-          max_candidates_triplets[triplets_middle_layer-1],
-          chi2_mean_triplet[triplets_middle_layer-1] + factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer-1],
+          triplets_middle_layer + 1,
+          max_candidates_triplets[triplets_middle_layer - 1],
+          chi2_mean_triplet[triplets_middle_layer - 1] +
+            factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer - 1],
           use_flagging,
           i_veloUT_track,
           event_UT_state[i_veloUT_track],
@@ -431,7 +435,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           event_hits_in_layers[i_veloUT_track],
           extend_layer,
           event_offset,
-          chi2_mean_extrapolation_to_x_layers[extend_layer - 3] + factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
+          chi2_mean_extrapolation_to_x_layers[extend_layer - 3] +
+            factor_chi2_extend * chi2_stddev_extrapolation_to_x_layers[extend_layer - 3],
           scifi_tracks,
           flag,
           i_veloUT_track);
@@ -450,11 +455,12 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           event_offset,
           layers,
           event_hits_in_layers[i_veloUT_track],
-          triplets_middle_layer-1,
+          triplets_middle_layer - 1,
           triplets_middle_layer,
-          triplets_middle_layer+1,
-          max_candidates_triplets[triplets_middle_layer-1],
-          chi2_mean_triplet[triplets_middle_layer-1] + factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer-1],
+          triplets_middle_layer + 1,
+          max_candidates_triplets[triplets_middle_layer - 1],
+          chi2_mean_triplet[triplets_middle_layer - 1] +
+            factor_chi2_triplet * chi2_stddev_triplet[triplets_middle_layer - 1],
           use_flagging,
           i_veloUT_track,
           event_UT_state[i_veloUT_track],
@@ -473,10 +479,13 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         const int number_of_tracks = scifi_tracks.size();
         for (auto it = scifi_tracks.begin(); it != scifi_tracks.end();) {
           const auto& track = *it;
-          if (track.hitsNum > 3 || (track.hitsNum == 3 && track.quality < chi2_track_x_cut && number_of_tracks < max_num_track)) {
+          if (
+            track.hitsNum > 3 ||
+            (track.hitsNum == 3 && track.quality < chi2_track_x_cut && number_of_tracks < max_num_track)) {
             ++it;
             total_tracks++;
-          } else {
+          }
+          else {
             cut_tracks++;
             total_tracks++;
             it = scifi_tracks.erase(it);
@@ -496,7 +505,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
         auto& flag = use_multi_flags ? event_multi_flag[i_veloUT_track] : event_common_flag;
 
-        for (int i=0; i<final_layers.size(); ++i) {
+        for (int i = 0; i < final_layers.size(); ++i) {
           const auto j = 1 - i;
 
           const int layer = final_layers[j];
@@ -564,7 +573,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         for (int i = 0; i < extrapolation_layers.size(); ++i) {
           const int layer = extrapolation_layers[i];
           const auto projection_y = y_at_z(event_UT_state[i_veloUT_track], SciFi::LookingForward::Zone_zPos[layer]);
-          
+
           for (auto& track : scifi_tracks) {
             single_track_propagation(
               scifi_hits,
@@ -590,7 +599,8 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           const auto& track = *it;
           if (track.hitsNum >= 9) {
             ++it;
-          } else {
+          }
+          else {
             it = scifi_tracks.erase(it);
           }
         }
@@ -598,7 +608,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
       for (int i_veloUT_track = 0; i_veloUT_track < n_veloUT_tracks_event; ++i_veloUT_track) {
         auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
-        
+
         // filter_tracks_with_TMVA(
         //     scifi_tracks,
         //     event_trackhits,
@@ -610,40 +620,40 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         //     scifi_hits,
         //     scifi_hit_count.event_offset());
 
-        // for (const auto& track : scifi_tracks) {
-        //   event_trackhits.push_back(track);
+        for (const auto& track : scifi_tracks) {
+          event_trackhits.push_back(track);
+        }
+
+        // int best_track = -1;
+        // float best_quality = 100000.f;
+        // for (int i=0; i<scifi_tracks.size(); ++i) {
+        //   auto& track = scifi_tracks[i];
+        //   single_track_quality_update(
+        //     track,
+        //     event_velo_state[i_veloUT_track],
+        //     event_qop[i_veloUT_track],
+        //     &constArrays,
+        //     &tmva1,
+        //     &tmva2,
+        //     scifi_hits,
+        //     scifi_hit_count.event_offset());
+
+        //   if (track.hitsNum >= 9 && track.quality < best_quality) {
+        //     best_track = i;
+        //     best_quality = track.quality;
+        //   }
         // }
-        
-        int best_track = -1;
-        float best_quality = 100000.f;
 
-        for (int i=0; i<scifi_tracks.size(); ++i) {
-          auto& track = scifi_tracks[i];
+        // if (best_track != -1) {
+        //   // auto& track = scifi_tracks[best_track];
+        //   // for (int i=0; i<track.hitsNum; ++i) {
+        //   //   track.hits[i] = 10000;
+        //   // }
 
-          single_track_quality_update(
-            track,
-            event_velo_state[i_veloUT_track],
-            event_qop[i_veloUT_track],
-            &constArrays,
-            &tmva1,
-            &tmva2,
-            scifi_hits,
-            scifi_hit_count.event_offset());
+        //   // Check if track has MC hit
 
-          if (track.hitsNum >= 9 && track.quality < best_quality) {
-            best_track = i;
-            best_quality = track.quality;
-          }
-        }
-
-        if (best_track != -1) {
-          // auto& track = scifi_tracks[best_track];
-          // for (int i=0; i<track.hitsNum; ++i) {
-          //   track.hits[i] = 10000;
-          // }
-
-          event_trackhits.push_back(scifi_tracks[best_track]);
-        }
+        //   event_trackhits.push_back(scifi_tracks[best_track]);
+        // }
       }
 
       // float best_fit = 100.f;
@@ -687,7 +697,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         if (event_trackhits.size() != number_of_tracks_gpu) {
           validated = false;
           info_cout << "Number of tracks CPU: " << event_trackhits.size() << std::endl
-            << "Number of tracks GPU: " << number_of_tracks_gpu << std::endl;
+                    << "Number of tracks GPU: " << number_of_tracks_gpu << std::endl;
         }
 
         for (const auto& track : event_trackhits) {
@@ -697,7 +707,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
             if (track.hitsNum == gpu_track.hitsNum) {
               bool same = true;
-              for (int j=0; j<track.hitsNum; ++j) {
+              for (int j = 0; j < track.hitsNum; ++j) {
                 same &= track.hits[j] == gpu_track.hits[j];
               }
               found |= same;
@@ -723,7 +733,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
 
             if (track.hitsNum == gpu_track.hitsNum) {
               bool same = true;
-              for (int j=0; j<track.hitsNum; ++j) {
+              for (int j = 0; j < track.hitsNum; ++j) {
                 same &= track.hits[j] == gpu_track.hits[j];
               }
               found |= same;

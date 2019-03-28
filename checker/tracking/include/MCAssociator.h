@@ -41,7 +41,9 @@ struct MCAssociator {
     int m_idx;
     float m_w;
     int m_counter_subdetector;
-    TrackWithWeight(int idx, float w, int counter_subdetector) : m_idx(idx), m_w(w), m_counter_subdetector(counter_subdetector) {}
+    TrackWithWeight(int idx, float w, int counter_subdetector) :
+      m_idx(idx), m_w(w), m_counter_subdetector(counter_subdetector)
+    {}
     TrackWithWeight(const TrackWithWeight&) = default;
     TrackWithWeight(TrackWithWeight&&) = default;
     TrackWithWeight& operator=(const TrackWithWeight&) = default;
@@ -65,7 +67,7 @@ struct MCAssociator {
   class MCAssocResult {
   private:
     using AssocVector = std::vector<MCParticleWithWeight>;
-    using AssocTable = std::map<MCParticle, std::vector<TrackWithWeight> >;
+    using AssocTable = std::map<MCParticle, std::vector<TrackWithWeight>>;
     AssocVector m_assoc;
     const MCParticles& m_mcps;
 
@@ -162,12 +164,12 @@ struct MCAssociator {
     std::tuple<MCParticles::const_reference, float, int> back() const noexcept { return *--end(); }
   };
 
-// private:
+  // private:
   using AssocPreResult = std::map<std::size_t, std::size_t>;
   /// little helper for the final step of multi-MCP association
   MCAssocResult buildResult(const AssocPreResult& assocmap, std::size_t total) const noexcept;
 
-// public:
+  // public:
   /// associate a single LHCbID
   MCAssocResult operator()(LHCbID id) const noexcept
   {

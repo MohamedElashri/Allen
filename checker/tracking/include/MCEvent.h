@@ -34,7 +34,7 @@ struct MCEvent {
 
   // Checks if a LHCb ID is in a particular subdetector
   bool is_subdetector_impl(const LHCbIDs& vector, const LHCbID& id) const;
-  
+
   // Subdetector-specialized check
   template<typename T>
   bool is_subdetector(const LHCbID& id) const;

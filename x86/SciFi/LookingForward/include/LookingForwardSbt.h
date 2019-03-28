@@ -9,17 +9,18 @@ struct Tracklet {
   int hits[6];
   int numHits = 0;
   Tracklet() : numHits(0), quality(0.f) {}
-  void add_hit(const int hit) {
-    hits[numHits++] = hit;
-  }
-  void add_hit_with_quality(const int hit, const float chi2) {
+  void add_hit(const int hit) { hits[numHits++] = hit; }
+  void add_hit_with_quality(const int hit, const float chi2)
+  {
     hits[numHits++] = hit;
     quality += chi2;
   }
-  float get_quality() {
+  float get_quality()
+  {
     if (numHits < 3) {
       return 10000.f;
-    } else {
+    }
+    else {
       return quality / ((float) numHits - 2);
     }
   }
@@ -57,7 +58,7 @@ std::vector<std::tuple<int, int>> find_compatible_window_p(
   const std::vector<int>& hits_in_layer_from,
   const std::vector<int>& hits_in_layer_to,
   const float dx_stddev,
-  const float compatible_window_factor, 
+  const float compatible_window_factor,
   const bool forward,
   const float pt,
   const float qOverP);
