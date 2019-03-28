@@ -65,7 +65,6 @@ __global__ void pv_beamline_multi_fitter(
         const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
         // debug_cout << "chi2 = " << chi2 << ", max = " << chi2max << std::endl;
         // compute the weight.
-        trk.weight = 0.f;
         if (chi2 < maxChi2) { // to branch or not, that is the question!
                               // if (true) {
           ++nselectedtracks;
@@ -73,9 +72,9 @@ __global__ void pv_beamline_multi_fitter(
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
           // https://cds.cern.ch/record/803519/files/p280.pdf
 
-          trk.weight = exp(-chi2 * 0.5f);
-          auto denom = exp(-chi2Cut * 0.5f) + trk.weight;
-          auto my_nom = 0.f;
+          auto denom = exp(-chi2Cut * 0.5f) + exp(-chi2 * 0.5f);
+          auto nom = 1.f;
+
           for (int i_otherseed = 0; i_otherseed < number_of_seeds; i_otherseed++) {
             // if(i_thisseed == i_otherseed) continue;
             float2 res_otherseed {0.f, 0.f};
@@ -88,9 +87,9 @@ __global__ void pv_beamline_multi_fitter(
             const auto chi2_otherseed =
               res_otherseed.x * res_otherseed.x * trk.W_00 + res_otherseed.y * res_otherseed.y * trk.W_11;
             denom += exp(-chi2_otherseed * 0.5f);
-            if (i_thisseed == i_otherseed) my_nom = exp(-chi2_otherseed * 0.5f);
+            if (i_thisseed == i_otherseed) nom = exp(-chi2_otherseed * 0.5f);
           }
-          trk.weight = my_nom / denom;
+          trk.weight = nom / denom;
 
           // unfortunately branchy, but reduces fake rate
           if (trk.weight < minWeight) continue;
