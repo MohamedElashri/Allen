@@ -13,10 +13,9 @@ static constexpr float minTracksInSeed = 2.5f; // "MinTrackIntegralInSeed"
 static constexpr float maxVertexRho2 = 0.05f;  // unit:: mm^2 "Maximum distance squared of vertex to beam line"
 static constexpr unsigned int maxFitIter = 7;  // "Maximum number of iterations for vertex fit"
 static constexpr float maxDeltaChi2 = 9.f;     //"Maximum chi2 contribution of track to vertex fit"
-static constexpr float minWeight = 0.3f;       //"minimum value of adaptive weight of track in multi fit"
 static constexpr int order_polynomial = 2;     // order of the polynomial used to approximate Gaussian
 static constexpr float maxChi2 = 9.f;          // Maximum chi2 for track to be used in fit
-static constexpr float maxWeight = 0.3f;       // Minimum weight for track to be used in fit (should change the name)
+static constexpr float minWeight = 0.3f;       // Minimum weight for track to be used in fit
 static constexpr float chi2Cut = 25.f;         // chi2 cut in multi-fitter
 static constexpr float maxDeltaZConverged = 0.0005f; // convergence criterion for fit
 

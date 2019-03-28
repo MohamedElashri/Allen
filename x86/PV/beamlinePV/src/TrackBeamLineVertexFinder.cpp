@@ -145,7 +145,7 @@ namespace {
             weight_tree->Fill();
 #endif
 
-            if (trk.weight < maxWeight) continue;
+            if (trk.weight < minWeight) continue;
 
             float3 HWr;
             HWr.x = res.x * trk.W_00;
@@ -1106,7 +1106,7 @@ void beamline_multi_fitter(
             trk.weight = my_nom / denom;
 
             // unfortunately branchy, but reduces fake rate
-            if (trk.weight < maxWeight) continue;
+            if (trk.weight < minWeight) continue;
             float3 HWr;
             HWr.x = res.x * trk.W_00;
             HWr.y = res.y * trk.W_11;
