@@ -42,6 +42,7 @@ __global__ void pv_beamline_multi_fitter(
     auto chi2tot = 0.f;
     unsigned short nselectedtracks = 0;
     unsigned short iter = 0;
+    float sum_weights = 0.f;
     // debug_cout << "next vertex " << std::endl;
     for (; iter < maxFitIter && !converged; ++iter) {
       auto halfD2Chi2DX2_00 = 0.f;
@@ -107,6 +108,7 @@ __global__ void pv_beamline_multi_fitter(
           halfD2Chi2DX2_22 += trk.weight * trk.HWH_22;
 
           chi2tot += trk.weight * chi2;
+          sum_weights += trk.weight;
         }
       }
       __syncthreads();
@@ -155,10 +157,7 @@ __global__ void pv_beamline_multi_fitter(
     vertex.setPosition(vtxpos_xy, vtxpos_z);
     // vtxcov[5] = 100.;
     vertex.setCovMatrix(vtxcov);
-    for (int i = 0; i < number_of_tracks; i++) {
-      PVTrackInVertex trk = tracks[i];
-      if (trk.weight > 0.f) vertex.n_tracks++;
-    }
+    vertex.n_tracks = sum_weights;
 
     // TODO integrate beamline position
     const float2 beamline {0.f, 0.f};

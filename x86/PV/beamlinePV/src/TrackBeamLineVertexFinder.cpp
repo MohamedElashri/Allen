@@ -357,7 +357,7 @@ namespace {
 
 } // namespace
 
-void findPVs2(
+void findPVs(
   char* kalmanvelo_states,
   int* velo_atomics,
   uint* velo_track_hit_number,
@@ -1228,7 +1228,7 @@ void cleanup(
   dev_number_of_multi_final_vertices[event_number] = tmp_number_vertices;
 }
 
-void findPVs(
+void findPVs2(
   char* kalmanvelo_states,
   int* velo_atomics,
   uint* velo_track_hit_number,
