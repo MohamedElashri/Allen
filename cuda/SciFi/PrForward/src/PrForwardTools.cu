@@ -222,6 +222,12 @@ __host__ __device__ void find_forward_tracks(
     float minQuality = SciFi::Tracking::maxQuality;
     for (int i_track = 0; i_track < n_selected_tracks; ++i_track) {
       SciFi::Tracking::Track& track = selected_tracks[i_track];
+      
+      // TODO: We would have to work out a way for the Prforward to have max 12 hits
+      if (track.hitsNum > 12) {
+        track.hitsNum = 12;
+      }
+
       if (track.quality + SciFi::Tracking::deltaQuality < minQuality)
         minQuality = track.quality + SciFi::Tracking::deltaQuality;
       if (!(track.quality > minQuality)) {
@@ -235,7 +241,6 @@ __host__ __device__ void find_forward_tracks(
           const int local_hit_index = track.hit_indices[i_hit] - event_hit_offset;
           tr.add_hit(local_hit_index);
         }
-        assert(tr.hitsNum < SciFi::Constants::max_track_size);
 
         if (*n_forward_tracks >= SciFi::Constants::max_tracks) printf("n_forward_tracks = %u \n", *n_forward_tracks);
         assert(*n_forward_tracks < SciFi::Constants::max_tracks);
