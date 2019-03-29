@@ -32,6 +32,7 @@ struct MCVertex {
   double y;
   double z;
   int numberTracks;
+  int flavour;
 };
 
 typedef struct {
