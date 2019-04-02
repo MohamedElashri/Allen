@@ -41,6 +41,7 @@
 #include "IPCut.cuh"
 #include "VeloPVIP.cuh"
 #include "RunBeamlinePVOnCPU.h"
+#include "IsMuon.cuh"
 #include "MuonFeaturesExtraction.cuh"
 #include "MuonCatboostEvaluator.cuh"
 #include "ParKalmanFilter.cuh"
