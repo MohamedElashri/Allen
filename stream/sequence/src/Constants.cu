@@ -15,13 +15,19 @@ void Constants::reserve_constants()
     (void**) &dev_ut_region_offsets, (UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1) * sizeof(uint)));
   cudaCheck(cudaMalloc((void**) &dev_inv_clus_res, host_inv_clus_res.size() * sizeof(float)));
   cudaCheck(cudaMalloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations)));
+  cudaCheck(cudaMalloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants)));
   cudaCheck(cudaMalloc((void**) &dev_muon_foi, sizeof(Muon::Constants::FieldOfInterest)));
   cudaCheck(cudaMalloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float)));
+  cudaCheck(cudaMalloc((void**) &dev_magnet_polarity, sizeof(float)));
 }
 
 void Constants::initialize_constants(
   const std::vector<float>& muon_field_of_interest_params
 ) {
+  // Magnet polarity
+  const float host_magnet_polarity = -1.f;
+  cudaCheck(cudaMemcpy(
+    dev_magnet_polarity, &host_magnet_polarity, sizeof(float), cudaMemcpyHostToDevice));
 
   // Velo module constants
   const std::array<float, Velo::Constants::n_modules> velo_module_zs = {
@@ -75,7 +81,6 @@ void Constants::initialize_constants(
   cudaCheck(cudaMemcpy(dev_scifi_tmva2, &host_tmva2, sizeof(SciFi::Tracking::TMVA), cudaMemcpyHostToDevice));
   cudaCheck(
     cudaMemcpy(dev_scifi_constArrays, &host_constArrays, sizeof(SciFi::Tracking::Arrays), cudaMemcpyHostToDevice));
-
   host_inv_clus_res = {1 / 0.05, 1 / 0.08, 1 / 0.11, 1 / 0.14, 1 / 0.17, 1 / 0.20, 1 / 0.23, 1 / 0.26, 1 / 0.29};
   cudaCheck(
     cudaMemcpy(dev_inv_clus_res, &host_inv_clus_res, host_inv_clus_res.size() * sizeof(float), cudaMemcpyHostToDevice));
@@ -85,6 +90,9 @@ void Constants::initialize_constants(
   host_kalman_params.SetParameters("../cuda/kalman/params/FT6x2", ParKalmanFilter::Polarity::Down);
   cudaCheck(cudaMemcpy(
     dev_kalman_params, &host_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations), cudaMemcpyHostToDevice));
+
+  cudaCheck(cudaMemcpy(
+    dev_looking_forward_constants, &host_looking_forward_constants, sizeof(LookingForward::Constants), cudaMemcpyHostToDevice))
 
   // Muon constants
   Muon::Constants::FieldOfInterest host_muon_foi;

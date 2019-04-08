@@ -20,7 +20,8 @@
 #include <vector>
 #include "Logger.h"
 #include "MCAssociator.h"
-#include "Tracks.h"
+#include "CheckerTypes.h"
+#include "MCEvent.h"
 
 #ifdef WITH_ROOT
 #include "TDirectory.h"
@@ -31,6 +32,8 @@
 
 class TrackChecker {
 protected:
+  bool m_print = false;
+
   using AcceptFn = std::function<bool(MCParticles::const_reference&)>;
   struct TrackEffReport {
     std::string m_name;
@@ -44,7 +47,6 @@ protected:
     float m_effperevt = 0.f;
     float m_hitpur = 0.f;
     float m_hiteff = 0.f;
-    std::set<uint32_t> m_keysseen;
 
     /// no default construction
     TrackEffReport() = delete;
@@ -67,10 +69,10 @@ protected:
     /// register MC particles
     void operator()(const MCParticles& mcps);
     /// register track and its MC association
-    void
-    operator()(trackChecker::Tracks::const_reference& track, MCParticles::const_reference& mcp, const float weight);
-    /// notify of end of event
-    void evtEnds();
+    void operator()(
+      const std::vector<MCAssociator::TrackWithWeight> tracks,
+      MCParticles::const_reference& mcp,
+      const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
     /// free resources, and print result
     ~TrackEffReport();
   };
@@ -78,7 +80,6 @@ protected:
   struct HistoCategory {
     std::string m_name;
     AcceptFn m_accept;
-    std::set<uint32_t> m_keysseen;
 
     /// construction from name and accept criterion for eff. denom.
     template<typename F>
@@ -88,8 +89,6 @@ protected:
     template<typename F>
     HistoCategory(std::string&& name, F&& accept) : m_name(std::move(name)), m_accept(std::move(accept))
     {}
-    /// notify of end of event
-    void evtEnds();
   };
 
   std::vector<TrackEffReport> m_categories;
@@ -129,8 +128,8 @@ protected:
     void fillTotalHistos(const MCParticle& mcp);
     void fillGhostHistos(const MCParticle& mcp);
     void fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop);
-    void fillMuonIDHistos(const trackChecker::Track& track);
-    void fillMuonIDMatchedHistos(const trackChecker::Track& track, const MCParticle& mcp);
+    void fillMuonIDHistos(const Checker::Track& track);
+    void fillMuonIDMatchedHistos(const Checker::Track& track, const MCParticle& mcp);
     void deleteHistos(const std::vector<HistoCategory>& histo_categories);
   };
 
@@ -139,6 +138,9 @@ protected:
   std::size_t m_ntracks = 0;
   std::size_t m_nghosts = 0;
   float m_ghostperevent = 0.f;
+  float m_ghosttriggerperevent = 0.f;
+  std::size_t m_ntrackstrigger = 0;
+  std::size_t m_nghoststrigger = 0;
 
   virtual void SetHistoCategories() = 0;
   virtual void SetCategories() = 0;
@@ -146,13 +148,24 @@ protected:
 public:
   TrackChecker() {};
   ~TrackChecker();
-  void operator()(const trackChecker::Tracks& tracks, const MCAssociator& mcassoc, const MCParticles& mcps);
+  std::vector<uint32_t> operator()(
+    const Checker::Tracks& tracks,
+    const MCEvent& mc_event,
+    const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
   const std::vector<HistoCategory>& histo_categories() const { return m_histo_categories; }
+  bool match_track_to_MCPs(
+    MCAssociator mc_assoc,
+    const Checker::Tracks& tracks,
+    const int i_track,
+    std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table,
+    uint32_t& track_best_matched_MCP);
+
   Histos histos;
 };
 
-class TrackCheckerVelo : public TrackChecker {
-public:
+struct TrackCheckerVelo : public TrackChecker {
+  using subdetector_t = Checker::Subdetector::Velo;
+
   void SetCategories();
   void SetHistoCategories();
   TrackCheckerVelo()
@@ -163,8 +176,9 @@ public:
   };
 };
 
-class TrackCheckerVeloUT : public TrackChecker {
-public:
+struct TrackCheckerVeloUT : public TrackChecker {
+  using subdetector_t = Checker::Subdetector::UT;
+
   void SetCategories();
   void SetHistoCategories();
   TrackCheckerVeloUT()
@@ -175,12 +189,14 @@ public:
   };
 };
 
-class TrackCheckerForward : public TrackChecker {
-public:
+struct TrackCheckerForward : public TrackChecker {
+  using subdetector_t = Checker::Subdetector::SciFi;
+
   void SetCategories();
   void SetHistoCategories();
   TrackCheckerForward()
   {
+    m_print = true;
     SetCategories();
     SetHistoCategories();
     m_trackerName = "Forward";
