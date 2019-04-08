@@ -17,6 +17,7 @@ struct HostBuffers {
   uint* host_number_of_selected_events;
   uint host_max_number_of_events;
   uint* host_event_list;
+  uint* host_prefix_sum_buffer;
 
   // Velo
   uint* host_atomics_velo;

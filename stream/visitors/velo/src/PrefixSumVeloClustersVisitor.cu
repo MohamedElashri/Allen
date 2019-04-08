@@ -22,29 +22,37 @@ void SequenceVisitor::visit<prefix_sum_velo_clusters_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  // Set size of the main array to be prefix summed
-  state.set_size(host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules);
+  cpu_prefix_sum(
+    host_buffers.host_prefix_sum_buffer,
+    arguments.offset<dev_estimated_input_size>(),
+    arguments.size<dev_estimated_input_size>(),
+    cuda_stream,
+    cuda_generic_event,
+    host_buffers.host_total_number_of_velo_clusters);
 
-  // Set the cuda_stream
-  state.set_opts(cuda_stream);
+  // // Set size of the main array to be prefix summed
+  // state.set_size(host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules);
 
-  // Set arguments: Array to prefix sum and auxiliary array
-  state.set_arguments(arguments.offset<dev_estimated_input_size>(), arguments.offset<dev_cluster_offset>());
+  // // Set the cuda_stream
+  // state.set_opts(cuda_stream);
 
-  // Invoke all steps of prefix sum
-  state.invoke();
+  // // Set arguments: Array to prefix sum and auxiliary array
+  // state.set_arguments(arguments.offset<dev_estimated_input_size>(), arguments.offset<dev_cluster_offset>());
 
-  // Fetch the number of hits we require
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_total_number_of_velo_clusters,
-    arguments.offset<dev_estimated_input_size>() +
-      host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules,
-    sizeof(uint),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  // // Invoke all steps of prefix sum
+  // state.invoke();
 
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
+  // // Fetch the number of hits we require
+  // cudaCheck(cudaMemcpyAsync(
+  //   host_buffers.host_total_number_of_velo_clusters,
+  //   arguments.offset<dev_estimated_input_size>() +
+  //     host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules,
+  //   sizeof(uint),
+  //   cudaMemcpyDeviceToHost,
+  //   cuda_stream));
+
+  // cudaEventRecord(cuda_generic_event, cuda_stream);
+  // cudaEventSynchronize(cuda_generic_event);
 
   if (logger::ll.verbosityLevel >= logger::debug) {
     debug_cout << "velo clusters = " << *host_buffers.host_total_number_of_velo_clusters << std::endl;

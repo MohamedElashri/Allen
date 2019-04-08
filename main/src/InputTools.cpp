@@ -182,8 +182,7 @@ void read_folder(
   std::vector<uint>& event_offsets,
   const uint start_event_offset)
 {
-  std::vector<std::string> temp = list_folder(foldername);
-  std::vector<std::string> folderContents = std::vector<std::string>(temp.begin() + temp.size() / 2, temp.end());
+  std::vector<std::string> folderContents = list_folder(foldername);
 
   debug_cout << "Requested " << number_of_events_requested << " files" << std::endl;
   int readFiles = 0;

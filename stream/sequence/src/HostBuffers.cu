@@ -22,6 +22,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
 
   // Note: Remove this variable once muon decoding is done
   host_max_number_of_events = max_number_of_events;
+  cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, 10000000 * sizeof(uint)));
 
   if (do_check) {
     // Datatypes to be reserved only if checking is on
@@ -55,7 +56,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     cudaCheck(cudaMallocHost(
       (void**) &host_scifi_tracks, max_number_of_events * SciFi::Constants::max_tracks * sizeof(SciFi::TrackHits)));
     cudaCheck(cudaMallocHost((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int)));
-    
+
     cudaCheck(cudaMallocHost(
       (void**) &host_scifi_track_hit_number, max_number_of_events * SciFi::Constants::max_tracks * sizeof(uint)));
     cudaCheck(cudaMallocHost(
@@ -84,8 +85,8 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     cudaCheck(cudaMallocHost(
       (void**) &host_kf_tracks,
       max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
-    cudaCheck(cudaMallocHost((void**)&host_muon_catboost_output, max_number_of_events * SciFi::Constants::max_tracks * sizeof(float))); 
-    cudaCheck(cudaMallocHost((void**)&host_is_muon, max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool))); 
+    cudaCheck(cudaMallocHost((void**)&host_muon_catboost_output, max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));
+    cudaCheck(cudaMallocHost((void**)&host_is_muon, max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
   }
 }
 
