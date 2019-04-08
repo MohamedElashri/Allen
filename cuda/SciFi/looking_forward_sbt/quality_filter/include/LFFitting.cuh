@@ -19,6 +19,14 @@ __device__ int fitParabola_proto(
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit);
 
+__device__ bool straight_line_fit_y_projection(
+  const MiniState& velo_state,
+  const SciFi::Tracking::Arrays* constArrays,
+  const int* uv_hits,
+  const uint8_t n_uv_hits,
+  const SciFi::Hits& scifi_hits,
+  float trackParams[SciFi::Tracking::nTrackParams]);
+
 __device__ float get_average_x_at_reference_plane(
   const int* hits,
   const uint8_t n_hits,

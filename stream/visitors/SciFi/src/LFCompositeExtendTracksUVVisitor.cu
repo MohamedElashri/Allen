@@ -34,8 +34,8 @@ void SequenceVisitor::visit<lf_composite_extend_tracks_uv_t>(
   // 32 - 18.42% 13.0076s, 39822.61 events/s
   // 256 - 9.47% 6.01868s, 38491.16 events/s
 
-  state.handler_lf_search_uv_windows.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream); // to do: check 32 threads
-  state.handler_lf_extend_tracks_uv.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(512), cuda_stream);
+  state.handler_lf_search_uv_windows.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream);
+  state.handler_lf_extend_tracks_uv.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream);
 
   state.handler_lf_search_uv_windows.set_arguments(
     arguments.offset<dev_scifi_hits>(),

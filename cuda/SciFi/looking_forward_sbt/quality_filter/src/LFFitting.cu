@@ -48,7 +48,7 @@ __device__ float LookingForward::get_average_x_at_reference_plane(
   return average_x;
 }
 
-__device__ bool LookingForward::fitYProjection_proto(
+__device__ bool LookingForward::straight_line_fit_y_projection(
   const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
   const int* uv_hits,
@@ -56,8 +56,7 @@ __device__ bool LookingForward::fitYProjection_proto(
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams])
 {
-  //== Fit a line
-  const float txs = trackParams[0]; // simplify overgeneral c++ calculation
+  const float txs = trackParams[0]; 
   const float tsxz = velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx;
   const float tolYMag = SciFi::Tracking::tolYMag + SciFi::Tracking::tolYMagSlope * fabsf(txs - tsxz);
   const float wMag = 1.f / (tolYMag * tolYMag);
@@ -97,8 +96,21 @@ __device__ bool LookingForward::fitYProjection_proto(
   trackParams[4] += da;
   trackParams[5] += db;
 
-  // Then parabola fit
-  // position in magnet not used for parabola fit, hardly any influence on efficiency
+  return true;
+}
+
+__device__ bool LookingForward::fitYProjection_proto(
+  const MiniState& velo_state,
+  const SciFi::Tracking::Arrays* constArrays,
+  const int* uv_hits,
+  const uint8_t n_uv_hits,
+  const SciFi::Hits& scifi_hits,
+  float trackParams[SciFi::Tracking::nTrackParams])
+{
+  
+  // first fitting the straight line has no impact on efficiency and momentum resolution
+  //if (!straight_line_fit_y_projection(velo_state, constArrays, uv_hits, n_uv_hits, scifi_hits, trackParams)) return false;
+
   if (!fitParabola_proto(scifi_hits, uv_hits, n_uv_hits, trackParams, false)) return false;
 
   return true;
