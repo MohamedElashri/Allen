@@ -1,4 +1,285 @@
 #include "FindXHits.cuh"
+#include "BinarySearch.cuh"
+
+__host__ void collectAllXHits_proto_p(
+  const SciFi::Hits& scifi_hits,
+  const SciFi::HitCount& scifi_hit_count,
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const MiniState& UT_state,
+  const float qOverP,
+  int side, 
+  std::array<int, 2 * 6>& windows_x,
+  std::array<int, 2 * 6>& windows_uv,
+  std::array<float, 4 * 6>& parameters_uv,
+  const SciFiWindowsParams& window_params,
+  const std::array<int, 12> true_scifi_indices_per_layer) 
+{
+  const float tx2 = velo_state.tx*velo_state.tx;
+  const float ty2 = velo_state.ty*velo_state.ty;
+  const float slope2 = tx2 + ty2;
+  const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qOverP); 
+  const float p = 1.f / std::abs(qOverP);
+
+  /* OPTIMIZE: possibly use these variables for wrong sign treatment */
+  // const float q = qOverP > 0.f ? 1.f : -1.f;
+  // const bool wSignTreatment = pt > SciFi::Tracking::wrongSignPT; 
+  // float zMag = zMagnet(velo_state, constArrays);
+  // const float qop_WS = sqrtf(slope2 / (1.f + slope2) ) / pt; 
+  // float dxRefWS = 0.f;
+  // if ( wSignTreatment ) {
+  //   dxRefWS = 0.9f * calcDxRef(SciFi::Tracking::wrongSignPT, velo_state); 
+  // } 
+  // const float dir = q * SciFi::Tracking::magscalefactor * (-1.f); // needed for wrong sign treatment
+  // const float xTolWS = dx_calc(velo_state, qop_WS, window_params);  
+  
+  const float xAtRef = xFromVelo(SciFi::Tracking::zReference, UT_state);
+  float xParams_seed[4] {xAtRef, UT_state.tx, 0, 0};
+
+  // use parametrization to propagate from UT to SciFi
+  const auto state_zRef = propagate_state_from_velo(UT_state, qOverP, 5);  // zRef is between layers 4 and 5 
+  const float xTol = dx_calc(velo_state, qOverP, window_params);    
+        
+  int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0; 
+
+  for (unsigned int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
+    assert(iZone - iZoneStartingPoint < SciFi::Constants::n_zones);
+    assert(iZone - iZoneStartingPoint < 12);
+
+    const auto izone_rel = iZone - iZoneStartingPoint;
+    const float zZone = constArrays->xZone_zPos[izone_rel];
+    
+    const float dz_x = (zZone - SciFi::Tracking::zReference); 
+    const float xInZone = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_x);   
+    const float yInZone = yFromVelo(zZone, velo_state); 
+ 
+    const float xInZoneStraight = evalCubicParameterization(xParams_seed, zZone);
+
+    if (side > 0) {
+      if (
+        !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
+        !isInside(yInZone, SciFi::Tracking::yLim_Min, SciFi::Tracking::yLim_Max))
+        continue;
+    }
+    else {
+      if (
+        !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
+        !isInside(yInZone, side * SciFi::Tracking::yLim_Max, side * SciFi::Tracking::yLim_Min))
+        continue;
+    }  
+
+    float xMin = xInZone - xTol;
+    float xMax = xInZone + xTol;
+
+    /* OPTIMIZE: how do we take care of wrong sign tracks with momentum windows? */
+    //float xTolWS = 0.0;
+    // if (wSignTreatment) {
+    //   // xTolWS = (zZone < SciFi::Tracking::zReference) ?
+    //   //   dxRefWS * zZone / SciFi::Tracking::zReference :
+    //   //   dxRefWS * (zZone - zMag) / (SciFi::Tracking::zReference - zMag);
+    //   // if (dir > 0) {
+    //   //   xMin = xInZone - xTolWS;
+    //   // }
+    //   // else {
+    //   //   xMax = xInZone + xTolWS;
+    //   // }
+    
+    //   debug_cout << "\t before WS treatment: xMin = " << xMin << ", xMax = " << xMax << ", WS = " << int(wSignTreatment) << ", pt = " << pt << std::endl;     
+    //   if (dir > 0) {
+    //     xMin = -1.f * xInZone - xTolWS;
+    //   }
+    //   else {
+    //     xMax = xInZone + xTolWS;
+    //   }
+    //   debug_cout << "\t after WS treatment: xMin = " << xMin << ", xMax = " << xMax << std::endl;  
+    // }
+ 
+    // Get the hits within the bounds
+    assert(iZone < SciFi::Constants::n_layers);
+    assert(constArrays->xZones[iZone] < SciFi::Constants::n_zones);
+    int x_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->xZones[iZone]);
+    int x_zone_offset_end = x_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
+    const int itH = getLowerBound(scifi_hits.x0, xMin, x_zone_offset_begin, x_zone_offset_end);
+    const int itEnd = getLowerBound(scifi_hits.x0, xMax, x_zone_offset_begin, x_zone_offset_end);
+    assert(itH >= x_zone_offset_begin && itH <= x_zone_offset_end);
+    assert(itEnd >= x_zone_offset_begin && itEnd <= x_zone_offset_end);
+
+    windows_x[2*izone_rel] = itH;
+    windows_x[2*izone_rel+1] = itEnd - itH;
+    
+    // Now match the stereo hits
+    const float this_uv_z = constArrays->uvZone_zPos[izone_rel];
+    const float dz_uv = this_uv_z - SciFi::Tracking::zReference;
+    const float yInUVZone = yFromVelo(this_uv_z, velo_state); 
+    const float dx = yInUVZone * constArrays->uvZone_dxdy[izone_rel]; 
+    const float xPredUv = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_uv) - dx;  
+    const int uv_layer = constArrays->uvZones[iZone] / 2; 
+    // To Do: study this window
+    const float xBound = 70.f * window_params.extrapolation_stddev[uv_layer];
+    const float maxDx = xBound; // * ratio;
+
+    const float xMinUV = xPredUv - maxDx;
+    const float xMaxUV = xPredUv + maxDx; 
+    
+    // Get bounds in UV layers
+    // do one search on the same side as the x module
+    // if we are close to y = 0, also look within a region on the other side module ("triangle search")
+    assert(constArrays->uvZones[iZone] < SciFi::Constants::n_zones);
+    const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
+    const int uv_zone_offset_end =
+      uv_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
+    /* OPTIMIZE: check how large the effect on the efficiency is to include the triangle hits */
+    //    const int triangleOffset = side > 0 ? -1 : 1;
+    //assert(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset] < SciFi::Constants::n_zones);
+    // const int triangle_zone_offset_begin =
+    //   scifi_hit_count.zone_offset(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset]);
+    // assert(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset] < SciFi::Constants::n_zones);
+    // const int triangle_zone_offset_end =
+    //   triangle_zone_offset_begin +
+    //   scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset]); 
+    int itUVStart = getLowerBound(scifi_hits.x0, xMinUV, uv_zone_offset_begin, uv_zone_offset_end); 
+    int itUVEnd = getLowerBound(scifi_hits.x0, xMaxUV, uv_zone_offset_begin, uv_zone_offset_end); 
+    //    int itUV2 = getLowerBound(scifi_hits.x0, xMinUV, triangle_zone_offset_begin, triangle_zone_offset_end);
+
+    windows_uv[2*izone_rel] = itUVStart;
+    windows_uv[2*izone_rel+1] = itUVEnd;
+    
+  }  
+}
+
+__host__ void collectAllXHits_proto(
+  const SciFi::Hits& scifi_hits,
+  const SciFi::HitCount& scifi_hit_count,
+  const float xParams_seed[4],
+  const float yParams_seed[4],
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const float qOverP,
+  int side,
+  std::array<int, 2 * 6>& windows_x,
+  std::array<int, 2 * 6>& windows_uv,
+  std::array<float, 4 * 6>& parameters_uv)
+{
+  // Find size of search window on reference plane, using Velo slopes and min pT as input
+  float dxRef = 0.9f * calcDxRef(SciFi::Tracking::minPt, velo_state);
+  // find position within magnet where bending happens
+  float zMag = zMagnet(velo_state, constArrays);
+
+  const float q = qOverP > 0.f ? 1.f : -1.f;
+  const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
+
+  float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
+  const float pt = std::sqrt(slope2 / (1.f + slope2)) / std::abs(qOverP);
+  const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
+
+  float dxRefWS = 0.f;
+  if (wSignTreatment) {
+    dxRefWS = 0.9f * calcDxRef(
+                       SciFi::Tracking::wrongSignPT,
+                       velo_state); // make windows a bit too small - FIXME check effect of this, seems wrong
+  }
+
+  int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0;
+
+  for (unsigned int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
+    assert(iZone - iZoneStartingPoint < SciFi::Constants::n_zones);
+    assert(iZone - iZoneStartingPoint < 12);
+
+    const auto izone_rel = iZone - iZoneStartingPoint;
+    const float zZone = constArrays->xZone_zPos[izone_rel];
+    const float xInZone = evalCubicParameterization(xParams_seed, zZone);
+    const float yInZone = evalCubicParameterization(yParams_seed, zZone);
+
+    // Now the code checks if the x and y are in the zone limits. I am really not sure
+    // why this is done here, surely could just check if within limits for the last zone
+    // in T3 and go from there? Need to think more about this.
+    //
+    // Here for now I assume the same min/max x and y for all stations, this again needs to
+    // be read from some file blablabla although actually I suspect having some general tolerances
+    // here is anyway good enough since we are doing a straight line extrapolation in the first place
+    // check (roughly) whether the extrapolated velo track is within the current zone
+    // if (side > 0) {
+    //   if (
+    //     !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
+    //     !isInside(yInZone, SciFi::Tracking::yLim_Min, SciFi::Tracking::yLim_Max))
+    //     continue;
+    // }
+    // else {
+    //   if (
+    //     !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
+    //     !isInside(yInZone, side * SciFi::Tracking::yLim_Max, side * SciFi::Tracking::yLim_Min))
+    //     continue;
+    // }
+
+    // extrapolate dxRef (x window on reference plane) to plane of current zone
+    const float xTol = (zZone < SciFi::Tracking::zReference) ?
+                         dxRef * zZone / SciFi::Tracking::zReference :
+                         dxRef * (zZone - zMag) / (SciFi::Tracking::zReference - zMag);
+    float xMin = xInZone - xTol;
+    float xMax = xInZone + xTol;
+
+    if (SciFi::Tracking::useMomentumEstimate) { // For VeloUT tracks, suppress check if track actually has qOverP set,
+                                                // get the option right!
+      float xTolWS = 0.0;
+      if (wSignTreatment) {
+        xTolWS = (zZone < SciFi::Tracking::zReference) ?
+                   dxRefWS * zZone / SciFi::Tracking::zReference :
+                   dxRefWS * (zZone - zMag) / (SciFi::Tracking::zReference - zMag);
+      }
+      if (dir > 0) {
+        xMin = xInZone - xTolWS;
+      }
+      else {
+        xMax = xInZone + xTolWS;
+      } 
+    }
+
+    // Get the hits within the bounds
+    assert(iZone < SciFi::Constants::n_layers);
+    assert(constArrays->xZones[iZone] < SciFi::Constants::n_zones);
+    int x_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->xZones[iZone]);
+    int x_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
+    int itH = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
+    const int itSize = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin + itH, x_zone_size - itH, xMax);
+    itH += x_zone_offset_begin;
+
+    windows_x[2 * izone_rel] = itH;
+    windows_x[2 * izone_rel + 1] = itSize;
+
+    // Skip making range but continue if the size is zero
+    if (itSize == 0) continue;
+
+    // Now match the stereo hits
+    const float this_uv_z = constArrays->uvZone_zPos[iZone - iZoneStartingPoint];
+    const float xInUv = evalCubicParameterization(xParams_seed, this_uv_z);
+    const float zRatio = (this_uv_z - zMag) / (zZone - zMag);
+    const float dx = yInZone * constArrays->uvZone_dxdy[iZone - iZoneStartingPoint];
+    const float xCentral = xInZone + dx;
+    const float xPredUv = xInUv + (scifi_hits.x0[itH] - xInZone) * zRatio - dx;
+    const float maxDx = SciFi::Tracking::tolYCollectX +
+                        (fabsf(scifi_hits.x0[itH] - xCentral) + fabsf(yInZone)) * SciFi::Tracking::tolYSlopeCollectX;
+    const float xMinUV = xPredUv - maxDx;
+
+    // Get bounds in UV layers
+    // do one search on the same side as the x module
+    // if we are close to y = 0, also look within a region on the other side module ("triangle search")
+    assert(constArrays->uvZones[iZone] < SciFi::Constants::n_zones);
+    const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
+    const int uv_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
+    const int itUV1 = binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
+
+    const float xPredUVProto = xInUv - xInZone * zRatio - dx;
+    const float maxDxProto = SciFi::Tracking::tolYCollectX + fabsf(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
+
+    windows_uv[2 * izone_rel] = itUV1 + uv_zone_offset_begin;
+    windows_uv[2 * izone_rel + 1] = uv_zone_size - itUV1;
+
+    parameters_uv[4 * izone_rel] = xPredUVProto;
+    parameters_uv[4 * izone_rel + 1] = zRatio;
+    parameters_uv[4 * izone_rel + 2] = maxDxProto;
+    parameters_uv[4 * izone_rel + 3] = xCentral;
+  }
+}
 
 //=========================================================================
 // From LHCb Forward tracking description
@@ -34,7 +315,7 @@ __host__ __device__ void collectAllXHits(
   const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
 
   float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
-  const float pt = sqrtf(fabsf(1.f / (qOverP * qOverP))) * (slope2) / (1.f + slope2);
+  const float pt = std::sqrt(slope2 / (1.f + slope2)) / std::abs(qOverP);
   const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
 
   float dxRefWS = 0.f;
@@ -270,8 +551,10 @@ __host__ __device__ void selectXCandidates(
   while (it1 < itEnd) {
     // find next unused Hits
     assert(it1 < n_x_hits);
-    while (it1 + pars.minXHits - 1 < itEnd && usedHits[it1])
+    while (it1 + pars.minXHits - 1 < itEnd && usedHits[it1]) {
       ++it1;
+    }
+
     it2 = it1 + pars.minXHits;
     if (it2 > itEnd) break;
     assert(it2 - 1 < n_x_hits);
@@ -283,6 +566,7 @@ __host__ __device__ void selectXCandidates(
     // find a cluster of x positions on the reference plane that are close to each other
     // TODO better xWindow calculation?? how to tune this???
     const float xWindow = pars.maxXWindow + (fabsf(coordX[it1]) + fabsf(coordX[it1] - xTrack)) * pars.maxXWindowSlope;
+
     if ((coordX[it2 - 1] - coordX[it1]) > xWindow) {
       ++it1;
       continue;

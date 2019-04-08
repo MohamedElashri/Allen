@@ -45,9 +45,12 @@ struct HostBuffers {
   uint* host_ut_track_hit_number;
   char* host_ut_track_hits;
   float* host_ut_qop;
-  uint* host_ut_track_velo_indices;
-
-  // SciFi
+  float* host_ut_x;
+  float* host_ut_tx;
+  float* host_ut_z;
+  uint*  host_ut_track_velo_indices;
+  
+  // SciFi 
   uint* host_accumulated_number_of_scifi_hits;
   uint* host_number_of_reconstructed_scifi_tracks;
   SciFi::TrackHits* host_scifi_tracks;
@@ -58,6 +61,8 @@ struct HostBuffers {
   float* host_scifi_qop;
   MiniState* host_scifi_states;
   uint* host_scifi_track_ut_indices;
+  uint* host_lf_total_size_first_window_layer;
+  uint* host_lf_total_number_of_candidates;
 
   // Kalman
   ParKalmanFilter::FittedTrack* host_kf_tracks;
@@ -69,7 +74,11 @@ struct HostBuffers {
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;
   std::vector<char> host_velo_states;
-
+  //std::vector<uint> n_scifi_tracks;
+  std::vector< std::vector< std::vector< uint32_t > > > scifi_ids_ut_tracks;
+  std::vector<uint> host_scifi_hits;
+  std::vector<uint> host_scifi_hit_count;
+  
   /**
    * @brief Reserves all host buffers.
    */

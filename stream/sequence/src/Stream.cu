@@ -5,9 +5,6 @@
 #include "UTSequenceCheckers_impl.cuh"
 #include "SciFiSequenceCheckers_impl.cuh"
 #include "PVSequenceCheckers_impl.cuh"
-
-// For checking kalman filter.
-#include "ParKalmanDefinitions.cuh"
 #include "KalmanSequenceCheckers_impl.cuh"
 
 /**
@@ -82,7 +79,7 @@ cudaError_t Stream::run_sequence(const RuntimeOptions& runtime_options)
   return cudaSuccess;
 }
 
-void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint number_of_events_requested)
+void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint number_of_events_requested, const std::vector<Checker::Tracks>& forward_tracks)
 {
 #ifdef WITH_ROOT
   TFile* f = new TFile("../output/PrCheckerPlots.root", "RECREATE");
@@ -100,6 +97,12 @@ void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint numbe
   Sch::RunChecker<
     SequenceVisitor,
     configured_sequence_t,
-    std::tuple<const uint&, const uint&, const HostBuffers&, const Constants&, const CheckerInvoker&>>::
+    std::tuple<const uint&, const uint&, HostBuffers&, const Constants&, const CheckerInvoker&>>::
     check(sequence_visitor, start_event_offset, number_of_events_requested, host_buffers, constants, checker_invoker);
+
+  if ( forward_tracks.size() > 0 ) {
+    info_cout << "Running test on imported tracks" << std::endl;
+    std::vector<std::vector<float>> p_events_scifi;
+    checker_invoker.check<TrackCheckerForward>(start_event_offset, forward_tracks, p_events_scifi); 
+  }
 }
