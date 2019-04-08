@@ -20,6 +20,9 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_lf_total_number_of_candidates, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_lf_total_size_first_window_layer, sizeof(uint)));
 
+  // Note: Remove this variable once muon decoding is done
+  host_max_number_of_events = max_number_of_events;
+
   if (do_check) {
     // Datatypes to be reserved only if checking is on
     // Note: These datatypes in principle do not require to be pinned
