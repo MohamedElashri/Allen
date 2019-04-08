@@ -11,12 +11,6 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
 {
   float quality = 0.f;
 
-  // LookingForward::track_min_starting_quality
-  // || track.get_quality() > 20.f
-  if (track.hitsNum < LookingForward::track_min_hits) {
-    return quality;
-  }
-
   // Note: It is a bit faster to use this than using directly track.hits
   int hits[SciFi::Constants::max_track_size];
   for (int i=0; i<track.hitsNum; ++i) {
@@ -74,8 +68,8 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
   const float by = velo_state.ty + dyCoef * SciFi::Tracking::byParams;
 
   const float ay1 = trackParams[4]; // y at zRef, from velo state
-  const float by1 = trackParams[5]; //
-  const float bx1 = trackParams[1]; // slope between zRef and zMag (-> in the SciFi)
+  const float by1 = trackParams[5]; // y slope between zRef and zMag
+  const float bx1 = trackParams[1]; // x slope between zRef and zMag (-> in the SciFi)
 
   // Pipe into TMVA, get track quality
   float mlpInput[7] = {0, 0, 0, 0, 0, 0, 0};

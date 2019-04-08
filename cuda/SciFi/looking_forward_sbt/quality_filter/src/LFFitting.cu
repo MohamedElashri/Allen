@@ -56,7 +56,7 @@ __device__ bool LookingForward::straight_line_fit_y_projection(
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams])
 {
-  const float txs = trackParams[0]; 
+  const float txs = trackParams[0];
   const float tsxz = velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx;
   const float tolYMag = SciFi::Tracking::tolYMag + SciFi::Tracking::tolYMagSlope * fabsf(txs - tsxz);
   const float wMag = 1.f / (tolYMag * tolYMag);
@@ -107,8 +107,8 @@ __device__ bool LookingForward::fitYProjection_proto(
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams])
 {
-  
-  // first fitting the straight line has no impact on efficiency and momentum resolution
+
+  /* first fitting the straight line has no impact on efficiency and momentum resolution */
   //if (!straight_line_fit_y_projection(velo_state, constArrays, uv_hits, n_uv_hits, scifi_hits, trackParams)) return false;
 
   if (!fitParabola_proto(scifi_hits, uv_hits, n_uv_hits, trackParams, false)) return false;
@@ -123,7 +123,7 @@ __device__ int LookingForward::fitParabola_proto(
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit)
 {
-  //== Fit a cubic
+  //== Fit a cubic (varying only three parameters)
   float s0 = 0.f;
   float sz = 0.f;
   float sz2 = 0.f;
@@ -215,8 +215,8 @@ __device__ void LookingForward::removeOutlier_proto(
 
 __device__ bool LookingForward::quadraticFitX_proto(
   const SciFi::Hits& scifi_hits,
-  const int* coordToFit,
-  const uint8_t n_coordToFit,
+  int* coordToFit,
+  uint8_t& n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit)
 {
@@ -256,7 +256,7 @@ __device__ bool LookingForward::quadratic_fit_x_with_outlier_removal(
     float totChi2 = 0.f;
     int nDoF = -3;
 
-    //int worst = -1;
+    // int worst = -1; // needed for outlier removal
     for (uint8_t i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
       int hit = coordToFit[i_hit];
       float d = trackToHitDistance(trackParameters, scifi_hits, hit);
@@ -265,7 +265,7 @@ __device__ bool LookingForward::quadratic_fit_x_with_outlier_removal(
       ++nDoF;
       if (chi2 > maxChi2) {
         maxChi2 = chi2;
-        //worst = i_hit;
+        // worst = i_hit; // needed for outlier removal
       }
     }
 
@@ -274,10 +274,16 @@ __device__ bool LookingForward::quadratic_fit_x_with_outlier_removal(
     trackParameters[8] = (float) nDoF;
     doFit = false;
 
-    // if (worst != -1) {
-    //   removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, worst);
-    //   if (n_coordToFit < LookingForward::track_min_hits) return false;
-    //   doFit = true;
+    /* outlier removal does not change efficiency or ghost rate */
+    // if (totChi2 / nDoF > SciFi::Tracking::maxChi2PerDoF || maxChi2 > SciFi::Tracking::maxChi2XProjection) {
+
+    //   if (worst != -1) {
+    //     if ( totChi2 / nDoF > 5000 ) {
+    //       removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, worst);
+    //       if (n_coordToFit < LookingForward::track_min_hits) return false;
+    //       doFit = true;
+    //     }
+    //   }
     // }
   }
   return true;

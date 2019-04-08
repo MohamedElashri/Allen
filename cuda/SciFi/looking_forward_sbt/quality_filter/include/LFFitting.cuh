@@ -60,8 +60,8 @@ __device__ bool fitYProjection_proto(
 
 __device__ bool quadraticFitX_proto(
   const SciFi::Hits& scifi_hits,
-  const int* coordToFit,
-  const uint8_t n_coordToFit,
+  int* coordToFit,
+  uint8_t& n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit);
 
