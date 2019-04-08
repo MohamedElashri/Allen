@@ -81,6 +81,8 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     cudaCheck(cudaMallocHost(
       (void**) &host_kf_tracks,
       max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
+    cudaCheck(cudaMallocHost((void**)&host_muon_catboost_output, max_number_of_events * SciFi::Constants::max_tracks * sizeof(float))); 
+    cudaCheck(cudaMallocHost((void**)&host_is_muon, max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool))); 
   }
 }
 

@@ -25,12 +25,6 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
 
   assert(track.hitsNum <= SciFi::Constants::max_track_size);
 
-  // printf("Track: ut_track_index %i, hitsNum %i, hits: ", track.ut_track_index, track.hitsNum);
-  // for (int i=0; i<track.hitsNum; ++i) {
-  //   printf("%i, ", track.hits[i]);
-  // }
-  // printf("\n");
-
   const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
   for (int i = 0; i < track.hitsNum; ++i) {
     const int offset = event_offset + ((int) track.hits[i]);

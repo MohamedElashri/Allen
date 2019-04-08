@@ -6,7 +6,7 @@
 #include "UTEventModel.cuh"
 
 __host__ __device__
-float eval(
+float eval_log_function(
   const int N,
   float& init,
   const float* a,

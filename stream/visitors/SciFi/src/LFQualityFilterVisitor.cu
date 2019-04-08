@@ -61,44 +61,4 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
     cudaEventRecord(cuda_generic_event, cuda_stream);
     cudaEventSynchronize(cuda_generic_event);
   }
-
-  // for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
-  //   const auto number_of_tracks = scifi_atomics[i];
-  //   int number_of_quadruplets = 0;
-
-  //   for (int j=0; j<number_of_tracks; ++j) {
-  //     const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
-  //     if (track.hitsNum == 4) {
-  //       ++number_of_quadruplets;
-  //     }
-  //   }
-
-  //   info_cout << "Event " << i << ", number of quadruplet tracks " << number_of_quadruplets << std::endl;
-
-  //   for (int j=0; j<number_of_tracks; ++j) {
-  //     const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
-  //     if (track.hitsNum >= 4) {
-  //       info_cout << "Track ";
-  //       for (int k=0; k<track.hitsNum; ++k) {
-  //         info_cout << track.hits[k] << ", ";
-  //       }
-  //       info_cout << track.get_quality() << std::endl;
-  //     }
-  //   }
-  //   info_cout << std::endl;
-
-  //   info_cout << "Event " << i << ", number of tracks " << number_of_tracks << std::endl;
-
-  //   for (int j=0; j<number_of_tracks; ++j) {
-  //     const auto track = scifi_tracks[i * SciFi::Constants::max_tracks + j];
-  //     info_cout << " Track #" << j << " from ut track " << track.ut_track_index
-  //       << ", quality " << track.get_quality()
-  //       << ", hits: ";
-
-  //     for (int k=0; k<track.hitsNum; ++k) {
-  //       info_cout << track.hits[k] << ", ";
-  //     }
-  //     info_cout << std::endl;
-  //   }
-  // }
 }

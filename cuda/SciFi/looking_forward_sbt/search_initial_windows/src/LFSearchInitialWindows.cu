@@ -92,7 +92,8 @@ __global__ void lf_search_initial_windows(
       (y_projection < 0 ? -1 : 1),
       dev_initial_windows + ut_event_tracks_offset + i,
       ut_tracks.total_number_of_tracks);
- 
+
+    /* OPTIMIZE: use windows based on UT momentum estimate? */
     // lf_search_initial_windows_p_impl(
     //   scifi_hits,
     //   scifi_hit_count,

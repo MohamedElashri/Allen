@@ -53,35 +53,4 @@ void SequenceVisitor::visit<lf_calculate_second_layer_window_t>(
     LookingForward::seeding_station);
 
   state.invoke();
-
-  // std::vector<unsigned short> lf_second_layer_candidates (arguments.size<dev_scifi_lf_second_layer_candidates>() / sizeof(unsigned short));
-
-  // cudaCheck(cudaMemcpyAsync(lf_second_layer_candidates.data(),
-  //   arguments.offset<dev_scifi_lf_second_layer_candidates>(),
-  //   arguments.size<dev_scifi_lf_second_layer_candidates>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
-
-  // cudaEventRecord(cuda_generic_event, cuda_stream);
-  // cudaEventSynchronize(cuda_generic_event);
-
-  // int total_number_of_candidates = 0;
-
-  // info_cout << std::endl << "Candidates second layer window:" << std::endl;
-  // for (size_t i=0; i<host_buffers.host_lf_total_size_first_window_layer[0]; ++i) {
-  //   info_cout << "Candidate " << i << ", window: (" << lf_second_layer_candidates[i]
-  //     << ", " << lf_second_layer_candidates[host_buffers.host_lf_total_size_first_window_layer[0] + i]
-  //     << ", " << lf_second_layer_candidates[2 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
-  //     << ", " << lf_second_layer_candidates[3 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
-  //     << ", " << lf_second_layer_candidates[4 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
-  //     << ", " << lf_second_layer_candidates[5 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
-  //     << ", " << lf_second_layer_candidates[6 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
-  //     << ", " << lf_second_layer_candidates[7 * host_buffers.host_lf_total_size_first_window_layer[0] + i]
-  //     << ")" << std::endl;
-
-  //   total_number_of_candidates += lf_second_layer_candidates[3 * host_buffers.host_lf_total_size_first_window_layer[0] + i];
-  // }
-  // info_cout << std::endl;
-
-  // info_cout << "Average number of candidates: " << total_number_of_candidates / ((float) host_buffers.host_lf_total_size_first_window_layer[0]) << std::endl;
 }

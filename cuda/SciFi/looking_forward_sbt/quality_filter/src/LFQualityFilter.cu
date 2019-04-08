@@ -79,15 +79,6 @@ __global__ void lf_quality_filter(
       const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
       if (insert_index < SciFi::Constants::max_tracks) {
         const auto& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_lf_tracks + best_track_index];
-
-        // printf("Best track: ut_track_index %i, number of hits %i, hits: ",
-        //   track.ut_track_index,
-        //   track.hitsNum);
-        // for (int k=0; k<track.hitsNum; ++k) {
-        //   printf("%i, ", track.hits[k]);
-        // }
-        // printf("\n");
-
         dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + insert_index] = track;
       }
     }

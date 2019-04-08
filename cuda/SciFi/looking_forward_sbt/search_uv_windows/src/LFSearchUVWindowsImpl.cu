@@ -49,10 +49,5 @@ __device__ void lf_search_uv_windows_impl(
       + event_number * 6 * SciFi::Constants::max_lf_tracks
       + relative_uv_layer * SciFi::Constants::max_lf_tracks
     ] = std::get<1>(layer_candidates);
-
-    // if (blockIdx.x == 1 && threadIdx.x == 0) {
-    //   printf("Search - track %i, windows %i, %i\n", track.ut_track_index,
-    //     std::get<0>(layer_candidates), std::get<1>(layer_candidates));
-    // }
   }
 }

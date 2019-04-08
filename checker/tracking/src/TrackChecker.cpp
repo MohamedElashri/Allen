@@ -13,6 +13,8 @@
  *
  * 10-12/2018 Dorothea vom Bruch: add histograms of track efficiency, ghost rate,
  * momentum resolution
+ *
+ * 03/2018 Dorothea vom Bruch: adapt to same track - MCP association as in Rec
  */
 
 #include <cstdio>
@@ -73,6 +75,12 @@ TrackChecker::~TrackChecker()
     histo.second->Write();
   histos.h_ghost_nPV->Write();
   histos.h_total_nPV->Write();
+  histos.h_muon_catboost_output_matched_muon->Write();
+  histos.h_muon_catboost_output_matched_notMuon->Write();
+  histos.h_muon_catboost_output_matched_muon_ismuon_true->Write();
+  histos.h_muon_catboost_output_matched_notMuon_ismuon_true->Write();
+  histos.h_is_muon_matched_muon->Write();
+  histos.h_is_muon_matched_notMuon->Write();
 
   f->Write();
   f->Close();
@@ -185,6 +193,22 @@ void TrackChecker::Histos::initHistos(const std::vector<HistoCategory>& histo_ca
   h_dqop_versus_qop = new TH2D("dqop_vs_qop", "dqop vs. qop", 100, -0.2e-3, 0.2e-3, 100, -0.05e-3, 0.05e-3);
   h_dp_versus_p = new TH2D("dp_vs_p", "dp vs. p", 100, 0, 100000., 1000, -10000., 10000.);
   h_momentum_matched = new TH1D("p_matched", "p, matched", 100, 0, 100000.);
+
+  // histo for muon ID
+  h_muon_catboost_output_matched_muon =
+    new TH1D("muon_catboost_output_matched_muon", "muon_catboost_output_matched_muon", 200, -5., 5.);
+  h_muon_catboost_output_matched_notMuon =
+    new TH1D("muon_catboost_output_matched_notMuon", "muon_catboost_output_matched_notMuon", 200, -5., 5.);
+  h_muon_catboost_output_matched_muon_ismuon_true = new TH1D(
+    "muon_catboost_output_matched_muon_ismuon_true", "muon_catboost_output_matched_muon_ismuon_true", 200, -5., 5.);
+  h_muon_catboost_output_matched_notMuon_ismuon_true = new TH1D(
+    "muon_catboost_output_matched_notMuon_ismuon_true",
+    "muon_catboost_output_matched_notMuon_ismuon_true",
+    200,
+    -5.,
+    5.);
+  h_is_muon_matched_muon = new TH1D("is_muon_matched_muon", "is_muon_matched_muon", 2, -0.5, 1.5);
+  h_is_muon_matched_notMuon = new TH1D("is_muon_matched_notMuon", "is_muon_catboost_matched_notMuon", 2, -0.5, 1.5);
 #endif
 }
 
@@ -221,6 +245,12 @@ void TrackChecker::Histos::deleteHistos(const std::vector<HistoCategory>& histo_
   delete h_qop_resolution;
   delete h_dqop_versus_qop;
   delete h_momentum_matched;
+  delete h_muon_catboost_output_matched_muon;
+  delete h_muon_catboost_output_matched_notMuon;
+  delete h_muon_catboost_output_matched_muon_ismuon_true;
+  delete h_muon_catboost_output_matched_notMuon_ismuon_true;
+  delete h_is_muon_matched_muon;
+  delete h_is_muon_matched_notMuon;
 #endif
 }
 
@@ -288,11 +318,32 @@ void TrackChecker::Histos::fillMomentumResolutionHisto(const MCParticle& mcp, co
 #endif
 }
 
+void TrackChecker::Histos::fillMuonIDMatchedHistos(const Checker::Track& track, const MCParticle& mcp)
+{
+#ifdef WITH_ROOT
+  if (std::abs(mcp.pid) == 13) {
+    h_muon_catboost_output_matched_muon->Fill(track.muon_catboost_output);
+    h_is_muon_matched_muon->Fill(track.is_muon);
+    if (track.is_muon == true) {
+      h_muon_catboost_output_matched_muon_ismuon_true->Fill(track.muon_catboost_output);
+    }
+  }
+  else {
+    h_muon_catboost_output_matched_notMuon->Fill(track.muon_catboost_output);
+    h_is_muon_matched_notMuon->Fill(track.is_muon);
+    if (track.is_muon == true) {
+      h_muon_catboost_output_matched_notMuon_ismuon_true->Fill(track.muon_catboost_output);
+    }
+  }
+#endif
+}
+ 
 bool TrackChecker::match_track_to_MCPs(
   MCAssociator mc_assoc,
   const Checker::Tracks& tracks,
   const int i_track,
-  std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table)
+  std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table,
+  uint32_t& track_best_matched_MCP)
 {
   const auto& track = tracks[i_track];
 
@@ -368,6 +419,7 @@ bool TrackChecker::match_track_to_MCPs(
   }
 
   bool match = false;
+  float max_weight = 1e9f;
   for (const auto& id_counter : truth_counters) {
     bool velo_ok = true;
     bool scifi_ok = true;
@@ -396,10 +448,16 @@ bool TrackChecker::match_track_to_MCPs(
         subdetector_counter = id_counter.second.n_ut;
       else if (m_trackerName == "Forward")
         subdetector_counter = id_counter.second.n_scifi;
+      const float weight = ((float) counter_sum) / ((float) n_meas);
       const MCAssociator::TrackWithWeight track_weight = {
-        i_track, ((float) counter_sum) / ((float) n_meas), subdetector_counter};
+        i_track, weight, subdetector_counter};
       assoc_table[(mc_assoc.m_mcps[id_counter.first]).key].push_back(track_weight);
       match = true;
+
+      if ( weight < max_weight ) {
+        max_weight = weight;
+        track_best_matched_MCP = (mc_assoc.m_mcps[id_counter.first]).key;
+      }
     }
   }
 
@@ -435,19 +493,28 @@ std::vector<uint32_t> TrackChecker::operator()(
     auto track = tracks[i_track];
     histos.fillTotalHistos(mc_event.m_mcps[0]);
 
-    bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
+    uint32_t track_best_matched_MCP;
+    bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table, track_best_matched_MCP);
+
+    if ( match ) {
+      matched_mcp_keys.push_back(track_best_matched_MCP);
+    }
+    else {
+      matched_mcp_keys.push_back(0xFFFFFFFF);
+    }
 
     bool eta25 = track.eta > 2.f && track.eta < 5.f;
     bool skipEtaCut = (m_trackerName == "Velo");
     bool eta25Cut = eta25 | skipEtaCut;
+    
     if (!eta25Cut) continue;
     ++ntracksperevt;
+    
     const bool triggerCondition = track.p > 3000.f && track.pt > 500.f;
     if (triggerCondition) {
       ntrackstriggerperevt++;
     }
     if (!match) {
-      matched_mcp_keys.push_back(0xFFFFFFFF);
       ++nghostsperevt;
       histos.fillGhostHistos(mc_event.m_mcps[0]);
       if (triggerCondition) ++nghoststriggerperevt;
@@ -479,8 +546,6 @@ std::vector<uint32_t> TrackChecker::operator()(
       // report(track, mcp, weight, get_num_hits);
       report(matched_tracks, mcp, get_num_hits_subdetector);
     }
-    // write out matched MCP key
-    matched_mcp_keys.push_back(key);
 
     // fill histograms of reconstructible MC particles in various categories
     for (auto& histo_cat : m_histo_categories) {
@@ -488,6 +553,8 @@ std::vector<uint32_t> TrackChecker::operator()(
     }
     // fill histogram of momentum resolution
     histos.fillMomentumResolutionHisto(mcp, track.p, track.qop);
+    // fill muon ID histograms
+    histos.fillMuonIDMatchedHistos(track, mcp);
   }
 
   // almost done, notify of end of event...

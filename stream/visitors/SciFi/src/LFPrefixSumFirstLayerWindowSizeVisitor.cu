@@ -49,25 +49,4 @@ void SequenceVisitor::visit<lf_prefix_sum_first_layer_window_size_t>(
 
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
-
-  // std::vector<uint> lf_first_layer_candidates (arguments.size<dev_scifi_lf_first_layer_candidates>() / sizeof(uint));
-
-  // cudaCheck(cudaMemcpyAsync(lf_first_layer_candidates.data(),
-  //   arguments.offset<dev_scifi_lf_first_layer_candidates>(),
-  //   arguments.size<dev_scifi_lf_first_layer_candidates>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
-
-  // cudaEventRecord(cuda_generic_event, cuda_stream);
-  // cudaEventSynchronize(cuda_generic_event);
-
-  // for (uint i=0; i<number_of_ut_tracks; ++i) {
-  //   info_cout << "UT track " << i << ", window: (" << lf_first_layer_candidates[i]
-  //     << ", " << lf_first_layer_candidates[number_of_ut_tracks + i] << ", "
-  //     << lf_first_layer_candidates[number_of_ut_tracks + i + 1] - lf_first_layer_candidates[number_of_ut_tracks + i] << ")" << std::endl;
-  // }
-
-  // info_cout << std::endl
-  //   << "Total number of candidates in first window: " << host_buffers.host_lf_total_size_first_window_layer[0] << std::endl
-  //   << std::endl;
 }

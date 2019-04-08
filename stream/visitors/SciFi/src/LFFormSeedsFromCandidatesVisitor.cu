@@ -49,21 +49,4 @@ void SequenceVisitor::visit<lf_form_seeds_from_candidates_t>(
     LookingForward::seeding_station);
 
   state.invoke();
-
-  // std::vector<int> scifi_atomics(arguments.size<dev_atomics_scifi>() / sizeof(int));
-
-  // cudaCheck(cudaMemcpyAsync(
-  //   scifi_atomics.data(),
-  //   arguments.offset<dev_atomics_scifi>(),
-  //   arguments.size<dev_atomics_scifi>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
-
-  // cudaEventRecord(cuda_generic_event, cuda_stream);
-  // cudaEventSynchronize(cuda_generic_event);
-
-  // for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
-  //   info_cout << "Event " << i
-  //     << ", number of track candidates " << scifi_atomics[i] << std::endl;
-  // }
 }

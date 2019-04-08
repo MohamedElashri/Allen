@@ -65,7 +65,7 @@ namespace SciFi {
     // Looking Forward
     static constexpr int max_tracks = 1000;
     static constexpr int max_lf_tracks = 6000;
-    static constexpr int max_track_size = Tracking::max_scifi_hits; // 12; // very ugly hack to make PrForward work again. we have to think of a solution to separate looking forward and PrForward constants
+    static constexpr int max_track_size = 12; 
 
     static constexpr int max_track_candidates = 2000;
     static constexpr int max_track_candidate_size = 4;

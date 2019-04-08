@@ -15,6 +15,7 @@
 struct HostBuffers {
   // Pinned host datatypes
   uint* host_number_of_selected_events;
+  uint host_max_number_of_events;
   uint* host_event_list;
 
   // Velo
@@ -65,6 +66,10 @@ struct HostBuffers {
 
   // Kalman
   ParKalmanFilter::FittedTrack* host_kf_tracks;
+
+  // Muon
+  float* host_muon_catboost_output;
+  bool *host_is_muon;
 
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;

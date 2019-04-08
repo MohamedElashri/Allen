@@ -17,6 +17,7 @@
 #include "KalmanParametrizations.cuh"
 #include "SciFiParametrization.h"
 #include "LookingForwardConstants.cuh"
+#include "MuonDefinitions.cuh"
 
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
@@ -59,8 +60,13 @@ struct Constants {
   char* dev_scifi_geometry;
   const char* host_scifi_geometry;
   PrUTMagnetTool* dev_ut_magnet_tool;
-  // Muon classification model constants
-  int muon_catboost_n_features;
+
+  // Magnet polarity
+  float* dev_magnet_polarity;
+
+  // Muon classification model constatns
+  Muon::Constants::FieldOfInterest* dev_muon_foi;
+  float* dev_muon_momentum_cuts;
   int muon_catboost_n_trees;
   int* dev_muon_catboost_tree_depths;
   int* dev_muon_catboost_tree_offsets;
@@ -76,10 +82,11 @@ struct Constants {
   /**
    * @brief Reserves and initializes constants.
    */
-  void reserve_and_initialize()
-  {
+  void reserve_and_initialize(
+    const std::vector<float>& muon_field_of_interest_params
+  ) {
     reserve_constants();
-    initialize_constants();
+    initialize_constants(muon_field_of_interest_params);
   }
 
   /**
@@ -90,7 +97,7 @@ struct Constants {
   /**
    * @brief Initializes constants on the GPU.
    */
-  void initialize_constants();
+  void initialize_constants(const std::vector<float>& muon_field_of_interest_params);
 
   /**
    * @brief Initializes UT decoding constants.
@@ -108,7 +115,6 @@ struct Constants {
     const std::vector<char>& scifi_geometry);
 
   void initialize_muon_catboost_model_constants(
-    const int n_features,
     const int n_trees,
     const std::vector<int>& tree_depths,
     const std::vector<int>& tree_offsets,

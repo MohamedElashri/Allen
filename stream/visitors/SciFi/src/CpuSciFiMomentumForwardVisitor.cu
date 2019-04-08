@@ -55,6 +55,10 @@ void SequenceVisitor::visit<cpu_scifi_momentum_forward_t>(
     arguments.size<dev_velo_states>(),
     cudaMemcpyDeviceToHost));
 
+  /* INFO: use this call statement when running the momentum forward x86 algorithm.
+     For the looking forward x86 algorithm, leave this commented because the function is invoked in 
+     stream/checkers/include/UTSequenceCheckers_impl.cuh to have the true SciFi IDs linked to a matched UT track available */
+     
   // int rv = state.invoke(
   //   host_buffers.scifi_tracks_events.data(),
   //   host_buffers.host_atomics_scifi,
@@ -74,9 +78,6 @@ void SequenceVisitor::visit<cpu_scifi_momentum_forward_t>(
   //   host_buffers.host_ut_track_velo_indices,
   //   host_buffers.host_number_of_selected_events[0]);
 
-  // for ( int i = 0; i < host_buffers.host_number_of_selected_events[0]; ++i ) 
-  //   debug_cout << "Visitor: found " << host_buffers.host_atomics_scifi[i] << " tracks in event " << i << std::endl;
-  
   // // copy SciFi tracks to device for consolidation
   // cudaCheck(cudaMemcpyAsync(
   //   arguments.offset<dev_atomics_scifi>(), 
@@ -94,5 +95,4 @@ void SequenceVisitor::visit<cpu_scifi_momentum_forward_t>(
   
   // cudaEventRecord(cuda_generic_event, cuda_stream);
   // cudaEventSynchronize(cuda_generic_event);
-  
 }

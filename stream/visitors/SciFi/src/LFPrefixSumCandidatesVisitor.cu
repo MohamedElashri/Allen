@@ -50,29 +50,4 @@ void SequenceVisitor::visit<lf_prefix_sum_candidates_t>(
 
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
-
-  // std::vector<int> number_of_candidates (arguments.size<dev_scifi_lf_number_of_candidates>() / sizeof(int));
-
-  // cudaCheck(cudaMemcpy(
-  //   number_of_candidates.data(),
-  //   arguments.offset<dev_scifi_lf_number_of_candidates>(),
-  //   arguments.size<dev_scifi_lf_number_of_candidates>(),
-  //   cudaMemcpyDeviceToHost));
-
-  // // const auto ut_total_number_of_tracks = host_buffers.host_number_of_reconstructed_ut_tracks[0];
-  // for (size_t event_number=0; event_number<host_buffers.host_number_of_selected_events[0]; ++event_number) {
-  //   const auto offset = host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] + event_number];
-  //   const auto number_of_ut_tracks = host_buffers.host_atomics_ut[host_buffers.host_number_of_selected_events[0] + event_number+1] - offset;
-
-  //   info_cout << "Event #" << event_number << std::endl;
-  //   for (size_t i=0; i<number_of_ut_tracks; ++i) {
-  //     info_cout << "Candidates track #" << i << ": ";
-
-  //     for (int j=0; j<LookingForward::number_of_x_layers; ++j) {
-  //       info_cout << number_of_candidates[(offset + i) * LookingForward::number_of_x_layers + j] << ", ";
-  //     }
-
-  //     info_cout << std::endl;
-  //   }
-  // }
 }

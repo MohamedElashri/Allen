@@ -214,7 +214,6 @@ __device__ bool LookingForward::quadraticFitX_proto(
       int hit = coordToFit[i_hit];
       float d = trackToHitDistance(trackParameters, scifi_hits, hit);
       float chi2 = d * d * scifi_hits.w(hit);
-      // debug_cout << "d = " << d << ", w = " << scifi_hits.w(hit) << ", chi2 = " << chi2 << std::endl;
       totChi2 += chi2;
       ++nDoF;
       if (chi2 > maxChi2) {
@@ -232,6 +231,7 @@ __device__ bool LookingForward::quadraticFitX_proto(
     // << worst << ", # of hits = " << n_coordToFit << std::endl;
 
     doFit = false;
+    /* OPTIMIZE: make outlier removal faster or remove it */
     // if (totChi2 / nDoF > SciFi::Tracking::maxChi2PerDoF || maxChi2 > SciFi::Tracking::maxChi2XProjection) {
 
     // if (worst != -1) {

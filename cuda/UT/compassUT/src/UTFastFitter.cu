@@ -1,7 +1,7 @@
 #include "UTFastFitter.cuh" 
 
 __host__ __device__
-float eval(
+float eval_log_function(
   const int N,
   float& init,
   const float* a,
@@ -12,18 +12,6 @@ float eval(
   }
   return init;
 }
-
-// T inner_product(InputIt1 first1, InputIt1 last1,
-//                 InputIt2 first2, T init,
-//                 BinaryOperation1 op1
-//                 BinaryOperation2 op2)
-// {
-//     while (first1 != last1) {
-//          init = op1(std::move(init), op2(*first1, *first2)); // std::move since C++20
-//          ++first1;
-//          ++first2;
-//     }
-//     return init;
 
 // -- Evaluate the linear discriminant
 // -- Coefficients derived with LD method for p, pT and chi2 with TMVA
@@ -42,15 +30,13 @@ float evaluateLinearDiscriminant(const float inputValues[3], const int nHits)
     coeffs[2] = 0.110823681145f;
     coeffs[3] = -0.170467109599f; 
   } 
-  return eval(3, coeffs[0], &coeffs[1], &inputValues[0]);
-  //assert(coeffs.size()==inputValues.size()+1);
-  // return std::inner_product( std::next(coeffs.begin()), coeffs.end(),
-  //                            inputValues.begin(), 
-  //                            coeffs.front(),
-  //                            std::plus<>{}, 
-  //                            [](float c, float iv) { return c*vdt::fast_logf(iv); } ); 
+  return eval_log_function(3, coeffs[0], &coeffs[1], &inputValues[0]);
 }
 
+/* This function is based on the implementation of fastfitter in 
+   https://gitlab.cern.ch/lhcb/Rec/blob/master/Pr/PrVeloUT/src/PrVeloUT.cpp 
+   See this presentation for information: https://indico.cern.ch/event/786084/contributions/3326577/attachments/1800737/2937077/20190213_forward.pdf
+*/
 __host__ __device__
 float fastfitter(
   const BestParams best_params, 
@@ -89,7 +75,6 @@ float fastfitter(
       if (best_hits[i] != -1) {
         const auto hit = best_hits[i];
         
-        // check: is this plane code correct?
         const int plane_code = i;
         const float dxDy = ut_dxDy[plane_code];
         const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit]);
@@ -139,7 +124,6 @@ float fastfitter(
         
         const float   w  = ut_hits.weight[hit];  
         const float   dz = ut_hits.zAtYEq0[hit] - UT::Constants::zMidUT;
-        // check: is this plane code correct?
         const int plane_code = i;
         const float dxDy = ut_dxDy[plane_code];
         const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit]);

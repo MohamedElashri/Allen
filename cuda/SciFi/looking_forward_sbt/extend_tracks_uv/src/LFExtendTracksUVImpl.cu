@@ -43,9 +43,4 @@ __device__ void lf_extend_tracks_uv_impl(
       (uint16_t) best_index,
       best_chi2);
   }
-
-  // if (blockIdx.x == 1 && threadIdx.x == 0) {
-  //   printf("Extend - track %i, windows %i, %i\n", track.ut_track_index,
-  //     layer_offset, layer_number_of_hits);
-  // }
 }

@@ -11,6 +11,7 @@ __global__ void compass_ut(
   char* dev_velo_track_hits,
   char* dev_velo_states,
   PrUTMagnetTool* dev_ut_magnet_tool,
+  const float* dev_magnet_polarity,
   const float* dev_ut_dxDy,
   int* dev_active_tracks,
   const uint* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
@@ -64,7 +65,6 @@ __global__ void compass_ut(
   // store windows and num candidates in shared mem
   __shared__ short win_size_shared[UT::Constants::num_thr_compassut * UT::Constants::n_layers * CompassUT::num_elems];
 
-  // const float* fudgeFactors = &(dev_ut_magnet_tool->dxLayTable[0]);
   const float* bdl_table = &(dev_ut_magnet_tool->bdlTable[0]);
 
   for (int i = 0; i < ((number_of_tracks_event + blockDim.x - 1) / blockDim.x) + 1; i += 1) {
@@ -101,6 +101,7 @@ __global__ void compass_ut(
         ut_hit_offsets,
         bdl_table,
         dev_ut_dxDy,
+        dev_magnet_polarity[0],
         win_size_shared,
         n_veloUT_tracks_event,
         veloUT_tracks_event,
@@ -137,6 +138,7 @@ __global__ void compass_ut(
       ut_hit_offsets,
       bdl_table,
       dev_ut_dxDy,
+      dev_magnet_polarity[0],
       win_size_shared,
       n_veloUT_tracks_event,
       veloUT_tracks_event,
@@ -156,6 +158,7 @@ __device__ void compass_ut_tracking(
   const UT::HitOffsets& ut_hit_offsets,
   const float* bdl_table,
   const float* dev_ut_dxDy,
+  const float magnet_polarity,
   short* win_size_shared,
   int* n_veloUT_tracks_event,
   UT::TrackHits* veloUT_tracks_event,
@@ -190,6 +193,7 @@ __device__ void compass_ut_tracking(
       best_hits,
       ut_hits,
       dev_ut_dxDy,
+      magnet_polarity,
       n_veloUT_tracks_event,
       veloUT_tracks_event,
       event_hit_offset);
@@ -278,6 +282,7 @@ __device__ void save_track(
   const int* best_hits,
   const UT::Hits& ut_hits,
   const float* ut_dxDy,
+  const float magSign,
   int* n_veloUT_tracks,         // increment number of tracks
   UT::TrackHits* VeloUT_tracks, // write the track
   const int event_hit_offset)
@@ -349,9 +354,6 @@ __device__ void save_track(
 
   // -- apply some fiducial cuts  
   // -- they are optimised for high pT tracks (> 500 MeV)
-  // to do: have ot get the magnet polarity properly
-  const float magSign = -1.f; // m_magFieldSvc->signedRelativeCurrent();
-
   if( magSign*qop < 0.0f && xUT > -48.0f && xUT < 0.0f && std::abs(yUT) < 33.0f ) return;
   if( magSign*qop > 0.0f && xUT < 48.0f  && xUT > 0.0f && std::abs(yUT) < 33.0f ) return;
   

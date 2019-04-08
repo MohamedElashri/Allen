@@ -54,22 +54,4 @@ void SequenceVisitor::visit<lf_calculate_first_layer_window_t>(
     LookingForward::seeding_first_layer);
 
   state.invoke();
-
-  // std::vector<uint> lf_first_layer_candidates (arguments.size<dev_scifi_lf_first_layer_candidates>() / sizeof(uint));
-
-  // cudaCheck(cudaMemcpyAsync(lf_first_layer_candidates.data(),
-  //   arguments.offset<dev_scifi_lf_first_layer_candidates>(),
-  //   arguments.size<dev_scifi_lf_first_layer_candidates>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
-
-  // cudaEventRecord(cuda_generic_event, cuda_stream);
-  // cudaEventSynchronize(cuda_generic_event);
-
-  // const auto number_of_ut_tracks = host_buffers.host_atomics_ut[2 * host_buffers.host_number_of_selected_events[0]];
-  // for (uint i=0; i<number_of_ut_tracks; ++i) {
-  //   info_cout << "UT track " << i << ", window: (" << lf_first_layer_candidates[i]
-  //     << ", " << lf_first_layer_candidates[number_of_ut_tracks + i] << ")" << std::endl;
-  // }
-  // info_cout << std::endl;
 }

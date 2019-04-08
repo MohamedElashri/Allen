@@ -51,7 +51,7 @@ void checkKalmanTracks(
 #endif
 
   // Loop over events.
-  for (int i_event; i_event < selected_mc_events.size(); ++i_event) {
+  for (int i_event = 0; i_event < selected_mc_events.size(); ++i_event) {
 
     const auto& mc_event = selected_mc_events[i_event];
     const auto& mcps = mc_event.m_mcps;

@@ -42,6 +42,8 @@ namespace Checker {
     float long_ip, long_ip_chi2, long_ipx, long_ipy;
     std::size_t n_matched_total = 0;
     float p, pt, eta;
+    float muon_catboost_output;
+    bool is_muon;
 
     void addId(LHCbID id) { allids.push_back(id); }
 

@@ -19,27 +19,26 @@ __host__ void collectAllXHits_proto_p(
   const float ty2 = velo_state.ty*velo_state.ty;
   const float slope2 = tx2 + ty2;
   const float pt = sqrtf(slope2 / (1.f + slope2) ) / fabsf(qOverP); 
-
   const float p = 1.f / std::abs(qOverP);
+
+  /* OPTIMIZE: possibly use these variables for wrong sign treatment */
+  // const float q = qOverP > 0.f ? 1.f : -1.f;
+  // const bool wSignTreatment = pt > SciFi::Tracking::wrongSignPT; 
+  // float zMag = zMagnet(velo_state, constArrays);
+  // const float qop_WS = sqrtf(slope2 / (1.f + slope2) ) / pt; 
+  // float dxRefWS = 0.f;
+  // if ( wSignTreatment ) {
+  //   dxRefWS = 0.9f * calcDxRef(SciFi::Tracking::wrongSignPT, velo_state); 
+  // } 
+  // const float dir = q * SciFi::Tracking::magscalefactor * (-1.f); // needed for wrong sign treatment
+  // const float xTolWS = dx_calc(velo_state, qop_WS, window_params);  
   
-  const float q = qOverP > 0.f ? 1.f : -1.f;
-  const float dir = q * SciFi::Tracking::magscalefactor * (-1.f); 
-     
-  const bool wSignTreatment = pt > SciFi::Tracking::wrongSignPT; 
-  float zMag = zMagnet(velo_state, constArrays);
-  const float qop_WS = sqrtf(slope2 / (1.f + slope2) ) / pt; 
-  float dxRefWS = 0.f;
-  if ( wSignTreatment ) {
-    dxRefWS = 0.9f * calcDxRef(SciFi::Tracking::wrongSignPT, velo_state); 
-  }
   const float xAtRef = xFromVelo(SciFi::Tracking::zReference, UT_state);
   float xParams_seed[4] {xAtRef, UT_state.tx, 0, 0};
 
   // use parametrization to propagate from UT to SciFi
   const auto state_zRef = propagate_state_from_velo(UT_state, qOverP, 5);  // zRef is between layers 4 and 5 
   const float xTol = dx_calc(velo_state, qOverP, window_params);    
-  const float xTolWS = dx_calc(velo_state, qop_WS, window_params);      
-  
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0; 
 
   for (unsigned int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {
@@ -49,7 +48,6 @@ __host__ void collectAllXHits_proto_p(
     const auto izone_rel = iZone - iZoneStartingPoint;
     const float zZone = constArrays->xZone_zPos[izone_rel];
     
-    const int layer = constArrays->xZones[iZone] / 2; 
     const float dz_x = (zZone - SciFi::Tracking::zReference); 
     const float xInZone = scifi_propagation(state_zRef.x, UT_state.tx, qOverP, dz_x);   
     const float yInZone = yFromVelo(zZone, velo_state); 
@@ -71,7 +69,8 @@ __host__ void collectAllXHits_proto_p(
 
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
-     
+
+    /* OPTIMIZE: how do we take care of wrong sign tracks with momentum windows? */
     //float xTolWS = 0.0;
     // if (wSignTreatment) {
     //   // xTolWS = (zZone < SciFi::Tracking::zReference) ?
@@ -128,6 +127,7 @@ __host__ void collectAllXHits_proto_p(
     const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
     const int uv_zone_offset_end =
       uv_zone_offset_begin + scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
+    /* OPTIMIZE: check how large the effect on the efficiency is to include the triangle hits */
     //    const int triangleOffset = side > 0 ? -1 : 1;
     //assert(constArrays->uvZones[iZone + constArrays->zoneoffsetpar * triangleOffset] < SciFi::Constants::n_zones);
     // const int triangle_zone_offset_begin =
@@ -173,7 +173,6 @@ __host__ void collectAllXHits_proto(
 
   float dxRefWS = 0.f;
   if (wSignTreatment) {
-    // DvB: what happens if we use the actual momentum from VeloUT here instead of a constant?
     dxRefWS = 0.9f * calcDxRef(
                        SciFi::Tracking::wrongSignPT,
                        velo_state); // make windows a bit too small - FIXME check effect of this, seems wrong
@@ -239,9 +238,6 @@ __host__ void collectAllXHits_proto(
     assert(constArrays->xZones[iZone] < SciFi::Constants::n_zones);
     int x_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->xZones[iZone]);
     int x_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
-    // const int itH = getLowerBound(scifi_hits.x0, xMin, x_zone_offset_begin, x_zone_offset_begin + x_zone_size);
-    // const int itEnd = getLowerBound(scifi_hits.x0, xMax, x_zone_offset_begin, x_zone_offset_begin + x_zone_size);
-    // const int itSize = itEnd - itH;
     int itH = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
     const int itSize = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin + itH, x_zone_size - itH, xMax);
     itH += x_zone_offset_begin;

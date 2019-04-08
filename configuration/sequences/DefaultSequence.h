@@ -43,5 +43,6 @@ SEQUENCE_T(
   prefix_sum_scifi_track_hit_number_t,
   consolidate_scifi_tracks_t,
   kalman_filter_t,
+  is_muon_t,
   muon_catboost_features_extraction_t,
   muon_catboost_evaluator_t)

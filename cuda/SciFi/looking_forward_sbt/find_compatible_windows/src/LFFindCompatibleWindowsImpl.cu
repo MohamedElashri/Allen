@@ -32,16 +32,6 @@ __device__ void lf_find_compatible_windows_impl(
   const uint8_t number_of_candidates_from = number_of_candidates[relative_layer_from + 1] - candidate_from_offset;
   const uint8_t number_of_candidates_to = number_of_candidates[relative_layer_to + 1] - number_of_candidates[relative_layer_to];
 
-  // printf("Candidates:\n");
-  // for (int i=0; i<number_of_candidates_from; ++i) {
-  //   printf("%i, ", candidates[relative_layer_from * LookingForward::maximum_number_of_candidates + i]);
-  // }
-  // printf("\n");
-  // for (int i=0; i<number_of_candidates_to; ++i) {
-  //   printf("%i, ", candidates[relative_layer_to * LookingForward::maximum_number_of_candidates + i]);
-  // }
-  // printf("\n");
-
   for (int h1_rel = threadIdx.z; h1_rel < number_of_candidates_from; h1_rel += blockDim.z) {
     const auto h1_index = candidates[relative_layer_from * LookingForward::maximum_number_of_candidates + h1_rel];
     const auto x1 = scifi_hits.x0[h1_index];
@@ -70,13 +60,5 @@ __device__ void lf_find_compatible_windows_impl(
 
     compatible_window[(2 + relative_layer_direction) * total_number_of_candidates + candidate_from_offset + h1_rel] =
       std::get<1>(window);
-
-    // printf("#%i num candidates %i, extrapolated_value %f, stddev %f, num cands %i\n",
-    //   h1_rel,
-    //   number_of_candidates_to,
-    //   extrapolated_value, 
-    //   4.f * dev_looking_forward_constants->dx_stddev_triplet[relative_layer],
-    //   std::get<1>(window),
-    //   event_offset);
   }
 }

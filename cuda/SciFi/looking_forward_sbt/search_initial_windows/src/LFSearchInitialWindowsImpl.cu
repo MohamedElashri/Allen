@@ -39,19 +39,6 @@ __device__ void lf_search_initial_windows_p_impl(
     const float xInZone = LookingForward::scifi_propagation(x_at_ref, UT_state.tx, qop, dz_x);   
     const float yInZone = yFromVelo(zZone, velo_state); 
     
-    // if (side > 0) {
-    //   if (
-    //       !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
-    //       !isInside(yInZone, SciFi::Tracking::yLim_Min, SciFi::Tracking::yLim_Max))
-    //     continue;
-    // }
-    // else {
-    //   if (
-    //       !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
-    //       !isInside(yInZone, side * SciFi::Tracking::yLim_Max, side * SciFi::Tracking::yLim_Min))
-    //     continue;
-    // } 
-    
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
         
@@ -80,6 +67,7 @@ __device__ void lf_search_initial_windows_p_impl(
     const float xMinUV = xPredUV - maxDx;
     const float xMaxUV = xPredUV + maxDx; 
 
+    /* OPTIMIZE: find out whether these variables are useful to define UV search windows */
     // const float zRatio = (this_uv_z - zMag) / (zZone - zMag);
     // const float xPredUVProto = xPredUV - xInZone * zRatio;
     // const float maxDxProto = SciFi::Tracking::tolYCollectX + std::abs(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
@@ -97,6 +85,7 @@ __device__ void lf_search_initial_windows_p_impl(
     initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_uv_bounds_start;
     initial_windows[(i * 8 + 3) * number_of_tracks] = hits_within_uv_bounds_size;
 
+    /* OPTIMIZE: find out whether UV window variables should be calculated here */
     // float* initial_windows_f = (float*) &initial_windows[0];
     // initial_windows_f[(i * 8 + 4) * number_of_tracks] = xPredUVProto;
     // initial_windows_f[(i * 8 + 5) * number_of_tracks] = zRatio;
@@ -146,19 +135,6 @@ __device__ void lf_search_initial_windows_impl(
     const float xInZone = linear_parameterization(xAtRef, velo_state.tx, zZone);
     const float yInZone = linear_parameterization(yAtRef, velo_state.ty, zZone);
 
-    // if (side > 0) {
-    //   if (
-    //     !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
-    //     !isInside(yInZone, SciFi::Tracking::yLim_Min, SciFi::Tracking::yLim_Max))
-    //     continue;
-    // }
-    // else {
-    //   if (
-    //     !isInside(xInZone, SciFi::Tracking::xLim_Min, SciFi::Tracking::xLim_Max) ||
-    //     !isInside(yInZone, side * SciFi::Tracking::yLim_Max, side * SciFi::Tracking::yLim_Min))
-    //     continue;
-    // }
-
     // extrapolate dxRef (x window on reference plane) to plane of current zone
     const float xTol = (zZone < SciFi::Tracking::zReference) ?
                          dxRef * zZone / SciFi::Tracking::zReference :
@@ -166,8 +142,7 @@ __device__ void lf_search_initial_windows_impl(
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
 
-    if (SciFi::Tracking::useMomentumEstimate) { // For VeloUT tracks, suppress check if track actually has qop set,
-                                                // get the option right!
+    if (SciFi::Tracking::useMomentumEstimate) { 
       float xTolWS = 0.0;
       if (wSignTreatment) {
         xTolWS = (zZone < SciFi::Tracking::zReference) ?
