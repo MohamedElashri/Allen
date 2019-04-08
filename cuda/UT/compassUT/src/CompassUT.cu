@@ -321,20 +321,20 @@ __device__ void save_track(
   }
   bdl += addBdlVal;
 
-  float finalParams[4] = { 
-    best_params.x, 
-    best_params.tx, 
-    velo_state.y + velo_state.ty*(UT::Constants::zMidUT-velo_state.z), 
-    best_params.chi2UT }; 
+  float finalParams[4] = {
+    best_params.x,
+    best_params.tx,
+    velo_state.y + velo_state.ty*(UT::Constants::zMidUT-velo_state.z),
+    best_params.chi2UT };
 
   //const float qpxz2p = -1 * std::sqrt(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
   const float qpxz2p = -1.f / bdl * 3.3356f / Gaudi::Units::GeV;
   //const float qp = best_params.qp;
-  const float qp = fastfitter( 
-    best_params, 
-    velo_state, 
+  const float qp = fastfitter(
+    best_params,
+    velo_state,
     best_hits,
-    qpxz2p, 
+    qpxz2p,
     ut_dxDy,
     ut_hits,
     finalParams);
@@ -345,22 +345,23 @@ __device__ void save_track(
   const float p = 1.3f * std::abs(1.f / qop);
   const float pt = p * std::sqrt(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty);
 
-  if (p < UT::Constants::minMomentumFinal || pt < UT::Constants::minPTFinal) return; 
-  //if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return; 
+  if (p < UT::Constants::minMomentumFinal || pt < UT::Constants::minPTFinal) return;
+  //if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return;
 
-  const float xUT  = finalParams[0];  
-  const float txUT = finalParams[1];   
+  const float xUT  = finalParams[0];
+  const float txUT = finalParams[1];
   const float yUT  = finalParams[2];
 
-  // -- apply some fiducial cuts  
+  // -- apply some fiducial cuts
   // -- they are optimised for high pT tracks (> 500 MeV)
+
   if( magSign*qop < 0.0f && xUT > -48.0f && xUT < 0.0f && std::abs(yUT) < 33.0f ) return;
   if( magSign*qop > 0.0f && xUT < 48.0f  && xUT > 0.0f && std::abs(yUT) < 33.0f ) return;
-  
+
   if( magSign*qop < 0.0f && txUT >  0.09f + 0.0003f*pt) return;
   if( magSign*qop > 0.0f && txUT < -0.09f - 0.0003f*pt) return;
 
-  
+
   // -- evaluate the linear discriminant and reject ghosts
   // -- the values only make sense if the fastfitter is performed
   int nHits = 0;
@@ -372,7 +373,7 @@ __device__ void save_track(
   const float evalParams[3] = {p, pt, finalParams[3]};
   const float discriminant = evaluateLinearDiscriminant(evalParams, nHits);
   if( discriminant  < PrVeloUTConst::LD3Hits ) return;
-    
+
   // the track will be added
   int n_tracks = atomicAdd(n_veloUT_tracks, 1);
 
