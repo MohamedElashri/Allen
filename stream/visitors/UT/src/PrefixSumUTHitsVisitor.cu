@@ -22,37 +22,39 @@ void SequenceVisitor::visit<prefix_sum_ut_hits_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  cpu_prefix_sum(
-    host_buffers.host_prefix_sum_buffer,
-    arguments.offset<dev_ut_hit_offsets>(),
-    arguments.size<dev_ut_hit_offsets>(),
-    cuda_stream,
-    cuda_generic_event,
-    host_buffers.host_accumulated_number_of_ut_hits);
+  if (runtime_options.cpu_offload) {
+    cpu_prefix_sum(
+      host_buffers.host_prefix_sum_buffer,
+      arguments.offset<dev_ut_hit_offsets>(),
+      arguments.size<dev_ut_hit_offsets>(),
+      cuda_stream,
+      cuda_generic_event,
+      host_buffers.host_accumulated_number_of_ut_hits);
+  } else {
+    // Set size of the main array to be prefix summed
+    state.set_size(host_buffers.host_number_of_selected_events[0] * constants.host_unique_x_sector_layer_offsets[4]);
 
-  // // Set size of the main array to be prefix summed
-  // state.set_size(host_buffers.host_number_of_selected_events[0] * constants.host_unique_x_sector_layer_offsets[4]);
+    // Set the cuda_stream
+    state.set_opts(cuda_stream);
 
-  // // Set the cuda_stream
-  // state.set_opts(cuda_stream);
+    // Set arguments: Array to prefix sum and auxiliary array
+    state.set_arguments(arguments.offset<dev_ut_hit_offsets>(), arguments.offset<dev_prefix_sum_auxiliary_array_3>());
 
-  // // Set arguments: Array to prefix sum and auxiliary array
-  // state.set_arguments(arguments.offset<dev_ut_hit_offsets>(), arguments.offset<dev_prefix_sum_auxiliary_array_3>());
+    // Invoke all steps of prefix sum
+    state.invoke();
 
-  // // Invoke all steps of prefix sum
-  // state.invoke();
+    // Fetch total number of hits accumulated with all tracks
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_accumulated_number_of_ut_hits,
+      arguments.offset<dev_ut_hit_offsets>() +
+        host_buffers.host_number_of_selected_events[0] * constants.host_unique_x_sector_layer_offsets[4],
+      sizeof(uint),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  // // Fetch total number of hits accumulated with all tracks
-  // cudaCheck(cudaMemcpyAsync(
-  //   host_buffers.host_accumulated_number_of_ut_hits,
-  //   arguments.offset<dev_ut_hit_offsets>() +
-  //     host_buffers.host_number_of_selected_events[0] * constants.host_unique_x_sector_layer_offsets[4],
-  //   sizeof(uint),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
-
-  // cudaEventRecord(cuda_generic_event, cuda_stream);
-  // cudaEventSynchronize(cuda_generic_event);
+    cudaEventRecord(cuda_generic_event, cuda_stream);
+    cudaEventSynchronize(cuda_generic_event);
+  }
 
   // // Now, we should have the offset instead, and the sum of all in host_accumulated_number_of_ut_hits
   // // Check that
