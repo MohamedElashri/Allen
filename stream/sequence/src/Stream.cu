@@ -20,7 +20,7 @@ cudaError_t Stream::initialize(
 {
   // Set stream and events
   cudaCheck(cudaStreamCreate(&cuda_stream));
-  cudaCheck(cudaEventCreate(&cuda_generic_event));
+  cudaCheck(cudaEventCreateWithFlags(&cuda_generic_event, cudaEventBlockingSync));
 
   // Set stream options
   stream_number = param_stream_number;
