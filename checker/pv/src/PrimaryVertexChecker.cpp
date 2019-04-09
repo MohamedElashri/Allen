@@ -89,8 +89,6 @@ void checkPVs(
         input += sizeof(double);
         mc_vertex.z = *((double*) input);
         input += sizeof(double);
-        mc_vertex.flavour = *((int*) input);
-        input += sizeof(int);
 
         // if(mc_vertex.numberTracks >= 4) vertices.push_back(mc_vertex);
         MC_vertices.push_back(mc_vertex);
