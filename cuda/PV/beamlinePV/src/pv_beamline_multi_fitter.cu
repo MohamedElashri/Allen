@@ -1,6 +1,5 @@
 #include "pv_beamline_multi_fitter.cuh"
 
-// parameters to tune: maximum iterations, chi2max, chi2_cut, T
 
 __global__ void pv_beamline_multi_fitter(
   int* dev_atomics_storage,
@@ -62,8 +61,7 @@ __global__ void pv_beamline_multi_fitter(
         res = vtxpos_xy - (trk.x + trk.tx * dz);
         const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
         // compute the weight.
-        if (chi2 < maxChi2) { // to branch or not, that is the question!
-                              // if (true) {
+        if (chi2 < maxChi2) {
           ++nselectedtracks;
           // for more information on the weighted fitting, see e.g.
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
@@ -73,7 +71,6 @@ __global__ void pv_beamline_multi_fitter(
           auto nom = 1.f;
 
           for (int i_otherseed = 0; i_otherseed < number_of_seeds; i_otherseed++) {
-            // if(i_thisseed == i_otherseed) continue;
             float2 res_otherseed {0.f, 0.f};
             const auto dz = zseeds[i_otherseed] - trk.z;
 
@@ -148,15 +145,12 @@ __global__ void pv_beamline_multi_fitter(
         break;
       }
     } // end iteration loop
-    // std::cout << "Number of iterations: " << iter << " " << nselectedtracks << std::endl ;
     vertex.chi2 = chi2tot;
     vertex.setPosition(vtxpos_xy, vtxpos_z);
-    // vtxcov[5] = 100.;
     vertex.setCovMatrix(vtxcov);
     vertex.n_tracks = sum_weights;
 
     // TODO integrate beamline position
-    const float2 beamline {0.f, 0.f};
     const auto beamlinedx = vertex.position.x - beamline.x;
     const auto beamlinedy = vertex.position.y - beamline.y;
     const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
