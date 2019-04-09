@@ -7,7 +7,6 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   // Datatypes needed to run, regardless of checking
   // Note: These datatypes must be pinned to allow for asynchronicity
   cudaCheck(cudaMallocHost((void**) &host_number_of_selected_events, sizeof(uint)));
-  cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_total_number_of_velo_clusters, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_reconstructed_velo_tracks, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_hits_in_velo_tracks, sizeof(uint)));
@@ -22,6 +21,11 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
 
   // Note: Remove this variable once muon decoding is done
   host_max_number_of_events = max_number_of_events;
+  // Buffer for performing GEC on CPU
+  cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
+
+  // Buffer for performing prefix sum
+  // Note: We should reallocate this buffer if the size required ever exceeds the amount allocated here
   cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, 10000000 * sizeof(uint)));
 
   if (do_check) {
