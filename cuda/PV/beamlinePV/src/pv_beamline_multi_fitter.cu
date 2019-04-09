@@ -43,7 +43,6 @@ __global__ void pv_beamline_multi_fitter(
     unsigned short nselectedtracks = 0;
     unsigned short iter = 0;
     float sum_weights = 0.f;
-    // debug_cout << "next vertex " << std::endl;
     for (; iter < maxFitIter && !converged; ++iter) {
       auto halfD2Chi2DX2_00 = 0.f;
       auto halfD2Chi2DX2_11 = 0.f;
@@ -53,7 +52,6 @@ __global__ void pv_beamline_multi_fitter(
       float3 halfDChi2DX {0.f, 0.f, 0.f};
       chi2tot = 0.f;
       nselectedtracks = 0;
-      // debug_cout << "next track" << std::endl;
       for (int i = 0; i < number_of_tracks; i++) {
         // compute the chi2
         PVTrackInVertex trk = tracks[i];
@@ -63,7 +61,6 @@ __global__ void pv_beamline_multi_fitter(
         float2 res {0.f, 0.f};
         res = vtxpos_xy - (trk.x + trk.tx * dz);
         const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
-        // debug_cout << "chi2 = " << chi2 << ", max = " << chi2max << std::endl;
         // compute the weight.
         if (chi2 < maxChi2) { // to branch or not, that is the question!
                               // if (true) {

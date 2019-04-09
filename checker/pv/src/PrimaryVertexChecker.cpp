@@ -315,8 +315,6 @@ void checkPVs(
       sum_nFalsePV += nFalsePV;
       sum_nFalsePV_real += nFalsePV_real;
 
-      int counter_ghosts = 0;
-      int norm_ghosts = 0;
 
       // loop over matched MC PVs and get pull and errors
       for (auto mc_vertex_info : rblemcpv) {
@@ -326,8 +324,6 @@ void checkPVs(
           continue;
         }
 
-        // counter_ghosts += mc_vertex_info.number_rec_vtx;
-        // norm_ghosts++;
         sum_clones += mc_vertex_info.number_rec_vtx;
         sum_norm_clones++;
 
@@ -372,7 +368,7 @@ void checkPVs(
     printRat("False rate", sum_nFalsePV, sum_nRecMCPV + sum_nFalsePV);
     printRat("Real false rate", sum_nFalsePV_real, sum_nRecMCPV + sum_nFalsePV_real);
 
-    info_cout << "ghosts: " << 1.0f * sum_clones / sum_norm_clones - 1.f << std::endl << std::endl;
+    info_cout << "Clones: " << 1.0f * sum_clones / sum_norm_clones - 1.f << std::endl << std::endl;
 
 // save information about matched reconstructed PVs for pulls distributions
 #ifdef WITH_ROOT
