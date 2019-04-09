@@ -4,32 +4,6 @@
 #include <tuple>
 #include <utility>
 
-// template<typename Arguments>
-// struct PrintArguments;
-
-// template<>
-// struct PrintArguments<std::tuple<>> {
-//   static constexpr void print() {}
-// };
-
-// template<typename Argument, typename... Arguments>
-// struct PrintArguments<std::tuple<Argument, Arguments...>> {
-//   static constexpr void print()
-//   {
-//     info_cout << Argument::name << ", ";
-//     PrintArguments<std::tuple<Arguments...>>::print();
-//   }
-// };
-
-// template<typename... T>
-// auto composite_handler (std::tuple<T...> t) {
-//   return std::tuple<decltype(make_handler(t))...>{
-//     make_handler(t)...
-//   };
-// }
-
-// #define FUNCTION_PACK(...) std::tuple<__VA_ARGS__>
-
 /**
  * @brief      Macro for defining algorithms defined by a function name.
  *             A struct is created with name EXPOSED_TYPE_NAME that encapsulates
