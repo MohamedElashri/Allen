@@ -12,6 +12,7 @@
 __device__ float lf_track_quality (SciFi::TrackHits& track,
   const MiniState& velo_state,
   const float VeloUT_qOverP,
+  const float magnet_polarity,
   const SciFi::Tracking::Arrays* constArrays,
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,

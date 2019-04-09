@@ -19,6 +19,7 @@ __global__ void lf_quality_filter(
   const SciFi::Tracking::TMVA* dev_tmva1,
   const SciFi::Tracking::TMVA* dev_tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float* dev_magnet_polarity,
   int* dev_atomics_scifi,
   SciFi::TrackHits* dev_scifi_tracks)
 {
@@ -62,7 +63,7 @@ __global__ void lf_quality_filter(
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
     const MiniState velo_state {velo_states, velo_states_index};
-    track.quality = lf_track_quality(track, velo_state, dev_ut_qop[current_ut_track_index], constArrays, dev_tmva1, dev_tmva2, scifi_hits, event_offset);
+    track.quality = lf_track_quality(track, velo_state, dev_ut_qop[current_ut_track_index], dev_magnet_polarity[0], constArrays, dev_tmva1, dev_tmva2, scifi_hits, event_offset);
   }
 
   __syncthreads();

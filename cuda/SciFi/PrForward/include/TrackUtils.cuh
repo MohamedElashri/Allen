@@ -41,7 +41,7 @@ __host__ __device__ void getTrackParameters(
   const SciFi::Tracking::Arrays* constArrays,
   float trackParams[SciFi::Tracking::nTrackParams]);
 
-__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, const MiniState& velo_state);
+__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, const MiniState& velo_state, const float magnet_polarity);
 
 __host__ __device__ float zMagnet(const MiniState& velo_state, const SciFi::Tracking::Arrays* constArrays);
 

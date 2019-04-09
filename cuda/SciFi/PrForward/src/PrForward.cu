@@ -128,6 +128,7 @@ __global__ void scifi_pr_forward(
   const SciFi::Tracking::TMVA* dev_tmva1,
   const SciFi::Tracking::TMVA* dev_tmva2,
   const SciFi::Tracking::Arrays* dev_constArrays,
+  const float* dev_magnet_polarity,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res)
 {
@@ -185,6 +186,7 @@ __global__ void scifi_pr_forward(
         dev_tmva1,
         dev_tmva2,
         dev_constArrays,
+        dev_magnet_polarity[0],
         velo_state);
     }
   }

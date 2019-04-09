@@ -18,6 +18,7 @@ __global__ void lf_search_initial_windows(
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const SciFi::Tracking::Arrays* dev_constArrays,
+  const float* dev_magnet_polarity,
   const LookingForward::Constants* dev_looking_forward_constants,
   int* dev_initial_windows,
   MiniState* dev_ut_states)
@@ -89,6 +90,7 @@ __global__ void lf_search_initial_windows(
         yAtRef,
         state_at_z_last_ut_plane,
         dev_constArrays,
+        dev_magnet_polarity[0],
         ut_qop,
         (y_projection < 0 ? -1 : 1),
         dev_initial_windows + ut_event_tracks_offset + i,
@@ -100,6 +102,7 @@ __global__ void lf_search_initial_windows(
         velo_state,
         state_at_z_last_ut_plane,
         dev_constArrays,
+        dev_magnet_polarity[0],
         dev_looking_forward_constants,
         ut_qop,
         (y_projection < 0 ? -1 : 1),

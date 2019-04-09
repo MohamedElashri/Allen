@@ -50,7 +50,7 @@ __host__ __device__ void getTrackParameters(
   trackParams[8] = 0.0f; // last elements are chi2 and ndof, as float
 }
 
-__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, const MiniState& velo_state)
+__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, const MiniState& velo_state, const float magnet_polarity)
 {
 
   float qop = 1.0f / Gaudi::Units::GeV;
@@ -63,7 +63,7 @@ __host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* co
   const float tx2 = velo_state.tx * velo_state.tx;
   float m_slope2 = tx2 + ty2;
   float proj = sqrtf((1.f + m_slope2) / (1.f + tx2));
-  qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * SciFi::Tracking::magscalefactor);
+  qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * magnet_polarity);
   return qop;
 }
 

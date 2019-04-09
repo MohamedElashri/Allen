@@ -38,6 +38,7 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
       constants.dev_scifi_tmva1,
       constants.dev_scifi_tmva2,
       constants.dev_scifi_constArrays,
+      constants.dev_magnet_polarity,
       arguments.offset<dev_atomics_scifi>(),
       arguments.offset<dev_scifi_tracks>());
 

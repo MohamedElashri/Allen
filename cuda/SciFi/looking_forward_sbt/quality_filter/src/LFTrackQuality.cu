@@ -3,6 +3,7 @@
 __device__ float lf_track_quality (SciFi::TrackHits& track,
   const MiniState& velo_state,
   const float VeloUT_qOverP,
+  const float magnet_polarity,
   const SciFi::Tracking::Arrays* constArrays,
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
@@ -51,7 +52,7 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
   }
 
   // Calculate q/p
-  const float qOverP = calcqOverP(trackParams[1], constArrays, velo_state);
+  const float qOverP = calcqOverP(trackParams[1], constArrays, velo_state, magnet_polarity);
   const float xAtRef = trackParams[0];
   float dSlope = (velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx - xAtRef) /
                  (SciFi::Tracking::zReference - constArrays->zMagnetParams[0]);

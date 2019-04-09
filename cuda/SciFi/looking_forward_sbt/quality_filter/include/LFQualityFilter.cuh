@@ -33,6 +33,7 @@ __global__ void lf_quality_filter(
   const SciFi::Tracking::TMVA* dev_tmva1,
   const SciFi::Tracking::TMVA* dev_tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float* dev_magnet_polarity,
   int* dev_atomics_scifi,
   SciFi::TrackHits* dev_scifi_tracks);
 

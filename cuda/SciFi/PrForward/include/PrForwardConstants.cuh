@@ -116,7 +116,7 @@ namespace SciFi {
     constexpr float yLim_Min = -25.;
 
     // TO BE READ FROM XML EVENTUALLY
-    constexpr float magscalefactor = -1;
+    //constexpr float magscalefactor = -1;
     constexpr int zoneoffsetpar = 6;
 
     struct Arrays {
