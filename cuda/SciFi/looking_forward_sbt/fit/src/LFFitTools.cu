@@ -11,18 +11,21 @@ __device__ float LookingForward::linear_parameterization(
   return p0 + p1 * dz;
 }
 
-__device__ float LookingForward::get_average_x_at_reference_plane(
-  const int* hits,
+__device__ void LookingForward::get_average_x_at_reference_plane(
+  const uint16_t* hits,
+  const uint event_offset,
   const uint8_t n_hits,
   const SciFi::Hits& scifi_hits,
   const float xAtRef_initial,
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
-  const float zMagSlope)
+  const float zMagSlope,
+  float* xAtRefAverage)
 {
-  float average_x = 0;
-  for (uint8_t i_hit = 0; i_hit < n_hits; ++i_hit) {
-    const int hit = hits[i_hit];
+  //float average_x = 0;
+  //for (uint8_t i_hit = 0; i_hit < n_hits; ++i_hit) {
+  for (uint8_t i_hit = threadIdx.y; i_hit < n_hits; i_hit += blockDim.y) {
+    const int hit = hits[i_hit] + event_offset;
     const float zHit = scifi_hits.z0[hit];
     const float xFromVelo_Hit = linear_parameterization(xAtRef_initial, velo_state.tx, zHit);
     const float dSlopeDivPart = 1.f / (zHit - constArrays->zMagnetParams[0]);
@@ -40,11 +43,13 @@ __device__ float LookingForward::get_average_x_at_reference_plane(
     float dxCoef = dz * dz * (constArrays->xParams[0] + dz * constArrays->xParams[1]) * dSlope;
     float ratio = (SciFi::Tracking::zReference - zMag) / (zHit - zMag);
 
-    average_x += xMag + ratio * (xHit + dxCoef - xMag);
+    //average_x += xMag + ratio * (xHit + dxCoef - xMag);
+    const float x = xMag + ratio * (xHit + dxCoef - xMag);
+    atomicAdd(xAtRefAverage, x);
   }
-  average_x /= n_hits;
+  //average_x /= n_hits;
 
-  return average_x;
+  //return average_x;
 }
 
 __device__ bool LookingForward::straight_line_fit_y_projection(
@@ -101,7 +106,8 @@ __device__ bool LookingForward::straight_line_fit_y_projection(
 __device__ bool LookingForward::fitYProjection_proto(
   const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
-  const int* uv_hits,
+  const uint16_t* uv_hits,
+  const uint event_offset, 
   const uint8_t n_uv_hits,
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams])
@@ -110,14 +116,70 @@ __device__ bool LookingForward::fitYProjection_proto(
   /* first fitting the straight line has no impact on efficiency and momentum resolution */
   //if (!straight_line_fit_y_projection(velo_state, constArrays, uv_hits, n_uv_hits, scifi_hits, trackParams)) return false;
 
-  if (!fitParabola_proto(scifi_hits, uv_hits, n_uv_hits, trackParams, false)) return false;
+  if (!fitParabola_proto(scifi_hits, uv_hits, event_offset, n_uv_hits, trackParams, false)) return false;
 
   return true;
 }
 
+__device__ void LookingForward::fitParabola_parallel(
+  const SciFi::Hits& scifi_hits,
+  const uint16_t* coordToFit,
+  const uint event_offset, 
+  const uint8_t n_coordToFit,
+  LookingForward::fitSums& fit_sums,
+  float trackParameters[SciFi::Tracking::nTrackParams],
+  const bool xFit)
+{
+  //== Fit a cubic (varying only three parameters)
+  
+  for (uint8_t i_hit = threadIdx.y; i_hit < n_coordToFit; i_hit += blockDim.y) {
+    int hit = coordToFit[i_hit] + event_offset;
+    float d = trackToHitDistance(trackParameters, scifi_hits, hit);
+    if (!xFit) d *= -1.f / scifi_hits.dxdy(hit);
+    float w = scifi_hits.w(hit);
+    float z = .001f * (scifi_hits.z0[hit] - SciFi::Tracking::zReference);
+    atomicAdd(fit_sums.s0 + threadIdx.x, w);
+    atomicAdd(fit_sums.sz + threadIdx.x, w * z);
+    atomicAdd(fit_sums.sz2 + threadIdx.x, w * z * z);
+    atomicAdd(fit_sums.sz3 + threadIdx.x, w * z * z * z);
+    atomicAdd(fit_sums.sz4 + threadIdx.x, w * z * z * z * z);
+    atomicAdd(fit_sums.sd + threadIdx.x, w * d);
+    atomicAdd(fit_sums.sdz + threadIdx.x, w * d * z);
+    atomicAdd(fit_sums.sdz2 + threadIdx.x, w * d * z * z);
+  }
+  if ( threadIdx.y == 0 ) {
+    const float b1 = fit_sums.sz[threadIdx.x] * fit_sums.sz[threadIdx.x] - fit_sums.s0[threadIdx.x] * fit_sums.sz2[threadIdx.x];
+    const float c1 = fit_sums.sz2[threadIdx.x] * fit_sums.sz[threadIdx.x] - fit_sums.s0[threadIdx.x] * fit_sums.sz3[threadIdx.x];
+    const float d1 = fit_sums.sd[threadIdx.x] * fit_sums.sz[threadIdx.x] - fit_sums.s0[threadIdx.x] * fit_sums.sdz[threadIdx.x];
+    const float b2 = fit_sums.sz2[threadIdx.x] * fit_sums.sz2[threadIdx.x] - fit_sums.sz[threadIdx.x] * fit_sums.sz3[threadIdx.x];
+    const float c2 = fit_sums.sz3[threadIdx.x] * fit_sums.sz2[threadIdx.x] - fit_sums.sz[threadIdx.x] * fit_sums.sz4[threadIdx.x];
+    const float d2 = fit_sums.sdz[threadIdx.x] * fit_sums.sz2[threadIdx.x] - fit_sums.sz[threadIdx.x] * fit_sums.sdz2[threadIdx.x];
+    const float den = (b1 * c2 - b2 * c1);
+    if (!(std::fabs(den) > 1e-5f)) {
+      trackParameters[7] = -1.f;
+    } else {
+      const float db = (d1 * c2 - d2 * c1) / den;
+      const float dc = (d2 * b1 - d1 * b2) / den;
+      const float da = (fit_sums.sd[threadIdx.x] - db * fit_sums.sz[threadIdx.x] - dc * fit_sums.sz2[threadIdx.x]) / fit_sums.s0[threadIdx.x];
+      if (xFit) {
+        trackParameters[0] += da;
+        trackParameters[1] += db * 1.e-3f;
+        trackParameters[2] += dc * 1.e-6f;
+      }
+      else {
+        trackParameters[4] += da;
+        trackParameters[5] += db * 1.e-3f;
+        trackParameters[6] += dc * 1.e-6f;
+      }
+    }
+  }
+
+} 
+
 __device__ int LookingForward::fitParabola_proto(
   const SciFi::Hits& scifi_hits,
-  const int* coordToFit,
+  const uint16_t* coordToFit,
+  const uint event_offset, 
   const uint8_t n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit)
@@ -133,7 +195,7 @@ __device__ int LookingForward::fitParabola_proto(
   float sdz2 = 0.f;
 
   for (uint8_t i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
-    int hit = coordToFit[i_hit];
+    int hit = coordToFit[i_hit] + event_offset;
     float d = trackToHitDistance(trackParameters, scifi_hits, hit);
     if (!xFit) d *= -1.f / scifi_hits.dxdy(hit);
     float w = scifi_hits.w(hit);
@@ -170,7 +232,7 @@ __device__ int LookingForward::fitParabola_proto(
   }
 
   return true;
-}
+} 
 
 __device__ int LookingForward::getChi2(
   const SciFi::Hits& scifi_hits,
@@ -214,7 +276,8 @@ __device__ void LookingForward::removeOutlier_proto(
 
 __device__ bool LookingForward::quadraticFitX_proto(
   const SciFi::Hits& scifi_hits,
-  int* coordToFit,
+  const uint16_t* coordToFit,
+  const uint event_offset, 
   uint8_t& n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit)
@@ -249,7 +312,7 @@ __device__ bool LookingForward::quadratic_fit_x_with_outlier_removal(
   if (n_coordToFit < LookingForward::track_min_hits) return false;
   bool doFit = true;
   while (doFit) {
-    fitParabola_proto(scifi_hits, coordToFit, n_coordToFit, trackParameters, true);
+    fitParabola_proto(scifi_hits, coordToFit, event_offset, n_coordToFit, trackParameters, true);
 
     float maxChi2 = 100.f;
     float totChi2 = 0.f;
@@ -257,7 +320,7 @@ __device__ bool LookingForward::quadratic_fit_x_with_outlier_removal(
 
     // int worst = -1; // needed for outlier removal
     for (uint8_t i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
-      int hit = coordToFit[i_hit];
+      int hit = coordToFit[i_hit] + event_offset;
       float d = trackToHitDistance(trackParameters, scifi_hits, hit);
       float chi2 = d * d * scifi_hits.w(hit);
       totChi2 += chi2;
