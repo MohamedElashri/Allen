@@ -41,42 +41,44 @@ void SequenceVisitor::visit<consolidate_scifi_tracks_t>(
 
   state.invoke();
 
-  // Transmission device to host of Scifi consolidated tracks
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_atomics_scifi,
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.size<dev_atomics_scifi>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  if (runtime_options.do_check) {
+    // Transmission device to host of Scifi consolidated tracks
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_atomics_scifi,
+      arguments.offset<dev_atomics_scifi>(),
+      arguments.size<dev_atomics_scifi>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_scifi_track_hit_number,
-    arguments.offset<dev_scifi_track_hit_number>(),
-    arguments.size<dev_scifi_track_hit_number>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_track_hit_number,
+      arguments.offset<dev_scifi_track_hit_number>(),
+      arguments.size<dev_scifi_track_hit_number>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_scifi_track_hits,
-    arguments.offset<dev_scifi_track_hits>(),
-    arguments.size<dev_scifi_track_hits>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_track_hits,
+      arguments.offset<dev_scifi_track_hits>(),
+      arguments.size<dev_scifi_track_hits>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_scifi_qop,
-    arguments.offset<dev_scifi_qop>(),
-    arguments.size<dev_scifi_qop>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_qop,
+      arguments.offset<dev_scifi_qop>(),
+      arguments.size<dev_scifi_qop>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_scifi_track_ut_indices,
-    arguments.offset<dev_scifi_track_ut_indices>(),
-    arguments.size<dev_scifi_track_ut_indices>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_track_ut_indices,
+      arguments.offset<dev_scifi_track_ut_indices>(),
+      arguments.size<dev_scifi_track_ut_indices>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
+    cudaEventRecord(cuda_generic_event, cuda_stream);
+    cudaEventSynchronize(cuda_generic_event);
+  }
 }

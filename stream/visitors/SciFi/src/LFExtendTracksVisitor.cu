@@ -28,5 +28,4 @@ void SequenceVisitor::visit<lf_extend_tracks_t>(
     6);
 
   state.invoke();
-
 }

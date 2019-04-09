@@ -8,7 +8,7 @@ void SequenceVisitor::set_arguments_size<lf_prefix_sum_first_layer_window_size_t
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  const auto number_of_ut_tracks = host_buffers.host_atomics_ut[2 * host_buffers.host_number_of_selected_events[0]];
+  const auto number_of_ut_tracks = host_buffers.host_number_of_reconstructed_ut_tracks[0];
   arguments.set_size<dev_prefix_sum_auxiliary_array_7>(
     lf_prefix_sum_first_layer_window_size_t::aux_array_size(number_of_ut_tracks));
 }
@@ -23,7 +23,7 @@ void SequenceVisitor::visit<lf_prefix_sum_first_layer_window_size_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  const auto number_of_ut_tracks = host_buffers.host_atomics_ut[2 * host_buffers.host_number_of_selected_events[0]];
+  const auto number_of_ut_tracks = host_buffers.host_number_of_reconstructed_ut_tracks[0];
 
   // Set size of the main array to be prefix summed
   state.set_size(number_of_ut_tracks);
@@ -49,5 +49,4 @@ void SequenceVisitor::visit<lf_prefix_sum_first_layer_window_size_t>(
 
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
-
 }

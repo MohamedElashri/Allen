@@ -34,10 +34,12 @@ void SequenceVisitor::visit<pv_get_seeds_t>(
 
   state.invoke();
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_number_of_seeds,
-    arguments.offset<dev_number_seeds>(),
-    arguments.size<dev_number_seeds>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_number_of_seeds,
+      arguments.offset<dev_number_seeds>(),
+      arguments.size<dev_number_seeds>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }

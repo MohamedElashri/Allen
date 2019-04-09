@@ -36,5 +36,4 @@ void SequenceVisitor::visit<lf_extend_tracks_first_layers_x_t>(
     forwarding_set_arguments(1 - i);
     state.invoke();
   }
-
 }

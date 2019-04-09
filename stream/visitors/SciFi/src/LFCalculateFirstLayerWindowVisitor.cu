@@ -54,5 +54,4 @@ void SequenceVisitor::visit<lf_calculate_first_layer_window_t>(
     LookingForward::seeding_first_layer);
 
   state.invoke();
-
 }

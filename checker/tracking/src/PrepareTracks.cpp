@@ -208,7 +208,6 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       // pseudorapidity
       const float rho = std::sqrt(slope2);
       t.eta = eta_from_rho(rho);
-      
       // add SciFi hits
       const uint scifi_track_number_of_hits = scifi_tracks.number_of_hits(i_track);
       SciFi::Consolidated::Hits track_hits_scifi =

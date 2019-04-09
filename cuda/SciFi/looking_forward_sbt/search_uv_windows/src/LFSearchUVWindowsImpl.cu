@@ -49,6 +49,5 @@ __device__ void lf_search_uv_windows_impl(
       + event_number * 6 * SciFi::Constants::max_lf_tracks
       + relative_uv_layer * SciFi::Constants::max_lf_tracks
     ] = std::get<1>(layer_candidates);
-
   }
 }

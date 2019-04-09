@@ -546,7 +546,6 @@ std::vector<uint32_t> TrackChecker::operator()(
       // report(track, mcp, weight, get_num_hits);
       report(matched_tracks, mcp, get_num_hits_subdetector);
     }
-    
 
     // fill histograms of reconstructible MC particles in various categories
     for (auto& histo_cat : m_histo_categories) {

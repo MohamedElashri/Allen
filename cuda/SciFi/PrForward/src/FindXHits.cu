@@ -39,7 +39,6 @@ __host__ void collectAllXHits_proto_p(
   // use parametrization to propagate from UT to SciFi
   const auto state_zRef = propagate_state_from_velo(UT_state, qOverP, 5);  // zRef is between layers 4 and 5 
   const float xTol = dx_calc(velo_state, qOverP, window_params);    
-        
   int iZoneStartingPoint = side > 0 ? constArrays->zoneoffsetpar : 0; 
 
   for (unsigned int iZone = iZoneStartingPoint; iZone < iZoneStartingPoint + constArrays->zoneoffsetpar; iZone++) {

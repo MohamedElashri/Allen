@@ -354,7 +354,6 @@ __device__ void save_track(
 
   // -- apply some fiducial cuts  
   // -- they are optimised for high pT tracks (> 500 MeV)
-  
   if( magSign*qop < 0.0f && xUT > -48.0f && xUT < 0.0f && std::abs(yUT) < 33.0f ) return;
   if( magSign*qop > 0.0f && xUT < 48.0f  && xUT > 0.0f && std::abs(yUT) < 33.0f ) return;
   

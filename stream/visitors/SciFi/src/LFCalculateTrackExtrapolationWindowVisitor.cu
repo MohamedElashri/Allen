@@ -36,5 +36,4 @@ void SequenceVisitor::visit<lf_calculate_track_extrapolation_window_t>(
     arguments.offset<dev_extrapolation_layer_candidates>());
 
   state.invoke();
-
 }

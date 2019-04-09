@@ -51,5 +51,4 @@ void SequenceVisitor::visit<lf_find_compatible_windows_t>(
     constants.dev_looking_forward_constants);
 
   state.invoke();
-
 }

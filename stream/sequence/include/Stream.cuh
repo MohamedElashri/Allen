@@ -64,7 +64,8 @@ struct Stream {
     const uint param_start_event_offset,
     const size_t param_reserve_mb,
     const uint param_stream_number,
-    const Constants& param_constants);
+    const Constants& param_constants,
+    const bool do_check);
 
   void run_monte_carlo_test(const std::string& mc_folder, const uint number_of_events_requested, const std::vector<Checker::Tracks>& forward_tracks);
 

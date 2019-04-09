@@ -51,4 +51,11 @@ __device__ bool quadraticFitX_proto(
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit);
 
+__device__ bool quadratic_fit_x_with_outlier_removal(
+  const SciFi::Hits& scifi_hits,
+  int* coordToFit,
+  int& n_coordToFit,
+  float trackParameters[SciFi::Tracking::nTrackParams],
+  const bool xFit);
+
 }

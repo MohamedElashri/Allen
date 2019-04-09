@@ -23,6 +23,7 @@ struct RuntimeOptions {
   uint number_of_events;
   uint number_of_selected_events;
   uint number_of_repetitions;
+  bool do_check;
 
   RuntimeOptions() = default;
 
@@ -41,7 +42,8 @@ struct RuntimeOptions {
     size_t param_host_scifi_event_offsets_size,
     std::vector<Muon::HitsSoA>& param_host_muon_hits_events,
     uint param_number_of_events,
-    uint param_number_of_repetitions) :
+    uint param_number_of_repetitions,
+    bool param_do_check) :
     host_velopix_events(param_host_velopix_events),
     host_velopix_event_offsets(param_host_velopix_event_offsets),
     host_velopix_events_size(param_host_velopix_events_size),
@@ -51,6 +53,7 @@ struct RuntimeOptions {
     host_scifi_event_offsets(param_host_scifi_event_offsets), host_scifi_events_size(param_host_scifi_events_size),
     host_scifi_event_offsets_size(param_host_scifi_event_offsets_size),
     host_muon_hits_events(param_host_muon_hits_events), number_of_events(param_number_of_events),
-    number_of_selected_events(param_number_of_events), number_of_repetitions(param_number_of_repetitions)
+    number_of_selected_events(param_number_of_events), number_of_repetitions(param_number_of_repetitions),
+    do_check(param_do_check)
   {}
 };

@@ -48,5 +48,4 @@ void SequenceVisitor::visit<lf_promote_candidates_t>(
     7);
 
   state.invoke();
-
 }

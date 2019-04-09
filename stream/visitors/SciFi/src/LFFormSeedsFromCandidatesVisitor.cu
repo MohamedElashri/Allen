@@ -49,5 +49,4 @@ void SequenceVisitor::visit<lf_form_seeds_from_candidates_t>(
     LookingForward::seeding_station);
 
   state.invoke();
-
 }

@@ -35,14 +35,15 @@ void SequenceVisitor::visit<muon_catboost_evaluator_t>(
     constants.muon_catboost_n_trees);
   state.invoke();
   
+  if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_muon_catboost_output,       
-    arguments.offset<dev_muon_catboost_output>(),
-    arguments.size<dev_muon_catboost_output>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+      host_buffers.host_muon_catboost_output,       
+      arguments.offset<dev_muon_catboost_output>(),
+      arguments.size<dev_muon_catboost_output>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
-
+    cudaEventRecord(cuda_generic_event, cuda_stream);
+    cudaEventSynchronize(cuda_generic_event);
+  }
 }
