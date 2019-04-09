@@ -21,6 +21,10 @@ __host__ __device__ float yFromVelo(const float z, const MiniState& velo_state);
 
 __host__ __device__ float evalCubicParameterization(const float params[4], float z);
 
+__host__ __device__ float evalParameterizationX(const float* params, float z);
+
+__host__ __device__ float evalParameterizationY(const float* params, float z);
+
 __host__ __device__ bool lowerByQuality(SciFi::Tracking::Track t1, SciFi::Tracking::Track t2);
 
 __host__ __device__ inline float straightLinePropagationFromReferencePlane(const float params[4], float z)

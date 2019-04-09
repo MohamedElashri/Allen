@@ -18,6 +18,18 @@ __host__ __device__ float evalCubicParameterization(const float params[4], float
   return params[0] + (params[1] + (params[2] + params[3] * dz) * dz) * dz;
 }
 
+__host__ __device__ float evalParameterizationX(const float* params, float z)
+{
+  const float dz = z - SciFi::Tracking::zReference;
+  return params[0] + (params[1] + (params[2] + params[3] * dz) * dz) * dz;
+}
+
+__host__ __device__ float evalParameterizationY(const float* params, float z)
+{
+  const float dz = z - SciFi::Tracking::zReference;
+  return params[0] + (params[1] + params[2] * dz) * dz;
+}
+
 __host__ __device__ bool lowerByQuality(SciFi::Tracking::Track t1, SciFi::Tracking::Track t2)
 {
   return t1.quality < t2.quality;
@@ -93,11 +105,9 @@ __host__ __device__ float calcDxRef(float pt, const MiniState& velo_state)
 __host__ __device__ float
 trackToHitDistance(const float trackParameters[SciFi::Tracking::nTrackParams], const SciFi::Hits& scifi_hits, int hit)
 {
-  const float parsX[4] = {trackParameters[0], trackParameters[1], trackParameters[2], trackParameters[3]};
-  const float parsY[4] = {trackParameters[4], trackParameters[5], trackParameters[6], 0.f};
-  float z_Hit = scifi_hits.z0[hit] + scifi_hits.dzdy(hit) * evalCubicParameterization(parsY, scifi_hits.z0[hit]);
-  float x_track = evalCubicParameterization(parsX, z_Hit);
-  float y_track = evalCubicParameterization(parsY, z_Hit);
+  const float z_Hit = scifi_hits.z0[hit] + scifi_hits.dzdy(hit) * evalParameterizationY(trackParameters + 4, scifi_hits.z0[hit]);
+  const float x_track = evalParameterizationX(trackParameters, z_Hit);
+  const float y_track = evalParameterizationY(trackParameters + 4, z_Hit);
   return scifi_hits.x0[hit] + y_track * scifi_hits.dxdy(hit) - x_track;
 }
 

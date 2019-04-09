@@ -20,8 +20,6 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
 
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(512), cuda_stream);
   state.set_arguments(
-      arguments.offset<dev_scifi_hits>(),
-      arguments.offset<dev_scifi_hit_count>(),
       arguments.offset<dev_atomics_velo>(),
       arguments.offset<dev_velo_track_hit_number>(),
       arguments.offset<dev_velo_states>(),
@@ -32,9 +30,7 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
       arguments.offset<dev_ut_track_velo_indices>(),
       arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
       arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
-      constants.dev_scifi_geometry,
-      constants.dev_inv_clus_res,
-      arguments.offset<dev_ut_states>(),
+      arguments.offset<dev_scifi_lf_track_params>(),
       constants.dev_scifi_tmva1,
       constants.dev_scifi_tmva2,
       constants.dev_scifi_constArrays,

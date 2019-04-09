@@ -31,8 +31,7 @@ __device__ float get_average_x_at_reference_plane(
   const int* hits,
   const uint8_t n_hits,
   const SciFi::Hits& scifi_hits,
-  const float xParams_seed_0,
-  const float xParams_seed_1,
+  const float xAtRef_initial,
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
   const float zMagSlope);

@@ -1,4 +1,4 @@
-#include "LFFitting.cuh"
+#include "LFFitTools.cuh"
 #include <cmath>
 #include <cstdlib>
 
@@ -15,8 +15,7 @@ __device__ float LookingForward::get_average_x_at_reference_plane(
   const int* hits,
   const uint8_t n_hits,
   const SciFi::Hits& scifi_hits,
-  const float xParams_seed_0,
-  const float xParams_seed_1,
+  const float xAtRef_initial,
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
   const float zMagSlope)
@@ -25,7 +24,7 @@ __device__ float LookingForward::get_average_x_at_reference_plane(
   for (uint8_t i_hit = 0; i_hit < n_hits; ++i_hit) {
     const int hit = hits[i_hit];
     const float zHit = scifi_hits.z0[hit];
-    const float xFromVelo_Hit = linear_parameterization(xParams_seed_0, xParams_seed_1, zHit);
+    const float xFromVelo_Hit = linear_parameterization(xAtRef_initial, velo_state.tx, zHit);
     const float dSlopeDivPart = 1.f / (zHit - constArrays->zMagnetParams[0]);
     const float dz = 1.e-3f * (zHit - SciFi::Tracking::zReference);
     float xHit = scifi_hits.x0[hit];
