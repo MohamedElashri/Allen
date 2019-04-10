@@ -296,4 +296,6 @@ int run_looking_forward_CPU(
   f->Write();
   f->Close();
 #endif
+
+  return 0;
 }
