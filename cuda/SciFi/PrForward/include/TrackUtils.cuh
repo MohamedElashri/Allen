@@ -48,7 +48,7 @@ __host__ __device__ float zMagnet(const MiniState& velo_state, const SciFi::Trac
 __host__ __device__ float calcDxRef(float pt, const MiniState& velo_state);
 
 __host__ __device__ float
-trackToHitDistance(float trackParameters[SciFi::Tracking::nTrackParams], const SciFi::Hits& scifi_hits, int hit);
+trackToHitDistance(const float trackParameters[SciFi::Tracking::nTrackParams], const SciFi::Hits& scifi_hits, int hit);
 
 __host__ __device__ float chi2XHit(const float parsX[4], const SciFi::Hits& scifi_hits, const int hit);
 

@@ -15,11 +15,14 @@ __device__ void lf_search_uv_windows_impl(
   const uint event_offset,
   const LookingForward::Constants* dev_looking_forward_constants,
   const MiniState& ut_state,
+  const int total_number_of_ut_tracks,
+  const int ut_event_tracks_offset,
+  const int ut_event_number_of_tracks,
   short* dev_scifi_lf_uv_windows)
 {
   const auto reco_slope = (x1 - x0) / (z1 - z0);
 
-  for (int relative_uv_layer = 0; relative_uv_layer < 6; ++relative_uv_layer) {
+  for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
     const auto layer2 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
     const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
     const auto projection_y = LookingForward::y_at_z(ut_state, z2);
@@ -40,14 +43,15 @@ __device__ void lf_search_uv_windows_impl(
       4.f * dev_looking_forward_constants->extrapolation_uv_stddev[relative_uv_layer]);
 
     dev_scifi_lf_uv_windows[
-      event_number * 6 * SciFi::Constants::max_lf_tracks
-      + relative_uv_layer * SciFi::Constants::max_lf_tracks
+      ut_event_tracks_offset * 6 * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
+      + ut_event_number_of_tracks * relative_uv_layer * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
     ] = std::get<0>(layer_candidates);
 
     dev_scifi_lf_uv_windows[
-      number_of_events * 6 * SciFi::Constants::max_lf_tracks
-      + event_number * 6 * SciFi::Constants::max_lf_tracks
-      + relative_uv_layer * SciFi::Constants::max_lf_tracks
+      total_number_of_ut_tracks * 6 * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
+      + ut_event_tracks_offset * 6 * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
+      + ut_event_number_of_tracks * relative_uv_layer * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
     ] = std::get<1>(layer_candidates);
+
   }
 }

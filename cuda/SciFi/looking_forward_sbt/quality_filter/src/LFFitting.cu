@@ -2,21 +2,30 @@
 #include <cmath>
 #include <cstdlib>
 
+__device__ float LookingForward::linear_parameterization(
+  const float p0,
+  const float p1,
+  const float z)
+{
+  const float dz = z - SciFi::Tracking::zReference;
+  return p0 + p1 * dz;
+}
+
 __device__ float LookingForward::get_average_x_at_reference_plane(
   const int* hits,
-  const int n_hits,
+  const uint8_t n_hits,
   const SciFi::Hits& scifi_hits,
-  const float xParams_seed[4],
+  const float xParams_seed_0,
+  const float xParams_seed_1,
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
   const float zMagSlope)
 {
-
   float average_x = 0;
-  for (int i_hit = 0; i_hit < n_hits; ++i_hit) {
+  for (uint8_t i_hit = 0; i_hit < n_hits; ++i_hit) {
     const int hit = hits[i_hit];
     const float zHit = scifi_hits.z0[hit];
-    const float xFromVelo_Hit = evalCubicParameterization(xParams_seed, zHit);
+    const float xFromVelo_Hit = linear_parameterization(xParams_seed_0, xParams_seed_1, zHit);
     const float dSlopeDivPart = 1.f / (zHit - constArrays->zMagnetParams[0]);
     const float dz = 1.e-3f * (zHit - SciFi::Tracking::zReference);
     float xHit = scifi_hits.x0[hit];
@@ -43,7 +52,7 @@ __device__ bool LookingForward::fitYProjection_proto(
   const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
   const int* uv_hits,
-  const int n_uv_hits,
+  const uint8_t n_uv_hits,
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams])
 {
@@ -67,7 +76,7 @@ __device__ bool LookingForward::fitYProjection_proto(
   float sdz = wMag * dyMag * zMag;
 
   // First straight line fit
-  for (int i_hit = 0; i_hit < n_uv_hits; ++i_hit) {
+  for (uint8_t i_hit = 0; i_hit < n_uv_hits; ++i_hit) {
     int hit = uv_hits[i_hit];
     const float d = -trackToHitDistance(trackParams, scifi_hits, hit) /
                     scifi_hits.dxdy(hit); // TODO multiplication much faster than division!
@@ -98,11 +107,10 @@ __device__ bool LookingForward::fitYProjection_proto(
 __device__ int LookingForward::fitParabola_proto(
   const SciFi::Hits& scifi_hits,
   const int* coordToFit,
-  const int n_coordToFit,
+  const uint8_t n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit)
 {
-
   //== Fit a cubic
   float s0 = 0.f;
   float sz = 0.f;
@@ -113,7 +121,7 @@ __device__ int LookingForward::fitParabola_proto(
   float sdz = 0.f;
   float sdz2 = 0.f;
 
-  for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
+  for (uint8_t i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
     int hit = coordToFit[i_hit];
     float d = trackToHitDistance(trackParameters, scifi_hits, hit);
     if (!xFit) d *= -1.f / scifi_hits.dxdy(hit);
@@ -155,8 +163,8 @@ __device__ int LookingForward::fitParabola_proto(
 
 __device__ int LookingForward::getChi2(
   const SciFi::Hits& scifi_hits,
-  int* coordToFit,
-  const int n_coordToFit,
+  const int* coordToFit,
+  const uint8_t n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit)
 {
@@ -181,11 +189,11 @@ __device__ int LookingForward::getChi2(
 __device__ void LookingForward::removeOutlier_proto(
   const SciFi::Hits& scifi_hits,
   int* coordToFit,
-  int& n_coordToFit,
+  uint8_t& n_coordToFit,
   const int worst)
 {
-  int it = 0;
-  for (int i=0; i<n_coordToFit; ++i) {
+  uint8_t it = 0;
+  for (uint8_t i=0; i<n_coordToFit; ++i) {
     if (i != worst) {
       coordToFit[it++] = coordToFit[i];
     }
@@ -195,8 +203,8 @@ __device__ void LookingForward::removeOutlier_proto(
 
 __device__ bool LookingForward::quadraticFitX_proto(
   const SciFi::Hits& scifi_hits,
-  int* coordToFit,
-  int& n_coordToFit,
+  const int* coordToFit,
+  const uint8_t n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit)
 {
@@ -236,8 +244,8 @@ __device__ bool LookingForward::quadratic_fit_x_with_outlier_removal(
     float totChi2 = 0.f;
     int nDoF = -3;
 
-    int worst = -1;
-    for (int i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
+    //int worst = -1;
+    for (uint8_t i_hit = 0; i_hit < n_coordToFit; ++i_hit) {
       int hit = coordToFit[i_hit];
       float d = trackToHitDistance(trackParameters, scifi_hits, hit);
       float chi2 = d * d * scifi_hits.w(hit);
@@ -245,7 +253,7 @@ __device__ bool LookingForward::quadratic_fit_x_with_outlier_removal(
       ++nDoF;
       if (chi2 > maxChi2) {
         maxChi2 = chi2;
-        worst = i_hit;
+        //worst = i_hit;
       }
     }
 
@@ -254,11 +262,11 @@ __device__ bool LookingForward::quadratic_fit_x_with_outlier_removal(
     trackParameters[8] = (float) nDoF;
     doFit = false;
 
-    if (worst != -1) {
-      removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, worst);
-      if (n_coordToFit < LookingForward::track_min_hits) return false;
-      doFit = true;
-    }
+    // if (worst != -1) {
+    //   removeOutlier_proto(scifi_hits, coordToFit, n_coordToFit, worst);
+    //   if (n_coordToFit < LookingForward::track_min_hits) return false;
+    //   doFit = true;
+    // }
   }
   return true;
 }

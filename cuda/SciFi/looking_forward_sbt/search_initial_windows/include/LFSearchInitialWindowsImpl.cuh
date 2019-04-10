@@ -38,7 +38,7 @@ __device__ void lf_search_initial_windows_impl(
   const SciFi::HitCount& scifi_hit_count,
   const float xAtRef,
   const float yAtRef,
-  const MiniState& velo_state,
+  const MiniState& UT_state,
   const SciFi::Tracking::Arrays* constArrays,
   const float qOverP,
   const int side,

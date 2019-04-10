@@ -24,8 +24,7 @@ __global__ void lf_triplet_seeding(
   const short* dev_scifi_lf_candidates,
   const LookingForward::Constants* dev_looking_forward_constants,
   SciFi::TrackHits* dev_scifi_tracks,
-  int* dev_atomics_scifi,
-  const uint8_t relative_middle_layer);
+  int* dev_atomics_scifi);
 
 ALGORITHM(
   lf_triplet_seeding,

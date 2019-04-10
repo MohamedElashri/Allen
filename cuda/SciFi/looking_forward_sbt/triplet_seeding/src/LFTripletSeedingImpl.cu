@@ -7,7 +7,9 @@ __device__ void lf_triplet_seeding_impl(
   const uint8_t h0_candidate_size,
   const uint8_t h1_candidate_size,
   const uint8_t h2_candidate_size,
-  const uint8_t relative_middle_layer,
+  const uint8_t relative_l0,
+  const uint8_t relative_l1,
+  const uint8_t relative_l2,
   const float max_chi2,
   float* best_chi2,
   int8_t* best_h0_h2,
@@ -64,7 +66,7 @@ __device__ void lf_triplet_seeding_impl(
     for (int16_t k = threadIdx.x; k < tile_size; k += blockDim.x) {
       const int8_t h0_rel = i * tile_size + k;
       if (h0_rel < h0_candidate_size) {
-        const half x0 = scifi_hits_x0[scifi_lf_candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + h0_rel]];
+        const half x0 = scifi_hits_x0[scifi_lf_candidates[relative_l0 * LookingForward::maximum_number_of_candidates + h0_rel]];
         shared_wmma_a[tile_size + k] = -x0;
         shared_wmma_a[2 * tile_size + k] = x0;
       } else {
@@ -81,7 +83,7 @@ __device__ void lf_triplet_seeding_impl(
       for (int16_t k = threadIdx.x; k < tile_size; k += blockDim.x) {
         const int8_t h2_rel = j * tile_size + k;
         if (h2_rel < h2_candidate_size) {
-          shared_wmma_b[k] = scifi_hits_x0[scifi_lf_candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + h2_rel]];
+          shared_wmma_b[k] = scifi_hits_x0[scifi_lf_candidates[relative_l2 * LookingForward::maximum_number_of_candidates + h2_rel]];
         } else {
           shared_wmma_b[k] = big_max_chi2;
         }
@@ -97,7 +99,7 @@ __device__ void lf_triplet_seeding_impl(
       // Iterate over all h1s
       // Find best chi2, h0 and h2 using the partial chi2 from before
       for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
-        const float x1_zdiff = scifi_hits_x0[scifi_lf_candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates + h1_rel]] 
+        const float x1_zdiff = scifi_hits_x0[scifi_lf_candidates[relative_l1 * LookingForward::maximum_number_of_candidates + h1_rel]] 
           * zdiff;
 
         float local_best_chi2 = max_chi2;
@@ -137,8 +139,8 @@ __device__ void lf_triplet_seeding_impl(
 
         float partial_chi2 = 1000.f * max_chi2;
         if (h0_rel < h0_candidate_size && h2_rel < h2_candidate_size) {
-          const auto x0 = scifi_hits_x0[scifi_lf_candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + h0_rel]];
-          const auto x2 = scifi_hits_x0[scifi_lf_candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + h2_rel]];
+          const auto x0 = scifi_hits_x0[scifi_lf_candidates[relative_l0 * LookingForward::maximum_number_of_candidates + h0_rel]];
+          const auto x2 = scifi_hits_x0[scifi_lf_candidates[relative_l2 * LookingForward::maximum_number_of_candidates + h2_rel]];
           partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
           // Note: To get the chi2 from the partial_chi2:
           // extrap1 + (partial_chi2 - x1 * zdiff) * (partial_chi2 - x1 * zdiff)
@@ -151,7 +153,7 @@ __device__ void lf_triplet_seeding_impl(
       // Iterate over all h1s
       // Find best chi2, h0 and h2 using the partial chi2 from before
       for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
-        const float x1_zdiff = scifi_hits_x0[scifi_lf_candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates + h1_rel]] 
+        const float x1_zdiff = scifi_hits_x0[scifi_lf_candidates[relative_l1 * LookingForward::maximum_number_of_candidates + h1_rel]] 
           * zdiff;
 
         float local_best_chi2 = max_chi2;

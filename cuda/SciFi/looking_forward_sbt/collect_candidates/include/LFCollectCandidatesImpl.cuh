@@ -12,4 +12,5 @@ __device__ void lf_collect_candidates_impl(
   const int number_of_tracks,
   uint* number_of_candidates,
   short* candidates,
-  const int event_offset);
+  const int event_offset,
+  const int event_number_of_hits);

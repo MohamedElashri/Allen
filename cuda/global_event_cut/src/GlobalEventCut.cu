@@ -1,5 +1,8 @@
 #include "GlobalEventCut.cuh"
 
+// static constexpr uint min_scifi_ut_clusters = 0;
+static constexpr uint max_scifi_ut_clusters = 9750;
+
 __global__ void global_event_cut(
   char* ut_raw_input,
   uint* ut_raw_input_offsets,
@@ -29,7 +32,7 @@ __global__ void global_event_cut(
   if (threadIdx.x == 0) n_SciFi_clusters = n_SciFi_clusters / 2 - 2;
   __syncthreads();
 
-  if (n_SciFi_clusters >= maxSciFiUTClusters) return;
+  // if (n_SciFi_clusters >= max_scifi_ut_clusters || n_SciFi_clusters < min_scifi_ut_clusters) return;
 
   // Check UT clusters
   const uint32_t ut_event_offset = ut_raw_input_offsets[event_number];
@@ -40,11 +43,13 @@ __global__ void global_event_cut(
   for (uint i = threadIdx.x; i < ut_event.number_of_raw_banks; i += blockDim.x) {
     const UTRawBank ut_bank = ut_event.getUTRawBank(i);
     const int n_UT_clusters_before = atomicAdd(&n_UT_clusters, ut_bank.number_of_hits);
-    if (n_UT_clusters_before + ut_bank.number_of_hits >= maxSciFiUTClusters) return;
+    // if (n_UT_clusters_before + ut_bank.number_of_hits >= max_scifi_ut_clusters) return;
   }
   __syncthreads();
 
-  if (n_UT_clusters + n_SciFi_clusters >= maxSciFiUTClusters) return;
+  const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
+  //  || num_combined_clusters < min_scifi_ut_clusters
+  if (num_combined_clusters >= max_scifi_ut_clusters) return;
 
   // passed cut
   if (threadIdx.x == 0) {

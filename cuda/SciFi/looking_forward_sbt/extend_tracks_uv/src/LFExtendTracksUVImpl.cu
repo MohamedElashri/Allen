@@ -43,4 +43,5 @@ __device__ void lf_extend_tracks_uv_impl(
       (uint16_t) best_index,
       best_chi2);
   }
+
 }

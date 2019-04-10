@@ -47,6 +47,11 @@ protected:
     float m_effperevt = 0.f;
     float m_hitpur = 0.f;
     float m_hiteff = 0.f;
+    std::size_t m_naccept_per_event = 0;
+    std::size_t m_nfound_per_event = 0;
+    std::size_t m_nclones_per_event = 0;
+    float m_eff_per_event = 0.f;
+    float m_number_of_events = 0.f;
 
     /// no default construction
     TrackEffReport() = delete;
@@ -73,6 +78,10 @@ protected:
       const std::vector<MCAssociator::TrackWithWeight> tracks,
       MCParticles::const_reference& mcp,
       const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
+
+    void event_start();
+    void event_done();
+
     /// free resources, and print result
     ~TrackEffReport();
   };

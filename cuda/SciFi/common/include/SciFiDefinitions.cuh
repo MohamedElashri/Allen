@@ -65,11 +65,11 @@ namespace SciFi {
     // Looking Forward
     static constexpr int max_tracks = 1000;
     static constexpr int max_lf_tracks = 6000;
-    static constexpr int max_track_size = 12; 
+    static constexpr int max_track_size = n_layers;
 
     static constexpr int max_track_candidates = 2000;
     static constexpr int max_track_candidate_size = 4;
-    static constexpr int hit_candidate_offset = 6;
+    static constexpr int hit_layer_offset = 6;
   } // namespace Constants
 
   /**
@@ -101,6 +101,8 @@ namespace SciFi {
     float* dxdy;
     float* dzdy;
     float* globaldy;
+
+    __device__ __host__ SciFiGeometry(){}
 
     /**
      * @brief Typecast from std::vector.
