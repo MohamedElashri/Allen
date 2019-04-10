@@ -52,7 +52,6 @@ __global__ void ut_search_windows(
       const uint current_track_offset = event_tracks_offset + i_track;
       const MiniState velo_state = velo_states.get(current_track_offset);
       if (i_track < number_of_tracks_event) {
-        //printf("backward = %u \n", int(velo_states.backward[current_track_offset]) );
         if (
             !velo_states.backward[current_track_offset] && dev_accepted_velo_tracks[current_track_offset] &&
           velo_track_in_UTA_acceptance(velo_state)) {

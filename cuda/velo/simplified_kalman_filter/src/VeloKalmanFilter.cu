@@ -3,7 +3,7 @@
 /**
  * @brief Helper function to filter one hit
  */
-__device__ float velo_kalman_filter_step(
+__device__ void velo_kalman_filter_step(
   const float z,
   const float zhit,
   const float xhit,
@@ -36,8 +36,8 @@ __device__ float velo_kalman_filter_step(
   covXX /*= predcovXX  - Kx * predcovXX */ = (1 - Kx) * predcovXX;
   covXTx /*= predcovXTx - predcovXX * predcovXTx / R */ = (1 - Kx) * predcovXTx;
   covTxTx = predcovTxTx - KTx * predcovXTx;
-  // return the chi2
-  return r * r * R;
+  // not needed by any other algorithm
+  //const float chi2 = r * r * R;
 }
 
 __global__ void velo_kalman_fit(

@@ -19,8 +19,6 @@
 struct KalmanVeloState { 
   float x, y, z, tx, ty;
   float c00, c20, c22, c11, c31, c33;
-  float chi2;
-  bool backward;
 };
 
 /**

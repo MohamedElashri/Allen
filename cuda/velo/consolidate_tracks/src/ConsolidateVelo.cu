@@ -164,11 +164,6 @@ __global__ void consolidate_velo_tracks(
 
     // Calculate and store fit in consolidated container
     VeloState beam_state = means_square_fit(consolidated_hits, hit_Xs, hit_Ys, hit_Zs, hit_IDs, track);
-    
     velo_states.set(event_tracks_offset + i, beam_state);
-
-    VeloState state = velo_states.get(event_tracks_offset + i);
-    
-    printf("beam state x = %f, y = %f, z = %f, tx = %f, ty = %f, backward = %u \n", state.x, state.y, state.z, state.tx, state.ty,  int(state.backward) );
   }
 }

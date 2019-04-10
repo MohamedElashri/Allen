@@ -82,7 +82,7 @@ namespace Velo {
         tx = reinterpret_cast<float*>(base_pointer + sizeof(float) * 2 * total_number_of_tracks);
         ty = reinterpret_cast<float*>(base_pointer + sizeof(float) * 3 * total_number_of_tracks);
         z = reinterpret_cast<float*>(base_pointer + sizeof(float) * 4 * total_number_of_tracks);
-        backward = reinterpret_cast<bool*>(base_pointer + sizeof(bool) * 5 * total_number_of_tracks);
+        backward = reinterpret_cast<bool*>(base_pointer + sizeof(float) * 5 * total_number_of_tracks);
       }
 
       __device__ __host__ void set(const uint track_number, const VeloState& state)
@@ -135,10 +135,8 @@ namespace Velo {
       float* c31;
       float* c33;
 
-      float* chi2;
       float* z;
-      bool* backward;
-
+      
       __device__ __host__ KalmanStates(char* base_pointer, const uint total_number_of_tracks)
       {
         x = reinterpret_cast<float*>(base_pointer);
@@ -151,9 +149,7 @@ namespace Velo {
         c11 = reinterpret_cast<float*>(base_pointer + sizeof(float) * 7 * total_number_of_tracks);
         c31 = reinterpret_cast<float*>(base_pointer + sizeof(float) * 8 * total_number_of_tracks);
         c33 = reinterpret_cast<float*>(base_pointer + sizeof(float) * 9 * total_number_of_tracks);
-        chi2 = reinterpret_cast<float*>(base_pointer + sizeof(float) * 10 * total_number_of_tracks);
-        z = reinterpret_cast<float*>(base_pointer + sizeof(float) * 11 * total_number_of_tracks);
-        backward = reinterpret_cast<bool*>(base_pointer + sizeof(float) * 12 * total_number_of_tracks);
+        z = reinterpret_cast<float*>(base_pointer + sizeof(float) * 10 * total_number_of_tracks);
       }
 
       __device__ __host__ void set(const uint track_number, const KalmanVeloState& state)
@@ -170,9 +166,7 @@ namespace Velo {
         c31[track_number] = state.c31;
         c33[track_number] = state.c33;
 
-        chi2[track_number] = state.chi2;
         z[track_number] = state.z;
-        backward[track_number] = state.backward;
       }
 
       __device__ __host__ KalmanVeloState get(const uint track_number) const
@@ -191,10 +185,8 @@ namespace Velo {
         state.c31 = c31[track_number];
         state.c33 = c33[track_number];
 
-        state.chi2 = chi2[track_number];
         state.z = z[track_number];
-        state.backward = backward[track_number];
-
+        
         return state;
       }
     };
