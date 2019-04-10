@@ -23,8 +23,8 @@ output_path = "./output"
 Prints the usage of this script
 """
 def print_usage():
-  "Usage: performance_breakdown.py <Allen invoke line>\n" + \
-  "E.g. performance_breakdown.py ../../build/Allen -n 1000 -c 0"
+  print("Usage: performance_breakdown.py <Allen invoke line>\n" + \
+  "E.g. ./performance_breakdown.py ../../build/Allen -f ../../input/minbias -g ../../input/detector_configuration -n 1000 -c 0")
 
 """
 Produces a plot of the performance breakdown of the sequence under execution
