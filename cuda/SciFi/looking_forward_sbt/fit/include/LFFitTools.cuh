@@ -34,8 +34,7 @@ __device__ void fitParabola_parallel(
 
 __device__ int fitParabola_proto(
   const SciFi::Hits& scifi_hits,
-  const uint16_t* coordToFit,
-  const uint event_offset, 
+  const int* coordToFit,
   const uint8_t n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit);
@@ -48,7 +47,24 @@ __device__ bool straight_line_fit_y_projection(
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams]);
 
-__device__ void get_average_x_at_reference_plane(
+__device__ float get_x_on_reference_plane_for_hit(
+  const int hit,
+  const SciFi::Hits& scifi_hits,
+  const float xAtRef_initial,
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const float zMagSlope);
+
+__device__ float get_average_x_at_reference_plane(
+  const int* hits,
+  const uint8_t n_hits,
+  const SciFi::Hits& scifi_hits,
+  const float xAtRef_initial,
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const float zMagSlope);
+
+__device__ void get_average_x_at_reference_plane_parallel(
   const uint16_t* hits,
   const uint event_offset,
   const uint8_t n_hits,
@@ -63,8 +79,8 @@ __device__ int getChi2(
   const SciFi::Hits& scifi_hits,
   const int* coordToFit,
   const uint8_t n_coordToFit,
-  float trackParameters[SciFi::Tracking::nTrackParams],
-  const bool xFit);
+  float trackParameters[SciFi::Tracking::nTrackParams]);
+  //  const bool xFit);
 
 __device__ void removeOutlier_proto(
   const SciFi::Hits& scifi_hits,
@@ -75,16 +91,14 @@ __device__ void removeOutlier_proto(
 __device__ bool fitYProjection_proto(
   const MiniState& velo_state,
   const SciFi::Tracking::Arrays* constArrays,
-  const uint16_t* uv_hits,
-  const uint event_offset, 
+  const int* uv_hits,
   const uint8_t n_uv_hits,
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams]);
 
 __device__ bool quadraticFitX_proto(
   const SciFi::Hits& scifi_hits,
-  const uint16_t* coordToFit,
-  const uint event_offset, 
+  const int* coordToFit,
   uint8_t& n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit);

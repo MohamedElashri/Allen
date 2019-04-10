@@ -23,7 +23,8 @@ void SequenceVisitor::visit<lf_fit_t>(
 {
  
   // Careful: LookingForward::num_threads_fit & blockDim.y < 1024 (max threads per block)
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(LookingForward::num_threads_fit, 6), cuda_stream);
+  //state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(LookingForward::num_threads_fit, 6), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(512), cuda_stream);
   state.set_arguments(
       arguments.offset<dev_scifi_hits>(),
       arguments.offset<dev_scifi_hit_count>(),
