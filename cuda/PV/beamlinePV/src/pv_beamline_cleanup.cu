@@ -20,7 +20,7 @@ __global__ void pv_beamline_cleanup(
     bool unique = true;
     PV::Vertex vertex1 = vertices[i_pv];
     for (int j_pv = 0; j_pv < number_of_multi_fit_vertices[0]; j_pv++) {
-      if(i_pv == j_pv) continue;
+      if (i_pv == j_pv) continue;
       PV::Vertex vertex2 = vertices[j_pv];
       float z1 = vertex1.position.z;
       float z2 = vertex2.position.z;
@@ -28,7 +28,7 @@ __global__ void pv_beamline_cleanup(
       float variance2 = vertex2.cov22;
       float chi2_dist = (z1 - z2) * (z1 - z2);
       chi2_dist = chi2_dist / (variance1 + variance2);
-      if (chi2_dist < minChi2Dist  && vertex1.n_tracks < vertex2.n_tracks) {
+      if (chi2_dist < minChi2Dist && vertex1.n_tracks < vertex2.n_tracks) {
         unique = false;
       }
     }

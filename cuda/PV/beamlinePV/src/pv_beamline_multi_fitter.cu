@@ -1,6 +1,5 @@
 #include "pv_beamline_multi_fitter.cuh"
 
-
 __global__ void pv_beamline_multi_fitter(
   int* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
