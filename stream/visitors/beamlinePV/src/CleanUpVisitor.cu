@@ -42,22 +42,24 @@ void SequenceVisitor::visit<pv_beamline_cleanup_t>(
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
 
-  // Retrieve result
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_reconstructed_multi_pvs,
-    arguments.offset<dev_multi_final_vertices>(),
-    arguments.size<dev_multi_final_vertices>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  if (runtime_options.do_check) {
+    // Retrieve result
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_reconstructed_multi_pvs,
+      arguments.offset<dev_multi_final_vertices>(),
+      arguments.size<dev_multi_final_vertices>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_number_of_multivertex,
-    arguments.offset<dev_number_of_multi_final_vertices>(),
-    arguments.size<dev_number_of_multi_final_vertices>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_number_of_multivertex,
+      arguments.offset<dev_number_of_multi_final_vertices>(),
+      arguments.size<dev_number_of_multi_final_vertices>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
 
-  // Wait to receive the result
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
+    // Wait to receive the result
+    cudaEventRecord(cuda_generic_event, cuda_stream);
+    cudaEventSynchronize(cuda_generic_event);
+  }
 }
