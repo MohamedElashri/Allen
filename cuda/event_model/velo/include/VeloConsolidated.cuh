@@ -64,9 +64,65 @@ namespace Velo {
         return Hits {hits_base_pointer, track_offset(track_number), total_number_of_hits};
       }
     };
-
+ 
+    
     struct States {
-      // SOA of Velo states
+      // SOA of VeloStates from straight line fit
+      float* x;
+      float* y;
+      float* tx;
+      float* ty;
+      float* z;
+      bool* backward;
+
+      __device__ __host__ States(char* base_pointer, const uint total_number_of_tracks)
+      {
+        x = reinterpret_cast<float*>(base_pointer);
+        y = reinterpret_cast<float*>(base_pointer + sizeof(float) * total_number_of_tracks);
+        tx = reinterpret_cast<float*>(base_pointer + sizeof(float) * 2 * total_number_of_tracks);
+        ty = reinterpret_cast<float*>(base_pointer + sizeof(float) * 3 * total_number_of_tracks);
+        z = reinterpret_cast<float*>(base_pointer + sizeof(float) * 4 * total_number_of_tracks);
+        backward = reinterpret_cast<bool*>(base_pointer + sizeof(bool) * 5 * total_number_of_tracks);
+      }
+
+      __device__ __host__ void set(const uint track_number, const VeloState& state)
+      {
+        x[track_number] = state.x;
+        y[track_number] = state.y;
+        tx[track_number] = state.tx;
+        ty[track_number] = state.ty;
+        z[track_number] = state.z;
+        backward[track_number] = state.backward;
+      }
+
+      __device__ __host__ VeloState get(const uint track_number) const
+      {
+        VeloState state;
+
+        state.x = x[track_number];
+        state.y = y[track_number];
+        state.tx = tx[track_number];
+        state.ty = ty[track_number];
+        state.z = z[track_number];
+        state.backward = backward[track_number];
+        return state;
+      }
+
+      __device__ __host__ MiniState getMiniState(const uint track_number) const
+      {
+        MiniState state;
+
+        state.x = x[track_number];
+        state.y = y[track_number];
+        state.tx = tx[track_number];
+        state.ty = ty[track_number];
+        state.z = z[track_number];
+        return state;
+      }
+    };
+
+    struct KalmanStates {
+      // SOA of KalmanVeloStates from Kalman filter
       float* x;
       float* y;
       float* tx;
@@ -83,7 +139,7 @@ namespace Velo {
       float* z;
       bool* backward;
 
-      __device__ __host__ States(char* base_pointer, const uint total_number_of_tracks)
+      __device__ __host__ KalmanStates(char* base_pointer, const uint total_number_of_tracks)
       {
         x = reinterpret_cast<float*>(base_pointer);
         y = reinterpret_cast<float*>(base_pointer + sizeof(float) * total_number_of_tracks);
@@ -100,7 +156,7 @@ namespace Velo {
         backward = reinterpret_cast<bool*>(base_pointer + sizeof(float) * 12 * total_number_of_tracks);
       }
 
-      __device__ __host__ void set(const uint track_number, const VeloState& state)
+      __device__ __host__ void set(const uint track_number, const KalmanVeloState& state)
       {
         x[track_number] = state.x;
         y[track_number] = state.y;
@@ -119,9 +175,9 @@ namespace Velo {
         backward[track_number] = state.backward;
       }
 
-      __device__ __host__ VeloState get(const uint track_number) const
+      __device__ __host__ KalmanVeloState get(const uint track_number) const
       {
-        VeloState state;
+        KalmanVeloState state;
 
         state.x = x[track_number];
         state.y = y[track_number];

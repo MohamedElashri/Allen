@@ -74,8 +74,8 @@ __global__ void compass_ut(
 
     if (i_track < number_of_tracks_event) {
       const uint current_track_offset = event_tracks_offset + i_track;
-      const auto velo_state = MiniState {velo_states, current_track_offset};
-
+      const auto velo_state = velo_states.get(current_track_offset);
+     
       if (
         !velo_states.backward[current_track_offset] && dev_accepted_velo_tracks[current_track_offset] &&
         velo_track_in_UTA_acceptance(velo_state) &&
@@ -166,7 +166,7 @@ __device__ void compass_ut_tracking(
 {
 
   // select velo track to join with UT hits
-  const MiniState velo_state {velo_states, current_track_offset};
+  const MiniState velo_state = velo_states.getMiniState(current_track_offset);
 
   fill_shared_windows(windows_layers, number_of_tracks_event, i_track, win_size_shared);
 

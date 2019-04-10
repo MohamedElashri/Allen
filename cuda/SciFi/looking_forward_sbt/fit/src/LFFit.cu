@@ -78,7 +78,7 @@ __global__ void lf_fit_parallel(
     
     SciFi::TrackHits& track = dev_scifi_lf_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
-    const MiniState velo_state {velo_states, velo_states_index};
+    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
     
     float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
 
@@ -250,7 +250,7 @@ __global__ void lf_fit(
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     SciFi::TrackHits& track = dev_scifi_lf_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
-    const MiniState velo_state {velo_states, velo_states_index};
+    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
     
     float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
 

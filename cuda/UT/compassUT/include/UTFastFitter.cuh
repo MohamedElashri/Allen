@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MiniState.cuh"
+#include "States.cuh"
 #include "CompassUTDefinitions.cuh"
 #include "PrVeloUTDefinitions.cuh"
 #include "UTEventModel.cuh"

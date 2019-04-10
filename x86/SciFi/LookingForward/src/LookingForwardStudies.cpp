@@ -135,7 +135,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         event_qop.push_back(qop);
 
         const int i_velo_track = ut_tracks.velo_track[i_veloUT_track];
-        const MiniState velo_state {velo_states, velo_event_tracks_offset + i_velo_track};
+        const MiniState velo_state = velo_states.get(velo_event_tracks_offset + i_velo_track);
         event_velo_state.push_back(velo_state);
 
         const int ut_track_index = ut_event_tracks_offset + i_veloUT_track;

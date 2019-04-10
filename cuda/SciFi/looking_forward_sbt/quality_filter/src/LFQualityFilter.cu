@@ -49,7 +49,7 @@ __global__ void lf_quality_filter(
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
     const float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
-    const MiniState velo_state {velo_states, velo_states_index};
+    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
     track.quality = lf_track_quality(track, velo_state, dev_ut_qop[current_ut_track_index], trackParams, constArrays, dev_magnet_polarity[0], dev_tmva1, dev_tmva2);
   }
 

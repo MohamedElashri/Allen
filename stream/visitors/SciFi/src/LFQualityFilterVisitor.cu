@@ -1,6 +1,7 @@
 #include "LFQualityFilter.cuh"
 #include "SequenceVisitor.cuh"
 
+// Caution: when running fit_t separately, define track_params size there
 DEFINE_EMPTY_SET_ARGUMENTS_SIZE(lf_quality_filter_t)
 
 template<>
@@ -18,7 +19,7 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
   // 256 - 17.80%
   // 1024 -
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(512), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
       arguments.offset<dev_atomics_velo>(),
       arguments.offset<dev_velo_track_hit_number>(),

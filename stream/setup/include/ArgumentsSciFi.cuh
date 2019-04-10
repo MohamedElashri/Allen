@@ -2,7 +2,7 @@
 
 #include "Argument.cuh"
 #include "SciFiEventModel.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 
 /**
  * @brief Definition of arguments. All arguments should be defined here,

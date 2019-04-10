@@ -1,7 +1,7 @@
 #pragma once
 
 #include <tuple>
-#include "MiniState.cuh"
+#include "States.cuh"
 #include "SciFiEventModel.cuh"
 #include "LookingForwardConstants.cuh"
 

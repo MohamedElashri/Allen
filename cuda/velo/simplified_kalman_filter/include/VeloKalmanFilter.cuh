@@ -24,8 +24,8 @@ __device__ float velo_kalman_filter_step(
  *        allowing for some scattering at every hit
  */
 template<bool upstream>
-__device__ VeloState
-simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const VeloState& stateAtBeamLine, const uint nhits)
+__device__ KalmanVeloState
+simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits)
 {
   // backward = state.z > track.hits[0].z;
   const bool backward = stateAtBeamLine.z > consolidated_hits.z[0];
@@ -47,7 +47,7 @@ simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const VeloState
 
   // We filter x and y simultaneously but take them uncorrelated.
   // filter first the first hit.
-  VeloState state;
+  KalmanVeloState state;
   state.x = consolidated_hits.x[firsthit];
   state.y = consolidated_hits.y[firsthit];
   state.z = consolidated_hits.z[firsthit];
