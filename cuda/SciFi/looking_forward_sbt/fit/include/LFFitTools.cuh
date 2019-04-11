@@ -8,34 +8,23 @@
 
 namespace LookingForward {
 
-  struct fitSums {
-    float s0[LookingForward::num_threads_fit];
-    float sz[LookingForward::num_threads_fit];
-    float sz2[LookingForward::num_threads_fit];
-    float sz3[LookingForward::num_threads_fit];
-    float sz4[LookingForward::num_threads_fit];
-    float sd[LookingForward::num_threads_fit];
-    float sdz[LookingForward::num_threads_fit];
-    float sdz2[LookingForward::num_threads_fit];
-  };
-
 __device__ float linear_parameterization(
   const float p0,
   const float p1,
   const float z);
 
-__device__ void fitParabola_parallel(
-  const SciFi::Hits& scifi_hits,
-  const uint16_t* coordToFit,
-  const uint event_offset, 
-  const uint8_t n_coordToFit,
-  LookingForward::fitSums& fit_sums,
-  float trackParameters[SciFi::Tracking::nTrackParams],
-  const bool xFit);
+__device__ float
+trackToHitDistance(
+  const float trackParameters[SciFi::Tracking::nTrackParams],
+  const float hit_x,
+  const float hit_z,
+  const float hit_dxdy);
 
 __device__ int fitParabola_proto(
-  const SciFi::Hits& scifi_hits,
-  const int* coordToFit,
+  const float* hits_x,
+  const float* hits_z,
+  const float* hits_dxdy,
+  const float* hits_w,
   const uint8_t n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams],
   const bool xFit);
@@ -49,17 +38,17 @@ __device__ bool straight_line_fit_y_projection(
   float trackParams[SciFi::Tracking::nTrackParams]);
 
 __device__ float get_x_on_reference_plane(
-  const int hit,
-  const SciFi::Hits& scifi_hits,
+  const float hit_x,
+  const float hit_z,
   const float xAtRef_initial,
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
   const float zMagSlope);
 
 __device__ float get_average_x_at_reference_plane(
-  const int* hits,
+  const float* hits_x,
+  const float* hits_z,
   const uint8_t n_hits,
-  const SciFi::Hits& scifi_hits,
   const float xAtRef_initial,
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
@@ -71,23 +60,13 @@ __device__ float get_average_x_at_reference_plane_from_scifi_propagaion(
   const SciFi::Hits& scifi_hits,
   const float qop);
 
-__device__ void get_average_x_at_reference_plane_parallel(
-  const uint16_t* hits,
-  const uint event_offset,
-  const uint8_t n_hits,
-  const SciFi::Hits& scifi_hits,
-  const float xAtRef_initial,
-  const SciFi::Tracking::Arrays* constArrays,
-  const MiniState& velo_state,
-  const float zMagSlope,
-  float* xAtRefAverage);
-
-__device__ int getChi2( 
-  const SciFi::Hits& scifi_hits,
-  const int* coordToFit,
+__device__ int getChi2(
+  const float* hits_x,
+  const float* hits_z,
+  const float* hits_dxdy,
+  const float* hits_w,
   const uint8_t n_coordToFit,
   float trackParameters[SciFi::Tracking::nTrackParams]);
-  //  const bool xFit);
 
 __device__ void removeOutlier_proto(
   const SciFi::Hits& scifi_hits,
@@ -102,19 +81,5 @@ __device__ bool fitYProjection_proto(
   const uint8_t n_uv_hits,
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams]);
-
-__device__ bool quadraticFitX_proto(
-  const SciFi::Hits& scifi_hits,
-  const int* coordToFit,
-  uint8_t& n_coordToFit,
-  float trackParameters[SciFi::Tracking::nTrackParams],
-  const bool xFit);
-
-__device__ bool quadratic_fit_x_with_outlier_removal(
-  const SciFi::Hits& scifi_hits,
-  int* coordToFit,
-  int& n_coordToFit,
-  float trackParameters[SciFi::Tracking::nTrackParams],
-  const bool xFit);
 
 }
