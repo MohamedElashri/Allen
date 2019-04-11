@@ -19,7 +19,7 @@ struct PVTrack {
 
     float dz2 = dz * dz;
 
-    // I feel like somewhere here an abs is needed
+    // TODO: check if abs is needed here
     state_tmp_c00 += dz2 * state.c22 + 2.f * abs(dz * state.c20);
     state_tmp_c11 += dz2 * state.c33 + 2.f * abs(dz * state.c31);
     W_00 = 1.f / state_tmp_c00;
