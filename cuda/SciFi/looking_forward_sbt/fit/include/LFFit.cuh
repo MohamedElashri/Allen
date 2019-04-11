@@ -11,6 +11,15 @@
 #include "UTConsolidated.cuh"
 #include "LFFitTools.cuh"
 
+__device__ void lf_fit_impl(
+  SciFi::TrackHits& track,
+  const int event_offset,
+  const SciFi::Hits& scifi_hits,
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState velo_state,
+  float* trackParams);
+
 __global__ void lf_fit(
   const uint32_t* dev_scifi_hits,
   const uint32_t* dev_scifi_hit_count,
@@ -22,7 +31,6 @@ __global__ void lf_fit(
   const uint* dev_ut_track_hit_number,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
-  const float* dev_ut_tx,
   SciFi::TrackHits* dev_scifi_lf_tracks,
   const int* dev_scifi_lf_atomics,
   const char* dev_scifi_geometry,

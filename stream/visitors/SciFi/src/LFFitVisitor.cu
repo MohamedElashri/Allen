@@ -1,6 +1,7 @@
 #include "LFFit.cuh"
 #include "SequenceVisitor.cuh"
 
+// Caution: don't set size of track_params in this visitor AND the LFQualityFilterVisitor
 template<>
 void SequenceVisitor::set_arguments_size<lf_fit_t>(
   lf_fit_t::arguments_t arguments,
@@ -34,7 +35,6 @@ void SequenceVisitor::visit<lf_fit_t>(
       arguments.offset<dev_ut_track_hit_number>(),
       arguments.offset<dev_ut_qop>(),
       arguments.offset<dev_ut_track_velo_indices>(),
-      arguments.offset<dev_ut_tx>(),
       arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
       arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
       constants.dev_scifi_geometry,

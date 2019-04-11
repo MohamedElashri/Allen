@@ -1,5 +1,69 @@
 #include "LFFit.cuh"
 
+__device__ void lf_fit_impl(
+  SciFi::TrackHits& track,
+  const int event_offset,
+  const SciFi::Hits& scifi_hits,
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState velo_state,
+  float* trackParams)
+{
+  
+  // Note: It is faster to load the hit variables once into registers
+  // rather than to access global memory in all the fitting functions
+  float hits_x[SciFi::Constants::max_track_size];
+  float hits_z[SciFi::Constants::max_track_size];
+  float hits_dxdy[SciFi::Constants::max_track_size];
+  float hits_w[SciFi::Constants::max_track_size];
+  uint8_t n_x_hits = 0;
+  for (int j=0; j<track.hitsNum; ++j) {
+    const int hit = event_offset + track.hits[j];
+    const int plane_code = scifi_hits.planeCode(hit) >> 1;
+    hits_x[j] = scifi_hits.x0[hit];
+    hits_dxdy[j] = scifi_hits.dxdy(hit);
+    hits_w[j] = scifi_hits.w(hit);
+    hits_z[j] = dev_looking_forward_constants->Zone_zPos[plane_code]; 
+    if (!constArrays->is_x_plane[plane_code] && n_x_hits == 0) {
+      n_x_hits = j;
+    }
+  }
+  const uint8_t n_uv_hits = track.hitsNum - n_x_hits;
+  
+  const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
+  const float zMag_initial = zMagnet(velo_state, constArrays);
+  const float xAtRef_average =
+    LookingForward::get_average_x_at_reference_plane(
+      hits_x,
+      hits_z,
+      n_x_hits, 
+      xAtRef_initial, 
+      constArrays, 
+      velo_state,
+      zMag_initial);
+  
+  // initial track parameters
+  getTrackParameters(xAtRef_average, velo_state, constArrays, trackParams);
+  
+  // fit uv hits to update parameters related to y coordinate
+  // update trackParams [4] [5] [6]
+  if (!LookingForward::fitParabola_proto(hits_x + n_x_hits, hits_z + n_x_hits, hits_dxdy + n_x_hits, hits_w + n_x_hits, n_uv_hits, trackParams, false)) {
+    trackParams[7] = -1.f; // set chi2 negative
+  }
+  
+  // make a fit of all hits using their x coordinate   
+  // update trackParams [0] [1] [2] (x coordinate related)   
+  if (!LookingForward::fitParabola_proto(hits_x, hits_z, hits_dxdy, hits_w, track.hitsNum, trackParams, true)) {    
+    trackParams[7] = -1.f; // set chi2 negative
+  }
+  
+  // calculate chi2
+  if ( !LookingForward::getChi2(hits_x, hits_z, hits_dxdy, hits_w, track.hitsNum, trackParams) ) {
+    trackParams[7] = -1.f; // set chi2 negative
+  } 
+
+}
+
 __global__ void lf_fit(
   const uint32_t* dev_scifi_hits,
   const uint32_t* dev_scifi_hit_count,
@@ -11,7 +75,6 @@ __global__ void lf_fit(
   const uint* dev_ut_track_hit_number,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
-  const float* dev_ut_tx,
   SciFi::TrackHits* dev_scifi_lf_tracks,
   const int* dev_scifi_lf_atomics,
   const char* dev_scifi_geometry,
@@ -56,62 +119,16 @@ __global__ void lf_fit(
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
     
     float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
-
-    // Note: It is faster to load the hit variables once into registers
-    // rather than to access global memory in all the fitting functions
-    float hits_x[SciFi::Constants::max_track_size];
-    float hits_z[SciFi::Constants::max_track_size];
-    float hits_dxdy[SciFi::Constants::max_track_size];
-    float hits_w[SciFi::Constants::max_track_size];
-    uint8_t n_x_hits = 0;
-    for (int j=0; j<track.hitsNum; ++j) {
-      const int hit = event_offset + track.hits[j];
-      const int plane_code = scifi_hits.planeCode(hit) >> 1;
-      hits_x[j] = scifi_hits.x0[hit];
-      hits_dxdy[j] = scifi_hits.dxdy(hit);
-      hits_w[j] = scifi_hits.w(hit);
-      hits_z[j] = dev_looking_forward_constants->Zone_zPos[plane_code]; 
-      if (!constArrays->is_x_plane[plane_code] && n_x_hits == 0) {
-        n_x_hits = j;
-      }
-    }
-    const uint8_t n_uv_hits = track.hitsNum - n_x_hits;
     
-      
-    const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
-    const float zMag_initial = zMagnet(velo_state, constArrays);
-    const float xAtRef_average =
-      LookingForward::get_average_x_at_reference_plane(
-        hits_x,
-        hits_z,
-        n_x_hits, 
-        xAtRef_initial, 
-        constArrays, 
-        velo_state,
-        zMag_initial);
-
-    // initial track parameters
-    getTrackParameters(xAtRef_average, velo_state, constArrays, trackParams);
+    lf_fit_impl(
+      track,
+      event_offset,
+      scifi_hits,
+      dev_looking_forward_constants,
+      constArrays,
+      velo_state,
+      trackParams);
         
-    
-    // fit uv hits to update parameters related to y coordinate
-    // update trackParams [4] [5] [6]
-    if (!LookingForward::fitParabola_proto(hits_x + n_x_hits, hits_z + n_x_hits, hits_dxdy + n_x_hits, hits_w + n_x_hits, n_uv_hits, trackParams, false)) {
-      trackParams[7] = -1.f; // set chi2 negative
-    }
-    
-    
-    // make a fit of all hits using their x coordinate   
-    // update trackParams [0] [1] [2] (x coordinate related)   
-    if (!LookingForward::fitParabola_proto(hits_x, hits_z, hits_dxdy, hits_w, track.hitsNum, trackParams, true)) {    
-      trackParams[7] = -1.f; // set chi2 negative
-    }
-    
-    // calculate chi2
-    if ( !LookingForward::getChi2(hits_x, hits_z, hits_dxdy, hits_w, track.hitsNum, trackParams) ) {
-      trackParams[7] = -1.f; // set chi2 negative
-    }
-    
   }
     
 } 
