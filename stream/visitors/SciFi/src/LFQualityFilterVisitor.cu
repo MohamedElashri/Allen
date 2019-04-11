@@ -2,17 +2,17 @@
 #include "SequenceVisitor.cuh"
 
 // Caution: when running fit_t separately, define track_params size there
-//DEFINE_EMPTY_SET_ARGUMENTS_SIZE(lf_quality_filter_t)
+DEFINE_EMPTY_SET_ARGUMENTS_SIZE(lf_quality_filter_t)
 
-template<>
-void SequenceVisitor::set_arguments_size<lf_quality_filter_t>(
-  lf_quality_filter_t::arguments_t arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers)
-{
-  arguments.set_size<dev_scifi_lf_track_params>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams);
-}
+// template<>
+// void SequenceVisitor::set_arguments_size<lf_quality_filter_t>(
+//   lf_quality_filter_t::arguments_t arguments,
+//   const RuntimeOptions& runtime_options,
+//   const Constants& constants,
+//   const HostBuffers& host_buffers)
+// {
+//   arguments.set_size<dev_scifi_lf_track_params>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams);
+// }
 
 template<>
 void SequenceVisitor::visit<lf_quality_filter_t>(

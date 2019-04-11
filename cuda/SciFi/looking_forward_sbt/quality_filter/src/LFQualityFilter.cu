@@ -57,19 +57,19 @@ __global__ void lf_quality_filter(
     SciFi::TrackHits& track = dev_scifi_lf_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
-    //float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
+    float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
 
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
-    float trackParams[SciFi::Tracking::nTrackParams];
 
-    lf_fit_impl(
-      track,
-      event_offset,
-      scifi_hits,
-      dev_looking_forward_constants,
-      constArrays,
-      velo_state,
-      trackParams);
+    // float trackParams[SciFi::Tracking::nTrackParams];
+    // lf_fit_impl(
+    //   track,
+    //   event_offset,
+    //   scifi_hits,
+    //   dev_looking_forward_constants,
+    //   constArrays,
+    //   velo_state,
+    //   trackParams);
 
     track.quality = lf_track_quality(track, velo_state, dev_ut_qop[current_ut_track_index], trackParams, constArrays, dev_magnet_polarity[0], dev_tmva1, dev_tmva2);
   }
