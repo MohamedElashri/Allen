@@ -52,7 +52,6 @@ __global__ void lf_fit_parallel(
   const auto event_offset = scifi_hit_count.event_offset();
   const auto number_of_tracks = dev_scifi_lf_atomics[event_number]; 
 
-  //__shared__ int hits[128][SciFi::Constants::max_track_size];
   __shared__ uint8_t n_x_hits[LookingForward::num_threads_fit];
   __shared__ uint8_t n_uv_hits[LookingForward::num_threads_fit];
   __shared__ float xAtRefAverage[LookingForward::num_threads_fit];
@@ -82,19 +81,6 @@ __global__ void lf_fit_parallel(
     
     float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
 
-    // Note: It is a bit faster to use this than using directly track.hits
-    //int hits[SciFi::Constants::max_track_size];
-    // if ( threadIdx.x == 0 ) {
-    //   for (int j=0; j<track.hitsNum; ++j) {
-    //     //for (int j = threadIdx.x; j < track.hitsNum; j += blockDim.x) {
-    //     hits[threadIdx.x][j] = event_offset + track.hits[j];
-    //   }
-    // }
-    
-    // __syncthreads();
-
-    //uint8_t n_x_hits = 0;
-    //for (int j = threadIdx.x + 3; j < track.hitsNum; j += blockDim.x) {
     if ( threadIdx.y == 0 ) {
       for (int j = 3; j < track.hitsNum; j++) {
         const int offset = event_offset + ((int) track.hits[j]);
@@ -108,12 +94,9 @@ __global__ void lf_fit_parallel(
     }
 
     __syncthreads();
-
-    //if ( threadIdx.x == 0 ) {
       
     const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
     const float zMag_initial = zMagnet(velo_state, constArrays);
-    //const float xAtRef_average =
     LookingForward::get_average_x_at_reference_plane_parallel(
       track.hits,
       event_offset,
@@ -136,12 +119,6 @@ __global__ void lf_fit_parallel(
     
     __syncthreads();
     
-    // fit uv hits to update parameters related to y coordinate
-    // update trackParams [4] [5] [6]
-    // if (!LookingForward::fitYProjection_proto(velo_state, constArrays, track.hits + n_x_hits[threadIdx.x], event_offset, n_uv_hits[threadIdx.x], scifi_hits, trackParams)) {
-    //   trackParams[7] = -1.f; // set chi2 negative
-    // }
-    
     LookingForward::fitParabola_parallel(scifi_hits, track.hits + n_x_hits[threadIdx.x], event_offset, n_uv_hits[threadIdx.x], fit_sums, trackParams, false);
 
     __syncthreads();
@@ -159,16 +136,8 @@ __global__ void lf_fit_parallel(
     
     __syncthreads();
     
-    // if ( threadIdx.y == 0 ) {
-      
-    //   // make a fit of all hits using their x coordinate   
-    //   // update trackParams [0] [1] [2] (x coordinate related)   
-    //   if (!LookingForward::quadraticFitX_proto(scifi_hits, track.hits, event_offset, track.hitsNum, trackParams, true)) {      trackParams[7] = -1.f; // set chi2 negative
-    //   }
-    // }
-    
     // make a fit of all hits in parallel, using their x coordinate  
-     // update trackParams [0] [1] [2] (x coordinate related)   
+    // update trackParams [0] [1] [2] (x coordinate related)   
     LookingForward::fitParabola_parallel(scifi_hits, track.hits, event_offset, track.hitsNum, fit_sums, trackParams, true);
   
     __syncthreads();
@@ -206,12 +175,13 @@ __global__ void lf_fit(
   const uint* dev_ut_track_hit_number,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
+  const float* dev_ut_tx,
   SciFi::TrackHits* dev_scifi_lf_tracks,
   const int* dev_scifi_lf_atomics,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
-  const MiniState* dev_ut_states,
   const SciFi::Tracking::Arrays* constArrays,
+  const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity,
   float* dev_scifi_lf_track_params)
 {
@@ -223,6 +193,7 @@ __global__ void lf_fit(
     (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
   const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
   const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+  const uint number_of_velo_tracks_event = velo_tracks.number_of_tracks(event_number);
 
   // UT consolidated tracks
   const UT::Consolidated::Tracks ut_tracks {(uint*) dev_atomics_ut,
@@ -233,10 +204,6 @@ __global__ void lf_fit(
                                             number_of_events};
   const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
   const int ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number); 
-
-  Consolidated::TracksDescription ut_tracks_counter {(uint*) dev_atomics_ut, number_of_events};
-  const int ut_event_tracks_offset_ = ut_tracks_counter.tracks_offset(event_number);
-  const int ut_event_number_of_tracks_ = ut_tracks_counter.number_of_tracks(event_number);
   
   // SciFi hits
   const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
@@ -247,10 +214,26 @@ __global__ void lf_fit(
   const auto event_offset = scifi_hit_count.event_offset();
   const auto number_of_tracks = dev_scifi_lf_atomics[event_number]; 
   
+  // __shared__ MiniState velo_states_shared[Velo::Constants::max_tracks];
+  // __shared__ int ut_tracks_velo_index_shared[UT::Constants::max_num_tracks];
+  
+  /* initialize shared memory */
+  // for (int i = threadIdx.x; i < number_of_velo_tracks_event; i += blockDim.x) {
+  //   const auto velo_states_index = velo_tracks_offset_event + i;
+  //   velo_states_shared[i] = velo_states.getMiniState(velo_states_index);
+  //   if ( i < ut_event_number_of_tracks ) {
+  //     ut_tracks_velo_index_shared[i] = ut_tracks.velo_track[i];
+  //   }
+  // }
+
+  // __syncthreads();
+
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     SciFi::TrackHits& track = dev_scifi_lf_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
+    //const auto velo_track_index = ut_tracks.velo_track[track.ut_track_index];
+    //const auto velo_track_index = ut_tracks_velo_index_shared[track.ut_track_index];
     
     float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
 
@@ -274,6 +257,8 @@ __global__ void lf_fit(
       
     const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
     const float zMag_initial = zMagnet(velo_state, constArrays);
+    // const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_states_shared[velo_track_index]);
+    // const float zMag_initial = zMagnet(velo_states_shared[velo_track_index], constArrays);
     const float xAtRef_average =
       LookingForward::get_average_x_at_reference_plane(
         hits,
@@ -281,11 +266,30 @@ __global__ void lf_fit(
         scifi_hits, 
         xAtRef_initial, 
         constArrays, 
-        velo_state, 
+        velo_state,
+        //velo_states_shared[velo_track_index], 
         zMag_initial);
-    
+
+    // const float qop = ut_tracks.qop[track.ut_track_index];
+    // const int plane_code = scifi_hits.planeCode(hits[1]) >> 1;
+    // const float qop_update = LookingForward::qop_update(
+    //   dev_ut_tx[ut_event_tracks_offset + track.ut_track_index],
+    //   scifi_hits.x0[ hits[0] ],
+    //   scifi_hits.z0[ hits[0] ],
+    //   scifi_hits.x0[ hits[1] ],
+    //   scifi_hits.z0[ hits[1] ],
+    //   dev_looking_forward_constants->ds_p_param_layer_inv[plane_code] );
+    // const float xAtRef_average_propagation =
+    //   LookingForward::get_average_x_at_reference_plane_from_scifi_propagaion(
+    //     hits,
+    //     n_x_hits, 
+    //     scifi_hits, 
+    //     qop_update);
+
+    // printf("xAtRef = %f, from scifi propagation = %f, difference = %f \n", xAtRef_average, xAtRef_average_propagation, xAtRef_average - xAtRef_average_propagation);
+            
     // initial track parameters
-    getTrackParameters(xAtRef_average, velo_state, constArrays, trackParams);
+    getTrackParameters(xAtRef_average, velo_state /*velo_states_shared[velo_track_index]*/, constArrays, trackParams);
         
     
     // fit uv hits to update parameters related to y coordinate

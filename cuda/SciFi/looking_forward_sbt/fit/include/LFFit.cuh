@@ -42,12 +42,13 @@ __global__ void lf_fit(
   const uint* dev_ut_track_hit_number,
   const float* dev_ut_qop,
   const uint* dev_ut_track_velo_indices,
+  const float* dev_ut_tx,
   SciFi::TrackHits* dev_scifi_lf_tracks,
   const int* dev_scifi_lf_atomics,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
-  const MiniState* dev_ut_states,
   const SciFi::Tracking::Arrays* constArrays,
+  const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity,
   float* dev_scifi_lf_track_params);
 
@@ -65,7 +66,7 @@ ALGORITHM(
     dev_ut_track_hit_number,
     dev_ut_qop,
     dev_ut_track_velo_indices,
-    dev_ut_states,
+    dev_ut_tx,
     dev_scifi_lf_length_filtered_atomics,
     dev_scifi_lf_length_filtered_tracks,
     dev_scifi_lf_track_params))

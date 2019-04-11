@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "LookingForwardConstants.cuh"
+#include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
 #include "TrackUtils.cuh"
 
@@ -47,7 +48,7 @@ __device__ bool straight_line_fit_y_projection(
   const SciFi::Hits& scifi_hits,
   float trackParams[SciFi::Tracking::nTrackParams]);
 
-__device__ float get_x_on_reference_plane_for_hit(
+__device__ float get_x_on_reference_plane(
   const int hit,
   const SciFi::Hits& scifi_hits,
   const float xAtRef_initial,
@@ -63,6 +64,12 @@ __device__ float get_average_x_at_reference_plane(
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState& velo_state,
   const float zMagSlope);
+
+__device__ float get_average_x_at_reference_plane_from_scifi_propagaion(
+  const int* hits,
+  const uint8_t n_hits,
+  const SciFi::Hits& scifi_hits,
+  const float qop);
 
 __device__ void get_average_x_at_reference_plane_parallel(
   const uint16_t* hits,

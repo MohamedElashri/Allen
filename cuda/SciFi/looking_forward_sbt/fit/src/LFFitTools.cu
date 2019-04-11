@@ -11,7 +11,39 @@ __device__ float LookingForward::linear_parameterization(
   return p0 + p1 * dz;
 }
 
-__device__ float LookingForward::get_x_on_reference_plane_for_hit(
+__device__ float LookingForward::get_average_x_at_reference_plane_from_scifi_propagaion(
+  const int* hits,
+  const uint8_t n_hits,
+  const SciFi::Hits& scifi_hits,
+  const float qop)
+{
+  // get slopes tx
+  float txs[6];
+  for (uint8_t i_hit = 1; i_hit < n_hits;  ++i_hit) {
+    const float x0 = scifi_hits.x0[ hits[i_hit-1] ];
+    const float x1 = scifi_hits.x0[ hits[i_hit] ];
+    const float z0 = scifi_hits.z0[ hits[i_hit-1] ];
+    const float z1 = scifi_hits.z0[ hits[i_hit] ];
+    txs[i_hit] = (x1 - x0) / (z1 - z0);
+  }
+  txs[0] = txs[1]; // use slope between hits 0 and 1 for first hit as well
+
+  // calculate average x on reference plane
+  float average_x = 0.f;
+  for (uint8_t i_hit = 1; i_hit < n_hits;  ++i_hit) {
+    const int hit = hits[i_hit];
+    const float zHit = scifi_hits.z0[hit];
+    const float xHit = scifi_hits.x0[hit];
+    const float dz = SciFi::Tracking::zReference - zHit;
+    const float x = LookingForward::scifi_propagation(xHit, txs[i_hit], qop, dz);
+    average_x += x;
+  }
+  average_x /= n_hits;
+
+  return average_x;
+}
+
+__device__ float LookingForward::get_x_on_reference_plane(
   const int hit,
   const SciFi::Hits& scifi_hits,
   const float xAtRef_initial,
@@ -53,7 +85,7 @@ __device__ float LookingForward::get_average_x_at_reference_plane(
   float average_x = 0;
   for (uint8_t i_hit = 0; i_hit < n_hits; ++i_hit) {
     const int hit = hits[i_hit];
-    const float x = get_x_on_reference_plane_for_hit(hit, scifi_hits, xAtRef_initial, constArrays, velo_state, zMagSlope);
+    const float x = get_x_on_reference_plane(hit, scifi_hits, xAtRef_initial, constArrays, velo_state, zMagSlope);
     average_x += x;
   }
   average_x /= n_hits;
@@ -74,7 +106,7 @@ __device__ void LookingForward::get_average_x_at_reference_plane_parallel(
 {
   for (uint8_t i_hit = threadIdx.y; i_hit < n_hits; i_hit += blockDim.y) {
     const int hit = hits[i_hit] + event_offset;
-    const float x = get_x_on_reference_plane_for_hit(hit, scifi_hits, xAtRef_initial, constArrays, velo_state, zMagSlope);
+    const float x = get_x_on_reference_plane(hit, scifi_hits, xAtRef_initial, constArrays, velo_state, zMagSlope);
     atomicAdd(xAtRefAverage, x);
   }
 }

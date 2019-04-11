@@ -36,12 +36,13 @@ void SequenceVisitor::visit<lf_fit_t>(
       arguments.offset<dev_ut_track_hit_number>(),
       arguments.offset<dev_ut_qop>(),
       arguments.offset<dev_ut_track_velo_indices>(),
+      arguments.offset<dev_ut_tx>(),
       arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
       arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
       constants.dev_scifi_geometry,
       constants.dev_inv_clus_res,
-      arguments.offset<dev_ut_states>(),
       constants.dev_scifi_constArrays,
+      constants.dev_looking_forward_constants,
       constants.dev_magnet_polarity,
       arguments.offset<dev_scifi_lf_track_params>());
   
