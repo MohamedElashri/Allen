@@ -17,6 +17,8 @@ __global__ void lf_extend_tracks_uv(
 
   // UT consolidated tracks
   const int ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
+  const int ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
+  const int total_number_of_ut_tracks = dev_atomics_ut[2 * number_of_events];
 
   // SciFi hits
   const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
@@ -25,42 +27,40 @@ __global__ void lf_extend_tracks_uv(
   const SciFi::Hits scifi_hits {
     const_cast<uint32_t*>(dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
-
-  // SciFi un-consolidated track types
-  const int number_of_tracks = dev_atomics_scifi[event_number];
-
+  const auto number_of_tracks = dev_atomics_scifi[event_number];  
+  
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    SciFi::TrackHits& track = dev_scifi_tracks[event_number * SciFi::Constants::max_lf_tracks + i];
-    const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
-
+    SciFi::TrackHits& track = dev_scifi_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
+    const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index; 
+    
     const auto h0 = event_offset + track.hits[0];
     const auto h1 = event_offset + track.hits[1];
-
+    
     const auto layer0 = scifi_hits.planeCode(h0) >> 1;
     const auto layer1 = scifi_hits.planeCode(h1) >> 1;
-
+    
     const auto x0 = scifi_hits.x0[h0];
     const auto x1 = scifi_hits.x0[h1];
-
+    
     const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];
     const auto z1 = dev_looking_forward_constants->Zone_zPos[layer1];
-
-    for (int relative_extrapolation_layer = threadIdx.y; relative_extrapolation_layer < 6; relative_extrapolation_layer += blockDim.y) {
+    
+    for (int relative_extrapolation_layer = 0; relative_extrapolation_layer < 6; relative_extrapolation_layer++) {
       const auto layer2 = dev_looking_forward_constants->extrapolation_uv_layers[relative_extrapolation_layer];
       const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
       const auto projection_y = LookingForward::y_at_z(dev_ut_states[current_ut_track_index], z2);
       
       // Use UV windows
       const auto uv_window_start = dev_scifi_lf_uv_windows[
-        event_number * 6 * SciFi::Constants::max_lf_tracks
-        + relative_extrapolation_layer * SciFi::Constants::max_lf_tracks
+        ut_event_tracks_offset * 6 * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter 
+        + ut_event_number_of_tracks * relative_extrapolation_layer * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter 
         + i
-      ];
+     ];
 
       const auto uv_window_size = dev_scifi_lf_uv_windows[
-        number_of_events * 6 * SciFi::Constants::max_lf_tracks
-        + event_number * 6 * SciFi::Constants::max_lf_tracks
-        + relative_extrapolation_layer * SciFi::Constants::max_lf_tracks
+        total_number_of_ut_tracks * 6 * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter 
+        + ut_event_tracks_offset * 6 * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter 
+        + ut_event_number_of_tracks * relative_extrapolation_layer * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter 
         + i
       ];
 
@@ -76,7 +76,8 @@ __global__ void lf_extend_tracks_uv(
         z2,
         projection_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_extrapolation_layer & 0x1],
         dev_looking_forward_constants->chi2_extrapolation_uv_mean[relative_extrapolation_layer] +
-          2.5f * dev_looking_forward_constants->chi2_extrapolation_uv_stddev[relative_extrapolation_layer]);
+        2.5f * dev_looking_forward_constants->chi2_extrapolation_uv_stddev[relative_extrapolation_layer]);
     }
   }
+
 }

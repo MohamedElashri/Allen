@@ -120,6 +120,9 @@ namespace SciFi {
     constexpr int zoneoffsetpar = 6;
 
     struct Arrays {
+      // Returns whether the current layer is an X plane
+      const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
+
       // the Magnet Parametrization
       // parameterized in offset [0], (slope difference due to kick)^2 [1],
       // tx^2 [2], ty^2 [3]

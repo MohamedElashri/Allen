@@ -2,6 +2,7 @@
 
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
+#include "UTDefinitions.cuh"
 
 __device__ void lf_search_uv_windows_impl(
   const float* scifi_hits_x0,
@@ -16,4 +17,7 @@ __device__ void lf_search_uv_windows_impl(
   const uint event_offset,
   const LookingForward::Constants* dev_looking_forward_constants,
   const MiniState& ut_state,
+  const int total_number_of_ut_tracks,
+  const int current_ut_track_index,
+  const int ut_event_number_of_tracks,
   short* dev_scifi_lf_uv_windows);

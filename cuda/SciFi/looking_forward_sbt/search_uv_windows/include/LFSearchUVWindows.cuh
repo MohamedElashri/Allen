@@ -2,7 +2,6 @@
 
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
-#include "LFSearchUVWindowsImpl.cuh"
 #include "SciFiEventModel.cuh"
 #include "Handler.cuh"
 #include "ArgumentsUT.cuh"
@@ -18,7 +17,8 @@ __global__ void lf_search_uv_windows(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
   const MiniState* dev_ut_states,
-  short* dev_scifi_lf_uv_windows);
+  short* dev_scifi_lf_uv_windows,
+  const int* dev_scifi_lf_initial_windows);
 
 ALGORITHM(
   lf_search_uv_windows,
@@ -27,9 +27,10 @@ ALGORITHM(
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_ut,
-    dev_scifi_lf_filtered_tracks,
-    dev_scifi_lf_filtered_atomics,
+    dev_scifi_lf_x_filtered_tracks,
+    dev_scifi_lf_x_filtered_atomics,
     dev_scifi_lf_number_of_candidates,
     dev_scifi_lf_candidates,
     dev_ut_states,
-    dev_scifi_lf_uv_windows))
+    dev_scifi_lf_uv_windows,
+    dev_scifi_lf_initial_windows))

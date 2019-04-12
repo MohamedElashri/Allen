@@ -10,7 +10,8 @@ void SequenceVisitor::set_arguments_size<lf_composite_extend_tracks_uv_t>(
 {
   // 6 layers
   // 2 elements on each window
-  arguments.set_size<dev_scifi_lf_uv_windows>(2 * 6 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_lf_tracks);
+  arguments.set_size<dev_scifi_lf_uv_windows>(2 * 6 * host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
+  
 }
 
 template<>
@@ -33,27 +34,28 @@ void SequenceVisitor::visit<lf_composite_extend_tracks_uv_t>(
   // 32 - 18.42% 13.0076s, 39822.61 events/s
   // 256 - 9.47% 6.01868s, 38491.16 events/s
 
-  state.handler_lf_search_uv_windows.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);
+  state.handler_lf_search_uv_windows.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream); // to do: check 32 threads
   state.handler_lf_extend_tracks_uv.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(512), cuda_stream);
 
   state.handler_lf_search_uv_windows.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_lf_filtered_tracks>(),
-    arguments.offset<dev_scifi_lf_filtered_atomics>(),
+    arguments.offset<dev_scifi_lf_x_filtered_tracks>(),
+    arguments.offset<dev_scifi_lf_x_filtered_atomics>(),
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
     constants.dev_inv_clus_res,
     arguments.offset<dev_ut_states>(),
-    arguments.offset<dev_scifi_lf_uv_windows>());
+    arguments.offset<dev_scifi_lf_uv_windows>(),
+    arguments.offset<dev_scifi_lf_initial_windows>());
 
   state.handler_lf_extend_tracks_uv.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_lf_filtered_tracks>(),
-    arguments.offset<dev_scifi_lf_filtered_atomics>(),
+    arguments.offset<dev_scifi_lf_x_filtered_tracks>(),
+    arguments.offset<dev_scifi_lf_x_filtered_atomics>(),
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
     constants.dev_inv_clus_res,

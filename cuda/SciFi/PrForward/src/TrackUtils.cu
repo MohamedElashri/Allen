@@ -91,7 +91,7 @@ __host__ __device__ float calcDxRef(float pt, const MiniState& velo_state)
 }
 
 __host__ __device__ float
-trackToHitDistance(float trackParameters[SciFi::Tracking::nTrackParams], const SciFi::Hits& scifi_hits, int hit)
+trackToHitDistance(const float trackParameters[SciFi::Tracking::nTrackParams], const SciFi::Hits& scifi_hits, int hit)
 {
   const float parsX[4] = {trackParameters[0], trackParameters[1], trackParameters[2], trackParameters[3]};
   const float parsY[4] = {trackParameters[4], trackParameters[5], trackParameters[6], 0.f};

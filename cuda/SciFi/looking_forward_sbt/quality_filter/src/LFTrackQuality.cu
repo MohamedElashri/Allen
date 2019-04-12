@@ -9,7 +9,7 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
   const SciFi::Hits& scifi_hits,
   const int event_offset)
 {
-  float quality = LookingForward::track_min_quality;
+  float quality = 0.f;
 
   // LookingForward::track_min_starting_quality
   // || track.get_quality() > 20.f
@@ -17,57 +17,42 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
     return quality;
   }
 
-  // use only hits from x-planes to calculate the average x position on the reference plane
+  // Note: It is a bit faster to use this than using directly track.hits
   int hits[SciFi::Constants::max_track_size];
-  int uv_hits[SciFi::Constants::max_track_size]; // to do: make smaller
-  int n_hits = 0;
-  int n_uv_hits = 0;
+  for (int i=0; i<track.hitsNum; ++i) {
+    hits[i] = event_offset + track.hits[i];
+  }
 
-  assert(track.hitsNum <= SciFi::Constants::max_track_size);
-
-  const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
-  for (int i = 0; i < track.hitsNum; ++i) {
+  uint8_t n_x_hits = 0;
+  for (int i=3; i<track.hitsNum; ++i) {
     const int offset = event_offset + ((int) track.hits[i]);
     const int plane_code = scifi_hits.planeCode(offset) >> 1;
-
-    if (is_x_plane[plane_code]) {
-      assert(n_hits <= 6);
-      // first store only x hits in hits array
-      hits[n_hits++] = offset;
-    }
-    else {
-      assert(n_uv_hits <= 6);
-      uv_hits[n_uv_hits++] = offset;
+    if (!constArrays->is_x_plane[plane_code]) {
+      n_x_hits = i;
+      break;
     }
   }
-  const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
-  const float xParams_seed[4] = {xAtRef_initial, velo_state.tx, 0.f, 0.f};
-  float zMag_initial = zMagnet(velo_state, constArrays);
-  float xAtRef_average =
-    LookingForward::get_average_x_at_reference_plane(hits, n_hits, scifi_hits, xParams_seed, constArrays, velo_state, zMag_initial);
+  const uint8_t n_uv_hits = track.hitsNum - n_x_hits;
 
-  // 5.30 -> 4.93%
+  const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
+  const float zMag_initial = zMagnet(velo_state, constArrays);
+  const float xAtRef_average =
+    LookingForward::get_average_x_at_reference_plane(hits, n_x_hits, scifi_hits, xAtRef_initial, velo_state.tx, constArrays, velo_state, zMag_initial);
+
   // initial track parameters
   float trackParams[SciFi::Tracking::nTrackParams];
   getTrackParameters(xAtRef_average, velo_state, constArrays, trackParams);
 
-  // 8.70 -> 5.30%
   // fit uv hits to update parameters related to y coordinate
   // update trackParams [4] [5] [6]
-  if (!LookingForward::fitYProjection_proto(velo_state, constArrays, uv_hits, n_uv_hits, scifi_hits, trackParams)) {
+  if (!LookingForward::fitYProjection_proto(velo_state, constArrays, hits + n_x_hits, n_uv_hits, scifi_hits, trackParams)) {
     return quality;
   }
 
-  // ad uv hits to hits array
-  for (int i_hit = 0; i_hit < n_uv_hits; ++i_hit) {
-    hits[n_hits++] = uv_hits[i_hit];
-  }
-
-  // 15.37 -> 8.70%
   // make a fit of all hits using their x coordinate
   // update trackParams [0] [1] [2] (x coordinate related)
   // remove outliers with worst chi2
-  if (!LookingForward::quadraticFitX_proto(scifi_hits, hits, n_hits, trackParams, true)) {
+  if (!LookingForward::quadraticFitX_proto(scifi_hits, hits, track.hitsNum, trackParams, true)) {
     return quality;
   }
 
@@ -84,9 +69,9 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
   dSlope = slopeT - velo_state.tx;
   const float dyCoef = dSlope * dSlope * velo_state.ty;
 
-  float bx = slopeT;
-  float ay = velo_state.y + (SciFi::Tracking::zReference - velo_state.z) * velo_state.ty;
-  float by = velo_state.ty + dyCoef * SciFi::Tracking::byParams;
+  const float bx = slopeT;
+  const float ay = velo_state.y + (SciFi::Tracking::zReference - velo_state.z) * velo_state.ty;
+  const float by = velo_state.ty + dyCoef * SciFi::Tracking::byParams;
 
   const float ay1 = trackParams[4]; // y at zRef, from velo state
   const float by1 = trackParams[5]; //
@@ -103,7 +88,6 @@ __device__ float lf_track_quality (SciFi::TrackHits& track,
   mlpInput[5] = bx - bx1;
   mlpInput[6] = ay - ay1;
 
-  // 18 -> 15.37%
   quality = GetMvaValue(mlpInput, tmva1);
   track.qop = qOverP;
 
