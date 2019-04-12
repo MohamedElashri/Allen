@@ -14,6 +14,7 @@ __host__ __device__ void find_forward_tracks(
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const MiniState& velo_state)
 {
 
@@ -53,6 +54,7 @@ __host__ __device__ void find_forward_tracks(
       xParams_seed,
       yParams_seed,
       constArrays,
+      magnet_polarity,
       velo_state,
       qop_ut,
       1);
@@ -66,6 +68,7 @@ __host__ __device__ void find_forward_tracks(
       xParams_seed,
       yParams_seed,
       constArrays,
+      magnet_polarity,
       velo_state,
       qop_ut,
       -1);
@@ -129,6 +132,7 @@ __host__ __device__ void find_forward_tracks(
     tmva1,
     tmva2,
     constArrays,
+    magnet_polarity,
     false);
 
   bool ok = false;
@@ -196,6 +200,7 @@ __host__ __device__ void find_forward_tracks(
       tmva1,
       tmva2,
       constArrays,
+      magnet_polarity,
       true);
 
     for (int i_track = 0; i_track < n_selected_tracks2; ++i_track) {
@@ -222,20 +227,25 @@ __host__ __device__ void find_forward_tracks(
     float minQuality = SciFi::Tracking::maxQuality;
     for (int i_track = 0; i_track < n_selected_tracks; ++i_track) {
       SciFi::Tracking::Track& track = selected_tracks[i_track];
+      
+      // TODO: We would have to work out a way for the Prforward to have max 12 hits
+      if (track.hitsNum > 12) {
+        track.hitsNum = 12;
+      }
+
       if (track.quality + SciFi::Tracking::deltaQuality < minQuality)
         minQuality = track.quality + SciFi::Tracking::deltaQuality;
       if (!(track.quality > minQuality)) {
 
         SciFi::TrackHits tr = makeTrack(track);
-        tr.UTTrackIndex = i_veloUT_track;
+        tr.ut_track_index = i_veloUT_track;
 
         // add LHCbIDs from SciFi part of the track
         for (int i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
           // save local hit index within event to be able to use short
           const int local_hit_index = track.hit_indices[i_hit] - event_hit_offset;
-          tr.addHit(local_hit_index);
+          tr.add_hit(local_hit_index);
         }
-        assert(tr.hitsNum < SciFi::Constants::max_track_size);
 
         if (*n_forward_tracks >= SciFi::Constants::max_tracks) printf("n_forward_tracks = %u \n", *n_forward_tracks);
         assert(*n_forward_tracks < SciFi::Constants::max_tracks);
@@ -256,13 +266,14 @@ __host__ __device__ SciFi::TrackHits makeTrack(SciFi::Tracking::Track track)
 {
   SciFi::TrackHits tr;
   tr.qop = track.qop;
-  tr.chi2 = track.chi2;
+  tr.quality = track.quality;
 
   // add state at zEndT
   const float z = SciFi::Constants::ZEndT;
   MiniState state(track.x(z), track.y(z), z, track.xSlope(z), track.ySlope(z));
 
-  tr.state = state;
+  // TODO
+  // tr.state = state;
 
   return tr;
 }
@@ -288,6 +299,7 @@ __host__ __device__ void selectFullCandidates(
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const bool secondLoop)
 {
 
@@ -328,7 +340,7 @@ __host__ __device__ void selectFullCandidates(
     // track has enough hits, calcualte quality and save if good enough
     if (planeCounter.nbDifferent >= SciFi::Tracking::minTotalHits) {
 
-      const float qOverP = calcqOverP(cand->trackParams[1], constArrays, velo_state);
+      const float qOverP = calcqOverP(cand->trackParams[1], constArrays, velo_state, magnet_polarity);
       // orig params before fitting , TODO faster if only calc once?? mem usage?
       const float xAtRef = cand->trackParams[0];
       float dSlope = (velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx - xAtRef) /

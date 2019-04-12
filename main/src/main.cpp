@@ -51,7 +51,8 @@ void printUsage(char* argv[])
             << " -m {reserve Megabytes}=1024" << std::endl
             << " -v {verbosity}=3 (info)" << std::endl
             << " -p {print memory usage}=0" << std::endl
-            << " -a {run only data preparation algorithms: decoding, clustering, sorting}=0" << std::endl;
+            << " -a {run only data preparation algorithms: decoding, clustering, sorting}=0" << std::endl
+            << " -i {Import forward tracks dumped from Brunel}" << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -62,6 +63,9 @@ int main(int argc, char* argv[])
   std::string folder_name_muon_common_hits = "../input/minbias/muon_common_hits/";
   std::string file_name_muon_catboost_model = "../input/muon/muon_catboost_model.json";
   std::string file_name_muon_table = "../input/muon/muon_table.bin";
+  std::string file_name_muon_geometry = "../input/muon/muon_geometry.bin";
+  std::string folder_name_imported_forward_tracks = "";
+
   uint number_of_events_requested = 0;
   uint start_event_offset = 0;
   uint number_of_threads = 1;
@@ -99,6 +103,7 @@ int main(int argc, char* argv[])
     case 'b': folder_name_muon_common_hits = std::string(optarg); break;
     case 'd': folder_name_MC = std::string(optarg); break;
     case 'g': folder_name_detector_configuration = std::string(optarg); break;
+    case 'i': folder_name_imported_forward_tracks = std::string(optarg); break;
     case 'm': reserve_mb = atoi(optarg); break;
     case 'n': number_of_events_requested = atoi(optarg); break;
     case 'o': start_event_offset = atoi(optarg); break;
@@ -140,8 +145,7 @@ int main(int argc, char* argv[])
   std::string device_name;
   try {
     std::tie(n_devices, device_name) = set_device(cuda_device);
-    //if (n_devices == 0) {
-    if (false) {
+    if (n_devices == 0) {
       error_cout << "Failed to select device " << cuda_device << std::endl;
       return -1;
     }
@@ -158,6 +162,7 @@ int main(int argc, char* argv[])
             << " using " << (use_mdf ? "MDF" : "binary") << " input" << (use_mdf ? " (--mdf)" : "") << std::endl
             << " folder with detector configuration (-g): " << folder_name_detector_configuration << std::endl
             << " folder with MC truth input (-d): " << folder_name_MC << std::endl
+            << " folder with imported forward tracks (-i): " << folder_name_imported_forward_tracks << std::endl
             << " run checkers (-c): " << do_check << std::endl
             << " number of files (-n): " << number_of_events_requested << std::endl
             << " start event offset (-o): " << start_event_offset << std::endl
@@ -168,6 +173,8 @@ int main(int argc, char* argv[])
             << " verbosity (-v): " << verbosity << std::endl
             << " device (--device) " << cuda_device << ": " << device_name << std::endl
             << std::endl;
+
+  bool check_imported_forward_tracks = !folder_name_imported_forward_tracks.empty();
 
   // Print configured sequence
   print_configured_sequence();
@@ -210,21 +217,33 @@ int main(int argc, char* argv[])
   std::vector<char> events;
   std::vector<uint> event_offsets;
   std::vector<Muon::HitsSoA> muon_hits_events(number_of_events_requested);
-   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(file_name_muon_catboost_model);
-
   info_cout << "start decode\n";
   decode(event_reader->events(BankTypes::MUON), event_reader->offsets(BankTypes::MUON), muon_hits_events);
   info_cout << "finish decode\n";
+  muon_catboost_model_reader = std::make_unique<CatboostModelReader>(file_name_muon_catboost_model);
+  std::vector<float> muon_field_of_interest_params;
+  read_muon_field_of_interest(muon_field_of_interest_params, "../input/muon/field_of_interest_params.bin");
 
+  std::vector<Checker::Tracks> forward_tracks;
+  if (check_imported_forward_tracks) {
+    std::vector<char> events_tracks;
+    std::vector<uint> event_tracks_offsets;
+    read_folder(
+      folder_name_imported_forward_tracks,
+      number_of_events_requested,
+      events_tracks,
+      event_tracks_offsets,
+      start_event_offset);
+    forward_tracks = read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), number_of_events_requested);
+  }
   info_cout << std::endl << "All input datatypes successfully read" << std::endl << std::endl;
 
   // Initialize detector constants on GPU
   Constants constants;
-  constants.reserve_and_initialize();
+  constants.reserve_and_initialize(muon_field_of_interest_params);
   constants.initialize_ut_decoding_constants(ut_geometry);
   constants.initialize_geometry_constants(velo_geometry, ut_boards, ut_geometry, ut_magnet_tool, scifi_geometry);
   constants.initialize_muon_catboost_model_constants(
-    muon_catboost_model_reader->n_features(),
     muon_catboost_model_reader->n_trees(),
     muon_catboost_model_reader->tree_depths(),
     muon_catboost_model_reader->tree_offsets(),
@@ -236,7 +255,7 @@ int main(int argc, char* argv[])
   // Create streams
   StreamWrapper stream_wrapper;
   stream_wrapper.initialize_streams(
-    number_of_threads, number_of_events_requested, print_memory_usage, start_event_offset, reserve_mb, constants);
+    number_of_threads, number_of_events_requested, print_memory_usage, start_event_offset, reserve_mb, constants, do_check);
 
   // Notify used memory if requested verbose mode
   if (logger::ll.verbosityLevel >= logger::verbose) {
@@ -259,7 +278,8 @@ int main(int argc, char* argv[])
                                            event_reader->offsets(BankTypes::FT).size(),
                                            muon_hits_events,
                                            number_of_events_requested,
-                                           number_of_repetitions};
+                                           number_of_repetitions,
+                                           do_check};
 
     stream_wrapper.run_stream(i, runtime_options);
   };
@@ -281,7 +301,7 @@ int main(int argc, char* argv[])
 
   // Do optional Monte Carlo truth test on stream 0
   if (do_check) {
-    stream_wrapper.run_monte_carlo_test(0, folder_name_MC, number_of_events_requested);
+    stream_wrapper.run_monte_carlo_test(0, folder_name_MC, number_of_events_requested, forward_tracks);
   }
 
   std::cout << (number_of_events_requested * number_of_threads * number_of_repetitions / t.get()) << " events/s"

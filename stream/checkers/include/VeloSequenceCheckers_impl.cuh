@@ -8,7 +8,7 @@ template<>
 void SequenceVisitor::check<consolidate_velo_tracks_t>(
   const uint& start_event_offset,
   const uint& number_of_events_requested,
-  const HostBuffers& host_buffers,
+  HostBuffers& host_buffers,
   const Constants& constants,
   const CheckerInvoker& checker_invoker) const
 {
@@ -20,5 +20,6 @@ void SequenceVisitor::check<consolidate_velo_tracks_t>(
     host_buffers.host_velo_track_hits,
     host_buffers.host_number_of_selected_events[0]);
 
-  checker_invoker.check<TrackCheckerVelo>(start_event_offset, tracks);
+  std::vector<std::vector<float>> p_events;
+  checker_invoker.check<TrackCheckerVelo>(start_event_offset, tracks, p_events);
 }

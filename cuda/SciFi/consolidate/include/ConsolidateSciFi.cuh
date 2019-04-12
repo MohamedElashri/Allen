@@ -3,7 +3,7 @@
 #include "SciFiEventModel.cuh"
 #include "SciFiConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 #include "Handler.cuh"
 #include "ArgumentsSciFi.cuh"
 

@@ -5,9 +5,6 @@
 #include "UTSequenceCheckers_impl.cuh"
 #include "SciFiSequenceCheckers_impl.cuh"
 #include "PVSequenceCheckers_impl.cuh"
-
-// For checking kalman filter.
-#include "ParKalmanDefinitions.cuh"
 #include "KalmanSequenceCheckers_impl.cuh"
 
 /**
@@ -19,11 +16,12 @@ cudaError_t Stream::initialize(
   const uint param_start_event_offset,
   const size_t reserve_mb,
   const uint param_stream_number,
-  const Constants& param_constants)
+  const Constants& param_constants,
+  const bool do_check)
 {
   // Set stream and events
   cudaCheck(cudaStreamCreate(&cuda_stream));
-  cudaCheck(cudaEventCreate(&cuda_generic_event));
+  cudaCheck(cudaEventCreateWithFlags(&cuda_generic_event, cudaEventBlockingSync));
 
   // Set stream options
   stream_number = param_stream_number;
@@ -32,7 +30,7 @@ cudaError_t Stream::initialize(
   constants = param_constants;
 
   // Reserve host buffers
-  host_buffers.reserve(max_number_of_events);
+  host_buffers.reserve(max_number_of_events, do_check);
 
   // Malloc a configurable reserved memory
   cudaCheck(cudaMalloc((void**) &dev_base_pointer, reserve_mb * 1024 * 1024));
@@ -82,7 +80,7 @@ cudaError_t Stream::run_sequence(const RuntimeOptions& runtime_options)
   return cudaSuccess;
 }
 
-void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint number_of_events_requested)
+void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint number_of_events_requested, const std::vector<Checker::Tracks>& forward_tracks)
 {
 #ifdef WITH_ROOT
   TFile* f = new TFile("../output/PrCheckerPlots.root", "RECREATE");
@@ -100,6 +98,12 @@ void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint numbe
   Sch::RunChecker<
     SequenceVisitor,
     configured_sequence_t,
-    std::tuple<const uint&, const uint&, const HostBuffers&, const Constants&, const CheckerInvoker&>>::
+    std::tuple<const uint&, const uint&, HostBuffers&, const Constants&, const CheckerInvoker&>>::
     check(sequence_visitor, start_event_offset, number_of_events_requested, host_buffers, constants, checker_invoker);
+
+  if ( forward_tracks.size() > 0 ) {
+    info_cout << "Running test on imported tracks" << std::endl;
+    std::vector<std::vector<float>> p_events_scifi;
+    checker_invoker.check<TrackCheckerForward>(start_event_offset, forward_tracks, p_events_scifi); 
+  }
 }

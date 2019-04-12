@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "Tracks.h"
+#include "CheckerTypes.h"
 #include "Logger.h"
 #include "InputTools.h"
 #include "UTDefinitions.cuh"
@@ -25,16 +25,16 @@ float ipChi2Kalman(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& 
 float kalmanDOCAz(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& vertex);
 
 // Velo tracks.
-float ipVelo(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex);
-float ipxVelo(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex);
-float ipyVelo(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex);
+float ipVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex);
+float ipxVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex);
+float ipyVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex);
 float ipChi2Velo(
-  const Velo::Consolidated::States& velo_kalman_states,
+  const Velo::Consolidated::KalmanStates& velo_kalman_states,
   const uint state_index,
   const PV::Vertex& vertex);
-float veloDOCAz(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex);
+float veloDOCAz(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex);
 
-std::vector<trackChecker::Tracks> prepareKalmanTracks(
+std::vector<Checker::Tracks> prepareKalmanTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,

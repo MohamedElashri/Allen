@@ -71,7 +71,7 @@ float kalmanDOCAz(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& v
   return std::abs(ty * dx - tx * dy) / std::sqrt(tx * tx + ty * ty);
 }
 
-float ipVelo(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float ipVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
   float tx = velo_kalman_states.tx[state_index];
@@ -82,7 +82,7 @@ float ipVelo(const Velo::Consolidated::States& velo_kalman_states, const uint st
   return std::sqrt((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
 }
 
-float ipxVelo(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float ipxVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
   float tx = velo_kalman_states.tx[state_index];
@@ -91,7 +91,7 @@ float ipxVelo(const Velo::Consolidated::States& velo_kalman_states, const uint s
   return dx;
 }
 
-float ipyVelo(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float ipyVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
   float ty = velo_kalman_states.ty[state_index];
@@ -100,7 +100,7 @@ float ipyVelo(const Velo::Consolidated::States& velo_kalman_states, const uint s
   return dy;
 }
 
-float ipChi2Velo(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float ipChi2Velo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
   float tx = velo_kalman_states.tx[state_index];
@@ -133,7 +133,7 @@ float ipChi2Velo(const Velo::Consolidated::States& velo_kalman_states, const uin
   return dx * dx * invcov00 + 2 * dx * dy * invcov10 + dy * dy * invcov11;
 }
 
-float veloDOCAz(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float veloDOCAz(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
 {
   float dx = velo_kalman_states.x[state_index] - vertex.position.x;
   float dy = velo_kalman_states.y[state_index] - vertex.position.y;
@@ -143,7 +143,7 @@ float veloDOCAz(const Velo::Consolidated::States& velo_kalman_states, const uint
   return std::abs(ty * dx - tx * dy) / std::sqrt(tx * tx + ty * ty);
 }
 
-std::vector<trackChecker::Tracks> prepareKalmanTracks(
+std::vector<Checker::Tracks> prepareKalmanTracks(
   const uint* velo_track_atomics,
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
@@ -168,11 +168,11 @@ std::vector<trackChecker::Tracks> prepareKalmanTracks(
 {
 
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
-  std::vector<trackChecker::Tracks> checker_tracks;
+  std::vector<Checker::Tracks> checker_tracks;
 
   // Loop over events.
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
-    trackChecker::Tracks tracks; // All tracks from one event.
+    Checker::Tracks tracks; // All tracks from one event.
 
     // Get the vertices.
     std::vector<PV::Vertex*> vecOfVertices;
@@ -200,12 +200,12 @@ std::vector<trackChecker::Tracks> prepareKalmanTracks(
 
     // Make the VELO states.
     const uint event_velo_tracks_offset = velo_tracks.tracks_offset(i_event);
-    const Velo::Consolidated::States velo_states {velo_states_base, velo_tracks.total_number_of_tracks};
+    const Velo::Consolidated::KalmanStates velo_states {velo_states_base, velo_tracks.total_number_of_tracks};
 
     // Loop over tracks.
     const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
-      trackChecker::Track t;
+      Checker::Track t;
 
       // Add SciFi hits.
       const uint scifi_track_number_of_hits = scifi_tracks.number_of_hits(i_track);

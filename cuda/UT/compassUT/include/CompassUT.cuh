@@ -23,6 +23,7 @@ __global__ void compass_ut(
   char* dev_velo_track_hits,
   char* dev_velo_states,
   PrUTMagnetTool* dev_ut_magnet_tool,
+  const float* dev_magnet_polarity,
   const float* dev_ut_dxDy,
   int* dev_active_tracks,
   const uint* dev_unique_x_sector_layer_offsets,
@@ -44,6 +45,7 @@ __device__ void compass_ut_tracking(
   const UT::HitOffsets& ut_hit_offsets,
   const float* bdl_table,
   const float* dev_ut_dxDy,
+  const float magnet_polarity,
   short* win_size_shared,
   int* n_veloUT_tracks_event,
   UT::TrackHits* veloUT_tracks_event,
@@ -71,6 +73,7 @@ __device__ void save_track(
   const int* best_hits,
   const UT::Hits& ut_hits,
   const float* ut_dxDy,
+  const float magSign,
   int* n_veloUT_tracks,
   UT::TrackHits* VeloUT_tracks,
   const int event_hit_offset);

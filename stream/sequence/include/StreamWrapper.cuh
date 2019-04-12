@@ -11,6 +11,7 @@
 #include "Common.h"
 #include "Constants.cuh"
 #include "RuntimeOptions.h"
+#include "CheckerTypes.h"
 
 // Forward definition of Stream, to avoid
 // inability to compile kernel calls (due to <<< >>>
@@ -38,7 +39,8 @@ struct StreamWrapper {
     const bool print_memory_usage,
     const uint start_event_offset,
     const size_t reserve_mb,
-    const Constants& constants);
+    const Constants& constants,
+    const bool do_check);
 
   /**
    * @brief Runs stream.
@@ -48,7 +50,7 @@ struct StreamWrapper {
   /**
    * @brief Runs Monte Carlo test. Stream must be run beforehand.
    */
-  void run_monte_carlo_test(const uint i, const std::string& mc_folder, const uint number_of_events_requested);
+  void run_monte_carlo_test(const uint i, const std::string& mc_folder, const uint number_of_events_requested, const std::vector<Checker::Tracks>& forward_tracks);
 };
 
 /**

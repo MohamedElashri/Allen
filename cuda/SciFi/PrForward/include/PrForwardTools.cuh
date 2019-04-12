@@ -25,7 +25,7 @@
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiEventModel.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 
 __host__ __device__ void find_forward_tracks(
   const SciFi::Hits& scifi_hits,
@@ -37,6 +37,7 @@ __host__ __device__ void find_forward_tracks(
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const MiniState& velo_state);
 
 __host__ __device__ void selectFullCandidates(
@@ -54,6 +55,7 @@ __host__ __device__ void selectFullCandidates(
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const bool secondLoop);
 
 __host__ __device__ SciFi::TrackHits makeTrack(SciFi::Tracking::Track track);

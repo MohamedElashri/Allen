@@ -67,7 +67,8 @@ The newly created `test/CMakeLists.txt` file should reflect the project we are c
 ```cmake=
 file(GLOB test_saxpy "saxpy/src/*cu")
 include_directories(saxpy/include)
-include_directories(${CMAKE_SOURCE_DIR}/stream/handlers/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 
 add_library(Test STATIC
   ${test_saxpy}
