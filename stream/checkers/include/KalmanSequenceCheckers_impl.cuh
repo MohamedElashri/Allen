@@ -1,3 +1,4 @@
+#include "ParKalmanDefinitions.cuh"
 #include "ParKalmanFilter.cuh"
 #include "KalmanChecker.h"
 #include "PrepareKalmanTracks.h"
@@ -6,7 +7,7 @@ template<>
 void SequenceVisitor::check<kalman_filter_t>(
   const uint& start_event_offset,
   const uint& number_of_events_requested,
-  const HostBuffers& host_buffers,
+  HostBuffers& host_buffers,
   const Constants& constants,
   const CheckerInvoker& checker_invoker) const
 {
@@ -32,6 +33,9 @@ void SequenceVisitor::check<kalman_filter_t>(
     constants.host_scifi_geometry,
     constants.host_inv_clus_res,
     host_buffers.host_kf_tracks,
+    host_buffers.host_kalmanvelo_states,
+    host_buffers.host_reconstructed_multi_pvs,
+    host_buffers.host_number_of_multivertex,
     host_buffers.host_number_of_selected_events[0]);
 
   checkKalmanTracks(start_event_offset, tracks, checker_invoker.selected_mc_events);

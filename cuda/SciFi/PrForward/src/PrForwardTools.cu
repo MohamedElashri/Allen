@@ -222,20 +222,25 @@ __host__ __device__ void find_forward_tracks(
     float minQuality = SciFi::Tracking::maxQuality;
     for (int i_track = 0; i_track < n_selected_tracks; ++i_track) {
       SciFi::Tracking::Track& track = selected_tracks[i_track];
+      
+      // TODO: We would have to work out a way for the Prforward to have max 12 hits
+      if (track.hitsNum > 12) {
+        track.hitsNum = 12;
+      }
+
       if (track.quality + SciFi::Tracking::deltaQuality < minQuality)
         minQuality = track.quality + SciFi::Tracking::deltaQuality;
       if (!(track.quality > minQuality)) {
 
         SciFi::TrackHits tr = makeTrack(track);
-        tr.UTTrackIndex = i_veloUT_track;
+        tr.ut_track_index = i_veloUT_track;
 
         // add LHCbIDs from SciFi part of the track
         for (int i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
           // save local hit index within event to be able to use short
           const int local_hit_index = track.hit_indices[i_hit] - event_hit_offset;
-          tr.addHit(local_hit_index);
+          tr.add_hit(local_hit_index);
         }
-        assert(tr.hitsNum < SciFi::Constants::max_track_size);
 
         if (*n_forward_tracks >= SciFi::Constants::max_tracks) printf("n_forward_tracks = %u \n", *n_forward_tracks);
         assert(*n_forward_tracks < SciFi::Constants::max_tracks);
@@ -256,13 +261,14 @@ __host__ __device__ SciFi::TrackHits makeTrack(SciFi::Tracking::Track track)
 {
   SciFi::TrackHits tr;
   tr.qop = track.qop;
-  tr.chi2 = track.chi2;
+  tr.quality = track.quality;
 
   // add state at zEndT
   const float z = SciFi::Constants::ZEndT;
   MiniState state(track.x(z), track.y(z), z, track.xSlope(z), track.ySlope(z));
 
-  tr.state = state;
+  // TODO
+  // tr.state = state;
 
   return tr;
 }

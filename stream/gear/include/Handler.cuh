@@ -7,14 +7,14 @@
 /**
  * @brief      Macro for defining algorithms defined by a function name.
  *             A struct is created with name EXPOSED_TYPE_NAME that encapsulates
- *             a Handler of type FUNCTION_NAME.
+ *             a Handler of type FUNCTION.
  */
-#define ALGORITHM(FUNCTION_NAME, EXPOSED_TYPE_NAME, DEPENDENCIES)                                    \
+#define ALGORITHM(FUNCTION, EXPOSED_TYPE_NAME, DEPENDENCIES)                                    \
   struct EXPOSED_TYPE_NAME {                                                                         \
     constexpr static auto name {#EXPOSED_TYPE_NAME};                                                 \
     using Arguments = DEPENDENCIES;                                                                  \
     using arguments_t = ArgumentRefManager<Arguments>;                                               \
-    decltype(make_handler(FUNCTION_NAME)) handler {FUNCTION_NAME};                                   \
+    decltype(make_handler(FUNCTION)) handler {FUNCTION};                                   \
     void set_opts(                                                                                   \
       const dim3& param_num_blocks,                                                                  \
       const dim3& param_num_threads,                                                                 \

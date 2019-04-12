@@ -1,5 +1,4 @@
 include_directories(gear/include)
-include_directories(handlers/include)
 include_directories(memory_manager/include)
 include_directories(scheduler/include)
 include_directories(sequence/include)
@@ -9,6 +8,7 @@ include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/float_operations/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/sorting/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/binary_search/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/UT/include)
@@ -32,17 +32,39 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/simplified_kalman_filter/inclu
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_first_layer_window/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_second_layer_window/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/form_seeds_from_candidates/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_candidate_extrapolation_window/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/promote_candidates/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_track_extrapolation_window/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/search_initial_windows/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/collect_candidates/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/find_compatible_windows/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/triplet_seeding/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_x/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/composite_algorithms/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_first_layers_x/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_uv/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/quality_filter/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/quality_filter_x/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/search_uv_windows/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/preprocessing/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/IsMuon/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/is_muon/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/classification/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/patPV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/velo/clustering/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/UT/PrVeloUT/include)
-include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/PrForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/LookingForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/MomentumForward/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/pv/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
@@ -51,7 +73,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 
 file(GLOB stream_gear "gear/src/*cu")
-file(GLOB stream_handlers "handlers/src/*cu")
 file(GLOB stream_memory_manager "memory_manager/src/*cu")
 file(GLOB stream_scheduler "scheduler/src/*cu")
 file(GLOB stream_sequence "sequence/src/*cu")
@@ -78,7 +99,6 @@ message(STATUS "Configured sequence: " ${SEQUENCE})
 add_library(Stream STATIC
   "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
   ${stream_gear}
-  ${stream_handlers}
   ${stream_memory_manager}
   ${stream_scheduler}
   ${stream_sequence}
@@ -111,6 +131,8 @@ target_link_libraries(Stream PRIVATE
   Kalman
   SciFi
   x86Forward
+  x86LookingForward
+  x86MomentumForward
   x86VeloUT
   Muon)
 

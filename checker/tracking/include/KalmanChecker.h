@@ -7,7 +7,7 @@
 #include "Logger.h"
 #include "MCAssociator.h"
 #include "MCEvent.h"
-#include "Tracks.h"
+#include "CheckerTypes.h"
 
 #ifdef WITH_ROOT
 #include "TTree.h"
@@ -16,5 +16,5 @@
 
 void checkKalmanTracks(
   const uint start_event_offset,
-  const std::vector<trackChecker::Tracks>& tracks,
+  const std::vector<Checker::Tracks>& tracks,
   const MCEvents selected_mc_events);

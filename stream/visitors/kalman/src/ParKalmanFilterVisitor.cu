@@ -43,13 +43,12 @@ void SequenceVisitor::visit<kalman_filter_t>(
     constants.dev_kalman_params);
   state.invoke();
 
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
-
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_kf_tracks,
-    arguments.offset<dev_kf_tracks>(),
-    arguments.size<dev_kf_tracks>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_kf_tracks,
+      arguments.offset<dev_kf_tracks>(),
+      arguments.size<dev_kf_tracks>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }
