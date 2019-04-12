@@ -847,7 +847,8 @@ float TMVA_quality(
   }
 
   // Calculate q/p
-  const float qOverP = calcqOverP(trackParams[1], constArrays, velo_state);
+  // to do: read magnet polarity from configuration
+  const float qOverP = calcqOverP(trackParams[1], constArrays, velo_state, -1.f);
   const float xAtRef = trackParams[0];
   float dSlope = (velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx - xAtRef) /
                  (SciFi::Tracking::zReference - constArrays->zMagnetParams[0]);

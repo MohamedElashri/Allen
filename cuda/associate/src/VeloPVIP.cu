@@ -8,7 +8,7 @@
 
 namespace Distance {
   __device__ float
-  velo_ip(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+  velo_ip(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
   {
     float tx = velo_kalman_states.tx[state_index];
     float ty = velo_kalman_states.ty[state_index];
@@ -19,7 +19,7 @@ namespace Distance {
   }
 
   __device__ float
-  velo_ip_chi2(const Velo::Consolidated::States& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+  velo_ip_chi2(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
   {
     // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
     float tx = velo_kalman_states.tx[state_index];
@@ -54,12 +54,12 @@ namespace Distance {
 } // namespace Distance
 
 typedef float (*distance_fun)(
-  const Velo::Consolidated::States& velo_kalman_states,
+  const Velo::Consolidated::KalmanStates& velo_kalman_states,
   const uint state_index,
   const PV::Vertex& vertex);
 
 __device__ void associate(
-  Velo::Consolidated::States const& velo_kalman_states,
+  Velo::Consolidated::KalmanStates const& velo_kalman_states,
   gsl::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table,
   distance_fun fun)
@@ -100,7 +100,7 @@ __global__ void velo_pv_ip(
   velo_pv_ip.set_cutoff(Associate::VeloPVIP::baseline);
 
   // Consolidated Velo fitted states for this event
-  Velo::Consolidated::States const velo_kalman_states {dev_kalman_velo_states + sizeof(float) * event_tracks_offset,
+  Velo::Consolidated::KalmanStates const velo_kalman_states {dev_kalman_velo_states + sizeof(float) * event_tracks_offset,
                                                        velo_tracks.total_number_of_tracks};
 
   gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,

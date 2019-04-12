@@ -45,6 +45,7 @@ SEQUENCE_T(
   lf_quality_filter_x_t,
   lf_composite_extend_tracks_uv_t,
   lf_quality_filter_length_t,
+  lf_fit_t,
   lf_quality_filter_t,
   copy_and_prefix_sum_single_block_scifi_t,
   copy_scifi_track_hit_number_t,

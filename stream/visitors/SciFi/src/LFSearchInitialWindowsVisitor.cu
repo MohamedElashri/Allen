@@ -46,6 +46,7 @@ void SequenceVisitor::visit<lf_search_initial_windows_t>(
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
     constants.dev_scifi_constArrays,
+    constants.dev_magnet_polarity,
     constants.dev_looking_forward_constants,
     arguments.offset<dev_scifi_lf_initial_windows>(),
     arguments.offset<dev_ut_states>());

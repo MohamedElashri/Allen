@@ -2,7 +2,7 @@
 
 #include "Argument.cuh"
 #include "SciFiEventModel.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 
 /**
  * @brief Definition of arguments. All arguments should be defined here,
@@ -42,3 +42,4 @@ ARGUMENT(dev_scifi_lf_x_filtered_atomics, int)
 ARGUMENT(dev_scifi_lf_length_filtered_tracks, SciFi::TrackHits)
 ARGUMENT(dev_scifi_lf_length_filtered_atomics, int) 
 ARGUMENT(dev_scifi_lf_uv_windows, short)
+ARGUMENT(dev_scifi_lf_track_params, float)

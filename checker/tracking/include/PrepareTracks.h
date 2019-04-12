@@ -7,7 +7,7 @@
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 #include "UTEventModel.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 
 float eta_from_rho(const float rho);
 

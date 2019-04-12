@@ -10,7 +10,7 @@ void SequenceVisitor::set_arguments_size<velo_kalman_fit_t>(
 {
   // Set arguments size
   arguments.set_size<dev_velo_kalman_beamline_states>(
-    host_buffers.host_number_of_reconstructed_velo_tracks[0] * sizeof(VeloState));
+    host_buffers.host_number_of_reconstructed_velo_tracks[0] * sizeof(KalmanVeloState));
 }
 
 template<>

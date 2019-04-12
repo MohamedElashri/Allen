@@ -28,6 +28,9 @@ namespace SciFi {
     static constexpr uint n_layers = 12;
     static constexpr uint n_mats = 1024;
 
+    // todo: if this is changed with alignment, don't use constant
+    static constexpr float dzdy = 0.003601f; 
+    
     /**
      * The following constants are based on the number of modules per quarter.
      * There are currently 80 raw banks per SciFi station:

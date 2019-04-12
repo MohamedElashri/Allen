@@ -8,7 +8,7 @@
 #include "VeloConsolidated.cuh"
 #include "ArgumentsVelo.cuh"
 
-__device__ float velo_kalman_filter_step(
+__device__ void velo_kalman_filter_step(
   const float z,
   const float zhit,
   const float xhit,
@@ -24,8 +24,8 @@ __device__ float velo_kalman_filter_step(
  *        allowing for some scattering at every hit
  */
 template<bool upstream>
-__device__ VeloState
-simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const VeloState& stateAtBeamLine, const uint nhits)
+__device__ KalmanVeloState
+simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits)
 {
   // backward = state.z > track.hits[0].z;
   const bool backward = stateAtBeamLine.z > consolidated_hits.z[0];
@@ -47,7 +47,7 @@ simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const VeloState
 
   // We filter x and y simultaneously but take them uncorrelated.
   // filter first the first hit.
-  VeloState state;
+  KalmanVeloState state;
   state.x = consolidated_hits.x[firsthit];
   state.y = consolidated_hits.y[firsthit];
   state.z = consolidated_hits.z[firsthit];
@@ -63,7 +63,6 @@ simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const VeloState
   state.c33 = 1.f;
 
   // add remaining hits
-  state.chi2 = 0.0f;
   for (uint i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
     int hitindex = i;
     const auto hit_x = consolidated_hits.x[hitindex];
@@ -75,9 +74,9 @@ simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const VeloState
     state.c33 += noise2PerLayer;
 
     // filter X and filter Y
-    state.chi2 += velo_kalman_filter_step(
+    velo_kalman_filter_step(
       state.z, hit_z, hit_x, Velo::Tracking::param_w, state.x, state.tx, state.c00, state.c20, state.c22);
-    state.chi2 += velo_kalman_filter_step(
+    velo_kalman_filter_step(
       state.z, hit_z, hit_y, Velo::Tracking::param_w, state.y, state.ty, state.c11, state.c31, state.c33);
 
     // update z (note done in the filter, since needed only once)

@@ -31,6 +31,11 @@ namespace LookingForward {
   // constexpr int form_seeds_stop_after_number_of_candidates = 10;
 
   /**
+   * Number of Y threads for fit
+   */
+  constexpr int num_threads_fit = 160; // 80;
+
+  /**
    * Form seeds from candidates
    */
   constexpr int maximum_iteration_l3_window = 4;

@@ -5,6 +5,7 @@ __host__ void collectAllXHits_proto_p(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& scifi_hit_count,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const MiniState& velo_state,
   const MiniState& UT_state,
   const float qOverP,
@@ -34,7 +35,7 @@ __host__ void collectAllXHits_proto_p(
   // const float xTolWS = dx_calc(velo_state, qop_WS, window_params);
 
   //const float q = qOverP > 0.f ? 1.f : -1.f;
-  //const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
+  //const float dir = q * magnet_polarity * (-1.f);
 
   //const bool wSignTreatment = pt > SciFi::Tracking::wrongSignPT;
   float zMag = zMagnet(velo_state, constArrays);
@@ -163,6 +164,7 @@ __host__ void collectAllXHits_proto(
   const float xParams_seed[4],
   const float yParams_seed[4],
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const MiniState& velo_state,
   const float qOverP,
   int side,
@@ -176,7 +178,7 @@ __host__ void collectAllXHits_proto(
   float zMag = zMagnet(velo_state, constArrays);
 
   const float q = qOverP > 0.f ? 1.f : -1.f;
-  const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
+  const float dir = q * magnet_polarity * (-1.f);
 
   float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
   const float pt = std::sqrt(slope2 / (1.f + slope2)) / std::abs(qOverP);
@@ -312,6 +314,7 @@ __host__ __device__ void collectAllXHits(
   const float xParams_seed[4],
   const float yParams_seed[4],
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const MiniState& velo_state,
   const float qOverP,
   int side)
@@ -322,7 +325,7 @@ __host__ __device__ void collectAllXHits(
   float zMag = zMagnet(velo_state, constArrays);
 
   const float q = qOverP > 0.f ? 1.f : -1.f;
-  const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
+  const float dir = q * magnet_polarity * (-1.f);
 
   float slope2 = velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty;
   const float pt = std::sqrt(slope2 / (1.f + slope2)) / std::abs(qOverP);

@@ -1,7 +1,7 @@
 #include "GetSeeds.cuh"
 // simplficiations: no tracks2disable
 
-__device__ float zCloseBeam(VeloState track, const PatPV::XYZPoint& beamspot)
+__device__ float zCloseBeam(KalmanVeloState track, const PatPV::XYZPoint& beamspot)
 {
 
   PatPV::XYZPoint tpoint(track.x, track.y, track.z);
@@ -61,7 +61,7 @@ __global__ void get_seeds(
 
   const Velo::Consolidated::Tracks velo_tracks {
     (uint*) dev_atomics_storage, dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::States velo_states {dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks};
+  const Velo::Consolidated::KalmanStates velo_states {dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
@@ -72,7 +72,7 @@ __global__ void get_seeds(
 
     float sigsq;
     float zclu;
-    VeloState trk = velo_states.get(event_tracks_offset + i);
+    KalmanVeloState trk = velo_states.get(event_tracks_offset + i);
 
     zclu = zCloseBeam(trk, beamspot);
     errorForPVSeedFinding(trk.tx, trk.ty, sigsq);
