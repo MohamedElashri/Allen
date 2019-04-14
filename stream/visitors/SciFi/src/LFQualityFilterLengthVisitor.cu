@@ -39,6 +39,7 @@ void SequenceVisitor::visit<lf_quality_filter_length_t>(
   // // Code for running this algorithm last, in the SciFi sequence
   // state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   // state.set_arguments(
+  //   arguments.offset<dev_atomics_ut>(),
   //   arguments.offset<dev_scifi_lf_x_filtered_tracks>(),
   //   arguments.offset<dev_scifi_lf_x_filtered_atomics>(),
   //   arguments.offset<dev_scifi_tracks>(),
