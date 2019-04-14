@@ -14,7 +14,7 @@
 #include "VeloConsolidated.cuh"
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 
 /** PrVeloUT
  *

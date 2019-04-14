@@ -13,7 +13,7 @@
 #include "VeloEventModel.cuh"
 #include "CpuHandler.cuh"
 #include "SciFiEventModel.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 #include "VeloEventModel.cuh"
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"

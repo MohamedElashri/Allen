@@ -53,6 +53,7 @@ means_square_fit_chi2(const float* hit_Xs, const float* hit_Ys, const float* hit
     state.y = (uy * uz2 - uyz * uz) * denu;
   }
 
+  float chi2;
   {
     //=========================================================================
     // Chi2 / degrees-of-freedom of straight-line fit
@@ -79,10 +80,10 @@ means_square_fit_chi2(const float* hit_Xs, const float* hit_Ys, const float* hit
 
       nDoF += 2;
     }
-    state.chi2 = ch / nDoF;
+    chi2 = ch / nDoF;
   }
 
-  return state.chi2;
+  return chi2;
 }
 
 __device__ void weak_tracks_adder_impl(

@@ -21,7 +21,7 @@ __global__ void fit_seeds(
 
 __device__ bool fit_vertex(
   PatPV::XYZPoint& seedPoint,
-  Velo::Consolidated::States velo_states,
+  Velo::Consolidated::KalmanStates velo_states,
   PV::Vertex& vtx,
   int number_of_tracks,
   uint tracks_offset);

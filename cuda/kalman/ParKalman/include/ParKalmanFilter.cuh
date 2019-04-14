@@ -9,7 +9,7 @@
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 
-#include "MiniState.cuh"
+#include "States.cuh"
 #include "SciFiDefinitions.cuh"
 
 #include "Handler.cuh"

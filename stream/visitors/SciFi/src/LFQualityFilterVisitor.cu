@@ -1,7 +1,18 @@
 #include "LFQualityFilter.cuh"
 #include "SequenceVisitor.cuh"
 
+// Caution: when running fit_t separately, define track_params size there
 DEFINE_EMPTY_SET_ARGUMENTS_SIZE(lf_quality_filter_t)
+
+// template<>
+// void SequenceVisitor::set_arguments_size<lf_quality_filter_t>(
+//   lf_quality_filter_t::arguments_t arguments,
+//   const RuntimeOptions& runtime_options,
+//   const Constants& constants,
+//   const HostBuffers& host_buffers)
+// {
+//   arguments.set_size<dev_scifi_lf_track_params>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams);
+// }
 
 template<>
 void SequenceVisitor::visit<lf_quality_filter_t>(
@@ -18,7 +29,7 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
   // 256 - 17.80%
   // 1024 -
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(512), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
       arguments.offset<dev_scifi_hits>(),
       arguments.offset<dev_scifi_hit_count>(),
@@ -32,12 +43,14 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
       arguments.offset<dev_ut_track_velo_indices>(),
       arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
       arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
+      arguments.offset<dev_scifi_lf_track_params>(),
       constants.dev_scifi_geometry,
       constants.dev_inv_clus_res,
-      arguments.offset<dev_ut_states>(),
       constants.dev_scifi_tmva1,
       constants.dev_scifi_tmva2,
       constants.dev_scifi_constArrays,
+      constants.dev_looking_forward_constants,
+      constants.dev_magnet_polarity,
       arguments.offset<dev_atomics_scifi>(),
       arguments.offset<dev_scifi_tracks>());
 
