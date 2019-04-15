@@ -15,6 +15,7 @@ __device__ void lf_search_initial_windows_p_impl(
   const MiniState& velo_state,
   const MiniState& UT_state,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const LookingForward::Constants* looking_forward_constants,
   const float qop,
   const int side,
@@ -174,6 +175,7 @@ __device__ void lf_search_initial_windows_impl(
   const float yAtRef,
   const MiniState& UT_state,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const float qop,
   const int side,
   int* initial_windows,
@@ -191,7 +193,7 @@ __device__ void lf_search_initial_windows_impl(
   float zMag = zMagnet(UT_state, constArrays);
 
   const float q = qop > 0.f ? 1.f : -1.f;
-  const float dir = q * SciFi::Tracking::magscalefactor * (-1.f);
+  const float dir = q * magnet_polarity * (-1.f);
 
   const float pt = std::sqrt(slope2 / (1.f + slope2)) / std::abs(qop);
   const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;

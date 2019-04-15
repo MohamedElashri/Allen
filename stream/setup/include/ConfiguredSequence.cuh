@@ -37,6 +37,7 @@
 #include "pv_beamline_histo.cuh"
 #include "pv_beamline_peak.cuh"
 #include "pv_beamline_multi_fitter.cuh"
+#include "pv_beamline_cleanup.cuh"
 #include "RunForwardCPU.h"
 #include "IPCut.cuh"
 #include "VeloPVIP.cuh"
@@ -65,6 +66,7 @@
 #include "LFQualityFilterX.cuh"
 #include "LFQualityFilterLength.cuh"
 #include "LFSearchUVWindows.cuh"
+#include "LFFit.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

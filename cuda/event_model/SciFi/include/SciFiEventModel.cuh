@@ -3,7 +3,7 @@
 #include <ostream>
 #include <stdint.h>
 
-#include "MiniState.cuh"
+#include "States.cuh"
 #include "SciFiDefinitions.cuh"
 
 namespace SciFi {

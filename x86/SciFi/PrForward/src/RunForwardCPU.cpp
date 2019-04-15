@@ -52,6 +52,9 @@ int run_forward_on_CPU(
   //   t_scifi_hits->Branch("yMax", &yMax);
   // #endif
 
+  // // to do: set from configuration
+  // const float magnet_polarity = -1.f;
+
   //   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
 
   //     // Velo consolidated types
@@ -125,6 +128,7 @@ int run_forward_on_CPU(
   //       &tmva1,
   //       &tmva2,
   //       &constArrays,
+  //       magnet_polarity,
   //       scifi_tracks_event,
   //       (uint*) n_forward_tracks);
 

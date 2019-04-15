@@ -30,6 +30,9 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   const bool run_algorithm = false;
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
+  // to do: read this from configuration
+  const float magnet_polarity = -1.f; 
+
   const auto print_track = [](const SciFi::TrackHits& track) {
     info_cout << "{ut track " << track.ut_track_index << ", " << ((int) track.hitsNum) << " hits: ";
 
@@ -132,7 +135,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         event_qop.push_back(qop);
 
         const int i_velo_track = ut_tracks.velo_track[i_veloUT_track];
-        const MiniState velo_state {velo_states, velo_event_tracks_offset + i_velo_track};
+        const MiniState velo_state = velo_states.get(velo_event_tracks_offset + i_velo_track);
         event_velo_state.push_back(velo_state);
 
         const int ut_track_index = ut_event_tracks_offset + i_veloUT_track;
@@ -231,6 +234,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         //   bs_x,
         //   bs_y,
         //   &constArrays,
+        //   magnet_polarity,
         //   UT_state,
         //   qop,
         //   (y_projection < 0 ? -1 : 1),
@@ -242,6 +246,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
           scifi_hits,
           scifi_hit_count,
           &constArrays,
+          magnet_polarity,
           velo_state,
           UT_state,
           qop,

@@ -15,7 +15,7 @@ __global__ void fit_seeds(
 
   const Velo::Consolidated::Tracks velo_tracks {
     (uint*) dev_atomics_storage, dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::States velo_states {dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks};
+  const Velo::Consolidated::KalmanStates velo_states {dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
@@ -41,7 +41,7 @@ __global__ void fit_seeds(
 
 __device__ bool fit_vertex(
   PatPV::XYZPoint& seedPoint,
-  Velo::Consolidated::States velo_states,
+  Velo::Consolidated::KalmanStates velo_states,
   PV::Vertex& vtx,
   int number_of_tracks,
   uint tracks_offset)
@@ -72,7 +72,7 @@ __device__ bool fit_vertex(
   for (int i = 0; i < number_of_tracks; i++) {
     int index = i + tracks_offset;
 
-    VeloState trk = velo_states.get(index);
+    KalmanVeloState trk = velo_states.get(index);
     float new_z = vtxpos.z;
 
     float m_state_x = trk.x;

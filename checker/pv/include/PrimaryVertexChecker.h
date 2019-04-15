@@ -44,8 +44,7 @@ typedef struct {
   double distToClosestMCPV; // distance to closest reconstructible MCPV
   int decayCharm;           // type of mother particle
   int decayBeauty;
-  // std::vector<LHCb::MCParticle*> m_mcPartInMCPV;
-  // std::vector<LHCb::Track*> m_recTracksInMCPV;
+  int number_rec_vtx = 0; // number of associated rec vertices
 } MCPVInfo;
 
 typedef struct {
@@ -79,7 +78,6 @@ void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::ve
   int indexmc = -1;
 
   for (int imc = 0; imc < (int) mcpvvec.size(); imc++) {
-    if (mcpvvec[imc].indexRecPVInfo > -1) continue;
     double dist = fabs(mcpvvec[imc].pMCPV->z - rinfo[ipv].z);
     if (dist < mindist) {
       mindist = dist;
@@ -90,6 +88,7 @@ void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::ve
     if (mindist < 5.0 * rinfo[ipv].positionSigma.z) {
       rinfo[ipv].indexMCPVInfo = indexmc;
       mcpvvec[indexmc].indexRecPVInfo = ipv;
+      mcpvvec[indexmc].number_rec_vtx++;
     }
   }
 }
