@@ -1,4 +1,4 @@
-#include "GlobalEventCut.cuh"
+#include "CpuGlobalEventCut.cuh"
 
 void cpu_global_event_cut(
   char* ut_raw_input,

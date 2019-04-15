@@ -2,7 +2,6 @@
 
 #include "ArgumentManager.cuh"
 #include "PrefixSum.cuh"
-#include "CpuPrefixSum.cuh"
 
 // TODO: Allow to configure the size of the Prefix Sum sweep at compile time
 

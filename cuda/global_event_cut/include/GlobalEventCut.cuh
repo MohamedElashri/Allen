@@ -5,7 +5,6 @@
 #include "SciFiRaw.cuh"
 #include "UTRaw.cuh"
 #include "ArgumentsCommon.cuh"
-#include "CpuGlobalEventCut.cuh"
 #include "GlobalEventCutConfiguration.cuh"
 
 __global__ void global_event_cut(

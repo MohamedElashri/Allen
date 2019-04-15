@@ -1,5 +1,6 @@
 #include "SequenceVisitor.cuh"
 #include "PrefixSumHandler.cuh"
+#include "CpuPrefixSum.cuh"
 
 template<>
 void SequenceVisitor::set_arguments_size<prefix_sum_ut_hits_t>(

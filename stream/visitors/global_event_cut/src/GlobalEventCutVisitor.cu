@@ -1,5 +1,6 @@
 #include "SequenceVisitor.cuh"
 #include "GlobalEventCut.cuh"
+#include "CpuGlobalEventCut.cuh"
 
 DEFINE_EMPTY_SET_ARGUMENTS_SIZE(global_event_cut_t)
 

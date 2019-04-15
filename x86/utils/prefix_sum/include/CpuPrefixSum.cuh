@@ -12,3 +12,11 @@ void cpu_prefix_sum(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event,
   uint* host_total_sum_holder = nullptr);
+
+/**
+ * @brief Implementation of prefix sum without memcpys.
+ */
+void cpu_prefix_sum_impl(
+  uint* host_prefix_sum_buffer,
+  const size_t dev_prefix_sum_size,
+  uint* host_total_sum_holder = nullptr);
