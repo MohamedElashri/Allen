@@ -14,6 +14,7 @@ __host__ __device__ void find_forward_tracks(
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const MiniState& velo_state)
 {
 
@@ -53,6 +54,7 @@ __host__ __device__ void find_forward_tracks(
       xParams_seed,
       yParams_seed,
       constArrays,
+      magnet_polarity,
       velo_state,
       qop_ut,
       1);
@@ -66,6 +68,7 @@ __host__ __device__ void find_forward_tracks(
       xParams_seed,
       yParams_seed,
       constArrays,
+      magnet_polarity,
       velo_state,
       qop_ut,
       -1);
@@ -129,6 +132,7 @@ __host__ __device__ void find_forward_tracks(
     tmva1,
     tmva2,
     constArrays,
+    magnet_polarity,
     false);
 
   bool ok = false;
@@ -196,6 +200,7 @@ __host__ __device__ void find_forward_tracks(
       tmva1,
       tmva2,
       constArrays,
+      magnet_polarity,
       true);
 
     for (int i_track = 0; i_track < n_selected_tracks2; ++i_track) {
@@ -294,6 +299,7 @@ __host__ __device__ void selectFullCandidates(
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   const bool secondLoop)
 {
 
@@ -334,7 +340,7 @@ __host__ __device__ void selectFullCandidates(
     // track has enough hits, calcualte quality and save if good enough
     if (planeCounter.nbDifferent >= SciFi::Tracking::minTotalHits) {
 
-      const float qOverP = calcqOverP(cand->trackParams[1], constArrays, velo_state);
+      const float qOverP = calcqOverP(cand->trackParams[1], constArrays, velo_state, magnet_polarity);
       // orig params before fitting , TODO faster if only calc once?? mem usage?
       const float xAtRef = cand->trackParams[0];
       float dSlope = (velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx - xAtRef) /

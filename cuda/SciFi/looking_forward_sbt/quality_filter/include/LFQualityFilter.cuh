@@ -13,6 +13,7 @@
 #include "TMVA_Forward_2.cuh"
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
+#include "LFFit.cuh"
 
 __global__ void lf_quality_filter(
   const uint32_t* dev_scifi_hits,
@@ -27,12 +28,14 @@ __global__ void lf_quality_filter(
   const uint* dev_ut_track_velo_indices,
   SciFi::TrackHits* dev_scifi_lf_tracks,
   const int* dev_scifi_lf_atomics,
+  float* dev_scifi_lf_track_params,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
-  const MiniState* dev_ut_states,
   const SciFi::Tracking::TMVA* dev_tmva1,
   const SciFi::Tracking::TMVA* dev_tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* dev_magnet_polarity,
   int* dev_atomics_scifi,
   SciFi::TrackHits* dev_scifi_tracks);
 
@@ -52,8 +55,7 @@ ALGORITHM(
     dev_ut_track_velo_indices,
     dev_scifi_tracks,
     dev_atomics_scifi,
-    dev_scifi_lf_number_of_candidates,
-    dev_scifi_lf_candidates,
     dev_ut_states,
-    dev_scifi_lf_atomics,
-    dev_scifi_lf_tracks))
+    dev_scifi_lf_track_params,
+    dev_scifi_lf_length_filtered_atomics,
+    dev_scifi_lf_length_filtered_tracks))

@@ -7,7 +7,7 @@
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 #include "UTEventModel.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 
 float eta_from_rho(const float rho);
 
@@ -65,20 +65,6 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
   const uint* velo_track_hit_number,
   const char* velo_track_hits,
   const char* kalman_velo_states,
-  const int* ut_track_atomics,
-  const uint* ut_track_hit_number,
-  const char* ut_track_hits,
-  const uint* ut_track_velo_indices,
-  const float* ut_qop,
-  const std::vector<std::vector<SciFi::TrackHits>>& scifi_tracks,
-  const SciFi::Hits& scifi_hits,
-  const uint* host_scifi_hit_count,
-  const uint number_of_events);
-
-std::vector<Checker::Tracks> prepareSciFiTracks(
-  const uint* velo_track_atomics,
-  const uint* velo_track_hit_number,
-  const char* velo_track_hits,
   const int* ut_track_atomics,
   const uint* ut_track_hit_number,
   const char* ut_track_hits,

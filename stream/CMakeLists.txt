@@ -51,6 +51,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tr
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/quality_filter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/quality_filter_x/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/search_uv_windows/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/fit/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)

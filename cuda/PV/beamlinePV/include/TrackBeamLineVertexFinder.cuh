@@ -9,7 +9,7 @@
 // structure with minimal track info needed for PV search
 struct PVTrack {
   __host__ __device__ PVTrack() {}
-  __host__ __device__ PVTrack(const VeloState& state, float dz) :
+  __host__ __device__ PVTrack(const KalmanVeloState& state, float dz) :
     z {float(state.z + dz)}, x {float(state.x + dz * state.tx), float(state.y + dz * state.ty)}, tx {float(state.tx),
                                                                                                      float(state.ty)}
   {

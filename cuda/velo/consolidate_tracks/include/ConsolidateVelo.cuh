@@ -2,6 +2,7 @@
 
 #include "VeloEventModel.cuh"
 #include "VeloConsolidated.cuh"
+#include "States.cuh"
 #include "Common.h"
 #include "Handler.cuh"
 #include "ArgumentsCommon.cuh"

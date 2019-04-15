@@ -11,5 +11,5 @@ __host__ __device__ bool binary_search_match_stereo_hit(
   const int index = binary_search_leftmost(array, uv_zone_size, xMinUV);
   const auto value = array[index];
 
-  return (value > xMinUV) && (value < xMaxUV);
+  return (index != uv_zone_size) && (value > xMinUV) && (value < xMaxUV);
 }

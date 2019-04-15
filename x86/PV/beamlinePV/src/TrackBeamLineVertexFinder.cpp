@@ -242,7 +242,6 @@ void findPVs(
 #ifdef WITH_ROOT
   // Histograms only for checking and debugging
   TFile* f = new TFile("../output/PVs.root", "RECREATE");
-  // TTree *t_velo_states = new TTree("velo_states", "velo_states");
   TTree* t_velo_states = new TTree("velo_states", "velo_states");
   double cov_x, cov_y, cov_z;
   float tx, ty, x, y, z;
@@ -279,8 +278,8 @@ void findPVs(
     // get consolidated states
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) velo_atomics, velo_track_hit_number, event_number, number_of_events};
-    const Velo::Consolidated::States velo_states =
-      Velo::Consolidated::States(kalmanvelo_states, velo_tracks.total_number_of_tracks);
+    const Velo::Consolidated::KalmanStates velo_states =
+      Velo::Consolidated::KalmanStates(kalmanvelo_states, velo_tracks.total_number_of_tracks);
     const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
     const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
@@ -291,12 +290,13 @@ void findPVs(
     const auto Ntrk = number_of_tracks_event; // tracks.size() ;
     debug_cout << "# of input velo states: " << Ntrk << std::endl;
     PVTrack pvtracks[Ntrk];
+
     // only use tracks within a certain z-range
 
     {
 
       for (short unsigned int index = 0; index < Ntrk; ++index) {
-        VeloState s = velo_states.get(event_tracks_offset + index);
+        KalmanVeloState s = velo_states.get(event_tracks_offset + index);
 
         const auto tx = s.tx;
         const auto ty = s.ty;
@@ -622,15 +622,15 @@ void pv_beamline_extrapolate(
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) dev_atomics_storage, dev_velo_track_hit_number, event_number, number_of_events};
-    const Velo::Consolidated::States velo_states =
-      Velo::Consolidated::States(dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks);
+    const Velo::Consolidated::KalmanStates velo_states =
+      Velo::Consolidated::KalmanStates(dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks);
     const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
     const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
     for (int i = 0; i < number_of_tracks_event / number_threads + 1; i++) {
       int index = number_threads * i + threadIdx;
       if (index < number_of_tracks_event) {
-        VeloState s = velo_states.get(event_tracks_offset + index);
+        KalmanVeloState s = velo_states.get(event_tracks_offset + index);
         const auto tx = s.tx;
         const auto ty = s.ty;
         const float dz = (tx * (beamline.x - s.x) + ty * (beamline.y - s.y)) / (tx * tx + ty * ty);

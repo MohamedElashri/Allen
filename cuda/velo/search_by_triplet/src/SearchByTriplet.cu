@@ -3,6 +3,31 @@
 
 /**
  * @brief Track forwarding algorithm based on triplet finding
+ * @detail For details, check out paper
+ *         "A fast local algorithm for track reconstruction on parallel architectures"
+ * 
+ *         Note: All hit arrays are contained in the dev_velo_cluster_container.
+ *               By having a single array and offsetting it every time, less registers are
+ *               required.
+ *               
+ *               Hereby all the pointers and how to access them:
+ *               
+ *         const float* hit_Xs = (float*) (dev_velo_cluster_container + 5 * number_of_hits + hit_offset);
+ *         const float* hit_Ys = (float*) (dev_velo_cluster_container + hit_offset);
+ *         const float* hit_Zs = (float*) (dev_velo_cluster_container + number_of_hits + hit_offset);
+ *         const float* hit_Phis = (float*) (dev_velo_cluster_container + 4 * number_of_hits + hit_offset);
+ *
+ *         Note: Atomics is another case where we need several variables from an array.
+ *               We just keep dev_atomics_velo, and access the required ones upon request.
+ *               
+ *               Below are all atomics used by this algorithm:
+ *               
+ *         const int ip_shift = gridDim.x + blockIdx.x * (Velo::num_atomics - 1);
+ *         uint* tracks_insert_pointer = (uint*) dev_atomics_velo + event_number;
+ *         uint* weaktracks_insert_pointer = (uint*) dev_atomics_velo + ip_shift;
+ *         uint* tracklets_insert_pointer = (uint*) dev_atomics_velo + ip_shift + 1;
+ *         uint* ttf_insert_pointer = (uint*) dev_atomics_velo + ip_shift + 2;
+ *         uint* local_number_of_hits = (uint*) dev_atomics_velo + ip_shift + 3;
  */
 __global__ void search_by_triplet(
   uint32_t* dev_velo_cluster_container,
@@ -32,16 +57,8 @@ __global__ void search_by_triplet(
   const uint hit_offset = module_hitStarts[0];
   assert((module_hitStarts[52] - module_hitStarts[0]) < Velo::Constants::max_number_of_hits_per_event);
 
-  // Order has changed since SortByPhi
-  const float* hit_Ys = (float*) (dev_velo_cluster_container + hit_offset);
-  const float* hit_Zs = (float*) (dev_velo_cluster_container + number_of_hits + hit_offset);
-  const float* hit_Phis = (float*) (dev_velo_cluster_container + 4 * number_of_hits + hit_offset);
-  const float* hit_Xs = (float*) (dev_velo_cluster_container + 5 * number_of_hits + hit_offset);
-  // const float* hit_IDs = (float*) (dev_velo_cluster_container + 2 * number_of_hits + hit_offset);
-
   // Per event datatypes
   Velo::TrackHits* tracks = dev_tracks + tracks_offset;
-  uint* tracks_insert_pointer = (uint*) dev_atomics_velo + event_number;
 
   // Per side datatypes
   bool* hit_used = dev_hit_used + hit_offset;
@@ -53,59 +70,26 @@ __global__ void search_by_triplet(
   Velo::TrackletHits* tracklets = dev_tracklets + event_number * Velo::Tracking::ttf_modulo;
   unsigned short* h1_rel_indices = dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
 
-  // Initialize variables according to event number and module side
-  // Insert pointers (atomics)
-  const int ip_shift = number_of_events + event_number * (Velo::num_atomics - 1);
-  uint* weaktracks_insert_pointer = (uint*) dev_atomics_velo + ip_shift;
-  uint* tracklets_insert_pointer = (uint*) dev_atomics_velo + ip_shift + 1;
-  uint* ttf_insert_pointer = (uint*) dev_atomics_velo + ip_shift + 2;
-  uint* local_number_of_hits = (uint*) dev_atomics_velo + ip_shift + 3;
-
-  // Shared memory
+  // Shared memory size is defined externally
   extern __shared__ float shared_best_fits[];
   __shared__ int module_data[18];
 
-  // Initialize hit_used
-  const auto current_event_number_of_hits = module_hitStarts[Velo::Constants::n_modules] - hit_offset;
-  for (int i = 0; i < (current_event_number_of_hits + blockDim.x - 1) / blockDim.x; ++i) {
-    const auto index = i * blockDim.x + threadIdx.x;
-    if (index < current_event_number_of_hits) {
-      hit_used[index] = false;
-    }
-  }
-  // Initialize atomics
-  tracks_insert_pointer[0] = 0;
-  if (threadIdx.x < (Velo::num_atomics - 1)) {
-    dev_atomics_velo[ip_shift + threadIdx.x] = 0;
-  }
-
-  // Process modules
   process_modules(
     (Velo::Module*) &module_data[0],
     (float*) &shared_best_fits[0],
-    VP::NModules - 1,
-    2,
     hit_used,
     h0_candidates,
     h2_candidates,
-    VP::NModules,
     module_hitStarts,
     module_hitNums,
-    hit_Xs,
-    hit_Ys,
-    hit_Zs,
-    hit_Phis,
-    weaktracks_insert_pointer,
-    tracklets_insert_pointer,
-    ttf_insert_pointer,
-    tracks_insert_pointer,
+    (float*) dev_velo_cluster_container + hit_offset,
     tracks_to_follow,
     weak_tracks,
     tracklets,
     tracks,
     number_of_hits,
     h1_rel_indices,
-    local_number_of_hits,
     hit_offset,
-    dev_velo_module_zs);
+    dev_velo_module_zs,
+    dev_atomics_velo);
 }

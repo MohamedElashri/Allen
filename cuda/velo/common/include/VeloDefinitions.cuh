@@ -33,6 +33,8 @@ namespace Velo {
     // How many concurrent h1s to process max
     // It should be a divisor of NUMTHREADS_X
     static constexpr uint max_concurrent_h1 = 16;
+    static constexpr int max_concurrent_h1_mask = 0xF;
+    static constexpr int max_concurrent_h1_shift = 4;
 
     // Number of concurrent h1s in the first iteration
     // The first iteration has no flagged hits and more triplets per hit
@@ -65,7 +67,8 @@ namespace Velo {
     static constexpr uint max_skipped_modules = 1;
 
     // Maximum number of tracks to follow at a time
-    static constexpr uint ttf_modulo = 2000;
+    static constexpr uint ttf_modulo = 2048;
+    static constexpr int ttf_modulo_mask = 0x7FF;
     static constexpr uint max_weak_tracks = 500;
 
     // Constants for filters

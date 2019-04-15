@@ -39,6 +39,7 @@ void SequenceVisitor::visit<scifi_pr_forward_t>(
     constants.dev_scifi_tmva1,
     constants.dev_scifi_tmva2,
     constants.dev_scifi_constArrays,
+    constants.dev_magnet_polarity,
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res);
 
