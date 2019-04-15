@@ -95,5 +95,4 @@ __global__ void lf_quality_filter(
       dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + insert_index] = track;
     }
   }
-
 }

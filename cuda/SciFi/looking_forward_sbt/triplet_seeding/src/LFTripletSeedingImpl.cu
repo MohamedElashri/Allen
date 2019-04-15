@@ -41,45 +41,47 @@ __device__ void lf_triplet_seeding_impl(
   const half big_max_chi2 = 1000.f * max_chi2;
 
   // Tensor core magic
-  __shared__ half shared_wmma_a[tile_size * tile_size];
-  __shared__ half shared_wmma_b[tile_size * tile_size];
+  half* shared_wmma_a = (half*) shared_partial_chi2;
+  half* shared_wmma_b = (half*) (shared_partial_chi2 + ((tile_size * tile_size) >> 1));
+
+  // __shared__ half shared_wmma_a[tile_size * tile_size];
+  // __shared__ half shared_wmma_b[tile_size * tile_size];
   nvcuda::wmma::fragment<nvcuda::wmma::matrix_a, tile_size, tile_size, tile_size, half, nvcuda::wmma::col_major> a_frag;
   nvcuda::wmma::fragment<nvcuda::wmma::matrix_b, tile_size, tile_size, tile_size, half, nvcuda::wmma::row_major> b_frag;
   nvcuda::wmma::fragment<nvcuda::wmma::accumulator, tile_size, tile_size, tile_size, float> c_frag;
   nvcuda::wmma::fragment<nvcuda::wmma::accumulator, tile_size, tile_size, tile_size, float> d_frag;
-  // Initialize wmma shared memory arrays
-  for (int16_t k = threadIdx.x; k < tile_size * tile_size; k += blockDim.x) {
-    shared_wmma_a[k] = 0;
-    shared_wmma_b[k] = 0;
-  }
-  for (int16_t k = threadIdx.x; k < tile_size; k += blockDim.x) {
-    shared_wmma_a[k] = 1;
-    shared_wmma_b[tile_size + k] = 1;
-    shared_wmma_b[2 * tile_size + k] = zdiff_half;
-  }
   nvcuda::wmma::fill_fragment(c_frag, -extrap2);
-
+  
   // Search best triplet
   // Tiled processing of h0 and h2
   for (int8_t i = 0; i < (h0_candidate_size + tile_size - 1) >> tile_size_shift_div; ++i) {
-    // Note: Part of wmma can be allocated here
-    for (int16_t k = threadIdx.x; k < tile_size; k += blockDim.x) {
-      const int8_t h0_rel = i * tile_size + k;
-      if (h0_rel < h0_candidate_size) {
-        const half x0 = scifi_hits_x0[scifi_lf_candidates[relative_l0 * LookingForward::maximum_number_of_candidates + h0_rel]];
-        shared_wmma_a[tile_size + k] = -x0;
-        shared_wmma_a[2 * tile_size + k] = x0;
-      } else {
-        shared_wmma_a[tile_size + k] = big_max_chi2;
-        shared_wmma_a[2 * tile_size + k] = big_max_chi2;
-      }
-    }
-    // TODO: Needed?
-    __syncthreads();
-    nvcuda::wmma::load_matrix_sync(a_frag, shared_wmma_a, tile_size);
-
     for (int8_t j = 0; j < (h2_candidate_size + tile_size - 1) >> tile_size_shift_div; ++j) {
-      // Note: The other part of wmma can be allocated here
+      // Initialize wmma shared memory arrays
+      for (int16_t k = threadIdx.x; k < tile_size * tile_size; k += blockDim.x) {
+        shared_wmma_a[k] = 0;
+        shared_wmma_b[k] = 0;
+      }
+      for (int16_t k = threadIdx.x; k < tile_size; k += blockDim.x) {
+        shared_wmma_a[k] = 1;
+        shared_wmma_b[tile_size + k] = 1;
+        shared_wmma_b[2 * tile_size + k] = zdiff_half;
+      }
+
+      for (int16_t k = threadIdx.x; k < tile_size; k += blockDim.x) {
+        const int8_t h0_rel = i * tile_size + k;
+        if (h0_rel < h0_candidate_size) {
+          const half x0 = scifi_hits_x0[scifi_lf_candidates[relative_l0 * LookingForward::maximum_number_of_candidates + h0_rel]];
+          shared_wmma_a[tile_size + k] = -x0;
+          shared_wmma_a[2 * tile_size + k] = x0;
+        } else {
+          shared_wmma_a[tile_size + k] = big_max_chi2;
+          shared_wmma_a[2 * tile_size + k] = big_max_chi2;
+        }
+      }
+      // TODO: Needed?
+      __syncthreads();
+      nvcuda::wmma::load_matrix_sync(a_frag, shared_wmma_a, tile_size);
+
       for (int16_t k = threadIdx.x; k < tile_size; k += blockDim.x) {
         const int8_t h2_rel = j * tile_size + k;
         if (h2_rel < h2_candidate_size) {
