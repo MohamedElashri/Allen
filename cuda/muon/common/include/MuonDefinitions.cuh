@@ -53,7 +53,7 @@ namespace Muon {
     unsigned int time[Constants::max_numhits_per_event] = {0};
     int delta_time[Constants::max_numhits_per_event] = {0};
     int cluster_size[Constants::max_numhits_per_event] = {0};
-    int region_id[Constants::max_numhits_per_event] = {0};
+    int region[Constants::max_numhits_per_event] = {0};
 
     void addAtIndex(size_t index, int tile, float x, float dx, float y, float dy, float z, float dz,
          int uncrossed, unsigned int time, int delta_time, int cluster_size, int region) {
@@ -68,7 +68,7 @@ namespace Muon {
       this -> time[index] = time;
       this -> delta_time[index] = delta_time;
       this -> cluster_size[index] = cluster_size;
-      this -> region_id[index] = region;
+      this -> region[index] = region;
     }
   };
 } // namespace Muon
