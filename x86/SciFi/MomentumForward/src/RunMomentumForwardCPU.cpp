@@ -293,4 +293,6 @@ int run_momentum_forward_CPU(
   f->Write();
   f->Close();
 #endif
+
+  return 0;
 }
