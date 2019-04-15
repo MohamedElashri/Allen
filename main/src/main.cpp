@@ -47,7 +47,9 @@ void printUsage(char* argv[])
             << " -m {reserve Megabytes}=1024" << std::endl
             << " -v {verbosity}=3 (info)" << std::endl
             << " -p {print memory usage}=0" << std::endl
-            << " -i {Import forward tracks dumped from Brunel}" << std::endl;
+            << " -a {run only data preparation algorithms: decoding, clustering, sorting}=0" << std::endl
+            << " -i {import forward tracks dumped from Brunel}" << std::endl
+            << " --cpu-offload {offload part of the computation to CPU}=0" << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -71,9 +73,11 @@ int main(int argc, char* argv[])
 
   int use_mdf = 0;
   int cuda_device = 0;
+  int cpu_offload = 1;
   struct option long_options[] = {/* These options set a flag. */
                                   {"mdf", no_argument, &use_mdf, 1},
                                   {"device", required_argument, &cuda_device, 0},
+                                  {"cpu-offload", required_argument, &cpu_offload, 1},
                                   /* These options don’t set a flag.
                                      We distinguish them by their indices. */
                                   {0, 0, 0, 0}};
@@ -87,6 +91,9 @@ int main(int argc, char* argv[])
       if (long_options[option_index].flag != 0) {
         if (strncmp(long_options[option_index].name, "device", 6) == 0 && optarg) {
           cuda_device = atoi(optarg);
+        }
+        else if (strncmp(long_options[option_index].name, "cpu-offload", 11) == 0 && optarg) {
+          cpu_offload = atoi(optarg);
         }
         break;
       }
@@ -260,7 +267,8 @@ int main(int argc, char* argv[])
                                            muon_hits_events,
                                            number_of_events_requested,
                                            number_of_repetitions,
-                                           do_check};
+                                           do_check,
+                                           cpu_offload};
 
     stream_wrapper.run_stream(i, runtime_options);
   };
