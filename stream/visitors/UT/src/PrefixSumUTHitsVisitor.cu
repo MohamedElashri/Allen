@@ -26,6 +26,7 @@ void SequenceVisitor::visit<prefix_sum_ut_hits_t>(
   if (runtime_options.cpu_offload) {
     cpu_prefix_sum(
       host_buffers.host_prefix_sum_buffer,
+      host_buffers.host_allocated_prefix_sum_space,
       arguments.offset<dev_ut_hit_offsets>(),
       arguments.size<dev_ut_hit_offsets>(),
       cuda_stream,

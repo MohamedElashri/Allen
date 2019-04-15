@@ -27,6 +27,7 @@ void SequenceVisitor::visit<lf_prefix_sum_candidates_t>(
   if (runtime_options.cpu_offload) {
     cpu_prefix_sum(
       host_buffers.host_prefix_sum_buffer,
+      host_buffers.host_allocated_prefix_sum_space,
       arguments.offset<dev_scifi_lf_number_of_candidates>(),
       arguments.size<dev_scifi_lf_number_of_candidates>(),
       cuda_stream,

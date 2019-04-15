@@ -25,8 +25,9 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
 
   // Buffer for performing prefix sum
-  // Note: We should reallocate this buffer if the size required ever exceeds the amount allocated here
-  cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, 10000000 * sizeof(uint)));
+  // Note: If it is of insufficient space, it will get reallocated
+  host_allocated_prefix_sum_space = 10000000;
+  cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(uint)));
 
   if (do_check) {
     // Datatypes to be reserved only if checking is on

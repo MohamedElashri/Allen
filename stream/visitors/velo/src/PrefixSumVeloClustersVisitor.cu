@@ -26,6 +26,7 @@ void SequenceVisitor::visit<prefix_sum_velo_clusters_t>(
   if (runtime_options.cpu_offload) {
     cpu_prefix_sum(
       host_buffers.host_prefix_sum_buffer,
+      host_buffers.host_allocated_prefix_sum_space,
       arguments.offset<dev_estimated_input_size>(),
       arguments.size<dev_estimated_input_size>(),
       cuda_stream,

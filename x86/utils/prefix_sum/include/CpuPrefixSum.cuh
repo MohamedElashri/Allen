@@ -7,6 +7,7 @@
  */
 void cpu_prefix_sum(
   uint* host_prefix_sum_buffer,
+  size_t& host_allocated_prefix_sum_space,
   uint* dev_prefix_sum_offset,
   const size_t dev_prefix_sum_size,
   cudaStream_t& cuda_stream,

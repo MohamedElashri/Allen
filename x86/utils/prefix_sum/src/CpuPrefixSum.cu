@@ -23,12 +23,20 @@ void cpu_prefix_sum_impl(
 
 void cpu_prefix_sum(
   uint* host_prefix_sum_buffer,
+  size_t& host_allocated_prefix_sum_space,
   uint* dev_prefix_sum_offset,
   const size_t dev_prefix_sum_size,
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event,
   uint* host_total_sum_holder)
 {
+  // Reallocate if insufficient space on host buffer
+  if ((dev_prefix_sum_size >> 2) > host_allocated_prefix_sum_space) {
+    host_allocated_prefix_sum_space = (dev_prefix_sum_size >> 2) * 1.2f;
+    cudaCheck(cudaFreeHost(host_prefix_sum_buffer));
+    cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(uint)));
+  }
+
   cudaCheck(cudaMemcpyAsync(
     host_prefix_sum_buffer,
     dev_prefix_sum_offset,

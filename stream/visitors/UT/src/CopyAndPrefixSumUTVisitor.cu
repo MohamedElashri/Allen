@@ -26,6 +26,7 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_ut_t>(
     // Prefix sum
     cpu_prefix_sum(
       host_buffers.host_prefix_sum_buffer,
+      host_buffers.host_allocated_prefix_sum_space,
       (uint*) arguments.offset<dev_atomics_ut>() + host_buffers.host_number_of_selected_events[0],
       (host_buffers.host_number_of_selected_events[0] + 1) * sizeof(uint),
       cuda_stream,
