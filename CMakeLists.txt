@@ -187,28 +187,33 @@ include_directories(mdf/include)
 file(GLOB common_sources "main/src/*")
 
 # Remove main.cpp from common_sources
-get_filename_component(main_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/main.cpp ABSOLUTE)
-list(REMOVE_ITEM common_sources "${main_cpp_path}")
+foreach(source main Allen)
+get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
+list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
+endforeach()
 
 # common library
-add_library(Common ${common_sources})
+add_library(Common STATIC ${common_sources})
 target_link_libraries(Common mdf)
 
 set_property(TARGET Common PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)
 
-# main executable
-add_executable(Allen ${main_cpp_path})
-set_property(TARGET Allen
-             PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-
-target_link_libraries(Allen PRIVATE
+# Library containing all the code
+add_library(AllenLib SHARED ${Allen_cpp_path})
+target_link_libraries(AllenLib PRIVATE
   Stream
   TrackChecking
   PVChecking
   CheckClustering
   x86MuonDecoding
+  Common
 )
+set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
+
+# Main executable
+add_executable(Allen ${main_cpp_path})
+target_link_libraries(Allen PRIVATE AllenLib)
 
 if (ROOT_FOUND)
   target_compile_definitions(Allen PUBLIC WITH_ROOT)
