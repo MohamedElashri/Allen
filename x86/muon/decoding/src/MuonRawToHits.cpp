@@ -67,17 +67,24 @@ void MuonRawToHits::operator()(Muon::MuonRawEvent &rawEvent, Muon::HitsSoA *hits
     }
   }
 
-  int currentStation = 0;
+  int currentStation = Muon::MuonTileID::station(hitsSoA->tile[0]);
+  int initialCurrentStation = currentStation;
   for (int i = 1; i < currentHitsIndex; i++) {
     auto id = static_cast<unsigned int>(hitsSoA->tile[i]);
     if (Muon::MuonTileID::station(id) != currentStation) {
-      auto index = std::max(0, currentStation - 1);
-      hitsSoA->number_of_hits_per_station[currentStation] =
-          i - (hitsSoA->number_of_hits_per_station[index]);
       hitsSoA->station_offsets[currentStation + 1] = i;
       currentStation++;
     }
   }
+  if (initialCurrentStation == currentStation) {
+    for (int j = initialCurrentStation; j + 1 < Muon::Constants::n_stations; j++) {
+      hitsSoA->station_offsets[j + 1] = currentHitsIndex;
+    }
+  }
+  for (currentStation = 0; currentStation + 1 < m_nStations; currentStation++) {
+    hitsSoA->number_of_hits_per_station[currentStation] = hitsSoA->station_offsets[currentStation + 1] - hitsSoA->station_offsets[currentStation];
+  }
+  hitsSoA->number_of_hits_per_station[m_nStations - 1] = currentHitsIndex - hitsSoA->station_offsets[m_nStations - 1];
 }
 
 std::array<MuonLayout, 2> MuonRawToHits::makeStripLayouts(const unsigned int station,
@@ -95,6 +102,9 @@ std::array<MuonLayout, 2> MuonRawToHits::makeStripLayouts(const unsigned int sta
 
 
 void MuonRawToHits::addCoordsCrossingMap(DigitsRange &digits, Muon::HitsSoA *hitsSoA, size_t &currentHitIndex) const {
+  if (std::distance(digits.first, digits.second) == 0) {
+    return;
+  }
   const auto&[layoutOne, layoutTwo] = makeStripLayouts((*(digits.first)).tile.station(),
                                                        (*(digits.first)).tile.region());
   std::vector<bool> used(std::distance(digits.first, digits.second), false);
@@ -214,24 +224,17 @@ void MuonRawToHits::decodeTileAndTDC(Muon::MuonRawEvent &rawEvent, std::array<st
     range = range.subspan(preamble_size);
 
     for (int i = 0; i < 4; i++) {
-      //if ( UNLIKELY( range.empty() ) ) { OOPS( MuonRawHits::ErrorCode::BANK_TOO_SHORT ); }
-      //if ( UNLIKELY( msgLevel( MSG::VERBOSE ) ) ) { verbose() << " hit in PP " << range[0] << endmsg; }
-      //if ( UNLIKELY( range.size() < 1 + range[0] ) ) { OOPS( MuonRawHits::ErrorCode::TOO_MANY_HITS ); }
       for (unsigned int pp : range.subspan(1, range[0])) {
         unsigned int add = (pp & 0x0FFF);
         unsigned int tdc_value = ((pp & 0xF000) >> 12);
         Muon::MuonTileID tile = Muon::MuonTileID(muonGeometry->getADDInTell1(tell1Number, add));
-        //if ( UNLIKELY( msgLevel( MSG::VERBOSE ) ) ) verbose() << " add " << add << " " << tile << endmsg;
         unsigned int pippo = tile.id();
         if (pippo != 0) {
-          //if ( UNLIKELY( msgLevel( MSG::DEBUG ) ) ) debug() << " valid  add " << add << " " << tile << endmsg;
           storage[inarray].push_back(Digit{tile, tdc_value});
-        } else {
-          //info() << "invalid add " << add << " " << tile << endmsg;
         }
       }
       range = range.subspan(1 + range[0]);
     }
-    assert(range.empty());
+    //assert(range.empty());
   }
 }
