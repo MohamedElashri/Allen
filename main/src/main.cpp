@@ -38,11 +38,9 @@
 void printUsage(char* argv[])
 {
   std::cerr << "Usage: " << argv[0] << std::endl
-            << " -f {folder containing directories with raw bank binaries for every sub-detector}" << std::endl
-            << " -b {folder containing .bin files with muon common hits}" << std::endl
-            << " --mdf {use MDF files as input instead of binary files}" << std::endl
+            << " -f {folder containing data directories}=\"../input/minbias/\"" << std::endl
             << " -g {folder containing detector configuration}" << std::endl
-            << " -d {folder containing .bin files with MC truth information}" << std::endl
+            << " --mdf {use MDF files as input instead of binary files}" << std::endl
             << " -n {number of events to process}=0 (all)" << std::endl
             << " -o {offset of events from which to start}=0 (beginning)" << std::endl
             << " -t {number of threads / streams}=1" << std::endl
@@ -52,11 +50,13 @@ void printUsage(char* argv[])
             << " -v {verbosity}=3 (info)" << std::endl
             << " -p {print memory usage}=0" << std::endl
             << " -a {run only data preparation algorithms: decoding, clustering, sorting}=0" << std::endl
-            << " -i {Import forward tracks dumped from Brunel}" << std::endl;
+            << " -i {import forward tracks dumped from Brunel}" << std::endl
+            << " --cpu-offload {offload part of the computation to CPU}=0" << std::endl;
 }
 
 int main(int argc, char* argv[])
 {
+<<<<<<< HEAD
   std::string folder_name_raw = "../input/minbias/banks/";
   std::string folder_name_MC = "../input/minbias/MC_info/";
   std::string folder_name_detector_configuration = "../input/detector_configuration/";
@@ -64,6 +64,14 @@ int main(int argc, char* argv[])
   std::string file_name_muon_catboost_model = "../input/muon/muon_catboost_model.json";
   std::string file_name_muon_table = "../input/muon/muon_table.bin";
   std::string file_name_muon_geometry = "../input/muon/muon_geometry.bin";
+=======
+  // Folder containing raw, MC and muon information
+  std::string folder_data = "../input/minbias/";
+  const std::string folder_rawdata = "banks/";
+  // Folder containing detector configuration and catboost model
+  std::string folder_detector_configuration = "../input/detector_configuration/";
+
+>>>>>>> master
   std::string folder_name_imported_forward_tracks = "";
 
   uint number_of_events_requested = 0;
@@ -78,9 +86,11 @@ int main(int argc, char* argv[])
 
   int use_mdf = 0;
   int cuda_device = 0;
+  int cpu_offload = 1;
   struct option long_options[] = {/* These options set a flag. */
                                   {"mdf", no_argument, &use_mdf, 1},
                                   {"device", required_argument, &cuda_device, 0},
+                                  {"cpu-offload", required_argument, &cpu_offload, 1},
                                   /* These options don’t set a flag.
                                      We distinguish them by their indices. */
                                   {0, 0, 0, 0}};
@@ -88,21 +98,22 @@ int main(int argc, char* argv[])
   int option_index = 0;
 
   signed char c;
-  while ((c = getopt_long(argc, argv, "f:b:d:i:n:o:t:r:pha:d:v:c:m:g:", long_options, &option_index)) != -1) {
+  while ((c = getopt_long(argc, argv, "f:i:n:o:t:r:phd:v:c:m:g:", long_options, &option_index)) != -1) {
     switch (c) {
     case 0:
       if (long_options[option_index].flag != 0) {
         if (strncmp(long_options[option_index].name, "device", 6) == 0 && optarg) {
           cuda_device = atoi(optarg);
         }
+        else if (strncmp(long_options[option_index].name, "cpu-offload", 11) == 0 && optarg) {
+          cpu_offload = atoi(optarg);
+        }
         break;
       }
       /* If this option set a flag, do nothing else now. */
       break;
-    case 'f': folder_name_raw = std::string(optarg); break;
-    case 'b': folder_name_muon_common_hits = std::string(optarg); break;
-    case 'd': folder_name_MC = std::string(optarg); break;
-    case 'g': folder_name_detector_configuration = std::string(optarg); break;
+    case 'f': folder_data = std::string(optarg) + "/"; break;
+    case 'g': folder_detector_configuration = std::string(optarg) + "/"; break;
     case 'i': folder_name_imported_forward_tracks = std::string(optarg); break;
     case 'm': reserve_mb = atoi(optarg); break;
     case 'n': number_of_events_requested = atoi(optarg); break;
@@ -119,17 +130,13 @@ int main(int argc, char* argv[])
   }
 
   // Options sanity check
-  if (folder_name_raw.empty() || folder_name_detector_configuration.empty() || (folder_name_MC.empty() && do_check)) {
+  if (folder_data.empty() || folder_detector_configuration.empty()) {
     std::string missing_folder = "";
 
-    if (folder_name_raw.empty())
-      missing_folder = "raw banks";
-    else if (folder_name_muon_common_hits.empty())
-      missing_folder = "Muon common hits";
-    else if (folder_name_detector_configuration.empty())
-      missing_folder = "detector geometry";
-    else if (folder_name_MC.empty() && do_check)
-      missing_folder = "Monte Carlo";
+    if (folder_data.empty())
+      missing_folder = "data folder";
+    else if (folder_detector_configuration.empty() && do_check)
+      missing_folder = "detector configuration";
 
     error_cout << "No folder for " << missing_folder << " specified" << std::endl;
     printUsage(argv);
@@ -157,11 +164,9 @@ int main(int argc, char* argv[])
 
   // Show call options
   std::cout << "Requested options:" << std::endl
-            << " folder containing directories with raw bank files for every sub-detector (-f): " << folder_name_raw
-            << std::endl
+            << " data folder (-f): " << folder_data << " (eg. \"../input/minbias/\")" << std::endl
             << " using " << (use_mdf ? "MDF" : "binary") << " input" << (use_mdf ? " (--mdf)" : "") << std::endl
-            << " folder with detector configuration (-g): " << folder_name_detector_configuration << std::endl
-            << " folder with MC truth input (-d): " << folder_name_MC << std::endl
+            << " folder with detector configuration (-g): " << folder_detector_configuration << std::endl
             << " folder with imported forward tracks (-i): " << folder_name_imported_forward_tracks << std::endl
             << " run checkers (-c): " << do_check << std::endl
             << " number of files (-n): " << number_of_events_requested << std::endl
@@ -182,7 +187,7 @@ int main(int argc, char* argv[])
   // Read all inputs
   info_cout << "Reading input datatypes" << std::endl;
 
-  std::string folder_name_velopix_raw = folder_name_raw + "VP";
+  std::string folder_name_velopix_raw = folder_data + folder_rawdata + "VP";
   number_of_events_requested = get_number_of_events_requested(number_of_events_requested, folder_name_velopix_raw);
 
   const auto folder_name_UT_raw = folder_name_raw + "UT";
@@ -217,12 +222,19 @@ int main(int argc, char* argv[])
   std::vector<char> events;
   std::vector<uint> event_offsets;
   std::vector<Muon::HitsSoA> muon_hits_events(number_of_events_requested);
+<<<<<<< HEAD
   info_cout << "start decode\n";
   decode(event_reader->events(BankTypes::MUON), event_reader->offsets(BankTypes::MUON), muon_hits_events);
   info_cout << "finish decode\n";
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(file_name_muon_catboost_model);
+=======
+  read_folder(folder_data + "muon_common_hits/", number_of_events_requested, events, event_offsets, start_event_offset);
+  read_muon_events_into_arrays(
+    muon_hits_events.data(), events.data(), event_offsets.data(), number_of_events_requested);
+  muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
+>>>>>>> master
   std::vector<float> muon_field_of_interest_params;
-  read_muon_field_of_interest(muon_field_of_interest_params, "../input/muon/field_of_interest_params.bin");
+  read_muon_field_of_interest(muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
 
   std::vector<Checker::Tracks> forward_tracks;
   if (check_imported_forward_tracks) {
@@ -240,7 +252,7 @@ int main(int argc, char* argv[])
 
   // Initialize detector constants on GPU
   Constants constants;
-  constants.reserve_and_initialize(muon_field_of_interest_params);
+  constants.reserve_and_initialize(muon_field_of_interest_params, folder_detector_configuration + "params_kalman/FT6x2/");
   constants.initialize_ut_decoding_constants(ut_geometry);
   constants.initialize_geometry_constants(velo_geometry, ut_boards, ut_geometry, ut_magnet_tool, scifi_geometry);
   constants.initialize_muon_catboost_model_constants(
@@ -279,7 +291,8 @@ int main(int argc, char* argv[])
                                            muon_hits_events,
                                            number_of_events_requested,
                                            number_of_repetitions,
-                                           do_check};
+                                           do_check,
+                                           cpu_offload};
 
     stream_wrapper.run_stream(i, runtime_options);
   };
@@ -301,7 +314,7 @@ int main(int argc, char* argv[])
 
   // Do optional Monte Carlo truth test on stream 0
   if (do_check) {
-    stream_wrapper.run_monte_carlo_test(0, folder_name_MC, number_of_events_requested, forward_tracks);
+    stream_wrapper.run_monte_carlo_test(0, folder_data + "MC_info/", number_of_events_requested, forward_tracks);
   }
 
   std::cout << (number_of_events_requested * number_of_threads * number_of_repetitions / t.get()) << " events/s"

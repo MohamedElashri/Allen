@@ -21,6 +21,7 @@ SEQUENCE_T(
   pv_beamline_histo_t,
   pv_beamline_peak_t,
   pv_beamline_multi_fitter_t,
+  pv_beamline_cleanup_t,
   ut_calculate_number_of_hits_t,
   prefix_sum_ut_hits_t,
   ut_pre_decode_t,
@@ -37,12 +38,10 @@ SEQUENCE_T(
   scifi_pre_decode_v4_t,
   scifi_raw_bank_decoder_v4_t,
   scifi_direct_decoder_v4_t,
-
   lf_search_initial_windows_t,
   lf_collect_candidates_t,
   lf_prefix_sum_candidates_t,
   lf_composite_track_seeding_t,
-  lf_extend_tracks_first_layers_x_t,
   lf_quality_filter_x_t,
   lf_composite_extend_tracks_uv_t,
   lf_quality_filter_length_t,
@@ -51,4 +50,5 @@ SEQUENCE_T(
   copy_scifi_track_hit_number_t,
   prefix_sum_scifi_track_hit_number_t,
   consolidate_scifi_tracks_t,
-  kalman_filter_t, )
+  kalman_filter_t,
+)

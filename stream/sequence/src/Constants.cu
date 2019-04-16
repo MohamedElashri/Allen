@@ -22,7 +22,8 @@ void Constants::reserve_constants()
 }
 
 void Constants::initialize_constants(
-  const std::vector<float>& muon_field_of_interest_params
+  const std::vector<float>& muon_field_of_interest_params,
+  const std::string& folder_params_kalman
 ) {
   // Magnet polarity
   const float host_magnet_polarity = -1.f;
@@ -87,7 +88,7 @@ void Constants::initialize_constants(
 
   // Kalman filter constants.
   ParKalmanFilter::KalmanParametrizations host_kalman_params;
-  host_kalman_params.SetParameters("../cuda/kalman/params/FT6x2", ParKalmanFilter::Polarity::Down);
+  host_kalman_params.SetParameters(folder_params_kalman, ParKalmanFilter::Polarity::Down);
   cudaCheck(cudaMemcpy(
     dev_kalman_params, &host_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations), cudaMemcpyHostToDevice));
 

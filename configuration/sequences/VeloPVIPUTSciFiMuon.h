@@ -21,6 +21,7 @@ SEQUENCE_T(
   pv_beamline_histo_t,
   pv_beamline_peak_t,
   pv_beamline_multi_fitter_t,
+  pv_beamline_cleanup_t,
   velo_pv_ip_t,
   ip_cut_t,
   ut_calculate_number_of_hits_t,
