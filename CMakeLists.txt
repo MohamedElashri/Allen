@@ -215,6 +215,14 @@ set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
 add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
 
+# Python entrypoint
+option(ENABLE_PYTHON "Build Python entry point" ON)
+if(ENABLE_PYTHON)
+  add_subdirectory(bindings)
+else()
+  message(STATUS "Not building Python entry point")
+endif()
+
 if (ROOT_FOUND)
   target_compile_definitions(Allen PUBLIC WITH_ROOT)
   target_link_libraries(Allen PRIVATE ${ROOT_LIBRARIES})
