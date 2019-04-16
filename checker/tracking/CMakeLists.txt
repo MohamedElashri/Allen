@@ -20,7 +20,6 @@ file(GLOB tracking_checker_sources "src/*cpp")
 add_library(TrackChecking STATIC
   ${tracking_checker_sources}
 )
-set_target_properties(TrackChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(ROOT_FOUND)
   target_compile_definitions(TrackChecking PRIVATE WITH_ROOT)

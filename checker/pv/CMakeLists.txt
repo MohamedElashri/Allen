@@ -14,7 +14,6 @@ file(GLOB pv_checker_sources "src/*cpp")
 add_library(PVChecking SHARED
   ${pv_checker_sources}
 )
-set_target_properties(PVChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(ROOT_FOUND)
   target_compile_definitions(PVChecking PRIVATE WITH_ROOT)

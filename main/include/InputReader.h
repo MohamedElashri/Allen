@@ -5,7 +5,6 @@
 #include "Common.h"
 #include "BankTypes.h"
 #include "Tools.h"
-#include "CudaCommon.h"
 #include <string>
 #include <algorithm>
 #include <unordered_set>

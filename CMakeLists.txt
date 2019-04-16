@@ -22,6 +22,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Configuration of CUDA compute architecture
 set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
@@ -56,14 +57,14 @@ endif()
 
 find_package(ZLIB REQUIRED)
 
-option(USE_LZMA OFF)
+option(USE_LZMA "build with lzma" OFF)
 if(USE_LZMA)
   find_package(LibLZMA REQUIRED)
 else(USE_LZMA)
   set(LZMA_FOUND OFF)
 endif(USE_LZMA)
 
-option(USE_LZ4 OFF)
+option(USE_LZ4 "build with lz4" OFF)
 if(USE_LZ4)
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(LZ4 REQUIRED liblz4)
@@ -71,14 +72,14 @@ else(USE_LZ4)
   set(LZ4_FOUND OFF)
 endif(USE_LZ4)
 
-option(USE_KALMAN_SINGLE_PRECISION ON)
+option(USE_KALMAN_SINGLE_PRECISION "Use single precision Kalman filter" ON)
 
 # find_package(CUDA REQUIRED)
 #set(CUDA_HOST_COMPILER "g++")
 set(CUDA_SEPARABLE_COMPILATION ON)
-option(CUDA_PROPAGATE_HOST_FLAGS OFF)
+option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
 
-option(USE_ROOT OFF)
+option(USE_ROOT "Build with ROOT" OFF)
 if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
    if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
      list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
@@ -104,7 +105,7 @@ elseif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
   set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DDEBUG ")
 endif(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
 
-option(CUDA_VEBOSE_BUILD OFF)
+option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
 if (CUDA_VERBOSE_BUILD)
   set(CUDA_VERBOSE_FLAGS "--resource-usage --verbose --nvlink-options=--verbose -Xptxas=--verbose")
 else()
