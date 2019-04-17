@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <gsl-lite.hpp>
 
 /** @class LHCb::RawBank RawBank.h
   *
@@ -177,13 +176,6 @@ namespace LHCb
 
     /// End iterator of const iteration
     template <typename T>  const T* end() const  {return ((T*)m_data) + size()/sizeof(T);  }
-
-    /// return a range of 'const T'
-    template <typename T>
-    gsl::span<const T> range() const {
-        return {begin<T>(), end<T>()};
-    }
-
 
   private:
     /// Magic word (by definition 0xCBCB)
