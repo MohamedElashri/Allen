@@ -47,6 +47,7 @@
 #include "MuonFeaturesExtraction.cuh"
 #include "MuonCatboostEvaluator.cuh"
 #include "ParKalmanFilter.cuh"
+#include "ParKalmanVeloOnly.cuh"
 #include "RunLookingForwardCPU.h"
 #include "LFCalculateFirstLayerWindow.cuh"
 #include "LFCalculateSecondLayerWindow.cuh"
