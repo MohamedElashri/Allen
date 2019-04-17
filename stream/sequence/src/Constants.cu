@@ -19,6 +19,7 @@ void Constants::reserve_constants()
   cudaCheck(cudaMalloc((void**) &dev_muon_foi, sizeof(Muon::Constants::FieldOfInterest)));
   cudaCheck(cudaMalloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float)));
   cudaCheck(cudaMalloc((void**) &dev_magnet_polarity, sizeof(float)));
+  cudaCheck(cudaMalloc((void**) &dev_beamline, 2 * sizeof(float)));
 }
 
 void Constants::initialize_constants(
@@ -29,6 +30,11 @@ void Constants::initialize_constants(
   const float host_magnet_polarity = -1.f;
   cudaCheck(cudaMemcpy(
     dev_magnet_polarity, &host_magnet_polarity, sizeof(float), cudaMemcpyHostToDevice));
+
+  // Magnet polarity
+  const float host_beamline[2] = {0.0f, 0.0f};
+  cudaCheck(cudaMemcpy(
+    dev_magnet_polarity, &host_magnet_polarity, 2 * sizeof(float), cudaMemcpyHostToDevice));
 
   // Velo module constants
   const std::array<float, Velo::Constants::n_modules> velo_module_zs = {

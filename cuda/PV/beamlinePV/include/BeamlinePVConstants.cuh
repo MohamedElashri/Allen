@@ -28,4 +28,4 @@ static constexpr float minChi2Dist =
 
 // set this to (0,0) for now
 // TODO: use real beamline position. (0,0) is only correct for MC
-static constexpr float2 beamline {0.f, 0.f};
+static const float beamline[] = {0.f, 0.f};

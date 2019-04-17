@@ -61,6 +61,9 @@ struct Constants {
   const char* host_scifi_geometry;
   PrUTMagnetTool* dev_ut_magnet_tool;
 
+  // Beam location
+  float* dev_beamline;
+
   // Magnet polarity
   float* dev_magnet_polarity;
 
