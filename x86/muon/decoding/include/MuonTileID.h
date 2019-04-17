@@ -1,8 +1,9 @@
 #pragma once
 
-#include <string>
 #include "MuonBase.h"
 #include "MuonLayout.h"
+
+#include <string>
 
 class MuonLayout;
 
@@ -58,11 +59,11 @@ namespace Muon {
     }
 
     void setX(const unsigned int x) {
-      set(x, MuonBase::ShiftX, MuonBase::MaskX) ;
+      set(x, MuonBase::ShiftX, MuonBase::MaskX);
     }
 
     void setY(const unsigned int y) {
-      set(y, MuonBase::ShiftY, MuonBase::MaskY) ;
+      set(y, MuonBase::ShiftY, MuonBase::MaskY);
     }
 
     void setLayout(MuonLayout layout) {

@@ -1,11 +1,10 @@
 #include "Decoding.h"
-#include <iostream>
 
 char muon_table_raw_input[1200000];
 char muon_geometry_raw_input[100000];
 
-void decode(gsl::span<char> events, gsl::span<unsigned int> offsets, std::vector<Muon::HitsSoA>& muon_hits_events,
-    char* muon_table_raw, char* muon_geometry_raw) {
+void decode(gsl::span<char> events, gsl::span<unsigned int> offsets, std::vector <Muon::HitsSoA> &muon_hits_events,
+            char* muon_table_raw, char* muon_geometry_raw) {
   MuonTable pad = MuonTable();
   MuonTable stripX = MuonTable();
   MuonTable stripY = MuonTable();
@@ -20,7 +19,7 @@ void decode(gsl::span<char> events, gsl::span<unsigned int> offsets, std::vector
   }
 }
 
-void decode(gsl::span<char> events, gsl::span<unsigned int> offsets, std::vector<Muon::HitsSoA>& muon_hits_events) {
+void decode(gsl::span<char> events, gsl::span<unsigned int> offsets, std::vector <Muon::HitsSoA>& muon_hits_events) {
   std::string file_name_muon_table = "../input/muon/muon_table.bin";
   std::string file_name_muon_geometry = "../input/muon/muon_geometry.bin";
   memset(muon_table_raw_input, 0, sizeof(muon_table_raw_input));

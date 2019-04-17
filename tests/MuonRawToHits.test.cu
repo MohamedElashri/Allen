@@ -66,5 +66,4 @@ SCENARIO("General case") {
       }
     }
   }
-
 }

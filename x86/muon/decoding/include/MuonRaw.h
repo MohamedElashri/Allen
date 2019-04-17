@@ -1,7 +1,8 @@
 #pragma once
 
+#include "gsl-lite.hpp"
+
 #include <stdint.h>
-#include <gsl-lite.hpp>
 
 namespace Muon {
   struct MuonRawBank {
@@ -23,20 +24,19 @@ namespace Muon {
       return m_size;
     }
 
-    /// Begin iterator
-    template <typename T> T* begin(){    return (T*)data;         }
+    template<typename T>
+    T* begin() { return (T*) data; }
 
-    /// End iterator
-    template <typename T> T* end()  {    return ((T*)data) + size()/sizeof(T);  }
+    template<typename T>
+    T* end() { return ((T*) data) + size() / sizeof(T); }
 
-    /// Begin iterator over const iteration
-    template <typename T> const T* begin() const {return (T*)data;}
+    template<typename T>
+    const T* begin() const { return (T*) data; }
 
-    /// End iterator of const iteration
-    template <typename T>  const T* end() const  {return ((T*)data) + size()/sizeof(T);  }
+    template<typename T>
+    const T* end() const { return ((T*) data) + size() / sizeof(T); }
 
-    /// return a range of 'const T'
-    template <typename T>
+    template<typename T>
     gsl::span<const T> range() const {
       return {begin<T>(), end<T>()};
     }
