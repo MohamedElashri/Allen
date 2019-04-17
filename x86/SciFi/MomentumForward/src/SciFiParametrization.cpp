@@ -182,17 +182,17 @@ SciFi::Parameters::Parameters(const char* name)
 }
 
 int extrap(
-    const float xi,
-    const float yi,
-    const float txi,
-    const float tyi,
-    const float qop,
-    const SciFi::Parameters& params,
-    float& xf,
-    float& yf,
-    float& txf,
-    float& tyf,
-    float& der_xf_qop)
+  const float xi,
+  const float yi,
+  const float txi,
+  const float tyi,
+  const float qop,
+  const SciFi::Parameters& params,
+  float& xf,
+  float& yf,
+  float& txf,
+  float& tyf,
+  float& der_xf_qop)
 // extrapolation from plane zi to plane zf, from initial state (xi,yi,txi,tyi,qop) to final state (xf,yf,txf,tyf)
 // the bending from origin to zi is approximated by adding (bend+bendx_x2*u^2+bendx_y2*v^2)*qop to u=xi/zi and
 // bendy_xy*u*v*qop to v=yi/zi quad_inperp (logical): if true, the quadratic interpolation is used (better, with a
@@ -206,28 +206,28 @@ int extrap(
   int ix, iy;
   if (fabs(xi) > params.Xmax || fabs(yi) > params.Ymax) return 0;
   switch (params.XGridOption) {
-    case 1: xx = xi / params.Xmax; break;
-    case 2:
-      xx = sqr(xi / params.Xmax);
-      if (xi < 0) xx = -xx;
-      break;
-    case 3:
-      xx = xi / params.Xmax;
-      xx = xx * xx * xx;
-      break;
-    case 4: xx = asin(xi / params.Xmax) * 2 / M_PI; break;
+  case 1: xx = xi / params.Xmax; break;
+  case 2:
+    xx = sqr(xi / params.Xmax);
+    if (xi < 0) xx = -xx;
+    break;
+  case 3:
+    xx = xi / params.Xmax;
+    xx = xx * xx * xx;
+    break;
+  case 4: xx = asin(xi / params.Xmax) * 2 / M_PI; break;
   }
   switch (params.YGridOption) {
-    case 1: yy = yi / params.Ymax; break;
-    case 2:
-      yy = sqr(yi / params.Ymax);
-      if (yi < 0) yy = -yy;
-      break;
-    case 3:
-      yy = yi / params.Ymax;
-      yy = yy * yy * yy;
-      break;
-    case 4: yy = asin(yi / params.Ymax) * 2 / M_PI; break;
+  case 1: yy = yi / params.Ymax; break;
+  case 2:
+    yy = sqr(yi / params.Ymax);
+    if (yi < 0) yy = -yy;
+    break;
+  case 3:
+    yy = yi / params.Ymax;
+    yy = yy * yy * yy;
+    break;
+  case 4: yy = asin(yi / params.Ymax) * 2 / M_PI; break;
   }
   dx = params.Nbinx * (xx + 1) / 2;
   ix = dx;
@@ -307,8 +307,8 @@ int extrap(
       fy = dy - .5;
     }
     if (
-        ix < 0 || ix >= params.Nbinx || iy < 0 || iy >= params.Nbiny || jx < 0 || jx >= params.Nbinx || jy < 0 ||
-        jy >= params.Nbiny)
+      ix < 0 || ix >= params.Nbinx || iy < 0 || iy >= params.Nbiny || jx < 0 || jx >= params.Nbinx || jy < 0 ||
+      jy >= params.Nbiny)
       return 0;
     Coef c_ii = params.C[ix][iy], c_ij = params.C[ix][jy], c_ji = params.C[jx][iy], c_jj = params.C[jx][jy];
     // printf("x00 %f %f %f %f\n",c_ii.x00[0],c_ij.x00[0],c_ji.x00[0],c_jj.x00[0]);
@@ -348,16 +348,16 @@ int extrap(
 }
 
 int update_qop_estimate(
-    const MiniState& UT_state,
-    const float qop,
-    const float xhit,
-    const SciFi::Parameters& params,
-    const float xf_ini,
-    const float yf_ini,
-    const float txf_ini,
-    const float tyf_ini,
-    const float der_xf_qop_ini,
-    float& qop_update)
+  const MiniState& UT_state,
+  const float qop,
+  const float xhit,
+  const SciFi::Parameters& params,
+  const float xf_ini,
+  const float yf_ini,
+  const float txf_ini,
+  const float tyf_ini,
+  const float der_xf_qop_ini,
+  float& qop_update)
 {
   float r_prev = qop;
   float xf = xf_ini;
