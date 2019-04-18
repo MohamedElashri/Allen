@@ -27,7 +27,7 @@ __device__ void simplified_step(
   const float z,
   const float zhit,
   const float xhit,
-  const float whit,
+  const float winv,
   float& x,
   float& tx,
   float& qop,
@@ -35,8 +35,7 @@ __device__ void simplified_step(
   float& covXTx,
   float& covTxTx,
   float& chi2,
-  const ParKalmanFilter::KalmanParametrizations* params,
-  const float corTx);
+  const ParKalmanFilter::KalmanParametrizations* params);
 
 __device__ void extrapolate_velo_only(
   KalmanFloat zFrom,

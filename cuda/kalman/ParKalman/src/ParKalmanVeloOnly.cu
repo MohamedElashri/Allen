@@ -4,7 +4,7 @@ __device__ void simplified_step(
   const KalmanFloat z,
   const KalmanFloat zhit,
   const KalmanFloat xhit,
-  const KalmanFloat whit,
+  const KalmanFloat winv,
   KalmanFloat& x,
   KalmanFloat& tx,
   KalmanFloat& qop,
@@ -12,16 +12,16 @@ __device__ void simplified_step(
   KalmanFloat& covXTx,
   KalmanFloat& covTxTx,
   KalmanFloat& chi2,
-  const ParKalmanFilter::KalmanParametrizations* params,
-  const KalmanFloat corTx)
+  const ParKalmanFilter::KalmanParametrizations* params)
 {
   // Predict the state.
   const KalmanFloat dz = zhit - z;
   const auto& par = params->Par_predictV[dz > 0 ? 0 : 1];
+  // For now don't use the momentum-dependent correction to ty. It doesn't work for some reason.
   //const KalmanFloat predTx = tx + corTx * par[4] * (1e-5 * dz * ((dz > 0 ? z : zhit) + par[5] * 1e3));
+  //const KalmanFloat predx = x + 0.5 * (tx + predTx) * dz;
   const KalmanFloat predTx = tx;
-  const KalmanFloat predx = x + 0.5 * (tx + predTx) * dz;
-  //const KalmanFloat predx = x + tx * dz;
+  const KalmanFloat predx = x + tx * dz;
 
   // Predict the covariance matrix (accurate if we ignore the small
   // momentum dependence of the Jacobian).
@@ -40,8 +40,7 @@ __device__ void simplified_step(
   predcovTxTx += sigTx * sigTx;
   
   // Gain matrix.
-  //const KalmanFloat R = 1.0f / ((1.0f / whit) + predcovXX);
-  const KalmanFloat R = 1.0f / (0.015f * 0.015f + predcovXX);
+  const KalmanFloat R = 1.0f / (winv + predcovXX);
   const KalmanFloat Kx = predcovXX * R;
   const KalmanFloat KTx = predcovXTx * R;
 
@@ -252,8 +251,8 @@ __device__ void simplified_fit(
     const auto hit_x = velo_hits.x[hitindex];
     const auto hit_y = velo_hits.y[hitindex];
     const auto hit_z = velo_hits.z[hitindex];
-    simplified_step(z, hit_z, hit_x, 1./0.015, x, tx, qop, cXX, cXTx, cTxTx, chi2, kalman_params, 0.);
-    simplified_step(z, hit_z, hit_y, 1./0.015, y, ty, qop, cYY, cYTy, cTyTy, chi2, kalman_params, 1.);
+    simplified_step(z, hit_z, hit_x, Velo::Tracking::param_w_inverted, x, tx, qop, cXX, cXTx, cTxTx, chi2, kalman_params);
+    simplified_step(z, hit_z, hit_y, Velo::Tracking::param_w_inverted, y, ty, qop, cYY, cYTy, cTyTy, chi2, kalman_params);
     z = hit_z;
   }
   __syncthreads();
