@@ -59,7 +59,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       (void**) &host_ut_track_velo_indices, max_number_of_events * UT::Constants::max_num_tracks * sizeof(int)));
 
     cudaCheck(cudaMallocHost(
-      (void**) &host_scifi_tracks, max_number_of_events * SciFi::Constants::max_tracks * sizeof(SciFi::TrackHits)));
+      (void**) &host_scifi_tracks, max_number_of_events * UT::Constants::max_num_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track * sizeof(SciFi::TrackHits)));
     cudaCheck(cudaMallocHost((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int)));
 
     cudaCheck(cudaMallocHost(

@@ -34,6 +34,7 @@ CPU_ALGORITHM(
   ARGUMENTS(
     dev_scifi_tracks,
     dev_atomics_scifi,
+    dev_scifi_selected_track_indices,
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_velo,

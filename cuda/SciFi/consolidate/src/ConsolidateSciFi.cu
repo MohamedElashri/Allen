@@ -9,14 +9,22 @@ __global__ void consolidate_scifi_tracks(
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
   uint* dev_scifi_track_ut_indices,
+  int* dev_atomics_ut,
   SciFi::TrackHits* dev_scifi_tracks,
+  const uint* dev_scifi_selected_track_indices,
+  const float* dev_scifi_lf_track_params,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res)
 {
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const SciFi::TrackHits* event_scifi_tracks = dev_scifi_tracks + event_number * SciFi::Constants::max_tracks;
+
+  const uint ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
+
+  const SciFi::TrackHits* event_scifi_tracks = dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
+  const uint* event_scifi_selected_track_indices = dev_scifi_selected_track_indices + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
+
   const uint total_number_of_scifi_hits =
     dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
@@ -38,7 +46,15 @@ __global__ void consolidate_scifi_tracks(
   for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     scifi_tracks.ut_track[i] = event_scifi_tracks[i].ut_track_index;
     scifi_tracks.qop[i] = event_scifi_tracks[i].qop;
-    // scifi_tracks.states[i] = event_scifi_tracks[i].state;
+    const uint original_track = event_scifi_selected_track_indices[i];
+    const float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + original_track * SciFi::Tracking::nTrackParams;
+    MiniState scifi_state(
+        LookingForward::x_at_end_scifi(trackParams),
+        LookingForward::y_at_end_scifi(trackParams),
+        SciFi::Constants::ZEndT,
+        LookingForward::tx_at_end_scifi(trackParams),
+        LookingForward::ty_at_end_scifi(trackParams));
+    scifi_tracks.states[i] = scifi_state;
     SciFi::Consolidated::Hits consolidated_hits =
       scifi_tracks.get_hits(dev_scifi_consolidated_hits, i, &scifi_geometry, dev_inv_clus_res);
     SciFi::TrackHits track = event_scifi_tracks[i];

@@ -29,6 +29,7 @@ void PrForwardWrapper(
       i_veloUT_track,
       outputTracks,
       n_forward_tracks,
+      n_veloUT_tracks,
       tmva1,
       tmva2,
       constArrays,

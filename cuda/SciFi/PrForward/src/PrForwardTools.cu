@@ -11,6 +11,7 @@ __host__ __device__ void find_forward_tracks(
   const int i_veloUT_track,
   SciFi::TrackHits* outputTracks,
   uint* n_forward_tracks,
+  const int ut_event_number_of_tracks,
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
@@ -227,7 +228,7 @@ __host__ __device__ void find_forward_tracks(
     float minQuality = SciFi::Tracking::maxQuality;
     for (int i_track = 0; i_track < n_selected_tracks; ++i_track) {
       SciFi::Tracking::Track& track = selected_tracks[i_track];
-      
+
       // TODO: We would have to work out a way for the Prforward to have max 12 hits
       if (track.hitsNum > 12) {
         track.hitsNum = 12;
@@ -240,6 +241,10 @@ __host__ __device__ void find_forward_tracks(
         SciFi::TrackHits tr = makeTrack(track);
         tr.ut_track_index = i_veloUT_track;
 
+        // state at end of SciFi
+        const float z = SciFi::Constants::ZEndT;
+        MiniState scifi_state(track.x(z), track.y(z), z, track.xSlope(z), track.ySlope(z));
+
         // add LHCbIDs from SciFi part of the track
         for (int i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
           // save local hit index within event to be able to use short
@@ -247,13 +252,13 @@ __host__ __device__ void find_forward_tracks(
           tr.add_hit(local_hit_index);
         }
 
-        if (*n_forward_tracks >= SciFi::Constants::max_tracks) printf("n_forward_tracks = %u \n", *n_forward_tracks);
-        assert(*n_forward_tracks < SciFi::Constants::max_tracks);
+        if (*n_forward_tracks >= ut_event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track) printf("n_forward_tracks = %u \n", *n_forward_tracks);
+        assert(*n_forward_tracks < ut_event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
 #ifndef __CUDA_ARCH__
         outputTracks[(*n_forward_tracks)++] = tr;
 #else
         uint n_tracks = atomicAdd(n_forward_tracks, 1);
-        assert(n_tracks < SciFi::Constants::max_tracks);
+        assert(n_tracks < ut_event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
         outputTracks[n_tracks] = tr;
 #endif
       }
@@ -267,13 +272,6 @@ __host__ __device__ SciFi::TrackHits makeTrack(SciFi::Tracking::Track track)
   SciFi::TrackHits tr;
   tr.qop = track.qop;
   tr.quality = track.quality;
-
-  // add state at zEndT
-  const float z = SciFi::Constants::ZEndT;
-  MiniState state(track.x(z), track.y(z), z, track.xSlope(z), track.ySlope(z));
-
-  // TODO
-  // tr.state = state;
 
   return tr;
 }

@@ -34,6 +34,7 @@ __host__ __device__ void find_forward_tracks(
   const int i_veloUT_track,
   SciFi::TrackHits* outputTracks,
   uint* n_forward_tracks,
+  const int ut_event_number_of_tracks,
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
