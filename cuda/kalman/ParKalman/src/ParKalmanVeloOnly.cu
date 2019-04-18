@@ -1,5 +1,61 @@
 #include "ParKalmanVeloOnly.cuh"
 
+__device__ void simplified_step(
+  const KalmanFloat z,
+  const KalmanFloat zhit,
+  const KalmanFloat xhit,
+  const KalmanFloat whit,
+  KalmanFloat& x,
+  KalmanFloat& tx,
+  KalmanFloat& qop,
+  KalmanFloat& covXX,
+  KalmanFloat& covXTx,
+  KalmanFloat& covTxTx,
+  KalmanFloat& chi2,
+  const ParKalmanFilter::KalmanParametrizations* params,
+  const KalmanFloat corTx)
+{
+  // Predict the state.
+  const KalmanFloat dz = zhit - z;
+  const auto& par = params->Par_predictV[dz > 0 ? 0 : 1];
+  //const KalmanFloat predTx = tx + corTx * par[4] * (1e-5 * dz * ((dz > 0 ? z : zhit) + par[5] * 1e3));
+  const KalmanFloat predTx = tx;
+  const KalmanFloat predx = x + 0.5 * (tx + predTx) * dz;
+  //const KalmanFloat predx = x + tx * dz;
+
+  // Predict the covariance matrix (accurate if we ignore the small
+  // momentum dependence of the Jacobian).
+  const KalmanFloat dz_t_covTxTx = dz * covTxTx;
+  KalmanFloat predcovXTx = covXTx + dz_t_covTxTx;
+  const KalmanFloat dx_t_covXTx = dz * covXTx;
+  KalmanFloat predcovXX = covXX + 2 * dx_t_covXTx + dz * dz_t_covTxTx;
+  KalmanFloat predcovTxTx = covTxTx;
+
+  // Add noise.
+  const KalmanFloat sigTx = par[1] * 1e-5 + par[2] * std::abs(qop);
+  const KalmanFloat sigX = par[6] * sigTx * std::abs(dz);
+  const KalmanFloat corr = par[7];
+  predcovXX += sigX * sigX;
+  predcovXTx += corr * sigX * sigTx;
+  predcovTxTx += sigTx * sigTx;
+  
+  // Gain matrix.
+  //const KalmanFloat R = 1.0f / ((1.0f / whit) + predcovXX);
+  const KalmanFloat R = 1.0f / (0.015f * 0.015f + predcovXX);
+  const KalmanFloat Kx = predcovXX * R;
+  const KalmanFloat KTx = predcovXTx * R;
+
+  // Update.
+  const KalmanFloat r = xhit - predx;
+  x = predx + Kx * r;
+  tx = predTx + KTx * r;
+  covXX = (1 - Kx) * predcovXX;
+  covXTx = (1 - Kx) * predcovXTx;
+  covTxTx = predcovTxTx - KTx * predcovXTx;
+
+  chi2 += r * r * R;
+}
+
 __device__ void extrapolate_velo_only(
   KalmanFloat zFrom,
   KalmanFloat zTo,
@@ -98,7 +154,8 @@ __device__ void update_velo_only(
   C = C - KCrKt;
 
   // Update the chi2.
-  chi2 += similarity_2x1_2x2(res, CResInv);
+  KalmanFloat chi2Tmp = similarity_2x1_2x2(res, CResInv);
+  chi2 += chi2Tmp;
 }
 
 __device__ void velo_only_fit(
@@ -151,6 +208,7 @@ __device__ void velo_only_fit(
   // Set the resulting track parameters.
   track.chi2 = chi2;
   track.ndof = 2 * n_velo_hits;
+  track.z = lastz;
   track.state = x;
   track.cov = C;
   track.first_qop = init_qop;
@@ -158,6 +216,78 @@ __device__ void velo_only_fit(
   track.nhits = n_velo_hits;
 }
 
+__device__ void simplified_fit(
+  const Velo::Consolidated::Hits& velo_hits,
+  const uint n_velo_hits,
+  const KalmanFloat init_qop,
+  const ParKalmanFilter::KalmanParametrizations* kalman_params,
+  FittedTrack& track)
+{
+  int firsthit = 0;
+  int lasthit = n_velo_hits - 1;
+  int dhit = 1;
+
+  // Initialize the state.
+  KalmanFloat x = velo_hits.x[firsthit];
+  KalmanFloat y = velo_hits.y[firsthit];
+  KalmanFloat tx = ((velo_hits.x[firsthit] - velo_hits.x[lasthit]) / (velo_hits.z[firsthit] - velo_hits.z[lasthit]));
+  KalmanFloat ty = ((velo_hits.y[firsthit] - velo_hits.y[lasthit]) / (velo_hits.z[firsthit] - velo_hits.z[lasthit]));
+  KalmanFloat qop = init_qop;
+  KalmanFloat z = velo_hits.z[firsthit];
+  
+  // Initialize the covariance.
+  KalmanFloat cXX = 100.0;
+  KalmanFloat cXTx = 0;
+  KalmanFloat cTxTx = 0.01;
+  KalmanFloat cYY = 100.0;
+  KalmanFloat cYTy = 0;
+  KalmanFloat cTyTy = 0.01;
+
+  // Initialize the chi2.
+  KalmanFloat chi2 = 0;
+
+  // Fit loop.
+  for (uint i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
+    int hitindex = i;
+    const auto hit_x = velo_hits.x[hitindex];
+    const auto hit_y = velo_hits.y[hitindex];
+    const auto hit_z = velo_hits.z[hitindex];
+    simplified_step(z, hit_z, hit_x, 1./0.015, x, tx, qop, cXX, cXTx, cTxTx, chi2, kalman_params, 0.);
+    simplified_step(z, hit_z, hit_y, 1./0.015, y, ty, qop, cYY, cYTy, cTyTy, chi2, kalman_params, 1.);
+    z = hit_z;
+  }
+  __syncthreads();
+  
+  // Add info to the output track.
+  track.chi2 = chi2;
+  track.ndof = 2 * n_velo_hits;
+  track.z = z;
+  track.state[0] = x;
+  track.state[1] = y;
+  track.state[2] = tx;
+  track.state[3] = ty;
+  track.state[4] = qop;
+  track.cov(0, 0) = cXX;
+  track.cov(0, 1) = 0.0;
+  track.cov(0, 2) = cXTx;
+  track.cov(0, 3) = 0.0;
+  track.cov(0, 4) = 0.0;
+  track.cov(1, 1) = cYY;
+  track.cov(1, 2) = 0.0;
+  track.cov(1, 3) = cYTy;
+  track.cov(1, 4) = 0.0;
+  track.cov(2, 2) = cTxTx;
+  track.cov(2, 3) = 0.0;
+  track.cov(2, 4) = 0.0;
+  track.cov(3, 3) = cTyTy;
+  track.cov(3, 4) = 0.0;
+  // Just assume 1% uncertainty on qop. Shouldn't matter.
+  track.cov(4, 4) = 0.0001 * qop * qop;
+  track.first_qop = init_qop;
+  track.best_qop = init_qop;
+  track.nhits = n_velo_hits;
+}
+  
 __global__ void VeloFilter(
   int* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
@@ -213,7 +343,7 @@ __global__ void VeloFilter(
     const Velo::Consolidated::Hits velo_hits = velo_tracks.get_hits((char*) dev_velo_track_hits, i_velo_track);
     const uint n_velo_hits = velo_tracks.number_of_hits(i_velo_track);
     const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop[i_scifi_track];
-    velo_only_fit(
+    simplified_fit(
       velo_hits,
       n_velo_hits,
       init_qop,

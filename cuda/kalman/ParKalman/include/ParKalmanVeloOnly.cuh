@@ -23,6 +23,21 @@ typedef Vector<2> Vector2;
 typedef SquareMatrix<true, 2> SymMatrix2x2;
 typedef SquareMatrix<false, 2> Matrix2x2;
 
+__device__ void simplified_step(
+  const float z,
+  const float zhit,
+  const float xhit,
+  const float whit,
+  float& x,
+  float& tx,
+  float& qop,
+  float& covXX,
+  float& covXTx,
+  float& covTxTx,
+  float& chi2,
+  const ParKalmanFilter::KalmanParametrizations* params,
+  const float corTx);
+
 __device__ void extrapolate_velo_only(
   KalmanFloat zFrom,
   KalmanFloat zTo,
@@ -48,6 +63,13 @@ __device__ void update_velo_only(
   KalmanFloat& chi2);
 
 __device__ void velo_only_fit(
+  const Velo::Consolidated::Hits& velo_hits,
+  const uint n_velo_hits,
+  const KalmanFloat init_qop,
+  const KalmanParametrizations* kalman_params,
+  FittedTrack& track);
+
+__device__ void simplified_fit(
   const Velo::Consolidated::Hits& velo_hits,
   const uint n_velo_hits,
   const KalmanFloat init_qop,
