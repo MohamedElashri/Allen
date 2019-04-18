@@ -41,32 +41,8 @@ __device__ __host__ UTBoards::UTBoards(const char* ut_boards)
 }
 
 UTGeometry::UTGeometry(const std::vector<char>& ut_geometry)
-{
-
-  uint32_t* p = (uint32_t*) ut_geometry.data();
-  number_of_sectors = *((uint32_t*) p);
-  p += 1;
-  firstStrip = (uint32_t*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-  pitch = (float*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-  dy = (float*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-  dp0diX = (float*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-  dp0diY = (float*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-  dp0diZ = (float*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-  p0X = (float*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-  p0Y = (float*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-  p0Z = (float*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-  cos = (float*) p;
-  p += UT::Decoding::ut_number_of_geometry_sectors;
-}
+  : UTGeometry{ut_geometry.data()}
+{}
 
 __device__ __host__ UTGeometry::UTGeometry(const char* ut_geometry)
 {

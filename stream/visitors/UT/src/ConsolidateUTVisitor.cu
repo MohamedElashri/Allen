@@ -39,7 +39,7 @@ void SequenceVisitor::visit<consolidate_ut_tracks_t>(
     arguments.offset<dev_ut_z>(),
     arguments.offset<dev_ut_track_velo_indices>(),
     arguments.offset<dev_ut_tracks>(),
-    constants.dev_unique_x_sector_layer_offsets);
+    constants.dev_unique_x_sector_layer_offsets.data());
 
   state.invoke();
 
@@ -93,7 +93,7 @@ void SequenceVisitor::visit<consolidate_ut_tracks_t>(
       arguments.size<dev_ut_z>(),
       cudaMemcpyDeviceToHost,
       cuda_stream));
-    
+
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_ut_track_velo_indices,
       arguments.offset<dev_ut_track_velo_indices>(),

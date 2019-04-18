@@ -29,9 +29,9 @@ void SequenceVisitor::visit<ut_find_permutation_t>(
     arguments.offset<dev_ut_hits>(),
     arguments.offset<dev_ut_hit_offsets>(),
     arguments.offset<dev_ut_hit_permutations>(),
-    constants.dev_unique_x_sector_layer_offsets,
-    constants.dev_unique_x_sector_offsets,
-    constants.dev_unique_sector_xs);
+    constants.dev_unique_x_sector_layer_offsets.data(),
+    constants.dev_unique_x_sector_offsets.data(),
+    constants.dev_unique_sector_xs.data());
 
   state.invoke();
 }

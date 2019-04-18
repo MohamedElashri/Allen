@@ -31,13 +31,14 @@ endif()
 
 include(pybind11Tools)
 pybind11_add_module(PyAllen "src/bindings.cpp")
+# C++17 + python2.7 warnings about register keyword
+target_compile_options(PyAllen PRIVATE "-Wno-register")
+
 target_include_directories(PyAllen PUBLIC ${pybind11_DESTDIR}/include)
-file(TOUCH "${CMAKE_BINARY_DIR}/bindings/__init__.py")
 target_link_libraries(PyAllen PRIVATE AllenLib)
 
-if(ROOT_FOUND)
-  target_link_libraries(PyAllen PRIVATE ${ROOT_LIBRARIES})
-endif()
+# Make this easily importable from the build dir
+file(TOUCH "${CMAKE_BINARY_DIR}/bindings/__init__.py")
 
 if(pybind11_BUILTIN)
   add_dependencies(PyAllen pybind11-install)
