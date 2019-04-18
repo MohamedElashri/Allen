@@ -8,6 +8,16 @@
 
 namespace LookingForward {
 
+  /* Calculate variables at end of SciFi, from trackParams
+     given at zRef within SciFi */
+__device__ float x_at_end_scifi(const float* trackParams);
+
+__device__ float y_at_end_scifi(const float* trackParams);
+
+__device__ float tx_at_end_scifi(const float* trackParams);
+
+__device__ float ty_at_end_scifi(const float* trackParams);
+
 __device__ float linear_parameterization(
   const float p0,
   const float p1,

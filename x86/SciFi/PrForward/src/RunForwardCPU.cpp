@@ -76,6 +76,7 @@ int run_forward_on_CPU(
   //     // SciFi non-consolidated types
   //     int* n_forward_tracks = host_scifi_n_tracks + i_event;
   //     SciFi::TrackHits* scifi_tracks_event = host_scifi_tracks + i_event * SciFi::Constants::max_tracks;
+  //  MiniState* scifi_states_event;
 
   //     const uint total_number_of_hits = host_scifi_hit_count[number_of_events *
   //     SciFi::Constants::n_mat_groups_and_mats]; SciFi::HitCount scifi_hit_count {(uint32_t*) host_scifi_hit_count,

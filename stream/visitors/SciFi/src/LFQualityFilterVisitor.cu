@@ -1,18 +1,18 @@
 #include "LFQualityFilter.cuh"
 #include "SequenceVisitor.cuh"
 
-// Caution: when running fit_t separately, define track_params size there
-DEFINE_EMPTY_SET_ARGUMENTS_SIZE(lf_quality_filter_t)
-
-// template<>
-// void SequenceVisitor::set_arguments_size<lf_quality_filter_t>(
-//   lf_quality_filter_t::arguments_t arguments,
-//   const RuntimeOptions& runtime_options,
-//   const Constants& constants,
-//   const HostBuffers& host_buffers)
-// {
-//   arguments.set_size<dev_scifi_lf_track_params>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams);
-// }
+template<>
+void SequenceVisitor::set_arguments_size<lf_quality_filter_t>(
+  lf_quality_filter_t::arguments_t arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers)
+{
+  arguments.set_size<dev_scifi_lf_track_params>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams);
+  arguments.set_size<dev_scifi_selected_track_indices>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+   arguments.set_size<dev_atomics_scifi>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
+  arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+}
 
 template<>
 void SequenceVisitor::visit<lf_quality_filter_t>(
@@ -24,10 +24,11 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  // Scan:
-  // 64 - 28.48%
-  // 256 - 17.80%
-  // 1024 -
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_atomics_scifi>(),
+    0,
+    arguments.size<dev_atomics_scifi>(),
+    cuda_stream));
 
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
@@ -52,6 +53,7 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
       constants.dev_looking_forward_constants,
       constants.dev_magnet_polarity,
       arguments.offset<dev_atomics_scifi>(),
+      arguments.offset<dev_scifi_selected_track_indices>(),
       arguments.offset<dev_scifi_tracks>());
 
   state.invoke();
