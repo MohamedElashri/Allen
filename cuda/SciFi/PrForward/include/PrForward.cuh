@@ -55,4 +55,5 @@ ALGORITHM(
     dev_ut_qop,
     dev_ut_track_velo_indices,
     dev_scifi_tracks,
+    dev_scifi_selected_track_indices,
     dev_atomics_scifi))

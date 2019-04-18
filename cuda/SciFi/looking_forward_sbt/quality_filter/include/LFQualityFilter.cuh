@@ -37,6 +37,7 @@ __global__ void lf_quality_filter(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity,
   int* dev_atomics_scifi,
+  uint* dev_scifi_selected_track_indices,
   SciFi::TrackHits* dev_scifi_tracks);
 
 ALGORITHM(
@@ -56,6 +57,7 @@ ALGORITHM(
     dev_scifi_tracks,
     dev_atomics_scifi,
     dev_ut_states,
+    dev_scifi_selected_track_indices,
     dev_scifi_lf_track_params,
     dev_scifi_lf_length_filtered_atomics,
     dev_scifi_lf_length_filtered_tracks))

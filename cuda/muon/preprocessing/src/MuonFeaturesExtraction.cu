@@ -1,5 +1,4 @@
 #include "MuonFeaturesExtraction.cuh"
-#include "ConsolidateSciFi.cuh"
 
 __global__ void muon_catboost_features_extraction(
   int* dev_atomics_scifi,

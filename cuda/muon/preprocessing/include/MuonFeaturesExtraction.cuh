@@ -5,6 +5,7 @@
 #include "States.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsMuon.cuh"
+#include "SciFiConsolidated.cuh"
 
 enum offset {
   DTS = 0,
