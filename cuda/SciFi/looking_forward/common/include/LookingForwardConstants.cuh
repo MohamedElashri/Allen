@@ -1,6 +1,8 @@
 #pragma once
 
 #include "SystemOfUnits.h"
+#include "SciFiDefinitions.cuh"
+
 #include <cstdint>
 
 namespace LookingForward {
@@ -88,6 +90,9 @@ namespace LookingForward {
   constexpr float dx_x_T2_T3_slope = 6.e6f;
 
   constexpr float z_last_UT_plane = 2642.f;
+
+  // z difference between reference plane and end of SciFi
+  constexpr float zReferenceEndTDiff = SciFi::Constants::ZEndT - SciFi::Tracking::zReference;
 
   // combinatorics cut-offs, to be tuned!!
   // max # of quadruplets per veloUT input track

@@ -22,6 +22,4 @@ ALGORITHM(
     dev_scifi_lf_x_filtered_tracks,
     dev_scifi_lf_x_filtered_atomics,
     dev_scifi_lf_length_filtered_tracks,
-    dev_scifi_lf_length_filtered_atomics,
-    dev_atomics_scifi,
-    dev_scifi_tracks))
+    dev_scifi_lf_length_filtered_atomics))
