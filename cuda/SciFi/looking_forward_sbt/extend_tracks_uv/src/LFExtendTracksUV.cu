@@ -79,5 +79,4 @@ __global__ void lf_extend_tracks_uv(
         2.5f * dev_looking_forward_constants->chi2_extrapolation_uv_stddev[relative_extrapolation_layer]);
     }
   }
-
 }

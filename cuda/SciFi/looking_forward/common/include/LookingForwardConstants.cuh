@@ -1,6 +1,8 @@
 #pragma once
 
 #include "SystemOfUnits.h"
+#include "SciFiDefinitions.cuh"
+
 #include <cstdint>
 
 namespace LookingForward {
@@ -51,14 +53,12 @@ namespace LookingForward {
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 32;
-  constexpr int maximum_number_of_candidates_flagged = 32;
   constexpr int maximum_number_of_candidates_per_ut_track = 32 * 2;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 32;
+  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 32 * 2;
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.1f;
   constexpr int track_min_hits = 9;
   constexpr float filter_x_max_chi2 = 1.f;
-  constexpr int filter_x_max_number_of_tracks = 1000;
 
   // cut on the difference between tx from the extrapolation and
   // tx from the hits in the two x layers
@@ -90,6 +90,9 @@ namespace LookingForward {
   constexpr float dx_x_T2_T3_slope = 6.e6f;
 
   constexpr float z_last_UT_plane = 2642.f;
+
+  // z difference between reference plane and end of SciFi
+  constexpr float zReferenceEndTDiff = SciFi::Constants::ZEndT - SciFi::Tracking::zReference;
 
   // combinatorics cut-offs, to be tuned!!
   // max # of quadruplets per veloUT input track

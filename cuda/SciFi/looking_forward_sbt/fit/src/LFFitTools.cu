@@ -2,6 +2,22 @@
 #include <cmath>
 #include <cstdlib>
 
+__device__ float LookingForward::x_at_end_scifi(const float* trackParams) {
+  return trackParams[0] + LookingForward::zReferenceEndTDiff * (trackParams[1] + LookingForward::zReferenceEndTDiff * (trackParams[2] + LookingForward::zReferenceEndTDiff * trackParams[3]));
+}
+
+__device__ float LookingForward::y_at_end_scifi(const float* trackParams) {
+  return trackParams[4] + LookingForward::zReferenceEndTDiff * (trackParams[5] + LookingForward::zReferenceEndTDiff * trackParams[6]);
+}
+
+__device__ float LookingForward::tx_at_end_scifi(const float* trackParams) {
+  return trackParams[1] + LookingForward::zReferenceEndTDiff * (2.f * trackParams[2] + 3.f * LookingForward::zReferenceEndTDiff * trackParams[3]);
+}
+
+__device__ float LookingForward::ty_at_end_scifi(const float* trackParams) {
+  return trackParams[5] + LookingForward::zReferenceEndTDiff * 2.f * trackParams[6];
+}
+
 __device__ float LookingForward::linear_parameterization(
   const float p0,
   const float p1,

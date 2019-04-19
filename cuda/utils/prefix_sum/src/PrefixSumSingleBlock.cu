@@ -192,13 +192,17 @@ copy_ut_track_hit_number(const UT::TrackHits* dev_veloUT_tracks, int* dev_atomic
  * @brief Copies SciFi track hit numbers to a consecutive container.
  */
 __global__ void copy_scifi_track_hit_number(
+  const int* dev_atomics_ut,
   const SciFi::TrackHits* dev_scifi_tracks,
   int* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const SciFi::TrackHits* event_tracks = dev_scifi_tracks + event_number * SciFi::Constants::max_tracks;
+
+  const uint ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
+
+  const SciFi::TrackHits* event_tracks = dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
   const int accumulated_tracks = dev_n_scifi_tracks[number_of_events + event_number];
   const int number_of_tracks = dev_n_scifi_tracks[event_number];
 

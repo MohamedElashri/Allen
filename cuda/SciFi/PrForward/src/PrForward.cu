@@ -149,9 +149,10 @@ __global__ void scifi_pr_forward(
                                       event_number,
                                       number_of_events};
   const int n_veloUT_tracks_event = ut_tracks.number_of_tracks(event_number);
+  const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
 
   // SciFi un-consolidated track types
-  SciFi::TrackHits* scifi_tracks_event = dev_scifi_tracks + event_number * SciFi::Constants::max_tracks;
+  SciFi::TrackHits* scifi_tracks_event = dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
   int* atomics_scifi_event = dev_atomics_scifi + event_number;
 
   // SciFi hits
@@ -183,6 +184,7 @@ __global__ void scifi_pr_forward(
         i_veloUT_track,
         scifi_tracks_event,
         (uint*) atomics_scifi_event,
+        n_veloUT_tracks_event,
         dev_tmva1,
         dev_tmva2,
         dev_constArrays,
