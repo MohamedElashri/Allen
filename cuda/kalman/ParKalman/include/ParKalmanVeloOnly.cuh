@@ -75,7 +75,7 @@ __device__ void simplified_fit(
   const KalmanParametrizations* kalman_params,
   FittedTrack& track);
 
-__global__ void VeloFilter(
+__global__ void velo_filter(
   int* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
@@ -96,7 +96,7 @@ __global__ void VeloFilter(
   const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
 
 ALGORITHM(
-  VeloFilter,
+  velo_filter,
   kalman_velo_only_t,
   ARGUMENTS(
     dev_atomics_velo,

@@ -287,7 +287,7 @@ __device__ void simplified_fit(
   track.nhits = n_velo_hits;
 }
   
-__global__ void VeloFilter(
+__global__ void velo_filter(
   int* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
