@@ -33,5 +33,4 @@ ALGORITHM(
     dev_zpeaks,
     dev_number_of_zpeaks,
     dev_multi_fit_vertices,
-    dev_number_of_multi_fit_vertices,
-    dev_beamline))
+    dev_number_of_multi_fit_vertices))
