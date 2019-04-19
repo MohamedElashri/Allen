@@ -35,7 +35,8 @@ void printUsage(char* argv[])
             << " -m {reserve Megabytes}=1024" << std::endl
             << " -v {verbosity}=3 (info)" << std::endl
             << " -p {print memory usage}=0" << std::endl
-            << " -i {import forward tracks dumped from Brunel}" << std::endl
+            << " -i {Import forward tracks dumped from Brunel}" << std::endl
+            << " --device {select cuda device to use}=0" << std::endl
             << " --cpu-offload {offload part of the computation to CPU}=0" << std::endl;
 }
 
@@ -54,7 +55,21 @@ int main(int argc, char* argv[])
   /* getopt_long stores the option index here. */
   int option_index = 0;
 
-  std::map<std::string, std::string> options;
+  // Options set to defaults
+  std::map<std::string, std::string> options{{"f", "../input/minbias/"},
+                                             {"g", "../input/detector_configuration/"},
+                                             {"i", ""},
+                                             {"n", "0"},
+                                             {"o", "0"},
+                                             {"t", "1"},
+                                             {"mdf", "0"},
+                                             {"cpu-offload", "1"},
+                                             {"r", "1"},
+                                             {"c", "1"},
+                                             {"m", "1024"},
+                                             {"v", "3"},
+                                             {"p", "0"},
+                                             {"device", "0"}};
 
   signed char c;
   while ((c = getopt_long(argc, argv, "f:i:n:o:t:r:phd:v:c:m:g:", long_options, &option_index)) != -1) {
@@ -83,9 +98,12 @@ int main(int argc, char* argv[])
     case 'v':
     case 'p':
       options[std::string{c}] = optarg;
+      break;
     case '?':
     case 'h':
-    default: printUsage(argv); return -1;
+    default:
+      printUsage(argv);
+      return -1;
     }
   }
   options["mdf"] = std::to_string(use_mdf);
