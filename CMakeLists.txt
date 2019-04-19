@@ -142,6 +142,7 @@ add_subdirectory(x86/muon/decoding)
 add_subdirectory(x86/utils)
 add_subdirectory(x86/global_event_cut)
 add_subdirectory(mdf)
+add_subdirectory(integration)
 
 # Include directories
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -198,6 +199,7 @@ include_directories(x86/SciFi/MomentumForward/include)
 include_directories(cuda/UT/UTDecoding/include)
 include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
+include_directories(integration/non_event_data/include)
 
 file(GLOB common_sources "main/src/*")
 
@@ -223,7 +225,7 @@ target_link_libraries(AllenLib PUBLIC
   CheckClustering
   x86MuonDecoding
   Common
-)
+  NonEventData)
 set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
 
 # Main executable

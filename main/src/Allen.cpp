@@ -33,8 +33,24 @@
 #include "Constants.cuh"
 #include "MuonDefinitions.cuh"
 #include "MuonRawToHitsDecoding.h"
+#include "Consumers.h"
 
-int allen(map<string, string> options) {
+#include "IUpdater.h"
+
+void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants) {
+  tuple consumers{tuple{Allen::NonEventData::UTBoards{}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)},
+                  tuple{Allen::NonEventData::UTLookupTables{}, std::make_unique<Consumers::UTTable>(constants.dev_ut_magnet_tool)},
+                  tuple{Allen::NonEventData::UTGeometry{}, std::make_unique<Consumers::UTGeometry>(constants)},
+                  tuple{Allen::NonEventData::SciFiGeometry{}, std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)},
+                  tuple{Allen::NonEventData::VeloGeometry{}, std::make_unique<Consumers::RawGeometry>(constants.dev_velo_geometry)}};
+
+  for_each(consumers, [updater, &constants] (auto& c) {
+                        using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
+                        updater->registerConsumer<id_t>(std::move(std::get<1>(c)));
+                      });
+}
+
+int allen(map<string, string> options, Allen::NonEventData::IUpdater* updater) {
 
   // Folder containing raw, MC and muon information
   std::string folder_data = "../input/minbias/";
@@ -173,8 +189,6 @@ int allen(map<string, string> options) {
   const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
   const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
   const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
-  const auto geometry_reader = GeometryReader(folder_detector_configuration);
-  const auto ut_magnet_tool_reader = UTMagnetToolReader(folder_detector_configuration);
 
   std::unique_ptr<EventReader> event_reader;
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
@@ -190,11 +204,6 @@ int allen(map<string, string> options) {
                                                              {BankTypes::MUON, folder_name_Muon_raw}}});
   }
 
-  const auto velo_geometry = geometry_reader.read_geometry("velo_geometry.bin");
-  const auto ut_boards = geometry_reader.read_geometry("ut_boards.bin");
-  const auto ut_geometry = geometry_reader.read_geometry("ut_geometry.bin");
-  const auto ut_magnet_tool = ut_magnet_tool_reader.read_UT_magnet_tool();
-  const auto scifi_geometry = geometry_reader.read_geometry("scifi_geometry.bin");
   event_reader->read_events(number_of_events_requested, start_event_offset);
 
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
@@ -218,8 +227,6 @@ int allen(map<string, string> options) {
   // Initialize detector constants on GPU
   Constants constants;
   constants.reserve_and_initialize(muon_field_of_interest_params, folder_detector_configuration + "params_kalman/FT6x2/");
-  constants.initialize_ut_decoding_constants(ut_geometry);
-  constants.initialize_geometry_constants(velo_geometry, ut_boards, ut_geometry, ut_magnet_tool, scifi_geometry);
   constants.initialize_muon_catboost_model_constants(
     muon_catboost_model_reader->n_trees(),
     muon_catboost_model_reader->tree_depths(),
@@ -228,6 +235,12 @@ int allen(map<string, string> options) {
     muon_catboost_model_reader->leaf_offsets(),
     muon_catboost_model_reader->split_border(),
     muon_catboost_model_reader->split_feature());
+
+  // Register all consumers
+  register_consumers(updater, constants);
+
+  // Run all registered produces and consumers
+  updater->update(0);
 
   // Create streams
   StreamWrapper stream_wrapper;

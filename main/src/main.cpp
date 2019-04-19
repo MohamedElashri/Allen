@@ -20,6 +20,7 @@
 #include <getopt.h>
 
 #include <Allen.h>
+#include <Updater.h>
 
 void printUsage(char* argv[])
 {
@@ -108,5 +109,7 @@ int main(int argc, char* argv[])
   }
   options["mdf"] = std::to_string(use_mdf);
 
-  return allen(std::move(options));
+  Allen::NonEventData::Updater updater{options};
+
+  return allen(std::move(options), &updater);
 }

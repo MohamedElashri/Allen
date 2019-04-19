@@ -8,6 +8,7 @@
 #include <numeric>
 #include <cmath>
 
+#include <IUpdater.h>
 #include <Allen.h>
 
 namespace {
@@ -16,9 +17,9 @@ namespace {
   using std::string;
 }
 
-inline int run(std::map<std::string, std::string> options)
+inline int run(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater)
 {
-  return allen(options);
+  return allen(options, updater);
 }
 
 // Python Module and Docstrings
@@ -34,6 +35,8 @@ PYBIND11_MODULE(PyAllen, m)
 
            PyAllen
     )pbdoc";
+
+    py::class_<Allen::NonEventData::IUpdater>{m, "INonEventDataUpdater"};
 
     m.def("run", &run,
           py::call_guard<py::scoped_ostream_redirect,
