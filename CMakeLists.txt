@@ -1,6 +1,21 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
+# Workaround 1/2 for shared cuda runtime
+set(CMAKE_CUDA_FLAGS "" CACHE STRING "")
+if (CMAKE_CUDA_FLAGS)
+	list(REMOVE_ITEM CMAKE_CUDA_FLAGS "-cudart static")
+endif()
+string(APPEND CMAKE_CUDA_FLAGS "-cudart shared")
+
 project(Allen C CXX CUDA)
+
+# Workaround 2/2 for shared cuda runtime
+if (CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
+  list(REMOVE_ITEM CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudart_static")
+endif()
+if (CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
+  list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static" )
+endif()
 
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
@@ -201,7 +216,7 @@ set_property(TARGET Common PROPERTY
 
 # Library containing all the code
 add_library(AllenLib SHARED ${Allen_cpp_path})
-target_link_libraries(AllenLib PRIVATE
+target_link_libraries(AllenLib PUBLIC
   Stream
   TrackChecking
   PVChecking
