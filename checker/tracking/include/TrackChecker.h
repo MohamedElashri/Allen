@@ -23,21 +23,30 @@
 #include "CheckerTypes.h"
 #include "MCEvent.h"
 
-#ifdef WITH_ROOT
-#include "TDirectory.h"
-#include "TFile.h"
-#include "TH1D.h"
-#include "TH2D.h"
-#endif
+#include "ROOTHeaders.h"
 
-class TrackChecker {
-protected:
-  bool m_print = false;
+struct TrackCheckerHistos;
 
+namespace Checker {
   using AcceptFn = std::function<bool(MCParticles::const_reference&)>;
-  struct TrackEffReport {
+
+  struct HistoCategory {
     std::string m_name;
     AcceptFn m_accept;
+
+    /// construction from name and accept criterion for eff. denom.
+    template<typename F>
+    HistoCategory(const std::string& name, const F& accept) : m_name(name), m_accept(accept)
+    {}
+    /// construction from name and accept criterion for eff. denom.
+    template<typename F>
+    HistoCategory(std::string&& name, F&& accept) : m_name(std::move(name)), m_accept(std::move(accept))
+    {}
+  };
+
+  struct TrackEffReport {
+    std::string m_name;
+    Checker::AcceptFn m_accept;
     std::size_t m_naccept = 0;
     std::size_t m_nfound = 0;
     std::size_t m_nacceptperevt = 0;
@@ -85,62 +94,16 @@ protected:
     /// free resources, and print result
     ~TrackEffReport();
   };
+}
 
-  struct HistoCategory {
-    std::string m_name;
-    AcceptFn m_accept;
+class TrackChecker {
+protected:
+  bool m_print = false;
 
-    /// construction from name and accept criterion for eff. denom.
-    template<typename F>
-    HistoCategory(const std::string& name, const F& accept) : m_name(name), m_accept(accept)
-    {}
-    /// construction from name and accept criterion for eff. denom.
-    template<typename F>
-    HistoCategory(std::string&& name, F&& accept) : m_name(std::move(name)), m_accept(std::move(accept))
-    {}
-  };
-
-  std::vector<TrackEffReport> m_categories;
-  std::vector<HistoCategory> m_histo_categories;
+  std::vector<Checker::TrackEffReport> m_categories;
+  std::vector<Checker::HistoCategory> m_histo_categories;
   std::string m_trackerName = "";
-
-  struct Histos {
-#ifdef WITH_ROOT
-    std::map<std::string, TH1D*> h_reconstructible_eta;
-    std::map<std::string, TH1D*> h_reconstructible_p;
-    std::map<std::string, TH1D*> h_reconstructible_pt;
-    std::map<std::string, TH1D*> h_reconstructible_phi;
-    std::map<std::string, TH1D*> h_reconstructible_nPV;
-    std::map<std::string, TH1D*> h_reconstructed_eta;
-    std::map<std::string, TH1D*> h_reconstructed_p;
-    std::map<std::string, TH1D*> h_reconstructed_pt;
-    std::map<std::string, TH1D*> h_reconstructed_phi;
-    std::map<std::string, TH1D*> h_reconstructed_nPV;
-
-    TH1D* h_ghost_nPV;
-    TH1D* h_total_nPV;
-    TH2D* h_dp_versus_p;
-    TH2D* h_momentum_resolution;
-    TH2D* h_qop_resolution;
-    TH2D* h_dqop_versus_qop;
-    TH1D* h_momentum_matched;
-    TH1D* h_muon_catboost_output_matched_muon;
-    TH1D* h_muon_catboost_output_matched_notMuon;
-    TH1D* h_muon_catboost_output_matched_muon_ismuon_true;
-    TH1D* h_muon_catboost_output_matched_notMuon_ismuon_true;
-    TH1D* h_is_muon_matched_muon;
-    TH1D* h_is_muon_matched_notMuon;
-#endif
-    void initHistos(const std::vector<HistoCategory>& histo_categories);
-    void fillReconstructibleHistos(const MCParticles& mcps, const HistoCategory& category);
-    void fillReconstructedHistos(const MCParticle& mcp, HistoCategory& category);
-    void fillTotalHistos(const MCParticle& mcp);
-    void fillGhostHistos(const MCParticle& mcp);
-    void fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop);
-    void fillMuonIDHistos(const Checker::Track& track);
-    void fillMuonIDMatchedHistos(const Checker::Track& track, const MCParticle& mcp);
-    void deleteHistos(const std::vector<HistoCategory>& histo_categories);
-  };
+  bool m_create_file = false;
 
   const float m_minweight = 0.7f;
   std::size_t m_nevents = 0;
@@ -151,17 +114,16 @@ protected:
   std::size_t m_ntrackstrigger = 0;
   std::size_t m_nghoststrigger = 0;
 
-  virtual void SetHistoCategories() = 0;
-  virtual void SetCategories() = 0;
-
 public:
-  TrackChecker() {};
+  TrackChecker(std::string name, std::vector<Checker::TrackEffReport> categories,
+               std::vector<Checker::HistoCategory> histo_categories, bool create_file,
+               bool print = false);
   ~TrackChecker();
   std::vector<uint32_t> operator()(
     const Checker::Tracks& tracks,
     const MCEvent& mc_event,
     const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
-  const std::vector<HistoCategory>& histo_categories() const { return m_histo_categories; }
+  const std::vector<Checker::HistoCategory>& histo_categories() const { return m_histo_categories; }
   bool match_track_to_MCPs(
     MCAssociator mc_assoc,
     const Checker::Tracks& tracks,
@@ -169,45 +131,21 @@ public:
     std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table,
     uint32_t& track_best_matched_MCP);
 
-  Histos histos;
+  TrackCheckerHistos* histos = nullptr;
 };
 
 struct TrackCheckerVelo : public TrackChecker {
   using subdetector_t = Checker::Subdetector::Velo;
-
-  void SetCategories();
-  void SetHistoCategories();
-  TrackCheckerVelo()
-  {
-    SetCategories();
-    SetHistoCategories();
-    m_trackerName = "Velo";
-  };
+  TrackCheckerVelo(bool cf);
 };
 
 struct TrackCheckerVeloUT : public TrackChecker {
   using subdetector_t = Checker::Subdetector::UT;
-
-  void SetCategories();
-  void SetHistoCategories();
-  TrackCheckerVeloUT()
-  {
-    SetCategories();
-    SetHistoCategories();
-    m_trackerName = "VeloUT";
-  };
+  TrackCheckerVeloUT(bool cf);
 };
 
 struct TrackCheckerForward : public TrackChecker {
   using subdetector_t = Checker::Subdetector::SciFi;
+  TrackCheckerForward(bool cf);
 
-  void SetCategories();
-  void SetHistoCategories();
-  TrackCheckerForward()
-  {
-    m_print = true;
-    SetCategories();
-    SetHistoCategories();
-    m_trackerName = "Forward";
-  };
 };

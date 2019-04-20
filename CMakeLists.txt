@@ -101,9 +101,22 @@ if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
    else() # ROOT was compiled with configure/make
      list(APPEND CMAKE_MODULE_PATH $ENV{ROOTSYS}/etc/cmake)
    endif()
-   find_package( ROOT )
+   find_package(ROOT QUIET COMPONENTS Core Hist Tree)
    if ( ROOT_FOUND )
       message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
+
+      # If ROOT is built with C++17 support, everything that includes ROOT
+      # headers must be built with C++17 support. CUDA doesn't support
+      # that, so we have to factor that out.
+      execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
+      string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
+      message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
+      if (${ROOT_HAS_CXX17} STREQUAL "yes")
+        set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
+      else()
+        set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
+      endif()
+
     else()
       message(STATUS "Compiling without ROOT")
    endif()
@@ -228,6 +241,12 @@ target_link_libraries(AllenLib PUBLIC
   NonEventData)
 set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
 
+if (ROOT_FOUND)
+  target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
+  target_link_libraries(AllenLib PUBLIC -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist)
+endif()
+
+
 # Main executable
 add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
@@ -238,11 +257,6 @@ if(ENABLE_PYTHON)
   add_subdirectory(bindings)
 else()
   message(STATUS "Not building Python entry point")
-endif()
-
-if (ROOT_FOUND)
-  target_compile_definitions(Allen PUBLIC WITH_ROOT)
-  target_link_libraries(Allen PRIVATE ${ROOT_LIBRARIES})
 endif()
 
 option(BUILD_TESTS "Build test programs" OFF)

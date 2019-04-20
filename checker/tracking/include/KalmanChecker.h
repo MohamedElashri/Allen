@@ -9,11 +9,6 @@
 #include "MCEvent.h"
 #include "CheckerTypes.h"
 
-#ifdef WITH_ROOT
-#include "TTree.h"
-#include "TFile.h"
-#endif
-
 void checkKalmanTracks(
   const uint start_event_offset,
   const std::vector<Checker::Tracks>& tracks,

@@ -20,6 +20,26 @@
 #include <cstdio>
 
 #include "TrackChecker.h"
+#include "TrackCheckerHistos.h"
+#include "TrackCheckerCategories.h"
+
+namespace {
+  using Checker::HistoCategory;
+}
+
+TrackChecker::TrackChecker(std::string name, std::vector<Checker::TrackEffReport> categories,
+                           std::vector<Checker::HistoCategory> histo_categories, bool create_file,
+                           bool print)
+  : m_print{print},
+    m_categories{std::move(categories)},
+    m_histo_categories{std::move(histo_categories)},
+    m_trackerName{std::move(name)},
+    m_create_file{create_file}
+{
+  // Need to use a forward declaration to keep all ROOT objects out of
+  // headers that are compiled with CUDA
+  histos = new TrackCheckerHistos{m_histo_categories};
+}
 
 TrackChecker::~TrackChecker()
 {
@@ -43,58 +63,27 @@ TrackChecker::~TrackChecker()
   // write histograms to file
 #ifdef WITH_ROOT
   const std::string name = "../output/PrCheckerPlots.root";
-  TFile* f = new TFile(name.c_str(), "UPDATE");
+  TFile f{name.c_str(), (m_create_file ? "RECREATE" : "UPDATE")};
   std::string dirName = m_trackerName;
   if (m_trackerName == "VeloUT") dirName = "Upstream";
-  TDirectory* trackerDir = f->mkdir(dirName.c_str());
+  TDirectory* trackerDir = f.mkdir(dirName.c_str());
   trackerDir->cd();
-  histos.h_dp_versus_p->Write();
-  histos.h_momentum_resolution->Write();
-  histos.h_qop_resolution->Write();
-  histos.h_dqop_versus_qop->Write();
-  histos.h_momentum_matched->Write();
-  for (auto histo : histos.h_reconstructible_eta)
-    histo.second->Write();
-  for (auto histo : histos.h_reconstructible_p)
-    histo.second->Write();
-  for (auto histo : histos.h_reconstructible_pt)
-    histo.second->Write();
-  for (auto histo : histos.h_reconstructible_phi)
-    histo.second->Write();
-  for (auto histo : histos.h_reconstructible_nPV)
-    histo.second->Write();
-  for (auto histo : histos.h_reconstructed_eta)
-    histo.second->Write();
-  for (auto histo : histos.h_reconstructed_p)
-    histo.second->Write();
-  for (auto histo : histos.h_reconstructed_pt)
-    histo.second->Write();
-  for (auto histo : histos.h_reconstructed_phi)
-    histo.second->Write();
-  for (auto histo : histos.h_reconstructed_nPV)
-    histo.second->Write();
-  histos.h_ghost_nPV->Write();
-  histos.h_total_nPV->Write();
-  histos.h_muon_catboost_output_matched_muon->Write();
-  histos.h_muon_catboost_output_matched_notMuon->Write();
-  histos.h_muon_catboost_output_matched_muon_ismuon_true->Write();
-  histos.h_muon_catboost_output_matched_notMuon_ismuon_true->Write();
-  histos.h_is_muon_matched_muon->Write();
-  histos.h_is_muon_matched_notMuon->Write();
 
-  f->Write();
-  f->Close();
+  histos->write(trackerDir);
 
-  histos.deleteHistos(m_histo_categories);
+  f.Write();
+  f.Close();
+
+  delete histos;
 #endif
 }
 
-void TrackChecker::TrackEffReport::event_start() {
+void Checker::TrackEffReport::event_start() {
   m_naccept_per_event = 0;
   m_nfound_per_event = 0;
 }
 
-void TrackChecker::TrackEffReport::event_done() {
+void Checker::TrackEffReport::event_done() {
   if (m_naccept_per_event) {
     m_number_of_events++;
     const float eff = float(m_nfound_per_event) / float(m_naccept_per_event);
@@ -102,7 +91,7 @@ void TrackChecker::TrackEffReport::event_done() {
   }
 }
 
-void TrackChecker::TrackEffReport::operator()(const MCParticles& mcps)
+void Checker::TrackEffReport::operator()(const MCParticles& mcps)
 {
   // find number of MCPs within category
   for (auto mcp : mcps) {
@@ -113,7 +102,7 @@ void TrackChecker::TrackEffReport::operator()(const MCParticles& mcps)
   }
 }
 
-void TrackChecker::TrackEffReport::operator()(
+void Checker::TrackEffReport::operator()(
   const std::vector<MCAssociator::TrackWithWeight> tracks,
   MCParticles::const_reference& mcp,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector)
@@ -141,7 +130,7 @@ void TrackChecker::TrackEffReport::operator()(
   }
 }
 
-TrackChecker::TrackEffReport::~TrackEffReport()
+Checker::TrackEffReport::~TrackEffReport()
 {
   auto clonerate = 0.f, eff = 0.f, eff_per_event = 0.f;
 
@@ -164,196 +153,6 @@ TrackChecker::TrackEffReport::~TrackEffReport()
       100.f * m_hitpur,
       100.f * m_hiteff);
   }
-}
-
-void TrackChecker::Histos::initHistos(const std::vector<HistoCategory>& histo_categories)
-{
-#ifdef WITH_ROOT
-  // histos for efficiency
-  for (auto histoCat : histo_categories) {
-    const std::string& category = histoCat.m_name;
-    std::string name = category + "_Eta_reconstructible";
-    if (category.find("eta25") != std::string::npos) {
-      h_reconstructible_eta[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 7.);
-      name = category + "_Eta_reconstructed";
-      h_reconstructed_eta[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 7.);
-    }
-    else {
-      h_reconstructible_eta[name] = new TH1D(name.c_str(), name.c_str(), 100, -7., 7.);
-      name = category + "_Eta_reconstructed";
-      h_reconstructed_eta[name] = new TH1D(name.c_str(), name.c_str(), 100, -7., 7.);
-    }
-    name = category + "_P_reconstructible";
-    h_reconstructible_p[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 100000.);
-    name = category + "_Pt_reconstructible";
-    h_reconstructible_pt[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 5000.);
-    name = category + "_Phi_reconstructible";
-    h_reconstructible_phi[name] = new TH1D(name.c_str(), name.c_str(), 25, -3.142, 3.142);
-    name = category + "_nPV_reconstructible";
-    h_reconstructible_nPV[name] = new TH1D(name.c_str(), name.c_str(), 21, -0.5, 20.5);
-    name = category + "_P_reconstructed";
-    h_reconstructed_p[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 100000.);
-    name = category + "_Pt_reconstructed";
-    h_reconstructed_pt[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 5000.);
-    name = category + "_Phi_reconstructed";
-    h_reconstructed_phi[name] = new TH1D(name.c_str(), name.c_str(), 25, -3.142, 3.142);
-    name = category + "_nPV_reconstructed";
-    h_reconstructed_nPV[name] = new TH1D(name.c_str(), name.c_str(), 21, -0.5, 20.5);
-  }
-
-  // histos for ghost rate
-  h_ghost_nPV = new TH1D("nPV_Ghosts", "nPV_Ghosts", 21, -0.5, 20.5);
-  h_total_nPV = new TH1D("nPV_Total", "nPV_Total", 21, -0.5, 20.5);
-
-  // histo for momentum resolution
-  h_momentum_resolution = new TH2D("momentum_resolution", "momentum resolution", 10, 0, 100000., 1000, -5., 5.);
-  h_qop_resolution = new TH2D("qop_resolution", "qop resolution", 10, -0.2e-3, 0.2e-3, 1000, -5., 5.);
-  h_dqop_versus_qop = new TH2D("dqop_vs_qop", "dqop vs. qop", 100, -0.2e-3, 0.2e-3, 100, -0.05e-3, 0.05e-3);
-  h_dp_versus_p = new TH2D("dp_vs_p", "dp vs. p", 100, 0, 100000., 1000, -10000., 10000.);
-  h_momentum_matched = new TH1D("p_matched", "p, matched", 100, 0, 100000.);
-
-  // histo for muon ID
-  h_muon_catboost_output_matched_muon =
-    new TH1D("muon_catboost_output_matched_muon", "muon_catboost_output_matched_muon", 200, -5., 5.);
-  h_muon_catboost_output_matched_notMuon =
-    new TH1D("muon_catboost_output_matched_notMuon", "muon_catboost_output_matched_notMuon", 200, -5., 5.);
-  h_muon_catboost_output_matched_muon_ismuon_true = new TH1D(
-    "muon_catboost_output_matched_muon_ismuon_true", "muon_catboost_output_matched_muon_ismuon_true", 200, -5., 5.);
-  h_muon_catboost_output_matched_notMuon_ismuon_true = new TH1D(
-    "muon_catboost_output_matched_notMuon_ismuon_true",
-    "muon_catboost_output_matched_notMuon_ismuon_true",
-    200,
-    -5.,
-    5.);
-  h_is_muon_matched_muon = new TH1D("is_muon_matched_muon", "is_muon_matched_muon", 2, -0.5, 1.5);
-  h_is_muon_matched_notMuon = new TH1D("is_muon_matched_notMuon", "is_muon_catboost_matched_notMuon", 2, -0.5, 1.5);
-#endif
-}
-
-void TrackChecker::Histos::deleteHistos(const std::vector<HistoCategory>& histo_categories)
-{
-#ifdef WITH_ROOT
-  for (auto histoCat : histo_categories) {
-    const std::string& category = histoCat.m_name;
-    std::string name = category + "_Eta_reconstructible";
-    delete h_reconstructible_eta[name];
-    name = category + "_Eta_reconstructed";
-    delete h_reconstructed_eta[name];
-    name = category + "_P_reconstructible";
-    delete h_reconstructible_p[name];
-    name = category + "_Pt_reconstructible";
-    delete h_reconstructible_pt[name];
-    name = category + "_Phi_reconstructible";
-    delete h_reconstructible_phi[name];
-    name = category + "_nPV_reconstructible";
-    delete h_reconstructible_nPV[name];
-    name = category + "_P_reconstructed";
-    delete h_reconstructed_p[name];
-    name = category + "_Pt_reconstructed";
-    delete h_reconstructed_pt[name];
-    name = category + "_Phi_reconstructed";
-    delete h_reconstructed_phi[name];
-    name = category + "_nPV_reconstructed";
-    delete h_reconstructed_nPV[name];
-  }
-  delete h_ghost_nPV;
-  delete h_total_nPV;
-  delete h_dp_versus_p;
-  delete h_momentum_resolution;
-  delete h_qop_resolution;
-  delete h_dqop_versus_qop;
-  delete h_momentum_matched;
-  delete h_muon_catboost_output_matched_muon;
-  delete h_muon_catboost_output_matched_notMuon;
-  delete h_muon_catboost_output_matched_muon_ismuon_true;
-  delete h_muon_catboost_output_matched_notMuon_ismuon_true;
-  delete h_is_muon_matched_muon;
-  delete h_is_muon_matched_notMuon;
-#endif
-}
-
-void TrackChecker::Histos::fillReconstructibleHistos(const MCParticles& mcps, const HistoCategory& category)
-{
-#ifdef WITH_ROOT
-  const std::string eta_name = category.m_name + "_Eta_reconstructible";
-  const std::string p_name = category.m_name + "_P_reconstructible";
-  const std::string pt_name = category.m_name + "_Pt_reconstructible";
-  const std::string phi_name = category.m_name + "_Phi_reconstructible";
-  const std::string nPV_name = category.m_name + "_nPV_reconstructible";
-  for (auto mcp : mcps) {
-    if (category.m_accept(mcp)) {
-      h_reconstructible_eta[eta_name]->Fill(mcp.eta);
-      h_reconstructible_p[p_name]->Fill(mcp.p);
-      h_reconstructible_pt[pt_name]->Fill(mcp.pt);
-      h_reconstructible_phi[phi_name]->Fill(mcp.phi);
-      h_reconstructible_nPV[nPV_name]->Fill(mcp.nPV);
-    }
-  }
-#endif
-}
-
-void TrackChecker::Histos::fillReconstructedHistos(const MCParticle& mcp, HistoCategory& category)
-{
-#ifdef WITH_ROOT
-  if (!(category.m_accept(mcp))) return;
-
-  const std::string eta_name = category.m_name + "_Eta_reconstructed";
-  const std::string p_name = category.m_name + "_P_reconstructed";
-  const std::string pt_name = category.m_name + "_Pt_reconstructed";
-  const std::string phi_name = category.m_name + "_Phi_reconstructed";
-  const std::string nPV_name = category.m_name + "_nPV_reconstructed";
-  h_reconstructed_eta[eta_name]->Fill(mcp.eta);
-  h_reconstructed_p[p_name]->Fill(mcp.p);
-  h_reconstructed_pt[pt_name]->Fill(mcp.pt);
-  h_reconstructed_phi[phi_name]->Fill(mcp.phi);
-  h_reconstructed_nPV[nPV_name]->Fill(mcp.nPV);
-#endif
-}
-
-void TrackChecker::Histos::fillTotalHistos(const MCParticle& mcp)
-{
-#ifdef WITH_ROOT
-  h_total_nPV->Fill(mcp.nPV);
-#endif
-}
-
-void TrackChecker::Histos::fillGhostHistos(const MCParticle& mcp)
-{
-#ifdef WITH_ROOT
-  h_ghost_nPV->Fill(mcp.nPV);
-#endif
-}
-
-void TrackChecker::Histos::fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop)
-{
-#ifdef WITH_ROOT
-  float mc_qop = mcp.charge / mcp.p;
-  h_dp_versus_p->Fill(mcp.p, (mcp.p - p));
-  h_momentum_resolution->Fill(mcp.p, (mcp.p - p) / mcp.p);
-  h_qop_resolution->Fill(mc_qop, (mc_qop - qop) / mc_qop);
-  h_dqop_versus_qop->Fill(mc_qop, mc_qop - qop);
-  h_momentum_matched->Fill(mcp.p);
-#endif
-}
-
-void TrackChecker::Histos::fillMuonIDMatchedHistos(const Checker::Track& track, const MCParticle& mcp)
-{
-#ifdef WITH_ROOT
-  if (std::abs(mcp.pid) == 13) {
-    h_muon_catboost_output_matched_muon->Fill(track.muon_catboost_output);
-    h_is_muon_matched_muon->Fill(track.is_muon);
-    if (track.is_muon == true) {
-      h_muon_catboost_output_matched_muon_ismuon_true->Fill(track.muon_catboost_output);
-    }
-  }
-  else {
-    h_muon_catboost_output_matched_notMuon->Fill(track.muon_catboost_output);
-    h_is_muon_matched_notMuon->Fill(track.is_muon);
-    if (track.is_muon == true) {
-      h_muon_catboost_output_matched_notMuon_ismuon_true->Fill(track.muon_catboost_output);
-    }
-  }
-#endif
 }
 
 bool TrackChecker::match_track_to_MCPs(
@@ -498,7 +297,7 @@ std::vector<uint32_t> TrackChecker::operator()(
 
   // fill histograms of reconstructible MC particles in various categories
   for (auto& histo_cat : m_histo_categories) {
-    histos.fillReconstructibleHistos(mc_event.m_mcps, histo_cat);
+    histos->fillReconstructibleHistos(mc_event.m_mcps, histo_cat);
   }
 
   MCAssociator mc_assoc {mc_event.m_mcps};
@@ -513,7 +312,7 @@ std::vector<uint32_t> TrackChecker::operator()(
   std::vector<uint32_t> matched_mcp_keys;
   for (int i_track = 0; i_track < tracks.size(); ++i_track) {
     auto track = tracks[i_track];
-    histos.fillTotalHistos(mc_event.m_mcps[0]);
+    histos->fillTotalHistos(mc_event.m_mcps[0]);
 
     uint32_t track_best_matched_MCP;
     bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table, track_best_matched_MCP);
@@ -538,7 +337,7 @@ std::vector<uint32_t> TrackChecker::operator()(
     }
     if (!match) {
       ++nghostsperevt;
-      histos.fillGhostHistos(mc_event.m_mcps[0]);
+      histos->fillGhostHistos(mc_event.m_mcps[0]);
       if (triggerCondition) ++nghoststriggerperevt;
     }
   }
@@ -571,12 +370,12 @@ std::vector<uint32_t> TrackChecker::operator()(
 
     // fill histograms of reconstructible MC particles in various categories
     for (auto& histo_cat : m_histo_categories) {
-      histos.fillReconstructedHistos(mcp, histo_cat);
+      histos->fillReconstructedHistos(mcp, histo_cat);
     }
     // fill histogram of momentum resolution
-    histos.fillMomentumResolutionHisto(mcp, track.p, track.qop);
+    histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
     // fill muon ID histograms
-    histos.fillMuonIDMatchedHistos(track, mcp);
+    histos->fillMuonIDMatchedHistos(track, mcp);
   }
 
   for (auto& report : m_categories) {
@@ -602,3 +401,12 @@ std::vector<uint32_t> TrackChecker::operator()(
 
   return matched_mcp_keys;
 }
+
+TrackCheckerVelo::TrackCheckerVelo(bool cf)
+  : TrackChecker{"Velo", Categories::Velo, Categories::VeloHisto, cf} {}
+
+TrackCheckerVeloUT::TrackCheckerVeloUT(bool cf)
+  : TrackChecker{"VeloUT", Categories::VeloUT, Categories::VeloUTHisto, cf} {}
+
+TrackCheckerForward::TrackCheckerForward(bool cf)
+  : TrackChecker{"Forward", Categories::Forward, Categories::ForwardHisto, cf, true} {}

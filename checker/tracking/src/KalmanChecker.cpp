@@ -1,5 +1,7 @@
 #include <cstdio>
-#include "KalmanChecker.h"
+
+#include <KalmanChecker.h>
+#include <ROOTHeaders.h>
 
 void checkKalmanTracks(
   const uint start_event_offset,

@@ -20,7 +20,4 @@ if(ROOT_FOUND)
   target_include_directories(PVChecking BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
   )
-  target_link_libraries(PVChecking PRIVATE
-    ${ROOT_LIBRARIES}
-  )
 endif()

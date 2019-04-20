@@ -7,12 +7,6 @@
 
 #include <algorithm>
 
-#ifdef WITH_ROOT
-#include "TFile.h"
-#include "TH1D.h"
-#include "TTree.h"
-#endif
-
 // configuration for PV checker -> check values
 static constexpr int nTracksToBeRecble = 4;
 static constexpr float dzIsolated = 10.f; // mm
