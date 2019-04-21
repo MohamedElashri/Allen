@@ -7,7 +7,6 @@
  *      Started development on February, 2018
  *      CERN
  */
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -56,20 +55,13 @@ void printUsage(char* argv[])
 
 int main(int argc, char* argv[])
 {
-  std::string folder_name_raw = "../input/minbias/banks/";
-  std::string folder_name_MC = "../input/minbias/MC_info/";
-  std::string folder_name_detector_configuration = "../input/detector_configuration/";
-  std::string folder_name_muon_common_hits = "../input/minbias/muon_common_hits/";
-  std::string file_name_muon_catboost_model = "../input/muon/muon_catboost_model.json";
-  std::string file_name_muon_table = "../input/muon/muon_table.bin";
-  std::string file_name_muon_geometry = "../input/muon/muon_geometry.bin";
   // Folder containing raw, MC and muon information
   std::string folder_data = "../input/minbias/";
   const std::string folder_rawdata = "banks/";
   // Folder containing detector configuration and catboost model
   std::string folder_detector_configuration = "../input/detector_configuration/";
-  std::string folder_name_imported_forward_tracks = "";
 
+  std::string folder_name_imported_forward_tracks = "";
   uint number_of_events_requested = 0;
   uint start_event_offset = 0;
   uint number_of_threads = 1;
@@ -186,12 +178,12 @@ int main(int argc, char* argv[])
   std::string folder_name_velopix_raw = folder_data + folder_rawdata + "VP";
   number_of_events_requested = get_number_of_events_requested(number_of_events_requested, folder_name_velopix_raw);
 
-  const auto folder_name_UT_raw = folder_name_raw + "UT";
-  const auto folder_name_mdf = folder_name_raw + "mdf";
-  const auto folder_name_SciFi_raw = folder_name_raw + "FTCluster";
-  const auto folder_name_muon_raw = folder_name_raw + "Muon";
-  const auto geometry_reader = GeometryReader(folder_name_detector_configuration);
-  const auto ut_magnet_tool_reader = UTMagnetToolReader(folder_name_detector_configuration);
+  const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
+  const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
+  const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
+  const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
+  const auto geometry_reader = GeometryReader(folder_detector_configuration);
+  const auto ut_magnet_tool_reader = UTMagnetToolReader(folder_detector_configuration);
 
   std::unique_ptr<EventReader> event_reader;
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
@@ -205,7 +197,7 @@ int main(int argc, char* argv[])
     event_reader = std::make_unique<EventReader>(FolderMap {{{BankTypes::VP, folder_name_velopix_raw},
                                                              {BankTypes::UT, folder_name_UT_raw},
                                                              {BankTypes::FT, folder_name_SciFi_raw},
-                                                             {BankTypes::MUON, folder_name_muon_raw}}});
+                                                             {BankTypes::MUON, folder_name_Muon_raw}}});
   }
 
   const auto velo_geometry = geometry_reader.read_geometry("velo_geometry.bin");
@@ -218,16 +210,15 @@ int main(int argc, char* argv[])
   std::vector<char> events;
   std::vector<uint> event_offsets;
   std::vector<Muon::HitsSoA> muon_hits_events(number_of_events_requested);
-
-  info_cout << "start decode\n";
-  decode(event_reader->events(BankTypes::MUON), event_reader->offsets(BankTypes::MUON), muon_hits_events);
-  info_cout << "finish decode\n";
-  muon_catboost_model_reader = std::make_unique<CatboostModelReader>(file_name_muon_catboost_model);
   /*
   read_folder(folder_data + "muon_common_hits/", number_of_events_requested, events, event_offsets, start_event_offset);
   read_muon_events_into_arrays(
     muon_hits_events.data(), events.data(), event_offsets.data(), number_of_events_requested);
   */
+  info_cout << "start decode\n";
+  decode(event_reader->events(BankTypes::MUON), event_reader->offsets(BankTypes::MUON), muon_hits_events);
+  info_cout << "finish decode\n";
+
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");

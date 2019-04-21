@@ -10,6 +10,10 @@ void recalculateNumberOfHitsPerStationAndStationOffsets(Muon::HitsSoA* hitsSoA, 
       currentStation++;
     }
   }
+
+  for (int j = currentStation; j + 1 < Muon::Constants::n_stations; j++) {
+    hitsSoA->station_offsets[j + 1] = totalNumberOfHits;
+  }
   if (initialCurrentStation == currentStation) {
     for (int j = initialCurrentStation; j + 1 < Muon::Constants::n_stations; j++) {
       hitsSoA->station_offsets[j + 1] = totalNumberOfHits;
