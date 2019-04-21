@@ -70,7 +70,7 @@ void SequenceVisitor::check<kalman_velo_only_t>(
     host_buffers.host_scifi_track_ut_indices,
     host_buffers.host_scifi_qop,
     host_buffers.host_scifi_states,
-    constants.host_scifi_geometry,
+    constants.host_scifi_geometry.data(),
     constants.host_inv_clus_res,
     host_buffers.host_kf_tracks,
     host_buffers.host_kalmanvelo_states,
