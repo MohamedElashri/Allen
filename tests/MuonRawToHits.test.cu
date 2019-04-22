@@ -39,7 +39,18 @@ SCENARIO("General case") {
     std::vector<unsigned int> muon_raw_offsets = {static_cast<unsigned int>(0), static_cast<unsigned int>(MUON_RAW_SIZES[i])};
     gsl::span<unsigned int> muon_raw_offsets_span(muon_raw_offsets);
     std::vector<Muon::HitsSoA> actual_vector(1);
-    decode(muon_raw_span, muon_raw_offsets_span, actual_vector, muon_table_raw_input.data(), muon_geometry_raw_input.data());
+
+    MuonTable pad = MuonTable();
+    MuonTable stripX = MuonTable();
+    MuonTable stripY = MuonTable();
+    read_muon_table(muon_table_raw_input.data(), &pad, &stripX, &stripY);
+    Muon::MuonGeometry muonGeometry = Muon::MuonGeometry();
+    muonGeometry.read_muon_geometry(muon_geometry_raw_input.data());
+    MuonRawToHits muonRawToHits = MuonRawToHits(&pad, &stripX, &stripY, &muonGeometry);
+    for (int it = 0; it < 10; it++) {
+      decode(muon_raw_span, muon_raw_offsets_span, actual_vector, &muonRawToHits);
+    }
+    //decode(muon_raw_span, muon_raw_offsets_span, actual_vector, muon_table_raw_input.data(), muon_geometry_raw_input.data());
     Muon::HitsSoA actual = actual_vector[0];
 
     std::vector<char> muon_common_hits_raw_input(MUON_COMMON_HITS_SIZES[i], 0);
