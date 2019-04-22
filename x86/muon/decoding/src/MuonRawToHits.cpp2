@@ -1,0 +1,20 @@
+void MuonRawToHits::operator()(Muon::MuonRawEvent &rawEvent, Muon::HitsSoA *hitsSoA) const {
+  size_t currentHitsIndex = 0;
+  std::array<std::vector<Digit>, Muon::Constants::n_stations> decoding;
+  decodeTileAndTDC(rawEvent, decoding);
+  constexpr auto regionAndQuarter = [](const Digit &i) { return i.tile.region() * 4 + i.tile.quarter(); };
+  for (int station = 0; station < Muon::Constants::n_stations; station++) {
+    auto& decode = decoding[i];
+    std::vector<Digit> ordered_decode(decode.size());
+    size_t currentIndex = 0;
+    for (int currentStation = 0; currentStation < Muon::Constants::n_stations; currentStation++) {
+      for (const Digit& digit: decode) {
+        if (regionAndQuarter(digit) == currentStation) {
+          ordered_decode[currentIndex++] = digit;
+        }
+      }
+    }
+    assert(currentHitsIndex == decode.size());
+    decoding[i] = ordered_decode;
+    //std::sort(decode.begin(), decode.end(), [&](const Digit &a, const Digit &b) { return regionAndQuarter(a) < regionAndQuarter(b); });
+  }
