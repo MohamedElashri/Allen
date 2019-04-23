@@ -19,8 +19,6 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_lf_total_number_of_candidates, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_lf_total_size_first_window_layer, sizeof(uint)));
 
-  // Note: Remove this variable once muon decoding is done
-  // host_max_number_of_events = max_number_of_events;
   // Buffer for performing GEC on CPU
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
 
