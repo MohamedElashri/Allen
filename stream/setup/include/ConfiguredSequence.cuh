@@ -67,7 +67,7 @@
 #include "LFQualityFilterLength.cuh"
 #include "LFSearchUVWindows.cuh"
 #include "LFFit.cuh"
-#include "MuonRawToHitsDecoding.h"
+#include "MuonDecoding.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 
