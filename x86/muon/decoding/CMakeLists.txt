@@ -1,6 +1,9 @@
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
+
 
 file(GLOB x86MuonDecoding_cpp "src/*cpp")
 

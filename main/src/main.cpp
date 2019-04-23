@@ -32,7 +32,7 @@
 #include "StreamWrapper.cuh"
 #include "Constants.cuh"
 #include "MuonDefinitions.cuh"
-#include "Decoding.h"
+#include "MuonRawToHitsDecoding.h"
 
 void printUsage(char* argv[])
 {

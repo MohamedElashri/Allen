@@ -47,8 +47,8 @@ SCENARIO("General case") {
     Muon::MuonGeometry muonGeometry = Muon::MuonGeometry();
     muonGeometry.read_muon_geometry(muon_geometry_raw_input.data());
     MuonRawToHits muonRawToHits = MuonRawToHits(&pad, &stripX, &stripY, &muonGeometry);
-    for (int it = 0; it < 10; it++) {
-      decode(muon_raw_span, muon_raw_offsets_span, actual_vector, &muonRawToHits);
+    for (int it = 0; it < 100; it++) {
+      muonRawToHitsDecode(muon_raw_span, muon_raw_offsets_span, actual_vector, &muonRawToHits);
     }
     //decode(muon_raw_span, muon_raw_offsets_span, actual_vector, muon_table_raw_input.data(), muon_geometry_raw_input.data());
     Muon::HitsSoA actual = actual_vector[0];
