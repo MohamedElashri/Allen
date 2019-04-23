@@ -3,6 +3,8 @@ set(SOURCES
   src/UTGeometry.cpp
   src/UTTable.cpp
   src/SciFiGeometry.cpp
+  src/Beamline.cpp
+  src/MagneticField.cpp
   src/Updater.cpp)
 
 add_library(NonEventData ${SOURCES})

@@ -163,7 +163,7 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
                     });
 }
 
-void Consumers::UTGeometry::consume(std::vector<char> data) {
+void Consumers::UTGeometry::consume(std::vector<char> const& data) {
   auto& dev_ut_geometry = m_constants.get().dev_ut_geometry;
   if (dev_ut_geometry.empty()) {
     initialize(data);

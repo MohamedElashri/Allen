@@ -25,7 +25,7 @@ protected:
 
 private:
 
-  std::map<std::string, std::tuple<NonEventData::Producer, std::unique_ptr<NonEventData::Consumer>>> m_pairs;
+  std::map<std::string, std::tuple<NonEventData::Producer, std::vector<std::unique_ptr<NonEventData::Consumer>>>> m_pairs;
 
 };
 }

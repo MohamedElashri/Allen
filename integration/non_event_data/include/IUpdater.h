@@ -12,7 +12,7 @@ namespace Allen {
 namespace NonEventData {
 
   struct Consumer {
-    virtual void consume(std::vector<char> data) = 0;
+    virtual void consume(std::vector<char> const& data) = 0;
     virtual ~Consumer() = default;
   };
 

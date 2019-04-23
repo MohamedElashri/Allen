@@ -26,5 +26,13 @@ namespace NonEventData {
     inline static std::string const id = "UTLookupTables";
   };
 
+  struct Beamline : Identifier {
+    inline static std::string const id = "Beamline";
+  };
+
+  struct MagneticField : Identifier {
+    inline static std::string const id = "MagneticField";
+  };
+
 }
 }

@@ -30,15 +30,16 @@
  *          The pointers are hard-coded. Feel free to write more as needed.
  */
 struct Constants {
+
   std::array<uint8_t, VeloClustering::lookup_table_size> host_candidate_ks;
   std::array<float, 9> host_inv_clus_res;
-  LookingForward::Constants host_looking_forward_constants;
 
   float* dev_velo_module_zs = nullptr;
   uint8_t* dev_velo_candidate_ks = nullptr;
   uint8_t* dev_velo_sp_patterns = nullptr;
   float* dev_velo_sp_fx = nullptr;
   float* dev_velo_sp_fy = nullptr;
+  char* dev_velo_geometry = nullptr;
 
   std::vector<char> host_ut_geometry;
   std::array<uint, UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1> host_ut_region_offsets;
@@ -62,7 +63,6 @@ struct Constants {
   float* dev_inv_clus_res;
 
   // Geometry constants
-  char* dev_velo_geometry = nullptr;
   char* dev_scifi_geometry = nullptr;
   std::vector<char> host_scifi_geometry;
 
@@ -71,6 +71,9 @@ struct Constants {
 
   // Magnet polarity
   float* dev_magnet_polarity = nullptr;
+
+  // Looking forward
+  LookingForward::Constants host_looking_forward_constants;
 
   // Muon classification model constatns
   Muon::Constants::FieldOfInterest* dev_muon_foi = nullptr;

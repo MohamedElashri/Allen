@@ -14,7 +14,7 @@ Consumers::SciFiGeometry::SciFiGeometry(std::vector<char>& host_geometry, char*&
     m_dev_geometry{dev_geometry} {
 }
 
-void Consumers::SciFiGeometry::consume(std::vector<char> data) {
+void Consumers::SciFiGeometry::consume(std::vector<char> const& data) {
   auto& dev_geometry = m_dev_geometry.get();
   auto& host_geometry = m_host_geometry.get();
   if (host_geometry.empty()) {

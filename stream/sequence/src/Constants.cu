@@ -23,15 +23,6 @@ void Constants::initialize_constants(
   const std::vector<float>& muon_field_of_interest_params,
   const std::string& folder_params_kalman
 ) {
-  // Magnet polarity
-  const float host_magnet_polarity = -1.f;
-  cudaCheck(cudaMemcpy(
-    dev_magnet_polarity, &host_magnet_polarity, sizeof(float), cudaMemcpyHostToDevice));
-
-  // PV constants
-  const float host_beamline[2] = {0.0f, 0.0f};
-  cudaCheck(cudaMemcpy(
-    dev_beamline, &host_beamline, 2 * sizeof(float), cudaMemcpyHostToDevice));
 
   // Velo module constants
   const std::array<float, Velo::Constants::n_modules> velo_module_zs = {

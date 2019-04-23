@@ -13,7 +13,7 @@ Consumers::RawGeometry::RawGeometry(char*& dev_geometry)
   : m_dev_geometry{dev_geometry} {
 }
 
-void Consumers::RawGeometry::consume(std::vector<char> data) {
+void Consumers::RawGeometry::consume(std::vector<char> const& data) {
   if (!m_dev_geometry.get()) {
     // Allocate space
     char* p = nullptr;
@@ -29,7 +29,7 @@ Consumers::BasicGeometry::BasicGeometry(gsl::span<char>& dev_geometry)
   : m_dev_geometry{dev_geometry} {
 }
 
-void Consumers::BasicGeometry::consume(std::vector<char> data) {
+void Consumers::BasicGeometry::consume(std::vector<char> const& data) {
   auto& dev_geometry = m_dev_geometry.get();
   if (dev_geometry.empty()) {
     // Allocate space

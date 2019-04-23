@@ -11,7 +11,7 @@ namespace Consumers {
 
     RawGeometry(char*& dev_geometry);
 
-    void consume(std::vector<char> data) override;
+    void consume(std::vector<char> const& data) override;
 
   private:
     std::reference_wrapper<char*> m_dev_geometry;
@@ -23,7 +23,7 @@ namespace Consumers {
 
     BasicGeometry(gsl::span<char>& dev_geometry);
 
-    void consume(std::vector<char> data) override;
+    void consume(std::vector<char> const& data) override;
 
   private:
     std::reference_wrapper<gsl::span<char>> m_dev_geometry;
@@ -34,7 +34,7 @@ namespace Consumers {
 
     UTGeometry(Constants& constants);
 
-    void consume(std::vector<char> data) override;
+    void consume(std::vector<char> const& data) override;
 
   private:
 
@@ -48,7 +48,7 @@ namespace Consumers {
 
     UTTable(PrUTMagnetTool*& tool);
 
-    void consume(std::vector<char> data) override;
+    void consume(std::vector<char> const& data) override;
 
   private:
 
@@ -61,11 +61,39 @@ namespace Consumers {
 
     SciFiGeometry(std::vector<char>& host_geometry, char*& dev_geometry);
 
-    void consume(std::vector<char> data) override;
+    void consume(std::vector<char> const& data) override;
 
   private:
     std::reference_wrapper<std::vector<char>> m_host_geometry;
     std::reference_wrapper<char*> m_dev_geometry;
+  };
+
+  struct Beamline final : public Allen::NonEventData::Consumer {
+  public:
+
+    Beamline(float*& );
+
+    void consume(std::vector<char> const& data) override;
+
+  private:
+
+    std::reference_wrapper<float*> m_dev_beamline;
+    const size_t m_size = 2 * sizeof(float);
+
+  };
+
+  struct MagneticField final : public Allen::NonEventData::Consumer {
+  public:
+
+    MagneticField(float*&);
+
+    void consume(std::vector<char> const& data) override;
+
+  private:
+
+    std::reference_wrapper<float*> m_dev_magnet_polarity;
+    const size_t m_size = sizeof(float);
+
   };
 
 }

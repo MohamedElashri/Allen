@@ -2,6 +2,7 @@
 #include <optional>
 #include <memory>
 #include <map>
+#include <array>
 
 #include <Common.h>
 #include <InputReader.h>
@@ -12,6 +13,7 @@ namespace {
   using std::string;
   using std::map;
   using std::vector;
+  using std::array;
   using std::optional;
   using std::tuple;
   using std::unique_ptr;
@@ -19,6 +21,20 @@ namespace {
 
 namespace Allen {
 namespace NonEventData {
+
+  vector<char> beamline_producer() {
+    vector<char> data(2 * sizeof(float));
+    const array<float, 2> host_beamline{0.0f, 0.0f};
+    memcpy(data.data(), host_beamline.data(), data.size());
+    return data;
+  }
+
+  vector<char> magnetic_field_producer() {
+    vector<char> data(sizeof(float));
+    const float host_magnet_polarity = -1.f;
+    memcpy(data.data(), &host_magnet_polarity, data.size());
+    return data;
+  }
 
   Updater::Updater(map<string, string> const& options) {
 
@@ -54,23 +70,30 @@ namespace NonEventData {
                                                          UTMagnetToolReader reader{folder_detector_configuration};
                                                          return reader.read_UT_magnet_tool();
                                                        });
+
+    registerProducer(NonEventData::Beamline::id, beamline_producer);
+    registerProducer(NonEventData::MagneticField::id, magnetic_field_producer);
+
+
   }
 
   void Updater::registerConsumer(string const&id, unique_ptr<Consumer> c) {
     auto it = m_pairs.find(id);
     if (it == m_pairs.end()) {
-      m_pairs.emplace(id, tuple{Producer{}, std::move(c)});
-    } else if (!std::get<1>(it->second)) {
-      std::get<1>(it->second) = std::move(c);
+      vector<unique_ptr<Consumer>> consumers(1);
+      consumers[0] = std::move(c);
+      auto entry = tuple{Producer{}, std::move(consumers)};
+      m_pairs.emplace(id, std::move(entry));
     } else {
-      throw StrException{string{"Consumer for "} + it->first + " already registered."};
+      std::get<1>(it->second).emplace_back(std::move(c));
     }
   }
 
   void Updater::registerProducer(string const& id, Producer p) {
     auto it = m_pairs.find(id);
     if (it == m_pairs.end()) {
-      m_pairs.emplace(id, tuple{std::move(p), std::unique_ptr<Consumer>{}});
+      auto entry = tuple{std::move(p), std::vector<std::unique_ptr<Consumer>>{}};
+      m_pairs.emplace(id, std::move(entry));
     } else if (!std::get<0>(it->second)) {
       std::get<0>(it->second) = std::move(p);
     } else {
@@ -85,19 +108,24 @@ namespace NonEventData {
 
       if(!std::get<0>(p)) {
         throw StrException{string{"No producer for "} + name};
-      } else if (!std::get<1>(p)) {
-        std::cout << "No producer for " << std::get<0>(entry) << "\n";
+      } else if (std::get<1>(p).empty()) {
+        debug_cout << "No consumers for " << std::get<0>(entry) << "\n";
       }
     }
     for (auto const& entry : m_pairs) {
       auto const& name = std::get<0>(entry);
       debug_cout << "Updating " << name << "\n";
-      auto const& p = std::get<1>(entry);
-      if (!std::get<1>(p)) continue;
-      auto update = std::get<0>(p)();
+      auto const& pairs = std::get<1>(entry);
+      if (std::get<1>(pairs).empty()) continue;
+
+      // Produce update
+      auto update = std::get<0>(pairs)();
       if (update) {
         try {
-          std::get<1>(p)->consume(std::move(*update));
+          auto& consumers = std::get<1>(pairs);
+          for (auto& consumer : consumers) {
+            consumer->consume(*update);
+          }
         } catch (const StrException& e) {
           error_cout << name << " update failed: "  << e.what() << std::endl;
           throw e;
