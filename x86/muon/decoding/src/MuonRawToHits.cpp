@@ -29,7 +29,7 @@ void recalculateNumberOfHitsPerStationAndStationOffsets(Muon::HitsSoA* hitsSoA, 
 
 void MuonRawToHits::operator()(Muon::MuonRawEvent &rawEvent, Muon::HitsSoA *hitsSoA) const {
   size_t currentHitsIndex = 0;
-  std::array<std::vector<Digit>, 4> decoding;
+  std::array<std::vector<Digit>, Muon::Constants::n_stations> decoding;
   decodeTileAndTDC(rawEvent, decoding);
   constexpr auto regionAndQuarter = [](const Digit &i) { return i.tile.region() * 4 + i.tile.quarter(); };
   for (auto &decode : decoding) {

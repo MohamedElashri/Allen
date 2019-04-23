@@ -7,8 +7,8 @@ void SequenceVisitor::set_arguments_size<is_muon_t>(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)
-{ 
-  arguments.set_size<dev_muon_hits>(host_buffers.host_max_number_of_events);
+{
+ // arguments.set_size<dev_muon_hits>(host_buffers.host_max_number_of_events)
   arguments.set_size<dev_muon_track_occupancies>(
     Muon::Constants::n_stations * host_buffers.host_number_of_reconstructed_scifi_tracks[0]
   );
@@ -26,6 +26,7 @@ void SequenceVisitor::visit<is_muon_t>(
   cudaEvent_t& cuda_generic_event)
 {
   // Copy memory from host to device
+  /*
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_muon_hits>(),
     runtime_options.host_muon_hits_events.data(),
@@ -33,7 +34,7 @@ void SequenceVisitor::visit<is_muon_t>(
     cudaMemcpyHostToDevice,
     cuda_stream
   ));
-
+  */
   // Setup opts for kernel call
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32, Muon::Constants::n_stations), cuda_stream);
 

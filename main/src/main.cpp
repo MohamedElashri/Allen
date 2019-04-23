@@ -32,7 +32,7 @@
 #include "StreamWrapper.cuh"
 #include "Constants.cuh"
 #include "MuonDefinitions.cuh"
-#include "Decoding.h"
+#include "MuonRawToHitsDecoding.h"
 
 void printUsage(char* argv[])
 {
@@ -215,9 +215,9 @@ int main(int argc, char* argv[])
   read_muon_events_into_arrays(
     muon_hits_events.data(), events.data(), event_offsets.data(), number_of_events_requested);
   */
-  info_cout << "start decode\n";
-  decode(event_reader->events(BankTypes::MUON), event_reader->offsets(BankTypes::MUON), muon_hits_events);
-  info_cout << "finish decode\n";
+  //info_cout << "start decode\n";
+  //decode(event_reader->events(BankTypes::MUON), event_reader->offsets(BankTypes::MUON), muon_hits_events);
+  //info_cout << "finish decode\n";
 
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
   std::vector<float> muon_field_of_interest_params;
@@ -275,7 +275,10 @@ int main(int argc, char* argv[])
                                            event_reader->offsets(BankTypes::FT).begin(),
                                            event_reader->events(BankTypes::FT).size(),
                                            event_reader->offsets(BankTypes::FT).size(),
-                                           muon_hits_events,
+                                           event_reader->events(BankTypes::MUON).begin(),
+                                           event_reader->offsets(BankTypes::MUON).begin(),
+                                           event_reader->events(BankTypes::MUON).size(),
+                                           event_reader->offsets(BankTypes::MUON).size(),
                                            number_of_events_requested,
                                            number_of_repetitions,
                                            do_check,

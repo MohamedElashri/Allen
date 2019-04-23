@@ -19,7 +19,10 @@ struct RuntimeOptions {
   uint* host_scifi_event_offsets;
   size_t host_scifi_events_size;
   size_t host_scifi_event_offsets_size;
-  std::vector<Muon::HitsSoA>& host_muon_hits_events;
+  char* host_muon_events;
+  uint* host_muon_event_offsets;
+  size_t host_muon_events_size;
+  size_t host_muon_event_offsets_size;
   uint number_of_events;
   uint number_of_selected_events;
   uint number_of_repetitions;
@@ -41,7 +44,10 @@ struct RuntimeOptions {
     uint* param_host_scifi_event_offsets,
     size_t param_host_scifi_events_size,
     size_t param_host_scifi_event_offsets_size,
-    std::vector<Muon::HitsSoA>& param_host_muon_hits_events,
+    char* param_host_muon_events,
+    uint* param_host_muon_event_offsets,
+    size_t param_host_muon_events_size,
+    size_t param_host_muon_event_offsets_size,
     uint param_number_of_events,
     uint param_number_of_repetitions,
     bool param_do_check,
@@ -53,8 +59,10 @@ struct RuntimeOptions {
     host_ut_event_offsets(param_host_ut_event_offsets), host_ut_events_size(param_host_ut_events_size),
     host_ut_event_offsets_size(param_host_ut_event_offsets_size), host_scifi_events(param_host_scifi_events),
     host_scifi_event_offsets(param_host_scifi_event_offsets), host_scifi_events_size(param_host_scifi_events_size),
-    host_scifi_event_offsets_size(param_host_scifi_event_offsets_size),
-    host_muon_hits_events(param_host_muon_hits_events), number_of_events(param_number_of_events),
+    host_scifi_event_offsets_size(param_host_scifi_event_offsets_size), host_muon_events(param_host_muon_events),
+    host_muon_event_offsets(param_host_muon_event_offsets), host_muon_events_size(param_host_muon_events_size),
+    host_muon_event_offsets_size(param_host_muon_event_offsets_size),
+    number_of_events(param_number_of_events),
     number_of_selected_events(param_number_of_events), number_of_repetitions(param_number_of_repetitions),
     do_check(param_do_check), cpu_offload(param_cpu_offload)
   {}

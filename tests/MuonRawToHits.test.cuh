@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include "gsl-lite.hpp"
-#include "Decoding.h"
+#include "MuonRawToHitsDecoding.h"
 #include "MuonDefinitions.cuh"
 
 void read_binary_file(std::vector<char>& vector, const std::string& file_name) {
