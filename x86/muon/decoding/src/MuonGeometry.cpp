@@ -11,6 +11,10 @@ unsigned int Muon::MuonGeometry::getADDInTell1(unsigned int Tell1_num, unsigned 
 }
 
 void Muon::MuonGeometry::read_muon_geometry(const char *raw_input) {
+  /**
+   * 5 stands for innerX, innerY, outerX, outerY, stationZ arrays that
+   * are dumped but are not used here so should be skipped during reading
+   */
   for (int i = 0; i < 5; i++) {
     size_t size;
     std::copy_n((size_t *) raw_input, 1, &size);
