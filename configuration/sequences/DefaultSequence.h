@@ -55,4 +55,17 @@ SEQUENCE_T(
   muon_decoding_t,
   is_muon_t,
   muon_catboost_features_extraction_t,
+  muon_catboost_evaluator_t
+)
+/*
+  I had this conflict
+<<<<<<< HEAD
+  kalman_filter_t,
+  muon_decoding_t,
+  is_muon_t,
+  muon_catboost_features_extraction_t,
   muon_catboost_evaluator_t)
+=======
+  kalman_velo_only_t,)
+>>>>>>> master
+ */
