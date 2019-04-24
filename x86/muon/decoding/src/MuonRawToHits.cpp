@@ -115,7 +115,7 @@ void MuonRawToHits::addCoordsCrossingMap(DigitsRange &digits, Muon::HitsSoA *hit
         unsigned int uncrossed = 0;
         int clusterSize = 0;
         int region = padTile.region();
-        hitsSoA->addAtIndex(currentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed, one.tdc, one.tdc - two.tdc,
+        hitsSoA->setAtIndex(currentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed, one.tdc, one.tdc - two.tdc,
                             clusterSize, region);
         currentHitIndex++;
         used[i] = used[j] = true;
@@ -145,7 +145,7 @@ void MuonRawToHits::addCoordsCrossingMap(DigitsRange &digits, Muon::HitsSoA *hit
         unsigned int uncrossed = 1;
         int clusterSize = 0;
         int region = digit.tile.region();
-        hitsSoA->addAtIndex(currentHitIndex, digit.tile.id(), x, dx, y, dy, z, dz, uncrossed, digit.tdc, digit.tdc,
+        hitsSoA->setAtIndex(currentHitIndex, digit.tile.id(), x, dx, y, dy, z, dz, uncrossed, digit.tdc, digit.tdc,
                             clusterSize, region);
         currentHitIndex++;
       }

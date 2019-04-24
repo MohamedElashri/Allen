@@ -207,18 +207,6 @@ int main(int argc, char* argv[])
   const auto scifi_geometry = geometry_reader.read_geometry("scifi_geometry.bin");
   event_reader->read_events(number_of_events_requested, start_event_offset);
 
-  std::vector<char> events;
-  std::vector<uint> event_offsets;
-  std::vector<Muon::HitsSoA> muon_hits_events(number_of_events_requested);
-  /*
-  read_folder(folder_data + "muon_common_hits/", number_of_events_requested, events, event_offsets, start_event_offset);
-  read_muon_events_into_arrays(
-    muon_hits_events.data(), events.data(), event_offsets.data(), number_of_events_requested);
-  */
-  //info_cout << "start decode\n";
-  //decode(event_reader->events(BankTypes::MUON), event_reader->offsets(BankTypes::MUON), muon_hits_events);
-  //info_cout << "finish decode\n";
-
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");

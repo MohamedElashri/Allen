@@ -31,9 +31,4 @@ void SequenceVisitor::visit<muon_decoding_t>(
       cudaMemcpyHostToDevice,
       cuda_stream
   ));
-
-  state.set_opts(dim3(1), dim3(1), cuda_stream);
-  state.set_arguments(arguments.offset<dev_muon_hits>());
-  state.invoke();
-
 }

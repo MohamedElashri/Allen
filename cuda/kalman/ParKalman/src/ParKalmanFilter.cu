@@ -189,7 +189,7 @@ namespace ParKalmanFilter {
 
 //----------------------------------------------------------------------
 // Kalman filter kernel.
-__global__ void KalmanFilter(
+__global__ void kalman_filter(
   int* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,

@@ -37,14 +37,14 @@ float ipChi2Kalman(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& 
   float dz = vertex.position.z - track.z;
   float dx = track.state[0] + dz * tx - vertex.position.x;
   float dy = track.state[1] + dz * ty - vertex.position.y;
-
+  
   // Build covariance matrix.
   float cov00 = vertex.cov00 + track.cov(0, 0);
   float cov10 = vertex.cov10;
   float cov11 = vertex.cov11 + track.cov(1, 1);
 
   // Add contribution from extrapolation.
-  cov00 += dz * dz * track.cov(2, 2) + 2 * dz * track.cov(2, 0);
+  cov00 += dz * dz * track.cov(2, 2) + 2 * std::abs(dz * track.cov(2, 0));
   cov11 += dz * dz * track.cov(3, 3) + 2 * dz * track.cov(3, 1);
 
   // Add the contribution from the PV z position.
