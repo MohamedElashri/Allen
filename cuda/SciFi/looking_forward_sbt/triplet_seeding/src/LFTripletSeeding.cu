@@ -61,15 +61,12 @@ __global__ void lf_triplet_seeding(
         candidate_h1_size,
         candidate_h2_size,
         relative_first_layer,
-        relative_first_layer + 1,
-        relative_first_layer + 2,
         LookingForward::chi2_mean_triplet_single + 2.5f * LookingForward::chi2_stddev_triplet_single,
         dev_scifi_lf_triplet_best_chi2 + (current_ut_track_index * 4 + relative_first_layer) * LookingForward::maximum_number_of_candidates,
         dev_scifi_lf_triplet_best_h0h2 + (current_ut_track_index * 4 + relative_first_layer) * 2 * LookingForward::maximum_number_of_candidates,
         scifi_lf_candidates,
-        z0,
-        z1,
-        z2,
+        z1 - z0,
+        z2 - z0,
         qop);
     }
   }
