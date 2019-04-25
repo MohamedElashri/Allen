@@ -30,22 +30,23 @@ __global__ void lf_extend_tracks_x(
   for ( int i_ut_track = threadIdx.y; i_ut_track < ut_event_number_of_tracks; i_ut_track += blockDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i_ut_track;
     int number_of_tracks = dev_atomics_scifi[current_ut_track_index];
-    
+
     for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
       SciFi::TrackHits& track = dev_scifi_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + i];
-      
+
       // Candidates pointer for current UT track
       const auto scifi_lf_candidates = dev_scifi_lf_candidates + current_ut_track_index *
         LookingForward::number_of_x_layers *
         LookingForward::maximum_number_of_candidates;
-      
-      const auto h0 = event_offset + track.hits[0];
-      const auto h1 = event_offset + track.hits[1];
+
+      // use last two hits of initial triplet
+      const auto h0 = event_offset + track.hits[1];
+      const auto h1 = event_offset + track.hits[2];
       const auto x0 = scifi_hits.x0[h0];
       const auto x1 = scifi_hits.x0[h1];
-      const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(0)];
-      const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(1)];
-      
+      const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(1)];
+      const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(2)];
+
       // Extrapolate to other layers
       for (int j = 0; j < 5; ++j) {
         // Make sure we don't have that layer populated already
