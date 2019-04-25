@@ -10,6 +10,7 @@ void PrForwardWrapper(
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   SciFi::TrackHits outputTracks[SciFi::Constants::max_tracks],
   uint* n_forward_tracks)
 {
@@ -19,7 +20,7 @@ void PrForwardWrapper(
 
     const int i_velo_track = ut_tracks.velo_track[i_veloUT_track];
     const uint velo_states_index = event_tracks_offset + i_velo_track;
-    const MiniState velo_state {velo_states, velo_states_index};
+    const MiniState velo_state = velo_states.get(velo_states_index);
 
     find_forward_tracks(
       scifi_hits,
@@ -28,9 +29,11 @@ void PrForwardWrapper(
       i_veloUT_track,
       outputTracks,
       n_forward_tracks,
+      n_veloUT_tracks,
       tmva1,
       tmva2,
       constArrays,
+      magnet_polarity,
       velo_state);
   }
 }

@@ -8,8 +8,10 @@ void SequenceVisitor::set_arguments_size<lf_composite_track_seeding_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_scifi_lf_tracks>(host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_lf_tracks);
-  arguments.set_size<dev_scifi_lf_atomics>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
+  arguments.set_size<dev_scifi_lf_triplet_best_chi2>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * 4 * LookingForward::maximum_number_of_candidates);
+  arguments.set_size<dev_scifi_lf_triplet_best_h0h2>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * 4 * 2 * LookingForward::maximum_number_of_candidates);
+  arguments.set_size<dev_scifi_lf_tracks>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track);
+  arguments.set_size<dev_scifi_lf_atomics>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::num_atomics * 2 + 1);
 }
 
 template<>
@@ -22,63 +24,77 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  const auto seeding_set_arguments = [&state, &constants, &arguments] (const uint8_t relative_middle_layer) {
-    state.handler_lf_triplet_seeding.set_arguments(
-      arguments.offset<dev_scifi_hits>(),
-      arguments.offset<dev_scifi_hit_count>(),
-      arguments.offset<dev_atomics_ut>(),
-      arguments.offset<dev_ut_qop>(),
-      arguments.offset<dev_ut_states>(),
-      constants.dev_scifi_geometry,
-      constants.dev_inv_clus_res,
-      arguments.offset<dev_scifi_lf_number_of_candidates>(),
-      arguments.offset<dev_scifi_lf_candidates>(),
-      constants.dev_looking_forward_constants,
-      arguments.offset<dev_scifi_lf_tracks>(),
-      arguments.offset<dev_scifi_lf_atomics>(),
-      relative_middle_layer);
-  };
+  state.handler_lf_triplet_seeding.set_arguments(
+    arguments.offset<dev_scifi_hits>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_atomics_ut>(),
+    arguments.offset<dev_ut_qop>(),
+    arguments.offset<dev_ut_states>(),
+    constants.dev_scifi_geometry,
+    constants.dev_inv_clus_res,
+    arguments.offset<dev_scifi_lf_number_of_candidates>(),
+    arguments.offset<dev_scifi_lf_candidates>(),
+    constants.dev_looking_forward_constants,
+    arguments.offset<dev_scifi_lf_triplet_best_chi2>(),
+    arguments.offset<dev_scifi_lf_triplet_best_h0h2>());
 
-  const auto forwarding_set_arguments = [&state, &constants, &arguments] (const uint8_t relative_extrapolation_layer) {
-    state.handler_lf_extend_tracks_x.set_arguments(
-      arguments.offset<dev_scifi_hits>(),
-      arguments.offset<dev_scifi_hit_count>(),
-      arguments.offset<dev_atomics_ut>(),
-      arguments.offset<dev_scifi_lf_tracks>(),
-      arguments.offset<dev_scifi_lf_atomics>(),
-      constants.dev_scifi_geometry,
-      constants.dev_looking_forward_constants,
-      constants.dev_inv_clus_res,
-      arguments.offset<dev_scifi_lf_number_of_candidates>(),
-      arguments.offset<dev_scifi_lf_candidates>(),
-      relative_extrapolation_layer);
-  };
+  state.handler_lf_triplet_keep_best.set_arguments(
+    arguments.offset<dev_scifi_hits>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_atomics_ut>(),
+    arguments.offset<dev_ut_qop>(),
+    arguments.offset<dev_ut_states>(),
+    constants.dev_scifi_geometry,
+    constants.dev_inv_clus_res,
+    arguments.offset<dev_scifi_lf_number_of_candidates>(),
+    arguments.offset<dev_scifi_lf_candidates>(),
+    constants.dev_looking_forward_constants,
+    arguments.offset<dev_scifi_lf_tracks>(),
+    arguments.offset<dev_scifi_lf_atomics>(),
+    arguments.offset<dev_scifi_lf_triplet_best_chi2>(),
+    arguments.offset<dev_scifi_lf_triplet_best_h0h2>());
 
-  state.handler_lf_extend_tracks_x.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream);
-  state.handler_lf_triplet_seeding.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 32), dim3(32), cuda_stream);
+  state.handler_lf_extend_tracks_x.set_arguments(
+    arguments.offset<dev_scifi_hits>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_atomics_ut>(),
+    arguments.offset<dev_scifi_lf_tracks>(),
+    arguments.offset<dev_scifi_lf_atomics>(),
+    constants.dev_scifi_geometry,
+    constants.dev_looking_forward_constants,
+    constants.dev_inv_clus_res,
+    arguments.offset<dev_scifi_lf_number_of_candidates>(),
+    arguments.offset<dev_scifi_lf_candidates>());
 
-  // We need to:
-  // * Seed mid layer 1
-  // * Forward to layer 3
-  // * Seed mid layer 2
-  // * Forward to layer 4
-  // * Seed mid layer 3
-  // * Forward to layer 5
-  // * Seed mid layer 4 
+  state.handler_lf_triplet_seeding.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream); // to do: check gridDim.y = 32
+  state.handler_lf_triplet_keep_best.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 4), dim3(32), cuda_stream);
+  state.handler_lf_extend_tracks_x.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32, 4), cuda_stream);
+
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_scifi_lf_atomics>(),
     0,
     arguments.size<dev_scifi_lf_atomics>(),
     cuda_stream));
-  
-  seeding_set_arguments(1);
+
+  // Note: The initialization of dev_scifi_lf_triplet_best_chi2 is the highest positive
+  //       number represented as fp32 that can be initialized using cudaMemsetAsync,
+  //       that is, initializing the bytes individually:
+  //       0x7F results in 0x7F7F7F7F, which is 3.3961514e38 in fp32
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_scifi_lf_triplet_best_chi2>(),
+    0x7F,
+    arguments.size<dev_scifi_lf_triplet_best_chi2>(),
+    cuda_stream));
+
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_scifi_lf_triplet_best_h0h2>(),
+    -1,
+    arguments.size<dev_scifi_lf_triplet_best_h0h2>(),
+    cuda_stream));
+
   state.handler_lf_triplet_seeding.invoke();
+  state.handler_lf_triplet_keep_best.invoke();
 
-  for (int i=0; i<3; ++i) {
-    forwarding_set_arguments(3 + i);
-    seeding_set_arguments(2 + i);
-
-    state.handler_lf_extend_tracks_x.invoke();
-    state.handler_lf_triplet_seeding.invoke();
-  }
+  // Extrapolate to all other layers
+  state.handler_lf_extend_tracks_x.invoke();
 }

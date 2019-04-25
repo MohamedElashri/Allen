@@ -3,7 +3,7 @@
 /**
  * @brief Helper function to filter one hit
  */
-__device__ float velo_kalman_filter_step(
+__device__ void velo_kalman_filter_step(
   const float z,
   const float zhit,
   const float xhit,
@@ -36,8 +36,8 @@ __device__ float velo_kalman_filter_step(
   covXX /*= predcovXX  - Kx * predcovXX */ = (1 - Kx) * predcovXX;
   covXTx /*= predcovXTx - predcovXX * predcovXTx / R */ = (1 - Kx) * predcovXTx;
   covTxTx = predcovTxTx - KTx * predcovXTx;
-  // return the chi2
-  return r * r * R;
+  // not needed by any other algorithm
+  //const float chi2 = r * r * R;
 }
 
 __global__ void velo_kalman_fit(
@@ -54,7 +54,7 @@ __global__ void velo_kalman_fit(
   const Velo::Consolidated::Tracks velo_tracks {
     (uint*) dev_atomics_velo, dev_velo_track_hit_number, event_number, number_of_events};
   Velo::Consolidated::States velo_states {dev_velo_states, velo_tracks.total_number_of_tracks};
-  Velo::Consolidated::States kalmanvelo_states {dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks};
+  Velo::Consolidated::KalmanStates kalmanvelo_states {dev_velo_kalman_beamline_states, velo_tracks.total_number_of_tracks};
 
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
@@ -64,9 +64,9 @@ __global__ void velo_kalman_fit(
     Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(dev_velo_track_hits, i);
     const uint n_hits = velo_tracks.number_of_hits(i);
 
-    VeloState stateAtBeamline = velo_states.get(event_tracks_offset + i);
+    MiniState stateAtBeamline = velo_states.getMiniState(event_tracks_offset + i);
 
-    VeloState kalmanbeam_state = simplified_fit<true>(consolidated_hits, stateAtBeamline, n_hits);
+    KalmanVeloState kalmanbeam_state = simplified_fit<true>(consolidated_hits, stateAtBeamline, n_hits);
 
     kalmanvelo_states.set(event_tracks_offset + i, kalmanbeam_state);
   }

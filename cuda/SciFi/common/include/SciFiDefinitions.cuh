@@ -28,6 +28,9 @@ namespace SciFi {
     static constexpr uint n_layers = 12;
     static constexpr uint n_mats = 1024;
 
+    // todo: if this is changed with alignment, don't use constant
+    static constexpr float dzdy = 0.003601f;
+
     /**
      * The following constants are based on the number of modules per quarter.
      * There are currently 80 raw banks per SciFi station:
@@ -63,13 +66,14 @@ namespace SciFi {
     static constexpr uint max_hit_candidates_per_layer = 200;
 
     // Looking Forward
+    static constexpr int max_SciFi_tracks_per_UT_track = 1;
     static constexpr int max_tracks = 1000;
     static constexpr int max_lf_tracks = 6000;
-    static constexpr int max_track_size = 12; 
+    static constexpr int max_track_size = n_layers;
 
     static constexpr int max_track_candidates = 2000;
     static constexpr int max_track_candidate_size = 4;
-    static constexpr int hit_candidate_offset = 6;
+    static constexpr int hit_layer_offset = 6;
   } // namespace Constants
 
   /**
@@ -101,6 +105,8 @@ namespace SciFi {
     float* dxdy;
     float* dzdy;
     float* globaldy;
+
+    __device__ __host__ SciFiGeometry(){}
 
     /**
      * @brief Typecast from std::vector.

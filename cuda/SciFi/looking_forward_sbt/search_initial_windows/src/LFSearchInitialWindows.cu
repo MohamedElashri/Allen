@@ -18,6 +18,7 @@ __global__ void lf_search_initial_windows(
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const SciFi::Tracking::Arrays* dev_constArrays,
+  const float* dev_magnet_polarity,
   const LookingForward::Constants* dev_looking_forward_constants,
   int* dev_initial_windows,
   MiniState* dev_ut_states)
@@ -62,7 +63,7 @@ __global__ void lf_search_initial_windows(
     const float ut_z = dev_ut_z[ut_track_index];
 
     const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
-    const MiniState velo_state {velo_states, velo_states_index};
+    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
 
     // extrapolate velo y & ty to z of UT x and tx
     // use ty from Velo state
@@ -81,29 +82,32 @@ __global__ void lf_search_initial_windows(
     const float xAtRef = xFromVelo(zRef_track, state_at_z_last_ut_plane);
     const float yAtRef = yFromVelo(zRef_track, state_at_z_last_ut_plane);
 
-    lf_search_initial_windows_impl(
-      scifi_hits,
-      scifi_hit_count,
-      xAtRef,
-      yAtRef,
-      state_at_z_last_ut_plane,
-      dev_constArrays,
-      ut_qop,
-      (y_projection < 0 ? -1 : 1),
-      dev_initial_windows + ut_event_tracks_offset + i,
-      ut_tracks.total_number_of_tracks);
-
-    /* OPTIMIZE: use windows based on UT momentum estimate? */
-    // lf_search_initial_windows_p_impl(
-    //   scifi_hits,
-    //   scifi_hit_count,
-    //   velo_state,
-    //   state_at_z_last_ut_plane,
-    //   dev_constArrays,
-    //   dev_looking_forward_constants,
-    //   ut_qop,
-    //   (y_projection < 0 ? -1 : 1),
-    //   dev_initial_windows + ut_event_tracks_offset + i,
-    //   ut_tracks.total_number_of_tracks); 
+    if (scifi_hit_count.event_number_of_hits() < 5500) {
+      lf_search_initial_windows_impl(
+        scifi_hits,
+        scifi_hit_count,
+        xAtRef,
+        yAtRef,
+        state_at_z_last_ut_plane,
+        dev_constArrays,
+        dev_magnet_polarity[0],
+        ut_qop,
+        (y_projection < 0 ? -1 : 1),
+        dev_initial_windows + ut_event_tracks_offset + i,
+        ut_tracks.total_number_of_tracks);
+    } else {
+      lf_search_initial_windows_p_impl(
+        scifi_hits,
+        scifi_hit_count,
+        velo_state,
+        state_at_z_last_ut_plane,
+        dev_constArrays,
+        dev_magnet_polarity[0],
+        dev_looking_forward_constants,
+        ut_qop,
+        (y_projection < 0 ? -1 : 1),
+        dev_initial_windows + ut_event_tracks_offset + i,
+        ut_tracks.total_number_of_tracks);
+    }
   }
 }

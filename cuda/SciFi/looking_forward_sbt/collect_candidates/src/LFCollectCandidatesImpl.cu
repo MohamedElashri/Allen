@@ -8,7 +8,8 @@ __device__ void lf_collect_candidates_impl(
   const int number_of_tracks,
   uint* number_of_candidates,
   short* candidates,
-  const int event_offset)
+  const int event_offset,
+  const int event_number_of_hits)
 {
   float* initial_windows_f = (float*) &initial_windows[0];
   for (int i = threadIdx.y; i < LookingForward::number_of_x_layers; i += blockDim.y) {
@@ -28,8 +29,11 @@ __device__ void lf_collect_candidates_impl(
 
       const auto xPredUv = param_uv_0 + xHit * param_uv_1;
       const auto maxDx = param_uv_2 + std::abs(xHit - param_uv_3) * SciFi::Tracking::tolYSlopeCollectX;
-      const auto xMinUV = xPredUv - maxDx;
-      const auto xMaxUV = xPredUv + maxDx;
+
+      // Note: Making a tighter requirement on the UV layer hit
+      const auto multiplier = (event_number_of_hits > 5500) ? 0.8f : 1.f;
+      const auto xMinUV = xPredUv - maxDx * multiplier;
+      const auto xMaxUV = xPredUv + maxDx * multiplier;
       
       // const float maxDx = 25.f + 6e5f * std::abs(qop); 
       // //const float xPredUV = param_uv_0;

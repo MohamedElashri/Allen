@@ -5,8 +5,7 @@
 #include "SciFiRaw.cuh"
 #include "UTRaw.cuh"
 #include "ArgumentsCommon.cuh"
-
-static constexpr uint maxSciFiUTClusters = 9750; // check tha this removes 10% of the events!
+#include "GlobalEventCutConfiguration.cuh"
 
 __global__ void global_event_cut(
   char* dev_ut_raw_input,

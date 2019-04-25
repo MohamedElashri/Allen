@@ -89,12 +89,26 @@ TrackChecker::~TrackChecker()
 #endif
 }
 
+void TrackChecker::TrackEffReport::event_start() {
+  m_naccept_per_event = 0;
+  m_nfound_per_event = 0;
+}
+
+void TrackChecker::TrackEffReport::event_done() {
+  if (m_naccept_per_event) {
+    m_number_of_events++;
+    const float eff = float(m_nfound_per_event) / float(m_naccept_per_event);
+    m_eff_per_event += eff;
+  }
+}
+
 void TrackChecker::TrackEffReport::operator()(const MCParticles& mcps)
 {
   // find number of MCPs within category
   for (auto mcp : mcps) {
     if (m_accept(mcp)) {
       ++m_naccept;
+      ++m_naccept_per_event;
     }
   }
 }
@@ -107,6 +121,7 @@ void TrackChecker::TrackEffReport::operator()(
   if (!m_accept(mcp)) return;
 
   ++m_nfound;
+  ++m_nfound_per_event;
   bool found = false;
   int n_matched_total;
   for (const auto& track : tracks) {
@@ -128,19 +143,22 @@ void TrackChecker::TrackEffReport::operator()(
 
 TrackChecker::TrackEffReport::~TrackEffReport()
 {
-  auto clonerate = 0.f, eff = 0.f;
+  auto clonerate = 0.f, eff = 0.f, eff_per_event = 0.f;
+
   const float n_tot = float(m_nfound + m_nclones);
   if (m_nfound) clonerate = float(m_nclones) / n_tot;
   if (m_naccept) eff = float(m_nfound) / float(m_naccept);
+  if (m_number_of_events) eff_per_event = ((float) m_eff_per_event) / ((float) m_number_of_events);
 
   if (m_naccept > 0) {
     std::printf(
-      "%-50s: %9lu/%9lu %6.2f%%, "
+      "%-50s: %9lu/%9lu %6.2f%% (%6.2f%%), "
       "%9lu (%6.2f%%) clones, pur %6.2f%%, hit eff %6.2f%%\n",
       m_name.c_str(),
       m_nfound,
       m_naccept,
       100.f * eff,
+      100.f * eff_per_event,
       m_nclones,
       100.f * clonerate,
       100.f * m_hitpur,
@@ -337,7 +355,7 @@ void TrackChecker::Histos::fillMuonIDMatchedHistos(const Checker::Track& track, 
   }
 #endif
 }
- 
+
 bool TrackChecker::match_track_to_MCPs(
   MCAssociator mc_assoc,
   const Checker::Tracks& tracks,
@@ -469,6 +487,10 @@ std::vector<uint32_t> TrackChecker::operator()(
   const MCEvent& mc_event,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector)
 {
+  for (auto& report : m_categories) {
+    report.event_start();
+  }
+
   // register MC particles
   for (auto& report : m_categories) {
     report(mc_event.m_mcps);
@@ -506,10 +528,10 @@ std::vector<uint32_t> TrackChecker::operator()(
     bool eta25 = track.eta > 2.f && track.eta < 5.f;
     bool skipEtaCut = (m_trackerName == "Velo");
     bool eta25Cut = eta25 | skipEtaCut;
-    
+
     if (!eta25Cut) continue;
     ++ntracksperevt;
-    
+
     const bool triggerCondition = track.p > 3000.f && track.pt > 500.f;
     if (triggerCondition) {
       ntrackstriggerperevt++;
@@ -555,6 +577,10 @@ std::vector<uint32_t> TrackChecker::operator()(
     histos.fillMomentumResolutionHisto(mcp, track.p, track.qop);
     // fill muon ID histograms
     histos.fillMuonIDMatchedHistos(track, mcp);
+  }
+
+  for (auto& report : m_categories) {
+    report.event_done();
   }
 
   // almost done, notify of end of event...

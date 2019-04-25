@@ -101,7 +101,7 @@ int run_looking_forward_CPU(
       // veloUT track variables
       const float qop = ut_tracks.qop[i_veloUT_track];
       const int i_velo_track = ut_tracks.velo_track[i_veloUT_track];
-      const MiniState velo_state {velo_states, velo_event_tracks_offset + i_velo_track};
+      const MiniState velo_state = velo_states.getMiniState(velo_event_tracks_offset + i_velo_track);
       const int ut_track_index = ut_event_tracks_offset + i_veloUT_track;
       const float ut_x = host_ut_x[ut_track_index];
       const float ut_tx = host_ut_tx[ut_track_index];
@@ -296,4 +296,6 @@ int run_looking_forward_CPU(
   f->Write();
   f->Close();
 #endif
+
+  return 0;
 }

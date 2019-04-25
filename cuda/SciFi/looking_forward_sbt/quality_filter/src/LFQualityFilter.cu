@@ -13,13 +13,16 @@ __global__ void lf_quality_filter(
   const uint* dev_ut_track_velo_indices,
   SciFi::TrackHits* dev_scifi_lf_tracks,
   const int* dev_scifi_lf_atomics,
+  float* dev_scifi_lf_track_params,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
-  const MiniState* dev_ut_states,
   const SciFi::Tracking::TMVA* dev_tmva1,
   const SciFi::Tracking::TMVA* dev_tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* dev_magnet_polarity,
   int* dev_atomics_scifi,
+  uint* dev_scifi_selected_track_indices,
   SciFi::TrackHits* dev_scifi_tracks)
 {
   const auto number_of_events = gridDim.x;
@@ -39,6 +42,7 @@ __global__ void lf_quality_filter(
                                             event_number,
                                             number_of_events};
   const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
+  const int ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
 
   // SciFi hits
   const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
@@ -48,27 +52,27 @@ __global__ void lf_quality_filter(
     const_cast<uint32_t*>(dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
 
-  // SciFi un-consolidated track types
-  const int number_of_tracks = dev_scifi_lf_atomics[event_number];
+  const auto number_of_tracks = dev_scifi_lf_atomics[event_number];
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    SciFi::TrackHits& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_lf_tracks + i];
+    SciFi::TrackHits& track = dev_scifi_lf_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
-    const MiniState velo_state {velo_states, velo_states_index};
-    track.quality = lf_track_quality(
-                                     track, velo_state, dev_ut_qop[current_ut_track_index], constArrays, dev_tmva1, dev_tmva2, scifi_hits, event_offset);
+    float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
+
+    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
+
+    track.quality = lf_track_quality(track, velo_state, dev_ut_qop[current_ut_track_index], trackParams, constArrays, dev_magnet_polarity[0], dev_tmva1, dev_tmva2);
   }
 
   __syncthreads();
 
-  // TODO: This could be done faster, just a quick implementation
-  for (int i = threadIdx.x; i < ut_tracks.number_of_tracks(event_number); i += blockDim.x) {
+  for (int i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
     float best_quality = LookingForward::track_min_quality;
     short best_track_index = -1;
 
-    for (int j = 0; j < number_of_tracks; ++j) {
-      const SciFi::TrackHits& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_lf_tracks + j];
+    for (int j = 0; j < number_of_tracks; j++) {
+      const SciFi::TrackHits& track = dev_scifi_lf_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + j];
       if (track.ut_track_index == i && track.quality > best_quality) {
         best_quality = track.quality;
         best_track_index = j;
@@ -77,16 +81,19 @@ __global__ void lf_quality_filter(
 
     if (best_track_index != -1) {
       const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-      if (insert_index < SciFi::Constants::max_tracks) {
-        const auto& track = dev_scifi_lf_tracks[event_number * SciFi::Constants::max_lf_tracks + best_track_index];
-        dev_scifi_tracks[event_number * SciFi::Constants::max_tracks + insert_index] = track;
-      }
+      assert(insert_index < ut_event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+      const auto& track = dev_scifi_lf_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + best_track_index];
+      dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
+      //const float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + best_track_index * SciFi::Tracking::nTrackParams;
+      dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = best_track_index;
+
+      // MiniState scifi_state(
+      //   LookingForward::x_at_z(LookingForward::zReferenceEndTDiff, trackParams),
+      //   LookingForward::y_at_z(LookingForward::zReferenceEndTDiff, trackParams),
+      //   SciFi::Constants::ZEndT,
+      //   LookingForward::tx_at_z(LookingForward::zReferenceEndTDiff, trackParams),
+      //   LookingForward::ty_at_z(LookingForward::zReferenceEndTDiff, trackParams));
+      // dev_scifi_states_unconsolidated[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = scifi_state;
     }
-  }
-
-  __syncthreads();
-
-  if (threadIdx.x == 0 && dev_atomics_scifi[event_number] > SciFi::Constants::max_tracks) {
-    dev_atomics_scifi[event_number] = SciFi::Constants::max_tracks;
   }
 }

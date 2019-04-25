@@ -2,9 +2,10 @@
 
 #include "Handler.cuh"
 #include "MuonDefinitions.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsMuon.cuh"
+#include "SciFiConsolidated.cuh"
 
 __global__ void is_muon(
   int* dev_atomics_scifi,
@@ -20,8 +21,8 @@ __global__ void is_muon(
   const float* dev_muon_momentum_cuts
 );
 
-ALGORITHM(  
-  is_muon, 
+ALGORITHM(
+  is_muon,
   is_muon_t,
   ARGUMENTS(
     dev_atomics_scifi,

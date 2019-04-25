@@ -5,7 +5,7 @@
 #include <math.h>
 #include <vector>
 
-#include "MiniState.cuh"
+#include "States.cuh"
 #include "Logger.h"
 
 namespace SciFi {

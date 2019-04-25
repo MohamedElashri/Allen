@@ -12,5 +12,6 @@ void PrForwardWrapper(
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
   SciFi::TrackHits outputTracks[SciFi::Constants::max_tracks],
   uint* n_forward_tracks);

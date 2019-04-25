@@ -52,6 +52,9 @@ int run_forward_on_CPU(
   //   t_scifi_hits->Branch("yMax", &yMax);
   // #endif
 
+  // // to do: set from configuration
+  // const float magnet_polarity = -1.f;
+
   //   for (uint i_event = 0; i_event < number_of_events; ++i_event) {
 
   //     // Velo consolidated types
@@ -73,6 +76,7 @@ int run_forward_on_CPU(
   //     // SciFi non-consolidated types
   //     int* n_forward_tracks = host_scifi_n_tracks + i_event;
   //     SciFi::TrackHits* scifi_tracks_event = host_scifi_tracks + i_event * SciFi::Constants::max_tracks;
+  //  MiniState* scifi_states_event;
 
   //     const uint total_number_of_hits = host_scifi_hit_count[number_of_events *
   //     SciFi::Constants::n_mat_groups_and_mats]; SciFi::HitCount scifi_hit_count {(uint32_t*) host_scifi_hit_count,
@@ -125,6 +129,7 @@ int run_forward_on_CPU(
   //       &tmva1,
   //       &tmva2,
   //       &constArrays,
+  //       magnet_polarity,
   //       scifi_tracks_event,
   //       (uint*) n_forward_tracks);
 

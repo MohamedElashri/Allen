@@ -64,7 +64,7 @@ __global__ void lf_calculate_first_layer_window(
     const float ut_z = dev_ut_z[ut_track_index];
 
     const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
-    const MiniState velo_state {velo_states, velo_states_index};
+    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
 
     // extrapolate velo y & ty to z of UT x and tx
     // use ty from Velo state
