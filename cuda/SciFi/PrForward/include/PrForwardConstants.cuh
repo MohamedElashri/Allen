@@ -16,6 +16,7 @@
 
 #include "VeloEventModel.cuh"
 #include "SystemOfUnits.h"
+#include "SciFiDefinitions.cuh"
 #include <cassert>
 
 namespace SciFi {
@@ -108,6 +109,7 @@ namespace SciFi {
 
     // z Reference plane
     constexpr float zReference = 8520. * Gaudi::Units::mm; // in T2
+    constexpr float zRefInv = 1.f / zReference;
 
     // TODO: CHECK THESE VALUES USING FRAMEWORK
     constexpr float xLim_Max = 3300.;
@@ -116,9 +118,13 @@ namespace SciFi {
     constexpr float yLim_Min = -25.;
 
     // TO BE READ FROM XML EVENTUALLY
-    constexpr float magscalefactor = -1;
+    //constexpr float magscalefactor = -1;
+    constexpr int zoneoffsetpar = 6;
 
     struct Arrays {
+      // Returns whether the current layer is an X plane
+      const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
+
       // the Magnet Parametrization
       // parameterized in offset [0], (slope difference due to kick)^2 [1],
       // tx^2 [2], ty^2 [3]
@@ -157,6 +163,15 @@ namespace SciFi {
                                      -0.0874892};
       const float Zone_dzdy[24] = {0.0036010};
     };
+
+    // parameters for extrapolating from EndVelo to ZReference
+    constexpr float xExtParams[6] = {4.08934e+06f, 6.31187e+08f, 131.999f, -1433.64f, -325.055f, 3173.52f};
+    // Params for momentum dependent search window estimate
+    // upper window to include 98% of hits(can't be too greedy
+    // here or the window size would explode)
+    constexpr float pUp[3] = {1.46244e+02f, 5.15348e+02f, -4.17237e-05f};
+    // lower window, the same to include 98% of hits
+    constexpr float pLo[3] = {5.00000e+01f, 9.61409e+02f, -1.31317e-04f};
 
     // Track object used for finding tracks, not the final container for storing the tracks
     struct Track {

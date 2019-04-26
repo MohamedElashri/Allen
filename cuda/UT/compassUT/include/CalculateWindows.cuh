@@ -4,7 +4,7 @@
 #include "VeloConsolidated.cuh"
 #include "PrVeloUTMagnetToolDefinitions.h"
 #include "UTEventModel.cuh"
-#include "MiniState.cuh"
+#include "States.cuh"
 #include <tuple>
 
 __device__ bool velo_track_in_UTA_acceptance(const MiniState& state);

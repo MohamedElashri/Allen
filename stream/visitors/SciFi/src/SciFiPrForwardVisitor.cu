@@ -8,7 +8,7 @@ void SequenceVisitor::set_arguments_size<scifi_pr_forward_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_tracks);
+  arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
   arguments.set_size<dev_atomics_scifi>(host_buffers.host_number_of_selected_events[0] * SciFi::num_atomics);
 }
 
@@ -39,28 +39,10 @@ void SequenceVisitor::visit<scifi_pr_forward_t>(
     constants.dev_scifi_tmva1,
     constants.dev_scifi_tmva2,
     constants.dev_scifi_constArrays,
+    constants.dev_magnet_polarity,
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res);
 
   state.invoke();
 
-  // cudaCheck(cudaMemcpyAsync(host_buffers.host_atomics_scifi,
-  //   arguments.offset<dev_atomics_scifi>(),
-  //   arguments.size<dev_atomics_scifi>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
-
-  // cudaCheck(cudaMemcpyAsync(host_buffers.host_scifi_tracks,
-  //   arguments.offset<dev_scifi_tracks>(),
-  //   arguments.size<dev_scifi_tracks>(),
-  //   cudaMemcpyDeviceToHost,
-  //   cuda_stream));
-
-  // cudaEventRecord(cuda_generic_event, cuda_stream);
-  // cudaEventSynchronize(cuda_generic_event);
-
-  // for (uint i=0; i<host_buffers.host_number_of_selected_events[0]; ++i) {
-  //   info_cout << "Event " << i
-  //     << ", number of tracks " << host_buffers.host_atomics_scifi[i] << std::endl;
-  // }
 }

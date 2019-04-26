@@ -15,7 +15,10 @@
 struct HostBuffers {
   // Pinned host datatypes
   uint* host_number_of_selected_events;
+  uint host_max_number_of_events;
   uint* host_event_list;
+  uint* host_prefix_sum_buffer;
+  size_t host_allocated_prefix_sum_space;
 
   // Velo
   uint* host_atomics_velo;
@@ -44,9 +47,12 @@ struct HostBuffers {
   uint* host_ut_track_hit_number;
   char* host_ut_track_hits;
   float* host_ut_qop;
-  uint* host_ut_track_velo_indices;
-
-  // SciFi
+  float* host_ut_x;
+  float* host_ut_tx;
+  float* host_ut_z;
+  uint*  host_ut_track_velo_indices;
+  
+  // SciFi 
   uint* host_accumulated_number_of_scifi_hits;
   uint* host_number_of_reconstructed_scifi_tracks;
   SciFi::TrackHits* host_scifi_tracks;
@@ -57,18 +63,28 @@ struct HostBuffers {
   float* host_scifi_qop;
   MiniState* host_scifi_states;
   uint* host_scifi_track_ut_indices;
+  uint* host_lf_total_size_first_window_layer;
+  uint* host_lf_total_number_of_candidates;
 
   // Kalman
   ParKalmanFilter::FittedTrack* host_kf_tracks;
 
+  // Muon
+  float* host_muon_catboost_output;
+  bool *host_is_muon;
+
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;
   std::vector<char> host_velo_states;
-
+  //std::vector<uint> n_scifi_tracks;
+  std::vector< std::vector< std::vector< uint32_t > > > scifi_ids_ut_tracks;
+  std::vector<uint> host_scifi_hits;
+  std::vector<uint> host_scifi_hit_count;
+  
   /**
    * @brief Reserves all host buffers.
    */
-  void reserve(const uint max_number_of_events);
+  void reserve(const uint max_number_of_events, const bool do_check);
 
   /**
    * @brief Returns total number of velo track hits.

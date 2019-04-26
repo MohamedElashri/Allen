@@ -21,7 +21,7 @@ void SequenceVisitor::visit<kalman_filter_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(1024), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_velo>(),
     arguments.offset<dev_velo_track_hit_number>(),
@@ -43,13 +43,12 @@ void SequenceVisitor::visit<kalman_filter_t>(
     constants.dev_kalman_params);
   state.invoke();
 
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
-
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_kf_tracks,
-    arguments.offset<dev_kf_tracks>(),
-    arguments.size<dev_kf_tracks>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_kf_tracks,
+      arguments.offset<dev_kf_tracks>(),
+      arguments.size<dev_kf_tracks>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }

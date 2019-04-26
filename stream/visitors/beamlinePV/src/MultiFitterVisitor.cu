@@ -40,23 +40,4 @@ void SequenceVisitor::visit<pv_beamline_multi_fitter_t>(
     cuda_stream));
 
   state.invoke();
-
-  // Retrieve result
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_reconstructed_multi_pvs,
-    arguments.offset<dev_multi_fit_vertices>(),
-    arguments.size<dev_multi_fit_vertices>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
-
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_number_of_multivertex,
-    arguments.offset<dev_number_of_multi_fit_vertices>(),
-    arguments.size<dev_number_of_multi_fit_vertices>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
-
-  // Wait to receive the result
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
 }

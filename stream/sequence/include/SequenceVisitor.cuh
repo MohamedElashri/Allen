@@ -42,7 +42,7 @@ struct SequenceVisitor {
   void check(
     const uint& start_event_offset,
     const uint& number_of_events_requested,
-    const HostBuffers& host_buffers,
+    HostBuffers& host_buffers,
     const Constants& constants,
     const CheckerInvoker& checker_invoker) const
   {}

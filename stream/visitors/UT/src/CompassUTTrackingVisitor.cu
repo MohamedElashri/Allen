@@ -34,6 +34,7 @@ void SequenceVisitor::visit<compass_ut_t>(
     arguments.offset<dev_velo_track_hits>(),
     arguments.offset<dev_velo_states>(),
     constants.dev_ut_magnet_tool,
+    constants.dev_magnet_polarity,
     constants.dev_ut_dxDy,
     arguments.offset<dev_ut_active_tracks>(),
     constants.dev_unique_x_sector_layer_offsets,

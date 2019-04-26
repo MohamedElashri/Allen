@@ -63,23 +63,20 @@ namespace ParKalmanFilter {
   //----------------------------------------------------------------------
   // Tentative output structure.
   struct FittedTrack {
-    // Chi2 info.
-    KalmanFloat chi2;
-    KalmanFloat chi2V;
-    KalmanFloat chi2T;
-
-    // Ns DoF
     uint ndof;
     uint ndofV;
     uint ndofT;
     uint nhits;
 
-    // State info (closest to beamline).
-    Vector5 state;
-    SymMatrix5x5 cov;
     KalmanFloat z;
     KalmanFloat first_qop;
     KalmanFloat best_qop;
+    KalmanFloat chi2;
+    KalmanFloat chi2V;
+    KalmanFloat chi2T;
+
+    Vector5 state;
+    SymMatrix5x5 cov;
   };
 
 } // namespace ParKalmanFilter

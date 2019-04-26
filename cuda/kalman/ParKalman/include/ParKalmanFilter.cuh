@@ -1,15 +1,15 @@
 #pragma once
 
+#include "KalmanParametrizations.cuh"
+#include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "ParKalmanMethods.cuh"
-#include "ParKalmanDefinitions.cuh"
-#include "KalmanParametrizations.cuh"
 
-#include "VeloConsolidated.cuh"
-#include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
+#include "UTConsolidated.cuh"
+#include "VeloConsolidated.cuh"
 
-#include "MiniState.cuh"
+#include "States.cuh"
 #include "SciFiDefinitions.cuh"
 
 #include "Handler.cuh"
@@ -112,7 +112,7 @@ namespace ParKalmanFilter {
 
 //----------------------------------------------------------------------
 // Main execution of the parametrized Kalman Filter.
-__global__ void KalmanFilter(
+__global__ void kalman_filter(
   int* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
@@ -133,7 +133,7 @@ __global__ void KalmanFilter(
   const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
 
 ALGORITHM(
-  KalmanFilter,
+  kalman_filter,
   kalman_filter_t,
   ARGUMENTS(
     dev_atomics_velo,

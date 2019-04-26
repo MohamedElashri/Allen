@@ -38,6 +38,8 @@ namespace ParKalmanFilter {
     }
     __host__ __device__ KalmanFloat& operator()(int i, int j) { return vals[i * _size + j]; }
     __host__ __device__ const KalmanFloat& operator()(int i, int j) const { return vals[i * _size + j]; }
+    __host__ __device__ KalmanFloat& operator[](int i) { return vals[i]; }
+    __host__ __device__ const KalmanFloat& operator[](int i) const { return vals[i]; }
     __host__ __device__ SquareMatrix<false, _size> T()
     {
       SquareMatrix<false, _size> ret;
@@ -60,23 +62,20 @@ namespace ParKalmanFilter {
   // Symmetric matrix.
   template<int _size>
   struct SquareMatrix<true, _size> {
-    int size;
-    KalmanFloat vals[_size * (_size + 1) / 2];
+    KalmanFloat vals[((_size * (_size + 1)) >> 1)];
     __host__ __device__ SquareMatrix()
     {
-      size = _size;
-      for (int i = 0; i < _size * (_size + 1) / 2; i++)
+      for (int i = 0; i < ((_size * (_size + 1)) >> 1); i++)
         vals[i] = 0;
     }
-    __host__ __device__ SquareMatrix(KalmanFloat init_vals[_size * (_size + 1) / 2])
+    __host__ __device__ SquareMatrix(KalmanFloat init_vals[((_size * (_size + 1)) >> 1)])
     {
-      size = _size;
-      for (int i = 0; i < _size * (_size + 1) / 2; i++)
+      for (int i = 0; i < ((_size * (_size + 1)) >> 1); i++)
         vals[i] = init_vals[i];
     }
-    __host__ __device__ void SetElements(KalmanFloat init_vals[_size * (_size + 1) / 2])
+    __host__ __device__ void SetElements(KalmanFloat init_vals[((_size * (_size + 1)) >> 1)])
     {
-      for (int i = 0; i < size * (size + 1) / 2; i++)
+      for (int i = 0; i < ((_size * (_size + 1)) >> 1); i++)
         vals[i] = init_vals[i];
     }
     __host__ __device__ KalmanFloat& operator()(int i, int j)
@@ -105,7 +104,15 @@ namespace ParKalmanFilter {
         idx += j;
         j -= 1;
       }
-      return vals[idx];
+      return vals[idx];      
+    }
+    __host__ __device__ KalmanFloat& operator[](int i)
+    {
+      return vals[i];
+    }
+    __host__ __device__ const KalmanFloat& operator[](int i) const
+    {
+      return vals[i];
     }
   };
 
@@ -113,7 +120,6 @@ namespace ParKalmanFilter {
   // Vector.
   template<int _size>
   struct Vector {
-    int size;
     KalmanFloat vals[_size];
 
     __host__ __device__ Vector();
@@ -127,7 +133,6 @@ namespace ParKalmanFilter {
   template<int _size>
   __host__ __device__ Vector<_size>::Vector()
   {
-    size = _size;
     for (int i = 0; i < _size; i++)
       vals[i] = 0;
   }
@@ -135,7 +140,6 @@ namespace ParKalmanFilter {
   template<int _size>
   __host__ __device__ Vector<_size>::Vector(KalmanFloat init_vals[_size])
   {
-    size = _size;
     for (int i = 0; i < _size; i++)
       vals[i] = init_vals[i];
   }
@@ -260,8 +264,8 @@ namespace ParKalmanFilter {
     const SquareMatrix<true, _size>& A,
     const SquareMatrix<true, _size>& B)
   {
-    KalmanFloat res_vals[_size * (_size + 1) / 2];
-    for (int i = 0; i < (_size * (_size + 1) / 2); i++) {
+    KalmanFloat res_vals[((_size * (_size + 1)) >> 1)];
+    for (int i = 0; i < (((_size * (_size + 1)) >> 1)); i++) {
       res_vals[i] = A.vals[i] + B.vals[i];
     }
     return SquareMatrix<true, _size>(res_vals);
@@ -288,8 +292,8 @@ namespace ParKalmanFilter {
     const SquareMatrix<true, _size>& A,
     const SquareMatrix<true, _size>& B)
   {
-    KalmanFloat res_vals[_size * (_size + 1) / 2];
-    for (int i = 0; i < (_size * (_size + 1) / 2); i++) {
+    KalmanFloat res_vals[((_size * (_size + 1)) >> 1)];
+    for (int i = 0; i < (((_size * (_size + 1)) >> 1)); i++) {
       res_vals[i] = A.vals[i] - B.vals[i];
     }
     return SquareMatrix<true, _size>(res_vals);
@@ -340,7 +344,7 @@ namespace ParKalmanFilter {
   __host__ __device__ Vector<_size> operator*(const KalmanFloat& a, const Vector<_size> v)
   {
     Vector<_size> u;
-    for (int i = 0; i < u.size; i++)
+    for (int i = 0; i < _size; i++)
       u(i) = v(i) * a;
     return u;
   }
@@ -363,7 +367,7 @@ namespace ParKalmanFilter {
   __host__ __device__ Vector<_size> operator/(const Vector<_size> v, const KalmanFloat& a)
   {
     Vector<_size> u;
-    for (int i = 0; i < u.size; i++)
+    for (int i = 0; i < _size; i++)
       u(i) = v(i) / a;
     return u;
   }

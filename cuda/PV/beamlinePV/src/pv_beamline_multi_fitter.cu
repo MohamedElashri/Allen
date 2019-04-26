@@ -1,7 +1,5 @@
 #include "pv_beamline_multi_fitter.cuh"
 
-// parameters to tune: maximum iterations, chi2max, chi2_cut, T
-
 __global__ void pv_beamline_multi_fitter(
   int* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
@@ -39,11 +37,10 @@ __global__ void pv_beamline_multi_fitter(
     // initial vertex posisiton, use x,y of the beamline and z of the seed
     float2 vtxpos_xy {beamline.x, beamline.y};
     auto vtxpos_z = zseeds[i_thisseed];
-    const auto maxDeltaZConverged {0.001f};
     auto chi2tot = 0.f;
     unsigned short nselectedtracks = 0;
     unsigned short iter = 0;
-    // debug_cout << "next vertex " << std::endl;
+    float sum_weights = 0.f;
     for (; iter < maxFitIter && !converged; ++iter) {
       auto halfD2Chi2DX2_00 = 0.f;
       auto halfD2Chi2DX2_11 = 0.f;
@@ -53,7 +50,6 @@ __global__ void pv_beamline_multi_fitter(
       float3 halfDChi2DX {0.f, 0.f, 0.f};
       chi2tot = 0.f;
       nselectedtracks = 0;
-      // debug_cout << "next track" << std::endl;
       for (int i = 0; i < number_of_tracks; i++) {
         // compute the chi2
         PVTrackInVertex trk = tracks[i];
@@ -63,23 +59,16 @@ __global__ void pv_beamline_multi_fitter(
         float2 res {0.f, 0.f};
         res = vtxpos_xy - (trk.x + trk.tx * dz);
         const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
-        // debug_cout << "chi2 = " << chi2 << ", max = " << chi2max << std::endl;
         // compute the weight.
-        trk.weight = 0.f;
-        if (chi2 < maxDeltaChi2) { // to branch or not, that is the question!
-                                   // if (true) {
+        if (chi2 < maxChi2) {
           ++nselectedtracks;
           // for more information on the weighted fitting, see e.g.
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
           // https://cds.cern.ch/record/803519/files/p280.pdf
-          // double T = 1. + maxNumIter / (iter+1) * 0.05;
-          // float T = 1.f;
 
-          // try out varying chi2_cut during iterations instead of T
-          const auto chi2_cut = 0.1f + 0.01f * maxFitIter / (iter + 1);
+          auto denom = exp(-chi2Cut * 0.5f) + exp(-chi2 * 0.5f);
+          auto nom = 1.f;
 
-          trk.weight = exp(-chi2 * 0.5f);
-          auto denom = exp(-chi2_cut * 0.5f);
           for (int i_otherseed = 0; i_otherseed < number_of_seeds; i_otherseed++) {
             float2 res_otherseed {0.f, 0.f};
             const auto dz = zseeds[i_otherseed] - trk.z;
@@ -91,18 +80,12 @@ __global__ void pv_beamline_multi_fitter(
             const auto chi2_otherseed =
               res_otherseed.x * res_otherseed.x * trk.W_00 + res_otherseed.y * res_otherseed.y * trk.W_11;
             denom += exp(-chi2_otherseed * 0.5f);
+            if (i_thisseed == i_otherseed) nom = exp(-chi2_otherseed * 0.5f);
           }
-          trk.weight = trk.weight / denom;
+          trk.weight = nom / denom;
 
           // unfortunately branchy, but reduces fake rate
           if (trk.weight < minWeight) continue;
-          // trk.weight = sqr( 1.f - chi2 / chi2max ) ;
-          // trk.weight = chi2 < 1 ? 1 : sqr( 1. - (chi2-1) / (chi2max-1) ) ;
-          // += operator does not work for mixed FP types
-          // halfD2Chi2DX2 += trk.weight * trk.HWH ;
-          // halfDChi2DX   += trk.weight * trk.HW * res ;
-          // if I use expressions, it crashes!
-          // const Gaudi::SymMatrix3x3F thisHalfD2Chi2DX2 = weight * ROOT::Math::Similarity(H, trk.W ) ;
           float3 HWr;
           HWr.x = res.x * trk.W_00;
           HWr.y = res.y * trk.W_11;
@@ -117,6 +100,7 @@ __global__ void pv_beamline_multi_fitter(
           halfD2Chi2DX2_22 += trk.weight * trk.HWH_22;
 
           chi2tot += trk.weight * chi2;
+          sum_weights += trk.weight;
         }
       }
       __syncthreads();
@@ -131,6 +115,7 @@ __global__ void pv_beamline_multi_fitter(
 
         const auto det = a00 * (a22 * a11 - a21 * a21) + a20 * (-a11 * a20);
         const auto inv_det = 1.f / det;
+
         // maybe we should catch the case when det = 0
         // if (det == 0) return false;
 
@@ -141,7 +126,6 @@ __global__ void pv_beamline_multi_fitter(
         vtxcov[4] = -(a21 * a00) * inv_det;
         vtxcov[5] = (a11 * a00) * inv_det;
 
-        // compute the delta w.r.t. the reference
         const float2 delta_xy {
           -1.f * (vtxcov[0] * halfDChi2DX.x + vtxcov[1] * halfDChi2DX.y + vtxcov[3] * halfDChi2DX.z),
           -1.f * (vtxcov[1] * halfDChi2DX.x + vtxcov[2] * halfDChi2DX.y + vtxcov[4] * halfDChi2DX.z)};
@@ -160,18 +144,12 @@ __global__ void pv_beamline_multi_fitter(
         break;
       }
     } // end iteration loop
-    // std::cout << "Number of iterations: " << iter << " " << nselectedtracks << std::endl ;
     vertex.chi2 = chi2tot;
     vertex.setPosition(vtxpos_xy, vtxpos_z);
-    // vtxcov[5] = 100.;
     vertex.setCovMatrix(vtxcov);
-    for (int i = 0; i < number_of_tracks; i++) {
-      PVTrackInVertex trk = tracks[i];
-      if (trk.weight > 0.1f) vertex.nTracks++;
-    }
+    vertex.n_tracks = sum_weights;
 
     // TODO integrate beamline position
-    const float2 beamline {0.f, 0.f};
     const auto beamlinedx = vertex.position.x - beamline.x;
     const auto beamlinedy = vertex.position.y - beamline.y;
     const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;

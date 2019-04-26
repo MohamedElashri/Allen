@@ -85,7 +85,7 @@ __global__ void veloUT(
     if (velo_states.backward[velo_states_index]) continue;
 
     // Mini State with only x, y, tx, ty and z
-    MiniState velo_state {velo_states, velo_states_index};
+    MiniState velo_state = velo_states.get(velo_states_index);
 
     if (!veloTrackInUTAcceptance(velo_state)) continue;
 

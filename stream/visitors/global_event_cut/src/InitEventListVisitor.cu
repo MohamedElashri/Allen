@@ -28,6 +28,7 @@ void SequenceVisitor::visit<init_event_list_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
+  // TODO: Make the sequence work with 0 events
   assert(runtime_options.number_of_events > 0);
 
   // Setup opts and arguments for kernel call
@@ -78,12 +79,4 @@ void SequenceVisitor::visit<init_event_list_t>(
     cuda_stream));
 
   state.invoke();
-
-  // TODO: This is not needed here
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_event_list,
-    arguments.offset<dev_event_list>(),
-    runtime_options.number_of_events * sizeof(uint),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
 }

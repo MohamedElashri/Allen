@@ -36,6 +36,7 @@ __global__ void scifi_pr_forward(
   const SciFi::Tracking::TMVA* dev_tmva1,
   const SciFi::Tracking::TMVA* dev_tmva2,
   const SciFi::Tracking::Arrays* dev_constArrays,
+  const float* dev_magnet_polarity,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res);
 
@@ -54,4 +55,5 @@ ALGORITHM(
     dev_ut_qop,
     dev_ut_track_velo_indices,
     dev_scifi_tracks,
+    dev_scifi_selected_track_indices,
     dev_atomics_scifi))
