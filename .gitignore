@@ -23,3 +23,9 @@ setup.sh
 *.root
 .vscode
 output/*
+*.pdf
+input/1kevents_*
+input/10kevents_*
+input/test/*
+input/UT_*
+checker/plotting/output

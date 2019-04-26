@@ -64,6 +64,21 @@ __device__ float get_average_x_at_reference_plane(
   const MiniState& velo_state,
   const float zMagSlope);
 
+__device__ float get_average_and_individual_x_at_reference_plane(
+  const float* hits_x,
+  const float* hits_z,
+  const uint8_t n_hits,
+  const float xAtRef_initial,
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const float zMagSlope,
+  float* hits_x_atRef);
+
+__device__ float get_average_x_at_reference_plane_spread(
+  const float xAtRef_average,
+  const float* hits_x,
+  const int n_hits);
+
 __device__ float get_average_x_at_reference_plane_from_scifi_propagaion(
   const int* hits,
   const uint8_t n_hits,

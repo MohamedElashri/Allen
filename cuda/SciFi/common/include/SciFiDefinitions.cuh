@@ -59,7 +59,7 @@ namespace SciFi {
     static constexpr uint mat_index_substract = n_consecutive_raw_banks * 3;
     static constexpr uint n_mats_without_group = n_mats - n_consecutive_raw_banks * n_mats_per_consec_raw_bank;
 
-    static constexpr float ZEndT = 9410.f * Gaudi::Units::mm;
+    static constexpr float ZEndT = 9410.f * Gaudi::Units::mm; // FIXME_GEOMETRY_HARDCODING
 
     /* Cut-offs */
     static constexpr uint max_numhits_per_event = 10000;
