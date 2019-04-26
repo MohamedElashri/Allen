@@ -14,9 +14,7 @@ __global__ void lf_quality_filter_x(
   const int* dev_scifi_lf_atomics,
   SciFi::TrackHits* dev_scifi_lf_x_filtered_tracks,
   int* dev_scifi_lf_x_filtered_atomics,
-  SciFi::TrackHits* dev_scifi_tracks,
-  int* dev_atomics_scifi,
-  uint* dev_scifi_selected_track_indices,
+  //float* dev_scifi_lf_xAtRef,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const LookingForward::Constants* dev_looking_forward_constants,
@@ -50,6 +48,7 @@ __global__ void lf_quality_filter_x(
   const auto event_offset = scifi_hit_count.event_offset();
 
   __shared__ float xAtRef_average_spread[LookingForward::maximum_number_of_candidates_per_ut_track];
+  //__shared__ float xAtRef_average_array[LookingForward::maximum_number_of_candidates_per_ut_track];
   __shared__ int16_t track_candidate_indices[LookingForward::maximum_number_of_candidates_per_ut_track];
   __shared__ int16_t best_candidates[LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter];
   __shared__ int n_track_candidates;
@@ -103,10 +102,9 @@ __global__ void lf_quality_filter_x(
             hits_x_atRef,
             track.hitsNum);
 
-        //printf("at event %u, UT track %u, candidate %u, spread = %f, hitsNum = %u \n", event_number, i, j, xAtRef_spread, track.hitsNum);
-
         const auto insert_index = atomicAdd(&n_track_candidates, 1);
         xAtRef_average_spread[insert_index] = xAtRef_spread;
+        //xAtRef_average_array[insert_index] = xAtRef_average;
         track_candidate_indices[insert_index] = j;
       }
     }
@@ -140,10 +138,7 @@ __global__ void lf_quality_filter_x(
 
         const auto insert_index = atomicAdd(dev_scifi_lf_x_filtered_atomics + event_number, 1);
         dev_scifi_lf_x_filtered_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + insert_index] = track;
-
-        // const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-        // dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
-        // dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
+        //        dev_scifi_lf_xAtRef[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + insert_index] = xAtRef_average_array[candidate_index];
       }
     }
   }

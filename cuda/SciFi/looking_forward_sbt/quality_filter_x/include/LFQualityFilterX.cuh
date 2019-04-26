@@ -25,9 +25,7 @@ __global__ void lf_quality_filter_x(
   const int* dev_scifi_lf_atomics,
   SciFi::TrackHits* dev_scifi_lf_x_filtered_tracks,
   int* dev_scifi_lf_x_filtered_atomics,
-  SciFi::TrackHits* dev_scifi_tracks,
-  int* dev_atomics_scifi,
-  uint* dev_scifi_selected_track_indices,
+  //float* dev_scifi_lf_xAtRef,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const LookingForward::Constants* dev_looking_forward_constants,
@@ -49,7 +47,5 @@ ALGORITHM(
     dev_scifi_lf_tracks,
     dev_scifi_lf_atomics,
     dev_scifi_lf_x_filtered_tracks,
-    dev_scifi_lf_x_filtered_atomics,
-    dev_scifi_tracks,
-    dev_atomics_scifi,
-    dev_scifi_selected_track_indices))
+    dev_scifi_lf_x_filtered_atomics))
+//dev_scifi_lf_xAtRef))

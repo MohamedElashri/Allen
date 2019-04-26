@@ -10,9 +10,7 @@ void SequenceVisitor::set_arguments_size<lf_quality_filter_x_t>(
 {
   arguments.set_size<dev_scifi_lf_x_filtered_tracks>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
   arguments.set_size<dev_scifi_lf_x_filtered_atomics>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
-  arguments.set_size<dev_atomics_scifi>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
-  arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
-  arguments.set_size<dev_scifi_selected_track_indices>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+  //arguments.set_size<dev_scifi_lf_xAtRef>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
 }
 
 template<>
@@ -31,12 +29,6 @@ void SequenceVisitor::visit<lf_quality_filter_x_t>(
     arguments.size<dev_scifi_lf_x_filtered_atomics>(),
     cuda_stream));
 
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_atomics_scifi>(),
-    0,
-    arguments.size<dev_atomics_scifi>(),
-    cuda_stream));
-
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 24), dim3(32), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_ut>(),
@@ -52,9 +44,6 @@ void SequenceVisitor::visit<lf_quality_filter_x_t>(
     arguments.offset<dev_scifi_lf_atomics>(),
     arguments.offset<dev_scifi_lf_x_filtered_tracks>(),
     arguments.offset<dev_scifi_lf_x_filtered_atomics>(),
-    arguments.offset<dev_scifi_tracks>(),
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_scifi_selected_track_indices>(),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
     constants.dev_looking_forward_constants,

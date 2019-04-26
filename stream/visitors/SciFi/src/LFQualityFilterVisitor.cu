@@ -9,10 +9,9 @@ void SequenceVisitor::set_arguments_size<lf_quality_filter_t>(
   const HostBuffers& host_buffers)
 {
   arguments.set_size<dev_scifi_lf_track_params>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams);
-  // To Do: allocate them here when not done in x filter visitor
-  // arguments.set_size<dev_scifi_selected_track_indices>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
-  //  arguments.set_size<dev_atomics_scifi>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
-  // arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+  arguments.set_size<dev_scifi_selected_track_indices>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+   arguments.set_size<dev_atomics_scifi>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
+  arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
 }
 
 template<>
