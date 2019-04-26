@@ -8,14 +8,15 @@ void StreamWrapper::initialize_streams(
   const bool print_memory_usage,
   const uint start_event_offset,
   const size_t reserve_mb,
-  const Constants& constants)
+  const Constants& constants,
+  const bool do_check)
 {
   for (uint i = 0; i < n; ++i) {
     streams.push_back(new Stream());
   }
 
   for (int i = 0; i < streams.size(); ++i) {
-    streams[i]->initialize(number_of_events, print_memory_usage, start_event_offset, reserve_mb, i, constants);
+    streams[i]->initialize(number_of_events, print_memory_usage, start_event_offset, reserve_mb, i, constants, do_check);
   }
 }
 
@@ -28,10 +29,11 @@ void StreamWrapper::run_stream(const uint i, const RuntimeOptions& runtime_optio
 void StreamWrapper::run_monte_carlo_test(
   const uint i,
   const std::string& mc_folder,
-  const uint number_of_events_requested)
+  const uint number_of_events_requested,
+  const std::vector<Checker::Tracks>& forward_tracks)
 {
   auto& s = *(streams[i]);
-  s.run_monte_carlo_test(mc_folder, number_of_events_requested);
+  s.run_monte_carlo_test(mc_folder, number_of_events_requested, forward_tracks);
 }
 
 StreamWrapper::~StreamWrapper()

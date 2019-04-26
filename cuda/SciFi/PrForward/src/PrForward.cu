@@ -128,6 +128,7 @@ __global__ void scifi_pr_forward(
   const SciFi::Tracking::TMVA* dev_tmva1,
   const SciFi::Tracking::TMVA* dev_tmva2,
   const SciFi::Tracking::Arrays* dev_constArrays,
+  const float* dev_magnet_polarity,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res)
 {
@@ -148,9 +149,10 @@ __global__ void scifi_pr_forward(
                                       event_number,
                                       number_of_events};
   const int n_veloUT_tracks_event = ut_tracks.number_of_tracks(event_number);
+  const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
 
   // SciFi un-consolidated track types
-  SciFi::TrackHits* scifi_tracks_event = dev_scifi_tracks + event_number * SciFi::Constants::max_tracks;
+  SciFi::TrackHits* scifi_tracks_event = dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
   int* atomics_scifi_event = dev_atomics_scifi + event_number;
 
   // SciFi hits
@@ -173,7 +175,7 @@ __global__ void scifi_pr_forward(
 
       const int i_velo_track = ut_tracks.velo_track[i_veloUT_track];
       const uint velo_states_index = velo_tracks_offset_event + i_velo_track;
-      const MiniState velo_state {velo_states, velo_states_index};
+      const MiniState velo_state = velo_states.getMiniState(velo_states_index);
 
       find_forward_tracks(
         scifi_hits,
@@ -182,9 +184,11 @@ __global__ void scifi_pr_forward(
         i_veloUT_track,
         scifi_tracks_event,
         (uint*) atomics_scifi_event,
+        n_veloUT_tracks_event,
         dev_tmva1,
         dev_tmva2,
         dev_constArrays,
+        dev_magnet_polarity[0],
         velo_state);
     }
   }

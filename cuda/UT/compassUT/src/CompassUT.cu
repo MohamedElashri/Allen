@@ -1,8 +1,7 @@
 #include "CompassUT.cuh"
-
 #include "BinarySearch.cuh"
-#include "BinarySearchFirstCandidate.cuh"
 #include "CalculateWindows.cuh"
+#include "UTFastFitter.cuh"
 
 __global__ void compass_ut(
   uint* dev_ut_hits, // actual hit content
@@ -12,6 +11,7 @@ __global__ void compass_ut(
   char* dev_velo_track_hits,
   char* dev_velo_states,
   PrUTMagnetTool* dev_ut_magnet_tool,
+  const float* dev_magnet_polarity,
   const float* dev_ut_dxDy,
   int* dev_active_tracks,
   const uint* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
@@ -65,7 +65,6 @@ __global__ void compass_ut(
   // store windows and num candidates in shared mem
   __shared__ short win_size_shared[UT::Constants::num_thr_compassut * UT::Constants::n_layers * CompassUT::num_elems];
 
-  // const float* fudgeFactors = &(dev_ut_magnet_tool->dxLayTable[0]);
   const float* bdl_table = &(dev_ut_magnet_tool->bdlTable[0]);
 
   for (int i = 0; i < ((number_of_tracks_event + blockDim.x - 1) / blockDim.x) + 1; i += 1) {
@@ -75,8 +74,8 @@ __global__ void compass_ut(
 
     if (i_track < number_of_tracks_event) {
       const uint current_track_offset = event_tracks_offset + i_track;
-      const auto velo_state = MiniState {velo_states, current_track_offset};
-
+      const auto velo_state = velo_states.get(current_track_offset);
+     
       if (
         !velo_states.backward[current_track_offset] && dev_accepted_velo_tracks[current_track_offset] &&
         velo_track_in_UTA_acceptance(velo_state) &&
@@ -102,6 +101,7 @@ __global__ void compass_ut(
         ut_hit_offsets,
         bdl_table,
         dev_ut_dxDy,
+        dev_magnet_polarity[0],
         win_size_shared,
         n_veloUT_tracks_event,
         veloUT_tracks_event,
@@ -138,6 +138,7 @@ __global__ void compass_ut(
       ut_hit_offsets,
       bdl_table,
       dev_ut_dxDy,
+      dev_magnet_polarity[0],
       win_size_shared,
       n_veloUT_tracks_event,
       veloUT_tracks_event,
@@ -157,6 +158,7 @@ __device__ void compass_ut_tracking(
   const UT::HitOffsets& ut_hit_offsets,
   const float* bdl_table,
   const float* dev_ut_dxDy,
+  const float magnet_polarity,
   short* win_size_shared,
   int* n_veloUT_tracks_event,
   UT::TrackHits* veloUT_tracks_event,
@@ -164,7 +166,7 @@ __device__ void compass_ut_tracking(
 {
 
   // select velo track to join with UT hits
-  const MiniState velo_state {velo_states, current_track_offset};
+  const MiniState velo_state = velo_states.getMiniState(current_track_offset);
 
   fill_shared_windows(windows_layers, number_of_tracks_event, i_track, win_size_shared);
 
@@ -191,6 +193,7 @@ __device__ void compass_ut_tracking(
       best_hits,
       ut_hits,
       dev_ut_dxDy,
+      magnet_polarity,
       n_veloUT_tracks_event,
       veloUT_tracks_event,
       event_hit_offset);
@@ -279,6 +282,7 @@ __device__ void save_track(
   const int* best_hits,
   const UT::Hits& ut_hits,
   const float* ut_dxDy,
+  const float magSign,
   int* n_veloUT_tracks,         // increment number of tracks
   UT::TrackHits* VeloUT_tracks, // write the track
   const int event_hit_offset)
@@ -317,22 +321,69 @@ __device__ void save_track(
   }
   bdl += addBdlVal;
 
-  const float qpxz2p = -1 * std::sqrt(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
-  const float qop = (std::abs(bdl) < 1.e-8f) ? 0.0f : best_params.qp * qpxz2p;
+  float finalParams[4] = {
+    best_params.x,
+    best_params.tx,
+    velo_state.y + velo_state.ty*(UT::Constants::zMidUT-velo_state.z),
+    best_params.chi2UT };
+
+  //const float qpxz2p = -1 * std::sqrt(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
+  const float qpxz2p = -1.f / bdl * 3.3356f / Gaudi::Units::GeV;
+  //const float qp = best_params.qp;
+  const float qp = fastfitter(
+    best_params,
+    velo_state,
+    best_hits,
+    qpxz2p,
+    ut_dxDy,
+    ut_hits,
+    finalParams);
+  const float qop = (std::abs(bdl) < 1.e-8f) ? 0.0f : qp* qpxz2p;
 
   // -- Don't make tracks that have grossly too low momentum
   // -- Beware of the momentum resolution!
-  const float p = 1.3f * std::abs(1 / qop);
+  const float p = 1.3f * std::abs(1.f / qop);
   const float pt = p * std::sqrt(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty);
 
-  if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return;
+  if (p < UT::Constants::minMomentumFinal || pt < UT::Constants::minPTFinal) return;
+  //if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return;
+
+  const float xUT  = finalParams[0];
+  const float txUT = finalParams[1];
+  const float yUT  = finalParams[2];
+
+  // -- apply some fiducial cuts
+  // -- they are optimised for high pT tracks (> 500 MeV)
+
+  if( magSign*qop < 0.0f && xUT > -48.0f && xUT < 0.0f && std::abs(yUT) < 33.0f ) return;
+  if( magSign*qop > 0.0f && xUT < 48.0f  && xUT > 0.0f && std::abs(yUT) < 33.0f ) return;
+
+  if( magSign*qop < 0.0f && txUT >  0.09f + 0.0003f*pt) return;
+  if( magSign*qop > 0.0f && txUT < -0.09f - 0.0003f*pt) return;
+
+
+  // -- evaluate the linear discriminant and reject ghosts
+  // -- the values only make sense if the fastfitter is performed
+  int nHits = 0;
+  for (int i = 0; i < UT::Constants::n_layers; ++i) {
+    if (best_hits[i] != -1) {
+      nHits++;
+    }
+  }
+  const float evalParams[3] = {p, pt, finalParams[3]};
+  const float discriminant = evaluateLinearDiscriminant(evalParams, nHits);
+  if( discriminant  < PrVeloUTConst::LD3Hits ) return;
 
   // the track will be added
   int n_tracks = atomicAdd(n_veloUT_tracks, 1);
 
+  // to do: maybe save y from fit
   UT::TrackHits track;
   track.velo_track_index = i_track;
   track.qop = qop;
+  track.x = best_params.x;
+  track.z = best_params.z;
+  track.tx = best_params.tx;
   track.hits_num = 0;
 
   // Adding hits to track

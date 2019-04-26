@@ -12,7 +12,7 @@ __device__ VeloState means_square_fit(
   const Velo::TrackHits& track)
 {
   VeloState state;
-
+  
   // Fit parameters
   float s0, sx, sz, sxz, sz2;
   float u0, uy, uz, uyz, uz2;
@@ -56,56 +56,56 @@ __device__ VeloState means_square_fit(
     state.y = (uy * uz2 - uyz * uz) * denu;
 
     state.z = -(state.x * state.tx + state.y * state.ty) / (state.tx * state.tx + state.ty * state.ty);
-
     state.backward = state.z > consolidated_hits.z[0];
   }
 
-  {
-    // Covariance
-    const auto m00 = s0;
-    const auto m11 = u0;
-    const auto m20 = sz - state.z * s0;
-    const auto m31 = uz - state.z * u0;
-    const auto m22 = sz2 - 2 * state.z * sz + state.z * state.z * s0;
-    const auto m33 = uz2 - 2 * state.z * uz + state.z * state.z * u0;
-    const auto den20 = 1.0f / (m22 * m00 - m20 * m20);
-    const auto den31 = 1.0f / (m33 * m11 - m31 * m31);
+  // Not needed by any later algorithm
+  // {
+  //   // Covariance
+  //   const auto m00 = s0;
+  //   const auto m11 = u0;
+  //   const auto m20 = sz - state.z * s0;
+  //   const auto m31 = uz - state.z * u0;
+  //   const auto m22 = sz2 - 2 * state.z * sz + state.z * state.z * s0;
+  //   const auto m33 = uz2 - 2 * state.z * uz + state.z * state.z * u0;
+  //   const auto den20 = 1.0f / (m22 * m00 - m20 * m20);
+  //   const auto den31 = 1.0f / (m33 * m11 - m31 * m31);
 
-    state.c00 = m22 * den20;
-    state.c20 = -m20 * den20;
-    state.c22 = m00 * den20;
-    state.c11 = m33 * den31;
-    state.c31 = -m31 * den31;
-    state.c33 = m11 * den31;
-  }
+  //   state.c00 = m22 * den20;
+  //   state.c20 = -m20 * den20;
+  //   state.c22 = m00 * den20;
+  //   state.c11 = m33 * den31;
+  //   state.c31 = -m31 * den31;
+  //   state.c33 = m11 * den31;
+  // }
 
-  {
-    //=========================================================================
-    // Chi2 / degrees-of-freedom of straight-line fit
-    //=========================================================================
-    float ch = 0.0f;
-    int nDoF = -4;
-    for (uint h = 0; h < track.hitsNum; ++h) {
-      const auto z = consolidated_hits.z[h];
+  // {
+  //   //=========================================================================
+  //   // Chi2 / degrees-of-freedom of straight-line fit
+  //   //=========================================================================
+  //   float ch = 0.0f;
+  //   int nDoF = -4;
+  //   for (uint h = 0; h < track.hitsNum; ++h) {
+  //     const auto z = consolidated_hits.z[h];
 
-      const auto x = state.x + state.tx * z;
-      const auto y = state.y + state.ty * z;
+  //     const auto x = state.x + state.tx * z;
+  //     const auto y = state.y + state.ty * z;
 
-      const auto dx = x - consolidated_hits.x[h];
-      const auto dy = y - consolidated_hits.y[h];
+  //     const auto dx = x - consolidated_hits.x[h];
+  //     const auto dy = y - consolidated_hits.y[h];
 
-      ch += dx * dx * Velo::Tracking::param_w + dy * dy * Velo::Tracking::param_w;
+  //     ch += dx * dx * Velo::Tracking::param_w + dy * dy * Velo::Tracking::param_w;
 
-      // Nice :)
-      // TODO: We can get rid of the X and Y read here
-      // float sum_w_xzi_2 = CL_Velo::Tracking::param_w * x; // for each hit
-      // float sum_w_xi_2 = CL_Velo::Tracking::param_w * hit_Xs[hitno]; // for each hit
-      // ch = (sum_w_xzi_2 - sum_w_xi_2) + (sum_w_yzi_2 - sum_w_yi_2);
+  //     // Nice :)
+  //     // TODO: We can get rid of the X and Y read here
+  //     // float sum_w_xzi_2 = CL_Velo::Tracking::param_w * x; // for each hit
+  //     // float sum_w_xi_2 = CL_Velo::Tracking::param_w * hit_Xs[hitno]; // for each hit
+  //     // ch = (sum_w_xzi_2 - sum_w_xi_2) + (sum_w_yzi_2 - sum_w_yi_2);
 
-      nDoF += 2;
-    }
-    state.chi2 = ch / nDoF;
-  }
+  //     nDoF += 2;
+  //   }
+  //   state.chi2 = ch / nDoF;
+  // }
 
   state.x = state.x + state.tx * state.z;
   state.y = state.y + state.ty * state.z;
@@ -164,7 +164,6 @@ __global__ void consolidate_velo_tracks(
 
     // Calculate and store fit in consolidated container
     VeloState beam_state = means_square_fit(consolidated_hits, hit_Xs, hit_Ys, hit_Zs, hit_IDs, track);
-
     velo_states.set(event_tracks_offset + i, beam_state);
   }
 }

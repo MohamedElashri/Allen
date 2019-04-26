@@ -7,7 +7,7 @@ template<>
 void SequenceVisitor::check<pv_fit_seeds_t>(
   const uint& start_event_offset,
   const uint& number_of_events_requested,
-  const HostBuffers& host_buffers,
+  HostBuffers& host_buffers,
   const Constants& constants,
   const CheckerInvoker& checker_invoker) const
 {
@@ -31,7 +31,7 @@ template<>
 void SequenceVisitor::check<cpu_pv_beamline_t>(
   const uint& start_event_offset,
   const uint& number_of_events_requested,
-  const HostBuffers& host_buffers,
+  HostBuffers& host_buffers,
   const Constants& constants,
   const CheckerInvoker& checker_invoker) const
 {
@@ -63,10 +63,10 @@ void SequenceVisitor::check<cpu_pv_beamline_t>(
  * @brief Specialization for beamline PV finding algorithm on GPU
  */
 template<>
-void SequenceVisitor::check<pv_beamline_multi_fitter_t>(
+void SequenceVisitor::check<pv_beamline_cleanup_t>(
   const uint& start_event_offset,
   const uint& number_of_events_requested,
-  const HostBuffers& host_buffers,
+  HostBuffers& host_buffers,
   const Constants& constants,
   const CheckerInvoker& checker_invoker) const
 {

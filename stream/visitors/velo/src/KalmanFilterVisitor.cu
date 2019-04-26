@@ -10,7 +10,7 @@ void SequenceVisitor::set_arguments_size<velo_kalman_fit_t>(
 {
   // Set arguments size
   arguments.set_size<dev_velo_kalman_beamline_states>(
-    host_buffers.host_number_of_reconstructed_velo_tracks[0] * sizeof(VeloState));
+    host_buffers.host_number_of_reconstructed_velo_tracks[0] * sizeof(KalmanVeloState));
 }
 
 template<>
@@ -33,4 +33,13 @@ void SequenceVisitor::visit<velo_kalman_fit_t>(
     arguments.offset<dev_velo_kalman_beamline_states>());
 
   state.invoke();
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_kalmanvelo_states,
+      arguments.offset<dev_velo_kalman_beamline_states>(),
+      arguments.size<dev_velo_kalman_beamline_states>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }

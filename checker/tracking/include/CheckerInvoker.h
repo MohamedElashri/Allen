@@ -43,22 +43,55 @@ struct CheckerInvoker {
   std::tuple<bool, MCEvents> read_mc_folder() const;
 
   template<typename T>
-  void check(const uint start_event_offset, const std::vector<trackChecker::Tracks>& tracks) const
+  std::vector<std::vector<std::vector<uint32_t>>> check(
+    const uint start_event_offset,
+    const std::vector<Checker::Tracks>& tracks,
+    std::vector<std::vector<float>>& p_events) const
   {
-    if (is_mc_folder_populated) {
-      T trackChecker {};
-#ifdef WITH_ROOT
-      trackChecker.histos.initHistos(trackChecker.histo_categories());
-#endif
+    std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_events;
 
+    if (is_mc_folder_populated) {
+      T track_checker {};
+#ifdef WITH_ROOT
+      track_checker.histos.initHistos(track_checker.histo_categories());
+#endif
       for (int evnum = 0; evnum < selected_mc_events.size(); ++evnum) {
         const auto& mc_event = selected_mc_events[evnum];
         const auto& event_tracks = tracks[evnum];
 
-        const auto& mcps = mc_event.mc_particles<T>();
-        MCAssociator mcassoc {mcps};
+        std::vector<uint32_t> matched_mcp_keys =
+          track_checker(event_tracks, mc_event, get_num_hits_subdetector<typename T::subdetector_t>);
 
-        trackChecker(event_tracks, mcassoc, mcps);
+        std::vector<std::vector<uint32_t>> scifi_ids_tracks;
+        std::vector<float> p_tracks;
+        for (const auto key : matched_mcp_keys) {
+          std::vector<uint32_t> scifi_ids;
+          float p = 1e9;
+          if (!(key == 0xFFFFFF)) { // track was matched to an MCP
+            // Find this MCP
+            for (const auto mcp : mc_event.m_mcps) {
+              if (mcp.key == key) {
+                // Save momentum and charge of this MCP
+                p = mcp.p * mcp.charge;
+                // debug_cout << "Adding particle with PID = " << mcp.pid << " and charge " << charge << std::endl;
+                // Find SciFi IDs of this MCP
+                if (mcp.isLong) { // found matched long MCP
+                  for (const auto id : mcp.hits) {
+                    const uint32_t detector_id = (id >> 20) & 0xFFF;
+                    if (detector_id == 0xa00) { // hit in the SciFi
+                      scifi_ids.push_back(id);
+                    }
+                  }
+                }
+              }
+            }
+          }
+          scifi_ids_tracks.push_back(scifi_ids);
+          p_tracks.push_back(p);
+        }
+
+        scifi_ids_events.push_back(scifi_ids_tracks);
+        p_events.push_back(p_tracks);
 
         // Check all tracks for duplicate LHCb IDs
         for (int i_track = 0; i_track < event_tracks.size(); ++i_track) {
@@ -78,5 +111,6 @@ struct CheckerInvoker {
         }
       }
     }
+    return scifi_ids_events;
   }
 };
