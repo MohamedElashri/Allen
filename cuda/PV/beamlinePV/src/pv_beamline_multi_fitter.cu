@@ -147,7 +147,7 @@ __global__ void pv_beamline_multi_fitter(
     vertex.chi2 = chi2tot;
     vertex.setPosition(vtxpos_xy, vtxpos_z);
     vertex.setCovMatrix(vtxcov);
-    vertex.n_tracks = sum_weights;
+    vertex.nTracks = sum_weights;
 
     // TODO integrate beamline position
     const auto beamlinedx = vertex.position.x - beamline.x;
