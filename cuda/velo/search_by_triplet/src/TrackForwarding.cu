@@ -2,6 +2,8 @@
 #include "VeloTools.cuh"
 #include <cstdio>
 
+static constexpr float max_scatter_local = 0.1f;
+
 /**
  * @brief Fits hits to tracks.
  *
@@ -13,26 +15,19 @@ __device__ float fit_hit_to_track(
   const Velo::HitBase& h0,
   const Velo::HitBase& h2,
   const float predx,
-  const float predy,
-  const float scatterDenom2)
+  const float predy)
 {
   // tolerances
-  const float x_prediction = h0.x + predx;
-  const float dx = fabs(x_prediction - h2.x);
-  const bool tolx_condition = dx < Velo::Tracking::tolerance;
+  const auto x_prediction = h0.x + predx;
+  const auto dx = x_prediction - h2.x;
 
-  const float y_prediction = h0.y + predy;
-  const float dy = fabs(y_prediction - h2.y);
-  const bool toly_condition = dy < Velo::Tracking::tolerance;
+  const auto y_prediction = h0.y + predy;
+  const auto dy = y_prediction - h2.y;
 
   // Scatter
-  const float scatterNum = (dx * dx) + (dy * dy);
-  const float scatter = scatterNum * scatterDenom2;
+  const auto scatterNum = (dx * dx) + (dy * dy);
 
-  const bool scatter_condition = scatter < Velo::Tracking::max_scatter_forwarding;
-  const bool condition = tolx_condition && toly_condition && scatter_condition;
-
-  return condition * scatter + !condition * FLT_MAX;
+  return scatterNum;
 }
 
 /**
@@ -86,7 +81,7 @@ __device__ void track_forwarding(
     const auto ty = tyn * td;
 
     // Find the best candidate
-    float best_fit = FLT_MAX;
+    float best_fit = max_scatter_local;
     unsigned short best_h2;
 
     // Get candidates by performing a binary search in expected phi
@@ -116,9 +111,7 @@ __device__ void track_forwarding(
       const auto dz = h2.z - h0.z;
       const auto predx = tx * dz;
       const auto predy = ty * dz;
-      const auto scatterDenom2 = 1.f / ((h2.z - h1.z) * (h2.z - h1.z));
-
-      const auto fit = fit_hit_to_track(h0, h2, predx, predy, scatterDenom2);
+      const auto fit = fit_hit_to_track(h0, h2, predx, predy);
 
       // We keep the best one found
       if (fit < best_fit) {
@@ -128,7 +121,7 @@ __device__ void track_forwarding(
     }
 
     // Condition for finding a h2
-    if (best_fit != FLT_MAX) {
+    if (best_fit < max_scatter_local) {
       // Mark h2 as used
       assert(best_h2 < number_of_hits);
       hit_used[best_h2] = true;
