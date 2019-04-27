@@ -15,9 +15,7 @@ public:
   Updater(std::map<std::string, std::string> const& options);
   virtual ~Updater() = default;
 
-  void update(unsigned int run) override;
-
-protected:
+  void update(unsigned long run) override;
 
   void registerConsumer(std::string const& id, std::unique_ptr<NonEventData::Consumer> c) override;
 

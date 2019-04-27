@@ -33,9 +33,7 @@ public:
     registerProducer(P::id, std::move(p));
   }
 
-  virtual void update(unsigned int run) = 0;
-
-protected:
+  virtual void update(unsigned long run) = 0;
 
   virtual void registerConsumer(std::string const& id, std::unique_ptr<Consumer> c) = 0;
 

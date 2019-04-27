@@ -101,7 +101,7 @@ namespace NonEventData {
     }
   }
 
-  void Updater::update(unsigned int) {
+  void Updater::update(unsigned long) {
     for (auto const& entry : m_pairs) {
       auto const& name = std::get<0>(entry);
       auto const& p = std::get<1>(entry);
