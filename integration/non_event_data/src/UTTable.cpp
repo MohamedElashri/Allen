@@ -13,13 +13,53 @@ Consumers::UTTable::UTTable(PrUTMagnetTool*& tool)
   : m_tool{tool} {}
 
 void Consumers::UTTable::consume(std::vector<char> const& data) {
+  char const* p = data.data();
+  int const* layout = reinterpret_cast<int const*>(p);
+  p += sizeof(int);
+  int nVar = layout[0];
+  assert(nVar == 2);
+  std::vector<int> nBins(nVar);
+  std::copy_n(layout + 1, nVar, nBins.begin());
+  assert(nBins[0] == 3);
+  assert(nBins[1] == 30);
+  p += nVar * sizeof(int);
+  size_t const* table_size = reinterpret_cast<size_t const*>(p);
+  assert(table_size[0] == 124);
+  p += sizeof(size_t);
+  float const* deflection = reinterpret_cast<float const*>(p);
+  p += table_size[0] * sizeof(float);
+
+  info_cout << "deflection " << nVar << " " << nBins[0] << " " << nBins[1] << " " << table_size[0] << "\n";
+
+  layout = reinterpret_cast<int const*>(p);
+  p += sizeof(int);
+  nVar = layout[0];
+  assert(nVar == 3);
+  nBins.resize(nVar);
+  std::copy_n(layout + 1, nVar, nBins.begin());
+  assert(nBins[0] == 30);
+  assert(nBins[1] == 10);
+  assert(nBins[2] == 10);
+  p += nVar * sizeof(int);
+  table_size = reinterpret_cast<size_t const*>(p);
+  assert(table_size[0] == 3751);
+  p += sizeof(size_t);
+  float const* bdl = reinterpret_cast<float const*>(p);
+  p += table_size[0] * sizeof(float);
+
+  info_cout << "bdl " << nVar << " " << nBins[0] << " " << nBins[1] << " " << nBins[2] << " " << table_size[0] << "\n";
+
   if (!m_tool) {
-    cudaCheck(cudaMalloc((void**) &m_tool.get(), data.size()));
-    m_size = data.size();
+    cudaCheck(cudaMalloc((void**) &m_tool.get(), sizeof(PrUTMagnetTool)));
+    m_size = sizeof(PrUTMagnetTool);
   }
-  if (m_size != data.size()) {
+  if (m_size != (data.size() - 7 * sizeof(int) - 2 * sizeof(size_t))) {
     throw StrException{string{"sizes don't match: "} + to_string(m_size)
                               + " " + to_string(data.size())};
   }
-  cudaCheck(cudaMemcpy(m_tool.get(), data.data(), data.size(), cudaMemcpyHostToDevice));
+
+  PrUTMagnetTool host_tool{deflection, bdl};
+
+  // deflection table
+  cudaCheck(cudaMemcpy(m_tool.get(), &host_tool, sizeof(PrUTMagnetTool), cudaMemcpyHostToDevice));
 }
