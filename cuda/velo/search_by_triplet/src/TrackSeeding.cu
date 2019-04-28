@@ -90,11 +90,8 @@ __device__ void track_seeding(
                                     dev_velo_cluster_container[h2_index],
                                     dev_velo_cluster_container[number_of_hits + h2_index]};
 
-            const auto dmax = Velo::Tracking::max_slope * (h0.z - h1.z);
-            const auto scatterDenom2 = 1.f / ((h2.z - h1.z) * (h2.z - h1.z));
-            const auto z2_tz = (h2.z - h0.z) / (h1.z - h0.z);
-
             // Calculate prediction
+            const auto z2_tz = (h2.z - h0.z) / (h1.z - h0.z);
             const auto x = h0.x + (h1.x - h0.x) * z2_tz;
             const auto y = h0.y + (h1.y - h0.y) * z2_tz;
             const auto dx = x - h2.x;
@@ -102,14 +99,10 @@ __device__ void track_seeding(
 
             // Calculate fit
             const auto scatterNum = (dx * dx) + (dy * dy);
-            const auto scatter = scatterNum * scatterDenom2;
-            const auto condition = fabs(h1.x - h0.x) < dmax && fabs(h1.y - h0.y) < dmax &&
-                                   fabs(dx) < Velo::Tracking::tolerance && fabs(dy) < Velo::Tracking::tolerance &&
-                                   scatter < best_fit;
 
-            if (condition) {
+            if (scatterNum < best_fit) {
               // Populate fit, h0 and h2 in case we have found a better one
-              best_fit = scatter;
+              best_fit = scatterNum;
               best_h0 = h0_index;
               best_h2 = h2_index;
             }

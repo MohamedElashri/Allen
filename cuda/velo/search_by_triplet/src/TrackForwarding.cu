@@ -2,34 +2,6 @@
 #include "VeloTools.cuh"
 #include <cstdio>
 
-static constexpr float max_scatter_local = 0.1f;
-
-/**
- * @brief Fits hits to tracks.
- *
- * @details In case the tolerances constraints are met,
- *          returns the chi2 weight of the track. Otherwise,
- *          returns FLT_MAX.
- */
-__device__ float fit_hit_to_track(
-  const Velo::HitBase& h0,
-  const Velo::HitBase& h2,
-  const float predx,
-  const float predy)
-{
-  // tolerances
-  const auto x_prediction = h0.x + predx;
-  const auto dx = x_prediction - h2.x;
-
-  const auto y_prediction = h0.y + predy;
-  const auto dy = y_prediction - h2.y;
-
-  // Scatter
-  const auto scatterNum = (dx * dx) + (dy * dy);
-
-  return scatterNum;
-}
-
 /**
  * @brief Performs the track forwarding of forming tracks
  */
@@ -81,7 +53,7 @@ __device__ void track_forwarding(
     const auto ty = tyn * td;
 
     // Find the best candidate
-    float best_fit = max_scatter_local;
+    float best_fit = Velo::Tracking::max_scatter_forwarding;
     unsigned short best_h2;
 
     // Get candidates by performing a binary search in expected phi
@@ -109,19 +81,23 @@ __device__ void track_forwarding(
                               dev_velo_cluster_container[number_of_hits + h2_index]};
 
       const auto dz = h2.z - h0.z;
-      const auto predx = tx * dz;
-      const auto predy = ty * dz;
-      const auto fit = fit_hit_to_track(h0, h2, predx, predy);
+      const auto predx = h0.x + tx * dz;
+      const auto predy = h0.y + ty * dz;
+      const auto dx = predx - h2.x;
+      const auto dy = predy - h2.y;
+
+      // Scatter
+      const auto scatterNum = (dx * dx) + (dy * dy);
 
       // We keep the best one found
-      if (fit < best_fit) {
-        best_fit = fit;
+      if (scatterNum < best_fit) {
+        best_fit = scatterNum;
         best_h2 = h2_index;
       }
     }
 
     // Condition for finding a h2
-    if (best_fit < max_scatter_local) {
+    if (best_fit < Velo::Tracking::max_scatter_forwarding) {
       // Mark h2 as used
       assert(best_h2 < number_of_hits);
       hit_used[best_h2] = true;
