@@ -93,7 +93,7 @@ __global__ void lf_quality_filter_x(
           track.hitsNum);
 
       if ( track.hitsNum == 3 ) // assign larg value to filter out later
-        xAtRef_spread = 1e9f;
+        xAtRef_spread = LookingForward::filter_x_max_xAtRef_spread;
 
       xAtRef_average_spread[j] = xAtRef_spread;
       xAtRef_average_array[j] = xAtRef_average;
@@ -111,7 +111,8 @@ __global__ void lf_quality_filter_x(
           ++insert_position;
         }
       }
-      if ( insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter ) {
+      if ( insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
+           && xAtRef_spread < LookingForward::filter_x_max_xAtRef_spread ) {
         // Save best track candidates
         const auto insert_index = atomicAdd(dev_scifi_lf_x_filtered_atomics + event_number, 1);
         const SciFi::TrackHits& track =
