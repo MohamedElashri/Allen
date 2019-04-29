@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Constants.cuh>
-#include <IUpdater.h>
+#include <Dumpers/IUpdater.h>
 #include <gsl-lite.hpp>
 
 namespace Consumers {

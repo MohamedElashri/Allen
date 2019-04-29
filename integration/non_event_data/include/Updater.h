@@ -1,9 +1,10 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include <memory>
 
-#include "IUpdater.h"
+#include "Dumpers/IUpdater.h"
 
 namespace Allen {
 namespace NonEventData {
@@ -28,3 +29,5 @@ private:
 };
 }
 }
+
+Allen::NonEventData::IUpdater* make_updater(std::map<std::string, std::string>& options);

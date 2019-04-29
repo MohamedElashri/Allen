@@ -8,7 +8,8 @@
 #include <numeric>
 #include <cmath>
 
-#include <IUpdater.h>
+#include <Dumpers/IUpdater.h>
+#include <Updater.h>
 #include <Allen.h>
 
 namespace {
@@ -42,4 +43,10 @@ PYBIND11_MODULE(PyAllen, m)
           py::call_guard<py::scoped_ostream_redirect,
                          py::scoped_estream_redirect>{},
           "Run Allen");
+
+    m.def("make_updater", &make_updater,
+          py::call_guard<py::scoped_ostream_redirect,
+                         py::scoped_estream_redirect>{},
+          "Make Updater");
+
 }

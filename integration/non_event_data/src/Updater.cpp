@@ -4,10 +4,10 @@
 #include <map>
 #include <array>
 
+#include <Dumpers/Identifiers.h>
 #include <Common.h>
 #include <InputReader.h>
 #include <Updater.h>
-#include <Identifiers.h>
 
 namespace {
   using std::string;
@@ -19,21 +19,53 @@ namespace {
   using std::unique_ptr;
 }
 
+namespace Test {
+struct UTBoards {
+  uint32_t number_of_boards;
+  uint32_t number_of_channels;
+  uint32_t* stripsPerHybrids;
+  uint32_t* stations;
+  uint32_t* layers;
+  uint32_t* detRegions;
+  uint32_t* sectors;
+  uint32_t* chanIDs;
+
+  UTBoards(const char* ut_boards) {
+    uint32_t* p = (uint32_t*) ut_boards;
+    number_of_boards = *p;
+    p += 1;
+    number_of_channels = 6 * number_of_boards;
+    stripsPerHybrids = p;
+    p += number_of_boards;
+    stations = p;
+    p += number_of_channels;
+    layers = p;
+    p += number_of_channels;
+    detRegions = p;
+    p += number_of_channels;
+    sectors = p;
+    p += number_of_channels;
+    chanIDs = p;
+    p += number_of_channels;
+  }
+};
+}
+
 namespace Allen {
 namespace NonEventData {
 
-  vector<char> beamline_producer() {
+  std::optional<vector<char>> beamline_producer() {
     vector<char> data(2 * sizeof(float));
     const array<float, 2> host_beamline{0.0f, 0.0f};
     memcpy(data.data(), host_beamline.data(), data.size());
-    return data;
+    return {data};
   }
 
-  vector<char> magnetic_field_producer() {
+  std::optional<vector<char>> magnetic_field_producer() {
     vector<char> data(sizeof(float));
     const float host_magnet_polarity = -1.f;
     memcpy(data.data(), &host_magnet_polarity, data.size());
-    return data;
+    return {data};
   }
 
   Updater::Updater(map<string, string> const& options) {
@@ -56,9 +88,25 @@ namespace NonEventData {
                                };
                              };
 
+
+    auto ut_boards = [reader] () -> optional<vector<char>> {
+                         auto v = reader.read_geometry("ut_boards.bin");
+                         Test::UTBoards boards{v.data()};
+                         info_cout << boards.number_of_boards << std::endl;
+                         for (int i = 0; i < boards.number_of_boards; ++i) {
+                           info_cout << "sph " << std::setw(3) << i << " " << boards.stripsPerHybrids[i] << std::endl;
+                         }
+                         for (int i = 0; i < 6 * boards.number_of_boards; ++i) {
+                           info_cout << "stations " << std::setw(3) << i << " " << boards.stations[i] << std::endl;
+                         }
+                         return v;
+    };
+
+    registerProducer(NonEventData::UTBoards::id, ut_boards);
+
     tuple producers{tuple{NonEventData::VeloGeometry{},  "velo_geometry.bin"},
                     tuple{NonEventData::UTGeometry{}, "ut_geometry.bin"},
-                    tuple{NonEventData::UTBoards{}, "ut_boards.bin"},
+                    tuple{NonEventData::UTLookupTables{}, "ut_tables.bin"},
                     tuple{NonEventData::SciFiGeometry{}, "scifi_geometry.bin"}};
 
     for_each(producers, [this, &geometry_producer] (const auto& p) {
@@ -66,10 +114,10 @@ namespace NonEventData {
                           registerProducer(id_t::id, geometry_producer(std::get<1>(p)));
                         });
 
-    registerProducer(NonEventData::UTLookupTables::id, [folder_detector_configuration] {
-                                                         UTMagnetToolReader reader{folder_detector_configuration};
-                                                         return reader.read_UT_magnet_tool();
-                                                       });
+    // registerProducer(NonEventData::UTLookupTables::id, [folder_detector_configuration] {
+    //                                                      UTMagnetToolReader reader{folder_detector_configuration};
+    //                                                      return reader.read_UT_magnet_tool();
+    //                                                    });
 
     registerProducer(NonEventData::Beamline::id, beamline_producer);
     registerProducer(NonEventData::MagneticField::id, magnetic_field_producer);
@@ -134,4 +182,8 @@ namespace NonEventData {
     }
   }
 }
+}
+
+Allen::NonEventData::IUpdater* make_updater(std::map<std::string, std::string>& options) {
+  return new Allen::NonEventData::Updater{options};
 }
