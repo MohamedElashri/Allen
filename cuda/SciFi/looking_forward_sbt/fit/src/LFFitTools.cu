@@ -81,8 +81,6 @@ __device__ float LookingForward::get_x_on_reference_plane(
   const float zMagSlope)
 {
   const float xFromVelo_Hit = linear_parameterization(xAtRef_initial, velo_state.tx, zHit);
-  const float tx2 = velo_state.tx * velo_state.tx;
-  const float ty2 = velo_state.ty * velo_state.ty;
   const float dSlopeDivPart = 1.f / (zHit - constArrays->zMagnetParams[0]);
   const float dz = 1.e-3f * (zHit - SciFi::Tracking::zReference);
    float dSlope = (xFromVelo_Hit - xHit) * dSlopeDivPart;
