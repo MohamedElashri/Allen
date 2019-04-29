@@ -49,9 +49,6 @@ __global__ void lf_quality_filter_x(
 
   __shared__ float xAtRef_average_spread[LookingForward::maximum_number_of_candidates_per_ut_track];
   __shared__ float xAtRef_average_array[LookingForward::maximum_number_of_candidates_per_ut_track];
-  __shared__ int16_t track_candidate_indices[LookingForward::maximum_number_of_candidates_per_ut_track];
-  __shared__ int16_t best_candidates[LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter];
-  __shared__ int n_track_candidates;
 
   for (uint16_t i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
@@ -59,86 +56,68 @@ __global__ void lf_quality_filter_x(
 
     __syncthreads();
 
-    if ( threadIdx.x == 0 ) {
-      n_track_candidates = 0;
-    }
-
-    __syncthreads();
-
-    // first save indices and qualities of tracks with more than three hits
+    // first save indices and qualities of tracks
     for (int j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
       const SciFi::TrackHits& track =
         dev_scifi_lf_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j];
 
-      if (track.hitsNum > 3) {
-        // calculate xAtRef average and the spread
-        const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
-        const MiniState velo_state = velo_states.getMiniState(velo_states_index);
-        const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
-        const float zMag_initial = zMagnet(velo_state, constArrays);
-        float hits_x[6];
-        float hits_z[6];
-        float hits_x_atRef[6];
-        for (int k=0; k<track.hitsNum; ++k) {
-          const int hit = event_offset + track.hits[k];
-          const int plane_code = scifi_hits.planeCode(hit) >> 1;
-          hits_x[k] = scifi_hits.x0[hit];
-          hits_z[k] = dev_looking_forward_constants->Zone_zPos[plane_code];
-        }
-        const float xAtRef_average =
-          LookingForward::get_average_and_individual_x_at_reference_plane(
-            hits_x,
-            hits_z,
-            track.hitsNum,
-            xAtRef_initial,
-            constArrays,
-            velo_state,
-            zMag_initial,
-            hits_x_atRef);
-
-        const float xAtRef_spread =
-          LookingForward::get_average_x_at_reference_plane_spread(
-            xAtRef_average,
-            hits_x_atRef,
-            track.hitsNum);
-
-        const auto insert_index = atomicAdd(&n_track_candidates, 1);
-        xAtRef_average_spread[insert_index] = xAtRef_spread;
-        xAtRef_average_array[insert_index] = xAtRef_average;
-        track_candidate_indices[insert_index] = j;
+      // calculate xAtRef average and the spread
+      const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
+      const MiniState velo_state = velo_states.getMiniState(velo_states_index);
+      const float xAtRef_initial = xFromVelo(SciFi::Tracking::zReference, velo_state);
+      const float zMag_initial = zMagnet(velo_state, constArrays);
+      float hits_x[6];
+      float hits_z[6];
+      float hits_x_atRef[6];
+      for (int k=0; k<track.hitsNum; ++k) {
+        const int hit = event_offset + track.hits[k];
+        const int plane_code = scifi_hits.planeCode(hit) >> 1;
+        hits_x[k] = scifi_hits.x0[hit];
+        hits_z[k] = dev_looking_forward_constants->Zone_zPos[plane_code];
       }
+      const float xAtRef_average =
+        LookingForward::get_average_and_individual_x_at_reference_plane(
+          hits_x,
+          hits_z,
+          track.hitsNum,
+          xAtRef_initial,
+          constArrays,
+          velo_state,
+          zMag_initial,
+          hits_x_atRef);
+
+      float xAtRef_spread =
+        LookingForward::get_average_x_at_reference_plane_spread(
+          xAtRef_average,
+          hits_x_atRef,
+          track.hitsNum);
+
+      if ( track.hitsNum == 3 ) // assign larg value to filter out later
+        xAtRef_spread = 1e9f;
+
+      xAtRef_average_spread[j] = xAtRef_spread;
+      xAtRef_average_array[j] = xAtRef_average;
     }
 
     __syncthreads();
 
     // Sort track candidates by quality
-    for (int16_t j = threadIdx.x; j < n_track_candidates; j += blockDim.x) {
+    for (int16_t j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
       float xAtRef_spread = xAtRef_average_spread[j];
       int16_t insert_position = 0;
-      for (int16_t k = 0; k < n_track_candidates; ++k ) {
+      for (int16_t k = 0; k < number_of_tracks; ++k ) {
         const float other_xAtRef_spread = xAtRef_average_spread[k];
         if (xAtRef_spread > other_xAtRef_spread || (xAtRef_spread == other_xAtRef_spread && j < k)) {
           ++insert_position;
         }
       }
       if ( insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter ) {
-        best_candidates[insert_position] = j;
-      }
-    }
-
-    __syncthreads();
-
-    // Keep best candidates
-    for (int16_t j = threadIdx.x; j < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter; j += blockDim.x) {
-      if ( j < n_track_candidates ) {
-        const auto candidate_index = best_candidates[j];
-        const auto track_index = track_candidate_indices[candidate_index];
-        const SciFi::TrackHits& track =
-          dev_scifi_lf_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + track_index];
-
+        // Save best track candidates
         const auto insert_index = atomicAdd(dev_scifi_lf_x_filtered_atomics + event_number, 1);
+        const SciFi::TrackHits& track =
+          dev_scifi_lf_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j];
         dev_scifi_lf_x_filtered_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + insert_index] = track;
-        dev_scifi_lf_xAtRef[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + insert_index] = xAtRef_average_array[candidate_index];
+        dev_scifi_lf_xAtRef[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + insert_index] = xAtRef_average_array[j];
       }
     }
   }
