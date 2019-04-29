@@ -53,24 +53,12 @@ int main(int argc, char* argv[])
                                   /* These options don’t set a flag.
                                      We distinguish them by their indices. */
                                   {0, 0, 0, 0}};
-  /* getopt_long stores the option index here. */
+  // getopt_long stores the option index here.
   int option_index = 0;
 
-  // Options set to defaults
-  std::map<std::string, std::string> options{{"f", "../input/minbias/"},
-                                             {"g", "../input/detector_configuration/"},
-                                             {"i", ""},
-                                             {"n", "0"},
-                                             {"o", "0"},
-                                             {"t", "1"},
-                                             {"mdf", "0"},
-                                             {"cpu-offload", "1"},
-                                             {"r", "1"},
-                                             {"c", "1"},
-                                             {"m", "1024"},
-                                             {"v", "3"},
-                                             {"p", "0"},
-                                             {"device", "0"}};
+  // Set the detector configuration default folder here, so the rest
+  // of the defaults remains in one place in Allen.cpp
+  std::map<std::string, std::string> options{{"g", "../input/detector_configuration/"}};
 
   signed char c;
   while ((c = getopt_long(argc, argv, "f:i:n:o:t:r:phd:v:c:m:g:", long_options, &option_index)) != -1) {
@@ -87,17 +75,17 @@ int main(int argc, char* argv[])
       }
       /* If this option set a flag, do nothing else now. */
       break;
+    case 'c':
     case 'f':
     case 'g':
     case 'i':
     case 'm':
     case 'n':
     case 'o':
-    case 't':
-    case 'r':
-    case 'c':
-    case 'v':
     case 'p':
+    case 'r':
+    case 't':
+    case 'v':
       options[std::string{c}] = optarg;
       break;
     case '?':

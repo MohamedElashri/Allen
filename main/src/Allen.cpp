@@ -34,8 +34,7 @@
 #include "MuonDefinitions.cuh"
 #include "MuonRawToHitsDecoding.h"
 #include "Consumers.h"
-
-#include "IUpdater.h"
+#include "Allen.h"
 
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants) {
   tuple consumers{tuple{Allen::NonEventData::UTBoards{}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)},
@@ -109,21 +108,6 @@ int allen(map<string, string> options, Allen::NonEventData::IUpdater* updater) {
     }
   }
 
-  // Show call options
-  std::cout << "Requested options:" << std::endl
-            << " data folder (-f): " << folder_data << " (eg. \"../input/minbias/\")" << std::endl
-            << " using " << (use_mdf ? "MDF" : "binary") << " input" << (use_mdf ? " (--mdf)" : "") << std::endl
-            << " folder with detector configuration (-g): " << folder_detector_configuration << std::endl
-            << " folder with imported forward tracks (-i): " << folder_name_imported_forward_tracks << std::endl
-            << " run checkers (-c): " << do_check << std::endl
-            << " number of files (-n): " << number_of_events_requested << std::endl
-            << " start event offset (-o): " << start_event_offset << std::endl
-            << " threads / streams (-t): " << number_of_threads << std::endl
-            << " number of repetitions (-r): " << number_of_repetitions << std::endl
-            << " reserve MB (-m): " << reserve_mb << std::endl
-            << " print memory usage (-p): " << print_memory_usage << std::endl
-            << " verbosity (-v): " << verbosity << std::endl;
-
   // Options sanity check
   if (folder_data.empty() || folder_detector_configuration.empty()) {
     std::string missing_folder = "";
@@ -150,7 +134,7 @@ int allen(map<string, string> options, Allen::NonEventData::IUpdater* updater) {
       error_cout << "Failed to select device " << cuda_device << std::endl;
       return -1;
     } else {
-      std::cout << " selected cuda device " << cuda_device << ": " << device_name << std::endl << std::endl;
+      debug_cout << " selected cuda device " << cuda_device << ": " << device_name << std::endl << std::endl;
     }
   } catch (const std::invalid_argument& e) {
     error_cout << e.what() << std::endl;
