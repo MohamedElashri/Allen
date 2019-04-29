@@ -8,7 +8,6 @@
  */
 __device__ void process_modules(
   Velo::Module* module_data,
-  float* shared_best_fits,
   bool* hit_used,
   const short* h0_candidates,
   const short* h2_candidates,
@@ -42,7 +41,6 @@ __device__ void process_modules(
 
   // Do first track seeding
   track_seeding(
-    shared_best_fits,
     dev_velo_cluster_container,
     number_of_hits,
     module_data,
@@ -104,7 +102,6 @@ __device__ void process_modules(
 
     // Seeding
     track_seeding(
-      shared_best_fits,
       dev_velo_cluster_container,
       number_of_hits,
       module_data,
