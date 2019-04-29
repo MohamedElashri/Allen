@@ -29,8 +29,6 @@ void Consumers::UTTable::consume(std::vector<char> const& data) {
   float const* deflection = reinterpret_cast<float const*>(p);
   p += table_size[0] * sizeof(float);
 
-  info_cout << "deflection " << nVar << " " << nBins[0] << " " << nBins[1] << " " << table_size[0] << "\n";
-
   layout = reinterpret_cast<int const*>(p);
   p += sizeof(int);
   nVar = layout[0];
@@ -46,8 +44,6 @@ void Consumers::UTTable::consume(std::vector<char> const& data) {
   p += sizeof(size_t);
   float const* bdl = reinterpret_cast<float const*>(p);
   p += table_size[0] * sizeof(float);
-
-  info_cout << "bdl " << nVar << " " << nBins[0] << " " << nBins[1] << " " << nBins[2] << " " << table_size[0] << "\n";
 
   if (!m_tool) {
     cudaCheck(cudaMalloc((void**) &m_tool.get(), sizeof(PrUTMagnetTool)));
