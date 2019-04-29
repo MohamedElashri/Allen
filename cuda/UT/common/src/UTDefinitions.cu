@@ -1,23 +1,7 @@
 #include "UTDefinitions.cuh"
 
-UTBoards::UTBoards(const std::vector<char>& ut_boards)
+UTBoards::UTBoards(const std::vector<char>& ut_boards) : UTBoards{ut_boards.data()}
 {
-  uint32_t* p = (uint32_t*) ut_boards.data();
-  number_of_boards = *p;
-  p += 1;
-  number_of_channels = UT::Decoding::ut_number_of_sectors_per_board * number_of_boards;
-  stripsPerHybrids = p;
-  p += number_of_channels;
-  stations = p;
-  p += number_of_channels;
-  layers = p;
-  p += number_of_channels;
-  detRegions = p;
-  p += number_of_channels;
-  sectors = p;
-  p += number_of_channels;
-  chanIDs = p;
-  p += number_of_channels;
 }
 
 __device__ __host__ UTBoards::UTBoards(const char* ut_boards)
