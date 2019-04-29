@@ -17,14 +17,21 @@ if(NOT SEQUENCE)
 endif(NOT SEQUENCE)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+if(NOT DEFINED CPU_ARCH)
+  set(CPU_ARCH native)
+endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
+MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 
 # Configuration of CUDA compute architecture
-set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
+if(NOT DEFINED CUDA_ARCH)
+  set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
+endif()
 
 if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
   set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
@@ -52,6 +59,9 @@ if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "
 else()
   message(STATUS "Cuda architecture manually set to ${CUDA_ARCH}")
   set(ARCH_FLAG "-arch=${CUDA_ARCH}")
+endif()
+if(DEFINED OVERRIDE_ARCH_FLAG)
+  set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
 endif()
 
 find_package(ZLIB REQUIRED)
