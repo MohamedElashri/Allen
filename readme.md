@@ -31,7 +31,7 @@ cmake version 3.12.1
 You can check your compiler standard compatibility by scrolling to the `C++17 features` chart [here](https://en.cppreference.com/w/cpp/compiler_support).
 
 Optionally you can compile the project with ROOT. Then, trees will be filled with variables to check when running the UT tracking or SciFi tracking algorithms on x86 architecture.
-In addition, histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md). 
+In addition, histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
 
 You can setup ROOT in CVMFS as follows:
 
@@ -96,7 +96,7 @@ Here are some example run options:
     ./Allen
 
     # Specify input files, run once over all of them with tracking validation
-    ./Allen -f ../input/minbias/banks/ -d ../input/minbias/MC_info/ -b ../input/minbias/muon_common_hits
+    ./Allen -f ../input/minbias/
 
     # Run a total of 1000 events, round robin over the existing ones, without tracking validation
     ./Allen -c 0 -n 1000
@@ -106,6 +106,55 @@ Here are some example run options:
 
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
+
+How to run build and run together with the LHCb stack
+-----------------------------------------------------
+
+Code is being developed in the LHCb stack that provides detector
+geometry data directly instead of reading it from binary files. To do
+this, the following is required:
+ - Build with CUDA 10.1 (to allow gcc 8 as a host compiler)
+ - Build the Rec project against the lhcb-gaudi-head nightly build
+ - Build Allen using the same toolchain as Rec
+ - Run Allen from a runtime environment provided by Rec
+
+### Building Rec
+Running Allen together with the LHCb stack requires some recent
+changes that have not yet been merged to master. Rec has to be built
+in its entirity against the lhcb-gaudi-head slot. First, decide on a
+directory where it will reside (`dev-dir` below) and then clone there:
+ - `mkdir /path/to/dev-dir`
+ - `cd /path/to/dev-dir`
+
+To setup the LHCb environment for building and running Rec, put the
+following in a script (e.g. `env.sh`) for easy access:
+```console
+export CMTCONFIG=x86_64-centos7-gcc8-opt
+export CMTPROJECTPATH=/path/to/dev-dir:/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-gaudi-head/Mon
+source /cvmfs/lhcb.cern.ch/lib/LbEnv
+```
+
+Then build Rec:
+ - `source env.sh`
+ - `git clone ssh://git@gitlab.cern.ch:7999/lhcb/Rec.git`
+ - `cd Rec`
+ - `lb-project-init`
+ -`'git checkout -b allen_producers origin/raaij_allen_producers`
+ - `make install`
+
+### Building Allen with the toolchain used for Rec
+In the same environment, do the following
+ - `cd /path/to/Allen`
+ - `mkdir build-Rec`
+ - `cd build-Rec`
+ - `/path/to/dev-dir/Rec/build.${CMTCONFIG}/run bash --norc`
+ - ```cmake -DCMAKE_C_COMPILER=`which gcc` -DCMAKE_CXX_COMPILER=`which g++` -DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.1/bin/nvcc ..```
+ - `make -j 10`
+
+### Run Allen using the Python entry point:
+```console
+$> /path/to/dev-dir/Rec/build.${CMTCONFIG}/run /path/to/Allen/bindings/Allen.py
+```
 
 
 [This readme](contributing.md) explains how to add a new algorithm to the sequence and how to use the memory scheduler to define global memory variables for this sequence and pass on the dependencies. It also explains which checks to do before placing a merge request with your changes.
