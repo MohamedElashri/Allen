@@ -12,7 +12,7 @@ namespace Velo {
     static constexpr uint n_modules = 52;
     static constexpr uint n_sensors_per_module = 4;
     static constexpr uint n_sensors = n_modules * n_sensors_per_module;
-    static constexpr float z_endVelo = 770;
+    static constexpr float z_endVelo = 770; // FIXME_GEOMETRY_HARDCODING
 
     // Constant for maximum number of hits in a module
     static constexpr uint max_numhits_in_module = 500;
@@ -24,9 +24,10 @@ namespace Velo {
     static constexpr uint max_tracks = 1200;
     static constexpr uint max_track_size = 26;
 
-    static constexpr uint32_t number_of_sensor_columns = 768;
+
+    static constexpr uint32_t number_of_sensor_columns = 768; // FIXME_GEOMETRY_HARDCODING
     static constexpr uint32_t ltg_size = 16 * number_of_sensor_columns;
-    static constexpr float pixel_size = 0.055f;
+    static constexpr float pixel_size = 0.055f; // FIXME_GEOMETRY_HARDCODING
   } // namespace Constants
 
   namespace Tracking {
@@ -50,18 +51,10 @@ namespace Velo {
     // Forward tolerance in phi
     constexpr float forward_phi_tolerance = 0.052f;
 
-    // Tolerance angle for forming triplets
-    static constexpr float max_slope = 0.4f;
-    static constexpr float tolerance = 0.6f;
+    // Max scatter for forming triplets (seeding) and forwarding
+    static constexpr float max_scatter_seeding = 0.1f;
+    static constexpr float max_scatter_forwarding = 0.1f;
 
-    // Maximum scatter of each three hits
-    // This impacts velo tracks and a to a lesser extent
-    // long and long strange tracks
-    static constexpr float max_scatter_seeding = 0.004f;
-
-    // Making a bigger forwarding scatter window causes
-    // less clones and more ghosts
-    static constexpr float max_scatter_forwarding = 0.004f;
     // Maximum number of skipped modules allowed for a track
     // before storing it
     static constexpr uint max_skipped_modules = 1;
