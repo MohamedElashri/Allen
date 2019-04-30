@@ -24,14 +24,14 @@ namespace NonEventData {
 
   Updater::Updater(map<string, string> const& options) {
 
-    auto get_option = [&options] (const std::string& f) {
+    auto get_option = [&options] (const std::string& f) -> std::string {
                         auto it = options.find(f);
                         if (it == options.end()) {
                           StrException{string{"Unknown option flag: "} + f};
                         } else {
                           return it->second;
                         }
-                        return {};
+                        return "";
                       };
 
     auto folder_detector_configuration = get_option("g");

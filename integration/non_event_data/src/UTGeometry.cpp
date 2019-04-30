@@ -29,10 +29,12 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
   // region offsets
   auto& host_ut_region_offsets = m_constants.get().host_ut_region_offsets;
   auto& dev_ut_region_offsets = m_constants.get().dev_ut_region_offsets;
+  // FIXME_GEOMETRY_HARDCODING
   host_ut_region_offsets = {0, 84, 164, 248, 332, 412, 496, 594, 674, 772, 870, 950, 1048};
   alloc_and_copy(host_ut_region_offsets, dev_ut_region_offsets);
 
   auto& host_ut_dxDy = m_constants.get().host_ut_dxDy;
+  // FIXME_GEOMETRY_HARDCODING
   host_ut_dxDy = {0., 0.08748867, -0.0874886, 0.};
   alloc_and_copy(host_ut_dxDy, m_constants.get().dev_ut_dxDy);
 
@@ -98,24 +100,6 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
       unique_permutation.emplace_back(permutation_repeated[position]);
     }
 
-    // Some printouts in case we want to debug
-    // if (logger::ll.verbosityLevel >= logger::debug) {
-    //   for (int j=0; j<size; ++j) {
-    //     debug_cout << j << ", " << geometry.p0X[offset + j] << ", " << permutation[j] << ", "
-    //       << permutation_repeated[j] << ", " << unique_permutation[j] << std::endl;
-    //   }
-    //   std::vector<float> unique_elements (number_of_unique_elements);
-    //   for (int j=0; j<size; ++j) {
-    //     const int index = unique_permutation[j];
-    //     unique_elements[index] = xs[j];
-    //   }
-    //   debug_cout << "Unique elements: " << number_of_unique_elements << std::endl;
-    //   for (int j=0; j<number_of_unique_elements; ++j) {
-    //     debug_cout << unique_elements[j] << ", ";
-    //   }
-    //   debug_cout << std::endl;
-    // }
-
     // Fill in host_unique_sector_xs
     std::vector<float> temp_unique_elements(number_of_unique_elements);
     for (int j = 0; j < size; ++j) {
@@ -135,19 +119,6 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
     current_sector_offset += number_of_unique_elements;
     host_unique_x_sector_layer_offsets[i + 1] = current_sector_offset;
   }
-
-  // Some debug printouts
-  // if (logger::ll.verbosityLevel >= logger::debug) {
-  //   debug_cout << "Unique X sectors:";
-  //   for (auto i : host_unique_x_sector_layer_offsets) {
-  //     debug_cout << i << std::endl;
-  //   }
-  //   debug_cout << std::endl << "Unique X sector permutation:" << std::endl;
-  //   for (auto i : host_unique_x_sector_offsets) {
-  //     debug_cout << i << ", ";
-  //   }
-  //   debug_cout << std::endl;
-  // }
 
   // Populate device constant into global memory
   auto& dev_unique_x_sector_layer_offsets = m_constants.get().dev_unique_x_sector_layer_offsets;
