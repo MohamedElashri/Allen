@@ -57,7 +57,7 @@ int allen(map<string, string> options, Allen::NonEventData::IUpdater* updater) {
   std::string folder_data = "../input/minbias/";
   const std::string folder_rawdata = "banks/";
   // Folder containing detector configuration and catboost model
-  std::string folder_detector_configuration = "../input/detector_configuration/";
+  std::string folder_detector_configuration = "../input/detector_configuration/down/";
 
   std::string folder_name_imported_forward_tracks = "";
   uint number_of_events_requested = 0;

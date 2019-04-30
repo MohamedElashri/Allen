@@ -56,9 +56,9 @@ int main(int argc, char* argv[])
   // getopt_long stores the option index here.
   int option_index = 0;
 
-  // Set the detector configuration default folder here, so the rest
+  // Set only the detector configuration default folder here; the rest
   // of the defaults remains in one place in Allen.cpp
-  std::map<std::string, std::string> options{{"g", "../input/detector_configuration"}};
+  std::map<std::string, std::string> options{{"g", "../input/detector_configuration/down"}};
 
   signed char c;
   while ((c = getopt_long(argc, argv, "f:i:n:o:t:r:phd:v:c:m:g:", long_options, &option_index)) != -1) {

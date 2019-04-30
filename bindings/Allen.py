@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser(usage=('usage: %(prog)s app'
                                         ' <node|subfarm|top> <runtime[s]>'))
 parser.add_argument("-f", dest="folder", default="../input/minbias")
 parser.add_argument("-g", dest="det_folder",
-                    default="../input/detector_configuration")
+                    default="../input/detector_configuration/down")
 parser.add_argument("-n", dest="n_events",  default="0")
 parser.add_argument("-o", dest="event_offset", default="0")
 parser.add_argument("-t", dest="threads", default="1")
