@@ -32,7 +32,7 @@ void printUsage(char* argv[])
             << " -o {offset of events from which to start}=0 (beginning)" << std::endl
             << " -t {number of threads / streams}=1" << std::endl
             << " -r {number of repetitions per thread / stream}=1" << std::endl
-            << " -c {run checkers}=0" << std::endl
+            << " -c {run checkers}=1" << std::endl
             << " -m {reserve Megabytes}=1024" << std::endl
             << " -v {verbosity}=3 (info)" << std::endl
             << " -p {print memory usage}=0" << std::endl
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 
   // Set the detector configuration default folder here, so the rest
   // of the defaults remains in one place in Allen.cpp
-  std::map<std::string, std::string> options{{"g", "../input/detector_configuration/"}};
+  std::map<std::string, std::string> options{{"g", "../input/detector_configuration"}};
 
   signed char c;
   while ((c = getopt_long(argc, argv, "f:i:n:o:t:r:phd:v:c:m:g:", long_options, &option_index)) != -1) {
