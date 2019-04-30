@@ -9,10 +9,10 @@ namespace {
   using std::to_string;
 }
 
-Consumers::UTTable::UTTable(PrUTMagnetTool*& tool)
+Consumers::UTLookupTables::UTLookupTables(PrUTMagnetTool*& tool)
   : m_tool{tool} {}
 
-void Consumers::UTTable::consume(std::vector<char> const& data) {
+void Consumers::UTLookupTables::consume(std::vector<char> const& data) {
   char const* p = data.data();
   int const* layout = reinterpret_cast<int const*>(p);
   p += sizeof(int);

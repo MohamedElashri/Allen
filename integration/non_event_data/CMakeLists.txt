@@ -1,7 +1,7 @@
 set(SOURCES
   src/BasicGeometry.cpp
   src/UTGeometry.cpp
-  src/UTTable.cpp
+  src/UTLookupTables.cpp
   src/SciFiGeometry.cpp
   src/Beamline.cpp
   src/MagneticField.cpp

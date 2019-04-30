@@ -38,7 +38,7 @@
 
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants) {
   tuple consumers{tuple{Allen::NonEventData::UTBoards{}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)},
-                  tuple{Allen::NonEventData::UTLookupTables{}, std::make_unique<Consumers::UTTable>(constants.dev_ut_magnet_tool)},
+                  tuple{Allen::NonEventData::UTLookupTables{}, std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)},
                   tuple{Allen::NonEventData::UTGeometry{}, std::make_unique<Consumers::UTGeometry>(constants)},
                   tuple{Allen::NonEventData::SciFiGeometry{}, std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)},
                   tuple{Allen::NonEventData::MagneticField{}, std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)},

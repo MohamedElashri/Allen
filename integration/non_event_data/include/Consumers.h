@@ -43,10 +43,10 @@ namespace Consumers {
 
   };
 
-  struct UTTable final : public Allen::NonEventData::Consumer {
+  struct UTLookupTables final : public Allen::NonEventData::Consumer {
   public:
 
-    UTTable(PrUTMagnetTool*& tool);
+    UTLookupTables(PrUTMagnetTool*& tool);
 
     void consume(std::vector<char> const& data) override;
 
