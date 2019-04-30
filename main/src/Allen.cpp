@@ -2,7 +2,7 @@
  *      CUDA HLT1
  *
  *      author  -  GPU working group
- *      e-mail  -  lhcb-parallelization@cern.ch
+ *      e-mail  -  lhcb-rta-accelerators@cern.ch
  *
  *      Started development on February, 2018
  *      CERN
