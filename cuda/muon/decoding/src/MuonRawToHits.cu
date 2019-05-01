@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 __device__ void recalculateNumberOfHitsPerStationAndStationOffsets(Muon::HitsSoA* hitsSoA, size_t totalNumberOfHits) {
+  hitsSoA->station_offsets[0] = 0;
   int currentStation = Muon::MuonTileID::station(hitsSoA->tile[0]);
   int initialCurrentStation = currentStation;
   for (int i = 1; i < totalNumberOfHits; i++) {
@@ -39,11 +40,6 @@ __device__ void MuonRawToHits::operator()(Muon::MuonRawEvent& rawEvent, Muon::Hi
   bool used[Muon::Constants::max_numhits_per_event] = {false};
   size_t decodingOffset[Muon::Constants::n_stations + 1] = {0};
   decodeTileAndTDC(rawEvent, decoding, decodingOffset);
-  printf("decodingOffset = ");
-  for (int i = 0; i <= 4; i++) {
-    printf("%d ", decodingOffset);
-  }
-  printf("\n");
   for (size_t currentStation = 0; currentStation < Muon::Constants::n_stations; currentStation++) {
     size_t regionAndQuarterOccurrences[Muon::Constants::n_quarters * Muon::Constants::n_regions] = {0};
     for (size_t i = decodingOffset[currentStation]; i < decodingOffset[currentStation + 1]; i++) {
@@ -171,28 +167,19 @@ __device__ void MuonRawToHits::decodeTileAndTDC(Muon::MuonRawEvent& rawEvent, Di
     tell1NumberByBankNumber[bank_index] = tell1Number;
     stationByBankNumber[bank_index] = (tell1Number < 4 ? 0 : tell1Number < 6 ? 1 : tell1Number < 8 ? 2 : 3);
   }
-  for (uint32_t bank_index = 0; bank_index < rawEvent.number_of_raw_banks; bank_index++) {
-    printf("tell1NumberByBankNumber = %d, stationByBankNumber = %d\n", tell1NumberByBankNumber[bank_index], stationByBankNumber[bank_index]);
-  }
-  printf("number_of_raw_banks = %d\n", rawEvent.number_of_raw_banks);
   for (size_t currentStation = 0; currentStation < Muon::Constants::n_stations; currentStation++) {
     for (uint32_t bank_index = 0; bank_index < rawEvent.number_of_raw_banks; bank_index++) {
       if (stationByBankNumber[bank_index] == currentStation) {
-        printf("bank_index = %d\n", bank_index);
         Muon::MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
         uint16_t* p = rawBank.data;
         int preamble_size = 2 * ((*p + 3) / 2);
-        printf("preamble_size = %d\n");
         p += preamble_size;
         for (size_t i = 0; i < 4; i++) {
           uint16_t frontValue = *p;
-          printf("i = %d\n", i);
           for (size_t shift = 1; shift < 1 + frontValue; shift++) {
             unsigned int pp = *(p + shift);
             unsigned int add = (pp & 0x0FFF);
             unsigned int tdc_value = ((pp & 0xF000) >> 12);
-            printf("%d %d %d\n", pp, add, tdc_value);
-            //std::cerr << pp << " " << add << " " << tdc_value << "\n";
             Muon::MuonTileID tile = Muon::MuonTileID(
                 muonGeometry.getADDInTell1(tell1NumberByBankNumber[bank_index], add)
             );

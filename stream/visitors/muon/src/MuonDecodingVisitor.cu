@@ -11,7 +11,7 @@ void SequenceVisitor::set_arguments_size<muon_decoding_t>(
     const Constants& constants,
     const HostBuffers& host_buffers) {
   arguments.set_size<dev_muon_hits>(runtime_options.number_of_events);
-  arguments.set_size<dev_muon_raw_to_hits>(sizeof(MuonRawToHits));
+  arguments.set_size<dev_muon_raw_to_hits>(1);
   printf("sizes: %d %d %d\n", runtime_options.number_of_events, sizeof(MuonRawToHits), sizeof(Muon::HitsSoA));
 }
 
