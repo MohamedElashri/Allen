@@ -57,7 +57,7 @@ namespace Muon {
     int cluster_size[Constants::max_numhits_per_event] = {0};
     int region_id[Constants::max_numhits_per_event] = {0};
 
-    void setAtIndex(size_t index, int tile, float x, float dx, float y, float dy, float z, float dz,
+    __host__ __device__ void setAtIndex(size_t index, int tile, float x, float dx, float y, float dy, float z, float dz,
          int uncrossed, unsigned int time, int delta_time, int cluster_size, int region) {
       this->tile[index] = tile;
       this->x[index] = x;
