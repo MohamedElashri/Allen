@@ -11,12 +11,12 @@ struct Digit {
   Muon::MuonTileID tile;
   unsigned int     tdc;
 
-  __host__ __device__ Digit(Muon::MuonTileID tile_, unsigned int tdc_) {
+  __device__ Digit(Muon::MuonTileID tile_, unsigned int tdc_) {
     tile = tile_;
     tdc = tdc_;
   }
 
-  __host__ __device__ Digit() {}
+  __device__ Digit() {}
 };
 
 /** @class MuonRawToHits MuonRawToHits.h
@@ -25,7 +25,7 @@ struct Digit {
  */
 class MuonRawToHits {
 public:
-  __host__ __device__ MuonRawToHits(Muon::MuonTables* muonTables_, Muon::MuonGeometry* muonGeometry_) {
+  __host__ __device__ MuonRawToHits(Muon::MuonTables muonTables_, Muon::MuonGeometry muonGeometry_) {
     muonTables = muonTables_;
     muonGeometry = muonGeometry_;
   }
@@ -42,7 +42,7 @@ private:
   __device__ void addCoordsCrossingMap(Digit* digits, bool* used, size_t startIndex, size_t endIndex, Muon::HitsSoA* hitsSoA,
                             size_t& currentHitIndex) const;
 
-  Muon::MuonTables* muonTables;
+  Muon::MuonTables muonTables;
 public:
-  Muon::MuonGeometry* muonGeometry;
+  Muon::MuonGeometry muonGeometry;
 };

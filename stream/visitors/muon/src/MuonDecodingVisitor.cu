@@ -11,6 +11,8 @@ void SequenceVisitor::set_arguments_size<muon_decoding_t>(
     const Constants& constants,
     const HostBuffers& host_buffers) {
   arguments.set_size<dev_muon_hits>(runtime_options.number_of_events);
+  arguments.set_size<dev_muon_raw_to_hits>(sizeof(MuonRawToHits));
+  printf("sizes: %d %d %d\n", runtime_options.number_of_events, sizeof(MuonRawToHits), sizeof(Muon::HitsSoA));
 }
 
 template<>
@@ -22,26 +24,24 @@ void SequenceVisitor::visit<muon_decoding_t>(
     HostBuffers& host_buffers,
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event) {
-/*
-  std::string file_name_muon_table = "../../../input/muon/muon_table.bin";
+
+  std::string file_name_muon_tables = "../../../input/muon/muon_table.bin";
   std::string file_name_muon_geometry = "../../../input/muon/muon_geometry.bin";
-  char muon_table_raw_input[1200000];
-  memset(muon_table_raw_input, 0, sizeof(muon_table_raw_input));
-  std::ifstream muon_table_file(file_name_muon_table, std::ios::binary);
-  muon_table_file.read(muon_table_raw_input, sizeof(muon_table_raw_input));
-  muon_table_file.close();
+  char muon_tables_raw_input[1200000];
+  memset(muon_tables_raw_input, 0, sizeof(muon_tables_raw_input));
+  std::ifstream muon_tables_file(file_name_muon_tables, std::ios::binary);
+  muon_tables_file.read(muon_tables_raw_input, sizeof(muon_tables_raw_input));
+  muon_tables_file.close();
   char muon_geometry_raw_input[100000];
   memset(muon_geometry_raw_input, 0, sizeof(muon_geometry_raw_input));
   std::ifstream muon_geometry_file(file_name_muon_geometry, std::ios::binary);
   muon_geometry_file.read(muon_geometry_raw_input, sizeof(muon_geometry_raw_input));
   muon_geometry_file.close();
-  MuonTable pad = MuonTable();
-  MuonTable stripX = MuonTable();
-  MuonTable stripY = MuonTable();
-  read_muon_table(muon_table_raw_input, &pad, &stripX, &stripY);
-  Muon::MuonGeometry muonGeometry = Muon::MuonGeometry();
+  Muon::MuonTables muonTables;
+  Muon::read_muon_tables(muon_tables_raw_input, &muonTables);
+  Muon::MuonGeometry muonGeometry;
   muonGeometry.read_muon_geometry(muon_geometry_raw_input);
-  MuonRawToHits muonRawToHits = MuonRawToHits(&pad, &stripX, &stripY, &muonGeometry);
+  MuonRawToHits muonRawToHits = MuonRawToHits(muonTables, muonGeometry);
   cudaCheck(cudaMemcpyAsync(
       arguments.offset<dev_muon_raw_to_hits>(),
       &muonRawToHits,
@@ -50,15 +50,13 @@ void SequenceVisitor::visit<muon_decoding_t>(
       cuda_stream
   ));
 
-
   state.set_opts(dim3(1), dim3(1), cuda_stream);
   state.set_arguments(
       runtime_options.host_muon_events,
       runtime_options.host_muon_event_offsets,
-      runtime_options.host_muon_events_size,
+      runtime_options.number_of_events,
       arguments.offset<dev_muon_raw_to_hits>(),
       arguments.offset<dev_muon_hits>()
   );
   state.invoke();
-*/
 }
