@@ -212,7 +212,7 @@ int allen(map<string, string> options, Allen::NonEventData::IUpdater* updater) {
 
   // Initialize detector constants on GPU
   Constants constants;
-  constants.reserve_and_initialize(muon_field_of_interest_params, folder_detector_configuration + "params_kalman/FT6x2/");
+  constants.reserve_and_initialize(muon_field_of_interest_params, folder_detector_configuration + "params_kalman_FT6x2/");
   constants.initialize_muon_catboost_model_constants(
     muon_catboost_model_reader->n_trees(),
     muon_catboost_model_reader->tree_depths(),
