@@ -1,8 +1,8 @@
 #include "SequenceVisitor.cuh"
 #include "MuonDecoding.cuh"
 #include "MuonRawToHits.cuh"
-#include "MuonTable.cuh"
-//#include "MuonGeometry.сuh"
+#include "MuonTables.cuh"
+#include "MuonGeometry.cuh"
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_decoding_t>(
@@ -22,7 +22,7 @@ void SequenceVisitor::visit<muon_decoding_t>(
     HostBuffers& host_buffers,
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event) {
-
+/*
   std::string file_name_muon_table = "../../../input/muon/muon_table.bin";
   std::string file_name_muon_geometry = "../../../input/muon/muon_geometry.bin";
   char muon_table_raw_input[1200000];
@@ -60,4 +60,5 @@ void SequenceVisitor::visit<muon_decoding_t>(
       arguments.offset<dev_muon_hits>()
   );
   state.invoke();
+*/
 }

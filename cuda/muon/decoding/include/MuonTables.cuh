@@ -45,19 +45,23 @@ namespace Muon {
     float coordinates[coordinatesOffset[n_tables * Constants::n_stations]];
   };
 
-  __host__ __device__ inline unsigned int getLayoutX(MuonTables* muonTables, size_t tableNumber, unsigned int station,
+  __constant__ extern size_t tableStationRegionOffset[];
+  __constant__ extern size_t sizeXYOffset[];
+  __constant__ extern size_t coordinatesOffset[];
+
+  __device__ inline unsigned int getLayoutX(MuonTables* muonTables, size_t tableNumber, unsigned int station,
       unsigned int region) {
     return static_cast<unsigned int>(muonTables->gridX[
-        MuonTables::tableStationRegionOffset[tableNumber] +
+        tableStationRegionOffset[tableNumber] +
         station * Constants::n_regions +
         region]
     );
   }
 
-  __host__ __device__ inline unsigned int getLayoutY(MuonTables* muonTables, size_t tableNumber, unsigned int station,
+  __device__ inline unsigned int getLayoutY(MuonTables* muonTables, size_t tableNumber, unsigned int station,
       unsigned int region) {
     return static_cast<unsigned int>(muonTables->gridY[
-        MuonTables::tableStationRegionOffset[tableNumber] +
+        tableStationRegionOffset[tableNumber] +
         station * Constants::n_regions +
         region]
     );
@@ -65,15 +69,15 @@ namespace Muon {
 
   void read_muon_tables(const char* raw_input, MuonTables* MuonTables);
 
-  void calcPos(MuonTables* muonTables, size_t tableNumber, Muon::MuonTileID& tile, unsigned int offset_index, double& x,
+  __device__ void calcPos(MuonTables* muonTables, size_t tableNumber, Muon::MuonTileID& tile, unsigned int offset_index, double& x,
                double& deltax, double& y, double& deltay, double& z);
 
-  void calcTilePos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
+  __device__ void calcTilePos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
                    double& y, double& deltay, double& z);
 
-  void calcStripXPos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
+  __device__ void calcStripXPos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
                      double& y, double& deltay, double& z);
 
-  void calcStripYPos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
+  __device__ void calcStripYPos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
                      double& y, double& deltay, double& z);
 };

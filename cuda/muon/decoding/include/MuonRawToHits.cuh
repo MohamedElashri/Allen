@@ -32,14 +32,14 @@ public:
 
   __host__ __device__ MuonRawToHits() {}
 
-  __host__ __device__ void operator()(Muon::MuonRawEvent& event, Muon::HitsSoA* hitsSoA) const;
+  __device__ void operator()(Muon::MuonRawEvent& event, Muon::HitsSoA* hitsSoA) const;
 
 private:
-  __host__ __device__ void decodeTileAndTDC(Muon::MuonRawEvent& rawEvent, Digit* storage, size_t* storageOffset) const;
+  __device__ void decodeTileAndTDC(Muon::MuonRawEvent& rawEvent, Digit* storage, size_t* storageOffset) const;
 
-  __host__ __device__ void makeStripLayouts(unsigned int station, unsigned int region, MuonLayout* layouts) const;
+  __device__ void makeStripLayouts(unsigned int station, unsigned int region, MuonLayout* layouts) const;
 
-  __host__ __device__ void addCoordsCrossingMap(Digit* digits, bool* used, size_t startIndex, size_t endIndex, Muon::HitsSoA* hitsSoA,
+  __device__ void addCoordsCrossingMap(Digit* digits, bool* used, size_t startIndex, size_t endIndex, Muon::HitsSoA* hitsSoA,
                             size_t& currentHitIndex) const;
 
   Muon::MuonTables* muonTables;

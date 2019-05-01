@@ -1,6 +1,6 @@
 #include "MuonRawToHits.cuh"
 
-__host__ __device__ void recalculateNumberOfHitsPerStationAndStationOffsets(Muon::HitsSoA* hitsSoA, size_t totalNumberOfHits) {
+__device__ void recalculateNumberOfHitsPerStationAndStationOffsets(Muon::HitsSoA* hitsSoA, size_t totalNumberOfHits) {
   int currentStation = Muon::MuonTileID::station(hitsSoA->tile[0]);
   int initialCurrentStation = currentStation;
   for (int i = 1; i < totalNumberOfHits; i++) {
@@ -27,11 +27,11 @@ __host__ __device__ void recalculateNumberOfHitsPerStationAndStationOffsets(Muon
       totalNumberOfHits - hitsSoA->station_offsets[Muon::Constants::n_stations - 1];
 }
 
-__host__ __device__ size_t regionAndQuarter(const Digit& i) {
+__device__ size_t regionAndQuarter(const Digit& i) {
   return i.tile.region() * Muon::Constants::n_quarters + i.tile.quarter();
 }
 
-__host__ __device__ void MuonRawToHits::operator()(Muon::MuonRawEvent& rawEvent, Muon::HitsSoA* hitsSoA) const {
+__device__ void MuonRawToHits::operator()(Muon::MuonRawEvent& rawEvent, Muon::HitsSoA* hitsSoA) const {
   size_t currentHitsIndex = 0;
   Digit decoding[Muon::Constants::max_numhits_per_event];
   Digit sortedDecoding[Muon::Constants::max_numhits_per_event];
@@ -69,7 +69,7 @@ __host__ __device__ void MuonRawToHits::operator()(Muon::MuonRawEvent& rawEvent,
   recalculateNumberOfHitsPerStationAndStationOffsets(hitsSoA, currentHitsIndex);
 }
 
-__host__ __device__ void MuonRawToHits::makeStripLayouts(const unsigned int station, const unsigned int region, MuonLayout* layouts) const {
+__device__ void MuonRawToHits::makeStripLayouts(const unsigned int station, const unsigned int region, MuonLayout* layouts) const {
   unsigned int x1 = getLayoutX(muonTables, Muon::MuonTables::stripXTableNumber, station, region);
   unsigned int y1 = getLayoutY(muonTables, Muon::MuonTables::stripXTableNumber, station, region);
   unsigned int x2 = getLayoutX(muonTables, Muon::MuonTables::stripYTableNumber, station, region);
@@ -78,7 +78,7 @@ __host__ __device__ void MuonRawToHits::makeStripLayouts(const unsigned int stat
   layouts[x1 <= x2] = MuonLayout(x1, y1);
 }
 
-__host__ __device__ void MuonRawToHits::addCoordsCrossingMap(Digit* digits, bool* used, size_t startIndex, size_t endIndex,
+__device__ void MuonRawToHits::addCoordsCrossingMap(Digit* digits, bool* used, size_t startIndex, size_t endIndex,
                                          Muon::HitsSoA* hitsSoA, size_t& currentHitIndex) const {
   if (startIndex == endIndex) {
     return;
@@ -154,7 +154,7 @@ __host__ __device__ void MuonRawToHits::addCoordsCrossingMap(Digit* digits, bool
   }
 }
 
-__host__ __device__ void MuonRawToHits::decodeTileAndTDC(Muon::MuonRawEvent& rawEvent, Digit* storage, size_t* storageOffset) const {
+__device__ void MuonRawToHits::decodeTileAndTDC(Muon::MuonRawEvent& rawEvent, Digit* storage, size_t* storageOffset) const {
   size_t currentStorageIndex = 0;
   //Is it true that files always contain 10 banks?
   constexpr size_t maxNumberOfRawBanks = 10;
