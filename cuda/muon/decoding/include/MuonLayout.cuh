@@ -19,11 +19,6 @@ public:
     m_ygrid = ygrid;
   }
 
-  __host__ __device__ MuonLayout(std::pair<unsigned int, unsigned int> xygrid) {
-    m_xgrid = xygrid.first;
-    m_ygrid = xygrid.second;
-  }
-
   __host__ __device__ unsigned int xGrid() const { return m_xgrid; }
 
   __host__ __device__ unsigned int yGrid() const { return m_ygrid; }

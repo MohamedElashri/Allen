@@ -1,11 +1,6 @@
-
 #pragma once
 
-#include <vector>
-#include <fstream>
-#include <cstring>
-
-#include "MuonGeometry.сuh"
+#include "MuonGeometry.cuh"
 #include "MuonTables.cuh"
 #include "MuonRawToHits.cuh"
 #include "MuonRaw.cuh"

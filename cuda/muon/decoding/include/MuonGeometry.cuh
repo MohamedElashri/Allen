@@ -1,6 +1,8 @@
 #pragma once
 
-#include "MuonTileID.h"
+#include <algorithm>
+
+#include "MuonTileID.cuh"
 
 namespace Muon {
   class MuonGeometry {

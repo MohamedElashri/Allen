@@ -9,17 +9,13 @@ namespace Muon {
     uint16_t* last;
     size_t m_size;
 
-    MuonRawBank(const char* raw_bank, const char* end) {
+    __host__ __device__ MuonRawBank(const char* raw_bank, const char* end) {
       const char* p = raw_bank;
       sourceID = *((uint32_t*) p);
       p += sizeof(uint32_t);
       data = (uint16_t*) p;
       last = (uint16_t*) end;
       m_size = end - p;
-    }
-
-    size_t size() const {
-      return m_size;
     }
   };
 
@@ -28,7 +24,7 @@ namespace Muon {
     uint32_t* raw_bank_offset;
     char* payload;
 
-    MuonRawEvent(const char* event) {
+    __host__ __device__ MuonRawEvent(const char* event) {
       const char* p = event;
       number_of_raw_banks = *((uint32_t*) p);
       p += sizeof(uint32_t);
@@ -37,7 +33,7 @@ namespace Muon {
       payload = (char*) p;
     }
 
-    MuonRawBank getMuonBank(const uint32_t index) const {
+    __host__ __device__ MuonRawBank getMuonBank(const uint32_t index) const {
       MuonRawBank bank(payload + raw_bank_offset[index], payload + raw_bank_offset[index + 1]);
       return bank;
     }

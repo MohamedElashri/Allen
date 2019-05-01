@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "MuonTileID.cuh"
 #include "MuonLayout.cuh"
 #include "MuonDefinitions.cuh"
@@ -43,8 +45,8 @@ namespace Muon {
     float coordinates[coordinatesOffset[n_tables * Constants::n_stations]];
   };
 
-  inline unsigned int
-  getLayoutX(MuonTables* muonTables, size_t tableNumber, unsigned int station, unsigned int region) {
+  __host__ __device__ inline unsigned int getLayoutX(MuonTables* muonTables, size_t tableNumber, unsigned int station,
+      unsigned int region) {
     return static_cast<unsigned int>(muonTables->gridX[
         MuonTables::tableStationRegionOffset[tableNumber] +
         station * Constants::n_regions +
@@ -52,8 +54,8 @@ namespace Muon {
     );
   }
 
-  inline unsigned int
-  getLayoutY(MuonTables* muonTables, size_t tableNumber, unsigned int station, unsigned int region) {
+  __host__ __device__ inline unsigned int getLayoutY(MuonTables* muonTables, size_t tableNumber, unsigned int station,
+      unsigned int region) {
     return static_cast<unsigned int>(muonTables->gridY[
         MuonTables::tableStationRegionOffset[tableNumber] +
         station * Constants::n_regions +

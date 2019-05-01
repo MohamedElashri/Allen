@@ -3,8 +3,6 @@
 #include "MuonBase.cuh"
 #include "MuonLayout.cuh"
 
-#include <string>
-
 class MuonLayout;
 
 namespace Muon {

@@ -3,10 +3,7 @@
 #include "Handler.cuh"
 #include "ArgumentsMuon.cuh"
 #include "MuonDefinitions.cuh"
-
-#include <vector>
-#include <fstream>
-#include <string>
+#include "MuonRawToHits.cuh"
 
 __global__ void muon_decoding(char* events, unsigned int* offsets, size_t number_of_events,
                               MuonRawToHits* muon_raw_to_hits, Muon::HitsSoA* muon_hits);

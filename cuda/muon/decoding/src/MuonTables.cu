@@ -55,11 +55,9 @@ namespace Muon {
     int station = tile.station();
     auto index = MuonTables::coordinatesOffset[tableNumber * Constants::n_stations + station] +
                  lookup_index(muonTables, tableNumber, tile, offset_index);
-
     x = muonTables->coordinates[index];
     y = muonTables->coordinates[index + 1];
     z = muonTables->coordinates[index + 2];
-    //std::cerr << "calcPos: tableNumber = " << tableNumber << ", index = " << index << ", x = " << x << ", y = " << y << ", z = " << z << "\n";
     auto dxi = MuonTables::sizeXYOffset[tableNumber] + size_index(muonTables, tableNumber, tile);
     deltax = muonTables->sizeX[dxi];
     deltay = muonTables->sizeY[dxi];
