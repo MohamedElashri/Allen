@@ -5,12 +5,14 @@ void recalculateNumberOfHitsPerStationAndStationOffsets(Muon::HitsSoA* hitsSoA, 
   int initialCurrentStation = currentStation;
   for (int i = 1; i < totalNumberOfHits; i++) {
     auto id = static_cast<unsigned int>(hitsSoA->tile[i]);
-    if (Muon::MuonTileID::station(id) != currentStation) {
-      hitsSoA->station_offsets[currentStation + 1] = i;
-      currentStation++;
+    auto currentTileStation = Muon::MuonTileID::station(id);
+    if (currentTileStation != currentStation) {
+      for (int j = currentStation + 1; j <= currentTileStation; j++) {
+        hitsSoA->station_offsets[currentStation + 1] = i;
+      }
+      currentStation = currentTileStation;
     }
   }
-
   for (int j = currentStation; j + 1 < Muon::Constants::n_stations; j++) {
     hitsSoA->station_offsets[j + 1] = totalNumberOfHits;
   }
