@@ -8,7 +8,7 @@ void recalculateNumberOfHitsPerStationAndStationOffsets(Muon::HitsSoA* hitsSoA, 
     auto currentTileStation = Muon::MuonTileID::station(id);
     if (currentTileStation != currentStation) {
       for (int j = currentStation + 1; j <= currentTileStation; j++) {
-        hitsSoA->station_offsets[currentStation + 1] = i;
+        hitsSoA->station_offsets[j] = i;
       }
       currentStation = currentTileStation;
     }
