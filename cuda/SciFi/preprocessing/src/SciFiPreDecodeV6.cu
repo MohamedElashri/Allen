@@ -11,9 +11,9 @@ __device__ void store_sorted_cluster_reference_v6 (
   uint32_t* shared_mat_count,
   const int raw_bank,
   const int it,
+  SciFi::Hits& hits,
   const int condition,
-  const int delta,
-  SciFi::Hits& hits)
+  const int delta)
 {
   uint32_t uniqueGroupOrMat;
   // adaptation to hybrid decoding
@@ -93,79 +93,33 @@ __global__ void scifi_pre_decode_v6(
         const auto chid = SciFiChannelID(ch);
         const uint32_t correctedMat = chid.correctedUniqueMat();
 
+        //shortcut for better readability and less redundancy
+        #define STOREARGS hit_count, correctedMat, ch, shared_mat_offsets, shared_mat_count, current_raw_bank, it_number, hits
+
         // Reconstructs a single cluster
-        if( !cSize(c) ) {
-          store_sorted_cluster_reference_v6 (
-            hit_count,
-            correctedMat,
-            ch,
-            shared_mat_offsets,
-            shared_mat_count,
-            current_raw_bank,
-            it_number,
-            0x00, // Condition
-            0x00, // Delta
-            hits);
-        } else if ( fraction (c) ) {
-          if(  it+1 == last || getLinkInBank(c) != getLinkInBank( *(it+1)) ) 
-            store_sorted_cluster_reference_v6 (
-            hit_count,
-            correctedMat,
-            ch,
-            shared_mat_offsets,
-            shared_mat_count,
-            current_raw_bank,
-            it_number,
-            0x01, // Condition
-            0x00, // Delta
-            hits);
-          const unsigned c2 = *(it+1);
-          assert(cSize(c2) && !fraction(c2) );
-            // Reconstructs a big cluster, composed of two fragments
+        if(!cSize(c)) {
+          store_sorted_cluster_reference_v6 (STOREARGS, 0x00, 0x00);
+        } else if (fraction(c)) {
+          if(it+1 == last || getLinkInBank(c) != getLinkInBank( *(it+1))) 
+            store_sorted_cluster_reference_v6 (STOREARGS, 0x01, 0x00);
+          else {
+            const unsigned c2 = *(it+1);
+            assert(cSize(c2) && !fraction(c2));
+             // Reconstructs a big cluster, composed of two fragments
+            const unsigned int widthClus = (cell(c2) - cell(c) + 2 );
+            if (widthClus > 8) {
+              // Condition 2: "0"
+              auto j = 0;
+              for (; j < widthClus - 4; j += 4){
+                // Delta equals j / SciFiRawBankParams::clusterMaxWidth
+                store_sorted_cluster_reference_v6 (STOREARGS, 0x02, j / 4);
+              }
 
-          const unsigned int widthClus = (cell(c2) - cell(c) + 2 );
-          if (widthClus > 8) {
-            // Condition 2: "0"
-            auto j = 0;
-            for (; j < widthClus - 4; j += 4){
-              // Delta equals j / SciFiRawBankParams::clusterMaxWidth
-              store_sorted_cluster_reference_v6 (
-                hit_count,
-                correctedMat,
-                ch,
-                shared_mat_offsets,
-                shared_mat_count,
-                current_raw_bank,
-                it_number,
-                0x02,
-                j / 4,
-                hits);
+              //add the last edge
+              store_sorted_cluster_reference_v6 (STOREARGS, 0x03, j / 4);
+            } else {
+              store_sorted_cluster_reference_v6 (STOREARGS, 0x04, 0x00);
             }
-
-            //add the last edge
-            store_sorted_cluster_reference_v6 (
-              hit_count,
-              correctedMat,
-              ch,
-              shared_mat_offsets,
-              shared_mat_count,
-              current_raw_bank,
-              it_number,
-              0x03,
-              j / 4,
-              hits);
-          } else {
-            store_sorted_cluster_reference_v6 (
-              hit_count,
-              correctedMat,
-              ch,
-              shared_mat_offsets,
-              shared_mat_count,
-              current_raw_bank,
-              it_number,
-              0x04,
-              0x00,
-              hits);
           }
 
           // Due to v6

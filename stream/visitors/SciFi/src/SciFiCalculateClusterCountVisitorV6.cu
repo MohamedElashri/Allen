@@ -28,7 +28,7 @@ void SequenceVisitor::visit<scifi_calculate_cluster_count_v6_t>(
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(240), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_raw_input>(),
     arguments.offset<dev_scifi_raw_input_offsets>(),
