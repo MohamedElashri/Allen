@@ -22,4 +22,11 @@ setup.sh
 *pyc
 *.root
 .vscode
+.idea
 output/*
+*.pdf
+input/1kevents_*
+input/10kevents_*
+input/test/*
+input/UT_*
+checker/plotting/output

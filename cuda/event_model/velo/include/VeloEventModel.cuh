@@ -40,7 +40,7 @@ namespace Velo {
   /**
    * @brief TrackletHits struct
    */
-  struct TrackletHits { // 3 * 2 = 6 B
+  struct TrackletHits { // 3 * 2 = 7 B
     unsigned short hits[3];
 
     __device__ TrackletHits() {}
@@ -52,19 +52,40 @@ namespace Velo {
     }
   };
 
+  /**
+   * @brief TrackHitsScratch struct, used in track forwarding
+   */
+  struct TrackHitsScratch { // 1 + 4 * 2 = 9 B
+    uint8_t hitsNum = 3;
+    unsigned short hits[4];
+
+    __device__ TrackHitsScratch() {}
+    __device__ TrackHitsScratch(const unsigned short h0, const unsigned short h1, const unsigned short h2)
+    {
+      hits[0] = h0;
+      hits[1] = h1;
+      hits[2] = h2;
+    }
+
+    __device__ TrackHitsScratch(const TrackletHits& tracklet)
+    {
+      hits[0] = tracklet.hits[0];
+      hits[1] = tracklet.hits[1];
+      hits[2] = tracklet.hits[2];
+    }
+  };
+
   /* Structure containing indices to hits within hit array */
-  struct TrackHits { // 2 + 26 * 2 = 54 B
-    unsigned short hitsNum;
+  struct TrackHits { // 1 + 26 * 2 = 53 B
+    uint8_t hitsNum = 3;
     unsigned short hits[Velo::Constants::max_track_size];
 
     __device__ TrackHits() {}
 
     __device__ TrackHits(
-      const unsigned short _hitsNum,
       const unsigned short _h0,
       const unsigned short _h1,
-      const unsigned short _h2) :
-      hitsNum(_hitsNum)
+      const unsigned short _h2)
     {
       hits[0] = _h0;
       hits[1] = _h1;
@@ -73,7 +94,6 @@ namespace Velo {
 
     __device__ TrackHits(const TrackletHits& tracklet)
     {
-      hitsNum = 3;
       hits[0] = tracklet.hits[0];
       hits[1] = tracklet.hits[1];
       hits[2] = tracklet.hits[2];
@@ -87,7 +107,7 @@ namespace Velo {
    */
   struct Track { // 4 + 26 * 16 = 420 B
     bool backward;
-    unsigned short hitsNum;
+    uint8_t hitsNum;
     Hit hits[Velo::Constants::max_track_size];
 
     __device__ Track() { hitsNum = 0; }
