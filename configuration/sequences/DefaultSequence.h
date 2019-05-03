@@ -51,4 +51,10 @@ SEQUENCE_T(
   copy_scifi_track_hit_number_t,
   prefix_sum_scifi_track_hit_number_t,
   consolidate_scifi_tracks_t,
+<<<<<<< HEAD
   kalman_velo_only_t,)
+=======
+  kalman_velo_only_t,
+  muon_decoding_t)
+
+>>>>>>> 8ea4fb2076fdf941af325303335e5298f06184ce
