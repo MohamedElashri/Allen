@@ -156,43 +156,66 @@ __device__ void MuonRawToHits::addCoordsCrossingMap(Digit* digits, bool* used, s
   }
 }
 
+//TODO перенести на сервер
 __device__ void MuonRawToHits::decodeTileAndTDC(Muon::MuonRawEvent& rawEvent, Digit* storage, size_t* storageOffset) const {
   size_t currentStorageIndex = 0;
   //Is it true that files always contain 10 banks?
   constexpr size_t maxNumberOfRawBanks = 10;
-  size_t stationByBankNumber[maxNumberOfRawBanks];
   size_t tell1NumberByBankNumber[maxNumberOfRawBanks];
+  size_t stationByBankNumber[maxNumberOfRawBanks];
+  size_t stationByBankNumberOccurrences[Muon::Constants::n_stations];
+  size_t stationByBankNumberOffset[Muon::Constants::n_stations];
+  size_t orderOfBanks[maxNumberOfRawBanks];
+  for (size_t i = 0; i < Muon::Constants::n_stations; i++) {
+    stationByBankNumberOccurrences[i] = 0;
+    stationByBankNumberOffset[i] = 0;
+  }
   for (uint32_t bank_index = 0; bank_index < rawEvent.number_of_raw_banks; bank_index++) {
     unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
     tell1NumberByBankNumber[bank_index] = tell1Number;
     stationByBankNumber[bank_index] = (tell1Number < 4 ? 0 : tell1Number < 6 ? 1 : tell1Number < 8 ? 2 : 3);
+    stationByBankNumberOccurrences[stationByBankNumber[bank_index]]++;
   }
-  for (size_t currentStation = 0; currentStation < Muon::Constants::n_stations; currentStation++) {
-    for (uint32_t bank_index = 0; bank_index < rawEvent.number_of_raw_banks; bank_index++) {
-      if (stationByBankNumber[bank_index] == currentStation) {
-        Muon::MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
-        uint16_t* p = rawBank.data;
-        int preamble_size = 2 * ((*p + 3) / 2);
-        p += preamble_size;
-        for (size_t i = 0; i < 4; i++) {
-          uint16_t frontValue = *p;
-          for (size_t shift = 1; shift < 1 + frontValue; shift++) {
-            unsigned int pp = *(p + shift);
-            unsigned int add = (pp & 0x0FFF);
-            unsigned int tdc_value = ((pp & 0xF000) >> 12);
-            Muon::MuonTileID tile = Muon::MuonTileID(
-                muonGeometry.getADDInTell1(tell1NumberByBankNumber[bank_index], add)
-            );
-            unsigned int tileId = tile.id();
-            if (tileId != 0) {
-              storage[currentStorageIndex] = Digit(tile, tdc_value);
-              currentStorageIndex++;
-            }
-          }
-          p += 1 + frontValue;
+  for (size_t i = 0; i < Muon::Constants::n_stations - 1; i++) {
+    stationByBankNumberOffset[i + 1] = stationByBankNumberOffset[i] + stationByBankNumberOccurrences[i];
+    storageOffset[i + 1] = stationByBankNumberOffset[i + 1];
+  }
+  for (size_t i = 0; i < maxNumberOfRawBanks; i++) {
+    orderOfBanks[stationByBankNumberOffset[stationByBankNumber[i]]++] = i;
+  }
+  size_t currentStorageOffsetIndex = 0;
+  for (size_t j = 0; j < maxNumberOfRawBanks; j++) {
+    uint32_t bank_index = orderOfBanks[j];
+    while (currentStorageOffsetIndex < Muon::Constants::n_stations && storageOffset[currentStorageOffsetIndex] < j) {
+      currentStorageOffsetIndex++;
+    }
+    if (storageOffset[currentStorageOffsetIndex] == j) {
+      storageOffset[currentStorageOffsetIndex] = currentStorageIndex;
+      currentStorageOffsetIndex++;
+    }
+    Muon::MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
+    uint16_t* p = rawBank.data;
+    int preamble_size = 2 * ((*p + 3) / 2);
+    p += preamble_size;
+    for (size_t i = 0; i < 4; i++) {
+      uint16_t frontValue = *p;
+      for (size_t shift = 1; shift < 1 + frontValue; shift++) {
+        unsigned int pp = *(p + shift);
+        unsigned int add = (pp & 0x0FFF);
+        unsigned int tdc_value = ((pp & 0xF000) >> 12);
+        Muon::MuonTileID tile = Muon::MuonTileID(
+            muonGeometry.getADDInTell1(tell1NumberByBankNumber[bank_index], add)
+        );
+        unsigned int tileId = tile.id();
+        if (tileId != 0) {
+          storage[currentStorageIndex] = Digit(tile, tdc_value);
+          currentStorageIndex++;
         }
       }
+      p += 1 + frontValue;
     }
-    storageOffset[currentStation + 1] = currentStorageIndex;
+  }
+  for (size_t i = currentStorageOffsetIndex; i <= Muon::Constants::n_stations; i++) {
+    storageOffset[i] = currentStorageIndex;
   }
 }
