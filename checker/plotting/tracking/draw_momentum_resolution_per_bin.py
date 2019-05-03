@@ -12,14 +12,15 @@ from ROOT import gPad
 
 from array import array
 
+sys.path.append('../../plotting')
 from LHCbStyle import *
 
 
 def getTrackers():
-    return ["Upstream"]  #, "Forward"]
+    return ["Upstream"]  #]
 
 
-nbins = 8
+nbins = 3
 
 f = ROOT.TFile.Open("momentum_resolution.root", "read")
 
@@ -36,7 +37,7 @@ paves = {}
 for tracker in trackers:
     for i in range(1, nbins + 1):
         canvas.cd(i)
-        plot = f.Get(tracker + "/dp_vs_p_py;" + str(i))
+        plot = f.Get(tracker + "/momentum_resolution_py;" + str(i))
         plot.DrawCopy("")
         paves[str(i)] = ROOT.TPaveText(0.65, 0.65, 0.9, 0.9, "NDC")
         paves[str(i)].SetFillStyle(0)
