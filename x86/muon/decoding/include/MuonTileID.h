@@ -1,13 +1,13 @@
 #pragma once
 
-#include "MuonBase.h"
-#include "MuonLayout.h"
-
 #include <string>
 
-class MuonLayout;
+#include "MuonBase.cuh"
+#include "MuonLayout.h"
 
-namespace Muon {
+namespace CPUMuon {
+  class MuonLayout;
+
   class MuonTileID {
   private:
     unsigned int m_muonid;
@@ -29,49 +29,49 @@ namespace Muon {
     }
 
     static unsigned int station(unsigned int id) {
-      return (id & MuonBase::MaskStation) >> MuonBase::ShiftStation;
+      return (id & ::Muon::MuonBase::MaskStation) >> ::Muon::MuonBase::ShiftStation;
     }
 
     unsigned int station() const {
-      return (m_muonid & MuonBase::MaskStation) >> MuonBase::ShiftStation;
+      return (m_muonid & ::Muon::MuonBase::MaskStation) >> ::Muon::MuonBase::ShiftStation;
     }
 
     unsigned int region() const {
-      return (m_muonid & MuonBase::MaskRegion) >> MuonBase::ShiftRegion;
+      return (m_muonid & ::Muon::MuonBase::MaskRegion) >> ::Muon::MuonBase::ShiftRegion;
     }
 
     unsigned int quarter() const {
-      return (m_muonid & MuonBase::MaskQuarter) >> MuonBase::ShiftQuarter;
+      return (m_muonid & ::Muon::MuonBase::MaskQuarter) >> ::Muon::MuonBase::ShiftQuarter;
     }
 
     MuonLayout layout() const {
-      unsigned int xg = (m_muonid & MuonBase::MaskLayoutX) >> MuonBase::ShiftLayoutX;
-      unsigned int yg = (m_muonid & MuonBase::MaskLayoutY) >> MuonBase::ShiftLayoutY;
+      unsigned int xg = (m_muonid & ::Muon::MuonBase::MaskLayoutX) >> ::Muon::MuonBase::ShiftLayoutX;
+      unsigned int yg = (m_muonid & ::Muon::MuonBase::MaskLayoutY) >> ::Muon::MuonBase::ShiftLayoutY;
       return {xg, yg};
     }
 
     unsigned int nX() const {
-      return (m_muonid & MuonBase::MaskX) >> MuonBase::ShiftX;
+      return (m_muonid & ::Muon::MuonBase::MaskX) >> ::Muon::MuonBase::ShiftX;
     }
 
     unsigned int nY() const {
-      return (m_muonid & MuonBase::MaskY) >> MuonBase::ShiftY;
+      return (m_muonid & ::Muon::MuonBase::MaskY) >> ::Muon::MuonBase::ShiftY;
     }
 
     void setX(const unsigned int x) {
-      set(x, MuonBase::ShiftX, MuonBase::MaskX);
+      set(x, ::Muon::MuonBase::ShiftX, ::Muon::MuonBase::MaskX);
     }
 
     void setY(const unsigned int y) {
-      set(y, MuonBase::ShiftY, MuonBase::MaskY);
+      set(y, ::Muon::MuonBase::ShiftY, ::Muon::MuonBase::MaskY);
     }
 
     void setLayout(MuonLayout layout) {
       unsigned int lx, ly;
       lx = layout.xGrid();
       ly = layout.yGrid();
-      set(lx, MuonBase::ShiftLayoutX, MuonBase::MaskLayoutX);
-      set(ly, MuonBase::ShiftLayoutY, MuonBase::MaskLayoutY);
+      set(lx, ::Muon::MuonBase::ShiftLayoutX, ::Muon::MuonBase::MaskLayoutX);
+      set(ly, ::Muon::MuonBase::ShiftLayoutY, ::Muon::MuonBase::MaskLayoutY);
     }
 
     unsigned int id() const {

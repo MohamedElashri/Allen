@@ -3,6 +3,7 @@
 #include "MuonRawToHits.cuh"
 #include "MuonTables.cuh"
 #include "MuonGeometry.cuh"
+#include "MuonGeometry.h"
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_decoding_t>(
@@ -12,7 +13,7 @@ void SequenceVisitor::set_arguments_size<muon_decoding_t>(
     const HostBuffers& host_buffers) {
   arguments.set_size<dev_muon_hits>(runtime_options.number_of_events);
   arguments.set_size<dev_muon_raw_to_hits>(1);
-  printf("sizes: %d %d %d\n", runtime_options.number_of_events, sizeof(MuonRawToHits), sizeof(Muon::HitsSoA));
+  printf("sizes: %d %d %d\n", runtime_options.number_of_events, sizeof(Muon::MuonRawToHits), sizeof(Muon::HitsSoA));
 }
 
 template<>
@@ -41,7 +42,7 @@ void SequenceVisitor::visit<muon_decoding_t>(
   Muon::read_muon_tables(muon_tables_raw_input, &muonTables);
   Muon::MuonGeometry muonGeometry;
   muonGeometry.read_muon_geometry(muon_geometry_raw_input);
-  MuonRawToHits muonRawToHits = MuonRawToHits(muonTables, muonGeometry);
+  Muon::MuonRawToHits muonRawToHits = Muon::MuonRawToHits(muonTables, muonGeometry);
   cudaCheck(cudaMemcpyAsync(
       arguments.offset<dev_muon_raw_to_hits>(),
       &muonRawToHits,

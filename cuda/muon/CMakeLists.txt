@@ -2,6 +2,7 @@ file(GLOB muon_features_extraction "preprocessing/src/*cu")
 file(GLOB muon_classification "classification/src/*cu")
 file(GLOB muon_filtering "is_muon/src/*cu")
 file(GLOB muon_decoding "decoding/src/*cu")
+file(GLOB muon_common "common/src/*cu")
 
 include_directories(preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
@@ -25,5 +26,6 @@ add_library(Muon STATIC
   ${muon_features_extraction}
   ${muon_classification}
   ${muon_decoding}
+  ${muon_common}
 )
 set_property(TARGET Muon PROPERTY CUDA_SEPARABLE_COMPILATION ON)

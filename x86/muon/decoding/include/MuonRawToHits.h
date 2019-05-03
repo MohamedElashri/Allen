@@ -1,10 +1,5 @@
 #pragma once
 
-#include "MuonTable.h"
-#include "MuonRaw.h"
-#include "MuonGeometry.h"
-#include "MuonDefinitions.cuh"
-
 #include <array>
 #include <string>
 #include <vector>
@@ -12,40 +7,47 @@
 #include <algorithm>
 #include <cassert>
 
-struct Digit {
-  Muon::MuonTileID tile;
-  unsigned int tdc;
-};
+#include "MuonTable.h"
+#include "MuonRaw.h"
+#include "MuonGeometry.h"
+#include "MuonDefinitions.cuh"
 
-using Digits      = std::vector<Digit>;
-using DigitsRange = std::pair<Digits::iterator, Digits::iterator>;
+namespace CPUMuon {
+  struct Digit {
+    MuonTileID tile;
+    unsigned int tdc;
+  };
 
-/**
- *  This is the muon reconstruction algorithm
- *  This just crosses the logical strips back into pads
- */
-class MuonRawToHits {
-public:
-  MuonRawToHits(MuonTable* pad_, MuonTable* stripX_, MuonTable* stripY_, Muon::MuonGeometry* muonGeometry_) {
-    pad = pad_;
-    stripX = stripX_;
-    stripY = stripY_;
-    muonGeometry = muonGeometry_;
-  }
+  using Digits      = std::vector<Digit>;
+  using DigitsRange = std::pair<Digits::iterator, Digits::iterator>;
 
-  MuonRawToHits() {}
+  /**
+  * This is the muon reconstruction algorithm
+  * This just crosses the logical strips back into pads
+  */
+  class MuonRawToHits {
+  public:
+    MuonRawToHits(MuonTable* pad_, MuonTable* stripX_, MuonTable* stripY_, MuonGeometry* muonGeometry_) {
+      pad = pad_;
+      stripX = stripX_;
+      stripY = stripY_;
+      muonGeometry = muonGeometry_;
+    }
 
-  void operator()(Muon::MuonRawEvent& event, Muon::HitsSoA* hitsSoA) const;
+    MuonRawToHits() {}
 
-private:
-  void decodeTileAndTDC(Muon::MuonRawEvent&, std::array<std::vector<Digit>, Muon::Constants::n_stations>&) const;
+    void operator()(MuonRawEvent& event, ::Muon::HitsSoA* hitsSoA) const;
 
-  std::array<MuonLayout, 2> makeStripLayouts(const unsigned int, const unsigned int) const;
+  private:
+    void decodeTileAndTDC(MuonRawEvent&, std::array <std::vector<Digit>, ::Muon::Constants::n_stations>&) const;
 
-  void addCoordsCrossingMap(DigitsRange&, Muon::HitsSoA* , size_t&) const;
+    std::array<MuonLayout, 2> makeStripLayouts(const unsigned int, const unsigned int) const;
 
-  MuonTable* pad;
-  MuonTable* stripX;
-  MuonTable* stripY;
-  Muon::MuonGeometry* muonGeometry;
+    void addCoordsCrossingMap(DigitsRange&, ::Muon::HitsSoA*, size_t&) const;
+
+    MuonTable* pad;
+    MuonTable* stripX;
+    MuonTable* stripY;
+    MuonGeometry* muonGeometry;
+  };
 };
