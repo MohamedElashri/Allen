@@ -69,8 +69,8 @@ namespace Muon {
 
   void read_muon_tables(const char* raw_input, MuonTables* MuonTables);
 
-  __device__ void calcPos(MuonTables* muonTables, size_t tableNumber, Muon::MuonTileID& tile, unsigned int offset_index, double& x,
-               double& deltax, double& y, double& deltay, double& z);
+  __device__ void calcPos(MuonTables* muonTables, size_t tableNumber, Muon::MuonTileID& tile, unsigned int offset_index,
+      double& x, double& deltax, double& y, double& deltay, double& z);
 
   __device__ void calcTilePos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
                    double& y, double& deltay, double& z);

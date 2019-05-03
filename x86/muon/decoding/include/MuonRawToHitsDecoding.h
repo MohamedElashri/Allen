@@ -20,5 +20,3 @@ void muonRawToHitsDecode(char* events, unsigned int* offsets, size_t events_size
 
 void muonRawToHitsDecode(char* events, unsigned int* offsets, size_t events_size, size_t offsets_size,
                          std::vector<Muon::HitsSoA>& muon_hits_events);
-
-
