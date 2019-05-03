@@ -9,4 +9,4 @@ RUN ln -s /opt/cmake/bin/ctest /usr/local/bin/ctest
 
 COPY . /app
 WORKDIR /app/build
-CMD cmake .. && make -j && ./Allen -v 4
+CMD cmake .. && make -j && cuda-memcheck./Allen -v 4
