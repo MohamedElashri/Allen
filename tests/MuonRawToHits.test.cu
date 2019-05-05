@@ -36,19 +36,47 @@ SCENARIO("General case") {
     read_binary_file(muon_raw_raw_input, muon_raw_file_name);
 
     unsigned int muon_raw_offsets[] = {static_cast<unsigned int>(0), static_cast<unsigned int>(MUON_RAW_SIZES[i])};
-    std::vector<Muon::HitsSoA> actual_vector(1);
+    std::vector<Muon::HitsSoA> actual_cpu_vector(1);
+    //std::vector<Muon::HitsSoA> actual_vector(1);
 
-    MuonTable pad = MuonTable();
-    MuonTable stripX = MuonTable();
-    MuonTable stripY = MuonTable();
+    CPUMuon::MuonTable pad, stripX, stripY;
     read_muon_table(muon_table_raw_input.data(), &pad, &stripX, &stripY);
-    Muon::MuonGeometry muonGeometry = Muon::MuonGeometry();
-    muonGeometry.read_muon_geometry(muon_geometry_raw_input.data());
-    MuonRawToHits muonRawToHits = MuonRawToHits(&pad, &stripX, &stripY, &muonGeometry);
-    for (int it = 0; it < 100; it++) {
-      muonRawToHitsDecode(muon_raw_raw_input.data(), muon_raw_offsets, MUON_RAW_SIZES[i], 2, actual_vector, &muonRawToHits);
+    //Muon::MuonTables muonTables;
+    //read_muon_tables(muon_table_raw_input.data(), &muonTables);
+    CPUMuon::MuonGeometry cpuMuonGeometry;
+    cpuMuonGeometry.read_muon_geometry(muon_geometry_raw_input.data());
+    //Muon::MuonGeometry muonGeometry;
+    //muonGeometry.read_muon_geometry(muon_geometry_raw_input.data());
+    CPUMuon::MuonRawToHits cpuMuonRawToHits = CPUMuon::MuonRawToHits(&pad, &stripX, &stripY, &cpuMuonGeometry);
+    //Muon::MuonRawToHits muonRawToHits = Muon::MuonRawToHits(muonTables, muonGeometry);
+    for (int it = 0; it < DATA_FILES.size(); it++) {
+      muonRawToHitsDecode(muon_raw_raw_input.data(), muon_raw_offsets, MUON_RAW_SIZES[i], 2, actual_cpu_vector, &cpuMuonRawToHits);
+      /*
+      char* dev_muon_raw_raw_input;
+      cudaMalloc(&dev_muon_raw_raw_input, MUON_RAW_SIZES[i]);
+      cudaMemcpy(dev_muon_raw_raw_input, muon_raw_raw_input.data(), MUON_RAW_SIZES[i], cudaMemcpyHostToDevice);
+      unsigned int* dev_muon_raw_offsets;
+      cudaMalloc(&dev_muon_raw_offsets, 2 * sizeof(unsigned int));
+      cudaMemcpy(dev_muon_raw_offsets, &muon_raw_offsets, 2 * sizeof(unsigned int), cudaMemcpyHostToDevice);
+      Muon::MuonRawToHits* dev_muon_raw_to_hits;
+      cudaMalloc(&dev_muon_raw_to_hits, sizeof(Muon::MuonRawToHits));
+      cudaMemcpy(dev_muon_raw_to_hits, &muonRawToHits, sizeof(Muon::MuonRawToHits), cudaMemcpyHostToDevice);
+      Muon::HitsSoA* dev_muon_hits;
+      cudaMalloc(&dev_muon_hits, sizeof(Muon::HitsSoA));
+      muon_decoding<<<1, 1>>>(dev_muon_raw_raw_input, dev_muon_raw_offsets, 1, dev_muon_raw_to_hits, dev_muon_hits);
+      cudaMemcpy(dev_muon_hits, &actual_vector[0], sizeof(Muon::HitsSoA), cudaMemcpyDeviceToHost);
+      */
     }
-    Muon::HitsSoA actual = actual_vector[0];
+    /*
+    for (int i_station = 0; i_station < Muon::Constants::n_stations; ++i_station) {
+      const int station_offset = actual_vector[0].station_offsets[i_station];
+      const int n_hits_per_station = actual_vector[0].number_of_hits_per_station[i_station];
+      std::cerr << "offset = " << station_offset << ", n_hits = " << n_hits_per_station << "\n";
+    }
+    */
+    //break;
+    Muon::HitsSoA actual_cpu = actual_cpu_vector[0];
+    //Muon::HitsSoA actual = actual_vector[0];
 
     std::vector<char> muon_common_hits_raw_input(MUON_COMMON_HITS_SIZES[i], 0);
     std::string muon_common_hits_file_name = MUON_COMMON_HITS_FOLDER + SLASH + data_file;
@@ -57,20 +85,31 @@ SCENARIO("General case") {
     unsigned int offsets[] = {0};
     read_muon_events_into_arrays(&expected, muon_common_hits_raw_input.data(), offsets, 1);
     for (int j = 0; j < Muon::Constants::n_stations; j++) {
-      CHECK(expected.number_of_hits_per_station[j] == actual.number_of_hits_per_station[j]);
+      CHECK(expected.number_of_hits_per_station[j] == actual_cpu.number_of_hits_per_station[j]);
+      //CHECK(expected.number_of_hits_per_station[j] == actual.number_of_hits_per_station[j]);
       std::vector<int> expected_tiles;
+      std::cerr << "CPU: offset = " << expected.station_offsets[j] << ", n_hits = " << expected.number_of_hits_per_station[j] << "\n";
+      //std::cerr << "CPU: offset = " << actual_cpu.station_offsets[j] << ", n_hits = " << actual_cpu.number_of_hits_per_station[j] << "\n";
       for (int k = expected.station_offsets[j]; k < expected.station_offsets[j] + expected.number_of_hits_per_station[j]; k++) {
         expected_tiles.push_back(expected.tile[k]);
       }
-      std::vector<int> actual_tiles;
-      for (int k = actual.station_offsets[j]; k < actual.station_offsets[j] + actual.number_of_hits_per_station[j]; k++) {
-        actual_tiles.push_back(actual.tile[k]);
+      std::vector<int> actual_cpu_tiles;
+      //std::vector<int> actual_tiles;
+      for (int k = actual_cpu.station_offsets[j]; k < actual_cpu.station_offsets[j] + actual_cpu.number_of_hits_per_station[j]; k++) {
+        actual_cpu_tiles.push_back(actual_cpu.tile[k]);
       }
+      //for (int k = actual.station_offsets[j]; k < actual.station_offsets[j] + actual.number_of_hits_per_station[j]; k++) {
+      //  actual_tiles.push_back(actual.tile[k]);
+      //}
+
       std::sort(expected_tiles.begin(), expected_tiles.end());
-      std::sort(actual_tiles.begin(), actual_tiles.end());
-      CHECK(expected_tiles.size() == actual_tiles.size());
+      std::sort(actual_cpu_tiles.begin(), actual_cpu_tiles.end());
+      //std::sort(actual_tiles.begin(), actual_tiles.end());
+      CHECK(expected_tiles.size() == actual_cpu_tiles.size());
+      //CHECK(expected_tiles.size() == actual_tiles.size());
       for (int j = 0; j < expected_tiles.size(); j++) {
-        CHECK(expected_tiles[j] == actual_tiles[j]);
+        CHECK(expected_tiles[j] == actual_cpu_tiles[j]);
+        //CHECK(expected_tiles[j] == actual_tiles[j]);
       }
     }
   }

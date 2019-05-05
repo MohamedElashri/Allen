@@ -4,6 +4,7 @@
 #include "MuonRaw.cuh"
 #include "MuonGeometry.cuh"
 #include "MuonDefinitions.cuh"
+#include "DigitHashtable.cuh"
 
 namespace Muon {
   struct Digit {

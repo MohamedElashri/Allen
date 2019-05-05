@@ -104,31 +104,31 @@ namespace Muon {
   void read_muon_tables(const char* raw_input, MuonTables* muonTables) {
     for (size_t tableNumber = 0; tableNumber < MuonTables::n_tables; tableNumber++) {
       size_t gridXSize;
-      std::copy_n((size_t*) raw_input, 1, & gridXSize);
+      std::copy_n((size_t*) raw_input, 1, &gridXSize);
       raw_input += sizeof(size_t);
       std::copy_n((int*) raw_input, gridXSize, muonTables->gridX + MuonTables::tableStationRegionOffset[tableNumber]);
       raw_input += sizeof(int) * gridXSize;
 
       size_t gridYSize;
-      std::copy_n((size_t*) raw_input, 1, & gridYSize);
+      std::copy_n((size_t*) raw_input, 1, &gridYSize);
       raw_input += sizeof(size_t);
       std::copy_n((int*) raw_input, gridYSize, muonTables->gridY + MuonTables::tableStationRegionOffset[tableNumber]);
       raw_input += sizeof(int) * gridYSize;
 
       size_t sizeXSize;
-      std::copy_n((size_t*) raw_input, 1, & sizeXSize);
+      std::copy_n((size_t*) raw_input, 1, &sizeXSize);
       raw_input += sizeof(size_t);
       std::copy_n((float*) raw_input, sizeXSize, muonTables->sizeX + MuonTables::sizeXYOffset[tableNumber]);
       raw_input += sizeof(float) * sizeXSize;
 
       size_t sizeYSize;
-      std::copy_n((size_t*) raw_input, 1, & sizeYSize);
+      std::copy_n((size_t*) raw_input, 1, &sizeYSize);
       raw_input += sizeof(size_t);
       std::copy_n((float*) raw_input, sizeYSize, muonTables->sizeY + MuonTables::sizeXYOffset[tableNumber]);
       raw_input += sizeof(float) * sizeYSize;
 
       size_t offsetSize;
-      std::copy_n((size_t*) raw_input, 1, & offsetSize);
+      std::copy_n((size_t*) raw_input, 1, &offsetSize);
       raw_input += sizeof(size_t);
       std::copy_n((unsigned int*) raw_input, offsetSize,
                   muonTables->offset + MuonTables::tableStationRegionOffset[tableNumber]);
@@ -141,12 +141,12 @@ namespace Muon {
       }
 
       size_t tableSize;
-      std::copy_n((size_t*) raw_input, 1, & tableSize);
+      std::copy_n((size_t*) raw_input, 1, &tableSize);
       raw_input += sizeof(size_t);
 
       for (int i = 0; i < tableSize; i++) {
         size_t stationTableSize;
-        std::copy_n((size_t*) raw_input, 1, & stationTableSize);
+        std::copy_n((size_t*) raw_input, 1, &stationTableSize);
         raw_input += sizeof(size_t);
         for (int j = 0; j < stationTableSize; j++) {
           std::copy_n(
