@@ -20,11 +20,11 @@ from ROOT import gROOT
 from ROOT import TStyle
 from ROOT import gPad
 
-sys.path.append('../../')
-from plotting.LHCbStyle import *
-from plotting.Legend import *
+sys.path.append('../')
+from common.LHCbStyle import *
+from common.Legend import *
 
-from ConfigHistos import *
+from common.ConfigHistos import *
 
 
 def getEfficiencyHistoNames():

@@ -25,9 +25,9 @@ args = parser.parse_args()
 
 # Import ROOT and LHCbStyle.
 import ROOT
-sys.path.append('../../')
-from plotting.LHCbStyle import *
-from plotting.Legend import *
+sys.path.append('../')
+from common.LHCbStyle import *
+from common.Legend import *
 setLHCbStyle()
 ROOT.gStyle.SetPadLeftMargin(0.15)
 
