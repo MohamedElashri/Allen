@@ -122,8 +122,7 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
       muon_hits->station_offsets[i] = stationOccurrencesOffset[i];
       muon_hits->number_of_hits_per_station[i] = stationOccurrences[i];
     }
-
-    //можно распаллелить по станциям
+    
     for (size_t i = 0; i < currentStorageIndex; i++) {
       size_t currentStation = Muon::MuonTileID::station(unordered_muon_hits->tile[i]);
       size_t index = stationOccurrencesOffset[currentStation];
