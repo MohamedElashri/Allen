@@ -97,7 +97,6 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
   __syncthreads();
   //printf("OFFSET = %d\n", storageStationRegionQuarterOccurrences[threadIdx.x]*10000000 + originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x] * 10000 + station*100 + region*10+quarter);
   //return;
-  //originalStorageStationRegionQuarterOccurrencesOffset убедиться что они норм
   muon_raw_to_hits->addCoordsCrossingMap(
       sortedStorageTileId,
       sortedStorageTdcValue,
@@ -122,7 +121,7 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
       muon_hits->station_offsets[i] = stationOccurrencesOffset[i];
       muon_hits->number_of_hits_per_station[i] = stationOccurrences[i];
     }
-    
+
     for (size_t i = 0; i < currentStorageIndex; i++) {
       size_t currentStation = Muon::MuonTileID::station(unordered_muon_hits->tile[i]);
       size_t index = stationOccurrencesOffset[currentStation];
