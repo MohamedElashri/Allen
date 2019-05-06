@@ -40,6 +40,7 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
     originalStorageStationRegionQuarterOccurrencesOffset[0] = 0;
     memset(used, false, sizeof(used));
     memset(stationOccurrences, 0, sizeof(stationOccurrences));
+    stationOccurrencesOffset[0] = 0;
   }
   __syncthreads();
 
@@ -76,7 +77,7 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
   }
   __syncthreads();
   if (threadIdx.x == 0) {
-    printf("currentStorageIndex = %d\n", currentStorageIndex);
+    printf("currentStorageIndex = %d\n", currentStorageIndex * 10000 + eventId);
     for (size_t i = 0; i < currentStorageIndex; i++) {
       size_t stationRegionQuarter = Muon::MuonTileID::stationRegionQuarter(storageTileId[i]);
       storageStationRegionQuarterOccurrences[stationRegionQuarter]++;
@@ -97,23 +98,27 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
   __syncthreads();
   //printf("OFFSET = %d\n", storageStationRegionQuarterOccurrences[threadIdx.x]*10000000 + originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x] * 10000 + station*100 + region*10+quarter);
   //return;
-  muon_raw_to_hits->addCoordsCrossingMap(
-      sortedStorageTileId,
-      sortedStorageTdcValue,
-      used,
-      originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x],
-      originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x + 1],
-      unordered_muon_hits,
-      currentHitIndex
-  );
+  //if (eventId == 2) {
+    muon_raw_to_hits->addCoordsCrossingMap(
+        sortedStorageTileId,
+        sortedStorageTdcValue,
+        used,
+        originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x],
+        originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x + 1],
+        &unordered_muon_hits[eventId],
+        currentHitIndex
+    );
+  //}
   __syncthreads();
   //return;
   if (threadIdx.x == 0) {
-    printf("currentHitIndex = %d\n", currentHitIndex);
+    printf("currentHitIndex = %d\n", currentHitIndex * 10000 + eventId);
+
     for (size_t i = 0; i < currentHitIndex; i++) {
-      size_t currentStation = Muon::MuonTileID::station(unordered_muon_hits->tile[i]);
+      size_t currentStation = Muon::MuonTileID::station(unordered_muon_hits[eventId].tile[i]);
       stationOccurrences[currentStation]++;
     }
+
     for (size_t i = 0; i < Muon::Constants::n_stations; i++) {
       stationOccurrencesOffset[i + 1] = stationOccurrencesOffset[i] + stationOccurrences[i];
     }
@@ -121,26 +126,27 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
       muon_hits->station_offsets[i] = stationOccurrencesOffset[i];
       muon_hits->number_of_hits_per_station[i] = stationOccurrences[i];
     }
-
     for (size_t i = 0; i < currentStorageIndex; i++) {
-      size_t currentStation = Muon::MuonTileID::station(unordered_muon_hits->tile[i]);
+      size_t currentStation = Muon::MuonTileID::station(unordered_muon_hits[eventId].tile[i]);
       size_t index = stationOccurrencesOffset[currentStation];
       stationOccurrencesOffset[currentStation]++;
+      //printf("index = %d\n", index);
+
       Muon::setAtIndex(
-          muon_hits,
+          &muon_hits[eventId],
           index,
-          unordered_muon_hits->tile[i],
-          unordered_muon_hits->x[i],
-          unordered_muon_hits->dx[i],
-          unordered_muon_hits->y[i],
-          unordered_muon_hits->dy[i],
-          unordered_muon_hits->z[i],
-          unordered_muon_hits->dz[i],
-          unordered_muon_hits->uncrossed[i],
-          unordered_muon_hits->time[i],
-          unordered_muon_hits->delta_time[i],
-          unordered_muon_hits->cluster_size[i],
-          unordered_muon_hits->region_id[i]
+          unordered_muon_hits[eventId].tile[i],
+          unordered_muon_hits[eventId].x[i],
+          unordered_muon_hits[eventId].dx[i],
+          unordered_muon_hits[eventId].y[i],
+          unordered_muon_hits[eventId].dy[i],
+          unordered_muon_hits[eventId].z[i],
+          unordered_muon_hits[eventId].dz[i],
+          unordered_muon_hits[eventId].uncrossed[i],
+          unordered_muon_hits[eventId].time[i],
+          unordered_muon_hits[eventId].delta_time[i],
+          unordered_muon_hits[eventId].cluster_size[i],
+          unordered_muon_hits[eventId].region_id[i]
       );
     }
   }
