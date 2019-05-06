@@ -42,7 +42,7 @@ void SequenceVisitor::visit<muon_decoding_t>(
   Muon::read_muon_tables(muon_tables_raw_input, &muonTables);
   Muon::MuonGeometry muonGeometry;
   muonGeometry.read_muon_geometry(muon_geometry_raw_input);
-  Muon::MuonRawToHits muonRawToHits = Muon::MuonRawToHits(muonTables, muonGeometry);
+  Muon::MuonRawToHits muonRawToHits = {muonTables, muonGeometry};
   cudaCheck(cudaMemcpyAsync(
       arguments.offset<dev_muon_raw_to_hits>(),
       &muonRawToHits,

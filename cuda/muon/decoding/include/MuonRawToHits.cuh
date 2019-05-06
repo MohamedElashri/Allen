@@ -23,13 +23,6 @@ namespace Muon {
  */
   class MuonRawToHits {
   public:
-    MuonRawToHits(MuonTables muonTables_, MuonGeometry muonGeometry_) {
-      muonTables = muonTables_;
-      muonGeometry = muonGeometry_;
-    }
-
-    __device__ MuonRawToHits() {}
-
     //__device__ void operator()(MuonRawEvent& event, HitsSoA* hitsSoA) const;
 
     MuonTables muonTables;

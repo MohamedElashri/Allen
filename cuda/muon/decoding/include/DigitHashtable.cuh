@@ -22,30 +22,23 @@ namespace Muon {
     }
 
     __device__ void add(unsigned int x, unsigned int y, size_t value) {
-      //std::cerr << "add: x = " << x << ", y = " << y << ", value = " << value << ", xy = ";
       unsigned long long xy = concatenate(x, y);
-      //std::cerr << xy << "\n";
       short index = findIndex(xy);
       xys[index] = xy;
       next[last[index]] = currentFreeNext;
-      //std::cerr << "index = " << index << ", last[" << index << "] = " << last[index] << ", next[" << last[index] << "] = " << next[last[index]] << "\n";
       last[index] = currentFreeNext;
-      //std::cerr << "currentFreeNext = " << currentFreeNext << ", value = " << value << "\n";
       values[currentFreeNext - M] = value;
       currentFreeNext++;
     }
 
     __device__ short findIndex(unsigned long long xy) {
-      //std::cerr << "findIndex: xy = " << xy << ", ";
       auto index = (short)(xy % M);
-      //std::cerr << "hash = " << index << ", ";
       while (xys[index] != 0 && xys[index] != xy) {
         index++;
         if (index == M) {
           index = 0;
         }
       }
-      //std::cerr << "index = " << index << "\n";
       return index;
     }
 
@@ -60,14 +53,11 @@ namespace Muon {
     }
 
     __device__ bool iterateOverValues(short& index, size_t& value) {
-      //std::cerr << "BEFORE: index = " << index << ", ";
       if (index == -1) {
-        //std::cerr << "\n";
         return false;
       }
       value = values[index - M];
       index = next[index];
-      //std::cerr << "value = " << value << ", AFTER: index = " << index << "\n";
       return true;
     }
   };

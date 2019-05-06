@@ -50,72 +50,7 @@ namespace Muon {
   __device__ size_t regionAndQuarter(const Digit& i) {
     return i.tile.region() * Constants::n_quarters + i.tile.quarter();
   }
-/*
-  __device__ void MuonRawToHits::operator()(MuonRawEvent& rawEvent, HitsSoA* hitsSoA) const {
-    size_t currentHitIndex = 0;
-    Digit decoding[Constants::max_numhits_per_event];
-    Digit sortedDecoding[Constants::max_numhits_per_event];
-    bool used[Constants::max_numhits_per_event] = {false};
-    size_t decodingOffset[Constants::n_stations + 1] = {0};
-    decodeTileAndTDC(rawEvent, decoding, decodingOffset);
-    //printf("decodingOffset:");
-    //for (size_t i = 0; i <= 5; i++) {
-    //  printf("%u ", decodingOffset[i]);
-    //}
-    //printf("\n");
-    for (size_t currentStation = 0; currentStation < Constants::n_stations; currentStation++) {
-      size_t regionAndQuarterOccurrences[Constants::n_quarters * Constants::n_regions] = {0};
-      for (size_t i = decodingOffset[currentStation]; i < decodingOffset[currentStation + 1]; i++) {
-        regionAndQuarterOccurrences[regionAndQuarter(decoding[i])]++;
-      }
-      //printf("regionAndQuarterOccurrences: ");
-      //for (size_t i = 0; i < Constants::n_quarters * Constants::n_regions; i++) {
-      //  printf("%u ", regionAndQuarterOccurrences[i]);
-      //}
-      //printf("\n");
-      size_t regionAndQuarterOccurrencesOffset[Constants::n_quarters * Constants::n_regions + 1] = {0};
-      size_t originalRegionAndQuarterOccurrencesOffset[Constants::n_quarters * Constants::n_regions + 1] = {0};
-      for (size_t i = 0; i < Constants::n_quarters * Constants::n_regions; i++) {
-        regionAndQuarterOccurrencesOffset[i + 1] =
-            regionAndQuarterOccurrencesOffset[i] + regionAndQuarterOccurrences[i];
-        originalRegionAndQuarterOccurrencesOffset[i + 1] = regionAndQuarterOccurrencesOffset[i + 1];
-      }
-      //printf("regionAndQuarterOccurrencesOffset: ");
-      //for (size_t i = 0; i <= Constants::n_quarters * Constants::n_regions; i++) {
-      //  printf("%u ", regionAndQuarterOccurrencesOffset[i]);
-      //}
-      //printf("}\n");
-      //printf("originalregionAndQuarterOccurrencesOffset: ");
-      //for (size_t i = 0; i <= Constants::n_quarters * Constants::n_regions; i++) {
-      //  printf("%u ", originalRegionAndQuarterOccurrencesOffset[i]);
-      //}
-      //printf("}\n");
 
-
-      for (size_t i = decodingOffset[currentStation]; i < decodingOffset[currentStation + 1]; i++) {
-        size_t currentRegionAndQuarter = regionAndQuarter(decoding[i]);
-        size_t index = regionAndQuarterOccurrencesOffset[currentRegionAndQuarter] + decodingOffset[currentStation];
-        regionAndQuarterOccurrencesOffset[currentRegionAndQuarter]++;
-        sortedDecoding[index] = decoding[i];
-      }
-      for (size_t i = 0; i < Constants::n_quarters * Constants::n_regions; i++) {
-        //printf("a = %u\n", decodingOffset[currentStation]);
-        //printf("b = %u\n",  + originalRegionAndQuarterOccurrencesOffset[i]);
-        //printf("call addCoordsCrossingMap: %u, ", decodingOffset[currentStation] + originalRegionAndQuarterOccurrencesOffset[i]);
-        //printf("%u\n", decodingOffset[currentStation] + originalRegionAndQuarterOccurrencesOffset[i + 1]);
-        addCoordsCrossingMap(
-            sortedDecoding,
-            used,
-            decodingOffset[currentStation] + originalRegionAndQuarterOccurrencesOffset[i],
-            decodingOffset[currentStation] + originalRegionAndQuarterOccurrencesOffset[i + 1],
-            hitsSoA,
-            currentHitIndex
-        );
-      }
-    }
-    recalculateNumberOfHitsPerStationAndStationOffsets(hitsSoA, currentHitIndex);
-  }
-*/
   __device__ void MuonRawToHits::makeStripLayouts(const unsigned int station, const unsigned int region,
       MuonLayout* layouts) const {
     unsigned int x1 = getLayoutX((MuonTables*) &muonTables, MuonTables::stripXTableNumber, station, region);
@@ -131,10 +66,6 @@ namespace Muon {
     if (startIndex == endIndex) {
       return;
     }
-    //for (int i = startIndex; i < endIndex; i++) {
-    //  printf("%d\n", digits[i].tile.id());
-    //}
-    //printf("\n");
     MuonLayout layouts[2];
     makeStripLayouts(MuonTileID::station(tileIds[startIndex]), MuonTileID::region(tileIds[startIndex]), layouts);
     MuonLayout& layoutOne = layouts[0];
@@ -155,49 +86,6 @@ namespace Muon {
     int thisGridY = layoutOne.yGrid();
     int otherGridX = layoutTwo.xGrid();
     int otherGridY = layoutTwo.yGrid();
-    /*
-    Muon::DigitHashtable digitHashtable;
-    //std::cerr << startIndex << " " << midIndex << " " << endIndex << "\n";
-    for (size_t digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
-      unsigned int keyX = digits[digitsOneIndex].tile.nX() * otherGridX / thisGridX;
-      unsigned int keyY = digits[digitsOneIndex].tile.nY();
-      digitHashtable.add(keyX, keyY, digitsOneIndex);
-      //std::cerr << "keyX = " << keyX << ", keyY = " << keyY << ", digitsOneIndex = " << digitsOneIndex << "\n";
-    }
-
-    for (size_t digitsTwoIndex = midIndex; digitsTwoIndex < endIndex; digitsTwoIndex++) {
-      unsigned int candidateX = digits[digitsTwoIndex].tile.nX();
-      unsigned int candidateY = digits[digitsTwoIndex].tile.nY() * thisGridY / otherGridY;
-      //std::cerr << "candidateX = " << candidateX << ", candidateY = " << candidateY << "\n";
-      //std::cerr << "keyX = " << candidateX << ", keyY = " << candidateY << "\n";
-      short foundDigitHashtableIndex = digitHashtable.find(candidateX, candidateY);
-      if (foundDigitHashtableIndex == -1) {
-        continue;
-      }
-      //std::cerr << "foundDigitHashtableIndex = " << foundDigitHashtableIndex << "\n";
-      size_t digitsOneIndex;
-      bool found;
-      do {
-        found = digitHashtable.iterateOverValues(foundDigitHashtableIndex, digitsOneIndex);
-        if (found) {
-          //std::cerr << "found " << digitsOneIndex << "\n";
-          Muon::MuonTileID padTile(digits[digitsOneIndex].tile);
-          padTile.setY(digits[digitsTwoIndex].tile.nY());
-          padTile.setLayout(MuonLayout(thisGridX, otherGridY));
-          double x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
-          calcTilePos((MuonTables*) &muonTables, padTile, x, dx, y, dy, z);
-          unsigned int uncrossed = 0;
-          int clusterSize = 0;
-          int region = padTile.region();
-          setAtIndex(hitsSoA, currentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed, digits[digitsOneIndex].tdc,
-                              digits[digitsOneIndex].tdc - digits[digitsTwoIndex].tdc, clusterSize, region);
-          currentHitIndex++;
-          used[digitsOneIndex] = used[digitsTwoIndex] = true;
-        }
-      } while (found);
-    }
-    */
-
     for (size_t digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
       unsigned int keyX = MuonTileID::nX(tileIds[digitsOneIndex]) * otherGridX / thisGridX;
       unsigned int keyY = MuonTileID::nY(tileIds[digitsOneIndex]);
@@ -213,8 +101,6 @@ namespace Muon {
           unsigned int uncrossed = 0;
           int clusterSize = 0;
           int region = padTile.region();
-          //printf("crossed: %u\n", padTile.id());
-          //printf("currentHitIndex = %u\n", currentHitIndex);
           int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
           setAtIndex(hitsSoA, localCurrentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed,
                      tdcValues[digitsOneIndex], tdcValues[digitsOneIndex] - tdcValues[digitsTwoIndex],
@@ -245,8 +131,6 @@ namespace Muon {
           }
           unsigned int uncrossed = 1;
           int clusterSize = 0;
-          //printf("uncrossed: %u\n", digits[currentDigitIndex].tile.id());
-          //printf("currentHitIndex = %u\n", currentHitIndex);
           int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
           setAtIndex(hitsSoA, localCurrentHitIndex, tile.id(), x, dx, y, dy, z, dz, uncrossed,
                      tdcValues[currentDigitIndex], tdcValues[currentDigitIndex], clusterSize, region);
@@ -269,37 +153,18 @@ namespace Muon {
       tell1NumberByBankNumber[bank_index] = tell1Number;
       stationByBankNumber[bank_index] = (tell1Number < 4 ? 0 : tell1Number < 6 ? 1 : tell1Number < 8 ? 2 : 3);
       stationByBankNumberOccurrences[stationByBankNumber[bank_index]]++;
-      //printf("PRINT: bank_index = %u\n", bank_index);
-      //for (int j = 0; j < 10; j++) {
-        //printf("tell1Number = %u, stationByBankNumber[%u] = %u\n", tell1Number, j, stationByBankNumber[j]);
-      //}
-      //for (int j = 0; j < 4; j++) {
-        //printf("%u\n", stationByBankNumberOccurrences[j]);
-      //}
     }
 
     for (size_t i = 0; i < Constants::n_stations - 1; i++) {
       stationByBankNumberOffset[i + 1] = stationByBankNumberOffset[i] + stationByBankNumberOccurrences[i];
       storageOffset[i + 1] = stationByBankNumberOffset[i + 1];
-      //printf("PRINT: offset: i = %u\n", i);
-      
-      //for (int j = 0; j < 4; j++) {
-        //printf("stationByBankNumberOffset[%u] = %u\n", j, stationByBankNumberOffset[j]);
-        //printf("storageOffset[%u] = %u\n", j, storageOffset[j]);
-      //}
     }
     for (size_t i = 0; i < maxNumberOfRawBanks; i++) {
       orderOfBanks[stationByBankNumberOffset[stationByBankNumber[i]]++] = i;
-      //printf("PRINT: order: i = %u\n", i);
-      //for (int j = 0; j < 10; j++) {
-        //printf("j = %u, stationByBankNumber[%u] = %u, stationByBankNumberOffset[%u] = %u\n",
-               //j, j, stationByBankNumber[j], j, stationByBankNumberOffset[j]);
-      //}
     }
     size_t currentStorageOffsetIndex = 0;
     for (size_t j = 0; j < maxNumberOfRawBanks; j++) {
       uint32_t bank_index = orderOfBanks[j];
-      //printf("j = %u, bank_index = %u, currentStorageOffsetIndex = %u, storageOffset[currentStorageOffsetIndex] = %u\n", j, bank_index, currentStorageOffsetIndex, storageOffset[currentStorageOffsetIndex]);
       while (currentStorageOffsetIndex < Constants::n_stations && storageOffset[currentStorageOffsetIndex] < j) {
         currentStorageOffsetIndex++;
       }
@@ -309,21 +174,16 @@ namespace Muon {
       }
       MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
       uint16_t* p = rawBank.data;
-      int preamble_size = 2 * ((* p + 3) / 2);
-      //printf("preamble_size = %u\n", preamble_size);
-      
+      int preamble_size = 2 * ((*p + 3) / 2);
       p += preamble_size;
       for (size_t i = 0; i < 4; i++) {
         uint16_t frontValue = *p;
-        //printf("frontValue = %u\n", frontValue);
         for (size_t shift = 1; shift < 1 + frontValue; shift++) {
           unsigned int pp = *(p + shift);
           unsigned int add = (pp & 0x0FFF);
           unsigned int tdc_value = ((pp & 0xF000) >> 12);
-          //printf("pp = %u, add = %u, tdc_value = %u\n", pp, add, tdc_value);
           MuonTileID tile = MuonTileID(muonGeometry.getADDInTell1(tell1NumberByBankNumber[bank_index], add));
           unsigned int tileId = tile.id();
-          //printf("id = %u\n", tileId);
           if (tileId != 0) {
             storage[currentStorageIndex] = {tile, tdc_value};
             currentStorageIndex++;
