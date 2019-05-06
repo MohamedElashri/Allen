@@ -215,10 +215,6 @@ namespace Muon {
           int region = padTile.region();
           //printf("crossed: %u\n", padTile.id());
           //printf("currentHitIndex = %u\n", currentHitIndex);
-
-          //TODO атомарное присвоение???
-          //int localCurrentHitIndex = currentHitIndex;
-          //atomicAdd(&currentHitIndex, 1);
           int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
           setAtIndex(hitsSoA, localCurrentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed,
                      tdcValues[digitsOneIndex], tdcValues[digitsOneIndex] - tdcValues[digitsTwoIndex],
@@ -249,12 +245,8 @@ namespace Muon {
           }
           unsigned int uncrossed = 1;
           int clusterSize = 0;
-          //std::cerr << "uncrossed: " << digit.tile.id() << " " << currentHitIndex << "\n";
           //printf("uncrossed: %u\n", digits[currentDigitIndex].tile.id());
           //printf("currentHitIndex = %u\n", currentHitIndex);
-          //TODO атомарное присвоение???
-          //int localCurrentHitIndex = currentHitIndex;
-          //atomicAdd(&currentHitIndex, 1);
           int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
           setAtIndex(hitsSoA, localCurrentHitIndex, tile.id(), x, dx, y, dy, z, dz, uncrossed,
                      tdcValues[currentDigitIndex], tdcValues[currentDigitIndex], clusterSize, region);

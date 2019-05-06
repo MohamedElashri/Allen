@@ -7,9 +7,9 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
     Muon::HitsSoA* unordered_muon_hits, Muon::HitsSoA* muon_hits) {
   __shared__ int currentHitIndex;
   size_t eventId = blockIdx.x;
-  if (eventId != 1) {
-    return;
-  }
+  //if (eventId != 2) {
+//    return;
+//  }
   //printf("blockIdx.x = %u\n", blockIdx.x);
 
   size_t station = threadIdx.x / (Muon::Constants::n_regions * Muon::Constants::n_quarters);
@@ -64,11 +64,8 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
           unsigned int tileId = muon_raw_to_hits->muonGeometry.getADDInTell1(tell1Number, add);
           //printf("tileId = %u\n", tileId);
           if (tileId != 0) {
-            //TODO атомарное присвоение
-            //int localCurrentStorageIndex = currentStorageIndex;
-            //atomicAdd(&currentStorageIndex, 1);
-            //printf("currentStorageIndex = %u\n", currentStorageIndex);
             int localCurrentStorageIndex = atomicAdd(&currentStorageIndex, 1);
+  //          printf("localCurrentStorageIndex = %u\n", localCurrentStorageIndex);
             storageTileId[localCurrentStorageIndex] = tileId;
             storageTdcValue[localCurrentStorageIndex] = tdc_value;
           }
@@ -98,7 +95,6 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
     }
   }
   __syncthreads();
-  //TODO проверить, нормально ли всё посчиталось
   //printf("OFFSET = %d\n", storageStationRegionQuarterOccurrences[threadIdx.x]*10000000 + originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x] * 10000 + station*100 + region*10+quarter);
   //return;
   //originalStorageStationRegionQuarterOccurrencesOffset убедиться что они норм
