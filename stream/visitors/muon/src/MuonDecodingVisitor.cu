@@ -11,6 +11,7 @@ void SequenceVisitor::set_arguments_size<muon_decoding_t>(
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     const HostBuffers& host_buffers) {
+  arguments.set_size<dev_unordered_muon_hits>(runtime_options.number_of_events);
   arguments.set_size<dev_muon_hits>(runtime_options.number_of_events);
   arguments.set_size<dev_muon_raw_to_hits>(1);
 }
@@ -50,16 +51,20 @@ void SequenceVisitor::visit<muon_decoding_t>(
       cuda_stream
   ));
 
-  state.set_opts(dim3(runtime_options.number_of_events), 1, cuda_stream);
+  state.set_opts(
+      runtime_options.number_of_events,
+      Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters,
+      cuda_stream
+  );
   state.set_arguments(
       runtime_options.host_muon_events,
       runtime_options.host_muon_event_offsets,
       arguments.offset<dev_muon_raw_to_hits>(),
+      arguments.offset<dev_unordered_muon_hits>(),
       arguments.offset<dev_muon_hits>()
   );
   state.invoke();
 
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
-
 }

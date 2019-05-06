@@ -50,9 +50,9 @@ namespace Muon {
   __device__ size_t regionAndQuarter(const Digit& i) {
     return i.tile.region() * Constants::n_quarters + i.tile.quarter();
   }
-
+/*
   __device__ void MuonRawToHits::operator()(MuonRawEvent& rawEvent, HitsSoA* hitsSoA) const {
-    size_t currentHitsIndex = 0;
+    size_t currentHitIndex = 0;
     Digit decoding[Constants::max_numhits_per_event];
     Digit sortedDecoding[Constants::max_numhits_per_event];
     bool used[Constants::max_numhits_per_event] = {false};
@@ -109,13 +109,13 @@ namespace Muon {
             decodingOffset[currentStation] + originalRegionAndQuarterOccurrencesOffset[i],
             decodingOffset[currentStation] + originalRegionAndQuarterOccurrencesOffset[i + 1],
             hitsSoA,
-            currentHitsIndex
+            currentHitIndex
         );
       }
     }
-    recalculateNumberOfHitsPerStationAndStationOffsets(hitsSoA, currentHitsIndex);
+    recalculateNumberOfHitsPerStationAndStationOffsets(hitsSoA, currentHitIndex);
   }
-
+*/
   __device__ void MuonRawToHits::makeStripLayouts(const unsigned int station, const unsigned int region,
       MuonLayout* layouts) const {
     unsigned int x1 = getLayoutX((MuonTables*) &muonTables, MuonTables::stripXTableNumber, station, region);
@@ -126,8 +126,8 @@ namespace Muon {
     layouts[x1 <= x2] = MuonLayout(x1, y1);
   }
 
-  __device__ void MuonRawToHits::addCoordsCrossingMap(Digit* digits, bool* used, size_t startIndex,
-      size_t endIndex, HitsSoA* hitsSoA, size_t& currentHitIndex) const {
+  __device__ void MuonRawToHits::addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used,
+      size_t startIndex, size_t endIndex, HitsSoA* hitsSoA, int& currentHitIndex) const {
     if (startIndex == endIndex) {
       return;
     }
@@ -136,17 +136,17 @@ namespace Muon {
     //}
     //printf("\n");
     MuonLayout layouts[2];
-    makeStripLayouts(digits[startIndex].tile.station(), digits[startIndex].tile.region(), layouts);
+    makeStripLayouts(MuonTileID::station(tileIds[startIndex]), MuonTileID::region(tileIds[startIndex]), layouts);
     MuonLayout& layoutOne = layouts[0];
     MuonLayout& layoutTwo = layouts[1];
     size_t midIndex = startIndex;
-    Digit tmpDigit;
+    unsigned int tmpTileId;
     for (size_t i = startIndex; i < endIndex; i++) {
-      if (digits[i].tile.layout() == layoutOne) {
+      if (MuonTileID::layout(tileIds[i]) == layoutOne) {
         if (midIndex != i) {
-          tmpDigit = digits[i];
-          digits[i] = digits[midIndex];
-          digits[midIndex] = tmpDigit;
+          tmpTileId = tileIds[i];
+          tileIds[i] = tileIds[midIndex];
+          tileIds[midIndex] = tmpTileId;
         }
         midIndex++;
       }
@@ -155,6 +155,7 @@ namespace Muon {
     int thisGridY = layoutOne.yGrid();
     int otherGridX = layoutTwo.xGrid();
     int otherGridY = layoutTwo.yGrid();
+    /*
     Muon::DigitHashtable digitHashtable;
     //std::cerr << startIndex << " " << midIndex << " " << endIndex << "\n";
     for (size_t digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
@@ -195,33 +196,38 @@ namespace Muon {
         }
       } while (found);
     }
-    /*
-      for (size_t digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
-      unsigned int keyX = digits[digitsOneIndex].tile.nX() * otherGridX / thisGridX;
-      unsigned int keyY = digits[digitsOneIndex].tile.nY();
+    */
+
+    for (size_t digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
+      unsigned int keyX = MuonTileID::nX(tileIds[digitsOneIndex]) * otherGridX / thisGridX;
+      unsigned int keyY = MuonTileID::nY(tileIds[digitsOneIndex]);
       for (size_t digitsTwoIndex = midIndex; digitsTwoIndex < endIndex; digitsTwoIndex++) {
-        unsigned int candidateX = digits[digitsTwoIndex].tile.nX();
-        unsigned int candidateY = digits[digitsTwoIndex].tile.nY() * thisGridY / otherGridY;
+        unsigned int candidateX = MuonTileID::nX(tileIds[digitsTwoIndex]);
+        unsigned int candidateY = MuonTileID::nY(tileIds[digitsTwoIndex]) * thisGridY / otherGridY;
         if (keyX == candidateX && keyY == candidateY) {
-          MuonTileID padTile(digits[digitsOneIndex].tile);
-          padTile.setY(digits[digitsTwoIndex].tile.nY());
+          MuonTileID padTile(tileIds[digitsOneIndex]);
+          padTile.setY(MuonTileID::nY(tileIds[digitsTwoIndex]));
           padTile.setLayout(MuonLayout(thisGridX, otherGridY));
-          float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
+          double x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
           calcTilePos((MuonTables*) &muonTables, padTile, x, dx, y, dy, z);
           unsigned int uncrossed = 0;
           int clusterSize = 0;
           int region = padTile.region();
           //printf("crossed: %u\n", padTile.id());
           //printf("currentHitIndex = %u\n", currentHitIndex);
-          setAtIndex(hitsSoA, currentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed,
-                     digits[digitsOneIndex].tdc, digits[digitsOneIndex].tdc - digits[digitsTwoIndex].tdc,
+
+          //TODO атомарное присвоение???
+          //int localCurrentHitIndex = currentHitIndex;
+          //atomicAdd(&currentHitIndex, 1);
+          int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
+          setAtIndex(hitsSoA, localCurrentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed,
+                     tdcValues[digitsOneIndex], tdcValues[digitsOneIndex] - tdcValues[digitsTwoIndex],
                      clusterSize, region);
-          currentHitIndex++;
           used[digitsOneIndex] = used[digitsTwoIndex] = true;
         }
       }
     }
-    */
+
     size_t startIndices[] = {startIndex, midIndex};
     size_t endIndices[] = {midIndex, endIndex};
     for (size_t currentDigitsIndex = 0; currentDigitsIndex < 2; currentDigitsIndex++) {
@@ -230,14 +236,15 @@ namespace Muon {
            currentDigitIndex++) {
         if (!used[currentDigitIndex]) {
           double x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
-          int region = digits[currentDigitIndex].tile.region();
-          if (digits[currentDigitIndex].tile.station() > (Constants::n_stations - 3) && region == 0) {
-            calcTilePos((MuonTables*) &muonTables, digits[currentDigitIndex].tile, x, dx, y, dy, z);
+          MuonTileID tile = MuonTileID(tileIds[currentDigitIndex]);
+          int region = tile.region();
+          if (tile.station() > (Constants::n_stations - 3) && region == 0) {
+            calcTilePos((MuonTables*) &muonTables, tile, x, dx, y, dy, z);
           } else {
             if (currentDigitsIndex == 0) {
-              calcStripXPos((MuonTables*) &muonTables, digits[currentDigitIndex].tile, x, dx, y, dy, z);
+              calcStripXPos((MuonTables*) &muonTables, tile, x, dx, y, dy, z);
             } else {
-              calcStripYPos((MuonTables*) &muonTables, digits[currentDigitIndex].tile, x, dx, y, dy, z);
+              calcStripYPos((MuonTables*) &muonTables, tile, x, dx, y, dy, z);
             }
           }
           unsigned int uncrossed = 1;
@@ -245,9 +252,12 @@ namespace Muon {
           //std::cerr << "uncrossed: " << digit.tile.id() << " " << currentHitIndex << "\n";
           //printf("uncrossed: %u\n", digits[currentDigitIndex].tile.id());
           //printf("currentHitIndex = %u\n", currentHitIndex);
-          setAtIndex(hitsSoA, currentHitIndex, digits[currentDigitIndex].tile.id(), x, dx, y, dy, z, dz, uncrossed,
-                     digits[currentDigitIndex].tdc, digits[currentDigitIndex].tdc, clusterSize, region);
-          currentHitIndex++;
+          //TODO атомарное присвоение???
+          //int localCurrentHitIndex = currentHitIndex;
+          //atomicAdd(&currentHitIndex, 1);
+          int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
+          setAtIndex(hitsSoA, localCurrentHitIndex, tile.id(), x, dx, y, dy, z, dz, uncrossed,
+                     tdcValues[currentDigitIndex], tdcValues[currentDigitIndex], clusterSize, region);
         }
       }
     }

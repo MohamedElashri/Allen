@@ -10,6 +10,7 @@
  *        with their associated type.
  */
 ARGUMENT(dev_muon_raw_to_hits, Muon::MuonRawToHits)
+ARGUMENT(dev_unordered_muon_hits, Muon::HitsSoA)
 ARGUMENT(dev_muon_hits, Muon::HitsSoA)
 ARGUMENT(dev_muon_track_occupancies, int)
 ARGUMENT(dev_is_muon, bool)

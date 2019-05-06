@@ -2,6 +2,7 @@
 
 #include "MuonBase.cuh"
 #include "MuonLayout.cuh"
+#include "MuonDefinitions.cuh"
 
 class MuonLayout;
 
@@ -26,6 +27,12 @@ namespace Muon {
       m_muonid = 0;
     }
 
+    __device__ static unsigned int stationRegionQuarter(unsigned int id) {
+      return MuonTileID::station(id) * Constants::n_stations * Constants::n_regions +
+          MuonTileID::region(id) * Constants::n_regions +
+          MuonTileID::quarter(id);
+    }
+
     __device__ static unsigned int station(unsigned int id) {
       return (id & MuonBase::MaskStation) >> MuonBase::ShiftStation;
     }
@@ -34,12 +41,26 @@ namespace Muon {
       return (m_muonid & MuonBase::MaskStation) >> MuonBase::ShiftStation;
     }
 
+    __device__ static unsigned int region(unsigned int id) {
+      return (id & MuonBase::MaskRegion) >> MuonBase::ShiftRegion;
+    }
+
     __device__ unsigned int region() const {
       return (m_muonid & MuonBase::MaskRegion) >> MuonBase::ShiftRegion;
     }
 
+    __device__ static unsigned int quarter(unsigned int id) {
+      return (id & MuonBase::MaskQuarter) >> MuonBase::ShiftQuarter;
+    }
+
     __device__ unsigned int quarter() const {
       return (m_muonid & MuonBase::MaskQuarter) >> MuonBase::ShiftQuarter;
+    }
+
+    __device__ static MuonLayout layout(unsigned int id) {
+      unsigned int xg = (id & MuonBase::MaskLayoutX) >> MuonBase::ShiftLayoutX;
+      unsigned int yg = (id & MuonBase::MaskLayoutY) >> MuonBase::ShiftLayoutY;
+      return {xg, yg};
     }
 
     __device__ MuonLayout layout() const {
@@ -48,8 +69,16 @@ namespace Muon {
       return {xg, yg};
     }
 
+    __device__ static unsigned int nX(unsigned int id) {
+      return (id & MuonBase::MaskX) >> MuonBase::ShiftX;
+    }
+
     __device__ unsigned int nX() const {
       return (m_muonid & MuonBase::MaskX) >> MuonBase::ShiftX;
+    }
+
+    __device__ static unsigned int nY(unsigned int id) {
+      return (id & MuonBase::MaskY) >> MuonBase::ShiftY;
     }
 
     __device__ unsigned int nY() const {
