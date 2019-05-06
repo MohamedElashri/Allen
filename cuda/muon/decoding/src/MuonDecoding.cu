@@ -69,9 +69,6 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
   __syncthreads();
 
   if (threadIdx.x == 0) {
-    if (eventId == 0) {
-      printf("currentStorageIndex = %d\n", currentStorageIndex);
-    }
     for (size_t i = 0; i < currentStorageIndex; i++) {
       size_t stationRegionQuarter = Muon::MuonTileID::stationRegionQuarter(storageTileId[i]);
       storageStationRegionQuarterOccurrences[stationRegionQuarter]++;
@@ -103,7 +100,7 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
   __syncthreads();
 
   if (threadIdx.x == 0) {
-    printf("currentHitIndex = %d\n", currentHitIndex * 10000 + eventId);
+    //printf("currentHitIndex = %d\n", currentHitIndex * 10000 + eventId);
     for (size_t i = 0; i < currentHitIndex; i++) {
       size_t currentStation = Muon::MuonTileID::station(unordered_muon_hits[eventId].tile[i]);
       stationOccurrences[currentStation]++;
@@ -113,8 +110,9 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, Muon::MuonRaw
       stationOccurrencesOffset[i + 1] = stationOccurrencesOffset[i] + stationOccurrences[i];
     }
     for (size_t i = 0; i < Muon::Constants::n_stations; i++) {
-      muon_hits->station_offsets[i] = stationOccurrencesOffset[i];
-      muon_hits->number_of_hits_per_station[i] = stationOccurrences[i];
+      muon_hits[eventId].station_offsets[i] = stationOccurrencesOffset[i];
+      muon_hits[eventId].number_of_hits_per_station[i] = stationOccurrences[i];
+      printf("%d\n", stationOccurrencesOffset[i] * 10000 + stationOccurrences[i]);
     }
     for (size_t i = 0; i < currentStorageIndex; i++) {
       size_t currentStation = Muon::MuonTileID::station(unordered_muon_hits[eventId].tile[i]);
