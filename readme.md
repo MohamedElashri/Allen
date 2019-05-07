@@ -5,7 +5,7 @@ Welcome to Allen, a project with the aim to provide a full HLT1 realization on G
 
 Requisites
 ----------
-The project requires a graphics card with CUDA support, CUDA 10.0, CMake 3.12 and a compiler supporting C++17 (gcc 7.3, for instance).
+The project requires a graphics card with CUDA support, CUDA 10.0, CMake 3.12 and a compiler supporting C++14.
 
 If you are working from a node with CVMFS and CentOS 7, we suggest the following setup:
 
@@ -28,7 +28,7 @@ $ cmake --version
 cmake version 3.12.1
 ```
 
-You can check your compiler standard compatibility by scrolling to the `C++17 features` chart [here](https://en.cppreference.com/w/cpp/compiler_support).
+You can check your compiler standard compatibility by scrolling to the `C++14 features` chart [here](https://en.cppreference.com/w/cpp/compiler_support).
 
 Optionally you can compile the project with ROOT. Then, trees will be filled with variables to check when running the UT tracking or SciFi tracking algorithms on x86 architecture.
 In addition, histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md). 

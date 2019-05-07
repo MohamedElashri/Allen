@@ -59,11 +59,9 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/is_muon/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/classification/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/patPV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/x86/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/velo/clustering/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/UT/PrVeloUT/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/PrForward/include)
@@ -136,7 +134,6 @@ target_link_libraries(Stream PRIVATE
   UT
   Kalman
   SciFi
-  x86MuonDecoding
   x86Forward
   x86LookingForward
   x86MomentumForward
