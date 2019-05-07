@@ -122,7 +122,6 @@ add_subdirectory(x86/UT/PrVeloUT)
 add_subdirectory(x86/SciFi)
 add_subdirectory(x86/velo/clustering)
 add_subdirectory(x86/PV/beamlinePV)
-add_subdirectory(x86/muon/decoding)
 add_subdirectory(x86/utils)
 add_subdirectory(x86/global_event_cut)
 add_subdirectory(mdf)
@@ -130,7 +129,6 @@ add_subdirectory(mdf)
 # Include directories
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(main/include)
-include_directories(x86/muon/decoding/include)
 include_directories(x86/velo/clustering/include)
 include_directories(x86/global_event_cut/include)
 include_directories(x86/utils/prefix_sum/include)
@@ -206,7 +204,6 @@ target_link_libraries(Allen PRIVATE
   TrackChecking
   PVChecking
   CheckClustering
-  x86MuonDecoding
 )
 
 if (ROOT_FOUND)

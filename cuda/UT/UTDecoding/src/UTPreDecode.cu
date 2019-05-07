@@ -1,4 +1,5 @@
 #include "UTPreDecode.cuh"
+#include "mma.h"
 
 /**
  * Iterate over raw banks / hits and store only the Y coordinate,
@@ -64,7 +65,6 @@ __global__ void ut_pre_decode(
       const float dp0diX = geometry.dp0diX[idx_offset];
       const float dp0diY = geometry.dp0diY[idx_offset];
       const float p0Y = geometry.p0Y[idx_offset];
-
       const float numstrips = 0.25f * fracStrip + strip - firstStrip;
 
       // Make a composed value made out of:
@@ -80,15 +80,15 @@ __global__ void ut_pre_decode(
       // By using the first 16 bits of each, we get the sign, exponent and 7 bits
       // of the mantissa, for both Y and X, which is enough to account for the
       // cases where yBegin was repeated.
-      const float yBegin = p0Y + numstrips * dp0diY;
-      const float xAtYEq0_local = numstrips * dp0diX;
+      const half yBegin = (half) (p0Y + numstrips * dp0diY);
+      const half xAtYEq0_local = (half) (numstrips * dp0diX);
       const int* yBegin_p = reinterpret_cast<const int*>(&yBegin);
       const int* xAtYEq0_local_p = reinterpret_cast<const int*>(&xAtYEq0_local);
 
       // The second value needs to be changed its sign using the 2's complement logic (operator-),
       // if the signs of both values differ.
-      const short composed_0 = (yBegin_p[0] & 0xFFFF0000) >> 16;
-      short composed_1 = (xAtYEq0_local_p[0] & 0xFFFF0000) >> 16;
+      const short composed_0 = yBegin_p[0];
+      short composed_1 = xAtYEq0_local_p[0];
       const bool sign_0 = composed_0 & 0x8000;
       const bool sign_1 = composed_1 & 0x8000;
       if (sign_0 ^ sign_1) {
