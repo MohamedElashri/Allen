@@ -14,11 +14,11 @@
 import os, sys
 import argparse
 import ROOT
-from ROOT import *
 from ROOT import gStyle
 from ROOT import gROOT
 from ROOT import TStyle
 from ROOT import gPad
+from ROOT import TMultiGraph
 
 sys.path.append('../')
 from common.LHCbStyle import *
@@ -41,7 +41,7 @@ def getGhostHistoNames():
 
 
 f = ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")
-outputfile = ROOT.TFile("efficiency_plots.root", "recreate")
+outputfile = ROOT.TFile("../../../plotsfornote_root/efficiency_plots.root", "recreate")
 
 setLHCbStyle()
 
@@ -73,13 +73,13 @@ for tracker in trackers:
             # get efficiency for not electrons category
             histoName = histoBaseName + "notElectrons_" + efficiencyHistoDict[
                 histo]["variable"]
-            print "not electrons: " + histoName
+            print ("not electrons: "+ histoName)
             numeratorName = histoName + "_reconstructed"
             numerator = f.Get(numeratorName)
             denominatorName = histoName + "_reconstructible"
             denominator = f.Get(denominatorName)
-            print numerator.GetEntries()
-            print denominator.GetEntries()
+            print (numerator.GetEntries())
+            print (denominator.GetEntries())
             if numerator.GetEntries() == 0 or denominator.GetEntries() == 0:
                 continue
             numerator.Sumw2()
@@ -94,7 +94,7 @@ for tracker in trackers:
             if categories[tracker][cut]["plotElectrons"]:
                 histoName = histoBaseName + "electrons_" + efficiencyHistoDict[
                     histo]["variable"]
-                print "electrons: " + histoName
+                print ("electrons: " + histoName)
                 numeratorName = histoName + "_reconstructed"
                 numerator = f.Get(numeratorName)
                 denominatorName = histoName + "_reconstructible"
@@ -109,8 +109,8 @@ for tracker in trackers:
                 g_efficiency_electrons.Divide(numerator, denominator,
                                               "cl=0.683 b(1,1) mode")
                 g_efficiency_electrons.SetTitle("electrons")
-                g_efficiency_electrons.SetMarkerColor(kAzure - 3)
-                g_efficiency_electrons.SetLineColor(kAzure - 3)
+                g_efficiency_electrons.SetMarkerColor(ROOT.kAzure - 3)
+                g_efficiency_electrons.SetLineColor(ROOT.kAzure - 3)
 
             # draw them both
             mg = TMultiGraph()
@@ -143,7 +143,7 @@ for tracker in trackers:
             "variable"] + "_Ghosts"
         denominatorName = histoBaseName + ghostHistoDict[histo][
             "variable"] + "_Total"
-        print "ghost histo: " + histoBaseName
+        print ("ghost histo: " + histoBaseName)
         numerator = f.Get(numeratorName)
         denominator = f.Get(denominatorName)
         numerator.Sumw2()

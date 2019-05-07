@@ -13,11 +13,10 @@ from ROOT import gROOT
 from ROOT import TStyle
 from ROOT import gPad
 
-sys.path.append('../../')
-from plotting.LHCbStyle import *
-from plotting.Legend import *
-
-from ConfigHistos import *
+sys.path.append('../')
+from common.LHCbStyle import *
+from common.Legend import *
+from common.ConfigHistos import *
 
 f = ROOT.TFile.Open("../../../output/GPU_PVChecker.root", "read")
 t = f.Get("PV_tree")

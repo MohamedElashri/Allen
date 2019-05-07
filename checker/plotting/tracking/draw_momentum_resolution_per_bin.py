@@ -12,8 +12,8 @@ from ROOT import gPad
 
 from array import array
 
-sys.path.append('../../plotting')
-from LHCbStyle import *
+sys.path.append('../')
+from common.LHCbStyle import *
 
 
 def getTrackers():
@@ -22,7 +22,7 @@ def getTrackers():
 
 nbins = 3
 
-f = ROOT.TFile.Open("momentum_resolution.root", "read")
+f = ROOT.TFile.Open("../../../plotsfornote_root/momentum_resolution.root", "read")
 
 setLHCbStyle()
 

@@ -13,13 +13,13 @@ from ROOT import gROOT
 from ROOT import TStyle
 from ROOT import gPad
 
-sys.path.append('../../')
+sys.path.append('../')
 from common.LHCbStyle import *
 from common.Legend import *
 
 from common.ConfigHistos import *
 
-f = ROOT.TFile.Open("../../output/GPU_PVChecker.root", "read")
+f = ROOT.TFile.Open("../../../output/GPU_PVChecker.root", "read")
 hist_z = f.Get("eff_vs_z")
 hist_mult = f.Get("eff_vs_mult")
 
@@ -40,6 +40,6 @@ canvas.cd(2)
 hist_mult.Draw()
 
 
-if not os.path.isdir("../../plotsfornote"):
-  os.mkdir("../../plotsfornote")
-canvas.SaveAs("../../plotsfornote/PVEfficiencies.pdf")
+if not os.path.isdir("../../../plotsfornote"):
+  os.mkdir("../../../plotsfornote")
+canvas.SaveAs("../../../plotsfornote/PVEfficiencies.pdf")

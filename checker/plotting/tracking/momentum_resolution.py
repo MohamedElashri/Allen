@@ -19,8 +19,8 @@ from array import array
 
 
 
-sys.path.append('../../plotting')
-from LHCbStyle import *
+sys.path.append('../')
+from common.LHCbStyle import *
 
 def getHistos():
     basedict = {
@@ -130,7 +130,7 @@ def getResolutionInSlices(histo2D, var, var_dict):
 
 
 f = ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")
-outputfile = ROOT.TFile("momentum_resolution.root", "recreate")
+outputfile = ROOT.TFile("../../../plotsfornote_root/momentum_resolution.root", "recreate")
 
 setLHCbStyle()
 
