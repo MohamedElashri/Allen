@@ -32,6 +32,7 @@
 #include "StreamWrapper.cuh"
 #include "Constants.cuh"
 #include "MuonDefinitions.cuh"
+#include "MuonRawToHitsDecoding.h"
 
 void printUsage(char* argv[])
 {
@@ -180,19 +181,23 @@ int main(int argc, char* argv[])
   const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
   const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
   const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
+  const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
   const auto geometry_reader = GeometryReader(folder_detector_configuration);
   const auto ut_magnet_tool_reader = UTMagnetToolReader(folder_detector_configuration);
 
   std::unique_ptr<EventReader> event_reader;
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
   if (use_mdf) {
-    event_reader = std::make_unique<MDFReader>(FolderMap {
-      {{BankTypes::VP, folder_name_mdf}, {BankTypes::UT, folder_name_mdf}, {BankTypes::FT, folder_name_mdf}}});
+    event_reader = std::make_unique<MDFReader>(FolderMap {{{BankTypes::VP, folder_name_mdf},
+                                                           {BankTypes::UT, folder_name_mdf},
+                                                           {BankTypes::FT, folder_name_mdf},
+                                                           {BankTypes::MUON, folder_name_mdf}}});
   }
   else {
     event_reader = std::make_unique<EventReader>(FolderMap {{{BankTypes::VP, folder_name_velopix_raw},
                                                              {BankTypes::UT, folder_name_UT_raw},
-                                                             {BankTypes::FT, folder_name_SciFi_raw}}});
+                                                             {BankTypes::FT, folder_name_SciFi_raw},
+                                                             {BankTypes::MUON, folder_name_Muon_raw}}});
   }
 
   const auto velo_geometry = geometry_reader.read_geometry("velo_geometry.bin");
@@ -202,12 +207,6 @@ int main(int argc, char* argv[])
   const auto scifi_geometry = geometry_reader.read_geometry("scifi_geometry.bin");
   event_reader->read_events(number_of_events_requested, start_event_offset);
 
-  std::vector<char> events;
-  std::vector<uint> event_offsets;
-  std::vector<Muon::HitsSoA> muon_hits_events(number_of_events_requested);
-  read_folder(folder_data + "muon_common_hits/", number_of_events_requested, events, event_offsets, start_event_offset);
-  read_muon_events_into_arrays(
-    muon_hits_events.data(), events.data(), event_offsets.data(), number_of_events_requested);
   muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
@@ -264,7 +263,10 @@ int main(int argc, char* argv[])
                                            event_reader->offsets(BankTypes::FT).begin(),
                                            event_reader->events(BankTypes::FT).size(),
                                            event_reader->offsets(BankTypes::FT).size(),
-                                           muon_hits_events,
+                                           event_reader->events(BankTypes::MUON).begin(),
+                                           event_reader->offsets(BankTypes::MUON).begin(),
+                                           event_reader->events(BankTypes::MUON).size(),
+                                           event_reader->offsets(BankTypes::MUON).size(),
                                            number_of_events_requested,
                                            number_of_repetitions,
                                            do_check,

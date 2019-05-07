@@ -9,6 +9,7 @@ namespace Muon {
     */
     static constexpr uint n_stations            = 4;
     static constexpr uint n_regions             = 4;
+    static constexpr uint n_quarters            = 4;
     /* Cut-offs */
     static constexpr uint max_numhits_per_event = 400 * n_stations;
 
@@ -23,7 +24,7 @@ namespace Muon {
     /* IsMuon constants */
     static constexpr float momentum_cuts[]      = {3 * Gaudi::Units::GeV, 6 * Gaudi::Units::GeV, 10 * Gaudi::Units::GeV};
     struct FieldOfInterest {
-      /* FOI_x = a_x + b_x * exp(-c_x * p) 
+      /* FOI_x = a_x + b_x * exp(-c_x * p)
       *  FOI_y = a_y + b_y * exp(-c_y * p)
       */
       const float factor = 1.2;
@@ -55,5 +56,21 @@ namespace Muon {
     int delta_time[Constants::max_numhits_per_event] = {0};
     int cluster_size[Constants::max_numhits_per_event] = {0};
     int region_id[Constants::max_numhits_per_event] = {0};
+
+    void setAtIndex(size_t index, int tile, float x, float dx, float y, float dy, float z, float dz,
+         int uncrossed, unsigned int time, int delta_time, int cluster_size, int region) {
+      this->tile[index] = tile;
+      this->x[index] = x;
+      this->dx[index] = dx;
+      this->y[index] = y;
+      this->dy[index] = dy;
+      this->z[index] = z;
+      this->dz[index] = dz;
+      this->uncrossed[index] = uncrossed;
+      this->time[index] = time;
+      this->delta_time[index] = delta_time;
+      this->cluster_size[index] = cluster_size;
+      this->region_id[index] = region;
+    }
   };
 } // namespace Muon
