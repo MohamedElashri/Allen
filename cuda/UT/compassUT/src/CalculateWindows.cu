@@ -92,7 +92,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   // to do: change back!
   const float invTheta =
     std::min(500.0f, 1.0f / std::sqrt(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
-  const float minMom = std::max(UT::Constants::minPT * invTheta, 1.5f * Gaudi::Units::GeV);
+  const float minMom = std::max(UT::Constants::minPT * invTheta, UT::Constants::minMomentum * 1.0f);
   const float xTol = std::abs(1.0f / (UT::Constants::distToMomentum * minMom));
   // const float yTol     = UT::Constants::yTol + UT::Constants::yTolSlope * xTol;
 
