@@ -186,7 +186,7 @@ void TrackChecker::Histos::initHistos(const std::vector<HistoCategory>& histo_ca
     name = category + "_P_reconstructible";
     h_reconstructible_p[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 100000.);
     name = category + "_Pt_reconstructible";
-    h_reconstructible_pt[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 100000.);
+    h_reconstructible_pt[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 5000.);
     name = category + "_Phi_reconstructible";
     h_reconstructible_phi[name] = new TH1D(name.c_str(), name.c_str(), 25, -3.142, 3.142);
     name = category + "_nPV_reconstructible";
@@ -194,7 +194,7 @@ void TrackChecker::Histos::initHistos(const std::vector<HistoCategory>& histo_ca
     name = category + "_P_reconstructed";
     h_reconstructed_p[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 100000.);
     name = category + "_Pt_reconstructed";
-    h_reconstructed_pt[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 100000.);
+    h_reconstructed_pt[name] = new TH1D(name.c_str(), name.c_str(), 50, 0., 5000.);
     name = category + "_Phi_reconstructed";
     h_reconstructed_phi[name] = new TH1D(name.c_str(), name.c_str(), 25, -3.142, 3.142);
     name = category + "_nPV_reconstructed";
