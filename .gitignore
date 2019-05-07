@@ -22,7 +22,6 @@ setup.sh
 *pyc
 *.root
 .vscode
-.idea
 output/*
 *.pdf
 input/1kevents_*
