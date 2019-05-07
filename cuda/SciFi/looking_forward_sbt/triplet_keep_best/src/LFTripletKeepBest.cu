@@ -19,13 +19,13 @@ __global__ void lf_triplet_keep_best(
   // Keep best for each h1 hit
   __shared__ float best_chi2[4 * LookingForward::maximum_number_of_candidates];
   __shared__ int8_t best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
-
+  
   const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const uint event_number = blockIdx.x; 
 
   // UT consolidated tracks
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
-  const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
+  const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset; 
 
   // SciFi hits
   const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
@@ -35,7 +35,7 @@ __global__ void lf_triplet_keep_best(
   const auto event_offset = scifi_hit_count.event_offset();
 
   for (uint16_t i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
-    const auto current_ut_track_index = ut_event_tracks_offset + i;
+    const auto current_ut_track_index = ut_event_tracks_offset + i; 
     const auto scifi_lf_candidates = dev_scifi_lf_candidates + current_ut_track_index * LookingForward::number_of_x_layers *
                                                            LookingForward::maximum_number_of_candidates;
 
@@ -74,9 +74,9 @@ __global__ void lf_triplet_keep_best(
         }
       }
     }
-
+   
     __syncthreads();
-
+  
     // Save best triplet canidates as TrackHits candidates for further extrapolation
     for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_candidates_per_ut_track; j += blockDim.x) {
       const auto k = best_triplets[j];
@@ -99,7 +99,7 @@ __global__ void lf_triplet_keep_best(
         const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_middle_layer - 1];
         const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_middle_layer];
 
-        dev_scifi_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + current_insert_index] =
+        dev_scifi_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + current_insert_index] = 
           SciFi::TrackHits {h0,
                             h1,
                             h2,

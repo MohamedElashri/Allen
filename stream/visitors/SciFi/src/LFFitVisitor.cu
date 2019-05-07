@@ -36,7 +36,6 @@ void SequenceVisitor::visit<lf_fit_t>(
       arguments.offset<dev_ut_track_velo_indices>(),
       arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
       arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
-      arguments.offset<dev_scifi_lf_xAtRef_after_length_filter>(),
       constants.dev_scifi_geometry,
       constants.dev_inv_clus_res,
       constants.dev_scifi_constArrays,

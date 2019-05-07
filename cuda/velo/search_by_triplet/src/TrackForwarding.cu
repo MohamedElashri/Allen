@@ -3,6 +3,39 @@
 #include <cstdio>
 
 /**
+ * @brief Fits hits to tracks.
+ *
+ * @details In case the tolerances constraints are met,
+ *          returns the chi2 weight of the track. Otherwise,
+ *          returns FLT_MAX.
+ */
+__device__ float fit_hit_to_track(
+  const Velo::HitBase& h0,
+  const Velo::HitBase& h2,
+  const float predx,
+  const float predy,
+  const float scatterDenom2)
+{
+  // tolerances
+  const float x_prediction = h0.x + predx;
+  const float dx = fabs(x_prediction - h2.x);
+  const bool tolx_condition = dx < Velo::Tracking::tolerance;
+
+  const float y_prediction = h0.y + predy;
+  const float dy = fabs(y_prediction - h2.y);
+  const bool toly_condition = dy < Velo::Tracking::tolerance;
+
+  // Scatter
+  const float scatterNum = (dx * dx) + (dy * dy);
+  const float scatter = scatterNum * scatterDenom2;
+
+  const bool scatter_condition = scatter < Velo::Tracking::max_scatter_forwarding;
+  const bool condition = tolx_condition && toly_condition && scatter_condition;
+
+  return condition * scatter + !condition * FLT_MAX;
+}
+
+/**
  * @brief Performs the track forwarding of forming tracks
  */
 __device__ void track_forwarding(
@@ -27,20 +60,12 @@ __device__ void track_forwarding(
     auto trackno = fulltrackno & 0x0FFFFFFF;
     assert(track_flag ? trackno < Velo::Tracking::ttf_modulo : trackno < Velo::Constants::max_tracks);
 
-    Velo::TrackHitsScratch track_scratch;
-    Velo::TrackHits* t;
-
-    if (track_flag) {
-      track_scratch = tracklets[trackno];
-      t = (Velo::TrackHits*) &track_scratch;
-    } else {
-      t = tracks + trackno;
-    }
+    Velo::TrackHits t = track_flag ? Velo::TrackHits {tracklets[trackno]} : tracks[trackno];
 
     // Load last two hits in h0, h1
-    assert(t->hitsNum < Velo::Constants::max_track_size);
-    const auto h0_num = t->hits[t->hitsNum - 2];
-    const auto h1_num = t->hits[t->hitsNum - 1];
+    assert(t.hitsNum < Velo::Constants::max_track_size);
+    const auto h0_num = t.hits[t.hitsNum - 2];
+    const auto h1_num = t.hits[t.hitsNum - 1];
 
     assert(h0_num < number_of_hits);
     const Velo::HitBase h0 {dev_velo_cluster_container[5 * number_of_hits + h0_num],
@@ -61,7 +86,7 @@ __device__ void track_forwarding(
     const auto ty = tyn * td;
 
     // Find the best candidate
-    float best_fit = Velo::Tracking::max_scatter_forwarding;
+    float best_fit = FLT_MAX;
     unsigned short best_h2;
 
     // Get candidates by performing a binary search in expected phi
@@ -89,48 +114,49 @@ __device__ void track_forwarding(
                               dev_velo_cluster_container[number_of_hits + h2_index]};
 
       const auto dz = h2.z - h0.z;
-      const auto predx = h0.x + tx * dz;
-      const auto predy = h0.y + ty * dz;
-      const auto dx = predx - h2.x;
-      const auto dy = predy - h2.y;
+      const auto predx = tx * dz;
+      const auto predy = ty * dz;
+      const auto scatterDenom2 = 1.f / ((h2.z - h1.z) * (h2.z - h1.z));
 
-      // Scatter
-      const auto scatterNum = (dx * dx) + (dy * dy);
+      const auto fit = fit_hit_to_track(h0, h2, predx, predy, scatterDenom2);
 
       // We keep the best one found
-      if (scatterNum < best_fit) {
-        best_fit = scatterNum;
+      if (fit < best_fit) {
+        best_fit = fit;
         best_h2 = h2_index;
       }
     }
 
     // Condition for finding a h2
-    if (best_fit < Velo::Tracking::max_scatter_forwarding) {
+    if (best_fit != FLT_MAX) {
       // Mark h2 as used
       assert(best_h2 < number_of_hits);
       hit_used[best_h2] = true;
 
       // Update the tracks to follow, we'll have to follow up
       // this track on the next iteration :)
-      assert(t->hitsNum < Velo::Constants::max_track_size);
-      t->hits[t->hitsNum++] = best_h2;
+      assert(t.hitsNum < Velo::Constants::max_track_size);
+      t.hits[t.hitsNum++] = best_h2;
 
       // Update the track in the bag
-      if (t->hitsNum <= 4) {
-        assert(t->hits[0] < number_of_hits);
-        assert(t->hits[1] < number_of_hits);
-        assert(t->hits[2] < number_of_hits);
+      if (t.hitsNum <= 4) {
+        assert(t.hits[0] < number_of_hits);
+        assert(t.hits[1] < number_of_hits);
+        assert(t.hits[2] < number_of_hits);
 
         // Also mark the first three as used
-        hit_used[t->hits[0]] = true;
-        hit_used[t->hits[1]] = true;
-        hit_used[t->hits[2]] = true;
+        hit_used[t.hits[0]] = true;
+        hit_used[t.hits[1]] = true;
+        hit_used[t.hits[2]] = true;
 
         // If it is a track made out of less than or equal than 4 hits,
         // we have to allocate it in the tracks pointer
         trackno = atomicAdd(dev_atomics_velo + blockIdx.x, 1);
-        *((Velo::TrackHitsScratch*)&tracks[trackno]) = track_scratch;
       }
+
+      // Copy the track into tracks
+      assert(trackno < Velo::Constants::max_tracks);
+      tracks[trackno] = t;
 
       // Add the tracks to the bag of tracks to_follow
       const auto ttfP = atomicAdd(dev_atomics_velo + ip_shift + 2, 1) & Velo::Tracking::ttf_modulo_mask;
@@ -148,10 +174,10 @@ __device__ void track_forwarding(
     }
     // If there are only three hits in this track,
     // mark it as "doubtful"
-    else if (t->hitsNum == 3) {
+    else if (t.hitsNum == 3) {
       const auto weakP = atomicAdd(dev_atomics_velo + ip_shift, 1) & Velo::Tracking::ttf_modulo_mask;
       assert(weakP < Velo::Tracking::max_weak_tracks);
-      weak_tracks[weakP] = Velo::TrackletHits {t->hits[0], t->hits[1], t->hits[2]};
+      weak_tracks[weakP] = Velo::TrackletHits {t.hits[0], t.hits[1], t.hits[2]};
     }
     // In the "else" case, we couldn't follow up the track,
     // so we won't be track following it anymore.

@@ -27,19 +27,6 @@ __device__ float LookingForward::linear_parameterization(
   return p0 + p1 * dz;
 }
 
-__device__ float LookingForward::get_average_x_at_reference_plane_spread(
-  const float xAtRef_average,
-  const float* hits_x,
-  const int n_hits)
-{
-  float chi2 = 0;
-  for ( int i = 0; i < n_hits; ++i ) {
-    const float diff = xAtRef_average - hits_x[i];
-    chi2 += diff * diff;
-  }
-  return chi2 / n_hits;
-}
-
 __device__ float LookingForward::get_average_x_at_reference_plane_from_scifi_propagaion(
   const int* hits,
   const uint8_t n_hits,
@@ -80,7 +67,7 @@ __device__ float LookingForward::get_x_on_reference_plane(
   const MiniState& velo_state,
   const float zMagSlope)
 {
-  const float xFromVelo_Hit = linear_parameterization(xAtRef_initial, velo_state.tx, zHit);
+   const float xFromVelo_Hit = linear_parameterization(xAtRef_initial, velo_state.tx, zHit);
   const float dSlopeDivPart = 1.f / (zHit - constArrays->zMagnetParams[0]);
   const float dz = 1.e-3f * (zHit - SciFi::Tracking::zReference);
    float dSlope = (xFromVelo_Hit - xHit) * dSlopeDivPart;
@@ -111,27 +98,6 @@ __device__ float LookingForward::get_average_x_at_reference_plane(
   float average_x = 0;
   for (uint8_t i_hit = 0; i_hit < n_hits; ++i_hit) {
     const float x = get_x_on_reference_plane(hits_x[i_hit], hits_z[i_hit], xAtRef_initial, constArrays, velo_state, zMagSlope);
-    average_x += x;
-  }
-  average_x /= n_hits;
-
-  return average_x;
-}
-
-__device__ float LookingForward::get_average_and_individual_x_at_reference_plane(
-  const float* hits_x,
-  const float* hits_z,
-  const uint8_t n_hits,
-  const float xAtRef_initial,
-  const SciFi::Tracking::Arrays* constArrays,
-  const MiniState& velo_state,
-  const float zMagSlope,
-  float* hits_x_atRef)
-{
-  float average_x = 0;
-  for (uint8_t i_hit = 0; i_hit < n_hits; ++i_hit) {
-    const float x = get_x_on_reference_plane(hits_x[i_hit], hits_z[i_hit], xAtRef_initial, constArrays, velo_state, zMagSlope);
-    hits_x_atRef[i_hit] = x;
     average_x += x;
   }
   average_x /= n_hits;

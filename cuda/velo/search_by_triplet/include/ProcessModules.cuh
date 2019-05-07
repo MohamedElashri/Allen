@@ -5,6 +5,7 @@
 
 __device__ void process_modules(
   Velo::Module* module_data,
+  float* shared_best_fits,
   bool* hit_used,
   const short* h0_candidates,
   const short* h2_candidates,

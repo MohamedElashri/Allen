@@ -41,7 +41,7 @@ void SequenceVisitor::visit<velo_search_by_triplet_t>(
     cuda_stream));
 
   // Setup opts and arguments
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream, 32 * sizeof(float));
   state.set_arguments(
     arguments.offset<dev_velo_cluster_container>(),
     arguments.offset<dev_estimated_input_size>(),

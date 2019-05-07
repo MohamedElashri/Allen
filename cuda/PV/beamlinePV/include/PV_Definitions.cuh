@@ -80,6 +80,7 @@ namespace PV {
     float3 position;
     float chi2;
     int ndof;
+    uint n_tracks = 0.f;
 
     float cov00 = 0.f;
     float cov10 = 0.f;
