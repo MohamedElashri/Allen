@@ -58,14 +58,14 @@ namespace Muon {
     }
 
     __device__ static MuonLayout layout(unsigned int id) {
-      unsigned int xg = (id & MuonBase::MaskLayoutX) >> MuonBase::ShiftLayoutX;
-      unsigned int yg = (id & MuonBase::MaskLayoutY) >> MuonBase::ShiftLayoutY;
+      const unsigned int xg = (id & MuonBase::MaskLayoutX) >> MuonBase::ShiftLayoutX;
+      const unsigned int yg = (id & MuonBase::MaskLayoutY) >> MuonBase::ShiftLayoutY;
       return {xg, yg};
     }
 
     __device__ MuonLayout layout() const {
-      unsigned int xg = (m_muonid & MuonBase::MaskLayoutX) >> MuonBase::ShiftLayoutX;
-      unsigned int yg = (m_muonid & MuonBase::MaskLayoutY) >> MuonBase::ShiftLayoutY;
+      const unsigned int xg = (m_muonid & MuonBase::MaskLayoutX) >> MuonBase::ShiftLayoutX;
+      const unsigned int yg = (m_muonid & MuonBase::MaskLayoutY) >> MuonBase::ShiftLayoutY;
       return {xg, yg};
     }
 
@@ -94,9 +94,8 @@ namespace Muon {
     }
 
     __device__ void setLayout(MuonLayout layout) {
-      unsigned int lx, ly;
-      lx = layout.xGrid();
-      ly = layout.yGrid();
+      const unsigned int lx = layout.xGrid();
+      const unsigned int ly = layout.yGrid();
       set(lx, MuonBase::ShiftLayoutX, MuonBase::MaskLayoutX);
       set(ly, MuonBase::ShiftLayoutY, MuonBase::MaskLayoutY);
     }

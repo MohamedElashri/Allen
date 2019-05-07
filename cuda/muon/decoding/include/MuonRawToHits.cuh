@@ -22,8 +22,6 @@ namespace Muon {
  */
   class MuonRawToHits {
   public:
-    //__device__ void operator()(MuonRawEvent& event, HitsSoA* hitsSoA) const;
-
     MuonTables muonTables;
     MuonGeometry muonGeometry;
 
@@ -34,7 +32,6 @@ namespace Muon {
     __device__ void decodeTileAndTDC(MuonRawEvent& rawEvent, Digit* storage, size_t* storageOffset) const;
 
     __device__ void makeStripLayouts(unsigned int station, unsigned int region, MuonLayout* layouts) const;
-
 
   };
 }

@@ -53,10 +53,10 @@ namespace Muon {
 
   __device__ void MuonRawToHits::makeStripLayouts(const unsigned int station, const unsigned int region,
       MuonLayout* layouts) const {
-    unsigned int x1 = getLayoutX((MuonTables*) &muonTables, MuonTables::stripXTableNumber, station, region);
-    unsigned int y1 = getLayoutY((MuonTables*) &muonTables, MuonTables::stripXTableNumber, station, region);
-    unsigned int x2 = getLayoutX((MuonTables*) &muonTables, MuonTables::stripYTableNumber, station, region);
-    unsigned int y2 = getLayoutY((MuonTables*) &muonTables, MuonTables::stripYTableNumber, station, region);
+    const unsigned int x1 = getLayoutX((MuonTables*) &muonTables, MuonTables::stripXTableNumber, station, region);
+    const unsigned int y1 = getLayoutY((MuonTables*) &muonTables, MuonTables::stripXTableNumber, station, region);
+    const unsigned int x2 = getLayoutX((MuonTables*) &muonTables, MuonTables::stripYTableNumber, station, region);
+    const unsigned int y2 = getLayoutY((MuonTables*) &muonTables, MuonTables::stripYTableNumber, station, region);
     layouts[x1 > x2] = MuonLayout(x2, y2);
     layouts[x1 <= x2] = MuonLayout(x1, y1);
   }
@@ -68,8 +68,8 @@ namespace Muon {
     }
     MuonLayout layouts[2];
     makeStripLayouts(MuonTileID::station(tileIds[startIndex]), MuonTileID::region(tileIds[startIndex]), layouts);
-    MuonLayout& layoutOne = layouts[0];
-    MuonLayout& layoutTwo = layouts[1];
+    const MuonLayout& layoutOne = layouts[0];
+    const MuonLayout& layoutTwo = layouts[1];
     size_t midIndex = startIndex;
     unsigned int tmpTileId;
     for (size_t i = startIndex; i < endIndex; i++) {
@@ -82,26 +82,26 @@ namespace Muon {
         midIndex++;
       }
     }
-    int thisGridX = layoutOne.xGrid();
-    int thisGridY = layoutOne.yGrid();
-    int otherGridX = layoutTwo.xGrid();
-    int otherGridY = layoutTwo.yGrid();
+    const int thisGridX = layoutOne.xGrid();
+    const int thisGridY = layoutOne.yGrid();
+    const int otherGridX = layoutTwo.xGrid();
+    const int otherGridY = layoutTwo.yGrid();
     for (size_t digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
-      unsigned int keyX = MuonTileID::nX(tileIds[digitsOneIndex]) * otherGridX / thisGridX;
-      unsigned int keyY = MuonTileID::nY(tileIds[digitsOneIndex]);
+      const unsigned int keyX = MuonTileID::nX(tileIds[digitsOneIndex]) * otherGridX / thisGridX;
+      const unsigned int keyY = MuonTileID::nY(tileIds[digitsOneIndex]);
       for (size_t digitsTwoIndex = midIndex; digitsTwoIndex < endIndex; digitsTwoIndex++) {
-        unsigned int candidateX = MuonTileID::nX(tileIds[digitsTwoIndex]);
-        unsigned int candidateY = MuonTileID::nY(tileIds[digitsTwoIndex]) * thisGridY / otherGridY;
+        const unsigned int candidateX = MuonTileID::nX(tileIds[digitsTwoIndex]);
+        const unsigned int candidateY = MuonTileID::nY(tileIds[digitsTwoIndex]) * thisGridY / otherGridY;
         if (keyX == candidateX && keyY == candidateY) {
           MuonTileID padTile(tileIds[digitsOneIndex]);
           padTile.setY(MuonTileID::nY(tileIds[digitsTwoIndex]));
           padTile.setLayout(MuonLayout(thisGridX, otherGridY));
           double x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
           calcTilePos((MuonTables*) &muonTables, padTile, x, dx, y, dy, z);
-          unsigned int uncrossed = 0;
-          int clusterSize = 0;
-          int region = padTile.region();
-          int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
+          const unsigned int uncrossed = 0;
+          const int clusterSize = 0;
+          const int region = padTile.region();
+          const int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
           setAtIndex(hitsSoA, localCurrentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed,
                      tdcValues[digitsOneIndex], tdcValues[digitsOneIndex] - tdcValues[digitsTwoIndex],
                      clusterSize, region);
@@ -110,8 +110,8 @@ namespace Muon {
       }
     }
 
-    size_t startIndices[] = {startIndex, midIndex};
-    size_t endIndices[] = {midIndex, endIndex};
+    const size_t startIndices[] = {startIndex, midIndex};
+    const size_t endIndices[] = {midIndex, endIndex};
     for (size_t currentDigitsIndex = 0; currentDigitsIndex < 2; currentDigitsIndex++) {
       for (size_t currentDigitIndex = startIndices[currentDigitsIndex];
            currentDigitIndex < endIndices[currentDigitsIndex];
@@ -119,7 +119,7 @@ namespace Muon {
         if (!used[currentDigitIndex]) {
           double x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
           MuonTileID tile = MuonTileID(tileIds[currentDigitIndex]);
-          int region = tile.region();
+          const int region = tile.region();
           if (tile.station() > (Constants::n_stations - 3) && region == 0) {
             calcTilePos((MuonTables*) &muonTables, tile, x, dx, y, dy, z);
           } else {
@@ -129,71 +129,13 @@ namespace Muon {
               calcStripYPos((MuonTables*) &muonTables, tile, x, dx, y, dy, z);
             }
           }
-          unsigned int uncrossed = 1;
-          int clusterSize = 0;
-          int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
+          const unsigned int uncrossed = 1;
+          const int clusterSize = 0;
+          const int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
           setAtIndex(hitsSoA, localCurrentHitIndex, tile.id(), x, dx, y, dy, z, dz, uncrossed,
                      tdcValues[currentDigitIndex], tdcValues[currentDigitIndex], clusterSize, region);
         }
       }
-    }
-  }
-
-  __device__ void MuonRawToHits::decodeTileAndTDC(MuonRawEvent& rawEvent, Digit* storage, size_t* storageOffset) const {
-    size_t currentStorageIndex = 0;
-    //Is it true that files always contain 10 banks?
-    constexpr size_t maxNumberOfRawBanks = 10;
-    size_t tell1NumberByBankNumber[maxNumberOfRawBanks];
-    size_t stationByBankNumber[maxNumberOfRawBanks];
-    size_t stationByBankNumberOccurrences[Constants::n_stations] = {0};
-    size_t stationByBankNumberOffset[Constants::n_stations] = {0};
-    size_t orderOfBanks[maxNumberOfRawBanks];
-    for (uint32_t bank_index = 0; bank_index < rawEvent.number_of_raw_banks; bank_index++) {
-      unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
-      tell1NumberByBankNumber[bank_index] = tell1Number;
-      stationByBankNumber[bank_index] = (tell1Number < 4 ? 0 : tell1Number < 6 ? 1 : tell1Number < 8 ? 2 : 3);
-      stationByBankNumberOccurrences[stationByBankNumber[bank_index]]++;
-    }
-
-    for (size_t i = 0; i < Constants::n_stations - 1; i++) {
-      stationByBankNumberOffset[i + 1] = stationByBankNumberOffset[i] + stationByBankNumberOccurrences[i];
-      storageOffset[i + 1] = stationByBankNumberOffset[i + 1];
-    }
-    for (size_t i = 0; i < maxNumberOfRawBanks; i++) {
-      orderOfBanks[stationByBankNumberOffset[stationByBankNumber[i]]++] = i;
-    }
-    size_t currentStorageOffsetIndex = 0;
-    for (size_t j = 0; j < maxNumberOfRawBanks; j++) {
-      uint32_t bank_index = orderOfBanks[j];
-      while (currentStorageOffsetIndex < Constants::n_stations && storageOffset[currentStorageOffsetIndex] < j) {
-        currentStorageOffsetIndex++;
-      }
-      if (storageOffset[currentStorageOffsetIndex] == j) {
-        storageOffset[currentStorageOffsetIndex] = currentStorageIndex;
-        currentStorageOffsetIndex++;
-      }
-      MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
-      uint16_t* p = rawBank.data;
-      int preamble_size = 2 * ((*p + 3) / 2);
-      p += preamble_size;
-      for (size_t i = 0; i < 4; i++) {
-        uint16_t frontValue = *p;
-        for (size_t shift = 1; shift < 1 + frontValue; shift++) {
-          unsigned int pp = *(p + shift);
-          unsigned int add = (pp & 0x0FFF);
-          unsigned int tdc_value = ((pp & 0xF000) >> 12);
-          MuonTileID tile = MuonTileID(muonGeometry.getADDInTell1(tell1NumberByBankNumber[bank_index], add));
-          unsigned int tileId = tile.id();
-          if (tileId != 0) {
-            storage[currentStorageIndex] = {tile, tdc_value};
-            currentStorageIndex++;
-          }
-        }
-        p += 1 + frontValue;
-      }
-    }
-    for (size_t i = currentStorageOffsetIndex; i <= Constants::n_stations; i++) {
-      storageOffset[i] = currentStorageIndex;
     }
   }
 };
