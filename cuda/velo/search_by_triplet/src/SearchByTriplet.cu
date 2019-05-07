@@ -71,12 +71,10 @@ __global__ void search_by_triplet(
   unsigned short* h1_rel_indices = dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
 
   // Shared memory size is defined externally
-  extern __shared__ float shared_best_fits[];
   __shared__ int module_data[18];
 
   process_modules(
     (Velo::Module*) &module_data[0],
-    (float*) &shared_best_fits[0],
     hit_used,
     h0_candidates,
     h2_candidates,

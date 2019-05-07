@@ -211,13 +211,13 @@ namespace {
       vertex.setCovMatrix(vtxcov);
       for (int i = 0; i < number_of_tracks; i++) {
         PVTrackInVertex trk = tracks[i];
-        if (trk.weight > 0) vertex.n_tracks++;
+        if (trk.weight > 0) vertex.nTracks++;
       }
       const float2 beamline {0.f, 0.f};
       const auto beamlinedx = vertex.position.x - beamline.x;
       const auto beamlinedy = vertex.position.y - beamline.y;
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if (vertex.n_tracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
+      if (vertex.nTracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
         vertices[number_of_vertices] = vertex;
         number_of_vertices++;
       }
@@ -1025,7 +1025,7 @@ void beamline_multi_fitter(
       vertex.setCovMatrix(vtxcov);
       for (int i = 0; i < number_of_tracks; i++) {
         PVTrackInVertex trk = tracks[i];
-        if (trk.weight > 0.f) vertex.n_tracks++;
+        if (trk.weight > 0.f) vertex.nTracks++;
       }
 
       // TODO integrate beamline position
@@ -1033,7 +1033,7 @@ void beamline_multi_fitter(
       const auto beamlinedx = vertex.position.x - beamline.x;
       const auto beamlinedy = vertex.position.y - beamline.y;
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if (vertex.n_tracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
+      if (vertex.nTracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
 
         vertices[*number_of_multi_fit_vertices] = vertex;
         (*number_of_multi_fit_vertices)++;
