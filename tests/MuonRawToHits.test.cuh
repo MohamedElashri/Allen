@@ -6,10 +6,6 @@
 #include <string>
 #include "MuonRawToHitsDecoding.h"
 #include "MuonDefinitions.cuh"
-#include "MuonTables.cuh"
-#include "MuonGeometry.cuh"
-#include "MuonRawToHits.cuh"
-#include "MuonDecoding.cuh"
 #include "Tools.h"
 
 void read_binary_file(std::vector<char>& vector, const std::string& file_name) {

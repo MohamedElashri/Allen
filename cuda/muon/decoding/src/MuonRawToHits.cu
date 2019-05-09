@@ -2,6 +2,36 @@
 #include <stdio.h>
 
 namespace Muon {
+  __device__ Hit::Hit(HitsSoA* hitsSoA, size_t index) {
+    tile = hitsSoA->tile[index];
+    x = hitsSoA->x[index];
+    dx = hitsSoA->dx[index];
+    y = hitsSoA->y[index];
+    dy = hitsSoA->dy[index];
+    z = hitsSoA->z[index];
+    dz = hitsSoA->dz[index];
+    uncrossed = hitsSoA->uncrossed[index];
+    time = hitsSoA->time[index];
+    delta_time = hitsSoA->delta_time[index];
+    cluster_size = hitsSoA->cluster_size[index];
+    region = hitsSoA->region_id[index];
+  }
+
+  __device__ void setAtIndex(HitsSoA* hitsSoA, size_t index, Hit* hit) {
+    hitsSoA->tile[index] = hit->tile;
+    hitsSoA->x[index] = hit->x;
+    hitsSoA->dx[index] = hit->dx;
+    hitsSoA->y[index] = hit->y;
+    hitsSoA->dy[index] = hit->dy;
+    hitsSoA->z[index] = hit->z;
+    hitsSoA->dz[index] = hit->dz;
+    hitsSoA->uncrossed[index] = hit->uncrossed;
+    hitsSoA->time[index] = hit->time;
+    hitsSoA->delta_time[index] = hit->delta_time;
+    hitsSoA->cluster_size[index] = hit->cluster_size;
+    hitsSoA->region_id[index] = hit->region;
+  }
+
   __device__ void setAtIndex(HitsSoA* hitsSoA, size_t index, int tile, float x, float dx, float y, float dy,
       float z, float dz, int uncrossed, unsigned int time, int delta_time, int cluster_size, int region) {
     hitsSoA->tile[index] = tile;

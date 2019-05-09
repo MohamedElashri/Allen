@@ -6,8 +6,29 @@
 #include "MuonDefinitions.cuh"
 
 namespace Muon {
+  struct Hit {
+    int tile;
+    float x;
+    float dx;
+    float y;
+    float dy;
+    float z;
+    float dz;
+    int uncrossed;
+    unsigned int time;
+    int delta_time;
+    int cluster_size;
+    int region;
+
+    __device__ Hit(HitsSoA* hitsSoA, size_t index);
+
+    __device__ Hit() {}
+  };
+
   __device__ void setAtIndex(HitsSoA* hitsSoA, size_t index, int tile, float x, float dx, float y, float dy,
       float z, float dz, int uncrossed, unsigned int time, int delta_time, int cluster_size, int region);
+
+  __device__ void setAtIndex(HitsSoA* hitsSoA, size_t index, Hit* hit);
 
   __device__ void recalculateNumberOfHitsPerStationAndStationOffsets(HitsSoA* hitsSoA, size_t totalNumberOfHits);
 
