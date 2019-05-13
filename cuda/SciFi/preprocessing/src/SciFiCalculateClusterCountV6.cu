@@ -50,8 +50,8 @@ __global__ void scifi_calculate_cluster_count_v6(
           assert(cSize(c2) && !fraction(c2));
           unsigned int widthClus = (cell(c2) - cell(c) + 2);
           if ( widthClus  > 8 )
-            // number of for loop passes + one additional
-            atomicAdd(hits_module, widthClus / 4 + 1);
+            // number of for loop passes in decoder + one additional
+            atomicAdd(hits_module, (widthClus - 1)  / 4 + 1);
           else
             atomicAdd(hits_module, 1);
           ++it;

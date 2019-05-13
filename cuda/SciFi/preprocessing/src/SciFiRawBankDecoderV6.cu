@@ -62,9 +62,9 @@ __global__ void scifi_raw_bank_decoder_v6(
   SciFi::HitCount hit_count {scifi_hit_count, event_number};
   const uint number_of_hits_in_event = hit_count.event_number_of_hits();
 
-  for (int i=threadIdx.x; i<number_of_hits_in_event; i+=blockDim.x) {
+  for (int i=threadIdx.x; i < number_of_hits_in_event; i+=blockDim.x) {
     const uint32_t cluster_reference = hits.cluster_reference[hit_count.event_offset() + i];
-    // Cluster reference:
+    // Cluster reference: FIXME
     //   raw bank: 8 bits
     //   element (it): 8 bits
     //   Condition 1-2-3: 2 bits
@@ -97,40 +97,17 @@ __global__ void scifi_raw_bank_decoder_v6(
       if(condition == 0x02) {
         pseudoSize = 0;
         cluster_fraction = 1;
-        cluster_chan += delta_parameter * 4;
+        cluster_chan += delta_parameter;
       } else if(condition == 0x03) {
         pseudoSize = 0;
         cluster_fraction = (widthClus - 1) % 2;
-        cluster_chan += delta_parameter * 4 + (widthClus - delta_parameter - 1) / 2 - 1;
+        cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
       } else if(condition == 0x04) {
         pseudoSize = widthClus;
         cluster_fraction = (widthClus - 1) % 2;
         cluster_chan += (widthClus-1)/2 - 1;
       }
     }
-
-
-    //    if (condition_1 == 0x01) {
-    //      const auto c2 = *(it+1);
-    //      const auto delta = cell(c2) - cell(c);
-    //
-    //      if (condition_2 == 0x00) {
-    //        pseudoSize = 0;
-    //
-    //        if (delta_parameter == 0) {
-    //          // add the last edge
-    //          cluster_chan += delta;
-    //          cluster_fraction = fraction(c2);
-    //        } else {
-    //          cluster_chan += delta_parameter * SciFiRawBankParams::clusterMaxWidth;
-    //        }
-    //      } else { // (condition_2 == 0x01)
-    //        const auto widthClus = 2*delta - 1 + fraction(c2);
-    //        cluster_chan += (widthClus-1)/2 - (SciFiRawBankParams::clusterMaxWidth - 1)/2;
-    //        cluster_fraction = (widthClus-1)%2;
-    //        pseudoSize = widthClus;
-    //      }
-    //    }
 
     make_cluster_v6(
       hit_count.event_offset() + i,

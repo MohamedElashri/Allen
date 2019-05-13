@@ -52,7 +52,7 @@ void SequenceVisitor::visit<scifi_pre_decode_v6_t>(
       outfile << "\n\nZone " << zone << ": ";
       for(size_t hit = 0; hit < host_scifi_hit_count_struct.zone_number_of_hits(zone); hit++) {
         uint h = host_scifi_hit_count_struct.zone_offset(zone) + hit;
-        outfile << (hi.cluster_reference[h] >> 24) << " ";
+        outfile << (hi.cluster_reference[h]) << " ";
       }
     }
   }

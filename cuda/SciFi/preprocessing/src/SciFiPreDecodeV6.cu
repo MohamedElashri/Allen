@@ -105,18 +105,15 @@ __global__ void scifi_pre_decode_v6(
           else {
             const unsigned c2 = *(it+1);
             assert(cSize(c2) && !fraction(c2));
-             // Reconstructs a big cluster, composed of two fragments
             const unsigned int widthClus = (cell(c2) - cell(c) + 2 );
             if (widthClus > 8) {
-              // Condition 2: "0"
-              auto j = 0;
+              uint16_t j = 0;
               for (; j < widthClus - 4; j += 4){
-                // Delta equals j / SciFiRawBankParams::clusterMaxWidth
-                store_sorted_cluster_reference_v6 (STOREARGS, 0x02, j / 4);
+                store_sorted_cluster_reference_v6 (STOREARGS, 0x02, j);
               }
 
               //add the last edge
-              store_sorted_cluster_reference_v6 (STOREARGS, 0x03, j / 4);
+              store_sorted_cluster_reference_v6 (STOREARGS, 0x03, j);
             } else {
               store_sorted_cluster_reference_v6 (STOREARGS, 0x04, 0x00);
             }
