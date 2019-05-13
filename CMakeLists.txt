@@ -117,6 +117,16 @@ if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
       endif()
 
+      set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist)
+
+      execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
+      string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
+      message(STATUS "ROOT built with implicit multi-threading: ${ROOT_HAS_IMT}")
+      if (${ROOT_HAS_IMT} STREQUAL "yes")
+        find_package(TBB REQUIRED)
+        get_filename_component(TBB_LIBDIR ${TBB_LIBRARIES} DIRECTORY)
+        set(ALLEN_ROOT_LIBRARIES -L${TBB_LIBDIR} -ltbb ${ALLEN_ROOT_LIBRARIES})
+      endif()
     else()
       message(STATUS "Compiling without ROOT")
    endif()
@@ -243,7 +253,7 @@ set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
 
 if (ROOT_FOUND)
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
-  target_link_libraries(AllenLib PUBLIC -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist)
+  target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
 endif()
 
 
