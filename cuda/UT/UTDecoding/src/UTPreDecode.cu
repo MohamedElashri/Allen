@@ -82,8 +82,8 @@ __global__ void ut_pre_decode(
       // cases where yBegin was repeated.
       const half yBegin = (half) (p0Y + numstrips * dp0diY);
       const half xAtYEq0_local = (half) (numstrips * dp0diX);
-      const int* yBegin_p = reinterpret_cast<const int*>(&yBegin);
-      const int* xAtYEq0_local_p = reinterpret_cast<const int*>(&xAtYEq0_local);
+      const short* yBegin_p = reinterpret_cast<const short*>(&yBegin);
+      const short* xAtYEq0_local_p = reinterpret_cast<const short*>(&xAtYEq0_local);
 
       // The second value needs to be changed its sign using the 2's complement logic (operator-),
       // if the signs of both values differ.

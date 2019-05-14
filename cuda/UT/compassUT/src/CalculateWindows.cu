@@ -92,7 +92,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   // to do: change back!
   const float invTheta =
     std::min(500.0f, 1.0f / std::sqrt(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
-  const float minMom = std::max(UT::Constants::minPT * invTheta, 1.5f * Gaudi::Units::GeV);
+  const float minMom = max(UT::Constants::minPT * invTheta, UT::Constants::minMomentum);
   const float xTol = std::abs(1.0f / (UT::Constants::distToMomentum * minMom));
   // const float yTol     = UT::Constants::yTol + UT::Constants::yTolSlope * xTol;
 
@@ -117,14 +117,16 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
     binary_search_leftmost(dev_unique_sector_xs + first_sector_group_in_layer, sector_group_size, x_track);
   int sector_group = first_sector_group_in_layer + local_sector_group;
 
-  int first_candidate = -1, last_candidate = -1;
-  int left_group_first_candidate = -1, left_group_last_candidate = -1;
-  int left2_group_first_candidate = -1, left2_group_last_candidate = -1;
-  int right_group_first_candidate = -1, right_group_last_candidate = -1;
+  int first_candidate = -1,              last_candidate = -1;
+  int left_group_first_candidate = -1,   left_group_last_candidate = -1;
+  int left2_group_first_candidate = -1,  left2_group_last_candidate = -1;
+  int right_group_first_candidate = -1,  right_group_last_candidate = -1;
   int right2_group_first_candidate = -1, right2_group_last_candidate = -1;
-  if (sector_group != 0) {
-    // The sector we are interested on is sector_group - 1
-    sector_group -= 1;
+
+  // Get correct index position in array
+  sector_group -= 1;
+  // central sector group
+  if ((sector_group+1) < last_sector_group_in_layer && sector_group > first_sector_group_in_layer) {
     const auto sector_candidates = find_candidates_in_sector_group(
       ut_hits,
       ut_hit_offsets,
@@ -140,94 +142,90 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 
     first_candidate = std::get<0>(sector_candidates);
     last_candidate = std::get<1>(sector_candidates);
+  }
 
-    // Left group
-    const int left_group = sector_group - 1;
-    if (left_group >= first_sector_group_in_layer) {
-      // We found a sector group with potentially compatible hits
-      // Look for them
-      const auto left_group_candidates = find_candidates_in_sector_group(
-        ut_hits,
-        ut_hit_offsets,
-        velo_state,
-        dev_unique_sector_xs,
-        x_track,
-        y_track,
-        dx_dy,
-        normFact[layer],
-        invNormFact,
-        xTolNormFact,
-        left_group);
+  // left sector group
+  const int left_group = sector_group - 1;
+  if ((left_group+1) < last_sector_group_in_layer && left_group > first_sector_group_in_layer) {
+    // Valid sector group to find compatible hits
+    const auto left_group_candidates = find_candidates_in_sector_group(
+      ut_hits,
+      ut_hit_offsets,
+      velo_state,
+      dev_unique_sector_xs,
+      x_track,
+      y_track,
+      dx_dy,
+      normFact[layer],
+      invNormFact,
+      xTolNormFact,
+      left_group);
 
-      left_group_first_candidate = std::get<0>(left_group_candidates);
-      left_group_last_candidate = std::get<1>(left_group_candidates);
-    }
+    left_group_first_candidate = std::get<0>(left_group_candidates);
+    left_group_last_candidate = std::get<1>(left_group_candidates);
+  }
 
-    // Left-left group
-    const int left2_group = sector_group - 2;
-    if (left2_group >= first_sector_group_in_layer) {
-      // We found a sector group with potentially compatible hits
-      // Look for them
-      const auto left2_group_candidates = find_candidates_in_sector_group(
-        ut_hits,
-        ut_hit_offsets,
-        velo_state,
-        dev_unique_sector_xs,
-        x_track,
-        y_track,
-        dx_dy,
-        normFact[layer],
-        invNormFact,
-        xTolNormFact,
-        left2_group);
+  // left-left sector group
+  const int left2_group = sector_group - 2;
+  if ((left2_group+1) < last_sector_group_in_layer && left2_group > first_sector_group_in_layer) {
+    // Valid sector group to find compatible hits
+    const auto left2_group_candidates = find_candidates_in_sector_group(
+      ut_hits,
+      ut_hit_offsets,
+      velo_state,
+      dev_unique_sector_xs,
+      x_track,
+      y_track,
+      dx_dy,
+      normFact[layer],
+      invNormFact,
+      xTolNormFact,
+      left2_group);
 
-      left2_group_first_candidate = std::get<0>(left2_group_candidates);
-      left2_group_last_candidate = std::get<1>(left2_group_candidates);
-    }
+    left2_group_first_candidate = std::get<0>(left2_group_candidates);
+    left2_group_last_candidate = std::get<1>(left2_group_candidates);
+  }
 
-    // Right group
-    const int right_group = sector_group + 1;
-    if (right_group < last_sector_group_in_layer - 1) {
-      // We found a sector group with potentially compatible hits
-      // Look for them
-      const auto right_group_candidates = find_candidates_in_sector_group(
-        ut_hits,
-        ut_hit_offsets,
-        velo_state,
-        dev_unique_sector_xs,
-        x_track,
-        y_track,
-        dx_dy,
-        normFact[layer],
-        invNormFact,
-        xTolNormFact,
-        right_group);
+  // right sector group
+  const int right_group = sector_group + 1;
+  if ((right_group+1) < last_sector_group_in_layer && right_group > first_sector_group_in_layer) {
+    // Valid sector group to find compatible hits
+    const auto right_group_candidates = find_candidates_in_sector_group(
+      ut_hits,
+      ut_hit_offsets,
+      velo_state,
+      dev_unique_sector_xs,
+      x_track,
+      y_track,
+      dx_dy,
+      normFact[layer],
+      invNormFact,
+      xTolNormFact,
+      right_group);
 
-      right_group_first_candidate = std::get<0>(right_group_candidates);
-      right_group_last_candidate = std::get<1>(right_group_candidates);
-    }
+    right_group_first_candidate = std::get<0>(right_group_candidates);
+    right_group_last_candidate = std::get<1>(right_group_candidates);
+  }
 
-    // Right-right group
-    const int right2_group = sector_group + 2;
-    if (right2_group < last_sector_group_in_layer - 2) {
-      // We found a sector group with potentially compatible hits
-      // Look for them
-      const auto right2_group_candidates = find_candidates_in_sector_group(
-        ut_hits,
-        ut_hit_offsets,
-        velo_state,
-        dev_unique_sector_xs,
-        x_track,
-        y_track,
-        dx_dy,
-        normFact[layer],
-        invNormFact,
-        xTolNormFact,
-        right2_group);
+  // right-right sector group
+  const int right2_group = sector_group + 2;
+  if ((right2_group+1) < last_sector_group_in_layer && right2_group > first_sector_group_in_layer) {
+    // Valid sector group to find compatible hits
+    const auto right2_group_candidates = find_candidates_in_sector_group(
+      ut_hits,
+      ut_hit_offsets,
+      velo_state,
+      dev_unique_sector_xs,
+      x_track,
+      y_track,
+      dx_dy,
+      normFact[layer],
+      invNormFact,
+      xTolNormFact,
+      right2_group);
 
-      right2_group_first_candidate = std::get<0>(right2_group_candidates);
-      right2_group_last_candidate = std::get<1>(right2_group_candidates);
-    }
+    right2_group_first_candidate = std::get<0>(right2_group_candidates);
+    right2_group_last_candidate = std::get<1>(right2_group_candidates);
   }
 
   return {first_candidate,
