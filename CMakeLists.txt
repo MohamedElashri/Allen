@@ -97,11 +97,11 @@ option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
 option(USE_ROOT "Build with ROOT" OFF)
 if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
    if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
-     list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
+     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
    else() # ROOT was compiled with configure/make
-     list(APPEND CMAKE_MODULE_PATH $ENV{ROOTSYS}/etc/cmake)
+     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
    endif()
-   find_package(ROOT QUIET COMPONENTS Core Hist Tree)
+   find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
    if ( ROOT_FOUND )
       message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
 
