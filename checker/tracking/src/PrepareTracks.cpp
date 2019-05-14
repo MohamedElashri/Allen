@@ -11,6 +11,8 @@
 #include "VeloConsolidated.cuh"
 #include "VeloEventModel.cuh"
 
+#include "ROOTHeaders.h"
+
 // LHCb::Track::pseudoRapidity() is based on slopes vector (Gaudi::XYZVector = ROOT::Match::XYZVector)
 // slopes = (Tx=dx/dz,Ty=dy/dz,1.)
 // eta() for XYZVector:

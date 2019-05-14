@@ -24,7 +24,4 @@ if ( ROOT_FOUND )
   target_include_directories(x86VeloUT BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
   )
-  target_link_libraries(x86VeloUT PRIVATE
-    ${ROOT_LIBRARIES}
-  )
 endif()

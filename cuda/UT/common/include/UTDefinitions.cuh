@@ -101,17 +101,17 @@ struct UTBoards {
 };
 
 struct UTGeometry {
-  uint32_t number_of_sectors;
-  uint32_t* firstStrip;
-  float* pitch;
-  float* dy;
-  float* dp0diX;
-  float* dp0diY;
-  float* dp0diZ;
-  float* p0X;
-  float* p0Y;
-  float* p0Z;
-  float* cos;
+  uint32_t number_of_sectors = 0;
+  uint32_t* firstStrip = nullptr;
+  float* pitch = nullptr;
+  float* dy = nullptr;
+  float* dp0diX = nullptr;
+  float* dp0diY = nullptr;
+  float* dp0diZ = nullptr;
+  float* p0X = nullptr;
+  float* p0Y = nullptr;
+  float* p0Z = nullptr;
+  float* cos = nullptr;
 
   UTGeometry(const std::vector<char>& ut_geometry);
 

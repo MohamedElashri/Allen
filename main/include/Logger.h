@@ -15,7 +15,7 @@
 // Dumb type, just making constructor public
 class FileStdLogger : public std::ostream {
 private:
-  std::streambuf* b;
+  std::streambuf* b = nullptr;
 
 public:
   FileStdLogger() : std::ostream() {}
@@ -25,9 +25,9 @@ public:
 class MessageLogger : public std::streambuf {
 public:
   std::string _buf;
-  std::ofstream* _file_io;
-  FileStdLogger* _file_std_io;
-  std::streambuf* _old;
+  std::ofstream* _file_io = nullptr;
+  FileStdLogger* _file_std_io = nullptr;
+  std::streambuf* _old = nullptr;
 
   MessageLogger(std::ofstream* file_io, FileStdLogger* file_std_io) :
     _buf(""), _file_io(file_io), _file_std_io(file_std_io)
@@ -54,8 +54,8 @@ public:
 
 class VoidLogger : public std::streambuf {
 public:
-  std::ostream* _void_stream;
-  std::streambuf* _old;
+  std::ostream* _void_stream = nullptr;
+  std::streambuf* _old = nullptr;
 
   VoidLogger(std::ostream* void_stream) : _void_stream(void_stream) { _old = _void_stream->rdbuf(this); }
 
@@ -73,9 +73,9 @@ namespace logger {
 
   class Logger {
   public:
-    int verbosityLevel;
+    int verbosityLevel = 3;
     FileStdLogger discardStream;
-    VoidLogger* discardLogger;
+    VoidLogger* discardLogger = nullptr;
     Logger() { discardLogger = new VoidLogger(&discardStream); }
   };
 
