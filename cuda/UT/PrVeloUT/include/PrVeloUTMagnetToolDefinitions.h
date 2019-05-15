@@ -13,7 +13,7 @@
  */
 struct PrUTMagnetTool {
   static const int N_dxLay_vals = 124;
-  static const int N_bdl_vals = 3752;
+  static const int N_bdl_vals = 3751;
 
   // const float m_averageDist2mom = 0.0;
   float dxLayTable[N_dxLay_vals];

@@ -9,7 +9,6 @@ add_library(CheckClustering STATIC
 )
 
 target_link_libraries(CheckClustering PRIVATE x86Clustering)
-set_target_properties(CheckClustering PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 set_property(TARGET CheckClustering PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)

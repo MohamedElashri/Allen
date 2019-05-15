@@ -149,11 +149,9 @@ set_property(TARGET Stream PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)
 
 if (ROOT_FOUND)
-  target_compile_definitions(Stream PUBLIC WITH_ROOT)
+  target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})
+
   target_include_directories(Stream BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
-  )
-  target_link_libraries(Stream PRIVATE
-    ${ROOT_LIBRARIES}
   )
 endif()

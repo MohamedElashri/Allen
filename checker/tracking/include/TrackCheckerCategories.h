@@ -2,9 +2,14 @@
 
 #include "TrackChecker.h"
 
-void TrackCheckerVelo::SetCategories()
-{
-  m_categories = {
+namespace {
+  using Checker::HistoCategory;
+  using Checker::TrackEffReport;
+}
+
+namespace Categories {
+
+  const std::vector<TrackEffReport>& Velo{
     {// define which categories to monitor
      TrackEffReport({
        "Electrons long eta25",
@@ -227,11 +232,8 @@ void TrackCheckerVelo::SetCategories()
        "Not electron Velo eta25",
        [](MCParticles::const_reference& mcp) { return mcp.hasVelo && !mcp.isElectron() && mcp.inEta2_5(); },
      })}};
-};
 
-void TrackCheckerVelo::SetHistoCategories()
-{
-  m_histo_categories = {
+  const std::vector<HistoCategory>& VeloHisto{
     {// define which categories to create histograms for
      HistoCategory({
        "VeloTracks_electrons",
@@ -285,11 +287,8 @@ void TrackCheckerVelo::SetHistoCategories()
          return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5();
        },
      })}};
-};
 
-void TrackCheckerVeloUT::SetCategories()
-{
-  m_categories = {
+  const std::vector<TrackEffReport>& VeloUT{
     {// define which categories to monitor
      TrackEffReport({
        "Velo",
@@ -370,11 +369,8 @@ void TrackCheckerVeloUT::SetCategories()
                 mcp.inEta2_5();
        },
      })}};
-};
 
-void TrackCheckerVeloUT::SetHistoCategories()
-{
-  m_histo_categories = {
+  const std::vector<HistoCategory>& VeloUTHisto{
     {// define which categories to create histograms for
      HistoCategory({
        "VeloUTTracks_eta25_electrons",
@@ -422,11 +418,8 @@ void TrackCheckerVeloUT::SetHistoCategories()
          return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5();
        },
      })}};
-};
 
-void TrackCheckerForward::SetCategories()
-{
-  m_categories = {
+  const std::vector<TrackEffReport>& Forward{
     {// define which categories to monitor
      TrackEffReport({
        "Long",
@@ -485,11 +478,8 @@ void TrackCheckerForward::SetCategories()
                 mcp.inEta2_5();
        },
      })}};
-};
 
-void TrackCheckerForward::SetHistoCategories()
-{
-  m_histo_categories = {
+  const std::vector<HistoCategory>& ForwardHisto{
     {// define which categories to create histograms for
      HistoCategory({
        "Long_eta25_electrons",
@@ -535,4 +525,4 @@ void TrackCheckerForward::SetHistoCategories()
          return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5();
        },
      })}};
-};
+}

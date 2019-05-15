@@ -3,6 +3,7 @@
 #include "BeamlinePVConstants.cuh"
 #include "Common.h"
 #include "Handler.cuh"
+#include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
 #include "TrackBeamLineVertexFinder.cuh"
@@ -19,7 +20,8 @@ __global__ void pv_beamline_multi_fitter(
   float* dev_zpeaks,
   uint* dev_number_of_zpeaks,
   PV::Vertex* dev_multi_fit_vertices,
-  uint* dev_number_of_multi_fit_vertices);
+  uint* dev_number_of_multi_fit_vertices,
+  float* dev_beamline);
 
 ALGORITHM(
   pv_beamline_multi_fitter,

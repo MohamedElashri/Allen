@@ -10,11 +10,10 @@ The project requires a graphics card with CUDA support, CUDA 10.0, CMake 3.12 an
 If you are working from a node with CVMFS and CentOS 7, we suggest the following setup:
 
 ```shell
-source /cvmfs/lhcb.cern.ch/lib/lcg/releases/gcc/7.3.0/x86_64-centos7/setup.sh
-export PATH=/cvmfs/lhcb.cern.ch/lib/contrib/CMake/3.12.1/Linux-x86_64/bin/:$PATH
+source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc7-opt
+export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
 export PATH=/usr/local/cuda/bin:$PATH
 ```
-
 Regardless of the OS you are running on, you can check your compiler versions as follows:
 
 ```shell
@@ -25,19 +24,13 @@ $ nvcc --version
 Cuda compilation tools, release 10.0, V10.0.130
 
 $ cmake --version
-cmake version 3.12.1
+cmake version 3.14.2
 ```
 
 You can check your compiler standard compatibility by scrolling to the `C++17 features` chart [here](https://en.cppreference.com/w/cpp/compiler_support).
 
 Optionally you can compile the project with ROOT. Then, trees will be filled with variables to check when running the UT tracking or SciFi tracking algorithms on x86 architecture.
-In addition, histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md). 
-
-You can setup ROOT in CVMFS as follows:
-
-```shell
-source /cvmfs/lhcb.cern.ch/lib/lcg/releases/ROOT/6.08.06-d7e12/x86_64-centos7-gcc62-opt/bin/thisroot.sh
-```
+In addition, histograms of reconstructible and reconstructed tracks are then filled in the track checker. For more details on how to use them to produce plots of efficiencies, momentum resolution etc. see [this readme](checker/tracking/readme.md).
 
 [Building and running inside Docker](readme_docker.md)
 
@@ -63,7 +56,7 @@ There are some cmake options to configure the build process:
 
 * The sequence can be configured by specifying `-DSEQUENCE=<name_of_sequence>`. For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.h`, ie. `-DSEQUENCE=VeloPVUTSciFiDecoding`.
 * The build type can be specified to `RelWithDebInfo`, `Release` or `Debug`, e.g. `cmake -DCMAKE_BUILD_TYPE=Debug ..`
-* If ROOT is available, it can be enabled to generate graphs by `-DUSE_ROOT=ON`
+* ROOT can be enabled to generate monitoring plots using `-DUSE_ROOT=ON`
 * If more verbose build output from the CUDA toolchain is desired, specify `-DCUDA_VERBOSE_BUILD=ON`
 * If multiple versions of CUDA are installed and CUDA 10.0 is not the default, it can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
 * The MC validation is standalone, it was written by Manuel Schiller, Rainer Schwemmer, Daniel Cámpora and Dorothea vom Bruch.
@@ -96,7 +89,7 @@ Here are some example run options:
     ./Allen
 
     # Specify input files, run once over all of them with tracking validation
-    ./Allen -f ../input/minbias/banks/ -d ../input/minbias/MC_info/ -b ../input/minbias/muon_common_hits
+    ./Allen -f ../input/minbias/
 
     # Run a total of 1000 events, round robin over the existing ones, without tracking validation
     ./Allen -c 0 -n 1000
@@ -106,6 +99,55 @@ Here are some example run options:
 
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
+
+How to run build and run together with the LHCb stack
+-----------------------------------------------------
+
+Code is being developed in the LHCb stack that provides detector
+geometry data directly instead of reading it from binary files. To do
+this, the following is required:
+ - Build with CUDA 10.1 (to allow gcc 8 as a host compiler)
+ - Build the Rec project against the lhcb-gaudi-head nightly build
+ - Build Allen using the same toolchain as Rec
+ - Run Allen from a runtime environment provided by Rec
+
+### Building Rec
+Running Allen together with the LHCb stack requires some recent
+changes that have not yet been merged to master. Rec has to be built
+in its entirity against the lhcb-gaudi-head slot. First, decide on a
+directory where it will reside (`dev-dir` below) and then clone there:
+ - `mkdir /path/to/dev-dir`
+ - `cd /path/to/dev-dir`
+
+To setup the LHCb environment for building and running Rec, put the
+following in a script (e.g. `env.sh`) for easy access:
+```console
+export CMTCONFIG=x86_64-centos7-gcc8-opt
+export CMTPROJECTPATH=/path/to/dev-dir:/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-gaudi-head/Mon
+source /cvmfs/lhcb.cern.ch/lib/LbEnv
+```
+
+Then build Rec:
+ - `source env.sh`
+ - `git clone ssh://git@gitlab.cern.ch:7999/lhcb/Rec.git`
+ - `cd Rec`
+ - `lb-project-init`
+ -`'git checkout -b allen_producers origin/raaij_allen_producers`
+ - `make install`
+
+### Building Allen with the toolchain used for Rec
+In the same environment, do the following
+ - `cd /path/to/Allen`
+ - `mkdir build-Rec`
+ - `cd build-Rec`
+ - `/path/to/dev-dir/Rec/build.${CMTCONFIG}/run bash --norc`
+ - ```cmake -DCMAKE_C_COMPILER=`which gcc` -DCMAKE_CXX_COMPILER=`which g++` -DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.1/bin/nvcc ..```
+ - `make -j 10`
+
+### Run Allen using the Python entry point:
+```console
+$> /path/to/dev-dir/Rec/build.${CMTCONFIG}/run /path/to/Allen/bindings/Allen.py
+```
 
 
 [This readme](contributing.md) explains how to add a new algorithm to the sequence and how to use the memory scheduler to define global memory variables for this sequence and pass on the dependencies. It also explains which checks to do before placing a merge request with your changes.

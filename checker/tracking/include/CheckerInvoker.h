@@ -8,13 +8,14 @@
 
 struct CheckerInvoker {
   std::string mc_folder;
-  uint start_event_offset;
-  uint number_of_requested_events;
-  uint number_of_selected_events;
-  bool check_events;
-  bool is_mc_folder_populated;
+  uint start_event_offset = 0;
+  uint number_of_requested_events = 0;
+  uint number_of_selected_events = 0;
+  bool check_events = false;
+  bool is_mc_folder_populated = true;
   MCEvents mc_events;
   MCEvents selected_mc_events;
+  mutable bool create_file = true;
 
   CheckerInvoker(
     const std::string& param_mc_folder,
@@ -51,10 +52,8 @@ struct CheckerInvoker {
     std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_events;
 
     if (is_mc_folder_populated) {
-      T track_checker {};
-#ifdef WITH_ROOT
-      track_checker.histos.initHistos(track_checker.histo_categories());
-#endif
+      T track_checker {create_file};
+      create_file = false;
       for (int evnum = 0; evnum < selected_mc_events.size(); ++evnum) {
         const auto& mc_event = selected_mc_events[evnum];
         const auto& event_tracks = tracks[evnum];
