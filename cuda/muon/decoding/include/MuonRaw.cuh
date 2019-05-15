@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <assert.h>
 
 namespace Muon {
   struct MuonRawBank {
@@ -23,13 +24,12 @@ namespace Muon {
     static constexpr size_t number_of_raw_banks = 10;
     static constexpr size_t batches_per_bank = 4;
 
-    uint32_t number_of_raw_banks;
     uint32_t* raw_bank_offset;
     char* payload;
 
     __device__ MuonRawEvent(const char* event) {
       const char* p = event;
-      number_of_raw_banks = *((uint32_t*) p);
+      assert(*((uint32_t*) p) == number_of_raw_banks);
       p += sizeof(uint32_t);
       raw_bank_offset = (uint32_t*) p;
       p += (number_of_raw_banks + 1) * sizeof(uint32_t);
