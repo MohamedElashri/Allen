@@ -12,6 +12,8 @@ ALGORITHM(
     muon_decoding,
     muon_decoding_t,
     ARGUMENTS(
+        dev_muon_raw,
+        dev_muon_raw_offsets,
         dev_muon_raw_to_hits,
         dev_muon_hits
     )

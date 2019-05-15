@@ -11,15 +11,14 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, MuonRawToHits
   const size_t quarter = threadIdx.x % Constants::n_quarters;
   __shared__ unsigned int storageTileId[Constants::max_numhits_per_event];
   __shared__ unsigned int storageTdcValue[Constants::max_numhits_per_event];
-  __shared__ Digit digits[Constants::max_numhits_per_event];
   __shared__ int currentStorageIndex;
   __shared__ int storageStationRegionQuarterOccurrencesOffset[Constants::n_stations * Constants::n_regions * Constants::n_quarters + 1];
   __shared__ int originalStorageStationRegionQuarterOccurrencesOffset[Constants::n_stations * Constants::n_regions * Constants::n_quarters + 1];
   __shared__ bool used[Constants::max_numhits_per_event];
   __shared__ int stationOccurrencesOffset[Constants::n_stations + 1];
   const MuonRawEvent rawEvent = MuonRawEvent((const char*) events + offsets[eventId]);
-  __shared__ uint16_t* frontValuePointers[40];
-  __shared__ unsigned int tell1Numbers[10];
+  __shared__ uint16_t* batchSizePointers[MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank];
+  __shared__ unsigned int tell1Numbers[MuonRawEvent::number_of_raw_banks];
   if (threadIdx.x == 0) {
     currentHitIndex = 0;
     currentStorageIndex = 0;
@@ -27,27 +26,28 @@ __global__ void muon_decoding(char* events, unsigned int* offsets, MuonRawToHits
     memset(originalStorageStationRegionQuarterOccurrencesOffset, 0, sizeof(originalStorageStationRegionQuarterOccurrencesOffset));
     memset(used, false, sizeof(used));
     memset(stationOccurrencesOffset, 0, sizeof(stationOccurrencesOffset));
-    for (uint32_t bank_index = 0; bank_index < rawEvent.number_of_raw_banks; bank_index++) {
-      const unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
-      tell1Numbers[bank_index] = tell1Number;
-      size_t stationByBankNumber = (tell1Number < 4 ? 0 : tell1Number < 6 ? 1 : tell1Number < 8 ? 2 : 3);
-      MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
-      uint16_t* p = rawBank.data;
-      const int preamble_size = 2 * ((*p + 3) / 2);
-      p += preamble_size;
-      for (size_t i = 0; i < 4; i++) {
-        const uint16_t frontValue = *p;
-        frontValuePointers[bank_index * 4 + i] = p;
-        p += 1 + frontValue;
-      }
+  }
+  if (threadIdx.x < rawEvent.number_of_raw_banks)  {
+    const size_t bank_index = threadIdx.x;
+    const unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
+    tell1Numbers[bank_index] = tell1Number;
+    size_t stationByBankNumber = (tell1Number < 4 ? 0 : tell1Number < 6 ? 1 : tell1Number < 8 ? 2 : 3);
+    MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
+    uint16_t* p = rawBank.data;
+    const int preamble_size = 2 * ((*p + 3) / 2);
+    p += preamble_size;
+    for (size_t i = 0; i < MuonRawEvent::batches_per_bank; i++) {
+      const uint16_t batchSize = *p;
+      batchSizePointers[bank_index * MuonRawEvent::batches_per_bank + i] = p;
+      p += 1 + batchSize;
     }
   }
   __syncthreads();
 
-  if (threadIdx.x < 40) {
-    uint16_t frontValue = *frontValuePointers[threadIdx.x];
-    for (size_t shift = 1; shift < 1 + frontValue; shift++) {
-      const unsigned int pp = *(frontValuePointers[threadIdx.x] + shift);
+  if (threadIdx.x < MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank) {
+    uint16_t batchSize = *batchSizePointers[threadIdx.x];
+    for (size_t shift = 1; shift < 1 + batchSize; shift++) {
+      const unsigned int pp = *(batchSizePointers[threadIdx.x] + shift);
       const unsigned int add = (pp & 0x0FFF);
       const unsigned int tdc_value = ((pp & 0xF000) >> 12);
       const unsigned int tileId = muon_raw_to_hits->muonGeometry.getADDInTell1(tell1Numbers[threadIdx.x / 4], add);

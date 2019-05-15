@@ -20,6 +20,9 @@ namespace Muon {
   };
 
   struct MuonRawEvent {
+    static constexpr size_t number_of_raw_banks = 10;
+    static constexpr size_t batches_per_bank = 4;
+
     uint32_t number_of_raw_banks;
     uint32_t* raw_bank_offset;
     char* payload;
