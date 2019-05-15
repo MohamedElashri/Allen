@@ -71,6 +71,7 @@ void SequenceVisitor::visit<muon_decoding_t>(
       cuda_stream
   );
   state.set_arguments(
+      arguments.offset<dev_event_list>(),
       arguments.offset<dev_muon_raw>(),
       arguments.offset<dev_muon_raw_offsets>(),
       arguments.offset<dev_muon_raw_to_hits>(),

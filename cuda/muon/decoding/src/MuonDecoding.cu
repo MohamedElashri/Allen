@@ -3,9 +3,10 @@
 
 using namespace Muon;
 
-__global__ void muon_decoding(char* events, unsigned int* offsets, MuonRawToHits* muon_raw_to_hits, HitsSoA* muon_hits) {
+__global__ void muon_decoding(uint* event_list, char* events, unsigned int* offsets, MuonRawToHits* muon_raw_to_hits,
+    HitsSoA* muon_hits) {
   __shared__ int currentHitIndex;
-  const size_t eventId = blockIdx.x;
+  const size_t eventId = event_list[blockIdx.x];
   const size_t station = threadIdx.x / (Constants::n_regions * Constants::n_quarters);
   const size_t region = (threadIdx.x % (Constants::n_regions * Constants::n_quarters)) / Constants::n_regions;
   const size_t quarter = threadIdx.x % Constants::n_quarters;
