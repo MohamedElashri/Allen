@@ -51,7 +51,9 @@ __global__ void muon_decoding(uint* event_list, char* events, unsigned int* offs
       const unsigned int pp = *(batchSizePointers[threadIdx.x] + shift);
       const unsigned int add = (pp & 0x0FFF);
       const unsigned int tdc_value = ((pp & 0xF000) >> 12);
-      const unsigned int tileId = muon_raw_to_hits->muonGeometry.getADDInTell1(tell1Numbers[threadIdx.x / 4], add);
+      const unsigned int tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(
+          tell1Numbers[threadIdx.x / MuonRawEvent::batches_per_bank], add
+      );
       if (tileId != 0) {
         int localCurrentStorageIndex = atomicAdd(&currentStorageIndex, 1);
         storageTileId[localCurrentStorageIndex] = tileId;

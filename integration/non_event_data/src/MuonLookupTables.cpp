@@ -17,6 +17,8 @@ Consumers::MuonLookupTables::MuonLookupTables(std::vector<char>& host_muon_table
 void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
   const char* raw_input = data.data();
   size_t allOffsets[27];
+  unsigned int sizeOffset[Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::MuonTables::n_tables];
+  int gridY[Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::MuonTables::n_tables];
   size_t currentAllOffsetsIndex = 0;
 
   for (size_t tableNumber = 0; tableNumber < Muon::MuonTables::n_tables; tableNumber++) {
@@ -24,14 +26,21 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
     std::copy_n((size_t*) raw_input, 1, &gridXSize);
     assert(gridXSize == Muon::Constants::n_stations * Muon::Constants::n_regions);
     raw_input += sizeof(size_t);
-    raw_input += sizeof(int) * gridXSize;
     allOffsets[currentAllOffsetsIndex++] = raw_input - data.data();
+    raw_input += sizeof(int) * gridXSize;
 
     size_t gridYSize;
     std::copy_n((size_t*) raw_input, 1, &gridYSize);
     raw_input += sizeof(size_t);
-    raw_input += sizeof(int) * gridYSize;
+    std::copy_n((int*) raw_input, gridYSize, gridY + Muon::MuonTables::tableStationRegionOffset[tableNumber]);
     allOffsets[currentAllOffsetsIndex++] = raw_input - data.data();
+    raw_input += sizeof(int) * gridYSize;
+
+    sizeOffset[Muon::MuonTables::tableStationRegionOffset[tableNumber]] = 0;
+    for (size_t i = 0; i < Muon::Constants::n_stations * Muon::Constants::n_regions - 1; i++) {
+      size_t index = Muon::MuonTables::tableStationRegionOffset[tableNumber] + i;
+      sizeOffset[index + 1] = sizeOffset[index] + 24 * gridY[index];
+    }
 
     size_t sizeXSize;
     std::copy_n((size_t*) raw_input, 1, &sizeXSize);
@@ -48,8 +57,8 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
     size_t offsetSize;
     std::copy_n((size_t*) raw_input, 1, &offsetSize);
     raw_input += sizeof(size_t);
-    raw_input += sizeof(unsigned int) * offsetSize;
     allOffsets[currentAllOffsetsIndex++] = raw_input - data.data();
+    raw_input += sizeof(unsigned int) * offsetSize;
 
     size_t tableSize;
     std::copy_n((size_t*) raw_input, 1, &tableSize);
@@ -59,8 +68,8 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
       size_t stationTableSize;
       std::copy_n((size_t*) raw_input, 1, &stationTableSize);
       raw_input += sizeof(size_t);
-      raw_input += sizeof(float) * Muon::MuonTables::n_dimensions * stationTableSize;
       allOffsets[currentAllOffsetsIndex++] = raw_input - data.data();
+      raw_input += sizeof(float) * Muon::MuonTables::n_dimensions * stationTableSize;
     }
   }
   assert(currentAllOffsetsIndex == 27);
@@ -78,6 +87,6 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
   }
   host_muon_tables_raw = std::move(data);
   cudaCheck(cudaMemcpy(dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), cudaMemcpyHostToDevice));
-  Muon::MuonTables host_muon_tables{allOffsets, dev_muon_tables_raw};
+  Muon::MuonTables host_muon_tables{allOffsets, dev_muon_tables_raw, sizeOffset};
   cudaCheck(cudaMemcpy(m_muon_tables.get(), &host_muon_tables, sizeof(Muon::MuonTables), cudaMemcpyHostToDevice));
 }

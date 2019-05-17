@@ -43,8 +43,8 @@ namespace Muon {
  */
   class MuonRawToHits {
   public:
-    MuonTables muonTables;
-    MuonGeometry muonGeometry;
+    MuonTables* muonTables;
+    MuonGeometry* muonGeometry;
 
     __device__ void addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used, size_t startIndex,
         size_t endIndex, HitsSoA* hitsSoA, int& currentHitIndex) const;
@@ -53,6 +53,5 @@ namespace Muon {
     __device__ void decodeTileAndTDC(MuonRawEvent& rawEvent, Digit* storage, size_t* storageOffset) const;
 
     __device__ void makeStripLayouts(unsigned int station, unsigned int region, MuonLayout* layouts) const;
-
   };
 }

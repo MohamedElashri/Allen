@@ -28,24 +28,20 @@ namespace Muon {
     unsigned int sizeOffset[Constants::n_stations * Constants::n_regions * n_tables];
     float* coordinates[n_tables * Constants::n_stations];
 
-    MuonTables(size_t* allOffsets, char* dev_muon_tables_raw) {
+    MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, unsigned int* sizeOffset_) {
+      for (size_t i = 0; i < Constants::n_stations * Constants::n_regions * n_tables; i++) {
+        sizeOffset[i] = sizeOffset_[i];
+      }
       size_t currentAllOffsetsIndex = 0;
       for (size_t currentTableNumber = 0; currentTableNumber < n_tables; currentTableNumber++) {
-        gridX[currentTableNumber] = ((int*) dev_muon_tables_raw) + allOffsets[currentAllOffsetsIndex++] / sizeof(int);
-        gridY[currentTableNumber] = ((int*) dev_muon_tables_raw) + allOffsets[currentAllOffsetsIndex++] / sizeof(int);
-        sizeX[currentTableNumber] =
-            ((float*) dev_muon_tables_raw) + allOffsets[currentAllOffsetsIndex++] / sizeof(float);
-        sizeY[currentTableNumber] =
-            ((float*) dev_muon_tables_raw) + allOffsets[currentAllOffsetsIndex++] / sizeof(float);
-        offset[currentTableNumber] =
-            ((unsigned int*) dev_muon_tables_raw) + allOffsets[currentAllOffsetsIndex++] / sizeof(unsigned int);
-        for (size_t i = 0; i < Constants::n_stations * Constants::n_regions - 1; i++) {
-          size_t index = Muon::MuonTables::tableStationRegionOffset[currentTableNumber] + i;
-          sizeOffset[index + 1] = sizeOffset[index] + 24 * gridY[currentTableNumber][i];
-        }
+        gridX[currentTableNumber] = (int*)(dev_muon_tables_raw + allOffsets[currentAllOffsetsIndex++]);
+        gridY[currentTableNumber] = (int*)(dev_muon_tables_raw + allOffsets[currentAllOffsetsIndex++]);
+        sizeX[currentTableNumber] = (float*)(dev_muon_tables_raw + allOffsets[currentAllOffsetsIndex++]);
+        sizeY[currentTableNumber] = (float*)(dev_muon_tables_raw + allOffsets[currentAllOffsetsIndex++]);
+        offset[currentTableNumber] = (unsigned int*)(dev_muon_tables_raw + allOffsets[currentAllOffsetsIndex++]);
         for (size_t currentStation = 0; currentStation < Constants::n_stations; currentStation++) {
           coordinates[currentTableNumber * Constants::n_stations + currentStation] =
-              ((float*) dev_muon_tables_raw) + allOffsets[currentAllOffsetsIndex++] / sizeof(float);
+              (float*)(dev_muon_tables_raw + allOffsets[currentAllOffsetsIndex++]);
         }
       }
     }

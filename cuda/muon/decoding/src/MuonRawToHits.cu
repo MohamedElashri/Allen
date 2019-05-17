@@ -83,10 +83,10 @@ namespace Muon {
 
   __device__ void MuonRawToHits::makeStripLayouts(const unsigned int station, const unsigned int region,
       MuonLayout* layouts) const {
-    const unsigned int x1 = getLayoutX((MuonTables*) &muonTables, MuonTables::stripXTableNumber, station, region);
-    const unsigned int y1 = getLayoutY((MuonTables*) &muonTables, MuonTables::stripXTableNumber, station, region);
-    const unsigned int x2 = getLayoutX((MuonTables*) &muonTables, MuonTables::stripYTableNumber, station, region);
-    const unsigned int y2 = getLayoutY((MuonTables*) &muonTables, MuonTables::stripYTableNumber, station, region);
+    const unsigned int x1 = getLayoutX(muonTables, MuonTables::stripXTableNumber, station, region);
+    const unsigned int y1 = getLayoutY(muonTables, MuonTables::stripXTableNumber, station, region);
+    const unsigned int x2 = getLayoutX(muonTables, MuonTables::stripYTableNumber, station, region);
+    const unsigned int y2 = getLayoutY(muonTables, MuonTables::stripYTableNumber, station, region);
     layouts[x1 > x2] = MuonLayout(x2, y2);
     layouts[x1 <= x2] = MuonLayout(x1, y1);
   }
@@ -127,7 +127,7 @@ namespace Muon {
           padTile.setY(MuonTileID::nY(tileIds[digitsTwoIndex]));
           padTile.setLayout(MuonLayout(thisGridX, otherGridY));
           double x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
-          calcTilePos((MuonTables*) &muonTables, padTile, x, dx, y, dy, z);
+          calcTilePos(muonTables, padTile, x, dx, y, dy, z);
           const unsigned int uncrossed = 0;
           const int clusterSize = 0;
           const int region = padTile.region();
@@ -151,12 +151,12 @@ namespace Muon {
           MuonTileID tile = MuonTileID(tileIds[currentDigitIndex]);
           const int region = tile.region();
           if (tile.station() > (Constants::n_stations - 3) && region == 0) {
-            calcTilePos((MuonTables*) &muonTables, tile, x, dx, y, dy, z);
+            calcTilePos(muonTables, tile, x, dx, y, dy, z);
           } else {
             if (currentDigitsIndex == 0) {
-              calcStripXPos((MuonTables*) &muonTables, tile, x, dx, y, dy, z);
+              calcStripXPos(muonTables, tile, x, dx, y, dy, z);
             } else {
-              calcStripYPos((MuonTables*) &muonTables, tile, x, dx, y, dy, z);
+              calcStripYPos(muonTables, tile, x, dx, y, dy, z);
             }
           }
           const unsigned int uncrossed = 1;
