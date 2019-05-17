@@ -25,7 +25,6 @@ void Consumers::MuonGeometry::consume(std::vector<char> const& data) {
   }
   size_t nTilesSize;
   std::copy_n((size_t*) raw_input, 1, &nTilesSize);
-  std::cerr << "nTilesSize = " << nTilesSize << "\n";
   assert(nTilesSize == Muon::MuonGeometry::m_tiles_size);
   size_t sizes[Muon::MuonGeometry::m_tiles_size];
   unsigned int* tiles[Muon::MuonGeometry::m_tiles_size];
@@ -36,20 +35,16 @@ void Consumers::MuonGeometry::consume(std::vector<char> const& data) {
     std::copy_n((size_t*) raw_input, 1, &tilesSize);
     raw_input += sizeof(size_t);
     tilesOffset[i] = ((unsigned*) raw_input) - ((unsigned*) data.data());
-    std::cerr << "offset = " << tilesOffset[i] << "\n";
     raw_input += sizeof(unsigned) * tilesSize;
     sizes[i] = tilesSize;
-    std::cerr << "tilesSize = " << tilesSize << "\n";
   }
 
   auto& dev_geometry_raw = m_dev_geometry_raw.get();
   auto& host_geometry_raw = m_host_geometry_raw.get();
-  std::cerr << host_geometry_raw.size() << " " << data.size() << "\n";
   if (!m_muon_geometry) {
     cudaCheck(cudaMalloc((void**) &dev_geometry_raw, data.size()));
     cudaCheck(cudaMalloc((void**) &m_muon_geometry.get(), sizeof(Muon::MuonGeometry)));
     m_size = sizeof(Muon::MuonGeometry);
-    std::cerr << sizeof(Muon::MuonGeometry) << "\n";
   } else if (host_geometry_raw.size() != data.size()) {
     throw StrException{string{"sizes don't match: "} + to_string(host_geometry_raw.size()) + " " + to_string(data.size())};
   }

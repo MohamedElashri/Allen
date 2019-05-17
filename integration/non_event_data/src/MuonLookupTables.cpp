@@ -76,12 +76,10 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
 
   auto& dev_muon_tables_raw = m_dev_muon_tables_raw.get();
   auto& host_muon_tables_raw = m_host_muon_tables_raw.get();
-  std::cerr << host_muon_tables_raw.size() << " " << data.size() << "\n";
   if (!m_muon_tables) {
     cudaCheck(cudaMalloc((void**) &dev_muon_tables_raw, data.size()));
     cudaCheck(cudaMalloc((void**) &m_muon_tables.get(), sizeof(Muon::MuonTables)));
     m_size = sizeof(Muon::MuonTables);
-    std::cerr << sizeof(Muon::MuonTables) << "\n";
   } else if (host_muon_tables_raw.size() != data.size()) {
     throw StrException{string{"sizes don't match: "} + to_string(host_muon_tables_raw.size()) + " " + to_string(data.size())};
   }
