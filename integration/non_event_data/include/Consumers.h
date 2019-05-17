@@ -96,4 +96,29 @@ namespace Consumers {
 
   };
 
+  struct MuonGeometry final : public Allen::NonEventData::Consumer {
+  public:
+
+    MuonGeometry(std::vector<char>& host_geometry_raw, char*& dev_geometry_raw, Muon::MuonGeometry*& muon_geometry);
+
+    void consume(std::vector<char> const& data) override;
+
+  private:
+    std::reference_wrapper<std::vector<char>> m_host_geometry_raw;
+    std::reference_wrapper<char*> m_dev_geometry_raw;
+    std::reference_wrapper<Muon::MuonGeometry*> m_muon_geometry;
+    size_t m_size = 0;
+  };
+
+  struct MuonLookupTables final : public Allen::NonEventData::Consumer {
+  public:
+
+    MuonLookupTables(std::vector<char>& host_lookup_tables, char*& dev_lookup_tables);
+
+    void consume(std::vector<char> const& data) override;
+
+  private:
+    std::reference_wrapper<std::vector<char>> m_host_lookup_tables;
+    std::reference_wrapper<char*> m_dev_lookup_tables;
+  };
 }

@@ -25,7 +25,7 @@ void SequenceVisitor::visit<muon_decoding_t>(
     HostBuffers& host_buffers,
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event) {
-
+  /*
   std::string file_name_muon_tables = "../../../input/muon/muon_table.bin";
   std::string file_name_muon_geometry = "../../../input/muon/muon_geometry.bin";
   char muon_tables_raw_input[1200000];
@@ -80,4 +80,5 @@ void SequenceVisitor::visit<muon_decoding_t>(
   state.invoke();
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
+  */
 }

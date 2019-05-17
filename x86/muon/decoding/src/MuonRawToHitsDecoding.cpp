@@ -26,8 +26,8 @@ void muonRawToHitsDecode(char* events, unsigned int* offsets, size_t events_size
 
 void muonRawToHitsDecode(char* events, unsigned int* offsets, size_t events_size, size_t offsets_size,
                          std::vector <Muon::HitsSoA>& muon_hits_events) {
-  std::string file_name_muon_table = "../input/muon/muon_table.bin";
-  std::string file_name_muon_geometry = "../input/muon/muon_geometry.bin";
+  std::string file_name_muon_table = "../input/detector_configuraion/down/muon_table.bin";
+  std::string file_name_muon_geometry = "../input/detector_configuraion/down/muon_geometry.bin";
   memset(muon_table_raw_input, 0, sizeof(muon_table_raw_input));
   std::ifstream muon_table_file(file_name_muon_table, std::ios::binary);
   muon_table_file.read(muon_table_raw_input, sizeof(muon_table_raw_input));
