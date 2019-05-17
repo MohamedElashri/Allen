@@ -152,7 +152,7 @@ endif()
 # In case we want to compile with clang:
 # --compiler-bindir /cvmfs/sft.cern.ch/lcg/releases/clang/6.0.0-6647e/x86_64-centos7-gcc62-opt/bin/clang++;
 set(CMAKE_CUDA_STANDARD 14)
-set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --use_fast_math --expt-relaxed-constexpr --maxrregcount=63 ${CUDA_VERBOSE_FLAGS}")
+set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
 add_subdirectory(cuda)
 add_subdirectory(stream)
