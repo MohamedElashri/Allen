@@ -37,7 +37,6 @@ void Consumers::MuonGeometry::consume(std::vector<char> const& data) {
     raw_input += sizeof(size_t);
     tilesOffset[i] = ((unsigned*) raw_input) - ((unsigned*) data.data());
     std::cerr << "offset = " << tilesOffset[i] << "\n";
-    //std::copy_n((unsigned*) raw_input, tilesSize, m_tiles);
     raw_input += sizeof(unsigned) * tilesSize;
     sizes[i] = tilesSize;
     std::cerr << "tilesSize = " << tilesSize << "\n";

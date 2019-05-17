@@ -19,6 +19,7 @@
 #include "LookingForwardConstants.cuh"
 #include "MuonDefinitions.cuh"
 #include "MuonGeometry.cuh"
+#include "MuonTables.cuh"
 #include <gsl-lite.hpp>
 
 /**
@@ -82,7 +83,7 @@ struct Constants {
   std::vector<char> host_muon_geometry_raw;
   std::vector<char> host_muon_lookup_tables_raw;
   Muon::MuonGeometry* dev_muon_geometry = nullptr;
-  //Muon::MuonTables* muonTables = nullptr;
+  Muon::MuonTables* dev_muon_tables = nullptr;
 
   // Muon classification model constatns
   Muon::Constants::FieldOfInterest* dev_muon_foi = nullptr;

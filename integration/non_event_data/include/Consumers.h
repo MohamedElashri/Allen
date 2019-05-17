@@ -113,12 +113,14 @@ namespace Consumers {
   struct MuonLookupTables final : public Allen::NonEventData::Consumer {
   public:
 
-    MuonLookupTables(std::vector<char>& host_lookup_tables, char*& dev_lookup_tables);
+    MuonLookupTables(std::vector<char>& host_muon_tables_raw, char*& dev_muon_tables_raw, Muon::MuonTables*& muon_tables);
 
     void consume(std::vector<char> const& data) override;
 
   private:
-    std::reference_wrapper<std::vector<char>> m_host_lookup_tables;
-    std::reference_wrapper<char*> m_dev_lookup_tables;
+    std::reference_wrapper<std::vector<char>> m_host_muon_tables_raw;
+    std::reference_wrapper<char*> m_dev_muon_tables_raw;
+    std::reference_wrapper<Muon::MuonTables*> m_muon_tables;
+    size_t m_size = 0;
   };
 }
