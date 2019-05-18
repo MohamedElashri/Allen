@@ -30,8 +30,7 @@ stages:
     expire_in: 2 hrs
     paths:
       - build*/Allen
-      - build*/checker/pv/libPVChecking.so
-      - build*/x86/velo/clustering/libx86Clustering.so
+      - build*/libAllen.so
       - input
   retry: 1
 

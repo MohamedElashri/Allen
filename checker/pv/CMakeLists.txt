@@ -11,7 +11,7 @@ include_directories(${ROOT_INCLUDE_DIRS})
 
 file(GLOB pv_checker_sources "src/*cpp")
 
-add_library(PVChecking SHARED
+add_library(PVChecking STATIC
   ${pv_checker_sources}
 )
 
