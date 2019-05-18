@@ -81,8 +81,7 @@ for thisscan in scanstoplot :
 physperfhistos = {}
 # The physics performance histos are a bit more complex to define
 physperftoplot = { 
-                   "VELO"       : { "start" : "Checking GPU Velo tracks",
-                                    "end"   : "Checking GPU beamline PVs",
+                   "VELO"       : { "end"   : "Checking GPU beamline PVs",
                                     "cats"  : ["ghosts",
                                                "Not electron long eta25 p<5GeV",
                                                "Not electron long eta25 p>5GeV",
@@ -93,10 +92,93 @@ physperftoplot = {
                                                "Electrons long strange eta25 p<5GeV",
                                                "Electrons long strange eta25 p>5GeV"]
                                   },
-                   "PV"         : {
+                   "PV"         : { "end"   : "Checking Velo+UT tracks",
+                                    "cats"  : ["All","Isolated","Close","False"]
                                   },
-                   "CompassUT"  : {
+                   "CompassUT"  : { "end"   : "Checking SciFi tracks",
+                                    "cats"  : ["ghosts",
+                                               "Velo+UT, not long, p > 5 GeV",
+                                               "Long, p > 5 GeV",
+                                               "Long from B, p > 5 GeV", 
+                                               "Long from B electrons, p > 5 GeV",
+                                               "Long from B, p > 3 GeV, pt > 0.5 GeV"]
                                   },
-                   "SciFi"      : {
+                   "SciFi"      : { "end"   : "Producing Kalman plots",
+                                    "cats"  : ["ghosts",
+                                               "Long, p > 5 GeV",
+                                               "Long strange, p > 5 GeV",
+                                               "Long from B, p > 5 GeV", 
+                                               "Long electrons from B, p > 5 GeV",
+                                               "Long from B, p > 3 GeV, pt > 0.5 GeV"]
+
                                   }
                  }
+ordertoread = ["VELO","PV","CompassUT","SciFi"]
+# First a loop to set up all the histos
+for thisscan in scanstoplot :
+  physperfhistos[thisscan] = {}
+  for var in scans[thisscan] : 
+    physperfhistos[thisscan][var] = {}
+    for ppgroup in ordertoread :
+      for ppcat in physperftoplot[ppgroup]["cats"] :
+        physperfhistos[thisscan][var][ppgroup+ppcat] = TH1F(thisscan+var+ppgroup+ppcat+"pphist",
+                                                            thisscan+var+ppgroup+ppcat+"pphist",
+                                                            100,
+                                                            float(scans[thisscan][var][0])/1.1,
+                                                            float(scans[thisscan][var][-1])*1.1)
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerStyle(24)
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerSize(1.6)
+        physperfhistos[thisscan][var][ppgroup+ppcat].GetYaxis().SetTitle("Efficiency (%)")
+        physperfhistos[thisscan][var][ppgroup+ppcat].GetYaxis().SetTitleOffset(0.9)
+        physperfhistos[thisscan][var][ppgroup+ppcat].GetXaxis().SetTitle(var)
+        physperfhistos[thisscan][var][ppgroup+ppcat].GetXaxis().SetTitleSize(0.05)
+        physperfhistos[thisscan][var][ppgroup+ppcat].GetXaxis().SetTitleOffset(1.1)
+ 
+#Now a loop to fill them
+for thisscan in scanstoplot :  
+  for var in scans[thisscan] : 
+    for scanpoint in scans[thisscan][var] :
+      thisppfile = open(resultsdir+thisscan+'-'+var+'-'+scanpoint+'-'+physperfsuffix)
+      for ppgroup in ordertoread :
+        for line in thisppfile :
+          if line.find(physperftoplot[ppgroup]['end']) > -1 : 
+            break
+          for ppcat in physperftoplot[ppgroup]["cats"] :
+            effval = ''
+            if line.find(ppcat) > -1 :
+              if ppcat == "ghosts" :
+                if line.find('TrackChecker output') == -1 :
+                  continue
+              if ppgroup == "PV" :
+                effval = line.split(":")[1].split('(')[0]
+              else :
+                if ppcat == "ghosts" :
+                  effval = line.split(':')[1].split()[2].rstrip('%')
+                else :
+                  effval = line.split(':')[1].split('(')[0].split()[2].rstrip('%')
+              physperfhistos[thisscan][var][ppgroup+ppcat].Fill(float(scanpoint),float(effval)) 
+
+# Set errors to 0
+for thisscan in scanstoplot :  
+  for var in scans[thisscan] : 
+    for ppgroup in ordertoread :
+      for ppcat in physperftoplot[ppgroup]["cats"] :
+        for thisbin in range(100):
+          physperfhistos[thisscan][var][ppgroup+ppcat].SetBinError(thisbin,0)
+
+# Now plot them
+canvtoploton = TCanvas("ppcanv","ppcanv",1000,800)
+for thisscan in scanstoplot :  
+  for var in scans[thisscan] : 
+    for ppgroup in ordertoread :
+      firstcat = True
+      for col,ppcat in enumerate(physperftoplot[ppgroup]["cats"]) :
+        
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetLineColor(col+1)
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerColor(col+1)        
+        if firstcat :
+          physperfhistos[thisscan][var][ppgroup+ppcat].Draw("P") 
+          physperfhistos[thisscan][var][ppgroup+ppcat].GetYaxis().SetRangeUser(0,100)
+          firstcat = False
+        else :
+          physperfhistos[thisscan][var][ppgroup+ppcat].Draw("PSAME")
