@@ -29,8 +29,7 @@ stages:
     name: "$CI_JOB_NAME"
     expire_in: 2 hrs
     paths:
-      - build*/Allen
-      - build*/libAllen.so
+      - build*/*Allen*
       - input
   retry: 1
 
@@ -62,7 +61,8 @@ stages:
     - source /cvmfs/lhcb.cern.ch/lib/lcg/releases/gcc/8.2.0/x86_64-centos7/setup.sh
     - mkdir output_${DEVICE_ID}
     - cd build
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./x86/velo/clustering:./checker/pv 
+    - ls
+    - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /localprojects/shared/1kevents_minbias_UT_LHCbID_fix ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} nvprof ./Allen -f /localprojects/shared/1kevents_minbias_UT_LHCbID_fix ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -d ${TOPLEVEL}
