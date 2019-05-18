@@ -11,8 +11,8 @@ do
     cd build
     make -j 8 >& /tmp/WTF
     ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/CompassUT-$par-$val-scan.stdout
-    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
-    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
+    cp ../output/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
+    cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
     ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout    
     cd ..
     cp bkpfile.bkp cuda/UT/common/include/CompassUTDefinitions.cuh
@@ -33,8 +33,8 @@ do
     cd build
     make -j 8 >& /tmp/WTF
     ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/CompassUT-$par-$val-scan.stdout
-    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
-    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
+    cp ../output/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
+    cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
     ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout 
     cd ..
     cp bkpfile.bkp cuda/UT/common/include/UTDefinitions.cuh
@@ -50,8 +50,8 @@ do
     cd build
     make -j 8 >& /tmp/WTF
     ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/CompassUT-$par-$val-scan.stdout
-    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
-    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
+    cp ../output/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
+    cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
     ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout 
     cd ..
     cp bkpfile.bkp cuda/UT/common/include/UTDefinitions.cuh
@@ -67,8 +67,8 @@ do
     cd build
     make -j 8 >& /tmp/WTF
     ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/CompassUT-$par-$val-scan.stdout
-    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
-    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
+    cp ../output/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
+    cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
     ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout 
     cd ..
     cp bkpfile.bkp cuda/UT/common/include/UTDefinitions.cuh

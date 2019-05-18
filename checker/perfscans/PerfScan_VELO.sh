@@ -11,9 +11,9 @@ do
     cd build
     make -j 8 >& /tmp/WTF
     ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/VELO-$par-$val-scan.stdout
-    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-VELO-$par-$val-scan.root
-    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-VELO-$par-$val-scan.root
-    cp $outloc\/GPU_PVChecker.root $outloc\/PVChk-VELO-$par-$val-scan.root
+    cp ../output/PrCheckerPlots.root $outloc\/PrChk-VELO-$par-$val-scan.root
+    cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-VELO-$par-$val-scan.root
+    cp ../output/GPU_PVChecker.root $outloc\/PVChk-VELO-$par-$val-scan.root
     ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/VELO-$par-$val-tptscan.stdout    
     cd ..
     cp bkpfile.bkp cuda/velo/common/include/VeloDefinitions.cuh    
@@ -29,9 +29,9 @@ do
     cd build
     make -j 8 >& /tmp/WTF
     ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/VELO-$par-$val-scan.stdout
-    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-VELO-$par-$val-scan.root
-    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-VELO-$par-$val-scan.root
-    cp $outloc\/GPU_PVChecker.root $outloc\/PVChk-VELO-$par-$val-scan.root
+    cp ../output/PrCheckerPlots.root $outloc\/PrChk-VELO-$par-$val-scan.root
+    cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-VELO-$par-$val-scan.root
+    cp ../output/GPU_PVChecker.root $outloc\/PVChk-VELO-$par-$val-scan.root
     ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/VELO-$par-$val-tptscan.stdout
     cd ..
     cp bkpfile.bkp cuda/velo/common/include/VeloDefinitions.cuh    
@@ -47,9 +47,9 @@ do
     cd build
     make -j 8 >& /tmp/WTF
     ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/VELO-$par-$val-scan.stdout
-    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-VELO-$par-$val-scan.root
-    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-VELO-$par-$val-scan.root
-    cp $outloc\/GPU_PVChecker.root $outloc\/PVChk-VELO-$par-$val-scan.root
+    cp ../output/PrCheckerPlots.root $outloc\/PrChk-VELO-$par-$val-scan.root
+    cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-VELO-$par-$val-scan.root
+    cp ../output/GPU_PVChecker.root $outloc\/PVChk-VELO-$par-$val-scan.root
     ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/VELO-$par-$val-tptscan.stdout
     cd ..
     cp bkpfile.bkp cuda/velo/common/include/VeloDefinitions.cuh    

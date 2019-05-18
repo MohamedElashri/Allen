@@ -77,3 +77,26 @@ for thisscan in scanstoplot :
     tpthistos[thisscan][var].Draw("P")
     tpthistos[thisscan][var].GetYaxis().SetRangeUser(0,100000)
     canvtoploton.SaveAs(resultsdir+thisscan+'-'+var+'-tptscan.pdf')
+
+physperfhistos = {}
+# The physics performance histos are a bit more complex to define
+physperftoplot = { 
+                   "VELO"       : { "start" : "Checking GPU Velo tracks",
+                                    "end"   : "Checking GPU beamline PVs",
+                                    "cats"  : ["ghosts",
+                                               "Not electron long eta25 p<5GeV",
+                                               "Not electron long eta25 p>5GeV",
+                                               "Not electron long strange eta25 p<5GeV",
+                                               "Not electron long strange eta25 p>5GeV",
+                                               "Electrons long eta25 p<5GeV",
+                                               "Electrons long eta25 p>5GeV",
+                                               "Electrons long strange eta25 p<5GeV",
+                                               "Electrons long strange eta25 p>5GeV"]
+                                  },
+                   "PV"         : {
+                                  },
+                   "CompassUT"  : {
+                                  },
+                   "SciFi"      : {
+                                  }
+                 }
