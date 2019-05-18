@@ -2,15 +2,6 @@
 
 import operator
 
-def getTimingLabels(timings):
-    res = {}
-    labels = ["Velo", "PV", "UT", "SciFi", "Kalman", "Common"]
-    for label, timing in zip(labels, timings):
-        res[label] = timing
-
-    return res
-
-
 def group_algos(algorithm_times):
     # Algorithms of each sequence
     velo_algorithms = ["consolidate_velo_tracks", "copy_velo_track_hit_number", "estimate_input_size", "masked_velo_clustering", "calculate_phi_and_sort", "search_by_triplet", "fill_candidates", "weak_tracks_adder", "copy_and_prefix_sum_single_block"]
@@ -20,24 +11,26 @@ def group_algos(algorithm_times):
         "lf_search_initial_windows", "lf_collect_candidates", "lf_prefix_sum_candidates", "lf_triplet_seeding", "lf_triplet_keep_best", "lf_extend_tracks_x",  \
         "lf_quality_filter_x", "lf_search_uv_windows", "lf_extend_tracks_uv", "lf_quality_filter_length", "lf_fit", "lf_quality_filter"]
     kalman_algorithms = ["velo_filter", "velo_kalman_fit"]
-    
-    timings = dict([(frozenset(velo_algorithms), 0), (frozenset(pv_algorithms), 0), \
-        (frozenset(ut_algorithms), 0), (frozenset(scifi_algorithms), 0), \
-        (frozenset(kalman_algorithms), 0), (frozenset(["Common"]), 0)])
-
+    # Order of labels
+    labels_order = ["Velo", "PV", "UT", "SciFi", "Kalman", "Common"]
+    timings = {"Velo": {"algorithms": velo_algorithms, "value": 0},
+        "PV": {"algorithms": pv_algorithms, "value": 0},
+        "UT": {"algorithms": ut_algorithms, "value": 0},
+        "SciFi": {"algorithms": scifi_algorithms, "value": 0},
+        "Kalman": {"algorithms": kalman_algorithms, "value": 0},
+        "Common": {"algorithms": [], "value": 0},
+    }
     full_addition = sum(algorithm_times.values())
     for algo, value in algorithm_times.items():
         found = False
-        for algo_set in timings.keys():
-            if algo in algo_set:
-                timings[algo_set] += 100 * value / full_addition
+        for key, algorithm_timing in timings.items():
+            algorithms = algorithm_timing["algorithms"]
+            if algo in algorithms:
+                timings[key]["value"] += 100 * value / full_addition
                 found = True
                 break
         if not found:
-            timings[frozenset(["Common"])] += 100 * value / full_addition
-
-    timings = getTimingLabels(timings)
-    output_list = sorted(timings.items(), key=operator.itemgetter(1), reverse=True)
+            timings["Common"]["value"] += 100 * value / full_addition
+    simple_timings = {k:v["value"] for k,v in timings.items()}
+    output_list = sorted(simple_timings.items(), key=operator.itemgetter(1), reverse=True)
     return output_list
-
-
