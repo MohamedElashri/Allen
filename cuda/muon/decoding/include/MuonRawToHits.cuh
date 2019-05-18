@@ -30,9 +30,7 @@ namespace Muon {
 
   __device__ void setAtIndex(HitsSoA* hitsSoA, size_t index, Hit* hit);
 
-  __device__ void recalculateNumberOfHitsPerStationAndStationOffsets(HitsSoA* hitsSoA, size_t totalNumberOfHits);
-
-    struct Digit {
+  struct Digit {
     MuonTileID tile;
     unsigned int tdc;
   };

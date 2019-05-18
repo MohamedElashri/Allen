@@ -48,35 +48,6 @@ namespace Muon {
     hitsSoA->region_id[index] = region;
   }
 
-  __device__ void recalculateNumberOfHitsPerStationAndStationOffsets(HitsSoA* hitsSoA,
-      size_t totalNumberOfHits) {
-    hitsSoA->station_offsets[0] = 0;
-    int currentStation = MuonTileID::station(hitsSoA->tile[0]);
-    int initialCurrentStation = currentStation;
-    for (int i = 1; i < totalNumberOfHits; i++) {
-      auto id = static_cast<unsigned int>(hitsSoA->tile[i]);
-      if (MuonTileID::station(id) != currentStation) {
-        hitsSoA->station_offsets[currentStation + 1] = i;
-        currentStation++;
-      }
-    }
-
-    for (int j = currentStation; j + 1 < Constants::n_stations; j++) {
-      hitsSoA->station_offsets[j + 1] = totalNumberOfHits;
-    }
-    if (initialCurrentStation == currentStation) {
-      for (int j = initialCurrentStation; j + 1 < Constants::n_stations; j++) {
-        hitsSoA->station_offsets[j + 1] = totalNumberOfHits;
-      }
-    }
-    for (currentStation = 0; currentStation + 1 < Constants::n_stations; currentStation++) {
-      hitsSoA->number_of_hits_per_station[currentStation] =
-          hitsSoA->station_offsets[currentStation + 1] - hitsSoA->station_offsets[currentStation];
-    }
-    hitsSoA->number_of_hits_per_station[Constants::n_stations - 1] =
-        totalNumberOfHits - hitsSoA->station_offsets[Constants::n_stations - 1];
-  }
-
   __device__ size_t regionAndQuarter(const Digit& i) {
     return i.tile.region() * Constants::n_quarters + i.tile.quarter();
   }
