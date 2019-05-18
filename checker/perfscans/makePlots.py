@@ -58,7 +58,7 @@ for thisscan in scanstoplot :
                                     100,
                                     float(scans[thisscan][var][0])/1.1,
                                     float(scans[thisscan][var][-1])*1.1)
-    tpthistos[thisscan][var].SetMarkerStyle(24)
+    tpthistos[thisscan][var].SetMarkerStyle(20)
     tpthistos[thisscan][var].SetMarkerSize(1.6)
     tpthistos[thisscan][var].GetYaxis().SetTitle("Throughput on V100 (kHz)")
     tpthistos[thisscan][var].GetYaxis().SetTitleOffset(0.9)
@@ -124,8 +124,8 @@ for thisscan in scanstoplot :
         physperfhistos[thisscan][var][ppgroup+ppcat] = TH1F(thisscan+var+ppgroup+ppcat+"pphist",
                                                             thisscan+var+ppgroup+ppcat+"pphist",
                                                             100,
-                                                            float(scans[thisscan][var][0])/1.1,
-                                                            float(scans[thisscan][var][-1])*1.1)
+                                                            float(scans[thisscan][var][0])/1.05,
+                                                            float(scans[thisscan][var][-1])*1.05)
         physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerStyle(24)
         physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerSize(1.6)
         physperfhistos[thisscan][var][ppgroup+ppcat].GetYaxis().SetTitle("Efficiency (%)")
@@ -144,19 +144,19 @@ for thisscan in scanstoplot :
           if line.find(physperftoplot[ppgroup]['end']) > -1 : 
             break
           for ppcat in physperftoplot[ppgroup]["cats"] :
-            effval = ''
+            effval = 0.
             if line.find(ppcat) > -1 :
               if ppcat == "ghosts" :
                 if line.find('TrackChecker output') == -1 :
                   continue
               if ppgroup == "PV" :
-                effval = line.split(":")[1].split('(')[0]
+                effval = 100.*float(line.split(":")[1].split('(')[0])
               else :
                 if ppcat == "ghosts" :
-                  effval = line.split(':')[1].split()[2].rstrip('%')
+                  effval = float(line.split(':')[1].split()[2].rstrip('%'))
                 else :
-                  effval = line.split(':')[1].split('(')[0].split()[2].rstrip('%')
-              physperfhistos[thisscan][var][ppgroup+ppcat].Fill(float(scanpoint),float(effval)) 
+                  effval = float(line.split(':')[1].split('(')[0].split()[2].rstrip('%'))
+              physperfhistos[thisscan][var][ppgroup+ppcat].Fill(float(scanpoint),effval) 
 
 # Set errors to 0
 for thisscan in scanstoplot :  
@@ -168,17 +168,35 @@ for thisscan in scanstoplot :
 
 # Now plot them
 canvtoploton = TCanvas("ppcanv","ppcanv",1000,800)
+legcanv = TCanvas("legcanv","legcanv",1000,800)
+legend = TLegend(0.1,0.1,0.9,0.9)
+legend.SetMargin(0.1)
+legendpv = TLegend(0.35,0.25,0.65,0.75)
+legendpv.SetMargin(0.2)
 for thisscan in scanstoplot :  
   for var in scans[thisscan] : 
-    for ppgroup in ordertoread :
+    for ppgroup in ordertoread :   
+      legend.Clear()
       firstcat = True
-      for col,ppcat in enumerate(physperftoplot[ppgroup]["cats"]) :
-        
+      canvtoploton.cd()
+      for col,ppcat in enumerate(physperftoplot[ppgroup]["cats"]) : 
         physperfhistos[thisscan][var][ppgroup+ppcat].SetLineColor(col+1)
-        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerColor(col+1)        
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerColor(col+1)   
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerStyle(26-col)     
         if firstcat :
           physperfhistos[thisscan][var][ppgroup+ppcat].Draw("P") 
           physperfhistos[thisscan][var][ppgroup+ppcat].GetYaxis().SetRangeUser(0,100)
           firstcat = False
         else :
           physperfhistos[thisscan][var][ppgroup+ppcat].Draw("PSAME")
+        if ppgroup == "PV" :         
+          legendpv.AddEntry(physperfhistos[thisscan][var][ppgroup+ppcat],ppcat,"p")
+        else :
+          legend.AddEntry(physperfhistos[thisscan][var][ppgroup+ppcat],ppcat,"p")
+      canvtoploton.SaveAs(resultsdir+thisscan+'-'+var+'-'+ppgroup+'-ppscan.pdf')
+      legcanv.cd()
+      if ppgroup == "PV" :
+        legendpv.Draw()
+      else :
+        legend.Draw()
+      legcanv.SaveAs(resultsdir+thisscan+'-'+var+'-'+ppgroup+'-legend.pdf')
