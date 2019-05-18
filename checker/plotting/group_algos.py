@@ -19,26 +19,20 @@ def group_algos(algorithm_times):
     scifi_algorithms = ["scifi_pre_decode_v4", "scifi_raw_bank_decoder_v4", "scifi_calculate_cluster_count_v4", "scifi_direct_decoder_v4", "consolidate_scifi_tracks", "copy_scifi_track_hit_number"]
     kalman_algorithms = ["velo_filter", "velo_kalman_fit"]
 
-    # Convert values to percentages
+    timings = dict([(frozenset(velo_algorithms), 0), (frozenset(pv_algorithms), 0), \
+        (frozenset(ut_algorithms), 0), (frozenset(scifi_algorithms), 0), \
+        (frozenset(kalman_algorithms), 0), ("Common", 0)])
+
     full_addition = sum(algorithm_times.values())
-    for k in algorithm_times.keys():
-        algorithm_times[k] = 100 * algorithm_times[k] / full_addition
-
-    timings = [0, 0, 0, 0, 0, 0]
-
-    for k in algorithm_times.keys():
-        if k in velo_algorithms:
-            timings[0] += algorithm_times[k]
-        elif k in pv_algorithms:
-            timings[1] += algorithm_times[k]
-        elif k in ut_algorithms:
-            timings[2] += algorithm_times[k]
-        elif k in scifi_algorithms or "lf_" in k:
-            timings[3] += algorithm_times[k]
-        elif k in kalman_algorithms:
-            timings[4] += algorithm_times[k]
-        else:
-            timings[5] += algorithm_times[k]
+    for algo, value in algorithm_times.items():
+        found = False
+        for algo_set in timings.keys():
+            if algo in algo_set:
+                timings[algo_set] += 100 * value / full_addition
+                found = True
+                break
+        if not found:
+            timings["Common"] += 100 * value / full_addition
 
     timings = getTimingLabels(timings)
     output_list = sorted(timings.items(), key=operator.itemgetter(1), reverse=True)

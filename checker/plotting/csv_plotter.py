@@ -44,30 +44,16 @@ def main():
   parser = OptionParser(usage=usage)
   parser.add_option('-m', '--mattermost_url', dest='mattermost_url', help='The url where to post outputs generated for mattermost')
   parser.add_option('-u', '--unit', dest='unit', default = '', help = 'A unit suffix to append to evey value. Default is an empty string')
-  parser.add_option('-x', '--x_max', dest='x_max', default=50,
+  parser.add_option('-x', '--x_max', dest='x_max', default=50, type=float,
                     help='Graph X axis is at least this many units wide. (default=50)')
   parser.add_option('-t', '--title', dest='title', default='',
                     help='Title for your graph. (default: empty string)')
-  parser.add_option('-s', '--scale', dest='scale', default=1.0,
+  parser.add_option('-s', '--scale', dest='scale', default=1.0, type=float,
                     help='Multiply all data values by this number (default=1.0)')
   parser.add_option('-n', '--normalize', dest='normalize', action='store_true', default=False,
                     help='Scale numbers according to lowest value (default: False)')
 
   (options, args) = parser.parse_args()
-
-  try:
-    options.x_max = float(options.x_max)
-  except:
-    parser.print_help()
-    print('\n-x has to be a convertible floating point value!\n')
-    return -1
-
-  try:
-    options.scale = float(options.scale)
-  except:
-    parser.print_help()
-    print('\n-s has to be a convertible floating point value!\n')
-    return -1
 
   plot_data = {}
   with open(args[0]) as csvfile:
