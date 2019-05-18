@@ -15,6 +15,15 @@ include_directories(${CMAKE_SOURCE_DIR}/x86/PV/beamlinePV/include)
 
 add_library(PV_beamline STATIC
   ${blPV}
-)
+  )
+
+if(ROOT_FOUND)
+  add_library(PV_monitoring STATIC src/pv_beamline_monitoring.cpp)
+  target_compile_definitions(PV_monitoring PRIVATE ${ALLEN_ROOT_DEFINITIONS})
+  target_include_directories(PV_monitoring BEFORE PRIVATE
+    ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(PV_beamline PRIVATE PV_monitoring)
+endif()
+
 set_property(TARGET PV_beamline PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)

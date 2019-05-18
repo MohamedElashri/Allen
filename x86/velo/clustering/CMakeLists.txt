@@ -8,4 +8,3 @@ file(GLOB x86_clustering "src/*cpp")
 # it depends on clustering functions in cuda/velo/mask_clustering,
 # we should make them __host__ and __device__ functions
 add_library(x86Clustering SHARED ${x86_clustering})
-set_target_properties(x86Clustering PROPERTIES POSITION_INDEPENDENT_CODE ON)

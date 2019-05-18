@@ -7,7 +7,8 @@ __global__ void pv_beamline_multi_fitter(
   float* dev_zpeaks,
   uint* dev_number_of_zpeaks,
   PV::Vertex* dev_multi_fit_vertices,
-  uint* dev_number_of_multi_fit_vertices)
+  uint* dev_number_of_multi_fit_vertices,
+  float* dev_beamline)
 {
 
   const uint number_of_events = gridDim.x;
@@ -35,7 +36,7 @@ __global__ void pv_beamline_multi_fitter(
     bool converged = false;
     float vtxcov[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
     // initial vertex posisiton, use x,y of the beamline and z of the seed
-    float2 vtxpos_xy {beamline.x, beamline.y};
+    float2 vtxpos_xy {dev_beamline[0], dev_beamline[1]};
     auto vtxpos_z = zseeds[i_thisseed];
     auto chi2tot = 0.f;
     unsigned short nselectedtracks = 0;
@@ -150,8 +151,8 @@ __global__ void pv_beamline_multi_fitter(
     vertex.nTracks = sum_weights;
 
     // TODO integrate beamline position
-    const auto beamlinedx = vertex.position.x - beamline.x;
-    const auto beamlinedy = vertex.position.y - beamline.y;
+    const auto beamlinedx = vertex.position.x - dev_beamline[0];
+    const auto beamlinedy = vertex.position.y - dev_beamline[1];
     const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
     if (vertex.nTracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
       uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);

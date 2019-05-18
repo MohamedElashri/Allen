@@ -82,11 +82,6 @@ cudaError_t Stream::run_sequence(const RuntimeOptions& runtime_options)
 
 void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint number_of_events_requested, const std::vector<Checker::Tracks>& forward_tracks)
 {
-#ifdef WITH_ROOT
-  TFile* f = new TFile("../output/PrCheckerPlots.root", "RECREATE");
-  f->Close();
-#endif
-
   // Create the CheckerInvoker and read Monte Carlo validation information
   const auto checker_invoker = CheckerInvoker(
     mc_folder,
@@ -104,6 +99,6 @@ void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint numbe
   if ( forward_tracks.size() > 0 ) {
     info_cout << "Running test on imported tracks" << std::endl;
     std::vector<std::vector<float>> p_events_scifi;
-    checker_invoker.check<TrackCheckerForward>(start_event_offset, forward_tracks, p_events_scifi); 
+    checker_invoker.check<TrackCheckerForward>(start_event_offset, forward_tracks, p_events_scifi);
   }
 }

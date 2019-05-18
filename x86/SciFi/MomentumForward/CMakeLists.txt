@@ -27,8 +27,5 @@ set_property(TARGET x86MomentumForward PROPERTY
 
 if ( ROOT_FOUND )
   target_compile_definitions(x86MomentumForward PUBLIC WITH_ROOT)
-  target_link_libraries(x86MomentumForward PRIVATE
-    ${ROOT_LIBRARIES}
-  )
   target_include_directories(x86MomentumForward BEFORE PRIVATE ${ROOT_INCLUDE_DIRS})
 endif()

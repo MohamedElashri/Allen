@@ -33,10 +33,10 @@ void SequenceVisitor::visit<veloUT_t>(
     arguments.offset<dev_ut_tracks>(),
     arguments.offset<dev_atomics_ut>(),
     constants.dev_ut_magnet_tool,
-    constants.dev_ut_dxDy,
-    constants.dev_unique_x_sector_layer_offsets,
-    constants.dev_unique_x_sector_offsets,
-    constants.dev_unique_sector_xs);
+    constants.dev_ut_dxDy.data(),
+    constants.dev_unique_x_sector_layer_offsets.data(),
+    constants.dev_unique_x_sector_offsets.data(),
+    constants.dev_unique_sector_xs.data());
 
   state.invoke();
 }

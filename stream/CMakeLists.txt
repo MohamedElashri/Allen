@@ -59,9 +59,11 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/is_muon/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/classification/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/patPV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/velo/clustering/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/UT/PrVeloUT/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/PrForward/include)
@@ -134,6 +136,7 @@ target_link_libraries(Stream PRIVATE
   UT
   Kalman
   SciFi
+  x86MuonDecoding
   x86Forward
   x86LookingForward
   x86MomentumForward
@@ -146,11 +149,9 @@ set_property(TARGET Stream PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)
 
 if (ROOT_FOUND)
-  target_compile_definitions(Stream PUBLIC WITH_ROOT)
+  target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})
+
   target_include_directories(Stream BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
-  )
-  target_link_libraries(Stream PRIVATE
-    ${ROOT_LIBRARIES}
   )
 endif()
