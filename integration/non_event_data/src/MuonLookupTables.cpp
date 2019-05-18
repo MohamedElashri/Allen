@@ -16,7 +16,7 @@ Consumers::MuonLookupTables::MuonLookupTables(std::vector<char>& host_muon_table
 }
 void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
   const char* raw_input = data.data();
-  size_t allOffsets[27];
+  size_t allOffsets[n_data_blocks];
   unsigned int sizeOffset[Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::MuonTables::n_tables];
   int gridY[Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::MuonTables::n_tables];
   size_t currentAllOffsetsIndex = 0;
@@ -72,7 +72,7 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
       raw_input += sizeof(float) * Muon::MuonTables::n_dimensions * stationTableSize;
     }
   }
-  assert(currentAllOffsetsIndex == 27);
+  assert(currentAllOffsetsIndex == n_data_blocks);
 
   auto& dev_muon_tables_raw = m_dev_muon_tables_raw.get();
   auto& host_muon_tables_raw = m_host_muon_tables_raw.get();

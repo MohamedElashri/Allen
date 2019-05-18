@@ -98,6 +98,7 @@ namespace Consumers {
 
   struct MuonGeometry final : public Allen::NonEventData::Consumer {
   public:
+    static constexpr n_preamble_blocks = 5;
 
     MuonGeometry(std::vector<char>& host_geometry_raw, char*& dev_geometry_raw, Muon::MuonGeometry*& muon_geometry);
 
@@ -112,6 +113,8 @@ namespace Consumers {
 
   struct MuonLookupTables final : public Allen::NonEventData::Consumer {
   public:
+    //3 stations, each has gridX, gridY, sizeX, sizeY, offset, and 4 blocks of coordinates (1 block per station)
+    static constexpr n_data_blocks = 27;
 
     MuonLookupTables(std::vector<char>& host_muon_tables_raw, char*& dev_muon_tables_raw, Muon::MuonTables*& muon_tables);
 

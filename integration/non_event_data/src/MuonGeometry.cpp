@@ -17,7 +17,7 @@ Consumers::MuonGeometry::MuonGeometry(std::vector<char>& host_geometry_raw, char
 
 void Consumers::MuonGeometry::consume(std::vector<char> const& data) {
   const char* raw_input = data.data();
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < n_preamble_blocks; i++) {
     size_t size;
     std::copy_n((size_t*) raw_input, 1, &size);
     raw_input += sizeof(size_t);

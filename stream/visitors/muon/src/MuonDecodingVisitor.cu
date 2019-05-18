@@ -60,6 +60,4 @@ void SequenceVisitor::visit<muon_decoding_t>(
       arguments.offset<dev_muon_hits>()
   );
   state.invoke();
-  cudaEventRecord(cuda_generic_event, cuda_stream);
-  cudaEventSynchronize(cuda_generic_event);
 }

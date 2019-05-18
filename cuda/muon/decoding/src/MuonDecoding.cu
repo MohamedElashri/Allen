@@ -3,6 +3,33 @@
 
 using namespace Muon;
 
+/**
+ * This method decodes raw muon events into muon hits.
+ * This method runs on a grid of `number of events` X `n_stations * n_regions * n_quarters`.
+ *
+ * Firstly, threads with numbers [`0` .. `MuonRawEvent::number_of_raw_banks`) stores pointers to the beginning of every
+ *  batch in the corresponding raw bank(thread with number `n` populates
+ *  `batchSizePointers`[`n * MuonRawEvent::batches_per_bank` .. `(n + 1) * MuonRawEvent::batches_per_bank`)).
+ *
+ * Then, threads with numbers [`0` .. `MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank`) decode
+ *   the corresponding batch (thread with number `n` decodes the batch that starts at `frontValuePointers`[`n`]).
+ *   Tile ids are stored in the `storageTileId` array. Tdcs are stored in the `storageTdcValue` array.
+ *
+ * Then, the `0`th thread reorders tiles ("zipped" `storageTileId` and `storageTdcValue` arrays)
+ *   by station, region, and quarter. Reordering is done by inplace count sort.
+ *
+ * Then, tiles are converted into hits (`muon_raw_to_hits->addCoordsCrossingMap` method is called).
+ *   Thread with number `n` converts tiles for which `station * n_regions * n_quarters + region * n_quarters + quarter` equals to `n`.
+ *
+ * Finally, the `0`th thread reorders hits (`muon_hits[eventId]` structure) by station.
+ *   Reordering is done by inplace count sort.
+ *
+ * @param event_list numbers of events that should be decoded
+ * @param events concatenated raw events in binary format
+ * @param offsets offset[i] is a position where i-th event starts
+ * @param muon_raw_to_hits structure that contains muon geometry and muon lookup tables
+ * @param muon_hits output array for hits
+ */
 __global__ void muon_decoding(uint* event_list, char* events, unsigned int* offsets, MuonRawToHits* muon_raw_to_hits,
     HitsSoA* muon_hits) {
   __shared__ int currentHitIndex;
@@ -28,7 +55,7 @@ __global__ void muon_decoding(uint* event_list, char* events, unsigned int* offs
     memset(used, false, sizeof(used));
     memset(stationOccurrencesOffset, 0, sizeof(stationOccurrencesOffset));
   }
-  if (threadIdx.x < rawEvent.number_of_raw_banks)  {
+  if (threadIdx.x < MuonRawEvent::number_of_raw_banks)  {
     const size_t bank_index = threadIdx.x;
     const unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
     tell1Numbers[bank_index] = tell1Number;
