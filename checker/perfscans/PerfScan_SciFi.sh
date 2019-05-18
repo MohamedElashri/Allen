@@ -1,3 +1,4 @@
+outloc=../output/perfscans
 cd ../..
 cp cuda/SciFi/looking_forward/common/include/LookingForwardConstants.cuh bkpfile.bkp
 
@@ -9,10 +10,10 @@ do
     sed -i s/$par\ =\ \[^\;\]\*\;/$par\ =\ $val\;/g cuda/SciFi/looking_forward/common/include/LookingForwardConstants.cuh
     cd build
     make -j 8 >& /tmp/WTF
-    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& ../output/SciFi-$par-$val-scan.stdout
-    cp ../output/PrCheckerPlots.root ../output/PrChk-SciFi-$par-$val-scan.root
-    cp ../output/KalmanIPCheckerOutput.root ../output/KFChk-SciFi-$par-$val-scan.root
-    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& ../output/SciFi-$par-$val-tptscan.stdout    
+    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/SciFi-$par-$val-scan.stdout
+    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-SciFi-$par-$val-scan.root
+    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-SciFi-$par-$val-scan.root
+    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/SciFi-$par-$val-tptscan.stdout    
     cd ..
     cp bkpfile.bkp cuda/SciFi/looking_forward/common/include/LookingForwardConstants.cuh
   done
@@ -26,10 +27,10 @@ do
     sed -i s/$par\ =\ \[^\;\]\*\;/$par\ =\ $val\;/g cuda/SciFi/looking_forward/common/include/LookingForwardConstants.cuh
     cd build
     make -j 8 >& /tmp/WTF
-    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& ../output/SciFi-$par-$val-scan.stdout
-    cp ../output/PrCheckerPlots.root ../output/PrChk-SciFi-$par-$val-scan.root
-    cp ../output/KalmanIPCheckerOutput.root ../output/KFChk-SciFi-$par-$val-scan.root
-    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& ../output/SciFi-$par-$val-tptscan.stdout    
+    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/SciFi-$par-$val-scan.stdout
+    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-SciFi-$par-$val-scan.root
+    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-SciFi-$par-$val-scan.root
+    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/SciFi-$par-$val-tptscan.stdout    
     cd ..
     cp bkpfile.bkp cuda/SciFi/looking_forward/common/include/LookingForwardConstants.cuh
   done
@@ -43,10 +44,10 @@ do
     sed -i s/$par\ =\ \[^\;\]\*\;/$par\ =\ $val\f\;/g cuda/SciFi/looking_forward/common/include/LookingForwardConstants.cuh
     cd build
     make -j 8 >& /tmp/WTF
-    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& ../output/SciFi-$par-$val-scan.stdout
-    cp ../output/PrCheckerPlots.root ../output/PrChk-SciFi-$par-$val-scan.root
-    cp ../output/KalmanIPCheckerOutput.root ../output/KFChk-SciFi-$par-$val-scan.root
-    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& ../output/SciFi-$par-$val-tptscan.stdout    
+    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/SciFi-$par-$val-scan.stdout
+    cp $outloc\/PrCheckerPlots.root $outloc\/PrChk-SciFi-$par-$val-scan.root
+    cp $outloc\/KalmanIPCheckerOutput.root $outloc\/KFChk-SciFi-$par-$val-scan.root
+    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/SciFi-$par-$val-tptscan.stdout    
     cd ..
     cp bkpfile.bkp cuda/SciFi/looking_forward/common/include/LookingForwardConstants.cuh
   done
