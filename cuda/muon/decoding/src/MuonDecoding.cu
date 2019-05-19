@@ -56,7 +56,6 @@ __global__ void muon_decoding(uint* event_list, char* events, unsigned int* offs
     const size_t bank_index = threadIdx.x;
     const unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
     tell1Numbers[bank_index] = tell1Number;
-    size_t stationByBankNumber = (tell1Number < 4 ? 0 : tell1Number < 6 ? 1 : tell1Number < 8 ? 2 : 3);
     MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
     uint16_t* p = rawBank.data;
     const int preamble_size = 2 * ((*p + 3) / 2);

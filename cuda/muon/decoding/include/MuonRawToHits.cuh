@@ -48,8 +48,6 @@ namespace Muon {
         size_t endIndex, HitsSoA* hitsSoA, int& currentHitIndex) const;
 
   private:
-    __device__ void decodeTileAndTDC(MuonRawEvent& rawEvent, Digit* storage, size_t* storageOffset) const;
-
     __device__ void makeStripLayouts(unsigned int station, unsigned int region, MuonLayout* layouts) const;
   };
 }
