@@ -34,9 +34,6 @@ __global__ void muon_decoding(uint* event_list, char* events, unsigned int* offs
     HitsSoA* muon_hits) {
   __shared__ int currentHitIndex;
   const size_t eventId = event_list[blockIdx.x];
-  const size_t station = threadIdx.x / (Constants::n_regions * Constants::n_quarters);
-  const size_t region = (threadIdx.x % (Constants::n_regions * Constants::n_quarters)) / Constants::n_regions;
-  const size_t quarter = threadIdx.x % Constants::n_quarters;
   __shared__ unsigned int storageTileId[Constants::max_numhits_per_event];
   __shared__ unsigned int storageTdcValue[Constants::max_numhits_per_event];
   __shared__ int currentStorageIndex;
