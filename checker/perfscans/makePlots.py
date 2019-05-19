@@ -41,11 +41,11 @@ for thisscan in scans :
     pattern = thisscan+'-'+var+'-*-'+physperfsuffix
     for entry in files:  
       if fnmatch.fnmatch(entry, pattern):
-        scans[thisscan][var].append(entry.lstrip(thisscan+'-'+var+'-').rstrip('-'+physperfsuffix))
+        scans[thisscan][var].append(entry.lstrip(thisscan).lstrip('-').lstrip(var)[1:].rstrip('-'+physperfsuffix))
     scans[thisscan][var].sort()
 
 # What are we actually going to plot?
-scanstoplot = ["VELO"]
+scanstoplot = ["VELO","PV","CompassUT","SciFi"]
 
 tpthistos = {}
 # Throughput plots are one number so do them first

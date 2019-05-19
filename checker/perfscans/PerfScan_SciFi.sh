@@ -1,5 +1,44 @@
 outloc=../output/perfscans
 cd ../..
+cp cuda/SciFi/PrForward/include/PrForwardConstants.cuh bkpfile.bkp
+
+for par in 'minPt' 
+do
+  for val in '200' '300' '400' '500' '600'
+  do
+    echo 'Scanning SciFi parameters' $par $val
+    sed -i s/$par\ =\ \[^\;\]\*\;/$par\ =\ $val\;/g cuda/SciFi/PrForward/include/PrForwardConstants.cuh
+    cd build
+    make -j 8 >& /tmp/WTF
+    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/SciFi-$par-$val-scan.stdout
+    cp ../output/PrCheckerPlots.root $outloc\/PrChk-SciFi-$par-$val-scan.root
+    cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-SciFi-$par-$val-scan.root
+    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/SciFi-$par-$val-tptscan.stdout    
+    cd ..
+    cp bkpfile.bkp cuda/SciFi/PrForward/include/PrForwardConstants.cuh
+  done
+done
+
+for par in 'tolYCollectX' 
+do
+  for val in '1.5' '2.5' '3.5' '4.5' '5.5'
+  do
+    echo 'Scanning SciFi parameters' $par $val
+    sed -i s/$par\ =\ \[^\;\]\*\;/$par\ =\ $val\;/g cuda/SciFi/PrForward/include/PrForwardConstants.cuh
+    cd build
+    make -j 8 >& /tmp/WTF
+    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/SciFi-$par-$val-scan.stdout
+    cp ../output/PrCheckerPlots.root $outloc\/PrChk-SciFi-$par-$val-scan.root
+    cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-SciFi-$par-$val-scan.root
+    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/SciFi-$par-$val-tptscan.stdout    
+    cd ..
+    cp bkpfile.bkp cuda/SciFi/PrForward/include/PrForwardConstants.cuh
+  done
+done
+
+cp bkpfile.bkp cuda/SciFi/PrForward/include/PrForwardConstants.cuh 
+rm bkpfile.bkp
+
 cp cuda/SciFi/looking_forward/common/include/LookingForwardConstants.cuh bkpfile.bkp
 
 for par in 'maximum_number_of_candidates_per_ut_track' 
