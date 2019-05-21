@@ -27,7 +27,7 @@ __global__ void lf_extend_tracks_uv(
   const SciFi::Hits scifi_hits {
     const_cast<uint32_t*>(dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
-  const auto number_of_tracks = dev_atomics_scifi[event_number];  
+  const auto number_of_tracks = dev_atomics_scifi[event_number];
   
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     SciFi::TrackHits& track = dev_scifi_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
@@ -75,8 +75,8 @@ __global__ void lf_extend_tracks_uv(
         z1,
         z2,
         projection_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_extrapolation_layer & 0x1],
-        dev_looking_forward_constants->chi2_extrapolation_uv_mean[relative_extrapolation_layer] +
-        2.5f * dev_looking_forward_constants->chi2_extrapolation_uv_stddev[relative_extrapolation_layer]);
+        LookingForward::chi2_mean_extrapolation_to_uv_layers_single
+      );
     }
   }
 }

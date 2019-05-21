@@ -10,7 +10,7 @@ __device__ float lf_track_quality (
   const SciFi::Tracking::TMVA* tmva1,
   const SciFi::Tracking::TMVA* tmva2)
 {
-  float quality = LookingForward::track_min_quality; ;
+  float quality = 0.f;
   if ( trackParams[7] > 0 ) { // fit converged
     const float qOverP = calcqOverP(trackParams[1], constArrays, velo_state, magnet_polarity);
     const float xAtRef = trackParams[0];
