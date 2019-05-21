@@ -43,6 +43,7 @@ void SequenceVisitor::visit<kalman_velo_only_t>(
     constants.dev_kalman_params);
   state.invoke();
 
+  /*
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_kf_tracks,
@@ -51,5 +52,5 @@ void SequenceVisitor::visit<kalman_velo_only_t>(
       cudaMemcpyDeviceToHost,
       cuda_stream));
   }
-  
+  */
 }
