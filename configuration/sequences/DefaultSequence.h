@@ -54,4 +54,5 @@ SEQUENCE_T(
   kalman_velo_only_t,
   kalman_pv_ipchi2_t,
   copy_and_prefix_sum_single_block_sv_t,
-  fit_secondary_vertices_t,)
+  fit_secondary_vertices_t,
+  run_hlt1_t,)
