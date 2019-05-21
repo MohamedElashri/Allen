@@ -91,6 +91,12 @@ __device__ float LookingForward::dx_calc(const float state_tx, float qop)
   if (ret_val > LookingForward::max_window_layer0) {
     ret_val = LookingForward::max_window_layer0;
   }
+
+
+  // TEST
+  // ret_val = 100 + 1.4e6*std::abs(qop);
+  ret_val = 100 + 1.4e6*std::abs(qop);
+
   return ret_val;
 }
 

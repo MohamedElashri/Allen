@@ -69,30 +69,19 @@ __global__ void lf_quality_filter_x(
       float hits_x[6];
       float hits_z[6];
       float hits_x_atRef[6];
-      for (int k=0; k<track.hitsNum; ++k) {
+      for (int k = 0; k < track.hitsNum; ++k) {
         const int hit = event_offset + track.hits[k];
         const int plane_code = scifi_hits.planeCode(hit) >> 1;
         hits_x[k] = scifi_hits.x0[hit];
         hits_z[k] = dev_looking_forward_constants->Zone_zPos[plane_code];
       }
-      const float xAtRef_average =
-        LookingForward::get_average_and_individual_x_at_reference_plane(
-          hits_x,
-          hits_z,
-          track.hitsNum,
-          xAtRef_initial,
-          constArrays,
-          velo_state,
-          zMag_initial,
-          hits_x_atRef);
+      const float xAtRef_average = LookingForward::get_average_and_individual_x_at_reference_plane(
+        hits_x, hits_z, track.hitsNum, xAtRef_initial, constArrays, velo_state, zMag_initial, hits_x_atRef);
 
       float xAtRef_spread =
-        LookingForward::get_average_x_at_reference_plane_spread(
-          xAtRef_average,
-          hits_x_atRef,
-          track.hitsNum);
+        LookingForward::get_average_x_at_reference_plane_spread(xAtRef_average, hits_x_atRef, track.hitsNum);
 
-      if ( track.hitsNum == 3 ) // assign larg value to filter out later
+      if (track.hitsNum == 3) // assign larg value to filter out later
         xAtRef_spread = LookingForward::filter_x_max_xAtRef_spread;
 
       xAtRef_average_spread[j] = xAtRef_spread;
@@ -105,20 +94,25 @@ __global__ void lf_quality_filter_x(
     for (int16_t j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
       float xAtRef_spread = xAtRef_average_spread[j];
       int16_t insert_position = 0;
-      for (int16_t k = 0; k < number_of_tracks; ++k ) {
+      for (int16_t k = 0; k < number_of_tracks; ++k) {
         const float other_xAtRef_spread = xAtRef_average_spread[k];
         if (xAtRef_spread > other_xAtRef_spread || (xAtRef_spread == other_xAtRef_spread && j < k)) {
           ++insert_position;
         }
       }
-      if ( insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
-           && xAtRef_spread < LookingForward::filter_x_max_xAtRef_spread ) {
+      if (
+        insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter &&
+        xAtRef_spread < LookingForward::filter_x_max_xAtRef_spread) {
         // Save best track candidates
         const auto insert_index = atomicAdd(dev_scifi_lf_x_filtered_atomics + event_number, 1);
         const SciFi::TrackHits& track =
           dev_scifi_lf_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j];
-        dev_scifi_lf_x_filtered_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + insert_index] = track;
-        dev_scifi_lf_xAtRef[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + insert_index] = xAtRef_average_array[j];
+        dev_scifi_lf_x_filtered_tracks
+          [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+           insert_index] = track;
+        dev_scifi_lf_xAtRef
+          [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+           insert_index] = xAtRef_average_array[j];
       }
     }
   }

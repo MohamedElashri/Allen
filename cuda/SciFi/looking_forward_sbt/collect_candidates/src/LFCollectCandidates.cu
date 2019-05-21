@@ -41,15 +41,15 @@ __global__ void lf_collect_candidates(
   
   for (int i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
     const float ut_qop = ut_tracks.qop[i];
-    lf_collect_candidates_impl(
-      scifi_hits,
-      dev_initial_windows + ut_event_tracks_offset + i,
-      ut_qop,
-      ut_total_number_of_tracks,
-      dev_scifi_lf_number_of_candidates + LookingForward::number_of_x_layers * (ut_event_tracks_offset + i),
-      dev_scifi_lf_candidates + (ut_event_tracks_offset + i)
-        * LookingForward::number_of_x_layers * LookingForward::maximum_number_of_candidates,
-      scifi_hit_count.event_offset(),
-      scifi_hit_count.event_number_of_hits());
+    lf_collect_candidates_p_impl(
+          scifi_hits,
+          dev_initial_windows + ut_event_tracks_offset + i,
+          ut_qop,
+          ut_total_number_of_tracks,
+          dev_scifi_lf_number_of_candidates + LookingForward::number_of_x_layers * (ut_event_tracks_offset + i),
+          dev_scifi_lf_candidates + (ut_event_tracks_offset + i)
+          * LookingForward::number_of_x_layers * LookingForward::maximum_number_of_candidates,
+          scifi_hit_count.event_offset(),
+          scifi_hit_count.event_number_of_hits());
   }
 }
