@@ -52,4 +52,6 @@ SEQUENCE_T(
   prefix_sum_scifi_track_hit_number_t,
   consolidate_scifi_tracks_t,
   kalman_velo_only_t,
-  kalman_pv_ipchi2_t,)
+  kalman_pv_ipchi2_t,
+  copy_and_prefix_sum_single_block_sv_t,
+  fit_secondary_vertices_t,)

@@ -1,0 +1,27 @@
+include_directories(vertex_fitter/include)
+include_directories(common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/associate/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/main/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
+include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+
+file(GLOB vertex_fitter_src "vertex_fitter/src/*cu")
+
+add_library(VertexFitter STATIC
+  ${vertex_fitter_src}
+)
+
+target_link_libraries(VertexFitter Kalman)
+
+set_property(TARGET VertexFitter PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+
