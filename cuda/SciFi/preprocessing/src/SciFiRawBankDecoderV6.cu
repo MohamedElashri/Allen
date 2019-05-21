@@ -88,21 +88,23 @@ __global__ void scifi_raw_bank_decoder_v6(
     uint8_t cluster_fraction = fraction(c);
     uint8_t pseudoSize = 4;
 
-    if(condition == 0x01) {
+    assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
+
+    if(condition == 0x02) {
       pseudoSize = 0;
-    } else if(condition > 0x01) {
+    } else if(condition > 0x02) {
       const auto c2 = *(it+1);
       const auto widthClus = (cell(c2) - cell(c) + 2);
 
-      if(condition == 0x02) {
+      if(condition == 0x03) {
         pseudoSize = 0;
         cluster_fraction = 1;
         cluster_chan += delta_parameter;
-      } else if(condition == 0x03) {
+      } else if(condition == 0x04) {
         pseudoSize = 0;
         cluster_fraction = (widthClus - 1) % 2;
         cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
-      } else if(condition == 0x04) {
+      } else if(condition == 0x05) {
         pseudoSize = widthClus;
         cluster_fraction = (widthClus - 1) % 2;
         cluster_chan += (widthClus-1)/2 - 1;

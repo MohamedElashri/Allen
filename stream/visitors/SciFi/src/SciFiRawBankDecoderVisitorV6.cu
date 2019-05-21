@@ -55,6 +55,7 @@ void SequenceVisitor::visit<scifi_raw_bank_decoder_v6_t>(
           << zone / 2 << " "
           << zone % 2     << " "
           << hi.LHCbID(h) << " "
+          << hi.channel[h] << " "
           << hi.x0[h]   << " "
           << hi.z0[h]   << " "
           << hi.w(h)    << " "

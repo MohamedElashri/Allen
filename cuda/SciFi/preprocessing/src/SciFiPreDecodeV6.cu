@@ -98,10 +98,10 @@ __global__ void scifi_pre_decode_v6(
 
         // Reconstructs a single cluster
         if(!cSize(c)) {
-          store_sorted_cluster_reference_v6 (STOREARGS, 0x00, 0x00);
+          store_sorted_cluster_reference_v6 (STOREARGS, 0x01, 0x00);
         } else if (fraction(c)) {
-          if(it+1 == last || getLinkInBank(c) != getLinkInBank( *(it+1))) 
-            store_sorted_cluster_reference_v6 (STOREARGS, 0x01, 0x00);
+          if(it+1 == last || getLinkInBank(c) != getLinkInBank( *(it+1)))
+            store_sorted_cluster_reference_v6 (STOREARGS, 0x02, 0x00);
           else {
             const unsigned c2 = *(it+1);
             assert(cSize(c2) && !fraction(c2));
@@ -109,13 +109,13 @@ __global__ void scifi_pre_decode_v6(
             if (widthClus > 8) {
               uint16_t j = 0;
               for (; j < widthClus - 4; j += 4){
-                store_sorted_cluster_reference_v6 (STOREARGS, 0x02, j);
+                store_sorted_cluster_reference_v6 (STOREARGS, 0x03, j);
               }
 
               //add the last edge
-              store_sorted_cluster_reference_v6 (STOREARGS, 0x03, j);
+              store_sorted_cluster_reference_v6 (STOREARGS, 0x04, j);
             } else {
-              store_sorted_cluster_reference_v6 (STOREARGS, 0x04, 0x00);
+              store_sorted_cluster_reference_v6 (STOREARGS, 0x05, 0x00);
             }
           }
 
