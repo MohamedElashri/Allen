@@ -298,18 +298,25 @@ __global__ void fit_secondary_vertices(
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     
     // Preselection on first track.
-    if (trackA.pt() < VertexFit::trackMinPt || trackA.ipChi2 < VertexFit::trackMinIPChi2) continue;
+    if (trackA.pt() < VertexFit::trackMinPt || trackA.ipChi2 < VertexFit::trackMinIPChi2) {
+      continue;
+    }
     
     // Loop over second track.
     for (int j_track = i_track + 1; j_track < n_scifi_tracks; j_track += 1) {
 
       // Preselection on second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
-      if (trackB.pt() < VertexFit::trackMinPt || trackB.ipChi2 < VertexFit::trackMinIPChi2) continue;
+      if (trackB.pt() < VertexFit::trackMinPt || trackB.ipChi2 < VertexFit::trackMinIPChi2) {
+        continue;
+      }
       
       // Only combine tracks from the same PV.
-      // Note: all tracks with IP chi2 > 16 are assigned to vertex -1.
-      if (pv_table.pv[i_track] != pv_table.pv[j_track] && (pv_table.pv[i_track] < 1000 || pv_table.pv[j_track] < 1000)) continue;
+      // Note: all tracks with IP chi2 > 16 are assigned to vertex 1000 + ipv.
+      if (pv_table.pv[i_track] != pv_table.pv[j_track] &&
+          (pv_table.pv[i_track] < 1000 || pv_table.pv[j_track] < 1000)) {
+        continue;
+      }
             
       const int vertex_idx = (int)n_scifi_tracks * ((int)n_scifi_tracks - 3) / 2
         - ((int)n_scifi_tracks - 1 - i_track) * ((int)n_scifi_tracks - 2 - i_track) / 2 + j_track;
