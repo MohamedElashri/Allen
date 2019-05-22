@@ -27,13 +27,12 @@ __device__ void lf_search_initial_windows_p_impl(
 
   int iZoneStartingPoint = (side > 0) ? constArrays->zoneoffsetpar : 0;
 
-  const int layerx [6] {0, 3, 4, 7, 8, 11};
   for (int i=threadIdx.y; i<LookingForward::number_of_x_layers; i+=blockDim.y) {
     const auto iZone = iZoneStartingPoint + i;
     const float zZone = constArrays->xZone_zPos[iZone - iZoneStartingPoint];
 
     // TODO this could be done in a more optimized way
-    const auto stateInZone = LookingForward::propagate_state_from_velo(UT_state, qop, layerx[iZone - iZoneStartingPoint], looking_forward_constants);
+    const auto stateInZone = LookingForward::propagate_state_from_velo(UT_state, qop, looking_forward_constants->x_layers[iZone - iZoneStartingPoint], looking_forward_constants);
 
     const float xInZone = stateInZone.x;
 
@@ -50,38 +49,6 @@ __device__ void lf_search_initial_windows_p_impl(
     const int x_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
     int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
     int hits_within_bounds_size = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    // hits_within_bounds_start += x_zone_offset_begin;
-
-    // If the number of hits within bounds is too high, reduce the window
-    const auto max_candidates_first_round = 96;
-    const auto max_candidates_second_round = 64;
-
-    while (hits_within_bounds_size > max_candidates_first_round) {
-      auto x_diff_min = xInZone - xMin;
-      auto x_diff_max = xMax - xInZone;
-
-      // Reduce distance by a percentage
-      xMin = xInZone - 0.7f * x_diff_min;
-      xMax = xInZone + 0.7f * x_diff_max;
-
-      hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-      hits_within_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    }
-
-    // Try to cut it not too much when it gets close to the window size
-    while (hits_within_bounds_size > max_candidates_second_round) {
-      auto x_diff_min = xInZone - xMin;
-      auto x_diff_max = xMax - xInZone;
-
-      // Reduce distance by a percentage
-      xMin = xInZone - 0.9f * x_diff_min;
-      xMax = xInZone + 0.9f * x_diff_max;
-
-      hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-      hits_within_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    }
     hits_within_bounds_start += x_zone_offset_begin;
 
     // Initialize windows
@@ -195,38 +162,6 @@ __device__ void lf_search_initial_windows_impl(
     int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
     int hits_within_bounds_size = binary_search_leftmost(
       scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-
-    // If the number of hits within bounds is too high, reduce the window
-    const auto max_candidates_first_round = 96;
-    const auto max_candidates_second_round = 64;
-
-    while (hits_within_bounds_size > max_candidates_first_round) {
-      auto x_diff_min = xInZone - xMin;
-      auto x_diff_max = xMax - xInZone;
-
-      // Reduce distance by a percentage
-      xMin = xInZone - 0.7f * x_diff_min;
-      xMax = xInZone + 0.7f * x_diff_max;
-
-      hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-      hits_within_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    }
-
-    // Try to cut it not too much when it gets close to the window size
-    while (hits_within_bounds_size > max_candidates_second_round) {
-      auto x_diff_min = xInZone - xMin;
-      auto x_diff_max = xMax - xInZone;
-
-      // Reduce distance by a percentage
-      xMin = xInZone - 0.9f * x_diff_min;
-      xMax = xInZone + 0.9f * x_diff_max;
-
-      hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-      hits_within_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    }
-
     hits_within_bounds_start += x_zone_offset_begin;
 
     // Initialize windows

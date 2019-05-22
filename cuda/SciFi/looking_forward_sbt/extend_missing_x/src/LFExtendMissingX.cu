@@ -10,7 +10,7 @@ __global__ void lf_extend_missing_x(
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
-  const MiniState* dev_ut_states)
+  const int* dev_initial_windows)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -26,6 +26,7 @@ __global__ void lf_extend_missing_x(
     const_cast<uint32_t*>(dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
   const int number_of_tracks = dev_atomics_scifi[event_number];
+  const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     SciFi::TrackHits& track = dev_scifi_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
@@ -59,42 +60,14 @@ __global__ void lf_extend_missing_x(
       const auto current_layer = missing_layers[j];
 
       // Find window
-      const auto UT_state = dev_ut_states[current_ut_track_index];
-      const float y_projection = LookingForward::y_at_z(UT_state, dev_looking_forward_constants->Zone_zPos_xlayers[0]);
-      const auto iZoneStartingPoint = (y_projection >= 0) ? 6 : 0;
-
+      const auto window_start = dev_initial_windows[current_ut_track_index + current_layer * 8 * ut_total_number_of_tracks];
+      const auto window_size = dev_initial_windows[current_ut_track_index + (current_layer * 8 + 1) * ut_total_number_of_tracks];
       const float zZone = dev_looking_forward_constants->Zone_zPos_xlayers[current_layer];
-
-      const auto stateInZone = LookingForward::propagate_state_from_velo(
-        UT_state,
-        track.qop,
-        dev_looking_forward_constants->x_layers[current_layer],
-        dev_looking_forward_constants);
-      const float xInZone = stateInZone.x;
-
-      const float xMag = LookingForward::state_at_z(UT_state, LookingForward::z_magnet).x;
-      const float xTol = 1.5f * LookingForward::dx_calc(UT_state.tx, track.qop);
-      float xMin = xInZone - xTol;
-      float xMax = xInZone + xTol;
-
-      // Get the hits within the bounds
-      const int x_zone_offset_begin = scifi_hit_count.zone_offset(dev_looking_forward_constants->xZones[iZoneStartingPoint + current_layer]);
-      const int x_zone_size = scifi_hit_count.zone_number_of_hits(dev_looking_forward_constants->xZones[iZoneStartingPoint + current_layer]);
-      const int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-      const int hits_within_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-      
-      // printf("Track %i %i, current layer %i, bin window %i %i\n",
-      //   current_ut_track_index,
-      //   i,
-      //   current_layer,
-      //   hits_within_bounds_start,
-      //   hits_within_bounds_size);
 
       // Try all hits in the window now
       const auto best_index = lf_extend_missing_x_impl(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start,
-        hits_within_bounds_size,
+        scifi_hits.x0 + window_start,
+        window_size,
         track,
         x0,
         x1,
@@ -104,12 +77,7 @@ __global__ void lf_extend_missing_x(
         LookingForward::chi2_mean_extrapolation_to_x_layers_single);
 
       if (best_index != -1) {
-        // printf("  Found hit for track %i, %i: hit %i\n",
-        //   current_ut_track_index,
-        //   i,
-        //   best_index);
-
-        track.add_hit((uint16_t) ((x_zone_offset_begin + hits_within_bounds_start - event_offset) + best_index));
+        track.add_hit((uint16_t) ((window_start - event_offset) + best_index));
       }
     }
   }

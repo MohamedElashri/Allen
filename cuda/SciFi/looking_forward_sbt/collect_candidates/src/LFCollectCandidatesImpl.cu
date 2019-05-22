@@ -24,7 +24,14 @@ __device__ void lf_collect_candidates_impl(
     const auto param_uv_3 = initial_windows_f[(i * 8 + 7) * number_of_tracks];
     uint8_t candidate_counter = 0;
 
-    for (int j = 0; j < window_size && candidate_counter < LookingForward::maximum_number_of_candidates; ++j) {
+    int j = window_size / 2;
+    for (int n = 0; n < window_size && candidate_counter < LookingForward::maximum_number_of_candidates; ++n) {
+      if (n & 0x1) {
+        j -= n;
+      } else {
+        j += n;
+      }
+
       const auto hit_index = window_start + j;
       const auto xHit = scifi_hits.x0[hit_index];
 
@@ -32,15 +39,10 @@ __device__ void lf_collect_candidates_impl(
       const auto maxDx = param_uv_2 + std::abs(xHit - param_uv_3) * SciFi::Tracking::tolYSlopeCollectX;
 
       // Note: Making a tighter requirement on the UV layer hit
-      const auto multiplier = (event_number_of_hits > 5500) ? 0.8f : 1.f;
+      const auto multiplier = (window_size > 64) ? 0.8f : 1.f;
       const auto xMinUV = xPredUv - maxDx * multiplier;
       const auto xMaxUV = xPredUv + maxDx * multiplier;
       
-      // const float maxDx = 25.f + 6e5f * std::abs(qop);
-      // //const float xPredUV = param_uv_0;
-      // const float xMinUV = (xHit - maxDx);
-      // const float xMaxUV = (xHit + maxDx);
-
       if (binary_search_match_stereo_hit(
             scifi_hits,
             search_window_start,
@@ -78,24 +80,24 @@ __device__ void lf_collect_candidates_p_impl(
     const auto param_uv_dz_ratio = initial_windows_f[(i * 8 + 7) * number_of_tracks];
     uint8_t candidate_counter = 0;
 
-//    if(window_size > LookingForward::maximum_number_of_candidates){
-//      printf("BIG window %d / %d\n", window_size, LookingForward::maximum_number_of_candidates);
-//    }
-    for (int j = 0; j < window_size && candidate_counter < LookingForward::maximum_number_of_candidates; ++j) {
+    int j = window_size / 2;
+    for (int n = 0; n < window_size && candidate_counter < LookingForward::maximum_number_of_candidates; ++n) {
+      if (n & 0x1) {
+        j -= n;
+      } else {
+        j += n;
+      }
+
       const auto hit_index = window_start + j;
       const auto xHit = scifi_hits.x0[hit_index];
 
       const auto delta_x = (-xHit + param_uv_x_mag);
       const auto xHitInUv = LookingForward::linear_propagation(xHit, delta_x , param_uv_dz_ratio);
       const auto xHitInUvCorr = xHitInUv - param_uv_corr;
-      const float maxDx = param_uv_dx*2;//5;
+
+      const float maxDx = (window_size > 64) ? param_uv_dx : param_uv_dx * 2.f;
       const auto xMinUV = xHitInUvCorr - maxDx;
       const auto xMaxUV = xHitInUvCorr + maxDx;
-
-      // const float maxDx = 25.f + 6e5f * std::abs(qop);
-      // //const float xPredUV = param_uv_0;
-      // const float xMinUV = (xHit - maxDx);
-      // const float xMaxUV = (xHit + maxDx);
 
       if (binary_search_match_stereo_hit(
             scifi_hits,
