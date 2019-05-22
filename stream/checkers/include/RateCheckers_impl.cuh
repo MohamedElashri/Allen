@@ -8,9 +8,7 @@ void SequenceVisitor::check<run_hlt1_t>(
   const Constants& constants,
   const CheckerInvoker& checker_invoker) const
 {
-  info_cout << "------------------------------" << std::endl;
-  info_cout << "Checking Hlt1 rate..." << std::endl;
-  info_cout << "------------------------------" << std::endl;
+  info_cout << "Checking Hlt1 rate." << std::endl;
   printf("%i\n", host_buffers.host_sv_offsets[host_buffers.host_number_of_selected_events[0]]);
   checkHlt1Rate(
     host_buffers.host_one_track_decisions,

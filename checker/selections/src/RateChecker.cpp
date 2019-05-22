@@ -5,7 +5,7 @@ void checkHlt1Rate(
   const bool* two_track_decisions,
   const int* track_atomics,
   const uint* sv_atomics,
-  const uint number_of_events)
+  const uint selected_events)
 {
 
   // Event counters.
@@ -14,11 +14,11 @@ void checkHlt1Rate(
   uint n_evts_inc = 0;
   
   // Event loop.
-  for (uint i_event = 0; i_event < number_of_events; i_event++) {
+  for (uint i_event = 0; i_event < selected_events; i_event++) {
     
     // Check one track decisions.
     bool one_track_pass = false;
-    const int* event_tracks_offsets = track_atomics + number_of_events;
+    const int* event_tracks_offsets = track_atomics + selected_events;
     const bool* event_one_track_decisions = one_track_decisions + event_tracks_offsets[i_event];
     const int n_tracks_event = track_atomics[i_event];
     for (int i_track = 0; i_track < n_tracks_event; i_track++) {
@@ -47,11 +47,10 @@ void checkHlt1Rate(
 
   // Get the total number of passing SVs.
   uint n_total_sv_passes = 0;
-  for (int i_sv = 0; i_sv < sv_atomics[number_of_events]; i_sv++) {
+  for (int i_sv = 0; i_sv < sv_atomics[selected_events]; i_sv++) {
     if (two_track_decisions[i_sv]) n_total_sv_passes++;
   }
 
-  printf("Total events: %i \n", number_of_events);
   printf("One track: %i\n", n_evts_one_track);
   printf("Two track: %i\n", n_evts_two_track);
   printf("Inclusive: %i\n\n", n_evts_inc);

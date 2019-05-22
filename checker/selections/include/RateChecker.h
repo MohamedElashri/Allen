@@ -7,5 +7,5 @@ void checkHlt1Rate(
   const bool* two_track_decisions,
   const int* track_atomics,
   const uint* sv_atomics,
-  const uint number_of_events);
+  const uint selected_events);
 
