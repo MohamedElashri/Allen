@@ -39,7 +39,7 @@ __device__ void store_sorted_cluster_reference_v6 (
   //   Condition 2.1-2.2: 1 bit
   //   Condition 2.1: log2(n+1) - 8 bits
   hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 |
-                                     (condition & 0x03) << 13 | (delta & 0xFF);
+                                     (condition & 0x07) << 13 | (delta & 0xFF);
 };
 
 __global__ void scifi_pre_decode_v6(
@@ -84,45 +84,49 @@ __global__ void scifi_pre_decode_v6(
     uint16_t* last = rawbank.last;
     if (*(last-1) == 0) --last; // Remove padding at the end
 
-    if (starting_it < last) {
-      const uint number_of_iterations = last - starting_it;
-      for (uint it_number=0; it_number<number_of_iterations; ++it_number){
-        auto it = starting_it + it_number;
-        const uint16_t c = *it;
-        const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-        const auto chid = SciFiChannelID(ch);
-        const uint32_t correctedMat = chid.correctedUniqueMat();
+    if (starting_it >= last) 
+      return;
 
-        //shortcut for better readability and less redundancy
-        #define STOREARGS hit_count, correctedMat, ch, shared_mat_offsets, shared_mat_count, current_raw_bank, it_number, hits
+    const uint number_of_iterations = last - starting_it;
+    for (uint it_number = 0; it_number < number_of_iterations; ++it_number){
+      auto it = starting_it + it_number;
+      const uint16_t c = *it;
+      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
+      const auto chid = SciFiChannelID(ch);
+      const uint32_t correctedMat = chid.correctedUniqueMat();
 
-        // Reconstructs a single cluster
-        if(!cSize(c)) {
-          store_sorted_cluster_reference_v6 (STOREARGS, 0x01, 0x00);
-        } else if (fraction(c)) {
-          if(it+1 == last || getLinkInBank(c) != getLinkInBank( *(it+1)))
-            store_sorted_cluster_reference_v6 (STOREARGS, 0x02, 0x00);
-          else {
-            const unsigned c2 = *(it+1);
-            assert(cSize(c2) && !fraction(c2));
-            const unsigned int widthClus = (cell(c2) - cell(c) + 2 );
-            if (widthClus > 8) {
-              uint16_t j = 0;
-              for (; j < widthClus - 4; j += 4){
-                store_sorted_cluster_reference_v6 (STOREARGS, 0x03, j);
-              }
+      //shortcut for better readability and less redundancy
+      #define STOREARGS hit_count, correctedMat, ch, shared_mat_offsets, shared_mat_count, current_raw_bank, it_number, hits
 
-              //add the last edge
-              store_sorted_cluster_reference_v6 (STOREARGS, 0x04, j);
-            } else {
-              store_sorted_cluster_reference_v6 (STOREARGS, 0x05, 0x00);
+      if(!cSize(c)) {
+        // Single cluster
+        store_sorted_cluster_reference_v6 (STOREARGS, 0x01, 0x00);
+      } else if (fraction(c)) {
+        if(it+1 == last || getLinkInBank(c) != getLinkInBank( *(it+1))) {
+          // last cluster in bank or in sipm
+          store_sorted_cluster_reference_v6 (STOREARGS, 0x02, 0x00);
+        } else {
+          const unsigned c2 = *(it+1);
+          assert(cSize(c2) && !fraction(c2));
+          const unsigned int widthClus = (cell(c2) - cell(c) + 2 );
+          if (widthClus > 8) {
+            uint16_t j = 0;
+            for (; j < widthClus - 4; j += 4){
+              // big cluster(s)
+              store_sorted_cluster_reference_v6 (STOREARGS, 0x03, j);
             }
-          }
 
-          // Due to v6
-          ++it_number;
+            //add the last edge
+            store_sorted_cluster_reference_v6 (STOREARGS, 0x04, j);
+          } else {
+            store_sorted_cluster_reference_v6 (STOREARGS, 0x05, 0x00);
+          }
         }
+
+        // Due to v6
+        ++it_number;
       }
     }
   }
 }
+

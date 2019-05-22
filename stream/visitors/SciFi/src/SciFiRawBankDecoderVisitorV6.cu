@@ -51,11 +51,11 @@ void SequenceVisitor::visit<scifi_raw_bank_decoder_v6_t>(
     for(size_t zone = 0; zone < SciFi::Constants::n_zones; zone++) {
       for(size_t hit = 0; hit < host_scifi_hit_count_struct.zone_number_of_hits(zone); hit++) {
         uint h = host_scifi_hit_count_struct.zone_offset(zone) + hit;
-        outfile << std::setprecision(6) << std::fixed
+        outfile << std::setprecision(5) << std::fixed
           << zone / 2 << " "
           << zone % 2     << " "
           << hi.LHCbID(h) << " "
-          << hi.channel[h] << " "
+          //<< hi.channel[h] << " "
           << hi.x0[h]   << " "
           << hi.z0[h]   << " "
           << hi.w(h)    << " "

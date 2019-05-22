@@ -72,7 +72,7 @@ __global__ void scifi_raw_bank_decoder_v6(
     //   Condition 2.1: log2(n+1) - 8 bits
     const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
     const int it_number = (cluster_reference >> 16) & 0xFF;
-    const int condition = (cluster_reference >> 13) & 0x03;
+    const int condition = (cluster_reference >> 13) & 0x07;
     const int delta_parameter = cluster_reference & 0xFF;
 
     const auto rawbank = event.getSciFiRawBank(raw_bank_number);
