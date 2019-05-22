@@ -1,4 +1,6 @@
 #include "VertexFitter.cuh"
+#include "ParKalmanMath.cuh"
+#include "ParKalmanDefinitions.cuh"
 #include <gsl-lite.hpp>
 
 namespace VertexFit {
@@ -11,20 +13,20 @@ namespace VertexFit {
     float& x,
     float& y,
     float& z)
-  {  
-    const float zA = trackA.z;
-    const float xA = trackA.state[0];
-    const float yA = trackA.state[1];
-    const float txA = trackA.state[2];
-    const float tyA = trackA.state[3];
-    const float zB = trackB.z;
-    const float xB = trackB.state[0];
-    const float yB = trackB.state[1];
-    const float txB = trackB.state[2];
-    const float tyB = trackB.state[3];
-    float secondAA = txA * txA + tyA * tyA + 1;
-    float secondBB = txB * txB + tyB * tyB + 1;
-    float secondAB = -txA * txB - tyA * tyB - 1;
+  {
+    float zA = trackA.z;
+    float xA = trackA.state[0];
+    float yA = trackA.state[1];
+    float txA = trackA.state[2];
+    float tyA = trackA.state[3];
+    float zB = trackB.z;
+    float xB = trackB.state[0];
+    float yB = trackB.state[1];
+    float txB = trackB.state[2];
+    float tyB = trackB.state[3];
+    float secondAA = txA * txA + tyA * tyA + 1.0;
+    float secondBB = txB * txB + tyB * tyB + 1.0;
+    float secondAB = -txA * txB - tyA * tyB - 1.0;
     float det = secondAA * secondBB - secondAB * secondAB;
     if (std::abs(det) > 0) {
       float secondinvAA = secondBB / det;
@@ -39,9 +41,7 @@ namespace VertexFit {
       z = 0.5 * (zA + muA + zB + muB);
       return true;
     }
-    else {
-      return false;
-    }
+    return false;
   }
 
   //----------------------------------------------------------------------
@@ -180,8 +180,6 @@ namespace VertexFit {
     return true;
   }
 
-  //----------------------------------------------------------------------
-  // FD chi2.
   __device__ void fill_extra_info(
     Vertex& sv,
     const PV::Vertex& pv,
@@ -198,7 +196,7 @@ namespace VertexFit {
 
     // Number of tracks with ip chi2 < 16.
     sv.ntrks16 = (trackA.ipChi2 < 16) + (trackB.ipChi2 < 16);
-
+    
     // Get PV-SV separation.
     const float dx = sv.x - pv.position.x;
     const float dy = sv.y - pv.position.y;
@@ -224,7 +222,7 @@ namespace VertexFit {
 
     // PV-SV eta.
     sv.eta = std::atanh(dz / fd);
-
+    
     // Corrected mass.
     const float mpi = 139.57;
     const float px = trackA.px() + trackB.px();
@@ -245,7 +243,7 @@ namespace VertexFit {
 }
 
 __global__ void fit_secondary_vertices(
-  ParKalmanFilter::FittedTrack* dev_kf_tracks,
+  const ParKalmanFilter::FittedTrack* dev_kf_tracks,
   int* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
   char* dev_scifi_consolidated_hits,
@@ -279,7 +277,7 @@ __global__ void fit_secondary_vertices(
   const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Kalman fitted tracks.
-  ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
+  const ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
 
   // Primary vertices.
   gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
@@ -297,38 +295,42 @@ __global__ void fit_secondary_vertices(
         - ((int)n_scifi_tracks - 1 - i_track) * ((int)n_scifi_tracks - 2 - i_track) / 2 + j_track;
       event_secondary_vertices[vertex_idx].chi2 = -1;
     }
+    const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     
     // Preselection on first track.
-    if (event_tracks[i_track].pt() < VertexFit::trackMinPt || event_tracks[i_track].ipChi2 < VertexFit::trackMinIPChi2) continue;
+    if (trackA.pt() < VertexFit::trackMinPt || trackA.ipChi2 < VertexFit::trackMinIPChi2) continue;
     
     // Loop over second track.
     for (int j_track = i_track + 1; j_track < n_scifi_tracks; j_track += 1) {
 
       // Preselection on second track.
-      if (event_tracks[j_track].pt() < VertexFit::trackMinPt || event_tracks[j_track].ipChi2 < VertexFit::trackMinIPChi2) continue;
+      const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
+      if (trackB.pt() < VertexFit::trackMinPt || trackB.ipChi2 < VertexFit::trackMinIPChi2) continue;
       
       // Only combine tracks from the same PV.
       // Note: all tracks with IP chi2 > 16 are assigned to vertex -1.
-      if (pv_table.pv[i_track] != pv_table.pv[j_track]) continue;
-      
-      
-      uint vertex_idx = (int)n_scifi_tracks * ((int)n_scifi_tracks - 3) / 2
+      if (pv_table.pv[i_track] != pv_table.pv[j_track] && (pv_table.pv[i_track] < 1000 || pv_table.pv[j_track] < 1000)) continue;
+            
+      const int vertex_idx = (int)n_scifi_tracks * ((int)n_scifi_tracks - 3) / 2
         - ((int)n_scifi_tracks - 1 - i_track) * ((int)n_scifi_tracks - 2 - i_track) / 2 + j_track;
-
+      
       // Do the vertex fit.
       doFit(
-        event_tracks[i_track],
-        event_tracks[j_track],
+        trackA,
+        trackB,
         event_secondary_vertices[vertex_idx]);
 
       // Fill extra info.
-      auto pv = vertices[pv_table.pv[i_track]];
+      int ipv = pv_table.pv[i_track];
+      if (ipv >= 1000) ipv -= 1000;
+      auto pv = vertices[ipv];
       fill_extra_info(
         event_secondary_vertices[vertex_idx],
         pv,
-        event_tracks[i_track],
-        event_tracks[j_track]);
+        trackA,
+        trackB);
     }
+    
   }
   
 }

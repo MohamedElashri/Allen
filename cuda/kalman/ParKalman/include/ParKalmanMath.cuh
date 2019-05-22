@@ -2,11 +2,11 @@
 
 namespace ParKalmanFilter {
 
-#ifdef KALMAN_SINGLE_PRECISION
+  //#ifdef KALMAN_SINGLE_PRECISION
   typedef float KalmanFloat;
-#else
-  typedef double KalmanFloat;
-#endif
+  //#else
+  //typedef double KalmanFloat;
+  //#endif
 
   //----------------------------------------------------------------------
   // Template declaration

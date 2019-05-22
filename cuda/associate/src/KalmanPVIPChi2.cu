@@ -62,7 +62,7 @@ __device__ void associate(
       best_value = (first || val < best_value) ? val : best_value;
       first = false;
     }
-    if (best_value > 16) best_index = 999;
+    if (best_value > 16) best_index = 1000 + best_index;
     table.pv[i] = best_index;
     table.value[i] = best_value;
     tracks[i].ipChi2 = best_value;

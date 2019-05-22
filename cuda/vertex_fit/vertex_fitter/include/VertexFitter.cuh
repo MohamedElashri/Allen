@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ParKalmanDefinitions.cuh"
+#include "ParKalmanMath.cuh"
 #include "VertexDefinitions.cuh"
 #include "PV_Definitions.cuh"
 #include "SciFiConsolidated.cuh"
@@ -67,7 +68,7 @@ namespace VertexFit {
 }
 
 __global__ void fit_secondary_vertices(
-  ParKalmanFilter::FittedTrack* dev_kf_tracks,
+  const ParKalmanFilter::FittedTrack* dev_kf_tracks,
   int* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
   char* dev_scifi_consolidated_hits,

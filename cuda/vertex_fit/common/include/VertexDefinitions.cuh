@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SciFiDefinitions.cuh"
+#include "ParKalmanMath.cuh"
 #include "cuda_runtime.h"
 
 namespace VertexFit {
@@ -48,7 +49,7 @@ namespace VertexFit {
 
     // Was this SV fitted?
     bool fit = false;
-    
+
     __device__ __host__ float pt()
     {
       return std::sqrt(px * px + py * py);
@@ -57,7 +58,7 @@ namespace VertexFit {
     {
       return std::sqrt(px * px + py * py);
     }
-      
+    
   };
 
 }

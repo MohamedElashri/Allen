@@ -25,3 +25,6 @@ target_link_libraries(VertexFitter Kalman)
 
 set_property(TARGET VertexFitter PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
+if(USE_KALMAN_SINGLE_PRECISION)
+  target_compile_definitions(VertexFitter PUBLIC KALMAN_SINGLE_PRECISION)
+endif()

@@ -21,3 +21,7 @@ add_library(Hlt1 STATIC
 )
 
 set_property(TARGET Hlt1 PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+
+if(USE_KALMAN_SINGLE_PRECISION)
+  target_compile_definitions(Hlt1 PUBLIC KALMAN_SINGLE_PRECISION)
+endif()

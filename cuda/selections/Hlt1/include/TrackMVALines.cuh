@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ParKalmanDefinitions.cuh"
+#include "ParKalmanMath.cuh"
 #include "PV_Definitions.cuh"
 #include "VertexDefinitions.cuh"
 
