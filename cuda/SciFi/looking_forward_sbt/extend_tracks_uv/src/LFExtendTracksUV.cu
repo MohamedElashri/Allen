@@ -75,7 +75,7 @@ __global__ void lf_extend_tracks_uv(
         z1,
         z2,
         projection_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_extrapolation_layer & 0x1],
-        LookingForward::chi2_mean_extrapolation_to_uv_layers_single
+        LookingForward::chi2_max_extrapolation_to_uv_layers_single
       );
     }
   }

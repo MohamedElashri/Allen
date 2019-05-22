@@ -74,7 +74,7 @@ __global__ void lf_extend_missing_x(
         z0,
         z1,
         zZone,
-        LookingForward::chi2_mean_extrapolation_to_x_layers_single);
+        LookingForward::chi2_max_extrapolation_to_x_layers_single);
 
       if (best_index != -1) {
         track.add_hit((uint16_t) ((window_start - event_offset) + best_index));
