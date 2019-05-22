@@ -46,6 +46,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/find_comp
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/triplet_seeding/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/triplet_keep_best/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_x/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_missing_x/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/composite_algorithms/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_first_layers_x/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_uv/include)

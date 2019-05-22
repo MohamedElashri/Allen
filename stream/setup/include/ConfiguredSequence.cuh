@@ -59,6 +59,7 @@
 #include "LFSearchInitialWindows.cuh"
 #include "LFCollectCandidates.cuh"
 #include "LFExtendTracksX.cuh"
+#include "LFExtendMissingX.cuh"
 #include "LFTripletSeeding.cuh"
 #include "LFCompositeTrackSeeding.cuh"
 #include "LFCompositeExtendTracksUV.cuh"

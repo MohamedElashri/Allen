@@ -43,6 +43,7 @@ SEQUENCE_T(
   lf_prefix_sum_candidates_t,
   lf_composite_track_seeding_t,
   lf_quality_filter_x_t,
+  lf_extend_missing_x_t,
   lf_composite_extend_tracks_uv_t,
   lf_quality_filter_length_t,
   lf_fit_t,
@@ -51,5 +52,4 @@ SEQUENCE_T(
   copy_scifi_track_hit_number_t,
   prefix_sum_scifi_track_hit_number_t,
   consolidate_scifi_tracks_t,
-  kalman_velo_only_t,
-)
+  kalman_velo_only_t,)
