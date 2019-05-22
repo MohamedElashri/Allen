@@ -32,10 +32,6 @@ namespace LookingForward {
   // constexpr int form_seeds_candidates_per_thread = 4;
   // constexpr int form_seeds_stop_after_number_of_candidates = 10;
 
-  /**
-   * Number of Y threads for fit
-   */
-  constexpr int num_threads_fit = 160; // 80;
 
   /**
    * Form seeds from candidates
@@ -54,17 +50,19 @@ namespace LookingForward {
   constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 32;
   constexpr int maximum_number_of_candidates_per_ut_track = 32 * 2;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 32 * 2;
+  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 2;
   constexpr int num_atomics = 1;
-  constexpr float track_min_quality = 0.1f;
+  constexpr float track_min_quality = 0.001f;
   constexpr int track_min_hits = 9;
   constexpr float filter_x_max_chi2 = 1.f;
+  constexpr float filter_x_max_xAtRef_spread = 1e9f;
 
   // cut on the difference between tx from the extrapolation and
   // tx from the hits in the two x layers
   constexpr float max_tx_diff = 0.05f * Gaudi::Units::mm;
 
   // z distance between various layers of a station
+  // FIXME_GEOMETRY_HARDCODING
   constexpr float dz_layers_station = 70. * Gaudi::Units::mm;
   constexpr float dz_x_layers = 3.f * dz_layers_station;
   constexpr float inverse_dz_x_layers = 1.f / dz_x_layers;
@@ -73,9 +71,10 @@ namespace LookingForward {
   constexpr float dz_x_v_layers = 2.f * dz_layers_station;
 
   // z at the center of the magnet
-  constexpr float z_magnet = 5212.38f;
+  constexpr float z_magnet = 5212.38f; // FIXME_GEOMETRY_HARDCODING
 
   // z distance between various layers of different stations
+  // FIXME_GEOMETRY_HARDCODING
   constexpr float dz_x_T1_0_T2_0 = 682 * Gaudi::Units::mm;
   constexpr float dz_x_T1_0_T2_3 = 892 * Gaudi::Units::mm;
   constexpr float dz_x_T1_0_T3_0 = 1367 * Gaudi::Units::mm;
@@ -89,7 +88,7 @@ namespace LookingForward {
   constexpr float dx_x_T2_T3_offset = 500 * Gaudi::Units::mm;
   constexpr float dx_x_T2_T3_slope = 6.e6f;
 
-  constexpr float z_last_UT_plane = 2642.f;
+  constexpr float z_last_UT_plane = 2642.f; // FIXME_GEOMETRY_HARDCODING
 
   // z difference between reference plane and end of SciFi
   constexpr float zReferenceEndTDiff = SciFi::Constants::ZEndT - SciFi::Tracking::zReference;
@@ -122,12 +121,14 @@ namespace LookingForward {
   constexpr float chi2_stddev_triplet_single = 10.f;
   constexpr float chi2_mean_extrapolation_to_x_layers_single = 4.f;
   constexpr float chi2_stddev_extrapolation_to_x_layers_single = 8.f;
+  constexpr float chi2_mean_extrapolation_to_uv_layers_single = 10.f;
 
   struct Constants {
     float extrapolation_stddev[8] {3.63f, 3.73f, 3.51f, 2.99f, 1.50f, 2.34f, 2.30f, 1.f};
     float chi2_extrap_mean[8] {13.21f, 13.93f, 12.34f, 8.96f, 2.29f, 5.52f, 5.35f, 1.03f};
     float chi2_extrap_stddev[8] {116.5f, 104.5f, 98.35f, 80.66f, 24.11f, 35.91f, 36.7f, 9.72f};
 
+    int xZones[12] {0, 6, 8, 14, 16, 22, 1, 7, 9, 15, 17, 23};
     float Zone_zPos[12] {7826., 7896., 7966., 8036., 8508., 8578., 8648., 8718., 9193., 9263., 9333., 9403.};
     float Zone_zPos_xlayers[6] {7826., 8036., 8508., 8718., 9193., 9403.};
     float Zone_zPos_uvlayers[6] {7896., 7966., 8578., 8648., 9263., 9333.};

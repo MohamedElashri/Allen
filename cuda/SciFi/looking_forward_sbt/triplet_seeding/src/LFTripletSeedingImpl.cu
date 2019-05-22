@@ -46,7 +46,7 @@ __device__ void lf_triplet_seeding_impl(
   nvcuda::wmma::fragment<nvcuda::wmma::accumulator, tile_size, tile_size, tile_size, float> c_frag;
   nvcuda::wmma::fragment<nvcuda::wmma::accumulator, tile_size, tile_size, tile_size, float> d_frag;
   nvcuda::wmma::fill_fragment(c_frag, -extrap2);
-  
+
   // Search best triplet
   // Tiled processing of h0 and h2
   for (int8_t i = 0; i < (h0_candidate_size + tile_size - 1) >> tile_size_shift_div; ++i) {
@@ -95,7 +95,7 @@ __device__ void lf_triplet_seeding_impl(
       // Iterate over all h1s
       // Find best chi2, h0 and h2 using the partial chi2 from before
       for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
-        const float x1_zdiff = scifi_hits_x0[scifi_lf_candidates[(relative_l0 + 1) * LookingForward::maximum_number_of_candidates + h1_rel]] 
+        const float x1_zdiff = scifi_hits_x0[scifi_lf_candidates[(relative_l0 + 1) * LookingForward::maximum_number_of_candidates + h1_rel]]
           * zdiff;
 
         float local_best_chi2 = max_chi2;
@@ -119,7 +119,7 @@ __device__ void lf_triplet_seeding_impl(
       }
     }
   }
-  
+
 #else
 
   // Search best triplet
@@ -149,7 +149,7 @@ __device__ void lf_triplet_seeding_impl(
       // Iterate over all h1s
       // Find best chi2, h0 and h2 using the partial chi2 from before
       for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
-        const float x1_zdiff = scifi_hits_x0[scifi_lf_candidates[(relative_l0 + 1) * LookingForward::maximum_number_of_candidates + h1_rel]] 
+        const float x1_zdiff = scifi_hits_x0[scifi_lf_candidates[(relative_l0 + 1) * LookingForward::maximum_number_of_candidates + h1_rel]]
           * zdiff;
 
         float local_best_chi2 = max_chi2;

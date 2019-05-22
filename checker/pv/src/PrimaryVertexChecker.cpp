@@ -1,4 +1,9 @@
-#include "PrimaryVertexChecker.h"
+#include <PrimaryVertexChecker.h>
+#include <ROOTHeaders.h>
+
+float getefficiencyerror(float k, float N) {
+  return sqrt(k*(1-k/N))/N;
+}
 
 void checkPVs(
   const std::string& foldername,
@@ -53,6 +58,22 @@ void checkPVs(
     std::vector<double> vec_err_y;
     std::vector<double> vec_err_z;
 
+    // vectors with the mcpv multiplicity
+    std::vector<int> vec_n_trinmcpv;
+    std::vector<int> vec_n_mcpv;
+
+    // vectors for the efficiency and fake rate
+    // notice that we have to duplicate some information
+    // here because we are filling a different structure/histogram compared
+    // to the above ntuples. Basically the resolution is always only
+    // filled for reconstructed PVs, but here we need to fill several histograms
+    // based on both the mc pv information (efficiency vs. mc pv multiplicity or z position)
+    // and the reconstructed information (fakes vs. reconstructed pv multiplicitly or z position)
+    std::vector<int> vec_mcpv_recd;
+    std::vector<int> vec_recpv_fake;
+    std::vector<int> vec_mcpv_mult;
+    std::vector<int> vec_recpv_mult;
+    std::vector<double> vec_mcpv_zpos;
     std::vector<double> vec_mc_x;
     std::vector<double> vec_mc_y;
     std::vector<double> vec_mc_z;
@@ -218,7 +239,6 @@ void checkPVs(
       };
 
       // find nr of false PV
-
       int nFalsePV = 0;
       int nFalsePV_real = 0;
       for (int ipv = 0; ipv < (int) recpvvec.size(); ipv++) {
@@ -245,7 +265,12 @@ void checkPVs(
         double nDoF = recpvvec[ipv].nDoF;
         vec_all_rec.push_back(recpvvec[ipv]);
 
+        // Counter for performance plots
+        vec_recpv_mult.push_back(recpvvec[ipv].pRECPV->nTracks);
+
         if (recpvvec[ipv].indexMCPVInfo < 0) {
+          // Counter for performance plots
+	  vec_recpv_fake.push_back(1);
           nFalsePV++;
           fake = 1;
           bool vis_found = false;
@@ -259,7 +284,7 @@ void checkPVs(
             }
           } // imc
           if (!vis_found) nFalsePV_real++;
-        }
+        } else {vec_recpv_fake.push_back(0);}// Counter for performance plots
       }
 
       // Fill distance to closest recble MC PV and its multiplicity
@@ -292,6 +317,14 @@ void checkPVs(
       int nRecMCPV_close = 0;
 
       for (itmc = rblemcpv.begin(); rblemcpv.end() != itmc; itmc++) {
+        //Counters for performance plots
+        if (itmc->nRecTracks > nTracksToBeRecble) {
+          vec_mcpv_mult.push_back(itmc->pMCPV->numberTracks);
+          vec_mcpv_zpos.push_back(itmc->pMCPV->z);
+          if (itmc->indexRecPVInfo > -1) {
+            vec_mcpv_recd.push_back(1);
+          } else {vec_mcpv_recd.push_back(0);}
+        }
         if (itmc->distToClosestMCPV > dzIsolated) nMCPV_isol++;
         if (itmc->distToClosestMCPV > dzIsolated && itmc->nRecTracks < nTracksToBeRecble) nmrc_isol++;
         if (itmc->distToClosestMCPV < dzIsolated) nMCPV_close++;
@@ -300,7 +333,7 @@ void checkPVs(
           nRecMCPV++;
           if (itmc->distToClosestMCPV > dzIsolated) nRecMCPV_isol++;
           if (itmc->distToClosestMCPV < dzIsolated) nRecMCPV_close++;
-        }
+        } 
       }
 
       nMCPV_isol = nMCPV_isol - nmrc_isol;
@@ -320,12 +353,12 @@ void checkPVs(
       for (auto mc_vertex_info : rblemcpv) {
         int rec_index = mc_vertex_info.indexRecPVInfo;
         MCVertex* mc_vertex = mc_vertex_info.pMCPV;
-        if (rec_index < 0) {
-          continue;
-        }
+        if (rec_index < 0) continue;
 
         sum_clones += mc_vertex_info.number_rec_vtx;
         sum_norm_clones++;
+        vec_n_mcpv.push_back(nMCPV);
+        vec_n_trinmcpv.push_back(mc_vertex->numberTracks);
 
         double diff_x = recpvvec[rec_index].x - mc_vertex->x;
         double diff_y = recpvvec[rec_index].y - mc_vertex->y;
@@ -360,6 +393,7 @@ void checkPVs(
     if (!matchByTracks) ff = "by dz distance";
     info_cout << " REC and MC vertices matched:  " << ff << std::endl;
 
+    info_cout << number_of_selected_events << " events passed the global event cuts" << std::endl;
     info_cout << " " << std::endl;
 
     printRat("All", sum_nRecMCPV, sum_nMCPV);
@@ -374,10 +408,13 @@ void checkPVs(
 #ifdef WITH_ROOT
     TFile* out_fille = new TFile(("../output/" + mode + "_PVChecker.root").data(), "RECREATE");
     TTree* tree = new TTree("PV_tree", "PV_tree");
-    // double x_true, y_true, z_true;
     double diff_x, diff_y, diff_z;
     double rec_x, rec_y, rec_z;
     double err_x, err_y, err_z;
+    int nmcpv,ntrinmcpv;
+
+    tree->Branch("nmcpv", &nmcpv);
+    tree->Branch("ntrinmcpv", &ntrinmcpv);
 
     tree->Branch("diff_x", &diff_x);
     tree->Branch("diff_y", &diff_y);
@@ -390,11 +427,9 @@ void checkPVs(
     tree->Branch("err_y", &err_y);
     tree->Branch("err_z", &err_z);
 
-    // tree->Branch("x_true", &x_true);
-    // tree->Branch("y_true", &y_true);
-    // tree->Branch("z_true", &z_true);
-
     for (int i = 0; i < vec_diff_x.size(); i++) {
+      nmcpv  = vec_n_mcpv.at(i);
+      ntrinmcpv = vec_n_trinmcpv.at(i);
       diff_x = vec_diff_x.at(i);
       diff_y = vec_diff_y.at(i);
       diff_z = vec_diff_z.at(i);
@@ -408,6 +443,61 @@ void checkPVs(
 
       tree->Fill();
     }
+
+    int bins_norm_z = 50;
+    int bins_norm_mult = 25; 
+    int bins_fake_mult = 20;
+
+    TH1F* eff_vs_z = new TH1F("eff_vs_z","eff_vs_z",bins_norm_z,-300,300);
+    TH1F* eff_vs_mult = new TH1F("eff_vs_mult","eff_vs_mult",bins_norm_mult,0,50);
+    TH1F* eff_norm_z = new TH1F("eff_norm","eff_norm",bins_norm_z,-300,300);
+    TH1F* eff_norm_mult = new TH1F("eff_norm_mult","eff_norm_mult",bins_norm_mult,0,50);
+    TH1F* fakes_vs_mult = new TH1F("fakes_vs_mult","fakes_vs_mult",bins_fake_mult,0,20);
+    TH1F* fakes_norm = new TH1F("fakes_norm","fakes_norm",bins_fake_mult,0,20);
+
+    for (int i=0; i < vec_recpv_mult.size(); i++){
+      fakes_vs_mult->Fill(vec_recpv_mult.at(i),vec_recpv_fake.at(i));
+      fakes_norm->Fill(vec_recpv_mult.at(i),1);
+    }
+
+    for (int i=0; i < vec_mcpv_mult.size(); i++){
+      eff_vs_z->Fill(vec_mcpv_zpos.at(i),vec_mcpv_recd.at(i));
+      eff_vs_mult->Fill(vec_mcpv_mult.at(i),vec_mcpv_recd.at(i));
+      eff_norm_z->Fill(vec_mcpv_zpos.at(i),1);
+      eff_norm_mult->Fill(vec_mcpv_mult.at(i),1);
+    }
+
+    std::vector<float> binerrors_vs_z;
+    std::vector<float> binerrors_vs_mult;
+
+    // Proper uncertainties for efficiencies
+    for (int i=1; i <= bins_norm_z; i++) {
+      float N = 1.f * eff_norm_z->GetBinContent(i);
+      float k = 1.f * eff_vs_z->GetBinContent(i); 
+      if (k < N && N > 0) {
+        binerrors_vs_z.push_back(getefficiencyerror(k,N));
+      } else binerrors_vs_z.push_back(0.);
+    }
+    for (int i=1; i <= bins_norm_mult; i++){
+      float N = 1.f * eff_norm_mult->GetBinContent(i);
+      float k = 1.f * eff_vs_mult->GetBinContent(i);
+      if (k < N && N > 0) {
+        binerrors_vs_mult.push_back(getefficiencyerror(k,N));
+      } else binerrors_vs_mult.push_back(0.);
+    }
+    
+    eff_vs_z->Divide(eff_norm_z);
+    for (int i=1; i <= bins_norm_z; i++) {
+      eff_vs_z->SetBinError(i,binerrors_vs_z.at(i-1));
+    }
+    eff_vs_mult->Divide(eff_norm_mult);
+    for (int i=1; i <= bins_norm_mult; i++) {
+      eff_vs_mult->SetBinError(i,binerrors_vs_mult.at(i-1));
+    }
+    fakes_vs_mult->Divide(fakes_norm);
+    eff_vs_z->Write();
+    eff_vs_mult->Write();
+    fakes_vs_mult->Write();
     tree->Write();
 
     double mc_x, mc_y, mc_z;
@@ -449,4 +539,66 @@ void checkPVs(
     out_fille->Close();
 #endif
   }
+}
+
+void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::vector<MCPVInfo>& mcpvvec)
+{
+
+  double mindist = 999999.;
+  int indexmc = -1;
+
+  for (int imc = 0; imc < (int) mcpvvec.size(); imc++) {
+    double dist = fabs(mcpvvec[imc].pMCPV->z - rinfo[ipv].z);
+    if (dist < mindist) {
+      mindist = dist;
+      indexmc = imc;
+    }
+  }
+  if (indexmc > -1) {
+    if (mindist < 5.0 * rinfo[ipv].positionSigma.z) {
+      rinfo[ipv].indexMCPVInfo = indexmc;
+      mcpvvec[indexmc].indexRecPVInfo = ipv;
+      mcpvvec[indexmc].number_rec_vtx++;
+    }
+  }
+}
+
+void printRat(std::string mes, int a, int b)
+{
+
+  float rat = 0.f;
+  if (b > 0) rat = 1.0f * a / b;
+
+  // reformat message
+  unsigned int len = 20;
+  std::string pmes = mes;
+  while (pmes.length() < len) {
+    pmes += " ";
+  }
+  pmes += " : ";
+
+  info_cout << pmes << " " << rat << "( " << a << " / " << b << " )" << std::endl;
+}
+
+std::vector<MCPVInfo>::iterator closestMCPV(std::vector<MCPVInfo>& rblemcpv, std::vector<MCPVInfo>::iterator& itmc)
+{
+
+  std::vector<MCPVInfo>::iterator itret = rblemcpv.end();
+  double mindist = 999999.;
+  if (rblemcpv.size() < 2) return itret;
+  std::vector<MCPVInfo>::iterator it;
+  for (it = rblemcpv.begin(); it != rblemcpv.end(); it++) {
+    if (it->pMCPV != itmc->pMCPV) {
+      double diff_x = it->pMCPV->x - itmc->pMCPV->x;
+      double diff_y = it->pMCPV->y - itmc->pMCPV->y;
+      double diff_z = it->pMCPV->z - itmc->pMCPV->z;
+      double dist = sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z);
+
+      if (dist < mindist) {
+        mindist = dist;
+        itret = it;
+      }
+    }
+  }
+  return itret;
 }

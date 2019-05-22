@@ -59,7 +59,8 @@ namespace {
     const float* zseeds,
     uint number_of_seeds,
     PV::Vertex* vertices,
-    int* total_number_of_vertices)
+    int* total_number_of_vertices,
+    float* beamline)
   {
 #ifdef WITH_ROOT
     TFile* weightfile = new TFile("weights.root", "RECREATE");
@@ -84,7 +85,7 @@ namespace {
       vtxcov[3] = 0.f;
       vtxcov[4] = 0.f;
       vtxcov[5] = 0.f;
-      float2 vtxpos_xy {beamline.x, beamline.y};
+      float2 vtxpos_xy {beamline[0], beamline[1]};
       auto vtxpos_z = zseeds[i_thisseed];
 
       float chi2tot = 0;
@@ -211,13 +212,12 @@ namespace {
       vertex.setCovMatrix(vtxcov);
       for (int i = 0; i < number_of_tracks; i++) {
         PVTrackInVertex trk = tracks[i];
-        if (trk.weight > 0) vertex.n_tracks++;
+        if (trk.weight > 0) vertex.nTracks++;
       }
-      const float2 beamline {0.f, 0.f};
-      const auto beamlinedx = vertex.position.x - beamline.x;
-      const auto beamlinedy = vertex.position.y - beamline.y;
+      const auto beamlinedx = vertex.position.x - beamline[0];
+      const auto beamlinedy = vertex.position.y - beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if (vertex.n_tracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
+      if (vertex.nTracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
         vertices[number_of_vertices] = vertex;
         number_of_vertices++;
       }
@@ -236,7 +236,8 @@ void findPVs(
   uint* velo_track_hit_number,
   PV::Vertex* reconstructed_pvs,
   int* number_of_pvs,
-  const uint number_of_events)
+  const uint number_of_events,
+  float* beamline)
 {
 
 #ifdef WITH_ROOT
@@ -300,7 +301,7 @@ void findPVs(
 
         const auto tx = s.tx;
         const auto ty = s.ty;
-        const float dz = (tx * (beamline.x - s.x) + ty * (beamline.y - s.y)) / (tx * tx + ty * ty);
+        const float dz = (tx * (beamline[0] - s.x) + ty * (beamline[1] - s.y)) / (tx * tx + ty * ty);
         PVTrack pvtrack = PVTrack {s, dz};
 
         pvtracks[index] = pvtrack;
@@ -565,7 +566,7 @@ void findPVs(
 
     PV::Vertex preselected_vertices[PV::max_number_vertices];
 
-    multifitAdaptive(pvtracks, Ntrk, zpeaks, number_of_peaks, preselected_vertices, &number_preselected_vertices);
+    multifitAdaptive(pvtracks, Ntrk, zpeaks, number_of_peaks, preselected_vertices, &number_preselected_vertices, beamline);
 
     // Steps that we could still take:
     // * remove vertices with too little tracks
@@ -613,6 +614,7 @@ void pv_beamline_extrapolate(
   int* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks,
+  float* dev_beamline,
   const uint event_number,
   const uint number_of_events)
 {
@@ -633,7 +635,7 @@ void pv_beamline_extrapolate(
         KalmanVeloState s = velo_states.get(event_tracks_offset + index);
         const auto tx = s.tx;
         const auto ty = s.ty;
-        const float dz = (tx * (beamline.x - s.x) + ty * (beamline.y - s.y)) / (tx * tx + ty * ty);
+        const float dz = (tx * (dev_beamline[0] - s.x) + ty * (dev_beamline[1] - s.y)) / (tx * tx + ty * ty);
         PVTrack pvtrack = PVTrack {s, dz};
         dev_pvtracks[event_tracks_offset + index] = pvtrack;
       }
@@ -876,6 +878,7 @@ void beamline_multi_fitter(
   uint* dev_number_of_zpeaks,
   PV::Vertex* dev_multi_fit_vertices,
   uint* dev_number_of_multi_fit_vertices,
+  float* dev_beamline,
   const uint event_number,
   const uint number_of_events)
 {
@@ -904,7 +907,7 @@ void beamline_multi_fitter(
       bool converged = false;
       float vtxcov[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
       // initial vertex posisiton, use x,y of the beamline and z of the seed
-      float2 vtxpos_xy {beamline.x, beamline.y};
+      float2 vtxpos_xy {dev_beamline[0], dev_beamline[1]};
       auto vtxpos_z = zseeds[i_thisseed];
       auto chi2tot = 0.f;
       unsigned short nselectedtracks = 0;
@@ -1025,15 +1028,15 @@ void beamline_multi_fitter(
       vertex.setCovMatrix(vtxcov);
       for (int i = 0; i < number_of_tracks; i++) {
         PVTrackInVertex trk = tracks[i];
-        if (trk.weight > 0.f) vertex.n_tracks++;
+        if (trk.weight > 0.f) vertex.nTracks++;
       }
 
       // TODO integrate beamline position
       const float2 beamline {0.f, 0.f};
-      const auto beamlinedx = vertex.position.x - beamline.x;
-      const auto beamlinedy = vertex.position.y - beamline.y;
+      const auto beamlinedx = vertex.position.x - dev_beamline[0];
+      const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if (vertex.n_tracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
+      if (vertex.nTracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
 
         vertices[*number_of_multi_fit_vertices] = vertex;
         (*number_of_multi_fit_vertices)++;
@@ -1088,6 +1091,7 @@ void findPVs2(
   uint* velo_track_hit_number,
   PV::Vertex* reconstructed_pvs,
   int* number_of_pvs,
+  float* beamline,
   const uint number_of_events)
 
 {
@@ -1102,8 +1106,8 @@ void findPVs2(
   int number_of_multi_final_vertices[number_of_events];
 
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
-    pv_beamline_extrapolate(
-      kalmanvelo_states, velo_atomics, velo_track_hit_number, pvtracks, i_event, number_of_events);
+    pv_beamline_extrapolate(kalmanvelo_states, velo_atomics, velo_track_hit_number,
+                            pvtracks, beamline, i_event, number_of_events);
   }
 
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
@@ -1122,6 +1126,7 @@ void findPVs2(
       number_of_zpeaks,
       multi_fit_vertices,
       number_of_multi_fit_vertices,
+      beamline,
       i_event,
       number_of_events);
   }

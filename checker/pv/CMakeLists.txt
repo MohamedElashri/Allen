@@ -11,17 +11,13 @@ include_directories(${ROOT_INCLUDE_DIRS})
 
 file(GLOB pv_checker_sources "src/*cpp")
 
-add_library(PVChecking SHARED
+add_library(PVChecking STATIC
   ${pv_checker_sources}
 )
-set_target_properties(PVChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(ROOT_FOUND)
   target_compile_definitions(PVChecking PRIVATE WITH_ROOT)
   target_include_directories(PVChecking BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
-  )
-  target_link_libraries(PVChecking PRIVATE
-    ${ROOT_LIBRARIES}
   )
 endif()

@@ -35,9 +35,9 @@ void SequenceVisitor::visit<ut_search_windows_t>(
     arguments.offset<dev_velo_track_hit_number>(),
     arguments.offset<dev_velo_states>(),
     constants.dev_ut_magnet_tool,
-    constants.dev_ut_dxDy,
-    constants.dev_unique_x_sector_layer_offsets,
-    constants.dev_unique_sector_xs,
+    constants.dev_ut_dxDy.data(),
+    constants.dev_unique_x_sector_layer_offsets.data(),
+    constants.dev_unique_sector_xs.data(),
     arguments.offset<dev_ut_windows_layers>(),
     arguments.offset<dev_ut_active_tracks>(),
     arguments.offset<dev_accepted_velo_tracks>());

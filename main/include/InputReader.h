@@ -5,7 +5,6 @@
 #include "Common.h"
 #include "BankTypes.h"
 #include "Tools.h"
-#include "CudaCommon.h"
 #include <string>
 #include <algorithm>
 #include <unordered_set>
@@ -28,15 +27,6 @@ struct GeometryReader : public Reader {
    * @brief Reads a geometry file from the specified folder.
    */
   std::vector<char> read_geometry(const std::string& filename) const;
-};
-
-struct UTMagnetToolReader : public Reader {
-  UTMagnetToolReader(const std::string& folder_name) : Reader(folder_name) {}
-
-  /**
-   * @brief Reads the UT magnet tool from the specified folder.
-   */
-  std::vector<char> read_UT_magnet_tool() const;
 };
 
 using FolderMap = std::map<BankTypes, std::string>;

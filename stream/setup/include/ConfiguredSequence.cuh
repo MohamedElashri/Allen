@@ -62,6 +62,7 @@
 #include "LFSearchInitialWindows.cuh"
 #include "LFCollectCandidates.cuh"
 #include "LFExtendTracksX.cuh"
+#include "LFExtendMissingX.cuh"
 #include "LFTripletSeeding.cuh"
 #include "LFCompositeTrackSeeding.cuh"
 #include "LFCompositeExtendTracksUV.cuh"
@@ -71,6 +72,7 @@
 #include "LFQualityFilterLength.cuh"
 #include "LFSearchUVWindows.cuh"
 #include "LFFit.cuh"
+#include "MuonDecoding.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

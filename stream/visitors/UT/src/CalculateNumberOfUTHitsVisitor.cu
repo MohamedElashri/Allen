@@ -30,10 +30,10 @@ void SequenceVisitor::visit<ut_calculate_number_of_hits_t>(
   state.set_arguments(
     arguments.offset<dev_ut_raw_input>(),
     arguments.offset<dev_ut_raw_input_offsets>(),
-    constants.dev_ut_boards,
-    constants.dev_ut_region_offsets,
-    constants.dev_unique_x_sector_layer_offsets,
-    constants.dev_unique_x_sector_offsets,
+    constants.dev_ut_boards.data(),
+    constants.dev_ut_region_offsets.data(),
+    constants.dev_unique_x_sector_layer_offsets.data(),
+    constants.dev_unique_x_sector_offsets.data(),
     arguments.offset<dev_ut_hit_offsets>(),
     arguments.offset<dev_event_list>());
 

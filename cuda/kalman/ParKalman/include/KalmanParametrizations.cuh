@@ -126,30 +126,25 @@ namespace ParKalmanFilter {
 
     //----------------------------------------------------------------------
     // Set parameters.
-    __host__ void SetParameters(std::string ParamFileLocation, Polarity polarity, bool useOneParameterSet = false)
+    __host__ void SetParameters(std::string ParamFileLocation, Polarity polarity)
     {
 
       // Get polarity.
       if ((m_Polarity == polarity) && paramsLoaded) return;
-      std::string pol = (polarity == Polarity::Up ? "Up" : "Down");
-
-      // The down parameter set is the default one
-      if (useOneParameterSet) pol = "Down";
-      std::string parameterPath = ParamFileLocation + "/Mag" + pol;
 
       // read the parameters for parametrizations
-      read_params(parameterPath + "/params_predictV.txt", Par_predictV);
-      read_params(parameterPath + "/params_predictVUT.txt", Par_predictVUT);
-      read_params(parameterPath + "/params_predictUT.txt", Par_predictUT);
-      read_params(parameterPath + "/params_predictUTFUT.txt", Par_predictUTFUT);
-      read_params(parameterPath + "/params_predictUTTF.txt", Par_predictUTTF);
-      read_params(parameterPath + "/params_predictTFT.txt", Par_predictTFT);
-      read_params(parameterPath + "/params_predictT.txt", Par_predictT);
-      read_params(parameterPath + "/params_TLayer.txt", Par_TLayer);
-      read_params(parameterPath + "/params_UTLayer.txt", Par_UTLayer);
+      read_params(ParamFileLocation + "/params_predictV.txt", Par_predictV);
+      read_params(ParamFileLocation + "/params_predictVUT.txt", Par_predictVUT);
+      read_params(ParamFileLocation + "/params_predictUT.txt", Par_predictUT);
+      read_params(ParamFileLocation + "/params_predictUTFUT.txt", Par_predictUTFUT);
+      read_params(ParamFileLocation + "/params_predictUTTF.txt", Par_predictUTTF);
+      read_params(ParamFileLocation + "/params_predictTFT.txt", Par_predictTFT);
+      read_params(ParamFileLocation + "/params_predictT.txt", Par_predictT);
+      read_params(ParamFileLocation + "/params_TLayer.txt", Par_TLayer);
+      read_params(ParamFileLocation + "/params_UTLayer.txt", Par_UTLayer);
 
       // Get the up parameters from the down parameters
-      if (useOneParameterSet && polarity == Polarity::Up) {
+      if (polarity == Polarity::Up) {
         SwitchParamsForPolarity(Par_predictV, flip_Par_predictV);
         SwitchParamsForPolarity(Par_predictVUT, flip_Par_predictVUT);
         SwitchParamsForPolarity(Par_predictUT, flip_Par_predictUT);
@@ -160,7 +155,7 @@ namespace ParKalmanFilter {
       }
 
       // read_params_UTT(ParamFileLocation + "/MagDown/v5r0_7957.tab");
-      read_params_UTT(parameterPath + "/v5r0_7957.tab");
+      read_params_UTT(ParamFileLocation + "/v5r0_7957.tab");
       if (polarity == Polarity::Up) m_qop_flip = true;
 
       m_Polarity = polarity;

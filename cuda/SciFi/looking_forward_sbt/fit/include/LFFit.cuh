@@ -18,6 +18,7 @@ __device__ void lf_fit_impl(
   const LookingForward::Constants* dev_looking_forward_constants,
   const SciFi::Tracking::Arrays* constArrays,
   const MiniState velo_state,
+  const float xAtRef_average,
   float* trackParams);
 
 __global__ void lf_fit(
@@ -33,6 +34,7 @@ __global__ void lf_fit(
   const uint* dev_ut_track_velo_indices,
   SciFi::TrackHits* dev_scifi_lf_tracks,
   const int* dev_scifi_lf_atomics,
+  const float* dev_scifi_lf_xAtRef_after_length_filter,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const SciFi::Tracking::Arrays* constArrays,
@@ -57,4 +59,5 @@ ALGORITHM(
     dev_ut_tx,
     dev_scifi_lf_length_filtered_atomics,
     dev_scifi_lf_length_filtered_tracks,
-    dev_scifi_lf_track_params))
+    dev_scifi_lf_track_params,
+    dev_scifi_lf_xAtRef_after_length_filter))
