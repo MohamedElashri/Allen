@@ -25,7 +25,6 @@ namespace TrackMVALines {
     decision &= vertex.eta > minEta && vertex.eta < maxEta;
     decision &= vertex.ntrks16 <= maxNtrks16;
     decision &= vertex.fdchi2 > minFDChi2;
-    if (decision) printf("PASSED 2-TRACK!\n");
     return;
   }
   

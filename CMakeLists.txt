@@ -226,6 +226,7 @@ include_directories(cuda/event_model/SciFi/include)
 include_directories(cuda/event_model/common/include)
 include_directories(checker/tracking/include)
 include_directories(checker/pv/include)
+include_directories(checker/selections/include)
 include_directories(stream/sequence/include)
 include_directories(x86/SciFi/PrForward/include)
 include_directories(x86/SciFi/LookingForward/include)
@@ -257,6 +258,7 @@ target_link_libraries(AllenLib PUBLIC
   TrackChecking
   PVChecking
   CheckClustering
+  SelChecking
   x86MuonDecoding
   Common
   NonEventData)
