@@ -14,10 +14,10 @@
 template<typename T>
 struct LineHandler {
 
-  void (*line) (const T& candidate, bool& decision);
+  bool (*line) (const T& candidate);
 
   __device__ LineHandler(
-    void (*m_line) (const T& candidate, bool& decision));
+    bool (*m_line) (const T& candidate));
 
   __device__ void operator()(
     const T* candidates,
@@ -28,7 +28,7 @@ struct LineHandler {
 
 template<typename T>
 __device__ LineHandler<T>::LineHandler(
-  void (*m_line) (const T& candidate, bool& decision))
+  bool (*m_line) (const T& candidate))
 {
   line = m_line;
 }
@@ -40,7 +40,7 @@ __device__ void LineHandler<T>::operator()(
   bool* results)
 {
   for (int i_cand = threadIdx.x; i_cand < n_candidates; i_cand += blockDim.x) {
-    line(candidates[i_cand], results[i_cand]);
+    results[i_cand] = line(candidates[i_cand]);
   }
 }                                           
 
