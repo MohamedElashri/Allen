@@ -77,7 +77,7 @@ __global__ void lf_search_uv_windows(
         uv_search_window_start - event_offset,
         uv_search_window_size,
         projection_x,
-        4.f * dev_looking_forward_constants->extrapolation_uv_stddev[relative_uv_layer]);
+        LookingForward::chi2_max_extrapolation_to_uv_layers_single);
 
        dev_scifi_lf_uv_windows[
         6 * ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
