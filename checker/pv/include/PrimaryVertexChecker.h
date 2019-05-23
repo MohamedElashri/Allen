@@ -65,64 +65,8 @@ public:
   PV::Vertex* pRECPV;            // pointer to REC PV
 } RecPVInfo;
 
-void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::vector<MCPVInfo>& mcpvvec)
-{
+void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::vector<MCPVInfo>& mcpvvec);
 
-  double mindist = 999999.;
-  int indexmc = -1;
+void printRat(std::string mes, int a, int b);
 
-  for (int imc = 0; imc < (int) mcpvvec.size(); imc++) {
-    double dist = fabs(mcpvvec[imc].pMCPV->z - rinfo[ipv].z);
-    if (dist < mindist) {
-      mindist = dist;
-      indexmc = imc;
-    }
-  }
-  if (indexmc > -1) {
-    if (mindist < 5.0 * rinfo[ipv].positionSigma.z) {
-      rinfo[ipv].indexMCPVInfo = indexmc;
-      mcpvvec[indexmc].indexRecPVInfo = ipv;
-      mcpvvec[indexmc].number_rec_vtx++;
-    }
-  }
-}
-
-void printRat(std::string mes, int a, int b)
-{
-
-  float rat = 0.f;
-  if (b > 0) rat = 1.0f * a / b;
-
-  // reformat message
-  unsigned int len = 20;
-  std::string pmes = mes;
-  while (pmes.length() < len) {
-    pmes += " ";
-  }
-  pmes += " : ";
-
-  info_cout << pmes << " " << rat << "( " << a << " / " << b << " )" << std::endl;
-}
-
-std::vector<MCPVInfo>::iterator closestMCPV(std::vector<MCPVInfo>& rblemcpv, std::vector<MCPVInfo>::iterator& itmc)
-{
-
-  std::vector<MCPVInfo>::iterator itret = rblemcpv.end();
-  double mindist = 999999.;
-  if (rblemcpv.size() < 2) return itret;
-  std::vector<MCPVInfo>::iterator it;
-  for (it = rblemcpv.begin(); it != rblemcpv.end(); it++) {
-    if (it->pMCPV != itmc->pMCPV) {
-      double diff_x = it->pMCPV->x - itmc->pMCPV->x;
-      double diff_y = it->pMCPV->y - itmc->pMCPV->y;
-      double diff_z = it->pMCPV->z - itmc->pMCPV->z;
-      double dist = sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z);
-
-      if (dist < mindist) {
-        mindist = dist;
-        itret = it;
-      }
-    }
-  }
-  return itret;
-}
+std::vector<MCPVInfo>::iterator closestMCPV(std::vector<MCPVInfo>& rblemcpv, std::vector<MCPVInfo>::iterator& itmc);

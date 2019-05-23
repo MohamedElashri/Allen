@@ -23,6 +23,7 @@
 #include "cuda_runtime.h"
 #include "CudaCommon.h"
 #include "RuntimeOptions.h"
+#include "ProgramOptions.h"
 #include "Logger.h"
 #include "Tools.h"
 #include "InputTools.h"
@@ -53,8 +54,7 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
                       });
 }
 
-int allen(map<string, string> options, Allen::NonEventData::IUpdater* updater) {
-
+int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater) {
   // Folder containing raw, MC and muon information
   std::string folder_data = "../input/minbias/";
   const std::string folder_rawdata = "banks/";
@@ -76,37 +76,43 @@ int allen(map<string, string> options, Allen::NonEventData::IUpdater* updater) {
   int cuda_device = 0;
   int cpu_offload = 1;
 
-  string flag, arg;
+  std::string flag, arg;
+  const auto flag_in = [&flag] (const std::vector<std::string>& option_flags) {
+    if (std::find(std::begin(option_flags), std::end(option_flags), flag) != std::end(option_flags)) {
+      return true;
+    }
+    return false;
+  };
+
+  // Use flags to populate variables in the program
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
-    if (flag == "cuda_device") {
-      cuda_device = atoi(arg.c_str());
-    } else if (flag == "mdf") {
-      use_mdf = atoi(arg.c_str());
-    } else if (flag == "cpu-offload") {
-      cpu_offload = atoi(arg.c_str());
-    } else if (flag == "f") {
+    if (flag_in({"f", "folder"})) {
       folder_data = arg + "/";
-    } else if (flag == "g") {
+    } else if (flag_in({"g", "geometry"})) {
       folder_detector_configuration = arg + "/";
-    } else if (flag == "i") {
-      folder_name_imported_forward_tracks = arg;
-    } else if (flag == "m") {
-      reserve_mb = atoi(arg.c_str());
-    } else if (flag == "n") {
+    } else if (flag_in({"mdf"})) {
+      use_mdf = atoi(arg.c_str());
+    } else if (flag_in({"n", "number-of-events"})) {
       number_of_events_requested = atoi(arg.c_str());
-    } else if (flag == "o") {
-      start_event_offset = atoi(arg.c_str());
-    } else if (flag == "t") {
+    } else if (flag_in({"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
-    } else if (flag == "r") {
+    } else if (flag_in({"r", "repetitions"})) {
       number_of_repetitions = atoi(arg.c_str());
-    } else if (flag == "c") {
+    } else if (flag_in({"c", "validate"})) {
       do_check = atoi(arg.c_str());
-    } else if (flag == "v") {
+    } else if (flag_in({"m", "memory"})) {
+      reserve_mb = atoi(arg.c_str());
+    } else if (flag_in({"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
-    } else if (flag == "p") {
+    } else if (flag_in({"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
+    } else if (flag_in({"i", "import-tracks"})) {
+      folder_name_imported_forward_tracks = arg;
+    } else if (flag_in({"cpu-offload"})) {
+      cpu_offload = atoi(arg.c_str());
+    } else if (flag_in({"device"})) {
+      cuda_device = atoi(arg.c_str());
     }
   }
 
@@ -145,22 +151,7 @@ int allen(map<string, string> options, Allen::NonEventData::IUpdater* updater) {
   }
 
   // Show call options
-  std::cout << "Requested options:" << std::endl
-            << " data folder (-f): " << folder_data << " (eg. \"../input/minbias/\")" << std::endl
-            << " using " << (use_mdf ? "MDF" : "binary") << " input" << (use_mdf ? " (--mdf)" : "") << std::endl
-            << " folder with detector configuration (-g): " << folder_detector_configuration << std::endl
-            << " folder with imported forward tracks (-i): " << folder_name_imported_forward_tracks << std::endl
-            << " run checkers (-c): " << do_check << std::endl
-            << " number of files (-n): " << number_of_events_requested << std::endl
-            << " start event offset (-o): " << start_event_offset << std::endl
-            << " threads / streams (-t): " << number_of_threads << std::endl
-            << " number of repetitions (-r): " << number_of_repetitions << std::endl
-            << " reserve MB (-m): " << reserve_mb << std::endl
-            << " print memory usage (-p): " << print_memory_usage << std::endl
-            << " verbosity (-v): " << verbosity << std::endl
-            << " offload part of the computation to CPU (--cpu-offload) " << cpu_offload << std::endl
-            << " device (--device) " << cuda_device << ": " << device_name << std::endl
-            << std::endl;
+  print_call_options(options, device_name);
 
   bool check_imported_forward_tracks = !folder_name_imported_forward_tracks.empty();
 

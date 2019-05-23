@@ -61,7 +61,7 @@ __global__ void lf_triplet_keep_best(
     // Sort the candidates (insertion sort) into best_triplets
     for (uint16_t j = threadIdx.x; j < 4 * LookingForward::maximum_number_of_candidates; j += blockDim.x) {
       const float chi2 = best_chi2[j];
-      if (chi2 < LookingForward::chi2_mean_triplet_single + 2.5f * LookingForward::chi2_stddev_triplet_single) {
+      if (chi2 < LookingForward::chi2_max_triplet_single) {
         int16_t insert_position = 0;
         for (uint16_t k = 0; k < 4 * LookingForward::maximum_number_of_candidates; ++k) {
           const float other_chi2 = best_chi2[k];

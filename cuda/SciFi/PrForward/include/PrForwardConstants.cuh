@@ -162,6 +162,14 @@ namespace SciFi {
                                      0.0874892,
                                      -0.0874892};
       const float Zone_dzdy[24] = {0.0036010};
+
+      // this is used by looking_forward_sbt maybe this is not the right place to put it
+      const float uv_dx[6] = {1.6739478541449213,
+                              1.6738495069872612,
+                              1.935683825160498,
+                              1.9529279746403518,
+                              2.246931985749485,
+                              2.2797556995480273};
     };
 
     // parameters for extrapolating from EndVelo to ZReference

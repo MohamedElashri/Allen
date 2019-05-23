@@ -12,6 +12,7 @@ __device__ void fill_candidates_impl(
   const uint* module_hitStarts,
   const uint* module_hitNums,
   const float* hit_Phis,
+  const float* hit_Zs,
   const uint hit_offset)
 {
   // Notation is m0, m1, m2 in reverse order for each module
@@ -30,18 +31,19 @@ __device__ void fill_candidates_impl(
     const auto h1_index = module_hitStarts[module_index] + h1_rel_index - hit_offset;
 
     // Calculate phi limits
-    const float h1_phi = hit_Phis[h1_index];
+    const auto h1_phi = hit_Phis[h1_index];
+    const auto phi_window = Velo::Tracking::phi_extrapolation_base + std::abs(hit_Zs[h1_index]) * Velo::Tracking::phi_extrapolation_coef;
 
     int first_h0_bin = -1, last_h0_bin = -1;
     if (m0_hitNums > 0) {
       // Do a binary search for h0 candidates
       first_h0_bin =
-        binary_search_first_candidate(hit_Phis + m0_hitStarts, m0_hitNums, h1_phi, Velo::Tracking::phi_extrapolation);
+        binary_search_first_candidate(hit_Phis + m0_hitStarts, m0_hitNums, h1_phi, phi_window);
 
       if (first_h0_bin != -1) {
         // Find last h0 candidate
         last_h0_bin = binary_search_second_candidate(
-          hit_Phis + m0_hitStarts + first_h0_bin, m0_hitNums - first_h0_bin, h1_phi, Velo::Tracking::phi_extrapolation);
+          hit_Phis + m0_hitStarts + first_h0_bin, m0_hitNums - first_h0_bin, h1_phi, phi_window);
         first_h0_bin += m0_hitStarts;
         last_h0_bin = last_h0_bin == 0 ? first_h0_bin + 1 : first_h0_bin + last_h0_bin;
       }
@@ -54,12 +56,12 @@ __device__ void fill_candidates_impl(
     if (m2_hitNums > 0) {
       // Do a binary search for h2 candidates
       first_h2_bin =
-        binary_search_first_candidate(hit_Phis + m2_hitStarts, m2_hitNums, h1_phi, Velo::Tracking::phi_extrapolation);
+        binary_search_first_candidate(hit_Phis + m2_hitStarts, m2_hitNums, h1_phi, phi_window);
 
       if (first_h2_bin != -1) {
         // Find last h0 candidate
         last_h2_bin = binary_search_second_candidate(
-          hit_Phis + m2_hitStarts + first_h2_bin, m2_hitNums - first_h2_bin, h1_phi, Velo::Tracking::phi_extrapolation);
+          hit_Phis + m2_hitStarts + first_h2_bin, m2_hitNums - first_h2_bin, h1_phi, phi_window);
         first_h2_bin += m2_hitStarts;
         last_h2_bin = last_h2_bin == 0 ? first_h2_bin + 1 : first_h2_bin + last_h2_bin;
       }
@@ -91,8 +93,9 @@ __global__ void fill_candidates(
 
   // Order has changed since SortByPhi
   const float* hit_Phis = (float*) (dev_velo_cluster_container + 4 * number_of_hits + hit_offset);
+  const float* hit_Zs = (float*) (dev_velo_cluster_container + number_of_hits + hit_offset);
   short* h0_candidates = dev_h0_candidates + 2 * hit_offset;
   short* h2_candidates = dev_h2_candidates + 2 * hit_offset;
 
-  fill_candidates_impl(h0_candidates, h2_candidates, module_hitStarts, module_hitNums, hit_Phis, hit_offset);
+  fill_candidates_impl(h0_candidates, h2_candidates, module_hitStarts, module_hitNums, hit_Phis, hit_Zs, hit_offset);
 }

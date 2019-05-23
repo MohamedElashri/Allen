@@ -31,8 +31,13 @@ if(NOT SEQUENCE)
   set(SEQUENCE DefaultSequence)
 endif(NOT SEQUENCE)
 
+if(NOT DEFINED CPU_ARCH)
+  set(CPU_ARCH native)
+endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
+MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
@@ -40,7 +45,9 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Configuration of CUDA compute architecture
-set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
+if(NOT DEFINED CUDA_ARCH)
+  set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
+endif()
 
 if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
   set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
@@ -68,6 +75,9 @@ if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "
 else()
   message(STATUS "Cuda architecture manually set to ${CUDA_ARCH}")
   set(ARCH_FLAG "-arch=${CUDA_ARCH}")
+endif()
+if(DEFINED OVERRIDE_ARCH_FLAG)
+  set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
 endif()
 
 find_package(ZLIB REQUIRED)
@@ -152,7 +162,7 @@ endif()
 # In case we want to compile with clang:
 # --compiler-bindir /cvmfs/sft.cern.ch/lcg/releases/clang/6.0.0-6647e/x86_64-centos7-gcc62-opt/bin/clang++;
 set(CMAKE_CUDA_STANDARD 14)
-set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --use_fast_math --expt-relaxed-constexpr --maxrregcount=63 ${CUDA_VERBOSE_FLAGS}")
+set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
 add_subdirectory(cuda)
 add_subdirectory(stream)
@@ -200,6 +210,7 @@ include_directories(cuda/SciFi/looking_forward_sbt/collect_candidates/include)
 include_directories(cuda/SciFi/looking_forward_sbt/triplet_seeding/include)
 include_directories(cuda/SciFi/looking_forward_sbt/triplet_keep_best/include)
 include_directories(cuda/SciFi/looking_forward_sbt/extend_tracks_x/include)
+include_directories(cuda/SciFi/looking_forward_sbt/extend_missing_x/include)
 include_directories(cuda/SciFi/looking_forward_sbt/composite_algorithms/include)
 include_directories(cuda/SciFi/looking_forward_sbt/extend_tracks_uv/include)
 include_directories(cuda/SciFi/looking_forward_sbt/quality_filter/include)
