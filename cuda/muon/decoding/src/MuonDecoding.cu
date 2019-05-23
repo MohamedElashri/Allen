@@ -43,8 +43,9 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
   __shared__ bool used[Constants::max_numhits_per_event];
   __shared__ int stationOccurrencesOffset[Constants::n_stations + 1];
   const MuonRawEvent rawEvent = MuonRawEvent(events + offsets[eventId]);
-  __shared__ uint16_t* batchSizePointers[MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank];
-  __shared__ unsigned int tell1Numbers[MuonRawEvent::number_of_raw_banks];
+  // __shared__ uint16_t* batchSizePointers[MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank];
+  // __shared__ unsigned int tell1Numbers[MuonRawEvent::number_of_raw_banks];
+  
   if (threadIdx.x == 0) {
     currentHitIndex = 0;
     currentStorageIndex = 0;
@@ -53,38 +54,100 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
     memset(used, false, sizeof(used));
     memset(stationOccurrencesOffset, 0, sizeof(stationOccurrencesOffset));
   }
-  if (threadIdx.x < MuonRawEvent::number_of_raw_banks)  {
-    const size_t bank_index = threadIdx.x;
-    const unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
-    tell1Numbers[bank_index] = tell1Number;
-    MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
-    uint16_t* p = rawBank.data;
-    const int preamble_size = 2 * ((*p + 3) / 2);
-    p += preamble_size;
-    for (size_t i = 0; i < MuonRawEvent::batches_per_bank; i++) {
-      const uint16_t batchSize = *p;
-      batchSizePointers[bank_index * MuonRawEvent::batches_per_bank + i] = p;
-      p += 1 + batchSize;
-    }
-  }
+
+  // Due to shared memory
   __syncthreads();
 
-  if (threadIdx.x < MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank) {
-    uint16_t batchSize = *batchSizePointers[threadIdx.x];
-    for (size_t shift = 1; shift < 1 + batchSize; shift++) {
-      const unsigned int pp = *(batchSizePointers[threadIdx.x] + shift);
-      const unsigned int add = (pp & 0x0FFF);
-      const unsigned int tdc_value = ((pp & 0xF000) >> 12);
-      const unsigned int tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(
-          tell1Numbers[threadIdx.x / MuonRawEvent::batches_per_bank], add
-      );
+  // if (threadIdx.x < MuonRawEvent::number_of_raw_banks)  {
+  //   const size_t bank_index = threadIdx.x;
+  //   const unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
+    
+  //   tell1Numbers[bank_index] = tell1Number;
+    
+  //   MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
+  //   uint16_t* p = rawBank.data;
+  //   const int preamble_size = ((*p) + 3) & 0xFFFE; // (*p + 3) & 0xFFFE
+  //   p += preamble_size;
+  //   for (size_t i = 0; i < MuonRawEvent::batches_per_bank; i++) {
+  //     batchSizePointers[bank_index * MuonRawEvent::batches_per_bank + i] = p;
+  //     p += 1 + *p;
+  //   }
+  // }
+
+  // __syncthreads();
+
+  // if (threadIdx.x < MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank) {
+  //   uint16_t batchSize = *batchSizePointers[threadIdx.x];
+
+  //   for (size_t shift = 1; shift < 1 + batchSize; shift++) {
+  //     const unsigned int pp = *(batchSizePointers[threadIdx.x] + shift);
+  //     const unsigned int add = (pp & 0x0FFF);
+  //     const unsigned int tdc_value = ((pp & 0xF000) >> 12);
+  //     const unsigned int tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(
+  //         tell1Numbers[threadIdx.x / MuonRawEvent::batches_per_bank], add
+  //     );
+
+  //     if (tileId != 0) {
+  //       int localCurrentStorageIndex = atomicAdd(&currentStorageIndex, 1);
+  //       storageTileId[localCurrentStorageIndex] = tileId;
+  //       storageTdcValue[localCurrentStorageIndex] = tdc_value;
+  //     }
+  //   }
+  // }
+
+  // number_of_raw_banks = 10
+  // batches_per_bank = 4
+  constexpr uint32_t batches_per_bank_mask = 0x3;
+  constexpr uint32_t batches_per_bank_shift = 2;
+  for (int i=threadIdx.x; i<MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank; i+=blockDim.x) {
+    const auto bank_index = i >> batches_per_bank_shift;
+    const auto batch_index = i & batches_per_bank_mask;
+
+    const auto raw_bank = rawEvent.getMuonBank(bank_index);
+    const auto tell_number = raw_bank.sourceID;
+
+    // if (tell_number != tell1Numbers[bank_index]) {
+    //   printf("Tell number differs");
+    // }
+
+    uint16_t* p = raw_bank.data;
+    
+    // Note: Review this logic
+    p += 2 * ((*p + 3) / 2);
+    for (int j=0; j<batch_index; ++j) {
+      p += 1 + *p;
+    }
+
+    // if (p != batchSizePointers[bank_index * 4 + batch_index]) {
+    //   printf("Pointers differ (bank %i, batch %i): %lld %lld %lld %lld\n",
+    //     bank_index,
+    //     batch_index,
+    //     p,
+    //     batchSizePointers[bank_index * 4 + batch_index],
+    //     batchSizePointers[i],
+    //     ((uint16_t*)raw_bank.data) + ((*((uint16_t*)raw_bank.data) + 3) & 0xFFFE)
+    //     );
+    // }
+
+    const auto batch_size = *p;
+    for (int j=1; j<batch_size+1; ++j) {
+      const auto pp = *(p + j);
+      const auto add = (pp & 0x0FFF);
+      const auto tdc_value = ((pp & 0xF000) >> 12);
+      const auto tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(tell_number, add);
+      
       if (tileId != 0) {
-        int localCurrentStorageIndex = atomicAdd(&currentStorageIndex, 1);
-        storageTileId[localCurrentStorageIndex] = tileId;
-        storageTdcValue[localCurrentStorageIndex] = tdc_value;
+        const auto insert_index = atomicAdd(&currentStorageIndex, 1);
+        storageTileId[insert_index] = tileId;
+        storageTdcValue[insert_index] = tdc_value;
+
+        // Also add to storageStationRegionQuarterOccurrencesOffset
+        const auto stationRegionQuarter = MuonTileID::stationRegionQuarter(storageTileId[i]);
+        atomicAdd(storageStationRegionQuarterOccurrencesOffset + stationRegionQuarter, 1);
       }
     }
   }
+
   __syncthreads();
 
   if (threadIdx.x == 0) {
@@ -96,6 +159,15 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
       storageStationRegionQuarterOccurrencesOffset[i + 1] += storageStationRegionQuarterOccurrencesOffset[i];
       originalStorageStationRegionQuarterOccurrencesOffset[i + 1] = storageStationRegionQuarterOccurrencesOffset[i + 1];
     }
+
+    printf("Pre sort:\n");
+    for (int i=0; i<currentStorageIndex; ++i) {
+      printf("{%u, %u, %u}, ",
+        storageTileId[i],
+        storageTdcValue[i],
+        MuonTileID::stationRegionQuarter(storageTileId[i]));
+    }
+    printf("\n");
 
     for (int i = currentStorageIndex - 1; i > -1; i--) {
       int currentStorageTileId = storageTileId[i];
@@ -118,6 +190,15 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
         storageTdcValue[i] = currentStorageTdcValue;
       }
     }
+
+    printf("Post sort:\n");
+    for (int i=0; i<currentStorageIndex; ++i) {
+      printf("{%u, %u, %u}, ",
+        storageTileId[i],
+        storageTdcValue[i],
+        MuonTileID::stationRegionQuarter(storageTileId[i]));
+    }
+    printf("\n");
   }
   __syncthreads();
 
@@ -168,3 +249,4 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
     }
   }
 }
+

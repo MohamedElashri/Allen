@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
-#include <assert.h>
+#include <cstdint>
+#include <cassert>
 
 namespace Muon {
   struct MuonRawBank {
