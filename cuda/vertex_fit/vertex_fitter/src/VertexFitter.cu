@@ -314,7 +314,8 @@ __global__ void fit_secondary_vertices(
       // Only combine tracks from the same PV.
       // Note: all tracks with IP chi2 > 16 are assigned to vertex 1000 + ipv.
       if (pv_table.pv[i_track] != pv_table.pv[j_track] &&
-          (pv_table.pv[i_track] < 1000 || pv_table.pv[j_track] < 1000)) {
+          (pv_table.value[i_track] > VertexFit::maxAssocIPChi2 ||
+           pv_table.value[j_track] > VertexFit::maxAssocIPChi2)) {
         continue;
       }
             
@@ -329,7 +330,6 @@ __global__ void fit_secondary_vertices(
 
       // Fill extra info.
       int ipv = pv_table.pv[i_track];
-      if (ipv >= 1000) ipv -= 1000;
       auto pv = vertices[ipv];
       fill_extra_info(
         event_secondary_vertices[vertex_idx],

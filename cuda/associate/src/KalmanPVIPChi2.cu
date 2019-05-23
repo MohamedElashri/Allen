@@ -62,7 +62,6 @@ __device__ void associate(
       best_value = (first || val < best_value) ? val : best_value;
       first = false;
     }
-    if (best_value > 16) best_index = 1000 + best_index;
     table.pv[i] = best_index;
     table.value[i] = best_value;
     tracks[i].ipChi2 = best_value;
@@ -97,8 +96,6 @@ __global__ void kalman_pv_ipchi2(
 
   // The total track-PV association table.
   Associate::Consolidated::Table kalman_pv_ipchi2 {dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks};
-  // I don't think we need to actually use this cutoff.
-  //kalman_pv_ipchi2.set_cutoff(Associate::KalmanPVIPChi2::baseline);
 
   // Kalman-fitted tracks for this event.
   ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
