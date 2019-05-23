@@ -219,7 +219,7 @@ namespace VertexFit {
     const float invcov21 = cov00 * cov21 * invdet;
     const float invcov22 = cov00 * cov22 * invdet;
     sv.fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz
-      + 2 * invcov20 * dx * dz + 2 * invcov21 * dy * dz;
+      + 2.f * invcov20 * dx * dz + 2.f * invcov21 * dy * dz;
 
     // PV-SV eta.
     sv.eta = std::atanh(dz / fd);
@@ -228,8 +228,8 @@ namespace VertexFit {
     const float px = trackA.px() + trackB.px();
     const float py = trackA.py() + trackB.py();
     const float pz = trackA.pz() + trackB.pz();
-    const float mvis2 = 2.0f * mPi * mPi
-      + 2 * (std::sqrt((trackA.p() * trackA.p() + mPi * mPi) *
+    const float mvis2 = 2.f * mPi * mPi
+      + 2.f * (std::sqrt((trackA.p() * trackA.p() + mPi * mPi) *
                        (trackB.p() * trackB.p() + mPi * mPi))
              - trackA.px() * trackB.px()
              - trackA.py() * trackB.py()
