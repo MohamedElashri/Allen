@@ -80,3 +80,7 @@ PREFIX_SUM_ALGORITHM(
 PREFIX_SUM_ALGORITHM(
   lf_prefix_sum_candidates_t,
   ARGUMENTS(dev_scifi_lf_number_of_candidates, dev_prefix_sum_auxiliary_array_7))
+
+PREFIX_SUM_ALGORITHM(
+  muon_pre_decoding_prefix_sum_t,
+  ARGUMENTS(dev_storage_station_region_quarter_offsets, dev_prefix_sum_auxiliary_array_8))

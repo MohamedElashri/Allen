@@ -6,9 +6,11 @@
 #include "UTDefinitions.cuh"
 #include "SciFiDefinitions.cuh"
 #include "Handler.cuh"
+#include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
+#include "ArgumentsMuon.cuh"
 
 __global__ void prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);
 
@@ -58,3 +60,4 @@ ALGORITHM(
   copy_scifi_track_hit_number,
   copy_scifi_track_hit_number_t,
   ARGUMENTS(dev_atomics_ut, dev_scifi_tracks, dev_atomics_scifi, dev_scifi_track_hit_number))
+

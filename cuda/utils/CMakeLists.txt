@@ -15,6 +15,8 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 
 add_library(Utils STATIC
   ${prefix_sum}

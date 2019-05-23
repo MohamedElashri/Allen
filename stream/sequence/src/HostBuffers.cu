@@ -18,6 +18,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_accumulated_number_of_hits_in_scifi_tracks, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_lf_total_number_of_candidates, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_lf_total_size_first_window_layer, sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_tiles, sizeof(uint)));
 
   // Buffer for performing GEC on CPU
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));

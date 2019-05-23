@@ -70,7 +70,8 @@ struct HostBuffers {
 
   // Muon
   float* host_muon_catboost_output;
-  bool *host_is_muon;
+  bool* host_is_muon;
+  uint* host_muon_total_number_of_tiles;
 
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;
