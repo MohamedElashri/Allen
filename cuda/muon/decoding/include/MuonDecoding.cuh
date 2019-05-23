@@ -5,8 +5,8 @@
 #include "MuonDefinitions.cuh"
 #include "MuonRawToHits.cuh"
 
-__global__ void muon_decoding(uint* event_list, char* events, unsigned int* offsets,
-    Muon::MuonRawToHits* muon_raw_to_hits, Muon::HitsSoA* muon_hits);
+__global__ void muon_decoding(const uint* event_list, const char* events, const unsigned int* offsets,
+                              Muon::MuonRawToHits* muon_raw_to_hits, Muon::HitsSoA* muon_hits);
 
 ALGORITHM(
     muon_decoding,
