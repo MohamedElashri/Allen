@@ -10,7 +10,7 @@
 
 __global__ void run_hlt1(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  const VertexFit::Vertex* dev_secondary_vertices,
+  const VertexFit::TrackMVAVertex* dev_secondary_vertices,
   const int* dev_atomics_scifi,
   const uint* dev_sv_offsets,
   bool* dev_one_track_results,
@@ -27,12 +27,12 @@ __global__ void run_hlt1(
   const int n_tracks_event = dev_atomics_scifi[event_number];
 
   // Vertices.
-  const VertexFit::Vertex* event_vertices = dev_secondary_vertices + dev_sv_offsets[event_number];
+  const VertexFit::TrackMVAVertex* event_vertices = dev_secondary_vertices + dev_sv_offsets[event_number];
   bool* event_two_track_results = dev_two_track_results + dev_sv_offsets[event_number];
   const int n_vertices_event = dev_sv_offsets[event_number + 1] - dev_sv_offsets[event_number];
   
   LineHandler<ParKalmanFilter::FittedTrack> oneTrackHandler(TrackMVALines::OneTrackMVA);
-  LineHandler<VertexFit::Vertex> twoTrackHandler(TrackMVALines::TwoTrackMVA);
+  LineHandler<VertexFit::TrackMVAVertex> twoTrackHandler(TrackMVALines::TwoTrackMVA);
 
   oneTrackHandler(
     event_tracks,

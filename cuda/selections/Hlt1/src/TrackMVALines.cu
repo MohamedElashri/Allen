@@ -5,7 +5,7 @@ namespace TrackMVALines {
   __device__ bool OneTrackMVA(const ParKalmanFilter::FittedTrack& track)
   {
     float ptShift = track.pt() - alpha;
-    bool decision =  track.chi2/track.ndof < maxChi2Ndof;// &&
+    bool decision =  track.chi2/track.ndof < maxChi2Ndof;
     decision &= ((ptShift > maxPt && track.ipChi2 > minIPChi2) ||
                (ptShift > minPt && ptShift < maxPt &&
                 std::log(track.ipChi2) > param1 / (ptShift/1000. - param2) / (ptShift/1000. - param2)
@@ -13,7 +13,7 @@ namespace TrackMVALines {
     return decision;
   }
 
-  __device__ bool TwoTrackMVA(const VertexFit::Vertex& vertex)
+  __device__ bool TwoTrackMVA(const VertexFit::TrackMVAVertex& vertex)
   {
     if (vertex.chi2 < 0) {
       return false;

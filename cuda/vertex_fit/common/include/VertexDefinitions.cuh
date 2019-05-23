@@ -14,11 +14,12 @@ namespace VertexFit {
 
   // Maximum IP chi2 for a track to be associated to a PV.
   const float maxAssocIPChi2 = 16.0;
+
+  // Charged pion mass for calculating Mcor.
+  const float mPi = 139.57;
   
-  struct Vertex {
+  struct TrackMVAVertex {
     // Fit results.
-    //float3 position;
-    //float3 momentum;
     float px = 0.0f;
     float py = 0.0f;
     float pz = 0.0f;

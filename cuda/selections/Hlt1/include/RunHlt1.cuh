@@ -46,7 +46,7 @@ __device__ void LineHandler<T>::operator()(
 
 __global__ void run_hlt1(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  const VertexFit::Vertex* dev_secondary_vertices,
+  const VertexFit::TrackMVAVertex* dev_secondary_vertices,
   const int* dev_atomics_scifi,
   const uint* dev_sv_offsets,
   bool* dev_one_track_results,

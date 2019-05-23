@@ -121,7 +121,7 @@ namespace VertexFit {
   __device__ bool doFit(
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB,
-    Vertex& vertex)
+    TrackMVAVertex& vertex)
   {
     if (!poca(trackA, trackB, vertex.x, vertex.y, vertex.z)) {
       return false;
@@ -181,7 +181,7 @@ namespace VertexFit {
   }
 
   __device__ void fill_extra_info(
-    Vertex& sv,
+    TrackMVAVertex& sv,
     const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB)
@@ -224,13 +224,12 @@ namespace VertexFit {
     sv.eta = std::atanh(dz / fd);
     
     // Corrected mass.
-    const float mpi = 139.57;
     const float px = trackA.px() + trackB.px();
     const float py = trackA.py() + trackB.py();
     const float pz = trackA.pz() + trackB.pz();
-    const float mvis2 = 2 * mpi * mpi
-      + 2 * (std::sqrt((trackA.p() * trackA.p() + mpi * mpi) *
-                       (trackB.p() * trackB.p() + mpi * mpi))
+    const float mvis2 = 2.0f * mPi * mPi
+      + 2 * (std::sqrt((trackA.p() * trackA.p() + mPi * mPi) *
+                       (trackB.p() * trackB.p() + mPi * mPi))
              - trackA.px() * trackB.px()
              - trackA.py() * trackB.py()
              - trackA.pz() * trackB.pz());
@@ -254,7 +253,7 @@ __global__ void fit_secondary_vertices(
   uint* dev_number_of_multi_fit_vertices,
   char* dev_kalman_pv_ipchi2,
   uint* dev_sv_offsets,
-  VertexFit::Vertex* dev_secondary_vertices)
+  VertexFit::TrackMVAVertex* dev_secondary_vertices)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -284,7 +283,7 @@ __global__ void fit_secondary_vertices(
       *(dev_number_of_multi_fit_vertices + event_number)};
 
   // Secondary vertices.
-  VertexFit::Vertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
+  VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
     
   // Loop over tracks.
   for (int i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {

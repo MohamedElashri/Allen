@@ -58,10 +58,10 @@ namespace VertexFit {
   __device__ bool doFit(
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB,
-    Vertex& vertex);
+    TrackMVAVertex& vertex);
 
   __device__ void fill_extra_info(
-    Vertex& sv,
+    TrackMVAVertex& sv,
     const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB);
@@ -79,7 +79,7 @@ __global__ void fit_secondary_vertices(
   uint* dev_number_of_multi_fit_vertices,
   char* dev_kalman_pv_ipchi2,
   uint* dev_sv_offsets,
-  VertexFit::Vertex* dev_secondary_vertices);
+  VertexFit::TrackMVAVertex* dev_secondary_vertices);
 
 ALGORITHM(
   fit_secondary_vertices,

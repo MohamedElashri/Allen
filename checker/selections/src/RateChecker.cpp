@@ -45,12 +45,6 @@ void checkHlt1Rate(
     
   }
 
-  // Get the total number of passing SVs.
-  uint n_total_sv_passes = 0;
-  for (int i_sv = 0; i_sv < sv_atomics[selected_events]; i_sv++) {
-    if (two_track_decisions[i_sv]) n_total_sv_passes++;
-  }
-
   printf("One track: %i\n", n_evts_one_track);
   printf("Two track: %i\n", n_evts_two_track);
   printf("Inclusive: %i\n\n", n_evts_inc);

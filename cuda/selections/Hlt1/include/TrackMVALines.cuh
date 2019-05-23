@@ -28,5 +28,5 @@ namespace TrackMVALines {
 
   // Selections.
   __device__ bool OneTrackMVA(const ParKalmanFilter::FittedTrack& track);
-  __device__ bool TwoTrackMVA(const VertexFit::Vertex& vertex);  
+  __device__ bool TwoTrackMVA(const VertexFit::TrackMVAVertex& vertex);  
 }
