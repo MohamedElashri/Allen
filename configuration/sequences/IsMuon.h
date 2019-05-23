@@ -5,7 +5,6 @@
 SEQUENCE_T(
   init_event_list_t,
   global_event_cut_t,
-  muon_decoding_t,
   velo_estimate_input_size_t,
   prefix_sum_velo_clusters_t,
   velo_masked_clustering_t,
@@ -53,4 +52,5 @@ SEQUENCE_T(
   prefix_sum_scifi_track_hit_number_t,
   consolidate_scifi_tracks_t,
   kalman_velo_only_t,
+  muon_decoding_t,
   is_muon_t,)
