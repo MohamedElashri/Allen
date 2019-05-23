@@ -15,72 +15,10 @@
 #include <vector>
 #include <Allen.h>
 #include <Updater.h>
-
-/**
- * @brief Options accepted in the program.
- * @details Each argument is composed of the following:
- * 
- *          options: vector of strings with all names to arguments.
- *          description: description of arguments, shown in print_usage.
- *          default_value [optional]: default value the argument takes.
- */
-struct ProgramOption {
-  std::vector<std::string> options;
-  std::string description;
-  std::string default_value = "";
-
-  ProgramOption() = default;
-  ProgramOption(const std::vector<std::string>&& options, const std::string&& description)
-    : options(options), description(description) {}
-  ProgramOption(const std::vector<std::string>&& options,
-    const std::string&& description, const std::string&& default_value)
-    : options(options), description(description), default_value(default_value) {}
-};
-
-/**
- * @brief Prints usage of the application according to program options.
- */
-void print_usage(char* argv[], const std::vector<ProgramOption>& program_options) {
-  std::cerr << "Usage: " << argv[0] << std::endl;
-  for (const auto& po : program_options) {
-    std::cerr << " ";
-    for (int i=0; i<po.options.size(); ++i) {
-      if (po.options[i].length() > 1) {
-        std::cerr << "-";
-      }
-      std::cerr << "-" << po.options[i];
-      if (i != po.options.size() - 1) {
-        std::cerr << ", ";
-      }
-    }
-    std::cerr << " {" << po.description << "}";
-    if (po.default_value != "") {
-      std::cerr << "=" << po.default_value;
-    }
-    std::cerr << std::endl;
-  }
-  std::cerr << " -h {show this help}" << std::endl;
-}
+#include <ProgramOptions.h>
 
 int main(int argc, char* argv[]) {
-  // Vector of accepted options
-  // Format: options {short / long, short / long, ...}, description, default value
-  std::vector<ProgramOption> program_options {
-    {{"f", "folder"}, "folder containing data directories", "\"../input/minbias/\""},
-    {{"g", "geometry"}, "folder containing detector configuration", ""},
-    {{"mdf"}, "use MDF files as input instead of binary files", ""},
-    {{"n", "number-of-events"}, "number of events to process", "0 (all)"},
-    // {{"o", "offset"}, "offset of events from which to start", "0 (beginning)"},
-    {{"t", "threads"}, "number of threads / streams", "1"},
-    {{"r", "repetitions"}, "number of repetitions per thread / stream", "1"},
-    {{"c", "validate"}, "run validation / checkers", "1"},
-    {{"m", "memory"}, "memory to reserve per thread / stream (megabytes)", "1024"},
-    {{"v", "verbosity"}, "verbosity [0-5]", "3 (info)"},
-    {{"p", "print-memory"}, "print memory usage", "0"},
-    {{"i", "import-tracks"}, "import forward tracks dumped from Brunel", ""},
-    {{"device"}, "select cuda device to use", "0"},
-    {{"cpu-offload"}, "offload part of the computation to CPU", "0"}
-  };
+  const auto program_options = allen_program_options();
 
   // Options object that will be passed to Allen
   std::map<std::string, std::string> allen_options;
@@ -135,6 +73,21 @@ int main(int argc, char* argv[]) {
         return -1;
       }
       break;
+    }
+  }
+
+  // Iterate all options with default values and put those in
+  // if they were not specified
+  for (const auto& po : program_options) {
+    bool initialized = false;
+    for (const auto& opt : po.options) {
+      const auto it = allen_options.find(opt);
+      if (it != allen_options.end()) {
+        initialized = true;
+      }
+    }
+    if (!initialized && po.default_value != "") {
+      allen_options[po.options[0]] = po.default_value;
     }
   }
 
