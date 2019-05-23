@@ -75,36 +75,42 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   int cpu_offload = 1;
 
   std::string flag, arg;
+  const auto flag_in = [&flag] (const std::vector<std::string>& option_flags) {
+    if (std::find(std::begin(option_flags), std::end(option_flags), flag) != std::end(option_flags)) {
+      return true;
+    }
+    return false;
+  };
+
+  // Use flags to populate variables in the program
   for (auto const& entry : options) {
     std::tie(flag, arg) = entry;
-    if (flag == "cuda_device") {
-      cuda_device = atoi(arg.c_str());
-    } else if (flag == "mdf") {
-      use_mdf = atoi(arg.c_str());
-    } else if (flag == "cpu-offload") {
-      cpu_offload = atoi(arg.c_str());
-    } else if (flag == "f") {
+    if (flag_in({"f", "folder"})) {
       folder_data = arg + "/";
-    } else if (flag == "g") {
+    } else if (flag_in({"g", "geometry"})) {
       folder_detector_configuration = arg + "/";
-    } else if (flag == "i") {
-      folder_name_imported_forward_tracks = arg;
-    } else if (flag == "m") {
-      reserve_mb = atoi(arg.c_str());
-    } else if (flag == "n") {
+    } else if (flag_in({"mdf"})) {
+      use_mdf = atoi(arg.c_str());
+    } else if (flag_in({"n", "number-of-events"})) {
       number_of_events_requested = atoi(arg.c_str());
-    } else if (flag == "o") {
-      start_event_offset = atoi(arg.c_str());
-    } else if (flag == "t") {
+    } else if (flag_in({"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
-    } else if (flag == "r") {
+    } else if (flag_in({"r", "repetitions"})) {
       number_of_repetitions = atoi(arg.c_str());
-    } else if (flag == "c") {
+    } else if (flag_in({"c", "validate"})) {
       do_check = atoi(arg.c_str());
-    } else if (flag == "v") {
+    } else if (flag_in({"m", "memory"})) {
+      reserve_mb = atoi(arg.c_str());
+    } else if (flag_in({"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
-    } else if (flag == "p") {
+    } else if (flag_in({"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
+    } else if (flag_in({"i", "import-tracks"})) {
+      folder_name_imported_forward_tracks = arg;
+    } else if (flag_in({"cpu-offload"})) {
+      cpu_offload = atoi(arg.c_str());
+    } else if (flag_in({"device"})) {
+      cuda_device = atoi(arg.c_str());
     }
   }
 
