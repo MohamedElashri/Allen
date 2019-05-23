@@ -22,7 +22,7 @@ namespace TrackMVALines {
     decision &= vertex.chi2 < maxVertexChi2;
     decision &= vertex.mcor > minMCor;
     decision &= vertex.eta > minEta && vertex.eta < maxEta;
-    decision &= vertex.ntrks16 <= maxNtrks16;
+    decision &= vertex.ntrksassoc <= maxNTrksAssoc;
     decision &= vertex.fdchi2 > minFDChi2;
     return decision;
   }

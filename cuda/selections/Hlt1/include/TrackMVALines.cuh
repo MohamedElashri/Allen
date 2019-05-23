@@ -23,7 +23,7 @@ namespace TrackMVALines {
   const float minMCor = 1000.0;
   const float minEta = 2.0;
   const float maxEta = 5.0;
-  const int maxNtrks16 = 2; // Placeholder. To be replaced with MVA selection.
+  const int maxNTrksAssoc = 2; // Placeholder. To be replaced with MVA selection.
   const float minFDChi2 = 0.0; // Placeholder. To be replaced with MVA selection.
 
   // Selections.

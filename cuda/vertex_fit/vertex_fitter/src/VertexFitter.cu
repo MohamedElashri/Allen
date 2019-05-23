@@ -195,7 +195,8 @@ namespace VertexFit {
     sv.sumpt = trackA.pt() + trackB.pt();
 
     // Number of tracks with ip chi2 < 16.
-    sv.ntrks16 = (trackA.ipChi2 < 16) + (trackB.ipChi2 < 16);
+    sv.ntrksassoc = (trackA.ipChi2 < VertexFit::maxAssocIPChi2)
+      + (trackB.ipChi2 < VertexFit::maxAssocIPChi2);
     
     // Get PV-SV separation.
     const float dx = sv.x - pv.position.x;

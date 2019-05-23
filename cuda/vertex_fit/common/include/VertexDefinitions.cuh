@@ -44,8 +44,8 @@ namespace VertexFit {
     float mcor = 0.0f;
     // PV -> SV eta.
     float eta = 0.0f;
-    // Number of tracks with IP chi2 < 16.
-    int ntrks16 = 0;
+    // Number of tracks associated to a PV (min IP chi2 < 16).
+    int ntrksassoc = 0;
 
     // Degrees of freedom.
     int ndof = 0;
