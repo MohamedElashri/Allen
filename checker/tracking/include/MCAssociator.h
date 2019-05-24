@@ -41,7 +41,7 @@ struct MCAssociator {
     int m_idx;
     float m_w;
     int m_counter_subdetector;
-    TrackWithWeight(int idx, float w, int counter_subdetector) :
+  TrackWithWeight(int idx, float w, int counter_subdetector) :
       m_idx(idx), m_w(w), m_counter_subdetector(counter_subdetector)
     {}
     TrackWithWeight(const TrackWithWeight&) = default;
