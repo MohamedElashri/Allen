@@ -75,8 +75,12 @@ include_directories(${CMAKE_SOURCE_DIR}/x86/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/global_event_cut/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/pv/include)
+include_directories(${CMAKE_SOURCE_DIR}/checker/selections/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 
 file(GLOB stream_gear "gear/src/*cu")
@@ -95,6 +99,8 @@ file(GLOB stream_visitors_UT "visitors/UT/src/*cu")
 file(GLOB stream_visitors_SciFi "visitors/SciFi/src/*cu")
 file(GLOB stream_visitors_Muon "visitors/muon/src/*cu")
 file(GLOB stream_visitors_kalman "visitors/kalman/src/*cu")
+file(GLOB stream_visitors_vertex "visitors/vertex_fit/src/*cu")
+file(GLOB stream_visitors_selections "visitors/selections/src/*cu")
 
 add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -121,6 +127,8 @@ add_library(Stream STATIC
   ${stream_visitors_SciFi}
   ${stream_visitors_Muon}
   ${stream_visitors_kalman}
+  ${stream_visitors_vertex}
+  ${stream_visitors_selections}
 )
 
 target_link_libraries(Stream PRIVATE
@@ -136,6 +144,8 @@ target_link_libraries(Stream PRIVATE
   x86beamlinePV
   UT
   Kalman
+  VertexFitter
+  Hlt1
   SciFi
   x86MuonDecoding
   x86Forward
