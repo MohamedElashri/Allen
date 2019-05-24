@@ -36,11 +36,25 @@ In addition, histograms of reconstructible and reconstructed tracks are then fil
 
 Where to find input
 -------------
-Input from 1k events can be found here:
+Input from 1k events (mag down) can be found here:
 
 * minimum bias (for performance checks): `/afs/cern.ch/work/d/dovombru/public/gpu_input/1kevents_minbias_dump_region_UT_fix.tar.gz`
 * Bs->PhiPhi (for efficiency checks): `/afs/cern.ch/work/d/dovombru/public/gpu_input/1kevents_BsPhiPhi_dump_region_UT_fix.tar.gz`
 * J/Psi->MuMu (for muon efficiency checks): `/afs/cern.ch/work/d/dovombru/public/gpu_input/1kevents_JPsiMuMu_dump_region_UT_fix.tar.gz`
+
+5k Bs2PhiPhi events (mag down) are avialable here: `/afs/cern.ch/work/d/dovombru/public/gpu_input/BsPhiPhi/BsPhiPhi.tar.gz`
+
+30k minbias events (mad down) are available here: `/afs/cern.ch/work/d/dovombru/public/gpu_input/minbias.tar.gz`
+
+Another 5k Bs2PhiPhi events for both magnet polarities are available. The directory contains sub-directories `mag_up` and `mag_down` and the events are compressed in a tar file separately for the two polarities.
+ `/eos/lhcb/wg/rta/WP6/Allen/binary_input/Bs2PhiPhi`
+
+Input for various different physics channels for HLT1 studies in both magnet polarities is available. The directory structure is the same as for the Bs2PhiPhi events. 
+They can be found here:
+* Z2MuMu: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/Z2MuMu`
+* Ds2KKPi: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/Ds2KKPi`
+* KstEE: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/KstEE`
+* KstMuMu: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/KstMuMu`
 
 How to build it
 ---------------
