@@ -23,13 +23,17 @@ t = f.Get("PV_tree")
 
 setLHCbStyle()
 
-ranges = {"x": 100., "y": 100., "z": 1000.}
+ranges = {"x": 100., "y": 100., "z": 800.}
 pvcanv = {}
 
 reshist = {}
-for coord in ["x", "y", "z"]:
+for coord in ["x", "y"]:
     reshist[coord] = ROOT.TH2F("reshist" + coord, "reshist" + coord, 15, 0,
                                150, 20, -1. * ranges[coord], ranges[coord])
+
+coord = "z"
+reshist[coord] = ROOT.TH2F("reshist" + coord, "reshist" + coord, 15, 0,
+                               150, 40, -1. * ranges[coord], ranges[coord])
 
 for entry in range(t.GetEntries()):
     t.GetEntry(entry)
@@ -41,14 +45,20 @@ if not os.path.isdir("../../../plotsfornote"):
   os.mkdir("../../../plotsfornote")
 
 arr = ROOT.TObjArray()
-for coord in ["x", "y", "z"]:
+for coord in ["x","y","z"]:
     pvcanv[coord] = ROOT.TCanvas("pvcanv" + coord, "pvcanv" + coord, 900, 800)
     pvcanv[coord].cd(1)
-    reshist[coord].FitSlicesY(
-        ROOT.TF1("gausx", "gaus(0)", -1. * ranges[coord], ranges[coord]), 0,
-        -1, 0, "QNR", arr)
+    gauss = ROOT.TF1("gausx", "gaus(0)", -1. * ranges[coord], ranges[coord])
+    gauss.SetParameter(0,10)
+    gauss.SetParameter(1,0.5)
+    gauss.SetParameter(1,0.9)
+    reshist[coord].FitSlicesY(gauss, 0,-1, 0, "R", arr)
+
     arr[2].GetXaxis().SetTitle("Number of tracks in MC PV")
     arr[2].GetYaxis().SetTitle("Resolution (#mum)")
     arr[2].GetYaxis().SetTitleOffset(0.95)
+    maxY = 27.
+    if (coord=="z"): maxY = 220.
+    arr[2].GetYaxis().SetRangeUser(0, maxY)
     arr[2].DrawCopy()
     pvcanv[coord].SaveAs("../../../plotsfornote/PVRes_" + coord + "_VsNTr.pdf")

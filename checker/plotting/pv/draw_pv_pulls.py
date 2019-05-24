@@ -45,7 +45,7 @@ for coord in ["x", "y", "z"]:
     pvcanv[coord].cd(1)
     func[coord] = ROOT.TF1("gausx", "gaus(0)", -1. * xrange, xrange)
     reshist[coord].Fit(func[coord])        
-    reshist[coord].GetXaxis().SetTitle("pull " + coord)
+    reshist[coord].GetXaxis().SetTitle("#frac{#delta_{"+coord+"}}{#sigma_{"+coord+"}}" )
     reshist[coord].GetYaxis().SetTitle("Entries")
     reshist[coord].GetYaxis().SetTitleOffset(0.95)
     reshist[coord].Draw()

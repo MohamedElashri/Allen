@@ -18,14 +18,15 @@ from common.LHCbStyle import *
 from common.Legend import *
 
 from common.ConfigHistos import *
+setLHCbStyle()
 
 f = ROOT.TFile.Open("../../../output/GPU_PVChecker.root", "read")
 hist_z = f.Get("eff_vs_z")
 hist_mult = f.Get("eff_vs_mult")
 
-setLHCbStyle()
 
-hist_z.GetXaxis().SetTitle("z position of MC PV")
+
+hist_z.GetXaxis().SetTitle("z position of MC PV [mm]")
 hist_z.GetYaxis().SetTitle("Reconstruction Eff (%/100)")
 
 hist_mult.GetXaxis().SetTitle("track multiplicity of MC PV")
@@ -35,8 +36,10 @@ canvas = ROOT.TCanvas("canvas", "canvas", 1000, 400)
 canvas.Divide(2)
 
 canvas.cd(1)
+hist_z.SetLineColor(1)
 hist_z.Draw()
 canvas.cd(2)
+hist_mult.SetLineColor(1)
 hist_mult.Draw()
 
 
