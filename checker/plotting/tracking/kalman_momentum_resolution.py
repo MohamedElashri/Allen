@@ -25,16 +25,17 @@ args = parser.parse_args()
 
 # Import ROOT and LHCbStyle.
 import ROOT
-sys.path.append('../../')
-from plotting.LHCbStyle import *
-from plotting.Legend import *
+sys.path.append('../')
+from common.LHCbStyle import *
+from common.Legend import *
 setLHCbStyle()
 ROOT.gStyle.SetPadLeftMargin(0.15)
 
 # Setup binning.
 edges = np.array(
     [2000., 5000., 10000., 20000., 30000., 40000., 60000., 100000.])
-bins = zip(edges[:-1], edges[1:])
+zipped_edges = zip(edges[:-1], edges[1:])
+bins = [zipped_edge for zipped_edge in zipped_edges]
 centers = 0.5 * (edges[:-1] + edges[1:])
 widths = 0.5 * (edges[1:] - edges[:-1])
 
@@ -113,7 +114,7 @@ legend.AddEntry(firstG, 'Initial')
 legend.AddEntry(bestG, 'Kalman')
 legend.SetFillStyle(0)
 legend.Draw('same')
-fname = 'kalman'
+fname = '../../../plotsfornote/kalman'
 if args.p: fname += '_momentum'
 else: fname += '_qop'
 if args.stddev: fname += '_stddev'

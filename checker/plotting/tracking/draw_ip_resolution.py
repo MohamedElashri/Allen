@@ -3,12 +3,13 @@ import ROOT
 import numpy as np
 from array import array
 
-sys.path.append('../../')
-from plotting.LHCbStyle import *
+sys.path.append('../')
+from common.LHCbStyle import *
 setLHCbStyle()
 
 edges = np.array([0.0, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0])
-bins = zip(edges[:-1], edges[1:])
+zipped_edges = zip(edges[:-1], edges[1:])
+bins = [zipped_edge for zipped_edge in zipped_edges]
 centers = array('d', 0.5 * (edges[:-1] + edges[1:]))
 widths = array('d', 0.5 * (edges[1:] - edges[:-1]))
 
@@ -93,4 +94,4 @@ if __name__ == '__main__':
                 fVelo.GetParError(1)) + '/#it{p}_{T} #mum'
         latex.DrawLatex(0.2, 0.28, txtVelo)
         latex.DrawLatex(0.2, 0.22, txtKalman)
-        c1.SaveAs(info[0] + '_resolution.pdf')
+        c1.SaveAs('../../../plotsfornote/' + info[0] + '_resolution.pdf')
