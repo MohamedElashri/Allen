@@ -43,8 +43,8 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
   __shared__ bool used[Constants::max_numhits_per_event];
   __shared__ int stationOccurrencesOffset[Constants::n_stations + 1];
   const MuonRawEvent rawEvent = MuonRawEvent(events + offsets[eventId]);
-  // __shared__ uint16_t* batchSizePointers[MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank];
-  // __shared__ unsigned int tell1Numbers[MuonRawEvent::number_of_raw_banks];
+  __shared__ uint16_t* batchSizePointers[MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank];
+  __shared__ unsigned int tell1Numbers[MuonRawEvent::number_of_raw_banks];
   
   if (threadIdx.x == 0) {
     currentHitIndex = 0;
@@ -58,42 +58,42 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
   // Due to shared memory
   __syncthreads();
 
-  // if (threadIdx.x < MuonRawEvent::number_of_raw_banks)  {
-  //   const size_t bank_index = threadIdx.x;
-  //   const unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
+  if (threadIdx.x < MuonRawEvent::number_of_raw_banks)  {
+    const size_t bank_index = threadIdx.x;
+    const unsigned int tell1Number = rawEvent.getMuonBank(bank_index).sourceID;
     
-  //   tell1Numbers[bank_index] = tell1Number;
+    tell1Numbers[bank_index] = tell1Number;
     
-  //   MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
-  //   uint16_t* p = rawBank.data;
-  //   const int preamble_size = ((*p) + 3) & 0xFFFE; // (*p + 3) & 0xFFFE
-  //   p += preamble_size;
-  //   for (size_t i = 0; i < MuonRawEvent::batches_per_bank; i++) {
-  //     batchSizePointers[bank_index * MuonRawEvent::batches_per_bank + i] = p;
-  //     p += 1 + *p;
-  //   }
-  // }
+    MuonRawBank rawBank = rawEvent.getMuonBank(bank_index);
+    uint16_t* p = rawBank.data;
+    const int preamble_size = ((*p) + 3) & 0xFFFE; // (*p + 3) & 0xFFFE
+    p += preamble_size;
+    for (size_t i = 0; i < MuonRawEvent::batches_per_bank; i++) {
+      batchSizePointers[bank_index * MuonRawEvent::batches_per_bank + i] = p;
+      p += 1 + *p;
+    }
+  }
 
-  // __syncthreads();
+  __syncthreads();
 
-  // if (threadIdx.x < MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank) {
-  //   uint16_t batchSize = *batchSizePointers[threadIdx.x];
+  if (threadIdx.x < MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank) {
+    uint16_t batchSize = *batchSizePointers[threadIdx.x];
 
-  //   for (size_t shift = 1; shift < 1 + batchSize; shift++) {
-  //     const unsigned int pp = *(batchSizePointers[threadIdx.x] + shift);
-  //     const unsigned int add = (pp & 0x0FFF);
-  //     const unsigned int tdc_value = ((pp & 0xF000) >> 12);
-  //     const unsigned int tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(
-  //         tell1Numbers[threadIdx.x / MuonRawEvent::batches_per_bank], add
-  //     );
+    for (size_t shift = 1; shift < 1 + batchSize; shift++) {
+      const unsigned int pp = *(batchSizePointers[threadIdx.x] + shift);
+      const unsigned int add = (pp & 0x0FFF);
+      const unsigned int tdc_value = ((pp & 0xF000) >> 12);
+      const unsigned int tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(
+          tell1Numbers[threadIdx.x / MuonRawEvent::batches_per_bank], add
+      );
 
-  //     if (tileId != 0) {
-  //       int localCurrentStorageIndex = atomicAdd(&currentStorageIndex, 1);
-  //       storageTileId[localCurrentStorageIndex] = tileId;
-  //       storageTdcValue[localCurrentStorageIndex] = tdc_value;
-  //     }
-  //   }
-  // }
+      if (tileId != 0) {
+        int localCurrentStorageIndex = atomicAdd(&currentStorageIndex, 1);
+        storageTileId[localCurrentStorageIndex] = tileId;
+        storageTdcValue[localCurrentStorageIndex] = tdc_value;
+      }
+    }
+  }
 
   // number_of_raw_banks = 10
   // batches_per_bank = 4
@@ -113,7 +113,7 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
     uint16_t* p = raw_bank.data;
     
     // Note: Review this logic
-    p += 2 * ((*p + 3) / 2);
+    p += (*p + 3) & 0xFFFE;
     for (int j=0; j<batch_index; ++j) {
       p += 1 + *p;
     }

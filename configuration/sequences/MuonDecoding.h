@@ -53,4 +53,5 @@ SEQUENCE_T(
   consolidate_scifi_tracks_t,
   kalman_velo_only_t,
   muon_pre_decoding_t,
-  muon_pre_decoding_prefix_sum_t)
+  muon_pre_decoding_prefix_sum_t,
+  muon_sort_station_region_quarter_t)

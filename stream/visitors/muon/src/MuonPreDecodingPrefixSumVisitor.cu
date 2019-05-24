@@ -34,10 +34,8 @@ void SequenceVisitor::visit<muon_pre_decoding_prefix_sum_t>(
       cuda_generic_event,
       host_buffers.host_muon_total_number_of_tiles);
   } else {
-    const auto number_of_ut_tracks = host_buffers.host_number_of_reconstructed_ut_tracks[0];
-
     // Set size of the main array to be prefix summed
-    state.set_size(number_of_ut_tracks * LookingForward::number_of_x_layers);
+    state.set_size((arguments.size<dev_storage_station_region_quarter_offsets>() >> 2) - 1);
 
     // Set the cuda_stream
     state.set_opts(cuda_stream);
@@ -54,7 +52,7 @@ void SequenceVisitor::visit<muon_pre_decoding_prefix_sum_t>(
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_muon_total_number_of_tiles,
       arguments.offset<dev_storage_station_region_quarter_offsets>()
-      + number_of_ut_tracks * LookingForward::number_of_x_layers,
+      + (arguments.size<dev_storage_station_region_quarter_offsets>() >> 2) - 1,
       sizeof(int),
       cudaMemcpyDeviceToHost,
       cuda_stream));

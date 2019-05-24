@@ -29,10 +29,10 @@ __global__ void muon_pre_decoding(
     const auto raw_bank = raw_event.getMuonBank(bank_index);
     const auto tell_number = raw_bank.sourceID;
 
-    const uint16_t* p = raw_bank.data;
+    uint16_t* p = raw_bank.data;
 
     // Note: Review this logic
-    p += 2 * ((*p + 3) / 2);
+    p += (*p + 3) & 0xFFFE;
     for (int j = 0; j < batch_index; ++j) {
       p += 1 + *p;
     }

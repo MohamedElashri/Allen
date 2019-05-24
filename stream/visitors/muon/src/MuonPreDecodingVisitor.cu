@@ -63,10 +63,10 @@ void SequenceVisitor::visit<muon_pre_decoding_t>(
     0,
     arguments.size<dev_atomics_muon>(),
     cuda_stream));
-
+  
   state.set_opts(
       host_buffers.host_number_of_selected_events[0],
-      Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters,
+      Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
       cuda_stream
   );
   state.set_arguments(
