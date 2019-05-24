@@ -14,5 +14,6 @@ void SequenceVisitor::check<run_hlt1_t>(
     host_buffers.host_two_track_decisions,
     host_buffers.host_atomics_scifi,
     host_buffers.host_sv_offsets,
-    host_buffers.host_number_of_selected_events[0]);
+    host_buffers.host_number_of_selected_events[0],
+    number_of_events_requested);
 }

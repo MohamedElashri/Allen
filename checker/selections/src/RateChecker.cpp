@@ -5,7 +5,8 @@ void checkHlt1Rate(
   const bool* two_track_decisions,
   const int* track_atomics,
   const uint* sv_atomics,
-  const uint selected_events)
+  const uint selected_events,
+  const uint requested_events)
 {
 
   // Event counters.
@@ -45,7 +46,18 @@ void checkHlt1Rate(
     
   }
 
-  printf("One track: %i\n", n_evts_one_track);
-  printf("Two track: %i\n", n_evts_two_track);
-  printf("Inclusive: %i\n\n", n_evts_inc);
+  // Assume 30 MHz input rate.
+  float in_rate = 30000.0;
+  printf("One track: %i / %i --> %f kHz\n",
+         n_evts_one_track,
+         requested_events,
+         1. * n_evts_one_track / requested_events * in_rate);
+  printf("Two track: %i / %i --> %f kHz\n",
+         n_evts_two_track,
+         requested_events,
+         1. * n_evts_two_track / requested_events * in_rate);
+  printf("Inclusive: %i / %i --> %f kHz\n\n",
+         n_evts_inc,
+         requested_events,
+         1. * n_evts_inc / requested_events * in_rate);
 }
