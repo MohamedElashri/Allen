@@ -42,12 +42,15 @@ if not os.path.isdir("../../../plotsfornote"):
 
 for coord in ["x", "y", "z"]:
     pvcanv[coord] = ROOT.TCanvas("pvcanv" + coord, "pvcanv" + coord, 900, 800)
+    pvcanv[coord].SetLeftMargin(0.2)
+    pvcanv[coord].SetBottomMargin(0.2)
     pvcanv[coord].cd(1)
     func[coord] = ROOT.TF1("gausx", "gaus(0)", -1. * xrange, xrange)
     reshist[coord].Fit(func[coord])        
     reshist[coord].GetXaxis().SetTitle("#frac{#delta_{"+coord+"}}{#sigma_{"+coord+"}}" )
     reshist[coord].GetYaxis().SetTitle("Entries")
-    reshist[coord].GetYaxis().SetTitleOffset(0.95)
+    reshist[coord].GetYaxis().SetTitleOffset(1.2)
+    reshist[coord].GetXaxis().SetTitleOffset(1.)
     reshist[coord].Draw()
     func[coord].SetLineColor(ROOT.kRed)
     func[coord].Draw("SAME")
