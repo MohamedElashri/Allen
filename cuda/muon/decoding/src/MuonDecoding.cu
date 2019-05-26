@@ -32,7 +32,7 @@ using namespace Muon;
  */
 __global__ void muon_decoding(const uint* event_list, const char* events, const unsigned int* offsets,
                               MuonRawToHits* muon_raw_to_hits, HitsSoA* muon_hits) {
-  __shared__ int currentHitIndex;
+  __shared__ uint currentHitIndex;
   const size_t eventId = event_list[blockIdx.x];
   const size_t output_event = blockIdx.x;
   __shared__ unsigned int storageTileId[Constants::max_numhits_per_event];

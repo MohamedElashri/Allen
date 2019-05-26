@@ -63,7 +63,7 @@ namespace Muon {
   }
 
   __device__ void MuonRawToHits::addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used,
-      uint startIndex, uint endIndex, HitsSoA* hitsSoA, int& currentHitIndex) const {
+      uint startIndex, uint endIndex, HitsSoA* hitsSoA, uint& currentHitIndex) const {
     if (startIndex == endIndex) {
       return;
     }

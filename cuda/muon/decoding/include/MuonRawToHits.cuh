@@ -45,7 +45,7 @@ namespace Muon {
     MuonGeometry* muonGeometry;
 
     __device__ void addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used, uint startIndex,
-        uint endIndex, HitsSoA* hitsSoA, int& currentHitIndex) const;
+        uint endIndex, HitsSoA* hitsSoA, uint& currentHitIndex) const;
 
   private:
     __device__ void makeStripLayouts(unsigned int station, unsigned int region, MuonLayout* layouts) const;

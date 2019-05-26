@@ -6,11 +6,11 @@ __global__ void muon_add_coords_crossing_maps(
   uint* dev_storage_tdc_value,
   uint* dev_atomics_muon,
   uint* dev_permutation_srq,
-  MuonRawToHits* muon_raw_to_hits,
-  HitsSoA* muon_hits)
+  Muon::MuonRawToHits* muon_raw_to_hits,
+  Muon::HitsSoA* muon_hits)
 {
-  __shared__ bool used[Constants::max_numhits_per_event];
-  for (int i=threadIdx.x; i<Constants::max_numhits_per_event; i+=blockDim.x) {
+  __shared__ bool used[Muon::Constants::max_numhits_per_event];
+  for (int i=threadIdx.x; i<Muon::Constants::max_numhits_per_event; i+=blockDim.x) {
     used[i] = false;
   }
 
@@ -34,6 +34,6 @@ __global__ void muon_add_coords_crossing_maps(
       storage_station_region_quarter_offsets[threadIdx.x],
       storage_station_region_quarter_offsets[threadIdx.x + 1],
       event_muon_hits,
-      current_hit_index
+      *current_hit_index
   );
 }
