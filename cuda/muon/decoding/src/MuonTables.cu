@@ -43,7 +43,7 @@ namespace Muon {
   }
 
   __device__ void calcPos(MuonTables* muonTables, size_t tableNumber, Muon::MuonTileID& tile, unsigned int offset_index,
-      double& x, double& deltax, double& y, double& deltay, double& z) {
+      float& x, float& deltax, float& y, float& deltay, float& z) {
     const int station = tile.station();
     const auto index = lookup_index(muonTables, tableNumber, tile, offset_index);
     x = muonTables->coordinates[tableNumber * Constants::n_stations + station][index];
@@ -54,18 +54,18 @@ namespace Muon {
     deltay = muonTables->sizeY[tableNumber][dxi];
   }
 
-  __device__ void calcTilePos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
-                   double& y, double& deltay, double& z) {
+  __device__ void calcTilePos(MuonTables* muonTables, Muon::MuonTileID& tile, float& x, float& deltax,
+                   float& y, float& deltay, float& z) {
     calcPos(muonTables, MuonTables::padTableNumber, tile, pad_offset(muonTables, tile), x, deltax, y, deltay, z);
   }
 
-  __device__ void calcStripXPos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
-                     double& y, double& deltay, double& z) {
+  __device__ void calcStripXPos(MuonTables* muonTables, Muon::MuonTileID& tile, float& x, float& deltax,
+                     float& y, float& deltay, float& z) {
     calcPos(muonTables, MuonTables::stripXTableNumber, tile, strip_x_offset(muonTables, tile), x, deltax, y, deltay, z);
   }
 
-  __device__ void calcStripYPos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
-                     double& y, double& deltay, double& z) {
+  __device__ void calcStripYPos(MuonTables* muonTables, Muon::MuonTileID& tile, float& x, float& deltax,
+                     float& y, float& deltay, float& z) {
     calcPos(muonTables, MuonTables::stripYTableNumber, tile, strip_y_offset(muonTables, tile), x, deltax, y, deltay, z);
   }
 };

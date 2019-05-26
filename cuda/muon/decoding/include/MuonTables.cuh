@@ -60,14 +60,14 @@ namespace Muon {
   }
 
   __device__ void calcPos(MuonTables* muonTables, size_t tableNumber, Muon::MuonTileID& tile, unsigned int offset_index,
-      double& x, double& deltax, double& y, double& deltay, double& z);
+      float& x, float& deltax, float& y, float& deltay, float& z);
 
-  __device__ void calcTilePos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
-                   double& y, double& deltay, double& z);
+  __device__ void calcTilePos(MuonTables* muonTables, Muon::MuonTileID& tile, float& x, float& deltax,
+                   float& y, float& deltay, float& z);
 
-  __device__ void calcStripXPos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
-                     double& y, double& deltay, double& z);
+  __device__ void calcStripXPos(MuonTables* muonTables, Muon::MuonTileID& tile, float& x, float& deltax,
+                     float& y, float& deltay, float& z);
 
-  __device__ void calcStripYPos(MuonTables* muonTables, Muon::MuonTileID& tile, double& x, double& deltax,
-                     double& y, double& deltay, double& z);
+  __device__ void calcStripYPos(MuonTables* muonTables, Muon::MuonTileID& tile, float& x, float& deltax,
+                     float& y, float& deltay, float& z);
 };

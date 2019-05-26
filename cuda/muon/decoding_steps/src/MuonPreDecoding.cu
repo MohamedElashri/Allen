@@ -13,7 +13,8 @@ __global__ void muon_pre_decoding(
   const size_t event_number = blockIdx.x;
   const size_t event_id = event_list[blockIdx.x];
   const auto raw_event = Muon::MuonRawEvent(events + offsets[event_id]);
-  auto storage_station_region_quarter_offsets = dev_storage_station_region_quarter_offsets +
+  auto storage_station_region_quarter_offsets =
+    dev_storage_station_region_quarter_offsets +
     event_number * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
   auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
   auto storage_tdc_value = dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
@@ -22,7 +23,8 @@ __global__ void muon_pre_decoding(
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (int i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank; i += blockDim.x) {
+  for (int i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+       i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
 

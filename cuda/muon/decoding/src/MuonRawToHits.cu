@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 namespace Muon {
-  __device__ Hit::Hit(HitsSoA* hitsSoA, size_t index) {
+  __device__ Hit::Hit(HitsSoA* hitsSoA, uint index) {
     tile = hitsSoA->tile[index];
     x = hitsSoA->x[index];
     dx = hitsSoA->dx[index];
@@ -17,7 +17,7 @@ namespace Muon {
     region = hitsSoA->region_id[index];
   }
 
-  __device__ void setAtIndex(HitsSoA* hitsSoA, size_t index, Hit* hit) {
+  __device__ void setAtIndex(HitsSoA* hitsSoA, uint index, Hit* hit) {
     hitsSoA->tile[index] = hit->tile;
     hitsSoA->x[index] = hit->x;
     hitsSoA->dx[index] = hit->dx;
@@ -32,7 +32,7 @@ namespace Muon {
     hitsSoA->region_id[index] = hit->region;
   }
 
-  __device__ void setAtIndex(HitsSoA* hitsSoA, size_t index, int tile, float x, float dx, float y, float dy,
+  __device__ void setAtIndex(HitsSoA* hitsSoA, uint index, int tile, float x, float dx, float y, float dy,
       float z, float dz, int uncrossed, unsigned int time, int delta_time, int cluster_size, int region) {
     hitsSoA->tile[index] = tile;
     hitsSoA->x[index] = x;
@@ -48,7 +48,7 @@ namespace Muon {
     hitsSoA->region_id[index] = region;
   }
 
-  __device__ size_t regionAndQuarter(const Digit& i) {
+  __device__ uint regionAndQuarter(const Digit& i) {
     return i.tile.region() * Constants::n_quarters + i.tile.quarter();
   }
 
@@ -63,7 +63,7 @@ namespace Muon {
   }
 
   __device__ void MuonRawToHits::addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used,
-      size_t startIndex, size_t endIndex, HitsSoA* hitsSoA, int& currentHitIndex) const {
+      uint startIndex, uint endIndex, HitsSoA* hitsSoA, int& currentHitIndex) const {
     if (startIndex == endIndex) {
       return;
     }
@@ -71,9 +71,9 @@ namespace Muon {
     makeStripLayouts(MuonTileID::station(tileIds[startIndex]), MuonTileID::region(tileIds[startIndex]), layouts);
     const MuonLayout& layoutOne = layouts[0];
     const MuonLayout& layoutTwo = layouts[1];
-    size_t midIndex = startIndex;
+    uint midIndex = startIndex;
     unsigned int tmpTileId;
-    for (size_t i = startIndex; i < endIndex; i++) {
+    for (uint i = startIndex; i < endIndex; i++) {
       if (MuonTileID::layout(tileIds[i]) == layoutOne) {
         if (midIndex != i) {
           tmpTileId = tileIds[i];
@@ -87,17 +87,17 @@ namespace Muon {
     const int thisGridY = layoutOne.yGrid();
     const int otherGridX = layoutTwo.xGrid();
     const int otherGridY = layoutTwo.yGrid();
-    for (size_t digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
+    for (uint digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
       const unsigned int keyX = MuonTileID::nX(tileIds[digitsOneIndex]) * otherGridX / thisGridX;
       const unsigned int keyY = MuonTileID::nY(tileIds[digitsOneIndex]);
-      for (size_t digitsTwoIndex = midIndex; digitsTwoIndex < endIndex; digitsTwoIndex++) {
+      for (uint digitsTwoIndex = midIndex; digitsTwoIndex < endIndex; digitsTwoIndex++) {
         const unsigned int candidateX = MuonTileID::nX(tileIds[digitsTwoIndex]);
         const unsigned int candidateY = MuonTileID::nY(tileIds[digitsTwoIndex]) * thisGridY / otherGridY;
         if (keyX == candidateX && keyY == candidateY) {
           MuonTileID padTile(tileIds[digitsOneIndex]);
           padTile.setY(MuonTileID::nY(tileIds[digitsTwoIndex]));
           padTile.setLayout(MuonLayout(thisGridX, otherGridY));
-          double x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
+          float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
           calcTilePos(muonTables, padTile, x, dx, y, dy, z);
           const unsigned int uncrossed = 0;
           const int clusterSize = 0;
@@ -111,10 +111,10 @@ namespace Muon {
       }
     }
 
-    const size_t startIndices[] = {startIndex, midIndex};
-    const size_t endIndices[] = {midIndex, endIndex};
-    for (size_t currentDigitsIndex = 0; currentDigitsIndex < 2; currentDigitsIndex++) {
-      for (size_t currentDigitIndex = startIndices[currentDigitsIndex];
+    const uint startIndices[] = {startIndex, midIndex};
+    const uint endIndices[] = {midIndex, endIndex};
+    for (uint currentDigitsIndex = 0; currentDigitsIndex < 2; currentDigitsIndex++) {
+      for (uint currentDigitIndex = startIndices[currentDigitsIndex];
            currentDigitIndex < endIndices[currentDigitsIndex];
            currentDigitIndex++) {
         if (!used[currentDigitIndex]) {

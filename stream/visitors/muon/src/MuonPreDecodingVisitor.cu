@@ -14,7 +14,7 @@ void SequenceVisitor::set_arguments_size<muon_pre_decoding_t>(
     Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters + 1);
   arguments.set_size<dev_storage_tile_id>(host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
   arguments.set_size<dev_storage_tdc_value>(host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
-  arguments.set_size<dev_atomics_muon>(host_buffers.host_number_of_selected_events[0]);
+  arguments.set_size<dev_atomics_muon>(2 * host_buffers.host_number_of_selected_events[0]);
 }
 
 template<>
