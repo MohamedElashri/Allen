@@ -7,7 +7,9 @@ void SequenceVisitor::set_arguments_size<muon_add_coords_crossing_maps_t>(
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)
-{}
+{
+  arguments.set_size<dev_muon_hits>(host_buffers.host_number_of_selected_events[0]);
+}
 
 template<>
 void SequenceVisitor::visit<muon_add_coords_crossing_maps_t>(
