@@ -95,62 +95,64 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
     }
   }
 
-  // number_of_raw_banks = 10
-  // batches_per_bank = 4
-  constexpr uint32_t batches_per_bank_mask = 0x3;
-  constexpr uint32_t batches_per_bank_shift = 2;
-  for (int i=threadIdx.x; i<MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank; i+=blockDim.x) {
-    const auto bank_index = i >> batches_per_bank_shift;
-    const auto batch_index = i & batches_per_bank_mask;
+  // // number_of_raw_banks = 10
+  // // batches_per_bank = 4
+  // constexpr uint32_t batches_per_bank_mask = 0x3;
+  // constexpr uint32_t batches_per_bank_shift = 2;
+  // for (int i=threadIdx.x; i<MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank; i+=blockDim.x) {
+  //   const auto bank_index = i >> batches_per_bank_shift;
+  //   const auto batch_index = i & batches_per_bank_mask;
 
-    const auto raw_bank = rawEvent.getMuonBank(bank_index);
-    const auto tell_number = raw_bank.sourceID;
+  //   const auto raw_bank = rawEvent.getMuonBank(bank_index);
+  //   const auto tell_number = raw_bank.sourceID;
 
-    // if (tell_number != tell1Numbers[bank_index]) {
-    //   printf("Tell number differs");
-    // }
+  //   // if (tell_number != tell1Numbers[bank_index]) {
+  //   //   printf("Tell number differs");
+  //   // }
 
-    uint16_t* p = raw_bank.data;
+  //   uint16_t* p = raw_bank.data;
     
-    // Note: Review this logic
-    p += (*p + 3) & 0xFFFE;
-    for (int j=0; j<batch_index; ++j) {
-      p += 1 + *p;
-    }
+  //   // Note: Review this logic
+  //   p += (*p + 3) & 0xFFFE;
+  //   for (int j=0; j<batch_index; ++j) {
+  //     p += 1 + *p;
+  //   }
 
-    // if (p != batchSizePointers[bank_index * 4 + batch_index]) {
-    //   printf("Pointers differ (bank %i, batch %i): %lld %lld %lld %lld\n",
-    //     bank_index,
-    //     batch_index,
-    //     p,
-    //     batchSizePointers[bank_index * 4 + batch_index],
-    //     batchSizePointers[i],
-    //     ((uint16_t*)raw_bank.data) + ((*((uint16_t*)raw_bank.data) + 3) & 0xFFFE)
-    //     );
-    // }
+  //   // if (p != batchSizePointers[bank_index * 4 + batch_index]) {
+  //   //   printf("Pointers differ (bank %i, batch %i): %lld %lld %lld %lld\n",
+  //   //     bank_index,
+  //   //     batch_index,
+  //   //     p,
+  //   //     batchSizePointers[bank_index * 4 + batch_index],
+  //   //     batchSizePointers[i],
+  //   //     ((uint16_t*)raw_bank.data) + ((*((uint16_t*)raw_bank.data) + 3) & 0xFFFE)
+  //   //     );
+  //   // }
 
-    const auto batch_size = *p;
-    for (int j=1; j<batch_size+1; ++j) {
-      const auto pp = *(p + j);
-      const auto add = (pp & 0x0FFF);
-      const auto tdc_value = ((pp & 0xF000) >> 12);
-      const auto tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(tell_number, add);
+  //   const auto batch_size = *p;
+  //   for (int j=1; j<batch_size+1; ++j) {
+  //     const auto pp = *(p + j);
+  //     const auto add = (pp & 0x0FFF);
+  //     const auto tdc_value = ((pp & 0xF000) >> 12);
+  //     const auto tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(tell_number, add);
       
-      if (tileId != 0) {
-        const auto insert_index = atomicAdd(&currentStorageIndex, 1);
-        storageTileId[insert_index] = tileId;
-        storageTdcValue[insert_index] = tdc_value;
+  //     if (tileId != 0) {
+  //       const auto insert_index = atomicAdd(&currentStorageIndex, 1);
+  //       storageTileId[insert_index] = tileId;
+  //       storageTdcValue[insert_index] = tdc_value;
 
-        // Also add to storageStationRegionQuarterOccurrencesOffset
-        const auto stationRegionQuarter = MuonTileID::stationRegionQuarter(storageTileId[i]);
-        atomicAdd(storageStationRegionQuarterOccurrencesOffset + stationRegionQuarter, 1);
-      }
-    }
-  }
+  //       // Also add to storageStationRegionQuarterOccurrencesOffset
+  //       const auto stationRegionQuarter = MuonTileID::stationRegionQuarter(storageTileId[i]);
+  //       atomicAdd(storageStationRegionQuarterOccurrencesOffset + stationRegionQuarter, 1);
+  //     }
+  //   }
+  // }
 
   __syncthreads();
 
   if (threadIdx.x == 0) {
+    // printf("currentStorageIndex %i\n", currentStorageIndex);
+
     for (size_t i = 0; i < currentStorageIndex; i++) {
       size_t stationRegionQuarter = MuonTileID::stationRegionQuarter(storageTileId[i]);
       storageStationRegionQuarterOccurrencesOffset[stationRegionQuarter + 1]++;
@@ -160,14 +162,14 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
       originalStorageStationRegionQuarterOccurrencesOffset[i + 1] = storageStationRegionQuarterOccurrencesOffset[i + 1];
     }
 
-    printf("Pre sort:\n");
-    for (int i=0; i<currentStorageIndex; ++i) {
-      printf("{%u, %u, %u}, ",
-        storageTileId[i],
-        storageTdcValue[i],
-        MuonTileID::stationRegionQuarter(storageTileId[i]));
-    }
-    printf("\n");
+    // printf("Pre sort:\n");
+    // for (int i=0; i<currentStorageIndex; ++i) {
+    //   printf("{%u, %u, %u}, ",
+    //     storageTileId[i],
+    //     storageTdcValue[i],
+    //     MuonTileID::stationRegionQuarter(storageTileId[i]));
+    // }
+    // printf("\n");
 
     for (int i = currentStorageIndex - 1; i > -1; i--) {
       int currentStorageTileId = storageTileId[i];
@@ -191,19 +193,25 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
       }
     }
 
-    printf("Post sort:\n");
-    for (int i=0; i<currentStorageIndex; ++i) {
-      printf("{%u, %u, %u}, ",
-        storageTileId[i],
-        storageTdcValue[i],
-        MuonTileID::stationRegionQuarter(storageTileId[i]));
-    }
-    printf("\n");
+    // printf("Post sort:\n");
+    // for (int i=0; i<currentStorageIndex; ++i) {
+    //   printf("{%u, %u, %u}, ",
+    //     storageTileId[i],
+    //     storageTdcValue[i],
+    //     MuonTileID::stationRegionQuarter(storageTileId[i]));
+    // }
+    // printf("\n");
   }
   __syncthreads();
 
   // When storing the results, use the output_event
   HitsSoA* event_muon_hits = &muon_hits[output_event];
+
+  // printf("addCoordsCrossingMap: thread %i, startIndex %i, endIndex %i\n",
+  //   threadIdx.x,
+  //   originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x],
+  //   originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x + 1]
+  // );
 
   muon_raw_to_hits->addCoordsCrossingMap(
       storageTileId,

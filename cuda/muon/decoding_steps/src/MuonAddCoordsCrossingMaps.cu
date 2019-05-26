@@ -26,14 +26,17 @@ __global__ void muon_add_coords_crossing_maps(
   auto current_hit_index = dev_atomics_muon + number_of_events + event_number;
   auto storage_station_region_quarter_offsets = dev_storage_station_region_quarter_offsets +
     event_number * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  const auto base_offset = storage_station_region_quarter_offsets[0];
 
-  muon_raw_to_hits->addCoordsCrossingMap(
-      storage_tile_id,
-      storage_tdc_value,
-      used,
-      storage_station_region_quarter_offsets[threadIdx.x],
-      storage_station_region_quarter_offsets[threadIdx.x + 1],
-      event_muon_hits,
-      *current_hit_index
-  );
+  for (int i=threadIdx.x; i<Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters; i+=blockDim.x) {
+    muon_raw_to_hits->addCoordsCrossingMap(
+        storage_tile_id,
+        storage_tdc_value,
+        used,
+        storage_station_region_quarter_offsets[i] - base_offset,
+        storage_station_region_quarter_offsets[i + 1] - base_offset,
+        event_muon_hits,
+        *current_hit_index
+    );
+  }
 }

@@ -23,6 +23,9 @@ struct lf_composite_extend_tracks_uv_t {
 
   using arguments_t = ArgumentRefManager<Arguments>;
 
-  decltype(make_handler(lf_search_uv_windows)) handler_lf_search_uv_windows {lf_search_uv_windows};
-  decltype(make_handler(lf_extend_tracks_uv)) handler_lf_extend_tracks_uv {lf_extend_tracks_uv};
+  decltype(make_handler("lf_search_uv_windows", lf_search_uv_windows)) handler_lf_search_uv_windows {
+    "lf_search_uv_windows",
+    lf_search_uv_windows};
+  decltype(make_handler("lf_extend_tracks_uv", lf_extend_tracks_uv)) handler_lf_extend_tracks_uv {"lf_extend_tracks_uv",
+                                                                                                  lf_extend_tracks_uv};
 };
