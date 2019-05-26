@@ -118,7 +118,7 @@ namespace Muon {
            currentDigitIndex < endIndices[currentDigitsIndex];
            currentDigitIndex++) {
         if (!used[currentDigitIndex]) {
-          double x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
+          float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
           MuonTileID tile = MuonTileID(tileIds[currentDigitIndex]);
           const int region = tile.region();
           if (tile.station() > (Constants::n_stations - 3) && region == 0) {
