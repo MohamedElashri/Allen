@@ -17,6 +17,7 @@
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsKalmanFilter.cuh"
+#include "ArgumentsMuon.cuh"
 
 typedef Vector<10> Vector10;
 typedef Vector<2> Vector2;
@@ -113,5 +114,6 @@ ALGORITHM(
     dev_scifi_qop,
     dev_scifi_states,
     dev_scifi_track_ut_indices,
-    dev_kf_tracks))
+    dev_kf_tracks,
+    dev_is_muon))
 

@@ -46,8 +46,9 @@ typedef float (*distance_fun)(
   const ParKalmanFilter::FittedTrack& track,
   const PV::Vertex& vertex);
 
-__device__ void associate(
+__device__ void associate_and_muon_id(
   ParKalmanFilter::FittedTrack* tracks,
+  const bool* is_muon,
   gsl::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table,
   distance_fun fun)
@@ -65,6 +66,7 @@ __device__ void associate(
     table.pv[i] = best_index;
     table.value[i] = best_value;
     tracks[i].ipChi2 = best_value;
+    tracks[i].is_muon = is_muon[i];
   }
 }
 
@@ -78,7 +80,8 @@ __global__ void kalman_pv_ipchi2(
   uint* dev_ut_indices,
   PV::Vertex* dev_multi_fit_vertices,
   uint* dev_number_of_multi_fit_vertices,
-  char* dev_kalman_pv_ipchi2)
+  char* dev_kalman_pv_ipchi2,
+  const bool* dev_is_muon)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -93,12 +96,13 @@ __global__ void kalman_pv_ipchi2(
       event_number,
       number_of_events};
   const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
-
+  
   // The total track-PV association table.
   Associate::Consolidated::Table kalman_pv_ipchi2 {dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks};
 
   // Kalman-fitted tracks for this event.
   ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
+  const bool* event_is_muon = dev_is_muon + event_tracks_offset;
   gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
       *(dev_number_of_multi_fit_vertices + event_number)};
 
@@ -106,6 +110,6 @@ __global__ void kalman_pv_ipchi2(
   auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Perform the association for this event.
-  associate(event_tracks, vertices, pv_table, Distance::kalman_ipchi2);
+  associate_and_muon_id(event_tracks, event_is_muon, vertices, pv_table, Distance::kalman_ipchi2);
   
 }

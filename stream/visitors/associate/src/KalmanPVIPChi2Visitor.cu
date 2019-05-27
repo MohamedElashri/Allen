@@ -33,7 +33,8 @@ void SequenceVisitor::visit<kalman_pv_ipchi2_t>(
     arguments.offset<dev_scifi_track_ut_indices>(),
     arguments.offset<dev_multi_fit_vertices>(),
     arguments.offset<dev_number_of_multi_fit_vertices>(),
-    arguments.offset<dev_kalman_pv_ipchi2>());
+    arguments.offset<dev_kalman_pv_ipchi2>(),
+    arguments.offset<dev_is_muon>());
   state.invoke();
   
   if (runtime_options.do_check) {

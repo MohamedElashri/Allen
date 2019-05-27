@@ -238,6 +238,9 @@ namespace VertexFit {
                           (pz * dx - dz * px) * (pz * dx - dz * px) +
                           (px * dy - dx * py) * (px * dy - dx * py)) / fd / fd;
     sv.mcor = std::sqrt(mvis2 + pperp2) + std::sqrt(pperp2);
+
+    // Muon ID.
+    sv.is_dimuon = trackA.is_muon && trackB.is_muon;
   }
   
 }
@@ -298,7 +301,10 @@ __global__ void fit_secondary_vertices(
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     
     // Preselection on first track.
-    if (trackA.pt() < VertexFit::trackMinPt || trackA.ipChi2 < VertexFit::trackMinIPChi2) {
+    if (trackA.pt() < VertexFit::trackMinPt ||
+        (trackA.ipChi2 < VertexFit::trackMinIPChi2 && !trackA.is_muon) ||
+        (trackA.ipChi2 < VertexFit::trackMuonMinIPChi2 && trackA.is_muon))
+    {
       continue;
     }
     
@@ -307,7 +313,9 @@ __global__ void fit_secondary_vertices(
 
       // Preselection on second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
-      if (trackB.pt() < VertexFit::trackMinPt || trackB.ipChi2 < VertexFit::trackMinIPChi2) {
+      if (trackB.pt() < VertexFit::trackMinPt ||
+          (trackB.ipChi2 < VertexFit::trackMinIPChi2 && !trackB.is_muon) ||
+          (trackB.ipChi2 < VertexFit::trackMuonMinIPChi2 && trackB.is_muon)) {
         continue;
       }
       
