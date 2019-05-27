@@ -46,6 +46,8 @@ namespace VP {
   static constexpr uint NSensorColumns = NColumns * NChipsPerSensor;
   static constexpr uint NPixelsPerSensor = NSensorColumns * NRows;
   static constexpr uint ChipColumns = 256;
+  static constexpr uint ChipColumns_division = 8;
+  static constexpr uint ChipColumns_mask = 0xFF;
   static constexpr double Pitch = 0.055;
 } // namespace VP
 

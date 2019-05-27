@@ -11,6 +11,7 @@
 #include "patPV_Definitions.cuh"
 #include "PV_Definitions.cuh"
 #include "ParKalmanDefinitions.cuh"
+#include "VertexDefinitions.cuh"
 
 struct HostBuffers {
   // Pinned host datatypes
@@ -72,6 +73,15 @@ struct HostBuffers {
   float* host_muon_catboost_output;
   bool *host_is_muon;
 
+  // Secondary vertices
+  uint* host_number_of_svs;
+  uint* host_sv_offsets;
+  VertexFit::TrackMVAVertex* host_secondary_vertices;
+  
+  // Selections
+  bool* host_one_track_decisions;
+  bool* host_two_track_decisions;
+  
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;
   std::vector<char> host_velo_states;

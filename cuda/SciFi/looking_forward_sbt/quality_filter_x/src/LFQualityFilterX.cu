@@ -100,6 +100,10 @@ __global__ void lf_quality_filter_x(
           ++insert_position;
         }
       }
+
+      // Note: xAtRef_spread < 10.f instead of 
+      //       xAtRef_spread < 1e9
+      //       kills about 2.3% fakes with something like 0.5% impact on RE
       if (
         insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter &&
         xAtRef_spread < LookingForward::filter_x_max_xAtRef_spread) {

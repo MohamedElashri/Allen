@@ -27,13 +27,12 @@ __device__ void lf_search_initial_windows_p_impl(
 
   int iZoneStartingPoint = (side > 0) ? constArrays->zoneoffsetpar : 0;
 
-  const int layerx [6] {0, 3, 4, 7, 8, 11};
   for (int i=threadIdx.y; i<LookingForward::number_of_x_layers; i+=blockDim.y) {
     const auto iZone = iZoneStartingPoint + i;
-    const float zZone = constArrays->xZone_zPos[iZone - iZoneStartingPoint];
+    const float zZone = constArrays->xZone_zPos[i];
 
     // TODO this could be done in a more optimized way
-    const auto stateInZone = LookingForward::propagate_state_from_velo(UT_state, qop, layerx[iZone - iZoneStartingPoint], looking_forward_constants);
+    const auto stateInZone = LookingForward::propagate_state_from_velo(UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
 
     const float xInZone = stateInZone.x;
 
@@ -50,38 +49,6 @@ __device__ void lf_search_initial_windows_p_impl(
     const int x_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
     int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
     int hits_within_bounds_size = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    // hits_within_bounds_start += x_zone_offset_begin;
-
-    // If the number of hits within bounds is too high, reduce the window
-    const auto max_candidates_first_round = 96;
-    const auto max_candidates_second_round = 64;
-
-    while (hits_within_bounds_size > max_candidates_first_round) {
-      auto x_diff_min = xInZone - xMin;
-      auto x_diff_max = xMax - xInZone;
-
-      // Reduce distance by a percentage
-      xMin = xInZone - 0.7f * x_diff_min;
-      xMax = xInZone + 0.7f * x_diff_max;
-
-      hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-      hits_within_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    }
-
-    // Try to cut it not too much when it gets close to the window size
-    while (hits_within_bounds_size > max_candidates_second_round) {
-      auto x_diff_min = xInZone - xMin;
-      auto x_diff_max = xMax - xInZone;
-
-      // Reduce distance by a percentage
-      xMin = xInZone - 0.9f * x_diff_min;
-      xMax = xInZone + 0.9f * x_diff_max;
-
-      hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-      hits_within_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    }
     hits_within_bounds_start += x_zone_offset_begin;
 
     // Initialize windows
@@ -91,11 +58,10 @@ __device__ void lf_search_initial_windows_p_impl(
     // Skip making range but continue if the size is zero
     if (hits_within_bounds_size > 0) {
       // Now match the stereo hits
-      const float this_uv_z = constArrays->uvZone_zPos[iZone - iZoneStartingPoint];
+      const float this_uv_z = constArrays->uvZone_zPos[i];
       const float dz = this_uv_z - zZone;
       const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
-      //const float yInUv = LookingForward::linear_propagation(yInZone, stateInZone.ty, dz);
-      const float UvCorr = LookingForward::linear_propagation(yInZone, stateInZone.ty, dz) * constArrays->uvZone_dxdy[iZone - iZoneStartingPoint];
+      const float UvCorr = LookingForward::linear_propagation(yInZone, stateInZone.ty, dz) * constArrays->uvZone_dxdy[i];
       const float xInUvCorr = xInUv - UvCorr;
       const float xMinUV = xInUvCorr - 800;
       const float dz_ratio = (this_uv_z - zZone)/(LookingForward::z_magnet - zZone);
@@ -105,13 +71,12 @@ __device__ void lf_search_initial_windows_p_impl(
       // if we are close to y = 0, also look within a region on the other side module ("triangle search")
       const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
       const int uv_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
-      const int hits_within_uv_bounds = /*0; */ binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
+      const int hits_within_uv_bounds = binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
 
       initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_uv_bounds + uv_zone_offset_begin;
       initial_windows[(i * 8 + 3) * number_of_tracks] = uv_zone_size - hits_within_uv_bounds;
 
       float* initial_windows_f = (float*) &initial_windows[0];
-      // initial_windows_f[(i * 8 + 4) * number_of_tracks] = stateInZone.tx;
       initial_windows_f[(i * 8 + 4) * number_of_tracks] = xMag;
       initial_windows_f[(i * 8 + 5) * number_of_tracks] = UvCorr;
       // TODO this should be read from the constants
@@ -163,7 +128,7 @@ __device__ void lf_search_initial_windows_impl(
 
   for (int i = threadIdx.y; i < LookingForward::number_of_x_layers; i += blockDim.y) {
     const auto iZone = iZoneStartingPoint + i;
-    const float zZone = constArrays->xZone_zPos[iZone - iZoneStartingPoint];
+    const float zZone = constArrays->xZone_zPos[i];
     const float xInZone = linear_parameterization(xAtRef, UT_state.tx, zZone);
     const float yInZone = linear_parameterization(yAtRef, UT_state.ty, zZone);
 
@@ -195,38 +160,6 @@ __device__ void lf_search_initial_windows_impl(
     int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
     int hits_within_bounds_size = binary_search_leftmost(
       scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-
-    // If the number of hits within bounds is too high, reduce the window
-    const auto max_candidates_first_round = 96;
-    const auto max_candidates_second_round = 64;
-
-    while (hits_within_bounds_size > max_candidates_first_round) {
-      auto x_diff_min = xInZone - xMin;
-      auto x_diff_max = xMax - xInZone;
-
-      // Reduce distance by a percentage
-      xMin = xInZone - 0.7f * x_diff_min;
-      xMax = xInZone + 0.7f * x_diff_max;
-
-      hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-      hits_within_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    }
-
-    // Try to cut it not too much when it gets close to the window size
-    while (hits_within_bounds_size > max_candidates_second_round) {
-      auto x_diff_min = xInZone - xMin;
-      auto x_diff_max = xMax - xInZone;
-
-      // Reduce distance by a percentage
-      xMin = xInZone - 0.9f * x_diff_min;
-      xMax = xInZone + 0.9f * x_diff_max;
-
-      hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-      hits_within_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
-    }
-
     hits_within_bounds_start += x_zone_offset_begin;
 
     // Initialize windows
