@@ -13,7 +13,7 @@ __global__ void muon_pre_decoding(
   const auto event_number = blockIdx.x;
   const auto event_id = event_list[blockIdx.x];
   const auto raw_event = Muon::MuonRawEvent(events + offsets[event_id]);
-  auto storage_station_region_quarter_offsets =
+  uint* storage_station_region_quarter_offsets =
     dev_storage_station_region_quarter_offsets +
     event_number * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
   auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;

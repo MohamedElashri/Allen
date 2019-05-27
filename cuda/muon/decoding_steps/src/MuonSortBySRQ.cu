@@ -11,8 +11,7 @@ __global__ void muon_sort_station_region_quarter(
   const auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
   const auto storage_tdc_value = dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
   const auto number_of_hits = dev_atomics_muon[event_number];
-  auto permutation_srq = dev_permutation_srq +
-    event_number * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  auto permutation_srq = dev_permutation_srq + event_number * Muon::Constants::max_numhits_per_event;
 
   // Order that we actually want when IDs are the same
   const auto tile_order = [&muon_raw_to_hits] (const uint tile_id) {
@@ -76,7 +75,7 @@ __global__ void muon_sort_station_region_quarter(
 
   // // Print
   // __syncthreads();
-  // if (blockIdx.x == 1 && threadIdx.x == 0) {
+  // if (blockIdx.x == 0 && threadIdx.x == 0) {
   //   for (int i=0; i<number_of_hits; ++i) {
   //     printf("(%i, %i, %i), ",
   //       storage_tile_id[i],

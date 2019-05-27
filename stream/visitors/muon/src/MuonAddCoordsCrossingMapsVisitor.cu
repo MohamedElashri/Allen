@@ -21,8 +21,7 @@ void SequenceVisitor::visit<muon_add_coords_crossing_maps_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  // state.set_opts(host_buffers.host_number_of_selected_events[0], 1, cuda_stream);
-  state.set_opts(1, 1, cuda_stream);
+  state.set_opts(host_buffers.host_number_of_selected_events[0], 256, cuda_stream);
   state.set_arguments(
     arguments.offset<dev_storage_station_region_quarter_offsets>(),
     arguments.offset<dev_storage_tile_id>(),
@@ -30,8 +29,7 @@ void SequenceVisitor::visit<muon_add_coords_crossing_maps_t>(
     arguments.offset<dev_atomics_muon>(),
     arguments.offset<dev_permutation_srq>(),
     arguments.offset<dev_muon_raw_to_hits>(),
-    arguments.offset<dev_muon_hits>(),
-    host_buffers.host_number_of_selected_events[0]);
+    arguments.offset<dev_muon_hits>());
   
   state.invoke();
 }

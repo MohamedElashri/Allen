@@ -34,7 +34,7 @@ void SequenceVisitor::visit<muon_pre_decoding_prefix_sum_t>(
       cuda_generic_event,
       host_buffers.host_muon_total_number_of_tiles);
 
-    arguments.print<dev_storage_station_region_quarter_offsets>();
+    // arguments.print<dev_storage_station_region_quarter_offsets>();
   } else {
     // Set size of the main array to be prefix summed
     state.set_size((arguments.size<dev_storage_station_region_quarter_offsets>() >> 2) - 1);

@@ -70,9 +70,9 @@ namespace Muon {
 
   __device__ void MuonRawToHits::addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used,
       uint startIndex, uint endIndex, HitsSoA* hitsSoA, uint& currentHitIndex) const {
-    if (startIndex == endIndex) {
-      return;
-    }
+    // if (startIndex == endIndex) {
+    //   return;
+    // }
 
     MuonLayout layouts[2];
     makeStripLayouts(MuonTileID::station(tileIds[startIndex]), MuonTileID::region(tileIds[startIndex]), layouts);
@@ -127,38 +127,40 @@ namespace Muon {
 
     // TODO: We are fetching the first tile ID
     //       We should verify this logic holds (it does not atm)
-    const auto tile = Muon::MuonTileID(tileIds[startIndex]);
-    const auto station = tile.station();
-    const auto region = tile.region();
+    // const auto tile = Muon::MuonTileID(tileIds[startIndex]);
+    // const auto station = tile.station();
+    // const auto region = tile.region();
 
-    const auto x1 = getLayoutX(muonTables, Muon::MuonTables::stripXTableNumber, station, region);
-    const auto y1 = getLayoutY(muonTables, Muon::MuonTables::stripXTableNumber, station, region);
-    const auto x2 = getLayoutX(muonTables, Muon::MuonTables::stripYTableNumber, station, region);
-    const auto y2 = getLayoutY(muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+    // const auto x1 = getLayoutX(muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+    // const auto y1 = getLayoutY(muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+    // const auto x2 = getLayoutX(muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+    // const auto y2 = getLayoutY(muonTables, Muon::MuonTables::stripYTableNumber, station, region);
 
-    Muon::MuonLayout layout_one;
-    if (x1 > x2) {
-      layout_one = Muon::MuonLayout {x1, y1};
-    }
-    else {
-      layout_one = Muon::MuonLayout {x2, y2};
-    }
+    // Muon::MuonLayout layout_one;
+    // if (x1 > x2) {
+    //   layout_one = Muon::MuonLayout {x1, y1};
+    // }
+    // else {
+    //   layout_one = Muon::MuonLayout {x2, y2};
+    // }
 
+    printf("Start and end indices: %i, %i\n", startIndex, endIndex);
     for (int j = startIndex; j < endIndex; ++j) {
       float x = 0.f, dx = 0.f, y = 0.f, dy = 0.f, z = 0.f, dz = 0.f;
       const auto tile = Muon::MuonTileID(tileIds[j]);
       const auto region = tile.region();
       if (tile.station() > (Muon::Constants::n_stations - 3) && region == 0) {
+        printf("Processing tile %i...\n", j);
         calcTilePos(muonTables, tile, x, dx, y, dy, z);
       }
-      else {
-        if (Muon::MuonTileID::layout(tileIds[j]) == layout_one) {
-          calcStripXPos(muonTables, tile, x, dx, y, dy, z);
-        }
-        else {
-          calcStripYPos(muonTables, tile, x, dx, y, dy, z);
-        }
-      }
+      // else {
+      //   if (Muon::MuonTileID::layout(tileIds[j]) == layoutOne) {
+      //     calcStripXPos(muonTables, tile, x, dx, y, dy, z);
+      //   }
+      //   else {
+      //     calcStripYPos(muonTables, tile, x, dx, y, dy, z);
+      //   }
+      // }
     }
 
     // for (int j=startIndex; j<endIndex; ++j) {

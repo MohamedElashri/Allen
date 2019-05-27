@@ -10,7 +10,8 @@ __global__ void muon_decoding(
   const char* events,
   const unsigned int* offsets,
   Muon::MuonRawToHits* muon_raw_to_hits,
-  Muon::HitsSoA* muon_hits);
+  Muon::HitsSoA* muon_hits,
+  const uint number_of_events);
 
 ALGORITHM(
   muon_decoding,

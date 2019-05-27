@@ -8,8 +8,7 @@ void SequenceVisitor::set_arguments_size<muon_sort_station_region_quarter_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_permutation_srq>(host_buffers.host_number_of_selected_events[0] *
-    Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters);
+  arguments.set_size<dev_permutation_srq>(host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
 }
 
 template<>
