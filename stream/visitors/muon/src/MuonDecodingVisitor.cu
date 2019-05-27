@@ -25,6 +25,10 @@ void SequenceVisitor::visit<muon_decoding_t>(
     HostBuffers& host_buffers,
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event) {
+
+  // FIXME: this should be done as part of the consumers, but
+  // currently it cannot. This is because it is not possible to
+  // indicate dependencies between Consumer and/or Producers.
   Muon::MuonRawToHits muonRawToHits{constants.dev_muon_tables, constants.dev_muon_geometry};
   cudaCheck(cudaMemcpyAsync(
       arguments.offset<dev_muon_raw_to_hits>(),

@@ -71,7 +71,6 @@ __global__ void is_muon(
   const uint number_of_events = gridDim.x;
   const uint event_id = blockIdx.x;
   const uint station_id = threadIdx.y;
-  const uint selected_event_number = event_list[event_id];
 
   SciFi::Consolidated::Tracks scifi_tracks {
       (uint*)dev_atomics_scifi,
@@ -83,11 +82,13 @@ __global__ void is_muon(
       number_of_events
   };
 
+  const Muon::HitsSoA& muon_hits_event = muon_hits[event_id];
+
   const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_id);
   const uint event_offset = scifi_tracks.tracks_offset(event_id);
-  const int station_offset = muon_hits[selected_event_number].station_offsets[station_id];
-  const int number_of_hits = muon_hits[selected_event_number].number_of_hits_per_station[station_id];
-  const float station_z = muon_hits[selected_event_number].z[station_offset];
+  const int station_offset = muon_hits_event.station_offsets[station_id];
+  const int number_of_hits = muon_hits_event.number_of_hits_per_station[station_id];
+  const float station_z = muon_hits_event.z[station_offset];
 
   for (uint track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
     const float momentum = 1 / std::abs(scifi_tracks.qop[track_id]);
@@ -99,13 +100,13 @@ __global__ void is_muon(
     for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
       const int idx = station_offset + i_hit;
       if (is_in_window(
-        muon_hits[selected_event_number].x[idx],
-        muon_hits[selected_event_number].y[idx],
-        muon_hits[selected_event_number].dx[idx],
-        muon_hits[selected_event_number].dy[idx],
+        muon_hits_event.x[idx],
+        muon_hits_event.y[idx],
+        muon_hits_event.dx[idx],
+        muon_hits_event.dy[idx],
         dev_muon_foi,
         station_id,
-        muon_hits[selected_event_number].region_id[idx],
+        muon_hits_event.region_id[idx],
         momentum,
         extrapolation_x,
         extrapolation_y
