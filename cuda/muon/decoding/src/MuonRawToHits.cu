@@ -58,8 +58,13 @@ namespace Muon {
     const unsigned int y1 = getLayoutY(muonTables, MuonTables::stripXTableNumber, station, region);
     const unsigned int x2 = getLayoutX(muonTables, MuonTables::stripYTableNumber, station, region);
     const unsigned int y2 = getLayoutY(muonTables, MuonTables::stripYTableNumber, station, region);
-    layouts[x1 > x2] = MuonLayout(x2, y2);
-    layouts[x1 <= x2] = MuonLayout(x1, y1);
+    if (x1 > x2) {
+      layouts[0] = MuonLayout(x1, y1);
+      layouts[1] = MuonLayout(x2, y2);
+    } else {
+      layouts[0] = MuonLayout(x2, y2);
+      layouts[1] = MuonLayout(x1, y1);
+    }
   }
 
   __device__ void MuonRawToHits::addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used,
@@ -79,6 +84,9 @@ namespace Muon {
           tmpTileId = tileIds[i];
           tileIds[i] = tileIds[midIndex];
           tileIds[midIndex] = tmpTileId;
+          tmpTdcValue = tdcValues[i];
+          tdcValues[i] = tdcValues[midIndex];
+          tdcValues[midIndex] = tmpTdcValue;
         }
         midIndex++;
       }
