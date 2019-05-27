@@ -84,3 +84,7 @@ PREFIX_SUM_ALGORITHM(
 PREFIX_SUM_ALGORITHM(
   muon_pre_decoding_prefix_sum_t,
   ARGUMENTS(dev_storage_station_region_quarter_offsets, dev_prefix_sum_auxiliary_array_8))
+
+PREFIX_SUM_ALGORITHM(
+  muon_station_ocurrence_prefix_sum_t,
+  ARGUMENTS(dev_station_ocurrences_offset, dev_prefix_sum_auxiliary_array_9))
