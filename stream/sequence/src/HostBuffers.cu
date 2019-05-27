@@ -96,8 +96,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       (void**) &host_one_track_decisions,
       max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
     // For some reason this is being exceeded? This seems like a bug.
-    //int n_max_svs = SciFi::Constants::max_tracks * (SciFi::Constants::max_tracks - 1) / 2;
-    int n_max_svs = SciFi::Constants::max_tracks * SciFi::Constants::max_tracks;
+    int n_max_svs = SciFi::Constants::max_tracks * (SciFi::Constants::max_tracks - 1) / 2;
     cudaCheck(cudaMallocHost(
       (void**) &host_sv_offsets,
       (max_number_of_events + 1) * sizeof(uint)));
@@ -106,7 +105,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       max_number_of_events * n_max_svs * sizeof(bool)));
     cudaCheck(cudaMallocHost(
       (void**) & host_secondary_vertices,
-      n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
+      max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
   }
 }
 
