@@ -13,7 +13,8 @@ __global__ void muon_add_coords_crossing_maps(
   uint* dev_atomics_muon,
   uint* dev_permutation_srq,
   Muon::MuonRawToHits* muon_raw_to_hits,
-  Muon::HitsSoA* muon_hits);
+  Muon::HitsSoA* muon_hits,
+  const uint number_of_events);
 
 ALGORITHM(
   muon_add_coords_crossing_maps,

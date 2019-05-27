@@ -1,5 +1,6 @@
 #include "MuonDecoding.cuh"
-#include <stdio.h>
+#include "FindPermutation.cuh"
+#include <cstdio>
 
 using namespace Muon;
 
@@ -171,27 +172,27 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
     // }
     // printf("\n");
 
-    for (int i = currentStorageIndex - 1; i > -1; i--) {
-      int currentStorageTileId = storageTileId[i];
-      int currentStorageTdcValue = storageTdcValue[i];
-      int currentStationRegionQuarter = MuonTileID::stationRegionQuarter(currentStorageTileId);
-      int j = storageStationRegionQuarterOccurrencesOffset[currentStationRegionQuarter];
-      if (j < i) {
-        do {
-          storageStationRegionQuarterOccurrencesOffset[currentStationRegionQuarter]++;
-          int tmpCurrentStorageTileId = currentStorageTileId;
-          int tmpCurrentStorageTdcValue = currentStorageTdcValue;
-          currentStorageTileId = storageTileId[j];
-          currentStorageTdcValue = storageTdcValue[j];
-          storageTileId[j] = tmpCurrentStorageTileId;
-          storageTdcValue[j] = tmpCurrentStorageTdcValue;
-          currentStationRegionQuarter = MuonTileID::stationRegionQuarter(currentStorageTileId);
-          j = storageStationRegionQuarterOccurrencesOffset[currentStationRegionQuarter];
-        } while (j < i);
-        storageTileId[i] = currentStorageTileId;
-        storageTdcValue[i] = currentStorageTdcValue;
-      }
-    }
+    // for (int i = currentStorageIndex - 1; i > -1; i--) {
+    //   int currentStorageTileId = storageTileId[i];
+    //   int currentStorageTdcValue = storageTdcValue[i];
+    //   int currentStationRegionQuarter = MuonTileID::stationRegionQuarter(currentStorageTileId);
+    //   int j = storageStationRegionQuarterOccurrencesOffset[currentStationRegionQuarter];
+    //   if (j < i || (j == i && storageTileId[j] < storageTileId[i])) {
+    //     do {
+    //       storageStationRegionQuarterOccurrencesOffset[currentStationRegionQuarter]++;
+    //       int tmpCurrentStorageTileId = currentStorageTileId;
+    //       int tmpCurrentStorageTdcValue = currentStorageTdcValue;
+    //       currentStorageTileId = storageTileId[j];
+    //       currentStorageTdcValue = storageTdcValue[j];
+    //       storageTileId[j] = tmpCurrentStorageTileId;
+    //       storageTdcValue[j] = tmpCurrentStorageTdcValue;
+    //       currentStationRegionQuarter = MuonTileID::stationRegionQuarter(currentStorageTileId);
+    //       j = storageStationRegionQuarterOccurrencesOffset[currentStationRegionQuarter];
+    //     } while (j < i || (j == i && storageTileId[j] < storageTileId[i]));
+    //     storageTileId[i] = currentStorageTileId;
+    //     storageTdcValue[i] = currentStorageTdcValue;
+    //   }
+    // }
 
     // printf("Post sort:\n");
     // for (int i=0; i<currentStorageIndex; ++i) {
@@ -203,6 +204,70 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
     // printf("\n");
   }
   __syncthreads();
+
+  // Sort in parallel
+  __shared__ uint permutation_srq[Muon::Constants::max_numhits_per_event];
+
+  // Create a permutation according to Muon::MuonTileID::stationRegionQuarter
+  const auto get_srq = [] (const uint a, const uint b) {
+    const auto storageTileId_a = storageTileId[a];
+    const auto storageTileId_b = storageTileId[b];
+    const auto a_srq = Muon::MuonTileID::stationRegionQuarter(storageTileId_a);
+    const auto b_srq = Muon::MuonTileID::stationRegionQuarter(storageTileId_b);
+
+    if (a_srq == b_srq) {
+      return (storageTileId_a > storageTileId_b) - (storageTileId_a < storageTileId_b);
+    }
+
+    return (a_srq > b_srq) - (a_srq < b_srq);
+  };
+
+  //  + ((a_srq == b_srq) * )
+  // const unsigned int x1 = getLayoutX(muonTables, MuonTables::stripXTableNumber, station, region);
+  // const unsigned int x2 = getLayoutX(muonTables, MuonTables::stripYTableNumber, station, region);
+
+  find_permutation(0,
+    0,
+    currentStorageIndex,
+    permutation_srq,
+    get_srq);
+
+  __syncthreads();
+
+  __shared__ uint sorted_array[Muon::Constants::max_numhits_per_event];
+
+  // Apply permutation to storageTileId
+  for (int i=threadIdx.x; i<currentStorageIndex; i+=blockDim.x) {
+    sorted_array[i] = storageTileId[permutation_srq[i]];
+  }
+  __syncthreads();
+  for (int i=threadIdx.x; i<currentStorageIndex; i+=blockDim.x) {
+    storageTileId[i] = sorted_array[i];
+  }
+
+  __syncthreads();
+
+  // Apply permutation to storageTdcValue
+  for (int i=threadIdx.x; i<currentStorageIndex; i+=blockDim.x) {
+    sorted_array[i] = storageTdcValue[permutation_srq[i]];
+  }
+  __syncthreads();
+  for (int i=threadIdx.x; i<currentStorageIndex; i+=blockDim.x) {
+    storageTdcValue[i] = sorted_array[i];
+  }
+
+  __syncthreads();
+
+  // if (blockIdx.x == 1 && threadIdx.x == 0) {
+  //   printf("Sorted array:\n");
+  //   for (int i=0; i<currentStorageIndex; ++i) {
+  //     printf("{%u, %u, %u}, ",
+  //       storageTileId[i],
+  //       storageTdcValue[i],
+  //       MuonTileID::stationRegionQuarter(storageTileId[i]));
+  //   }
+  //   printf("\n");
+  // }
 
   // When storing the results, use the output_event
   HitsSoA* event_muon_hits = &muon_hits[output_event];

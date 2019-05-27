@@ -3,8 +3,8 @@ import ROOT
 import numpy as np
 from array import array
 
-sys.path.append('../../')
-from plotting.LHCbStyle import *
+sys.path.append('../')
+from common.LHCbStyle import *
 setLHCbStyle()
 
 if __name__ == '__main__':
@@ -28,4 +28,4 @@ if __name__ == '__main__':
     legend.SetFillStyle(0)
     legend.Draw('same')
     c1.SetLogy(True)
-    c1.SaveAs('kalman_docaz.pdf')
+    c1.SaveAs('../../../plotsfornote/kalman_docaz.pdf')

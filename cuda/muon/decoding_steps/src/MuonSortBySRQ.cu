@@ -4,7 +4,8 @@ __global__ void muon_sort_station_region_quarter(
   uint* dev_storage_tile_id,
   uint* dev_storage_tdc_value,
   const uint* dev_atomics_muon,
-  uint* dev_permutation_srq)
+  uint* dev_permutation_srq,
+  const Muon::MuonRawToHits* muon_raw_to_hits)
 {
   const auto event_number = blockIdx.x;
   const auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
@@ -13,17 +14,35 @@ __global__ void muon_sort_station_region_quarter(
   auto permutation_srq = dev_permutation_srq +
     event_number * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
+  // Order that we actually want when IDs are the same
+  const auto tile_order = [&muon_raw_to_hits] (const uint tile_id) {
+    const auto tile = Muon::MuonTileID(tile_id);
+    const auto station = tile.station();
+    const auto region = tile.region();
+    const auto x1 = getLayoutX(muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+    const auto x2 = getLayoutX(muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+
+    return x1 > x2;
+  };
+
   // Create a permutation according to Muon::MuonTileID::stationRegionQuarter
-  const auto get_srq = [&storage_tile_id] (const uint a, const uint b) {
-    const auto a_srq = Muon::MuonTileID::stationRegionQuarter(storage_tile_id[a]);
-    const auto b_srq = Muon::MuonTileID::stationRegionQuarter(storage_tile_id[b]);
+  const auto get_srq = [&storage_tile_id, &tile_order] (const uint a, const uint b) {
+    const auto storage_tile_id_a = storage_tile_id[a];
+    const auto storage_tile_id_b = storage_tile_id[b];
+
+    const auto a_srq = Muon::MuonTileID::stationRegionQuarter(storage_tile_id_a);
+    const auto b_srq = Muon::MuonTileID::stationRegionQuarter(storage_tile_id_b);
+
+    // if (a_srq == b_srq) {
+    //   return tile_order(storage_tile_id_a) - tile_order(storage_tile_id_b);
+    // }
+
+    if (a_srq == b_srq) {
+      return (storage_tile_id_a > storage_tile_id_b) - (storage_tile_id_a < storage_tile_id_b);
+    }
 
     return (a_srq > b_srq) - (a_srq < b_srq);
   };
-
-  //  + ((a_srq == b_srq) * )
-  // const unsigned int x1 = getLayoutX(muonTables, MuonTables::stripXTableNumber, station, region);
-  // const unsigned int x2 = getLayoutX(muonTables, MuonTables::stripYTableNumber, station, region);
 
   find_permutation(0,
     0,
@@ -57,7 +76,7 @@ __global__ void muon_sort_station_region_quarter(
 
   // // Print
   // __syncthreads();
-  // if (threadIdx.x == 0) {
+  // if (blockIdx.x == 1 && threadIdx.x == 0) {
   //   for (int i=0; i<number_of_hits; ++i) {
   //     printf("(%i, %i, %i), ",
   //       storage_tile_id[i],

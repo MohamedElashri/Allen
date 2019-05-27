@@ -11,12 +11,19 @@
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsMuon.cuh"
+#include "ArgumentsVertex.cuh"
 
 __global__ void prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);
 
 __global__ void prefix_sum_single_block(uint* dev_total_sum, uint* dev_array, const uint array_size);
 
 __global__ void copy_and_prefix_sum_single_block(
+  uint* dev_total_sum,
+  uint* dev_input_array,
+  uint* dev_output_array,
+  const uint array_size);
+
+__global__ void copy_square_and_prefix_sum_single_block(
   uint* dev_total_sum,
   uint* dev_input_array,
   uint* dev_output_array,
@@ -61,3 +68,9 @@ ALGORITHM(
   copy_scifi_track_hit_number_t,
   ARGUMENTS(dev_atomics_ut, dev_scifi_tracks, dev_atomics_scifi, dev_scifi_track_hit_number))
 
+ALGORITHM(
+  copy_square_and_prefix_sum_single_block,
+  copy_and_prefix_sum_single_block_sv_t,
+  ARGUMENTS(
+    dev_atomics_scifi,
+    dev_sv_offsets))

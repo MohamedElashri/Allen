@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-
+#include <cstdio>
 #include "MuonTileID.cuh"
 #include "MuonLayout.cuh"
 #include "MuonDefinitions.cuh"
@@ -32,6 +32,7 @@ namespace Muon {
       for (size_t i = 0; i < Constants::n_stations * Constants::n_regions * n_tables; i++) {
         sizeOffset[i] = sizeOffset_[i];
       }
+
       size_t currentAllOffsetsIndex = 0;
       for (size_t currentTableNumber = 0; currentTableNumber < n_tables; currentTableNumber++) {
         gridX[currentTableNumber] = (int*)(dev_muon_tables_raw + allOffsets[currentAllOffsetsIndex++]);
@@ -59,15 +60,15 @@ namespace Muon {
     return static_cast<unsigned int>(muonTables->gridY[tableNumber][station * Constants::n_regions + region]);
   }
 
-  __device__ int calcPos(MuonTables* muonTables, size_t tableNumber, const Muon::MuonTileID& tile, unsigned int offset_index,
+  __device__ void calcPos(MuonTables* muonTables, size_t tableNumber, const Muon::MuonTileID& tile, unsigned int offset_index,
       float& x, float& deltax, float& y, float& deltay, float& z);
 
-  __device__ int calcTilePos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
+  __device__ void calcTilePos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
                    float& y, float& deltay, float& z);
 
-  __device__ int calcStripXPos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
+  __device__ void calcStripXPos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
                      float& y, float& deltay, float& z);
 
-  __device__ int calcStripYPos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
+  __device__ void calcStripYPos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
                      float& y, float& deltay, float& z);
 };

@@ -6,6 +6,7 @@
 #include "SciFiSequenceCheckers_impl.cuh"
 #include "PVSequenceCheckers_impl.cuh"
 #include "KalmanSequenceCheckers_impl.cuh"
+#include "RateCheckers_impl.cuh"
 
 /**
  * @brief Sets up the chain that will be executed later.

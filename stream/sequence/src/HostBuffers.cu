@@ -19,6 +19,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_lf_total_number_of_candidates, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_lf_total_size_first_window_layer, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_tiles, sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_number_of_svs, sizeof(uint)));
 
   // Buffer for performing GEC on CPU
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
@@ -91,6 +92,22 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
     cudaCheck(cudaMallocHost((void**)&host_muon_catboost_output, max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));
     cudaCheck(cudaMallocHost((void**)&host_is_muon, max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
+
+    cudaCheck(cudaMallocHost(
+      (void**) &host_one_track_decisions,
+      max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
+    // For some reason this is being exceeded? This seems like a bug.
+    //int n_max_svs = SciFi::Constants::max_tracks * (SciFi::Constants::max_tracks - 1) / 2;
+    int n_max_svs = SciFi::Constants::max_tracks * SciFi::Constants::max_tracks;
+    cudaCheck(cudaMallocHost(
+      (void**) &host_sv_offsets,
+      (max_number_of_events + 1) * sizeof(uint)));
+    cudaCheck(cudaMallocHost(
+      (void**) &host_two_track_decisions,
+      max_number_of_events * n_max_svs * sizeof(bool)));
+    cudaCheck(cudaMallocHost(
+      (void**) & host_secondary_vertices,
+      n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
   }
 }
 

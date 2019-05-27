@@ -57,7 +57,7 @@ namespace Muon {
     return muonTables->offset[MuonTables::stripYTableNumber][idx] + tile.quarter() * perQuarter;
   }
 
-  __device__ int calcPos(
+  __device__ void calcPos(
     MuonTables* muonTables,
     size_t tableNumber,
     const Muon::MuonTileID& tile,
@@ -75,16 +75,11 @@ namespace Muon {
     z = muonTables->coordinates[tableNumber * Constants::n_stations + station][index + 2];
 
     const auto dxi = size_index(muonTables, tableNumber, tile);
-    if (dxi < 10000) {
-      // printf("dxi %i\n", dxi);
-      deltax = muonTables->sizeX[tableNumber][dxi];
-      deltay = muonTables->sizeY[tableNumber][dxi];
-    }
-
-    return dxi;
+    deltax = muonTables->sizeX[tableNumber][dxi];
+    deltay = muonTables->sizeY[tableNumber][dxi];
   }
 
-  __device__ int calcTilePos(
+  __device__ void calcTilePos(
     MuonTables* muonTables,
     const Muon::MuonTileID& tile,
     float& x,
@@ -93,10 +88,10 @@ namespace Muon {
     float& deltay,
     float& z)
   {
-    return calcPos(muonTables, MuonTables::padTableNumber, tile, pad_offset(muonTables, tile), x, deltax, y, deltay, z);
+    calcPos(muonTables, MuonTables::padTableNumber, tile, pad_offset(muonTables, tile), x, deltax, y, deltay, z);
   }
 
-  __device__ int calcStripXPos(
+  __device__ void calcStripXPos(
     MuonTables* muonTables,
     const Muon::MuonTileID& tile,
     float& x,
@@ -105,10 +100,10 @@ namespace Muon {
     float& deltay,
     float& z)
   {
-    return calcPos(muonTables, MuonTables::stripXTableNumber, tile, strip_x_offset(muonTables, tile), x, deltax, y, deltay, z);
+    calcPos(muonTables, MuonTables::stripXTableNumber, tile, strip_x_offset(muonTables, tile), x, deltax, y, deltay, z);
   }
 
-  __device__ int calcStripYPos(
+  __device__ void calcStripYPos(
     MuonTables* muonTables,
     const Muon::MuonTileID& tile,
     float& x,
@@ -117,6 +112,6 @@ namespace Muon {
     float& deltay,
     float& z)
   {
-    return calcPos(muonTables, MuonTables::stripYTableNumber, tile, strip_y_offset(muonTables, tile), x, deltax, y, deltay, z);
+    calcPos(muonTables, MuonTables::stripYTableNumber, tile, strip_y_offset(muonTables, tile), x, deltax, y, deltay, z);
   }
 }; // namespace Muon

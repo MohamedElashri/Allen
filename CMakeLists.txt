@@ -135,7 +135,7 @@ if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
       if (${ROOT_HAS_IMT} STREQUAL "yes")
         find_package(TBB REQUIRED)
         get_filename_component(TBB_LIBDIR ${TBB_LIBRARIES} DIRECTORY)
-        set(ALLEN_ROOT_LIBRARIES -L${TBB_LIBDIR} -ltbb ${ALLEN_ROOT_LIBRARIES})
+        set(ALLEN_ROOT_LIBRARIES ${ALLEN_ROOT_LIBRARIES} -L${TBB_LIBDIR} -ltbb)
       endif()
     else()
       message(STATUS "Compiling without ROOT")
@@ -226,6 +226,7 @@ include_directories(cuda/event_model/SciFi/include)
 include_directories(cuda/event_model/common/include)
 include_directories(checker/tracking/include)
 include_directories(checker/pv/include)
+include_directories(checker/selections/include)
 include_directories(stream/sequence/include)
 include_directories(x86/SciFi/PrForward/include)
 include_directories(x86/SciFi/LookingForward/include)
@@ -257,6 +258,7 @@ target_link_libraries(AllenLib PUBLIC
   TrackChecking
   PVChecking
   CheckClustering
+  SelChecking
   x86MuonDecoding
   Common
   NonEventData)

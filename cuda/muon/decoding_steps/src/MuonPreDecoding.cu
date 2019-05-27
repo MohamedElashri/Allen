@@ -10,8 +10,8 @@ __global__ void muon_pre_decoding(
   uint* dev_storage_tdc_value,
   uint* dev_atomics_muon)
 {
-  const size_t event_number = blockIdx.x;
-  const size_t event_id = event_list[blockIdx.x];
+  const auto event_number = blockIdx.x;
+  const auto event_id = event_list[blockIdx.x];
   const auto raw_event = Muon::MuonRawEvent(events + offsets[event_id]);
   auto storage_station_region_quarter_offsets =
     dev_storage_station_region_quarter_offsets +

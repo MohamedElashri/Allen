@@ -17,6 +17,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 
 add_library(Utils STATIC
   ${prefix_sum}

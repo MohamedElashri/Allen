@@ -8,7 +8,8 @@ void SequenceVisitor::set_arguments_size<muon_sort_station_region_quarter_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_permutation_srq>(host_buffers.host_muon_total_number_of_tiles[0]);
+  arguments.set_size<dev_permutation_srq>(host_buffers.host_number_of_selected_events[0] *
+    Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters);
 }
 
 template<>
@@ -29,6 +30,8 @@ void SequenceVisitor::visit<muon_sort_station_region_quarter_t>(
     arguments.offset<dev_storage_tile_id>(),
     arguments.offset<dev_storage_tdc_value>(),
     arguments.offset<dev_atomics_muon>(),
-    arguments.offset<dev_permutation_srq>());
+    arguments.offset<dev_permutation_srq>(),
+    arguments.offset<dev_muon_raw_to_hits>());
+  
   state.invoke();
 }
