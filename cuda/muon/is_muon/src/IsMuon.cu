@@ -90,6 +90,8 @@ __global__ void is_muon(
   const int number_of_hits = muon_hits_event.number_of_hits_per_station[station_id];
   const float station_z = muon_hits_event.z[station_offset];
 
+  // printf("z offset %i, nb of hits %i, z %f\n", station_offset, number_of_hits, station_z);
+
   for (uint track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
     const float momentum = 1 / std::abs(scifi_tracks.qop[track_id]);
     const float extrapolation_x = scifi_tracks.states[track_id].x + scifi_tracks.states[track_id].tx * (station_z - scifi_tracks.states[track_id].z);

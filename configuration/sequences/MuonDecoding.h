@@ -57,4 +57,7 @@ SEQUENCE_T(
   muon_sort_station_region_quarter_t,
   muon_add_coords_crossing_maps_t,
   muon_station_ocurrence_prefix_sum_t,
-  muon_sort_by_station_t)
+  muon_sort_by_station_t,
+  is_muon_t,
+  muon_catboost_features_extraction_t,
+  muon_catboost_evaluator_t)

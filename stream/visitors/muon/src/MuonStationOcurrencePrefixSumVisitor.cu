@@ -33,6 +33,8 @@ void SequenceVisitor::visit<muon_station_ocurrence_prefix_sum_t>(
       cuda_stream,
       cuda_generic_event,
       host_buffers.host_muon_total_number_of_hits);
+
+    // arguments.print<dev_station_ocurrences_offset>();
   } else {
     // Set size of the main array to be prefix summed
     state.set_size((arguments.size<dev_station_ocurrences_offset>() >> 2) - 1);

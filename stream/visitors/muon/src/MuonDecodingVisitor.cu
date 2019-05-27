@@ -52,7 +52,7 @@ void SequenceVisitor::visit<muon_decoding_t>(
       cuda_stream)
   );
   state.set_opts(
-      1,
+      host_buffers.host_number_of_selected_events[0],
       Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters,
       cuda_stream
   );
@@ -61,8 +61,7 @@ void SequenceVisitor::visit<muon_decoding_t>(
       arguments.offset<dev_muon_raw>(),
       arguments.offset<dev_muon_raw_offsets>(),
       arguments.offset<dev_muon_raw_to_hits>(),
-      arguments.offset<dev_muon_hits>(),
-      host_buffers.host_number_of_selected_events[0]
+      arguments.offset<dev_muon_hits>()
   );
   state.invoke();
 }
