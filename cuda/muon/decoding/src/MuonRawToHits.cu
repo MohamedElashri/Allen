@@ -78,6 +78,7 @@ namespace Muon {
     const MuonLayout& layoutTwo = layouts[1];
     size_t midIndex = startIndex;
     unsigned int tmpTileId;
+    unsigned int tmpTdcValue;
     for (size_t i = startIndex; i < endIndex; i++) {
       if (MuonTileID::layout(tileIds[i]) == layoutOne) {
         if (midIndex != i) {
