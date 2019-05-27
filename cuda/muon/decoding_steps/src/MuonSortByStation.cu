@@ -16,6 +16,7 @@ __global__ void muon_sort_by_station(
   const auto station_ocurrences_offset = dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
   const auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
   const auto storage_tdc_value = dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
+  const auto muon_compact_hit = dev_muon_compact_hit + event_number * Muon::Constants::max_numhits_per_event;
   auto permutation_station = dev_permutation_station + event_number * Muon::Constants::max_numhits_per_event;
   auto event_muon_hits = muon_hits + event_number;
 
@@ -28,12 +29,12 @@ __global__ void muon_sort_by_station(
   }
 
   // Create a permutation according to Muon::MuonTileID::stationRegionQuarter
-  const auto get_station = [&station_ocurrences_offset] (const uint a, const uint b) {
-    const auto station_ocurrences_offset_a = station_ocurrences_offset[a];
-    const auto station_ocurrences_offset_b = station_ocurrences_offset[b];
+  const auto get_station = [&muon_compact_hit] (const uint a, const uint b) {
+    const auto muon_compact_hit_a = muon_compact_hit[a] & 0xF;
+    const auto muon_compact_hit_b = muon_compact_hit[b] & 0xF;
 
-    return (station_ocurrences_offset_a > station_ocurrences_offset_b)
-      - (station_ocurrences_offset_a < station_ocurrences_offset_b);
+    return (muon_compact_hit_a > muon_compact_hit_b)
+      - (muon_compact_hit_a < muon_compact_hit_b);
   };
 
   find_permutation(0,
@@ -44,11 +45,18 @@ __global__ void muon_sort_by_station(
 
   __syncthreads();
 
+  // if (blockIdx.x == 0 && threadIdx.x == 0) {
+  //   for (int i=0; i<number_of_hits; ++i) {
+  //     printf("%i, ", permutation_station[i]);
+  //   }
+  //   printf("\n");
+  // }
+
   __shared__ uint64_t sorted_array [Muon::Constants::max_numhits_per_event];
 
   // Apply permutation to shared memory buffer
   for (int i=threadIdx.x; i<number_of_hits; i+=blockDim.x) {
-    sorted_array[i] = dev_muon_compact_hit[permutation_station[i]];
+    sorted_array[i] = muon_compact_hit[permutation_station[i]];
   }
 
   __syncthreads();
@@ -60,8 +68,8 @@ __global__ void muon_sort_by_station(
     const uint8_t uncrossed = compact_hit >> 63;
     const uint digitsOneIndex_index = (compact_hit >> 48) & 0x7FFF;
     const uint digitsTwoIndex = (compact_hit >> 32) & 0xFFFF;
-    const uint thisGridX = (compact_hit >> 16) & 0xFFFF;
-    const uint otherGridY_condition = compact_hit & 0xFFFF;
+    const uint thisGridX = (compact_hit >> 18) & 0x3FFF;
+    const uint otherGridY_condition = (compact_hit >> 4) & 0x3FFF;
 
     float x = 0.f;
     float dx = 0.f;

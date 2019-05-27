@@ -93,7 +93,7 @@ __global__ void muon_add_coords_crossing_maps(
           const unsigned int candidateY = Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]) * thisGridY / otherGridY;
 
           if (keyX == candidateX && keyY == candidateY) {
-            // Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex]);
+            Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex]);
             // padTile.setY(Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]));
             // padTile.setLayout(Muon::MuonLayout(thisGridX, otherGridY));
             // float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
@@ -118,7 +118,11 @@ __global__ void muon_add_coords_crossing_maps(
             const int localCurrentHitIndex = atomicAdd(current_hit_index, 1);
 
             uint64_t compact_hit = (((uint64_t) (digitsOneIndex & 0x7FFF)) << 48) |
-              (((uint64_t) (digitsTwoIndex & 0xFFFF)) << 32) | ((thisGridX & 0xFFFF) << 16) | (otherGridY & 0xFFFF);
+              (((uint64_t) (digitsTwoIndex & 0xFFFF)) << 32) |
+              ((thisGridX & 0x3FFF) << 18) |
+              ((otherGridY & 0x3FFF) << 4) |
+              (((padTile.id() & Muon::MuonBase::MaskStation) >> Muon::MuonBase::ShiftStation) & 0xF);
+
             muon_compact_hit[localCurrentHitIndex] = compact_hit;
 
             atomicAdd(station_ocurrences_offset + station, 1);
@@ -170,7 +174,9 @@ __global__ void muon_add_coords_crossing_maps(
           const unsigned int uncrossed = 1;
 
           uint64_t compact_hit = (((uint64_t) (uncrossed & 0x1)) << 63) |
-            (((uint64_t) (index & 0x7FFF)) << 48) | condition;
+            (((uint64_t) (index & 0x7FFF)) << 48) |
+            (condition << 4) |
+            (((tile.id() & Muon::MuonBase::MaskStation) >> Muon::MuonBase::ShiftStation) & 0xF);
           muon_compact_hit[localCurrentHitIndex] = compact_hit;
 
           atomicAdd(station_ocurrences_offset + station, 1);
