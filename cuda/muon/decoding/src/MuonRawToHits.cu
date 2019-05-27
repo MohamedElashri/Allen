@@ -70,146 +70,87 @@ namespace Muon {
 
   __device__ void MuonRawToHits::addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used,
       uint startIndex, uint endIndex, HitsSoA* hitsSoA, uint& currentHitIndex) const {
-    // if (startIndex == endIndex) {
-    //   return;
-    // }
+    if (startIndex == endIndex) {
+      return;
+    }
 
     MuonLayout layouts[2];
     makeStripLayouts(MuonTileID::station(tileIds[startIndex]), MuonTileID::region(tileIds[startIndex]), layouts);
     const MuonLayout& layoutOne = layouts[0];
-    // const MuonLayout& layoutTwo = layouts[1];
-    // uint midIndex = startIndex;
-    // unsigned int tmpTileId;
-    // for (uint i = startIndex; i < endIndex; i++) {
-    //   if (MuonTileID::layout(tileIds[i]) == layoutOne) {
-    //     if (midIndex != i) {
-    //       tmpTileId = tileIds[i];
-    //       tileIds[i] = tileIds[midIndex];
-    //       tileIds[midIndex] = tmpTileId;
+    const MuonLayout& layoutTwo = layouts[1];
+    uint midIndex = startIndex;
+    unsigned int tmpTileId;
+    for (uint i = startIndex; i < endIndex; i++) {
+      if (MuonTileID::layout(tileIds[i]) == layoutOne) {
+        if (midIndex != i) {
+          tmpTileId = tileIds[i];
+          tileIds[i] = tileIds[midIndex];
+          tileIds[midIndex] = tmpTileId;
 
-    //       tmpTileId = tdcValues[i];
-    //       tdcValues[i] = tdcValues[midIndex];
-    //       tdcValues[midIndex] = tmpTileId;
-    //     }
-    //     midIndex++;
-    //   }
-    // }
-
-    // const int thisGridX = layoutOne.xGrid();
-    // const int thisGridY = layoutOne.yGrid();
-    // const int otherGridX = layoutTwo.xGrid();
-    // const int otherGridY = layoutTwo.yGrid();
-    // for (uint digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
-    //   const unsigned int keyX = MuonTileID::nX(tileIds[digitsOneIndex]) * otherGridX / thisGridX;
-    //   const unsigned int keyY = MuonTileID::nY(tileIds[digitsOneIndex]);
-
-    //   for (uint digitsTwoIndex = midIndex; digitsTwoIndex < endIndex; digitsTwoIndex++) {
-    //     const unsigned int candidateX = MuonTileID::nX(tileIds[digitsTwoIndex]);
-    //     const unsigned int candidateY = MuonTileID::nY(tileIds[digitsTwoIndex]) * thisGridY / otherGridY;
-
-    //     if (keyX == candidateX && keyY == candidateY) {
-    //       MuonTileID padTile(tileIds[digitsOneIndex]);
-    //       padTile.setY(MuonTileID::nY(tileIds[digitsTwoIndex]));
-    //       padTile.setLayout(MuonLayout(thisGridX, otherGridY));
-    //       float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
-    //       calcTilePos(muonTables, padTile, x, dx, y, dy, z);
-    //       const unsigned int uncrossed = 0;
-    //       const int clusterSize = 0;
-    //       const int region = padTile.region();
-    //       const int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
-    //       setAtIndex(hitsSoA, localCurrentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed,
-    //                  tdcValues[digitsOneIndex], tdcValues[digitsOneIndex] - tdcValues[digitsTwoIndex],
-    //                  clusterSize, region);
-    //       used[digitsOneIndex] = used[digitsTwoIndex] = true;
-    //     }
-    //   }
-    // }
-
-    // TODO: We are fetching the first tile ID
-    //       We should verify this logic holds (it does not atm)
-    // const auto tile = Muon::MuonTileID(tileIds[startIndex]);
-    // const auto station = tile.station();
-    // const auto region = tile.region();
-
-    // const auto x1 = getLayoutX(muonTables, Muon::MuonTables::stripXTableNumber, station, region);
-    // const auto y1 = getLayoutY(muonTables, Muon::MuonTables::stripXTableNumber, station, region);
-    // const auto x2 = getLayoutX(muonTables, Muon::MuonTables::stripYTableNumber, station, region);
-    // const auto y2 = getLayoutY(muonTables, Muon::MuonTables::stripYTableNumber, station, region);
-
-    // Muon::MuonLayout layout_one;
-    // if (x1 > x2) {
-    //   layout_one = Muon::MuonLayout {x1, y1};
-    // }
-    // else {
-    //   layout_one = Muon::MuonLayout {x2, y2};
-    // }
-
-    printf("Start and end indices: %i, %i\n", startIndex, endIndex);
-    for (int j = startIndex; j < endIndex; ++j) {
-      float x = 0.f, dx = 0.f, y = 0.f, dy = 0.f, z = 0.f, dz = 0.f;
-      const auto tile = Muon::MuonTileID(tileIds[j]);
-      const auto region = tile.region();
-      if (tile.station() > (Muon::Constants::n_stations - 3) && region == 0) {
-        printf("Processing tile %i...\n", j);
-        calcTilePos(muonTables, tile, x, dx, y, dy, z);
+          tmpTileId = tdcValues[i];
+          tdcValues[i] = tdcValues[midIndex];
+          tdcValues[midIndex] = tmpTileId;
+        }
+        midIndex++;
       }
-      // else {
-      //   if (Muon::MuonTileID::layout(tileIds[j]) == layoutOne) {
-      //     calcStripXPos(muonTables, tile, x, dx, y, dy, z);
-      //   }
-      //   else {
-      //     calcStripYPos(muonTables, tile, x, dx, y, dy, z);
-      //   }
-      // }
     }
 
-    // for (int j=startIndex; j<endIndex; ++j) {
-    //   float x = 0.f, dx = 0.f, y = 0.f, dy = 0.f, z = 0.f, dz = 0.f;
-    //   const auto tile = Muon::MuonTileID(tileIds[j]);
-    //   const auto region = tile.region();
-    //   if (tile.station() > (Muon::Constants::n_stations - 3) && region == 0) {
-    //     const auto dxi = calcTilePos(muonTables, tile, x, dx, y, dy, z);
-    //   } else {
-    //     if (Muon::MuonTileID::layout(tileIds[j]) == layoutOne) {
-    //       calcStripXPos(muonTables, tile, x, dx, y, dy, z);
-    //     } else {
-    //       calcStripYPos(muonTables, tile, x, dx, y, dy, z);
-    //     }
-    //   }
+    const int thisGridX = layoutOne.xGrid();
+    const int thisGridY = layoutOne.yGrid();
+    const int otherGridX = layoutTwo.xGrid();
+    const int otherGridY = layoutTwo.yGrid();
+    for (uint digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
+      const unsigned int keyX = MuonTileID::nX(tileIds[digitsOneIndex]) * otherGridX / thisGridX;
+      const unsigned int keyY = MuonTileID::nY(tileIds[digitsOneIndex]);
 
-    //   const unsigned int uncrossed = 1;
-    //   const int clusterSize = 0;
-    //   const int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
-    //   setAtIndex(hitsSoA, localCurrentHitIndex, tile.id(), x, dx, y, dy, z, dz, uncrossed,
-    //              tdcValues[j], tdcValues[j], clusterSize, region);
-    // }
+      for (uint digitsTwoIndex = midIndex; digitsTwoIndex < endIndex; digitsTwoIndex++) {
+        const unsigned int candidateX = MuonTileID::nX(tileIds[digitsTwoIndex]);
+        const unsigned int candidateY = MuonTileID::nY(tileIds[digitsTwoIndex]) * thisGridY / otherGridY;
 
-    // const uint startIndices[] = {startIndex, midIndex};
-    // const uint endIndices[] = {midIndex, endIndex};
-    // for (uint currentDigitsIndex = 0; currentDigitsIndex < 2; currentDigitsIndex++) {
-    //   for (uint currentDigitIndex = startIndices[currentDigitsIndex];
-    //        currentDigitIndex < endIndices[currentDigitsIndex];
-    //        currentDigitIndex++) {
-    //     if (!used[currentDigitIndex]) {
-    //       float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
-    //       MuonTileID tile = MuonTileID(tileIds[currentDigitIndex]);
-    //       const int region = tile.region();
-    //       if (tile.station() > (Constants::n_stations - 3) && region == 0) {
-    //         calcTilePos(muonTables, tile, x, dx, y, dy, z);
-    //       } else {
-    //         if (currentDigitsIndex == 0) {
-    //           calcStripXPos(muonTables, tile, x, dx, y, dy, z);
-    //         } else {
-    //           calcStripYPos(muonTables, tile, x, dx, y, dy, z);
-    //         }
-    //       }
-    //       const unsigned int uncrossed = 1;
-    //       const int clusterSize = 0;
-    //       const int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
-    //       setAtIndex(hitsSoA, localCurrentHitIndex, tile.id(), x, dx, y, dy, z, dz, uncrossed,
-    //                  tdcValues[currentDigitIndex], tdcValues[currentDigitIndex], clusterSize, region);
-    //     }
-    //   }
-    // }
+        if (keyX == candidateX && keyY == candidateY) {
+          MuonTileID padTile(tileIds[digitsOneIndex]);
+          padTile.setY(MuonTileID::nY(tileIds[digitsTwoIndex]));
+          padTile.setLayout(MuonLayout(thisGridX, otherGridY));
+          float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
+          calcTilePos(muonTables, padTile, x, dx, y, dy, z);
+          const unsigned int uncrossed = 0;
+          const int clusterSize = 0;
+          const int region = padTile.region();
+          const int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
+          setAtIndex(hitsSoA, localCurrentHitIndex, padTile.id(), x, dx, y, dy, z, dz, uncrossed,
+                     tdcValues[digitsOneIndex], tdcValues[digitsOneIndex] - tdcValues[digitsTwoIndex],
+                     clusterSize, region);
+          used[digitsOneIndex] = used[digitsTwoIndex] = true;
+        }
+      }
+    }
+
+    const uint startIndices[] = {startIndex, midIndex};
+    const uint endIndices[] = {midIndex, endIndex};
+    for (uint currentDigitsIndex = 0; currentDigitsIndex < 2; currentDigitsIndex++) {
+      for (uint currentDigitIndex = startIndices[currentDigitsIndex];
+           currentDigitIndex < endIndices[currentDigitsIndex];
+           currentDigitIndex++) {
+        if (!used[currentDigitIndex]) {
+          float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
+          MuonTileID tile = MuonTileID(tileIds[currentDigitIndex]);
+          const int region = tile.region();
+          if (tile.station() > (Constants::n_stations - 3) && region == 0) {
+            calcTilePos(muonTables, tile, x, dx, y, dy, z);
+          } else {
+            if (currentDigitsIndex == 0) {
+              calcStripXPos(muonTables, tile, x, dx, y, dy, z);
+            } else {
+              calcStripYPos(muonTables, tile, x, dx, y, dy, z);
+            }
+          }
+          const unsigned int uncrossed = 1;
+          const int clusterSize = 0;
+          const int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
+          setAtIndex(hitsSoA, localCurrentHitIndex, tile.id(), x, dx, y, dy, z, dz, uncrossed,
+                     tdcValues[currentDigitIndex], tdcValues[currentDigitIndex], clusterSize, region);
+        }
+      }
+    }
   }
 };
