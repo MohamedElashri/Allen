@@ -1,5 +1,5 @@
 #include "MuonRawToHits.cuh"
-#include <stdio.h>
+#include <cstdio>
 
 namespace Muon {
   __device__ Hit::Hit(HitsSoA* hitsSoA, uint index) {
@@ -58,8 +58,14 @@ namespace Muon {
     const unsigned int y1 = getLayoutY(muonTables, MuonTables::stripXTableNumber, station, region);
     const unsigned int x2 = getLayoutX(muonTables, MuonTables::stripYTableNumber, station, region);
     const unsigned int y2 = getLayoutY(muonTables, MuonTables::stripYTableNumber, station, region);
-    layouts[x1 > x2] = MuonLayout(x2, y2);
-    layouts[x1 <= x2] = MuonLayout(x1, y1);
+
+    if (x1 > x2) {
+      layouts[0] = MuonLayout(x1, y1);
+      layouts[1] = MuonLayout(x2, y2);
+    } else {
+      layouts[0] = MuonLayout(x2, y2);
+      layouts[1] = MuonLayout(x1, y1);
+    }
   }
 
   __device__ void MuonRawToHits::addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used,
@@ -67,6 +73,7 @@ namespace Muon {
     if (startIndex == endIndex) {
       return;
     }
+
     MuonLayout layouts[2];
     makeStripLayouts(MuonTileID::station(tileIds[startIndex]), MuonTileID::region(tileIds[startIndex]), layouts);
     const MuonLayout& layoutOne = layouts[0];
@@ -79,10 +86,15 @@ namespace Muon {
           tmpTileId = tileIds[i];
           tileIds[i] = tileIds[midIndex];
           tileIds[midIndex] = tmpTileId;
+
+          tmpTileId = tdcValues[i];
+          tdcValues[i] = tdcValues[midIndex];
+          tdcValues[midIndex] = tmpTileId;
         }
         midIndex++;
       }
     }
+
     const int thisGridX = layoutOne.xGrid();
     const int thisGridY = layoutOne.yGrid();
     const int otherGridX = layoutTwo.xGrid();
@@ -90,9 +102,11 @@ namespace Muon {
     for (uint digitsOneIndex = startIndex; digitsOneIndex < midIndex; digitsOneIndex++) {
       const unsigned int keyX = MuonTileID::nX(tileIds[digitsOneIndex]) * otherGridX / thisGridX;
       const unsigned int keyY = MuonTileID::nY(tileIds[digitsOneIndex]);
+
       for (uint digitsTwoIndex = midIndex; digitsTwoIndex < endIndex; digitsTwoIndex++) {
         const unsigned int candidateX = MuonTileID::nX(tileIds[digitsTwoIndex]);
         const unsigned int candidateY = MuonTileID::nY(tileIds[digitsTwoIndex]) * thisGridY / otherGridY;
+
         if (keyX == candidateX && keyY == candidateY) {
           MuonTileID padTile(tileIds[digitsOneIndex]);
           padTile.setY(MuonTileID::nY(tileIds[digitsTwoIndex]));
@@ -110,6 +124,60 @@ namespace Muon {
         }
       }
     }
+    // 
+    // for (int j=startIndex; j<endIndex; ++j) {
+    //   float x = 0.f, dx = 0.f, y = 0.f, dy = 0.f, z = 0.f, dz = 0.f;
+    //   const auto tile = Muon::MuonTileID(tileIds[j]);
+    //   const auto region = tile.region();
+    //   if (tile.station() > (Muon::Constants::n_stations - 3) && region == 0) {
+    //     calcTilePos(muonTables, tile, x, dx, y, dy, z);
+    //   } else {
+    //     const auto station = Muon::MuonTileID::station(tileIds[j]);
+    //     const auto region = Muon::MuonTileID::region(tileIds[j]);
+
+    //     const auto x1 = getLayoutX(muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+    //     const auto x2 = getLayoutX(muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+
+
+
+    //     int dxi;
+    //     if (Muon::MuonTileID::layout(tileIds[j]) == layoutOne) {
+    //       dxi = calcStripXPos(muonTables, tile, x, dx, y, dy, z);
+    //     } else {
+    //       dxi = calcStripYPos(muonTables, tile, x, dx, y, dy, z);
+    //     }
+
+    //     if (dxi > 10000 || dxi < 0) {
+    //       printf("x1>x2, j %i, midIndex %i, dxi %i, x1 %i, x2 %i\n", j, 0, dxi, x1, x2);
+    //     }
+
+    //     // if (x1 > x2) {
+    //     //   // if (j > midIndex) {
+    //     //   //   printf("Wrong >=: %i, %i\n", j, midIndex);
+    //     //   // }
+    //     //   const auto dxi = calcStripXPos(muonTables, tile, x, dx, y, dy, z);
+
+    //     //   if (dxi > 10000 || dxi < 0) {
+    //     //     printf("x1>x2, j %i, midIndex %i, dxi %i, x1 %i, x2 %i\n", j, midIndex, dxi, x1, x2);
+    //     //   }
+    //     // } else {
+    //     //   // if (j <= midIndex) {
+    //     //   //   printf("Wrong <: %i, %i\n", j, midIndex);
+    //     //   // }
+    //     //   const auto dxi = calcStripYPos(muonTables, tile, x, dx, y, dy, z);
+
+    //     //   if (dxi > 10000 || dxi < 0) {
+    //     //     printf("x1<=x2, j %i, midIndex %i, dxi %i, x1 %i, x2 %i\n", j, midIndex, dxi, x1, x2);
+    //     //   }
+    //     // }
+    //   }
+
+    //   const unsigned int uncrossed = 1;
+    //   const int clusterSize = 0;
+    //   const int localCurrentHitIndex = atomicAdd(&currentHitIndex, 1);
+    //   setAtIndex(hitsSoA, localCurrentHitIndex, tile.id(), x, dx, y, dy, z, dz, uncrossed,
+    //              tdcValues[j], tdcValues[j], clusterSize, region);
+    // }
 
     const uint startIndices[] = {startIndex, midIndex};
     const uint endIndices[] = {midIndex, endIndex};

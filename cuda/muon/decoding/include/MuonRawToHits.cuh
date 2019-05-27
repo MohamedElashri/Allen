@@ -39,15 +39,13 @@ namespace Muon {
  *  This is the muon reconstruction algorithm
  *  This just crosses the logical strips back into pads
  */
-  class MuonRawToHits {
-  public:
+  struct MuonRawToHits {
     MuonTables* muonTables;
     MuonGeometry* muonGeometry;
 
     __device__ void addCoordsCrossingMap(unsigned int* tileIds, unsigned int* tdcValues, bool* used, uint startIndex,
         uint endIndex, HitsSoA* hitsSoA, uint& currentHitIndex) const;
 
-  private:
     __device__ void makeStripLayouts(unsigned int station, unsigned int region, MuonLayout* layouts) const;
   };
 }

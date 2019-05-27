@@ -32,5 +32,6 @@ void SequenceVisitor::visit<muon_add_coords_crossing_maps_t>(
     arguments.offset<dev_permutation_srq>(),
     arguments.offset<dev_muon_raw_to_hits>(),
     arguments.offset<dev_muon_hits>());
+  
   state.invoke();
 }

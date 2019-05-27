@@ -59,15 +59,15 @@ namespace Muon {
     return static_cast<unsigned int>(muonTables->gridY[tableNumber][station * Constants::n_regions + region]);
   }
 
-  __device__ void calcPos(MuonTables* muonTables, size_t tableNumber, Muon::MuonTileID& tile, unsigned int offset_index,
+  __device__ int calcPos(MuonTables* muonTables, size_t tableNumber, const Muon::MuonTileID& tile, unsigned int offset_index,
       float& x, float& deltax, float& y, float& deltay, float& z);
 
-  __device__ void calcTilePos(MuonTables* muonTables, Muon::MuonTileID& tile, float& x, float& deltax,
+  __device__ int calcTilePos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
                    float& y, float& deltay, float& z);
 
-  __device__ void calcStripXPos(MuonTables* muonTables, Muon::MuonTileID& tile, float& x, float& deltax,
+  __device__ int calcStripXPos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
                      float& y, float& deltay, float& z);
 
-  __device__ void calcStripYPos(MuonTables* muonTables, Muon::MuonTileID& tile, float& x, float& deltax,
+  __device__ int calcStripYPos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
                      float& y, float& deltay, float& z);
 };

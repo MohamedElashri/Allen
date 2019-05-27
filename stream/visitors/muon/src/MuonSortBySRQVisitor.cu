@@ -27,6 +27,7 @@ void SequenceVisitor::visit<muon_sort_station_region_quarter_t>(
   state.set_opts(host_buffers.host_number_of_selected_events[0], 64, cuda_stream);
   state.set_arguments(
     arguments.offset<dev_storage_tile_id>(),
+    arguments.offset<dev_storage_tdc_value>(),
     arguments.offset<dev_atomics_muon>(),
     arguments.offset<dev_permutation_srq>());
   state.invoke();

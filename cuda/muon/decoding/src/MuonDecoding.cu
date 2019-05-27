@@ -212,6 +212,17 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
   //   originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x],
   //   originalStorageStationRegionQuarterOccurrencesOffset[threadIdx.x + 1]
   // );
+  
+  // // Print
+  // __syncthreads();
+  // if (threadIdx.x == 0) {
+  //   for (int i=0; i<currentStorageIndex; ++i) {
+  //     printf("(%i, %i, %i), ",
+  //       storageTileId[i],
+  //       storageTdcValue[i],
+  //       Muon::MuonTileID::stationRegionQuarter(storageTileId[i]));
+  //   }
+  // }
 
   muon_raw_to_hits->addCoordsCrossingMap(
       storageTileId,
