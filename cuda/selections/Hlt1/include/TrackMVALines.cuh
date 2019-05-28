@@ -9,7 +9,7 @@
 namespace TrackMVALines {
 
   // One track parameters.
-  const float maxChi2Ndof = 10000.0; // Large for now until we better understand the parameterized Kalman fit quality.
+  const float maxChi2Ndof = 10000.0f; // Large for now until we better understand the parameterized Kalman fit quality.
   const float minPt = 1000.0f / Gaudi::Units::GeV;
   const float maxPt = 25000.0f / Gaudi::Units::GeV;
   const float minIPChi2 = 7.4f;
@@ -26,7 +26,8 @@ namespace TrackMVALines {
   const float maxEta = 5.0f;
   const int maxNTrksAssoc = 2; // Placeholder. To be replaced with MVA selection.
   const float minFDChi2 = 0.0f; // Placeholder. To be replaced with MVA selection.
-
+  const float minTrackIPChi2 = 9.f;
+  
   // Selections.
   __device__ bool OneTrackMVA(const ParKalmanFilter::FittedTrack& track);
   __device__ bool TwoTrackMVA(const VertexFit::TrackMVAVertex& vertex);  

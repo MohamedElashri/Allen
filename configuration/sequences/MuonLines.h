@@ -55,8 +55,6 @@ SEQUENCE_T(
   kalman_velo_only_t,
   muon_decoding_t,
   is_muon_t,
-  muon_catboost_features_extraction_t,
-  muon_catboost_evaluator_t,
   kalman_pv_ipchi2_t,
   copy_and_prefix_sum_single_block_sv_t,
   fit_secondary_vertices_t,

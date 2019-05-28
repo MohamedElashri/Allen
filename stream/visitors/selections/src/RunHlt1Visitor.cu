@@ -10,6 +10,9 @@ void SequenceVisitor::set_arguments_size<run_hlt1_t>(
 {
   arguments.set_size<dev_one_track_results>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
   arguments.set_size<dev_two_track_results>(host_buffers.host_number_of_svs[0]);
+  arguments.set_size<dev_single_muon_results>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+  arguments.set_size<dev_disp_dimuon_results>(host_buffers.host_number_of_svs[0]);
+  arguments.set_size<dev_high_mass_dimuon_results>(host_buffers.host_number_of_svs[0]);
 }
 
 template<>
@@ -29,7 +32,10 @@ void SequenceVisitor::visit<run_hlt1_t>(
     arguments.offset<dev_atomics_scifi>(),
     arguments.offset<dev_sv_offsets>(),
     arguments.offset<dev_one_track_results>(),
-    arguments.offset<dev_two_track_results>());
+    arguments.offset<dev_two_track_results>(),
+    arguments.offset<dev_single_muon_results>(),
+    arguments.offset<dev_disp_dimuon_results>(),
+    arguments.offset<dev_high_mass_dimuon_results>());
   state.invoke();
 
   if (runtime_options.do_check) {
@@ -45,5 +51,23 @@ void SequenceVisitor::visit<run_hlt1_t>(
       arguments.size<dev_two_track_results>(),
       cudaMemcpyDeviceToHost,
       cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_single_muon_decisions,
+      arguments.offset<dev_single_muon_results>(),
+      arguments.size<dev_single_muon_results>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_disp_dimuon_decisions,
+      arguments.offset<dev_disp_dimuon_results>(),
+      arguments.size<dev_disp_dimuon_results>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_high_mass_dimuon_decisions,
+      arguments.offset<dev_high_mass_dimuon_results>(),
+      arguments.size<dev_high_mass_dimuon_results>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));                        
   }
 }

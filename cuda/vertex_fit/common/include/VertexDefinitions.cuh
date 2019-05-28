@@ -18,6 +18,9 @@ namespace VertexFit {
   
   // Charged pion mass for calculating Mcor.
   const float mPi = 139.57;
+
+  // Muon mass.
+  const float mMu = 105.66;
   
   struct TrackMVAVertex {
     // Fit results.
@@ -41,13 +44,17 @@ namespace VertexFit {
     float sumpt = 0.0f;
     // FD chi2.
     float fdchi2 = 0.0f;
+    // Mass assuming dimuon hypothesis.
+    float mdimu = 0.0f;
     // Corrected mass.
     float mcor = 0.0f;
     // PV -> SV eta.
     float eta = 0.0f;
+    // Minimum IP chi2 of the tracks.
+    float minipchi2 = 0.0f;
     // Number of tracks associated to a PV (min IP chi2 < 16).
     int ntrksassoc = 0;
-
+    
     // Degrees of freedom.
     int ndof = 0;
 
