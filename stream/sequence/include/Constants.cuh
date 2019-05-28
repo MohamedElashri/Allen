@@ -18,6 +18,8 @@
 #include "SciFiParametrization.h"
 #include "LookingForwardConstants.cuh"
 #include "MuonDefinitions.cuh"
+#include "MuonGeometry.cuh"
+#include "MuonTables.cuh"
 #include <gsl-lite.hpp>
 
 /**
@@ -74,6 +76,14 @@ struct Constants {
 
   // Looking forward
   LookingForward::Constants host_looking_forward_constants;
+
+  //Muon
+  char* dev_muon_geometry_raw = nullptr;
+  char* dev_muon_lookup_tables_raw = nullptr;
+  std::vector<char> host_muon_geometry_raw;
+  std::vector<char> host_muon_lookup_tables_raw;
+  Muon::MuonGeometry* dev_muon_geometry = nullptr;
+  Muon::MuonTables* dev_muon_tables = nullptr;
 
   // Muon classification model constatns
   Muon::Constants::FieldOfInterest* dev_muon_foi = nullptr;

@@ -17,6 +17,16 @@
     }                                                      \
   }
 
+#define cudaCheckKernelCall(stmt, kernel_name)                      \
+  {                                                                 \
+    cudaError_t err = stmt;                                         \
+    if (err != cudaSuccess) {                                       \
+      std::cerr << "Failed to invoke " << kernel_name << std::endl; \
+      std::cerr << cudaGetErrorString(err) << std::endl;            \
+      throw std::invalid_argument("cudaCheckKernelCall failed");    \
+    }                                                               \
+  }
+
 /**
  * @brief Cross architecture for statement.
  * @details It can be used to iterate with variable _TYPE _I from 0 through _END.

@@ -9,9 +9,6 @@ void SequenceVisitor::set_arguments_size<kalman_velo_only_t>(
   const HostBuffers& host_buffers)
 {
   arguments.set_size<dev_kf_tracks>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
-
-  // Setup muon ID here in case the muon sequence isn't run.
-  arguments.set_size<dev_is_muon>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
 }
 
 template<>
@@ -24,13 +21,7 @@ void SequenceVisitor::visit<kalman_velo_only_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_is_muon>(),
-    false,
-    arguments.size<dev_is_muon>(),
-    cuda_stream));
-
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(1024), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_velo>(),
     arguments.offset<dev_velo_track_hit_number>(),

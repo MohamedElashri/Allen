@@ -71,7 +71,9 @@ struct HostBuffers {
 
   // Muon
   float* host_muon_catboost_output;
-  bool *host_is_muon;
+  bool* host_is_muon;
+  uint* host_muon_total_number_of_tiles;
+  uint* host_muon_total_number_of_hits;
 
   // Secondary vertices
   uint* host_number_of_svs;

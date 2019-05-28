@@ -18,7 +18,8 @@
 
 struct lf_composite_track_seeding_t {
   constexpr static auto name {"lf_composite_track_seeding_t"};
-  using Arguments = std::tuple<dev_scifi_hits,
+  using Arguments = std::tuple<
+    dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_ut,
     dev_ut_qop,
@@ -32,9 +33,13 @@ struct lf_composite_track_seeding_t {
 
   using arguments_t = ArgumentRefManager<Arguments>;
 
-  decltype(make_handler(lf_triplet_seeding)) handler_lf_triplet_seeding {lf_triplet_seeding};
-  decltype(make_handler(lf_triplet_keep_best)) handler_lf_triplet_keep_best {lf_triplet_keep_best};
-  decltype(make_handler(lf_extend_tracks_x)) handler_lf_extend_tracks_x {lf_extend_tracks_x};
+  decltype(make_handler("lf_triplet_seeding", lf_triplet_seeding)) handler_lf_triplet_seeding {"lf_triplet_seeding",
+                                                                                               lf_triplet_seeding};
+  decltype(make_handler("lf_triplet_keep_best", lf_triplet_keep_best)) handler_lf_triplet_keep_best {
+    "lf_triplet_keep_best",
+    lf_triplet_keep_best};
+  decltype(make_handler("lf_extend_tracks_x", lf_extend_tracks_x)) handler_lf_extend_tracks_x {"lf_extend_tracks_x",
+                                                                                               lf_extend_tracks_x};
 };
 
 // COMPOSITE_ALGORITHM(

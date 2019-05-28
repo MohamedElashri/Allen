@@ -1,20 +1,22 @@
 #pragma once
 
 #include "ArgumentManager.cuh"
+#include "CudaCommon.h"
 #include <tuple>
 #include <utility>
+#include <string>
 
 /**
  * @brief      Macro for defining algorithms defined by a function name.
  *             A struct is created with name EXPOSED_TYPE_NAME that encapsulates
  *             a Handler of type FUNCTION.
  */
-#define ALGORITHM(FUNCTION, EXPOSED_TYPE_NAME, DEPENDENCIES)                                    \
+#define ALGORITHM(FUNCTION, EXPOSED_TYPE_NAME, DEPENDENCIES)                                         \
   struct EXPOSED_TYPE_NAME {                                                                         \
     constexpr static auto name {#EXPOSED_TYPE_NAME};                                                 \
     using Arguments = DEPENDENCIES;                                                                  \
     using arguments_t = ArgumentRefManager<Arguments>;                                               \
-    decltype(make_handler(FUNCTION)) handler {FUNCTION};                                   \
+    decltype(make_handler(name, FUNCTION)) handler {name, FUNCTION};                                 \
     void set_opts(                                                                                   \
       const dim3& param_num_blocks,                                                                  \
       const dim3& param_num_threads,                                                                 \
@@ -65,6 +67,7 @@ void invoke_impl(
  */
 template<typename R, typename... T>
 struct Handler {
+  std::string name = "";
   dim3 num_blocks, num_threads;
   unsigned shared_memory_size = 0;
   cudaStream_t* stream;
@@ -73,7 +76,7 @@ struct Handler {
   std::tuple<T...> invoke_arguments;
   R (*function)(T...);
 
-  Handler(R (*param_function)(T...)) : function(param_function) {}
+  Handler(const char* name, R (*param_function)(T...)) : name(name), function(param_function) {}
 
   void set_arguments(T... param_arguments) { invoke_arguments = std::tuple<T...> {param_arguments...}; }
 
@@ -99,6 +102,9 @@ struct Handler {
       stream,
       invoke_arguments,
       std::make_index_sequence<std::tuple_size<std::tuple<T...>>::value>());
+
+    // Check result of kernel call
+    cudaCheckKernelCall(cudaPeekAtLastError(), name);
   }
 };
 
@@ -107,7 +113,7 @@ struct Handler {
  *             to specify its function type (ie. "make_handler(function)").
  */
 template<typename R, typename... T>
-static Handler<R, T...> make_handler(R(f)(T...))
+static Handler<R, T...> make_handler(const char* name, R(f)(T...))
 {
-  return Handler<R, T...> {f};
+  return Handler<R, T...> {name, f};
 }

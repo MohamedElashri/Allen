@@ -8,15 +8,19 @@ def group_algos(algorithm_times):
     pv_algorithms = ["pv_beamline_peak", "pv_beamline_multi_fitter", "pv_beamline_histo", "pv_beamline_extrapolate"]
     ut_algorithms = ["consolidate_ut_tracks", "copy_ut_track_hit_number", "ut_decode_raw_banks_in_order", "ut_pre_decode", "ut_find_permutation", "ut_calculate_number_of_hits", "compass_ut", "ut_search_windows"]
     scifi_algorithms = ["scifi_pre_decode_v4", "scifi_raw_bank_decoder_v4", "scifi_calculate_cluster_count_v4", "scifi_direct_decoder_v4", "consolidate_scifi_tracks", "copy_scifi_track_hit_number", \
-        "lf_search_initial_windows", "lf_collect_candidates", "lf_prefix_sum_candidates", "lf_triplet_seeding", "lf_triplet_keep_best", "lf_extend_tracks_x",  \
-        "lf_quality_filter_x", "lf_search_uv_windows", "lf_extend_tracks_uv", "lf_quality_filter_length", "lf_fit", "lf_quality_filter"]
-    kalman_algorithms = ["velo_filter", "velo_kalman_fit"]
+      "lf_triplet_seeding", "lf_collect_candidates", "lf_quality_filter_x", "lf_extend_tracks_x", "lf_triplet_keep_best", "lf_search_initial_windows", "lf_fit", \
+      "lf_extend_missing_x", "lf_quality_filter", "lf_search_uv_windows", "lf_extend_tracks_uv", "lf_quality_filter_length"]
+    muon_algorithms = ["muon_add_coords_crossing_maps", "muon_catboost_evaluator", "muon_sort_by_station", "is_muon", "muon_sort_station_region_quarter", \
+      "muon_pre_decoding", "muon_catboost_features_extraction"]
+    kalman_algorithms = ["velo_kalman", "velo_filter", "kalman_pv_ipchi2", "fit_secondary_vertices", "velo_kalman_fit"]
+
     # Order of labels
     labels_order = ["Velo", "PV", "UT", "SciFi", "Kalman", "Common"]
     timings = {"Velo": {"algorithms": velo_algorithms, "value": 0},
         "PV": {"algorithms": pv_algorithms, "value": 0},
         "UT": {"algorithms": ut_algorithms, "value": 0},
         "SciFi": {"algorithms": scifi_algorithms, "value": 0},
+        "Muon": {"algorithms": muon_algorithms, "value": 0},
         "Kalman": {"algorithms": kalman_algorithms, "value": 0},
         "Common": {"algorithms": [], "value": 0},
     }
