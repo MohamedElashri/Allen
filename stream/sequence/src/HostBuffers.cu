@@ -104,9 +104,6 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     cudaCheck(cudaMallocHost(
       (void**) &host_two_track_decisions,
       max_number_of_events * n_max_svs_event * sizeof(bool)));
-    cudaCheck(cudaMallocHost(
-      (void**) & host_secondary_vertices,
-      max_number_of_events * n_max_svs_event * sizeof(VertexFit::TrackMVAVertex)));
   }
 }
 
