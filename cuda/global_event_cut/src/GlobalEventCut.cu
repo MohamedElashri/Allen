@@ -47,6 +47,7 @@ __global__ void global_event_cut(
   const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
   //  || num_combined_clusters < min_scifi_ut_clusters
   if (num_combined_clusters >= max_scifi_ut_clusters) return;
+  if (num_combined_clusters < min_scifi_ut_clusters) return;
 
   // passed cut
   if (threadIdx.x == 0) {
