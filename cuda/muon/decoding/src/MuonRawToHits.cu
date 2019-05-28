@@ -80,16 +80,16 @@ namespace Muon {
     const MuonLayout& layoutTwo = layouts[1];
     uint midIndex = startIndex;
     unsigned int tmpTileId;
-    for (uint i = startIndex; i < endIndex; i++) {
+    unsigned int tmpTdcValue;
+    for (size_t i = startIndex; i < endIndex; i++) {
       if (MuonTileID::layout(tileIds[i]) == layoutOne) {
         if (midIndex != i) {
           tmpTileId = tileIds[i];
           tileIds[i] = tileIds[midIndex];
           tileIds[midIndex] = tmpTileId;
-
-          tmpTileId = tdcValues[i];
+          tmpTdcValue = tdcValues[i];
           tdcValues[i] = tdcValues[midIndex];
-          tdcValues[midIndex] = tmpTileId;
+          tdcValues[midIndex] = tmpTdcValue;
         }
         midIndex++;
       }

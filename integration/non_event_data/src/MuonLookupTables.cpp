@@ -45,14 +45,14 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
     size_t sizeXSize;
     std::copy_n((size_t*) raw_input, 1, &sizeXSize);
     raw_input += sizeof(size_t);
-    raw_input += sizeof(float) * sizeXSize;
     allOffsets[currentAllOffsetsIndex++] = raw_input - data.data();
+    raw_input += sizeof(float) * sizeXSize;
 
     size_t sizeYSize;
     std::copy_n((size_t*) raw_input, 1, &sizeYSize);
     raw_input += sizeof(size_t);
-    raw_input += sizeof(float) * sizeYSize;
     allOffsets[currentAllOffsetsIndex++] = raw_input - data.data();
+    raw_input += sizeof(float) * sizeYSize;
 
     size_t offsetSize;
     std::copy_n((size_t*) raw_input, 1, &offsetSize);
