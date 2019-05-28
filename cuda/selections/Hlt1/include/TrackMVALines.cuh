@@ -24,6 +24,7 @@ namespace TrackMVALines {
   const float minMCor = 1000.0f / Gaudi::Units::MeV;
   const float minEta = 2.0f;
   const float maxEta = 5.0f;
+  const float minTrackPt = 500.f /Gaudi::Units::MeV;
   const int maxNTrksAssoc = 2; // Placeholder. To be replaced with MVA selection.
   const float minFDChi2 = 0.0f; // Placeholder. To be replaced with MVA selection.
   const float minTrackIPChi2 = 9.f;

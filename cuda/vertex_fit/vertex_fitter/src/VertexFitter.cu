@@ -242,6 +242,9 @@ namespace VertexFit {
     // Minimum IP chi2 of constituent tracks.
     sv.minipchi2 = trackA.ipChi2 < trackB.ipChi2 ? trackA.ipChi2 : trackB.ipChi2;
     
+    // Minimum pt of constituent tracks.
+    sv.minpt = trackA.pt() < trackB.pt() ? trackA.pt() : trackB.pt();
+
     // Muon ID.
     sv.is_dimuon = trackA.is_muon && trackB.is_muon;
 
