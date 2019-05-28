@@ -35,15 +35,5 @@ void SequenceVisitor::visit<fit_secondary_vertices_t>(
     arguments.offset<dev_kalman_pv_ipchi2>(),
     arguments.offset<dev_sv_offsets>(),
     arguments.offset<dev_secondary_vertices>());
-  state.invoke();
-
-  if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_secondary_vertices,
-      arguments.offset<dev_secondary_vertices>(),
-      arguments.size<dev_secondary_vertices>(),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-  }
-  
+  state.invoke();  
 }

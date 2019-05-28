@@ -230,7 +230,7 @@ namespace VertexFit {
     const float pz = trackA.pz() + trackB.pz();
     const float mvis2 = 2.f * mPi * mPi
       + 2.f * (std::sqrt((trackA.p() * trackA.p() + mPi * mPi) *
-                       (trackB.p() * trackB.p() + mPi * mPi))
+                         (trackB.p() * trackB.p() + mPi * mPi))
              - trackA.px() * trackB.px()
              - trackA.py() * trackB.py()
              - trackA.pz() * trackB.pz());
@@ -238,6 +238,29 @@ namespace VertexFit {
                           (pz * dx - dz * px) * (pz * dx - dz * px) +
                           (px * dy - dx * py) * (px * dy - dx * py)) / fd / fd;
     sv.mcor = std::sqrt(mvis2 + pperp2) + std::sqrt(pperp2);
+
+    // Minimum IP chi2 of constituent tracks.
+    sv.minipchi2 = trackA.ipChi2 < trackB.ipChi2 ? trackA.ipChi2 : trackB.ipChi2;
+    
+    // Minimum pt of constituent tracks.
+    sv.minpt = trackA.pt() < trackB.pt() ? trackA.pt() : trackB.pt();
+
+    // Muon ID.
+    sv.is_dimuon = trackA.is_muon && trackB.is_muon;
+
+    // Dimuon mass.
+    if (sv.is_dimuon) {
+      const float mdimu2 = 2.f * mMu * mMu
+        + 2.f * (std::sqrt((trackA.p() * trackA.p() + mMu * mMu) *
+                           (trackB.p() * trackB.p() + mMu * mMu))
+                 - trackA.px() * trackB.px()
+                 - trackA.py() * trackB.py()
+                 - trackA.pz() * trackB.pz());
+      sv.mdimu = std::sqrt(mdimu2);
+    } else {
+      sv.mdimu = -1.f;
+    }
+    
   }
   
 }
@@ -298,7 +321,9 @@ __global__ void fit_secondary_vertices(
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     
     // Preselection on first track.
-    if (trackA.pt() < VertexFit::trackMinPt || trackA.ipChi2 < VertexFit::trackMinIPChi2) {
+    if (trackA.pt() < VertexFit::trackMinPt ||
+        (trackA.ipChi2 < VertexFit::trackMinIPChi2 && !trackA.is_muon))
+    {
       continue;
     }
     
@@ -307,7 +332,8 @@ __global__ void fit_secondary_vertices(
 
       // Preselection on second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
-      if (trackB.pt() < VertexFit::trackMinPt || trackB.ipChi2 < VertexFit::trackMinIPChi2) {
+      if (trackB.pt() < VertexFit::trackMinPt ||
+          (trackB.ipChi2 < VertexFit::trackMinIPChi2 && !trackB.is_muon)) {
         continue;
       }
       

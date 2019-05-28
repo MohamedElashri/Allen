@@ -81,6 +81,8 @@ namespace ParKalmanFilter {
     uint ndofT;
     uint nhits;
 
+    bool is_muon;
+    
     // Functions for accessing momentum information.
     __device__ __host__ KalmanFloat p() const {
       KalmanFloat ret = 1.0f / std::abs(best_qop);
