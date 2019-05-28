@@ -4,7 +4,7 @@
 #include "Handler.cuh"
 #include "ArgumentsCommon.cuh"
 
-__global__ void init_event_list(uint* dev_event_list);
+__global__ void init_event_list(uint* dev_event_list, const uint number_of_events);
 
 ALGORITHM(
   init_event_list,
