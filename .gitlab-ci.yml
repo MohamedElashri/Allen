@@ -72,6 +72,7 @@ stages:
     paths:
       - output_*
   allow_failure: true
+  retry: 1
 
 .run_throughput_job: &run_throughput_job_def
   only:
@@ -113,6 +114,7 @@ stages:
     paths:
       - output_*
   allow_failure: true
+  retry: 1
 
 .throughput_cli_plot_job: &publish_algo_breakdown_plot_def
   only:
