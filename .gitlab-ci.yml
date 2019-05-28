@@ -55,7 +55,7 @@ stages:
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
     - D_CAPABILITY=${DEVICE_CAPABILITIES_MAP[${DEVICE_ID}]}
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
-    - RUN_OPTIONS="-n 1000 -r 100 -t 8 -c 0"
+    - RUN_OPTIONS="-n 1000 -m 700 -r 100 -t 12 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
@@ -95,7 +95,7 @@ stages:
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
     - D_CAPABILITY=${DEVICE_CAPABILITIES_MAP[${DEVICE_ID}]}
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
-    - RUN_OPTIONS="-n 1000 -r 100 -t 8 -c 0"
+    - RUN_OPTIONS="-n 1000 -m 700 -r 100 -t 12 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
