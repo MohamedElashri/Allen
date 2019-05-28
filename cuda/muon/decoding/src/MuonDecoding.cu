@@ -137,7 +137,7 @@ __global__ void muon_decoding(const uint* event_list, const char* events, const 
 
   if (threadIdx.x == 0) {
     for (size_t i = 0; i < currentHitIndex; i++) {
-      size_t currentStation = MuonTileID::station(muon_hits[eventId].tile[i]);
+      size_t currentStation = MuonTileID::station(muon_hits[output_event].tile[i]);
       stationOccurrencesOffset[currentStation + 1]++;
     }
     for (size_t i = 0; i < Constants::n_stations; i++) {
