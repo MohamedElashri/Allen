@@ -73,8 +73,22 @@ def main(argv):
   velo_algorithms = ["consolidate_velo_tracks", "copy_velo_track_hit_number", "estimate_input_size", "masked_velo_clustering", "calculate_phi_and_sort", "search_by_triplet", "fill_candidates", "weak_tracks_adder", "copy_and_prefix_sum_single_block"]
   pv_algorithms = ["pv_beamline_peak", "pv_beamline_multi_fitter", "pv_beamline_histo", "pv_beamline_extrapolate"]
   ut_algorithms = ["consolidate_ut_tracks", "copy_ut_track_hit_number", "ut_decode_raw_banks_in_order", "ut_pre_decode", "ut_find_permutation", "ut_calculate_number_of_hits", "compass_ut", "ut_search_windows"]
-  scifi_algorithms = ["scifi_pre_decode_v4", "scifi_raw_bank_decoder_v4", "scifi_calculate_cluster_count_v4", "scifi_direct_decoder_v4", "consolidate_scifi_tracks", "copy_scifi_track_hit_number"]
-  kalman_algorithms = ["velo_kalman", "velo_filter"]
+  scifi_algorithms = ["scifi_pre_decode_v4", "scifi_raw_bank_decoder_v4", "scifi_calculate_cluster_count_v4", "scifi_direct_decoder_v4", "consolidate_scifi_tracks", "copy_scifi_track_hit_number", \
+    "lf_triplet_seeding", "lf_collect_candidates", "lf_quality_filter_x", "lf_extend_tracks_x", "lf_triplet_keep_best", "lf_search_initial_windows", "lf_fit", \
+    "lf_extend_missing_x", "lf_quality_filter", "lf_search_uv_windows", "lf_extend_tracks_uv", "lf_quality_filter_length"]
+  muon_algorithms = ["muon_add_coords_crossing_maps", "muon_catboost_evaluator", "muon_sort_by_station", "is_muon", "muon_sort_station_region_quarter", \
+    "muon_pre_decoding", "muon_catboost_features_extraction"]
+  kalman_algorithms = ["velo_kalman", "velo_filter", "kalman_pv_ipchi2", "fit_secondary_vertices", "velo_kalman_fit"]
+
+  labels_order = ["Velo", "PV", "UT", "SciFi", "Kalman", "Muon", "Common"]
+  timings = {"Velo": {"algorithms": velo_algorithms, "value": 0, "color": colors[6]},
+      "PV": {"algorithms": pv_algorithms, "value": 0, "color": colors[16]},
+      "UT": {"algorithms": ut_algorithms, "value": 0, "color": colors[12]},
+      "SciFi": {"algorithms": scifi_algorithms, "value": 0, "color": colors[10]},
+      "Muon": {"algorithms": muon_algorithms, "value": 0, "color": colors[18]},
+      "Kalman": {"algorithms": kalman_algorithms, "value": 0, "color": colors[3]},
+      "Common": {"algorithms": [], "value": 0, "color": colors[20]}
+  }
 
   # Convert values to percentages
   full_addition = sum(algorithm_times.values())
@@ -86,39 +100,37 @@ def main(argv):
   keylist = sorted(keylist, key=lambda x: algorithm_times[x], reverse=True)
 
   # Choose color per algorithm
-  timings = [0, 0, 0, 0, 0, 0]
-  ordered_colors = [colors[6], colors[16], colors[12], colors[10], colors[3], colors[20]]
-  keylist_colors = []
-  for k in keylist:
-    if k in velo_algorithms:
-      timings[0] += algorithm_times[k]
-      keylist_colors.append(ordered_colors[0])
-    elif k in pv_algorithms:
-      timings[1] += algorithm_times[k]
-      keylist_colors.append(ordered_colors[1])
-    elif k in ut_algorithms:
-      timings[2] += algorithm_times[k]
-      keylist_colors.append(ordered_colors[2])
-    elif k in scifi_algorithms or "lf_" in k:
-      timings[3] += algorithm_times[k]
-      keylist_colors.append(ordered_colors[3])
-    elif k in kalman_algorithms:
-      timings[4] += algorithm_times[k]
-      keylist_colors.append(ordered_colors[4])
-    else:
-      timings[5] += algorithm_times[k]
-      keylist_colors.append(ordered_colors[5])
+  for algo, value in algorithm_times.items():
+    found = False
+    for key, algorithm_timing in timings.items():
+        algorithms = algorithm_timing["algorithms"]
+        if algo in algorithms:
+            timings[key]["value"] += 100 * value / full_addition
+            found = True
+            break
+    if not found:
+        timings["Common"]["value"] += 100 * value / full_addition
 
   # Some default parameters for the figure
   figure_scale = 1.5
   scale = 2.5
-  fig = plt.figure(figsize=(12*figure_scale, 9*figure_scale))
+  fig = plt.figure(figsize=(12*figure_scale, 12*figure_scale))
   ax = plt.axes()
 
   bar_width = 0.85
   opacity = 0.8
 
   ax.xaxis.grid(True, linestyle="dashed")
+
+  keylist_colors = []
+  for k in keylist:
+    found = False
+    for _, v in iter(timings.items()):
+      if k in v["algorithms"]:
+        found = True
+        keylist_colors.append(v["color"])
+    if not found:
+      keylist_colors.append(timings["Common"]["color"])
 
   values = [algorithm_times[a] for a in keylist]
   keylist_values = range(len(keylist))
@@ -133,16 +145,16 @@ def main(argv):
   plt.xlabel('Fraction of Allen sequence (%)', fontdict={'fontsize': 12*scale})
 
   # Make the bar plot
-  labels = ["Velo", "PV", "UT", "SciFi", "Kalman", "Common"]
-  for i in range(len(ordered_colors)):
-    labels[i] += " (" + ("%.2f" % timings[i]) + "%)"
+  labels = [a for a in labels_order]
+  for i in range(len(labels_order)):
+    labels[i] += " (" + ("%.2f" % timings[labels_order[i]]["value"]) + "%)"
 
   # Custom legend
   patches = []
-  for i in range(len(ordered_colors)):
+  for i in range(len(labels_order)):
     patches.append(
       mpatches.Patch(
-        facecolor=ordered_colors[i],
+        facecolor=timings[labels_order[i]]["color"],
         label=labels[i]))
 
   plt.legend(patches,

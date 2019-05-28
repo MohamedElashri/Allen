@@ -24,7 +24,7 @@ void SequenceVisitor::visit<muon_sort_station_region_quarter_t>(
   cudaCheck(
     cudaMemsetAsync(arguments.offset<dev_permutation_srq>(), 0, arguments.size<dev_permutation_srq>(), cuda_stream));
 
-  state.set_opts(host_buffers.host_number_of_selected_events[0], 64, cuda_stream);
+  state.set_opts(host_buffers.host_number_of_selected_events[0], 256, cuda_stream);
   state.set_arguments(
     arguments.offset<dev_storage_tile_id>(),
     arguments.offset<dev_storage_tdc_value>(),

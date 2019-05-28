@@ -21,7 +21,7 @@ namespace Muon {
   __device__ size_t size_index(MuonTables* muonTables, size_t tableNumber, const Muon::MuonTileID& tile)
   {
     const auto idx = Constants::n_regions * tile.station() + tile.region();
-    const auto index = muonTables->sizeOffset[tableNumber * Constants::n_stations + idx] +
+    const auto index = muonTables->sizeOffset[tableNumber * Constants::n_stations * Constants::n_regions + idx] +
                        tile.quarter() * muonTables->gridY[tableNumber][idx] * 6;
     if (tile.nY() < static_cast<unsigned int>(muonTables->gridY[tableNumber][idx])) {
       return index + 2 * tile.nY() +
