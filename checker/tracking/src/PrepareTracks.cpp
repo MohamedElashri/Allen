@@ -13,6 +13,8 @@
 
 #include "ROOTHeaders.h"
 
+#include <random>
+
 // LHCb::Track::pseudoRapidity() is based on slopes vector (Gaudi::XYZVector = ROOT::Match::XYZVector)
 // slopes = (Tx=dx/dz,Ty=dy/dz,1.)
 // eta() for XYZVector:
@@ -167,6 +169,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
   const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
   std::vector<Checker::Tracks> checker_tracks; // all tracks from all events
   int n_is_muon = 0;
+  int n_total_tracks = 0;
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
     Checker::Tracks tracks; // all tracks within one event
 
@@ -238,14 +241,17 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       t.muon_catboost_output = muon_catboost_output[event_offset + i_track];
       t.is_muon = is_muon[event_offset + i_track];
 
-      n_is_muon += (t.is_muon == true);
+      if ( t.is_muon)
+        n_is_muon++;
+
+      n_total_tracks++;
 
       tracks.push_back(t);
     } // tracks
     checker_tracks.emplace_back(tracks);
   }
 
-  debug_cout << "Number of tracks with is_muon true = " << n_is_muon << std::endl;
+  debug_cout << "Number of tracks with is_muon true = " << n_is_muon << " / " <<  n_total_tracks << std::endl;
 
   return checker_tracks;
 }

@@ -46,6 +46,9 @@ TrackChecker::~TrackChecker()
   if (m_trackerName == "Forward") {
     if ( n_matched_muons > 0 ) {
       std::printf("\nMuon matching checker \n");
+      // std::printf("Total number of tracks matched to an MCP = %lu, non muon MCPs = %lu, muon MCPs = %lu, total = %lu \n", m_n_tracks_matched_to_MCP, n_matched_not_muons, n_matched_muons, n_matched_muons+n_matched_not_muons);
+      std::printf("Muon fraction in all MCPs: %lu / %lu = %f \n", m_n_MCPs_muon, m_n_MCPs_not_muon + m_n_MCPs_muon, float( m_n_MCPs_muon) / (m_n_MCPs_not_muon + m_n_MCPs_muon) );
+      std::printf("Muon fraction in MCPs to which a track(s) was matched: %lu / %lu = %f \n", n_matched_muons, n_matched_muons + n_matched_not_muons, float( n_matched_muons) / (n_matched_muons + n_matched_not_muons) );
       std::printf(
         "Correctly identified muons with isMuon: \t \t \t \t %9lu/%9lu %6.2f%% \n",
         n_is_muon_true,
@@ -66,9 +69,9 @@ TrackChecker::~TrackChecker()
         m_nghosts,
         100.f * float(n_is_muon_ghost) / float(m_nghosts));
     }
-  }  
+  }
   printf("\n");
-    
+
   std::printf(
     "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
     "TrackChecker output",
@@ -188,7 +191,7 @@ void TrackChecker::muon_id_matching(
 
   if (m_trackerName == "Forward") {
     bool match_is_muon = false;
-    
+
     for (const auto& track_with_weight : tracks_with_weight) {
       const int track_index = track_with_weight.m_idx;
       const Checker::Track& track = tracks[track_index];
@@ -403,9 +406,15 @@ std::vector<uint32_t> TrackChecker::operator()(
   // Check which ones were matched to a track
   for (const auto mcp : mc_event.m_mcps) {
     const auto key = mcp.key;
+    if ( std::abs(mcp.pid) == 13 ) // muon
+      m_n_MCPs_muon++;
+    else // not muon
+      m_n_MCPs_not_muon++;
 
     if (assoc_table.find(key) == assoc_table.end()) // no track matched to MCP
       continue;
+
+    m_n_tracks_matched_to_MCP++;
 
     // have MC association
     // find track with highest weight
@@ -427,7 +436,7 @@ std::vector<uint32_t> TrackChecker::operator()(
 
     // Muon ID checker
     muon_id_matching(matched_tracks, mcp, tracks);
-    
+
     // fill histograms of reconstructible MC particles in various categories
     for (auto& histo_cat : m_histo_categories) {
       histos->fillReconstructedHistos(mcp, histo_cat);
