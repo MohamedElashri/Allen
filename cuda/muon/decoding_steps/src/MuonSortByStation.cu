@@ -122,7 +122,7 @@ __global__ void muon_sort_by_station(
 //   // Print
 //   __syncthreads();
 
-//   if (blockIdx.x == 1 && threadIdx.x == 0) {
+//   if (blockIdx.x == 900 && threadIdx.x == 0) {
 //     printf("%i muon hits:\n", number_of_hits);
 //     for (int i=0; i<number_of_hits; ++i) {
 //       printf(" muon hit {tile %i, x %f, dx %f, \

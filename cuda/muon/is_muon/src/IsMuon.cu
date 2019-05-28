@@ -86,7 +86,7 @@ __global__ void is_muon(
 
   const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_id);
   const uint event_offset = scifi_tracks.tracks_offset(event_id);
-  const int station_offset = muon_hits_event.station_offsets[station_id];
+  const int station_offset = muon_hits_event.station_offsets[station_id] - muon_hits_event.station_offsets[0];
   const int number_of_hits = muon_hits_event.number_of_hits_per_station[station_id];
   const float station_z = muon_hits_event.z[station_offset];
 
