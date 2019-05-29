@@ -84,11 +84,11 @@ __global__ void muon_catboost_features_extraction(
                                                                            (muon_hits[event_id].dy[idx] * Muon::Constants::INVSQRT3) +
                                                                            errMS * errMS);
     } else {
-      dev_muon_catboost_features[tracks_features_offset + offset::TIMES + station_id] = 0;
-      dev_muon_catboost_features[tracks_features_offset + offset::DTS + station_id] = 0;
-      dev_muon_catboost_features[tracks_features_offset + offset::CROSS + station_id] = 0.;
-      dev_muon_catboost_features[tracks_features_offset + offset::RES_X + station_id] = 0.;
-      dev_muon_catboost_features[tracks_features_offset + offset::RES_Y + station_id] = 0.;
+      dev_muon_catboost_features[tracks_features_offset + offset::TIMES + station_id] = 0.f;
+      dev_muon_catboost_features[tracks_features_offset + offset::DTS + station_id] = 0.f;
+      dev_muon_catboost_features[tracks_features_offset + offset::CROSS + station_id] = 0.f;
+      dev_muon_catboost_features[tracks_features_offset + offset::RES_X + station_id] = 0.f;
+      dev_muon_catboost_features[tracks_features_offset + offset::RES_Y + station_id] = 0.f;
     }
   }
 }
