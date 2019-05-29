@@ -16,6 +16,7 @@ namespace MuonLines {
     decision &= vertex.chi2 < maxVertexChi2;
     decision &= vertex.eta > dispMinEta && vertex.eta < dispMaxEta;
     decision &= vertex.minipchi2 > dispMinIPChi2;
+    decision &= vertex.minpt > minTrackPt;
     decision &= vertex.is_dimuon;
     return decision;
   }
@@ -25,6 +26,7 @@ namespace MuonLines {
     bool decision = vertex.chi2 > 0;
     decision &= vertex.chi2 < maxVertexChi2;
     decision &= vertex.mdimu > minMass;
+    decision &= vertex.minpt >minTrackPt;
     decision &= vertex.is_dimuon;
     return decision;
   }

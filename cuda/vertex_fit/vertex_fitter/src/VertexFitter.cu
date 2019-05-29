@@ -339,8 +339,8 @@ __global__ void fit_secondary_vertices(
       
       // Only combine tracks from the same PV.
       if (pv_table.pv[i_track] != pv_table.pv[j_track] &&
-          (pv_table.value[i_track] > VertexFit::maxAssocIPChi2 ||
-           pv_table.value[j_track] > VertexFit::maxAssocIPChi2)) {
+          pv_table.value[i_track] > VertexFit::maxAssocIPChi2 &&
+	  pv_table.value[j_track] > VertexFit::maxAssocIPChi2) {
         continue;
       }
             
