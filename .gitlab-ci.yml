@@ -206,6 +206,13 @@ t4:DefaultSequence:run_throughput:
   dependencies:
     - DefaultSequence:build
 
+gtx780ti:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx780ti
+  dependencies:
+    - DefaultSequence:build
+
 gtx10606g:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
@@ -272,6 +279,7 @@ throughput:DefaultSequence:publish_throughput:
     - gtx680:DefaultSequence:run_throughput
     - gtxtitanx:DefaultSequence:run_throughput
     - gtx670:DefaultSequence:run_throughput
+    - gtx780ti:DefaultSequence:run_throughput
     - gtx1080ti:DefaultSequence:run_throughput
     - gtx980:DefaultSequence:run_throughput
 
@@ -289,5 +297,6 @@ speedup:DefaultSequence:publish_speedup:
     - gtx980:DefaultSequence:run_throughput
     - gtxtitanx:DefaultSequence:run_throughput
     - gtx670:DefaultSequence:run_throughput
+    - gtx780ti:DefaultSequence:run_throughput
     - gtx1080ti:DefaultSequence:run_throughput
     - gtx980:DefaultSequence:run_throughput
