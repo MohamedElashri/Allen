@@ -68,3 +68,5 @@ done
 
 cp bkpfile.bkp cuda/PV/beamlinePV/include/BeamlinePVConstants.cuh
 rm bkpfile.bkp
+
+cd checker/perfscans

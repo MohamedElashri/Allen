@@ -77,3 +77,5 @@ done
 
 cp bkpfile.bkp cuda/UT/common/include/UTDefinitions.cuh
 rm bkpfile.bkp
+
+cd checker/perfscans

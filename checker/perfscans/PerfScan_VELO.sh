@@ -4,7 +4,7 @@ cp cuda/velo/common/include/VeloDefinitions.cuh bkpfile.bkp
 
 for par in 'max_scatter_seeding' 'max_scatter_forwarding' 
 do
-  for val in '0.05' '0.10' '0.20' '0.40' '0.60' '0.80' '0.90' '1.0'
+  for val in '0.025' '0.05' '0.10' '0.20' '0.40' '0.60' '0.80' '1.0'
   do
     echo 'Scanning VELO parameters' $par $val
     sed -i s/$par\ =\ \[^\;\]\*\;/$par\ =\ $val\f\;/g cuda/velo/common/include/VeloDefinitions.cuh
@@ -58,3 +58,5 @@ done
 
 cp bkpfile.bkp cuda/velo/common/include/VeloDefinitions.cuh
 rm bkpfile.bkp
+
+cd checker/perfscans

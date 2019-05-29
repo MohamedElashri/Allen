@@ -94,3 +94,5 @@ done
 
 cp bkpfile.bkp cuda/SciFi/looking_forward/common/include/LookingForwardConstants.cuh
 rm bkpfile.bkp
+
+cd checker/perfscans
