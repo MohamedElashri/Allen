@@ -28,10 +28,10 @@ __global__ void muon_catboost_features_extraction(
     float min_dist = 1e10;
     int index_of_closest_hit = -1;
 
-    const int station_offset = muon_hits[event_id].station_offsets[station_id];
+    const int station_offset = muon_hits[event_id].station_offsets[station_id] - muon_hits[event_id].station_offsets[0];
     const int number_of_hits = muon_hits[event_id].number_of_hits_per_station[station_id];
     const float station_z = muon_hits[event_id].z[station_offset];
-    const float station_z0 = muon_hits[event_id].z[muon_hits[event_id].station_offsets[0]];
+    const float station_z0 = muon_hits[event_id].z[0];
 
     const float extrapolation_x = scifi_tracks.states[track_id].x +
                                   scifi_tracks.states[track_id].tx * (station_z - scifi_tracks.states[track_id].z);
