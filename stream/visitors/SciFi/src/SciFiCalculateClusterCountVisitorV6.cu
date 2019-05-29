@@ -39,7 +39,7 @@ void SequenceVisitor::visit<scifi_calculate_cluster_count_v6_t>(
   state.invoke();
 
   // Debugging
-  const uint hit_count_uints = 2 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats + 1;
+  /*const uint hit_count_uints = 2 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats + 1;
   uint host_scifi_hit_count[hit_count_uints];
   cudaCheck(cudaMemcpyAsync(&host_scifi_hit_count, arguments.offset<dev_scifi_hit_count>(), hit_count_uints*sizeof(uint), cudaMemcpyDeviceToHost, cuda_stream));
   cudaEventRecord(cuda_generic_event, cuda_stream);
@@ -50,5 +50,5 @@ void SequenceVisitor::visit<scifi_calculate_cluster_count_v6_t>(
     for(size_t g = 0; g < SciFi::Constants::n_mat_groups_and_mats; g++) {
       outfile << host_scifi_hit_count[event * SciFi::Constants::n_mat_groups_and_mats + g] << std::endl;
     }
-  }
+  }*/
 }

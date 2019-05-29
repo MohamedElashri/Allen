@@ -32,12 +32,6 @@ __device__ void store_sorted_cluster_reference_v6 (
   assert(uniqueGroupOrMat < SciFi::Constants::n_mat_groups_and_mats);
   hitIndex += shared_mat_offsets[uniqueGroupOrMat];
 
-  // Cluster reference:
-  //   raw bank: 8 bits
-  //   element (it): 8 bits
-  //   Condition 1-2-3: 2 bits
-  //   Condition 2.1-2.2: 1 bit
-  //   Condition 2.1: log2(n+1) - 8 bits
   hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 |
                                      (condition & 0x07) << 13 | (delta & 0xFF);
 };
@@ -121,10 +115,8 @@ __global__ void scifi_pre_decode_v6(
           } else {
             store_sorted_cluster_reference_v6 (STOREARGS, 0x05, 0x00);
           }
+          ++it_number;
         }
-
-        // Due to v6
-        ++it_number;
       }
     }
   }

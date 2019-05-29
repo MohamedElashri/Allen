@@ -34,7 +34,7 @@ void SequenceVisitor::visit<scifi_raw_bank_decoder_v6_t>(
   state.invoke();
 
   // SciFi Decoder Debugging
-  const uint hit_count_uints = 2 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats + 1;
+  /*const uint hit_count_uints = 2 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats + 1;
   uint host_scifi_hit_count[hit_count_uints];
   uint* host_scifi_hits = new uint[host_buffers.scifi_hits_uints()];
   cudaCheck(cudaMemcpyAsync(&host_scifi_hit_count, arguments.offset<dev_scifi_hit_count>(), hit_count_uints*sizeof(uint), cudaMemcpyDeviceToHost, cuda_stream));
@@ -55,7 +55,6 @@ void SequenceVisitor::visit<scifi_raw_bank_decoder_v6_t>(
           << zone / 2 << " "
           << zone % 2     << " "
           << hi.LHCbID(h) << " "
-          //<< hi.channel[h] << " "
           << hi.x0[h]   << " "
           << hi.z0[h]   << " "
           << hi.w(h)    << " "
@@ -65,5 +64,5 @@ void SequenceVisitor::visit<scifi_raw_bank_decoder_v6_t>(
           << hi.yMax(h) << std::endl;
       }
     }
-  }
+  }*/
 }

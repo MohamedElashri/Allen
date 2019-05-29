@@ -64,12 +64,6 @@ __global__ void scifi_raw_bank_decoder_v6(
 
   for (int i=threadIdx.x; i < number_of_hits_in_event; i+=blockDim.x) {
     const uint32_t cluster_reference = hits.cluster_reference[hit_count.event_offset() + i];
-    // Cluster reference: FIXME
-    //   raw bank: 8 bits
-    //   element (it): 8 bits
-    //   Condition 1-2-3: 2 bits
-    //   Condition 2.1-2.2: 1 bit
-    //   Condition 2.1: log2(n+1) - 8 bits
     const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
     const int it_number = (cluster_reference >> 16) & 0xFF;
     const int condition = (cluster_reference >> 13) & 0x07;

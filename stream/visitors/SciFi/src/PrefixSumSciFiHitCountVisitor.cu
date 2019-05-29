@@ -58,7 +58,7 @@ void SequenceVisitor::visit<prefix_sum_scifi_hits_t>(
     cudaEventSynchronize(cuda_generic_event);
   }
 
-  info_cout << "Total SciFi cluster count: " << *host_buffers.host_accumulated_number_of_scifi_hits << std::endl;
+  /*info_cout << "Total SciFi cluster count: " << *host_buffers.host_accumulated_number_of_scifi_hits << std::endl;
 
   const uint hit_count_uints = 2 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mats + 1;
   uint host_scifi_hit_count[hit_count_uints];
@@ -71,5 +71,5 @@ void SequenceVisitor::visit<prefix_sum_scifi_hits_t>(
     for(size_t g = 0; g < SciFi::Constants::n_mat_groups_and_mats; g++) {
       outfile << host_scifi_hit_count[event * SciFi::Constants::n_mat_groups_and_mats + g] << std::endl;
     }
-  }
+  }*/
 }
