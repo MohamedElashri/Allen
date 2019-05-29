@@ -200,7 +200,7 @@ v100:DefaultSequence:run_throughput:
     - DefaultSequence:build
 
 t4:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - t4
   dependencies:

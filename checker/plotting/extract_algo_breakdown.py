@@ -83,6 +83,11 @@ def main(argv):
             if m:
                 algorithm_times[m.group(2)] = float(m.group(1))
 
+        # Add up everything
+        full_addition = sum(algorithm_times.values())
+        for k in algorithm_times.keys():
+            algorithm_times[k] = 100 * algorithm_times[k] / full_addition
+
         output_list = sorted(algorithm_times.items(), key=operator.itemgetter(1), reverse=True)
 
         print(output_list)
