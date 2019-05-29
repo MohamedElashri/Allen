@@ -36,7 +36,7 @@ def getTrackers():
 
 
 def getGhostHistoNames():
-    #return ["eta", "nPV"] # currently no eta information available from track
+    # return ["eta", "nPV"] # currently no eta information available from track
     return ["nPV"]
 
 
@@ -134,7 +134,7 @@ for tracker in trackers:
 
     # calculate ghost rate
     histoBaseName = tracker + "/"
-    for histo in ghostHistos:
+    for histo in ghostHistos: 
         trackerDir.cd()
         title = "ghost rate vs " + histo
         canvas = ROOT.TCanvas(title, title)
@@ -158,7 +158,7 @@ for tracker in trackers:
         g_efficiency.Draw("ap")
 
         canvas.Write()
-        canvas.SaveAs("../../../plotsfornote/" + tracker + "GhostRate.pdf")
+        canvas.SaveAs("../../../plotsfornote/" + tracker + "GhostRate.pdf") 
 
 outputfile.Write()
 outputfile.Close()
