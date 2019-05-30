@@ -10,7 +10,6 @@ stages:
       - review_june
       - schedules
       - web
-
   stage: build
   script:
     - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
@@ -178,13 +177,19 @@ stages:
     - cat devices_throughputs.csv
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
-# Build on all platforms
+# Build for all platforms
 DefaultSequence:build:
   <<: *build_job_def
   tags:
     - t4
 
+DataPreparation:build:
+  <<: *build_job_def
+  tags:
+    - v100
+
 # Run on all platforms
+# DefaultSequence
 rtx2080ti:DefaultSequence:run_throughput:
   <<: *run_throughput_job_def
   tags:
@@ -255,11 +260,82 @@ gtx1080ti:DefaultSequence:run_throughput:
   dependencies:
     - DefaultSequence:build
 
-# Publish
-# Plain results to mattermost
+# DataPreparation
+# Run on all platforms
+rtx2080ti:DataPreparation:run_throughput:
+  <<: *run_throughput_job_def
+  tags:
+    - rtx2080ti
+  dependencies:
+    - DataPreparation:build
 
-# TODO: Make an intermediate stage for this job, modify script to
-#       support the nvprof output as input
+v100:DataPreparation:run_throughput:
+  <<: *run_throughput_job_def
+  tags:
+    - v100
+  dependencies:
+    - DataPreparation:build
+
+t4:DataPreparation:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - t4
+  dependencies:
+    - DataPreparation:build
+
+gtx780ti:DataPreparation:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx780ti
+  dependencies:
+    - DataPreparation:build
+
+gtx10606g:DataPreparation:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx10606g
+  dependencies:
+    - DataPreparation:build
+
+gtx980:DataPreparation:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx980
+  dependencies:
+    - DataPreparation:build
+
+gtx680:DataPreparation:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx680
+  dependencies:
+    - DataPreparation:build
+
+gtxtitanx:DataPreparation:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtxtitanx
+  dependencies:
+    - DataPreparation:build
+
+gtx670:DataPreparation:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx670
+  dependencies:
+    - DataPreparation:build
+
+gtx1080ti:DataPreparation:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx1080ti
+  dependencies:
+    - DataPreparation:build
+
+# Publish
+
+# DefaultSequence
+# Plain results to mattermost
 rtx2080ti:DefaultSequence:publish_algo_breakdown_plot:
   <<: *publish_algo_breakdown_plot_def
   tags:
@@ -300,3 +376,44 @@ speedup:DefaultSequence:publish_speedup:
     - gtx780ti:DefaultSequence:run_throughput
     - gtx1080ti:DefaultSequence:run_throughput
     - gtx980:DefaultSequence:run_throughput
+
+# Data Preparation
+rtx2080ti:DataPreparation:publish_algo_breakdown_plot:
+  <<: *publish_algo_breakdown_plot_def
+  tags:
+    - gpu
+  dependencies:
+    - rtx2080ti:DataPreparation:run_throughput
+
+throughput:DataPreparation:publish_throughput:
+  <<: *publish_throughput_job_def
+  tags:
+    - gpu
+  dependencies:
+    - rtx2080ti:DataPreparation:run_throughput
+    - v100:DataPreparation:run_throughput
+    - t4:DataPreparation:run_throughput
+    - gtx10606g:DataPreparation:run_throughput
+    - gtx680:DataPreparation:run_throughput
+    - gtxtitanx:DataPreparation:run_throughput
+    - gtx670:DataPreparation:run_throughput
+    - gtx780ti:DataPreparation:run_throughput
+    - gtx1080ti:DataPreparation:run_throughput
+    - gtx980:DataPreparation:run_throughput
+
+speedup:DataPreparation:publish_speedup:
+  <<: *publish_speedup_job_def
+  tags:
+    - gpu
+  dependencies:
+    - rtx2080ti:DataPreparation:run_throughput
+    - v100:DataPreparation:run_throughput
+    - t4:DataPreparation:run_throughput
+    - gtx10606g:DataPreparation:run_throughput
+    - gtx680:DataPreparation:run_throughput
+    - gtx980:DataPreparation:run_throughput
+    - gtxtitanx:DataPreparation:run_throughput
+    - gtx670:DataPreparation:run_throughput
+    - gtx780ti:DataPreparation:run_throughput
+    - gtx1080ti:DataPreparation:run_throughput
+    - gtx980:DataPreparation:run_throughput
