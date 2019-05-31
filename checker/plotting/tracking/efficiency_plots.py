@@ -72,7 +72,7 @@ for tracker in trackers:
             ROOT.gPad.SetTicks()
             # get efficiency for not electrons category
             histoName = histoBaseName + "notElectrons_" + efficiencyHistoDict[
-                histo]["variable"]
+                histo]["variable"] 
             print ("not electrons: "+ histoName)
             numeratorName = histoName + "_reconstructed"
             numerator = f.Get(numeratorName)
@@ -97,6 +97,7 @@ for tracker in trackers:
                 print ("electrons: " + histoName)
                 numeratorName = histoName + "_reconstructed"
                 numerator = f.Get(numeratorName)
+                 
                 denominatorName = histoName + "_reconstructible"
                 denominator = f.Get(denominatorName)
                 if numerator.GetEntries() == 0 or denominator.GetEntries(
@@ -131,6 +132,24 @@ for tracker in trackers:
                 " ", "").replace(",", "_").replace("<", "_")
             canvas.SaveAs("../../../plotsfornote/" + tracker + "Eff" + histo +
                           cleantitle + ".pdf")
+
+            
+            if histo == "p":
+                title = "Momentum distribution, " + categories[tracker][cut]["title"]
+                canvas = ROOT.TCanvas(title, title)
+                histoName = histoBaseName + "notElectrons_" + efficiencyHistoDict[histo]["variable"] 
+                numeratorName = histoName + "_reconstructed"
+                numerator = f.Get(numeratorName)
+                print("momentum distro histogram has ")
+                print(numerator.GetEntries())
+                print(" entries")
+                numerator.GetXaxis().SetTitle(efficiencyHistoDict[histo]["xTitle"])
+                numerator.GetYaxis().SetTitle("Entries")
+                numerator.Draw()
+        
+                canvas.Write() 
+                canvas.SaveAs("../../../plotsfornote/" + tracker + "_momentum_distro_" + cleantitle + ".pdf")
+
 
     # calculate ghost rate
     histoBaseName = tracker + "/"

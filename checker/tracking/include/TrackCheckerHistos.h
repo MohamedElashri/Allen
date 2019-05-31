@@ -13,7 +13,7 @@ struct TrackCheckerHistos {
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_p;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_pt;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_phi;
-  std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_nPV;
+  std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_nPV; 
 
   std::unique_ptr<TH1D> h_ghost_nPV;
   std::unique_ptr<TH1D> h_total_nPV;  
