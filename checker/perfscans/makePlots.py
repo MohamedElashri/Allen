@@ -1,6 +1,18 @@
 import os,sys,fnmatch
 import ROOT
 from ROOT import *
+import re
+
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
 scans = { "VELO"      : {
                          "max_scatter_seeding" : [],
@@ -25,7 +37,9 @@ scans = { "VELO"      : {
           "SciFi"     : {
                          "maximum_number_of_candidates_per_ut_track" : [],
                          "maximum_number_of_candidates_per_ut_track_after_x_filter" : [],
-                         "track_min_quality" : []
+                         "track_min_quality" : [],
+                         "minPt" : [],
+                         "tolYCollectX" : []
                         }
         }
 
@@ -42,7 +56,9 @@ for thisscan in scans :
     for entry in files:  
       if fnmatch.fnmatch(entry, pattern):
         scans[thisscan][var].append(entry.lstrip(thisscan).lstrip('-').lstrip(var)[1:].rstrip('-'+physperfsuffix))
-    scans[thisscan][var].sort()
+    scans[thisscan][var].sort(key=natural_keys)
+    if (scans[thisscan][var][0][0] == '-') :
+      scans[thisscan][var].reverse()
 
 # What are we actually going to plot?
 scanstoplot = ["VELO","PV","CompassUT","SciFi"]
@@ -53,29 +69,44 @@ canvtoploton = TCanvas("tptcanv","tptcanv",1000,800)
 for thisscan in scanstoplot :
   tpthistos[thisscan] = {}
   for var in scans[thisscan] :
+    lowlim = float(scans[thisscan][var][0])
+    upplim = float(scans[thisscan][var][-1])
+    if (scans[thisscan][var][0][0] == '-') :
+      lowlim *= 1.05
+      upplim /= 1.05
+    else :
+      lowlim /= 1.05
+      upplim *= 1.05
     tpthistos[thisscan][var] = TH1F(thisscan+var+"tphist",
                                     thisscan+var+"tphist",
                                     100,
-                                    float(scans[thisscan][var][0])/1.1,
-                                    float(scans[thisscan][var][-1])*1.1)
+                                    lowlim,
+                                    upplim)
     tpthistos[thisscan][var].SetMarkerStyle(20)
     tpthistos[thisscan][var].SetMarkerSize(1.6)
-    tpthistos[thisscan][var].GetYaxis().SetTitle("Throughput on V100 (kHz)")
+    tpthistos[thisscan][var].GetYaxis().SetTitle("Relative throughput on V100")
     tpthistos[thisscan][var].GetYaxis().SetTitleOffset(0.9)
     tpthistos[thisscan][var].GetXaxis().SetTitle(var)
     tpthistos[thisscan][var].GetXaxis().SetTitleSize(0.05)
     tpthistos[thisscan][var].GetXaxis().SetTitleOffset(1.1)
+    firstpoint = True
+    relfactor = 0.
     for scanpoint in scans[thisscan][var] :
       thistpfile = open(resultsdir+thisscan+'-'+var+'-'+scanpoint+'-'+throughputsuffix)
       for line in thistpfile :
         if line.find('events/s') > -1 :
-          tpthistos[thisscan][var].Fill(float(scanpoint),float(line.split()[0])) 
+          if firstpoint :
+            relfactor = float(line.split()[0])
+            tpthistos[thisscan][var].Fill(float(scanpoint),1.0)
+            firstpoint = False
+          else :
+            tpthistos[thisscan][var].Fill(float(scanpoint),float(line.split()[0])/relfactor) 
 
     for thisbin in range(100):
       tpthistos[thisscan][var].SetBinError(thisbin,0)
     canvtoploton.cd()
     tpthistos[thisscan][var].Draw("P")
-    tpthistos[thisscan][var].GetYaxis().SetRangeUser(0,100000)
+    tpthistos[thisscan][var].GetYaxis().SetRangeUser(0.7,1.3)
     canvtoploton.SaveAs(resultsdir+thisscan+'-'+var+'-tptscan.pdf')
 
 physperfhistos = {}
@@ -121,11 +152,19 @@ for thisscan in scanstoplot :
     physperfhistos[thisscan][var] = {}
     for ppgroup in ordertoread :
       for ppcat in physperftoplot[ppgroup]["cats"] :
+        lowlim = float(scans[thisscan][var][0])
+        upplim = float(scans[thisscan][var][-1])
+        if (scans[thisscan][var][0][0] == '-') :
+          lowlim *= 1.05
+          upplim /= 1.05
+        else :
+          lowlim /= 1.05
+          upplim *= 1.05
         physperfhistos[thisscan][var][ppgroup+ppcat] = TH1F(thisscan+var+ppgroup+ppcat+"pphist",
                                                             thisscan+var+ppgroup+ppcat+"pphist",
                                                             100,
-                                                            float(scans[thisscan][var][0])/1.05,
-                                                            float(scans[thisscan][var][-1])*1.05)
+                                                            lowlim,
+                                                            upplim)
         physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerStyle(24)
         physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerSize(1.6)
         physperfhistos[thisscan][var][ppgroup+ppcat].GetYaxis().SetTitle("Efficiency (%)")
@@ -177,6 +216,7 @@ for thisscan in scanstoplot :
   for var in scans[thisscan] : 
     for ppgroup in ordertoread :   
       legend.Clear()
+      legendpv.Clear()
       firstcat = True
       canvtoploton.cd()
       for col,ppcat in enumerate(physperftoplot[ppgroup]["cats"]) : 
@@ -200,3 +240,4 @@ for thisscan in scanstoplot :
       else :
         legend.Draw()
       legcanv.SaveAs(resultsdir+thisscan+'-'+var+'-'+ppgroup+'-legend.pdf')
+

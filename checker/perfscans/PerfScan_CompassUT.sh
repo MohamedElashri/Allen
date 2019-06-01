@@ -10,10 +10,10 @@ do
     sed -i s/$par\ =\ \[^\;\]\*\;/$par\ =\ $val\;/g cuda/UT/common/include/CompassUTDefinitions.cuh 
     cd build
     make -j 8 >& /tmp/WTF
-    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/CompassUT-$par-$val-scan.stdout
+    ./Allen -f /data/gligorov/signals/Bs2PhiPhi/mag_down -c 1 -t 1 -r 1 -m 9000 >& $outloc\/CompassUT-$par-$val-scan.stdout
     cp ../output/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
     cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
-    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout    
+    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 10 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout    
     cd ..
     cp bkpfile.bkp cuda/UT/common/include/CompassUTDefinitions.cuh
   done
@@ -32,10 +32,10 @@ do
     sed -i s/$par\ =\ \[^f\]\*f/$par\ =\ $val\f/g cuda/UT/common/include/UTDefinitions.cuh 
     cd build
     make -j 8 >& /tmp/WTF
-    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/CompassUT-$par-$val-scan.stdout
+    ./Allen -f /data/gligorov/signals/Bs2PhiPhi/mag_down -c 1 -t 1 -r 1 -m 9000 >& $outloc\/CompassUT-$par-$val-scan.stdout
     cp ../output/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
     cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
-    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout 
+    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 10 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout 
     cd ..
     cp bkpfile.bkp cuda/UT/common/include/UTDefinitions.cuh
   done
@@ -49,10 +49,10 @@ do
     sed -i s/$par\ =\ \[^f\]\*f/$par\ =\ $val\f/g cuda/UT/common/include/UTDefinitions.cuh 
     cd build
     make -j 8 >& /tmp/WTF
-    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/CompassUT-$par-$val-scan.stdout
+    ./Allen -f /data/gligorov/signals/Bs2PhiPhi/mag_down -c 1 -t 1 -r 1 -m 9000 >& $outloc\/CompassUT-$par-$val-scan.stdout
     cp ../output/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
     cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
-    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout 
+    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 10 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout 
     cd ..
     cp bkpfile.bkp cuda/UT/common/include/UTDefinitions.cuh
   done
@@ -66,10 +66,10 @@ do
     sed -i s/$par\ =\ \[^f\]\*f/$par\ =\ $val\f/g cuda/UT/common/include/UTDefinitions.cuh 
     cd build
     make -j 8 >& /tmp/WTF
-    ./Allen -f /data/gligorov/BsPhiPhi -c 1 -t 1 -r 1 -m 3000 >& $outloc\/CompassUT-$par-$val-scan.stdout
+    ./Allen -f /data/gligorov/signals/Bs2PhiPhi/mag_down -c 1 -t 1 -r 1 -m 9000 >& $outloc\/CompassUT-$par-$val-scan.stdout
     cp ../output/PrCheckerPlots.root $outloc\/PrChk-CompassUT-$par-$val-scan.root
     cp ../output/KalmanIPCheckerOutput.root $outloc\/KFChk-CompassUT-$par-$val-scan.root
-    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 1 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout 
+    ./Allen -f /data/gligorov/minbias -c 0 -n 10000 -t 3 -r 10 -m 4000 >& $outloc\/CompassUT-$par-$val-tptscan.stdout 
     cd ..
     cp bkpfile.bkp cuda/UT/common/include/UTDefinitions.cuh
   done
