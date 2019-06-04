@@ -8,7 +8,7 @@ def setLHCbStyle() :
     lhcbFont     = 132
     lhcbTSize    = 0.06
     lhcbWidth    = 2
-    
+
     lhcbStyle= TStyle("lhcbStyle","LHCb plots style");
     lhcbStyle.SetFillColor(1)
     lhcbStyle.SetFillStyle(1001)   # solid
@@ -43,7 +43,7 @@ def setLHCbStyle() :
     # set the paper & margin sizes
     lhcbStyle.SetPaperSize(20,26)
     lhcbStyle.SetPadTopMargin(0.05)
-    lhcbStyle.SetPadRightMargin(0.05) # increase for colz plots
+    lhcbStyle.SetPadRightMargin(0.08) # increase for colz plots
     lhcbStyle.SetPadBottomMargin(0.16)
     lhcbStyle.SetPadLeftMargin(0.14)
 
@@ -56,13 +56,13 @@ def setLHCbStyle() :
     lhcbStyle.SetLineStyleString(2,"[12 12]"); # postscript dashes
     lhcbStyle.SetMarkerStyle(20);
     lhcbStyle.SetMarkerSize(1.0);
-    
+
     # label offsets
     lhcbStyle.SetLabelOffset(0.010,"X");
     lhcbStyle.SetLabelOffset(0.010,"Y");
-    
+
     # by default, do not display histogram decorations:
-    lhcbStyle.SetOptStat(0)  
+    lhcbStyle.SetOptStat(0)
     #lhcbStyle.SetOptStat("emr")  # show only nent -e , mean - m , rms -r
     # full opts at http:#root.cern.ch/root/html/TStyle.html#TStyle:SetOptStat
     lhcbStyle.SetStatFormat("6.3g") # specified as c printf options
@@ -78,10 +78,10 @@ def setLHCbStyle() :
     lhcbStyle.SetTitleBorderSize(0)
     lhcbStyle.SetTitleFont(lhcbFont,"title")
     lhcbStyle.SetTitleX(0.0)
-    lhcbStyle.SetTitleY(1.0) 
+    lhcbStyle.SetTitleY(1.0)
     lhcbStyle.SetTitleW(1.0)
     lhcbStyle.SetTitleH(0.05)
-  
+
     # look of the statistics box:
     lhcbStyle.SetStatBorderSize(0)
     lhcbStyle.SetStatFont(lhcbFont)
@@ -90,15 +90,14 @@ def setLHCbStyle() :
     lhcbStyle.SetStatY(0.9)
     lhcbStyle.SetStatW(0.25)
     lhcbStyle.SetStatH(0.15)
-    
+
     # put tick marks on top and RHS of plots
     lhcbStyle.SetPadTickX(1)
     lhcbStyle.SetPadTickY(1)
-    
+
     # histogram divisions: only 5 in x to avoid label overlaps
     lhcbStyle.SetNdivisions(505,"x")
     lhcbStyle.SetNdivisions(510,"y")
-    
+
     gROOT.SetStyle("lhcbStyle")
     return
- 

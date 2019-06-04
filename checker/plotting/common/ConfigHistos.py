@@ -6,18 +6,23 @@ def efficiencyHistoDict():
 
     basedict["eta"]["xTitle"] = "#eta"
     basedict["eta"]["variable"] = "Eta"
+    basedict["eta"]["title"] = "#eta"
 
     basedict["p"]["xTitle"] = "p [MeV]"
     basedict["p"]["variable"] = "P"
+    basedict["p"]["title"] = "p"
 
     basedict["pt"]["xTitle"] = "p_{T} [MeV]"
     basedict["pt"]["variable"] = "Pt"
+    basedict["pt"]["title"] = "p_{T}"
 
     basedict["phi"]["xTitle"] = "#phi [rad]"
     basedict["phi"]["variable"] = "Phi"
+    basedict["phi"]["title"] = "#phi"
 
     basedict["nPV"]["xTitle"] = "# of PVs"
     basedict["nPV"]["variable"] = "nPV"
+    basedict["nPV"]["title"] = "# of PVs"
 
     return basedict
 
@@ -36,6 +41,10 @@ def ghostHistoDict():
 
 def getCuts():
     basedict = {"Velo": {}, "Upstream": {}, "Forward": {}}
+    # basedict["Forward"] = [
+    #     "Long_eta25", "LongFromB_eta25"
+    # ]
+
 
     basedict["Velo"] = [
         "VeloTracks", "VeloTracks_eta25", "LongFromB_eta25", "LongFromD_eta25",
