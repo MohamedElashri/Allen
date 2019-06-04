@@ -105,6 +105,27 @@ def place_legend(canvas, x1=None, y1=None, x2=None, y2=None, header="", option="
     # As a fallback, use the default values, taken from TCanvas::BuildLegend
     return canvas.BuildLegend(0.5, 0.67, 0.88, 0.88, header, option)
 
+def find_place(canvas, x1=None, y1=None, x2=None, y2=None):
+    # Make sure all objects are correctly registered
+    canvas.Update()
+
+    # Build a list of objects to check for overlaps
+    objects = []
+    for x in canvas.GetListOfPrimitives():
+        if isinstance(x, ROOT.TH1) or isinstance(x, ROOT.TGraph):
+            objects.append(x)
+        elif isinstance(x, ROOT.THStack) or isinstance(x, ROOT.TMultiGraph):
+            objects.extend(x)
+
+    for place in PLACES:
+        place_user = canvas.PadtoU(*place)
+        # Make sure there are no overlaps
+        if any(obj.Overlap(*place_user) for obj in objects):
+            continue
+        return place
+
+    return PLACES[3] # fallback solution
+
 # Monkey patch ROOT objects to make it all work
 ROOT.THStack.__iter__ = lambda self: iter(self.GetHists())
 ROOT.TMultiGraph.__iter__ = lambda self: iter(self.GetListOfGraphs())
