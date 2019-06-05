@@ -29,6 +29,7 @@
 #include "InputTools.h"
 #include "InputReader.h"
 #include "MDFReader.h"
+#include "MDFProvider.h"
 #include "Timer.h"
 #include "StreamWrapper.cuh"
 #include "Constants.cuh"
@@ -82,7 +83,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   bool do_check = true;
   size_t reserve_mb = 1024;
 
-  int use_mdf = 0;
+  string mdf_input;
   int cuda_device = 0;
   int cpu_offload = 1;
 
@@ -102,11 +103,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"g", "geometry"})) {
       folder_detector_configuration = arg + "/";
-    }
-    else if (flag_in({"mdf"})) {
-      use_mdf = atoi(arg.c_str());
-    }
-    else if (flag_in({"n", "number-of-events"})) {
+    } else if (flag_in({"mdf"})) {
+      mdf_input = arg;
+    } else if (flag_in({"n", "number-of-events"})) {
       number_of_events_requested = atoi(arg.c_str());
     }
     else if (flag_in({"t", "threads"})) {
@@ -192,22 +191,50 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
   const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
 
-  std::unique_ptr<EventReader> event_reader;
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
-  if (use_mdf) {
-    event_reader = std::make_unique<MDFReader>(FolderMap {{{BankTypes::VP, folder_name_mdf},
-                                                           {BankTypes::UT, folder_name_mdf},
-                                                           {BankTypes::FT, folder_name_mdf},
-                                                           {BankTypes::MUON, folder_name_mdf}}});
-  }
-  else {
+
+  std::unique_ptr<EventReader> event_reader{};
+  std::unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>> mdf_provider{};
+  BanksAndOffsets velo_events{}, ut_events{}, scifi_events{}, muon_events{};
+  if (!mdf_input.empty()) {
+    vector<string> connections;
+    size_t current = mdf_input.find(","), previous = 0;
+    while (current != string::npos) {
+        connections.emplace_back(mdf_input.substr(previous, current - previous));
+        previous = current + 1;
+        current = mdf_input.find(",", previous);
+    }
+    connections.emplace_back(mdf_input.substr(previous, current - previous));
+    mdf_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(1, number_of_events_requested, std::move(connections));
+    mdf_provider->fill(0);
+    velo_events = mdf_provider->banks(BankTypes::VP, 0);
+    ut_events = mdf_provider->banks(BankTypes::UT, 0);
+    scifi_events = mdf_provider->banks(BankTypes::FT, 0);
+    muon_events = mdf_provider->banks(BankTypes::MUON, 0);
+  } else {
     event_reader = std::make_unique<EventReader>(FolderMap {{{BankTypes::VP, folder_name_velopix_raw},
                                                              {BankTypes::UT, folder_name_UT_raw},
                                                              {BankTypes::FT, folder_name_SciFi_raw},
                                                              {BankTypes::MUON, folder_name_Muon_raw}}});
-  }
+    event_reader->read_events(number_of_events_requested, start_event_offset);
+    velo_events = BanksAndOffsets{{event_reader->events(BankTypes::VP).begin(),
+                                   event_reader->events(BankTypes::VP).size()},
+                                  {event_reader->offsets(BankTypes::VP).begin(),
+                                   event_reader->offsets(BankTypes::VP).size()}};
+    ut_events = BanksAndOffsets{{event_reader->events(BankTypes::UT).begin(),
+                                 event_reader->events(BankTypes::UT).size()},
+                                {event_reader->offsets(BankTypes::UT).begin(),
+                                 event_reader->offsets(BankTypes::UT).size()}};
+    scifi_events = BanksAndOffsets{{event_reader->events(BankTypes::FT).begin(),
+                                    event_reader->events(BankTypes::FT).size()},
+                                   {event_reader->offsets(BankTypes::FT).begin(),
+                                    event_reader->offsets(BankTypes::FT).size()}};
+    muon_events = BanksAndOffsets{{event_reader->events(BankTypes::MUON).begin(),
+                                   event_reader->events(BankTypes::MUON).size()},
+                                  {event_reader->offsets(BankTypes::MUON).begin(),
+                                   event_reader->offsets(BankTypes::MUON).size()}};
 
-  auto input_events = event_reader->read_events(number_of_events_requested, start_event_offset);
+  }
 
   muon_catboost_model_reader =
     std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
@@ -282,30 +309,15 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       error_cout << "Failed to select cuda device " << cuda_device << std::endl;
       return -1;
     }
-    auto runtime_options = RuntimeOptions {event_reader->events(BankTypes::VP).begin(),
-                                           event_reader->offsets(BankTypes::VP).begin(),
-                                           event_reader->events(BankTypes::VP).size(),
-                                           event_reader->offsets(BankTypes::VP).size(),
-                                           event_reader->events(BankTypes::UT).begin(),
-                                           event_reader->offsets(BankTypes::UT).begin(),
-                                           event_reader->events(BankTypes::UT).size(),
-                                           event_reader->offsets(BankTypes::UT).size(),
-                                           event_reader->events(BankTypes::FT).begin(),
-                                           event_reader->offsets(BankTypes::FT).begin(),
-                                           event_reader->events(BankTypes::FT).size(),
-                                           event_reader->offsets(BankTypes::FT).size(),
-                                           event_reader->events(BankTypes::MUON).begin(),
-                                           event_reader->offsets(BankTypes::MUON).begin(),
-                                           event_reader->events(BankTypes::MUON).size(),
-                                           event_reader->offsets(BankTypes::MUON).size(),
-                                           number_of_events_requested,
-                                           number_of_repetitions,
-                                           do_check,
-                                           static_cast<bool>(cpu_offload)};
-
-    stream_wrapper.run_stream(i, runtime_options);
-    return 0;
-  };
+    stream_wrapper.run_stream(i, {velo_events,
+                                  ut_events,
+                                  scifi_events,
+                                  muon_events,
+                                  number_of_events_requested,
+                                  number_of_repetitions,
+                                  do_check,
+                                  cpu_offload});
+                                };
 
   // Vector of threads
   std::vector<std::thread> threads;

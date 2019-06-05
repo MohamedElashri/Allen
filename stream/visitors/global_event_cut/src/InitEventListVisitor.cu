@@ -8,12 +8,12 @@ void SequenceVisitor::set_arguments_size<init_event_list_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_velo_raw_input>(runtime_options.host_velopix_events_size);
-  arguments.set_size<dev_velo_raw_input_offsets>(runtime_options.host_velopix_event_offsets_size);
-  arguments.set_size<dev_ut_raw_input>(runtime_options.host_ut_events_size);
-  arguments.set_size<dev_ut_raw_input_offsets>(runtime_options.host_ut_event_offsets_size);
-  arguments.set_size<dev_scifi_raw_input>(runtime_options.host_scifi_events_size);
-  arguments.set_size<dev_scifi_raw_input_offsets>(runtime_options.host_scifi_event_offsets_size);
+  arguments.set_size<dev_velo_raw_input>(std::get<0>(runtime_options.host_velo_events).size_bytes());
+  arguments.set_size<dev_velo_raw_input_offsets>(std::get<1>(runtime_options.host_velo_events).size_bytes());
+  arguments.set_size<dev_ut_raw_input>(std::get<0>(runtime_options.host_ut_events).size_bytes());
+  arguments.set_size<dev_ut_raw_input_offsets>(std::get<1>(runtime_options.host_ut_events).size_bytes());
+  arguments.set_size<dev_scifi_raw_input>(std::get<0>(runtime_options.host_scifi_events).size_bytes());
+  arguments.set_size<dev_scifi_raw_input_offsets>(std::get<1>(runtime_options.host_scifi_events).size_bytes());
   arguments.set_size<dev_event_list>(runtime_options.number_of_events);
   arguments.set_size<dev_number_of_selected_events>(1);
 }
@@ -32,38 +32,38 @@ void SequenceVisitor::visit<init_event_list_t>(
   // the various decoding algorithms
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_velo_raw_input>(),
-    runtime_options.host_velopix_events,
-    arguments.size<dev_velo_raw_input>(),
+    std::get<0>(runtime_options.host_velo_events).begin(),
+    std::get<0>(runtime_options.host_velo_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_velo_raw_input_offsets>(),
-    runtime_options.host_velopix_event_offsets,
-    arguments.size<dev_velo_raw_input_offsets>(),
+    std::get<1>(runtime_options.host_velo_events).begin(),
+    std::get<1>(runtime_options.host_velo_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_ut_raw_input>(),
-    runtime_options.host_ut_events,
-    runtime_options.host_ut_events_size,
+    std::get<0>(runtime_options.host_ut_events).begin(),
+    std::get<0>(runtime_options.host_ut_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_ut_raw_input_offsets>(),
-    runtime_options.host_ut_event_offsets,
-    runtime_options.host_ut_event_offsets_size * sizeof(uint32_t),
+    std::get<1>(runtime_options.host_ut_events).begin(),
+    std::get<1>(runtime_options.host_ut_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_scifi_raw_input>(),
-    runtime_options.host_scifi_events,
-    runtime_options.host_scifi_events_size,
+    std::get<0>(runtime_options.host_scifi_events).begin(),
+    std::get<0>(runtime_options.host_scifi_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_scifi_raw_input_offsets>(),
-    runtime_options.host_scifi_event_offsets,
-    runtime_options.host_scifi_event_offsets_size * sizeof(uint),
+    std::get<1>(runtime_options.host_scifi_events).begin(),
+    std::get<1>(runtime_options.host_scifi_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
 
