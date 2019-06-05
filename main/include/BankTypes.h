@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <gsl-lite.hpp>
 
 namespace {
@@ -24,6 +25,14 @@ template<typename ENUM>
 constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
 {
   return static_cast<typename std::underlying_type<ENUM>::type>(e);
+}
+
+using BanksAndOffsets = std::tuple<span<const char>, span<const unsigned int>>;
+
+template<BankTypes... BANKS>
+std::unordered_set<BankTypes> banks_set()
+{
+  return std::unordered_set<BankTypes> {BANKS...};
 }
 
 #endif
