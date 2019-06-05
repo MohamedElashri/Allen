@@ -186,7 +186,7 @@ DefaultSequence:build:
 DataPreparation:build:
   <<: *build_job_def
   tags:
-    - v100
+    - rtx2080ti
 
 # Run on all platforms
 # DefaultSequence
