@@ -21,6 +21,7 @@ from ROOT import TLegend
 from ROOT import gPad
 from ROOT import TMultiGraph
 from ROOT import THStack
+from ROOT import TMath
 
 sys.path.append('../')
 from common.LHCbStyle import *
@@ -39,8 +40,8 @@ def getTrackers():
 
 
 def getGhostHistoNames():
-    # return ["eta", "nPV"] # currently no eta information available from track
-    return ["nPV"]
+    return ["nPV", "eta"] # currently no eta information available from track
+    #return ["nPV"]
 
 
 # f = [ROOT.TFile.Open("../../../output/checkerplots/KstEE/PrCheckerPlots.root", "read"),
@@ -158,9 +159,8 @@ for tracker in trackers:
                 variable.SetTitle(efficiencyHistoDict[histo]["title"] +
                                   " distribution, not electrons")
             else:
-                variable.SetTitle(efficiencyHistoDict[histo]["title"] +
-                                  " distribution")
-            variable.SetLineColor(ROOT.kBlack)
+                variable.SetTitle( efficiencyHistoDict[histo]["title"]+ " distribution")
+            variable.SetLineColor(ROOT.kWhite)
             variable.SetFillColorAlpha(ROOT.kBlack, 0.2)
             variable.Draw("hist bar same")
 
@@ -173,9 +173,8 @@ for tracker in trackers:
                     variable_electrons.Add(infile.Get(variableHistoName))
                 norm = 0.9 / variable_electrons.GetMaximum()
                 variable_electrons.Scale(norm)
-                variable_electrons.SetTitle(efficiencyHistoDict[histo]["title"]
-                                            + " distribution, electrons")
-                variable_electrons.SetLineColor(ROOT.kAzure - 3)
+                variable_electrons.SetTitle( efficiencyHistoDict[histo]["title"]+ " distribution, electrons")
+                variable_electrons.SetLineColor(ROOT.kWhite)
                 variable_electrons.SetFillColorAlpha(ROOT.kAzure - 3, 0.2)
                 variable_electrons.Draw("hist bar same")
 
@@ -202,8 +201,6 @@ for tracker in trackers:
                     " distribution, electrons", "f")
             legend.SetFillColorAlpha(ROOT.kWhite, 0.)
             legend.Draw("same")
-            #canvas.PlaceLegend("f")
-            #place_legend(canvas)
 
             canvas.Write()
             cleantitle = categories[tracker][cut]["title"].replace(
@@ -241,6 +238,23 @@ for tracker in trackers:
         g_efficiency.GetXaxis().SetTitle(xtitle)
         g_efficiency.GetYaxis().SetTitle("ghost rate")
         g_efficiency.Draw("ap")
+
+        # draw variable distribution in same canvas
+        max_point = TMath.MaxElement(g_efficiency.GetN(), g_efficiency.GetY())
+        norm = max_point / numerator.GetMaximum()
+        print("norm:")
+        print(norm)
+        numerator.Scale(norm)
+        numerator.SetTitle( efficiencyHistoDict[histo]["title"]+ " distribution")
+        numerator.SetFillColorAlpha(ROOT.kBlack, 0.2)
+        numerator.SetLineColor(ROOT.kWhite)
+        numerator.Draw("hist bar same")
+
+        place = find_place(canvas)
+        legend = TLegend(place[0], place[1], place[2], place[3])
+        legend.AddEntry(g_efficiency, "ghost rate", "ep")
+        legend.AddEntry(numerator,  efficiencyHistoDict[histo]["title"]+ " distribution","f")
+        legend.Draw("same")
 
         canvas.Write()
         canvas.SaveAs("../../../plotsfornote/" + tracker + "GhostRate.pdf")

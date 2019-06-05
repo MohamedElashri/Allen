@@ -31,7 +31,7 @@ def ghostHistoDict():
     basedict = {"eta": {}, "nPV": {}}
 
     basedict["eta"]["xTitle"] = "#eta"
-    basedict["eta"]["variable"] = "Eta"
+    basedict["eta"]["variable"] = "eta"
 
     basedict["nPV"]["xTitle"] = "# of PVs"
     basedict["nPV"]["variable"] = "nPV"
