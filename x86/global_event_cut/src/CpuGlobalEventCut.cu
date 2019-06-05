@@ -1,10 +1,10 @@
 #include "CpuGlobalEventCut.cuh"
 
 void cpu_global_event_cut(
-  char* ut_raw_input,
-  uint* ut_raw_input_offsets,
-  char* scifi_raw_input,
-  uint* scifi_raw_input_offsets,
+  char const* ut_raw_input,
+  uint const* ut_raw_input_offsets,
+  char const* scifi_raw_input,
+  uint const* scifi_raw_input_offsets,
   uint* number_of_selected_events,
   uint* event_list,
   uint number_of_events)
