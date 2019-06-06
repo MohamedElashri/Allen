@@ -1,6 +1,8 @@
 import os, sys
 import ROOT
-from LHCbStyle import *
+
+sys.path.append('../')
+from common.LHCbStyle import *
 setLHCbStyle()
 
 if __name__ == '__main__':

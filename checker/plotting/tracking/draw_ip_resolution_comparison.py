@@ -3,9 +3,9 @@ import ROOT
 import numpy as np
 from array import array
 
-from LHCbStyle import *
+sys.path.append('../')
+from common.LHCbStyle import *
 setLHCbStyle()
-ROOT.gStyle.SetErrorX(0)
 
 edges = np.array([0.0, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0])
 bins = zip(edges[:-1], edges[1:])
