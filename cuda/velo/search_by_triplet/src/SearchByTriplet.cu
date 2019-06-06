@@ -42,7 +42,7 @@ __global__ void search_by_triplet(
   short* dev_h0_candidates,
   short* dev_h2_candidates,
   unsigned short* dev_rel_indices,
-  const float* dev_velo_module_zs)
+  const VeloGeometry* dev_velo_geometry)
 {
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
@@ -88,6 +88,6 @@ __global__ void search_by_triplet(
     number_of_hits,
     h1_rel_indices,
     hit_offset,
-    dev_velo_module_zs,
+    dev_velo_geometry->module_zs,
     dev_atomics_velo);
 }

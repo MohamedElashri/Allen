@@ -1,3 +1,4 @@
+#include <cassert>
 #include "ClusteringDefinitions.cuh"
 
 __device__ __host__ VeloRawEvent::VeloRawEvent(const char* event)
@@ -20,36 +21,39 @@ __device__ __host__ VeloRawBank::VeloRawBank(const char* raw_bank)
   sp_word = (uint32_t*) p;
 }
 
-VeloGeometry::VeloGeometry(const std::vector<char>& geometry)
+VeloGeometry::VeloGeometry(std::vector<char> const& geometry)
 {
-  const char* p = geometry.data();
+  char const* p = geometry.data();
 
-  local_x = (float*) p;
-  p += sizeof(float) * Velo::Constants::number_of_sensor_columns;
-  x_pitch = (float*) p;
-  p += sizeof(float) * Velo::Constants::number_of_sensor_columns;
-  ltg = (float*) p;
-  p += sizeof(float) * 16 * Velo::Constants::n_sensors;
+  auto copy_array = [this, &p] (const size_t N, float* d) {
+                      const size_t n = ((size_t*)p)[0];
+                      if (n != N) {
+                        error_cout << n << " != " << N << std::endl;
+                      }
+                      p += sizeof(size_t);
+                      memcpy(d, p, sizeof(float) * n);
+                      p += sizeof(float) * n;
+                    };
 
-  size = p - geometry.data();
+  copy_array(Velo::Constants::n_modules, module_zs);
+  copy_array(Velo::Constants::number_of_sensor_columns, local_x);
+  copy_array(Velo::Constants::number_of_sensor_columns, x_pitch);
+
+  size_t n_ltg = ((size_t*)p)[0];
+  assert(n_ltg == Velo::Constants::n_sensors);
+  p += sizeof(size_t);
+  n_trans = ((size_t*)p)[0];
+  assert(n_trans == 12);
+  p += sizeof(size_t);
+  for (size_t i = 0; i < n_ltg; ++i) {
+    memcpy(ltg + n_trans * i, p, n_trans * sizeof(float));
+    p += sizeof(float) * n_trans;
+  }
+  const size_t size = p - geometry.data();
 
   if (size != geometry.size()) {
     error_cout << "Size mismatch for geometry" << std::endl;
   }
-}
-
-__device__ __host__ VeloGeometry::VeloGeometry(const char* geometry)
-{
-  const char* p = geometry;
-
-  local_x = (float*) p;
-  p += sizeof(float) * Velo::Constants::number_of_sensor_columns;
-  x_pitch = (float*) p;
-  p += sizeof(float) * Velo::Constants::number_of_sensor_columns;
-  ltg = (float*) p;
-  p += sizeof(float) * 16 * Velo::Constants::n_sensors;
-
-  size = p - geometry;
 }
 
 __device__ __host__ uint32_t get_channel_id(unsigned int sensor, unsigned int chip, unsigned int col, unsigned int row)

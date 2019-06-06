@@ -27,6 +27,17 @@ namespace Consumers {
     std::reference_wrapper<gsl::span<char>> m_dev_geometry;
   };
 
+  struct VPGeometry final : public Allen::NonEventData::Consumer {
+  public:
+    VPGeometry(Constants& constants);
+
+    void consume(std::vector<char> const& data) override;
+
+  private:
+    void initialize(const std::vector<char>& data);
+    std::reference_wrapper<Constants> m_constants;
+  };
+
   struct UTGeometry final : public Allen::NonEventData::Consumer {
   public:
     UTGeometry(Constants& constants);
@@ -62,24 +73,22 @@ namespace Consumers {
 
   struct Beamline final : public Allen::NonEventData::Consumer {
   public:
-    Beamline(float*&);
+    Beamline(gsl::span<float>&);
 
     void consume(std::vector<char> const& data) override;
 
   private:
-    std::reference_wrapper<float*> m_dev_beamline;
-    const size_t m_size = 2 * sizeof(float);
+    std::reference_wrapper<gsl::span<float>> m_dev_beamline;
   };
 
   struct MagneticField final : public Allen::NonEventData::Consumer {
   public:
-    MagneticField(float*&);
+    MagneticField(gsl::span<float>&);
 
     void consume(std::vector<char> const& data) override;
 
   private:
-    std::reference_wrapper<float*> m_dev_magnet_polarity;
-    const size_t m_size = sizeof(float);
+    std::reference_wrapper<gsl::span<float>> m_dev_magnet_polarity;
   };
 
   struct MuonGeometry final : public Allen::NonEventData::Consumer {
@@ -103,9 +112,9 @@ namespace Consumers {
     static constexpr size_t n_data_blocks = 27;
 
     MuonLookupTables(
-      std::vector<char>& host_muon_tables_raw,
-      char*& dev_muon_tables_raw,
-      Muon::MuonTables*& muon_tables);
+                     std::vector<char>& host_muon_tables_raw,
+                     char*& dev_muon_tables_raw,
+                     Muon::MuonTables*& muon_tables);
 
     void consume(std::vector<char> const& data) override;
 

@@ -49,7 +49,7 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
     tuple {Allen::NonEventData::MagneticField {},
            std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)},
     tuple {Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)},
-    tuple {Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::RawGeometry>(constants.dev_velo_geometry)},
+    tuple {Allen::NonEventData::VeloGeometry{}, std::make_unique<Consumers::VPGeometry>(constants)},
     tuple {Allen::NonEventData::MuonGeometry {},
            std::make_unique<Consumers::MuonGeometry>(
              constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)},

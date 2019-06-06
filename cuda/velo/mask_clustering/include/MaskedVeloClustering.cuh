@@ -17,7 +17,7 @@ __global__ void masked_velo_clustering(
   uint32_t* dev_velo_cluster_container,
   const uint* dev_event_list,
   uint* dev_event_order,
-  char* dev_velo_geometry,
+  const VeloGeometry* dev_velo_geometry,
   uint8_t* dev_velo_sp_patterns,
   float* dev_velo_sp_fx,
   float* dev_velo_sp_fy);

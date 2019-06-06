@@ -24,7 +24,7 @@ __global__ void masked_velo_clustering(
   uint32_t* dev_velo_cluster_container,
   const uint* dev_event_list,
   uint* dev_event_order,
-  char* dev_velo_geometry,
+  const VeloGeometry* dev_velo_geometry,
   uint8_t* dev_velo_sp_patterns,
   float* dev_velo_sp_fx,
   float* dev_velo_sp_fy)
@@ -45,7 +45,7 @@ __global__ void masked_velo_clustering(
   float* float_velo_cluster_container = (float*) dev_velo_cluster_container;
 
   // Load Velo geometry (assume it is the same for all events)
-  const VeloGeometry g(dev_velo_geometry);
+  const VeloGeometry& g = *dev_velo_geometry;
 
   // Read raw event
   const auto raw_event = VeloRawEvent(raw_input);
@@ -57,7 +57,7 @@ __global__ void masked_velo_clustering(
 
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    const float* ltg = g.ltg + 16 * raw_bank.sensor_index;
+    const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
 
     for (int sp_index = 0; sp_index < raw_bank.sp_count; ++sp_index) {
       // Decode sp
@@ -147,7 +147,7 @@ __global__ void masked_velo_clustering(
     assert(raw_bank_number < Velo::Constants::n_sensors);
 
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    const float* ltg = g.ltg + 16 * raw_bank.sensor_index;
+    const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
     const uint32_t sp_word = raw_bank.sp_word[sp_index];
     const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
     // Note: In the code below, row and col are int32_t (not unsigned)

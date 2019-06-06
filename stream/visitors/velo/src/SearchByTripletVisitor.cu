@@ -46,7 +46,7 @@ void SequenceVisitor::visit<velo_search_by_triplet_t>(
     arguments.offset<dev_h0_candidates>(),
     arguments.offset<dev_h2_candidates>(),
     arguments.offset<dev_rel_indices>(),
-    constants.dev_velo_module_zs);
+    constants.dev_velo_geometry);
 
   state.invoke();
 }

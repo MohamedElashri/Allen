@@ -43,7 +43,7 @@ void SequenceVisitor::visit<lf_fit_t>(
     constants.dev_inv_clus_res,
     constants.dev_scifi_constArrays,
     constants.dev_looking_forward_constants,
-    constants.dev_magnet_polarity,
+    constants.dev_magnet_polarity.data(),
     arguments.offset<dev_scifi_lf_track_params>());
 
   state.invoke();
