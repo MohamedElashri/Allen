@@ -109,10 +109,15 @@ for category in muonCategories:
         numerator.SetLineColor(ROOT.kWhite)
         numerator.Draw("hist bar same")
 
-        place = find_place(canvas, 0)
+        if ( category == "matched_isMuon"):
+            place = find_place(canvas, 3)
+        else:
+            place = PLACES[0]
+            #place = find_place(canvas, 0)
         legend = TLegend(place[0], place[1], place[2], place[3])
         legend.AddEntry(g_efficiency, muonCatDict[category]["title"], "ep")
         legend.AddEntry(numerator,  efficiencyHistoDict[histo]["title"]+ " distribution","f")
+        legend.SetFillColorAlpha(ROOT.kWhite, 0.)
         legend.Draw("same")
 
         canvas.Write()

@@ -40,8 +40,8 @@ def getTrackers():
 
 
 def getGhostHistoNames():
-    return ["nPV", "eta"] # currently no eta information available from track
-    #return ["nPV"]
+    #return ["nPV", "eta"] # currently no eta information available from track
+    return ["nPV"]
 
 
 # f = [ROOT.TFile.Open("../../../output/checkerplots/KstEE/PrCheckerPlots.root", "read"),
@@ -178,7 +178,7 @@ for tracker in trackers:
                 variable_electrons.SetFillColorAlpha(ROOT.kAzure - 3, 0.2)
                 variable_electrons.Draw("hist bar same")
 
-            place = find_place(canvas)
+            place = find_place(canvas, 3)
             legend = TLegend(place[0], place[1], place[2], place[3])
             if categories[tracker][cut]["plotElectrons"]:
                 legend.AddEntry(g_efficiency_notElectrons,
