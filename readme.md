@@ -11,6 +11,7 @@ If you are working from a node with CVMFS and CentOS 7, we suggest the following
 
 ```shell
 source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc7-opt
+source /cvmfs/sft.cern.ch/lcg/releases/ROOT/6.16.00-fcdd1/x86_64-centos7-gcc8-opt/bin/thisroot.sh
 export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
 export PATH=/usr/local/cuda/bin:$PATH
 ```
