@@ -166,6 +166,8 @@ endif()
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
+set(EXTERNAL_DIR "external")
+
 add_subdirectory(cuda)
 add_subdirectory(stream)
 add_subdirectory(checker)
@@ -178,6 +180,7 @@ add_subdirectory(x86/utils)
 add_subdirectory(x86/global_event_cut)
 add_subdirectory(mdf)
 add_subdirectory(integration)
+add_subdirectory(zmq)
 
 # Include directories
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -237,7 +240,9 @@ include_directories(cuda/UT/UTDecoding/include)
 include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
 include_directories(integration/non_event_data/include)
+include_directories(${ZMQ_INCLUDE_DIRS})
 
+# Main Allen executable
 file(GLOB common_sources "main/src/*")
 
 # Remove main.cpp from common_sources
@@ -263,7 +268,8 @@ target_link_libraries(AllenLib PUBLIC
   SelChecking
   x86MuonDecoding
   Common
-  NonEventData)
+  NonEventData
+  AllenZMQ)
 set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
 
 if (ROOT_FOUND)

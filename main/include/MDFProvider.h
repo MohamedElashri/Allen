@@ -59,12 +59,14 @@ public:
 
   static constexpr const char* name = "MDF";
 
-  std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index)
+  std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index, size_t n)
   {
     bool good = true, full = false;
     unsigned int run = 0;
-    size_t n_banks = 0;
-    for (; n_banks < this->n_events() && !full; ++n_banks) {
+    size_t n_filled = 0;
+    size_t to_fill = n > this->n_events() ? this->n_events() : n;
+
+      for (; n_filled < to_fill && !full; ++n_filled) {
       // Read next event into buffer memory
       // TODO: avoid extra copy of all bank data by:
       // - obtaining all offsets
@@ -116,7 +118,7 @@ public:
       auto const& [buf, offsets, offsets_size] = m_slices[ib][slice_index];
       left.emplace(bank_type, buf.size() - offsets[offsets_size -1]);
     }
-    return {good, full, n_banks, std::move(left)};
+    return {good, full, n_filled, std::move(left)};
   }
 
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const

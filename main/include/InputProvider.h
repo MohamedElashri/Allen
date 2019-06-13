@@ -8,7 +8,7 @@
 
 struct IInputProvider {
 
-  virtual std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index) = 0;
+  virtual std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index, size_t n) = 0;
 
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 
@@ -23,17 +23,18 @@ class InputProvider<Derived<Banks...>> : public IInputProvider {
 public:
 
   explicit InputProvider(size_t n_slices, size_t n_events) :
-    m_nslices {n_slices}, m_nevents {n_events}, m_types{banks_set<Banks...>()}
+    m_nslices {n_slices}, m_nevents {n_events},
+    m_types{banks_set<Banks...>()}
   {}
 
   const std::unordered_set<BankTypes>& types() const { return m_types; }
 
-  const size_t n_slices() const { return m_nslices; }
+  size_t n_slices() const { return m_nslices; }
 
-  const size_t n_events() const { return m_nevents; }
+  size_t n_events() const { return m_nevents; }
 
-  std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index) override {
-    return static_cast<Derived<Banks...>*>(this)->fill(slice_index);
+  std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index, size_t n) override {
+    return static_cast<Derived<Banks...>*>(this)->fill(slice_index, n);
   }
 
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override {
