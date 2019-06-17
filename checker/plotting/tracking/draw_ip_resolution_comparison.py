@@ -74,7 +74,6 @@ if __name__ == '__main__':
         legend = ROOT.TLegend(0.55, 0.37, 0.95, 0.17)
         legend.AddEntry(gVelo, 'VELO only', 'lp')
         legend.AddEntry(gFull, 'Full Kalman', 'lp')
-        legend.AddEntry(gVeloSimple, 'Simple Kalman', 'lp')
         legend.SetFillStyle(0)
         legend.Draw('same')
         c1.SaveAs('../../../plotsfornote/' + info[0] + '_resolution_simple.pdf')
