@@ -43,7 +43,7 @@ Input from 1k events (mag down) can be found here:
 * J/Psi->MuMu (for muon efficiency checks): `/afs/cern.ch/work/d/dovombru/public/gpu_input/1kevents_JPsiMuMu_dump_region_UT_fix.tar.gz`
 
 10k J/Psi->MuMu events (mag down) are available here: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/JpsiMuMu/JpsiMuMu_mag_down.tar.gz`
-    
+
 5k Bs2PhiPhi events (mag down) are avialable here: `/afs/cern.ch/work/d/dovombru/public/gpu_input/BsPhiPhi/BsPhiPhi.tar.gz`
 
 30k minbias events (mad down) are available here: `/afs/cern.ch/work/d/dovombru/public/gpu_input/minbias.tar.gz`
@@ -51,7 +51,7 @@ Input from 1k events (mag down) can be found here:
 Another 5k Bs2PhiPhi events for both magnet polarities are available. The directory contains sub-directories `mag_up` and `mag_down` and the events are compressed in a tar file separately for the two polarities.
  `/eos/lhcb/wg/rta/WP6/Allen/binary_input/Bs2PhiPhi`
 
-Input for various different physics channels for HLT1 studies in both magnet polarities is available. The directory structure is the same as for the Bs2PhiPhi events. 
+Input for various different physics channels for HLT1 studies in both magnet polarities is available. The directory structure is the same as for the Bs2PhiPhi events.
 They can be found here:
 * Z2MuMu: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/Z2MuMu`
 * Ds2KKPi: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/Ds2KKPi`
@@ -148,7 +148,6 @@ Then build Rec:
  - `git clone ssh://git@gitlab.cern.ch:7999/lhcb/Rec.git`
  - `cd Rec`
  - `lb-project-init`
- -`'git checkout -b allen_producers origin/raaij_allen_producers`
  - `make install`
 
 ### Building Allen with the toolchain used for Rec
