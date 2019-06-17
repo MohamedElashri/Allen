@@ -9,7 +9,7 @@ if __name__ == '__main__':
     c1 = ROOT.TCanvas('c1', 'c1')
     fNameSimple = sys.argv[1]
     fNameFull = sys.argv[2]
-    if len(sys.argv < 3):
+    if len(sys.argv) < 3:
         print "Need a simple kalman file and a full kalman file!"
     simpleFile = ROOT.TFile(fNameSimple)
     fullFile = ROOT.TFile(fNameFull)
