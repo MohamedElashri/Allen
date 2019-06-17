@@ -43,7 +43,7 @@ def makeGraph(tree, var, resFunc):
 if __name__ == '__main__':
     fNameSimple = sys.argv[1]
     fNameFull = sys.argv[2]
-    if len(sys.argv < 3):
+    if len(sys.argv) < 3:
         print "Need a simple kalman file and a full kalman file!"
     inFileSimple = ROOT.TFile(fNameSimple)
     inFileFull = ROOT.TFile(fNameFull)
