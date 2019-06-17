@@ -55,11 +55,7 @@ __global__ void lf_extend_tracks_x(
         }
 
         if (!layer_populated) {
-          const int8_t number_of_candidates =
-            dev_scifi_lf_number_of_candidates
-              [current_ut_track_index * LookingForward::number_of_x_layers + j + 1] -
-            dev_scifi_lf_number_of_candidates
-              [current_ut_track_index * LookingForward::number_of_x_layers + j];
+          const int8_t number_of_candidates = dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + j];
 
           lf_extend_tracks_x_impl(
             scifi_hits.x0 + event_offset,

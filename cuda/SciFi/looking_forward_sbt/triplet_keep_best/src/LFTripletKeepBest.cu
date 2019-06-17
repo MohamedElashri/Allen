@@ -8,7 +8,6 @@ __global__ void lf_triplet_keep_best(
   const MiniState* dev_ut_states,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
-  const uint* dev_scifi_lf_number_of_candidates,
   const short* dev_scifi_lf_candidates,
   const LookingForward::Constants* dev_looking_forward_constants,
   SciFi::TrackHits* dev_scifi_tracks,
