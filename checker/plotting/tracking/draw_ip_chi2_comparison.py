@@ -23,6 +23,7 @@ if __name__ == '__main__':
     full.SetMarkerColor(ROOT.kBlack)
     simple.SetLineColor(ROOT.kBlue+1)
     simple.SetMarkerColor(ROOT.kBlue+1)
+    full.GetXaxis().SetTitle('IP #chi^{2}')
     full.Draw('E')
     simple.Draw('E same')
     legend = ROOT.TLegend(0.55, 0.92, 0.95, 0.72)
@@ -30,6 +31,6 @@ if __name__ == '__main__':
     legend.AddEntry(simple, 'Simple Kalman', 'lp')
     legend.SetFillStyle(0)
     legend.Draw('same')
-    velo.GetXaxis().SetTitle('IP #chi^{2}')
+
     c1.SetLogy(True)
     c1.SaveAs('../../../plotsfornote/kalman_ip_chi2_simple.pdf')
