@@ -27,7 +27,7 @@ namespace TrackMVALines {
   const float minTrackPt = 500.f /Gaudi::Units::MeV;
   const int maxNTrksAssoc = 1; // Placeholder. To be replaced with MVA selection.
   const float minFDChi2 = 0.0f; // Placeholder. To be replaced with MVA selection.
-  const float minTrackIPChi2 = 12.f;
+  const float minTrackIPChi2 = 10.f;
   
   // Selections.
   __device__ bool OneTrackMVA(const ParKalmanFilter::FittedTrack& track);

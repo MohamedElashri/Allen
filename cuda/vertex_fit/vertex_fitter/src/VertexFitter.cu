@@ -354,7 +354,7 @@ __global__ void fit_secondary_vertices(
         event_secondary_vertices[vertex_idx]);
 
       // Fill extra info.
-      int ipv = pv_table.pv[i_track];
+      int ipv = pv_table.value[i_track] < pv_table.value[j_track] ? pv_table.pv[i_track] : pv_table.pv[j_track];
       auto pv = vertices[ipv];
       fill_extra_info(
         event_secondary_vertices[vertex_idx],
