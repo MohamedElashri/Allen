@@ -51,9 +51,9 @@ resultsdir = "../../output/perfscans/"
 # Get what parameter values we scaned over without having to hardcode it
 files = os.listdir(resultsdir)
 for thisscan in scans :
-  for var in scans[thisscan] : 
+  for var in scans[thisscan] :
     pattern = thisscan+'-'+var+'-*-'+physperfsuffix
-    for entry in files:  
+    for entry in files:
       if fnmatch.fnmatch(entry, pattern):
         scans[thisscan][var].append(entry.lstrip(thisscan).lstrip('-').lstrip(var)[1:].rstrip('-'+physperfsuffix))
     scans[thisscan][var].sort(key=natural_keys)
@@ -83,7 +83,7 @@ for thisscan in scanstoplot :
                                     lowlim,
                                     upplim)
     tpthistos[thisscan][var].SetMarkerStyle(20)
-    tpthistos[thisscan][var].SetMarkerSize(1.6)
+    tpthistos[thisscan][var].SetMarkerSize(1.8)
     tpthistos[thisscan][var].GetYaxis().SetTitle("Relative throughput on V100")
     tpthistos[thisscan][var].GetYaxis().SetTitleOffset(0.9)
     tpthistos[thisscan][var].GetXaxis().SetTitle(var)
@@ -100,7 +100,7 @@ for thisscan in scanstoplot :
             tpthistos[thisscan][var].Fill(float(scanpoint),1.0)
             firstpoint = False
           else :
-            tpthistos[thisscan][var].Fill(float(scanpoint),float(line.split()[0])/relfactor) 
+            tpthistos[thisscan][var].Fill(float(scanpoint),float(line.split()[0])/relfactor)
 
     for thisbin in range(100):
       tpthistos[thisscan][var].SetBinError(thisbin,0)
@@ -111,7 +111,7 @@ for thisscan in scanstoplot :
 
 physperfhistos = {}
 # The physics performance histos are a bit more complex to define
-physperftoplot = { 
+physperftoplot = {
                    "VELO"       : { "end"   : "Checking GPU beamline PVs",
                                     "cats"  : ["ghosts",
                                                "Not electron long eta25 p<5GeV",
@@ -130,7 +130,7 @@ physperftoplot = {
                                     "cats"  : ["ghosts",
                                                "Velo+UT, not long, p > 5 GeV",
                                                "Long, p > 5 GeV",
-                                               "Long from B, p > 5 GeV", 
+                                               "Long from B, p > 5 GeV",
                                                "Long from B electrons, p > 5 GeV",
                                                "Long from B, p > 3 GeV, pt > 0.5 GeV"]
                                   },
@@ -138,7 +138,7 @@ physperftoplot = {
                                     "cats"  : ["ghosts",
                                                "Long, p > 5 GeV",
                                                "Long strange, p > 5 GeV",
-                                               "Long from B, p > 5 GeV", 
+                                               "Long from B, p > 5 GeV",
                                                "Long electrons from B, p > 5 GeV",
                                                "Long from B, p > 3 GeV, pt > 0.5 GeV"]
 
@@ -148,7 +148,7 @@ ordertoread = ["VELO","PV","CompassUT","SciFi"]
 # First a loop to set up all the histos
 for thisscan in scanstoplot :
   physperfhistos[thisscan] = {}
-  for var in scans[thisscan] : 
+  for var in scans[thisscan] :
     physperfhistos[thisscan][var] = {}
     for ppgroup in ordertoread :
       for ppcat in physperftoplot[ppgroup]["cats"] :
@@ -166,21 +166,21 @@ for thisscan in scanstoplot :
                                                             lowlim,
                                                             upplim)
         physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerStyle(24)
-        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerSize(1.6)
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerSize(1.4)
         physperfhistos[thisscan][var][ppgroup+ppcat].GetYaxis().SetTitle("Efficiency (%)")
         physperfhistos[thisscan][var][ppgroup+ppcat].GetYaxis().SetTitleOffset(0.9)
         physperfhistos[thisscan][var][ppgroup+ppcat].GetXaxis().SetTitle(var)
         physperfhistos[thisscan][var][ppgroup+ppcat].GetXaxis().SetTitleSize(0.05)
         physperfhistos[thisscan][var][ppgroup+ppcat].GetXaxis().SetTitleOffset(1.1)
- 
+
 #Now a loop to fill them
-for thisscan in scanstoplot :  
-  for var in scans[thisscan] : 
+for thisscan in scanstoplot :
+  for var in scans[thisscan] :
     for scanpoint in scans[thisscan][var] :
       thisppfile = open(resultsdir+thisscan+'-'+var+'-'+scanpoint+'-'+physperfsuffix)
       for ppgroup in ordertoread :
         for line in thisppfile :
-          if line.find(physperftoplot[ppgroup]['end']) > -1 : 
+          if line.find(physperftoplot[ppgroup]['end']) > -1 :
             break
           for ppcat in physperftoplot[ppgroup]["cats"] :
             effval = 0.
@@ -195,11 +195,11 @@ for thisscan in scanstoplot :
                   effval = float(line.split(':')[1].split()[2].rstrip('%'))
                 else :
                   effval = float(line.split(':')[1].split('(')[0].split()[2].rstrip('%'))
-              physperfhistos[thisscan][var][ppgroup+ppcat].Fill(float(scanpoint),effval) 
+              physperfhistos[thisscan][var][ppgroup+ppcat].Fill(float(scanpoint),effval)
 
 # Set errors to 0
-for thisscan in scanstoplot :  
-  for var in scans[thisscan] : 
+for thisscan in scanstoplot :
+  for var in scans[thisscan] :
     for ppgroup in ordertoread :
       for ppcat in physperftoplot[ppgroup]["cats"] :
         for thisbin in range(100):
@@ -212,24 +212,26 @@ legend = TLegend(0.1,0.1,0.9,0.9)
 legend.SetMargin(0.1)
 legendpv = TLegend(0.35,0.25,0.65,0.75)
 legendpv.SetMargin(0.2)
-for thisscan in scanstoplot :  
-  for var in scans[thisscan] : 
-    for ppgroup in ordertoread :   
+cols = [ROOT.kBlack, ROOT.kGreen+3, ROOT.kBlue+1, ROOT.kRed, ROOT.kOrange-1, ROOT.kMagenta, ROOT.kBlue-3, ROOT.kGray, ROOT.kRed-3]
+markers = [20,21,22,23,20,21,22,23,20]
+for thisscan in scanstoplot :
+  for var in scans[thisscan] :
+    for ppgroup in ordertoread :
       legend.Clear()
       legendpv.Clear()
       firstcat = True
       canvtoploton.cd()
-      for col,ppcat in enumerate(physperftoplot[ppgroup]["cats"]) : 
-        physperfhistos[thisscan][var][ppgroup+ppcat].SetLineColor(col+1)
-        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerColor(col+1)   
-        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerStyle(26-col)     
+      for col,ppcat in enumerate(physperftoplot[ppgroup]["cats"]) :
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetLineColor(cols[col])
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerColor(cols[col])
+        physperfhistos[thisscan][var][ppgroup+ppcat].SetMarkerStyle(markers[col])
         if firstcat :
-          physperfhistos[thisscan][var][ppgroup+ppcat].Draw("P") 
+          physperfhistos[thisscan][var][ppgroup+ppcat].Draw("P")
           physperfhistos[thisscan][var][ppgroup+ppcat].GetYaxis().SetRangeUser(0,100)
           firstcat = False
         else :
           physperfhistos[thisscan][var][ppgroup+ppcat].Draw("PSAME")
-        if ppgroup == "PV" :         
+        if ppgroup == "PV" :
           legendpv.AddEntry(physperfhistos[thisscan][var][ppgroup+ppcat],ppcat,"p")
         else :
           legend.AddEntry(physperfhistos[thisscan][var][ppgroup+ppcat],ppcat,"p")
@@ -240,4 +242,3 @@ for thisscan in scanstoplot :
       else :
         legend.Draw()
       legcanv.SaveAs(resultsdir+thisscan+'-'+var+'-'+ppgroup+'-legend.pdf')
-

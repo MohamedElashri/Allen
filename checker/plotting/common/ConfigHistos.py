@@ -72,7 +72,7 @@ def categoriesDict():
         "title"] = "Long strange, 2 < eta < 5"
     basedict["Velo"]["VeloTracks"]["plotElectrons"] = False
     basedict["Velo"]["VeloTracks_eta25"]["plotElectrons"] = False
-    basedict["Velo"]["LongFromB_eta25"]["plotElectrons"] = False
+    basedict["Velo"]["LongFromB_eta25"]["plotElectrons"] = True
     basedict["Velo"]["LongFromD_eta25"]["plotElectrons"] = False
     basedict["Velo"]["LongStrange_eta25"]["plotElectrons"] = False
 
@@ -84,7 +84,7 @@ def categoriesDict():
     basedict["Upstream"]["LongStrange_eta25"][
         "title"] = "Long strange, 2 < eta < 5"
     basedict["Upstream"]["VeloUTTracks_eta25"]["plotElectrons"] = False
-    basedict["Upstream"]["LongFromB_eta25"]["plotElectrons"] = False
+    basedict["Upstream"]["LongFromB_eta25"]["plotElectrons"] = True
     basedict["Upstream"]["LongFromD_eta25"]["plotElectrons"] = False
     basedict["Upstream"]["LongStrange_eta25"]["plotElectrons"] = False
 
@@ -95,8 +95,8 @@ def categoriesDict():
         "title"] = "Long from D, 2 < eta < 5"
     basedict["Forward"]["LongStrange_eta25"][
         "title"] = "Long strange, 2 < eta < 5"
-    basedict["Forward"]["Long_eta25"]["plotElectrons"] = True
-    basedict["Forward"]["LongFromB_eta25"]["plotElectrons"] = False
+    basedict["Forward"]["Long_eta25"]["plotElectrons"] = False
+    basedict["Forward"]["LongFromB_eta25"]["plotElectrons"] = True
     basedict["Forward"]["LongFromD_eta25"]["plotElectrons"] = False
     basedict["Forward"]["LongStrange_eta25"]["plotElectrons"] = False
 

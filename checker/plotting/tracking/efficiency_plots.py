@@ -41,8 +41,12 @@ def getGhostHistoNames():
     # return ["eta", "nPV"] # currently no eta information available from track
     return ["nPV"]
 
-
-f = ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")
+# f = [ROOT.TFile.Open("../../../output/checkerplots/KstEE/PrCheckerPlots.root", "read"),
+#      ROOT.TFile.Open("../../../output/checkerplots/KstMuMu/PrCheckerPlots.root", "read"),
+#      ROOT.TFile.Open("../../../output/checkerplots/Ds2KKPi/PrCheckerPlots.root", "read"),
+#      ROOT.TFile.Open("../../../output/checkerplots/minbias/PrCheckerPlots.root", "read"),
+#      ROOT.TFile.Open("../../../output/checkerplots/Bs2PhiPhi/PrCheckerPlots.root", "read")]
+f = [ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")]
 outputfile = ROOT.TFile("../../../plotsfornote_root/efficiency_plots.root", "recreate")
 
 setLHCbStyle()
@@ -77,9 +81,13 @@ for tracker in trackers:
                 histo]["variable"]
             print ("not electrons: "+ histoName)
             numeratorName = histoName + "_reconstructed"
-            numerator = f.Get(numeratorName)
+            numerator = f[0].Get(numeratorName)
+            for infile in f :
+                numerator.Add(infile.Get(numeratorName))
             denominatorName = histoName + "_reconstructible"
-            denominator = f.Get(denominatorName)
+            denominator = f[0].Get(denominatorName)
+            for infile in f :
+                denominator.Add(infile.Get(denominatorName))
             print (numerator.GetEntries())
             print (denominator.GetEntries())
             if numerator.GetEntries() == 0 or denominator.GetEntries() == 0:
@@ -101,10 +109,13 @@ for tracker in trackers:
                     histo]["variable"]
                 print ("electrons: " + histoName)
                 numeratorName = histoName + "_reconstructed"
-                numerator = f.Get(numeratorName)
-
+                numerator = f[0].Get(numeratorName)
+                for infile in f :
+                    numerator.Add(infile.Get(numeratorName))
                 denominatorName = histoName + "_reconstructible"
-                denominator = f.Get(denominatorName)
+                denominator = f[0].Get(denominatorName)
+                for infile in f :
+                    denominator.Add(infile.Get(denominatorName))
                 if numerator.GetEntries() == 0 or denominator.GetEntries(
                 ) == 0:
                     continue
@@ -180,6 +191,7 @@ for tracker in trackers:
                 " ", "").replace(",", "_").replace("<", "_")
             canvas.SaveAs("../../../plotsfornote/" + tracker + "Eff" + histo +
                           cleantitle + ".pdf")
+            #canvas.Print("../../../output/checkerplots/forreviewdoc/"+histoBaseName.replace("/","_")+efficiencyHistoDict[histo]["variable"]+"_eff.pdf")
 
 
     # calculate ghost rate
@@ -194,8 +206,12 @@ for tracker in trackers:
         denominatorName = histoBaseName + ghostHistoDict[histo][
             "variable"] + "_Total"
         print ("ghost histo: " + histoBaseName)
-        numerator = f.Get(numeratorName)
-        denominator = f.Get(denominatorName)
+        numerator = f[0].Get(numeratorName)
+        for infile in f :
+            numerator.Add(infile.Get(numeratorName))
+        denominator = f[0].Get(denominatorName)
+        for infile in f :
+            denominator.Add(infile.Get(denominatorName))
         numerator.Sumw2()
         denominator.Sumw2()
 
@@ -203,12 +219,14 @@ for tracker in trackers:
         g_efficiency.Divide(numerator, denominator, "cl=0.683 b(1,1) mode")
 
         xtitle = ghostHistoDict[histo]["xTitle"]
+        g_efficiency.GetXaxis().SetRangeUser(1,14)
         g_efficiency.GetXaxis().SetTitle(xtitle)
         g_efficiency.GetYaxis().SetTitle("ghost rate")
         g_efficiency.Draw("ap")
 
         canvas.Write()
         canvas.SaveAs("../../../plotsfornote/" + tracker + "GhostRate.pdf")
+        #canvas.Print("../../../output/checkerplots/forreviewdoc/"+histoBaseName.replace("/","_")+ghostHistoDict[histo]["variable"]+"_ghost.pdf")
 
 outputfile.Write()
 outputfile.Close()
