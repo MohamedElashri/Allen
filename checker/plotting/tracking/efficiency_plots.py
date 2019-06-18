@@ -146,7 +146,9 @@ for tracker in trackers:
             # draw variable distribution in same canvas
             histoName = histoBaseName + "notElectrons_" + efficiencyHistoDict[histo]["variable"]
             variableHistoName = histoName + "_reconstructed"
-            variable = f.Get(variableHistoName)
+            variable = f[0].Get(variableHistoName)
+            for infile in f :
+                variable.Add(infile.Get(variableHistoName))
             norm = 0.9 / variable.GetMaximum()
             variable.Scale(norm)
             if categories[tracker][cut]["plotElectrons"]:
@@ -160,7 +162,9 @@ for tracker in trackers:
             if categories[tracker][cut]["plotElectrons"]:
                 histoName = histoBaseName + "electrons_" + efficiencyHistoDict[histo]["variable"]
                 variableHistoName = histoName + "_reconstructed"
-                variable_electrons = f.Get(variableHistoName)
+                variable_electrons = f[0].Get(variableHistoName)
+                for infile in f :
+                    variable.Add(infile.Get(variableHistoName))
                 norm = 0.9 / variable_electrons.GetMaximum()
                 variable_electrons.Scale(norm)
                 variable_electrons.SetTitle( efficiencyHistoDict[histo]["title"]+ " distribution, electrons")
@@ -230,4 +234,5 @@ for tracker in trackers:
 
 outputfile.Write()
 outputfile.Close()
-f.Close()
+for infile in f :
+    infile.Close()
