@@ -71,4 +71,4 @@ namespace Muon {
 
   __device__ void calcStripYPos(MuonTables* muonTables, const Muon::MuonTileID& tile, float& x, float& deltax,
                      float& y, float& deltay, float& z);
-};
+}

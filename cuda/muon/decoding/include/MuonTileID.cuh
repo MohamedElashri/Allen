@@ -104,4 +104,4 @@ namespace Muon {
       return m_muonid;
     }
   };
-};
+}
