@@ -228,7 +228,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
     right2_group_last_candidate = std::get<1>(right2_group_candidates);
   }
 
-  return {first_candidate,
+  return std::tuple<int, int, int, int, int, int, int, int, int, int>{first_candidate,
           last_candidate,
           left_group_first_candidate,
           left_group_last_candidate,
@@ -285,5 +285,5 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
     tol_refine(first_candidate, last_candidate, ut_hits, velo_state, invNormFact, xTolNormFact, dx_dy);
   }
 
-  return {first_candidate, last_candidate};
+  return std::tuple<int, int>{first_candidate, last_candidate};
 }
