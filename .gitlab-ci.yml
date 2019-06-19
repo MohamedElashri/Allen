@@ -3,11 +3,28 @@ stages:
   - run
   - publish
 
+check-formatting:
+  image: debian:testing
+  script:
+    - apt update && apt install -y clang-format-7 python-pip git curl
+    - pip install yapf==0.24.0 whichcraft
+    - if [ ! -e .clang-format ] ; then
+    -   curl -o .clang-format "https://gitlab.cern.ch/lhcb-parallelization/Allen/raw/master/.clang-format?inline=false"
+    -   echo '.clang-format' >> .gitignore
+    -   git add .gitignore
+    - fi
+    - curl -o lb-format "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/SourceTools.py?inline=false"
+    - python lb-format --format-patch apply-formatting.patch origin/master
+  artifacts:
+    paths:
+      - apply-formatting.patch
+    when: on_failure
+    expire_in: 1 week
+
 .build_job: &build_job_def
   only:
     refs:
       - master
-      - review_june
       - schedules
       - web
   stage: build
@@ -183,10 +200,10 @@ DefaultSequence:build:
   tags:
     - t4
 
-DataPreparation:build:
-  <<: *build_job_def
-  tags:
-    - rtx2080ti
+# DataPreparation:build:
+#   <<: *build_job_def
+#   tags:
+#     - rtx2080ti
 
 # Run on all platforms
 # DefaultSequence
@@ -260,77 +277,77 @@ gtx1080ti:DefaultSequence:run_throughput:
   dependencies:
     - DefaultSequence:build
 
-# DataPreparation
-# Run on all platforms
-rtx2080ti:DataPreparation:run_throughput:
-  <<: *run_throughput_job_def
-  tags:
-    - rtx2080ti
-  dependencies:
-    - DataPreparation:build
+# # DataPreparation
+# # Run on all platforms
+# rtx2080ti:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_def
+#   tags:
+#     - rtx2080ti
+#   dependencies:
+#     - DataPreparation:build
 
-v100:DataPreparation:run_throughput:
-  <<: *run_throughput_job_def
-  tags:
-    - v100
-  dependencies:
-    - DataPreparation:build
+# v100:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_def
+#   tags:
+#     - v100
+#   dependencies:
+#     - DataPreparation:build
 
-t4:DataPreparation:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - t4
-  dependencies:
-    - DataPreparation:build
+# t4:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - t4
+#   dependencies:
+#     - DataPreparation:build
 
-gtx780ti:DataPreparation:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx780ti
-  dependencies:
-    - DataPreparation:build
+# gtx780ti:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx780ti
+#   dependencies:
+#     - DataPreparation:build
 
-gtx10606g:DataPreparation:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx10606g
-  dependencies:
-    - DataPreparation:build
+# gtx10606g:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx10606g
+#   dependencies:
+#     - DataPreparation:build
 
-gtx980:DataPreparation:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx980
-  dependencies:
-    - DataPreparation:build
+# gtx980:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx980
+#   dependencies:
+#     - DataPreparation:build
 
-gtx680:DataPreparation:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx680
-  dependencies:
-    - DataPreparation:build
+# gtx680:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx680
+#   dependencies:
+#     - DataPreparation:build
 
-gtxtitanx:DataPreparation:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtxtitanx
-  dependencies:
-    - DataPreparation:build
+# gtxtitanx:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtxtitanx
+#   dependencies:
+#     - DataPreparation:build
 
-gtx670:DataPreparation:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx670
-  dependencies:
-    - DataPreparation:build
+# gtx670:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx670
+#   dependencies:
+#     - DataPreparation:build
 
-gtx1080ti:DataPreparation:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx1080ti
-  dependencies:
-    - DataPreparation:build
+# gtx1080ti:DataPreparation:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx1080ti
+#   dependencies:
+#     - DataPreparation:build
 
 # Publish
 
@@ -377,43 +394,43 @@ speedup:DefaultSequence:publish_speedup:
     - gtx1080ti:DefaultSequence:run_throughput
     - gtx980:DefaultSequence:run_throughput
 
-# Data Preparation
-rtx2080ti:DataPreparation:publish_algo_breakdown_plot:
-  <<: *publish_algo_breakdown_plot_def
-  tags:
-    - gpu
-  dependencies:
-    - rtx2080ti:DataPreparation:run_throughput
+# # Data Preparation
+# rtx2080ti:DataPreparation:publish_algo_breakdown_plot:
+#   <<: *publish_algo_breakdown_plot_def
+#   tags:
+#     - gpu
+#   dependencies:
+#     - rtx2080ti:DataPreparation:run_throughput
 
-throughput:DataPreparation:publish_throughput:
-  <<: *publish_throughput_job_def
-  tags:
-    - gpu
-  dependencies:
-    - rtx2080ti:DataPreparation:run_throughput
-    - v100:DataPreparation:run_throughput
-    - t4:DataPreparation:run_throughput
-    - gtx10606g:DataPreparation:run_throughput
-    - gtx680:DataPreparation:run_throughput
-    - gtxtitanx:DataPreparation:run_throughput
-    - gtx670:DataPreparation:run_throughput
-    - gtx780ti:DataPreparation:run_throughput
-    - gtx1080ti:DataPreparation:run_throughput
-    - gtx980:DataPreparation:run_throughput
+# throughput:DataPreparation:publish_throughput:
+#   <<: *publish_throughput_job_def
+#   tags:
+#     - gpu
+#   dependencies:
+#     - rtx2080ti:DataPreparation:run_throughput
+#     - v100:DataPreparation:run_throughput
+#     - t4:DataPreparation:run_throughput
+#     - gtx10606g:DataPreparation:run_throughput
+#     - gtx680:DataPreparation:run_throughput
+#     - gtxtitanx:DataPreparation:run_throughput
+#     - gtx670:DataPreparation:run_throughput
+#     - gtx780ti:DataPreparation:run_throughput
+#     - gtx1080ti:DataPreparation:run_throughput
+#     - gtx980:DataPreparation:run_throughput
 
-speedup:DataPreparation:publish_speedup:
-  <<: *publish_speedup_job_def
-  tags:
-    - gpu
-  dependencies:
-    - rtx2080ti:DataPreparation:run_throughput
-    - v100:DataPreparation:run_throughput
-    - t4:DataPreparation:run_throughput
-    - gtx10606g:DataPreparation:run_throughput
-    - gtx680:DataPreparation:run_throughput
-    - gtx980:DataPreparation:run_throughput
-    - gtxtitanx:DataPreparation:run_throughput
-    - gtx670:DataPreparation:run_throughput
-    - gtx780ti:DataPreparation:run_throughput
-    - gtx1080ti:DataPreparation:run_throughput
-    - gtx980:DataPreparation:run_throughput
+# speedup:DataPreparation:publish_speedup:
+#   <<: *publish_speedup_job_def
+#   tags:
+#     - gpu
+#   dependencies:
+#     - rtx2080ti:DataPreparation:run_throughput
+#     - v100:DataPreparation:run_throughput
+#     - t4:DataPreparation:run_throughput
+#     - gtx10606g:DataPreparation:run_throughput
+#     - gtx680:DataPreparation:run_throughput
+#     - gtx980:DataPreparation:run_throughput
+#     - gtxtitanx:DataPreparation:run_throughput
+#     - gtx670:DataPreparation:run_throughput
+#     - gtx780ti:DataPreparation:run_throughput
+#     - gtx1080ti:DataPreparation:run_throughput
+#     - gtx980:DataPreparation:run_throughput
