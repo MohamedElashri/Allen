@@ -18,7 +18,6 @@ from ROOT import TGraphErrors
 from array import array
 
 
-
 sys.path.append('../')
 from common.LHCbStyle import *
 
@@ -131,6 +130,8 @@ def getResolutionInSlices(histo2D, var, var_dict):
 
 f = ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")
 outputfile = ROOT.TFile("../../../plotsfornote_root/momentum_resolution.root", "recreate")
+#f = ROOT.TFile.Open("../../../output/checkerplots/KstMuMu/PrCheckerPlots.root", "read")
+#outputfile = ROOT.TFile("../../../output/checkerplots/momentum_resolution.root", "recreate")
 
 setLHCbStyle()
 

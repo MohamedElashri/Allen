@@ -127,7 +127,7 @@ __device__ std::tuple<int, int> LookingForward::find_x_in_window(
     last_candidate += first_candidate;
   }
 
-  return {first_candidate, last_candidate};
+  return std::tuple<int, int>{first_candidate, last_candidate};
 }
 
 __device__ std::tuple<short, short> LookingForward::find_x_in_window(
@@ -143,7 +143,7 @@ __device__ std::tuple<short, short> LookingForward::find_x_in_window(
     candidate_size = (short) binary_search_second_candidate(hits_x0 + zone_offset + first_candidate, num_hits - first_candidate, value, margin);
     first_candidate += zone_offset;
   }
-  return {first_candidate, candidate_size};
+  return std::tuple<short, short>{first_candidate, candidate_size};
 }
 
 __device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(
@@ -154,7 +154,7 @@ __device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(
   assert(first_zone < SciFi::Constants::n_zones - 1);
   const auto offset = (y < 0) ? 0 : 1;
 
-  return {scifi_hit_count.zone_offset(first_zone + offset), scifi_hit_count.zone_number_of_hits(first_zone + offset)};
+  return std::tuple<int, int>{scifi_hit_count.zone_offset(first_zone + offset), scifi_hit_count.zone_number_of_hits(first_zone + offset)};
 }
 
 __device__ std::tuple<int, float> LookingForward::get_best_hit(
@@ -188,7 +188,7 @@ __device__ std::tuple<int, float> LookingForward::get_best_hit(
     }
   }
 
-  return {best_index, min_chi2};
+  return std::tuple<int, float>{best_index, min_chi2};
 }
 
 __device__ float LookingForward::scifi_propagation(const float x_0, const float tx, const float qop, const float dz)

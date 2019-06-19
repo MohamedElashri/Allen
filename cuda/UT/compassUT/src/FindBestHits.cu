@@ -136,7 +136,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
     }
   }
 
-  return {best_hits[0], best_hits[1], best_hits[2], best_hits[3], best_params};
+  return std::tuple<int, int, int, int, BestParams>{best_hits[0], best_hits[1], best_hits[2], best_hits[3], best_params};
 }
 
 //=========================================================================

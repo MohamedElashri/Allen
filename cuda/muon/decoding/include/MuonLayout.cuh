@@ -34,4 +34,4 @@ namespace Muon {
   __device__ inline bool operator!=(const MuonLayout& ml1, const MuonLayout& ml2) {
     return !(ml1 == ml2);
   }
-};
+}

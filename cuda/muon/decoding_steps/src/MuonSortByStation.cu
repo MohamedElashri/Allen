@@ -24,7 +24,7 @@ __global__ void muon_sort_by_station(
   // TODO: There should be no need to re-populate this
   for (int i=threadIdx.x; i<Muon::Constants::n_stations; i+=blockDim.x) {
     event_muon_hits->station_offsets[i] = station_ocurrences_offset[i];
-    event_muon_hits->number_of_hits_per_station[i] = station_ocurrences_offset[i+1] - 
+    event_muon_hits->number_of_hits_per_station[i] = station_ocurrences_offset[i+1] -
       station_ocurrences_offset[i];
   }
 
@@ -44,14 +44,7 @@ __global__ void muon_sort_by_station(
 
   __syncthreads();
 
-  // if (blockIdx.x == 0 && threadIdx.x == 0) {
-  //   for (int i=0; i<number_of_hits; ++i) {
-  //     printf("%i, ", permutation_station[i]);
-  //   }
-  //   printf("\n");
-  // }
-
-  __shared__ uint64_t sorted_array [Muon::Constants::max_numhits_per_event];
+    __shared__ uint64_t sorted_array [Muon::Constants::max_numhits_per_event];
 
   // Apply permutation to shared memory buffer
   for (int i=threadIdx.x; i<number_of_hits; i+=blockDim.x) {
@@ -119,27 +112,4 @@ __global__ void muon_sort_by_station(
       region);
   }
 
-//   // Print
-//   __syncthreads();
-
-//   if (blockIdx.x == 900 && threadIdx.x == 0) {
-//     printf("%i muon hits:\n", number_of_hits);
-//     for (int i=0; i<number_of_hits; ++i) {
-//       printf(" muon hit {tile %i, x %f, dx %f, \
-// y %f, dy %f, z %f, dz %f, uncrossed %i, time %i, \
-// delta_time %i, cluster_size %i, region %i}\n",
-//         event_muon_hits->tile[i],
-//         event_muon_hits->x[i],
-//         event_muon_hits->dx[i],
-//         event_muon_hits->y[i],
-//         event_muon_hits->dy[i],
-//         event_muon_hits->z[i],
-//         event_muon_hits->dz[i],
-//         event_muon_hits->uncrossed[i],
-//         event_muon_hits->time[i],
-//         event_muon_hits->delta_time[i],
-//         event_muon_hits->cluster_size[i],
-//         event_muon_hits->region_id[i]);
-//     }
-//   }
 }

@@ -44,5 +44,5 @@ __device__ std::tuple<int16_t, float> lf_extend_tracks_impl(
     }
   }
 
-  return {best_index, best_chi2};
+  return std::tuple<int16_t, float>{best_index, best_chi2};
 }
