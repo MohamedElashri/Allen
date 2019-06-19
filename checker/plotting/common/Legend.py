@@ -3,20 +3,20 @@ import itertools
 
 # Some convenience function to easily iterate over the parts of the collections
 
-
 # Needed if importing this script from another script in case TMultiGraphs are used
 #ROOT.SetMemoryPolicy(ROOT.kMemoryStrict)
-
 
 # Start a bit right of the Yaxis and above the Xaxis to not overlap with the ticks
 start, stop = 0.18, 0.89
 x_width, y_width = 0.3, 0.2
-PLACES = [(start, stop - y_width, start + x_width, stop),  # top left opt
-          (start, start, start + x_width, start + y_width),  # bottom left opt
-          (stop - x_width, stop - y_width, stop, stop),  # top right opt
-          (stop - x_width, start, stop, start + y_width),  # bottom right opt
-          (stop - x_width, 0.5 - y_width / 2, stop, 0.5 + y_width / 2),  # right
-          (start, 0.5 - y_width / 2, start + x_width, 0.5 + y_width / 2)]  # left
+PLACES = [
+    (start, stop - y_width, start + x_width, stop),  # top left opt
+    (start, start, start + x_width, start + y_width),  # bottom left opt
+    (stop - x_width, stop - y_width, stop, stop),  # top right opt
+    (stop - x_width, start, stop, start + y_width),  # bottom right opt
+    (stop - x_width, 0.5 - y_width / 2, stop, 0.5 + y_width / 2),  # right
+    (start, 0.5 - y_width / 2, start + x_width, 0.5 + y_width / 2)
+]  # left
 
 
 def transform_to_user(canvas, x1, y1, x2, y2):
@@ -53,7 +53,8 @@ def overlap_h(hist, x1, y1, x2, y2):
         if y1 <= val <= y2:
             return True
         # Errors
-        if val + hist.GetBinErrorUp(i) > y1 and val - hist.GetBinErrorLow(i) < y2:
+        if val + hist.GetBinErrorUp(i) > y1 and val - hist.GetBinErrorLow(
+                i) < y2:
             # print "Overlap with histo", hist.GetName(), "at bin", i
             return True
     return False
@@ -66,6 +67,7 @@ def overlap_rect(rect1, rect2):
     if rect1[1] > rect2[3] or rect1[3] < rect2[1]:
         return False
     return True
+
 
 def overlap_g(graph, x1, y1, x2, y2):
     x_values = list(graph.GetX())
@@ -80,7 +82,14 @@ def overlap_g(graph, x1, y1, x2, y2):
             return True
     return False
 
-def place_legend(canvas, x1=None, y1=None, x2=None, y2=None, header="", option="LP"):
+
+def place_legend(canvas,
+                 x1=None,
+                 y1=None,
+                 x2=None,
+                 y2=None,
+                 header="",
+                 option="LP"):
     # If position is specified, use that
     if all(x is not None for x in (x1, x2, y1, y2)):
         return canvas.BuildLegend(x1, y1, x2, y2, header, option)
@@ -101,9 +110,11 @@ def place_legend(canvas, x1=None, y1=None, x2=None, y2=None, header="", option="
         # Make sure there are no overlaps
         if any(obj.Overlap(*place_user) for obj in objects):
             continue
-        return canvas.BuildLegend(place[0], place[1], place[2], place[3], header, option)
+        return canvas.BuildLegend(place[0], place[1], place[2], place[3],
+                                  header, option)
     # As a fallback, use the default values, taken from TCanvas::BuildLegend
     return canvas.BuildLegend(0.5, 0.67, 0.88, 0.88, header, option)
+
 
 def find_place(canvas, x1=None, y1=None, x2=None, y2=None):
     # Make sure all objects are correctly registered
@@ -124,7 +135,8 @@ def find_place(canvas, x1=None, y1=None, x2=None, y2=None):
             continue
         return place
 
-    return PLACES[3] # fallback solution
+    return PLACES[3]  # fallback solution
+
 
 # Monkey patch ROOT objects to make it all work
 ROOT.THStack.__iter__ = lambda self: iter(self.GetHists())
