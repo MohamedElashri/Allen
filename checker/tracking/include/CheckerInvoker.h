@@ -93,20 +93,20 @@ struct CheckerInvoker {
         p_events.push_back(p_tracks);
 
         // TODO: Enable back and understand if any duplicated hits exist
-        // // Check all tracks for duplicate LHCb IDs
-        // for (int i_track = 0; i_track < event_tracks.size(); ++i_track) {
-        //   const auto& track = event_tracks[i_track];
-        //   auto ids = track.ids();
-        //   std::sort(std::begin(ids), std::end(ids));
-        //   bool containsDuplicates = (std::unique(std::begin(ids), std::end(ids))) != std::end(ids);
-        //   if (containsDuplicates) {
-        //     warning_cout << "WARNING: Track #" << i_track << " contains duplicate LHCb IDs" << std::endl << std::hex;
-        //     for (auto id : ids) {
-        //       warning_cout << "0x" << id << ", ";
-        //     }
-        //     warning_cout << std::endl << std::endl << std::dec;
-        //   }
-        // }
+        // Check all tracks for duplicate LHCb IDs
+        /* for (int i_track = 0; i_track < event_tracks.size(); ++i_track) { */
+        /*   const auto& track = event_tracks[i_track]; */
+        /*   auto ids = track.ids(); */
+        /*   std::sort(std::begin(ids), std::end(ids)); */
+        /*   bool containsDuplicates = (std::unique(std::begin(ids), std::end(ids))) != std::end(ids); */
+        /*   if (containsDuplicates) { */
+        /*     warning_cout << "WARNING: Track #" << i_track << " contains duplicate LHCb IDs" << std::endl << std::hex; */
+        /*     for (auto id : ids) { */
+        /*       warning_cout << "0x" << id << ", "; */
+        /*     } */
+        /*     warning_cout << std::endl << std::endl << std::dec; */
+        /*   } */
+        /* } */
       }
     }
     return scifi_ids_events;

@@ -22,4 +22,4 @@ namespace Muon {
 
     __device__ unsigned int getADDInTell1(unsigned int Tell1_num, unsigned int ch) const;
   };
-};
+}

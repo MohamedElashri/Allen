@@ -39,6 +39,7 @@ struct MCParticle {
   uint32_t nPV; // # of reconstructible primary vertices in event
   std::vector<uint32_t> hits;
 
+  bool isMuon() const { return 13 == std::abs(pid); }
   bool isElectron() const { return 11 == std::abs(pid); };
   bool inEta2_5() const { return (eta < 5. && eta > 2.); };
 };

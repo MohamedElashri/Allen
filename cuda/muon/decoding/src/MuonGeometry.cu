@@ -9,4 +9,4 @@ namespace Muon {
     }
     return 0;
   }
-};
+}

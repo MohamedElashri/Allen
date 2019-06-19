@@ -94,8 +94,10 @@ namespace CPUMuon {
     if (std::distance(digits.first, digits.second) == 0) {
       return;
     }
-    const auto&[layoutOne, layoutTwo] = makeStripLayouts((* (digits.first)).tile.station(),
-                                                         (* (digits.first)).tile.region());
+    const auto& MuonLayouts = makeStripLayouts((*(digits.first)).tile.station(),
+                                               (*(digits.first)).tile.region());
+    const auto& layoutOne = MuonLayouts[0];
+    const auto& layoutTwo = MuonLayouts[1];
     std::vector<bool> used(std::distance(digits.first, digits.second), false);
 
     const auto mid = std::partition(digits.first, digits.second,

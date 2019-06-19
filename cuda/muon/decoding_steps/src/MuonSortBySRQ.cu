@@ -73,14 +73,4 @@ __global__ void muon_sort_station_region_quarter(
     storage_tdc_value[i] = sorted_array[i];
   }
 
-  // // Print
-  // __syncthreads();
-  // if (blockIdx.x == 0 && threadIdx.x == 0) {
-  //   for (int i=0; i<number_of_hits; ++i) {
-  //     printf("(%i, %i, %i), ",
-  //       storage_tile_id[i],
-  //       storage_tdc_value[i],
-  //       Muon::MuonTileID::stationRegionQuarter(storage_tile_id[i]));
-  //   }
-  // }
 }

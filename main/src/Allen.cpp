@@ -252,7 +252,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                            number_of_events_requested,
                                            number_of_repetitions,
                                            do_check,
-                                           cpu_offload};
+                                           static_cast<bool>(cpu_offload)};
 
     stream_wrapper.run_stream(i, runtime_options);
   };
