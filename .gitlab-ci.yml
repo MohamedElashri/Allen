@@ -4,6 +4,7 @@ stages:
   - publish
 
 check-formatting:
+  stage: build
   image: debian:testing
   script:
     - apt update && apt install -y clang-format-7 python-pip git curl
@@ -20,6 +21,7 @@ check-formatting:
       - apply-formatting.patch
     when: on_failure
     expire_in: 1 week
+  allow_failure: true
 
 .build_job: &build_job_def
   only:
