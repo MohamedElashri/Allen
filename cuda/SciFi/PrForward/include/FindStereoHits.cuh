@@ -9,7 +9,6 @@
 #include "SciFiEventModel.cuh"
 #include "TrackUtils.cuh"
 #include "HitUtils.cuh"
-#include "PrVeloUT.cuh"
 
 /**
    Functions related to selecting hits on the uv planes,

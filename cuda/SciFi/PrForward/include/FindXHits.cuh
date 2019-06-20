@@ -12,7 +12,6 @@
 #include "HitUtils.cuh"
 #include "LinearFitting.cuh"
 #include "ReferencePlaneProjection.cuh"
-#include "PrVeloUT.cuh"
 #include "SciFiEventModel.cuh"
 
 #include "LookingForwardUtils.h"
