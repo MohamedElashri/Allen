@@ -164,7 +164,7 @@ for tracker in trackers:
                 variableHistoName = histoName + "_reconstructed"
                 variable_electrons = f[0].Get(variableHistoName)
                 for infile in f :
-                    variable.Add(infile.Get(variableHistoName))
+                    variable_electrons.Add(infile.Get(variableHistoName))
                 norm = 0.9 / variable_electrons.GetMaximum()
                 variable_electrons.Scale(norm)
                 variable_electrons.SetTitle( efficiencyHistoDict[histo]["title"]+ " distribution, electrons")
