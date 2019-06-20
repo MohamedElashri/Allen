@@ -1,7 +1,7 @@
 Allen
 =====
 
-Welcome to Allen, a project with the aim to provide a full HLT1 realization on GPU.
+Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------
