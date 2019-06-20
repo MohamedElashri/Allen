@@ -44,7 +44,9 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
                   tuple{Allen::NonEventData::SciFiGeometry{}, std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)},
                   tuple{Allen::NonEventData::MagneticField{}, std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)},
                   tuple{Allen::NonEventData::Beamline{}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)},
-                  tuple{Allen::NonEventData::VeloGeometry{}, std::make_unique<Consumers::RawGeometry>(constants.dev_velo_geometry)}};
+                  tuple{Allen::NonEventData::VeloGeometry{}, std::make_unique<Consumers::RawGeometry>(constants.dev_velo_geometry)},
+                  tuple{Allen::NonEventData::MuonGeometry{}, std::make_unique<Consumers::MuonGeometry>(constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)},
+                  tuple{Allen::NonEventData::MuonLookupTables{}, std::make_unique<Consumers::MuonLookupTables>(constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables)}};
 
   for_each(consumers, [updater, &constants] (auto& c) {
                         using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
@@ -250,7 +252,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                            number_of_events_requested,
                                            number_of_repetitions,
                                            do_check,
-                                           cpu_offload};
+                                           static_cast<bool>(cpu_offload)};
 
     stream_wrapper.run_stream(i, runtime_options);
   };

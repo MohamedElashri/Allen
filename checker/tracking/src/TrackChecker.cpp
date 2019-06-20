@@ -43,6 +43,35 @@ TrackChecker::TrackChecker(std::string name, std::vector<Checker::TrackEffReport
 
 TrackChecker::~TrackChecker()
 {
+  if (m_trackerName == "Forward") {
+    if ( n_matched_muons > 0 ) {
+      std::printf("\nMuon matching checker \n");
+      // std::printf("Total number of tracks matched to an MCP = %lu, non muon MCPs = %lu, muon MCPs = %lu, total = %lu \n", m_n_tracks_matched_to_MCP, n_matched_not_muons, n_matched_muons, n_matched_muons+n_matched_not_muons);
+      std::printf("Muon fraction in all MCPs: %lu / %lu = %f \n", m_n_MCPs_muon, m_n_MCPs_not_muon + m_n_MCPs_muon, float( m_n_MCPs_muon) / (m_n_MCPs_not_muon + m_n_MCPs_muon) );
+      std::printf("Muon fraction in MCPs to which a track(s) was matched: %lu / %lu = %f \n", n_matched_muons, n_matched_muons + n_matched_not_muons, float( n_matched_muons) / (n_matched_muons + n_matched_not_muons) );
+      std::printf(
+        "Correctly identified muons with isMuon: \t \t \t \t %9lu/%9lu %6.2f%% \n",
+        n_is_muon_true,
+        n_matched_muons,
+        100.f * float(n_is_muon_true) / float(n_matched_muons));
+    }
+    if ( n_matched_not_muons > 0 ) {
+      std::printf(
+        "Tracks identified as muon with isMuon, but matched to non-muon MCP: \t %9lu/%9lu %6.2f%% \n",
+        n_is_muon_misID,
+        n_matched_not_muons,
+        100.f * float(n_is_muon_misID) / float(n_matched_not_muons));
+    }
+    if ( m_nghosts > 0 ) {
+      std::printf(
+        "Ghost tracks identified as muon with isMuon: \t \t \t \t %9lu/%9lu %6.2f%% \n",
+        n_is_muon_ghost,
+        m_nghosts,
+        100.f * float(n_is_muon_ghost) / float(m_nghosts));
+    }
+  }
+  printf("\n");
+
   std::printf(
     "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
     "TrackChecker output",
@@ -152,6 +181,47 @@ Checker::TrackEffReport::~TrackEffReport()
       100.f * clonerate,
       100.f * m_hitpur,
       100.f * m_hiteff);
+  }
+}
+
+void TrackChecker::muon_id_matching(
+  const std::vector<MCAssociator::TrackWithWeight> tracks_with_weight,
+  MCParticles::const_reference& mcp,
+  const Checker::Tracks& tracks) {
+
+  if (m_trackerName == "Forward") {
+    
+    histos->fillMuonReconstructible(mcp); 
+    
+    bool match_is_muon = false;
+
+    for (const auto& track_with_weight : tracks_with_weight) {
+      const int track_index = track_with_weight.m_idx;
+      const Checker::Track& track = tracks[track_index];
+      if (track.is_muon) {
+        match_is_muon = true;
+      }
+    }
+    // Correctly identified muons
+    if (std::abs(mcp.pid) == 13) {
+      n_matched_muons++;
+      if ( match_is_muon ) {
+        n_is_muon_true++;
+        histos->fillMuonReconstructedMatchedIsMuon(mcp);
+      }
+    }
+    // Track identified as muon, but was matched to non-muon MCP
+    else if ( std::abs(mcp.pid) != 13) {
+      n_matched_not_muons++;
+      if ( match_is_muon ) {
+        n_is_muon_misID++;
+        histos->fillMuonReconstructedNotMatchedIsMuon(mcp);
+      }
+    }
+    
+    // fill muon ID histograms
+    const Checker::Track& track = tracks[tracks_with_weight.front().m_idx];
+    histos->fillMuonIDMatchedHistos(track, mcp); 
   }
 }
 
@@ -312,7 +382,7 @@ std::vector<uint32_t> TrackChecker::operator()(
   std::vector<uint32_t> matched_mcp_keys;
   for (int i_track = 0; i_track < tracks.size(); ++i_track) {
     auto track = tracks[i_track];
-    histos->fillTotalHistos(mc_event.m_mcps[0]);
+    histos->fillTotalHistos(mc_event.m_mcps[0], track);
 
     uint32_t track_best_matched_MCP;
     bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table, track_best_matched_MCP);
@@ -337,8 +407,12 @@ std::vector<uint32_t> TrackChecker::operator()(
     }
     if (!match) {
       ++nghostsperevt;
-      histos->fillGhostHistos(mc_event.m_mcps[0]);
+      histos->fillGhostHistos(mc_event.m_mcps[0], track);
       if (triggerCondition) ++nghoststriggerperevt;
+      if (track.is_muon) {
+        histos->fillMuonGhostHistos(mc_event.m_mcps[0], track);
+        ++n_is_muon_ghost;
+      }
     }
   }
 
@@ -346,9 +420,17 @@ std::vector<uint32_t> TrackChecker::operator()(
   // Check which ones were matched to a track
   for (const auto mcp : mc_event.m_mcps) {
     const auto key = mcp.key;
+    
+    // Muon stats
+    if ( std::abs(mcp.pid) == 13 ) // muon
+      m_n_MCPs_muon++;
+    else // not muon
+      m_n_MCPs_not_muon++;
 
     if (assoc_table.find(key) == assoc_table.end()) // no track matched to MCP
       continue;
+
+    m_n_tracks_matched_to_MCP++;
 
     // have MC association
     // find track with highest weight
@@ -358,7 +440,7 @@ std::vector<uint32_t> TrackChecker::operator()(
       return a.m_w > b.m_w;
     });
 
-    const auto track_with_weight = matched_tracks.front();
+    const auto track_with_weight = matched_tracks.front(); 
     const auto weight = track_with_weight.m_w;
     auto track = tracks[track_with_weight.m_idx];
 
@@ -368,14 +450,16 @@ std::vector<uint32_t> TrackChecker::operator()(
       report(matched_tracks, mcp, get_num_hits_subdetector);
     }
 
+    // Muon ID checker
+    muon_id_matching(matched_tracks, mcp, tracks);
+    
     // fill histograms of reconstructible MC particles in various categories
     for (auto& histo_cat : m_histo_categories) {
       histos->fillReconstructedHistos(mcp, histo_cat);
     }
     // fill histogram of momentum resolution
     histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
-    // fill muon ID histograms
-    histos->fillMuonIDMatchedHistos(track, mcp);
+
   }
 
   for (auto& report : m_categories) {

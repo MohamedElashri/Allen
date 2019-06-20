@@ -38,13 +38,11 @@ SCENARIO("General case") {
     unsigned int muon_raw_offsets[] = {static_cast<unsigned int>(0), static_cast<unsigned int>(MUON_RAW_SIZES[i])};
     std::vector<Muon::HitsSoA> actual_vector(1);
 
-    MuonTable pad = MuonTable();
-    MuonTable stripX = MuonTable();
-    MuonTable stripY = MuonTable();
+    CPUMuon::MuonTable pad, stripX, stripY;
     read_muon_table(muon_table_raw_input.data(), &pad, &stripX, &stripY);
-    Muon::MuonGeometry muonGeometry = Muon::MuonGeometry();
+    CPUMuon::MuonGeometry muonGeometry;
     muonGeometry.read_muon_geometry(muon_geometry_raw_input.data());
-    MuonRawToHits muonRawToHits = MuonRawToHits(&pad, &stripX, &stripY, &muonGeometry);
+    CPUMuon::MuonRawToHits muonRawToHits = CPUMuon::MuonRawToHits(&pad, &stripX, &stripY, &muonGeometry);
     for (int it = 0; it < 100; it++) {
       muonRawToHitsDecode(muon_raw_raw_input.data(), muon_raw_offsets, MUON_RAW_SIZES[i], 2, actual_vector, &muonRawToHits);
     }

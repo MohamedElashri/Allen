@@ -52,5 +52,5 @@ __device__ std::tuple<int, int> find_forward_candidates(
     last_candidate = last_candidate == 0 ? first_candidate + 1 : first_candidate + last_candidate;
   }
 
-  return {first_candidate, last_candidate};
+  return std::tuple<int, int>{first_candidate, last_candidate};
 }

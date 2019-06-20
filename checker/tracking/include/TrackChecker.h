@@ -114,6 +114,16 @@ protected:
   std::size_t m_ntrackstrigger = 0;
   std::size_t m_nghoststrigger = 0;
 
+  std::size_t m_n_tracks_matched_to_MCP = 0;
+  std::size_t m_n_MCPs_muon = 0;
+  std::size_t m_n_MCPs_not_muon = 0;
+
+  std::size_t n_is_muon_true = 0;
+  std::size_t n_is_muon_misID = 0;
+  std::size_t n_matched_muons = 0;
+  std::size_t n_matched_not_muons = 0;
+  std::size_t n_is_muon_ghost = 0;
+
 public:
   TrackChecker(std::string name, std::vector<Checker::TrackEffReport> categories,
                std::vector<Checker::HistoCategory> histo_categories, bool create_file,
@@ -130,6 +140,11 @@ public:
     const int i_track,
     std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table,
     uint32_t& track_best_matched_MCP);
+
+  void muon_id_matching(
+      const std::vector<MCAssociator::TrackWithWeight> tracks_with_weight,
+      MCParticles::const_reference& mcp,
+      const Checker::Tracks& tracks );
 
   TrackCheckerHistos* histos = nullptr;
 };

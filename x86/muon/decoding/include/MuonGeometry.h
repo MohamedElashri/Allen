@@ -1,11 +1,11 @@
 #pragma once
 
-#include "MuonTileID.h"
-
 #include <vector>
 #include <algorithm>
 
-namespace Muon {
+#include "MuonTileID.h"
+
+namespace CPUMuon {
   class MuonGeometry {
   private:
     std::vector<std::vector<unsigned int>> m_tiles;

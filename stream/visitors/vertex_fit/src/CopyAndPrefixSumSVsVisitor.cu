@@ -38,14 +38,25 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_sv_t>(
       cuda_stream,
       cuda_generic_event,
       host_buffers.host_number_of_svs);
-  } else {  
+  } else {
     state.set_opts(dim3(1), dim3(1024), cuda_stream);
     state.set_arguments(
       (uint*) arguments.offset<dev_sv_offsets>() + host_buffers.host_number_of_selected_events[0],
       (uint*) arguments.offset<dev_atomics_scifi>(),
       (uint*) arguments.offset<dev_sv_offsets>(),
       (uint) host_buffers.host_number_of_selected_events[0]);
-    state.invoke();   
+    state.invoke();
+
+    // Fetch number of secondary vertices
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_number_of_svs,
+      arguments.offset<dev_sv_offsets>() + host_buffers.host_number_of_selected_events[0],
+      sizeof(uint),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaEventRecord(cuda_generic_event, cuda_stream);
+    cudaEventSynchronize(cuda_generic_event);
   }
 
   if (runtime_options.do_check) {
@@ -55,14 +66,14 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_sv_t>(
       sizeof(uint),
       cudaMemcpyDeviceToHost,
       cuda_stream));
-  
+
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_sv_offsets,
       arguments.offset<dev_sv_offsets>(),
       (host_buffers.host_number_of_selected_events[0] + 1) * sizeof(uint),
       cudaMemcpyDeviceToHost,
       cuda_stream));
-    
+
     cudaEventRecord(cuda_generic_event, cuda_stream);
     cudaEventSynchronize(cuda_generic_event);
   }

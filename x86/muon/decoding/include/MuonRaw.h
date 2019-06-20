@@ -1,10 +1,10 @@
 #pragma once
 
-#include "gsl-lite.hpp"
-
 #include <stdint.h>
 
-namespace Muon {
+#include "gsl-lite.hpp"
+
+namespace CPUMuon {
   struct MuonRawBank {
     uint32_t sourceID;
     uint16_t* data;

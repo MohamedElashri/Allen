@@ -49,7 +49,9 @@ namespace NonEventData {
                     tuple{NonEventData::MagneticField{}, "polarity.bin"},
                     tuple{NonEventData::UTGeometry{}, "ut_geometry.bin"},
                     tuple{NonEventData::UTLookupTables{}, "ut_tables.bin"},
-                    tuple{NonEventData::SciFiGeometry{}, "scifi_geometry.bin"}};
+                    tuple{NonEventData::SciFiGeometry{}, "scifi_geometry.bin"},
+                    tuple{NonEventData::MuonGeometry{}, "muon_geometry.bin"},
+                    tuple{NonEventData::MuonLookupTables{}, "muon_tables.bin"}};
 
     for_each(producers, [this, &geometry_producer] (const auto& p) {
                           using id_t = typename std::remove_reference_t<decltype(std::get<0>(p))>;

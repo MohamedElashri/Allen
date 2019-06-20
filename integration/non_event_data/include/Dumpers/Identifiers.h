@@ -38,8 +38,8 @@ namespace NonEventData {
     inline static std::string const id = "MuonGeometry";
   };
 
-  struct MuonLookupTable : Identifier {
-    inline static std::string const id = "MuonLookupTable";
+  struct MuonLookupTables : Identifier {
+    inline static std::string const id = "MuonLookupTables";
   };
 
 }

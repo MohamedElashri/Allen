@@ -40,7 +40,6 @@ SEQUENCE_T(
   scifi_direct_decoder_v4_t,
   lf_search_initial_windows_t,
   lf_collect_candidates_t,
-  lf_prefix_sum_candidates_t,
   lf_composite_track_seeding_t,
   lf_quality_filter_x_t,
   lf_composite_extend_tracks_uv_t,
@@ -52,6 +51,7 @@ SEQUENCE_T(
   prefix_sum_scifi_track_hit_number_t,
   consolidate_scifi_tracks_t,
   kalman_velo_only_t,
+  muon_decoding_t,
   is_muon_t,
   muon_catboost_features_extraction_t,
   muon_catboost_evaluator_t)

@@ -46,7 +46,6 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
     arguments.offset<dev_ut_states>(),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
-    arguments.offset<dev_scifi_lf_number_of_candidates>(),
     arguments.offset<dev_scifi_lf_candidates>(),
     constants.dev_looking_forward_constants,
     arguments.offset<dev_scifi_lf_tracks>(),

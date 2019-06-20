@@ -71,16 +71,20 @@ struct HostBuffers {
 
   // Muon
   float* host_muon_catboost_output;
-  bool *host_is_muon;
+  bool* host_is_muon;
+  uint* host_muon_total_number_of_tiles;
+  uint* host_muon_total_number_of_hits;
 
   // Secondary vertices
   uint* host_number_of_svs;
   uint* host_sv_offsets;
-  VertexFit::TrackMVAVertex* host_secondary_vertices;
   
   // Selections
   bool* host_one_track_decisions;
   bool* host_two_track_decisions;
+  bool* host_single_muon_decisions;
+  bool* host_disp_dimuon_decisions;
+  bool* host_high_mass_dimuon_decisions;
   
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;

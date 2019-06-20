@@ -4,7 +4,6 @@
  */
 SEQUENCE_T(
   init_event_list_t,
-  global_event_cut_t,
   velo_estimate_input_size_t,
   prefix_sum_velo_clusters_t,
   velo_masked_clustering_t,
@@ -40,9 +39,9 @@ SEQUENCE_T(
   scifi_direct_decoder_v4_t,
   lf_search_initial_windows_t,
   lf_collect_candidates_t,
-  lf_prefix_sum_candidates_t,
   lf_composite_track_seeding_t,
   lf_quality_filter_x_t,
+  lf_extend_missing_x_t,
   lf_composite_extend_tracks_uv_t,
   lf_quality_filter_length_t,
   lf_fit_t,
@@ -51,6 +50,17 @@ SEQUENCE_T(
   copy_scifi_track_hit_number_t,
   prefix_sum_scifi_track_hit_number_t,
   consolidate_scifi_tracks_t,
+  muon_pre_decoding_t,
+  muon_pre_decoding_prefix_sum_t,
+  muon_sort_station_region_quarter_t,
+  muon_add_coords_crossing_maps_t,
+  muon_station_ocurrence_prefix_sum_t,
+  muon_sort_by_station_t,
+  is_muon_t,
+  muon_catboost_features_extraction_t,
+  muon_catboost_evaluator_t,
   kalman_velo_only_t,
-  muon_decoding_t
-) 
+  kalman_pv_ipchi2_t,
+  copy_and_prefix_sum_single_block_sv_t,
+  fit_secondary_vertices_t,
+  run_hlt1_t,)

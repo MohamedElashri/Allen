@@ -24,6 +24,8 @@ namespace TrackMVALines {
     decision &= vertex.eta > minEta && vertex.eta < maxEta;
     decision &= vertex.ntrksassoc <= maxNTrksAssoc;
     decision &= vertex.fdchi2 > minFDChi2;
+    decision &= vertex.minipchi2 > minTrackIPChi2;
+    decision &= vertex.minpt > minTrackPt;
     return decision;
   }
   

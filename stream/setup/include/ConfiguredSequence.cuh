@@ -70,11 +70,15 @@
 #include "LFSearchUVWindows.cuh"
 #include "LFFit.cuh"
 #include "MuonDecoding.cuh"
+#include "MuonPreDecoding.cuh"
+#include "MuonSortBySRQ.cuh"
+#include "MuonAddCoordsCrossingMaps.cuh"
 #include "KalmanPVIPChi2.cuh"
 #include "VertexFitter.cuh"
 #include "VertexDefinitions.cuh"
 #include "TrackMVALines.cuh"
 #include "RunHlt1.cuh"
+#include "MuonSortByStation.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 
