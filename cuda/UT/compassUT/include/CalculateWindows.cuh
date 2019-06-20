@@ -2,7 +2,6 @@
 
 #include "UTDefinitions.cuh"
 #include "VeloConsolidated.cuh"
-#include "PrVeloUTMagnetToolDefinitions.h"
 #include "UTEventModel.cuh"
 #include "States.cuh"
 #include <tuple>

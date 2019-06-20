@@ -1,8 +1,8 @@
 #pragma once
 
 #include "States.cuh"
+#include "UTDefinitions.cuh"
 #include "CompassUTDefinitions.cuh"
-#include "PrVeloUTDefinitions.cuh"
 #include "UTEventModel.cuh"
 
 __host__ __device__

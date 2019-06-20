@@ -1,7 +1,6 @@
 #pragma once
 
-#include "PrVeloUT.cuh"
-#include "PrVeloUTMagnetToolDefinitions.h"
+#include "UTMagnetToolDefinitions.h"
 #include "UTDefinitions.cuh"
 #include "VeloDefinitions.cuh"
 #include "CompassUTDefinitions.cuh"
@@ -22,7 +21,7 @@ __global__ void compass_ut(
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
   char* dev_velo_states,
-  PrUTMagnetTool* dev_ut_magnet_tool,
+  UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_magnet_polarity,
   const float* dev_ut_dxDy,
   int* dev_active_tracks,
