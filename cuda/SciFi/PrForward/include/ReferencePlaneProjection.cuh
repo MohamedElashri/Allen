@@ -7,7 +7,6 @@
 #include <fstream>
 
 #include "SciFiDefinitions.cuh"
-#include "PrVeloUT.cuh"
 #include "TrackUtils.cuh"
 #include "SciFiEventModel.cuh"
 

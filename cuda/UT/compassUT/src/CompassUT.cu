@@ -10,7 +10,7 @@ __global__ void compass_ut(
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
   char* dev_velo_states,
-  PrUTMagnetTool* dev_ut_magnet_tool,
+  UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_magnet_polarity,
   const float* dev_ut_dxDy,
   int* dev_active_tracks,
@@ -298,7 +298,7 @@ __device__ void save_track(
   const int index2 = std::max(0, std::min(10, int((var[1] + 250) / 500 * 10)));
   const int index3 = std::max(0, std::min(10, int(var[2] / 800 * 10)));
 
-  assert(master_index(index1, index2, index3) < PrUTMagnetTool::N_bdl_vals);
+  assert(master_index(index1, index2, index3) < UTMagnetTool::N_bdl_vals);
   float bdl = bdl_table[master_index(index1, index2, index3)];
 
   const int num_idx = 3;

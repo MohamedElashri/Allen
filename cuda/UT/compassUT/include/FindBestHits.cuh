@@ -1,5 +1,6 @@
 #pragma once
 
+#include "UTEventModel.cuh"
 #include "UTDefinitions.cuh"
 #include "CompassUTDefinitions.cuh"
 #include "FindBestHits.cuh"

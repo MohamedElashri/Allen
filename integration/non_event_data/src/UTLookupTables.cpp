@@ -9,7 +9,7 @@ namespace {
   using std::to_string;
 }
 
-Consumers::UTLookupTables::UTLookupTables(PrUTMagnetTool*& tool)
+Consumers::UTLookupTables::UTLookupTables(UTMagnetTool*& tool)
   : m_tool{tool} {}
 
 void Consumers::UTLookupTables::consume(std::vector<char> const& data) {
@@ -46,16 +46,16 @@ void Consumers::UTLookupTables::consume(std::vector<char> const& data) {
   p += table_size[0] * sizeof(float);
 
   if (!m_tool) {
-    cudaCheck(cudaMalloc((void**) &m_tool.get(), sizeof(PrUTMagnetTool)));
-    m_size = sizeof(PrUTMagnetTool);
+    cudaCheck(cudaMalloc((void**) &m_tool.get(), sizeof(UTMagnetTool)));
+    m_size = sizeof(UTMagnetTool);
   }
   if (m_size != (data.size() - 7 * sizeof(int) - 2 * sizeof(size_t))) {
     throw StrException{string{"sizes don't match: "} + to_string(m_size)
                               + " " + to_string(data.size())};
   }
 
-  PrUTMagnetTool host_tool{deflection, bdl};
+  UTMagnetTool host_tool{deflection, bdl};
 
   // deflection table
-  cudaCheck(cudaMemcpy(m_tool.get(), &host_tool, sizeof(PrUTMagnetTool), cudaMemcpyHostToDevice));
+  cudaCheck(cudaMemcpy(m_tool.get(), &host_tool, sizeof(UTMagnetTool), cudaMemcpyHostToDevice));
 }

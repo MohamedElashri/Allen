@@ -14,7 +14,6 @@
 #include "SciFiDefinitions.cuh"
 #include "VeloDefinitions.cuh"
 #include "UTDefinitions.cuh"
-#include "PrVeloUT.cuh"
 #include "PrForwardConstants.cuh"
 #include "TrackUtils.cuh"
 #include "LinearFitting.cuh"
