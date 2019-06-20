@@ -1,7 +1,5 @@
 #pragma once
 
-#include "PrVeloUT.cuh"
-#include "PrVeloUTMagnetToolDefinitions.h"
 #include "UTDefinitions.cuh"
 #include "CompassUTDefinitions.cuh"
 #include "FindBestHits.cuh"
