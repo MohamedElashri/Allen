@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #include "UTDefinitions.cuh"
-#include "PrVeloUTMagnetToolDefinitions.h"
+#include "UTMagnetToolDefinitions.h"
 #include "SciFiDefinitions.cuh"
 #include "Logger.h"
 #include "Common.h"

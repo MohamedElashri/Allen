@@ -9,7 +9,7 @@ __global__ void ut_search_windows(
   int* dev_atomics_storage, // semi_prefixsum, offset to tracks
   uint* dev_velo_track_hit_number,
   char* dev_velo_states,
-  PrUTMagnetTool* dev_ut_magnet_tool,
+  UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_ut_dxDy,
   const uint* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
   const float* dev_unique_sector_xs,             // list of xs that define the groups

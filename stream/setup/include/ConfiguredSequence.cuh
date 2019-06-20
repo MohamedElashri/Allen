@@ -16,7 +16,6 @@
 #include "UTPreDecode.cuh"
 #include "UTFindPermutation.cuh"
 #include "UTDecodeRawBanksInOrder.cuh"
-#include "VeloUT.cuh"
 #include "VeloEventModel.cuh"
 #include "ConsolidateUT.cuh"
 #include "SciFiCalculateClusterCount.cuh"
@@ -91,6 +90,5 @@
 // eg.
 // "cmake -DSEQUENCE=DefaultSequence .." (or just "cmake ..") matches "sequences/DefaultSequence.cuh"
 // "cmake -DSEQUENCE=Velo .." matches "sequences/Velo.cuh"
-// "cmake -DSEQUENCE=VeloUT .." matches "sequences/VeloUT.cuh"
 
 #include "ConfiguredSequence.h"

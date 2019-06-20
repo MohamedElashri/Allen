@@ -13,7 +13,7 @@
 #include "TMVA_Forward_2.cuh"
 #include "UTDefinitions.cuh"
 #include "Logger.h"
-#include "PrVeloUTMagnetToolDefinitions.h"
+#include "UTMagnetToolDefinitions.h"
 #include "KalmanParametrizations.cuh"
 #include "SciFiParametrization.h"
 #include "LookingForwardConstants.cuh"
@@ -57,7 +57,7 @@ struct Constants {
   gsl::span<uint> dev_ut_region_offsets;
   gsl::span<float> dev_unique_sector_xs;
   gsl::span<char> dev_ut_boards;
-  PrUTMagnetTool* dev_ut_magnet_tool = nullptr;
+  UTMagnetTool* dev_ut_magnet_tool = nullptr;
 
   SciFi::Tracking::TMVA* dev_scifi_tmva1 = nullptr;
   SciFi::Tracking::TMVA* dev_scifi_tmva2 = nullptr;

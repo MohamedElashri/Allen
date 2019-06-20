@@ -4,7 +4,6 @@
 
 #include "SciFiDefinitions.cuh"
 #include "PrForwardConstants.cuh"
-#include "PrVeloUT.cuh"
 #include "HitUtils.cuh"
 #include "ParabolaFitting.cuh"
 #include "SciFiEventModel.cuh"
