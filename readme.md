@@ -42,6 +42,8 @@ Input from 1k events (mag down) can be found here:
 * Bs->PhiPhi (for efficiency checks): `/afs/cern.ch/work/d/dovombru/public/gpu_input/1kevents_BsPhiPhi_dump_region_UT_fix.tar.gz`
 * J/Psi->MuMu (for muon efficiency checks): `/afs/cern.ch/work/d/dovombru/public/gpu_input/1kevents_JPsiMuMu_dump_region_UT_fix.tar.gz`
 
+10k J/Psi->MuMu events (mag down) are available here: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/JpsiMuMu/JpsiMuMu_mag_down.tar.gz`
+    
 5k Bs2PhiPhi events (mag down) are avialable here: `/afs/cern.ch/work/d/dovombru/public/gpu_input/BsPhiPhi/BsPhiPhi.tar.gz`
 
 30k minbias events (mad down) are available here: `/afs/cern.ch/work/d/dovombru/public/gpu_input/minbias.tar.gz`
