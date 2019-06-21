@@ -15,7 +15,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/UT/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/global_event_cut/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/ip_cut/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/UTDecoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/sorting/include)
@@ -90,7 +89,6 @@ file(GLOB stream_sequence "sequence/src/*cu")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
 file(GLOB stream_setup "setup/src/*cu")
 file(GLOB stream_visitors_gec "visitors/global_event_cut/src/*cu")
-file(GLOB stream_visitors_ip "visitors/ip_cut/src/*cu")
 file(GLOB stream_visitors_velo "visitors/velo/src/*cu")
 file(GLOB stream_visitors_patPV "visitors/patPV/src/*cu")
 file(GLOB stream_visitors_beamlinePV "visitors/beamlinePV/src/*cu")
@@ -135,7 +133,6 @@ target_link_libraries(Stream PRIVATE
   Common
   Utils
   Associate
-  IPCut
   GlobalEventCut
   Velo
   PatPV
