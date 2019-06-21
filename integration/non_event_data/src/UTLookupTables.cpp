@@ -9,7 +9,8 @@ namespace {
   using std::to_string;
 } // namespace
 
-Consumers::UTLookupTables::UTLookupTables(PrUTMagnetTool*& tool) : m_tool {tool} {}
+Consumers::UTLookupTables::UTLookupTables(UTMagnetTool*& tool)
+  : m_tool{tool} {}
 
 void Consumers::UTLookupTables::consume(std::vector<char> const& data)
 {
