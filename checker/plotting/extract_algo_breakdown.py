@@ -7,16 +7,27 @@ import operator
 import csv
 from group_algos import group_algos
 from optparse import OptionParser
-
 """
 Produces a plot of the performance breakdown of the sequence under execution
 """
+
+
 def main(argv):
     global final_msg
     parser = OptionParser()
-    parser.add_option('-d', '--dir', dest='output_directory', help='The directory to scan for build_* directories')
-    parser.add_option('-f', '--file_pattern', dest='file_pattern', default='profiler_output.txt',
-                      help='The file name to look for profiler data in each build_ directoy. default: profiler_output.txt')
+    parser.add_option(
+        '-d',
+        '--dir',
+        dest='output_directory',
+        help='The directory to scan for build_* directories')
+    parser.add_option(
+        '-f',
+        '--file_pattern',
+        dest='file_pattern',
+        default='profiler_output.txt',
+        help=
+        'The file name to look for profiler data in each build_ directoy. default: profiler_output.txt'
+    )
 
     (options, args) = parser.parse_args()
 
@@ -40,7 +51,7 @@ def main(argv):
             dirs.append(file)
 
     for dir in dirs:
-        filepath = options.output_directory +"/" + dir + "/" + options.file_pattern
+        filepath = options.output_directory + "/" + dir + "/" + options.file_pattern
         try:
             f = open(filepath)
             s = f.read()
@@ -68,7 +79,6 @@ def main(argv):
             print('Failed to read runtime from output')
             print(traceback.format_exc())
 
-
         # Regexp for one line
         # Note: An algorithm line looks like:
         #  11.08%  6.47377s       700  9.2482ms  3.7639ms  15.887ms  lf_search_uv_windows(unsigned int const *, unsigned int const *, int const *, SciFi::TrackHits const *, int const *, char const *, LookingForward::Constants const *, float const *, MiniState const *, short*)
@@ -88,11 +98,12 @@ def main(argv):
         for k in algorithm_times.keys():
             algorithm_times[k] = 100 * algorithm_times[k] / full_addition
 
-        output_list = sorted(algorithm_times.items(), key=operator.itemgetter(1), reverse=True)
+        output_list = sorted(
+            algorithm_times.items(), key=operator.itemgetter(1), reverse=True)
 
         print(output_list)
 
-        output_path = options.output_directory +"/" + dir + "/algo_breakdown.csv"
+        output_path = options.output_directory + "/" + dir + "/algo_breakdown.csv"
         with open(output_path, 'w') as out:
             csv_out = csv.writer(out)
             for row in output_list:
@@ -101,12 +112,12 @@ def main(argv):
         timings = group_algos(algorithm_times)
         print(timings)
 
-        output_path = options.output_directory +"/" + dir + "/algo_summary.csv"
+        output_path = options.output_directory + "/" + dir + "/algo_summary.csv"
         with open(output_path, 'w') as out:
             csv_out = csv.writer(out)
             for row in timings:
                 csv_out.writerow(row)
 
+
 if __name__ == "__main__":
     main(sys.argv[1:])
-

@@ -12,4 +12,3 @@ void checkHlt1Rate(
   const uint* sv_atomics,
   const uint selected_events,
   const uint requested_events);
-

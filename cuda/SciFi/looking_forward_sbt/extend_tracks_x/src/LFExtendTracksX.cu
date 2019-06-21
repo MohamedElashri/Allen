@@ -27,17 +27,18 @@ __global__ void lf_extend_tracks_x(
     const_cast<uint32_t*>(dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
 
-  for ( int i_ut_track = threadIdx.y; i_ut_track < ut_event_number_of_tracks; i_ut_track += blockDim.y) {
+  for (int i_ut_track = threadIdx.y; i_ut_track < ut_event_number_of_tracks; i_ut_track += blockDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i_ut_track;
     int number_of_tracks = dev_atomics_scifi[current_ut_track_index];
 
     for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-      SciFi::TrackHits& track = dev_scifi_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + i];
+      SciFi::TrackHits& track =
+        dev_scifi_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + i];
 
       // Candidates pointer for current UT track
       const auto scifi_lf_candidates = dev_scifi_lf_candidates + current_ut_track_index *
-        LookingForward::number_of_x_layers *
-        LookingForward::maximum_number_of_candidates;
+                                                                   LookingForward::number_of_x_layers *
+                                                                   LookingForward::maximum_number_of_candidates;
 
       const auto h0 = event_offset + track.hits[0];
       const auto h1 = event_offset + track.hits[1];
@@ -55,7 +56,8 @@ __global__ void lf_extend_tracks_x(
         }
 
         if (!layer_populated) {
-          const int8_t number_of_candidates = dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + j];
+          const int8_t number_of_candidates =
+            dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + j];
 
           lf_extend_tracks_x_impl(
             scifi_hits.x0 + event_offset,
@@ -72,5 +74,4 @@ __global__ void lf_extend_tracks_x(
       }
     }
   }
-
 }

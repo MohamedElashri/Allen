@@ -499,7 +499,8 @@ ExtrapolateInV(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
 
   // parametrizations for state extrapolation
   // tx
-  x[2] = x_old[2] + x_old[4] * par[4] * ((KalmanFloat) 1.0e-5) * dz * ((dz > 0 ? zFrom : zTo) + par[5] * ((KalmanFloat) 1.0e3));
+  x[2] = x_old[2] +
+         x_old[4] * par[4] * ((KalmanFloat) 1.0e-5) * dz * ((dz > 0 ? zFrom : zTo) + par[5] * ((KalmanFloat) 1.0e3));
   // x
   x[0] = x_old[0] + (x[2] + x_old[2]) * ((KalmanFloat) 0.5) * dz;
   // ty
@@ -563,7 +564,8 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   KalmanFloat yErr = par[6] * std::abs(dz * x_old[4]);
 
   // tx
-  KalmanFloat coeff = par[8] * ((KalmanFloat) 1e1) + par[9] * ((KalmanFloat) 1e-2) * zFrom + par[10] * ((KalmanFloat) 1e2) * x_old[3] * x_old[3];
+  KalmanFloat coeff = par[8] * ((KalmanFloat) 1e1) + par[9] * ((KalmanFloat) 1e-2) * zFrom +
+                      par[10] * ((KalmanFloat) 1e2) * x_old[3] * x_old[3];
 
   KalmanFloat a =
     x_old[2] / std::sqrt(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]) - x_old[4] * coeff;
@@ -578,8 +580,8 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   KalmanFloat txErr = par[15] * std::abs(x_old[4]);
 
   // x
-  KalmanFloat zmag =
-    par[16] * ((KalmanFloat) 1e3) + par[17] * zFrom + par[18] * ((KalmanFloat) 1e-5) * zFrom * zFrom + par[19] * ((KalmanFloat) 1e3) * x_old[3] * x_old[3];
+  KalmanFloat zmag = par[16] * ((KalmanFloat) 1e3) + par[17] * zFrom + par[18] * ((KalmanFloat) 1e-5) * zFrom * zFrom +
+                     par[19] * ((KalmanFloat) 1e3) * x_old[3] * x_old[3];
 
   x[0] = x_old[0] + (zmag - zFrom) * x_old[2] + (zTo - zmag) * x[2];
 
@@ -607,8 +609,9 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   F(2, 1) = (KalmanFloat) 0.0;
 
   sqrtTmp = std::sqrt(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]);
-  F(2, 2) =
-    DtxDa * (((KalmanFloat) 1.0) + x_old[3] * x_old[3]) / (sqrtTmp * (((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3])) + DtxDty * F(3, 2);
+  F(2, 2) = DtxDa * (((KalmanFloat) 1.0) + x_old[3] * x_old[3]) /
+              (sqrtTmp * (((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3])) +
+            DtxDty * F(3, 2);
 
   F(2, 3) = DtxDa * (-x_old[2] * x_old[3] / (sqrtTmp * (1 + x_old[2] * x_old[2] + x_old[3] * x_old[3])) -
                      x_old[4] * 2 * par[10] * 1e2 * x_old[3]) +
@@ -697,7 +700,8 @@ __device__ void ExtrapolateInUT(
 
   // extrapolate state vector
   // tx
-  x[2] += dz * (par[5] * ((KalmanFloat) 1.e-1) * x[4] + par[6] * ((KalmanFloat) 1.e3) * x[4] * x[4] * x[4] + par[7] * ((KalmanFloat) 1e-7) * x[1] * x[1] * x[4]);
+  x[2] += dz * (par[5] * ((KalmanFloat) 1.e-1) * x[4] + par[6] * ((KalmanFloat) 1.e3) * x[4] * x[4] * x[4] +
+                par[7] * ((KalmanFloat) 1e-7) * x[1] * x[1] * x[4]);
   // x
   x[0] += dz * (par[0] * x_old[2] + (((KalmanFloat) 1.0) - par[0]) * x[2]);
   // ty
@@ -709,7 +713,8 @@ __device__ void ExtrapolateInUT(
   F(2, 1) = ((KalmanFloat) 2.0) * dz * par[7] * ((KalmanFloat) 1e-7) * x_old[1] * x[4];
   F(2, 2) = (KalmanFloat) 1.0;
   F(2, 3) = (KalmanFloat) 0.0;
-  F(2, 4) = dz * (par[5] * ((KalmanFloat) 1.e-1) + ((KalmanFloat) 3.0) * par[6] * ((KalmanFloat) 1.e3) * x[4] * x[4] + par[7] * ((KalmanFloat) 1e-7) * x_old[1] * x_old[1]);
+  F(2, 4) = dz * (par[5] * ((KalmanFloat) 1.e-1) + ((KalmanFloat) 3.0) * par[6] * ((KalmanFloat) 1.e3) * x[4] * x[4] +
+                  par[7] * ((KalmanFloat) 1e-7) * x_old[1] * x_old[1]);
 
   F(0, 0) = (KalmanFloat) 1.0;
   F(0, 1) = dz * (((KalmanFloat) 1.0) - par[0]) * F(2, 1);
@@ -804,8 +809,8 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
 
   // determine the momentum at this state from the momentum saved in the state vector
   //(representing always the PV qop)
-  KalmanFloat qopHere =
-    x[4] + x[4] * ((KalmanFloat) 1e-4) * par[18] + x[4] * std::abs(x[4]) * par[19]; // TODO make this a tuneable parameter
+  KalmanFloat qopHere = x[4] + x[4] * ((KalmanFloat) 1e-4) * par[18] +
+                        x[4] * std::abs(x[4]) * par[19]; // TODO make this a tuneable parameter
 
   // do the actual extrapolation
   KalmanFloat der_tx[4];
@@ -827,10 +832,10 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
 
   // apply additional correction
   x[0] += par[9] * x_old[4] * ((KalmanFloat) 1e2) + par[10] * x_old[4] * x_old[4] * ((KalmanFloat) 1e5) +
-    par[11] * x_old[4] * x_old[4] * x_old[4] * ((KalmanFloat) 1e10);
+          par[11] * x_old[4] * x_old[4] * x_old[4] * ((KalmanFloat) 1e10);
   x[1] += par[3] * x_old[4] * ((KalmanFloat) 1e2);
   x[2] += par[6] * x_old[4] + par[7] * x_old[4] * x_old[4] * ((KalmanFloat) 1e5) +
-    par[8] * x_old[4] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
+          par[8] * x_old[4] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
   x[3] += par[0] * x_old[4];
 
   // Set jacobian matrix
@@ -840,36 +845,36 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
   F(3, 1) = (KalmanFloat) 0.0; // der_y[3];
   F(3, 2) = der_tx[3];
   F(3, 3) = der_ty[3];
-  F(3, 4) = der_qop[3] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18])
-            + par[0] + ((KalmanFloat) 2.0) * par[1] * x_old[4] * ((KalmanFloat) 1e5)
-            + ((KalmanFloat) 3.0) * par[2] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
-  
+  F(3, 4) = der_qop[3] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18]) + par[0] +
+            ((KalmanFloat) 2.0) * par[1] * x_old[4] * ((KalmanFloat) 1e5) +
+            ((KalmanFloat) 3.0) * par[2] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
+
   // y
   F(1, 0) = (KalmanFloat) 0.0; // der_x[1];
   F(1, 1) = (KalmanFloat) 1.0; // der_y[1];
   F(1, 2) = der_tx[1];
   F(1, 3) = der_ty[1];
-  F(1, 4) = der_qop[1] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18])
-            + par[3] * ((KalmanFloat) 1e2) + ((KalmanFloat) 2.0) * par[4] * x_old[4] * ((KalmanFloat) 1e5)
-            + ((KalmanFloat) 3.0) * par[5] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
+  F(1, 4) = der_qop[1] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18]) +
+            par[3] * ((KalmanFloat) 1e2) + ((KalmanFloat) 2.0) * par[4] * x_old[4] * ((KalmanFloat) 1e5) +
+            ((KalmanFloat) 3.0) * par[5] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
 
   // tx
   F(2, 0) = (KalmanFloat) 0.0; // der_x[2];
   F(2, 1) = (KalmanFloat) 0.0; // der_y[2];
   F(2, 2) = der_tx[2];
   F(2, 3) = der_ty[2];
-  F(2, 4) = der_qop[2] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18])
-            + par[6] + ((KalmanFloat) 2.0) * par[7] * x_old[4] * ((KalmanFloat) 1e5)
-            + ((KalmanFloat) 3.0) * par[8] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
+  F(2, 4) = der_qop[2] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18]) + par[6] +
+            ((KalmanFloat) 2.0) * par[7] * x_old[4] * ((KalmanFloat) 1e5) +
+            ((KalmanFloat) 3.0) * par[8] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
 
   // x
   F(0, 0) = (KalmanFloat) 1.0; // der_x[0];
   F(0, 1) = (KalmanFloat) 0.0; // der_y[0];
   F(0, 2) = der_tx[0];
   F(0, 3) = der_ty[0];
-  F(0, 4) = der_qop[0] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18])
-            + par[9] * ((KalmanFloat) 1e2) + ((KalmanFloat) 2.0) * par[10] * x_old[4] * ((KalmanFloat) 1e5)
-            + ((KalmanFloat) 3.0) * par[11] * x_old[4] * x_old[4] * ((KalmanFloat) 1e10);
+  F(0, 4) = der_qop[0] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18]) +
+            par[9] * ((KalmanFloat) 1e2) + ((KalmanFloat) 2.0) * par[10] * x_old[4] * ((KalmanFloat) 1e5) +
+            ((KalmanFloat) 3.0) * par[11] * x_old[4] * x_old[4] * ((KalmanFloat) 1e10);
 
   // qop
   F(4, 0) = (KalmanFloat) 0.0;
@@ -982,14 +987,15 @@ __device__ void ExtrapolateInT(
 
   // calculate jacobian
 
-  KalmanFloat dtxddz = par[5] * ((KalmanFloat) 1.e-1) * x[4] + par[6] * ((KalmanFloat) 1.e3) * x[4] * x[4] * x[4]
-                       + par[7] * ((KalmanFloat) 1e-7) * x[1] * x[1] * x[4];
+  KalmanFloat dtxddz = par[5] * ((KalmanFloat) 1.e-1) * x[4] + par[6] * ((KalmanFloat) 1.e3) * x[4] * x[4] * x[4] +
+                       par[7] * ((KalmanFloat) 1e-7) * x[1] * x[1] * x[4];
 
   F(2, 0) = (KalmanFloat) 0.0;
   F(2, 1) = ((KalmanFloat) 2.0) * dz * par[7] * ((KalmanFloat) 1e-7) * x_old[1] * x[4] + dtxddz * DzDy;
   F(2, 2) = (KalmanFloat) 1.0;
   F(2, 3) = dtxddz * DzDty;
-  F(2, 4) = dz * (par[5] * ((KalmanFloat) 1.e-1) + ((KalmanFloat) 3.0) * par[6] * ((KalmanFloat) 1.e3) * x[4] * x[4] + par[7] * ((KalmanFloat) 1e-7) * x_old[1] * x_old[1]);
+  F(2, 4) = dz * (par[5] * ((KalmanFloat) 1.e-1) + ((KalmanFloat) 3.0) * par[6] * ((KalmanFloat) 1.e3) * x[4] * x[4] +
+                  par[7] * ((KalmanFloat) 1e-7) * x_old[1] * x_old[1]);
 
   KalmanFloat dxddz = par[0] * x_old[2] + (((KalmanFloat) 1.0) - par[0]) * x[2];
   F(0, 0) = (KalmanFloat) 1.0;
@@ -1058,7 +1064,8 @@ ExtrapolateTFT(KalmanFloat zFrom, KalmanFloat& zTo, Vector5& x, Matrix5x5& F, Sy
 
   // do the extrapolation of the state vector
   // tx
-  x[2] = x_old[2] + par[5] * x_old[4] * dz + ((KalmanFloat) 1e4) * par[6] * x_old[4] * dz * x_old[4] * dz * x_old[4] * dz;
+  x[2] =
+    x_old[2] + par[5] * x_old[4] * dz + ((KalmanFloat) 1e4) * par[6] * x_old[4] * dz * x_old[4] * dz * x_old[4] * dz;
   // x
   x[0] = x_old[0] + ((((KalmanFloat) 1.0) - par[8]) * x[2] + par[8] * x_old[2]) * dz;
   // ty
@@ -1125,8 +1132,8 @@ __device__ int extrapUTT(
 
   KalmanFloat DtxyInv = ((KalmanFloat) 1.0) / tI.m_extr->Dtxy;
   KalmanFloat ziInv = ((KalmanFloat) 1.0) / zi;
-  KalmanFloat bendx =
-    tI.m_extr->BENDX + tI.m_extr->BENDX_X2 * (x * ziInv) * (x * ziInv) + tI.m_extr->BENDX_Y2 * (y * ziInv) * (y * ziInv);
+  KalmanFloat bendx = tI.m_extr->BENDX + tI.m_extr->BENDX_X2 * (x * ziInv) * (x * ziInv) +
+                      tI.m_extr->BENDX_Y2 * (y * ziInv) * (y * ziInv);
   KalmanFloat bendy = tI.m_extr->BENDY_XY * (x * ziInv) * (y * ziInv);
   ux = (tx - x * ziInv - bendx * qop) * DtxyInv;
   uy = (ty - y * ziInv - bendy * qop) * DtxyInv;
@@ -1161,7 +1168,7 @@ __device__ int extrapUTT(
   rx = (gx >= 0);
   sx = 2 * rx - 1;
   ry = (gy >= 0);
-  sy = 2 * ry - 1;  
+  sy = 2 * ry - 1;
   const StandardCoefs c00 = tI.m_extr->C[ix][iy];
   const StandardCoefs cp0 = tI.m_extr->C[ix + 1][iy];
   const StandardCoefs c0p = tI.m_extr->C[ix][iy + 1];

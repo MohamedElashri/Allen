@@ -19,6 +19,12 @@ __global__ void muon_pre_decoding(
 ALGORITHM(
   muon_pre_decoding,
   muon_pre_decoding_t,
-  ARGUMENTS(dev_event_list, dev_muon_raw, dev_muon_raw_offsets, dev_muon_raw_to_hits,
-    dev_storage_station_region_quarter_offsets, dev_storage_tile_id,
-    dev_storage_tdc_value, dev_atomics_muon))
+  ARGUMENTS(
+    dev_event_list,
+    dev_muon_raw,
+    dev_muon_raw_offsets,
+    dev_muon_raw_to_hits,
+    dev_storage_station_region_quarter_offsets,
+    dev_storage_tile_id,
+    dev_storage_tdc_value,
+    dev_atomics_muon))

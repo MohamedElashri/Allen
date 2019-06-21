@@ -32,13 +32,13 @@ __device__ void fill_candidates_impl(
 
     // Calculate phi limits
     const auto h1_phi = hit_Phis[h1_index];
-    const auto phi_window = Velo::Tracking::phi_extrapolation_base + std::abs(hit_Zs[h1_index]) * Velo::Tracking::phi_extrapolation_coef;
+    const auto phi_window =
+      Velo::Tracking::phi_extrapolation_base + std::abs(hit_Zs[h1_index]) * Velo::Tracking::phi_extrapolation_coef;
 
     int first_h0_bin = -1, last_h0_bin = -1;
     if (m0_hitNums > 0) {
       // Do a binary search for h0 candidates
-      first_h0_bin =
-        binary_search_first_candidate(hit_Phis + m0_hitStarts, m0_hitNums, h1_phi, phi_window);
+      first_h0_bin = binary_search_first_candidate(hit_Phis + m0_hitStarts, m0_hitNums, h1_phi, phi_window);
 
       if (first_h0_bin != -1) {
         // Find last h0 candidate
@@ -55,8 +55,7 @@ __device__ void fill_candidates_impl(
     int first_h2_bin = -1, last_h2_bin = -1;
     if (m2_hitNums > 0) {
       // Do a binary search for h2 candidates
-      first_h2_bin =
-        binary_search_first_candidate(hit_Phis + m2_hitStarts, m2_hitNums, h1_phi, phi_window);
+      first_h2_bin = binary_search_first_candidate(hit_Phis + m2_hitStarts, m2_hitNums, h1_phi, phi_window);
 
       if (first_h2_bin != -1) {
         // Find last h0 candidate

@@ -1,7 +1,8 @@
 #include "MuonGeometry.h"
 
 namespace CPUMuon {
-  unsigned int MuonGeometry::getADDInTell1(unsigned int Tell1_num, unsigned int ch) const {
+  unsigned int MuonGeometry::getADDInTell1(unsigned int Tell1_num, unsigned int ch) const
+  {
     MuonTileID emptyTile;
     if (Tell1_num <= m_tiles.size()) {
       if (ch < (m_tiles[Tell1_num]).size()) {
@@ -11,7 +12,8 @@ namespace CPUMuon {
     return 0;
   }
 
-  void MuonGeometry::read_muon_geometry(const char* raw_input) {
+  void MuonGeometry::read_muon_geometry(const char* raw_input)
+  {
     /**
      * 5 stands for innerX, innerY, outerX, outerY, stationZ arrays that
      * are dumped but are not used here so should be skipped during reading
@@ -37,4 +39,4 @@ namespace CPUMuon {
       raw_input += sizeof(unsigned) * tilesSize;
     }
   }
-};
+}; // namespace CPUMuon

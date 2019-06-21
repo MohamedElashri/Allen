@@ -18,7 +18,7 @@ __device__ void track_seeding(
   const int ip_shift)
 {
   // Add to an array all non-used h1 hits with candidates
-  for (int h1_rel_index = threadIdx.x; h1_rel_index < module_data[2].hitNums; h1_rel_index+=blockDim.x) {
+  for (int h1_rel_index = threadIdx.x; h1_rel_index < module_data[2].hitNums; h1_rel_index += blockDim.x) {
     const auto h1_index = module_data[2].hitStart + h1_rel_index;
     const auto h0_first_candidate = h0_candidates[2 * h1_index];
     const auto h2_first_candidate = h2_candidates[2 * h1_index];
@@ -29,7 +29,7 @@ __device__ void track_seeding(
   }
 
   // Also add other side
-  for (int h1_rel_index = threadIdx.x; h1_rel_index < module_data[3].hitNums; h1_rel_index+=blockDim.x) {
+  for (int h1_rel_index = threadIdx.x; h1_rel_index < module_data[3].hitNums; h1_rel_index += blockDim.x) {
     const auto h1_index = module_data[3].hitStart + h1_rel_index;
     const auto h0_first_candidate = h0_candidates[2 * h1_index];
     const auto h2_first_candidate = h2_candidates[2 * h1_index];
@@ -69,9 +69,7 @@ __device__ void track_seeding(
     const auto h2_last_candidate = h2_candidates[2 * h1_index + 1];
 
     // Iterate over h0 with thread_id_y
-    for (int h0_index = h0_first_candidate;
-         h0_index < h0_last_candidate;
-         ++h0_index) {
+    for (int h0_index = h0_first_candidate; h0_index < h0_last_candidate; ++h0_index) {
       if (!hit_used[h0_index]) {
         // Fetch h0
         const Velo::HitBase h0 {dev_velo_cluster_container[5 * number_of_hits + h0_index],

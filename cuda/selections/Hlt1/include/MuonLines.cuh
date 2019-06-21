@@ -11,7 +11,7 @@ namespace MuonLines {
 
   // Vertex quality.
   const float maxVertexChi2 = 8.f;
-  
+
   // Single muon selections.
   const float singleMinPt = 10000.f / Gaudi::Units::MeV;
 
@@ -30,4 +30,4 @@ namespace MuonLines {
   __device__ bool SingleMuon(const ParKalmanFilter::FittedTrack& track);
   __device__ bool DisplacedDiMuon(const VertexFit::TrackMVAVertex& vertex);
   __device__ bool HighMassDiMuon(const VertexFit::TrackMVAVertex& vertex);
-}
+} // namespace MuonLines

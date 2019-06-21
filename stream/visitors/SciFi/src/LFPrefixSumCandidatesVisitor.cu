@@ -9,9 +9,8 @@ void SequenceVisitor::set_arguments_size<lf_prefix_sum_candidates_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_prefix_sum_auxiliary_array_7>(
-    lf_prefix_sum_candidates_t::aux_array_size(arguments.size<dev_scifi_lf_number_of_candidates>() /
-        sizeof(dev_scifi_lf_number_of_candidates::type)));
+  arguments.set_size<dev_prefix_sum_auxiliary_array_7>(lf_prefix_sum_candidates_t::aux_array_size(
+    arguments.size<dev_scifi_lf_number_of_candidates>() / sizeof(dev_scifi_lf_number_of_candidates::type)));
 }
 
 template<>
@@ -33,7 +32,8 @@ void SequenceVisitor::visit<lf_prefix_sum_candidates_t>(
       cuda_stream,
       cuda_generic_event,
       host_buffers.host_lf_total_number_of_candidates);
-  } else {
+  }
+  else {
     const auto number_of_ut_tracks = host_buffers.host_number_of_reconstructed_ut_tracks[0];
 
     // Set size of the main array to be prefix summed
@@ -44,8 +44,7 @@ void SequenceVisitor::visit<lf_prefix_sum_candidates_t>(
 
     // Set arguments: Array to prefix sum and auxiliary array
     state.set_arguments(
-      arguments.offset<dev_scifi_lf_number_of_candidates>(),
-      arguments.offset<dev_prefix_sum_auxiliary_array_7>());
+      arguments.offset<dev_scifi_lf_number_of_candidates>(), arguments.offset<dev_prefix_sum_auxiliary_array_7>());
 
     // Invoke all steps of prefix sum
     state.invoke();
@@ -53,8 +52,7 @@ void SequenceVisitor::visit<lf_prefix_sum_candidates_t>(
     // Fetch total number of hits accumulated with all windows
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_lf_total_number_of_candidates,
-      arguments.offset<dev_scifi_lf_number_of_candidates>()
-      + number_of_ut_tracks * LookingForward::number_of_x_layers,
+      arguments.offset<dev_scifi_lf_number_of_candidates>() + number_of_ut_tracks * LookingForward::number_of_x_layers,
       sizeof(int),
       cudaMemcpyDeviceToHost,
       cuda_stream));

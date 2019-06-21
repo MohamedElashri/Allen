@@ -19,10 +19,10 @@ void checkHlt1Rate(
   uint n_evts_disp_dimuon = 0;
   uint n_evts_high_mass_dimuon = 0;
   uint n_evts_inc = 0;
-  
+
   // Event loop.
   for (uint i_event = 0; i_event < selected_events; i_event++) {
-    
+
     // Check one track decisions.
     bool one_track_pass = false;
     bool single_muon_pass = false;
@@ -64,39 +64,40 @@ void checkHlt1Rate(
     n_evts_single_muon += single_muon_pass;
     n_evts_disp_dimuon += disp_dimuon_pass;
     n_evts_high_mass_dimuon += high_mass_dimuon_pass;
-    n_evts_inc += one_track_pass ||
-      two_track_pass ||
-      single_muon_pass ||
-      disp_dimuon_pass ||
-      high_mass_dimuon_pass;
-    
+    n_evts_inc += one_track_pass || two_track_pass || single_muon_pass || disp_dimuon_pass || high_mass_dimuon_pass;
   }
 
   // Assume 30 MHz input rate.
   float in_rate = 30000.0;
-  printf("One track:        %i / %i --> %f kHz\n",
-         n_evts_one_track,
-         requested_events,
-         1. * n_evts_one_track / requested_events * in_rate);
-  printf("Two track:        %i / %i --> %f kHz\n",
-         n_evts_two_track,
-         requested_events,
-         1. * n_evts_two_track / requested_events * in_rate);
-  printf("Single muon:      %i / %i --> %f kHz\n",
-         n_evts_single_muon,
-         requested_events,
-         1. * n_evts_single_muon / requested_events * in_rate);
-  printf("Displaced dimuon: %i / %i --> %f kHz\n",
-         n_evts_disp_dimuon,
-         requested_events,
-         1. * n_evts_disp_dimuon / requested_events * in_rate);
-  printf("High mass dimuon: %i / %i --> %f kHz\n",
-         n_evts_high_mass_dimuon,
-         requested_events,
-         1. * n_evts_high_mass_dimuon / requested_events * in_rate);
+  printf(
+    "One track:        %i / %i --> %f kHz\n",
+    n_evts_one_track,
+    requested_events,
+    1. * n_evts_one_track / requested_events * in_rate);
+  printf(
+    "Two track:        %i / %i --> %f kHz\n",
+    n_evts_two_track,
+    requested_events,
+    1. * n_evts_two_track / requested_events * in_rate);
+  printf(
+    "Single muon:      %i / %i --> %f kHz\n",
+    n_evts_single_muon,
+    requested_events,
+    1. * n_evts_single_muon / requested_events * in_rate);
+  printf(
+    "Displaced dimuon: %i / %i --> %f kHz\n",
+    n_evts_disp_dimuon,
+    requested_events,
+    1. * n_evts_disp_dimuon / requested_events * in_rate);
+  printf(
+    "High mass dimuon: %i / %i --> %f kHz\n",
+    n_evts_high_mass_dimuon,
+    requested_events,
+    1. * n_evts_high_mass_dimuon / requested_events * in_rate);
   printf("------------------------------\n");
-  printf("Inclusive:        %i / %i --> %f kHz\n\n",
-         n_evts_inc,
-         requested_events,
-         1. * n_evts_inc / requested_events * in_rate);
+  printf(
+    "Inclusive:        %i / %i --> %f kHz\n\n",
+    n_evts_inc,
+    requested_events,
+    1. * n_evts_inc / requested_events * in_rate);
 }

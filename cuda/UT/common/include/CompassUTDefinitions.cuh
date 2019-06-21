@@ -50,6 +50,6 @@ struct BestParams {
     n_hits = 0;
     x = -10000;
     tx = -10000;
-    z = - 10000;
+    z = -10000;
   }
 };

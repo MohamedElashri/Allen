@@ -68,6 +68,6 @@ void SequenceVisitor::visit<run_hlt1_t>(
       arguments.offset<dev_high_mass_dimuon_results>(),
       arguments.size<dev_high_mass_dimuon_results>(),
       cudaMemcpyDeviceToHost,
-      cuda_stream));                        
+      cuda_stream));
   }
 }

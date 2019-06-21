@@ -566,7 +566,8 @@ void findPVs(
 
     PV::Vertex preselected_vertices[PV::max_number_vertices];
 
-    multifitAdaptive(pvtracks, Ntrk, zpeaks, number_of_peaks, preselected_vertices, &number_preselected_vertices, beamline);
+    multifitAdaptive(
+      pvtracks, Ntrk, zpeaks, number_of_peaks, preselected_vertices, &number_preselected_vertices, beamline);
 
     // Steps that we could still take:
     // * remove vertices with too little tracks
@@ -1106,8 +1107,8 @@ void findPVs2(
   int number_of_multi_final_vertices[number_of_events];
 
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
-    pv_beamline_extrapolate(kalmanvelo_states, velo_atomics, velo_track_hit_number,
-                            pvtracks, beamline, i_event, number_of_events);
+    pv_beamline_extrapolate(
+      kalmanvelo_states, velo_atomics, velo_track_hit_number, pvtracks, beamline, i_event, number_of_events);
   }
 
   for (uint i_event = 0; i_event < number_of_events; i_event++) {

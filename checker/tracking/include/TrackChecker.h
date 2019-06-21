@@ -94,7 +94,7 @@ namespace Checker {
     /// free resources, and print result
     ~TrackEffReport();
   };
-}
+} // namespace Checker
 
 class TrackChecker {
 protected:
@@ -125,9 +125,12 @@ protected:
   std::size_t n_is_muon_ghost = 0;
 
 public:
-  TrackChecker(std::string name, std::vector<Checker::TrackEffReport> categories,
-               std::vector<Checker::HistoCategory> histo_categories, bool create_file,
-               bool print = false);
+  TrackChecker(
+    std::string name,
+    std::vector<Checker::TrackEffReport> categories,
+    std::vector<Checker::HistoCategory> histo_categories,
+    bool create_file,
+    bool print = false);
   ~TrackChecker();
   std::vector<uint32_t> operator()(
     const Checker::Tracks& tracks,
@@ -142,9 +145,9 @@ public:
     uint32_t& track_best_matched_MCP);
 
   void muon_id_matching(
-      const std::vector<MCAssociator::TrackWithWeight> tracks_with_weight,
-      MCParticles::const_reference& mcp,
-      const Checker::Tracks& tracks );
+    const std::vector<MCAssociator::TrackWithWeight> tracks_with_weight,
+    MCParticles::const_reference& mcp,
+    const Checker::Tracks& tracks);
 
   TrackCheckerHistos* histos = nullptr;
 };
@@ -162,5 +165,4 @@ struct TrackCheckerVeloUT : public TrackChecker {
 struct TrackCheckerForward : public TrackChecker {
   using subdetector_t = Checker::Subdetector::SciFi;
   TrackCheckerForward(bool cf);
-
 };

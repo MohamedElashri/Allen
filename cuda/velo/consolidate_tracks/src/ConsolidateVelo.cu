@@ -12,7 +12,7 @@ __device__ VeloState means_square_fit(
   const Velo::TrackHits& track)
 {
   VeloState state;
-  
+
   // Fit parameters
   float s0, sx, sz, sxz, sz2;
   float u0, uy, uz, uyz, uz2;

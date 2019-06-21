@@ -29,11 +29,14 @@ __global__ void lf_calculate_candidate_extrapolation_window(
   const int number_of_candidates = dev_atomics_scifi[event_number];
 
   // Only proceed if we have candidates in the first window
-  for (int i=threadIdx.x; i<number_of_candidates; i+=blockDim.x) {
-    unsigned short* extrapolation_layer_candidates = dev_extrapolation_layer_candidates + event_number * SciFi::Constants::max_track_candidates + i;
-    const SciFi::TrackCandidate track_candidate = dev_scifi_track_candidates[event_number * SciFi::Constants::max_track_candidates + i];
+  for (int i = threadIdx.x; i < number_of_candidates; i += blockDim.x) {
+    unsigned short* extrapolation_layer_candidates =
+      dev_extrapolation_layer_candidates + event_number * SciFi::Constants::max_track_candidates + i;
+    const SciFi::TrackCandidate track_candidate =
+      dev_scifi_track_candidates[event_number * SciFi::Constants::max_track_candidates + i];
     const MiniState state_at_z_last_ut_plane = dev_ut_states[ut_event_tracks_offset + track_candidate.ut_track_index];
-    const float projection_y = LookingForward::y_at_z(state_at_z_last_ut_plane, dev_looking_forward_constants->Zone_zPos[layer]);
+    const float projection_y =
+      LookingForward::y_at_z(state_at_z_last_ut_plane, dev_looking_forward_constants->Zone_zPos[layer]);
 
     lf_calculate_candidate_extrapolation_window_impl(
       projection_y,
