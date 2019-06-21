@@ -1,6 +1,5 @@
 #include "LFTripletSeeding.cuh"
 #include "LFTripletSeedingImpl.cuh"
-#include "TrackUtils.cuh"
 #include "LookingForwardTools.cuh"
 
 __global__ void lf_triplet_seeding(

@@ -1,6 +1,4 @@
 #include "LookingForwardStudies.h"
-#include "TrackUtils.cuh"
-#include "FindXHits.cuh"
 #include "LookingForwardSbt.h"
 #include "LookingForwardConstants.cuh"
 #include <numeric>

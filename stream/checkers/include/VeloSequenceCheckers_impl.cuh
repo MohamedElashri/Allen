@@ -1,5 +1,6 @@
 #include "ConsolidateVelo.cuh"
 #include "TrackChecker.h"
+#include "PrepareTracks.h"
 
 /**
  * @brief Specialization for any Velo reconstruction algorithm invoking

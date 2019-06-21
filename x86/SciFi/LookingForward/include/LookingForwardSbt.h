@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LookingForwardUtils.h"
-#include "FindXHits.cuh"
+#include "HitUtils.cuh"
 
 // Quick class for tracklets
 struct Tracklet {

@@ -19,6 +19,7 @@
 #include "UTConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
 #include "SciFiParametrization.h"
+#include "TrackUtils.cuh"
 
 #include "LookingForwardUtils.h"
 #include "LookingForwardConstants.h"

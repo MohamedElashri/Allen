@@ -7,7 +7,6 @@ include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
 
 add_library(GlobalEventCut STATIC
   ${global_event_cut}
