@@ -10,8 +10,7 @@ void SequenceVisitor::set_arguments_size<lf_promote_candidates_t>(
 {
   arguments.set_size<dev_scifi_track_promoted_candidates>(
     host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_track_candidates);
-  arguments.set_size<dev_scifi_tracks>(
-    host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_tracks);
+  arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_selected_events[0] * SciFi::Constants::max_tracks);
 }
 
 template<>
@@ -28,8 +27,7 @@ void SequenceVisitor::visit<lf_promote_candidates_t>(
     arguments.offset<dev_scifi_track_promoted_candidates>(),
     0,
     arguments.size<dev_scifi_track_promoted_candidates>(),
-    cuda_stream
-  ));
+    cuda_stream));
 
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(

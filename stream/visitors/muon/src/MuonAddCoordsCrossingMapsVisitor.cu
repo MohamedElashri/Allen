@@ -11,8 +11,8 @@ void SequenceVisitor::set_arguments_size<muon_add_coords_crossing_maps_t>(
   arguments.set_size<dev_muon_hits>(host_buffers.host_number_of_selected_events[0]);
   arguments.set_size<dev_station_ocurrences_offset>(
     host_buffers.host_number_of_selected_events[0] * Muon::Constants::n_stations + 1);
-  arguments.set_size<dev_muon_compact_hit>(host_buffers.host_number_of_selected_events[0] * 
-    Muon::Constants::max_numhits_per_event);
+  arguments.set_size<dev_muon_compact_hit>(
+    host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
 }
 
 template<>
@@ -30,12 +30,9 @@ void SequenceVisitor::visit<muon_add_coords_crossing_maps_t>(
     0,
     arguments.size<dev_station_ocurrences_offset>(),
     cuda_stream));
-  
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_muon_compact_hit>(),
-    0,
-    arguments.size<dev_muon_compact_hit>(),
-    cuda_stream));
+
+  cudaCheck(
+    cudaMemsetAsync(arguments.offset<dev_muon_compact_hit>(), 0, arguments.size<dev_muon_compact_hit>(), cuda_stream));
 
   state.set_opts(host_buffers.host_number_of_selected_events[0], 256, cuda_stream);
   state.set_arguments(

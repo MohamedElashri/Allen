@@ -32,7 +32,6 @@ namespace LookingForward {
   // constexpr int form_seeds_candidates_per_thread = 4;
   // constexpr int form_seeds_stop_after_number_of_candidates = 10;
 
-
   /**
    * Form seeds from candidates
    */

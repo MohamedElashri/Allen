@@ -37,7 +37,7 @@ float ipChi2Kalman(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& 
   float dz = vertex.position.z - track.z;
   float dx = track.state[0] + dz * tx - vertex.position.x;
   float dy = track.state[1] + dz * ty - vertex.position.y;
-  
+
   // Build covariance matrix.
   float cov00 = vertex.cov00 + track.cov(0, 0);
   float cov10 = vertex.cov10;
@@ -71,7 +71,10 @@ float kalmanDOCAz(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& v
   return std::abs(ty * dx - tx * dy) / std::sqrt(tx * tx + ty * ty);
 }
 
-float ipVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float ipVelo(
+  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const uint state_index,
+  const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
   float tx = velo_kalman_states.tx[state_index];
@@ -82,7 +85,10 @@ float ipVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const u
   return std::sqrt((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
 }
 
-float ipxVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float ipxVelo(
+  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const uint state_index,
+  const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
   float tx = velo_kalman_states.tx[state_index];
@@ -91,7 +97,10 @@ float ipxVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const 
   return dx;
 }
 
-float ipyVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float ipyVelo(
+  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const uint state_index,
+  const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
   float ty = velo_kalman_states.ty[state_index];
@@ -100,7 +109,10 @@ float ipyVelo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const 
   return dy;
 }
 
-float ipChi2Velo(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float ipChi2Velo(
+  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const uint state_index,
+  const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
   float tx = velo_kalman_states.tx[state_index];
@@ -133,7 +145,10 @@ float ipChi2Velo(const Velo::Consolidated::KalmanStates& velo_kalman_states, con
   return dx * dx * invcov00 + 2 * dx * dy * invcov10 + dy * dy * invcov11;
 }
 
-float veloDOCAz(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+float veloDOCAz(
+  const Velo::Consolidated::KalmanStates& velo_kalman_states,
+  const uint state_index,
+  const PV::Vertex& vertex)
 {
   float dx = velo_kalman_states.x[state_index] - vertex.position.x;
   float dy = velo_kalman_states.y[state_index] - vertex.position.y;

@@ -2,7 +2,6 @@
 #include "pv_beamline_histo.cuh"
 #include "pv_beamline_monitoring.h"
 
-
 template<>
 void SequenceVisitor::set_arguments_size<pv_beamline_histo_t>(
   pv_beamline_histo_t::arguments_t arguments,
@@ -50,5 +49,4 @@ void SequenceVisitor::visit<pv_beamline_histo_t>(
   // cudaEventSynchronize(cuda_generic_event);
 
   // pv_beamline_monitor(host_buffers.host_number_of_selected_events[0], host_buffers.host_zhisto);
-
 }

@@ -51,4 +51,4 @@ SEQUENCE_T(
   copy_scifi_track_hit_number_t,
   prefix_sum_scifi_track_hit_number_t,
   consolidate_scifi_tracks_t,
-  kalman_velo_only_t,)
+  kalman_velo_only_t, )

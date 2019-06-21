@@ -56,14 +56,14 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
 
   if (scifi_trackhits.size() > 0) {
     // Convert tracks to format expected by checker
-    const uint total_number_of_hits = host_buffers.host_scifi_hit_count[
-      host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats];
+    const uint total_number_of_hits =
+      host_buffers
+        .host_scifi_hit_count[host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats];
 
-    SciFi::Hits scifi_hits {
-      (uint*) host_buffers.host_scifi_hits.data(),
-      total_number_of_hits,
-      reinterpret_cast<const SciFi::SciFiGeometry*>(&constants.host_scifi_geometry),
-      reinterpret_cast<const float*>(constants.host_inv_clus_res.data())};
+    SciFi::Hits scifi_hits {(uint*) host_buffers.host_scifi_hits.data(),
+                            total_number_of_hits,
+                            reinterpret_cast<const SciFi::SciFiGeometry*>(&constants.host_scifi_geometry),
+                            reinterpret_cast<const float*>(constants.host_inv_clus_res.data())};
 
     const auto scifi_tracks = prepareSciFiTracks(
       host_buffers.host_atomics_velo,

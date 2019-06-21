@@ -55,17 +55,15 @@ namespace VertexFit {
     const float& halfD2Chi2_21,
     const float& halfD2Chi2_22);
 
-  __device__ bool doFit(
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB,
-    TrackMVAVertex& vertex);
+  __device__ bool
+  doFit(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB, TrackMVAVertex& vertex);
 
   __device__ void fill_extra_info(
     TrackMVAVertex& sv,
     const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB);
-}
+} // namespace VertexFit
 
 __global__ void fit_secondary_vertices(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,

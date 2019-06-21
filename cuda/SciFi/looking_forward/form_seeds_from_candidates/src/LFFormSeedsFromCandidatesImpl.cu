@@ -20,9 +20,9 @@ __device__ void lf_form_seeds_from_candidates_impl(
   const unsigned short second_candidate_l2_size)
 {
   // We will use this candidate and override it as we go on
-  SciFi::TrackCandidate track_candidates [LookingForward::track_candidates_per_window];
+  SciFi::TrackCandidate track_candidates[LookingForward::track_candidates_per_window];
 
-  for (int i=0; i<LookingForward::track_candidates_per_window; ++i) {
+  for (int i = 0; i < LookingForward::track_candidates_per_window; ++i) {
     track_candidates[i].hitsNum = 0;
     track_candidates[i].quality = 2 * LookingForward::chi2_cut;
   }
@@ -80,28 +80,30 @@ __device__ void lf_form_seeds_from_candidates_impl(
 
       if (
         number_of_hits > track_candidates[worst_candidate].hitsNum ||
-        (number_of_hits == track_candidates[worst_candidate].hitsNum && quality < track_candidates[worst_candidate].quality)) {
+        (number_of_hits == track_candidates[worst_candidate].hitsNum &&
+         quality < track_candidates[worst_candidate].quality)) {
 
-        track_candidates[worst_candidate] = SciFi::TrackCandidate {
-          (uint16_t) (hit_layer_0 - hit_count.event_offset()),
-          (uint16_t) (hit_layer_3 - hit_count.event_offset()),
-          rel_ut_track_index,
-          ut_qop};
+        track_candidates[worst_candidate] = SciFi::TrackCandidate {(uint16_t)(hit_layer_0 - hit_count.event_offset()),
+                                                                   (uint16_t)(hit_layer_3 - hit_count.event_offset()),
+                                                                   rel_ut_track_index,
+                                                                   ut_qop};
 
         if (std::get<0>(hit_layer_1_idx_chi2) != -1) {
           track_candidates[worst_candidate].add_hit_with_quality(
-            (uint16_t) (std::get<0>(hit_layer_1_idx_chi2) - hit_count.event_offset()), std::get<1>(hit_layer_1_idx_chi2));
+            (uint16_t)(std::get<0>(hit_layer_1_idx_chi2) - hit_count.event_offset()),
+            std::get<1>(hit_layer_1_idx_chi2));
         }
 
         if (std::get<0>(hit_layer_2_idx_chi2) != -1) {
           track_candidates[worst_candidate].add_hit_with_quality(
-            (uint16_t) (std::get<0>(hit_layer_2_idx_chi2) - hit_count.event_offset()), std::get<1>(hit_layer_2_idx_chi2));
+            (uint16_t)(std::get<0>(hit_layer_2_idx_chi2) - hit_count.event_offset()),
+            std::get<1>(hit_layer_2_idx_chi2));
         }
       }
     }
   }
 
-  for (int i=0; i<LookingForward::track_candidates_per_window; ++i) {
+  for (int i = 0; i < LookingForward::track_candidates_per_window; ++i) {
     if (track_candidates[i].hitsNum > 2) {
       const int current_insert_index = atomicAdd(track_insert_atomic, 1);
 

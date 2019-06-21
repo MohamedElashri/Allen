@@ -34,10 +34,10 @@ void SequenceVisitor::visit<muon_catboost_evaluator_t>(
     constants.dev_muon_catboost_tree_offsets,
     constants.muon_catboost_n_trees);
   state.invoke();
-  
+
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_muon_catboost_output,       
+      host_buffers.host_muon_catboost_output,
       arguments.offset<dev_muon_catboost_output>(),
       arguments.size<dev_muon_catboost_output>(),
       cudaMemcpyDeviceToHost,

@@ -22,12 +22,11 @@ void SequenceVisitor::visit<lf_calculate_candidate_extrapolation_window_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  cudaCheck(
-    cudaMemsetAsync(
-      arguments.offset<dev_extrapolation_layer_candidates>(),
-      0,
-      arguments.size<dev_extrapolation_layer_candidates>(),
-      cuda_stream));
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_extrapolation_layer_candidates>(),
+    0,
+    arguments.size<dev_extrapolation_layer_candidates>(),
+    cuda_stream));
 
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(

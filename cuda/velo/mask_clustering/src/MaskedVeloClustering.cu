@@ -1,13 +1,15 @@
 #include "MaskedVeloClustering.cuh"
 
 // 8-connectivity mask
-__device__ uint64_t make_8con_mask(uint64_t cluster) {
-  return cluster | (cluster << 1) | (cluster << 15) | (cluster << 16) | (cluster << 17)
-                 | (cluster >> 1) | (cluster >> 15) | (cluster >> 16) | (cluster >> 17);
+__device__ uint64_t make_8con_mask(uint64_t cluster)
+{
+  return cluster | (cluster << 1) | (cluster << 15) | (cluster << 16) | (cluster << 17) | (cluster >> 1) |
+         (cluster >> 15) | (cluster >> 16) | (cluster >> 17);
 }
 
 // East-most mask
-__device__ uint32_t mask_east(uint64_t cluster) {
+__device__ uint32_t mask_east(uint64_t cluster)
+{
   const uint32_t mask = (cluster >> 48);
   return mask | (mask << 1) | (mask >> 1);
 }
@@ -99,7 +101,8 @@ __global__ void masked_velo_clustering(
             float_velo_cluster_container[cluster_start + cluster_num] = gx;
             float_velo_cluster_container[estimated_number_of_clusters + cluster_start + cluster_num] = gy;
             float_velo_cluster_container[2 * estimated_number_of_clusters + cluster_start + cluster_num] = gz;
-            dev_velo_cluster_container[3 * estimated_number_of_clusters + cluster_start + cluster_num] = get_lhcb_id(cid);
+            dev_velo_cluster_container[3 * estimated_number_of_clusters + cluster_start + cluster_num] =
+              get_lhcb_id(cid);
           }
 
           // if there is a second cluster for this pattern
@@ -126,7 +129,8 @@ __global__ void masked_velo_clustering(
             float_velo_cluster_container[cluster_start + cluster_num] = gx;
             float_velo_cluster_container[estimated_number_of_clusters + cluster_start + cluster_num] = gy;
             float_velo_cluster_container[2 * estimated_number_of_clusters + cluster_start + cluster_num] = gz;
-            dev_velo_cluster_container[3 * estimated_number_of_clusters + cluster_start + cluster_num] = get_lhcb_id(cid);
+            dev_velo_cluster_container[3 * estimated_number_of_clusters + cluster_start + cluster_num] =
+              get_lhcb_id(cid);
           }
         }
       }
@@ -244,49 +248,42 @@ __global__ void masked_velo_clustering(
       // ---------------------
 
       // Work with a 64-bit number instead
-      const uint64_t start_pixel = ((uint64_t) (0x01 << (row - row_lower_limit)) << (16 * (col & 0x01))) << 32;
+      const uint64_t start_pixel = ((uint64_t)(0x01 << (row - row_lower_limit)) << (16 * (col & 0x01))) << 32;
       const uint64_t pixel_map = (((uint64_t) pixel_array[1]) << 32) | pixel_array[0];
       uint64_t current_cluster = 0;
       uint64_t next_cluster = start_pixel;
 
       // Do clustering
-      while(current_cluster != next_cluster) {
+      while (current_cluster != next_cluster) {
         current_cluster = next_cluster;
         next_cluster = pixel_map & make_8con_mask(current_cluster);
       }
 
       // Check if there are any hits with precedence
-      const uint64_t hits_with_precedence = 
+      const uint64_t hits_with_precedence =
         // Hits to the east, populated in the first 16 bits
         (mask_east(current_cluster) & pixel_array[2]) |
         // Hits in the current cluster with precedence in the latter 16 bits
-        (current_cluster & (start_pixel ^ -start_pixel ^ (~(-(start_pixel << 16)) & ((uint64_t) 0xFFFF000000000000) * ((col+1) & 0x01))));
+        (current_cluster & (start_pixel ^ -start_pixel ^
+                            (~(-(start_pixel << 16)) & ((uint64_t) 0xFFFF000000000000) * ((col + 1) & 0x01))));
 
       const int n = __popcll(current_cluster);
       if (n > 0 && hits_with_precedence == 0) {
         // If there are no hits with precedence,
         // create the cluster
-        const int x = col_lower_limit * n +
-          __popcll(current_cluster & 0x00000000FFFF0000) +
-          __popcll(current_cluster & 0x0000FFFF00000000) * 2 +
-          __popcll(current_cluster & 0xFFFF000000000000) * 3;
+        const int x = col_lower_limit * n + __popcll(current_cluster & 0x00000000FFFF0000) +
+                      __popcll(current_cluster & 0x0000FFFF00000000) * 2 +
+                      __popcll(current_cluster & 0xFFFF000000000000) * 3;
 
-        const int y = row_lower_limit * n +
-          __popcll(current_cluster & 0x0002000200020002) +
-          __popcll(current_cluster & 0x0004000400040004) * 2 +
-          __popcll(current_cluster & 0x0008000800080008) * 3 +
-          __popcll(current_cluster & 0x0010001000100010) * 4 +
-          __popcll(current_cluster & 0x0020002000200020) * 5 +
-          __popcll(current_cluster & 0x0040004000400040) * 6 +
-          __popcll(current_cluster & 0x0080008000800080) * 7 +
-          __popcll(current_cluster & 0x0100010001000100) * 8 +
-          __popcll(current_cluster & 0x0200020002000200) * 9 +
-          __popcll(current_cluster & 0x0400040004000400) * 10 +
-          __popcll(current_cluster & 0x0800080008000800) * 11 +
-          __popcll(current_cluster & 0x1000100010001000) * 12 +
-          __popcll(current_cluster & 0x2000200020002000) * 13 +
-          __popcll(current_cluster & 0x4000400040004000) * 14 +
-          __popcll(current_cluster & 0x8000800080008000) * 15;
+        const int y =
+          row_lower_limit * n + __popcll(current_cluster & 0x0002000200020002) +
+          __popcll(current_cluster & 0x0004000400040004) * 2 + __popcll(current_cluster & 0x0008000800080008) * 3 +
+          __popcll(current_cluster & 0x0010001000100010) * 4 + __popcll(current_cluster & 0x0020002000200020) * 5 +
+          __popcll(current_cluster & 0x0040004000400040) * 6 + __popcll(current_cluster & 0x0080008000800080) * 7 +
+          __popcll(current_cluster & 0x0100010001000100) * 8 + __popcll(current_cluster & 0x0200020002000200) * 9 +
+          __popcll(current_cluster & 0x0400040004000400) * 10 + __popcll(current_cluster & 0x0800080008000800) * 11 +
+          __popcll(current_cluster & 0x1000100010001000) * 12 + __popcll(current_cluster & 0x2000200020002000) * 13 +
+          __popcll(current_cluster & 0x4000400040004000) * 14 + __popcll(current_cluster & 0x8000800080008000) * 15;
 
         const uint cx = x / n;
         const uint cy = y / n;

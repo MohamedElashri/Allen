@@ -1,7 +1,8 @@
 #include "MuonTable.h"
 
 namespace CPUMuon {
-  size_t lookup_index(MuonTable* table, const MuonTileID& tile, unsigned int index) {
+  size_t lookup_index(MuonTable* table, const MuonTileID& tile, unsigned int index)
+  {
     int station = tile.station();
     int region = tile.region();
     int idx = 4 * station + region;
@@ -10,37 +11,53 @@ namespace CPUMuon {
 
     if (ypad < table->gridY[idx]) {
       index = index + table->gridX[idx] * ypad + xpad - table->gridX[idx];
-    } else {
+    }
+    else {
       index = index + table->gridX[idx] * table->gridY[idx] + 2 * table->gridX[idx] * (ypad - table->gridY[idx]) + xpad;
     }
     return index;
   }
 
-  size_t size_index(const std::vector<unsigned int>& offset, const std::vector<int>& gridX,
-                    const std::vector<int>& gridY, const MuonTileID& tile) {
+  size_t size_index(
+    const std::vector<unsigned int>& offset,
+    const std::vector<int>& gridX,
+    const std::vector<int>& gridY,
+    const MuonTileID& tile)
+  {
     auto idx = 4 * tile.station() + tile.region();
     auto index = offset[idx] + tile.quarter() * gridY[idx] * 6;
-    if (tile.nY() < static_cast<unsigned int>( gridY[idx] )) {
+    if (tile.nY() < static_cast<unsigned int>(gridY[idx])) {
       return index + 2 * tile.nY() + 2 * (tile.nX() - gridX[idx]) / gridX[idx];
-    } else {
+    }
+    else {
       return index + 4 * tile.nY() - 2 * gridY[idx] + (2 * tile.nX() / gridX[idx]);
     }
   }
 
-  unsigned int pad_offset(MuonTable* pad, const MuonTileID& tile) {
+  unsigned int pad_offset(MuonTable* pad, const MuonTileID& tile)
+  {
     int idx = 4 * tile.station() + tile.region();
     int perQuarter = 3 * pad->gridX[idx] * pad->gridY[idx];
     return (4 * tile.region() + tile.quarter()) * perQuarter;
   }
 
-  unsigned int strip_offset(MuonTable* strip, const MuonTileID& tile) {
+  unsigned int strip_offset(MuonTable* strip, const MuonTileID& tile)
+  {
     int idx = 4 * tile.station() + tile.region();
     int perQuarter = 3 * strip->gridX[idx] * strip->gridY[idx];
     return strip->offset[4 * tile.station() + tile.region()] + tile.quarter() * perQuarter;
   }
 
-  void calcPos(MuonTable* muonTable, MuonTileID& tile, unsigned int offset_index, double& x, double& deltax,
-               double& y, double& deltay, double& z) {
+  void calcPos(
+    MuonTable* muonTable,
+    MuonTileID& tile,
+    unsigned int offset_index,
+    double& x,
+    double& deltax,
+    double& y,
+    double& deltay,
+    double& z)
+  {
     int station = tile.station();
     auto index = lookup_index(muonTable, tile, offset_index);
     auto& p = muonTable->points[station][index];
@@ -53,16 +70,18 @@ namespace CPUMuon {
     deltay = muonTable->sizeY[dxi];
   }
 
-  void calcTilePos(MuonTable* pad, MuonTileID& tile, double& x, double& deltax, double& y, double& deltay, double& z) {
+  void calcTilePos(MuonTable* pad, MuonTileID& tile, double& x, double& deltax, double& y, double& deltay, double& z)
+  {
     calcPos(pad, tile, pad_offset(pad, tile), x, deltax, y, deltay, z);
   }
 
-  void calcStripPos(MuonTable* strip, MuonTileID& tile, double& x, double& deltax, double& y, double& deltay,
-      double& z) {
+  void calcStripPos(MuonTable* strip, MuonTileID& tile, double& x, double& deltax, double& y, double& deltay, double& z)
+  {
     calcPos(strip, tile, strip_offset(strip, tile), x, deltax, y, deltay, z);
   }
 
-  void read_muon_table(const char* raw_input, MuonTable* pad, MuonTable* stripX, MuonTable* stripY) {
+  void read_muon_table(const char* raw_input, MuonTable* pad, MuonTable* stripX, MuonTable* stripY)
+  {
     MuonTable* muonTables[3] = {pad, stripX, stripY};
     for (MuonTable* muonTable : muonTables) {
       size_t gridXSize;
@@ -92,8 +111,8 @@ namespace CPUMuon {
       size_t offsetSize;
       std::copy_n((size_t*) raw_input, 1, &offsetSize);
       raw_input += sizeof(size_t);
-      (muonTable->offset).insert((muonTable->offset).end(), (unsigned int*) raw_input,
-                                 ((unsigned int*) raw_input) + offsetSize);
+      (muonTable->offset)
+        .insert((muonTable->offset).end(), (unsigned int*) raw_input, ((unsigned int*) raw_input) + offsetSize);
       raw_input += sizeof(unsigned int) * offsetSize;
 
       (muonTable->sizeOffset).resize((muonTable->gridY).size());
@@ -112,11 +131,11 @@ namespace CPUMuon {
         raw_input += sizeof(size_t);
         (muonTable->points)[i].resize(stationTableSize);
         for (int j = 0; j < stationTableSize; j++) {
-          (muonTable->points)[i][j].insert((muonTable->points)[i][j].end(), (float*) raw_input,
-                                           ((float*) raw_input) + 3);
+          (muonTable->points)[i][j].insert(
+            (muonTable->points)[i][j].end(), (float*) raw_input, ((float*) raw_input) + 3);
           raw_input += sizeof(float) * 3;
         }
       }
     }
   }
-};
+}; // namespace CPUMuon

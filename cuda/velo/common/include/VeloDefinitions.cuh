@@ -24,11 +24,10 @@ namespace Velo {
     static constexpr uint max_tracks = 1200;
     static constexpr uint max_track_size = 26;
 
-
     static constexpr uint32_t number_of_sensor_columns = 768; // FIXME_GEOMETRY_HARDCODING
     static constexpr uint32_t ltg_size = 16 * number_of_sensor_columns;
     static constexpr float pixel_size = 0.055f; // FIXME_GEOMETRY_HARDCODING
-  } // namespace Constants
+  }                                             // namespace Constants
 
   namespace Tracking {
     // How many concurrent h1s to process max

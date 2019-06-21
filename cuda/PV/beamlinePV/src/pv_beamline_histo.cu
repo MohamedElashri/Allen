@@ -10,12 +10,12 @@ __device__ float gauss_integral(float x)
   return 0.5f + xi * (p[0] + eta * (p[1] + eta * p[2]));
 }
 
-__global__ void
-pv_beamline_histo(int* dev_atomics_storage,
-                  uint* dev_velo_track_hit_number,
-                  PVTrack* dev_pvtracks,
-                  float* dev_zhisto,
-                  float* dev_beamline)
+__global__ void pv_beamline_histo(
+  int* dev_atomics_storage,
+  uint* dev_velo_track_hit_number,
+  PVTrack* dev_pvtracks,
+  float* dev_zhisto,
+  float* dev_beamline)
 {
 
   const uint number_of_events = gridDim.x;
@@ -44,8 +44,8 @@ pv_beamline_histo(int* dev_atomics_storage,
       PVTrack trk = dev_pvtracks[event_tracks_offset + index];
       // apply the z cut here
       if (zmin < trk.z && trk.z < zmax) {
-        const float rho2 =
-          (trk.x.x - dev_beamline[0]) * (trk.x.x - dev_beamline[0]) + (trk.x.y - dev_beamline[1]) * (trk.x.y - dev_beamline[1]);
+        const float rho2 = (trk.x.x - dev_beamline[0]) * (trk.x.x - dev_beamline[0]) +
+                           (trk.x.y - dev_beamline[1]) * (trk.x.y - dev_beamline[1]);
         if (rho2 > maxTrackRho2) continue;
 
         // bin in which z0 is, in floating point

@@ -117,16 +117,16 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
     binary_search_leftmost(dev_unique_sector_xs + first_sector_group_in_layer, sector_group_size, x_track);
   int sector_group = first_sector_group_in_layer + local_sector_group;
 
-  int first_candidate = -1,              last_candidate = -1;
-  int left_group_first_candidate = -1,   left_group_last_candidate = -1;
-  int left2_group_first_candidate = -1,  left2_group_last_candidate = -1;
-  int right_group_first_candidate = -1,  right_group_last_candidate = -1;
+  int first_candidate = -1, last_candidate = -1;
+  int left_group_first_candidate = -1, left_group_last_candidate = -1;
+  int left2_group_first_candidate = -1, left2_group_last_candidate = -1;
+  int right_group_first_candidate = -1, right_group_last_candidate = -1;
   int right2_group_first_candidate = -1, right2_group_last_candidate = -1;
 
   // Get correct index position in array
   sector_group -= 1;
   // central sector group
-  if ((sector_group+1) < last_sector_group_in_layer && sector_group > first_sector_group_in_layer) {
+  if ((sector_group + 1) < last_sector_group_in_layer && sector_group > first_sector_group_in_layer) {
     const auto sector_candidates = find_candidates_in_sector_group(
       ut_hits,
       ut_hit_offsets,
@@ -146,7 +146,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 
   // left sector group
   const int left_group = sector_group - 1;
-  if ((left_group+1) < last_sector_group_in_layer && left_group > first_sector_group_in_layer) {
+  if ((left_group + 1) < last_sector_group_in_layer && left_group > first_sector_group_in_layer) {
     // Valid sector group to find compatible hits
     const auto left_group_candidates = find_candidates_in_sector_group(
       ut_hits,
@@ -167,7 +167,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 
   // left-left sector group
   const int left2_group = sector_group - 2;
-  if ((left2_group+1) < last_sector_group_in_layer && left2_group > first_sector_group_in_layer) {
+  if ((left2_group + 1) < last_sector_group_in_layer && left2_group > first_sector_group_in_layer) {
     // Valid sector group to find compatible hits
     const auto left2_group_candidates = find_candidates_in_sector_group(
       ut_hits,
@@ -188,7 +188,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 
   // right sector group
   const int right_group = sector_group + 1;
-  if ((right_group+1) < last_sector_group_in_layer && right_group > first_sector_group_in_layer) {
+  if ((right_group + 1) < last_sector_group_in_layer && right_group > first_sector_group_in_layer) {
     // Valid sector group to find compatible hits
     const auto right_group_candidates = find_candidates_in_sector_group(
       ut_hits,
@@ -209,7 +209,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 
   // right-right sector group
   const int right2_group = sector_group + 2;
-  if ((right2_group+1) < last_sector_group_in_layer && right2_group > first_sector_group_in_layer) {
+  if ((right2_group + 1) < last_sector_group_in_layer && right2_group > first_sector_group_in_layer) {
     // Valid sector group to find compatible hits
     const auto right2_group_candidates = find_candidates_in_sector_group(
       ut_hits,
@@ -228,16 +228,16 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
     right2_group_last_candidate = std::get<1>(right2_group_candidates);
   }
 
-  return std::tuple<int, int, int, int, int, int, int, int, int, int>{first_candidate,
-          last_candidate,
-          left_group_first_candidate,
-          left_group_last_candidate,
-          right_group_first_candidate,
-          right_group_last_candidate,
-          left2_group_first_candidate,
-          left2_group_last_candidate,
-          right2_group_first_candidate,
-          right2_group_last_candidate};
+  return std::tuple<int, int, int, int, int, int, int, int, int, int> {first_candidate,
+                                                                       last_candidate,
+                                                                       left_group_first_candidate,
+                                                                       left_group_last_candidate,
+                                                                       right_group_first_candidate,
+                                                                       right_group_last_candidate,
+                                                                       left2_group_first_candidate,
+                                                                       left2_group_last_candidate,
+                                                                       right2_group_first_candidate,
+                                                                       right2_group_last_candidate};
 }
 
 __device__ std::tuple<int, int> find_candidates_in_sector_group(
@@ -285,5 +285,5 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
     tol_refine(first_candidate, last_candidate, ut_hits, velo_state, invNormFact, xTolNormFact, dx_dy);
   }
 
-  return std::tuple<int, int>{first_candidate, last_candidate};
+  return std::tuple<int, int> {first_candidate, last_candidate};
 }

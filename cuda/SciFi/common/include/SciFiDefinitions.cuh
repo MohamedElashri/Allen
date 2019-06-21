@@ -196,7 +196,7 @@ namespace SciFi {
     float* dzdy;
     float* globaldy;
 
-    __device__ __host__ SciFiGeometry(){}
+    __device__ __host__ SciFiGeometry() {}
 
     /**
      * @brief Typecast from std::vector.

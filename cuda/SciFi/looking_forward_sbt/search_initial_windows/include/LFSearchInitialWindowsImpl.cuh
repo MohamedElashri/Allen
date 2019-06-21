@@ -11,10 +11,7 @@
 #include "LookingForwardUtils.h"
 #include "TrackUtils.cuh"
 
-__device__ inline float evalCubicParameterization(
-  const float value_at_ref,
-  const float t,
-  const float z);
+__device__ inline float evalCubicParameterization(const float value_at_ref, const float t, const float z);
 
 __device__ void lf_search_initial_windows_p_impl(
   const SciFi::Hits& scifi_hits,

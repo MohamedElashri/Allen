@@ -2,7 +2,7 @@
 #include "RunMomentumForwardCPU.h"
 #include "Tools.h"
 
-template<> 
+template<>
 void SequenceVisitor::set_arguments_size<cpu_scifi_momentum_forward_t>(
   cpu_scifi_momentum_forward_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
@@ -28,7 +28,7 @@ void SequenceVisitor::visit<cpu_scifi_momentum_forward_t>(
   cudaEventSynchronize(cuda_generic_event);
 
   // Run Forward on x86 architecture
-  // ATTENTION: when using SciFi raw bank version 5, 
+  // ATTENTION: when using SciFi raw bank version 5,
   // need: 2*host_buffers.host_number_of_selected_events[0]*...
   host_buffers.host_velo_states.resize(arguments.size<dev_velo_states>());
   host_buffers.host_scifi_hits.resize(arguments.size<dev_scifi_hits>());
@@ -55,16 +55,17 @@ void SequenceVisitor::visit<cpu_scifi_momentum_forward_t>(
     cudaMemcpyDeviceToHost));
 
   /* INFO: use this call statement when running the momentum forward x86 algorithm.
-     For the looking forward x86 algorithm, leave this commented because the function is invoked in 
-     stream/checkers/include/UTSequenceCheckers_impl.cuh to have the true SciFi IDs linked to a matched UT track available */
-     
+     For the looking forward x86 algorithm, leave this commented because the function is invoked in
+     stream/checkers/include/UTSequenceCheckers_impl.cuh to have the true SciFi IDs linked to a matched UT track
+     available */
+
   // int rv = state.invoke(
   //   host_buffers.scifi_tracks_events.data(),
   //   host_buffers.host_atomics_scifi,
   //   host_buffers.host_scifi_hits.data(),
   //   host_buffers.host_scifi_hit_count.data(),
   //   constants.host_scifi_geometry,
-  //   constants.host_inv_clus_res, 
+  //   constants.host_inv_clus_res,
   //   host_buffers.host_atomics_velo,
   //   host_buffers.host_velo_track_hit_number,
   //   host_buffers.host_velo_states.data(),
@@ -79,10 +80,10 @@ void SequenceVisitor::visit<cpu_scifi_momentum_forward_t>(
 
   // // copy SciFi tracks to device for consolidation
   // cudaCheck(cudaMemcpyAsync(
-  //   arguments.offset<dev_atomics_scifi>(), 
+  //   arguments.offset<dev_atomics_scifi>(),
   //   host_buffers.host_atomics_scifi,
   //   arguments.size<dev_atomics_scifi>(),
-  //   cudaMemcpyHostToDevice, 
+  //   cudaMemcpyHostToDevice,
   //   cuda_stream));
 
   // cudaCheck(cudaMemcpyAsync(
@@ -91,7 +92,7 @@ void SequenceVisitor::visit<cpu_scifi_momentum_forward_t>(
   //   arguments.size<dev_scifi_tracks>(),
   //   cudaMemcpyHostToDevice,
   //   cuda_stream));
-  
+
   // cudaEventRecord(cuda_generic_event, cuda_stream);
   // cudaEventSynchronize(cuda_generic_event);
 }

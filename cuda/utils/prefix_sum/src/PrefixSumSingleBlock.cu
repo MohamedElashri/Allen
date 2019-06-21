@@ -221,7 +221,8 @@ __global__ void copy_scifi_track_hit_number(
 
   const uint ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
 
-  const SciFi::TrackHits* event_tracks = dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
+  const SciFi::TrackHits* event_tracks =
+    dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
   const int accumulated_tracks = dev_n_scifi_tracks[number_of_events + event_number];
   const int number_of_tracks = dev_n_scifi_tracks[event_number];
 

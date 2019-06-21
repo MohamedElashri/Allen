@@ -36,7 +36,7 @@ void SequenceVisitor::visit<velo_estimate_input_size_t>(
 {
   // Setup opts and arguments for kernel call
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(16, 26), cuda_stream);
-  
+
   state.set_arguments(
     arguments.offset<dev_velo_raw_input>(),
     arguments.offset<dev_velo_raw_input_offsets>(),

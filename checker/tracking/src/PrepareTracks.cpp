@@ -241,8 +241,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       t.muon_catboost_output = muon_catboost_output[event_offset + i_track];
       t.is_muon = is_muon[event_offset + i_track];
 
-      if ( t.is_muon)
-        n_is_muon++;
+      if (t.is_muon) n_is_muon++;
 
       n_total_tracks++;
 
@@ -251,7 +250,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
     checker_tracks.emplace_back(tracks);
   }
 
-  debug_cout << "Number of tracks with is_muon true = " << n_is_muon << " / " <<  n_total_tracks << std::endl;
+  debug_cout << "Number of tracks with is_muon true = " << n_is_muon << " / " << n_total_tracks << std::endl;
 
   return checker_tracks;
 }

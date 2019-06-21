@@ -50,5 +50,5 @@ namespace Muon {
     static constexpr int RIGHT = 1;
     static constexpr int LEFT = -1;
 
-  };
-};
+  }; // namespace MuonBase
+};   // namespace Muon

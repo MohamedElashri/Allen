@@ -19,13 +19,13 @@ __global__ void lf_calculate_second_layer_window(
   const MiniState* dev_ut_states,
   const int station)
 {
-  __shared__ MiniState states_at_z_last_ut_plane [2];
-  __shared__ float looking_forward_constants [7];
+  __shared__ MiniState states_at_z_last_ut_plane[2];
+  __shared__ float looking_forward_constants[7];
 
   const auto first_layer = (station - 1) * 4;
-  
+
   if (threadIdx.x == 0) {
-    for (int i=threadIdx.y; i<4; i+=blockDim.y) {
+    for (int i = threadIdx.y; i < 4; i += blockDim.y) {
       looking_forward_constants[i] = dev_looking_forward_constants->Zone_zPos[first_layer + i];
     }
 
@@ -33,11 +33,11 @@ __global__ void lf_calculate_second_layer_window(
       looking_forward_constants[4] = dev_looking_forward_constants->zMagnetParams[0];
     }
 
-    for (int i=threadIdx.y; i<2; i+=blockDim.y) {
+    for (int i = threadIdx.y; i < 2; i += blockDim.y) {
       looking_forward_constants[5 + i] = dev_looking_forward_constants->Zone_dxdy[1 + i];
     }
   }
-  
+
   __syncthreads();
 
   const auto number_of_events = gridDim.x;
@@ -67,14 +67,16 @@ __global__ void lf_calculate_second_layer_window(
 
   // Looking Forward first layer window parameters
   const uint* first_candidate_start = dev_first_layer_candidates + ut_event_tracks_offset;
-  const uint* offset_size_first_candidate_pointer = dev_first_layer_candidates + ut_event_tracks_offset + ut_tracks.total_number_of_tracks;
+  const uint* offset_size_first_candidate_pointer =
+    dev_first_layer_candidates + ut_event_tracks_offset + ut_tracks.total_number_of_tracks;
   const uint total_number_of_candidates = *(dev_first_layer_candidates + 2 * ut_tracks.total_number_of_tracks);
 
   // Loop over the veloUT input tracks
-  for (int i=threadIdx.x; i<ut_event_number_of_tracks; i+=blockDim.x) {
+  for (int i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
     const uint local_hit_offset_first_candidate = first_candidate_start[i];
     const uint offset_first_candidate = offset_size_first_candidate_pointer[i];
-    const uint size_first_candidate = offset_size_first_candidate_pointer[i + 1] - offset_size_first_candidate_pointer[i];
+    const uint size_first_candidate =
+      offset_size_first_candidate_pointer[i + 1] - offset_size_first_candidate_pointer[i];
 
     if (size_first_candidate > 0) {
       unsigned short* second_candidate_p = dev_second_layer_candidates + offset_first_candidate;
@@ -87,7 +89,7 @@ __global__ void lf_calculate_second_layer_window(
       }
 
       __syncthreads();
-      
+
       lf_calculate_second_layer_window_impl(
         states_at_z_last_ut_plane,
         ut_tracks.qop[i],

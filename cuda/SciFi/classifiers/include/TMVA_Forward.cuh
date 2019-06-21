@@ -20,7 +20,7 @@ namespace SciFi {
     };
 
     __host__ __device__ void Transform_1(float* iv, const TMVA* tmva);
-    
+
     __host__ __device__ float ActivationFnc(float x);
 
     __host__ __device__ float OutputActivationFnc(float x);

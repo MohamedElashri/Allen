@@ -9,14 +9,11 @@ void SequenceVisitor::set_arguments_size<lf_collect_candidates_t>(
   const HostBuffers& host_buffers)
 {
   arguments.set_size<dev_scifi_lf_number_of_candidates>(
-    host_buffers.host_number_of_reconstructed_ut_tracks[0]
-    * LookingForward::number_of_x_layers
-    + 1);
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::number_of_x_layers + 1);
 
   arguments.set_size<dev_scifi_lf_candidates>(
-    host_buffers.host_number_of_reconstructed_ut_tracks[0]
-    * SciFi::Tracking::zoneoffsetpar
-    * LookingForward::maximum_number_of_candidates);
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Tracking::zoneoffsetpar *
+    LookingForward::maximum_number_of_candidates);
 }
 
 template<>

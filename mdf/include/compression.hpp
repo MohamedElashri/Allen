@@ -19,24 +19,24 @@
 
 namespace Compression {
 
-unsigned long crc32(unsigned long crc, const unsigned char* buf, unsigned int len);
+  unsigned long crc32(unsigned long crc, const unsigned char* buf, unsigned int len);
 
-void unzip(int *srcsize, unsigned char *src, int *tgtsize, unsigned char *tgt, int *irep);
+  void unzip(int* srcsize, unsigned char* src, int* tgtsize, unsigned char* tgt, int* irep);
 
-int unzip_header(int *srcsize, unsigned char *src, int *tgtsize);
+  int unzip_header(int* srcsize, unsigned char* src, int* tgtsize);
 
-void unzipZLIB(int *srcsize, unsigned char *src, int *tgtsize, unsigned char *tgt, int *irep);
+  void unzipZLIB(int* srcsize, unsigned char* src, int* tgtsize, unsigned char* tgt, int* irep);
 
 #ifdef HAVE_LZMA
-void unzipLZMA(int *srcsize, unsigned char *src, int *tgtsize, unsigned char *tgt, int *irep);
+  void unzipLZMA(int* srcsize, unsigned char* src, int* tgtsize, unsigned char* tgt, int* irep);
 #endif
 
 #ifdef HAVE_LZ4
-void unzipLZ4(int *srcsize, unsigned char *src, int *tgtsize, unsigned char *tgt, int *irep);
+  void unzipLZ4(int* srcsize, unsigned char* src, int* tgtsize, unsigned char* tgt, int* irep);
 #endif
 
-enum { kMAXZIPBUF = 0xffffff };
+  enum { kMAXZIPBUF = 0xffffff };
 
-}
+} // namespace Compression
 
 #endif

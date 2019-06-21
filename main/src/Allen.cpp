@@ -37,24 +37,34 @@
 #include "Consumers.h"
 #include "Allen.h"
 
-void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants) {
-  tuple consumers{tuple{Allen::NonEventData::UTBoards{}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)},
-                  tuple{Allen::NonEventData::UTLookupTables{}, std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)},
-                  tuple{Allen::NonEventData::UTGeometry{}, std::make_unique<Consumers::UTGeometry>(constants)},
-                  tuple{Allen::NonEventData::SciFiGeometry{}, std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)},
-                  tuple{Allen::NonEventData::MagneticField{}, std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)},
-                  tuple{Allen::NonEventData::Beamline{}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)},
-                  tuple{Allen::NonEventData::VeloGeometry{}, std::make_unique<Consumers::RawGeometry>(constants.dev_velo_geometry)},
-                  tuple{Allen::NonEventData::MuonGeometry{}, std::make_unique<Consumers::MuonGeometry>(constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)},
-                  tuple{Allen::NonEventData::MuonLookupTables{}, std::make_unique<Consumers::MuonLookupTables>(constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables)}};
+void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants)
+{
+  tuple consumers {
+    tuple {Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)},
+    tuple {Allen::NonEventData::UTLookupTables {},
+           std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)},
+    tuple {Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)},
+    tuple {Allen::NonEventData::SciFiGeometry {},
+           std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)},
+    tuple {Allen::NonEventData::MagneticField {},
+           std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)},
+    tuple {Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)},
+    tuple {Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::RawGeometry>(constants.dev_velo_geometry)},
+    tuple {Allen::NonEventData::MuonGeometry {},
+           std::make_unique<Consumers::MuonGeometry>(
+             constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)},
+    tuple {Allen::NonEventData::MuonLookupTables {},
+           std::make_unique<Consumers::MuonLookupTables>(
+             constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables)}};
 
-  for_each(consumers, [updater, &constants] (auto& c) {
-                        using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
-                        updater->registerConsumer<id_t>(std::move(std::get<1>(c)));
-                      });
+  for_each(consumers, [updater, &constants](auto& c) {
+    using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
+    updater->registerConsumer<id_t>(std::move(std::get<1>(c)));
+  });
 }
 
-int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater) {
+int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater)
+{
   // Folder containing raw, MC and muon information
   std::string folder_data = "../input/minbias/";
   const std::string folder_rawdata = "banks/";
@@ -77,7 +87,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   int cpu_offload = 1;
 
   std::string flag, arg;
-  const auto flag_in = [&flag] (const std::vector<std::string>& option_flags) {
+  const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
     if (std::find(std::begin(option_flags), std::end(option_flags), flag) != std::end(option_flags)) {
       return true;
     }
@@ -89,29 +99,41 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     std::tie(flag, arg) = entry;
     if (flag_in({"f", "folder"})) {
       folder_data = arg + "/";
-    } else if (flag_in({"g", "geometry"})) {
+    }
+    else if (flag_in({"g", "geometry"})) {
       folder_detector_configuration = arg + "/";
-    } else if (flag_in({"mdf"})) {
+    }
+    else if (flag_in({"mdf"})) {
       use_mdf = atoi(arg.c_str());
-    } else if (flag_in({"n", "number-of-events"})) {
+    }
+    else if (flag_in({"n", "number-of-events"})) {
       number_of_events_requested = atoi(arg.c_str());
-    } else if (flag_in({"t", "threads"})) {
+    }
+    else if (flag_in({"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
-    } else if (flag_in({"r", "repetitions"})) {
+    }
+    else if (flag_in({"r", "repetitions"})) {
       number_of_repetitions = atoi(arg.c_str());
-    } else if (flag_in({"c", "validate"})) {
+    }
+    else if (flag_in({"c", "validate"})) {
       do_check = atoi(arg.c_str());
-    } else if (flag_in({"m", "memory"})) {
+    }
+    else if (flag_in({"m", "memory"})) {
       reserve_mb = atoi(arg.c_str());
-    } else if (flag_in({"v", "verbosity"})) {
+    }
+    else if (flag_in({"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
-    } else if (flag_in({"p", "print-memory"})) {
+    }
+    else if (flag_in({"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
-    } else if (flag_in({"i", "import-tracks"})) {
+    }
+    else if (flag_in({"i", "import-tracks"})) {
       folder_name_imported_forward_tracks = arg;
-    } else if (flag_in({"cpu-offload"})) {
+    }
+    else if (flag_in({"cpu-offload"})) {
       cpu_offload = atoi(arg.c_str());
-    } else if (flag_in({"device"})) {
+    }
+    else if (flag_in({"device"})) {
       cuda_device = atoi(arg.c_str());
     }
   }
@@ -141,7 +163,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     if (n_devices == 0) {
       error_cout << "Failed to select device " << cuda_device << std::endl;
       return -1;
-    } else {
+    }
+    else {
       debug_cout << " selected cuda device " << cuda_device << ": " << device_name << std::endl << std::endl;
     }
   } catch (const std::invalid_argument& e) {
@@ -176,7 +199,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                                            {BankTypes::UT, folder_name_mdf},
                                                            {BankTypes::FT, folder_name_mdf},
                                                            {BankTypes::MUON, folder_name_Muon_raw}}});
-  } else {
+  }
+  else {
     event_reader = std::make_unique<EventReader>(FolderMap {{{BankTypes::VP, folder_name_velopix_raw},
                                                              {BankTypes::UT, folder_name_UT_raw},
                                                              {BankTypes::FT, folder_name_SciFi_raw},
@@ -185,9 +209,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   event_reader->read_events(number_of_events_requested, start_event_offset);
 
-  muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
+  muon_catboost_model_reader =
+    std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
   std::vector<float> muon_field_of_interest_params;
-  read_muon_field_of_interest(muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
+  read_muon_field_of_interest(
+    muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
 
   std::vector<Checker::Tracks> forward_tracks;
   if (check_imported_forward_tracks) {
@@ -205,7 +231,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Initialize detector constants on GPU
   Constants constants;
-  constants.reserve_and_initialize(muon_field_of_interest_params, folder_detector_configuration + "params_kalman_FT6x2/");
+  constants.reserve_and_initialize(
+    muon_field_of_interest_params, folder_detector_configuration + "params_kalman_FT6x2/");
   constants.initialize_muon_catboost_model_constants(
     muon_catboost_model_reader->n_trees(),
     muon_catboost_model_reader->tree_depths(),
@@ -224,7 +251,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Create streams
   StreamWrapper stream_wrapper;
   stream_wrapper.initialize_streams(
-    number_of_threads, number_of_events_requested, print_memory_usage, start_event_offset, reserve_mb, constants, do_check);
+    number_of_threads,
+    number_of_events_requested,
+    print_memory_usage,
+    start_event_offset,
+    reserve_mb,
+    constants,
+    do_check);
 
   // Notify used memory if requested verbose mode
   if (logger::ll.verbosityLevel >= logger::verbose) {

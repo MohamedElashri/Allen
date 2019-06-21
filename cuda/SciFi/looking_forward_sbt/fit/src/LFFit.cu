@@ -18,7 +18,7 @@ __device__ void lf_fit_impl(
   float hits_dxdy[SciFi::Constants::max_track_size];
   float hits_w[SciFi::Constants::max_track_size];
   uint8_t n_x_hits = 0;
-  for (int j=0; j<track.hitsNum; ++j) {
+  for (int j = 0; j < track.hitsNum; ++j) {
     const int hit = event_offset + track.hits[j];
     const int plane_code = scifi_hits.planeCode(hit) >> 1;
     hits_x[j] = scifi_hits.x0[hit];
@@ -39,7 +39,8 @@ __device__ void lf_fit_impl(
 
   // fit uv hits to update parameters related to y coordinate
   // update trackParams [4] [5] [6]
-  if (!LookingForward::fitParabola_proto(hits_x + n_x_hits, hits_z + n_x_hits, hits_dxdy + n_x_hits, hits_w + n_x_hits, n_uv_hits, trackParams, false)) {
+  if (!LookingForward::fitParabola_proto(
+        hits_x + n_x_hits, hits_z + n_x_hits, hits_dxdy + n_x_hits, hits_w + n_x_hits, n_uv_hits, trackParams, false)) {
     trackParams[7] = -1.f; // set chi2 negative
   }
 
@@ -50,10 +51,9 @@ __device__ void lf_fit_impl(
   }
 
   // calculate chi2
-  if ( !LookingForward::getChi2(hits_x, hits_z, hits_dxdy, hits_w, track.hitsNum, trackParams) ) {
+  if (!LookingForward::getChi2(hits_x, hits_z, hits_dxdy, hits_w, track.hitsNum, trackParams)) {
     trackParams[7] = -1.f; // set chi2 negative
   }
-
 }
 
 __global__ void lf_fit(
@@ -107,13 +107,19 @@ __global__ void lf_fit(
   const auto number_of_tracks = dev_scifi_lf_atomics[event_number];
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    SciFi::TrackHits& track = dev_scifi_lf_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
+    SciFi::TrackHits& track = dev_scifi_lf_tracks
+      [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
     // load xAtRef average value that was calculated during LFQualityFilterX
-    const float xAtRef_average = dev_scifi_lf_xAtRef_after_length_filter[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
+    const float xAtRef_average = dev_scifi_lf_xAtRef_after_length_filter
+      [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
 
-    float* trackParams = dev_scifi_lf_track_params + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Tracking::nTrackParams + i * SciFi::Tracking::nTrackParams;
+    float* trackParams = dev_scifi_lf_track_params +
+                         ut_event_tracks_offset *
+                           LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter *
+                           SciFi::Tracking::nTrackParams +
+                         i * SciFi::Tracking::nTrackParams;
 
     lf_fit_impl(
       track,
@@ -124,7 +130,5 @@ __global__ void lf_fit(
       velo_state,
       xAtRef_average,
       trackParams);
-
   }
-
 }
