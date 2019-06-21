@@ -1,5 +1,4 @@
 add_subdirectory(utils)
-add_subdirectory(ip_cut)
 add_subdirectory(global_event_cut)
 add_subdirectory(velo)
 add_subdirectory(PV/patPV)

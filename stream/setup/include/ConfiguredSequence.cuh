@@ -38,7 +38,6 @@
 #include "pv_beamline_multi_fitter.cuh"
 #include "pv_beamline_cleanup.cuh"
 #include "RunForwardCPU.h"
-#include "IPCut.cuh"
 #include "VeloPVIP.cuh"
 #include "RunMomentumForwardCPU.h"
 #include "RunBeamlinePVOnCPU.h"
