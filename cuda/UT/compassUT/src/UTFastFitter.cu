@@ -44,8 +44,8 @@ __host__ __device__ float fastfitter(
 {
 
   const float ty = velo_state.ty;
-  const float zKink = PrVeloUTConst::magFieldParams[0] - ty * ty * PrVeloUTConst::magFieldParams[1] -
-                      ty * ty * ty * ty * PrVeloUTConst::magFieldParams[2];
+  const float zKink = UT::Constants::magFieldParams[0] - ty * ty * UT::Constants::magFieldParams[1] -
+                      ty * ty * ty * ty * UT::Constants::magFieldParams[2];
   const float xMidField = velo_state.x + velo_state.tx * (zKink - velo_state.z);
 
   const float zDiff = 0.001f * (zKink - UT::Constants::zMidUT);
