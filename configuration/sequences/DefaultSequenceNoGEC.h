@@ -57,8 +57,6 @@ SEQUENCE_T(
   muon_station_ocurrence_prefix_sum_t,
   muon_sort_by_station_t,
   is_muon_t,
-  muon_catboost_features_extraction_t,
-  muon_catboost_evaluator_t,
   kalman_velo_only_t,
   kalman_pv_ipchi2_t,
   copy_and_prefix_sum_single_block_sv_t,
