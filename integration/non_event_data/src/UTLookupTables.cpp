@@ -9,12 +9,7 @@ namespace {
   using std::to_string;
 } // namespace
 
-<<<<<<< HEAD
-Consumers::UTLookupTables::UTLookupTables(UTMagnetTool*& tool)
-  : m_tool{tool} {}
-=======
-Consumers::UTLookupTables::UTLookupTables(PrUTMagnetTool*& tool) : m_tool {tool} {}
->>>>>>> 87e0df64bd7f34c62087cb872a7cb050396329c6
+Consumers::UTLookupTables::UTLookupTables(UTMagnetTool*& tool) : m_tool {tool} {}
 
 void Consumers::UTLookupTables::consume(std::vector<char> const& data)
 {
