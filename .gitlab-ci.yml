@@ -56,7 +56,6 @@ check-formatting:
   only:
     refs:
       - master
-      - review_june
       - schedules
       - web
   stage: run
@@ -96,7 +95,6 @@ check-formatting:
   only:
     refs:
       - master
-      - review_june
       - schedules
       - web
   stage: run
@@ -138,7 +136,6 @@ check-formatting:
   only:
     refs:
       - master
-      - review_june
       - schedules
       - web
   stage: publish
@@ -161,7 +158,6 @@ check-formatting:
   only:
     refs:
       - master
-      - review_june
       - schedules
       - web
   stage: publish
@@ -183,7 +179,6 @@ check-formatting:
   only:
     refs:
       - master
-      - review_june
       - schedules
       - web
   stage: publish
