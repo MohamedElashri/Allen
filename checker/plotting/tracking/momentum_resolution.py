@@ -104,7 +104,6 @@ def getResolutionInSlices(histo2D, var, var_dict):
 
     #gr.Write()
 
-
     #name = "dp_vs_p_rms"
     #title = "dp vs p, histogram RMS"
     #canvas = ROOT.TCanvas(name, title)
@@ -132,13 +131,15 @@ def getResolutionInSlices(histo2D, var, var_dict):
     #histo1D.Draw("hist bar same")
 
     canvas.Write()
-    canvas.SaveAs("../../../plotsfornote/" + tracker + "MomResVs" + var + ".pdf")
+    canvas.SaveAs("../../../plotsfornote/" + tracker + "MomResVs" + var +
+                  ".pdf")
 
     histo1D.Fit("gaus")
     sigma_p = histo1D.GetFunction("gaus").GetParameter(2)
     delta_sigma_p = histo1D.GetFunction("gaus").GetParError(2)
     print('{:s}: sigma p = {:f} +/- {:f}'.format(tracker, sigma_p,
                                                  delta_sigma_p))
+
 
 f = ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")
 outputfile = ROOT.TFile("../../../plotsfornote_root/momentum_resolution.root",

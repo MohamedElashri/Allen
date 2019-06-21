@@ -44,7 +44,7 @@ def setLHCbStyle():
     # set the paper & margin sizes
     lhcbStyle.SetPaperSize(20, 26)
     lhcbStyle.SetPadTopMargin(0.05)
-    lhcbStyle.SetPadRightMargin(0.10) # increase for colz plots
+    lhcbStyle.SetPadRightMargin(0.10)  # increase for colz plots
     lhcbStyle.SetPadBottomMargin(0.16)
     lhcbStyle.SetPadLeftMargin(0.14)
 

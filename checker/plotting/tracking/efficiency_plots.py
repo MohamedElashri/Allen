@@ -159,7 +159,8 @@ for tracker in trackers:
                 variable.SetTitle(efficiencyHistoDict[histo]["title"] +
                                   " distribution, not electrons")
             else:
-                variable.SetTitle( efficiencyHistoDict[histo]["title"]+ " distribution")
+                variable.SetTitle(efficiencyHistoDict[histo]["title"] +
+                                  " distribution")
             variable.SetLineColor(ROOT.kWhite)
             variable.SetFillColorAlpha(ROOT.kBlack, 0.2)
             variable.Draw("hist bar same")
@@ -173,7 +174,8 @@ for tracker in trackers:
                     variable_electrons.Add(infile.Get(variableHistoName))
                 norm = 0.9 / variable_electrons.GetMaximum()
                 variable_electrons.Scale(norm)
-                variable_electrons.SetTitle( efficiencyHistoDict[histo]["title"]+ " distribution, electrons")
+                variable_electrons.SetTitle(efficiencyHistoDict[histo]["title"]
+                                            + " distribution, electrons")
                 variable_electrons.SetLineColor(ROOT.kWhite)
                 variable_electrons.SetFillColorAlpha(ROOT.kAzure - 3, 0.2)
                 variable_electrons.Draw("hist bar same")
@@ -245,7 +247,8 @@ for tracker in trackers:
         print("norm:")
         print(norm)
         numerator.Scale(norm)
-        numerator.SetTitle( efficiencyHistoDict[histo]["title"]+ " distribution")
+        numerator.SetTitle(efficiencyHistoDict[histo]["title"] +
+                           " distribution")
         numerator.SetFillColorAlpha(ROOT.kBlack, 0.2)
         numerator.SetLineColor(ROOT.kWhite)
         numerator.Draw("hist bar same")
@@ -253,7 +256,9 @@ for tracker in trackers:
         place = find_place(canvas)
         legend = TLegend(place[0], place[1], place[2], place[3])
         legend.AddEntry(g_efficiency, "ghost rate", "ep")
-        legend.AddEntry(numerator,  efficiencyHistoDict[histo]["title"]+ " distribution","f")
+        legend.AddEntry(numerator,
+                        efficiencyHistoDict[histo]["title"] + " distribution",
+                        "f")
         legend.Draw("same")
 
         canvas.Write()

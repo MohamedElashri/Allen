@@ -115,7 +115,8 @@ def place_legend(canvas,
     # As a fallback, use the default values, taken from TCanvas::BuildLegend
     return canvas.BuildLegend(0.5, 0.67, 0.88, 0.88, header, option)
 
-def find_place(canvas, default = 3, x1=None, y1=None, x2=None, y2=None):
+
+def find_place(canvas, default=3, x1=None, y1=None, x2=None, y2=None):
     # Make sure all objects are correctly registered
     canvas.Update()
 
@@ -134,7 +135,8 @@ def find_place(canvas, default = 3, x1=None, y1=None, x2=None, y2=None):
             continue
         return place
 
-    return PLACES[default] # fallback solution
+    return PLACES[default]  # fallback solution
+
 
 # Monkey patch ROOT objects to make it all work
 ROOT.THStack.__iter__ = lambda self: iter(self.GetHists())
