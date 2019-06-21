@@ -16,6 +16,7 @@ import ROOT
 from ROOT import gStyle
 from ROOT import gROOT
 from ROOT import TStyle
+from ROOT import TLegend
 from ROOT import gPad
 from ROOT import TMultiGraph
 
@@ -100,7 +101,33 @@ for category in muonCategories:
         g_efficiency.GetYaxis().SetTitle(muonCatDict[category]["title"])
         g_efficiency.GetYaxis().SetRangeUser(0, 1)
 
+        # draw variable distribution in same canvas
+        norm = 0.9 / numerator.GetMaximum()
+        numerator.Scale(norm)
+        numerator.SetTitle(efficiencyHistoDict[histo]["title"] +
+                           " distribution")
+        numerator.SetFillColorAlpha(ROOT.kBlack, 0.2)
+        numerator.SetLineColor(ROOT.kWhite)
+        numerator.Draw("hist bar same")
+
+        if (category == "matched_isMuon"):
+            place = find_place(canvas, 3)
+        else:
+            place = PLACES[0]
+            #place = find_place(canvas, 0)
+        legend = TLegend(place[0], place[1], place[2], place[3])
+        legend.AddEntry(g_efficiency, muonCatDict[category]["title"], "ep")
+        legend.AddEntry(numerator,
+                        efficiencyHistoDict[histo]["title"] + " distribution",
+                        "f")
+        legend.SetFillColorAlpha(ROOT.kWhite, 0.)
+        legend.Draw("same")
+
         canvas.Write()
+        cleantitle = muonCatDict[category]["title"].replace(" ", "").replace(
+            ",", "_").replace("<", "_")
+        canvas.SaveAs("../../../plotsfornote/muonID_isMuon_" + histo + "_" +
+                      cleantitle + ".pdf")
 
 # ghost histos
 for histo in ghostHistos:
@@ -126,6 +153,21 @@ for histo in ghostHistos:
     g_efficiency.GetYaxis().SetTitle("muon ID in ghost tracks")
     g_efficiency.Draw("ap")
     g_efficiency.GetYaxis().SetRangeUser(0, 1)
+
+    # draw variable distribution in same canvas
+    norm = 0.9 / numerator.GetMaximum()
+    numerator.Scale(norm)
+    numerator.SetTitle(efficiencyHistoDict[histo]["title"] + " distribution")
+    numerator.SetFillColorAlpha(ROOT.kBlack, 0.2)
+    numerator.SetLineColor(ROOT.kWhite)
+    numerator.Draw("hist bar same")
+
+    place = find_place(canvas, 0)
+    legend = TLegend(place[0], place[1], place[2], place[3])
+    legend.AddEntry(g_efficiency, "muon ID in ghost tracks", "ep")
+    legend.AddEntry(numerator,
+                    efficiencyHistoDict[histo]["title"] + " distribution", "f")
+    legend.Draw("same")
 
     canvas.Write()
     canvas.SaveAs("../../../plotsfornote/muonID_isMuon_ghosts_" + histo +

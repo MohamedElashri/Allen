@@ -9,8 +9,7 @@ namespace {
   using std::to_string;
 } // namespace
 
-Consumers::UTLookupTables::UTLookupTables(UTMagnetTool*& tool)
-  : m_tool{tool} {}
+Consumers::UTLookupTables::UTLookupTables(UTMagnetTool*& tool) : m_tool {tool} {}
 
 void Consumers::UTLookupTables::consume(std::vector<char> const& data)
 {
@@ -54,7 +53,7 @@ void Consumers::UTLookupTables::consume(std::vector<char> const& data)
     throw StrException {string {"sizes don't match: "} + to_string(m_size) + " " + to_string(data.size())};
   }
 
-  UTMagnetTool host_tool{deflection, bdl};
+  UTMagnetTool host_tool {deflection, bdl};
 
   // deflection table
   cudaCheck(cudaMemcpy(m_tool.get(), &host_tool, sizeof(UTMagnetTool), cudaMemcpyHostToDevice));

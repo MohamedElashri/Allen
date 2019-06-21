@@ -44,10 +44,11 @@ __host__ __device__ float fastfitter(
 {
 
   const float ty = velo_state.ty;
-  const float zKink = UT::Constants::magFieldParams[0] - ty*ty*UT::Constants::magFieldParams[1] - ty*ty*ty*ty*UT::Constants::magFieldParams[2];
-  const float xMidField = velo_state.x + velo_state.tx*(zKink-velo_state.z);
+  const float zKink = UT::Constants::magFieldParams[0] - ty * ty * UT::Constants::magFieldParams[1] -
+                      ty * ty * ty * ty * UT::Constants::magFieldParams[2];
+  const float xMidField = velo_state.x + velo_state.tx * (zKink - velo_state.z);
 
-  const float zDiff     = 0.001f * (zKink - UT::Constants::zMidUT);
+  const float zDiff = 0.001f * (zKink - UT::Constants::zMidUT);
 
   // -- This is to avoid division by zero...
   const float pHelper   = std::max( float(std::abs(best_params.qp * qpxz2p)), float(1e-9));
@@ -79,15 +80,15 @@ __host__ __device__ float fastfitter(
       const float t = ut_hits.sinT(hit, dxDy); 
       
       mat[0] += w;
-      mat[1] += w * dz; 
-      mat[2] += w * dz * dz; 
-      mat[3] += w * t; 
-      mat[4] += w * dz * t; 
-      mat[5] += w * t * t; 
+      mat[1] += w * dz;
+      mat[2] += w * dz * dz;
+      mat[3] += w * t;
+      mat[4] += w * dz * t;
+      mat[5] += w * t * t;
 
-      rhs[0] += w * ui; 
-      rhs[1] += w * ui * dz; 
-      rhs[2] += w * ui * t; 
+      rhs[0] += w * ui;
+      rhs[1] += w * ui * dz;
+      rhs[2] += w * ui * t;
     }
   }
   

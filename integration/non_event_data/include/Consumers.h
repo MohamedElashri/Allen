@@ -40,13 +40,19 @@ namespace Consumers {
 
   struct UTLookupTables final : public Allen::NonEventData::Consumer {
   public:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 14ca1f567707df93f55218f870f1d2808083af3d
     UTLookupTables(UTMagnetTool*& tool);
 
     void consume(std::vector<char> const& data) override;
 
   private:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 14ca1f567707df93f55218f870f1d2808083af3d
     std::reference_wrapper<UTMagnetTool*> m_tool;
     size_t m_size = 0;
   };
