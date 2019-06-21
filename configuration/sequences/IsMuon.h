@@ -52,4 +52,4 @@ SEQUENCE_T(
   consolidate_scifi_tracks_t,
   kalman_velo_only_t,
   muon_decoding_t,
-  is_muon_t,)
+  is_muon_t, )

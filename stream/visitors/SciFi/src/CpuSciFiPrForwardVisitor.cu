@@ -9,7 +9,8 @@ void SequenceVisitor::set_arguments_size<cpu_scifi_pr_forward_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_scifi_tracks>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+  arguments.set_size<dev_scifi_tracks>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
   arguments.set_size<dev_atomics_scifi>(host_buffers.host_number_of_selected_events[0] * SciFi::num_atomics);
 }
 

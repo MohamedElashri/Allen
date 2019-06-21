@@ -77,7 +77,7 @@ struct Constants {
   // Looking forward
   LookingForward::Constants host_looking_forward_constants;
 
-  //Muon
+  // Muon
   char* dev_muon_geometry_raw = nullptr;
   char* dev_muon_lookup_tables_raw = nullptr;
   std::vector<char> host_muon_geometry_raw;
@@ -105,8 +105,8 @@ struct Constants {
    */
   void reserve_and_initialize(
     const std::vector<float>& muon_field_of_interest_params,
-    const std::string& folder_params_kalman
-  ) {
+    const std::string& folder_params_kalman)
+  {
     reserve_constants();
     initialize_constants(muon_field_of_interest_params, folder_params_kalman);
   }
@@ -119,7 +119,9 @@ struct Constants {
   /**
    * @brief Initializes constants on the GPU.
    */
-  void initialize_constants(const std::vector<float>& muon_field_of_interest_params, const std::string& folder_params_kalman);
+  void initialize_constants(
+    const std::vector<float>& muon_field_of_interest_params,
+    const std::string& folder_params_kalman);
 
   /**
    * @brief Initializes UT decoding constants.

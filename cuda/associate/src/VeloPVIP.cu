@@ -18,8 +18,10 @@ namespace Distance {
     return std::sqrt((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
   }
 
-  __device__ float
-  velo_ip_chi2(const Velo::Consolidated::KalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+  __device__ float velo_ip_chi2(
+    const Velo::Consolidated::KalmanStates& velo_kalman_states,
+    const uint state_index,
+    const PV::Vertex& vertex)
   {
     // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
     float tx = velo_kalman_states.tx[state_index];
@@ -100,8 +102,8 @@ __global__ void velo_pv_ip(
   velo_pv_ip.set_cutoff(Associate::VeloPVIP::baseline);
 
   // Consolidated Velo fitted states for this event
-  Velo::Consolidated::KalmanStates const velo_kalman_states {dev_kalman_velo_states + sizeof(float) * event_tracks_offset,
-                                                       velo_tracks.total_number_of_tracks};
+  Velo::Consolidated::KalmanStates const velo_kalman_states {
+    dev_kalman_velo_states + sizeof(float) * event_tracks_offset, velo_tracks.total_number_of_tracks};
 
   gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
                                         *(dev_number_of_multi_fit_vertices + event_number)};

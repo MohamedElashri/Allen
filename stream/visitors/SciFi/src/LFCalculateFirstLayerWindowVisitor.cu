@@ -27,8 +27,7 @@ void SequenceVisitor::visit<lf_calculate_first_layer_window_t>(
     arguments.offset<dev_scifi_lf_first_layer_candidates>(),
     0,
     arguments.size<dev_scifi_lf_first_layer_candidates>(),
-    cuda_stream
-  ));
+    cuda_stream));
 
   // host_buffers.host_number_of_selected_events[0]
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(64), cuda_stream);

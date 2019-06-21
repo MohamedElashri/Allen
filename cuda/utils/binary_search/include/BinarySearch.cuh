@@ -24,10 +24,11 @@ __host__ __device__ int binary_search_leftmost(const T* array, const uint array_
     }
   }
   return l;
-} 
+}
 
 template<typename T, typename R>
-__host__ __device__ int binary_search_leftmost(const T* index_array, const uint index_array_size, const R* data_array, const R& value)
+__host__ __device__ int
+binary_search_leftmost(const T* index_array, const uint index_array_size, const R* data_array, const R& value)
 {
   int l = 0;
   int r = index_array_size;
@@ -128,8 +129,13 @@ binary_search_second_candidate(const T* array, const uint array_size, const T& v
  *        std::abs(value - array_element) < margin
  */
 template<typename T, typename R>
-__host__ __device__ int
-binary_search_first_candidate(const T* index_array, const int index_array_size, const R* data_array, const R& value, const float margin, const int offset = 0)
+__host__ __device__ int binary_search_first_candidate(
+  const T* index_array,
+  const int index_array_size,
+  const R* data_array,
+  const R& value,
+  const float margin,
+  const int offset = 0)
 {
   int l = 0;
   int r = index_array_size;
@@ -154,8 +160,13 @@ binary_search_first_candidate(const T* index_array, const int index_array_size, 
  *        value + margin > array[m]
  */
 template<typename T, typename R>
-__host__ __device__ int
-binary_search_second_candidate(const T* index_array, const int index_array_size, const R* data_array, const R& value, const float margin, const int offset = 0)
+__host__ __device__ int binary_search_second_candidate(
+  const T* index_array,
+  const int index_array_size,
+  const R* data_array,
+  const R& value,
+  const float margin,
+  const int offset = 0)
 {
   int l = 0;
   int r = index_array_size;

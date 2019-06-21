@@ -7,12 +7,14 @@ namespace Muon {
 
   class MuonLayout {
   public:
-    __device__ MuonLayout() {
+    __device__ MuonLayout()
+    {
       m_xgrid = 0;
       m_ygrid = 0;
     }
 
-    __device__ MuonLayout(unsigned int xgrid, unsigned int ygrid) {
+    __device__ MuonLayout(unsigned int xgrid, unsigned int ygrid)
+    {
       m_xgrid = xgrid;
       m_ygrid = ygrid;
     }
@@ -26,12 +28,10 @@ namespace Muon {
     unsigned int m_ygrid;
   };
 
-  __device__ inline bool operator==(const MuonLayout& ml1, const MuonLayout& ml2) {
-    return ml1.xGrid() == ml2.xGrid() &&
-           ml1.yGrid() == ml2.yGrid();
+  __device__ inline bool operator==(const MuonLayout& ml1, const MuonLayout& ml2)
+  {
+    return ml1.xGrid() == ml2.xGrid() && ml1.yGrid() == ml2.yGrid();
   }
 
-  __device__ inline bool operator!=(const MuonLayout& ml1, const MuonLayout& ml2) {
-    return !(ml1 == ml2);
-  }
-}
+  __device__ inline bool operator!=(const MuonLayout& ml1, const MuonLayout& ml2) { return !(ml1 == ml2); }
+} // namespace Muon

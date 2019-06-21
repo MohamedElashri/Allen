@@ -9,9 +9,9 @@ void SequenceVisitor::set_arguments_size<muon_pre_decoding_prefix_sum_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_prefix_sum_auxiliary_array_8>(
-    muon_pre_decoding_prefix_sum_t::aux_array_size(arguments.size<dev_storage_station_region_quarter_offsets>() /
-        sizeof(dev_storage_station_region_quarter_offsets::type)));
+  arguments.set_size<dev_prefix_sum_auxiliary_array_8>(muon_pre_decoding_prefix_sum_t::aux_array_size(
+    arguments.size<dev_storage_station_region_quarter_offsets>() /
+    sizeof(dev_storage_station_region_quarter_offsets::type)));
 }
 
 template<>
@@ -35,7 +35,8 @@ void SequenceVisitor::visit<muon_pre_decoding_prefix_sum_t>(
       host_buffers.host_muon_total_number_of_tiles);
 
     // arguments.print<dev_storage_station_region_quarter_offsets>();
-  } else {
+  }
+  else {
     // Set size of the main array to be prefix summed
     state.set_size((arguments.size<dev_storage_station_region_quarter_offsets>() >> 2) - 1);
 
@@ -53,8 +54,8 @@ void SequenceVisitor::visit<muon_pre_decoding_prefix_sum_t>(
     // Fetch total number of hits accumulated with all windows
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_muon_total_number_of_tiles,
-      arguments.offset<dev_storage_station_region_quarter_offsets>()
-      + (arguments.size<dev_storage_station_region_quarter_offsets>() >> 2) - 1,
+      arguments.offset<dev_storage_station_region_quarter_offsets>() +
+        (arguments.size<dev_storage_station_region_quarter_offsets>() >> 2) - 1,
       sizeof(int),
       cudaMemcpyDeviceToHost,
       cuda_stream));

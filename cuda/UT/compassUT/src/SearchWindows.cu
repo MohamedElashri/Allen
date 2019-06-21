@@ -53,7 +53,7 @@ __global__ void ut_search_windows(
       const MiniState velo_state = velo_states.get(current_track_offset);
       if (i_track < number_of_tracks_event) {
         if (
-            !velo_states.backward[current_track_offset] && dev_accepted_velo_tracks[current_track_offset] &&
+          !velo_states.backward[current_track_offset] && dev_accepted_velo_tracks[current_track_offset] &&
           velo_track_in_UTA_acceptance(velo_state)) {
           int current_track = atomicAdd(active_tracks, 1);
           shared_active_tracks[current_track] = i_track;

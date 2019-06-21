@@ -1,8 +1,6 @@
 #include "UTDefinitions.cuh"
 
-UTBoards::UTBoards(const std::vector<char>& ut_boards) : UTBoards{ut_boards.data()}
-{
-}
+UTBoards::UTBoards(const std::vector<char>& ut_boards) : UTBoards {ut_boards.data()} {}
 
 __device__ __host__ UTBoards::UTBoards(const char* ut_boards)
 {
@@ -24,9 +22,7 @@ __device__ __host__ UTBoards::UTBoards(const char* ut_boards)
   p += number_of_channels;
 }
 
-UTGeometry::UTGeometry(const std::vector<char>& ut_geometry)
-  : UTGeometry{ut_geometry.data()}
-{}
+UTGeometry::UTGeometry(const std::vector<char>& ut_geometry) : UTGeometry {ut_geometry.data()} {}
 
 __device__ __host__ UTGeometry::UTGeometry(const char* ut_geometry)
 {

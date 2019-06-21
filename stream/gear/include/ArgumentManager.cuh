@@ -79,12 +79,8 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
   template<typename T>
   void print() const
   {
-    std::vector<typename T::type> v (size<T>() / sizeof(typename T::type));
-    cudaCheck(cudaMemcpy(
-      v.data(),
-      offset<T>(),
-      size<T>(),
-      cudaMemcpyDeviceToHost));
+    std::vector<typename T::type> v(size<T>() / sizeof(typename T::type));
+    cudaCheck(cudaMemcpy(v.data(), offset<T>(), size<T>(), cudaMemcpyDeviceToHost));
 
     info_cout << T::name << ": ";
     for (const auto& i : v) {

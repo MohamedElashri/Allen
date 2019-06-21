@@ -28,17 +28,9 @@ void SequenceVisitor::visit<velo_search_by_triplet_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_atomics_velo>(),
-    0,
-    arguments.size<dev_atomics_velo>(),
-    cuda_stream));
-  
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_hit_used>(),
-    0,
-    arguments.size<dev_hit_used>(),
-    cuda_stream));
+  cudaCheck(cudaMemsetAsync(arguments.offset<dev_atomics_velo>(), 0, arguments.size<dev_atomics_velo>(), cuda_stream));
+
+  cudaCheck(cudaMemsetAsync(arguments.offset<dev_hit_used>(), 0, arguments.size<dev_hit_used>(), cuda_stream));
 
   // Setup opts and arguments
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);

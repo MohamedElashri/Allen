@@ -27,12 +27,13 @@ __device__ void lf_search_initial_windows_p_impl(
 
   int iZoneStartingPoint = (side > 0) ? constArrays->zoneoffsetpar : 0;
 
-  for (int i=threadIdx.y; i<LookingForward::number_of_x_layers; i+=blockDim.y) {
+  for (int i = threadIdx.y; i < LookingForward::number_of_x_layers; i += blockDim.y) {
     const auto iZone = iZoneStartingPoint + i;
     const float zZone = constArrays->xZone_zPos[i];
 
     // TODO this could be done in a more optimized way
-    const auto stateInZone = LookingForward::propagate_state_from_velo(UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
+    const auto stateInZone = LookingForward::propagate_state_from_velo(
+      UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
 
     const float xInZone = stateInZone.x;
 
@@ -40,7 +41,7 @@ __device__ void lf_search_initial_windows_p_impl(
 
     const float xMag = LookingForward::state_at_z(UT_state, LookingForward::z_magnet).x;
 
-    const float xTol =  1.5f*LookingForward::dx_calc(UT_state.tx, qop);
+    const float xTol = 1.5f * LookingForward::dx_calc(UT_state.tx, qop);
     float xMin = xInZone - xTol;
     float xMax = xInZone + xTol;
 
@@ -48,7 +49,8 @@ __device__ void lf_search_initial_windows_p_impl(
     const int x_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->xZones[iZone]);
     const int x_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->xZones[iZone]);
     int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
-    int hits_within_bounds_size = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
+    int hits_within_bounds_size = binary_search_leftmost(
+      scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
     hits_within_bounds_start += x_zone_offset_begin;
 
     // Initialize windows
@@ -61,17 +63,19 @@ __device__ void lf_search_initial_windows_p_impl(
       const float this_uv_z = constArrays->uvZone_zPos[i];
       const float dz = this_uv_z - zZone;
       const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
-      const float UvCorr = LookingForward::linear_propagation(yInZone, stateInZone.ty, dz) * constArrays->uvZone_dxdy[i];
+      const float UvCorr =
+        LookingForward::linear_propagation(yInZone, stateInZone.ty, dz) * constArrays->uvZone_dxdy[i];
       const float xInUvCorr = xInUv - UvCorr;
       const float xMinUV = xInUvCorr - 800;
-      const float dz_ratio = (this_uv_z - zZone)/(LookingForward::z_magnet - zZone);
+      const float dz_ratio = (this_uv_z - zZone) / (LookingForward::z_magnet - zZone);
 
       // Get bounds in UV layers
       // do one search on the same side as the x module
       // if we are close to y = 0, also look within a region on the other side module ("triangle search")
       const int uv_zone_offset_begin = scifi_hit_count.zone_offset(constArrays->uvZones[iZone]);
       const int uv_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
-      const int hits_within_uv_bounds = binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
+      const int hits_within_uv_bounds =
+        binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
 
       initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_uv_bounds + uv_zone_offset_begin;
       initial_windows[(i * 8 + 3) * number_of_tracks] = uv_zone_size - hits_within_uv_bounds;

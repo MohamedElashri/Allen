@@ -29,6 +29,5 @@ __host__ __device__ std::tuple<int, int> find_x_in_window(
       candidates + first_candidate, num_hits - first_candidate, hits.x0, value, margin, offset);
   }
 
-  return std::tuple<int, int>{first_candidate, number_of_candidates};
+  return std::tuple<int, int> {first_candidate, number_of_candidates};
 }
-

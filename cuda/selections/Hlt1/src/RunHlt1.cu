@@ -37,7 +37,7 @@ __global__ void run_hlt1(
   bool* event_disp_dimuon_results = dev_disp_dimuon_results + dev_sv_offsets[event_number];
   bool* event_high_mass_dimuon_results = dev_high_mass_dimuon_results + dev_sv_offsets[event_number];
   const int n_vertices_event = dev_sv_offsets[event_number + 1] - dev_sv_offsets[event_number];
-  
+
   LineHandler<ParKalmanFilter::FittedTrack> oneTrackHandler(TrackMVALines::OneTrackMVA);
   LineHandler<VertexFit::TrackMVAVertex> twoTrackHandler(TrackMVALines::TwoTrackMVA);
   LineHandler<ParKalmanFilter::FittedTrack> singleMuonHandler(MuonLines::SingleMuon);
@@ -45,30 +45,14 @@ __global__ void run_hlt1(
   LineHandler<VertexFit::TrackMVAVertex> highMassDiMuonHandler(MuonLines::HighMassDiMuon);
 
   // One track lines.
-  oneTrackHandler(
-    event_tracks,
-    n_tracks_event,
-    event_one_track_results);
-  
-  singleMuonHandler(
-    event_tracks,
-    n_tracks_event,
-    event_single_muon_results);
+  oneTrackHandler(event_tracks, n_tracks_event, event_one_track_results);
+
+  singleMuonHandler(event_tracks, n_tracks_event, event_single_muon_results);
 
   // Two track lines.
-  twoTrackHandler(
-    event_vertices,
-    n_vertices_event,
-    event_two_track_results);
+  twoTrackHandler(event_vertices, n_vertices_event, event_two_track_results);
 
-  dispDiMuonHandler(
-    event_vertices,
-    n_vertices_event,
-    event_disp_dimuon_results);
+  dispDiMuonHandler(event_vertices, n_vertices_event, event_disp_dimuon_results);
 
-  highMassDiMuonHandler(
-    event_vertices,
-    n_vertices_event,
-    event_high_mass_dimuon_results);
-  
+  highMassDiMuonHandler(event_vertices, n_vertices_event, event_high_mass_dimuon_results);
 }

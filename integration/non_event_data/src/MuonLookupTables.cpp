@@ -7,14 +7,17 @@
 namespace {
   using std::string;
   using std::to_string;
-}
+} // namespace
 
-Consumers::MuonLookupTables::MuonLookupTables(std::vector<char>& host_muon_tables_raw, char*& dev_muon_tables_raw, Muon::MuonTables*& dev_muon_tables)
-    : m_host_muon_tables_raw{host_muon_tables_raw},
-      m_dev_muon_tables_raw{dev_muon_tables_raw},
-      m_muon_tables{dev_muon_tables} {
-}
-void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
+Consumers::MuonLookupTables::MuonLookupTables(
+  std::vector<char>& host_muon_tables_raw,
+  char*& dev_muon_tables_raw,
+  Muon::MuonTables*& dev_muon_tables) :
+  m_host_muon_tables_raw {host_muon_tables_raw},
+  m_dev_muon_tables_raw {dev_muon_tables_raw}, m_muon_tables {dev_muon_tables}
+{}
+void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
+{
   const char* raw_input = data.data();
   size_t allOffsets[n_data_blocks];
   unsigned int sizeOffset[Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::MuonTables::n_tables];
@@ -80,11 +83,14 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data) {
     cudaCheck(cudaMalloc((void**) &dev_muon_tables_raw, data.size()));
     cudaCheck(cudaMalloc((void**) &m_muon_tables.get(), sizeof(Muon::MuonTables)));
     m_size = sizeof(Muon::MuonTables);
-  } else if (host_muon_tables_raw.size() != data.size()) {
-    throw StrException{string{"sizes don't match: "} + to_string(host_muon_tables_raw.size()) + " " + to_string(data.size())};
+  }
+  else if (host_muon_tables_raw.size() != data.size()) {
+    throw StrException {string {"sizes don't match: "} + to_string(host_muon_tables_raw.size()) + " " +
+                        to_string(data.size())};
   }
   host_muon_tables_raw = std::move(data);
-  cudaCheck(cudaMemcpy(dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), cudaMemcpyHostToDevice));
-  Muon::MuonTables host_muon_tables{allOffsets, dev_muon_tables_raw, sizeOffset};
+  cudaCheck(
+    cudaMemcpy(dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), cudaMemcpyHostToDevice));
+  Muon::MuonTables host_muon_tables {allOffsets, dev_muon_tables_raw, sizeOffset};
   cudaCheck(cudaMemcpy(m_muon_tables.get(), &host_muon_tables, sizeof(Muon::MuonTables), cudaMemcpyHostToDevice));
 }
