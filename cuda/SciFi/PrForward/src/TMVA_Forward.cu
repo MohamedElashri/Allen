@@ -7,8 +7,8 @@ __host__ __device__ void SciFi::Tracking::Transform_1(float* iv, const TMVA* tmv
 
   for (int ivar = 0; ivar < nVar; ivar++) {
     const float offset = tmva->fMin_1[cls][ivar];
-    const float scale = 1.0 / (tmva->fMax_1[cls][ivar] -
-                               tmva->fMin_1[cls][ivar]); // TODO speed this up. but then not easy to update :(
+    const float scale =
+      1.0 / (tmva->fMax_1[cls][ivar] - tmva->fMin_1[cls][ivar]); // TODO speed this up. but then not easy to update :(
     iv[ivar] = (iv[ivar] - offset) * scale * 2. - 1.;
   }
 }

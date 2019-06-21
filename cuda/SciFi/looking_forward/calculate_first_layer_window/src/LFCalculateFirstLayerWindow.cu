@@ -52,7 +52,7 @@ __global__ void lf_calculate_first_layer_window(
   MiniState* ut_states = dev_ut_states + ut_event_tracks_offset;
 
   // Loop over the veloUT input tracks
-  for (int i=threadIdx.x; i<ut_event_number_of_tracks; i+=blockDim.x) {
+  for (int i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
     const int velo_track_index = ut_tracks.velo_track[i];
     const int ut_track_index = ut_event_tracks_offset + i;
     const float ut_qop = ut_tracks.qop[i];

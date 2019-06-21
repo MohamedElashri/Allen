@@ -13,8 +13,10 @@
 MCAssociator::MCAssociator(const MCParticles& mcps) : m_mcps(mcps)
 {
   // work out how much space we need
-  const std::size_t total = std::accumulate(mcps.begin(), mcps.end(), 0, [
-  ](std::size_t acc, MCParticles::const_reference mcp) noexcept { return acc + mcp.numHits; });
+  const std::size_t total = std::accumulate(
+    mcps.begin(), mcps.end(), 0, [](std::size_t acc, MCParticles::const_reference mcp) noexcept {
+      return acc + mcp.numHits;
+    });
   m_map.reserve(total);
   // build association LHCbID -> MCParticle index
   std::size_t idx = 0;
@@ -25,9 +27,10 @@ MCAssociator::MCAssociator(const MCParticles& mcps) : m_mcps(mcps)
     ++idx;
   }
   // sort map by LHCbID for fast lookups
-  std::sort(m_map.begin(), m_map.end(), [](const LHCbIDWithIndex& a, const LHCbIDWithIndex& b) noexcept {
-    return a.first < b.first;
-  });
+  std::sort(
+    m_map.begin(), m_map.end(), [](const LHCbIDWithIndex& a, const LHCbIDWithIndex& b) noexcept {
+      return a.first < b.first;
+    });
 }
 
 MCAssociator::AssocMap::const_iterator MCAssociator::find_id(const LHCbID& id) const noexcept
@@ -74,8 +77,9 @@ MCAssociator::MCAssocResult MCAssociator::buildResult(const MCAssociator::AssocP
   for (auto&& el : assocmap)
     retVal.emplace_back(el.first, float(el.second) / float(total), total);
   // sort such that high weights come first
-  std::sort(retVal.begin(), retVal.end(), [](const MCParticleWithWeight& a, const MCParticleWithWeight& b) noexcept {
-    return a.m_w > b.m_w;
-  });
+  std::sort(
+    retVal.begin(), retVal.end(), [](const MCParticleWithWeight& a, const MCParticleWithWeight& b) noexcept {
+      return a.m_w > b.m_w;
+    });
   return MCAssocResult {std::move(retVal), m_mcps};
 }

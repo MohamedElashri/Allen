@@ -39,8 +39,6 @@ __device__ void lf_extend_tracks_uv_impl(
   }
 
   if (best_index != -1) {
-    track.add_hit_with_quality(
-      (uint16_t) best_index,
-      best_chi2);
+    track.add_hit_with_quality((uint16_t) best_index, best_chi2);
   }
 }

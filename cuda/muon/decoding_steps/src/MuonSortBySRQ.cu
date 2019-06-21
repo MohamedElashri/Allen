@@ -14,7 +14,7 @@ __global__ void muon_sort_station_region_quarter(
   auto permutation_srq = dev_permutation_srq + event_number * Muon::Constants::max_numhits_per_event;
 
   // Order that we actually want when IDs are the same
-  const auto tile_order = [&muon_raw_to_hits] (const uint tile_id) {
+  const auto tile_order = [&muon_raw_to_hits](const uint tile_id) {
     const auto tile = Muon::MuonTileID(tile_id);
     const auto station = tile.station();
     const auto region = tile.region();
@@ -25,7 +25,7 @@ __global__ void muon_sort_station_region_quarter(
   };
 
   // Create a permutation according to Muon::MuonTileID::stationRegionQuarter
-  const auto get_srq = [&storage_tile_id, &tile_order] (const uint a, const uint b) {
+  const auto get_srq = [&storage_tile_id, &tile_order](const uint a, const uint b) {
     const auto storage_tile_id_a = storage_tile_id[a];
     const auto storage_tile_id_b = storage_tile_id[b];
 
@@ -43,34 +43,29 @@ __global__ void muon_sort_station_region_quarter(
     return (a_srq > b_srq) - (a_srq < b_srq);
   };
 
-  find_permutation(0,
-    0,
-    number_of_hits,
-    permutation_srq,
-    get_srq);
+  find_permutation(0, 0, number_of_hits, permutation_srq, get_srq);
 
   __syncthreads();
 
   __shared__ uint sorted_array[Muon::Constants::max_numhits_per_event];
 
   // Apply permutation to storage_tile_id
-  for (int i=threadIdx.x; i<number_of_hits; i+=blockDim.x) {
+  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     sorted_array[i] = storage_tile_id[permutation_srq[i]];
   }
   __syncthreads();
-  for (int i=threadIdx.x; i<number_of_hits; i+=blockDim.x) {
+  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     storage_tile_id[i] = sorted_array[i];
   }
 
   __syncthreads();
 
   // Apply permutation to storage_tdc_value
-  for (int i=threadIdx.x; i<number_of_hits; i+=blockDim.x) {
+  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     sorted_array[i] = storage_tdc_value[permutation_srq[i]];
   }
   __syncthreads();
-  for (int i=threadIdx.x; i<number_of_hits; i+=blockDim.x) {
+  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     storage_tdc_value[i] = sorted_array[i];
   }
-
 }

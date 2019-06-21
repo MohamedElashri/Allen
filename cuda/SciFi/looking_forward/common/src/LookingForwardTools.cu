@@ -59,8 +59,10 @@ __device__ float LookingForward::propagate_x_from_velo(
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   // get x and y at center of magnet
-  const auto magnet_x = linear_propagation(UT_state.x, UT_state.tx, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
-  const auto magnet_y = linear_propagation(UT_state.y, UT_state.ty, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
+  const auto magnet_x =
+    linear_propagation(UT_state.x, UT_state.tx, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
+  const auto magnet_y =
+    linear_propagation(UT_state.y, UT_state.ty, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
 
   const auto dp_x_mag =
     (qop > 0) ? dev_looking_forward_constants->dp_x_mag_plus : dev_looking_forward_constants->dp_x_mag_minus;
@@ -76,8 +78,11 @@ __device__ float LookingForward::propagate_x_from_velo(
     dp_y_mag[layer][0] + magnet_y * dp_y_mag[layer][1] + magnet_y * magnet_y * dp_y_mag[layer][2];
 
   const float final_tx = dev_looking_forward_constants->ds_p_param[layer] * qop + UT_state.tx;
-  float final_x = linear_propagation(magnet_x, final_tx, dev_looking_forward_constants->Zone_zPos[layer] - dev_looking_forward_constants->zMagnetParams[0]);
-  final_x += - y_mag_correction - x_mag_correction;
+  float final_x = linear_propagation(
+    magnet_x,
+    final_tx,
+    dev_looking_forward_constants->Zone_zPos[layer] - dev_looking_forward_constants->zMagnetParams[0]);
+  final_x += -y_mag_correction - x_mag_correction;
 
   return final_x;
 }
@@ -92,10 +97,9 @@ __device__ float LookingForward::dx_calc(const float state_tx, float qop)
     ret_val = LookingForward::max_window_layer0;
   }
 
-
   // TEST
   // ret_val = 100 + 1.4e6*std::abs(qop);
-  ret_val = 100 + 1.4e6*std::abs(qop);
+  ret_val = 100 + 1.4e6 * std::abs(qop);
 
   return ret_val;
 }
@@ -122,12 +126,13 @@ __device__ std::tuple<int, int> LookingForward::find_x_in_window(
   int last_candidate = -1;
 
   if (first_candidate != -1) {
-    last_candidate = binary_search_second_candidate(hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, value1, margin);
+    last_candidate = binary_search_second_candidate(
+      hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, value1, margin);
     first_candidate = zone_offset + first_candidate;
     last_candidate += first_candidate;
   }
 
-  return std::tuple<int, int>{first_candidate, last_candidate};
+  return std::tuple<int, int> {first_candidate, last_candidate};
 }
 
 __device__ std::tuple<short, short> LookingForward::find_x_in_window(
@@ -140,10 +145,11 @@ __device__ std::tuple<short, short> LookingForward::find_x_in_window(
   short first_candidate = (short) binary_search_first_candidate(hits_x0 + zone_offset, num_hits, value, margin);
   short candidate_size = 0;
   if (first_candidate != -1) {
-    candidate_size = (short) binary_search_second_candidate(hits_x0 + zone_offset + first_candidate, num_hits - first_candidate, value, margin);
+    candidate_size = (short) binary_search_second_candidate(
+      hits_x0 + zone_offset + first_candidate, num_hits - first_candidate, value, margin);
     first_candidate += zone_offset;
   }
-  return std::tuple<short, short>{first_candidate, candidate_size};
+  return std::tuple<short, short> {first_candidate, candidate_size};
 }
 
 __device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(
@@ -154,7 +160,8 @@ __device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(
   assert(first_zone < SciFi::Constants::n_zones - 1);
   const auto offset = (y < 0) ? 0 : 1;
 
-  return std::tuple<int, int>{scifi_hit_count.zone_offset(first_zone + offset), scifi_hit_count.zone_number_of_hits(first_zone + offset)};
+  return std::tuple<int, int> {scifi_hit_count.zone_offset(first_zone + offset),
+                               scifi_hit_count.zone_number_of_hits(first_zone + offset)};
 }
 
 __device__ std::tuple<int, float> LookingForward::get_best_hit(
@@ -188,7 +195,7 @@ __device__ std::tuple<int, float> LookingForward::get_best_hit(
     }
   }
 
-  return std::tuple<int, float>{best_index, min_chi2};
+  return std::tuple<int, float> {best_index, min_chi2};
 }
 
 __device__ float LookingForward::scifi_propagation(const float x_0, const float tx, const float qop, const float dz)
@@ -197,12 +204,12 @@ __device__ float LookingForward::scifi_propagation(const float x_0, const float 
 }
 
 __device__ float LookingForward::qop_update(
-    const float ut_state_tx,
-    const float h0_x,
-    const float h0_z,
-    const float h1_x,
-    const float h1_z,
-    const float ds_p_param_layer_inv)
+  const float ut_state_tx,
+  const float h0_x,
+  const float h0_z,
+  const float h1_x,
+  const float h1_z,
+  const float ds_p_param_layer_inv)
 {
   const float slope = (h1_x - h0_x) / std::abs(h1_z - h0_z);
   return (slope - ut_state_tx) * ds_p_param_layer_inv;

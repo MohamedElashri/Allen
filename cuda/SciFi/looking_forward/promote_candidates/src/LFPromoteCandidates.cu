@@ -32,12 +32,15 @@ __global__ void lf_promote_candidates(
   int* track_insert_atomic = dev_atomics_scifi + number_of_events + event_number;
 
   // Only proceed if we have candidates in the first window
-  for (int i=threadIdx.x; i<number_of_candidates; i+=blockDim.x) {
+  for (int i = threadIdx.x; i < number_of_candidates; i += blockDim.x) {
     if (dev_scifi_track_promoted_candidates[event_number * SciFi::Constants::max_track_candidates + i] == false) {
-      const unsigned short* extrapolation_layer_candidates = dev_extrapolation_layer_candidates + event_number * SciFi::Constants::max_track_candidates + i;
-      const SciFi::TrackCandidate track_candidate = dev_scifi_track_candidates[event_number * SciFi::Constants::max_track_candidates + i];
+      const unsigned short* extrapolation_layer_candidates =
+        dev_extrapolation_layer_candidates + event_number * SciFi::Constants::max_track_candidates + i;
+      const SciFi::TrackCandidate track_candidate =
+        dev_scifi_track_candidates[event_number * SciFi::Constants::max_track_candidates + i];
       const MiniState state_at_z_last_ut_plane = dev_ut_states[ut_event_tracks_offset + track_candidate.ut_track_index];
-      const float projection_y = LookingForward::y_at_z(state_at_z_last_ut_plane, dev_looking_forward_constants->Zone_zPos[layer]);
+      const float projection_y =
+        LookingForward::y_at_z(state_at_z_last_ut_plane, dev_looking_forward_constants->Zone_zPos[layer]);
 
       const auto best_index_quality = lf_promote_candidates_impl(
         projection_y,

@@ -8,9 +8,14 @@ void SequenceVisitor::set_arguments_size<lf_quality_filter_length_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_scifi_lf_length_filtered_tracks>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
-  arguments.set_size<dev_scifi_lf_length_filtered_atomics>(host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
-  arguments.set_size<dev_scifi_lf_xAtRef_after_length_filter>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
+  arguments.set_size<dev_scifi_lf_length_filtered_tracks>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+    LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
+  arguments.set_size<dev_scifi_lf_length_filtered_atomics>(
+    host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
+  arguments.set_size<dev_scifi_lf_xAtRef_after_length_filter>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+    LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
 }
 
 template<>
@@ -40,5 +45,4 @@ void SequenceVisitor::visit<lf_quality_filter_length_t>(
     arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
     arguments.offset<dev_scifi_lf_length_filtered_atomics>());
   state.invoke();
-
 }

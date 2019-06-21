@@ -50,9 +50,9 @@ struct HostBuffers {
   float* host_ut_x;
   float* host_ut_tx;
   float* host_ut_z;
-  uint*  host_ut_track_velo_indices;
-  
-  // SciFi 
+  uint* host_ut_track_velo_indices;
+
+  // SciFi
   uint* host_accumulated_number_of_scifi_hits;
   uint* host_number_of_reconstructed_scifi_tracks;
   SciFi::TrackHits* host_scifi_tracks;
@@ -78,22 +78,22 @@ struct HostBuffers {
   // Secondary vertices
   uint* host_number_of_svs;
   uint* host_sv_offsets;
-  
+
   // Selections
   bool* host_one_track_decisions;
   bool* host_two_track_decisions;
   bool* host_single_muon_decisions;
   bool* host_disp_dimuon_decisions;
   bool* host_high_mass_dimuon_decisions;
-  
+
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;
   std::vector<char> host_velo_states;
-  //std::vector<uint> n_scifi_tracks;
-  std::vector< std::vector< std::vector< uint32_t > > > scifi_ids_ut_tracks;
+  // std::vector<uint> n_scifi_tracks;
+  std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_ut_tracks;
   std::vector<uint> host_scifi_hits;
   std::vector<uint> host_scifi_hit_count;
-  
+
   /**
    * @brief Reserves all host buffers.
    */

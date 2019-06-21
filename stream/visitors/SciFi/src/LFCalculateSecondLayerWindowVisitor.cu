@@ -8,7 +8,8 @@ void SequenceVisitor::set_arguments_size<lf_calculate_second_layer_window_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_scifi_lf_second_layer_candidates>(8 * host_buffers.host_lf_total_size_first_window_layer[0] + 1);
+  arguments.set_size<dev_scifi_lf_second_layer_candidates>(
+    8 * host_buffers.host_lf_total_size_first_window_layer[0] + 1);
 }
 
 template<>
@@ -25,8 +26,7 @@ void SequenceVisitor::visit<lf_calculate_second_layer_window_t>(
     arguments.offset<dev_scifi_lf_second_layer_candidates>(),
     0,
     arguments.size<dev_scifi_lf_second_layer_candidates>(),
-    cuda_stream
-  ));
+    cuda_stream));
 
   // 1, 32: 19.06%
   // 2, 16: 15.58%

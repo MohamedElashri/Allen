@@ -32,7 +32,8 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_ut_t>(
       cuda_stream,
       cuda_generic_event,
       host_buffers.host_number_of_reconstructed_ut_tracks);
-  } else {
+  }
+  else {
     // Calculate prefix sum of found UT tracks.
     state.set_opts(dim3(1), dim3(1024), cuda_stream);
     state.set_arguments(

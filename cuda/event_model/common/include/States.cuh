@@ -16,7 +16,7 @@
  *                    c33 0.f
  *                        0.f
  */
-struct KalmanVeloState { 
+struct KalmanVeloState {
   float x, y, z, tx, ty;
   float c00, c20, c22, c11, c31, c33;
 };
@@ -30,11 +30,14 @@ struct VeloState {
 
   __host__ __device__ VeloState() {};
 
-  __host__ __device__ VeloState(const VeloState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty), backward(other.backward)
+  __host__ __device__ VeloState(const VeloState& other) :
+    x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty), backward(other.backward)
   {}
 
-  __host__ __device__ VeloState(const float _x, const float _y, const float _z, const float _tx, const float _ty, bool _backward) :
-    x(_x), y(_y), z(_z), tx(_tx), ty(_ty), backward(_backward)
+  __host__ __device__
+  VeloState(const float _x, const float _y, const float _z, const float _tx, const float _ty, bool _backward) :
+    x(_x),
+    y(_y), z(_z), tx(_tx), ty(_ty), backward(_backward)
   {}
 };
 
@@ -43,7 +46,7 @@ struct VeloState {
  */
 struct MiniState {
   float x, y, z, tx, ty;
-  
+
   __host__ __device__ MiniState() {};
 
   __host__ __device__ MiniState(const VeloState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
@@ -52,7 +55,7 @@ struct MiniState {
   __host__ __device__ MiniState(const MiniState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
   {}
 
-__host__ __device__ MiniState(const float _x, const float _y, const float _z, const float _tx, const float _ty) :
+  __host__ __device__ MiniState(const float _x, const float _y, const float _z, const float _tx, const float _ty) :
     x(_x), y(_y), z(_z), tx(_tx), ty(_ty)
   {}
 };

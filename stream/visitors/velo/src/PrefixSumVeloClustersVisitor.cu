@@ -32,7 +32,8 @@ void SequenceVisitor::visit<prefix_sum_velo_clusters_t>(
       cuda_stream,
       cuda_generic_event,
       host_buffers.host_total_number_of_velo_clusters);
-  } else {
+  }
+  else {
     // Set size of the main array to be prefix summed
     state.set_size(host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules);
 

@@ -31,7 +31,7 @@ def ghostHistoDict():
     basedict = {"eta": {}, "nPV": {}}
 
     basedict["eta"]["xTitle"] = "#eta"
-    basedict["eta"]["variable"] = "Eta"
+    basedict["eta"]["variable"] = "eta"
 
     basedict["nPV"]["xTitle"] = "# of PVs"
     basedict["nPV"]["variable"] = "nPV"
@@ -41,10 +41,10 @@ def ghostHistoDict():
 
 def getCuts():
     basedict = {"Velo": {}, "Upstream": {}, "Forward": {}}
+
     # basedict["Forward"] = [
     #     "Long_eta25", "LongFromB_eta25"
     # ]
-
 
     basedict["Velo"] = [
         "VeloTracks", "VeloTracks_eta25", "LongFromB_eta25", "LongFromD_eta25",

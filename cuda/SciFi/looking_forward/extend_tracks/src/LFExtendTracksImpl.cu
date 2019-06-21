@@ -19,15 +19,17 @@ __device__ std::tuple<int16_t, float> lf_extend_tracks_impl(
 
   // Pick the best, according to chi2
   int16_t best_index = -1;
-  float best_chi2 = dev_looking_forward_constants->chi2_extrap_mean[layer]
-    + 2.f * dev_looking_forward_constants->chi2_extrap_stddev[layer];
+  float best_chi2 = dev_looking_forward_constants->chi2_extrap_mean[layer] +
+                    2.f * dev_looking_forward_constants->chi2_extrap_stddev[layer];
 
   const auto hit_layer8 = std::make_tuple(dev_looking_forward_constants->Zone_zPos[8], x_at_layer_8);
   const auto hit_layer11 = std::make_tuple(dev_looking_forward_constants->Zone_zPos[11], x_at_layer_11);
 
   for (int i = 0; i < size_extrapolated_candidates; i++) {
-    const auto hit_current_layer = std::make_tuple(dev_looking_forward_constants->Zone_zPos[layer],
-      hits.x0[hit_count.event_offset() + first_extrapolated_candidate + i] + projection_y * dev_looking_forward_constants->Zone_dxdy[layer % 4]);
+    const auto hit_current_layer = std::make_tuple(
+      dev_looking_forward_constants->Zone_zPos[layer],
+      hits.x0[hit_count.event_offset() + first_extrapolated_candidate + i] +
+        projection_y * dev_looking_forward_constants->Zone_dxdy[layer % 4]);
 
     const auto chi2 = chi2_extrapolation(
       x_at_layer_8,
@@ -37,12 +39,12 @@ __device__ std::tuple<int16_t, float> lf_extend_tracks_impl(
       hit_layer8,
       hit_layer11,
       hit_current_layer);
-    
+
     if (chi2 < best_chi2) {
       best_chi2 = chi2;
       best_index = first_extrapolated_candidate + i;
     }
   }
 
-  return std::tuple<int16_t, float>{best_index, best_chi2};
+  return std::tuple<int16_t, float> {best_index, best_chi2};
 }

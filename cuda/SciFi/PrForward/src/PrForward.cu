@@ -152,7 +152,8 @@ __global__ void scifi_pr_forward(
   const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
 
   // SciFi un-consolidated track types
-  SciFi::TrackHits* scifi_tracks_event = dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
+  SciFi::TrackHits* scifi_tracks_event =
+    dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
   int* atomics_scifi_event = dev_atomics_scifi + event_number;
 
   // SciFi hits

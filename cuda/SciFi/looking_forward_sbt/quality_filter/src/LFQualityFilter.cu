@@ -80,8 +80,8 @@ __global__ void lf_quality_filter(
     // Save all tracks for efficiency study
     // if (track.quality > 0.01f) {
     //   const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-    //   dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
-    //   dev_scifi_selected_track_indices
+    //   dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] =
+    //   track; dev_scifi_selected_track_indices
     //     [ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
     // }
   }

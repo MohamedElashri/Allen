@@ -41,5 +41,4 @@ SEQUENCE_T(
   lf_calculate_first_layer_window_t,
   lf_prefix_sum_first_layer_window_size_t,
   lf_calculate_second_layer_window_t,
-  lf_form_seeds_from_candidates_t,
-)
+  lf_form_seeds_from_candidates_t, )

@@ -21,7 +21,7 @@ void SequenceVisitor::visit<fit_secondary_vertices_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(16,16), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(16, 16), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_kf_tracks>(),
     arguments.offset<dev_atomics_scifi>(),
@@ -35,5 +35,5 @@ void SequenceVisitor::visit<fit_secondary_vertices_t>(
     arguments.offset<dev_kalman_pv_ipchi2>(),
     arguments.offset<dev_sv_offsets>(),
     arguments.offset<dev_secondary_vertices>());
-  state.invoke();  
+  state.invoke();
 }

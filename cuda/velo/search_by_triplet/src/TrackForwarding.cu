@@ -33,7 +33,8 @@ __device__ void track_forwarding(
     if (track_flag) {
       track_scratch = tracklets[trackno];
       t = (Velo::TrackHits*) &track_scratch;
-    } else {
+    }
+    else {
       t = tracks + trackno;
     }
 
@@ -129,7 +130,7 @@ __device__ void track_forwarding(
         // If it is a track made out of less than or equal than 4 hits,
         // we have to allocate it in the tracks pointer
         trackno = atomicAdd(dev_atomics_velo + blockIdx.x, 1);
-        *((Velo::TrackHitsScratch*)&tracks[trackno]) = track_scratch;
+        *((Velo::TrackHitsScratch*) &tracks[trackno]) = track_scratch;
       }
 
       // Add the tracks to the bag of tracks to_follow

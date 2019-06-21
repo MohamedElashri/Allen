@@ -101,7 +101,7 @@ __global__ void lf_quality_filter_x(
         }
       }
 
-      // Note: xAtRef_spread < 10.f instead of 
+      // Note: xAtRef_spread < 10.f instead of
       //       xAtRef_spread < 1e9
       //       kills about 2.3% fakes with something like 0.5% impact on RE
       if (

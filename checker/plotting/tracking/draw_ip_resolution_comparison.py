@@ -13,6 +13,7 @@ centers = array('d', 0.5 * (edges[:-1] + edges[1:]))
 # Dumb hack to not draw x "errors".
 widths = array('d', 0. * (edges[1:] - edges[:-1]))
 
+
 def ipRes3D(tree, var, ptBin):
     th1 = ROOT.TH1F('h', 'h', 100, 0, 0.1)
     tree.Draw(
@@ -20,6 +21,7 @@ def ipRes3D(tree, var, ptBin):
         'ghost==0 && 1000./best_pt>={} && 1000./best_pt<{}'.format(
             ptBin[0], ptBin[1]), 'goff')
     return th1.GetMean(), th1.GetStdDev() / np.sqrt(th1.Integral())
+
 
 def ipResFit(tree, var, ptBin):
     th1 = ROOT.TH1F('h', 'h', 100, -0.1, 0.1)
@@ -32,6 +34,7 @@ def ipResFit(tree, var, ptBin):
     return th1.GetFunction('f').GetParameter(2), th1.GetFunction(
         'f').GetParError(2)
 
+
 def makeGraph(tree, var, resFunc):
     res = np.array([resFunc(tree, var, ptBin) for ptBin in bins])
     g = ROOT.TGraphErrors(
@@ -39,6 +42,7 @@ def makeGraph(tree, var, resFunc):
         array('d', 1000. * res[:, 1]))
     g.SetName(var + '_resolution')
     return g
+
 
 if __name__ == '__main__':
     fNameSimple = sys.argv[1]
@@ -52,15 +56,15 @@ if __name__ == '__main__':
     plotInfo = [('ipx', 'kalman_ipx', 'velo_ipx', ipResFit, 'IP_{#it{x}}'),
                 ('ipy', 'kalman_ipy', 'velo_ipy', ipResFit, 'IP_{#it{y}}'),
                 ('ip3d', 'kalman_ip', 'velo_ip', ipRes3D, 'IP_{3D}')]
-    c1 = ROOT.TCanvas('c1','c1')
+    c1 = ROOT.TCanvas('c1', 'c1')
     latex = ROOT.TLatex()
     for info in plotInfo:
         gSimple = makeGraph(simpleTree, info[1], info[3])
         gFull = makeGraph(fullTree, info[1], info[3])
         gFull.SetLineColor(ROOT.kBlack)
         gFull.SetMarkerColor(ROOT.kBlack)
-        gSimple.SetLineColor(ROOT.kBlue+1)
-        gSimple.SetMarkerColor(ROOT.kBlue+1)
+        gSimple.SetLineColor(ROOT.kBlue + 1)
+        gSimple.SetMarkerColor(ROOT.kBlue + 1)
         mg = ROOT.TMultiGraph()
         mg.Add(gFull)
         mg.Add(gSimple)
@@ -74,4 +78,5 @@ if __name__ == '__main__':
         legend.AddEntry(gSimple, 'Simple Kalman', 'lp')
         legend.SetFillStyle(0)
         legend.Draw('same')
-        c1.SaveAs('../../../plotsfornote/' + info[0] + '_resolution_simple.pdf')
+        c1.SaveAs('../../../plotsfornote/' + info[0] +
+                  '_resolution_simple.pdf')

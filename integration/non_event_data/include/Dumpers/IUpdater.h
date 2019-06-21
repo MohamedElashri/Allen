@@ -9,36 +9,36 @@
 #include "Identifiers.h"
 
 namespace Allen {
-namespace NonEventData {
+  namespace NonEventData {
 
-  struct Consumer {
-    virtual void consume(std::vector<char> const& data) = 0;
-    virtual ~Consumer() = default;
-  };
+    struct Consumer {
+      virtual void consume(std::vector<char> const& data) = 0;
+      virtual ~Consumer() = default;
+    };
 
-  using Producer = std::function<std::optional<std::vector<char>>()>;
+    using Producer = std::function<std::optional<std::vector<char>>()>;
 
-class IUpdater {
-public:
+    class IUpdater {
+    public:
+      virtual ~IUpdater() {}
 
-  virtual ~IUpdater() {}
+      template<typename C>
+      void registerConsumer(std::unique_ptr<Consumer> c)
+      {
+        registerConsumer(C::id, std::move(c));
+      }
 
-  template <typename C>
-  void registerConsumer(std::unique_ptr<Consumer> c) {
-    registerConsumer(C::id, std::move(c));
-  }
+      template<typename P>
+      void registerProducer(Producer p)
+      {
+        registerProducer(P::id, std::move(p));
+      }
 
-  template <typename P>
-  void registerProducer(Producer p) {
-    registerProducer(P::id, std::move(p));
-  }
+      virtual void update(unsigned long run) = 0;
 
-  virtual void update(unsigned long run) = 0;
+      virtual void registerConsumer(std::string const& id, std::unique_ptr<Consumer> c) = 0;
 
-  virtual void registerConsumer(std::string const& id, std::unique_ptr<Consumer> c) = 0;
-
-  virtual void registerProducer(std::string const& id, Producer p) = 0;
-
-};
-}
-}
+      virtual void registerProducer(std::string const& id, Producer p) = 0;
+    };
+  } // namespace NonEventData
+} // namespace Allen

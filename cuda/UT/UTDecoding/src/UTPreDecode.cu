@@ -80,8 +80,8 @@ __global__ void ut_pre_decode(
       // By using the first 16 bits of each, we get the sign, exponent and 7 bits
       // of the mantissa, for both Y and X, which is enough to account for the
       // cases where yBegin was repeated.
-      const half yBegin = (half) (p0Y + numstrips * dp0diY);
-      const half xAtYEq0_local = (half) (numstrips * dp0diX);
+      const half yBegin = (half)(p0Y + numstrips * dp0diY);
+      const half xAtYEq0_local = (half)(numstrips * dp0diX);
       const short* yBegin_p = reinterpret_cast<const short*>(&yBegin);
       const short* xAtYEq0_local_p = reinterpret_cast<const short*>(&xAtYEq0_local);
 

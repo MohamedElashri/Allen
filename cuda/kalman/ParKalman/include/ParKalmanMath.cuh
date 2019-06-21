@@ -104,16 +104,10 @@ namespace ParKalmanFilter {
         idx += j;
         j -= 1;
       }
-      return vals[idx];      
+      return vals[idx];
     }
-    __host__ __device__ KalmanFloat& operator[](int i)
-    {
-      return vals[i];
-    }
-    __host__ __device__ const KalmanFloat& operator[](int i) const
-    {
-      return vals[i];
-    }
+    __host__ __device__ KalmanFloat& operator[](int i) { return vals[i]; }
+    __host__ __device__ const KalmanFloat& operator[](int i) const { return vals[i]; }
   };
 
   //----------------------------------------------------------------------
