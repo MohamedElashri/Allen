@@ -1,5 +1,4 @@
 #include "SequenceVisitor.cuh"
-#include "RunForwardCPU.h"
 #include "RunMomentumForwardCPU.h"
 #include "Tools.h"
 

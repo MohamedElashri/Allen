@@ -8,7 +8,6 @@
 #include "VeloDefinitions.cuh"
 #include "ClusteringDefinitions.cuh"
 #include "ClusteringCommon.h"
-#include "PrForwardConstants.cuh"
 #include "TMVA_Forward_1.cuh"
 #include "TMVA_Forward_2.cuh"
 #include "UTDefinitions.cuh"

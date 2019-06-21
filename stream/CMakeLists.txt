@@ -29,7 +29,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/search_by_triplet/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/simplified_kalman_filter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/classifiers/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/utils/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_first_layer_window/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_second_layer_window/include)
@@ -66,7 +67,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/velo/clustering/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/UT/PrVeloUT/include)
-include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/PrForward/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/LookingForward/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/MomentumForward/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/PV/beamlinePV/include)
@@ -145,7 +145,6 @@ target_link_libraries(Stream PRIVATE
   Hlt1
   SciFi
   x86MuonDecoding
-  x86Forward
   x86LookingForward
   x86MomentumForward
   x86VeloUT

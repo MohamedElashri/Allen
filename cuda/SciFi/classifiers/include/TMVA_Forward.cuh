@@ -5,8 +5,6 @@
 #include <string>
 #include <iostream>
 
-#include "PrForwardConstants.cuh"
-
 namespace SciFi {
 
   namespace Tracking {

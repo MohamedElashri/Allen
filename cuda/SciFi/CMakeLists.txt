@@ -19,7 +19,8 @@ file(GLOB scifi_lf_quality_filter "looking_forward_sbt/quality_filter/src/*cu")
 file(GLOB scifi_lf_quality_filter_x "looking_forward_sbt/quality_filter_x/src/*cu")
 file(GLOB scifi_lf_search_uv_windows "looking_forward_sbt/search_uv_windows/src/*cu")
 file(GLOB scifi_lf_fit "looking_forward_sbt/fit/src/*cu")
-file(GLOB scifi_prforward "PrForward/src/*cu")
+file(GLOB scifi_utils "utils/src/*cu")
+file(GLOB scifi_classifiers "classifiers/src/*cu")
 file(GLOB scifi_consolidate "consolidate/src/*cu")
 
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -61,12 +62,14 @@ include_directories(looking_forward_sbt/quality_filter/include)
 include_directories(looking_forward_sbt/quality_filter_x/include)
 include_directories(looking_forward_sbt/search_uv_windows/include)
 include_directories(looking_forward_sbt/fit/include)
-include_directories(PrForward/include)
+include_directories(utils/include)
+include_directories(classifiers/include)
 include_directories(consolidate/include)
 
 add_library(SciFi STATIC
   ${scifi_common}
   ${scifi_preprocessing}
+  ${scifi_utils}
   ${scifi_lf_common}
   ${scifi_lf_calculate_first_layer_window}
   ${scifi_lf_calculate_second_layer_window}
@@ -86,7 +89,7 @@ add_library(SciFi STATIC
   ${scifi_lf_quality_filter_x}
   ${scifi_lf_search_uv_windows}
   ${scifi_lf_fit}
-  ${scifi_prforward}
+  ${scifi_classifiers}
   ${scifi_consolidate}
 )
 
