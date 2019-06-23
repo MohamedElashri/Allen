@@ -48,7 +48,7 @@ def main(argv):
     # Execute sequence with nvprof and save output
     print("Executing script...")
     filename = os.getcwd() + "/" + output_path + "/" + "nvprof_output.txt"
-    return_value = os.system("nvprof " + " ".join(argv) + " > " + filename +
+    return_value = os.system("/usr/local/cuda-10.0/bin/nvprof " + " ".join(argv) + " > " + filename +
                              " 2>&1")
     if return_value != 0:
         print("Script returned an error message.\nCheck " + filename)
@@ -122,7 +122,7 @@ def main(argv):
         "SciFi": {
             "algorithms": scifi_algorithms,
             "value": 0,
-            "color": colors[10]
+            "color": colors[11]
         },
         "Muon": {
             "algorithms": muon_algorithms,
@@ -165,13 +165,13 @@ def main(argv):
     # Some default parameters for the figure
     figure_scale = 1.5
     scale = 2.5
-    fig = plt.figure(figsize=(12 * figure_scale, 12 * figure_scale))
+    fig = plt.figure(figsize=(6 * figure_scale, 12 * figure_scale))
     ax = plt.axes()
 
     bar_width = 0.85
     opacity = 0.8
 
-    ax.xaxis.grid(True, linestyle="dashed")
+    # ax.xaxis.grid(True, linestyle="dashed")
 
     keylist_colors = []
     for k in keylist:
@@ -199,7 +199,7 @@ def main(argv):
 
     plt.tick_params(axis='both', which='major', labelsize=6 * scale)
     plt.xlabel(
-        'Fraction of Allen sequence (%)', fontdict={'fontsize': 12 * scale})
+        'Fraction of Allen sequence (%)', fontdict={'fontsize': 6 * scale})
 
     # Make the bar plot
     labels = [a for a in labels_order]
@@ -219,8 +219,8 @@ def main(argv):
         framealpha=0.8,
         loc='right',
         ncol=1,
-        fontsize=8 * scale)
-
+        fontsize=6 * scale)
+    """
     t = plt.text(
         0.95,
         0.05,
@@ -231,6 +231,12 @@ def main(argv):
             'fontsize': 8 * scale,
             'style': 'italic'
         })
+    """
+   
+    ax.set_xticks(range(0, int(ax.get_xlim()[1]), 1), minor=True)
+    ax.xaxis.grid(which='both', linestyle="dashed")
+    ax.xaxis.grid(which='minor', alpha=0.4)
+    ax.xaxis.grid(which='major', alpha=1.0)
 
     output_filename = "allen_timing_fractions_no_prefix_sum"
     print("Producing plots in " + output_path + "/" + output_filename)
