@@ -48,8 +48,8 @@ def main(argv):
     # Execute sequence with nvprof and save output
     print("Executing script...")
     filename = os.getcwd() + "/" + output_path + "/" + "nvprof_output.txt"
-    return_value = os.system("/usr/local/cuda-10.0/bin/nvprof " + " ".join(argv) + " > " + filename +
-                             " 2>&1")
+    return_value = os.system("/usr/local/cuda-10.0/bin/nvprof " +
+                             " ".join(argv) + " > " + filename + " 2>&1")
     if return_value != 0:
         print("Script returned an error message.\nCheck " + filename)
         return
@@ -232,7 +232,7 @@ def main(argv):
             'style': 'italic'
         })
     """
-   
+
     ax.set_xticks(range(0, int(ax.get_xlim()[1]), 1), minor=True)
     ax.xaxis.grid(which='both', linestyle="dashed")
     ax.xaxis.grid(which='minor', alpha=0.4)
