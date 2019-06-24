@@ -12,7 +12,7 @@ namespace {
 
 Consumers::VPGeometry::VPGeometry(Constants& constants) : m_constants {constants} {}
 
-void Consumers::VPGeometry::initialize(vector<char> const& data)
+void Consumers::VPGeometry::initialize(vector<char> const&)
 {
 
   auto alloc_and_copy = [](auto const& host_numbers, auto& device_numbers) {

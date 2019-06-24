@@ -42,7 +42,7 @@ EventReader::read_events(uint number_of_events_requested, uint start_event_offse
     check_events(bank_type, events, event_offsets, number_of_events_requested);
 
     // TODO Remove: Temporal check to understand if number_of_events_requested is the same as number_of_events
-    const int number_of_events = event_offsets.size() - 1;
+    const uint number_of_events = event_offsets.size() - 1;
     if (number_of_events_requested != number_of_events) {
       throw StrException("Number of events requested differs from number of events read.");
     }

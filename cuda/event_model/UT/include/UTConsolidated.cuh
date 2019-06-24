@@ -10,14 +10,14 @@ namespace UT {
     // SoA of consolidated UT hits.
     struct Hits {
       constexpr static uint number_of_arrays = 8;
-      float* yBegin;
-      float* yEnd;
-      float* zAtYEq0;
-      float* xAtYEq0;
-      float* weight;
-      uint32_t* LHCbID;
-      uint8_t* plane_code;
-      uint number_of_hits;
+      float* yBegin = nullptr;
+      float* yEnd = nullptr;
+      float* zAtYEq0 = nullptr;
+      float* xAtYEq0 = nullptr;
+      float* weight = nullptr;
+      uint32_t* LHCbID = nullptr;
+      uint8_t* plane_code = nullptr;
+      uint number_of_hits = 0;
 
       __device__ __host__ Hits(const Hits& hits) :
         yBegin(hits.yBegin), yEnd(hits.yEnd), zAtYEq0(hits.zAtYEq0), xAtYEq0(hits.xAtYEq0), weight(hits.weight),

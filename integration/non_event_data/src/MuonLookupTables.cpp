@@ -67,7 +67,7 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
     std::copy_n((size_t*) raw_input, 1, &tableSize);
     raw_input += sizeof(size_t);
     assert(tableSize == Muon::Constants::n_stations);
-    for (int i = 0; i < tableSize; i++) {
+    for (size_t i = 0; i < tableSize; i++) {
       size_t stationTableSize;
       std::copy_n((size_t*) raw_input, 1, &stationTableSize);
       raw_input += sizeof(size_t);

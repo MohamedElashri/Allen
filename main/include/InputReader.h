@@ -105,8 +105,8 @@ private:
 
 struct CatboostModelReader {
   CatboostModelReader(const std::string& file_name);
-  const int n_features() const { return m_num_features; }
-  const int n_trees() const { return m_num_trees; }
+  int n_features() const { return m_num_features; }
+  int n_trees() const { return m_num_trees; }
   std::vector<int> tree_depths() const { return m_tree_depths; }
   std::vector<int> tree_offsets() const { return m_tree_offsets; }
   std::vector<int> leaf_offsets() const { return m_leaf_offsets; }
