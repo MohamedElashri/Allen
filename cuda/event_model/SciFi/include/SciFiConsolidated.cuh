@@ -34,7 +34,7 @@ namespace SciFi {
 
       __device__ __host__ SciFi::Hit get(const uint hit_number) const
       {
-        return SciFi::Hit {x0[hit_number], z0[hit_number], m_endPointY[hit_number], channel[hit_number]};
+        return SciFi::Hit {x0[hit_number], z0[hit_number], m_endPointY[hit_number], channel[hit_number], assembled_datatype[hit_number]};
       }
 
       __device__ __host__ uint32_t LHCbID(uint32_t index) const { return (10u << 28) + channel[index]; };

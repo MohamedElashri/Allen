@@ -4,9 +4,14 @@ namespace {
   using Checker::HistoCategory;
 }
 
-TrackCheckerHistos::TrackCheckerHistos(const std::vector<HistoCategory>& histo_categories)
+TrackCheckerHistos::TrackCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file,
+                                       std::string const& directory,
+                                       std::vector<HistoCategory> const& histo_categories)
+  : m_directory{directory}
 {
 #ifdef WITH_ROOT
+  m_file = invoker->root_file(root_file);
+
   // histos for efficiency
   for (auto histoCat : histo_categories) {
     const std::string& category = histoCat.m_name;
@@ -146,8 +151,12 @@ TrackCheckerHistos::TrackCheckerHistos(const std::vector<HistoCategory>& histo_c
 }
 
 #ifdef WITH_ROOT
-void TrackCheckerHistos::write(TDirectory* dir)
+void TrackCheckerHistos::write()
 {
+  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  if (!dir) {
+    dir = m_file->mkdir(m_directory.c_str());
+  }
   std::tuple histograms {std::ref(h_dp_versus_p),
                          std::ref(h_momentum_resolution),
                          std::ref(h_qop_resolution),

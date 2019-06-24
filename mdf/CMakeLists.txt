@@ -60,6 +60,8 @@ target_include_directories(${name} PUBLIC
   ${CMAKE_SOURCE_DIR}/cuda/muon/common/include
   ${CMAKE_SOURCE_DIR}/cuda/UT/common/include
   ${CMAKE_SOURCE_DIR}/cuda/UT/PrVeloUT/include
+  ${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include
+  ${CMAKE_SOURCE_DIR}/cuda/PV/common/include
   ${CMAKE_SOURCE_DIR}/checker/tracking/include)
 
 target_link_libraries(${name} Common Velo)

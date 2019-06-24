@@ -63,7 +63,7 @@ std::vector<Checker::Tracks> prepareVeloTracks(
       const uint velo_track_number_of_hits = velo_tracks.number_of_hits(i_track);
       Velo::Consolidated::Hits velo_track_hits = velo_tracks.get_hits((char*) track_hits, i_track);
 
-      for (int i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
         t.addId(velo_track_hits.LHCbID[i_hit]);
       }
       tracks.push_back(t);
@@ -125,7 +125,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
       // hits in UT
       const uint ut_track_number_of_hits = ut_tracks.number_of_hits(i_track);
       const UT::Consolidated::Hits track_hits_ut = ut_tracks.get_hits((char*) ut_track_hits, i_track);
-      for (int i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_ut.LHCbID[i_hit]);
       }
       // get index to corresponding velo track
@@ -133,7 +133,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
       const uint velo_track_number_of_hits = velo_tracks.number_of_hits(velo_track_index);
       const Velo::Consolidated::Hits track_hits_velo = velo_tracks.get_hits((char*) velo_track_hits, velo_track_index);
       // hits in Velo
-      for (int i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_velo.LHCbID[i_hit]);
       }
       tracks.push_back(t);
@@ -222,7 +222,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       const uint scifi_track_number_of_hits = scifi_tracks.number_of_hits(i_track);
       SciFi::Consolidated::Hits track_hits_scifi =
         scifi_tracks.get_hits((char*) scifi_track_hits, i_track, &scifi_geom, inv_clus_res.data());
-      for (int i_hit = 0; i_hit < scifi_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < scifi_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_scifi.LHCbID(i_hit));
       }
       n_hits_per_track += scifi_track_number_of_hits;
@@ -230,14 +230,14 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       // add UT hits
       const uint ut_track_number_of_hits = ut_tracks.number_of_hits(UT_track_index);
       const UT::Consolidated::Hits track_hits_ut = ut_tracks.get_hits((char*) ut_track_hits, UT_track_index);
-      for (int i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_ut.LHCbID[i_hit]);
       }
 
       // add Velo hits
       const uint velo_track_number_of_hits = velo_tracks.number_of_hits(velo_track_index);
       const Velo::Consolidated::Hits track_hits_velo = velo_tracks.get_hits((char*) velo_track_hits, velo_track_index);
-      for (int i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_velo.LHCbID[i_hit]);
       }
 
@@ -299,7 +299,6 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
                                               i_event,
                                               number_of_events};
 
-    const uint total_number_of_hits = host_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
     const SciFi::HitCount scifi_hit_count {(uint32_t*) host_scifi_hit_count, i_event};
 
     const auto& scifi_tracks_event = scifi_tracks[i_event];
@@ -335,14 +334,14 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       // add UT hits
       const uint ut_track_number_of_hits = ut_tracks.number_of_hits(UT_track_index);
       const UT::Consolidated::Hits track_hits_ut = ut_tracks.get_hits((char*) ut_track_hits, UT_track_index);
-      for (int i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_ut.LHCbID[i_hit]);
       }
 
       // add Velo hits
       const uint velo_track_number_of_hits = velo_tracks.number_of_hits(velo_track_index);
       const Velo::Consolidated::Hits track_hits_velo = velo_tracks.get_hits((char*) velo_track_hits, velo_track_index);
-      for (int i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_velo.LHCbID[i_hit]);
       }
 

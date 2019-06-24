@@ -9,11 +9,10 @@
  */
 template<>
 void SequenceVisitor::check<consolidate_ut_tracks_t>(
-  const uint& start_event_offset,
-  const uint& number_of_events_requested,
   HostBuffers& host_buffers,
   const Constants& constants,
-  const CheckerInvoker& checker_invoker) const
+  const CheckerInvoker& checker_invoker,
+  MCEvents const& mc_events) const
 {
   info_cout << "Checking Velo+UT tracks" << std::endl;
 
@@ -30,7 +29,8 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
     host_buffers.host_number_of_selected_events[0]);
 
   std::vector<std::vector<float>> p_events;
-  host_buffers.scifi_ids_ut_tracks = checker_invoker.check<TrackCheckerVeloUT>(start_event_offset, tracks, p_events);
+  auto& checker = checker_invoker.checker<TrackCheckerVeloUT>("PrCheckerPlots.root");
+  host_buffers.scifi_ids_ut_tracks = checker.accumulate<TrackCheckerVeloUT>(mc_events, tracks, p_events);
 
   // Run MomentumForward on x86
   const auto scifi_trackhits = looking_forward_studies(
@@ -81,6 +81,7 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
       host_buffers.host_number_of_selected_events[0]);
 
     std::vector<std::vector<float>> p_events_scifi;
-    checker_invoker.check<TrackCheckerForward>(start_event_offset, scifi_tracks, p_events_scifi);
+    auto& forward_checker = checker_invoker.checker<TrackCheckerForward>("PrCheckerPlots.root");
+    forward_checker.accumulate<TrackCheckerForward>(mc_events, scifi_tracks, p_events_scifi);
   }
 }

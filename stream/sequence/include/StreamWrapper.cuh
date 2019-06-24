@@ -12,6 +12,7 @@
 #include "Constants.cuh"
 #include "RuntimeOptions.h"
 #include "CheckerTypes.h"
+#include "CheckerInvoker.h"
 
 // Forward definition of Stream, to avoid
 // inability to compile kernel calls (due to <<< >>>
@@ -48,13 +49,17 @@ struct StreamWrapper {
   void run_stream(const uint i, const RuntimeOptions& runtime_options);
 
   /**
+   * @brief Mask of the events selected by the stream
+   */
+  std::vector<bool> reconstructed_events(const uint i) const;
+
+  /**
    * @brief Runs Monte Carlo test. Stream must be run beforehand.
    */
-  void run_monte_carlo_test(
-    const uint i,
-    const std::string& mc_folder,
-    const uint number_of_events_requested,
-    const std::vector<Checker::Tracks>& forward_tracks);
+  void run_monte_carlo_test(uint const i,
+                            CheckerInvoker& invoker,
+                            MCEvents const& mc_events,
+                            std::vector<Checker::Tracks> const& forward_tracks);
 };
 
 /**

@@ -18,7 +18,6 @@
 #include "LHCbID.h"
 #include "MCParticle.h"
 #include "Logger.h"
-#include "CheckerTypes.h"
 
 /// simple MC associator
 struct MCAssociator {

@@ -49,6 +49,9 @@ struct Stream {
   // Start event offset
   uint start_event_offset;
 
+  // Number of input events
+  uint number_of_input_events;
+
   // GPU Memory base pointer
   char* dev_base_pointer;
 
@@ -67,10 +70,11 @@ struct Stream {
     const Constants& param_constants,
     const bool do_check);
 
-  void run_monte_carlo_test(
-    const std::string& mc_folder,
-    const uint number_of_events_requested,
-    const std::vector<Checker::Tracks>& forward_tracks);
+  std::vector<bool> reconstructed_events() const;
 
-  cudaError_t run_sequence(const RuntimeOptions& runtime_options);
+  void run_monte_carlo_test(CheckerInvoker& invoker,
+                            MCEvents const& mc_events,
+                            std::vector<Checker::Tracks> const& forward_tracks);
+
+  cudaError_t run_sequence(RuntimeOptions const& runtime_options);
 };

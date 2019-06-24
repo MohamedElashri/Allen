@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 #include "TrackChecker.h"
 #include "ROOTHeaders.h"
@@ -62,10 +64,16 @@ struct TrackCheckerHistos {
   std::unique_ptr<TH1D> h_ghost_isMuon_Eta_reconstructed;
   std::unique_ptr<TH1D> h_ghost_isMuon_nPV_reconstructed;
 
-  void write(TDirectory* f);
+  TFile* m_file = nullptr;
+  void write();
 #endif
 
-  TrackCheckerHistos(const std::vector<Checker::HistoCategory>& histo_categories);
+  std::string const m_directory;
+
+  TrackCheckerHistos(CheckerInvoker const* invoker,
+                     std::string const& root_file,
+                     std::string const& directory,
+                     std::vector<Checker::HistoCategory> const& histo_categories);
 
   void fillReconstructibleHistos(const MCParticles& mcps, const Checker::HistoCategory& category);
   void fillReconstructedHistos(const MCParticle& mcp, Checker::HistoCategory& category);

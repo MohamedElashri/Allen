@@ -40,11 +40,10 @@ struct SequenceVisitor {
    */
   template<typename T>
   void check(
-    const uint& start_event_offset,
-    const uint& number_of_events_requested,
-    HostBuffers& host_buffers,
-    const Constants& constants,
-    const CheckerInvoker& checker_invoker) const
+    HostBuffers&,
+    const Constants&,
+    const CheckerInvoker&,
+    MCEvents const&) const
   {}
 };
 

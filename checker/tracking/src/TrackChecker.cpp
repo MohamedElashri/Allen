@@ -27,22 +27,32 @@ namespace {
   using Checker::HistoCategory;
 }
 
-TrackChecker::TrackChecker(
-  std::string name,
-  std::vector<Checker::TrackEffReport> categories,
-  std::vector<Checker::HistoCategory> histo_categories,
-  bool create_file,
-  bool print) :
-  m_print {print},
-  m_categories {std::move(categories)}, m_histo_categories {std::move(histo_categories)},
-  m_trackerName {std::move(name)}, m_create_file {create_file}
+// Not very pretty, will be better once nvcc supports C++17
+std::string const Checker::Subdetector::Velo::name = "Velo";
+std::string const Checker::Subdetector::UT::name = "Upstream";
+std::string const Checker::Subdetector::SciFi::name = "SciFi";
+
+TrackChecker::TrackChecker(std::string name, std::vector<Checker::TrackEffReport> categories,
+                           std::vector<Checker::HistoCategory> histo_categories,
+                           CheckerInvoker const* invoker,
+                           std::string const& root_file, std::string const& directory,
+                           bool print)
+  : m_print{print},
+    m_categories{std::move(categories)},
+    m_histo_categories{std::move(histo_categories)},
+    m_trackerName{std::move(name)}
 {
-  // Need to use a forward declaration to keep all ROOT objects out of
-  // headers that are compiled with CUDA
-  histos = new TrackCheckerHistos {m_histo_categories};
+  // FIXME: Need to use a forward declaration to keep all ROOT objects
+  // out of headers that are compiled with CUDA until NVCC supports
+  // C++17
+  m_histos = new TrackCheckerHistos{invoker, root_file, directory, m_histo_categories};
 }
 
-TrackChecker::~TrackChecker()
+TrackChecker::~TrackChecker() {
+  delete m_histos;
+}
+
+void TrackChecker::report(size_t) const
 {
   if (m_trackerName == "Forward") {
     if (n_matched_muons > 0) {
@@ -96,24 +106,11 @@ TrackChecker::~TrackChecker()
       m_ntrackstrigger,
       100.f * float(m_nghoststrigger) / float(m_ntrackstrigger));
   }
-  m_categories.clear();
   std::printf("\n");
 
   // write histograms to file
 #ifdef WITH_ROOT
-  const std::string name = "../output/PrCheckerPlots.root";
-  TFile f {name.c_str(), (m_create_file ? "RECREATE" : "UPDATE")};
-  std::string dirName = m_trackerName;
-  if (m_trackerName == "VeloUT") dirName = "Upstream";
-  TDirectory* trackerDir = f.mkdir(dirName.c_str());
-  trackerDir->cd();
-
-  histos->write(trackerDir);
-
-  f.Write();
-  f.Close();
-
-  delete histos;
+  m_histos->write();
 #endif
 }
 
@@ -204,7 +201,7 @@ void TrackChecker::muon_id_matching(
 
   if (m_trackerName == "Forward") {
 
-    histos->fillMuonReconstructible(mcp);
+    m_histos->fillMuonReconstructible(mcp);
 
     bool match_is_muon = false;
 
@@ -220,7 +217,7 @@ void TrackChecker::muon_id_matching(
       n_matched_muons++;
       if (match_is_muon) {
         n_is_muon_true++;
-        histos->fillMuonReconstructedMatchedIsMuon(mcp);
+        m_histos->fillMuonReconstructedMatchedIsMuon(mcp);
       }
     }
     // Track identified as muon, but was matched to non-muon MCP
@@ -228,13 +225,13 @@ void TrackChecker::muon_id_matching(
       n_matched_not_muons++;
       if (match_is_muon) {
         n_is_muon_misID++;
-        histos->fillMuonReconstructedNotMatchedIsMuon(mcp);
+        m_histos->fillMuonReconstructedNotMatchedIsMuon(mcp);
       }
     }
 
     // fill muon ID histograms
     const Checker::Track& track = tracks[tracks_with_weight.front().m_idx];
-    histos->fillMuonIDMatchedHistos(track, mcp);
+    m_histos->fillMuonIDMatchedHistos(track, mcp);
   }
 }
 
@@ -379,7 +376,7 @@ std::vector<uint32_t> TrackChecker::operator()(
 
   // fill histograms of reconstructible MC particles in various categories
   for (auto& histo_cat : m_histo_categories) {
-    histos->fillReconstructibleHistos(mc_event.m_mcps, histo_cat);
+    m_histos->fillReconstructibleHistos(mc_event.m_mcps, histo_cat);
   }
 
   MCAssociator mc_assoc {mc_event.m_mcps};
@@ -394,7 +391,7 @@ std::vector<uint32_t> TrackChecker::operator()(
   std::vector<uint32_t> matched_mcp_keys;
   for (int i_track = 0; i_track < tracks.size(); ++i_track) {
     auto track = tracks[i_track];
-    histos->fillTotalHistos(mc_event.m_mcps[0], track);
+    m_histos->fillTotalHistos(mc_event.m_mcps[0], track);
 
     uint32_t track_best_matched_MCP;
     bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table, track_best_matched_MCP);
@@ -419,10 +416,10 @@ std::vector<uint32_t> TrackChecker::operator()(
     }
     if (!match) {
       ++nghostsperevt;
-      histos->fillGhostHistos(mc_event.m_mcps[0], track);
+      m_histos->fillGhostHistos(mc_event.m_mcps[0], track);
       if (triggerCondition) ++nghoststriggerperevt;
       if (track.is_muon) {
-        histos->fillMuonGhostHistos(mc_event.m_mcps[0], track);
+        m_histos->fillMuonGhostHistos(mc_event.m_mcps[0], track);
         ++n_is_muon_ghost;
       }
     }
@@ -468,10 +465,11 @@ std::vector<uint32_t> TrackChecker::operator()(
 
     // fill histograms of reconstructible MC particles in various categories
     for (auto& histo_cat : m_histo_categories) {
-      histos->fillReconstructedHistos(mcp, histo_cat);
+      m_histos->fillReconstructedHistos(mcp, histo_cat);
     }
     // fill histogram of momentum resolution
-    histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
+    m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
+
   }
 
   for (auto& report : m_categories) {
@@ -498,12 +496,17 @@ std::vector<uint32_t> TrackChecker::operator()(
   return matched_mcp_keys;
 }
 
-TrackCheckerVelo::TrackCheckerVelo(bool cf) : TrackChecker {"Velo", Categories::Velo, Categories::VeloHisto, cf} {}
+TrackCheckerVelo::TrackCheckerVelo(CheckerInvoker const* invoker,
+                                   std::string const& root_file)
+  : TrackChecker{subdetector_t::name, Categories::Velo, Categories::VeloHisto,
+                 invoker, root_file, subdetector_t::name} {}
 
-TrackCheckerVeloUT::TrackCheckerVeloUT(bool cf) :
-  TrackChecker {"VeloUT", Categories::VeloUT, Categories::VeloUTHisto, cf}
-{}
+TrackCheckerVeloUT::TrackCheckerVeloUT(CheckerInvoker const* invoker,
+                                   std::string const& root_file)
+  : TrackChecker{subdetector_t::name, Categories::VeloUT, Categories::VeloUTHisto,
+                 invoker, root_file, "Upstream"} {}
 
-TrackCheckerForward::TrackCheckerForward(bool cf) :
-  TrackChecker {"Forward", Categories::Forward, Categories::ForwardHisto, cf, true}
-{}
+TrackCheckerForward::TrackCheckerForward(CheckerInvoker const* invoker,
+                                   std::string const& root_file)
+  : TrackChecker{subdetector_t::name, Categories::Forward, Categories::ForwardHisto,
+                 invoker, root_file, subdetector_t::name, true} {}

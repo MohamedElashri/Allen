@@ -1,44 +1,95 @@
+#include <regex>
+#include <ROOTHeaders.h>
 #include "CheckerInvoker.h"
 
-std::tuple<bool, MCEvents> CheckerInvoker::read_mc_folder() const
+CheckerInvoker::~CheckerInvoker() {
+#ifdef WITH_ROOT
+  for (auto entry : m_files) {
+    entry.second->Write();
+    entry.second->Close();
+    delete entry.second;
+  }
+#endif
+}
+
+TFile* CheckerInvoker::root_file(std::string const& root_file) const {
+  if (root_file.empty()) return nullptr;
+#ifdef WITH_ROOT
+  auto it = m_files.find(root_file);
+  if (it == m_files.end()) {
+    auto r = m_files.emplace(root_file, new TFile{root_file.c_str(), "RECREATE"});
+    it = std::get<0>(r);
+  }
+  return it->second;
+#else
+  return nullptr;
+#endif
+}
+
+MCEvents CheckerInvoker::load(std::string const mc_folder, std::vector<std::tuple<uint, unsigned long>> const& events,
+                              std::vector<bool> const& event_mask,
+                              std::string const tracks_folder, std::string const pvs_folder) const
 {
-  std::string mc_tracks_folder = mc_folder + "/tracks";
-  const auto folder_file_list = list_folder(mc_tracks_folder);
+  auto const mc_tracks_folder = mc_folder + "/" + tracks_folder;
+  auto const mc_pvs_folder = mc_folder + "/" + pvs_folder;
 
-  uint requested_files = number_of_requested_events == 0 ? folder_file_list.size() : number_of_requested_events;
-  verbose_cout << "Requested " << requested_files << " files" << std::endl;
+  std::unordered_map<std::tuple<unsigned int, unsigned long>, std::string> mc_pvs_files, mc_tracks_files;
 
-  if (requested_files > folder_file_list.size()) {
-    error_cout << "Monte Carlo validation failed: Requested " << requested_files << " events, but only "
-               << folder_file_list.size() << " Monte Carlo files are present." << std::endl
-               << std::endl;
-
-    return {false, {}};
+  std::regex file_expr{"(\\d+)_(\\d+).*\\.bin"};
+  std::smatch result;
+  for (auto& [folder, files] : {std::tuple{mc_tracks_folder, std::ref(mc_tracks_files)},
+                                std::tuple{mc_pvs_folder, std::ref(mc_pvs_files)}}) {
+    for (auto const& file : list_folder(folder)) {
+      if (std::regex_match(file, result, file_expr)) {
+        files.get().emplace(std::tuple{std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())},
+                            file);
+      }
+    }
   }
 
   std::vector<MCEvent> input;
+
+  verbose_cout << "Requested " << events.size() << " files" << std::endl;
+
+  // Check if all files are there
+  for (auto const event_id : events) {
+    auto files = {std::tuple{pvs_folder, mc_pvs_files},
+                  std::tuple{tracks_folder, mc_tracks_files}};
+    if (std::any_of(files.begin(), files.end(),
+                    [event_id](auto const& entry) {
+                      auto missing = !std::get<1>(entry).count(event_id);
+                      if (missing) {
+                        error_cout << "Missing MC " << std::get<0>(entry)
+                                   << " for event " << std::get<0>(event_id)
+                                   << " " << std::get<1>(event_id) << std::endl;
+                      }
+                      return missing;
+                    })) {
+      return input;
+    }
+  }
+
+  input.reserve(event_mask.size());
+
   int readFiles = 0;
-  for (uint i = start_event_offset; i < requested_files + start_event_offset; ++i) {
-    // Read event #i in the list and add it to the inputs
-    std::string readingFile = folder_file_list[i];
-
-    std::vector<char> input_contents;
-    readFileIntoVector(mc_tracks_folder + "/" + readingFile, input_contents);
-    const auto event = MCEvent(input_contents, check_events);
-
-    // debug_cout << "At MCEvent " << i << ": " << int(event.mcps.size())
-    // << " MCPs" << std::endl;
-    // if ( i == 0 && check_events )
-    //      event.print();
-
-    input.emplace_back(event);
-
+  for (size_t i = 0; i < events.size(); ++i) {
     readFiles++;
     if ((readFiles % 100) == 0) {
       info_cout << "." << std::flush;
     }
+
+    if (!event_mask[i]) continue;
+
+    // Read event #i in the list and add it to the inputs
+    std::vector<char> raw_particles, raw_pvs;
+    auto event_id = events[i];
+    readFileIntoVector(mc_pvs_files[event_id], raw_pvs);
+    readFileIntoVector(mc_tracks_files[event_id], raw_particles);
+
+    input.emplace_back(raw_particles, raw_pvs, m_check_events);
+
   }
 
-  info_cout << std::endl << input.size() << " files read" << std::endl << std::endl;
-  return {true, input};
+  info_cout << std::endl << readFiles << " files read" << std::endl << std::endl;
+  return input;
 }
