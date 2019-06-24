@@ -132,8 +132,8 @@ namespace Checker {
     void event_start();
     void event_done();
 
-    /// free resources, and print result
-    ~TrackEffReport();
+    /// print result
+    void report() const;
   };
 
 } // namespace Checker

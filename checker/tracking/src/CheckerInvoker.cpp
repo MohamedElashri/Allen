@@ -42,7 +42,7 @@ MCEvents CheckerInvoker::load(std::string const mc_folder, std::vector<std::tupl
     for (auto const& file : list_folder(folder)) {
       if (std::regex_match(file, result, file_expr)) {
         files.get().emplace(std::tuple{std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())},
-                            file);
+                            folder + "/" + file);
       }
     }
   }
@@ -71,6 +71,8 @@ MCEvents CheckerInvoker::load(std::string const mc_folder, std::vector<std::tupl
 
   input.reserve(event_mask.size());
 
+  std::vector<char> raw_particles, raw_pvs;
+
   int readFiles = 0;
   for (size_t i = 0; i < events.size(); ++i) {
     readFiles++;
@@ -80,8 +82,10 @@ MCEvents CheckerInvoker::load(std::string const mc_folder, std::vector<std::tupl
 
     if (!event_mask[i]) continue;
 
+    raw_particles.clear();
+    raw_pvs.clear();
+
     // Read event #i in the list and add it to the inputs
-    std::vector<char> raw_particles, raw_pvs;
     auto event_id = events[i];
     readFileIntoVector(mc_pvs_files[event_id], raw_pvs);
     readFileIntoVector(mc_tracks_files[event_id], raw_particles);

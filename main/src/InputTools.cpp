@@ -84,6 +84,10 @@ void readFileIntoVector(const std::string& filename, std::vector<char>& events)
   infile.seekg(0, std::ios::beg);
   auto dataSize = end - infile.tellg();
 
+  if (dataSize == 0) {
+    warning_cout << "Empty file: " << filename << std::endl;
+  }
+
   events.resize(dataSize);
   infile.read((char*) &(events[0]), dataSize);
   infile.close();
@@ -101,6 +105,10 @@ void appendFileToVector(const std::string& filename, std::vector<char>& events, 
   auto end = infile.tellg();
   infile.seekg(0, std::ios::beg);
   auto dataSize = end - infile.tellg();
+
+  if (dataSize == 0) {
+    warning_cout << "Empty file: " << filename << std::endl;
+  }
 
   // read content of infile with a vector
   const size_t previous_size = events.size();

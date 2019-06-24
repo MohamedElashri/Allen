@@ -65,4 +65,5 @@ MDFReader::read_events(uint number_of_events_requested, uint start_event_offset)
 
     add_events(bank_type, {events_mem, ev_buf.size()}, {offsets_mem, offsets_buf.size()});
   }
+  return event_ids;
 }

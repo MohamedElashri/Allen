@@ -108,6 +108,10 @@ void TrackChecker::report(size_t) const
   }
   std::printf("\n");
 
+  for (auto const& report : m_categories) {
+    report.report();
+  }
+
   // write histograms to file
 #ifdef WITH_ROOT
   m_histos->write();
@@ -168,7 +172,7 @@ void Checker::TrackEffReport::operator()(
   }
 }
 
-Checker::TrackEffReport::~TrackEffReport()
+void Checker::TrackEffReport::report() const
 {
   auto clonerate = 0.f, eff = 0.f, eff_per_event = 0.f;
 

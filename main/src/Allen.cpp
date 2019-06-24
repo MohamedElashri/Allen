@@ -328,6 +328,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     auto mask = stream_wrapper.reconstructed_events(0);
     auto mc_events = invoker.load(folder_data + "MC_info/", input_events, mask);
     stream_wrapper.run_monte_carlo_test(0, invoker, mc_events, forward_tracks);
+    invoker.report(number_of_events_requested);
   }
 
   std::cout << (number_of_events_requested * number_of_threads * number_of_repetitions / t.get()) << " events/s"
