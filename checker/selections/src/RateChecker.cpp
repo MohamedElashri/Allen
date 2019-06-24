@@ -60,39 +60,39 @@ void RateChecker::accumulate(
   }
 }
 
-void RateChecker::report(size_t n_events) const {
+void RateChecker::report(size_t requested_events) const {
 
   // Assume 30 MHz input rate.
   float in_rate = 30000.0;
   printf(
     "One track:        %i / %i --> %f kHz\n",
-    n_evts_one_track,
+    m_evts_one_track,
     requested_events,
-    1. * n_evts_one_track / requested_events * in_rate);
+    1. * m_evts_one_track / requested_events * in_rate);
   printf(
     "Two track:        %i / %i --> %f kHz\n",
-    n_evts_two_track,
+    m_evts_two_track,
     requested_events,
-    1. * n_evts_two_track / requested_events * in_rate);
+    1. * m_evts_two_track / requested_events * in_rate);
   printf(
     "Single muon:      %i / %i --> %f kHz\n",
-    n_evts_single_muon,
+    m_evts_single_muon,
     requested_events,
-    1. * n_evts_single_muon / requested_events * in_rate);
+    1. * m_evts_single_muon / requested_events * in_rate);
   printf(
     "Displaced dimuon: %i / %i --> %f kHz\n",
-    n_evts_disp_dimuon,
+    m_evts_disp_dimuon,
     requested_events,
-    1. * n_evts_disp_dimuon / requested_events * in_rate);
+    1. * m_evts_disp_dimuon / requested_events * in_rate);
   printf(
     "High mass dimuon: %i / %i --> %f kHz\n",
-    n_evts_high_mass_dimuon,
+    m_evts_high_mass_dimuon,
     requested_events,
-    1. * n_evts_high_mass_dimuon / requested_events * in_rate);
+    1. * m_evts_high_mass_dimuon / requested_events * in_rate);
   printf("------------------------------\n");
   printf(
     "Inclusive:        %i / %i --> %f kHz\n\n",
-    n_evts_inc,
+    m_evts_inc,
     requested_events,
-    1. * n_evts_inc / requested_events * in_rate);
+    1. * m_evts_inc / requested_events * in_rate);
 }

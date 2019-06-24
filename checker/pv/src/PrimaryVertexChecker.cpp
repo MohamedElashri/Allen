@@ -2,8 +2,6 @@
 #include <PVCheckerHistos.h>
 #include <ROOTHeaders.h>
 
-float getefficiencyerror(float k, float N) { return sqrt(k * (1 - k / N)) / N; }
-
 PVChecker::PVChecker(CheckerInvoker const* invoker, std::string const& root_file)
 {
   m_histos = new PVCheckerHistos{invoker, root_file};
