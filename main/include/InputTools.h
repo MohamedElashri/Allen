@@ -27,7 +27,7 @@ std::vector<std::string> list_folder(const std::string& foldername, const std::s
 
 uint get_number_of_events_requested(uint number_of_events_requested, const std::string& foldername);
 
-void read_folder(
+std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
   const std::string& foldername,
   uint number_of_events_requested,
   std::vector<char>& events,

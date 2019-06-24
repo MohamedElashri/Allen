@@ -59,7 +59,8 @@ struct EventReader : public Reader {
   /**
    * @brief Reads files from the specified folder, starting from an event offset.
    */
-  virtual void read_events(uint number_of_events_requested = 0, uint start_event_offset = 0);
+  virtual std::vector<std::tuple<unsigned int, unsigned long>>
+  read_events(uint number_of_events_requested = 0, uint start_event_offset = 0);
 
   /**
    * @brief Checks the consistency of the read buffers.

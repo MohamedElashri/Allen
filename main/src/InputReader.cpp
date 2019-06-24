@@ -18,16 +18,26 @@ std::vector<char> GeometryReader::read_geometry(const std::string& filename) con
   return geometry;
 }
 
-void EventReader::read_events(uint number_of_events_requested, uint start_event_offset)
+std::vector<std::tuple<unsigned int, unsigned long>>
+EventReader::read_events(uint number_of_events_requested, uint start_event_offset)
 {
-
+  bool first = true;
+  std::vector<std::tuple<unsigned int, unsigned long>> event_ids;
   for (auto bank_type : types()) {
     const auto& folder = this->folder(bank_type);
 
     std::vector<char> events;
     std::vector<uint> event_offsets;
 
-    read_folder(folder, number_of_events_requested, events, event_offsets, start_event_offset);
+    if (first) {
+      event_ids = read_folder(folder, number_of_events_requested, events, event_offsets, start_event_offset);
+      first = false;
+    } else {
+      auto ids = read_folder(folder, number_of_events_requested, events, event_offsets, start_event_offset);
+      if (event_ids != ids) {
+        warning_cout << "Different events for bank type " << bank_name(bank_type) << std::endl;
+      }
+    }
 
     check_events(bank_type, events, event_offsets, number_of_events_requested);
 
@@ -48,6 +58,7 @@ void EventReader::read_events(uint number_of_events_requested, uint start_event_
     m_events[bank_type] =
       make_pair(gsl::span<char> {events_mem, events.size()}, gsl::span<uint> {offsets_mem, event_offsets.size()});
   }
+  return event_ids;
 }
 
 bool EventReader::check_events(

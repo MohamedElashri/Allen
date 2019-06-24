@@ -207,7 +207,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                                              {BankTypes::MUON, folder_name_Muon_raw}}});
   }
 
-  event_reader->read_events(number_of_events_requested, start_event_offset);
+  auto input_events = event_reader->read_events(number_of_events_requested, start_event_offset);
 
   muon_catboost_model_reader =
     std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
@@ -324,7 +324,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Do optional Monte Carlo truth test on stream 0
   if (do_check) {
-    stream_wrapper.run_monte_carlo_test(0, folder_data + "MC_info/", number_of_events_requested, forward_tracks);
+    CheckerInvoker invoker{};
+    auto mask = stream_wrapper.reconstructed_events(0);
+    auto mc_events = invoker.load(folder_data + "MC_info/", input_events, mask);
+    stream_wrapper.run_monte_carlo_test(0, invoker, mc_events, forward_tracks);
   }
 
   std::cout << (number_of_events_requested * number_of_threads * number_of_repetitions / t.get()) << " events/s"
