@@ -22,7 +22,7 @@ class MDFProvider final : public InputProvider<MDFProvider<Banks...>> {
 public:
   MDFProvider(size_t n_slices, size_t n_events, std::vector<std::string> connections) :
     InputProvider<MDFProvider<Banks...>>{n_slices, n_events},
-    m_runs(n_slices), m_connections {std::move(connections)}
+    m_event_ids(n_slices), m_connections {std::move(connections)}
   {
     for (auto bank_type : this->types()) {
       auto it = BankSizes.find(bank_type);
@@ -36,43 +36,59 @@ public:
       m_bank_datas[ib].reserve(n_bytes);
       m_bank_offsets[ib].reserve(n_events);
       auto& slices = m_slices[ib];
-      slices.resize(n_slices);
-      for (auto& slice : slices) {
-
+      slices.reserve(n_slices);
+      for (size_t i = 0; i < n_slices; ++i) {
         char* events_mem = nullptr;
         uint* offsets_mem = nullptr;
         cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
         cudaCheck(cudaMallocHost((void**) &offsets_mem, (n_events + 1) * sizeof(uint)));
 
-        std::get<0>(slice) = gsl::span<char>{events_mem, n_bytes};
-        std::get<1>(slice) = gsl::span<uint>{offsets_mem, n_events + 1};
         offsets_mem[0] = 0;
-        std::get<2>(slice) = 1;
+        slices.emplace_back(gsl::span<char>{events_mem, n_bytes},
+                            gsl::span<uint>{offsets_mem, n_events + 1},
+                            1);
       }
     }
 
     m_current = m_connections.begin();
     for (size_t n = 0; n < n_slices; ++n) {
-      m_runs[n].reserve(1000);
+      m_event_ids[n].reserve(n_events);
     }
   }
 
   static constexpr const char* name = "MDF";
 
+  std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const
+  {
+    return m_event_ids[slice_index];
+  }
+
   std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index, size_t n)
   {
     bool good = true, full = false;
     unsigned int run = 0;
+    unsigned long event = 0;
     size_t n_filled = 0;
+    auto& event_ids = m_event_ids[slice_index];
+    event_ids.clear();
+
+    // "Reset" the slice
+    for (auto bank_type : this->types()) {
+      auto ib = to_integral<BankTypes>(bank_type);
+      std::get<2>(m_slices[ib][slice_index]) = 1;
+    }
+
+    // Make sure we don't fill too much
     size_t to_fill = n > this->n_events() ? this->n_events() : n;
 
-      for (; n_filled < to_fill && !full; ++n_filled) {
+    // Fill the slices for all bank types
+    for (; n_filled < to_fill && !full; ++n_filled) {
       // Read next event into buffer memory
       // TODO: avoid extra copy of all bank data by:
       // - obtaining all offsets
       // - checkig if buffer is full
       // - copying if not full
-      std::tie(good, run) = next();
+      std::tie(good, run, event) = next();
       if (!good) break;
 
       // Check if we're full
@@ -109,7 +125,7 @@ public:
 
           event_offsets[event_offsets_size++] = event_offset;
         }
-        m_runs[slice_index].emplace_back(run);
+        event_ids.emplace_back(run, event);
       }
     }
     std::map<BankTypes, size_t> left;
@@ -131,12 +147,13 @@ public:
   }
 
 private:
-  std::tuple<bool, unsigned int> next() const
+  std::tuple<bool, unsigned int, unsigned long> next() const
   {
 
     bool eof = false, error = false;
     gsl::span<const char> bank_span;
     unsigned int run = 0;
+    unsigned long event = 0;
 
     auto open_file = [this] {
       bool good = false;
@@ -155,19 +172,18 @@ private:
     };
 
     if (!m_input && !open_file()) {
-      return {false, 0};
+      return {false, 0, 0};
     }
 
     std::tie(eof, error, bank_span) = MDF::read_event(*m_input, m_header, m_buffer);
     if (error) {
-      return {false, 0};
+      return {false, 0, 0};
     }
     else if (eof) {
-      std::cout << "eof reached" << std::endl;
       if (open_file())
         return next();
       else {
-        return {false, 0};
+        return {false, 0, 0};
       }
     }
 
@@ -195,6 +211,7 @@ private:
       if (b->type() == LHCb::RawBank::ODIN) {
         auto odin = MDF::decode_odin(b);
         run = odin.run_number;
+        event = odin.event_number;
       }
 
       // Check if cuda_hlt even knows about this type of bank and we want this type
@@ -231,7 +248,7 @@ private:
       // Move to next raw bank
       bank += b->totalSize();
     }
-    return {!eof, run};
+    return {!eof, run, event};
   }
 
   mutable std::vector<char> m_buffer;
@@ -241,7 +258,7 @@ private:
   mutable std::array<std::vector<uint32_t>, NBankTypes> m_bank_datas;
 
   std::array<std::vector<std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>>, NBankTypes> m_slices;
-  std::vector<std::vector<unsigned int>> m_runs;
+  std::vector<std::vector<std::tuple<unsigned int, unsigned long>>> m_event_ids;
 
   std::vector<std::string> m_connections;
   mutable std::unique_ptr<std::ifstream> m_input;

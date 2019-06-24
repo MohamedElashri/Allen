@@ -46,9 +46,7 @@
 #include <boost/numeric/conversion/cast.hpp>
 
 // ROOT
-#include <TH1.h>
-#include <TClass.h>
-#include <TBufferFile.h>
+#include "ROOTHeaders.h"
 
 // ZeroMQ
 #include <zmq.hpp>
@@ -60,13 +58,23 @@
 
 namespace Detail {
 
+#ifdef WITH_ROOT
 template<class T> struct ROOTHisto {
-   constexpr static bool value = std::is_base_of<TH1, T>::value;
+  constexpr static bool value = std::is_base_of<TH1, T>::value;
 };
 
 template<class T> struct ROOTObject {
-   constexpr static bool value = std::is_base_of<TObject, T>::value;
+  constexpr static bool value = std::is_base_of<TObject, T>::value;
 };
+#else
+template<class T> struct ROOTHisto {
+  constexpr static bool value = false;
+};
+
+template<class T> struct ROOTObject {
+  constexpr static bool value = false;
+};
+#endif
 
 }
 
@@ -157,6 +165,7 @@ public:
       return r;
    }
 
+#ifdef WITH_ROOT
    // decode ZMQ message, ROOT version
    template <class T, typename std::enable_if<Detail::ROOTObject<T>::value && !Detail::ROOTHisto<T>::value, T>::type* = nullptr>
    std::unique_ptr<T> decode(const zmq::message_t& msg) const {
@@ -173,6 +182,7 @@ public:
       }
       return histo;
    }
+#endif
 
    // receiving AIDA histograms and and profiles is not possible, because the classes that
    // would allow either serialization of the Gaudi implemenation of AIDA histograms, or
@@ -264,6 +274,7 @@ public:
       return encode(item.c_str());
    }
 
+#ifdef WITH_ROOT
    zmq::message_t encode(const TObject& item) const {
       auto deleteBuffer = []( void* data, void* /* hint */ ) -> void {
          delete [] (char*)data;
@@ -278,6 +289,7 @@ public:
 
       return message;
    }
+#endif
 
    // Send message with ZMQ
    template <class T, typename std::enable_if<!std::is_same<T, zmq::message_t>::value, T>::type* = nullptr>
@@ -319,6 +331,7 @@ private:
       return t;
    }
 
+#ifdef WITH_ROOT
    // Receive ROOT serialized object of type T with ZMQ
    template<class T>
    std::unique_ptr<T> decodeROOT(const zmq::message_t& msg) const {
@@ -338,7 +351,7 @@ private:
       }
       return r;
    }
-
+#endif
 };
 
 ZeroMQSvc& zmqSvc();

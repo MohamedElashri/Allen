@@ -1,5 +1,6 @@
 #include <regex>
 #include "InputTools.h"
+#include "Common.h"
 
 namespace {
 
@@ -184,6 +185,65 @@ uint get_number_of_events_requested(uint number_of_events_requested, const std::
  * @brief Reads a number of events from a folder name.
  */
 std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
+  const std::string& foldername,
+  const std::vector<std::tuple<unsigned int, unsigned long>>& requested_events,
+  std::vector<bool> const& event_mask,
+  std::vector<char>& events,
+  std::vector<unsigned int>& event_offsets)
+{
+  std::unordered_map<std::tuple<unsigned int, unsigned long>, std::string> tracks_files;
+
+  std::regex file_expr{"(\\d+)_(\\d+).*\\.bin"};
+  std::smatch result;
+  for (auto const& file : list_folder(foldername)) {
+    if (std::regex_match(file, result, file_expr)) {
+      tracks_files.emplace(std::tuple{std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())},
+                           file);
+    }
+  }
+
+  for (auto const event_id : requested_events) {
+    auto missing = !tracks_files.count(event_id);
+    if (missing) {
+      error_cout << "Missing file for event " << std::get<0>(event_id)
+                 << " " << std::get<1>(event_id) << std::endl;
+      return;
+    }
+  }
+
+  int readFiles = 0;
+
+  // Read all requested events
+  unsigned int accumulated_size = 0;
+  std::vector<unsigned int> event_sizes;
+  for (size_t i = 0; i < events.size(); ++i) {
+    readFiles++;
+    if ((readFiles % 100) == 0) {
+      info_cout << "." << std::flush;
+    }
+
+    if (!event_mask[i]) continue;
+
+    auto event_id = requested_events[i];
+    // Read event #i in the list and add it to the inputs
+    std::string readingFile = tracks_files[event_id];
+    appendFileToVector(foldername + "/" + readingFile, events, event_sizes);
+
+    event_offsets.push_back(accumulated_size);
+    accumulated_size += event_sizes.back();
+
+  }
+
+  // Add last offset
+  event_offsets.push_back(accumulated_size);
+
+  debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
+}
+
+/**
+ * @brief Reads a number of events from a folder name.
+ */
+void read_folder(
   const std::string& foldername,
   uint number_of_events_requested,
   std::vector<char>& events,

@@ -27,9 +27,13 @@ else()
 
 endif()
 
+find_package(Boost COMPONENTS serialization iostreams)
+
 file(GLOB SOURCES "src/*.cpp")
 add_library(AllenZMQ ${SOURCES})
 target_include_directories(AllenZMQ PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${ZMQ_INCLUDE_DIRS})
+target_include_directories(AllenZMQ PUBLIC ${CMAKE_SOURCE_DIR}/main/include ${ZMQ_INCLUDE_DIRS})
+target_include_directories(AllenZMQ PUBLIC SYSTEM ${BOOST_INCLUDE_DIRS})
 target_link_libraries(AllenZMQ PUBLIC ${ZMQ_LIBRARIES})
 
 if (ZMQ_BUILTIN)
