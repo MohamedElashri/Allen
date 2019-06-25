@@ -201,20 +201,20 @@ std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
 
   std::regex file_expr{"(\\d+)_(\\d+).*\\.bin"};
   std::smatch result;
-  for (auto const& file : list_folder(foldername)) {
-    if (std::regex_match(file, result, file_expr)) {
-      event_ids.emplace_back(std::tuple{std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())});
-    } else {
-      warning_cout << "event file " << file << " does not match expected filename pattern." << std::endl;
-    }
-  }
 
   // Read all requested events
   unsigned int accumulated_size = 0;
   std::vector<unsigned int> event_sizes;
-  for (int i = start_event_offset; i < number_of_events_requested + start_event_offset; ++i) {
+  for (int i = start_event_offset; i < number_of_events_requested + start_event_offset
+         && i < folderContents.size(); ++i) {
     // Read event #i in the list and add it to the inputs
-    std::string readingFile = folderContents[i % folderContents.size()];
+    std::string readingFile = folderContents[i];
+    if (std::regex_match(readingFile, result, file_expr)) {
+      event_ids.emplace_back(std::tuple{std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())});
+    } else {
+      throw StrException{"event file " + readingFile + " does not match expected filename pattern."};
+    }
+
     appendFileToVector(foldername + "/" + readingFile, events, event_sizes);
 
     event_offsets.push_back(accumulated_size);
