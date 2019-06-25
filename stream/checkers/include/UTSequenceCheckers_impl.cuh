@@ -1,6 +1,7 @@
 #include "MomentumForwardStudies.h"
 #include "LookingForwardStudies.h"
 #include "TrackChecker.h"
+#include "PrepareTracks.h"
 
 /**
  * @brief Specialization for any Velo reconstruction algorithm invoking

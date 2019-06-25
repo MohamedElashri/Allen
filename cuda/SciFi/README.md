@@ -94,10 +94,8 @@
 //
 // *****************************************************************
 
-#include "PrForward.cuh"
-
 //-----------------------------------------------------------------------------
-// Implementation file for class : PrForward
+// This description has been copied from the x86 PrForward code whose history is
 //
 // Based on code written by :
 // 2012-03-20 : Olivier Callot
@@ -107,90 +105,3 @@
 // 2018-08    : Vava Gligorov [extract code from Rec, make compile within GPU framework
 // 2018-09    : Dorothea vom Bruch [convert to CUDA, runs on GPU]
 //-----------------------------------------------------------------------------
-
-//=============================================================================
-
-// Kernel to call Forward tracking on GPU
-// Loop over veloUT input tracks using threadIdx.x
-__global__ void scifi_pr_forward(
-  uint32_t* dev_scifi_hits,
-  const uint32_t* dev_scifi_hit_count,
-  const int* dev_atomics_velo,
-  const uint* dev_velo_track_hit_number,
-  const char* dev_velo_states,
-  const int* dev_atomics_ut,
-  const char* dev_ut_track_hits,
-  const uint* dev_ut_track_hit_number,
-  const float* dev_ut_qop,
-  const uint* dev_ut_track_velo_indices,
-  SciFi::TrackHits* dev_scifi_tracks,
-  int* dev_atomics_scifi,
-  const SciFi::Tracking::TMVA* dev_tmva1,
-  const SciFi::Tracking::TMVA* dev_tmva2,
-  const SciFi::Tracking::Arrays* dev_constArrays,
-  const float* dev_magnet_polarity,
-  const char* dev_scifi_geometry,
-  const float* dev_inv_clus_res)
-{
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-
-  // Velo consolidated types
-  const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
-  const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
-
-  // UT consolidated tracks
-  UT::Consolidated::Tracks ut_tracks {(uint*) dev_atomics_ut,
-                                      (uint*) dev_ut_track_hit_number,
-                                      (float*) dev_ut_qop,
-                                      (uint*) dev_ut_track_velo_indices,
-                                      event_number,
-                                      number_of_events};
-  const int n_veloUT_tracks_event = ut_tracks.number_of_tracks(event_number);
-  const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
-
-  // SciFi un-consolidated track types
-  SciFi::TrackHits* scifi_tracks_event =
-    dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
-  int* atomics_scifi_event = dev_atomics_scifi + event_number;
-
-  // SciFi hits
-  const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
-  const SciFi::HitCount scifi_hit_count {(uint32_t*) dev_scifi_hit_count, event_number};
-  const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
-  SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
-
-  // initialize atomic SciFi tracks counter
-  if (threadIdx.x == 0) {
-    *atomics_scifi_event = 0;
-  }
-  __syncthreads();
-
-  // Loop over the veloUT input tracks
-  for (int i = 0; i < (n_veloUT_tracks_event + blockDim.x - 1) / blockDim.x; ++i) {
-    const int i_veloUT_track = i * blockDim.x + threadIdx.x;
-    if (i_veloUT_track < n_veloUT_tracks_event) {
-      const float qop_ut = ut_tracks.qop[i_veloUT_track];
-
-      const int i_velo_track = ut_tracks.velo_track[i_veloUT_track];
-      const uint velo_states_index = velo_tracks_offset_event + i_velo_track;
-      const MiniState velo_state = velo_states.getMiniState(velo_states_index);
-
-      find_forward_tracks(
-        scifi_hits,
-        scifi_hit_count,
-        qop_ut,
-        i_veloUT_track,
-        scifi_tracks_event,
-        (uint*) atomics_scifi_event,
-        n_veloUT_tracks_event,
-        dev_tmva1,
-        dev_tmva2,
-        dev_constArrays,
-        dev_magnet_polarity[0],
-        velo_state);
-    }
-  }
-}

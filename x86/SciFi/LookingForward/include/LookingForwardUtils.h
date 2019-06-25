@@ -9,13 +9,13 @@
 
 #include <cassert>
 
+#include "HitUtils.cuh"
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 #include "LookingForwardConstants.h"
 #include "MomentumForwardUtils.h"
 #include "BinarySearch.cuh"
 #include "SciFiParametrization.h"
-#include "TrackUtils.cuh"
 #include "LookingForwardFitting.h"
 #include "TMVA_Forward.cuh"
 #include "TMVA_Forward_1.cuh"
@@ -225,3 +225,18 @@ void single_track_quality_update(
   const SciFi::Tracking::TMVA* tmva2,
   const SciFi::Hits& scifi_hits,
   const int event_offset);
+
+__host__ void collectAllXHits_proto_p(
+  const SciFi::Hits& scifi_hits,
+  const SciFi::HitCount& scifi_hit_count,
+  const SciFi::Tracking::Arrays* constArrays,
+  const float magnet_polarity,
+  const MiniState& velo_state,
+  const MiniState& UT_state,
+  const float qOverP,
+  int side, 
+  std::array<int, 2 * 6>& windows_x,
+  std::array<int, 2 * 6>& windows_uv,
+  std::array<float, 4 * 6>& parameters_uv,
+  const SciFiWindowsParams& window_params,
+  const std::array<int, 12> true_scifi_indices_per_layer);

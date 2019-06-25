@@ -11,7 +11,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/UT/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/classifiers/include)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 file(GLOB x86MomentumForward "src/*cpp" )
@@ -20,8 +20,6 @@ add_library(x86MomentumForward STATIC
   ${x86MomentumForward}
 )
 
-set_property(TARGET x86Forward PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)
 set_property(TARGET x86MomentumForward PROPERTY
              CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 

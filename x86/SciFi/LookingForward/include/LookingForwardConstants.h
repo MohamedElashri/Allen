@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SystemOfUnits.h"
-#include "PrForwardConstants.cuh"
+#include "SciFiDefinitions.cuh"
 
 namespace SciFi {
   namespace LookingForward {

@@ -11,7 +11,7 @@ target_include_directories(NonEventData PUBLIC
   ${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include
   ${CMAKE_SOURCE_DIR}/cuda/muon/common/include
   ${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include
-  ${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include
+  ${CMAKE_SOURCE_DIR}/cuda/SciFi/classifiers/include
   ${CMAKE_SOURCE_DIR}/cuda/UT/common/include
   ${CMAKE_SOURCE_DIR}/stream/sequence/include
   ${CMAKE_SOURCE_DIR}/checker/tracking/include
