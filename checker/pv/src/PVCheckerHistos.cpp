@@ -10,6 +10,7 @@ PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker,
 #ifdef WITH_ROOT
 
   m_file = invoker->root_file(root_file);
+  m_file->cd();
 
   eff_vs_z = std::make_unique<TH1F>("eff_vs_z","eff_vs_z",m_bins_norm_z,-300,300);
   eff_vs_mult = std::make_unique<TH1F>("eff_vs_mult","eff_vs_mult",m_bins_norm_mult,0,50);
@@ -159,6 +160,7 @@ void PVCheckerHistos::accumulate(std::vector<RecPVInfo> const& vec_all_rec,
 
 void PVCheckerHistos::write() {
 #ifdef WITH_ROOT
+  m_file->cd();
   std::tuple to_write{std::ref(m_tree),
                       std::ref(m_mctree),
                       std::ref(m_allPV),

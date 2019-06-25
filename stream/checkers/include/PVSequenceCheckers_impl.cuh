@@ -10,8 +10,7 @@ void SequenceVisitor::check<pv_fit_seeds_t>(
   const CheckerInvoker& checker_invoker,
   const MCEvents& mc_events) const
 {
-  info_cout << "Checking GPU PVs " << std::endl;
-  auto& checker = checker_invoker.checker<GPUPVChecker>("GPU_PVChecker.root");
+  auto& checker = checker_invoker.checker<GPUPVChecker>("Checking GPU PVs ", "GPU_PVChecker.root");
   checker.accumulate(
     mc_events,
     host_buffers.host_reconstructed_pvs,
@@ -40,8 +39,7 @@ void SequenceVisitor::check<cpu_pv_beamline_t>(
     }
   }
   */
-  info_cout << "Checking CPU beamline PVs " << std::endl;
-  auto& checker = checker_invoker.checker<CPUPVChecker>("CPU_PVChecker.root");
+  auto& checker = checker_invoker.checker<CPUPVChecker>("Checking CPU beamline PVs", "CPU_PVChecker.root");
   checker.accumulate(
     mc_events,
     host_buffers.host_reconstructed_pvs,
@@ -70,8 +68,7 @@ void SequenceVisitor::check<pv_beamline_cleanup_t>(
       }
     }
     */
-  info_cout << "Checking GPU beamline PVs " << std::endl;
-  auto& checker = checker_invoker.checker<GPUPVChecker>("GPU_PVChecker.root");
+  auto& checker = checker_invoker.checker<GPUPVChecker>("Checking GPU beamline PVs", "GPU_PVChecker.root");
   checker.accumulate(
     mc_events,
     host_buffers.host_reconstructed_multi_pvs,

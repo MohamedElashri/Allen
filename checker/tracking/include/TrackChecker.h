@@ -67,6 +67,8 @@ public:
   // FIXME: required until nvcc supports C++17 and m_histos
   virtual ~TrackChecker();
 
+  std::string const& name() { return m_trackerName; }
+
   void report(size_t n_events) const override;
 
   template<typename T>

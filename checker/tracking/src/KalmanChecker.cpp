@@ -10,6 +10,7 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
 #ifdef WITH_ROOT
   // Setup the TTree.
   m_file = invoker->root_file(root_file);
+  m_file->cd();
   m_tree = new TTree("kalman_ip_tree", "kalman_ip_tree");
   m_tree->Branch("z", &m_trk_z);
   m_tree->Branch("x", &m_trk_x);
@@ -108,6 +109,7 @@ void KalmanChecker::accumulate(MCEvents const& mc_events,
 
 void KalmanChecker::report(size_t) const {
 #ifdef WITH_ROOT
+  m_file->cd();
   m_file->WriteTObject(m_tree);
 #endif
 }

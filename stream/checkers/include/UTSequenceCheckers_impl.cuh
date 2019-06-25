@@ -14,8 +14,6 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
   const CheckerInvoker& checker_invoker,
   MCEvents const& mc_events) const
 {
-  info_cout << "Checking Velo+UT tracks" << std::endl;
-
   const auto tracks = prepareUTTracks(
     host_buffers.host_atomics_velo,
     host_buffers.host_velo_track_hit_number,
@@ -29,7 +27,7 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
     host_buffers.host_number_of_selected_events[0]);
 
   std::vector<std::vector<float>> p_events;
-  auto& checker = checker_invoker.checker<TrackCheckerVeloUT>("PrCheckerPlots.root");
+  auto& checker = checker_invoker.checker<TrackCheckerVeloUT>("Checking Velo+UT tracks", "PrCheckerPlots.root");
   host_buffers.scifi_ids_ut_tracks = checker.accumulate<TrackCheckerVeloUT>(mc_events, tracks, p_events);
 
   // Run MomentumForward on x86
@@ -81,7 +79,8 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
       host_buffers.host_number_of_selected_events[0]);
 
     std::vector<std::vector<float>> p_events_scifi;
-    auto& forward_checker = checker_invoker.checker<TrackCheckerForward>("PrCheckerPlots.root");
+    auto& forward_checker = checker_invoker.checker<TrackCheckerForward>("Checking x86 MomentumForward tracks",
+                                                                         "PrCheckerPlots.root");
     forward_checker.accumulate<TrackCheckerForward>(mc_events, scifi_tracks, p_events_scifi);
   }
 }

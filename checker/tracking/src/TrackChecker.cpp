@@ -29,8 +29,8 @@ namespace {
 
 // Not very pretty, will be better once nvcc supports C++17
 std::string const Checker::Subdetector::Velo::name = "Velo";
-std::string const Checker::Subdetector::UT::name = "Upstream";
-std::string const Checker::Subdetector::SciFi::name = "SciFi";
+std::string const Checker::Subdetector::UT::name = "VeloUT";
+std::string const Checker::Subdetector::SciFi::name = "Forward";
 
 TrackChecker::TrackChecker(std::string name, std::vector<Checker::TrackEffReport> categories,
                            std::vector<Checker::HistoCategory> histo_categories,
@@ -394,7 +394,7 @@ std::vector<uint32_t> TrackChecker::operator()(
   std::size_t ntrackstriggerperevt = 0;
   std::vector<uint32_t> matched_mcp_keys;
   for (int i_track = 0; i_track < tracks.size(); ++i_track) {
-    auto track = tracks[i_track];
+    auto const& track = tracks[i_track];
     m_histos->fillTotalHistos(mc_event.m_mcps[0], track);
 
     uint32_t track_best_matched_MCP;

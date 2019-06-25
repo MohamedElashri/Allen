@@ -13,8 +13,6 @@ void SequenceVisitor::check<kalman_filter_t>(
 {
 // Note: Nothing happens if not compiled with ROOT
 #ifdef WITH_ROOT
-  info_cout << "Producing Kalman plots" << std::endl << std::endl;
-
   const auto tracks = prepareKalmanTracks(
     host_buffers.host_atomics_velo,
     host_buffers.host_velo_track_hit_number,
@@ -38,7 +36,7 @@ void SequenceVisitor::check<kalman_filter_t>(
     host_buffers.host_number_of_multivertex,
     host_buffers.host_number_of_selected_events[0]);
 
-  auto& checker = checker_invoker.checker<KalmanChecker>("KalmanIPCheckerOutput.root");
+  auto& checker = checker_invoker.checker<KalmanChecker>("Producing Kalman plots", "KalmanIPCheckerOutput.root");
   checker.accumulate(mc_events, tracks);
 #endif
 }
@@ -52,8 +50,6 @@ void SequenceVisitor::check<kalman_velo_only_t>(
 {
 // Note: Nothing happens if not compiled with ROOT
 #ifdef WITH_ROOT
-  info_cout << "Producing Kalman plots" << std::endl << std::endl;
-
   const auto tracks = prepareKalmanTracks(
     host_buffers.host_atomics_velo,
     host_buffers.host_velo_track_hit_number,
@@ -77,7 +73,7 @@ void SequenceVisitor::check<kalman_velo_only_t>(
     host_buffers.host_number_of_multivertex,
     host_buffers.host_number_of_selected_events[0]);
 
-  auto& checker = checker_invoker.checker<KalmanChecker>("KalmanIPCheckerOutput.root");
+  auto& checker = checker_invoker.checker<KalmanChecker>("Producing Kalman plots", "KalmanIPCheckerOutput.root");
   checker.accumulate(mc_events, tracks);
 #endif
 }

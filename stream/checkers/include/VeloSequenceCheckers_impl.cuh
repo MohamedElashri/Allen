@@ -13,8 +13,6 @@ void SequenceVisitor::check<consolidate_velo_tracks_t>(
   const CheckerInvoker& checker_invoker,
   MCEvents const& mc_events) const
 {
-  info_cout << "Checking GPU Velo tracks" << std::endl;
-
   const auto tracks = prepareVeloTracks(
     host_buffers.host_atomics_velo,
     host_buffers.host_velo_track_hit_number,
@@ -22,6 +20,6 @@ void SequenceVisitor::check<consolidate_velo_tracks_t>(
     host_buffers.host_number_of_selected_events[0]);
 
   std::vector<std::vector<float>> p_events;
-  auto& checker = checker_invoker.checker<TrackCheckerVelo>("PrCheckerPlots.root");
+  auto& checker = checker_invoker.checker<TrackCheckerVelo>("Checking GPU Velo tracks", "PrCheckerPlots.root");
   checker.accumulate<TrackCheckerVelo>(mc_events, tracks, p_events);
 }

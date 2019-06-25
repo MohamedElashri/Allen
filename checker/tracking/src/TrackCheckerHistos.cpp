@@ -4,6 +4,8 @@ namespace {
   using Checker::HistoCategory;
 }
 
+
+
 TrackCheckerHistos::TrackCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file,
                                        std::string const& directory,
                                        std::vector<HistoCategory> const& histo_categories)
@@ -11,6 +13,15 @@ TrackCheckerHistos::TrackCheckerHistos(CheckerInvoker const* invoker, std::strin
 {
 #ifdef WITH_ROOT
   m_file = invoker->root_file(root_file);
+  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  if (!dir) {
+    dir = m_file->mkdir(m_directory.c_str());
+    dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  }
+  dir->cd();
+
+  // info_cout << m_file->GetName() << std::endl;
+  // info_cout << dir->GetName() << std::endl;
 
   // histos for efficiency
   for (auto histoCat : histo_categories) {
@@ -156,7 +167,9 @@ void TrackCheckerHistos::write()
   auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
   if (!dir) {
     dir = m_file->mkdir(m_directory.c_str());
+    dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
   }
+
   std::tuple histograms {std::ref(h_dp_versus_p),
                          std::ref(h_momentum_resolution),
                          std::ref(h_qop_resolution),
@@ -196,7 +209,10 @@ void TrackCheckerHistos::write()
                          std::ref(h_not_matched_isMuon_nPV_reconstructed),
                          std::ref(h_ghost_isMuon_nPV_reconstructed),
                          std::ref(h_ghost_isMuon_Eta_reconstructed)};
-  for_each(histograms, [dir](auto& histo) { dir->WriteTObject(histo.get().get()); });
+  for_each(histograms, [dir](auto& histo) {
+                         auto* h = histo.get().get();
+                         dir->WriteTObject(h);
+                       });
 
   for (auto const& histo_map : {std::ref(h_reconstructible_eta),
                                 std::ref(h_reconstructible_p),
@@ -217,7 +233,8 @@ void TrackCheckerHistos::write()
 
   for (auto const& histo_map : {std::ref(h_reconstructible_eta_phi), std::ref(h_reconstructed_eta_phi)}) {
     for (auto const& entry : histo_map.get()) {
-      dir->WriteTObject(entry.second.get());
+      auto* histo = entry.second.get();
+      dir->WriteTObject(histo);
     }
   }
 }

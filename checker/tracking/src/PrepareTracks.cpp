@@ -48,27 +48,26 @@ std::vector<Checker::Tracks> prepareVeloTracks(
   const uint number_of_events)
 {
   /* Tracks to be checked, save in format for checker */
-  std::vector<Checker::Tracks> checker_tracks; // all tracks from all events
+  std::vector<Checker::Tracks> checker_tracks(number_of_events); // all tracks from all events
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
-    Checker::Tracks tracks; // all tracks within one event
+    auto& tracks = checker_tracks[i_event]; // all tracks within one event
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) track_atomics, (uint*) track_hit_number, i_event, number_of_events};
     const uint number_of_tracks_event = velo_tracks.number_of_tracks(i_event);
+    tracks.resize(number_of_tracks_event);
 
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
-      Checker::Track t;
+      auto& t = tracks[i_track];
       t.p = 0.f;
 
       const uint velo_track_number_of_hits = velo_tracks.number_of_hits(i_track);
       Velo::Consolidated::Hits velo_track_hits = velo_tracks.get_hits((char*) track_hits, i_track);
-
+      t.allids.reserve(velo_track_number_of_hits);
       for (uint i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
         t.addId(velo_track_hits.LHCbID[i_hit]);
       }
-      tracks.push_back(t);
     } // tracks
-    checker_tracks.emplace_back(tracks);
   }
 
   return checker_tracks;

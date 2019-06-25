@@ -5,8 +5,6 @@
 CheckerInvoker::~CheckerInvoker() {
 #ifdef WITH_ROOT
   for (auto entry : m_files) {
-    entry.second->Write();
-    entry.second->Close();
     delete entry.second;
   }
 #endif
@@ -17,7 +15,8 @@ TFile* CheckerInvoker::root_file(std::string const& root_file) const {
 #ifdef WITH_ROOT
   auto it = m_files.find(root_file);
   if (it == m_files.end()) {
-    auto r = m_files.emplace(root_file, new TFile{root_file.c_str(), "RECREATE"});
+    auto full_name = m_output_dir + "/" + root_file;
+    auto r = m_files.emplace(root_file, new TFile{full_name.c_str(), "RECREATE"});
     it = std::get<0>(r);
   }
   return it->second;
@@ -96,4 +95,19 @@ MCEvents CheckerInvoker::load(std::string const mc_folder, std::vector<std::tupl
 
   info_cout << std::endl << readFiles << " files read" << std::endl << std::endl;
   return input;
+}
+
+void CheckerInvoker::report(size_t n_events) const {
+  for (auto const& entry : m_report_order) {
+    auto it = m_checkers.find(std::get<0>(entry));
+    // Print stored header
+    info_cout << std::get<1>(entry) << std::endl;
+    // Print report
+    it->second->report(n_events);
+    info_cout << std::endl;
+  }
+
+  for (auto const& entry : m_files) {
+    entry.second->Close();
+  }
 }

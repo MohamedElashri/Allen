@@ -2,6 +2,10 @@
 #include <PVCheckerHistos.h>
 #include <ROOTHeaders.h>
 
+// Not very pretty, will be better once nvcc supports C++17
+std::string const PVChecker::CPUTag::name = "CPU_PVChecker";
+std::string const PVChecker::GPUTag::name = "GPU_PVChecker";
+
 PVChecker::PVChecker(CheckerInvoker const* invoker, std::string const& root_file)
 {
   m_histos = new PVCheckerHistos{invoker, root_file};
@@ -419,7 +423,3 @@ std::vector<MCPVInfo>::iterator closestMCPV(std::vector<MCPVInfo>& rblemcpv, std
   }
   return itret;
 }
-
-// Not very pretty, will be better once nvcc supports C++17
-std::string const PVChecker::CPUTag::name = "CPU_PVChecker";
-std::string const PVChecker::GPUTag::name = "GPU_PVChecker";
