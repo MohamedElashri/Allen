@@ -184,7 +184,7 @@ uint get_number_of_events_requested(uint number_of_events_requested, const std::
 /**
  * @brief Reads a number of events from a folder name.
  */
-std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
+void read_folder(
   const std::string& foldername,
   const std::vector<std::tuple<unsigned int, unsigned long>>& requested_events,
   std::vector<bool> const& event_mask,
@@ -243,7 +243,8 @@ std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
 /**
  * @brief Reads a number of events from a folder name.
  */
-void read_folder(
+std::vector<std::tuple<unsigned int, unsigned long>>
+read_folder(
   const std::string& foldername,
   uint number_of_events_requested,
   std::vector<char>& events,

@@ -27,14 +27,14 @@ std::vector<std::string> list_folder(const std::string& foldername, const std::s
 
 uint get_number_of_events_requested(uint number_of_events_requested, const std::string& foldername);
 
-std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
+void read_folder(
   const std::string& foldername,
   const std::vector<std::tuple<unsigned int, unsigned long>>& requested_events,
   std::vector<bool> const& event_mask,
   std::vector<char>& events,
   std::vector<unsigned int>& event_offsets);
 
-void read_folder(
+std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
   const std::string& foldername,
   uint number_of_events_requested,
   std::vector<char>& events,

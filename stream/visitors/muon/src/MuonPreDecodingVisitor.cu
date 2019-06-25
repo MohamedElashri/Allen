@@ -3,22 +3,12 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_pre_decoding_t>(
-<<<<<<< HEAD
-  muon_pre_decoding_t::arguments_t arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers)
-{
-  arguments.set_size<dev_muon_raw>(runtime_options.host_muon_events_size);
-  arguments.set_size<dev_muon_raw_offsets>(runtime_options.host_muon_event_offsets_size);
-=======
     muon_pre_decoding_t::arguments_t arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     const HostBuffers& host_buffers) {
   arguments.set_size<dev_muon_raw>(std::get<0>(runtime_options.host_muon_events).size_bytes());
   arguments.set_size<dev_muon_raw_offsets>(std::get<1>(runtime_options.host_muon_events).size_bytes());
->>>>>>> Use the MDFProvider to read a single slice instead of MDFReader
   arguments.set_size<dev_muon_raw_to_hits>(1);
   arguments.set_size<dev_storage_station_region_quarter_offsets>(
     host_buffers.host_number_of_selected_events[0] * Muon::Constants::n_stations * Muon::Constants::n_regions *
@@ -53,48 +43,26 @@ void SequenceVisitor::visit<muon_pre_decoding_t>(
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
-<<<<<<< HEAD
     arguments.offset<dev_muon_raw>(),
-    runtime_options.host_muon_events,
-    runtime_options.host_muon_events_size,
+    std::get<0>(runtime_options.host_muon_events).begin(),
+    std::get<0>(runtime_options.host_muon_events).size_bytes(),
     cudaMemcpyHostToDevice,
-    cuda_stream));
+    cuda_stream)
+  );
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_muon_raw_offsets>(),
-    runtime_options.host_muon_event_offsets,
-    runtime_options.host_muon_event_offsets_size * sizeof(unsigned int),
+    std::get<1>(runtime_options.host_muon_events).begin(),
+    std::get<1>(runtime_options.host_muon_events).size_bytes(),
     cudaMemcpyHostToDevice,
-    cuda_stream));
-=======
-      arguments.offset<dev_muon_raw>(),
-      std::get<0>(runtime_options.host_muon_events).begin(),
-      std::get<0>(runtime_options.host_muon_events).size_bytes(),
-      cudaMemcpyHostToDevice,
-      cuda_stream)
+    cuda_stream)
   );
-  cudaCheck(cudaMemcpyAsync(
-      arguments.offset<dev_muon_raw_offsets>(),
-      std::get<1>(runtime_options.host_muon_events).begin(),
-      std::get<1>(runtime_options.host_muon_events).size_bytes(),
-      cudaMemcpyHostToDevice,
-      cuda_stream)
-  );
->>>>>>> Use the MDFProvider to read a single slice instead of MDFReader
 
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_storage_station_region_quarter_offsets>(),
     0,
     arguments.size<dev_storage_station_region_quarter_offsets>(),
     cuda_stream));
-<<<<<<< HEAD
   cudaCheck(cudaMemsetAsync(arguments.offset<dev_atomics_muon>(), 0, arguments.size<dev_atomics_muon>(), cuda_stream));
-=======
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_atomics_muon>(),
-    0,
-    arguments.size<dev_atomics_muon>(),
-    cuda_stream));
->>>>>>> Use the MDFProvider to read a single slice instead of MDFReader
 
   state.set_opts(
     host_buffers.host_number_of_selected_events[0],
