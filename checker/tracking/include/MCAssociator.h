@@ -181,7 +181,6 @@ struct MCAssociator {
   MCAssocResult operator()(IT first, IT last, std::size_t& n_matched_total) const noexcept
   {
     AssocPreResult assoc;
-    std::size_t total = 0;
     // count how often each particle appears
     // and how many hits of the reconstructed track are matched
     // to the MCP

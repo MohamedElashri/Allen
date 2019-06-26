@@ -26,10 +26,7 @@ void StreamWrapper::run_stream(const uint i, const RuntimeOptions& runtime_optio
   streams[i]->run_sequence(runtime_options);
 }
 
-std::vector<bool> StreamWrapper::reconstructed_events(const uint i) const
-{
-  return streams[i]->reconstructed_events();
-}
+std::vector<bool> StreamWrapper::reconstructed_events(const uint i) const { return streams[i]->reconstructed_events(); }
 
 void StreamWrapper::run_monte_carlo_test(
   uint const i,

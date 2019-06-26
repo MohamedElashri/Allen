@@ -72,9 +72,10 @@ struct Stream {
 
   std::vector<bool> reconstructed_events() const;
 
-  void run_monte_carlo_test(CheckerInvoker& invoker,
-                            MCEvents const& mc_events,
-                            std::vector<Checker::Tracks> const& forward_tracks);
+  void run_monte_carlo_test(
+    CheckerInvoker& invoker,
+    MCEvents const& mc_events,
+    std::vector<Checker::Tracks> const& forward_tracks);
 
   cudaError_t run_sequence(RuntimeOptions const& runtime_options);
 };

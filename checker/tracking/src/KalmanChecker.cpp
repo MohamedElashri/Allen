@@ -42,17 +42,17 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
 #endif
 }
 
-KalmanChecker::~KalmanChecker() {
+KalmanChecker::~KalmanChecker()
+{
 #ifdef WITH_ROOT
   delete m_tree;
 #endif
 }
 
-void KalmanChecker::accumulate(MCEvents const& mc_events,
-                               std::vector<Checker::Tracks> const& tracks)
+void KalmanChecker::accumulate(MCEvents const& mc_events, std::vector<Checker::Tracks> const& tracks)
 {
   // Loop over events.
-  for (int i_event = 0; i_event < mc_events.size(); ++i_event) {
+  for (size_t i_event = 0; i_event < mc_events.size(); ++i_event) {
     const auto& mc_event = mc_events[i_event];
     const auto& mcps = mc_event.m_mcps;
     const auto& event_tracks = tracks[i_event];
@@ -98,7 +98,8 @@ void KalmanChecker::accumulate(MCEvents const& mc_events,
       m_trk_ndof = (float) track.ndof;
       m_trk_ndofV = (float) track.ndofV;
       m_trk_ndofT = (float) track.ndofT;
-      float sint = std::sqrt((m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty) / (1. + m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty));
+      float sint =
+        std::sqrt((m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty) / (1. + m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty));
       m_trk_best_pt = sint / std::abs(track.best_qop);
 #ifdef WITH_ROOT
       m_tree->Fill();
@@ -107,7 +108,8 @@ void KalmanChecker::accumulate(MCEvents const& mc_events,
   }
 }
 
-void KalmanChecker::report(size_t) const {
+void KalmanChecker::report(size_t) const
+{
 #ifdef WITH_ROOT
   m_file->cd();
   m_file->WriteTObject(m_tree);

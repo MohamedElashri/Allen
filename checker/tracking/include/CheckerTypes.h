@@ -22,7 +22,6 @@ namespace Checker {
   struct BaseChecker {
 
     virtual void report(size_t n_events) const = 0;
-
   };
 
   namespace Subdetector {

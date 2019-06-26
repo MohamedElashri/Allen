@@ -13,7 +13,8 @@ struct MDFReader : public EventReader {
   /**
    * @brief Reads files from the specified folder, starting from an event offset.
    */
-  std::vector<std::tuple<unsigned int, unsigned long>>
-  read_events(uint number_of_events_requested = 0, uint start_event_offset = 0) override;
+  std::vector<std::tuple<unsigned int, unsigned long>> read_events(
+    uint number_of_events_requested = 0,
+    uint start_event_offset = 0) override;
 };
 #endif

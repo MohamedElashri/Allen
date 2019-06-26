@@ -56,10 +56,11 @@ struct StreamWrapper {
   /**
    * @brief Runs Monte Carlo test. Stream must be run beforehand.
    */
-  void run_monte_carlo_test(uint const i,
-                            CheckerInvoker& invoker,
-                            MCEvents const& mc_events,
-                            std::vector<Checker::Tracks> const& forward_tracks);
+  void run_monte_carlo_test(
+    uint const i,
+    CheckerInvoker& invoker,
+    MCEvents const& mc_events,
+    std::vector<Checker::Tracks> const& forward_tracks);
 };
 
 /**

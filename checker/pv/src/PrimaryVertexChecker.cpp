@@ -8,13 +8,10 @@ std::string const PVChecker::GPUTag::name = "GPU_PVChecker";
 
 PVChecker::PVChecker(CheckerInvoker const* invoker, std::string const& root_file)
 {
-  m_histos = new PVCheckerHistos{invoker, root_file};
+  m_histos = new PVCheckerHistos {invoker, root_file};
 }
 
-void PVChecker::accumulate(
-  MCEvents const& mc_events,
-  PV::Vertex* rec_vertex,
-  int* number_of_vertex)
+void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, int* number_of_vertex)
 {
   passed += mc_events.size();
 
@@ -56,7 +53,7 @@ void PVChecker::accumulate(
   for (uint i_event = 0; i_event < mc_events.size(); ++i_event) {
     std::vector<PV::Vertex*> vecOfVertices;
     // first fill vector with vertices
-    for (uint i = 0; i < number_of_vertex[i_event]; i++) {
+    for (int i = 0; i < number_of_vertex[i_event]; i++) {
       int index = i_event * PatPV::max_number_vertices + i;
       vecOfVertices.push_back(&(rec_vertex[index]));
     }
@@ -168,27 +165,6 @@ void PVChecker::accumulate(
     int nFalsePV = 0;
     int nFalsePV_real = 0;
     for (int ipv = 0; ipv < (int) recpvvec.size(); ipv++) {
-      int fake = 0;
-      double x = recpvvec[ipv].x;
-      double y = recpvvec[ipv].y;
-      double z = recpvvec[ipv].z;
-      double r = std::sqrt(x * x + y * y);
-      double errx = recpvvec[ipv].positionSigma.x;
-      double erry = recpvvec[ipv].positionSigma.y;
-      double errz = recpvvec[ipv].positionSigma.z;
-      double errr = std::sqrt(((x * errx) * (x * errx) + (y * erry) * (y * erry)) / (x * x + y * y));
-      double minRDTrack = recpvvec[ipv].minTrackRD;
-      double maxRDTrack = recpvvec[ipv].maxTrackRD;
-      int mother = recpvvec[ipv].mother;
-      double velo = recpvvec[ipv].nVeloTracks;
-      double lg = recpvvec[ipv].nLongTracks;
-      double d0 = recpvvec[ipv].d0;
-      double d0nTr = recpvvec[ipv].d0nTr;
-      double chi2nTr = recpvvec[ipv].chi2nTr;
-      double mind0 = recpvvec[ipv].mind0;
-      double maxd0 = recpvvec[ipv].maxd0;
-      double chi2 = recpvvec[ipv].chi2;
-      double nDoF = recpvvec[ipv].nDoF;
       vec_all_rec.push_back(recpvvec[ipv]);
 
       // Counter for performance plots
@@ -198,7 +174,6 @@ void PVChecker::accumulate(
         // Counter for performance plots
         vec_recpv_fake.push_back(1);
         nFalsePV++;
-        fake = 1;
         bool vis_found = false;
         for (unsigned int imc = 0; imc < not_rble_but_visible.size(); imc++) {
           if (not_rble_but_visible[imc].indexRecPVInfo > -1) continue;
@@ -210,7 +185,10 @@ void PVChecker::accumulate(
           }
         } // imc
         if (!vis_found) nFalsePV_real++;
-      } else {vec_recpv_fake.push_back(0);}// Counter for performance plots
+      }
+      else {
+        vec_recpv_fake.push_back(0);
+      } // Counter for performance plots
     }
 
     // Fill distance to closest recble MC PV and its multiplicity
@@ -220,10 +198,6 @@ void PVChecker::accumulate(
       double dist = 999999.;
       int mult = 0;
       if (cmc != rblemcpv.end()) {
-        double diff_x = cmc->pMCPV->x - itmcl->pMCPV->x;
-        double diff_y = cmc->pMCPV->y - itmcl->pMCPV->y;
-        double diff_z = cmc->pMCPV->z - itmcl->pMCPV->z;
-        double dist = sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z);
         mult = cmc->nRecTracks;
         itmcl->distToClosestMCPV = dist;
         itmcl->multClosestMCPV = mult;
@@ -243,13 +217,16 @@ void PVChecker::accumulate(
     int nRecMCPV_close = 0;
 
     for (itmc = rblemcpv.begin(); rblemcpv.end() != itmc; itmc++) {
-      //Counters for performance plots
+      // Counters for performance plots
       if (itmc->nRecTracks > nTracksToBeRecble) {
         vec_mcpv_mult.push_back(itmc->pMCPV->numberTracks);
         vec_mcpv_zpos.push_back(itmc->pMCPV->z);
         if (itmc->indexRecPVInfo > -1) {
           vec_mcpv_recd.push_back(1);
-        } else {vec_mcpv_recd.push_back(0);}
+        }
+        else {
+          vec_mcpv_recd.push_back(0);
+        }
       }
       if (itmc->distToClosestMCPV > dzIsolated) nMCPV_isol++;
       if (itmc->distToClosestMCPV > dzIsolated && itmc->nRecTracks < nTracksToBeRecble) nmrc_isol++;
@@ -305,34 +282,33 @@ void PVChecker::accumulate(
     }
   } // end loop over events
 
-  m_histos->accumulate(vec_all_rec,
-                       vec_rec_x,
-                       vec_rec_y,
-                       vec_rec_z,
-                       vec_diff_x,
-                       vec_diff_y,
-                       vec_diff_z,
-                       vec_err_x,
-                       vec_err_y,
-                       vec_err_z,
-                       vec_n_trinmcpv,
-                       vec_n_mcpv,
-                       vec_mcpv_recd,
-                       vec_recpv_fake,
-                       vec_mcpv_mult,
-                       vec_recpv_mult,
-                       vec_mcpv_zpos,
-                       vec_mc_x,
-                       vec_mc_y,
-                       vec_mc_z);
-
+  m_histos->accumulate(
+    vec_all_rec,
+    vec_rec_x,
+    vec_rec_y,
+    vec_rec_z,
+    vec_diff_x,
+    vec_diff_y,
+    vec_diff_z,
+    vec_err_x,
+    vec_err_y,
+    vec_err_z,
+    vec_n_trinmcpv,
+    vec_n_mcpv,
+    vec_mcpv_recd,
+    vec_recpv_fake,
+    vec_mcpv_mult,
+    vec_recpv_mult,
+    vec_mcpv_zpos,
+    vec_mc_x,
+    vec_mc_y,
+    vec_mc_z);
 }
 
-PVChecker::~PVChecker() {
-  delete m_histos;
-}
+PVChecker::~PVChecker() { delete m_histos; }
 
-void PVChecker::report(size_t) const {
+void PVChecker::report(size_t) const
+{
   info_cout.precision(4);
   info_cout << " ============================================" << std::endl;
   info_cout << " Efficiencies for reconstructible MC vertices: " << std::endl;

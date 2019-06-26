@@ -79,8 +79,8 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
       host_buffers.host_number_of_selected_events[0]);
 
     std::vector<std::vector<float>> p_events_scifi;
-    auto& forward_checker = checker_invoker.checker<TrackCheckerForward>("Checking x86 MomentumForward tracks",
-                                                                         "PrCheckerPlots.root");
+    auto& forward_checker =
+      checker_invoker.checker<TrackCheckerForward>("Checking x86 MomentumForward tracks", "PrCheckerPlots.root");
     forward_checker.accumulate<TrackCheckerForward>(mc_events, scifi_tracks, p_events_scifi);
   }
 }

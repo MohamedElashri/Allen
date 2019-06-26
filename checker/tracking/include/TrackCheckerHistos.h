@@ -70,10 +70,11 @@ struct TrackCheckerHistos {
 
   std::string const m_directory;
 
-  TrackCheckerHistos(CheckerInvoker const* invoker,
-                     std::string const& root_file,
-                     std::string const& directory,
-                     std::vector<Checker::HistoCategory> const& histo_categories);
+  TrackCheckerHistos(
+    CheckerInvoker const* invoker,
+    std::string const& root_file,
+    std::string const& directory,
+    std::vector<Checker::HistoCategory> const& histo_categories);
 
   void fillReconstructibleHistos(const MCParticles& mcps, const Checker::HistoCategory& category);
   void fillReconstructedHistos(const MCParticle& mcp, Checker::HistoCategory& category);

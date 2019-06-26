@@ -1,23 +1,20 @@
 #include "PVCheckerHistos.h"
 
-float getefficiencyerror(float k, float N) {
-  return sqrt(k*(1-k/N))/N;
-}
+float getefficiencyerror(float k, float N) { return sqrt(k * (1 - k / N)) / N; }
 
-PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker,
-                                 std::string const& root_file)
+PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file)
 {
 #ifdef WITH_ROOT
 
   m_file = invoker->root_file(root_file);
   m_file->cd();
 
-  eff_vs_z = std::make_unique<TH1F>("eff_vs_z","eff_vs_z",m_bins_norm_z,-300,300);
-  eff_vs_mult = std::make_unique<TH1F>("eff_vs_mult","eff_vs_mult",m_bins_norm_mult,0,50);
-  eff_norm_z = std::make_unique<TH1F>("eff_norm","eff_norm",m_bins_norm_z,-300,300);
-  eff_norm_mult = std::make_unique<TH1F>("eff_norm_mult","eff_norm_mult",m_bins_norm_mult,0,50);
-  fakes_vs_mult = std::make_unique<TH1F>("fakes_vs_mult","fakes_vs_mult",m_bins_fake_mult,0,20);
-  fakes_norm = std::make_unique<TH1F>("fakes_norm","fakes_norm",m_bins_fake_mult,0,20);
+  eff_vs_z = std::make_unique<TH1F>("eff_vs_z", "eff_vs_z", m_bins_norm_z, -300, 300);
+  eff_vs_mult = std::make_unique<TH1F>("eff_vs_mult", "eff_vs_mult", m_bins_norm_mult, 0, 50);
+  eff_norm_z = std::make_unique<TH1F>("eff_norm", "eff_norm", m_bins_norm_z, -300, 300);
+  eff_norm_mult = std::make_unique<TH1F>("eff_norm_mult", "eff_norm_mult", m_bins_norm_mult, 0, 50);
+  fakes_vs_mult = std::make_unique<TH1F>("fakes_vs_mult", "fakes_vs_mult", m_bins_fake_mult, 0, 20);
+  fakes_norm = std::make_unique<TH1F>("fakes_norm", "fakes_norm", m_bins_fake_mult, 0, 20);
 
   std::string tree_name = "PV_tree";
 
@@ -53,33 +50,34 @@ PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker,
 #endif
 }
 
-void PVCheckerHistos::accumulate(std::vector<RecPVInfo> const& vec_all_rec,
-                                 std::vector<double> const& vec_rec_x,
-                                 std::vector<double> const& vec_rec_y,
-                                 std::vector<double> const& vec_rec_z,
-                                 std::vector<double> const& vec_diff_x,
-                                 std::vector<double> const& vec_diff_y,
-                                 std::vector<double> const& vec_diff_z,
-                                 std::vector<double> const& vec_err_x,
-                                 std::vector<double> const& vec_err_y,
-                                 std::vector<double> const& vec_err_z,
-                                 std::vector<int> const& vec_n_trinmcpv,
-                                 std::vector<int> const& vec_n_mcpv,
-                                 std::vector<int> const& vec_mcpv_recd,
-                                 std::vector<int> const& vec_recpv_fake,
-                                 std::vector<int> const& vec_mcpv_mult,
-                                 std::vector<int> const& vec_recpv_mult,
-                                 std::vector<double> const& vec_mcpv_zpos,
-                                 std::vector<double> const& vec_mc_x,
-                                 std::vector<double> const& vec_mc_y,
-                                 std::vector<double> const& vec_mc_z)
+void PVCheckerHistos::accumulate(
+  std::vector<RecPVInfo> const& vec_all_rec,
+  std::vector<double> const& vec_rec_x,
+  std::vector<double> const& vec_rec_y,
+  std::vector<double> const& vec_rec_z,
+  std::vector<double> const& vec_diff_x,
+  std::vector<double> const& vec_diff_y,
+  std::vector<double> const& vec_diff_z,
+  std::vector<double> const& vec_err_x,
+  std::vector<double> const& vec_err_y,
+  std::vector<double> const& vec_err_z,
+  std::vector<int> const& vec_n_trinmcpv,
+  std::vector<int> const& vec_n_mcpv,
+  std::vector<int> const& vec_mcpv_recd,
+  std::vector<int> const& vec_recpv_fake,
+  std::vector<int> const& vec_mcpv_mult,
+  std::vector<int> const& vec_recpv_mult,
+  std::vector<double> const& vec_mcpv_zpos,
+  std::vector<double> const& vec_mc_x,
+  std::vector<double> const& vec_mc_y,
+  std::vector<double> const& vec_mc_z)
 {
   // save information about matched reconstructed PVs for pulls distributions
 #ifdef WITH_ROOT
 
   // FIXME: fix rest of the stuff here
-  for (int i = 0; i < vec_diff_x.size(); i++) {
-    m_nmcpv  = vec_n_mcpv.at(i);
+  for (size_t i = 0; i < vec_diff_x.size(); i++) {
+    m_nmcpv = vec_n_mcpv.at(i);
     m_ntrinmcpv = vec_n_trinmcpv.at(i);
     m_diff_x = vec_diff_x.at(i);
     m_diff_y = vec_diff_y.at(i);
@@ -95,48 +93,52 @@ void PVCheckerHistos::accumulate(std::vector<RecPVInfo> const& vec_all_rec,
     m_tree->Fill();
   }
 
-  for (int i=0; i < vec_recpv_mult.size(); i++){
-    fakes_vs_mult->Fill(vec_recpv_mult.at(i),vec_recpv_fake.at(i));
-    fakes_norm->Fill(vec_recpv_mult.at(i),1);
+  for (size_t i = 0; i < vec_recpv_mult.size(); i++) {
+    fakes_vs_mult->Fill(vec_recpv_mult.at(i), vec_recpv_fake.at(i));
+    fakes_norm->Fill(vec_recpv_mult.at(i), 1);
   }
 
-  for (int i=0; i < vec_mcpv_mult.size(); i++){
-    eff_vs_z->Fill(vec_mcpv_zpos.at(i),vec_mcpv_recd.at(i));
-    eff_vs_mult->Fill(vec_mcpv_mult.at(i),vec_mcpv_recd.at(i));
-    eff_norm_z->Fill(vec_mcpv_zpos.at(i),1);
-    eff_norm_mult->Fill(vec_mcpv_mult.at(i),1);
+  for (size_t i = 0; i < vec_mcpv_mult.size(); i++) {
+    eff_vs_z->Fill(vec_mcpv_zpos.at(i), vec_mcpv_recd.at(i));
+    eff_vs_mult->Fill(vec_mcpv_mult.at(i), vec_mcpv_recd.at(i));
+    eff_norm_z->Fill(vec_mcpv_zpos.at(i), 1);
+    eff_norm_mult->Fill(vec_mcpv_mult.at(i), 1);
   }
 
   std::vector<float> binerrors_vs_z;
   std::vector<float> binerrors_vs_mult;
 
   // Proper uncertainties for efficiencies
-  for (int i=1; i <= m_bins_norm_z; i++) {
+  for (int i = 1; i <= m_bins_norm_z; i++) {
     float N = 1.f * eff_norm_z->GetBinContent(i);
     float k = 1.f * eff_vs_z->GetBinContent(i);
     if (k < N && N > 0) {
-      binerrors_vs_z.push_back(getefficiencyerror(k,N));
-    } else binerrors_vs_z.push_back(0.);
+      binerrors_vs_z.push_back(getefficiencyerror(k, N));
+    }
+    else
+      binerrors_vs_z.push_back(0.);
   }
-  for (int i=1; i <= m_bins_norm_mult; i++){
+  for (int i = 1; i <= m_bins_norm_mult; i++) {
     float N = 1.f * eff_norm_mult->GetBinContent(i);
     float k = 1.f * eff_vs_mult->GetBinContent(i);
     if (k < N && N > 0) {
-      binerrors_vs_mult.push_back(getefficiencyerror(k,N));
-    } else binerrors_vs_mult.push_back(0.);
+      binerrors_vs_mult.push_back(getefficiencyerror(k, N));
+    }
+    else
+      binerrors_vs_mult.push_back(0.);
   }
 
   eff_vs_z->Divide(eff_norm_z.get());
-  for (int i=1; i <= m_bins_norm_z; i++) {
-    eff_vs_z->SetBinError(i,binerrors_vs_z.at(i-1));
+  for (int i = 1; i <= m_bins_norm_z; i++) {
+    eff_vs_z->SetBinError(i, binerrors_vs_z.at(i - 1));
   }
   eff_vs_mult->Divide(eff_norm_mult.get());
-  for (int i=1; i <= m_bins_norm_mult; i++) {
-    eff_vs_mult->SetBinError(i,binerrors_vs_mult.at(i-1));
+  for (int i = 1; i <= m_bins_norm_mult; i++) {
+    eff_vs_mult->SetBinError(i, binerrors_vs_mult.at(i - 1));
   }
   fakes_vs_mult->Divide(fakes_norm.get());
 
-  for (int j = 0; j < vec_mc_x.size(); j++) {
+  for (size_t j = 0; j < vec_mc_x.size(); j++) {
     m_mc_x = vec_mc_x.at(j);
     m_mc_y = vec_mc_y.at(j);
     m_mc_z = vec_mc_z.at(j);
@@ -155,21 +157,21 @@ void PVCheckerHistos::accumulate(std::vector<RecPVInfo> const& vec_all_rec,
   }
 
 #endif
-
 }
 
-void PVCheckerHistos::write() {
+void PVCheckerHistos::write()
+{
 #ifdef WITH_ROOT
   m_file->cd();
-  std::tuple to_write{std::ref(m_tree),
-                      std::ref(m_mctree),
-                      std::ref(m_allPV),
-                      std::ref(eff_vs_z),
-                      std::ref(eff_vs_mult),
-                      std::ref(eff_norm_z),
-                      std::ref(eff_norm_mult),
-                      std::ref(fakes_vs_mult),
-                      std::ref(fakes_norm)};
+  std::tuple to_write {std::ref(m_tree),
+                       std::ref(m_mctree),
+                       std::ref(m_allPV),
+                       std::ref(eff_vs_z),
+                       std::ref(eff_vs_mult),
+                       std::ref(eff_norm_z),
+                       std::ref(eff_norm_mult),
+                       std::ref(fakes_vs_mult),
+                       std::ref(fakes_norm)};
   for_each(to_write, [this](auto& o) { m_file->WriteTObject(o.get().get()); });
 #endif
 }

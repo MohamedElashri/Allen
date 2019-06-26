@@ -60,38 +60,39 @@ void RateChecker::accumulate(
   }
 }
 
-void RateChecker::report(size_t requested_events) const {
+void RateChecker::report(size_t requested_events) const
+{
 
   // Assume 30 MHz input rate.
   float in_rate = 30000.0;
   printf(
-    "One track:        %i / %i --> %f kHz\n",
+    "One track:        %u / %lu --> %f kHz\n",
     m_evts_one_track,
     requested_events,
     1. * m_evts_one_track / requested_events * in_rate);
   printf(
-    "Two track:        %i / %i --> %f kHz\n",
+    "Two track:        %u / %lu --> %f kHz\n",
     m_evts_two_track,
     requested_events,
     1. * m_evts_two_track / requested_events * in_rate);
   printf(
-    "Single muon:      %i / %i --> %f kHz\n",
+    "Single muon:      %u / %lu --> %f kHz\n",
     m_evts_single_muon,
     requested_events,
     1. * m_evts_single_muon / requested_events * in_rate);
   printf(
-    "Displaced dimuon: %i / %i --> %f kHz\n",
+    "Displaced dimuon: %u / %lu --> %f kHz\n",
     m_evts_disp_dimuon,
     requested_events,
     1. * m_evts_disp_dimuon / requested_events * in_rate);
   printf(
-    "High mass dimuon: %i / %i --> %f kHz\n",
+    "High mass dimuon: %u / %lu --> %f kHz\n",
     m_evts_high_mass_dimuon,
     requested_events,
     1. * m_evts_high_mass_dimuon / requested_events * in_rate);
   printf("------------------------------\n");
   printf(
-    "Inclusive:        %i / %i --> %f kHz\n\n",
+    "Inclusive:        %u / %lu --> %f kHz\n\n",
     m_evts_inc,
     requested_events,
     1. * m_evts_inc / requested_events * in_rate);

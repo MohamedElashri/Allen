@@ -17,7 +17,6 @@ void checkHlt1Rate(
 
 class RateChecker : public Checker::BaseChecker {
 public:
-
   struct RateTag {
     static std::string const name;
   };
@@ -28,19 +27,19 @@ public:
 
   virtual ~RateChecker() = default;
 
-  void accumulate(bool const* one_track_decisions,
-                  bool const* two_track_decisions,
-                  bool const* single_muon_decisions,
-                  bool const* disp_dimuon_decisions,
-                  bool const* high_mass_dimuon_decisions,
-                  int const* track_atomics,
-                  uint const* sv_atomics,
-                  uint const selected_events);
+  void accumulate(
+    bool const* one_track_decisions,
+    bool const* two_track_decisions,
+    bool const* single_muon_decisions,
+    bool const* disp_dimuon_decisions,
+    bool const* high_mass_dimuon_decisions,
+    int const* track_atomics,
+    uint const* sv_atomics,
+    uint const selected_events);
 
   void report(size_t n_events) const override;
 
 private:
-
   // Event counters.
   uint m_evts_one_track = 0;
   uint m_evts_two_track = 0;
@@ -48,5 +47,4 @@ private:
   uint m_evts_disp_dimuon = 0;
   uint m_evts_high_mass_dimuon = 0;
   uint m_evts_inc = 0;
-
 };

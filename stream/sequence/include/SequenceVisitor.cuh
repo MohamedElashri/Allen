@@ -39,11 +39,7 @@ struct SequenceVisitor {
    * @brief Invokes the specific checker for the algorithm T.
    */
   template<typename T>
-  void check(
-    HostBuffers&,
-    const Constants&,
-    const CheckerInvoker&,
-    MCEvents const&) const
+  void check(HostBuffers&, const Constants&, const CheckerInvoker&, MCEvents const&) const
   {}
 };
 

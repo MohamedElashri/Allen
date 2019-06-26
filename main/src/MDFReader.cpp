@@ -12,8 +12,9 @@ namespace {
   using std::vector;
 } // namespace
 
-std::vector<std::tuple<unsigned int, unsigned long>>
-MDFReader::read_events(uint number_of_events_requested, uint start_event_offset)
+std::vector<std::tuple<unsigned int, unsigned long>> MDFReader::read_events(
+  uint number_of_events_requested,
+  uint start_event_offset)
 {
 
   size_t n_read = 0;
@@ -45,7 +46,7 @@ MDFReader::read_events(uint number_of_events_requested, uint start_event_offset)
   }
 
   // TODO Remove: Temporal check to understand if number_of_events_requested is the same as number_of_events
-  const int number_of_events = begin(buffers)->second.second.size() - 1;
+  const uint number_of_events = begin(buffers)->second.second.size() - 1;
   if (number_of_events_requested != number_of_events) {
     throw StrException("Number of events requested differs from number of events read.");
   }

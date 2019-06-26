@@ -20,7 +20,8 @@ struct StrException : public std::exception {
 };
 
 template<typename T>
-void hash_combine(std::size_t &seed, T const &key) {
+void hash_combine(std::size_t& seed, T const& key)
+{
   std::hash<T> hasher;
   seed ^= hasher(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
@@ -29,7 +30,8 @@ void hash_combine(std::size_t &seed, T const &key) {
 namespace std {
   template<typename T1, typename T2>
   struct hash<std::pair<T1, T2>> {
-    std::size_t operator()(std::pair<T1, T2> const &p) const {
+    std::size_t operator()(std::pair<T1, T2> const& p) const
+    {
       std::size_t seed = 0;
       ::hash_combine(seed, p.first);
       ::hash_combine(seed, p.second);
@@ -38,31 +40,30 @@ namespace std {
   };
 
   template<typename... T>
-  class hash<std::tuple<T...>>
-  {
+  class hash<std::tuple<T...>> {
   private:
     typedef std::tuple<T...> tuple_t;
 
     template<int N>
-    size_t operator()(tuple_t const&) const { return 0; }
+    size_t operator()(tuple_t const&) const
+    {
+      return 0;
+    }
 
     template<int N, typename H, typename... R>
     size_t operator()(tuple_t const& value) const
     {
       constexpr int index = N - sizeof...(R) - 1;
       std::size_t seed = 0;
-      ::hash_combine(seed, hash<H>{}(std::get<index>(value)));
+      ::hash_combine(seed, hash<H> {}(std::get<index>(value)));
       ::hash_combine(seed, operator()<N, R...>(value));
       return seed;
     }
 
   public:
-    size_t operator()(tuple_t value) const
-    {
-      return operator()<sizeof...(T), T...>(value);
-    }
+    size_t operator()(tuple_t value) const { return operator()<sizeof...(T), T...>(value); }
   };
-}
+} // namespace std
 
 // Utility to apply a function to a tuple of things
 template<class T>

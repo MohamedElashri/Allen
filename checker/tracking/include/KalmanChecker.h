@@ -18,7 +18,6 @@ class TFile;
 
 class KalmanChecker : public Checker::BaseChecker {
 public:
-
   struct KalmanTag {
     static std::string const name;
   };
@@ -29,13 +28,11 @@ public:
 
   virtual ~KalmanChecker();
 
-  void accumulate(MCEvents const& mc_events,
-                  std::vector<Checker::Tracks> const& tracks);
+  void accumulate(MCEvents const& mc_events, std::vector<Checker::Tracks> const& tracks);
 
   void report(size_t n_events) const override;
 
 private:
-
   TTree* m_tree = nullptr;
   TFile* m_file = nullptr;
 
@@ -66,5 +63,4 @@ private:
   float m_trk_ndofT = 0.f;
   float m_trk_ghost = 0.f;
   float m_mcp_p = 0.f;
-
 };

@@ -32,7 +32,8 @@ void read_folder(
   const std::vector<std::tuple<unsigned int, unsigned long>>& requested_events,
   std::vector<bool> const& event_mask,
   std::vector<char>& events,
-  std::vector<unsigned int>& event_offsets);
+  std::vector<unsigned int>& event_offsets,
+  bool quiet = false);
 
 std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
   const std::string& foldername,

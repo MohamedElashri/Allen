@@ -18,8 +18,9 @@ std::vector<char> GeometryReader::read_geometry(const std::string& filename) con
   return geometry;
 }
 
-std::vector<std::tuple<unsigned int, unsigned long>>
-EventReader::read_events(uint number_of_events_requested, uint start_event_offset)
+std::vector<std::tuple<unsigned int, unsigned long>> EventReader::read_events(
+  uint number_of_events_requested,
+  uint start_event_offset)
 {
   bool first = true;
   std::vector<std::tuple<unsigned int, unsigned long>> event_ids;
@@ -32,7 +33,8 @@ EventReader::read_events(uint number_of_events_requested, uint start_event_offse
     if (first) {
       event_ids = read_folder(folder, number_of_events_requested, events, event_offsets, start_event_offset);
       first = false;
-    } else {
+    }
+    else {
       auto ids = read_folder(folder, number_of_events_requested, events, event_offsets, start_event_offset);
       if (event_ids != ids) {
         warning_cout << "Different events for bank type " << bank_name(bank_type) << std::endl;

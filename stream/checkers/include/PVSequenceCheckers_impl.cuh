@@ -11,10 +11,7 @@ void SequenceVisitor::check<pv_fit_seeds_t>(
   const MCEvents& mc_events) const
 {
   auto& checker = checker_invoker.checker<GPUPVChecker>("Checking GPU PVs ", "GPU_PVChecker.root");
-  checker.accumulate(
-    mc_events,
-    host_buffers.host_reconstructed_pvs,
-    host_buffers.host_number_of_vertex);
+  checker.accumulate(mc_events, host_buffers.host_reconstructed_pvs, host_buffers.host_number_of_vertex);
 }
 
 /**
@@ -40,10 +37,7 @@ void SequenceVisitor::check<cpu_pv_beamline_t>(
   }
   */
   auto& checker = checker_invoker.checker<CPUPVChecker>("Checking CPU beamline PVs", "CPU_PVChecker.root");
-  checker.accumulate(
-    mc_events,
-    host_buffers.host_reconstructed_pvs,
-    host_buffers.host_number_of_vertex);
+  checker.accumulate(mc_events, host_buffers.host_reconstructed_pvs, host_buffers.host_number_of_vertex);
 }
 
 /**
@@ -69,8 +63,5 @@ void SequenceVisitor::check<pv_beamline_cleanup_t>(
     }
     */
   auto& checker = checker_invoker.checker<GPUPVChecker>("Checking GPU beamline PVs", "GPU_PVChecker.root");
-  checker.accumulate(
-    mc_events,
-    host_buffers.host_reconstructed_multi_pvs,
-    host_buffers.host_number_of_multivertex);
+  checker.accumulate(mc_events, host_buffers.host_reconstructed_multi_pvs, host_buffers.host_number_of_multivertex);
 }

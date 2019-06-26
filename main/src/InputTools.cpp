@@ -189,24 +189,23 @@ void read_folder(
   const std::vector<std::tuple<unsigned int, unsigned long>>& requested_events,
   std::vector<bool> const& event_mask,
   std::vector<char>& events,
-  std::vector<unsigned int>& event_offsets)
+  std::vector<unsigned int>& event_offsets,
+  bool quiet)
 {
   std::unordered_map<std::tuple<unsigned int, unsigned long>, std::string> tracks_files;
 
-  std::regex file_expr{"(\\d+)_(\\d+).*\\.bin"};
+  std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
   std::smatch result;
   for (auto const& file : list_folder(foldername)) {
     if (std::regex_match(file, result, file_expr)) {
-      tracks_files.emplace(std::tuple{std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())},
-                           file);
+      tracks_files.emplace(std::tuple {std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())}, file);
     }
   }
 
   for (auto const event_id : requested_events) {
     auto missing = !tracks_files.count(event_id);
     if (missing) {
-      error_cout << "Missing file for event " << std::get<0>(event_id)
-                 << " " << std::get<1>(event_id) << std::endl;
+      error_cout << "Missing file for event " << std::get<0>(event_id) << " " << std::get<1>(event_id) << std::endl;
       return;
     }
   }
@@ -218,7 +217,7 @@ void read_folder(
   std::vector<unsigned int> event_sizes;
   for (size_t i = 0; i < events.size(); ++i) {
     readFiles++;
-    if ((readFiles % 100) == 0) {
+    if ((readFiles % 100) == 0 && !quiet) {
       info_cout << "." << std::flush;
     }
 
@@ -231,20 +230,20 @@ void read_folder(
 
     event_offsets.push_back(accumulated_size);
     accumulated_size += event_sizes.back();
-
   }
 
   // Add last offset
   event_offsets.push_back(accumulated_size);
 
-  debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
+  if (!quiet) {
+    debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
+  }
 }
 
 /**
  * @brief Reads a number of events from a folder name.
  */
-std::vector<std::tuple<unsigned int, unsigned long>>
-read_folder(
+std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
   const std::string& foldername,
   uint number_of_events_requested,
   std::vector<char>& events,
@@ -256,24 +255,24 @@ read_folder(
   debug_cout << "Requested " << number_of_events_requested << " files" << std::endl;
   int readFiles = 0;
 
-
   std::vector<std::tuple<unsigned int, unsigned long>> event_ids;
   event_ids.reserve(folderContents.size());
 
-  std::regex file_expr{"(\\d+)_(\\d+).*\\.bin"};
+  std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
   std::smatch result;
 
   // Read all requested events
   unsigned int accumulated_size = 0;
   std::vector<unsigned int> event_sizes;
-  for (int i = start_event_offset; i < number_of_events_requested + start_event_offset
-         && i < folderContents.size(); ++i) {
+  for (uint i = start_event_offset; i < number_of_events_requested + start_event_offset && i < folderContents.size();
+       ++i) {
     // Read event #i in the list and add it to the inputs
     std::string readingFile = folderContents[i];
     if (std::regex_match(readingFile, result, file_expr)) {
-      event_ids.emplace_back(std::tuple{std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())});
-    } else {
-      throw StrException{"event file " + readingFile + " does not match expected filename pattern."};
+      event_ids.emplace_back(std::tuple {std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())});
+    }
+    else {
+      throw StrException {"event file " + readingFile + " does not match expected filename pattern."};
     }
 
     appendFileToVector(foldername + "/" + readingFile, events, event_sizes);

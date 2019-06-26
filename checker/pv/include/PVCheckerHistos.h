@@ -10,35 +10,33 @@ struct PVCheckerHistos {
 
 #endif
 
-  PVCheckerHistos(CheckerInvoker const* invoker,
-                  std::string const& root_file);
+  PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file);
 
-  void accumulate(std::vector<RecPVInfo> const& vec_all_rec,
-                  std::vector<double> const& vec_rec_x,
-                  std::vector<double> const& vec_rec_y,
-                  std::vector<double> const& vec_rec_z,
-                  std::vector<double> const& vec_diff_x,
-                  std::vector<double> const& vec_diff_y,
-                  std::vector<double> const& vec_diff_z,
-                  std::vector<double> const& vec_err_x,
-                  std::vector<double> const& vec_err_y,
-                  std::vector<double> const& vec_err_z,
-                  std::vector<int> const& vec_n_trinmcpv,
-                  std::vector<int> const& vec_n_mcpv,
-                  std::vector<int> const& vec_mcpv_recd,
-                  std::vector<int> const& vec_recpv_fake,
-                  std::vector<int> const& vec_mcpv_mult,
-                  std::vector<int> const& vec_recpv_mult,
-                  std::vector<double> const& vec_mcpv_zpos,
-                  std::vector<double> const& vec_mc_x,
-                  std::vector<double> const& vec_mc_y,
-                  std::vector<double> const& vec_mc_z);
+  void accumulate(
+    std::vector<RecPVInfo> const& vec_all_rec,
+    std::vector<double> const& vec_rec_x,
+    std::vector<double> const& vec_rec_y,
+    std::vector<double> const& vec_rec_z,
+    std::vector<double> const& vec_diff_x,
+    std::vector<double> const& vec_diff_y,
+    std::vector<double> const& vec_diff_z,
+    std::vector<double> const& vec_err_x,
+    std::vector<double> const& vec_err_y,
+    std::vector<double> const& vec_err_z,
+    std::vector<int> const& vec_n_trinmcpv,
+    std::vector<int> const& vec_n_mcpv,
+    std::vector<int> const& vec_mcpv_recd,
+    std::vector<int> const& vec_recpv_fake,
+    std::vector<int> const& vec_mcpv_mult,
+    std::vector<int> const& vec_recpv_mult,
+    std::vector<double> const& vec_mcpv_zpos,
+    std::vector<double> const& vec_mc_x,
+    std::vector<double> const& vec_mc_y,
+    std::vector<double> const& vec_mc_z);
 
   void write();
 
 private:
-
-
 #ifdef WITH_ROOT
   std::unique_ptr<TTree> m_tree;
   std::unique_ptr<TTree> m_mctree;
@@ -80,5 +78,4 @@ private:
   int const m_bins_norm_z = 50;
   int const m_bins_norm_mult = 25;
   int const m_bins_fake_mult = 20;
-
 };

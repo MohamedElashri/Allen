@@ -28,7 +28,6 @@
 
 struct TrackCheckerHistos;
 
-
 class TrackChecker : public Checker::BaseChecker {
 protected:
   bool m_print = false;
@@ -57,12 +56,14 @@ protected:
   std::size_t n_is_muon_ghost = 0;
 
 public:
-  TrackChecker(std::string name, std::vector<Checker::TrackEffReport> categories,
-               std::vector<Checker::HistoCategory> histo_categories,
-               CheckerInvoker const* invoker,
-               std::string const& root_file,
-               std::string const& directory,
-               bool print = false);
+  TrackChecker(
+    std::string name,
+    std::vector<Checker::TrackEffReport> categories,
+    std::vector<Checker::HistoCategory> histo_categories,
+    CheckerInvoker const* invoker,
+    std::string const& root_file,
+    std::string const& directory,
+    bool print = false);
 
   // FIXME: required until nvcc supports C++17 and m_histos
   virtual ~TrackChecker();
@@ -141,10 +142,9 @@ public:
     const MCEvent& mc_event,
     const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
 
+  const std::vector<Checker::HistoCategory>& histo_categories() const { return m_histo_categories; }
 
- const std::vector<Checker::HistoCategory>& histo_categories() const { return m_histo_categories; }
-
- bool match_track_to_MCPs(
+  bool match_track_to_MCPs(
     MCAssociator mc_assoc,
     const Checker::Tracks& tracks,
     const int i_track,
@@ -164,19 +164,15 @@ public:
 
 struct TrackCheckerVelo : public TrackChecker {
   using subdetector_t = Checker::Subdetector::Velo;
-  TrackCheckerVelo(CheckerInvoker const* invoker,
-                   std::string const& root_file);
+  TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file);
 };
 
 struct TrackCheckerVeloUT : public TrackChecker {
   using subdetector_t = Checker::Subdetector::UT;
-  TrackCheckerVeloUT(CheckerInvoker const* invoker,
-                     std::string const& root_file);
+  TrackCheckerVeloUT(CheckerInvoker const* invoker, std::string const& root_file);
 };
 
 struct TrackCheckerForward : public TrackChecker {
   using subdetector_t = Checker::Subdetector::SciFi;
-  TrackCheckerForward(CheckerInvoker const* invoker,
-                      std::string const& root_file);
-
+  TrackCheckerForward(CheckerInvoker const* invoker, std::string const& root_file);
 };

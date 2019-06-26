@@ -13,7 +13,7 @@
 
 #include "MCEvent.h"
 
-void MCEvent::check_mcp(const MCParticle& mcp)
+void MCEvent::check_mcp(const MCParticle& mcp [[maybe_unused]])
 {
   assert(!std::isnan(mcp.p));
   assert(!std::isnan(mcp.pt));
@@ -23,9 +23,7 @@ void MCEvent::check_mcp(const MCParticle& mcp)
   assert(!std::isinf(mcp.eta));
 }
 
-MCEvent::MCEvent(std::vector<char> const& particles,
-                 std::vector<char> const& vertices,
-                 const bool checkEvent)
+MCEvent::MCEvent(std::vector<char> const& particles, std::vector<char> const& vertices, const bool checkEvent)
 {
   load_particles(particles);
 
@@ -36,7 +34,6 @@ MCEvent::MCEvent(std::vector<char> const& particles,
   }
 
   load_vertices(vertices);
-
 }
 
 void MCEvent::load_particles(const std::vector<char>& particles)
@@ -132,7 +129,6 @@ void MCEvent::load_particles(const std::vector<char>& particles)
     throw StrException(
       "Size mismatch in event deserialization: " + std::to_string(size) + " vs " + std::to_string(particles.size()));
   }
-
 }
 
 void MCEvent::load_vertices(const std::vector<char>& vertices)
@@ -143,7 +139,7 @@ void MCEvent::load_vertices(const std::vector<char>& vertices)
   int number_mcpv = *((int*) input);
   input += sizeof(int);
 
-  for (uint32_t i = 0; i < number_mcpv; ++i) {
+  for (int i = 0; i < number_mcpv; ++i) {
     MCVertex mc_vertex;
 
     int VertexNumberOfTracks = *((int*) input);

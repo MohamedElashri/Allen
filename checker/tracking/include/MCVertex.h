@@ -12,7 +12,7 @@ struct MCVertex {
 };
 
 struct MCPVInfo {
-  MCVertex const* pMCPV;          // pointer to MC PV
+  MCVertex const* pMCPV;    // pointer to MC PV
   int nRecTracks;           // number of reconstructed tracks from this MCPV
   int nRecBackTracks;       // number of reconstructed backward tracks
   int indexRecPVInfo;       // index to reconstructed PVInfo (-1 if not reco)

@@ -94,9 +94,10 @@ std::vector<bool> Stream::reconstructed_events() const
   return mask;
 }
 
-void Stream::run_monte_carlo_test(CheckerInvoker& invoker,
-                                  MCEvents const& mc_events,
-                                  std::vector<Checker::Tracks> const& forward_tracks)
+void Stream::run_monte_carlo_test(
+  CheckerInvoker& invoker,
+  MCEvents const& mc_events,
+  std::vector<Checker::Tracks> const& forward_tracks)
 {
 
   // FIXME: Filter mc_events using host buffers

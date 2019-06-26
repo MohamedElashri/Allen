@@ -20,10 +20,8 @@ class PVCheckerHistos;
 
 class PVChecker : public Checker::BaseChecker {
 public:
-
   struct GPUTag {
     static std::string const name;
-
   };
   struct CPUTag {
     static std::string const name;
@@ -33,14 +31,11 @@ public:
 
   virtual ~PVChecker();
 
-  void accumulate(MCEvents const& mc_events,
-                  PV::Vertex* rec_vertex,
-                  int* number_of_vertex);
+  void accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, int* number_of_vertex);
 
   void report(size_t n_events) const override;
 
 private:
-
   PVCheckerHistos* m_histos = nullptr;
 
   size_t passed = 0;
@@ -56,7 +51,6 @@ private:
   int sum_nFalsePV_real = 0;
   int sum_clones = 0;
   int sum_norm_clones = 0;
-
 };
 
 struct GPUPVChecker : public PVChecker {

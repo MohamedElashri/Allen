@@ -118,9 +118,11 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
   }
 
   // Populate device constant into global memory
-  tuple numbers{tuple{std::cref(host_unique_x_sector_layer_offsets), std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
-                tuple{std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
-                tuple{std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
+  tuple numbers {
+    tuple {std::cref(host_unique_x_sector_layer_offsets),
+           std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
+    tuple {std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
+    tuple {std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
 
   for_each(
     numbers, [&alloc_and_copy](auto& entry) { alloc_and_copy(std::get<0>(entry).get(), std::get<1>(entry).get()); });

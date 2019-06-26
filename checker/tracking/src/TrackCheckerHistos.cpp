@@ -4,10 +4,12 @@ namespace {
   using Checker::HistoCategory;
 }
 
-TrackCheckerHistos::TrackCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file,
-                                       std::string const& directory,
-                                       std::vector<HistoCategory> const& histo_categories)
-  : m_directory{directory}
+TrackCheckerHistos::TrackCheckerHistos(
+  CheckerInvoker const* invoker,
+  std::string const& root_file,
+  std::string const& directory,
+  std::vector<HistoCategory> const& histo_categories) :
+  m_directory {directory}
 {
 #ifdef WITH_ROOT
   m_file = invoker->root_file(root_file);
@@ -155,9 +157,6 @@ TrackCheckerHistos::TrackCheckerHistos(CheckerInvoker const* invoker, std::strin
     std::make_unique<TH1D>("ghost_isMuon_Eta_reconstructed", "ghost_isMuon_Eta_reconstructed", 20, 0, 7);
   h_ghost_isMuon_nPV_reconstructed =
     std::make_unique<TH1D>("ghost_isMuon_nPV_reconstructed", "ghost_isMuon_nPV_reconstructed", 21, -0.5, 20.5);
-
-  h_ghost_isMuon_Eta_reconstructed = std::make_unique<TH1D>("ghost_isMuon_Eta_reconstructed", "ghost_isMuon_Eta_reconstructed", 20, 0, 7);
-  h_ghost_isMuon_nPV_reconstructed = std::make_unique<TH1D>("ghost_isMuon_nPV_reconstructed", "ghost_isMuon_nPV_reconstructed", 21, -0.5, 20.5);
 #endif
 }
 
@@ -169,45 +168,45 @@ void TrackCheckerHistos::write()
     dir = m_file->mkdir(m_directory.c_str());
     dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
   }
-  std::tuple histograms{std::ref(h_dp_versus_p),
-                        std::ref(h_momentum_resolution),
-                        std::ref(h_qop_resolution),
-                        std::ref(h_dqop_versus_qop),
-                        std::ref(h_momentum_matched),
-                        std::ref(h_ghost_nPV),
-                        std::ref(h_total_nPV),
-                        std::ref(h_ghost_eta),
-                        std::ref(h_total_eta),
-                        std::ref(h_muon_catboost_output_matched_muon),
-                        std::ref(h_muon_catboost_output_matched_notMuon),
-                        std::ref(h_muon_catboost_output_matched_muon_ismuon_true),
-                        std::ref(h_muon_catboost_output_matched_notMuon_ismuon_true),
-                        std::ref(h_muon_catboost_output_matched_muon_ismuon_false),
-                        std::ref(h_muon_catboost_output_matched_notMuon_ismuon_false),
-                        std::ref(h_is_muon_matched_muon),
-                        std::ref(h_is_muon_matched_notMuon),
-                        std::ref(h_muon_Eta_reconstructible),
-                        std::ref(h_not_muon_Eta_reconstructible),
-                        std::ref(h_matched_isMuon_Eta_reconstructed),
-                        std::ref(h_not_matched_isMuon_Eta_reconstructed),
-                        std::ref(h_muon_P_reconstructible),
-                        std::ref(h_not_muon_P_reconstructible),
-                        std::ref(h_matched_isMuon_P_reconstructed),
-                        std::ref(h_not_matched_isMuon_P_reconstructed),
-                        std::ref(h_muon_Pt_reconstructible),
-                        std::ref(h_not_muon_Pt_reconstructible),
-                        std::ref(h_matched_isMuon_Pt_reconstructed),
-                        std::ref(h_not_matched_isMuon_Pt_reconstructed),
-                        std::ref(h_muon_Phi_reconstructible),
-                        std::ref(h_not_muon_Phi_reconstructible),
-                        std::ref(h_matched_isMuon_Phi_reconstructed),
-                        std::ref(h_not_matched_isMuon_Phi_reconstructed),
-                        std::ref(h_muon_nPV_reconstructible),
-                        std::ref(h_not_muon_nPV_reconstructible),
-                        std::ref(h_matched_isMuon_nPV_reconstructed),
-                        std::ref(h_not_matched_isMuon_nPV_reconstructed),
-                        std::ref(h_ghost_isMuon_nPV_reconstructed),
-                        std::ref(h_ghost_isMuon_Eta_reconstructed) };
+  std::tuple histograms {std::ref(h_dp_versus_p),
+                         std::ref(h_momentum_resolution),
+                         std::ref(h_qop_resolution),
+                         std::ref(h_dqop_versus_qop),
+                         std::ref(h_momentum_matched),
+                         std::ref(h_ghost_nPV),
+                         std::ref(h_total_nPV),
+                         std::ref(h_ghost_eta),
+                         std::ref(h_total_eta),
+                         std::ref(h_muon_catboost_output_matched_muon),
+                         std::ref(h_muon_catboost_output_matched_notMuon),
+                         std::ref(h_muon_catboost_output_matched_muon_ismuon_true),
+                         std::ref(h_muon_catboost_output_matched_notMuon_ismuon_true),
+                         std::ref(h_muon_catboost_output_matched_muon_ismuon_false),
+                         std::ref(h_muon_catboost_output_matched_notMuon_ismuon_false),
+                         std::ref(h_is_muon_matched_muon),
+                         std::ref(h_is_muon_matched_notMuon),
+                         std::ref(h_muon_Eta_reconstructible),
+                         std::ref(h_not_muon_Eta_reconstructible),
+                         std::ref(h_matched_isMuon_Eta_reconstructed),
+                         std::ref(h_not_matched_isMuon_Eta_reconstructed),
+                         std::ref(h_muon_P_reconstructible),
+                         std::ref(h_not_muon_P_reconstructible),
+                         std::ref(h_matched_isMuon_P_reconstructed),
+                         std::ref(h_not_matched_isMuon_P_reconstructed),
+                         std::ref(h_muon_Pt_reconstructible),
+                         std::ref(h_not_muon_Pt_reconstructible),
+                         std::ref(h_matched_isMuon_Pt_reconstructed),
+                         std::ref(h_not_matched_isMuon_Pt_reconstructed),
+                         std::ref(h_muon_Phi_reconstructible),
+                         std::ref(h_not_muon_Phi_reconstructible),
+                         std::ref(h_matched_isMuon_Phi_reconstructed),
+                         std::ref(h_not_matched_isMuon_Phi_reconstructed),
+                         std::ref(h_muon_nPV_reconstructible),
+                         std::ref(h_not_muon_nPV_reconstructible),
+                         std::ref(h_matched_isMuon_nPV_reconstructed),
+                         std::ref(h_not_matched_isMuon_nPV_reconstructed),
+                         std::ref(h_ghost_isMuon_nPV_reconstructed),
+                         std::ref(h_ghost_isMuon_Eta_reconstructed)};
   for_each(histograms, [dir](auto& histo) { dir->WriteTObject(histo.get().get()); });
 
   for (auto const& histo_map : {std::ref(h_reconstructible_eta),
@@ -327,7 +326,8 @@ void TrackCheckerHistos::fillMuonReconstructedMatchedIsMuon(const MCParticle& mc
 #endif
 }
 
-void TrackCheckerHistos::fillMuonReconstructedNotMatchedIsMuon(const MCParticle& mcp) {
+void TrackCheckerHistos::fillMuonReconstructedNotMatchedIsMuon(const MCParticle& mcp)
+{
 #ifdef WITH_ROOT
   h_not_matched_isMuon_Eta_reconstructed->Fill(mcp.eta);
   h_not_matched_isMuon_P_reconstructed->Fill(mcp.p);
@@ -337,9 +337,10 @@ void TrackCheckerHistos::fillMuonReconstructedNotMatchedIsMuon(const MCParticle&
 #endif
 }
 
-void TrackCheckerHistos::fillMuonReconstructible(const MCParticle& mcp) {
+void TrackCheckerHistos::fillMuonReconstructible(const MCParticle& mcp)
+{
 #ifdef WITH_ROOT
-  if ( std::abs(mcp.pid) == 13 ) {
+  if (std::abs(mcp.pid) == 13) {
     h_muon_Eta_reconstructible->Fill(mcp.eta);
     h_muon_P_reconstructible->Fill(mcp.p);
     h_muon_Pt_reconstructible->Fill(mcp.pt);

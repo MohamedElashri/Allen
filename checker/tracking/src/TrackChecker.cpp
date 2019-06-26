@@ -32,25 +32,25 @@ std::string const Checker::Subdetector::Velo::name = "Velo";
 std::string const Checker::Subdetector::UT::name = "VeloUT";
 std::string const Checker::Subdetector::SciFi::name = "Forward";
 
-TrackChecker::TrackChecker(std::string name, std::vector<Checker::TrackEffReport> categories,
-                           std::vector<Checker::HistoCategory> histo_categories,
-                           CheckerInvoker const* invoker,
-                           std::string const& root_file, std::string const& directory,
-                           bool print)
-  : m_print{print},
-    m_categories{std::move(categories)},
-    m_histo_categories{std::move(histo_categories)},
-    m_trackerName{std::move(name)}
+TrackChecker::TrackChecker(
+  std::string name,
+  std::vector<Checker::TrackEffReport> categories,
+  std::vector<Checker::HistoCategory> histo_categories,
+  CheckerInvoker const* invoker,
+  std::string const& root_file,
+  std::string const& directory,
+  bool print) :
+  m_print {print},
+  m_categories {std::move(categories)}, m_histo_categories {std::move(histo_categories)}, m_trackerName {
+                                                                                            std::move(name)}
 {
   // FIXME: Need to use a forward declaration to keep all ROOT objects
   // out of headers that are compiled with CUDA until NVCC supports
   // C++17
-  m_histos = new TrackCheckerHistos{invoker, root_file, directory, m_histo_categories};
+  m_histos = new TrackCheckerHistos {invoker, root_file, directory, m_histo_categories};
 }
 
-TrackChecker::~TrackChecker() {
-  delete m_histos;
-}
+TrackChecker::~TrackChecker() { delete m_histos; }
 
 void TrackChecker::report(size_t) const
 {
@@ -154,7 +154,6 @@ void Checker::TrackEffReport::operator()(
   ++m_nfound;
   ++m_nfound_per_event;
   bool found = false;
-  int n_matched_total;
   for (const auto& track : tracks) {
     if (!found) {
       found = true;
@@ -393,7 +392,7 @@ std::vector<uint32_t> TrackChecker::operator()(
   std::size_t nghoststriggerperevt = 0;
   std::size_t ntrackstriggerperevt = 0;
   std::vector<uint32_t> matched_mcp_keys;
-  for (int i_track = 0; i_track < tracks.size(); ++i_track) {
+  for (size_t i_track = 0; i_track < tracks.size(); ++i_track) {
     auto const& track = tracks[i_track];
     m_histos->fillTotalHistos(mc_event.m_mcps[0], track);
 
@@ -455,7 +454,6 @@ std::vector<uint32_t> TrackChecker::operator()(
       });
 
     const auto track_with_weight = matched_tracks.front();
-    const auto weight = track_with_weight.m_w;
     auto track = tracks[track_with_weight.m_idx];
 
     // add to various categories
@@ -473,7 +471,6 @@ std::vector<uint32_t> TrackChecker::operator()(
     }
     // fill histogram of momentum resolution
     m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
-
   }
 
   for (auto& report : m_categories) {
@@ -500,17 +497,20 @@ std::vector<uint32_t> TrackChecker::operator()(
   return matched_mcp_keys;
 }
 
-TrackCheckerVelo::TrackCheckerVelo(CheckerInvoker const* invoker,
-                                   std::string const& root_file)
-  : TrackChecker{subdetector_t::name, Categories::Velo, Categories::VeloHisto,
-                 invoker, root_file, subdetector_t::name} {}
+TrackCheckerVelo::TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file) :
+  TrackChecker {subdetector_t::name, Categories::Velo, Categories::VeloHisto, invoker, root_file, subdetector_t::name}
+{}
 
-TrackCheckerVeloUT::TrackCheckerVeloUT(CheckerInvoker const* invoker,
-                                   std::string const& root_file)
-  : TrackChecker{subdetector_t::name, Categories::VeloUT, Categories::VeloUTHisto,
-                 invoker, root_file, "Upstream"} {}
+TrackCheckerVeloUT::TrackCheckerVeloUT(CheckerInvoker const* invoker, std::string const& root_file) :
+  TrackChecker {subdetector_t::name, Categories::VeloUT, Categories::VeloUTHisto, invoker, root_file, "Upstream"}
+{}
 
-TrackCheckerForward::TrackCheckerForward(CheckerInvoker const* invoker,
-                                   std::string const& root_file)
-  : TrackChecker{subdetector_t::name, Categories::Forward, Categories::ForwardHisto,
-                 invoker, root_file, subdetector_t::name, true} {}
+TrackCheckerForward::TrackCheckerForward(CheckerInvoker const* invoker, std::string const& root_file) :
+  TrackChecker {subdetector_t::name,
+                Categories::Forward,
+                Categories::ForwardHisto,
+                invoker,
+                root_file,
+                subdetector_t::name,
+                true}
+{}
