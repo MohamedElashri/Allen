@@ -1,5 +1,5 @@
 /**
- *      CUDA HLT1
+ *      Allen
  *
  *      author  -  GPU working group
  *      e-mail  -  lhcb-rta-accelerators@cern.ch
@@ -49,15 +49,11 @@ namespace {
   constexpr size_t max_input_slices = 512;
   constexpr size_t max_event_threads = 32;
 
-  enum class SliceStatus {
-                          Empty,
-                          Filling,
-                          Filled,
-                          Processing
-  };
-}
+  enum class SliceStatus { Empty, Filling, Filled, Processing };
+} // namespace
 
-void input_reader(const size_t io_id, IInputProvider* input_provider) {
+void input_reader(const size_t io_id, IInputProvider* input_provider)
+{
 
   zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
   zmq::setsockopt(control, zmq::LINGER, 0);
@@ -70,7 +66,7 @@ void input_reader(const size_t io_id, IInputProvider* input_provider) {
     throw e;
   }
 
-  zmq::pollitem_t items [] = {{control, 0, zmq::POLLIN, 0}};
+  zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
   while (true) {
 
@@ -86,7 +82,8 @@ void input_reader(const size_t io_id, IInputProvider* input_provider) {
       auto msg = zmqSvc().receive<string>(control);
       if (msg == "DONE") {
         break;
-      } else {
+      }
+      else {
         idx = zmqSvc().receive<size_t>(control);
         fill = zmqSvc().receive<size_t>(control);
         auto r = input_provider->fill(idx, fill);
@@ -99,10 +96,17 @@ void input_reader(const size_t io_id, IInputProvider* input_provider) {
   }
 }
 
-void event_processor(size_t const thread_id, size_t const stream_id, int cuda_device,
-                     StreamWrapper& wrapper, IInputProvider const* input_provider,
-                     CheckerInvoker& checker_invoker, bool do_check, bool cpu_offload,
-                     string folder_name_imported_forward_tracks) {
+void event_processor(
+  size_t const thread_id,
+  size_t const stream_id,
+  int cuda_device,
+  StreamWrapper& wrapper,
+  IInputProvider const* input_provider,
+  CheckerInvoker& checker_invoker,
+  bool do_check,
+  bool cpu_offload,
+  string folder_name_imported_forward_tracks)
+{
 
   size_t n_devices = 0;
   std::string device_name;
@@ -125,7 +129,7 @@ void event_processor(size_t const thread_id, size_t const stream_id, int cuda_de
 
   zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
   zmq::setsockopt(control, zmq::LINGER, 0);
-  std::this_thread::sleep_for(std::chrono::milliseconds{50});
+  std::this_thread::sleep_for(std::chrono::milliseconds {50});
   auto con = connection(thread_id);
   try {
     control.connect(con.c_str());
@@ -134,8 +138,8 @@ void event_processor(size_t const thread_id, size_t const stream_id, int cuda_de
     throw e;
   }
 
-  zmq::pollitem_t items [] = {
-                              {control, 0, ZMQ_POLLIN, 0},
+  zmq::pollitem_t items[] = {
+    {control, 0, ZMQ_POLLIN, 0},
   };
 
   // Indicate to the main thread that we are ready to process
@@ -170,9 +174,11 @@ void event_processor(size_t const thread_id, size_t const stream_id, int cuda_de
       command = zmqSvc().receive<string>(control);
       if (command == "DONE") {
         break;
-      } else if (command != "PROCESS") {
+      }
+      else if (command != "PROCESS") {
         error_cout << "processor " << stream_id << " received bad command: " << command << endl;
-      } else {
+      }
+      else {
         idx = zmqSvc().receive<size_t>(control);
       }
     }
@@ -183,14 +189,16 @@ void event_processor(size_t const thread_id, size_t const stream_id, int cuda_de
       // Not very clear, but the number of event offsets is the number of filled events.
       // NOTE: if the slice is empty, there might be one offset of 0
       uint n_events = static_cast<uint>(std::get<1>(vp_banks).size() - 1);
-      wrapper.run_stream(stream_id, {std::move(vp_banks),
-                                     input_provider->banks(BankTypes::UT, *idx),
-                                     input_provider->banks(BankTypes::FT, *idx),
-                                     input_provider->banks(BankTypes::MUON, *idx),
-                                     n_events,
-                                     1,
-                                     do_check,
-                                     cpu_offload});
+      wrapper.run_stream(
+        stream_id,
+        {std::move(vp_banks),
+         input_provider->banks(BankTypes::UT, *idx),
+         input_provider->banks(BankTypes::FT, *idx),
+         input_provider->banks(BankTypes::MUON, *idx),
+         n_events,
+         1,
+         do_check,
+         cpu_offload});
 
       // signal that we're done
       zmqSvc().send(control, "PROCESSED", zmq::SNDMORE);
@@ -206,16 +214,14 @@ void event_processor(size_t const thread_id, size_t const stream_id, int cuda_de
 
         if (mc_events.empty()) {
           zmqSvc().send(control, false);
-        } else {
+        }
+        else {
 
           std::vector<Checker::Tracks> forward_tracks;
           if (!folder_name_imported_forward_tracks.empty()) {
             std::vector<char> events_tracks;
             std::vector<uint> event_tracks_offsets;
-            read_folder(folder_name_imported_forward_tracks,
-                        events, mask,
-                        events_tracks,
-                        event_tracks_offsets);
+            read_folder(folder_name_imported_forward_tracks, events, mask, events_tracks, event_tracks_offsets, true);
             forward_tracks = read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
           }
 
@@ -251,6 +257,7 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
     using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
     updater->registerConsumer<id_t>(std::move(std::get<1>(c)));
   });
+}
 
 int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater)
 {
@@ -293,13 +300,20 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"g", "geometry"})) {
       folder_detector_configuration = arg + "/";
-    } else if (flag_in({"mdf"})) {
+    }
+    else if (flag_in({"mdf"})) {
       mdf_input = arg;
-    } else if (flag_in({"n", "number-of-events"})) {
+    }
+    else if (flag_in({"n", "number-of-events"})) {
       number_of_events_requested = atol(arg.c_str());
-    } else if (flag_in({"s", "number-of-slices"})) {
+    }
+    else if (flag_in({"s", "number-of-slices"})) {
       number_of_slices = atoi(arg.c_str());
-    } else if (flag_in({"t", "threads"})) {
+    }
+    else if (flag_in({"events-per-slice"})) {
+      events_per_slice = atoi(arg.c_str());
+    }
+    else if (flag_in({"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
     }
     else if (flag_in({"r", "repetitions"})) {
@@ -348,7 +362,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Show call options
   print_call_options(options, device_name);
 
-  if(number_of_slices <= number_of_threads) {
+  if (number_of_slices <= number_of_threads) {
     warning_cout << "Setting number of slices to " << number_of_threads + 1 << endl;
     number_of_slices = number_of_threads + 1;
   }
@@ -365,9 +379,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
 
-  std::unique_ptr<EventReader> event_reader{};
-  std::unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>> mdf_provider{};
-  BanksAndOffsets velo_events{}, ut_events{}, scifi_events{}, muon_events{};
+  std::unique_ptr<EventReader> event_reader {};
+  std::unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>> mdf_provider {};
+  BanksAndOffsets velo_events {}, ut_events {}, scifi_events {}, muon_events {};
   if (!mdf_input.empty()) {
     vector<string> connections;
     size_t current = mdf_input.find(","), previous = 0;
@@ -377,30 +391,27 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       current = mdf_input.find(",", previous);
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
-    mdf_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(number_of_slices, events_per_slice, std::move(connections));
-  } else {
+    mdf_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+      number_of_slices, events_per_slice, std::move(connections));
+  }
+  else {
     event_reader = std::make_unique<EventReader>(FolderMap {{{BankTypes::VP, folder_name_velopix_raw},
                                                              {BankTypes::UT, folder_name_UT_raw},
                                                              {BankTypes::FT, folder_name_SciFi_raw},
                                                              {BankTypes::MUON, folder_name_Muon_raw}}});
     event_reader->read_events(number_of_events_requested, start_event_offset);
-    velo_events = BanksAndOffsets{{event_reader->events(BankTypes::VP).begin(),
-                                   event_reader->events(BankTypes::VP).size()},
-                                  {event_reader->offsets(BankTypes::VP).begin(),
-                                   event_reader->offsets(BankTypes::VP).size()}};
-    ut_events = BanksAndOffsets{{event_reader->events(BankTypes::UT).begin(),
-                                 event_reader->events(BankTypes::UT).size()},
-                                {event_reader->offsets(BankTypes::UT).begin(),
-                                 event_reader->offsets(BankTypes::UT).size()}};
-    scifi_events = BanksAndOffsets{{event_reader->events(BankTypes::FT).begin(),
-                                    event_reader->events(BankTypes::FT).size()},
-                                   {event_reader->offsets(BankTypes::FT).begin(),
-                                    event_reader->offsets(BankTypes::FT).size()}};
-    muon_events = BanksAndOffsets{{event_reader->events(BankTypes::MUON).begin(),
-                                   event_reader->events(BankTypes::MUON).size()},
-                                  {event_reader->offsets(BankTypes::MUON).begin(),
-                                   event_reader->offsets(BankTypes::MUON).size()}};
-
+    velo_events =
+      BanksAndOffsets {{event_reader->events(BankTypes::VP).begin(), event_reader->events(BankTypes::VP).size()},
+                       {event_reader->offsets(BankTypes::VP).begin(), event_reader->offsets(BankTypes::VP).size()}};
+    ut_events =
+      BanksAndOffsets {{event_reader->events(BankTypes::UT).begin(), event_reader->events(BankTypes::UT).size()},
+                       {event_reader->offsets(BankTypes::UT).begin(), event_reader->offsets(BankTypes::UT).size()}};
+    scifi_events =
+      BanksAndOffsets {{event_reader->events(BankTypes::FT).begin(), event_reader->events(BankTypes::FT).size()},
+                       {event_reader->offsets(BankTypes::FT).begin(), event_reader->offsets(BankTypes::FT).size()}};
+    muon_events =
+      BanksAndOffsets {{event_reader->events(BankTypes::MUON).begin(), event_reader->events(BankTypes::MUON).size()},
+                       {event_reader->offsets(BankTypes::MUON).begin(), event_reader->offsets(BankTypes::MUON).size()}};
   }
 
   muon_catboost_model_reader =
@@ -416,13 +427,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   constants.reserve_and_initialize(
     muon_field_of_interest_params, folder_detector_configuration + "params_kalman_FT6x2/");
   constants.initialize_muon_catboost_model_constants(
-                                                     muon_catboost_model_reader->n_trees(),
-                                                     muon_catboost_model_reader->tree_depths(),
-                                                     muon_catboost_model_reader->tree_offsets(),
-                                                     muon_catboost_model_reader->leaf_values(),
-                                                     muon_catboost_model_reader->leaf_offsets(),
-                                                     muon_catboost_model_reader->split_border(),
-                                                     muon_catboost_model_reader->split_feature());
+    muon_catboost_model_reader->n_trees(),
+    muon_catboost_model_reader->tree_depths(),
+    muon_catboost_model_reader->tree_offsets(),
+    muon_catboost_model_reader->leaf_values(),
+    muon_catboost_model_reader->leaf_offsets(),
+    muon_catboost_model_reader->split_border(),
+    muon_catboost_model_reader->split_feature());
 
   // Register all consumers
   register_consumers(updater, constants);
@@ -432,41 +443,50 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Create streams
   StreamWrapper stream_wrapper;
-  stream_wrapper.initialize_streams(number_of_threads, events_per_slice,
-                                    print_memory_usage, start_event_offset,
-                                    reserve_mb, constants, do_check);
+  stream_wrapper.initialize_streams(
+    number_of_threads, events_per_slice, print_memory_usage, start_event_offset, reserve_mb, constants, do_check);
 
   // Notify used memory if requested verbose mode
   if (logger::ll.verbosityLevel >= logger::verbose) {
     print_gpu_memory_consumption();
   }
 
-  CheckerInvoker checker_invoker{};
+  CheckerInvoker checker_invoker {};
 
   // Lambda with the execution of a thread / stream
   const auto event_thread = [&](uint thread_id, uint stream_id) {
-                              event_processor(thread_id, stream_id, cuda_device,
-                                              stream_wrapper, mdf_provider.get(),
-                                              checker_invoker, do_check, cpu_offload,
-                                              folder_name_imported_forward_tracks);
-                            };
+    event_processor(
+      thread_id,
+      stream_id,
+      cuda_device,
+      stream_wrapper,
+      mdf_provider.get(),
+      checker_invoker,
+      do_check,
+      cpu_offload,
+      folder_name_imported_forward_tracks);
+  };
 
-  const auto io_thread = [&](uint thread_id, uint) {
-                           input_reader(thread_id, mdf_provider.get());
-                         };
+  // Lambda with the execution of the I/O thread
+  const auto io_thread = [&](uint thread_id, uint) { input_reader(thread_id, mdf_provider.get()); };
+
   using start_thread = std::function<void(uint, uint)>;
 
   // Vector of threads
-  std::vector<zmq::pollitem_t> items; items.resize(number_of_threads + 1);
+  std::vector<zmq::pollitem_t> items;
+  items.resize(number_of_threads + 1);
 
   using workers_t = std::vector<std::tuple<std::thread, zmq::socket_t>>;
-  workers_t event_processors; event_processors.reserve(number_of_threads);
-  workers_t io_workers; io_workers.reserve(1);
+  workers_t event_processors;
+  event_processors.reserve(number_of_threads);
+  workers_t io_workers;
+  io_workers.reserve(1);
 
   // Start all workers
   size_t conn_id = 0;
-  for (auto& [workers, start, n, type] : {std::tuple{&io_workers, start_thread{io_thread}, 1u, "input"},
-                                          std::tuple{&event_processors, start_thread{event_thread}, number_of_threads, "events"}}) {
+  for (auto& [workers, start, n, type] :
+       {std::tuple {&io_workers, start_thread {io_thread}, 1u, "input"},
+        std::tuple {&event_processors, start_thread {event_thread}, number_of_threads, "events"}}) {
     for (uint i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
       zmq::setsockopt(control, zmq::LINGER, 0);
@@ -474,11 +494,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       control.bind(con.c_str());
       // I don't know why, but this prevents problems. Probably
       // some race condition I haven't noticed.
-      std::this_thread::sleep_for(std::chrono::milliseconds{50});
-      workers->emplace_back(std::thread{ start, conn_id, i }, std::move(control));
+      std::this_thread::sleep_for(std::chrono::milliseconds {50});
+      workers->emplace_back(std::thread {start, conn_id, i}, std::move(control));
       items[conn_id] = {std::get<1>(workers->back()), 0, zmq::POLLIN, 0};
-      info_cout << "started " << type << " (" << i + 1 << "/" << n << ") "
-                << conn_id << endl;
+      info_cout << "started " << type << " (" << i + 1 << "/" << n << ") " << conn_id << endl;
       ++conn_id;
     }
   }
@@ -489,10 +508,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // processing stream status
   std::bitset<max_event_threads> stream_ready(false);
 
-  auto count_status = [&input_slice_status] (SliceStatus const status) {
-                        return std::accumulate(input_slice_status.begin(), input_slice_status.end(), 0ul,
-                                               [status] (size_t s, auto const stat) { return s + (stat == status); });
-                      };
+  auto count_status = [&input_slice_status](SliceStatus const status) {
+    return std::accumulate(
+      input_slice_status.begin(), input_slice_status.end(), 0ul, [status](size_t s, auto const stat) {
+        return s + (stat == status);
+      });
+  };
 
   // Circular index which slice to process next
   size_t prev_processor = 0;
@@ -522,11 +543,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         assert(msg == "READY");
         auto success = zmqSvc().receive<bool>(socket);
         stream_ready[i] = success;
-        cout << "event processor " << std::setw(2) << i
-             << " (" << std::setw(2) << stream_ready.count()<< "/"
-             << number_of_threads << "), id " << n_io + i
-             << " device " << cuda_device
-             << (success ? " ready." : " failed.") << endl;
+        info_cout << "event processor " << std::setw(2) << i << " (" << std::setw(2) << stream_ready.count()<< "/"
+                  << number_of_threads << "), id " << n_io + i << " device " << cuda_device
+                  << (success ? " ready." : " failed.") << endl;
         error_count += !success;
       }
     }
@@ -534,18 +553,18 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   Timer t;
 
-  auto fill_slice = [&input_slice_status, &n_events_read,
-                     number_of_events_requested, events_per_slice](auto it_slice_status, auto& socket) {
-                      *it_slice_status = SliceStatus::Filling;
-                      size_t idx = std::distance(input_slice_status.begin(), it_slice_status);
-                      size_t fill = number_of_events_requested == -1 ? events_per_slice : number_of_events_requested - n_events_read;
-                      if (fill > 0) {
-                        zmqSvc().send(socket, "FILL", zmq::SNDMORE);
-                        zmqSvc().send(socket, idx, zmq::SNDMORE);
-                        zmqSvc().send(socket, fill);
-                      }
-                      return fill > 0;
-                    };
+  auto fill_slice = [&input_slice_status, &n_events_read, number_of_events_requested, events_per_slice](
+                      auto it_slice_status, auto& socket) {
+    *it_slice_status = SliceStatus::Filling;
+    size_t idx = std::distance(input_slice_status.begin(), it_slice_status);
+    size_t fill = number_of_events_requested == -1 ? events_per_slice : number_of_events_requested - n_events_read;
+    if (fill > 0) {
+      zmqSvc().send(socket, "FILL", zmq::SNDMORE);
+      zmqSvc().send(socket, idx, zmq::SNDMORE);
+      zmqSvc().send(socket, fill);
+    }
+    return fill > 0;
+  };
 
   bool io_done = false;
   std::vector<bool> io_ready(n_io);
@@ -567,14 +586,15 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         auto& socket = std::get<1>(io_workers[i]);
         auto msg = zmqSvc().receive<string>(socket);
         if (msg == "READY") {
-          auto it = std::find(input_slice_status.begin(), input_slice_status.end(),
-                              SliceStatus::Empty);
+          auto it = std::find(input_slice_status.begin(), input_slice_status.end(), SliceStatus::Empty);
           if (it != input_slice_status.end() && fill_slice(it, socket)) {
             io_ready[i] = false;
-          } else {
+          }
+          else {
             io_ready[i] = true;
           }
-        } else {
+        }
+        else {
           assert(msg == "FILLED");
           auto slice_index = zmqSvc().receive<int>(socket);
           auto good = zmqSvc().receive<bool>(socket);
@@ -583,7 +603,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             input_slice_status[slice_index] = SliceStatus::Filled;
             events_in_slice[slice_index] = n_filled;
             n_events_read += n_filled;
-          } else {
+          }
+          else {
             error_cout << "IO provider failed to decode events into slice." << endl;
             goto loop_error;
           }
@@ -610,11 +631,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
         // Run the checker accumulation here in a blocking fashion
         if (do_check) {
-          info_cout << "running checker for event processor  " << i << " is ready." << std::endl;
           zmqSvc().send(socket, folder_data + "/MC_info");
           auto success = zmqSvc().receive<bool>(socket);
           if (!success) {
             warning_cout << "Failed to load MC events." << endl;
+          }
+          else {
+            info_cout << "Checked   " << std::setw(6) << n_events_processed << " events" << std::endl;
           }
         }
         input_slice_status[slice_index] = SliceStatus::Empty;
@@ -626,8 +649,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     std::optional<size_t> processor_index;
     auto n_filled = count_status(SliceStatus::Filled);
     if (!stream_ready.count() && n_filled != 0) {
-      warning_cout << "No processor ready to accept slice" << endl;
-    } else if (n_filled) {
+      debug_cout << "No processor ready to accept slice" << endl;
+    }
+    else if (n_filled) {
       for (size_t i = 0; i < number_of_threads; ++i) {
         size_t idx = (i + prev_processor + 1) % number_of_threads;
         if (stream_ready[idx]) {
@@ -641,8 +665,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     // At least one processor is ready and there is a slice, send it
     // for processing
     if (processor_index && n_filled == 0) {
-      info_cout << "No slice ready to process." << endl;
-    } else if (processor_index) {
+      debug_cout << "No slice ready to process." << endl;
+    }
+    else if (processor_index) {
       // Find an event slice
       size_t input_slice_idx = 0;
       for (size_t i = 0; i < number_of_slices; ++i) {
@@ -658,9 +683,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           zmqSvc().send(socket, "PROCESS", zmq::SNDMORE);
           zmqSvc().send(socket, input_slice_idx);
 
-          debug_cout << "submitted " << std::setw(5) << events_in_slice[input_slice_idx]
-                     << " events to slice " << std::setw(2) << input_slice_idx
-                     << " on stream " << std::setw(2) << *processor_index << endl;
+          debug_cout << "submitted " << std::setw(5) << events_in_slice[input_slice_idx] << " events to slice "
+                     << std::setw(2) << input_slice_idx << " on stream " << std::setw(2) << *processor_index << endl;
+          break;
         }
       }
     }
@@ -668,9 +693,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     // If the IO is waiting and there are empty slices, assign it a slice
     auto ready_it = io_ready.begin();
     auto slice_it = input_slice_status.begin();
-    while ((ready_it = std::find(ready_it, io_ready.end(), true)) != io_ready.end()
-           && (slice_it  = std::find(slice_it, input_slice_status.end(), SliceStatus::Empty)) != input_slice_status.end()
-           && fill_slice(slice_it, std::get<1>(io_workers[std::distance(io_ready.begin(), ready_it)]))) {
+    while ((ready_it = std::find(ready_it, io_ready.end(), true)) != io_ready.end() &&
+           (slice_it = std::find(slice_it, input_slice_status.end(), SliceStatus::Empty)) != input_slice_status.end() &&
+           fill_slice(slice_it, std::get<1>(io_workers[std::distance(io_ready.begin(), ready_it)]))) {
       *ready_it = false;
     }
 
@@ -681,7 +706,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
   }
 
-  loop_error:
+loop_error:
   // Let processors that are still busy finish
   while((stream_ready.count() + error_count) < number_of_threads) {
 
@@ -710,6 +735,16 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         } else {
           auto slice_index = zmqSvc().receive<size_t>(socket);
           stream_ready[i] = true;
+          if (do_check) {
+            zmqSvc().send(socket, folder_data + "/MC_info");
+            auto success = zmqSvc().receive<bool>(socket);
+            if (!success) {
+              warning_cout << "Failed to load MC events." << endl;
+            }
+            else {
+              info_cout << "Checked   " << std::setw(6) << n_events_processed << " events" << std::endl;
+            }
+          }
           input_slice_status[slice_index] = SliceStatus::Empty;
         }
       }
@@ -731,8 +766,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     checker_invoker.report(n_events_processed);
   }
 
-  info_cout << (number_of_events_requested * number_of_repetitions / t.get()) << " events/s"
-            << endl
+  info_cout << (number_of_events_requested * number_of_repetitions / t.get()) << " events/s" << endl
             << "Ran test for " << t.get() << " seconds" << endl;
 
   // Reset device

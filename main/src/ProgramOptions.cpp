@@ -5,7 +5,7 @@ void print_usage(char* argv[], const std::vector<ProgramOption>& program_options
   std::cerr << "Usage: " << argv[0] << std::endl;
   for (const auto& po : program_options) {
     std::cerr << " ";
-    for (int i = 0; i < po.options.size(); ++i) {
+    for (size_t i = 0; i < po.options.size(); ++i) {
       if (po.options[i].length() > 1) {
         std::cerr << "-";
       }
@@ -37,6 +37,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"n", "number-of-events"}, "number of events to process", "0", "all"},
           // {{"o", "offset"}, "offset of events from which to start", "0 (beginning)"},
           {{"s", "number-of-slices"}, "number of input slices to allocate", "0", "one more than the number of threads"},
+          {{"events-per-slice"}, "number of events per slice", "1000"},
           {{"t", "threads"}, "number of threads / streams", "1"},
           {{"r", "repetitions"}, "number of repetitions per thread / stream", "1"},
           {{"c", "validate"}, "run validation / checkers", "1"},
@@ -54,7 +55,7 @@ void print_call_options(const std::map<std::string, std::string>& options, const
   std::cout << "Requested options:" << std::endl;
   for (const auto& po : program_options) {
     std::cout << " " << po.description << " (";
-    for (int i = 0; i < po.options.size(); ++i) {
+    for (size_t i = 0; i < po.options.size(); ++i) {
       if (po.options[i].length() > 1) {
         std::cerr << "-";
       }
