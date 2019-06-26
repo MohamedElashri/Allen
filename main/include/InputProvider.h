@@ -10,7 +10,7 @@
 struct IInputProvider {
 
   virtual std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const = 0;
-  virtual std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index, size_t n) = 0;
+  virtual std::tuple<bool, bool, size_t> fill(size_t slice_index, size_t n) = 0;
 
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 };
@@ -37,7 +37,7 @@ public:
     return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index);
   }
 
-  std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index, size_t n) override
+  std::tuple<bool, bool, size_t> fill(size_t slice_index, size_t n) override
   {
     return static_cast<Derived<Banks...>*>(this)->fill(slice_index, n);
   }

@@ -204,17 +204,12 @@ public:
   // FIXME: what to do with flags=0.... more is a pointer, that might prevent conversion
   template<
     class T,
-    typename std::enable_if<!(Detail::ROOTObject<T>::value || std::is_same<zmq::message_t, T>::value), T>::type* =
+    typename std::enable_if<!std::is_same<zmq::message_t, T>::value, T>::type* =
       nullptr>
   T receive(zmq::socket_t& socket, bool* more = nullptr) const
   {
     // receive message
-    zmq::message_t msg;
-    auto nbytes = socket.recv(&msg);
-    if (0 == nbytes) {
-      throw ZMQ::TimeOutException {};
-    }
-    if (more) *more = msg.more();
+    auto msg = this->receive<zmq::message_t>(socket, more);
 
     // decode message
     return decode<T>(msg);
@@ -226,28 +221,19 @@ public:
   {
     // receive message
     zmq::message_t msg;
-    auto nbytes = socket.recv(&msg);
-    if (0 == nbytes) {
-      throw ZMQ::TimeOutException {};
-    }
-    if (more) *more = msg.more();
+    std::optional<int> nbytes;
+    do {
+      try {
+        nbytes = socket.recv(&msg);
+        if (0 == *nbytes) {
+          throw ZMQ::TimeOutException {};
+        }
+        if (more) *more = msg.more();
+      } catch (const zmq::error_t& err) {
+        if (err.num() == EINTR) continue;
+      }
+    } while (!nbytes);
     return msg;
-  }
-
-  // receive message with ZMQ, ROOT version
-  template<class T, typename std::enable_if<Detail::ROOTObject<T>::value, T>::type* = nullptr>
-  std::unique_ptr<T> receive(zmq::socket_t& socket, bool* more = nullptr) const
-  {
-    // receive message
-    zmq::message_t msg;
-    auto nbytes = socket.recv(&msg);
-    if (0 == nbytes) {
-      throw ZMQ::TimeOutException {};
-    }
-    if (more) *more = msg.more();
-
-    // decode message
-    return decode<T>(msg);
   }
 
   // encode message to ZMQ
@@ -314,16 +300,35 @@ public:
   template<class T, typename std::enable_if<!std::is_same<T, zmq::message_t>::value, T>::type* = nullptr>
   bool send(zmq::socket_t& socket, const T& item, int flags = 0) const
   {
-    return socket.send(encode(item), flags);
+    return this->send(socket, encode(item), flags);
   }
 
-  bool send(zmq::socket_t& socket, const char* item, int flags = 0) const { return socket.send(encode(item), flags); }
+  bool send(zmq::socket_t& socket, const char* item, int flags = 0) const { return this->send(socket, encode(item), flags); }
 
-  bool send(zmq::socket_t& socket, zmq::message_t& msg, int flags = 0) const { return socket.send(msg, flags); }
+  bool send(zmq::socket_t& socket, zmq::message_t& msg, int flags = 0) const
+  {
+    std::optional<bool> good;
+    do {
+      try {
+        good = socket.send(msg, flags);
+      } catch (const zmq::error_t& err) {
+        if (err.num() == EINTR) continue;
+      }
+    } while (!good);
+    return *good;
+  }
 
   bool send(zmq::socket_t& socket, zmq::message_t&& msg, int flags = 0) const
   {
-    return socket.send(std::move(msg), flags);
+    std::optional<bool> good;
+    do {
+      try {
+        good = socket.send(std::move(msg), flags);
+      } catch (const zmq::error_t& err) {
+        if (err.num() == EINTR) continue;
+      }
+    } while (!good);
+    return *good;
   }
 
 private:

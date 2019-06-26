@@ -33,8 +33,8 @@
 #include "Tools.h"
 #include "InputTools.h"
 #include "InputReader.h"
-#include "MDFReader.h"
 #include "MDFProvider.h"
+#include "BinaryProvider.h"
 #include "Timer.h"
 #include "StreamWrapper.cuh"
 #include "Constants.cuh"
@@ -365,6 +365,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   if (number_of_slices <= number_of_threads) {
     warning_cout << "Setting number of slices to " << number_of_threads + 1 << endl;
     number_of_slices = number_of_threads + 1;
+  } else {
+    info_cout << "Using " << number_of_slices << " input slices." << endl;
   }
 
   // Print configured sequence
@@ -379,9 +381,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
 
-  std::unique_ptr<EventReader> event_reader {};
-  std::unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>> mdf_provider {};
-  BanksAndOffsets velo_events {}, ut_events {}, scifi_events {}, muon_events {};
+  std::unique_ptr<IInputProvider> input_provider {};
   if (!mdf_input.empty()) {
     vector<string> connections;
     size_t current = mdf_input.find(","), previous = 0;
@@ -391,27 +391,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       current = mdf_input.find(",", previous);
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
-    mdf_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, events_per_slice, std::move(connections));
   }
   else {
-    event_reader = std::make_unique<EventReader>(FolderMap {{{BankTypes::VP, folder_name_velopix_raw},
-                                                             {BankTypes::UT, folder_name_UT_raw},
-                                                             {BankTypes::FT, folder_name_SciFi_raw},
-                                                             {BankTypes::MUON, folder_name_Muon_raw}}});
-    event_reader->read_events(number_of_events_requested, start_event_offset);
-    velo_events =
-      BanksAndOffsets {{event_reader->events(BankTypes::VP).begin(), event_reader->events(BankTypes::VP).size()},
-                       {event_reader->offsets(BankTypes::VP).begin(), event_reader->offsets(BankTypes::VP).size()}};
-    ut_events =
-      BanksAndOffsets {{event_reader->events(BankTypes::UT).begin(), event_reader->events(BankTypes::UT).size()},
-                       {event_reader->offsets(BankTypes::UT).begin(), event_reader->offsets(BankTypes::UT).size()}};
-    scifi_events =
-      BanksAndOffsets {{event_reader->events(BankTypes::FT).begin(), event_reader->events(BankTypes::FT).size()},
-                       {event_reader->offsets(BankTypes::FT).begin(), event_reader->offsets(BankTypes::FT).size()}};
-    muon_events =
-      BanksAndOffsets {{event_reader->events(BankTypes::MUON).begin(), event_reader->events(BankTypes::MUON).size()},
-                       {event_reader->offsets(BankTypes::MUON).begin(), event_reader->offsets(BankTypes::MUON).size()}};
+    // The binary input provider expects the folders for the bank types as connections
+    vector<string> connections = {folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
+    input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+      number_of_slices, events_per_slice, std::move(connections));
   }
 
   muon_catboost_model_reader =
@@ -460,7 +447,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       stream_id,
       cuda_device,
       stream_wrapper,
-      mdf_provider.get(),
+      input_provider.get(),
       checker_invoker,
       do_check,
       cpu_offload,
@@ -468,7 +455,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   };
 
   // Lambda with the execution of the I/O thread
-  const auto io_thread = [&](uint thread_id, uint) { input_reader(thread_id, mdf_provider.get()); };
+  const auto io_thread = [&](uint thread_id, uint) { input_reader(thread_id, input_provider.get()); };
 
   using start_thread = std::function<void(uint, uint)>;
 
@@ -557,7 +544,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                       auto it_slice_status, auto& socket) {
     *it_slice_status = SliceStatus::Filling;
     size_t idx = std::distance(input_slice_status.begin(), it_slice_status);
-    size_t fill = number_of_events_requested == -1 ? events_per_slice : number_of_events_requested - n_events_read;
+    long n_left = number_of_events_requested - n_events_read;
+    size_t fill = (number_of_events_requested == -1 || n_left > events_per_slice) ? events_per_slice : n_left;
     if (fill > 0) {
       zmqSvc().send(socket, "FILL", zmq::SNDMORE);
       zmqSvc().send(socket, idx, zmq::SNDMORE);
@@ -615,6 +603,15 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           }
         }
       }
+    }
+
+    // If the IO is waiting and there are empty slices, assign it a slice
+    auto ready_it = io_ready.begin();
+    auto slice_it = input_slice_status.begin();
+    while ((ready_it = std::find(ready_it, io_ready.end(), true)) != io_ready.end() &&
+           (slice_it = std::find(slice_it, input_slice_status.end(), SliceStatus::Empty)) != input_slice_status.end() &&
+           fill_slice(slice_it, std::get<1>(io_workers[std::distance(io_ready.begin(), ready_it)]))) {
+      *ready_it = false;
     }
 
     // Check if any processors are ready
@@ -688,15 +685,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           break;
         }
       }
-    }
-
-    // If the IO is waiting and there are empty slices, assign it a slice
-    auto ready_it = io_ready.begin();
-    auto slice_it = input_slice_status.begin();
-    while ((ready_it = std::find(ready_it, io_ready.end(), true)) != io_ready.end() &&
-           (slice_it = std::find(slice_it, input_slice_status.end(), SliceStatus::Empty)) != input_slice_status.end() &&
-           fill_slice(slice_it, std::get<1>(io_workers[std::distance(io_ready.begin(), ready_it)]))) {
-      *ready_it = false;
     }
 
     // Check if we're done

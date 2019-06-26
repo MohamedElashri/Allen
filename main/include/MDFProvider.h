@@ -63,7 +63,7 @@ public:
     return m_event_ids[slice_index];
   }
 
-  std::tuple<bool, bool, size_t, std::map<BankTypes, size_t>> fill(size_t slice_index, size_t n)
+  std::tuple<bool, bool, size_t> fill(size_t slice_index, size_t n)
   {
     bool good = true, full = false;
     unsigned int run = 0;
@@ -78,11 +78,8 @@ public:
       std::get<2>(m_slices[ib][slice_index]) = 1;
     }
 
-    // Make sure we don't fill too much
-    size_t to_fill = n > this->n_events() ? this->n_events() : n;
-
     // Fill the slices for all bank types
-    for (; n_filled < to_fill && !full; ++n_filled) {
+    for (; n_filled < n && !full; ++n_filled) {
       // Read next event into buffer memory
       // TODO: avoid extra copy of all bank data by:
       // - obtaining all offsets
@@ -128,13 +125,7 @@ public:
         event_ids.emplace_back(run, event);
       }
     }
-    std::map<BankTypes, size_t> left;
-    for (auto bank_type : this->types()) {
-      auto ib = to_integral(bank_type);
-      auto const& [buf, offsets, offsets_size] = m_slices[ib][slice_index];
-      left.emplace(bank_type, buf.size() - offsets[offsets_size -1]);
-    }
-    return {good, full, n_filled, std::move(left)};
+    return {good, full, n_filled};
   }
 
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const
