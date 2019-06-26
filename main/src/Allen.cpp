@@ -599,17 +599,17 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           auto slice_index = zmqSvc().receive<int>(socket);
           auto good = zmqSvc().receive<bool>(socket);
           auto n_filled = zmqSvc().receive<size_t>(socket);
-          if (good) {
+          if (!good && n_filled == 0) {
+            error_cout << "I/O provider failed to decode events into slice." << endl;
+            goto loop_error;
+          }
+          else {
             input_slice_status[slice_index] = SliceStatus::Filled;
             events_in_slice[slice_index] = n_filled;
             n_events_read += n_filled;
           }
-          else {
-            error_cout << "IO provider failed to decode events into slice." << endl;
-            goto loop_error;
-          }
 
-          if (n_events_read >= number_of_events_requested) {
+          if ((!good && n_filled != 0) || n_events_read >= number_of_events_requested) {
             io_done = true;
             info_cout << "I/O complete." << endl;
           }
@@ -710,7 +710,7 @@ loop_error:
   // Let processors that are still busy finish
   while((stream_ready.count() + error_count) < number_of_threads) {
 
-    // Wait for at least one event to be ready
+    // Wait for at least one event processor to be ready
     std::optional<int> n;
     do {
       try {
