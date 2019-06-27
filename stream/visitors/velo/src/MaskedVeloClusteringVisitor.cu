@@ -38,4 +38,27 @@ void SequenceVisitor::visit<velo_masked_clustering_t>(
     constants.dev_velo_sp_fy);
 
   state.invoke();
+
+  // std::vector<uint> estimated_input_size (arguments.size<dev_estimated_input_size>() >> 2);
+  // std::vector<uint> module_cluster_num (arguments.size<dev_module_cluster_num>() >> 2);
+
+  // cudaCheck(cudaMemcpy(estimated_input_size.data(),
+  //   arguments.offset<dev_estimated_input_size>(),
+  //   arguments.size<dev_estimated_input_size>(),
+  //   cudaMemcpyDeviceToHost));
+
+  // cudaCheck(cudaMemcpy(module_cluster_num.data(),
+  //   arguments.offset<dev_module_cluster_num>(),
+  //   arguments.size<dev_module_cluster_num>(),
+  //   cudaMemcpyDeviceToHost));
+
+  // for (int i=0; i<estimated_input_size.size() - 1; ++i) {
+  //   const auto estimated_module_size = estimated_input_size[i+1] - estimated_input_size[i];
+  //   const auto module_size = module_cluster_num[i];
+
+  //   if (module_size > estimated_module_size) {
+  //     warning_cout << "Module size exceeds estimated size for event "
+  //       << (i / 52) << ", module " << (i % 52) << " \n";
+  //   }
+  // }
 }

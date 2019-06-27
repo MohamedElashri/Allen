@@ -29,8 +29,8 @@ __device__ void process_modules(
 
   // Prepare the first seeding iteration
   // Load shared module information
-  if (threadIdx.x < 6) {
-    const auto module_number = first_module - threadIdx.x;
+  if (threadIdx.x < 4) {
+    const auto module_number = first_module - threadIdx.x - 2;
     module_data[threadIdx.x].hitStart = module_hitStarts[module_number] - hit_offset;
     module_data[threadIdx.x].hitNums = module_hitNums[module_number];
     module_data[threadIdx.x].z = dev_velo_module_zs[module_number];
@@ -57,15 +57,15 @@ __device__ void process_modules(
   uint last_ttf = 0;
   first_module -= 2;
 
-  while (first_module >= 4) {
+  while (first_module > 4) {
 
     // Due to WAR between trackSeedingFirst and the code below
     __syncthreads();
 
     // Iterate in modules
     // Load in shared
-    if (threadIdx.x < 6) {
-      const auto module_number = first_module - threadIdx.x;
+    if (threadIdx.x < 4) {
+      const auto module_number = first_module - threadIdx.x - 2;
       module_data[threadIdx.x].hitStart = module_hitStarts[module_number] - hit_offset;
       module_data[threadIdx.x].hitNums = module_hitNums[module_number];
       module_data[threadIdx.x].z = dev_velo_module_zs[module_number];
@@ -95,7 +95,8 @@ __device__ void process_modules(
       tracks,
       number_of_hits,
       dev_atomics_velo,
-      ip_shift);
+      ip_shift,
+      first_module);
 
     // Due to ttf_insert_pointer
     __syncthreads();
@@ -125,21 +126,17 @@ __device__ void process_modules(
   const auto diff_ttf = last_ttf - prev_ttf;
 
   // Process the last bunch of track_to_follows
-  for (int i = 0; i < (diff_ttf + blockDim.x - 1) / blockDim.x; ++i) {
-    const auto ttf_element = blockDim.x * i + threadIdx.x;
+  for (int ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
+    const int fulltrackno = tracks_to_follow[(prev_ttf + ttf_element) & Velo::Tracking::ttf_modulo_mask];
+    const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
+    const int trackno = fulltrackno & 0x0FFFFFFF;
 
-    if (ttf_element < diff_ttf) {
-      const int fulltrackno = tracks_to_follow[(prev_ttf + ttf_element) % Velo::Tracking::ttf_modulo];
-      const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
-      const int trackno = fulltrackno & 0x0FFFFFFF;
-
-      // Here we are only interested in three-hit tracks,
-      // to mark them as "doubtful"
-      if (track_flag) {
-        const auto weakP = atomicAdd(dev_atomics_velo + ip_shift, 1);
-        assert(weakP < number_of_hits);
-        weak_tracks[weakP] = tracklets[trackno];
-      }
+    // Here we are only interested in three-hit tracks,
+    // to mark them as "doubtful"
+    if (track_flag) {
+      const auto weakP = atomicAdd(dev_atomics_velo + ip_shift, 1);
+      assert(weakP < number_of_hits);
+      weak_tracks[weakP] = tracklets[trackno];
     }
   }
 }
