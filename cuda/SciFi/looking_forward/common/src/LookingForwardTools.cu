@@ -90,16 +90,16 @@ __device__ float LookingForward::propagate_x_from_velo(
 __device__ float LookingForward::dx_calc(const float state_tx, float qop)
 {
   float ret_val;
-  float qop_window = std::abs(LookingForward::dx_slope * qop + LookingForward::dx_min);
-  float tx_window = std::abs(LookingForward::tx_slope * state_tx + LookingForward::tx_min);
-  ret_val = LookingForward::tx_weight * tx_window + LookingForward::dx_weight * qop_window;
-  if (ret_val > LookingForward::max_window_layer0) {
-    ret_val = LookingForward::max_window_layer0;
-  }
+  //float qop_window = std::abs(LookingForward::dx_slope * qop + LookingForward::dx_min);
+  //float tx_window = std::abs(LookingForward::tx_slope * state_tx + LookingForward::tx_min);
+  //ret_val = LookingForward::tx_weight * tx_window + LookingForward::dx_weight * qop_window;
+  //if (ret_val > LookingForward::max_window_layer0) {
+  //  ret_val = LookingForward::max_window_layer0;
+  //}
 
   // TEST
   // ret_val = 100 + 1.4e6*std::abs(qop);
-  ret_val = 100 + 1.4e6 * std::abs(qop);
+  ret_val = 100.f + 1.4e6f * std::abs(qop);
 
   return ret_val;
 }

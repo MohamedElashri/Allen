@@ -54,15 +54,16 @@ namespace LookingForward {
   constexpr int tile_size = 16;
   constexpr int tile_size_mask = 0xF;
   constexpr int tile_size_shift_div = 4;
+
   constexpr int num_atomics = 1;
-  constexpr float track_min_quality = 0.05f;
+  constexpr float track_min_quality = 0.0f;
   constexpr int track_min_hits = 9;
-  constexpr float filter_x_max_chi2 = 1.f;
+  constexpr float filter_x_max_chi2 = 1.f; // UNUSED
   constexpr float filter_x_max_xAtRef_spread = 1e9f; // 10.f;
 
   // cut on the difference between tx from the extrapolation and
   // tx from the hits in the two x layers
-  constexpr float max_tx_diff = 0.05f * Gaudi::Units::mm;
+  constexpr float max_tx_diff = 0.05f * Gaudi::Units::mm; // UNUSED
 
   // z distance between various layers of a station
   // FIXME_GEOMETRY_HARDCODING

@@ -34,13 +34,15 @@ namespace SciFi {
     constexpr float cyParams = -3.68424e-05;
 
     // stereo hit matching
+    // Not used in Looking Forward when using qop from VeloUT
     constexpr float tolYCollectX = 3.5 * Gaudi::Units::mm;        // 4.1* Gaudi::Units::mm ;
     constexpr float tolYSlopeCollectX = 0.001 * Gaudi::Units::mm; // 0.0018 * Gaudi::Units::mm ;
 
     // veloUT momentum estimate
     constexpr bool useMomentumEstimate = true;
     constexpr bool useWrongSignWindow = true;
-    constexpr float wrongSignPT = 2000. * Gaudi::Units::MeV;
+    constexpr float wrongSignPT = 500. * Gaudi::Units::MeV;
+    constexpr float wrongSignQoP = 1.f / wrongSignPT;
 
     // z Reference plane
     constexpr float zReference = 8520. * Gaudi::Units::mm; // in T2
