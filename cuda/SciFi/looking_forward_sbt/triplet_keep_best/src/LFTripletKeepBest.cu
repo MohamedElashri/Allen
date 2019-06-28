@@ -17,7 +17,7 @@ __global__ void lf_triplet_keep_best(
 {
   // Keep best for each h1 hit
   __shared__ float best_chi2[4 * LookingForward::maximum_number_of_candidates];
-  __shared__ int8_t best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
+  __shared__ int16_t best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -72,6 +72,7 @@ __global__ void lf_triplet_keep_best(
         }
         if (insert_position < LookingForward::maximum_number_of_candidates_per_ut_track) {
           best_triplets[insert_position] = j;
+
         }
       }
     }
@@ -93,7 +94,6 @@ __global__ void lf_triplet_keep_best(
 
         // Create triplet candidate with all information we have
         const int current_insert_index = atomicAdd(dev_atomics_scifi + current_ut_track_index, 1);
-        assert(current_insert_index < LookingForward::maximum_number_of_candidates_per_ut_track);
         const uint16_t h0 = (uint16_t) scifi_lf_candidates
           [(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates +
            dev_scifi_lf_triplet_best_h0h2[h0_element]];
