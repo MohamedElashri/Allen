@@ -27,7 +27,7 @@ Prints the usage of this script
 
 def print_usage():
     print("Usage: performance_breakdown.py <Allen invoke line>\n" + \
-    "E.g. ./performance_breakdown.py ../../build/Allen -f ../../input/minbias -g ../../input/detector_configuration -n 1000 -c 0")
+    "E.g. ./performance_breakdown.py ../../../build/Allen -f ../../../input/minbias -g ../../../input/detector_configuration -n 1000 -c 0")
 
 
 """
