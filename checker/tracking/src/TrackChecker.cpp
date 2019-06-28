@@ -282,7 +282,7 @@ bool TrackChecker::match_track_to_MCPs(
       }
     }
     else {
-      debug_cout << "ID not matched to any subdetector" << std::endl;
+      debug_cout << "ID not matched to any subdetector " << std::hex << id << std::dec << std::endl;
     }
   }
 
