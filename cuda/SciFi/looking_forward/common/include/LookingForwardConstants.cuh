@@ -47,14 +47,14 @@ namespace LookingForward {
    */
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
-  constexpr int maximum_number_of_candidates = 32;
+  constexpr int maximum_number_of_candidates = 64; // 32;
   constexpr int maximum_number_of_candidates_per_ut_track = 32 * 2;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 2;
+  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 32*2; // 2;
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.05f;
   constexpr int track_min_hits = 9;
   constexpr float filter_x_max_chi2 = 1.f;
-  constexpr float filter_x_max_xAtRef_spread = 10.f;
+  constexpr float filter_x_max_xAtRef_spread = 1e9f; // 10.f;
 
   // cut on the difference between tx from the extrapolation and
   // tx from the hits in the two x layers
