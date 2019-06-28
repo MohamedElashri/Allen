@@ -51,7 +51,7 @@ namespace UT {
     // to be close to z middle of UT ( +- 5 cm ).
     // No need to update with small UT movement.
     static constexpr float zMidUT = 2484.6f;
-    //  distToMomentum is properly recalculated in PrUTMagnetTool when B field changes
+    //  distToMomentum is properly recalculated in UTMagnetTool when B field changes
     static constexpr float distToMomentum = 4.0212e-05f;
     static constexpr float sigmaVeloSlope = 0.10f * Gaudi::Units::mrad;
     static constexpr float invSigmaVeloSlope = 1.0f / sigmaVeloSlope;
