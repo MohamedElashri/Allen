@@ -144,11 +144,19 @@ private:
     offsets[n + 1] = previous_size + data_size;
   }
 
+  // Pinned memory slices, N per banks types,
   std::array<std::vector<std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>>, NBankTypes> m_slices;
+
+  // Index of the event file currently being read
   size_t m_current = 0;
+
+  // Run and event numbers of all available events
   std::vector<std::tuple<unsigned int, unsigned long>> m_all_events;
+
+  // Run and events numbers of events in each slice
   std::vector<std::vector<std::tuple<unsigned int, unsigned long>>> m_event_ids;
 
+  // Folder and file names per bank type
   std::array<std::tuple<std::string, std::vector<std::string>>, NBankTypes> m_files;
 
   using base_class = InputProvider<BinaryProvider<Banks...>>;

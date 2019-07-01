@@ -256,7 +256,7 @@ private:
 
   // Memory slices, N for each raw bank type
   std::array<std::vector<std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>>, NBankTypes> m_slices;
-  // Run and event numbers read during the last call to fill
+  // Run and event numbers present in each slice
   std::vector<std::vector<std::tuple<unsigned int, unsigned long>>> m_event_ids;
 
   // File names to read
