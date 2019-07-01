@@ -97,12 +97,11 @@ __device__ void lf_collect_candidates_p_impl(
       const auto xMinUV = xHitInUvCorr - maxDx;
       const auto xMaxUV = xHitInUvCorr + maxDx;
 
-      if (binary_search_match_stereo_hit(scifi_hits, search_window_start, search_window_size, xMinUV, xMaxUV)) {
-        candidates[i * LookingForward::maximum_number_of_candidates + candidate_counter++] =
+      //if (binary_search_match_stereo_hit(scifi_hits, search_window_start, search_window_size, xMinUV, xMaxUV)) {
+      candidates[i * LookingForward::maximum_number_of_candidates + candidate_counter++] =
           (short) (hit_index - event_offset);
-      }
+      //}
     }
-
     number_of_candidates[i] = candidate_counter;
   }
 }

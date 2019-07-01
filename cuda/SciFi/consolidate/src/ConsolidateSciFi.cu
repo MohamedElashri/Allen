@@ -46,7 +46,7 @@ __global__ void consolidate_scifi_tracks(
   const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
   const uint event_offset = scifi_hit_count.event_offset();
 
-  // Loop over tracks.
+// Loop over tracks.
   for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     scifi_tracks.ut_track[i] = event_scifi_tracks[i].ut_track_index;
     //scifi_tracks.qop[i] = event_scifi_tracks[i].qop;
