@@ -242,17 +242,30 @@ private:
     return {!eof, run, event};
   }
 
+  // Memory buffer to read binary data into from the file
   mutable std::vector<char> m_buffer;
+
+  // Storage to read the header into for each event
   mutable LHCb::MDFHeader m_header;
 
+  // Offsets to all the banks in the single event that was read from file
   mutable std::array<std::vector<uint32_t>, NBankTypes> m_banks_offsets;
+
+  // Raw bank data by subdetector as read from file
   mutable std::array<std::vector<uint32_t>, NBankTypes> m_banks_data;
 
+  // Memory slices, N for each raw bank type
   std::array<std::vector<std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>>, NBankTypes> m_slices;
+  // Run and event numbers read during the last call to fill
   std::vector<std::vector<std::tuple<unsigned int, unsigned long>>> m_event_ids;
 
+  // File names to read
   std::vector<std::string> m_connections;
+
+  // Storage for the currently open file
   mutable std::unique_ptr<std::ifstream> m_input;
+
+  // Iterator that points to the filename of the currently open file
   mutable std::vector<std::string>::const_iterator m_current;
 
   using base_class = InputProvider<MDFProvider<Banks...>>;
