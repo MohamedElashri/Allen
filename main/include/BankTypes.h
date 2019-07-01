@@ -14,6 +14,8 @@ namespace {
 constexpr auto NBankTypes = 4;
 enum class BankTypes { VP, UT, FT, MUON };
 
+// Measured average size of all raw banks of a given type per
+// subdetector, in kB.
 const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 51.77f},
                                                         {BankTypes::UT, 31.38f},
                                                         {BankTypes::FT, 54.47f},
