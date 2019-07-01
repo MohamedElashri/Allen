@@ -48,8 +48,8 @@ namespace LookingForward {
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 128; // 32;
-  constexpr int maximum_number_of_candidates_per_ut_track = 128; // 32 * 2;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 128; // 32*2; // 2;
+  constexpr int maximum_number_of_candidates_per_ut_track = 128*4; // 32 * 2;
+  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 128*4; // 32*2; // 2;
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.05f;
   constexpr int track_min_hits = 9;
@@ -116,7 +116,7 @@ namespace LookingForward {
   constexpr float xParams_0 = 18.6195f;
   constexpr float xParams_1 = -5.55793;
 
-  constexpr float chi2_max_triplet_single = 24; // 12.f;
+  constexpr float chi2_max_triplet_single = 500.f; // 24.f; // 12.f;
   constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f;
   constexpr float chi2_max_extrapolation_to_uv_layers_single = 10.f;
 
