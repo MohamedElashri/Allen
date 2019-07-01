@@ -33,8 +33,8 @@ public:
 
       // Fudge with extra 20% memory
       size_t n_bytes = std::lround(it->second * n_events * 1024 * 1.2);
-      m_bank_datas[ib].reserve(n_bytes);
-      m_bank_offsets[ib].reserve(n_events);
+      m_banks_data[ib].reserve(n_bytes);
+      m_banks_offsets[ib].reserve(n_events);
       auto& slices = m_slices[ib];
       slices.reserve(n_slices);
       for (size_t i = 0; i < n_slices; ++i) {
@@ -94,8 +94,8 @@ public:
         const auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
         // Make sure both the size of the bank offsets and the bank contests are counted
         return (offsets[offsets_size - 1]
-                + (m_bank_offsets[ib].size() + 1) * sizeof(uint)
-                + m_bank_offsets[ib].back()) > slice.size();
+                + (m_banks_offsets[ib].size() + 1) * sizeof(uint)
+                + m_banks_offsets[ib].back()) > slice.size();
       });
       if (!full) {
         // Fill the output buffers from the event-local buffers in the right format:
@@ -109,7 +109,7 @@ public:
           auto event_offset = event_offsets[event_offsets_size - 1];
 
           // Copy in number of banks
-          const auto& offsets = m_bank_offsets[ib];
+          const auto& offsets = m_banks_offsets[ib];
           uint32_t n_banks = offsets.size() - 1;
           copy_data(event_offset, buf.data(), &n_banks, sizeof(n_banks));
 
@@ -117,7 +117,7 @@ public:
           copy_data(event_offset, buf.data(), offsets.data(), offsets.size() * sizeof(uint32_t));
 
           // Copy in bank data
-          const auto& bank_data = m_bank_datas[ib];
+          const auto& bank_data = m_banks_data[ib];
           copy_data(event_offset, buf.data(), bank_data.data(), bank_data.size() * sizeof(uint32_t));
 
           event_offsets[event_offsets_size++] = event_offset;
@@ -179,13 +179,13 @@ private:
     }
 
     // Clear bank offsets
-    for (auto& bo : m_bank_offsets) {
+    for (auto& bo : m_banks_offsets) {
       bo.clear();
       bo.push_back(0);
     }
 
     // Clear bank data
-    for (auto& bd : m_bank_datas) {
+    for (auto& bd : m_banks_data) {
       bd.clear();
     }
 
@@ -214,8 +214,8 @@ private:
       }
 
       auto index = to_integral(cuda_type_it->second);
-      auto& bank_data = m_bank_datas[index];
-      auto& offsets = m_bank_offsets[index];
+      auto& bank_data = m_banks_data[index];
+      auto& offsets = m_banks_offsets[index];
       auto offset = offsets.back() / sizeof(uint32_t);
 
       // Store this bank in the event-local buffers
@@ -245,8 +245,8 @@ private:
   mutable std::vector<char> m_buffer;
   mutable LHCb::MDFHeader m_header;
 
-  mutable std::array<std::vector<uint32_t>, NBankTypes> m_bank_offsets;
-  mutable std::array<std::vector<uint32_t>, NBankTypes> m_bank_datas;
+  mutable std::array<std::vector<uint32_t>, NBankTypes> m_banks_offsets;
+  mutable std::array<std::vector<uint32_t>, NBankTypes> m_banks_data;
 
   std::array<std::vector<std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>>, NBankTypes> m_slices;
   std::vector<std::vector<std::tuple<unsigned int, unsigned long>>> m_event_ids;
