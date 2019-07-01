@@ -1,6 +1,6 @@
 #include "PVCheckerHistos.h"
 
-float getefficiencyerror(float k, float N) { return sqrt(k * (1 - k / N)) / N; }
+float binomial_error(float k, float N) { return sqrt(k * (1 - k / N)) / N; }
 
 PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file)
 {
@@ -75,7 +75,6 @@ void PVCheckerHistos::accumulate(
   // save information about matched reconstructed PVs for pulls distributions
 #ifdef WITH_ROOT
 
-  // FIXME: fix rest of the stuff here
   for (size_t i = 0; i < vec_diff_x.size(); i++) {
     m_nmcpv = vec_n_mcpv.at(i);
     m_ntrinmcpv = vec_n_trinmcpv.at(i);
@@ -113,7 +112,7 @@ void PVCheckerHistos::accumulate(
     float N = 1.f * eff_norm_z->GetBinContent(i);
     float k = 1.f * eff_vs_z->GetBinContent(i);
     if (k < N && N > 0) {
-      binerrors_vs_z.push_back(getefficiencyerror(k, N));
+      binerrors_vs_z.push_back(binomial_error(k, N));
     }
     else
       binerrors_vs_z.push_back(0.);
@@ -122,7 +121,7 @@ void PVCheckerHistos::accumulate(
     float N = 1.f * eff_norm_mult->GetBinContent(i);
     float k = 1.f * eff_vs_mult->GetBinContent(i);
     if (k < N && N > 0) {
-      binerrors_vs_mult.push_back(getefficiencyerror(k, N));
+      binerrors_vs_mult.push_back(binomial_error(k, N));
     }
     else
       binerrors_vs_mult.push_back(0.);
