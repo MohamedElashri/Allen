@@ -16,7 +16,7 @@ __global__ void lf_triplet_keep_best(
   const int8_t* dev_scifi_lf_triplet_best_h0h2)
 {
   // Keep best for each h1 hit
-  __shared__ float best_chi2[4 * LookingForward::maximum_number_of_candidates];
+  __shared__ float best_chi2[4 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1];
   __shared__ int16_t best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
 
   const uint number_of_events = gridDim.x;
@@ -44,10 +44,10 @@ __global__ void lf_triplet_keep_best(
 
     // Initialize the best_ shared memory buffers
     for (uint16_t relative_first_layer = 0; relative_first_layer < 4; ++relative_first_layer) {
-      for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_candidates; j += blockDim.x) {
-        best_chi2[relative_first_layer * LookingForward::maximum_number_of_candidates + j] =
+      for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; j += blockDim.x) {
+        best_chi2[relative_first_layer * LookingForward::maximum_number_of_candidates  * LookingForward::maximum_number_of_triplets_per_h1+ j] =
           dev_scifi_lf_triplet_best_chi2
-            [(current_ut_track_index * 4 + relative_first_layer) * LookingForward::maximum_number_of_candidates + j];
+            [(current_ut_track_index * 4 + relative_first_layer) * LookingForward::maximum_number_of_candidates  * LookingForward::maximum_number_of_triplets_per_h1 + j];
       }
     }
 
@@ -60,11 +60,11 @@ __global__ void lf_triplet_keep_best(
 
     // Now, we have the best candidates populated in best_chi2 and best_h0h2
     // Sort the candidates (insertion sort) into best_triplets
-    for (uint16_t j = threadIdx.x; j < 4 * LookingForward::maximum_number_of_candidates; j += blockDim.x) {
+    for (uint16_t j = threadIdx.x; j < 4 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; j += blockDim.x) {
       const float chi2 = best_chi2[j];
       if (chi2 < LookingForward::chi2_max_triplet_single) {
         int16_t insert_position = 0;
-        for (uint16_t k = 0; k < 4 * LookingForward::maximum_number_of_candidates; ++k) {
+        for (uint16_t k = 0; k < 4 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; ++k) {
           const float other_chi2 = best_chi2[k];
           if (chi2 > other_chi2 || (chi2 == other_chi2 && j < k)) {
             ++insert_position;
@@ -83,14 +83,14 @@ __global__ void lf_triplet_keep_best(
     for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_candidates_per_ut_track; j += blockDim.x) {
       const auto k = best_triplets[j];
       if (k != -1) {
-        const auto relative_middle_layer = 1 + (k / LookingForward::maximum_number_of_candidates);
-        const auto element = k % LookingForward::maximum_number_of_candidates;
+        const auto relative_middle_layer = 1 + (k / (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1));
+        const auto element = (k % (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1)) / LookingForward::maximum_number_of_triplets_per_h1;
+        // h1_triplet: index of triplet for this h1 hit
+        const auto h1_triplet = (k % (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1)) % LookingForward::maximum_number_of_triplets_per_h1;
         const auto h0_element =
-          (current_ut_track_index * 4 + relative_middle_layer - 1) * 2 * LookingForward::maximum_number_of_candidates +
-          element;
+          (current_ut_track_index * 4 + relative_middle_layer - 1) * 2 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + element * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
         const auto h2_element =
-          (current_ut_track_index * 4 + relative_middle_layer - 1) * 2 * LookingForward::maximum_number_of_candidates +
-          LookingForward::maximum_number_of_candidates + element;
+          (current_ut_track_index * 4 + relative_middle_layer - 1) * 2 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + element * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
 
         // Create triplet candidate with all information we have
         const int current_insert_index = atomicAdd(dev_atomics_scifi + current_ut_track_index, 1);

@@ -50,6 +50,10 @@ namespace LookingForward {
   constexpr int maximum_number_of_candidates = 128; // 32;
   constexpr int maximum_number_of_candidates_per_ut_track = 128*4; // 32 * 2;
   constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 128*4; // 32*2; // 2;
+  constexpr int maximum_number_of_triplets_per_h1 = 10;
+  constexpr int tile_size = 16;
+  constexpr int tile_size_mask = 0xF;
+  constexpr int tile_size_shift_div = 4;
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.05f;
   constexpr int track_min_hits = 9;
