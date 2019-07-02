@@ -11,8 +11,9 @@ __device__ float lf_track_quality(
   const SciFi::Tracking::TMVA* tmva2)
 {
   float quality = 0.f;
-  if (trackParams[7] > 0) { // fit converged
+  if ( trackParams[7] > 0 ) { // fit converged
     const float qOverP = calcqOverP(trackParams[1], constArrays, velo_state, magnet_polarity);
+    // const float qOverP = track.qop;
     const float xAtRef = trackParams[0];
     float dSlope = (velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx - xAtRef) /
                    (SciFi::Tracking::zReference - constArrays->zMagnetParams[0]);
@@ -44,6 +45,7 @@ __device__ float lf_track_quality(
     mlpInput[6] = ay - ay1;
 
     quality = GetMvaValue(mlpInput, tmva1);
+    // printf("lf qop %f prforward qop %f\n", track.qop, qOverP);
     track.qop = qOverP;
   }
 

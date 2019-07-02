@@ -50,6 +50,8 @@ __global__ void lf_triplet_seeding(
       const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_first_layer + 1];
       const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_first_layer + 2];
 
+      const auto layer_inversion = (relative_first_layer % 2) != 0; // if this condition is satisfied hit0 and hit1 are not in the same station
+
       lf_triplet_seeding_impl(
         scifi_hits.x0 + event_offset,
         candidate_h0_size,
@@ -64,6 +66,9 @@ __global__ void lf_triplet_seeding(
         scifi_lf_candidates,
         z1 - z0,
         z2 - z0,
+        layer_inversion,
+        dev_ut_states[current_ut_track_index],
+        dev_looking_forward_constants,
         qop);
     }
   }

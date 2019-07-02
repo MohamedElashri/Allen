@@ -32,7 +32,7 @@ __device__ void lf_search_initial_windows_p_impl(
     const float zZone = constArrays->xZone_zPos[i];
 
     // TODO this could be done in a more optimized way
-    const auto stateInZone = LookingForward::propagate_state_from_velo(
+    const auto stateInZone = LookingForward::propagate_state_from_velo_multi_par(
       UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
 
     const float xInZone = stateInZone.x;
@@ -64,7 +64,7 @@ __device__ void lf_search_initial_windows_p_impl(
       const float dz = this_uv_z - zZone;
       const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
       const float UvCorr =
-        LookingForward::linear_propagation(yInZone, stateInZone.ty, dz) * constArrays->uvZone_dxdy[i];
+        LookingForward::y_on_track(stateInZone, this_uv_z) * constArrays->uvZone_dxdy[i];
       const float xInUvCorr = xInUv - UvCorr;
       const float xMinUV = xInUvCorr - 800;
       const float dz_ratio = (this_uv_z - zZone) / (LookingForward::z_magnet - zZone);

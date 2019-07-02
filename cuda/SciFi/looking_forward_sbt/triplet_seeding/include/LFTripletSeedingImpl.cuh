@@ -31,4 +31,7 @@ __device__ void lf_triplet_seeding_impl(
   const short* scifi_lf_candidates,
   const float dz1,
   const float dz2,
+  const bool layer_inversion,
+  const MiniState& ut_state,
+  const LookingForward::Constants* dev_looking_forward_constants,
   const float qop);

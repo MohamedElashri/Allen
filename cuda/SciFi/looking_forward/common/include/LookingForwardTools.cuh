@@ -14,11 +14,25 @@ namespace LookingForward {
   // straight line extrapolation of y to other z position
   __device__ float y_at_z(const MiniState& state, const float z);
 
+  __device__ float y_on_track(const MiniState& state, const float z);
+
   __device__ float linear_propagation(float x_0, float tx, float dz);
 
   __device__ float scifi_propagation(const float x_0, const float tx, const float qop, const float dz);
 
+  __device__ float propagate_x_from_velo_multi_par(
+    const MiniState& UT_state,
+    const float qop,
+    const int layer,
+    const LookingForward::Constants* dev_looking_forward_constants);
+
   __device__ float propagate_x_from_velo(
+    const MiniState& UT_state,
+    const float qop,
+    const int layer,
+    const LookingForward::Constants* dev_looking_forward_constants);
+
+  __device__ MiniState propagate_state_from_velo_multi_par(
     const MiniState& UT_state,
     const float qop,
     const int layer,
@@ -152,6 +166,26 @@ namespace LookingForward {
     const float layer_projected_state_y,
     const float dxdy);
 
+  __device__ float tx_ty_corr_multi_par(
+    const MiniState& ut_state,
+    const int station,
+    const LookingForward::Constants* dev_looking_forward_constants);
+
+  __device__ float qop_update_multi_par(
+    const MiniState& ut_state_tx,
+    const float h0_x,
+    const float h0_z,
+    const float h1_x,
+    const float h1_z,
+    const int station,
+    const LookingForward::Constants* dev_looking_forward_constants);
+
+  __device__ float qop_update_multi_par(
+    const MiniState& ut_state_tx,
+    const float slope,
+    const int station,
+    const LookingForward::Constants* dev_looking_forward_constants);
+
   __device__ float qop_update(
     const float ut_state_tx,
     const float h0_x,
@@ -159,4 +193,6 @@ namespace LookingForward {
     const float h1_x,
     const float h1_z,
     const float ds_p_param_layer_inv);
+
+  __device__ float qop_update(const float ut_state_tx, const float SciFi_tx, const float ds_p_param_layer_inv);
 } // namespace LookingForward

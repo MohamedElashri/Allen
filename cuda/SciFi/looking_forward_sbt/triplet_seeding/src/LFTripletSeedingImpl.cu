@@ -1,6 +1,7 @@
 #include "LFTripletSeedingImpl.cuh"
 #include "BinarySearchTools.cuh"
 #include <mma.h>
+#include "LookingForwardTools.cuh"
 
 __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
   const float* scifi_hits_x0,
@@ -82,15 +83,18 @@ __device__ void lf_triplet_seeding_impl(
   const short* scifi_lf_candidates,
   const float dz1,
   const float dz2,
+  const bool layer_inversion,
+  const MiniState& ut_state, const LookingForward::Constants *dev_looking_forward_constants,
   const float qop)
 {
   __shared__ float shared_partial_chi2[LookingForward::tile_size * LookingForward::tile_size];
 
   // Required constants for the chi2 calculation below
-  float extrap1 = LookingForward::forward_param * qop * dz1 * dz1;
+  float extrap1 = LookingForward::forward_param * dz1 * dz1 + LookingForward::d_ratio * dz1 * dz1 * dz1;
   extrap1 *= extrap1;
+  extrap1 *= qop*qop;
   const float zdiff = dz2 / dz1;
-  const float extrap2 = LookingForward::forward_param * qop * dz2 * dz2;
+  const float extrap2 = (LookingForward::forward_param * dz2 * dz2 + LookingForward::d_ratio * dz2 * dz2 * dz2) * qop;
 
 // Tensor core specialization
 #if __CUDA_ARCH__ >= 700

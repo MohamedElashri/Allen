@@ -94,37 +94,46 @@ __global__ void lf_triplet_keep_best(
 
         // Create triplet candidate with all information we have
         const int current_insert_index = atomicAdd(dev_atomics_scifi + current_ut_track_index, 1);
-        const uint16_t h0 = (uint16_t) scifi_lf_candidates
-          [(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates +
-           dev_scifi_lf_triplet_best_h0h2[h0_element]];
-        const uint16_t h1 = (uint16_t)
-          scifi_lf_candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates + element];
-        const uint16_t h2 = (uint16_t) scifi_lf_candidates
-          [(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates +
-           dev_scifi_lf_triplet_best_h0h2[h2_element]];
+        assert(current_insert_index < LookingForward::maximum_number_of_candidates_per_ut_track);
+
+        uint16_t first_layer, last_layer;
+        uint16_t h0, h2;
+        const uint16_t h1 = (uint16_t) scifi_lf_candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates + element];
+
+        if (relative_middle_layer & 1) {
+          first_layer = relative_middle_layer - 1;
+          last_layer = relative_middle_layer + 1;
+          h0 = (uint16_t) scifi_lf_candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
+          h2 = (uint16_t) scifi_lf_candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
+        } else {
+          first_layer = relative_middle_layer + 1;
+          last_layer = relative_middle_layer - 1;
+          h0 = (uint16_t) scifi_lf_candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
+          h2 = (uint16_t) scifi_lf_candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
+        }
 
         const float x0 = scifi_hits.x0[event_offset + h0];
         const float x1 = scifi_hits.x0[event_offset + h1];
-        const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_middle_layer - 1];
+        const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[first_layer];
         const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_middle_layer];
 
-        dev_scifi_tracks
-          [current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + current_insert_index] =
-            SciFi::TrackHits {h0,
-                              h1,
-                              h2,
-                              (uint16_t)(relative_middle_layer - 1),
-                              (uint16_t) relative_middle_layer,
-                              (uint16_t)(relative_middle_layer + 1),
-                              best_chi2[k],
-                              LookingForward::qop_update(
-                                dev_ut_states[current_ut_track_index].tx,
-                                x0,
-                                z0,
-                                x1,
-                                z1,
-                                dev_looking_forward_constants->ds_p_param_layer_inv[(relative_middle_layer - 1)]),
-                              i};
+        dev_scifi_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + current_insert_index] =
+          SciFi::TrackHits {h0,
+                            h1,
+                            h2,
+                            first_layer,
+                            (uint16_t) relative_middle_layer,
+                            last_layer,
+                            best_chi2[k],
+                            LookingForward::qop_update_multi_par(
+                              dev_ut_states[current_ut_track_index],
+                              x0,
+                              z0,
+                              x1,
+                              z1,
+                              (relative_middle_layer)/2,
+                              dev_looking_forward_constants),
+                            i};
       }
     }
   }
