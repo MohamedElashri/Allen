@@ -7,6 +7,12 @@ __device__ MiniState LookingForward::state_at_z(const MiniState& state, const fl
   return {state.x + (z - state.z) * state.tx, state.y + (z - state.z) * state.ty, z, state.tx, state.ty};
 }
 
+// straight line extrapolation of MiniState to other z position
+__device__ MiniState LookingForward::state_at_z_dzdy_corrected(const MiniState& state, const float z)
+{
+  return {state.x + (z - state.z) * state.tx, y_at_z_dzdy_corrected(state, z), z, state.tx, state.ty};
+}
+
 __device__ float LookingForward::x_at_z(const MiniState& state, const float z)
 {
   float xf = state.x + (z - state.z) * state.tx;
@@ -20,7 +26,7 @@ __device__ float LookingForward::y_at_z(const MiniState& state, const float z)
 }
 
 // straight line extrapolation of y to other z position including the SciFi dz_dy correction
-__device__ float LookingForward::y_on_track(const MiniState& state, const float z)
+__device__ float LookingForward::y_at_z_dzdy_corrected(const MiniState& state, const float z)
 {
   return (state.y + (z - state.z) * state.ty)/(1.f - state.ty*LookingForward::dzdy);
 }
@@ -52,7 +58,7 @@ __device__ MiniState LookingForward::propagate_state_from_velo(
   const float y_mag_correction =
     dp_y_mag[layer][0] + magnet_state.y * dp_y_mag[layer][1] + magnet_state.y * magnet_state.y * dp_y_mag[layer][2];
 
-  final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   final_state.x += -y_mag_correction - x_mag_correction;
 
   return final_state;
@@ -71,10 +77,9 @@ __device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
 
   const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer/4, dev_looking_forward_constants);
 
-
   final_state.tx = tx_ty_corr * qop + UT_state.tx;
 
-  final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
 
   return final_state;
 }

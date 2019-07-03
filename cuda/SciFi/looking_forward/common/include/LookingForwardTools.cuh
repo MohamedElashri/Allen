@@ -9,12 +9,14 @@ namespace LookingForward {
   // straight line extrapolation of MiniState to other z position
   __device__ MiniState state_at_z(const MiniState& state, const float z);
 
+  __device__ MiniState state_at_z_dzdy_corrected(const MiniState& state, const float z);
+
   __device__ float x_at_z(const MiniState& state, const float z);
 
   // straight line extrapolation of y to other z position
   __device__ float y_at_z(const MiniState& state, const float z);
 
-  __device__ float y_on_track(const MiniState& state, const float z);
+  __device__ float y_at_z_dzdy_corrected(const MiniState& state, const float z);
 
   __device__ float linear_propagation(float x_0, float tx, float dz);
 

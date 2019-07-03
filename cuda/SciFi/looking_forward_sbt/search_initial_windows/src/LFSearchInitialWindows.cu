@@ -76,7 +76,7 @@ __global__ void lf_search_initial_windows(
     }
 
     // Parameters for the calculation of the windows
-    const float y_projection = LookingForward::y_at_z(state_at_z_last_ut_plane, dev_constArrays->xZone_zPos[0]);
+    const float y_projection = LookingForward::y_at_z_dzdy_corrected(state_at_z_last_ut_plane, dev_constArrays->xZone_zPos[0]);
 
     const float zRef_track = SciFi::Tracking::zReference;
     const float xAtRef = xFromVelo(zRef_track, state_at_z_last_ut_plane);

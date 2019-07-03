@@ -50,7 +50,7 @@ __global__ void lf_extend_tracks_uv(
       const auto layer2 = dev_looking_forward_constants->extrapolation_uv_layers[relative_extrapolation_layer];
       // dzDy correction
       const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
-      const auto projection_y = LookingForward::y_on_track(dev_ut_states[current_ut_track_index], z2);
+      const auto projection_y = LookingForward::y_at_z_dzdy_corrected(dev_ut_states[current_ut_track_index], z2);
         /* printf("delta_x %f y %f\n",
                LookingForward::y_at_z(dev_ut_states[current_ut_track_index], dev_looking_forward_constants->Zone_zPos[layer2]) *
                dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_extrapolation_layer & 0x1] -

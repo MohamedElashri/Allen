@@ -64,9 +64,9 @@ __device__ void lf_search_initial_windows_p_impl(
       const float dz = this_uv_z - zZone;
       const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
       const float UvCorr =
-        LookingForward::y_on_track(stateInZone, this_uv_z) * constArrays->uvZone_dxdy[i];
+        LookingForward::y_at_z(stateInZone, this_uv_z) * constArrays->uvZone_dxdy[i];
       const float xInUvCorr = xInUv - UvCorr;
-      const float xMinUV = xInUvCorr - 800;
+      const float xMinUV = xInUvCorr - 800.f;
       const float dz_ratio = (this_uv_z - zZone) / (LookingForward::z_magnet - zZone);
 
       // Get bounds in UV layers
