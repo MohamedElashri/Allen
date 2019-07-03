@@ -84,20 +84,21 @@ namespace SciFi {
 
       // ASSORTED GEOMETRY VALUES, eventually read this from some xml
       const float xZone_zPos[6] = {7826., 8036., 8508., 8718., 9193., 9403.};
-      const float uvZone_zPos[12] =
-        {7896., 7966., 8578., 8648., 9263., 9333., 7896., 7966., 8578., 8648., 9263., 9333.};
-      const float uvZone_dxdy[12] = {0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892};
+      const float uvZone_zPos[6] =
+        {7896., 7966., 8578., 8648., 9263., 9333.}; //, 7896., 7966., 8578., 8648., 9263., 9333.};
+      const float uvZone_dxdy[12] = {
+        0.0874892,
+        -0.0874892,
+        0.0874892,
+        -0.0874892,
+        0.0874892,
+        -0.0874892,
+        0.0874892,
+        -0.0874892,
+        0.0874892,
+        -0.0874892,
+        0.0874892,
+        -0.0874892};
       const float Zone_dzdy[24] = {0.0036010};
 
       // this is used by looking_forward_sbt maybe this is not the right place to put it

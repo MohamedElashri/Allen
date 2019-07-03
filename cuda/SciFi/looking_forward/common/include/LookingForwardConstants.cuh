@@ -47,10 +47,10 @@ namespace LookingForward {
    */
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
-  constexpr int maximum_number_of_candidates = 128; // 32;
-  constexpr int maximum_number_of_candidates_per_ut_track = 128*4; // 32 * 2;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 128*4; // 32*2; // 2;
-  constexpr int maximum_number_of_triplets_per_h1 = 10;
+  constexpr int maximum_number_of_candidates = 32;
+  constexpr int maximum_number_of_candidates_per_ut_track = 32 * 4;
+  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 32*4; // 2;
+  constexpr int maximum_number_of_triplets_per_h1 = 3;
   constexpr int tile_size = 16;
   constexpr int tile_size_mask = 0xF;
   constexpr int tile_size_shift_div = 4;
