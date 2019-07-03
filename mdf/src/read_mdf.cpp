@@ -25,14 +25,14 @@ namespace {
   const bool ignoreChecksum = false;
 } // namespace
 
-std::tuple<size_t, LHCbToGPU::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
+std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
   size_t n,
   const std::vector<std::string>& files,
   const std::unordered_set<BankTypes>& types,
   size_t start_event)
 {
 
-  LHCbToGPU::buffer_map buffers;
+  Allen::buffer_map buffers;
   for (auto bank_type : types) {
     auto r = buffers.emplace(bank_type, make_pair(vector<char> {}, vector<unsigned int> {}));
     // Reserve some memory
@@ -55,7 +55,6 @@ std::tuple<size_t, LHCbToGPU::buffer_map, std::vector<LHCb::ODIN>> MDF::read_eve
 
   gsl::span<const char> bank_span;
   size_t n_read = 0;
-  unsigned int event_size = 0;
 
   array<std::vector<uint32_t>, NBankTypes> bank_offsets;
   array<std::vector<uint32_t>, NBankTypes> bank_datas;
@@ -116,21 +115,21 @@ std::tuple<size_t, LHCbToGPU::buffer_map, std::vector<LHCb::ODIN>> MDF::read_eve
           odins.emplace_back(decode_odin(b));
         }
 
-        // Check if cuda_hlt even knows about this type of bank
-        auto cuda_type_it = LHCbToGPU::bank_types.find(b->type());
-        if (cuda_type_it == LHCbToGPU::bank_types.end()) {
+        // Check if Allen processes this type of bank
+        auto bank_type_it = Allen::bank_types.find(b->type());
+        if (bank_type_it == Allen::bank_types.end()) {
           bank += b->totalSize();
           continue;
         }
 
         // Check if we want this bank
-        auto buf_it = buffers.find(cuda_type_it->second);
+        auto buf_it = buffers.find(bank_type_it->second);
         if (buf_it == buffers.end()) {
           bank += b->totalSize();
           continue;
         }
 
-        auto index = to_integral(cuda_type_it->second);
+        auto index = to_integral(bank_type_it->second);
         auto& bank_data = bank_datas[index];
         auto& offsets = bank_offsets[index];
         auto offset = offsets.back() / sizeof(uint32_t);

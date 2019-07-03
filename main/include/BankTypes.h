@@ -20,7 +20,7 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 51.77f},
                                                         {BankTypes::UT, 31.38f},
                                                         {BankTypes::FT, 54.47f},
                                                         {BankTypes::MUON, 5.13f}};
-
+constexpr float bank_size_fudge_factor = 1.2f;
 std::string bank_name(BankTypes type);
 
 template<typename ENUM>

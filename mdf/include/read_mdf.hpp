@@ -16,14 +16,14 @@
 #include "raw_bank.hpp"
 #include "mdf_header.hpp"
 
-namespace LHCbToGPU {
+namespace Allen {
   const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_types = {{LHCb::RawBank::VP, BankTypes::VP},
                                                                              {LHCb::RawBank::UT, BankTypes::UT},
                                                                              {LHCb::RawBank::FTCluster, BankTypes::FT},
                                                                              {LHCb::RawBank::Muon, BankTypes::MUON}};
 
   using buffer_map = std::unordered_map<BankTypes, std::pair<std::vector<char>, std::vector<unsigned int>>>;
-} // namespace LHCbToGPU
+} // namespace Allen
 
 namespace MDF {
   void dump_hex(const char* start, int size);
@@ -34,7 +34,7 @@ namespace MDF {
   std::tuple<bool, bool, gsl::span<char>>
   read_banks(std::ifstream& input, const LHCb::MDFHeader& h, std::vector<char>& buffer, bool dbg = false);
 
-  std::tuple<size_t, LHCbToGPU::buffer_map, std::vector<LHCb::ODIN>> read_events(
+  std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> read_events(
     size_t n,
     const std::vector<std::string>& files,
     const std::unordered_set<BankTypes>& types,

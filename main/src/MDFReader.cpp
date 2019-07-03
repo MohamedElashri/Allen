@@ -18,7 +18,7 @@ std::vector<std::tuple<unsigned int, unsigned long>> MDFReader::read_events(
 {
 
   size_t n_read = 0;
-  LHCbToGPU::buffer_map buffers;
+  Allen::buffer_map buffers;
   vector<LHCb::ODIN> odins;
 
   auto bank_type = *begin(types());

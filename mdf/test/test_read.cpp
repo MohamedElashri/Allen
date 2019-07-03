@@ -78,8 +78,8 @@ int main(int argc, char* argv[])
     }
 
     // Check if cuda_hlt even knows about this type of bank
-    auto cuda_type_it = LHCbToGPU::bank_types.find(b->type());
-    if (cuda_type_it == LHCbToGPU::bank_types.end()) {
+    auto cuda_type_it = Allen::bank_types.find(b->type());
+    if (cuda_type_it == Allen::bank_types.end()) {
       bank += b->totalSize();
       continue;
     }

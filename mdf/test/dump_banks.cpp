@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
   unordered_set<BankTypes> types = {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
 
   size_t n_read = 0;
-  LHCbToGPU::buffer_map buffers;
+  Allen::buffer_map buffers;
   vector<LHCb::ODIN> odins;
   std::tie(n_read, buffers, odins) = MDF::read_events(10, files, types);
   for (const auto& odin : odins) {

@@ -32,7 +32,7 @@ public:
       }
 
       // Fudge with extra 20% memory
-      size_t n_bytes = std::lround(it->second * n_events * 1024 * 1.2);
+      size_t n_bytes = std::lround(it->second * n_events * 1024 * bank_size_fudge_factor);
       m_banks_data[ib].reserve(n_bytes);
       m_banks_offsets[ib].reserve(n_events);
       auto& slices = m_slices[ib];
@@ -205,15 +205,15 @@ private:
         event = odin.event_number;
       }
 
-      // Check if cuda_hlt even knows about this type of bank and we want this type
-      auto cuda_type_it = LHCbToGPU::bank_types.find(b->type());
-      if (cuda_type_it == LHCbToGPU::bank_types.end()
-          || !this->types().count(cuda_type_it->second)) {
+      // Check if Allen processes this bank type
+      auto bank_type_it = Allen::bank_types.find(b->type());
+      if (bank_type_it == Allen::bank_types.end()
+          || !this->types().count(bank_type_it->second)) {
         bank += b->totalSize();
         continue;
       }
 
-      auto index = to_integral(cuda_type_it->second);
+      auto index = to_integral(bank_type_it->second);
       auto& bank_data = m_banks_data[index];
       auto& offsets = m_banks_offsets[index];
       auto offset = offsets.back() / sizeof(uint32_t);
