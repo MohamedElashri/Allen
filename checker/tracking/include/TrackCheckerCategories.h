@@ -394,7 +394,36 @@ namespace Categories {
          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
                 mcp.inEta2_5();
        },
-     })}};
+      }),
+       TrackEffReport({
+       "Long from B, p > 3 GeV, pt > 0.5 GeV, eta < 2.5, (phi-pi/2)<0.8",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+                mcp.inEta2_5() && mcp.eta < 2.5 && std::fabs(std::fabs(mcp.phi)-1.57)<0.8;
+       },
+     }),
+     TrackEffReport({
+       "Long from B, p > 3 GeV, pt > 0.5 GeV, eta > 2.5, (phi-pi/2)<0.8",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+                mcp.inEta2_5() && mcp.eta > 2.5 && std::fabs(std::fabs(mcp.phi)-1.57)<0.8;
+       },
+     }),
+     TrackEffReport({
+       "Long from B, p > 3 GeV, pt > 0.5 GeV, eta < 2.5, (phi-pi/2)>0.8",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+                mcp.inEta2_5() && mcp.eta < 2.5 && std::fabs(std::fabs(mcp.phi)-1.57)>0.8;
+       },
+     }),
+     TrackEffReport({
+       "Long from B, p > 3 GeV, pt > 0.5 GeV, eta > 2.5, (phi-pi/2)>0.8",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+                mcp.inEta2_5() && mcp.eta > 2.5 && std::fabs(std::fabs(mcp.phi)-1.57)>0.8;
+       },
+      }),
+     }};
 
   const std::vector<HistoCategory>& VeloUTHisto {
     {// define which categories to create histograms for
