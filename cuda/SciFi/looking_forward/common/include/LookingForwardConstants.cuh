@@ -6,6 +6,8 @@
 #include <cstdint>
 
 namespace LookingForward {
+
+  // constants for dx_calc (used by both algorithms)
   constexpr float dx_slope = 1e5f;
   constexpr float dx_min = 300.f;
   constexpr float dx_weight = 0.6f;
@@ -16,6 +18,10 @@ namespace LookingForward {
   constexpr float max_window_layer1 = 2.f;
   constexpr float max_window_layer2 = 2.f;
   constexpr float max_window_layer3 = 20.f;
+
+  /*=====================================
+    Constants for looking forward
+    ======================================*/
   constexpr float chi2_cut = 4.f;
 
   /**
@@ -23,14 +29,6 @@ namespace LookingForward {
    */
   constexpr uint seeding_station = 3;
   constexpr int seeding_first_layer = 8;
-  constexpr int seeding_second_layer = 11;
-
-  // /**
-  //  * Number of Y threads of form_seeds_from_first_layer_window
-  //  */
-  // constexpr int lf_form_seeds_from_first_layer_window_y_threads = 32;
-  // constexpr int form_seeds_candidates_per_thread = 4;
-  // constexpr int form_seeds_stop_after_number_of_candidates = 10;
 
   /**
    * Form seeds from candidates
@@ -38,13 +36,25 @@ namespace LookingForward {
   constexpr int maximum_iteration_l3_window = 4;
   constexpr int track_candidates_per_window = 1;
 
-  constexpr float x_diff_layer_qop_offset = 20.f * Gaudi::Units::mm;
-  constexpr float x_diff_layer_qop_slope_a = 0.3e6;
-  constexpr float x_diff_layer_qop_slope_b = 0.2e6;
+  // z distance between various layers of a station
+  // FIXME_GEOMETRY_HARDCODING
+  constexpr float dz_layers_station = 70. * Gaudi::Units::mm;
+  constexpr float dz_x_layers = 3.f * dz_layers_station;
+  constexpr float inverse_dz_x_layers = 1.f / dz_x_layers;
+  constexpr float dz_x_u_layers = 1.f * dz_layers_station;
+  constexpr float dz_x_v_layers = 2.f * dz_layers_station;
 
-  /**
+  // detector limits
+  constexpr float xMin = -4090.f;
+  constexpr float xMax = 4090.f;
+  constexpr float yUpMin = -50.f;
+  constexpr float yUpMax = 3030.f;
+  constexpr float yDownMin = -3030.f;
+  constexpr float yDownMax = 50.f;
+
+  /*====================================
    * Constants for lf search by triplet
-   */
+   =====================================*/
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 32;
@@ -59,119 +69,68 @@ namespace LookingForward {
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.0f;
   constexpr int track_min_hits = 9;
-  constexpr float filter_x_max_chi2 = 1.f; // UNUSED
   constexpr float filter_x_max_xAtRef_spread = 1e9f; // 10.f;
-
-  // cut on the difference between tx from the extrapolation and
-  // tx from the hits in the two x layers
-  constexpr float max_tx_diff = 0.05f * Gaudi::Units::mm; // UNUSED
-
-  // z distance between various layers of a station
-  // FIXME_GEOMETRY_HARDCODING
-  constexpr float dz_layers_station = 70. * Gaudi::Units::mm;
-  constexpr float dz_x_layers = 3.f * dz_layers_station;
-  constexpr float inverse_dz_x_layers = 1.f / dz_x_layers;
-  constexpr float dz_x_u_layers = 1.f * dz_layers_station;
-  constexpr float dz_u_v_layers = 1.f * dz_layers_station;
-  constexpr float dz_x_v_layers = 2.f * dz_layers_station;
 
   // z at the center of the magnet
   constexpr float z_magnet = 5212.38f; // FIXME_GEOMETRY_HARDCODING
-
-  // z distance between various layers of different stations
-  // FIXME_GEOMETRY_HARDCODING
-  constexpr float dz_x_T1_0_T2_0 = 682 * Gaudi::Units::mm;
-  constexpr float dz_x_T1_0_T2_3 = 892 * Gaudi::Units::mm;
-  constexpr float dz_x_T1_0_T3_0 = 1367 * Gaudi::Units::mm;
-  constexpr float dz_x_T1_0_T3_3 = 1577 * Gaudi::Units::mm;
-
-  // cut on x difference between x- and u-/v-layers
-  constexpr float dx_x_uv_layers = 200.f * Gaudi::Units::mm;
-  constexpr float dx_x_uv_layers_slope = 2.f * Gaudi::Units::mm;
-
-  // cut on x difference between T1 and T2/T3 x-layers
-  constexpr float dx_x_T2_T3_offset = 500 * Gaudi::Units::mm;
-  constexpr float dx_x_T2_T3_slope = 6.e6f;
-
-  constexpr float dzdy = 0.0036010;
 
   constexpr float z_last_UT_plane = 2642.f; // FIXME_GEOMETRY_HARDCODING
 
   // z difference between reference plane and end of SciFi
   constexpr float zReferenceEndTDiff = SciFi::Constants::ZEndT - SciFi::Tracking::zReference;
 
-  // combinatorics cut-offs, to be tuned!!
-  // max # of quadruplets per veloUT input track
-  constexpr int max_quadruplets = 100;
-
-  // detector limits
-  constexpr float xMin = -4090.f;
-  constexpr float xMax = 4090.f;
-  constexpr float yUpMin = -50.f;
-  constexpr float yUpMax = 3030.f;
-  constexpr float yDownMin = -3030.f;
-  constexpr float yDownMax = 50.f;
-
   // Parameter for forwarding through SciFi layers
   constexpr float forward_param = 2.41902127e-02;
   // constexpr float forward_param = 0.04518205911571838;
-  constexpr float d_ratio = -0.00017683181567234045 * forward_param;
+  constexpr float d_ratio = -0.00017683181567234045f * forward_param;
   // constexpr float d_ratio = -2.62e-04 * forward_param;
   // constexpr float d_ratio = -8.585717012100695e-06;
-  constexpr float chi2_track_mean = 6.78f;
-  constexpr float chi2_track_stddev = 45.28f;
 
-  constexpr float zMagnetParams_0 = 5212.38f;
-  constexpr float zMagnetParams_1 = 406.609f;
-  constexpr float zMagnetParams_2 = -1102.35f;
-  constexpr float zMagnetParams_3 = -498.039f;
-  constexpr float xParams_0 = 18.6195f;
-  constexpr float xParams_1 = -5.55793;
-
+  // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
   constexpr float chi2_max_triplet_single = 5.f;
   constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f;
   constexpr float chi2_max_extrapolation_to_uv_layers_single = 10.f;
 
   struct Constants {
-    float extrapolation_stddev[8] {3.63f, 3.73f, 3.51f, 2.99f, 1.50f, 2.34f, 2.30f, 1.f};
-    float chi2_extrap_mean[8] {13.21f, 13.93f, 12.34f, 8.96f, 2.29f, 5.52f, 5.35f, 1.03f};
-    float chi2_extrap_stddev[8] {116.5f, 104.5f, 98.35f, 80.66f, 24.11f, 35.91f, 36.7f, 9.72f};
 
     int xZones[12] {0, 6, 8, 14, 16, 22, 1, 7, 9, 15, 17, 23};
     float Zone_zPos[12] {7826., 7896., 7966., 8036., 8508., 8578., 8648., 8718., 9193., 9263., 9333., 9403.};
     float Zone_zPos_xlayers[6] {7826., 8036., 8508., 8718., 9193., 9403.};
     float Zone_zPos_uvlayers[6] {7896., 7966., 8578., 8648., 9263., 9333.};
     float zMagnetParams[4] {5212.38, 406.609, -1102.35, -498.039};
-
     float Zone_dxdy[4] {0, 0.0874892, -0.0874892, 0};
     float Zone_dxdy_uvlayers[6] {0.0874892, -0.0874892};
 
-    // Configuration of sbt
+    /*=====================================
+    Constant arrays for looking forward
+    ======================================*/
+    float extrapolation_stddev[8] {3.63f, 3.73f, 3.51f, 2.99f, 1.50f, 2.34f, 2.30f, 1.f};
+    float chi2_extrap_mean[8] {13.21f, 13.93f, 12.34f, 8.96f, 2.29f, 5.52f, 5.35f, 1.03f};
+    float chi2_extrap_stddev[8] {116.5f, 104.5f, 98.35f, 80.66f, 24.11f, 35.91f, 36.7f, 9.72f};
+
+    /*=====================================
+    Constant arrays for search by triplet
+    ======================================*/
+
     // Triplet creation
-    float dx_stddev_triplet[8] {53.01f, 117.1f, 97.43f, 42.68f, 39.89f, 88.74f, 77.55f, 33.79f};
-    float chi2_mean_triplet[4] {2.35f, 3.14f, 2.17f, 3.95f};
-    float chi2_stddev_triplet[4] {14.05f, 7.49f, 9.97f, 7.97f};
     int triplet_seeding_layers[n_triplet_seeds][3]{
       {0, 1, 2},
       {1, 2, 3},
       {2, 3, 4},
       {3, 4, 5}
+      // {0, 2, 4},
+      // {0, 3, 5},
+      // {1, 3, 4},
+      // {1, 2, 5}
     };
 
     // Extrapolation
-    float dx_stddev_extrapolation_to_x_layers[3] {1.50f, 1.40f, 1.74f};
-    float chi2_mean_extrapolation_to_x_layers[3] {3.09f, 1.98f, 3.89f};
     float chi2_stddev_extrapolation_to_x_layers[3] {6.33f, 5.09f, 7.42f};
-    uint8_t max_candidates_triplets[4] {20, 20, 20, 20};
 
     // Extrapolation to UV
     uint8_t x_layers[6] {0, 3, 4, 7, 8, 11};
     uint8_t extrapolation_uv_layers[6] {1, 2, 5, 6, 9, 10};
     float extrapolation_uv_stddev[6] {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
-    float chi2_extrapolation_uv_mean[6] {1.304f, 1.384f, 4.577f, 6.587f, 36.1f, 44.67f};
-    float chi2_extrapolation_uv_stddev[6] {10.6f, 11.82f, 17.84f, 23.2f, 68.05f, 81.47f};
-
-    uint8_t convert_layer[12] = {0, 0, 0, 1, 2, 2, 2, 3, 4, 4, 4, 5};
 
     // new experimental parametrization
 
@@ -207,7 +166,7 @@ namespace LookingForward {
                           1107.57};
 
     // float ds_p_param_layer_inv[6] {0.000765058, 0.000766336, 0.000766501, 0.000767106, 0.000828006, 0.000764088};
-    float ds_p_param_layer_inv[6] {1 / 1210.14, 1 / 1210.14, 1 / 1210.14, 1 / 1210.14, 1 / 1210.14, 1 / 1210.14};
+    float ds_p_param_layer_inv[6] {1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f};
 
     float dp_y_mag_plus[12][3] {{-4.03134, -0.0407008, -0.000125335},
                                 {-4.56306, -0.0419834, -0.000137366},

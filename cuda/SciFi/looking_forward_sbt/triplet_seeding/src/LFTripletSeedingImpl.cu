@@ -90,9 +90,8 @@ __device__ void lf_triplet_seeding_impl(
   __shared__ float shared_partial_chi2[LookingForward::tile_size * LookingForward::tile_size];
 
   // Required constants for the chi2 calculation below
-  float extrap1 = LookingForward::forward_param * dz1 * dz1 + LookingForward::d_ratio * dz1 * dz1 * dz1;
+  float extrap1 = (LookingForward::forward_param * dz1 * dz1 + LookingForward::d_ratio * dz1 * dz1 * dz1) * qop;
   extrap1 *= extrap1;
-  extrap1 *= qop*qop;
   const float zdiff = dz2 / dz1;
   const float extrap2 = (LookingForward::forward_param * dz2 * dz2 + LookingForward::d_ratio * dz2 * dz2 * dz2) * qop;
 

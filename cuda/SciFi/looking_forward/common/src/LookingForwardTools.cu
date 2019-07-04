@@ -28,7 +28,7 @@ __device__ float LookingForward::y_at_z(const MiniState& state, const float z)
 // straight line extrapolation of y to other z position including the SciFi dz_dy correction
 __device__ float LookingForward::y_at_z_dzdy_corrected(const MiniState& state, const float z)
 {
-  return (state.y + (z - state.z) * state.ty)/(1.f - state.ty*LookingForward::dzdy);
+  return (state.y + (z - state.z) * state.ty)/(1.f - state.ty*SciFi::Constants::dzdy);
 }
 
 __device__ float LookingForward::linear_propagation(float x_0, float tx, float dz) { return x_0 + tx * dz; }
