@@ -16,7 +16,7 @@ __global__ void lf_triplet_keep_best(
   const int8_t* dev_scifi_lf_triplet_best_h0h2)
 {
   // Keep best for each h1 hit
-  __shared__ float best_chi2[4 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1];
+  __shared__ float best_chi2[LookingForward::n_triplet_seeds * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1];
   __shared__ int16_t best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
 
   const uint number_of_events = gridDim.x;
@@ -43,11 +43,11 @@ __global__ void lf_triplet_keep_best(
     __syncthreads();
 
     // Initialize the best_ shared memory buffers
-    for (uint16_t relative_first_layer = 0; relative_first_layer < 4; ++relative_first_layer) {
+    for (uint8_t triplet_seed = 0; triplet_seed < LookingForward::n_triplet_seeds; ++triplet_seed) {
       for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; j += blockDim.x) {
-        best_chi2[relative_first_layer * LookingForward::maximum_number_of_candidates  * LookingForward::maximum_number_of_triplets_per_h1+ j] =
+        best_chi2[triplet_seed * LookingForward::maximum_number_of_candidates  * LookingForward::maximum_number_of_triplets_per_h1+ j] =
           dev_scifi_lf_triplet_best_chi2
-            [(current_ut_track_index * 4 + relative_first_layer) * LookingForward::maximum_number_of_candidates  * LookingForward::maximum_number_of_triplets_per_h1 + j];
+          [(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) * LookingForward::maximum_number_of_candidates  * LookingForward::maximum_number_of_triplets_per_h1 + j];
       }
     }
 
@@ -60,11 +60,11 @@ __global__ void lf_triplet_keep_best(
 
     // Now, we have the best candidates populated in best_chi2 and best_h0h2
     // Sort the candidates (insertion sort) into best_triplets
-    for (uint16_t j = threadIdx.x + 0 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; j < 4 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; j += blockDim.x) {
+    for (uint16_t j = threadIdx.x; j < LookingForward::n_triplet_seeds * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; j += blockDim.x) {
       const float chi2 = best_chi2[j];
       if (chi2 < LookingForward::chi2_max_triplet_single) {
         int16_t insert_position = 0;
-        for (uint16_t k = 0 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; k < 4 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; ++k) {
+        for (uint16_t k = 0; k < LookingForward::n_triplet_seeds * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1; ++k) {
           const float other_chi2 = best_chi2[k];
           if (chi2 > other_chi2 || (chi2 == other_chi2 && j < k)) {
             ++insert_position;
@@ -82,14 +82,14 @@ __global__ void lf_triplet_keep_best(
     for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_candidates_per_ut_track; j += blockDim.x) {
       const auto k = best_triplets[j];
       if (k != -1) {
-        const auto relative_middle_layer = 1 + (k / (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1));
-        const auto element = (k % (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1)) / LookingForward::maximum_number_of_triplets_per_h1;
+        const auto triplet_seed = k / (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1);
+        const auto h1_element = (k % (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1)) / LookingForward::maximum_number_of_triplets_per_h1;
         // h1_triplet: index of triplet for this h1 hit
         const auto h1_triplet = (k % (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1)) % LookingForward::maximum_number_of_triplets_per_h1;
         const auto h0_element =
-          (current_ut_track_index * 4 + relative_middle_layer - 1) * 2 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + element * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
+          (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) * 2 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + h1_element * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
         const auto h2_element =
-          (current_ut_track_index * 4 + relative_middle_layer - 1) * 2 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + element * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
+          (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) * 2 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + h1_element * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
 
         // Create triplet candidate with all information we have
         const int current_insert_index = atomicAdd(dev_atomics_scifi + current_ut_track_index, 1);
@@ -97,23 +97,24 @@ __global__ void lf_triplet_keep_best(
 
         uint16_t first_layer, last_layer;
         uint16_t h0, h2;
-        const uint16_t h1 = (uint16_t) scifi_lf_candidates[relative_middle_layer * LookingForward::maximum_number_of_candidates + element];
+        const uint16_t h1 = (uint16_t) scifi_lf_candidates[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1] * LookingForward::maximum_number_of_candidates + h1_element];
 
-        if (relative_middle_layer & 1) {
-          first_layer = relative_middle_layer - 1;
-          last_layer = relative_middle_layer + 1;
-          h0 = (uint16_t) scifi_lf_candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
-          h2 = (uint16_t) scifi_lf_candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
+        if (dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1] & 1) {
+          first_layer = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
+          last_layer = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
+          h0 = (uint16_t) scifi_lf_candidates[first_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
+          h2 = (uint16_t) scifi_lf_candidates[last_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
         } else {
-          first_layer = relative_middle_layer + 1;
-          last_layer = relative_middle_layer - 1;
-          h0 = (uint16_t) scifi_lf_candidates[(relative_middle_layer + 1) * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
-          h2 = (uint16_t) scifi_lf_candidates[(relative_middle_layer - 1) * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
+          first_layer = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
+          last_layer = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
+          h0 = (uint16_t) scifi_lf_candidates[first_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
+          h2 = (uint16_t) scifi_lf_candidates[last_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
         }
 
         const float x0 = scifi_hits.x0[event_offset + h0];
         const float x1 = scifi_hits.x0[event_offset + h1];
         const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[first_layer];
+        const auto relative_middle_layer = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1];
         const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_middle_layer];
 
         dev_scifi_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + current_insert_index] =

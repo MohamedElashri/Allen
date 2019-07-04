@@ -38,37 +38,33 @@ __global__ void lf_triplet_seeding(
 
     const auto qop = dev_ut_qop[current_ut_track_index];
 
-    for (uint8_t relative_first_layer = 0; relative_first_layer < 4; ++relative_first_layer) {
+    for (uint8_t triplet_seed = 0; triplet_seed < LookingForward::n_triplet_seeds; ++triplet_seed) {
       const uint8_t candidate_h0_size = dev_scifi_lf_number_of_candidates
-        [current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer];
+        [current_ut_track_index * LookingForward::number_of_x_layers + dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0]];
       const uint8_t candidate_h1_size = dev_scifi_lf_number_of_candidates
-        [current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer + 1];
+        [current_ut_track_index * LookingForward::number_of_x_layers + dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1]];
       const uint8_t candidate_h2_size = dev_scifi_lf_number_of_candidates
-        [current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer + 2];
+        [current_ut_track_index * LookingForward::number_of_x_layers + dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2]];
 
-      const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_first_layer];
-      const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_first_layer + 1];
-      const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_first_layer + 2];
-
-      const auto layer_inversion = (relative_first_layer % 2) != 0; // if this condition is satisfied hit0 and hit1 are not in the same station
+      const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0]];
+      const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1]];
+      const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2]];
 
       lf_triplet_seeding_impl(
         scifi_hits.x0 + event_offset,
         candidate_h0_size,
         candidate_h1_size,
         candidate_h2_size,
-        relative_first_layer,
+        triplet_seed,
         LookingForward::chi2_max_triplet_single,
+        dev_looking_forward_constants,
         dev_scifi_lf_triplet_best_chi2 +
-          (current_ut_track_index * 4 + relative_first_layer) * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1,
+        (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1,
         dev_scifi_lf_triplet_best_h0h2 +
-          (current_ut_track_index * 4 + relative_first_layer) * 2 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1,
+        (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) * 2 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1,
         scifi_lf_candidates,
         z1 - z0,
         z2 - z0,
-        layer_inversion,
-        dev_ut_states[current_ut_track_index],
-        dev_looking_forward_constants,
         qop);
     }
   }

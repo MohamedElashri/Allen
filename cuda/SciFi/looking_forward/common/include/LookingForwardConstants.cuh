@@ -48,9 +48,10 @@ namespace LookingForward {
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 32;
-  constexpr int maximum_number_of_candidates_per_ut_track = 32 * 4;
+  constexpr int maximum_number_of_candidates_per_ut_track = 32*3;
   constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 32*4; // 2;
   constexpr int maximum_number_of_triplets_per_h1 = 3;
+  constexpr int n_triplet_seeds = 4;
   constexpr int tile_size = 16;
   constexpr int tile_size_mask = 0xF;
   constexpr int tile_size_shift_div = 4;
@@ -127,7 +128,7 @@ namespace LookingForward {
   constexpr float xParams_0 = 18.6195f;
   constexpr float xParams_1 = -5.55793;
 
-  constexpr float chi2_max_triplet_single = 500.f; // 24.f; // 12.f;
+  constexpr float chi2_max_triplet_single = 5.f;
   constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f;
   constexpr float chi2_max_extrapolation_to_uv_layers_single = 10.f;
 
@@ -150,6 +151,12 @@ namespace LookingForward {
     float dx_stddev_triplet[8] {53.01f, 117.1f, 97.43f, 42.68f, 39.89f, 88.74f, 77.55f, 33.79f};
     float chi2_mean_triplet[4] {2.35f, 3.14f, 2.17f, 3.95f};
     float chi2_stddev_triplet[4] {14.05f, 7.49f, 9.97f, 7.97f};
+    int triplet_seeding_layers[n_triplet_seeds][3]{
+      {0, 1, 2},
+      {1, 2, 3},
+      {2, 3, 4},
+      {3, 4, 5}
+    };
 
     // Extrapolation
     float dx_stddev_extrapolation_to_x_layers[3] {1.50f, 1.40f, 1.74f};

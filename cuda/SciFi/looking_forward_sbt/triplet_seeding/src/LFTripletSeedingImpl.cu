@@ -6,7 +6,7 @@
 __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
   const float* scifi_hits_x0,
   const short* scifi_lf_candidates,
-  const uint8_t relative_l0,
+  const uint8_t triplet_seed,
   const float zdiff,
   const float* shared_partial_chi2,
   const float extrap1,
@@ -14,6 +14,7 @@ __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
   const int8_t h0_tile_index,
   const int8_t h2_tile_index,
   const float max_chi2,
+  const LookingForward::Constants* dev_looking_forward_constants,
   float* best_chi2,
   int8_t* best_h0_h2)
 {
@@ -23,7 +24,7 @@ __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
   for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
     const float x1_zdiff =
       scifi_hits_x0
-      [scifi_lf_candidates[(relative_l0 + 1) * LookingForward::maximum_number_of_candidates + h1_rel]] *
+      [scifi_lf_candidates[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1] * LookingForward::maximum_number_of_candidates + h1_rel]] *
       zdiff;
 
     // populate chi2 by which we sort
@@ -76,15 +77,14 @@ __device__ void lf_triplet_seeding_impl(
   const uint8_t h0_candidate_size,
   const uint8_t h1_candidate_size,
   const uint8_t h2_candidate_size,
-  const uint8_t relative_l0,
+  const uint8_t triplet_seed,
   const float max_chi2,
+  const LookingForward::Constants* dev_looking_forward_constants,
   float* best_chi2,
   int8_t* best_h0_h2,
   const short* scifi_lf_candidates,
   const float dz1,
   const float dz2,
-  const bool layer_inversion,
-  const MiniState& ut_state, const LookingForward::Constants *dev_looking_forward_constants,
   const float qop)
 {
   __shared__ float shared_partial_chi2[LookingForward::tile_size * LookingForward::tile_size];
@@ -133,7 +133,7 @@ __device__ void lf_triplet_seeding_impl(
         const int8_t h0_rel = i * LookingForward::tile_size + k;
         if (h0_rel < h0_candidate_size) {
           const half x0 =
-            scifi_hits_x0[scifi_lf_candidates[relative_l0 * LookingForward::maximum_number_of_candidates + h0_rel]];
+            scifi_hits_x0[scifi_lf_candidates[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0] * LookingForward::maximum_number_of_candidates + h0_rel]];
           shared_wmma_a[LookingForward::tile_size + k] = -x0;
           shared_wmma_a[2 * LookingForward::tile_size + k] = x0;
         }
@@ -150,7 +150,7 @@ __device__ void lf_triplet_seeding_impl(
         const int8_t h2_rel = j * LookingForward::tile_size + k;
         if (h2_rel < h2_candidate_size) {
           shared_wmma_b[k] = scifi_hits_x0
-            [scifi_lf_candidates[(relative_l0 + 2) * LookingForward::maximum_number_of_candidates + h2_rel]];
+            [scifi_lf_candidates[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2] * LookingForward::maximum_number_of_candidates + h2_rel]];
         }
         else {
           shared_wmma_b[k] = big_max_chi2;
@@ -167,7 +167,7 @@ __device__ void lf_triplet_seeding_impl(
       lf_triplet_seeding_choose_best_triplets_for_h1(
         scifi_hits_x0,
         scifi_lf_candidates,
-        relative_l0,
+        triplet_seed,
         zdiff,
         shared_partial_chi2,
         extrap1,
@@ -175,6 +175,7 @@ __device__ void lf_triplet_seeding_impl(
         i,
         j,
         max_chi2,
+        dev_looking_forward_constants,
         best_chi2,
         best_h0_h2);
     }
@@ -197,9 +198,9 @@ __device__ void lf_triplet_seeding_impl(
         float partial_chi2 = 1000.f * max_chi2;
         if (h0_rel < h0_candidate_size && h2_rel < h2_candidate_size) {
           const auto x0 =
-            scifi_hits_x0[scifi_lf_candidates[relative_l0 * LookingForward::maximum_number_of_candidates + h0_rel]];
+            scifi_hits_x0[scifi_lf_candidates[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0] * LookingForward::maximum_number_of_candidates + h0_rel]];
           const auto x2 = scifi_hits_x0
-            [scifi_lf_candidates[(relative_l0 + 2) * LookingForward::maximum_number_of_candidates + h2_rel]];
+            [scifi_lf_candidates[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2] * LookingForward::maximum_number_of_candidates + h2_rel]];
           partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
           // Note: To get the chi2 from the partial_chi2:
           // extrap1 + (partial_chi2 - x1 * zdiff) * (partial_chi2 - x1 * zdiff)
@@ -212,7 +213,7 @@ __device__ void lf_triplet_seeding_impl(
        lf_triplet_seeding_choose_best_triplets_for_h1(
         scifi_hits_x0,
         scifi_lf_candidates,
-        relative_l0,
+        triplet_seed,
         zdiff,
         shared_partial_chi2,
         extrap1,
@@ -220,6 +221,7 @@ __device__ void lf_triplet_seeding_impl(
         i,
         j,
         max_chi2,
+        dev_looking_forward_constants,
         best_chi2,
         best_h0_h2);
     }
