@@ -109,6 +109,7 @@ __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
     }
 
   }
+
 }
 
 __device__ void lf_triplet_seeding_impl(
@@ -136,7 +137,6 @@ __device__ void lf_triplet_seeding_impl(
   for (int16_t i = 0; i < max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1; ++i) {
     best_chi2_h1s_this_thread[i] = max_chi2;
   }
-
 
   // Required constants for the chi2 calculation below
   float extrap1 = (LookingForward::forward_param * dz1 * dz1 + LookingForward::d_ratio * dz1 * dz1 * dz1) * qop;
@@ -229,6 +229,17 @@ __device__ void lf_triplet_seeding_impl(
         best_h0_h2_h1s_this_thread,
         best_chi2,
         best_h0_h2);
+
+      __syncthreads();
+
+      // for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
+      //    const int16_t h1_thread = h1_rel / LookingForward::n_threads_triplet_seeding;
+      //    for (int16_t h1_triplet = 0; h1_triplet < LookingForward::maximum_number_of_triplets_per_h1; ++h1_triplet) {
+      //      const int16_t pos = h1_thread*LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
+      //      printf("at pos %d, chi2 = %f \n", pos, best_chi2_h1s_this_thread[pos]);
+      //    }
+      //  }
+
     }
   }
 
@@ -237,8 +248,10 @@ __device__ void lf_triplet_seeding_impl(
   // Search best triplets per h1
 
   // Tiled processing of h0 and h2
-  for (int8_t i = 0; i<(h0_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div; ++i) {
-    for (int8_t j = 0; j<(h2_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div; ++j) {
+  //for (int8_t i = 0; i<(h0_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div; ++i) {
+  for (int8_t i = 0; i<1; ++i) {
+    //for (int8_t j = 0; j<(h2_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div; ++j) {
+    for (int8_t j = 0; j<1; ++j) {
 
       __syncthreads();
 
@@ -282,19 +295,24 @@ __device__ void lf_triplet_seeding_impl(
   }
 #endif
 
-  // // Write best chosen triplets per h1 candidate to global memory
-  // for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
-  //   for (int16_t h1_triplet = 0; h1_triplet < LookingForward::maximum_number_of_triplets_per_h1; ++h1_triplet) {
-  //     const int16_t h1_thread = h1_rel / LookingForward::n_threads_triplet_seeding;
-  //     int16_t pos = h1_thread*LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
-  //     printf("chi2 = %d \n", best_chi2_h1s_this_thread[pos]);
-  //     if (best_chi2_h1s_this_thread[pos] < max_chi2) {
-  //       printf("Adding chi2 %f \n", best_chi2_h1s_this_thread[pos]);
-  //       best_chi2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_chi2_h1s_this_thread[pos];
-  //       best_h0_h2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_h0_h2_h1s_this_thread[pos];
-  //       best_h0_h2[LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + pos];
-  //     }
-  //   }
-  // }
+  __syncthreads();
+
+  // Write best chosen triplets per h1 candidate to global memory
+  for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
+    for (int16_t h1_triplet = 0; h1_triplet < LookingForward::maximum_number_of_triplets_per_h1; ++h1_triplet) {
+      const int16_t h1_thread = h1_rel / LookingForward::n_threads_triplet_seeding;
+      const int16_t pos = h1_thread*LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
+
+      printf("at h1_rel %d, h1_triplet %d, original chi2 = %f, new chi2 = %f \n", h1_rel, h1_triplet, best_chi2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet], best_chi2_h1s_this_thread[pos]);
+
+      //printf("at pos %d, chi2 = %f \n", pos, best_chi2_h1s_this_thread[pos]);
+      // if (best_chi2_h1s_this_thread[pos] < max_chi2) {
+      //   //printf("Adding chi2 %f \n", best_chi2_h1s_this_thread[pos]);
+      //   best_chi2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_chi2_h1s_this_thread[pos];
+      //   best_h0_h2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_h0_h2_h1s_this_thread[pos];
+      //   best_h0_h2[LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + pos];
+      // }
+    }
+  }
 
 }
