@@ -70,7 +70,7 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
     arguments.offset<dev_scifi_lf_candidates>());
 
   state.handler_lf_triplet_seeding.set_opts(
-    dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);
+   dim3(host_buffers.host_number_of_selected_events[0]), dim3(LookingForward::n_threads_triplet_seeding), cuda_stream);
   state.handler_lf_triplet_keep_best.set_opts(
     dim3(host_buffers.host_number_of_selected_events[0], 4), dim3(32), cuda_stream);
   state.handler_lf_extend_tracks_x.set_opts(

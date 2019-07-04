@@ -61,6 +61,7 @@ namespace LookingForward {
   constexpr int maximum_number_of_candidates_per_ut_track = 32*3;
   constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 32*4; // 2;
   constexpr int maximum_number_of_triplets_per_h1 = 3;
+  constexpr int n_threads_triplet_seeding = 32;
   constexpr int n_triplet_seeds = 4;
   constexpr int tile_size = 16;
   constexpr int tile_size_mask = 0xF;

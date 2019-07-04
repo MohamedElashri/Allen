@@ -17,6 +17,9 @@ __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
   const int8_t h2_tile_index,
   const float max_chi2,
   const LookingForward::Constants* dev_looking_forward_constants,
+  const int16_t max_n_h1s_this_thread,
+  float* best_chi2_h1s_this_thread,
+  int8_t* best_h0_h2_h1s_this_thread,
   float* best_chi2,
   int8_t* best_h0_h2);
 
