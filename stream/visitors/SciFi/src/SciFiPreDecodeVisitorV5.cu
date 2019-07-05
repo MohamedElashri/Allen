@@ -22,7 +22,7 @@ void SequenceVisitor::visit<scifi_pre_decode_v5_t>(
   cudaEvent_t& cuda_generic_event)
 {
   state.set_opts(
-    dim3(host_buffers.host_number_of_selected_events[0]), dim3(1), cuda_stream); //SciFi::SciFiRawBankParams::NbBanks statt 1
+    dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_raw_input>(),
     arguments.offset<dev_scifi_raw_input_offsets>(),
@@ -35,7 +35,7 @@ void SequenceVisitor::visit<scifi_pre_decode_v5_t>(
   state.invoke();
 
   // Debugging
-  const uint hit_count_uints = 2 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mats + 1;
+  /*const uint hit_count_uints = 2 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mats + 1;
   uint host_scifi_hit_count[hit_count_uints];
   uint* host_scifi_hits = new uint[host_buffers.scifi_hits_uints()];
   cudaCheck(cudaMemcpyAsync(&host_scifi_hit_count, arguments.offset<dev_scifi_hit_count>(), hit_count_uints*sizeof(uint), cudaMemcpyDeviceToHost, cuda_stream));
@@ -56,5 +56,5 @@ void SequenceVisitor::visit<scifi_pre_decode_v5_t>(
       }
     }
   }
-  outfile << std::endl;
+  outfile << std::endl;*/
 }
