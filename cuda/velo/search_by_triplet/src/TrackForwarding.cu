@@ -17,7 +17,8 @@ __device__ void track_forwarding(
   Velo::TrackHits* tracks,
   const uint number_of_hits,
   int* dev_atomics_velo,
-  const int ip_shift)
+  const int ip_shift,
+  const int first_module)
 {
   // Assign a track to follow to each thread
   for (int ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
@@ -33,7 +34,8 @@ __device__ void track_forwarding(
     if (track_flag) {
       track_scratch = tracklets[trackno];
       t = (Velo::TrackHits*) &track_scratch;
-    } else {
+    }
+    else {
       t = tracks + trackno;
     }
 
@@ -66,12 +68,12 @@ __device__ void track_forwarding(
 
     // Get candidates by performing a binary search in expected phi
     const auto odd_module_candidates = find_forward_candidates(
-      module_data[4], tx, ty, dev_velo_cluster_container + 4 * number_of_hits, h0, [](const float x, const float y) {
+      module_data[2], tx, ty, dev_velo_cluster_container + 4 * number_of_hits, h0, [](const float x, const float y) {
         return hit_phi_odd(x, y);
       });
 
     const auto even_module_candidates = find_forward_candidates(
-      module_data[5], tx, ty, dev_velo_cluster_container + 4 * number_of_hits, h0, [](const float x, const float y) {
+      module_data[3], tx, ty, dev_velo_cluster_container + 4 * number_of_hits, h0, [](const float x, const float y) {
         return hit_phi_even(x, y);
       });
 
@@ -129,7 +131,7 @@ __device__ void track_forwarding(
         // If it is a track made out of less than or equal than 4 hits,
         // we have to allocate it in the tracks pointer
         trackno = atomicAdd(dev_atomics_velo + blockIdx.x, 1);
-        *((Velo::TrackHitsScratch*)&tracks[trackno]) = track_scratch;
+        *((Velo::TrackHitsScratch*) &tracks[trackno]) = track_scratch;
       }
 
       // Add the tracks to the bag of tracks to_follow

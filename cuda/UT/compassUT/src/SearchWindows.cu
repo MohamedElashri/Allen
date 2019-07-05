@@ -9,7 +9,7 @@ __global__ void ut_search_windows(
   int* dev_atomics_storage, // semi_prefixsum, offset to tracks
   uint* dev_velo_track_hit_number,
   char* dev_velo_states,
-  PrUTMagnetTool* dev_ut_magnet_tool,
+  UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_ut_dxDy,
   const uint* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
   const float* dev_unique_sector_xs,             // list of xs that define the groups
@@ -53,7 +53,7 @@ __global__ void ut_search_windows(
       const MiniState velo_state = velo_states.get(current_track_offset);
       if (i_track < number_of_tracks_event) {
         if (
-            !velo_states.backward[current_track_offset] && dev_accepted_velo_tracks[current_track_offset] &&
+          !velo_states.backward[current_track_offset] && dev_accepted_velo_tracks[current_track_offset] &&
           velo_track_in_UTA_acceptance(velo_state)) {
           int current_track = atomicAdd(active_tracks, 1);
           shared_active_tracks[current_track] = i_track;

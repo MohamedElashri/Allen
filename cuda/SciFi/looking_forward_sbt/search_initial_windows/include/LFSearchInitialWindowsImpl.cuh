@@ -6,20 +6,12 @@
 #include <algorithm>
 #include <fstream>
 #include "SciFiDefinitions.cuh"
-#include "PrForwardConstants.cuh"
 #include "UTDefinitions.cuh"
-#include "TrackUtils.cuh"
-#include "HitUtils.cuh"
-#include "LinearFitting.cuh"
-#include "ReferencePlaneProjection.cuh"
-#include "PrVeloUT.cuh"
 #include "SciFiEventModel.cuh"
 #include "LookingForwardUtils.h"
+#include "TrackUtils.cuh"
 
-__device__ inline float evalCubicParameterization(
-  const float value_at_ref,
-  const float t,
-  const float z);
+__device__ inline float evalCubicParameterization(const float value_at_ref, const float t, const float z);
 
 __device__ void lf_search_initial_windows_p_impl(
   const SciFi::Hits& scifi_hits,

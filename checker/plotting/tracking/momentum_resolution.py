@@ -16,11 +16,12 @@ from ROOT import TStyle
 from ROOT import gPad
 from ROOT import TGraphErrors
 from array import array
-
-
+from ROOT import TMath
+from ROOT import TLegend
 
 sys.path.append('../')
 from common.LHCbStyle import *
+
 
 def getHistos():
     basedict = {
@@ -101,9 +102,7 @@ def getResolutionInSlices(histo2D, var, var_dict):
     gr.SetTitle("")
     gr.SetName(name)
 
-    gr.Write()
-    canvas.Write()
-    canvas.SaveAs("../../../plotsfornote/" + tracker + "MomResVsP.pdf")
+    #gr.Write()
 
     #name = "dp_vs_p_rms"
     #title = "dp vs p, histogram RMS"
@@ -122,6 +121,19 @@ def getResolutionInSlices(histo2D, var, var_dict):
     # overall momentum resolution
     histo1D = histo2D.ProjectionY("_py")
     histo1D.Write()
+
+    # plot distribution in same canvas
+    max_point = TMath.MaxElement(gr.GetN(), gr.GetY())
+    norm = max_point / histo1D.GetMaximum()
+    histo1D.Scale(norm)
+    histo1D.SetFillColorAlpha(ROOT.kBlack, 0.2)
+    histo1D.SetLineColor(ROOT.kWhite)
+    #histo1D.Draw("hist bar same")
+
+    canvas.Write()
+    canvas.SaveAs("../../../plotsfornote/" + tracker + "MomResVs" + var +
+                  ".pdf")
+
     histo1D.Fit("gaus")
     sigma_p = histo1D.GetFunction("gaus").GetParameter(2)
     delta_sigma_p = histo1D.GetFunction("gaus").GetParError(2)
@@ -130,7 +142,10 @@ def getResolutionInSlices(histo2D, var, var_dict):
 
 
 f = ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")
-outputfile = ROOT.TFile("../../../plotsfornote_root/momentum_resolution.root", "recreate")
+outputfile = ROOT.TFile("../../../plotsfornote_root/momentum_resolution.root",
+                        "recreate")
+#f = ROOT.TFile.Open("../../../output/checkerplots/KstMuMu/PrCheckerPlots.root", "read")
+#outputfile = ROOT.TFile("../../../output/checkerplots/momentum_resolution.root", "recreate")
 
 setLHCbStyle()
 

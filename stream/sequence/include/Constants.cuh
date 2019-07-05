@@ -8,16 +8,17 @@
 #include "VeloDefinitions.cuh"
 #include "ClusteringDefinitions.cuh"
 #include "ClusteringCommon.h"
-#include "PrForwardConstants.cuh"
 #include "TMVA_Forward_1.cuh"
 #include "TMVA_Forward_2.cuh"
 #include "UTDefinitions.cuh"
 #include "Logger.h"
-#include "PrVeloUTMagnetToolDefinitions.h"
+#include "UTMagnetToolDefinitions.h"
 #include "KalmanParametrizations.cuh"
 #include "SciFiParametrization.h"
 #include "LookingForwardConstants.cuh"
 #include "MuonDefinitions.cuh"
+#include "MuonGeometry.cuh"
+#include "MuonTables.cuh"
 #include <gsl-lite.hpp>
 
 /**
@@ -55,7 +56,7 @@ struct Constants {
   gsl::span<uint> dev_ut_region_offsets;
   gsl::span<float> dev_unique_sector_xs;
   gsl::span<char> dev_ut_boards;
-  PrUTMagnetTool* dev_ut_magnet_tool = nullptr;
+  UTMagnetTool* dev_ut_magnet_tool = nullptr;
 
   SciFi::Tracking::TMVA* dev_scifi_tmva1 = nullptr;
   SciFi::Tracking::TMVA* dev_scifi_tmva2 = nullptr;
@@ -74,6 +75,14 @@ struct Constants {
 
   // Looking forward
   LookingForward::Constants host_looking_forward_constants;
+
+  // Muon
+  char* dev_muon_geometry_raw = nullptr;
+  char* dev_muon_lookup_tables_raw = nullptr;
+  std::vector<char> host_muon_geometry_raw;
+  std::vector<char> host_muon_lookup_tables_raw;
+  Muon::MuonGeometry* dev_muon_geometry = nullptr;
+  Muon::MuonTables* dev_muon_tables = nullptr;
 
   // Muon classification model constatns
   Muon::Constants::FieldOfInterest* dev_muon_foi = nullptr;
@@ -95,8 +104,8 @@ struct Constants {
    */
   void reserve_and_initialize(
     const std::vector<float>& muon_field_of_interest_params,
-    const std::string& folder_params_kalman
-  ) {
+    const std::string& folder_params_kalman)
+  {
     reserve_constants();
     initialize_constants(muon_field_of_interest_params, folder_params_kalman);
   }
@@ -109,7 +118,9 @@ struct Constants {
   /**
    * @brief Initializes constants on the GPU.
    */
-  void initialize_constants(const std::vector<float>& muon_field_of_interest_params, const std::string& folder_params_kalman);
+  void initialize_constants(
+    const std::vector<float>& muon_field_of_interest_params,
+    const std::string& folder_params_kalman);
 
   /**
    * @brief Initializes UT decoding constants.

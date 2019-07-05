@@ -39,7 +39,7 @@ namespace SciFi {
   struct HitCount {
     uint* mat_offsets;
 
-    __device__ __host__ HitCount(){}
+    __device__ __host__ HitCount() {}
 
     __device__ __host__ HitCount(uint* base_pointer, const uint event_number)
     {
@@ -128,7 +128,7 @@ namespace SciFi {
     const SciFiGeometry* geom;
     const float* dev_inv_clus_res;
 
-    __device__ __host__ BaseHits(){}
+    __device__ __host__ BaseHits() {}
 
     __device__ __host__ float w(uint32_t index) const
     {
@@ -282,8 +282,7 @@ namespace SciFi {
       const float qop,
       const uint16_t ut_track_index) :
       quality(chi2),
-      qop(qop),
-      ut_track_index(ut_track_index)
+      qop(qop), ut_track_index(ut_track_index)
     {
       hitsNum = 3;
       hits[0] = h0;
@@ -302,8 +301,7 @@ namespace SciFi {
       const float qop,
       const uint16_t ut_track_index) :
       quality(chi2),
-      qop(qop),
-      ut_track_index(ut_track_index)
+      qop(qop), ut_track_index(ut_track_index)
     {
       hitsNum = 3;
       hits[0] = h0;
@@ -314,7 +312,8 @@ namespace SciFi {
       hits[SciFi::Constants::hit_layer_offset + 2] = layer_h2;
     }
 
-    __host__ __device__ uint16_t get_layer(uint8_t index) const {
+    __host__ __device__ uint16_t get_layer(uint8_t index) const
+    {
       assert(hitsNum <= SciFi::Constants::hit_layer_offset);
       return hits[SciFi::Constants::hit_layer_offset + index];
     }
@@ -332,8 +331,7 @@ namespace SciFi {
       quality += chi2;
     }
 
-    __host__ __device__ void add_hit_with_layer_and_quality(
-      uint16_t hit_index, uint16_t layer, float chi2)
+    __host__ __device__ void add_hit_with_layer_and_quality(uint16_t hit_index, uint16_t layer, float chi2)
     {
       assert(hitsNum < SciFi::Constants::max_track_size);
       hits[hitsNum] = hit_index;

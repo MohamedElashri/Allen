@@ -7,24 +7,21 @@
 namespace {
   using std::string;
   using std::to_string;
-}
+} // namespace
 
-Consumers::UTGeometry::UTGeometry(Constants& constants)
-  : m_constants{constants} {}
+Consumers::UTGeometry::UTGeometry(Constants& constants) : m_constants {constants} {}
 
 void Consumers::UTGeometry::initialize(vector<char> const& data)
 {
 
-  auto alloc_and_copy = [] (auto const& host_numbers, auto& device_numbers) {
-                          using value_type = typename std::remove_reference_t<decltype(host_numbers)>::value_type;
-                          value_type* p = nullptr;
-                          cudaCheck(cudaMalloc((void**) &p, host_numbers.size() * sizeof(value_type)));
-                          device_numbers = gsl::span{p, host_numbers.size()};
-                          cudaCheck(cudaMemcpy(device_numbers.data(),
-                                               host_numbers.data(), host_numbers.size() * sizeof(value_type),
-                                               cudaMemcpyHostToDevice));
-                        };
-
+  auto alloc_and_copy = [](auto const& host_numbers, auto& device_numbers) {
+    using value_type = typename std::remove_reference_t<decltype(host_numbers)>::value_type;
+    value_type* p = nullptr;
+    cudaCheck(cudaMalloc((void**) &p, host_numbers.size() * sizeof(value_type)));
+    device_numbers = gsl::span {p, host_numbers.size()};
+    cudaCheck(cudaMemcpy(
+      device_numbers.data(), host_numbers.data(), host_numbers.size() * sizeof(value_type), cudaMemcpyHostToDevice));
+  };
 
   // region offsets
   auto& host_ut_region_offsets = m_constants.get().host_ut_region_offsets;
@@ -42,8 +39,8 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
   auto& dev_ut_geometry = m_constants.get().dev_ut_geometry;
   char* g = nullptr;
   cudaCheck(cudaMalloc((void**) &g, data.size()));
-  dev_ut_geometry = gsl::span{g, data.size()};
-  const ::UTGeometry geometry{data};
+  dev_ut_geometry = gsl::span {g, data.size()};
+  const ::UTGeometry geometry {data};
 
   // Offset for each station / layer
   const std::array<uint, UT::Constants::n_layers + 1> offsets {host_ut_region_offsets[0],
@@ -125,26 +122,29 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
   auto& dev_unique_x_sector_offsets = m_constants.get().dev_unique_x_sector_offsets;
   auto& dev_unique_sector_xs = m_constants.get().dev_unique_sector_xs;
 
-  tuple numbers{tuple{std::cref(host_unique_x_sector_layer_offsets), std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
-                tuple{std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
-                tuple{std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
+  tuple numbers {
+    tuple {std::cref(host_unique_x_sector_layer_offsets),
+           std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
+    tuple {std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
+    tuple {std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
 
-  for_each(numbers, [&alloc_and_copy] (auto& entry) {
-                      alloc_and_copy(std::get<0>(entry).get(), std::get<1>(entry).get());
-                    });
+  for_each(
+    numbers, [&alloc_and_copy](auto& entry) { alloc_and_copy(std::get<0>(entry).get(), std::get<1>(entry).get()); });
 }
 
-void Consumers::UTGeometry::consume(std::vector<char> const& data) {
+void Consumers::UTGeometry::consume(std::vector<char> const& data)
+{
   auto& dev_ut_geometry = m_constants.get().dev_ut_geometry;
   if (dev_ut_geometry.empty()) {
     initialize(data);
-  } else if (dev_ut_geometry.size() != data.size()) {
-    throw StrException{string{"sizes don't match: "} + to_string(dev_ut_geometry.size())
-                              + " " + to_string(data.size())};
+  }
+  else if (dev_ut_geometry.size() != data.size()) {
+    throw StrException {string {"sizes don't match: "} + to_string(dev_ut_geometry.size()) + " " +
+                        to_string(data.size())};
   }
 
   auto& host_ut_geometry = m_constants.get().host_ut_geometry;
   host_ut_geometry = std::move(data);
-  cudaCheck(cudaMemcpy(dev_ut_geometry.data(), host_ut_geometry.data(), host_ut_geometry.size(),
-                       cudaMemcpyHostToDevice));
+  cudaCheck(
+    cudaMemcpy(dev_ut_geometry.data(), host_ut_geometry.data(), host_ut_geometry.size(), cudaMemcpyHostToDevice));
 }

@@ -6,7 +6,7 @@ include_directories(${ROOT_INCLUDE_DIRS})
 
 file(GLOB selection_checker_sources "src/*cpp")
 
-add_library(SelChecking SHARED
+add_library(SelChecking STATIC
   ${selection_checker_sources}
 )
 set_target_properties(SelChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)

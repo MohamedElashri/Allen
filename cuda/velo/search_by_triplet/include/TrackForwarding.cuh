@@ -16,7 +16,8 @@ __device__ void track_forwarding(
   Velo::TrackHits* tracks,
   const uint number_of_hits,
   int* dev_atomics_velo,
-  const int ip_shift);
+  const int ip_shift,
+  const int first_module);
 
 /**
  * @brief Finds candidates in the specified module.
@@ -49,8 +50,8 @@ __device__ std::tuple<int, int> find_forward_candidates(
       track_extrapolation_phi,
       Velo::Tracking::forward_phi_tolerance);
     first_candidate += module.hitStart;
-    last_candidate = last_candidate == 0 ? first_candidate + 1 : first_candidate + last_candidate;
+    last_candidate = first_candidate + last_candidate;
   }
 
-  return {first_candidate, last_candidate};
+  return std::tuple<int, int> {first_candidate, last_candidate};
 }

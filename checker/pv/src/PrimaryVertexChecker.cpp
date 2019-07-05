@@ -1,9 +1,7 @@
 #include <PrimaryVertexChecker.h>
 #include <ROOTHeaders.h>
 
-float getefficiencyerror(float k, float N) {
-  return sqrt(k*(1-k/N))/N;
-}
+float getefficiencyerror(float k, float N) { return sqrt(k * (1 - k / N)) / N; }
 
 void checkPVs(
   const std::string& foldername,
@@ -70,10 +68,15 @@ void checkPVs(
     // based on both the mc pv information (efficiency vs. mc pv multiplicity or z position)
     // and the reconstructed information (fakes vs. reconstructed pv multiplicitly or z position)
     std::vector<int> vec_mcpv_recd;
+    std::vector<int> vec_mcpv_recd_iso;
+    std::vector<int> vec_mcpv_recd_close;
+    std::vector<int> vec_mcpv_is_isolated;
     std::vector<int> vec_recpv_fake;
     std::vector<int> vec_mcpv_mult;
     std::vector<int> vec_recpv_mult;
     std::vector<double> vec_mcpv_zpos;
+    std::vector<double> vec_mcpv_zpos_iso;
+    std::vector<double> vec_mcpv_zpos_close;
     std::vector<double> vec_mc_x;
     std::vector<double> vec_mc_y;
     std::vector<double> vec_mc_z;
@@ -270,7 +273,7 @@ void checkPVs(
 
         if (recpvvec[ipv].indexMCPVInfo < 0) {
           // Counter for performance plots
-	  vec_recpv_fake.push_back(1);
+          vec_recpv_fake.push_back(1);
           nFalsePV++;
           fake = 1;
           bool vis_found = false;
@@ -284,7 +287,10 @@ void checkPVs(
             }
           } // imc
           if (!vis_found) nFalsePV_real++;
-        } else {vec_recpv_fake.push_back(0);}// Counter for performance plots
+        }
+        else {
+          vec_recpv_fake.push_back(0);
+        } // Counter for performance plots
       }
 
       // Fill distance to closest recble MC PV and its multiplicity
@@ -317,13 +323,20 @@ void checkPVs(
       int nRecMCPV_close = 0;
 
       for (itmc = rblemcpv.begin(); rblemcpv.end() != itmc; itmc++) {
-        //Counters for performance plots
+        // Counters for performance plots
         if (itmc->nRecTracks > nTracksToBeRecble) {
           vec_mcpv_mult.push_back(itmc->pMCPV->numberTracks);
           vec_mcpv_zpos.push_back(itmc->pMCPV->z);
+          if (itmc->distToClosestMCPV > dzIsolated)
+            vec_mcpv_is_isolated.push_back(1);
+          else
+            vec_mcpv_is_isolated.push_back(0);
           if (itmc->indexRecPVInfo > -1) {
             vec_mcpv_recd.push_back(1);
-          } else {vec_mcpv_recd.push_back(0);}
+          }
+          else {
+            vec_mcpv_recd.push_back(0);
+          }
         }
         if (itmc->distToClosestMCPV > dzIsolated) nMCPV_isol++;
         if (itmc->distToClosestMCPV > dzIsolated && itmc->nRecTracks < nTracksToBeRecble) nmrc_isol++;
@@ -333,7 +346,7 @@ void checkPVs(
           nRecMCPV++;
           if (itmc->distToClosestMCPV > dzIsolated) nRecMCPV_isol++;
           if (itmc->distToClosestMCPV < dzIsolated) nRecMCPV_close++;
-        } 
+        }
       }
 
       nMCPV_isol = nMCPV_isol - nmrc_isol;
@@ -347,7 +360,6 @@ void checkPVs(
       sum_nRecMCPV_close += nRecMCPV_close;
       sum_nFalsePV += nFalsePV;
       sum_nFalsePV_real += nFalsePV_real;
-
 
       // loop over matched MC PVs and get pull and errors
       for (auto mc_vertex_info : rblemcpv) {
@@ -411,7 +423,7 @@ void checkPVs(
     double diff_x, diff_y, diff_z;
     double rec_x, rec_y, rec_z;
     double err_x, err_y, err_z;
-    int nmcpv,ntrinmcpv;
+    int nmcpv, ntrinmcpv;
 
     tree->Branch("nmcpv", &nmcpv);
     tree->Branch("ntrinmcpv", &ntrinmcpv);
@@ -428,7 +440,7 @@ void checkPVs(
     tree->Branch("err_z", &err_z);
 
     for (int i = 0; i < vec_diff_x.size(); i++) {
-      nmcpv  = vec_n_mcpv.at(i);
+      nmcpv = vec_n_mcpv.at(i);
       ntrinmcpv = vec_n_trinmcpv.at(i);
       diff_x = vec_diff_x.at(i);
       diff_y = vec_diff_y.at(i);
@@ -445,59 +457,111 @@ void checkPVs(
     }
 
     int bins_norm_z = 50;
-    int bins_norm_mult = 25; 
+    int bins_norm_mult = 25;
     int bins_fake_mult = 20;
 
-    TH1F* eff_vs_z = new TH1F("eff_vs_z","eff_vs_z",bins_norm_z,-300,300);
-    TH1F* eff_vs_mult = new TH1F("eff_vs_mult","eff_vs_mult",bins_norm_mult,0,50);
-    TH1F* eff_norm_z = new TH1F("eff_norm","eff_norm",bins_norm_z,-300,300);
-    TH1F* eff_norm_mult = new TH1F("eff_norm_mult","eff_norm_mult",bins_norm_mult,0,50);
-    TH1F* fakes_vs_mult = new TH1F("fakes_vs_mult","fakes_vs_mult",bins_fake_mult,0,20);
-    TH1F* fakes_norm = new TH1F("fakes_norm","fakes_norm",bins_fake_mult,0,20);
+    TH1F* eff_vs_z = new TH1F("eff_vs_z", "eff_vs_z", bins_norm_z, -300, 300);
+    TH1F* eff_vs_z_iso = new TH1F("eff_vs_z_iso", "eff_vs_z_iso", bins_norm_z, -300, 300);
+    TH1F* eff_vs_z_close = new TH1F("eff_vs_z_close", "eff_vs_z_close", bins_norm_z, -300, 300);
+    TH1F* nPV_vs_z = new TH1F("nPV_vs_z", "nPV_vs_z", bins_norm_z, -300, 300);
+    TH1F* nPViso_vs_z = new TH1F("nPViso_vs_zo", "nPViso_vs_z", bins_norm_z, -300, 300);
+    TH1F* nPVclose_vs_z = new TH1F("nPVclose_vs_z", "nPVclose_vs_z", bins_norm_z, -300, 300);
+    TH1F* eff_vs_mult = new TH1F("eff_vs_mult", "eff_vs_mult", bins_norm_mult, 0, 50);
+    TH1F* eff_norm_z = new TH1F("eff_norm", "eff_norm", bins_norm_z, -300, 300);
+    TH1F* eff_norm_z_iso = new TH1F("eff_norm_iso", "eff_norm_iso", bins_norm_z, -300, 300);
+    TH1F* eff_norm_z_close = new TH1F("eff_norm_close", "eff_norm_close", bins_norm_z, -300, 300);
+    TH1F* eff_norm_mult = new TH1F("eff_norm_mult", "eff_norm_mult", bins_norm_mult, 0, 50);
+    TH1F* fakes_vs_mult = new TH1F("fakes_vs_mult", "fakes_vs_mult", bins_fake_mult, 0, 20);
+    TH1F* fakes_norm = new TH1F("fakes_norm", "fakes_norm", bins_fake_mult, 0, 20);
 
-    for (int i=0; i < vec_recpv_mult.size(); i++){
-      fakes_vs_mult->Fill(vec_recpv_mult.at(i),vec_recpv_fake.at(i));
-      fakes_norm->Fill(vec_recpv_mult.at(i),1);
+    for (int i = 0; i < vec_recpv_mult.size(); i++) {
+      fakes_vs_mult->Fill(vec_recpv_mult.at(i), vec_recpv_fake.at(i));
+      fakes_norm->Fill(vec_recpv_mult.at(i), 1);
     }
 
-    for (int i=0; i < vec_mcpv_mult.size(); i++){
-      eff_vs_z->Fill(vec_mcpv_zpos.at(i),vec_mcpv_recd.at(i));
-      eff_vs_mult->Fill(vec_mcpv_mult.at(i),vec_mcpv_recd.at(i));
-      eff_norm_z->Fill(vec_mcpv_zpos.at(i),1);
-      eff_norm_mult->Fill(vec_mcpv_mult.at(i),1);
+    for (int i = 0; i < vec_mcpv_mult.size(); i++) {
+      eff_vs_z->Fill(vec_mcpv_zpos.at(i), vec_mcpv_recd.at(i));
+      eff_vs_mult->Fill(vec_mcpv_mult.at(i), vec_mcpv_recd.at(i));
+      eff_norm_z->Fill(vec_mcpv_zpos.at(i), 1);
+      eff_norm_mult->Fill(vec_mcpv_mult.at(i), 1);
+      if (vec_mcpv_is_isolated.at(i) > 0.) {
+        eff_vs_z_iso->Fill(vec_mcpv_zpos.at(i), vec_mcpv_recd.at(i));
+        eff_norm_z_iso->Fill(vec_mcpv_zpos.at(i), 1);
+      }
+      else {
+        eff_vs_z_close->Fill(vec_mcpv_zpos.at(i), vec_mcpv_recd.at(i));
+        eff_norm_z_close->Fill(vec_mcpv_zpos.at(i), 1);
+      }
     }
 
     std::vector<float> binerrors_vs_z;
+    std::vector<float> binerrors_vs_z_iso;
+    std::vector<float> binerrors_vs_z_close;
     std::vector<float> binerrors_vs_mult;
 
     // Proper uncertainties for efficiencies
-    for (int i=1; i <= bins_norm_z; i++) {
+    for (int i = 1; i <= bins_norm_z; i++) {
       float N = 1.f * eff_norm_z->GetBinContent(i);
-      float k = 1.f * eff_vs_z->GetBinContent(i); 
+      float k = 1.f * eff_vs_z->GetBinContent(i);
       if (k < N && N > 0) {
-        binerrors_vs_z.push_back(getefficiencyerror(k,N));
-      } else binerrors_vs_z.push_back(0.);
+        binerrors_vs_z.push_back(getefficiencyerror(k, N));
+      }
+      else
+        binerrors_vs_z.push_back(0.);
     }
-    for (int i=1; i <= bins_norm_mult; i++){
+    // erros for close cat
+    for (int i = 1; i <= bins_norm_z; i++) {
+      float N = 1.f * eff_norm_z_close->GetBinContent(i);
+      float k = 1.f * eff_vs_z_close->GetBinContent(i);
+      if (k < N && N > 0) {
+        binerrors_vs_z_close.push_back(getefficiencyerror(k, N));
+      }
+      else
+        binerrors_vs_z_close.push_back(0.);
+    }
+    // errors for iso cat
+    for (int i = 1; i <= bins_norm_z; i++) {
+      float N = 1.f * eff_norm_z_iso->GetBinContent(i);
+      float k = 1.f * eff_vs_z_iso->GetBinContent(i);
+      if (k < N && N > 0) {
+        binerrors_vs_z_iso.push_back(getefficiencyerror(k, N));
+      }
+      else
+        binerrors_vs_z_iso.push_back(0.);
+    }
+
+    for (int i = 1; i <= bins_norm_mult; i++) {
       float N = 1.f * eff_norm_mult->GetBinContent(i);
       float k = 1.f * eff_vs_mult->GetBinContent(i);
       if (k < N && N > 0) {
-        binerrors_vs_mult.push_back(getefficiencyerror(k,N));
-      } else binerrors_vs_mult.push_back(0.);
+        binerrors_vs_mult.push_back(getefficiencyerror(k, N));
+      }
+      else
+        binerrors_vs_mult.push_back(0.);
     }
-    
+
     eff_vs_z->Divide(eff_norm_z);
-    for (int i=1; i <= bins_norm_z; i++) {
-      eff_vs_z->SetBinError(i,binerrors_vs_z.at(i-1));
+    eff_vs_z_iso->Divide(eff_norm_z_iso);
+    eff_vs_z_close->Divide(eff_norm_z_close);
+    for (int i = 1; i <= bins_norm_z; i++) {
+      eff_vs_z->SetBinError(i, binerrors_vs_z.at(i - 1));
+      eff_vs_z_close->SetBinError(i, binerrors_vs_z_close.at(i - 1));
+      eff_vs_z_iso->SetBinError(i, binerrors_vs_z_iso.at(i - 1));
     }
     eff_vs_mult->Divide(eff_norm_mult);
-    for (int i=1; i <= bins_norm_mult; i++) {
-      eff_vs_mult->SetBinError(i,binerrors_vs_mult.at(i-1));
+    for (int i = 1; i <= bins_norm_mult; i++) {
+      eff_vs_mult->SetBinError(i, binerrors_vs_mult.at(i - 1));
     }
     fakes_vs_mult->Divide(fakes_norm);
+
     eff_vs_z->Write();
+    eff_vs_z_iso->Write();
+    eff_vs_z_close->Write();
     eff_vs_mult->Write();
     fakes_vs_mult->Write();
+    eff_norm_z->Write();
+    eff_norm_z_iso->Write();
+    eff_norm_z_close->Write();
     tree->Write();
 
     double mc_x, mc_y, mc_z;

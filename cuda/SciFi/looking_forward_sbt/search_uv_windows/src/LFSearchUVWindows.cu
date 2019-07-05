@@ -29,20 +29,22 @@ __global__ void lf_search_uv_windows(
   const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
 
   if (threadIdx.x == 0) {
-    scifi_geometry = SciFi::SciFiGeometry{dev_scifi_geometry};
-    scifi_hit_count = SciFi::HitCount{(uint32_t*) dev_scifi_hit_count, event_number};
-    scifi_hits = SciFi::Hits{const_cast<uint32_t*>(dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
+    scifi_geometry = SciFi::SciFiGeometry {dev_scifi_geometry};
+    scifi_hit_count = SciFi::HitCount {(uint32_t*) dev_scifi_hit_count, event_number};
+    scifi_hits =
+      SciFi::Hits {const_cast<uint32_t*>(dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   }
 
   __syncthreads();
-  
+
   const auto event_offset = scifi_hit_count.event_offset();
-  const auto number_of_tracks = dev_atomics_scifi[event_number]; 
-    
+  const auto number_of_tracks = dev_atomics_scifi[event_number];
+
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    const SciFi::TrackHits& track = dev_scifi_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
-    const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index; 
-    
+    const SciFi::TrackHits& track = dev_scifi_tracks
+      [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
+    const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
+
     const auto h0 = event_offset + track.hits[0];
     const auto h1 = event_offset + track.hits[1];
 
@@ -58,19 +60,18 @@ __global__ void lf_search_uv_windows(
       const auto layer2 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
       const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
       const auto projection_y = LookingForward::y_at_z(dev_ut_states[current_ut_track_index], z2);
-      // const auto layer_offset_nhits = LookingForward::get_offset_and_n_hits_for_layer(2 * layer2, scifi_hit_count, projection_y);
+      // const auto layer_offset_nhits = LookingForward::get_offset_and_n_hits_for_layer(2 * layer2, scifi_hit_count,
+      // projection_y);
 
-      const auto projection_x = LookingForward::scifi_propagation(
-                                x0,
-                                reco_slope,
-                                track.qop,
-                                dev_looking_forward_constants->Zone_zPos_uvlayers[relative_uv_layer] - z0)
-                              - dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1] * projection_y;
+      const auto projection_x =
+        LookingForward::scifi_propagation(
+          x0, reco_slope, track.qop, dev_looking_forward_constants->Zone_zPos_uvlayers[relative_uv_layer] - z0) -
+        dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1] * projection_y;
 
-      const auto uv_search_window_start = dev_scifi_lf_initial_windows[ut_event_tracks_offset
-        + track.ut_track_index + (relative_uv_layer * 8 + 2) * total_number_of_ut_tracks];
-      const auto uv_search_window_size = dev_scifi_lf_initial_windows[ut_event_tracks_offset
-        + track.ut_track_index + (relative_uv_layer * 8 + 3) * total_number_of_ut_tracks];
+      const auto uv_search_window_start = dev_scifi_lf_initial_windows
+        [ut_event_tracks_offset + track.ut_track_index + (relative_uv_layer * 8 + 2) * total_number_of_ut_tracks];
+      const auto uv_search_window_size = dev_scifi_lf_initial_windows
+        [ut_event_tracks_offset + track.ut_track_index + (relative_uv_layer * 8 + 3) * total_number_of_ut_tracks];
 
       const auto layer_candidates = LookingForward::find_x_in_window(
         scifi_hits.x0 + event_offset,
@@ -79,18 +80,18 @@ __global__ void lf_search_uv_windows(
         projection_x,
         LookingForward::chi2_max_extrapolation_to_uv_layers_single);
 
-       dev_scifi_lf_uv_windows[
-        6 * ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
-        + relative_uv_layer * ut_event_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
-        + i
-      ] = std::get<0>(layer_candidates);
+      dev_scifi_lf_uv_windows
+        [6 * ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+         relative_uv_layer * ut_event_number_of_tracks *
+           LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+         i] = std::get<0>(layer_candidates);
 
-      dev_scifi_lf_uv_windows[
-        6 * total_number_of_ut_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter                  
-        + 6 * ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
-        + relative_uv_layer * ut_event_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter
-        + i
-      ] = std::get<1>(layer_candidates);
+      dev_scifi_lf_uv_windows
+        [6 * total_number_of_ut_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+         6 * ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+         relative_uv_layer * ut_event_number_of_tracks *
+           LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+         i] = std::get<1>(layer_candidates);
     }
 
     // lf_search_uv_windows_impl(
@@ -108,5 +109,4 @@ __global__ void lf_search_uv_windows(
     //   dev_ut_states[current_ut_track_index],
     //   dev_scifi_lf_uv_windows + i);
   }
-  
 }

@@ -32,14 +32,14 @@ void cpu_global_event_cut(
     const uint32_t ut_event_offset = ut_raw_input_offsets[event_number];
     const UTRawEvent ut_event(ut_raw_input + ut_event_offset);
     uint n_UT_clusters = 0;
-    
+
     for (uint i = 0; i < ut_event.number_of_raw_banks; ++i) {
       const UTRawBank ut_bank = ut_event.getUTRawBank(i);
       n_UT_clusters += ut_bank.number_of_hits;
     }
 
     const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
-    if (num_combined_clusters < max_scifi_ut_clusters) {
+    if (num_combined_clusters < max_scifi_ut_clusters && num_combined_clusters > min_scifi_ut_clusters) {
       event_list[insert_index++] = event_number;
     }
   }

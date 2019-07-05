@@ -18,8 +18,7 @@ __global__ void is_muon(
   bool* dev_is_muon,
   const uint* event_list,
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
-  const float* dev_muon_momentum_cuts
-);
+  const float* dev_muon_momentum_cuts);
 
 ALGORITHM(
   is_muon,

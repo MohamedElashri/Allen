@@ -1,6 +1,5 @@
 #include "LFTripletSeeding.cuh"
 #include "LFTripletSeedingImpl.cuh"
-#include "TrackUtils.cuh"
 #include "LookingForwardTools.cuh"
 
 __global__ void lf_triplet_seeding(
@@ -33,23 +32,19 @@ __global__ void lf_triplet_seeding(
 
   for (uint16_t i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
-    const auto scifi_lf_candidates = dev_scifi_lf_candidates + current_ut_track_index * LookingForward::number_of_x_layers *
-                                                           LookingForward::maximum_number_of_candidates;
+    const auto scifi_lf_candidates = dev_scifi_lf_candidates + current_ut_track_index *
+                                                                 LookingForward::number_of_x_layers *
+                                                                 LookingForward::maximum_number_of_candidates;
 
     const auto qop = dev_ut_qop[current_ut_track_index];
 
     for (uint8_t relative_first_layer = 0; relative_first_layer < 4; ++relative_first_layer) {
-      const uint8_t candidate_h0_size =
-        dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer + 1] -
-        dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer];
-
-      const uint8_t candidate_h1_size =
-        dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer + 2] -
-        dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer + 1];
-
-      const uint8_t candidate_h2_size =
-        dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer + 3] -
-        dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer + 2];
+      const uint8_t candidate_h0_size = dev_scifi_lf_number_of_candidates
+        [current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer];
+      const uint8_t candidate_h1_size = dev_scifi_lf_number_of_candidates
+        [current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer + 1];
+      const uint8_t candidate_h2_size = dev_scifi_lf_number_of_candidates
+        [current_ut_track_index * LookingForward::number_of_x_layers + relative_first_layer + 2];
 
       const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_first_layer];
       const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[relative_first_layer + 1];
@@ -62,8 +57,10 @@ __global__ void lf_triplet_seeding(
         candidate_h2_size,
         relative_first_layer,
         LookingForward::chi2_max_triplet_single,
-        dev_scifi_lf_triplet_best_chi2 + (current_ut_track_index * 4 + relative_first_layer) * LookingForward::maximum_number_of_candidates,
-        dev_scifi_lf_triplet_best_h0h2 + (current_ut_track_index * 4 + relative_first_layer) * 2 * LookingForward::maximum_number_of_candidates,
+        dev_scifi_lf_triplet_best_chi2 +
+          (current_ut_track_index * 4 + relative_first_layer) * LookingForward::maximum_number_of_candidates,
+        dev_scifi_lf_triplet_best_h0h2 +
+          (current_ut_track_index * 4 + relative_first_layer) * 2 * LookingForward::maximum_number_of_candidates,
         scifi_lf_candidates,
         z1 - z0,
         z2 - z0,

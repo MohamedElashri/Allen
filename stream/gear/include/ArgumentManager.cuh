@@ -1,6 +1,9 @@
 #pragma once
 
 #include <tuple>
+#include <vector>
+#include "CudaCommon.h"
+#include "Logger.h"
 
 /**
  * @brief Helper class to generate arguments based on
@@ -71,5 +74,18 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
   void set_size(size_t size)
   {
     std::get<T&>(m_arguments).size = size * sizeof(typename T::type);
+  }
+
+  template<typename T>
+  void print() const
+  {
+    std::vector<typename T::type> v(size<T>() / sizeof(typename T::type));
+    cudaCheck(cudaMemcpy(v.data(), offset<T>(), size<T>(), cudaMemcpyDeviceToHost));
+
+    info_cout << T::name << ": ";
+    for (const auto& i : v) {
+      info_cout << i << ", ";
+    }
+    info_cout << std::endl;
   }
 };

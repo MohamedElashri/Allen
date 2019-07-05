@@ -32,43 +32,42 @@ __device__ void fill_candidates_impl(
 
     // Calculate phi limits
     const auto h1_phi = hit_Phis[h1_index];
-    const auto phi_window = Velo::Tracking::phi_extrapolation_base + std::abs(hit_Zs[h1_index]) * Velo::Tracking::phi_extrapolation_coef;
+    const auto phi_window =
+      Velo::Tracking::phi_extrapolation_base + std::abs(hit_Zs[h1_index]) * Velo::Tracking::phi_extrapolation_coef;
 
-    int first_h0_bin = -1, last_h0_bin = -1;
+    int first_h0_bin = -1, size_h0_bin = 0;
     if (m0_hitNums > 0) {
       // Do a binary search for h0 candidates
-      first_h0_bin =
-        binary_search_first_candidate(hit_Phis + m0_hitStarts, m0_hitNums, h1_phi, phi_window);
+      first_h0_bin = binary_search_first_candidate(hit_Phis + m0_hitStarts, m0_hitNums, h1_phi, phi_window);
 
       if (first_h0_bin != -1) {
         // Find last h0 candidate
-        last_h0_bin = binary_search_second_candidate(
+        size_h0_bin = binary_search_second_candidate(
           hit_Phis + m0_hitStarts + first_h0_bin, m0_hitNums - first_h0_bin, h1_phi, phi_window);
         first_h0_bin += m0_hitStarts;
-        last_h0_bin = last_h0_bin == 0 ? first_h0_bin + 1 : first_h0_bin + last_h0_bin;
+        // size_h0_bin = (size_h0_bin == 0) ? 1 : size_h0_bin;
       }
     }
 
     h0_candidates[2 * h1_index] = first_h0_bin;
-    h0_candidates[2 * h1_index + 1] = last_h0_bin;
+    h0_candidates[2 * h1_index + 1] = size_h0_bin;
 
-    int first_h2_bin = -1, last_h2_bin = -1;
+    int first_h2_bin = -1, size_h2_bin = 0;
     if (m2_hitNums > 0) {
       // Do a binary search for h2 candidates
-      first_h2_bin =
-        binary_search_first_candidate(hit_Phis + m2_hitStarts, m2_hitNums, h1_phi, phi_window);
+      first_h2_bin = binary_search_first_candidate(hit_Phis + m2_hitStarts, m2_hitNums, h1_phi, phi_window);
 
       if (first_h2_bin != -1) {
         // Find last h0 candidate
-        last_h2_bin = binary_search_second_candidate(
+        size_h2_bin = binary_search_second_candidate(
           hit_Phis + m2_hitStarts + first_h2_bin, m2_hitNums - first_h2_bin, h1_phi, phi_window);
         first_h2_bin += m2_hitStarts;
-        last_h2_bin = last_h2_bin == 0 ? first_h2_bin + 1 : first_h2_bin + last_h2_bin;
+        // size_h2_bin = (size_h2_bin == 0) ? 1 : size_h2_bin;
       }
     }
 
     h2_candidates[2 * h1_index] = first_h2_bin;
-    h2_candidates[2 * h1_index + 1] = last_h2_bin;
+    h2_candidates[2 * h1_index + 1] = size_h2_bin;
   }
 }
 

@@ -8,7 +8,8 @@ void SequenceVisitor::set_arguments_size<lf_search_initial_windows_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_scifi_lf_initial_windows>(host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::number_of_x_layers * 8);
+  arguments.set_size<dev_scifi_lf_initial_windows>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::number_of_x_layers * 8);
   arguments.set_size<dev_ut_states>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
 }
 
@@ -23,10 +24,7 @@ void SequenceVisitor::visit<lf_search_initial_windows_t>(
   cudaEvent_t& cuda_generic_event)
 {
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_scifi_lf_initial_windows>(),
-    0,
-    arguments.size<dev_scifi_lf_initial_windows>(),
-    cuda_stream));
+    arguments.offset<dev_scifi_lf_initial_windows>(), 0, arguments.size<dev_scifi_lf_initial_windows>(), cuda_stream));
 
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(

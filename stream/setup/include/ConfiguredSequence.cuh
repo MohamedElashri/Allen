@@ -16,7 +16,6 @@
 #include "UTPreDecode.cuh"
 #include "UTFindPermutation.cuh"
 #include "UTDecodeRawBanksInOrder.cuh"
-#include "VeloUT.cuh"
 #include "VeloEventModel.cuh"
 #include "ConsolidateUT.cuh"
 #include "SciFiCalculateClusterCountV6.cuh"
@@ -32,7 +31,6 @@
 #include "ConsolidateSciFi.cuh"
 #include "SearchWindows.cuh"
 #include "CompassUT.cuh"
-#include "PrForward.cuh"
 #include "VeloKalmanFilter.cuh"
 #include "GetSeeds.cuh"
 #include "FitSeeds.cuh"
@@ -41,8 +39,6 @@
 #include "pv_beamline_peak.cuh"
 #include "pv_beamline_multi_fitter.cuh"
 #include "pv_beamline_cleanup.cuh"
-#include "RunForwardCPU.h"
-#include "IPCut.cuh"
 #include "VeloPVIP.cuh"
 #include "RunMomentumForwardCPU.h"
 #include "RunBeamlinePVOnCPU.h"
@@ -73,11 +69,15 @@
 #include "LFSearchUVWindows.cuh"
 #include "LFFit.cuh"
 #include "MuonDecoding.cuh"
+#include "MuonPreDecoding.cuh"
+#include "MuonSortBySRQ.cuh"
+#include "MuonAddCoordsCrossingMaps.cuh"
 #include "KalmanPVIPChi2.cuh"
 #include "VertexFitter.cuh"
 #include "VertexDefinitions.cuh"
 #include "TrackMVALines.cuh"
 #include "RunHlt1.cuh"
+#include "MuonSortByStation.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 
@@ -90,6 +90,5 @@
 // eg.
 // "cmake -DSEQUENCE=DefaultSequence .." (or just "cmake ..") matches "sequences/DefaultSequence.cuh"
 // "cmake -DSEQUENCE=Velo .." matches "sequences/Velo.cuh"
-// "cmake -DSEQUENCE=VeloUT .." matches "sequences/VeloUT.cuh"
 
 #include "ConfiguredSequence.h"

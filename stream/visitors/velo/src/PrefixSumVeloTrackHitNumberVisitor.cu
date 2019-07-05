@@ -32,7 +32,8 @@ void SequenceVisitor::visit<prefix_sum_velo_track_hit_number_t>(
       cuda_stream,
       cuda_generic_event,
       host_buffers.host_accumulated_number_of_hits_in_velo_tracks);
-  } else {
+  }
+  else {
     // Set size of the main array to be prefix summed
     state.set_size(host_buffers.host_number_of_reconstructed_velo_tracks[0]);
 

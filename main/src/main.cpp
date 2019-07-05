@@ -17,7 +17,8 @@
 #include <Updater.h>
 #include <ProgramOptions.h>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
   const auto program_options = allen_program_options();
 
   // Options object that will be passed to Allen
@@ -29,8 +30,9 @@ int main(int argc, char* argv[]) {
   for (const auto& po : program_options) {
     for (const auto& opt : po.options) {
       if (opt.length() > 1) {
-        long_options.push_back(option{opt.c_str(), required_argument, nullptr, 0});
-      } else {
+        long_options.push_back(option {opt.c_str(), required_argument, nullptr, 0});
+      }
+      else {
         accepted_single_letter_options += opt + ":";
       }
     }
@@ -38,7 +40,8 @@ int main(int argc, char* argv[]) {
 
   int option_index = 0;
   signed char c;
-  while ((c = getopt_long(argc, argv, accepted_single_letter_options.c_str(), long_options.data(), &option_index)) != -1) {
+  while ((c = getopt_long(argc, argv, accepted_single_letter_options.c_str(), long_options.data(), &option_index)) !=
+         -1) {
     switch (c) {
     case 0:
       for (const auto& po : program_options) {
@@ -46,7 +49,8 @@ int main(int argc, char* argv[]) {
           if (std::string(long_options[option_index].name) == opt) {
             if (optarg) {
               allen_options[opt] = optarg;
-            } else {
+            }
+            else {
               allen_options[opt] = "1";
             }
           }
@@ -57,11 +61,12 @@ int main(int argc, char* argv[]) {
       bool found_opt = false;
       for (const auto& po : program_options) {
         for (const auto& opt : po.options) {
-          if (std::string{c} == opt) {
+          if (std::string {c} == opt) {
             if (optarg) {
-              allen_options[std::string{c}] = optarg;
-            } else {
-              allen_options[std::string{c}] = "1";
+              allen_options[std::string {c}] = optarg;
+            }
+            else {
+              allen_options[std::string {c}] = "1";
             }
             found_opt = true;
           }
@@ -91,6 +96,6 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  Allen::NonEventData::Updater updater{allen_options};
+  Allen::NonEventData::Updater updater {allen_options};
   return allen(std::move(allen_options), &updater);
 }

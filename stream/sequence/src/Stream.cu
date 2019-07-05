@@ -44,44 +44,50 @@ cudaError_t Stream::initialize(
 
 cudaError_t Stream::run_sequence(const RuntimeOptions& runtime_options)
 {
-  for (uint repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
-    // Initialize selected_number_of_events with requested_number_of_events
-    host_buffers.host_number_of_selected_events[0] = runtime_options.number_of_events;
+  // The sequence is only run if there are events to run on
+  if (runtime_options.number_of_events > 0) {
+    for (uint repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
+      // Initialize selected_number_of_events with requested_number_of_events
+      host_buffers.host_number_of_selected_events[0] = runtime_options.number_of_events;
 
-    // Reset scheduler
-    scheduler.reset();
+      // Reset scheduler
+      scheduler.reset();
 
-    // Visit all algorithms in configured sequence
-    Sch::RunSequenceTuple<
-      scheduler_t,
-      SequenceVisitor,
-      configured_sequence_t,
-      std::tuple<const RuntimeOptions&, const Constants&, const HostBuffers&>,
-      std::tuple<const RuntimeOptions&, const Constants&, HostBuffers&, cudaStream_t&, cudaEvent_t&>>::
-      run(
-        scheduler,
-        sequence_visitor,
-        scheduler.sequence_tuple,
-        // Arguments to set_arguments_size
-        runtime_options,
-        constants,
-        host_buffers,
-        // Arguments to visit
-        runtime_options,
-        constants,
-        host_buffers,
-        cuda_stream,
-        cuda_generic_event);
+      // Visit all algorithms in configured sequence
+      Sch::RunSequenceTuple<
+        scheduler_t,
+        SequenceVisitor,
+        configured_sequence_t,
+        std::tuple<const RuntimeOptions&, const Constants&, const HostBuffers&>,
+        std::tuple<const RuntimeOptions&, const Constants&, HostBuffers&, cudaStream_t&, cudaEvent_t&>>::
+        run(
+          scheduler,
+          sequence_visitor,
+          scheduler.sequence_tuple,
+          // Arguments to set_arguments_size
+          runtime_options,
+          constants,
+          host_buffers,
+          // Arguments to visit
+          runtime_options,
+          constants,
+          host_buffers,
+          cuda_stream,
+          cuda_generic_event);
 
-    // Synchronize CUDA device
-    cudaEventRecord(cuda_generic_event, cuda_stream);
-    cudaEventSynchronize(cuda_generic_event);
+      // Synchronize CUDA device
+      cudaEventRecord(cuda_generic_event, cuda_stream);
+      cudaEventSynchronize(cuda_generic_event);
+    }
   }
 
   return cudaSuccess;
 }
 
-void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint number_of_events_requested, const std::vector<Checker::Tracks>& forward_tracks)
+void Stream::run_monte_carlo_test(
+  const std::string& mc_folder,
+  const uint number_of_events_requested,
+  const std::vector<Checker::Tracks>& forward_tracks)
 {
   // Create the CheckerInvoker and read Monte Carlo validation information
   const auto checker_invoker = CheckerInvoker(
@@ -97,7 +103,7 @@ void Stream::run_monte_carlo_test(const std::string& mc_folder, const uint numbe
     std::tuple<const uint&, const uint&, HostBuffers&, const Constants&, const CheckerInvoker&>>::
     check(sequence_visitor, start_event_offset, number_of_events_requested, host_buffers, constants, checker_invoker);
 
-  if ( forward_tracks.size() > 0 ) {
+  if (forward_tracks.size() > 0) {
     info_cout << "Running test on imported tracks" << std::endl;
     std::vector<std::vector<float>> p_events_scifi;
     checker_invoker.check<TrackCheckerForward>(start_event_offset, forward_tracks, p_events_scifi);

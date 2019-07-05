@@ -9,14 +9,6 @@
 #include "ArgumentsVelo.cuh"
 #include <cstdint>
 
-__device__ VeloState means_square_fit(
-  Velo::Consolidated::Hits& consolidated_hits,
-  const float* hit_Xs,
-  const float* hit_Ys,
-  const float* hit_Zs,
-  const uint* hit_IDs,
-  const Velo::TrackHits& track);
-
 __global__ void consolidate_velo_tracks(
   int* dev_atomics_velo,
   const Velo::TrackHits* dev_tracks,

@@ -6,28 +6,27 @@
 #include "UTDefinitions.cuh"
 #include "SciFiDefinitions.cuh"
 #include "Handler.cuh"
+#include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
+#include "ArgumentsMuon.cuh"
 #include "ArgumentsVertex.cuh"
 
-__global__ void prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);
+__global__ void __launch_bounds__(256)
+  prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);
 
-__global__ void prefix_sum_single_block(uint* dev_total_sum, uint* dev_array, const uint array_size);
+__global__ void __launch_bounds__(1024)
+  prefix_sum_single_block(uint* dev_total_sum, uint* dev_array, const uint array_size);
 
-__global__ void copy_and_prefix_sum_single_block(
-  uint* dev_total_sum,
-  uint* dev_input_array,
-  uint* dev_output_array,
-  const uint array_size);
+__global__ void copy_and_prefix_sum_single_block
+  __launch_bounds__(1024)(uint* dev_total_sum, uint* dev_input_array, uint* dev_output_array, const uint array_size);
 
-__global__ void copy_square_and_prefix_sum_single_block(
-  uint* dev_total_sum,
-  uint* dev_input_array,
-  uint* dev_output_array,
-  const uint array_size);
+__global__ void copy_square_and_prefix_sum_single_block
+  __launch_bounds__(1024)(uint* dev_total_sum, uint* dev_input_array, uint* dev_output_array, const uint array_size);
 
-__global__ void prefix_sum_scan(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);
+__global__ void __launch_bounds__(512)
+  prefix_sum_scan(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);
 
 __global__ void copy_velo_track_hit_number(
   const Velo::TrackHits* dev_tracks,
@@ -69,6 +68,4 @@ ALGORITHM(
 ALGORITHM(
   copy_square_and_prefix_sum_single_block,
   copy_and_prefix_sum_single_block_sv_t,
-  ARGUMENTS(
-    dev_atomics_scifi,
-    dev_sv_offsets))
+  ARGUMENTS(dev_atomics_scifi, dev_sv_offsets))

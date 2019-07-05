@@ -33,7 +33,7 @@ ROOT.gStyle.SetPadLeftMargin(0.15)
 
 # Setup binning.
 edges = np.array(
-    [2000., 5000., 10000., 20000., 30000., 40000., 60000., 100000.])
+    [0., 10000., 20000., 30000., 40000., 50000., 60000., 70000., 80000.])
 zipped_edges = zip(edges[:-1], edges[1:])
 bins = [zipped_edge for zipped_edge in zipped_edges]
 centers = 0.5 * (edges[:-1] + edges[1:])

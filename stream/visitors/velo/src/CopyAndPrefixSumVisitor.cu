@@ -32,7 +32,8 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_velo_t>(
       cuda_stream,
       cuda_generic_event,
       host_buffers.host_number_of_reconstructed_velo_tracks);
-  } else {
+  }
+  else {
     state.set_opts(dim3(1), dim3(1024), cuda_stream);
     state.set_arguments(
       (uint*) arguments.offset<dev_atomics_velo>() + host_buffers.host_number_of_selected_events[0] * 2,

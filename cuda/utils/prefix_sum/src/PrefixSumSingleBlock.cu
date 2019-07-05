@@ -71,7 +71,7 @@ __device__ void prefix_sum_single_block_implementation(uint* dev_total_sum, uint
 
     __syncthreads();
   }
-  
+
   // Last iteration is special because
   // it may contain an unspecified number of elements
   const auto elements_remaining = array_size & 0x7FF; // % 2048
@@ -94,7 +94,7 @@ __device__ void prefix_sum_single_block_implementation(uint* dev_total_sum, uint
     __syncthreads();
 
     up_sweep_2048((uint*) &data_block[0]);
-  
+
     // Store sum of all elements
     if (threadIdx.x == 0) {
       dev_total_sum[0] = prev_last_elem + data_block[2047];
@@ -163,7 +163,6 @@ __global__ void copy_square_and_prefix_sum_single_block(
   __syncthreads();
 
   // Perform the prefix sum over the output array.
-  printf("Array size: %i\n", array_size);
   prefix_sum_single_block_implementation(dev_total_sum, dev_output_array, array_size);
 }
 
@@ -222,7 +221,8 @@ __global__ void copy_scifi_track_hit_number(
 
   const uint ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
 
-  const SciFi::TrackHits* event_tracks = dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
+  const SciFi::TrackHits* event_tracks =
+    dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
   const int accumulated_tracks = dev_n_scifi_tracks[number_of_events + event_number];
   const int number_of_tracks = dev_n_scifi_tracks[event_number];
 

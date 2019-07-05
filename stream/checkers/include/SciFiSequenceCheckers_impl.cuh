@@ -1,5 +1,4 @@
-#include "PrForward.cuh"
-#include "RunForwardCPU.h"
+#include "PrepareTracks.h"
 
 /**
  * @brief Specialization when invoking scifi_pr_forward_t as last step.

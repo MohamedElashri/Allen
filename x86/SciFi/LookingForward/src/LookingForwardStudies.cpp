@@ -1,6 +1,4 @@
 #include "LookingForwardStudies.h"
-#include "TrackUtils.cuh"
-#include "FindXHits.cuh"
 #include "LookingForwardSbt.h"
 #include "LookingForwardConstants.cuh"
 #include <numeric>
@@ -31,7 +29,7 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
   std::vector<std::vector<SciFi::TrackHits>> trackhits;
 
   // to do: read this from configuration
-  const float magnet_polarity = -1.f; 
+  const float magnet_polarity = -1.f;
 
   const auto print_track = [](const SciFi::TrackHits& track) {
     info_cout << "{ut track " << track.ut_track_index << ", " << ((int) track.hitsNum) << " hits: ";
@@ -615,15 +613,15 @@ std::vector<std::vector<SciFi::TrackHits>> looking_forward_studies(
         auto& scifi_tracks = event_scifi_tracks[i_veloUT_track];
 
         filter_tracks_with_TMVA(
-            scifi_tracks,
-            event_trackhits,
-            event_velo_state[i_veloUT_track],
-            event_qop[i_veloUT_track],
-            &constArrays,
-            &tmva1,
-            &tmva2,
-            scifi_hits,
-            scifi_hit_count.event_offset());
+          scifi_tracks,
+          event_trackhits,
+          event_velo_state[i_veloUT_track],
+          event_qop[i_veloUT_track],
+          &constArrays,
+          &tmva1,
+          &tmva2,
+          scifi_hits,
+          scifi_hit_count.event_offset());
 
         // for (const auto& track : scifi_tracks) {
         //   event_trackhits.push_back(track);

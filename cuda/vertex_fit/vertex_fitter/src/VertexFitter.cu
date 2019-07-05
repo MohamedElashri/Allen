@@ -99,9 +99,8 @@ namespace VertexFit {
     const float& halfD2Chi2_21,
     const float& halfD2Chi2_22)
   {
-    const float det = halfD2Chi2_00 * halfD2Chi2_11 * halfD2Chi2_22
-      - halfD2Chi2_00 * halfD2Chi2_21 * halfD2Chi2_21
-      - halfD2Chi2_11 * halfD2Chi2_20 * halfD2Chi2_20;
+    const float det = halfD2Chi2_00 * halfD2Chi2_11 * halfD2Chi2_22 - halfD2Chi2_00 * halfD2Chi2_21 * halfD2Chi2_21 -
+                      halfD2Chi2_11 * halfD2Chi2_20 * halfD2Chi2_20;
     const float invdet = 1. / det;
     cov00 = (halfD2Chi2_11 * halfD2Chi2_22 - halfD2Chi2_21 * halfD2Chi2_21) * invdet;
     cov11 = (halfD2Chi2_00 * halfD2Chi2_22 - halfD2Chi2_20 * halfD2Chi2_20) * invdet;
@@ -111,17 +110,15 @@ namespace VertexFit {
     x += halfDChi2_0 * cov00 + halfDChi2_2 * cov20;
     y += halfDChi2_1 * cov11 + halfDChi2_2 * cov21;
     z += halfDChi2_0 * cov20 + halfDChi2_1 * cov21 + halfDChi2_2 * cov22;
-    return -1 * (halfDChi2_0 * (halfDChi2_0 * cov00 + halfDChi2_2 * cov20)
-                 + halfDChi2_1 * (halfDChi2_1 * cov11 + halfDChi2_2 * cov21)
-                 + halfDChi2_2 * (halfDChi2_0 * cov20 + halfDChi2_1 * cov21 + halfDChi2_2 * cov22));
+    return -1 * (halfDChi2_0 * (halfDChi2_0 * cov00 + halfDChi2_2 * cov20) +
+                 halfDChi2_1 * (halfDChi2_1 * cov11 + halfDChi2_2 * cov21) +
+                 halfDChi2_2 * (halfDChi2_0 * cov20 + halfDChi2_1 * cov21 + halfDChi2_2 * cov22));
   }
 
   //----------------------------------------------------------------------
   // Perform a vertex fit assuming x and y are uncorrelated.
-  __device__ bool doFit(
-    const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB,
-    TrackMVAVertex& vertex)
+  __device__ bool
+  doFit(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB, TrackMVAVertex& vertex)
   {
     if (!poca(trackA, trackB, vertex.x, vertex.y, vertex.z)) {
       return false;
@@ -195,9 +192,8 @@ namespace VertexFit {
     sv.sumpt = trackA.pt() + trackB.pt();
 
     // Number of tracks with ip chi2 < 16.
-    sv.ntrksassoc = (trackA.ipChi2 < VertexFit::maxAssocIPChi2)
-      + (trackB.ipChi2 < VertexFit::maxAssocIPChi2);
-    
+    sv.ntrksassoc = (trackA.ipChi2 < VertexFit::maxAssocIPChi2) + (trackB.ipChi2 < VertexFit::maxAssocIPChi2);
+
     // Get PV-SV separation.
     const float dx = sv.x - pv.position.x;
     const float dy = sv.y - pv.position.y;
@@ -210,37 +206,54 @@ namespace VertexFit {
     const float cov20 = sv.cov20 + pv.cov20;
     const float cov21 = sv.cov21 + pv.cov21;
     const float cov22 = sv.cov22 + pv.cov22;
-    const float invdet = 1. / (cov00 * cov11 * cov22
-                               - cov00 * cov21 * cov21
-                               - cov11 * cov20 * cov20);
+    const float invdet = 1. / (cov00 * cov11 * cov22 - cov00 * cov21 * cov21 - cov11 * cov20 * cov20);
     const float invcov00 = (cov11 * cov22 - cov21 * cov21) * invdet;
     const float invcov11 = (cov00 * cov22 - cov20 * cov20) * invdet;
     const float invcov20 = -cov11 * cov20 * invdet;
     const float invcov21 = cov00 * cov21 * invdet;
     const float invcov22 = cov00 * cov22 * invdet;
-    sv.fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz
-      + 2.f * invcov20 * dx * dz + 2.f * invcov21 * dy * dz;
+    sv.fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz + 2.f * invcov20 * dx * dz +
+                2.f * invcov21 * dy * dz;
 
     // PV-SV eta.
     sv.eta = std::atanh(dz / fd);
-    
+
     // Corrected mass.
     const float px = trackA.px() + trackB.px();
     const float py = trackA.py() + trackB.py();
     const float pz = trackA.pz() + trackB.pz();
-    const float mvis2 = 2.f * mPi * mPi
-      + 2.f * (std::sqrt((trackA.p() * trackA.p() + mPi * mPi) *
-                       (trackB.p() * trackB.p() + mPi * mPi))
-             - trackA.px() * trackB.px()
-             - trackA.py() * trackB.py()
-             - trackA.pz() * trackB.pz());
-    const float pperp2 = ((py * dz - dy * pz) * (py * dz - dy * pz) +
-                          (pz * dx - dz * px) * (pz * dx - dz * px) +
-                          (px * dy - dx * py) * (px * dy - dx * py)) / fd / fd;
+    const float mvis2 =
+      2.f * mPi * mPi +
+      2.f * (std::sqrt((trackA.p() * trackA.p() + mPi * mPi) * (trackB.p() * trackB.p() + mPi * mPi)) -
+             trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+    const float pperp2 = ((py * dz - dy * pz) * (py * dz - dy * pz) + (pz * dx - dz * px) * (pz * dx - dz * px) +
+                          (px * dy - dx * py) * (px * dy - dx * py)) /
+                         fd / fd;
     sv.mcor = std::sqrt(mvis2 + pperp2) + std::sqrt(pperp2);
+
+    // Minimum IP chi2 of constituent tracks.
+    sv.minipchi2 = trackA.ipChi2 < trackB.ipChi2 ? trackA.ipChi2 : trackB.ipChi2;
+
+    // Minimum pt of constituent tracks.
+    sv.minpt = trackA.pt() < trackB.pt() ? trackA.pt() : trackB.pt();
+
+    // Muon ID.
+    sv.is_dimuon = trackA.is_muon && trackB.is_muon;
+
+    // Dimuon mass.
+    if (sv.is_dimuon) {
+      const float mdimu2 =
+        2.f * mMu * mMu +
+        2.f * (std::sqrt((trackA.p() * trackA.p() + mMu * mMu) * (trackB.p() * trackB.p() + mMu * mMu)) -
+               trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+      sv.mdimu = std::sqrt(mdimu2);
+    }
+    else {
+      sv.mdimu = -1.f;
+    }
   }
-  
-}
+
+} // namespace VertexFit
 
 __global__ void fit_secondary_vertices(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,
@@ -259,19 +272,18 @@ __global__ void fit_secondary_vertices(
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
   const uint sv_offset = dev_sv_offsets[event_number];
-  
+
   // Consolidated SciFi tracks.
-  const SciFi::Consolidated::Tracks scifi_tracks {
-    (uint*) dev_n_scifi_tracks,
-      (uint*) dev_scifi_track_hit_number,
-      (float*) dev_scifi_qop,
-      (MiniState*) dev_scifi_states,
-      (uint*) dev_ut_indices,
-      event_number,
-      number_of_events};
+  const SciFi::Consolidated::Tracks scifi_tracks {(uint*) dev_n_scifi_tracks,
+                                                  (uint*) dev_scifi_track_hit_number,
+                                                  (float*) dev_scifi_qop,
+                                                  (MiniState*) dev_scifi_states,
+                                                  (uint*) dev_ut_indices,
+                                                  event_number,
+                                                  number_of_events};
   const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
   const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
-  
+
   // Track-PV association table.
   const Associate::Consolidated::Table kalman_pv_ipchi2 {dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks};
   const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
@@ -281,62 +293,53 @@ __global__ void fit_secondary_vertices(
 
   // Primary vertices.
   gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-      *(dev_number_of_multi_fit_vertices + event_number)};
+                                        *(dev_number_of_multi_fit_vertices + event_number)};
 
   // Secondary vertices.
   VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
-    
+
   // Loop over tracks.
   for (int i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 
     // Set the fit status for all possible vertices.
     for (int j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
-      uint vertex_idx = (int)n_scifi_tracks * ((int)n_scifi_tracks - 3) / 2
-        - ((int)n_scifi_tracks - 1 - i_track) * ((int)n_scifi_tracks - 2 - i_track) / 2 + j_track;
+      uint vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
+                        ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
       event_secondary_vertices[vertex_idx].chi2 = -1;
     }
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
-    
+
     // Preselection on first track.
-    if (trackA.pt() < VertexFit::trackMinPt || trackA.ipChi2 < VertexFit::trackMinIPChi2) {
+    if (trackA.pt() < VertexFit::trackMinPt || (trackA.ipChi2 < VertexFit::trackMinIPChi2 && !trackA.is_muon)) {
       continue;
     }
-    
+
     // Loop over second track.
     for (int j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
 
       // Preselection on second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
-      if (trackB.pt() < VertexFit::trackMinPt || trackB.ipChi2 < VertexFit::trackMinIPChi2) {
+      if (trackB.pt() < VertexFit::trackMinPt || (trackB.ipChi2 < VertexFit::trackMinIPChi2 && !trackB.is_muon)) {
         continue;
       }
-      
+
       // Only combine tracks from the same PV.
-      if (pv_table.pv[i_track] != pv_table.pv[j_track] &&
-          (pv_table.value[i_track] > VertexFit::maxAssocIPChi2 ||
-           pv_table.value[j_track] > VertexFit::maxAssocIPChi2)) {
+      if (
+        pv_table.pv[i_track] != pv_table.pv[j_track] && pv_table.value[i_track] > VertexFit::maxAssocIPChi2 &&
+        pv_table.value[j_track] > VertexFit::maxAssocIPChi2) {
         continue;
       }
-            
-      const int vertex_idx = (int)n_scifi_tracks * ((int)n_scifi_tracks - 3) / 2
-        - ((int)n_scifi_tracks - 1 - i_track) * ((int)n_scifi_tracks - 2 - i_track) / 2 + j_track;
-      
+
+      const int vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
+                             ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
+
       // Do the vertex fit.
-      doFit(
-        trackA,
-        trackB,
-        event_secondary_vertices[vertex_idx]);
+      doFit(trackA, trackB, event_secondary_vertices[vertex_idx]);
 
       // Fill extra info.
-      int ipv = pv_table.pv[i_track];
+      int ipv = pv_table.value[i_track] < pv_table.value[j_track] ? pv_table.pv[i_track] : pv_table.pv[j_track];
       auto pv = vertices[ipv];
-      fill_extra_info(
-        event_secondary_vertices[vertex_idx],
-        pv,
-        trackA,
-        trackB);
+      fill_extra_info(event_secondary_vertices[vertex_idx], pv, trackA, trackB);
     }
-    
   }
-  
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "PrForwardConstants.cuh"
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiEventModel.cuh"

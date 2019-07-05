@@ -82,10 +82,7 @@ namespace Velo {
 
     __device__ TrackHits() {}
 
-    __device__ TrackHits(
-      const unsigned short _h0,
-      const unsigned short _h1,
-      const unsigned short _h2)
+    __device__ TrackHits(const unsigned short _h0, const unsigned short _h1, const unsigned short _h2)
     {
       hits[0] = _h0;
       hits[1] = _h1;

@@ -5,11 +5,11 @@
 namespace {
   using Checker::HistoCategory;
   using Checker::TrackEffReport;
-}
+} // namespace
 
 namespace Categories {
 
-  const std::vector<TrackEffReport>& Velo{
+  const std::vector<TrackEffReport>& Velo {
     {// define which categories to monitor
      TrackEffReport({
        "Electrons long eta25",
@@ -233,7 +233,7 @@ namespace Categories {
        [](MCParticles::const_reference& mcp) { return mcp.hasVelo && !mcp.isElectron() && mcp.inEta2_5(); },
      })}};
 
-  const std::vector<HistoCategory>& VeloHisto{
+  const std::vector<HistoCategory>& VeloHisto {
     {// define which categories to create histograms for
      HistoCategory({
        "VeloTracks_electrons",
@@ -288,7 +288,7 @@ namespace Categories {
        },
      })}};
 
-  const std::vector<TrackEffReport>& VeloUT{
+  const std::vector<TrackEffReport>& VeloUT {
     {// define which categories to monitor
      TrackEffReport({
        "Velo",
@@ -335,6 +335,12 @@ namespace Categories {
        },
      }),
      TrackEffReport({
+       "Long, pt > 20 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.pt > 20e3 && !mcp.isElectron() && mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
        "Long from B",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5();
@@ -363,6 +369,26 @@ namespace Categories {
        },
      }),
      TrackEffReport({
+       "Long from D electrons, p > 3 GeV, pt > 0.5 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 && mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
+       "Long from D, p > 3 GeV, pt > 0.5 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+                mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
+       "Long from B electrons, p > 3 GeV, pt > 0.5 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+                mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
        "Long from B, p > 3 GeV, pt > 0.5 GeV",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
@@ -370,7 +396,7 @@ namespace Categories {
        },
      })}};
 
-  const std::vector<HistoCategory>& VeloUTHisto{
+  const std::vector<HistoCategory>& VeloUTHisto {
     {// define which categories to create histograms for
      HistoCategory({
        "VeloUTTracks_eta25_electrons",
@@ -419,7 +445,7 @@ namespace Categories {
        },
      })}};
 
-  const std::vector<TrackEffReport>& Forward{
+  const std::vector<TrackEffReport>& Forward {
     {// define which categories to monitor
      TrackEffReport({
        "Long",
@@ -429,6 +455,12 @@ namespace Categories {
        "Long, p > 5 GeV",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.p > 5e3 && !mcp.isElectron() && mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
+       "Long, pt > 20 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.pt > 20e3 && !mcp.isElectron() && mcp.inEta2_5();
        },
      }),
      TrackEffReport({
@@ -472,6 +504,26 @@ namespace Categories {
        },
      }),
      TrackEffReport({
+       "Long from D electrons, p > 3 GeV, pt > 0.5 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 && mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
+       "Long from D, p > 3 GeV, pt > 0.5 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+                mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
+       "Long from B electrons, p > 3 GeV, pt > 0.5 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+                mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
        "Long from B, p > 3 GeV, pt > 0.5 GeV",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
@@ -479,7 +531,7 @@ namespace Categories {
        },
      })}};
 
-  const std::vector<HistoCategory>& ForwardHisto{
+  const std::vector<HistoCategory>& ForwardHisto {
     {// define which categories to create histograms for
      HistoCategory({
        "Long_eta25_electrons",
@@ -525,4 +577,4 @@ namespace Categories {
          return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5();
        },
      })}};
-}
+} // namespace Categories

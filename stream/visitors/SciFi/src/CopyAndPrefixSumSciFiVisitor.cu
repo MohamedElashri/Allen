@@ -32,7 +32,8 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_scifi_t>(
       cuda_stream,
       cuda_generic_event,
       host_buffers.host_number_of_reconstructed_scifi_tracks);
-  } else {
+  }
+  else {
     state.set_opts(dim3(1), dim3(1024), cuda_stream);
     state.set_arguments(
       (uint*) arguments.offset<dev_atomics_scifi>() + host_buffers.host_number_of_selected_events[0] * 2,
@@ -55,6 +56,7 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_scifi_t>(
   }
 
   if (logger::ll.verbosityLevel >= logger::debug) {
-    debug_cout << "Total # of SciFi tracks = " << host_buffers.host_number_of_reconstructed_scifi_tracks[0] << std::endl;
+    debug_cout << "Total # of SciFi tracks = " << host_buffers.host_number_of_reconstructed_scifi_tracks[0]
+               << std::endl;
   }
 }

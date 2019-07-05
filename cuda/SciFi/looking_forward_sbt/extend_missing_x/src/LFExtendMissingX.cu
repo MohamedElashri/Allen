@@ -29,8 +29,9 @@ __global__ void lf_extend_missing_x(
   const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
 
   for (int i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    SciFi::TrackHits& track = dev_scifi_tracks[ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
-    const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index; 
+    SciFi::TrackHits& track = dev_scifi_tracks
+      [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
+    const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
 
     // Find out missing layers
     uint8_t number_of_missing_layers = 0;
@@ -60,8 +61,10 @@ __global__ void lf_extend_missing_x(
       const auto current_layer = missing_layers[j];
 
       // Find window
-      const auto window_start = dev_initial_windows[current_ut_track_index + current_layer * 8 * ut_total_number_of_tracks];
-      const auto window_size = dev_initial_windows[current_ut_track_index + (current_layer * 8 + 1) * ut_total_number_of_tracks];
+      const auto window_start =
+        dev_initial_windows[current_ut_track_index + current_layer * 8 * ut_total_number_of_tracks];
+      const auto window_size =
+        dev_initial_windows[current_ut_track_index + (current_layer * 8 + 1) * ut_total_number_of_tracks];
       const float zZone = dev_looking_forward_constants->Zone_zPos_xlayers[current_layer];
 
       // Try all hits in the window now
@@ -77,7 +80,7 @@ __global__ void lf_extend_missing_x(
         LookingForward::chi2_max_extrapolation_to_x_layers_single);
 
       if (best_index != -1) {
-        track.add_hit((uint16_t) ((window_start - event_offset) + best_index));
+        track.add_hit((uint16_t)((window_start - event_offset) + best_index));
       }
     }
   }

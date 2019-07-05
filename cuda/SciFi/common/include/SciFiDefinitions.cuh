@@ -8,7 +8,6 @@
 #include "device_launch_parameters.h"
 #include "Common.h"
 #include "Logger.h"
-#include "PrForwardConstants.cuh"
 #include "States.cuh"
 #include "SciFiRaw.cuh"
 
@@ -18,6 +17,97 @@ namespace SciFi {
 
   // need 3 arrays (size: number_of_events) for copy_and_prefix_sum_scifi_t
   static constexpr int num_atomics = 3;
+
+  namespace Tracking {
+
+    // The base PT threshold which is common to all algorithms
+    constexpr float minPt = 500 * Gaudi::Units::MeV; 
+
+    constexpr int max_scifi_hits = 20;  // for x and u/v layers
+    constexpr int nTrackParams = 9;
+
+    constexpr float tolYMag = 10. * Gaudi::Units::mm;
+    constexpr float tolYMagSlope = 0.015;
+
+    // parameterizations
+    constexpr float byParams = -0.667996;
+    constexpr float cyParams = -3.68424e-05;
+
+    // stereo hit matching
+    constexpr float tolYCollectX = 3.5 * Gaudi::Units::mm;        // 4.1* Gaudi::Units::mm ;
+    constexpr float tolYSlopeCollectX = 0.001 * Gaudi::Units::mm; // 0.0018 * Gaudi::Units::mm ;
+
+    // veloUT momentum estimate
+    constexpr bool useMomentumEstimate = true;
+    constexpr bool useWrongSignWindow = true;
+    constexpr float wrongSignPT = 2000. * Gaudi::Units::MeV;
+
+    // z Reference plane
+    constexpr float zReference = 8520. * Gaudi::Units::mm; // in T2
+    constexpr float zRefInv = 1.f / zReference; 
+
+    // TODO: CHECK THESE VALUES USING FRAMEWORK
+    constexpr float xLim_Max = 3300.;
+    constexpr float yLim_Max = 2500.;
+    constexpr float xLim_Min = -3300.;
+    constexpr float yLim_Min = -25.;
+
+    // TO BE READ FROM XML EVENTUALLY
+    //constexpr float magscalefactor = -1;
+    constexpr int zoneoffsetpar = 6;
+
+    struct Arrays {
+      // Returns whether the current layer is an X plane
+      const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
+
+      // the Magnet Parametrization
+      // parameterized in offset [0], (slope difference due to kick)^2 [1],
+      // tx^2 [2], ty^2 [3]
+      const float zMagnetParams[4] = {5212.38, 406.609, -1102.35, -498.039};
+
+      // more Parametrizations
+      const float xParams[2] = {18.6195, -5.55793};
+
+      // momentum Parametrization
+      const float momentumParams[6] = {1.21014, 0.637339, -0.200292, 0.632298, 3.23793, -27.0259};
+
+      // covariance values
+      const float covarianceValues[5] = {4.0, 400.0, 4.e-6, 1.e-4, 0.1};
+
+      // definition of zones
+      // access upper with offset of 6
+      const int zoneoffsetpar = 6;
+      const int xZones[12] = {0, 6, 8, 14, 16, 22, 1, 7, 9, 15, 17, 23};
+      const int uvZones[12] = {2, 4, 10, 12, 18, 20, 3, 5, 11, 13, 19, 21};
+
+      // ASSORTED GEOMETRY VALUES, eventually read this from some xml
+      const float xZone_zPos[6] = {7826., 8036., 8508., 8718., 9193., 9403.};
+      const float uvZone_zPos[12] =
+        {7896., 7966., 8578., 8648., 9263., 9333., 7896., 7966., 8578., 8648., 9263., 9333.};
+      const float uvZone_dxdy[12] = {0.0874892,
+                                     -0.0874892,
+                                     0.0874892,
+                                     -0.0874892,
+                                     0.0874892,
+                                     -0.0874892,
+                                     0.0874892,
+                                     -0.0874892,
+                                     0.0874892,
+                                     -0.0874892,
+                                     0.0874892,
+                                     -0.0874892};
+      const float Zone_dzdy[24] = {0.0036010};
+
+      // this is used by looking_forward_sbt maybe this is not the right place to put it
+      const float uv_dx[6] = {1.6739478541449213,
+                              1.6738495069872612,
+                              1.935683825160498,
+                              1.9529279746403518,
+                              2.246931985749485,
+                              2.2797556995480273};
+    };
+ 
+  } // namespace Tracking
 
   namespace Constants {
     // Detector description
@@ -106,7 +196,7 @@ namespace SciFi {
     float* dzdy;
     float* globaldy;
 
-    __device__ __host__ SciFiGeometry(){}
+    __device__ __host__ SciFiGeometry() {}
 
     /**
      * @brief Typecast from std::vector.

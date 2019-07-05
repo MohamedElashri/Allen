@@ -32,7 +32,8 @@ void SequenceVisitor::visit<prefix_sum_scifi_hits_t>(
       cuda_stream,
       cuda_generic_event,
       host_buffers.host_accumulated_number_of_scifi_hits);
-  } else {
+  }
+  else {
     // Set size of the main array to be prefix summed
     state.set_size(host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats);
 

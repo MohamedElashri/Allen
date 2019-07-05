@@ -40,7 +40,6 @@ SEQUENCE_T(
   scifi_direct_decoder_v4_t,
   lf_search_initial_windows_t,
   lf_collect_candidates_t,
-  lf_prefix_sum_candidates_t,
   lf_composite_track_seeding_t,
   lf_quality_filter_x_t,
   lf_extend_missing_x_t,
@@ -51,4 +50,4 @@ SEQUENCE_T(
   copy_and_prefix_sum_single_block_scifi_t,
   copy_scifi_track_hit_number_t,
   prefix_sum_scifi_track_hit_number_t,
-  consolidate_scifi_tracks_t,)
+  consolidate_scifi_tracks_t, )

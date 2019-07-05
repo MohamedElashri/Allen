@@ -155,7 +155,7 @@ struct MCAssociator {
       std::tuple<MCParticles::const_reference, float, int> operator*() const noexcept
       {
         AssocVector::const_reference ref = reinterpret_cast<const AssocVector::const_iterator&>(*this).operator*();
-        return {m_mcps[ref.m_idx], ref.m_w, ref.m_counter_sum};
+        return std::tuple<MCParticles::const_reference, float, int> {m_mcps[ref.m_idx], ref.m_w, ref.m_counter_sum};
       }
     };
     iterator begin() const noexcept { return iterator(m_assoc.begin(), m_mcps); }

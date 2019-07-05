@@ -30,12 +30,9 @@ void SequenceVisitor::visit<global_event_cut_t>(
       runtime_options.number_of_events * sizeof(uint),
       cudaMemcpyHostToDevice,
       cuda_stream));
-  } else {
-    cudaCheck(cudaMemsetAsync(
-      arguments.offset<dev_number_of_selected_events>(),
-      0,
-      sizeof(uint),
-      cuda_stream));
+  }
+  else {
+    cudaCheck(cudaMemsetAsync(arguments.offset<dev_number_of_selected_events>(), 0, sizeof(uint), cuda_stream));
 
     // Setup opts and arguments for kernel call
     state.set_opts(dim3(runtime_options.number_of_events), dim3(32), cuda_stream);
@@ -54,6 +51,13 @@ void SequenceVisitor::visit<global_event_cut_t>(
       arguments.offset<dev_number_of_selected_events>(),
       sizeof(uint),
       cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_event_list,
+      arguments.offset<dev_event_list>(),
+      runtime_options.number_of_events * sizeof(uint),
+      cudaMemcpyHostToDevice,
       cuda_stream));
 
     cudaEventRecord(cuda_generic_event, cuda_stream);

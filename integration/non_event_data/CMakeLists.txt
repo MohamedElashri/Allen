@@ -1,12 +1,4 @@
-set(SOURCES
-  src/BasicGeometry.cpp
-  src/UTGeometry.cpp
-  src/UTLookupTables.cpp
-  src/SciFiGeometry.cpp
-  src/Beamline.cpp
-  src/MagneticField.cpp
-  src/Updater.cpp)
-
+file(GLOB SOURCES "src/*.cpp")
 add_library(NonEventData ${SOURCES})
 target_include_directories(NonEventData PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -18,7 +10,8 @@ target_include_directories(NonEventData PUBLIC
   ${CMAKE_SOURCE_DIR}/cuda/velo/common/include
   ${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include
   ${CMAKE_SOURCE_DIR}/cuda/muon/common/include
-  ${CMAKE_SOURCE_DIR}/cuda/SciFi/PrForward/include
+  ${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include
+  ${CMAKE_SOURCE_DIR}/cuda/SciFi/classifiers/include
   ${CMAKE_SOURCE_DIR}/cuda/UT/common/include
   ${CMAKE_SOURCE_DIR}/stream/sequence/include
   ${CMAKE_SOURCE_DIR}/checker/tracking/include

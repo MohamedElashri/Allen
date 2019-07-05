@@ -40,8 +40,8 @@ __global__ void consolidate_ut_tracks(
     ut_tracks.velo_track[i] = event_veloUT_tracks[i].velo_track_index;
     ut_tracks.qop[i] = event_veloUT_tracks[i].qop;
     const int track_index = event_tracks_offset + i;
-    dev_ut_x[track_index]  = event_veloUT_tracks[i].x;
-    dev_ut_z[track_index]  = event_veloUT_tracks[i].z;
+    dev_ut_x[track_index] = event_veloUT_tracks[i].x;
+    dev_ut_z[track_index] = event_veloUT_tracks[i].z;
     dev_ut_tx[track_index] = event_veloUT_tracks[i].tx;
     UT::Consolidated::Hits consolidated_hits = ut_tracks.get_hits(dev_ut_track_hits, i);
     const UT::TrackHits track = event_veloUT_tracks[i];

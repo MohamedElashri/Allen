@@ -64,8 +64,7 @@ namespace Velo {
         return Hits {hits_base_pointer, track_offset(track_number), total_number_of_hits};
       }
     };
- 
-    
+
     struct States {
       // SOA of VeloStates from straight line fit
       float* x;
@@ -136,7 +135,7 @@ namespace Velo {
       float* c33;
 
       float* z;
-      
+
       __device__ __host__ KalmanStates(char* base_pointer, const uint total_number_of_tracks)
       {
         x = reinterpret_cast<float*>(base_pointer);
@@ -186,7 +185,7 @@ namespace Velo {
         state.c33 = c33[track_number];
 
         state.z = z[track_number];
-        
+
         return state;
       }
     };

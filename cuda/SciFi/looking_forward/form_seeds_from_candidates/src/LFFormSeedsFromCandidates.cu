@@ -21,15 +21,15 @@ __global__ void lf_form_seeds_from_candidates(
   const MiniState* dev_ut_states,
   const uint station)
 {
-  __shared__ float looking_forward_constants [8];
+  __shared__ float looking_forward_constants[8];
 
   const auto first_layer = (station - 1) * 4;
-  
-  for (int i=threadIdx.x; i<4; i+=blockDim.x) {
+
+  for (int i = threadIdx.x; i < 4; i += blockDim.x) {
     looking_forward_constants[i] = dev_looking_forward_constants->Zone_zPos[first_layer + i];
     looking_forward_constants[4 + i] = dev_looking_forward_constants->Zone_dxdy[i];
   }
-  
+
   __syncthreads();
 
   const auto number_of_events = gridDim.x;
@@ -58,28 +58,31 @@ __global__ void lf_form_seeds_from_candidates(
   SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
 
   // SciFi un-consolidated track types
-  SciFi::TrackCandidate* scifi_track_candidates = dev_scifi_track_candidates + event_number * SciFi::Constants::max_track_candidates;
+  SciFi::TrackCandidate* scifi_track_candidates =
+    dev_scifi_track_candidates + event_number * SciFi::Constants::max_track_candidates;
   int* atomics_scifi = dev_atomics_scifi + event_number;
 
   // Looking Forward offset and size of this event
-  const uint* offset_size_first_candidate_pointer = dev_first_layer_candidates + ut_tracks.total_number_of_tracks + ut_event_tracks_offset;
+  const uint* offset_size_first_candidate_pointer =
+    dev_first_layer_candidates + ut_tracks.total_number_of_tracks + ut_event_tracks_offset;
   const uint offset_first_candidate = *offset_size_first_candidate_pointer;
-  const uint size_first_candidate = *(offset_size_first_candidate_pointer + ut_event_number_of_tracks) - offset_first_candidate;
+  const uint size_first_candidate =
+    *(offset_size_first_candidate_pointer + ut_event_number_of_tracks) - offset_first_candidate;
   const uint total_number_of_candidates = *(dev_first_layer_candidates + 2 * ut_tracks.total_number_of_tracks);
 
   // Only proceed if we have candidates in the first window
   if (size_first_candidate > 0) {
     const unsigned short* second_candidate_p = dev_second_layer_candidates + offset_first_candidate;
 
-    for (int i=threadIdx.x; i<size_first_candidate; i+=blockDim.x) {
+    for (int i = threadIdx.x; i < size_first_candidate; i += blockDim.x) {
       const auto rel_ut_track_index = second_candidate_p[i];
       const auto first_candidate_index = second_candidate_p[total_number_of_candidates + i];
-      const auto second_candidate_offset = second_candidate_p[2*total_number_of_candidates + i];
-      const auto second_candidate_size = second_candidate_p[3*total_number_of_candidates + i];
-      const auto second_candidate_l1_start = second_candidate_p[4*total_number_of_candidates + i];
-      const auto second_candidate_l1_size = second_candidate_p[5*total_number_of_candidates + i];
-      const auto second_candidate_l2_start = second_candidate_p[6*total_number_of_candidates + i];
-      const auto second_candidate_l2_size = second_candidate_p[7*total_number_of_candidates + i];
+      const auto second_candidate_offset = second_candidate_p[2 * total_number_of_candidates + i];
+      const auto second_candidate_size = second_candidate_p[3 * total_number_of_candidates + i];
+      const auto second_candidate_l1_start = second_candidate_p[4 * total_number_of_candidates + i];
+      const auto second_candidate_l1_size = second_candidate_p[5 * total_number_of_candidates + i];
+      const auto second_candidate_l2_start = second_candidate_p[6 * total_number_of_candidates + i];
+      const auto second_candidate_l2_size = second_candidate_p[7 * total_number_of_candidates + i];
       const MiniState state_at_z_last_ut_plane = dev_ut_states[ut_event_tracks_offset + rel_ut_track_index];
 
       lf_form_seeds_from_candidates_impl(

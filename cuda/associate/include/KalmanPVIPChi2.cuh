@@ -12,6 +12,7 @@
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsKalmanFilter.cuh"
 #include "ArgumentsSelections.cuh"
+#include "ArgumentsMuon.cuh"
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "States.cuh"
@@ -26,7 +27,8 @@ __global__ void kalman_pv_ipchi2(
   uint* dev_ut_indices,
   PV::Vertex* dev_multi_fit_vertices,
   uint* dev_number_of_multi_fit_vertices,
-  char* dev_kalman_pv_ipchi2);
+  char* dev_kalman_pv_ipchi2,
+  const bool* dev_is_muon);
 
 ALGORITHM(
   kalman_pv_ipchi2,
@@ -41,4 +43,5 @@ ALGORITHM(
     dev_scifi_track_ut_indices,
     dev_multi_fit_vertices,
     dev_number_of_multi_fit_vertices,
-    dev_kalman_pv_ipchi2))
+    dev_kalman_pv_ipchi2,
+    dev_is_muon))
