@@ -59,7 +59,7 @@ namespace LookingForward {
   constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 32;
   constexpr int maximum_number_of_candidates_per_ut_track = 32*3;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 32*4; // 2;
+  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 4; //2;
   constexpr int maximum_number_of_triplets_per_h1 = 3;
   constexpr int n_threads_triplet_seeding = 32;
   constexpr int n_triplet_seeds = 4;
@@ -70,7 +70,7 @@ namespace LookingForward {
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.0f;
   constexpr int track_min_hits = 9;
-  constexpr float filter_x_max_xAtRef_spread = 1e9f; // 10.f;
+  constexpr float filter_x_max_xAtRef_spread = 5.f; //10.f;
 
   // z at the center of the magnet
   constexpr float z_magnet = 5212.38f; // FIXME_GEOMETRY_HARDCODING
