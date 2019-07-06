@@ -89,7 +89,7 @@ namespace LookingForward {
 
   // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
   constexpr float chi2_max_triplet_single = 5.f;
-  constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f;
+  constexpr float chi2_max_extrapolation_to_x_layers_single = 2.f; // 4.f;
   constexpr float chi2_max_extrapolation_to_uv_layers_single = 10.f;
 
   struct Constants {

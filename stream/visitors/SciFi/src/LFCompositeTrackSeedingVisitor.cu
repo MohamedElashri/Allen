@@ -99,5 +99,5 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
   state.handler_lf_triplet_keep_best.invoke();
 
   // Extrapolate to all other layers
-  //state.handler_lf_extend_tracks_x.invoke();
+  state.handler_lf_extend_tracks_x.invoke();
 }
