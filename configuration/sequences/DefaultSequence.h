@@ -42,7 +42,7 @@ SEQUENCE_T(
   lf_collect_candidates_t,
   lf_composite_track_seeding_t,
   lf_quality_filter_x_t,
-  //lf_extend_missing_x_t,
+  lf_extend_missing_x_t,
   //lf_composite_extend_tracks_uv_t,
   //lf_quality_filter_length_t,
   //lf_fit_t,
