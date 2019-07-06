@@ -17,9 +17,7 @@ __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
   const LookingForward::Constants* dev_looking_forward_constants,
   const int16_t max_n_h1s_this_thread,
   float* best_chi2_h1s_this_thread,
-  int8_t* best_h0_h2_h1s_this_thread,
-  float* best_chi2,
-  int8_t* best_h0_h2)
+  int8_t* best_h0_h2_h1s_this_thread)
 {
 
   // Iterate over all h1s
@@ -37,23 +35,29 @@ __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
       // check whether chi2 is better than worst saved so far for this h1
       int16_t pos = h1_thread*LookingForward::maximum_number_of_triplets_per_h1 + LookingForward::maximum_number_of_triplets_per_h1 - 1;
       if (chi2 < best_chi2_h1s_this_thread[pos]) {
-        // dertermine which rank the chi2 corresponds to
+        // dertermine which position the chi2 corresponds to
         for (int16_t i = 0; i < LookingForward::maximum_number_of_triplets_per_h1 - 1; ++i) {
-          if (chi2 > best_chi2_h1s_this_thread[pos-1] || chi2 == best_chi2_h1s_this_thread[pos-1])
-            break;
-          else
+          if (chi2 < best_chi2_h1s_this_thread[pos-1]) {
             pos--;
+          } else break;
         }
+        // move worse chi2s in array back by one position
+        for (int16_t i = LookingForward::maximum_number_of_triplets_per_h1 - 2; i >= pos; --i) {
+          best_chi2_h1s_this_thread[i + 1] = best_chi2_h1s_this_thread[i];
+          best_h0_h2_h1s_this_thread[i + 1] = best_h0_h2_h1s_this_thread[i];
+          best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + i + 1] = best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + i];
+        }
+        // add new chi2 value
         best_chi2_h1s_this_thread[pos] = chi2;
 #if __CUDA_ARCH__ >= 700
         best_h0_h2_h1s_this_thread[pos] =
           h0_tile_index * LookingForward::tile_size + (k >> LookingForward::tile_size_shift_div);
-        best_h0_h2[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + pos] =
+        best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + pos] =
           h2_tile_index * LookingForward::tile_size + (k & LookingForward::tile_size_mask);
 #else
         best_h0_h2_h1s_this_thread[pos] =
           h0_tile_index * LookingForward::tile_size + (k & LookingForward::tile_size_mask);
-        best_h0_h2[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + pos] =
+        best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + pos] =
           h2_tile_index * LookingForward::tile_size + (k >> LookingForward::tile_size_shift_div);
 #endif
       }
@@ -226,19 +230,7 @@ __device__ void lf_triplet_seeding_impl(
         dev_looking_forward_constants,
         max_n_h1s_this_thread,
         best_chi2_h1s_this_thread,
-        best_h0_h2_h1s_this_thread,
-        best_chi2,
-        best_h0_h2);
-
-      __syncthreads();
-
-      // for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
-      //    const int16_t h1_thread = h1_rel / LookingForward::n_threads_triplet_seeding;
-      //    for (int16_t h1_triplet = 0; h1_triplet < LookingForward::maximum_number_of_triplets_per_h1; ++h1_triplet) {
-      //      const int16_t pos = h1_thread*LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
-      //      printf("at pos %d, chi2 = %f \n", pos, best_chi2_h1s_this_thread[pos]);
-      //    }
-      //  }
+        best_h0_h2_h1s_this_thread);
 
     }
   }
@@ -248,10 +240,8 @@ __device__ void lf_triplet_seeding_impl(
   // Search best triplets per h1
 
   // Tiled processing of h0 and h2
-  //for (int8_t i = 0; i<(h0_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div; ++i) {
-  for (int8_t i = 0; i<1; ++i) {
-    //for (int8_t j = 0; j<(h2_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div; ++j) {
-    for (int8_t j = 0; j<1; ++j) {
+  for (int8_t i = 0; i<(h0_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div; ++i) {
+    for (int8_t j = 0; j<(h2_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div; ++j) {
 
       __syncthreads();
 
@@ -288,9 +278,7 @@ __device__ void lf_triplet_seeding_impl(
         dev_looking_forward_constants,
         max_n_h1s_this_thread,
         best_chi2_h1s_this_thread,
-        best_h0_h2_h1s_this_thread,
-        best_chi2,
-        best_h0_h2);
+        best_h0_h2_h1s_this_thread);
     }
   }
 #endif
@@ -303,15 +291,12 @@ __device__ void lf_triplet_seeding_impl(
       const int16_t h1_thread = h1_rel / LookingForward::n_threads_triplet_seeding;
       const int16_t pos = h1_thread*LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet;
 
-      printf("at h1_rel %d, h1_triplet %d, original chi2 = %f, new chi2 = %f \n", h1_rel, h1_triplet, best_chi2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet], best_chi2_h1s_this_thread[pos]);
-
       //printf("at pos %d, chi2 = %f \n", pos, best_chi2_h1s_this_thread[pos]);
-      // if (best_chi2_h1s_this_thread[pos] < max_chi2) {
-      //   //printf("Adding chi2 %f \n", best_chi2_h1s_this_thread[pos]);
-      //   best_chi2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_chi2_h1s_this_thread[pos];
-      //   best_h0_h2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_h0_h2_h1s_this_thread[pos];
-      //   best_h0_h2[LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + pos];
-      // }
+      if (best_chi2_h1s_this_thread[pos] < max_chi2) {
+        best_chi2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_chi2_h1s_this_thread[pos];
+        best_h0_h2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_h0_h2_h1s_this_thread[pos];
+        best_h0_h2[LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + h1_triplet] = best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + pos];
+      }
     }
   }
 
