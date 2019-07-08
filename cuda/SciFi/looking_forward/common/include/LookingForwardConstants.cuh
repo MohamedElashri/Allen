@@ -70,7 +70,7 @@ namespace LookingForward {
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.05f;
   constexpr int track_min_hits = 9;
-  constexpr float filter_x_max_xAtRef_spread = 5.f; //10.f;
+  constexpr float filter_x_max_xAtRef_spread = 10.f; // 5.f; //10.f;
 
   // z at the center of the magnet
   constexpr float z_magnet = 5212.38f; // FIXME_GEOMETRY_HARDCODING
@@ -88,8 +88,8 @@ namespace LookingForward {
   // constexpr float d_ratio = -8.585717012100695e-06;
 
   // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
-  constexpr float chi2_max_triplet_single = 5.f;
-  constexpr float chi2_max_extrapolation_to_x_layers_single = 2.f; // 4.f;
+  constexpr float chi2_max_triplet_single = 12.f; // 5.f;
+  constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f; // 2.f; // 4.f;
   constexpr float chi2_max_extrapolation_to_uv_layers_single = 10.f;
 
   struct Constants {
