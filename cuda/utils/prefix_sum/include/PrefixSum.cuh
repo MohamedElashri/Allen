@@ -59,12 +59,12 @@ ALGORITHM(
   copy_ut_track_hit_number_t,
   ARGUMENTS(dev_ut_tracks, dev_atomics_ut, dev_ut_track_hit_number))
 
-ALGORITHM(copy_and_prefix_sum_single_block, copy_and_prefix_sum_single_block_scifi_t, ARGUMENTS( dev_scifi_lf_x_filtered_atomics/*dev_atomics_scifi*/))
+ALGORITHM(copy_and_prefix_sum_single_block, copy_and_prefix_sum_single_block_scifi_t, ARGUMENTS( /*dev_scifi_lf_length_filtered_atomics*/dev_atomics_scifi))
 
 ALGORITHM(
   copy_scifi_track_hit_number,
   copy_scifi_track_hit_number_t,
-  ARGUMENTS(dev_atomics_ut, dev_scifi_lf_x_filtered_tracks, dev_scifi_lf_x_filtered_atomics, /*dev_scifi_tracks, dev_atomics_scifi,*/ dev_scifi_track_hit_number))
+  ARGUMENTS(dev_atomics_ut, /*dev_scifi_lf_length_filtered_tracks, dev_scifi_lf_length_filtered_atomics,*/ dev_scifi_tracks, dev_atomics_scifi, dev_scifi_track_hit_number))
 
 ALGORITHM(
   copy_square_and_prefix_sum_single_block,
