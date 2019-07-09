@@ -33,6 +33,19 @@ __device__ float LookingForward::y_at_z_dzdy_corrected(const MiniState& state, c
 
 __device__ float LookingForward::linear_propagation(float x_0, float tx, float dz) { return x_0 + tx * dz; }
 
+__device__ float LookingForward::get_extrap1(const float qop, const float dz1) {
+    return LookingForward::forward_param * qop * dz1 * dz1;
+    // new parametrization
+    //return (LookingForward::forward_param * dz1 * dz1 + LookingForward::d_ratio * dz1 * dz1 * dz1) * qop;
+  }
+
+__device__ float LookingForward::get_extrap2(const float qop, const float dz2) {
+   return LookingForward::forward_param * qop * dz2 * dz2;
+   // new parametrization
+   // return (LookingForward::forward_param * dz2 * dz2 +
+   //                         LookingForward::d_ratio * dz2 * dz2 * dz2) * qop;
+  }
+
 __device__ MiniState LookingForward::propagate_state_from_velo(
   const MiniState& UT_state,
   float qop,
@@ -59,6 +72,7 @@ __device__ MiniState LookingForward::propagate_state_from_velo(
     dp_y_mag[layer][0] + magnet_state.y * dp_y_mag[layer][1] + magnet_state.y * magnet_state.y * dp_y_mag[layer][2];
 
   final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  //final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   final_state.x += -y_mag_correction - x_mag_correction;
 
   return final_state;
@@ -80,7 +94,7 @@ __device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
   final_state.tx = tx_ty_corr * qop + UT_state.tx;
 
   final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
-
+  //final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   return final_state;
 }
 __device__ float LookingForward::propagate_x_from_velo_multi_par(

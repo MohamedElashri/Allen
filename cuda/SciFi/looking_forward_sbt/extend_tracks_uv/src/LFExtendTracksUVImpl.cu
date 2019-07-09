@@ -19,11 +19,9 @@ __device__ void lf_extend_tracks_uv_impl(
   const auto dz1 = (z1 - z0);
   const auto dz2 = (z2 - z0);
   const auto tx = (x1 - x0) / dz1;
-  auto extrap1 =
-    (LookingForward::forward_param * dz1 * dz1 + LookingForward::d_ratio * dz1 * dz1 * dz1) * track.qop;
+  auto extrap1 = LookingForward::get_extrap1(track.qop, dz1);
   extrap1 *= extrap1;
-  const auto expected_x2 = x0 + tx * dz2 + (LookingForward::forward_param * dz2 * dz2 +
-                                            LookingForward::d_ratio * dz2 * dz2 * dz2) * track.qop;
+  const auto expected_x2 = x0 + tx * dz2 + LookingForward::get_extrap2(track.qop, dz2);
 
   // Pick the best, according to chi2
   short best_index = -1;

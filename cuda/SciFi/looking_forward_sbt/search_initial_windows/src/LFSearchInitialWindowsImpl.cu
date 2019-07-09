@@ -32,7 +32,9 @@ __device__ void lf_search_initial_windows_p_impl(
     const float zZone = constArrays->xZone_zPos[i];
 
     // TODO this could be done in a more optimized way
-    const auto stateInZone = LookingForward::propagate_state_from_velo_multi_par(
+    // const auto stateInZone = LookingForward::propagate_state_from_velo_multi_par(
+    //   UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
+    const auto stateInZone = LookingForward::propagate_state_from_velo(
       UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
 
     const float xInZone = stateInZone.x;

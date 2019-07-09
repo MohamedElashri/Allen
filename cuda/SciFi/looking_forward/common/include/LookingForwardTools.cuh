@@ -22,6 +22,10 @@ namespace LookingForward {
 
   __device__ float scifi_propagation(const float x_0, const float tx, const float qop, const float dz);
 
+  __device__ float get_extrap1(const float qop, const float dz1);
+
+__device__ float get_extrap2(const float qop, const float dz1);
+
   __device__ float propagate_x_from_velo_multi_par(
     const MiniState& UT_state,
     const float qop,
