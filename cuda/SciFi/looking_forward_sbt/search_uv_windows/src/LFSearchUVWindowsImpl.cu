@@ -26,8 +26,8 @@ __device__ void lf_search_uv_windows_impl(
     const auto layer2 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
     // dzDy correction
     const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
-    const auto projection_y = LookingForward::y_at_z_dzdy_corrected(ut_state, z2);
-    //const auto projection_y = LookingForward::y_at_z(ut_state, z2);
+    //const auto projection_y = LookingForward::y_at_z_dzdy_corrected(ut_state, z2);
+    const auto projection_y = LookingForward::y_at_z(ut_state, z2);
     const auto layer_offset_nhits =
       LookingForward::get_offset_and_n_hits_for_layer(2 * layer2, scifi_hit_count, projection_y);
 

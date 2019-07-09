@@ -58,9 +58,9 @@ namespace LookingForward {
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 32;
-  constexpr int maximum_number_of_candidates_per_ut_track = 32*3;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 4; //2;
-  constexpr int maximum_number_of_triplets_per_h1 = 3;
+  constexpr int maximum_number_of_candidates_per_ut_track = 32*2;
+  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 2;
+  constexpr int maximum_number_of_triplets_per_h1 = 1;
   constexpr int n_threads_triplet_seeding = 32;
   constexpr int n_triplet_seeds = 4;
   constexpr int tile_size = 16;
@@ -70,7 +70,7 @@ namespace LookingForward {
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.05f;
   constexpr int track_min_hits = 9;
-  constexpr float filter_x_max_xAtRef_spread = 10.f; // 5.f; //10.f;
+  constexpr float filter_x_max_xAtRef_spread = 10.f;
 
   // z at the center of the magnet
   constexpr float z_magnet = 5212.38f; // FIXME_GEOMETRY_HARDCODING
@@ -166,8 +166,8 @@ namespace LookingForward {
                           1110.35,
                           1107.57};
 
-    // float ds_p_param_layer_inv[6] {0.000765058, 0.000766336, 0.000766501, 0.000767106, 0.000828006, 0.000764088};
-    float ds_p_param_layer_inv[6] {1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f};
+    float ds_p_param_layer_inv[6] {0.000765058, 0.000766336, 0.000766501, 0.000767106, 0.000828006, 0.000764088};
+    //float ds_p_param_layer_inv[6] {1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f, 1.f / 1210.14f};
 
     float dp_y_mag_plus[12][3] {{-4.03134, -0.0407008, -0.000125335},
                                 {-4.56306, -0.0419834, -0.000137366},

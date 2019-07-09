@@ -71,8 +71,8 @@ __device__ MiniState LookingForward::propagate_state_from_velo(
   const float y_mag_correction =
     dp_y_mag[layer][0] + magnet_state.y * dp_y_mag[layer][1] + magnet_state.y * magnet_state.y * dp_y_mag[layer][2];
 
-  final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
-  //final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  //final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   final_state.x += -y_mag_correction - x_mag_correction;
 
   return final_state;
@@ -93,8 +93,8 @@ __device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
 
   final_state.tx = tx_ty_corr * qop + UT_state.tx;
 
-  final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
-  //final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  //final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   return final_state;
 }
 __device__ float LookingForward::propagate_x_from_velo_multi_par(
@@ -159,12 +159,12 @@ __device__ float LookingForward::dx_calc(const float state_tx, float qop)
   ret_val = LookingForward::tx_weight * tx_window + LookingForward::dx_weight * qop_window;
 
   // TODO this must be verified
-  ret_val = 1.2e+05*qop + LookingForward::dx_min;
+  //ret_val = 1.2e+05*qop + LookingForward::dx_min;
   if (ret_val > LookingForward::max_window_layer0) {
     ret_val = LookingForward::max_window_layer0;
   }
 
-  // ret_val = 100.f + 1.4e6f * std::abs(qop);
+  ret_val = 100.f + 1.4e6f * std::abs(qop);
 
   return ret_val;
 }
@@ -325,7 +325,7 @@ __device__ float LookingForward::qop_update(
   const float h1_z,
   const float ds_p_param_layer_inv)
 {
-  const float slope = (h1_x - h0_x) / (h1_z - h0_z);
+  const float slope = (h1_x - h0_x) / std::abs(h1_z - h0_z);
   return (slope - ut_state_tx) * ds_p_param_layer_inv;
 }
 

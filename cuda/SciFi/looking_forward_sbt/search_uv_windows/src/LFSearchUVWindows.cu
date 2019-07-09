@@ -60,7 +60,8 @@ __global__ void lf_search_uv_windows(
       const auto layer2 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
       // dzDy correction
       const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
-      const auto projection_y = LookingForward::y_at_z_dzdy_corrected(dev_ut_states[current_ut_track_index], z2);
+      //const auto projection_y = LookingForward::y_at_z_dzdy_corrected(dev_ut_states[current_ut_track_index], z2);
+      const auto projection_y = LookingForward::y_at_z(dev_ut_states[current_ut_track_index], z2);
       // const auto layer_offset_nhits = LookingForward::get_offset_and_n_hits_for_layer(2 * layer2, scifi_hit_count,
       // projection_y);
 

@@ -81,8 +81,8 @@ __global__ void lf_quality_filter_x(
       float xAtRef_spread =
         LookingForward::get_average_x_at_reference_plane_spread(xAtRef_average, hits_x_atRef, track.hitsNum);
 
-      // if (track.hitsNum == 3) // assign larg value to filter out later
-      //   xAtRef_spread = LookingForward::filter_x_max_xAtRef_spread// ;
+      if (track.hitsNum == 3) // assign larg value to filter out later
+        xAtRef_spread = LookingForward::filter_x_max_xAtRef_spread;
 
       xAtRef_average_spread[j] = xAtRef_spread;
       xAtRef_average_array[j] = xAtRef_average;
