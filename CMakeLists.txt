@@ -127,7 +127,7 @@ if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
       endif()
 
-      set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist)
+      set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist -lRIO)
 
       execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
       string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")

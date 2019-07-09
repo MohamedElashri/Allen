@@ -89,6 +89,7 @@ MCEvents CheckerInvoker::load(
     readFileIntoVector(mc_tracks_files[event_id], raw_particles);
 
     input.emplace_back(raw_particles, raw_pvs, m_check_events);
+
   }
   return input;
 }
@@ -104,7 +105,9 @@ void CheckerInvoker::report(size_t n_events) const
     info_cout << std::endl;
   }
 
+#ifdef WITH_ROOT
   for (auto const& entry : m_files) {
     entry.second->Close();
   }
+#endif
 }
