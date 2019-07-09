@@ -270,7 +270,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::string folder_name_imported_forward_tracks = "";
   uint number_of_slices = 0;
   long number_of_events_requested = 0;
-  uint events_per_slice = 1000;
+  std::optional<uint> events_per_slice;
   uint start_event_offset = 0;
   uint number_of_threads = 1;
   uint number_of_repetitions = 1;
@@ -374,6 +374,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   std::string folder_name_velopix_raw = folder_data + folder_rawdata + "VP";
   number_of_events_requested = get_number_of_events_requested(number_of_events_requested, folder_name_velopix_raw);
+  if (!events_per_slice) {
+    events_per_slice = number_of_events_requested;
+  }
   const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
   const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
   const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
@@ -392,13 +395,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, events_per_slice, std::move(connections));
+      number_of_slices, *events_per_slice, std::move(connections));
   }
   else {
     // The binary input provider expects the folders for the bank types as connections
     vector<string> connections = {folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
     input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, events_per_slice, std::move(connections));
+      number_of_slices, *events_per_slice, std::move(connections));
   }
 
   muon_catboost_model_reader =
@@ -431,7 +434,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Create streams
   StreamWrapper stream_wrapper;
   stream_wrapper.initialize_streams(
-    number_of_threads, events_per_slice, print_memory_usage, start_event_offset, reserve_mb, constants, do_check);
+    number_of_threads, *events_per_slice, print_memory_usage, start_event_offset, reserve_mb, constants, do_check);
 
   // Notify used memory if requested verbose mode
   if (logger::ll.verbosityLevel >= logger::verbose) {
@@ -545,7 +548,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     *it_slice_status = SliceStatus::Filling;
     size_t idx = std::distance(input_slice_status.begin(), it_slice_status);
     long n_left = number_of_events_requested - n_events_read;
-    size_t fill = (number_of_events_requested == -1 || n_left > events_per_slice) ? events_per_slice : n_left;
+    size_t fill = (number_of_events_requested == -1 || n_left > *events_per_slice) ? *events_per_slice : n_left;
     if (fill > 0) {
       zmqSvc().send(socket, "FILL", zmq::SNDMORE);
       zmqSvc().send(socket, idx, zmq::SNDMORE);
