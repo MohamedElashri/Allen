@@ -8,9 +8,9 @@
 template <BankTypes... Banks>
 class BinaryProvider final : public InputProvider<BinaryProvider<Banks...>> {
 public:
-  BinaryProvider(size_t n_slices, size_t n_events, std::vector<std::string> connections) :
+  BinaryProvider(size_t n_slices, size_t n_events, std::vector<std::string> connections, bool loop = false) :
     InputProvider<BinaryProvider<Banks...>>{n_slices, n_events},
-    m_event_ids(n_slices)
+    m_loop {loop}, m_event_ids(n_slices)
   {
     for (auto bank_type : this->types()) {
       auto it = std::find_if(connections.begin(), connections.end(),
@@ -85,8 +85,8 @@ public:
       std::get<2>(m_slices[ib][slice_index]) = 1;
     }
 
-    for (; m_current < n_files && m_current < start + n; ++m_current) {
-      auto inputs = open_files(m_current);
+    for (; (m_current < n_files || m_loop) && m_current < start + n; ++m_current) {
+      auto inputs = open_files(m_current % n_files);
       full = std::any_of(this->types().begin(), this->types().end(), [this, slice_index, &inputs](auto bank_type) {
         auto ib = to_integral<BankTypes>(bank_type);
         const auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
@@ -102,7 +102,7 @@ public:
         m_event_ids[slice_index].emplace_back(m_all_events[m_current]);
       }
     }
-    return {m_current != n_files, full, m_current - start};
+    return {m_current != n_files || m_loop, full, m_current - start};
   }
 
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const
@@ -149,6 +149,9 @@ private:
 
   // Index of the event file currently being read
   size_t m_current = 0;
+
+  // Loop on available input files
+  bool m_loop = false;
 
   // Run and event numbers of all available events
   std::vector<std::tuple<unsigned int, unsigned long>> m_all_events;

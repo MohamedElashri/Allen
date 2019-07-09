@@ -20,9 +20,9 @@ namespace {
 template <BankTypes... Banks>
 class MDFProvider final : public InputProvider<MDFProvider<Banks...>> {
 public:
-  MDFProvider(size_t n_slices, size_t n_events, std::vector<std::string> connections) :
+  MDFProvider(size_t n_slices, size_t n_events, std::vector<std::string> connections, bool loop = false) :
     InputProvider<MDFProvider<Banks...>>{n_slices, n_events},
-    m_event_ids(n_slices), m_connections {std::move(connections)}
+    m_event_ids(n_slices), m_connections {std::move(connections)}, m_loop {loop}
   {
     for (auto bank_type : this->types()) {
       auto it = BankSizes.find(bank_type);
@@ -261,6 +261,9 @@ private:
 
   // File names to read
   std::vector<std::string> m_connections;
+
+  // Loop on available input files
+  bool m_loop = false;
 
   // Storage for the currently open file
   mutable std::unique_ptr<std::ifstream> m_input;
