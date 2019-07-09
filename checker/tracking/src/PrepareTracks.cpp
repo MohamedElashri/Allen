@@ -15,32 +15,6 @@
 
 #include <random>
 
-// LHCb::Track::pseudoRapidity() is based on slopes vector (Gaudi::XYZVector = ROOT::Match::XYZVector)
-// slopes = (Tx=dx/dz,Ty=dy/dz,1.)
-// eta() for XYZVector:
-// https://root.cern.ch/doc/v608/namespaceROOT_1_1Math_1_1Impl.html#a7d4efefe2855d886fdbae73c81adc574 z = 1.f -> can
-// simplify eta_from_rho_z
-float eta_from_rho(const float rho)
-{
-  const float z = 1.f;
-  if (rho > 0.f) {
-
-    // value to control Taylor expansion of sqrt
-    static const float big_z_scaled = std::pow(std::numeric_limits<float>::epsilon(), static_cast<float>(-.25));
-
-    float z_scaled = z / rho;
-    if (std::fabs(z_scaled) < big_z_scaled) {
-      return std::log(z_scaled + std::sqrt(z_scaled * z_scaled + 1.f));
-    }
-    else {
-      // apply correction using first order Taylor expansion of sqrt
-      return z > 0.f ? std::log(2.f * z_scaled + 0.5f / z_scaled) : -std::log(-2.f * z_scaled);
-    }
-  }
-  // case vector has rho = 0
-  return z + 22756.f;
-}
-
 std::vector<Checker::Tracks> prepareVeloTracks(
   const uint* track_atomics,
   const uint* track_hit_number,

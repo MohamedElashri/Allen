@@ -124,7 +124,7 @@ namespace Checker {
     void operator()(const MCParticles& mcps);
     /// register track and its MC association
     void operator()(
-      const std::vector<MCAssociator::TrackWithWeight> tracks,
+      const std::vector<MCAssociator::TrackWithWeight>& tracks,
       MCParticles::const_reference& mcp,
       const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
 

@@ -16,6 +16,7 @@
 
 #include <functional>
 #include <set>
+#include <unordered_map>
 #include <string>
 #include <vector>
 #include "Logger.h"
@@ -25,6 +26,8 @@
 #include "MCEvent.h"
 
 #include "ROOTHeaders.h"
+
+float eta_from_rho(const float rho);
 
 struct TrackCheckerHistos;
 
@@ -80,33 +83,33 @@ public:
   {
     std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_events;
 
-    for (int evnum = 0; evnum < mc_events.size(); ++evnum) {
+    for (size_t evnum = 0; evnum < mc_events.size(); ++evnum) {
       const auto& mc_event = mc_events[evnum];
       const auto& event_tracks = tracks[evnum];
 
-      std::vector<uint32_t> matched_mcp_keys =
+      auto matched_mcps =
         (*this)(event_tracks, mc_event, get_num_hits_subdetector<typename T::subdetector_t>);
 
       std::vector<std::vector<uint32_t>> scifi_ids_tracks;
+      scifi_ids_tracks.reserve(std::accumulate(matched_mcps.begin(), matched_mcps.end(), 0,
+                                               [&mc_event] (size_t s, auto const& it) {
+                                                 return s + (it == mc_event.m_mcps.end());
+                                               }));
       std::vector<float> p_tracks;
-      for (const auto key : matched_mcp_keys) {
+      for (const auto& it : matched_mcps) {
         std::vector<uint32_t> scifi_ids;
         float p = 1e9;
-        if (!(key == 0xFFFFFF)) { // track was matched to an MCP
-          // Find this MCP
-          for (const auto mcp : mc_event.m_mcps) {
-            if (mcp.key == key) {
-              // Save momentum and charge of this MCP
-              p = mcp.p * mcp.charge;
-              // debug_cout << "Adding particle with PID = " << mcp.pid << " and charge " << charge << std::endl;
-              // Find SciFi IDs of this MCP
-              if (mcp.isLong) { // found matched long MCP
-                for (const auto id : mcp.hits) {
-                  const uint32_t detector_id = (id >> 20) & 0xFFF;
-                  if (detector_id == 0xa00) { // hit in the SciFi
-                    scifi_ids.push_back(id);
-                  }
-                }
+        if (it != mc_event.m_mcps.end()) { // track was matched to an MCP
+          auto const& mcp = *it;
+          // Save momentum and charge of this MCP
+          p = mcp.p * mcp.charge;
+          // debug_cout << "Adding particle with PID = " << mcp.pid << " and charge " << charge << std::endl;
+          // Find SciFi IDs of this MCP
+          if (mcp.isLong) { // found matched long MCP
+            for (const auto id : mcp.hits) {
+              const uint32_t detector_id = (id >> 20) & 0xFFF;
+              if (detector_id == 0xa00) { // hit in the SciFi
+                scifi_ids.push_back(id);
               }
             }
           }
@@ -137,19 +140,18 @@ public:
     return scifi_ids_events;
   }
 
-  std::vector<uint32_t> operator()(
+  std::vector<MCParticles::const_iterator> operator()(
     const Checker::Tracks& tracks,
     const MCEvent& mc_event,
     const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);
 
   const std::vector<Checker::HistoCategory>& histo_categories() const { return m_histo_categories; }
 
-  bool match_track_to_MCPs(
-    MCAssociator mc_assoc,
+  std::tuple<bool, MCParticles::const_iterator> match_track_to_MCPs(
+    const MCAssociator& mc_assoc,
     const Checker::Tracks& tracks,
     const int i_track,
-    std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table,
-    uint32_t& track_best_matched_MCP);
+    std::unordered_map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table);
 
   void muon_id_matching(
     const std::vector<MCAssociator::TrackWithWeight> tracks_with_weight,

@@ -286,19 +286,19 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
 #endif
 }
 
-void TrackCheckerHistos::fillTotalHistos(const MCParticle& mcp, const Checker::Track& track)
+void TrackCheckerHistos::fillTotalHistos(double nPV, double eta)
 {
 #ifdef WITH_ROOT
-  h_total_nPV->Fill(mcp.nPV);
-  h_total_eta->Fill(track.eta);
+  h_total_nPV->Fill(nPV);
+  h_total_eta->Fill(eta);
 #endif
 }
 
-void TrackCheckerHistos::fillGhostHistos(const MCParticle& mcp, const Checker::Track& track)
+void TrackCheckerHistos::fillGhostHistos(double nPV, double eta)
 {
 #ifdef WITH_ROOT
-  h_ghost_nPV->Fill(mcp.nPV);
-  h_ghost_eta->Fill(track.eta);
+  h_ghost_nPV->Fill(nPV);
+  h_ghost_eta->Fill(eta);
 #endif
 }
 
@@ -357,11 +357,11 @@ void TrackCheckerHistos::fillMuonReconstructible(const MCParticle& mcp)
 #endif
 }
 
-void TrackCheckerHistos::fillMuonGhostHistos(const MCParticle& mcp, const Checker::Track& track)
+void TrackCheckerHistos::fillMuonGhostHistos(double nPV, double eta)
 {
 #ifdef WITH_ROOT
-  h_ghost_isMuon_nPV_reconstructed->Fill(mcp.nPV);
-  h_ghost_isMuon_Eta_reconstructed->Fill(track.eta);
+  h_ghost_isMuon_nPV_reconstructed->Fill(nPV);
+  h_ghost_isMuon_Eta_reconstructed->Fill(eta);
 #endif
 }
 

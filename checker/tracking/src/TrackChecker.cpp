@@ -27,6 +27,32 @@ namespace {
   using Checker::HistoCategory;
 }
 
+// LHCb::Track::pseudoRapidity() is based on slopes vector (Gaudi::XYZVector = ROOT::Match::XYZVector)
+// slopes = (Tx=dx/dz,Ty=dy/dz,1.)
+// eta() for XYZVector:
+// https://root.cern.ch/doc/v608/namespaceROOT_1_1Math_1_1Impl.html#a7d4efefe2855d886fdbae73c81adc574 z = 1.f -> can
+// simplify eta_from_rho_z
+float eta_from_rho(const float rho)
+{
+  const float z = 1.f;
+  if (rho > 0.f) {
+
+    // value to control Taylor expansion of sqrt
+    static const float big_z_scaled = std::pow(std::numeric_limits<float>::epsilon(), static_cast<float>(-.25));
+
+    float z_scaled = z / rho;
+    if (std::fabs(z_scaled) < big_z_scaled) {
+      return std::log(z_scaled + std::sqrt(z_scaled * z_scaled + 1.f));
+    }
+    else {
+      // apply correction using first order Taylor expansion of sqrt
+      return z > 0.f ? std::log(2.f * z_scaled + 0.5f / z_scaled) : -std::log(-2.f * z_scaled);
+    }
+  }
+  // case vector has rho = 0
+  return z + 22756.f;
+}
+
 // Not very pretty, will be better once nvcc supports C++17
 std::string const Checker::Subdetector::Velo::name = "Velo";
 std::string const Checker::Subdetector::UT::name = "VeloUT";
@@ -145,7 +171,7 @@ void Checker::TrackEffReport::operator()(const MCParticles& mcps)
 }
 
 void Checker::TrackEffReport::operator()(
-  const std::vector<MCAssociator::TrackWithWeight> tracks,
+  const std::vector<MCAssociator::TrackWithWeight>& tracks,
   MCParticles::const_reference& mcp,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector)
 {
@@ -238,12 +264,11 @@ void TrackChecker::muon_id_matching(
   }
 }
 
-bool TrackChecker::match_track_to_MCPs(
-  MCAssociator mc_assoc,
+std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
+  const MCAssociator& mc_assoc,
   const Checker::Tracks& tracks,
   const int i_track,
-  std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table,
-  uint32_t& track_best_matched_MCP)
+  std::unordered_map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table)
 {
   const auto& track = tracks[i_track];
 
@@ -252,7 +277,7 @@ bool TrackChecker::match_track_to_MCPs(
   //
   // check LHCbIDs for MC association
   Checker::TruthCounter total_counter;
-  std::map<uint, Checker::TruthCounter> truth_counters;
+  std::unordered_map<uint, Checker::TruthCounter> truth_counters;
   int n_meas = 0;
 
   const auto& ids = track.ids();
@@ -319,6 +344,8 @@ bool TrackChecker::match_track_to_MCPs(
   }
 
   bool match = false;
+  auto track_best_matched_MCP = mc_assoc.m_mcps.cend();
+
   float max_weight = 1e9f;
   for (const auto& id_counter : truth_counters) {
     bool velo_ok = true;
@@ -355,15 +382,15 @@ bool TrackChecker::match_track_to_MCPs(
 
       if (weight < max_weight) {
         max_weight = weight;
-        track_best_matched_MCP = (mc_assoc.m_mcps[id_counter.first]).key;
+        track_best_matched_MCP = mc_assoc.m_mcps.begin() + id_counter.first;
       }
     }
   }
 
-  return match;
+  return {match, track_best_matched_MCP};
 }
 
-std::vector<uint32_t> TrackChecker::operator()(
+std::vector<MCParticles::const_iterator> TrackChecker::operator()(
   const Checker::Tracks& tracks,
   const MCEvent& mc_event,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector)
@@ -384,30 +411,23 @@ std::vector<uint32_t> TrackChecker::operator()(
 
   MCAssociator mc_assoc {mc_event.m_mcps};
   // linker table between MCParticles and matched tracks with weights
-  std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>> assoc_table;
+  std::unordered_map<uint32_t, std::vector<MCAssociator::TrackWithWeight>> assoc_table;
 
   // Match tracks to MCPs
   std::size_t nghostsperevt = 0;
   std::size_t ntracksperevt = 0;
   std::size_t nghoststriggerperevt = 0;
   std::size_t ntrackstriggerperevt = 0;
-  std::vector<uint32_t> matched_mcp_keys;
+  std::vector<MCParticles::const_iterator> matched_mcp_keys;
   for (size_t i_track = 0; i_track < tracks.size(); ++i_track) {
     auto const& track = tracks[i_track];
-    m_histos->fillTotalHistos(mc_event.m_mcps[0], track);
+    m_histos->fillTotalHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
 
-    uint32_t track_best_matched_MCP;
-    bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table, track_best_matched_MCP);
-
-    if (match) {
-      matched_mcp_keys.push_back(track_best_matched_MCP);
-    }
-    else {
-      matched_mcp_keys.push_back(0xFFFFFFFF);
-    }
+    auto [match, track_best_matched_MCP] = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
+    matched_mcp_keys.push_back(track_best_matched_MCP);
 
     bool eta25 = track.eta > 2.f && track.eta < 5.f;
-    bool skipEtaCut = (m_trackerName == "Velo");
+    bool skipEtaCut = (m_trackerName == "Velo" || m_trackerName == "Seeding");
     bool eta25Cut = eta25 | skipEtaCut;
 
     if (!eta25Cut) continue;
@@ -419,10 +439,10 @@ std::vector<uint32_t> TrackChecker::operator()(
     }
     if (!match) {
       ++nghostsperevt;
-      m_histos->fillGhostHistos(mc_event.m_mcps[0], track);
+      m_histos->fillGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
       if (triggerCondition) ++nghoststriggerperevt;
       if (track.is_muon) {
-        m_histos->fillMuonGhostHistos(mc_event.m_mcps[0], track);
+        m_histos->fillMuonGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
         ++n_is_muon_ghost;
       }
     }
@@ -439,22 +459,22 @@ std::vector<uint32_t> TrackChecker::operator()(
     else // not muon
       m_n_MCPs_not_muon++;
 
-    if (assoc_table.find(key) == assoc_table.end()) // no track matched to MCP
+    auto tracks_it = assoc_table.find(key);
+    if (tracks_it == assoc_table.end()) // no track matched to MCP
       continue;
 
     m_n_tracks_matched_to_MCP++;
 
     // have MC association
     // find track with highest weight
-    auto matched_tracks = assoc_table[key];
-    std::sort(
-      matched_tracks.begin(), matched_tracks.end(), [
+    auto const& matched_tracks = tracks_it->second;
+    auto track_with_weight = std::max_element(
+      matched_tracks.cbegin(), matched_tracks.cend(), [
       ](const MCAssociator::TrackWithWeight& a, const MCAssociator::TrackWithWeight& b) noexcept {
-        return a.m_w > b.m_w;
+        return a.m_w < b.m_w;
       });
 
-    const auto track_with_weight = matched_tracks.front();
-    auto track = tracks[track_with_weight.m_idx];
+    auto const& track = tracks[track_with_weight->m_idx];
 
     // add to various categories
     for (auto& report : m_categories) {

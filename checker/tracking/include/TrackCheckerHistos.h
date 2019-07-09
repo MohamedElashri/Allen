@@ -78,13 +78,13 @@ struct TrackCheckerHistos {
 
   void fillReconstructibleHistos(const MCParticles& mcps, const Checker::HistoCategory& category);
   void fillReconstructedHistos(const MCParticle& mcp, Checker::HistoCategory& category);
-  void fillTotalHistos(const MCParticle& mcp, const Checker::Track& track);
-  void fillGhostHistos(const MCParticle& mcp, const Checker::Track& track);
+  void fillTotalHistos(double nPV, double eta);
+  void fillGhostHistos(double nPV, double eta);
   void fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop);
   void fillMuonIDHistos(const Checker::Track& track);
   void fillMuonIDMatchedHistos(const Checker::Track& track, const MCParticle& mcp);
   void fillMuonReconstructedMatchedIsMuon(const MCParticle& mcp);
   void fillMuonReconstructedNotMatchedIsMuon(const MCParticle& mcp);
   void fillMuonReconstructible(const MCParticle& mcp);
-  void fillMuonGhostHistos(const MCParticle& mcp, const Checker::Track& track);
+  void fillMuonGhostHistos(double nPV, double eta);
 };
