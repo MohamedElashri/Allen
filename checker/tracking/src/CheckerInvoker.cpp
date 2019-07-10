@@ -89,7 +89,6 @@ MCEvents CheckerInvoker::load(
     readFileIntoVector(mc_tracks_files[event_id], raw_particles);
 
     input.emplace_back(raw_particles, raw_pvs, m_check_events);
-
   }
   return input;
 }

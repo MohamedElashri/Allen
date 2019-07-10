@@ -202,10 +202,7 @@ public:
 
   // receive message with ZMQ, general version
   // FIXME: what to do with flags=0.... more is a pointer, that might prevent conversion
-  template<
-    class T,
-    typename std::enable_if<!std::is_same<zmq::message_t, T>::value, T>::type* =
-      nullptr>
+  template<class T, typename std::enable_if<!std::is_same<zmq::message_t, T>::value, T>::type* = nullptr>
   T receive(zmq::socket_t& socket, bool* more = nullptr) const
   {
     // receive message
@@ -303,7 +300,10 @@ public:
     return this->send(socket, encode(item), flags);
   }
 
-  bool send(zmq::socket_t& socket, const char* item, int flags = 0) const { return this->send(socket, encode(item), flags); }
+  bool send(zmq::socket_t& socket, const char* item, int flags = 0) const
+  {
+    return this->send(socket, encode(item), flags);
+  }
 
   bool send(zmq::socket_t& socket, zmq::message_t& msg, int flags = 0) const
   {

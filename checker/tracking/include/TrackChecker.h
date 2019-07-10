@@ -87,14 +87,13 @@ public:
       const auto& mc_event = mc_events[evnum];
       const auto& event_tracks = tracks[evnum];
 
-      auto matched_mcps =
-        (*this)(event_tracks, mc_event, get_num_hits_subdetector<typename T::subdetector_t>);
+      auto matched_mcps = (*this)(event_tracks, mc_event, get_num_hits_subdetector<typename T::subdetector_t>);
 
       std::vector<std::vector<uint32_t>> scifi_ids_tracks;
-      scifi_ids_tracks.reserve(std::accumulate(matched_mcps.begin(), matched_mcps.end(), 0,
-                                               [&mc_event] (size_t s, auto const& it) {
-                                                 return s + (it == mc_event.m_mcps.end());
-                                               }));
+      scifi_ids_tracks.reserve(
+        std::accumulate(matched_mcps.begin(), matched_mcps.end(), 0, [&mc_event](size_t s, auto const& it) {
+          return s + (it == mc_event.m_mcps.end());
+        }));
       std::vector<float> p_tracks;
       for (const auto& it : matched_mcps) {
         std::vector<uint32_t> scifi_ids;

@@ -247,16 +247,17 @@ std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
   std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
   std::smatch result;
 
-  std::for_each(folderContents.begin() + start_event_offset, folderContents.end(),
-                [&event_ids, &result, &file_expr] (const auto& file) {
-                  if (std::regex_match(file, result, file_expr)) {
-                    event_ids.emplace_back(std::tuple {std::atoi(result[1].str().c_str()),
-                                                       std::atol(result[2].str().c_str())});
-                  }
-                  else {
-                    throw StrException {"event file " + file + " does not match expected filename pattern."};
-                  }
-                });
+  std::for_each(
+    folderContents.begin() + start_event_offset,
+    folderContents.end(),
+    [&event_ids, &result, &file_expr](const auto& file) {
+      if (std::regex_match(file, result, file_expr)) {
+        event_ids.emplace_back(std::tuple {std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())});
+      }
+      else {
+        throw StrException {"event file " + file + " does not match expected filename pattern."};
+      }
+    });
 
   read_files(folderContents.begin() + start_event_offset, folderContents.end(), events, event_offsets);
 
@@ -290,7 +291,6 @@ void read_files(
   // Add last offset
   event_offsets.push_back(accumulated_size);
 }
-
 
 /**
  * @brief Reads the geometry from foldername.

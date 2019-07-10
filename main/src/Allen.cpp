@@ -365,7 +365,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   if (number_of_slices <= number_of_threads) {
     warning_cout << "Setting number of slices to " << number_of_threads + 1 << endl;
     number_of_slices = number_of_threads + 1;
-  } else {
+  }
+  else {
     info_cout << "Using " << number_of_slices << " input slices." << endl;
   }
 
@@ -399,7 +400,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   }
   else {
     // The binary input provider expects the folders for the bank types as connections
-    vector<string> connections = {folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
+    vector<string> connections = {
+      folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
     input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, std::move(connections));
   }
