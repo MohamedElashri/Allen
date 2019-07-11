@@ -26,8 +26,8 @@ __device__ MiniState LookingForward::propagate_state_from_velo(
   const float y_mag_correction =
     dp_y_mag[layer][0] + magnet_state.y * dp_y_mag[layer][1] + magnet_state.y * magnet_state.y * dp_y_mag[layer][2];
 
-  //final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
-  final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  //final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   final_state.x += -y_mag_correction - x_mag_correction;
 
   return final_state;
@@ -48,8 +48,8 @@ __device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
 
   final_state.tx = tx_ty_corr * qop + UT_state.tx;
 
-  //final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
-  final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  //final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   return final_state;
 }
 __device__ float LookingForward::propagate_x_from_velo_multi_par(

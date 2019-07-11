@@ -97,10 +97,10 @@ __device__ void lf_triplet_seeding_impl(
   // }
 
   // Required constants for the chi2 calculation below
-  float extrap1 = LookingForward::get_extrap1(qop, dz1);
+  float extrap1 = LookingForward::get_extrap(qop, dz1);
   extrap1 *= extrap1;
   const float zdiff = dz2 / dz1;
-  const float extrap2 = LookingForward::get_extrap2(qop, dz2);
+  const float extrap2 = LookingForward::get_extrap(qop, dz2);
 
 // Tensor core specialization
 #if __CUDA_ARCH__ >= 700

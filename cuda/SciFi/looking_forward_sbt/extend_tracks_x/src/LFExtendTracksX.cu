@@ -48,8 +48,7 @@ __global__ void lf_extend_tracks_x(
       const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(1)];
 
       // Extrapolate to other layers
-      //for (int j = 0; j < LookingForward::number_of_x_layers; ++j) {
-      for (int j = 0; j < 5; ++j) {
+      for (int j = 0; j < LookingForward::number_of_x_layers; ++j) {
         // Make sure we don't have that layer populated already
         bool layer_populated = false;
         for (int k = 0; k < 3; ++k) {

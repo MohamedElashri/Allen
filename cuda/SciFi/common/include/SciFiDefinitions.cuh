@@ -122,7 +122,7 @@ namespace SciFi {
     static constexpr uint n_mats = 1024;
 
     // FIXME_GEOMETRY_HARDCODING
-    // todo: if this is changed with alignment, don't use constant
+    // todo: use dzdy defined in geometry, read by mat
     static constexpr float dzdy = 0.003601f;
 
     /**
