@@ -95,25 +95,25 @@ __global__ void lf_triplet_keep_best(
         const int current_insert_index = atomicAdd(dev_atomics_scifi + current_ut_track_index, 1);
         assert(current_insert_index < LookingForward::maximum_number_of_candidates_per_ut_track);
 
-        // uint16_t first_layer, last_layer;
-        // uint16_t h0, h2;
-        // const uint16_t h1 = (uint16_t) scifi_lf_candidates[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1] * LookingForward::maximum_number_of_candidates + h1_element];
-
-        // if (dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1] & 1) {
-        //   first_layer = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
-        //   last_layer = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
-        //   h0 = (uint16_t) scifi_lf_candidates[first_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
-        //   h2 = (uint16_t) scifi_lf_candidates[last_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
-        // } else {
-        //   first_layer = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
-        //   last_layer = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
-        //   h0 = (uint16_t) scifi_lf_candidates[first_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
-        //   h2 = (uint16_t) scifi_lf_candidates[last_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
-        // }
-
         const uint8_t layer_0 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
         const uint8_t layer_1 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1];
         const uint8_t layer_2 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
+
+        // uint16_t first_layer, last_layer;
+        // uint16_t h0, h2;
+        // const uint16_t h1 = (uint16_t) scifi_lf_candidates[layer_1 * LookingForward::maximum_number_of_candidates + h1_element];
+
+        // if (layer_1 & 1) {
+        //   first_layer = layer_0;
+        //   last_layer = layer_2;
+        //   h0 = (uint16_t) scifi_lf_candidates[first_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
+        //   h2 = (uint16_t) scifi_lf_candidates[last_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
+        // } else {
+        //   first_layer = layer_2;
+        //   last_layer = layer_0;
+        //   h0 = (uint16_t) scifi_lf_candidates[first_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h2_element]];
+        //   h2 = (uint16_t) scifi_lf_candidates[last_layer * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
+        // }
 
         const uint16_t h0 = (uint16_t) scifi_lf_candidates[layer_0 * LookingForward::maximum_number_of_candidates + dev_scifi_lf_triplet_best_h0h2[h0_element]];
         const uint16_t h1 = (uint16_t) scifi_lf_candidates[layer_1 * LookingForward::maximum_number_of_candidates + h1_element];
@@ -122,7 +122,7 @@ __global__ void lf_triplet_keep_best(
         const float x0 = scifi_hits.x0[event_offset + h0];
         const float x1 = scifi_hits.x0[event_offset + h1];
         //const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[first_layer];
-        const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0]];
+        const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
         const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_1];
 
         dev_scifi_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + current_insert_index] =

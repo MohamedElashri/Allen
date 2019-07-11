@@ -87,8 +87,8 @@ __device__ void lf_triplet_seeding_impl(
 {
   __shared__ float shared_partial_chi2[LookingForward::tile_size * LookingForward::tile_size];
 
-  // Storage for best chi2 from triplets of one h1 candidate
-  // this allows comparisons beyond the scope of the tiles in which the h0-h1-h2 combinations are treated
+  // /*Storage for best chi2 from triplets of one h1 candidate
+  //   this allows comparisons beyond the scope of the tiles in which the h0-h1-h2 combinations are treated */
   // const int16_t max_n_h1s_this_thread = LookingForward::maximum_number_of_candidates / LookingForward::n_threads_triplet_seeding + (LookingForward::maximum_number_of_candidates % LookingForward::n_threads_triplet_seeding != 0);
   // float best_chi2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1];
   // int8_t best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 * 2];
@@ -170,8 +170,8 @@ __device__ void lf_triplet_seeding_impl(
       nvcuda::wmma::mma_sync(d_frag, a_frag, b_frag, c_frag);
       nvcuda::wmma::store_matrix_sync(shared_partial_chi2, d_frag, LookingForward::tile_size, nvcuda::wmma::mem_row_major);
 
-      // Iterate over all h1s
-      // Find best chi2, h0 and h2 using the partial chi2 from before
+      /* Iterate over all h1s
+         Find best chi2, h0 and h2 using the partial chi2 from before */
       for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
         const float x1_zdiff =
           scifi_hits_x0
@@ -200,20 +200,22 @@ __device__ void lf_triplet_seeding_impl(
       }
 
       // lf_triplet_seeding_choose_best_triplets_for_h1(
-    //     scifi_hits_x0,
-    //     scifi_lf_candidates,
-    //     triplet_seed,
-    //     zdiff,
-    //     shared_partial_chi2,
-    //     extrap1,
-    //     h1_candidate_size,
-    //     i,
-    //     j,
-    //     max_chi2,
-    //     dev_looking_forward_constants,
-    //     max_n_h1s_this_thread,
-    //     best_chi2_h1s_this_thread,
-    //     best_h0_h2_h1s_this_thread);
+      //   scifi_hits_x0,
+      //   scifi_lf_candidates,
+      //   layer_0,
+      //   layer_1,
+      //   layer_2,
+      //   zdiff,
+      //   shared_partial_chi2,
+      //   extrap1,
+      //   h1_candidate_size,
+      //   i,
+      //   j,
+      //   max_chi2,
+      //   dev_looking_forward_constants,
+      //   max_n_h1s_this_thread,
+      //   best_chi2_h1s_this_thread,
+      //   best_h0_h2_h1s_this_thread);
 
     }
   }
@@ -248,8 +250,8 @@ __device__ void lf_triplet_seeding_impl(
       __syncthreads();
 
 
-      // Iterate over all h1s
-      // Find best chi2, h0 and h2 using the partial chi2 from before
+      /* Iterate over all h1s
+         Find best chi2, h0 and h2 using the partial chi2 from before */
       for (int16_t h1_rel = threadIdx.x; h1_rel < h1_candidate_size; h1_rel += blockDim.x) {
         const float x1_zdiff =
           scifi_hits_x0
@@ -280,7 +282,9 @@ __device__ void lf_triplet_seeding_impl(
        // lf_triplet_seeding_choose_best_triplets_for_h1(
        //  scifi_hits_x0,
        //  scifi_lf_candidates,
-       //  triplet_seed,
+       //  layer_0,
+       //  layer_1,
+       //  layer_2,
        //  zdiff,
        //  shared_partial_chi2,
        //  extrap1,
