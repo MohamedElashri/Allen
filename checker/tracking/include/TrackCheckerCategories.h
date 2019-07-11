@@ -553,6 +553,13 @@ namespace Categories {
        },
      }),
      TrackEffReport({
+       "Long from B, p > 3 GeV, pt > 0.5 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+                mcp.inEta2_5();
+       },
+      }),
+     TrackEffReport({
        "Long from B, p > 3 GeV, pt > 0.5 GeV, eta < 2.5, (phi-pi/2)<0.8",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&

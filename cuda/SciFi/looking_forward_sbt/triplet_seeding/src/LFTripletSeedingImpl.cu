@@ -64,56 +64,6 @@ __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
 #endif
       }
     }
-
-    // populate chi2 by which we sort
-    float chi2_tile[LookingForward::tile_size*LookingForward::tile_size];
-    for (int16_t k = 0; k < LookingForward::tile_size * LookingForward::tile_size; ++k) {
-      float chi2 = shared_partial_chi2[k] - x1_zdiff;
-      chi2 = extrap1 + chi2 * chi2;
-      chi2_tile[k] = chi2;
-    }
-
-    // Sort chi2 of this tile
-    int16_t best_chi2_tile[LookingForward::maximum_number_of_triplets_per_h1];
-    for (int16_t k = 0; k <  LookingForward::maximum_number_of_triplets_per_h1; ++k) {
-      best_chi2_tile[k] = -1;
-    }
-    for (int16_t k = 0; k < LookingForward::tile_size * LookingForward::tile_size; ++k) {
-      const float chi2 = chi2_tile[k];
-      if (chi2 < max_chi2) {
-        int16_t insert_position = 0;
-        for (int16_t l = 0; l < LookingForward::tile_size * LookingForward::tile_size; ++l) {
-          const float other_chi2 = chi2_tile[l];
-          if (chi2 > other_chi2 || (chi2 == other_chi2 && k < l)) {
-            ++insert_position;
-          }
-        }
-        if (insert_position < LookingForward::maximum_number_of_triplets_per_h1) {
-          best_chi2_tile[insert_position] = k;
-        }
-      }
-    }
-
-    // Insert the best candidates in the array of all triplets for this h1 (not only the tile)
-    // if the chi2 is better than previous candidates
-    int16_t pos = 0;
-    for (int16_t k = 0; k < LookingForward::maximum_number_of_triplets_per_h1; ++k) {
-      if (best_chi2_tile[pos] < 0) break;
-      if ( chi2_tile[best_chi2_tile[pos]] < best_chi2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + k] ) {
-        best_chi2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + k] = chi2_tile[best_chi2_tile[pos]];
-#if __CUDA_ARCH__ >= 700
-        best_h0_h2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + k] = h0_tile_index * LookingForward::tile_size + (best_chi2_tile[pos] >> LookingForward::tile_size_shift_div);
-        best_h0_h2[LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + k] =
-          h2_tile_index * LookingForward::tile_size + (best_chi2_tile[pos] & LookingForward::tile_size_mask);
-#else
-        best_h0_h2[h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + k] = h0_tile_index * LookingForward::tile_size + (best_chi2_tile[pos] & LookingForward::tile_size_mask);
-        best_h0_h2[LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 + h1_rel * LookingForward::maximum_number_of_triplets_per_h1 + k] =
-          h2_tile_index * LookingForward::tile_size + (best_chi2_tile[pos] >> LookingForward::tile_size_shift_div);
-#endif
-        pos++;
-      }
-    }
-
   }
 
 }
