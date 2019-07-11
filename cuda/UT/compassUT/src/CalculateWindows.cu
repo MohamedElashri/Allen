@@ -84,7 +84,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   // -- If you ever change the Table in the magnet tool, this will be wrong
   const float absSlopeY = std::abs(velo_state.ty);
   const int index = (int) (absSlopeY * 100 + 0.5f);
-  assert(3 + 4 * index < PrUTMagnetTool::N_dxLay_vals);
+  assert(3 + 4 * index < UTMagnetTool::N_dxLay_vals);
   const float normFact[4] {
     fudge_factors[4 * index], fudge_factors[1 + 4 * index], fudge_factors[2 + 4 * index], fudge_factors[3 + 4 * index]};
 
