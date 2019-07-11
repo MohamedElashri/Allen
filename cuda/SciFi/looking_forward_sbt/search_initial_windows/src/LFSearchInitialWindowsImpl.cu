@@ -38,8 +38,7 @@ __device__ void lf_search_initial_windows_p_impl(
       UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
 
     const float xInZone = stateInZone.x;
-
-    const float yInZone = stateInZone.y;
+    //const float yInZone = stateInZone.y;
 
     const float xMag = LookingForward::state_at_z(UT_state, LookingForward::z_magnet).x;
 
@@ -69,7 +68,7 @@ __device__ void lf_search_initial_windows_p_impl(
         LookingForward::y_at_z(stateInZone, this_uv_z) * constArrays->uvZone_dxdy[i];
       const float xInUvCorr = xInUv - UvCorr;
       const float xMinUV = xInUvCorr - 800.f;
-      const float xMaxUV = xInUvCorr + 1600.f;
+      //const float xMaxUV = xInUvCorr + 1600.f;
       const float dz_ratio = (this_uv_z - zZone) / (LookingForward::z_magnet - zZone);
 
       // Get bounds in UV layers

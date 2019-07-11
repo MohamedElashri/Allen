@@ -127,10 +127,10 @@ __global__ void lf_triplet_keep_best(
                             h1,
                             h2,
                             //first_layer,
-                            dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0],
+                            (uint16_t)dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0],
                             (uint16_t) relative_middle_layer,
                             //last_layer,
-                            dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2],
+                            (uint16_t)dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2],
                             best_chi2[k],
                             LookingForward::qop_update_multi_par(
                               dev_ut_states[current_ut_track_index],
