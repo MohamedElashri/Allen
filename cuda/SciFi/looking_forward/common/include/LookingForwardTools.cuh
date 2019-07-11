@@ -41,19 +41,6 @@ __device__ inline float get_extrap(const float qop, const float dz) {
     // new parametrization
     return (LookingForward::forward_param * dz * dz + LookingForward::d_ratio * dz * dz * dz) * qop;
   }
-
-  // __device__ inline float get_extrap1(const float qop, const float dz1) {
-  //   //return LookingForward::forward_param * qop * dz1 * dz1;
-  //   // new parametrization
-  //   return (LookingForward::forward_param * dz1 * dz1 + LookingForward::d_ratio * dz1 * dz1 * dz1) * qop;
-  // }
-
-  // __device__ inline float get_extrap2(const float qop, const float dz2) {
-  //   //return LookingForward::forward_param * qop * dz2 * dz2;
-  //  // new parametrization
-  //  return (LookingForward::forward_param * dz2 * dz2 + LookingForward::d_ratio * dz2 * dz2 * dz2) * qop;
-  // }
-
   __device__ float propagate_x_from_velo_multi_par(
     const MiniState& UT_state,
     const float qop,

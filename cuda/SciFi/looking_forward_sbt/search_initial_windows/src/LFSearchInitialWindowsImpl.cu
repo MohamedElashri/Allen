@@ -68,7 +68,6 @@ __device__ void lf_search_initial_windows_p_impl(
         LookingForward::y_at_z(stateInZone, this_uv_z) * constArrays->uvZone_dxdy[i];
       const float xInUvCorr = xInUv - UvCorr;
       const float xMinUV = xInUvCorr - 800.f;
-      //const float xMaxUV = xInUvCorr + 1600.f;
       const float dz_ratio = (this_uv_z - zZone) / (LookingForward::z_magnet - zZone);
 
       // Get bounds in UV layers
@@ -78,16 +77,9 @@ __device__ void lf_search_initial_windows_p_impl(
       const int uv_zone_size = scifi_hit_count.zone_number_of_hits(constArrays->uvZones[iZone]);
       const int hits_within_uv_bounds =
         binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
-      // const int hits_within_uv_bounds_start =
-      //   binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
-      // const int hits_within_uv_bounds_end =
-      //   binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin + hits_within_uv_bounds_start, uv_zone_size - hits_within_uv_bounds_start, xMaxUV);
-
 
       initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_uv_bounds + uv_zone_offset_begin;
       initial_windows[(i * 8 + 3) * number_of_tracks] = uv_zone_size - hits_within_uv_bounds;
-       // initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_uv_bounds_start + uv_zone_offset_begin;
-       // initial_windows[(i * 8 + 3) * number_of_tracks] = hits_within_uv_bounds_end - hits_within_uv_bounds_start;
 
       float* initial_windows_f = (float*) &initial_windows[0];
       initial_windows_f[(i * 8 + 4) * number_of_tracks] = xMag;

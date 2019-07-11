@@ -45,7 +45,6 @@ __device__ float lf_track_quality(
     mlpInput[6] = ay - ay1;
 
     quality = GetMvaValue(mlpInput, tmva1);
-    // printf("lf qop %f prforward qop %f\n", track.qop, qOverP);
     track.qop = qOverP;
   }
 
