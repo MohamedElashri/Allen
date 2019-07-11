@@ -1,51 +1,6 @@
 #include "LookingForwardTools.cuh"
 #include "BinarySearch.cuh"
 
-// straight line extrapolation of MiniState to other z position
-__device__ MiniState LookingForward::state_at_z(const MiniState& state, const float z)
-{
-  return {state.x + (z - state.z) * state.tx, state.y + (z - state.z) * state.ty, z, state.tx, state.ty};
-}
-
-// straight line extrapolation of MiniState to other z position
-__device__ MiniState LookingForward::state_at_z_dzdy_corrected(const MiniState& state, const float z)
-{
-  return {state.x + (z - state.z) * state.tx, y_at_z_dzdy_corrected(state, z), z, state.tx, state.ty};
-}
-
-__device__ float LookingForward::x_at_z(const MiniState& state, const float z)
-{
-  float xf = state.x + (z - state.z) * state.tx;
-  return xf;
-}
-
-// straight line extrapolation of y to other z position
-__device__ float LookingForward::y_at_z(const MiniState& state, const float z)
-{
-  return state.y + (z - state.z) * state.ty;
-}
-
-// straight line extrapolation of y to other z position including the SciFi dz_dy correction
-__device__ float LookingForward::y_at_z_dzdy_corrected(const MiniState& state, const float z)
-{
-  return (state.y + (z - state.z) * state.ty)/(1.f - state.ty*SciFi::Constants::dzdy);
-}
-
-__device__ float LookingForward::linear_propagation(float x_0, float tx, float dz) { return x_0 + tx * dz; }
-
-__device__ float LookingForward::get_extrap1(const float qop, const float dz1) {
-    return LookingForward::forward_param * qop * dz1 * dz1;
-    // new parametrization
-    //return (LookingForward::forward_param * dz1 * dz1 + LookingForward::d_ratio * dz1 * dz1 * dz1) * qop;
-  }
-
-__device__ float LookingForward::get_extrap2(const float qop, const float dz2) {
-   return LookingForward::forward_param * qop * dz2 * dz2;
-   // new parametrization
-   // return (LookingForward::forward_param * dz2 * dz2 +
-   //                         LookingForward::d_ratio * dz2 * dz2 * dz2) * qop;
-  }
-
 __device__ MiniState LookingForward::propagate_state_from_velo(
   const MiniState& UT_state,
   float qop,
@@ -263,11 +218,6 @@ __device__ std::tuple<int, float> LookingForward::get_best_hit(
   return std::tuple<int, float> {best_index, min_chi2};
 }
 
-__device__ float LookingForward::scifi_propagation(const float x_0, const float tx, const float qop, const float dz)
-{
-  return linear_propagation(x_0, tx, dz) + LookingForward::forward_param * qop * dz * dz;
-}
-
 __device__ float LookingForward::tx_ty_corr_multi_par(
     const MiniState& ut_state,
     const int station,
@@ -315,22 +265,4 @@ __device__ float LookingForward::qop_update_multi_par(
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   return (slope - ut_state.tx) / LookingForward::tx_ty_corr_multi_par(ut_state, station, dev_looking_forward_constants);
-}
-
-__device__ float LookingForward::qop_update(
-  const float ut_state_tx,
-  const float h0_x,
-  const float h0_z,
-  const float h1_x,
-  const float h1_z,
-  const float ds_p_param_layer_inv)
-{
-  const float slope = (h1_x - h0_x) / std::abs(h1_z - h0_z);
-  return (slope - ut_state_tx) * ds_p_param_layer_inv;
-}
-
-__device__ float
-LookingForward::qop_update(const float ut_state_tx, const float SciFi_tx, const float ds_p_param_layer_inv)
-{
-  return (SciFi_tx - ut_state_tx) * ds_p_param_layer_inv;
 }

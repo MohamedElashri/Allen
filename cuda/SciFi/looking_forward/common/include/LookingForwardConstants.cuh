@@ -114,7 +114,7 @@ namespace LookingForward {
     ======================================*/
 
     // Triplet creation
-    int triplet_seeding_layers[n_triplet_seeds][3]{
+    uint8_t triplet_seeding_layers[n_triplet_seeds][3]{
       {0, 1, 2},
       {1, 2, 3},
       {2, 3, 4},
