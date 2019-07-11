@@ -292,7 +292,7 @@ __global__ void fit_secondary_vertices(
   const ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
 
   // Primary vertices.
-  const uint n_pvs_event = *(dev_number_of_multi-fit_vertices + event_number);
+  const uint n_pvs_event = *(dev_number_of_multi_fit_vertices + event_number);
   gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
                                         n_pvs_event};
   
