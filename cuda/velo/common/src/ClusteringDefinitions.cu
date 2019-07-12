@@ -25,24 +25,24 @@ VeloGeometry::VeloGeometry(std::vector<char> const& geometry)
 {
   char const* p = geometry.data();
 
-  auto copy_array = [this, &p] (const size_t N, float* d) {
-                      const size_t n = ((size_t*)p)[0];
-                      if (n != N) {
-                        error_cout << n << " != " << N << std::endl;
-                      }
-                      p += sizeof(size_t);
-                      memcpy(d, p, sizeof(float) * n);
-                      p += sizeof(float) * n;
-                    };
+  auto copy_array = [this, &p](const size_t N, float* d) {
+    const size_t n = ((size_t*) p)[0];
+    if (n != N) {
+      error_cout << n << " != " << N << std::endl;
+    }
+    p += sizeof(size_t);
+    memcpy(d, p, sizeof(float) * n);
+    p += sizeof(float) * n;
+  };
 
   copy_array(Velo::Constants::n_modules, module_zs);
   copy_array(Velo::Constants::number_of_sensor_columns, local_x);
   copy_array(Velo::Constants::number_of_sensor_columns, x_pitch);
 
-  size_t n_ltg = ((size_t*)p)[0];
+  size_t n_ltg = ((size_t*) p)[0];
   assert(n_ltg == Velo::Constants::n_sensors);
   p += sizeof(size_t);
-  n_trans = ((size_t*)p)[0];
+  n_trans = ((size_t*) p)[0];
   assert(n_trans == 12);
   p += sizeof(size_t);
   for (size_t i = 0; i < n_ltg; ++i) {

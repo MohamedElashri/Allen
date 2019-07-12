@@ -19,7 +19,11 @@ __host__ __device__ float zMagnet(const MiniState& velo_state, const SciFi::Trac
 
 __host__ __device__ float calcDxRef(float pt, const MiniState& velo_state);
 
-__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, const MiniState& velo_state, const float magnet_polarity);
+__host__ __device__ float calcqOverP(
+  float bx,
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const float magnet_polarity);
 
 __host__ __device__ float evalParameterizationX(const float* params, float z);
 

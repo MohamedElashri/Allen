@@ -3,9 +3,7 @@
 /**
  * @brief Calculates the parameters according to a root means square fit
  */
-__device__ VeloState means_square_fit(
-  Velo::Consolidated::Hits& consolidated_hits,
-  const Velo::TrackHits& track)
+__device__ VeloState means_square_fit(Velo::Consolidated::Hits& consolidated_hits, const Velo::TrackHits& track)
 {
   VeloState state;
 
@@ -59,10 +57,7 @@ __device__ VeloState means_square_fit(
 }
 
 template<typename T>
-__device__ void populate(
-  const Velo::TrackHits& track,
-  T* __restrict__ a,
-  const T* __restrict__ b)
+__device__ void populate(const Velo::TrackHits& track, T* __restrict__ a, const T* __restrict__ b)
 {
   for (int i = 0; i < track.hitsNum; ++i) {
     const auto hit_index = track.hits[i];
@@ -111,7 +106,8 @@ __global__ void consolidate_velo_tracks(
     populate<float>(track, consolidated_hits.x, float_dev_velo_cluster_container + 5 * number_of_hits + hit_offset);
     populate<float>(track, consolidated_hits.y, float_dev_velo_cluster_container + hit_offset);
     populate<float>(track, consolidated_hits.z, float_dev_velo_cluster_container + number_of_hits + hit_offset);
-    populate<uint32_t>(track, consolidated_hits.LHCbID, (uint32_t*) dev_velo_cluster_container + 2 * number_of_hits + hit_offset);
+    populate<uint32_t>(
+      track, consolidated_hits.LHCbID, (uint32_t*) dev_velo_cluster_container + 2 * number_of_hits + hit_offset);
 
     // Calculate and store fit in consolidated container
     VeloState beam_state = means_square_fit(consolidated_hits, track);

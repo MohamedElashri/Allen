@@ -363,7 +363,7 @@ __device__ void save_track(
   }
   const float evalParams[3] = {p, pt, finalParams[3]};
   const float discriminant = evaluateLinearDiscriminant(evalParams, nHits);
-  if( discriminant < UT::Constants::LD3Hits ) return;
+  if (discriminant < UT::Constants::LD3Hits) return;
 
   // the track will be added
   int n_tracks = atomicAdd(n_veloUT_tracks, 1);

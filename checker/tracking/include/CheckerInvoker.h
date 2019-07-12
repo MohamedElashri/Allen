@@ -99,7 +99,7 @@ struct CheckerInvoker {
           auto ids = track.ids();
           std::sort(std::begin(ids), std::end(ids));
           bool containsDuplicates = (std::unique(std::begin(ids), std::end(ids))) != std::end(ids);
-           if (containsDuplicates) { 
+          if (containsDuplicates) {
             warning_cout << "WARNING: Track #" << i_track << " contains duplicate LHCb IDs" << std::endl << std::hex;
             for (auto id : ids) {
               warning_cout << "0x" << id << ", ";

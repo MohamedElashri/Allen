@@ -51,34 +51,34 @@ __host__ __device__ float fastfitter(
   const float zDiff = 0.001f * (zKink - UT::Constants::zMidUT);
 
   // -- This is to avoid division by zero...
-  const float pHelper   = std::max( float(std::abs(best_params.qp * qpxz2p)), float(1e-9));
-  const float invP      = pHelper*sqrtf(1.0f+ty*ty);
-  
+  const float pHelper = std::max(float(std::abs(best_params.qp * qpxz2p)), float(1e-9));
+  const float invP = pHelper * sqrtf(1.0f + ty * ty);
+
   // these resolution are semi-empirical, could be tuned and might not be correct for low momentum.
   // this is the resolution due to multiple scattering between Velo and UT
-  const float error1    = 0.14f + 10000.0f*invP; 
+  const float error1 = 0.14f + 10000.0f * invP;
   // this is the resolution due to the finite Velo resolution
-  const float error2    = 0.12f + 3000.0f*invP;  
-  const float error     = error1*error1 + error2*error2;
-  const float weight    = 1.0f/error;
-  
-  float mat[6]          = {weight, weight * zDiff, weight * zDiff * zDiff, 0.0f, 0.0f, 0.0f};
-  float rhs[3]          = {weight * xMidField, weight * xMidField * zDiff, 0.0f };
+  const float error2 = 0.12f + 3000.0f * invP;
+  const float error = error1 * error1 + error2 * error2;
+  const float weight = 1.0f / error;
+
+  float mat[6] = {weight, weight * zDiff, weight * zDiff * zDiff, 0.0f, 0.0f, 0.0f};
+  float rhs[3] = {weight * xMidField, weight * xMidField * zDiff, 0.0f};
 
   const float yyProto = velo_state.y - velo_state.ty * velo_state.z;
-  
+
   for (int i = 0; i < UT::Constants::n_layers; ++i) {
     if (best_hits[i] != -1) {
       const auto hit = best_hits[i];
-      
+
       const int plane_code = i;
       const float dxDy = ut_dxDy[plane_code];
       const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit]);
       const float ui = ut_hits.xAt(hit, yy, dxDy);
       const float dz = 0.001f * (ut_hits.zAtYEq0[hit] - UT::Constants::zMidUT);
-      const float w = ut_hits.weight[hit];  
-      const float t = ut_hits.sinT(hit, dxDy); 
-      
+      const float w = ut_hits.weight[hit];
+      const float t = ut_hits.sinT(hit, dxDy);
+
       mat[0] += w;
       mat[1] += w * dz;
       mat[2] += w * dz * dz;
@@ -91,7 +91,7 @@ __host__ __device__ float fastfitter(
       rhs[2] += w * ui * t;
     }
   }
-  
+
   const float a11 = mat[2] * mat[5] - mat[4] * mat[4];
   const float a12 = mat[4] * mat[3] - mat[1] * mat[5];
   const float a13 = mat[1] * mat[4] - mat[2] * mat[3];
