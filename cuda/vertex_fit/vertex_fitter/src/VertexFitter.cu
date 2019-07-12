@@ -287,14 +287,15 @@ __global__ void fit_secondary_vertices(
   // Track-PV association table.
   const Associate::Consolidated::Table kalman_pv_ipchi2 {dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks};
   const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
-
+  
   // Kalman fitted tracks.
   const ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
 
   // Primary vertices.
+  const uint n_pvs_event = *(dev_number_of_multi_fit_vertices + event_number);
   gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-                                        *(dev_number_of_multi_fit_vertices + event_number)};
-
+                                        n_pvs_event};
+  
   // Secondary vertices.
   VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
 
@@ -307,6 +308,11 @@ __global__ void fit_secondary_vertices(
                         ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
       event_secondary_vertices[vertex_idx].chi2 = -1;
     }
+
+    // Don't fit SVs in events with no PVs.
+    // TODO: Decide how to handle events with no PVs.
+    if (n_pvs_event == 0) return;
+    
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
 
     // Preselection on first track.
@@ -339,7 +345,7 @@ __global__ void fit_secondary_vertices(
       // Fill extra info.
       int ipv = pv_table.value[i_track] < pv_table.value[j_track] ? pv_table.pv[i_track] : pv_table.pv[j_track];
       auto pv = vertices[ipv];
-      fill_extra_info(event_secondary_vertices[vertex_idx], pv, trackA, trackB);
+      fill_extra_info(event_secondary_vertices[vertex_idx], pv, trackA, trackB);      
     }
   }
 }
