@@ -1,2 +1,3 @@
-template <typename Derived>
-class GPUAlgorithm{};
+template<typename Derived>
+class GPUAlgorithm {
+};

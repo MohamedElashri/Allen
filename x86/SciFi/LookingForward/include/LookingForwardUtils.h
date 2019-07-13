@@ -234,7 +234,7 @@ __host__ void collectAllXHits_proto_p(
   const MiniState& velo_state,
   const MiniState& UT_state,
   const float qOverP,
-  int side, 
+  int side,
   std::array<int, 2 * 6>& windows_x,
   std::array<int, 2 * 6>& windows_uv,
   std::array<float, 4 * 6>& parameters_uv,

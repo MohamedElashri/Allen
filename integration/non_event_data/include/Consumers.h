@@ -112,9 +112,9 @@ namespace Consumers {
     static constexpr size_t n_data_blocks = 27;
 
     MuonLookupTables(
-                     std::vector<char>& host_muon_tables_raw,
-                     char*& dev_muon_tables_raw,
-                     Muon::MuonTables*& muon_tables);
+      std::vector<char>& host_muon_tables_raw,
+      char*& dev_muon_tables_raw,
+      Muon::MuonTables*& muon_tables);
 
     void consume(std::vector<char> const& data) override;
 

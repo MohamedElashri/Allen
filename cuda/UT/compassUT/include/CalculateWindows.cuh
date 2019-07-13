@@ -1,6 +1,7 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
+#include "UTMagnetToolDefinitions.h"
 #include "VeloConsolidated.cuh"
 #include "UTEventModel.cuh"
 #include "States.cuh"
