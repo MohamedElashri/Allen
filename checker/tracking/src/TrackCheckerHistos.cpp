@@ -95,10 +95,14 @@ TrackCheckerHistos::TrackCheckerHistos(const std::vector<HistoCategory>& histo_c
     std::make_unique<TH1D>("matched_isMuon_P_reconstructed", "matched_isMuon_P_reconstructed", 10, 0., 100000.);
   h_not_matched_isMuon_P_reconstructed =
     std::make_unique<TH1D>("not_matched_isMuon_P_reconstructed", "not_matched_isMuon_P_reconstructed", 10, 0., 100000.);
-  h_muon_Pt_reconstructible = std::make_unique<TH1D>("muon_Pt_reconstructible", "muon_Pt_reconstructible",  30, 0., 5000.);
-  h_not_muon_Pt_reconstructible = std::make_unique<TH1D>("not_muon_Pt_reconstructible", "not_muon_Pt_reconstructible",  30, 0., 5000.);
-  h_matched_isMuon_Pt_reconstructed = std::make_unique<TH1D>("matched_isMuon_Pt_reconstructed", "matched_isMuon_Pt_reconstructed",  30, 0., 5000.);
-  h_not_matched_isMuon_Pt_reconstructed = std::make_unique<TH1D>("not_matched_isMuon_Pt_reconstructed", "not_matched_isMuon_Pt_reconstructed",  30, 0., 5000.);
+  h_muon_Pt_reconstructible =
+    std::make_unique<TH1D>("muon_Pt_reconstructible", "muon_Pt_reconstructible", 30, 0., 5000.);
+  h_not_muon_Pt_reconstructible =
+    std::make_unique<TH1D>("not_muon_Pt_reconstructible", "not_muon_Pt_reconstructible", 30, 0., 5000.);
+  h_matched_isMuon_Pt_reconstructed =
+    std::make_unique<TH1D>("matched_isMuon_Pt_reconstructed", "matched_isMuon_Pt_reconstructed", 30, 0., 5000.);
+  h_not_matched_isMuon_Pt_reconstructed =
+    std::make_unique<TH1D>("not_matched_isMuon_Pt_reconstructed", "not_matched_isMuon_Pt_reconstructed", 30, 0., 5000.);
 
   h_muon_Phi_reconstructible =
     std::make_unique<TH1D>("muon_Phi_reconstructible", "muon_Phi_reconstructible", 15, -3.142, 3.142);

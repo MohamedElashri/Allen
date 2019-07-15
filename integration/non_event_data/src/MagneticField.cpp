@@ -9,17 +9,22 @@ namespace {
   using std::to_string;
 } // namespace
 
-Consumers::MagneticField::MagneticField(float*& dev_magnet_polarity) : m_dev_magnet_polarity {dev_magnet_polarity} {}
+Consumers::MagneticField::MagneticField(gsl::span<float>& dev_magnet_polarity) :
+  m_dev_magnet_polarity {dev_magnet_polarity}
+{}
 
 void Consumers::MagneticField::consume(std::vector<char> const& data)
 {
-  if (data.size() != m_size) {
-    throw StrException {string {"sizes don't match: "} + to_string(m_size) + " " + to_string(data.size())};
-  }
-  if (!m_dev_magnet_polarity.get()) {
+  if (m_dev_magnet_polarity.get().empty()) {
     // Allocate space
-    char* p = nullptr;
-    cudaCheck(cudaMalloc((void**) &m_dev_magnet_polarity.get(), data.size()));
+    float* p = nullptr;
+    cudaCheck(cudaMalloc((void**) &p, data.size()));
+    m_dev_magnet_polarity.get() = {p, data.size() / sizeof(float)};
   }
-  cudaCheck(cudaMemcpy(m_dev_magnet_polarity, data.data(), data.size(), cudaMemcpyHostToDevice));
+  else if (data.size() != m_dev_magnet_polarity.get().size()) {
+    throw StrException {string {"sizes don't match: "} + to_string(m_dev_magnet_polarity.get().size()) + " " +
+                        to_string(data.size())};
+  }
+
+  cudaCheck(cudaMemcpy(m_dev_magnet_polarity.get().data(), data.data(), data.size(), cudaMemcpyHostToDevice));
 }

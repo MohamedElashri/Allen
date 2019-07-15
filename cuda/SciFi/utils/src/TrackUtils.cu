@@ -41,7 +41,11 @@ __host__ __device__ float calcDxRef(float pt, const MiniState& velo_state)
   return 3973000.f * sqrtf(m_slope2) / pt - 2200.f * ty2 - 1000.f * tx2; // tune this window
 }
 
-__host__ __device__ float calcqOverP(float bx, const SciFi::Tracking::Arrays* constArrays, const MiniState& velo_state, const float magnet_polarity)
+__host__ __device__ float calcqOverP(
+  float bx,
+  const SciFi::Tracking::Arrays* constArrays,
+  const MiniState& velo_state,
+  const float magnet_polarity)
 {
 
   float qop = 1.0f / Gaudi::Units::GeV;
@@ -100,9 +104,9 @@ __host__ __device__ void getTrackParameters(
 __host__ __device__ float
 trackToHitDistance(const float trackParameters[SciFi::Tracking::nTrackParams], const SciFi::Hits& scifi_hits, int hit)
 {
-  const float z_Hit = scifi_hits.z0[hit] + scifi_hits.dzdy(hit) * evalParameterizationY(trackParameters + 4, scifi_hits.z0[hit]);
+  const float z_Hit =
+    scifi_hits.z0[hit] + scifi_hits.dzdy(hit) * evalParameterizationY(trackParameters + 4, scifi_hits.z0[hit]);
   const float x_track = evalParameterizationX(trackParameters, z_Hit);
   const float y_track = evalParameterizationY(trackParameters + 4, z_Hit);
   return scifi_hits.x0[hit] + y_track * scifi_hits.dxdy(hit) - x_track;
 }
-

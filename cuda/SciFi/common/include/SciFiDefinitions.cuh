@@ -21,9 +21,9 @@ namespace SciFi {
   namespace Tracking {
 
     // The base PT threshold which is common to all algorithms
-    constexpr float minPt = 500 * Gaudi::Units::MeV; 
+    constexpr float minPt = 500 * Gaudi::Units::MeV;
 
-    constexpr int max_scifi_hits = 20;  // for x and u/v layers
+    constexpr int max_scifi_hits = 20; // for x and u/v layers
     constexpr int nTrackParams = 9;
 
     constexpr float tolYMag = 10. * Gaudi::Units::mm;
@@ -44,7 +44,7 @@ namespace SciFi {
 
     // z Reference plane
     constexpr float zReference = 8520. * Gaudi::Units::mm; // in T2
-    constexpr float zRefInv = 1.f / zReference; 
+    constexpr float zRefInv = 1.f / zReference;
 
     // TODO: CHECK THESE VALUES USING FRAMEWORK
     constexpr float xLim_Max = 3300.;
@@ -53,12 +53,12 @@ namespace SciFi {
     constexpr float yLim_Min = -25.;
 
     // TO BE READ FROM XML EVENTUALLY
-    //constexpr float magscalefactor = -1;
+    // constexpr float magscalefactor = -1;
     constexpr int zoneoffsetpar = 6;
 
     struct Arrays {
       // Returns whether the current layer is an X plane
-      const bool is_x_plane [12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
+      const bool is_x_plane[12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
 
       // the Magnet Parametrization
       // parameterized in offset [0], (slope difference due to kick)^2 [1],
@@ -106,7 +106,7 @@ namespace SciFi {
                               2.246931985749485,
                               2.2797556995480273};
     };
- 
+
   } // namespace Tracking
 
   namespace Constants {

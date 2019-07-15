@@ -71,20 +71,16 @@ struct VeloRawBank {
  * @brief Velo geometry description typecast.
  */
 struct VeloGeometry {
-  size_t size;
-  float* local_x;
-  float* x_pitch;
-  float* ltg;
+  size_t n_trans;
+  float module_zs[Velo::Constants::n_modules];
+  float local_x[Velo::Constants::number_of_sensor_columns];
+  float x_pitch[Velo::Constants::number_of_sensor_columns];
+  float ltg[12 * Velo::Constants::n_sensors];
 
   /**
    * @brief Typecast from std::vector.
    */
   VeloGeometry(const std::vector<char>& geometry);
-
-  /**
-   * @brief Just typecast, no size check.
-   */
-  __device__ __host__ VeloGeometry(const char* geometry);
 };
 
 __device__ __host__ uint32_t get_channel_id(uint sensor, uint chip, uint col, uint row);

@@ -32,15 +32,11 @@
  */
 struct Constants {
 
-  std::array<uint8_t, VeloClustering::lookup_table_size> host_candidate_ks;
-  std::array<float, 9> host_inv_clus_res;
-
-  float* dev_velo_module_zs = nullptr;
-  uint8_t* dev_velo_candidate_ks = nullptr;
-  uint8_t* dev_velo_sp_patterns = nullptr;
-  float* dev_velo_sp_fx = nullptr;
-  float* dev_velo_sp_fy = nullptr;
-  char* dev_velo_geometry = nullptr;
+  gsl::span<uint8_t> dev_velo_candidate_ks;
+  gsl::span<uint8_t> dev_velo_sp_patterns;
+  gsl::span<float> dev_velo_sp_fx;
+  gsl::span<float> dev_velo_sp_fy;
+  VeloGeometry* dev_velo_geometry = nullptr;
 
   std::vector<char> host_ut_geometry;
   std::array<uint, UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1> host_ut_region_offsets;
@@ -58,6 +54,7 @@ struct Constants {
   gsl::span<char> dev_ut_boards;
   UTMagnetTool* dev_ut_magnet_tool = nullptr;
 
+  std::array<float, 9> host_inv_clus_res;
   SciFi::Tracking::TMVA* dev_scifi_tmva1 = nullptr;
   SciFi::Tracking::TMVA* dev_scifi_tmva2 = nullptr;
   SciFi::Tracking::Arrays* dev_scifi_constArrays;
@@ -68,10 +65,10 @@ struct Constants {
   std::vector<char> host_scifi_geometry;
 
   // Beam location
-  float* dev_beamline = nullptr;
+  gsl::span<float> dev_beamline;
 
   // Magnet polarity
-  float* dev_magnet_polarity = nullptr;
+  gsl::span<float> dev_magnet_polarity;
 
   // Looking forward
   LookingForward::Constants host_looking_forward_constants;

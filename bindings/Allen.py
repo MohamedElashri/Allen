@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 import HeaderPath
 from GaudiPython.Bindings import AppMgr, gbl
 from Configurables import LHCbApp, CondDB, ApplicationMgr

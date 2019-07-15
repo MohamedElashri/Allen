@@ -29,7 +29,7 @@ void SequenceVisitor::visit<pv_beamline_histo_t>(
     arguments.offset<dev_velo_track_hit_number>(),
     arguments.offset<dev_pvtracks>(),
     arguments.offset<dev_zhisto>(),
-    constants.dev_beamline);
+    constants.dev_beamline.data());
 
   state.invoke();
 

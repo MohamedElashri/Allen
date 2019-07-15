@@ -46,7 +46,7 @@ void SequenceVisitor::visit<velo_estimate_input_size_t>(
     arguments.offset<dev_cluster_candidates>(),
     arguments.offset<dev_event_list>(),
     arguments.offset<dev_event_order>(),
-    constants.dev_velo_candidate_ks);
+    constants.dev_velo_candidate_ks.data());
 
   // Kernel call
   state.invoke();

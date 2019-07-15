@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cfloat>
+#include "ClusteringDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "FillCandidates.cuh"
 #include "ProcessModules.cuh"
@@ -24,7 +25,7 @@ __global__ void search_by_triplet(
   short* dev_h0_candidates,
   short* dev_h2_candidates,
   unsigned short* dev_rel_indices,
-  const float* dev_velo_module_zs);
+  const VeloGeometry* dev_velo_geometry);
 
 ALGORITHM(
   search_by_triplet,
