@@ -31,14 +31,12 @@ void SequenceVisitor::visit<consolidate_scifi_tracks_t>(
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_scifi_track_hits>(),
     arguments.offset<dev_atomics_scifi>(),
-    //arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
     arguments.offset<dev_scifi_track_hit_number>(),
     arguments.offset<dev_scifi_qop>(),
     arguments.offset<dev_scifi_states>(),
     arguments.offset<dev_scifi_track_ut_indices>(),
     arguments.offset<dev_atomics_ut>(),
     arguments.offset<dev_scifi_tracks>(),
-    //arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
     arguments.offset<dev_scifi_selected_track_indices>(),
     arguments.offset<dev_scifi_lf_track_params>(),
     constants.dev_scifi_geometry,
@@ -52,8 +50,6 @@ void SequenceVisitor::visit<consolidate_scifi_tracks_t>(
       host_buffers.host_atomics_scifi,
       arguments.offset<dev_atomics_scifi>(),
       arguments.size<dev_atomics_scifi>(),
-      //arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
-      //arguments.size<dev_scifi_lf_length_filtered_atomics>(),
       cudaMemcpyDeviceToHost,
       cuda_stream));
 
