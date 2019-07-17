@@ -15,7 +15,7 @@ __device__ void lf_calculate_first_layer_window_impl(
   const int candidate_index)
 {
   MiniState propagated_state =
-    propagate_state_from_velo(velo_ut_state, ut_qop, seeding_first_layer, dev_looking_forward_constants);
+    propagate_state_from_velo_multi_par(velo_ut_state, ut_qop, seeding_first_layer, dev_looking_forward_constants);
 
   // init the z and position
   propagated_state.z = dev_looking_forward_constants->Zone_zPos[seeding_first_layer];
