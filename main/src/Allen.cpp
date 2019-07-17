@@ -198,7 +198,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     event_reader = std::make_unique<MDFReader>(FolderMap {{{BankTypes::VP, folder_name_mdf},
                                                            {BankTypes::UT, folder_name_mdf},
                                                            {BankTypes::FT, folder_name_mdf},
-                                                           {BankTypes::MUON, folder_name_Muon_raw}}});
+                                                           {BankTypes::MUON, folder_name_mdf}}});
   }
   else {
     event_reader = std::make_unique<EventReader>(FolderMap {{{BankTypes::VP, folder_name_velopix_raw},
