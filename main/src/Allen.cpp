@@ -591,7 +591,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         auto msg = zmqSvc().receive<string>(socket);
         if (msg == "READY") {
           auto it = std::find(input_slice_status.begin(), input_slice_status.end(), SliceStatus::Empty);
-          if (it != input_slice_status.end() && fill_slice(it, socket)) {
+          if (io_done || (it != input_slice_status.end() && fill_slice(it, socket))) {
             io_ready[i] = false;
           } else {
             io_ready[i] = true;
