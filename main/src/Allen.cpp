@@ -49,7 +49,7 @@ namespace {
   constexpr size_t max_input_slices = 512;
   constexpr size_t max_event_threads = 32;
 
-  enum class SliceStatus { Empty, Filling, Filled, Processing };
+  enum class SliceStatus { Empty, Filling, Filled, Processing, Processed };
 } // namespace
 
 void input_reader(const size_t io_id, IInputProvider* input_provider)
@@ -103,6 +103,7 @@ void event_processor(
   StreamWrapper& wrapper,
   IInputProvider const* input_provider,
   CheckerInvoker& checker_invoker,
+  uint n_reps,
   bool do_check,
   bool cpu_offload,
   string folder_name_imported_forward_tracks)
@@ -196,7 +197,7 @@ void event_processor(
          input_provider->banks(BankTypes::FT, *idx),
          input_provider->banks(BankTypes::MUON, *idx),
          n_events,
-         1,
+         n_reps,
          do_check,
          cpu_offload});
 
@@ -362,11 +363,19 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Show call options
   print_call_options(options, device_name);
 
-  if (number_of_slices <= number_of_threads) {
+  bool enable_async_io = true;
+  if ((number_of_slices == 0 || number_of_slices == 1) && number_of_repetitions > 1) {
+    // NOTE: Special case to be able to compare throughput with and
+    // without async I/O; if repetitions are requested and the number
+    // of slices is default (0) or 1, never free the initially filled
+    // slice.
+    enable_async_io = false;
+    number_of_slices = 1;
+    warning_cout << "Disabling async I/O to measure throughput without it.\n";
+  } else if (number_of_slices <= number_of_threads) {
     warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
     number_of_slices = number_of_threads + 1;
-  }
-  else {
+  } else {
     info_cout << "Using " << number_of_slices << " input slices." << "\n";
   }
 
@@ -454,6 +463,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       stream_wrapper,
       input_provider.get(),
       checker_invoker,
+      number_of_repetitions,
       do_check,
       cpu_offload,
       folder_name_imported_forward_tracks);
@@ -499,6 +509,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::vector<size_t> events_in_slice(number_of_slices, 0);
   // processing stream status
   std::bitset<max_event_threads> stream_ready(false);
+  // I/O thread status
+  std::vector<bool> io_ready(n_io, false);
 
   auto count_status = [&input_slice_status](SliceStatus const status) {
     return std::accumulate(
@@ -560,7 +572,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   };
 
   bool io_done = false;
-  std::vector<bool> io_ready(n_io);
   while (error_count == 0) {
 
     // Wait for at least one event to be ready
@@ -582,13 +593,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           auto it = std::find(input_slice_status.begin(), input_slice_status.end(), SliceStatus::Empty);
           if (it != input_slice_status.end() && fill_slice(it, socket)) {
             io_ready[i] = false;
-            if (!t) t = Timer{};
-          }
-          else {
+          } else {
             io_ready[i] = true;
           }
-        }
-        else {
+        } else {
           assert(msg == "FILLED");
           auto slice_index = zmqSvc().receive<int>(socket);
           auto good = zmqSvc().receive<bool>(socket);
@@ -596,8 +604,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           if (!good && n_filled == 0) {
             error_cout << "I/O provider failed to decode events into slice.\n";
             goto loop_error;
-          }
-          else {
+          } else {
+            if (!t) {
+              info_cout << "First slice ready, starting timer for throughput measurement.\n";
+              t = Timer{};
+            }
             input_slice_status[slice_index] = SliceStatus::Filled;
             events_in_slice[slice_index] = n_filled;
             n_events_read += n_filled;
@@ -630,7 +641,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         n_events_processed += events_in_slice[slice_index];
         stream_ready[i] = true;
 
-        info_cout << "Processed " << std::setw(6) << n_events_processed << " events\n";
+        info_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
 
         // Run the checker accumulation here in a blocking fashion
         if (do_check) {
@@ -643,18 +654,19 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             info_cout << "Checked   " << std::setw(6) << n_events_processed << " events\n";
           }
         }
-        input_slice_status[slice_index] = SliceStatus::Empty;
-        events_in_slice[slice_index] = 0;
+        if (enable_async_io) {
+          input_slice_status[slice_index] = SliceStatus::Empty;
+          events_in_slice[slice_index] = 0;
+        } else {
+          input_slice_status[slice_index] = SliceStatus::Processed;
+        }
       }
     }
 
     // Find a processor that is ready to process if there are slices to process
     std::optional<size_t> processor_index;
-    auto n_filled = count_status(SliceStatus::Filled);
-    if (!stream_ready.count() && n_filled != 0) {
-      debug_cout << "No processor ready to accept slice\n";
-    }
-    else if (n_filled) {
+    size_t n_filled = 0;
+    while((n_filled = count_status(SliceStatus::Filled)) && stream_ready.count()) {
       for (size_t i = 0; i < number_of_threads; ++i) {
         size_t idx = (i + prev_processor + 1) % number_of_threads;
         if (stream_ready[idx]) {
@@ -663,15 +675,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           break;
         }
       }
-    }
 
-    // At least one processor is ready and there is a slice, send it
-    // for processing
-    if (processor_index && n_filled == 0) {
-      debug_cout << "No slice ready to process.\n";
-    }
-    else if (processor_index) {
-      // Find an event slice
+      // A processor is ready and there is a slice, send it for
+      // processing
       size_t input_slice_idx = 0;
       for (size_t i = 0; i < number_of_slices; ++i) {
         // Round-robin through the streams
@@ -681,20 +687,23 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
           // send message to processor to process the slice
           stream_ready[*processor_index] = false;
-          input_slice_status[input_slice_idx] = SliceStatus::Processing;
+          if (enable_async_io) {
+            input_slice_status[input_slice_idx] = SliceStatus::Processing;
+          }
           auto& socket = std::get<1>(event_processors[*processor_index]);
           zmqSvc().send(socket, "PROCESS", zmq::SNDMORE);
           zmqSvc().send(socket, input_slice_idx);
 
-          debug_cout << "submitted " << std::setw(5) << events_in_slice[input_slice_idx] << " events to slice "
-                     << std::setw(2) << input_slice_idx << " on stream " << std::setw(2) << *processor_index << "\n";
+          info_cout << "submitted " << std::setw(5) << events_in_slice[input_slice_idx] << " events to slice "
+                    << std::setw(2) << input_slice_idx << " on stream " << std::setw(2) << *processor_index << "\n";
           break;
         }
       }
     }
 
     // Check if we're done
-    if (io_done && stream_ready.count() == number_of_threads) {
+    if (stream_ready.count() == number_of_threads &&
+        ((!enable_async_io && count_status(SliceStatus::Processed)) || (enable_async_io && io_done))) {
       info_cout << "Processing complete.\n";
       if (t) t->stop();
       break;
@@ -761,7 +770,7 @@ loop_error:
   }
 
   if (t) {
-    info_cout << (number_of_events_requested * number_of_repetitions / t->get()) << " events/s\n"
+    info_cout << (n_events_processed * number_of_repetitions / t->get()) << " events/s\n"
               << "Ran test for " << t->get() << " seconds\n";
   } else {
     warning_cout << "Timer wasn't started." << "\n";
