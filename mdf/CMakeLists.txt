@@ -64,9 +64,10 @@ target_include_directories(${name} PUBLIC
   ${CMAKE_SOURCE_DIR}/cuda/PV/common/include
   ${CMAKE_SOURCE_DIR}/checker/tracking/include)
 
-target_link_libraries(${name} Common Velo)
+target_link_libraries(${name} Velo Common)
 endmacro()
 
 test_program(test_read)
 test_program(test_read_bin)
 test_program(dump_banks)
+test_program(bench_read)
