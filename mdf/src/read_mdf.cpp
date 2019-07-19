@@ -21,14 +21,13 @@ namespace {
   using std::ifstream;
   using std::make_tuple;
   using std::vector;
-
-  const bool ignoreChecksum = false;
 } // namespace
 
 std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
   size_t n,
   const std::vector<std::string>& files,
   const std::unordered_set<BankTypes>& types,
+  bool checkChecksum,
   size_t start_event)
 {
 
@@ -80,7 +79,7 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
     while (n_read++ < n) {
 
-      std::tie(eof, error, bank_span) = read_event(input, header, buffer);
+      std::tie(eof, error, bank_span) = read_event(input, header, buffer, checkChecksum);
       if (eof || error) {
         break;
       }
@@ -189,16 +188,16 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>>
-MDF::read_event(ifstream& input, LHCb::MDFHeader& h, vector<char>& buffer, bool dbg)
+MDF::read_event(ifstream& input, LHCb::MDFHeader& h, vector<char>& buffer, bool checkChecksum, bool dbg)
 {
   int rawSize = sizeof(LHCb::MDFHeader);
   // Read directly into the header
   input.read(reinterpret_cast<char*>(&h), rawSize);
   if (input.good()) {
-    return read_banks(input, h, buffer, dbg);
+    return read_banks(input, h, buffer, checkChecksum, dbg);
   }
   else if (input.eof()) {
-    cout << "Cannot read more data  (Header). End-of-File reached." << endl;
+    cout << "Cannot read more data (Header). End-of-File reached." << endl;
     return {true, false, {}};
   }
   else {
@@ -209,7 +208,8 @@ MDF::read_event(ifstream& input, LHCb::MDFHeader& h, vector<char>& buffer, bool 
 
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>>
-MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, vector<char>& buffer, bool dbg)
+MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, vector<char>& buffer, bool checkChecksum,
+                bool dbg)
 {
   int rawSize = sizeof(LHCb::MDFHeader);
   unsigned int checksum = h.checkSum();
@@ -278,10 +278,10 @@ MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, vector<char>& buffer,
       }
 
       // Checksum if requested
-      if (ignoreChecksum) {
+      if (!checkChecksum) {
         hdr->setChecksum(0);
       }
-      else if (checksum) {
+      else {
         auto c = LHCb::genChecksum(1, &tmp[0] + 4 * sizeof(int), chkSize);
         if (checksum != c) {
           cerr << "Checksum doesn't match: " << std::hex << c << " instead of 0x" << checksum << std::dec << endl;
@@ -321,10 +321,9 @@ MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, vector<char>& buffer,
       return {false, true, {}};
     }
 
-    if (ignoreChecksum) {
+    if (!checkChecksum) {
       hdr->setChecksum(0);
-    }
-    else if (checksum) {
+    } else {
       auto c = LHCb::genChecksum(1, bptr + 4 * sizeof(int), chkSize);
       if (checksum != c) {
         cerr << "Checksum doesn't match: 0x" << std::hex << c << " instead of 0x" << checksum << std::dec << endl;

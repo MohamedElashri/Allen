@@ -1,5 +1,4 @@
-#ifndef READ_MDF_H
-#define READ_MDF_H 1
+#pragma once
 
 #include <cstdio>
 #include <iostream>
@@ -29,18 +28,20 @@ namespace MDF {
   void dump_hex(const char* start, int size);
 
   std::tuple<bool, bool, gsl::span<char>>
-  read_event(std::ifstream& input, LHCb::MDFHeader& h, std::vector<char>& buffer, bool dbg = false);
+  read_event(std::ifstream& input, LHCb::MDFHeader& h, std::vector<char>& buffer,
+             bool checkChecksum = true, bool dbg = false);
 
   std::tuple<bool, bool, gsl::span<char>>
-  read_banks(std::ifstream& input, const LHCb::MDFHeader& h, std::vector<char>& buffer, bool dbg = false);
+  read_banks(std::ifstream& input, const LHCb::MDFHeader& h, std::vector<char>& buffer,
+             bool checkChecksum = true, bool dbg = false);
 
   std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> read_events(
     size_t n,
     const std::vector<std::string>& files,
     const std::unordered_set<BankTypes>& types,
+    bool checkChecksum = true,
     size_t offset = 0);
 
   LHCb::ODIN decode_odin(const LHCb::RawBank* bank);
 
 } // namespace MDF
-#endif
