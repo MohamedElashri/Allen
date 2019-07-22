@@ -35,9 +35,10 @@ __global__ void lf_extend_missing_x(
 
     // Find out missing layers
     uint8_t number_of_missing_layers = 0;
+    // required at least 4 hits in quality filter x -> only two layers can be missing at most
     uint8_t missing_layers[2];
 
-    for (int j = 0; j < 6; ++j) {
+    for (int j = 0; j < LookingForward::number_of_x_layers; ++j) {
       const auto layer_j = dev_looking_forward_constants->x_layers[j];
       bool found = false;
       for (int k = 0; k < track.hitsNum; ++k) {

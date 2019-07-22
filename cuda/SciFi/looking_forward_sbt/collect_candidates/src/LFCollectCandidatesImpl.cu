@@ -102,7 +102,6 @@ __device__ void lf_collect_candidates_p_impl(
           (short) (hit_index - event_offset);
       }
     }
-
     number_of_candidates[i] = candidate_counter;
   }
 }

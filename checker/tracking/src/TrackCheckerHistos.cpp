@@ -15,11 +15,22 @@ TrackCheckerHistos::TrackCheckerHistos(const std::vector<HistoCategory>& histo_c
       h_reconstructible_eta[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 50, 0., 7.);
       name = category + "_Eta_reconstructed";
       h_reconstructed_eta[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 50, 0., 7.);
+      name = category + "_Eta_Phi_reconstructible";
+      h_reconstructible_eta_phi[name] =
+        std::make_unique<TH2D>(name.c_str(), name.c_str(), 50, 0., 7., 25, -3.142, 3.142);
+      name = category + "_Eta_Phi_reconstructed";
+      h_reconstructed_eta_phi[name] = std::make_unique<TH2D>(name.c_str(), name.c_str(), 50, 0., 7., 25, -3.142, 3.142);
     }
     else {
       h_reconstructible_eta[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 100, -7., 7.);
       name = category + "_Eta_reconstructed";
       h_reconstructed_eta[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 100, -7., 7.);
+      name = category + "_Eta_Phi_reconstructible";
+      h_reconstructible_eta_phi[name] =
+        std::make_unique<TH2D>(name.c_str(), name.c_str(), 100, -7., 7., 25, -3.142, 3.142);
+      name = category + "_Eta_Phi_reconstructed";
+      h_reconstructed_eta_phi[name] =
+        std::make_unique<TH2D>(name.c_str(), name.c_str(), 100, -7., 7., 25, -3.142, 3.142);
     }
     name = category + "_P_reconstructible";
     h_reconstructible_p[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 50, 0., 100000.);
@@ -188,6 +199,12 @@ void TrackCheckerHistos::write(TDirectory* dir)
       dir->WriteTObject(entry.second.get());
     }
   }
+
+  for (auto const& histo_map : {std::ref(h_reconstructible_eta_phi), std::ref(h_reconstructed_eta_phi)}) {
+    for (auto const& entry : histo_map.get()) {
+      dir->WriteTObject(entry.second.get());
+    }
+  }
 }
 #endif
 
@@ -199,6 +216,7 @@ void TrackCheckerHistos::fillReconstructibleHistos(const MCParticles& mcps, cons
   const std::string pt_name = category.m_name + "_Pt_reconstructible";
   const std::string phi_name = category.m_name + "_Phi_reconstructible";
   const std::string nPV_name = category.m_name + "_nPV_reconstructible";
+  const std::string eta_phi_name = category.m_name + "_Eta_Phi_reconstructible";
   for (auto mcp : mcps) {
     if (category.m_accept(mcp)) {
       h_reconstructible_eta[eta_name]->Fill(mcp.eta);
@@ -206,6 +224,7 @@ void TrackCheckerHistos::fillReconstructibleHistos(const MCParticles& mcps, cons
       h_reconstructible_pt[pt_name]->Fill(mcp.pt);
       h_reconstructible_phi[phi_name]->Fill(mcp.phi);
       h_reconstructible_nPV[nPV_name]->Fill(mcp.nPV);
+      h_reconstructible_eta_phi[eta_phi_name]->Fill(mcp.eta, mcp.phi);
     }
   }
 #endif
@@ -215,17 +234,18 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
 {
 #ifdef WITH_ROOT
   if (!(category.m_accept(mcp))) return;
-
   const std::string eta_name = category.m_name + "_Eta_reconstructed";
   const std::string p_name = category.m_name + "_P_reconstructed";
   const std::string pt_name = category.m_name + "_Pt_reconstructed";
   const std::string phi_name = category.m_name + "_Phi_reconstructed";
   const std::string nPV_name = category.m_name + "_nPV_reconstructed";
+  const std::string eta_phi_name = category.m_name + "_Eta_Phi_reconstructed";
   h_reconstructed_eta[eta_name]->Fill(mcp.eta);
   h_reconstructed_p[p_name]->Fill(mcp.p);
   h_reconstructed_pt[pt_name]->Fill(mcp.pt);
   h_reconstructed_phi[phi_name]->Fill(mcp.phi);
   h_reconstructed_nPV[nPV_name]->Fill(mcp.nPV);
+  h_reconstructed_eta_phi[eta_phi_name]->Fill(mcp.eta, mcp.phi);
 #endif
 }
 

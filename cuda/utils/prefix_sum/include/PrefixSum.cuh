@@ -12,6 +12,7 @@
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsMuon.cuh"
 #include "ArgumentsVertex.cuh"
+#include "LookingForwardConstants.cuh"
 
 __global__ void __launch_bounds__(256)
   prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);

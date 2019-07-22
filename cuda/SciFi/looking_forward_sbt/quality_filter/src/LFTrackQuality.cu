@@ -13,6 +13,7 @@ __device__ float lf_track_quality(
   float quality = 0.f;
   if (trackParams[7] > 0) { // fit converged
     const float qOverP = calcqOverP(trackParams[1], constArrays, velo_state, magnet_polarity);
+    // const float qOverP = track.qop;
     const float xAtRef = trackParams[0];
     float dSlope = (velo_state.x + (SciFi::Tracking::zReference - velo_state.z) * velo_state.tx - xAtRef) /
                    (SciFi::Tracking::zReference - constArrays->zMagnetParams[0]);

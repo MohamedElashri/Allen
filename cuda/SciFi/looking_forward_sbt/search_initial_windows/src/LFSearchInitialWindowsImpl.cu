@@ -32,12 +32,11 @@ __device__ void lf_search_initial_windows_p_impl(
     const float zZone = constArrays->xZone_zPos[i];
 
     // TODO this could be done in a more optimized way
-    const auto stateInZone = LookingForward::propagate_state_from_velo(
+    const auto stateInZone = LookingForward::propagate_state_from_velo_multi_par(
       UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
 
     const float xInZone = stateInZone.x;
-
-    const float yInZone = stateInZone.y;
+    // const float yInZone = stateInZone.y;
 
     const float xMag = LookingForward::state_at_z(UT_state, LookingForward::z_magnet).x;
 
@@ -63,10 +62,9 @@ __device__ void lf_search_initial_windows_p_impl(
       const float this_uv_z = constArrays->uvZone_zPos[i];
       const float dz = this_uv_z - zZone;
       const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
-      const float UvCorr =
-        LookingForward::linear_propagation(yInZone, stateInZone.ty, dz) * constArrays->uvZone_dxdy[i];
+      const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * constArrays->uvZone_dxdy[i];
       const float xInUvCorr = xInUv - UvCorr;
-      const float xMinUV = xInUvCorr - 800;
+      const float xMinUV = xInUvCorr - 800.f;
       const float dz_ratio = (this_uv_z - zZone) / (LookingForward::z_magnet - zZone);
 
       // Get bounds in UV layers
@@ -173,7 +171,7 @@ __device__ void lf_search_initial_windows_impl(
     // Skip making range but continue if the size is zero
     if (hits_within_bounds_size > 0) {
       // Now match the stereo hits
-      const float this_uv_z = constArrays->uvZone_zPos[iZone - iZoneStartingPoint];
+      const float this_uv_z = constArrays->uvZone_zPos[i];
       const float xInUv = linear_parameterization(xAtRef, UT_state.tx, this_uv_z);
       const float zRatio = (this_uv_z - zMag) / (zZone - zMag);
       const float dx = yInZone * constArrays->uvZone_dxdy[iZone - iZoneStartingPoint];
