@@ -124,8 +124,6 @@ public:
           auto& [buf, event_offsets, event_offsets_size] = m_slices[ib][slice_index];
           auto event_offset = event_offsets[event_offsets_size - 1];
 
-          if (bank_type == BankTypes::VP) info_cout << n_filled << " " << event_offset << "\n";
-
           // Copy in number of banks
           const auto& offsets = m_banks_offsets[ib];
           uint32_t n_banks = offsets.size() - 1;
@@ -134,7 +132,7 @@ public:
           // Copy in bank offsets
           copy_data(event_offset, buf.data(), offsets.data(), offsets.size() * sizeof(uint32_t));
 
-          // Copy in bank data
+          // Copy in bank data; cannot use bank size as data is directly copied in
           const auto& bank_data = m_banks_data[ib];
           copy_data(event_offset, buf.data(), bank_data.data(), offsets.back());
 
@@ -232,8 +230,6 @@ private:
     size_t n_bytes = 0;
     bool full = false;
 
-    info_cout << "start read at " << input.tellg() << "\n";
-
     while (!input.eof() && n_filled < n_events && n_filled < offsets.size()) {
       input.read(write, headerSize);
       auto const* header = reinterpret_cast<LHCb::MDFHeader const*>(write);
@@ -310,7 +306,6 @@ private:
         if (b->type() == LHCb::RawBank::ODIN) {
           auto odin = MDF::decode_odin(b);
           event_ids.emplace_back(odin.run_number, odin.event_number);
-          info_cout << "event number " << odin.run_number << " " << odin.event_number << "\n";
         }
 
         // Check if Allen processes this bank type
@@ -425,7 +420,6 @@ private:
       return {false, 0, 0};
     }
 
-    // info_cout << "start read at " << m_input->tellg() << "\n";
     std::tie(eof, error, bank_span) = MDF::read_event(*m_input, m_header, std::get<2>(m_buffers[0]), m_checkChecksum);
     if (error) {
       return {false, 0, 0};
@@ -463,8 +457,6 @@ private:
         auto odin = MDF::decode_odin(b);
         run = odin.run_number;
         event = odin.event_number;
-        info_cout << "event number " << odin.run_number << " " << odin.event_number << "\n";
-
       }
 
       // Check if Allen processes this bank type
