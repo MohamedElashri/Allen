@@ -23,7 +23,8 @@ __global__ void consolidate_scifi_tracks(
   const uint ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
 
   // const SciFi::TrackHits* event_scifi_tracks =
-  //   dev_scifi_tracks + ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter;
+  //   dev_scifi_tracks + ut_event_tracks_offset *
+  //   LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter;
   const SciFi::TrackHits* event_scifi_tracks =
     dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
   const uint* event_scifi_selected_track_indices =
@@ -46,7 +47,7 @@ __global__ void consolidate_scifi_tracks(
   const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
   const uint event_offset = scifi_hit_count.event_offset();
 
-// Loop over tracks.
+  // Loop over tracks.
   for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     scifi_tracks.ut_track[i] = event_scifi_tracks[i].ut_track_index;
     scifi_tracks.qop[i] = event_scifi_tracks[i].qop;

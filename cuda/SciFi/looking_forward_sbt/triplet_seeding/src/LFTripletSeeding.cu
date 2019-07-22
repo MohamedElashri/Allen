@@ -42,12 +42,12 @@ __global__ void lf_triplet_seeding(
       const uint8_t layer_0 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
       const uint8_t layer_1 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1];
       const uint8_t layer_2 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
-      const uint8_t candidate_h0_size = dev_scifi_lf_number_of_candidates
-        [current_ut_track_index * LookingForward::number_of_x_layers + layer_0];
-      const uint8_t candidate_h1_size = dev_scifi_lf_number_of_candidates
-        [current_ut_track_index * LookingForward::number_of_x_layers + layer_1];
-      const uint8_t candidate_h2_size = dev_scifi_lf_number_of_candidates
-        [current_ut_track_index * LookingForward::number_of_x_layers + layer_2];
+      const uint8_t candidate_h0_size =
+        dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + layer_0];
+      const uint8_t candidate_h1_size =
+        dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + layer_1];
+      const uint8_t candidate_h2_size =
+        dev_scifi_lf_number_of_candidates[current_ut_track_index * LookingForward::number_of_x_layers + layer_2];
 
       const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
       const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_1];
@@ -63,10 +63,12 @@ __global__ void lf_triplet_seeding(
         layer_2,
         LookingForward::chi2_max_triplet_single,
         dev_looking_forward_constants,
-        dev_scifi_lf_triplet_best_chi2 +
-        (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1,
-        dev_scifi_lf_triplet_best_h0h2 +
-        (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) * 2 * LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1,
+        dev_scifi_lf_triplet_best_chi2 + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
+                                           LookingForward::maximum_number_of_candidates *
+                                           LookingForward::maximum_number_of_triplets_per_h1,
+        dev_scifi_lf_triplet_best_h0h2 + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) * 2 *
+                                           LookingForward::maximum_number_of_candidates *
+                                           LookingForward::maximum_number_of_triplets_per_h1,
         scifi_lf_candidates,
         z1 - z0,
         z2 - z0,

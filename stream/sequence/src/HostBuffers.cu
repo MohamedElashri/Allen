@@ -63,20 +63,26 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(int)));
 
     host_scifi_tracks = reinterpret_cast<decltype(host_scifi_tracks)>(malloc(
-      max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter *
-      sizeof(SciFi::TrackHits)));
+      max_number_of_events * UT::Constants::max_num_tracks *
+      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(SciFi::TrackHits)));
     host_atomics_scifi =
       reinterpret_cast<decltype(host_atomics_scifi)>(malloc(max_number_of_events * SciFi::num_atomics * sizeof(int)));
-    host_scifi_track_hit_number = reinterpret_cast<decltype(host_scifi_track_hit_number)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(uint)));
+    host_scifi_track_hit_number = reinterpret_cast<decltype(host_scifi_track_hit_number)>(malloc(
+      max_number_of_events * UT::Constants::max_num_tracks *
+      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(uint)));
     host_scifi_track_hits = reinterpret_cast<decltype(host_scifi_track_hits)>(malloc(
-      max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter  * SciFi::Constants::max_track_size * sizeof(SciFi::Hit)));
-    host_scifi_qop = reinterpret_cast<decltype(host_scifi_qop)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter  * sizeof(float)));
-    host_scifi_states = reinterpret_cast<decltype(host_scifi_states)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter  * sizeof(MiniState)));
-    host_scifi_track_ut_indices = reinterpret_cast<decltype(host_scifi_track_ut_indices)>(
-      malloc(max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(uint)));
+      max_number_of_events * UT::Constants::max_num_tracks *
+      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Constants::max_track_size *
+      sizeof(SciFi::Hit)));
+    host_scifi_qop = reinterpret_cast<decltype(host_scifi_qop)>(malloc(
+      max_number_of_events * UT::Constants::max_num_tracks *
+      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(float)));
+    host_scifi_states = reinterpret_cast<decltype(host_scifi_states)>(malloc(
+      max_number_of_events * UT::Constants::max_num_tracks *
+      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(MiniState)));
+    host_scifi_track_ut_indices = reinterpret_cast<decltype(host_scifi_track_ut_indices)>(malloc(
+      max_number_of_events * UT::Constants::max_num_tracks *
+      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(uint)));
 
     host_reconstructed_pvs = reinterpret_cast<decltype(host_reconstructed_pvs)>(
       malloc(max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));

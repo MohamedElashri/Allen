@@ -25,7 +25,7 @@ __device__ int8_t lf_extend_missing_x_impl(
   int8_t best_index = -1;
   float best_chi2 = max_chi2;
 
-  //for (int8_t h2_rel = 0; h2_rel < number_of_candidates; h2_rel++) {
+  // for (int8_t h2_rel = 0; h2_rel < number_of_candidates; h2_rel++) {
   for (int8_t h2_rel = 0; h2_rel < LookingForward::maximum_number_of_candidates; h2_rel++) {
     const auto x2 = scifi_hits_x0[h2_rel];
     const auto chi2 = extrap1 + (x2 - expected_x2) * (x2 - expected_x2);

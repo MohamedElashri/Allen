@@ -37,8 +37,7 @@ namespace SciFi {
         return SciFi::Hit {x0[hit_number], z0[hit_number], m_endPointY[hit_number], channel[hit_number]};
       }
 
-      __device__ __host__ uint32_t LHCbID(uint32_t index) const {
-        return (10u << 28) + channel[index]; };
+      __device__ __host__ uint32_t LHCbID(uint32_t index) const { return (10u << 28) + channel[index]; };
     };
 
     //----------------------------------------------------------------------

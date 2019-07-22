@@ -12,12 +12,12 @@ __device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
 
   MiniState final_state = magnet_state;
 
-  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer/4, dev_looking_forward_constants);
+  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
 
   final_state.tx = tx_ty_corr * qop + UT_state.tx;
 
   final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
-  //final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  // final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   return final_state;
 }
 __device__ float LookingForward::propagate_x_from_velo_multi_par(
@@ -26,7 +26,7 @@ __device__ float LookingForward::propagate_x_from_velo_multi_par(
   const int layer,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer/4, dev_looking_forward_constants);
+  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
 
   const float final_tx = tx_ty_corr * qop + UT_state.tx;
 
@@ -36,7 +36,8 @@ __device__ float LookingForward::propagate_x_from_velo_multi_par(
   const auto magnet_y =
     linear_propagation(UT_state.y, UT_state.ty, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
 
-  return linear_propagation(magnet_x, final_tx, dev_looking_forward_constants->Zone_zPos[layer] - LookingForward::z_magnet);
+  return linear_propagation(
+    magnet_x, final_tx, dev_looking_forward_constants->Zone_zPos[layer] - LookingForward::z_magnet);
 }
 
 __device__ float LookingForward::dx_calc(const float state_tx, float qop)
@@ -47,7 +48,7 @@ __device__ float LookingForward::dx_calc(const float state_tx, float qop)
   ret_val = LookingForward::tx_weight * tx_window + LookingForward::dx_weight * qop_window;
 
   // TODO this must be verified
-  //ret_val = 1.2e+05*qop + LookingForward::dx_min;
+  // ret_val = 1.2e+05*qop + LookingForward::dx_min;
   if (ret_val > LookingForward::max_window_layer0) {
     ret_val = LookingForward::max_window_layer0;
   }
@@ -152,25 +153,25 @@ __device__ std::tuple<int, float> LookingForward::get_best_hit(
 }
 
 __device__ float LookingForward::tx_ty_corr_multi_par(
-    const MiniState& ut_state,
-    const int station,
-    const LookingForward::Constants* dev_looking_forward_constants)
+  const MiniState& ut_state,
+  const int station,
+  const LookingForward::Constants* dev_looking_forward_constants)
 {
   float tx_ty_corr = 0;
   const float tx_pow[5] = {1,
-                     ut_state.tx,
-                     ut_state.tx*ut_state.tx,
-                     ut_state.tx*ut_state.tx*ut_state.tx,
-                     ut_state.tx*ut_state.tx*ut_state.tx*ut_state.tx};
+                           ut_state.tx,
+                           ut_state.tx * ut_state.tx,
+                           ut_state.tx * ut_state.tx * ut_state.tx,
+                           ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx};
 
   const float ty_pow[5] = {1,
-                     ut_state.ty,
-                     ut_state.ty*ut_state.ty,
-                     ut_state.ty*ut_state.ty*ut_state.ty,
-                     ut_state.ty*ut_state.ty*ut_state.ty*ut_state.ty};
+                           ut_state.ty,
+                           ut_state.ty * ut_state.ty,
+                           ut_state.ty * ut_state.ty * ut_state.ty,
+                           ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty};
   // TODO this is probably the worst implementation possible
-  for (int i = 0 ; i<5 ; i++){
-    for(int j = 0 ; j<5 ; j++){
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
       tx_ty_corr += dev_looking_forward_constants->ds_multi_param[station][i][j] * tx_pow[i] * ty_pow[j];
     }
   }

@@ -195,7 +195,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
     const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
     const uint event_offset = scifi_tracks.tracks_offset(i_event);
 
-     float n_hits_per_track = 0;
+    float n_hits_per_track = 0;
 
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
       const uint UT_track_index = scifi_tracks.ut_track[i_track];
@@ -251,14 +251,14 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
 
       tracks.push_back(t);
     } // tracks
-    if ( number_of_tracks_event > 0 ) {
+    if (number_of_tracks_event > 0) {
       n_hits_per_track /= number_of_tracks_event;
       n_hits_per_track_events += n_hits_per_track;
     }
 
     checker_tracks.emplace_back(tracks);
   }
-  if ( number_of_events > 0 ) {
+  if (number_of_events > 0) {
     n_hits_per_track_events /= number_of_events;
     debug_cout << "Average number of hits on SciFi segemnt of tracks = " << n_hits_per_track_events << std::endl;
   }

@@ -34,7 +34,7 @@ ALGORITHM(
     dev_scifi_hit_count,
     dev_scifi_track_hits,
     dev_atomics_scifi,
-    //dev_scifi_lf_length_filtered_atomics,
+    // dev_scifi_lf_length_filtered_atomics,
     dev_scifi_track_hit_number,
     dev_scifi_qop,
     dev_scifi_states,
@@ -42,5 +42,5 @@ ALGORITHM(
     dev_atomics_ut,
     dev_scifi_selected_track_indices,
     dev_scifi_lf_track_params,
-    dev_scifi_tracks ))
-    //dev_scifi_lf_length_filtered_tracks     ))
+    dev_scifi_tracks))
+// dev_scifi_lf_length_filtered_tracks     ))
