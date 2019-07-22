@@ -382,3 +382,8 @@ void MDF::dump_hex(const char* start, int size)
   cout << std::dec << std::setfill(prev) << endl;
   cout.setf(flags);
 }
+
+void MDF::transpose_event(vector<char> const& input_buffer, size_t input_offset,
+                          char* output_buffer, size_t output_offset, size_t output_size) {
+
+}
