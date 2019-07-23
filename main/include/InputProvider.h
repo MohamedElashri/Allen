@@ -37,6 +37,14 @@ public:
     return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index);
   }
 
+  /**
+   * @brief      Fill a slice with n events
+   *
+   * @param      index of the slice to be filled
+   * @param      number of events to fill the slice with
+   *
+   * @return     tuple of (eof, slice full, n_filled)
+   */
   std::tuple<bool, bool, size_t> fill(size_t slice_index, size_t n) override
   {
     return static_cast<Derived<Banks...>*>(this)->fill(slice_index, n);

@@ -48,8 +48,8 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
   // Some storage for reading the events into
   LHCb::MDFHeader header;
-  vector<char> buffer;
-  buffer.reserve(1024 * 1024);
+  vector<char> buffer(1024 * 1024);
+
   bool eof = false, error = false;
 
   gsl::span<const char> bank_span;
@@ -57,6 +57,7 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
   array<std::vector<uint32_t>, NBankTypes> bank_offsets;
   array<std::vector<uint32_t>, NBankTypes> bank_datas;
+  vector<char> decompression_buffer(1024 * 1024);
 
   // Lambda to copy data from the event-local buffer to the global
   // one, while keeping the global buffer's size consistent with its
@@ -79,7 +80,9 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
     while (n_read++ < n) {
 
-      std::tie(eof, error, bank_span) = read_event(input, header, buffer, checkChecksum);
+      std::tie(eof, error, bank_span) = read_event(input, header, buffer,
+                                                   decompression_buffer,
+                                                   checkChecksum);
       if (eof || error) {
         break;
       }
@@ -188,13 +191,15 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>>
-MDF::read_event(ifstream& input, LHCb::MDFHeader& h, vector<char>& buffer, bool checkChecksum, bool dbg)
+MDF::read_event(ifstream& input, LHCb::MDFHeader& h, gsl::span<char> buffer,
+                std::vector<char>& decompression_buffer,
+                bool checkChecksum, bool dbg)
 {
   int rawSize = sizeof(LHCb::MDFHeader);
   // Read directly into the header
   input.read(reinterpret_cast<char*>(&h), rawSize);
   if (input.good()) {
-    return read_banks(input, h, buffer, checkChecksum, dbg);
+    return read_banks(input, h, buffer, decompression_buffer, checkChecksum, dbg);
   }
   else if (input.eof()) {
     cout << "Cannot read more data (Header). End-of-File reached." << endl;
@@ -208,7 +213,9 @@ MDF::read_event(ifstream& input, LHCb::MDFHeader& h, vector<char>& buffer, bool 
 
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>>
-MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, vector<char>& buffer, bool checkChecksum,
+MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, gsl::span<char> buffer,
+                std::vector<char>& decompression_buffer,
+                bool checkChecksum,
                 bool dbg)
 {
   int rawSize = sizeof(LHCb::MDFHeader);
@@ -241,18 +248,21 @@ MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, vector<char>& buffer,
   }
 
   // accomodate for potential padding of MDF header bank!
-  buffer.reserve(alloc_len + sizeof(int) + sizeof(LHCb::RawBank));
+  if (buffer.size() < alloc_len + sizeof(int) + sizeof(LHCb::RawBank)) {
+    cerr << "Failed to read banks: buffer too small" << endl;
+    return {false, true, {}};
+  }
 
-  auto* b = build_bank(&buffer[0]);
+  auto* b = build_bank(buffer.data());
   int bnkSize = b->totalSize();
   char* bptr = (char*) b->data();
   auto* hdr = reinterpret_cast<LHCb::MDFHeader*>(bptr);
   if (compress != 0) {
-    std::vector<char> tmp;
-    tmp.reserve(readSize + rawSize);
-    ::memcpy(tmp.data(), &h, rawSize); // Need to copy header to get checksum right
-
-    input.read(tmp.data() + rawSize, readSize);
+    decompression_buffer.reserve(readSize + rawSize);
+    // Need to copy header to get checksum right
+    ::memcpy(decompression_buffer.data(), &h, rawSize);
+    // Read compressed data
+    input.read(decompression_buffer.data() + rawSize, readSize);
     if (input.eof()) {
       cout << "Cannot read more data  (Header). End-of-File reached." << endl;
       return {true, false, {}};
@@ -262,54 +272,38 @@ MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, vector<char>& buffer,
       return {false, true, {}};
     }
 
-    int space_retry = 0;
-    while (space_retry++ < 5) {
-      if (space_retry > 1) {
-        alloc_len *= 2;
-        if (dbg) {
-          cout << "Retry with increased buffer space of " << alloc_len << " bytes." << endl;
-        }
-        buffer.reserve(alloc_len + sizeof(int) + sizeof(LHCb::RawBank));
-        // Rebuild the DAQ status bank on reallocate
-        b = build_bank(&buffer[0]);
-        bnkSize = b->totalSize();
-        bptr = reinterpret_cast<char*>(b->data());
-        hdr = reinterpret_cast<LHCb::MDFHeader*>(bptr);
-      }
-
-      // Checksum if requested
-      if (!checkChecksum) {
-        hdr->setChecksum(0);
-      }
-      else {
-        auto c = LHCb::genChecksum(1, &tmp[0] + 4 * sizeof(int), chkSize);
-        if (checksum != c) {
-          cerr << "Checksum doesn't match: " << std::hex << c << " instead of 0x" << checksum << std::dec << endl;
-          return {false, true, {}};
-        }
-      }
-
-      // Checksum is correct...from all we know data integrity is proven
-      size_t new_len = 0;
-
-      // NOTE: Figured out the magic +1 from dumping stuff until it
-      // made sense...
-      auto* src = reinterpret_cast<unsigned char*>(&tmp[0]) + rawSize + 1;
-      auto* ptr = reinterpret_cast<unsigned char*>(&buffer[0]) + bnkSize;
-      size_t space_size = buffer.capacity() - bnkSize;
-      // NOTE: Figured out the magic h.size() + hdrSize - 1 from
-      // dumping stuff until it made sense...
-      if (LHCb::decompressBuffer(compress, ptr, space_size, src, h.size() + hdrSize - 1, new_len)) {
-        hdr->setSize(new_len);
-        hdr->setCompression(0);
-        hdr->setChecksum(0);
-        return {false, false, {buffer.data(), bnkSize + new_len}};
+    // Checksum if requested
+    if (!checkChecksum) {
+      hdr->setChecksum(0);
+    }
+    else {
+      auto c = LHCb::genChecksum(1, decompression_buffer.data() + 4 * sizeof(int), chkSize);
+      if (checksum != c) {
+        cerr << "Checksum doesn't match: " << std::hex << c << " instead of 0x" << checksum << std::dec << endl;
+        return {false, true, {}};
       }
     }
-    cerr << "Failed to read compressed data." << endl;
-    return {false, true, {}};
-  }
-  else {
+
+    // Checksum is correct...from all we know data integrity is proven
+    size_t new_len = 0;
+
+    // NOTE: Figured out the magic +1 from dumping stuff until it
+    // made sense...
+    auto* src = reinterpret_cast<unsigned char*>(decompression_buffer.data()) + rawSize + 1;
+    auto* ptr = reinterpret_cast<unsigned char*>(buffer.data()) + bnkSize;
+    size_t space_size = buffer.size() - bnkSize;
+    // NOTE: Figured out the magic h.size() + hdrSize - 1 from
+    // dumping stuff until it made sense...
+    if (LHCb::decompressBuffer(compress, ptr, space_size, src, h.size() + hdrSize - 1, new_len)) {
+      hdr->setSize(new_len);
+      hdr->setCompression(0);
+      hdr->setChecksum(0);
+      return {false, false, {buffer.data(), bnkSize + new_len}};
+    } else {
+      cerr << "Failed to read compressed data." << endl;
+      return {false, true, {}};
+    }
+  } else {
     // Read uncompressed data file...
     input.read(bptr + rawSize, readSize);
     if (input.eof()) {

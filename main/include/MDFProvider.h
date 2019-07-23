@@ -15,8 +15,7 @@ namespace {
     event_offset += s;
   }
 
-  constexpr auto headerSize = sizeof(LHCb::MDFHeader);
-
+  constexpr auto header_size = sizeof(LHCb::MDFHeader);
 } // namespace
 
 // FIXME: add start offset
@@ -65,14 +64,12 @@ public:
     for (size_t n = 0; n < n_slices; ++n) {
       m_event_ids[n].reserve(n_events);
     }
+
+    // Reserve 1MB for decompression
+    m_compress_buffer.reserve(1024 * 1024);
   }
 
   static constexpr const char* name = "MDF";
-
-
-  void close() {
-    if (m_input) m_input->close();
-  }
 
   std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const
   {
@@ -159,25 +156,25 @@ public:
     size_t i_buffer = 0;
     auto [eof, full, n_bytes] = read_events(*m_input, i_buffer, n);
     auto n_filled = std::get<0>(m_buffers[i_buffer]);
-    info_cout << "Read " << n_filled << " events; eof "
-              << eof << " full " << full
-              << " kB read " << n_bytes / 1024 << "\n";
+    debug_cout << "Read " << n_filled << " events; eof "
+               << eof << " full " << full
+               << " kB read " << n_bytes / 1024 << "\n";
 
     if (!m_sizes_known) {
       if (!fill_counts(i_buffer)) {
-        error_cout << "Failed to determine number bank counts\n";
+        error_cout << "Failed to determine bank counts\n";
         return {false, false, 0};
       } else {
         for (auto bank_type : this->types()) {
-          info_cout << std::setw(10) << bank_name(bank_type) << " banks:"
-                    << std::setw(4) << m_banks_count[to_integral(bank_type)] << "\n";
+          debug_cout << std::setw(10) << bank_name(bank_type) << " banks:"
+                     << std::setw(4) << m_banks_count[to_integral(bank_type)] << "\n";
           m_sizes_known = true;
         }
       }
     }
 
     auto [good, transpose_full, n_transposed] = transpose_events(i_buffer, slice_index, n);
-    info_cout << "Transposed " << n_transposed << " error " << !good << " full " << transpose_full <<  "\n";
+    debug_cout << "Transposed " << n_transposed << " error " << !good << " full " << transpose_full <<  "\n";
     return {good, full, n_filled};
   }
 
@@ -191,7 +188,7 @@ private:
     size_t i_event = 0;
 
     // Offsets are to the start of the event, which includes the header
-    auto const* bank = buffer.data() + offsets[i_event] + headerSize + 1;
+    auto const* bank = buffer.data() + offsets[i_event];
     auto const* bank_end = buffer.data() + offsets[i_event + 1];
 
     while (bank < bank_end) {
@@ -229,30 +226,35 @@ private:
     auto const* buffer_end = buffer.data() + buffer.size();
     size_t n_bytes = 0;
     bool full = false;
+    LHCb::MDFHeader header;
+    bool eof = false, error = false;
+    gsl::span<char> bank_span;
 
-    while (!input.eof() && n_filled < n_events && n_filled < offsets.size()) {
-      input.read(write, headerSize);
-      auto const* header = reinterpret_cast<LHCb::MDFHeader const*>(write);
-      auto readSize = header->recordSize() - headerSize;
+    while (!eof && !error && n_filled < n_events && n_filled < offsets.size() - 1) {
+      input.read(reinterpret_cast<char*>(&header), header_size);
+      if (input.good()) {
+        // Check if there is enough space to read this event
+        if (offsets[n_filled] + header.recordSize() - header_size > buffer.size()) {
+          full = true;
+          // move back by the size of the header to be able to read it again
+          input.seekg(input.tellg() - header_size);
+          break;
+        }
 
-      // To be able to read the next one, there should at least be
-      // sufficient space for the banks and the header of the next
-      // event
-      if ((write + readSize + headerSize) > buffer_end) {
-        full = true;
-        break;
+        // Read the banks
+        gsl::span<char> buffer_span{buffer_start + offsets[n_filled], buffer.size() - offsets[n_filled]};
+        std::tie(eof, error, bank_span) = MDF::read_banks(input, header, std::move(buffer_span),
+                                                          m_compress_buffer, m_checkChecksum);
+      } else if (input.eof()) {
+        info_cout << "Cannot read more data (Header). End-of-File reached.\n";
+        eof = true;
+      } else {
+        error_cout << "Failed to read header\n";
+        error = true;
       }
-      input.read(write + headerSize, readSize);
 
-      // Set writing location to end of this event
-      write += headerSize + readSize;
-      offsets[++n_filled] = write - buffer_start;
-      n_bytes += headerSize + readSize;
-    }
-
-    // If not EOF: backup the size of the header to be able to read it again.
-    if (!input.eof()) {
-      input.seekg(input.tellg() - headerSize);
+      offsets[++n_filled] = bank_span.end() - buffer_start;
+      n_bytes += bank_span.size();
     }
 
     return {input.eof(), full || n_filled == offsets.size(), n_bytes};
@@ -289,10 +291,8 @@ private:
     size_t i_event = 0;
     for (; i_event < n_filled && i_event < n_events; ++i_event) {
       // Offsets are to the start of the event, which includes the header
-      auto const* bank = buffer.data() + offsets[i_event] + headerSize + 1;
+      auto const* bank = buffer.data() + offsets[i_event];
       auto const* bank_end = buffer.data() + offsets[i_event + 1];
-
-      size_t vp_size = 0;
 
       while (bank < bank_end) {
         const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
@@ -316,13 +316,6 @@ private:
           continue;
         }
 
-        // if (bank_type_it->second == BankTypes::VP) {
-        //   vp_size += b->totalSize() - 4;
-        // } else if (vp_size != 0) {
-        //   info_cout << "VP bank size " << vp_size << "\n";
-        //   vp_size = 0;
-        // }
-
         if (b->type() != prev_type) {
           // Switch to new type of banks
           bank_type_index = to_integral(bank_type_it->second);
@@ -338,8 +331,10 @@ private:
           // and offsets to all banks within the event
           auto preamble_words = 2 + m_banks_count[bank_type_index];
 
-          // Initialize offset to start of this set of banks from the previous one
-          (*banks_offsets)[*n_banks_offsets] = (*banks_offsets)[*n_banks_offsets - 1] + preamble_words * sizeof(uint32_t);
+          // Initialize offset to start of this set of banks from the
+          // previous one and increment with the preamble size
+          (*banks_offsets)[*n_banks_offsets] = ((*banks_offsets)[*n_banks_offsets - 1]
+                                                + preamble_words * sizeof(uint32_t));
 
           // Three things to write for a new set of banks:
           // - number of banks/offsets
@@ -348,6 +343,8 @@ private:
 
           // Initialize point to write from offset of previous set
           banks_write = reinterpret_cast<uint32_t*>(banks_data->data() + (*banks_offsets)[*n_banks_offsets - 1]);
+
+          // New offset to increment
           ++(*n_banks_offsets);
 
           // Write the number of banks
@@ -383,10 +380,6 @@ private:
         // Update "event" offset (in bytes)
         (*banks_offsets)[*n_banks_offsets - 1] += sizeof(uint32_t) * (1 + n_word);
 
-        // if (bank_type_it->second == BankTypes::VP) {
-        //   info_cout << "bank offset " << bank_counter - 1 << " " << n_word << " " << banks_offsets_write[bank_counter - 1] << "\n";
-        // }
-
         // Increment overall bank pointer
         bank += b->totalSize();
       }
@@ -420,7 +413,9 @@ private:
       return {false, 0, 0};
     }
 
-    std::tie(eof, error, bank_span) = MDF::read_event(*m_input, m_header, std::get<2>(m_buffers[0]), m_checkChecksum);
+    gsl::span<char> buffer_span{std::get<2>(m_buffers[0]).data(), std::get<2>(m_buffers[0]).capacity()};
+    std::tie(eof, error, bank_span) = MDF::read_event(*m_input, m_header, buffer_span,
+                                                      m_compress_buffer, m_checkChecksum);
     if (error) {
       return {false, 0, 0};
     }
@@ -483,22 +478,11 @@ private:
         bank_data.reserve(2 * bank_data.capacity());
       }
       std::copy_n(b_start, n_word, bank_data.data() + offset);
-      auto new_offset = (offset + n_word) * sizeof(uint32_t);
-
-      // if (bank_type_it->second == BankTypes::VP)
-      //   info_cout << "bank offset: " << offsets.size() - 1 << " " << " " << n_word << " " << new_offset << "\n";
-
-      offsets.push_back(new_offset);
+      offsets.push_back((offset + n_word) * sizeof(uint32_t));
 
       // Move to next raw bank
       bank += b->totalSize();
     }
-
-    // for (auto bank_type : this->types()) {
-    //   auto ib = to_integral<BankTypes>(bank_type);
-    //   auto& offsets = m_banks_offsets[ib];
-    //   info_cout << bank_name(bank_type) << " " << offsets.size() << " " << offsets.back() << "\n";
-    // }
 
     return {!eof, run, event};
   }
@@ -521,6 +505,7 @@ private:
 
   // Memory buffers to read binary data into from the file
   mutable std::array<std::tuple<size_t, std::vector<unsigned int>, std::vector<char>>, 2> m_buffers;
+  mutable std::vector<char> m_compress_buffer;
 
   // Storage to read the header into for each event
   mutable LHCb::MDFHeader m_header;

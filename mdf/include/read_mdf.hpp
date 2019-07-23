@@ -28,11 +28,13 @@ namespace MDF {
   void dump_hex(const char* start, int size);
 
   std::tuple<bool, bool, gsl::span<char>>
-  read_event(std::ifstream& input, LHCb::MDFHeader& h, std::vector<char>& buffer,
+  read_event(std::ifstream& input, LHCb::MDFHeader& h, gsl::span<char> buffer,
+             std::vector<char>& decompression_buffer,
              bool checkChecksum = true, bool dbg = false);
 
   std::tuple<bool, bool, gsl::span<char>>
-  read_banks(std::ifstream& input, const LHCb::MDFHeader& h, std::vector<char>& buffer,
+  read_banks(std::ifstream& input, const LHCb::MDFHeader& h, gsl::span<char> buffer,
+             std::vector<char>& decompression_buffer,
              bool checkChecksum = true, bool dbg = false);
 
   std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> read_events(

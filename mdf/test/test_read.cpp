@@ -34,8 +34,9 @@ int main(int argc, char* argv[])
 
   // Some storage for reading the events into
   LHCb::MDFHeader header;
-  vector<char> read_buffer;
-  read_buffer.reserve(1024 * 1024);
+  vector<char> read_buffer(1024 * 1024);
+  vector<char> decompression_buffer(1024 * 1024);
+
   bool eof = false, error = false;
 
   gsl::span<const char> bank_span;
@@ -58,7 +59,7 @@ int main(int argc, char* argv[])
     event_offset += s;
   };
 
-  std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer);
+  std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer);
   if (eof || error) {
     return -1;
   }

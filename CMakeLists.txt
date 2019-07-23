@@ -80,6 +80,11 @@ if(DEFINED OVERRIDE_ARCH_FLAG)
   set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
 endif()
 
+option(BUILD_TESTS "Build test programs" OFF)
+if (BUILD_TESTS)
+  enable_testing()
+endif()
+
 find_package(ZLIB REQUIRED)
 
 option(USE_LZMA "build with lzma" OFF)
@@ -283,8 +288,6 @@ endif()
 add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
 
-option(BUILD_TESTS "Build test programs" OFF)
 if(BUILD_TESTS)
-  enable_testing()
   add_subdirectory(tests)
 endif(BUILD_TESTS)
