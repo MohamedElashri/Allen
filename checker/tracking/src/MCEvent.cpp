@@ -44,6 +44,12 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
     input += sizeof(float);
     p.phi = *((float*) input);
     input += sizeof(float);
+    p.ovtx_x = *((float*) input);
+    input += sizeof(float);
+    p.ovtx_y = *((float*) input);
+    input += sizeof(float);
+    p.ovtx_z = *((float*) input);
+    input += sizeof(float);
     p.isLong = (bool) *((int8_t*) input);
     input += sizeof(int8_t);
     p.isDown = (bool) *((int8_t*) input);
@@ -62,6 +68,14 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
     input += sizeof(int8_t);
     p.motherKey = *((uint32_t*) input);
     input += sizeof(uint32_t);
+    p.DecayOriginMother_key = *((int*) input);
+    input += sizeof(int);
+    p.DecayOriginMother_pid = *((int*) input);
+    input += sizeof(int);
+    p.DecayOriginMother_pt = *((float*) input);
+    input += sizeof(float);
+    p.DecayOriginMother_tau = *((float*) input);
+    input += sizeof(float);
     p.charge = *((float*) input);
     input += sizeof(float);
     p.nPV = *((uint32_t*) input);
