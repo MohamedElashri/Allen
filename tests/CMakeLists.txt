@@ -18,7 +18,7 @@ foreach(NAME IN LISTS UNIT_TEST_LIST)
     ${NAME}.test.cu)
 
   target_link_libraries(${TARGET_NAME}
-    PUBLIC Muon x86MuonDecoding Common)
+    PUBLIC Muon x86MuonDecoding Common Velo)
 
   set_property(TARGET ${TARGET_NAME} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 

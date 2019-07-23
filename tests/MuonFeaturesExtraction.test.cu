@@ -46,7 +46,8 @@ SCENARIO("Track is parallel to the axis OZ")
         dev_track,
         dev_scifi_track_ut_indices,
         dev_muon_hits,
-        dev_features);
+        dev_features,
+        nullptr);
 
       cudaMemcpy(host_features, dev_features, n_features * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -108,7 +109,8 @@ SCENARIO("Track is parallel to the axis OZ")
         dev_track,
         dev_scifi_track_ut_indices,
         dev_muon_hits,
-        dev_features);
+        dev_features,
+        nullptr);
 
       cudaMemcpy(host_features, dev_features, n_features * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -181,7 +183,8 @@ SCENARIO("Track is parallel to the axis OZ")
         dev_track,
         dev_scifi_track_ut_indices,
         dev_muon_hits,
-        dev_features);
+        dev_features,
+        nullptr);
 
       cudaMemcpy(host_features, dev_features, n_features * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -243,7 +246,8 @@ SCENARIO("Track is parallel to the axis OZ")
         dev_track,
         dev_scifi_track_ut_indices,
         dev_muon_hits,
-        dev_features);
+        dev_features,
+        nullptr);
 
       cudaMemcpy(host_features, dev_features, n_features * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -343,7 +347,8 @@ SCENARIO("General case")
         dev_track,
         dev_scifi_track_ut_indices,
         dev_muon_hits,
-        dev_features);
+        dev_features,
+        nullptr);
 
       cudaMemcpy(host_features, dev_features, n_features * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -405,7 +410,8 @@ SCENARIO("General case")
         dev_track,
         dev_scifi_track_ut_indices,
         dev_muon_hits,
-        dev_features);
+        dev_features,
+        nullptr);
 
       cudaMemcpy(host_features, dev_features, n_features * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -467,7 +473,8 @@ SCENARIO("General case")
         dev_track,
         dev_scifi_track_ut_indices,
         dev_muon_hits,
-        dev_features);
+        dev_features,
+        nullptr);
 
       cudaMemcpy(host_features, dev_features, n_features * sizeof(float), cudaMemcpyDeviceToHost);
 

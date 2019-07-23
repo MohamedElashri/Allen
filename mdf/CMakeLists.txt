@@ -71,3 +71,8 @@ test_program(test_read)
 test_program(test_read_bin)
 test_program(dump_banks)
 test_program(bench_read)
+test_program(test_providers)
+
+if (BUILD_TESTS)
+add_test(NAME test_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+endif()
