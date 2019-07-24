@@ -86,11 +86,11 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
       else {
         idx = zmqSvc().receive<size_t>(control);
         fill = zmqSvc().receive<size_t>(control);
-        auto r = input_provider->fill(idx, fill);
+        auto [good, n_filled] = input_provider->fill(idx, fill);
         zmqSvc().send(control, "FILLED", zmq::SNDMORE);
         zmqSvc().send(control, idx, zmq::SNDMORE);
-        zmqSvc().send(control, std::get<0>(r), zmq::SNDMORE);
-        zmqSvc().send(control, std::get<2>(r));
+        zmqSvc().send(control, good, zmq::SNDMORE);
+        zmqSvc().send(control, n_filled);
       }
     }
   }

@@ -72,11 +72,10 @@ public:
     return m_event_ids[slice_index];
   }
 
-  std::tuple<bool, bool, size_t> fill(size_t slice_index, size_t n)
+  std::tuple<bool, size_t> fill(size_t slice_index, size_t n)
   {
     size_t n_files = std::get<1>(m_files.front()).size();
     size_t start = m_current;
-    bool full = false;
 
     // "Reset" the slice
     m_event_ids[slice_index].clear();
@@ -87,7 +86,7 @@ public:
 
     for (; (m_current < n_files || m_loop) && m_current < start + n; ++m_current) {
       auto inputs = open_files(m_current % n_files);
-      full = std::any_of(this->types().begin(), this->types().end(), [this, slice_index, &inputs](auto bank_type) {
+      auto full = std::any_of(this->types().begin(), this->types().end(), [this, slice_index, &inputs](auto bank_type) {
         auto ib = to_integral<BankTypes>(bank_type);
         const auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
         return (offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice.size();
@@ -102,7 +101,7 @@ public:
         m_event_ids[slice_index].emplace_back(m_all_events[m_current]);
       }
     }
-    return {m_current != n_files || m_loop, full, m_current - start};
+    return {m_current != n_files || m_loop, m_current - start};
   }
 
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const

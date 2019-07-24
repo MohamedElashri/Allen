@@ -10,7 +10,7 @@
 struct IInputProvider {
 
   virtual std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const = 0;
-  virtual std::tuple<bool, bool, size_t> fill(size_t slice_index, size_t n) = 0;
+  virtual std::tuple<bool, size_t> fill(size_t slice_index, size_t n) = 0;
 
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 };
@@ -25,6 +25,8 @@ public:
   explicit InputProvider(size_t n_slices, size_t n_events) :
     m_nslices {n_slices}, m_nevents {n_events}, m_types {banks_set<Banks...>()}
   {}
+
+  virtual ~InputProvider() {};
 
   std::unordered_set<BankTypes> const& types() const { return m_types; }
 
@@ -43,9 +45,9 @@ public:
    * @param      index of the slice to be filled
    * @param      number of events to fill the slice with
    *
-   * @return     tuple of (eof, slice full, n_filled)
+   * @return     tuple of (eof, n_filled)
    */
-  std::tuple<bool, bool, size_t> fill(size_t slice_index, size_t n) override
+  std::tuple<bool, size_t> fill(size_t slice_index, size_t n) override
   {
     return static_cast<Derived<Banks...>*>(this)->fill(slice_index, n);
   }
