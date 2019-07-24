@@ -297,8 +297,8 @@ __global__ void masked_velo_clustering(
 
 #if DEBUG
       const auto module_estimated_num =
-        dev_module_cluster_start[Velo::Constants::n_modules * number_of_events + module_number + 1] -
-        dev_module_cluster_start[Velo::Constants::n_modules * number_of_events + module_number];
+        dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
+        dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
       assert(cluster_num <= module_estimated_num);
 #endif
 
