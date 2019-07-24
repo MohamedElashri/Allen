@@ -30,7 +30,6 @@ namespace {
   // FIXME: Make this configurable
   constexpr size_t n_buffers = 10;
   constexpr size_t offsets_size = 10001;
-  constexpr size_t buffer_size = 100 * 1024 * 1024;
 } // namespace
 
 // FIXME: add start offset
@@ -44,11 +43,13 @@ public:
     m_buffers.resize(n_buffers);
     for (auto& [n_filled, offsets, buffer] : m_buffers) {
       // FIXME: Make this configurable
-      buffer.resize(buffer_size);
+      buffer.resize(n_events * average_event_size * bank_size_fudge_factor * 1024);
       offsets.resize(offsets_size);
       offsets[0] = 0;
       n_filled = 0;
     }
+    m_buffer_writable.resize(m_buffers.size());
+    std::fill(m_buffer_writable.begin(), m_buffer_writable.end(), true);
 
     for (auto bank_type : this->types()) {
       auto it = BankSizes.find(bank_type);
@@ -205,14 +206,16 @@ public:
         }
       }
 
-      std::tie(good, transpose_full, n_transposed) = transpose_events(i_read, slice_index, this->n_events() - n_filled);
-      debug_cout << "Transposed " << n_transposed << "from " << i_read << " error " << !good << " full " << transpose_full <<  "\n";
+      size_t to_transpose = this->n_events() - n_filled;
+      std::tie(good, transpose_full, n_transposed) = transpose_events(i_read, slice_index, to_transpose);
       n_filled += n_transposed;
       if (!transpose_full) {
         {
           std::unique_lock<std::mutex> lock{m_mut};
           m_prefetched.pop_front();
           m_buffer_writable[i_read] = true;
+          // "Reset" buffer; the 0th offset is always 0.
+          std::get<0>(m_buffers[i_read]) = 0;
           transpose_done = m_prefetched.empty();
         }
         m_cond.notify_one();
@@ -261,7 +264,7 @@ private:
   }
 
   // eof, error, n_bytes
-  std::tuple<bool, bool, size_t> read_events(std::ifstream& input, int i_buffer)
+  std::tuple<bool, bool, bool, size_t> read_events(std::ifstream& input, int i_buffer)
   {
     auto& [n_filled, offsets, buffer] = m_buffers[i_buffer];
 
@@ -270,7 +273,7 @@ private:
     auto const* buffer_end = buffer.data() + buffer.size();
     size_t n_bytes = 0;
     LHCb::MDFHeader header;
-    bool eof = false, error = false;
+    bool eof = false, error = false, full = false;
     gsl::span<char> bank_span;
 
     while (!eof && !error && n_filled < offsets.size() - 1) {
@@ -280,6 +283,7 @@ private:
         if (offsets[n_filled] + header.recordSize() - header_size > buffer.size()) {
           // move back by the size of the header to be able to read it again
           input.seekg(input.tellg() - header_size);
+          full = true;
           break;
         }
 
@@ -299,7 +303,7 @@ private:
       n_bytes += bank_span.size();
     }
 
-    return {input.eof(), error, n_bytes};
+    return {eof, error, full, n_bytes};
   }
 
   std::tuple<bool, bool, size_t> transpose_events(int const i_buffer, int const slice_index, size_t n_events) {
@@ -552,7 +556,7 @@ private:
       return;
     }
 
-    bool eof = false, error = false;
+    bool eof = false, error = false, buffer_full = false;
     size_t bytes_read = 0;
 
     while(!m_done && !m_read_error) {
@@ -566,26 +570,28 @@ private:
             return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true)
             != m_buffer_writable.end();
           });
-          if (m_done) break;
+          if (m_done) {
+            break;
+          } else {
+            it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
+          }
         }
         *it = false;
       }
       i_buffer = distance(m_buffer_writable.begin(), it);
-      info_cout << "prefetching " << i_buffer << "\n";
 
       // Read events; open next file if there are files left
       size_t to_read = this->n_events() - std::get<0>(m_buffers[i_buffer]);
       while(true) {
-        std::tie(eof, error, bytes_read) = read_events(*m_input, i_buffer);
+        std::tie(eof, error, buffer_full, bytes_read) = read_events(*m_input, i_buffer);
         m_bytes_read += bytes_read;
         if (error) {
           m_read_error = true;
           break;
-        } else if (!eof) {
+        } else if (!eof && buffer_full) {
           break;
         } else if (!open_file()) {
           m_done = true;
-          info_cout << "prefetch done\n";
           break;
         }
       }

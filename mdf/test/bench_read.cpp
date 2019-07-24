@@ -17,7 +17,7 @@ using namespace std;
 int main(int argc, char* argv[])
 {
   if (argc <= 1) {
-    cout << "usage: test_read <file.mdf> <file.mdf> <file.mdf> ..." << endl;
+    cout << "usage: bench_read <file.mdf> <file.mdf> <file.mdf> ..." << endl;
     return -1;
   }
 

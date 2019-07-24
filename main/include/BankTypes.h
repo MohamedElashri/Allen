@@ -20,7 +20,15 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 51.77f},
                                                         {BankTypes::UT, 31.38f},
                                                         {BankTypes::FT, 54.47f},
                                                         {BankTypes::MUON, 5.13f}};
+// Average measured event size
+constexpr float average_event_size = 65.f;
 constexpr float bank_size_fudge_factor = 1.2f;
+
+/**
+ * @brief      Get the name of the type of a given BankType
+ * @param      BankType
+ * @return     bank type name
+ */
 std::string bank_name(BankTypes type);
 
 template<typename ENUM>
