@@ -7,27 +7,49 @@
 
 namespace LookingForward {
   // straight line extrapolation of MiniState to other z position
-  __device__ MiniState state_at_z(const MiniState& state, const float z);
+  __device__ inline MiniState state_at_z(const MiniState& state, const float z)
+  {
+    return {state.x + (z - state.z) * state.tx, state.y + (z - state.z) * state.ty, z, state.tx, state.ty};
+  }
 
-  __device__ float x_at_z(const MiniState& state, const float z);
+  __device__ inline float y_at_z_dzdy_corrected(const MiniState& state, const float z)
+  {
+    return (state.y + (z - state.z) * state.ty) / (1.f - state.ty * SciFi::Constants::dzdy);
+  }
+
+  __device__ inline MiniState state_at_z_dzdy_corrected(const MiniState& state, const float z)
+  {
+    return {state.x + (z - state.z) * state.tx, y_at_z_dzdy_corrected(state, z), z, state.tx, state.ty};
+  }
+
+  __device__ inline float x_at_z(const MiniState& state, const float z) { return state.x + (z - state.z) * state.tx; }
 
   // straight line extrapolation of y to other z position
-  __device__ float y_at_z(const MiniState& state, const float z);
+  __device__ inline float y_at_z(const MiniState& state, const float z) { return state.y + (z - state.z) * state.ty; }
 
-  __device__ float linear_propagation(float x_0, float tx, float dz);
+  __device__ inline float linear_propagation(float x_0, float tx, float dz) { return x_0 + tx * dz; }
 
-  __device__ float scifi_propagation(const float x_0, const float tx, const float qop, const float dz);
+  __device__ inline float scifi_propagation(const float x_0, const float tx, const float qop, const float dz)
+  {
+    return linear_propagation(x_0, tx, dz) + LookingForward::forward_param * qop * dz * dz;
+  }
 
-  __device__ float propagate_x_from_velo(
+  __device__ inline float get_extrap(const float qop, const float dz)
+  {
+    // return LookingForward::forward_param * qop * dz * dz;
+    // new parametrization
+    return (LookingForward::forward_param * dz * dz + LookingForward::d_ratio * dz * dz * dz) * qop;
+  }
+  __device__ float propagate_x_from_velo_multi_par(
     const MiniState& UT_state,
     const float qop,
     const int layer,
     const LookingForward::Constants* dev_looking_forward_constants);
 
-  __device__ MiniState propagate_state_from_velo(
+  __device__ MiniState propagate_state_from_velo_multi_par(
     const MiniState& UT_state,
-    float qop,
-    int layer,
+    const float qop,
+    const int layer,
     const LookingForward::Constants* dev_looking_forward_constants);
 
   __device__ float dx_calc(const float state_tx, float qop);
@@ -152,11 +174,25 @@ namespace LookingForward {
     const float layer_projected_state_y,
     const float dxdy);
 
-  __device__ float qop_update(
-    const float ut_state_tx,
+  __device__ float tx_ty_corr_multi_par(
+    const MiniState& ut_state,
+    const int station,
+    const LookingForward::Constants* dev_looking_forward_constants);
+
+  __device__ float qop_update_multi_par(
+    const MiniState& ut_state_tx,
     const float h0_x,
     const float h0_z,
     const float h1_x,
     const float h1_z,
-    const float ds_p_param_layer_inv);
+    const int station,
+    const LookingForward::Constants* dev_looking_forward_constants);
+
+  __device__ float qop_update_multi_par(
+    const MiniState& ut_state_tx,
+    const float slope,
+    const int station,
+    const LookingForward::Constants* dev_looking_forward_constants);
+
+  // __device__ float qop_update(const float ut_state_tx, const float SciFi_tx, const float ds_p_param_layer_inv);
 } // namespace LookingForward

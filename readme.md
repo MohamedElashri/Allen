@@ -115,6 +115,11 @@ Here are some example run options:
 
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
+    
+For profiling, Nvidia's nvprof can be used. For so far unknown reasons, CUDA version 10.1.168 makes nvprof crash with Allen. 
+As workaround one can use the older version:
+
+    /usr/local/cuda-10.0/bin/nvprof ./Allen -c 0 -n 1000
 
 How to run build and run together with the LHCb stack
 -----------------------------------------------------

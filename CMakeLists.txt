@@ -151,6 +151,8 @@ elseif(${CMAKE_BUILD_TYPE} STREQUAL Release)
   set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
 elseif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
   set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DDEBUG ")
+else()
+  message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
 endif(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
 
 option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)

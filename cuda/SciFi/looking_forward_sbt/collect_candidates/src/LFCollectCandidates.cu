@@ -35,10 +35,6 @@ __global__ void lf_collect_candidates(
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
   const SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
 
-  // if (threadIdx.x == 0) {
-  //   printf("Number of hits in event: %i\n", scifi_hit_count.event_number_of_hits());
-  // }
-
   for (int i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
     const float ut_qop = ut_tracks.qop[i];
     lf_collect_candidates_p_impl(

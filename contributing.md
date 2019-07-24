@@ -347,6 +347,10 @@ Before placing a merge request
 ==============================
 Before starting to edit files, please ensure that your editor produces spaces, not tabs!
 
+You can apply the clang format on all files with this command:
+`find . \! -wholename "*InstallArea*" -a \! -wholename "*build*/*"  | egrep "(\.cpp|\.cu|\.cuh|\.h|\.hpp)$" | xargs -n 1 /cvmfs/lhcb.cern.ch/lib/bin/x86_64-centos7/lcg-clang-format-8.0.0 -i --color=0
+`
+
 Before placing a merge request, please go through the following list and check that BOTH compilation and running work after your changes:
    * Release and debug mode `cmake -DCMAKE_BUILD_TYPE=release ..` and `cmake -DCMAKE_BUILD_TYPE=debug ..`
    * Different sequences:

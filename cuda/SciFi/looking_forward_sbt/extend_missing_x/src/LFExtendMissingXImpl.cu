@@ -17,15 +17,16 @@ __device__ int8_t lf_extend_missing_x_impl(
   const auto dz1 = (z1 - z0);
   const auto dz2 = (z2 - z0);
   const auto tx = (x1 - x0) / dz1;
-  float extrap1 = LookingForward::forward_param * track.qop * dz1 * dz1;
+  float extrap1 = LookingForward::get_extrap(track.qop, dz1);
   extrap1 *= extrap1;
-  const auto expected_x2 = x0 + tx * dz2 + LookingForward::forward_param * track.qop * dz2 * dz2;
+  const auto expected_x2 = x0 + tx * dz2 + LookingForward::get_extrap(track.qop, dz2);
 
   // Pick the best, according to chi2
   int8_t best_index = -1;
   float best_chi2 = max_chi2;
 
-  for (int8_t h2_rel = 0; h2_rel < number_of_candidates; h2_rel++) {
+  // for (int8_t h2_rel = 0; h2_rel < number_of_candidates; h2_rel++) {
+  for (int8_t h2_rel = 0; h2_rel < LookingForward::maximum_number_of_candidates; h2_rel++) {
     const auto x2 = scifi_hits_x0[h2_rel];
     const auto chi2 = extrap1 + (x2 - expected_x2) * (x2 - expected_x2);
 

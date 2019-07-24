@@ -22,6 +22,9 @@ __global__ void consolidate_scifi_tracks(
 
   const uint ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
 
+  // const SciFi::TrackHits* event_scifi_tracks =
+  //   dev_scifi_tracks + ut_event_tracks_offset *
+  //   LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter;
   const SciFi::TrackHits* event_scifi_tracks =
     dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
   const uint* event_scifi_selected_track_indices =

@@ -34,13 +34,15 @@ namespace SciFi {
     constexpr float cyParams = -3.68424e-05;
 
     // stereo hit matching
+    // Not used in Looking Forward when using qop from VeloUT
     constexpr float tolYCollectX = 3.5 * Gaudi::Units::mm;        // 4.1* Gaudi::Units::mm ;
     constexpr float tolYSlopeCollectX = 0.001 * Gaudi::Units::mm; // 0.0018 * Gaudi::Units::mm ;
 
     // veloUT momentum estimate
     constexpr bool useMomentumEstimate = true;
     constexpr bool useWrongSignWindow = true;
-    constexpr float wrongSignPT = 2000. * Gaudi::Units::MeV;
+    constexpr float wrongSignPT = 500. * Gaudi::Units::MeV;
+    constexpr float wrongSignQoP = 1.f / wrongSignPT;
 
     // z Reference plane
     constexpr float zReference = 8520. * Gaudi::Units::mm; // in T2
@@ -82,8 +84,8 @@ namespace SciFi {
 
       // ASSORTED GEOMETRY VALUES, eventually read this from some xml
       const float xZone_zPos[6] = {7826., 8036., 8508., 8718., 9193., 9403.};
-      const float uvZone_zPos[12] =
-        {7896., 7966., 8578., 8648., 9263., 9333., 7896., 7966., 8578., 8648., 9263., 9333.};
+      const float uvZone_zPos[6] =
+        {7896., 7966., 8578., 8648., 9263., 9333.}; //, 7896., 7966., 8578., 8648., 9263., 9333.};
       const float uvZone_dxdy[12] = {0.0874892,
                                      -0.0874892,
                                      0.0874892,
@@ -118,7 +120,8 @@ namespace SciFi {
     static constexpr uint n_layers = 12;
     static constexpr uint n_mats = 1024;
 
-    // todo: if this is changed with alignment, don't use constant
+    // FIXME_GEOMETRY_HARDCODING
+    // todo: use dzdy defined in geometry, read by mat
     static constexpr float dzdy = 0.003601f;
 
     /**

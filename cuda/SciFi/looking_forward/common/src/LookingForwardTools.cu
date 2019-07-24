@@ -1,90 +1,43 @@
 #include "LookingForwardTools.cuh"
 #include "BinarySearch.cuh"
 
-// straight line extrapolation of MiniState to other z position
-__device__ MiniState LookingForward::state_at_z(const MiniState& state, const float z)
-{
-  return {state.x + (z - state.z) * state.tx, state.y + (z - state.z) * state.ty, z, state.tx, state.ty};
-}
-
-__device__ float LookingForward::x_at_z(const MiniState& state, const float z)
-{
-  float xf = state.x + (z - state.z) * state.tx;
-  return xf;
-}
-
-// straight line extrapolation of y to other z position
-__device__ float LookingForward::y_at_z(const MiniState& state, const float z)
-{
-  return state.y + (z - state.z) * state.ty;
-}
-
-__device__ float LookingForward::linear_propagation(float x_0, float tx, float dz) { return x_0 + tx * dz; }
-
-__device__ MiniState LookingForward::propagate_state_from_velo(
+__device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
   const MiniState& UT_state,
-  float qop,
-  int layer,
+  const float qop,
+  const int layer,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   // center of the magnet
   const MiniState magnet_state = state_at_z(UT_state, dev_looking_forward_constants->zMagnetParams[0]);
 
   MiniState final_state = magnet_state;
-  final_state.tx = dev_looking_forward_constants->ds_p_param[layer] * qop + UT_state.tx;
 
-  const auto dp_x_mag =
-    (qop > 0) ? dev_looking_forward_constants->dp_x_mag_plus : dev_looking_forward_constants->dp_x_mag_minus;
-  const auto dp_y_mag =
-    (qop > 0) ? dev_looking_forward_constants->dp_y_mag_plus : dev_looking_forward_constants->dp_y_mag_minus;
+  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
 
-  const float x_mag_correction = dp_x_mag[layer][0] + magnet_state.x * dp_x_mag[layer][1] +
-                                 magnet_state.x * magnet_state.x * dp_x_mag[layer][2] +
-                                 magnet_state.x * magnet_state.x * magnet_state.x * dp_x_mag[layer][3] +
-                                 magnet_state.x * magnet_state.x * magnet_state.x * magnet_state.x * dp_x_mag[layer][4];
+  final_state.tx = tx_ty_corr * qop + UT_state.tx;
 
-  const float y_mag_correction =
-    dp_y_mag[layer][0] + magnet_state.y * dp_y_mag[layer][1] + magnet_state.y * magnet_state.y * dp_y_mag[layer][2];
-
-  final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
-  final_state.x += -y_mag_correction - x_mag_correction;
-
+  final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  // final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   return final_state;
 }
-
-__device__ float LookingForward::propagate_x_from_velo(
+__device__ float LookingForward::propagate_x_from_velo_multi_par(
   const MiniState& UT_state,
   const float qop,
   const int layer,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
+  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
+
+  const float final_tx = tx_ty_corr * qop + UT_state.tx;
+
   // get x and y at center of magnet
   const auto magnet_x =
     linear_propagation(UT_state.x, UT_state.tx, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
   const auto magnet_y =
     linear_propagation(UT_state.y, UT_state.ty, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
 
-  const auto dp_x_mag =
-    (qop > 0) ? dev_looking_forward_constants->dp_x_mag_plus : dev_looking_forward_constants->dp_x_mag_minus;
-  const auto dp_y_mag =
-    (qop > 0) ? dev_looking_forward_constants->dp_y_mag_plus : dev_looking_forward_constants->dp_y_mag_minus;
-
-  const float x_mag_correction = dp_x_mag[layer][0] + magnet_x * dp_x_mag[layer][1] +
-                                 magnet_x * magnet_x * dp_x_mag[layer][2] +
-                                 magnet_x * magnet_x * magnet_x * dp_x_mag[layer][3] +
-                                 magnet_x * magnet_x * magnet_x * magnet_x * dp_x_mag[layer][4];
-
-  const float y_mag_correction =
-    dp_y_mag[layer][0] + magnet_y * dp_y_mag[layer][1] + magnet_y * magnet_y * dp_y_mag[layer][2];
-
-  const float final_tx = dev_looking_forward_constants->ds_p_param[layer] * qop + UT_state.tx;
-  float final_x = linear_propagation(
-    magnet_x,
-    final_tx,
-    dev_looking_forward_constants->Zone_zPos[layer] - dev_looking_forward_constants->zMagnetParams[0]);
-  final_x += -y_mag_correction - x_mag_correction;
-
-  return final_x;
+  return linear_propagation(
+    magnet_x, final_tx, dev_looking_forward_constants->Zone_zPos[layer] - LookingForward::z_magnet);
 }
 
 __device__ float LookingForward::dx_calc(const float state_tx, float qop)
@@ -93,13 +46,14 @@ __device__ float LookingForward::dx_calc(const float state_tx, float qop)
   float qop_window = std::abs(LookingForward::dx_slope * qop + LookingForward::dx_min);
   float tx_window = std::abs(LookingForward::tx_slope * state_tx + LookingForward::tx_min);
   ret_val = LookingForward::tx_weight * tx_window + LookingForward::dx_weight * qop_window;
+
+  // TODO this must be verified
+  // ret_val = 1.2e+05*qop + LookingForward::dx_min;
   if (ret_val > LookingForward::max_window_layer0) {
     ret_val = LookingForward::max_window_layer0;
   }
 
-  // TEST
-  // ret_val = 100 + 1.4e6*std::abs(qop);
-  ret_val = 100 + 1.4e6 * std::abs(qop);
+  ret_val = 100.f + 1.4e6f * std::abs(qop);
 
   return ret_val;
 }
@@ -198,19 +152,51 @@ __device__ std::tuple<int, float> LookingForward::get_best_hit(
   return std::tuple<int, float> {best_index, min_chi2};
 }
 
-__device__ float LookingForward::scifi_propagation(const float x_0, const float tx, const float qop, const float dz)
+__device__ float LookingForward::tx_ty_corr_multi_par(
+  const MiniState& ut_state,
+  const int station,
+  const LookingForward::Constants* dev_looking_forward_constants)
 {
-  return linear_propagation(x_0, tx, dz) + LookingForward::forward_param * qop * dz * dz;
+  float tx_ty_corr = 0;
+  const float tx_pow[5] = {1,
+                           ut_state.tx,
+                           ut_state.tx * ut_state.tx,
+                           ut_state.tx * ut_state.tx * ut_state.tx,
+                           ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx};
+
+  const float ty_pow[5] = {1,
+                           ut_state.ty,
+                           ut_state.ty * ut_state.ty,
+                           ut_state.ty * ut_state.ty * ut_state.ty,
+                           ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty};
+  // TODO this is probably the worst implementation possible
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
+      tx_ty_corr += dev_looking_forward_constants->ds_multi_param[station][i][j] * tx_pow[i] * ty_pow[j];
+    }
+  }
+
+  return tx_ty_corr;
 }
 
-__device__ float LookingForward::qop_update(
-  const float ut_state_tx,
+__device__ float LookingForward::qop_update_multi_par(
+  const MiniState& ut_state,
   const float h0_x,
   const float h0_z,
   const float h1_x,
   const float h1_z,
-  const float ds_p_param_layer_inv)
+  const int station,
+  const LookingForward::Constants* dev_looking_forward_constants)
 {
-  const float slope = (h1_x - h0_x) / std::abs(h1_z - h0_z);
-  return (slope - ut_state_tx) * ds_p_param_layer_inv;
+  const float slope = (h1_x - h0_x) / (h1_z - h0_z);
+  return LookingForward::qop_update_multi_par(ut_state, slope, station, dev_looking_forward_constants);
+}
+
+__device__ float LookingForward::qop_update_multi_par(
+  const MiniState& ut_state,
+  const float slope,
+  const int station,
+  const LookingForward::Constants* dev_looking_forward_constants)
+{
+  return (slope - ut_state.tx) / LookingForward::tx_ty_corr_multi_par(ut_state, station, dev_looking_forward_constants);
 }

@@ -170,6 +170,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
   std::vector<Checker::Tracks> checker_tracks; // all tracks from all events
   int n_is_muon = 0;
   int n_total_tracks = 0;
+  float n_hits_per_track_events = 0;
   for (uint i_event = 0; i_event < number_of_events; i_event++) {
     Checker::Tracks tracks; // all tracks within one event
 
@@ -193,6 +194,8 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
                                               number_of_events};
     const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
     const uint event_offset = scifi_tracks.tracks_offset(i_event);
+
+    float n_hits_per_track = 0;
 
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
       const uint UT_track_index = scifi_tracks.ut_track[i_track];
@@ -222,6 +225,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
       for (int i_hit = 0; i_hit < scifi_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_scifi.LHCbID(i_hit));
       }
+      n_hits_per_track += scifi_track_number_of_hits;
 
       // add UT hits
       const uint ut_track_number_of_hits = ut_tracks.number_of_hits(UT_track_index);
@@ -247,7 +251,16 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
 
       tracks.push_back(t);
     } // tracks
+    if (number_of_tracks_event > 0) {
+      n_hits_per_track /= number_of_tracks_event;
+      n_hits_per_track_events += n_hits_per_track;
+    }
+
     checker_tracks.emplace_back(tracks);
+  }
+  if (number_of_events > 0) {
+    n_hits_per_track_events /= number_of_events;
+    debug_cout << "Average number of hits on SciFi segemnt of tracks = " << n_hits_per_track_events << std::endl;
   }
 
   debug_cout << "Number of tracks with is_muon true = " << n_is_muon << " / " << n_total_tracks << std::endl;

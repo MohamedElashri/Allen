@@ -198,7 +198,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     event_reader = std::make_unique<MDFReader>(FolderMap {{{BankTypes::VP, folder_name_mdf},
                                                            {BankTypes::UT, folder_name_mdf},
                                                            {BankTypes::FT, folder_name_mdf},
-                                                           {BankTypes::MUON, folder_name_Muon_raw}}});
+                                                           {BankTypes::MUON, folder_name_mdf}}});
   }
   else {
     event_reader = std::make_unique<EventReader>(FolderMap {{{BankTypes::VP, folder_name_velopix_raw},
@@ -266,6 +266,22 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Lambda with the execution of a thread / stream
   const auto thread_execution = [&](uint i) {
+    size_t n_devices = 0;
+    std::string device_name;
+    try {
+      std::tie(n_devices, device_name) = set_device(cuda_device);
+      if (n_devices == 0) {
+        error_cout << "Failed to select device " << cuda_device << std::endl;
+        return -1;
+      }
+      else {
+        debug_cout << " selected cuda device " << cuda_device << ": " << device_name << std::endl << std::endl;
+      }
+    } catch (const std::invalid_argument& e) {
+      error_cout << e.what() << std::endl;
+      error_cout << "Failed to select cuda device " << cuda_device << std::endl;
+      return -1;
+    }
     auto runtime_options = RuntimeOptions {event_reader->events(BankTypes::VP).begin(),
                                            event_reader->offsets(BankTypes::VP).begin(),
                                            event_reader->events(BankTypes::VP).size(),
