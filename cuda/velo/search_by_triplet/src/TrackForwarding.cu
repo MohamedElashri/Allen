@@ -97,11 +97,11 @@ __device__ void track_forwarding(
       const auto dy = predy - h2.y;
 
       // Scatter
-      const auto scatterNum = (dx * dx) + (dy * dy);
+      const auto scatter = (dx * dx) + (dy * dy);
 
       // We keep the best one found
-      if (scatterNum < best_fit) {
-        best_fit = scatterNum;
+      if (scatter < best_fit) {
+        best_fit = scatter;
         best_h2 = h2_index;
       }
     }

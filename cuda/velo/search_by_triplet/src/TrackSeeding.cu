@@ -28,7 +28,7 @@ __device__ void track_seeding(
     }
   }
 
-  // Also add other side
+  // Also add other side, processing both sides simultaneously
   for (int h1_rel_index = threadIdx.x; h1_rel_index < module_data[1].hitNums; h1_rel_index += blockDim.x) {
     const auto h1_index = module_data[1].hitStart + h1_rel_index;
     const auto h0_size = h0_candidates[2 * h1_index + 1];
@@ -42,10 +42,7 @@ __device__ void track_seeding(
   // Due to h1_indices
   __syncthreads();
 
-  // Adaptive number of xthreads and ythreads,
-  // depending on number of hits in h1 to process
-
-  // Process at a time a maximum of max_concurrent_h1 elements
+  // Assign a h1 to each threadIdx.x
   const auto number_of_hits_h1 = dev_atomics_velo[ip_shift + 3];
   for (int h1_rel_index = threadIdx.x; h1_rel_index < number_of_hits_h1; h1_rel_index += blockDim.x) {
     // The output we are searching for
@@ -55,7 +52,6 @@ __device__ void track_seeding(
     float best_fit = Velo::Tracking::max_scatter_seeding;
 
     // Fetch h1
-    // const auto h1_rel_index = h1_indices[h1_rel_index];
     h1_index = h1_indices[h1_rel_index];
     const Velo::HitBase h1 {dev_velo_cluster_container[5 * number_of_hits + h1_index],
                             dev_velo_cluster_container[h1_index],
@@ -68,7 +64,7 @@ __device__ void track_seeding(
     const auto h2_first_candidate = h2_candidates[2 * h1_index];
     const auto h2_size = h2_candidates[2 * h1_index + 1];
 
-    // Iterate over h0 with thread_id_y
+    // Iterate over h0
     for (int h0_index = h0_first_candidate; h0_index < h0_first_candidate + h0_size; ++h0_index) {
       if (!hit_used[h0_index]) {
         // Fetch h0
@@ -79,8 +75,6 @@ __device__ void track_seeding(
         // Finally, iterate over all h2 indices
         for (auto h2_index = h2_first_candidate; h2_index < h2_first_candidate + h2_size; ++h2_index) {
           if (!hit_used[h2_index]) {
-            // const auto best_fits_index = thread_id_y*Velo::Tracking::max_numhits_in_module + h1_rel_index;
-
             // Our triplet is h0_index, h1_index, h2_index
             // Fit it and check if it's better than what this thread had
             // for any triplet with h1
@@ -96,11 +90,11 @@ __device__ void track_seeding(
             const auto dy = y - h2.y;
 
             // Calculate fit
-            const auto scatterNum = (dx * dx) + (dy * dy);
+            const auto scatter = (dx * dx) + (dy * dy);
 
-            if (scatterNum < best_fit) {
+            if (scatter < best_fit) {
               // Populate fit, h0 and h2 in case we have found a better one
-              best_fit = scatterNum;
+              best_fit = scatter;
               best_h0 = h0_index;
               best_h2 = h2_index;
             }
