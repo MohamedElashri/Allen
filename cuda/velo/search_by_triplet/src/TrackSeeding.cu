@@ -14,8 +14,7 @@ __device__ void track_seeding(
   Velo::TrackletHits* tracklets,
   uint* tracks_to_follow,
   unsigned short* h1_indices,
-  int* dev_atomics_velo,
-  const int ip_shift)
+  int* dev_shifted_atomics_velo)
 {
   // Add to an array all non-used h1 hits with candidates
   for (int h1_rel_index = threadIdx.x; h1_rel_index < module_data[0].hitNums; h1_rel_index += blockDim.x) {
@@ -23,7 +22,7 @@ __device__ void track_seeding(
     const auto h0_size = h0_candidates[2 * h1_index + 1];
     const auto h2_size = h2_candidates[2 * h1_index + 1];
     if (!hit_used[h1_index] && h0_size > 0 && h2_size > 0) {
-      const auto current_hit = atomicAdd(dev_atomics_velo + ip_shift + 3, 1);
+      const auto current_hit = atomicAdd(dev_shifted_atomics_velo + 3, 1);
       h1_indices[current_hit] = h1_index;
     }
   }
@@ -34,7 +33,7 @@ __device__ void track_seeding(
     const auto h0_size = h0_candidates[2 * h1_index + 1];
     const auto h2_size = h2_candidates[2 * h1_index + 1];
     if (!hit_used[h1_index] && h0_size > 0 && h2_size > 0) {
-      const auto current_hit = atomicAdd(dev_atomics_velo + ip_shift + 3, 1);
+      const auto current_hit = atomicAdd(dev_shifted_atomics_velo + 3, 1);
       h1_indices[current_hit] = h1_index;
     }
   }
@@ -43,7 +42,7 @@ __device__ void track_seeding(
   __syncthreads();
 
   // Assign a h1 to each threadIdx.x
-  const auto number_of_hits_h1 = dev_atomics_velo[ip_shift + 3];
+  const auto number_of_hits_h1 = dev_shifted_atomics_velo[3];
   for (int h1_rel_index = threadIdx.x; h1_rel_index < number_of_hits_h1; h1_rel_index += blockDim.x) {
     // The output we are searching for
     unsigned short best_h0 = 0;
@@ -105,13 +104,13 @@ __device__ void track_seeding(
 
     if (best_fit < Velo::Tracking::max_scatter_seeding) {
       // Add the track to the bag of tracks
-      const auto trackP = atomicAdd(dev_atomics_velo + ip_shift + 1, 1) & Velo::Tracking::ttf_modulo_mask;
+      const auto trackP = atomicAdd(dev_shifted_atomics_velo + 1, 1) & Velo::Tracking::ttf_modulo_mask;
       tracklets[trackP] = Velo::TrackletHits {best_h0, h1_index, best_h2};
 
       // Add the tracks to the bag of tracks to_follow
       // Note: The first bit flag marks this is a tracklet (hitsNum == 3),
       // and hence it is stored in tracklets
-      const auto ttfP = atomicAdd(dev_atomics_velo + ip_shift + 2, 1) & Velo::Tracking::ttf_modulo_mask;
+      const auto ttfP = atomicAdd(dev_shifted_atomics_velo + 2, 1) & Velo::Tracking::ttf_modulo_mask;
       tracks_to_follow[ttfP] = 0x80000000 | trackP;
     }
   }
