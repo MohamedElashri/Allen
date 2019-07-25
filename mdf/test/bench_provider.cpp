@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   while (good || filled != 0) {
     std::tie(good, filled) = mdf.fill_parallel((++i) % n_slices, events_per_slice);
     n_filled += filled;
-    this_thread::sleep_for(sleep_interval);
+    // this_thread::sleep_for(sleep_interval);
   }
 
   t.stop();
