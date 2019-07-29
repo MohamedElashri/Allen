@@ -74,6 +74,13 @@ test_program(bench_read)
 test_program(test_providers)
 test_program(bench_provider)
 
+add_executable(bench_transpose test/bench_transpose.cpp)
+target_include_directories(bench_transpose PUBLIC
+  ${CMAKE_SOURCE_DIR}/mdf/include
+  ${CMAKE_SOURCE_DIR}/main/include)
+target_compile_definitions(bench_transpose PRIVATE NO_CUDA)
+target_link_libraries(bench_transpose Common mdf)
+
 if (BUILD_TESTS)
 add_test(NAME test_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
 endif()
