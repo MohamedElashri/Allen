@@ -80,7 +80,7 @@ TEST_CASE( "MDF versus Binary", "[compare_MDF_binary]" ) {
   if (!s_config.run) return;
 
   MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    mdf{s_config.n_slices, s_config.events_per_slice, s_config.mdf_files};
+    mdf{s_config.n_slices, s_config.events_per_slice, s_config.mdf_files, true};
 
   size_t const slice = 0;
   mdf.fill(slice, s_config.n_events);
@@ -101,14 +101,14 @@ TEST_CASE( "MDF versus Parallel MDF", "[compare_MDF_parallel]" ) {
   if (!s_config.run) return;
 
   MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    mdf{s_config.n_slices, s_config.events_per_slice, s_config.mdf_files};
+    mdf{s_config.n_slices, s_config.events_per_slice, s_config.mdf_files, true};
 
   size_t const slice = 0;
   mdf.fill(slice, s_config.n_events);
   auto banks_mdf = mdf.banks(BankTypes::VP, slice);
 
   MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    parallel{s_config.n_slices, s_config.events_per_slice, s_config.mdf_files};
+    parallel{s_config.n_slices, s_config.events_per_slice, s_config.mdf_files, true};
 
   parallel.fill_parallel(slice, s_config.n_events);
   auto banks_para = parallel.banks(BankTypes::VP, slice);

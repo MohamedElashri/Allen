@@ -187,7 +187,7 @@ std::tuple<bool, bool, size_t> transpose_events(const ReadBuffer& read_buffer,
         // Switch to new type of banks
         bank_type_index = bank_ids[b->type()];
         auto& slice = slices[bank_type_index][slice_index];
-        prev_type = b->type();
+        prev_type = bt;
 
         bank_counter = 1;
         banks_offsets = std::get<1>(slice).data();
@@ -264,6 +264,142 @@ std::tuple<bool, bool, size_t> transpose_events(const ReadBuffer& read_buffer,
   return {true, full, i_event};
 }
 
+// std::tuple<bool, bool, size_t> fill_offsets(int const i_buffer, int const slice_index, size_t n_events) {
+//   auto& [n_filled, event_offsets, bank_offsets, buffer] = m_buffers[i_buffer];
+
+//   gsl::span<char>* banks_data = nullptr;
+//   gsl::span<unsigned int>* banks_offsets = nullptr;
+//   size_t* n_banks_offsets = nullptr;
+
+//   uint32_t* banks_write = nullptr;
+//   uint32_t* banks_offsets_write = nullptr;
+
+//   unsigned int bank_offset = 0;
+//   unsigned int bank_counter = 1;
+//   unsigned int bank_type_index = 0;
+
+//   bool full = false;
+
+//   // "Reset" the slice
+//   for (auto bank_type : this->types()) {
+//     auto ib = to_integral<BankTypes>(bank_type);
+//     std::get<1>(m_slices[ib][slice_index])[0] = 0;
+//     std::get<2>(m_slices[ib][slice_index]) = 1;
+//   }
+
+//   auto& event_ids = m_event_ids[slice_index];
+//   event_ids.clear();
+
+//   // L0Calo doesn't exist in the upgrade
+//   LHCb::RawBank::BankType prev_type = LHCb::RawBank::L0Calo;
+//   size_t i_event = 0;
+//   for (; i_event < n_filled && i_event < n_events; ++i_event) {
+//     // Offsets are to the start of the event, which includes the header
+//     auto const* bank_start = buffer.data() + event_offsets[i_event];
+//     auto const* bank = bank_start;
+//     auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
+
+//     while (bank < bank_end) {
+//       const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
+
+//       if (b->magic() != LHCb::RawBank::MagicPattern) {
+//         error_cout << "magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
+//         return {false, false, i_event};
+//       }
+
+//       // Decode the odin bank
+//       if (b->type() == LHCb::RawBank::ODIN) {
+//         auto odin = MDF::decode_odin(b);
+//         event_ids.emplace_back(odin.run_number, odin.event_number);
+//       }
+
+//       // Check if Allen processes this bank type
+//       auto bank_type_it = Allen::bank_types.find(b->type());
+//       if (bank_type_it == Allen::bank_types.end()
+//           || !this->types().count(bank_type_it->second)) {
+//         bank += b->totalSize();
+//         continue;
+//       }
+
+//       if (b->type() != prev_type) {
+//         // Switch to new type of banks
+//         bank_type_index = to_integral(bank_type_it->second);
+//         auto& slice = m_slices[bank_type_index][slice_index];
+//         prev_type = b->type();
+
+//         bank_offsets[this->n_events() * bank_type_index + i_event] = bank - bank_start;
+
+//         bank_counter = 1;
+//         banks_data = &std::get<0>(slice);
+//         banks_offsets = &std::get<1>(slice);
+//         n_banks_offsets = &std::get<2>(slice);
+
+//         // Calculate the size taken by storing the number of banks
+//         // and offsets to all banks within the event
+//         auto preamble_words = 2 + m_banks_count[bank_type_index];
+
+//         // Initialize offset to start of this set of banks from the
+//         // previous one and increment with the preamble size
+//         (*banks_offsets)[*n_banks_offsets] = ((*banks_offsets)[*n_banks_offsets - 1]
+//                                               + preamble_words * sizeof(uint32_t));
+
+//         // Two things are calculated and written now:
+//         // - number of banks/offsets
+//         // - offsets to individual banks
+
+//         // Initialize point to write from offset of previous set
+//         banks_write = reinterpret_cast<uint32_t*>(banks_data->data() + (*banks_offsets)[*n_banks_offsets - 1]);
+
+//         // New offset to increment
+//         ++(*n_banks_offsets);
+
+//         // Write the number of banks
+//         banks_write[0] = m_banks_count[bank_type_index];
+
+//         // All bank offsets are uit32_t so cast to that type
+//         banks_offsets_write = banks_write + 1;
+//         banks_offsets_write[0] = 0;
+
+//         // Offset in number of uint32_t
+//         bank_offset = 0;
+
+//         // Start writing bank data after the preamble
+//         banks_write += preamble_words;
+//       } else {
+//         ++bank_counter;
+//       }
+
+//       // Offset of next bank
+//       bank_offset += b->size() + b->hdrSize();
+
+//       // Write next offset in bytes
+//       banks_offsets_write[bank_counter] = bank_offset;
+
+//       // Update "event" offset (in bytes)
+//       (*banks_offsets)[*n_banks_offsets - 1] += b->size() + b->hdrSize();
+
+//       // Increment overall bank pointer
+//       bank += b->totalSize();
+//     }
+
+//     full = std::any_of(this->types().begin(), this->types().end(),
+//                        [this, slice_index, i_event, &event_offsets](auto bank_type) {
+//                          auto ib = to_integral<BankTypes>(bank_type);
+//                          const auto& [slice, slice_offsets, offsets_size] = m_slices[ib][slice_index];
+//                          // Use the event size of the next event here instead of the
+//                          // per bank size because that's not yet known for the next
+//                          // event
+//                          auto const event_size = event_offsets[i_event + 1] - event_offsets[i_event];
+//                          return (slice_offsets[offsets_size - 1] + event_size) > slice.size();
+//                        });
+//     if (full) {
+//       break;
+//     }
+//   }
+//   return {true, full, i_event};
+// }
+
+
 
 // FIXME: add start offset
 template <BankTypes... Banks>
@@ -334,8 +470,6 @@ public:
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1024 * 1024);
 
-    // Start to prefetch
-    m_prefetch_thread = std::make_unique<std::thread>([this] { prefetch(); });
   }
 
   static constexpr const char* name = "MDF";
@@ -427,6 +561,12 @@ public:
   std::tuple<bool, size_t> fill_parallel(size_t slice_index, size_t n)
   {
 
+    if (!m_prefetch_thread) {
+      // Start to prefetch
+      m_prefetch_thread = std::make_unique<std::thread>([this] { prefetch(); });
+    }
+
+
     size_t i_read = 0;
     bool good = false, transpose_full = false, transpose_done = false;
     size_t n_filled = 0, n_transposed = 0;
@@ -483,140 +623,6 @@ public:
 
 private:
 
-  std::tuple<bool, bool, size_t> fill_offsets(int const i_buffer, int const slice_index, size_t n_events) {
-    auto& [n_filled, event_offsets, bank_offsets, buffer] = m_buffers[i_buffer];
-
-    gsl::span<char>* banks_data = nullptr;
-    gsl::span<unsigned int>* banks_offsets = nullptr;
-    size_t* n_banks_offsets = nullptr;
-
-    uint32_t* banks_write = nullptr;
-    uint32_t* banks_offsets_write = nullptr;
-
-    unsigned int bank_offset = 0;
-    unsigned int bank_counter = 1;
-    unsigned int bank_type_index = 0;
-
-    bool full = false;
-
-    // "Reset" the slice
-    for (auto bank_type : this->types()) {
-      auto ib = to_integral<BankTypes>(bank_type);
-      std::get<1>(m_slices[ib][slice_index])[0] = 0;
-      std::get<2>(m_slices[ib][slice_index]) = 1;
-    }
-
-    auto& event_ids = m_event_ids[slice_index];
-    event_ids.clear();
-
-    // L0Calo doesn't exist in the upgrade
-    LHCb::RawBank::BankType prev_type = LHCb::RawBank::L0Calo;
-    size_t i_event = 0;
-    for (; i_event < n_filled && i_event < n_events; ++i_event) {
-      // Offsets are to the start of the event, which includes the header
-      auto const* bank_start = buffer.data() + event_offsets[i_event];
-      auto const* bank = bank_start;
-      auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
-
-      while (bank < bank_end) {
-        const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
-
-        if (b->magic() != LHCb::RawBank::MagicPattern) {
-          error_cout << "magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
-          return {false, false, i_event};
-        }
-
-        // Decode the odin bank
-        if (b->type() == LHCb::RawBank::ODIN) {
-          auto odin = MDF::decode_odin(b);
-          event_ids.emplace_back(odin.run_number, odin.event_number);
-        }
-
-        // Check if Allen processes this bank type
-        auto bank_type_it = Allen::bank_types.find(b->type());
-        if (bank_type_it == Allen::bank_types.end()
-            || !this->types().count(bank_type_it->second)) {
-          bank += b->totalSize();
-          continue;
-        }
-
-        if (b->type() != prev_type) {
-          // Switch to new type of banks
-          bank_type_index = to_integral(bank_type_it->second);
-          auto& slice = m_slices[bank_type_index][slice_index];
-          prev_type = b->type();
-
-          bank_offsets[this->n_events() * bank_type_index + i_event] = bank - bank_start;
-
-          bank_counter = 1;
-          banks_data = &std::get<0>(slice);
-          banks_offsets = &std::get<1>(slice);
-          n_banks_offsets = &std::get<2>(slice);
-
-          // Calculate the size taken by storing the number of banks
-          // and offsets to all banks within the event
-          auto preamble_words = 2 + m_banks_count[bank_type_index];
-
-          // Initialize offset to start of this set of banks from the
-          // previous one and increment with the preamble size
-          (*banks_offsets)[*n_banks_offsets] = ((*banks_offsets)[*n_banks_offsets - 1]
-                                                + preamble_words * sizeof(uint32_t));
-
-          // Two things are calculated and written now:
-          // - number of banks/offsets
-          // - offsets to individual banks
-
-          // Initialize point to write from offset of previous set
-          banks_write = reinterpret_cast<uint32_t*>(banks_data->data() + (*banks_offsets)[*n_banks_offsets - 1]);
-
-          // New offset to increment
-          ++(*n_banks_offsets);
-
-          // Write the number of banks
-          banks_write[0] = m_banks_count[bank_type_index];
-
-          // All bank offsets are uit32_t so cast to that type
-          banks_offsets_write = banks_write + 1;
-          banks_offsets_write[0] = 0;
-
-          // Offset in number of uint32_t
-          bank_offset = 0;
-
-          // Start writing bank data after the preamble
-          banks_write += preamble_words;
-        } else {
-          ++bank_counter;
-        }
-
-        // Offset of next bank
-        bank_offset += b->size() + b->hdrSize();
-
-        // Write next offset in bytes
-        banks_offsets_write[bank_counter] = bank_offset;
-
-        // Update "event" offset (in bytes)
-        (*banks_offsets)[*n_banks_offsets - 1] += b->size() + b->hdrSize();
-
-        // Increment overall bank pointer
-        bank += b->totalSize();
-      }
-
-      full = std::any_of(this->types().begin(), this->types().end(),
-                         [this, slice_index, i_event, &event_offsets](auto bank_type) {
-        auto ib = to_integral<BankTypes>(bank_type);
-        const auto& [slice, slice_offsets, offsets_size] = m_slices[ib][slice_index];
-        // Use the event size of the next event here instead of the
-        // per bank size because that's not yet known for the next
-        // event
-        auto const event_size = event_offsets[i_event + 1] - event_offsets[i_event];
-        return (slice_offsets[offsets_size - 1] + event_size) > slice.size();
-      });
-      if (full) {
-        break;
-      }
-    }
-    return {true, full, i_event};
-  }
 
   std::tuple<bool, unsigned int, unsigned long> next() const
   {
