@@ -17,10 +17,6 @@ bool check_velopix_events(const std::vector<char>& events, const std::vector<uin
 
 std::map<std::string, float> calcResults(std::vector<float>& times);
 
-void print_gpu_memory_consumption();
-
-std::pair<size_t, std::string> set_device(int cuda_device);
-
 void read_muon_events_into_arrays(
   Muon::HitsSoA* muon_station_hits,
   const char* events,

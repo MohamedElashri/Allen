@@ -36,3 +36,7 @@
 #else
 #define FOR_STATEMENT(_TYPE, _I, _END) for (_TYPE _I = 0; _I < _END; ++_I)
 #endif
+
+void print_gpu_memory_consumption();
+
+std::pair<size_t, std::string> set_device(int cuda_device);

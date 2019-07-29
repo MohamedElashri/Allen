@@ -248,7 +248,8 @@ include_directories(integration/non_event_data/include)
 include_directories(${ZMQ_INCLUDE_DIRS})
 
 # Main Allen executable
-file(GLOB common_sources "main/src/*")
+file(GLOB common_sources "main/src/*.cpp")
+file(GLOB common_cuda_sources "main/src/*.cu")
 
 # Remove main.cpp from common_sources
 foreach(source main Allen)
@@ -256,11 +257,12 @@ get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/$
 list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
 
-# common library
+# common libraries
 add_library(Common STATIC ${common_sources})
 target_link_libraries(Common mdf)
 
-set_property(TARGET Common PROPERTY
+add_library(CudaCommon STATIC ${common_cuda_sources})
+set_property(TARGET CudaCommon PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)
 
 # Library containing all the code
@@ -273,6 +275,7 @@ target_link_libraries(AllenLib PUBLIC
   SelChecking
   x86MuonDecoding
   Common
+  CudaCommon
   NonEventData
   AllenZMQ)
 set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
