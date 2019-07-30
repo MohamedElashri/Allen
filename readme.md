@@ -116,8 +116,12 @@ Here are some example run options:
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
     
-For profiling, Nvidia's nvprof can be used. For so far unknown reasons, CUDA version 10.1.168 makes nvprof crash with Allen. 
-As workaround one can use the older version:
+For profiling, Nvidia's nvprof can be used. 
+Since CUDA version 10.1, profiling was limited to the root user by default for security reasons. However, the system administrator of a GPU server can add a kernel module option such that regular users can use the profiler by following these instructions:
+
+Add a file containing "option nvidia NVreg_RestrictProfilingToAdminUsers=0" to the `/etc/modprobe.d/` directory and reboot the machine. This will load the nvidia kernel module with "NVreg_RestrictProfilingToAdminUsers=0".
+
+As a quick workaround one can also use the older version of nvprof:
 
     /usr/local/cuda-10.0/bin/nvprof ./Allen -c 0 -n 1000
 
