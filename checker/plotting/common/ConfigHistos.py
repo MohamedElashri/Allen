@@ -2,7 +2,7 @@ from collections import defaultdict
 
 
 def efficiencyHistoDict():
-    basedict = {"eta": {}, "p": {}, "pt": {}, "phi": {}, "nPV": {}}
+    basedict = {"eta": {}, "p": {}, "pt": {}, "phi": {}, "nPV": {}, "docaz": {}}
 
     basedict["eta"]["xTitle"] = "#eta"
     basedict["eta"]["variable"] = "Eta"
@@ -23,6 +23,10 @@ def efficiencyHistoDict():
     basedict["nPV"]["xTitle"] = "# of PVs"
     basedict["nPV"]["variable"] = "nPV"
     basedict["nPV"]["title"] = "# of PVs"
+
+    basedict["docaz"]["xTitle"] = "docaz"
+    basedict["docaz"]["variable"] = "docaz"
+    basedict["docaz"]["title"] = "docaz"
 
     return basedict
 
