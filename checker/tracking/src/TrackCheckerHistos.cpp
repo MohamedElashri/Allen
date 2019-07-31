@@ -40,6 +40,8 @@ TrackCheckerHistos::TrackCheckerHistos(const std::vector<HistoCategory>& histo_c
     h_reconstructible_phi[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 25, -3.142, 3.142);
     name = category + "_nPV_reconstructible";
     h_reconstructible_nPV[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 21, -0.5, 20.5);
+    name = category + "_docaz_reconstructible";
+    h_reconstructible_docaz[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 30, 0., 3.);
     name = category + "_P_reconstructed";
     h_reconstructed_p[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 50, 0., 100000.);
     name = category + "_Pt_reconstructed";
@@ -48,6 +50,8 @@ TrackCheckerHistos::TrackCheckerHistos(const std::vector<HistoCategory>& histo_c
     h_reconstructed_phi[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 25, -3.142, 3.142);
     name = category + "_nPV_reconstructed";
     h_reconstructed_nPV[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 21, -0.5, 20.5);
+    name = category + "_docaz_reconstructed";
+    h_reconstructed_docaz[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 30, 0., 3.);
   }
 
   // histos for ghost rate
@@ -190,11 +194,13 @@ void TrackCheckerHistos::write(TDirectory* dir)
                                 std::ref(h_reconstructible_pt),
                                 std::ref(h_reconstructible_phi),
                                 std::ref(h_reconstructible_nPV),
+                                std::ref(h_reconstructible_docaz),
                                 std::ref(h_reconstructed_eta),
                                 std::ref(h_reconstructed_p),
                                 std::ref(h_reconstructed_pt),
                                 std::ref(h_reconstructed_phi),
-                                std::ref(h_reconstructed_nPV)}) {
+                                std::ref(h_reconstructed_nPV),
+                                std::ref(h_reconstructed_docaz)}) {
     for (auto const& entry : histo_map.get()) {
       dir->WriteTObject(entry.second.get());
     }
@@ -217,6 +223,7 @@ void TrackCheckerHistos::fillReconstructibleHistos(const MCParticles& mcps, cons
   const std::string phi_name = category.m_name + "_Phi_reconstructible";
   const std::string nPV_name = category.m_name + "_nPV_reconstructible";
   const std::string eta_phi_name = category.m_name + "_Eta_Phi_reconstructible";
+  const std::string docaz_name = category.m_name + "_docaz_reconstructible";
   for (auto mcp : mcps) {
     if (category.m_accept(mcp)) {
       h_reconstructible_eta[eta_name]->Fill(mcp.eta);
@@ -225,6 +232,10 @@ void TrackCheckerHistos::fillReconstructibleHistos(const MCParticles& mcps, cons
       h_reconstructible_phi[phi_name]->Fill(mcp.phi);
       h_reconstructible_nPV[nPV_name]->Fill(mcp.nPV);
       h_reconstructible_eta_phi[eta_phi_name]->Fill(mcp.eta, mcp.phi);
+      float tx = std::sin(mcp.phi) / std::sinh(mcp.eta);
+      float ty = std::cos(mcp.phi) / std::sinh(mcp.eta);
+      float docaz = std::abs(ty * mcp.ovtx_x - tx * mcp.ovtx_y) / std::sqrt(tx * tx + ty * ty);
+      h_reconstructible_docaz[docaz_name]->Fill(docaz);
     }
   }
 #endif
@@ -240,12 +251,17 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
   const std::string phi_name = category.m_name + "_Phi_reconstructed";
   const std::string nPV_name = category.m_name + "_nPV_reconstructed";
   const std::string eta_phi_name = category.m_name + "_Eta_Phi_reconstructed";
+  const std::string docaz_name = category.m_name + "_docaz_reconstructed";
   h_reconstructed_eta[eta_name]->Fill(mcp.eta);
   h_reconstructed_p[p_name]->Fill(mcp.p);
   h_reconstructed_pt[pt_name]->Fill(mcp.pt);
   h_reconstructed_phi[phi_name]->Fill(mcp.phi);
   h_reconstructed_nPV[nPV_name]->Fill(mcp.nPV);
   h_reconstructed_eta_phi[eta_phi_name]->Fill(mcp.eta, mcp.phi);
+  float tx = std::sin(mcp.phi) / std::sinh(mcp.eta);
+  float ty = std::cos(mcp.phi) / std::sinh(mcp.eta);
+  float docaz = std::abs(ty * mcp.ovtx_x - tx * mcp.ovtx_y) / std::sqrt(tx * tx + ty * ty);
+  h_reconstructed_docaz[docaz_name]->Fill(docaz);
 #endif
 }
 

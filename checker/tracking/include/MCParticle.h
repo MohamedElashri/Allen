@@ -22,6 +22,9 @@ struct MCParticle {
   float pt;
   float eta;
   float phi;
+  float ovtx_x;
+  float ovtx_y;
+  float ovtx_z;
   bool isLong;
   bool isDown;
   bool hasVelo;
@@ -31,6 +34,10 @@ struct MCParticle {
   bool fromCharmDecay;
   bool fromStrangeDecay;
   uint32_t motherKey;
+  int DecayOriginMother_key;
+  int DecayOriginMother_pid;
+  float DecayOriginMother_pt;
+  float DecayOriginMother_tau;
   float charge;
   uint32_t velo_num_hits;
   uint32_t ut_num_hits;

@@ -9,12 +9,14 @@ struct TrackCheckerHistos {
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_pt;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_phi;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_nPV;
+  std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_docaz;
   std::map<std::string, std::unique_ptr<TH2D>> h_reconstructible_eta_phi;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_eta;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_p;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_pt;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_phi;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_nPV;
+  std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_docaz;
   std::map<std::string, std::unique_ptr<TH2D>> h_reconstructed_eta_phi;
 
   std::unique_ptr<TH1D> h_ghost_nPV;

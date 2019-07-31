@@ -31,7 +31,7 @@ from common.ConfigHistos import *
 
 
 def getEfficiencyHistoNames():
-    return ["eta", "p", "pt", "phi", "nPV"]
+    return ["eta", "p", "pt", "phi", "nPV", "docaz"]
     #return ["p"]
 
 
@@ -54,6 +54,9 @@ outputfile = ROOT.TFile("../../../plotsfornote_root/efficiency_plots.root",
                         "recreate")
 
 setLHCbStyle()
+
+# run in batch mode to not display canvas on screen when plotting
+gROOT.SetBatch(ROOT.kTRUE)
 
 efficiencyHistoDict = efficiencyHistoDict()
 efficiencyHistos = getEfficiencyHistoNames()
