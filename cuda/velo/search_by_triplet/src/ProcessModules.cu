@@ -50,8 +50,7 @@ __device__ void process_modules(
     tracklets,
     tracks_to_follow,
     h1_rel_indices,
-    dev_atomics_velo,
-    ip_shift);
+    dev_atomics_velo + ip_shift);
 
   // Prepare forwarding - seeding loop
   uint last_ttf = 0;
@@ -112,8 +111,7 @@ __device__ void process_modules(
       tracklets,
       tracks_to_follow,
       h1_rel_indices,
-      dev_atomics_velo,
-      ip_shift);
+      dev_atomics_velo + ip_shift);
 
     first_module -= 2;
   }

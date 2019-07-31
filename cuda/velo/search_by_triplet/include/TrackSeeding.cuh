@@ -12,5 +12,4 @@ __device__ void track_seeding(
   Velo::TrackletHits* tracklets,
   uint* tracks_to_follow,
   unsigned short* h1_rel_indices,
-  int* dev_atomics_velo,
-  const int ip_shift);
+  int* dev_shifted_atomics_velo);
