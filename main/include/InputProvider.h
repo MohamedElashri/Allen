@@ -32,7 +32,7 @@ public:
 
   size_t n_slices() const { return m_nslices; }
 
-  size_t n_events() const { return m_nevents; }
+  size_t events_per_slice() const { return m_nevents; }
 
   std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const override
   {

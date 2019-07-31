@@ -4,6 +4,7 @@
 #include <string>
 #include <iomanip>
 #include <unordered_set>
+#include <numeric>
 #include <map>
 
 #include <raw_bank.hpp>
@@ -15,13 +16,17 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-  if (argc <= 1) {
-    cout << "usage: bench_transpose <file.mdf> <file.mdf> <file.mdf> ..." << endl;
+  if (argc <= 2) {
+    cout << "usage: bench_transpose n_slices <file.mdf> <file.mdf> <file.mdf> ..." << endl;
     return -1;
   }
 
-  string filename = {argv[1]};
-  size_t n_slices = 1;
+  size_t n_slices = atoi(argv[1]);
+  if (n_slices == 0) {
+    cout << "usage: bench_transpose n_slices <file.mdf> <file.mdf> <file.mdf> ..." << endl;
+    return -1;
+  }
+
   size_t events_per_slice = 1000;
   double n_filled = 0.;
   size_t n_events = 10000;
@@ -29,16 +34,17 @@ int main(int argc, char* argv[])
 
   size_t buffer_size = average_event_size * n_events * 1024 * bank_size_fudge_factor;
 
-  vector<string> files(argc - 1);
-  for (int i = 0; i < argc - 1; ++i) {
-    files[i] = argv[i + 1];
+  vector<string> files(argc - 2);
+  for (int i = 0; i < argc - 2; ++i) {
+    files[i] = argv[i + 2];
   }
 
-  vector<char> compress_buffer(1024 * 1024);
+  std::array<BankTypes, NBankTypes> bank_types{BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
 
-  ReadBuffer read_buffer;
-  {
-    auto& [n_filled, event_offsets, bank_offsets, buffer] = read_buffer;
+  vector<vector<char>> compress_buffers(n_slices, vector<char>(1024 * 1024));
+
+  std::vector<ReadBuffer> read_buffers(n_slices);
+  for (auto& [n_filled, event_offsets, bank_offsets, buffer] : read_buffers) {
     // FIXME: Make this configurable
     buffer.resize(n_events * average_event_size * bank_size_fudge_factor * 1024);
     event_offsets.resize(offsets_size);
@@ -63,7 +69,8 @@ int main(int argc, char* argv[])
   // Transposed slices
   Slices slices;
 
-  for (int ib = 0; ib < NBankTypes; ++ib) {
+  for (auto bank_type : bank_types) {
+    auto ib = to_integral<BankTypes>(bank_type);
     // Fudge with extra 20% memory
     auto& banks_slices = slices[ib];
     banks_slices.reserve(n_slices);
@@ -80,28 +87,54 @@ int main(int argc, char* argv[])
 
   Timer t;
 
-  std::ifstream input{files[0], std::ios::binary};
-  auto [eof, error, read_full, n_bytes_read] = read_events(input, read_buffer, compress_buffer, false);
-
-  t.stop();
-  cout << "read " << std::get<0>(read_buffer) << " events; " << std::get<0>(read_buffer) / t.get()  << " events/s\n";
-
-  auto [count_success, banks_count] = fill_counts(read_buffer);
-
-  size_t n_reps = 20;
-
-  EventIDs event_ids;
-  event_ids.reserve(n_events);
-
-  t.restart();
-
-  for (size_t rep = 0; rep < n_reps; ++rep) {
-    auto [success, transpose_full, n_transposed] = transpose_events(read_buffer, slices, 0,
-                                                                    event_ids, bank_ids,
-                                                                    banks_count, n_events);
-    info_cout << success << " " << transpose_full << " " << n_transposed << endl;
+  unique_ptr<ifstream> input;
+  size_t i_file = 0;
+  for (size_t i_buffer = 0; i_buffer < read_buffers.size(); ++i_buffer) {
+    while (std::get<0>(read_buffers[i_buffer]) < n_events) {
+      input = make_unique<ifstream>(files[++i_file], std::ios::binary);
+      auto [eof, error, read_full, n_bytes_read] = read_events(*input, read_buffers[i_buffer],
+                                                               compress_buffers[i_buffer],
+                                                               n_events, false);
+    }
   }
 
   t.stop();
-  cout << "transposed " << n_events * n_reps / t.get()  << " events/s\n";
+  auto n_read = std::accumulate(read_buffers.begin(), read_buffers.end(), 0.,
+                                [](double s, ReadBuffer const& rb) {
+                                  return s + std::get<0>(rb);
+                                });
+  cout << "read " << std::lround(n_read) << " events; " << n_read / t.get()  << " events/s\n";
+
+  auto [count_success, banks_count] = fill_counts(read_buffers[0]);
+
+  size_t n_reps = 50;
+
+  std::vector<EventIDs> event_ids(n_slices);
+  for (auto& ids : event_ids) {
+    ids.reserve(n_events);
+  }
+
+  t.restart();
+
+  std::vector<thread> threads;
+
+  for (size_t i = 0; i < n_slices; ++i) {
+    threads.emplace_back(thread{[i, n_reps, n_events, &read_buffers, &slices, &bank_ids, &banks_count, &event_ids] {
+                                  auto& read_buffer = read_buffers[i];
+                                  for (size_t rep = 0; rep < n_reps; ++rep) {
+                                    auto [success, transpose_full, n_transposed] = transpose_events<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
+                                      (read_buffer, slices, i,
+                                       event_ids[i], bank_ids,
+                                       banks_count, n_events);
+                                    info_cout << "thread " << i << " " << success
+                                              << " " << transpose_full << " " << n_transposed << endl;
+                                  }}});
+  }
+
+  for (auto& thread : threads) {
+    thread.join();
+  }
+
+  t.stop();
+  cout << "transposed " << n_slices * n_events * n_reps / t.get()  << " events/s\n";
 }

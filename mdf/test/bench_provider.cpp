@@ -9,7 +9,6 @@
 #include <raw_bank.hpp>
 #include <read_mdf.hpp>
 #include <Timer.h>
-#include <Tools.h>
 #include <MDFProvider.h>
 
 using namespace std;
@@ -31,20 +30,25 @@ int main(int argc, char* argv[])
     files[i] = argv[i + 1];
   }
 
+  logger::ll.verbosityLevel = 3;
+
   Timer t;
 
-  MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    mdf{n_slices, events_per_slice, files};
+  MDFProviderConfig mdf_config{false, 10, 5, 10001, 20};
 
-  chrono::milliseconds sleep_interval{std::lround(1.f/70.f * 1000.f)};
+  MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
+    mdf{n_slices, events_per_slice, files, mdf_config};
+
+  chrono::milliseconds sleep_interval{10};
 
   bool error = false, good = true;
-  size_t filled = 0;
+  size_t filled = 0, slice = 0;
   size_t i = 0;
   while (good || filled != 0) {
-    std::tie(good, filled) = mdf.fill_parallel((++i) % n_slices, events_per_slice);
+    std::tie(good, slice, filled) = mdf.get_slice();
     n_filled += filled;
-    // this_thread::sleep_for(sleep_interval);
+    this_thread::sleep_for(sleep_interval);
+    mdf.slice_free(slice);
   }
 
   t.stop();
