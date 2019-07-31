@@ -104,6 +104,9 @@ Here are some example run options:
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
     
+    
+How to profile it
+------------------
 For profiling, Nvidia's nvprof can be used. 
 Since CUDA version 10.1, profiling was limited to the root user by default for security reasons. However, the system administrator of a GPU server can add a kernel module option such that regular users can use the profiler by following these instructions:
 
