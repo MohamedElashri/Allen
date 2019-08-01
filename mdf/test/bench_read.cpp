@@ -42,9 +42,9 @@ int main(int argc, char* argv[])
 
   Timer t;
 
-  vector<char> buffer(1024 * 1024);
+  vector<char> buffer(100 * 1024 * 1024);
   vector<char> decompression_buffer(1024 * 1024);
-  gsl::span<char> buffer_span{buffer};
+  size_t offset = 0;
 
   LHCb::MDFHeader header;
 
@@ -53,10 +53,18 @@ int main(int argc, char* argv[])
     ifstream input{file.c_str(), ios::binary};
     bool eof = false;
     while (!eof) {
+
+      gsl::span<char> buffer_span{buffer.data() + offset, buffer.size() - offset};
+
       ++n_filled;
       auto r = MDF::read_event(input, header, buffer_span, decompression_buffer, false);
-      n_bytes += std::get<2>(r).size() + sizeof(header);
+      size_t event_size = std::get<2>(r).size() + sizeof(header);
+      n_bytes += event_size;
       eof = std::get<0>(r);
+      offset += event_size;
+      if (buffer.size() - offset < 2 * 1024 * 1024) {
+        offset = 0;
+      }
     }
   }
 

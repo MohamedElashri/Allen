@@ -83,40 +83,18 @@ TEST_CASE( "MDF versus Binary", "[compare_MDF_binary]" ) {
   if (!s_config.run) return;
 
   MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    mdf{s_config.n_slices, s_config.events_per_slice, s_config.mdf_files, mdf_config};
+    mdf{s_config.n_slices, s_config.events_per_slice, s_config.n_events, s_config.mdf_files, mdf_config};
 
   size_t const slice = 0;
-  mdf.fill(slice, s_config.n_events);
+  auto [good, timed_out, slice_index, n_filled] = mdf.get_slice();
   auto banks_mdf = mdf.banks(BankTypes::VP, slice);
 
   BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    binary{s_config.n_slices, s_config.events_per_slice, s_config.banks_dirs};
+    binary{s_config.n_slices, s_config.events_per_slice, s_config.n_events, s_config.banks_dirs};
 
   binary.fill(slice, s_config.n_events);
   auto banks_binary = binary.banks(BankTypes::VP, slice);
 
   check_banks<0>(banks_mdf, banks_binary);
   check_banks<1>(banks_mdf, banks_binary);
-}
-
-TEST_CASE( "MDF versus Parallel MDF", "[compare_MDF_parallel]" ) {
-
-  if (!s_config.run) return;
-
-  MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    mdf{s_config.n_slices, s_config.events_per_slice, s_config.mdf_files, mdf_config};
-
-  size_t slice = 0, n_filled = 0;
-  mdf.fill(slice, s_config.n_events);
-  auto banks_mdf = mdf.banks(BankTypes::VP, slice);
-
-  MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    parallel{s_config.n_slices, s_config.events_per_slice, s_config.mdf_files, mdf_config};
-
-  bool success = false;
-  std::tie(success, slice, n_filled) = parallel.get_slice();
-  auto banks_para = parallel.banks(BankTypes::VP, slice);
-
-  check_banks<0>(banks_mdf, banks_para);
-  check_banks<1>(banks_mdf, banks_para);
 }

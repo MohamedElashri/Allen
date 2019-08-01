@@ -34,18 +34,18 @@ int main(int argc, char* argv[])
 
   Timer t;
 
-  MDFProviderConfig mdf_config{false, 10, 5, 10001, 20};
+  MDFProviderConfig mdf_config{false, 10, 5, 10001, 1200, 10};
 
   MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    mdf{n_slices, events_per_slice, files, mdf_config};
+    mdf{n_slices, events_per_slice, {}, files, mdf_config};
 
   chrono::milliseconds sleep_interval{10};
 
-  bool error = false, good = true;
+  bool error = false, good = true, timed_out = false;
   size_t filled = 0, slice = 0;
   size_t i = 0;
   while (good || filled != 0) {
-    std::tie(good, slice, filled) = mdf.get_slice();
+    std::tie(good, timed_out, slice, filled) = mdf.get_slice();
     n_filled += filled;
     this_thread::sleep_for(sleep_interval);
     mdf.slice_free(slice);

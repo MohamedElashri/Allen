@@ -8,8 +8,8 @@
 template <BankTypes... Banks>
 class BinaryProvider final : public InputProvider<BinaryProvider<Banks...>> {
 public:
-  BinaryProvider(size_t n_slices, size_t n_events, std::vector<std::string> connections, bool loop = false) :
-    InputProvider<BinaryProvider<Banks...>>{n_slices, n_events},
+  BinaryProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events, std::vector<std::string> connections, bool loop = false) :
+    InputProvider<BinaryProvider<Banks...>>{n_slices, events_per_slice, n_events},
     m_loop {loop}, m_event_ids(n_slices)
   {
     for (auto bank_type : this->types()) {
@@ -44,24 +44,24 @@ public:
       }
 
       // Fudge with extra 20% memory
-      size_t n_bytes = std::lround(it->second * n_events * 1024 * 1.2);
+      size_t n_bytes = std::lround(it->second * events_per_slice * 1024 * 1.2);
       auto& slices = m_slices[ib];
       slices.reserve(n_slices);
       for (size_t i = 0; i < n_slices; ++i) {
         char* events_mem = nullptr;
         uint* offsets_mem = nullptr;
         cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
-        cudaCheck(cudaMallocHost((void**) &offsets_mem, (n_events + 1) * sizeof(uint)));
+        cudaCheck(cudaMallocHost((void**) &offsets_mem, (events_per_slice + 1) * sizeof(uint)));
 
         offsets_mem[0] = 0;
         slices.emplace_back(gsl::span<char>{events_mem, n_bytes},
-                            gsl::span<uint>{offsets_mem, n_events + 1},
+                            gsl::span<uint>{offsets_mem, events_per_slice + 1},
                             1);
       }
     }
 
     for (size_t n = 0; n < n_slices; ++n) {
-      m_event_ids[n].reserve(n_events);
+      m_event_ids[n].reserve(events_per_slice);
     }
   }
 

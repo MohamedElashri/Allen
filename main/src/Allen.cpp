@@ -70,11 +70,8 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
 
   while (true) {
 
-    // Indicate to the main thread that the reader is ready
-    zmqSvc().send(control, "READY");
-
-    // Wait to get assigned a slice index
-    zmq::poll(&items[0], 1, -1);
+    // Check if there are messages
+    zmq::poll(&items[0], 1, 0);
 
     size_t idx = 0;
     size_t fill = 0;
@@ -83,15 +80,15 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
       if (msg == "DONE") {
         break;
       }
-      else {
-        idx = zmqSvc().receive<size_t>(control);
-        fill = zmqSvc().receive<size_t>(control);
-        auto [good, n_filled] = input_provider->fill(idx, fill);
-        zmqSvc().send(control, "FILLED", zmq::SNDMORE);
-        zmqSvc().send(control, idx, zmq::SNDMORE);
-        zmqSvc().send(control, good, zmq::SNDMORE);
-        zmqSvc().send(control, n_filled);
-      }
+    }
+
+    // Get a slice and inform the main thread that it is available
+    auto [good, timed_out, slice_index, n_filled] = input_provider->get_slice(1000u);
+    if (!timed_out) {
+      zmqSvc().send(control, "SLICE", zmq::SNDMORE);
+      zmqSvc().send(control, slice_index, zmq::SNDMORE);
+      zmqSvc().send(control, good, zmq::SNDMORE);
+      zmqSvc().send(control, n_filled);
     }
   }
 }
@@ -382,8 +379,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Print configured sequence
   print_configured_sequence();
 
-  std::string folder_name_velopix_raw = folder_data + folder_rawdata + "VP";
-  number_of_events_requested = get_number_of_events_requested(number_of_events_requested, folder_name_velopix_raw);
   if (!events_per_slice) {
     events_per_slice = number_of_events_requested;
   }
@@ -395,7 +390,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
 
   std::unique_ptr<IInputProvider> input_provider {};
-  if (!mdf_input.empty()) {
+  // if (!mdf_input.empty()) {
     vector<string> connections;
     size_t current = mdf_input.find(","), previous = 0;
     while (current != string::npos) {
@@ -404,24 +399,26 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       current = mdf_input.find(",", previous);
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
-    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, std::move(connections));
-  }
-  else {
-    // The binary input provider expects the folders for the bank types as connections
-    vector<string> connections = {
-      folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
-    input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, std::move(connections));
-  }
+    optional<size_t> n_mdf;
+    if (number_of_events_requested != 0) {
+      n_mdf = number_of_events_requested;
+    }
+    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
+      (number_of_slices, *events_per_slice, n_mdf, std::move(connections));
+  // }
+  // else {
+  //   // The binary input provider expects the folders for the bank types as connections
+  //   vector<string> connections = {
+  //     folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
+  //   input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+  //     number_of_slices, *events_per_slice, std::move(connections));
+  // }
 
   muon_catboost_model_reader =
     std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
     muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
-
-  info_cout << "\nAll input datatypes successfully read\n\n";
 
   // Initialize detector constants on GPU
   Constants constants;
@@ -509,8 +506,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::vector<size_t> events_in_slice(number_of_slices, 0);
   // processing stream status
   std::bitset<max_event_threads> stream_ready(false);
-  // I/O thread status
-  std::vector<bool> io_ready(n_io, false);
 
   auto count_status = [&input_slice_status](SliceStatus const status) {
     return std::accumulate(
@@ -557,20 +552,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   std::optional<Timer> t;
 
-  auto fill_slice = [&input_slice_status, &n_events_read, number_of_events_requested, events_per_slice](
-                      auto it_slice_status, auto& socket) {
-    *it_slice_status = SliceStatus::Filling;
-    size_t idx = std::distance(input_slice_status.begin(), it_slice_status);
-    long n_left = number_of_events_requested - n_events_read;
-    size_t fill = ((number_of_events_requested == -1) || (n_left > *events_per_slice)) ? *events_per_slice : n_left;
-    if (fill > 0) {
-      zmqSvc().send(socket, "FILL", zmq::SNDMORE);
-      zmqSvc().send(socket, idx, zmq::SNDMORE);
-      zmqSvc().send(socket, fill);
-    }
-    return fill > 0;
-  };
-
   bool io_done = false;
   while (error_count == 0) {
 
@@ -589,46 +570,30 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       if (items[i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(io_workers[i]);
         auto msg = zmqSvc().receive<string>(socket);
-        if (msg == "READY") {
-          auto it = std::find(input_slice_status.begin(), input_slice_status.end(), SliceStatus::Empty);
-          if (io_done || (it != input_slice_status.end() && fill_slice(it, socket))) {
-            io_ready[i] = false;
-          } else {
-            io_ready[i] = true;
-          }
-        } else {
-          assert(msg == "FILLED");
-          auto slice_index = zmqSvc().receive<int>(socket);
-          auto good = zmqSvc().receive<bool>(socket);
-          auto n_filled = zmqSvc().receive<size_t>(socket);
-          if (!good && n_filled == 0) {
-            error_cout << "I/O provider failed to decode events into slice.\n";
-            goto loop_error;
-          } else {
-            if (!t) {
-              info_cout << "First slice ready, starting timer for throughput measurement.\n";
-              t = Timer{};
-            }
-            input_slice_status[slice_index] = SliceStatus::Filled;
-            events_in_slice[slice_index] = n_filled;
-            n_events_read += n_filled;
-          }
+        assert(msg == "SLICE");
+        auto slice_index = zmqSvc().receive<int>(socket);
+        auto good = zmqSvc().receive<bool>(socket);
+        auto n_filled = zmqSvc().receive<size_t>(socket);
 
-          if ((!good && n_filled != 0) || n_events_read >= number_of_events_requested) {
-            io_done = true;
-            info_cout << "I/O complete.\n";
+        if (!good && n_filled == 0) {
+          error_cout << "I/O provider failed to decode events into slice.\n";
+          goto loop_error;
+        } else {
+          if (!t) {
+            info_cout << "First slice ready, starting timer for throughput measurement.\n";
+            t = Timer{};
           }
+          input_slice_status[slice_index] = SliceStatus::Filled;
+          events_in_slice[slice_index] = n_filled;
+          n_events_read += n_filled;
+        }
+
+        if ((!good && n_filled != 0)
+            || (number_of_events_requested != 0 && n_events_read >= number_of_events_requested)) {
+          io_done = true;
+          info_cout << "I/O complete.\n";
         }
       }
-    }
-
-    // If the IO is waiting and there are empty slices, assign it a slice
-    auto ready_it = io_ready.begin();
-    auto slice_it = input_slice_status.begin();
-    while ((ready_it = std::find(ready_it, io_ready.end(), true)) != io_ready.end() &&
-           (slice_it = std::find(slice_it, input_slice_status.end(), SliceStatus::Empty)) != input_slice_status.end() &&
-           fill_slice(slice_it, std::get<1>(io_workers[std::distance(io_ready.begin(), ready_it)]))) {
-      *ready_it = false;
     }
 
     // Check if any processors are ready
@@ -656,6 +621,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         }
         if (enable_async_io) {
           input_slice_status[slice_index] = SliceStatus::Empty;
+          input_provider->slice_free(slice_index);
           events_in_slice[slice_index] = 0;
         } else {
           input_slice_status[slice_index] = SliceStatus::Processed;
@@ -750,6 +716,7 @@ loop_error:
             }
           }
           input_slice_status[slice_index] = SliceStatus::Empty;
+          input_provider->slice_free(slice_index);
         }
       }
     }

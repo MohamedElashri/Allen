@@ -87,14 +87,40 @@ int main(int argc, char* argv[])
 
   Timer t;
 
+  LHCb::MDFHeader header;
+
   unique_ptr<ifstream> input;
-  size_t i_file = 0;
+  size_t i_file = 0, n_bytes_read = 0;
+  bool eof = false, error = false, read_full = false;
+  string file;
   for (size_t i_buffer = 0; i_buffer < read_buffers.size(); ++i_buffer) {
-    while (std::get<0>(read_buffers[i_buffer]) < n_events) {
-      input = make_unique<ifstream>(files[++i_file], std::ios::binary);
-      auto [eof, error, read_full, n_bytes_read] = read_events(*input, read_buffers[i_buffer],
-                                                               compress_buffers[i_buffer],
-                                                               n_events, false);
+    while (std::get<0>(read_buffers[i_buffer]) < n_events && i_file < files.size()) {
+      if (!input || eof) {
+        file = files[i_file++];
+        input = make_unique<ifstream>(file, std::ios::binary);
+        if (!input->is_open()) {
+          cerr << "error opening " << file << "\n";
+          return -1;
+        }
+        input->read(reinterpret_cast<char*>(&header), sizeof(header));
+        if (input->good() && !input->eof()) {
+          cerr << "error reading " << file << "\n";
+          return -1;
+        } else {
+          cout << "opened " << file << "\n";
+        }
+      }
+      std::tie(eof, error, read_full, n_bytes_read) = read_events(*input, read_buffers[i_buffer],
+                                                                  header,
+                                                                  compress_buffers[i_buffer],
+                                                                  n_events, false);
+      if (error) {
+        cerr << "error reading " << file << "\n";
+        return -1;
+      } else if (eof && i_file == files.size()) {
+        cerr << "insufficient events in files" << endl;
+        return -1;
+      }
     }
   }
 

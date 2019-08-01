@@ -249,7 +249,8 @@ MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, gsl::span<char> buffe
 
   // accomodate for potential padding of MDF header bank!
   if (buffer.size() < alloc_len + sizeof(int) + sizeof(LHCb::RawBank)) {
-    cerr << "Failed to read banks: buffer too small" << endl;
+    cerr << "Failed to read banks: buffer too small "
+         << buffer.size() << " " << alloc_len + sizeof(int) + sizeof(LHCb::RawBank) << endl;
     return {false, true, {}};
   }
 
