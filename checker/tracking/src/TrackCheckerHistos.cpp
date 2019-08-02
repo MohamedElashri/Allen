@@ -194,11 +194,13 @@ void TrackCheckerHistos::write(TDirectory* dir)
                                 std::ref(h_reconstructible_pt),
                                 std::ref(h_reconstructible_phi),
                                 std::ref(h_reconstructible_nPV),
+                                std::ref(h_reconstructible_docaz),
                                 std::ref(h_reconstructed_eta),
                                 std::ref(h_reconstructed_p),
                                 std::ref(h_reconstructed_pt),
                                 std::ref(h_reconstructed_phi),
-                                std::ref(h_reconstructed_nPV)}) {
+                                std::ref(h_reconstructed_nPV),
+                                std::ref(h_reconstructed_docaz)}) {
     for (auto const& entry : histo_map.get()) {
       dir->WriteTObject(entry.second.get());
     }

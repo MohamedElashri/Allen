@@ -36,27 +36,15 @@ In addition, histograms of reconstructible and reconstructed tracks are then fil
 
 Where to find input
 -------------
-Input from 1k events (mag down) can be found here:
+Input from 5k events for each of the following decay modes can be found here:
 
-* minimum bias (for performance checks): `/afs/cern.ch/work/d/dovombru/public/gpu_input/1kevents_minbias_dump_region_UT_fix.tar.gz`
-* Bs->PhiPhi (for efficiency checks): `/afs/cern.ch/work/d/dovombru/public/gpu_input/1kevents_BsPhiPhi_dump_region_UT_fix.tar.gz`
-* J/Psi->MuMu (for muon efficiency checks): `/afs/cern.ch/work/d/dovombru/public/gpu_input/1kevents_JPsiMuMu_dump_region_UT_fix.tar.gz`
+* minimum bias, mag down (for performance checks): `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/mag_down.tar.gz`
+* Bs->PhiPhi, mag down (for efficiency checks): `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_down.tar.gz`
+* Bs->PhiPhi, mag up (for efficiency checks): `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_up.tar.gz`
+* J/Psi->MuMu, mag down (for muon efficiency checks): `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/JpsiMuMu/mag_down.tar.gz`
 
-10k J/Psi->MuMu events (mag down) are available here: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/JpsiMuMu/JpsiMuMu_mag_down.tar.gz`
-
-5k Bs2PhiPhi events (mag down) are avialable here: `/afs/cern.ch/work/d/dovombru/public/gpu_input/BsPhiPhi/BsPhiPhi.tar.gz`
-
-30k minbias events (mad down) are available here: `/afs/cern.ch/work/d/dovombru/public/gpu_input/minbias.tar.gz`
-
-Another 5k Bs2PhiPhi events for both magnet polarities are available. The directory contains sub-directories `mag_up` and `mag_down` and the events are compressed in a tar file separately for the two polarities.
- `/eos/lhcb/wg/rta/WP6/Allen/binary_input/Bs2PhiPhi`
-
-Input for various different physics channels for HLT1 studies in both magnet polarities is available. The directory structure is the same as for the Bs2PhiPhi events.
-They can be found here:
-* Z2MuMu: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/Z2MuMu`
-* Ds2KKPi: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/Ds2KKPi`
-* KstEE: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/KstEE`
-* KstMuMu: `/eos/lhcb/wg/rta/WP6/Allen/binary_input/KstMuMu`
+If other inputs are required, follow these instructions for producing them:
+[https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md](https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md)
 
 How to build it
 ---------------
@@ -116,8 +104,15 @@ Here are some example run options:
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
     
-For profiling, Nvidia's nvprof can be used. For so far unknown reasons, CUDA version 10.1.168 makes nvprof crash with Allen. 
-As workaround one can use the older version:
+    
+How to profile it
+------------------
+For profiling, Nvidia's nvprof can be used. 
+Since CUDA version 10.1, profiling was limited to the root user by default for security reasons. However, the system administrator of a GPU server can add a kernel module option such that regular users can use the profiler by following these instructions:
+
+Add a file containing "option nvidia NVreg_RestrictProfilingToAdminUsers=0" to the `/etc/modprobe.d/` directory and reboot the machine. This will load the nvidia kernel module with "NVreg_RestrictProfilingToAdminUsers=0".
+
+As a quick workaround one can also use the older version of nvprof:
 
     /usr/local/cuda-10.0/bin/nvprof ./Allen -c 0 -n 1000
 

@@ -42,8 +42,10 @@ namespace Velo {
 
     // These parameters impact the found tracks
     // Maximum / minimum acceptable phi
-    // This impacts enourmously the speed of track seeding
+    // These two parameters impacts enourmously the speed of track seeding
     static constexpr float phi_extrapolation_base = 0.03f;
+    // A higher coefficient improves efficiency at the
+    // cost of performance
     static constexpr float phi_extrapolation_coef = 0.0002f;
 
     // Forward tolerance in phi

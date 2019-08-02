@@ -86,6 +86,27 @@ means_square_fit_chi2(const float* hit_Xs, const float* hit_Ys, const float* hit
   return chi2;
 }
 
+/**
+ * @brief Calculates the scatter of the three hits.
+ *        Unused, but it can be a replacement of the above if needed.
+ */
+__device__ float scatter(const float* hit_Xs, const float* hit_Ys, const float* hit_Zs, const Velo::TrackletHits& track)
+{
+  const Velo::HitBase h0 {hit_Xs[track.hits[0]], hit_Ys[track.hits[0]], hit_Zs[track.hits[0]]};
+  const Velo::HitBase h1 {hit_Xs[track.hits[1]], hit_Ys[track.hits[1]], hit_Zs[track.hits[1]]};
+  const Velo::HitBase h2 {hit_Xs[track.hits[2]], hit_Ys[track.hits[2]], hit_Zs[track.hits[2]]};
+
+  // Calculate prediction
+  const auto z2_tz = (h2.z - h0.z) / (h1.z - h0.z);
+  const auto x = h0.x + (h1.x - h0.x) * z2_tz;
+  const auto y = h0.y + (h1.y - h0.y) * z2_tz;
+  const auto dx = x - h2.x;
+  const auto dy = y - h2.y;
+
+  // Calculate scatter
+  return (dx * dx) + (dy * dy);
+}
+
 __device__ void weak_tracks_adder_impl(
   uint* weaktracks_insert_pointer,
   uint* tracks_insert_pointer,
