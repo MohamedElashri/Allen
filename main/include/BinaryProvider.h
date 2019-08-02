@@ -5,10 +5,33 @@
 #include <InputTools.h>
 #include <BankTypes.h>
 
+namespace {
+  void order_files(std::vector<std::string>& files, EventIDs const& order, std::string const& folder) {
+    std::map<std::tuple<int, long long>, std::string> file_ids;
+    for (auto file : files) {
+      file_ids.emplace(name_to_number(file), file);
+    }
+    files.clear();
+    for (auto event_id : order) {
+      auto file_it = file_ids.find(event_id);
+      if (file_it != file_ids.end()) {
+        files.emplace_back(std::move(file_it->second));
+      } else {
+        auto [run, event] = file_it->first;
+        throw StrException{std::string{"file with event ID "} + std::to_string(run)
+                           + " " + std::to_string(event) + " not found in " + folder};
+      }
+    }
+  }
+}
+
 template <BankTypes... Banks>
 class BinaryProvider final : public InputProvider<BinaryProvider<Banks...>> {
 public:
-  BinaryProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events, std::vector<std::string> connections, bool loop = false) :
+  BinaryProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
+                 std::vector<std::string> connections,
+                 bool loop = false,
+                 std::optional<EventIDs> order = std::optional<EventIDs>{}) :
     InputProvider<BinaryProvider<Banks...>>{n_slices, events_per_slice, n_events},
     m_loop {loop}, m_event_ids(n_slices)
   {
@@ -22,11 +45,18 @@ public:
         throw StrException{"Failed to find a folder for " + bank_name(bank_type) + " banks"};
       } else {
         auto ib = to_integral<BankTypes>(bank_type);
-        m_files[ib] = std::tuple{*it, list_folder(*it)};
+        auto contents = list_folder(*it);
+        if (order) {
+          order_files(contents, *order, *it);
+        }
+        m_files[ib] = std::tuple{*it, std::move(contents)};
       }
     }
 
-    auto const& some_files = std::get<1>(m_files[0]);
+    // Reinitialize to take the possible minimum into account
+    events_per_slice = this->events_per_slice();
+
+    auto const& some_files = std::get<1>(*m_files.begin());
     m_all_events.reserve(some_files.size());
     std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
     std::smatch result;
@@ -44,7 +74,7 @@ public:
       }
 
       // Fudge with extra 20% memory
-      size_t n_bytes = std::lround(it->second * events_per_slice * 1024 * 1.2);
+      size_t n_bytes = std::lround(it->second * events_per_slice * 1024 * bank_size_fudge_factor);
       auto& slices = m_slices[ib];
       slices.reserve(n_slices);
       for (size_t i = 0; i < n_slices; ++i) {

@@ -19,6 +19,9 @@ struct StrException : public std::exception {
   const char* what() const throw() { return s.c_str(); }
 };
 
+using EventID = std::tuple<unsigned int, unsigned long>;
+using EventIDs = std::vector<EventID>;
+
 template<typename T>
 void hash_combine(std::size_t& seed, T const& key)
 {

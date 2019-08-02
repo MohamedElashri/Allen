@@ -15,6 +15,8 @@
 #include "Logger.h"
 #include "Common.h"
 
+EventID name_to_number(const std::string& arg);
+
 bool exists_test(const std::string& name);
 
 bool naturalOrder(const std::string& s1, const std::string& s2);

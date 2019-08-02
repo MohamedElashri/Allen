@@ -24,7 +24,6 @@ struct Config {
   vector<string> mdf_files;
   size_t n_slices = 1;
   size_t n_events = 10;
-  size_t events_per_slice = 100;
   bool run = false;
 };
 
@@ -39,13 +38,17 @@ int main(int argc, char* argv[])
   Catch::Session session; // There must be exactly one instance
 
   string directory;
+
   // Build a new parser on top of Catch's
   using namespace Catch::clara;
   auto cli
     = session.cli() // Get Catch's composite command line parser
     | Opt(directory, string{"directory"}) // bind variable to a new option, with a hint string
          ["--directory"]
-         ("input directory");
+         ("input directory")
+    | Opt(s_config.n_events, string{"#events"}) // bind variable to a new option, with a hint string
+         ["--nevents"]
+         ("number of events");
 
   // Now pass the new composite back to Catch so it uses that
   session.cli(cli);
@@ -83,18 +86,36 @@ TEST_CASE( "MDF versus Binary", "[compare_MDF_binary]" ) {
   if (!s_config.run) return;
 
   MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    mdf{s_config.n_slices, s_config.events_per_slice, s_config.n_events, s_config.mdf_files, mdf_config};
+    mdf{s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config};
 
-  size_t const slice = 0;
-  auto [good, timed_out, slice_index, n_filled] = mdf.get_slice();
-  auto banks_mdf = mdf.banks(BankTypes::VP, slice);
+  auto [good, timed_out, mdf_slice, n_filled] = mdf.get_slice();
+  auto banks_mdf = mdf.banks(BankTypes::VP, mdf_slice);
+  auto const& events_mdf = mdf.event_ids(mdf_slice);
 
   BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    binary{s_config.n_slices, s_config.events_per_slice, s_config.n_events, s_config.banks_dirs};
+    binary{s_config.n_slices, s_config.n_events, s_config.n_events, s_config.banks_dirs,
+           false, events_mdf};
 
-  binary.fill(slice, s_config.n_events);
-  auto banks_binary = binary.banks(BankTypes::VP, slice);
+  size_t const binary_slice = 0;
+  binary.fill(binary_slice, s_config.n_events);
+  auto banks_binary = binary.banks(BankTypes::VP, binary_slice);
+  auto const& events_binary = binary.event_ids(binary_slice);
 
-  check_banks<0>(banks_mdf, banks_binary);
-  check_banks<1>(banks_mdf, banks_binary);
+  SECTION("Checking Event IDs") {
+    REQUIRE(events_mdf.size() == events_binary.size());
+    for (size_t i = 0; i < events_mdf.size(); ++i) {
+      auto [run_mdf, event_mdf] = events_mdf[i];
+      auto [run_binary, event_binary] = events_binary[i];
+      REQUIRE(run_mdf == run_binary);
+      REQUIRE(event_mdf == event_binary);
+    }
+  }
+
+  SECTION("Checking offsets") {
+    check_banks<1>(banks_mdf, banks_binary);
+  }
+
+  SECTION("Checking data") {
+    check_banks<0>(banks_mdf, banks_binary);
+  }
 }

@@ -5,7 +5,8 @@
 #include <vector>
 #include <cmath>
 
-#include "BankTypes.h"
+#include <BankTypes.h>
+#include <Common.h>
 
 struct IInputProvider {
 
@@ -16,7 +17,7 @@ struct IInputProvider {
    *
    * @return     event ids
    */
-  virtual std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const = 0;
+  virtual EventIDs const& event_ids(size_t slice_index) const = 0;
 
   /**
    * @brief      Indicate a slice is free for filling
@@ -62,7 +63,7 @@ public:
 
   size_t n_slices() const { return m_nslices; }
 
-  size_t events_per_slice() const { return m_events_per_slice; }
+  size_t events_per_slice() const { return m_events_per_slice < 100 ? 100 : m_events_per_slice; }
 
   std::optional<size_t> const& n_events() const { return m_nevents; }
 
@@ -73,7 +74,7 @@ public:
    *
    * @return     event ids
    */
-  std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const override
+  EventIDs const& event_ids(size_t slice_index) const override
   {
     return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index);
   }

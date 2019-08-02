@@ -44,26 +44,34 @@ namespace {
     });
   };
 
-  // Convert "N.bin" to (0, N) and "N_M.bin" to (N, M)
-  auto name_to_number = [](const std::string& arg) -> std::pair<int, long long> {
-    std::smatch m;
-    if (!std::regex_match(arg, m, bin_format)) {
-      return {0, 0};
-    }
-    else if (m.length(2) == 0) {
-      return {0, std::stol(std::string {m[1].first, m[1].second})};
-    }
-    else {
-      return {std::stoi(std::string {m[1].first, m[1].second}), std::stol(std::string {m[2].first, m[2].second})};
-    }
-  };
-
   // Sort in natural order by converting the filename to a pair of (int, long long)
   auto natural_order = [](const std::string& lhs, const std::string& rhs) -> bool {
-    return std::less<std::pair<int, long long>> {}(name_to_number(lhs), name_to_number(rhs));
+    return std::less<EventID> {}(name_to_number(lhs), name_to_number(rhs));
   };
 
 }; // namespace
+
+/**
+* @brief      Convert "N.bin" to (0, N) and "N_M.bin" to (N, M)
+*
+* @param      name
+*
+* @return     std::pair<int, unsigned long>
+*/
+EventID name_to_number(const std::string& arg)
+{
+  std::smatch m;
+  if (!std::regex_match(arg, m, bin_format)) {
+    return {0, 0};
+  }
+  else if (m.length(2) == 0) {
+    return {0, std::stol(std::string {m[1].first, m[1].second})};
+  }
+  else {
+    return {std::stoi(std::string {m[1].first, m[1].second}), std::stol(std::string {m[2].first, m[2].second})};
+  }
+};
+
 
 /**
  * @brief Test to check existence of filename.
@@ -186,13 +194,13 @@ uint get_number_of_events_requested(uint number_of_events_requested, const std::
  */
 void read_folder(
   const std::string& foldername,
-  const std::vector<std::tuple<unsigned int, unsigned long>>& requested_events,
+  const EventIDs& requested_events,
   std::vector<bool> const& event_mask,
   std::vector<char>& events,
   std::vector<unsigned int>& event_offsets,
   bool quiet)
 {
-  std::unordered_map<std::tuple<unsigned int, unsigned long>, std::string> tracks_files;
+  std::unordered_map<EventID, std::string> tracks_files;
 
   std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
   std::smatch result;
@@ -230,7 +238,7 @@ void read_folder(
 /**
  * @brief Reads a number of events from a folder name.
  */
-std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
+EventIDs read_folder(
   const std::string& foldername,
   uint number_of_events_requested,
   std::vector<char>& events,
@@ -241,7 +249,7 @@ std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
 
   debug_cout << "Requested " << number_of_events_requested << " files" << std::endl;
 
-  std::vector<std::tuple<unsigned int, unsigned long>> event_ids;
+  EventIDs event_ids;
   event_ids.reserve(folderContents.size());
 
   std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};

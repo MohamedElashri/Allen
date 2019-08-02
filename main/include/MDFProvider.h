@@ -42,9 +42,6 @@ using Slice = std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>;
 using BankSlices = std::vector<Slice>;
 using Slices = std::array<BankSlices, NBankTypes>;
 
-using EventID = std::tuple<unsigned int, unsigned long>;
-using EventIDs = std::vector<EventID>;
-
 struct MDFProviderConfig {
   bool check_checksum = false;
   size_t n_buffers = 10;
@@ -146,7 +143,7 @@ std::tuple<bool, bool, size_t> transpose_events(const ReadBuffer& read_buffer,
                                                 EventIDs& event_ids,
                                                 std::vector<int> const& bank_ids,
                                                 std::array<unsigned int, NBankTypes> const& banks_count,
-                                                long long n_events) {
+                                                size_t n_events) {
   auto const& [n_filled, event_offsets, bank_offsets, buffer] = read_buffer;
 
   unsigned int* banks_offsets = nullptr;
@@ -298,6 +295,9 @@ public:
       bank_offsets.resize(config.offsets_size * NBankTypes);
       n_filled = 0;
     }
+
+    // Reinitialize to take the possible minimum into account
+    events_per_slice = this->events_per_slice();
 
     for (auto bank_type : {Banks...}) {
       auto it = BankSizes.find(bank_type);

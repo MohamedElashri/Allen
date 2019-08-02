@@ -39,4 +39,4 @@
 
 void print_gpu_memory_consumption();
 
-std::pair<size_t, std::string> set_device(int cuda_device);
+std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
