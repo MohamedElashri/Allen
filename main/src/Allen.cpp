@@ -105,26 +105,6 @@ void event_processor(
   bool cpu_offload,
   string folder_name_imported_forward_tracks)
 {
-
-  size_t n_devices = 0;
-  std::string device_name;
-  bool cuda_set = true;
-  try {
-    std::tie(n_devices, device_name) = set_device(cuda_device);
-    if (n_devices == 0) {
-      error_cout << "Failed to select device " << cuda_device << std::endl;
-      return -1;
-    }
-    else {
-      debug_cout << "Stream " << stream_id << " selected cuda device " << cuda_device << ": "
-                 << device_name << std::endl << std::endl;
-    }
-  } catch (const std::invalid_argument& e) {
-    error_cout << e.what() << std::endl;
-    error_cout << "Stream " << stream_id << " failed to select cuda device " << cuda_device << std::endl;
-    cuda_set = false;
-  }
-
   zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
   zmq::setsockopt(control, zmq::LINGER, 0);
   std::this_thread::sleep_for(std::chrono::milliseconds {50});
@@ -135,6 +115,8 @@ void event_processor(
     cout << "failed to connect connection " << con << "\n";
     throw e;
   }
+
+  auto [cuda_set, device_name] = set_device(cuda_device, stream_id);
 
   zmq::pollitem_t items[] = {
     {control, 0, ZMQ_POLLIN, 0},
@@ -356,6 +338,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Set verbosity level
   std::cout << std::fixed << std::setprecision(6);
   logger::ll.verbosityLevel = verbosity;
+
+  // Set device for main thread
+  auto [cuda_set, device_name] = set_device(cuda_device, 0);
+  if (!cuda_set) {
+    return -1;
+  }
 
   // Show call options
   print_call_options(options, device_name);

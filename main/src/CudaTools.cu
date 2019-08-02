@@ -18,26 +18,42 @@ void print_gpu_memory_consumption()
   verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used " << std::endl;
 }
 
-std::pair<size_t, std::string> set_device(int cuda_device)
+std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
 {
   int n_devices = 0;
   cudaDeviceProp device_properties;
-  cudaCheck(cudaGetDeviceCount(&n_devices));
 
-  debug_cout << "There are " << n_devices << " CUDA devices available" << std::endl;
-  for (int cd = 0; cd < n_devices; ++cd) {
-    cudaDeviceProp device_properties;
-    cudaCheck(cudaGetDeviceProperties(&device_properties, cd));
-    debug_cout << std::setw(3) << cd << " " << device_properties.name << std::endl;
+  try {
+    cudaCheck(cudaGetDeviceCount(&n_devices));
+
+    debug_cout << "There are " << n_devices << " CUDA devices available\n";
+    for (int cd = 0; cd < n_devices; ++cd) {
+      cudaDeviceProp device_properties;
+      cudaCheck(cudaGetDeviceProperties(&device_properties, cd));
+      debug_cout << std::setw(3) << cd << " " << device_properties.name << "\n";
+    }
+
+    if (cuda_device >= n_devices) {
+      error_cout << "Chosen device (" << cuda_device << ") is not available.\n";
+      return {false, ""};
+    }
+    debug_cout << "\n";
+
+    cudaCheck(cudaSetDevice(cuda_device));
+    cudaCheck(cudaGetDeviceProperties(&device_properties, cuda_device));
+
+    if (n_devices == 0) {
+      error_cout << "Failed to select device " << cuda_device << "\n";
+      return {false, ""};
+    } else {
+      debug_cout << "Stream " << stream_id << " selected cuda device " << cuda_device << ": "
+                 << device_properties.name << "\n\n";
+    }
+  } catch (const std::invalid_argument& e) {
+    error_cout << e.what() << std::endl;
+    error_cout << "Stream " << stream_id << " failed to select cuda device " << cuda_device << "\n";
+    return {false, ""};
   }
 
-  if (cuda_device >= n_devices) {
-    error_cout << "Chosen device (" << cuda_device << ") is not available." << std::endl;
-    return {0, ""};
-  }
-  debug_cout << std::endl;
-
-  cudaCheck(cudaSetDevice(cuda_device));
-  cudaCheck(cudaGetDeviceProperties(&device_properties, cuda_device));
-  return {n_devices, device_properties.name};
+  return {true, device_properties.name};
 }
