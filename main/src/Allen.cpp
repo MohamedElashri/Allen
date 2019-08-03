@@ -83,7 +83,7 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
     }
 
     // Get a slice and inform the main thread that it is available
-    auto [good, timed_out, slice_index, n_filled] = input_provider->get_slice(1000u);
+    auto [good, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
     if (!timed_out) {
       zmqSvc().send(control, "SLICE", zmq::SNDMORE);
       zmqSvc().send(control, slice_index, zmq::SNDMORE);
@@ -651,8 +651,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           zmqSvc().send(socket, "PROCESS", zmq::SNDMORE);
           zmqSvc().send(socket, input_slice_idx);
 
-          info_cout << "submitted " << std::setw(5) << events_in_slice[input_slice_idx] << " events to slice "
-                    << std::setw(2) << input_slice_idx << " on stream " << std::setw(2) << *processor_index << "\n";
+          debug_cout << "submitted " << std::setw(5) << events_in_slice[input_slice_idx] << " events to slice "
+                     << std::setw(2) << input_slice_idx << " on stream " << std::setw(2) << *processor_index << "\n";
           break;
         }
       }

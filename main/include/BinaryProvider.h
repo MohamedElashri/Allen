@@ -125,10 +125,6 @@ public:
         slice_index = m_prefetched.front();
         m_prefetched.pop_front();
         n_filled = std::get<2>((*m_slices.begin())[slice_index]) - 1;
-        this->debug_output(std::string("filled slice ") + std::to_string(slice_index)
-                           + " with " + std::to_string(n_filled) + " events; " +
-                           std::to_string(m_read_error) + " " + std::to_string(m_done)
-                           + " " + std::to_string(timed_out));
       }
     }
 
@@ -139,7 +135,7 @@ public:
   {
     bool freed = false;
     {
-      std::unique_lock<std::mutex> lock{m_prefetch_mut};
+      std::unique_lock<std::mutex> lock{m_slice_mut};
       if (!m_slice_free[slice_index]) {
         m_slice_free[slice_index] = true;
         freed = true;
@@ -147,7 +143,7 @@ public:
     }
     if (freed) {
       this->debug_output("freed slice " + std::to_string(slice_index));
-      m_prefetch_cond.notify_one();
+      m_slice_cond.notify_one();
     }
   }
 
@@ -176,12 +172,13 @@ private:
 
       auto it = m_slice_free.end();
       {
-        std::unique_lock<std::mutex> lock{m_prefetch_mut};
+        std::unique_lock<std::mutex> lock{m_slice_mut};
         it = find(m_slice_free.begin(), m_slice_free.end(), true);
         if (it == m_slice_free.end()) {
           this->debug_output("waiting for free slice", 1);
-          m_prefetch_cond.wait(lock, [this, &it] {
+          m_slice_cond.wait(lock, [this, &it] {
             it = std::find(m_slice_free.begin(), m_slice_free.end(), true);
+            this->debug_output("prefetch notified" + std::to_string(it != m_slice_free.end()), 1);
             return it != m_slice_free.end() || m_done;
           });
           if (m_done) {
@@ -200,6 +197,7 @@ private:
         std::get<1>(m_slices[ib][slice_index])[0] = 0;
         std::get<2>(m_slices[ib][slice_index]) = 1;
       }
+      m_event_ids[slice_index].clear();
 
       size_t start = m_current;
 
@@ -281,6 +279,10 @@ private:
   std::condition_variable m_prefetch_cond;
   std::deque<size_t> m_prefetched;
   std::unique_ptr<std::thread> m_prefetch_thread;
+
+  // data members for slice synchronisation
+  std::mutex m_slice_mut;
+  std::condition_variable m_slice_cond;
 
   // Atomics to flag errors and completion
   std::atomic<bool> m_done = false;
