@@ -112,7 +112,7 @@ public:
     bool timed_out = false;
     size_t slice_index = 0, n_filled = 0;
     std::unique_lock<std::mutex> lock{m_prefetch_mut};
-    if (!m_read_error && !m_prefetched.empty()) {
+    if (!m_read_error) {
       if (m_prefetched.empty()) {
         if (timeout) {
           timed_out = !m_prefetch_cond.wait_for(lock, std::chrono::milliseconds{*timeout},
@@ -121,9 +121,15 @@ public:
           m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() && !m_read_error; });
         }
       }
-      slice_index = m_prefetched.front();
-      n_filled = std::get<2>((*m_slices.begin())[slice_index]) - 1;
-      m_prefetched.pop_front();
+      if (!m_read_error && (!timeout || (timeout && !timed_out))) {
+        slice_index = m_prefetched.front();
+        m_prefetched.pop_front();
+        n_filled = std::get<2>((*m_slices.begin())[slice_index]) - 1;
+        this->debug_output(std::string("filled slice ") + std::to_string(slice_index)
+                           + " with " + std::to_string(n_filled) + " events; " +
+                           std::to_string(m_read_error) + " " + std::to_string(m_done)
+                           + " " + std::to_string(timed_out));
+      }
     }
 
     return {!m_read_error && !m_done, timed_out, slice_index, m_read_error ? 0 : n_filled};
@@ -216,8 +222,8 @@ private:
           m_event_ids[slice_index].emplace_back(m_all_events[m_current]);
         }
 
-        prefetch_done = m_current == n_files && !m_loop;
         ++m_current;
+        prefetch_done = m_current == n_files && !m_loop;
       }
 
       this->debug_output("read " + std::to_string(m_current - start) + " events into " + std::to_string(slice_index));
