@@ -370,15 +370,22 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   if (!events_per_slice) {
     events_per_slice = number_of_events_requested;
   }
+  const auto folder_name_velopix_raw = folder_data + folder_rawdata + "VP";
   const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
-  const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
   const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
   const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
+  const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
 
   std::unique_ptr<IInputProvider> input_provider {};
-  // if (!mdf_input.empty()) {
+
+  optional<size_t> n_events;
+  if (number_of_events_requested != 0) {
+    n_events = number_of_events_requested;
+  }
+
+  if (!mdf_input.empty()) {
     vector<string> connections;
     size_t current = mdf_input.find(","), previous = 0;
     while (current != string::npos) {
@@ -387,20 +394,16 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       current = mdf_input.find(",", previous);
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
-    optional<size_t> n_mdf;
-    if (number_of_events_requested != 0) {
-      n_mdf = number_of_events_requested;
-    }
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
-      (number_of_slices, *events_per_slice, n_mdf, std::move(connections));
-  // }
-  // else {
-  //   // The binary input provider expects the folders for the bank types as connections
-  //   vector<string> connections = {
-  //     folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
-  //   input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-  //     number_of_slices, *events_per_slice, std::move(connections));
-  // }
+      (number_of_slices, *events_per_slice, n_events, std::move(connections));
+  }
+  else {
+    // The binary input provider expects the folders for the bank types as connections
+    vector<string> connections = {
+      folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
+    input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
+      (number_of_slices, *events_per_slice, n_events, std::move(connections));
+  }
 
   muon_catboost_model_reader =
     std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");

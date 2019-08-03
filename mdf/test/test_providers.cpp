@@ -88,7 +88,7 @@ TEST_CASE( "MDF versus Binary", "[compare_MDF_binary]" ) {
   MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
     mdf{s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config};
 
-  auto [good, timed_out, mdf_slice, n_filled] = mdf.get_slice();
+  auto [good, timed_out, mdf_slice, mdf_filled] = mdf.get_slice();
   auto banks_mdf = mdf.banks(BankTypes::VP, mdf_slice);
   auto const& events_mdf = mdf.event_ids(mdf_slice);
 
@@ -96,10 +96,12 @@ TEST_CASE( "MDF versus Binary", "[compare_MDF_binary]" ) {
     binary{s_config.n_slices, s_config.n_events, s_config.n_events, s_config.banks_dirs,
            false, events_mdf};
 
-  size_t const binary_slice = 0;
-  binary.fill(binary_slice, s_config.n_events);
+  size_t binary_slice = 0, binary_filled = 0;
+  std::tie(good, timed_out, binary_slice, binary_filled) = binary.get_slice();
   auto banks_binary = binary.banks(BankTypes::VP, binary_slice);
   auto const& events_binary = binary.event_ids(binary_slice);
+
+  REQUIRE(binary_filled == mdf_filled);
 
   SECTION("Checking Event IDs") {
     REQUIRE(events_mdf.size() == events_binary.size());

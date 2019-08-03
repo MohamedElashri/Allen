@@ -430,7 +430,7 @@ public:
   }
 
   // success, timed_out, slice_index, n_filled
-  std::tuple<bool, bool, size_t, size_t> get_slice(std::optional<unsigned int> timeout = std::optional<unsigned int>{})
+  std::tuple<bool, bool, size_t, size_t> get_slice(std::optional<unsigned int> timeout = std::optional<unsigned int>{}) override
   {
     bool timed_out = false;
     size_t slice_index = 0, n_filled = 0;
@@ -451,7 +451,7 @@ public:
     return {!m_read_error && !m_transpose_done, timed_out, slice_index, m_read_error ? 0 : n_filled};
   }
 
-  void slice_free(size_t slice_index)
+  void slice_free(size_t slice_index) override
   {
     bool freed = false;
     {
@@ -462,7 +462,7 @@ public:
       }
     }
     if (freed) {
-      debug_output("freed slice " + std::to_string(slice_index));
+      this->debug_output("freed slice " + std::to_string(slice_index));
       m_transpose_cond.notify_one();
     }
   }
@@ -486,25 +486,25 @@ private:
           m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done; });
         }
         if (m_transpose_done || m_prefetched.empty()) {
-          debug_output("transpose done: done  " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()), thread_id);
+          this->debug_output("transpose done: done  " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()), thread_id);
           break;
         }
         i_read = m_prefetched.front();
         m_prefetched.pop_front();
-        debug_output("got read buffer index " + std::to_string(i_read), thread_id);
+        this->debug_output("got read buffer index " + std::to_string(i_read), thread_id);
 
         m_buffer_writable[i_read] = false;
       }
 
       // Get a slice to write to
       if (!slice_index) {
-        debug_output("getting slice index", thread_id);
+        this->debug_output("getting slice index", thread_id);
         auto it = m_slice_free.end();
         {
           std::unique_lock<std::mutex> lock{m_transpose_mut};
           it = find(m_slice_free.begin(), m_slice_free.end(), true);
           if (it == m_slice_free.end()) {
-            debug_output("waiting for free slice", thread_id);
+            this->debug_output("waiting for free slice", thread_id);
             m_transpose_cond.wait(lock, [this, &it] {
                                           it = std::find(m_slice_free.begin(), m_slice_free.end(), true);
                                           return it != m_slice_free.end() || m_transpose_done;
@@ -517,7 +517,7 @@ private:
         }
         if (it != m_slice_free.end()) {
           slice_index = distance(m_slice_free.begin(), it);
-          debug_output("got slice index " + std::to_string(*slice_index), thread_id);
+          this->debug_output("got slice index " + std::to_string(*slice_index), thread_id);
         }
 
         // Reset the slice
@@ -538,7 +538,7 @@ private:
         break;
       }
 
-      debug_output("transposed " + std::to_string(*slice_index) + " " + std::to_string(good)
+      this->debug_output("transposed " + std::to_string(*slice_index) + " " + std::to_string(good)
                    + " " + std::to_string(transpose_full) + " " + std::to_string(n_transposed),
                    thread_id);
 
@@ -612,7 +612,7 @@ private:
         std::unique_lock<std::mutex> lock{m_prefetch_mut};
         it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
         if (it == m_buffer_writable.end()) {
-          debug_output("waiting for free buffer");
+          this->debug_output("waiting for free buffer");
           m_prefetch_cond.wait(lock, [this] {
             return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true)
             != m_buffer_writable.end() || m_done;
@@ -647,18 +647,17 @@ private:
         } else if (std::get<0>(read_buffer) == eps || buffer_full) {
           break;
         } else if (to_read && *to_read == 0) {
-          debug_output("prefetch done: n_events reached");
+          this->debug_output("prefetch done: n_events reached");
           prefetch_done = true;
           break;
         } else if (eof && !open_file()) {
-          debug_output("prefetch done: eof and no more files");
+          this->debug_output("prefetch done: eof and no more files");
           prefetch_done = true;
           break;
         }
       }
 
-      // Read events; open next file if there are files left
-      debug_output("read " + std::to_string(std::get<0>(read_buffer)) + " events into " + std::to_string(i_buffer));
+      this->debug_output("read " + std::to_string(std::get<0>(read_buffer)) + " events into " + std::to_string(i_buffer));
 
       if (!error) {
         {
@@ -666,17 +665,9 @@ private:
           m_prefetched.push_back(i_buffer);
         }
         m_done = prefetch_done;
-        debug_output("notifying one");
+        this->debug_output("notifying one");
         m_prefetch_cond.notify_one();
       }
-    }
-  }
-
-  template <typename MSG>
-  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) {
-    if (logger::ll.verbosityLevel >= logger::verbose) {
-      std::unique_lock<std::mutex> lock{m_output_mut};
-      verbose_cout << (thread_id ? std::to_string(*thread_id) + " " : std::string{}) << msg << "\n";
     }
   }
 
@@ -724,9 +715,6 @@ private:
 
   // Threads transposing data
   std::vector<std::thread> m_transpose_threads;
-
-  // Mutex for ordered debug output
-  std::mutex m_output_mut;
 
   // Array to store the number of banks per bank type
   mutable std::array<unsigned int, NBankTypes> m_banks_count;

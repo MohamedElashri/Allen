@@ -113,9 +113,31 @@ public:
     return static_cast<const Derived<Banks...>*>(this)->banks(bank_type, slice_index);
   }
 
+protected:
+
+  template <typename MSG>
+  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) {
+    if (logger::ll.verbosityLevel >= logger::verbose) {
+      std::unique_lock<std::mutex> lock{m_output_mut};
+      verbose_cout << (thread_id ? std::to_string(*thread_id) + " " : std::string{}) << msg << "\n";
+    }
+  }
+
 private:
+
+  // Number of slices to be provided
   const size_t m_nslices = 0;
+
+  // Number of events per slice
   const size_t m_events_per_slice = 0;
+
+  // Optional total number of events to be provided
   const std::optional<size_t> m_nevents;
+
+  // BankTypes provided by this provider
   const std::unordered_set<BankTypes> m_types;
+
+  // Mutex for ordered debug output
+  std::mutex m_output_mut;
+
 };

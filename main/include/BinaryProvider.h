@@ -33,6 +33,7 @@ public:
                  bool loop = false,
                  std::optional<EventIDs> order = std::optional<EventIDs>{}) :
     InputProvider<BinaryProvider<Banks...>>{n_slices, events_per_slice, n_events},
+    m_slice_free(n_slices, true),
     m_loop {loop}, m_event_ids(n_slices)
   {
     for (auto bank_type : this->types()) {
@@ -93,6 +94,9 @@ public:
     for (size_t n = 0; n < n_slices; ++n) {
       m_event_ids[n].reserve(events_per_slice);
     }
+
+    // start prefetch thread
+    m_prefetch_thread = std::make_unique<std::thread>([this] { prefetch(); });
   }
 
   static constexpr const char* name = "Binary";
@@ -102,36 +106,43 @@ public:
     return m_event_ids[slice_index];
   }
 
-  std::tuple<bool, size_t> fill(size_t slice_index, size_t n)
+  // success, timed_out, slice_index, n_filled
+  std::tuple<bool, bool, size_t, size_t> get_slice(std::optional<unsigned int> timeout = std::optional<unsigned int>{}) override
   {
-    size_t n_files = std::get<1>(m_files.front()).size();
-    size_t start = m_current;
-
-    // "Reset" the slice
-    m_event_ids[slice_index].clear();
-    for (auto bank_type : this->types()) {
-      auto ib = to_integral<BankTypes>(bank_type);
-      std::get<2>(m_slices[ib][slice_index]) = 1;
+    bool timed_out = false;
+    size_t slice_index = 0, n_filled = 0;
+    std::unique_lock<std::mutex> lock{m_prefetch_mut};
+    if (!m_read_error && !m_prefetched.empty()) {
+      if (m_prefetched.empty()) {
+        if (timeout) {
+          timed_out = !m_prefetch_cond.wait_for(lock, std::chrono::milliseconds{*timeout},
+                                                [this] { return !m_prefetched.empty() && !m_read_error; });
+        } else {
+          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() && !m_read_error; });
+        }
+      }
+      slice_index = m_prefetched.front();
+      n_filled = std::get<2>((*m_slices.begin())[slice_index]) - 1;
+      m_prefetched.pop_front();
     }
 
-    for (; (m_current < n_files || m_loop) && m_current < start + n; ++m_current) {
-      auto inputs = open_files(m_current % n_files);
-      auto full = std::any_of(this->types().begin(), this->types().end(), [this, slice_index, &inputs](auto bank_type) {
-        auto ib = to_integral<BankTypes>(bank_type);
-        const auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
-        return (offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice.size();
-      });
-      if (!full) {
-        for (auto& [bank_type, input, data_size] : inputs) {
-          auto ib = to_integral<BankTypes>(bank_type);
-          auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
-          read_file(input, data_size, slice.data(), offsets.data(), offsets_size - 1);
-          ++offsets_size;
-        }
-        m_event_ids[slice_index].emplace_back(m_all_events[m_current]);
+    return {!m_read_error && !m_done, timed_out, slice_index, m_read_error ? 0 : n_filled};
+  }
+
+  void slice_free(size_t slice_index) override
+  {
+    bool freed = false;
+    {
+      std::unique_lock<std::mutex> lock{m_prefetch_mut};
+      if (!m_slice_free[slice_index]) {
+        m_slice_free[slice_index] = true;
+        freed = true;
       }
     }
-    return {m_current != n_files || m_loop, m_current - start};
+    if (freed) {
+      this->debug_output("freed slice " + std::to_string(slice_index));
+      m_prefetch_cond.notify_one();
+    }
   }
 
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const
@@ -145,6 +156,84 @@ public:
 
 private:
 
+  void prefetch() {
+
+    bool eof = false, prefetch_done = false;
+    size_t bytes_read = 0;
+
+    auto to_read = this->n_events();
+    size_t eps = this->events_per_slice();
+
+    size_t n_files = std::get<1>(m_files.front()).size();
+
+    while(!m_done && (!to_read || *to_read > 0)) {
+
+      auto it = m_slice_free.end();
+      {
+        std::unique_lock<std::mutex> lock{m_prefetch_mut};
+        it = find(m_slice_free.begin(), m_slice_free.end(), true);
+        if (it == m_slice_free.end()) {
+          this->debug_output("waiting for free slice", 1);
+          m_prefetch_cond.wait(lock, [this, &it] {
+            it = std::find(m_slice_free.begin(), m_slice_free.end(), true);
+            return it != m_slice_free.end() || m_done;
+          });
+          if (m_done) {
+            break;
+          }
+        }
+        *it = false;
+      }
+      size_t slice_index = distance(m_slice_free.begin(), it);
+      auto& slice = m_slices[slice_index];
+      this->debug_output("got slice index " + std::to_string(slice_index), 1);
+
+      // "Reset" the slice
+      for (auto bank_type : {Banks...}) {
+        auto ib = to_integral<BankTypes>(bank_type);
+        std::get<1>(m_slices[ib][slice_index])[0] = 0;
+        std::get<2>(m_slices[ib][slice_index]) = 1;
+      }
+
+      size_t start = m_current;
+
+      while (!m_done && !m_read_error && m_current < start + eps) {
+        auto inputs = open_files(m_current % n_files);
+        if (m_read_error) break;
+
+        auto full = std::any_of(this->types().begin(), this->types().end(), [this, slice_index, &inputs](auto bank_type) {
+            auto ib = to_integral<BankTypes>(bank_type);
+            const auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
+            return (offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice.size();
+          });
+        if (!full) {
+          for (auto& [bank_type, input, data_size] : inputs) {
+            auto ib = to_integral<BankTypes>(bank_type);
+            auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
+            read_file(input, data_size, slice.data(), offsets.data(), offsets_size - 1);
+            ++offsets_size;
+          }
+          m_event_ids[slice_index].emplace_back(m_all_events[m_current]);
+        }
+
+        prefetch_done = m_current == n_files && !m_loop;
+        ++m_current;
+      }
+
+      this->debug_output("read " + std::to_string(m_current - start) + " events into " + std::to_string(slice_index));
+
+      if (!m_read_error) {
+        {
+          std::unique_lock<std::mutex> lock{m_prefetch_mut};
+          m_prefetched.push_back(slice_index);
+        }
+        m_done = prefetch_done;
+        this->debug_output("notifying one");
+        m_prefetch_cond.notify_one();
+      }
+    }
+  }
+
   std::array<std::tuple<BankTypes, std::ifstream, size_t>, NBankTypes> open_files(size_t n)
   {
     std::array<std::tuple<BankTypes, std::ifstream, size_t>, NBankTypes> result;
@@ -152,13 +241,18 @@ private:
       auto ib = to_integral<BankTypes>(bank_type);
       auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[n];
       std::ifstream input(filename, std::ifstream::binary);
+      if (!input.is_open() || !input.good()) {
+        m_read_error = true;
+        break;
+      }
       input.seekg(0, std::ios::end);
       auto end = input.tellg();
       input.seekg(0, std::ios::beg);
       auto data_size = end - input.tellg();
 
       if (data_size == 0) {
-        throw StrException{"Empty file: " + filename};
+        m_read_error = true;
+        break;
       }
       result[ib] = std::tuple{bank_type, std::move(input), data_size};
     }
@@ -175,6 +269,19 @@ private:
 
   // Pinned memory slices, N per banks types,
   std::array<std::vector<std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>>, NBankTypes> m_slices;
+
+  // data members for prefetch thread
+  std::mutex m_prefetch_mut;
+  std::condition_variable m_prefetch_cond;
+  std::deque<size_t> m_prefetched;
+  std::unique_ptr<std::thread> m_prefetch_thread;
+
+  // Atomics to flag errors and completion
+  std::atomic<bool> m_done = false;
+  std::atomic<bool> m_read_error = false;
+
+  // Keep track of what slices are free
+  std::vector<bool> m_slice_free;
 
   // Index of the event file currently being read
   size_t m_current = 0;

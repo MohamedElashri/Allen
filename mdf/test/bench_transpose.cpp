@@ -94,16 +94,19 @@ int main(int argc, char* argv[])
   bool eof = false, error = false, read_full = false;
   string file;
   for (size_t i_buffer = 0; i_buffer < read_buffers.size(); ++i_buffer) {
-    while (std::get<0>(read_buffers[i_buffer]) < n_events && i_file < files.size()) {
+    while (std::get<0>(read_buffers[i_buffer]) < n_events) {
       if (!input || eof) {
         file = files[i_file++];
+        if (i_file == files.size()) {
+          i_file = 0;
+        }
         input = make_unique<ifstream>(file, std::ios::binary);
         if (!input->is_open()) {
           cerr << "error opening " << file << "\n";
           return -1;
         }
         input->read(reinterpret_cast<char*>(&header), sizeof(header));
-        if (input->good() && !input->eof()) {
+        if (!input->good() || input->eof()) {
           cerr << "error reading " << file << "\n";
           return -1;
         } else {
@@ -116,9 +119,6 @@ int main(int argc, char* argv[])
                                                                   n_events, false);
       if (error) {
         cerr << "error reading " << file << "\n";
-        return -1;
-      } else if (eof && i_file == files.size()) {
-        cerr << "insufficient events in files" << endl;
         return -1;
       }
     }

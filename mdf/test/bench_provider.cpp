@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 
   Timer t;
 
-  MDFProviderConfig mdf_config{false, 10, 5, 10001, 1200, 10};
+  MDFProviderConfig mdf_config{false, 10, 3, 10001, 1200, 10};
 
   MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
     mdf{n_slices, events_per_slice, {}, files, mdf_config};
