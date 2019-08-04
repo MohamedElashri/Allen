@@ -99,6 +99,14 @@ public:
     m_prefetch_thread = std::make_unique<std::thread>([this] { prefetch(); });
   }
 
+  virtual ~BinaryProvider() {
+    m_done = true;
+    m_slice_cond.notify_one();
+    m_prefetch_cond.notify_one();
+
+    if (m_prefetch_thread) m_prefetch_thread->join();
+  }
+
   static constexpr const char* name = "Binary";
 
   std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const
@@ -116,9 +124,9 @@ public:
       if (m_prefetched.empty()) {
         if (timeout) {
           timed_out = !m_prefetch_cond.wait_for(lock, std::chrono::milliseconds{*timeout},
-                                                [this] { return !m_prefetched.empty() && !m_read_error; });
+                                                [this] { return !m_prefetched.empty() || m_read_error; });
         } else {
-          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() && !m_read_error; });
+          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_read_error; });
         }
       }
       if (!m_read_error && (!timeout || (timeout && !timed_out))) {
@@ -201,7 +209,7 @@ private:
 
       size_t start = m_current;
 
-      while (!m_done && !m_read_error && m_current < start + eps) {
+      while (!m_done && !m_read_error && m_current < start + eps && m_current < this->n_events()) {
         auto inputs = open_files(m_current % n_files);
         if (m_read_error) break;
 
