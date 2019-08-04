@@ -67,11 +67,12 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
   }
 
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
+  bool done = false;
 
   while (true) {
 
     // Check if there are messages
-    zmq::poll(&items[0], 1, 0);
+    zmq::poll(&items[0], 1, done ? -1 : 0);
 
     size_t idx = 0;
     size_t fill = 0;
@@ -89,6 +90,9 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
       zmqSvc().send(control, slice_index, zmq::SNDMORE);
       zmqSvc().send(control, good, zmq::SNDMORE);
       zmqSvc().send(control, n_filled);
+    }
+    if (!good) {
+      done = true;
     }
   }
 }
@@ -475,8 +479,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Start all workers
   size_t conn_id = 0;
   for (auto& [workers, start, n, type] :
-       {std::tuple {&io_workers, start_thread {io_thread}, 1u, "input"},
-        std::tuple {&event_processors, start_thread {event_thread}, number_of_threads, "events"}}) {
+       {std::tuple {&io_workers, start_thread {io_thread}, 1u, "I/O"},
+        std::tuple {&event_processors, start_thread {event_thread}, number_of_threads, "GPU"}}) {
     for (uint i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
       zmq::setsockopt(control, zmq::LINGER, 0);
@@ -487,7 +491,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       std::this_thread::sleep_for(std::chrono::milliseconds {50});
       workers->emplace_back(std::thread {start, conn_id, i}, std::move(control));
       items[conn_id] = {std::get<1>(workers->back()), 0, zmq::POLLIN, 0};
-      info_cout << "started " << type << " (" << i + 1 << "/" << n << ") " << conn_id << "\n";
+      debug_cout << "Started " << type << " thread " << std::setw(2) << i + 1 << "/" << std::setw(2) << n << "\n";
       ++conn_id;
     }
   }
@@ -533,9 +537,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         assert(msg == "READY");
         auto success = zmqSvc().receive<bool>(socket);
         stream_ready[i] = success;
-        info_cout << "event processor " << std::setw(2) << i << " (" << std::setw(2) << stream_ready.count()<< "/"
-                  << number_of_threads << "), id " << n_io + i << " device " << cuda_device
-                  << (success ? " ready." : " failed.") << "\n";
+        info_cout << "GPU stream " << std::setw(2) << i << " on device " << cuda_device
+                  << (success ? " ready." : " failed to start.") << "\n";
         error_count += !success;
       }
     }
@@ -566,7 +569,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         auto good = zmqSvc().receive<bool>(socket);
         auto n_filled = zmqSvc().receive<size_t>(socket);
 
-        if (!good && n_filled == 0) {
+        if (!good && n_filled == 0 && !io_done) {
           error_cout << "I/O provider failed to decode events into slice.\n";
           goto loop_error;
         } else {
@@ -597,7 +600,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         n_events_processed += events_in_slice[slice_index];
         stream_ready[i] = true;
 
-        info_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
+        debug_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
 
         // Run the checker accumulation here in a blocking fashion
         if (do_check) {
@@ -651,8 +654,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           zmqSvc().send(socket, "PROCESS", zmq::SNDMORE);
           zmqSvc().send(socket, input_slice_idx);
 
-          debug_cout << "submitted " << std::setw(5) << events_in_slice[input_slice_idx] << " events to slice "
-                     << std::setw(2) << input_slice_idx << " on stream " << std::setw(2) << *processor_index << "\n";
+          debug_cout << "Submitted " << std::setw(5) << events_in_slice[input_slice_idx] << " events in slice "
+                     << std::setw(2) << input_slice_idx << " to stream " << std::setw(2) << *processor_index << "\n";
           break;
         }
       }
