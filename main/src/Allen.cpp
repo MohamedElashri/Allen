@@ -398,8 +398,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       current = mdf_input.find(",", previous);
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
+
+    unsigned long events_per_buffer = static_cast<unsigned long>(*events_per_slice * 1.2f);
+    MDFProviderConfig config {false, 10, 4, 10001, events_per_buffer, 10};
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
-      (number_of_slices, *events_per_slice, n_events, std::move(connections));
+      (number_of_slices, *events_per_slice, n_events, std::move(connections), config);
   }
   else {
     // The binary input provider expects the folders for the bank types as connections
@@ -511,7 +514,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Circular index which slice to process next
   size_t prev_processor = 0;
-  size_t prev_input_slice = 0;
   long n_events_read = 0;
   long n_events_processed = 0;
 
@@ -547,6 +549,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::optional<Timer> t;
 
   bool io_done = false;
+
+  // Circular processor index
+  size_t processor_index = 0;
+  std::optional<size_t> slice_index;
+
   while (error_count == 0) {
 
     // Wait for at least one event to be ready
@@ -565,9 +572,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         auto& socket = std::get<1>(io_workers[i]);
         auto msg = zmqSvc().receive<string>(socket);
         assert(msg == "SLICE");
-        auto slice_index = zmqSvc().receive<int>(socket);
+        slice_index = zmqSvc().receive<int>(socket);
         auto good = zmqSvc().receive<bool>(socket);
         auto n_filled = zmqSvc().receive<size_t>(socket);
+
+        info_cout << "Got slice " << *slice_index << " " << n_filled << "\n";
 
         if (!good && n_filled == 0 && !io_done) {
           error_cout << "I/O provider failed to decode events into slice.\n";
@@ -577,8 +586,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             info_cout << "First slice ready, starting timer for throughput measurement.\n";
             t = Timer{};
           }
-          input_slice_status[slice_index] = SliceStatus::Filled;
-          events_in_slice[slice_index] = n_filled;
+          input_slice_status[*slice_index] = SliceStatus::Filled;
+          events_in_slice[*slice_index] = n_filled;
           n_events_read += n_filled;
         }
 
@@ -588,6 +597,27 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           info_cout << "I/O complete.\n";
         }
       }
+    }
+
+    // If there is a slice, send it to the next processor;
+    if (slice_index) {
+      size_t processor_index = prev_processor++;
+      if (prev_processor == number_of_threads) {
+        prev_processor = 0;
+      }
+      // send message to processor to process the slice
+      if (enable_async_io) {
+        input_slice_status[*slice_index] = SliceStatus::Processing;
+      }
+      auto& socket = std::get<1>(event_processors[processor_index]);
+      zmqSvc().send(socket, "PROCESS", zmq::SNDMORE);
+      zmqSvc().send(socket, *slice_index);
+
+      if (logger::ll.verbosityLevel >= logger::debug) {
+        debug_cout << "Submitted " << std::setw(5) << events_in_slice[*slice_index] << " events in slice "
+                   << std::setw(2) << *slice_index << " to stream " << std::setw(2) << processor_index << "\n";
+      }
+      slice_index.reset();
     }
 
     // Check if any processors are ready
@@ -600,7 +630,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         n_events_processed += events_in_slice[slice_index];
         stream_ready[i] = true;
 
-        debug_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
+        if (logger::ll.verbosityLevel >= logger::debug) {
+          debug_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
+        }
 
         // Run the checker accumulation here in a blocking fashion
         if (do_check) {
@@ -619,44 +651,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           events_in_slice[slice_index] = 0;
         } else {
           input_slice_status[slice_index] = SliceStatus::Processed;
-        }
-      }
-    }
-
-    // Find a processor that is ready to process if there are slices to process
-    std::optional<size_t> processor_index;
-    size_t n_filled = 0;
-    while((n_filled = count_status(SliceStatus::Filled)) && stream_ready.count()) {
-      for (size_t i = 0; i < number_of_threads; ++i) {
-        size_t idx = (i + prev_processor + 1) % number_of_threads;
-        if (stream_ready[idx]) {
-          processor_index = idx;
-          prev_processor = *processor_index;
-          break;
-        }
-      }
-
-      // A processor is ready and there is a slice, send it for
-      // processing
-      size_t input_slice_idx = 0;
-      for (size_t i = 0; i < number_of_slices; ++i) {
-        // Round-robin through the streams
-        input_slice_idx = (i + prev_input_slice + 1) % number_of_slices;
-        if (input_slice_status[input_slice_idx] == SliceStatus::Filled) {
-          prev_input_slice = input_slice_idx;
-
-          // send message to processor to process the slice
-          stream_ready[*processor_index] = false;
-          if (enable_async_io) {
-            input_slice_status[input_slice_idx] = SliceStatus::Processing;
-          }
-          auto& socket = std::get<1>(event_processors[*processor_index]);
-          zmqSvc().send(socket, "PROCESS", zmq::SNDMORE);
-          zmqSvc().send(socket, input_slice_idx);
-
-          debug_cout << "Submitted " << std::setw(5) << events_in_slice[input_slice_idx] << " events in slice "
-                     << std::setw(2) << input_slice_idx << " to stream " << std::setw(2) << *processor_index << "\n";
-          break;
         }
       }
     }
