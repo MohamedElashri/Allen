@@ -325,7 +325,7 @@ MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, gsl::span<char> buffe
         return {false, true, {}};
       }
     }
-    return {false, false, {buffer.data(), bnkSize + h.size() - 1}};
+    return {false, false, {buffer.data(), bnkSize + static_cast<unsigned int>(readSize) - 1}};
   }
 }
 
