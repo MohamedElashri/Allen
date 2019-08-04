@@ -29,7 +29,13 @@ struct Config {
 
 namespace {
   Config s_config;
-  MDFProviderConfig mdf_config{true};
+  MDFProviderConfig mdf_config{true, 2, 1};
+
+  unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>> mdf;
+  unique_ptr<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>> binary;
+
+  size_t slice_mdf = 0, slice_binary = 0;
+  size_t filled_mdf = 0, filled_binary = 0;
 }
 
 int main(int argc, char* argv[])
@@ -69,8 +75,32 @@ int main(int argc, char* argv[])
     s_config.banks_dirs.push_back(directory + "/banks/" + sd);
   }
 
+  logger::ll.verbosityLevel = 5;
+
+  if (s_config.run) {
+
+    mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
+      (s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
+
+    bool good = false, timed_out = false;
+    std::tie(good, timed_out, slice_mdf, filled_mdf) = mdf->get_slice();
+    cout << "got slice " << slice_mdf << " " << filled_mdf << "\n";
+    auto const& events_mdf = mdf->event_ids(slice_mdf);
+
+    binary = make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
+      (s_config.n_slices, s_config.n_events, s_config.n_events, s_config.banks_dirs,
+       false, events_mdf);
+
+    std::tie(good, timed_out, slice_binary, filled_binary) = binary->get_slice();
+  }
+
   return session.run();
 }
+
+template <BankTypes BT_>
+struct BTTag {
+  inline static const BankTypes BT = BT_;
+};
 
 template<size_t I>
 void check_banks(BanksAndOffsets const& left, BanksAndOffsets const& right) {
@@ -81,27 +111,14 @@ void check_banks(BanksAndOffsets const& left, BanksAndOffsets const& right) {
   }
 }
 
-TEST_CASE( "MDF versus Binary", "[compare_MDF_binary]" ) {
+TEMPLATE_TEST_CASE( "MDF versus Binary", "[MDF binary]", BTTag<BankTypes::VP>, BTTag<BankTypes::UT>, BTTag<BankTypes::FT>, BTTag<BankTypes::MUON> ) {
 
   if (!s_config.run) return;
 
-  MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    mdf{s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config};
+  REQUIRE(filled_binary == filled_mdf);
 
-  auto [good, timed_out, mdf_slice, mdf_filled] = mdf.get_slice();
-  auto banks_mdf = mdf.banks(BankTypes::VP, mdf_slice);
-  auto const& events_mdf = mdf.event_ids(mdf_slice);
-
-  BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    binary{s_config.n_slices, s_config.n_events, s_config.n_events, s_config.banks_dirs,
-           false, events_mdf};
-
-  size_t binary_slice = 0, binary_filled = 0;
-  std::tie(good, timed_out, binary_slice, binary_filled) = binary.get_slice();
-  auto banks_binary = binary.banks(BankTypes::VP, binary_slice);
-  auto const& events_binary = binary.event_ids(binary_slice);
-
-  REQUIRE(binary_filled == mdf_filled);
+  auto const& events_mdf = mdf->event_ids(slice_mdf);
+  auto const& events_binary = binary->event_ids(slice_binary);
 
   SECTION("Checking Event IDs") {
     REQUIRE(events_mdf.size() == events_binary.size());
@@ -112,6 +129,10 @@ TEST_CASE( "MDF versus Binary", "[compare_MDF_binary]" ) {
       REQUIRE(event_mdf == event_binary);
     }
   }
+
+  auto banks_mdf = mdf->banks(TestType::BT, slice_mdf);
+  auto banks_binary = binary->banks(TestType::BT, slice_binary);
+
 
   SECTION("Checking offsets") {
     check_banks<1>(banks_mdf, banks_binary);
