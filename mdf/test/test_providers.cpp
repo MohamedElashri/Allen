@@ -75,10 +75,8 @@ int main(int argc, char* argv[])
     s_config.banks_dirs.push_back(directory + "/banks/" + sd);
   }
 
-  logger::ll.verbosityLevel = 5;
-
   if (s_config.run) {
-
+    // Allocate providers and get slices
     mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
       (s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
 
@@ -102,6 +100,9 @@ struct BTTag {
   inline static const BankTypes BT = BT_;
 };
 
+/**
+ * @brief      Check bank or offset data
+ */
 template<size_t I>
 void check_banks(BanksAndOffsets const& left, BanksAndOffsets const& right) {
   static_assert(I < tuple_size_v<BanksAndOffsets>);
@@ -111,15 +112,19 @@ void check_banks(BanksAndOffsets const& left, BanksAndOffsets const& right) {
   }
 }
 
+// Main test case, multiple bank types are checked
 TEMPLATE_TEST_CASE( "MDF versus Binary", "[MDF binary]", BTTag<BankTypes::VP>, BTTag<BankTypes::UT>, BTTag<BankTypes::FT>, BTTag<BankTypes::MUON> ) {
 
   if (!s_config.run) return;
 
+  // Check that the number of events read matches
   REQUIRE(filled_binary == filled_mdf);
 
+  // Get the events
   auto const& events_mdf = mdf->event_ids(slice_mdf);
   auto const& events_binary = binary->event_ids(slice_binary);
 
+  // Check that the events match
   SECTION("Checking Event IDs") {
     REQUIRE(events_mdf.size() == events_binary.size());
     for (size_t i = 0; i < events_mdf.size(); ++i) {
@@ -130,9 +135,9 @@ TEMPLATE_TEST_CASE( "MDF versus Binary", "[MDF binary]", BTTag<BankTypes::VP>, B
     }
   }
 
+  // Get the banks
   auto banks_mdf = mdf->banks(TestType::BT, slice_mdf);
   auto banks_binary = binary->banks(TestType::BT, slice_binary);
-
 
   SECTION("Checking offsets") {
     check_banks<1>(banks_mdf, banks_binary);

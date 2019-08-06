@@ -31,15 +31,6 @@ int main(int argc, char* argv[])
     files[i] = argv[i + 1];
   }
 
-  // vector<char> buffer(110 * 1024 * 1024);
-
-  // auto headerSize = sizeof(LHCb::MDFHeader);
-  // auto* start = &buffer[0];
-  // auto const* write_end = start + 100 * 1024 * 1024;
-  // auto* write = &buffer[0];
-
-  // double n_bytes = 0.;
-
   Timer t;
 
   vector<char> buffer(100 * 1024 * 1024);
