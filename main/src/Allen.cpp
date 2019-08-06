@@ -551,7 +551,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   bool io_done = false;
 
   // Circular processor index
-  size_t processor_index = 0;
+  size_t processor_index = 0, throughput_processed = 0, slices_processed = 0;
   std::optional<size_t> slice_index;
 
   while (error_count == 0) {
@@ -576,14 +576,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         auto good = zmqSvc().receive<bool>(socket);
         auto n_filled = zmqSvc().receive<size_t>(socket);
 
-        info_cout << "Got slice " << *slice_index << " " << n_filled << "\n";
-
         if (!good && n_filled == 0 && !io_done) {
           error_cout << "I/O provider failed to decode events into slice.\n";
           goto loop_error;
         } else {
-          if (!t) {
-            info_cout << "First slice ready, starting timer for throughput measurement.\n";
+          if (!t && slices_processed == 5 * number_of_threads) {
+            info_cout << "Starting timer for throughput measurement.\n";
+            throughput_processed = n_events_processed * number_of_repetitions;
             t = Timer{};
           }
           input_slice_status[*slice_index] = SliceStatus::Filled;
@@ -628,6 +627,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         assert(msg == "PROCESSED");
         auto slice_index = zmqSvc().receive<size_t>(socket);
         n_events_processed += events_in_slice[slice_index];
+        ++slices_processed;
         stream_ready[i] = true;
 
         if (logger::ll.verbosityLevel >= logger::debug) {
@@ -655,11 +655,16 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       }
     }
 
+    bool io_cond = (!enable_async_io && count_status(SliceStatus::Processed)) || (enable_async_io && io_done);
+    if (t && io_cond) {
+      throughput_processed = n_events_processed * number_of_repetitions - throughput_processed;
+      t->stop();
+    }
+
     // Check if we're done
     if (stream_ready.count() == number_of_threads &&
         ((!enable_async_io && count_status(SliceStatus::Processed)) || (enable_async_io && io_done))) {
       info_cout << "Processing complete.\n";
-      if (t) t->stop();
       break;
     }
   }
@@ -725,7 +730,7 @@ loop_error:
   }
 
   if (t) {
-    info_cout << (n_events_processed * number_of_repetitions / t->get()) << " events/s\n"
+    info_cout << (throughput_processed / t->get()) << " events/s\n"
               << "Ran test for " << t->get() << " seconds\n";
   } else {
     warning_cout << "Timer wasn't started." << "\n";
