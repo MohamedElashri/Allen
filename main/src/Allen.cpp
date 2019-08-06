@@ -400,9 +400,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     connections.emplace_back(mdf_input.substr(previous, current - previous));
 
     unsigned long events_per_buffer = static_cast<unsigned long>(*events_per_slice * 1.2f);
-    MDFProviderConfig config {false, 10, 4, 10001, events_per_buffer, 10};
+    MDFProviderConfig config {false, 10, 4, 10001, events_per_buffer, number_of_repetitions};
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
       (number_of_slices, *events_per_slice, n_events, std::move(connections), config);
+
+    if (enable_async_io) number_of_repetitions = 1;
   }
   else {
     // The binary input provider expects the folders for the bank types as connections
@@ -539,11 +541,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         assert(msg == "READY");
         auto success = zmqSvc().receive<bool>(socket);
         stream_ready[i] = success;
-        info_cout << "GPU stream " << std::setw(2) << i << " on device " << cuda_device
-                  << (success ? " ready." : " failed to start.") << "\n";
+        debug_cout << "GPU stream " << std::setw(2) << i << " on device " << cuda_device
+                   << (success ? " ready." : " failed to start.") << "\n";
         error_count += !success;
       }
     }
+  }
+  if (error_count == 0) {
+    info_cout << "GPU streams ready\n";
   }
 
   std::optional<Timer> t;
@@ -580,7 +585,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           error_cout << "I/O provider failed to decode events into slice.\n";
           goto loop_error;
         } else {
-          if (!t && slices_processed == 5 * number_of_threads) {
+          if (!t && (slices_processed == 5 * number_of_threads) || !enable_async_io) {
             info_cout << "Starting timer for throughput measurement.\n";
             throughput_processed = n_events_processed * number_of_repetitions;
             t = Timer{};
@@ -593,28 +598,33 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         if ((!good && n_filled != 0)
             || (number_of_events_requested != 0 && n_events_read >= number_of_events_requested)) {
           io_done = true;
-          info_cout << "I/O complete.\n";
+          info_cout << "I/O complete\n";
         }
       }
     }
 
     // If there is a slice, send it to the next processor;
     if (slice_index) {
-      size_t processor_index = prev_processor++;
-      if (prev_processor == number_of_threads) {
-        prev_processor = 0;
-      }
-      // send message to processor to process the slice
-      if (enable_async_io) {
-        input_slice_status[*slice_index] = SliceStatus::Processing;
-      }
-      auto& socket = std::get<1>(event_processors[processor_index]);
-      zmqSvc().send(socket, "PROCESS", zmq::SNDMORE);
-      zmqSvc().send(socket, *slice_index);
+      bool first = true;
+      while ((enable_async_io && first) || (!enable_async_io && stream_ready.count())) {
+        first = false;
+        size_t processor_index = prev_processor++;
+        if (prev_processor == number_of_threads) {
+          prev_processor = 0;
+        }
+        // send message to processor to process the slice
+        if (enable_async_io) {
+          input_slice_status[*slice_index] = SliceStatus::Processing;
+        }
+        auto& socket = std::get<1>(event_processors[processor_index]);
+        zmqSvc().send(socket, "PROCESS", zmq::SNDMORE);
+        zmqSvc().send(socket, *slice_index);
+        stream_ready[processor_index] = false;
 
-      if (logger::ll.verbosityLevel >= logger::debug) {
-        debug_cout << "Submitted " << std::setw(5) << events_in_slice[*slice_index] << " events in slice "
-                   << std::setw(2) << *slice_index << " to stream " << std::setw(2) << processor_index << "\n";
+        if (logger::ll.verbosityLevel >= logger::debug) {
+          debug_cout << "Submitted " << std::setw(5) << events_in_slice[*slice_index] << " events in slice "
+                     << std::setw(2) << *slice_index << " to stream " << std::setw(2) << processor_index << "\n";
+        }
       }
       slice_index.reset();
     }
@@ -655,15 +665,18 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       }
     }
 
-    bool io_cond = (!enable_async_io && count_status(SliceStatus::Processed)) || (enable_async_io && io_done);
+    // Separate if statement to allow stopping in different ways
+    // depending on whether async I/O is enabled.
+    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads)
+                    || (enable_async_io && io_done));
     if (t && io_cond) {
       throughput_processed = n_events_processed * number_of_repetitions - throughput_processed;
       t->stop();
     }
 
     // Check if we're done
-    if (stream_ready.count() == number_of_threads &&
-        ((!enable_async_io && count_status(SliceStatus::Processed)) || (enable_async_io && io_done))) {
+    if (stream_ready.count() == number_of_threads && io_cond
+        && (!enable_async_io || (enable_async_io && count_status(SliceStatus::Empty) == number_of_slices))) {
       info_cout << "Processing complete.\n";
       break;
     }
