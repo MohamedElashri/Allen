@@ -52,9 +52,19 @@ namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed };
 } // namespace
 
+/**
+ * @brief      Request slices from the input provider and report
+ *             them to the main thread; run from a separate thread
+ *
+ * @param      thread ID of this I/O thread
+ * @param      IInputProvider instance
+ *
+ * @return     void
+ */
 void input_reader(const size_t io_id, IInputProvider* input_provider)
 {
 
+  // Create a control oscket and connect it.
   zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
   zmq::setsockopt(control, zmq::LINGER, 0);
 
@@ -85,6 +95,7 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
 
     // Get a slice and inform the main thread that it is available
     auto [good, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
+    // Report errors or good slices that contain events
     if (!good || (!timed_out && (good && n_filled != 0))) {
       zmqSvc().send(control, "SLICE", zmq::SNDMORE);
       zmqSvc().send(control, slice_index, zmq::SNDMORE);
@@ -97,10 +108,21 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
   }
 }
 
+/**
+ * @brief      Process events on GPU streams; run from a separate thread
+ *
+ * @param      thread ID
+ * @param      GPU stream ID
+ * @param      GPU device id
+ * @param
+ * @param      CUDA device
+ *
+ * @return     return type
+ */
 void event_processor(
   size_t const thread_id,
   size_t const stream_id,
-  int cuda_device,
+  int device_id,
   StreamWrapper& wrapper,
   IInputProvider const* input_provider,
   CheckerInvoker& checker_invoker,
@@ -120,7 +142,7 @@ void event_processor(
     throw e;
   }
 
-  auto [cuda_set, device_name] = set_device(cuda_device, stream_id);
+  auto [device_set, device_name] = set_device(device_id, stream_id);
 
   zmq::pollitem_t items[] = {
     {control, 0, ZMQ_POLLIN, 0},
@@ -131,7 +153,7 @@ void event_processor(
   do {
     try {
       zmqSvc().send(control, "READY", zmq::SNDMORE);
-      good = zmqSvc().send(control, cuda_set);
+      good = zmqSvc().send(control, device_set);
     } catch (const zmq::error_t& err) {
       if (err.num() == EINTR) continue;
     }
@@ -217,6 +239,14 @@ void event_processor(
   }
 }
 
+/**
+ * @brief      Register all consumers of non-event data
+ *
+ * @param      IUpdater instance
+ * @param      Constants
+ *
+ * @return     void
+ */
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants)
 {
   tuple consumers {
@@ -243,6 +273,14 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
   });
 }
 
+/**
+ * @brief      Main entry point
+ *
+ * @param      {key : value} command-line arguments as strings
+ * @param      IUpdater instance
+ *
+ * @return     int
+ */
 int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater)
 {
   // Folder containing raw, MC and muon information
@@ -265,7 +303,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   size_t reserve_mb = 1024;
 
   string mdf_input;
-  int cuda_device = 0;
+  int device_id = 0;
   int cpu_offload = 1;
 
   std::string flag, arg;
@@ -322,7 +360,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       cpu_offload = atoi(arg.c_str());
     }
     else if (flag_in({"device"})) {
-      cuda_device = atoi(arg.c_str());
+      device_id = atoi(arg.c_str());
     }
   }
 
@@ -344,14 +382,15 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   logger::ll.verbosityLevel = verbosity;
 
   // Set device for main thread
-  auto [cuda_set, device_name] = set_device(cuda_device, 0);
-  if (!cuda_set) {
+  auto [device_set, device_name] = set_device(device_id, 0);
+  if (!device_set) {
     return -1;
   }
 
   // Show call options
   print_call_options(options, device_name);
 
+  // Determine wether to run with async I/O.
   bool enable_async_io = true;
   if ((number_of_slices == 0 || number_of_slices == 1) && number_of_repetitions > 1) {
     // NOTE: Special case to be able to compare throughput with and
@@ -371,9 +410,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Print configured sequence
   print_configured_sequence();
 
+  // Set a sane default for the number of events per input slice
   if (!events_per_slice) {
     events_per_slice = number_of_events_requested;
   }
+
+  // Raw data input folders
   const auto folder_name_velopix_raw = folder_data + folder_rawdata + "VP";
   const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
   const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
@@ -384,11 +426,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   std::unique_ptr<IInputProvider> input_provider {};
 
+  // Number of requested events as an optional
   optional<size_t> n_events;
   if (number_of_events_requested != 0) {
     n_events = number_of_events_requested;
   }
 
+  // Create the InputProvider, either MDF or Binary
   if (!mdf_input.empty()) {
     vector<string> connections;
     size_t current = mdf_input.find(","), previous = 0;
@@ -414,6 +458,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       (number_of_slices, *events_per_slice, n_events, std::move(connections));
   }
 
+  // Read the Muon catboost model
   muon_catboost_model_reader =
     std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
   std::vector<float> muon_field_of_interest_params;
@@ -456,7 +501,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     event_processor(
       thread_id,
       stream_id,
-      cuda_device,
+      device_id,
       stream_wrapper,
       input_provider.get(),
       checker_invoker,
@@ -471,10 +516,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   using start_thread = std::function<void(uint, uint)>;
 
-  // Vector of threads
+  // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
   items.resize(number_of_threads + 1);
 
+  // Vector of worker threads
   using workers_t = std::vector<std::tuple<std::thread, zmq::socket_t>>;
   workers_t event_processors;
   event_processors.reserve(number_of_threads);
@@ -514,15 +560,56 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       });
   };
 
-  // Circular index which slice to process next
+  // counters for bookkeeping
   size_t prev_processor = 0;
   long n_events_read = 0;
   long n_events_processed = 0;
+  size_t throughput_processed = 0;
+  size_t slices_processed = 0;
+  std::optional<size_t> slice_index;
 
   // Wait for at least one event to be ready
   zmq::poll(&items[0], n_io, -1);
 
   size_t error_count = 0;
+
+  // Lambda to check if any event processors are done processing
+  auto check_processors = [&] {
+    for (size_t i = 0; i < number_of_threads; ++i) {
+      if (items[n_io + i].revents & zmq::POLLIN) {
+        auto& socket = std::get<1>(event_processors[i]);
+        auto msg = zmqSvc().receive<string>(socket);
+        assert(msg == "PROCESSED");
+        auto slice_index = zmqSvc().receive<size_t>(socket);
+        n_events_processed += events_in_slice[slice_index];
+        ++slices_processed;
+        stream_ready[i] = true;
+
+        if (logger::ll.verbosityLevel >= logger::debug) {
+          debug_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
+        }
+
+        // Run the checker accumulation here in a blocking fashion
+        if (do_check) {
+          zmqSvc().send(socket, folder_data + "/MC_info");
+          auto success = zmqSvc().receive<bool>(socket);
+          if (!success) {
+            warning_cout << "Failed to load MC events.\n";
+          }
+          else {
+            info_cout << "Checked   " << std::setw(6) << n_events_processed << " events\n";
+          }
+        }
+        if (enable_async_io) {
+          input_slice_status[slice_index] = SliceStatus::Empty;
+          input_provider->slice_free(slice_index);
+          events_in_slice[slice_index] = 0;
+        } else {
+          input_slice_status[slice_index] = SliceStatus::Processed;
+        }
+      }
+    }
+  };
 
   // Wait for all processors to be ready
   while ((stream_ready.count() + error_count) < number_of_threads) {
@@ -541,7 +628,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         assert(msg == "READY");
         auto success = zmqSvc().receive<bool>(socket);
         stream_ready[i] = success;
-        debug_cout << "GPU stream " << std::setw(2) << i << " on device " << cuda_device
+        debug_cout << "GPU stream " << std::setw(2) << i << " on device " << device_id
                    << (success ? " ready." : " failed to start.") << "\n";
         error_count += !success;
       }
@@ -555,10 +642,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   bool io_done = false;
 
-  // Circular processor index
-  size_t processor_index = 0, throughput_processed = 0, slices_processed = 0;
-  std::optional<size_t> slice_index;
-
+  // Main event loop
   while (error_count == 0) {
 
     // Wait for at least one event to be ready
@@ -603,7 +687,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       }
     }
 
-    // If there is a slice, send it to the next processor;
+    // If there is a slice, send it to the next processor; when async
+    // I/O is disabled send the slice(s) to all streams
     if (slice_index) {
       bool first = true;
       while ((enable_async_io && first) || (!enable_async_io && stream_ready.count())) {
@@ -630,40 +715,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
 
     // Check if any processors are ready
-    for (size_t i = 0; i < number_of_threads; ++i) {
-      if (items[n_io + i].revents & zmq::POLLIN) {
-        auto& socket = std::get<1>(event_processors[i]);
-        auto msg = zmqSvc().receive<string>(socket);
-        assert(msg == "PROCESSED");
-        auto slice_index = zmqSvc().receive<size_t>(socket);
-        n_events_processed += events_in_slice[slice_index];
-        ++slices_processed;
-        stream_ready[i] = true;
-
-        if (logger::ll.verbosityLevel >= logger::debug) {
-          debug_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
-        }
-
-        // Run the checker accumulation here in a blocking fashion
-        if (do_check) {
-          zmqSvc().send(socket, folder_data + "/MC_info");
-          auto success = zmqSvc().receive<bool>(socket);
-          if (!success) {
-            warning_cout << "Failed to load MC events.\n";
-          }
-          else {
-            info_cout << "Checked   " << std::setw(6) << n_events_processed << " events\n";
-          }
-        }
-        if (enable_async_io) {
-          input_slice_status[slice_index] = SliceStatus::Empty;
-          input_provider->slice_free(slice_index);
-          events_in_slice[slice_index] = 0;
-        } else {
-          input_slice_status[slice_index] = SliceStatus::Processed;
-        }
-      }
-    }
+    check_processors();
 
     // Separate if statement to allow stopping in different ways
     // depending on whether async I/O is enabled.
@@ -686,7 +738,7 @@ loop_error:
   // Let processors that are still busy finish
   while((stream_ready.count() + error_count) < number_of_threads) {
 
-    // Wait for at least one event processor to be ready
+    // Wait for a message
     std::optional<int> n;
     do {
       try {
@@ -696,36 +748,8 @@ loop_error:
       }
     } while (!n);
 
-    for (size_t i = 0; i < number_of_threads; ++i) {
-      if (items[n_io + i].revents & zmq::POLLIN) {
-        auto& socket = std::get<1>(event_processors[i]);
-        auto msg = zmqSvc().receive<string>(socket);
-        if (msg == "READY") {
-          auto r = zmqSvc().receive<bool>(socket);
-          if (r) {
-            stream_ready[i] = true;
-          } else {
-            error_cout << "event thread " << i << " sent message, but not ready.\n";
-            ++error_count;
-          }
-        } else {
-          auto slice_index = zmqSvc().receive<size_t>(socket);
-          stream_ready[i] = true;
-          if (do_check) {
-            zmqSvc().send(socket, folder_data + "/MC_info");
-            auto success = zmqSvc().receive<bool>(socket);
-            if (!success) {
-              warning_cout << "Failed to load MC events.\n";
-            }
-            else {
-              info_cout << "Checked   " << std::setw(6) << n_events_processed << " events\n";
-            }
-          }
-          input_slice_status[slice_index] = SliceStatus::Empty;
-          input_provider->slice_free(slice_index);
-        }
-      }
-    }
+    // Check if any processors are ready
+    check_processors();
   }
 
   // Send stop signal to all threads and join them
@@ -736,12 +760,12 @@ loop_error:
     }
   }
 
-
   // Print checker reports
   if (do_check) {
     checker_invoker.report(n_events_processed);
   }
 
+  // Print throughut measurement result
   if (t) {
     info_cout << (throughput_processed / t->get()) << " events/s\n"
               << "Ran test for " << t->get() << " seconds\n";
