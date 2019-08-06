@@ -210,10 +210,14 @@ void event_processor(
       zmqSvc().send(control, "PROCESSED", zmq::SNDMORE);
       zmqSvc().send(control, *idx);
       if (do_check) {
-        // TODO: Get list of events here
+        // Get list of events that are in the slice to load the right
+        // MC info
         auto const& events = input_provider->event_ids(*idx);
 
-        // synchronise to avoid threading issues with CheckerInvoker
+        // synchronise to avoid threading issues with
+        // CheckerInvoker. The main thread will send the folder to
+        // only one stream at a time and will block until it receives
+        // the message that informs it the checker is done.
         auto mc_folder = zmqSvc().receive<string>(control);
         auto mask = wrapper.reconstructed_events(stream_id);
         auto mc_events = checker_invoker.load(mc_folder, events, mask);
@@ -222,7 +226,7 @@ void event_processor(
           zmqSvc().send(control, false);
         }
         else {
-
+          // Run the checker
           std::vector<Checker::Tracks> forward_tracks;
           if (!folder_name_imported_forward_tracks.empty()) {
             std::vector<char> events_tracks;
@@ -589,7 +593,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           debug_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
         }
 
-        // Run the checker accumulation here in a blocking fashion
+        // Run the checker accumulation here in a blocking fashion;
+        // the blocking is ensured by sending a message and
+        // immediately waiting for a reply
         if (do_check) {
           zmqSvc().send(socket, folder_data + "/MC_info");
           auto success = zmqSvc().receive<bool>(socket);
@@ -643,6 +649,15 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   bool io_done = false;
 
   // Main event loop
+  // - Check if input slices are available from the input thread
+  // - Distribute new input slices to streams as soon as they arrive
+  //   in a round-robin fashion
+  // - Check if any streams are done with a slice and free it
+  // - Check if the loop should exit
+  //
+  // NOTE: special behaviour is implemented for testing without asynch
+  // I/O and with repetitions. In this case, a single slice is
+  // distributed to all streams once.
   while (error_count == 0) {
 
     // Wait for at least one event to be ready
@@ -679,6 +694,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           n_events_read += n_filled;
         }
 
+        // Check if the I/O is done
         if ((!good && n_filled != 0)
             || (number_of_events_requested != 0 && n_events_read >= number_of_events_requested)) {
           io_done = true;
