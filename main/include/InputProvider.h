@@ -117,9 +117,9 @@ protected:
 
   template <typename MSG>
   void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) {
-    if (logger::ll.verbosityLevel >= logger::verbose) {
+    if (logger::ll.verbosityLevel >= logger::debug) {
       std::unique_lock<std::mutex> lock{m_output_mut};
-      verbose_cout << (thread_id ? std::to_string(*thread_id) + " " : std::string{}) << msg << "\n";
+      debug_cout << (thread_id ? std::to_string(*thread_id) + " " : std::string{}) << msg << "\n";
     }
   }
 

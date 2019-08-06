@@ -85,7 +85,7 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
 
     // Get a slice and inform the main thread that it is available
     auto [good, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
-    if (!timed_out) {
+    if (!good || (!timed_out && (good && n_filled != 0))) {
       zmqSvc().send(control, "SLICE", zmq::SNDMORE);
       zmqSvc().send(control, slice_index, zmq::SNDMORE);
       zmqSvc().send(control, good, zmq::SNDMORE);

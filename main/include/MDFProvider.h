@@ -8,6 +8,7 @@
 #include <atomic>
 #include <chrono>
 #include <algorithm>
+#include <numeric>
 #include <condition_variable>
 
 #include <Logger.h>
@@ -385,7 +386,6 @@ public:
       m_config.n_transpose_threads = m_config.n_buffers - 1;
     }
 
-    // FIXME: not thread-safe -> move to constructor
     if (m_transpose_threads.empty() && !m_read_error) {
       for (size_t i = 0; i < m_config.n_transpose_threads; ++i) {
         m_transpose_threads.emplace_back([this, i] { transpose(i); });
@@ -435,21 +435,25 @@ public:
     std::unique_lock<std::mutex> lock{m_transpose_mut};
     if (!m_read_error) {
       if (m_transposed.empty()) {
+        auto wakeup = [this, &done] {
+                        auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
+                        return (!m_transposed.empty() || m_read_error
+                                || (m_transpose_done && n_writable == m_buffer_writable.size()));
+                      };
         if (timeout) {
-          timed_out = !m_transpose_cond.wait_for(lock, std::chrono::milliseconds{*timeout},
-                                                 [this] { return (!m_transposed.empty() || m_read_error || m_transpose_done); });
+          timed_out = !m_transpose_cond.wait_for(lock, std::chrono::milliseconds{*timeout}, wakeup);
         } else {
-          m_transpose_cond.wait(lock, [this] {
-                                        return (!m_transposed.empty() || m_read_error || m_transpose_done); });
+          m_transpose_cond.wait(lock, wakeup);
         }
       }
       if (!m_read_error && !m_transposed.empty() && (!timeout || (timeout && !timed_out))) {
         std::tie(slice_index, n_filled) = m_transposed.front();
         m_transposed.pop_front();
       }
-      done = m_transpose_done && m_transposed.empty();
     }
 
+    auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
+    done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_writable.size();
     return {!m_read_error && !done, timed_out, slice_index, m_read_error ? 0 : n_filled};
   }
 
@@ -487,8 +491,8 @@ private:
         if (m_prefetched.empty() && !m_transpose_done) {
           m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done; });
         }
-        if (m_transpose_done || m_prefetched.empty()) {
-          this->debug_output("Transpose done: done  " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()), thread_id);
+        if (m_prefetched.empty()) {
+          this->debug_output("Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()), thread_id);
           break;
         }
         i_read = m_prefetched.front();
