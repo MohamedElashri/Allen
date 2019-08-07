@@ -415,8 +415,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   print_configured_sequence();
 
   // Set a sane default for the number of events per input slice
-  if (!events_per_slice) {
+  if (!events_per_slice && number_of_events_requested != 0) {
     events_per_slice = number_of_events_requested;
+  } else if (!events_per_slice) {
+    events_per_slice = 1000;
   }
 
   // Raw data input folders
@@ -568,7 +570,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   size_t prev_processor = 0;
   long n_events_read = 0;
   long n_events_processed = 0;
-  size_t throughput_processed = 0;
+  size_t throughput_start = 0;
+  optional<size_t> throughput_processed;
   size_t slices_processed = 0;
   std::optional<size_t> slice_index;
 
@@ -684,9 +687,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           error_cout << "I/O provider failed to decode events into slice.\n";
           goto loop_error;
         } else {
-          if (!t && (slices_processed == 5 * number_of_threads) || !enable_async_io) {
+          if (!t && (slices_processed >= 5 * number_of_threads) || !enable_async_io) {
             info_cout << "Starting timer for throughput measurement.\n";
-            throughput_processed = n_events_processed * number_of_repetitions;
+            throughput_start = n_events_processed * number_of_repetitions;
             t = Timer{};
           }
           input_slice_status[*slice_index] = SliceStatus::Filled;
@@ -735,10 +738,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
     // Separate if statement to allow stopping in different ways
     // depending on whether async I/O is enabled.
+    // NOTE: This may be called several times when slices are ready
+    // being processed
     bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads)
                     || (enable_async_io && io_done));
     if (t && io_cond) {
-      throughput_processed = n_events_processed * number_of_repetitions - throughput_processed;
+      if (!throughput_processed) {
+        throughput_processed = n_events_processed * number_of_repetitions - throughput_start;
+      }
       t->stop();
     }
 
@@ -782,8 +789,8 @@ loop_error:
   }
 
   // Print throughut measurement result
-  if (t) {
-    info_cout << (throughput_processed / t->get()) << " events/s\n"
+  if (t && throughput_processed) {
+    info_cout << (*throughput_processed / t->get()) << " events/s\n"
               << "Ran test for " << t->get() << " seconds\n";
   } else {
     warning_cout << "Timer wasn't started." << "\n";
