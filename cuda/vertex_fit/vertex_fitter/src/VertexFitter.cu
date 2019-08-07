@@ -179,7 +179,6 @@ namespace VertexFit {
 
   __device__ void fill_extra_info(
     TrackMVAVertex& sv,
-    const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB)
   {
@@ -191,6 +190,31 @@ namespace VertexFit {
     // Sum of track pT.
     sv.sumpt = trackA.pt() + trackB.pt();
 
+    // Minimum pt of constituent tracks.
+    sv.minpt = trackA.pt() < trackB.pt() ? trackA.pt() : trackB.pt();
+
+    // Muon ID.
+    sv.is_dimuon = trackA.is_muon && trackB.is_muon;
+
+    // Dimuon mass.
+    if (sv.is_dimuon) {
+      const float mdimu2 =
+        2.f * mMu * mMu +
+        2.f * (std::sqrt((trackA.p() * trackA.p() + mMu * mMu) * (trackB.p() * trackB.p() + mMu * mMu)) -
+               trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+      sv.mdimu = std::sqrt(mdimu2);
+    }
+    else {
+      sv.mdimu = -1.f;
+    }
+  }
+
+  __device__ void fill_extra_pv_info(
+    TrackMVAVertex& sv,
+    const PV::Vertex& pv,
+    const ParKalmanFilter::FittedTrack& trackA,
+    const ParKalmanFilter::FittedTrack& trackB)
+  {
     // Number of tracks with ip chi2 < 16.
     sv.ntrksassoc = (trackA.ipChi2 < VertexFit::maxAssocIPChi2) + (trackB.ipChi2 < VertexFit::maxAssocIPChi2);
 
@@ -233,26 +257,8 @@ namespace VertexFit {
 
     // Minimum IP chi2 of constituent tracks.
     sv.minipchi2 = trackA.ipChi2 < trackB.ipChi2 ? trackA.ipChi2 : trackB.ipChi2;
-
-    // Minimum pt of constituent tracks.
-    sv.minpt = trackA.pt() < trackB.pt() ? trackA.pt() : trackB.pt();
-
-    // Muon ID.
-    sv.is_dimuon = trackA.is_muon && trackB.is_muon;
-
-    // Dimuon mass.
-    if (sv.is_dimuon) {
-      const float mdimu2 =
-        2.f * mMu * mMu +
-        2.f * (std::sqrt((trackA.p() * trackA.p() + mMu * mMu) * (trackB.p() * trackB.p() + mMu * mMu)) -
-               trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
-      sv.mdimu = std::sqrt(mdimu2);
-    }
-    else {
-      sv.mdimu = -1.f;
-    }
   }
-
+    
 } // namespace VertexFit
 
 __global__ void fit_secondary_vertices(
@@ -306,15 +312,15 @@ __global__ void fit_secondary_vertices(
       uint vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
                         ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
       event_secondary_vertices[vertex_idx].chi2 = -1;
+      event_secondary_vertices[vertex_idx].minipchi2 = 0;
     }
 
     // Don't fit SVs in events with no PVs.
     // TODO: Decide how to handle events with no PVs.
-    if (n_pvs_event == 0) return;
-
-    const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
+    //if (n_pvs_event == 0) return;
 
     // Preselection on first track.
+    const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     if (trackA.pt() < VertexFit::trackMinPt || (trackA.ipChi2 < VertexFit::trackMinIPChi2 && !trackA.is_muon)) {
       continue;
     }
@@ -342,9 +348,16 @@ __global__ void fit_secondary_vertices(
       doFit(trackA, trackB, event_secondary_vertices[vertex_idx]);
 
       // Fill extra info.
-      int ipv = pv_table.value[i_track] < pv_table.value[j_track] ? pv_table.pv[i_track] : pv_table.pv[j_track];
-      auto pv = vertices[ipv];
-      fill_extra_info(event_secondary_vertices[vertex_idx], pv, trackA, trackB);
+      fill_extra_info(event_secondary_vertices[vertex_idx], trackA, trackB);
+      if (n_pvs_event > 0) {
+        int ipv = pv_table.value[i_track] < pv_table.value[j_track] ? pv_table.pv[i_track] : pv_table.pv[j_track];
+        auto pv = vertices[ipv];
+        fill_extra_pv_info(event_secondary_vertices[vertex_idx], pv, trackA, trackB);
+      }
+      else {
+        // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
+        event_secondary_vertices[vertex_idx].minipchi2 = 0;
+      }
     }
   }
 }
