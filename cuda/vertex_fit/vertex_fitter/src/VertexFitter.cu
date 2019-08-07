@@ -315,10 +315,6 @@ __global__ void fit_secondary_vertices(
       event_secondary_vertices[vertex_idx].minipchi2 = 0;
     }
 
-    // Don't fit SVs in events with no PVs.
-    // TODO: Decide how to handle events with no PVs.
-    //if (n_pvs_event == 0) return;
-
     // Preselection on first track.
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     if (trackA.pt() < VertexFit::trackMinPt || (trackA.ipChi2 < VertexFit::trackMinIPChi2 && !trackA.is_muon)) {
