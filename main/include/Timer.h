@@ -18,6 +18,7 @@ private:
   std::chrono::duration<double> accumulated_elapsed_time;
   std::chrono::high_resolution_clock::time_point start_time;
   std::chrono::high_resolution_clock::time_point stop_time;
+  bool started = false;
 
 public:
   Timer();
