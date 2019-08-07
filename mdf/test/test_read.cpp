@@ -6,6 +6,10 @@
 #include <unordered_set>
 #include <map>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "raw_bank.hpp"
 #include "read_mdf.hpp"
 #include "Tools.h"
@@ -41,9 +45,9 @@ int main(int argc, char* argv[])
 
   gsl::span<const char> bank_span;
 
-  ifstream input {filename.c_str(), std::ios::binary};
-  if (!input.good()) {
-    cout << "failed to open file " << filename << endl;
+  int input = ::open(filename.c_str(), O_RDONLY);
+  if (input < 0) {
+    cout << "failed to open file " << filename << " " << strerror(errno) << "\n";
     return -1;
   }
 

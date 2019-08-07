@@ -6,6 +6,10 @@
 #include <fstream>
 #include <vector>
 #include <array>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "mdf_header.hpp"
 #include "read_mdf.hpp"
@@ -72,9 +76,9 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
   };
 
   for (const auto& filename : files) {
-    ifstream input {filename.c_str(), std::ios::binary};
-    if (!input.good()) {
-      cout << "failed to open file " << filename << endl;
+    int input = ::open(filename.c_str(), O_RDONLY);
+    if (input < 0) {
+      cout << "failed to open file " << filename << " " << strerror(errno) << "\n";
       break;
     }
 
@@ -184,6 +188,7 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
         event_offsets.push_back(event_offset);
       }
     }
+    ::close(input);
   }
   n_read = n_read > 0 ? n_read - 1 : 0;
   return make_tuple(n_read, std::move(buffers), std::move(odins));
@@ -191,29 +196,29 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>>
-MDF::read_event(ifstream& input, LHCb::MDFHeader& h, gsl::span<char> buffer,
+MDF::read_event(int input, LHCb::MDFHeader& h, gsl::span<char> buffer,
                 std::vector<char>& decompression_buffer,
                 bool checkChecksum, bool dbg)
 {
   int rawSize = sizeof(LHCb::MDFHeader);
   // Read directly into the header
-  input.read(reinterpret_cast<char*>(&h), rawSize);
-  if (input.good()) {
+  ssize_t n_bytes = ::read(input, reinterpret_cast<char*>(&h), rawSize);
+  if (n_bytes > 0) {
     return read_banks(input, h, buffer, decompression_buffer, checkChecksum, dbg);
   }
-  else if (input.eof()) {
-    cout << "Cannot read more data (Header). End-of-File reached." << endl;
+  else if (n_bytes == 0) {
+    cout << "Cannot read more data (Header). End-of-File reached.\n";
     return {true, false, {}};
   }
   else {
-    cerr << "Failed to read header" << endl;
+    cerr << "Failed to read header " << strerror(errno) << "\n";
     return {false, true, {}};
   }
 }
 
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>>
-MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, gsl::span<char> buffer,
+MDF::read_banks(int input, const LHCb::MDFHeader& h, gsl::span<char> buffer,
                 std::vector<char>& decompression_buffer,
                 bool checkChecksum,
                 bool dbg)
@@ -263,13 +268,13 @@ MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, gsl::span<char> buffe
     // Need to copy header to get checksum right
     ::memcpy(decompression_buffer.data(), &h, rawSize);
     // Read compressed data
-    input.read(decompression_buffer.data() + rawSize, readSize);
-    if (input.eof()) {
-      cout << "Cannot read more data  (Header). End-of-File reached." << endl;
+    ssize_t n_bytes = ::read(input, decompression_buffer.data() + rawSize, readSize);
+    if (n_bytes == 0) {
+      cout << "Cannot read more data  (Header). End-of-File reached.\n";
       return {true, false, {}};
     }
-    else if (input.fail()) {
-      cerr << "Failed to read banks" << endl;
+    else if (n_bytes == -1) {
+      cerr << "Failed to read banks " << strerror(errno) << "\n";
       return {false, true, {}};
     }
 
@@ -306,13 +311,13 @@ MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, gsl::span<char> buffe
     }
   } else {
     // Read uncompressed data file...
-    input.read(bptr + rawSize, readSize);
-    if (input.eof()) {
-      cout << "Cannot read more data  (Header). End-of-File reached." << endl;
+    ssize_t n_bytes = ::read(input, bptr + rawSize, readSize);
+    if (n_bytes == 0) {
+      cout << "Cannot read more data  (Header). End-of-File reached.\n";
       return {true, false, {}};
     }
-    else if (input.fail()) {
-      cerr << "Failed to read banks" << endl;
+    else if (n_bytes == -1) {
+      cerr << "Failed to read banks " << strerror(errno) << "\n";
       return {false, true, {}};
     }
 
@@ -321,7 +326,7 @@ MDF::read_banks(ifstream& input, const LHCb::MDFHeader& h, gsl::span<char> buffe
     } else {
       auto c = LHCb::genChecksum(1, bptr + 4 * sizeof(int), chkSize);
       if (checksum != c) {
-        cerr << "Checksum doesn't match: 0x" << std::hex << c << " instead of 0x" << checksum << std::dec << endl;
+        cerr << "Checksum doesn't match: 0x" << std::hex << c << " instead of 0x" << checksum << std::dec << "\n";
         return {false, true, {}};
       }
     }

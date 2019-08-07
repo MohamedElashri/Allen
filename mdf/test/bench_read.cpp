@@ -6,10 +6,14 @@
 #include <unordered_set>
 #include <map>
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <raw_bank.hpp>
 #include <read_mdf.hpp>
 #include <Timer.h>
-#include <MDFProvider.h>
 
 using namespace std;
 
@@ -40,8 +44,12 @@ int main(int argc, char* argv[])
   LHCb::MDFHeader header;
 
   for (auto const& file : files) {
-    cout << "Opened " << file << "\n";
-    ifstream input{file.c_str(), ios::binary};
+    int input = ::open(file.c_str(), O_RDONLY);
+    if (input < 0) {
+      cerr << "Failed to open " << file << " " << strerror(errno) << "\n";
+    } else {
+      cout << "Opened " << file << "\n";
+    }
     bool eof = false;
     while (!eof) {
 
@@ -57,6 +65,7 @@ int main(int argc, char* argv[])
         offset = 0;
       }
     }
+    ::close(input);
   }
 
   t.stop();

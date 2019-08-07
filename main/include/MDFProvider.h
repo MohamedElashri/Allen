@@ -11,6 +11,11 @@
 #include <numeric>
 #include <condition_variable>
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <Logger.h>
 #include <InputProvider.h>
 #include <mdf_header.hpp>
@@ -77,7 +82,7 @@ struct MDFProviderConfig {
  *
  * @return     (eof, error, full, n_bytes)
  */
-std::tuple<bool, bool, bool, size_t> read_events(std::ifstream& input, ReadBuffer& read_buffer,
+std::tuple<bool, bool, bool, size_t> read_events(int input, ReadBuffer& read_buffer,
                                                  LHCb::MDFHeader& header,
                                                  std::vector<char> compress_buffer,
                                                  size_t n_events, bool check_checksum)
@@ -107,8 +112,8 @@ std::tuple<bool, bool, bool, size_t> read_events(std::ifstream& input, ReadBuffe
     n_bytes += bank_span.size();
 
     // read the next header
-    input.read(reinterpret_cast<char*>(&header), header_size);
-    if (input.good()) {
+    ssize_t n_bytes = ::read(input, reinterpret_cast<char*>(&header), header_size);
+    if (n_bytes != 0) {
       // Check if there is enough space to read this event
       int compress = header.compression() & 0xF;
       int expand = (header.compression() >> 4) + 1;
@@ -119,11 +124,11 @@ std::tuple<bool, bool, bool, size_t> read_events(std::ifstream& input, ReadBuffe
         full = true;
         break;
       }
-    } else if (input.eof()) {
-      info_cout << "cannot read more data (Header). End-of-File reached.\n";
+    } else if (n_bytes == 0) {
+      info_cout << "Cannot read more data (Header). End-of-File reached.\n";
       eof = true;
     } else {
-      error_cout << "failed to read header\n";
+      error_cout << "Failed to read header " << strerror(errno) << "\n";
       error = true;
     }
   }
@@ -157,7 +162,7 @@ std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(ReadBuffer co
     const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
 
     if (b->magic() != LHCb::RawBank::MagicPattern) {
-      error_cout << "magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
+      error_cout << "Magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
       return {false, count};
     }
 
@@ -236,7 +241,7 @@ std::tuple<bool, bool, size_t> transpose_events(const ReadBuffer& read_buffer,
       const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
 
       if (b->magic() != LHCb::RawBank::MagicPattern) {
-        error_cout << "magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
+        error_cout << "Magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
         return {false, false, i_event};
         // Decode the odin bank
       }
@@ -731,24 +736,24 @@ private:
 
     // Check if there are still files available
     while (!good && m_current != m_connections.end()) {
-      if (m_input) m_input->close();
-      m_input = std::make_unique<std::ifstream>(*m_current, std::ios::binary);
+      if (m_input) ::close(*m_input);
 
-      if (m_input->is_open()) {
+      m_input = ::open(m_current->c_str(), O_RDONLY);
+      if (*m_input != -1) {
         // read the first header, needed by subsequent calls to read_events
-        m_input->read(reinterpret_cast<char*>(&m_header), header_size);
-        good = !m_input->eof() && m_input->good();
+        ssize_t n_bytes = ::read(*m_input, reinterpret_cast<char*>(&m_header), header_size);
+        good = (n_bytes > 0);
       }
 
       if (good) {
         info_cout << "Opened " << *m_current << "\n";
       } else {
-        error_cout << "Failed to open " << *m_current << "\n";
+        error_cout << "Failed to open " << *m_current << " " << strerror(errno) << "\n";
       }
       ++m_current;
 
       // If looping on input is configured, do it
-      if (m_current == m_connections.end() && m_loop++ < m_config.n_loops) {
+      if (m_current == m_connections.end() && ++m_loop < m_config.n_loops) {
         m_current = m_connections.begin();
       }
     }
@@ -918,7 +923,7 @@ private:
   std::vector<std::string> m_connections;
 
   // Storage for the currently open file
-  mutable std::unique_ptr<std::ifstream> m_input;
+  mutable std::optional<int> m_input;
 
   // Iterator that points to the filename of the currently open file
   mutable std::vector<std::string>::const_iterator m_current;

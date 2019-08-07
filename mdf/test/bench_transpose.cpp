@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   LHCb::MDFHeader header;
 
   // Read events into buffers, open more files if needed
-  unique_ptr<ifstream> input;
+  optional<int> input;
   size_t i_file = 0, n_bytes_read = 0;
   bool eof = false, error = false, read_full = false;
   string file;
@@ -107,14 +107,14 @@ int main(int argc, char* argv[])
         if (i_file == files.size()) {
           i_file = 0;
         }
-        input = make_unique<ifstream>(file, std::ios::binary);
-        if (!input->is_open()) {
-          cerr << "error opening " << file << "\n";
+        input = ::open(file.c_str(), O_RDONLY);
+        if (input < 0) {
+          cerr << "error opening " << file << " " << strerror(errno) << "\n";
           return -1;
         }
-        input->read(reinterpret_cast<char*>(&header), sizeof(header));
-        if (!input->good() || input->eof()) {
-          cerr << "error reading " << file << "\n";
+        ssize_t n_bytes = ::read(*input, &header, sizeof(header));
+        if (n_bytes <= 0) {
+          cerr << "error reading " << file << " " << strerror(errno) << "\n";
           return -1;
         } else {
           cout << "opened " << file << "\n";
@@ -124,7 +124,9 @@ int main(int argc, char* argv[])
                                                                   header,
                                                                   compress_buffers[i_buffer],
                                                                   n_events, false);
-      if (error) {
+      if (input && eof) {
+        ::close(*input);
+      } else if (error) {
         cerr << "error reading " << file << "\n";
         return -1;
       }
