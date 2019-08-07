@@ -90,6 +90,8 @@ public:
         m_all_events.emplace_back(std::tuple {std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())});
       }
     }
+    m_to_read = this->n_events() ? std::min(*this->n_events(), some_files.size()) : some_files.size();
+
 
     // Allocate memory for banks
     for (auto bank_type : this->types()) {
@@ -202,7 +204,7 @@ public:
       }
     }
     if (freed) {
-      this->debug_output("freed slice " + std::to_string(slice_index));
+      this->debug_output("Freed slice " + std::to_string(slice_index));
       m_slice_cond.notify_one();
     }
   }
@@ -237,14 +239,13 @@ private:
     bool eof = false, prefetch_done = false;
     size_t bytes_read = 0;
 
-    auto to_read = this->n_events();
     size_t eps = this->events_per_slice();
 
     size_t n_files = std::get<1>(m_files.front()).size();
 
     // Loop until the flag is set to exit, or the number of requested
     // event is reached
-    while(!m_done && (!to_read || *to_read > 0)) {
+    while(!m_done && m_current < m_to_read) {
       // Find a free slice
       auto it = m_slice_free.end();
       {
@@ -253,10 +254,9 @@ private:
 
         // If no free slice is available, wait for one
         if (it == m_slice_free.end()) {
-          this->debug_output("waiting for free slice", 1);
+          this->debug_output("Waiting for free slice", 1);
           m_slice_cond.wait(lock, [this, &it] {
             it = std::find(m_slice_free.begin(), m_slice_free.end(), true);
-            this->debug_output("prefetch notified" + std::to_string(it != m_slice_free.end()), 1);
             return it != m_slice_free.end() || m_done;
           });
           if (m_done) {
@@ -267,7 +267,7 @@ private:
       }
       size_t slice_index = distance(m_slice_free.begin(), it);
       auto& slice = m_slices[slice_index];
-      this->debug_output("got slice index " + std::to_string(slice_index), 1);
+      this->debug_output("Got slice index " + std::to_string(slice_index), 1);
 
       // "Reset" the slice
       for (auto bank_type : {Banks...}) {
@@ -280,7 +280,7 @@ private:
       size_t start = m_current;
 
       // Read files into the slice and keep track of the offsets
-      while (!m_done && !m_read_error && m_current < start + eps && m_current < this->n_events()) {
+      while (!m_done && !m_read_error && m_current < start + eps && m_current < m_to_read) {
         auto inputs = open_files(m_current % n_files);
         if (m_read_error) break;
 
@@ -290,7 +290,10 @@ private:
             const auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
             return (offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice.size();
           });
-        if (full) break;
+        if (full) {
+          this->debug_output(std::string{"Slice "} + std::to_string(slice_index) + " is full.");
+          break;
+        }
 
         for (auto& [bank_type, input, data_size] : inputs) {
           auto ib = to_integral<BankTypes>(bank_type);
@@ -304,7 +307,7 @@ private:
         prefetch_done = m_current == n_files && !m_loop;
       }
 
-      this->debug_output("read " + std::to_string(m_current - start) + " events into " + std::to_string(slice_index));
+      this->debug_output("Read " + std::to_string(m_current - start) + " events into " + std::to_string(slice_index));
 
       // Notify waiting calls to get_slice that there is a new slice
       if (!m_read_error) {
@@ -313,7 +316,7 @@ private:
           m_prefetched.push_back(slice_index);
         }
         m_done = prefetch_done;
-        this->debug_output("notifying one");
+        this->debug_output("Notifying one");
         m_prefetch_cond.notify_one();
       }
     }
@@ -335,6 +338,7 @@ private:
       std::ifstream input(filename, std::ifstream::binary);
       if (!input.is_open() || !input.good()) {
         m_read_error = true;
+        this->debug_output(std::string{"Failed to open "} + filename);
         break;
       }
       input.seekg(0, std::ios::end);
@@ -392,6 +396,7 @@ private:
 
   // Index of the event file currently being read
   size_t m_current = 0;
+  size_t m_to_read = 0;
 
   // Loop on available input files
   bool m_loop = false;

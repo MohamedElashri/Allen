@@ -418,7 +418,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   if (!events_per_slice && number_of_events_requested != 0) {
     events_per_slice = number_of_events_requested;
   } else if (!events_per_slice) {
-    events_per_slice = 1000;
+    events_per_slice = 100;
   }
 
   // Raw data input folders
