@@ -427,7 +427,7 @@ std::vector<MCParticles::const_iterator> TrackChecker::operator()(
     matched_mcp_keys.push_back(track_best_matched_MCP);
 
     bool eta25 = track.eta > 2.f && track.eta < 5.f;
-    bool skipEtaCut = (m_trackerName == "Velo" || m_trackerName == "Seeding");
+    bool skipEtaCut = (m_trackerName == "Velo");
     bool eta25Cut = eta25 | skipEtaCut;
 
     if (!eta25Cut) continue;
