@@ -14,14 +14,18 @@ namespace {
 constexpr auto NBankTypes = 4;
 enum class BankTypes { VP, UT, FT, MUON };
 
-// Measured average size of all raw banks of a given type per
-// subdetector, in kB.
+// Average size of all raw banks of a given type per
+// subdetector, in kB, measured in simulated minbias events.
+// FIXME: make this configurable
 const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 51.77f},
                                                         {BankTypes::UT, 31.38f},
                                                         {BankTypes::FT, 54.47f},
                                                         {BankTypes::MUON, 5.13f}};
-// Average measured event size
+// Average measured event size, measured
+// FIXME: make this configurable
 constexpr float average_event_size = 65.f;
+// Safety margin
+// FIXME: make this configurable
 constexpr float bank_size_fudge_factor = 1.2f;
 
 /**
