@@ -370,6 +370,7 @@ throughput:DefaultSequence:publish_throughput:
     - gpu
   dependencies:
     - rtx2080ti:DefaultSequence:run_throughput
+    - rtx6000:DefaultSequence:run_throughput
     - v100:DefaultSequence:run_throughput
     - t4:DefaultSequence:run_throughput
     - gtx10606g:DefaultSequence:run_throughput
@@ -387,6 +388,7 @@ speedup:DefaultSequence:publish_speedup:
     - gpu
   dependencies:
     - rtx2080ti:DefaultSequence:run_throughput
+    - rtx6000:DefaultSequence:run_throughput
     - v100:DefaultSequence:run_throughput
     - t4:DefaultSequence:run_throughput
     - gtx10606g:DefaultSequence:run_throughput
