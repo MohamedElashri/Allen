@@ -692,7 +692,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // distributed to all streams once.
   while (error_count == 0) {
 
-    // Wait for at least one event to be ready
+    // Wait for messages to come in from the I/O or stream threads
     std::optional<int> n;
     do {
       try {
