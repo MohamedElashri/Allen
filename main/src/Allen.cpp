@@ -605,9 +605,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   size_t slices_processed = 0;
   std::optional<size_t> slice_index;
 
-  // Wait for at least one event to be ready
-  zmq::poll(&items[0], n_io, -1);
-
   size_t error_count = 0;
 
   // Lambda to check if any event processors are done processing
