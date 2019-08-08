@@ -749,6 +749,8 @@ private:
         info_cout << "Opened " << *m_current << "\n";
       } else {
         error_cout << "Failed to open " << *m_current << " " << strerror(errno) << "\n";
+        m_read_error = true;
+        return false;
       }
       ++m_current;
 
@@ -771,6 +773,7 @@ private:
     // open the first file
     if (!m_input && !open_file()) {
       m_read_error = true;
+      m_prefetch_cond.notify_one();
       return;
     }
 
@@ -838,7 +841,9 @@ private:
         } else if (eof && !open_file()) {
           // Try to open the next file, if there is none, prefetching
           // is done.
-          this->debug_output("Prefetch done: eof and no more files");
+          if (!m_read_error) {
+            this->debug_output("Prefetch done: eof and no more files");
+          }
           prefetch_done = true;
           break;
         }
@@ -863,6 +868,7 @@ private:
         }
       }
     }
+    m_prefetch_cond.notify_one();
   }
 
   // Memory buffers to read binary data into from the file
@@ -877,7 +883,7 @@ private:
 
   // Atomics to flag errors and completion
   std::atomic<bool> m_done = false;
-  std::atomic<bool> m_read_error = false;
+  mutable std::atomic<bool> m_read_error = false;
   std::atomic<bool> m_transpose_done = false;
 
   // Buffer to store data read from file if banks are compressed. The
