@@ -119,27 +119,36 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
  *
  * @return     return type
  */
-void event_processor(
+void run_stream(
   size_t const thread_id,
   size_t const stream_id,
   int device_id,
-  StreamWrapper& wrapper,
+  StreamWrapper* wrapper,
   IInputProvider const* input_provider,
-  CheckerInvoker& checker_invoker,
+  CheckerInvoker* checker_invoker,
   uint n_reps,
   bool do_check,
   bool cpu_offload,
   string folder_name_imported_forward_tracks)
 {
-  zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
-  zmq::setsockopt(control, zmq::LINGER, 0);
-  std::this_thread::sleep_for(std::chrono::milliseconds {50});
-  auto con = connection(thread_id);
-  try {
-    control.connect(con.c_str());
-  } catch (const zmq::error_t& e) {
-    cout << "failed to connect connection " << con << "\n";
-    throw e;
+  auto make_control = [thread_id] (string suffix = string{}) {
+    zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
+    zmq::setsockopt(control, zmq::LINGER, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds {50});
+    auto con = connection(thread_id, suffix);
+    try {
+      control.connect(con.c_str());
+    } catch (const zmq::error_t& e) {
+      cout << "failed to connect connection " << con << "\n";
+      throw e;
+    }
+    return control;
+  };
+
+  zmq::socket_t control = make_control();
+  std::optional<zmq::socket_t> check_control;
+  if (do_check) {
+    check_control = make_control("check");
   }
 
   auto [device_set, device_name] = set_device(device_id, stream_id);
@@ -167,8 +176,11 @@ void event_processor(
       try {
         n = zmq::poll(&items[0], 1, -1);
       } catch (const zmq::error_t& err) {
-        warning_cout << "processor caught exception." << err.what() << "\n";
-        if (err.num() == EINTR) continue;
+        if (err.num() == EINTR) {
+          continue;
+        } else {
+          warning_cout << "processor caught exception." << err.what() << "\n";
+        }
       }
     } while (!n);
 
@@ -195,7 +207,7 @@ void event_processor(
       // Not very clear, but the number of event offsets is the number of filled events.
       // NOTE: if the slice is empty, there might be one offset of 0
       uint n_events = static_cast<uint>(std::get<1>(vp_banks).size() - 1);
-      wrapper.run_stream(
+      wrapper->run_stream(
         stream_id,
         {std::move(vp_banks),
          input_provider->banks(BankTypes::UT, *idx),
@@ -209,7 +221,7 @@ void event_processor(
       // signal that we're done
       zmqSvc().send(control, "PROCESSED", zmq::SNDMORE);
       zmqSvc().send(control, *idx);
-      if (do_check) {
+      if (do_check && check_control) {
         // Get list of events that are in the slice to load the right
         // MC info
         auto const& events = input_provider->event_ids(*idx);
@@ -218,12 +230,12 @@ void event_processor(
         // CheckerInvoker. The main thread will send the folder to
         // only one stream at a time and will block until it receives
         // the message that informs it the checker is done.
-        auto mc_folder = zmqSvc().receive<string>(control);
-        auto mask = wrapper.reconstructed_events(stream_id);
-        auto mc_events = checker_invoker.load(mc_folder, events, mask);
+        auto mc_folder = zmqSvc().receive<string>(*check_control);
+        auto mask = wrapper->reconstructed_events(stream_id);
+        auto mc_events = checker_invoker->load(mc_folder, events, mask);
 
         if (mc_events.empty()) {
-          zmqSvc().send(control, false);
+          zmqSvc().send(*check_control, false);
         }
         else {
           // Run the checker
@@ -235,8 +247,8 @@ void event_processor(
             forward_tracks = read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
           }
 
-          wrapper.run_monte_carlo_test(stream_id, checker_invoker, mc_events, forward_tracks);
-          zmqSvc().send(control, true);
+          wrapper->run_monte_carlo_test(stream_id, *checker_invoker, mc_events, forward_tracks);
+          zmqSvc().send(*check_control, true);
         }
       }
     }
@@ -502,54 +514,68 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   CheckerInvoker checker_invoker {};
 
-  // Lambda with the execution of a thread / stream
-  const auto event_thread = [&](uint thread_id, uint stream_id) {
-    event_processor(
-      thread_id,
-      stream_id,
-      device_id,
-      stream_wrapper,
-      input_provider.get(),
-      checker_invoker,
-      number_of_repetitions,
-      do_check,
-      cpu_offload,
-      folder_name_imported_forward_tracks);
+  // Lambda with the execution of a thread-stream pair
+  const auto stream_thread = [&](uint thread_id, uint stream_id) {
+    std::optional<zmq::socket_t> check_control;
+    if (do_check) {
+      check_control = zmqSvc().socket(zmq::PAIR);
+      zmq::setsockopt(*check_control, zmq::LINGER, 0);
+      auto con = connection(thread_id, "check");
+      check_control->bind(con.c_str());
+    }
+    return std::tuple{std::thread{run_stream,
+                                  thread_id,
+                                  stream_id,
+                                  device_id,
+                                  &stream_wrapper,
+                                  input_provider.get(),
+                                  &checker_invoker,
+                                  number_of_repetitions,
+                                  do_check,
+                                  cpu_offload,
+                                  folder_name_imported_forward_tracks},
+                      std::move(check_control)};
   };
 
   // Lambda with the execution of the I/O thread
-  const auto io_thread = [&](uint thread_id, uint) { input_reader(thread_id, input_provider.get()); };
+  const auto io_thread = [&](uint thread_id, uint) {
+                           return std::tuple{std::thread{input_reader, thread_id, input_provider.get()},
+                                             std::optional<zmq::socket_t>{}};
+                         };
 
-  using start_thread = std::function<void(uint, uint)>;
+  using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(uint, uint)>;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
   items.resize(number_of_threads + 1);
 
   // Vector of worker threads
-  using workers_t = std::vector<std::tuple<std::thread, zmq::socket_t>>;
-  workers_t event_processors;
-  event_processors.reserve(number_of_threads);
+  using workers_t = std::vector<std::tuple<std::thread, zmq::socket_t, std::optional<zmq::socket_t>>>;
+  workers_t streams;
+  streams.reserve(number_of_threads);
   workers_t io_workers;
   io_workers.reserve(1);
 
   // Start all workers
-  size_t conn_id = 0;
+  size_t thread_id = 0;
   for (auto& [workers, start, n, type] :
        {std::tuple {&io_workers, start_thread {io_thread}, 1u, "I/O"},
-        std::tuple {&event_processors, start_thread {event_thread}, number_of_threads, "GPU"}}) {
+        std::tuple {&streams, start_thread {stream_thread}, number_of_threads, "GPU"}}) {
     for (uint i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
       zmq::setsockopt(control, zmq::LINGER, 0);
-      auto con = connection(conn_id);
+      auto con = connection(thread_id);
       control.bind(con.c_str());
+
       // I don't know why, but this prevents problems. Probably
       // some race condition I haven't noticed.
       std::this_thread::sleep_for(std::chrono::milliseconds {50});
-      workers->emplace_back(std::thread {start, conn_id, i}, std::move(control));
-      items[conn_id] = {std::get<1>(workers->back()), 0, zmq::POLLIN, 0};
+
+      auto [thread, check_control] = start(thread_id, i);
+      workers->emplace_back(std::move(thread), std::move(control), std::move(check_control));
+      items[thread_id] = {std::get<1>(workers->back()), 0, zmq::POLLIN, 0};
       debug_cout << "Started " << type << " thread " << std::setw(2) << i + 1 << "/" << std::setw(2) << n << "\n";
-      ++conn_id;
+      ++thread_id;
     }
   }
 
@@ -584,7 +610,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   auto check_processors = [&] {
     for (size_t i = 0; i < number_of_threads; ++i) {
       if (items[n_io + i].revents & zmq::POLLIN) {
-        auto& socket = std::get<1>(event_processors[i]);
+        auto& socket = std::get<1>(streams[i]);
         auto msg = zmqSvc().receive<string>(socket);
         assert(msg == "PROCESSED");
         auto slice_index = zmqSvc().receive<size_t>(socket);
@@ -599,9 +625,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         // Run the checker accumulation here in a blocking fashion;
         // the blocking is ensured by sending a message and
         // immediately waiting for a reply
-        if (do_check) {
-          zmqSvc().send(socket, folder_data + "/MC_info");
-          auto success = zmqSvc().receive<bool>(socket);
+        auto& check_control = std::get<2>(streams[i]);
+        if (do_check && check_control) {
+          zmqSvc().send(*check_control, folder_data + "/MC_info");
+          auto success = zmqSvc().receive<bool>(*check_control);
           if (!success) {
             warning_cout << "Failed to load MC events.\n";
           }
@@ -632,7 +659,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     } while (!n);
     for (size_t i = 0; i < number_of_threads; ++i) {
       if (items[n_io + i].revents & ZMQ_POLLIN) {
-        auto& socket = std::get<1>(event_processors[i]);
+        auto& socket = std::get<1>(streams[i]);
         auto msg = zmqSvc().receive<string>(socket);
         assert(msg == "READY");
         auto success = zmqSvc().receive<bool>(socket);
@@ -720,7 +747,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         if (enable_async_io) {
           input_slice_status[*slice_index] = SliceStatus::Processing;
         }
-        auto& socket = std::get<1>(event_processors[processor_index]);
+        auto& socket = std::get<1>(streams[processor_index]);
         zmqSvc().send(socket, "PROCESS", zmq::SNDMORE);
         zmqSvc().send(socket, *slice_index);
         stream_ready[processor_index] = false;
@@ -776,7 +803,7 @@ loop_error:
   }
 
   // Send stop signal to all threads and join them
-  for (auto* workers : {&io_workers, &event_processors}) {
+  for (auto* workers : {&io_workers, &streams}) {
     for (auto& worker : *workers) {
       zmqSvc().send(std::get<1>(worker), "DONE");
       std::get<0>(worker).join();

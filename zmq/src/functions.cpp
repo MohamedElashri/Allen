@@ -28,4 +28,10 @@ namespace zmq {
   }
 } // namespace zmq
 
-std::string connection(const size_t id) { return std::string {"inproc://control_"} + std::to_string(id); }
+std::string connection(const size_t id, std::string suffix) {
+  auto con = std::string {"inproc://control_"} + std::to_string(id);
+  if (!suffix.empty()) {
+    con += "_" + suffix;
+  }
+  return con;
+}

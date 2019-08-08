@@ -114,6 +114,6 @@ namespace ZMQ {
 
 } // namespace ZMQ
 
-std::string connection(const size_t id);
+std::string connection(const size_t id, std::string suffix = std::string{});
 
 #endif // ZEROMQ_FUNCTIONS_H
