@@ -304,6 +304,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                            static_cast<bool>(cpu_offload)};
 
     stream_wrapper.run_stream(i, runtime_options);
+    return 0;
   };
 
   // Vector of threads
