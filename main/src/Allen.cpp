@@ -94,6 +94,7 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
     }
 
     // Get a slice and inform the main thread that it is available
+    // NOTE: the argument specifies the timeout in ms, not the number of events.
     auto [good, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
     // Report errors or good slices that contain events
     if (!good || (!timed_out && (good && n_filled != 0))) {
