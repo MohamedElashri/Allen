@@ -461,8 +461,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
 
-    unsigned long events_per_buffer = static_cast<unsigned long>(*events_per_slice * 1.2f);
-    MDFProviderConfig config {false, 10, 4, 10001, events_per_buffer, number_of_repetitions};
+    MDFProviderConfig config {false, // verify MDF checksums
+                              10,    // number of read buffers
+                              4,     // number of transpose threads
+                              10001, // maximum number event of offsets in read buffer
+                              *events_per_slice, // number of events per read buffer
+                              number_of_repetitions}; // number of loops over the input files
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
       (number_of_slices, *events_per_slice, n_events, std::move(connections), config);
 

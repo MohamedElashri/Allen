@@ -380,7 +380,7 @@ public:
     // Preallocate prefetch buffer memory
     m_buffers.resize(config.n_buffers);
     for (auto& [n_filled, event_offsets, buffer] : m_buffers) {
-      buffer.resize(config.events_per_buffer * average_event_size * 1024);
+      buffer.resize(config.events_per_buffer * average_event_size * 1024 * bank_size_fudge_factor);
       event_offsets.resize(config.offsets_size);
       event_offsets[0] = 0;
       n_filled = 0;
