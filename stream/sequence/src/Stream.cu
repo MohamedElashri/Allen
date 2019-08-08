@@ -99,9 +99,6 @@ void Stream::run_monte_carlo_test(
   MCEvents const& mc_events,
   std::vector<Checker::Tracks> const& forward_tracks)
 {
-
-  // FIXME: Filter mc_events using host buffers
-
   Sch::RunChecker<
     SequenceVisitor,
     configured_sequence_t,

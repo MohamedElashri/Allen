@@ -559,7 +559,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   workers_t streams;
   streams.reserve(number_of_threads);
   workers_t io_workers;
-  io_workers.reserve(1);
+  io_workers.reserve(n_io);
 
   // Start all workers
   size_t thread_id = 0;
@@ -716,6 +716,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           error_cout << "I/O provider failed to decode events into slice.\n";
           goto loop_error;
         } else {
+          // FIXME: make the warmup time configurable
           if (!t && (slices_processed >= 5 * number_of_threads) || !enable_async_io) {
             info_cout << "Starting timer for throughput measurement.\n";
             throughput_start = n_events_processed * number_of_repetitions;
