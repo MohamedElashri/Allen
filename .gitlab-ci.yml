@@ -246,6 +246,13 @@ gtx980:DefaultSequence:run_throughput:
   dependencies:
     - DefaultSequence:build
 
+rtx6000:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - rtx6000
+  dependencies:
+    - DefaultSequence:build
+
 gtx680:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
@@ -363,6 +370,7 @@ throughput:DefaultSequence:publish_throughput:
     - gpu
   dependencies:
     - rtx2080ti:DefaultSequence:run_throughput
+    - rtx6000:DefaultSequence:run_throughput
     - v100:DefaultSequence:run_throughput
     - t4:DefaultSequence:run_throughput
     - gtx10606g:DefaultSequence:run_throughput
@@ -380,6 +388,7 @@ speedup:DefaultSequence:publish_speedup:
     - gpu
   dependencies:
     - rtx2080ti:DefaultSequence:run_throughput
+    - rtx6000:DefaultSequence:run_throughput
     - v100:DefaultSequence:run_throughput
     - t4:DefaultSequence:run_throughput
     - gtx10606g:DefaultSequence:run_throughput
