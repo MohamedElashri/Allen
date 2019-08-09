@@ -77,12 +77,11 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
   }
 
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
-  bool done = false;
 
   while (true) {
 
     // Check if there are messages
-    zmq::poll(&items[0], 1, done ? -1 : 0);
+    zmq::poll(&items[0], 1, 0);
 
     size_t idx = 0;
     size_t fill = 0;
@@ -104,7 +103,8 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
       zmqSvc().send(control, n_filled);
     }
     if (!good) {
-      done = true;
+      zmqSvc().send(control, "DONE");
+      break;
     }
   }
 }
@@ -707,29 +707,27 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       if (items[i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(io_workers[i]);
         auto msg = zmqSvc().receive<string>(socket);
-        assert(msg == "SLICE");
-        slice_index = zmqSvc().receive<int>(socket);
-        auto good = zmqSvc().receive<bool>(socket);
-        auto n_filled = zmqSvc().receive<size_t>(socket);
+        if (msg == "SLICE") {
+          slice_index = zmqSvc().receive<int>(socket);
+          auto good = zmqSvc().receive<bool>(socket);
+          auto n_filled = zmqSvc().receive<size_t>(socket);
 
-        if (!good && n_filled == 0 && !io_done) {
-          error_cout << "I/O provider failed to decode events into slice.\n";
-          goto loop_error;
-        } else {
-          // FIXME: make the warmup time configurable
-          if (!t && (slices_processed >= 5 * number_of_threads) || !enable_async_io) {
-            info_cout << "Starting timer for throughput measurement.\n";
-            throughput_start = n_events_processed * number_of_repetitions;
-            t = Timer{};
+          if (!good && n_filled == 0 && !io_done) {
+            error_cout << "I/O provider failed to decode events into slice.\n";
+            goto loop_error;
+          } else {
+            // FIXME: make the warmup time configurable
+            if (!t && (slices_processed >= 5 * number_of_threads) || !enable_async_io) {
+              info_cout << "Starting timer for throughput measurement.\n";
+              throughput_start = n_events_processed * number_of_repetitions;
+              t = Timer{};
+            }
+            input_slice_status[*slice_index] = SliceStatus::Filled;
+            events_in_slice[*slice_index] = n_filled;
+            n_events_read += n_filled;
           }
-          input_slice_status[*slice_index] = SliceStatus::Filled;
-          events_in_slice[*slice_index] = n_filled;
-          n_events_read += n_filled;
-        }
-
-        // Check if the I/O is done
-        if ((!good && n_filled != 0)
-            || (number_of_events_requested != 0 && n_events_read >= number_of_events_requested)) {
+        } else {
+          assert(msg == "DONE");
           io_done = true;
           info_cout << "I/O complete\n";
         }
@@ -805,10 +803,14 @@ loop_error:
     check_processors();
   }
 
-  // Send stop signal to all threads and join them
-  for (auto* workers : {&io_workers, &streams}) {
-    for (auto& worker : *workers) {
-      zmqSvc().send(std::get<1>(worker), "DONE");
+  // Send stop signal to all threads and join them if they haven't
+  // exited yet (as indicated by pred)
+  for (auto [workers, pred] : {std::tuple{std::ref(io_workers), !io_done},
+                               std::tuple{std::ref(streams), true}}) {
+    for (auto& worker : workers.get()) {
+      if (pred) {
+        zmqSvc().send(std::get<1>(worker), "DONE");
+      }
       std::get<0>(worker).join();
     }
   }
