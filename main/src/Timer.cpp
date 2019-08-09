@@ -1,11 +1,12 @@
 #include "Timer.h"
 
-Timer::Timer() : accumulated_elapsed_time(std::chrono::duration<double>::zero())
-{
-  start();
-}
+Timer::Timer() : accumulated_elapsed_time(std::chrono::duration<double>::zero()) { start(); }
 
-void Timer::start() { start_time = std::chrono::high_resolution_clock::now(); started = true; }
+void Timer::start()
+{
+  start_time = std::chrono::high_resolution_clock::now();
+  started = true;
+}
 
 void Timer::stop()
 {
@@ -16,7 +17,11 @@ void Timer::stop()
   started = false;
 }
 
-void Timer::flush() { accumulated_elapsed_time = std::chrono::duration<double>::zero(); started = false; }
+void Timer::flush()
+{
+  accumulated_elapsed_time = std::chrono::duration<double>::zero();
+  started = false;
+}
 
 void Timer::restart()
 {

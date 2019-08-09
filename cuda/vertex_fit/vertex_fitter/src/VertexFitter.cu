@@ -258,7 +258,7 @@ namespace VertexFit {
     // Minimum IP chi2 of constituent tracks.
     sv.minipchi2 = trackA.ipChi2 < trackB.ipChi2 ? trackA.ipChi2 : trackB.ipChi2;
   }
-    
+
 } // namespace VertexFit
 
 __global__ void fit_secondary_vertices(

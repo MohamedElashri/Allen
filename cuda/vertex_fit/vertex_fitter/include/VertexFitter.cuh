@@ -68,7 +68,7 @@ namespace VertexFit {
     const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB);
-  
+
 } // namespace VertexFit
 
 __global__ void fit_secondary_vertices(

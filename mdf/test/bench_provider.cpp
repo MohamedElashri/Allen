@@ -34,12 +34,12 @@ int main(int argc, char* argv[])
 
   Timer t;
 
-  MDFProviderConfig mdf_config{false, 10, 3, 10001, 1200, 10};
+  MDFProviderConfig mdf_config {false, 10, 3, 10001, 1200, 10};
 
-  MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-    mdf{n_slices, events_per_slice, {}, files, mdf_config};
+  MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON> mdf {
+    n_slices, events_per_slice, {}, files, mdf_config};
 
-  chrono::milliseconds sleep_interval{10};
+  chrono::milliseconds sleep_interval {10};
 
   bool error = false, good = true, timed_out = false;
   size_t filled = 0, slice = 0;
@@ -52,5 +52,5 @@ int main(int argc, char* argv[])
   }
 
   t.stop();
-  cout << "Filled " << n_filled / t.get()  << " events/s\n";
+  cout << "Filled " << n_filled / t.get() << " events/s\n";
 }

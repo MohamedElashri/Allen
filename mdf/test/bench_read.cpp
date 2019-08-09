@@ -47,13 +47,14 @@ int main(int argc, char* argv[])
     int input = ::open(file.c_str(), O_RDONLY);
     if (input < 0) {
       cerr << "Failed to open " << file << " " << strerror(errno) << "\n";
-    } else {
+    }
+    else {
       cout << "Opened " << file << "\n";
     }
     bool eof = false;
     while (!eof) {
 
-      gsl::span<char> buffer_span{buffer.data() + offset, buffer.size() - offset};
+      gsl::span<char> buffer_span {buffer.data() + offset, buffer.size() - offset};
 
       ++n_filled;
       auto r = MDF::read_event(input, header, buffer_span, decompression_buffer, false);
@@ -69,6 +70,6 @@ int main(int argc, char* argv[])
   }
 
   t.stop();
-  cout << "Filled " << n_filled << " events; " << n_bytes / (1024 * 1024)  << " MB\n";
-  cout << "Filled " << n_bytes / (1024 * 1024 * t.get()) << " MB/s; " << n_filled / t.get()  << " events/s\n";
+  cout << "Filled " << n_filled << " events; " << n_bytes / (1024 * 1024) << " MB\n";
+  cout << "Filled " << n_bytes / (1024 * 1024 * t.get()) << " MB/s; " << n_filled / t.get() << " events/s\n";
 }

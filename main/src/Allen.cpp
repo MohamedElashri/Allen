@@ -131,7 +131,7 @@ void run_stream(
   bool cpu_offload,
   string folder_name_imported_forward_tracks)
 {
-  auto make_control = [thread_id] (string suffix = string{}) {
+  auto make_control = [thread_id](string suffix = string {}) {
     zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
     zmq::setsockopt(control, zmq::LINGER, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds {50});
@@ -178,7 +178,8 @@ void run_stream(
       } catch (const zmq::error_t& err) {
         if (err.num() == EINTR) {
           continue;
-        } else {
+        }
+        else {
           warning_cout << "processor caught exception." << err.what() << "\n";
         }
       }
@@ -354,8 +355,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     else if (flag_in({"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
       if (number_of_threads > max_stream_threads) {
-        error_cout << "Error: more than maximum number of threads ("
-                   << max_stream_threads <<  ") requested\n";
+        error_cout << "Error: more than maximum number of threads (" << max_stream_threads << ") requested\n";
         return -1;
       }
     }
@@ -421,11 +421,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     enable_async_io = false;
     number_of_slices = 1;
     warning_cout << "Disabling async I/O to measure throughput without it.\n";
-  } else if (number_of_slices <= number_of_threads) {
+  }
+  else if (number_of_slices <= number_of_threads) {
     warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
     number_of_slices = number_of_threads + 1;
-  } else {
-    info_cout << "Using " << number_of_slices << " input slices." << "\n";
+  }
+  else {
+    info_cout << "Using " << number_of_slices << " input slices."
+              << "\n";
   }
 
   // Print configured sequence
@@ -434,7 +437,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Set a sane default for the number of events per input slice
   if (!events_per_slice && number_of_events_requested != 0) {
     events_per_slice = number_of_events_requested;
-  } else if (!events_per_slice) {
+  }
+  else if (!events_per_slice) {
     events_per_slice = 1000;
   }
 
@@ -466,14 +470,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
 
-    MDFProviderConfig config {false, // verify MDF checksums
-                              10,    // number of read buffers
-                              4,     // number of transpose threads
-                              10001, // maximum number event of offsets in read buffer
-                              *events_per_slice, // number of events per read buffer
+    MDFProviderConfig config {false,                  // verify MDF checksums
+                              10,                     // number of read buffers
+                              4,                      // number of transpose threads
+                              10001,                  // maximum number event of offsets in read buffer
+                              *events_per_slice,      // number of events per read buffer
                               number_of_repetitions}; // number of loops over the input files
-    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
-      (number_of_slices, *events_per_slice, n_events, std::move(connections), config);
+    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+      number_of_slices, *events_per_slice, n_events, std::move(connections), config);
 
     if (enable_async_io) number_of_repetitions = 1;
   }
@@ -481,8 +485,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     // The binary input provider expects the folders for the bank types as connections
     vector<string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
-    input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>
-      (number_of_slices, *events_per_slice, n_events, std::move(connections));
+    input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+      number_of_slices, *events_per_slice, n_events, std::move(connections));
   }
 
   // Read the Muon catboost model
@@ -532,25 +536,24 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       auto con = ZMQ::connection(thread_id, "check");
       check_control->bind(con.c_str());
     }
-    return std::tuple{std::thread{run_stream,
-                                  thread_id,
-                                  stream_id,
-                                  device_id,
-                                  &stream_wrapper,
-                                  input_provider.get(),
-                                  &checker_invoker,
-                                  number_of_repetitions,
-                                  do_check,
-                                  cpu_offload,
-                                  folder_name_imported_forward_tracks},
-                      std::move(check_control)};
+    return std::tuple {std::thread {run_stream,
+                                    thread_id,
+                                    stream_id,
+                                    device_id,
+                                    &stream_wrapper,
+                                    input_provider.get(),
+                                    &checker_invoker,
+                                    number_of_repetitions,
+                                    do_check,
+                                    cpu_offload,
+                                    folder_name_imported_forward_tracks},
+                       std::move(check_control)};
   };
 
   // Lambda with the execution of the I/O thread
   const auto io_thread = [&](uint thread_id, uint) {
-                           return std::tuple{std::thread{input_reader, thread_id, input_provider.get()},
-                                             std::optional<zmq::socket_t>{}};
-                         };
+    return std::tuple {std::thread {input_reader, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {}};
+  };
 
   using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(uint, uint)>;
 
@@ -646,7 +649,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           input_slice_status[slice_index] = SliceStatus::Empty;
           input_provider->slice_free(slice_index);
           events_in_slice[slice_index] = 0;
-        } else {
+        }
+        else {
           input_slice_status[slice_index] = SliceStatus::Processed;
         }
       }
@@ -719,18 +723,20 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           if (!good && n_filled == 0 && !io_done) {
             error_cout << "I/O provider failed to decode events into slice.\n";
             goto loop_error;
-          } else {
+          }
+          else {
             // FIXME: make the warmup time configurable
             if (!t && (slices_processed >= 5 * number_of_threads) || !enable_async_io) {
               info_cout << "Starting timer for throughput measurement.\n";
               throughput_start = n_events_processed * number_of_repetitions;
-              t = Timer{};
+              t = Timer {};
             }
             input_slice_status[*slice_index] = SliceStatus::Filled;
             events_in_slice[*slice_index] = n_filled;
             n_events_read += n_filled;
           }
-        } else {
+        }
+        else {
           assert(msg == "DONE");
           io_done = true;
           info_cout << "I/O complete\n";
@@ -772,8 +778,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     // depending on whether async I/O is enabled.
     // NOTE: This may be called several times when slices are ready
     // being processed
-    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads)
-                    || (enable_async_io && io_done));
+    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done));
     if (t && io_cond) {
       if (!throughput_processed) {
         throughput_processed = n_events_processed * number_of_repetitions - throughput_start;
@@ -782,8 +787,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
 
     // Check if we're done
-    if (stream_ready.count() == number_of_threads && io_cond
-        && (!enable_async_io || (enable_async_io && count_status(SliceStatus::Empty) == number_of_slices))) {
+    if (
+      stream_ready.count() == number_of_threads && io_cond &&
+      (!enable_async_io || (enable_async_io && count_status(SliceStatus::Empty) == number_of_slices))) {
       info_cout << "Processing complete.\n";
       break;
     }
@@ -791,7 +797,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
 loop_error:
   // Let processors that are still busy finish
-  while((stream_ready.count() + error_count) < number_of_threads) {
+  while ((stream_ready.count() + error_count) < number_of_threads) {
 
     // Wait for a message
     std::optional<int> n;
@@ -809,8 +815,7 @@ loop_error:
 
   // Send stop signal to all threads and join them if they haven't
   // exited yet (as indicated by pred)
-  for (auto [workers, pred] : {std::tuple{std::ref(io_workers), !io_done},
-                               std::tuple{std::ref(streams), true}}) {
+  for (auto [workers, pred] : {std::tuple {std::ref(io_workers), !io_done}, std::tuple {std::ref(streams), true}}) {
     for (auto& worker : workers.get()) {
       if (pred) {
         zmqSvc().send(std::get<1>(worker), "DONE");
@@ -828,8 +833,10 @@ loop_error:
   if (t && throughput_processed) {
     info_cout << (*throughput_processed / t->get()) << " events/s\n"
               << "Ran test for " << t->get() << " seconds\n";
-  } else {
-    warning_cout << "Timer wasn't started." << "\n";
+  }
+  else {
+    warning_cout << "Timer wasn't started."
+                 << "\n";
   }
 
   // Reset device

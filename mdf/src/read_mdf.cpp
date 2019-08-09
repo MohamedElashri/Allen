@@ -84,9 +84,7 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
     while (n_read++ < n) {
 
-      std::tie(eof, error, bank_span) = read_event(input, header, buffer,
-                                                   decompression_buffer,
-                                                   checkChecksum);
+      std::tie(eof, error, bank_span) = read_event(input, header, buffer, decompression_buffer, checkChecksum);
       if (eof || error) {
         break;
       }
@@ -195,10 +193,13 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 }
 
 // return eof, error, span that covers all banks in the event
-std::tuple<bool, bool, gsl::span<char>>
-MDF::read_event(int input, LHCb::MDFHeader& h, gsl::span<char> buffer,
-                std::vector<char>& decompression_buffer,
-                bool checkChecksum, bool dbg)
+std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
+  int input,
+  LHCb::MDFHeader& h,
+  gsl::span<char> buffer,
+  std::vector<char>& decompression_buffer,
+  bool checkChecksum,
+  bool dbg)
 {
   int rawSize = sizeof(LHCb::MDFHeader);
   // Read directly into the header
@@ -217,11 +218,13 @@ MDF::read_event(int input, LHCb::MDFHeader& h, gsl::span<char> buffer,
 }
 
 // return eof, error, span that covers all banks in the event
-std::tuple<bool, bool, gsl::span<char>>
-MDF::read_banks(int input, const LHCb::MDFHeader& h, gsl::span<char> buffer,
-                std::vector<char>& decompression_buffer,
-                bool checkChecksum,
-                bool dbg)
+std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
+  int input,
+  const LHCb::MDFHeader& h,
+  gsl::span<char> buffer,
+  std::vector<char>& decompression_buffer,
+  bool checkChecksum,
+  bool dbg)
 {
   int rawSize = sizeof(LHCb::MDFHeader);
   unsigned int checksum = h.checkSum();
@@ -254,8 +257,8 @@ MDF::read_banks(int input, const LHCb::MDFHeader& h, gsl::span<char> buffer,
 
   // accomodate for potential padding of MDF header bank!
   if (buffer.size() < alloc_len + sizeof(int) + sizeof(LHCb::RawBank)) {
-    cerr << "Failed to read banks: buffer too small "
-         << buffer.size() << " " << alloc_len + sizeof(int) + sizeof(LHCb::RawBank) << endl;
+    cerr << "Failed to read banks: buffer too small " << buffer.size() << " "
+         << alloc_len + sizeof(int) + sizeof(LHCb::RawBank) << endl;
     return {false, true, {}};
   }
 
@@ -305,11 +308,13 @@ MDF::read_banks(int input, const LHCb::MDFHeader& h, gsl::span<char> buffer,
       hdr->setCompression(0);
       hdr->setChecksum(0);
       return {false, false, {buffer.data(), bnkSize + new_len}};
-    } else {
+    }
+    else {
       cerr << "Failed to read compressed data." << endl;
       return {false, true, {}};
     }
-  } else {
+  }
+  else {
     // Read uncompressed data file...
     ssize_t n_bytes = ::read(input, bptr + rawSize, readSize);
     if (n_bytes == 0) {
@@ -323,7 +328,8 @@ MDF::read_banks(int input, const LHCb::MDFHeader& h, gsl::span<char> buffer,
 
     if (!checkChecksum) {
       hdr->setChecksum(0);
-    } else {
+    }
+    else {
       auto c = LHCb::genChecksum(1, bptr + 4 * sizeof(int), chkSize);
       if (checksum != c) {
         cerr << "Checksum doesn't match: 0x" << std::hex << c << " instead of 0x" << checksum << std::dec << "\n";
@@ -383,7 +389,10 @@ void MDF::dump_hex(const char* start, int size)
   cout.setf(flags);
 }
 
-void MDF::transpose_event(vector<char> const& input_buffer, size_t input_offset,
-                          char* output_buffer, size_t output_offset, size_t output_size) {
-
-}
+void MDF::transpose_event(
+  vector<char> const& input_buffer,
+  size_t input_offset,
+  char* output_buffer,
+  size_t output_offset,
+  size_t output_size)
+{}

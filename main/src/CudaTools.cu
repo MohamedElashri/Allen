@@ -45,9 +45,10 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
     if (n_devices == 0) {
       error_cout << "Failed to select device " << cuda_device << "\n";
       return {false, ""};
-    } else {
-      debug_cout << "Stream " << stream_id << " selected cuda device " << cuda_device << ": "
-                 << device_properties.name << "\n\n";
+    }
+    else {
+      debug_cout << "Stream " << stream_id << " selected cuda device " << cuda_device << ": " << device_properties.name
+                 << "\n\n";
     }
   } catch (const std::invalid_argument& e) {
     error_cout << e.what() << std::endl;

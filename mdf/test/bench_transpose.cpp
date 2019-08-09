@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
   }
 
   // Bank types to test with
-  std::array<BankTypes, NBankTypes> bank_types{BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
+  std::array<BankTypes, NBankTypes> bank_types {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
 
   // temporary storage
   vector<vector<char>> compress_buffers(n_slices, vector<char>(1024 * 1024));
@@ -65,7 +65,8 @@ int main(int argc, char* argv[])
     auto it = Allen::bank_types.find(static_cast<LHCb::RawBank::BankType>(bt));
     if (it != Allen::bank_types.end()) {
       bank_ids[bt] = to_integral(it->second);
-    } else {
+    }
+    else {
       bank_ids[bt] = -1;
     }
   }
@@ -84,9 +85,8 @@ int main(int argc, char* argv[])
       auto* offsets_mem = static_cast<uint*>(malloc((n_events + 1) * sizeof(uint)));
 
       offsets_mem[0] = 0;
-      banks_slices.emplace_back(gsl::span<char>{events_mem, buffer_size},
-                                gsl::span<uint>{offsets_mem, n_events + 1},
-                                1);
+      banks_slices.emplace_back(
+        gsl::span<char> {events_mem, buffer_size}, gsl::span<uint> {offsets_mem, n_events + 1}, 1);
     }
   }
 
@@ -116,17 +116,17 @@ int main(int argc, char* argv[])
         if (n_bytes <= 0) {
           cerr << "error reading " << file << " " << strerror(errno) << "\n";
           return -1;
-        } else {
+        }
+        else {
           cout << "opened " << file << "\n";
         }
       }
-      std::tie(eof, error, read_full, n_bytes_read) = read_events(*input, read_buffers[i_buffer],
-                                                                  header,
-                                                                  compress_buffers[i_buffer],
-                                                                  n_events, false);
+      std::tie(eof, error, read_full, n_bytes_read) =
+        read_events(*input, read_buffers[i_buffer], header, compress_buffers[i_buffer], n_events, false);
       if (input && eof) {
         ::close(*input);
-      } else if (error) {
+      }
+      else if (error) {
         cerr << "error reading " << file << "\n";
         return -1;
       }
@@ -135,11 +135,9 @@ int main(int argc, char* argv[])
 
   // Measure and report read throughput
   t.stop();
-  auto n_read = std::accumulate(read_buffers.begin(), read_buffers.end(), 0.,
-                                [](double s, ReadBuffer const& rb) {
-                                  return s + std::get<0>(rb);
-                                });
-  cout << "read " << std::lround(n_read) << " events; " << n_read / t.get()  << " events/s\n";
+  auto n_read = std::accumulate(
+    read_buffers.begin(), read_buffers.end(), 0., [](double s, ReadBuffer const& rb) { return s + std::get<0>(rb); });
+  cout << "read " << std::lround(n_read) << " events; " << n_read / t.get() << " events/s\n";
 
   // Count the number of banks of each type
   auto [count_success, banks_count] = fill_counts(read_buffers[0]);
@@ -158,16 +156,15 @@ int main(int argc, char* argv[])
 
   // Start the transpose threads
   for (size_t i = 0; i < n_slices; ++i) {
-    threads.emplace_back(thread{[i, n_reps, n_events, &read_buffers, &slices, &bank_ids, &banks_count, &event_ids] {
-                                  auto& read_buffer = read_buffers[i];
-                                  for (size_t rep = 0; rep < n_reps; ++rep) {
-                                    auto [success, transpose_full, n_transposed] = transpose_events<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>
-                                      (read_buffer, slices, i,
-                                       event_ids[i], bank_ids,
-                                       banks_count, n_events);
-                                    info_cout << "thread " << i << " " << success
-                                              << " " << transpose_full << " " << n_transposed << endl;
-                                  }}});
+    threads.emplace_back(thread {[i, n_reps, n_events, &read_buffers, &slices, &bank_ids, &banks_count, &event_ids] {
+      auto& read_buffer = read_buffers[i];
+      for (size_t rep = 0; rep < n_reps; ++rep) {
+        auto [success, transpose_full, n_transposed] =
+          transpose_events<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(
+            read_buffer, slices, i, event_ids[i], bank_ids, banks_count, n_events);
+        info_cout << "thread " << i << " " << success << " " << transpose_full << " " << n_transposed << endl;
+      }
+    }});
   }
 
   // Join transpose threads
@@ -176,5 +173,5 @@ int main(int argc, char* argv[])
   }
 
   t.stop();
-  cout << "transposed " << n_slices * n_events * n_reps / t.get()  << " events/s\n";
+  cout << "transposed " << n_slices * n_events * n_reps / t.get() << " events/s\n";
 }

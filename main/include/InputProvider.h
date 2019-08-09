@@ -33,7 +33,8 @@ struct IInputProvider {
    *
    * @return     tuple of (eof, timed_out, slice_index, n_filled)
    */
-  virtual std::tuple<bool, bool, size_t, size_t> get_slice(std::optional<unsigned int> timeout = std::optional<unsigned int>{}) = 0;
+  virtual std::tuple<bool, bool, size_t, size_t> get_slice(
+    std::optional<unsigned int> timeout = std::optional<unsigned int> {}) = 0;
 
   /**
    * @brief      Get banks and offsets of a given type
@@ -53,8 +54,7 @@ template<template<BankTypes...> typename Derived, BankTypes... Banks>
 class InputProvider<Derived<Banks...>> : public IInputProvider {
 public:
   explicit InputProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events) :
-    m_nslices {n_slices}, m_events_per_slice{events_per_slice},
-    m_nevents {n_events}, m_types {banks_set<Banks...>()}
+    m_nslices {n_slices}, m_events_per_slice {events_per_slice}, m_nevents {n_events}, m_types {banks_set<Banks...>()}
   {}
 
   virtual ~InputProvider() {};
@@ -110,7 +110,8 @@ public:
    *
    * @return     tuple of (eof, timed_out, slice_index, n_filled)
    */
-  std::tuple<bool, bool, size_t, size_t> get_slice(std::optional<unsigned int> timeout = std::optional<unsigned int>{}) override
+  std::tuple<bool, bool, size_t, size_t> get_slice(
+    std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
   {
     return static_cast<Derived<Banks...>*>(this)->get_slice(timeout);
   }
@@ -138,17 +139,16 @@ public:
   }
 
 protected:
-
-  template <typename MSG>
-  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) {
+  template<typename MSG>
+  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {})
+  {
     if (logger::ll.verbosityLevel >= logger::debug) {
-      std::unique_lock<std::mutex> lock{m_output_mut};
-      debug_cout << (thread_id ? std::to_string(*thread_id) + " " : std::string{}) << msg << "\n";
+      std::unique_lock<std::mutex> lock {m_output_mut};
+      debug_cout << (thread_id ? std::to_string(*thread_id) + " " : std::string {}) << msg << "\n";
     }
   }
 
 private:
-
   // Number of slices to be provided
   const size_t m_nslices = 0;
 
@@ -163,5 +163,4 @@ private:
 
   // Mutex for ordered debug output
   std::mutex m_output_mut;
-
 };

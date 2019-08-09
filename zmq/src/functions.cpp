@@ -7,7 +7,8 @@
 namespace ZMQ {
   size_t stringLength(const char& cs) { return strlen(&cs); }
 
-  std::string connection(const size_t id, std::string suffix) {
+  std::string connection(const size_t id, std::string suffix)
+  {
     auto con = std::string {"inproc://control_"} + std::to_string(id);
     if (!suffix.empty()) {
       con += "_" + suffix;

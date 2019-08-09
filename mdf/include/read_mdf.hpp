@@ -27,15 +27,21 @@ namespace Allen {
 namespace MDF {
   void dump_hex(const char* start, int size);
 
-  std::tuple<bool, bool, gsl::span<char>>
-  read_event(int input, LHCb::MDFHeader& h, gsl::span<char> buffer,
-             std::vector<char>& decompression_buffer,
-             bool checkChecksum = true, bool dbg = false);
+  std::tuple<bool, bool, gsl::span<char>> read_event(
+    int input,
+    LHCb::MDFHeader& h,
+    gsl::span<char> buffer,
+    std::vector<char>& decompression_buffer,
+    bool checkChecksum = true,
+    bool dbg = false);
 
-  std::tuple<bool, bool, gsl::span<char>>
-  read_banks(int input, const LHCb::MDFHeader& h, gsl::span<char> buffer,
-             std::vector<char>& decompression_buffer,
-             bool checkChecksum = true, bool dbg = false);
+  std::tuple<bool, bool, gsl::span<char>> read_banks(
+    int input,
+    const LHCb::MDFHeader& h,
+    gsl::span<char> buffer,
+    std::vector<char>& decompression_buffer,
+    bool checkChecksum = true,
+    bool dbg = false);
 
   std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> read_events(
     size_t n,
@@ -44,8 +50,12 @@ namespace MDF {
     bool checkChecksum = true,
     size_t offset = 0);
 
-  void transpose_event(std::vector<char> const& input_buffer, size_t input_offset,
-                       char* output_buffer, size_t output_offset, size_t output_size);
+  void transpose_event(
+    std::vector<char> const& input_buffer,
+    size_t input_offset,
+    char* output_buffer,
+    size_t output_offset,
+    size_t output_size);
 
   LHCb::ODIN decode_odin(const LHCb::RawBank* bank);
 

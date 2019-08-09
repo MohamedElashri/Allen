@@ -39,7 +39,8 @@ int main(int argc, char* argv[])
   int input = ::open(filename.c_str(), O_RDONLY);
   if (input != -1) {
     info_cout << "Opened " << filename << "\n";
-  } else {
+  }
+  else {
     cerr << "Failed to open file " << filename << " " << strerror(errno) << "\n";
     return -1;
   }
@@ -52,7 +53,7 @@ int main(int argc, char* argv[])
       return -1;
     }
 
-    array<size_t, LHCb::RawBank::LastType + 1> bank_counts{0};
+    array<size_t, LHCb::RawBank::LastType + 1> bank_counts {0};
 
     // Put the banks in the event-local buffers
     const auto* bank = bank_span.begin();
@@ -61,13 +62,14 @@ int main(int argc, char* argv[])
       const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
       if (b->magic() != LHCb::RawBank::MagicPattern) {
         cout << "magic pattern failed: " << std::hex << b->magic() << std::dec << endl;
-      } else {
-
+      }
+      else {
       }
 
       if (b->type() < LHCb::RawBank::LastType) {
         ++bank_counts[b->type()];
-      } else {
+      }
+      else {
         ++bank_counts[LHCb::RawBank::LastType];
       }
 
@@ -76,14 +78,14 @@ int main(int argc, char* argv[])
     }
 
     cout << "Event " << std::setw(7) << i_event << "\n";
-    cout << "Type | #Banks""\n";
+    cout << "Type | #Banks"
+            "\n";
     for (size_t i = 0; i < bank_counts.size(); ++i) {
       if (bank_counts[i] != 0) {
         cout << std::setw(4) << i << " | " << std::setw(6) << bank_counts[i] << "\n";
       }
     }
     cout << "\n";
-
   }
   ::close(input);
 }

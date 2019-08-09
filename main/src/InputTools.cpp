@@ -52,12 +52,12 @@ namespace {
 }; // namespace
 
 /**
-* @brief      Convert "N.bin" to (0, N) and "N_M.bin" to (N, M)
-*
-* @param      name
-*
-* @return     std::pair<int, unsigned long>
-*/
+ * @brief      Convert "N.bin" to (0, N) and "N_M.bin" to (N, M)
+ *
+ * @param      name
+ *
+ * @return     std::pair<int, unsigned long>
+ */
 EventID name_to_number(const std::string& arg)
 {
   std::smatch m;
@@ -71,7 +71,6 @@ EventID name_to_number(const std::string& arg)
     return {std::stoi(std::string {m[1].first, m[1].second}), std::stol(std::string {m[2].first, m[2].second})};
   }
 };
-
 
 /**
  * @brief Test to check existence of filename.
