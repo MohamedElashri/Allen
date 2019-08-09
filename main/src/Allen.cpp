@@ -46,8 +46,7 @@
 
 namespace {
   constexpr size_t n_io = 1;
-  constexpr size_t max_input_slices = 512;
-  constexpr size_t max_event_threads = 32;
+  constexpr size_t max_stream_threads = 64;
 
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed };
 } // namespace
@@ -354,6 +353,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"t", "threads"})) {
       number_of_threads = atoi(arg.c_str());
+      if (number_of_threads > max_stream_threads) {
+        error_cout << "Error: more than maximum number of threads ("
+                   << max_stream_threads <<  ") requested\n";
+        return -1;
+      }
     }
     else if (flag_in({"r", "repetitions"})) {
       number_of_repetitions = atoi(arg.c_str());
@@ -588,7 +592,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::vector<SliceStatus> input_slice_status(number_of_slices, SliceStatus::Empty);
   std::vector<size_t> events_in_slice(number_of_slices, 0);
   // processing stream status
-  std::bitset<max_event_threads> stream_ready(false);
+  std::bitset<max_stream_threads> stream_ready(false);
 
   auto count_status = [&input_slice_status](SliceStatus const status) {
     return std::accumulate(
