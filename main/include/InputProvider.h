@@ -59,10 +59,34 @@ public:
 
   virtual ~InputProvider() {};
 
+  /**
+   * @brief      Get the bank types filled by this provider
+   *
+   * @return     unordered set of bank types
+   */
   std::unordered_set<BankTypes> const& types() const { return m_types; }
 
+  /**
+   * @brief      Get the number of slices
+   *
+   * @return     number of slices
+   */
   size_t n_slices() const { return m_nslices; }
 
+  /**
+   * @brief      Get the maximum number of events per slice
+   *
+   * @details    This is also used when estimating how much slice
+   *             memory to allocate. To allow fast checks if a slice
+   *             is full, the size of the full event may be used if
+   *             the size of a set of banks is not yet known. That
+   *             is an overestimation of the required space and to
+   *             avoid issues with very few events being filled when
+   *             small number of events is requested per slice, a
+   *             minimum is enforced.
+   *
+   * @return     number of events per slice
+   */
   size_t events_per_slice() const { return m_events_per_slice < 100 ? 100 : m_events_per_slice; }
 
   std::optional<size_t> const& n_events() const { return m_nevents; }

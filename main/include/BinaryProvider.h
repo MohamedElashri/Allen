@@ -170,12 +170,12 @@ public:
       if (m_prefetched.empty()) {
         if (timeout) {
           timed_out = !m_prefetch_cond.wait_for(lock, std::chrono::milliseconds{*timeout},
-                                                [this] { return !m_prefetched.empty() || m_read_error; });
+                                                [this] { return !m_prefetched.empty() || m_read_error || m_done; });
         } else {
-          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_read_error; });
+          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_read_error || m_done; });
         }
       }
-      if (!m_read_error && (!timeout || (timeout && !timed_out))) {
+      if (!m_read_error && !m_prefetched.empty() && (!timeout || (timeout && !timed_out))) {
         slice_index = m_prefetched.front();
         m_prefetched.pop_front();
         n_filled = std::get<2>((*m_slices.begin())[slice_index]) - 1;
@@ -305,7 +305,7 @@ private:
         m_event_ids[slice_index].emplace_back(m_all_events[m_current]);
 
         ++m_current;
-        prefetch_done = m_current == n_files && !m_loop;
+        prefetch_done = (m_current == m_to_read && !m_loop);
       }
 
       this->debug_output("Read " + std::to_string(m_current - start) + " events into " + std::to_string(slice_index));
@@ -318,8 +318,8 @@ private:
         }
         m_done = prefetch_done;
         this->debug_output("Notifying one");
-        m_prefetch_cond.notify_one();
       }
+      m_prefetch_cond.notify_one();
     }
   }
 
