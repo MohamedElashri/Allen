@@ -68,7 +68,7 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
   zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
   zmq::setsockopt(control, zmq::LINGER, 0);
 
-  auto con = connection(io_id);
+  auto con = ZMQ::connection(io_id);
   try {
     control.connect(con.c_str());
   } catch (const zmq::error_t& e) {
@@ -136,7 +136,7 @@ void run_stream(
     zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
     zmq::setsockopt(control, zmq::LINGER, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds {50});
-    auto con = connection(thread_id, suffix);
+    auto con = ZMQ::connection(thread_id, suffix);
     try {
       control.connect(con.c_str());
     } catch (const zmq::error_t& e) {
@@ -525,7 +525,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     if (do_check) {
       check_control = zmqSvc().socket(zmq::PAIR);
       zmq::setsockopt(*check_control, zmq::LINGER, 0);
-      auto con = connection(thread_id, "check");
+      auto con = ZMQ::connection(thread_id, "check");
       check_control->bind(con.c_str());
     }
     return std::tuple{std::thread{run_stream,
@@ -569,7 +569,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     for (uint i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
       zmq::setsockopt(control, zmq::LINGER, 0);
-      auto con = connection(thread_id);
+      auto con = ZMQ::connection(thread_id);
       control.bind(con.c_str());
 
       // I don't know why, but this prevents problems. Probably

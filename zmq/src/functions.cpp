@@ -6,6 +6,14 @@
 
 namespace ZMQ {
   size_t stringLength(const char& cs) { return strlen(&cs); }
+
+  std::string connection(const size_t id, std::string suffix) {
+    auto con = std::string {"inproc://control_"} + std::to_string(id);
+    if (!suffix.empty()) {
+      con += "_" + suffix;
+    }
+    return con;
+  }
 } // namespace ZMQ
 
 namespace zmq {
@@ -26,12 +34,5 @@ namespace zmq {
   {
     socket.setsockopt(opt, value, strlen(value));
   }
-} // namespace zmq
 
-std::string connection(const size_t id, std::string suffix) {
-  auto con = std::string {"inproc://control_"} + std::to_string(id);
-  if (!suffix.empty()) {
-    con += "_" + suffix;
-  }
-  return con;
-}
+} // namespace zmq
