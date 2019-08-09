@@ -282,4 +282,16 @@ namespace Gaudi {
   } // namespace Units
 } // namespace Gaudi
 
+namespace Allen {
+  namespace Units {
+    //
+    // Data size
+    //
+    constexpr unsigned kB = 1024;
+    constexpr unsigned MB = kB * kB;
+    constexpr unsigned GB = MB * kB;
+  } // namespace Allen
+} // namespace Units
+
+
 #endif /* GAUDI_SYSTEM_OF_UNITS_H */

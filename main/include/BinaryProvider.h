@@ -6,6 +6,7 @@
 #include <BankTypes.h>
 
 namespace {
+  using namespace Allen::Units;
 
   /**
    * @brief      Utility function to order files given an existing ordering
@@ -102,7 +103,7 @@ public:
       }
 
       // Fudge with extra 20% memory
-      size_t n_bytes = std::lround(it->second * events_per_slice * 1024 * bank_size_fudge_factor);
+      size_t n_bytes = std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB);
       auto& slices = m_slices[ib];
       slices.reserve(n_slices);
       for (size_t i = 0; i < n_slices; ++i) {

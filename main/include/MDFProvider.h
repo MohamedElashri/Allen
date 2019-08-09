@@ -28,6 +28,8 @@
 
 namespace {
   constexpr auto header_size = sizeof(LHCb::MDFHeader);
+
+  using namespace Allen::Units;
 } // namespace
 
 // Read buffer containing the number of events, offsets to the start
@@ -380,7 +382,7 @@ public:
     // Preallocate prefetch buffer memory
     m_buffers.resize(config.n_buffers);
     for (auto& [n_filled, event_offsets, buffer] : m_buffers) {
-      buffer.resize(config.events_per_buffer * average_event_size * 1024 * bank_size_fudge_factor);
+      buffer.resize(config.events_per_buffer * average_event_size * bank_size_fudge_factor * kB);
       event_offsets.resize(config.offsets_size);
       event_offsets[0] = 0;
       n_filled = 0;
@@ -400,7 +402,7 @@ public:
       }
 
       // Fudge with extra 20% memory
-      size_t n_bytes = std::lround(it->second * events_per_slice * 1024 * bank_size_fudge_factor);
+      size_t n_bytes = std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB);
       m_banks_data[ib].reserve(n_bytes / sizeof(uint32_t));
       m_banks_offsets[ib].reserve(events_per_slice);
       auto& slices = m_slices[ib];
@@ -443,7 +445,7 @@ public:
     }
 
     // Reserve 1MB for decompression
-    m_compress_buffer.reserve(1024 * 1024);
+    m_compress_buffer.reserve(1u * MB);
 
     // Start prefetch thread and count bank types one a single buffer
     // is available
