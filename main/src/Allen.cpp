@@ -726,7 +726,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           }
           else {
             // FIXME: make the warmup time configurable
-            if (!t && (slices_processed >= 5 * number_of_threads) || !enable_async_io) {
+            if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
               info_cout << "Starting timer for throughput measurement.\n";
               throughput_start = n_events_processed * number_of_repetitions;
               t = Timer {};
