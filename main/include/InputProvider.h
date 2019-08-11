@@ -140,7 +140,7 @@ public:
 
 protected:
   template<typename MSG>
-  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {})
+  void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) const
   {
     if (logger::ll.verbosityLevel >= logger::debug) {
       std::unique_lock<std::mutex> lock {m_output_mut};
@@ -162,5 +162,5 @@ private:
   const std::unordered_set<BankTypes> m_types;
 
   // Mutex for ordered debug output
-  std::mutex m_output_mut;
+  mutable std::mutex m_output_mut;
 };

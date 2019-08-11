@@ -361,6 +361,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"r", "repetitions"})) {
       number_of_repetitions = atoi(arg.c_str());
+      if (number_of_repetitions == 0) {
+        error_cout << "Error: number of repetitions must be at least 1\n";
+        return -1;
+      }
     }
     else if (flag_in({"c", "validate"})) {
       do_check = atoi(arg.c_str());
@@ -478,16 +482,15 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               number_of_repetitions}; // number of loops over the input files
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, std::move(connections), config);
-
-    if (enable_async_io) number_of_repetitions = 1;
   }
   else {
     // The binary input provider expects the folders for the bank types as connections
     vector<string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
     input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections));
+      number_of_slices, *events_per_slice, n_events, std::move(connections), number_of_repetitions);
   }
+  if (enable_async_io) number_of_repetitions = 1;
 
   // Read the Muon catboost model
   muon_catboost_model_reader =
@@ -775,11 +778,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     check_processors();
 
     // Separate if statement to allow stopping in different ways
-    // depending on whether async I/O is enabled.
+    // depending on whether async I/O or repetitions are enabled.
     // NOTE: This may be called several times when slices are ready
-    // being processed
-    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done));
-    if (t && io_cond) {
+    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads)
+                    || (enable_async_io && io_done));
+    if (t && io_cond && number_of_repetitions > 1) {
       if (!throughput_processed) {
         throughput_processed = n_events_processed * number_of_repetitions - throughput_start;
       }
@@ -811,6 +814,15 @@ loop_error:
 
     // Check if any processors are ready
     check_processors();
+  }
+
+  // Set the number of processed events if it wasn't set before and
+  // make sure the timer has stopped
+  if (t) {
+    if (!throughput_processed) {
+      throughput_processed = n_events_processed * number_of_repetitions - throughput_start;
+    }
+    t->stop();
   }
 
   // Send stop signal to all threads and join them if they haven't

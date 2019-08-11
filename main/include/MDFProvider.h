@@ -737,7 +737,16 @@ private:
     bool good = false;
 
     // Check if there are still files available
-    while (!good && m_current != m_connections.end()) {
+    while (!good) {
+      // If looping on input is configured, do it
+      if (m_current == m_connections.end()) {
+        if (++m_loop < m_config.n_loops) {
+          m_current = m_connections.begin();
+        } else {
+          break;
+        }
+      }
+
       if (m_input) ::close(*m_input);
 
       m_input = ::open(m_current->c_str(), O_RDONLY);
@@ -755,11 +764,6 @@ private:
         return false;
       }
       ++m_current;
-
-      // If looping on input is configured, do it
-      if (m_current == m_connections.end() && ++m_loop < m_config.n_loops) {
-        m_current = m_connections.begin();
-      }
     }
     return good;
   }
@@ -772,13 +776,6 @@ private:
    */
   void prefetch() {
 
-    // open the first file
-    if (!m_input && !open_file()) {
-      m_read_error = true;
-      m_prefetch_cond.notify_one();
-      return;
-    }
-
     bool eof = false, error = false, buffer_full = false, prefetch_done = false;
     size_t bytes_read = 0;
 
@@ -787,6 +784,13 @@ private:
 
     // Loop while there are no errors and the flag to exit is not set
     while(!m_done && !m_read_error && (!to_read || *to_read > 0)) {
+
+      // open the first file
+      if (!m_input && !open_file()) {
+        m_read_error = true;
+        m_prefetch_cond.notify_one();
+        return;
+      }
 
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
@@ -825,20 +829,30 @@ private:
                                                                     m_config.check_checksum);
         size_t n_read = std::get<0>(read_buffer) - read;
         if (to_read) {
-          *to_read -= n_read;
+          *to_read -= std::min(*to_read, n_read);
         }
 
         if (error) {
           // Error encountered
           m_read_error = true;
           break;
+        } else if (to_read && *to_read == 0) {
+          if (m_config.n_loops != 0 && m_loop < (m_config.n_loops - 1)) {
+            // Set things such that the next call to open_file will
+            // result in a loop
+            this->debug_output("Loop " + std::to_string(m_loop + 1));
+            to_read = this->n_events();
+            m_current = m_connections.end();
+            if (m_input) ::close(*m_input);
+            m_input.reset();
+          } else {
+            // No events left to read
+            this->debug_output("Prefetch done: n_events reached");
+            prefetch_done = true;
+          }
+          break;
         } else if (std::get<0>(read_buffer) == eps || buffer_full) {
           // Number of events in a slice reached or buffer is full
-          break;
-        } else if (to_read && *to_read == 0) {
-          // No events left to read
-          this->debug_output("Prefetch done: n_events reached");
-          prefetch_done = true;
           break;
         } else if (eof && !open_file()) {
           // Try to open the next file, if there is none, prefetching
