@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sys/stat.h>
+
 #include <regex>
 #include <InputProvider.h>
 #include <InputTools.h>
@@ -50,14 +52,16 @@ class BinaryProvider final : public InputProvider<BinaryProvider<Banks...>> {
 public:
   BinaryProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
                  std::vector<std::string> connections,
-                 bool loop = false,
+                 size_t repetitions = 1,
                  std::optional<EventIDs> order = std::optional<EventIDs>{}) :
     InputProvider<BinaryProvider<Banks...>>{n_slices, events_per_slice, n_events},
     m_slice_free(n_slices, true),
-    m_loop {loop}, m_event_ids(n_slices)
+    m_repetitions {repetitions}, m_event_ids(n_slices)
   {
 
-    // Check that there is a folder for each bank type
+    // Check that there is a folder for each bank type, find all the
+    // files it contains and store their sizes
+    struct stat stat_buf;
     for (auto bank_type : this->types()) {
       auto it = std::find_if(connections.begin(), connections.end(),
                              [bank_type] (auto const& folder) {
@@ -73,6 +77,16 @@ public:
         if (order) {
           order_files(contents, *order, *it);
         }
+        // Get all file sizes
+        m_sizes[ib].reserve(contents.size());
+        for (auto const& file : contents) {
+          auto path = *it + "/" + file;
+          if (::stat(path.c_str(), &stat_buf) != 0) {
+            throw StrException{"Failed to stat " + file};
+          } else {
+            m_sizes[ib].emplace_back(stat_buf.st_size);
+          }
+        }
         m_files[ib] = std::tuple{*it, std::move(contents)};
       }
     }
@@ -82,7 +96,7 @@ public:
 
     // Get event IDs from file names; assume they are all the same in
     // different folders
-    auto const& some_files = std::get<1>(*m_files.begin());
+    auto const& some_files = std::get<1>(m_files.front());
     m_all_events.reserve(some_files.size());
     std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
     std::smatch result;
@@ -93,9 +107,8 @@ public:
     }
     m_to_read = this->n_events() ? std::min(*this->n_events(), some_files.size()) : some_files.size();
 
-
     // Allocate memory for banks
-    for (auto bank_type : this->types()) {
+    for (auto bank_type : {Banks...}) {
       auto it = BankSizes.find(bank_type);
       auto ib = to_integral<BankTypes>(bank_type);
       if (it == end(BankSizes)) {
@@ -116,6 +129,7 @@ public:
         slices.emplace_back(gsl::span<char>{events_mem, n_bytes},
                             gsl::span<uint>{offsets_mem, events_per_slice + 1},
                             1);
+        debug_cout << "Allocated slice " << std::setw(3) << i << " of size " << n_bytes <<  " for " << bank_name(bank_type) << "\n";
       }
     }
 
@@ -178,7 +192,7 @@ public:
       if (!m_read_error && !m_prefetched.empty() && (!timeout || (timeout && !timed_out))) {
         slice_index = m_prefetched.front();
         m_prefetched.pop_front();
-        n_filled = std::get<2>((*m_slices.begin())[slice_index]) - 1;
+        n_filled = std::get<2>(m_slices.front()[slice_index]) - 1;
       }
     }
 
@@ -238,7 +252,7 @@ private:
   void prefetch() {
 
     bool eof = false, prefetch_done = false;
-    size_t bytes_read = 0;
+    size_t bytes_read = 0, n_reps = 0;
 
     size_t eps = this->events_per_slice();
 
@@ -246,7 +260,7 @@ private:
 
     // Loop until the flag is set to exit, or the number of requested
     // event is reached
-    while(!m_done && m_current < m_to_read) {
+    while(!m_done) {
       // Find a free slice
       auto it = m_slice_free.end();
       {
@@ -278,22 +292,21 @@ private:
       }
       m_event_ids[slice_index].clear();
 
-      size_t start = m_current;
+      size_t n_read = 0;
 
       // Read files into the slice and keep track of the offsets
-      while (!m_done && !m_read_error && m_current < start + eps && m_current < m_to_read) {
-        auto inputs = open_files(m_current % n_files);
+      while (!m_done && !m_read_error && n_read < eps && m_current < m_to_read && m_current < n_files) {
+        auto inputs = open_files(m_current);
         if (m_read_error) break;
 
         // Check if any of the slices would be full
-        auto full = std::any_of(this->types().begin(), this->types().end(), [this, slice_index, &inputs](auto bank_type) {
-            auto ib = to_integral<BankTypes>(bank_type);
-            const auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
-            return (offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice.size();
-          });
-        if (full) {
-          this->debug_output(std::string{"Slice "} + std::to_string(slice_index) + " is full.");
-          break;
+        for (auto bank_type : {Banks...}) {
+          auto ib = to_integral<BankTypes>(bank_type);
+          const auto& [slice, offsets, offsets_size] = m_slices[ib][slice_index];
+          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice.size()) {
+            this->debug_output(std::string{"Slice "} + std::to_string(slice_index) + " is full.");
+            break;
+          }
         }
 
         for (auto& [bank_type, input, data_size] : inputs) {
@@ -305,11 +318,19 @@ private:
         m_event_ids[slice_index].emplace_back(m_all_events[m_current]);
 
         ++m_current;
-        prefetch_done = (m_current == m_to_read && !m_loop);
+        ++n_read;
+        if ((m_current == m_to_read || m_current == n_files) && (++n_reps < m_repetitions)) {
+          this->debug_output("Loop " + std::to_string(n_reps) + " of " + std::to_string(std::min(m_to_read, n_files)) + " events");
+          m_current = 0;
+        }
       }
 
-      this->debug_output("Read " + std::to_string(m_current - start) + " events into " + std::to_string(slice_index));
+      this->debug_output("Read " + std::to_string(n_read) + " events into " + std::to_string(slice_index));
 
+      prefetch_done = (m_current == m_to_read);
+      if (prefetch_done) {
+        this->debug_output("Prefetch done after " + std::to_string(n_reps) + " repetitions.");
+      }
       // Notify waiting calls to get_slice that there is a new slice
       if (!m_read_error) {
         {
@@ -333,7 +354,7 @@ private:
   std::array<std::tuple<BankTypes, std::ifstream, size_t>, NBankTypes> open_files(size_t n)
   {
     std::array<std::tuple<BankTypes, std::ifstream, size_t>, NBankTypes> result;
-    for (auto bank_type : this->types()) {
+    for (auto bank_type : {Banks...}) {
       auto ib = to_integral<BankTypes>(bank_type);
       auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[n];
       std::ifstream input(filename, std::ifstream::binary);
@@ -342,16 +363,13 @@ private:
         this->debug_output(std::string{"Failed to open "} + filename);
         break;
       }
-      input.seekg(0, std::ios::end);
-      auto end = input.tellg();
-      input.seekg(0, std::ios::beg);
-      auto data_size = end - input.tellg();
+      auto data_size = m_sizes[ib][n];
 
       if (data_size == 0) {
         m_read_error = true;
         break;
       }
-      result[ib] = std::tuple{bank_type, std::move(input), data_size};
+      result[ib] = make_tuple(bank_type, std::move(input), data_size);
     }
     return result;
   }
@@ -399,14 +417,17 @@ private:
   size_t m_current = 0;
   size_t m_to_read = 0;
 
-  // Loop on available input files
-  bool m_loop = false;
+  // Number of times to loop on available input files
+  size_t m_repetitions = 1;
 
   // Run and event numbers of all available events
   std::vector<std::tuple<unsigned int, unsigned long>> m_all_events;
 
   // Run and events numbers of events in each slice
   std::vector<std::vector<std::tuple<unsigned int, unsigned long>>> m_event_ids;
+
+  // Sizes of all files
+  std::array<std::vector<size_t>, NBankTypes> m_sizes;
 
   // Folder and file names per bank type
   std::array<std::tuple<std::string, std::vector<std::string>>, NBankTypes> m_files;
