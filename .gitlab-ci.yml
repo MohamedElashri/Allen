@@ -39,7 +39,7 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[0]}
     - BUILD_ARCH_FLAG="-gencode arch=compute_75,code=sm_75 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_61,code=sm_61 -gencode arch=compute_52,code=sm_52 -gencode arch=compute_30,code=sm_30"
     - export PATH=/usr/local/cuda/bin:/cvmfs/lhcb.cern.ch/lib/contrib/CMake/3.12.1/Linux-x86_64/bin/:$PATH
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
     - mkdir build
     - cd build
@@ -78,7 +78,7 @@ check-formatting:
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
     - export PATH=/usr/local/cuda/bin:/cvmfs/lhcb.cern.ch/lib/contrib/CMake/3.12.1/Linux-x86_64/bin/:$PATH
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
     - mkdir output_${DEVICE_ID}
     - cd build
@@ -118,7 +118,7 @@ check-formatting:
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
     - export PATH=/usr/local/cuda/bin:/cvmfs/lhcb.cern.ch/lib/contrib/CMake/3.12.1/Linux-x86_64/bin/:$PATH
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
     - mkdir output_${DEVICE_ID}
     - cd build
@@ -153,7 +153,7 @@ check-formatting:
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
     - D_CAPABILITY=${DEVICE_CAPABILITIES_MAP[${DEVICE_ID}]}
     - export PATH=/usr/local/cuda/bin:/cvmfs/lhcb.cern.ch/lib/contrib/CMake/3.12.1/Linux-x86_64/bin/:$PATH
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc8-opt
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
     - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown for ${SEQUENCE}" -u "%" -x 40 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
     - python3 checker/plotting/csv_plotter.py -t "Algorithm Groups for ${SEQUENCE}" -u "%" -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_summary.csv
