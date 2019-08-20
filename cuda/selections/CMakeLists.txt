@@ -15,6 +15,10 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 
 file(GLOB hlt1_src "Hlt1/src/*cu")
 
+if(CPU)
+  set_source_files_properties(${hlt1_src} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(Hlt1 STATIC
   ${hlt1_src}
 )

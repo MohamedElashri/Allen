@@ -18,14 +18,13 @@
 #include <algorithm>
 #include <thread>
 #include <bitset>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <getopt.h>
 
 #include <zmq.hpp>
 #include <ZeroMQSvc.h>
 
-#include "cuda_runtime.h"
 #include "CudaCommon.h"
 #include "RuntimeOptions.h"
 #include "ProgramOptions.h"

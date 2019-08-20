@@ -20,6 +20,11 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 
+if(CPU)
+  set_source_files_properties(${prefix_sum} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${binary_search} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(Utils STATIC
   ${prefix_sum}
   ${binary_search}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cuda_runtime.h"
+#include "CudaCommon.h"
 
 namespace PatPV {
 

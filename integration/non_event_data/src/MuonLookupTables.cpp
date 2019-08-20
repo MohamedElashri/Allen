@@ -1,6 +1,6 @@
 #include <string>
 
-#include <cuda_runtime.h>
+#include <CudaCommon.h>
 #include <Common.h>
 #include <Consumers.h>
 

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cassert>
+#include "CudaCommon.h"
 #include "VeloDefinitions.cuh"
 #include "Handler.cuh"
 #include "ArgumentsVelo.cuh"

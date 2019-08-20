@@ -1,6 +1,7 @@
 #pragma once
 
-#include "math_constants.h" // PI
+#include "CudaCommon.h"
+#include "CudaMathConstants.h"
 
 /**
  * @brief Calculate a single hit phi in odd sensor

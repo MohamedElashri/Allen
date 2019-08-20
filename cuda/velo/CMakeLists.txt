@@ -23,6 +23,16 @@ include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 
+if(CPU)
+  set_source_files_properties(${velo_common} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${velo_clustering_sources} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${velo_prefix_sum} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${velo_phi_and_sort} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${velo_search_by_triplet} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${velo_simplified_kalman_filter} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${velo_consolidate_tracks} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(Velo STATIC
   ${velo_common}
   ${velo_clustering_sources}

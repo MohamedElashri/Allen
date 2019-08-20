@@ -14,6 +14,10 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
 
 file(GLOB pat_pv "src/*cu")
 
+if(CPU)
+  set_source_files_properties(${pat_pv} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(PatPV STATIC
   ${pat_pv}
 )

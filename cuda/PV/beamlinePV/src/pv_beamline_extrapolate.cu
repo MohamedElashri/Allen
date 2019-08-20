@@ -16,18 +16,15 @@ __global__ void pv_beamline_extrapolate(
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  for (int i = 0; i < number_of_tracks_event / blockDim.x + 1; i++) {
-    int index = blockDim.x * i + threadIdx.x;
-    if (index < number_of_tracks_event) {
-      KalmanVeloState s = velo_states.get(event_tracks_offset + index);
-      PatPV::XYZPoint beamline {0.f, 0.f, 0.f};
-      const auto tx = s.tx;
-      const auto ty = s.ty;
-      float dz = (tx * (beamline.x - s.x) + ty * (beamline.y - s.y)) / (tx * tx + ty * ty);
+  for (int index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
+    KalmanVeloState s = velo_states.get(event_tracks_offset + index);
+    PatPV::XYZPoint beamline {0.f, 0.f, 0.f};
+    const auto tx = s.tx;
+    const auto ty = s.ty;
+    float dz = (tx * (beamline.x - s.x) + ty * (beamline.y - s.y)) / (tx * tx + ty * ty);
 
-      if (dz * s.c20 < 0.f || dz * s.c31 < 0.f) dz = -9999.f;
-      PVTrack pvtrack = PVTrack {s, dz};
-      dev_pvtracks[event_tracks_offset + index] = pvtrack;
-    }
+    if (dz * s.c20 < 0.f || dz * s.c31 < 0.f) dz = -9999.f;
+    PVTrack pvtrack = PVTrack {s, dz};
+    dev_pvtracks[event_tracks_offset + index] = pvtrack;
   }
 }

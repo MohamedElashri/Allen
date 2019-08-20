@@ -17,6 +17,13 @@ include_directories(UTDecoding/include)
 include_directories(consolidate/include)
 include_directories(compassUT/include)
 
+if(CPU)
+  set_source_files_properties(${UT_common} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${UT_decoding} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${UT_consolidate} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${CompassUT_tracking} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(UT STATIC
   ${UT_common}
   ${UT_decoding}

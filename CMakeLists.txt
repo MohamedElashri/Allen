@@ -1,19 +1,31 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
+# Determine whether to produce a CPU version
+option(CPU "Produce a CPU version" OFF)
+
 # Workaround 1/2 for shared cuda runtime
 set(CMAKE_CUDA_FLAGS "" CACHE STRING "")
-if (CMAKE_CUDA_FLAGS)
+if(CMAKE_CUDA_FLAGS)
 	list(REMOVE_ITEM CMAKE_CUDA_FLAGS "-cudart static")
 endif()
 string(APPEND CMAKE_CUDA_FLAGS "-cudart shared")
 
-project(Allen C CXX CUDA)
+if(CPU)
+  project(Allen C CXX)
+  add_compile_definitions(CPU)
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_definitions("-x c++")
+  endif()
+else(CPU)
+  project(Allen C CXX CUDA)
+endif(CPU)
 
 # Workaround 2/2 for shared cuda runtime
-if (CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
+if(CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
   list(REMOVE_ITEM CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudart_static")
 endif()
-if (CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
+if(CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
   list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static" )
 endif()
 
@@ -44,40 +56,43 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Configuration of CUDA compute architecture
-if(NOT DEFINED CUDA_ARCH)
-  set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
-endif()
-
-if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
-  set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
-  set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
-  execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
-  if(CUDA_ARCH STREQUAL "MAX")
-    set(CHECK_ARGS "-l")
+if(NOT CPU)
+  # Configuration of CUDA compute architecture
+  if(NOT DEFINED CUDA_ARCH)
+    set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
   endif()
-  message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture")
-  execute_process(COMMAND ${OUTPUTFILE} ${CHECK_ARGS}
-    RESULT_VARIABLE CUDA_RETURN_CODE
-    OUTPUT_VARIABLE CUDA_ARCH_OUTPUT)
 
-  if(${CUDA_RETURN_CODE} EQUAL 1)
-    message(FATAL_ERROR "${CUDA_ARCH}")
-  else()
-    if (CUDA_ARCH STREQUAL "MIN")
-      message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - sm_30")
-      set(ARCH_FLAG "-arch=sm_30")
-    else()
-      message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - ${CUDA_ARCH_OUTPUT}")
-      set(ARCH_FLAG "-arch=${CUDA_ARCH_OUTPUT}")
+  if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
+    set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
+    set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
+    execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
+    if(CUDA_ARCH STREQUAL "MAX")
+      set(CHECK_ARGS "-l")
     endif()
+    message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture")
+    execute_process(COMMAND ${OUTPUTFILE} ${CHECK_ARGS}
+      RESULT_VARIABLE CUDA_RETURN_CODE
+      OUTPUT_VARIABLE CUDA_ARCH_OUTPUT)
+
+    if(${CUDA_RETURN_CODE} EQUAL 1)
+      message(FATAL_ERROR "${CUDA_ARCH}")
+    else()
+      if (CUDA_ARCH STREQUAL "MIN")
+        message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - sm_30")
+        set(ARCH_FLAG "-arch=sm_30")
+      else()
+        message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - ${CUDA_ARCH_OUTPUT}")
+        set(ARCH_FLAG "-arch=${CUDA_ARCH_OUTPUT}")
+      endif()
+    endif()
+  else()
+    message(STATUS "Cuda architecture manually set to ${CUDA_ARCH}")
+    set(ARCH_FLAG "-arch=${CUDA_ARCH}")
   endif()
-else()
-  message(STATUS "Cuda architecture manually set to ${CUDA_ARCH}")
-  set(ARCH_FLAG "-arch=${CUDA_ARCH}")
-endif()
-if(DEFINED OVERRIDE_ARCH_FLAG)
-  set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
+  if(DEFINED OVERRIDE_ARCH_FLAG)
+    set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
+  endif()
+
 endif()
 
 option(BUILD_TESTS "Build test programs" OFF)
@@ -261,6 +276,10 @@ endforeach()
 add_library(Common STATIC ${common_sources})
 target_link_libraries(Common mdf)
 
+if(CPU)
+  set_source_files_properties(${common_cuda_sources} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(CudaCommon STATIC ${common_cuda_sources})
 set_property(TARGET CudaCommon PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)
@@ -286,11 +305,12 @@ if (ROOT_FOUND)
   target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
 endif()
 
-
 # Main executable
 add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
 
-if(BUILD_TESTS)
-  add_subdirectory(tests)
-endif(BUILD_TESTS)
+if(NOT CPU)
+  if(BUILD_TESTS)
+    add_subdirectory(tests)
+  endif(BUILD_TESTS)
+endif()

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include "CudaCommon.h"
 
 /**
  * @brief  Binary search leftmost

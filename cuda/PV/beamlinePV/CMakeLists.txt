@@ -13,6 +13,10 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/PV/beamlinePV/include)
 
+if(CPU)
+  set_source_files_properties(${blPV} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(PV_beamline STATIC
   ${blPV}
   )

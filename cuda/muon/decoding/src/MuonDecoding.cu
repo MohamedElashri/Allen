@@ -1,5 +1,9 @@
 #include "MuonDecoding.cuh"
-#include <stdio.h>
+#include <cstdio>
+
+#ifdef CPU
+#include <cstring>
+#endif
 
 using namespace Muon;
 

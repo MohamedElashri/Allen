@@ -57,7 +57,7 @@ __global__ void ut_find_permutation(
     // Sort according to the natural order in s_y_begin
     // Store the permutation found into dev_hit_permutations
     find_permutation(
-      0, sector_group_offset, sector_group_number_of_hits, dev_hit_permutations, [](const int a, const int b) -> int {
+      0, sector_group_offset, sector_group_number_of_hits, dev_hit_permutations, [&](const int a, const int b) -> int {
         return (s_y_begin[a] > s_y_begin[b]) - (s_y_begin[a] < s_y_begin[b]);
       });
   }

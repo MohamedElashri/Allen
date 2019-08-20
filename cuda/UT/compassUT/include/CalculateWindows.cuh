@@ -1,12 +1,12 @@
 #pragma once
 
+#include "CudaCommon.h"
 #include "UTDefinitions.cuh"
 #include "UTMagnetToolDefinitions.h"
 #include "VeloConsolidated.cuh"
 #include "UTEventModel.cuh"
 #include "States.cuh"
 #include "UTMagnetToolDefinitions.h"
-
 #include <tuple>
 
 __device__ bool velo_track_in_UTA_acceptance(const MiniState& state);

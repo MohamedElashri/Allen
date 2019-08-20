@@ -2,7 +2,7 @@
 
 #include "SciFiDefinitions.cuh"
 #include "ParKalmanMath.cuh"
-#include "cuda_runtime.h"
+#include "CudaCommon.h"
 
 namespace VertexFit {
 

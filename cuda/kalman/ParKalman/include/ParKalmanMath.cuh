@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CudaCommon.h"
+
 namespace ParKalmanFilter {
 
 #ifdef KALMAN_SINGLE_PRECISION

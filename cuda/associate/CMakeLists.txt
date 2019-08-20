@@ -16,6 +16,10 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 
+if(CPU)
+  set_source_files_properties(${associate_srcs} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(Associate STATIC
   ${associate_srcs}
 )

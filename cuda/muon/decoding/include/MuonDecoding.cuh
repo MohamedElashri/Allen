@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CudaCommon.h"
 #include "Handler.cuh"
 #include "ArgumentsMuon.cuh"
 #include "MuonDefinitions.cuh"

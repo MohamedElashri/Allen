@@ -21,12 +21,9 @@ __global__ void estimate_input_size(
   uint32_t* cluster_candidates = dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
 
   // Initialize estimated_input_size, module_cluster_num and dev_module_candidate_num to 0
-  for (int i = 0; i < (Velo::Constants::n_modules + blockDim.x - 1) / blockDim.x; ++i) {
-    const auto index = i * blockDim.x + threadIdx.x;
-    if (index < Velo::Constants::n_modules) {
-      estimated_input_size[index] = 0;
-      module_cluster_num[index] = 0;
-    }
+  for (int i=threadIdx.x; i<Velo::Constants::n_modules; i+=blockDim.x) {
+    estimated_input_size[i] = 0;
+    module_cluster_num[i] = 0;
   }
   *event_candidate_num = 0;
 

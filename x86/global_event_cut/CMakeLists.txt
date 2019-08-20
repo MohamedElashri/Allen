@@ -9,6 +9,10 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/global_event_cut/include)
 
+if(CPU)
+  set_source_files_properties(${cpu_gec} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(CpuGEC STATIC
   ${cpu_gec}
 )

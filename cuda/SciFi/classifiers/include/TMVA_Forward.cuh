@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 #include <iostream>
+#include "CudaCommon.h"
 
 namespace SciFi {
 

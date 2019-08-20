@@ -16,6 +16,10 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 file(GLOB vertex_fitter_src "vertex_fitter/src/*cu")
 
+if(CPU)
+  set_source_files_properties(${vertex_fitter_src} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(VertexFitter STATIC
   ${vertex_fitter_src}
 )

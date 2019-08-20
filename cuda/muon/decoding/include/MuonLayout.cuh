@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CudaCommon.h"
 #include "MuonTileID.cuh"
 
 namespace Muon {

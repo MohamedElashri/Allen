@@ -22,6 +22,14 @@ include_directories(classification/include)
 include_directories(decoding/include)
 include_directories(decoding_steps/include)
 
+if(CPU)
+  set_source_files_properties(${muon_filtering} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${muon_features_extraction} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${muon_classification} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${muon_decoding} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${muon_decoding_steps} PROPERTIES LANGUAGE CXX)
+endif(CPU)
+
 add_library(Muon STATIC
   ${muon_filtering}
   ${muon_features_extraction}

@@ -11,6 +11,7 @@
 
 #include "raw_bank.hpp"
 #include "read_mdf.hpp"
+#include "CudaCommon.h"
 #include "Tools.h"
 
 namespace {

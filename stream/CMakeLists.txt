@@ -105,7 +105,29 @@ add_custom_command(
     COMMAND cmake -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
     DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
 )
+
 message(STATUS "Configured sequence: " ${SEQUENCE})
+
+if(CPU)
+  set_source_files_properties(${stream_gear} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_memory_manager} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_scheduler} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_sequence} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_sequence_cpp} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_setup} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_gec} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_ip} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_velo} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_patPV} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_beamlinePV} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_assoc} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_UT} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_SciFi} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_Muon} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_kalman} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_vertex} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${stream_visitors_selections} PROPERTIES LANGUAGE CXX)
+endif(CPU)
 
 add_library(Stream STATIC
   "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
