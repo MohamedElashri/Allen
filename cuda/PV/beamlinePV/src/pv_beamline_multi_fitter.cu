@@ -10,7 +10,6 @@ __global__ void pv_beamline_multi_fitter(
   uint* dev_number_of_multi_fit_vertices,
   float* dev_beamline)
 {
-
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 

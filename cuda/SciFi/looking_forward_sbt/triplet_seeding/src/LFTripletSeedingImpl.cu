@@ -57,7 +57,7 @@ __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
         }
         // add new chi2 value
         best_chi2_h1s_this_thread[pos] = chi2;
-#if __CUDA_ARCH__ >= 700
+#if __CUDA_ARCH__ >= 800
         best_h0_h2_h1s_this_thread[pos] =
           h0_tile_index * LookingForward::tile_size + (k >> LookingForward::tile_size_shift_div);
         best_h0_h2_h1s_this_thread[max_n_h1s_this_thread * LookingForward::maximum_number_of_triplets_per_h1 + pos] =
@@ -110,7 +110,7 @@ __device__ void lf_triplet_seeding_impl(
   const float extrap2 = LookingForward::get_extrap(qop, dz2);
 
 // Tensor core specialization
-#if __CUDA_ARCH__ >= 700
+#if __CUDA_ARCH__ >= 800
 
   const half zdiff_half = ((half) zdiff);
   const half big_max_chi2 = 1000.f * max_chi2;
