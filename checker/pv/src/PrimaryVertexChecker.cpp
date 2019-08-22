@@ -309,14 +309,18 @@ PVChecker::~PVChecker() { delete m_histos; }
 
 void PVChecker::report(size_t) const
 {
-  // info_cout << "MC PV is reconstructible if at least " << nTracksToBeRecble << " tracks are reconstructed" << std::endl;
-  // info_cout << "MC PV is isolated if dz to closest reconstructible MC PV > " << dzIsolated << " mm" << std::endl;
-  // std::string ff = "by counting tracks";
-  // if (!matchByTracks) ff = "by dz distance";
-  // info_cout << "REC and MC vertices matched " << ff << std::endl;
-  // info_cout << passed << " events passed the global event cuts" << std::endl;
-  // info_cout << std::endl;
+  std::string ff = "by counting tracks";
+  if (!matchByTracks) ff = "by dz distance";
 
+  info_cout << "REC and MC vertices matched " << ff << std::endl;
+  std::printf(
+        "MC PV is reconstructible if at least %i tracks are reconstructed\n\
+MC PV is isolated if dz to closest reconstructible MC PV > %2.2f mm\n\
+REC and MC vertices matched %s\n\n",
+        nTracksToBeRecble,
+        dzIsolated,
+        ff.c_str());
+  
   printRat("All", sum_nRecMCPV, sum_nMCPV);
   printRat("Isolated", sum_nRecMCPV_isol, sum_nMCPV_isol);
   printRat("Close", sum_nRecMCPV_close, sum_nMCPV_close);
