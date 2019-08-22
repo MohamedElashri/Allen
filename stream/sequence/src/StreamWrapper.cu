@@ -23,18 +23,18 @@ void StreamWrapper::initialize_streams(
 
 void StreamWrapper::run_stream(const uint i, const RuntimeOptions& runtime_options)
 {
-  auto& s = *(streams[i]);
-  s.run_sequence(runtime_options);
+  streams[i]->run_sequence(runtime_options);
 }
 
+std::vector<bool> StreamWrapper::reconstructed_events(const uint i) const { return streams[i]->reconstructed_events(); }
+
 void StreamWrapper::run_monte_carlo_test(
-  const uint i,
-  const std::string& mc_folder,
-  const uint number_of_events_requested,
-  const std::vector<Checker::Tracks>& forward_tracks)
+  uint const i,
+  CheckerInvoker& invoker,
+  MCEvents const& mc_events,
+  std::vector<Checker::Tracks> const& forward_tracks)
 {
-  auto& s = *(streams[i]);
-  s.run_monte_carlo_test(mc_folder, number_of_events_requested, forward_tracks);
+  streams[i]->run_monte_carlo_test(invoker, mc_events, forward_tracks);
 }
 
 StreamWrapper::~StreamWrapper()

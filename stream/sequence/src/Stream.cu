@@ -45,6 +45,7 @@ cudaError_t Stream::initialize(
 cudaError_t Stream::run_sequence(const RuntimeOptions& runtime_options)
 {
   // The sequence is only run if there are events to run on
+  number_of_input_events = runtime_options.number_of_events;
   if (runtime_options.number_of_events > 0) {
     for (uint repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
       // Initialize selected_number_of_events with requested_number_of_events
@@ -84,28 +85,30 @@ cudaError_t Stream::run_sequence(const RuntimeOptions& runtime_options)
   return cudaSuccess;
 }
 
-void Stream::run_monte_carlo_test(
-  const std::string& mc_folder,
-  const uint number_of_events_requested,
-  const std::vector<Checker::Tracks>& forward_tracks)
+std::vector<bool> Stream::reconstructed_events() const
 {
-  // Create the CheckerInvoker and read Monte Carlo validation information
-  const auto checker_invoker = CheckerInvoker(
-    mc_folder,
-    start_event_offset,
-    host_buffers.host_event_list,
-    number_of_events_requested,
-    host_buffers.host_number_of_selected_events[0]);
+  std::vector<bool> mask(number_of_input_events, false);
+  for (uint i = 0; i < host_buffers.host_number_of_selected_events[0]; ++i) {
+    mask[host_buffers.host_event_list[i]] = true;
+  }
+  return mask;
+}
 
+void Stream::run_monte_carlo_test(
+  CheckerInvoker& invoker,
+  MCEvents const& mc_events,
+  std::vector<Checker::Tracks> const& forward_tracks)
+{
   Sch::RunChecker<
     SequenceVisitor,
     configured_sequence_t,
-    std::tuple<const uint&, const uint&, HostBuffers&, const Constants&, const CheckerInvoker&>>::
-    check(sequence_visitor, start_event_offset, number_of_events_requested, host_buffers, constants, checker_invoker);
+    std::tuple<HostBuffers&, const Constants&, const CheckerInvoker&, const MCEvents&>>::
+    check(sequence_visitor, host_buffers, constants, invoker, mc_events);
 
   if (forward_tracks.size() > 0) {
     info_cout << "Running test on imported tracks" << std::endl;
     std::vector<std::vector<float>> p_events_scifi;
-    checker_invoker.check<TrackCheckerForward>(start_event_offset, forward_tracks, p_events_scifi);
+    auto& checker = invoker.checker<TrackCheckerForward>("PrCheckerPlots.root");
+    checker.accumulate<TrackCheckerForward>(mc_events, forward_tracks, p_events_scifi);
   }
 }

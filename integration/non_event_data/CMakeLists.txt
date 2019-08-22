@@ -8,6 +8,8 @@ target_include_directories(NonEventData PUBLIC
   ${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include
   ${CMAKE_SOURCE_DIR}/cuda/event_model/common/include
   ${CMAKE_SOURCE_DIR}/cuda/velo/common/include
+  ${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include
+  ${CMAKE_SOURCE_DIR}/cuda/PV/common/include
   ${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include
   ${CMAKE_SOURCE_DIR}/cuda/muon/common/include
   ${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include

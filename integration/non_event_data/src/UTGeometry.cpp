@@ -55,7 +55,7 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
   host_unique_x_sector_offsets[current_sector_offset];
   host_unique_x_sector_layer_offsets[0] = 0;
 
-  for (int i = 0; i < UT::Constants::n_layers; ++i) {
+  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     const auto offset = offsets[i];
     const auto size = offsets[i + 1] - offsets[i];
 
@@ -91,7 +91,7 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
 
     // Calculate final permutation into unique elements
     std::vector<int> unique_permutation;
-    for (int j = 0; j < size; ++j) {
+    for (size_t j = 0; j < size; ++j) {
       auto it = std::find(permutation.begin(), permutation.end(), j);
       auto position = it - permutation.begin();
       unique_permutation.emplace_back(permutation_repeated[position]);
@@ -99,7 +99,7 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
 
     // Fill in host_unique_sector_xs
     std::vector<float> temp_unique_elements(number_of_unique_elements);
-    for (int j = 0; j < size; ++j) {
+    for (size_t j = 0; j < size; ++j) {
       const int index = unique_permutation[j];
       temp_unique_elements[index] = xs[j];
     }
@@ -118,10 +118,6 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
   }
 
   // Populate device constant into global memory
-  auto& dev_unique_x_sector_layer_offsets = m_constants.get().dev_unique_x_sector_layer_offsets;
-  auto& dev_unique_x_sector_offsets = m_constants.get().dev_unique_x_sector_offsets;
-  auto& dev_unique_sector_xs = m_constants.get().dev_unique_sector_xs;
-
   tuple numbers {
     tuple {std::cref(host_unique_x_sector_layer_offsets),
            std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},

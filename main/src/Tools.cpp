@@ -32,43 +32,6 @@ std::map<std::string, float> calcResults(std::vector<float>& times)
   return results;
 }
 
-/**
- * @brief Prints the memory consumption of the device.
- */
-void print_gpu_memory_consumption()
-{
-  size_t free_byte;
-  size_t total_byte;
-  cudaCheck(cudaMemGetInfo(&free_byte, &total_byte));
-  float free_percent = (float) free_byte / total_byte * 100;
-  float used_percent = (float) (total_byte - free_byte) / total_byte * 100;
-  verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used " << std::endl;
-}
-
-std::pair<size_t, std::string> set_device(int cuda_device)
-{
-  int n_devices = 0;
-  cudaDeviceProp device_properties;
-  cudaCheck(cudaGetDeviceCount(&n_devices));
-
-  debug_cout << "There are " << n_devices << " CUDA devices available" << std::endl;
-  for (int cd = 0; cd < n_devices; ++cd) {
-    cudaDeviceProp device_properties;
-    cudaCheck(cudaGetDeviceProperties(&device_properties, cd));
-    debug_cout << std::setw(3) << cd << " " << device_properties.name << std::endl;
-  }
-
-  if (cuda_device >= n_devices) {
-    error_cout << "Chosen device (" << cuda_device << ") is not available." << std::endl;
-    return {0, ""};
-  }
-  debug_cout << std::endl;
-
-  cudaCheck(cudaSetDevice(cuda_device));
-  cudaCheck(cudaGetDeviceProperties(&device_properties, cuda_device));
-  return {n_devices, device_properties.name};
-}
-
 void read_muon_events_into_arrays(
   Muon::HitsSoA* muon_station_hits,
   const char* events,
@@ -80,15 +43,15 @@ void read_muon_events_into_arrays(
     std::copy_n((int*) raw_input, Muon::Constants::n_stations, muon_station_hits[i_event].number_of_hits_per_station);
     raw_input += sizeof(int) * Muon::Constants::n_stations;
     muon_station_hits[i_event].station_offsets[0] = 0;
-    for (int i_station = 1; i_station < Muon::Constants::n_stations; ++i_station) {
+    for (uint i_station = 1; i_station < Muon::Constants::n_stations; ++i_station) {
       muon_station_hits[i_event].station_offsets[i_station] =
         muon_station_hits[i_event].station_offsets[i_station - 1] +
         muon_station_hits[i_event].number_of_hits_per_station[i_station - 1];
     }
-    int n_hits_per_event = 0;
-    for (int i_station = 0; i_station < Muon::Constants::n_stations; ++i_station) {
+    uint n_hits_per_event = 0;
+    for (uint i_station = 0; i_station < Muon::Constants::n_stations; ++i_station) {
       const int station_offset = muon_station_hits[i_event].station_offsets[i_station];
-      const int n_hits_per_station = muon_station_hits[i_event].number_of_hits_per_station[i_station];
+      const uint n_hits_per_station = muon_station_hits[i_event].number_of_hits_per_station[i_station];
       n_hits_per_event += n_hits_per_station;
       if (n_hits_per_event > Muon::Constants::max_numhits_per_event) {
         throw StrException(
@@ -127,9 +90,9 @@ void check_muon_events(const Muon::HitsSoA* muon_station_hits, const int n_outpu
   int total_number_of_hits = 0;
   for (int i_event = 0; i_event < n_events; ++i_event) {
     float n_hits_per_event = 0;
-    for (int i_station = 0; i_station < Muon::Constants::n_stations; ++i_station) {
+    for (uint i_station = 0; i_station < Muon::Constants::n_stations; ++i_station) {
       const int station_offset = muon_station_hits[i_event].station_offsets[i_station];
-      const int n_hits_per_station = muon_station_hits[i_event].number_of_hits_per_station[i_station];
+      const uint n_hits_per_station = muon_station_hits[i_event].number_of_hits_per_station[i_station];
       n_hits_per_event += n_hits_per_station;
       debug_cout << "checks on station " << i_station << ", with " << n_hits_per_station << " hits" << std::endl;
       for (int i_hit = 0; i_hit < n_output_hits_per_event; ++i_hit) {
@@ -167,7 +130,7 @@ std::vector<Checker::Tracks> read_forward_tracks(const char* events, const uint*
     const uint32_t n_tracks = *((uint32_t*) raw_input);
     raw_input += sizeof(uint32_t);
     Checker::Tracks tracks_event;
-    for (int i_track = 0; i_track < n_tracks; ++i_track) {
+    for (uint i_track = 0; i_track < n_tracks; ++i_track) {
       Checker::Track track;
       track.eta = *((float*) raw_input);
       raw_input += sizeof(float);
@@ -178,7 +141,7 @@ std::vector<Checker::Tracks> read_forward_tracks(const char* events, const uint*
 
       const uint32_t n_IDs = *((uint32_t*) raw_input);
       raw_input += sizeof(uint32_t);
-      for (int i_ID = 0; i_ID < n_IDs; ++i_ID) {
+      for (uint i_ID = 0; i_ID < n_IDs; ++i_ID) {
         const uint32_t ID = *((uint32_t*) raw_input);
         raw_input += sizeof(uint32_t);
         track.addId(ID);

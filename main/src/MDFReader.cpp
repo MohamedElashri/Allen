@@ -12,11 +12,13 @@ namespace {
   using std::vector;
 } // namespace
 
-void MDFReader::read_events(uint number_of_events_requested, uint start_event_offset)
+std::vector<std::tuple<unsigned int, unsigned long>> MDFReader::read_events(
+  uint number_of_events_requested,
+  uint start_event_offset)
 {
 
   size_t n_read = 0;
-  LHCbToGPU::buffer_map buffers;
+  Allen::buffer_map buffers;
   vector<LHCb::ODIN> odins;
 
   auto bank_type = *begin(types());
@@ -28,7 +30,11 @@ void MDFReader::read_events(uint number_of_events_requested, uint start_event_of
     files.emplace_back(foldername + "/" + name);
   }
   std::tie(n_read, buffers, odins) = MDF::read_events(number_of_events_requested, files, types(), start_event_offset);
-
+  std::vector<std::tuple<unsigned int, unsigned long>> event_ids;
+  event_ids.reserve(odins.size());
+  for (auto& odin : odins) {
+    event_ids.emplace_back(odin.run_number, static_cast<unsigned long>(odin.event_number));
+  }
   for (auto bank_type : types()) {
     auto it = buffers.find(bank_type);
     if (it == end(buffers)) {
@@ -40,7 +46,7 @@ void MDFReader::read_events(uint number_of_events_requested, uint start_event_of
   }
 
   // TODO Remove: Temporal check to understand if number_of_events_requested is the same as number_of_events
-  const int number_of_events = begin(buffers)->second.second.size() - 1;
+  const uint number_of_events = begin(buffers)->second.second.size() - 1;
   if (number_of_events_requested != number_of_events) {
     throw StrException("Number of events requested differs from number of events read.");
   }
@@ -60,4 +66,5 @@ void MDFReader::read_events(uint number_of_events_requested, uint start_event_of
 
     add_events(bank_type, {events_mem, ev_buf.size()}, {offsets_mem, offsets_buf.size()});
   }
+  return event_ids;
 }

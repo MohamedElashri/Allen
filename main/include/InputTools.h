@@ -15,6 +15,8 @@
 #include "Logger.h"
 #include "Common.h"
 
+EventID name_to_number(const std::string& arg);
+
 bool exists_test(const std::string& name);
 
 bool naturalOrder(const std::string& s1, const std::string& s2);
@@ -27,7 +29,21 @@ std::vector<std::string> list_folder(const std::string& foldername, const std::s
 
 uint get_number_of_events_requested(uint number_of_events_requested, const std::string& foldername);
 
+void read_files(
+  std::vector<std::string>::const_iterator file_start,
+  std::vector<std::string>::const_iterator file_end,
+  std::vector<char>& events,
+  std::vector<uint>& event_offsets);
+
 void read_folder(
+  const std::string& foldername,
+  const std::vector<std::tuple<unsigned int, unsigned long>>& requested_events,
+  std::vector<bool> const& event_mask,
+  std::vector<char>& events,
+  std::vector<unsigned int>& event_offsets,
+  bool quiet = false);
+
+std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
   const std::string& foldername,
   uint number_of_events_requested,
   std::vector<char>& events,

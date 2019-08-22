@@ -12,7 +12,10 @@
 
 #pragma once
 
-#include "CheckerTypes.h"
+#include <cstdint>
+#include <cstdlib>
+#include <cmath>
+#include <vector>
 
 // Monte Carlo information
 struct MCParticle {

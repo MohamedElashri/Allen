@@ -29,8 +29,7 @@ parser.add_argument("-m", dest="reserve", default="1024")
 parser.add_argument("-v", dest="verbosity", default="3")
 parser.add_argument("-p", dest="print_memory", default="0")
 parser.add_argument("-i", dest="import_fwd", default="")
-parser.add_argument("--mdf", action="store_true", dest="use_mdf",
-                    default=False)
+parser.add_argument("--mdf", dest="mdf", default="")
 parser.add_argument("--cpu-offload", dest="cpu_offload", default="1")
 parser.add_argument("--device", dest="device", default="0")
 
@@ -85,7 +84,7 @@ for flag, value in (("f", args.folder),
                     ("v", args.verbosity),
                     ("p", args.print_memory),
                     ("i", args.import_fwd),
-                    ("mdf", args.use_mdf),
+                    ("mdf", args.mdf),
                     ("cpu-offload", args.cpu_offload),
                     ("device", args.device)):
     options[flag] = value

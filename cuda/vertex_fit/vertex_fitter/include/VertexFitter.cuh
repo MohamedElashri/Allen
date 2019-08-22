@@ -60,9 +60,15 @@ namespace VertexFit {
 
   __device__ void fill_extra_info(
     TrackMVAVertex& sv,
+    const ParKalmanFilter::FittedTrack& trackA,
+    const ParKalmanFilter::FittedTrack& trackB);
+
+  __device__ void fill_extra_pv_info(
+    TrackMVAVertex& sv,
     const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB);
+
 } // namespace VertexFit
 
 __global__ void fit_secondary_vertices(

@@ -65,7 +65,6 @@ float kalmanDOCAz(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& v
 {
   float dx = track.state[0] - vertex.position.x;
   float dy = track.state[1] - vertex.position.y;
-  float dz = track.z;
   float tx = track.state[2];
   float ty = track.state[3];
   return std::abs(ty * dx - tx * dy) / std::sqrt(tx * tx + ty * ty);
@@ -152,7 +151,6 @@ float veloDOCAz(
 {
   float dx = velo_kalman_states.x[state_index] - vertex.position.x;
   float dy = velo_kalman_states.y[state_index] - vertex.position.y;
-  float dz = velo_kalman_states.z[state_index];
   float tx = velo_kalman_states.tx[state_index];
   float ty = velo_kalman_states.ty[state_index];
   return std::abs(ty * dx - tx * dy) / std::sqrt(tx * tx + ty * ty);
@@ -191,7 +189,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
 
     // Get the vertices.
     std::vector<PV::Vertex*> vecOfVertices;
-    for (uint i = 0; i < number_of_vertex[i_event]; ++i) {
+    for (int i = 0; i < number_of_vertex[i_event]; ++i) {
       int index = i_event * PatPV::max_number_vertices + i;
       vecOfVertices.push_back(&(rec_vertex[index]));
     }
@@ -226,7 +224,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
       const uint scifi_track_number_of_hits = scifi_tracks.number_of_hits(i_track);
       SciFi::Consolidated::Hits track_hits_scifi =
         scifi_tracks.get_hits((char*) scifi_track_hits, i_track, &scifi_geom, inv_clus_res.data());
-      for (int i_hit = 0; i_hit < scifi_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < scifi_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_scifi.LHCbID(i_hit));
       }
 
@@ -234,7 +232,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
       const uint UT_track_index = scifi_tracks.ut_track[i_track];
       const uint ut_track_number_of_hits = ut_tracks.number_of_hits(UT_track_index);
       const UT::Consolidated::Hits track_hits_ut = ut_tracks.get_hits((char*) ut_track_hits, UT_track_index);
-      for (int i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < ut_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_ut.LHCbID[i_hit]);
       }
 
@@ -242,7 +240,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
       const int velo_track_index = ut_tracks.velo_track[UT_track_index];
       const uint velo_track_number_of_hits = velo_tracks.number_of_hits(velo_track_index);
       const Velo::Consolidated::Hits track_hits_velo = velo_tracks.get_hits((char*) velo_track_hits, velo_track_index);
-      for (int i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
+      for (uint i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_velo.LHCbID[i_hit]);
       }
 

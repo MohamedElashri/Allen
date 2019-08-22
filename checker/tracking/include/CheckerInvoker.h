@@ -1,114 +1,49 @@
 #pragma once
 
 #include <string>
+#include <list>
 #include <vector>
-#include "TrackChecker.h"
+#include "CheckerTypes.h"
 #include "MCEvent.h"
 #include "InputTools.h"
 
+class TFile;
+
 struct CheckerInvoker {
-  std::string mc_folder;
-  uint start_event_offset = 0;
-  uint number_of_requested_events = 0;
-  uint number_of_selected_events = 0;
-  bool check_events = false;
-  bool is_mc_folder_populated = true;
-  MCEvents mc_events;
-  MCEvents selected_mc_events;
-  mutable bool create_file = true;
 
-  CheckerInvoker(
-    const std::string& param_mc_folder,
-    const uint param_start_event_offset,
-    const uint* event_list,
-    const uint param_number_of_requested_events,
-    const uint param_number_of_selected_events,
-    const bool param_check_events = false) :
-    mc_folder(param_mc_folder),
-    start_event_offset(param_start_event_offset), number_of_requested_events(param_number_of_requested_events),
-    number_of_selected_events(param_number_of_selected_events), check_events(param_check_events)
-  {
-    const auto folder_contents = read_mc_folder();
+  CheckerInvoker(std::string output_folder = "../output", const bool check_events = false) :
+    m_check_events {check_events}, m_output_dir {std::move(output_folder)}
+  {}
 
-    is_mc_folder_populated = std::get<0>(folder_contents);
-    mc_events = std::get<1>(folder_contents);
+  ~CheckerInvoker();
 
-    // events selected by global event cuts
-    for (int i = 0; i < number_of_selected_events; i++) {
-      const uint event = event_list[i];
-      MCEvent mc_event = mc_events[event];
-      selected_mc_events.push_back(mc_event);
-    }
-  }
+  MCEvents load(
+    std::string const mc_folder,
+    std::vector<std::tuple<uint, unsigned long>> const& events,
+    std::vector<bool> const& event_mask,
+    std::string const tracks_folder = "tracks",
+    std::string const pvs_folder = "PVs") const;
 
-  std::tuple<bool, MCEvents> read_mc_folder() const;
+  void report(size_t n_events) const;
+  TFile* root_file(std::string const& file = std::string {}) const;
 
   template<typename T>
-  std::vector<std::vector<std::vector<uint32_t>>> check(
-    const uint start_event_offset,
-    const std::vector<Checker::Tracks>& tracks,
-    std::vector<std::vector<float>>& p_events) const
+  T& checker(std::string header, std::string const& root_file = std::string {}) const
   {
-    std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_events;
-
-    if (is_mc_folder_populated) {
-      T track_checker {create_file};
-      create_file = false;
-      for (int evnum = 0; evnum < selected_mc_events.size(); ++evnum) {
-        const auto& mc_event = selected_mc_events[evnum];
-        const auto& event_tracks = tracks[evnum];
-
-        std::vector<uint32_t> matched_mcp_keys =
-          track_checker(event_tracks, mc_event, get_num_hits_subdetector<typename T::subdetector_t>);
-
-        std::vector<std::vector<uint32_t>> scifi_ids_tracks;
-        std::vector<float> p_tracks;
-        for (const auto key : matched_mcp_keys) {
-          std::vector<uint32_t> scifi_ids;
-          float p = 1e9;
-          if (!(key == 0xFFFFFF)) { // track was matched to an MCP
-            // Find this MCP
-            for (const auto mcp : mc_event.m_mcps) {
-              if (mcp.key == key) {
-                // Save momentum and charge of this MCP
-                p = mcp.p * mcp.charge;
-                // debug_cout << "Adding particle with PID = " << mcp.pid << " and charge " << charge << std::endl;
-                // Find SciFi IDs of this MCP
-                if (mcp.isLong) { // found matched long MCP
-                  for (const auto id : mcp.hits) {
-                    const uint32_t detector_id = (id >> 20) & 0xFFF;
-                    if (detector_id == 0xa00) { // hit in the SciFi
-                      scifi_ids.push_back(id);
-                    }
-                  }
-                }
-              }
-            }
-          }
-          scifi_ids_tracks.push_back(scifi_ids);
-          p_tracks.push_back(p);
-        }
-
-        scifi_ids_events.push_back(scifi_ids_tracks);
-        p_events.push_back(p_tracks);
-
-        // TODO: Enable back and understand if any duplicated hits exist
-        // Check all tracks for duplicate LHCb IDs
-        for (int i_track = 0; i_track < event_tracks.size(); ++i_track) {
-          const auto& track = event_tracks[i_track];
-          auto ids = track.ids();
-          std::sort(std::begin(ids), std::end(ids));
-          bool containsDuplicates = (std::unique(std::begin(ids), std::end(ids))) != std::end(ids);
-          if (containsDuplicates) {
-            warning_cout << "WARNING: Track #" << i_track << " contains duplicate LHCb IDs" << std::endl << std::hex;
-            for (auto id : ids) {
-              warning_cout << "0x" << id << ", ";
-            }
-            warning_cout << std::endl << std::endl << std::dec;
-          }
-        }
-      }
+    auto const& name = T::subdetector_t::name;
+    auto it = m_checkers.find(name);
+    if (it == m_checkers.end()) {
+      auto r = m_checkers.emplace(name, std::unique_ptr<Checker::BaseChecker> {new T {this, root_file}});
+      m_report_order.emplace_back(name, header);
+      it = std::get<0>(r);
     }
-    return scifi_ids_events;
+    return static_cast<T&>(*(it->second));
   }
+
+private:
+  bool m_check_events = false;
+  std::string const m_output_dir;
+  std::map<std::string, std::unique_ptr<Checker::BaseChecker>> mutable m_checkers;
+  std::list<std::tuple<std::string, std::string>> mutable m_report_order;
+  std::map<std::string, TFile*> mutable m_files;
 };

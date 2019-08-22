@@ -59,7 +59,9 @@ struct EventReader : public Reader {
   /**
    * @brief Reads files from the specified folder, starting from an event offset.
    */
-  virtual void read_events(uint number_of_events_requested = 0, uint start_event_offset = 0);
+  virtual std::vector<std::tuple<unsigned int, unsigned long>> read_events(
+    uint number_of_events_requested = 0,
+    uint start_event_offset = 0);
 
   /**
    * @brief Checks the consistency of the read buffers.
@@ -104,8 +106,8 @@ private:
 
 struct CatboostModelReader {
   CatboostModelReader(const std::string& file_name);
-  const int n_features() const { return m_num_features; }
-  const int n_trees() const { return m_num_trees; }
+  int n_features() const { return m_num_features; }
+  int n_trees() const { return m_num_trees; }
   std::vector<int> tree_depths() const { return m_tree_depths; }
   std::vector<int> tree_offsets() const { return m_tree_offsets; }
   std::vector<int> leaf_offsets() const { return m_leaf_offsets; }

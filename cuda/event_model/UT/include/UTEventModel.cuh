@@ -168,9 +168,9 @@ namespace UT {
     }
     __host__ __device__ inline float sinT(const int i_hit, const float dxDy) const
     {
-      return tanT(i_hit, dxDy) * cosT(i_hit, dxDy);
+      return tanT(dxDy) * cosT(i_hit, dxDy);
     }
-    __host__ __device__ inline float tanT(const int i_hit, const float dxDy) const { return -1 * dxDy; }
+    __host__ __device__ inline float tanT(const float dxDy) const { return -1.f * dxDy; }
     __host__ __device__ inline float xAt(const int i_hit, const float globalY, const float dxDy) const
     {
       return xAtYEq0[i_hit] + globalY * dxDy;

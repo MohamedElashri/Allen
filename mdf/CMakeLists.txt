@@ -43,28 +43,48 @@ if (LZ4_FOUND)
 	"-DHAVE_LZ4")
 endif (LZ4_FOUND)
 
-macro(test_program name)
-add_executable(${name}
-  test/${name}.cpp)
-set_property(TARGET ${name} PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)
+function(test_program)
+  cmake_parse_arguments(PARSED_ARGS "NO_CUDA" "NAME" "" ${ARGN})
+  add_executable(${PARSED_ARGS_NAME} test/${PARSED_ARGS_NAME}.cpp)
 
-target_include_directories(${name} PUBLIC
-  ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-  ${CMAKE_SOURCE_DIR}/mdf/include
-  ${CMAKE_SOURCE_DIR}/main/include
-  ${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include
-  ${CMAKE_SOURCE_DIR}/cuda/event_model/common/include
-  ${CMAKE_SOURCE_DIR}/cuda/velo/common/include
-  ${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include
-  ${CMAKE_SOURCE_DIR}/cuda/muon/common/include
-  ${CMAKE_SOURCE_DIR}/cuda/UT/common/include
-  ${CMAKE_SOURCE_DIR}/cuda/UT/PrVeloUT/include
-  ${CMAKE_SOURCE_DIR}/checker/tracking/include)
+  target_include_directories(${PARSED_ARGS_NAME} PUBLIC
+    ${CMAKE_SOURCE_DIR}/mdf/include
+    ${CMAKE_SOURCE_DIR}/main/include)
 
-target_link_libraries(${name} Common Velo)
-endmacro()
+  if (NOT ${PARSED_ARGS_NO_CUDA})
+    target_include_directories(${PARSED_ARGS_NAME} PUBLIC
+      ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+      ${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include
+      ${CMAKE_SOURCE_DIR}/cuda/event_model/common/include
+      ${CMAKE_SOURCE_DIR}/cuda/velo/common/include
+      ${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include
+      ${CMAKE_SOURCE_DIR}/cuda/muon/common/include
+      ${CMAKE_SOURCE_DIR}/cuda/UT/common/include
+      ${CMAKE_SOURCE_DIR}/cuda/UT/PrVeloUT/include
+      ${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include
+      ${CMAKE_SOURCE_DIR}/cuda/PV/common/include
+      ${CMAKE_SOURCE_DIR}/checker/tracking/include)
 
-test_program(test_read)
-test_program(test_read_bin)
-test_program(dump_banks)
+    set_property(TARGET ${PARSED_ARGS_NAME} PROPERTY
+      CUDA_SEPARABLE_COMPILATION ON)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Velo)
+  else()
+    target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE NO_CUDA)
+  endif()
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Common mdf)
+endfunction()
+
+test_program(NAME dump_banks)
+
+if (BUILD_TESTS)
+  include(Catch)
+
+  test_program(NAME test_read)
+  test_program(NAME test_read_bin)
+  test_program(NAME bench_read NO_CUDA)
+  test_program(NAME bench_provider NO_CUDA)
+  test_program(NAME bench_transpose NO_CUDA)
+
+  test_program(NAME test_providers)
+  catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+endif()

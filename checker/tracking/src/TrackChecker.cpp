@@ -27,22 +27,58 @@ namespace {
   using Checker::HistoCategory;
 }
 
+// LHCb::Track::pseudoRapidity() is based on slopes vector (Gaudi::XYZVector = ROOT::Match::XYZVector)
+// slopes = (Tx=dx/dz,Ty=dy/dz,1.)
+// eta() for XYZVector:
+// https://root.cern.ch/doc/v608/namespaceROOT_1_1Math_1_1Impl.html#a7d4efefe2855d886fdbae73c81adc574 z = 1.f -> can
+// simplify eta_from_rho_z
+float eta_from_rho(const float rho)
+{
+  const float z = 1.f;
+  if (rho > 0.f) {
+
+    // value to control Taylor expansion of sqrt
+    static const float big_z_scaled = std::pow(std::numeric_limits<float>::epsilon(), static_cast<float>(-.25));
+
+    float z_scaled = z / rho;
+    if (std::fabs(z_scaled) < big_z_scaled) {
+      return std::log(z_scaled + std::sqrt(z_scaled * z_scaled + 1.f));
+    }
+    else {
+      // apply correction using first order Taylor expansion of sqrt
+      return z > 0.f ? std::log(2.f * z_scaled + 0.5f / z_scaled) : -std::log(-2.f * z_scaled);
+    }
+  }
+  // case vector has rho = 0
+  return z + 22756.f;
+}
+
+// Not very pretty, will be better once nvcc supports C++17
+std::string const Checker::Subdetector::Velo::name = "Velo";
+std::string const Checker::Subdetector::UT::name = "VeloUT";
+std::string const Checker::Subdetector::SciFi::name = "Forward";
+
 TrackChecker::TrackChecker(
   std::string name,
   std::vector<Checker::TrackEffReport> categories,
   std::vector<Checker::HistoCategory> histo_categories,
-  bool create_file,
+  CheckerInvoker const* invoker,
+  std::string const& root_file,
+  std::string const& directory,
   bool print) :
   m_print {print},
-  m_categories {std::move(categories)}, m_histo_categories {std::move(histo_categories)},
-  m_trackerName {std::move(name)}, m_create_file {create_file}
+  m_categories {std::move(categories)}, m_histo_categories {std::move(histo_categories)}, m_trackerName {
+                                                                                            std::move(name)}
 {
-  // Need to use a forward declaration to keep all ROOT objects out of
-  // headers that are compiled with CUDA
-  histos = new TrackCheckerHistos {m_histo_categories};
+  // FIXME: Need to use a forward declaration to keep all ROOT objects
+  // out of headers that are compiled with CUDA until NVCC supports
+  // C++17
+  m_histos = new TrackCheckerHistos {invoker, root_file, directory, m_histo_categories};
 }
 
-TrackChecker::~TrackChecker()
+TrackChecker::~TrackChecker() { delete m_histos; }
+
+void TrackChecker::report(size_t) const
 {
   if (m_trackerName == "Forward") {
     if (n_matched_muons > 0) {
@@ -96,24 +132,15 @@ TrackChecker::~TrackChecker()
       m_ntrackstrigger,
       100.f * float(m_nghoststrigger) / float(m_ntrackstrigger));
   }
-  m_categories.clear();
   std::printf("\n");
+
+  for (auto const& report : m_categories) {
+    report.report();
+  }
 
   // write histograms to file
 #ifdef WITH_ROOT
-  const std::string name = "../output/PrCheckerPlots.root";
-  TFile f {name.c_str(), (m_create_file ? "RECREATE" : "UPDATE")};
-  std::string dirName = m_trackerName;
-  if (m_trackerName == "VeloUT") dirName = "Upstream";
-  TDirectory* trackerDir = f.mkdir(dirName.c_str());
-  trackerDir->cd();
-
-  histos->write(trackerDir);
-
-  f.Write();
-  f.Close();
-
-  delete histos;
+  m_histos->write();
 #endif
 }
 
@@ -144,7 +171,7 @@ void Checker::TrackEffReport::operator()(const MCParticles& mcps)
 }
 
 void Checker::TrackEffReport::operator()(
-  const std::vector<MCAssociator::TrackWithWeight> tracks,
+  const std::vector<MCAssociator::TrackWithWeight>& tracks,
   MCParticles::const_reference& mcp,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector)
 {
@@ -153,7 +180,6 @@ void Checker::TrackEffReport::operator()(
   ++m_nfound;
   ++m_nfound_per_event;
   bool found = false;
-  int n_matched_total;
   for (const auto& track : tracks) {
     if (!found) {
       found = true;
@@ -171,7 +197,7 @@ void Checker::TrackEffReport::operator()(
   }
 }
 
-Checker::TrackEffReport::~TrackEffReport()
+void Checker::TrackEffReport::report() const
 {
   auto clonerate = 0.f, eff = 0.f, eff_per_event = 0.f;
 
@@ -204,7 +230,7 @@ void TrackChecker::muon_id_matching(
 
   if (m_trackerName == "Forward") {
 
-    histos->fillMuonReconstructible(mcp);
+    m_histos->fillMuonReconstructible(mcp);
 
     bool match_is_muon = false;
 
@@ -220,7 +246,7 @@ void TrackChecker::muon_id_matching(
       n_matched_muons++;
       if (match_is_muon) {
         n_is_muon_true++;
-        histos->fillMuonReconstructedMatchedIsMuon(mcp);
+        m_histos->fillMuonReconstructedMatchedIsMuon(mcp);
       }
     }
     // Track identified as muon, but was matched to non-muon MCP
@@ -228,22 +254,21 @@ void TrackChecker::muon_id_matching(
       n_matched_not_muons++;
       if (match_is_muon) {
         n_is_muon_misID++;
-        histos->fillMuonReconstructedNotMatchedIsMuon(mcp);
+        m_histos->fillMuonReconstructedNotMatchedIsMuon(mcp);
       }
     }
 
     // fill muon ID histograms
     const Checker::Track& track = tracks[tracks_with_weight.front().m_idx];
-    histos->fillMuonIDMatchedHistos(track, mcp);
+    m_histos->fillMuonIDMatchedHistos(track, mcp);
   }
 }
 
-bool TrackChecker::match_track_to_MCPs(
-  MCAssociator mc_assoc,
+std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
+  const MCAssociator& mc_assoc,
   const Checker::Tracks& tracks,
   const int i_track,
-  std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table,
-  uint32_t& track_best_matched_MCP)
+  std::unordered_map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table)
 {
   const auto& track = tracks[i_track];
 
@@ -252,7 +277,7 @@ bool TrackChecker::match_track_to_MCPs(
   //
   // check LHCbIDs for MC association
   Checker::TruthCounter total_counter;
-  std::map<uint, Checker::TruthCounter> truth_counters;
+  std::unordered_map<uint, Checker::TruthCounter> truth_counters;
   int n_meas = 0;
 
   const auto& ids = track.ids();
@@ -319,6 +344,8 @@ bool TrackChecker::match_track_to_MCPs(
   }
 
   bool match = false;
+  auto track_best_matched_MCP = mc_assoc.m_mcps.cend();
+
   float max_weight = 1e9f;
   for (const auto& id_counter : truth_counters) {
     bool velo_ok = true;
@@ -355,15 +382,15 @@ bool TrackChecker::match_track_to_MCPs(
 
       if (weight < max_weight) {
         max_weight = weight;
-        track_best_matched_MCP = (mc_assoc.m_mcps[id_counter.first]).key;
+        track_best_matched_MCP = mc_assoc.m_mcps.begin() + id_counter.first;
       }
     }
   }
 
-  return match;
+  return {match, track_best_matched_MCP};
 }
 
-std::vector<uint32_t> TrackChecker::operator()(
+std::vector<MCParticles::const_iterator> TrackChecker::operator()(
   const Checker::Tracks& tracks,
   const MCEvent& mc_event,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector)
@@ -379,32 +406,25 @@ std::vector<uint32_t> TrackChecker::operator()(
 
   // fill histograms of reconstructible MC particles in various categories
   for (auto& histo_cat : m_histo_categories) {
-    histos->fillReconstructibleHistos(mc_event.m_mcps, histo_cat);
+    m_histos->fillReconstructibleHistos(mc_event.m_mcps, histo_cat);
   }
 
   MCAssociator mc_assoc {mc_event.m_mcps};
   // linker table between MCParticles and matched tracks with weights
-  std::map<uint32_t, std::vector<MCAssociator::TrackWithWeight>> assoc_table;
+  std::unordered_map<uint32_t, std::vector<MCAssociator::TrackWithWeight>> assoc_table;
 
   // Match tracks to MCPs
   std::size_t nghostsperevt = 0;
   std::size_t ntracksperevt = 0;
   std::size_t nghoststriggerperevt = 0;
   std::size_t ntrackstriggerperevt = 0;
-  std::vector<uint32_t> matched_mcp_keys;
-  for (int i_track = 0; i_track < tracks.size(); ++i_track) {
-    auto track = tracks[i_track];
-    histos->fillTotalHistos(mc_event.m_mcps[0], track);
+  std::vector<MCParticles::const_iterator> matched_mcp_keys;
+  for (size_t i_track = 0; i_track < tracks.size(); ++i_track) {
+    auto const& track = tracks[i_track];
+    m_histos->fillTotalHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
 
-    uint32_t track_best_matched_MCP;
-    bool match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table, track_best_matched_MCP);
-
-    if (match) {
-      matched_mcp_keys.push_back(track_best_matched_MCP);
-    }
-    else {
-      matched_mcp_keys.push_back(0xFFFFFFFF);
-    }
+    auto [match, track_best_matched_MCP] = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
+    matched_mcp_keys.push_back(track_best_matched_MCP);
 
     bool eta25 = track.eta > 2.f && track.eta < 5.f;
     bool skipEtaCut = (m_trackerName == "Velo");
@@ -419,10 +439,10 @@ std::vector<uint32_t> TrackChecker::operator()(
     }
     if (!match) {
       ++nghostsperevt;
-      histos->fillGhostHistos(mc_event.m_mcps[0], track);
+      m_histos->fillGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
       if (triggerCondition) ++nghoststriggerperevt;
       if (track.is_muon) {
-        histos->fillMuonGhostHistos(mc_event.m_mcps[0], track);
+        m_histos->fillMuonGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
         ++n_is_muon_ghost;
       }
     }
@@ -439,23 +459,22 @@ std::vector<uint32_t> TrackChecker::operator()(
     else // not muon
       m_n_MCPs_not_muon++;
 
-    if (assoc_table.find(key) == assoc_table.end()) // no track matched to MCP
+    auto tracks_it = assoc_table.find(key);
+    if (tracks_it == assoc_table.end()) // no track matched to MCP
       continue;
 
     m_n_tracks_matched_to_MCP++;
 
     // have MC association
     // find track with highest weight
-    auto matched_tracks = assoc_table[key];
-    std::sort(
-      matched_tracks.begin(), matched_tracks.end(), [
+    auto const& matched_tracks = tracks_it->second;
+    auto track_with_weight = std::max_element(
+      matched_tracks.cbegin(), matched_tracks.cend(), [
       ](const MCAssociator::TrackWithWeight& a, const MCAssociator::TrackWithWeight& b) noexcept {
-        return a.m_w > b.m_w;
+        return a.m_w < b.m_w;
       });
 
-    const auto track_with_weight = matched_tracks.front();
-    const auto weight = track_with_weight.m_w;
-    auto track = tracks[track_with_weight.m_idx];
+    auto const& track = tracks[track_with_weight->m_idx];
 
     // add to various categories
     for (auto& report : m_categories) {
@@ -468,10 +487,10 @@ std::vector<uint32_t> TrackChecker::operator()(
 
     // fill histograms of reconstructible MC particles in various categories
     for (auto& histo_cat : m_histo_categories) {
-      histos->fillReconstructedHistos(mcp, histo_cat);
+      m_histos->fillReconstructedHistos(mcp, histo_cat);
     }
     // fill histogram of momentum resolution
-    histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
+    m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
   }
 
   for (auto& report : m_categories) {
@@ -498,12 +517,20 @@ std::vector<uint32_t> TrackChecker::operator()(
   return matched_mcp_keys;
 }
 
-TrackCheckerVelo::TrackCheckerVelo(bool cf) : TrackChecker {"Velo", Categories::Velo, Categories::VeloHisto, cf} {}
-
-TrackCheckerVeloUT::TrackCheckerVeloUT(bool cf) :
-  TrackChecker {"VeloUT", Categories::VeloUT, Categories::VeloUTHisto, cf}
+TrackCheckerVelo::TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file) :
+  TrackChecker {subdetector_t::name, Categories::Velo, Categories::VeloHisto, invoker, root_file, subdetector_t::name}
 {}
 
-TrackCheckerForward::TrackCheckerForward(bool cf) :
-  TrackChecker {"Forward", Categories::Forward, Categories::ForwardHisto, cf, true}
+TrackCheckerVeloUT::TrackCheckerVeloUT(CheckerInvoker const* invoker, std::string const& root_file) :
+  TrackChecker {subdetector_t::name, Categories::VeloUT, Categories::VeloUTHisto, invoker, root_file, "Upstream"}
+{}
+
+TrackCheckerForward::TrackCheckerForward(CheckerInvoker const* invoker, std::string const& root_file) :
+  TrackChecker {subdetector_t::name,
+                Categories::Forward,
+                Categories::ForwardHisto,
+                invoker,
+                root_file,
+                subdetector_t::name,
+                true}
 {}

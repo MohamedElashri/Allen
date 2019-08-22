@@ -1,4 +1,5 @@
 #include "MCParticle.h"
+#include "CheckerTypes.h"
 
 template<>
 uint32_t get_num_hits<Checker::Subdetector::Velo>(const MCParticle& mc_particle)

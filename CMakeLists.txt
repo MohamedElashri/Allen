@@ -80,6 +80,11 @@ if(DEFINED OVERRIDE_ARCH_FLAG)
   set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
 endif()
 
+option(BUILD_TESTS "Build test programs" OFF)
+if (BUILD_TESTS)
+  enable_testing()
+endif()
+
 find_package(ZLIB REQUIRED)
 
 option(USE_LZMA "build with lzma" OFF)
@@ -121,13 +126,13 @@ if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
       execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
       string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
       message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
-      if (${ROOT_HAS_CXX17} STREQUAL "yes")
+      if ("${ROOT_HAS_CXX17}" STREQUAL "yes")
         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
       else()
         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
       endif()
 
-      set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist)
+      set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist -lRIO)
 
       execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
       string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
@@ -166,6 +171,8 @@ endif()
 set(CMAKE_CUDA_STANDARD 14)
 set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
+set(EXTERNAL_DIR "external")
+
 add_subdirectory(cuda)
 add_subdirectory(stream)
 add_subdirectory(checker)
@@ -178,6 +185,7 @@ add_subdirectory(x86/utils)
 add_subdirectory(x86/global_event_cut)
 add_subdirectory(mdf)
 add_subdirectory(integration)
+add_subdirectory(zmq)
 
 # Include directories
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -197,6 +205,8 @@ include_directories(cuda/velo/consolidate_tracks/include)
 include_directories(cuda/velo/mask_clustering/include)
 include_directories(cuda/velo/search_by_triplet/include)
 include_directories(cuda/velo/simplified_kalman_filter/include)
+include_directories(cuda/PV/common/include)
+include_directories(cuda/PV/beamlinePV/include)
 include_directories(cuda/SciFi/common/include)
 include_directories(cuda/SciFi/looking_forward/common/include)
 include_directories(cuda/SciFi/looking_forward/calculate_first_layer_window/include)
@@ -235,8 +245,11 @@ include_directories(cuda/UT/UTDecoding/include)
 include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
 include_directories(integration/non_event_data/include)
+include_directories(${ZMQ_INCLUDE_DIRS})
 
-file(GLOB common_sources "main/src/*")
+# Main Allen executable
+file(GLOB common_sources "main/src/*.cpp")
+file(GLOB common_cuda_sources "main/src/*.cu")
 
 # Remove main.cpp from common_sources
 foreach(source main Allen)
@@ -244,11 +257,12 @@ get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/$
 list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
 
-# common library
+# common libraries
 add_library(Common STATIC ${common_sources})
 target_link_libraries(Common mdf)
 
-set_property(TARGET Common PROPERTY
+add_library(CudaCommon STATIC ${common_cuda_sources})
+set_property(TARGET CudaCommon PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)
 
 # Library containing all the code
@@ -261,11 +275,14 @@ target_link_libraries(AllenLib PUBLIC
   SelChecking
   x86MuonDecoding
   Common
-  NonEventData)
+  CudaCommon
+  NonEventData
+  AllenZMQ)
 set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
 
 if (ROOT_FOUND)
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
+  target_include_directories(AllenLib SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
   target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
 endif()
 
@@ -274,8 +291,6 @@ endif()
 add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
 
-option(BUILD_TESTS "Build test programs" OFF)
 if(BUILD_TESTS)
-  enable_testing()
   add_subdirectory(tests)
 endif(BUILD_TESTS)

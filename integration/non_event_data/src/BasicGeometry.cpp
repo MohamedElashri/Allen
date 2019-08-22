@@ -15,7 +15,6 @@ void Consumers::RawGeometry::consume(std::vector<char> const& data)
 {
   if (!m_dev_geometry.get()) {
     // Allocate space
-    char* p = nullptr;
     cudaCheck(cudaMalloc((void**) &m_dev_geometry.get(), data.size()));
     m_size = data.size();
   }

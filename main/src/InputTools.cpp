@@ -1,5 +1,6 @@
 #include <regex>
 #include "InputTools.h"
+#include "Common.h"
 
 namespace {
 
@@ -43,26 +44,33 @@ namespace {
     });
   };
 
-  // Convert "N.bin" to (0, N) and "N_M.bin" to (N, M)
-  auto name_to_number = [](const std::string& arg) -> std::pair<int, long long> {
-    std::smatch m;
-    if (!std::regex_match(arg, m, bin_format)) {
-      return {0, 0};
-    }
-    else if (m.length(2) == 0) {
-      return {0, std::stol(std::string {m[1].first, m[1].second})};
-    }
-    else {
-      return {std::stoi(std::string {m[1].first, m[1].second}), std::stol(std::string {m[2].first, m[2].second})};
-    }
-  };
-
   // Sort in natural order by converting the filename to a pair of (int, long long)
   auto natural_order = [](const std::string& lhs, const std::string& rhs) -> bool {
-    return std::less<std::pair<int, long long>> {}(name_to_number(lhs), name_to_number(rhs));
+    return std::less<EventID> {}(name_to_number(lhs), name_to_number(rhs));
   };
 
 }; // namespace
+
+/**
+ * @brief      Convert "N.bin" to (0, N) and "N_M.bin" to (N, M)
+ *
+ * @param      name
+ *
+ * @return     std::pair<int, unsigned long>
+ */
+EventID name_to_number(const std::string& arg)
+{
+  std::smatch m;
+  if (!std::regex_match(arg, m, bin_format)) {
+    return {0, 0};
+  }
+  else if (m.length(2) == 0) {
+    return {0, std::stol(std::string {m[1].first, m[1].second})};
+  }
+  else {
+    return {std::stoi(std::string {m[1].first, m[1].second}), std::stol(std::string {m[2].first, m[2].second})};
+  }
+};
 
 /**
  * @brief Test to check existence of filename.
@@ -84,6 +92,10 @@ void readFileIntoVector(const std::string& filename, std::vector<char>& events)
   infile.seekg(0, std::ios::beg);
   auto dataSize = end - infile.tellg();
 
+  if (dataSize == 0) {
+    warning_cout << "Empty file: " << filename << std::endl;
+  }
+
   events.resize(dataSize);
   infile.read((char*) &(events[0]), dataSize);
   infile.close();
@@ -101,6 +113,10 @@ void appendFileToVector(const std::string& filename, std::vector<char>& events, 
   auto end = infile.tellg();
   infile.seekg(0, std::ios::beg);
   auto dataSize = end - infile.tellg();
+
+  if (dataSize == 0) {
+    warning_cout << "Empty file: " << filename << std::endl;
+  }
 
   // read content of infile with a vector
   const size_t previous_size = events.size();
@@ -177,6 +193,52 @@ uint get_number_of_events_requested(uint number_of_events_requested, const std::
  */
 void read_folder(
   const std::string& foldername,
+  const EventIDs& requested_events,
+  std::vector<bool> const& event_mask,
+  std::vector<char>& events,
+  std::vector<unsigned int>& event_offsets,
+  bool quiet)
+{
+  std::unordered_map<EventID, std::string> tracks_files;
+
+  std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
+  std::smatch result;
+  for (auto const& file : list_folder(foldername)) {
+    if (std::regex_match(file, result, file_expr)) {
+      tracks_files.emplace(std::tuple {std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())}, file);
+    }
+  }
+
+  for (auto const event_id : requested_events) {
+    auto missing = !tracks_files.count(event_id);
+    if (missing) {
+      error_cout << "Missing file for event " << std::get<0>(event_id) << " " << std::get<1>(event_id) << std::endl;
+      return;
+    }
+  }
+
+  auto n_files = std::accumulate(event_mask.begin(), event_mask.end(), 0);
+  std::vector<std::string> files;
+  files.reserve(n_files);
+  for (size_t i = 0; i < events.size(); ++i) {
+    if (event_mask[i]) {
+      auto event_id = requested_events[i];
+      files.emplace_back(tracks_files[event_id]);
+    }
+  }
+
+  read_files(files.cbegin(), files.cend(), events, event_offsets);
+
+  if (!quiet) {
+    debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
+  }
+}
+
+/**
+ * @brief Reads a number of events from a folder name.
+ */
+EventIDs read_folder(
+  const std::string& foldername,
   uint number_of_events_requested,
   std::vector<char>& events,
   std::vector<uint>& event_offsets,
@@ -185,15 +247,45 @@ void read_folder(
   std::vector<std::string> folderContents = list_folder(foldername);
 
   debug_cout << "Requested " << number_of_events_requested << " files" << std::endl;
-  int readFiles = 0;
 
+  EventIDs event_ids;
+  event_ids.reserve(folderContents.size());
+
+  std::regex file_expr {"(\\d+)_(\\d+).*\\.bin"};
+  std::smatch result;
+
+  std::for_each(
+    folderContents.begin() + start_event_offset,
+    folderContents.end(),
+    [&event_ids, &result, &file_expr](const auto& file) {
+      if (std::regex_match(file, result, file_expr)) {
+        event_ids.emplace_back(std::tuple {std::atoi(result[1].str().c_str()), std::atol(result[2].str().c_str())});
+      }
+      else {
+        throw StrException {"event file " + file + " does not match expected filename pattern."};
+      }
+    });
+
+  read_files(folderContents.begin() + start_event_offset, folderContents.end(), events, event_offsets);
+
+  debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
+  return event_ids;
+}
+
+void read_files(
+  std::vector<std::string>::const_iterator file,
+  std::vector<std::string>::const_iterator file_end,
+  std::vector<char>& events,
+  std::vector<uint>& event_offsets)
+{
   // Read all requested events
+  int readFiles = 0;
   unsigned int accumulated_size = 0;
   std::vector<unsigned int> event_sizes;
-  for (int i = start_event_offset; i < number_of_events_requested + start_event_offset; ++i) {
+  event_sizes.reserve(std::distance(file, file_end));
+  for (; file != file_end; ++file) {
     // Read event #i in the list and add it to the inputs
-    std::string readingFile = folderContents[i % folderContents.size()];
-    appendFileToVector(foldername + "/" + readingFile, events, event_sizes);
+    appendFileToVector(*file, events, event_sizes);
 
     event_offsets.push_back(accumulated_size);
     accumulated_size += event_sizes.back();
@@ -203,11 +295,8 @@ void read_folder(
       info_cout << "." << std::flush;
     }
   }
-
   // Add last offset
   event_offsets.push_back(accumulated_size);
-
-  debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
 }
 
 /**

@@ -12,17 +12,17 @@ bool check_velopix_events(const std::vector<char>& events, const std::vector<uin
     const char* p = events.data() + event_offsets[i_event];
     uint32_t number_of_raw_banks = *((uint32_t*) p);
     p += sizeof(uint32_t);
-    uint32_t* raw_bank_offset = (uint32_t*) p;
+    [[maybe_unused]] uint32_t* raw_bank_offset = (uint32_t*) p;
     p += number_of_raw_banks * sizeof(uint32_t);
 
-    uint32_t sensor = *((uint32_t*) p);
+    [[maybe_unused]] uint32_t sensor = *((uint32_t*) p);
     p += sizeof(uint32_t);
-    uint32_t sp_count = *((uint32_t*) p);
+    [[maybe_unused]] uint32_t sp_count = *((uint32_t*) p);
     p += sizeof(uint32_t);
 
     const auto raw_event = VeloRawEvent(raw_input);
     int n_sps_event = 0;
-    for (int i_raw_bank = 0; i_raw_bank < raw_event.number_of_raw_banks; i_raw_bank++) {
+    for (uint i_raw_bank = 0; i_raw_bank < raw_event.number_of_raw_banks; i_raw_bank++) {
       const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[i_raw_bank]);
       n_sps_event += raw_bank.sp_count;
       if (i_raw_bank != raw_bank.sensor_index) {
@@ -35,10 +35,10 @@ bool check_velopix_events(const std::vector<char>& events, const std::vector<uin
         if (0 == sp) {
           continue;
         };
-        const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
-        const uint32_t sp_row = sp_addr & 0x3FU;
-        const uint32_t sp_col = (sp_addr >> 6);
-        const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
+        [[maybe_unused]] const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
+        [[maybe_unused]] const uint32_t sp_row = sp_addr & 0x3FU;
+        [[maybe_unused]] const uint32_t sp_col = (sp_addr >> 6);
+        [[maybe_unused]] const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
       }
     }
     n_sps_all_events += n_sps_event;

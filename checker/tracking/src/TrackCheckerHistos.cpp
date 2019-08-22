@@ -4,9 +4,25 @@ namespace {
   using Checker::HistoCategory;
 }
 
-TrackCheckerHistos::TrackCheckerHistos(const std::vector<HistoCategory>& histo_categories)
+TrackCheckerHistos::TrackCheckerHistos(
+  CheckerInvoker const* invoker,
+  std::string const& root_file,
+  std::string const& directory,
+  std::vector<HistoCategory> const& histo_categories) :
+  m_directory {directory}
 {
 #ifdef WITH_ROOT
+  m_file = invoker->root_file(root_file);
+  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  if (!dir) {
+    dir = m_file->mkdir(m_directory.c_str());
+    dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  }
+  dir->cd();
+
+  // info_cout << m_file->GetName() << std::endl;
+  // info_cout << dir->GetName() << std::endl;
+
   // histos for efficiency
   for (auto histoCat : histo_categories) {
     const std::string& category = histoCat.m_name;
@@ -141,13 +157,17 @@ TrackCheckerHistos::TrackCheckerHistos(const std::vector<HistoCategory>& histo_c
     std::make_unique<TH1D>("ghost_isMuon_Eta_reconstructed", "ghost_isMuon_Eta_reconstructed", 20, 0, 7);
   h_ghost_isMuon_nPV_reconstructed =
     std::make_unique<TH1D>("ghost_isMuon_nPV_reconstructed", "ghost_isMuon_nPV_reconstructed", 21, -0.5, 20.5);
-
 #endif
 }
 
 #ifdef WITH_ROOT
-void TrackCheckerHistos::write(TDirectory* dir)
+void TrackCheckerHistos::write()
 {
+  auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  if (!dir) {
+    dir = m_file->mkdir(m_directory.c_str());
+    dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
+  }
   std::tuple histograms {std::ref(h_dp_versus_p),
                          std::ref(h_momentum_resolution),
                          std::ref(h_qop_resolution),
@@ -208,7 +228,8 @@ void TrackCheckerHistos::write(TDirectory* dir)
 
   for (auto const& histo_map : {std::ref(h_reconstructible_eta_phi), std::ref(h_reconstructed_eta_phi)}) {
     for (auto const& entry : histo_map.get()) {
-      dir->WriteTObject(entry.second.get());
+      auto* histo = entry.second.get();
+      dir->WriteTObject(histo);
     }
   }
 }
@@ -265,19 +286,19 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
 #endif
 }
 
-void TrackCheckerHistos::fillTotalHistos(const MCParticle& mcp, const Checker::Track& track)
+void TrackCheckerHistos::fillTotalHistos(double nPV, double eta)
 {
 #ifdef WITH_ROOT
-  h_total_nPV->Fill(mcp.nPV);
-  h_total_eta->Fill(track.eta);
+  h_total_nPV->Fill(nPV);
+  h_total_eta->Fill(eta);
 #endif
 }
 
-void TrackCheckerHistos::fillGhostHistos(const MCParticle& mcp, const Checker::Track& track)
+void TrackCheckerHistos::fillGhostHistos(double nPV, double eta)
 {
 #ifdef WITH_ROOT
-  h_ghost_nPV->Fill(mcp.nPV);
-  h_ghost_eta->Fill(track.eta);
+  h_ghost_nPV->Fill(nPV);
+  h_ghost_eta->Fill(eta);
 #endif
 }
 
@@ -336,11 +357,11 @@ void TrackCheckerHistos::fillMuonReconstructible(const MCParticle& mcp)
 #endif
 }
 
-void TrackCheckerHistos::fillMuonGhostHistos(const MCParticle& mcp, const Checker::Track& track)
+void TrackCheckerHistos::fillMuonGhostHistos(double nPV, double eta)
 {
 #ifdef WITH_ROOT
-  h_ghost_isMuon_nPV_reconstructed->Fill(mcp.nPV);
-  h_ghost_isMuon_Eta_reconstructed->Fill(track.eta);
+  h_ghost_isMuon_nPV_reconstructed->Fill(nPV);
+  h_ghost_isMuon_Eta_reconstructed->Fill(eta);
 #endif
 }
 

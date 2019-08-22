@@ -13,7 +13,7 @@
 
 #include "MCEvent.h"
 
-void MCEvent::check_mcp(const MCParticle& mcp)
+void MCEvent::check_mcp(const MCParticle& mcp [[maybe_unused]])
 {
   assert(!std::isnan(mcp.p));
   assert(!std::isnan(mcp.pt));
@@ -23,9 +23,22 @@ void MCEvent::check_mcp(const MCParticle& mcp)
   assert(!std::isinf(mcp.eta));
 }
 
-MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
+MCEvent::MCEvent(std::vector<char> const& particles, std::vector<char> const& vertices, const bool checkEvent)
 {
-  uint8_t* input = (uint8_t*) event.data();
+  load_particles(particles);
+
+  if (checkEvent) {
+    for (const auto& mcp : m_mcps) {
+      check_mcp(mcp);
+    }
+  }
+
+  load_vertices(vertices);
+}
+
+void MCEvent::load_particles(const std::vector<char>& particles)
+{
+  uint8_t* input = (uint8_t*) particles.data();
 
   uint32_t number_mcp = *((uint32_t*) input);
   input += sizeof(uint32_t);
@@ -110,17 +123,37 @@ MCEvent::MCEvent(const std::vector<char>& event, const bool checkEvent)
     }
   }
 
-  size = input - (uint8_t*) event.data();
+  size = input - (uint8_t*) particles.data();
 
-  if (size != event.size()) {
+  if (size != particles.size()) {
     throw StrException(
-      "Size mismatch in event deserialization: " + std::to_string(size) + " vs " + std::to_string(event.size()));
+      "Size mismatch in event deserialization: " + std::to_string(size) + " vs " + std::to_string(particles.size()));
   }
+}
 
-  if (checkEvent) {
-    for (const auto& mcp : m_mcps) {
-      check_mcp(mcp);
-    }
+void MCEvent::load_vertices(const std::vector<char>& vertices)
+{
+  // collect true PV vertices in a event
+  uint8_t* input = (uint8_t*) vertices.data();
+
+  int number_mcpv = *((int*) input);
+  input += sizeof(int);
+
+  for (int i = 0; i < number_mcpv; ++i) {
+    MCVertex mc_vertex;
+
+    int VertexNumberOfTracks = *((int*) input);
+    input += sizeof(int);
+    mc_vertex.numberTracks = VertexNumberOfTracks;
+    mc_vertex.x = *((double*) input);
+    input += sizeof(double);
+    mc_vertex.y = *((double*) input);
+    input += sizeof(double);
+    mc_vertex.z = *((double*) input);
+    input += sizeof(double);
+
+    // if(mc_vertex.numberTracks >= 4) vertices.push_back(mc_vertex);
+    m_mcvs.push_back(mc_vertex);
   }
 }
 

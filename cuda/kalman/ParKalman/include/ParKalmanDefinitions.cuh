@@ -10,8 +10,8 @@ namespace ParKalmanFilter {
   typedef SquareMatrix<false, 5> Matrix5x5;
 
   // Set a 5x5 diagonal matrix for later use
-  __constant__ static KalmanFloat F_diag[25] = {1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
-                                                0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1};
+  [[maybe_unused]] __constant__ static KalmanFloat F_diag[25] = {1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
+                                                                 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1};
 
   // Max number of measurements.
   const int nMaxMeasurements = 41; // 25 VELO + 4 UT + 12 SciFi
