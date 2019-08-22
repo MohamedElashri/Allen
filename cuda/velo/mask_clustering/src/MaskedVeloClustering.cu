@@ -92,7 +92,14 @@ __global__ void masked_velo_clustering(
           const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
 
           const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
-
+          
+#if DEBUG
+          const auto module_estimated_num =
+            dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
+            dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
+          assert(cluster_num <= module_estimated_num);
+#endif
+          
           const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
           const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
           const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
@@ -119,7 +126,14 @@ __global__ void masked_velo_clustering(
           const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
 
           const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
-
+          
+#if DEBUG
+          const auto module_estimated_num =
+            dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
+            dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
+          assert(cluster_num <= module_estimated_num);
+#endif
+          
           const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
           const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
           const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];

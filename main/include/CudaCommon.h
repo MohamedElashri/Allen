@@ -19,13 +19,12 @@
 #define __syncthreads()
 #define __launch_bounds__(_i)
 #define cudaError_t int
+#define cudaEvent_t int
+#define cudaStream_t int
 #define cudaSuccess 0
 #define half_t short
 #define __popcll __builtin_popcountll
 #define cudaEventBlockingSync 0x01
-
-struct cudaEvent_t {};
-struct cudaStream_t {};
 
 enum cudaMemcpyKind {
   cudaMemcpyHostToHost,
@@ -83,10 +82,10 @@ struct ThreadIndices {
   unsigned int z = 0;
 };
 
-extern GridDimensions gridDim;
-extern BlockIndices blockIdx;
-extern BlockDimensions blockDim;
-extern ThreadIndices threadIdx;
+extern thread_local GridDimensions gridDim;
+extern thread_local BlockIndices blockIdx;
+extern thread_local BlockDimensions blockDim;
+extern thread_local ThreadIndices threadIdx;
 
 cudaError_t cudaMalloc(void** devPtr, size_t size);
 cudaError_t cudaMallocHost(void** ptr, size_t size);
@@ -104,15 +103,15 @@ cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
 
 template<class T>
-T fabs(T x) {
+T fabs(const T& x) {
   return std::fabs(x);
 }
 
 template<class T, class S>
 T atomicAdd(T* address, S val) {
-  const T temp = *address;
+  const T old = *address;
   *address += val;
-  return temp;
+  return old;
 }
 
 template<class T>
