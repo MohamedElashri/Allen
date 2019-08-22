@@ -57,11 +57,11 @@ void print_call_options(const std::map<std::string, std::string>& options, const
     std::cout << " " << po.description << " (";
     for (size_t i = 0; i < po.options.size(); ++i) {
       if (po.options[i].length() > 1) {
-        std::cerr << "-";
+        std::cout << "-";
       }
-      std::cerr << "-" << po.options[i];
+      std::cout << "-" << po.options[i];
       if (i != po.options.size() - 1) {
-        std::cerr << ", ";
+        std::cout << ", ";
       }
     }
     std::cout << "): ";
