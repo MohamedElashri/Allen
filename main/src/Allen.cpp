@@ -44,9 +44,6 @@
 #include "Allen.h"
 
 namespace {
-  constexpr size_t n_io = 1;
-  constexpr size_t max_stream_threads = 64;
-
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed };
 } // namespace
 

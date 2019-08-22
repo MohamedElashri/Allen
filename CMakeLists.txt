@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 # Determine whether to produce a CPU version
 option(CPU "Produce a CPU version" OFF)
 
+# Determine whether to use Tensor Cores
+option(TENSOR "Produce a GPU code with Tensor Cores enabled if available" OFF)
+
+if(TENSOR)
+  add_compile_definitions(TENSOR_CORES_ENABLED)
+endif()
+
 # Workaround 1/2 for shared cuda runtime
 set(CMAKE_CUDA_FLAGS "" CACHE STRING "")
 if(CMAKE_CUDA_FLAGS)

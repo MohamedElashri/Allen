@@ -34,16 +34,22 @@ void cpu_prefix_sum(
     cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(uint)));
   }
 
+#ifdef CPU
+  host_prefix_sum_buffer = dev_prefix_sum_offset;
+#else
   cudaCheck(cudaMemcpyAsync(
     host_prefix_sum_buffer, dev_prefix_sum_offset, dev_prefix_sum_size, cudaMemcpyDeviceToHost, cuda_stream));
 
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
+#endif
 
   cpu_prefix_sum_impl(host_prefix_sum_buffer, dev_prefix_sum_size, host_total_sum_holder);
 
+#ifndef CPU
   cudaCheck(cudaMemcpyAsync(
     dev_prefix_sum_offset, host_prefix_sum_buffer, dev_prefix_sum_size, cudaMemcpyHostToDevice, cuda_stream));
+#endif
 }
 
 void cpu_combo_prefix_sum_impl(
