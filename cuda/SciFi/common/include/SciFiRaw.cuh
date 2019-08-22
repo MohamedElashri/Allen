@@ -58,4 +58,5 @@ namespace SciFi {
     static constexpr uint16_t clusterMaxWidth = 4;
   } // namespace SciFiRawBankParams
 
+  __device__ uint32_t getRawBankIndexOrderedByX(uint32_t index);
 } // namespace SciFi

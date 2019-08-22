@@ -38,10 +38,7 @@ __global__ void scifi_direct_decoder_v4(
     const uint j = (i / 10) % 4;
     const bool reverse_cluster_order = j == 1 | j == 2;
 
-    const uint k = i % 10;
-    const bool reverse_raw_bank_order = k < 5;
-    const uint current_raw_bank = reverse_raw_bank_order ? 5 * (i / 5) + (4 - i % 5) : i;
-
+    const uint current_raw_bank = getRawBankIndexOrderedByX(i);
     const uint raw_bank_offset = hit_count.mat_group_offset(i);
     const auto rawbank = event.getSciFiRawBank(current_raw_bank);
     uint16_t* it = rawbank.data + 2;

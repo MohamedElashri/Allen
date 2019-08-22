@@ -20,11 +20,7 @@ __global__ void scifi_calculate_cluster_count_v6(
 
   for(uint i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x)
   {
-    const uint k = i % 10;
-    const bool reverse_raw_bank_order = k < 5;
-    const uint current_raw_bank = reverse_raw_bank_order ?
-      5 * (i / 5) + (4 - i % 5) :
-      i;
+    const uint current_raw_bank = getRawBankIndexOrderedByX(i);
     uint32_t* hits_module;
     const auto rawbank = event.getSciFiRawBank(current_raw_bank);
     uint16_t* it = rawbank.data + 2;
