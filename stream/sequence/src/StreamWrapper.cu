@@ -46,7 +46,7 @@ StreamWrapper::~StreamWrapper()
 
 void print_configured_sequence()
 {
-  info_cout << "Configured sequence of algorithms:" << std::endl;
+  info_cout << "\nConfigured sequence of algorithms:\n";
   Sch::PrintAlgorithmSequence<configured_sequence_t>::print();
   info_cout << std::endl;
 }
