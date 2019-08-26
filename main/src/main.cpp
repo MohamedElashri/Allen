@@ -61,12 +61,12 @@ int main(int argc, char* argv[])
       bool found_opt = false;
       for (const auto& po : program_options) {
         for (const auto& opt : po.options) {
-          if (std::string {c} == opt) {
+          if (std::string {(char) c} == opt) {
             if (optarg) {
-              allen_options[std::string {c}] = optarg;
+              allen_options[std::string {(char) c}] = optarg;
             }
             else {
-              allen_options[std::string {c}] = "1";
+              allen_options[std::string {(char) c}] = "1";
             }
             found_opt = true;
           }
