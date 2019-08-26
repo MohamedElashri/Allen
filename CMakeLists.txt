@@ -60,6 +60,7 @@ if(NOT DEFINED CPU_ARCH)
   set(CPU_ARCH native)
 endif()
 
+# Specific optimizations for different architectures
 if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
   # x86 family
@@ -67,12 +68,19 @@ if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL
   MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
   # PowerPC family
+  # More options on: https://developer.ibm.com/linuxonpower/compiler-options-table/
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=${CPU_ARCH}")
   MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
   # ARM family
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=${CPU_ARCH}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
+  MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
+  # ARM64 family
+  # Options from: http://www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH} -floop-optimize \
+-falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
   MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
 endif()
 
