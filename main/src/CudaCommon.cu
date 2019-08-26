@@ -14,12 +14,12 @@ dim3::dim3(const unsigned int& x, const unsigned int& y) : x(x), y(y) {}
 dim3::dim3(const unsigned int& x, const unsigned int& y, const unsigned int& z) : x(x), y(y), z(z) {}
 
 cudaError_t cudaMalloc(void** devPtr, size_t size) {
-  devPtr[0] = memalign(16, size);
+  devPtr[0] = memalign(64, size);
   return 0;
 }
 
 cudaError_t cudaMallocHost(void** ptr, size_t size) {
-  ptr[0] = memalign(16, size);
+  ptr[0] = memalign(64, size);
   return 0;
 }
 
