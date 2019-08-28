@@ -719,7 +719,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         auto& socket = std::get<1>(io_workers[i]);
         auto msg = zmqSvc().receive<string>(socket);
         if (msg == "SLICE") {
-          slice_index = zmqSvc().receive<int>(socket);
+          slice_index = zmqSvc().receive<size_t>(socket);
           auto good = zmqSvc().receive<bool>(socket);
           auto n_filled = zmqSvc().receive<size_t>(socket);
 
