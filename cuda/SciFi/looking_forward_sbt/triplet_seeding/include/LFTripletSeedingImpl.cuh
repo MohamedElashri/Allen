@@ -38,4 +38,5 @@ __device__ void lf_triplet_seeding_impl(
   const short* scifi_lf_candidates,
   const float dz1,
   const float dz2,
-  const float qop);
+  const float qop,
+  float* shared_partial_chi2);
