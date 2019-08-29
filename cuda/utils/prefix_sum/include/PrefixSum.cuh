@@ -23,7 +23,7 @@ __global__ void __launch_bounds__(1024)
 __global__ void __launch_bounds__(1024)
   copy_and_prefix_sum_single_block(uint* dev_total_sum, uint* dev_input_array, uint* dev_output_array, const uint array_size);
 
-__global__ void __launch_bounds__(1024)
+__global__ void __launch_bounds__(1024) 
   copy_square_and_prefix_sum_single_block(uint* dev_total_sum, uint* dev_input_array, uint* dev_output_array, const uint array_size);
 
 __global__ void __launch_bounds__(512)
