@@ -3,7 +3,7 @@
 
 __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
 {
-  return a + b * std::exp(-c * momentum / Gaudi::Units::GeV);
+  return a + b * expf(-c * momentum / Gaudi::Units::GeV);
 }
 
 __device__ std::pair<float, float> field_of_interest(
@@ -77,7 +77,7 @@ __global__ void is_muon(
   const uint event_offset = scifi_tracks.tracks_offset(event_id);
 
   for (uint track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
-    const float momentum = 1 / std::abs(scifi_tracks.qop[track_id]);
+    const float momentum = 1 / fabsf(scifi_tracks.qop[track_id]);
     const uint track_offset = (event_offset + track_id) * Muon::Constants::n_stations;
 
     __syncthreads();

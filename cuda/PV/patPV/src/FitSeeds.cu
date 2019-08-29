@@ -254,7 +254,7 @@ __device__ bool fit_vertex(
 
     // loose convergence criteria if close to end of iterations
     if (1. * nbIter > 0.8 * PatPV::m_Iterations) maxdz = 10. * PatPV::m_maxDeltaZ;
-    converged = std::abs(delta.z) < maxdz;
+    converged = fabsf(delta.z) < maxdz;
     tracks_in_vertex = ntrin;
   } // end iteration loop
 
@@ -276,7 +276,7 @@ __device__ bool fit_vertex(
 __device__ float get_tukey_weight(float trchi2, int iter)
 {
   if (iter < 1) return 1.;
-  float ctrv = PatPV::m_trackChi * std::max(PatPV::m_minIter - iter, 1);
-  float cT2 = trchi2 / std::pow(ctrv * PatPV::m_TrackErrorScaleFactor, 2);
-  return cT2 < 1. ? std::pow(1. - cT2, 2) : 0.;
+  float ctrv = PatPV::m_trackChi * max(PatPV::m_minIter - iter, 1);
+  float cT2 = trchi2 / powf(ctrv * PatPV::m_TrackErrorScaleFactor, 2);
+  return cT2 < 1. ? powf(1. - cT2, 2) : 0.;
 }

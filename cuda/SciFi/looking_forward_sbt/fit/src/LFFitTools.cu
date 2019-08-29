@@ -248,7 +248,7 @@ __device__ int LookingForward::fitParabola_proto(
   const float c2 = sz3 * sz2 - sz * sz4;
   const float d2 = sdz * sz2 - sz * sdz2;
   const float den = (b1 * c2 - b2 * c1);
-  if (!(std::fabs(den) > 1e-5f)) return false;
+  if (!(fabsf(den) > 1e-5f)) return false;
   const float db = (d1 * c2 - d2 * c1) / den;
   const float dc = (d2 * b1 - d1 * b2) / den;
   const float da = (sd - db * sz - dc * sz2) / s0;

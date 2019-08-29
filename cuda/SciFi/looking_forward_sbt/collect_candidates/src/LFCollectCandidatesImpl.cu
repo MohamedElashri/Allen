@@ -37,7 +37,7 @@ __device__ void lf_collect_candidates_impl(
       const auto xHit = scifi_hits.x0[hit_index];
 
       const auto xPredUv = param_uv_0 + xHit * param_uv_1;
-      const auto maxDx = param_uv_2 + std::abs(xHit - param_uv_3) * SciFi::Tracking::tolYSlopeCollectX;
+      const auto maxDx = param_uv_2 + fabsf(xHit - param_uv_3) * SciFi::Tracking::tolYSlopeCollectX;
 
       // Note: Making a tighter requirement on the UV layer hit
       const auto multiplier = (window_size > 64) ? 0.8f : 1.f;

@@ -15,7 +15,7 @@ namespace Distance {
     float dz = vertex.position.z - velo_kalman_states.z[state_index];
     float dx = velo_kalman_states.x[state_index] + dz * tx - vertex.position.x;
     float dy = velo_kalman_states.y[state_index] + dz * ty - vertex.position.y;
-    return std::sqrt((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
+    return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
   }
 
   __device__ float velo_ip_chi2(
@@ -71,7 +71,7 @@ __device__ void associate(
     short best_index = 0;
     bool first = true;
     for (uint j = 0; j < vertices.size(); ++j) {
-      float val = std::fabs(fun(velo_kalman_states, i, *(vertices.data() + j)));
+      float val = fabsf(fun(velo_kalman_states, i, *(vertices.data() + j)));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
       first = false;

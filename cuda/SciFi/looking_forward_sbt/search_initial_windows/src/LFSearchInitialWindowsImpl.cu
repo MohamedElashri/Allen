@@ -115,7 +115,7 @@ __device__ void lf_search_initial_windows_impl(
   const float q = qop > 0.f ? 1.f : -1.f;
   const float dir = q * magnet_polarity * (-1.f);
 
-  const float pt = std::sqrt(slope2 / (1.f + slope2)) / std::abs(qop);
+  const float pt = sqrtf(slope2 / (1.f + slope2)) / fabsf(qop);
   const bool wSignTreatment = SciFi::Tracking::useWrongSignWindow && pt > SciFi::Tracking::wrongSignPT;
 
   float dxRefWS = 0.f;
@@ -178,11 +178,11 @@ __device__ void lf_search_initial_windows_impl(
       const float xCentral = xInZone + dx;
       const float xPredUv = xInUv + (scifi_hits.x0[hits_within_bounds_start] - xInZone) * zRatio - dx;
       const float maxDx = SciFi::Tracking::tolYCollectX +
-                          (std::abs(scifi_hits.x0[hits_within_bounds_start] - xCentral) + std::abs(yInZone)) *
+                          (fabsf(scifi_hits.x0[hits_within_bounds_start] - xCentral) + fabsf(yInZone)) *
                             SciFi::Tracking::tolYSlopeCollectX;
       const float xMinUV = xPredUv - maxDx;
       const float xPredUVProto = xInUv - xInZone * zRatio - dx;
-      const float maxDxProto = SciFi::Tracking::tolYCollectX + std::abs(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
+      const float maxDxProto = SciFi::Tracking::tolYCollectX + fabsf(yInZone) * SciFi::Tracking::tolYSlopeCollectX;
 
       // Get bounds in UV layers
       // do one search on the same side as the x module

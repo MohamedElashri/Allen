@@ -28,7 +28,7 @@ namespace VertexFit {
     float secondBB = txB * txB + tyB * tyB + 1.0;
     float secondAB = -txA * txB - tyA * tyB - 1.0;
     float det = secondAA * secondBB - secondAB * secondAB;
-    if (std::abs(det) > 0) {
+    if (fabsf(det) > 0) {
       float secondinvAA = secondBB / det;
       float secondinvBB = secondAA / det;
       float secondinvAB = -secondAB / det;
@@ -200,9 +200,9 @@ namespace VertexFit {
     if (sv.is_dimuon) {
       const float mdimu2 =
         2.f * mMu * mMu +
-        2.f * (std::sqrt((trackA.p() * trackA.p() + mMu * mMu) * (trackB.p() * trackB.p() + mMu * mMu)) -
+        2.f * (sqrtf((trackA.p() * trackA.p() + mMu * mMu) * (trackB.p() * trackB.p() + mMu * mMu)) -
                trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
-      sv.mdimu = std::sqrt(mdimu2);
+      sv.mdimu = sqrtf(mdimu2);
     }
     else {
       sv.mdimu = -1.f;
@@ -222,7 +222,7 @@ namespace VertexFit {
     const float dx = sv.x - pv.position.x;
     const float dy = sv.y - pv.position.y;
     const float dz = sv.z - pv.position.z;
-    const float fd = std::sqrt(dx * dx + dy * dy + dz * dz);
+    const float fd = sqrtf(dx * dx + dy * dy + dz * dz);
 
     // Get covariance and FD chi2.
     const float cov00 = sv.cov00 + pv.cov00;
@@ -240,7 +240,7 @@ namespace VertexFit {
                 2.f * invcov21 * dy * dz;
 
     // PV-SV eta.
-    sv.eta = std::atanh(dz / fd);
+    sv.eta = atanhf(dz / fd);
 
     // Corrected mass.
     const float px = trackA.px() + trackB.px();
@@ -248,12 +248,12 @@ namespace VertexFit {
     const float pz = trackA.pz() + trackB.pz();
     const float mvis2 =
       2.f * mPi * mPi +
-      2.f * (std::sqrt((trackA.p() * trackA.p() + mPi * mPi) * (trackB.p() * trackB.p() + mPi * mPi)) -
+      2.f * (sqrtf((trackA.p() * trackA.p() + mPi * mPi) * (trackB.p() * trackB.p() + mPi * mPi)) -
              trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
     const float pperp2 = ((py * dz - dy * pz) * (py * dz - dy * pz) + (pz * dx - dz * px) * (pz * dx - dz * px) +
                           (px * dy - dx * py) * (px * dy - dx * py)) /
                          fd / fd;
-    sv.mcor = std::sqrt(mvis2 + pperp2) + std::sqrt(pperp2);
+    sv.mcor = sqrtf(mvis2 + pperp2) + sqrtf(pperp2);
 
     // Minimum IP chi2 of constituent tracks.
     sv.minipchi2 = trackA.ipChi2 < trackB.ipChi2 ? trackA.ipChi2 : trackB.ipChi2;

@@ -164,7 +164,7 @@ namespace UT {
     }
     __host__ __device__ inline float cosT(const int i_hit, const float dxDy) const
     {
-      return (std::fabs(xAtYEq0[i_hit]) < 1.0E-9) ? 1. / std::sqrt(1 + dxDy * dxDy) : std::cos(dxDy);
+      return (fabsf(xAtYEq0[i_hit]) < 1.0E-9) ? 1. / sqrtf(1 + dxDy * dxDy) : cosf(dxDy);
     }
     __host__ __device__ inline float sinT(const int i_hit, const float dxDy) const
     {
@@ -175,8 +175,8 @@ namespace UT {
     {
       return xAtYEq0[i_hit] + globalY * dxDy;
     }
-    __host__ __device__ inline float yMax(const int i_hit) const { return std::max(yBegin[i_hit], yEnd[i_hit]); }
+    __host__ __device__ inline float yMax(const int i_hit) const { return fmaxf(yBegin[i_hit], yEnd[i_hit]); }
     __host__ __device__ inline float yMid(const int i_hit) const { return 0.5 * (yBegin[i_hit] + yEnd[i_hit]); }
-    __host__ __device__ inline float yMin(const int i_hit) const { return std::min(yBegin[i_hit], yEnd[i_hit]); }
+    __host__ __device__ inline float yMin(const int i_hit) const { return fminf(yBegin[i_hit], yEnd[i_hit]); }
   };
 } // namespace UT

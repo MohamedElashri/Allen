@@ -523,9 +523,9 @@ ExtrapolateInV(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
 
   // Set noise matrix
 
-  KalmanFloat sigt = par[1] * ((KalmanFloat) 1.0e-5) + par[2] * std::abs(x_old[4]);
+  KalmanFloat sigt = par[1] * ((KalmanFloat) 1.0e-5) + par[2] * fabsf(x_old[4]);
   // sigma x/y
-  KalmanFloat sigx = par[6] * sigt * std::abs(dz);
+  KalmanFloat sigx = par[6] * sigt * fabsf(dz);
   // Correlation between x/y and tx/ty
   KalmanFloat corr = par[7];
 
@@ -556,28 +556,28 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   // ty
   x[3] = x_old[3] + par[0] * std::copysign((KalmanFloat) 1.0, x[1]) * x_old[4] * x_old[2];
 
-  KalmanFloat tyErr = par[3] * std::abs(x_old[4]);
+  KalmanFloat tyErr = par[3] * fabsf(x_old[4]);
 
   // y
   x[1] = x_old[1] + (par[5] * x_old[3] + (((KalmanFloat) 1.0) - par[5]) * x[3]) * dz;
 
-  KalmanFloat yErr = par[6] * std::abs(dz * x_old[4]);
+  KalmanFloat yErr = par[6] * fabsf(dz * x_old[4]);
 
   // tx
   KalmanFloat coeff = par[8] * ((KalmanFloat) 1e1) + par[9] * ((KalmanFloat) 1e-2) * zFrom +
                       par[10] * ((KalmanFloat) 1e2) * x_old[3] * x_old[3];
 
   KalmanFloat a =
-    x_old[2] / std::sqrt(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]) - x_old[4] * coeff;
-  KalmanFloat sqrtTmp = std::sqrt((((KalmanFloat) 1.0) - a * a) * (((KalmanFloat) 1.0) + x[3] * x[3]));
+    x_old[2] / sqrtf(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]) - x_old[4] * coeff;
+  KalmanFloat sqrtTmp = sqrtf((((KalmanFloat) 1.0) - a * a) * (((KalmanFloat) 1.0) + x[3] * x[3]));
 
   // Check that the track is not deflected
-  if (std::abs(a) >= 1) return false;
+  if (fabsf(a) >= 1) return false;
 
   // x[2] = a * sqrt(1.0 / ((KalmanFloat) 1.0 - a * a) * ((KalmanFloat) 1.0 + x[3] * x[3]));
   x[2] = a / sqrtTmp;
 
-  KalmanFloat txErr = par[15] * std::abs(x_old[4]);
+  KalmanFloat txErr = par[15] * fabsf(x_old[4]);
 
   // x
   KalmanFloat zmag = par[16] * ((KalmanFloat) 1e3) + par[17] * zFrom + par[18] * ((KalmanFloat) 1e-5) * zFrom * zFrom +
@@ -585,7 +585,7 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
 
   x[0] = x_old[0] + (zmag - zFrom) * x_old[2] + (zTo - zmag) * x[2];
 
-  KalmanFloat xErr = par[20] * std::abs(dz * x_old[4]);
+  KalmanFloat xErr = par[20] * fabsf(dz * x_old[4]);
 
   // calculate jacobian
   // ty
@@ -608,7 +608,7 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   F(2, 0) = (KalmanFloat) 0.0;
   F(2, 1) = (KalmanFloat) 0.0;
 
-  sqrtTmp = std::sqrt(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]);
+  sqrtTmp = sqrtf(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]);
   F(2, 2) = DtxDa * (((KalmanFloat) 1.0) + x_old[3] * x_old[3]) /
               (sqrtTmp * (((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3])) +
             DtxDty * F(3, 2);
@@ -656,16 +656,16 @@ __device__ void GetNoiseVUTBackw(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x,
   const auto& par = tI.m_extr->Par_predictVUT[1];
 
   // ty
-  KalmanFloat tyErr = par[3] * std::abs(x[4]);
+  KalmanFloat tyErr = par[3] * fabsf(x[4]);
 
   // y
-  KalmanFloat yErr = par[6] * std::abs(dz * x[4]);
+  KalmanFloat yErr = par[6] * fabsf(dz * x[4]);
 
   // tx
-  KalmanFloat txErr = par[15] * std::abs(x[4]);
+  KalmanFloat txErr = par[15] * fabsf(x[4]);
 
   // x
-  KalmanFloat xErr = par[20] * std::abs(dz * x[4]);
+  KalmanFloat xErr = par[20] * fabsf(dz * x[4]);
 
   // add noise
   Q(0, 0) = xErr * xErr;
@@ -741,10 +741,10 @@ __device__ void ExtrapolateInUT(
   F(4, 4) = (KalmanFloat) 1.0;
 
   // Define noise
-  KalmanFloat xErr = par[2] * std::abs(dz * x_old[4]);
-  KalmanFloat yErr = par[4] * std::abs(dz * x_old[4]);
-  KalmanFloat txErr = par[12] * std::abs(x_old[4]);
-  KalmanFloat tyErr = par[15] * std::abs(x_old[4]);
+  KalmanFloat xErr = par[2] * fabsf(dz * x_old[4]);
+  KalmanFloat yErr = par[4] * fabsf(dz * x_old[4]);
+  KalmanFloat txErr = par[12] * fabsf(x_old[4]);
+  KalmanFloat tyErr = par[15] * fabsf(x_old[4]);
 
   // Add noise
   Q(0, 0) = xErr * xErr;
@@ -810,7 +810,7 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
   // determine the momentum at this state from the momentum saved in the state vector
   //(representing always the PV qop)
   KalmanFloat qopHere = x[4] + x[4] * ((KalmanFloat) 1e-4) * par[18] +
-                        x[4] * std::abs(x[4]) * par[19]; // TODO make this a tuneable parameter
+                        x[4] * fabsf(x[4]) * par[19]; // TODO make this a tuneable parameter
 
   // do the actual extrapolation
   KalmanFloat der_tx[4];
@@ -845,7 +845,7 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
   F(3, 1) = (KalmanFloat) 0.0; // der_y[3];
   F(3, 2) = der_tx[3];
   F(3, 3) = der_ty[3];
-  F(3, 4) = der_qop[3] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18]) + par[0] +
+  F(3, 4) = der_qop[3] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * fabsf(x[4]) * par[18]) + par[0] +
             ((KalmanFloat) 2.0) * par[1] * x_old[4] * ((KalmanFloat) 1e5) +
             ((KalmanFloat) 3.0) * par[2] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
 
@@ -854,7 +854,7 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
   F(1, 1) = (KalmanFloat) 1.0; // der_y[1];
   F(1, 2) = der_tx[1];
   F(1, 3) = der_ty[1];
-  F(1, 4) = der_qop[1] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18]) +
+  F(1, 4) = der_qop[1] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * fabsf(x[4]) * par[18]) +
             par[3] * ((KalmanFloat) 1e2) + ((KalmanFloat) 2.0) * par[4] * x_old[4] * ((KalmanFloat) 1e5) +
             ((KalmanFloat) 3.0) * par[5] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
 
@@ -863,7 +863,7 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
   F(2, 1) = (KalmanFloat) 0.0; // der_y[2];
   F(2, 2) = der_tx[2];
   F(2, 3) = der_ty[2];
-  F(2, 4) = der_qop[2] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18]) + par[6] +
+  F(2, 4) = der_qop[2] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * fabsf(x[4]) * par[18]) + par[6] +
             ((KalmanFloat) 2.0) * par[7] * x_old[4] * ((KalmanFloat) 1e5) +
             ((KalmanFloat) 3.0) * par[8] * x_old[4] * x_old[4] * ((KalmanFloat) 1e8);
 
@@ -872,7 +872,7 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
   F(0, 1) = (KalmanFloat) 0.0; // der_y[0];
   F(0, 2) = der_tx[0];
   F(0, 3) = der_ty[0];
-  F(0, 4) = der_qop[0] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * std::abs(x[4]) * par[18]) +
+  F(0, 4) = der_qop[0] * (((KalmanFloat) 1.0) + ((KalmanFloat) 2.0) * fabsf(x[4]) * par[18]) +
             par[9] * ((KalmanFloat) 1e2) + ((KalmanFloat) 2.0) * par[10] * x_old[4] * ((KalmanFloat) 1e5) +
             ((KalmanFloat) 3.0) * par[11] * x_old[4] * x_old[4] * ((KalmanFloat) 1e10);
 
@@ -884,10 +884,10 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
   F(4, 4) = (KalmanFloat) 1.0;
 
   // Define noise
-  KalmanFloat xErr = par[13] * ((KalmanFloat) 1e2) * std::abs(x_old[4]);
-  KalmanFloat yErr = par[16] * ((KalmanFloat) 1e2) * std::abs(x_old[4]);
-  KalmanFloat txErr = par[12] * std::abs(x_old[4]);
-  KalmanFloat tyErr = par[15] * std::abs(x_old[4]);
+  KalmanFloat xErr = par[13] * ((KalmanFloat) 1e2) * fabsf(x_old[4]);
+  KalmanFloat yErr = par[16] * ((KalmanFloat) 1e2) * fabsf(x_old[4]);
+  KalmanFloat txErr = par[12] * fabsf(x_old[4]);
+  KalmanFloat tyErr = par[15] * fabsf(x_old[4]);
 
   // Add noise
   Q(0, 0) = xErr * xErr;
@@ -905,10 +905,10 @@ __device__ void GetNoiseUTTBackw(const Vector5& x, SymMatrix5x5& Q, trackInfo& t
   const auto& par = tI.m_extr->Par_predictUTTF[1];
 
   // Define noise
-  KalmanFloat xErr = par[13] * ((KalmanFloat) 1e2) * std::abs(x[4]);
-  KalmanFloat yErr = par[16] * ((KalmanFloat) 1e2) * std::abs(x[4]);
-  KalmanFloat txErr = par[12] * std::abs(x[4]);
-  KalmanFloat tyErr = par[15] * std::abs(x[4]);
+  KalmanFloat xErr = par[13] * ((KalmanFloat) 1e2) * fabsf(x[4]);
+  KalmanFloat yErr = par[16] * ((KalmanFloat) 1e2) * fabsf(x[4]);
+  KalmanFloat txErr = par[12] * fabsf(x[4]);
+  KalmanFloat tyErr = par[15] * fabsf(x[4]);
 
   // Add noise
   Q(0, 0) = xErr * xErr;
@@ -1023,10 +1023,10 @@ __device__ void ExtrapolateInT(
   F(4, 4) = (KalmanFloat) 1.0;
 
   // Define noise
-  KalmanFloat xErr = par[2] * std::abs(dz * x_old[4]);
-  KalmanFloat yErr = par[4] * std::abs(dz * x_old[4]);
-  KalmanFloat txErr = par[12] * std::abs(x_old[4]);
-  KalmanFloat tyErr = par[15] * std::abs(x_old[4]);
+  KalmanFloat xErr = par[2] * fabsf(dz * x_old[4]);
+  KalmanFloat yErr = par[4] * fabsf(dz * x_old[4]);
+  KalmanFloat txErr = par[12] * fabsf(x_old[4]);
+  KalmanFloat tyErr = par[15] * fabsf(x_old[4]);
 
   Q(0, 0) = xErr * xErr;
   Q(0, 2) = par[14] * xErr * txErr;

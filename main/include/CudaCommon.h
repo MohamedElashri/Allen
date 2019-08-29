@@ -102,11 +102,6 @@ cudaError_t cudaFreeHost(void* ptr);
 cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
 
-template<class T>
-T fabs(const T& x) {
-  return std::fabs(x);
-}
-
 template<class T, class S>
 T atomicAdd(T* address, S val) {
   const T old = *address;
@@ -117,6 +112,11 @@ T atomicAdd(T* address, S val) {
 template<class T>
 T max(const T& a, const T& b) {
   return std::max(a, b);
+}
+
+template<class T>
+T min(const T& a, const T& b) {
+  return std::min(a, b);
 }
 
 unsigned int atomicInc(unsigned int* address,

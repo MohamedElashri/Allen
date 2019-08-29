@@ -2,7 +2,7 @@
 
 __device__ float gauss_integral(float x)
 {
-  const float a = std::sqrt(float(2 * order_polynomial + 3));
+  const float a = sqrtf(float(2 * order_polynomial + 3));
   const float xi = x / a;
   const float eta = 1.f - xi * xi;
   constexpr float p[] = {0.5f, 0.25f, 0.1875f, 0.15625f};
@@ -53,15 +53,15 @@ __global__ void pv_beamline_histo(
       // errors. eventually we can just parametrize this as function of
       // track slope.
       const float zweight = trk.tx.x * trk.tx.x * trk.W_00 + trk.tx.y * trk.tx.y * trk.W_11;
-      const float zerr = 1.f / std::sqrt(zweight);
+      const float zerr = 1.f / sqrtf(zweight);
       // get rid of useless tracks. must be a bit carefull with this.
       if (zerr < maxTrackZ0Err) { // m_nsigma < 10*m_dz ) {
         // find better place to define this
-        const float a = std::sqrt(float(2 * order_polynomial + 3));
+        const float a = sqrtf(float(2 * order_polynomial + 3));
         const float halfwindow = a * zerr / dz;
         // this looks a bit funny, but we need the first and last bin of the histogram to remain empty.
-        const int minbin = std::max(int(zbin - halfwindow), 1);
-        const int maxbin = std::min(int(zbin + halfwindow), Nbins - 2);
+        const int minbin = max(int(zbin - halfwindow), 1);
+        const int maxbin = min(int(zbin + halfwindow), Nbins - 2);
         // we can get rid of this if statement if we make a selection of seeds earlier
         if (maxbin >= minbin) {
           float integral = 0;

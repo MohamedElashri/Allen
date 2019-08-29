@@ -55,7 +55,7 @@ __device__ void associate_and_muon_id(
     short best_index = 0;
     bool first = true;
     for (uint j = 0; j < vertices.size(); ++j) {
-      float val = std::fabs(fun(tracks[i], *(vertices.data() + j)));
+      float val = fabsf(fun(tracks[i], *(vertices.data() + j)));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
       first = false;

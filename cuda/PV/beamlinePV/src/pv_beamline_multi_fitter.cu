@@ -136,7 +136,7 @@ __global__ void pv_beamline_multi_fitter(
         // update the position
         vtxpos_xy = vtxpos_xy + delta_xy;
         vtxpos_z = vtxpos_z + delta_z;
-        converged = std::abs(delta_z) < maxDeltaZConverged;
+        converged = fabsf(delta_z) < maxDeltaZConverged;
       }
       else {
         float3 fakepos {-99999.f, -99999.f, -99999.f};

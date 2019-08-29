@@ -65,7 +65,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
-      if (std::abs(tx - velo_state.tx) <= UT::Constants::deltaTx2) {
+      if (fabsf(tx - velo_state.tx) <= UT::Constants::deltaTx2) {
 
         int temp_best_hits[4] = {i_hit0, -1, i_hit2, -1};
 
@@ -84,8 +84,8 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
           const float zhitLayer1 = ut_hits.zAtYEq0[i_hit1];
           const float xextrapLayer1 = xhitLayer0 + tx * (zhitLayer1 - zhitLayer0);
 
-          if (std::abs(xhitLayer1 - xextrapLayer1) < hitTol) {
-            hitTol = std::abs(xhitLayer1 - xextrapLayer1);
+          if (fabsf(xhitLayer1 - xextrapLayer1) < hitTol) {
+            hitTol = fabsf(xhitLayer1 - xextrapLayer1);
             temp_best_hits[1] = i_hit1;
           }
         }
@@ -101,8 +101,8 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
           const float xhitLayer3 = ut_hits.xAt(i_hit3, yy3, ut_dxDy[layers[1]]);
           const float zhitLayer3 = ut_hits.zAtYEq0[i_hit3];
           const float xextrapLayer3 = xhitLayer2 + tx * (zhitLayer3 - zhitLayer2);
-          if (std::abs(xhitLayer3 - xextrapLayer3) < hitTol) {
-            hitTol = std::abs(xhitLayer3 - xextrapLayer3);
+          if (fabsf(xhitLayer3 - xextrapLayer3) < hitTol) {
+            hitTol = fabsf(xhitLayer3 - xextrapLayer3);
             temp_best_hits[3] = i_hit3;
           }
         }
@@ -227,8 +227,8 @@ __device__ BestParams pkick_fit(
   // Save the best parameters if chi2 is good
   if (chi2UT < UT::Constants::maxPseudoChi2) {
     // calculate q/p
-    const float sinInX = xSlopeVeloFit * std::sqrt(1.0f + xSlopeVeloFit * xSlopeVeloFit);
-    const float sinOutX = xSlopeUTFit * std::sqrt(1.0f + xSlopeUTFit * xSlopeUTFit);
+    const float sinInX = xSlopeVeloFit * sqrtf(1.0f + xSlopeVeloFit * xSlopeVeloFit);
+    const float sinOutX = xSlopeUTFit * sqrtf(1.0f + xSlopeUTFit * xSlopeUTFit);
 
     best_params.qp = sinInX - sinOutX;
     best_params.chi2UT = chi2UT;
@@ -383,7 +383,7 @@ __device__ __inline__ bool check_tol_refine(
 
   // Now refine the tolerance in Y
   if (ut_hits.isNotYCompatible(
-        hit_index, yApprox, UT::Constants::yTol + UT::Constants::yTolSlope * std::abs(dx * (1.0f / normFactNum))))
+        hit_index, yApprox, UT::Constants::yTol + UT::Constants::yTolSlope * fabsf(dx * (1.0f / normFactNum))))
     return false;
 
   return true;

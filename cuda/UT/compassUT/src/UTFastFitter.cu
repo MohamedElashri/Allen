@@ -51,7 +51,7 @@ __host__ __device__ float fastfitter(
   const float zDiff = 0.001f * (zKink - UT::Constants::zMidUT);
 
   // -- This is to avoid division by zero...
-  const float pHelper = std::max(float(std::abs(best_params.qp * qpxz2p)), float(1e-9));
+  const float pHelper = max(float(fabsf(best_params.qp * qpxz2p)), float(1e-9));
   const float invP = pHelper * sqrtf(1.0f + ty * ty);
 
   // these resolution are semi-empirical, could be tuned and might not be correct for low momentum.

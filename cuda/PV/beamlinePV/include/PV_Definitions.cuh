@@ -58,7 +58,7 @@ namespace PV {
   static constexpr float m_TrackErrorScaleFactor = 1.0f;
   static constexpr float m_maxChi2 = 400.0f;
   static constexpr float m_trackMaxChi2 = 12.f;
-  // static constexpr  double m_trackChi = std::sqrt(m_trackMaxChi2);     // sqrt of trackMaxChi2
+  // static constexpr  double m_trackChi = sqrtf(m_trackMaxChi2);     // sqrt of trackMaxChi2
   static constexpr float m_trackChi = 3.464f; // sqrt of trackMaxChi2
   static constexpr float m_trackMaxChi2Remove = 25.f;
   static constexpr float m_maxDeltaZCache = 1.f * Gaudi::Units::mm;
