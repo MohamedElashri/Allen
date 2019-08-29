@@ -74,10 +74,9 @@ __device__ void calculate_phi(
   const float* hit_Xs,
   const float* hit_Ys,
   float* hit_Phis,
-  uint* hit_permutations)
+  uint* hit_permutations,
+  float* shared_hit_phis)
 {
-  __shared__ float shared_hit_phis[Velo::Constants::max_numhits_in_module];
-
   // Odd modules
   calculate_phi_side(
     (float*) &shared_hit_phis[0],

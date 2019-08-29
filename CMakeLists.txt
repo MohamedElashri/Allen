@@ -62,6 +62,11 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
       set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to which HIP has been installed")
     endif()
   endif()
+  
+  # Set linker location
+  set(HCC_HOME "${HIP_PATH}/../hcc")
+  set(HCC_PATH "${HIP_PATH}/../hcc")
+
   set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
   include_directories(${HIP_PATH}/include)
   include_directories(${HIP_PATH}/../hsa/include)
@@ -243,9 +248,12 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set_property(TARGET ${ARGV0} PROPERTY
       HIP_SEPARABLE_COMPILATION ON)
   endfunction()
-  
+
   function(allen_add_executable)
-    hip_add_executable(${ARGV})
+    hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
+    set_target_properties(${ARGV0}
+         PROPERTIES HIP_SEPARABLE_COMPILATION ON
+                  HIP_RESOLVE_DEVICE_SYMBOLS ON)
   endfunction()
 endif()
 
