@@ -47,8 +47,8 @@ if(TARGET_DEVICE STREQUAL "CPU")
     add_library(${ARGV})
   endfunction()
 
-  function(allen_add_executable name)
-    add_executable(${name} ${ARGV})
+  function(allen_add_executable)
+    add_executable(${ARGV})
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "HIP")
   add_compile_definitions(HIP)
@@ -76,10 +76,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endif()
 
   set(HIP_SEPARABLE_COMPILATION ON)
-
-  function(allen_add_executable name)
-    hip_add_executable(${name} ${ARGV})
-  endfunction()
 else()
   project(Allen C CXX CUDA)
 
@@ -88,9 +84,9 @@ else()
     set_property(TARGET ${ARGV0} PROPERTY
       CUDA_SEPARABLE_COMPILATION ON)
   endfunction()
-  
-  function(allen_add_executable name)
-    add_executable(${name} ${ARGV})
+
+  function(allen_add_executable)
+    add_executable(${ARGV})
   endfunction()
 endif()
 
@@ -246,6 +242,10 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     set_property(TARGET ${ARGV0} PROPERTY
       HIP_SEPARABLE_COMPILATION ON)
+  endfunction()
+  
+  function(allen_add_executable)
+    hip_add_executable(${ARGV})
   endfunction()
 endif()
 
