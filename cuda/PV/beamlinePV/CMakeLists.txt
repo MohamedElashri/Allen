@@ -13,13 +13,12 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/PV/beamlinePV/include)
 
-if(CPU)
+if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${blPV} PROPERTIES LANGUAGE CXX)
-endif(CPU)
+endif()
 
-add_library(PV_beamline STATIC
-  ${blPV}
-  )
+allen_add_library(PV_beamline STATIC
+  ${blPV})
 
 if(ROOT_FOUND)
   add_library(PV_monitoring STATIC src/pv_beamline_monitoring.cpp)
@@ -28,6 +27,3 @@ if(ROOT_FOUND)
     ${ROOT_INCLUDE_DIRS})
   target_link_libraries(PV_beamline PRIVATE PV_monitoring)
 endif()
-
-set_property(TARGET PV_beamline PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)

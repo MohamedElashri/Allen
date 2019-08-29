@@ -9,13 +9,10 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/global_event_cut/include)
 
-if(CPU)
+if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${cpu_gec} PROPERTIES LANGUAGE CXX)
-endif(CPU)
+endif()
 
-add_library(CpuGEC STATIC
+allen_add_library(CpuGEC STATIC
   ${cpu_gec}
 )
-
-set_property(TARGET CpuGEC PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)

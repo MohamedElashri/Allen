@@ -14,12 +14,10 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
 
 file(GLOB pat_pv "src/*cu")
 
-if(CPU)
+if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${pat_pv} PROPERTIES LANGUAGE CXX)
-endif(CPU)
+endif()
 
-add_library(PatPV STATIC
+allen_add_library(PatPV STATIC
   ${pat_pv}
 )
-set_property(TARGET PatPV PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)

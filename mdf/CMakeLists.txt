@@ -74,7 +74,7 @@ function(test_program)
   target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Common mdf)
 endfunction()
 
-if(NOT CPU)
+if(TARGET_DEVICE STREQUAL "CUDA")
   test_program(NAME dump_banks)
 
   if (BUILD_TESTS)

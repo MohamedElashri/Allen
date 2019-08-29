@@ -108,7 +108,7 @@ add_custom_command(
 
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
-if(CPU)
+if(TARGET_DEVICE STREQUAL "CPU")
   foreach(source_file ${stream_gear} ${stream_memory_manager} ${stream_scheduler} 
     ${stream_sequence} ${stream_sequence_cpp} ${stream_setup} ${stream_visitors_gec}
     ${stream_visitors_ip} ${stream_visitors_velo} ${stream_visitors_patPV}
@@ -117,9 +117,9 @@ if(CPU)
     ${stream_visitors_vertex} ${stream_visitors_selections})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
-endif(CPU)
+endif()
 
-add_library(Stream STATIC
+allen_add_library(Stream STATIC
   "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
   ${stream_gear}
   ${stream_memory_manager}
@@ -163,9 +163,6 @@ target_link_libraries(Stream PRIVATE
   CpuGEC
   CpuUtils
   Muon)
-
-set_property(TARGET Stream PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)
 
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})

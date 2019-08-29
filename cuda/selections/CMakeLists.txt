@@ -15,15 +15,13 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 
 file(GLOB hlt1_src "Hlt1/src/*cu")
 
-if(CPU)
+if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${hlt1_src} PROPERTIES LANGUAGE CXX)
-endif(CPU)
+endif()
 
-add_library(Hlt1 STATIC
+allen_add_library(Hlt1 STATIC
   ${hlt1_src}
 )
-
-set_property(TARGET Hlt1 PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 if(USE_KALMAN_SINGLE_PRECISION)
   target_compile_definitions(Hlt1 PUBLIC KALMAN_SINGLE_PRECISION)

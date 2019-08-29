@@ -20,12 +20,12 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 
-if(CPU)
+if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${prefix_sum} PROPERTIES LANGUAGE CXX)
   set_source_files_properties(${binary_search} PROPERTIES LANGUAGE CXX)
-endif(CPU)
+endif()
 
-add_library(Utils STATIC
+allen_add_library(Utils STATIC
   ${prefix_sum}
   ${binary_search}
 )
@@ -34,6 +34,3 @@ target_link_libraries(Utils PRIVATE
   UT
   SciFi
 )
-
-set_property(TARGET Utils PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)
