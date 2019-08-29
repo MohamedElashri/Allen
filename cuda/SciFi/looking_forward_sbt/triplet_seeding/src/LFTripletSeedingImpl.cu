@@ -75,7 +75,7 @@ __device__ void lf_triplet_seeding_impl(
         shared_partial_chi2[k] = 0;
       }
 
-      __synchtreads();
+      __syncthreads();
 
       for (int16_t k = threadIdx.x; k < LookingForward::tile_size; k += blockDim.x) {
         shared_wmma_a[k] = 1;
@@ -121,7 +121,8 @@ __device__ void lf_triplet_seeding_impl(
 
       // Iterate over all h1s
       // Find best chi2, h0 and h2 using the partial chi2 from before
-      for (int h1_all_threads = threadIdx.x; h1_all_threads < 2 * LookingForward::maximum_number_of_candidates;
+      for (int h1_all_threads = threadIdx.x; h1_all_threads < LookingForward::maximum_number_of_triplets_per_h1 *
+                                                                LookingForward::maximum_number_of_candidates;
            h1_all_threads += blockDim.x) {
         const auto h1_rel = h1_all_threads % LookingForward::maximum_number_of_candidates;
 
@@ -130,8 +131,6 @@ __device__ void lf_triplet_seeding_impl(
 
           const float x1_zdiff =
             scifi_hits_x0[scifi_lf_candidates[layer_1 * LookingForward::maximum_number_of_candidates + h1_rel]] * zdiff;
-
-          SciFi::CombinedValue combined_value {LookingForward::chi2_max_triplet_single, -1, -1};
 
           float best_chi2 = LookingForward::chi2_max_triplet_single;
           int best_k = -1;
@@ -152,7 +151,7 @@ __device__ void lf_triplet_seeding_impl(
 
           if (best_k != -1) {
             best_combined[h1_rel + side * LookingForward::maximum_number_of_candidates] =
-              SciFi::CombinedValue {best_chi2, best_k / LookingForward::tile_size, best_k % LookingForward::tile_size};
+              SciFi::CombinedValue {best_chi2, (int16_t)(best_k / LookingForward::tile_size), (int16_t)(best_k % LookingForward::tile_size)};
           }
         }
       }
