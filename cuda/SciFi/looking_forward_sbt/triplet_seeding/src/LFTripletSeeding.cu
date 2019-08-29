@@ -13,8 +13,7 @@ __global__ void lf_triplet_seeding(
   const uint* dev_scifi_lf_number_of_candidates,
   const short* dev_scifi_lf_candidates,
   const LookingForward::Constants* dev_looking_forward_constants,
-  float* dev_scifi_lf_triplet_best_chi2,
-  int8_t* dev_scifi_lf_triplet_best_h0h2)
+  SciFi::CombinedValue* dev_scifi_lf_triplet_best)
 {
   __shared__ float shared_partial_chi2[LookingForward::tile_size * LookingForward::tile_size];
 
@@ -63,14 +62,9 @@ __global__ void lf_triplet_seeding(
         layer_0,
         layer_1,
         layer_2,
-        LookingForward::chi2_max_triplet_single,
-        dev_looking_forward_constants,
-        dev_scifi_lf_triplet_best_chi2 + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-                                           LookingForward::maximum_number_of_candidates *
-                                           LookingForward::maximum_number_of_triplets_per_h1,
-        dev_scifi_lf_triplet_best_h0h2 + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) * 2 *
-                                           LookingForward::maximum_number_of_candidates *
-                                           LookingForward::maximum_number_of_triplets_per_h1,
+        dev_scifi_lf_triplet_best + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
+                                                      LookingForward::maximum_number_of_candidates *
+                                                      LookingForward::maximum_number_of_triplets_per_h1,
         scifi_lf_candidates,
         z1 - z0,
         z2 - z0,

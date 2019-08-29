@@ -339,4 +339,10 @@ namespace SciFi {
       return quality / ((float) hitsNum - 2);
     }
   };
+
+  struct CombinedValue {
+    float chi2 = 10000.f;
+    int16_t h0 = -1;
+    int16_t h2 = -1;
+  };
 } // namespace SciFi
