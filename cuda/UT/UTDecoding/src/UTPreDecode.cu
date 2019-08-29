@@ -1,9 +1,5 @@
 #include "UTPreDecode.cuh"
 
-#ifndef CPU
-#include "mma.h"
-#endif
-
 /**
  * Iterate over raw banks / hits and store only the Y coordinate,
  * and an uint32_t encoding the following:

@@ -2,10 +2,6 @@
 #include "BinarySearchTools.cuh"
 #include "LookingForwardTools.cuh"
 
-#ifndef CPU
-#include <mma.h>
-#endif
-
 __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
   const float* scifi_hits_x0,
   const short* scifi_lf_candidates,
