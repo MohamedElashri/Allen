@@ -67,30 +67,18 @@ include_directories(classifiers/include)
 include_directories(consolidate/include)
 
 if(CPU)
-  set_source_files_properties(${scifi_common} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_preprocessing} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_utils} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_common} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_calculate_first_layer_window} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_calculate_second_layer_window} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_form_seeds_from_candidates} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_calculate_candidate_extrapolation_window} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_promote_candidates} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_calculate_track_extrapolation_window} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_extend_tracks} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_search_initial_windows} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_collect_candidates} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_extend_tracks_x} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_extend_missing_x} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_triplet_seeding} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_triplet_keep_best} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_extend_tracks_uv} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_quality_filter} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_quality_filter_x} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_search_uv_windows} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_lf_fit} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_classifiers} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${scifi_consolidate} PROPERTIES LANGUAGE CXX)
+  foreach(source_file ${scifi_common} ${scifi_preprocessing} ${scifi_utils}
+    ${scifi_lf_common} ${scifi_lf_calculate_first_layer_window}
+    ${scifi_lf_calculate_second_layer_window} ${scifi_lf_form_seeds_from_candidates}
+    ${scifi_lf_calculate_candidate_extrapolation_window} ${scifi_lf_promote_candidates}
+    ${scifi_lf_calculate_track_extrapolation_window} ${scifi_lf_extend_tracks}
+    ${scifi_lf_search_initial_windows} ${scifi_lf_collect_candidates}
+    ${scifi_lf_extend_tracks_x} ${scifi_lf_extend_missing_x} ${scifi_lf_triplet_seeding}
+    ${scifi_lf_triplet_keep_best} ${scifi_lf_extend_tracks_uv} ${scifi_lf_quality_filter}
+    ${scifi_lf_quality_filter_x} ${scifi_lf_search_uv_windows} ${scifi_lf_fit}
+    ${scifi_classifiers} ${scifi_consolidate})
+    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
+  endforeach(source_file)
 endif(CPU)
 
 add_library(SciFi STATIC

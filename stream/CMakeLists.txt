@@ -102,31 +102,21 @@ file(GLOB stream_visitors_selections "visitors/selections/src/*cu")
 
 add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-    COMMAND cmake3 -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
     DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
 )
 
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
 if(CPU)
-  set_source_files_properties(${stream_gear} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_memory_manager} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_scheduler} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_sequence} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_sequence_cpp} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_setup} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_gec} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_ip} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_velo} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_patPV} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_beamlinePV} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_assoc} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_UT} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_SciFi} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_Muon} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_kalman} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_vertex} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${stream_visitors_selections} PROPERTIES LANGUAGE CXX)
+  foreach(source_file ${stream_gear} ${stream_memory_manager} ${stream_scheduler} 
+    ${stream_sequence} ${stream_sequence_cpp} ${stream_setup} ${stream_visitors_gec}
+    ${stream_visitors_ip} ${stream_visitors_velo} ${stream_visitors_patPV}
+    ${stream_visitors_beamlinePV} ${stream_visitors_assoc} ${stream_visitors_UT}
+    ${stream_visitors_SciFi} ${stream_visitors_Muon} ${stream_visitors_kalman}
+    ${stream_visitors_vertex} ${stream_visitors_selections})
+    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
+  endforeach(source_file)
 endif(CPU)
 
 add_library(Stream STATIC

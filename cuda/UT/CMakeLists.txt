@@ -18,10 +18,9 @@ include_directories(consolidate/include)
 include_directories(compassUT/include)
 
 if(CPU)
-  set_source_files_properties(${UT_common} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${UT_decoding} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${UT_consolidate} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${CompassUT_tracking} PROPERTIES LANGUAGE CXX)
+  foreach(source_file ${UT_common} ${UT_decoding} ${UT_consolidate} ${CompassUT_tracking})
+    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
+  endforeach(source_file)
 endif(CPU)
 
 add_library(UT STATIC
