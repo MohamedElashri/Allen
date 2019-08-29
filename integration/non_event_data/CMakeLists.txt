@@ -1,5 +1,10 @@
 file(GLOB SOURCES "src/*.cpp")
+
 add_library(NonEventData ${SOURCES})
+
+target_link_libraries(NonEventData
+  Common)
+
 target_include_directories(NonEventData PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_include_directories(NonEventData PUBLIC

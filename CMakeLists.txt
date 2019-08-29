@@ -46,6 +46,10 @@ if(TARGET_DEVICE STREQUAL "CPU")
   function(allen_add_library)
     add_library(${ARGV})
   endfunction()
+
+  function(allen_add_executable name)
+    add_executable(${name} ${ARGV})
+  endfunction()
 elseif(TARGET_DEVICE STREQUAL "HIP")
   add_compile_definitions(HIP)
   add_compile_definitions(__HIP_PLATFORM_HCC__)
@@ -72,6 +76,10 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endif()
 
   set(HIP_SEPARABLE_COMPILATION ON)
+
+  function(allen_add_executable name)
+    hip_add_executable(${name} ${ARGV})
+  endfunction()
 else()
   project(Allen C CXX CUDA)
 
@@ -79,6 +87,10 @@ else()
     add_library(${ARGV})
     set_property(TARGET ${ARGV0} PROPERTY
       CUDA_SEPARABLE_COMPILATION ON)
+  endfunction()
+  
+  function(allen_add_executable name)
+    add_executable(${name} ${ARGV})
   endfunction()
 endif()
 
@@ -225,8 +237,9 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   # -finline-functions -finline-hint-functions
   # -flto -fwhole-program-vtables
   # -funroll-loops 
-  #  -fstack-protector-strong
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-everything -fPIC") #  -shared
+  # -fstack-protector-strong
+  # -fPIC -shared
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-everything")
 
   # Define allen_add_library and allen_add_executable HIP specializations
   function(allen_add_library)
@@ -404,50 +417,33 @@ allen_add_library(CudaCommon STATIC ${common_cuda_sources})
 if(TARGET_DEVICE STREQUAL "HIP")
   # Produce self-contained application
   # Otherwise, HIP doesn't seem to link properly
-  hip_add_executable(Allen ${main_cpp_path})
-  target_link_libraries(Allen PUBLIC
-    Stream
-    TrackChecking
-    PVChecking
-    CheckClustering
-    SelChecking
-    x86MuonDecoding
-    Common
-    CudaCommon
-    NonEventData
-    AllenZMQ)
-
-  if (ROOT_FOUND)
-    target_compile_definitions(Allen PUBLIC ${ALLEN_ROOT_DEFINITIONS})
-    target_include_directories(Allen SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
-    target_link_libraries(Allen PUBLIC ${ALLEN_ROOT_LIBRARIES})
-  endif()
+  allen_add_library(AllenLib STATIC ${Allen_cpp_path})
 else()
   # Library containing all the code
   allen_add_library(AllenLib SHARED ${Allen_cpp_path})
-  target_link_libraries(AllenLib PUBLIC
-    Stream
-    TrackChecking
-    PVChecking
-    CheckClustering
-    SelChecking
-    x86MuonDecoding
-    Common
-    CudaCommon
-    NonEventData
-    AllenZMQ)
-  set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
-
-  if (ROOT_FOUND)
-    target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
-    target_include_directories(AllenLib SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
-    target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
-  endif()
-
-  # Main executable
-  add_executable(Allen ${main_cpp_path})
-  target_link_libraries(Allen PRIVATE AllenLib)
 endif()
+
+target_link_libraries(AllenLib PUBLIC
+  Stream
+  TrackChecking
+  PVChecking
+  CheckClustering
+  SelChecking
+  x86MuonDecoding
+  Common
+  CudaCommon
+  NonEventData
+  AllenZMQ
+  x86Clustering)
+
+if (ROOT_FOUND)
+  target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
+  target_include_directories(AllenLib SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
+endif()
+
+allen_add_executable(Allen ${main_cpp_path})
+target_link_libraries(Allen PRIVATE AllenLib)
 
 if(TARGET_DEVICE STREQUAL "CUDA")
   if(BUILD_TESTS)
