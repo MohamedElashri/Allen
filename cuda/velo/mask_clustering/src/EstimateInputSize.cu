@@ -4,7 +4,6 @@ __global__ void estimate_input_size(
   char* dev_raw_input,
   uint* dev_raw_input_offsets,
   uint* dev_estimated_input_size,
-  uint* dev_module_cluster_num,
   uint* dev_event_candidate_num,
   uint32_t* dev_cluster_candidates,
   const uint* dev_event_list,
@@ -16,21 +15,8 @@ __global__ void estimate_input_size(
 
   const char* raw_input = dev_raw_input + dev_raw_input_offsets[selected_event_number];
   uint* estimated_input_size = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
-  auto module_cluster_num = dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   uint* event_candidate_num = dev_event_candidate_num + event_number;
   uint32_t* cluster_candidates = dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
-
-  // Initialize estimated_input_size, module_cluster_num and dev_module_candidate_num to 0
-  for (int i = 0; i < (Velo::Constants::n_modules + blockDim.x - 1) / blockDim.x; ++i) {
-    const auto index = i * blockDim.x + threadIdx.x;
-    if (index < Velo::Constants::n_modules) {
-      estimated_input_size[index] = 0;
-      module_cluster_num[index] = 0;
-    }
-  }
-  *event_candidate_num = 0;
-
-  __syncthreads();
 
   // Read raw event
   const auto raw_event = VeloRawEvent(raw_input);
@@ -239,7 +225,7 @@ __global__ void estimate_input_size(
         // Add the found cluster candidates
         if (found_cluster_candidates > 0) {
           uint current_estimated_module_size = atomicAdd(estimated_module_size, found_cluster_candidates);
-          assert(current_estimated_module_size < Velo::Constants::max_numhits_in_module);
+          assert(current_estimated_module_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module);
         }
       }
     }

@@ -22,12 +22,17 @@ include_directories(classification/include)
 include_directories(decoding/include)
 include_directories(decoding_steps/include)
 
-add_library(Muon STATIC
+if(TARGET_DEVICE STREQUAL "CPU")
+  foreach(source_file ${muon_filtering} ${muon_features_extraction}
+    ${muon_classification} ${muon_decoding} ${muon_decoding_steps})
+    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
+  endforeach(source_file)
+endif()
+
+allen_add_library(Muon STATIC
   ${muon_filtering}
   ${muon_features_extraction}
   ${muon_classification}
   ${muon_decoding}
   ${muon_decoding_steps}
 )
-
-set_property(TARGET Muon PROPERTY CUDA_SEPARABLE_COMPILATION ON)

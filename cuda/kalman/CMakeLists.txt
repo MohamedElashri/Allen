@@ -15,13 +15,15 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 file(GLOB kalman_ParKalman "ParKalman/src/*cu")
 
-add_library(Kalman STATIC
+if(TARGET_DEVICE STREQUAL "CPU")
+  set_source_files_properties(${kalman_ParKalman} PROPERTIES LANGUAGE CXX)
+endif()
+
+allen_add_library(Kalman STATIC
   ${kalman_ParKalman}
 )
 
 target_link_libraries(Kalman SciFi)
-
-set_property(TARGET Kalman PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 if(USE_KALMAN_SINGLE_PRECISION)
   target_compile_definitions(Kalman PUBLIC KALMAN_SINGLE_PRECISION)

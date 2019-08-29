@@ -18,14 +18,13 @@
 #include <algorithm>
 #include <thread>
 #include <bitset>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <getopt.h>
 
 #include <zmq.hpp>
 #include <ZeroMQSvc.h>
 
-#include "cuda_runtime.h"
 #include "CudaCommon.h"
 #include "RuntimeOptions.h"
 #include "ProgramOptions.h"
@@ -45,9 +44,6 @@
 #include "Allen.h"
 
 namespace {
-  constexpr size_t n_io = 1;
-  constexpr size_t max_stream_threads = 64;
-
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed };
 } // namespace
 
@@ -645,7 +641,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             warning_cout << "Failed to load MC events.\n";
           }
           else {
-            info_cout << "Checked   " << std::setw(6) << n_events_processed << " events\n";
+            info_cout << "Checked " << n_events_processed << " events\n";
           }
         }
         if (enable_async_io) {
@@ -677,14 +673,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         assert(msg == "READY");
         auto success = zmqSvc().receive<bool>(socket);
         stream_ready[i] = success;
-        debug_cout << "GPU stream " << std::setw(2) << i << " on device " << device_id
+        debug_cout << "Stream " << std::setw(2) << i << " on device " << device_id
                    << (success ? " ready." : " failed to start.") << "\n";
         error_count += !success;
       }
     }
   }
   if (error_count == 0) {
-    info_cout << "GPU streams ready\n";
+    info_cout << "Streams ready\n";
   }
 
   std::optional<Timer> t;
@@ -730,7 +726,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           else {
             // FIXME: make the warmup time configurable
             if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
-              info_cout << "Starting timer for throughput measurement.\n";
+              info_cout << "Starting timer for throughput measurement\n";
               throughput_start = n_events_processed * number_of_repetitions;
               t = Timer {};
             }
@@ -793,7 +789,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     if (
       stream_ready.count() == number_of_threads && io_cond &&
       (!enable_async_io || (enable_async_io && count_status(SliceStatus::Empty) == number_of_slices))) {
-      info_cout << "Processing complete.\n";
+      info_cout << "Processing complete\n";
       break;
     }
   }

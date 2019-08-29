@@ -80,44 +80,6 @@ TrackChecker::~TrackChecker() { delete m_histos; }
 
 void TrackChecker::report(size_t) const
 {
-  if (m_trackerName == "Forward") {
-    if (n_matched_muons > 0) {
-      std::printf("\nMuon matching checker \n");
-      // std::printf("Total number of tracks matched to an MCP = %lu, non muon MCPs = %lu, muon MCPs = %lu, total = %lu
-      // \n", m_n_tracks_matched_to_MCP, n_matched_not_muons, n_matched_muons, n_matched_muons+n_matched_not_muons);
-      std::printf(
-        "Muon fraction in all MCPs: %lu / %lu = %f \n",
-        m_n_MCPs_muon,
-        m_n_MCPs_not_muon + m_n_MCPs_muon,
-        float(m_n_MCPs_muon) / (m_n_MCPs_not_muon + m_n_MCPs_muon));
-      std::printf(
-        "Muon fraction in MCPs to which a track(s) was matched: %lu / %lu = %f \n",
-        n_matched_muons,
-        n_matched_muons + n_matched_not_muons,
-        float(n_matched_muons) / (n_matched_muons + n_matched_not_muons));
-      std::printf(
-        "Correctly identified muons with isMuon: \t \t \t \t %9lu/%9lu %6.2f%% \n",
-        n_is_muon_true,
-        n_matched_muons,
-        100.f * float(n_is_muon_true) / float(n_matched_muons));
-    }
-    if (n_matched_not_muons > 0) {
-      std::printf(
-        "Tracks identified as muon with isMuon, but matched to non-muon MCP: \t %9lu/%9lu %6.2f%% \n",
-        n_is_muon_misID,
-        n_matched_not_muons,
-        100.f * float(n_is_muon_misID) / float(n_matched_not_muons));
-    }
-    if (m_nghosts > 0) {
-      std::printf(
-        "Ghost tracks identified as muon with isMuon: \t \t \t \t %9lu/%9lu %6.2f%% \n",
-        n_is_muon_ghost,
-        m_nghosts,
-        100.f * float(n_is_muon_ghost) / float(m_nghosts));
-    }
-  }
-  printf("\n");
-
   std::printf(
     "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
     "TrackChecker output",
@@ -132,11 +94,48 @@ void TrackChecker::report(size_t) const
       m_ntrackstrigger,
       100.f * float(m_nghoststrigger) / float(m_ntrackstrigger));
   }
-  std::printf("\n");
 
   for (auto const& report : m_categories) {
     report.report();
   }
+
+  if (m_trackerName == "Forward") {
+    if (n_matched_muons > 0) {
+      std::printf("\n\nMuon matching:\n");
+      // std::printf("Total number of tracks matched to an MCP = %lu, non muon MCPs = %lu, muon MCPs = %lu, total = %lu
+      // \n", m_n_tracks_matched_to_MCP, n_matched_not_muons, n_matched_muons, n_matched_muons+n_matched_not_muons);
+      std::printf(
+        "Muon fraction in all MCPs:                                          %9lu/%9lu %6.2f%% \n",
+        m_n_MCPs_muon,
+        m_n_MCPs_not_muon + m_n_MCPs_muon,
+        float(m_n_MCPs_muon) / (m_n_MCPs_not_muon + m_n_MCPs_muon));
+      std::printf(
+        "Muon fraction in MCPs to which a track(s) was matched:              %9lu/%9lu %6.2f%% \n",
+        n_matched_muons,
+        n_matched_muons + n_matched_not_muons,
+        float(n_matched_muons) / (n_matched_muons + n_matched_not_muons));
+      std::printf(
+        "Correctly identified muons with isMuon:                             %9lu/%9lu %6.2f%% \n",
+        n_is_muon_true,
+        n_matched_muons,
+        100.f * float(n_is_muon_true) / float(n_matched_muons));
+    }
+    if (n_matched_not_muons > 0) {
+      std::printf(
+        "Tracks identified as muon with isMuon, but matched to non-muon MCP: %9lu/%9lu %6.2f%% \n",
+        n_is_muon_misID,
+        n_matched_not_muons,
+        100.f * float(n_is_muon_misID) / float(n_matched_not_muons));
+    }
+    if (m_nghosts > 0) {
+      std::printf(
+        "Ghost tracks identified as muon with isMuon:                        %9lu/%9lu %6.2f%% \n",
+        n_is_muon_ghost,
+        m_nghosts,
+        100.f * float(n_is_muon_ghost) / float(m_nghosts));
+    }
+  }
+  printf("\n");
 
   // write histograms to file
 #ifdef WITH_ROOT

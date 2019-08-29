@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "cuda_runtime.h"
+#include "CudaCommon.h"
 #include "VeloDefinitions.cuh"
 
 namespace Velo {

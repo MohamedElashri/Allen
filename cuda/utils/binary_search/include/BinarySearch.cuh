@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include "CudaCommon.h"
 
 /**
  * @brief  Binary search leftmost
@@ -76,7 +77,7 @@ __host__ __device__ int binary_search_first_candidate(
  * @brief Finds the first candidate performing a binary search leftmost,
  *        with a configurable margin and the "<" compare function:
  *
- *        std::abs(value - array_element) < margin
+ *        fabsf(value - array_element) < margin
  */
 template<typename T>
 __host__ __device__ int
@@ -94,7 +95,7 @@ binary_search_first_candidate(const T* array, const uint array_size, const T& va
       r = m;
     }
   }
-  const bool found = (l != array_size) && (std::abs(value - array[l]) < margin);
+  const bool found = (l != array_size) && (fabsf(value - array[l]) < margin);
   return found ? l : -1;
 }
 
@@ -126,7 +127,7 @@ binary_search_second_candidate(const T* array, const uint array_size, const T& v
  * @brief Finds the first candidate performing a binary search leftmost,
  *        with a configurable margin and the "<" compare function:
  *
- *        std::abs(value - array_element) < margin
+ *        fabsf(value - array_element) < margin
  */
 template<typename T, typename R>
 __host__ __device__ int binary_search_first_candidate(
@@ -149,7 +150,7 @@ __host__ __device__ int binary_search_first_candidate(
       r = m;
     }
   }
-  const bool found = (l != index_array_size) && (std::abs(value - data_array[index_array[l]]) < margin);
+  const bool found = (l != index_array_size) && (fabsf(value - data_array[index_array[l]]) < margin);
   return found ? l : -1;
 }
 

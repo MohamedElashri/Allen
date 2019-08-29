@@ -16,13 +16,15 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 file(GLOB vertex_fitter_src "vertex_fitter/src/*cu")
 
-add_library(VertexFitter STATIC
+if(TARGET_DEVICE STREQUAL "CPU")
+  set_source_files_properties(${vertex_fitter_src} PROPERTIES LANGUAGE CXX)
+endif()
+
+allen_add_library(VertexFitter STATIC
   ${vertex_fitter_src}
 )
 
 target_link_libraries(VertexFitter Kalman)
-
-set_property(TARGET VertexFitter PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 if(USE_KALMAN_SINGLE_PRECISION)
   target_compile_definitions(VertexFitter PUBLIC KALMAN_SINGLE_PRECISION)

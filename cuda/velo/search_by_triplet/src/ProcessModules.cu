@@ -29,11 +29,11 @@ __device__ void process_modules(
 
   // Prepare the first seeding iteration
   // Load shared module information
-  if (threadIdx.x < 4) {
-    const auto module_number = first_module - threadIdx.x - 2;
-    module_data[threadIdx.x].hitStart = module_hitStarts[module_number] - hit_offset;
-    module_data[threadIdx.x].hitNums = module_hitNums[module_number];
-    module_data[threadIdx.x].z = dev_velo_module_zs[module_number];
+  for (int i = threadIdx.x; i < 4; i+=blockDim.x) {
+    const auto module_number = first_module - i - 2;
+    module_data[i].hitStart = module_hitStarts[module_number] - hit_offset;
+    module_data[i].hitNums = module_hitNums[module_number];
+    module_data[i].z = dev_velo_module_zs[module_number];
   }
 
   // Due to shared module data loading
@@ -63,11 +63,11 @@ __device__ void process_modules(
 
     // Iterate in modules
     // Load in shared
-    if (threadIdx.x < 4) {
-      const auto module_number = first_module - threadIdx.x - 2;
-      module_data[threadIdx.x].hitStart = module_hitStarts[module_number] - hit_offset;
-      module_data[threadIdx.x].hitNums = module_hitNums[module_number];
-      module_data[threadIdx.x].z = dev_velo_module_zs[module_number];
+    for (int i = threadIdx.x; i < 4; i+=blockDim.x) {
+      const auto module_number = first_module - i - 2;
+      module_data[i].hitStart = module_hitStarts[module_number] - hit_offset;
+      module_data[i].hitNums = module_hitNums[module_number];
+      module_data[i].z = dev_velo_module_zs[module_number];
     }
 
     const auto prev_ttf = last_ttf;

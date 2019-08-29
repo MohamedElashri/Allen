@@ -288,15 +288,15 @@ __device__ void save_track(
   const int event_hit_offset)
 {
   //== Handle states. copy Velo one, add UT.
-  const float zOrigin = (std::fabs(velo_state.ty) > 0.001f) ? velo_state.z - velo_state.y / velo_state.ty :
+  const float zOrigin = (fabsf(velo_state.ty) > 0.001f) ? velo_state.z - velo_state.y / velo_state.ty :
                                                               velo_state.z - velo_state.x / velo_state.tx;
 
   // -- These are calculations, copied and simplified from PrTableForFunction
   const float var[3] = {velo_state.ty, zOrigin, velo_state.z};
 
-  const int index1 = std::max(0, std::min(30, int((var[0] + 0.3f) / 0.6f * 30)));
-  const int index2 = std::max(0, std::min(10, int((var[1] + 250) / 500 * 10)));
-  const int index3 = std::max(0, std::min(10, int(var[2] / 800 * 10)));
+  const int index1 = max(0, min(30, int((var[0] + 0.3f) / 0.6f * 30)));
+  const int index2 = max(0, min(10, int((var[1] + 250) / 500 * 10)));
+  const int index3 = max(0, min(10, int(var[2] / 800 * 10)));
 
   assert(master_index(index1, index2, index3) < UTMagnetTool::N_bdl_vals);
   float bdl = bdl_table[master_index(index1, index2, index3)];
@@ -326,16 +326,16 @@ __device__ void save_track(
                           velo_state.y + velo_state.ty * (UT::Constants::zMidUT - velo_state.z),
                           best_params.chi2UT};
 
-  // const float qpxz2p = -1 * std::sqrt(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
+  // const float qpxz2p = -1 * sqrtf(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
   const float qpxz2p = -1.f / bdl * 3.3356f / Gaudi::Units::GeV;
   // const float qp = best_params.qp;
   const float qp = fastfitter(best_params, velo_state, best_hits, qpxz2p, ut_dxDy, ut_hits, finalParams);
-  const float qop = (std::abs(bdl) < 1.e-8f) ? 0.0f : qp * qpxz2p;
+  const float qop = (fabsf(bdl) < 1.e-8f) ? 0.0f : qp * qpxz2p;
 
   // -- Don't make tracks that have grossly too low momentum
   // -- Beware of the momentum resolution!
-  const float p = 1.3f * std::abs(1.f / qop);
-  const float pt = p * std::sqrt(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty);
+  const float p = 1.3f * fabsf(1.f / qop);
+  const float pt = p * sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty);
 
   if (p < UT::Constants::minMomentumFinal || pt < UT::Constants::minPTFinal) return;
   // if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return;
@@ -347,8 +347,8 @@ __device__ void save_track(
   // -- apply some fiducial cuts
   // -- they are optimised for high pT tracks (> 500 MeV)
 
-  if (magSign * qop < 0.0f && xUT > -48.0f && xUT < 0.0f && std::abs(yUT) < 33.0f) return;
-  if (magSign * qop > 0.0f && xUT < 48.0f && xUT > 0.0f && std::abs(yUT) < 33.0f) return;
+  if (magSign * qop < 0.0f && xUT > -48.0f && xUT < 0.0f && fabsf(yUT) < 33.0f) return;
+  if (magSign * qop > 0.0f && xUT < 48.0f && xUT > 0.0f && fabsf(yUT) < 33.0f) return;
 
   if (magSign * qop < 0.0f && txUT > 0.09f + 0.0003f * pt) return;
   if (magSign * qop > 0.0f && txUT < -0.09f - 0.0003f * pt) return;

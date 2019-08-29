@@ -56,7 +56,19 @@ void invoke_impl(
   const Tuple& invoke_arguments,
   std::index_sequence<I...>)
 {
+#ifdef CPU
+  gridDim = {num_blocks.x, num_blocks.y, num_blocks.z};
+  for (unsigned int i = 0; i < num_blocks.x; ++i) {
+    for (unsigned int j = 0; j < num_blocks.y; ++j) {
+      for (unsigned int k = 0; k < num_blocks.z; ++k) {
+        blockIdx = {i, j, k};
+        function(std::get<I>(invoke_arguments)...);
+      }
+    }
+  }
+#else
   function<<<num_blocks, num_threads, shared_memory_size, *stream>>>(std::get<I>(invoke_arguments)...);
+#endif
 }
 
 /**

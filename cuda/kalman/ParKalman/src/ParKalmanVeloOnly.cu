@@ -32,8 +32,8 @@ __device__ void simplified_step(
   KalmanFloat predcovTxTx = covTxTx;
 
   // Add noise.
-  const KalmanFloat sigTx = par[1] * 1e-5 + par[2] * std::abs(qop);
-  const KalmanFloat sigX = par[6] * sigTx * std::abs(dz);
+  const KalmanFloat sigTx = par[1] * 1e-5 + par[2] * fabsf(qop);
+  const KalmanFloat sigX = par[6] * sigTx * fabsf(dz);
   const KalmanFloat corr = par[7];
   predcovXX += sigX * sigX;
   predcovXTx += corr * sigX * sigTx;
@@ -83,8 +83,8 @@ __device__ void extrapolate_velo_only(
   F(0, 4) = ((KalmanFloat) 0.5) * dz * F(2, 4);
 
   // Noise matrix.
-  KalmanFloat sigt = par[1] * ((KalmanFloat) 1.0e-5) + par[2] * std::abs(x_old[4]);
-  KalmanFloat sigx = par[6] * sigt * std::abs(dz);
+  KalmanFloat sigt = par[1] * ((KalmanFloat) 1.0e-5) + par[2] * fabsf(x_old[4]);
+  KalmanFloat sigx = par[6] * sigt * fabsf(dz);
   KalmanFloat corr = par[7];
   Q(0, 0) = sigx * sigx;
   Q(1, 1) = sigx * sigx;

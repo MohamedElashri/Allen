@@ -102,12 +102,24 @@ file(GLOB stream_visitors_selections "visitors/selections/src/*cu")
 
 add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-    COMMAND cmake -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
     DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
 )
+
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
-add_library(Stream STATIC
+if(TARGET_DEVICE STREQUAL "CPU")
+  foreach(source_file ${stream_gear} ${stream_memory_manager} ${stream_scheduler} 
+    ${stream_sequence} ${stream_sequence_cpp} ${stream_setup} ${stream_visitors_gec}
+    ${stream_visitors_ip} ${stream_visitors_velo} ${stream_visitors_patPV}
+    ${stream_visitors_beamlinePV} ${stream_visitors_assoc} ${stream_visitors_UT}
+    ${stream_visitors_SciFi} ${stream_visitors_Muon} ${stream_visitors_kalman}
+    ${stream_visitors_vertex} ${stream_visitors_selections})
+    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
+  endforeach(source_file)
+endif()
+
+allen_add_library(Stream STATIC
   "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
   ${stream_gear}
   ${stream_memory_manager}
@@ -151,9 +163,6 @@ target_link_libraries(Stream PRIVATE
   CpuGEC
   CpuUtils
   Muon)
-
-set_property(TARGET Stream PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)
 
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})

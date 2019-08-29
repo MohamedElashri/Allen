@@ -2,7 +2,7 @@
 
 #include "SciFiDefinitions.cuh"
 #include "ParKalmanMath.cuh"
-#include "cuda_runtime.h"
+#include "CudaCommon.h"
 
 namespace VertexFit {
 
@@ -63,8 +63,8 @@ namespace VertexFit {
     // Muon ID.
     bool is_dimuon;
 
-    __device__ __host__ float pt() { return std::sqrt(px * px + py * py); }
-    __device__ __host__ float pt() const { return std::sqrt(px * px + py * py); }
+    __device__ __host__ float pt() { return sqrtf(px * px + py * py); }
+    __device__ __host__ float pt() const { return sqrtf(px * px + py * py); }
   };
 
 } // namespace VertexFit

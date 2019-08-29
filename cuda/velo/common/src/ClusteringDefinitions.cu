@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cstring>
 #include "ClusteringDefinitions.cuh"
 
 __device__ __host__ VeloRawEvent::VeloRawEvent(const char* event)
@@ -31,7 +32,7 @@ VeloGeometry::VeloGeometry(std::vector<char> const& geometry)
       error_cout << n << " != " << N << std::endl;
     }
     p += sizeof(size_t);
-    memcpy(d, p, sizeof(float) * n);
+    std::memcpy(d, p, sizeof(float) * n);
     p += sizeof(float) * n;
   };
 
@@ -46,7 +47,7 @@ VeloGeometry::VeloGeometry(std::vector<char> const& geometry)
   assert(n_trans == 12);
   p += sizeof(size_t);
   for (size_t i = 0; i < n_ltg; ++i) {
-    memcpy(ltg + n_trans * i, p, n_trans * sizeof(float));
+    std::memcpy(ltg + n_trans * i, p, n_trans * sizeof(float));
     p += sizeof(float) * n_trans;
   }
   const size_t size = p - geometry.data();

@@ -4,8 +4,7 @@
 #include <vector>
 #include <ostream>
 
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+#include "CudaCommon.h"
 #include "Common.h"
 #include "Logger.h"
 #include "States.cuh"

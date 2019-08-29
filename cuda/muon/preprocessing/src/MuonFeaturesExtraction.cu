@@ -58,7 +58,7 @@ __global__ void muon_catboost_features_extraction(
 
     const uint tracks_features_offset = (event_offset + track_id) * Muon::Constants::n_catboost_features;
     if (index_of_closest_hit > -1) {
-      const float common_factor = Muon::Constants::MSFACTOR * std::abs(scifi_tracks.qop[track_id]);
+      const float common_factor = Muon::Constants::MSFACTOR * fabsf(scifi_tracks.qop[track_id]);
 
       const int idx = station_offset + index_of_closest_hit;
 

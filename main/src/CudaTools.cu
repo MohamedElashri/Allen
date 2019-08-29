@@ -1,9 +1,20 @@
 #include "Tools.h"
 #include "CudaCommon.h"
 
-void reset() { cudaCheck(cudaDeviceReset()); }
-
 void reserve_pinned(void** buffer, size_t size) { cudaCheck(cudaMallocHost(buffer, size)); }
+
+#ifdef CPU
+
+void reset() {}
+void print_gpu_memory_consumption() {}
+
+std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id) {
+  return {true, "CPU"};
+}
+
+#else
+
+void reset() { cudaCheck(cudaDeviceReset()); }
 
 /**
  * @brief Prints the memory consumption of the device.
@@ -58,3 +69,5 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
 
   return {true, device_properties.name};
 }
+
+#endif

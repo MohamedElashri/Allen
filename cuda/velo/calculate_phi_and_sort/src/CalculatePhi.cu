@@ -1,6 +1,6 @@
 #include "VeloDefinitions.cuh"
 #include "CalculatePhiAndSort.cuh"
-#include "math_constants.h" // PI
+#include "CudaMathConstants.h"
 #include "VeloTools.cuh"
 
 /**

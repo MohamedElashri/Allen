@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CudaCommon.h"
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"

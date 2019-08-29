@@ -11,11 +11,11 @@ __device__ bool velo_track_in_UTA_acceptance(const MiniState& state)
   const float yMidUT = state.y + state.ty * (UT::Constants::zMidUT - state.z);
 
   if (xMidUT * xMidUT + yMidUT * yMidUT < UT::Constants::centralHoleSize * UT::Constants::centralHoleSize) return false;
-  if ((std::abs(state.tx) > UT::Constants::maxXSlope) || (std::abs(state.ty) > UT::Constants::maxYSlope)) return false;
+  if ((fabsf(state.tx) > UT::Constants::maxXSlope) || (fabsf(state.ty) > UT::Constants::maxYSlope)) return false;
 
   if (
-    UT::Constants::passTracks && std::abs(xMidUT) < UT::Constants::passHoleSize &&
-    std::abs(yMidUT) < UT::Constants::passHoleSize) {
+    UT::Constants::passTracks && fabsf(xMidUT) < UT::Constants::passHoleSize &&
+    fabsf(yMidUT) < UT::Constants::passHoleSize) {
     return false;
   }
 
@@ -46,7 +46,7 @@ __host__ __device__ void tol_refine(
     if (
       dx >= -xTolNormFact && dx <= xTolNormFact &&
       !ut_hits.isNotYCompatible(
-        i, yApprox, UT::Constants::yTol + UT::Constants::yTolSlope * std::abs(dx * invNormfact))) {
+        i, yApprox, UT::Constants::yTol + UT::Constants::yTolSlope * fabsf(dx * invNormfact))) {
       // It is compatible
       if (!first_found) {
         first_found = true;
@@ -82,7 +82,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 {
   // -- This is hardcoded, so faster
   // -- If you ever change the Table in the magnet tool, this will be wrong
-  const float absSlopeY = std::abs(velo_state.ty);
+  const float absSlopeY = fabsf(velo_state.ty);
   const int index = (int) (absSlopeY * 100 + 0.5f);
   assert(3 + 4 * index < UTMagnetTool::N_dxLay_vals);
   const float normFact[4] {
@@ -91,9 +91,9 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   // -- this 500 seems a little odd...
   // to do: change back!
   const float invTheta =
-    std::min(500.0f, 1.0f / std::sqrt(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
+    min(500.0f, 1.0f / sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
   const float minMom = max(UT::Constants::minPT * invTheta, UT::Constants::minMomentum);
-  const float xTol = std::abs(1.0f / (UT::Constants::distToMomentum * minMom));
+  const float xTol = fabsf(1.0f / (UT::Constants::distToMomentum * minMom));
   // const float yTol     = UT::Constants::yTol + UT::Constants::yTolSlope * xTol;
 
   int layer_offset = ut_hit_offsets.layer_offset(layer);
@@ -257,9 +257,9 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
   const float x_at_right_sector = dev_unique_sector_xs[sector_group + 1];
   const float xx_at_left_sector = x_at_left_sector + y_track * dx_dy;
   const float xx_at_right_sector = x_at_right_sector + y_track * dx_dy;
-  const float dx_max = std::max(xx_at_left_sector - x_track, xx_at_right_sector - x_track);
+  const float dx_max = max(xx_at_left_sector - x_track, xx_at_right_sector - x_track);
 
-  const float tol = UT::Constants::yTol + UT::Constants::yTolSlope * std::abs(dx_max * invNormFact);
+  const float tol = UT::Constants::yTol + UT::Constants::yTolSlope * fabsf(dx_max * invNormFact);
   const uint sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group);
 
   int first_candidate = -1, last_candidate = -1;

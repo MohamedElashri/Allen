@@ -1,6 +1,6 @@
 #include "VeloDefinitions.cuh"
-#include "math_constants.h"
 #include "ApplyPermutation.cuh"
+#include "CudaMathConstants.h"
 
 /**
  * @brief Calculates phi for each hit

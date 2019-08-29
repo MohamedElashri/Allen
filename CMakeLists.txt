@@ -1,19 +1,62 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
+# Determine whether to produce a CPU version
+option(CPU "Produce a CPU version" OFF)
+if(CPU)
+  set(TARGET_DEVICE "CPU")
+else()
+  set(TARGET_DEVICE "CUDA")
+endif()
+message(STATUS "Allen target: ${TARGET_DEVICE}")
+
+# Determine whether to use Tensor Cores
+# Note: Tensor cores are only supported in CUDA
+option(TENSOR "Produce CUDA code with Tensor Cores enabled if available" OFF)
+if(TARGET_DEVICE STREQUAL "CUDA" AND TENSOR)
+  add_compile_definitions(TENSOR_CORES_ENABLED)
+endif()
+
 # Workaround 1/2 for shared cuda runtime
 set(CMAKE_CUDA_FLAGS "" CACHE STRING "")
-if (CMAKE_CUDA_FLAGS)
+if(CMAKE_CUDA_FLAGS)
 	list(REMOVE_ITEM CMAKE_CUDA_FLAGS "-cudart static")
 endif()
 string(APPEND CMAKE_CUDA_FLAGS "-cudart shared")
 
-project(Allen C CXX CUDA)
+# Setup project for the configured target
+if(TARGET_DEVICE STREQUAL "CPU")
+  project(Allen C CXX)
+  add_compile_definitions(CPU)
+
+  # This seems to be needed across compilers
+  add_definitions("-x c++")
+
+  function(allen_add_library)
+    add_library(${ARGV})
+  endfunction()
+
+  function(allen_add_executable)
+    add_executable(${ARGV})
+  endfunction()
+else()
+  project(Allen C CXX CUDA)
+
+  function(allen_add_library)
+    add_library(${ARGV})
+    set_property(TARGET ${ARGV0} PROPERTY
+      CUDA_SEPARABLE_COMPILATION ON)
+  endfunction()
+
+  macro(allen_add_executable)
+    add_executable(${ARGV})
+  endmacro()
+endif()
 
 # Workaround 2/2 for shared cuda runtime
-if (CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
+if(CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
   list(REMOVE_ITEM CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudart_static")
 endif()
-if (CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
+if(CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
   list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static" )
 endif()
 
@@ -34,8 +77,36 @@ endif(NOT SEQUENCE)
 if(NOT DEFINED CPU_ARCH)
   set(CPU_ARCH native)
 endif()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
-MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+
+# Detect target CPU architecture
+include(TargetArch.cmake)
+SET(TARGET_CPU_ARCHITECTURE "")
+target_architecture(TARGET_CPU_ARCHITECTURE)
+MESSAGE(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
+
+# Specific optimizations for different architectures
+if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
+  OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
+  # x86 family
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
+  MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
+  # PowerPC family
+  # More options on: https://developer.ibm.com/linuxonpower/compiler-options-table/
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=${CPU_ARCH}")
+  MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
+  OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
+  # ARM family
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
+  MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
+  # ARM64 family
+  # Options from: http://www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH} -floop-optimize \
+-falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
+  MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
@@ -44,40 +115,66 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Configuration of CUDA compute architecture
-if(NOT DEFINED CUDA_ARCH)
-  set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
-endif()
+if(TARGET_DEVICE STREQUAL "CUDA")
+  set(CUDA_SEPARABLE_COMPILATION ON)
+  option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
 
-if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
-  set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
-  set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
-  execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
-  if(CUDA_ARCH STREQUAL "MAX")
-    set(CHECK_ARGS "-l")
+  # Configuration of CUDA compute architecture
+  if(NOT DEFINED CUDA_ARCH)
+    set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
   endif()
-  message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture")
-  execute_process(COMMAND ${OUTPUTFILE} ${CHECK_ARGS}
-    RESULT_VARIABLE CUDA_RETURN_CODE
-    OUTPUT_VARIABLE CUDA_ARCH_OUTPUT)
 
-  if(${CUDA_RETURN_CODE} EQUAL 1)
-    message(FATAL_ERROR "${CUDA_ARCH}")
-  else()
-    if (CUDA_ARCH STREQUAL "MIN")
-      message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - sm_30")
-      set(ARCH_FLAG "-arch=sm_30")
-    else()
-      message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - ${CUDA_ARCH_OUTPUT}")
-      set(ARCH_FLAG "-arch=${CUDA_ARCH_OUTPUT}")
+  if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
+    set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
+    set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
+    execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
+    if(CUDA_ARCH STREQUAL "MAX")
+      set(CHECK_ARGS "-l")
     endif()
+    message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture")
+    execute_process(COMMAND ${OUTPUTFILE} ${CHECK_ARGS}
+      RESULT_VARIABLE CUDA_RETURN_CODE
+      OUTPUT_VARIABLE CUDA_ARCH_OUTPUT)
+
+    if(${CUDA_RETURN_CODE} EQUAL 1)
+      message(FATAL_ERROR "${CUDA_ARCH}")
+    else()
+      if (CUDA_ARCH STREQUAL "MIN")
+        message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - sm_30")
+        set(ARCH_FLAG "-arch=sm_30")
+      else()
+        message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - ${CUDA_ARCH_OUTPUT}")
+        set(ARCH_FLAG "-arch=${CUDA_ARCH_OUTPUT}")
+      endif()
+    endif()
+  else()
+    message(STATUS "Cuda architecture manually set to ${CUDA_ARCH}")
+    set(ARCH_FLAG "-arch=${CUDA_ARCH}")
   endif()
-else()
-  message(STATUS "Cuda architecture manually set to ${CUDA_ARCH}")
-  set(ARCH_FLAG "-arch=${CUDA_ARCH}")
-endif()
-if(DEFINED OVERRIDE_ARCH_FLAG)
-  set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
+  if(DEFINED OVERRIDE_ARCH_FLAG)
+    set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
+  endif()
+
+  # Cuda: Deal with build type
+  if(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
+    set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
+  elseif(${CMAKE_BUILD_TYPE} STREQUAL Release)
+    set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
+  elseif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DDEBUG ")
+  else()
+    message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
+  endif(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
+
+  option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
+  if (CUDA_VERBOSE_BUILD)
+    set(CUDA_VERBOSE_FLAGS "--resource-usage --verbose --nvlink-options=--verbose -Xptxas=--verbose")
+  else()
+    set(CUDA_VERBOSE_FLAGS "")
+  endif()
+
+  set(CMAKE_CUDA_STANDARD 14)
+  set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 endif()
 
 option(BUILD_TESTS "Build test programs" OFF)
@@ -148,28 +245,6 @@ if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
 else()
    message(STATUS "Compiling without ROOT")
 endif()
-
-# Cuda: Deal with build type
-if(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
-  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
-elseif(${CMAKE_BUILD_TYPE} STREQUAL Release)
-  set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
-elseif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
-  set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DDEBUG ")
-else()
-  message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
-endif(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
-
-option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
-if (CUDA_VERBOSE_BUILD)
-  set(CUDA_VERBOSE_FLAGS "--resource-usage --verbose --nvlink-options=--verbose -Xptxas=--verbose")
-else()
-  set(CUDA_VERBOSE_FLAGS "")
-endif()
-# In case we want to compile with clang:
-# --compiler-bindir /cvmfs/sft.cern.ch/lcg/releases/clang/6.0.0-6647e/x86_64-centos7-gcc62-opt/bin/clang++;
-set(CMAKE_CUDA_STANDARD 14)
-set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
 set(EXTERNAL_DIR "external")
 
@@ -253,20 +328,22 @@ file(GLOB common_cuda_sources "main/src/*.cu")
 
 # Remove main.cpp from common_sources
 foreach(source main Allen)
-get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
-list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
+  get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
+  list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
 
 # common libraries
 add_library(Common STATIC ${common_sources})
 target_link_libraries(Common mdf)
 
-add_library(CudaCommon STATIC ${common_cuda_sources})
-set_property(TARGET CudaCommon PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)
+if(TARGET_DEVICE STREQUAL "CPU")
+  set_source_files_properties(${common_cuda_sources} PROPERTIES LANGUAGE CXX)
+endif()
+
+allen_add_library(CudaCommon STATIC ${common_cuda_sources})
 
 # Library containing all the code
-add_library(AllenLib SHARED ${Allen_cpp_path})
+allen_add_library(AllenLib SHARED ${Allen_cpp_path})
 target_link_libraries(AllenLib PUBLIC
   Stream
   TrackChecking
@@ -286,11 +363,12 @@ if (ROOT_FOUND)
   target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
 endif()
 
-
 # Main executable
-add_executable(Allen ${main_cpp_path})
+allen_add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
 
-if(BUILD_TESTS)
-  add_subdirectory(tests)
-endif(BUILD_TESTS)
+if(TARGET_DEVICE STREQUAL "CUDA")
+  if(BUILD_TESTS)
+    add_subdirectory(tests)
+  endif(BUILD_TESTS)
+endif()

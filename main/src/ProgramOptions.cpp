@@ -46,7 +46,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"p", "print-memory"}, "print memory usage", "0"},
           {{"i", "import-tracks"}, "import forward tracks dumped from Brunel"},
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
-          {{"device"}, "select cuda device to use", "0"}};
+          {{"device"}, "select device to use", "0"}};
 }
 
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name)
@@ -57,11 +57,11 @@ void print_call_options(const std::map<std::string, std::string>& options, const
     std::cout << " " << po.description << " (";
     for (size_t i = 0; i < po.options.size(); ++i) {
       if (po.options[i].length() > 1) {
-        std::cerr << "-";
+        std::cout << "-";
       }
-      std::cerr << "-" << po.options[i];
+      std::cout << "-" << po.options[i];
       if (i != po.options.size() - 1) {
-        std::cerr << ", ";
+        std::cout << ", ";
       }
     }
     std::cout << "): ";

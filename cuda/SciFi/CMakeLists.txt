@@ -66,7 +66,22 @@ include_directories(utils/include)
 include_directories(classifiers/include)
 include_directories(consolidate/include)
 
-add_library(SciFi STATIC
+if(TARGET_DEVICE STREQUAL "CPU")
+  foreach(source_file ${scifi_common} ${scifi_preprocessing} ${scifi_utils}
+    ${scifi_lf_common} ${scifi_lf_calculate_first_layer_window}
+    ${scifi_lf_calculate_second_layer_window} ${scifi_lf_form_seeds_from_candidates}
+    ${scifi_lf_calculate_candidate_extrapolation_window} ${scifi_lf_promote_candidates}
+    ${scifi_lf_calculate_track_extrapolation_window} ${scifi_lf_extend_tracks}
+    ${scifi_lf_search_initial_windows} ${scifi_lf_collect_candidates}
+    ${scifi_lf_extend_tracks_x} ${scifi_lf_extend_missing_x} ${scifi_lf_triplet_seeding}
+    ${scifi_lf_triplet_keep_best} ${scifi_lf_extend_tracks_uv} ${scifi_lf_quality_filter}
+    ${scifi_lf_quality_filter_x} ${scifi_lf_search_uv_windows} ${scifi_lf_fit}
+    ${scifi_classifiers} ${scifi_consolidate})
+    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
+  endforeach(source_file)
+endif()
+
+allen_add_library(SciFi STATIC
   ${scifi_common}
   ${scifi_preprocessing}
   ${scifi_utils}
@@ -92,5 +107,3 @@ add_library(SciFi STATIC
   ${scifi_classifiers}
   ${scifi_consolidate}
 )
-
-set_property(TARGET SciFi PROPERTY CUDA_SEPARABLE_COMPILATION ON)

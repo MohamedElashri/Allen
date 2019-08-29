@@ -27,7 +27,7 @@ void SequenceVisitor::check<consolidate_ut_tracks_t>(
     host_buffers.host_number_of_selected_events[0]);
 
   std::vector<std::vector<float>> p_events;
-  auto& checker = checker_invoker.checker<TrackCheckerVeloUT>("Checking Velo+UT tracks", "PrCheckerPlots.root");
+  auto& checker = checker_invoker.checker<TrackCheckerVeloUT>("Velo+UT tracks:", "PrCheckerPlots.root");
   host_buffers.scifi_ids_ut_tracks = checker.accumulate<TrackCheckerVeloUT>(mc_events, tracks, p_events);
 
   // Run MomentumForward on x86

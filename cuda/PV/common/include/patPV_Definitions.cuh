@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cuda_runtime.h"
+#include "CudaCommon.h"
 
 namespace PatPV {
 
@@ -46,7 +46,7 @@ namespace PatPV {
   static constexpr float m_TrackErrorScaleFactor = 1.0;
   static constexpr float m_maxChi2 = 400.0;
   static constexpr float m_trackMaxChi2 = 12.;
-  // static constexpr  double m_trackChi = std::sqrt(m_trackMaxChi2);     // sqrt of trackMaxChi2
+  // static constexpr  double m_trackChi = sqrtf(m_trackMaxChi2);     // sqrt of trackMaxChi2
   static constexpr float m_trackChi = 3.464; // sqrt of trackMaxChi2
   static constexpr float m_trackMaxChi2Remove = 25.;
   static constexpr float m_maxDeltaZCache = 1.; // unit: mm

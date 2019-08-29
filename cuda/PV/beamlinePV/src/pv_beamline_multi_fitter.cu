@@ -10,7 +10,6 @@ __global__ void pv_beamline_multi_fitter(
   uint* dev_number_of_multi_fit_vertices,
   float* dev_beamline)
 {
-
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
@@ -137,7 +136,7 @@ __global__ void pv_beamline_multi_fitter(
         // update the position
         vtxpos_xy = vtxpos_xy + delta_xy;
         vtxpos_z = vtxpos_z + delta_z;
-        converged = std::abs(delta_z) < maxDeltaZConverged;
+        converged = fabsf(delta_z) < maxDeltaZConverged;
       }
       else {
         float3 fakepos {-99999.f, -99999.f, -99999.f};

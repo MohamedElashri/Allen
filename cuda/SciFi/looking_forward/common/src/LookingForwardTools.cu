@@ -43,8 +43,8 @@ __device__ float LookingForward::propagate_x_from_velo_multi_par(
 __device__ float LookingForward::dx_calc(const float state_tx, float qop)
 {
   float ret_val;
-  float qop_window = std::abs(LookingForward::dx_slope * qop + LookingForward::dx_min);
-  float tx_window = std::abs(LookingForward::tx_slope * state_tx + LookingForward::tx_min);
+  float qop_window = fabsf(LookingForward::dx_slope * qop + LookingForward::dx_min);
+  float tx_window = fabsf(LookingForward::tx_slope * state_tx + LookingForward::tx_min);
   ret_val = LookingForward::tx_weight * tx_window + LookingForward::dx_weight * qop_window;
 
   // TODO this must be verified
@@ -53,7 +53,7 @@ __device__ float LookingForward::dx_calc(const float state_tx, float qop)
     ret_val = LookingForward::max_window_layer0;
   }
 
-  ret_val = 100.f + 1.4e6f * std::abs(qop);
+  ret_val = 100.f + 1.4e6f * fabsf(qop);
 
   return ret_val;
 }

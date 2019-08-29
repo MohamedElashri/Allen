@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cassert>
-#include "cuda_runtime.h"
+#include "CudaCommon.h"
 #include "Common.h"
 
 namespace Consolidated {

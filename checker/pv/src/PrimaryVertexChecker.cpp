@@ -309,29 +309,25 @@ PVChecker::~PVChecker() { delete m_histos; }
 
 void PVChecker::report(size_t) const
 {
-  info_cout.precision(4);
-  info_cout << " ============================================" << std::endl;
-  info_cout << " Efficiencies for reconstructible MC vertices: " << std::endl;
-  info_cout << " ============================================" << std::endl;
-  info_cout << " " << std::endl;
-
-  info_cout << " MC PV is reconstructible if at least " << nTracksToBeRecble << "  tracks are reconstructed"
-            << std::endl;
-  info_cout << " MC PV is isolated if dz to closest reconstructible MC PV >  " << dzIsolated << " mm" << std::endl;
   std::string ff = "by counting tracks";
   if (!matchByTracks) ff = "by dz distance";
-  info_cout << " REC and MC vertices matched:  " << ff << std::endl;
 
-  info_cout << passed << " events passed the global event cuts" << std::endl;
-  info_cout << " " << std::endl;
-
+  info_cout << "REC and MC vertices matched " << ff << std::endl;
+  std::printf(
+        "MC PV is reconstructible if at least %i tracks are reconstructed\n\
+MC PV is isolated if dz to closest reconstructible MC PV > %2.2f mm\n\
+REC and MC vertices matched %s\n\n",
+        nTracksToBeRecble,
+        dzIsolated,
+        ff.c_str());
+  
   printRat("All", sum_nRecMCPV, sum_nMCPV);
   printRat("Isolated", sum_nRecMCPV_isol, sum_nMCPV_isol);
   printRat("Close", sum_nRecMCPV_close, sum_nMCPV_close);
   printRat("False rate", sum_nFalsePV, sum_nRecMCPV + sum_nFalsePV);
   printRat("Real false rate", sum_nFalsePV_real, sum_nRecMCPV + sum_nFalsePV_real);
-
-  info_cout << "Clones: " << 1.0f * sum_clones / sum_norm_clones - 1.f << std::endl << std::endl;
+  printRat("Clones", 1.0f * sum_clones, sum_norm_clones - 1.f);
+  info_cout << std::endl;
 
   m_histos->write();
 }
@@ -372,7 +368,12 @@ void printRat(std::string mes, int a, int b)
   }
   pmes += " : ";
 
-  info_cout << pmes << " " << rat << "( " << a << " / " << b << " )" << std::endl;
+  std::printf(
+        "%s %.2f (%6lu/%6lu)\n",
+        pmes.c_str(),
+        rat,
+        a,
+        b);
 }
 
 std::vector<MCPVInfo>::iterator closestMCPV(std::vector<MCPVInfo>& rblemcpv, std::vector<MCPVInfo>::iterator& itmc)

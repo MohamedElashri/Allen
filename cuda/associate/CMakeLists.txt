@@ -16,11 +16,14 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 
-add_library(Associate STATIC
+if(TARGET_DEVICE STREQUAL "CPU")
+  set_source_files_properties(${associate_srcs} PROPERTIES LANGUAGE CXX)
+endif()
+
+allen_add_library(Associate STATIC
   ${associate_srcs}
 )
-set_property(TARGET Associate PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-           
+     
 if(USE_KALMAN_SINGLE_PRECISION)
   target_compile_definitions(Associate PUBLIC KALMAN_SINGLE_PRECISION)
 endif()

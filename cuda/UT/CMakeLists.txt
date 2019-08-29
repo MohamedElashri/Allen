@@ -17,12 +17,15 @@ include_directories(UTDecoding/include)
 include_directories(consolidate/include)
 include_directories(compassUT/include)
 
-add_library(UT STATIC
+if(TARGET_DEVICE STREQUAL "CPU")
+  foreach(source_file ${UT_common} ${UT_decoding} ${UT_consolidate} ${CompassUT_tracking})
+    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
+  endforeach(source_file)
+endif()
+
+allen_add_library(UT STATIC
   ${UT_common}
   ${UT_decoding}
   ${UT_consolidate}
   ${CompassUT_tracking}
 )
-
-set_property(TARGET UT PROPERTY
-             CUDA_SEPARABLE_COMPILATION ON)

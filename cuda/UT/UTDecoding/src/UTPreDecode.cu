@@ -1,5 +1,8 @@
 #include "UTPreDecode.cuh"
+
+#ifndef CPU
 #include "mma.h"
+#endif
 
 /**
  * Iterate over raw banks / hits and store only the Y coordinate,
@@ -80,8 +83,8 @@ __global__ void ut_pre_decode(
       // By using the first 16 bits of each, we get the sign, exponent and 7 bits
       // of the mantissa, for both Y and X, which is enough to account for the
       // cases where yBegin was repeated.
-      const half yBegin = (half)(p0Y + numstrips * dp0diY);
-      const half xAtYEq0_local = (half)(numstrips * dp0diX);
+      const half_t yBegin = __float2half(p0Y + numstrips * dp0diY);
+      const half_t xAtYEq0_local = __float2half(numstrips * dp0diX);
       const short* yBegin_p = reinterpret_cast<const short*>(&yBegin);
       const short* xAtYEq0_local_p = reinterpret_cast<const short*>(&xAtYEq0_local);
 
