@@ -63,6 +63,9 @@ The build process doesnt differ from standard cmake projects:
     cmake -DHIP=ON ..
     make
 
+For the Allen HIP compilation in the Master branch, There will be some errors at run time at the moment which are being resolved.
+
+There is a working branch v5 which compiles and runs on the AMD GPU [here](https://gitlab.cern.ch/lhcb-parallelization/Allen/tree/Brij-Carlos-Allen-HIP-v5-working)
 
 How to run it
 -------------
