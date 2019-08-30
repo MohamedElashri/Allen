@@ -12,18 +12,21 @@ source /cvmfs/lhcb.cern.ch/lib/lcg/releases/gcc/7.3.0/x86_64-centos7/setup.sh
 export PATH=/cvmfs/lhcb.cern.ch/lib/contrib/CMake/3.12.1/Linux-x86_64/bin/:$PATH
 export PATH=/usr/local/cuda/bin:$PATH
 export HIP_PLATFORM=hcc
-export HCC_AMDGPU_TARGET=<GPU Plateform for eg. "gfx803">
+export HCC_AMDGPU_TARGET=<GPU Plateform for Vega7 for eg. "gfx906">
 
 ```
-
+To check if the hipconfiguration is set properly, use the command 
+```shell
+hipconfig
+```
 Regardless of the OS you are running on, you can check your compiler versions as follows:
 
 ```shell
 $ g++ --version
 g++ (GCC) 7.3.0
 
-$ nvcc --version
-Cuda compilation tools, release 10.0, V10.0.130
+$hipcc --version
+HIP version: 1.5.19211
 
 $ cmake --version
 cmake version 3.12.1
@@ -57,17 +60,9 @@ The build process doesnt differ from standard cmake projects:
 
     mkdir build
     cd build
-    cmake ..
+    cmake -DHIP=ON ..
     make
 
-There are some cmake options to configure the build process:
-
-* The sequence can be configured by specifying `-DSEQUENCE=<name_of_sequence>`. For a complete list of sequences available, check `configuration/sequences/`. Sequence names should be specified without the `.h`, ie. `-DSEQUENCE=VeloPVUTSciFiDecoding`.
-* The build type can be specified to `RelWithDebInfo`, `Release` or `Debug`, e.g. `cmake -DCMAKE_BUILD_TYPE=Debug ..`
-* If ROOT is available, it can be enabled to generate graphs by `-DUSE_ROOT=ON`
-* If more verbose build output from the CUDA toolchain is desired, specify `-DCUDA_VERBOSE_BUILD=ON`
-* If multiple versions of CUDA are installed and CUDA 10.0 is not the default, it can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
-* The MC validation is standalone, it was written by Manuel Schiller, Rainer Schwemmer, Daniel Cámpora and Dorothea vom Bruch.
 
 How to run it
 -------------
