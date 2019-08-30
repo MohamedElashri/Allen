@@ -1,7 +1,7 @@
 Allen
 =====
 
-Welcome to HIP Branch of Allen, HIP stands for Heterogeneous compute Interface for Portability. This is complete open source architecture platform mainly supported on AMD ReadonOpenCompute suuports AMD GPUs and other open compute architecture platforms.
+HIP stands for Heterogeneous compute Interface for Portability. This is complete open source architecture platform mainly supported on AMD ReadonOpenCompute suuports AMD GPUs and other open compute architecture platforms.
 ----------
 The project requires a graphics card with AMD ROCm support, HIP, CMake 3.12 and a compiler supporting C++17 (gcc 7.3, for instance).
 
