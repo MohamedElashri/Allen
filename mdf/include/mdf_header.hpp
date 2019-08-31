@@ -8,7 +8,7 @@
 #define DAQ_PROCERR_BANK 33
 #define DAQ_FILEID_BANK 255
 
-#define MDFHEADER_ALIGNED(x) x __attribute__((__packed__, __aligned__))
+#define MDFHEADER_ALIGNED(x) x __attribute__((__packed__))
 
 /*
  *   LHCb namespace

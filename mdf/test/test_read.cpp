@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   size_t i_event = 0;
   while (!eof && i_event++ < n_events) {
 
-    std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer);
+    std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true);
     if (eof || error) {
       return -1;
     }
@@ -56,14 +56,15 @@ int main(int argc, char* argv[])
     array<size_t, LHCb::RawBank::LastType + 1> bank_counts {0};
 
     // Put the banks in the event-local buffers
-    const auto* bank = bank_span.begin();
-    const auto* end = bank_span.end();
+    char const* bank = bank_span.begin();
+    char const* end = bank_span.end();
     while (bank < end) {
       const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
       if (b->magic() != LHCb::RawBank::MagicPattern) {
         cout << "magic pattern failed: " << std::hex << b->magic() << std::dec << endl;
-      }
-      else {
+        goto error;
+      } else {
+        cout << b->type() << " " << b->totalSize() << "\n";
       }
 
       if (b->type() < LHCb::RawBank::LastType) {
@@ -87,5 +88,7 @@ int main(int argc, char* argv[])
     }
     cout << "\n";
   }
-  ::close(input);
+
+ error:
+   ::close(input);
 }
