@@ -11,6 +11,7 @@ void SequenceVisitor::set_arguments_size<pv_beamline_multi_fitter_t>(
   // Set arguments size
   arguments.set_size<dev_multi_fit_vertices>(host_buffers.host_number_of_selected_events[0] * PV::max_number_vertices);
   arguments.set_size<dev_number_of_multi_fit_vertices>(host_buffers.host_number_of_selected_events[0]);
+  arguments.set_size<dev_pvtracks_denom>(host_buffers.host_number_of_reconstructed_velo_tracks[0]);
 }
 
 template<>
@@ -28,6 +29,7 @@ void SequenceVisitor::visit<pv_beamline_multi_fitter_t>(
     arguments.offset<dev_atomics_velo>(),
     arguments.offset<dev_velo_track_hit_number>(),
     arguments.offset<dev_pvtracks>(),
+    arguments.offset<dev_pvtracks_denom>(),
     arguments.offset<dev_zpeaks>(),
     arguments.offset<dev_number_of_zpeaks>(),
     arguments.offset<dev_multi_fit_vertices>(),
