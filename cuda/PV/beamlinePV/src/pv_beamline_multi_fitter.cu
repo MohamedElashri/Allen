@@ -30,23 +30,6 @@ __global__ void pv_beamline_multi_fitter(
   PV::Vertex vertex;
   float* pvtracks_denom = dev_pvtracks_denom + event_tracks_offset;
 
-  // Precalculate all track denoms
-  for (int i=threadIdx.x; i<number_of_tracks; i+=blockDim.x) {
-    auto track_denom = 0.f;
-    const auto track = tracks[i];
-
-    for (int j=0; j<number_of_seeds; ++j) {
-      const auto dz = zseeds[j] - track.z;
-      const float2 res = track.x + track.tx * dz;
-      const auto chi2 = res.x * res.x * track.W_00 + res.y * res.y * track.W_11;
-      track_denom += expf(chi2 * (-0.5f));
-    }
-
-    pvtracks_denom[i] = track_denom;
-  }
-
-  __syncthreads();
-
   // make sure that we have one thread per seed
   for (uint i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
     bool converged = false;
@@ -89,9 +72,7 @@ __global__ void pv_beamline_multi_fitter(
             // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
             // https://cds.cern.ch/record/803519/files/p280.pdf
 
-            // expf(-chi2Cut * 0.5f) = 0.000003727f
-            auto denom = 0.000003727f + expf(chi2 * (-0.5f));
-            // auto nom = 1.f;
+            auto denom = chi2CutExp + expf(chi2 * (-0.5f));
 
             // Calculate nom
             // TODO: This seems to be already calculated above

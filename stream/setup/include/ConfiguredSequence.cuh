@@ -34,6 +34,7 @@
 #include "pv_beamline_extrapolate.cuh"
 #include "pv_beamline_histo.cuh"
 #include "pv_beamline_peak.cuh"
+#include "pv_beamline_calculate_denom.cuh"
 #include "pv_beamline_multi_fitter.cuh"
 #include "pv_beamline_cleanup.cuh"
 #include "VeloPVIP.cuh"
