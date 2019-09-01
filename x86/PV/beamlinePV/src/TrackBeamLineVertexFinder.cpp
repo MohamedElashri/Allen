@@ -13,6 +13,7 @@
 #include "BeamlinePVConstants.cuh"
 #include "SeedZWithIteratorPair.h"
 #include "FloatOperations.cuh"
+#include <cmath>
 
 #ifdef WITH_ROOT
 #include "TH1D.h"

@@ -1,30 +1,16 @@
 #pragma once
 
+#include "CudaCommon.h"
 #include "Common.h"
 #include "Logger.h"
 #include "PV_Definitions.cuh"
 #include "VeloConsolidated.cuh"
-#include <cmath>
 
 // structure with minimal track info needed for PV search
 struct PVTrack {
   __host__ __device__ PVTrack() {}
-  __host__ __device__ PVTrack(const KalmanVeloState& state, float dz) :
-    z {float(state.z + dz)}, x {float(state.x + dz * state.tx), float(state.y + dz * state.ty)}, tx {float(state.tx),
-                                                                                                     float(state.ty)}
-  {
+  __host__ __device__ PVTrack(const KalmanVeloState& state, float dz);
 
-    float state_tmp_c00 = state.c00;
-    float state_tmp_c11 = state.c11;
-
-    float dz2 = dz * dz;
-
-    // TODO: check if abs is needed here
-    state_tmp_c00 += dz2 * state.c22 + 2.f * abs(dz * state.c20);
-    state_tmp_c11 += dz2 * state.c33 + 2.f * abs(dz * state.c31);
-    W_00 = 1.f / state_tmp_c00;
-    W_11 = 1.f / state_tmp_c11;
-  }
   float z {0};
   float2 x;  /// position (x,y)
   float2 tx; /// direction (tx,ty)
