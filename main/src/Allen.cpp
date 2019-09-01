@@ -413,6 +413,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Determine wether to run with async I/O.
   bool enable_async_io = true;
+  size_t n_io_reps = number_of_repetitions;
   if ((number_of_slices == 0 || number_of_slices == 1) && number_of_repetitions > 1) {
     // NOTE: Special case to be able to compare throughput with and
     // without async I/O; if repetitions are requested and the number
@@ -420,6 +421,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     // slice.
     enable_async_io = false;
     number_of_slices = 1;
+    n_io_reps = 1;
     warning_cout << "Disabling async I/O to measure throughput without it.\n";
   }
   else if (number_of_slices <= number_of_threads) {
@@ -469,13 +471,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       current = mdf_input.find(",", previous);
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
-
-    MDFProviderConfig config {false,                  // verify MDF checksums
-                              10,                     // number of read buffers
-                              4,                      // number of transpose threads
-                              10001,                  // maximum number event of offsets in read buffer
-                              *events_per_slice,      // number of events per read buffer
-                              number_of_repetitions}; // number of loops over the input files
+    MDFProviderConfig config {false,             // verify MDF checksums
+                              10,                // number of read buffers
+                              4,                 // number of transpose threads
+                              10001,             // maximum number event of offsets in read buffer
+                              *events_per_slice, // number of events per read buffer
+                              n_io_reps};        // number of loops over the input files
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, std::move(connections), config);
   }
@@ -484,9 +485,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     vector<string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
     input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), number_of_repetitions);
+      number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps);
   }
-  if (enable_async_io) number_of_repetitions = 1;
 
   // Read the Muon catboost model
   muon_catboost_model_reader =
@@ -715,7 +715,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         auto& socket = std::get<1>(io_workers[i]);
         auto msg = zmqSvc().receive<string>(socket);
         if (msg == "SLICE") {
-          slice_index = zmqSvc().receive<int>(socket);
+          slice_index = zmqSvc().receive<size_t>(socket);
           auto good = zmqSvc().receive<bool>(socket);
           auto n_filled = zmqSvc().receive<size_t>(socket);
 
