@@ -13,7 +13,6 @@ __global__ void pv_beamline_multi_fitter(
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-
   uint* number_of_multi_fit_vertices = dev_number_of_multi_fit_vertices + event_number;
 
   const Velo::Consolidated::Tracks velo_tracks {
@@ -33,15 +32,17 @@ __global__ void pv_beamline_multi_fitter(
 
   // Precalculate all track denoms
   for (int i=threadIdx.x; i<number_of_tracks; i+=blockDim.x) {
-    pvtracks_denom[i] = 0.f;
+    auto track_denom = 0.f;
     const auto track = tracks[i];
 
     for (int j=0; j<number_of_seeds; ++j) {
       const auto dz = zseeds[j] - track.z;
       const float2 res = track.x + track.tx * dz;
       const auto chi2 = res.x * res.x * track.W_00 + res.y * res.y * track.W_11;
-      pvtracks_denom[i] += expf(chi2 * (-0.5f));
+      track_denom += expf(chi2 * (-0.5f));
     }
+
+    pvtracks_denom[i] = track_denom;
   }
 
   __syncthreads();
@@ -93,7 +94,7 @@ __global__ void pv_beamline_multi_fitter(
             // auto nom = 1.f;
 
             // Calculate nom
-            // TODO: This seems to already be calculated above
+            // TODO: This seems to be already calculated above
             // const auto dz_seed = zseeds[i_thisseed] - trk.z;
             // const float2 res_seed = trk.x + trk.tx * dz_seed;
             // const auto chi2_seed = res_seed.x * res_seed.x * trk.W_00 + res_seed.y * res_seed.y * trk.W_11;
@@ -161,7 +162,7 @@ __global__ void pv_beamline_multi_fitter(
         converged = fabsf(delta_z) < maxDeltaZConverged;
       }
       else {
-        // TODO: Even more confusing
+        // Finish loop and do not accept vertex
         converged = true;
         accept = false;
       }
