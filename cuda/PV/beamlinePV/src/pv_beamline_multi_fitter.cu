@@ -71,19 +71,9 @@ __global__ void pv_beamline_multi_fitter(
             // for more information on the weighted fitting, see e.g.
             // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
             // https://cds.cern.ch/record/803519/files/p280.pdf
-
-            auto denom = chi2CutExp + expf(chi2 * (-0.5f));
-
-            // Calculate nom
-            // TODO: This seems to be already calculated above
-            // const auto dz_seed = zseeds[i_thisseed] - trk.z;
-            // const float2 res_seed = trk.x + trk.tx * dz_seed;
-            // const auto chi2_seed = res_seed.x * res_seed.x * trk.W_00 + res_seed.y * res_seed.y * trk.W_11;
-            // const auto nom = expf(-chi2_seed * 0.5f);
+            const auto denom = chi2CutExp + expf(chi2 * (-0.5f));
             const auto nom = expf(chi2 * (-0.5f));
-
             trk.weight = nom / (denom + pvtracks_denom[i]);
-            // trk.weight = nom / denom;
 
             // unfortunately branchy, but reduces fake rate
             if (trk.weight > minWeight) {
