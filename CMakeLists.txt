@@ -229,7 +229,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
     # Note: HIP does not support asserts for now
     message(STATUS "HIP Debug: Asserts not supported yet, setting -DNDEBUG")
-    set(HIP_RELEASE_OPTIONS "-O0 -G -g -DNDEBUG")
+    set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   else()
     message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
   endif(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
