@@ -84,8 +84,8 @@ struct ThreadIndices {
 
 extern thread_local GridDimensions gridDim;
 extern thread_local BlockIndices blockIdx;
-extern thread_local BlockDimensions blockDim;
-extern thread_local ThreadIndices threadIdx;
+constexpr BlockDimensions blockDim {1, 1, 1};
+constexpr ThreadIndices threadIdx {0, 0, 0};
 
 cudaError_t cudaMalloc(void** devPtr, size_t size);
 cudaError_t cudaMallocHost(void** ptr, size_t size);
