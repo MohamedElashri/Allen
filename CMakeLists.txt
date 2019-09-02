@@ -52,7 +52,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "HIP")
   add_compile_definitions(HIP)
-  add_compile_definitions(__HIP_PLATFORM_HCC__)
 
   # Setup HIPCC compiler
   if(NOT DEFINED HIP_PATH)
@@ -81,6 +80,8 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endif()
 
   set(HIP_SEPARABLE_COMPILATION ON)
+
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wno-unused-result")
 else()
   project(Allen C CXX CUDA)
 
@@ -152,9 +153,9 @@ elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -240,7 +241,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   # -funroll-loops 
   # -fstack-protector-strong
   # -fPIC -shared
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-everything")
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn")
 
   # Define allen_add_library and allen_add_executable HIP specializations
   function(allen_add_library)

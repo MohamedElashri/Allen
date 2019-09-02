@@ -153,6 +153,7 @@ half_t __float2half(float value);
 #if defined(__HCC__) || defined(__HIP__) || defined(__NVCC__) || defined(__CUDACC__)
 #include <hip/hip_runtime.h>
 #else
+#define __HIP_PLATFORM_HCC__
 #include <hip/hip_runtime_api.h>
 #endif
 
@@ -168,7 +169,7 @@ half_t __float2half(float value);
 #define cudaEventCreateWithFlags hipEventCreateWithFlags
 #define cudaEventSynchronize hipEventSynchronize
 #define cudaEventRecord hipEventRecord
-#define cudaFreeHost hipFreeHost
+#define cudaFreeHost hipHostFree
 #define cudaDeviceReset hipDeviceReset
 #define cudaStreamCreate hipStreamCreate
 #define cudaMemGetInfo hipMemGetInfo
@@ -206,7 +207,7 @@ half_t __float2half(float value);
       fprintf(                                                   \
         stderr,                                                  \
         "Failed to invoke %s\n%s (%d) at %s: %d\n",              \
-        kernel_name,                                             \
+        kernel_name.c_str(),                                     \
         hipGetErrorString(err),                                  \
         err,                                                     \
         __FILE__,                                                \

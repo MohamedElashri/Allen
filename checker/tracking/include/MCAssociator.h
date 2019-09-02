@@ -59,8 +59,6 @@ struct MCAssociator {
   MCAssociator(const MCParticles& mcps);
   MCAssociator(const MCAssociator&) = default;
   MCAssociator(MCAssociator&&) = default;
-  MCAssociator& operator=(const MCAssociator&) = default;
-  MCAssociator& operator=(MCAssociator&&) = default;
 
   /// result of an MC association
   class MCAssocResult {
@@ -74,8 +72,6 @@ struct MCAssociator {
     MCAssocResult(AssocVector&& assocs, const MCParticles& mcps) : m_assoc(assocs), m_mcps(mcps) {}
     MCAssocResult(const MCAssocResult&) = default;
     MCAssocResult(MCAssocResult&&) = default;
-    MCAssocResult& operator=(const MCAssocResult&) = default;
-    MCAssocResult& operator=(MCAssocResult&&) = default;
 
     bool empty() const noexcept { return m_assoc.empty(); }
     operator bool() const noexcept { return !empty(); }
@@ -91,8 +87,6 @@ struct MCAssociator {
       {}
       iterator(const iterator&) = default;
       iterator(iterator&&) = default;
-      iterator& operator=(const iterator&) = default;
-      iterator& operator=(iterator&&) = default;
       iterator& operator++() noexcept
       {
         ++reinterpret_cast<AssocVector::const_iterator&>(*this);
