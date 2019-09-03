@@ -11,8 +11,9 @@ message(STATUS "Allen target: ${TARGET_DEVICE}")
 
 # Determine whether to use Tensor Cores
 # Note: Tensor cores are only supported in CUDA
-option(TENSOR "Produce CUDA code with Tensor Cores enabled if available" OFF)
+option(USE_TENSOR_CORES "Produce CUDA code with Tensor Cores enabled if available" OFF)
 if(TARGET_DEVICE STREQUAL "CUDA" AND TENSOR)
+  message(STATUS "Tensor core compilation enabled")
   add_compile_definitions(TENSOR_CORES_ENABLED)
 endif()
 
