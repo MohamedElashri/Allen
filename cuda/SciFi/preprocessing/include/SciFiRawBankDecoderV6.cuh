@@ -6,7 +6,7 @@
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsSciFi.cuh"
 
-__device__ void make_cluster(
+__device__ void make_cluster_v6 (
   const int hit_index,
   const SciFi::HitCount& hit_count,
   const SciFi::SciFiGeometry& geom,
@@ -16,7 +16,7 @@ __device__ void make_cluster(
   uint32_t uniqueMat,
   SciFi::Hits& hits);
 
-__global__ void scifi_raw_bank_decoder(
+__global__ void scifi_raw_bank_decoder_v6(
   char* scifi_events,
   uint* scifi_event_offsets,
   const uint* event_list,
@@ -26,6 +26,6 @@ __global__ void scifi_raw_bank_decoder(
   const float* dev_inv_clus_res);
 
 ALGORITHM(
-  scifi_raw_bank_decoder,
-  scifi_raw_bank_decoder_t,
+  scifi_raw_bank_decoder_v6,
+  scifi_raw_bank_decoder_v6_t,
   ARGUMENTS(dev_scifi_raw_input, dev_scifi_raw_input_offsets, dev_scifi_hit_count, dev_scifi_hits, dev_event_list))
