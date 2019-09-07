@@ -16,6 +16,8 @@ __global__ void lf_triplet_seeding(
   float* dev_scifi_lf_triplet_best_chi2,
   int8_t* dev_scifi_lf_triplet_best_h0h2)
 {
+  __shared__ float shared_partial_chi2[LookingForward::tile_size * LookingForward::tile_size];
+
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
@@ -72,7 +74,8 @@ __global__ void lf_triplet_seeding(
         scifi_lf_candidates,
         z1 - z0,
         z2 - z0,
-        qop);
+        qop,
+        shared_partial_chi2);
     }
   }
 }

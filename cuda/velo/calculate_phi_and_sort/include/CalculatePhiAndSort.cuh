@@ -13,7 +13,8 @@ __device__ void calculate_phi(
   const float* hit_Xs,
   const float* hit_Ys,
   float* hit_Phis,
-  uint* hit_permutations);
+  uint* hit_permutations,
+  float* shared_hit_phis);
 
 __device__ void sort_by_phi(
   const uint event_hit_start,

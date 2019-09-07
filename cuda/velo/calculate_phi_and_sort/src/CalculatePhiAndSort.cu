@@ -9,6 +9,8 @@ __global__ void calculate_phi_and_sort(
   uint32_t* dev_velo_cluster_container,
   uint* dev_hit_permutations)
 {
+  __shared__ float shared_hit_phis[Velo::Constants::max_numhits_in_module];
+
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
   const uint event_number = blockIdx.x;
@@ -42,7 +44,7 @@ __global__ void calculate_phi_and_sort(
   __syncthreads();
 
   // Calculate phi and populate hit_permutations
-  calculate_phi(module_hitStarts, module_hitNums, hit_Xs, hit_Ys, hit_Phis, hit_permutations);
+  calculate_phi(module_hitStarts, module_hitNums, hit_Xs, hit_Ys, hit_Phis, hit_permutations, shared_hit_phis);
 
   // Due to phi RAW
   __syncthreads();

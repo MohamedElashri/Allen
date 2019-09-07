@@ -2,10 +2,6 @@
 #include "BinarySearchTools.cuh"
 #include "LookingForwardTools.cuh"
 
-#ifndef CPU
-#include <mma.h>
-#endif
-
 __device__ void lf_triplet_seeding_choose_best_triplets_for_h1(
   const float* scifi_hits_x0,
   const short* scifi_lf_candidates,
@@ -88,10 +84,9 @@ __device__ void lf_triplet_seeding_impl(
   const short* scifi_lf_candidates,
   const float dz1,
   const float dz2,
-  const float qop)
+  const float qop,
+  float* shared_partial_chi2)
 {
-  __shared__ float shared_partial_chi2[LookingForward::tile_size * LookingForward::tile_size];
-
   // /*Storage for best chi2 from triplets of one h1 candidate
   //   this allows comparisons beyond the scope of the tiles in which the h0-h1-h2 combinations are treated */
   // const int16_t max_n_h1s_this_thread = LookingForward::maximum_number_of_candidates /

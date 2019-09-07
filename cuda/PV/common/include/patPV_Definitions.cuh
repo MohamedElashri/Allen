@@ -52,14 +52,11 @@ namespace PatPV {
   static constexpr float m_maxDeltaZCache = 1.; // unit: mm
 
   struct vtxCluster final {
-
     float z = 0;         // z of the cluster
     float sigsq = 0;     // sigma**2 of the cluster
     float sigsqmin = 0;  // minimum sigma**2 of the tracks forming cluster
     int ntracks = 1;     // number of tracks in the cluster
     bool merged = false; // flag for iterative merging
-
-    vtxCluster() = default;
   };
 
   struct XYZPoint {

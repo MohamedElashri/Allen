@@ -1,7 +1,6 @@
 #include "VertexFitter.cuh"
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
-#include <gsl-lite.hpp>
 
 namespace VertexFit {
 
@@ -299,7 +298,7 @@ __global__ void fit_secondary_vertices(
 
   // Primary vertices.
   const uint n_pvs_event = *(dev_number_of_multi_fit_vertices + event_number);
-  gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices, n_pvs_event};
+  cuda::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices, n_pvs_event};
 
   // Secondary vertices.
   VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;

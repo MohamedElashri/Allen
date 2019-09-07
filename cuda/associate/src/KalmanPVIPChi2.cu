@@ -5,7 +5,6 @@
 #include <SciFiConsolidated.cuh>
 #include <AssociateConsolidated.cuh>
 #include <AssociateConstants.cuh>
-#include <gsl-lite.hpp>
 
 namespace Distance {
   __device__ float kalman_ipchi2(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& vertex)
@@ -46,7 +45,7 @@ typedef float (*distance_fun)(const ParKalmanFilter::FittedTrack& track, const P
 __device__ void associate_and_muon_id(
   ParKalmanFilter::FittedTrack* tracks,
   const bool* is_muon,
-  gsl::span<const PV::Vertex> const& vertices,
+  cuda::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table,
   distance_fun fun)
 {
@@ -99,7 +98,7 @@ __global__ void kalman_pv_ipchi2(
   // Kalman-fitted tracks for this event.
   ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
   const bool* event_is_muon = dev_is_muon + event_tracks_offset;
-  gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
+  cuda::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
                                         *(dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event.

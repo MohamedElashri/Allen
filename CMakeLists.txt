@@ -2,8 +2,20 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 # Determine whether to produce a CPU version
 option(CPU "Produce a CPU version" OFF)
+option(HIP "Produce a HIP version" OFF)
 if(CPU)
   set(TARGET_DEVICE "CPU")
+elseif(HIP)
+  # Note: HIP with nvcc backend is not supported
+  #       Instead, compile with CUDA target
+  if(HIP_PLATFORM STREQUAL "nvcc")
+    message(STATUS "HIP with nvcc backend is not supported (HIP_PLATFORM=nvcc)")
+    message(STATUS "Please unset HIP_PLATFORM to trigger a HIP compilation")
+    message(STATUS "Continuing with CUDA backend")
+    set(TARGET_DEVICE "CUDA")
+  else()
+    set(TARGET_DEVICE "HIP")
+  endif()
 else()
   set(TARGET_DEVICE "CUDA")
 endif()
@@ -39,6 +51,38 @@ if(TARGET_DEVICE STREQUAL "CPU")
   function(allen_add_executable)
     add_executable(${ARGV})
   endfunction()
+elseif(TARGET_DEVICE STREQUAL "HIP")
+  add_compile_definitions(HIP)
+
+  # Setup HIPCC compiler
+  if(NOT DEFINED HIP_PATH)
+    if(NOT DEFINED ENV{HIP_PATH})
+      set(HIP_PATH "/opt/rocm/hip" CACHE PATH "Path to which HIP has been installed")
+    else()
+      set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to which HIP has been installed")
+    endif()
+  endif()
+  
+  # Set linker location
+  set(HCC_HOME "${HIP_PATH}/../hcc")
+  set(HCC_PATH "${HIP_PATH}/../hcc")
+
+  set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
+  include_directories(${HIP_PATH}/include)
+  include_directories(${HIP_PATH}/../hsa/include)
+
+  project(Allen C CXX)
+
+  find_package(HIP QUIET REQUIRED)
+  if(HIP_FOUND)
+    message(STATUS "Found HIP: " ${HIP_VERSION})
+  else()
+    message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable HIP_PATH is set.")
+  endif()
+
+  set(HIP_SEPARABLE_COMPILATION ON)
+
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wno-unused-result")
 else()
   project(Allen C CXX CUDA)
 
@@ -48,9 +92,9 @@ else()
       CUDA_SEPARABLE_COMPILATION ON)
   endfunction()
 
-  macro(allen_add_executable)
+  function(allen_add_executable)
     add_executable(${ARGV})
-  endmacro()
+  endfunction()
 endif()
 
 # Workaround 2/2 for shared cuda runtime
@@ -110,9 +154,9 @@ elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -176,6 +220,43 @@ if(TARGET_DEVICE STREQUAL "CUDA")
 
   set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+elseif(TARGET_DEVICE STREQUAL "HIP")
+  # HCC Options (HIPCC compiler)
+  # Other warning options: -Wall -Wno-bitwise-op-parentheses -Wno-unused-variable -Wno-logical-op-parentheses
+  if(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
+    set(HIP_RELEASE_OPTIONS "-O3 -g -DNDEBUG")
+  elseif(${CMAKE_BUILD_TYPE} STREQUAL Release)
+    set(HIP_RELEASE_OPTIONS "-O3 -DNDEBUG")
+  elseif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    # Note: HIP does not support asserts for now
+    message(STATUS "HIP Debug: Asserts not supported yet, setting -DNDEBUG")
+    set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
+  else()
+    message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
+  endif(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
+
+  # Other options tested:
+  # -hc -hc-function-calls
+  # -finline-functions -finline-hint-functions
+  # -flto -fwhole-program-vtables
+  # -funroll-loops 
+  # -fstack-protector-strong
+  # -fPIC -shared
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn")
+
+  # Define allen_add_library and allen_add_executable HIP specializations
+  function(allen_add_library)
+    hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
+    set_property(TARGET ${ARGV0} PROPERTY
+      HIP_SEPARABLE_COMPILATION ON)
+  endfunction()
+
+  function(allen_add_executable)
+    hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
+    set_target_properties(${ARGV0}
+         PROPERTIES HIP_SEPARABLE_COMPILATION ON
+                  HIP_RESOLVE_DEVICE_SYMBOLS ON)
+  endfunction()
 endif()
 
 option(BUILD_TESTS "Build test programs" OFF)
@@ -343,8 +424,15 @@ endif()
 
 allen_add_library(CudaCommon STATIC ${common_cuda_sources})
 
-# Library containing all the code
-allen_add_library(AllenLib SHARED ${Allen_cpp_path})
+if(TARGET_DEVICE STREQUAL "HIP")
+  # Produce self-contained application
+  # Otherwise, HIP doesn't seem to link properly
+  allen_add_library(AllenLib STATIC ${Allen_cpp_path})
+else()
+  # Library containing all the code
+  allen_add_library(AllenLib SHARED ${Allen_cpp_path})
+endif()
+
 target_link_libraries(AllenLib PUBLIC
   Stream
   TrackChecking
@@ -355,8 +443,8 @@ target_link_libraries(AllenLib PUBLIC
   Common
   CudaCommon
   NonEventData
-  AllenZMQ)
-set_property(TARGET AllenLib PROPERTY OUTPUT_NAME "Allen")
+  AllenZMQ
+  x86Clustering)
 
 if (ROOT_FOUND)
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
@@ -364,7 +452,6 @@ if (ROOT_FOUND)
   target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
 endif()
 
-# Main executable
 allen_add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
 

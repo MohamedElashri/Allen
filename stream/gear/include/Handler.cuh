@@ -66,6 +66,8 @@ void invoke_impl(
       }
     }
   }
+#elif defined(HIP)
+  hipLaunchKernelGGL(function, num_blocks, num_threads, shared_memory_size, *stream, std::get<I>(invoke_arguments)...);
 #else
   function<<<num_blocks, num_threads, shared_memory_size, *stream>>>(std::get<I>(invoke_arguments)...);
 #endif

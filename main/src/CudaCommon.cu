@@ -1,6 +1,7 @@
+#include "CudaCommon.h"
+
 #ifdef CPU
 
-#include "CudaCommon.h"
 #include <cstring>
 #include <malloc.h>
 
@@ -77,17 +78,28 @@ cudaError_t cudaStreamCreate(cudaStream_t* pStream) {
   return 0;
 }
 
-int32_t intbits(const float f) {
+unsigned int atomicInc(unsigned int* address,
+                       unsigned int val) {
+  unsigned int old = *address;
+  *address = ((old >= val) ? 0 : (old+1));
+  return old;
+}
+
+#endif
+
+#if defined(CPU) || defined(HIP)
+
+__device__ __host__ int32_t intbits(const float f) {
   const int32_t* bits = reinterpret_cast<const int32_t*>(&f);
   return *bits;
 }
 
-float floatbits(const int32_t i) {
+__device__ __host__ float floatbits(const int32_t i) {
   const float* bits = reinterpret_cast<const float*>(&i);
   return *bits;
 }
 
-half_t __float2half(const float f) {
+__device__ __host__ half_t __float2half(const float f) {
   // via Fabian "ryg" Giesen.
   // https://gist.github.com/2156668
   uint32_t sign_mask = 0x80000000u;
@@ -125,13 +137,6 @@ half_t __float2half(const float f) {
     o = fint2 >> 13; // Take the bits!
 
   return (o | (sign >> 16));
-}
-
-unsigned int atomicInc(unsigned int* address,
-                       unsigned int val) {
-  unsigned int old = *address;
-  *address = ((old >= val) ? 0 : (old+1));
-  return old;
 }
 
 #endif

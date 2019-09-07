@@ -99,7 +99,7 @@ __device__ void fill_candidates_impl(
   // Assign a h1 to each threadIdx.x
   const auto module_index = blockIdx.y + 2; // 48 blocks y
   const auto m1_hitNums = module_hitNums[module_index];
-  for (auto h1_rel_index = threadIdx.x; h1_rel_index < m1_hitNums; h1_rel_index += blockDim.x) {
+  for (uint h1_rel_index = threadIdx.x; h1_rel_index < m1_hitNums; h1_rel_index += blockDim.x) {
     // Find for module module_index, hit h1_rel_index the candidates
     const auto m0_hitStarts = module_hitStarts[module_index + 2] - hit_offset;
     const auto m2_hitStarts = module_hitStarts[module_index - 2] - hit_offset;

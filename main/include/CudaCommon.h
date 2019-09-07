@@ -7,9 +7,9 @@
 
 #include <cmath>
 
-// ---------------
-// CPU compilation
-// ---------------
+// -----------
+// CPU support
+// -----------
 
 #define __host__
 #define __device__
@@ -53,7 +53,7 @@ struct dim3 {
   dim3() = default;
   dim3(const dim3&) = default;
 
-  dim3(const unsigned  int& x);
+  dim3(const unsigned int& x);
   dim3(const unsigned int& x, const unsigned int& y);
   dim3(const unsigned int& x, const unsigned int& y, const unsigned int& z);
 };
@@ -103,24 +103,26 @@ cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
 
 template<class T, class S>
-T atomicAdd(T* address, S val) {
+T atomicAdd(T* address, S val)
+{
   const T old = *address;
   *address += val;
   return old;
 }
 
 template<class T>
-T max(const T& a, const T& b) {
+T max(const T& a, const T& b)
+{
   return std::max(a, b);
 }
 
 template<class T>
-T min(const T& a, const T& b) {
+T min(const T& a, const T& b)
+{
   return std::min(a, b);
 }
 
-unsigned int atomicInc(unsigned int* address,
-                       unsigned int val);
+unsigned int atomicInc(unsigned int* address, unsigned int val);
 
 half_t __float2half(float value);
 
@@ -142,11 +144,87 @@ half_t __float2half(float value);
     }                                                               \
   }
 
-#else
+#elif defined(HIP)
 
 // ---------------
-// GPU compilation
+// Support for HIP
 // ---------------
+
+#if defined(__HCC__) || defined(__HIP__) || defined(__NVCC__) || defined(__CUDACC__)
+#include <hip/hip_runtime.h>
+#else
+#define __HIP_PLATFORM_HCC__
+#include <hip/hip_runtime_api.h>
+#endif
+
+// Support for CUDA to HIP conversion
+#define cudaMalloc hipMalloc
+#define cudaMallocHost hipHostMalloc
+#define cudaMemcpy hipMemcpy
+#define cudaMemcpyAsync hipMemcpyAsync
+#define cudaMemset hipMemset
+#define cudaMemsetAsync hipMemsetAsync
+#define cudaPeekAtLastError hipPeekAtLastError
+#define cudaEventCreate hipEventCreate
+#define cudaEventCreateWithFlags hipEventCreateWithFlags
+#define cudaEventSynchronize hipEventSynchronize
+#define cudaEventRecord hipEventRecord
+#define cudaFreeHost hipHostFree
+#define cudaDeviceReset hipDeviceReset
+#define cudaStreamCreate hipStreamCreate
+#define cudaMemGetInfo hipMemGetInfo
+#define cudaGetDeviceCount hipGetDeviceCount
+#define cudaSetDevice hipSetDevice
+#define cudaGetDeviceProperties hipGetDeviceProperties
+#define cudaDeviceProp hipDeviceProp_t
+
+#define cudaError_t hipError_t
+#define cudaEvent_t hipEvent_t
+#define cudaStream_t hipStream_t
+#define cudaSuccess hipSuccess
+#define cudaEventBlockingSync hipEventBlockingSync
+
+#define cudaMemcpyHostToHost hipMemcpyHostToHost
+#define cudaMemcpyHostToDevice hipMemcpyHostToDevice
+#define cudaMemcpyDeviceToHost hipMemcpyDeviceToHost
+#define cudaMemcpyDeviceToDevice hipMemcpyDeviceToDevice
+#define cudaMemcpyDefault hipMemcpyDefault
+
+#define cudaCheck(stmt)                                                                                           \
+  {                                                                                                               \
+    hipError_t err = stmt;                                                                                        \
+    if (err != hipSuccess) {                                                                                      \
+      fprintf(                                                                                                    \
+        stderr, "Failed to run %s\n%s (%d) at %s: %d\n", #stmt, hipGetErrorString(err), err, __FILE__, __LINE__); \
+      throw std::invalid_argument("cudaCheck failed");                                                            \
+    }                                                                                                             \
+  }
+
+#define cudaCheckKernelCall(stmt, kernel_name)                   \
+  {                                                              \
+    cudaError_t err = stmt;                                      \
+    if (err != cudaSuccess) {                                    \
+      fprintf(                                                   \
+        stderr,                                                  \
+        "Failed to invoke %s\n%s (%d) at %s: %d\n",              \
+        kernel_name.c_str(),                                     \
+        hipGetErrorString(err),                                  \
+        err,                                                     \
+        __FILE__,                                                \
+        __LINE__);                                               \
+      throw std::invalid_argument("cudaCheckKernelCall failed"); \
+    }                                                            \
+  }
+
+#define half_t short
+
+__device__ __host__ half_t __float2half(float value);
+
+#else
+
+// ------------
+// CUDA support
+// ------------
 
 #include "cuda_runtime.h"
 #include <mma.h>
@@ -176,6 +254,20 @@ half_t __float2half(float value);
   }
 
 #endif
+
+// Replacement for gsl::span in CUDA code
+namespace cuda {
+  template<class T>
+  struct span {
+    T* __ptr;
+    size_t __size;
+
+    __device__ __host__ T* data() const { return __ptr; }
+    __device__ __host__ size_t size() const { return __size; }
+    __device__ __host__ T& operator[](int i) { return __ptr[i]; }
+    __device__ __host__ const T operator[](int i) const { return __ptr[i]; }
+  };
+} // namespace cuda
 
 /**
  * @brief Cross architecture for statement.

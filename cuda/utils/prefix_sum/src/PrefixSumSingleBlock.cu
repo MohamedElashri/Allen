@@ -37,11 +37,10 @@ __device__ void down_sweep_2048(uint* data_block)
   }
 }
 
-__device__ void prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, const uint array_size)
+__device__ void prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, const uint array_size, uint* data_block)
 {
   // Prefix sum of elements in dev_array
   // Using Blelloch scan https://www.youtube.com/watch?v=mmYv3Haj6uc
-  __shared__ uint data_block[2048];
 
   // Let's do it in blocks of 2048 (2^11)
   unsigned prev_last_elem = 0;
@@ -124,7 +123,9 @@ __device__ void prefix_sum_single_block_implementation(uint* dev_total_sum, uint
 
 __global__ void prefix_sum_single_block(uint* dev_total_sum, uint* dev_array, const uint array_size)
 {
-  prefix_sum_single_block_implementation(dev_total_sum, dev_array, array_size);
+  __shared__ uint data_block[2048];
+
+  prefix_sum_single_block_implementation(dev_total_sum, dev_array, array_size, data_block);
 }
 
 __global__ void copy_and_prefix_sum_single_block(
@@ -133,6 +134,8 @@ __global__ void copy_and_prefix_sum_single_block(
   uint* dev_output_array,
   const uint array_size)
 {
+  __shared__ uint data_block[2048];
+
   // Copy the input array into the output array
   for (uint i = 0; i < (array_size + blockDim.x - 1) / blockDim.x; ++i) {
     const auto element = i * blockDim.x + threadIdx.x;
@@ -144,7 +147,7 @@ __global__ void copy_and_prefix_sum_single_block(
   __syncthreads();
 
   // Perform prefix_sum over output array
-  prefix_sum_single_block_implementation(dev_total_sum, dev_output_array, array_size);
+  prefix_sum_single_block_implementation(dev_total_sum, dev_output_array, array_size, data_block);
 }
 
 __global__ void copy_square_and_prefix_sum_single_block(
@@ -153,6 +156,8 @@ __global__ void copy_square_and_prefix_sum_single_block(
   uint* dev_output_array,
   const uint array_size)
 {
+  __shared__ uint data_block[2048];
+
   // Copy N(N-1)/2 to the output location.
   for (uint i = 0; i < (array_size + blockDim.x - 1) / blockDim.x; ++i) {
     const auto element = i * blockDim.x + threadIdx.x;
@@ -163,7 +168,7 @@ __global__ void copy_square_and_prefix_sum_single_block(
   __syncthreads();
 
   // Perform the prefix sum over the output array.
-  prefix_sum_single_block_implementation(dev_total_sum, dev_output_array, array_size);
+  prefix_sum_single_block_implementation(dev_total_sum, dev_output_array, array_size, data_block);
 }
 
 /**

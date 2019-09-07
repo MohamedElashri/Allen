@@ -4,7 +4,6 @@
 #include <VeloConsolidated.cuh>
 #include <AssociateConsolidated.cuh>
 #include <AssociateConstants.cuh>
-#include <gsl-lite.hpp>
 
 namespace Distance {
   __device__ float
@@ -62,7 +61,7 @@ typedef float (*distance_fun)(
 
 __device__ void associate(
   Velo::Consolidated::KalmanStates const& velo_kalman_states,
-  gsl::span<const PV::Vertex> const& vertices,
+  cuda::span<const PV::Vertex> const& vertices,
   Associate::Consolidated::EventTable& table,
   distance_fun fun)
 {
@@ -105,7 +104,7 @@ __global__ void velo_pv_ip(
   Velo::Consolidated::KalmanStates const velo_kalman_states {
     dev_kalman_velo_states + sizeof(float) * event_tracks_offset, velo_tracks.total_number_of_tracks};
 
-  gsl::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
+  cuda::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
                                         *(dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event

@@ -1,9 +1,5 @@
 #include "UTPreDecode.cuh"
 
-#ifndef CPU
-#include "mma.h"
-#endif
-
 /**
  * Iterate over raw banks / hits and store only the Y coordinate,
  * and an uint32_t encoding the following:
@@ -98,7 +94,7 @@ __global__ void ut_pre_decode(
         composed_1 = -composed_1;
       }
 
-      const int composed_value = (composed_0 << 16) & 0xFFFF0000 | composed_1 & 0x0000FFFF;
+      const int composed_value = ((composed_0 << 16) & 0xFFFF0000) | (composed_1 & 0x0000FFFF);
       const float* composed_value_float = reinterpret_cast<const float*>(&composed_value);
 
       const uint base_sector_group_offset = dev_unique_x_sector_offsets[idx_offset];
