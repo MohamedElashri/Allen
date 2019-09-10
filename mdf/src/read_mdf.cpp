@@ -233,9 +233,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
   int hdrSize = h.subheaderLength();
   size_t readSize = h.recordSize() - rawSize;
   int chkSize = h.recordSize() - 4 * sizeof(int);
-  int alloc_len =
-    (2 * rawSize + readSize + sizeof(LHCb::RawBank) + sizeof(int) +
-     (compress ? expand * readSize : 0));
+  int alloc_len = (2 * rawSize + readSize + sizeof(LHCb::RawBank) + sizeof(int) + (compress ? expand * readSize : 0));
 
   // Build the DAQ status bank that contains the header
   auto build_bank = [rawSize, &h](char* address) {
@@ -273,7 +271,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
   auto* hdr = reinterpret_cast<LHCb::MDFHeader*>(bptr);
 
   // If requrested compare the checksum in the header versus the data
-  auto test_checksum = [&hdr, checksum, checkChecksum] (char* const buffer, int size) {
+  auto test_checksum = [&hdr, checksum, checkChecksum](char* const buffer, int size) {
     // Checksum if requested
     if (!checkChecksum) {
       hdr->setChecksum(0);

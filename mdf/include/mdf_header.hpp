@@ -47,79 +47,85 @@ namespace LHCb {
     /// Data member indicating the size of the event
     unsigned int m_size[3];
     /// Optional checksum over the event data (if 0, no checksum was calculated)
-    unsigned int m_checkSum;
+    unsigned int m_checkSum = 0;
     /// Identifier of the compression algorithm used to compress the data buffer
-    unsigned char m_compression;
+    unsigned char m_compression = 0;
     /// Header type: split into { version:4, length:4 } for possible future upgrade
-    unsigned char m_hdr;
+    unsigned char m_hdr = 0;
     /// Data type
-    unsigned char m_dataType;
+    unsigned char m_dataType = 0;
     /// Spare
     unsigned char m_spare[1];
 
-    MDFHEADER_ALIGNED( struct ) HeaderTriggerMask {
+    MDFHEADER_ALIGNED(struct) HeaderTriggerMask
+    {
       /// Trigger mask used for event selection
       unsigned int m_trMask[4];
       HeaderTriggerMask() { m_trMask[0] = m_trMask[1] = m_trMask[2] = m_trMask[3] = 0; }
       /// Accessor: Number of bits in the trigger mask
-      unsigned int maskBits() const { return sizeof( m_trMask ) * 8; }
+      unsigned int maskBits() const { return sizeof(m_trMask) * 8; }
       /// Accessor: trigger mask
       std::array<unsigned int, 4> triggerMask() const { return {m_trMask[0], m_trMask[1], m_trMask[2], m_trMask[3]}; }
       /// Update the trigger mask of the event
-      void setTriggerMask( const unsigned int* mask ) {
+      void setTriggerMask(const unsigned int* mask)
+      {
         m_trMask[0] = mask[0];
         m_trMask[1] = mask[1];
         m_trMask[2] = mask[2];
         m_trMask[3] = mask[3];
       }
     };
-    MDFHEADER_ALIGNED( struct ) Header0 {
+    MDFHEADER_ALIGNED(struct) Header0
+    {
       typedef long long int int_64_t;
       /// Event type identifier
-      unsigned char m_evType;
+      unsigned char m_evType = 0;
       /// High part of the 40 bit L0 trigger number
-      unsigned char m_trH;
+      unsigned char m_trH = 0;
       /// Low part of the 40 bit L0 trigger number
-      unsigned int m_trL;
+      unsigned int m_trL = 0;
       /// Trigger mask used for event selection
       unsigned int m_trMask[4];
-      Header0() : m_evType( 0 ), m_trH( 0 ), m_trL( 0 ) { m_trMask[0] = m_trMask[1] = m_trMask[2] = m_trMask[3] = 0; }
+      Header0() : m_evType(0), m_trH(0), m_trL(0) { m_trMask[0] = m_trMask[1] = m_trMask[2] = m_trMask[3] = 0; }
       /// Accessor: event type identifier
       unsigned char eventType() const { return m_evType; }
       /// Update the event type
-      void setEventType( unsigned int val ) { m_evType = (unsigned char)val; }
+      void setEventType(unsigned int val) { m_evType = (unsigned char) val; }
       /// Accessor: L0 trigger number of the event
-      long long triggerNumber() const { return ( int_64_t( m_trH ) << 32 ) + m_trL; }
+      long long triggerNumber() const { return (int_64_t(m_trH) << 32) + m_trL; }
       /// Update the L0 trigger number of the event
-      void setTriggerNumber( int_64_t val ) {
-        m_trH = char( 0xFF & ( val >> 32 ) );
-        m_trL = (unsigned int)( 0xFFFFFFFFLL & ( val & 0xFFFFFFFFLL ) );
+      void setTriggerNumber(int_64_t val)
+      {
+        m_trH = char(0xFF & (val >> 32));
+        m_trL = (unsigned int) (0xFFFFFFFFLL & (val & 0xFFFFFFFFLL));
       }
       /// Accessor: Number of bits in the trigger mask
-      unsigned int maskBits() const { return sizeof( m_trMask ) * 8; }
+      unsigned int maskBits() const { return sizeof(m_trMask) * 8; }
       /// Accessor: trigger mask
       std::array<unsigned int, 4> triggerMask() const { return {m_trMask[0], m_trMask[1], m_trMask[2], m_trMask[3]}; }
       /// Update the trigger mask of the event
-      void setTriggerMask( const unsigned int* mask ) {
+      void setTriggerMask(const unsigned int* mask)
+      {
         m_trMask[0] = mask[0];
         m_trMask[1] = mask[1];
         m_trMask[2] = mask[2];
         m_trMask[3] = mask[3];
       }
     };
-    MDFHEADER_ALIGNED( struct ) Header1 : public HeaderTriggerMask {
+    MDFHEADER_ALIGNED(struct) Header1 : public HeaderTriggerMask
+    {
       /// Run number
-      unsigned int m_runNumber;
+      unsigned int m_runNumber = 0;
       /// Orbit counter
-      unsigned int m_orbitCount;
+      unsigned int m_orbitCount = 0;
       /// Bunch identifier
-      unsigned int m_bunchID;
+      unsigned int m_bunchID = 0;
       /// Set run number
-      void setRunNumber( unsigned int runno ) { m_runNumber = runno; }
+      void setRunNumber(unsigned int runno) { m_runNumber = runno; }
       /// Set orbit counter
-      void setOrbitNumber( unsigned int orbno ) { m_orbitCount = orbno; }
+      void setOrbitNumber(unsigned int orbno) { m_orbitCount = orbno; }
       /// Set bunch identifier
-      void setBunchID( unsigned int bid ) { m_bunchID = bid; }
+      void setBunchID(unsigned int bid) { m_bunchID = bid; }
       /// Access run number
       unsigned int runNumber() const { return m_runNumber; }
       /// Access run number
@@ -127,34 +133,25 @@ namespace LHCb {
       /// Access run number
       unsigned int bunchID() const { return m_bunchID; }
     };
-    MDFHEADER_ALIGNED( struct ) Header2{};
+    MDFHEADER_ALIGNED(struct) Header2 {};
     union SubHeader {
-      void*    Pointer;
+      void* Pointer;
       Header0* H0;
       Header1* H1;
       Header2* H2;
-      SubHeader( void* ptr ) { Pointer = ptr; }
+      SubHeader(void* ptr) { Pointer = ptr; }
     };
 
   public:
-
-    static unsigned int sizeOf( int hdr_type ) {
-      unsigned int len;
-      switch ( hdr_type ) {
-      case 0:
-        len = sizeof( MDFHeader ) + sizeof( Header0 ) - 2 * sizeof( unsigned char );
-        break;
-      case 1:
-        len = sizeof( MDFHeader ) + sizeof( Header1 );
-        break;
-      case 2:
-        len = sizeof( MDFHeader );
-        break;
-      case 3:
-        len = sizeof( MDFHeader ) + sizeof( Header1 );
-        break;
-      default:
-        throw std::runtime_error( "Unknown MDF header type!" );
+    static unsigned int sizeOf(int hdr_type)
+    {
+      unsigned int len = 0;
+      switch (hdr_type) {
+      case 0: len = sizeof(MDFHeader) + sizeof(Header0) - 2 * sizeof(unsigned char); break;
+      case 1: len = sizeof(MDFHeader) + sizeof(Header1); break;
+      case 2: len = sizeof(MDFHeader); break;
+      case 3: len = sizeof(MDFHeader) + sizeof(Header1); break;
+      default: throw std::runtime_error("Unknown MDF header type!");
       }
       return len;
     }
@@ -163,7 +160,7 @@ namespace LHCb {
     MDFHeader() : m_checkSum(0), m_compression(0), m_hdr(0), m_dataType(0)
     {
       m_size[0] = m_size[1] = m_size[2] = 0;
-      m_spare[0]                        = 0;
+      m_spare[0] = 0;
       setSubheaderLength(0);
     }
     /// Default destructor
@@ -211,15 +208,15 @@ namespace LHCb {
     /// Update the event type
     void setDataType(unsigned char val) { m_dataType = val; }
     /// Set spare word
-    void setSpare( unsigned char val ) { m_spare[0] = val; }
+    void setSpare(unsigned char val) { m_spare[0] = val; }
     /// Access to data payload (Header MUST be initialized)
     char* data() { return ((char*) this) + sizeOf(headerVersion()); }
     /// Access to data payload (Header MUST be initialized)
     const char* data() const { return ((char*) this) + sizeOf(headerVersion()); }
 
     /// Access to sub-headers
-    SubHeader subHeader0() { return SubHeader( m_spare - 1 ); }
-    SubHeader subHeader() { return SubHeader( m_spare + 1 ); }
+    SubHeader subHeader0() { return SubHeader(m_spare - 1); }
+    SubHeader subHeader() { return SubHeader(m_spare + 1); }
   };
 } // End namespace LHCb
 
