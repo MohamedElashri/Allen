@@ -201,7 +201,8 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
   bool dbg)
 {
   int rawSize = sizeof(LHCb::MDFHeader);
-  // Read directly into the header
+
+  // Read the first part directly into the header
   ssize_t n_bytes = ::read(input, reinterpret_cast<char*>(&h), rawSize);
   if (n_bytes > 0) {
     return read_banks(input, h, buffer, decompression_buffer, checkChecksum, dbg);
@@ -225,7 +226,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
   bool checkChecksum,
   bool dbg)
 {
-  size_t rawSize = sizeof(LHCb::MDFHeader);
+  size_t rawSize = LHCb::MDFHeader::sizeOf(h.headerVersion());
   unsigned int checksum = h.checkSum();
   int compress = h.compression() & 0xF;
   int expand = (h.compression() >> 4) + 1;
@@ -233,7 +234,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
   size_t readSize = h.recordSize() - rawSize;
   int chkSize = h.recordSize() - 4 * sizeof(int);
   int alloc_len =
-    (rawSize + readSize + sizeof(LHCb::MDFHeader) + sizeof(LHCb::RawBank) + sizeof(int) +
+    (2 * rawSize + readSize + sizeof(LHCb::RawBank) + sizeof(int) +
      (compress ? expand * readSize : 0));
 
   // Build the DAQ status bank that contains the header
@@ -241,16 +242,15 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     auto* b = reinterpret_cast<LHCb::RawBank*>(address);
     b->setMagic();
     b->setType(LHCb::RawBank::DAQ);
-    // Reverse engineered, somehow...
-    b->setSize(rawSize + 1);
+    b->setSize(rawSize);
     b->setVersion(DAQ_STATUS_BANK);
     b->setSourceID(0);
-    ::memcpy(b->data(), &h, rawSize);
+    ::memcpy(b->data(), &h, sizeof(LHCb::MDFHeader));
     return b;
   };
 
   if (dbg) {
-    cout << "Size: " << std::setw(6) << h.recordSize() << " Compression:" << compress << " Checksum: 0x" << std::hex
+    cout << "Size: " << std::setw(6) << h.recordSize() << " Compression: " << compress << " Checksum: 0x" << std::hex
          << checksum << std::dec << "\n";
   }
 
@@ -261,14 +261,40 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     return {false, true, {}};
   }
 
+  // build the DAQ status bank that contains the header and subheader as payload
   auto* b = build_bank(buffer.data());
   int bnkSize = b->totalSize();
   char* bptr = (char*) b->data();
+
+  // Read the subheader and put it directly after the MDFHeader
+  ::read(input, bptr + sizeof(LHCb::MDFHeader), hdrSize);
+
+  // The header and subheader are complete in the buffer,
   auto* hdr = reinterpret_cast<LHCb::MDFHeader*>(bptr);
+
+  // If requrested compare the checksum in the header versus the data
+  auto test_checksum = [&hdr, checksum, checkChecksum] (char* const buffer, int size) {
+    // Checksum if requested
+    if (!checkChecksum) {
+      hdr->setChecksum(0);
+    }
+    else {
+      auto c = LHCb::genChecksum(1, buffer + 4 * sizeof(int), size);
+      if (checksum != c) {
+        cerr << "Checksum doesn't match: " << std::hex << c << " instead of 0x" << checksum << std::dec << "\n";
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Decompress or read uncompressed data directly
   if (compress != 0) {
     decompression_buffer.reserve(readSize + rawSize);
-    // Need to copy header to get checksum right
-    ::memcpy(decompression_buffer.data(), &h, rawSize);
+
+    // Need to copy header and subheader to get checksum right
+    ::memcpy(decompression_buffer.data(), hdr, rawSize);
+
     // Read compressed data
     ssize_t n_bytes = ::read(input, decompression_buffer.data() + rawSize, readSize);
     if (n_bytes == 0) {
@@ -280,29 +306,19 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
       return {false, true, {}};
     }
 
-    // Checksum if requested
-    if (!checkChecksum) {
-      hdr->setChecksum(0);
-    }
-    else {
-      auto c = LHCb::genChecksum(1, decompression_buffer.data() + 4 * sizeof(int), chkSize);
-      if (checksum != c) {
-        cerr << "Checksum doesn't match: " << std::hex << c << " instead of 0x" << checksum << std::dec << "\n";
-        return {false, true, {}};
-      }
+    // calculate and compare checksum
+    if (!test_checksum(decompression_buffer.data(), chkSize)) {
+      return {false, true, {}};
     }
 
-    // Checksum is correct...from all we know data integrity is proven
-    size_t new_len = 0;
-
-    // NOTE: Figured out the magic +1 from dumping stuff until it
-    // made sense...
-    auto* src = reinterpret_cast<unsigned char*>(decompression_buffer.data()) + rawSize + 1;
+    // compressed data starts after the MDFHeader and SubHeader
+    auto* src = reinterpret_cast<unsigned char*>(decompression_buffer.data()) + rawSize;
     auto* ptr = reinterpret_cast<unsigned char*>(buffer.data()) + bnkSize;
     size_t space_size = buffer.size() - bnkSize;
-    // NOTE: Figured out the magic h.size() + hdrSize - 1 from
-    // dumping stuff until it made sense...
-    if (LHCb::decompressBuffer(compress, ptr, space_size, src, h.size() + hdrSize - 1, new_len)) {
+    size_t new_len = 0;
+
+    // decompress payload
+    if (LHCb::decompressBuffer(compress, ptr, space_size, src, hdr->size(), new_len)) {
       hdr->setSize(new_len);
       hdr->setCompression(0);
       hdr->setChecksum(0);
@@ -314,7 +330,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     }
   }
   else {
-    // Read uncompressed data file...
+    // Read uncompressed data from file
     ssize_t n_bytes = ::read(input, bptr + rawSize, readSize);
     if (n_bytes == 0) {
       cout << "Cannot read more data  (Header). End-of-File reached.\n";
@@ -325,17 +341,11 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
       return {false, true, {}};
     }
 
-    if (!checkChecksum) {
-      hdr->setChecksum(0);
+    // calculate and compare checksum
+    if (!test_checksum(bptr, chkSize)) {
+      return {false, true, {}};
     }
-    else {
-      auto c = LHCb::genChecksum(1, bptr + 4 * sizeof(int), chkSize);
-      if (checksum != c) {
-        cerr << "Checksum doesn't match: 0x" << std::hex << c << " instead of 0x" << checksum << std::dec << "\n";
-        return {false, true, {}};
-      }
-    }
-    return {false, false, {buffer.data(), bnkSize + static_cast<unsigned int>(readSize) - 1}};
+    return {false, false, {buffer.data(), bnkSize + static_cast<unsigned int>(readSize)}};
   }
 }
 

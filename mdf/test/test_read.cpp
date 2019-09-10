@@ -13,7 +13,7 @@
 
 #include "raw_bank.hpp"
 #include "read_mdf.hpp"
-#include "Tools.h"
+#include "Logger.h"
 
 using namespace std;
 
@@ -29,8 +29,8 @@ int main(int argc, char* argv[])
 
   // Some storage for reading the events into
   LHCb::MDFHeader header;
-  vector<char> read_buffer(1024 * 1024);
-  vector<char> decompression_buffer(1024 * 1024);
+  vector<char> read_buffer(1024 * 1024, '\0');
+  vector<char> decompression_buffer(1024 * 1024, '\0');
 
   bool eof = false, error = false;
 
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   size_t i_event = 0;
   while (!eof && i_event++ < n_events) {
 
-    std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true);
+    std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true, true);
     if (eof || error) {
       return -1;
     }
@@ -63,8 +63,6 @@ int main(int argc, char* argv[])
       if (b->magic() != LHCb::RawBank::MagicPattern) {
         cout << "magic pattern failed: " << std::hex << b->magic() << std::dec << endl;
         goto error;
-      } else {
-        cout << b->type() << " " << b->totalSize() << "\n";
       }
 
       if (b->type() < LHCb::RawBank::LastType) {
