@@ -79,7 +79,6 @@ int main(int argc, char* argv[])
 
     bool good = false, timed_out = false;
     std::tie(good, timed_out, slice_mdf, filled_mdf) = mdf->get_slice();
-    cout << "got slice " << slice_mdf << " " << filled_mdf << "\n";
     auto const& events_mdf = mdf->event_ids(slice_mdf);
 
     binary = make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
