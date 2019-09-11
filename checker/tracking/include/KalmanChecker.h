@@ -26,7 +26,7 @@ public:
 
   KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file);
 
-  virtual ~KalmanChecker();
+  virtual ~KalmanChecker() = default;
 
   void accumulate(MCEvents const& mc_events, std::vector<Checker::Tracks> const& tracks);
 

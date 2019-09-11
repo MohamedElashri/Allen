@@ -11,6 +11,9 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
   // Setup the TTree.
   m_file = invoker->root_file(root_file);
   m_file->cd();
+
+  // NOTE: This TTree will be cleaned up by ROOT when the file is
+  // closed.
   m_tree = new TTree("kalman_ip_tree", "kalman_ip_tree");
   m_tree->Branch("z", &m_trk_z);
   m_tree->Branch("x", &m_trk_x);
@@ -39,13 +42,6 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
   m_tree->Branch("ndofT", &m_trk_ndofT);
   m_tree->Branch("ghost", &m_trk_ghost);
   m_tree->Branch("mcp_p", &m_mcp_p);
-#endif
-}
-
-KalmanChecker::~KalmanChecker()
-{
-#ifdef WITH_ROOT
-  delete m_tree;
 #endif
 }
 
