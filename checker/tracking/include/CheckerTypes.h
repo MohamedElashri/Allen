@@ -20,8 +20,8 @@
 namespace Checker {
 
   struct BaseChecker {
-
     virtual void report(size_t n_events) const = 0;
+    virtual ~BaseChecker() = default;
   };
 
   namespace Subdetector {

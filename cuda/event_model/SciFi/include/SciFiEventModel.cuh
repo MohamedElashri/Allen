@@ -75,6 +75,12 @@ namespace SciFi {
       return mat_offsets[mat_group_number + 1] - mat_offsets[mat_group_number];
     }
 
+    __device__ __host__ uint mat_group_or_mat_number_of_hits(const uint mat_or_mat_group_number) const
+    {
+      assert(mat_or_mat_group_number < SciFi::Constants::n_mat_groups_and_mats);
+      return mat_offsets[mat_or_mat_group_number + 1] - mat_offsets[mat_or_mat_group_number];
+    }
+
     __device__ __host__ uint zone_offset(const uint zone_number) const
     {
       // TODO: Make this a constant

@@ -207,31 +207,29 @@ void TrackCheckerHistos::write()
                          std::ref(h_not_matched_isMuon_nPV_reconstructed),
                          std::ref(h_ghost_isMuon_nPV_reconstructed),
                          std::ref(h_ghost_isMuon_Eta_reconstructed)};
-  for_each(histograms, [dir](auto& histo) { dir->WriteTObject(histo.get().get()); });
+  for_each(histograms, [dir](auto& histo) {
+    histo.get()->SetDirectory(nullptr);
+    dir->WriteTObject(histo.get().get()); });
 
-  for (auto const& histo_map : {std::ref(h_reconstructible_eta),
-                                std::ref(h_reconstructible_p),
-                                std::ref(h_reconstructible_pt),
-                                std::ref(h_reconstructible_phi),
-                                std::ref(h_reconstructible_nPV),
-                                std::ref(h_reconstructible_docaz),
-                                std::ref(h_reconstructed_eta),
-                                std::ref(h_reconstructed_p),
-                                std::ref(h_reconstructed_pt),
-                                std::ref(h_reconstructed_phi),
-                                std::ref(h_reconstructed_nPV),
-                                std::ref(h_reconstructed_docaz)}) {
+  std::tuple histo_maps {std::ref(h_reconstructible_eta),
+                         std::ref(h_reconstructible_p),
+                         std::ref(h_reconstructible_pt),
+                         std::ref(h_reconstructible_phi),
+                         std::ref(h_reconstructible_nPV),
+                         std::ref(h_reconstructible_docaz),
+                         std::ref(h_reconstructed_eta),
+                         std::ref(h_reconstructed_p),
+                         std::ref(h_reconstructed_pt),
+                         std::ref(h_reconstructed_phi),
+                         std::ref(h_reconstructed_nPV),
+                         std::ref(h_reconstructible_eta_phi),
+                         std::ref(h_reconstructed_eta_phi),
+                         std::ref(h_reconstructed_docaz)};
+  for_each(histo_maps, [dir](auto& histo_map) {
     for (auto const& entry : histo_map.get()) {
+      entry.second->SetDirectory(nullptr);
       dir->WriteTObject(entry.second.get());
-    }
-  }
-
-  for (auto const& histo_map : {std::ref(h_reconstructible_eta_phi), std::ref(h_reconstructed_eta_phi)}) {
-    for (auto const& entry : histo_map.get()) {
-      auto* histo = entry.second.get();
-      dir->WriteTObject(histo);
-    }
-  }
+    } });
 }
 #endif
 

@@ -23,8 +23,9 @@ message(STATUS "Allen target: ${TARGET_DEVICE}")
 
 # Determine whether to use Tensor Cores
 # Note: Tensor cores are only supported in CUDA
-option(TENSOR "Produce CUDA code with Tensor Cores enabled if available" OFF)
+option(USE_TENSOR_CORES "Produce CUDA code with Tensor Cores enabled if available" OFF)
 if(TARGET_DEVICE STREQUAL "CUDA" AND TENSOR)
+  message(STATUS "Tensor core compilation enabled")
   add_compile_definitions(TENSOR_CORES_ENABLED)
 endif()
 
@@ -52,7 +53,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "HIP")
   add_compile_definitions(HIP)
-  add_compile_definitions(__HIP_PLATFORM_HCC__)
 
   # Setup HIPCC compiler
   if(NOT DEFINED HIP_PATH)
@@ -62,7 +62,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
       set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to which HIP has been installed")
     endif()
   endif()
-  
+
   # Set linker location
   set(HCC_HOME "${HIP_PATH}/../hcc")
   set(HCC_PATH "${HIP_PATH}/../hcc")
@@ -81,6 +81,8 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endif()
 
   set(HIP_SEPARABLE_COMPILATION ON)
+
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wno-unused-result")
 else()
   project(Allen C CXX CUDA)
 
@@ -152,15 +154,16 @@ elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DDEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(TARGET_DEVICE STREQUAL "CUDA")
   set(CUDA_SEPARABLE_COMPILATION ON)
   option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
+  set(CMAKE_CUDA_STANDARD 14)
 
   # Configuration of CUDA compute architecture
   if(NOT DEFINED CUDA_ARCH)
@@ -228,7 +231,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
     # Note: HIP does not support asserts for now
     message(STATUS "HIP Debug: Asserts not supported yet, setting -DNDEBUG")
-    set(HIP_RELEASE_OPTIONS "-O0 -G -g -DNDEBUG")
+    set(HIP_RELEASE_OPTIONS "-g -DNDEBUG")
   else()
     message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
   endif(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
@@ -237,10 +240,10 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   # -hc -hc-function-calls
   # -finline-functions -finline-hint-functions
   # -flto -fwhole-program-vtables
-  # -funroll-loops 
+  # -funroll-loops
   # -fstack-protector-strong
   # -fPIC -shared
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-everything")
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn")
 
   # Define allen_add_library and allen_add_executable HIP specializations
   function(allen_add_library)

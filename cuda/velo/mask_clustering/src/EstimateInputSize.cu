@@ -124,7 +124,7 @@ __global__ void estimate_input_size(
             const bool is_bottom = other_sp_row == (sp_row - 1) && other_sp_col == sp_col;
 
             if (is_top || is_top_right || is_right || is_right_bottom || is_bottom) {
-              pixels |= is_top * ((other_sp & 0x01 | ((other_sp & 0x10) << 2)) << 4);
+              pixels |= is_top * (((other_sp & 0x01) | ((other_sp & 0x10) << 2)) << 4);
               pixels |= is_top_right * ((other_sp & 0x01) << 16);
               pixels |= is_right * ((other_sp & 0x0F) << 12);
               pixels |= is_right_bottom * ((other_sp & 0x08) << 8);

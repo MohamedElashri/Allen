@@ -427,10 +427,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   else if (number_of_slices <= number_of_threads) {
     warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
     number_of_slices = number_of_threads + 1;
+    number_of_repetitions = 1;
   }
   else {
     info_cout << "Using " << number_of_slices << " input slices."
               << "\n";
+    number_of_repetitions = 1;
   }
 
   // Print configured sequence
@@ -524,7 +526,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     print_gpu_memory_consumption();
   }
 
-  CheckerInvoker checker_invoker {};
+  auto checker_invoker = std::make_unique<CheckerInvoker>();
 
   // Lambda with the execution of a thread-stream pair
   const auto stream_thread = [&](uint thread_id, uint stream_id) {
@@ -541,7 +543,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                     device_id,
                                     &stream_wrapper,
                                     input_provider.get(),
-                                    &checker_invoker,
+                                    checker_invoker.get(),
                                     number_of_repetitions,
                                     do_check,
                                     cpu_offload,
@@ -834,7 +836,8 @@ loop_error:
 
   // Print checker reports
   if (do_check) {
-    checker_invoker.report(n_events_processed);
+    checker_invoker->report(n_events_processed);
+    checker_invoker.reset();
   }
 
   // Print throughut measurement result

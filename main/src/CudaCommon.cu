@@ -7,8 +7,6 @@
 
 thread_local GridDimensions gridDim;
 thread_local BlockIndices blockIdx;
-thread_local BlockDimensions blockDim;
-thread_local ThreadIndices threadIdx;
 
 dim3::dim3(const unsigned int& x) : x(x) {}
 dim3::dim3(const unsigned int& x, const unsigned int& y) : x(x), y(y) {}
