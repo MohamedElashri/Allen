@@ -1,7 +1,8 @@
 stages:
-  - build
-  - run
-  - publish
+  - build   # Builds all projects
+  - run     # Runs the tests across architectures
+  # - test  # Runs various tests of the software
+  - publish # Publishes the results of the tests and runs in channels and grafana
 
 check-formatting:
   stage: build
@@ -155,8 +156,8 @@ check-formatting:
     - export PATH=/usr/local/cuda/bin:/cvmfs/lhcb.cern.ch/lib/contrib/CMake/3.12.1/Linux-x86_64/bin/:$PATH
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
-    - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown for ${SEQUENCE}" -u "%" -x 40 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
-    - python3 checker/plotting/csv_plotter.py -t "Algorithm Groups for ${SEQUENCE}" -u "%" -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_summary.csv
+    - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown for ${SEQUENCE}, branch `${CI_COMMIT_REF_NAME}`" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
+    # - python3 checker/plotting/csv_plotter.py -t "Algorithm Groups for ${SEQUENCE}" -u "%" -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_summary.csv
 
 .throughput_throughput_job: &publish_throughput_job_def
   only:
@@ -176,7 +177,7 @@ check-formatting:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - python3 checker/plotting/csv_plotter.py -t "Throughputs for ${SEQUENCE}" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
+    - python3 checker/plotting/csv_plotter.py -t "Throughputs for ${SEQUENCE}, branch `${CI_COMMIT_REF_NAME}`" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
     - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME} 
 
 .throughput_speedup_job: &publish_speedup_job_def
@@ -193,18 +194,13 @@ check-formatting:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
+    - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch `${CI_COMMIT_REF_NAME}`" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
 # Build for all platforms
 DefaultSequence:build:
   <<: *build_job_def
   tags:
     - t4
-
-# DataPreparation:build:
-#   <<: *build_job_def
-#   tags:
-#     - rtx2080ti
 
 # Run on all platforms
 # DefaultSequence
@@ -226,13 +222,6 @@ t4:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - t4
-  dependencies:
-    - DefaultSequence:build
-
-gtx780ti:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx780ti
   dependencies:
     - DefaultSequence:build
 
@@ -285,78 +274,6 @@ gtx1080ti:DefaultSequence:run_throughput:
   dependencies:
     - DefaultSequence:build
 
-# # DataPreparation
-# # Run on all platforms
-# rtx2080ti:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_def
-#   tags:
-#     - rtx2080ti
-#   dependencies:
-#     - DataPreparation:build
-
-# v100:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_def
-#   tags:
-#     - v100
-#   dependencies:
-#     - DataPreparation:build
-
-# t4:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - t4
-#   dependencies:
-#     - DataPreparation:build
-
-# gtx780ti:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx780ti
-#   dependencies:
-#     - DataPreparation:build
-
-# gtx10606g:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx10606g
-#   dependencies:
-#     - DataPreparation:build
-
-# gtx980:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx980
-#   dependencies:
-#     - DataPreparation:build
-
-# gtx680:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx680
-#   dependencies:
-#     - DataPreparation:build
-
-# gtxtitanx:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtxtitanx
-#   dependencies:
-#     - DataPreparation:build
-
-# gtx670:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx670
-#   dependencies:
-#     - DataPreparation:build
-
-# gtx1080ti:DataPreparation:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx1080ti
-#   dependencies:
-#     - DataPreparation:build
-
 # Publish
 
 # DefaultSequence
@@ -381,66 +298,26 @@ throughput:DefaultSequence:publish_throughput:
     - gtx680:DefaultSequence:run_throughput
     - gtxtitanx:DefaultSequence:run_throughput
     - gtx670:DefaultSequence:run_throughput
-    - gtx780ti:DefaultSequence:run_throughput
     - gtx1080ti:DefaultSequence:run_throughput
     - gtx980:DefaultSequence:run_throughput
 
-# The "gpu" tag is to require python3 essentially
-speedup:DefaultSequence:publish_speedup:
-  <<: *publish_speedup_job_def
-  tags:
-    - gpu
-  dependencies:
-    - rtx2080ti:DefaultSequence:run_throughput
-    - rtx6000:DefaultSequence:run_throughput
-    - v100:DefaultSequence:run_throughput
-    - t4:DefaultSequence:run_throughput
-    - gtx10606g:DefaultSequence:run_throughput
-    - gtx680:DefaultSequence:run_throughput
-    - gtx980:DefaultSequence:run_throughput
-    - gtxtitanx:DefaultSequence:run_throughput
-    - gtx670:DefaultSequence:run_throughput
-    - gtx780ti:DefaultSequence:run_throughput
-    - gtx1080ti:DefaultSequence:run_throughput
-    - gtx980:DefaultSequence:run_throughput
-
-# # Data Preparation
-# rtx2080ti:DataPreparation:publish_algo_breakdown_plot:
-#   <<: *publish_algo_breakdown_plot_def
-#   tags:
-#     - gpu
-#   dependencies:
-#     - rtx2080ti:DataPreparation:run_throughput
-
-# throughput:DataPreparation:publish_throughput:
-#   <<: *publish_throughput_job_def
-#   tags:
-#     - gpu
-#   dependencies:
-#     - rtx2080ti:DataPreparation:run_throughput
-#     - v100:DataPreparation:run_throughput
-#     - t4:DataPreparation:run_throughput
-#     - gtx10606g:DataPreparation:run_throughput
-#     - gtx680:DataPreparation:run_throughput
-#     - gtxtitanx:DataPreparation:run_throughput
-#     - gtx670:DataPreparation:run_throughput
-#     - gtx780ti:DataPreparation:run_throughput
-#     - gtx1080ti:DataPreparation:run_throughput
-#     - gtx980:DataPreparation:run_throughput
-
-# speedup:DataPreparation:publish_speedup:
+# The speedup job is disabled for the moment
+# 
+# # The "gpu" tag is to require python3 essentially
+# speedup:DefaultSequence:publish_speedup:
 #   <<: *publish_speedup_job_def
 #   tags:
 #     - gpu
 #   dependencies:
-#     - rtx2080ti:DataPreparation:run_throughput
-#     - v100:DataPreparation:run_throughput
-#     - t4:DataPreparation:run_throughput
-#     - gtx10606g:DataPreparation:run_throughput
-#     - gtx680:DataPreparation:run_throughput
-#     - gtx980:DataPreparation:run_throughput
-#     - gtxtitanx:DataPreparation:run_throughput
-#     - gtx670:DataPreparation:run_throughput
-#     - gtx780ti:DataPreparation:run_throughput
-#     - gtx1080ti:DataPreparation:run_throughput
-#     - gtx980:DataPreparation:run_throughput
+#     - rtx2080ti:DefaultSequence:run_throughput
+#     - rtx6000:DefaultSequence:run_throughput
+#     - v100:DefaultSequence:run_throughput
+#     - t4:DefaultSequence:run_throughput
+#     - gtx10606g:DefaultSequence:run_throughput
+#     - gtx680:DefaultSequence:run_throughput
+#     - gtx980:DefaultSequence:run_throughput
+#     - gtxtitanx:DefaultSequence:run_throughput
+#     - gtx670:DefaultSequence:run_throughput
+#     - gtx780ti:DefaultSequence:run_throughput
+#     - gtx1080ti:DefaultSequence:run_throughput
+#     - gtx980:DefaultSequence:run_throughput
