@@ -171,6 +171,9 @@ void PVCheckerHistos::write()
                        std::ref(eff_norm_mult),
                        std::ref(fakes_vs_mult),
                        std::ref(fakes_norm)};
-  for_each(to_write, [this](auto& o) { m_file->WriteTObject(o.get().get()); });
+  for_each(to_write, [this](auto& o) {
+    o.get()->SetDirectory(nullptr);
+    m_file->WriteTObject(o.get().get());
+  });
 #endif
 }
