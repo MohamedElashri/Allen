@@ -144,7 +144,7 @@ __device__ void lf_triplet_seeding_impl(
         const auto h1_rel = h1_all_threads % LookingForward::maximum_number_of_candidates;
 
         if (h1_rel < h1_candidate_size) {
-          const auto side = h1_all_threads / LookingForward::maximum_number_of_candidates;
+          const auto section = h1_all_threads / LookingForward::maximum_number_of_candidates;
 
           const float x1_zdiff =
             scifi_hits_x0[scifi_lf_candidates[layer_1 * LookingForward::maximum_number_of_candidates + h1_rel]] * zdiff;
@@ -152,9 +152,9 @@ __device__ void lf_triplet_seeding_impl(
           float best_chi2 = LookingForward::chi2_max_triplet_single;
           int best_k = -1;
 
-          for (int k = 0 + side * LookingForward::tile_size * LookingForward::tile_size / 2;
+          for (int k = 0 + section * LookingForward::tile_size * LookingForward::tile_size / 2;
                k < LookingForward::tile_size * LookingForward::tile_size / 2 +
-                     side * LookingForward::tile_size * LookingForward::tile_size / 2;
+                     section * LookingForward::tile_size * LookingForward::tile_size / 2;
                ++k) {
 
             float chi2 = shared_partial_chi2[k] - x1_zdiff;
@@ -166,8 +166,8 @@ __device__ void lf_triplet_seeding_impl(
             }
           }
 
-          if (best_k != -1 && best_chi2 < best_combined[h1_rel + side * LookingForward::maximum_number_of_candidates].chi2) {
-            best_combined[h1_rel + side * LookingForward::maximum_number_of_candidates] =
+          if (best_k != -1 && best_chi2 < best_combined[h1_rel + section * LookingForward::maximum_number_of_candidates].chi2) {
+            best_combined[h1_rel + section * LookingForward::maximum_number_of_candidates] =
               SciFi::CombinedValue {best_chi2,
                 (int16_t)(i * LookingForward::tile_size + (best_k % LookingForward::tile_size)),
                 (int16_t)(j * LookingForward::tile_size + (best_k / LookingForward::tile_size))};
