@@ -427,10 +427,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   else if (number_of_slices <= number_of_threads) {
     warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
     number_of_slices = number_of_threads + 1;
+    number_of_repetitions = 1;
   }
   else {
     info_cout << "Using " << number_of_slices << " input slices."
               << "\n";
+    number_of_repetitions = 1;
   }
 
   // Print configured sequence
