@@ -28,8 +28,7 @@ struct lf_composite_track_seeding_t {
     dev_scifi_lf_candidates,
     dev_scifi_lf_tracks,
     dev_scifi_lf_atomics,
-    dev_scifi_lf_triplet_best_chi2,
-    dev_scifi_lf_triplet_best_h0h2>;
+    dev_scifi_lf_triplet_best>;
 
   using arguments_t = ArgumentRefManager<Arguments>;
 

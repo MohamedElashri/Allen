@@ -23,8 +23,7 @@ __global__ void lf_triplet_keep_best(
   const LookingForward::Constants* dev_looking_forward_constants,
   SciFi::TrackHits* dev_scifi_tracks,
   int* dev_atomics_scifi,
-  const float* dev_scifi_lf_triplet_best_chi2,
-  const int8_t* dev_scifi_lf_triplet_best_h0h2);
+  const SciFi::CombinedValue* dev_scifi_lf_triplet_best);
 
 ALGORITHM(
   lf_triplet_keep_best,
@@ -38,5 +37,4 @@ ALGORITHM(
     dev_scifi_lf_candidates,
     dev_scifi_lf_tracks,
     dev_scifi_lf_atomics,
-    dev_scifi_lf_triplet_best_h0h2,
-    dev_scifi_lf_triplet_best_chi2))
+    dev_scifi_lf_triplet_best))
