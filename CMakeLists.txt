@@ -62,7 +62,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
       set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to which HIP has been installed")
     endif()
   endif()
-  
+
   # Set linker location
   set(HCC_HOME "${HIP_PATH}/../hcc")
   set(HCC_PATH "${HIP_PATH}/../hcc")
@@ -163,6 +163,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(TARGET_DEVICE STREQUAL "CUDA")
   set(CUDA_SEPARABLE_COMPILATION ON)
   option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
+  set(CMAKE_CUDA_STANDARD 14)
 
   # Configuration of CUDA compute architecture
   if(NOT DEFINED CUDA_ARCH)
@@ -239,7 +240,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   # -hc -hc-function-calls
   # -finline-functions -finline-hint-functions
   # -flto -fwhole-program-vtables
-  # -funroll-loops 
+  # -funroll-loops
   # -fstack-protector-strong
   # -fPIC -shared
   set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn")
