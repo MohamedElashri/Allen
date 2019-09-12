@@ -288,17 +288,11 @@ test_physics_efficiency:
     - exit 1
     - fi
     - exit 0
+  dependencies:
+    - rtx6000:CUDA:Velo:run_physics_efficiency
+    - x86-2630v4:x86:Velo:run_physics_efficiency
   allow_failure: true
-
-    - cat validation_output_*/output.txt | grep --color=none "device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
-    - cat validation_output_*/output.txt | grep --color=none "events/s" | awk '{ print $1; }' > throughputs.txt
-    - cat devices.txt
-    - cat throughputs.txt
-    - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
-    - cat devices_throughputs.csv
-    - python3 checker/plotting/csv_plotter.py -t "Throughput of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
-    - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME} 
-
+    
 .publish_throughput_job: &publish_throughput_job_def
   only:
     refs:
@@ -443,13 +437,6 @@ x86-2630v4:x86:Velo:run_physics_efficiency:
     - x86-2630v4
   dependencies:
     - x86:Velo:build
-
-# Test
-
-test_physics_efficiency:
-  dependencies:
-    - rtx6000:CUDA:Velo:run_physics_efficiency
-    - x86-2630v4:x86:Velo:run_physics_efficiency
 
 # Publish
 
