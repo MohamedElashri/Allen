@@ -30,6 +30,7 @@ check-formatting:
       - master
       - schedules
       - web
+      - dcampora_ci_upgrade
   stage: build
   script:
     - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
@@ -60,6 +61,7 @@ check-formatting:
       - master
       - schedules
       - web
+      - dcampora_ci_upgrade
   stage: run
   script:
     - TOPLEVEL=${PWD}
@@ -100,6 +102,7 @@ check-formatting:
       - master
       - schedules
       - web
+      - dcampora_ci_upgrade
   stage: run
   script:
     - TOPLEVEL=${PWD}
@@ -142,6 +145,7 @@ check-formatting:
       - master
       - schedules
       - web
+      - dcampora_ci_upgrade
   stage: publish
   script:
     - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
@@ -165,6 +169,7 @@ check-formatting:
       - master
       - schedules
       - web
+      - dcampora_ci_upgrade
   stage: publish
   script:
     - PREVIOUS_IFS=${IFS}
@@ -186,6 +191,7 @@ check-formatting:
       - master
       - schedules
       - web
+      - dcampora_ci_upgrade
   stage: publish
   script:
     - cat output_*/output.txt | grep --color=none "device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
@@ -197,127 +203,127 @@ check-formatting:
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch ${CI_COMMIT_REF_NAME}" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
 # Build for all platforms
-DefaultSequence:build:
+Velo:build:
   <<: *build_job_def
   tags:
     - t4
 
 # Run on all platforms
-# DefaultSequence
-rtx2080ti:DefaultSequence:run_throughput:
+# Velo
+rtx2080ti:Velo:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - rtx2080ti
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
-v100:DefaultSequence:run_throughput:
+v100:Velo:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - v100
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
-t4:DefaultSequence:run_throughput:
+t4:Velo:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - t4
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
-gtx10606g:DefaultSequence:run_throughput:
+gtx10606g:Velo:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx10606g
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
-gtx980:DefaultSequence:run_throughput:
+gtx980:Velo:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx980
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
-rtx6000:DefaultSequence:run_throughput:
+rtx6000:Velo:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - rtx6000
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
-gtx680:DefaultSequence:run_throughput:
+gtx680:Velo:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx680
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
-gtxtitanx:DefaultSequence:run_throughput:
+gtxtitanx:Velo:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtxtitanx
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
-gtx670:DefaultSequence:run_throughput:
+gtx670:Velo:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx670
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
-gtx1080ti:DefaultSequence:run_throughput:
+gtx1080ti:Velo:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx1080ti
   dependencies:
-    - DefaultSequence:build
+    - Velo:build
 
 # Publish
 
-# DefaultSequence
+# Velo
 # Plain results to mattermost
-rtx2080ti:DefaultSequence:publish_algo_breakdown_plot:
+rtx2080ti:Velo:publish_algo_breakdown_plot:
   <<: *publish_algo_breakdown_plot_def
   tags:
     - gpu
   dependencies:
-    - rtx2080ti:DefaultSequence:run_throughput
+    - rtx2080ti:Velo:run_throughput
 
-throughput:DefaultSequence:publish_throughput:
+throughput:Velo:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - gpu
   dependencies:
-    - rtx2080ti:DefaultSequence:run_throughput
-    - rtx6000:DefaultSequence:run_throughput
-    - v100:DefaultSequence:run_throughput
-    - t4:DefaultSequence:run_throughput
-    - gtx10606g:DefaultSequence:run_throughput
-    - gtx680:DefaultSequence:run_throughput
-    - gtxtitanx:DefaultSequence:run_throughput
-    - gtx670:DefaultSequence:run_throughput
-    - gtx1080ti:DefaultSequence:run_throughput
-    - gtx980:DefaultSequence:run_throughput
+    - rtx2080ti:Velo:run_throughput
+    - rtx6000:Velo:run_throughput
+    - v100:Velo:run_throughput
+    - t4:Velo:run_throughput
+    - gtx10606g:Velo:run_throughput
+    - gtx680:Velo:run_throughput
+    - gtxtitanx:Velo:run_throughput
+    - gtx670:Velo:run_throughput
+    - gtx1080ti:Velo:run_throughput
+    - gtx980:Velo:run_throughput
 
 # The speedup job is disabled for the moment
 # 
 # # The "gpu" tag is to require python3 essentially
-# speedup:DefaultSequence:publish_speedup:
+# speedup:Velo:publish_speedup:
 #   <<: *publish_speedup_job_def
 #   tags:
 #     - gpu
 #   dependencies:
-#     - rtx2080ti:DefaultSequence:run_throughput
-#     - rtx6000:DefaultSequence:run_throughput
-#     - v100:DefaultSequence:run_throughput
-#     - t4:DefaultSequence:run_throughput
-#     - gtx10606g:DefaultSequence:run_throughput
-#     - gtx680:DefaultSequence:run_throughput
-#     - gtx980:DefaultSequence:run_throughput
-#     - gtxtitanx:DefaultSequence:run_throughput
-#     - gtx670:DefaultSequence:run_throughput
-#     - gtx780ti:DefaultSequence:run_throughput
-#     - gtx1080ti:DefaultSequence:run_throughput
-#     - gtx980:DefaultSequence:run_throughput
+#     - rtx2080ti:Velo:run_throughput
+#     - rtx6000:Velo:run_throughput
+#     - v100:Velo:run_throughput
+#     - t4:Velo:run_throughput
+#     - gtx10606g:Velo:run_throughput
+#     - gtx680:Velo:run_throughput
+#     - gtx980:Velo:run_throughput
+#     - gtxtitanx:Velo:run_throughput
+#     - gtx670:Velo:run_throughput
+#     - gtx780ti:Velo:run_throughput
+#     - gtx1080ti:Velo:run_throughput
+#     - gtx980:Velo:run_throughput
