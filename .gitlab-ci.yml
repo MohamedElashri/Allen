@@ -112,7 +112,7 @@ check-formatting:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /localprojects/shared/201907/bsphiphi_mag_down ${RUN_OPTIONS} 2>&1 | tee ../validation_output/bsphiphi_${DEVICE_ID}.txt
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/bsphiphi_mag_down ${RUN_OPTIONS} 2>&1 | tee ../validation_output/bsphiphi_${DEVICE_ID}.txt
   artifacts:
     name: "$CI_JOB_NAME"
     expire_in: 2 hrs
@@ -292,7 +292,7 @@ test_physics_efficiency:
     - rtx6000:CUDA:Velo:run_physics_efficiency
     - x86-2630v4:x86:Velo:run_physics_efficiency
   allow_failure: true
-    
+
 .publish_throughput_job: &publish_throughput_job_def
   only:
     refs:
