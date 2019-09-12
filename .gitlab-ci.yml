@@ -278,12 +278,14 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in `ls`
-    - do
-    - echo diff --changed-group-format='%>' --unchanged-group-format='' ${i} ${TOPLEVEL}/test/reference/${i}
+    - for i in $(ls); do
     - diff --changed-group-format='%>' --unchanged-group-format='' ${i} ${TOPLEVEL}/test/reference/${i} | tee diff_${i}
+    - if [ "$(cat diff_${i})" = "" ]; then
+    - echo Differences in ${i}:
+    - cat diff_${i}
+    - fi
     - done
-    - ALLDIFS=`cat diff_*`
+    - ALLDIFS=$(cat diff_*)
     - if [ "$ALLDIFS" != "" ]
     - then
     - exit 1
