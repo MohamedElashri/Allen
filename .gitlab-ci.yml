@@ -289,7 +289,7 @@ test_physics_efficiency:
     - fi
     - exit 0
   dependencies:
-    - rtx6000:CUDA:DefaultSequence:run_physics_efficiency
+    # - rtx6000:CUDA:DefaultSequence:run_physics_efficiency
     - x86-2630v4:x86:DefaultSequence:run_physics_efficiency
   allow_failure: true
 
