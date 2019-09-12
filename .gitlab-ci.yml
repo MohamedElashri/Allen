@@ -178,8 +178,7 @@ check-formatting:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - THREADS=${THREADS_CPU_MAP["${DEVICE_ID}"]}
-    - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t ${THREADS} -c 0"
+    - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t 40 -c 0"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
     - mkdir output_${DEVICE_ID}
@@ -286,14 +285,13 @@ test_physics_efficiency:
     - cat diff_${i}
     - fi
     - done
-    - ALLDIFS=$(cat diff_*)
-    - if [ "$ALLDIFS" != "" ]
-    - then
+    - for i in $(ls diff_*); do
+    - if [ "$(cat ${i})" != "" ]; then
     - exit 1
     - fi
-    - exit 0
+    - done
   dependencies:
-    # - rtx6000:CUDA:DefaultSequence:run_physics_efficiency
+    - rtx6000:CUDA:DefaultSequence:run_physics_efficiency
     - x86-2630v4:x86:DefaultSequence:run_physics_efficiency
   allow_failure: true
 
@@ -336,104 +334,104 @@ test_physics_efficiency:
     - cat devices_throughputs.csv
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch _${CI_COMMIT_REF_NAME}_" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
-# # Build for all platforms
-# CUDA:DefaultSequence:build:
-#   <<: *build_job_def
-#   tags:
-#     - t4
+# Build for all platforms
+CUDA:DefaultSequence:build:
+  <<: *build_job_def
+  tags:
+    - t4
 
 x86:DefaultSequence:build:
   <<: *build_job_def_cpu
   tags:
     - x86-2630v4
 
-# # Run on all platforms
-# # Performance runs
-# rtx2080ti:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_def
-#   tags:
-#     - rtx2080ti
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+# Run on all platforms
+# Performance runs
+rtx2080ti:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_def
+  tags:
+    - rtx2080ti
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# v100:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_def
-#   tags:
-#     - v100
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+v100:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_def
+  tags:
+    - v100
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# t4:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - t4
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+t4:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - t4
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# gtx10606g:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx10606g
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+gtx10606g:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx10606g
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# gtx980:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx980
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+gtx980:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx980
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# rtx6000:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - rtx6000
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+rtx6000:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - rtx6000
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# gtx680:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx680
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+gtx680:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx680
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# gtxtitanx:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtxtitanx
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+gtxtitanx:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtxtitanx
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# x86-2630v4:x86:DefaultSequence:run_throughput_cpu:
-#   <<: *run_throughput_job_no_profiling_def_cpu
-#   tags:
-#     - x86-2630v4
-#   dependencies:
-#     - x86:DefaultSequence:build
+x86-2630v4:x86:DefaultSequence:run_throughput_cpu:
+  <<: *run_throughput_job_no_profiling_def_cpu
+  tags:
+    - x86-2630v4
+  dependencies:
+    - x86:DefaultSequence:build
 
-# gtx670:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx670
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+gtx670:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx670
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# gtx1080ti:CUDA:DefaultSequence:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx1080ti
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+gtx1080ti:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_no_profiling_def
+  tags:
+    - gtx1080ti
+  dependencies:
+    - CUDA:DefaultSequence:build
 
-# # Physics runs
+# Physics runs
 
-# rtx6000:CUDA:DefaultSequence:run_physics_efficiency:
-#   <<: *run_physics_efficiency_job_def
-#   tags:
-#     - rtx6000
-#   dependencies:
-#     - CUDA:DefaultSequence:build
+rtx6000:CUDA:DefaultSequence:run_physics_efficiency:
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - rtx6000
+  dependencies:
+    - CUDA:DefaultSequence:build
 
 x86-2630v4:x86:DefaultSequence:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
@@ -446,29 +444,29 @@ x86-2630v4:x86:DefaultSequence:run_physics_efficiency:
 
 # Velo
 # Plain results to mattermost
-# rtx2080ti:DefaultSequence:publish_algo_breakdown_plot:
-#   <<: *publish_algo_breakdown_plot_def
-#   tags:
-#     - gpu
-#   dependencies:
-#     - rtx2080ti:CUDA:DefaultSequence:run_throughput
+rtx2080ti:DefaultSequence:publish_algo_breakdown_plot:
+  <<: *publish_algo_breakdown_plot_def
+  tags:
+    - gpu
+  dependencies:
+    - rtx2080ti:CUDA:DefaultSequence:run_throughput
 
-# throughput:DefaultSequence:publish_throughput:
-#   <<: *publish_throughput_job_def
-#   tags:
-#     - gpu
-#   dependencies:
-#     - rtx2080ti:CUDA:DefaultSequence:run_throughput
-#     - rtx6000:CUDA:DefaultSequence:run_throughput
-#     - v100:CUDA:DefaultSequence:run_throughput
-#     - t4:CUDA:DefaultSequence:run_throughput
-#     - gtx10606g:CUDA:DefaultSequence:run_throughput
-#     - gtx680:CUDA:DefaultSequence:run_throughput
-#     - gtxtitanx:CUDA:DefaultSequence:run_throughput
-#     - gtx670:CUDA:DefaultSequence:run_throughput
-#     - gtx1080ti:CUDA:DefaultSequence:run_throughput
-#     - gtx980:CUDA:DefaultSequence:run_throughput
-#     - x86-2630v4:x86:DefaultSequence:run_throughput_cpu
+throughput:DefaultSequence:publish_throughput:
+  <<: *publish_throughput_job_def
+  tags:
+    - gpu
+  dependencies:
+    - rtx2080ti:CUDA:DefaultSequence:run_throughput
+    - rtx6000:CUDA:DefaultSequence:run_throughput
+    - v100:CUDA:DefaultSequence:run_throughput
+    - t4:CUDA:DefaultSequence:run_throughput
+    - gtx10606g:CUDA:DefaultSequence:run_throughput
+    - gtx680:CUDA:DefaultSequence:run_throughput
+    - gtxtitanx:CUDA:DefaultSequence:run_throughput
+    - gtx670:CUDA:DefaultSequence:run_throughput
+    - gtx1080ti:CUDA:DefaultSequence:run_throughput
+    - gtx980:CUDA:DefaultSequence:run_throughput
+    - x86-2630v4:x86:DefaultSequence:run_throughput_cpu
 
 # The speedup job is disabled for the moment
 # 
