@@ -102,11 +102,11 @@ Long from B, p > 3 GeV, pt > 0.5 GeV, eta > 2.5, (phi-pi/2)>0.8:      1004/     
 
 
 Muon matching:
-Muon fraction in all MCPs:                                              11700/   872587   0.01%
-Muon fraction in MCPs to which a track(s) was matched:                    307/    29476   0.01%
-Correctly identified muons with isMuon:                                   221/      307  71.99%
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      2662/    29169   9.13%
-Ghost tracks identified as muon with isMuon:                              261/     2200  11.86%
+Muon fraction in all MCPs:                                              11700/   872587   0.01% 
+Muon fraction in MCPs to which a track(s) was matched:                    307/    29476   0.01% 
+Correctly identified muons with isMuon:                                   221/      307  71.99% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      2662/    29169   9.13% 
+Ghost tracks identified as muon with isMuon:                              261/     2200  11.86% 
 
 
 HLT1 rates:
