@@ -270,6 +270,7 @@ test_physics_efficiency:
       - dcampora_ci_upgrade
   stage: test
   script:
+    - TOPLEVEL=${PWD}
     - PREVIOUS_IFS=${IFS}
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=${PREVIOUS_IFS}
