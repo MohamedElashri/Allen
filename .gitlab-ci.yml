@@ -108,7 +108,7 @@ check-formatting:
     - RUN_OPTIONS="-n 1000 -m 700"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
-    - mkdir validation_output_${DEVICE_ID}
+    - mkdir validation_output
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
@@ -178,7 +178,7 @@ check-formatting:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
-    - THREADS=${THREADS_CPU_MAP[${DEVICE_ID}]}
+    - THREADS=${THREADS_CPU_MAP["${DEVICE_ID}"]}
     - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t ${THREADS} -c 0"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
