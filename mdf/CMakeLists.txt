@@ -75,17 +75,15 @@ function(test_program)
 endfunction()
 
 if(TARGET_DEVICE STREQUAL "CUDA")
-  test_program(NAME dump_banks)
-
   if (BUILD_TESTS)
     include(Catch)
 
+    test_program(NAME dump_banks)
     test_program(NAME test_read)
     test_program(NAME test_read_bin)
     test_program(NAME bench_read NO_CUDA)
     test_program(NAME bench_provider NO_CUDA)
     test_program(NAME bench_transpose NO_CUDA)
-
     test_program(NAME test_providers)
     catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
   endif()
