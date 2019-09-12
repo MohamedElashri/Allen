@@ -17,6 +17,7 @@ __global__ void pv_beamline_multi_fitter(
   int* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks,
+  float* dev_pvtracks_denom,
   float* dev_zpeaks,
   uint* dev_number_of_zpeaks,
   PV::Vertex* dev_multi_fit_vertices,
@@ -33,4 +34,5 @@ ALGORITHM(
     dev_zpeaks,
     dev_number_of_zpeaks,
     dev_multi_fit_vertices,
-    dev_number_of_multi_fit_vertices))
+    dev_number_of_multi_fit_vertices,
+    dev_pvtracks_denom))
