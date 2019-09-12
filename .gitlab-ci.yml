@@ -156,7 +156,7 @@ check-formatting:
     - export PATH=/usr/local/cuda/bin:/cvmfs/lhcb.cern.ch/lib/contrib/CMake/3.12.1/Linux-x86_64/bin/:$PATH
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
-    - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown for ${SEQUENCE}, branch `${CI_COMMIT_REF_NAME}`" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
+    - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown for ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
     # - python3 checker/plotting/csv_plotter.py -t "Algorithm Groups for ${SEQUENCE}" -u "%" -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_summary.csv
 
 .throughput_throughput_job: &publish_throughput_job_def
@@ -177,7 +177,7 @@ check-formatting:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - python3 checker/plotting/csv_plotter.py -t "Throughputs for ${SEQUENCE}, branch `${CI_COMMIT_REF_NAME}`" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
+    - python3 checker/plotting/csv_plotter.py -t "Throughputs for ${SEQUENCE}, branch ${CI_COMMIT_REF_NAME}" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
     - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME} 
 
 .throughput_speedup_job: &publish_speedup_job_def
@@ -194,7 +194,7 @@ check-formatting:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch `${CI_COMMIT_REF_NAME}`" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
+    - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch ${CI_COMMIT_REF_NAME}" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
 # Build for all platforms
 DefaultSequence:build:
