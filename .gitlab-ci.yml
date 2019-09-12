@@ -281,7 +281,7 @@ test_physics_efficiency:
     - for i in $(ls); do
     - diff --changed-group-format='%>' --unchanged-group-format='' ${i} ${TOPLEVEL}/test/reference/${i} | tee diff_${i}
     - if [ "$(cat diff_${i})" = "" ]; then
-    - echo Differences in ${i}:
+    - echo "Differences in ${i}:"
     - cat diff_${i}
     - fi
     - done
