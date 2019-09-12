@@ -277,19 +277,17 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
+    - RETURN_CODE=0
     - for i in $(ls); do
     - tail -n122 ${i} | head -n118 > efficiency_${i}
     - diff efficiency_${i} ${TOPLEVEL}/test/reference/${i} > diff_${i}
     - if [ "$(cat diff_${i})" != "" ]; then
+    - RETURN_CODE=1
     - echo "Differences in ${i}:"
     - cat diff_${i}
     - fi
     - done
-    - for i in $(ls diff_*); do
-    - if [ "$(cat ${i})" != "" ]; then
-    - exit 1
-    - fi
-    - done
+    - exit ${RETURN_CODE}
   dependencies:
     - rtx6000:CUDA:DefaultSequence:run_physics_efficiency
     - x86-2630v4:x86:DefaultSequence:run_physics_efficiency
