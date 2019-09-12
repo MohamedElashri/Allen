@@ -289,8 +289,8 @@ test_physics_efficiency:
     - fi
     - exit 0
   dependencies:
-    - rtx6000:CUDA:Velo:run_physics_efficiency
-    - x86-2630v4:x86:Velo:run_physics_efficiency
+    - rtx6000:CUDA:DefaultSequence:run_physics_efficiency
+    - x86-2630v4:x86:DefaultSequence:run_physics_efficiency
   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
@@ -333,156 +333,156 @@ test_physics_efficiency:
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch _${CI_COMMIT_REF_NAME}_" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
 # Build for all platforms
-CUDA:Velo:build:
+CUDA:DefaultSequence:build:
   <<: *build_job_def
   tags:
     - t4
 
-x86:Velo:build:
+x86:DefaultSequence:build:
   <<: *build_job_def_cpu
   tags:
     - x86-2630v4
 
 # Run on all platforms
 # Performance runs
-rtx2080ti:CUDA:Velo:run_throughput:
+rtx2080ti:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - rtx2080ti
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-v100:CUDA:Velo:run_throughput:
+v100:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - v100
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-t4:CUDA:Velo:run_throughput:
+t4:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - t4
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-gtx10606g:CUDA:Velo:run_throughput:
+gtx10606g:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx10606g
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-gtx980:CUDA:Velo:run_throughput:
+gtx980:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx980
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-rtx6000:CUDA:Velo:run_throughput:
+rtx6000:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - rtx6000
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-gtx680:CUDA:Velo:run_throughput:
+gtx680:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx680
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-gtxtitanx:CUDA:Velo:run_throughput:
+gtxtitanx:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtxtitanx
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-x86-2630v4:x86:Velo:run_throughput_cpu:
+x86-2630v4:x86:DefaultSequence:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
   tags:
     - x86-2630v4
   dependencies:
-    - x86:Velo:build
+    - x86:DefaultSequence:build
 
-gtx670:CUDA:Velo:run_throughput:
+gtx670:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx670
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-gtx1080ti:CUDA:Velo:run_throughput:
+gtx1080ti:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx1080ti
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
 # Physics runs
 
-rtx6000:CUDA:Velo:run_physics_efficiency:
+rtx6000:CUDA:DefaultSequence:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - rtx6000
   dependencies:
-    - CUDA:Velo:build
+    - CUDA:DefaultSequence:build
 
-x86-2630v4:x86:Velo:run_physics_efficiency:
+x86-2630v4:x86:DefaultSequence:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86-2630v4
   dependencies:
-    - x86:Velo:build
+    - x86:DefaultSequence:build
 
 # Publish
 
 # Velo
 # Plain results to mattermost
-rtx2080ti:Velo:publish_algo_breakdown_plot:
+rtx2080ti:DefaultSequence:publish_algo_breakdown_plot:
   <<: *publish_algo_breakdown_plot_def
   tags:
     - gpu
   dependencies:
-    - rtx2080ti:CUDA:Velo:run_throughput
+    - rtx2080ti:CUDA:DefaultSequence:run_throughput
 
-throughput:Velo:publish_throughput:
+throughput:DefaultSequence:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - gpu
   dependencies:
-    - rtx2080ti:CUDA:Velo:run_throughput
-    - rtx6000:CUDA:Velo:run_throughput
-    - v100:CUDA:Velo:run_throughput
-    - t4:CUDA:Velo:run_throughput
-    - gtx10606g:CUDA:Velo:run_throughput
-    - gtx680:CUDA:Velo:run_throughput
-    - gtxtitanx:CUDA:Velo:run_throughput
-    - gtx670:CUDA:Velo:run_throughput
-    - gtx1080ti:CUDA:Velo:run_throughput
-    - gtx980:CUDA:Velo:run_throughput
-    - x86-2630v4:x86:Velo:run_throughput_cpu
+    - rtx2080ti:CUDA:DefaultSequence:run_throughput
+    - rtx6000:CUDA:DefaultSequence:run_throughput
+    - v100:CUDA:DefaultSequence:run_throughput
+    - t4:CUDA:DefaultSequence:run_throughput
+    - gtx10606g:CUDA:DefaultSequence:run_throughput
+    - gtx680:CUDA:DefaultSequence:run_throughput
+    - gtxtitanx:CUDA:DefaultSequence:run_throughput
+    - gtx670:CUDA:DefaultSequence:run_throughput
+    - gtx1080ti:CUDA:DefaultSequence:run_throughput
+    - gtx980:CUDA:DefaultSequence:run_throughput
+    - x86-2630v4:x86:DefaultSequence:run_throughput_cpu
 
 # The speedup job is disabled for the moment
 # 
 # # The "gpu" tag is to require python3 essentially
-# speedup:Velo:publish_speedup:
+# speedup:DefaultSequence:publish_speedup:
 #   <<: *publish_speedup_job_def
 #   tags:
 #     - gpu
 #   dependencies:
-#     - rtx2080ti:CUDA:Velo:run_throughput
-#     - rtx6000:CUDA:Velo:run_throughput
-#     - v100:CUDA:Velo:run_throughput
-#     - t4:CUDA:Velo:run_throughput
-#     - gtx10606g:CUDA:Velo:run_throughput
-#     - gtx680:CUDA:Velo:run_throughput
-#     - gtx980:CUDA:Velo:run_throughput
-#     - gtxtitanx:CUDA:Velo:run_throughput
-#     - gtx670:CUDA:Velo:run_throughput
-#     - gtx780ti:CUDA:Velo:run_throughput
-#     - gtx1080ti:CUDA:Velo:run_throughput
-#     - gtx980:CUDA:Velo:run_throughput
+#     - rtx2080ti:CUDA:DefaultSequence:run_throughput
+#     - rtx6000:CUDA:DefaultSequence:run_throughput
+#     - v100:CUDA:DefaultSequence:run_throughput
+#     - t4:CUDA:DefaultSequence:run_throughput
+#     - gtx10606g:CUDA:DefaultSequence:run_throughput
+#     - gtx680:CUDA:DefaultSequence:run_throughput
+#     - gtx980:CUDA:DefaultSequence:run_throughput
+#     - gtxtitanx:CUDA:DefaultSequence:run_throughput
+#     - gtx670:CUDA:DefaultSequence:run_throughput
+#     - gtx780ti:CUDA:DefaultSequence:run_throughput
+#     - gtx1080ti:CUDA:DefaultSequence:run_throughput
+#     - gtx980:CUDA:DefaultSequence:run_throughput
