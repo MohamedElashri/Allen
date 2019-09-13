@@ -362,77 +362,77 @@ rtx2080tifan:CUDA:DefaultSequence:run_throughput:
   tags:
     - rtx2080tifan
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 v100:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - v100
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 t4:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - t4
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 gtx10606g:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx10606g
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 gtx980:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx980
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 rtx6000:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - rtx6000
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 gtx680:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx680
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 gtxtitanx:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtxtitanx
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 x862630v4:CPU:DefaultSequence:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
   tags:
     - x862630v4
   dependencies:
-    - CPU:DefaultSequence:Release::build_x86
+    - CPU:DefaultSequence:RelWithDebInfo::build_x86
 
 gtx670:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx670
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 gtx1080ti:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx1080ti
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 # Physics runs
 
@@ -441,14 +441,14 @@ rtx6000:CUDA:DefaultSequence:run_physics_efficiency:
   tags:
     - rtx6000
   dependencies:
-    - CUDA:DefaultSequence:Release::build
+    - CUDA:DefaultSequence:RelWithDebInfo::build
 
 x862630v4:CPU:DefaultSequence:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - x862630v4
   dependencies:
-    - CPU:DefaultSequence:Release::build_x86
+    - CPU:DefaultSequence:RelWithDebInfo::build_x86
 
 gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
