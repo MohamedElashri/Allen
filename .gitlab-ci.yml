@@ -259,7 +259,7 @@ test_physics_efficiency:
     - diff alldiffs empty
   dependencies:
     - rtx6000:CUDA:DefaultSequence:run_physics_efficiency
-    - x86_2630v4:x86:DefaultSequence:run_physics_efficiency
+    - x86_2630v4:CPU:DefaultSequence:run_physics_efficiency
   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
@@ -380,7 +380,7 @@ gtxtitanx:CUDA:DefaultSequence:run_throughput:
   dependencies:
     - CUDA:DefaultSequence:Release::build
 
-x86_2630v4:x86:DefaultSequence:run_throughput_cpu:
+x86_2630v4:CPU:DefaultSequence:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
   tags:
     - x86_2630v4
@@ -410,7 +410,7 @@ rtx6000:CUDA:DefaultSequence:run_physics_efficiency:
   dependencies:
     - CUDA:DefaultSequence:Release::build
 
-x86_2630v4:x86:DefaultSequence:run_physics_efficiency:
+x86_2630v4:CPU:DefaultSequence:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86_2630v4
@@ -457,7 +457,7 @@ throughput:DefaultSequence:publish_throughput:
     - gtx670:CUDA:DefaultSequence:run_throughput
     - gtx1080ti:CUDA:DefaultSequence:run_throughput
     - gtx980:CUDA:DefaultSequence:run_throughput
-    - x86_2630v4:x86:DefaultSequence:run_throughput_cpu
+    - x86_2630v4:CPU:DefaultSequence:run_throughput_cpu
 
 # The speedup job is disabled for the moment
 # 
