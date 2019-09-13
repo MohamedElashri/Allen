@@ -46,12 +46,12 @@ MC PV is reconstructible if at least 4 tracks are reconstructed
 MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
 REC and MC vertices matched by dz distance
 
-All                  :  0.92 (  4501/  4875)
-Isolated             :  0.92 (  4501/  4875)
+All                  :  0.94 (  4561/  4875)
+Isolated             :  0.94 (  4561/  4875)
 Close                :  0.00 (     0/     0)
-False rate           :  0.02 (   102/  4603)
-Real false rate      :  0.02 (   102/  4603)
-Clones               :  1.00 (  4502/  4500)
+False rate           :  0.04 (   181/  4742)
+Real false rate      :  0.04 (   181/  4742)
+Clones               :  1.00 (  4564/  4560)
 
 
 Velo+UT tracks:
@@ -110,9 +110,10 @@ Ghost tracks identified as muon with isMuon:                              257/  
 
 
 HLT1 rates:
-One track:            76/  1000,  2280.00 kHz
-Two track:           317/  1000,  9510.00 kHz
+One track:            88/  1000,  2640.00 kHz
+Two track:           371/  1000, 11130.00 kHz
 Single muon:           1/  1000,    30.00 kHz
-Displaced dimuon:      5/  1000,   150.00 kHz
+Displaced dimuon:     10/  1000,   300.00 kHz
 High mass dimuon:     12/  1000,   360.00 kHz
-Inclusive:           344/  1000, 10320.00 kHz
+Inclusive:           398/  1000, 11940.00 kHz
+
