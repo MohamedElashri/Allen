@@ -228,7 +228,7 @@ check-formatting:
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} /usr/local/cuda-10.0/bin/nvprof ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} nvprof ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -d ${TOPLEVEL}
   artifacts:
     name: "$CI_JOB_NAME"
@@ -269,14 +269,10 @@ test_physics_efficiency:
   stage: test
   script:
     - TOPLEVEL=${PWD}
-    - PREVIOUS_IFS=${IFS}
-    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
-    - IFS=${PREVIOUS_IFS}
-    - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $(ls)
+    - for i in $( ls )
     - do
     - echo "Checking ${i}"
     - tail -n122 ${i} | head -n118 > efficiency_${i}
