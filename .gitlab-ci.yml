@@ -446,14 +446,14 @@ x86_2630v4:x86:DefaultSequence:run_physics_efficiency:
   tags:
     - x86_2630v4
   dependencies:
-    - x86:DefaultSequence:Release:build
+    - x86:DefaultSequence:Release::build
 
 firstgpu:CUDA:DefaultSequence:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - cuda
   dependencies:
-    - CUDA:DefaultSequence:Debug:build
+    - CUDA:DefaultSequence:Debug::build
 
 firstgpu:CUDA:DefaultSequence:run_physics_efficiency_debug_root:
   <<: *run_physics_efficiency_job_def
