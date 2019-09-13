@@ -385,7 +385,7 @@ x86_2630v4:x86:DefaultSequence:run_throughput_cpu:
   tags:
     - x86_2630v4
   dependencies:
-    - x86:DefaultSequence:Release::build_x86
+    - CPU:DefaultSequence:Release::build_x86
 
 gtx670:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
@@ -415,7 +415,7 @@ x86_2630v4:x86:DefaultSequence:run_physics_efficiency:
   tags:
     - x86_2630v4
   dependencies:
-    - x86:DefaultSequence:Release::build_x86
+    - CPU:DefaultSequence:Release::build_x86
 
 gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
