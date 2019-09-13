@@ -272,7 +272,7 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n122 ${i} | head -n118 > efficiency_${i}; diff efficiency_${i} ${TOPLEVEL}/test/reference/${i} | tee ${i}_diff; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n122 ${i} | head -n118 > efficiency_${i}; diff efficiency_${i} ${TOPLEVEL}/test/reference/${i} || true | tee ${i}_diff; done
     - cat *_diff > alldiffs
     - touch this
     - diff this alldiffs
