@@ -320,7 +320,7 @@ CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build:
 CPU:DefaultSequence:Release::build_x86:
   <<: *build_job_def
   tags:
-    - x86_2630v4
+    - x86
 
 # Run on all platforms
 # Performance runs
