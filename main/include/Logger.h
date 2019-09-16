@@ -38,7 +38,7 @@ public:
 
   ~MessageLogger() { _file_std_io->rdbuf(_old); }
 
-  int overflow(int c)
+  int overflow(int c) override
   {
     if (c == '\n') {
       std::cout << _buf << std::endl;
@@ -61,7 +61,7 @@ public:
 
   ~VoidLogger() { _void_stream->rdbuf(_old); }
 
-  int overflow(int c)
+  int overflow(int c) override
   {
     // Just don't do anything
     return c;

@@ -29,8 +29,3 @@ allen_add_library(Utils STATIC
   ${prefix_sum}
   ${binary_search}
 )
-
-target_link_libraries(Utils PRIVATE
-  UT
-  SciFi
-)

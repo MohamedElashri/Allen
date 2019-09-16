@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
     }
     else {
       const int status = mkdir(output_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-      if (status != 0 & errno != EEXIST) {
+      if (status != 0 && errno != EEXIST) {
         cerr << "Error creating directory " << output_dir << endl;
         cerr << std::strerror(errno) << endl;
         return status;
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
   for (auto type : types) {
     auto dir = output_dir + "/" + bank_name(type);
     const int status = mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    if (status != 0 & errno != EEXIST) {
+    if (status != 0 && errno != EEXIST) {
       cerr << "Error creating directory " << output_dir << endl;
       cerr << std::strerror(errno) << endl;
       return status;

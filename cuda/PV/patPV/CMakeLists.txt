@@ -18,6 +18,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${pat_pv} PROPERTIES LANGUAGE CXX)
 endif()
 
-allen_add_library(PatPV STATIC
+allen_add_library(AllenPatPV STATIC
   ${pat_pv}
 )

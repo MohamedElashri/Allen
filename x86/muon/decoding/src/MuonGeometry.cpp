@@ -39,4 +39,4 @@ namespace CPUMuon {
       raw_input += sizeof(unsigned) * tilesSize;
     }
   }
-}; // namespace CPUMuon
+} // namespace CPUMuon
