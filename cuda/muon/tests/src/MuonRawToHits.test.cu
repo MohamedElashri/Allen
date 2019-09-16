@@ -1,13 +1,21 @@
 #include "catch.hpp"
 #include "MuonRawToHits.test.cuh"
 
+std::string make_location_string(const std::string& sin) {
+  std::stringstream ss;
+  std::string sout;
+  ss << SOURCE_DIR << "/" << sin;
+  ss >> sout;
+  return sout;
+}
+
 SCENARIO("General case")
 {
   const std::string SLASH = "/";
-  const std::string MUON_RAW_FOLDER = "../input/minbias/banks/Muon";
-  const std::string MUON_COMMON_HITS_FOLDER = "../input/minbias/muon_common_hits";
-  const std::string MUON_TABLE_FILE_NAME = "../input/muon/muon_table.bin";
-  const std::string MUON_GEOMETRY_FILE_NAME = "../input/muon/muon_geometry.bin";
+  const std::string MUON_RAW_FOLDER = make_location_string("input/minbias/banks/Muon");
+  const std::string MUON_COMMON_HITS_FOLDER = make_location_string("input/minbias/muon_common_hits");
+  const std::string MUON_TABLE_FILE_NAME = make_location_string("input/muon/muon_table.bin");
+  const std::string MUON_GEOMETRY_FILE_NAME = make_location_string("input/muon/muon_geometry.bin");
   const std::vector<std::string> DATA_FILES = {"6718861_6001.bin",
                                                "6718861_6002.bin",
                                                "6718861_6003.bin",
