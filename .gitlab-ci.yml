@@ -49,7 +49,6 @@ check-formatting:
     - cmake -DTARGET_${TARGET}=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DOVERRIDE_ARCH_FLAG="${BUILD_ARCH_FLAG}" -DCPU_ARCH="ivybridge" ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
-    name: "$CI_JOB_NAME"
     expire_in: 2 hrs
     paths:
       - build*/*Allen*
@@ -81,10 +80,9 @@ check-formatting:
     - cmake -DBUILD_TESTS=ON -DTARGET_${TARGET}=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DOVERRIDE_ARCH_FLAG="${BUILD_ARCH_FLAG}" -DCPU_ARCH="ivybridge" ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
-    name: "$CI_JOB_NAME"
     expire_in: 2 hrs
     paths:
-      - build*
+      - build*/*
       - input
   retry: 1
 
@@ -114,7 +112,6 @@ check-formatting:
     - cmake -DTARGET_${TARGET}=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DOVERRIDE_ARCH_FLAG="${BUILD_ARCH_FLAG}" -DCPU_ARCH="ivybridge" ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
-    name: "$CI_JOB_NAME"
     expire_in: 2 hrs
     paths:
       - build*/*Allen*
@@ -148,7 +145,6 @@ check-formatting:
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/bsphiphi_mag_down ${RUN_OPTIONS} 2>&1 | tee ../validation_output/bsphiphi_${DEVICE_ID}.txt
   artifacts:
-    name: "$CI_JOB_NAME"
     expire_in: 2 hrs
     paths:
       - validation_output/*
@@ -186,7 +182,6 @@ check-formatting:
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
   artifacts:
-    name: "$CI_JOB_NAME"
     expire_in: 2 hrs
     paths:
       - output_*
@@ -218,7 +213,6 @@ check-formatting:
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
   artifacts:
-    name: "$CI_JOB_NAME"
     expire_in: 2 hrs
     paths:
       - output_*
@@ -258,7 +252,6 @@ check-formatting:
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} nvprof ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -d ${TOPLEVEL}
   artifacts:
-    name: "$CI_JOB_NAME"
     expire_in: 2 hrs
     paths:
       - output_*
