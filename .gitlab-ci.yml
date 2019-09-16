@@ -463,7 +463,7 @@ gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug:
   tags:
     - cuda
   dependencies:
-    - CUDA:DefaultSequence:Debug::build
+    - CUDA:DefaultSequence:Debug:-DBUILD_TESTS=ON:build
 
 gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug_root:
   <<: *run_physics_efficiency_job_def
