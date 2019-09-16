@@ -33,23 +33,23 @@ namespace CPUMuon {
 
   void recalculateNumberOfHitsPerStationAndStationOffsets(::Muon::HitsSoA* hitsSoA, size_t totalNumberOfHits)
   {
-    int currentStation = MuonTileID::station(hitsSoA->tile[0]);
-    int initialCurrentStation = currentStation;
-    for (int i = 1; i < totalNumberOfHits; i++) {
+    auto currentStation = MuonTileID::station(hitsSoA->tile[0]);
+    auto initialCurrentStation = currentStation;
+    for (size_t i = 1; i < totalNumberOfHits; i++) {
       auto id = static_cast<unsigned int>(hitsSoA->tile[i]);
       auto currentTileStation = MuonTileID::station(id);
       if (currentTileStation != currentStation) {
-        for (int j = currentStation + 1; j <= currentTileStation; j++) {
+        for (unsigned int j = currentStation + 1; j <= currentTileStation; j++) {
           hitsSoA->station_offsets[j] = i;
         }
         currentStation = currentTileStation;
       }
     }
-    for (int j = currentStation; j + 1 < ::Muon::Constants::n_stations; j++) {
+    for (unsigned int j = currentStation; j + 1 < ::Muon::Constants::n_stations; j++) {
       hitsSoA->station_offsets[j + 1] = totalNumberOfHits;
     }
     if (initialCurrentStation == currentStation) {
-      for (int j = initialCurrentStation; j + 1 < ::Muon::Constants::n_stations; j++) {
+      for (unsigned int j = initialCurrentStation; j + 1 < ::Muon::Constants::n_stations; j++) {
         hitsSoA->station_offsets[j + 1] = totalNumberOfHits;
       }
     }
@@ -75,7 +75,6 @@ namespace CPUMuon {
 
     for (auto& decode : decoding) {
       std::vector<DigitsRange> perRegQua;
-      unsigned nReg = 0;
       auto it = decode.begin();
       for (auto jt = it; jt != decode.end(); ++jt) {
         if (regionAndQuarter(*jt) != regionAndQuarter(*it)) {
@@ -243,4 +242,4 @@ namespace CPUMuon {
       }
     }
   }
-}; // namespace CPUMuon
+} // namespace CPUMuon

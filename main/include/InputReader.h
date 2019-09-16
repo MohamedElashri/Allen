@@ -34,6 +34,8 @@ using FolderMap = std::map<BankTypes, std::string>;
 struct EventReader : public Reader {
   EventReader(FolderMap folders) : Reader(begin(folders)->second), m_folders {std::move(folders)} {}
 
+  virtual ~EventReader() = default;
+
   gsl::span<char> events(BankTypes type)
   {
     auto it = m_events.find(type);

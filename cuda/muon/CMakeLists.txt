@@ -36,3 +36,5 @@ allen_add_library(Muon STATIC
   ${muon_decoding}
   ${muon_decoding_steps}
 )
+
+target_link_libraries(Muon Utils)

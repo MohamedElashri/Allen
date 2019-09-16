@@ -31,8 +31,11 @@ if(TARGET_DEVICE STREQUAL "CPU")
   endforeach(source_file)
 endif()
 
-allen_add_library(Velo STATIC
+allen_add_library(VeloCommon STATIC
   ${velo_common}
+)
+
+allen_add_library(Velo STATIC
   ${velo_clustering_sources}
   ${velo_prefix_sum}
   ${velo_phi_and_sort}
@@ -40,3 +43,5 @@ allen_add_library(Velo STATIC
   ${velo_simplified_kalman_filter}
   ${velo_consolidate_tracks}
 )
+
+target_link_libraries(Velo VeloCommon)

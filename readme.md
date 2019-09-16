@@ -103,11 +103,11 @@ Here are some example run options:
 
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
-    
-    
+
+
 How to profile it
 ------------------
-For profiling, Nvidia's nvprof can be used. 
+For profiling, Nvidia's nvprof can be used.
 Since CUDA version 10.1, profiling was limited to the root user by default for security reasons. However, the system administrator of a GPU server can add a kernel module option such that regular users can use the profiler by following these instructions:
 
 Add a file containing "option nvidia NVreg_RestrictProfilingToAdminUsers=0" to the `/etc/modprobe.d/` directory and reboot the machine. This will load the nvidia kernel module with "NVreg_RestrictProfilingToAdminUsers=0".
@@ -116,53 +116,43 @@ As a quick workaround one can also use the older version of nvprof:
 
     /usr/local/cuda-10.0/bin/nvprof ./Allen -c 0 -n 1000
 
-How to run build and run together with the LHCb stack
------------------------------------------------------
+Building as a Gaudi/LHCb project
+--------------------------------
 
-Code is being developed in the LHCb stack that provides detector
-geometry data directly instead of reading it from binary files. To do
-this, the following is required:
- - Build with CUDA 10.1 (to allow gcc 8 as a host compiler)
- - Build the Rec project against the lhcb-gaudi-head nightly build
- - Build Allen using the same toolchain as Rec
- - Run Allen from a runtime environment provided by Rec
+Allen can also be built as a Gaudi/LHCb cmake project; it then depends
+on Rec and Online. To build Allen like this, is the same as building
+any other Gaudi/LHCb project:
 
-### Building Rec
-Running Allen together with the LHCb stack requires some recent
-changes that have not yet been merged to master. Rec has to be built
-in its entirity against the lhcb-gaudi-head slot. First, decide on a
-directory where it will reside (`dev-dir` below) and then clone there:
- - `mkdir /path/to/dev-dir`
- - `cd /path/to/dev-dir`
+    source /cvmfs/lhcb.cern.ch/lib/LbEnv
+    cd Allen
+    lb-project-init
+    make configure
+    make install
 
-To setup the LHCb environment for building and running Rec, put the
-following in a script (e.g. `env.sh`) for easy access:
+### Build options
+By default the `DefaultSequence` is selected, Allen is built with
+CUDA, and the CUDA stack is searched for in `/usr/local/cuda`. These
+defaults (and other cmake variables) can be changed by adding the same
+flags that you would pass to a standalone build to the `CMAKEFLAGS`
+environment variable before calling `make configure`.
+
+For example, to specify another CUDA stack to be used set:
 ```console
-export CMTCONFIG=x86_64-centos7-gcc8-opt
-export CMTPROJECTPATH=/path/to/dev-dir:/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-gaudi-head/Mon
-source /cvmfs/lhcb.cern.ch/lib/LbEnv
+$> export CMAKEFLAGS="-DCMAKE_CUDA_COMPILER=/path/to/alternative/nvcc"
 ```
 
-Then build Rec:
- - `source env.sh`
- - `git clone ssh://git@gitlab.cern.ch:7999/lhcb/Rec.git`
- - `cd Rec`
- - `lb-project-init`
- - `make install`
-
-### Building Allen with the toolchain used for Rec
-In the same environment, do the following
- - `cd /path/to/Allen`
- - `mkdir build-Rec`
- - `cd build-Rec`
- - `/path/to/dev-dir/Rec/build.${CMTCONFIG}/run bash --norc`
- - ```cmake -DCMAKE_C_COMPILER=`which gcc` -DCMAKE_CXX_COMPILER=`which g++` -DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.1/bin/nvcc ..```
- - `make -j 10`
+### Runtime environment:
+To setup the runtime environment for Allen, the same tools as for
+other Gaudi/LHCb projects can be used:
+```console
+$> cd Allen
+$> ./build.${BINARY_TAG}/run Allen ...
+```
 
 ### Run Allen using the Python entry point:
 ```console
-$> /path/to/dev-dir/Rec/build.${CMTCONFIG}/run /path/to/Allen/bindings/Allen.py
+$> cd Allen
+$> ./build.${CMTCONFIG}/run bindings/Allen.py
 ```
-
 
 [This readme](contributing.md) explains how to add a new algorithm to the sequence and how to use the memory scheduler to define global memory variables for this sequence and pass on the dependencies. It also explains which checks to do before placing a merge request with your changes.

@@ -1,8 +1,12 @@
 file(GLOB SOURCES "src/*.cpp")
 
-add_library(NonEventData ${SOURCES})
+allen_add_library(NonEventData ${SOURCES})
 
 target_link_libraries(NonEventData
+  x86Clustering
+  VeloCommon
+  UTCommon
+  CudaCommon
   Common)
 
 target_include_directories(NonEventData PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

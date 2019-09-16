@@ -162,7 +162,7 @@ public:
    *
    * @return     event IDs in slice
    */
-  std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const
+  std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const override
   {
     return m_event_ids[slice_index];
   }
@@ -232,7 +232,7 @@ public:
    *
    * @return     Banks and their offsets
    */
-  BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const
+  BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     auto ib = to_integral<BankTypes>(bank_type);
     auto const& [banks, offsets, offsets_size] = m_slices[ib][slice_index];
@@ -251,9 +251,8 @@ private:
    */
   void prefetch() {
 
-    bool eof = false, prefetch_done = false;
-    size_t bytes_read = 0, n_reps = 0;
-
+    bool prefetch_done = false;
+    size_t n_reps = 0;
     size_t eps = this->events_per_slice();
 
     size_t n_files = std::get<1>(m_files.front()).size();
@@ -281,7 +280,6 @@ private:
         *it = false;
       }
       size_t slice_index = distance(m_slice_free.begin(), it);
-      auto& slice = m_slices[slice_index];
       this->debug_output("Got slice index " + std::to_string(slice_index), 1);
 
       // "Reset" the slice

@@ -68,4 +68,4 @@ namespace CPUMuon {
 
     unsigned int id() const { return m_muonid; }
   };
-}; // namespace CPUMuon
+} // namespace CPUMuon

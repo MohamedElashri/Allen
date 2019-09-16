@@ -44,6 +44,10 @@ struct IInputProvider {
    * @return     spans spanning bank and offset memory
    */
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
+
+  /// Descturctor
+  virtual ~IInputProvider() {};
+
 };
 
 // InputProvider
@@ -57,6 +61,7 @@ public:
     m_nslices {n_slices}, m_events_per_slice {events_per_slice}, m_nevents {n_events}, m_types {banks_set<Banks...>()}
   {}
 
+  /// Descturctor
   virtual ~InputProvider() {};
 
   /**

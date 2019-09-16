@@ -51,4 +51,4 @@ namespace CPUMuon {
     MuonTable* stripY;
     MuonGeometry* muonGeometry;
   };
-}; // namespace CPUMuon
+} // namespace CPUMuon

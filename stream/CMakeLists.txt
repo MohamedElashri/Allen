@@ -109,7 +109,7 @@ add_custom_command(
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
 if(TARGET_DEVICE STREQUAL "CPU")
-  foreach(source_file ${stream_gear} ${stream_memory_manager} ${stream_scheduler} 
+  foreach(source_file ${stream_gear} ${stream_memory_manager} ${stream_scheduler}
     ${stream_sequence} ${stream_sequence_cpp} ${stream_setup} ${stream_visitors_gec}
     ${stream_visitors_ip} ${stream_visitors_velo} ${stream_visitors_patPV}
     ${stream_visitors_beamlinePV} ${stream_visitors_assoc} ${stream_visitors_UT}
@@ -142,12 +142,11 @@ allen_add_library(Stream STATIC
 )
 
 target_link_libraries(Stream PRIVATE
-  Common
-  Utils
+  CudaCommon
   Associate
   GlobalEventCut
   Velo
-  PatPV
+  AllenPatPV
   PV_beamline
   x86Clustering
   x86beamlinePV
@@ -160,14 +159,18 @@ target_link_libraries(Stream PRIVATE
   x86LookingForward
   x86MomentumForward
   x86VeloUT
+  x86Clustering
   CpuGEC
   CpuUtils
-  Muon)
+  Muon
+  Utils)
+
+set_property(TARGET Stream PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})
 
-  target_include_directories(Stream BEFORE PRIVATE
+  target_include_directories(Stream SYSTEM BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
   )
 endif()
