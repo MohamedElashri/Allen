@@ -31,6 +31,7 @@ check-formatting:
       - schedules
       - web
       - dcampora_ci_upgrade
+      - merge_requests
   stage: build
   script:
     - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
@@ -63,6 +64,7 @@ check-formatting:
       - schedules
       - web
       - dcampora_ci_upgrade
+      - merge_requests
   stage: build
   script:
     - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
@@ -281,6 +283,21 @@ test_physics_efficiency:
     - x862630v4:CPU:DefaultSequence:run_physics_efficiency
   allow_failure: true
 
+run_built_tests:
+  only:
+    refs:
+      - master
+      - schedules
+      - web
+      - dcampora_ci_upgrade
+  stage: test
+  script:
+    - cd build_CUDA
+    - ctest -V
+  dependencies:
+    - CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build
+  allow_failure: true
+
 .publish_throughput_job: &publish_throughput_job_def
   only:
     refs:
@@ -326,7 +343,7 @@ CUDA:DefaultSequence:RelWithDebInfo::build:
   tags:
     - cuda
 
-CUDA:DefaultSequence:Debug::build:
+CUDA:DefaultSequence:Debug:-DBUILD_TESTS=ON:build:
   <<: *build_job_def
   tags:
     - cuda
