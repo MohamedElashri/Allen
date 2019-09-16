@@ -283,7 +283,9 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
       t.ndofT = track.ndofT;
       t.first_qop = (float) track.first_qop;
       t.best_qop = (float) track.best_qop;
-
+      t.p = (float) track.p();
+      t.pt = (float) track.pt();
+      
       tracks.push_back(t);
 
     } // Track loop.

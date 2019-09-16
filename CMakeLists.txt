@@ -283,6 +283,9 @@ else(USE_LZ4)
 endif(USE_LZ4)
 
 option(USE_KALMAN_SINGLE_PRECISION "Use single precision Kalman filter" ON)
+if (USE_KALMAN_SINGLE_PRECISION)
+  add_compile_definitions(KALMAN_SINGLE_PRECISION)
+endif()
 
 # find_package(CUDA REQUIRED)
 #set(CUDA_HOST_COMPILER "g++")
