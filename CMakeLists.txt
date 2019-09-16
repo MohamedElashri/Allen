@@ -514,7 +514,3 @@ endif()
 
 allen_add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
-
-if(TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
-  add_subdirectory(tests)
-endif()
