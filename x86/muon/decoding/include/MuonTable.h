@@ -43,4 +43,4 @@ namespace CPUMuon {
 
   void
   calcStripPos(MuonTable* strip, MuonTileID& tile, double& x, double& deltax, double& y, double& deltay, double& z);
-}; // namespace CPUMuon
+} // namespace CPUMuon

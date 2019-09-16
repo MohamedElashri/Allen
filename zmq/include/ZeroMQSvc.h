@@ -117,6 +117,8 @@ class ZeroMQSvc {
 public:
   ZeroMQSvc() = default;
 
+  virtual ~ZeroMQSvc() = default;
+
   enum Encoding { Text = 0, Binary };
 
   Encoding encoding() const { return m_enc; };

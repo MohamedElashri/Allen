@@ -3,7 +3,7 @@ set(SOURCES
   src/raw_helpers.cpp
   src/read_mdf.cpp)
 
-add_library(mdf ${SOURCES})
+allen_add_library(mdf ${SOURCES})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_include_directories(
@@ -72,19 +72,19 @@ function(test_program)
     target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE NO_CUDA)
   endif()
   target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Common mdf)
+  install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
-if(TARGET_DEVICE STREQUAL "CUDA")
-  if (BUILD_TESTS)
-    include(Catch)
+if (BUILD_TESTS)
+  include(Catch)
 
-    test_program(NAME dump_banks)
-    test_program(NAME test_read)
-    test_program(NAME test_read_bin)
-    test_program(NAME bench_read NO_CUDA)
-    test_program(NAME bench_provider NO_CUDA)
-    test_program(NAME bench_transpose NO_CUDA)
-    test_program(NAME test_providers)
-    catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
-  endif()
+  test_program(NAME dump_banks)
+  test_program(NAME test_read)
+  test_program(NAME test_read_bin)
+  test_program(NAME bench_read NO_CUDA)
+  test_program(NAME bench_provider NO_CUDA)
+  test_program(NAME bench_transpose NO_CUDA)
+
+  test_program(NAME test_providers)
+  catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
 endif()

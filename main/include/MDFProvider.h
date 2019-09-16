@@ -22,13 +22,13 @@
 #include <read_mdf.hpp>
 #include <raw_bank.hpp>
 
+#include "Transpose.h"
+
 #ifndef NO_CUDA
 #include <CudaCommon.h>
 #endif
 
 namespace {
-  constexpr auto header_size = sizeof(LHCb::MDFHeader);
-
   using namespace Allen::Units;
 } // namespace
 
@@ -67,283 +67,6 @@ struct MDFProviderConfig {
   size_t n_loops = 0;
 };
 
-//
-/**
- * @brief      read events from input file into prefetch buffer
- *
- * @details    NOTE: It is assumed that the header has already been
- *             read, calling read_events will read the subsequent
- *             banks and then header of the next event.
- *
- * @param      input stream
- * @param      prefetch buffer to read into
- * @param      storage for the MDF header
- * @param      buffer for temporary storage of the compressed banks
- * @param      number of events to read
- * @param      check the MDF checksum if it is available
- *
- * @return     (eof, error, full, n_bytes)
- */
-std::tuple<bool, bool, bool, size_t> read_events(int input, ReadBuffer& read_buffer,
-                                                 LHCb::MDFHeader& header,
-                                                 std::vector<char> compress_buffer,
-                                                 size_t n_events, bool check_checksum)
-{
-  auto& [n_filled, event_offsets, buffer] = read_buffer;
-
-  // Keep track of where to write and the end of the prefetch buffer
-  auto* write = &buffer[0 + event_offsets[n_filled]];
-  auto* buffer_start = &buffer[0];
-  auto const* buffer_end = buffer.data() + buffer.size();
-  size_t n_bytes = 0;
-  bool eof = false, error = false, full = false;
-  gsl::span<char> bank_span;
-
-  // Loop until the requested number of events is prefetched, the
-  // maximum number of events per prefetch buffer is hit, an error
-  // occurs or eof is reached
-  while (!eof && !error && n_filled < event_offsets.size() - 1 && n_filled < n_events) {
-    // It is
-
-    // Read the banks
-    gsl::span<char> buffer_span{buffer_start + event_offsets[n_filled], buffer.size() - event_offsets[n_filled]};
-    std::tie(eof, error, bank_span) = MDF::read_banks(input, header, std::move(buffer_span),
-                                                      compress_buffer, check_checksum);
-    // Fill the start offset of the next event
-    event_offsets[++n_filled] = bank_span.end() - buffer_start;
-    n_bytes += bank_span.size();
-
-    // read the next header
-    ssize_t n_bytes = ::read(input, reinterpret_cast<char*>(&header), header_size);
-    if (n_bytes != 0) {
-      // Check if there is enough space to read this event
-      int compress = header.compression() & 0xF;
-      int expand = (header.compression() >> 4) + 1;
-      int event_size = (header.recordSize() + header_size +
-                        2 * (sizeof(LHCb::RawBank) + sizeof(int)) +
-                        (compress ? expand * (header.recordSize() - header_size) : 0));
-      if (event_offsets[n_filled] + event_size > buffer.size()) {
-        full = true;
-        break;
-      }
-    } else if (n_bytes == 0) {
-      info_cout << "Cannot read more data (Header). End-of-File reached.\n";
-      eof = true;
-    } else {
-      error_cout << "Failed to read header " << strerror(errno) << "\n";
-      error = true;
-    }
-  }
-  return {eof, error, full, n_bytes};
-}
-
-/**
- * @brief      Fill the array the contains the number of banks per type
- *
- * @details    detailed description
- *
- * @param      prefetched buffer of events (a single event is needed)
- *
- * @return     (success, number of banks per bank type; 0 if the bank is not needed)
- */
-std::tuple<bool, std::array<unsigned int, NBankTypes>> fill_counts(ReadBuffer const& read_buffer)
-{
-  auto& [n_filled, event_offsets, buffer] = read_buffer;
-
-  std::array<unsigned int, NBankTypes> count{0};
-
-  // Care only about the first event
-  size_t i_event = 0;
-
-  // Offsets are to the start of the event, which includes the header
-  auto const* bank = buffer.data() + event_offsets[i_event];
-  auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
-
-  // Loop over all the bank data
-  while (bank < bank_end) {
-    const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
-
-    if (b->magic() != LHCb::RawBank::MagicPattern) {
-      error_cout << "Magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
-      return {false, count};
-    }
-
-    // Check if Allen processes this bank type, count bank types that
-    // are wanted
-    auto bank_type_it = Allen::bank_types.find(b->type());
-    if (bank_type_it != Allen::bank_types.end()) {
-      auto bank_type_index = to_integral(bank_type_it->second);
-      ++count[bank_type_index];
-    }
-
-    // Increment overall bank pointer
-    bank += b->totalSize();
-  }
-
-  return {true, count};
-}
-
-/**
- * @brief      Transpose events to Allen layout
- *
- * @param      ReadBuffer containing events to be transposed
- * @param      slices to fill with transposed banks, slices are addressed by bank type
- * @param      index of bank slices
- * @param      event ids of banks in this slice
- * @param      number of banks per event
- * @param      number of events to transpose
- *
- * @return     (success, slice full for one of the bank types, number of events transposed)
- */
-template <BankTypes... Banks>
-std::tuple<bool, bool, size_t> transpose_events(const ReadBuffer& read_buffer,
-                                                Slices& slices, int const slice_index,
-                                                EventIDs& event_ids,
-                                                std::vector<int> const& bank_ids,
-                                                std::array<unsigned int, NBankTypes> const& banks_count,
-                                                size_t n_events) {
-  auto const& [n_filled, event_offsets, buffer] = read_buffer;
-
-  unsigned int* banks_offsets = nullptr;
-  // Number of offsets
-  size_t* n_banks_offsets = nullptr;
-
-  // Where to write the transposed bank data
-  uint32_t* banks_write = nullptr;
-
-  // Where should offsets to individual banks be written
-  uint32_t* banks_offsets_write = nullptr;
-
-  unsigned int bank_offset = 0;
-  unsigned int bank_counter = 1;
-  unsigned int bank_type_index = 0;
-
-  bool full = false;
-
-  // "Reset" the slice
-  for (auto bank_type : {Banks...}) {
-    auto ib = to_integral<BankTypes>(bank_type);
-    std::get<1>(slices[ib][slice_index])[0] = 0;
-    std::get<2>(slices[ib][slice_index]) = 1;
-  }
-  event_ids.clear();
-
-  // L0Calo doesn't exist in the upgrade
-  LHCb::RawBank::BankType prev_type = LHCb::RawBank::L0Calo;
-
-  // Loop over events in the prefetch buffer
-  size_t i_event = 0;
-  for (; i_event < n_filled && i_event < n_events; ++i_event) {
-    // Offsets are to the start of the event, which includes the header
-    auto const* bank = buffer.data() + event_offsets[i_event];
-    auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
-
-    // Loop over all bank data of this event
-    while (bank < bank_end) {
-      const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
-
-      if (b->magic() != LHCb::RawBank::MagicPattern) {
-        error_cout << "Magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
-        return {false, false, i_event};
-        // Decode the odin bank
-      }
-
-      // Check what to do with this bank
-      auto bt = b->type();
-      if (bt == LHCb::RawBank::ODIN) {
-        // decode ODIN bank to obtain run and event numbers
-        auto odin = MDF::decode_odin(b);
-        event_ids.emplace_back(odin.run_number, odin.event_number);
-        bank += b->totalSize();
-        continue;
-      } else if (bt >= LHCb::RawBank::LastType || bank_ids[bt] == -1) {
-        // This bank is not required: skip it
-        bank += b->totalSize();
-        continue;
-      } else if (bt != prev_type) {
-        // Switch to new type of banks
-        bank_type_index = bank_ids[b->type()];
-        auto& slice = slices[bank_type_index][slice_index];
-        prev_type = bt;
-
-        bank_counter = 1;
-        banks_offsets = std::get<1>(slice).data();
-        n_banks_offsets = &std::get<2>(slice);
-
-        // Calculate the size taken by storing the number of banks
-        // and offsets to all banks within the event
-        auto preamble_words = 2 + banks_count[bank_type_index];
-
-        // Initialize offset to start of this set of banks from the
-        // previous one and increment with the preamble size
-        banks_offsets[*n_banks_offsets] = (banks_offsets[*n_banks_offsets - 1]
-                                           + preamble_words * sizeof(uint32_t));
-
-        // Three things to write for a new set of banks:
-        // - number of banks/offsets
-        // - offsets to individual banks
-        // - bank data
-
-        // Initialize point to write from offset of previous set
-        banks_write = reinterpret_cast<uint32_t*>(std::get<0>(slice).data() + banks_offsets[*n_banks_offsets - 1]);
-
-        // New offset to increment
-        ++(*n_banks_offsets);
-
-        // Write the number of banks
-        banks_write[0] = banks_count[bank_type_index];
-
-        // All bank offsets are uit32_t so cast to that type
-        banks_offsets_write = banks_write + 1;
-        banks_offsets_write[0] = 0;
-
-        // Offset in number of uint32_t
-        bank_offset = 0;
-
-        // Start writing bank data after the preamble
-        banks_write += preamble_words;
-      } else {
-        ++bank_counter;
-      }
-
-      // Write sourceID
-      banks_write[bank_offset] = b->sourceID();
-
-      // Write bank data
-      ::memcpy(banks_write + bank_offset + 1, b->data(), b->size());
-
-      auto n_word = b->size() / sizeof(uint32_t);
-      bank_offset += 1 + n_word;
-
-      // Write next offset in bytes
-      banks_offsets_write[bank_counter] = bank_offset * sizeof(uint32_t);
-
-      // Update "event" offset (in bytes)
-      banks_offsets[*n_banks_offsets - 1] += sizeof(uint32_t) * (1 + n_word);
-
-      // Increment overall bank pointer
-      bank += b->totalSize();
-    }
-
-    // Check if any of the per-bank-type slices potentially has too
-    // little space to fit the next event
-    for (auto bank_type : {Banks...}) {
-      auto ib = to_integral<BankTypes>(bank_type);
-      const auto& [slice, slice_offsets, offsets_size] = slices[ib][slice_index];
-      // Use the event size of the next event here instead of the
-      // per bank size because that's not yet known for the next
-      // event
-      auto const event_size = event_offsets[i_event + 1] - event_offsets[i_event];
-      if ((slice_offsets[offsets_size - 1] + event_size) > slice.size()) {
-        full = true;
-        goto transpose_end;
-      }
-    }
-  }
- transpose_end:
-  return {true, full, i_event};
-}
-
 /**
  * @brief      Provide transposed events from MDF files
  *
@@ -372,9 +95,10 @@ public:
   MDFProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
               std::vector<std::string> connections, MDFProviderConfig config = MDFProviderConfig{}) :
     InputProvider<MDFProvider<Banks...>>{n_slices, events_per_slice, n_events},
-    m_event_ids{n_slices}, m_banks_count{0},
     m_buffer_writable(config.n_buffers, true),
     m_slice_free(n_slices, true),
+    m_banks_count{0},
+    m_event_ids{n_slices},
     m_connections {std::move(connections)},
     m_config{config}
   {
@@ -403,8 +127,6 @@ public:
 
       // Fudge with extra 20% memory
       size_t n_bytes = std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB);
-      m_banks_data[ib].reserve(n_bytes / sizeof(uint32_t));
-      m_banks_offsets[ib].reserve(events_per_slice);
       auto& slices = m_slices[ib];
       slices.reserve(n_slices);
       for (size_t i = 0; i < n_slices; ++i) {
@@ -459,11 +181,13 @@ public:
       // Wait for first read buffer to be full
       m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_read_error; });
       if (!m_read_error) {
-        size_t i_read = m_prefetched.front();
-
         // Count number of banks per flavour
         bool count_success = false;
-        std::tie(count_success, m_banks_count) = fill_counts(m_buffers[i_read]);
+
+        // Offsets are to the start of the event, which includes the header
+        auto i_read = m_prefetched.front();
+        auto& [n_filled, event_offsets, buffer] = m_buffers[i_read];
+        std::tie(count_success, m_banks_count) = fill_counts({buffer.data(), event_offsets[1]});
         if (!count_success) {
           error_cout << "Failed to determine bank counts\n";
           m_read_error = true;
@@ -530,7 +254,7 @@ public:
    *
    * @return     EventIDs of events in given slice
    */
-  std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const
+  std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const override
   {
     return m_event_ids[slice_index];
   }
@@ -543,7 +267,7 @@ public:
    *
    * @return     Banks and their offsets
    */
-  BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const
+  BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     auto ib = to_integral<BankTypes>(bank_type);
     auto const& [banks, offsets, offsets_size] = m_slices[ib][slice_index];
@@ -682,12 +406,17 @@ private:
         }
       }
 
+      // Reset the slice
+      auto& event_ids = m_event_ids[*slice_index];
+      reset_slice<Banks...>(m_slices, *slice_index, event_ids);
+
       // Transpose the events in the read buffer into the slice
       std::tie(good, transpose_full, n_transposed) = transpose_events<Banks...>(m_buffers[i_read],
-                                                                                m_slices, *slice_index,
-                                                                                m_event_ids[*slice_index],
+                                                                                m_slices,
+                                                                                *slice_index,
                                                                                 m_bank_ids,
                                                                                 m_banks_count,
+                                                                                event_ids,
                                                                                 this->events_per_slice());
       this->debug_output("Transposed " + std::to_string(*slice_index) + " " + std::to_string(good)
                          + " " + std::to_string(transpose_full) + " " + std::to_string(n_transposed),
@@ -911,12 +640,6 @@ private:
 
   // Allen IDs of LHCb raw banks
   std::vector<int> m_bank_ids;
-
-  // Offsets to all the banks in the single event that was read from file
-  mutable std::array<std::vector<uint32_t>, NBankTypes> m_banks_offsets;
-
-  // Raw bank data by subdetector as read from file
-  mutable std::array<std::vector<uint32_t>, NBankTypes> m_banks_data;
 
   // Memory slices, N for each raw bank type
   Slices m_slices;

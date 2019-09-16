@@ -40,7 +40,7 @@ endif()
 find_package(Boost COMPONENTS serialization iostreams)
 
 file(GLOB SOURCES "src/*.cpp")
-add_library(AllenZMQ ${SOURCES})
+allen_add_library(AllenZMQ ${SOURCES})
 target_include_directories(AllenZMQ PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(AllenZMQ PUBLIC ${CMAKE_SOURCE_DIR}/main/include)
 target_include_directories(AllenZMQ SYSTEM PUBLIC ${ZMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})

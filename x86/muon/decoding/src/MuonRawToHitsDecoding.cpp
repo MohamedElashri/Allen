@@ -6,8 +6,8 @@ char muon_geometry_raw_input[100000];
 void muonRawToHitsDecode(
   char* events,
   unsigned int* offsets,
-  size_t events_size,
-  size_t offsets_size,
+  size_t,
+  size_t,
   std::vector<Muon::HitsSoA>& muon_hits_events,
   CPUMuon::MuonRawToHits* muonRawToHits)
 {

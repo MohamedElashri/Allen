@@ -37,8 +37,9 @@ allen_add_library(Muon STATIC
   ${muon_decoding_steps}
 )
 
-if(TARGET_DEVICE STREQUAL "CUDA")
-  if(BUILD_TESTS)
-    add_subdirectory(tests)
-  endif(BUILD_TESTS)
+target_link_libraries(Muon Utils)
+
+if(TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
+  add_subdirectory(tests)
 endif()
+
