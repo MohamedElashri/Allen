@@ -30,7 +30,6 @@ check-formatting:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
       - merge_requests
   stage: build
   script:
@@ -63,7 +62,6 @@ check-formatting:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
       - merge_requests
   stage: build
   script:
@@ -96,7 +94,6 @@ check-formatting:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
       - merge_requests
   stage: build
   script:
@@ -130,7 +127,6 @@ check-formatting:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
   stage: run
   script:
     - TOPLEVEL=${PWD}
@@ -165,7 +161,6 @@ check-formatting:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
   stage: run
   script:
     - TOPLEVEL=${PWD}
@@ -204,7 +199,6 @@ check-formatting:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
   stage: run
   script:
     - TOPLEVEL=${PWD}
@@ -237,7 +231,6 @@ check-formatting:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
   stage: run
   script:
     - TOPLEVEL=${PWD}
@@ -278,7 +271,6 @@ check-formatting:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
   stage: publish
   script:
     - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
@@ -299,7 +291,6 @@ test_physics_efficiency:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
   stage: test
   script:
     - TOPLEVEL=${PWD}
@@ -322,7 +313,6 @@ run_built_tests:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
   stage: test
   script:
     - cd build_CUDA
@@ -337,7 +327,6 @@ run_built_tests:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
   stage: publish
   script:
     - PREVIOUS_IFS=${IFS}
@@ -359,7 +348,6 @@ run_built_tests:
       - master
       - schedules
       - web
-      - dcampora_ci_upgrade
   stage: publish
   script:
     - cat output_*/output.txt | grep --color=none "device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
