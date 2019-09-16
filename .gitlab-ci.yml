@@ -57,6 +57,39 @@ check-formatting:
       - input
   retry: 1
 
+.build_job: &build_test_job_def
+  only:
+    refs:
+      - master
+      - schedules
+      - web
+      - dcampora_ci_upgrade
+      - merge_requests
+  stage: build
+  script:
+    - declare -A DEVICE_NUMBERS_MAP=${DEVICE_NUMBERS}
+    - PREVIOUS_IFS=${IFS}
+    - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
+    - IFS=${PREVIOUS_IFS}
+    - TARGET=${JOB_NAME_SPLIT[0]}
+    - SEQUENCE=${JOB_NAME_SPLIT[1]}
+    - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
+    - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
+    - BUILD_ARCH_FLAG="-gencode arch=compute_75,code=sm_75 -gencode arch=compute_70,code=sm_70 -gencode arch=compute_61,code=sm_61 -gencode arch=compute_52,code=sm_52 -gencode arch=compute_30,code=sm_30"
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
+    - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+    - mkdir build_${TARGET}
+    - cd build_${TARGET}
+    - cmake -DBUILD_TESTS=ON -DTARGET_${TARGET}=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DOVERRIDE_ARCH_FLAG="${BUILD_ARCH_FLAG}" -DCPU_ARCH="ivybridge" ${ADDITIONAL_OPTIONS} ..
+    - make -j
+  artifacts:
+    name: "$CI_JOB_NAME"
+    expire_in: 2 hrs
+    paths:
+      - build*
+      - input
+  retry: 1
+
 .build_clang_job: &build_clang_job_def
   only:
     refs:
@@ -274,13 +307,14 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n122 ${i} | head -n118 > efficiency_${i}; diff efficiency_${i} ${TOPLEVEL}/test/reference/${i} || true | tee ${i}_diff; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n122 ${i} | head -n118 > efficiency_${i}; colordiff --fakeexitcode efficiency_${i} ${TOPLEVEL}/test/reference/${i} | tee ${i}_diff; done
     - cat *_diff > alldiffs
-    - touch this
-    - diff this alldiffs
+    - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
-    - rtx6000:CUDA:DefaultSequence:run_physics_efficiency
+    - t4:CUDA:DefaultSequence:run_physics_efficiency
     - x862630v4:CPU:DefaultSequence:run_physics_efficiency
+  tags:
+    - rtx6000 # Note: colordiff must be installed
   allow_failure: true
 
 run_built_tests:
@@ -295,7 +329,7 @@ run_built_tests:
     - cd build_CUDA
     - ctest -V
   dependencies:
-    - CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build
+    - CUDA:DefaultSequence:Debug::build
   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
@@ -343,8 +377,8 @@ CUDA:DefaultSequence:RelWithDebInfo::build:
   tags:
     - cuda
 
-CUDA:DefaultSequence:Debug:-DBUILD_TESTS=ON:build:
-  <<: *build_job_def
+CUDA:DefaultSequence:Debug::build:
+  <<: *build_test_job_def
   tags:
     - cuda
 
@@ -393,13 +427,6 @@ gtx10606g:CUDA:DefaultSequence:run_throughput:
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-gtx980:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx980
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
-
 rtx6000:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
@@ -444,10 +471,10 @@ gtx1080ti:CUDA:DefaultSequence:run_throughput:
 
 # Physics runs
 
-rtx6000:CUDA:DefaultSequence:run_physics_efficiency:
+t4:CUDA:DefaultSequence:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
-    - rtx6000
+    - t4
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
@@ -463,7 +490,7 @@ gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug:
   tags:
     - cuda
   dependencies:
-    - CUDA:DefaultSequence:Debug:-DBUILD_TESTS=ON:build
+    - CUDA:DefaultSequence:Debug::build
 
 gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug_root:
   <<: *run_physics_efficiency_job_def
@@ -497,7 +524,6 @@ throughput:DefaultSequence:publish_throughput:
     - gtxtitanx:CUDA:DefaultSequence:run_throughput
     - gtx670:CUDA:DefaultSequence:run_throughput
     - gtx1080ti:CUDA:DefaultSequence:run_throughput
-    - gtx980:CUDA:DefaultSequence:run_throughput
     - x862630v4:CPU:DefaultSequence:run_throughput_cpu
 
 # The speedup job is disabled for the moment
