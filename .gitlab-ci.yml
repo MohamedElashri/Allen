@@ -306,7 +306,7 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n122 ${i} | head -n118 > efficiency_${i}; colordiff --fakeexitcode efficiency_${i} ${TOPLEVEL}/test/reference/${i} | tee ${i}_diff; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n122 ${i} | head -n118 > efficiency_${i}; colordiff efficiency_${i} ${TOPLEVEL}/test/reference/${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
