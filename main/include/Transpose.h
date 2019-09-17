@@ -16,7 +16,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <Common.h>
 #include <Logger.h>
+#include <SystemOfUnits.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <raw_bank.hpp>
