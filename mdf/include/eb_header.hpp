@@ -19,11 +19,11 @@ struct BlockHeader {
   {
     event_id = evid;
     n_frag = nf;
+    resize(types);
+    resize(sizes);
     block_size = sizeof(event_id) + sizeof(n_frag) + sizeof(reserved)
       + types.size() * sizeof(decltype(types)::value_type)
       + sizes.size() * sizeof(decltype(sizes)::value_type);
-    resize(types);
-    resize(sizes);
   };
 
   uint64_t event_id = 0;
