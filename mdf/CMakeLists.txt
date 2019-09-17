@@ -58,6 +58,7 @@ function(test_program)
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
+test_program(NAME mdf_to_mep)
 test_program(NAME dump_banks)
 
 if (BUILD_TESTS)
