@@ -327,6 +327,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 endif()
 
 find_package(ZLIB REQUIRED)
+find_package(MPI REQUIRED)
 
 option(USE_LZMA "build with lzma" OFF)
 if(USE_LZMA)
@@ -463,6 +464,7 @@ include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
 include_directories(integration/non_event_data/include)
 include_directories(${ZMQ_INCLUDE_DIRS})
+include_directories(${MPI_C_INCLUDE_PATH})
 
 # Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")
@@ -501,7 +503,8 @@ target_link_libraries(AllenLib PUBLIC
   CheckClustering
   SelChecking
   NonEventData
-  AllenZMQ)
+  AllenZMQ
+  ${MPI_C_LIBRARIES})
 
 if (ROOT_FOUND)
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
@@ -510,7 +513,7 @@ if (ROOT_FOUND)
 endif()
 
 allen_add_executable(Allen ${main_cpp_path})
-target_link_libraries(Allen PRIVATE AllenLib)
+target_link_libraries(Allen PRIVATE AllenLib PUBLIC ${MPI_C_LIBRARIES})
 
 if(TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
   add_subdirectory(tests)
