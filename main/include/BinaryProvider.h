@@ -122,8 +122,14 @@ public:
       for (size_t i = 0; i < n_slices; ++i) {
         char* events_mem = nullptr;
         uint* offsets_mem = nullptr;
+
+#ifndef NO_CUDA
         cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
         cudaCheck(cudaMallocHost((void**) &offsets_mem, (events_per_slice + 1) * sizeof(uint)));
+#else
+        events_mem = static_cast<char*>(malloc(n_bytes));
+        offsets_mem = static_cast<uint*>(malloc((events_per_slice + 1) * sizeof(uint)));
+#endif
 
         offsets_mem[0] = 0;
         slices.emplace_back(gsl::span<char>{events_mem, n_bytes},
