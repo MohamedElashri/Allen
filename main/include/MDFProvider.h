@@ -658,7 +658,7 @@ private:
   std::vector<std::thread> m_transpose_threads;
 
   // Array to store the number of banks per bank type
-  mutable std::array<unsigned int, NBankTypes> m_banks_count;
+  mutable std::array<unsigned int, LHCb::NBankTypes> m_banks_count;
   mutable bool m_sizes_known = false;
 
   // Run and event numbers present in each slice
