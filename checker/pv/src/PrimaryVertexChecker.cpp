@@ -373,7 +373,7 @@ void printRat(std::string mes, int a, int b)
   pmes += " : ";
 
   std::printf(
-        "%s %.2f (%6lu/%6lu)\n",
+        "%s %.3f (%6lu/%6lu)\n",
         pmes.c_str(),
         rat,
         a,
