@@ -15,10 +15,25 @@
 #include <raw_bank.hpp>
 #include <read_mdf.hpp>
 #include <eb_header.hpp>
+#include <Transpose.h>
 #include <Common.h>
 #include <BankTypes.h>
 
 using namespace std;
+
+void serialize_block_header(EB::BlockHeader const& header, gsl::span<char> buffer) {
+    auto* p = buffer.begin();
+    auto fill = [&p](auto* src, size_t s) {
+      ::memcpy(p, src, s);
+      p += s;
+    };
+
+    fill(&header.n_frag, sizeof(header.n_frag));
+    fill(&header.reserved, sizeof(header.reserved));
+    fill(&header.block_size, sizeof(header.block_size));
+    fill(header.types.data(), header.types.size() * sizeof(decltype(header.types)::value_type));
+    fill(header.sizes.data(), header.sizes.size() * sizeof(decltype(header.sizes)::value_type));
+  }
 
 int main(int argc, char* argv[]) {
 
@@ -33,7 +48,7 @@ int main(int argc, char* argv[]) {
     input_files[i] = argv[i + 2];
   }
 
-  int32_t packing_factor = 1000;
+  uint16_t packing_factor = 1000;
   size_t n_meps = 0;
   vector<char> buffer(1024 * 1024, '\0');
   vector<char> decompression_buffer(1024 * 1024, '\0');
@@ -79,13 +94,13 @@ int main(int argc, char* argv[]) {
                       + std::accumulate(mfps.begin(), mfps.end(), 0,
                                         [] (size_t s, const auto& entry) {
                                           auto& [eb_header, block_header, n_filled, data] = entry;
-                                          return s + block_header.headerSize() + block_header.block_size;
+                                          return s + block_header.header_size() + block_header.block_size;
                                         }));
       write(header, header_size);
       for (auto& [eb_header, block_header, n_filled, data] : mfps) {
         write(&eb_header, sizeof(eb_header));
         block_buffer.reserve(block_header.header_size());
-        block_header.serialize(block_buffer);
+        serialize_block_header(block_header, block_buffer);
         write(block_buffer.data(), block_header.header_size());
         write(data.data(), block_header.block_size);
 
@@ -124,8 +139,8 @@ int main(int argc, char* argv[]) {
           offset += count;
         }
         mfps.resize(n_fragments);
-        for (auto& [_, block_header, fragments] : mfps) {
-          header = BlockHeader{0ul, packing_factor};
+        for (auto& [_, header, n_filled, frags] : mfps) {
+          header = EB::BlockHeader{0ul, packing_factor};
           frags.reserve(packing_factor * average_event_size);
         }
 
@@ -146,12 +161,12 @@ int main(int argc, char* argv[]) {
           auto& [eb_header, block_header, n_filled, data] = mfps[fragment_index];
 
           if (n_filled == 0) {
-            eb_header.source_id = b->souceID();
+            eb_header.source_id = b->sourceID();
             eb_header.version = b->version();
-            block_header = BlockHeader(event_id, packing_factor);
+            block_header = EB::BlockHeader(event_id, packing_factor);
           }
 
-          block_header.block_size
+          block_header.block_size;
           block_header.types[n_filled] = b->type();
           block_header.sizes[n_filled] = b->size();
           // safety measure, shouldn't be called
@@ -162,23 +177,22 @@ int main(int argc, char* argv[]) {
           ::memcpy(&data[0] + block_header.block_size, b->data(), b->size());
           block_header.block_size += b->size();
           ++n_filled;
+        } else {
+          cout << "unknown bank type: " << b->type() << endl;
         }
 
         // Move to next raw bank
         bank += b->totalSize();
-      } else {
-        cout << "unknown bank type: " << b->type() << endl;
       }
-
       write_fragments();
     }
 
-    input.close();
+    ::close(input);
   }
 
-  if(success) {
+  if(!error) {
     write_fragments();
   }
-  return success ? 0 : -1;
+  return error ? -1 : 0;
 
 }
