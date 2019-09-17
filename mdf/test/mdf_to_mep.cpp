@@ -48,11 +48,10 @@ int main(int argc, char* argv[]) {
     input_files[i] = argv[i + 2];
   }
 
-  uint16_t packing_factor = 1000;
-  size_t n_meps = 0;
+  uint16_t packing_factor = 5;
+  size_t n_events = 50;
   vector<char> buffer(1024 * 1024, '\0');
   vector<char> decompression_buffer(1024 * 1024, '\0');
-  size_t offset = 0;
 
   LHCb::MDFHeader mdf_header;
   bool error = false;
@@ -61,67 +60,70 @@ int main(int argc, char* argv[]) {
 
   bool sizes_known = false;
   bool count_success = false;
-  std::array<unsigned int, NBankTypes> banks_count;
+  std::array<unsigned int, LHCb::NBankTypes> banks_count;
 
   size_t n_read = 0;
   uint64_t event_id = 0;
-  LHCb::RawBank::BankType prev_type = LHCb::RawBank::L0Calo;
 
-  constexpr size_t n_bank_types = to_integral<LHCb::RawBank::BankType>(LHCb::RawBank::LastType);
   std::vector<std::tuple<EB::Header, EB::BlockHeader, size_t, vector<char>>> mfps;
 
   // offsets to fragments of the detector types
-  std::array<size_t, n_bank_types> fragment_offsets{0};
+  std::array<size_t, LHCb::NBankTypes> fragment_offsets{0};
 
   // Header version 3
-  auto header_size = LHCb::MDFHeader::sizeOf(3);
-  std::vector<char> header_buffer(header_size, '\0');
+  auto hdr_size = LHCb::MDFHeader::sizeOf(3);
+  std::vector<char> header_buffer(hdr_size, '\0');
   auto* header = reinterpret_cast<LHCb::MDFHeader*>(header_buffer.data());
   header->setHeaderVersion(3);
   header->setDataType(LHCb::MDFHeader::BODY_TYPE_MEP);
 
   std::vector<char> block_buffer;
 
-  auto output = ::open(output_file.c_str(), O_CREAT | O_RDWR);
+  auto output = ::open(output_file.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+  if (output == -1) {
+    cout << "Error opening: " << output_file.c_str() << " " << strerror(errno) << "\n";
+    return -1;
+  }
   auto write = [&output] (void const*  data, size_t s) {
-    return ::write(output, data, s);
+    auto n_bytes = ::write(output, data, s);
+    if (n_bytes == -1) {
+      cout << "Error writing: " << strerror(errno) << "\n";
+    }
   };
 
-  auto write_fragments = [&n_read, &write, &block_buffer, &mfps, header_size, packing_factor, header] {
-    if (n_read % packing_factor == 0 && n_read != 0) {
-      header->setSize(header_size
-                      + sizeof(EB::Header) * packing_factor
-                      + std::accumulate(mfps.begin(), mfps.end(), 0,
-                                        [] (size_t s, const auto& entry) {
-                                          auto& [eb_header, block_header, n_filled, data] = entry;
-                                          return s + block_header.header_size() + block_header.block_size;
-                                        }));
-      write(header, header_size);
-      for (auto& [eb_header, block_header, n_filled, data] : mfps) {
-        write(&eb_header, sizeof(eb_header));
-        block_buffer.reserve(block_header.header_size());
-        serialize_block_header(block_header, block_buffer);
-        write(block_buffer.data(), block_header.header_size());
-        write(data.data(), block_header.block_size);
+  auto write_fragments = [&write, &block_buffer, &mfps, hdr_size, packing_factor, header] {
+    header->setSize(hdr_size
+                    + sizeof(EB::Header) * packing_factor
+                    + std::accumulate(mfps.begin(), mfps.end(), 0,
+                                      [] (size_t s, const auto& entry) {
+                                        auto& [eb_header, block_header, n_filled, data] = entry;
+                                        return s + block_header.header_size() + block_header.block_size;
+                                      }));
+    write(header, hdr_size);
+    for (auto& [eb_header, block_header, n_filled, data] : mfps) {
+      write(&eb_header, sizeof(eb_header));
+      block_buffer.reserve(block_header.header_size());
+      serialize_block_header(block_header, block_buffer);
+      write(block_buffer.data(), block_header.header_size());
+      write(data.data(), block_header.block_size);
 
-        // Reset the fragments
-        block_header.block_size = 0;
-        n_filled = 0;
-      }
+      // Reset the fragments
+      block_header.block_size = 0;
+      n_filled = 0;
     }
   };
 
   for (auto const& file : input_files) {
     auto input = ::open(file.c_str(), O_RDONLY);
     if (input != -1) {
+      cout << "Opened " << file << "\n";
+    }
+    else {
       cerr << "Failed to open " << file << " " << strerror(errno) << "\n";
       error = true;
       break;
     }
-    else {
-      cout << "Opened " << file << "\n";
-    }
-    while (!eof) {
+    while (!eof && n_read < n_events) {
       std::tie(eof, error, bank_span) = MDF::read_event(input, mdf_header, buffer, decompression_buffer, false);
       if (eof || error) {
         return -1;
@@ -130,25 +132,34 @@ int main(int argc, char* argv[]) {
       }
 
       if (!sizes_known) {
-        // Count the number of banks of each type
+        // Count the number of banks of each type and the start of the
+        // source ID range
         std::tie(count_success, banks_count) = fill_counts(bank_span);
         auto n_fragments = std::accumulate(banks_count.begin(), banks_count.end(), 0);
         size_t offset = 0, i = 0;
-        for (auto count : banks_count) {
-          fragment_offsets[i++] = offset;
-          offset += count;
+        for (i = 0; i < banks_count.size(); ++i) {
+          fragment_offsets[i] = offset;
+          offset += banks_count[i];
         }
+        cout << "n_fragments: " << n_fragments << "\n";
         mfps.resize(n_fragments);
-        for (auto& [_, header, n_filled, frags] : mfps) {
-          header = EB::BlockHeader{0ul, packing_factor};
-          frags.reserve(packing_factor * average_event_size);
+        for (auto& fragment : mfps) {
+          std::get<3>(fragment).resize(packing_factor * average_event_size * kB);
         }
 
+        i = 0;
+        for (auto offset : fragment_offsets) {
+          cout << "type: " << std::setw(2) << i++ << " offset: "
+               << std::setw(4) << offset << "\n";
+        }
+        sizes_known = true;
       }
 
       // Put the banks in the event-local buffers
       char const* bank = bank_span.begin();
       char const* end = bank_span.end();
+      size_t source_offset = 0;
+      auto prev_type = LHCb::RawBank::L0Calo;
       while (bank < end) {
         const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
         if (b->magic() != LHCb::RawBank::MagicPattern) {
@@ -157,16 +168,26 @@ int main(int argc, char* argv[]) {
         }
 
         if (b->type() < LHCb::RawBank::LastType) {
-          auto fragment_index = fragment_offsets[b->type()] + b->sourceID();
+          if (b->type() != prev_type) {
+            source_offset = 0;
+            prev_type = b->type();
+          } else {
+            ++source_offset;
+          }
+          auto fragment_index = fragment_offsets[b->type()] + source_offset;
+          cout << "writing: " << b->type() << " " << b->sourceID() << " " << fragment_index << endl;
           auto& [eb_header, block_header, n_filled, data] = mfps[fragment_index];
 
           if (n_filled == 0) {
             eb_header.source_id = b->sourceID();
             eb_header.version = b->version();
-            block_header = EB::BlockHeader(event_id, packing_factor);
+            block_header.init(event_id, packing_factor);
+          } else if (eb_header.source_id != b->sourceID()) {
+            cout << "Error: banks not ordered in the same way: "
+                 << eb_header.source_id << " " << b->sourceID() << "\n";
+            return -1;
           }
 
-          block_header.block_size;
           block_header.types[n_filled] = b->type();
           block_header.sizes[n_filled] = b->size();
           // safety measure, shouldn't be called
@@ -176,23 +197,33 @@ int main(int argc, char* argv[]) {
           }
           ::memcpy(&data[0] + block_header.block_size, b->data(), b->size());
           block_header.block_size += b->size();
+
           ++n_filled;
         } else {
           cout << "unknown bank type: " << b->type() << endl;
         }
 
+
         // Move to next raw bank
         bank += b->totalSize();
       }
-      write_fragments();
+
+      if (n_read % packing_factor == 0 && n_read != 0) {
+        write_fragments();
+        event_id += packing_factor;
+      }
     }
 
     ::close(input);
+    if (n_read >= n_events) break;
   }
 
-  if(!error) {
+  if(!error && ((n_read % packing_factor) != 0)) {
     write_fragments();
   }
+
+  ::close(output);
+
   return error ? -1 : 0;
 
 }
