@@ -199,6 +199,10 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
       int mult = 0;
       if (cmc != rblemcpv.end()) {
         mult = cmc->nRecTracks;
+        double diff_x = itmcl->pMCPV->x - cmc->pMCPV->x;
+        double diff_y = itmcl->pMCPV->y - cmc->pMCPV->y;
+        double diff_z = itmcl->pMCPV->z - cmc->pMCPV->z;
+        dist = sqrt(diff_x*diff_x + diff_y*diff_y + diff_z*diff_z);
         itmcl->distToClosestMCPV = dist;
         itmcl->multClosestMCPV = mult;
       }
@@ -326,7 +330,7 @@ REC and MC vertices matched %s\n\n",
   printRat("Close", sum_nRecMCPV_close, sum_nMCPV_close);
   printRat("False rate", sum_nFalsePV, sum_nRecMCPV + sum_nFalsePV);
   printRat("Real false rate", sum_nFalsePV_real, sum_nRecMCPV + sum_nFalsePV_real);
-  printRat("Clones", 1.0f * sum_clones, sum_norm_clones - 1.f);
+  printRat("Clones", 1.0f * sum_clones - sum_norm_clones, sum_norm_clones );
   info_cout << std::endl;
 
   m_histos->write();
