@@ -144,28 +144,28 @@ int SelCheckerTuple::addGen(const MCParticle& mcp)
     if(m_gen_key.at(i) == key) return i;
   }
   int idx = m_gen_key.size();
-  m_gen_key.push_back(mcp.key);
-  m_gen_pid.push_back(mcp.pid);
-  m_gen_p.push_back(mcp.p);
-  m_gen_pt.push_back(mcp.pt);
-  m_gen_eta.push_back(mcp.eta);
-  m_gen_phi.push_back(mcp.phi);
-  m_gen_ovtx_x.push_back(mcp.ovtx_x);
-  m_gen_ovtx_y.push_back(mcp.ovtx_y);
-  m_gen_ovtx_z.push_back(mcp.ovtx_z);
-  m_gen_long.push_back(mcp.isLong);
-  m_gen_down.push_back(mcp.isDown);
-  m_gen_has_velo.push_back(mcp.hasVelo);
-  m_gen_has_ut.push_back(mcp.hasUT);
-  m_gen_has_scifi.push_back(mcp.hasSciFi);
-  m_gen_from_b.push_back(mcp.fromBeautyDecay);
-  m_gen_from_c.push_back(mcp.fromCharmDecay);
-  m_gen_from_s.push_back(mcp.fromStrangeDecay);
-  m_gen_mom_key.push_back(mcp.motherKey);
-  m_gen_decmom_key.push_back(mcp.DecayOriginMother_key);
-  m_gen_decmom_pid.push_back(mcp.DecayOriginMother_pid);
-  m_gen_decmom_tau.push_back(mcp.DecayOriginMother_tau);
-  m_gen_decmom_pt.push_back(mcp.DecayOriginMother_pt);
+  m_gen_key.push_back((double)mcp.key);
+  m_gen_pid.push_back((double)mcp.pid);
+  m_gen_p.push_back((double)mcp.p);
+  m_gen_pt.push_back((double)mcp.pt);
+  m_gen_eta.push_back((double)mcp.eta);
+  m_gen_phi.push_back((double)mcp.phi);
+  m_gen_ovtx_x.push_back((double)mcp.ovtx_x);
+  m_gen_ovtx_y.push_back((double)mcp.ovtx_y);
+  m_gen_ovtx_z.push_back((double)mcp.ovtx_z);
+  m_gen_long.push_back(mcp.isLong ? 1. : 0.);
+  m_gen_down.push_back(mcp.isDown ? 1. : 0.);
+  m_gen_has_velo.push_back(mcp.hasVelo ? 1. : 0.);
+  m_gen_has_ut.push_back(mcp.hasUT ? 1. : 0.);
+  m_gen_has_scifi.push_back(mcp.hasSciFi ? 1. : 0.);
+  m_gen_from_b.push_back(mcp.fromBeautyDecay ? 1. : 0.);
+  m_gen_from_c.push_back(mcp.fromCharmDecay ? 1. : 0.);
+  m_gen_from_s.push_back(mcp.fromStrangeDecay ? 1. : 0.);
+  m_gen_mom_key.push_back((double)mcp.motherKey);
+  m_gen_decmom_key.push_back((double)mcp.DecayOriginMother_key);
+  m_gen_decmom_pid.push_back((double)mcp.DecayOriginMother_pid);
+  m_gen_decmom_tau.push_back((double)mcp.DecayOriginMother_tau);
+  m_gen_decmom_pt.push_back((double)mcp.DecayOriginMother_pt);
   return idx;
 }
 
@@ -179,28 +179,28 @@ int SelCheckerTuple::addSV(const VertexFit::TrackMVAVertex& sv, const int idx1, 
     }
   }
   int idx = m_sv_px.size();
-  m_sv_px.push_back(sv.px);
-  m_sv_py.push_back(sv.py);
-  m_sv_pz.push_back(sv.pz);
-  m_sv_x.push_back(sv.x);
-  m_sv_y.push_back(sv.y);
-  m_sv_z.push_back(sv.z);
-  m_sv_cov00.push_back(sv.cov00);
-  m_sv_cov10.push_back(sv.cov10);
-  m_sv_cov11.push_back(sv.cov11);
-  m_sv_cov20.push_back(sv.cov20);
-  m_sv_cov21.push_back(sv.cov21);
-  m_sv_cov22.push_back(sv.cov22);
-  m_sv_sumpt.push_back(sv.sumpt);
-  m_sv_fdchi2.push_back(sv.fdchi2);
-  m_sv_mdimu.push_back(sv.mdimu);
-  m_sv_mcor.push_back(sv.mcor);
-  m_sv_eta.push_back(sv.eta);
-  m_sv_minipchi2.push_back(sv.minipchi2);
-  m_sv_minpt.push_back(sv.minpt);
-  m_sv_ntrksassoc.push_back(sv.ntrksassoc);
-  m_sv_idx_trk1.push_back(idx1);
-  m_sv_idx_trk2.push_back(idx2);
+  m_sv_px.push_back((double)sv.px);
+  m_sv_py.push_back((double)sv.py);
+  m_sv_pz.push_back((double)sv.pz);
+  m_sv_x.push_back((double)sv.x);
+  m_sv_y.push_back((double)sv.y);
+  m_sv_z.push_back((double)sv.z);
+  m_sv_cov00.push_back((double)sv.cov00);
+  m_sv_cov10.push_back((double)sv.cov10);
+  m_sv_cov11.push_back((double)sv.cov11);
+  m_sv_cov20.push_back((double)sv.cov20);
+  m_sv_cov21.push_back((double)sv.cov21);
+  m_sv_cov22.push_back((double)sv.cov22);
+  m_sv_sumpt.push_back((double)sv.sumpt);
+  m_sv_fdchi2.push_back((double)sv.fdchi2);
+  m_sv_mdimu.push_back((double)sv.mdimu);
+  m_sv_mcor.push_back((double)sv.mcor);
+  m_sv_eta.push_back((double)sv.eta);
+  m_sv_minipchi2.push_back((double)sv.minipchi2);
+  m_sv_minpt.push_back((double)sv.minpt);
+  m_sv_ntrksassoc.push_back((double)sv.ntrksassoc);
+  m_sv_idx_trk1.push_back((double)idx1);
+  m_sv_idx_trk2.push_back((double)idx2);
   return idx;
 }
 
@@ -216,27 +216,27 @@ int SelCheckerTuple::addTrack(
     }
   }
   int idx = m_trk_p.size();
-  m_trk_p.push_back(track.p);
-  m_trk_pt.push_back(track.pt);
-  m_trk_eta.push_back(track.eta);
-  m_trk_chi2.push_back(track.chi2);
-  m_trk_ndof.push_back(track.ndof);
+  m_trk_p.push_back((double)track.p);
+  m_trk_pt.push_back((double)track.pt);
+  m_trk_eta.push_back((double)track.eta);
+  m_trk_chi2.push_back((double)track.chi2);
+  m_trk_ndof.push_back((double)track.ndof);
   m_trk_is_muon.push_back(track.is_muon ? 1. : 0.);
-  m_trk_kalman_ip.push_back(track.kalman_ip);
-  m_trk_kalman_ipchi2.push_back(track.kalman_ip_chi2);
-  m_trk_velo_ip.push_back(track.velo_ip);
-  m_trk_velo_ipchi2.push_back(track.velo_ip_chi2);
+  m_trk_kalman_ip.push_back((double)track.kalman_ip);
+  m_trk_kalman_ipchi2.push_back((double)track.kalman_ip_chi2);
+  m_trk_velo_ip.push_back((double)track.velo_ip);
+  m_trk_velo_ipchi2.push_back((double)track.velo_ip_chi2);
   const auto& ids = track.ids();
   const auto assoc = mcassoc(ids.begin(), ids.end(), track.n_matched_total);
   if (!assoc)
-    m_trk_idx_gen.push_back(-1.);
+    m_trk_idx_gen.push_back((double)-1.);
   else {
     const auto weight = std::get<1>(assoc.front());
     if (weight < 0.7)
-      m_trk_idx_gen.push_back(-1.);
+      m_trk_idx_gen.push_back((double)-1.);
     else {
       const auto mcp = std::get<0>(assoc.front());
-      m_trk_idx_gen.push_back(addGen(mcp));
+      m_trk_idx_gen.push_back((double)addGen(mcp));
     }
   }
   return idx;
