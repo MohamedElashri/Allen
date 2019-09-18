@@ -34,6 +34,7 @@
 #include "InputReader.h"
 #include "MDFProvider.h"
 #include "BinaryProvider.h"
+#include "MPIProvider.h"
 #include "Timer.h"
 #include "StreamWrapper.cuh"
 #include "Constants.cuh"
@@ -301,17 +302,21 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
 
   std::string folder_name_imported_forward_tracks = "";
-  uint number_of_slices = 0;
-  long number_of_events_requested = 0;
+  uint number_of_slices;
+  long number_of_events_requested;
   std::optional<uint> events_per_slice;
   uint start_event_offset = 0;
-  uint number_of_threads = 1;
-  uint number_of_repetitions = 1;
-  uint verbosity = 3;
-  bool print_memory_usage = false;
+  uint number_of_threads;
+  uint number_of_repetitions;
+  uint verbosity;
+  bool print_memory_usage;
+  bool non_stop;
   // By default, do_check will be true when mc_check is enabled
-  bool do_check = true;
-  size_t reserve_mb = 1024;
+  bool do_check;
+  size_t reserve_mb;
+  // MPI options
+  bool with_mpi;
+  size_t mpi_window_size;
 
   string mdf_input;
   int device_id = 0;
@@ -380,6 +385,15 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"device"})) {
       device_id = atoi(arg.c_str());
+    }
+    else if (flag_in({"with-mpi"})) {
+      with_mpi = atoi(arg.c_str());
+    }
+    else if (flag_in({"mpi-window-size"})) {
+      mpi_window_size = atoi(arg.c_str());
+    }
+    else if (flag_in({"non-stop"})) {
+      non_stop = atoi(arg.c_str());
     }
   }
 
@@ -462,7 +476,25 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   }
 
   // Create the InputProvider, either MDF or Binary
-  if (!mdf_input.empty()) {
+  if (with_mpi && !mdf_input.empty()) {
+    vector<string> connections;
+    size_t current = mdf_input.find(","), previous = 0;
+    while (current != string::npos) {
+      connections.emplace_back(mdf_input.substr(previous, current - previous));
+      previous = current + 1;
+      current = mdf_input.find(",", previous);
+    }
+    connections.emplace_back(mdf_input.substr(previous, current - previous));
+    MPIProviderConfig config {false,             // verify MPI checksums
+                              10,                // number of read buffers
+                              4,                 // number of transpose threads
+                              10001,             // maximum number event of offsets in read buffer
+                              *events_per_slice, // number of events per read buffer
+                              n_io_reps};        // number of loops over the input files
+    input_provider = std::make_unique<MPIProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+      number_of_slices, *events_per_slice, n_events, std::move(connections), config);
+  }
+  else if (!mdf_input.empty()) {
     vector<string> connections;
     size_t current = mdf_input.find(","), previous = 0;
     while (current != string::npos) {

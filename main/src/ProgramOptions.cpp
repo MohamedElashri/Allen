@@ -47,8 +47,9 @@ std::vector<ProgramOption> allen_program_options()
           {{"i", "import-tracks"}, "import forward tracks dumped from Brunel"},
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
           {{"device"}, "select device to use", "0"},
-          {{"window-size"}, "size of MPI sliding window", "4"},
-          {{"non-stop", "run-run-and-run"}, "Runs the program indefinitely", "0"}
+          {{"non-stop"}, "Runs the program indefinitely", "0"},
+          {{"with-mpi"}, "Read events with MPI", "1"},
+          {{"mpi-window-size"}, "Size of MPI sliding window", "4"}
         };
 }
 
