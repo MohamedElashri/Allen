@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 # Determine whether to produce a CPU version
 option(CPU "Produce a CPU version" OFF)
 option(HIP "Produce a HIP version" OFF)
-if(CPU)
+if(DEFINED ENV{LHCBRELEASES})
+  message(STATUS "Forcing CPU target for Gaudi build.")
+  set(TARGET_DEVICE "CPU")
+elseif(CPU)
   set(TARGET_DEVICE "CPU")
 elseif(HIP)
   # Note: HIP with nvcc backend is not supported
@@ -39,15 +42,12 @@ macro(allen_project)
   # Gaudi build
   if (DEFINED ENV{LHCBRELEASES})
 	find_package(GaudiProject REQUIRED)
-    # Fake extra package to get CUDA library dir included in the
-    # environment
-    find_package(CUDAPaths REQUIRED)
     # Declare project name and version
     gaudi_project(Allen v0r7
       USE Rec HEAD Online HEAD)
 
     # Use the lowest-common-denominator cpu arch
-    set(CPU_ARCH core2)
+    set(CPU_ARCH "x86-64 -msse4.2")
 
     # Always enable tests for gaudi builds
     set(BUILD_TESTS ON)

@@ -11,8 +11,6 @@
 
 #include "raw_bank.hpp"
 #include "read_mdf.hpp"
-#include "CudaCommon.h"
-#include "Tools.h"
 
 namespace {
   using std::cerr;
@@ -89,13 +87,7 @@ int main(int argc, char* argv[])
   }
 
   for (const auto& entry : buffers) {
-    if (entry.first == BankTypes::VP) {
-      cout << entry.second.first.size() << " " << entry.second.second.back() << endl;
-      check_velopix_events(entry.second.first, entry.second.second, n_read);
-    }
-    else {
-      cout << entry.second.first.size() << " " << entry.second.second.back() << endl;
-    }
+    cout << entry.second.first.size() << " " << entry.second.second.back() << endl;
 
     const auto& buf = entry.second.first;
     const auto& offsets = entry.second.second;
