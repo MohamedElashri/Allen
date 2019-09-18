@@ -96,16 +96,15 @@ int main(int argc, char* argv[]) {
   header->setDataType(LHCb::MDFHeader::BODY_TYPE_MEP);
   header->setSubheaderLength(hdr_size - sizeof(LHCb::MDFHeader));
 
-  std::vector<char> block_buffer;
-
   FileWriter writer{output_file};
 
-  auto write_fragments = [&writer, &block_buffer, &mfps, hdr_size, packing_factor, header] {
+  auto write_fragments = [&writer, &mfps, hdr_size, packing_factor, header] {
     header->setSize(sizeof(EB::Header) * mfps.size()
                     + std::accumulate(mfps.begin(), mfps.end(), 0,
-                                      [] (size_t s, const auto& entry) {
+                                      [packing_factor] (size_t s, const auto& entry) {
                                         auto& [eb_header, block_header, n_filled, data] = entry;
-                                        return s + block_header.header_size() + block_header.block_size;
+                                        return s + block_header.header_size(packing_factor)
+                                          + block_header.block_size;
                                       }));
     writer.write(gsl::span{reinterpret_cast<char const*>(header), hdr_size});
     for (auto& [eb_header, block_header, n_filled, data] : mfps) {
@@ -195,6 +194,7 @@ int main(int argc, char* argv[]) {
             eb_header.source_id = b->sourceID();
             eb_header.version = b->version();
             block_header = EB::BlockHeader{event_id, packing_factor};
+            cout << "header size " << block_header.header_size(packing_factor) << "\n";
           } else if (eb_header.source_id != b->sourceID()) {
             cout << "Error: banks not ordered in the same way: "
                  << eb_header.source_id << " " << b->sourceID() << "\n";

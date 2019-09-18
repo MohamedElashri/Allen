@@ -56,6 +56,7 @@ int main(int argc, char* argv[])
     ssize_t n_bytes = ::read(input, header_buffer, sizeof(LHCb::MDFHeader));
     if (n_bytes <= 0) {
       cerr << "Failed to read header " << strerror(errno) << "\n";
+      break;
     }
     uint header_version = mdf_header->headerVersion();
     auto hdr_size = LHCb::MDFHeader::sizeOf(header_version);
@@ -64,6 +65,7 @@ int main(int argc, char* argv[])
     n_bytes = ::read(input, header_buffer + sizeof(LHCb::MDFHeader), mdf_header->subheaderLength());
     if (n_bytes <= 0) {
       cerr << "Failed to read subheader " << strerror(errno) << "\n";
+      break;
     }
 
     auto data_size = mdf_header->size();
@@ -71,6 +73,7 @@ int main(int argc, char* argv[])
     n_bytes = ::read(input, &data[0], data_size);
     if (n_bytes <= 0) {
       cerr << "Failed to read data of size " << mdf_header->size() << " " << strerror(errno) << "\n";
+      break;
     }
 
     gsl::span<char const> data_span{data.data(), data_size};
@@ -79,7 +82,7 @@ int main(int argc, char* argv[])
     while(d != data_span.end()) {
       auto eb_header = reinterpret_cast<EB::Header const*>(d);
       EB::BlockHeader const block_header{d + sizeof(EB::Header)};
-      char const* fragment_data = d + sizeof(EB::Header) + block_header.header_size();
+      char const* fragment_data = d + sizeof(EB::Header) + block_header.header_size(block_header.n_frag);
       char const* fragment_end = fragment_data + block_header.block_size;
 
       cout << "fragment source_id " << std::setw(4) << eb_header->source_id
