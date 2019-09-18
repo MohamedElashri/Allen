@@ -65,6 +65,7 @@ if (BUILD_TESTS)
   include(Catch)
 
   test_program(NAME test_read)
+  test_program(NAME read_mep)
   test_program(NAME bench_read)
   test_program(NAME bench_provider)
   test_program(NAME bench_transpose)
