@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <numeric>
 #include <map>
+#include <cassert>
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -21,19 +22,36 @@
 
 using namespace std;
 
-void serialize_block_header(EB::BlockHeader const& header, gsl::span<char> buffer) {
-    auto* p = buffer.begin();
-    auto fill = [&p](auto* src, size_t s) {
-      ::memcpy(p, src, s);
-      p += s;
-    };
+namespace detail {
 
-    fill(&header.n_frag, sizeof(header.n_frag));
-    fill(&header.reserved, sizeof(header.reserved));
-    fill(&header.block_size, sizeof(header.block_size));
-    fill(header.types.data(), header.types.size() * sizeof(decltype(header.types)::value_type));
-    fill(header.sizes.data(), header.sizes.size() * sizeof(decltype(header.sizes)::value_type));
+  template <typename T>
+  std::ostream& write( std::ostream& os, const T& t ) {
+    // if you would like to know why there is a check for trivially copyable,
+    // please read the 'notes' section of https://en.cppreference.com/w/cpp/types/is_trivially_copyable
+    if constexpr ( gsl::details::is_span<T>::value ) {
+      return os.write( reinterpret_cast<const char*>( t.data() ), t.size_bytes() );
+    } else if constexpr ( std::is_trivially_copyable_v<T> && !gsl::details::is_span<T>::value ) {
+      return os.write( reinterpret_cast<const char*>( &t ), sizeof( T ) );
+    } else {
+      static_assert( std::is_trivially_copyable_v<typename T::value_type> );
+      return write( os, as_bytes( gsl::make_span( t ) ) );
+    }
   }
+
+} // namespace detail
+
+class FileWriter {
+  std::ofstream m_f;
+
+public:
+  FileWriter( const std::string& name ) : m_f{name, std::ios::out | std::ios::binary} {}
+
+  template <typename... Args>
+  FileWriter& write( Args&&... args ) {
+    ( detail::write( m_f, std::forward<Args>( args ) ), ... );
+    return *this;
+  }
+};
 
 int main(int argc, char* argv[]) {
 
@@ -76,36 +94,26 @@ int main(int argc, char* argv[]) {
   auto* header = reinterpret_cast<LHCb::MDFHeader*>(header_buffer.data());
   header->setHeaderVersion(3);
   header->setDataType(LHCb::MDFHeader::BODY_TYPE_MEP);
+  header->setSubheaderLength(hdr_size - sizeof(LHCb::MDFHeader));
 
   std::vector<char> block_buffer;
 
-  auto output = ::open(output_file.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-  if (output == -1) {
-    cout << "Error opening: " << output_file.c_str() << " " << strerror(errno) << "\n";
-    return -1;
-  }
-  auto write = [&output] (void const*  data, size_t s) {
-    auto n_bytes = ::write(output, data, s);
-    if (n_bytes == -1) {
-      cout << "Error writing: " << strerror(errno) << "\n";
-    }
-  };
+  FileWriter writer{output_file};
 
-  auto write_fragments = [&write, &block_buffer, &mfps, hdr_size, packing_factor, header] {
-    header->setSize(hdr_size
-                    + sizeof(EB::Header) * packing_factor
+  auto write_fragments = [&writer, &block_buffer, &mfps, hdr_size, packing_factor, header] {
+    header->setSize(sizeof(EB::Header) * mfps.size()
                     + std::accumulate(mfps.begin(), mfps.end(), 0,
                                       [] (size_t s, const auto& entry) {
                                         auto& [eb_header, block_header, n_filled, data] = entry;
                                         return s + block_header.header_size() + block_header.block_size;
                                       }));
-    write(header, hdr_size);
+    writer.write(gsl::span{reinterpret_cast<char const*>(header), hdr_size});
     for (auto& [eb_header, block_header, n_filled, data] : mfps) {
-      write(&eb_header, sizeof(eb_header));
-      block_buffer.reserve(block_header.header_size());
-      serialize_block_header(block_header, block_buffer);
-      write(block_buffer.data(), block_header.header_size());
-      write(data.data(), block_header.block_size);
+      assert(std::accumulate(block_header.sizes.begin(), block_header.sizes.end(), 0) == block_header.block_size);
+      writer.write(eb_header);
+      writer.write(block_header.event_id, block_header.n_frag, block_header.reserved, block_header.block_size,
+                   block_header.types, block_header.sizes);
+      writer.write(gsl::span{data.data(), block_header.block_size});
 
       // Reset the fragments
       block_header.block_size = 0;
@@ -126,6 +134,7 @@ int main(int argc, char* argv[]) {
     while (!eof && n_read < n_events) {
       std::tie(eof, error, bank_span) = MDF::read_event(input, mdf_header, buffer, decompression_buffer, false);
       if (eof || error) {
+        cerr << "Failed to read event\n";
         return -1;
       } else {
         ++n_read;
@@ -135,11 +144,15 @@ int main(int argc, char* argv[]) {
         // Count the number of banks of each type and the start of the
         // source ID range
         std::tie(count_success, banks_count) = fill_counts(bank_span);
-        auto n_fragments = std::accumulate(banks_count.begin(), banks_count.end(), 0);
+        // Skip DAQ bank
+        auto n_fragments = std::accumulate(banks_count.begin(), banks_count.end(), 0)
+          - banks_count[LHCb::RawBank::DAQ];
         size_t offset = 0, i = 0;
         for (i = 0; i < banks_count.size(); ++i) {
-          fragment_offsets[i] = offset;
-          offset += banks_count[i];
+          if (i != to_integral(LHCb::RawBank::DAQ)) {
+            fragment_offsets[i] = offset;
+            offset += banks_count[i];
+          }
         }
         cout << "n_fragments: " << n_fragments << "\n";
         mfps.resize(n_fragments);
@@ -167,7 +180,8 @@ int main(int argc, char* argv[]) {
           return -1;
         }
 
-        if (b->type() < LHCb::RawBank::LastType) {
+        // Skip the DAQ bank, it's created on read from the MDF header
+        if (b->type() < LHCb::RawBank::LastType && b->type() != LHCb::RawBank::DAQ) {
           if (b->type() != prev_type) {
             source_offset = 0;
             prev_type = b->type();
@@ -175,13 +189,12 @@ int main(int argc, char* argv[]) {
             ++source_offset;
           }
           auto fragment_index = fragment_offsets[b->type()] + source_offset;
-          cout << "writing: " << b->type() << " " << b->sourceID() << " " << fragment_index << endl;
           auto& [eb_header, block_header, n_filled, data] = mfps[fragment_index];
 
           if (n_filled == 0) {
             eb_header.source_id = b->sourceID();
             eb_header.version = b->version();
-            block_header.init(event_id, packing_factor);
+            block_header = EB::BlockHeader{event_id, packing_factor};
           } else if (eb_header.source_id != b->sourceID()) {
             cout << "Error: banks not ordered in the same way: "
                  << eb_header.source_id << " " << b->sourceID() << "\n";
@@ -199,10 +212,9 @@ int main(int argc, char* argv[]) {
           block_header.block_size += b->size();
 
           ++n_filled;
-        } else {
+        } else if (b->type() != LHCb::RawBank::DAQ) {
           cout << "unknown bank type: " << b->type() << endl;
         }
-
 
         // Move to next raw bank
         bank += b->totalSize();
@@ -221,8 +233,6 @@ int main(int argc, char* argv[]) {
   if(!error && ((n_read % packing_factor) != 0)) {
     write_fragments();
   }
-
-  ::close(output);
 
   return error ? -1 : 0;
 
