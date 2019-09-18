@@ -156,13 +156,11 @@ int main(int argc, char* argv[])
       }
       connections.emplace_back(mdf_input.substr(previous, current - previous));
 
-      // Notify window size and create requests of appropiate size
-      MPI_Send(&window_size, 1, MPI_SIZE_T, MPI::receiver, MPI::message::window_size, MPI_COMM_WORLD);
+      // Create requests of appropiate size
       std::vector<MPI_Request> requests (window_size);
 
-      // Notify number of events
+      // Number of files to read
       const size_t number_of_files = connections.size();
-      MPI_Send(&number_of_files, 1, MPI_SIZE_T, MPI::receiver, MPI::message::number_of_events, MPI_COMM_WORLD);
 
       // Read all files in connections
       std::vector<char*> file_contents;

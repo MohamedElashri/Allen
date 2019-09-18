@@ -49,7 +49,8 @@ std::vector<ProgramOption> allen_program_options()
           {{"device"}, "select device to use", "0"},
           {{"non-stop"}, "Runs the program indefinitely", "0"},
           {{"with-mpi"}, "Read events with MPI", "1"},
-          {{"mpi-window-size"}, "Size of MPI sliding window", "4"}
+          {{"mpi-window-size"}, "Size of MPI sliding window", "4"},
+          {{"mpi-number-of-slices"}, "Number of MPI network slices", "6"}
         };
 }
 

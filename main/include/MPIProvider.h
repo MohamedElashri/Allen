@@ -90,49 +90,50 @@ struct MPIProviderConfig {
  */
 template <BankTypes... Banks>
 class MPIProvider final : public InputProvider<MPIProvider<Banks...>> {
+  // Window transmission size
+  size_t m_window_size;
+
+  // Number of receiving slices
+  size_t m_number_of_net_slices;
+
+  // Maximum size of files to read
+  size_t m_max_file_size;
+
 public:
   MPIProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
-              std::vector<std::string> connections, MPIProviderConfig config = MPIProviderConfig{}) :
+              std::vector<std::string> connections, size_t window_size, size_t number_of_net_slices,
+              MPIProviderConfig config = MPIProviderConfig{}) :
     InputProvider<MPIProvider<Banks...>>{n_slices, events_per_slice, n_events},
     m_buffer_writable(config.n_buffers, true),
     m_slice_free(n_slices, true),
     m_banks_count{0},
     m_event_ids{n_slices},
     m_connections {std::move(connections)},
+    m_window_size{window_size},
+    m_number_of_net_slices{number_of_net_slices},
     m_config{config}
   {
-    size_t window_size;
-    size_t number_of_events;
-    size_t max_file_size;
-
     // Receive configuration of application
-    MPI_Recv(&window_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::window_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Recv(&number_of_events, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_events, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Recv(&max_file_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::max_file_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&m_max_file_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::max_file_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    info_cout << MPI::rank_str() << "Maximum file size: " << m_max_file_size << " B\n";
 
-    info_cout << MPI::rank_str() << "Window size: " << window_size << "\n"
-      << MPI::rank_str() << "Number of events: " << number_of_events << "\n"
-      << MPI::rank_str() << "Maximum file size: " << max_file_size << "\n";
-
-    // Allocate necessary memory
-    // As a test, allocate just two slices
-    constexpr int number_of_net_slices = 8;
+    // Allocate as many net slices as configured, of maximum size
     std::vector<size_t> net_slice_size;
     std::vector<char*> net_slice_contents;
-    for (int i=0; i<number_of_net_slices; ++i) {
+    for (int i=0; i<m_number_of_net_slices; ++i) {
       char* contents;
-      MPI_Alloc_mem(max_file_size, MPI_INFO_NULL, &contents);
+      MPI_Alloc_mem(m_max_file_size, MPI_INFO_NULL, &contents);
       net_slice_contents.push_back(contents);
       net_slice_size.push_back(0);
     }
 
-    std::array<std::mutex, number_of_net_slices> net_mutexes;
-    std::array<std::condition_variable, number_of_net_slices> net_slice_produced_cv;
-    std::array<std::condition_variable, number_of_net_slices> net_slice_consumed_cv;
-    std::array<bool, number_of_net_slices> net_ready;
-    std::array<bool, number_of_net_slices> net_consumed;
+    std::vector<std::mutex> net_mutexes (m_number_of_net_slices);
+    std::vector<std::condition_variable> net_slice_produced_cv (m_number_of_net_slices);
+    std::vector<std::condition_variable> net_slice_consumed_cv (m_number_of_net_slices);
+    std::vector<bool> net_ready (m_number_of_net_slices);
+    std::vector<bool> net_consumed (m_number_of_net_slices);
 
-    for (int i=0; i<number_of_net_slices; ++i) {
+    for (int i=0; i<m_number_of_net_slices; ++i) {
       net_ready[i] = false;
       net_consumed[i] = false;
     }
@@ -164,7 +165,7 @@ public:
 
     std::thread worker(worker_thread);
 
-    std::vector<MPI_Request> requests (window_size);
+    std::vector<MPI_Request> requests (m_window_size);
 
     // Iterate over the slices
     int current_slice = 0;
@@ -197,7 +198,7 @@ public:
       // Size of the last message (if the MFP size is not a multiple of MPI::mdf_chunk_size)
       int rest = current_event_size - n_messages * MPI::mdf_chunk_size;
       // Number of parallel sends
-      int n_sends = n_messages > window_size ? window_size : n_messages;
+      int n_sends = n_messages > m_window_size ? m_window_size : n_messages;
 
       // info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
       
@@ -210,7 +211,7 @@ public:
       // Sliding window sends
       for(int k = n_sends; k < n_messages; k++) {
           int r;
-          MPI_Waitany(window_size, requests.data(), &r, MPI_STATUS_IGNORE);
+          MPI_Waitany(m_window_size, requests.data(), &r, MPI_STATUS_IGNORE);
           char* message = contents + k * MPI::mdf_chunk_size;
           MPI_Irecv(message, MPI::mdf_chunk_size, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + k,
                     MPI_COMM_WORLD, &requests[r]);
@@ -218,7 +219,7 @@ public:
       // Last send (if necessary)
       if (rest) {
           int r;
-          MPI_Waitany(window_size, requests.data(), &r, MPI_STATUS_IGNORE);
+          MPI_Waitany(m_window_size, requests.data(), &r, MPI_STATUS_IGNORE);
           char* message = contents + n_messages * MPI::mdf_chunk_size;
           MPI_Irecv(message, rest, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + n_messages,
                     MPI_COMM_WORLD, &requests[r]);

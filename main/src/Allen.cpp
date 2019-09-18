@@ -317,6 +317,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // MPI options
   bool with_mpi;
   size_t mpi_window_size;
+  size_t mpi_number_of_slices;
 
   string mdf_input;
   int device_id = 0;
@@ -394,6 +395,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"non-stop"})) {
       non_stop = atoi(arg.c_str());
+    }
+    else if (flag_in({"mpi-number-of-slices"})) {
+      mpi_number_of_slices = atoi(arg.c_str());
     }
   }
 
@@ -492,7 +496,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               *events_per_slice, // number of events per read buffer
                               n_io_reps};        // number of loops over the input files
     input_provider = std::make_unique<MPIProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), config);
+      number_of_slices, *events_per_slice, n_events, std::move(connections), mpi_window_size, mpi_number_of_slices, config);
   }
   else if (!mdf_input.empty()) {
     vector<string> connections;
