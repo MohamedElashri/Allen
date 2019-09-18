@@ -55,19 +55,20 @@ public:
 
 int main(int argc, char* argv[]) {
 
-  string output_file{argv[1]};
-  if (argc < 2) {
-    cout << "usage: mdf_to_mep output_file input.mdf ...\n";
+  if (argc < 4) {
+    cout << "usage: mdf_to_mep output_file #MEPs packing_factor input.mdf ...\n";
     return -1;
   }
 
-  vector<string> input_files(argc - 2);
-  for (int i = 0; i < argc - 2; ++i) {
-    input_files[i] = argv[i + 2];
+  string output_file{argv[1]};
+  size_t n_meps = std::atol(argv[2]);
+  uint16_t packing_factor = std::atoi(argv[3]);
+
+  vector<string> input_files(argc - 4);
+  for (int i = 0; i < argc - 4; ++i) {
+    input_files[i] = argv[i + 4];
   }
 
-  uint16_t packing_factor = 5;
-  size_t n_events = 50;
   vector<char> buffer(1024 * 1024, '\0');
   vector<char> decompression_buffer(1024 * 1024, '\0');
 
@@ -81,6 +82,7 @@ int main(int argc, char* argv[]) {
   std::array<unsigned int, LHCb::NBankTypes> banks_count;
 
   size_t n_read = 0;
+  size_t n_written = 0;
   uint64_t event_id = 0;
 
   std::vector<std::tuple<EB::Header, EB::BlockHeader, size_t, vector<char>>> mfps;
@@ -98,7 +100,7 @@ int main(int argc, char* argv[]) {
 
   FileWriter writer{output_file};
 
-  auto write_fragments = [&writer, &mfps, hdr_size, packing_factor, header] {
+  auto write_fragments = [&writer, &mfps, &n_written, hdr_size, packing_factor, header] {
     header->setSize(sizeof(EB::Header) * mfps.size()
                     + std::accumulate(mfps.begin(), mfps.end(), 0,
                                       [packing_factor] (size_t s, const auto& entry) {
@@ -118,6 +120,7 @@ int main(int argc, char* argv[]) {
       block_header.block_size = 0;
       n_filled = 0;
     }
+    ++n_written;
   };
 
   for (auto const& file : input_files) {
@@ -130,9 +133,12 @@ int main(int argc, char* argv[]) {
       error = true;
       break;
     }
-    while (!eof && n_read < n_events) {
+    while (!eof && n_written < n_meps) {
       std::tie(eof, error, bank_span) = MDF::read_event(input, mdf_header, buffer, decompression_buffer, false);
-      if (eof || error) {
+      if (eof) {
+        eof = false;
+        break;
+      } else if (error) {
         cerr << "Failed to read event\n";
         return -1;
       } else {
@@ -153,16 +159,9 @@ int main(int argc, char* argv[]) {
             offset += banks_count[i];
           }
         }
-        cout << "n_fragments: " << n_fragments << "\n";
         mfps.resize(n_fragments);
         for (auto& fragment : mfps) {
           std::get<3>(fragment).resize(packing_factor * average_event_size * kB);
-        }
-
-        i = 0;
-        for (auto offset : fragment_offsets) {
-          cout << "type: " << std::setw(2) << i++ << " offset: "
-               << std::setw(4) << offset << "\n";
         }
         sizes_known = true;
       }
@@ -194,7 +193,6 @@ int main(int argc, char* argv[]) {
             eb_header.source_id = b->sourceID();
             eb_header.version = b->version();
             block_header = EB::BlockHeader{event_id, packing_factor};
-            cout << "header size " << block_header.header_size(packing_factor) << "\n";
           } else if (eb_header.source_id != b->sourceID()) {
             cout << "Error: banks not ordered in the same way: "
                  << eb_header.source_id << " " << b->sourceID() << "\n";
@@ -227,11 +225,11 @@ int main(int argc, char* argv[]) {
     }
 
     ::close(input);
-    if (n_read >= n_events) break;
+    if (n_written >= n_meps) break;
   }
 
-  if(!error && ((n_read % packing_factor) != 0)) {
-    write_fragments();
+  if (!error) {
+    cout << "Wrote " << n_written << " MEPs with " << (n_read % packing_factor) << " events left over.\n";
   }
 
   return error ? -1 : 0;
