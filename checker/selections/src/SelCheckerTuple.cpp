@@ -318,10 +318,14 @@ void SelCheckerTuple::accumulate(
 #endif
 }
 
-void SelCheckerTuple::report(size_t) const
+void SelCheckerTuple::report(size_t requested_events) const
 {
 #ifdef WITH_ROOT
+  ;
+  TArrayI nEvents(1);
+  nEvents[0] = (int)requested_events;
   m_file->cd();
   m_file->WriteTObject(m_tree);
+  m_file->WriteObject(&nEvents, "nEvents");
 #endif
 }
