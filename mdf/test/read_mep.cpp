@@ -22,7 +22,7 @@ using namespace std;
 int main(int argc, char* argv[])
 {
   if (argc != 3) {
-    cout << "usage: test_read file.mdf n_mep" << endl;
+    cout << "usage: read_mep file.mep n_mep" << endl;
     return -1;
   }
 
@@ -85,17 +85,14 @@ int main(int argc, char* argv[])
       char const* fragment_data = d + sizeof(EB::Header) + block_header.header_size(block_header.n_frag);
       char const* fragment_end = fragment_data + block_header.block_size;
 
-      cout << "fragment source_id " << std::setw(4) << eb_header->source_id
-           << " version: " << std::setw(2) << eb_header->version
-           << " event_id: " << std::setw(6) << block_header.event_id
+      cout << "fragment"
            << " packing: " << std::setw(4) << block_header.n_frag
-           << " size: " << std::setw(5) << block_header.block_size
-           << " type: " << std::setw(3) << int(block_header.types[0]);
-      for (size_t i = 0; i < block_header.n_frag; ++i) {
-        cout << " bsize " << std::setw(3) << i << ": " << std::setw(4) << block_header.sizes[i];
-      }
-      cout << std::setw(10) << fragment_end - data_span.data();
-      cout << "\n";
+           << " event_id: " << std::setw(6) << block_header.event_id
+           << " type: " << std::setw(3) << int(block_header.types[0])
+           << " source_id " << std::setw(4) << eb_header->source_id
+           << " version: " << std::setw(2) << eb_header->version
+           << " size: " << std::setw(6) << block_header.block_size
+           << "\n";
 
       d = fragment_end;
     }
