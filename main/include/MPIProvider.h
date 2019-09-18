@@ -279,7 +279,12 @@ public:
       m_net_consumed[i] = false;
     }
 
+    // Instantiate the MPI reader thread
     m_mpi_reader = std::thread{&MPIProvider::MPIReader, this};
+
+    // Simulate worker
+    // Note: Here would go the code to do the "prefetching"
+    MPIWorker();
 
     // Preallocate prefetch buffer memory
     m_buffers.resize(config.n_buffers);
@@ -293,8 +298,6 @@ public:
     // Reinitialize to take the possible minimum number of events per
     // slice into account
     events_per_slice = this->events_per_slice();
-
-    MPIWorker();
 
     // Allocate slice memory that will contain transposed banks ready
     // for processing by the Allen kernels
