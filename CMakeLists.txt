@@ -220,7 +220,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   endif()
 
   set(CMAKE_CUDA_STANDARD 14)
-  set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=1000 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 elseif(TARGET_DEVICE STREQUAL "HIP")
   # HCC Options (HIPCC compiler)
   # Other warning options: -Wall -Wno-bitwise-op-parentheses -Wno-unused-variable -Wno-logical-op-parentheses
