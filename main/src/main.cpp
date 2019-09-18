@@ -14,6 +14,9 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <Allen.h>
 #include <Updater.h>
 #include <ProgramOptions.h>
@@ -139,12 +142,15 @@ int main(int argc, char* argv[])
 
     std::string mdf_input;
     size_t window_size;
+    bool non_stop;
     for (auto const& entry : allen_options) {
       std::tie(flag, arg) = entry;
       if (flag_in({"mdf"})) {
         mdf_input = arg;
       } else if (flag_in({"window-size"})) {
         window_size = atoi(arg.c_str());
+      } else if (flag_in({"non-stop"})) {
+        non_stop = atoi(arg.c_str());
       }
     }
 
@@ -201,11 +207,11 @@ int main(int argc, char* argv[])
       MPI_Send(&max_file_size, 1, MPI_SIZE_T, MPI::receiver, MPI::message::max_file_size, MPI_COMM_WORLD);
 
       // Test: Send all the files
-      // for (int i=0; i<number_of_files; ++i) {
-      for (int i=0; true; i = (i + 1) % number_of_files) {
+      int current_file=0;
+      while (non_stop || current_file<number_of_files) {
         // Get event data
-        const char* current_event_start = file_contents[i];
-        const size_t current_event_size = file_sizes[i];
+        const char* current_event_start = file_contents[current_file];
+        const size_t current_event_size = file_sizes[current_file];
 
         // Notify the event size
         MPI_Send(&current_event_size, 1, MPI_SIZE_T, MPI::receiver, MPI::message::event_size, MPI_COMM_WORLD);
@@ -244,6 +250,12 @@ int main(int argc, char* argv[])
         }
         // Wait until all chunks have been sent
         MPI_Waitall(n_sends, requests.data(), MPI_STATUSES_IGNORE);
+
+        if (non_stop) {
+          current_file = (current_file + 1) % number_of_files;
+        } else {
+          ++current_file;
+        }
       }
     } else {
       error_cout << rank_str() << "Required argument --mdf not supplied. Exiting application.\n";
@@ -263,37 +275,83 @@ int main(int argc, char* argv[])
       << rank_str() << "Number of events: " << number_of_events << "\n"
       << rank_str() << "Maximum file size: " << max_file_size << "\n";
 
-    std::vector<MPI_Request> requests (window_size);
-
     // Allocate necessary memory
     // As a test, allocate just two slices
-    constexpr int number_of_slices = 2;
-    std::vector<size_t> slice_size;
-    std::vector<char*> slice_contents;
-    for (int i=0; i<number_of_slices; ++i) {
+    constexpr int number_of_net_slices = 8;
+    std::vector<size_t> net_slice_size;
+    std::vector<char*> net_slice_contents;
+    for (int i=0; i<number_of_net_slices; ++i) {
       char* contents;
       MPI_Alloc_mem(max_file_size, MPI_INFO_NULL, &contents);
-      slice_contents.push_back(contents);
-      slice_size.push_back(0);
+      net_slice_contents.push_back(contents);
+      net_slice_size.push_back(0);
     }
+
+    std::array<std::mutex, number_of_net_slices> net_mutexes;
+    std::array<std::condition_variable, number_of_net_slices> net_slice_produced_cv;
+    std::array<std::condition_variable, number_of_net_slices> net_slice_consumed_cv;
+    std::array<bool, number_of_net_slices> net_ready;
+    std::array<bool, number_of_net_slices> net_consumed;
+
+    for (int i=0; i<number_of_net_slices; ++i) {
+      net_ready[i] = false;
+      net_consumed[i] = false;
+    }
+
+    const auto worker_thread = [&] () {
+      info_cout << rank_str() << "Started worker thread\n";
+      // Iterate over the slices
+      int current_slice = 0;
+
+      while(true) {
+        // Wait until the next net slice has been produced
+        std::unique_lock<std::mutex> lk {net_mutexes[current_slice]};
+        net_slice_produced_cv[current_slice].wait(lk, [&current_slice, &net_ready]{return net_ready[current_slice];});
+
+        // Consume the net slice
+        std::chrono::milliseconds duration(100);
+        std::this_thread::sleep_for(duration);
+        // info_cout << "Data is consumed " << current_slice << "\n";
+        net_ready[current_slice] = false;
+        net_consumed[current_slice] = true;
+
+        // Notify a net slice has been consumed
+        lk.unlock();
+        net_slice_consumed_cv[current_slice].notify_one();
+
+        current_slice = (current_slice + 1) % number_of_net_slices;
+      }
+    };
+
+    std::thread worker(worker_thread);
+
+    std::vector<MPI_Request> requests (window_size);
 
     // Iterate over the slices
     int current_slice = 0;
+    int startup_iteration = 0;
 
     size_t reporting_period = 5;
     size_t bytes_received = 0;
     size_t meps_received = 0;
     Timer t;
+    Timer t_origin;
 
     // for (int i=0; i<number_of_events; ++i) {
     while (true) {
+      if (startup_iteration == number_of_net_slices) {
+        // We need to wait for consumption
+        std::unique_lock<std::mutex> lk {net_mutexes[current_slice]};
+        net_slice_consumed_cv[current_slice].wait(lk, [&current_slice, &net_consumed]{return net_consumed[current_slice];});
+      }
+
       size_t current_event_size;
-      char* contents = slice_contents[current_slice];
+      char* contents = net_slice_contents[current_slice];
 
       MPI_Recv(&current_event_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
       // info_cout << rank_str() << "Current event size: " << current_event_size << "\n";
-      slice_size[current_slice] = current_event_size;
+      net_slice_size[current_slice] = current_event_size;
 
       // Number of full-size (MPI::mdf_chunk_size) messages
       int n_messages = current_event_size / MPI::mdf_chunk_size;
@@ -329,7 +387,20 @@ int main(int argc, char* argv[])
       // Wait until all chunks have been sent
       MPI_Waitall(n_sends, requests.data(), MPI_STATUSES_IGNORE);
 
-      current_slice = (current_slice + 1) % number_of_slices;
+      // Notify data is ready to consumer thread
+      {
+        std::lock_guard<std::mutex> lk {net_mutexes[current_slice]};
+        // info_cout << "Data is ready " << current_slice << "\n";
+        net_ready[current_slice] = true;
+        net_consumed[current_slice] = false;
+      }
+      net_slice_produced_cv[current_slice].notify_one();
+
+      if (startup_iteration < number_of_net_slices) {
+        ++startup_iteration;
+      }
+
+      current_slice = (current_slice + 1) % number_of_net_slices;
 
       bytes_received += current_event_size;
       meps_received += 1;
@@ -338,8 +409,8 @@ int main(int argc, char* argv[])
         const double rate = (double) meps_received / seconds;
         double bandwidth = ((double) (bytes_received * 8)) / (1024 * 1024 * 1024 * seconds);
 
-        printf("[%lf] Throughput: %lf MEP/s, %lf Gb/s\n",
-                seconds, rate, bandwidth);
+        printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n",
+                t_origin.get_elapsed_time(), seconds, rate, bandwidth);
 
         bytes_received = 0;
         meps_received = 0;
@@ -348,7 +419,7 @@ int main(int argc, char* argv[])
       }
     }
 
-    // Allen::NonEventData::Updater updater {allen_options};
-    // return allen(std::move(allen_options), &updater);
+    Allen::NonEventData::Updater updater {allen_options};
+    return allen(std::move(allen_options), &updater);
   }
 }
