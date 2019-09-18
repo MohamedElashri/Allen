@@ -161,6 +161,7 @@ int main(int argc, char* argv[])
 
       // Number of files to read
       const size_t number_of_files = connections.size();
+      MPI_Send(&number_of_files, 1, MPI_SIZE_T, MPI::receiver, MPI::message::number_of_events, MPI_COMM_WORLD);
 
       // Read all files in connections
       std::vector<char*> file_contents;

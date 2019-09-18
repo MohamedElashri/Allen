@@ -96,75 +96,30 @@ class MPIProvider final : public InputProvider<MPIProvider<Banks...>> {
   // Number of receiving slices
   size_t m_number_of_net_slices;
 
+  // Slices
+  std::vector<size_t> m_net_slice_size;
+  std::vector<char*> m_net_slice_contents;
+
   // Maximum size of files to read
   size_t m_max_file_size;
 
-public:
-  MPIProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
-              std::vector<std::string> connections, size_t window_size, size_t number_of_net_slices,
-              MPIProviderConfig config = MPIProviderConfig{}) :
-    InputProvider<MPIProvider<Banks...>>{n_slices, events_per_slice, n_events},
-    m_buffer_writable(config.n_buffers, true),
-    m_slice_free(n_slices, true),
-    m_banks_count{0},
-    m_event_ids{n_slices},
-    m_connections {std::move(connections)},
-    m_window_size{window_size},
-    m_number_of_net_slices{number_of_net_slices},
-    m_config{config}
-  {
-    // Receive configuration of application
-    MPI_Recv(&m_max_file_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::max_file_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    info_cout << MPI::rank_str() << "Maximum file size: " << m_max_file_size << " B\n";
+  // Worker thread communication machinery
+  std::vector<std::mutex> m_net_mutexes;
+  std::vector<std::condition_variable> m_net_slice_produced_cv;
+  std::vector<std::condition_variable> m_net_slice_consumed_cv;
+  std::vector<bool> m_net_ready;
+  std::vector<bool> m_net_consumed;
 
-    // Allocate as many net slices as configured, of maximum size
-    std::vector<size_t> net_slice_size;
-    std::vector<char*> net_slice_contents;
-    for (int i=0; i<m_number_of_net_slices; ++i) {
-      char* contents;
-      MPI_Alloc_mem(m_max_file_size, MPI_INFO_NULL, &contents);
-      net_slice_contents.push_back(contents);
-      net_slice_size.push_back(0);
-    }
+  // Number of files reported by MPI sender
+  size_t m_number_of_files;
 
-    std::vector<std::mutex> net_mutexes (m_number_of_net_slices);
-    std::vector<std::condition_variable> net_slice_produced_cv (m_number_of_net_slices);
-    std::vector<std::condition_variable> net_slice_consumed_cv (m_number_of_net_slices);
-    std::vector<bool> net_ready (m_number_of_net_slices);
-    std::vector<bool> net_consumed (m_number_of_net_slices);
+  // MPI Reader thread
+  std::thread m_mpi_reader;
 
-    for (int i=0; i<m_number_of_net_slices; ++i) {
-      net_ready[i] = false;
-      net_consumed[i] = false;
-    }
 
-    const auto worker_thread = [&] () {
-      info_cout << MPI::rank_str() << "Started worker thread\n";
-      // Iterate over the slices
-      int current_slice = 0;
-
-      while(true) {
-        // Wait until the next net slice has been produced
-        std::unique_lock<std::mutex> lk {net_mutexes[current_slice]};
-        net_slice_produced_cv[current_slice].wait(lk, [&current_slice, &net_ready]{return net_ready[current_slice];});
-
-        // Consume the net slice
-        std::chrono::milliseconds duration(100);
-        std::this_thread::sleep_for(duration);
-        // info_cout << "Data is consumed " << current_slice << "\n";
-        net_ready[current_slice] = false;
-        net_consumed[current_slice] = true;
-
-        // Notify a net slice has been consumed
-        lk.unlock();
-        net_slice_consumed_cv[current_slice].notify_one();
-
-        current_slice = (current_slice + 1) % number_of_net_slices;
-      }
-    };
-
-    std::thread worker(worker_thread);
-
+private:
+  // MPI reader thread
+  void MPIReader() {
     std::vector<MPI_Request> requests (m_window_size);
 
     // Iterate over the slices
@@ -179,19 +134,19 @@ public:
 
     // for (int i=0; i<number_of_events; ++i) {
     while (true) {
-      if (startup_iteration == number_of_net_slices) {
+      if (startup_iteration == m_number_of_net_slices) {
         // We need to wait for consumption
-        std::unique_lock<std::mutex> lk {net_mutexes[current_slice]};
-        net_slice_consumed_cv[current_slice].wait(lk, [&current_slice, &net_consumed]{return net_consumed[current_slice];});
+        std::unique_lock<std::mutex> lk {m_net_mutexes[current_slice]};
+        m_net_slice_consumed_cv[current_slice].wait(lk, [&]{return m_net_consumed[current_slice];});
       }
 
       size_t current_event_size;
-      char* contents = net_slice_contents[current_slice];
+      char* contents = m_net_slice_contents[current_slice];
 
       MPI_Recv(&current_event_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
       // info_cout << MPI::rank_str() << "Current event size: " << current_event_size << "\n";
-      net_slice_size[current_slice] = current_event_size;
+      m_net_slice_size[current_slice] = current_event_size;
 
       // Number of full-size (MPI::mdf_chunk_size) messages
       int n_messages = current_event_size / MPI::mdf_chunk_size;
@@ -229,18 +184,18 @@ public:
 
       // Notify data is ready to consumer thread
       {
-        std::lock_guard<std::mutex> lk {net_mutexes[current_slice]};
+        std::lock_guard<std::mutex> lk {m_net_mutexes[current_slice]};
         // info_cout << "Data is ready " << current_slice << "\n";
-        net_ready[current_slice] = true;
-        net_consumed[current_slice] = false;
+        m_net_ready[current_slice] = true;
+        m_net_consumed[current_slice] = false;
       }
-      net_slice_produced_cv[current_slice].notify_one();
+      m_net_slice_produced_cv[current_slice].notify_one();
 
-      if (startup_iteration < number_of_net_slices) {
+      if (startup_iteration < m_number_of_net_slices) {
         ++startup_iteration;
       }
 
-      current_slice = (current_slice + 1) % number_of_net_slices;
+      current_slice = (current_slice + 1) % m_number_of_net_slices;
 
       bytes_received += current_event_size;
       meps_received += 1;
@@ -258,6 +213,73 @@ public:
         t.restart();
       }
     }
+  }
+
+  // Worker
+  void MPIWorker() {
+    info_cout << MPI::rank_str() << "Started worker thread\n";
+    // Iterate over the slices
+    int current_slice = 0;
+
+    while(true) {
+      // Wait until the next net slice has been produced
+      std::unique_lock<std::mutex> lk {m_net_mutexes[current_slice]};
+      m_net_slice_produced_cv[current_slice].wait(lk, [&]{return m_net_ready[current_slice];});
+
+      // Consume the net slice
+      std::chrono::milliseconds duration(100);
+      std::this_thread::sleep_for(duration);
+      // info_cout << "Data is consumed " << current_slice << "\n";
+      m_net_ready[current_slice] = false;
+      m_net_consumed[current_slice] = true;
+
+      // Notify a net slice has been consumed
+      lk.unlock();
+      m_net_slice_consumed_cv[current_slice].notify_one();
+
+      current_slice = (current_slice + 1) % m_number_of_net_slices;
+    }
+  }
+
+public:
+  MPIProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
+              std::vector<std::string> connections, size_t window_size, size_t number_of_net_slices,
+              MPIProviderConfig config = MPIProviderConfig{}) :
+    InputProvider<MPIProvider<Banks...>>{n_slices, events_per_slice, n_events},
+    m_buffer_writable(config.n_buffers, true),
+    m_slice_free(n_slices, true),
+    m_banks_count{0},
+    m_event_ids{n_slices},
+    m_connections {std::move(connections)},
+    m_window_size{window_size},
+    m_number_of_net_slices{number_of_net_slices},
+    m_config{config}
+  {
+    // Receive configuration of application
+    MPI_Recv(&m_number_of_files, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_events, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&m_max_file_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::max_file_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    info_cout << MPI::rank_str() << "Maximum file size: " << m_max_file_size << " B\n";
+
+    // Allocate as many net slices as configured, of maximum size
+    for (int i=0; i<m_number_of_net_slices; ++i) {
+      char* contents;
+      MPI_Alloc_mem(m_max_file_size, MPI_INFO_NULL, &contents);
+      m_net_slice_contents.push_back(contents);
+      m_net_slice_size.push_back(0);
+    }
+
+    // Allocate and initialize worker thread machinery
+    m_net_mutexes = decltype(m_net_mutexes){m_number_of_net_slices};
+    m_net_slice_produced_cv = decltype(m_net_slice_produced_cv){m_number_of_net_slices};
+    m_net_slice_consumed_cv = decltype(m_net_slice_consumed_cv){m_number_of_net_slices};
+    m_net_ready.resize(m_number_of_net_slices);
+    m_net_consumed.resize(m_number_of_net_slices);
+    for (int i=0; i<m_number_of_net_slices; ++i) {
+      m_net_ready[i] = false;
+      m_net_consumed[i] = false;
+    }
+
+    m_mpi_reader = std::thread{&MPIProvider::MPIReader, this};
 
     // Preallocate prefetch buffer memory
     m_buffers.resize(config.n_buffers);
@@ -271,6 +293,8 @@ public:
     // Reinitialize to take the possible minimum number of events per
     // slice into account
     events_per_slice = this->events_per_slice();
+
+    MPIWorker();
 
     // Allocate slice memory that will contain transposed banks ready
     // for processing by the Allen kernels
