@@ -23,7 +23,6 @@ SEQUENCE_T(
   pv_beamline_calculate_denom_t,
   pv_beamline_multi_fitter_t,
   pv_beamline_cleanup_t,
-  velo_pv_ip_t,
   ut_calculate_number_of_hits_t,
   prefix_sum_ut_hits_t,
   ut_pre_decode_t,
@@ -60,6 +59,9 @@ SEQUENCE_T(
   muon_station_ocurrence_prefix_sum_t,
   muon_sort_by_station_t,
   is_muon_t,
+  //kalman_velo_only_t,
+  package_kalman_tracks_t,
+  kalman_pv_ipchi2_t,
   copy_and_prefix_sum_single_block_sv_t,
-  fit_secondary_vertices_velo_t,
+  fit_secondary_vertices_t,
   run_hlt1_t)

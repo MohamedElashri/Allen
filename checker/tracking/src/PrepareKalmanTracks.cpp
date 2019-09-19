@@ -253,6 +253,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
         float locIPChi2 = ipChi2Kalman(track, *vertex);
         if (locIPChi2 < t.kalman_ip_chi2) {
           t.kalman_ip = ipKalman(track, *vertex);
+          t.kalman_ip_chi2 = locIPChi2;
           t.kalman_ipx = ipxKalman(track, *vertex);
           t.kalman_ipy = ipyKalman(track, *vertex);
           t.kalman_docaz = kalmanDOCAz(track, *vertex);
