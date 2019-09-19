@@ -435,10 +435,9 @@ __global__ void fit_secondary_vertices_velo(
     const int i_velo_track = ut_tracks.velo_track[i_ut_track];
     
     // Create the first Kalman track.    
-    const ParKalmanFilter::FittedTrack trackA(
-      kalmanvelo_states.get(event_velo_tracks_offset + i_velo_track),
-      scifi_tracks.qop[i_track],
-      dev_is_muon[event_tracks_offset + i_track]);
+    const ParKalmanFilter::FittedTrack trackA {kalmanvelo_states.get(event_velo_tracks_offset + i_velo_track),
+                                               scifi_tracks.qop[i_track],
+                                               dev_is_muon[event_tracks_offset + i_track]};
     dev_kf_tracks[event_tracks_offset + i_track] = trackA;
     if (trackA.pt() < VertexFit::trackMinPt || (trackA.ipChi2 < VertexFit::trackMinIPChi2 && !trackA.is_muon)) {
       continue;

@@ -85,7 +85,7 @@ namespace ParKalmanFilter {
     bool is_muon;
 
     // Default constructor.
-    __device__ __host__ FittedTrack(){}
+    //__device__ __host__ FittedTrack(){}
     
     // Constructor from a VELO state.
     __device__ __host__ FittedTrack(const KalmanVeloState& velo_state, float qop, bool muon)
