@@ -443,8 +443,6 @@ __global__ void fit_secondary_vertices_velo(
     if (trackA.pt() < VertexFit::trackMinPt || (trackA.ipChi2 < VertexFit::trackMinIPChi2 && !trackA.is_muon)) {
       continue;
     }
-
-    
     
     // Loop over the second track.
     for (int j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
