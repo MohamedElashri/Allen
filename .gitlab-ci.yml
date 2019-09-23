@@ -379,10 +379,10 @@ CPU:DefaultSequence:RelWithDebInfo::build_x86_clang:
 
 # Run on all platforms
 # Performance runs
-rtx2080tifan:CUDA:DefaultSequence:run_throughput:
+rtx2080tinofan:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_def
   tags:
-    - rtx2080tifan
+    - rtx2080tinofan
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
@@ -483,19 +483,19 @@ gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug_root:
 
 # Velo
 # Plain results to mattermost
-rtx2080tifan:DefaultSequence:publish_algo_breakdown_plot:
+rtx2080tinofan:DefaultSequence:publish_algo_breakdown_plot:
   <<: *publish_algo_breakdown_plot_def
   tags:
     - gpu
   dependencies:
-    - rtx2080tifan:CUDA:DefaultSequence:run_throughput
+    - rtx2080tinofan:CUDA:DefaultSequence:run_throughput
 
 throughput:DefaultSequence:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - gpu
   dependencies:
-    - rtx2080tifan:CUDA:DefaultSequence:run_throughput
+    - rtx2080tinofan:CUDA:DefaultSequence:run_throughput
     - rtx6000:CUDA:DefaultSequence:run_throughput
     - v100:CUDA:DefaultSequence:run_throughput
     - t4:CUDA:DefaultSequence:run_throughput
@@ -514,7 +514,7 @@ throughput:DefaultSequence:publish_throughput:
 #   tags:
 #     - gpu
 #   dependencies:
-#     - rtx2080tifan:CUDA:DefaultSequence:run_throughput
+#     - rtx2080tinofan:CUDA:DefaultSequence:run_throughput
 #     - rtx6000:CUDA:DefaultSequence:run_throughput
 #     - v100:CUDA:DefaultSequence:run_throughput
 #     - t4:CUDA:DefaultSequence:run_throughput
