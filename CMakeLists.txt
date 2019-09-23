@@ -504,7 +504,7 @@ target_link_libraries(AllenLib PUBLIC
   SelChecking
   NonEventData
   AllenZMQ
-  ${MPI_C_LIBRARIES})
+  ${MPI_CXX_LIBRARIES})
 
 if (ROOT_FOUND)
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
@@ -513,7 +513,7 @@ if (ROOT_FOUND)
 endif()
 
 allen_add_executable(Allen ${main_cpp_path})
-target_link_libraries(Allen PRIVATE AllenLib PUBLIC ${MPI_C_LIBRARIES})
+target_link_libraries(Allen PRIVATE AllenLib)
 
 if(TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
   add_subdirectory(tests)
