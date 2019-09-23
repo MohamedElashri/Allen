@@ -386,6 +386,13 @@ rtx2080tinofan:CUDA:DefaultSequence:run_throughput:
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
+rtx6000:CUDA:DefaultSequence:run_throughput:
+  <<: *run_throughput_job_def
+  tags:
+    - rtx6000
+  dependencies:
+    - CUDA:DefaultSequence:RelWithDebInfo::build
+
 v100:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_def
   tags:
@@ -394,7 +401,7 @@ v100:CUDA:DefaultSequence:run_throughput:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 t4:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
+  <<: *run_throughput_job_def
   tags:
     - t4
   dependencies:
@@ -404,13 +411,6 @@ gtx10606g:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx10606g
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
-
-rtx6000:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - rtx6000
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
@@ -505,24 +505,3 @@ throughput:DefaultSequence:publish_throughput:
     - gtx670:CUDA:DefaultSequence:run_throughput
     - gtx1080ti:CUDA:DefaultSequence:run_throughput
     - x862630v4:CPU:DefaultSequence:run_throughput_cpu
-
-# The speedup job is disabled for the moment
-# 
-# # The "gpu" tag is to require python3 essentially
-# speedup:DefaultSequence:publish_speedup:
-#   <<: *publish_speedup_job_def
-#   tags:
-#     - gpu
-#   dependencies:
-#     - rtx2080tinofan:CUDA:DefaultSequence:run_throughput
-#     - rtx6000:CUDA:DefaultSequence:run_throughput
-#     - v100:CUDA:DefaultSequence:run_throughput
-#     - t4:CUDA:DefaultSequence:run_throughput
-#     - gtx10606g:CUDA:DefaultSequence:run_throughput
-#     - gtx680:CUDA:DefaultSequence:run_throughput
-#     - gtx980:CUDA:DefaultSequence:run_throughput
-#     - gtxtitanx:CUDA:DefaultSequence:run_throughput
-#     - gtx670:CUDA:DefaultSequence:run_throughput
-#     - gtx780ti:CUDA:DefaultSequence:run_throughput
-#     - gtx1080ti:CUDA:DefaultSequence:run_throughput
-#     - gtx980:CUDA:DefaultSequence:run_throughput
