@@ -494,7 +494,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               4,                 // number of transpose threads
                               10001,             // maximum number event of offsets in read buffer
                               3000,              // MEP packing factor
-                              mpi_window_size};  // MPI sliding window size
+                              mpi_window_size,   // MPI sliding window size
+                              non_stop};         // Run the application non-stop
     input_provider = std::make_unique<MPIProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, std::move(connections), config);
   }

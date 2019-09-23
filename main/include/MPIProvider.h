@@ -44,7 +44,6 @@ using Slices = std::array<BankSlices, NBankTypes>;
 
 /**
  * @brief      Configuration parameters for the MPIProvider
- *
  */
 struct MPIProviderConfig {
   // check the MDF checksum if it is available
@@ -63,6 +62,8 @@ struct MPIProviderConfig {
   size_t packing_factor = 3000;
 
   size_t window_size = 4;
+
+  bool non_stop = true;
 };
 
 /**
@@ -99,7 +100,9 @@ public:
     m_banks_count{0},
     m_event_ids{n_slices},
     m_connections {std::move(connections)},
-    m_config{config}
+    m_config{config},
+    m_window_size{config.window_size},
+    m_non_stop{config.non_stop}
   {
 
     // Allocate as many net slices as configured, of expected size
@@ -271,8 +274,6 @@ public:
     return BanksAndOffsets {std::move(b), std::move(o)};
   }
 
-  //
-
 /**
  * @brief      Get a slice that is ready for processing; thread-safe
  *
@@ -350,13 +351,16 @@ private:
     size_t reporting_period = 5;
     size_t bytes_received = 0;
     size_t meps_received = 0;
+    size_t number_of_files = 0;
     Timer t;
     Timer t_origin;
     bool error = false;
     bool receive_done = false;
 
-    // for (int i=0; i<number_of_events; ++i) {
-    while (true) {
+    MPI_Recv(&number_of_files, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_events, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    int current_file=0;
+    while (m_non_stop || current_file<number_of_files) {
 
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
@@ -477,6 +481,8 @@ private:
         }
       }
       m_mpi_cond.notify_one();
+
+      current_file++;
     }
   }
 
@@ -727,6 +733,9 @@ private:
 
   // Window transmission size
   size_t m_window_size;
+
+  // Configuration of how to run the application
+  bool m_non_stop;
 
   // Slices
   std::vector<std::tuple<gsl::span<char>, size_t>> m_net_slices;
