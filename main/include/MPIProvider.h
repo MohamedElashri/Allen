@@ -60,10 +60,9 @@ struct MPIProviderConfig {
   size_t offsets_size = 10001;
 
   // default of events per prefetch buffer
-  size_t events_per_buffer = 1200;
+  size_t packing_factor = 3000;
 
-  // number of loops over input data
-  size_t n_loops = 0;
+  size_t window_size = 4;
 };
 
 /**
@@ -90,160 +89,9 @@ struct MPIProviderConfig {
  */
 template <BankTypes... Banks>
 class MPIProvider final : public InputProvider<MPIProvider<Banks...>> {
-  // Window transmission size
-  size_t m_window_size;
-
-  // Number of receiving slices
-  size_t m_number_of_net_slices;
-
-  // Slices
-  std::vector<size_t> m_net_slice_size;
-  std::vector<char*> m_net_slice_contents;
-
-  // Maximum size of files to read
-  size_t m_max_file_size;
-
-  // Worker thread communication machinery
-  std::vector<std::mutex> m_net_mutexes;
-  std::vector<std::condition_variable> m_net_slice_produced_cv;
-  std::vector<std::condition_variable> m_net_slice_consumed_cv;
-  std::vector<bool> m_net_ready;
-  std::vector<bool> m_net_consumed;
-
-  // Number of files reported by MPI sender
-  size_t m_number_of_files;
-
-  // MPI Reader thread
-  std::thread m_mpi_reader;
-
-
-private:
-  // MPI reader thread
-  void MPIReader() {
-    std::vector<MPI_Request> requests (m_window_size);
-
-    // Iterate over the slices
-    int current_slice = 0;
-    int startup_iteration = 0;
-
-    size_t reporting_period = 5;
-    size_t bytes_received = 0;
-    size_t meps_received = 0;
-    Timer t;
-    Timer t_origin;
-
-    // for (int i=0; i<number_of_events; ++i) {
-    while (true) {
-      if (startup_iteration == m_number_of_net_slices) {
-        // We need to wait for consumption
-        std::unique_lock<std::mutex> lk {m_net_mutexes[current_slice]};
-        m_net_slice_consumed_cv[current_slice].wait(lk, [&]{return m_net_consumed[current_slice];});
-      }
-
-      size_t current_event_size;
-      char* contents = m_net_slice_contents[current_slice];
-
-      MPI_Recv(&current_event_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-      // info_cout << MPI::rank_str() << "Current event size: " << current_event_size << "\n";
-      m_net_slice_size[current_slice] = current_event_size;
-
-      // Number of full-size (MPI::mdf_chunk_size) messages
-      int n_messages = current_event_size / MPI::mdf_chunk_size;
-      // Size of the last message (if the MFP size is not a multiple of MPI::mdf_chunk_size)
-      int rest = current_event_size - n_messages * MPI::mdf_chunk_size;
-      // Number of parallel sends
-      int n_sends = n_messages > m_window_size ? m_window_size : n_messages;
-
-      // info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
-      
-      // Initial parallel sends
-      for (int k = 0; k < n_sends; k++) {
-          char* message = contents + k * MPI::mdf_chunk_size;
-          MPI_Irecv(message, MPI::mdf_chunk_size, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + k,
-                    MPI_COMM_WORLD, &requests[k]);
-      }
-      // Sliding window sends
-      for(int k = n_sends; k < n_messages; k++) {
-          int r;
-          MPI_Waitany(m_window_size, requests.data(), &r, MPI_STATUS_IGNORE);
-          char* message = contents + k * MPI::mdf_chunk_size;
-          MPI_Irecv(message, MPI::mdf_chunk_size, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + k,
-                    MPI_COMM_WORLD, &requests[r]);
-      }
-      // Last send (if necessary)
-      if (rest) {
-          int r;
-          MPI_Waitany(m_window_size, requests.data(), &r, MPI_STATUS_IGNORE);
-          char* message = contents + n_messages * MPI::mdf_chunk_size;
-          MPI_Irecv(message, rest, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + n_messages,
-                    MPI_COMM_WORLD, &requests[r]);
-      }
-      // Wait until all chunks have been sent
-      MPI_Waitall(n_sends, requests.data(), MPI_STATUSES_IGNORE);
-
-      // Notify data is ready to consumer thread
-      {
-        std::lock_guard<std::mutex> lk {m_net_mutexes[current_slice]};
-        // info_cout << "Data is ready " << current_slice << "\n";
-        m_net_ready[current_slice] = true;
-        m_net_consumed[current_slice] = false;
-      }
-      m_net_slice_produced_cv[current_slice].notify_one();
-
-      if (startup_iteration < m_number_of_net_slices) {
-        ++startup_iteration;
-      }
-
-      current_slice = (current_slice + 1) % m_number_of_net_slices;
-
-      bytes_received += current_event_size;
-      meps_received += 1;
-      if (t.get_elapsed_time() >= reporting_period) {
-        const auto seconds = t.get_elapsed_time();
-        const double rate = (double) meps_received / seconds;
-        double bandwidth = ((double) (bytes_received * 8)) / (1024 * 1024 * 1024 * seconds);
-
-        printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n",
-                t_origin.get_elapsed_time(), seconds, rate, bandwidth);
-
-        bytes_received = 0;
-        meps_received = 0;
-        
-        t.restart();
-      }
-    }
-  }
-
-  // Worker
-  void MPIWorker() {
-    info_cout << MPI::rank_str() << "Started worker thread\n";
-    // Iterate over the slices
-    int current_slice = 0;
-
-    while(true) {
-      // Wait until the next net slice has been produced
-      std::unique_lock<std::mutex> lk {m_net_mutexes[current_slice]};
-      m_net_slice_produced_cv[current_slice].wait(lk, [&]{return m_net_ready[current_slice];});
-
-      // Consume the net slice
-      std::chrono::milliseconds duration(100);
-      std::this_thread::sleep_for(duration);
-      // info_cout << "Data is consumed " << current_slice << "\n";
-      m_net_ready[current_slice] = false;
-      m_net_consumed[current_slice] = true;
-
-      // Notify a net slice has been consumed
-      lk.unlock();
-      m_net_slice_consumed_cv[current_slice].notify_one();
-
-      current_slice = (current_slice + 1) % m_number_of_net_slices;
-    }
-  }
-
 public:
   MPIProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
-              std::vector<std::string> connections, size_t window_size, size_t number_of_net_slices,
+              std::vector<std::string> connections,
               MPIProviderConfig config = MPIProviderConfig{}) :
     InputProvider<MPIProvider<Banks...>>{n_slices, events_per_slice, n_events},
     m_buffer_writable(config.n_buffers, true),
@@ -251,48 +99,16 @@ public:
     m_banks_count{0},
     m_event_ids{n_slices},
     m_connections {std::move(connections)},
-    m_window_size{window_size},
-    m_number_of_net_slices{number_of_net_slices},
     m_config{config}
   {
-    // Receive configuration of application
-    MPI_Recv(&m_number_of_files, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_events, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    MPI_Recv(&m_max_file_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::max_file_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    info_cout << MPI::rank_str() << "Maximum file size: " << m_max_file_size << " B\n";
 
-    // Allocate as many net slices as configured, of maximum size
-    for (int i=0; i<m_number_of_net_slices; ++i) {
+    // Allocate as many net slices as configured, of expected size
+    // Packing factor can be done dynamically if needed
+    size_t n_bytes = std::lround(m_config.packing_factor * average_event_size * bank_size_fudge_factor * kB);
+    for (int i=0; i < config.n_buffers; ++i) {
       char* contents;
-      MPI_Alloc_mem(m_max_file_size, MPI_INFO_NULL, &contents);
-      m_net_slice_contents.push_back(contents);
-      m_net_slice_size.push_back(0);
-    }
-
-    // Allocate and initialize worker thread machinery
-    m_net_mutexes = decltype(m_net_mutexes){m_number_of_net_slices};
-    m_net_slice_produced_cv = decltype(m_net_slice_produced_cv){m_number_of_net_slices};
-    m_net_slice_consumed_cv = decltype(m_net_slice_consumed_cv){m_number_of_net_slices};
-    m_net_ready.resize(m_number_of_net_slices);
-    m_net_consumed.resize(m_number_of_net_slices);
-    for (int i=0; i<m_number_of_net_slices; ++i) {
-      m_net_ready[i] = false;
-      m_net_consumed[i] = false;
-    }
-
-    // Instantiate the MPI reader thread
-    m_mpi_reader = std::thread{&MPIProvider::MPIReader, this};
-
-    // Simulate worker
-    // Note: Here would go the code to do the "prefetching"
-    MPIWorker();
-
-    // Preallocate prefetch buffer memory
-    m_buffers.resize(config.n_buffers);
-    for (auto& [n_filled, event_offsets, buffer] : m_buffers) {
-      buffer.resize(config.events_per_buffer * average_event_size * bank_size_fudge_factor * kB);
-      event_offsets.resize(config.offsets_size);
-      event_offsets[0] = 0;
-      n_filled = 0;
+      MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
+      m_net_slices.emplace_back(gsl::span{contents, n_bytes}, n_bytes);
     }
 
     // Reinitialize to take the possible minimum number of events per
@@ -352,30 +168,27 @@ public:
     // is available
     {
       // aquire lock
-      std::unique_lock<std::mutex> lock{m_prefetch_mut};
+      std::unique_lock<std::mutex> lock{m_mpi_mutex};
 
-      // start prefetch thread
-      m_prefetch_thread = std::make_unique<std::thread>([this] { prefetch(); });
+      // start MPI thread
+      m_mpi_thread = std::thread{&MPIProvider::mpi_read, this};
 
       // Wait for first read buffer to be full
-      m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_read_error; });
+      m_mpi_cond.wait(lock, [this] { return !m_mpi_produced.empty() || m_read_error; });
       if (!m_read_error) {
         // Count number of banks per flavour
         bool count_success = false;
 
         // Offsets are to the start of the event, which includes the header
-        auto i_read = m_prefetched.front();
-        auto& [n_filled, event_offsets, buffer] = m_buffers[i_read];
-        std::tie(count_success, m_banks_count) = fill_counts({buffer.data(), event_offsets[1]});
+        auto [i_read, interval] = m_mpi_produced.front();
+        auto& [mpi_slice, slice_size] = m_net_slices[i_read];
+        // FIXME: adapt fill counts for MEP
+        std::tie(count_success, m_banks_count) = fill_counts(mpi_slice);
         if (!count_success) {
           error_cout << "Failed to determine bank counts\n";
           m_read_error = true;
         } else {
-          for (auto bank_type : this->types()) {
-            debug_cout << std::setw(10) << bank_name(bank_type) << " banks:"
-                       << std::setw(4) << m_banks_count[to_integral(bank_type)] << "\n";
-            m_sizes_known = true;
-          }
+          m_sizes_known = true;
         }
       }
     }
@@ -410,14 +223,14 @@ public:
     // Set flag to indicate the prefetch thread should exit, wake it
     // up and join it
     m_done = true;
-    m_prefetch_cond.notify_one();
-    if (m_prefetch_thread) m_prefetch_thread->join();
+    m_mpi_cond.notify_one();
+    m_mpi_thread.join();
 
     // Set a flat to indicate all transpose threads should exit, wake
     // them up and join the threads. Ensure any waiting calls to
     // get_slice also return.
     m_transpose_done = true;
-    m_prefetch_cond.notify_all();
+    m_mpi_cond.notify_all();
     m_transpose_cond.notify_all();
     m_slice_cond.notify_all();
 
@@ -523,6 +336,135 @@ public:
 
 private:
 
+  // MPI reader thread
+  void mpi_read() {
+    std::vector<MPI_Request> requests (m_window_size);
+
+    // Iterate over the slices
+    int current_slice = 0;
+    int startup_iteration = 0;
+
+    size_t reporting_period = 5;
+    size_t bytes_received = 0;
+    size_t meps_received = 0;
+    Timer t;
+    Timer t_origin;
+    bool error = false;
+    bool receive_done = false;
+
+    // for (int i=0; i<number_of_events; ++i) {
+    while (true) {
+
+      // Obtain a prefetch buffer to read into, if none is available,
+      // wait until one of the transpose threads is done with its
+      // prefetch buffer
+      auto it = m_buffer_writable.end();
+      {
+        std::unique_lock<std::mutex> lock{m_mpi_mutex};
+        it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
+        if (it == m_buffer_writable.end()) {
+          this->debug_output("Waiting for free buffer");
+          m_mpi_cond.wait(lock, [this] {
+                                  return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true)
+                                    != m_buffer_writable.end() || m_done;
+                                });
+          if (m_done) {
+            break;
+          } else {
+            it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
+          }
+        }
+        // Flag the prefetch buffer as unavailable
+        *it = false;
+      }
+
+      size_t i_slice = distance(m_buffer_writable.begin(), it);
+      auto& [buffer_span, buffer_size] = m_net_slices[i_slice];
+      char* contents = buffer_span.data();
+
+      size_t mep_size = 0;
+      MPI_Recv(&mep_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+      // Reallocate if needed
+      if (mep_size > buffer_size) {
+        buffer_size = mep_size * bank_size_fudge_factor;
+        MPI_Free_mem(contents);
+        MPI_Alloc_mem(buffer_size, MPI_INFO_NULL, &contents);
+        buffer_span = gsl::span{contents, buffer_size};
+      }
+
+      // Number of full-size (MPI::mdf_chunk_size) messages
+      int n_messages = mep_size / MPI::mdf_chunk_size;
+      // Size of the last message (if the MFP size is not a multiple of MPI::mdf_chunk_size)
+      int rest = mep_size - n_messages * MPI::mdf_chunk_size;
+      // Number of parallel sends
+      int n_sends = n_messages > m_window_size ? m_window_size : n_messages;
+
+      // info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
+
+      // Initial parallel sends
+      for (int k = 0; k < n_sends; k++) {
+        char* message = contents + k * MPI::mdf_chunk_size;
+        MPI_Irecv(message, MPI::mdf_chunk_size, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + k,
+                  MPI_COMM_WORLD, &requests[k]);
+      }
+      // Sliding window sends
+      for(int k = n_sends; k < n_messages; k++) {
+        int r;
+        MPI_Waitany(m_window_size, requests.data(), &r, MPI_STATUS_IGNORE);
+        char* message = contents + k * MPI::mdf_chunk_size;
+        MPI_Irecv(message, MPI::mdf_chunk_size, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + k,
+                  MPI_COMM_WORLD, &requests[r]);
+      }
+      // Last send (if necessary)
+      if (rest) {
+        int r;
+        MPI_Waitany(m_window_size, requests.data(), &r, MPI_STATUS_IGNORE);
+        char* message = contents + n_messages * MPI::mdf_chunk_size;
+        MPI_Irecv(message, rest, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + n_messages,
+                  MPI_COMM_WORLD, &requests[r]);
+      }
+      // Wait until all chunks have been sent
+      MPI_Waitall(n_sends, requests.data(), MPI_STATUSES_IGNORE);
+
+      buffer_span = gsl::span{contents, mep_size};
+
+      bytes_received += mep_size;
+      meps_received += 1;
+      if (t.get_elapsed_time() >= reporting_period) {
+        const auto seconds = t.get_elapsed_time();
+        const double rate = (double) meps_received / seconds;
+        double bandwidth = ((double) (bytes_received * 8)) / (1024 * 1024 * 1024 * seconds);
+
+        printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n",
+               t_origin.get_elapsed_time(), seconds, rate, bandwidth);
+
+        bytes_received = 0;
+        meps_received = 0;
+
+        t.restart();
+      }
+
+      // Notify a transpose thread that a new buffer of events is
+      // ready. If prefetching is done, wake up all threads
+      if (!error) {
+        {
+          std::unique_lock<std::mutex> lock{m_mpi_mutex};
+          m_mpi_produced.push_back(i_slice);
+        }
+        if (receive_done) {
+          m_done = receive_done;
+          this->debug_output("Prefetch notifying all");
+          m_mpi_cond.notify_all();
+        } else {
+          this->debug_output("Prefetch notifying one");
+          m_mpi_cond.notify_one();
+        }
+      }
+      m_mpi_cond.notify_one();
+    }
+  }
+
   /**
    * @brief      Function to run in each thread transposing events
    *
@@ -542,16 +484,16 @@ private:
 
       // Get a buffer to read from
       {
-        std::unique_lock<std::mutex> lock{m_prefetch_mut};
-        if (m_prefetched.empty() && !m_transpose_done) {
-          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done; });
+        std::unique_lock<std::mutex> lock{m_mpi_mutex};
+        if (m_mpi_produced.empty() && !m_transpose_done) {
+          m_mpi_cond.wait(lock, [this] { return !m_mpi_produced.empty() || m_transpose_done; });
         }
-        if (m_prefetched.empty()) {
-          this->debug_output("Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()), thread_id);
+        if (m_mpi_produced.empty()) {
+          this->debug_output("Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_mpi_produced.empty()), thread_id);
           break;
         }
-        i_read = m_prefetched.front();
-        m_prefetched.pop_front();
+        i_read = m_mpi_produced.front();
+        m_mpi_produced.pop_front();
         this->debug_output("Got read buffer index " + std::to_string(i_read), thread_id);
 
         m_buffer_writable[i_read] = false;
@@ -590,13 +532,14 @@ private:
       reset_slice<Banks...>(m_slices, *slice_index, event_ids);
 
       // Transpose the events in the read buffer into the slice
-      std::tie(good, transpose_full, n_transposed) = transpose_events<Banks...>(m_buffers[i_read],
-                                                                                m_slices,
-                                                                                *slice_index,
-                                                                                m_bank_ids,
-                                                                                m_banks_count,
-                                                                                event_ids,
-                                                                                this->events_per_slice());
+      // FIXME replace by proper transposition
+      // std::tie(good, transpose_full, n_transposed) = transpose_events<Banks...>(m_buffers[i_read],
+      //                                                                           m_slices,
+      //                                                                           *slice_index,
+      //                                                                           m_bank_ids,
+      //                                                                           m_banks_count,
+      //                                                                           event_ids,
+      //                                                                           this->events_per_slice());
       this->debug_output("Transposed " + std::to_string(*slice_index) + " " + std::to_string(good)
                          + " " + std::to_string(transpose_full) + " " + std::to_string(n_transposed),
                          thread_id);
@@ -617,63 +560,23 @@ private:
       // Check if the read buffer is now empty. If it is, it can be
       // reused, otherwise give it to another transpose thread once a
       // new target slice is available
-      if (n_transposed == std::get<0>(m_buffers[i_read])) {
+      if (n_transposed == std::get<0>(m_net_slices[i_read])) {
         slice_index.reset();
         {
           std::unique_lock<std::mutex> lock{m_prefetch_mut};
           m_buffer_writable[i_read] = true;
           // "Reset" buffer; the 0th offset is always 0.
-          std::get<0>(m_buffers[i_read]) = 0;
-          m_transpose_done = m_done && m_prefetched.empty();
+          std::get<0>(m_net_slices[i_read]) = 0;
+          m_transpose_done = m_done && m_mpi_produced.empty();
         }
-        m_prefetch_cond.notify_one();
+        m_mpi_cond.notify_one();
       } else {
         // Put this prefetched slice back on the prefetched queue so
         // somebody else can finish it
         std::unique_lock<std::mutex> lock{m_prefetch_mut};
-        m_prefetched.push_front(i_read);
+        m_mpi_produced.push_front(i_read);
       }
     }
-  }
-
-  /**
-   * @brief      Open an input file; called from the prefetch thread
-   *
-   * @return     success
-   */
-  bool open_file() const {
-    bool good = false;
-
-    // Check if there are still files available
-    while (!good) {
-      // If looping on input is configured, do it
-      if (m_current == m_connections.end()) {
-        if (++m_loop < m_config.n_loops) {
-          m_current = m_connections.begin();
-        } else {
-          break;
-        }
-      }
-
-      if (m_input) ::close(*m_input);
-
-      m_input = ::open(m_current->c_str(), O_RDONLY);
-      if (*m_input != -1) {
-        // read the first header, needed by subsequent calls to read_events
-        ssize_t n_bytes = ::read(*m_input, reinterpret_cast<char*>(&m_header), header_size);
-        good = (n_bytes > 0);
-      }
-
-      if (good) {
-        info_cout << "Opened " << *m_current << "\n";
-      } else {
-        error_cout << "Failed to open " << *m_current << " " << strerror(errno) << "\n";
-        m_read_error = true;
-        return false;
-      }
-      ++m_current;
-    }
-    return good;
   }
 
   /**
@@ -698,7 +601,7 @@ private:
     //   // open the first file
     //   if (!m_input && !open_file()) {
     //     m_read_error = true;
-    //     m_prefetch_cond.notify_one();
+    //     m_mpi_cond.notify_one();
     //     return;
     //   }
 
@@ -711,7 +614,7 @@ private:
     //     it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
     //     if (it == m_buffer_writable.end()) {
     //       this->debug_output("Waiting for free buffer");
-    //       m_prefetch_cond.wait(lock, [this] {
+    //       m_mpi_cond.wait(lock, [this] {
     //         return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true)
     //         != m_buffer_writable.end() || m_done;
     //       });
@@ -782,30 +685,33 @@ private:
     //   if (!error) {
     //     {
     //       std::unique_lock<std::mutex> lock{m_prefetch_mut};
-    //       m_prefetched.push_back(i_buffer);
+    //       m_mpi_produced.push_back(i_buffer);
     //     }
     //     if (prefetch_done) {
     //       m_done = prefetch_done;
     //       this->debug_output("Prefetch notifying all");
-    //       m_prefetch_cond.notify_all();
+    //       m_mpi_cond.notify_all();
     //     } else {
     //       this->debug_output("Prefetch notifying one");
-    //       m_prefetch_cond.notify_one();
+    //       m_mpi_cond.notify_one();
     //     }
     //   }
     // }
-    // m_prefetch_cond.notify_one();
+    // m_mpi_cond.notify_one();
   }
 
-  // Memory buffers to read binary data into from the file
-  mutable ReadBuffers m_buffers;
+  // Window transmission size
+  size_t m_window_size;
 
-  // data members for prefetch thread
-  std::mutex m_prefetch_mut;
-  std::condition_variable m_prefetch_cond;
-  std::deque<size_t> m_prefetched;
+  // Slices
+  std::vector<std::tuple<gsl::span<char>, size_t>> m_net_slices;
+
+  // data members for mpi thread
+  std::mutex m_mpi_mutex;
+  std::condition_variable m_mpi_cond;
+  std::deque<std::tuple<size_t, std::tuple<size_t, size_t>>> m_mpi_produced;
   std::vector<bool> m_buffer_writable;
-  std::unique_ptr<std::thread> m_prefetch_thread;
+  std::thread m_mpi_thread;
 
   // Atomics to flag errors and completion
   std::atomic<bool> m_done = false;
@@ -839,7 +745,7 @@ private:
   std::vector<std::thread> m_transpose_threads;
 
   // Array to store the number of banks per bank type
-  mutable std::array<unsigned int, NBankTypes> m_banks_count;
+  mutable std::array<unsigned int, LHCb::NBankTypes> m_banks_count;
   mutable bool m_sizes_known = false;
 
   // Run and event numbers present in each slice

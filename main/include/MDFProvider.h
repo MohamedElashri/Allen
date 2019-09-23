@@ -192,11 +192,7 @@ public:
           error_cout << "Failed to determine bank counts\n";
           m_read_error = true;
         } else {
-          for (auto bank_type : this->types()) {
-            debug_cout << std::setw(10) << bank_name(bank_type) << " banks:"
-                       << std::setw(4) << m_banks_count[to_integral(bank_type)] << "\n";
-            m_sizes_known = true;
-          }
+          m_sizes_known = true;
         }
       }
     }

@@ -494,9 +494,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               4,                 // number of transpose threads
                               10001,             // maximum number event of offsets in read buffer
                               *events_per_slice, // number of events per read buffer
-                              n_io_reps};        // number of loops over the input files
+                              3000,              // MEP packing factor
+                              mpi_window_size};  // MPI sliding window size
     input_provider = std::make_unique<MPIProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), mpi_window_size, mpi_number_of_slices, config);
+      number_of_slices, *events_per_slice, n_events, std::move(connections), config);
   }
   else if (!mdf_input.empty()) {
     vector<string> connections;
