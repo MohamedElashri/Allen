@@ -85,10 +85,11 @@ int main(int argc, char* argv[]) {
   size_t n_written = 0;
   uint64_t event_id = 0;
 
-  std::vector<std::tuple<EB::Header, EB::BlockHeader, size_t, vector<char>>> mfps;
+  std::vector<std::tuple<EB::BlockHeader, size_t, vector<char>>> blocks;
+  EB::Header mep_header;
 
   // offsets to fragments of the detector types
-  std::array<size_t, LHCb::NBankTypes> fragment_offsets{0};
+  std::array<size_t, LHCb::NBankTypes> block_offsets{0};
 
   // Header version 3
   auto hdr_size = LHCb::MDFHeader::sizeOf(3);
@@ -100,18 +101,29 @@ int main(int argc, char* argv[]) {
 
   FileWriter writer{output_file};
 
-  auto write_fragments = [&writer, &mfps, &n_written, hdr_size, packing_factor, header] {
-    header->setSize(sizeof(EB::Header) * mfps.size()
-                    + std::accumulate(mfps.begin(), mfps.end(), 0,
+  auto write_fragments = [&writer, &blocks, &n_written, &mep_header, hdr_size, packing_factor, header] {
+    header->setSize(mep_header.header_size(blocks.size())
+                    + std::accumulate(blocks.begin(), blocks.end(), 0,
                                       [packing_factor] (size_t s, const auto& entry) {
-                                        auto& [eb_header, block_header, n_filled, data] = entry;
+                                        auto& [block_header, n_filled, data] = entry;
                                         return s + block_header.header_size(packing_factor)
                                           + block_header.block_size;
                                       }));
     writer.write(gsl::span{reinterpret_cast<char const*>(header), hdr_size});
-    for (auto& [eb_header, block_header, n_filled, data] : mfps) {
+
+    size_t block_offset = 0;
+    for(size_t ib = 0; ib < blocks.size(); ++ib) {
+      mep_header.offsets[ib] = block_offset;
+      auto const& block = std::get<0>(blocks[ib]);
+      block_offset += block.header_size(block.n_frag) + block.block_size;
+    }
+    mep_header.mep_size = block_offset;
+
+    writer.write(mep_header.version, mep_header.n_blocks, mep_header.mep_size,
+                 mep_header.source_ids, mep_header.versions, mep_header.offsets);
+
+    for (auto& [block_header, n_filled, data] : blocks) {
       assert(std::accumulate(block_header.sizes.begin(), block_header.sizes.end(), 0) == block_header.block_size);
-      writer.write(eb_header);
       writer.write(block_header.event_id, block_header.n_frag, block_header.reserved, block_header.block_size,
                    block_header.types, block_header.sizes);
       writer.write(gsl::span{data.data(), block_header.block_size});
@@ -150,19 +162,21 @@ int main(int argc, char* argv[]) {
         // source ID range
         std::tie(count_success, banks_count) = fill_counts(bank_span);
         // Skip DAQ bank
-        auto n_fragments = std::accumulate(banks_count.begin(), banks_count.end(), 0)
+        uint16_t n_blocks = std::accumulate(banks_count.begin(), banks_count.end(), 0)
           - banks_count[LHCb::RawBank::DAQ];
         size_t offset = 0, i = 0;
         for (i = 0; i < banks_count.size(); ++i) {
           if (i != to_integral(LHCb::RawBank::DAQ)) {
-            fragment_offsets[i] = offset;
+            block_offsets[i] = offset;
             offset += banks_count[i];
           }
         }
-        mfps.resize(n_fragments);
-        for (auto& fragment : mfps) {
-          std::get<3>(fragment).resize(packing_factor * average_event_size * kB);
+        blocks.resize(n_blocks);
+        for (auto& block : blocks) {
+          std::get<2>(block).resize(packing_factor * average_event_size * kB);
         }
+
+        mep_header = EB::Header{1, n_blocks};
         sizes_known = true;
       }
 
@@ -186,16 +200,16 @@ int main(int argc, char* argv[]) {
           } else {
             ++source_offset;
           }
-          auto fragment_index = fragment_offsets[b->type()] + source_offset;
-          auto& [eb_header, block_header, n_filled, data] = mfps[fragment_index];
+          auto block_index = block_offsets[b->type()] + source_offset;
+          auto& [block_header, n_filled, data] = blocks[block_index];
 
           if (n_filled == 0) {
-            eb_header.source_id = b->sourceID();
-            eb_header.version = b->version();
+            mep_header.source_ids[block_index] = b->sourceID();
+            mep_header.versions[block_index] = b->version();
             block_header = EB::BlockHeader{event_id, packing_factor};
-          } else if (eb_header.source_id != b->sourceID()) {
+          } else if (mep_header.source_ids[block_index] != b->sourceID()) {
             cout << "Error: banks not ordered in the same way: "
-                 << eb_header.source_id << " " << b->sourceID() << "\n";
+                 << mep_header.source_ids[block_index] << " " << b->sourceID() << "\n";
             return -1;
           }
 
