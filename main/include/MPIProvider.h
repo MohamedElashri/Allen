@@ -111,6 +111,9 @@ public:
       m_net_slices.emplace_back(gsl::span{contents, n_bytes}, n_bytes);
     }
 
+    // Allocate queues for slice intervals
+    m_slice_intervals.resize(config.n_buffers);
+
     // Reinitialize to take the possible minimum number of events per
     // slice into account
     events_per_slice = this->events_per_slice();
@@ -180,7 +183,7 @@ public:
         bool count_success = false;
 
         // Offsets are to the start of the event, which includes the header
-        auto [i_read, interval] = m_mpi_produced.front();
+        auto i_read = m_mpi_produced.front();
         auto& [mpi_slice, slice_size] = m_net_slices[i_read];
         // FIXME: adapt fill counts for MEP
         std::tie(count_success, m_banks_count) = fill_counts(mpi_slice);
@@ -450,6 +453,18 @@ private:
       if (!error) {
         {
           std::unique_lock<std::mutex> lock{m_mpi_mutex};
+
+          auto eps = this->events_per_slice();
+          auto n_interval = m_config.packing_factor / eps;
+          auto rest = m_config.packing_factor % eps;
+          auto& intervals= m_slice_intervals[i_slice];
+          size_t i = 0;
+          for (; i < n_interval; ++i) {
+            intervals.emplace_back(i * eps, (i + 1) * eps);
+          }
+          if (rest) {
+            intervals.emplace_back(i * eps, i * eps + rest);
+          }
           m_mpi_produced.push_back(i_slice);
         }
         if (receive_done) {
@@ -475,6 +490,7 @@ private:
   void transpose(int thread_id) {
 
     size_t i_read = 0;
+    std::tuple<size_t, size_t> interval;
     std::optional<size_t> slice_index;
 
     bool good = false, transpose_full = false;
@@ -493,8 +509,11 @@ private:
           break;
         }
         i_read = m_mpi_produced.front();
-        m_mpi_produced.pop_front();
-        this->debug_output("Got read buffer index " + std::to_string(i_read), thread_id);
+        interval = m_slice_intervals[i_read].front();
+        m_slice_intervals[i_read].pop_front();
+        this->debug_output("Got MEP slice index " + std::to_string(i_read)
+                           + " interval [" + std::to_string(std::get<0>(interval)) + ","
+                           + std::to_string(std::get<1>(interval)) + ")", thread_id);
 
         m_buffer_writable[i_read] = false;
       }
@@ -532,7 +551,7 @@ private:
       reset_slice<Banks...>(m_slices, *slice_index, event_ids);
 
       // Transpose the events in the read buffer into the slice
-      // FIXME replace by proper transposition
+      // FIXME replace by proper transposition including interval
       // std::tie(good, transpose_full, n_transposed) = transpose_events<Banks...>(m_buffers[i_read],
       //                                                                           m_slices,
       //                                                                           *slice_index,
@@ -556,25 +575,31 @@ private:
         m_transposed.emplace_back(*slice_index, n_transposed);
       }
       m_transpose_cond.notify_one();
+      slice_index.reset();
 
       // Check if the read buffer is now empty. If it is, it can be
       // reused, otherwise give it to another transpose thread once a
       // new target slice is available
-      if (n_transposed == std::get<0>(m_net_slices[i_read])) {
-        slice_index.reset();
-        {
-          std::unique_lock<std::mutex> lock{m_prefetch_mut};
-          m_buffer_writable[i_read] = true;
-          // "Reset" buffer; the 0th offset is always 0.
-          std::get<0>(m_net_slices[i_read]) = 0;
+      auto& intervals = m_slice_intervals[i_read];
+      {
+        std::unique_lock<std::mutex> lock{m_mpi_mutex};
+        if (n_transposed == std::get<1>(interval) - std::get<0>(interval)) {
+          if (intervals.empty()) {
+            m_buffer_writable[i_read] = true;
+          }
+        } else {
+          // Put this prefetched slice back on the prefetched queue so
+          // somebody else can finish it
+          std::unique_lock<std::mutex> lock{m_mpi_mutex};
+          intervals.emplace_front(std::get<0>(interval) + n_transposed, std::get<1>(interval));
+        }
+        if (intervals.empty()) {
+          m_mpi_produced.pop_front();
           m_transpose_done = m_done && m_mpi_produced.empty();
         }
+      }
+      if (n_transposed == std::get<1>(interval) - std::get<0>(interval)) {
         m_mpi_cond.notify_one();
-      } else {
-        // Put this prefetched slice back on the prefetched queue so
-        // somebody else can finish it
-        std::unique_lock<std::mutex> lock{m_prefetch_mut};
-        m_mpi_produced.push_front(i_read);
       }
     }
   }
@@ -709,7 +734,8 @@ private:
   // data members for mpi thread
   std::mutex m_mpi_mutex;
   std::condition_variable m_mpi_cond;
-  std::deque<std::tuple<size_t, std::tuple<size_t, size_t>>> m_mpi_produced;
+  std::deque<size_t> m_mpi_produced;
+  std::vector<std::deque<std::tuple<size_t, size_t>>> m_slice_intervals;
   std::vector<bool> m_buffer_writable;
   std::thread m_mpi_thread;
 

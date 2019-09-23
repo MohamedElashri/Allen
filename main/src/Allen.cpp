@@ -489,11 +489,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       current = mdf_input.find(",", previous);
     }
     connections.emplace_back(mdf_input.substr(previous, current - previous));
-    MPIProviderConfig config {false,             // verify MPI checksums
+    MPIProviderConfig config {false,             // verify MEP checksums
                               10,                // number of read buffers
                               4,                 // number of transpose threads
                               10001,             // maximum number event of offsets in read buffer
-                              *events_per_slice, // number of events per read buffer
                               3000,              // MEP packing factor
                               mpi_window_size};  // MPI sliding window size
     input_provider = std::make_unique<MPIProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
