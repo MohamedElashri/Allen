@@ -33,8 +33,8 @@ namespace EB {
 
     Header() = default;
 
-    Header(uint16_t v, uint16_t nb)
-      : version{v}, n_blocks{nb}
+    Header(uint16_t pf, uint16_t nb)
+      : n_blocks{nb}, packing_factor{pf}
     {
       detail::resize(n_blocks, m_source_ids, source_ids);
       detail::resize(n_blocks, m_versions, versions);
@@ -48,24 +48,26 @@ namespace EB {
                    t = *reinterpret_cast<t_t const*>(data);
                    data += sizeof(t_t);
                  };
-      set(version);
       set(n_blocks);
+      set(packing_factor);
+      set(reserved);
       set(mep_size);
       source_ids = detail::make_span<uint16_t>(n_blocks, data);
       versions = detail::make_span<uint16_t>(n_blocks, data);
       offsets = detail::make_span<uint32_t>(n_blocks, data);
     }
 
-    uint16_t version = 1;
     uint16_t n_blocks = 0;
-    uint32_t mep_size = 0;
+    uint16_t packing_factor = 0;
+    uint32_t reserved = 0;
+    uint64_t mep_size = 0;
 
     gsl::span<uint16_t> source_ids;
     gsl::span<uint16_t> versions;
     gsl::span<uint32_t> offsets;
 
     static uint32_t base_size() {
-      return sizeof(version) + sizeof(n_blocks) + sizeof(mep_size);
+      return sizeof(n_blocks) + sizeof(packing_factor) + sizeof(reserved) + sizeof(mep_size);
     }
 
     static uint32_t header_size(uint16_t nb) {

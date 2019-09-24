@@ -83,7 +83,8 @@ int main(int argc, char* argv[])
       cerr << "Failed to EB header base" << strerror(errno) << "\n";
       break;
     }
-    cout << mep_header->version << " " << mep_header->n_blocks << " " << mep_header->mep_size << "\n";
+    cout << mep_header->n_blocks << " " << mep_header->packing_factor
+         << " " << mep_header->mep_size << "\n";
 
     header_buffer.resize(hdr_size + EB::Header::header_size(mep_header->n_blocks));
     mdf_header = reinterpret_cast<LHCb::MDFHeader*>(&header_buffer[0]);

@@ -27,26 +27,8 @@
 #include <CudaCommon.h>
 #endif
 
-namespace {
-  constexpr auto header_size = sizeof(LHCb::MDFHeader);
+#include "TransposeTypes.h"
 
-  using namespace Allen::Units;
-} // namespace
-
-namespace LHCb {
-  constexpr auto NBankTypes = to_integral<LHCb::RawBank::BankType>(LHCb::RawBank::LastType);
-} // namespace LHCb
-
-// Read buffer containing the number of events, offsets to the start
-// of the event and the event data
-using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>>;
-using ReadBuffers = std::vector<ReadBuffer>;
-
-// A slice contains transposed bank data, offsets to the start of each
-// set of banks and the number of sets of banks
-using Slice = std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>;
-using BankSlices = std::vector<Slice>;
-using Slices = std::array<BankSlices, NBankTypes>;
 
 //
 /**
@@ -210,23 +192,20 @@ std::tuple<bool, bool> transpose_event(
       // Decode the odin bank
     }
 
-    // Check what to do with this bank
     auto bt = b->type();
+
+    // Check what to do with this bank
     if (bt == LHCb::RawBank::ODIN) {
       // decode ODIN bank to obtain run and event numbers
-      auto odin = MDF::decode_odin(b);
+      auto odin = MDF::decode_odin(b->version(), b->data());
       event_ids.emplace_back(odin.run_number, odin.event_number);
-      bank += b->totalSize();
-      continue;
     }
     else if (bt >= LHCb::RawBank::LastType || bank_ids[bt] == -1) {
-      // This bank is not required: skip it
-      bank += b->totalSize();
-      continue;
+      prev_type = bt;
     }
     else if (bt != prev_type) {
       // Switch to new type of banks
-      bank_type_index = bank_ids[b->type()];
+      auto bank_type_index = bank_ids[bt];
       auto& slice = slices[bank_type_index][slice_index];
       prev_type = bt;
 
@@ -236,7 +215,7 @@ std::tuple<bool, bool> transpose_event(
 
       // Calculate the size taken by storing the number of banks
       // and offsets to all banks within the event
-      auto preamble_words = 2 + banks_count[b->type()];
+      auto preamble_words = 2 + banks_count[bt];
 
       // Initialize offset to start of this set of banks from the
       // previous one and increment with the preamble size
@@ -254,7 +233,7 @@ std::tuple<bool, bool> transpose_event(
       ++(*n_banks_offsets);
 
       // Write the number of banks
-      banks_write[0] = banks_count[b->type()];
+      banks_write[0] = banks_count[bt];
 
       // All bank offsets are uit32_t so cast to that type
       banks_offsets_write = banks_write + 1;

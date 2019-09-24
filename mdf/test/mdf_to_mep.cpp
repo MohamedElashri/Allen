@@ -119,7 +119,8 @@ int main(int argc, char* argv[]) {
     }
     mep_header.mep_size = block_offset;
 
-    writer.write(mep_header.version, mep_header.n_blocks, mep_header.mep_size,
+    writer.write(mep_header.n_blocks, mep_header.packing_factor, mep_header.reserved,
+                 mep_header.mep_size,
                  mep_header.source_ids, mep_header.versions, mep_header.offsets);
 
     for (auto& [block_header, n_filled, data] : blocks) {

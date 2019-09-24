@@ -50,6 +50,6 @@ namespace MDF {
     bool checkChecksum = true,
     size_t offset = 0);
 
-  LHCb::ODIN decode_odin(const LHCb::RawBank* bank);
+  LHCb::ODIN decode_odin(unsigned int version, unsigned int const* odinData);
 
 } // namespace MDF
