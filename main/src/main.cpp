@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
           max_file_size = size;
         }
       }
-      MPI_Send(&max_file_size, 1, MPI_SIZE_T, MPI::receiver, MPI::message::max_file_size, MPI_COMM_WORLD);
+      // MPI_Send(&max_file_size, 1, MPI_SIZE_T, MPI::receiver, MPI::message::max_file_size, MPI_COMM_WORLD);
 
       // Test: Send all the files
       int current_file=0;

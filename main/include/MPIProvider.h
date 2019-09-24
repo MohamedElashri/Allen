@@ -45,7 +45,6 @@ using Slices = std::array<BankSlices, NBankTypes>;
 
 /**
  * @brief      Configuration parameters for the MPIProvider
- *
  */
 struct MPIProviderConfig {
   // check the MDF checksum if it is available
@@ -66,6 +65,8 @@ struct MPIProviderConfig {
   size_t window_size = 4;
 
   size_t transpose_chunk_size = 20;
+
+  bool non_stop = true;
 };
 
 /**
@@ -285,8 +286,6 @@ public:
     return BanksAndOffsets {std::move(b), std::move(o)};
   }
 
-  //
-
 /**
  * @brief      Get a slice that is ready for processing; thread-safe
  *
@@ -355,7 +354,9 @@ private:
 
   // MPI reader thread
   void mpi_read() {
-    std::vector<MPI_Request> requests (m_window_size);
+
+    auto window_size = m_config.window_size;
+    std::vector<MPI_Request> requests (window_size);
 
     // Iterate over the slices
     int current_slice = 0;
@@ -364,13 +365,16 @@ private:
     size_t reporting_period = 5;
     size_t bytes_received = 0;
     size_t meps_received = 0;
+    size_t number_of_files = 0;
     Timer t;
     Timer t_origin;
     bool error = false;
     bool receive_done = false;
 
-    // for (int i=0; i<number_of_events; ++i) {
-    while (true) {
+    MPI_Recv(&number_of_files, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_events, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    int current_file=0;
+    while (m_config.non_stop || current_file<number_of_files) {
 
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
@@ -415,7 +419,7 @@ private:
       // Size of the last message (if the MFP size is not a multiple of MPI::mdf_chunk_size)
       int rest = mep_size - n_messages * MPI::mdf_chunk_size;
       // Number of parallel sends
-      int n_sends = n_messages > m_window_size ? m_window_size : n_messages;
+      int n_sends = n_messages > window_size ? window_size : n_messages;
 
       // info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
 
@@ -428,7 +432,7 @@ private:
       // Sliding window sends
       for(int k = n_sends; k < n_messages; k++) {
         int r;
-        MPI_Waitany(m_window_size, requests.data(), &r, MPI_STATUS_IGNORE);
+        MPI_Waitany(window_size, requests.data(), &r, MPI_STATUS_IGNORE);
         char* message = contents + k * MPI::mdf_chunk_size;
         MPI_Irecv(message, MPI::mdf_chunk_size, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + k,
                   MPI_COMM_WORLD, &requests[r]);
@@ -436,7 +440,7 @@ private:
       // Last send (if necessary)
       if (rest) {
         int r;
-        MPI_Waitany(m_window_size, requests.data(), &r, MPI_STATUS_IGNORE);
+        MPI_Waitany(window_size, requests.data(), &r, MPI_STATUS_IGNORE);
         char* message = contents + n_messages * MPI::mdf_chunk_size;
         MPI_Irecv(message, rest, MPI_BYTE, MPI::sender, MPI::message::event_send_tag_start + n_messages,
                   MPI_COMM_WORLD, &requests[r]);
@@ -491,6 +495,8 @@ private:
         }
       }
       m_mpi_cond.notify_one();
+
+      current_file++;
     }
   }
 
@@ -620,9 +626,6 @@ private:
       }
     }
   }
-
-  // Window transmission size
-  size_t m_window_size;
 
   // Slices
   MEP::Slices m_net_slices;
