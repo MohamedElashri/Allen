@@ -220,3 +220,18 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
 
   return {success, to_transpose != (event_end - event_start), i_event};
 }
+
+std::vector<int> bank_ids() {
+  // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
+  std::vector<int> ids;
+  ids.resize(LHCb::RawBank::LastType);
+  for (int bt = LHCb::RawBank::L0Calo; bt < LHCb::RawBank::LastType; ++bt) {
+    auto it = Allen::bank_types.find(static_cast<LHCb::RawBank::BankType>(bt));
+    if (it != Allen::bank_types.end()) {
+      ids[bt] = to_integral(it->second);
+    } else {
+      ids[bt] = -1;
+    }
+  }
+  return ids;
+}

@@ -155,16 +155,7 @@ public:
       m_event_ids[n].reserve(events_per_slice);
     }
 
-    // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
-    m_bank_ids.resize(LHCb::RawBank::LastType);
-    for (int bt = LHCb::RawBank::L0Calo; bt < LHCb::RawBank::LastType; ++bt) {
-      auto it = Allen::bank_types.find(static_cast<LHCb::RawBank::BankType>(bt));
-      if (it != Allen::bank_types.end()) {
-        m_bank_ids[bt] = to_integral(it->second);
-      } else {
-        m_bank_ids[bt] = -1;
-      }
-    }
+    m_bank_ids = bank_ids();
 
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);

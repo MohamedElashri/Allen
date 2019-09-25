@@ -33,3 +33,5 @@ using ReadBuffers = std::vector<ReadBuffer>;
 using Slice = std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>;
 using BankSlices = std::vector<Slice>;
 using Slices = std::array<BankSlices, NBankTypes>;
+
+std::vector<int> bank_ids();

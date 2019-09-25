@@ -16,17 +16,19 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <CudaCommon.h>
+
 #include <Logger.h>
 #include <InputProvider.h>
+#include <BankTypes.h>
+#include <Timer.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <raw_bank.hpp>
 
 #include "Transpose.h"
 #include "TransposeMEP.h"
-#include <CudaCommon.h>
-#include <MPIConfig.h>
-#include <Timer.h>
+#include "MPIConfig.h"
 
 namespace {
   using namespace Allen::Units;
@@ -157,16 +159,7 @@ public:
       m_event_ids[n].reserve(events_per_slice);
     }
 
-    // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
-    m_bank_ids.resize(LHCb::RawBank::LastType);
-    for (int bt = LHCb::RawBank::L0Calo; bt < LHCb::RawBank::LastType; ++bt) {
-      auto it = Allen::bank_types.find(static_cast<LHCb::RawBank::BankType>(bt));
-      if (it != Allen::bank_types.end()) {
-        m_bank_ids[bt] = to_integral(it->second);
-      } else {
-        m_bank_ids[bt] = -1;
-      }
-    }
+    m_bank_ids = bank_ids();
 
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);

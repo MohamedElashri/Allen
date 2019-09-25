@@ -1,7 +1,8 @@
 set(SOURCES
   src/compression.cpp
   src/raw_helpers.cpp
-  src/read_mdf.cpp)
+  src/read_mdf.cpp
+  src/read_mep.cpp)
 
 allen_add_library(mdf ${SOURCES})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
