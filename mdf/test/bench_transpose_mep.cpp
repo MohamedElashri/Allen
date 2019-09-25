@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 
   // Start the transpose threads
   for (size_t i = 0; i < n_slices; ++i) {
-    threads.emplace_back(thread {[&] {
+    threads.emplace_back(thread {[i, n_reps, &event_ids, &mep_buffers, &slices, &b_ids, &banks_count] {
       bool success = false;
 
       auto& [buffer, mep_header, mep_span] = mep_buffers[i];
@@ -149,8 +149,7 @@ int main(int argc, char* argv[])
                                                                              b_ids,
                                                                              banks_count,
                                                                              event_ids[i],
-                                                                             {0, mep_header.packing_factor},
-                                                                             mep_header.packing_factor);
+                                                                             {0, mep_header.packing_factor});
 
         info_cout << "thread " << i << " " << success << " " << transpose_full << " " << n_transposed << endl;
       }
