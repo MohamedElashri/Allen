@@ -67,18 +67,16 @@ int main(int argc, char* argv[])
 
       assert(d - (mep_span.begin() + header_size) == mep_header.offsets[i_block]);
 
-      auto lhcb_type = int(block_header.types[0]);
+      auto lhcb_type = int{block_header.types[0]};
 
       cout << "fragment"
            << " packing: " << std::setw(4) << block_header.n_frag
            << " event_id: " << std::setw(6) << block_header.event_id
-           << " type: " << std::setw(3) << int(block_header.types[0])
+           << " type: " << std::setw(3) << lhcb_type
            << " source_id " << std::setw(4) << mep_header.source_ids[i_block]
            << " version: " << std::setw(2) << mep_header.versions[i_block]
            << " size: " << std::setw(6) << block_header.block_size
            << "\n";
-
-      ++count[lhcb_type];
 
       d = block_end;
       ++i_block;
