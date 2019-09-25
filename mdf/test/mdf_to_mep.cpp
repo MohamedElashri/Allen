@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
           std::get<2>(block).resize(packing_factor * average_event_size * kB);
         }
 
-        mep_header = EB::Header{1, n_blocks};
+        mep_header = EB::Header{packing_factor, n_blocks};
         sizes_known = true;
       }
 
@@ -214,15 +214,23 @@ int main(int argc, char* argv[]) {
             return -1;
           }
 
+          // NOTE: All banks are truncated to 32 bit values. This
+          // doesn't seem to make a difference except for the UT,
+          // where the size is larger than the number of words o.O
+          auto n_words = b->size() / sizeof(uint32_t);
+          auto word_size = n_words * sizeof(uint32_t);
           block_header.types[n_filled] = b->type();
-          block_header.sizes[n_filled] = b->size();
+          block_header.sizes[n_filled] = n_words * sizeof(uint32_t);
+
           // safety measure, shouldn't be called
-          if (block_header.block_size + b->size() > data.size()) {
+          if (block_header.block_size + word_size > data.size()) {
             cout << "Warning: data size insufficient, resizing\n";
             data.resize(1.5 * data.size());
           }
-          ::memcpy(&data[0] + block_header.block_size, b->data(), b->size());
-          block_header.block_size += b->size();
+
+          // Copy bank data
+          ::memcpy(&data[0] + block_header.block_size, b->data(), word_size);
+          block_header.block_size += word_size;
 
           ++n_filled;
         } else if (b->type() != LHCb::RawBank::DAQ) {
