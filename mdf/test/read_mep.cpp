@@ -12,10 +12,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "raw_bank.hpp"
-#include "read_mdf.hpp"
-#include "eb_header.hpp"
-#include "Logger.h"
+#include <Logger.h>
+
+#include <raw_bank.hpp>
+#include <read_mdf.hpp>
+#include <eb_header.hpp>
+#include <read_mep.hpp>
 
 using namespace std;
 
@@ -53,79 +55,30 @@ int main(int argc, char* argv[])
   size_t i_mep = 0;
   while (!eof && i_mep++ < n_meps) {
 
-    ssize_t n_bytes = ::read(input, &header_buffer[0], sizeof(LHCb::MDFHeader));
-    if (n_bytes <= 0) {
-      cerr << "Failed to read header " << strerror(errno) << "\n";
-      break;
-    }
-    uint header_version = mdf_header->headerVersion();
-    auto hdr_size = LHCb::MDFHeader::sizeOf(header_version);
-    assert((hdr_size - sizeof(LHCb::MDFHeader)) == mdf_header->subheaderLength());
-    // read subheader
-    header_buffer.resize(hdr_size + EB::Header::base_size());
-    mdf_header = reinterpret_cast<LHCb::MDFHeader*>(&header_buffer[0]);
-    auto mdf_size = mdf_header->size();
-    n_bytes = ::read(input, &header_buffer[0] + sizeof(LHCb::MDFHeader), mdf_header->subheaderLength());
-    if (n_bytes <= 0) {
-      cerr << "Failed to read subheader " << strerror(errno) << "\n";
-      break;
-    }
+    auto [success, mep_header, mep_span] = MEP::read_mep(input, data);
 
-    // check
-    assert(mdf_header->size() == mdf_size);
-
-    // read EB::Header
-    char* mep_buffer = &header_buffer[0] + hdr_size;
-    EB::Header* mep_header = reinterpret_cast<EB::Header*>(mep_buffer);
-
-    n_bytes = ::read(input, mep_buffer, EB::Header::base_size());
-    if (n_bytes <= 0) {
-      cerr << "Failed to EB header base" << strerror(errno) << "\n";
-      break;
-    }
-    cout << mep_header->n_blocks << " " << mep_header->packing_factor
-         << " " << mep_header->mep_size << "\n";
-
-    header_buffer.resize(hdr_size + EB::Header::header_size(mep_header->n_blocks));
-    mdf_header = reinterpret_cast<LHCb::MDFHeader*>(&header_buffer[0]);
-    mep_buffer = &header_buffer[0] + hdr_size;
-    mep_header = reinterpret_cast<EB::Header*>(mep_buffer);
-
-    n_bytes = ::read(input, mep_buffer + EB::Header::base_size(),
-                     EB::Header::header_size(mep_header->n_blocks) - EB::Header::base_size());
-    if (n_bytes <= 0) {
-      cerr << "Failed to EB header" << strerror(errno) << "\n";
-      break;
-    }
-    EB::Header full_header{reinterpret_cast<char const*>(mep_buffer)};
-
-    auto data_size = full_header.mep_size;
-    data.resize(data_size);
-    cout << "data size " << data_size << "\n";
-    n_bytes = ::read(input, &data[0], data_size);
-    if (n_bytes <= 0) {
-      cerr << "Failed to read data of size " << mdf_header->size() << " " << strerror(errno) << "\n";
-      break;
-    }
-
-    gsl::span<char const> data_span{data.data(), data_size};
-    auto const* d = data_span.begin();
+    auto header_size = mep_header.header_size(mep_header.n_blocks);
+    auto const* d = mep_span.begin() + header_size;
     size_t i_block = 0;
-    while(d != data_span.end()) {
+    while(d != mep_span.end()) {
       EB::BlockHeader const block_header{d};
       char const* block_data = d + block_header.header_size(block_header.n_frag);
       char const* block_end = block_data + block_header.block_size;
 
-      assert(d - data_span.begin() == full_header.offsets[i_block]);
+      assert(d - (mep_span.begin() + header_size) == mep_header.offsets[i_block]);
+
+      auto lhcb_type = int(block_header.types[0]);
 
       cout << "fragment"
            << " packing: " << std::setw(4) << block_header.n_frag
            << " event_id: " << std::setw(6) << block_header.event_id
            << " type: " << std::setw(3) << int(block_header.types[0])
-           << " source_id " << std::setw(4) << full_header.source_ids[i_block]
-           << " version: " << std::setw(2) << full_header.versions[i_block]
+           << " source_id " << std::setw(4) << mep_header.source_ids[i_block]
+           << " version: " << std::setw(2) << mep_header.versions[i_block]
            << " size: " << std::setw(6) << block_header.block_size
            << "\n";
+
+      ++count[lhcb_type];
 
       d = block_end;
       ++i_block;
