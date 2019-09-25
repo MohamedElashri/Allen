@@ -352,7 +352,8 @@ private:
     MPI_Recv(&number_of_files, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_events, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
     int current_file=0;
-    while (m_config.non_stop || current_file<number_of_files) {
+    while (m_config.non_stop || current_file < number_of_files) {
+      info_cout << "round " << current_file << "\n";
 
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
@@ -384,6 +385,10 @@ private:
       size_t mep_size = 0;
       MPI_Recv(&mep_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
+      info_cout << MPI::rank_str() << "event size: " << mep_size << "\n";
+
+      // info_cout << MPI::rank_str() << "Max event size " << mep_size << "\n";
+
       // Reallocate if needed
       if (mep_size > buffer_size) {
         buffer_size = mep_size * bank_size_fudge_factor;
@@ -399,7 +404,7 @@ private:
       // Number of parallel sends
       int n_sends = n_messages > window_size ? window_size : n_messages;
 
-      // info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
+      info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
 
       // Initial parallel sends
       for (int k = 0; k < n_sends; k++) {
@@ -425,6 +430,8 @@ private:
       }
       // Wait until all chunks have been sent
       MPI_Waitall(n_sends, requests.data(), MPI_STATUSES_IGNORE);
+
+      info_cout << "All chunks received\n";
 
       buffer_span = gsl::span{contents, mep_size};
 

@@ -20,6 +20,12 @@
 #include <Logger.h>
 #include <Timer.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <read_mep.hpp>
+
 namespace MPI {
   int rank;
 }
@@ -164,7 +170,6 @@ int main(int argc, char* argv[])
 
         // Number of files to read
         const size_t number_of_files = connections.size();
-        MPI_Send(&number_of_files, 1, MPI_SIZE_T, MPI::receiver, MPI::message::number_of_events, MPI_COMM_WORLD);
 
         // Read all files in connections
         std::vector<char*> file_contents;
@@ -173,31 +178,32 @@ int main(int argc, char* argv[])
         info_cout << MPI::rank_str() << "Reading files\n" << MPI::rank_str();
         for (const auto& connection : connections) {
           info_cout << "." << std::flush;
-          std::ifstream file_ifstream {connection, std::ios::binary | std::ios::ate};
-          file_sizes.emplace_back(file_ifstream.tellg());
+
+          std::vector<char> data;
+          int input = ::open(connection.c_str(), O_RDONLY);
+          auto [success, mep_header, mep_span] = MEP::read_mep(input, data);
 
           char* contents;
-          MPI_Alloc_mem(file_sizes.back(), MPI_INFO_NULL, &contents);
+          MPI_Alloc_mem(mep_span.size(), MPI_INFO_NULL, &contents);
 
           // Populate contents with stream buf
-          char* contents_it = contents;
-          for (auto it = std::istreambuf_iterator<char>(file_ifstream); it != std::istreambuf_iterator<char>(); ++it) {
-            *contents_it = *it;
-            contents_it++;
-          }
+          std::copy_n(mep_span.data(), mep_span.size(), contents);
 
-          // std::vector<uint8_t> fcontents {std::istreambuf_iterator<char>(file_ifstream), {}};
           file_contents.emplace_back(contents);
+          file_sizes.emplace_back(mep_span.size());
         }
-        info_cout << "\n" << MPI::rank_str() << number_of_files << " files successfully read.\n";
+        // info_cout << "\n" << MPI::rank_str() << number_of_files << " files successfully read.\n";
 
-        // Notify the max file size
-        size_t max_file_size = 0;
-        for (const auto size : file_sizes) {
-          if (size > max_file_size) {
-            max_file_size = size;
-          }
-        }
+        size_t number_of_meps = file_contents.size();
+        MPI_Send(&number_of_meps, 1, MPI_SIZE_T, MPI::receiver, MPI::message::number_of_events, MPI_COMM_WORLD);
+
+        // // Notify the max file size
+        // size_t max_file_size = 0;
+        // for (const auto size : file_sizes) {
+        //   if (size > max_file_size) {
+        //     max_file_size = size;
+        //   }
+        // }
         // MPI_Send(&max_file_size, 1, MPI_SIZE_T, MPI::receiver, MPI::message::max_file_size, MPI_COMM_WORLD);
 
         // Test: Send all the files
@@ -210,6 +216,8 @@ int main(int argc, char* argv[])
           // Notify the event size
           MPI_Send(&current_event_size, 1, MPI_SIZE_T, MPI::receiver, MPI::message::event_size, MPI_COMM_WORLD);
 
+          info_cout << MPI::rank_str() << "event size: " << current_event_size << "\n";
+
           // Number of full-size (MPI::mdf_chunk_size) messages
           int n_messages = current_event_size / MPI::mdf_chunk_size;
           // Size of the last message (if the MFP size is not a multiple of MPI::mdf_chunk_size)
@@ -217,7 +225,7 @@ int main(int argc, char* argv[])
           // Number of parallel sends
           int n_sends = n_messages > window_size ? window_size : n_messages;
 
-          // info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
+          info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
 
           // Initial parallel sends
           for (int k = 0; k < n_sends; k++) {
@@ -245,6 +253,8 @@ int main(int argc, char* argv[])
           // Wait until all chunks have been sent
           MPI_Waitall(n_sends, requests.data(), MPI_STATUSES_IGNORE);
 
+          info_cout << "All chunks sent\n";
+
           if (non_stop) {
             current_file = (current_file + 1) % number_of_files;
           } else {
@@ -255,11 +265,15 @@ int main(int argc, char* argv[])
         error_cout << MPI::rank_str() << "Required argument --mdf not supplied. Exiting application.\n";
         return -1;
       }
+    } else {
+      Allen::NonEventData::Updater updater {allen_options};
+      return allen(std::move(allen_options), &updater);
     }
-  } else if (!with_mpi || MPI::rank == MPI::receiver) {
+  } else {
     Allen::NonEventData::Updater updater {allen_options};
     return allen(std::move(allen_options), &updater);
   }
+
   if (with_mpi) {
     MPI_Finalize();
   }
