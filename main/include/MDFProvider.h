@@ -118,34 +118,15 @@ public:
 
     // Allocate slice memory that will contain transposed banks ready
     // for processing by the Allen kernels
-    for (auto bank_type : {Banks...}) {
+    auto size_fun = [events_per_slice](BankTypes bank_type) -> std::tuple<size_t, size_t> {
       auto it = BankSizes.find(bank_type);
       auto ib = to_integral<BankTypes>(bank_type);
       if (it == end(BankSizes)) {
         throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
       }
-
-      // Fudge with extra 20% memory
-      size_t n_bytes = std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB);
-      auto& slices = m_slices[ib];
-      slices.reserve(n_slices);
-      for (size_t i = 0; i < n_slices; ++i) {
-        char* events_mem = nullptr;
-        uint* offsets_mem = nullptr;
-
-#ifndef NO_CUDA
-        cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
-        cudaCheck(cudaMallocHost((void**) &offsets_mem, (events_per_slice + 1) * sizeof(uint)));
-#else
-        events_mem = static_cast<char*>(malloc(n_bytes));
-        offsets_mem = static_cast<uint*>(malloc((events_per_slice + 1) * sizeof(uint)));
-#endif
-        offsets_mem[0] = 0;
-        slices.emplace_back(gsl::span<char>{events_mem, n_bytes},
-                            gsl::span<uint>{offsets_mem, events_per_slice + 1},
-                            1);
-      }
-    }
+      return {std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB), events_per_slice};
+    };
+    m_slices = allocate_slices<Banks...>(n_slices, size_fun);
 
     // Initialize the current input filename
     m_current = m_connections.begin();

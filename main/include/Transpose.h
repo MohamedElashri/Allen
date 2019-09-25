@@ -344,3 +344,33 @@ std::tuple<bool, bool, size_t> transpose_events(
 
   return {success, full, i_event};
 }
+
+template<BankTypes... Banks>
+Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun) {
+  Slices slices;
+  for (auto bank_type : {Banks...}) {
+    auto [n_bytes, n_offsets] = size_fun(bank_type);
+    auto ib = to_integral<BankTypes>(bank_type);
+    auto& bank_slices = slices[ib];
+    bank_slices.reserve(n_slices);
+    for (size_t i = 0; i < n_slices; ++i) {
+      char* events_mem = nullptr;
+      uint* offsets_mem = nullptr;
+
+#ifndef NO_CUDA
+      cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
+      cudaCheck(cudaMallocHost((void**) &offsets_mem, (n_offsets + 1) * sizeof(uint)));
+#else
+      events_mem = static_cast<char*>(malloc(n_bytes));
+      offsets_mem = static_cast<uint*>(malloc((n_offsets + 1) * sizeof(uint)));
+#endif
+      for (size_t i = 0; i < n_offsets + 1; ++i) {
+        offsets_mem[i] = 0;
+      }
+      bank_slices.emplace_back(gsl::span<char>{events_mem, n_bytes},
+                               gsl::span<uint>{offsets_mem, n_offsets + 1},
+                               1);
+    }
+  }
+  return slices;
+}

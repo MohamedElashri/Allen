@@ -46,34 +46,6 @@ namespace {
   std::array<unsigned int, LHCb::RawBank::LastType> banks_count;
 } // namespace
 
-Slices allocate_slices(uint16_t packing_factor, size_t n_slices) {
-  Slices slices;
-  size_t n_bytes = std::lround(average_event_size * packing_factor * bank_size_fudge_factor * kB);
-  for (auto bank_type : {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON}) {
-    auto ib = to_integral<BankTypes>(bank_type);
-    auto& bank_slices = slices[ib];
-    bank_slices.reserve(n_slices);
-    for (size_t i = 0; i < n_slices; ++i) {
-      char* events_mem = nullptr;
-      uint* offsets_mem = nullptr;
-
-#ifndef NO_CUDA
-      cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
-      cudaCheck(cudaMallocHost((void**) &offsets_mem, (packing_factor + 1) * sizeof(uint)));
-#else
-      events_mem = static_cast<char*>(malloc(n_bytes));
-      offsets_mem = static_cast<uint*>(malloc((packing_factor + 1) * sizeof(uint)));
-#endif
-      for (size_t i = 0; i < packing_factor + 1; ++i) {
-        offsets_mem[i] = 0;
-      }
-      bank_slices.emplace_back(gsl::span<char>{events_mem, n_bytes},
-                               gsl::span<uint>{offsets_mem, packing_factor + 1u},
-                               1);
-    }
-  }
-  return slices;
-}
 
 BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_index) {
   auto ib = to_integral<BankTypes>(bank_type);
@@ -111,7 +83,7 @@ transpose_mep(Slices& mep_slices,
                                  ids,
                                  banks_count,
                                  events_mep,
-                                 {0, mep_header.packing_factor},
+                                 {0, chunk_size},
                                  chunk_size);
   return {std::get<2>(r), events_mep};
 }
@@ -175,10 +147,14 @@ int main(int argc, char* argv[])
     // Transpose MEP
     auto [success, mep_header, mep_span] = MEP::read_mep(input, mep_buffer);
 
-    mep_slices = allocate_slices(mep_header.packing_factor, 1);
+    auto pf = mep_header.packing_factor;
+    auto size_fun = [pf](BankTypes) -> std::tuple<size_t, size_t> {
+      return {std::lround(average_event_size * pf * bank_size_fudge_factor * kB), pf};
+    };
+    mep_slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(1, size_fun);
 
     size_t n_transposed = 0;
-    std::tie(n_transposed, events_mep) = transpose_mep(mep_slices, 0, mep_header, mep_span, 20);
+    std::tie(n_transposed, events_mep) = transpose_mep(mep_slices, 0, mep_header, mep_span, s_config.n_events);
   }
 
   return session.run();
