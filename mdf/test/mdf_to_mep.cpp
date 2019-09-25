@@ -118,6 +118,7 @@ int main(int argc, char* argv[]) {
       block_offset += block.header_size(block.n_frag) + block.block_size;
     }
     mep_header.mep_size = block_offset;
+    mep_header.packing_factor = packing_factor;
 
     writer.write(mep_header.n_blocks, mep_header.packing_factor, mep_header.reserved,
                  mep_header.mep_size,

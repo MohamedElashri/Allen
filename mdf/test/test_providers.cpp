@@ -55,12 +55,11 @@ BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_inde
   return BanksAndOffsets {std::move(b), std::move(o)};
 }
 
-std::tuple<size_t, EventIDs>
-transpose_mep(Slices& mep_slices,
-              int output_index,
-              EB::Header& mep_header,
-              gsl::span<char const> mep_span,
-              size_t chunk_size) {
+size_t transpose_mep(Slices& mep_slices,
+                     int output_index,
+                     EB::Header& mep_header,
+                     gsl::span<char const> mep_span,
+                     size_t chunk_size) {
   // read MEP
 
   MEP::Slice input_slice{gsl::span{const_cast<char*>(mep_span.data()), mep_span.size()}, mep_span.size()};
@@ -85,7 +84,7 @@ transpose_mep(Slices& mep_slices,
                                  events_mep,
                                  {0, chunk_size},
                                  chunk_size);
-  return {std::get<2>(r), events_mep};
+  return std::get<2>(r);
 }
 
 int main(int argc, char* argv[])
@@ -154,7 +153,7 @@ int main(int argc, char* argv[])
     mep_slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(1, size_fun);
 
     size_t n_transposed = 0;
-    std::tie(n_transposed, events_mep) = transpose_mep(mep_slices, 0, mep_header, mep_span, s_config.n_events);
+    n_transposed = transpose_mep(mep_slices, 0, mep_header, mep_span, s_config.n_events);
   }
 
   return session.run();

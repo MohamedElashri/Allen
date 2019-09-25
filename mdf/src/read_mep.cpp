@@ -47,7 +47,6 @@ MEP::read_mep(int input, std::vector<char>& buffer) {
   // read EB::Header
   char* mep_buffer = &buffer[0] + hdr_size;
   EB::Header* mep_header = reinterpret_cast<EB::Header*>(mep_buffer);
-
   n_bytes = ::read(input, mep_buffer, EB::Header::base_size());
   if (n_bytes <= 0) {
     cerr << "Failed to EB header base" << strerror(errno) << "\n";

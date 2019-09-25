@@ -70,6 +70,7 @@ if (BUILD_TESTS)
   test_program(NAME bench_read)
   test_program(NAME bench_provider)
   test_program(NAME bench_transpose)
+  test_program(NAME bench_transpose_mep)
 
   test_program(NAME test_providers)
   catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
