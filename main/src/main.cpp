@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
 
           std::vector<char> data;
           int input = ::open(connection.c_str(), O_RDONLY);
-          auto [success, mep_header, mep_span] = MEP::read_mep(input, data);
+          auto [eof, success, mep_header, mep_span] = MEP::read_mep(input, data);
 
           char* contents;
           MPI_Alloc_mem(mep_span.size(), MPI_INFO_NULL, &contents);
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
         // // Read file_contents 0:
         // LHCb::MDFHeader* mdf_header = reinterpret_cast<LHCb::MDFHeader*>(file_contents[0]);
         // auto mdf_size = mdf_header->size();
-        
+
         // info_cout << "MDF size: " << mdf_size << "\n";
 
         // const uint header_version = mdf_header->headerVersion();
