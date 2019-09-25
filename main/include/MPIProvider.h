@@ -168,13 +168,14 @@ public:
         auto i_read = m_mpi_produced.front();
         auto& [mpi_slice, slice_size] = m_net_slices[i_read];
         EB::Header mep_header{mpi_slice.data()};
-        gsl::span<char const> block_span{mpi_slice.data() + mep_header.header_size(mep_header.n_blocks), mep_header.mep_size};
+        // gsl::span<char const> block_span{mpi_slice.data() + mep_header.header_size(mep_header.n_blocks), mep_header.mep_size};
 
-        std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, block_span);
+        std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, mpi_slice);
 
         // Allocate storage for transposition
         m_offsets.resize(mep_header.n_blocks);
         for (auto& offsets : m_offsets) {
+          // info_cout << "Packing factor: " << mep_header.packing_factor << "\n";
           offsets.resize(mep_header.packing_factor + 1);
         }
 
@@ -353,7 +354,7 @@ private:
 
     int current_file=0;
     while (m_config.non_stop || current_file < number_of_files) {
-      info_cout << "round " << current_file << "\n";
+      // info_cout << MPI::rank_str() << "round " << current_file << "\n";
 
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
@@ -385,7 +386,7 @@ private:
       size_t mep_size = 0;
       MPI_Recv(&mep_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-      info_cout << MPI::rank_str() << "event size: " << mep_size << "\n";
+      // info_cout << MPI::rank_str() << "event size: " << mep_size << "\n";
 
       // info_cout << MPI::rank_str() << "Max event size " << mep_size << "\n";
 
@@ -404,7 +405,7 @@ private:
       // Number of parallel sends
       int n_sends = n_messages > window_size ? window_size : n_messages;
 
-      info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
+      // info_cout << MPI::rank_str() << "n_messages " << n_messages << ", rest " << rest << ", n_sends " << n_sends << "\n";
 
       // Initial parallel sends
       for (int k = 0; k < n_sends; k++) {
@@ -431,7 +432,7 @@ private:
       // Wait until all chunks have been sent
       MPI_Waitall(n_sends, requests.data(), MPI_STATUSES_IGNORE);
 
-      info_cout << "All chunks received\n";
+      // info_cout << "All chunks received\n";
 
       buffer_span = gsl::span{contents, mep_size};
 
@@ -463,9 +464,11 @@ private:
           auto& intervals= m_slice_intervals[i_slice];
           size_t i = 0;
           for (; i < n_interval; ++i) {
+            info_cout << "Set interval: " << i * eps << "," << (i + 1) * eps << "\n";
             intervals.emplace_back(i * eps, (i + 1) * eps);
           }
           if (rest) {
+            info_cout << "Set interval (rest): " << i * eps << "," << i * eps + rest << "\n";
             intervals.emplace_back(i * eps, i * eps + rest);
           }
           m_mpi_produced.push_back(i_slice);
@@ -513,9 +516,17 @@ private:
           this->debug_output("Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_mpi_produced.empty()), thread_id);
           break;
         }
+        
         i_read = m_mpi_produced.front();
+
         interval = m_slice_intervals[i_read].front();
         m_slice_intervals[i_read].pop_front();
+
+        if (m_slice_intervals[i_read].empty()) {
+          // Consume mpi_produced
+          m_mpi_produced.pop_front();
+        }
+
         this->debug_output("Got MEP slice index " + std::to_string(i_read)
                            + " interval [" + std::to_string(std::get<0>(interval)) + ","
                            + std::to_string(std::get<1>(interval)) + ")", thread_id);
@@ -602,7 +613,7 @@ private:
           intervals.emplace_front(std::get<0>(interval) + n_transposed, std::get<1>(interval));
         }
         if (intervals.empty()) {
-          m_mpi_produced.pop_front();
+          // m_mpi_produced.pop_front();
           m_transpose_done = m_done && m_mpi_produced.empty();
         }
       }
