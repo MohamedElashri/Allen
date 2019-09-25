@@ -5,12 +5,12 @@
 namespace {
 
   // Factory for filename checking: a regex and a predicate on the its matches
-  using factory = std::tuple<std::reference_wrapper<const std::regex>, std::function<bool(const std::smatch&)>>;
+  using factory = std::tuple<std::regex, std::function<bool(const std::smatch&)>>;
 
   // Check binary files: they should match the regex and have n non-zero sub-matches
   const std::regex bin_format {"(\\d+)(?:_(\\d+))?\\.bin"};
   auto check_bin = [](size_t n) -> factory {
-    return {std::cref(bin_format), [n](const std::smatch& matches) {
+    return {bin_format, [n](const std::smatch& matches) {
               return std::accumulate(begin(matches) + 1, end(matches), 0ul, [](const auto& v, const auto& m) {
                        return v + (m.length() != 0);
                      }) == n;
@@ -18,23 +18,30 @@ namespace {
   };
 
   // Check mdf files: they should match the regex and have not-empty filename
-  const std::regex mdf_format {"(.+)\\.mdf"};
-  auto check_mdf = []() -> factory {
-    return {std::cref(mdf_format),
+  auto check_ext = [](std::string ext) -> factory {
+    const std::regex format {std::string{"(.+)\\."} + ext};
+    return {format,
+            [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
+  };
+
+  // Check mep files: they should match the regex and have not-empty filename
+  const std::regex mdf_format {"(.+)\\.mep"};
+  auto check_mep = []() -> factory {
+    return {mdf_format,
             [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
   };
 
   // Check geometry files: they should match the regex.
   const std::regex geom_format {".*geometry.*"};
   auto check_geom = []() -> factory {
-    return {std::cref(geom_format), [](const std::smatch& matches) { return matches.size() == 1; }};
+    return {geom_format, [](const std::smatch& matches) { return matches.size() == 1; }};
   };
 
   // Check all filenames using the regex and its match predicate
   // returned by calling the factory function
   auto check_names = [](const auto& names, const factory& fact) {
     // Check if all all names have the right format and the same format
-    const std::regex& expr = std::get<0>(fact).get();
+    auto expr = std::get<0>(fact);
     const auto& pred = std::get<1>(fact);
     return std::all_of(begin(names), end(names), [&expr, &pred](const auto& t) {
       std::smatch matches;
@@ -148,13 +155,13 @@ std::vector<std::string> list_folder(const std::string& foldername, const std::s
     }
     else if (
       !check_names(folderContents, check_geom()) && !check_names(folderContents, check_bin(1)) &&
-      !check_names(folderContents, check_bin(2)) && !check_names(folderContents, check_mdf())) {
+      !check_names(folderContents, check_bin(2)) && !check_names(folderContents, check_ext(extension))) {
       error_cout << "Not all files in the folder have the correct and the same filename format." << std::endl;
       if (extension == ".bin") {
         error_cout << "All files should be named N.bin or all files should be named N_M.bin" << std::endl;
       }
       else {
-        error_cout << "All files should end with .mdf" << std::endl;
+        error_cout << "All files should end with ." << extension << std::endl;
       }
       exit(-1);
     }
