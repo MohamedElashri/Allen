@@ -480,6 +480,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   }
 
   // Create the InputProvider, either MDF or Binary
+  // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
   if (with_mpi && !mdf_input.empty()) {
     vector<string> connections;
     size_t current = mdf_input.find(","), previous = 0;

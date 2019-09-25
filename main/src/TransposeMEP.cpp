@@ -5,6 +5,12 @@
 std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>>
 MEP::fill_counts(EB::Header const& header, gsl::span<char const> const& mep_span)
 {
+  // info_cout << "EB header: "
+  //   << header.n_blocks << ", "
+  //   << header.packing_factor << ", "
+  //   << header.reserved << ", "
+  //   << header.mep_size << "\n";
+
   auto header_size = + header.header_size(header.n_blocks);
   gsl::span<char const> block_span{mep_span.data() + header_size,
                                    mep_span.size() - header_size};
@@ -12,6 +18,10 @@ MEP::fill_counts(EB::Header const& header, gsl::span<char const> const& mep_span
   for (size_t i = 0; i < header.n_blocks; ++i) {
     auto offset = header.offsets[i];
     EB::BlockHeader bh{block_span.data() + offset};
+
+    // info_cout << "EB BlockHeader: "
+    //   << bh.event_id << ", " << bh.n_frag << ", " << bh.reserved << ", " << bh.block_size << "\n";
+
     assert(bh.n_frag != 0);
     auto type = bh.types[0];
     if (type < LHCb::RawBank::LastType) {
@@ -32,6 +42,7 @@ size_t MEP::fragment_offsets(std::vector<std::vector<uint32_t>>& input_offsets,
                              std::tuple<size_t, size_t> const& interval) {
 
   auto [event_start, event_end] = interval;
+  info_cout << "Event interval: " << event_start << ", " << event_end << "\n";
 
   // Loop over all bank sizes in all blocks
   for (size_t i_block = 0; i_block < mep_header.n_blocks; ++i_block) {
@@ -146,7 +157,7 @@ bool MEP::transpose_event(
 
         // Initialize point to write from offset of previous set
         // All bank offsets are uit32_t so cast to that type
-        auto* banks_write = reinterpret_cast<uint32_t*>(std::get<0>(slice).data() + event_offsets[i_event]);
+        auto* banks_write = reinterpret_cast<uint32_t*>(std::get<0>(slice).data() + event_offsets[i_event - start_event]);
 
         // Where to write the offsets
         auto* banks_offsets_write = banks_write + 1;
