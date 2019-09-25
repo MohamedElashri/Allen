@@ -300,7 +300,8 @@ void reset_slice(Slices& slices, int const slice_index, EventIDs& event_ids)
   // "Reset" the slice
   for (auto bank_type : {Banks...}) {
     auto ib = to_integral<BankTypes>(bank_type);
-    std::get<1>(slices[ib][slice_index])[0] = 0;
+    auto& offsets = std::get<1>(slices[ib][slice_index]);
+    std::fill(offsets.begin(), offsets.end(), 0);
     std::get<2>(slices[ib][slice_index]) = 1;
   }
   event_ids.clear();
