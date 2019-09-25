@@ -32,11 +32,9 @@ int main(int argc, char* argv[])
   size_t n_meps = atol(argv[2]);
 
   // Some storage for reading the events into
-  LHCb::MDFHeader header;
-  vector<char> read_buffer(1024 * 1024, '\0');
-
-  bool eof = false, error = false;
-
+  bool eof = false, success = false;
+  EB::Header mep_header;
+  gsl::span<char const> mep_span;
 
   int input = ::open(filename.c_str(), O_RDONLY);
   if (input != -1) {
@@ -47,15 +45,12 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  vector<char> header_buffer(sizeof(LHCb::MDFHeader));
-  LHCb::MDFHeader* mdf_header = reinterpret_cast<LHCb::MDFHeader*>(header_buffer.data());
-
   vector<char> data;
 
   size_t i_mep = 0;
   while (!eof && i_mep++ < n_meps) {
 
-    auto [success, mep_header, mep_span] = MEP::read_mep(input, data);
+    std::tie(eof, success, mep_header, mep_span) = MEP::read_mep(input, data);
 
     auto header_size = mep_header.header_size(mep_header.n_blocks);
     auto const* d = mep_span.begin() + header_size;

@@ -8,6 +8,6 @@
 #include "mdf_header.hpp"
 
 namespace MEP {
-  std::tuple<bool, EB::Header, gsl::span<char const>>
+  std::tuple<bool, bool, EB::Header, gsl::span<char const>>
   read_mep(int fd, std::vector<char>& buffer);
 }

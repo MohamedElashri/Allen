@@ -13,19 +13,23 @@
 #include <read_mep.hpp>
 
 namespace {
+  using std::cout;
   using std::cerr;
 }
 
-std::tuple<bool, EB::Header, gsl::span<char const>>
+std::tuple<bool, bool, EB::Header, gsl::span<char const>>
 MEP::read_mep(int input, std::vector<char>& buffer) {
 
   buffer.resize(sizeof(LHCb::MDFHeader));
   LHCb::MDFHeader* mdf_header = reinterpret_cast<LHCb::MDFHeader*>(buffer.data());
 
   ssize_t n_bytes = ::read(input, &buffer[0], sizeof(LHCb::MDFHeader));
-  if (n_bytes <= 0) {
+  if (n_bytes == 0) {
+    cout << "Cannot read more data (Header). End-of-File reached.\n";
+    return {true, false, {}, {}};
+  } else if (n_bytes < 0) {
     cerr << "Failed to read header " << strerror(errno) << "\n";
-    return {false, {}, {}};
+    return {false, false, {}, {}};
   }
   uint header_version = mdf_header->headerVersion();
   auto hdr_size = LHCb::MDFHeader::sizeOf(header_version);
@@ -37,7 +41,7 @@ MEP::read_mep(int input, std::vector<char>& buffer) {
   n_bytes = ::read(input, &buffer[0] + sizeof(LHCb::MDFHeader), mdf_header->subheaderLength());
   if (n_bytes <= 0) {
     cerr << "Failed to read subheader " << strerror(errno) << "\n";
-    return {false, {}, {}};
+    return {false, false, {}, {}};
   }
 
   // read EB::Header
@@ -47,7 +51,7 @@ MEP::read_mep(int input, std::vector<char>& buffer) {
   n_bytes = ::read(input, mep_buffer, EB::Header::base_size());
   if (n_bytes <= 0) {
     cerr << "Failed to EB header base" << strerror(errno) << "\n";
-    return {false, {}, {}};
+    return {false, false, {}, {}};
   }
 
   buffer.resize(hdr_size + EB::Header::header_size(mep_header->n_blocks));
@@ -65,9 +69,9 @@ MEP::read_mep(int input, std::vector<char>& buffer) {
                    + data_size);
   if (n_bytes <= 0) {
     cerr << "Failed to read MEP" << strerror(errno) << "\n";
-    return {false, {}, {}};
+    return {false, false, {}, {}};
   }
 
-  return {true, {reinterpret_cast<char const*>(mep_buffer)},
-          {buffer.data() + hdr_size, EB::Header::header_size(mep_header->n_blocks) + data_size}};
+return {false, true, {reinterpret_cast<char const*>(mep_buffer)},
+        {buffer.data() + hdr_size, EB::Header::header_size(mep_header->n_blocks) + data_size}};
 }

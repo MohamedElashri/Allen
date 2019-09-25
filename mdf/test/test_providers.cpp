@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
     info_cout << "Opened " << s_config.mep_files[0] << "\n";
 
     // Transpose MEP
-    auto [success, mep_header, mep_span] = MEP::read_mep(input, mep_buffer);
+    auto [eof, success, mep_header, mep_span] = MEP::read_mep(input, mep_buffer);
 
     auto pf = mep_header.packing_factor;
     auto size_fun = [pf](BankTypes) -> std::tuple<size_t, size_t> {
