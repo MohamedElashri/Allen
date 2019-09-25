@@ -516,7 +516,7 @@ private:
           this->debug_output("Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_mpi_produced.empty()), thread_id);
           break;
         }
-        
+
         i_read = m_mpi_produced.front();
 
         interval = m_slice_intervals[i_read].front();
@@ -576,8 +576,7 @@ private:
                                                                            m_bank_ids,
                                                                            m_banks_count,
                                                                            event_ids,
-                                                                           interval,
-                                                                           m_config.transpose_chunk_size);
+                                                                           interval);
       this->debug_output("Transposed " + std::to_string(*slice_index) + " " + std::to_string(good)
                          + " " + std::to_string(transpose_full) + " " + std::to_string(n_transposed),
                          thread_id);

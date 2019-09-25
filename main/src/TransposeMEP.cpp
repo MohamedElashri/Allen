@@ -42,7 +42,6 @@ size_t MEP::fragment_offsets(std::vector<std::vector<uint32_t>>& input_offsets,
                              std::tuple<size_t, size_t> const& interval) {
 
   auto [event_start, event_end] = interval;
-  info_cout << "Event interval: " << event_start << ", " << event_end << "\n";
 
   // Loop over all bank sizes in all blocks
   for (size_t i_block = 0; i_block < mep_header.n_blocks; ++i_block) {
@@ -59,8 +58,8 @@ size_t MEP::fragment_offsets(std::vector<std::vector<uint32_t>>& input_offsets,
       if (allen_type != -1 && i >= event_start) {
         // Anticipate offset structure already here, i.e. don't assign to the first one
         auto idx = i - event_start + 1;
-        auto& slice = slices[allen_type][slice_index];
-        auto& event_offsets = std::get<1>(slice);
+        auto& event_offsets = std::get<1>(slices[allen_type][slice_index]);
+
         // Allen raw bank format has the sourceID followed by the raw bank data
         event_offsets[idx] += sizeof(uint32_t) + block_header.sizes[i];
       }
@@ -111,8 +110,10 @@ bool MEP::transpose_event(
   EB::Header const& mep_header,
   std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>>& blocks,
   std::vector<std::vector<uint32_t>> const& input_offsets,
-  size_t start_event, size_t chunk_size)
+  std::tuple<size_t, size_t> const& interval)
 {
+  auto [start_event, end_event] = interval;
+
   // Loop over all bank data of this event
   size_t bank_index = 1;
   // L0Calo doesn't exist in the upgrade
@@ -127,7 +128,7 @@ bool MEP::transpose_event(
     if (bank_type == LHCb::RawBank::ODIN) {
       // decode ODIN bank to obtain run and event numbers
       auto odin_version = mep_header.versions[i_block];
-      for (uint16_t i_event = start_event; i_event < chunk_size; ++i_event) {
+      for (uint16_t i_event = start_event; i_event < end_event; ++i_event) {
         auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + source_offsets[i_event]);
         auto odin = MDF::decode_odin(odin_version, odin_data);
         event_ids.emplace_back(odin.run_number, odin.event_number);
@@ -147,7 +148,7 @@ bool MEP::transpose_event(
       auto const& event_offsets = std::get<1>(slice);
       auto const n_banks_offsets = std::get<2>(slice);
 
-      for (size_t i_event = start_event; i_event < start_event + chunk_size && i_event < block_header.n_frag; ++i_event) {
+      for (size_t i_event = start_event; i_event < end_event && i_event < block_header.n_frag; ++i_event) {
         // Three things to write for a new set of banks:
         // - number of banks/offsets
         // - offsets to individual banks
@@ -200,8 +201,7 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
   std::vector<int> const& bank_ids,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
-  std::tuple<size_t, size_t> const& interval,
-  size_t chunk_size)
+  std::tuple<size_t, size_t> const& interval)
 {
   auto [event_start, event_end] = interval;
 
@@ -219,27 +219,18 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
     blocks[i_block] = std::tuple{std::move(block_header), std::move(block_data)};
   }
 
+  // Reset input offsets
+  for (auto& offsets : input_offsets) {
+    std::fill(offsets.begin(), offsets.end(), 0);
+  }
+
   auto to_transpose = fragment_offsets(input_offsets, slices, slice_index, bank_ids,
                                        banks_count, mep_header, blocks, interval);
 
-  auto transpose = [&] (size_t i_event, size_t cs) {
-    return transpose_event(slices, slice_index, bank_ids, banks_count, event_ids,
-                           mep_header, blocks, input_offsets, i_event, cs);
-  };
+  transpose_event(slices, slice_index, bank_ids, banks_count, event_ids,
+                  mep_header, blocks, input_offsets, {event_start, event_start + to_transpose});
 
-  size_t i_event = 0;
-  size_t n_events = event_end - event_start;
-  size_t rest = n_events % chunk_size;
-  to_transpose -= rest;
-  for (i_event = event_start; i_event < to_transpose; i_event += chunk_size) {
-    transpose(i_event, chunk_size);
-  }
-  if (rest != 0) {
-    transpose(i_event, rest);
-    i_event += rest;
-  }
-
-  return {success, to_transpose != (event_end - event_start), i_event};
+  return {success, to_transpose != (event_end - event_start), to_transpose};
 }
 
 std::vector<int> bank_ids() {

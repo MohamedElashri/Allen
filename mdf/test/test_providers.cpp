@@ -82,8 +82,7 @@ size_t transpose_mep(Slices& mep_slices,
                                  ids,
                                  banks_count,
                                  events_mep,
-                                 {0, chunk_size},
-                                 chunk_size);
+                                 {0, chunk_size});
   return std::get<2>(r);
 }
 

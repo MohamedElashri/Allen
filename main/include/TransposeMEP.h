@@ -86,7 +86,7 @@ bool transpose_event(
   EB::Header const& mep_header,
   std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>>& blocks,
   std::vector<std::vector<uint32_t>> const& input_offsets,
-  size_t start_event, size_t chunk_size);
+  std::tuple<size_t, size_t> const& interval);
 
 /**
  * @brief      Transpose MEP to Allen layout
@@ -108,7 +108,6 @@ std::tuple<bool, bool, size_t> transpose_events(
   std::vector<int> const& bank_ids,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
-  std::tuple<size_t, size_t> const& interval,
-  size_t chunk_size);
+  std::tuple<size_t, size_t> const& interval);
 
 }
