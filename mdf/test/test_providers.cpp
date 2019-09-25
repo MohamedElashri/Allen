@@ -8,10 +8,12 @@
 
 #include <raw_bank.hpp>
 #include <read_mdf.hpp>
+#include <read_mep.hpp>
 #include <Timer.h>
 #include <InputTools.h>
 #include <MDFProvider.h>
 #include <BinaryProvider.h>
+#include <TransposeMEP.h>
 
 #define CATCH_CONFIG_RUNNER
 #include <catch.hpp>
@@ -21,6 +23,7 @@ using namespace std;
 struct Config {
   vector<string> banks_dirs;
   vector<string> mdf_files;
+  vector<string> mep_files;
   size_t n_slices = 1;
   size_t n_events = 10;
   bool run = false;
@@ -35,7 +38,83 @@ namespace {
 
   size_t slice_mdf = 0, slice_binary = 0;
   size_t filled_mdf = 0, filled_binary = 0;
+
+  vector<char> mep_buffer;
+  Slices mep_slices;
+  EventIDs events_mep;
+  std::vector<int> ids;
+  std::array<unsigned int, LHCb::RawBank::LastType> banks_count;
 } // namespace
+
+Slices allocate_slices(uint16_t packing_factor, size_t n_slices) {
+  Slices slices;
+  size_t n_bytes = std::lround(average_event_size * packing_factor * bank_size_fudge_factor * kB);
+  for (auto bank_type : {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON}) {
+    auto ib = to_integral<BankTypes>(bank_type);
+    auto& bank_slices = slices[ib];
+    bank_slices.reserve(n_slices);
+    for (size_t i = 0; i < n_slices; ++i) {
+      char* events_mem = nullptr;
+      uint* offsets_mem = nullptr;
+
+#ifndef NO_CUDA
+      cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
+      cudaCheck(cudaMallocHost((void**) &offsets_mem, (packing_factor + 1) * sizeof(uint)));
+#else
+      events_mem = static_cast<char*>(malloc(n_bytes));
+      offsets_mem = static_cast<uint*>(malloc((packing_factor + 1) * sizeof(uint)));
+#endif
+      for (size_t i = 0; i < packing_factor + 1; ++i) {
+        offsets_mem[i] = 0;
+      }
+      bank_slices.emplace_back(gsl::span<char>{events_mem, n_bytes},
+                               gsl::span<uint>{offsets_mem, packing_factor + 1u},
+                               1);
+    }
+  }
+  return slices;
+}
+
+BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_index) {
+  auto ib = to_integral<BankTypes>(bank_type);
+  auto const& [banks, offsets, offsets_size] = slices[ib][slice_index];
+  span<char const> b {banks.data(), offsets[offsets_size - 1]};
+  span<unsigned int const> o {offsets.data(), offsets_size};
+  return BanksAndOffsets {std::move(b), std::move(o)};
+}
+
+std::tuple<size_t, EventIDs>
+transpose_mep(Slices& mep_slices,
+              int output_index,
+              EB::Header& mep_header,
+              gsl::span<char const> mep_span,
+              size_t chunk_size) {
+  // read MEP
+
+  MEP::Slice input_slice{gsl::span{const_cast<char*>(mep_span.data()), mep_span.size()}, mep_span.size()};
+
+  std::vector<std::vector<uint32_t>> input_offsets(mep_header.n_blocks);
+  for (auto& offsets : input_offsets) {
+    offsets.resize(mep_header.packing_factor + 1);
+  }
+
+  std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>> blocks(mep_header.n_blocks);
+
+  bool success = false;
+  std::tie(success, banks_count) = MEP::fill_counts(mep_header, mep_span);
+  ids = bank_ids();
+
+  auto r = MEP::transpose_events(input_slice,
+                                 input_offsets,
+                                 blocks,
+                                 mep_slices, output_index,
+                                 ids,
+                                 banks_count,
+                                 events_mep,
+                                 {0, mep_header.packing_factor},
+                                 chunk_size);
+  return {std::get<2>(r), events_mep};
+}
 
 int main(int argc, char* argv[])
 {
@@ -63,8 +142,11 @@ int main(int argc, char* argv[])
 
   s_config.run = !directory.empty();
   if (s_config.run) {
-    for (auto file : list_folder(directory + "/banks/mdf", "mdf")) {
-      s_config.mdf_files.push_back(directory + "/banks/mdf/" + file);
+    for (auto [ext, dir] : {std::tuple{string{"mdf"}, std::ref(s_config.mdf_files)},
+                            std::tuple{string{"mep"}, std::ref(s_config.mep_files)}}) {
+      for (auto file : list_folder(directory + "/banks/" + ext, ext)) {
+        dir.get().push_back(directory + "/banks/" + ext + "/" + file);
+      }
     }
   }
   for (auto sd : {string {"UT"}, string {"VP"}, string {"FTCluster"}, string {"Muon"}}) {
@@ -84,6 +166,19 @@ int main(int argc, char* argv[])
       s_config.n_slices, s_config.n_events, s_config.n_events, s_config.banks_dirs, false, events_mdf);
 
     std::tie(good, timed_out, slice_binary, filled_binary) = binary->get_slice();
+  }
+
+  if (s_config.run) {
+    int input = ::open(s_config.mep_files[0].c_str(), O_RDONLY);
+    info_cout << "Opened " << s_config.mep_files[0] << "\n";
+
+    // Transpose MEP
+    auto [success, mep_header, mep_span] = MEP::read_mep(input, mep_buffer);
+
+    mep_slices = allocate_slices(mep_header.packing_factor, 1);
+
+    size_t n_transposed = 0;
+    std::tie(n_transposed, events_mep) = transpose_mep(mep_slices, 0, mep_header, mep_span, 20);
   }
 
   return session.run();
@@ -145,4 +240,42 @@ TEMPLATE_TEST_CASE(
   SECTION("Checking offsets") { check_banks<1>(banks_mdf, banks_binary); }
 
   SECTION("Checking data") { check_banks<0>(banks_mdf, banks_binary); }
+}
+
+// Main test case, multiple bank types are checked
+TEMPLATE_TEST_CASE(
+  "Binary vs MEP",
+  "[MEP binary]",
+  BTTag<BankTypes::VP>,
+  BTTag<BankTypes::UT>,
+  BTTag<BankTypes::FT>,
+  BTTag<BankTypes::MUON>)
+{
+
+  if (!s_config.run) return;
+
+  // Get the events
+  auto const& events_binary = binary->event_ids(slice_binary);
+
+
+  // Check that the events match
+  SECTION("Checking Event IDs")
+  {
+    REQUIRE(events_mep.size() == events_binary.size());
+    for (size_t i = 0; i < events_mep.size(); ++i) {
+      auto [run_mep, event_mep] = events_mep[i];
+      auto [run_binary, event_binary] = events_binary[i];
+      REQUIRE(run_mep == run_binary);
+      REQUIRE(event_mep == event_binary);
+    }
+  }
+
+  // Get the banks
+  auto banks_mep = mep_banks(mep_slices, TestType::BT, 0);
+  auto banks_binary = binary->banks(TestType::BT, slice_binary);
+
+  SECTION("Checking offsets") { check_banks<1>(banks_mep, banks_binary); }
+
+  SECTION("Checking data") { check_banks<0>(banks_mep, banks_binary); }
+
 }
