@@ -236,8 +236,11 @@ int main(int argc, char* argv[])
 
         // info_cout << "\n" << MPI::rank_str() << number_of_files << " files successfully read.\n";
 
+        size_t packing_factor = mep_header->packing_factor;
+        MPI_Send(&packing_factor, 1, MPI_SIZE_T, MPI::receiver, MPI::message::packing_factor, MPI_COMM_WORLD);
+
         size_t number_of_files = file_contents.size();
-        MPI_Send(&number_of_files, 1, MPI_SIZE_T, MPI::receiver, MPI::message::number_of_events, MPI_COMM_WORLD);
+        MPI_Send(&number_of_files, 1, MPI_SIZE_T, MPI::receiver, MPI::message::number_of_files, MPI_COMM_WORLD);
 
         // // Notify the max file size
         // size_t max_file_size = 0;

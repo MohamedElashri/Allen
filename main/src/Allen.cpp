@@ -494,7 +494,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               10,                // number of read buffers
                               4,                 // number of transpose threads
                               10001,             // maximum number event of offsets in read buffer
-                              3000,              // MEP packing factor
                               mpi_window_size,   // MPI sliding window size
                               30,                // Transpose chunk size
                               non_stop};         // Run the application non-stop

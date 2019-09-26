@@ -37,10 +37,11 @@ namespace MPI {
   namespace message {
     // Message tags
     constexpr int test = 1;
-    constexpr int number_of_events = 2;
-    constexpr int max_file_size = 3;
-    constexpr int event_size = 4;
-    constexpr int window_size = 5;
+    constexpr int packing_factor = 2;
+    constexpr int number_of_files = 3;
+    constexpr int max_file_size = 4;
+    constexpr int event_size = 5;
+    constexpr int window_size = 6;
 
     // Event sends will start with tag start, and cycle every modulo
     // ie:

@@ -61,9 +61,6 @@ struct MPIProviderConfig {
   // maximum number of events per slice
   size_t offsets_size = 10001;
 
-  // default of events per prefetch buffer
-  size_t packing_factor = 3000;
-
   size_t window_size = 4;
 
   size_t transpose_chunk_size = 20;
@@ -108,9 +105,11 @@ public:
     m_config{config}
   {
 
+    MPI_Recv(&m_packing_factor, 1, MPI_SIZE_T, MPI::sender, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
     // Allocate as many net slices as configured, of expected size
     // Packing factor can be done dynamically if needed
-    size_t n_bytes = std::lround(m_config.packing_factor * average_event_size * bank_size_fudge_factor * kB);
+    size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
     for (int i=0; i < config.n_buffers; ++i) {
       char* contents;
       MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
@@ -169,14 +168,14 @@ public:
         auto& [mpi_slice, slice_size] = m_net_slices[i_read];
         EB::Header mep_header{mpi_slice.data()};
         // gsl::span<char const> block_span{mpi_slice.data() + mep_header.header_size(mep_header.n_blocks), mep_header.mep_size};
-
+        assert(mep_header.packing_factor == m_packing_factor);
         std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, mpi_slice);
 
         // Allocate storage for transposition
         m_offsets.resize(mep_header.n_blocks);
         for (auto& offsets : m_offsets) {
           // info_cout << "Packing factor: " << mep_header.packing_factor << "\n";
-          offsets.resize(mep_header.packing_factor + 1);
+          offsets.resize(m_packing_factor + 1);
         }
 
         m_blocks.resize(mep_header.n_blocks);
@@ -350,7 +349,7 @@ private:
     bool error = false;
     bool receive_done = false;
 
-    MPI_Recv(&number_of_files, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_events, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&number_of_files, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_files, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
     int current_file=0;
     while (m_config.non_stop || current_file < number_of_files) {
@@ -459,8 +458,8 @@ private:
           std::unique_lock<std::mutex> lock{m_mpi_mutex};
 
           auto eps = this->events_per_slice();
-          auto n_interval = m_config.packing_factor / eps;
-          auto rest = m_config.packing_factor % eps;
+          auto n_interval = m_packing_factor / eps;
+          auto rest = m_packing_factor % eps;
           auto& intervals= m_slice_intervals[i_slice];
           size_t i = 0;
           for (; i < n_interval; ++i) {
@@ -623,6 +622,7 @@ private:
   }
 
   // Slices
+  size_t m_packing_factor;
   MEP::Slices m_net_slices;
 
   // data members for mpi thread
