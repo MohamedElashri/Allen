@@ -17,6 +17,14 @@ namespace {
   using std::cerr;
 }
 
+/**
+ * @brief      Read a mep from a file
+ *
+ * @param      file descriptor to read from
+ * @param      buffer to store data in
+ *
+ * @return     (eof, success, mep_header, span of mep data)
+ */
 std::tuple<bool, bool, EB::Header, gsl::span<char const>>
 MEP::read_mep(int input, std::vector<char>& buffer) {
 

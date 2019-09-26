@@ -135,6 +135,10 @@ public:
     };
     m_slices = allocate_slices<Banks...>(n_slices, size_fun);
 
+    // Allocate storage for offsets and blocks used during MEP
+    // transposition
+    m_slice_offsets_blocks.resize(n_slices);
+
     // Initialize the current input filename
     m_current = m_connections.begin();
 
@@ -143,12 +147,13 @@ public:
       m_event_ids[n].reserve(events_per_slice);
     }
 
+    // Cached bank LHCb bank type to Allen bank type mapping
     m_bank_ids = bank_ids();
 
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
 
-    // Start prefetch thread and count bank types one a single buffer
+    // Start prefetch thread and count bank types once a single buffer
     // is available
     {
       // aquire lock
@@ -171,14 +176,16 @@ public:
         assert(mep_header.packing_factor == m_packing_factor);
         std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, mpi_slice);
 
-        // Allocate storage for transposition
-        m_offsets.resize(mep_header.n_blocks);
-        for (auto& offsets : m_offsets) {
-          // info_cout << "Packing factor: " << mep_header.packing_factor << "\n";
-          offsets.resize(m_packing_factor + 1);
+        // The number of blocks in a MEP is know, use it to allocate
+        // storage for temporary storage used during transposition
+        for (auto& [input_offsets, blocks] : m_slice_offsets_blocks) {
+          blocks.resize(mep_header.n_blocks);
+          input_offsets.resize(mep_header.n_blocks);
+          for (auto& offsets : input_offsets) {
+            // info_cout << "Packing factor: " << mep_header.packing_factor << "\n";
+            offsets.resize(m_packing_factor + 1);
+          }
         }
-
-        m_blocks.resize(mep_header.n_blocks);
 
         if (!count_success) {
           error_cout << "Failed to determine bank counts\n";
@@ -567,9 +574,12 @@ private:
 
       // Transpose the events in the read buffer into the slice
       // FIXME replace by proper transposition including interval
+
+      auto& [input_offsets, blocks] = m_slice_offsets_blocks[*slice_index];
+
       std::tie(good, transpose_full, n_transposed) = MEP::transpose_events(m_net_slices[i_read],
-                                                                           m_offsets,
-                                                                           m_blocks,
+                                                                           input_offsets,
+                                                                           blocks,
                                                                            m_slices,
                                                                            *slice_index,
                                                                            m_bank_ids,
@@ -633,9 +643,10 @@ private:
   std::vector<bool> m_buffer_writable;
   std::thread m_mpi_thread;
 
+  using InputOffsets = std::vector<std::vector<uint32_t>>;
+  using Blocks = std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>>;
   // temporary storage
-  std::vector<std::vector<uint32_t>> m_offsets;
-  std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>> m_blocks;
+  std::vector<std::tuple<InputOffsets, Blocks>> m_slice_offsets_blocks;
 
   // Atomics to flag errors and completion
   std::atomic<bool> m_done = false;
