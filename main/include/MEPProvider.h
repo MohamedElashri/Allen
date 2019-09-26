@@ -24,6 +24,7 @@
 #include <Timer.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
+#include <read_mep.hpp>
 #include <raw_bank.hpp>
 
 #include "Transpose.h"
@@ -46,9 +47,9 @@ using BankSlices = std::vector<Slice>;
 using Slices = std::array<BankSlices, NBankTypes>;
 
 /**
- * @brief      Configuration parameters for the MPIProvider
+ * @brief      Configuration parameters for the MEPProvider
  */
-struct MPIProviderConfig {
+struct MEPProviderConfig {
   // check the MDF checksum if it is available
   bool check_checksum = false;
 
@@ -64,6 +65,8 @@ struct MPIProviderConfig {
   size_t window_size = 4;
 
   size_t transpose_chunk_size = 20;
+
+  bool use_mpi = false;
 
   bool non_stop = true;
 };
@@ -91,12 +94,12 @@ struct MPIProviderConfig {
  *
  */
 template <BankTypes... Banks>
-class MPIProvider final : public InputProvider<MPIProvider<Banks...>> {
+class MEPProvider final : public InputProvider<MEPProvider<Banks...>> {
 public:
-  MPIProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
+  MEPProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
               std::vector<std::string> connections,
-              MPIProviderConfig config = MPIProviderConfig{}) :
-    InputProvider<MPIProvider<Banks...>>{n_slices, events_per_slice, n_events},
+              MEPProviderConfig config = MEPProviderConfig{}) :
+    InputProvider<MEPProvider<Banks...>>{n_slices, events_per_slice, n_events},
     m_buffer_writable(config.n_buffers, true),
     m_slice_free(n_slices, true),
     m_banks_count{0},
@@ -105,15 +108,20 @@ public:
     m_config{config}
   {
 
-    MPI_Recv(&m_packing_factor, 1, MPI_SIZE_T, MPI::sender, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    if (m_config.use_mpi) {
+      MPI_Recv(&m_packing_factor, 1, MPI_SIZE_T, MPI::sender, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    // Allocate as many net slices as configured, of expected size
-    // Packing factor can be done dynamically if needed
-    size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
-    for (int i=0; i < config.n_buffers; ++i) {
-      char* contents;
-      MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
-      m_net_slices.emplace_back(gsl::span{contents, n_bytes}, n_bytes);
+      // Allocate as many net slices as configured, of expected size
+      // Packing factor can be done dynamically if needed
+      size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
+      for (int i=0; i < config.n_buffers; ++i) {
+        char* contents = nullptr;
+        MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
+        m_net_slices.emplace_back(gsl::span{contents, n_bytes}, n_bytes);
+      }
+    } else {
+      m_read_buffers.resize(m_config.n_buffers);
+      m_net_slices.resize(m_config.n_buffers);
     }
 
     // Allocate queues for slice intervals
@@ -160,7 +168,11 @@ public:
       std::unique_lock<std::mutex> lock{m_mpi_mutex};
 
       // start MPI thread
-      m_mpi_thread = std::thread{&MPIProvider::mpi_read, this};
+      if (m_config.use_mpi) {
+        m_mpi_thread = std::thread{&MEPProvider::mpi_read, this};
+      } else {
+        m_mpi_thread = std::thread{&MEPProvider::mep_read, this};
+      }
 
       // Wait for first read buffer to be full
       m_mpi_cond.wait(lock, [this] { return !m_mpi_produced.empty() || m_read_error; });
@@ -173,7 +185,11 @@ public:
         auto& [mpi_slice, slice_size] = m_net_slices[i_read];
         EB::Header mep_header{mpi_slice.data()};
         // gsl::span<char const> block_span{mpi_slice.data() + mep_header.header_size(mep_header.n_blocks), mep_header.mep_size};
-        assert(mep_header.packing_factor == m_packing_factor);
+        if (m_packing_factor == 0) {
+          m_packing_factor = mep_header.packing_factor;
+        } else {
+          assert(mep_header.packing_factor == m_packing_factor);
+        }
         std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, mpi_slice);
 
         // The number of blocks in a MEP is know, use it to allocate
@@ -221,7 +237,7 @@ public:
   static constexpr const char* name = "MDF";
 
   /// Destructor
-  virtual ~MPIProvider() {
+  virtual ~MEPProvider() {
 
     // Set flag to indicate the prefetch thread should exit, wake it
     // up and join it
@@ -287,7 +303,7 @@ public:
       // If no transposed slices are ready for processing, wait until
       // one is; use a timeout if requested
       if (m_transposed.empty()) {
-        auto wakeup = [this, &done] {
+        auto wakeup = [this] {
                         auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
                         return (!m_transposed.empty() || m_read_error
                                 || (m_transpose_done && n_writable == m_buffer_writable.size()));
@@ -336,6 +352,154 @@ public:
   }
 
 private:
+
+
+  /**
+  * @brief      Open an input file; called from the prefetch thread
+  *
+  * @return     success
+  */
+  bool open_file() const {
+    bool good = false;
+
+    // Check if there are still files available
+    while (!good) {
+      // If looping on input is configured, do it
+      if (m_current == m_connections.end()) {
+        if (m_config.non_stop) {
+          m_current = m_connections.begin();
+        } else {
+          break;
+        }
+      }
+
+      if (m_input) ::close(*m_input);
+
+      m_input = ::open(m_current->c_str(), O_RDONLY);
+      if (m_input != -1) {
+        info_cout << "Opened " << *m_current << "\n";
+        good = true;
+      } else {
+        error_cout << "Failed to open " << *m_current << " " << strerror(errno) << "\n";
+        m_read_error = true;
+        return false;
+      }
+      ++m_current;
+    }
+    return good;
+  }
+
+  // mep reader thread
+  void mep_read() {
+
+    size_t bytes_received = 0;
+    size_t meps_received = 0;
+    bool receive_done = false;
+    EB::Header mep_header;
+
+    while (!receive_done) {
+      // info_cout << MPI::rank_str() << "round " << current_file << "\n";
+
+      // open the first file
+      if (!m_input && !open_file()) {
+        m_read_error = true;
+        m_mpi_cond.notify_one();
+        return;
+      }
+
+      // Obtain a prefetch buffer to read into, if none is available,
+      // wait until one of the transpose threads is done with its
+      // prefetch buffer
+      auto it = m_buffer_writable.end();
+      {
+        std::unique_lock<std::mutex> lock{m_mpi_mutex};
+        it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
+        if (it == m_buffer_writable.end()) {
+          this->debug_output("Waiting for free buffer");
+          m_mpi_cond.wait(lock, [this] {
+                                  return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true)
+                                    != m_buffer_writable.end() || m_done;
+                                });
+          if (m_done) {
+            break;
+          } else {
+            it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
+          }
+        }
+        // Flag the prefetch buffer as unavailable
+        *it = false;
+      }
+
+      size_t i_slice = distance(m_buffer_writable.begin(), it);
+      auto& read_buffer = m_read_buffers[i_slice];
+      auto& [buffer_span, buffer_size] = m_net_slices[i_slice];
+      gsl::span<char const> mep_span;
+
+      bool success = false, eof = false;
+
+      while (!success || eof) {
+        std::tie(eof, success, mep_header, mep_span) = MEP::read_mep(*m_input, read_buffer);
+        buffer_span = gsl::span<char>{const_cast<char*>(mep_span.data()), mep_span.size()};
+
+        if (!eof) {
+          info_cout << "Read mep with packing factor " << mep_header.packing_factor << "\n";
+        }
+
+        if (!success) {
+          // Error encountered
+          m_read_error = true;
+          break;
+        } else if (eof && !open_file()) {
+          // Try to open the next file, if there is none, prefetching
+          // is done.
+          if (!m_read_error) {
+            this->debug_output("Prefetch done: eof and no more files");
+          }
+          receive_done = true;
+          break;
+        }
+      }
+
+      // Notify a transpose thread that a new buffer of events is
+      // ready. If prefetching is done, wake up all threads
+      if (success) {
+        {
+          std::unique_lock<std::mutex> lock{m_mpi_mutex};
+
+          if (!eof) {
+            auto eps = this->events_per_slice();
+            auto n_interval = mep_header.packing_factor / eps;
+            auto rest = mep_header.packing_factor % eps;
+            auto& intervals= m_slice_intervals[i_slice];
+            size_t i = 0;
+            for (; i < n_interval; ++i) {
+              this->debug_output(std::string{"Set interval: "} + std::to_string(i * eps)
+                                 + "," + std::to_string((i + 1) * eps));
+              intervals.emplace_back(i * eps, (i + 1) * eps);
+            }
+            if (rest) {
+              this->debug_output(std::string{"Set interval (rest): "} + std::to_string(i * eps)
+                                 + "," + std::to_string(i * eps + rest));
+              intervals.emplace_back(i * eps, i * eps + rest);
+            }
+            m_mpi_produced.push_back(i_slice);
+          } else {
+            // We didn't read anything, so free the buffer we got again
+            m_buffer_writable[i_slice] = true;
+          }
+        }
+        if (receive_done) {
+          m_done = receive_done;
+          this->debug_output("Prefetch notifying all");
+          m_mpi_cond.notify_all();
+        } else if (!eof) {
+          this->debug_output("Prefetch notifying one");
+          m_mpi_cond.notify_one();
+        }
+      }
+      m_mpi_cond.notify_one();
+    }
+  }
 
   // MPI reader thread
   void mpi_read() {
@@ -510,6 +674,8 @@ private:
     bool good = false, transpose_full = false;
     size_t n_transposed = 0;
 
+    bool free_read_buffer = false;
+
     while(!m_read_error && !m_transpose_done) {
 
       // Get a buffer to read from
@@ -531,6 +697,7 @@ private:
         if (m_slice_intervals[i_read].empty()) {
           // Consume mpi_produced
           m_mpi_produced.pop_front();
+          free_read_buffer = true;
         }
 
         this->debug_output("Got MEP slice index " + std::to_string(i_read)
@@ -586,9 +753,9 @@ private:
                                                                            m_banks_count,
                                                                            event_ids,
                                                                            interval);
-      this->debug_output("Transposed " + std::to_string(*slice_index) + " " + std::to_string(good)
-                         + " " + std::to_string(transpose_full) + " " + std::to_string(n_transposed),
-                         thread_id);
+      this->debug_output("Transposed slice " + std::to_string(*slice_index) + "; good: " + std::to_string(good)
+                         + ";full: " + std::to_string(transpose_full) + "; n_transposed:  "
+                         + std::to_string(n_transposed), thread_id);
 
       if (m_read_error || !good) {
         m_read_error = true;
@@ -611,7 +778,7 @@ private:
       {
         std::unique_lock<std::mutex> lock{m_mpi_mutex};
         if (n_transposed == std::get<1>(interval) - std::get<0>(interval)) {
-          if (intervals.empty()) {
+          if (free_read_buffer) {
             m_buffer_writable[i_read] = true;
           }
         } else {
@@ -619,8 +786,9 @@ private:
           // somebody else can finish it
           std::unique_lock<std::mutex> lock{m_mpi_mutex};
           intervals.emplace_front(std::get<0>(interval) + n_transposed, std::get<1>(interval));
+          free_read_buffer = false;
         }
-        if (intervals.empty()) {
+        if (free_read_buffer) {
           // m_mpi_produced.pop_front();
           m_transpose_done = m_done && m_mpi_produced.empty();
         }
@@ -632,7 +800,8 @@ private:
   }
 
   // Slices
-  size_t m_packing_factor;
+  size_t m_packing_factor = 0;
+  std::vector<std::vector<char>> m_read_buffers;
   MEP::Slices m_net_slices;
 
   // data members for mpi thread
@@ -699,8 +868,8 @@ private:
   mutable size_t m_loop = 0;
 
   // Configuration struct
-  MPIProviderConfig m_config;
+  MEPProviderConfig m_config;
 
-  using base_class = InputProvider<MPIProvider<Banks...>>;
+  using base_class = InputProvider<MEPProvider<Banks...>>;
 
 };

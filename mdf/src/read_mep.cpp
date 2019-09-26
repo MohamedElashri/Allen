@@ -34,7 +34,7 @@ MEP::read_mep(int input, std::vector<char>& buffer) {
   ssize_t n_bytes = ::read(input, &buffer[0], sizeof(LHCb::MDFHeader));
   if (n_bytes == 0) {
     cout << "Cannot read more data (Header). End-of-File reached.\n";
-    return {true, false, {}, {}};
+    return {true, true, {}, {}};
   } else if (n_bytes < 0) {
     cerr << "Failed to read header " << strerror(errno) << "\n";
     return {false, false, {}, {}};

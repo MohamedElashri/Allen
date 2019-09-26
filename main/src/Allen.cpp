@@ -34,7 +34,7 @@
 #include "InputReader.h"
 #include "MDFProvider.h"
 #include "BinaryProvider.h"
-#include "MPIProvider.h"
+#include "MEPProvider.h"
 #include "Timer.h"
 #include "StreamWrapper.cuh"
 #include "Constants.cuh"
@@ -47,6 +47,18 @@
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed };
 } // namespace
+
+std::vector<std::string> split_input(std::string const& input) {
+  vector<string> s;
+  size_t current = input.find(","), previous = 0;
+  while (current != string::npos) {
+    s.emplace_back(input.substr(previous, current - previous));
+    previous = current + 1;
+    current = input.find(",", previous);
+  }
+  s.emplace_back(input.substr(previous, current - previous));
+  return s;
+}
 
 /**
  * @brief      Request slices from the input provider and report
@@ -320,6 +332,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   size_t mpi_number_of_slices;
 
   string mdf_input;
+  string mep_input;
   int device_id = 0;
   int cpu_offload = 1;
 
@@ -342,6 +355,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"mdf"})) {
       mdf_input = arg;
+    }
+    else if (flag_in({"mep"})) {
+      mep_input = arg;
     }
     else if (flag_in({"n", "number-of-events"})) {
       number_of_events_requested = atol(arg.c_str());
@@ -481,34 +497,19 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Create the InputProvider, either MDF or Binary
   // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
-  if (with_mpi && !mdf_input.empty()) {
-    vector<string> connections;
-    size_t current = mdf_input.find(","), previous = 0;
-    while (current != string::npos) {
-      connections.emplace_back(mdf_input.substr(previous, current - previous));
-      previous = current + 1;
-      current = mdf_input.find(",", previous);
-    }
-    connections.emplace_back(mdf_input.substr(previous, current - previous));
-    MPIProviderConfig config {false,             // verify MEP checksums
+  if (!mep_input.empty()) {
+    MEPProviderConfig config {false,             // verify MEP checksums
                               10,                // number of read buffers
                               4,                 // number of transpose threads
                               10001,             // maximum number event of offsets in read buffer
                               mpi_window_size,   // MPI sliding window size
                               30,                // Transpose chunk size
+                              with_mpi,          // Receive from MPI or read files
                               non_stop};         // Run the application non-stop
-    input_provider = std::make_unique<MPIProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), config);
+    input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+      number_of_slices, *events_per_slice, n_events, split_input(mep_input), config);
   }
   else if (!mdf_input.empty()) {
-    vector<string> connections;
-    size_t current = mdf_input.find(","), previous = 0;
-    while (current != string::npos) {
-      connections.emplace_back(mdf_input.substr(previous, current - previous));
-      previous = current + 1;
-      current = mdf_input.find(",", previous);
-    }
-    connections.emplace_back(mdf_input.substr(previous, current - previous));
     MDFProviderConfig config {false,             // verify MDF checksums
                               10,                // number of read buffers
                               4,                 // number of transpose threads
@@ -516,7 +517,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               *events_per_slice, // number of events per read buffer
                               n_io_reps};        // number of loops over the input files
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), config);
+      number_of_slices, *events_per_slice, n_events, split_input(mdf_input), config);
   }
   else {
     // The binary input provider expects the folders for the bank types as connections

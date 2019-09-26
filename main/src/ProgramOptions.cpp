@@ -33,7 +33,8 @@ std::vector<ProgramOption> allen_program_options()
   //         [optional default value], [optional description default value]
   return {{{"f", "folder"}, "folder containing data directories", "../input/minbias/"},
           {{"g", "geometry"}, "folder containing detector configuration", "../input/detector_configuration/down/"},
-          {{"mdf"}, "comma-separated list of MDF files to use as input instead of binary files"},
+          {{"mdf"}, "comma-separated list of MDF files to use as input"},
+          {{"mep"}, "comma-separated list of MEP files to use as input"},
           {{"n", "number-of-events"}, "number of events to process", "0", "all"},
           // {{"o", "offset"}, "offset of events from which to start", "0 (beginning)"},
           {{"s", "number-of-slices"}, "number of input slices to allocate", "0", "one more than the number of threads"},
