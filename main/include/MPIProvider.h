@@ -470,11 +470,11 @@ private:
           auto& intervals= m_slice_intervals[i_slice];
           size_t i = 0;
           for (; i < n_interval; ++i) {
-            info_cout << "Set interval: " << i * eps << "," << (i + 1) * eps << "\n";
+            debug_cout << "Set interval: " << i * eps << "," << (i + 1) * eps << "\n";
             intervals.emplace_back(i * eps, (i + 1) * eps);
           }
           if (rest) {
-            info_cout << "Set interval (rest): " << i * eps << "," << i * eps + rest << "\n";
+            debug_cout << "Set interval (rest): " << i * eps << "," << i * eps + rest << "\n";
             intervals.emplace_back(i * eps, i * eps + rest);
           }
           m_mpi_produced.push_back(i_slice);

@@ -5,6 +5,10 @@ import requests
 from dateutil.parser import *
 import datetime
 
+import sys
+import zmq
+ 
+
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def send(telegraf_string):
@@ -32,7 +36,37 @@ def send_to_telegraf(rate, device):
     send(telegraf_string)
 
 
+def main():
+    # if len(sys.argv) < 2:
+    #     print('usage: allen_throughput.py <connect_to> <connect_to...>')
+    #     sys.exit(1)
+ 
 
+    ctx = zmq.Context()
+    sockets = {}
+    for f in ["0","1"]:
+        con = "ipc:///tmp/allen_throughput_" + f
+        print("connecting to: " + con)
+        s = ctx.socket(zmq.SUB)
+        s.connect(con)
+        s.setsockopt(zmq.SUBSCRIBE, b'')
+        sockets[s] = f.split('_')[-1]
+
+    poller = zmq.Poller()
+    for socket in sockets.keys():
+        poller.register(socket, zmq.POLLIN)
+
+    while True:
+        polled = dict(poller.poll())
+        for socket, device in sockets.items():
+            if socket in polled and polled[socket] == zmq.POLLIN:
+                message = socket.recv()
+                print(device, message)
+                send_to_telegraf(message, device)
+
+if __name__ == "__main__":
+    main()
+ 
 
 
  
