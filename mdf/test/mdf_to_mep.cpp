@@ -46,6 +46,10 @@ class FileWriter {
 public:
   FileWriter( const std::string& name ) : m_f{name, std::ios::out | std::ios::binary} {}
 
+  bool is_open() {
+    return m_f.is_open();
+  }
+
   template <typename... Args>
   FileWriter& write( Args&&... args ) {
     ( detail::write( m_f, std::forward<Args>( args ) ), ... );
@@ -100,6 +104,10 @@ int main(int argc, char* argv[]) {
   header->setSubheaderLength(hdr_size - sizeof(LHCb::MDFHeader));
 
   FileWriter writer{output_file};
+  if (!writer.is_open()) {
+    cerr << "Failed to open output file: " << strerror(errno) << "\n";
+    return -1;
+  }
 
   auto write_fragments = [&writer, &blocks, &n_written, &mep_header, hdr_size, packing_factor, header] {
     header->setSize(mep_header.header_size(blocks.size())
