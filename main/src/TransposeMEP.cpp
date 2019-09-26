@@ -1,5 +1,5 @@
 #include <cassert>
-
+#include <cstring>
 #include <TransposeMEP.h>
 
 std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>>
@@ -181,7 +181,7 @@ bool MEP::transpose_event(
         banks_write[word_offset] = mep_header.source_ids[i_block];
 
         // Write bank data
-        ::memcpy(banks_write + word_offset + 1,
+        std::memcpy(banks_write + word_offset + 1,
                  block_data.data() + source_offsets[i_event],
                  block_header.sizes[i_event]);
       }
