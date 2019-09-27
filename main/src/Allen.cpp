@@ -48,18 +48,6 @@ namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed };
 } // namespace
 
-std::vector<std::string> split_input(std::string const& input) {
-  vector<string> s;
-  size_t current = input.find(","), previous = 0;
-  while (current != string::npos) {
-    s.emplace_back(input.substr(previous, current - previous));
-    previous = current + 1;
-    current = input.find(",", previous);
-  }
-  s.emplace_back(input.substr(previous, current - previous));
-  return s;
-}
-
 /**
  * @brief      Request slices from the input provider and report
  *             them to the main thread; run from a separate thread
@@ -613,9 +601,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         std::tuple {&streams, start_thread {stream_thread}, number_of_threads, "GPU"}}) {
     for (uint i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
-      zmq::setsockopt(control, zmq::LINGER, 0); 
+      zmq::setsockopt(control, zmq::LINGER, 0);
       auto con = ZMQ::connection(thread_id);
-      control.bind(con.c_str()); 
+      control.bind(con.c_str());
 
       // I don't know why, but this prevents problems. Probably
       // some race condition I haven't noticed.
@@ -653,13 +641,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   size_t error_count = 0;
 
-  std::optional<Timer> t; 
+  std::optional<Timer> t;
   double previous_time_measurement = 0;
 
   zmq::socket_t throughput_socket = zmqSvc().socket(zmq::PUB);
-  zmq::setsockopt(throughput_socket, zmq::LINGER, 0); 
+  zmq::setsockopt(throughput_socket, zmq::LINGER, 0);
   std::string con = "ipc:///tmp/allen_throughput_" + std::to_string(device_id);
-  throughput_socket.bind(con.c_str()); 
+  throughput_socket.bind(con.c_str());
 
   // Lambda to check if any event processors are done processing
   auto check_processors = [&] () {
@@ -681,7 +669,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
               zmqSvc().send(throughput_socket, std::to_string(n_events_processed * number_of_repetitions / elapsed_time));
               previous_time_measurement = elapsed_time;
             }
-          }          
+          }
         }
 
         // Run the checker accumulation here in a blocking fashion;

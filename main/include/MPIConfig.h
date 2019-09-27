@@ -38,7 +38,7 @@ namespace MPI {
     // Message tags
     constexpr int test = 1;
     constexpr int packing_factor = 2;
-    constexpr int number_of_files = 3;
+    constexpr int number_of_meps = 3;
     constexpr int max_file_size = 4;
     constexpr int event_size = 5;
     constexpr int window_size = 6;
@@ -50,13 +50,5 @@ namespace MPI {
     // constexpr int event_send_tag_modulo = 1024;
   } // namespace message
 
-  std::string rank_str()
-  {
-    if (rank == sender) {
-      return "MPI::Sender: ";
-    }
-    else {
-      return "MPI::Receiver: ";
-    }
-  }
+  std::string rank_str();
 } // namespace MPI

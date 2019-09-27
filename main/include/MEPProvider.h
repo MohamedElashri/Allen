@@ -514,16 +514,16 @@ private:
     size_t reporting_period = 5;
     size_t bytes_received = 0;
     size_t meps_received = 0;
-    size_t number_of_files = 0;
+    size_t number_of_meps = 0;
     Timer t;
     Timer t_origin;
     bool error = false;
     bool receive_done = false;
 
-    MPI_Recv(&number_of_files, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_files, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&number_of_meps, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_meps, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    int current_file=0;
-    while (m_config.non_stop || current_file < number_of_files) {
+    int current_mep = 0;
+    while (m_config.non_stop || current_mep < number_of_meps) {
       // info_cout << MPI::rank_str() << "round " << current_file << "\n";
 
       // Obtain a prefetch buffer to read into, if none is available,
@@ -654,7 +654,7 @@ private:
       }
       m_mpi_cond.notify_one();
 
-      current_file++;
+      current_mep++;
     }
   }
 

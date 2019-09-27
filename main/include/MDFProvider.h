@@ -262,7 +262,7 @@ public:
       // If no transposed slices are ready for processing, wait until
       // one is; use a timeout if requested
       if (m_transposed.empty()) {
-        auto wakeup = [this, &done] {
+        auto wakeup = [this] {
                         auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
                         return (!m_transposed.empty() || m_read_error
                                 || (m_transpose_done && n_writable == m_buffer_writable.size()));
