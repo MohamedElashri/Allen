@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
         }
         blocks.resize(n_blocks);
         for (auto& block : blocks) {
-          std::get<2>(block).resize(packing_factor * average_event_size * kB);
+          std::get<2>(block).resize(packing_factor * average_event_size * kB / n_blocks);
         }
 
         mep_header = EB::Header{packing_factor, n_blocks};
@@ -231,9 +231,8 @@ int main(int argc, char* argv[]) {
           block_header.types[n_filled] = b->type();
           block_header.sizes[n_filled] = n_words * sizeof(uint32_t);
 
-          // safety measure, shouldn't be called
+          // Resize on demand
           if (block_header.block_size + word_size > data.size()) {
-            cout << "Warning: data size insufficient, resizing\n";
             data.resize(1.5 * data.size());
           }
 
