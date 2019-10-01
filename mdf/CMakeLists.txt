@@ -61,13 +61,18 @@ endfunction()
 test_program(NAME dump_banks)
 
 if (BUILD_TESTS)
-  include(Catch)
-
   test_program(NAME test_read)
   test_program(NAME bench_read)
   test_program(NAME bench_provider)
   test_program(NAME bench_transpose)
 
   test_program(NAME test_providers)
-  catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+
+  # Don't use
+  if (NOT GaudiProject_FOUND)
+    include(Catch)
+    catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  else()
+    gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  endif()
 endif()
