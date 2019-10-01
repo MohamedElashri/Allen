@@ -45,7 +45,6 @@ MEP::read_mep(int input, std::vector<char>& buffer) {
   // read subheader
   buffer.resize(hdr_size + EB::Header::base_size());
   mdf_header = reinterpret_cast<LHCb::MDFHeader*>(&buffer[0]);
-  auto mdf_size = mdf_header->size();
   n_bytes = ::read(input, &buffer[0] + sizeof(LHCb::MDFHeader), mdf_header->subheaderLength());
   if (n_bytes <= 0) {
     cerr << "Failed to read subheader " << strerror(errno) << "\n";
