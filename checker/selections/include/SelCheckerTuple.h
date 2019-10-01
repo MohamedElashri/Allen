@@ -58,6 +58,9 @@ class SelCheckerTuple : public Checker::BaseChecker {
   TFile* m_file = nullptr;
 #endif
 
+  // Event info.
+  std::vector<double> m_event_pass_gec;
+  
   // MC info.
   std::vector<double> m_gen_key;
   std::vector<double> m_gen_pid;
