@@ -58,12 +58,14 @@ BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_inde
 size_t transpose_mep(Slices& mep_slices,
                      int output_index,
                      EB::Header& mep_header,
-                     gsl::span<char const> mep_span,
+                     gsl::span<char const> mep_data,
                      size_t chunk_size) {
+
+  bool success = false;
+  std::tie(success, banks_count) = MEP::fill_counts(mep_header, mep_data);
+  ids = bank_ids();
+
   // read MEP
-
-  MEP::Slice input_slice{gsl::span{const_cast<char*>(mep_span.data()), mep_span.size()}, mep_span.size()};
-
   std::vector<std::vector<uint32_t>> input_offsets(mep_header.n_blocks);
   for (auto& offsets : input_offsets) {
     offsets.resize(mep_header.packing_factor + 1);
@@ -71,17 +73,17 @@ size_t transpose_mep(Slices& mep_slices,
 
   std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>> blocks(mep_header.n_blocks);
 
-  bool success = false;
-  std::tie(success, banks_count) = MEP::fill_counts(mep_header, mep_span);
-  ids = bank_ids();
+  MEP::find_blocks(mep_header, mep_data, blocks);
 
-  auto r = MEP::transpose_events(input_slice,
-                                 input_offsets,
-                                 blocks,
-                                 mep_slices, output_index,
+  MEP::fragment_offsets(blocks, input_offsets);
+
+  auto r = MEP::transpose_events(mep_slices, output_index,
                                  ids,
                                  banks_count,
                                  events_mep,
+                                 mep_header,
+                                 blocks,
+                                 input_offsets,
                                  {0, chunk_size});
   return std::get<2>(r);
 }

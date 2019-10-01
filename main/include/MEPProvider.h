@@ -10,13 +10,12 @@
 #include <algorithm>
 #include <numeric>
 #include <condition_variable>
+#include <cassert>
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
-#include <CudaCommon.h>
 
 #include <Logger.h>
 #include <InputProvider.h>
@@ -30,6 +29,10 @@
 #include "Transpose.h"
 #include "TransposeMEP.h"
 #include "MPIConfig.h"
+
+#ifndef NO_CUDA
+#include <CudaCommon.h>
+#endif
 
 namespace {
   using namespace Allen::Units;
@@ -46,6 +49,12 @@ using Slice = std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>;
 using BankSlices = std::vector<Slice>;
 using Slices = std::array<BankSlices, NBankTypes>;
 
+struct BufferStatus {
+  bool writable = true;
+  int work_counter = 0;
+  std::vector<std::tuple<size_t, size_t>> intervals;
+};
+
 /**
  * @brief      Configuration parameters for the MEPProvider
  */
@@ -59,12 +68,7 @@ struct MEPProviderConfig {
   // number of transpose threads
   size_t n_transpose_threads = 5;
 
-  // maximum number of events per slice
-  size_t offsets_size = 10001;
-
-  size_t window_size = 4;
-
-  size_t transpose_chunk_size = 20;
+  int window_size = 4;
 
   bool use_mpi = false;
 
@@ -100,7 +104,7 @@ public:
               std::vector<std::string> connections,
               MEPProviderConfig config = MEPProviderConfig{}) :
     InputProvider<MEPProvider<Banks...>>{n_slices, events_per_slice, n_events},
-    m_buffer_writable(config.n_buffers, true),
+    m_buffer_status(config.n_buffers),
     m_slice_free(n_slices, true),
     m_banks_count{0},
     m_event_ids{n_slices},
@@ -108,24 +112,26 @@ public:
     m_config{config}
   {
 
+    m_buffer_transpose = m_buffer_status.begin();
+    m_buffer_reading = m_buffer_status.begin();
+
     if (m_config.use_mpi) {
       MPI_Recv(&m_packing_factor, 1, MPI_SIZE_T, MPI::sender, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
       // Allocate as many net slices as configured, of expected size
       // Packing factor can be done dynamically if needed
       size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
-      for (int i=0; i < config.n_buffers; ++i) {
+      for (size_t i = 0; i < config.n_buffers; ++i) {
         char* contents = nullptr;
         MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
-        m_net_slices.emplace_back(gsl::span{contents, n_bytes}, n_bytes);
+        m_net_slices.emplace_back(EB::Header{}, gsl::span<char const>{contents, n_bytes},
+                                  MEP::Blocks{}, MEP::SourceOffsets{}, n_bytes);
+        m_mpi_buffers.emplace_back(contents);
       }
     } else {
       m_read_buffers.resize(m_config.n_buffers);
       m_net_slices.resize(m_config.n_buffers);
     }
-
-    // Allocate queues for slice intervals
-    m_slice_intervals.resize(config.n_buffers);
 
     // Reinitialize to take the possible minimum number of events per
     // slice into account
@@ -142,10 +148,6 @@ public:
       return {std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB), events_per_slice};
     };
     m_slices = allocate_slices<Banks...>(n_slices, size_fun);
-
-    // Allocate storage for offsets and blocks used during MEP
-    // transposition
-    m_slice_offsets_blocks.resize(n_slices);
 
     // Initialize the current input filename
     m_current = m_connections.begin();
@@ -172,43 +174,6 @@ public:
         m_mpi_thread = std::thread{&MEPProvider::mpi_read, this};
       } else {
         m_mpi_thread = std::thread{&MEPProvider::mep_read, this};
-      }
-
-      // Wait for first read buffer to be full
-      m_mpi_cond.wait(lock, [this] { return !m_mpi_produced.empty() || m_read_error; });
-      if (!m_read_error) {
-        // Count number of banks per flavour
-        bool count_success = false;
-
-        // Offsets are to the start of the event, which includes the header
-        auto i_read = m_mpi_produced.front();
-        auto& [mpi_slice, slice_size] = m_net_slices[i_read];
-        EB::Header mep_header{mpi_slice.data()};
-        // gsl::span<char const> block_span{mpi_slice.data() + mep_header.header_size(mep_header.n_blocks), mep_header.mep_size};
-        if (m_packing_factor == 0) {
-          m_packing_factor = mep_header.packing_factor;
-        } else {
-          assert(mep_header.packing_factor == m_packing_factor);
-        }
-        std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, mpi_slice);
-
-        // The number of blocks in a MEP is know, use it to allocate
-        // storage for temporary storage used during transposition
-        for (auto& [input_offsets, blocks] : m_slice_offsets_blocks) {
-          blocks.resize(mep_header.n_blocks);
-          input_offsets.resize(mep_header.n_blocks);
-          for (auto& offsets : input_offsets) {
-            // info_cout << "Packing factor: " << mep_header.packing_factor << "\n";
-            offsets.resize(m_packing_factor + 1);
-          }
-        }
-
-        if (!count_success) {
-          error_cout << "Failed to determine bank counts\n";
-          m_read_error = true;
-        } else {
-          m_sizes_known = true;
-        }
       }
     }
 
@@ -299,14 +264,15 @@ public:
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
     std::unique_lock<std::mutex> lock{m_transpose_mut};
+
     if (!m_read_error) {
       // If no transposed slices are ready for processing, wait until
       // one is; use a timeout if requested
       if (m_transposed.empty()) {
         auto wakeup = [this] {
-                        auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
+                        auto n_writable = count_writable();
                         return (!m_transposed.empty() || m_read_error
-                                || (m_transpose_done && n_writable == m_buffer_writable.size()));
+                                || (m_transpose_done && n_writable == m_buffer_status.size()));
                       };
         if (timeout) {
           timed_out = !m_transpose_cond.wait_for(lock, std::chrono::milliseconds{*timeout}, wakeup);
@@ -321,8 +287,8 @@ public:
     }
 
     // Check if I/O and transposition is done and return a slice index
-    auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
-    done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_writable.size();
+    auto n_writable = count_writable();
+    done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_status.size();
     return {!m_read_error && !done, timed_out, slice_index, m_read_error ? 0 : n_filled};
   }
 
@@ -353,6 +319,56 @@ public:
 
 private:
 
+
+  size_t count_writable() const
+  {
+    return std::accumulate(m_buffer_status.begin(), m_buffer_status.end(), 0ul,
+                           [] (size_t s, BufferStatus const& stat) { return s + stat.writable; });
+  }
+
+  void allocate_storage(size_t i_read) {
+    if (m_sizes_known) return;
+
+    // Count number of banks per flavour
+    bool count_success = false;
+
+    // Offsets are to the start of the event, which includes the header
+    auto& [mep_header, mpi_slice, blocks, input_offsets, slice_size] = m_net_slices[i_read];
+    size_t n_blocks = mep_header.n_blocks;
+    // gsl::span<char const> block_span{mpi_slice.data() + mep_header.header_size(mep_header.n_blocks), mep_header.mep_size};
+    if (m_packing_factor == 0) {
+      m_packing_factor = mep_header.packing_factor;
+    } else {
+      assert(mep_header.packing_factor == m_packing_factor);
+    }
+
+    auto eps = this->events_per_slice();
+    auto n_interval = m_packing_factor / eps;
+    auto rest = m_packing_factor % eps;
+    for (auto & s : m_buffer_status) {
+      s.intervals.reserve(2 * (n_interval + rest));
+    }
+
+    for(auto& [mep_header, mpi_slice, blocks, input_offsets, slice_size]  : m_net_slices) {
+      // The number of blocks in a MEP is known, use it to allocate
+      // temporary storage used during transposition
+      blocks.resize(n_blocks);
+      input_offsets.resize(n_blocks);
+      for (auto& offsets : input_offsets) {
+        // info_cout << "Packing factor: " << mep_header.packing_factor << "\n";
+        offsets.resize(m_packing_factor + 1);
+      }
+    }
+
+    std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, mpi_slice);
+
+    if (!count_success) {
+      error_cout << "Failed to determine bank counts\n";
+      m_read_error = true;
+    } else {
+      m_sizes_known = true;
+    }
+  }
 
   /**
   * @brief      Open an input file; called from the prefetch thread
@@ -389,11 +405,49 @@ private:
     return good;
   }
 
+  std::tuple<std::vector<BufferStatus>::iterator, size_t>
+  get_mep_buffer(std::function<bool(BufferStatus const&)> pred,
+                 std::vector<BufferStatus>::iterator start,
+                 std::unique_lock<std::mutex>& lock)
+  {
+    // Obtain a prefetch buffer to read into, if none is available,
+    // wait until one of the transpose threads is done with its
+    // prefetch buffer
+    auto find_buffer = [this, start, &pred] {
+                         auto it = std::find_if(start, m_buffer_status.end(), pred);
+                         if (it == m_buffer_status.end()) {
+                           it = std::find_if(m_buffer_status.begin(), start, pred);
+                           if (it == start) it = m_buffer_status.end();
+                         }
+                         return it;
+                       };
+
+    auto it = find_buffer();
+    if (it == m_buffer_status.end() && !m_transpose_done) {
+      m_mpi_cond.wait(lock, [this, &it, &find_buffer] {
+                              it = find_buffer();
+                              return it != m_buffer_status.end() || m_transpose_done;
+                            });
+    }
+    return {it, distance(m_buffer_status.begin(), it)};
+  }
+
+  void set_intervals(std::vector<std::tuple<size_t, size_t>>& intervals) {
+    auto eps = this->events_per_slice();
+    auto n_interval = m_packing_factor / eps;
+    auto rest = m_packing_factor % eps;
+    if (rest) {
+      debug_cout << "Set interval (rest): " << n_interval * eps << "," << n_interval * eps + rest << "\n";
+      intervals.emplace_back(n_interval * eps, n_interval * eps + rest);
+    }
+    for (size_t i = n_interval; i != 0 ; --i) {
+      debug_cout << "Set interval: " << (i - 1) * eps << "," << i * eps << "\n";
+      intervals.emplace_back((i - 1) * eps, i * eps);
+    }
+  }
+
   // mep reader thread
   void mep_read() {
-
-    size_t bytes_received = 0;
-    size_t meps_received = 0;
     bool receive_done = false;
     EB::Header mep_header;
 
@@ -406,43 +460,27 @@ private:
         m_mpi_cond.notify_one();
         return;
       }
-
-      // Obtain a prefetch buffer to read into, if none is available,
-      // wait until one of the transpose threads is done with its
-      // prefetch buffer
-      auto it = m_buffer_writable.end();
+      auto it = m_buffer_status.end();
+      size_t i_buffer;
       {
         std::unique_lock<std::mutex> lock{m_mpi_mutex};
-        it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
-        if (it == m_buffer_writable.end()) {
-          this->debug_output("Waiting for free buffer");
-          m_mpi_cond.wait(lock, [this] {
-                                  return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true)
-                                    != m_buffer_writable.end() || m_done;
-                                });
-          if (m_done) {
-            break;
-          } else {
-            it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
-          }
-        }
-        // Flag the prefetch buffer as unavailable
-        *it = false;
+        std::tie(m_buffer_reading, i_buffer) = get_mep_buffer([] (BufferStatus const&s) { return s.writable; },
+                                                              m_buffer_reading,
+                                                              lock);
+        m_buffer_reading->writable = false;
       }
+      this->debug_output("Writing to MEP slice index " + std::to_string(i_buffer));
 
-      size_t i_slice = distance(m_buffer_writable.begin(), it);
-      auto& read_buffer = m_read_buffers[i_slice];
-      auto& [buffer_span, buffer_size] = m_net_slices[i_slice];
-      gsl::span<char const> mep_span;
+      auto& read_buffer = m_read_buffers[i_buffer];
+      auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
 
       bool success = false, eof = false;
 
       while (!success || eof) {
-        std::tie(eof, success, mep_header, mep_span) = MEP::read_mep(*m_input, read_buffer);
-        buffer_span = gsl::span<char>{const_cast<char*>(mep_span.data()), mep_span.size()};
+        std::tie(eof, success, mep_header, buffer_span) = MEP::read_mep(*m_input, read_buffer);
 
         if (!eof) {
-          info_cout << "Read mep with packing factor " << mep_header.packing_factor << "\n";
+          debug_cout << "Read mep with packing factor " << mep_header.packing_factor << "\n";
         }
 
         if (!success) {
@@ -460,32 +498,30 @@ private:
         }
       }
 
+      if (!m_sizes_known) {
+        allocate_storage(i_buffer);
+      }
+
+      // Fill blocks
+      MEP::find_blocks(mep_header, buffer_span, blocks);
+
+      // Fill fragment offsets
+      MEP::fragment_offsets(blocks, input_offsets);
+
       // Notify a transpose thread that a new buffer of events is
       // ready. If prefetching is done, wake up all threads
       if (success) {
         {
           std::unique_lock<std::mutex> lock{m_mpi_mutex};
 
+          auto& status = m_buffer_status[i_buffer];
+          assert(status.work_counter == 0);
+
           if (!eof) {
-            auto eps = this->events_per_slice();
-            auto n_interval = mep_header.packing_factor / eps;
-            auto rest = mep_header.packing_factor % eps;
-            auto& intervals= m_slice_intervals[i_slice];
-            size_t i = 0;
-            for (; i < n_interval; ++i) {
-              this->debug_output(std::string{"Set interval: "} + std::to_string(i * eps)
-                                 + "," + std::to_string((i + 1) * eps));
-              intervals.emplace_back(i * eps, (i + 1) * eps);
-            }
-            if (rest) {
-              this->debug_output(std::string{"Set interval (rest): "} + std::to_string(i * eps)
-                                 + "," + std::to_string(i * eps + rest));
-              intervals.emplace_back(i * eps, i * eps + rest);
-            }
-            m_mpi_produced.push_back(i_slice);
+            set_intervals(status.intervals);
           } else {
             // We didn't read anything, so free the buffer we got again
-            m_buffer_writable[i_slice] = true;
+            status.writable = true;
           }
         }
         if (receive_done) {
@@ -504,13 +540,10 @@ private:
   // MPI reader thread
   void mpi_read() {
 
-    auto window_size = m_config.window_size;
+    int window_size = m_config.window_size;
     std::vector<MPI_Request> requests (window_size);
 
     // Iterate over the slices
-    int current_slice = 0;
-    int startup_iteration = 0;
-
     size_t reporting_period = 5;
     size_t bytes_received = 0;
     size_t meps_received = 0;
@@ -522,36 +555,25 @@ private:
 
     MPI_Recv(&number_of_meps, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_meps, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    int current_mep = 0;
+    size_t current_mep = 0;
     while (m_config.non_stop || current_mep < number_of_meps) {
       // info_cout << MPI::rank_str() << "round " << current_file << "\n";
 
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
       // prefetch buffer
-      auto it = m_buffer_writable.end();
+      auto it = m_buffer_status.end();
+      size_t i_buffer;
       {
         std::unique_lock<std::mutex> lock{m_mpi_mutex};
-        it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
-        if (it == m_buffer_writable.end()) {
-          this->debug_output("Waiting for free buffer");
-          m_mpi_cond.wait(lock, [this] {
-                                  return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true)
-                                    != m_buffer_writable.end() || m_done;
-                                });
-          if (m_done) {
-            break;
-          } else {
-            it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
-          }
-        }
-        // Flag the prefetch buffer as unavailable
-        *it = false;
+        std::tie(it, i_buffer) = get_mep_buffer([] (BufferStatus const&s) { return s.writable; },
+                                                m_buffer_reading, lock);
+        m_buffer_reading->writable = false;
+        assert(it->work_counter == 0);
       }
 
-      size_t i_slice = distance(m_buffer_writable.begin(), it);
-      auto& [buffer_span, buffer_size] = m_net_slices[i_slice];
-      char* contents = buffer_span.data();
+      auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
+      char* contents = m_mpi_buffers[i_buffer];
 
       size_t mep_size = 0;
       MPI_Recv(&mep_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -602,9 +624,14 @@ private:
       // Wait until all chunks have been sent
       MPI_Waitall(n_sends, requests.data(), MPI_STATUSES_IGNORE);
 
-      // info_cout << "All chunks received\n";
-
+      mep_header = EB::Header{contents};
       buffer_span = gsl::span{contents, mep_size};
+
+      // Fill blocks
+      MEP::find_blocks(mep_header, buffer_span, blocks);
+
+      // Fill fragment offsets
+      MEP::fragment_offsets(blocks, input_offsets);
 
       bytes_received += mep_size;
       meps_received += 1;
@@ -627,21 +654,8 @@ private:
       if (!error) {
         {
           std::unique_lock<std::mutex> lock{m_mpi_mutex};
-
-          auto eps = this->events_per_slice();
-          auto n_interval = m_packing_factor / eps;
-          auto rest = m_packing_factor % eps;
-          auto& intervals= m_slice_intervals[i_slice];
-          size_t i = 0;
-          for (; i < n_interval; ++i) {
-            debug_cout << "Set interval: " << i * eps << "," << (i + 1) * eps << "\n";
-            intervals.emplace_back(i * eps, (i + 1) * eps);
-          }
-          if (rest) {
-            debug_cout << "Set interval (rest): " << i * eps << "," << i * eps + rest << "\n";
-            intervals.emplace_back(i * eps, i * eps + rest);
-          }
-          m_mpi_produced.push_back(i_slice);
+          set_intervals(m_buffer_status[i_buffer].intervals);
+          assert(m_buffer_status[i_buffer].work_counter == 0);
         }
         if (receive_done) {
           m_done = receive_done;
@@ -667,44 +681,37 @@ private:
    */
   void transpose(int thread_id) {
 
-    size_t i_read = 0;
+    size_t i_buffer = 0;
     std::tuple<size_t, size_t> interval;
     std::optional<size_t> slice_index;
 
     bool good = false, transpose_full = false;
     size_t n_transposed = 0;
 
-    bool free_read_buffer = false;
+    auto has_intervals = [](BufferStatus const& s) { return !s.intervals.empty(); };
 
     while(!m_read_error && !m_transpose_done) {
-
       // Get a buffer to read from
       {
         std::unique_lock<std::mutex> lock{m_mpi_mutex};
-        if (m_mpi_produced.empty() && !m_transpose_done) {
-          m_mpi_cond.wait(lock, [this] { return !m_mpi_produced.empty() || m_transpose_done; });
-        }
-        if (m_mpi_produced.empty()) {
-          this->debug_output("Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_mpi_produced.empty()), thread_id);
+        std::tie(m_buffer_transpose, i_buffer) = get_mep_buffer(has_intervals,
+                                                                m_buffer_transpose, lock);
+        if (m_transpose_done) {
           break;
         }
+        auto& status = *m_buffer_transpose;
+        assert(!status.intervals.empty());
 
-        i_read = m_mpi_produced.front();
+        interval = status.intervals.back();
+        status.intervals.pop_back();
 
-        interval = m_slice_intervals[i_read].front();
-        m_slice_intervals[i_read].pop_front();
+        ++(status.work_counter);
+        status.writable = false;
 
-        if (m_slice_intervals[i_read].empty()) {
-          // Consume mpi_produced
-          m_mpi_produced.pop_front();
-          free_read_buffer = true;
-        }
-
-        this->debug_output("Got MEP slice index " + std::to_string(i_read)
+        this->debug_output("Got MEP slice index " + std::to_string(i_buffer)
                            + " interval [" + std::to_string(std::get<0>(interval)) + ","
                            + std::to_string(std::get<1>(interval)) + ")", thread_id);
 
-        m_buffer_writable[i_read] = false;
       }
 
       // Get a slice to write to
@@ -739,25 +746,27 @@ private:
       auto& event_ids = m_event_ids[*slice_index];
       reset_slice<Banks...>(m_slices, *slice_index, event_ids);
 
-      // Transpose the events in the read buffer into the slice
-      // FIXME replace by proper transposition including interval
+      // MEP data
+      auto const& [mep_header, mep_data, blocks, source_offsets, slice_size] = m_net_slices[i_buffer];
 
-      auto& [input_offsets, blocks] = m_slice_offsets_blocks[*slice_index];
-
-      std::tie(good, transpose_full, n_transposed) = MEP::transpose_events(m_net_slices[i_read],
-                                                                           input_offsets,
-                                                                           blocks,
-                                                                           m_slices,
+      // Transpose the events into the slice
+      std::tie(good, transpose_full, n_transposed) = MEP::transpose_events(m_slices,
                                                                            *slice_index,
                                                                            m_bank_ids,
                                                                            m_banks_count,
                                                                            event_ids,
+                                                                           mep_header,
+                                                                           blocks,
+                                                                           source_offsets,
                                                                            interval);
       this->debug_output("Transposed slice " + std::to_string(*slice_index) + "; good: " + std::to_string(good)
                          + ";full: " + std::to_string(transpose_full) + "; n_transposed:  "
                          + std::to_string(n_transposed), thread_id);
 
       if (m_read_error || !good) {
+        std::unique_lock<std::mutex> lock{m_mpi_mutex};
+        auto& status = m_buffer_status[i_buffer];
+        --status.work_counter;
         m_read_error = true;
         m_transpose_cond.notify_one();
         break;
@@ -774,27 +783,28 @@ private:
       // Check if the read buffer is now empty. If it is, it can be
       // reused, otherwise give it to another transpose thread once a
       // new target slice is available
-      auto& intervals = m_slice_intervals[i_read];
       {
         std::unique_lock<std::mutex> lock{m_mpi_mutex};
-        if (n_transposed == std::get<1>(interval) - std::get<0>(interval)) {
-          if (free_read_buffer) {
-            m_buffer_writable[i_read] = true;
-          }
-        } else {
-          // Put this prefetched slice back on the prefetched queue so
-          // somebody else can finish it
-          std::unique_lock<std::mutex> lock{m_mpi_mutex};
-          intervals.emplace_front(std::get<0>(interval) + n_transposed, std::get<1>(interval));
-          free_read_buffer = false;
+
+        auto& status = m_buffer_status[i_buffer];
+        --(status.work_counter);
+
+        if (n_transposed != std::get<1>(interval) - std::get<0>(interval)) {
+          // FIXME: doesn't work yet; reconsider fast struct with proper synchronisation
+          status.intervals.emplace_back(std::get<0>(interval) + n_transposed, std::get<1>(interval));
+        } else if (status.work_counter == 0) {
+          m_transpose_done = m_done && std::all_of(m_buffer_status.begin(), m_buffer_status.end(),
+                                        [] (BufferStatus const& stat) {
+                                          return stat.intervals.empty() && stat.work_counter == 0;
+                                        });
+
+          // All events in this buffer have been fully transposed so
+          // it can be re-used
+          status.writable = true;
+
+          // Notify read thread that a buffer is available
+          m_mpi_cond.notify_one();
         }
-        if (free_read_buffer) {
-          // m_mpi_produced.pop_front();
-          m_transpose_done = m_done && m_mpi_produced.empty();
-        }
-      }
-      if (n_transposed == std::get<1>(interval) - std::get<0>(interval)) {
-        m_mpi_cond.notify_one();
       }
     }
   }
@@ -802,20 +812,17 @@ private:
   // Slices
   size_t m_packing_factor = 0;
   std::vector<std::vector<char>> m_read_buffers;
+  std::vector<char*> m_mpi_buffers;
   MEP::Slices m_net_slices;
 
   // data members for mpi thread
   std::mutex m_mpi_mutex;
   std::condition_variable m_mpi_cond;
-  std::deque<size_t> m_mpi_produced;
-  std::vector<std::deque<std::tuple<size_t, size_t>>> m_slice_intervals;
-  std::vector<bool> m_buffer_writable;
-  std::thread m_mpi_thread;
 
-  using InputOffsets = std::vector<std::vector<uint32_t>>;
-  using Blocks = std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>>;
-  // temporary storage
-  std::vector<std::tuple<InputOffsets, Blocks>> m_slice_offsets_blocks;
+  std::vector<BufferStatus> m_buffer_status;
+  std::vector<BufferStatus>::iterator m_buffer_transpose;
+  std::vector<BufferStatus>::iterator m_buffer_reading;
+  std::thread m_mpi_thread;
 
   // Atomics to flag errors and completion
   std::atomic<bool> m_done = false;

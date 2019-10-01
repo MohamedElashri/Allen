@@ -39,10 +39,10 @@ using Slice = std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>;
 
 namespace MEP {
 
-  using Slice = std::tuple<gsl::span<char>, size_t>;
-  using Slices = std::vector<MEP::Slice>;
-
+  using SourceOffsets = std::vector<std::vector<uint32_t>>;
   using Blocks = std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>>;
+  using Slice = std::tuple<EB::Header, gsl::span<char const>, Blocks, SourceOffsets, size_t>;
+  using Slices = std::vector<MEP::Slice>;
 
 /**
  * @brief      Fill the array the contains the number of banks per type
@@ -57,14 +57,19 @@ namespace MEP {
 std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>>
 fill_counts(EB::Header const& header, gsl::span<char const> const& data);
 
-size_t fragment_offsets(std::vector<std::vector<uint32_t>>& input_offsets,
-                        ::Slices& slices,
-                        int const slice_index,
-                        std::vector<int> const& bank_ids,
-                        std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-                        EB::Header const& mep_header,
-                        Blocks const& blocks,
-                        std::tuple<size_t, size_t> const& interval);
+void find_blocks(EB::Header const& mep_header,
+                 gsl::span<char const>& buffer_span,
+                 Blocks& blocks);
+
+void fragment_offsets(Blocks const& blocks,
+                      std::vector<std::vector<uint32_t>>& offsets);
+
+size_t allen_offsets(::Slices& slices,
+                     int const slice_index,
+                     std::vector<int> const& bank_ids,
+                     std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+                     Blocks const& blocks,
+                     std::tuple<size_t, size_t> const& interval);
 
 /**
  * @brief      Transpose events to Allen layout
@@ -84,8 +89,8 @@ bool transpose_event(
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
   EB::Header const& mep_header,
-  std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>>& blocks,
-  std::vector<std::vector<uint32_t>> const& input_offsets,
+  Blocks const& blocks,
+  SourceOffsets const& input_offsets,
   std::tuple<size_t, size_t> const& interval);
 
 /**
@@ -100,14 +105,14 @@ bool transpose_event(
  * @return     tuple of: (success, slice is full)
  */
 std::tuple<bool, bool, size_t> transpose_events(
-  MEP::Slice const& mep_slice,
-  std::vector<std::vector<uint32_t>>& input_offsets,
-  std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>>& blocks,
   ::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
+  EB::Header const& mep_header,
+  Blocks const& blocks,
+  SourceOffsets const& source_offsets,
   std::tuple<size_t, size_t> const& interval);
 
 }

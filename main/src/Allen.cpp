@@ -316,7 +316,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   size_t reserve_mb;
   // MPI options
   bool with_mpi;
-  size_t mpi_window_size;
+  int mpi_window_size;
   size_t mpi_number_of_slices;
 
   string mdf_input;
@@ -489,9 +489,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     MEPProviderConfig config {false,             // verify MEP checksums
                               10,                // number of read buffers
                               4,                 // number of transpose threads
-                              10001,             // maximum number event of offsets in read buffer
                               mpi_window_size,   // MPI sliding window size
-                              30,                // Transpose chunk size
                               with_mpi,          // Receive from MPI or read files
                               non_stop};         // Run the application non-stop
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(

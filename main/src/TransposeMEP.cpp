@@ -32,30 +32,61 @@ MEP::fill_counts(EB::Header const& header, gsl::span<char const> const& mep_span
   return {true, count};
 }
 
-size_t MEP::fragment_offsets(std::vector<std::vector<uint32_t>>& input_offsets,
-                             ::Slices& slices,
-                             int const slice_index,
-                             std::vector<int> const& bank_ids,
-                             std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-                             EB::Header const& mep_header,
-                             Blocks const& blocks,
-                             std::tuple<size_t, size_t> const& interval) {
+void MEP::find_blocks(EB::Header const& mep_header,
+                      gsl::span<char const>& buffer_span,
+                      Blocks& blocks) {
+
+  // Fill blocks
+  auto hdr_size = mep_header.header_size(mep_header.n_blocks);
+  auto block_hdr_size = EB::BlockHeader::header_size(mep_header.packing_factor);
+  gsl::span<char const> const mep_data{buffer_span.data() + hdr_size, buffer_span.size() - hdr_size};
+
+  for (size_t i_block = 0; i_block < mep_header.n_blocks; ++i_block) {
+    auto block_offset = mep_header.offsets[i_block];
+    EB::BlockHeader block_header{mep_data.data() + block_offset};
+    gsl::span<char const> block_data{mep_data.data() + block_offset + block_hdr_size,
+                                     block_header.block_size};
+    blocks[i_block] = std::tuple{std::move(block_header), std::move(block_data)};
+  }
+}
+
+void MEP::fragment_offsets(MEP::Blocks const& blocks,
+                           MEP::SourceOffsets& offsets) {
+
+  // Reset input offsets
+  for (auto& o : offsets) {
+    std::fill(o.begin(), o.end(), 0);
+  }
+
+  // Loop over all bank sizes in all blocks
+  for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
+    auto const& [block_header, block_data] = blocks[i_block];
+    auto& o = offsets[i_block];
+    uint32_t fragment_offset = 0;
+
+    for (size_t i = 0; i < block_header.n_frag; ++i) {
+      o[i] = fragment_offset;
+      fragment_offset += block_header.sizes[i];
+    }
+  }
+}
+
+size_t MEP::allen_offsets(::Slices& slices,
+                          int const slice_index,
+                          std::vector<int> const& bank_ids,
+                          std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+                          MEP::Blocks const& blocks,
+                          std::tuple<size_t, size_t> const& interval) {
 
   auto [event_start, event_end] = interval;
 
   // Loop over all bank sizes in all blocks
-  for (size_t i_block = 0; i_block < mep_header.n_blocks; ++i_block) {
+  for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
     auto const& [block_header, block_data] = blocks[i_block];
-    auto& o = input_offsets[i_block];
-    uint32_t fragment_offset = 0;
-
     auto lhcb_type = block_header.types[0];
     auto allen_type = bank_ids[lhcb_type];
-    for (size_t i = 0; i < event_end; ++i) {
-      o[i] = fragment_offset;
-      fragment_offset += block_header.sizes[i];
-      // Fill the size per bank type per event
-      if (allen_type != -1 && i >= event_start) {
+    if (allen_type != -1) {
+      for (size_t i = event_start; i < event_end; ++i) {
         // Anticipate offset structure already here, i.e. don't assign to the first one
         auto idx = i - event_start + 1;
         auto& event_offsets = std::get<1>(slices[allen_type][slice_index]);
@@ -108,8 +139,8 @@ bool MEP::transpose_event(
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
   EB::Header const& mep_header,
-  std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>>& blocks,
-  std::vector<std::vector<uint32_t>> const& input_offsets,
+  MEP::Blocks const& blocks,
+  MEP::SourceOffsets const& input_offsets,
   std::tuple<size_t, size_t> const& interval)
 {
   auto [start_event, end_event] = interval;
@@ -144,9 +175,8 @@ bool MEP::transpose_event(
       }
 
       auto allen_type = bank_ids[bank_type];
-      auto& slice = slices[allen_type][slice_index];
-      auto const& event_offsets = std::get<1>(slice);
-      auto const n_banks_offsets = std::get<2>(slice);
+      auto& slice = std::get<0>(slices[allen_type][slice_index]);
+      auto const& event_offsets = std::get<1>(slices[allen_type][slice_index]);
 
       for (size_t i_event = start_event; i_event < end_event && i_event < block_header.n_frag; ++i_event) {
         // Three things to write for a new set of banks:
@@ -158,7 +188,7 @@ bool MEP::transpose_event(
 
         // Initialize point to write from offset of previous set
         // All bank offsets are uit32_t so cast to that type
-        auto* banks_write = reinterpret_cast<uint32_t*>(std::get<0>(slice).data() + event_offsets[i_event - start_event]);
+        auto* banks_write = reinterpret_cast<uint32_t*>(slice.data() + event_offsets[i_event - start_event]);
 
         // Where to write the offsets
         auto* banks_offsets_write = banks_write + 1;
@@ -171,7 +201,8 @@ bool MEP::transpose_event(
 
         // get offset for this bank and store offset for next bank
         auto offset = banks_offsets_write[bank_index - 1];
-        banks_offsets_write[bank_index] = offset + block_header.sizes[i_event] + sizeof(uint32_t);
+        auto frag_size = block_header.sizes[i_event];
+        banks_offsets_write[bank_index] = offset + frag_size + sizeof(uint32_t);
 
         // Where to write the bank data itself
         banks_write += preamble_words;
@@ -182,8 +213,8 @@ bool MEP::transpose_event(
 
         // Write bank data
         std::memcpy(banks_write + word_offset + 1,
-                 block_data.data() + source_offsets[i_event],
-                 block_header.sizes[i_event]);
+                    block_data.data() + source_offsets[i_event],
+                    frag_size);
       }
 
       ++bank_index;
@@ -193,42 +224,25 @@ bool MEP::transpose_event(
 }
 
 std::tuple<bool, bool, size_t> MEP::transpose_events(
-  MEP::Slice const& mep_slice,
-  std::vector<std::vector<uint32_t>>& input_offsets,
-  std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>>& blocks,
   ::Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
+  EB::Header const& mep_header,
+  MEP::Blocks const& blocks,
+  MEP::SourceOffsets const& source_offsets,
   std::tuple<size_t, size_t> const& interval)
 {
   auto [event_start, event_end] = interval;
 
   bool success = true;
-  auto const& [data, mep_size] = mep_slice;
-  EB::Header mep_header(data.data());
-  auto hdr_size = mep_header.header_size(mep_header.n_blocks);
-  gsl::span<char const> const mep_data{data.data() + hdr_size, data.size() - hdr_size};
 
-  for (size_t i_block = 0; i_block < mep_header.n_blocks; ++i_block) {
-    auto block_offset = mep_header.offsets[i_block];
-    EB::BlockHeader block_header{mep_data.data() + block_offset};
-    gsl::span<char const> block_data{mep_data.data() + block_offset + block_header.header_size(block_header.n_frag),
-                                     block_header.block_size};
-    blocks[i_block] = std::tuple{std::move(block_header), std::move(block_data)};
-  }
-
-  // Reset input offsets
-  for (auto& offsets : input_offsets) {
-    std::fill(offsets.begin(), offsets.end(), 0);
-  }
-
-  auto to_transpose = fragment_offsets(input_offsets, slices, slice_index, bank_ids,
-                                       banks_count, mep_header, blocks, interval);
+  auto to_transpose = allen_offsets(slices, slice_index, bank_ids,
+                                    banks_count, blocks, interval);
 
   transpose_event(slices, slice_index, bank_ids, banks_count, event_ids,
-                  mep_header, blocks, input_offsets, {event_start, event_start + to_transpose});
+                  mep_header, blocks, source_offsets, {event_start, event_start + to_transpose});
 
   return {success, to_transpose != (event_end - event_start), to_transpose};
 }

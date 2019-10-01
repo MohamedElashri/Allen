@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
   array<BankTypes, NBankTypes> bank_types {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
 
   // Allocate read buffer space
-  vector<tuple<vector<char>, EB::Header,  gsl::span<char const>>> mep_buffers{n_slices};
+  vector<tuple<vector<char>, EB::Header, gsl::span<char const>, MEP::Blocks, MEP::SourceOffsets>> mep_buffers{n_slices};
 
   // Bank ID translation
   auto ids = bank_ids();
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
       }
     }
 
-    auto& [buffer, mep_header, mep_span] = mep_buffers[i_buffer];
+    auto& [buffer, mep_header, mep_span, blocks, source_offsets] = mep_buffers[i_buffer];
     std::tie(eof, success, mep_header, mep_span) = MEP::read_mep(*input, buffer);
     if (i_buffer == 0) {
       auto pf = mep_header.packing_factor;
@@ -89,6 +89,13 @@ int main(int argc, char* argv[])
       };
       slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(n_meps, size_fun);
     }
+
+    // Fill blocks
+    MEP::find_blocks(mep_header, mep_span, blocks);
+
+    // Fill fragment offsets
+    MEP::fragment_offsets(blocks, source_offsets);
+
     if (input && eof) {
       ::close(*input);
     }
@@ -107,7 +114,7 @@ int main(int argc, char* argv[])
   cout << "read " << std::lround(n_read) << " events; " << n_read / t.get() << " events/s\n";
   cout << std::get<1>(mep_buffers[0]).packing_factor << "\n";
   // Count the number of banks of each type
-  auto& [buffer, mep_header, mep_span] = mep_buffers[0];
+  auto& [buffer, mep_header, mep_span, blocks, source_offsets] = mep_buffers[0];
   auto [count_success, banks_count] = MEP::fill_counts(mep_header, mep_span);
 
   // Allocate space for event ids
@@ -127,28 +134,17 @@ int main(int argc, char* argv[])
     threads.emplace_back(thread {[i, n_reps, &event_ids, &mep_buffers, &slices, &b_ids, &banks_count] {
       bool success = false;
 
-      auto& [buffer, mep_header, mep_span] = mep_buffers[i];
-
-      std::vector<std::vector<uint32_t>> input_offsets(mep_header.n_blocks);
-      for (auto& offsets : input_offsets) {
-        offsets.resize(mep_header.packing_factor + 1);
-      }
-      std::vector<std::tuple<EB::BlockHeader, gsl::span<char const>>> blocks(mep_header.n_blocks);
-
-      // read MEP
-      MEP::Slice input_slice{gsl::span{const_cast<char*>(mep_span.data()), mep_span.size()}, mep_span.size()};
+      auto& [buffer, mep_header, mep_span, blocks, source_offsets] = mep_buffers[i];
       for (size_t rep = 0; rep < n_reps; ++rep) {
-
         // Reset the slice
         reset_slice<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(slices, i, event_ids[i]);
-
-        auto [success, transpose_full, n_transposed] = MEP::transpose_events(input_slice,
-                                                                             input_offsets,
-                                                                             blocks,
-                                                                             slices, i,
+        auto [success, transpose_full, n_transposed] = MEP::transpose_events(slices, i,
                                                                              b_ids,
                                                                              banks_count,
                                                                              event_ids[i],
+                                                                             mep_header,
+                                                                             blocks,
+                                                                             source_offsets,
                                                                              {0, mep_header.packing_factor});
 
         info_cout << "thread " << i << " " << success << " " << transpose_full << " " << n_transposed << endl;
