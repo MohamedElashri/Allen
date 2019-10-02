@@ -6,13 +6,26 @@ from collections import OrderedDict
 from sets import Set
 
 # Final state PIDs
-fs = [211, 321, 13, 11]
+fs = [
+    211, # pi+/-
+    321, # K+/-
+    13,  # mu+/-
+    11   # e+/-
+]
 
 # Prompt signal PIDs
-prompt_sigs = [23, 443]
+prompt_sigs = [
+    23,  # Z
+    443  # J/psi
+]
 
 # Displaced signal PIDs
-disp_sigs = [531]
+disp_sigs = [
+    431, # Ds+/-
+    511, # B0
+    521, # B+/-
+    531  # Bs0
+]
 
 
 class Reader:
