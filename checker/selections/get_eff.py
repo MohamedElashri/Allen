@@ -7,10 +7,10 @@ from sets import Set
 
 # Final state PIDs
 fs = [
-    211, # pi+/-
-    321, # K+/-
+    211,  # pi+/-
+    321,  # K+/-
     13,  # mu+/-
-    11   # e+/-
+    11  # e+/-
 ]
 
 # Prompt signal PIDs
@@ -21,9 +21,9 @@ prompt_sigs = [
 
 # Displaced signal PIDs
 disp_sigs = [
-    431, # Ds+/-
-    511, # B0
-    521, # B+/-
+    431,  # Ds+/-
+    511,  # B0
+    521,  # B+/-
     531  # Bs0
 ]
 
