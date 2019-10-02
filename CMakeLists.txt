@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 # Determine whether to produce a CPU version
 option(CPU "Produce a CPU version" OFF)
 option(HIP "Produce a HIP version" OFF)
-if(CPU)
+if(DEFINED ENV{LHCBRELEASES})
+  message(STATUS "Forcing CPU target for Gaudi build.")
+  set(TARGET_DEVICE "CPU")
+elseif(CPU)
   set(TARGET_DEVICE "CPU")
 elseif(HIP)
   # Note: HIP with nvcc backend is not supported
@@ -29,16 +32,61 @@ if(TARGET_DEVICE STREQUAL "CUDA" AND TENSOR)
   add_compile_definitions(TENSOR_CORES_ENABLED)
 endif()
 
-# Workaround 1/2 for shared cuda runtime
-set(CMAKE_CUDA_FLAGS "" CACHE STRING "")
-if(CMAKE_CUDA_FLAGS)
-	list(REMOVE_ITEM CMAKE_CUDA_FLAGS "-cudart static")
-endif()
-string(APPEND CMAKE_CUDA_FLAGS "-cudart shared")
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
+
+option(BUILD_TESTS "Build test programs" OFF)
+
+# Setup the project to build as a Gaudi project or else standalone
+macro(allen_project)
+  # Gaudi build
+  if (DEFINED ENV{LHCBRELEASES})
+	find_package(GaudiProject REQUIRED)
+    # Declare project name and version
+    gaudi_project(Allen v0r7
+      USE Rec HEAD Online HEAD)
+
+    # Use the lowest-common-denominator cpu arch
+    set(CPU_ARCH "x86-64 -msse4.2")
+
+    # Always enable tests for gaudi builds
+    set(BUILD_TESTS ON)
+
+    # Find the CUDA compiler if it's not set
+    # FIXME: this assumes a standard cuda install: re-evaluate if
+    # LCG_XXcudaYY is used
+    if (TARGET_DEVICE STREQUAL "CUDA")
+      if (NOT CMAKE_CUDA_COMPILER)
+        find_program(CMAKE_CUDA_COMPILER nvcc
+                     HINTS /usr/local/cuda/bin)
+        if (CMAKE_CUDA_COMPILER)
+          message(STATUS "Found cuda compiler ${CMAKE_CUDA_COMPILER}")
+        endif()
+      else()
+        message(STATUS "Using cuda compiler ${CMAKE_CUDA_COMPILER}")
+      endif()
+      # Make sure the lcg compiler wrapper scripts are used to call
+      # the host compiler
+      set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+
+      # Build for maximum compatibility as the build host is different
+      # from the the machine running it and may not even have a GPU
+      foreach(arch 30 52 61 70 75)
+        set(OVERRIDE_ARCH_FLAG "${OVERRIDE_ARCH_FLAG} -gencode arch=compute_${arch},code=sm_${arch}")
+      endforeach()
+    endif()
+
+  else()
+    project(Allen C CXX)
+    if (BUILD_TESTS)
+      enable_testing()
+    endif()
+  endif()
+endmacro()
 
 # Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
-  project(Allen C CXX)
+  allen_project()
   add_compile_definitions(CPU)
 
   # This seems to be needed across compilers
@@ -46,10 +94,12 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
   function(allen_add_library)
     add_library(${ARGV})
+    install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "HIP")
   add_compile_definitions(HIP)
@@ -71,7 +121,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   include_directories(${HIP_PATH}/include)
   include_directories(${HIP_PATH}/../hsa/include)
 
-  project(Allen C CXX)
+  allen_project()
 
   find_package(HIP QUIET REQUIRED)
   if(HIP_FOUND)
@@ -84,29 +134,44 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wno-unused-result")
 else()
-  project(Allen C CXX CUDA)
+
+  # Workaround 1/2 for shared cuda runtime
+  set(CMAKE_CUDA_FLAGS "" CACHE STRING "")
+  if(CMAKE_CUDA_FLAGS)
+	list(REMOVE_ITEM CMAKE_CUDA_FLAGS "-cudart static")
+  endif()
+  string(APPEND CMAKE_CUDA_FLAGS "-cudart shared")
+
+  allen_project()
+  enable_language(CUDA)
+
+  # Workaround 2/2 for shared cuda runtime
+  if(CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
+	list(REMOVE_ITEM CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudart_static")
+  endif()
+  if(CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
+	list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static" )
+  endif()
+
+  # Determine whether to use Tensor Cores
+  # Note: Tensor cores are only supported in CUDA
+  option(TENSOR "Produce CUDA code with Tensor Cores enabled if available" OFF)
+  if(TARGET_DEVICE STREQUAL "CUDA" AND TENSOR)
+	add_compile_definitions(TENSOR_CORES_ENABLED)
+  endif()
 
   function(allen_add_library)
     add_library(${ARGV})
     set_property(TARGET ${ARGV0} PROPERTY
       CUDA_SEPARABLE_COMPILATION ON)
+    install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 endif()
-
-# Workaround 2/2 for shared cuda runtime
-if(CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
-  list(REMOVE_ITEM CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudart_static")
-endif()
-if(CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
-  list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static" )
-endif()
-
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 
 # Deal with build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -170,10 +235,13 @@ if(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
   endif()
 
-  if (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
-    set(OUTPUTFILE ${PROJECT_BINARY_DIR}/cuda_arch) # No suffix required
+  if(DEFINED OVERRIDE_ARCH_FLAG)
+    message(STATUS "Cuda architecture set to ${OVERRIDE_ARCH_FLAG}")
+    set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
+  elseif (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
+    set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
     set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
-    execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
+    execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -ccbin=${CMAKE_CXX_COMPILER} -std=c++14 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
     if(CUDA_ARCH STREQUAL "MAX")
       set(CHECK_ARGS "-l")
     endif()
@@ -197,9 +265,6 @@ if(TARGET_DEVICE STREQUAL "CUDA")
     message(STATUS "Cuda architecture manually set to ${CUDA_ARCH}")
     set(ARCH_FLAG "-arch=${CUDA_ARCH}")
   endif()
-  if(DEFINED OVERRIDE_ARCH_FLAG)
-    set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
-  endif()
 
   # Cuda: Deal with build type
   if(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
@@ -219,8 +284,8 @@ if(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
-  set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=1000 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+
 elseif(TARGET_DEVICE STREQUAL "HIP")
   # HCC Options (HIPCC compiler)
   # Other warning options: -Wall -Wno-bitwise-op-parentheses -Wno-unused-variable -Wno-logical-op-parentheses
@@ -250,6 +315,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     set_property(TARGET ${ARGV0} PROPERTY
       HIP_SEPARABLE_COMPILATION ON)
+    install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
@@ -257,12 +323,8 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set_target_properties(${ARGV0}
          PROPERTIES HIP_SEPARABLE_COMPILATION ON
                   HIP_RESOLVE_DEVICE_SYMBOLS ON)
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
-endif()
-
-option(BUILD_TESTS "Build test programs" OFF)
-if (BUILD_TESTS)
-  enable_testing()
 endif()
 
 find_package(ZLIB REQUIRED)
@@ -287,8 +349,6 @@ if (USE_KALMAN_SINGLE_PRECISION)
   add_compile_definitions(KALMAN_SINGLE_PRECISION)
 endif()
 
-# find_package(CUDA REQUIRED)
-#set(CUDA_HOST_COMPILER "g++")
 set(CUDA_SEPARABLE_COMPILATION ON)
 option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
 
@@ -300,7 +360,7 @@ if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
    endif()
    find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
-   if ( ROOT_FOUND )
+   if (ROOT_FOUND)
       message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
 
       # If ROOT is built with C++17 support, everything that includes ROOT
@@ -439,16 +499,13 @@ endif()
 
 target_link_libraries(AllenLib PUBLIC
   Stream
+  Common
   TrackChecking
   PVChecking
   CheckClustering
   SelChecking
-  x86MuonDecoding
-  Common
-  CudaCommon
   NonEventData
-  AllenZMQ
-  x86Clustering)
+  AllenZMQ)
 
 if (ROOT_FOUND)
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
@@ -459,8 +516,6 @@ endif()
 allen_add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
 
-if(TARGET_DEVICE STREQUAL "CUDA")
-  if(BUILD_TESTS)
-    add_subdirectory(tests)
-  endif(BUILD_TESTS)
+if(TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
+  add_subdirectory(tests)
 endif()

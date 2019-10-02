@@ -23,9 +23,14 @@ if(TARGET_DEVICE STREQUAL "CPU")
   endforeach(source_file)
 endif()
 
-allen_add_library(UT STATIC
+allen_add_library(UTCommon STATIC
   ${UT_common}
+)
+
+allen_add_library(UT STATIC
   ${UT_decoding}
   ${UT_consolidate}
   ${CompassUT_tracking}
 )
+
+target_link_libraries(UT UTCommon)

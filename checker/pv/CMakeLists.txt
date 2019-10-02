@@ -17,7 +17,7 @@ add_library(PVChecking STATIC
   ${pv_checker_sources}
 )
 
-if(ROOT_FOUND)
+if(USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(PVChecking PRIVATE WITH_ROOT)
   target_include_directories(PVChecking BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}

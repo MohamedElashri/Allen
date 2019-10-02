@@ -28,8 +28,6 @@ int main(int argc, char* argv[])
   }
 
   // Test parameters
-  size_t events_per_slice = 1000;
-  double n_filled = 0.;
   size_t n_events = 10000;
   size_t offsets_size = 10001;
   size_t n_reps = 50;
@@ -140,7 +138,8 @@ int main(int argc, char* argv[])
   cout << "read " << std::lround(n_read) << " events; " << n_read / t.get() << " events/s\n";
 
   // Count the number of banks of each type
-  auto [count_success, banks_count] = fill_counts(read_buffers[0]);
+  auto& [n_filled, event_offsets, read_buffer] = read_buffers[0];
+  auto [count_success, banks_count] = fill_counts({read_buffer.data(), event_offsets[1]});
 
   // Allocate space for event ids
   std::vector<EventIDs> event_ids(n_slices);
@@ -159,9 +158,14 @@ int main(int argc, char* argv[])
     threads.emplace_back(thread {[i, n_reps, n_events, &read_buffers, &slices, &bank_ids, &banks_count, &event_ids] {
       auto& read_buffer = read_buffers[i];
       for (size_t rep = 0; rep < n_reps; ++rep) {
+
+        // Reset the slice
+        reset_slice<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(slices, i, event_ids[i]);
+
+        // Transpose events
         auto [success, transpose_full, n_transposed] =
           transpose_events<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(
-            read_buffer, slices, i, event_ids[i], bank_ids, banks_count, n_events);
+            read_buffer, slices, i, bank_ids, banks_count, event_ids[i], n_events);
         info_cout << "thread " << i << " " << success << " " << transpose_full << " " << n_transposed << endl;
       }
     }});

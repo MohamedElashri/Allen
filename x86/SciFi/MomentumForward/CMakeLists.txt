@@ -23,7 +23,7 @@ add_library(x86MomentumForward STATIC
 set_property(TARGET x86MomentumForward PROPERTY
              CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
-if ( ROOT_FOUND )
+if (USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(x86MomentumForward PUBLIC WITH_ROOT)
-  target_include_directories(x86MomentumForward BEFORE PRIVATE ${ROOT_INCLUDE_DIRS})
+  target_include_directories(x86MomentumForward SYSTEM BEFORE PRIVATE ${ROOT_INCLUDE_DIRS})
 endif()

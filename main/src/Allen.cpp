@@ -78,8 +78,6 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
     // Check if there are messages
     zmq::poll(&items[0], 1, 0);
 
-    size_t idx = 0;
-    size_t fill = 0;
     if (items[0].revents & zmq::POLLIN) {
       auto msg = zmqSvc().receive<string>(control);
       if (msg == "DONE") {

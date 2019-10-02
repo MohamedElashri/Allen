@@ -125,12 +125,12 @@ namespace CPUMuon {
       std::copy_n((size_t*) raw_input, 1, &tableSize);
       (muonTable->points).resize(tableSize);
       raw_input += sizeof(size_t);
-      for (int i = 0; i < tableSize; i++) {
+      for (size_t i = 0; i < tableSize; i++) {
         size_t stationTableSize;
         std::copy_n((size_t*) raw_input, 1, &stationTableSize);
         raw_input += sizeof(size_t);
         (muonTable->points)[i].resize(stationTableSize);
-        for (int j = 0; j < stationTableSize; j++) {
+        for (size_t j = 0; j < stationTableSize; j++) {
           (muonTable->points)[i][j].insert(
             (muonTable->points)[i][j].end(), (float*) raw_input, ((float*) raw_input) + 3);
           raw_input += sizeof(float) * 3;
@@ -138,4 +138,4 @@ namespace CPUMuon {
       }
     }
   }
-}; // namespace CPUMuon
+} // namespace CPUMuon

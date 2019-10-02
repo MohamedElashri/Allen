@@ -32,7 +32,7 @@ set_property(TARGET x86LookingForward PROPERTY
 set_property(TARGET x86LookingForward PROPERTY
              CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
-if ( ROOT_FOUND )
+if (USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(x86LookingForward PUBLIC WITH_ROOT)
   target_include_directories(x86LookingForward BEFORE PRIVATE ${ROOT_INCLUDE_DIRS})
 endif()

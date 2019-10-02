@@ -11,8 +11,6 @@
 
 #include "raw_bank.hpp"
 #include "read_mdf.hpp"
-#include "CudaCommon.h"
-#include "Tools.h"
 
 namespace {
   using std::cerr;
@@ -60,7 +58,7 @@ int main(int argc, char* argv[])
     }
     else {
       const int status = mkdir(output_dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-      if (status != 0 & errno != EEXIST) {
+      if (status != 0 && errno != EEXIST) {
         cerr << "Error creating directory " << output_dir << endl;
         cerr << std::strerror(errno) << endl;
         return status;
@@ -81,7 +79,7 @@ int main(int argc, char* argv[])
   for (auto type : types) {
     auto dir = output_dir + "/" + bank_name(type);
     const int status = mkdir(dir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    if (status != 0 & errno != EEXIST) {
+    if (status != 0 && errno != EEXIST) {
       cerr << "Error creating directory " << output_dir << endl;
       cerr << std::strerror(errno) << endl;
       return status;
@@ -89,13 +87,7 @@ int main(int argc, char* argv[])
   }
 
   for (const auto& entry : buffers) {
-    if (entry.first == BankTypes::VP) {
-      cout << entry.second.first.size() << " " << entry.second.second.back() << endl;
-      check_velopix_events(entry.second.first, entry.second.second, n_read);
-    }
-    else {
-      cout << entry.second.first.size() << " " << entry.second.second.back() << endl;
-    }
+    cout << entry.second.first.size() << " " << entry.second.second.back() << endl;
 
     const auto& buf = entry.second.first;
     const auto& offsets = entry.second.second;

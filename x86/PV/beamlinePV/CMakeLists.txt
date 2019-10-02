@@ -18,7 +18,7 @@ add_library(x86beamlinePV STATIC
 set_property(TARGET x86beamlinePV PROPERTY
              CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
-if ( ROOT_FOUND )
+if (USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(x86beamlinePV PRIVATE WITH_ROOT)
   target_include_directories(x86beamlinePV PRIVATE ${ROOT_INCLUDE_DIRS})
 endif()
