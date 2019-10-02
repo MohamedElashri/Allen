@@ -20,5 +20,6 @@
 #include <TH2.h>
 #include <TClass.h>
 #include <TBufferFile.h>
+#include <TArrayI.h>
 
 #endif

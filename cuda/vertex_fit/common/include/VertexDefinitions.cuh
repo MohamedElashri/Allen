@@ -10,7 +10,7 @@ namespace VertexFit {
   const float trackMinPt = 200.0;
 
   // Track IP chi2 cut.
-  const float trackMinIPChi2 = 9.0;
+  const float trackMinIPChi2 = 9.;
   const float trackMuonMinIPChi2 = 4.0;
 
   // Maximum IP chi2 for a track to be associated to a PV.

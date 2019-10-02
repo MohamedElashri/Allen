@@ -5,14 +5,20 @@
 #include "VertexDefinitions.cuh"
 #include "PV_Definitions.cuh"
 #include "SciFiConsolidated.cuh"
+#include "UTConsolidated.cuh"
+#include "VeloConsolidated.cuh"
 #include "AssociateConsolidated.cuh"
+#include "States.cuh"
 
 #include "Handler.cuh"
+#include "ArgumentsVelo.cuh"
+#include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsVertex.cuh"
 #include "ArgumentsKalmanFilter.cuh"
 #include "ArgumentsPV.cuh"
 #include "ArgumentsSelections.cuh"
+#include "ArgumentsMuon.cuh"
 
 namespace VertexFit {
 

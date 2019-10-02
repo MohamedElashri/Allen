@@ -285,6 +285,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   endif()
 
   set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+
 elseif(TARGET_DEVICE STREQUAL "HIP")
   # HCC Options (HIPCC compiler)
   # Other warning options: -Wall -Wno-bitwise-op-parentheses -Wno-unused-variable -Wno-logical-op-parentheses
@@ -344,6 +345,9 @@ else(USE_LZ4)
 endif(USE_LZ4)
 
 option(USE_KALMAN_SINGLE_PRECISION "Use single precision Kalman filter" ON)
+if (USE_KALMAN_SINGLE_PRECISION)
+  add_compile_definitions(KALMAN_SINGLE_PRECISION)
+endif()
 
 set(CUDA_SEPARABLE_COMPILATION ON)
 option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)

@@ -13,6 +13,7 @@
 #include "SciFiDefinitions.cuh"
 
 #include "Handler.cuh"
+#include "ArgumentsMuon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -95,6 +96,25 @@ __global__ void velo_filter(
   const float* dev_inv_clus_res,
   const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
 
+__global__ void package_kalman_tracks(
+  int* dev_atomics_storage,
+  uint* dev_velo_track_hit_number,
+  char* dev_velo_track_hits,
+  int* dev_atomics_veloUT,
+  uint* dev_ut_track_hit_number,
+  char* dev_ut_consolidated_hits,
+  float* dev_ut_qop,
+  uint* dev_velo_indices,
+  int* dev_n_scifi_tracks,
+  uint* dev_scifi_track_hit_number,
+  char* dev_scifi_consolidated_hits,
+  float* dev_scifi_qop,
+  MiniState* dev_scifi_states,
+  uint* dev_ut_indices,
+  char* dev_velo_kalman_beamline_states,
+  bool* dev_is_muon,
+  ParKalmanFilter::FittedTrack* dev_kf_tracks);
+
 ALGORITHM(
   velo_filter,
   kalman_velo_only_t,
@@ -113,4 +133,26 @@ ALGORITHM(
     dev_scifi_qop,
     dev_scifi_states,
     dev_scifi_track_ut_indices,
+    dev_kf_tracks))
+
+ALGORITHM(
+  package_kalman_tracks,
+  package_kalman_tracks_t,
+  ARGUMENTS(
+    dev_atomics_velo,
+    dev_velo_track_hit_number,
+    dev_velo_track_hits,
+    dev_atomics_ut,
+    dev_ut_track_hit_number,
+    dev_ut_track_hits,
+    dev_ut_qop,
+    dev_ut_track_velo_indices,
+    dev_atomics_scifi,
+    dev_scifi_track_hit_number,
+    dev_scifi_track_hits,
+    dev_scifi_qop,
+    dev_scifi_states,
+    dev_scifi_track_ut_indices,
+    dev_velo_kalman_beamline_states,
+    dev_is_muon,
     dev_kf_tracks))

@@ -83,7 +83,7 @@ public:
   {
     std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_events;
 
-    for (size_t evnum = 0; evnum < mc_events.size(); ++evnum) {
+    for (size_t evnum = 0; evnum < tracks.size(); ++evnum) {
       const auto& mc_event = mc_events[evnum];
       const auto& event_tracks = tracks[evnum];
 
