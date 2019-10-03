@@ -29,13 +29,14 @@ disp_sigs = [
 
 # Known decay channels.
 channels = {
-    'Bs2PhiPhi' : (531, [321, 321, 321, 321]),
-    'JpsiMuMu' : (443, [13, 13]),
-    'Ds2KKPi' : (431, [321, 321, 211]),
-    'KstEE' : (511, [321, 211, 11, 11]),
-    'KstMuMu' : (511, [321, 211, 13, 13]),
-    'Z2MuMu' : (23, [13, 13])
+    'Bs2PhiPhi': (531, [321, 321, 321, 321]),
+    'JpsiMuMu': (443, [13, 13]),
+    'Ds2KKPi': (431, [321, 321, 211]),
+    'KstEE': (511, [321, 211, 11, 11]),
+    'KstMuMu': (511, [321, 211, 13, 13]),
+    'Z2MuMu': (23, [13, 13])
 }
+
 
 class Reader:
     def __init__(self, intree):
@@ -77,8 +78,10 @@ class Reader:
             decmom_key = self.var('gen_decmom_key', i)
             decmom_pt = self.var('gen_decmom_pt', i)
             decmom_tau = self.var('gen_decmom_tau', i)
-            if signal in disp_sigs and (decmom_pt < 2000. or decmom_tau < 0.0002): continue
-            
+            if signal in disp_sigs and (decmom_pt < 2000.
+                                        or decmom_tau < 0.0002):
+                continue
+
             if pid in stable:
                 pt = self.var('gen_pt', i)
                 eta = self.var('gen_eta', i)
@@ -86,15 +89,15 @@ class Reader:
                 if pid in remaining_fs:
                     if pt > 200 and eta > 2 and eta < 5 and long == 1 and key not in rec_keys:
                         remaining_fs.remove(pid)
-                        rec_keys.add(key)                    
-            
+                        rec_keys.add(key)
+
         if len(rec_keys) == 0:
             return (-1., -1., -1., Set())
-        elif len(remaining_fs)>0:
+        elif len(remaining_fs) > 0:
             return (0., sig_pt, sig_tau, Set())
         else:
             return (sig_pid, sig_pt, sig_tau, rec_keys)
-            
+
     # See if a reconstructed candidate comes from a generated signal.
     def tos(self, idxs, gen_keys):
         for idx in idxs:
@@ -107,10 +110,13 @@ class Reader:
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--signal', action='store', dest='signal', type=int, default=0)
-    parser.add_argument('--fs', action='store', dest='fs', type=int, nargs='+', default=[])
+    parser.add_argument(
+        '--signal', action='store', dest='signal', type=int, default=0)
+    parser.add_argument(
+        '--fs', action='store', dest='fs', type=int, nargs='+', default=[])
     return parser.parse_args()
-    
+
+
 def calculate_eff(fname, signal=None, fs=None):
     tfile = ROOT.TFile(fname)
     ttree = tfile.Get('eff_tree')
@@ -154,6 +160,7 @@ def calculate_eff(fname, signal=None, fs=None):
             })
         trks.append(evt_trks)
     return sigs, svs, trks
+
 
 def report_eff(sigs, svs, trks):
     counters = OrderedDict([('two_track', 0), ('disp_dimuon', 0),
@@ -237,5 +244,6 @@ if __name__ == '__main__':
     elif parser.fs == []:
         print 'No final state specified!'
     else:
-        sigs, svs, trks = calculate_eff(fname, signal=parser.signal, fs=parser.fs)
+        sigs, svs, trks = calculate_eff(
+            fname, signal=parser.signal, fs=parser.fs)
         report_eff(sigs, svs_trks)
