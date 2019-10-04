@@ -6,7 +6,7 @@ from collections import OrderedDict
 from sets import Set
 
 # Final state PIDs
-fs = [
+stable = [
     211,  # pi+/-
     321,  # K+/-
     13,  # mu+/-
@@ -26,6 +26,16 @@ disp_sigs = [
     521,  # B+/-
     531  # Bs0
 ]
+
+# Known decay channels.
+channels = {
+    'Bs2PhiPhi': (531, [321, 321, 321, 321]),
+    'JpsiMuMu': (443, [13, 13]),
+    'Ds2KKPi': (431, [321, 321, 211]),
+    'KstEE': (511, [321, 211, 11, 11]),
+    'KstMuMu': (511, [321, 211, 13, 13]),
+    'Z2MuMu': (23, [13, 13])
+}
 
 
 class Reader:
@@ -51,97 +61,42 @@ class Reader:
         return len(self.ntuple[vname])
 
     # See if the event has a reconstructible decay.
-    def find_gen_decay(self):
-        gen_keys = Set()
+    def find_gen_decay(self, signal, fs):
         rec_keys = Set()
+        remaining_fs = list(fs)
         n = len(self.ntuple['gen_key'])
         sig_pt = -1
         sig_tau = -1
         sig_pid = 0
-        # Collect idxs of signal decay products.
-        # Assume one signal decay per event.
         for i in range(n):
             pid = abs(int(self.var('gen_pid', i)))
             key = int(self.var('gen_key', i))
             mom_key = int(self.var('gen_mom_key', i))
             decmom_pid = abs(self.var('gen_decmom_pid', i))
+            if decmom_pid != signal: continue
+
             decmom_key = self.var('gen_decmom_key', i)
             decmom_pt = self.var('gen_decmom_pt', i)
             decmom_tau = self.var('gen_decmom_tau', i)
-            # Displaced signals.
-            if decmom_pid in disp_sigs:
-                sig_pid = decmom_pid
-                sig_pt = decmom_pt
-                sig_tau = decmom_tau
-                if decmom_tau < 0.0002 or decmom_pt < 2000:
-                    return (-1., -1., -1., Set())
+            if signal in disp_sigs and (decmom_pt < 2000.
+                                        or decmom_tau < 0.0002):
+                continue
+
+            if pid in stable:
                 pt = self.var('gen_pt', i)
                 eta = self.var('gen_eta', i)
                 long = int(self.var('gen_long', i))
-                mom_pid = -1
-                mom_pt = -1.
-                mom_eta = -1.
-                mom_long = -1
-                for j in range(n):
-                    if int(self.var('gen_key', j)) == mom_key:
-                        mom_pid = abs(int(self.var('gen_pid', j)))
-                        mom_pt = self.var('gen_pt', j)
-                        mom_eta = self.var('gen_eta', j)
-                        mom_long = int(self.var('gen_long', j))
-                        break
-                if pid in fs:
-                    # Mom is not in final state.
-                    if mom_pid not in fs:
-                        gen_keys.add(key)
-                        if pt > 200 and eta > 2 and eta < 5 and long == 1:
-                            rec_keys.add(key)
-                    # Mom is a FS particle but isn't long.
-                    elif mom_long != 1:
-                        gen_keys.add(key)
-                        if pt > 200 and eta > 2 and eta < 5 and long == 1:
-                            rec_keys.add(key)
-                    # Mom is a FS particle and is long.
-                    elif mom_long == 1:
-                        gen_keys.add(mom_key)
-                        if mom_pt > 200 and mom_eta > 2 and mom_eta < 5:
-                            rec_keys.add(mom_key)
-            # Prompt signals.
-            if decmom_pid in prompt_sigs:
-                sig_pt = decmom_pt
-                sig_tau = decmom_tau
-                pt = self.var('gen_pt', i)
-                eta = self.var('gen_eta', i)
-                long = int(self.var('gen_long', i))
-                mom_pid = -1
-                mom_pt = -1.
-                mom_eta = -1.
-                mom_long = -1
-                for j in range(n):
-                    if int(self.var('gen_key', j)) == mom_key:
-                        mom_pid = abs(int(self.var('gen_pid', j)))
-                        mom_pt = self.var('gen_pt', j)
-                        mom_eta = self.var('gen_eta', j)
-                        mom_long = int(self.var('gen_long', j))
-                        break
-                if pid in fs:
-                    # Mom is not in final state.
-                    if mom_pid not in fs:
-                        gen_keys.add(key)
-                        if pt > 200 and eta > 2 and eta < 5 and long == 1:
-                            rec_keys.add(key)
-                    # Mom is a FS particle but isn't long.
-                    elif mom_long != 1:
-                        gen_keys.add(key)
-                        if pt > 200 and eta > 2 and eta < 5 and long == 1:
-                            rec_keys.add(key)
-                    # Mom is a FS particle and is long.
-                    elif mom_long == 1:
-                        gen_keys.add(mom_key)
-                        if mom_pt > 200 and mom_eta > 2 and mom_eta < 5:
-                            rec_keys.add(mom_key)
-        if len(gen_keys) == 0: return (-1., -1., -1., Set())
-        elif gen_keys != rec_keys: return (0., sig_pt, sig_tau, Set())
-        else: return (sig_pid, sig_pt, sig_tau, gen_keys)
+                if pid in remaining_fs:
+                    if pt > 200 and eta > 2 and eta < 5 and long == 1 and key not in rec_keys:
+                        remaining_fs.remove(pid)
+                        rec_keys.add(key)
+
+        if len(rec_keys) == 0:
+            return (-1., -1., -1., Set())
+        elif len(remaining_fs) > 0:
+            return (0., sig_pt, sig_tau, Set())
+        else:
+            return (sig_pid, sig_pt, sig_tau, rec_keys)
 
     # See if a reconstructed candidate comes from a generated signal.
     def tos(self, idxs, gen_keys):
@@ -153,18 +108,26 @@ class Reader:
         return True
 
 
-def calculate_eff(fname):
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--signal', action='store', dest='signal', type=int, default=0)
+    parser.add_argument(
+        '--fs', action='store', dest='fs', type=int, nargs='+', default=[])
+    return parser.parse_args()
+
+
+def calculate_eff(fname, signal=None, fs=None):
     tfile = ROOT.TFile(fname)
     ttree = tfile.Get('eff_tree')
     reader = Reader(ttree)
     sigs = []
     svs = []
     trks = []
-    print 'Number of entries: {}'.format(ttree.GetEntries())
     for i in range(ttree.GetEntries()):
         ttree.GetEntry(i)
         # Get reconstructible signals.
-        pid, pt, tau, keys = reader.find_gen_decay()
+        pid, pt, tau, keys = reader.find_gen_decay(signal, fs)
         if len(keys) == 0: continue
         sigs.append((pid, keys, reader.var('event_pass_gec', 0)))
         # Get SVs that pass the 2-track line.
@@ -199,9 +162,7 @@ def calculate_eff(fname):
     return sigs, svs, trks
 
 
-if __name__ == '__main__':
-    fname = '../../output/SelCheckerTuple.root'
-    sigs, svs, trks = calculate_eff(fname)
+def report_eff(sigs, svs, trks):
     counters = OrderedDict([('two_track', 0), ('disp_dimuon', 0),
                             ('high_mass_dimuon', 0), ('one_track', 0),
                             ('single_muon', 0), ('global', 0)])
@@ -253,9 +214,6 @@ if __name__ == '__main__':
                 tos_counters['global'] += 1
                 break
 
-    print '======================================================================'
-    print 'Efficiencies'
-    print '======================================================================'
     print '------------------------------'
     print 'GEC'
     print '------------------------------'
@@ -270,3 +228,22 @@ if __name__ == '__main__':
             val, nsig_gec, 100. * val / nsig_gec))
         print('TOS       : {:5} / {:5} = {:.2f}%'.format(
             tos_val, nsig_gec, 100. * tos_val / nsig_gec))
+
+
+if __name__ == '__main__':
+    fname = '../../output/SelCheckerTuple.root'
+    parser = parse_args()
+    if parser.signal == 0:
+        for key, val in channels.iteritems():
+            sigs, svs, trks = calculate_eff(fname, signal=val[0], fs=val[1])
+            if len(sigs) == 0: continue
+            print '======================================================================'
+            print key
+            print '======================================================================'
+            report_eff(sigs, svs, trks)
+    elif parser.fs == []:
+        print 'No final state specified!'
+    else:
+        sigs, svs, trks = calculate_eff(
+            fname, signal=parser.signal, fs=parser.fs)
+        report_eff(sigs, svs_trks)
