@@ -30,6 +30,7 @@ __global__ void pv_beamline_multi_fitter(
   PV::Vertex vertex;
   float* pvtracks_denom = dev_pvtracks_denom + event_tracks_offset;
 
+  float exp_chi2_0[Velo::Constants::max_tracks];
   // make sure that we have one thread per seed
   for (uint i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
     bool converged = false;
@@ -65,6 +66,7 @@ __global__ void pv_beamline_multi_fitter(
           float2 res {0.f, 0.f};
           res = vtxpos_xy - (trk.x + trk.tx * dz);
           const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
+          if(iter == 0) exp_chi2_0[i] = expf(chi2 * (-0.5f));
           // compute the weight.
           if (chi2 < maxChi2) {
             ++nselectedtracks;
@@ -72,7 +74,7 @@ __global__ void pv_beamline_multi_fitter(
             // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
             // https://cds.cern.ch/record/803519/files/p280.pdf
             const auto denom = chi2CutExp + expf(chi2 * (-0.5f));
-            const auto nom = expf(chi2 * (-0.5f));
+            const auto nom = exp_chi2_0[i];
             trk.weight = nom / (denom + pvtracks_denom[i]);
 
             // unfortunately branchy, but reduces fake rate
