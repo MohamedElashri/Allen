@@ -219,6 +219,7 @@ def report_eff(sigs, svs, trks):
     print '------------------------------'
     print('{:5} / {:5} = {:.2f}%'.format(nsig_gec, nsig,
                                          100. * nsig_gec / nsig))
+    if nsig_gec == 0: return
     for line, val in counters.items():
         tos_val = tos_counters[line]
         print '------------------------------'
