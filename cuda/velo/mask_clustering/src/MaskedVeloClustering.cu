@@ -14,6 +14,110 @@ __device__ uint32_t mask_east(uint64_t cluster)
   return mask | (mask << 1) | (mask >> 1);
 }
 
+__device__ void no_neighbour_sp(
+ uint const* dev_module_cluster_start,
+ uint8_t const* dev_velo_sp_patterns,
+ uint32_t* dev_velo_cluster_container,
+ uint const estimated_number_of_clusters,
+ uint* module_cluster_num,
+ float* dev_velo_sp_fx,
+ float* dev_velo_sp_fy,
+ VeloGeometry const& g,
+ int const module_number,
+ uint const cluster_start,
+ VeloRawBank const& raw_bank) {
+
+  float* float_velo_cluster_container = (float*) dev_velo_cluster_container;
+
+  const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
+
+  for (int sp_index = 0; sp_index < raw_bank.sp_count; ++sp_index) {
+    // Decode sp
+    const uint32_t sp_word = raw_bank.sp_word[sp_index];
+    const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
+    const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
+
+    // There are no neighbours, so compute the number of pixels of this superpixel
+    if (no_sp_neighbours) {
+      // Look up pre-generated patterns
+      const int32_t sp_row = sp_addr & 0x3FU;
+      const int32_t sp_col = (sp_addr >> 6);
+      const uint8_t sp = sp_word & 0xFFU;
+
+      const uint32_t idx = dev_velo_sp_patterns[sp];
+      const uint32_t chip = sp_col >> (VP::ChipColumns_division - 1);
+
+      {
+        // there is always at least one cluster in the super
+        // pixel. look up the pattern and add it.
+        const uint32_t row = idx & 0x03U;
+        const uint32_t col = (idx >> 2) & 1;
+        const uint32_t cx = sp_col * 2 + col;
+        const uint32_t cy = sp_row * 4 + row;
+
+        const uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+
+        const float fx = dev_velo_sp_fx[sp * 2];
+        const float fy = dev_velo_sp_fy[sp * 2];
+        const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
+        const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
+
+        const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
+
+#if DEBUG
+        const auto module_estimated_num =
+          dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
+          dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
+        assert(cluster_num <= module_estimated_num);
+#endif
+
+        const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+        const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+        const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+
+        float_velo_cluster_container[cluster_start + cluster_num] = gx;
+        float_velo_cluster_container[estimated_number_of_clusters + cluster_start + cluster_num] = gy;
+        float_velo_cluster_container[2 * estimated_number_of_clusters + cluster_start + cluster_num] = gz;
+        dev_velo_cluster_container[3 * estimated_number_of_clusters + cluster_start + cluster_num] = get_lhcb_id(cid);
+      }
+
+      // if there is a second cluster for this pattern
+      // add it as well.
+      if (idx & 8) {
+        const uint32_t row = (idx >> 4) & 3;
+        const uint32_t col = (idx >> 6) & 1;
+        const uint32_t cx = sp_col * 2 + col;
+        const uint32_t cy = sp_row * 4 + row;
+
+        uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+
+        const float fx = dev_velo_sp_fx[sp * 2 + 1];
+        const float fy = dev_velo_sp_fy[sp * 2 + 1];
+        const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
+        const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
+
+        const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
+
+#if DEBUG
+        const auto module_estimated_num =
+          dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
+          dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
+        assert(cluster_num <= module_estimated_num);
+#endif
+
+        const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+        const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+        const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+
+        float_velo_cluster_container[cluster_start + cluster_num] = gx;
+        float_velo_cluster_container[estimated_number_of_clusters + cluster_start + cluster_num] = gy;
+        float_velo_cluster_container[2 * estimated_number_of_clusters + cluster_start + cluster_num] = gz;
+        dev_velo_cluster_container[3 * estimated_number_of_clusters + cluster_start + cluster_num] = get_lhcb_id(cid);
+      }
+    }
+  }
+}
+
 __global__ void masked_velo_clustering(
   char* dev_raw_input,
   uint* dev_raw_input_offsets,
@@ -58,93 +162,10 @@ __global__ void masked_velo_clustering(
 
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
-
-    for (int sp_index = 0; sp_index < raw_bank.sp_count; ++sp_index) {
-      // Decode sp
-      const uint32_t sp_word = raw_bank.sp_word[sp_index];
-      const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
-      const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
-
-      // There are no neighbours, so compute the number of pixels of this superpixel
-      if (no_sp_neighbours) {
-        // Look up pre-generated patterns
-        const int32_t sp_row = sp_addr & 0x3FU;
-        const int32_t sp_col = (sp_addr >> 6);
-        const uint8_t sp = sp_word & 0xFFU;
-
-        const uint32_t idx = dev_velo_sp_patterns[sp];
-        const uint32_t chip = sp_col >> (VP::ChipColumns_division - 1);
-
-        {
-          // there is always at least one cluster in the super
-          // pixel. look up the pattern and add it.
-          const uint32_t row = idx & 0x03U;
-          const uint32_t col = (idx >> 2) & 1;
-          const uint32_t cx = sp_col * 2 + col;
-          const uint32_t cy = sp_row * 4 + row;
-
-          const uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
-
-          const float fx = dev_velo_sp_fx[sp * 2];
-          const float fy = dev_velo_sp_fy[sp * 2];
-          const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-          const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
-
-          const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
-          
-#if DEBUG
-          const auto module_estimated_num =
-            dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
-            dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
-          assert(cluster_num <= module_estimated_num);
-#endif
-          
-          const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-          const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-          const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
-
-          float_velo_cluster_container[cluster_start + cluster_num] = gx;
-          float_velo_cluster_container[estimated_number_of_clusters + cluster_start + cluster_num] = gy;
-          float_velo_cluster_container[2 * estimated_number_of_clusters + cluster_start + cluster_num] = gz;
-          dev_velo_cluster_container[3 * estimated_number_of_clusters + cluster_start + cluster_num] = get_lhcb_id(cid);
-        }
-
-        // if there is a second cluster for this pattern
-        // add it as well.
-        if (idx & 8) {
-          const uint32_t row = (idx >> 4) & 3;
-          const uint32_t col = (idx >> 6) & 1;
-          const uint32_t cx = sp_col * 2 + col;
-          const uint32_t cy = sp_row * 4 + row;
-
-          uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
-
-          const float fx = dev_velo_sp_fx[sp * 2 + 1];
-          const float fy = dev_velo_sp_fy[sp * 2 + 1];
-          const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-          const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
-
-          const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
-          
-#if DEBUG
-          const auto module_estimated_num =
-            dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
-            dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
-          assert(cluster_num <= module_estimated_num);
-#endif
-          
-          const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-          const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-          const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
-
-          float_velo_cluster_container[cluster_start + cluster_num] = gx;
-          float_velo_cluster_container[estimated_number_of_clusters + cluster_start + cluster_num] = gy;
-          float_velo_cluster_container[2 * estimated_number_of_clusters + cluster_start + cluster_num] = gz;
-          dev_velo_cluster_container[3 * estimated_number_of_clusters + cluster_start + cluster_num] = get_lhcb_id(cid);
-        }
-      }
-    }
+    no_neighbour_sp(dev_module_cluster_start, dev_velo_sp_patterns, dev_velo_cluster_container,
+                    estimated_number_of_clusters, module_cluster_num,
+                    dev_velo_sp_fx, dev_velo_sp_fy, g,
+                    module_number, cluster_start,raw_bank);
   }
 
   __syncthreads();

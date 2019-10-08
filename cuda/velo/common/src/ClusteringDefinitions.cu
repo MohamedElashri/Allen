@@ -22,6 +22,15 @@ __device__ __host__ VeloRawBank::VeloRawBank(const char* raw_bank)
   sp_word = (uint32_t*) p;
 }
 
+__device__ __host__ VeloRawBank::VeloRawBank(uint32_t source_id, const char* fragment)
+{
+  sensor_index = source_id;
+  const char* p = fragment;
+  sp_count = *((uint32_t*) p);
+  p += sizeof(uint32_t);
+  sp_word = (uint32_t*) p;
+}
+
 VeloGeometry::VeloGeometry(std::vector<char> const& geometry)
 {
   char const* p = geometry.data();
