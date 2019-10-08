@@ -15,7 +15,7 @@ __device__ uint32_t mask_east(uint64_t cluster)
 }
 
 __device__ void no_neighbour_sp(
- uint const* dev_module_cluster_start,
+ uint const* module_cluster_start,
  uint8_t const* dev_velo_sp_patterns,
  uint32_t* dev_velo_cluster_container,
  uint const estimated_number_of_clusters,
@@ -66,8 +66,8 @@ __device__ void no_neighbour_sp(
 
 #if DEBUG
         const auto module_estimated_num =
-          dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
-          dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
+          module_cluster_start[module_number + 1] -
+          module_cluster_start[module_number];
         assert(cluster_num <= module_estimated_num);
 #endif
 
@@ -100,8 +100,8 @@ __device__ void no_neighbour_sp(
 
 #if DEBUG
         const auto module_estimated_num =
-          dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
-          dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
+          module_cluster_start[module_number + 1] -
+          module_cluster_start[module_number];
         assert(cluster_num <= module_estimated_num);
 #endif
 
@@ -162,7 +162,7 @@ __global__ void masked_velo_clustering(
 
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    no_neighbour_sp(dev_module_cluster_start, dev_velo_sp_patterns, dev_velo_cluster_container,
+    no_neighbour_sp(module_cluster_start, dev_velo_sp_patterns, dev_velo_cluster_container,
                     estimated_number_of_clusters, module_cluster_num,
                     dev_velo_sp_fx, dev_velo_sp_fy, g,
                     module_number, cluster_start,raw_bank);
