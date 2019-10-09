@@ -38,8 +38,3 @@ allen_add_library(Muon STATIC
 )
 
 target_link_libraries(Muon Utils)
-
-if(TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
-  add_subdirectory(tests)
-endif()
-
