@@ -15,9 +15,8 @@ __device__ void track_forwarding(
   Velo::TrackletHits* tracklets,
   Velo::TrackHits* tracks,
   const uint number_of_hits,
-  int* dev_atomics_velo,
-  const int ip_shift,
-  const int first_module);
+  uint* dev_atomics_velo,
+  const int ip_shift);
 
 /**
  * @brief Finds candidates in the specified module.

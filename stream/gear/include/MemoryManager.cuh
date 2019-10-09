@@ -181,7 +181,7 @@ struct MemoryManagerReserve;
 
 template<typename ArgumentManagerType>
 struct MemoryManagerReserve<ArgumentManagerType, std::tuple<>> {
-  constexpr static void reserve(MemoryManager& memory_manager, ArgumentManagerType& argument_manager) {}
+  constexpr static void reserve(MemoryManager&, ArgumentManagerType&) {}
 };
 
 template<typename ArgumentManagerType, typename Argument, typename... Arguments>
@@ -202,7 +202,7 @@ struct MemoryManagerFree;
 
 template<>
 struct MemoryManagerFree<std::tuple<>> {
-  constexpr static void free(MemoryManager& memory_manager) {}
+  constexpr static void free(MemoryManager&) {}
 };
 
 template<typename Argument, typename... Arguments>

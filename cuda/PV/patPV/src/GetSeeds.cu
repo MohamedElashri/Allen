@@ -45,12 +45,11 @@ __device__ void errorForPVSeedFinding(float tx, float ty, float& sigz2)
 
 __global__ void get_seeds(
   char* dev_velo_kalman_beamline_states,
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PatPV::XYZPoint* dev_seeds,
   uint* dev_number_seed)
 {
-
   PatPV::XYZPoint beamspot;
   beamspot.x = 0;
   beamspot.y = 0;
@@ -69,8 +68,7 @@ __global__ void get_seeds(
   PatPV::vtxCluster vclusters[Velo::Constants::max_tracks];
 
   int counter_number_of_clusters = 0;
-  for (int i = 0; i < number_of_tracks_event; i++) {
-
+  for (uint i = 0; i < number_of_tracks_event; i++) {
     float sigsq;
     float zclu;
     KalmanVeloState trk = velo_states.get(event_tracks_offset + i);

@@ -6,7 +6,7 @@
 __global__ void ut_search_windows(
   uint* dev_ut_hits, // actual hit content
   const uint* dev_ut_hit_offsets,
-  int* dev_atomics_storage, // semi_prefixsum, offset to tracks
+  uint* dev_atomics_storage, // semi_prefixsum, offset to tracks
   uint* dev_velo_track_hit_number,
   char* dev_velo_states,
   UTMagnetTool* dev_ut_magnet_tool,
@@ -14,7 +14,7 @@ __global__ void ut_search_windows(
   const uint* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
   const float* dev_unique_sector_xs,             // list of xs that define the groups
   short* dev_windows_layers,
-  int* dev_active_tracks,
+  uint* dev_active_tracks,
   bool* dev_accepted_velo_tracks)
 {
   const uint number_of_events = gridDim.x;
@@ -34,16 +34,16 @@ __global__ void ut_search_windows(
   UT::Hits ut_hits {dev_ut_hits, total_number_of_hits};
 
   const float* fudge_factors = &(dev_ut_magnet_tool->dxLayTable[0]);
-  int* active_tracks = dev_active_tracks + event_number;
+  uint* active_tracks = dev_active_tracks + event_number;
 
   // Store only the valid tracks into shared memory.
   // Fill the array until with find enough valid tracks = block size
   __shared__ int shared_active_tracks[2 * UT::Constants::num_thr_searchwin - 1];
 
-  for (int layer = threadIdx.x; layer < UT::Constants::n_layers; layer += blockDim.x) {
+  for (auto layer = threadIdx.x; layer < UT::Constants::n_layers; layer += blockDim.x) {
     const uint layer_offset = ut_hit_offsets.layer_offset(layer);
 
-    for (int i = 0; i < ((number_of_tracks_event + blockDim.y - 1) / blockDim.y) + 1; i += 1) {
+    for (uint i = 0; i < ((number_of_tracks_event + blockDim.y - 1) / blockDim.y) + 1; i += 1) {
       const auto i_track = i * blockDim.y + threadIdx.y;
 
       __syncthreads();
@@ -71,7 +71,6 @@ __global__ void ut_search_windows(
         const MiniState velo_state = velo_states.getMiniState(current_track_offset);
 
         const auto candidates = calculate_windows(
-          shared_active_tracks[threadIdx.y],
           layer,
           velo_state,
           fudge_factors,
@@ -79,8 +78,7 @@ __global__ void ut_search_windows(
           ut_hit_offsets,
           dev_ut_dxDy,
           dev_unique_sector_xs,
-          dev_unique_x_sector_layer_offsets,
-          velo_tracks);
+          dev_unique_x_sector_layer_offsets);
 
         // Write the windows in SoA style
         short* windows_layers = dev_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
@@ -128,7 +126,6 @@ __global__ void ut_search_windows(
       const auto velo_state = velo_states.get(current_track_offset);
 
       const auto candidates = calculate_windows(
-        shared_active_tracks[threadIdx.y],
         layer,
         velo_state,
         fudge_factors,
@@ -136,8 +133,7 @@ __global__ void ut_search_windows(
         ut_hit_offsets,
         dev_ut_dxDy,
         dev_unique_sector_xs,
-        dev_unique_x_sector_layer_offsets,
-        velo_tracks);
+        dev_unique_x_sector_layer_offsets);
 
       // Write the windows in SoA style
       short* windows_layers = dev_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;

@@ -1,17 +1,14 @@
 #include "ParKalmanVeloOnly.cuh"
 
 __global__ void package_kalman_tracks(
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
-  char* dev_velo_track_hits,
-  int* dev_atomics_veloUT,
+  uint* dev_atomics_veloUT,
   uint* dev_ut_track_hit_number,
-  char* dev_ut_consolidated_hits,
   float* dev_ut_qop,
   uint* dev_velo_indices,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
-  char* dev_scifi_consolidated_hits,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
   uint* dev_ut_indices,
@@ -50,9 +47,6 @@ __global__ void package_kalman_tracks(
     // Prepare fit input.
     const int i_ut_track = scifi_tracks.ut_track[i_scifi_track];
     const int i_velo_track = ut_tracks.velo_track[i_ut_track];
-    const Velo::Consolidated::Hits velo_hits = velo_tracks.get_hits((char*) dev_velo_track_hits, i_velo_track);
-    const uint n_velo_hits = velo_tracks.number_of_hits(i_velo_track);
-    const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop[i_scifi_track];
     Velo::Consolidated::KalmanStates kalmanvelo_states {dev_velo_kalman_beamline_states,
                                                         velo_tracks.total_number_of_tracks};
     dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track] =

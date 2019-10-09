@@ -31,18 +31,18 @@ __global__ void __launch_bounds__(512)
 
 __global__ void copy_velo_track_hit_number(
   const Velo::TrackHits* dev_tracks,
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number);
 
 __global__ void copy_ut_track_hit_number(
   const UT::TrackHits* dev_veloUT_tracks,
-  int* dev_atomics_veloUT,
+  uint* dev_atomics_veloUT,
   uint* dev_ut_track_hit_number);
 
 __global__ void copy_scifi_track_hit_number(
-  const int* dev_atomics_ut,
+  const uint* dev_atomics_ut,
   const SciFi::TrackHits* dev_scifi_tracks,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number);
 
 ALGORITHM(copy_and_prefix_sum_single_block, copy_and_prefix_sum_single_block_velo_t, ARGUMENTS(dev_atomics_velo))

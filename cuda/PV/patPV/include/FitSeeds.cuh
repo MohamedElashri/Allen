@@ -16,7 +16,7 @@ __global__ void fit_seeds(
   PatPV::XYZPoint* dev_seeds,
   uint* dev_number_seeds,
   char* dev_velo_kalman_beamline_states,
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number);
 
 __device__ bool fit_vertex(

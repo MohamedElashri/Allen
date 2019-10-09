@@ -48,7 +48,7 @@ __device__ bool is_in_window(
 }
 
 __global__ void is_muon(
-  int* dev_atomics_scifi,
+  uint* dev_atomics_scifi,
   uint* dev_scifi_track_hit_number,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
@@ -56,7 +56,6 @@ __global__ void is_muon(
   const Muon::HitsSoA* muon_hits,
   int* dev_muon_track_occupancies,
   bool* dev_is_muon,
-  const uint* event_list,
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
   const float* dev_muon_momentum_cuts)
 {

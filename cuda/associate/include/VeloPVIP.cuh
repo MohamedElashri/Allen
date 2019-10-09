@@ -13,7 +13,7 @@
 
 __global__ void velo_pv_ip(
   char* dev_kalman_velo_states,
-  int* dev_atomics_velo,
+  uint* dev_atomics_velo,
   uint* dev_velo_track_hit_number,
   PV::Vertex* dev_multi_fit_vertices,
   uint* dev_number_of_multi_fit_vertices,

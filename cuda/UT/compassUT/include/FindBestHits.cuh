@@ -8,8 +8,6 @@
 
 __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   const short* win_size_shared,
-  const uint number_of_tracks_event,
-  const int i_track,
   const UT::Hits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,

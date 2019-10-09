@@ -32,7 +32,6 @@ void SequenceVisitor::visit<consolidate_velo_tracks_t>(
     arguments.offset<dev_velo_track_hit_number>(),
     arguments.offset<dev_velo_cluster_container>(),
     arguments.offset<dev_estimated_input_size>(),
-    arguments.offset<dev_module_cluster_num>(),
     arguments.offset<dev_velo_track_hits>(),
     arguments.offset<dev_velo_states>());
 

@@ -389,7 +389,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
   return {match, track_best_matched_MCP};
 }
 
-std::vector<MCParticles::const_iterator> TrackChecker::operator()(
+void TrackChecker::operator()(
   const Checker::Tracks& tracks,
   const MCEvent& mc_event,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector)
@@ -417,13 +417,11 @@ std::vector<MCParticles::const_iterator> TrackChecker::operator()(
   std::size_t ntracksperevt = 0;
   std::size_t nghoststriggerperevt = 0;
   std::size_t ntrackstriggerperevt = 0;
-  std::vector<MCParticles::const_iterator> matched_mcp_keys;
   for (size_t i_track = 0; i_track < tracks.size(); ++i_track) {
     auto const& track = tracks[i_track];
     m_histos->fillTotalHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
 
     auto [match, track_best_matched_MCP] = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
-    matched_mcp_keys.push_back(track_best_matched_MCP);
 
     bool eta25 = track.eta > 2.f && track.eta < 5.f;
     bool skipEtaCut = (m_trackerName == "Velo");
@@ -512,8 +510,6 @@ std::vector<MCParticles::const_iterator> TrackChecker::operator()(
   }
   m_nghoststrigger += nghoststriggerperevt;
   m_ntrackstrigger += ntrackstriggerperevt;
-
-  return matched_mcp_keys;
 }
 
 TrackCheckerVelo::TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file) :
