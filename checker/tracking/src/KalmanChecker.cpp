@@ -42,6 +42,9 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
   m_tree->Branch("ndofT", &m_trk_ndofT);
   m_tree->Branch("ghost", &m_trk_ghost);
   m_tree->Branch("mcp_p", &m_mcp_p);
+#else
+  _unused(invoker);
+  _unused(root_file);
 #endif
 }
 

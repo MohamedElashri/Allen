@@ -5,9 +5,9 @@
 template<>
 void SequenceVisitor::check<run_hlt1_t>(
   HostBuffers& host_buffers,
-  const Constants& constants,
+  const Constants&,
   const CheckerInvoker& checker_invoker,
-  const MCEvents& mc_events) const
+  const MCEvents&) const
 {
   auto& checker = checker_invoker.checker<RateChecker>("HLT1 rates:");
   checker.accumulate(

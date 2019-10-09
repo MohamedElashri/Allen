@@ -21,7 +21,7 @@ __global__ void weak_tracks_adder(
   Velo::TrackHits* dev_tracks,
   Velo::TrackletHits* dev_weak_tracks,
   bool* dev_hit_used,
-  int* dev_atomics_velo);
+  uint* dev_atomics_velo);
 
 ALGORITHM(
   weak_tracks_adder,

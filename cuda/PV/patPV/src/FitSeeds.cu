@@ -6,7 +6,7 @@ __global__ void fit_seeds(
   PatPV::XYZPoint* dev_seeds,
   uint* dev_number_seeds,
   char* dev_velo_kalman_beamline_states,
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number)
 {
 
@@ -23,7 +23,7 @@ __global__ void fit_seeds(
   PV::Vertex vertex;
 
   int counter_vertex = 0;
-  for (int i_seed = 0; i_seed < dev_number_seeds[event_number]; i_seed++) {
+  for (uint i_seed = 0; i_seed < dev_number_seeds[event_number]; i_seed++) {
     bool success = fit_vertex(
       dev_seeds[event_number * PatPV::max_number_vertices + i_seed],
       velo_states,
@@ -68,7 +68,7 @@ __device__ bool fit_vertex(
 
   // prepare tracks
 
-  int pvTrack_counter = 0;
+  uint pvTrack_counter = 0;
 
   for (int i = 0; i < number_of_tracks; i++) {
     int index = i + tracks_offset;
@@ -126,7 +126,6 @@ __device__ bool fit_vertex(
   }
 
   if (pvTrack_counter < PatPV::m_minTr) {
-
     return false;
   }
 
@@ -138,18 +137,18 @@ __device__ bool fit_vertex(
   while ((nbIter < PatPV::m_minIter) || (!converged && nbIter < PatPV::m_Iterations)) {
     ++nbIter;
 
-    float halfD2Chi2DX2_00 = 0.;
-    float halfD2Chi2DX2_10 = 0.;
-    float halfD2Chi2DX2_11 = 0.;
-    float halfD2Chi2DX2_20 = 0.;
-    float halfD2Chi2DX2_21 = 0.;
-    float halfD2Chi2DX2_22 = 0.;
-    PatPV::XYZPoint halfDChi2DX(0., 0., 0.);
+    float halfD2Chi2DX2_00 = 0.f;
+    float halfD2Chi2DX2_10 = 0.f;
+    float halfD2Chi2DX2_11 = 0.f;
+    float halfD2Chi2DX2_20 = 0.f;
+    float halfD2Chi2DX2_21 = 0.f;
+    float halfD2Chi2DX2_22 = 0.f;
+    PatPV::XYZPoint halfDChi2DX(0.f, 0.f, 0.f);
 
     // add contribution from all tracks
     float chi2(0);
     size_t ntrin(0);
-    for (int index = 0; index < pvTrack_counter; index++) {
+    for (uint index = 0; index < pvTrack_counter; index++) {
 
       float new_z = vtxpos.z;
       float m_state_x = tr_state_x[index];

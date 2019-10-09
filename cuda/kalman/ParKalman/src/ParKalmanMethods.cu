@@ -73,10 +73,7 @@ __device__ void PredictStateV(
 //----------------------------------------------------------------------
 // Predict VELO <-> UT
 __device__ bool PredictStateVUT(
-  const Velo::Consolidated::Hits& hitsVelo,
   const UT::Consolidated::Hits& hitsUT, // These probably don't exist yet.
-  const int nVeloHits,
-  const int nUTHits,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -155,16 +152,11 @@ __device__ void PredictStateUT(
 //----------------------------------------------------------------------
 // Predict UT <-> T precise version (what does that mean?)
 __device__ void PredictStateUTT(
-  const UT::Consolidated::Hits& hits,
-  const int n_ut_hits,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
   trackInfo& tI)
 {
-
-  // int forward = lastz < 5000. ? 1 : -1;
-  int forward = 1;
   Matrix5x5 F;
 
   // Calculate the extrapolation for a reference state that uses
@@ -189,15 +181,12 @@ __device__ void PredictStateUTT(
   C = C + Q;
 
   // When going backwards: predict to the last VELO measurement.
-  PredictStateTFT(forward, x, C, lastz, tI);
+  PredictStateTFT(x, C, lastz, tI);
 }
 
 //----------------------------------------------------------------------
 // Predict UT (fixed z) <-> last UT layer.
 __device__ void PredictStateUTFUT(
-  const UT::Consolidated::Hits& hits,
-  int nUTHits,
-  int forward,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -208,17 +197,6 @@ __device__ void PredictStateUTFUT(
   ExtrapolateUTFUTDef(lastz, x, F, tI);
 
   // Transport.
-  tI.m_RefPropForwardTotal = F * tI.m_RefPropForwardTotal;
-  C = similarity_5_5(F, C);
-}
-
-//----------------------------------------------------------------------
-// Predict UT (fixed z) <-> last UT layer.
-__device__ void PredictStateUTFUT(int forward, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
-{
-  // TODO: Only valid for the forward direction for now...maybe not safe?
-  Matrix5x5 F;
-  ExtrapolateUTFUTDef(lastz, x, F, tI);
   tI.m_RefPropForwardTotal = F * tI.m_RefPropForwardTotal;
   C = similarity_5_5(F, C);
 }
@@ -263,7 +241,6 @@ __device__ void PredictStateT(
 // Predict T (fixed z) <-> first T layer.
 __device__ void PredictStateTFT(
   const SciFi::Consolidated::Hits& hits,
-  int forward,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -295,7 +272,7 @@ __device__ void PredictStateTFT(
 
 //----------------------------------------------------------------------
 // Predict T (fixed z) <-> first T layer.
-__device__ void PredictStateTFT(int forward, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
+__device__ void PredictStateTFT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
 {
   KalmanFloat z;
   Matrix5x5 F;
@@ -410,7 +387,6 @@ __device__ void UpdateStateUT(
 // Update state with a SciFi measurement.
 __device__ void UpdateStateT(
   const SciFi::Consolidated::Hits& hits,
-  const int forward,
   const uint layer,
   Vector5& x,
   SymMatrix5x5& C,
@@ -819,7 +795,6 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
   extrapUTT(
     tI.m_extr->UTTExtrBeginZ(),
     tI.m_extr->UTTExtrEndZ(),
-    QUADRATICINTERPOLATION,
     x[0],
     x[1],
     x[2],
@@ -1097,7 +1072,6 @@ ExtrapolateTFT(KalmanFloat zFrom, KalmanFloat& zTo, Vector5& x, Matrix5x5& F, Sy
 __device__ int extrapUTT(
   KalmanFloat zi,
   KalmanFloat zf,
-  int quad_interp,
   KalmanFloat& x,
   KalmanFloat& y,
   KalmanFloat& tx,

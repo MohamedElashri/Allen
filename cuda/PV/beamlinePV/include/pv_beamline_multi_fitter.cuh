@@ -14,7 +14,7 @@
 #include <cstdint>
 
 __global__ void pv_beamline_multi_fitter(
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks,
   float* dev_pvtracks_denom,

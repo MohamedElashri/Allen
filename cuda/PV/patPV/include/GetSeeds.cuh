@@ -12,7 +12,7 @@
 
 __global__ void get_seeds(
   char* dev_velo_kalman_beamline_states,
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PatPV::XYZPoint* dev_seeds,
   uint* dev_number_seeds);

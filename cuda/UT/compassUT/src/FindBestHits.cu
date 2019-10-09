@@ -7,8 +7,6 @@
 //=========================================================================
 __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   const short* win_size_shared,
-  const uint number_of_tracks_event,
-  const int i_track,
   const UT::Hits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
@@ -22,7 +20,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
   bool found = false;
   bool forward = false;
-  int considered = 0;
+  uint considered = 0;
 
   int best_number_of_hits = 3;
   int best_fit = UT::Constants::maxPseudoChi2;
@@ -163,10 +161,9 @@ __device__ BestParams pkick_fit(
 
   // add hits
   float last_z = -10000.f;
-// add hits
-#pragma unroll
-  for (int i = 0; i < UT::Constants::n_layers; ++i) {
-    int hit_index = best_hits[i];
+  // #pragma unroll
+  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+    const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
       const float wi = ut_hits.weight[hit_index];
       const int plane_code = forward ? i : UT::Constants::n_layers - 1 - i;
@@ -202,9 +199,9 @@ __device__ BestParams pkick_fit(
   float chi2UT = chi2VeloSlope * chi2VeloSlope;
   // add chi2
   int total_num_hits = 0;
-#pragma unroll
-  for (int i = 0; i < UT::Constants::n_layers; ++i) {
-    int hit_index = best_hits[i];
+  // #pragma unroll
+  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
+    const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
       const float zd = ut_hits.zAtYEq0[hit_index];
       const float xd = xUTFit + xSlopeUTFit * (zd - UT::Constants::zMidUT);

@@ -19,9 +19,8 @@
 
 __global__ void kalman_pv_ipchi2(
   ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
-  char* dev_scifi_consolidated_hits,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
   uint* dev_ut_indices,

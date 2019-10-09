@@ -4,7 +4,7 @@ __global__ void consolidate_ut_tracks(
   uint* dev_ut_hits,
   uint* dev_ut_hit_offsets,
   char* dev_ut_track_hits,
-  int* dev_atomics_ut,
+  uint* dev_atomics_ut,
   uint* dev_ut_track_hit_number,
   float* dev_ut_qop,
   float* dev_ut_x,
@@ -49,7 +49,7 @@ __global__ void consolidate_ut_tracks(
     // Lambda for populating arrays.
     auto populate = [&track](uint32_t* __restrict__ a, uint32_t* __restrict__ b) {
       int hit_number = 0;
-      for (int i = 0; i < UT::Constants::n_layers; ++i) {
+      for (uint i = 0; i < UT::Constants::n_layers; ++i) {
         const auto hit_index = track.hits[i];
         if (hit_index != -1) {
           a[hit_number++] = b[hit_index];

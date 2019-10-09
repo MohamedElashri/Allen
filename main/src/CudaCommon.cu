@@ -22,12 +22,12 @@ cudaError_t cudaMallocHost(void** ptr, size_t size) {
   return 0;
 }
 
-cudaError_t cudaMemcpy(void* dst, const void* src, size_t count, enum cudaMemcpyKind kind) {
+cudaError_t cudaMemcpy(void* dst, const void* src, size_t count, enum cudaMemcpyKind) {
   std::memcpy(dst, src, count);
   return 0;
 }
 
-cudaError_t cudaMemcpyAsync(void* dst, const void* src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream) {
+cudaError_t cudaMemcpyAsync(void* dst, const void* src, size_t count, enum cudaMemcpyKind, cudaStream_t) {
   std::memcpy(dst, src, count);
   return 0;
 }
@@ -37,7 +37,7 @@ cudaError_t cudaMemset(void* devPtr, int value, size_t count) {
   return 0;
 }
 
-cudaError_t cudaMemsetAsync(void* devPtr, int value, size_t count, cudaStream_t stream) {
+cudaError_t cudaMemsetAsync(void* devPtr, int value, size_t count, cudaStream_t) {
   std::memset(devPtr, value, count);
   return 0;
 }
@@ -46,21 +46,19 @@ cudaError_t cudaPeekAtLastError() {
   return 0;
 }
 
-cudaError_t cudaEventCreate(cudaEvent_t* event) {
-  event = new cudaEvent_t;
+cudaError_t cudaEventCreate(cudaEvent_t*) {
   return 0;
 }
 
-cudaError_t cudaEventCreateWithFlags(cudaEvent_t* event, int flags) {
-  event = new cudaEvent_t;
+cudaError_t cudaEventCreateWithFlags(cudaEvent_t*, int) {
   return 0;
 }
 
-cudaError_t cudaEventSynchronize(cudaEvent_t event) {
+cudaError_t cudaEventSynchronize(cudaEvent_t) {
   return 0;
 }
 
-cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream) {
+cudaError_t cudaEventRecord(cudaEvent_t, cudaStream_t) {
   return 0;
 }
 
@@ -73,8 +71,7 @@ cudaError_t cudaDeviceReset() {
   return 0;
 }
 
-cudaError_t cudaStreamCreate(cudaStream_t* pStream) {
-  pStream = new cudaStream_t;
+cudaError_t cudaStreamCreate(cudaStream_t*) {
   return 0;
 }
 

@@ -38,6 +38,11 @@ void SequenceVisitor::check<kalman_filter_t>(
 
   auto& checker = checker_invoker.checker<KalmanChecker>("Producing Kalman plots", "KalmanIPCheckerOutput.root");
   checker.accumulate(mc_events, tracks);
+#else
+  _unused(host_buffers);
+  _unused(constants);
+  _unused(checker_invoker);
+  _unused(mc_events);
 #endif
 }
 
@@ -75,5 +80,10 @@ void SequenceVisitor::check<kalman_velo_only_t>(
 
   auto& checker = checker_invoker.checker<KalmanChecker>("Producing Kalman plots", "KalmanIPCheckerOutput.root");
   checker.accumulate(mc_events, tracks);
+#else
+  _unused(host_buffers);
+  _unused(constants);
+  _unused(checker_invoker);
+  _unused(mc_events);
 #endif
 }

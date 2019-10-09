@@ -15,7 +15,7 @@ void StreamWrapper::initialize_streams(
     streams.push_back(new Stream());
   }
 
-  for (int i = 0; i < streams.size(); ++i) {
+  for (size_t i = 0; i < streams.size(); ++i) {
     streams[i]->initialize(
       number_of_events, print_memory_usage, start_event_offset, reserve_mb, i, constants, do_check);
   }

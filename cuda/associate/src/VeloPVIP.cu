@@ -65,7 +65,7 @@ __device__ void associate(
   Associate::Consolidated::EventTable& table,
   distance_fun fun)
 {
-  for (int i = threadIdx.x; i < table.size; i += blockDim.x) {
+  for (auto i = threadIdx.x; i < table.size; i += blockDim.x) {
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;
@@ -82,7 +82,7 @@ __device__ void associate(
 
 __global__ void velo_pv_ip(
   char* dev_kalman_velo_states,
-  int* dev_atomics_velo,
+  uint* dev_atomics_velo,
   uint* dev_velo_track_hit_number,
   PV::Vertex* dev_multi_fit_vertices,
   uint* dev_number_of_multi_fit_vertices,

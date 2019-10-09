@@ -69,7 +69,7 @@ __host__ __device__ int binary_search_first_candidate(
       r = m;
     }
   }
-  const bool found = (l != array_size) && comparator(value, array[l], l, margin);
+  const bool found = (l != static_cast<int>(array_size)) && comparator(value, array[l], l, margin);
   return found ? l : -1;
 }
 
@@ -95,7 +95,7 @@ binary_search_first_candidate(const T* array, const uint array_size, const T& va
       r = m;
     }
   }
-  const bool found = (l != array_size) && (fabsf(value - array[l]) < margin);
+  const bool found = (l != static_cast<int>(array_size)) && (fabsf(value - array[l]) < margin);
   return found ? l : -1;
 }
 

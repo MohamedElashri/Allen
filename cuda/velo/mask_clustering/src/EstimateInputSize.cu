@@ -7,11 +7,10 @@ __global__ void estimate_input_size(
   uint* dev_event_candidate_num,
   uint32_t* dev_cluster_candidates,
   const uint* dev_event_list,
-  uint* dev_event_order,
   uint8_t* dev_velo_candidate_ks)
 {
-  const uint event_number = blockIdx.x;
-  const uint selected_event_number = dev_event_list[event_number];
+  const auto event_number = blockIdx.x;
+  const auto selected_event_number = dev_event_list[event_number];
 
   const char* raw_input = dev_raw_input + dev_raw_input_offsets[selected_event_number];
   uint* estimated_input_size = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
@@ -21,12 +20,12 @@ __global__ void estimate_input_size(
   // Read raw event
   const auto raw_event = VeloRawEvent(raw_input);
 
-  for (int raw_bank_number = threadIdx.y; raw_bank_number < raw_event.number_of_raw_banks;
+  for (auto raw_bank_number = threadIdx.y; raw_bank_number < raw_event.number_of_raw_banks;
        raw_bank_number += blockDim.y) {
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
     uint* estimated_module_size = estimated_input_size + (raw_bank.sensor_index >> 2);
-    for (int sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
+    for (auto sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
       const uint32_t sp_word = raw_bank.sp_word[sp_index];
       const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
       const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
@@ -61,6 +60,7 @@ __global__ void estimate_input_size(
         // Add the found clusters
         uint current_estimated_module_size = atomicAdd(estimated_module_size, number_of_clusters);
         assert(current_estimated_module_size < Velo::Constants::max_numhits_in_module);
+        _unused(current_estimated_module_size);
       }
       else {
         // Find candidates that follow this condition:
@@ -226,6 +226,7 @@ __global__ void estimate_input_size(
         if (found_cluster_candidates > 0) {
           uint current_estimated_module_size = atomicAdd(estimated_module_size, found_cluster_candidates);
           assert(current_estimated_module_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module);
+          _unused(current_estimated_module_size);
         }
       }
     }

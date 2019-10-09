@@ -32,7 +32,6 @@ void SequenceVisitor::visit<lf_fit_t>(
     arguments.offset<dev_velo_track_hit_number>(),
     arguments.offset<dev_velo_states>(),
     arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_ut_track_hits>(),
     arguments.offset<dev_ut_track_hit_number>(),
     arguments.offset<dev_ut_qop>(),
     arguments.offset<dev_ut_track_velo_indices>(),
@@ -43,7 +42,6 @@ void SequenceVisitor::visit<lf_fit_t>(
     constants.dev_inv_clus_res,
     constants.dev_scifi_constArrays,
     constants.dev_looking_forward_constants,
-    constants.dev_magnet_polarity.data(),
     arguments.offset<dev_scifi_lf_track_params>());
 
   state.invoke();

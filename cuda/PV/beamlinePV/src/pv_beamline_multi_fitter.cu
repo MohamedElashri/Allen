@@ -1,7 +1,7 @@
 #include "pv_beamline_multi_fitter.cuh"
 
 __global__ void pv_beamline_multi_fitter(
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks,
   float* dev_pvtracks_denom,
@@ -58,7 +58,7 @@ __global__ void pv_beamline_multi_fitter(
 
       uint nselectedtracks = 0;
 
-      for (int i = 0; i < number_of_tracks; i++) {
+      for (uint i = 0; i < number_of_tracks; i++) {
         // compute the chi2
         PVTrackInVertex trk = tracks[i];
         // skip tracks lying outside histogram range

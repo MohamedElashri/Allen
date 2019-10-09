@@ -22,8 +22,8 @@ __global__ void muon_catboost_evaluator(
   const int* dev_muon_catboost_tree_offsets,
   const int n_trees)
 {
-  const int object_id = blockIdx.x;
-  const int block_size = blockDim.x;
+  const auto object_id = blockIdx.x;
+  const auto block_size = blockDim.x;
   int tree_id = threadIdx.x;
   float sum = 0;
 
@@ -47,7 +47,7 @@ __global__ void muon_catboost_evaluator(
   int tid = threadIdx.x;
   values[tid] = sum;
   __syncthreads();
-  for (unsigned int s = block_size / 2; s > 0; s >>= 1) {
+  for (int s = block_size / 2; s > 0; s >>= 1) {
     if (tid < s) values[tid] += values[tid + s];
     __syncthreads();
   }

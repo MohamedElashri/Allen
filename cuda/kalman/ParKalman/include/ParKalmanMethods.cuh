@@ -118,7 +118,6 @@ ExtrapolateTFTDef(KalmanFloat zFrom, KalmanFloat& zTo, Vector5& x, Matrix5x5& F,
 __device__ int extrapUTT(
   KalmanFloat zi,
   KalmanFloat zf,
-  int quad_interp,
   KalmanFloat& x,
   KalmanFloat& y,
   KalmanFloat& tx,
@@ -157,10 +156,7 @@ __device__ void PredictStateV(
 //----------------------------------------------------------------------
 // Predict VELO <-> UT.
 __device__ bool PredictStateVUT(
-  const Velo::Consolidated::Hits& hitsVelo,
   const UT::Consolidated::Hits& hitsUT,
-  const int nVeloHits,
-  const int nUTHits,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -179,23 +175,14 @@ __device__ void PredictStateUT(
 //----------------------------------------------------------------------
 // Predict last UT layer <-> start of UTTF.
 __device__ void PredictStateUTFUT(
-  const UT::Consolidated::Hits& hits,
-  int nUTHits,
-  int forward,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
   trackInfo& tI);
 
 //----------------------------------------------------------------------
-// Predict last UT layer <-> start of UTTF.
-__device__ void PredictStateUTFUT(int forward, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
-
-//----------------------------------------------------------------------
 // Predict UT <-> T precise version(?)
 __device__ void PredictStateUTT(
-  const UT::Consolidated::Hits& hits,
-  const int n_ut_hits,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -215,7 +202,6 @@ __device__ void PredictStateT(
 // Predict T(fixed z=7783) <-> first T layer.
 __device__ void PredictStateTFT(
   const SciFi::Consolidated::Hits& hits,
-  int forward,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -223,7 +209,7 @@ __device__ void PredictStateTFT(
 
 //----------------------------------------------------------------------
 // Predict T(fixed z=7783) <-> first T layer.
-__device__ void PredictStateTFT(int forward, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
+__device__ void PredictStateTFT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Update state with velo measurement.
@@ -244,7 +230,6 @@ __device__ void UpdateStateUT(
 // Update state with T measurement.
 __device__ void UpdateStateT(
   const SciFi::Consolidated::Hits& hits,
-  int forward,
   uint layer,
   Vector5& x,
   SymMatrix5x5& C,

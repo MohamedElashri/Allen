@@ -67,7 +67,7 @@ __host__ __device__ float fastfitter(
 
   const float yyProto = velo_state.y - velo_state.ty * velo_state.z;
 
-  for (int i = 0; i < UT::Constants::n_layers; ++i) {
+  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     if (best_hits[i] != -1) {
       const auto hit = best_hits[i];
 
@@ -114,7 +114,7 @@ __host__ __device__ float fastfitter(
   const float distCorrectionX2 = 1.0f / (1 + xSlopeUTFit * xSlopeUTFit);
   float chi2 = weight * (distX * distX * distCorrectionX2 + offsetY * offsetY / (1.0f + ty * ty));
 
-  for (int i = 0; i < UT::Constants::n_layers; ++i) {
+  for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     if (best_hits[i] != -1) {
       const auto hit = best_hits[i];
 
