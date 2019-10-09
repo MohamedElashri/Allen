@@ -62,7 +62,7 @@ __global__ void scifi_raw_bank_decoder_v5(
   SciFi::HitCount hit_count {scifi_hit_count, event_number};
   const uint number_of_hits_in_event = hit_count.event_number_of_hits();
 
-  for (int i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
     const uint32_t cluster_reference = hits.cluster_reference[hit_count.event_offset() + i];
     // Cluster reference:
     //   raw bank: 8 bits
@@ -82,7 +82,6 @@ __global__ void scifi_raw_bank_decoder_v5(
 
     const uint16_t c = *it;
     const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-    const auto chid = SciFiChannelID(ch);
 
     // Call parameters for make_cluster
     uint32_t cluster_chan = ch;

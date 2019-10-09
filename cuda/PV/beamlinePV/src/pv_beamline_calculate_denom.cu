@@ -1,7 +1,7 @@
 #include "pv_beamline_calculate_denom.cuh"
 
 __global__ void pv_beamline_calculate_denom(
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks,
   float* dev_pvtracks_denom,
@@ -24,11 +24,11 @@ __global__ void pv_beamline_calculate_denom(
   float* pvtracks_denom = dev_pvtracks_denom + event_tracks_offset;
 
   // Precalculate all track denoms
-  for (int i=threadIdx.x; i<number_of_tracks; i+=blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     auto track_denom = 0.f;
     const auto track = tracks[i];
 
-    for (int j=0; j<number_of_seeds; ++j) {
+    for (uint j = 0; j < number_of_seeds; ++j) {
       const auto dz = zseeds[j] - track.z;
       const float2 res = track.x + track.tx * dz;
       const auto chi2 = res.x * res.x * track.W_00 + res.y * res.y * track.W_11;

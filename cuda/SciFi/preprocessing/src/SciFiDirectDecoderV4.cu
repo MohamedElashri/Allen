@@ -36,7 +36,7 @@ __global__ void scifi_direct_decoder_v4(
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
     const uint j = (i / 10) % 4;
-    const bool reverse_cluster_order = j == 1 | j == 2;
+    const bool reverse_cluster_order = (j == 1) || (j == 2);
 
     const uint current_raw_bank = getRawBankIndexOrderedByX(i);
     const uint raw_bank_offset = hit_count.mat_group_offset(i);
@@ -48,7 +48,7 @@ __global__ void scifi_direct_decoder_v4(
     if (last > it) {
       const uint number_of_clusters = last - it;
 
-      for (int i_cluster = threadIdx.y; i_cluster < number_of_clusters; i_cluster += blockDim.y) {
+      for (uint i_cluster = threadIdx.y; i_cluster < number_of_clusters; i_cluster += blockDim.y) {
         const uint16_t current_cluster = reverse_cluster_order ? (number_of_clusters - 1 - i_cluster) : i_cluster;
 
         uint16_t c = *(it + current_cluster);

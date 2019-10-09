@@ -68,5 +68,10 @@ if (TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
   test_program(NAME bench_transpose)
   test_program(NAME test_providers)
 
-  catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  # Don't use
+  if (NOT GaudiProject_FOUND)
+    catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  else()
+    gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  endif()
 endif()

@@ -40,7 +40,6 @@ void SequenceVisitor::visit<muon_add_coords_crossing_maps_t>(
     arguments.offset<dev_storage_tile_id>(),
     arguments.offset<dev_storage_tdc_value>(),
     arguments.offset<dev_atomics_muon>(),
-    arguments.offset<dev_permutation_srq>(),
     arguments.offset<dev_muon_raw_to_hits>(),
     arguments.offset<dev_muon_compact_hit>(),
     arguments.offset<dev_station_ocurrences_offset>());

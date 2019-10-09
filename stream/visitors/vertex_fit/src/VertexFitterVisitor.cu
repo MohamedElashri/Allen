@@ -26,7 +26,6 @@ void SequenceVisitor::visit<fit_secondary_vertices_t>(
     arguments.offset<dev_kf_tracks>(),
     arguments.offset<dev_atomics_scifi>(),
     arguments.offset<dev_scifi_track_hit_number>(),
-    arguments.offset<dev_scifi_track_hits>(),
     arguments.offset<dev_scifi_qop>(),
     arguments.offset<dev_scifi_states>(),
     arguments.offset<dev_scifi_track_ut_indices>(),
@@ -36,4 +35,13 @@ void SequenceVisitor::visit<fit_secondary_vertices_t>(
     arguments.offset<dev_sv_offsets>(),
     arguments.offset<dev_secondary_vertices>());
   state.invoke();
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_secondary_vertices,
+      arguments.offset<dev_secondary_vertices>(),
+      arguments.size<dev_secondary_vertices>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }

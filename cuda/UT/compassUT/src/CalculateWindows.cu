@@ -69,7 +69,6 @@ __host__ __device__ void tol_refine(
 // Get the windows
 //=============================================================================
 __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculate_windows(
-  const int i_track,
   const int layer,
   const MiniState& velo_state,
   const float* fudge_factors,
@@ -77,8 +76,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const UT::HitOffsets& ut_hit_offsets,
   const float* ut_dxDy,
   const float* dev_unique_sector_xs,
-  const uint* dev_unique_x_sector_layer_offsets,
-  const Velo::Consolidated::Tracks& velo_tracks)
+  const uint* dev_unique_x_sector_layer_offsets)
 {
   // -- This is hardcoded, so faster
   // -- If you ever change the Table in the magnet tool, this will be wrong
@@ -135,7 +133,6 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       x_track,
       y_track,
       dx_dy,
-      normFact[layer],
       invNormFact,
       xTolNormFact,
       sector_group);
@@ -156,7 +153,6 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       x_track,
       y_track,
       dx_dy,
-      normFact[layer],
       invNormFact,
       xTolNormFact,
       left_group);
@@ -177,7 +173,6 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       x_track,
       y_track,
       dx_dy,
-      normFact[layer],
       invNormFact,
       xTolNormFact,
       left2_group);
@@ -198,7 +193,6 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       x_track,
       y_track,
       dx_dy,
-      normFact[layer],
       invNormFact,
       xTolNormFact,
       right_group);
@@ -219,7 +213,6 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       x_track,
       y_track,
       dx_dy,
-      normFact[layer],
       invNormFact,
       xTolNormFact,
       right2_group);
@@ -248,7 +241,6 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
   const float x_track,
   const float y_track,
   const float dx_dy,
-  const float normFact,
   const float invNormFact,
   const float xTolNormFact,
   const int sector_group)

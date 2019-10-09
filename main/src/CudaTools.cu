@@ -12,7 +12,7 @@ void reserve_pinned(void** buffer, size_t size) { cudaCheck(cudaMallocHost(buffe
 void reset() {}
 void print_gpu_memory_consumption() {}
 
-std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
+std::tuple<bool, std::string> set_device(int, size_t)
 {
   // Assume a linux system and try to get the CPU type
   FILE* cmd =

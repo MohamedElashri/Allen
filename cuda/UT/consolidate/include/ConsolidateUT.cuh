@@ -10,7 +10,7 @@ __global__ void consolidate_ut_tracks(
   uint* dev_ut_hits,
   uint* dev_ut_hit_offsets,
   char* dev_ut_track_hits,
-  int* dev_atomics_ut,
+  uint* dev_atomics_ut,
   uint* dev_ut_track_hit_number,
   float* dev_ut_qop,
   float* dev_ut_x,

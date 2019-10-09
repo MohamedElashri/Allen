@@ -262,9 +262,8 @@ namespace VertexFit {
 
 __global__ void fit_secondary_vertices(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
-  char* dev_scifi_consolidated_hits,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
   uint* dev_ut_indices,
@@ -304,10 +303,10 @@ __global__ void fit_secondary_vertices(
   VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
 
   // Loop over tracks.
-  for (int i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
+  for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 
     // Set the fit status for all possible vertices.
-    for (int j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
+    for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
       uint vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
                         ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
       event_secondary_vertices[vertex_idx].chi2 = -1;
@@ -321,7 +320,7 @@ __global__ void fit_secondary_vertices(
     }
 
     // Loop over second track.
-    for (int j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
+    for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
 
       // Preselection on second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];

@@ -21,7 +21,7 @@ __global__ void search_by_triplet(
   uint* dev_tracks_to_follow,
   Velo::TrackletHits* dev_weak_tracks,
   bool* dev_hit_used,
-  int* dev_atomics_velo,
+  uint* dev_atomics_velo,
   short* dev_h0_candidates,
   short* dev_h2_candidates,
   unsigned short* dev_rel_indices,

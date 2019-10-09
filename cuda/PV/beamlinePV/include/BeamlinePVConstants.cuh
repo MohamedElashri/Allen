@@ -1,6 +1,6 @@
 #pragma once
 
-static constexpr unsigned int minNumTracksPerVertex = 4;
+static constexpr int minNumTracksPerVertex = 4;
 static constexpr float zmin = -260.f;        // unit: mm Min z position of vertex seed
 static constexpr float zmax = 260.f;         // unit: mm Max z position of vertex seed
 static constexpr int Nbins = 2080;           // nubmer of bins in the histogram. Make sure that Nbins = (zmax-zmin)/dz

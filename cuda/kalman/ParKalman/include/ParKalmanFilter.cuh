@@ -23,11 +23,8 @@ namespace ParKalmanFilter {
   //----------------------------------------------------------------------
   // General method for updating states.
   __device__ void UpdateState(
-    const Velo::Consolidated::Hits& velo_hits,
     const uint n_velo_hits,
-    const UT::Consolidated::Hits& ut_hits,
     const uint n_ut_layers,
-    const SciFi::Consolidated::Hits& scifi_hits,
     const uint n_scifi_layers,
     int forward,
     int i_hit,
@@ -113,15 +110,15 @@ namespace ParKalmanFilter {
 //----------------------------------------------------------------------
 // Main execution of the parametrized Kalman Filter.
 __global__ void kalman_filter(
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
-  int* dev_atomics_veloUT,
+  uint* dev_atomics_veloUT,
   uint* dev_ut_track_hit_number,
   char* dev_ut_consolidated_hits,
   float* dev_ut_qop,
   uint* dev_velo_indices,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
   char* dev_scifi_consolidated_hits,
   float* dev_scifi_qop,

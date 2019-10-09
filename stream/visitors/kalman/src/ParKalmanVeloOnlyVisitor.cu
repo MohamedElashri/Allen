@@ -28,18 +28,15 @@ void SequenceVisitor::visit<kalman_velo_only_t>(
     arguments.offset<dev_velo_track_hits>(),
     arguments.offset<dev_atomics_ut>(),
     arguments.offset<dev_ut_track_hit_number>(),
-    arguments.offset<dev_ut_track_hits>(),
     arguments.offset<dev_ut_qop>(),
     arguments.offset<dev_ut_track_velo_indices>(),
     arguments.offset<dev_atomics_scifi>(),
     arguments.offset<dev_scifi_track_hit_number>(),
-    arguments.offset<dev_scifi_track_hits>(),
     arguments.offset<dev_scifi_qop>(),
     arguments.offset<dev_scifi_states>(),
     arguments.offset<dev_scifi_track_ut_indices>(),
     arguments.offset<dev_kf_tracks>(),
     constants.dev_scifi_geometry,
-    constants.dev_inv_clus_res,
     constants.dev_kalman_params);
   state.invoke();
 }

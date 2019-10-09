@@ -23,7 +23,6 @@ __global__ void masked_velo_clustering(
   uint* dev_cluster_candidates,
   uint32_t* dev_velo_cluster_container,
   const uint* dev_event_list,
-  uint* dev_event_order,
   const VeloGeometry* dev_velo_geometry,
   uint8_t* dev_velo_sp_patterns,
   float* dev_velo_sp_fx,
@@ -51,7 +50,7 @@ __global__ void masked_velo_clustering(
   const auto raw_event = VeloRawEvent(raw_input);
 
   // process no neighbour sp
-  for (int raw_bank_number = threadIdx.x; raw_bank_number < raw_event.number_of_raw_banks;
+  for (uint raw_bank_number = threadIdx.x; raw_bank_number < raw_event.number_of_raw_banks;
        raw_bank_number += blockDim.x) {
     const auto module_number = raw_bank_number >> 2;
     const uint cluster_start = module_cluster_start[module_number];
@@ -60,7 +59,7 @@ __global__ void masked_velo_clustering(
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
     const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
 
-    for (int sp_index = 0; sp_index < raw_bank.sp_count; ++sp_index) {
+    for (uint sp_index = 0; sp_index < raw_bank.sp_count; ++sp_index) {
       // Decode sp
       const uint32_t sp_word = raw_bank.sp_word[sp_index];
       const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
@@ -92,14 +91,14 @@ __global__ void masked_velo_clustering(
           const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
 
           const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
-          
+
 #if DEBUG
           const auto module_estimated_num =
             dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
             dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
           assert(cluster_num <= module_estimated_num);
 #endif
-          
+
           const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
           const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
           const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
@@ -126,14 +125,14 @@ __global__ void masked_velo_clustering(
           const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
 
           const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
-          
+
 #if DEBUG
           const auto module_estimated_num =
             dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number + 1] -
             dev_module_cluster_start[Velo::Constants::n_modules * event_number + module_number];
           assert(cluster_num <= module_estimated_num);
 #endif
-          
+
           const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
           const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
           const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
@@ -150,7 +149,7 @@ __global__ void masked_velo_clustering(
   __syncthreads();
 
   // Process rest of clusters
-  for (int candidate_number = threadIdx.x; candidate_number < number_of_candidates; candidate_number += blockDim.x) {
+  for (uint candidate_number = threadIdx.x; candidate_number < number_of_candidates; candidate_number += blockDim.x) {
     const uint32_t candidate = cluster_candidates[candidate_number];
     const uint8_t sp_index = candidate >> 11;
     const uint8_t raw_bank_number = (candidate >> 3) & 0xFF;

@@ -35,12 +35,12 @@ __global__ void ut_pre_decode(
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
-  for (uint32_t raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
+  for (uint raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
        raw_bank_index += blockDim.x) {
     const UTRawBank raw_bank = raw_event.getUTRawBank(raw_bank_index);
     const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
 
-    for (uint32_t i = threadIdx.y; i < raw_bank.number_of_hits; i += blockDim.y) {
+    for (uint i = threadIdx.y; i < raw_bank.number_of_hits; i += blockDim.y) {
       // Extract values from raw_data
       const uint16_t value = raw_bank.data[i];
       const uint32_t fracStrip = (value & UT::Decoding::frac_mask) >> UT::Decoding::frac_offset;

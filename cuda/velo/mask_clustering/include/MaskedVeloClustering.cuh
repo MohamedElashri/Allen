@@ -16,7 +16,6 @@ __global__ void masked_velo_clustering(
   uint* dev_cluster_candidates,
   uint32_t* dev_velo_cluster_container,
   const uint* dev_event_list,
-  uint* dev_event_order,
   const VeloGeometry* dev_velo_geometry,
   uint8_t* dev_velo_sp_patterns,
   float* dev_velo_sp_fx,
@@ -33,5 +32,4 @@ ALGORITHM(
     dev_module_candidate_num,
     dev_cluster_candidates,
     dev_velo_cluster_container,
-    dev_event_list,
-    dev_event_order))
+    dev_event_list))
