@@ -29,7 +29,7 @@ __global__ void lf_extend_tracks_uv(
   const auto event_offset = scifi_hit_count.event_offset();
   const auto number_of_tracks = dev_atomics_scifi[event_number];
 
-  for (auto i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     SciFi::TrackHits& track = dev_scifi_tracks
       [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;

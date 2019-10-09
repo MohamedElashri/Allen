@@ -109,7 +109,7 @@ __device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(
   const SciFi::HitCount& scifi_hit_count,
   const float y)
 {
-  assert(first_zone < SciFi::Constants::n_zones - 1);
+  assert(first_zone < (int)(SciFi::Constants::n_zones - 1));
   const auto offset = (y < 0) ? 0 : 1;
 
   return std::tuple<int, int> {scifi_hit_count.zone_offset(first_zone + offset),

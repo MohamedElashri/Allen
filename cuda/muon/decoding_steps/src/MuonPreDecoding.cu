@@ -23,7 +23,7 @@ __global__ void muon_pre_decoding(
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (auto i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+  for (uint i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;

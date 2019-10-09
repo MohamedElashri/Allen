@@ -13,7 +13,7 @@ __global__ void muon_add_coords_crossing_maps(
   const auto event_number = blockIdx.x;
 
   __shared__ bool used[Muon::Constants::max_numhits_per_event];
-  for (auto i = threadIdx.x; i < Muon::Constants::max_numhits_per_event; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < Muon::Constants::max_numhits_per_event; i += blockDim.x) {
     used[i] = false;
   }
 
@@ -29,7 +29,7 @@ __global__ void muon_add_coords_crossing_maps(
   auto station_ocurrences_offset = dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
   const auto base_offset = storage_station_region_quarter_offsets[0];
 
-  for (auto i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  for (uint i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
        i += blockDim.x) {
 
     const auto start_index = storage_station_region_quarter_offsets[i] - base_offset;

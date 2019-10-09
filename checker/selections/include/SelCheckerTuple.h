@@ -26,7 +26,7 @@ class SelCheckerTuple : public Checker::BaseChecker {
 #ifdef WITH_ROOT
   std::string const m_directory;
 #endif
-  
+
   SelCheckerTuple(CheckerInvoker const* invoker, std::string const& root_file);
 
   virtual ~SelCheckerTuple() = default;
@@ -45,13 +45,13 @@ class SelCheckerTuple : public Checker::BaseChecker {
     const uint selected_events);
 
   void report(size_t n_events) const override;
-  
-  int addGen(MCParticles::const_reference& mcp);
-  int addPV(const RecPVInfo& pv);
-  int addSV(const VertexFit::TrackMVAVertex& sv, const int idx1, const int idx2);
-  int addTrack(Checker::Track& track, const MCAssociator& mcassoc);
+
+  size_t addGen(MCParticles::const_reference& mcp);
+  size_t addPV(const RecPVInfo& pv);
+  size_t addSV(const VertexFit::TrackMVAVertex& sv, const int idx1, const int idx2);
+  size_t addTrack(Checker::Track& track, const MCAssociator& mcassoc);
   void clear();
-  
+
  private:
 #ifdef WITH_ROOT
   TTree* m_tree = nullptr;
@@ -60,7 +60,7 @@ class SelCheckerTuple : public Checker::BaseChecker {
 
   // Event info.
   std::vector<double> m_event_pass_gec;
-  
+
   // MC info.
   std::vector<double> m_gen_key;
   std::vector<double> m_gen_pid;
@@ -87,7 +87,7 @@ class SelCheckerTuple : public Checker::BaseChecker {
   std::vector<double> m_gen_decmom_pid;
   std::vector<double> m_gen_decmom_tau;
   std::vector<double> m_gen_decmom_pt;
-    
+
   // SV info.
   std::vector<double> m_sv_px;
   std::vector<double> m_sv_py;
@@ -114,7 +114,7 @@ class SelCheckerTuple : public Checker::BaseChecker {
   std::vector<double> m_sv_pass_two_track;
   std::vector<double> m_sv_pass_disp_dimuon;
   std::vector<double> m_sv_pass_high_mass_dimuon;
-  
+
   // Track info.
   std::vector<double> m_trk_p;
   std::vector<double> m_trk_pt;
@@ -129,5 +129,5 @@ class SelCheckerTuple : public Checker::BaseChecker {
   std::vector<double> m_trk_idx_gen;
   std::vector<double> m_trk_pass_one_track;
   std::vector<double> m_trk_pass_single_muon;
-  
+
 };

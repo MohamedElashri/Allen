@@ -57,7 +57,7 @@ __global__ void lf_quality_filter_x(
     __syncthreads();
 
     // first save indices and qualities of tracks
-    for (auto j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
+    for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
       const SciFi::TrackHits& track =
         dev_scifi_lf_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j];
 
@@ -91,7 +91,7 @@ __global__ void lf_quality_filter_x(
     __syncthreads();
 
     // Sort track candidates by quality
-    for (auto j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
+    for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
       float xAtRef_spread = xAtRef_average_spread[j];
       int16_t insert_position = 0;
       for (uint k = 0; k < number_of_tracks; ++k) {

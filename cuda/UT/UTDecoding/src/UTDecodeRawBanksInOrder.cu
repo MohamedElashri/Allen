@@ -36,7 +36,7 @@ __global__ void ut_decode_raw_banks_in_order(
   const uint layer_offset = ut_hit_offsets.layer_offset(layer_number);
   const uint layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
 
-  for (auto i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
     const uint hit_index = layer_offset + i;
     const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index[dev_hit_permutations[hit_index]];
     const uint raw_bank_index = raw_bank_hit_index >> 24;

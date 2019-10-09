@@ -36,7 +36,7 @@ __global__ void pv_beamline_histo(
   }
   __syncthreads();
 
-  for (auto index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
+  for (uint index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
     PVTrack trk = dev_pvtracks[event_tracks_offset + index];
     // apply the z cut here
     if (zmin < trk.z && trk.z < zmax) {

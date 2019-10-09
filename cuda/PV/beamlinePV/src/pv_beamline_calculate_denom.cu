@@ -24,7 +24,7 @@ __global__ void pv_beamline_calculate_denom(
   float* pvtracks_denom = dev_pvtracks_denom + event_tracks_offset;
 
   // Precalculate all track denoms
-  for (auto i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     auto track_denom = 0.f;
     const auto track = tracks[i];
 

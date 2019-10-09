@@ -49,7 +49,7 @@ __device__ void associate_and_muon_id(
   Associate::Consolidated::EventTable& table,
   distance_fun fun)
 {
-  for (auto i = threadIdx.x; i < table.size; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < table.size; i += blockDim.x) {
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;

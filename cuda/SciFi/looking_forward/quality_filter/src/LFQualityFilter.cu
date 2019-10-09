@@ -50,7 +50,7 @@ __global__ void lf_quality_filter(
 
   const auto number_of_tracks = dev_scifi_lf_atomics[event_number];
 
-  for (auto i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     SciFi::TrackHits& track = dev_scifi_lf_tracks
       [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
@@ -83,7 +83,7 @@ __global__ void lf_quality_filter(
 
   __syncthreads();
 
-  for (auto i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
     float best_quality = LookingForward::track_min_quality;
     short best_track_index = -1;
 

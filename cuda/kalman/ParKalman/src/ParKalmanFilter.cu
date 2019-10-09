@@ -116,7 +116,7 @@ namespace ParKalmanFilter {
 
     // UT loop.
     UpdateStateUT(ut_hits, tI.m_PrevUTLayer, x, C, lastz, tI);
-    for (uint32_t i_hit = 1; i_hit < n_ut_layers; i_hit++) {
+    for (uint i_hit = 1; i_hit < n_ut_layers; i_hit++) {
       tI.m_PrevUTLayer++;
       PredictStateUT(ut_hits, tI.m_PrevUTLayer, x, C, lastz, tI);
       while (tI.m_PrevUTLayer < 3 && tI.m_UTLayerIdxs[tI.m_PrevUTLayer] < 0) {

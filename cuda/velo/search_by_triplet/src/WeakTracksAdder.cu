@@ -119,7 +119,7 @@ __device__ void weak_tracks_adder_impl(
 {
   // Compute the weak tracks
   const auto weaktracks_total = weaktracks_insert_pointer[0];
-  for (auto weaktrack_no = threadIdx.x; weaktrack_no < weaktracks_total; weaktrack_no += blockDim.x) {
+  for (uint weaktrack_no = threadIdx.x; weaktrack_no < weaktracks_total; weaktrack_no += blockDim.x) {
     const Velo::TrackletHits& t = weak_tracks[weaktrack_no];
     const bool any_used = hit_used[t.hits[0]] || hit_used[t.hits[1]] || hit_used[t.hits[2]];
     const float chi2 = means_square_fit_chi2(hit_Xs, hit_Ys, hit_Zs, t);

@@ -29,7 +29,7 @@ __device__ void process_modules(
 
   // Prepare the first seeding iteration
   // Load shared module information
-  for (auto i = threadIdx.x; i < 4; i+=blockDim.x) {
+  for (uint i = threadIdx.x; i < 4; i += blockDim.x) {
     const auto module_number = first_module - i - 2;
     module_data[i].hitStart = module_hitStarts[module_number] - hit_offset;
     module_data[i].hitNums = module_hitNums[module_number];
@@ -123,7 +123,7 @@ __device__ void process_modules(
   const auto diff_ttf = last_ttf - prev_ttf;
 
   // Process the last bunch of track_to_follows
-  for (auto ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
+  for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
     const int fulltrackno = tracks_to_follow[(prev_ttf + ttf_element) & Velo::Tracking::ttf_modulo_mask];
     const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
     const int trackno = fulltrackno & 0x0FFFFFFF;

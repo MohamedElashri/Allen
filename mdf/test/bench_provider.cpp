@@ -41,9 +41,8 @@ int main(int argc, char* argv[])
 
   chrono::milliseconds sleep_interval {10};
 
-  bool error = false, good = true, timed_out = false;
+  bool good = true, timed_out = false;
   size_t filled = 0, slice = 0;
-  size_t i = 0;
   while (good || filled != 0) {
     std::tie(good, timed_out, slice, filled) = mdf.get_slice();
     n_filled += filled;
