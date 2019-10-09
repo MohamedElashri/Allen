@@ -38,7 +38,6 @@
 #include "StreamWrapper.cuh"
 #include "Constants.cuh"
 #include "MuonDefinitions.cuh"
-#include "MuonRawToHitsDecoding.h"
 #include "Consumers.h"
 #include "CheckerInvoker.h"
 #include "Allen.h"
@@ -79,7 +78,7 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
     zmq::poll(&items[0], 1, 0);
 
     if (items[0].revents & zmq::POLLIN) {
-      auto msg = zmqSvc().receive<string>(control);
+      auto msg = zmqSvc().receive<std::string>(control);
       if (msg == "DONE") {
         break;
       }
@@ -123,9 +122,9 @@ void run_stream(
   uint n_reps,
   bool do_check,
   bool cpu_offload,
-  string folder_name_imported_forward_tracks)
+  std::string folder_name_imported_forward_tracks)
 {
-  auto make_control = [thread_id](string suffix = string {}) {
+  auto make_control = [thread_id](std::string suffix = std::string {}) {
     zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
     zmq::setsockopt(control, zmq::LINGER, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds {50});
@@ -133,7 +132,7 @@ void run_stream(
     try {
       control.connect(con.c_str());
     } catch (const zmq::error_t& e) {
-      cout << "failed to connect connection " << con << "\n";
+      error_cout << "failed to connect connection " << con << "\n";
       throw e;
     }
     return control;
@@ -181,10 +180,10 @@ void run_stream(
 
     n.reset();
 
-    string command;
+    std::string command;
     std::optional<size_t> idx;
     if (items[0].revents & zmq::POLLIN) {
-      command = zmqSvc().receive<string>(control);
+      command = zmqSvc().receive<std::string>(control);
       if (command == "DONE") {
         break;
       }
@@ -225,7 +224,7 @@ void run_stream(
         // CheckerInvoker. The main thread will send the folder to
         // only one stream at a time and will block until it receives
         // the message that informs it the checker is done.
-        auto mc_folder = zmqSvc().receive<string>(*check_control);
+        auto mc_folder = zmqSvc().receive<std::string>(*check_control);
         auto mask = wrapper->reconstructed_events(stream_id);
         auto mc_events = checker_invoker->load(mc_folder, events, mask);
 
@@ -260,21 +259,21 @@ void run_stream(
  */
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants)
 {
-  tuple consumers {
-    tuple {Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)},
-    tuple {Allen::NonEventData::UTLookupTables {},
+  std::tuple consumers {
+    std::tuple {Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)},
+    std::tuple {Allen::NonEventData::UTLookupTables {},
            std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)},
-    tuple {Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)},
-    tuple {Allen::NonEventData::SciFiGeometry {},
+    std::tuple {Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)},
+    std::tuple {Allen::NonEventData::SciFiGeometry {},
            std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)},
-    tuple {Allen::NonEventData::MagneticField {},
+    std::tuple {Allen::NonEventData::MagneticField {},
            std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)},
-    tuple {Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)},
-    tuple {Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::VPGeometry>(constants)},
-    tuple {Allen::NonEventData::MuonGeometry {},
+    std::tuple {Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)},
+    std::tuple {Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::VPGeometry>(constants)},
+    std::tuple {Allen::NonEventData::MuonGeometry {},
            std::make_unique<Consumers::MuonGeometry>(
              constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)},
-    tuple {Allen::NonEventData::MuonLookupTables {},
+    std::tuple {Allen::NonEventData::MuonLookupTables {},
            std::make_unique<Consumers::MuonLookupTables>(
              constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables)}};
 
@@ -313,7 +312,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   bool do_check = true;
   size_t reserve_mb = 1024;
 
-  string mdf_input;
+  std::string mdf_input;
   int device_id = 0;
   int cpu_offload = 1;
 
@@ -456,16 +455,16 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::unique_ptr<IInputProvider> input_provider {};
 
   // Number of requested events as an optional
-  optional<size_t> n_events;
+  std::optional<size_t> n_events;
   if (number_of_events_requested != 0) {
     n_events = number_of_events_requested;
   }
 
   // Create the InputProvider, either MDF or Binary
   if (!mdf_input.empty()) {
-    vector<string> connections;
+    std::vector<std::string> connections;
     size_t current = mdf_input.find(","), previous = 0;
-    while (current != string::npos) {
+    while (current != std::string::npos) {
       connections.emplace_back(mdf_input.substr(previous, current - previous));
       previous = current + 1;
       current = mdf_input.find(",", previous);
@@ -482,7 +481,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   }
   else {
     // The binary input provider expects the folders for the bank types as connections
-    vector<string> connections = {
+    std::vector<std::string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
     input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps);
@@ -608,7 +607,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   long n_events_read = 0;
   long n_events_processed = 0;
   size_t throughput_start = 0;
-  optional<size_t> throughput_processed;
+  std::optional<size_t> throughput_processed;
   size_t slices_processed = 0;
   std::optional<size_t> slice_index;
 
@@ -619,7 +618,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     for (size_t i = 0; i < number_of_threads; ++i) {
       if (items[n_io + i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(streams[i]);
-        auto msg = zmqSvc().receive<string>(socket);
+        auto msg = zmqSvc().receive<std::string>(socket);
         assert(msg == "PROCESSED");
         auto slice_index = zmqSvc().receive<size_t>(socket);
         n_events_processed += events_in_slice[slice_index];
@@ -669,7 +668,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     for (size_t i = 0; i < number_of_threads; ++i) {
       if (items[n_io + i].revents & ZMQ_POLLIN) {
         auto& socket = std::get<1>(streams[i]);
-        auto msg = zmqSvc().receive<string>(socket);
+        auto msg = zmqSvc().receive<std::string>(socket);
         assert(msg == "READY");
         auto success = zmqSvc().receive<bool>(socket);
         stream_ready[i] = success;
@@ -713,7 +712,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     for (size_t i = 0; i < n_io; ++i) {
       if (items[i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(io_workers[i]);
-        auto msg = zmqSvc().receive<string>(socket);
+        auto msg = zmqSvc().receive<std::string>(socket);
         if (msg == "SLICE") {
           slice_index = zmqSvc().receive<size_t>(socket);
           auto good = zmqSvc().receive<bool>(socket);

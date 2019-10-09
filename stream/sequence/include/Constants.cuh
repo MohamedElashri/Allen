@@ -14,7 +14,6 @@
 #include "Logger.h"
 #include "UTMagnetToolDefinitions.h"
 #include "KalmanParametrizations.cuh"
-#include "SciFiParametrization.h"
 #include "LookingForwardConstants.cuh"
 #include "MuonDefinitions.cuh"
 #include "MuonGeometry.cuh"

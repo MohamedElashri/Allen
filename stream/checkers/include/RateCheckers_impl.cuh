@@ -20,8 +20,7 @@ void SequenceVisitor::check<run_hlt1_t>(
     host_buffers.host_sv_offsets,
     host_buffers.host_number_of_selected_events[0]);
 
-#ifdef WITH_ROOT
-  const auto tracks = prepareKalmanTracks(
+  [[maybe_unused]] const auto tracks = prepareKalmanTracks(
     host_buffers.host_atomics_velo,
     host_buffers.host_velo_track_hit_number,
     host_buffers.host_velo_track_hits,
@@ -44,6 +43,7 @@ void SequenceVisitor::check<run_hlt1_t>(
     host_buffers.host_number_of_multivertex,
     host_buffers.host_number_of_selected_events[0]);
 
+#ifdef WITH_ROOT
   auto& ntuple = checker_invoker.checker<SelCheckerTuple>("Making ntuple for efficiency studies.", "SelCheckerTuple.root");
   ntuple.accumulate(
     mc_events,
@@ -57,6 +57,8 @@ void SequenceVisitor::check<run_hlt1_t>(
     host_buffers.host_atomics_scifi,
     host_buffers.host_sv_offsets,
     host_buffers.host_number_of_selected_events[0]);
+#else
+  // Avoid warning
+  [[maybe_unused]] const auto& mc_event = mc_events.front();
 #endif
 }
-

@@ -2,7 +2,7 @@
 
 __global__ void pv_beamline_extrapolate(
   char* dev_velo_kalman_beamline_states,
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks)
 {
@@ -16,7 +16,7 @@ __global__ void pv_beamline_extrapolate(
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  for (int index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
+  for (uint index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
     KalmanVeloState s = velo_states.get(event_tracks_offset + index);
     PatPV::XYZPoint beamline {0.f, 0.f, 0.f};
     const auto tx = s.tx;

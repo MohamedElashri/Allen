@@ -16,14 +16,13 @@ enum offset {
 };
 
 __global__ void muon_catboost_features_extraction(
-  int* dev_atomics_scifi,
+  uint* dev_atomics_scifi,
   uint* dev_scifi_track_hit_number,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
   uint* dev_scifi_track_ut_indices,
   const Muon::HitsSoA* muon_hits,
-  float* dev_muon_catboost_features,
-  const uint* event_list);
+  float* dev_muon_catboost_features);
 
 ALGORITHM(
   muon_catboost_features_extraction,
@@ -35,5 +34,4 @@ ALGORITHM(
     dev_scifi_states,
     dev_scifi_track_ut_indices,
     dev_muon_hits,
-    dev_muon_catboost_features,
-    dev_event_list))
+    dev_muon_catboost_features))

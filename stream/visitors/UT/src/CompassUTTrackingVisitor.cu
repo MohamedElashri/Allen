@@ -10,7 +10,6 @@ void SequenceVisitor::set_arguments_size<compass_ut_t>(
 {
   arguments.set_size<dev_ut_tracks>(host_buffers.host_number_of_selected_events[0] * UT::Constants::max_num_tracks);
   arguments.set_size<dev_atomics_ut>(host_buffers.host_number_of_selected_events[0] * UT::num_atomics + 1);
-  // dev_ut_active_tracks init in search_windows kernel
 }
 
 template<>
@@ -31,14 +30,12 @@ void SequenceVisitor::visit<compass_ut_t>(
     arguments.offset<dev_ut_hit_offsets>(),
     arguments.offset<dev_atomics_velo>(),
     arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_velo_track_hits>(),
     arguments.offset<dev_velo_states>(),
     constants.dev_ut_magnet_tool,
     constants.dev_magnet_polarity.data(),
     constants.dev_ut_dxDy.data(),
     arguments.offset<dev_ut_active_tracks>(),
     constants.dev_unique_x_sector_layer_offsets.data(),
-    constants.dev_unique_sector_xs.data(),
     arguments.offset<dev_ut_tracks>(),
     arguments.offset<dev_atomics_ut>(),
     arguments.offset<dev_ut_windows_layers>(),

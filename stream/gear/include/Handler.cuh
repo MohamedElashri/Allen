@@ -57,6 +57,10 @@ void invoke_impl(
   std::index_sequence<I...>)
 {
 #ifdef CPU
+  _unused(num_threads);
+  _unused(shared_memory_size);
+  _unused(stream);
+
   gridDim = {num_blocks.x, num_blocks.y, num_blocks.z};
   for (unsigned int i = 0; i < num_blocks.x; ++i) {
     for (unsigned int j = 0; j < num_blocks.y; ++j) {

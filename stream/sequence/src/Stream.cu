@@ -107,8 +107,7 @@ void Stream::run_monte_carlo_test(
 
   if (forward_tracks.size() > 0) {
     info_cout << "Running test on imported tracks" << std::endl;
-    std::vector<std::vector<float>> p_events_scifi;
     auto& checker = invoker.checker<TrackCheckerForward>("PrCheckerPlots.root");
-    checker.accumulate<TrackCheckerForward>(mc_events, forward_tracks, p_events_scifi);
+    checker.accumulate<TrackCheckerForward>(mc_events, forward_tracks);
   }
 }

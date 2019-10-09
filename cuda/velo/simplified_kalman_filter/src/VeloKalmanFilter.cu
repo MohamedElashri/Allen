@@ -41,7 +41,7 @@ __device__ void velo_kalman_filter_step(
 }
 
 __global__ void velo_kalman_fit(
-  int* dev_atomics_velo,
+  uint* dev_atomics_velo,
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
   char* dev_velo_states,

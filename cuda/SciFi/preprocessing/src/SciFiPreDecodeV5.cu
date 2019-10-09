@@ -155,8 +155,6 @@ __global__ void scifi_pre_decode_v5(
           else {
             // Condition 2: "1"
             const int condition_2 = 0x01;
-
-            const auto widthClus = 2 * delta - 1 + fraction(c2);
             store_sorted_cluster_reference_v5(
               hit_count,
               correctedMat,

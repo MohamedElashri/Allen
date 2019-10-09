@@ -119,19 +119,16 @@ __device__ void weak_tracks_adder_impl(
 {
   // Compute the weak tracks
   const auto weaktracks_total = weaktracks_insert_pointer[0];
-  for (int i = 0; i < (weaktracks_total + blockDim.x - 1) / blockDim.x; ++i) {
-    const auto weaktrack_no = blockDim.x * i + threadIdx.x;
-    if (weaktrack_no < weaktracks_total) {
-      const Velo::TrackletHits& t = weak_tracks[weaktrack_no];
-      const bool any_used = hit_used[t.hits[0]] || hit_used[t.hits[1]] || hit_used[t.hits[2]];
-      const float chi2 = means_square_fit_chi2(hit_Xs, hit_Ys, hit_Zs, t);
+  for (uint weaktrack_no = threadIdx.x; weaktrack_no < weaktracks_total; weaktrack_no += blockDim.x) {
+    const Velo::TrackletHits& t = weak_tracks[weaktrack_no];
+    const bool any_used = hit_used[t.hits[0]] || hit_used[t.hits[1]] || hit_used[t.hits[2]];
+    const float chi2 = means_square_fit_chi2(hit_Xs, hit_Ys, hit_Zs, t);
 
-      // Store them in the tracks bag
-      if (!any_used && chi2 < Velo::Tracking::max_chi2) {
-        const uint trackno = atomicAdd(tracks_insert_pointer, 1);
-        assert(trackno < Velo::Constants::max_tracks);
-        tracks[trackno] = Velo::TrackHits {t};
-      }
+    // Store them in the tracks bag
+    if (!any_used && chi2 < Velo::Tracking::max_chi2) {
+      const uint trackno = atomicAdd(tracks_insert_pointer, 1);
+      assert(trackno < Velo::Constants::max_tracks);
+      tracks[trackno] = Velo::TrackHits {t};
     }
   }
 }
@@ -142,7 +139,7 @@ __global__ void weak_tracks_adder(
   Velo::TrackHits* dev_tracks,
   Velo::TrackletHits* dev_weak_tracks,
   bool* dev_hit_used,
-  int* dev_atomics_velo)
+  uint* dev_atomics_velo)
 {
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.

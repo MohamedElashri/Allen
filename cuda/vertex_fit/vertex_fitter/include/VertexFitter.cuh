@@ -79,9 +79,8 @@ namespace VertexFit {
 
 __global__ void fit_secondary_vertices(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
-  char* dev_scifi_consolidated_hits,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
   uint* dev_ut_indices,
@@ -98,7 +97,6 @@ ALGORITHM(
     dev_kf_tracks,
     dev_atomics_scifi,
     dev_scifi_track_hit_number,
-    dev_scifi_track_hits,
     dev_scifi_qop,
     dev_scifi_states,
     dev_scifi_track_ut_indices,

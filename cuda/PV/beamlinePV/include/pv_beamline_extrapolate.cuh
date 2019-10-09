@@ -15,7 +15,7 @@
 
 __global__ void pv_beamline_extrapolate(
   char* dev_velo_kalman_beamline_states,
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks);
 

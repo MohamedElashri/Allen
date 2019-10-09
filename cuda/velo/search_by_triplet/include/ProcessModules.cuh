@@ -19,4 +19,4 @@ __device__ void process_modules(
   unsigned short* h1_rel_indices,
   const uint hit_offset,
   const float* dev_velo_module_zs,
-  int* dev_atomics_velo);
+  uint* dev_atomics_velo);

@@ -22,7 +22,7 @@ __global__ void muon_sort_by_station(
 
   // Populate number of hits per station and offsets
   // TODO: There should be no need to re-populate this
-  for (int i = threadIdx.x; i < Muon::Constants::n_stations; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < Muon::Constants::n_stations; i += blockDim.x) {
     event_muon_hits->station_offsets[i] = station_ocurrences_offset[i];
     event_muon_hits->number_of_hits_per_station[i] = station_ocurrences_offset[i + 1] - station_ocurrences_offset[i];
   }
@@ -42,14 +42,14 @@ __global__ void muon_sort_by_station(
   __shared__ uint64_t sorted_array[Muon::Constants::max_numhits_per_event];
 
   // Apply permutation to shared memory buffer
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     sorted_array[i] = muon_compact_hit[permutation_station[i]];
   }
 
   __syncthreads();
 
   // Do actual decoding
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     const uint64_t compact_hit = sorted_array[i];
 
     const uint8_t uncrossed = compact_hit >> 63;

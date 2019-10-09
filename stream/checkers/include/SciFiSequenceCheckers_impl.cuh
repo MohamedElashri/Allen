@@ -32,7 +32,6 @@ void SequenceVisitor::check<consolidate_scifi_tracks_t>(
     host_buffers.host_is_muon,
     host_buffers.host_number_of_selected_events[0]);
 
-  std::vector<std::vector<float>> p_events;
   auto& checker = checker_invoker.checker<TrackCheckerForward>("Forward tracks:", "PrCheckerPlots.root");
-  checker.accumulate<TrackCheckerForward>(mc_events, tracks, p_events);
+  checker.accumulate<TrackCheckerForward>(mc_events, tracks);
 }

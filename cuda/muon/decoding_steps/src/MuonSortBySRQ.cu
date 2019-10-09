@@ -50,22 +50,22 @@ __global__ void muon_sort_station_region_quarter(
   __shared__ uint sorted_array[Muon::Constants::max_numhits_per_event];
 
   // Apply permutation to storage_tile_id
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     sorted_array[i] = storage_tile_id[permutation_srq[i]];
   }
   __syncthreads();
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     storage_tile_id[i] = sorted_array[i];
   }
 
   __syncthreads();
 
   // Apply permutation to storage_tdc_value
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     sorted_array[i] = storage_tdc_value[permutation_srq[i]];
   }
   __syncthreads();
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     storage_tdc_value[i] = sorted_array[i];
   }
 }

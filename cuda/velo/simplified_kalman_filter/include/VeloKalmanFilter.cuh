@@ -63,7 +63,7 @@ simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState
   state.c33 = 1.f;
 
   // add remaining hits
-  for (uint i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
+  for (auto i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
     int hitindex = i;
     const auto hit_x = consolidated_hits.x[hitindex];
     const auto hit_y = consolidated_hits.y[hitindex];
@@ -92,7 +92,7 @@ simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState
 }
 
 __global__ void velo_kalman_fit(
-  int* dev_atomics_velo,
+  uint* dev_atomics_velo,
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
   char* dev_velo_states,
