@@ -28,7 +28,7 @@ __global__ void ut_find_permutation(
     __syncthreads();
     assert(sector_group_number_of_hits < UT::Decoding::ut_max_hits_shared_sector_group);
 
-    for (auto i = threadIdx.x; i < sector_group_number_of_hits; i += blockDim.x) {
+    for (uint i = threadIdx.x; i < sector_group_number_of_hits; i += blockDim.x) {
       s_y_begin[i] = ut_hits.yBegin[sector_group_offset + i];
     }
 

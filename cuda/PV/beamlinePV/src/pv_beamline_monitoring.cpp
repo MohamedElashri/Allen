@@ -10,7 +10,7 @@ void pv_beamline_monitor(uint n_events, float* zhisto)
   // Check the output
   TFile output {"testt.root", "RECREATE"};
   TTree outtree {"PV", "PV"};
-  int i_event = 0;
+  uint i_event = 0;
 
   outtree.Branch("event", &i_event);
   float z_histo;

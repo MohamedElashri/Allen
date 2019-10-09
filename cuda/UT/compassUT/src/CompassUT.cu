@@ -351,7 +351,7 @@ __device__ void save_track(
   if (discriminant < UT::Constants::LD3Hits) return;
 
   // the track will be added
-  int n_tracks = atomicAdd(n_veloUT_tracks, 1);
+  uint n_tracks = atomicAdd(n_veloUT_tracks, 1u);
 
   // to do: maybe save y from fit
   UT::TrackHits track;

@@ -20,7 +20,7 @@ __device__ void track_forwarding(
   const int ip_shift)
 {
   // Assign a track to follow to each thread
-  for (auto ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
+  for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
     const auto fulltrackno = tracks_to_follow[(prev_ttf + ttf_element) & Velo::Tracking::ttf_modulo_mask];
     const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
     const auto skipped_modules = (fulltrackno & 0x70000000) >> 28;
@@ -108,7 +108,7 @@ __device__ void track_forwarding(
     // Condition for finding a h2
     if (best_h2 != -1) {
       // Mark h2 as used
-      assert(best_h2 < number_of_hits);
+      assert(best_h2 < (int)number_of_hits);
       hit_used[best_h2] = true;
 
       // Update the tracks to follow, we'll have to follow up

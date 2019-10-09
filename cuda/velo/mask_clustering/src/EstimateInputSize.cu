@@ -20,12 +20,12 @@ __global__ void estimate_input_size(
   // Read raw event
   const auto raw_event = VeloRawEvent(raw_input);
 
-  for (auto raw_bank_number = threadIdx.y; raw_bank_number < raw_event.number_of_raw_banks;
+  for (uint raw_bank_number = threadIdx.y; raw_bank_number < raw_event.number_of_raw_banks;
        raw_bank_number += blockDim.y) {
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
     uint* estimated_module_size = estimated_input_size + (raw_bank.sensor_index >> 2);
-    for (auto sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
+    for (uint sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
       const uint32_t sp_word = raw_bank.sp_word[sp_index];
       const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
       const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;

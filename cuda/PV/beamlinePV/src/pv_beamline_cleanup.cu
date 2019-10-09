@@ -16,7 +16,7 @@ __global__ void pv_beamline_cleanup(
   PV::Vertex* final_vertices = dev_multi_final_vertices + event_number * PV::max_number_vertices;
   uint* number_of_multi_fit_vertices = dev_number_of_multi_fit_vertices + event_number;
   // loop over all rec PVs, check if another one is within certain sigma range, only fill if not
-  for (auto i_pv = threadIdx.x; i_pv < number_of_multi_fit_vertices[0]; i_pv += blockDim.x) {
+  for (uint i_pv = threadIdx.x; i_pv < number_of_multi_fit_vertices[0]; i_pv += blockDim.x) {
     bool unique = true;
     PV::Vertex vertex1 = vertices[i_pv];
     for (uint j_pv = 0; j_pv < number_of_multi_fit_vertices[0]; j_pv++) {

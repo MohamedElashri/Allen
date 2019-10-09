@@ -40,7 +40,7 @@ __global__ void ut_search_windows(
   // Fill the array until with find enough valid tracks = block size
   __shared__ int shared_active_tracks[2 * UT::Constants::num_thr_searchwin - 1];
 
-  for (auto layer = threadIdx.x; layer < UT::Constants::n_layers; layer += blockDim.x) {
+  for (uint layer = threadIdx.x; layer < UT::Constants::n_layers; layer += blockDim.x) {
     const uint layer_offset = ut_hit_offsets.layer_offset(layer);
 
     for (uint i = 0; i < ((number_of_tracks_event + blockDim.y - 1) / blockDim.y) + 1; i += 1) {

@@ -225,6 +225,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DDEBUG")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(TARGET_DEVICE STREQUAL "CUDA")
@@ -329,8 +330,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endfunction()
 endif()
 
-set(THREADS_PREFER_PTHREAD_FLAG)
-find_package(Threads)
 find_package(ZLIB REQUIRED)
 
 option(USE_LZMA "build with lzma" OFF)
@@ -469,7 +468,7 @@ endforeach()
 
 # common libraries
 add_library(Common STATIC ${common_sources})
-target_link_libraries(Common mdf Threads::Threads)
+target_link_libraries(Common mdf)
 
 if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${common_cuda_sources} PROPERTIES LANGUAGE CXX)
@@ -504,7 +503,3 @@ endif()
 
 allen_add_executable(Allen ${main_cpp_path})
 target_link_libraries(Allen PRIVATE AllenLib)
-
-if(TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
-  add_subdirectory(tests)
-endif()

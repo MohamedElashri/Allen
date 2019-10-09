@@ -141,7 +141,11 @@ target_link_libraries(Visitors PRIVATE
   Utils)
 
 # Avoid unused parameter warnings in Visitors
-target_compile_options(Visitors PRIVATE "-Wno-unused-parameter")
+if(TARGET_DEVICE STREQUAL "CUDA")
+  target_compile_options(Visitors PRIVATE "-Xcompiler=-Wno-unused-parameter")
+else()
+  target_compile_options(Visitors PRIVATE "-Wno-unused-parameter")
+endif()
 
 allen_add_library(Stream STATIC
   "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"

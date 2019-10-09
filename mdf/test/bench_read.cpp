@@ -25,8 +25,6 @@ int main(int argc, char* argv[])
   }
 
   string filename = {argv[1]};
-  size_t n_slices = 10;
-  size_t events_per_slice = 100;
   double n_filled = 0;
   size_t n_bytes = 0;
 

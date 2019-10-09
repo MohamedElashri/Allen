@@ -15,7 +15,7 @@ __global__ void lf_quality_filter_length(
   const int ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
   const auto number_of_tracks = dev_scifi_lf_atomics[event_number];
 
-  for (auto i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const SciFi::TrackHits& track = dev_scifi_lf_tracks
       [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     if (track.hitsNum >= LookingForward::track_min_hits) {

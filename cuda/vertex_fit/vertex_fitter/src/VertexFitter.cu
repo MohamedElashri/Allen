@@ -303,7 +303,7 @@ __global__ void fit_secondary_vertices(
   VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
 
   // Loop over tracks.
-  for (auto i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
+  for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 
     // Set the fit status for all possible vertices.
     for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {

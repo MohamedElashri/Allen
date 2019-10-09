@@ -48,7 +48,7 @@ __global__ void scifi_direct_decoder_v4(
     if (last > it) {
       const uint number_of_clusters = last - it;
 
-      for (auto i_cluster = threadIdx.y; i_cluster < number_of_clusters; i_cluster += blockDim.y) {
+      for (uint i_cluster = threadIdx.y; i_cluster < number_of_clusters; i_cluster += blockDim.y) {
         const uint16_t current_cluster = reverse_cluster_order ? (number_of_clusters - 1 - i_cluster) : i_cluster;
 
         uint16_t c = *(it + current_cluster);

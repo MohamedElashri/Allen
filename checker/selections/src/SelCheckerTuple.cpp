@@ -3,9 +3,9 @@
 
 std::string const SelCheckerTuple::SelTupleTag::name = "SelCheckerTuple";
 
+#ifdef WITH_ROOT
 SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string const& root_file)
 {
-#ifdef WITH_ROOT
   m_file = invoker->root_file(root_file);
   m_file->cd();
   m_tree = new TTree("eff_tree","eff_tree");
@@ -64,13 +64,16 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("trk_chi2",&m_trk_chi2);
   m_tree->Branch("trk_ndof",&m_trk_ndof);
   m_tree->Branch("trk_is_muon",&m_trk_is_muon);
-  m_tree->Branch("trk_kalman_ip",&m_trk_kalman_ip);  
+  m_tree->Branch("trk_kalman_ip",&m_trk_kalman_ip);
   m_tree->Branch("trk_kalman_ipchi2",&m_trk_kalman_ipchi2);
-  m_tree->Branch("trk_velo_ip",&m_trk_velo_ip);  
+  m_tree->Branch("trk_velo_ip",&m_trk_velo_ip);
   m_tree->Branch("trk_velo_ipchi2",&m_trk_velo_ipchi2);
   m_tree->Branch("trk_idx_gen",&m_trk_idx_gen);
   m_tree->Branch("trk_pass_one_track",&m_trk_pass_one_track);
   m_tree->Branch("trk_pass_single_muon",&m_trk_pass_single_muon);
+#else
+SelCheckerTuple::SelCheckerTuple(CheckerInvoker const*, std::string const&)
+{
 #endif
 }
 
@@ -139,13 +142,13 @@ void SelCheckerTuple::clear(){
   m_trk_pass_single_muon.clear();
 }
 
-int SelCheckerTuple::addGen(const MCParticle& mcp)
+size_t SelCheckerTuple::addGen(const MCParticle& mcp)
 {
   double key = mcp.key;
-  for(int i=0; i<m_gen_key.size(); i++){
+  for(size_t i = 0; i < m_gen_key.size(); ++i) {
     if(m_gen_key.at(i) == key) return i;
   }
-  int idx = m_gen_key.size();
+  auto idx = m_gen_key.size();
   m_gen_key.push_back((double)mcp.key);
   m_gen_pid.push_back((double)mcp.pid);
   m_gen_p.push_back((double)mcp.p);
@@ -171,16 +174,16 @@ int SelCheckerTuple::addGen(const MCParticle& mcp)
   return idx;
 }
 
-int SelCheckerTuple::addSV(const VertexFit::TrackMVAVertex& sv, const int idx1, const int idx2)
+size_t SelCheckerTuple::addSV(const VertexFit::TrackMVAVertex& sv, const int idx1, const int idx2)
 {
-  for(int i=0; i<m_sv_px.size(); i++){
+  for(size_t i = 0; i < m_sv_px.size(); ++i){
     if(std::abs(m_sv_px.at(i)-sv.px)<0.01 &&
        std::abs(m_sv_py.at(i)-sv.py)<0.01 &&
        std::abs(m_sv_pz.at(i)-sv.pz)<0.01){
       return i;
     }
   }
-  int idx = m_sv_px.size();
+  size_t idx = m_sv_px.size();
   m_sv_px.push_back((double)sv.px);
   m_sv_py.push_back((double)sv.py);
   m_sv_pz.push_back((double)sv.pz);
@@ -206,18 +209,18 @@ int SelCheckerTuple::addSV(const VertexFit::TrackMVAVertex& sv, const int idx1, 
   return idx;
 }
 
-int SelCheckerTuple::addTrack(
+size_t SelCheckerTuple::addTrack(
   Checker::Track& track,
   const MCAssociator& mcassoc)
 {
-  for(int i=0; i<m_trk_p.size(); i++){
+  for(size_t i = 0; i < m_trk_p.size(); ++i) {
     if(std::abs(track.p-m_trk_p.at(i))<0.01 &&
        std::abs(track.pt-m_trk_pt.at(i))<0.01 &&
-       std::abs(track.eta-m_trk_eta.at(i))<0.01){
+       std::abs(track.eta-m_trk_eta.at(i))<0.01) {
       return i;
     }
   }
-  int idx = m_trk_p.size();
+  size_t idx = m_trk_p.size();
   m_trk_p.push_back((double)track.p);
   m_trk_pt.push_back((double)track.pt);
   m_trk_eta.push_back((double)track.eta);
@@ -244,6 +247,7 @@ int SelCheckerTuple::addTrack(
   return idx;
 }
 
+#ifdef WITH_ROOT
 void SelCheckerTuple::accumulate(
   MCEvents const& mc_events,
   std::vector<Checker::Tracks> const& tracks,
@@ -258,14 +262,13 @@ void SelCheckerTuple::accumulate(
   const uint selected_events)
 {
 
-#ifdef WITH_ROOT
   for (size_t i_event = 0; i_event < mc_events.size(); ++i_event) {
 
     clear();
 
     const auto& mc_event = mc_events[i_event];
     const auto& mcps = mc_event.m_mcps;
-    
+
     // Loop over MC particles
     for (auto mcp : mcps) {
       if (mcp.fromBeautyDecay || mcp.fromCharmDecay || mcp.fromStrangeDecay || mcp.DecayOriginMother_pid==23) {
@@ -284,29 +287,29 @@ void SelCheckerTuple::accumulate(
       const bool* event_single_muon_decisions = single_muon_decisions + event_tracks_offsets[i_event];
       const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_atomics[i_event];
       const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_atomics[i_event];
-      
+
       // Loop over tracks.
-      for (int i_track = 0; i_track < event_tracks.size(); i_track++) {
+      for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
         // First track.
         auto trackA = event_tracks[i_track];
-        int idx1 = addTrack(trackA, mcassoc);
+        size_t idx1 = addTrack(trackA, mcassoc);
         if (idx1 == m_trk_p.size() - 1) {
           m_trk_pass_one_track.push_back(event_one_track_decisions[i_track] ? 1. : 0.);
           m_trk_pass_single_muon.push_back(event_single_muon_decisions[i_track] ? 1. : 0.);
         }
-        
-        for (int j_track = i_track + 1; j_track < event_tracks.size(); j_track++) {
-          
+
+        for (size_t j_track = i_track + 1; j_track < event_tracks.size(); j_track++) {
+
           // Second track.
           auto trackB = event_tracks[j_track];
-          int idx2 = addTrack(trackB, mcassoc);
+          size_t idx2 = addTrack(trackB, mcassoc);
           if (idx2 == m_trk_p.size() - 1) {
             m_trk_pass_one_track.push_back(event_one_track_decisions[j_track] ? 1. : 0.);
             m_trk_pass_single_muon.push_back(event_single_muon_decisions[j_track] ? 1. : 0.);
           }
           uint vertex_idx = (int) event_tracks.size() * ((int) event_tracks.size() - 3) / 2 -
             ((int) event_tracks.size() - 1 - i_track) * ((int) event_tracks.size() - 2 - i_track) / 2 + j_track;
-          
+
           if (event_vertices[vertex_idx].chi2 < 0) {
             continue;
           }
@@ -319,21 +322,40 @@ void SelCheckerTuple::accumulate(
     } else {
       m_event_pass_gec.push_back(0.);
     }
-    
+
     m_tree->Fill();
-    
+
+  }
+}
+#else
+  void SelCheckerTuple::accumulate(
+  MCEvents const&,
+  std::vector<Checker::Tracks> const&,
+  const VertexFit::TrackMVAVertex*,
+  const bool*,
+  const bool*,
+  const bool*,
+  const bool*,
+  const bool*,
+  const int*,
+  const uint*,
+  const uint)
+  {
   }
 #endif
-}
 
+#ifdef WITH_ROOT
 void SelCheckerTuple::report(size_t requested_events) const
 {
-#ifdef WITH_ROOT
   ;
   TArrayI nEvents(1);
   nEvents[0] = (int)requested_events;
   m_file->cd();
   m_file->WriteTObject(m_tree);
   m_file->WriteObject(&nEvents, "nEvents");
-#endif
 }
+#else
+void SelCheckerTuple::report(size_t) const
+{
+}
+#endif

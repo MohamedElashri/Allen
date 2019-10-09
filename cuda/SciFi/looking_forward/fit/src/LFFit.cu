@@ -99,7 +99,7 @@ __global__ void lf_fit(
   const auto event_offset = scifi_hit_count.event_offset();
   const auto number_of_tracks = dev_scifi_lf_atomics[event_number];
 
-  for (auto i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     SciFi::TrackHits& track = dev_scifi_lf_tracks
       [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i];
     const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
