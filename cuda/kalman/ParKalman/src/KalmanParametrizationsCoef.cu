@@ -23,7 +23,7 @@ namespace ParKalmanFilter {
     return c;
   }
 
-  __device__ __host__ StandardCoefs operator*(const StandardCoefs& a, double p)
+  __device__ __host__ StandardCoefs operator*(const StandardCoefs& a, const float p)
   {
     StandardCoefs c;
     int nMax = 4 * a.degx1 + 2 * a.degx2 + 4 * a.degy1 + 2 * a.degy2;

@@ -31,6 +31,6 @@ allen_add_library(VertexFitter STATIC
 
 target_link_libraries(VertexFitter Kalman)
 
-if(USE_KALMAN_SINGLE_PRECISION)
-  target_compile_definitions(VertexFitter PUBLIC KALMAN_SINGLE_PRECISION)
+if (USE_KALMAN_DOUBLE_PRECISION)
+  add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()

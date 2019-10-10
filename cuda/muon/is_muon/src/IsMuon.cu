@@ -43,8 +43,8 @@ __device__ bool is_in_window(
 {
   std::pair<float, float> foi = field_of_interest(dev_muon_foi, station, region, momentum);
 
-  return (fabs(hit_x - extrapolation_x) < hit_dx * foi.first * dev_muon_foi->factor) &&
-         (fabs(hit_y - extrapolation_y) < hit_dy * foi.second * dev_muon_foi->factor);
+  return (fabsf(hit_x - extrapolation_x) < hit_dx * foi.first * dev_muon_foi->factor) &&
+         (fabsf(hit_y - extrapolation_y) < hit_dy * foi.second * dev_muon_foi->factor);
 }
 
 __global__ void is_muon(

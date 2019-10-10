@@ -220,7 +220,7 @@ __device__ void PredictStateT(
     const uint32_t idx = (uint32_t) tI.m_SciFiLayerIdxs[layer];
     KalmanFloat z0 = (KalmanFloat) hits.z0[idx];
     KalmanFloat y0 = (KalmanFloat) hits.yMin(idx);
-    KalmanFloat dydz = 1. / hits.dzdy(idx);
+    KalmanFloat dydz = ((KalmanFloat) 1.) / hits.dzdy(idx);
     z = (lastz * x[3] - z0 * dydz - x[1] + y0) / (x[3] - dydz);
     KalmanFloat DzDy = ((KalmanFloat) -1.) / (x[3] - dydz);
     KalmanFloat DzDty = lastz * (-DzDy) - (lastz * x[3] - z0 * dydz - x[1] + y0) * DzDy * DzDy;
@@ -349,7 +349,7 @@ __device__ void UpdateStateUT(
   const KalmanFloat x1 = x0 + (y1 - y0) * slopes[layer];
 
   // Rotate by alpha = atan(dx/dy).
-  const KalmanFloat x2y2 = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+  const KalmanFloat x2y2 = sqrtf((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
   Vector2 H;
   H(0) = (y1 - y0) / x2y2;
   H(1) = -(x1 - x0) / x2y2;
@@ -371,7 +371,7 @@ __device__ void UpdateStateUT(
 
   // K*S*K(T)
   SymMatrix5x5 KCResKt;
-  tensorProduct(sqrt(CRes) * K, sqrt(CRes) * K, KCResKt);
+  tensorProduct(sqrtf(CRes) * K, sqrtf(CRes) * K, KCResKt);
 
   // P -= KSK(T)
   C = C - KCResKt;
@@ -404,7 +404,7 @@ __device__ void UpdateStateT(
   const KalmanFloat x0 = (KalmanFloat) hits.x0[nHit] + y0 * dxdy;
   const KalmanFloat x1 = x0 + (y1 - y0) * dxdy;
   const KalmanFloat z0 = (KalmanFloat) hits.z0[nHit];
-  const KalmanFloat x2y2 = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+  const KalmanFloat x2y2 = sqrtf((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
   Vector2 H;
   H(0) = (y1 - y0) / x2y2;
   H(1) = -(x1 - x0) / x2y2;
@@ -427,7 +427,7 @@ __device__ void UpdateStateT(
   K = K / CRes;
   x = x + res * K;
   SymMatrix5x5 KCResKt;
-  tensorProduct(sqrt(CRes) * K, sqrt(CRes) * K, KCResKt);
+  tensorProduct(sqrtf(CRes) * K, sqrtf(CRes) * K, KCResKt);
 
   // P -= KSK
   C = C - KCResKt;
@@ -492,7 +492,7 @@ ExtrapolateInV(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   F(1, 3) = dz;
 
   // tx
-  F(2, 4) = par[4] * (1.0e-5) * dz * ((dz > 0 ? zFrom : zTo) + par[5] * ((KalmanFloat) 1.0e3));
+  F(2, 4) = par[4] * ((KalmanFloat) 1.0e-5) * dz * ((dz > 0 ? zFrom : zTo) + par[5] * ((KalmanFloat) 1.0e3));
 
   // x
   F(0, 4) = ((KalmanFloat) 0.5) * dz * F(2, 4);
@@ -590,7 +590,7 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
             DtxDty * F(3, 2);
 
   F(2, 3) = DtxDa * (-x_old[2] * x_old[3] / (sqrtTmp * (1 + x_old[2] * x_old[2] + x_old[3] * x_old[3])) -
-                     x_old[4] * 2 * par[10] * 1e2 * x_old[3]) +
+                     x_old[4] * 2 * par[10] * ((KalmanFloat) 1e2) * x_old[3]) +
             DtxDty * F(3, 3);
 
   F(2, 4) = DtxDa * (-coeff) + DtxDty * F(3, 4);
@@ -1208,8 +1208,6 @@ __device__ int extrapUTT(
 
   x = x + tx * (zf - zi);
   y = y + ty * (zf - zi);
-  tx = tx;
-  ty = ty;
 
   for (int k = 0; k < 4; k++)
     der_tx[k] = der_ty[k] = der_qop[k] = 0;

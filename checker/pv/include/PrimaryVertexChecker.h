@@ -13,7 +13,7 @@
 
 // configuration for PV checker -> check values
 static constexpr int nTracksToBeRecble = 4;
-static constexpr float dzIsolated = 10.f; // mm
+static constexpr double dzIsolated = 10.; // mm
 static constexpr bool matchByTracks = false;
 
 class PVCheckerHistos;

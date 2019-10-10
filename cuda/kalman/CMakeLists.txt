@@ -25,3 +25,7 @@ allen_add_library(Kalman STATIC
 )
 
 target_link_libraries(Kalman SciFi)
+
+if (USE_KALMAN_DOUBLE_PRECISION)
+  add_compile_definitions(KALMAN_DOUBLE_PRECISION)
+endif()

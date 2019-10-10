@@ -102,7 +102,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic")
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
     set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
@@ -177,7 +177,7 @@ else()
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic")
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
     set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
@@ -355,9 +355,9 @@ else(USE_LZ4)
   set(LZ4_FOUND OFF)
 endif(USE_LZ4)
 
-option(USE_KALMAN_SINGLE_PRECISION "Use single precision Kalman filter" ON)
-if (USE_KALMAN_SINGLE_PRECISION)
-  add_compile_definitions(KALMAN_SINGLE_PRECISION)
+option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
+if (USE_KALMAN_DOUBLE_PRECISION)
+  add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()
 
 set(CUDA_SEPARABLE_COMPILATION ON)

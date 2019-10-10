@@ -25,33 +25,33 @@ namespace SciFi {
     constexpr int max_scifi_hits = 20; // for x and u/v layers
     constexpr int nTrackParams = 9;
 
-    constexpr float tolYMag = 10. * Gaudi::Units::mm;
-    constexpr float tolYMagSlope = 0.015;
+    constexpr float tolYMag = 10.f * Gaudi::Units::mm;
+    constexpr float tolYMagSlope = 0.015f;
 
     // parameterizations
-    constexpr float byParams = -0.667996;
-    constexpr float cyParams = -3.68424e-05;
+    constexpr float byParams = -0.667996f;
+    constexpr float cyParams = -3.68424e-05f;
 
     // stereo hit matching
     // Not used in Looking Forward when using qop from VeloUT
-    constexpr float tolYCollectX = 3.5 * Gaudi::Units::mm;        // 4.1* Gaudi::Units::mm ;
-    constexpr float tolYSlopeCollectX = 0.001 * Gaudi::Units::mm; // 0.0018 * Gaudi::Units::mm ;
+    constexpr float tolYCollectX = 3.5f * Gaudi::Units::mm;        // 4.1* Gaudi::Units::mm ;
+    constexpr float tolYSlopeCollectX = 0.001f * Gaudi::Units::mm; // 0.0018 * Gaudi::Units::mm ;
 
     // veloUT momentum estimate
     constexpr bool useMomentumEstimate = true;
     constexpr bool useWrongSignWindow = true;
-    constexpr float wrongSignPT = 500. * Gaudi::Units::MeV;
+    constexpr float wrongSignPT = 500.f * Gaudi::Units::MeV;
     constexpr float wrongSignQoP = 1.f / wrongSignPT;
 
     // z Reference plane
-    constexpr float zReference = 8520. * Gaudi::Units::mm; // in T2
+    constexpr float zReference = 8520.f * Gaudi::Units::mm; // in T2
     constexpr float zRefInv = 1.f / zReference;
 
     // TODO: CHECK THESE VALUES USING FRAMEWORK
-    constexpr float xLim_Max = 3300.;
-    constexpr float yLim_Max = 2500.;
-    constexpr float xLim_Min = -3300.;
-    constexpr float yLim_Min = -25.;
+    constexpr float xLim_Max = 3300.f;
+    constexpr float yLim_Max = 2500.f;
+    constexpr float xLim_Min = -3300.f;
+    constexpr float yLim_Min = -25.f;
 
     // TO BE READ FROM XML EVENTUALLY
     // constexpr float magscalefactor = -1;
@@ -64,16 +64,16 @@ namespace SciFi {
       // the Magnet Parametrization
       // parameterized in offset [0], (slope difference due to kick)^2 [1],
       // tx^2 [2], ty^2 [3]
-      const float zMagnetParams[4] = {5212.38, 406.609, -1102.35, -498.039};
+      const float zMagnetParams[4] = {5212.38f, 406.609f, -1102.35f, -498.039f};
 
       // more Parametrizations
-      const float xParams[2] = {18.6195, -5.55793};
+      const float xParams[2] = {18.6195f, -5.55793f};
 
       // momentum Parametrization
-      const float momentumParams[6] = {1.21014, 0.637339, -0.200292, 0.632298, 3.23793, -27.0259};
+      const float momentumParams[6] = {1.21014f, 0.637339f, -0.200292f, 0.632298f, 3.23793f, -27.0259f};
 
       // covariance values
-      const float covarianceValues[5] = {4.0, 400.0, 4.e-6, 1.e-4, 0.1};
+      const float covarianceValues[5] = {4.0f, 400.0f, 4.e-6f, 1.e-4f, 0.1f};
 
       // definition of zones
       // access upper with offset of 6
@@ -82,30 +82,30 @@ namespace SciFi {
       const int uvZones[12] = {2, 4, 10, 12, 18, 20, 3, 5, 11, 13, 19, 21};
 
       // ASSORTED GEOMETRY VALUES, eventually read this from some xml
-      const float xZone_zPos[6] = {7826., 8036., 8508., 8718., 9193., 9403.};
+      const float xZone_zPos[6] = {7826.f, 8036.f, 8508.f, 8718.f, 9193.f, 9403.f};
       const float uvZone_zPos[6] =
-        {7896., 7966., 8578., 8648., 9263., 9333.}; //, 7896., 7966., 8578., 8648., 9263., 9333.};
-      const float uvZone_dxdy[12] = {0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892,
-                                     0.0874892,
-                                     -0.0874892};
-      const float Zone_dzdy[24] = {0.0036010};
+        {7896.f, 7966.f, 8578.f, 8648.f, 9263.f, 9333.f}; //, 7896., 7966., 8578., 8648., 9263., 9333.};
+      const float uvZone_dxdy[12] = {0.0874892f,
+                                     -0.0874892f,
+                                     0.0874892f,
+                                     -0.0874892f,
+                                     0.0874892f,
+                                     -0.0874892f,
+                                     0.0874892f,
+                                     -0.0874892f,
+                                     0.0874892f,
+                                     -0.0874892f,
+                                     0.0874892f,
+                                     -0.0874892f};
+      const float Zone_dzdy[24] = {0.0036010f};
 
       // this is used by looking_forward_sbt maybe this is not the right place to put it
-      const float uv_dx[6] = {1.6739478541449213,
-                              1.6738495069872612,
-                              1.935683825160498,
-                              1.9529279746403518,
-                              2.246931985749485,
-                              2.2797556995480273};
+      const float uv_dx[6] = {1.6739478541449213f,
+                              1.6738495069872612f,
+                              1.935683825160498f,
+                              1.9529279746403518f,
+                              2.246931985749485f,
+                              2.2797556995480273f};
     };
 
   } // namespace Tracking

@@ -1,10 +1,10 @@
 #include "VeloTools.cuh"
 
-__device__ float hit_phi_odd(const float x, const float y) { return atan2(y, x); }
+__device__ float hit_phi_odd(const float x, const float y) { return atan2f(y, x); }
 
 __device__ float hit_phi_even(const float x, const float y)
 {
-  const auto phi = atan2(y, x);
-  const auto less_than_zero = phi < 0.f;
-  return phi + less_than_zero * 2 * CUDART_PI_F;
+  const float phi = atan2f(y, x);
+  const float addition = (phi < 0.f) ? (2 * static_cast<float>(CUDART_PI_F)) : 0.f;
+  return phi + addition;
 }

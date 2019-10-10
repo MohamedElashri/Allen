@@ -31,7 +31,7 @@ simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState
   const bool backward = stateAtBeamLine.z > consolidated_hits.z[0];
   const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
   const float noise2PerLayer =
-    1e-8 + 7e-6 * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
+    1e-8f + 7e-6f * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
 
   // assume the hits are sorted,
   // but don't assume anything on the direction of sorting

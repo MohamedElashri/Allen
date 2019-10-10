@@ -31,7 +31,7 @@ namespace ParKalmanFilter {
         this->x00(i) = GetPar(inFile);
       }
       for (int i = 0; i < degx2; i++) {
-        this->tx00(i) = 1e-3 * GetPar(inFile);
+        this->tx00(i) = 1e-3f * GetPar(inFile);
       }
       for (int i = 0; i < degx1; i++) {
         this->x10(i) = GetPar(inFile);
@@ -40,17 +40,17 @@ namespace ParKalmanFilter {
         this->x01(i) = GetPar(inFile);
       }
       for (int i = 0; i < degx1; i++) {
-        this->tx10(i) = 1e-3 * GetPar(inFile);
+        this->tx10(i) = 1e-3f * GetPar(inFile);
       }
       for (int i = 0; i < degx1; i++) {
-        this->tx01(i) = 1e-3 * GetPar(inFile);
+        this->tx01(i) = 1e-3f * GetPar(inFile);
       }
 
       for (int i = 0; i < degy2; i++) {
         this->y00(i) = GetPar(inFile);
       }
       for (int i = 0; i < degy2; i++) {
-        this->ty00(i) = 1e-3 * GetPar(inFile);
+        this->ty00(i) = 1e-3f * GetPar(inFile);
       }
       for (int i = 0; i < degy1; i++) {
         this->y10(i) = GetPar(inFile);
@@ -59,10 +59,10 @@ namespace ParKalmanFilter {
         this->y01(i) = GetPar(inFile);
       }
       for (int i = 0; i < degy1; i++) {
-        this->ty10(i) = 1e-3 * GetPar(inFile);
+        this->ty10(i) = 1e-3f * GetPar(inFile);
       }
       for (int i = 0; i < degy1; i++) {
-        this->ty01(i) = 1e-3 * GetPar(inFile);
+        this->ty01(i) = 1e-3f * GetPar(inFile);
       }
       // if(feof(inFile)) return 0;
       return 1;
@@ -87,6 +87,6 @@ namespace ParKalmanFilter {
 
   __device__ __host__ StandardCoefs operator+(const StandardCoefs& a, const StandardCoefs& b);
   __device__ __host__ StandardCoefs operator-(const StandardCoefs& a, const StandardCoefs& b);
-  __device__ __host__ StandardCoefs operator*(const StandardCoefs& a, double p);
+  __device__ __host__ StandardCoefs operator*(const StandardCoefs& a, const float p);
 
 } // namespace ParKalmanFilter

@@ -44,8 +44,6 @@ namespace {
     return is_valid_header_zlib(src) || is_valid_header_old(src) || is_valid_header_lzma(src) ||
            is_valid_header_lz4(src);
   }
-
-  static const int lzmaHeaderSize = 9;
 } // namespace
 
 int Compression::unzip_header(int* srcsize, unsigned char* src, int* tgtsize)
