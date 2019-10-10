@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
+#include <Logger.h>
 #include "mdf_header.hpp"
 #include "read_mdf.hpp"
 #include "raw_bank.hpp"
