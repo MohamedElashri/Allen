@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 # Determine whether to produce a CPU version
-option(CPU "Produce a CPU version" OFF)
-option(HIP "Produce a HIP version" OFF)
+option(TARGET_CPU "Produce a CPU version" OFF)
+option(TARGET_HIP "Produce a HIP version" OFF)
 if(DEFINED ENV{LHCBRELEASES})
-  message(STATUS "Forcing CPU target for Gaudi build.")
+  message(STATUS "Forcing CPU target for Gaudi build")
   set(TARGET_DEVICE "CPU")
-elseif(CPU)
+elseif(TARGET_CPU)
   set(TARGET_DEVICE "CPU")
-elseif(HIP)
+elseif(TARGET_HIP)
   # Note: HIP with nvcc backend is not supported
   #       Instead, compile with CUDA target
   if(HIP_PLATFORM STREQUAL "nvcc")
