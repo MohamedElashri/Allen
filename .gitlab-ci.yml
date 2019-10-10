@@ -388,21 +388,21 @@ rtx2080tinofan:CUDA:DefaultSequence:run_throughput:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 rtx6000:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - rtx6000
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 v100:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - v100
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 t4:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - t4
   dependencies:
