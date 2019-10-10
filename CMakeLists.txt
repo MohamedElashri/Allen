@@ -102,7 +102,11 @@ if(TARGET_DEVICE STREQUAL "CPU")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wno-maybe-uninitialized")
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic")
+
+  if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
+    set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
+  endif()
 elseif(TARGET_DEVICE STREQUAL "HIP")
   add_compile_definitions(HIP)
 
@@ -173,7 +177,11 @@ else()
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wno-maybe-uninitialized")
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic")
+
+  if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
+    set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
+  endif()
 endif()
 
 # Deal with build type
