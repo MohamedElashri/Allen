@@ -48,4 +48,13 @@ target_link_libraries(AllenZMQ PUBLIC ${ZMQ_LIBRARIES})
 
 if (ZMQ_BUILTIN)
   add_dependencies(AllenZMQ BuiltinZMQ-install)
+elseif(GaudiProject_FOUND)
+  find_library(SODIUM_LIBRARY NAMES sodium
+               HINTS $ENV{libsodium_ROOT_DIR}/lib ${libsodium_ROOT_DIR}/lib)
+  if(SODIUM_LIBRARY)
+    message(STATUS "Found ${SODIUM_LIBRARY}")
+    get_filename_component(SODIUM_LIBRARY_DIR "${SODIUM_LIBRARY}" PATH)
+    gaudi_env(PREPEND LD_LIBRARY_PATH "${SODIUM_LIBRARY_DIR}")
+    target_link_libraries(AllenZMQ PUBLIC ${SODIUM_LIBRARY})
+  endif()
 endif()
