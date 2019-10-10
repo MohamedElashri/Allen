@@ -1,10 +1,20 @@
-set(SOURCES
-  src/compression.cpp
-  src/raw_helpers.cpp
-  src/read_mdf.cpp)
+set(mdf_sources
+    src/compression.cpp
+    src/raw_helpers.cpp
+    src/read_mdf.cpp)
 
-allen_add_library(mdf ${SOURCES})
+if (ROOT_FOUND AND USE_ROOT)
+  list(APPEND mdf_sources src/root_mdf.cpp)
+endif()
+
+add_library(mdf ${mdf_sources})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if (ROOT_FOUND AND USE_ROOT)
+  target_compile_definitions(mdf PUBLIC ${ALLEN_ROOT_DEFINITIONS})
+  target_include_directories(mdf SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(mdf PUBLIC ${ALLEN_ROOT_LIBRARIES})
+endif()
 
 target_include_directories(
   mdf PUBLIC
