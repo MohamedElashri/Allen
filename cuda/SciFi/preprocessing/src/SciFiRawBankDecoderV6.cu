@@ -40,7 +40,7 @@ __device__ void make_cluster_v6(
   hits.m_endPointY[hit_index] = endPointY;
   assert(fraction <= 0x1 && plane_code <= 0x1f && pseudoSize <= 0xf && mat <= 0x7ff);
   hits.assembled_datatype[hit_index] = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
-};
+}
 
 __global__ void scifi_raw_bank_decoder_v6(
   char* scifi_events,

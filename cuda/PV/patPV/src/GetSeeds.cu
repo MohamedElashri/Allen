@@ -95,7 +95,7 @@ __global__ void get_seeds(
     dev_seeds[event_number * PatPV::max_number_vertices + i] = PatPV::XYZPoint {beamspot.x, beamspot.y, zseeds[i]};
 
   dev_number_seed[event_number] = number_final_clusters;
-};
+}
 
 __device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int number_of_clusters)
 {

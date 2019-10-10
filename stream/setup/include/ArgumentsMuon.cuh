@@ -9,8 +9,8 @@
  * @brief Definition of arguments. All arguments should be defined here,
  *        with their associated type.
  */
-ARGUMENT(dev_muon_raw, char);
-ARGUMENT(dev_muon_raw_offsets, unsigned int);
+ARGUMENT(dev_muon_raw, char)
+ARGUMENT(dev_muon_raw_offsets, unsigned int)
 ARGUMENT(dev_muon_raw_to_hits, Muon::MuonRawToHits)
 ARGUMENT(dev_muon_hits, Muon::HitsSoA)
 ARGUMENT(dev_muon_track_occupancies, int)

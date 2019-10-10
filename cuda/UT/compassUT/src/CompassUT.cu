@@ -65,7 +65,7 @@ __global__ void compass_ut(
 
   const float* bdl_table = &(dev_ut_magnet_tool->bdlTable[0]);
 
-  for (uint i = 0; i < ((number_of_tracks_event + blockDim.x - 1) / blockDim.x) + 1; i += 1) {
+  for (uint i = 0; i < (number_of_tracks_event + blockDim.x - 1) / blockDim.x; i += 1) {
     const auto i_track = i * blockDim.x + threadIdx.x;
 
     __syncthreads();

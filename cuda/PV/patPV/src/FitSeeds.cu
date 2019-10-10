@@ -38,7 +38,7 @@ __global__ void fit_seeds(
   }
 
   dev_number_vertex[event_number] = counter_vertex;
-};
+}
 
 __device__ bool fit_vertex(
   PatPV::XYZPoint& seedPoint,

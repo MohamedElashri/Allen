@@ -90,7 +90,7 @@ namespace SciFi {
 
   SciFiGeometry::SciFiGeometry(const std::vector<char>& geometry) : SciFiGeometry::SciFiGeometry(geometry.data()) {}
 
-  __device__ __host__ SciFiChannelID::SciFiChannelID(const uint32_t channelID) : channelID(channelID) {};
+  __device__ __host__ SciFiChannelID::SciFiChannelID(const uint32_t channelID) : channelID(channelID) {}
 
   __host__ std::string SciFiChannelID::toString()
   {
@@ -124,7 +124,7 @@ namespace SciFi {
     if (q == 0 || q == 2) return module_count - 1 - module();
     if (q == 1 || q == 3) return module();
     return 0;
-  };
+  }
 
   __device__ __host__ uint32_t SciFiChannelID::quarter() const { return ((channelID & quarterMask) >> quarterBits); }
 
@@ -166,7 +166,7 @@ namespace SciFi {
   {
     uint zone = ((uniqueQuarter() - 16) >> 1) % 4;
     return zone == 1 || zone == 2;
-  };
+  }
 
   __device__ uint32_t channelInBank(uint32_t c) { return (c >> SciFiRawBankParams::cellShift); }
 
@@ -181,4 +181,4 @@ namespace SciFi {
 
   __device__ bool cSize(uint16_t c) { return (c >> SciFiRawBankParams::sizeShift) & SciFiRawBankParams::sizeMaximum; }
 
-}; // namespace SciFi
+} // namespace SciFi
