@@ -68,9 +68,7 @@ function(test_program)
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
-if (TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
-  include(Catch)
-
+if (BUILD_TESTS)
   test_program(NAME dump_banks)
   test_program(NAME test_read)
   test_program(NAME bench_read)
@@ -78,9 +76,8 @@ if (TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
   test_program(NAME bench_transpose)
   test_program(NAME test_providers)
 
-  # Don't use
   if (NOT GaudiProject_FOUND)
-    catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+    add_test(NAME allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
   else()
     gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
   endif()
