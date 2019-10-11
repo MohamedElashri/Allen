@@ -21,22 +21,22 @@ namespace ParKalmanFilter {
     // Parameters.
     StandardCoefs C[nBinXMax][nBinYMax];
 
-    double Par_predictV[nSetsV][nParsV];
-    double Par_predictVUT[nSetsVUT][nParsVUT];
-    double Par_predictUT[nSetsUT][nParsUT];
-    double Par_predictUTFUT[nSetsUTFUT][nParsUTFUT];
-    double Par_predictUTTF[nSetsUTTF][nParsUTTF];
-    double Par_predictTFT[nSetsTFT][nParsTFT];
-    double Par_predictT[nSetsT][nParsT];
-    double Par_TLayer[nSetsTLayer][nParsTLayer];
-    double Par_UTLayer[nSetsUTLayer][nParsUTLayer];
+    float Par_predictV[nSetsV][nParsV];
+    float Par_predictVUT[nSetsVUT][nParsVUT];
+    float Par_predictUT[nSetsUT][nParsUT];
+    float Par_predictUTFUT[nSetsUTFUT][nParsUTFUT];
+    float Par_predictUTTF[nSetsUTTF][nParsUTTF];
+    float Par_predictTFT[nSetsTFT][nParsTFT];
+    float Par_predictT[nSetsT][nParsT];
+    float Par_TLayer[nSetsTLayer][nParsTLayer];
+    float Par_UTLayer[nSetsUTLayer][nParsUTLayer];
 
-    double ZINI, ZFIN;
-    double PMIN;
-    double BENDX, BENDX_X2, BENDX_Y2, BENDY_XY;
-    double Txmax, Tymax, XFmax, Xmax, Ymax;
-    double Dtxy;
-    double step;
+    float ZINI, ZFIN;
+    float PMIN;
+    float BENDX, BENDX_X2, BENDX_Y2, BENDY_XY;
+    float Txmax, Tymax, XFmax, Xmax, Ymax;
+    float Dtxy;
+    float step;
 
     // Parameters that change sign under parity flip.
     const int flip_Par_predictV[1] = {4};
@@ -58,9 +58,9 @@ namespace ParKalmanFilter {
     bool paramsLoaded = false;
     bool m_qop_flip = false;
 
-    __device__ __host__ double UTTExtrEndZ() const;
-    __device__ __host__ double UTTExtrBeginZ() const;
-    __device__ __host__ double VUTExtrEndZ() const;
+    __device__ __host__ float UTTExtrEndZ() const;
+    __device__ __host__ float UTTExtrBeginZ() const;
+    __device__ __host__ float VUTExtrEndZ() const;
 
     // Pierre's extrapolation.
     __host__ void read_params_UTT(std::string file);
@@ -68,7 +68,7 @@ namespace ParKalmanFilter {
     //----------------------------------------------------------------------
     // Template function for reading parameters.
     template<int nPars, int nSets>
-    __host__ void read_params(std::string file, double (&params)[nSets][nPars])
+    __host__ void read_params(std::string file, float (&params)[nSets][nPars])
     {
 
       // Set all parameters to 0.
@@ -117,7 +117,7 @@ namespace ParKalmanFilter {
     //----------------------------------------------------------------------
     // Flip parameters if necessary.
     template<int nPars, int nSets, int nFlips>
-    __host__ void SwitchParamsForPolarity(double (&params)[nSets][nPars], const int (&flips)[nFlips])
+    __host__ void SwitchParamsForPolarity(float (&params)[nSets][nPars], const int (&flips)[nFlips])
     {
       for (int i = 0; i < nSets; i++)
         for (int j = 0; j < nFlips; j++)

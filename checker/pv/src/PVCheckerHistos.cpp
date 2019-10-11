@@ -1,6 +1,6 @@
 #include "PVCheckerHistos.h"
 
-float binomial_error(float k, float N) { return sqrt(k * (1 - k / N)) / N; }
+float binomial_error(float k, float N) { return sqrtf(k * (1 - k / N)) / N; }
 
 PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file)
 {

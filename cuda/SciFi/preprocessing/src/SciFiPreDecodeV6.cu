@@ -34,7 +34,7 @@ __device__ void store_sorted_cluster_reference_v6 (
 
   hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 |
                                      (condition & 0x07) << 13 | (delta & 0xFF);
-};
+}
 
 __global__ void scifi_pre_decode_v6(
   char* scifi_events,

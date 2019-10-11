@@ -140,6 +140,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
     - mkdir validation_output
+    - ln -s validation_output output # Needed by Root build
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
@@ -387,21 +388,21 @@ rtx2080tinofan:CUDA:DefaultSequence:run_throughput:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 rtx6000:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - rtx6000
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 v100:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - v100
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 t4:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_def
+  <<: *run_throughput_job_no_profiling_def
   tags:
     - t4
   dependencies:

@@ -30,7 +30,7 @@ namespace UT {
       yEnd(_yEnd), zAtYEq0(_zAtYEq0), xAtYEq0(_xAtYEq0), weight(_weight), LHCbID(_LHCbID), plane_code(_plane_code)
     {}
 
-#define cmpf(a, b) (fabs((a) - (b)) > 0.000065f)
+#define cmpf(a, b) (fabsf((a) - (b)) > 0.000065f)
 
     bool operator!=(const Hit& h) const
     {
@@ -164,7 +164,7 @@ namespace UT {
     }
     __host__ __device__ inline float cosT(const int i_hit, const float dxDy) const
     {
-      return (fabsf(xAtYEq0[i_hit]) < 1.0E-9) ? 1. / sqrtf(1 + dxDy * dxDy) : cosf(dxDy);
+      return (fabsf(xAtYEq0[i_hit]) < 1.0e-9f) ? 1.f / sqrtf(1.f + dxDy * dxDy) : cosf(dxDy);
     }
     __host__ __device__ inline float sinT(const int i_hit, const float dxDy) const
     {
@@ -176,7 +176,7 @@ namespace UT {
       return xAtYEq0[i_hit] + globalY * dxDy;
     }
     __host__ __device__ inline float yMax(const int i_hit) const { return fmaxf(yBegin[i_hit], yEnd[i_hit]); }
-    __host__ __device__ inline float yMid(const int i_hit) const { return 0.5 * (yBegin[i_hit] + yEnd[i_hit]); }
+    __host__ __device__ inline float yMid(const int i_hit) const { return 0.5f * (yBegin[i_hit] + yEnd[i_hit]); }
     __host__ __device__ inline float yMin(const int i_hit) const { return fminf(yBegin[i_hit], yEnd[i_hit]); }
   };
 } // namespace UT

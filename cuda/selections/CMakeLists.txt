@@ -23,6 +23,6 @@ allen_add_library(Hlt1 STATIC
   ${hlt1_src}
 )
 
-if(USE_KALMAN_SINGLE_PRECISION)
-  target_compile_definitions(Hlt1 PUBLIC KALMAN_SINGLE_PRECISION)
+if (USE_KALMAN_DOUBLE_PRECISION)
+  add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()

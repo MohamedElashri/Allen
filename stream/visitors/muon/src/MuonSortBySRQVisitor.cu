@@ -30,8 +30,7 @@ void SequenceVisitor::visit<muon_sort_station_region_quarter_t>(
     arguments.offset<dev_storage_tile_id>(),
     arguments.offset<dev_storage_tdc_value>(),
     arguments.offset<dev_atomics_muon>(),
-    arguments.offset<dev_permutation_srq>(),
-    arguments.offset<dev_muon_raw_to_hits>());
+    arguments.offset<dev_permutation_srq>());
 
   state.invoke();
 }

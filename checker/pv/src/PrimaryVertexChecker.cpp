@@ -65,20 +65,20 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
       pv = *itRecV;
       RecPVInfo recinfo;
       recinfo.pRECPV = pv;
-      recinfo.x = pv->position.x;
-      recinfo.y = pv->position.y;
-      recinfo.z = pv->position.z;
+      recinfo.x = static_cast<double>(pv->position.x);
+      recinfo.y = static_cast<double>(pv->position.y);
+      recinfo.z = static_cast<double>(pv->position.z);
 
-      double sigx = sqrt(pv->cov00);
-      double sigy = sqrt(pv->cov11);
-      double sigz = sqrt(pv->cov22);
+      double sigx = std::sqrt(static_cast<double>(pv->cov00));
+      double sigy = std::sqrt(static_cast<double>(pv->cov11));
+      double sigz = std::sqrt(static_cast<double>(pv->cov22));
       PatPV::XYZPoint a3d(sigx, sigy, sigz);
       recinfo.positionSigma = a3d;
       recinfo.nTracks = pv->nTracks;
       double minRD = 99999.;
       double maxRD = -99999.;
-      double chi2 = pv->chi2;
-      double nDoF = pv->ndof;
+      double chi2 = static_cast<double>(pv->chi2);
+      double nDoF = static_cast<double>(pv->ndof);
 
       int mother = 0;
       int velo = 0;
@@ -178,7 +178,7 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
         for (unsigned int imc = 0; imc < not_rble_but_visible.size(); imc++) {
           if (not_rble_but_visible[imc].indexRecPVInfo > -1) continue;
           double dist = fabs(mcpvvec[imc].pMCPV->z - recpvvec[ipv].z);
-          if (dist < 5.0 * recpvvec[ipv].positionSigma.z) {
+          if (dist < 5.0 * static_cast<double>(recpvvec[ipv].positionSigma.z)) {
             vis_found = true;
             not_rble_but_visible[imc].indexRecPVInfo = 10;
             break;
@@ -276,9 +276,9 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
       vec_rec_y.push_back(recpvvec[rec_index].y);
       vec_rec_z.push_back(recpvvec[rec_index].z);
 
-      double err_x = recpvvec[rec_index].positionSigma.x;
-      double err_y = recpvvec[rec_index].positionSigma.y;
-      double err_z = recpvvec[rec_index].positionSigma.z;
+      double err_x = static_cast<double>(recpvvec[rec_index].positionSigma.x);
+      double err_y = static_cast<double>(recpvvec[rec_index].positionSigma.y);
+      double err_z = static_cast<double>(recpvvec[rec_index].positionSigma.z);
 
       vec_err_x.push_back(err_x);
       vec_err_y.push_back(err_y);
@@ -350,7 +350,7 @@ void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::ve
     }
   }
   if (indexmc > -1) {
-    if (mindist < 5.0 * rinfo[ipv].positionSigma.z) {
+    if (mindist < 5.0 * static_cast<double>(rinfo[ipv].positionSigma.z)) {
       rinfo[ipv].indexMCPVInfo = indexmc;
       mcpvvec[indexmc].indexRecPVInfo = ipv;
       mcpvvec[indexmc].number_rec_vtx++;
@@ -375,7 +375,7 @@ void printRat(std::string mes, int a, int b)
   std::printf(
         "%s %.3f (%6i/%6i)\n",
         pmes.c_str(),
-        rat,
+        static_cast<double>(rat),
         a,
         b);
 }

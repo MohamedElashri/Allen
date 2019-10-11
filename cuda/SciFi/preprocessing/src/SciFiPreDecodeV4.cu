@@ -27,7 +27,7 @@ __device__ void store_sorted_cluster_reference_v4(
   //   raw bank: 8 bits
   //   element (it): 8 bits
   hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 8 | (it & 0xFF);
-};
+}
 
 __global__ void scifi_pre_decode_v4(
   char* scifi_events,

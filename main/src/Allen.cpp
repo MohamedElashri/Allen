@@ -277,7 +277,7 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
            std::make_unique<Consumers::MuonLookupTables>(
              constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables)}};
 
-  for_each(consumers, [updater, &constants](auto& c) {
+  for_each(consumers, [updater](auto& c) {
     using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
     updater->registerConsumer<id_t>(std::move(std::get<1>(c)));
   });

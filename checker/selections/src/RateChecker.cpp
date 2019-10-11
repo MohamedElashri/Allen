@@ -69,7 +69,7 @@ void RateChecker::report(size_t requested_events) const
 {
 
   // Assume 30 MHz input rate.
-  float in_rate = 30000.0;
+  const double in_rate = 30000.0;
   std::printf(
     "One track:        %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
     m_evts_one_track,

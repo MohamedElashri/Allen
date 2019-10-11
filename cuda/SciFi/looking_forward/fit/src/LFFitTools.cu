@@ -185,7 +185,7 @@ __device__ bool LookingForward::straight_line_fit_y_projection(
     sdz += w * d * z;
   }
   const float den = (s0 * sz2 - sz * sz);
-  if (!(fabsf(den) > 1e-5)) {
+  if (!(fabsf(den) > 1e-5f)) {
     return false;
   }
   const float da = (sd * sz2 - sdz * sz) / den;

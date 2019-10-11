@@ -144,7 +144,7 @@ namespace ParKalmanFilter {
 
     __device__ __host__ KalmanFloat pz() const
     {
-      KalmanFloat cost = 1.0f / sqrtf(1.0 + state[2] * state[2] + state[3] * state[3]);
+      KalmanFloat cost = 1.0f / sqrtf(1.0f + state[2] * state[2] + state[3] * state[3]);
       return cost / fabsf(best_qop);
     }
 

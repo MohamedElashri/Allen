@@ -177,9 +177,9 @@ size_t SelCheckerTuple::addGen(const MCParticle& mcp)
 size_t SelCheckerTuple::addSV(const VertexFit::TrackMVAVertex& sv, const int idx1, const int idx2)
 {
   for(size_t i = 0; i < m_sv_px.size(); ++i){
-    if(std::abs(m_sv_px.at(i)-sv.px)<0.01 &&
-       std::abs(m_sv_py.at(i)-sv.py)<0.01 &&
-       std::abs(m_sv_pz.at(i)-sv.pz)<0.01){
+    if(std::abs(m_sv_px.at(i)-static_cast<double>(sv.px))<0.01 &&
+       std::abs(m_sv_py.at(i)-static_cast<double>(sv.py))<0.01 &&
+       std::abs(m_sv_pz.at(i)-static_cast<double>(sv.pz))<0.01){
       return i;
     }
   }
@@ -214,9 +214,9 @@ size_t SelCheckerTuple::addTrack(
   const MCAssociator& mcassoc)
 {
   for(size_t i = 0; i < m_trk_p.size(); ++i) {
-    if(std::abs(track.p-m_trk_p.at(i))<0.01 &&
-       std::abs(track.pt-m_trk_pt.at(i))<0.01 &&
-       std::abs(track.eta-m_trk_eta.at(i))<0.01) {
+    if(std::abs(static_cast<double>(track.p)-m_trk_p.at(i))<0.01 &&
+       std::abs(static_cast<double>(track.pt)-m_trk_pt.at(i))<0.01 &&
+       std::abs(static_cast<double>(track.eta)-m_trk_eta.at(i))<0.01) {
       return i;
     }
   }
@@ -237,7 +237,7 @@ size_t SelCheckerTuple::addTrack(
     m_trk_idx_gen.push_back((double)-1.);
   else {
     const auto weight = std::get<1>(assoc.front());
-    if (weight < 0.7)
+    if (static_cast<double>(weight) < 0.7)
       m_trk_idx_gen.push_back((double)-1.);
     else {
       const auto mcp = std::get<0>(assoc.front());

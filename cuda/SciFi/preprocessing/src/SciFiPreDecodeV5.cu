@@ -40,7 +40,7 @@ __device__ void store_sorted_cluster_reference_v5(
   //   Condition 2.1: log2(n+1) - 8 bits
   hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition_1 & 0x03) << 14 |
                                      (condition_2 & 0x01) << 13 | (delta & 0xFF);
-};
+}
 
 __global__ void scifi_pre_decode_v5(
   char* scifi_events,

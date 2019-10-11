@@ -4,10 +4,10 @@
 
 namespace ParKalmanFilter {
 
-#ifdef KALMAN_SINGLE_PRECISION
-  typedef float KalmanFloat;
-#else
+#ifdef KALMAN_DOUBLE_PRECISION
   typedef double KalmanFloat;
+#else
+  typedef float KalmanFloat;
 #endif
 
   //----------------------------------------------------------------------
@@ -176,8 +176,8 @@ namespace ParKalmanFilter {
     SquareMatrix<false, _size> ltinv;
     // Set diagonals.
     for (int i = 0; i < _size; i++) {
-      utinv(i, i) = 1. / ut(i, i);
-      ltinv(i, i) = 1. / lt(i, i);
+      utinv(i, i) = 1.f / ut(i, i);
+      ltinv(i, i) = 1.f / lt(i, i);
     }
     // Off-diagonal.
     for (int i = 0; i < _size; i++) {

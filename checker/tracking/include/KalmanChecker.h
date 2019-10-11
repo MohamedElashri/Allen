@@ -33,8 +33,10 @@ public:
   void report(size_t n_events) const override;
 
 private:
+#ifdef WITH_ROOT
   TTree* m_tree = nullptr;
   TFile* m_file = nullptr;
+#endif
 
   float m_trk_z = 0.f;
   float m_trk_x = 0.f;

@@ -38,7 +38,7 @@ namespace LookingForward {
 
   // z distance between various layers of a station
   // FIXME_GEOMETRY_HARDCODING
-  constexpr float dz_layers_station = 70. * Gaudi::Units::mm;
+  constexpr float dz_layers_station = 70.f * Gaudi::Units::mm;
   constexpr float dz_x_layers = 3.f * dz_layers_station;
   constexpr float inverse_dz_x_layers = 1.f / dz_x_layers;
   constexpr float dz_x_u_layers = 1.f * dz_layers_station;

@@ -206,4 +206,4 @@ namespace Muon {
       }
     }
   }
-}; // namespace Muon
+} // namespace Muon

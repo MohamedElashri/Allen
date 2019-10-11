@@ -32,7 +32,7 @@ __device__ void simplified_step(
   KalmanFloat predcovTxTx = covTxTx;
 
   // Add noise.
-  const KalmanFloat sigTx = par[1] * 1e-5 + par[2] * fabsf(qop);
+  const KalmanFloat sigTx = par[1] * ((KalmanFloat) 1e-5) + par[2] * fabsf(qop);
   const KalmanFloat sigX = par[6] * sigTx * fabsf(dz);
   const KalmanFloat corr = par[7];
   predcovXX += sigX * sigX;
@@ -79,7 +79,7 @@ __device__ void extrapolate_velo_only(
   F.SetElements(F_diag);
   F(0, 2) = dz;
   F(1, 3) = dz;
-  F(2, 4) = par[4] * (1.0e-5) * dz * ((dz > 0 ? zFrom : zTo) + par[5] * ((KalmanFloat) 1.0e3));
+  F(2, 4) = par[4] * ((KalmanFloat) 1.0e-5) * dz * ((dz > 0 ? zFrom : zTo) + par[5] * ((KalmanFloat) 1.0e3));
   F(0, 4) = ((KalmanFloat) 0.5) * dz * F(2, 4);
 
   // Noise matrix.
@@ -285,7 +285,7 @@ __device__ void simplified_fit(
   track.cov(3, 3) = cTyTy;
   track.cov(3, 4) = 0.0;
   // Just assume 1% uncertainty on qop. Shouldn't matter.
-  track.cov(4, 4) = 0.0001 * qop * qop;
+  track.cov(4, 4) = ((KalmanFloat) 0.0001) * qop * qop;
   track.first_qop = init_qop;
   track.best_qop = init_qop;
   track.nhits = n_velo_hits;

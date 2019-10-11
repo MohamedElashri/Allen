@@ -51,7 +51,7 @@ struct MCParticle {
 
   bool isMuon() const { return 13 == std::abs(pid); }
   bool isElectron() const { return 11 == std::abs(pid); };
-  bool inEta2_5() const { return (eta < 5. && eta > 2.); };
+  bool inEta2_5() const { return (eta < 5.f && eta > 2.f); };
 };
 
 template<typename T>
