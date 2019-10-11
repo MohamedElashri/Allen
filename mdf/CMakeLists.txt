@@ -1,10 +1,20 @@
-set(SOURCES
-  src/compression.cpp
-  src/raw_helpers.cpp
-  src/read_mdf.cpp)
+set(mdf_sources
+    src/compression.cpp
+    src/raw_helpers.cpp
+    src/read_mdf.cpp)
 
-allen_add_library(mdf ${SOURCES})
+if (ROOT_FOUND AND USE_ROOT)
+  list(APPEND mdf_sources src/root_mdf.cpp)
+endif()
+
+add_library(mdf ${mdf_sources})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if (ROOT_FOUND AND USE_ROOT)
+  target_compile_definitions(mdf PUBLIC ${ALLEN_ROOT_DEFINITIONS})
+  target_include_directories(mdf SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(mdf PUBLIC ${ALLEN_ROOT_LIBRARIES})
+endif()
 
 target_include_directories(
   mdf PUBLIC
@@ -13,6 +23,7 @@ target_include_directories(
 
 target_link_libraries(
   mdf PUBLIC
+  Common
   ${ZLIB_LIBRARIES})
 
 if (LZMA_FOUND)
@@ -58,9 +69,7 @@ function(test_program)
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
-if (TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
-  include(Catch)
-
+if (BUILD_TESTS)
   test_program(NAME dump_banks)
   test_program(NAME test_read)
   test_program(NAME bench_read)
@@ -68,9 +77,8 @@ if (TARGET_DEVICE STREQUAL "CUDA" AND BUILD_TESTS)
   test_program(NAME bench_transpose)
   test_program(NAME test_providers)
 
-  # Don't use
   if (NOT GaudiProject_FOUND)
-    catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+    add_test(NAME allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
   else()
     gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
   endif()
