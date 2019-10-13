@@ -25,7 +25,7 @@ set_target_properties(SelChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(ROOT_FOUND)
   target_compile_definitions(SelChecking PRIVATE ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(SelChecking BEFORE PRIVATE
+  target_include_directories(SelChecking SYSTEM BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
   )
 endif()

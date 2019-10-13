@@ -109,8 +109,8 @@ void PVCheckerHistos::accumulate(
 
   // Proper uncertainties for efficiencies
   for (int i = 1; i <= m_bins_norm_z; i++) {
-    float N = 1.f * eff_norm_z->GetBinContent(i);
-    float k = 1.f * eff_vs_z->GetBinContent(i);
+    float N = 1.f * static_cast<float>(eff_norm_z->GetBinContent(i));
+    float k = 1.f * static_cast<float>(eff_vs_z->GetBinContent(i));
     if (k < N && N > 0) {
       binerrors_vs_z.push_back(binomial_error(k, N));
     }
@@ -118,8 +118,8 @@ void PVCheckerHistos::accumulate(
       binerrors_vs_z.push_back(0.);
   }
   for (int i = 1; i <= m_bins_norm_mult; i++) {
-    float N = 1.f * eff_norm_mult->GetBinContent(i);
-    float k = 1.f * eff_vs_mult->GetBinContent(i);
+    float N = 1.f * static_cast<float>(eff_norm_mult->GetBinContent(i));
+    float k = 1.f * static_cast<float>(eff_vs_mult->GetBinContent(i));
     if (k < N && N > 0) {
       binerrors_vs_mult.push_back(binomial_error(k, N));
     }
