@@ -7,7 +7,7 @@ if (ROOT_FOUND AND USE_ROOT)
   list(APPEND mdf_sources src/root_mdf.cpp)
 endif()
 
-add_library(mdf ${mdf_sources})
+allen_add_library(mdf ${mdf_sources})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if (ROOT_FOUND AND USE_ROOT)
@@ -64,7 +64,7 @@ function(test_program)
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE mdf)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Common mdf)
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
