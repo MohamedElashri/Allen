@@ -36,7 +36,7 @@ Allen::IO MDF::open(std::string const& filepath, int flags)
 #ifdef WITH_ROOT
     return ROOT::open(filepath, flags);
 #else
-    error_cout << "Allen was not compiled with ROOT support\n";
+    cout << "Allen was not compiled with ROOT support\n";
     return {};
 #endif
   }

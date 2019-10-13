@@ -23,7 +23,6 @@ target_include_directories(
 
 target_link_libraries(
   mdf PUBLIC
-  Common
   ${ZLIB_LIBRARIES})
 
 if (LZMA_FOUND)
@@ -65,7 +64,7 @@ function(test_program)
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Common mdf)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE mdf)
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
