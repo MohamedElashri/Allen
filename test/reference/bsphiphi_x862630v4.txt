@@ -46,12 +46,12 @@ MC PV is reconstructible if at least 4 tracks are reconstructed
 MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
 REC and MC vertices matched by dz distance
 
-All                  :  0.929 (  4531/  4875)
+All                  :  0.930 (  4532/  4875)
 Isolated             :  0.956 (  2426/  2538)
-Close                :  0.901 (  2105/  2337)
-False rate           :  0.019 (    86/  4617)
-Real false rate      :  0.019 (    86/  4617)
-Clones               :  0.000 (     0/  4531)
+Close                :  0.901 (  2106/  2337)
+False rate           :  0.019 (    86/  4618)
+Real false rate      :  0.019 (    86/  4618)
+Clones               :  0.000 (     0/  4532)
 
 
 Velo+UT tracks:
@@ -65,7 +65,7 @@ Velo+UT, not long, p > 5 GeV                      :      4992/     8265  60.40% 
 Long                                              :     34792/    57988  60.00% ( 60.56%),       227 (  0.65%) clones, pur  99.52%, hit eff  96.89%
 Long, p > 5 GeV                                   :     26670/    36811  72.45% ( 73.12%),       184 (  0.69%) clones, pur  99.57%, hit eff  97.44%
 Long from B                                       :      3220/     3930  81.93% ( 84.59%),        22 (  0.68%) clones, pur  99.56%, hit eff  97.62%
-Long from B, p > 5 GeV                            :      2903/     3219  90.18% ( 91.81%),        19 (  0.65%) clones, pur  99.60%, hit eff  97.79%
+Long from B, p > 5 GeV                            :      2903/     3219  90.18% ( 91.81%),        19 (  0.65%) clones, pur  99.59%, hit eff  97.79%
 Long electrons                                    :       812/     4548  17.85% ( 18.76%),        22 (  2.64%) clones, pur  98.10%, hit eff  95.69%
 Long from B electrons                             :        85/      202  42.08% ( 47.53%),         2 (  2.30%) clones, pur  99.05%, hit eff  95.33%
 Long from B electrons, p > 5 GeV                  :        76/      130  58.46% ( 63.11%),         2 (  2.56%) clones, pur  99.10%, hit eff  95.04%
