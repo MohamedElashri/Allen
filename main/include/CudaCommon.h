@@ -2,6 +2,9 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <cassert>
+
+#include "BankTypes.h"
 
 #ifdef CPU
 
@@ -282,3 +285,25 @@ namespace cuda {
 void print_gpu_memory_consumption();
 
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
+
+
+template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
+void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream) {
+  auto offset = args.template offset<DATA_ARG>();
+  for (gsl::span<char const> data_span : std::get<0>(bno)) {
+    cudaCheck(cudaMemcpyAsync(
+      offset,
+      data_span.begin(),
+      data_span.size_bytes(),
+      cudaMemcpyHostToDevice,
+      cuda_stream));
+    offset += data_span.size_bytes();
+  }
+
+  cudaCheck(cudaMemcpyAsync(
+   args.template offset<OFFSET_ARG>(),
+   std::get<2>(bno).begin(),
+   std::get<2>(bno).size_bytes(),
+   cudaMemcpyHostToDevice,
+   cuda_stream));
+}

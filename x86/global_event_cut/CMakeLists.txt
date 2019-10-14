@@ -16,3 +16,17 @@ endif()
 allen_add_library(CpuGEC STATIC
   ${cpu_gec}
 )
+
+add_executable(mep_gec test/mep_gec.cpp)
+
+target_include_directories(mep_gec PUBLIC
+  ${CMAKE_SOURCE_DIR}/mdf/include
+  ${CMAKE_SOURCE_DIR}/stream/gear/include
+  ${CMAKE_SOURCE_DIR}/x86/global_event_cut/include
+  ${CMAKE_SOURCE_DIR}/main/include)
+
+target_link_libraries(mep_gec PRIVATE Common mdf CpuGEC
+  ${MPI_CXX_LIBRARIES})
+target_compile_definitions(mep_gec PUBLIC NO_CUDA)
+
+install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)

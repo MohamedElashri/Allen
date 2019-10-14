@@ -37,12 +37,6 @@ namespace {
 using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>>;
 using ReadBuffers = std::vector<ReadBuffer>;
 
-// A slice contains transposed bank data, offsets to the start of each
-// set of banks and the number of sets of banks
-using Slice = std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>;
-using BankSlices = std::vector<Slice>;
-using Slices = std::array<BankSlices, NBankTypes>;
-
 /**
  * @brief      Configuration parameters for the MDFProvider
  *
@@ -238,10 +232,10 @@ public:
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     auto ib = to_integral<BankTypes>(bank_type);
-    auto const& [banks, offsets, offsets_size] = m_slices[ib][slice_index];
-    span<char const> b {banks.data(), offsets[offsets_size - 1]};
+    auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
+    span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
     span<unsigned int const> o {offsets.data(), offsets_size};
-    return BanksAndOffsets {std::move(b), std::move(o)};
+    return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
   }
 
   //

@@ -30,7 +30,7 @@ using ReadBuffers = std::vector<ReadBuffer>;
 
 // A slice contains transposed bank data, offsets to the start of each
 // set of banks and the number of sets of banks
-using Slice = std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>;
+using Slice = std::tuple<std::vector<gsl::span<char>>, size_t, gsl::span<unsigned int>, size_t>;
 using BankSlices = std::vector<Slice>;
 using Slices = std::array<BankSlices, NBankTypes>;
 

@@ -49,10 +49,10 @@ namespace {
 
 BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_index) {
   auto ib = to_integral<BankTypes>(bank_type);
-  auto const& [banks, offsets, offsets_size] = slices[ib][slice_index];
-  span<char const> b {banks.data(), offsets[offsets_size - 1]};
+  auto const& [banks, banks_size, offsets, offsets_size] = slices[ib][slice_index];
+  span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
   span<unsigned int const> o {offsets.data(), offsets_size};
-  return BanksAndOffsets {std::move(b), std::move(o)};
+  return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
 }
 
 size_t transpose_mep(Slices& mep_slices,
@@ -166,15 +166,34 @@ struct BTTag {
 };
 
 /**
- * @brief      Check bank or offset data
+ * @brief      Check offsets
  */
-template<size_t I>
+void check_offsets(BanksAndOffsets const& left, BanksAndOffsets const& right)
+{
+  REQUIRE(std::get<2>(left).size() == std::get<2>(right).size());
+  for (size_t i = 0; i < std::get<2>(left).size(); ++i) {
+    REQUIRE(std::get<2>(left)[i] == std::get<2>(right)[i]);
+  }
+}
+
+/**
+ * @brief      Check bank spans
+ */
 void check_banks(BanksAndOffsets const& left, BanksAndOffsets const& right)
 {
-  static_assert(I < tuple_size_v<BanksAndOffsets>);
-  REQUIRE(std::get<I>(left).size() == std::get<I>(right).size());
-  for (size_t i = 0; i < std::get<I>(left).size(); ++i) {
-    REQUIRE(std::get<I>(left)[i] == std::get<I>(right)[i]);
+  // data size
+  REQUIRE(std::get<1>(left) == std::get<1>(right));
+
+  auto const& lb = std::get<0>(left);
+  auto const& rb = std::get<0>(right);
+
+  // spans
+  REQUIRE(lb.size() == rb.size());
+  for (size_t i = 0; i < lb.size(); ++i) {
+    REQUIRE(lb[i].size() == rb[i].size());
+    for (size_t j = 0; j < lb[i].size(); ++j) {
+      REQUIRE(lb[i][j] == rb[i][j]);
+    }
   }
 }
 
@@ -213,9 +232,9 @@ TEMPLATE_TEST_CASE(
   auto banks_mdf = mdf->banks(TestType::BT, slice_mdf);
   auto banks_binary = binary->banks(TestType::BT, slice_binary);
 
-  SECTION("Checking offsets") { check_banks<1>(banks_mdf, banks_binary); }
+  SECTION("Checking offsets") { check_offsets(banks_mdf, banks_binary); }
 
-  SECTION("Checking data") { check_banks<0>(banks_mdf, banks_binary); }
+  SECTION("Checking data") { check_banks(banks_mdf, banks_binary); }
 }
 
 // Main test case, multiple bank types are checked
@@ -250,8 +269,8 @@ TEMPLATE_TEST_CASE(
   auto banks_mep = mep_banks(mep_slices, TestType::BT, 0);
   auto banks_binary = binary->banks(TestType::BT, slice_binary);
 
-  SECTION("Checking offsets") { check_banks<1>(banks_mep, banks_binary); }
+  SECTION("Checking offsets") { check_offsets(banks_mep, banks_binary); }
 
-  SECTION("Checking data") { check_banks<0>(banks_mep, banks_binary); }
+  SECTION("Checking data") { check_banks(banks_mep, banks_binary); }
 
 }

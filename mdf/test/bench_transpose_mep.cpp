@@ -88,6 +88,7 @@ int main(int argc, char* argv[])
        return {std::lround(average_event_size * pf * bank_size_fudge_factor * kB), pf};
       };
       slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(n_meps, size_fun);
+      blocks.resize(mep_header.n_blocks);
     }
 
     // Fill blocks

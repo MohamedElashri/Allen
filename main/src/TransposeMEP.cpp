@@ -89,7 +89,7 @@ size_t MEP::allen_offsets(::Slices& slices,
       for (size_t i = event_start; i < event_end; ++i) {
         // Anticipate offset structure already here, i.e. don't assign to the first one
         auto idx = i - event_start + 1;
-        auto& event_offsets = std::get<1>(slices[allen_type][slice_index]);
+        auto& event_offsets = std::get<2>(slices[allen_type][slice_index]);
 
         // Allen raw bank format has the sourceID followed by the raw bank data
         event_offsets[idx] += sizeof(uint32_t) + block_header.sizes[i];
@@ -103,7 +103,7 @@ size_t MEP::allen_offsets(::Slices& slices,
   for (size_t lhcb_type = 0; lhcb_type < bank_ids.size(); ++lhcb_type) {
     auto allen_type = bank_ids[lhcb_type];
     if (allen_type != -1) {
-      auto& [slice, event_offsets, offsets_size] = slices[allen_type][slice_index];
+      auto& [slice, slice_size, event_offsets, offsets_size] = slices[allen_type][slice_index];
       event_offsets[0] = 0;
       auto preamble_words = 2 + banks_count[lhcb_type];
       for (size_t i = 1; i <= (event_end - event_start) && i <= n_frag; ++i) {
@@ -113,7 +113,7 @@ size_t MEP::allen_offsets(::Slices& slices,
         event_offsets[i] += preamble_words * sizeof(uint32_t) + event_offsets[i - 1];
 
         // Check for sufficient space
-        if (event_offsets[i] > slice.size()) {
+        if (event_offsets[i] > slice_size) {
           n_frag = i;
           break;
         }
@@ -125,12 +125,97 @@ size_t MEP::allen_offsets(::Slices& slices,
   for (size_t lhcb_type = 0; lhcb_type < bank_ids.size(); ++lhcb_type) {
     auto allen_type = bank_ids[lhcb_type];
     if (allen_type != -1) {
-      auto& [slice, event_offsets, offsets_size] = slices[allen_type][slice_index];
+      auto& offsets_size = std::get<3>(slices[allen_type][slice_index]);
       offsets_size = n_frag + 1;
     }
   }
   return n_frag;
 }
+
+std::tuple<bool, bool, size_t> MEP::mep_offsets(
+  ::Slices& slices,
+  int const slice_index,
+  std::vector<int> const& bank_ids,
+  std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  EventIDs& event_ids,
+  EB::Header const& mep_header,
+  MEP::Blocks const& blocks,
+  std::tuple<size_t, size_t> const& interval) {
+
+  auto [event_start, event_end] = interval;
+
+  unsigned char prev_type = 0;
+  size_t offset_index = 0;
+  for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
+    auto const& [block_header, block_data] = blocks[i_block];
+    auto lhcb_type = block_header.types[0];
+    auto allen_type = bank_ids[lhcb_type];
+    auto n_blocks = banks_count[lhcb_type];
+
+    // Decode ODIN banks
+    if (lhcb_type == LHCb::RawBank::ODIN) {
+      // decode ODIN bank to obtain run and event numbers
+      auto odin_version = mep_header.versions[i_block];
+      uint fragment_offset = 0;
+      for (uint i_event = 0; i_event < event_end; ++i_event) {
+        if (i_event >= event_start) {
+          auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + fragment_offset);
+          auto odin = MDF::decode_odin(odin_version, odin_data);
+          event_ids.emplace_back(odin.run_number, odin.event_number);
+        }
+        fragment_offset += block_header.sizes[i_event];
+      }
+    }
+
+    if (allen_type != -1) {
+      auto& [spans, data_size, event_offsets, offsets_size] = slices[allen_type][slice_index];
+
+      // Calculate block offset and size
+      size_t interval_offset = 0, interval_size = 0;
+      for (size_t i = 0; i < event_start; ++i) {
+        interval_offset += block_header.sizes[i];
+      }
+      for (size_t i = event_start; i < event_end; ++i) {
+        interval_size += block_header.sizes[i];
+      }
+
+      // Calculate offsets
+      if (lhcb_type != prev_type) {
+        event_offsets[0] = banks_count[lhcb_type];
+        event_offsets[1] = event_end - event_start;
+        event_offsets[2 + n_blocks] = 0;
+        offset_index = 0;
+        prev_type = lhcb_type;
+      }
+
+      // Store source ID
+      event_offsets[2 + offset_index] = mep_header.source_ids[i_block];
+
+      // Initialize the first offsets using the block sizes,
+      if (offset_index < banks_count[lhcb_type] - 1) {
+        event_offsets[2 + n_blocks + offset_index + 1] = event_offsets[2 + n_blocks + offset_index] + interval_size;
+      }
+
+      // Fill fragment offsets
+      size_t oi = 0, idx = 0;
+      for (size_t i = event_start; i < event_end; ++i) {
+        idx = i - event_start + 1;
+        oi = 2 + n_blocks * (1 + idx) + offset_index;
+        event_offsets[oi] = event_offsets[oi - n_blocks] + block_header.sizes[i];
+      }
+      // Update offsets_size
+      offsets_size = oi;
+
+      // Store block span for this interval
+      spans.emplace_back(const_cast<char*>(block_data.data()) + interval_offset, interval_size);
+      data_size += interval_size;
+
+      ++offset_index;
+    }
+  }
+  return {true, false, event_end - event_start};
+}
+
 
 bool MEP::transpose_event(
   ::Slices& slices,
@@ -175,8 +260,8 @@ bool MEP::transpose_event(
       }
 
       auto allen_type = bank_ids[bank_type];
-      auto& slice = std::get<0>(slices[allen_type][slice_index]);
-      auto const& event_offsets = std::get<1>(slices[allen_type][slice_index]);
+      auto& slice = std::get<0>(slices[allen_type][slice_index])[0];
+      auto const& event_offsets = std::get<2>(slices[allen_type][slice_index]);
 
       for (size_t i_event = start_event; i_event < end_event && i_event < block_header.n_frag; ++i_event) {
         // Three things to write for a new set of banks:

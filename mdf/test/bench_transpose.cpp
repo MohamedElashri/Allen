@@ -70,23 +70,10 @@ int main(int argc, char* argv[])
   }
 
   // Transposed slices
-  Slices slices;
-
-  // Allocate memory for transposition
-  for (auto bank_type : bank_types) {
-    auto ib = to_integral<BankTypes>(bank_type);
-    // Fudge with extra 20% memory
-    auto& banks_slices = slices[ib];
-    banks_slices.reserve(n_slices);
-    for (size_t i = 0; i < n_slices; ++i) {
-      auto* events_mem = static_cast<char*>(malloc(buffer_size));
-      auto* offsets_mem = static_cast<uint*>(malloc((n_events + 1) * sizeof(uint)));
-
-      offsets_mem[0] = 0;
-      banks_slices.emplace_back(
-        gsl::span<char> {events_mem, buffer_size}, gsl::span<uint> {offsets_mem, n_events + 1}, 1);
-    }
-  }
+  auto size_fun = [buffer_size, n_events] (BankTypes) -> std::tuple<size_t, size_t> {
+                    return {buffer_size, n_events};
+                  };
+  Slices slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(n_slices, size_fun);
 
   Timer t;
 

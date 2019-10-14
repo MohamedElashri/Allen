@@ -33,10 +33,6 @@ namespace {
   using namespace Allen::Units;
 } // namespace
 
-// A slice contains transposed bank data, offsets to the start of each
-// set of banks and the number of sets of banks
-using Slice = std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>;
-
 namespace MEP {
 
   using SourceOffsets = std::vector<std::vector<uint32_t>>;
@@ -70,6 +66,15 @@ size_t allen_offsets(::Slices& slices,
                      std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
                      Blocks const& blocks,
                      std::tuple<size_t, size_t> const& interval);
+
+std::tuple<bool, bool, size_t> mep_offsets(::Slices& slices,
+                                           int const slice_index,
+                                           std::vector<int> const& bank_ids,
+                                           std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+                                           EventIDs& event_ids,
+                                           EB::Header const& mep_header,
+                                           MEP::Blocks const& blocks,
+                                           std::tuple<size_t, size_t> const& interval);
 
 /**
  * @brief      Transpose events to Allen layout

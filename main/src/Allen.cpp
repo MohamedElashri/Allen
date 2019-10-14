@@ -80,7 +80,7 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
     zmq::poll(&items[0], 1, 0);
 
     if (items[0].revents & zmq::POLLIN) {
-      auto msg = zmqSvc().receive<string>(control);
+      auto msg = zmqSvc().receive<std::string>(control);
       if (msg == "DONE") {
         break;
       }
@@ -124,9 +124,9 @@ void run_stream(
   uint n_reps,
   bool do_check,
   bool cpu_offload,
-  string folder_name_imported_forward_tracks)
+  std::string folder_name_imported_forward_tracks)
 {
-  auto make_control = [thread_id](string suffix = string {}) {
+  auto make_control = [thread_id](std::string suffix = std::string {}) {
     zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
     zmq::setsockopt(control, zmq::LINGER, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds {50});
@@ -182,10 +182,10 @@ void run_stream(
 
     n.reset();
 
-    string command;
+    std::string command;
     std::optional<size_t> idx;
     if (items[0].revents & zmq::POLLIN) {
-      command = zmqSvc().receive<string>(control);
+      command = zmqSvc().receive<std::string>(control);
       if (command == "DONE") {
         break;
       }
@@ -202,7 +202,7 @@ void run_stream(
       auto vp_banks = input_provider->banks(BankTypes::VP, *idx);
       // Not very clear, but the number of event offsets is the number of filled events.
       // NOTE: if the slice is empty, there might be one offset of 0
-      uint n_events = static_cast<uint>(std::get<1>(vp_banks).size() - 1);
+      uint n_events = static_cast<uint>(std::get<2>(vp_banks).size() - 1);
       wrapper->run_stream(
         stream_id,
         {std::move(vp_banks),
@@ -226,7 +226,7 @@ void run_stream(
         // CheckerInvoker. The main thread will send the folder to
         // only one stream at a time and will block until it receives
         // the message that informs it the checker is done.
-        auto mc_folder = zmqSvc().receive<string>(*check_control);
+        auto mc_folder = zmqSvc().receive<std::string>(*check_control);
         auto mask = wrapper->reconstructed_events(stream_id);
         auto mc_events = checker_invoker->load(mc_folder, events, mask);
 
@@ -288,7 +288,7 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
 /**
  * @brief      Main entry point
  *
- * @param      {key : value} command-line arguments as strings
+ * @param      {key : value} command-line arguments as std::strings
  * @param      IUpdater instance
  *
  * @return     int
@@ -319,8 +319,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   int mpi_window_size;
   size_t mpi_number_of_slices;
 
-  string mdf_input;
-  string mep_input;
+  std::string mdf_input;
+  std::string mep_input;
   int device_id = 0;
   int cpu_offload = 1;
 
@@ -507,7 +507,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   }
   else {
     // The binary input provider expects the folders for the bank types as connections
-    vector<string> connections = {
+    vector<std::string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
     input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps);
@@ -652,7 +652,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     for (size_t i = 0; i < number_of_threads; ++i) {
       if (items[n_io + i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(streams[i]);
-        auto msg = zmqSvc().receive<string>(socket);
+        auto msg = zmqSvc().receive<std::string>(socket);
         assert(msg == "PROCESSED");
         auto slice_index = zmqSvc().receive<size_t>(socket);
         n_events_processed += events_in_slice[slice_index];
@@ -709,7 +709,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     for (size_t i = 0; i < number_of_threads; ++i) {
       if (items[n_io + i].revents & ZMQ_POLLIN) {
         auto& socket = std::get<1>(streams[i]);
-        auto msg = zmqSvc().receive<string>(socket);
+        auto msg = zmqSvc().receive<std::string>(socket);
         assert(msg == "READY");
         auto success = zmqSvc().receive<bool>(socket);
         stream_ready[i] = success;
@@ -753,7 +753,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     for (size_t i = 0; i < n_io; ++i) {
       if (items[i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(io_workers[i]);
-        auto msg = zmqSvc().receive<string>(socket);
+        auto msg = zmqSvc().receive<std::string>(socket);
         if (msg == "SLICE") {
           slice_index = zmqSvc().receive<size_t>(socket);
           auto good = zmqSvc().receive<bool>(socket);
