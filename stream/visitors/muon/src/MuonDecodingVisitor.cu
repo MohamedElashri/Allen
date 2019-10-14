@@ -11,8 +11,8 @@ void SequenceVisitor::set_arguments_size<muon_decoding_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  arguments.set_size<dev_muon_raw>(std::get<0>(runtime_options.host_muon_events).size_bytes());
-  arguments.set_size<dev_muon_raw_offsets>(std::get<1>(runtime_options.host_muon_events).size_bytes());
+  arguments.set_size<dev_muon_raw>(std::get<1>(runtime_options.host_muon_events));
+  arguments.set_size<dev_muon_raw_offsets>(std::get<2>(runtime_options.host_muon_events).size_bytes());
   arguments.set_size<dev_muon_raw_to_hits>(1);
   arguments.set_size<dev_muon_hits>(host_buffers.host_number_of_selected_events[0]);
 }
@@ -38,18 +38,10 @@ void SequenceVisitor::visit<muon_decoding_t>(
     sizeof(muonRawToHits),
     cudaMemcpyHostToDevice,
     cuda_stream));
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_muon_raw>(),
-    std::get<0>(runtime_options.host_muon_events).begin(),
-    std::get<0>(runtime_options.host_muon_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_muon_raw_offsets>(),
-    std::get<1>(runtime_options.host_muon_events).begin(),
-    std::get<1>(runtime_options.host_muon_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
+
+  data_to_device<dev_muon_raw, dev_muon_raw_offsets>
+    (arguments, runtime_options.host_muon_events, cuda_stream);
+
   state.set_opts(
     host_buffers.host_number_of_selected_events[0],
     Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters,

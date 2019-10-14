@@ -269,8 +269,9 @@ __global__ void estimate_input_size_mep(
   for (int raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks;
        raw_bank_number += blockDim.y) {
     // Read raw bank
-    auto source_id = dev_raw_input_offsets[raw_bank_number + 2];
-    const auto raw_bank = VeloRawBank(source_id, dev_raw_input + 2 + number_of_raw_banks * (1 + selected_event_number) + raw_bank_number);
+    auto const source_id = dev_raw_input_offsets[raw_bank_number + 2];
+    auto const fragment_offset = dev_raw_input_offsets[2 + number_of_raw_banks * (1 + selected_event_number) + raw_bank_number];
+    VeloRawBank const raw_bank{source_id, dev_raw_input + fragment_offset};
     estimate_raw_bank_size(estimated_input_size, cluster_candidates, dev_velo_candidate_ks,
                            event_candidate_num, raw_bank_number, raw_bank);
 

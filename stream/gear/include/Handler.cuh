@@ -131,3 +131,58 @@ static Handler<R, T...> make_handler(const char* name, R(f)(T...))
 {
   return Handler<R, T...> {name, f};
 }
+
+/**
+ * @brief      Helper to dispatch to either of two algorithms
+ *
+ * @return     return type
+ */
+#define XOR_ALGORITHM(TRUE_ALG, FALSE_ALG, EXPOSED_TYPE_NAME)           \
+  struct EXPOSED_TYPE_NAME {                                            \
+  constexpr static auto name {#EXPOSED_TYPE_NAME};                      \
+    static_assert(std::is_same<TRUE_ALG::Arguments, FALSE_ALG::Arguments>::value, \
+                  "true and false algorithms must have the same arguments"); \
+    using Arguments = TRUE_ALG::Arguments;                              \
+    using arguments_t = ArgumentRefManager<Arguments>;                  \
+                                                                        \
+    std::unique_ptr<TRUE_ALG> true_algorithm;                           \
+    std::unique_ptr<FALSE_ALG> false_algorithm;                         \
+                                                                        \
+    template<typename... Args> EXPOSED_TYPE_NAME(Args... args)          \
+      : true_algorithm{new TRUE_ALG(args...)},                          \
+        false_algorithm{new FALSE_ALG(args...)} {}                      \
+                                                                        \
+    void set_opts(                                                      \
+      bool cond,                                                        \
+      const dim3& param_num_blocks,                                     \
+      const dim3& param_num_threads,                                    \
+      cudaStream_t& param_stream,                                       \
+      const unsigned param_shared_memory_size = 0)                      \
+    {                                                                   \
+      if (cond) {                                                       \
+        true_algorithm->handler.set_opts(param_num_blocks, param_num_threads,      \
+                                         param_stream, param_shared_memory_size);  \
+      } else {                                                                     \
+        false_algorithm->handler.set_opts(param_num_blocks, param_num_threads,     \
+                                          param_stream, param_shared_memory_size); \
+      }                                                                            \
+    }                                                                   \
+                                                                        \
+    template<typename... T>                                             \
+    void set_arguments(bool cond, T... param_arguments)                 \
+    {                                                                   \
+      if (cond) {                                                       \
+        true_algorithm->handler.set_arguments(param_arguments...);      \
+      } else {                                                          \
+        false_algorithm->handler.set_arguments(param_arguments...);     \
+      }                                                                 \
+    }                                                                   \
+                                                                        \
+    void invoke(bool cond) {                                            \
+      if (cond) {                                                       \
+        true_algorithm->handler.invoke();                               \
+      } else {                                                          \
+        false_algorithm->handler.invoke();                              \
+      }                                                                 \
+    }                                                                   \
+  };

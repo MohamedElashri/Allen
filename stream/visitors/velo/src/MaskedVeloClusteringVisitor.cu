@@ -21,8 +21,9 @@ void SequenceVisitor::visit<velo_masked_clustering_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
+  state.set_opts(runtime_options.mep_layout, dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
+    runtime_options.mep_layout,
     arguments.offset<dev_velo_raw_input>(),
     arguments.offset<dev_velo_raw_input_offsets>(),
     arguments.offset<dev_estimated_input_size>(),
@@ -37,7 +38,7 @@ void SequenceVisitor::visit<velo_masked_clustering_t>(
     constants.dev_velo_sp_fx.data(),
     constants.dev_velo_sp_fy.data());
 
-  state.invoke();
+  state.invoke(runtime_options.mep_layout);
 
   // std::vector<uint> estimated_input_size (arguments.size<dev_estimated_input_size>() >> 2);
   // std::vector<uint> module_cluster_num (arguments.size<dev_module_cluster_num>() >> 2);
