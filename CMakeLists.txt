@@ -477,11 +477,12 @@ endforeach()
 # common libraries
 add_library(Common STATIC ${common_sources})
 
-if(__APPLE__)
-find_package(Boost COMPONENTS filesystem)
-target_link_libraries(Common mdf boost_filesystem)
+if(APPLE)
+  find_package(Boost COMPONENTS filesystem)
+  target_include_directories(Common SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
+  target_link_libraries(Common mdf ${Boost_LIBRARIES})
 else()
-target_link_libraries(Common mdf stdc++fs)
+  target_link_libraries(Common mdf stdc++fs)
 endif()
 
 if(TARGET_DEVICE STREQUAL "CPU")
