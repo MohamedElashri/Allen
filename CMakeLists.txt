@@ -478,6 +478,7 @@ endforeach()
 add_library(Common STATIC ${common_sources})
 
 if(__APPLE__)
+find_package(Boost COMPONENTS filesystem)
 target_link_libraries(Common mdf boost_filesystem)
 else()
 target_link_libraries(Common mdf stdc++fs)
