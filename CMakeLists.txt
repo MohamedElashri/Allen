@@ -476,7 +476,12 @@ endforeach()
 
 # common libraries
 add_library(Common STATIC ${common_sources})
+
+if(__APPLE__)
+target_link_libraries(Common mdf boost_filesystem)
+else()
 target_link_libraries(Common mdf stdc++fs)
+endif()
 
 if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${common_cuda_sources} PROPERTIES LANGUAGE CXX)

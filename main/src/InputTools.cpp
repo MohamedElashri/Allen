@@ -1,11 +1,15 @@
 #include <regex>
-#include <filesystem>
-
+#include <unordered_map>
 #include "InputTools.h"
 #include "Common.h"
-#include <unordered_map>
-namespace {
 
+#ifdef __APPLE__
+#include <boost/filesystem.hpp>
+#else
+#include <filesystem>
+#endif
+
+namespace {
   // Factory for filename checking: a regex and a predicate on the its matches
   using factory = std::tuple<std::reference_wrapper<const std::regex>, std::function<bool(const std::smatch&)>>;
 
@@ -51,7 +55,11 @@ namespace {
     return std::less<EventID> {}(name_to_number(lhs), name_to_number(rhs));
   };
 
+#ifdef __APPLE__
+  namespace fs = boost::filesystem;
+#else
   namespace fs = std::filesystem;
+#endif
 } // namespace
 
 /**
