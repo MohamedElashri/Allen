@@ -1,4 +1,6 @@
 #include <regex>
+#include <filesystem>
+
 #include "InputTools.h"
 #include "Common.h"
 #include <unordered_map>
@@ -49,6 +51,7 @@ namespace {
     return std::less<EventID> {}(name_to_number(lhs), name_to_number(rhs));
   };
 
+  namespace fs = std::filesystem;
 } // namespace
 
 /**
@@ -129,42 +132,35 @@ void appendFileToVector(const std::string& filename, std::vector<char>& events, 
 std::vector<std::string> list_folder(const std::string& foldername, const std::string& extension)
 {
   std::vector<std::string> folderContents;
-  DIR* dir;
-  struct dirent* ent;
   std::string suffix = std::string {"."} + extension;
-  // Find out folder contents
-  if ((dir = opendir(foldername.c_str())) != NULL) {
-    /* print all the files and directories within directory */
-    while ((ent = readdir(dir)) != NULL) {
-      std::string filename = ent->d_name;
-      if (filename != "." && filename != "..") {
-        folderContents.emplace_back(filename);
-      }
-    }
-    closedir(dir);
-    if (folderContents.size() == 0) {
-      error_cout << "No " << extension << " files found in folder " << foldername << std::endl;
-      exit(-1);
-    }
-    else if (
-      !check_names(folderContents, check_geom()) && !check_names(folderContents, check_bin(1)) &&
-      !check_names(folderContents, check_bin(2)) && !check_names(folderContents, check_mdf())) {
-      error_cout << "Not all files in the folder have the correct and the same filename format." << std::endl;
-      if (extension == ".bin") {
-        error_cout << "All files should be named N.bin or all files should be named N_M.bin" << std::endl;
-      }
-      else {
-        error_cout << "All files should end with .mdf" << std::endl;
-      }
-      exit(-1);
-    }
-    else {
-      verbose_cout << "Found " << folderContents.size() << " binary files" << std::endl;
-    }
-  }
-  else {
+
+  if (!fs::exists(foldername)) {
     error_cout << "Folder " << foldername << " could not be opened" << std::endl;
     exit(-1);
+  }
+
+  for (auto const& p : fs::directory_iterator(foldername)) {
+    folderContents.emplace_back(p.path().filename().string());
+  }
+
+  if (folderContents.size() == 0) {
+    error_cout << "No " << extension << " files found in folder " << foldername << std::endl;
+    exit(-1);
+  }
+  else if (
+    !check_names(folderContents, check_geom()) && !check_names(folderContents, check_bin(1)) &&
+    !check_names(folderContents, check_bin(2)) && !check_names(folderContents, check_mdf())) {
+    error_cout << "Not all files in the folder have the correct and the same filename format." << std::endl;
+    if (extension == ".bin") {
+      error_cout << "All files should be named N.bin or all files should be named N_M.bin" << std::endl;
+    }
+    else {
+      error_cout << "All files should end with .mdf" << std::endl;
+    }
+    exit(-1);
+  }
+  else {
+    verbose_cout << "Found " << folderContents.size() << " binary files" << std::endl;
   }
 
   // Sort folder contents (file names)

@@ -476,7 +476,7 @@ endforeach()
 
 # common libraries
 add_library(Common STATIC ${common_sources})
-target_link_libraries(Common mdf)
+target_link_libraries(Common mdf stdc++fs)
 
 if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${common_cuda_sources} PROPERTIES LANGUAGE CXX)
