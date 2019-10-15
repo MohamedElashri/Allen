@@ -68,7 +68,7 @@ struct MEPProviderConfig {
 
   bool non_stop = true;
 
-  bool output_mep = false;
+  bool transpose_mep = true;
 };
 
 /**
@@ -133,29 +133,6 @@ public:
     // slice into account
     events_per_slice = this->events_per_slice();
 
-    // Allocate slice memory that will contain transposed banks ready
-    // for processing by the Allen kernels
-    auto size_fun = [this, events_per_slice](BankTypes bank_type) -> std::tuple<size_t, size_t> {
-      auto it = BankSizes.find(bank_type);
-      auto ib = to_integral<BankTypes>(bank_type);
-      if (it == end(BankSizes)) {
-        throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
-      }
-      // In case of direct MEP output, no memory should be allocated.
-      if (m_config.output_mep) {
-        auto it = std::find(m_bank_ids.begin(), m_bank_ids.end(), to_integral(bank_type));
-        auto lhcb_type = std::distance(m_bank_ids.begin(), it);
-        auto n_blocks = m_banks_count[lhcb_type];
-        // 0 to not allocate fragment memory; -1 to correct for +1 in allocate_slices: re-evaluate
-        return {0, 2 + n_blocks + (1 + events_per_slice) * (1 + n_blocks) - 2};
-      } else {
-        return {std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB), events_per_slice};
-      }
-
-    };
-    m_slices = allocate_slices<Banks...>(n_slices, size_fun);
-    m_slice_to_buffer = std::vector(n_slices, -1);
-
     // Initialize the current input filename
     m_current = m_connections.begin();
 
@@ -170,18 +147,11 @@ public:
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
 
-    // Start prefetch thread and count bank types once a single buffer
-    // is available
-    {
-      // aquire lock
-      std::unique_lock<std::mutex> lock{m_mpi_mutex};
-
-      // start MPI thread
-      if (m_config.use_mpi) {
-        m_mpi_thread = std::thread{&MEPProvider::mpi_read, this};
-      } else {
-        m_mpi_thread = std::thread{&MEPProvider::mep_read, this};
-      }
+    // start MPI receive or MEP reading thread
+    if (m_config.use_mpi) {
+      m_mpi_thread = std::thread{&MEPProvider::mpi_read, this};
+    } else {
+      m_mpi_thread = std::thread{&MEPProvider::mep_read, this};
     }
 
     // Sanity check on the number of buffers and threads
@@ -332,7 +302,7 @@ public:
 
         // If MEPs are not transposed and the respective buffer is no
         // longer in use, set it to writable
-        if (m_config.output_mep && status.work_counter == 0
+        if (!m_config.transpose_mep && status.work_counter == 0
             && (std::find(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), i_buffer)
                 == m_slice_to_buffer.end())) {
           status.writable = true;
@@ -394,6 +364,29 @@ private:
     }
 
     std::tie(count_success, m_banks_count) = MEP::fill_counts(mep_header, mpi_slice);
+
+    // Allocate slice memory that will contain transposed banks ready
+    // for processing by the Allen kernels
+    auto size_fun = [this, eps](BankTypes bank_type) -> std::tuple<size_t, size_t> {
+      auto it = BankSizes.find(bank_type);
+      auto ib = to_integral<BankTypes>(bank_type);
+      if (it == end(BankSizes)) {
+        throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
+      }
+      // In case of direct MEP output, no memory should be allocated.
+      if (!m_config.transpose_mep) {
+        auto it = std::find(m_bank_ids.begin(), m_bank_ids.end(), to_integral(bank_type));
+        auto lhcb_type = std::distance(m_bank_ids.begin(), it);
+        auto n_blocks = m_banks_count[lhcb_type];
+        // 0 to not allocate fragment memory; -1 to correct for +1 in allocate_slices: re-evaluate
+        return {0, 2 + n_blocks + (1 + eps) * (1 + n_blocks) - 2};
+      } else {
+        return {std::lround(it->second * eps * bank_size_fudge_factor * kB), eps};
+      }
+
+    };
+    m_slices = allocate_slices<Banks...>(this->n_slices(), size_fun);
+    m_slice_to_buffer = std::vector(this->n_slices(), -1);
 
     if (!count_success) {
       error_cout << "Failed to determine bank counts\n";
@@ -538,7 +531,7 @@ private:
       // Fill blocks
       MEP::find_blocks(mep_header, buffer_span, blocks);
 
-      if (!m_config.output_mep) {
+      if (m_config.transpose_mep) {
         // Fill fragment offsets
         MEP::fragment_offsets(blocks, input_offsets);
       }
@@ -666,7 +659,7 @@ private:
       MEP::find_blocks(mep_header, buffer_span, blocks);
 
       // Fill fragment offsets
-      if (!m_config.output_mep) {
+      if (m_config.transpose_mep) {
         MEP::fragment_offsets(blocks, input_offsets);
       }
 
@@ -782,24 +775,13 @@ private:
 
       // Reset the slice
       auto& event_ids = m_event_ids[*slice_index];
-      reset_slice<Banks...>(m_slices, *slice_index, event_ids, m_config.output_mep);
+      reset_slice<Banks...>(m_slices, *slice_index, event_ids, !m_config.transpose_mep);
 
       // MEP data
       auto const& [mep_header, mep_data, blocks, source_offsets, slice_size] = m_net_slices[i_buffer];
 
       // Transpose or calculate offsets
-      if (m_config.output_mep) {
-        // Calculate fragment offsets in MEP per sub-detector
-        std::tie(good, transpose_full, n_transposed) = MEP::mep_offsets(m_slices,
-                                                                        *slice_index,
-                                                                        m_bank_ids,
-                                                                        m_banks_count,
-                                                                        event_ids,
-                                                                        mep_header,
-                                                                        blocks,
-                                                                        interval);
-        this->debug_output("Calculated MEP offsets for slice " + std::to_string(*slice_index), thread_id);
-      } else {
+      if (m_config.transpose_mep) {
         // Transpose the events into the slice
         std::tie(good, transpose_full, n_transposed) = MEP::transpose_events(m_slices,
                                                                              *slice_index,
@@ -813,6 +795,17 @@ private:
         this->debug_output("Transposed slice " + std::to_string(*slice_index) + "; good: " + std::to_string(good)
                            + ";full: " + std::to_string(transpose_full) + "; n_transposed:  "
                            + std::to_string(n_transposed), thread_id);
+      } else {
+        // Calculate fragment offsets in MEP per sub-detector
+        std::tie(good, transpose_full, n_transposed) = MEP::mep_offsets(m_slices,
+                                                                        *slice_index,
+                                                                        m_bank_ids,
+                                                                        m_banks_count,
+                                                                        event_ids,
+                                                                        mep_header,
+                                                                        blocks,
+                                                                        interval);
+        this->debug_output("Calculated MEP offsets for slice " + std::to_string(*slice_index), thread_id);
       }
 
       if (m_read_error || !good) {
@@ -851,7 +844,7 @@ private:
 
           // All events in this buffer have been fully transposed so
           // it can be re-used
-          if (!m_config.output_mep) {
+          if (m_config.transpose_mep) {
             status.writable = true;
             // Notify read thread that a buffer is available
             m_mpi_cond.notify_one();
