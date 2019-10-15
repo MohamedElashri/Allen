@@ -79,7 +79,7 @@ struct HostBuffers {
   uint* host_number_of_svs;
   uint* host_sv_offsets;
   VertexFit::TrackMVAVertex* host_secondary_vertices;
-  
+
   // Selections
   bool* host_one_track_decisions;
   bool* host_two_track_decisions;

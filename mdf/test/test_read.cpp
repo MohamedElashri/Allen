@@ -87,6 +87,6 @@ int main(int argc, char* argv[])
     cout << "\n";
   }
 
- error:
+error:
   input.close();
 }

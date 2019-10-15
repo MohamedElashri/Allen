@@ -108,7 +108,7 @@ __device__ void track_forwarding(
     // Condition for finding a h2
     if (best_h2 != -1) {
       // Mark h2 as used
-      assert(best_h2 < (int)number_of_hits);
+      assert(best_h2 < (int) number_of_hits);
       hit_used[best_h2] = true;
 
       // Update the tracks to follow, we'll have to follow up

@@ -105,7 +105,7 @@ __global__ void velo_pv_ip(
     dev_kalman_velo_states + sizeof(float) * event_tracks_offset, velo_tracks.total_number_of_tracks};
 
   cuda::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-                                        *(dev_number_of_multi_fit_vertices + event_number)};
+                                         *(dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event
   auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);

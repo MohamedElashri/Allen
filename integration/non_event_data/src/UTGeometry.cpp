@@ -120,7 +120,7 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
   // Populate device constant into global memory
   std::tuple numbers {
     std::tuple {std::cref(host_unique_x_sector_layer_offsets),
-           std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
+                std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
     std::tuple {std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
     std::tuple {std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
 

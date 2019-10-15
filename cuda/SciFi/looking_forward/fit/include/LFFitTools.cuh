@@ -87,8 +87,7 @@ namespace LookingForward {
     const uint8_t n_coordToFit,
     float trackParameters[SciFi::Tracking::nTrackParams]);
 
-  __device__ void
-  removeOutlier_proto(int* coordToFit, uint8_t& n_coordToFit, const int worst);
+  __device__ void removeOutlier_proto(int* coordToFit, uint8_t& n_coordToFit, const int worst);
 
   __device__ bool fitYProjection_proto(
     const MiniState& velo_state,

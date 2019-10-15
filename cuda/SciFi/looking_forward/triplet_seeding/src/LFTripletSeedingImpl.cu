@@ -166,11 +166,13 @@ __device__ void lf_triplet_seeding_impl(
             }
           }
 
-          if (best_k != -1 && best_chi2 < best_combined[h1_rel + section * LookingForward::maximum_number_of_candidates].chi2) {
+          if (
+            best_k != -1 &&
+            best_chi2 < best_combined[h1_rel + section * LookingForward::maximum_number_of_candidates].chi2) {
             best_combined[h1_rel + section * LookingForward::maximum_number_of_candidates] =
               SciFi::CombinedValue {best_chi2,
-                (int16_t)(i * LookingForward::tile_size + (best_k % LookingForward::tile_size)),
-                (int16_t)(j * LookingForward::tile_size + (best_k / LookingForward::tile_size))};
+                                    (int16_t)(i * LookingForward::tile_size + (best_k % LookingForward::tile_size)),
+                                    (int16_t)(j * LookingForward::tile_size + (best_k / LookingForward::tile_size))};
           }
         }
       }

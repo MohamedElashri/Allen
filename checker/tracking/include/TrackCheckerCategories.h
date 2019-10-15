@@ -30,7 +30,8 @@ namespace Categories {
      TrackEffReport({
        "Electrons long fromB eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f && mcp.pt > 400.f;
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
@@ -54,7 +55,8 @@ namespace Categories {
      TrackEffReport({
        "Electrons long fromD eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f && mcp.pt > 400.f;
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
@@ -96,7 +98,8 @@ namespace Categories {
      TrackEffReport({
        "Electrons long strange eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromStrangeDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f && mcp.pt > 400.f;
+         return mcp.isLong && mcp.fromStrangeDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
@@ -140,7 +143,8 @@ namespace Categories {
      TrackEffReport({
        "Not electron long fromB eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f && mcp.pt > 400.f;
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
@@ -164,7 +168,8 @@ namespace Categories {
      TrackEffReport({
        "Not electron long fromD eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f && mcp.pt > 400.f;
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
@@ -369,19 +374,22 @@ namespace Categories {
     TrackEffReport({
       "Long from D electrons, p > 3 GeV, pt > 0.5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f && mcp.inEta2_5();
+        return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5();
       },
     }),
     TrackEffReport({
       "Long from D, p > 3 GeV, pt > 0.5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f && mcp.inEta2_5();
+        return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5();
       },
     }),
     TrackEffReport({
       "Long from B electrons, p > 3 GeV, pt > 0.5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f && mcp.inEta2_5();
+        return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5();
       },
     }),
     TrackEffReport({
@@ -531,7 +539,8 @@ namespace Categories {
      TrackEffReport({
        "Long from D electrons, p > 3 GeV, pt > 0.5 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f && mcp.inEta2_5();
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+                mcp.inEta2_5();
        },
      }),
      TrackEffReport({

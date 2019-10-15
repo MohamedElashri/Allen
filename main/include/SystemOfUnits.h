@@ -136,8 +136,8 @@ namespace Gaudi {
     //
     // Electric charge [Q]
     //
-    constexpr float eplus = 1.f;             // positron charge
-    constexpr float e_SI = 1.60217733e-19f;  // positron charge in coulomb
+    constexpr float eplus = 1.f;            // positron charge
+    constexpr float e_SI = 1.60217733e-19f; // positron charge in coulomb
     constexpr float coulomb = eplus / e_SI; // coulomb = 6.24150 e+18 * eplus
 
     //

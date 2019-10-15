@@ -155,12 +155,8 @@ __device__ void PredictStateV(
 
 //----------------------------------------------------------------------
 // Predict VELO <-> UT.
-__device__ bool PredictStateVUT(
-  const UT::Consolidated::Hits& hitsUT,
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI);
+__device__ bool
+PredictStateVUT(const UT::Consolidated::Hits& hitsUT, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict UT <-> UT.
@@ -174,19 +170,11 @@ __device__ void PredictStateUT(
 
 //----------------------------------------------------------------------
 // Predict last UT layer <-> start of UTTF.
-__device__ void PredictStateUTFUT(
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI);
+__device__ void PredictStateUTFUT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict UT <-> T precise version(?)
-__device__ void PredictStateUTT(
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI);
+__device__ void PredictStateUTT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict T <-> T.
@@ -200,12 +188,8 @@ __device__ void PredictStateT(
 
 //----------------------------------------------------------------------
 // Predict T(fixed z=7783) <-> first T layer.
-__device__ void PredictStateTFT(
-  const SciFi::Consolidated::Hits& hits,
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI);
+__device__ void
+PredictStateTFT(const SciFi::Consolidated::Hits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict T(fixed z=7783) <-> first T layer.

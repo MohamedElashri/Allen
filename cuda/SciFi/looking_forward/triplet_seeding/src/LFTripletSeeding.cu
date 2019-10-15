@@ -62,8 +62,8 @@ __global__ void lf_triplet_seeding(
         layer_1,
         layer_2,
         dev_scifi_lf_triplet_best + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-                                                      LookingForward::maximum_number_of_candidates *
-                                                      LookingForward::maximum_number_of_triplets_per_h1,
+                                      LookingForward::maximum_number_of_candidates *
+                                      LookingForward::maximum_number_of_triplets_per_h1,
         scifi_lf_candidates,
         z1 - z0,
         z2 - z0,

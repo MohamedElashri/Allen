@@ -37,7 +37,7 @@ void cpu_prefix_sum(
 #ifdef CPU
   _unused(cuda_stream);
   _unused(cuda_generic_event);
-  
+
   host_prefix_sum_buffer = dev_prefix_sum_offset;
 #else
   cudaCheck(cudaMemcpyAsync(

@@ -91,7 +91,8 @@ MCEvents CheckerInvoker::load(
 
     if (!event_mask[i]) {
       non_gec_input.emplace_back(raw_particles, raw_pvs, m_check_events);
-    } else {
+    }
+    else {
       input.emplace_back(raw_particles, raw_pvs, m_check_events);
     }
   }

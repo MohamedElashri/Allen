@@ -11,7 +11,11 @@ PVChecker::PVChecker(CheckerInvoker const* invoker, std::string const& root_file
   m_histos = new PVCheckerHistos {invoker, root_file};
 }
 
-void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, int* number_of_vertex, uint n_selected_events)
+void PVChecker::accumulate(
+  MCEvents const& mc_events,
+  PV::Vertex* rec_vertex,
+  int* number_of_vertex,
+  uint n_selected_events)
 {
   passed += n_selected_events;
 
@@ -202,7 +206,7 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
         double diff_x = itmcl->pMCPV->x - cmc->pMCPV->x;
         double diff_y = itmcl->pMCPV->y - cmc->pMCPV->y;
         double diff_z = itmcl->pMCPV->z - cmc->pMCPV->z;
-        dist = sqrt(diff_x*diff_x + diff_y*diff_y + diff_z*diff_z);
+        dist = sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z);
         itmcl->distToClosestMCPV = dist;
         itmcl->multClosestMCPV = mult;
       }
@@ -318,19 +322,19 @@ void PVChecker::report(size_t) const
 
   info_cout << "REC and MC vertices matched " << ff << std::endl;
   std::printf(
-        "MC PV is reconstructible if at least %i tracks are reconstructed\n\
+    "MC PV is reconstructible if at least %i tracks are reconstructed\n\
 MC PV is isolated if dz to closest reconstructible MC PV > %2.2f mm\n\
 REC and MC vertices matched %s\n\n",
-        nTracksToBeRecble,
-        dzIsolated,
-        ff.c_str());
-  
+    nTracksToBeRecble,
+    dzIsolated,
+    ff.c_str());
+
   printRat("All", sum_nRecMCPV, sum_nMCPV);
   printRat("Isolated", sum_nRecMCPV_isol, sum_nMCPV_isol);
   printRat("Close", sum_nRecMCPV_close, sum_nMCPV_close);
   printRat("False rate", sum_nFalsePV, sum_nRecMCPV + sum_nFalsePV);
   printRat("Real false rate", sum_nFalsePV_real, sum_nRecMCPV + sum_nFalsePV_real);
-  printRat("Clones", 1.0f * sum_clones - sum_norm_clones, sum_norm_clones );
+  printRat("Clones", 1.0f * sum_clones - sum_norm_clones, sum_norm_clones);
   info_cout << std::endl;
 
   m_histos->write();
@@ -372,12 +376,7 @@ void printRat(std::string mes, int a, int b)
   }
   pmes += " : ";
 
-  std::printf(
-        "%s %.3f (%6i/%6i)\n",
-        pmes.c_str(),
-        static_cast<double>(rat),
-        a,
-        b);
+  std::printf("%s %.3f (%6i/%6i)\n", pmes.c_str(), static_cast<double>(rat), a, b);
 }
 
 std::vector<MCPVInfo>::iterator closestMCPV(std::vector<MCPVInfo>& rblemcpv, std::vector<MCPVInfo>::iterator& itmc)

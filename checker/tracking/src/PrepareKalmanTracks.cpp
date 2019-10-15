@@ -269,7 +269,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
       }
 
       // Get kalman filter information.
-      //t.kalman_ip_chi2 = (float) track.ipChi2;
+      // t.kalman_ip_chi2 = (float) track.ipChi2;
       t.z = (float) track.z;
       t.x = (float) track.state[0];
       t.y = (float) track.state[1];
@@ -286,7 +286,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
       t.best_qop = (float) track.best_qop;
       t.p = (float) track.p();
       t.pt = (float) track.pt();
-      
+
       tracks.push_back(t);
 
     } // Track loop.

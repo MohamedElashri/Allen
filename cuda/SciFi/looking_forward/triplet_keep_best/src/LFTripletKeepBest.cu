@@ -24,7 +24,7 @@ __global__ void lf_triplet_keep_best(
 
   // UT consolidated tracks
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
-  const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;        
+  const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
 
   // SciFi hits
   const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
@@ -50,9 +50,11 @@ __global__ void lf_triplet_keep_best(
         best_chi2
           [triplet_seed * LookingForward::maximum_number_of_candidates *
              LookingForward::maximum_number_of_triplets_per_h1 +
-           j] = dev_scifi_lf_triplet_best[(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-               LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 +
-             j].chi2;
+           j] = dev_scifi_lf_triplet_best
+                  [(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
+                     LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 +
+                   j]
+                    .chi2;
       }
     }
 
@@ -71,7 +73,7 @@ __global__ void lf_triplet_keep_best(
       const float chi2 = best_chi2[j];
       if (chi2 < LookingForward::chi2_max_triplet_single) {
         int16_t insert_position = 0;
-        
+
         for (uint16_t k = 0; k < LookingForward::n_triplet_seeds * LookingForward::maximum_number_of_candidates *
                                    LookingForward::maximum_number_of_triplets_per_h1;
              ++k) {
@@ -97,15 +99,16 @@ __global__ void lf_triplet_keep_best(
         const auto triplet_seed =
           k / (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1);
 
-        const auto triplet_element = 
+        const auto triplet_element =
           k % (LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1);
 
         const auto h1_element = k % LookingForward::maximum_number_of_candidates;
 
-        const auto combined_element = dev_scifi_lf_triplet_best[(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-               LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 +
-             triplet_element];
-        
+        const auto combined_element = dev_scifi_lf_triplet_best
+          [(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
+             LookingForward::maximum_number_of_candidates * LookingForward::maximum_number_of_triplets_per_h1 +
+           triplet_element];
+
         // Create triplet candidate with all information we have
         const int current_insert_index = atomicAdd(dev_atomics_scifi + current_ut_track_index, 1);
         assert(current_insert_index < LookingForward::maximum_number_of_candidates_per_ut_track);
@@ -114,12 +117,12 @@ __global__ void lf_triplet_keep_best(
         const uint8_t layer_1 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1];
         const uint8_t layer_2 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
 
-        const uint16_t h0 = (uint16_t) scifi_lf_candidates
-          [layer_0 * LookingForward::maximum_number_of_candidates + combined_element.h0];
+        const uint16_t h0 =
+          (uint16_t) scifi_lf_candidates[layer_0 * LookingForward::maximum_number_of_candidates + combined_element.h0];
         const uint16_t h1 =
           (uint16_t) scifi_lf_candidates[layer_1 * LookingForward::maximum_number_of_candidates + h1_element];
-        const uint16_t h2 = (uint16_t) scifi_lf_candidates
-          [layer_2 * LookingForward::maximum_number_of_candidates + combined_element.h2];
+        const uint16_t h2 =
+          (uint16_t) scifi_lf_candidates[layer_2 * LookingForward::maximum_number_of_candidates + combined_element.h2];
 
         const float x0 = scifi_hits.x0[event_offset + h0];
         const float x1 = scifi_hits.x0[event_offset + h1];

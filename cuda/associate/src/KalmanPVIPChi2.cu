@@ -98,7 +98,7 @@ __global__ void kalman_pv_ipchi2(
   ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
   const bool* event_is_muon = dev_is_muon + event_tracks_offset;
   cuda::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-                                        *(dev_number_of_multi_fit_vertices + event_number)};
+                                         *(dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event.
   auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);

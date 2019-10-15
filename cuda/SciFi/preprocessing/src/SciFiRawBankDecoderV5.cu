@@ -58,7 +58,8 @@ __global__ void scifi_raw_bank_decoder_v5(
   const SciFiGeometry geom {scifi_geometry};
   const auto event = SciFiRawEvent(scifi_events + scifi_event_offsets[selected_event_number]);
 
-  SciFi::Hits hits {scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
+  SciFi::Hits hits {
+    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
   SciFi::HitCount hit_count {scifi_hit_count, event_number};
   const uint number_of_hits_in_event = hit_count.event_number_of_hits();
 
@@ -112,12 +113,6 @@ __global__ void scifi_raw_bank_decoder_v5(
       }
     }
 
-    make_cluster_v5(
-      hit_count.event_offset() + i,
-      geom,
-      cluster_chan,
-      cluster_fraction,
-      pseudoSize,
-      hits);
+    make_cluster_v5(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
   }
 }

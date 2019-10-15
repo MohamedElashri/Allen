@@ -63,7 +63,7 @@ __device__ void process_modules(
 
     // Iterate in modules
     // Load in shared
-    for (int i = threadIdx.x; i < 4; i+=blockDim.x) {
+    for (int i = threadIdx.x; i < 4; i += blockDim.x) {
       const auto module_number = first_module - i - 2;
       module_data[i].hitStart = module_hitStarts[module_number] - hit_offset;
       module_data[i].hitNums = module_hitNums[module_number];

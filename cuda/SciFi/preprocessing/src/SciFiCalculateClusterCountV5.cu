@@ -18,7 +18,7 @@ __global__ void scifi_calculate_cluster_count_v5(
 
   // NO version checking. Be careful, as v5 is assumed.
 
-  for(uint i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x) {
     const uint current_raw_bank = getRawBankIndexOrderedByX(i);
     uint32_t* hits_module;
     const auto rawbank = event.getSciFiRawBank(current_raw_bank);
@@ -30,15 +30,17 @@ __global__ void scifi_calculate_cluster_count_v5(
     for (; it < last; ++it) {     // loop over the clusters
       uint16_t c = *it;
       uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-      if(current_raw_bank < SciFi::Constants::n_consecutive_raw_banks)
+      if (current_raw_bank < SciFi::Constants::n_consecutive_raw_banks)
         hits_module = hit_count.mat_offsets + i;
       else
-        hits_module = hit_count.mat_offsets + SciFiChannelID(ch).correctedUniqueMat() - SciFi::Constants::mat_index_substract;
-      if( !cSize(c) || it+1 == last ) { //No size flag or last cluster
+        hits_module =
+          hit_count.mat_offsets + SciFiChannelID(ch).correctedUniqueMat() - SciFi::Constants::mat_index_substract;
+      if (!cSize(c) || it + 1 == last) { // No size flag or last cluster
         atomicAdd(hits_module, 1);
-      } else { //Flagged or not the last one.
-        unsigned c2 = *(it+1);
-        if( cSize(c2) && getLinkInBank(c) == getLinkInBank(c2) ) {
+      }
+      else { // Flagged or not the last one.
+        unsigned c2 = *(it + 1);
+        if (cSize(c2) && getLinkInBank(c) == getLinkInBank(c2)) {
           unsigned int delta = (cell(c2) - cell(c));
           atomicAdd(hits_module, 1 + (delta - 1) / SciFiRawBankParams::clusterMaxWidth);
           ++it;

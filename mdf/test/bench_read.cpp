@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     input.close();
   }
 
-  if(success) {
+  if (success) {
     t.stop();
     cout << "Filled " << n_filled << " events; " << n_bytes / (1024 * 1024) << " MB\n";
     cout << "Filled " << n_bytes / (1024 * 1024 * t.get()) << " MB/s; " << n_filled / t.get() << " events/s\n";

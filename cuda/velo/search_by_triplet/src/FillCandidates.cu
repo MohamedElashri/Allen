@@ -10,7 +10,7 @@
  * @brief Fills candidates according to the phi window,
  *        with no restriction on the number of candidates.
  *        Returns a tuple<int, int>, with the structure:
- *        
+ *
  *        * first candidate
  *        * size of window
  */
@@ -26,10 +26,12 @@ __device__ std::tuple<int, int> candidate_binary_search(
 
   if (module_number_of_hits > 0) {
     // Do a binary search for the first candidate
-    first_candidate = binary_search_first_candidate(hit_Phis + module_hit_start, module_number_of_hits, h1_phi, phi_window);
+    first_candidate =
+      binary_search_first_candidate(hit_Phis + module_hit_start, module_number_of_hits, h1_phi, phi_window);
     if (first_candidate != -1) {
       // Find number of candidates with a second binary search
-      number_of_candidates = binary_search_second_candidate(hit_Phis + module_hit_start + first_candidate, module_number_of_hits - first_candidate, h1_phi, phi_window);
+      number_of_candidates = binary_search_second_candidate(
+        hit_Phis + module_hit_start + first_candidate, module_number_of_hits - first_candidate, h1_phi, phi_window);
     }
   }
 
@@ -55,23 +57,27 @@ __device__ std::tuple<int, int> candidate_capped_search(
     // Do a binary search for h0 candidates
     const auto candidate_position = binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, h1_phi);
 
-    if (candidate_position < module_number_of_hits
-      && hit_Phis[module_hit_start + candidate_position] > (h1_phi - phi_window)
-      && hit_Phis[module_hit_start + candidate_position] < (h1_phi + phi_window)) {
+    if (
+      candidate_position < module_number_of_hits &&
+      hit_Phis[module_hit_start + candidate_position] > (h1_phi - phi_window) &&
+      hit_Phis[module_hit_start + candidate_position] < (h1_phi + phi_window)) {
 
       first_candidate = candidate_position;
       number_of_candidates = 1;
 
       // Find a maximum of candidates to both sides
-      for (int i=0; i<maximum_candidates_side; ++i) {
+      for (int i = 0; i < maximum_candidates_side; ++i) {
         const auto current_left_candidate = candidate_position - i - 1;
-        if (current_left_candidate >= 0 && hit_Phis[module_hit_start + current_left_candidate] > (h1_phi - phi_window)) {
+        if (
+          current_left_candidate >= 0 && hit_Phis[module_hit_start + current_left_candidate] > (h1_phi - phi_window)) {
           first_candidate = current_left_candidate;
           number_of_candidates++;
         }
 
         const auto current_right_candidate = candidate_position + i + 1;
-        if (current_right_candidate < module_number_of_hits && hit_Phis[module_hit_start + current_right_candidate] < (h1_phi + phi_window)) {
+        if (
+          current_right_candidate < module_number_of_hits &&
+          hit_Phis[module_hit_start + current_right_candidate] < (h1_phi + phi_window)) {
           number_of_candidates++;
         }
       }
@@ -129,12 +135,12 @@ __device__ void fill_candidates_impl(
  * @brief Fills the first candidate and size for each hit in a middle module.
  * @details Considering hits in consecutive modules m0, m1 and m2, for every
  *          hit h1 in module m1, the following structure is created:
- *          
+ *
  *          * h0 first candidate
  *          * h0 number of candidates
  *          * h2 first candidate
  *          * h2 number of candidates
- *          
+ *
  *          These candidates will be then iterated in the seeding step of Sbt.
  */
 __global__ void fill_candidates(

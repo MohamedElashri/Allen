@@ -81,7 +81,8 @@ __global__ void ut_search_windows(
           dev_unique_x_sector_layer_offsets);
 
         // Write the windows in SoA style
-        short* windows_layers = dev_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
+        short* windows_layers =
+          dev_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
 
         const int track_pos = UT::Constants::n_layers * number_of_tracks_event;
         const int layer_pos = layer * number_of_tracks_event + shared_active_tracks[threadIdx.y];
@@ -93,8 +94,10 @@ __global__ void ut_search_windows(
         windows_layers[4 * track_pos + layer_pos] = std::get<8>(candidates) - layer_offset; // right2_group_first
         windows_layers[5 * track_pos + layer_pos] = std::get<1>(candidates) - std::get<0>(candidates); // last_size
         windows_layers[6 * track_pos + layer_pos] = std::get<3>(candidates) - std::get<2>(candidates); // left_size_last
-        windows_layers[7 * track_pos + layer_pos] = std::get<5>(candidates) - std::get<4>(candidates); // right_size_first
-        windows_layers[8 * track_pos + layer_pos] = std::get<7>(candidates) - std::get<6>(candidates); // left2_size_last
+        windows_layers[7 * track_pos + layer_pos] =
+          std::get<5>(candidates) - std::get<4>(candidates); // right_size_first
+        windows_layers[8 * track_pos + layer_pos] =
+          std::get<7>(candidates) - std::get<6>(candidates); // left2_size_last
         windows_layers[9 * track_pos + layer_pos] =
           std::get<9>(candidates) - std::get<8>(candidates); // right2_size_first
 
@@ -140,16 +143,17 @@ __global__ void ut_search_windows(
 
       const int track_pos = UT::Constants::n_layers * number_of_tracks_event;
       const int layer_pos = layer * number_of_tracks_event + shared_active_tracks[threadIdx.y];
-      windows_layers[0 * track_pos + layer_pos] = std::get<0>(candidates) - layer_offset;            // first_candidate
-      windows_layers[1 * track_pos + layer_pos] = std::get<2>(candidates) - layer_offset;            // left_group_first
-      windows_layers[2 * track_pos + layer_pos] = std::get<4>(candidates) - layer_offset;            // right_group_first
-      windows_layers[3 * track_pos + layer_pos] = std::get<6>(candidates) - layer_offset;            // left2_group_first
-      windows_layers[4 * track_pos + layer_pos] = std::get<8>(candidates) - layer_offset;            // right2_group_first
+      windows_layers[0 * track_pos + layer_pos] = std::get<0>(candidates) - layer_offset; // first_candidate
+      windows_layers[1 * track_pos + layer_pos] = std::get<2>(candidates) - layer_offset; // left_group_first
+      windows_layers[2 * track_pos + layer_pos] = std::get<4>(candidates) - layer_offset; // right_group_first
+      windows_layers[3 * track_pos + layer_pos] = std::get<6>(candidates) - layer_offset; // left2_group_first
+      windows_layers[4 * track_pos + layer_pos] = std::get<8>(candidates) - layer_offset; // right2_group_first
       windows_layers[5 * track_pos + layer_pos] = std::get<1>(candidates) - std::get<0>(candidates); // last_size
       windows_layers[6 * track_pos + layer_pos] = std::get<3>(candidates) - std::get<2>(candidates); // left_size_last
       windows_layers[7 * track_pos + layer_pos] = std::get<5>(candidates) - std::get<4>(candidates); // right_size_first
       windows_layers[8 * track_pos + layer_pos] = std::get<7>(candidates) - std::get<6>(candidates); // left2_size_last
-      windows_layers[9 * track_pos + layer_pos] = std::get<9>(candidates) - std::get<8>(candidates); // right2_size_first
+      windows_layers[9 * track_pos + layer_pos] =
+        std::get<9>(candidates) - std::get<8>(candidates); // right2_size_first
     }
   }
 }

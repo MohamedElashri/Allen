@@ -16,12 +16,12 @@ __global__ void package_kalman_tracks(
   bool* dev_is_muon,
   ParKalmanFilter::FittedTrack* dev_kf_tracks)
 {
-  
+
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
   // Create velo tracks.
-    // Create velo tracks.
+  // Create velo tracks.
   const Velo::Consolidated::Tracks velo_tracks {
     (uint*) dev_atomics_storage, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
 
@@ -54,5 +54,4 @@ __global__ void package_kalman_tracks(
                                     scifi_tracks.qop[i_scifi_track],
                                     dev_is_muon[scifi_tracks.tracks_offset(event_number) + i_scifi_track]};
   }
-  
 }

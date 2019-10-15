@@ -60,10 +60,7 @@ void RateChecker::accumulate(
   }
 }
 
-double binomial_error(int n, int k)
-{
-  return 1. / n * std::sqrt(1. * k * (1. - 1. * k / n));
-}
+double binomial_error(int n, int k) { return 1. / n * std::sqrt(1. * k * (1. - 1. * k / n)); }
 
 void RateChecker::report(size_t requested_events) const
 {

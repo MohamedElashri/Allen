@@ -440,7 +440,8 @@ void TrackChecker::operator()(
       m_histos->fillGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
       if (triggerCondition) ++nghoststriggerperevt;
       if (track.is_muon) {
-        m_histos->fillMuonGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
+        m_histos->fillMuonGhostHistos(
+          mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
         ++n_is_muon_ghost;
       }
     }

@@ -282,7 +282,7 @@ namespace cuda {
 /**
  * @brief Macro to avoid warnings on Release builds with variables used by asserts.
  */
-#define _unused(x) ((void)(x))
+#define _unused(x) ((void) (x))
 
 void print_gpu_memory_consumption();
 

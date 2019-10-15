@@ -59,13 +59,14 @@ struct MiniState {
     x(_x), y(_y), z(_z), tx(_tx), ty(_ty)
   {}
 
-  __host__ __device__ MiniState operator=(const MiniState& other) {
+  __host__ __device__ MiniState operator=(const MiniState& other)
+  {
     x = other.x;
     y = other.y;
     z = other.z;
     tx = other.tx;
     ty = other.ty;
-    
+
     return *this;
   }
 };

@@ -214,7 +214,8 @@ void TrackCheckerHistos::write()
                          std::ref(h_ghost_isMuon_Eta_reconstructed)};
   for_each(histograms, [dir](auto& histo) {
     histo.get()->SetDirectory(nullptr);
-    dir->WriteTObject(histo.get().get()); });
+    dir->WriteTObject(histo.get().get());
+  });
 
   std::tuple histo_maps {std::ref(h_reconstructible_eta),
                          std::ref(h_reconstructible_p),
@@ -234,7 +235,8 @@ void TrackCheckerHistos::write()
     for (auto const& entry : histo_map.get()) {
       entry.second->SetDirectory(nullptr);
       dir->WriteTObject(entry.second.get());
-    } });
+    }
+  });
 }
 #endif
 

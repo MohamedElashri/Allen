@@ -44,7 +44,6 @@
 #include "Allen.h"
 #include <tuple>
 
-
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed };
 } // namespace
@@ -262,23 +261,27 @@ void run_stream(
  */
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants)
 {
-  std::tuple consumers= make_tuple( 
-    make_tuple( Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)),
-    make_tuple( Allen::NonEventData::UTLookupTables {},
-           std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)),
-    make_tuple( Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)),
-    make_tuple( Allen::NonEventData::SciFiGeometry {},
-           std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)),
-    make_tuple( Allen::NonEventData::MagneticField {},
-           std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)),
-    make_tuple( Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)),
-    make_tuple( Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::VPGeometry>(constants)),
-    make_tuple( Allen::NonEventData::MuonGeometry {},
-           std::make_unique<Consumers::MuonGeometry>(
-             constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)),
-    make_tuple( Allen::NonEventData::MuonLookupTables {},
-           std::make_unique<Consumers::MuonLookupTables>(
-             constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables) ) )  ;
+  std::tuple consumers = make_tuple(
+    make_tuple(Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)),
+    make_tuple(
+      Allen::NonEventData::UTLookupTables {},
+      std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)),
+    make_tuple(Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)),
+    make_tuple(
+      Allen::NonEventData::SciFiGeometry {},
+      std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)),
+    make_tuple(
+      Allen::NonEventData::MagneticField {}, std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)),
+    make_tuple(Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)),
+    make_tuple(Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::VPGeometry>(constants)),
+    make_tuple(
+      Allen::NonEventData::MuonGeometry {},
+      std::make_unique<Consumers::MuonGeometry>(
+        constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)),
+    make_tuple(
+      Allen::NonEventData::MuonLookupTables {},
+      std::make_unique<Consumers::MuonLookupTables>(
+        constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables)));
 
   for_each(consumers, [updater](auto& c) {
     using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
@@ -537,23 +540,24 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       auto con = ZMQ::connection(thread_id, "check");
       check_control->bind(con.c_str());
     }
-    return make_tuple( std::thread {run_stream,
-                                    thread_id,
-                                    stream_id,
-                                    device_id,
-                                    &stream_wrapper,
-                                    input_provider.get(),
-                                    checker_invoker.get(),
-                                    number_of_repetitions,
-                                    do_check,
-                                    cpu_offload,
-                                    folder_name_imported_forward_tracks},
-                       std::move(check_control));
+    return make_tuple(
+      std::thread {run_stream,
+                   thread_id,
+                   stream_id,
+                   device_id,
+                   &stream_wrapper,
+                   input_provider.get(),
+                   checker_invoker.get(),
+                   number_of_repetitions,
+                   do_check,
+                   cpu_offload,
+                   folder_name_imported_forward_tracks},
+      std::move(check_control));
   };
 
   // Lambda with the execution of the I/O thread
   const auto io_thread = [&](uint thread_id, uint) {
-    return make_tuple(  std::thread {input_reader, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {});
+    return make_tuple(std::thread {input_reader, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {});
   };
 
   using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(uint, uint)>;
@@ -778,8 +782,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     // Separate if statement to allow stopping in different ways
     // depending on whether async I/O or repetitions are enabled.
     // NOTE: This may be called several times when slices are ready
-    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads)
-                    || (enable_async_io && io_done));
+    bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done));
     if (t && io_cond && number_of_repetitions > 1) {
       if (!throughput_processed) {
         throughput_processed = n_events_processed * number_of_repetitions - throughput_start;

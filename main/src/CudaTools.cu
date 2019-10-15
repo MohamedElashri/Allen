@@ -16,8 +16,7 @@ void print_gpu_memory_consumption() {}
 std::tuple<bool, std::string> set_device(int, size_t)
 {
   // Assume a linux system and try to get the CPU type
-  FILE* cmd =
-    popen("cat /proc/cpuinfo | grep 'model name' | head -n1 | awk '{ print substr($0, index($0,$4)) }'", "r");
+  FILE* cmd = popen("cat /proc/cpuinfo | grep 'model name' | head -n1 | awk '{ print substr($0, index($0,$4)) }'", "r");
   if (cmd == NULL) return {true, "CPU"};
 
   // Get a string that identifies the CPU
@@ -28,15 +27,12 @@ std::tuple<bool, std::string> set_device(int, size_t)
 
   // Clean the string
   const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)|(\\(TM\\))"};
-  processor_name = std::regex_replace(processor_name, regex_to_remove, std::string{});
+  processor_name = std::regex_replace(processor_name, regex_to_remove, std::string {});
 
   return {true, processor_name};
 }
 #else
-std::tuple<bool, std::string> set_device(int, size_t)
-{
-  return {true, "CPU"};
-}
+std::tuple<bool, std::string> set_device(int, size_t) { return {true, "CPU"}; }
 #endif // linux-dependent CPU detection
 
 #else

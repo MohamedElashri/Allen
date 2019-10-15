@@ -5,9 +5,8 @@ pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeak
 {
   // At least parallelize over events, even if it's
   // one event on each thread
-  for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; 
-     event_number < number_of_events;
-     event_number += blockDim.x * gridDim.x) {
+  for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
+       event_number += blockDim.x * gridDim.x) {
     float* zhisto = dev_zhisto + Nbins * event_number;
     float* zpeaks = dev_zpeaks + PV::max_number_vertices * event_number;
     uint number_of_peaks = 0;
@@ -17,7 +16,7 @@ pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeak
     using BinIndex = unsigned short;
     BinIndex clusteredges[PV::max_number_clusteredges];
     uint number_of_clusteredges = 0;
-    
+
     {
       const float inv_maxTrackZ0Err = 1.f / (10.f * maxTrackZ0Err);
       const float threshold = dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize

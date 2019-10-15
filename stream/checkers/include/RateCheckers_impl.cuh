@@ -44,7 +44,8 @@ void SequenceVisitor::check<run_hlt1_t>(
     host_buffers.host_number_of_selected_events[0]);
 
 #ifdef WITH_ROOT
-  auto& ntuple = checker_invoker.checker<SelCheckerTuple>("Making ntuple for efficiency studies.", "SelCheckerTuple.root");
+  auto& ntuple =
+    checker_invoker.checker<SelCheckerTuple>("Making ntuple for efficiency studies.", "SelCheckerTuple.root");
   ntuple.accumulate(
     mc_events,
     tracks,

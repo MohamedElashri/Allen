@@ -109,9 +109,9 @@ __global__ void is_muon(
         }
       }
     }
-    
+
     __syncthreads();
-      
+
     if (threadIdx.y == 0) {
       if (momentum < dev_muon_momentum_cuts[0]) {
         dev_is_muon[event_offset + track_id] = false;

@@ -37,7 +37,8 @@ __device__ void down_sweep_2048(uint* data_block)
   }
 }
 
-__device__ void prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, const uint array_size, uint* data_block)
+__device__ void
+prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, const uint array_size, uint* data_block)
 {
   // Prefix sum of elements in dev_array
   // Using Blelloch scan https://www.youtube.com/watch?v=mmYv3Haj6uc
@@ -174,8 +175,10 @@ __global__ void copy_square_and_prefix_sum_single_block(
 /**
  * @brief Copies Velo track hit numbers on a consecutive container
  */
-__global__ void
-copy_velo_track_hit_number(const Velo::TrackHits* dev_tracks, uint* dev_atomics_storage, uint* dev_velo_track_hit_number)
+__global__ void copy_velo_track_hit_number(
+  const Velo::TrackHits* dev_tracks,
+  uint* dev_atomics_storage,
+  uint* dev_velo_track_hit_number)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -194,8 +197,10 @@ copy_velo_track_hit_number(const Velo::TrackHits* dev_tracks, uint* dev_atomics_
 /**
  * @brief Copies UT track hit numbers on a consecutive container.
  */
-__global__ void
-copy_ut_track_hit_number(const UT::TrackHits* dev_veloUT_tracks, uint* dev_atomics_veloUT, uint* dev_ut_track_hit_number)
+__global__ void copy_ut_track_hit_number(
+  const UT::TrackHits* dev_veloUT_tracks,
+  uint* dev_atomics_veloUT,
+  uint* dev_ut_track_hit_number)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;

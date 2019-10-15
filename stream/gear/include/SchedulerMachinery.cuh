@@ -285,13 +285,7 @@ namespace Sch {
     std::tuple<SetSizeArguments...>,
     std::tuple<VisitArguments...>,
     std::index_sequence<>> {
-    constexpr static void run(
-      Scheduler&,
-      Functor&,
-      Tuple&,
-      SetSizeArguments&&...,
-      VisitArguments&&...)
-    {}
+    constexpr static void run(Scheduler&, Functor&, Tuple&, SetSizeArguments&&..., VisitArguments&&...) {}
   };
 
   template<

@@ -17,7 +17,7 @@
 
 class SelCheckerTuple : public Checker::BaseChecker {
 
- public:
+public:
   struct SelTupleTag {
     static std::string const name;
   };
@@ -52,7 +52,7 @@ class SelCheckerTuple : public Checker::BaseChecker {
   size_t addTrack(Checker::Track& track, const MCAssociator& mcassoc);
   void clear();
 
- private:
+private:
 #ifdef WITH_ROOT
   TTree* m_tree = nullptr;
   TFile* m_file = nullptr;
@@ -129,5 +129,4 @@ class SelCheckerTuple : public Checker::BaseChecker {
   std::vector<double> m_trk_idx_gen;
   std::vector<double> m_trk_pass_one_track;
   std::vector<double> m_trk_pass_single_muon;
-
 };

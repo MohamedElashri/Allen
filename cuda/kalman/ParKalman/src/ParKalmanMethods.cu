@@ -151,11 +151,7 @@ __device__ void PredictStateUT(
 
 //----------------------------------------------------------------------
 // Predict UT <-> T precise version (what does that mean?)
-__device__ void PredictStateUTT(
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI)
+__device__ void PredictStateUTT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
 {
   Matrix5x5 F;
 
@@ -186,11 +182,7 @@ __device__ void PredictStateUTT(
 
 //----------------------------------------------------------------------
 // Predict UT (fixed z) <-> last UT layer.
-__device__ void PredictStateUTFUT(
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI)
+__device__ void PredictStateUTFUT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
 {
   // Extrapolate.
   Matrix5x5 F;
@@ -239,12 +231,8 @@ __device__ void PredictStateT(
 
 //----------------------------------------------------------------------
 // Predict T (fixed z) <-> first T layer.
-__device__ void PredictStateTFT(
-  const SciFi::Consolidated::Hits& hits,
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI)
+__device__ void
+PredictStateTFT(const SciFi::Consolidated::Hits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
 {
   KalmanFloat z;
   Matrix5x5 F;
@@ -543,8 +531,7 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   KalmanFloat coeff = par[8] * ((KalmanFloat) 1e1) + par[9] * ((KalmanFloat) 1e-2) * zFrom +
                       par[10] * ((KalmanFloat) 1e2) * x_old[3] * x_old[3];
 
-  KalmanFloat a =
-    x_old[2] / sqrtf(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]) - x_old[4] * coeff;
+  KalmanFloat a = x_old[2] / sqrtf(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]) - x_old[4] * coeff;
   KalmanFloat sqrtTmp = sqrtf((((KalmanFloat) 1.0) - a * a) * (((KalmanFloat) 1.0) + x[3] * x[3]));
 
   // Check that the track is not deflected
@@ -785,25 +772,15 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
 
   // determine the momentum at this state from the momentum saved in the state vector
   //(representing always the PV qop)
-  KalmanFloat qopHere = x[4] + x[4] * ((KalmanFloat) 1e-4) * par[18] +
-                        x[4] * fabsf(x[4]) * par[19]; // TODO make this a tuneable parameter
+  KalmanFloat qopHere =
+    x[4] + x[4] * ((KalmanFloat) 1e-4) * par[18] + x[4] * fabsf(x[4]) * par[19]; // TODO make this a tuneable parameter
 
   // do the actual extrapolation
   KalmanFloat der_tx[4];
   KalmanFloat der_ty[4];
   KalmanFloat der_qop[4]; //, der_x[4], der_y[4];
   extrapUTT(
-    tI.m_extr->UTTExtrBeginZ(),
-    tI.m_extr->UTTExtrEndZ(),
-    x[0],
-    x[1],
-    x[2],
-    x[3],
-    qopHere,
-    der_tx,
-    der_ty,
-    der_qop,
-    tI);
+    tI.m_extr->UTTExtrBeginZ(), tI.m_extr->UTTExtrEndZ(), x[0], x[1], x[2], x[3], qopHere, der_tx, der_ty, der_qop, tI);
 
   // apply additional correction
   x[0] += par[9] * x_old[4] * ((KalmanFloat) 1e2) + par[10] * x_old[4] * x_old[4] * ((KalmanFloat) 1e5) +

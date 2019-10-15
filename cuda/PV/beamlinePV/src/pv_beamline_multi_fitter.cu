@@ -80,7 +80,7 @@ __global__ void pv_beamline_multi_fitter(
             float dz_seed = seed_pos_z - trk.z;
             float2 res_seed = seed_pos_xy - (trk.x + trk.tx * dz_seed);
             float chi2_seed = res_seed.x * res_seed.x * trk.W_00 + res_seed.y * res_seed.y * trk.W_11;
-            const auto nom = expf(chi2_seed*(-0.5f));
+            const auto nom = expf(chi2_seed * (-0.5f));
             trk.weight = nom / (denom + pvtracks_denom[i]);
 
             // unfortunately branchy, but reduces fake rate

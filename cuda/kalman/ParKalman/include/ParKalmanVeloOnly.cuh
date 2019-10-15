@@ -54,12 +54,8 @@ __device__ void predict_velo_only(
   KalmanFloat& lastz,
   const ParKalmanFilter::KalmanParametrizations* params);
 
-__device__ void update_velo_only(
-  const Velo::Consolidated::Hits& hits,
-  int nHit,
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& chi2);
+__device__ void
+update_velo_only(const Velo::Consolidated::Hits& hits, int nHit, Vector5& x, SymMatrix5x5& C, KalmanFloat& chi2);
 
 __device__ void velo_only_fit(
   const Velo::Consolidated::Hits& velo_hits,

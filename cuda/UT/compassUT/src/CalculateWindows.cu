@@ -45,8 +45,7 @@ __host__ __device__ void tol_refine(
 
     if (
       dx >= -xTolNormFact && dx <= xTolNormFact &&
-      !ut_hits.isNotYCompatible(
-        i, yApprox, UT::Constants::yTol + UT::Constants::yTolSlope * fabsf(dx * invNormfact))) {
+      !ut_hits.isNotYCompatible(i, yApprox, UT::Constants::yTol + UT::Constants::yTolSlope * fabsf(dx * invNormfact))) {
       // It is compatible
       if (!first_found) {
         first_found = true;
@@ -88,8 +87,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 
   // -- this 500 seems a little odd...
   // to do: change back!
-  const float invTheta =
-    min(500.0f, 1.0f / sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
+  const float invTheta = min(500.0f, 1.0f / sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
   const float minMom = max(UT::Constants::minPT * invTheta, UT::Constants::minMomentum);
   const float xTol = fabsf(1.0f / (UT::Constants::distToMomentum * minMom));
   // const float yTol     = UT::Constants::yTol + UT::Constants::yTolSlope * xTol;

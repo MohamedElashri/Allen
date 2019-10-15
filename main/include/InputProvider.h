@@ -47,7 +47,6 @@ struct IInputProvider {
 
   /// Descturctor
   virtual ~IInputProvider() {};
-
 };
 
 // InputProvider

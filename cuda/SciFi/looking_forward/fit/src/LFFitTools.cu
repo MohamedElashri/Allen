@@ -293,10 +293,7 @@ __device__ int LookingForward::getChi2(
   return true;
 }
 
-__device__ void LookingForward::removeOutlier_proto(
-  int* coordToFit,
-  uint8_t& n_coordToFit,
-  const int worst)
+__device__ void LookingForward::removeOutlier_proto(int* coordToFit, uint8_t& n_coordToFit, const int worst)
 {
   uint8_t it = 0;
   for (uint8_t i = 0; i < n_coordToFit; ++i) {

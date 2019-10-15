@@ -117,12 +117,8 @@ __device__ void predict_velo_only(
   lastz = (KalmanFloat) hits.z[nHit];
 }
 
-__device__ void update_velo_only(
-  const Velo::Consolidated::Hits& hits,
-  int nHit,
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& chi2)
+__device__ void
+update_velo_only(const Velo::Consolidated::Hits& hits, int nHit, Vector5& x, SymMatrix5x5& C, KalmanFloat& chi2)
 {
   // Get the residual.
   Vector2 res;

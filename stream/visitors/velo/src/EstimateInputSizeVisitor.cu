@@ -33,9 +33,12 @@ void SequenceVisitor::visit<velo_estimate_input_size_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  cudaCheck(cudaMemsetAsync(arguments.offset<dev_estimated_input_size>(), 0, arguments.size<dev_estimated_input_size>(), cuda_stream));
-  cudaCheck(cudaMemsetAsync(arguments.offset<dev_module_cluster_num>(), 0, arguments.size<dev_module_cluster_num>(), cuda_stream));
-  cudaCheck(cudaMemsetAsync(arguments.offset<dev_module_candidate_num>(), 0, arguments.size<dev_module_candidate_num>(), cuda_stream));
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_estimated_input_size>(), 0, arguments.size<dev_estimated_input_size>(), cuda_stream));
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_module_cluster_num>(), 0, arguments.size<dev_module_cluster_num>(), cuda_stream));
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_module_candidate_num>(), 0, arguments.size<dev_module_candidate_num>(), cuda_stream));
 
   // Setup opts and arguments for kernel call
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(16, 16), cuda_stream);

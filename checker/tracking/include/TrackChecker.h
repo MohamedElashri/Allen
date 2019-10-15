@@ -76,9 +76,7 @@ public:
   void report(size_t n_events) const override;
 
   template<typename T>
-  void accumulate(
-    const MCEvents& mc_events,
-    const std::vector<Checker::Tracks>& tracks)
+  void accumulate(const MCEvents& mc_events, const std::vector<Checker::Tracks>& tracks)
   {
     for (size_t evnum = 0; evnum < tracks.size(); ++evnum) {
       const auto& mc_event = mc_events[evnum];

@@ -16,7 +16,7 @@ std::vector<std::vector<uint32_t>> clustering(
 
   Timer t;
 
-  std::array<uint8_t, VP::NPixelsPerSensor> buffer ;
+  std::array<uint8_t, VP::NPixelsPerSensor> buffer;
 
   // Typecast files and print them
   VeloGeometry g(geometry);

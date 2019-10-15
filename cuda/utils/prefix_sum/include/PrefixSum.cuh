@@ -20,11 +20,17 @@ __global__ void __launch_bounds__(256)
 __global__ void __launch_bounds__(1024)
   prefix_sum_single_block(uint* dev_total_sum, uint* dev_array, const uint array_size);
 
-__global__ void __launch_bounds__(1024)
-  copy_and_prefix_sum_single_block(uint* dev_total_sum, uint* dev_input_array, uint* dev_output_array, const uint array_size);
+__global__ void __launch_bounds__(1024) copy_and_prefix_sum_single_block(
+  uint* dev_total_sum,
+  uint* dev_input_array,
+  uint* dev_output_array,
+  const uint array_size);
 
-__global__ void __launch_bounds__(1024) 
-  copy_square_and_prefix_sum_single_block(uint* dev_total_sum, uint* dev_input_array, uint* dev_output_array, const uint array_size);
+__global__ void __launch_bounds__(1024) copy_square_and_prefix_sum_single_block(
+  uint* dev_total_sum,
+  uint* dev_input_array,
+  uint* dev_output_array,
+  const uint array_size);
 
 __global__ void __launch_bounds__(512)
   prefix_sum_scan(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);

@@ -85,8 +85,8 @@ namespace ParKalmanFilter {
     bool is_muon;
 
     // Default constructor.
-    __device__ __host__ FittedTrack(){}
-    
+    __device__ __host__ FittedTrack() {}
+
     // Constructor from a VELO state.
     __device__ __host__ FittedTrack(const KalmanVeloState& velo_state, float qop, bool muon)
     {
@@ -108,13 +108,13 @@ namespace ParKalmanFilter {
       state[1] = velo_state.y;
       state[2] = velo_state.tx;
       state[3] = velo_state.ty;
-      state[4] = (KalmanFloat)qop;
+      state[4] = (KalmanFloat) qop;
       z = velo_state.z;
-      first_qop = (KalmanFloat)qop;
-      best_qop = (KalmanFloat)qop;
+      first_qop = (KalmanFloat) qop;
+      best_qop = (KalmanFloat) qop;
       is_muon = muon;
       // Set so tracks pass fit quality cuts by default.
-      chi2 = (KalmanFloat)0.;
+      chi2 = (KalmanFloat) 0.;
       ndof = 1;
     }
 
