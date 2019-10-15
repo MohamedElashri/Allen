@@ -289,7 +289,7 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
 
 template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
 void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream) {
-  auto offset = args.template offset<DATA_ARG>();
+  char* offset = args.template offset<DATA_ARG>();
   for (gsl::span<char const> data_span : std::get<0>(bno)) {
     cudaCheck(cudaMemcpyAsync(
       offset,
@@ -301,9 +301,9 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStrea
   }
 
   cudaCheck(cudaMemcpyAsync(
-   args.template offset<OFFSET_ARG>(),
-   std::get<2>(bno).begin(),
-   std::get<2>(bno).size_bytes(),
-   cudaMemcpyHostToDevice,
-   cuda_stream));
+    args.template offset<OFFSET_ARG>(),
+    std::get<2>(bno).begin(),
+    std::get<2>(bno).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
 }

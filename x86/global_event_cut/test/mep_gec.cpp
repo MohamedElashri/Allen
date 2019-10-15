@@ -146,6 +146,7 @@ int main(int argc, char* argv[])
       return bno;
     };
 
+    auto vp_banks = slice_to_banks(0, BankTypes::VP);
     auto ut_banks = slice_to_banks(0, BankTypes::UT);
     auto scifi_banks = slice_to_banks(0, BankTypes::FT);
 

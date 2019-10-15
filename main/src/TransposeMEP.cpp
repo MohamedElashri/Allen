@@ -172,8 +172,8 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
 
       // Calculate block offset and size
       size_t interval_offset = 0, interval_size = 0;
-      for (size_t i = 0; i < event_start; ++i) {
-        interval_offset += block_header.sizes[i];
+      for (size_t i = 1; i < event_start; ++i) {
+        interval_offset += block_header.sizes[i - 1];
       }
       for (size_t i = event_start; i < event_end; ++i) {
         interval_size += block_header.sizes[i];

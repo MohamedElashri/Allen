@@ -124,6 +124,7 @@ void run_stream(
   uint n_reps,
   bool do_check,
   bool cpu_offload,
+  bool transposed_meps,
   std::string folder_name_imported_forward_tracks)
 {
   auto make_control = [thread_id](std::string suffix = std::string {}) {
@@ -198,30 +199,26 @@ void run_stream(
     }
 
     if (idx) {
-      // process a slice
-      auto vp_banks = input_provider->banks(BankTypes::VP, *idx);
-      // Not very clear, but the number of event offsets is the number of filled events.
-      // NOTE: if the slice is empty, there might be one offset of 0
-      uint n_events = static_cast<uint>(std::get<2>(vp_banks).size() - 1);
+      // Get list of events that are in the slice
+      auto const& events = input_provider->event_ids(*idx);
+
+      // Run the stream
       wrapper->run_stream(
         stream_id,
-        {std::move(vp_banks),
+        {input_provider->banks(BankTypes::VP, *idx),
          input_provider->banks(BankTypes::UT, *idx),
          input_provider->banks(BankTypes::FT, *idx),
          input_provider->banks(BankTypes::MUON, *idx),
-         n_events,
+         static_cast<uint>(events.size()),
          n_reps,
          do_check,
-         cpu_offload});
+         cpu_offload,
+         !transposed_meps});
 
       // signal that we're done
       zmqSvc().send(control, "PROCESSED", zmq::SNDMORE);
       zmqSvc().send(control, *idx);
       if (do_check && check_control) {
-        // Get list of events that are in the slice to load the right
-        // MC info
-        auto const& events = input_provider->event_ids(*idx);
-
         // synchronise to avoid threading issues with
         // CheckerInvoker. The main thread will send the folder to
         // only one stream at a time and will block until it receives
@@ -575,6 +572,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                     number_of_repetitions,
                                     do_check,
                                     cpu_offload,
+                                    transpose_mep,
                                     folder_name_imported_forward_tracks},
                        std::move(check_control)};
   };

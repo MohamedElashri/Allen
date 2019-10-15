@@ -29,7 +29,7 @@ struct RuntimeOptions {
     uint param_number_of_repetitions,
     bool param_do_check,
     bool param_cpu_offload,
-    bool param_mep_layout = false) :
+    bool param_mep_layout) :
     host_velo_events {std::move(velo_events)},
     host_ut_events {std::move(ut_events)}, host_scifi_events {std::move(scifi_events)}, host_muon_events {std::move(
                                                                                           muon_events)},

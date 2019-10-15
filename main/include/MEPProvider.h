@@ -230,8 +230,9 @@ public:
     spans.reserve(banks.size());
     for (auto s : banks) {
       spans.emplace_back(s);
+
     }
-    std::get<1>(bno) = offsets[offsets_size - 1];
+    std::get<1>(bno) = m_config.transpose_mep ? offsets[offsets_size - 1] : data_size;
     std::get<2>(bno) = offsets;
     return bno;
   }
@@ -531,8 +532,8 @@ private:
       // Fill blocks
       MEP::find_blocks(mep_header, buffer_span, blocks);
 
+      // Fill fragment offsets
       if (m_config.transpose_mep) {
-        // Fill fragment offsets
         MEP::fragment_offsets(blocks, input_offsets);
       }
 
