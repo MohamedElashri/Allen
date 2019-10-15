@@ -1,7 +1,7 @@
 #include <regex>
 #include "InputTools.h"
 #include "Common.h"
-
+#include <unordered_map>
 namespace {
 
   // Factory for filename checking: a regex and a predicate on the its matches

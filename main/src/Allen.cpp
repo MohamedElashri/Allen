@@ -21,6 +21,7 @@
 #include <cstdio>
 #include <unistd.h>
 #include <getopt.h>
+#include <memory>
 
 #include <zmq.hpp>
 #include <ZeroMQSvc.h>
@@ -41,6 +42,8 @@
 #include "Consumers.h"
 #include "CheckerInvoker.h"
 #include "Allen.h"
+#include <tuple>
+
 
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed };
@@ -259,23 +262,23 @@ void run_stream(
  */
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants)
 {
-  std::tuple consumers {
-    std::tuple {Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)},
-    std::tuple {Allen::NonEventData::UTLookupTables {},
-           std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)},
-    std::tuple {Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)},
-    std::tuple {Allen::NonEventData::SciFiGeometry {},
-           std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)},
-    std::tuple {Allen::NonEventData::MagneticField {},
-           std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)},
-    std::tuple {Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)},
-    std::tuple {Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::VPGeometry>(constants)},
-    std::tuple {Allen::NonEventData::MuonGeometry {},
+  std::tuple consumers= make_tuple( 
+    make_tuple( Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)),
+    make_tuple( Allen::NonEventData::UTLookupTables {},
+           std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)),
+    make_tuple( Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)),
+    make_tuple( Allen::NonEventData::SciFiGeometry {},
+           std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)),
+    make_tuple( Allen::NonEventData::MagneticField {},
+           std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)),
+    make_tuple( Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)),
+    make_tuple( Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::VPGeometry>(constants)),
+    make_tuple( Allen::NonEventData::MuonGeometry {},
            std::make_unique<Consumers::MuonGeometry>(
-             constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)},
-    std::tuple {Allen::NonEventData::MuonLookupTables {},
+             constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)),
+    make_tuple( Allen::NonEventData::MuonLookupTables {},
            std::make_unique<Consumers::MuonLookupTables>(
-             constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables)}};
+             constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables) ) )  ;
 
   for_each(consumers, [updater](auto& c) {
     using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
@@ -534,7 +537,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       auto con = ZMQ::connection(thread_id, "check");
       check_control->bind(con.c_str());
     }
-    return std::tuple {std::thread {run_stream,
+    return make_tuple( std::thread {run_stream,
                                     thread_id,
                                     stream_id,
                                     device_id,
@@ -545,12 +548,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                     do_check,
                                     cpu_offload,
                                     folder_name_imported_forward_tracks},
-                       std::move(check_control)};
+                       std::move(check_control));
   };
 
   // Lambda with the execution of the I/O thread
   const auto io_thread = [&](uint thread_id, uint) {
-    return std::tuple {std::thread {input_reader, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {}};
+    return make_tuple(  std::thread {input_reader, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {});
   };
 
   using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(uint, uint)>;
@@ -569,8 +572,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Start all workers
   size_t thread_id = 0;
   for (auto& [workers, start, n, type] :
-       {std::tuple {&io_workers, start_thread {io_thread}, 1u, "I/O"},
-        std::tuple {&streams, start_thread {stream_thread}, number_of_threads, "GPU"}}) {
+       {std::tuple {&io_workers, start_thread {io_thread}, 1u, std::string("I/O")},
+        std::tuple {&streams, start_thread {stream_thread}, number_of_threads, std::string("GPU")}}) {
     for (uint i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
       zmq::setsockopt(control, zmq::LINGER, 0);

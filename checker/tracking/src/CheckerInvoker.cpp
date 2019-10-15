@@ -1,6 +1,7 @@
 #include <regex>
 #include <ROOTHeaders.h>
 #include "CheckerInvoker.h"
+#include <unordered_map>
 
 CheckerInvoker::~CheckerInvoker()
 {
