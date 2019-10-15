@@ -321,6 +321,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   std::string mdf_input;
   std::string mep_input;
+  bool transpose_mep = false;
   int device_id = 0;
   int cpu_offload = 1;
 
@@ -346,6 +347,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"mep"})) {
       mep_input = arg;
+    }
+    else if (flag_in({"transpose-mep"})) {
+      transpose_mep = atoi(arg.c_str());
     }
     else if (flag_in({"n", "number-of-events"})) {
       number_of_events_requested = atol(arg.c_str());
@@ -488,10 +492,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   if (!mep_input.empty()) {
     MEPProviderConfig config {false,             // verify MEP checksums
                               10,                // number of read buffers
-                              4,                 // number of transpose threads
+                              1,                 // number of transpose threads
                               mpi_window_size,   // MPI sliding window size
                               with_mpi,          // Receive from MPI or read files
-                              non_stop};         // Run the application non-stop
+                              non_stop,          // Run the application non-stop
+                              transpose_mep};    // Transpose MEPs
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, split_input(mep_input), config);
   }
