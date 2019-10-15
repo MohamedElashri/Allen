@@ -7,11 +7,12 @@ void reserve_pinned(void** buffer, size_t size) { cudaCheck(cudaMallocHost(buffe
 
 #include <fstream>
 #include <regex>
-#include <ext/stdio_filebuf.h>
 
 void reset() {}
 void print_gpu_memory_consumption() {}
 
+#ifdef linux
+#include <ext/stdio_filebuf.h>
 std::tuple<bool, std::string> set_device(int, size_t)
 {
   // Assume a linux system and try to get the CPU type
@@ -26,11 +27,17 @@ std::tuple<bool, std::string> set_device(int, size_t)
   std::string processor_name {(std::istreambuf_iterator<char>(cmd_ifstream)), (std::istreambuf_iterator<char>())};
 
   // Clean the string
-  const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)"};
+  const std::regex regex_to_remove {"(\\(R\\))|(CPU )|( @.*)|(\\(TM\\))"};
   processor_name = std::regex_replace(processor_name, regex_to_remove, std::string{});
 
   return {true, processor_name};
 }
+#else
+std::tuple<bool, std::string> set_device(int, size_t)
+{
+  return {true, "CPU"};
+}
+#endif // linux-dependent CPU detection
 
 #else
 

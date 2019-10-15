@@ -1,5 +1,5 @@
 #include "../include/Clustering.h"
-
+#include <array>
 std::vector<std::vector<uint32_t>> clustering(
   const std::vector<char>& geometry,
   const std::vector<char>& events,
@@ -7,8 +7,8 @@ std::vector<std::vector<uint32_t>> clustering(
   const bool assume_never_no_sp)
 {
   std::vector<std::vector<uint32_t>> cluster_candidates;
-  std::vector<unsigned char> sp_patterns(256, 0);
-  std::vector<unsigned char> sp_sizes(256, 0);
+  std::vector<uint8_t> sp_patterns(256, 0);
+  std::vector<uint8_t> sp_sizes(256, 0);
   std::vector<float> sp_fx(512, 0);
   std::vector<float> sp_fy(512, 0);
 
@@ -16,7 +16,7 @@ std::vector<std::vector<uint32_t>> clustering(
 
   Timer t;
 
-  std::array<unsigned char, VP::NPixelsPerSensor> buffer {};
+  std::array<uint8_t, VP::NPixelsPerSensor> buffer ;
 
   // Typecast files and print them
   VeloGeometry g(geometry);

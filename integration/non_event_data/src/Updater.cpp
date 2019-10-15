@@ -8,7 +8,7 @@
 #include <Common.h>
 #include <InputReader.h>
 #include <Updater.h>
-
+#include <tuple>
 namespace {
   using std::array;
   using std::map;
@@ -43,15 +43,15 @@ namespace Allen {
         return [reader, file]() -> optional<vector<char>> { return reader.read_geometry(file); };
       };
 
-      tuple producers {tuple {NonEventData::VeloGeometry {}, "velo_geometry.bin"},
-                       tuple {NonEventData::UTBoards {}, "ut_boards.bin"},
-                       tuple {NonEventData::Beamline {}, "beamline.bin"},
-                       tuple {NonEventData::MagneticField {}, "polarity.bin"},
-                       tuple {NonEventData::UTGeometry {}, "ut_geometry.bin"},
-                       tuple {NonEventData::UTLookupTables {}, "ut_tables.bin"},
-                       tuple {NonEventData::SciFiGeometry {}, "scifi_geometry.bin"},
-                       tuple {NonEventData::MuonGeometry {}, "muon_geometry.bin"},
-                       tuple {NonEventData::MuonLookupTables {}, "muon_tables.bin"}};
+      tuple producers {tuple {NonEventData::VeloGeometry {}, std::string("velo_geometry.bin")},
+                       tuple {NonEventData::UTBoards {}, std::string("ut_boards.bin")},
+                       tuple {NonEventData::Beamline {}, std::string("beamline.bin")},
+                       tuple {NonEventData::MagneticField {}, std::string("polarity.bin")},
+                       tuple {NonEventData::UTGeometry {}, std::string("ut_geometry.bin")},
+                       tuple {NonEventData::UTLookupTables {}, std::string("ut_tables.bin")},
+                       tuple {NonEventData::SciFiGeometry {}, std::string("scifi_geometry.bin")},
+                       tuple {NonEventData::MuonGeometry {}, std::string("muon_geometry.bin")},
+                       tuple {NonEventData::MuonLookupTables {}, std::string("muon_tables.bin")}};
 
       for_each(producers, [this, &geometry_producer](const auto& p) {
         using id_t = typename std::remove_reference_t<decltype(std::get<0>(p))>;
