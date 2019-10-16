@@ -17,5 +17,23 @@ __global__ void scifi_direct_decoder_v4(
 
 ALGORITHM(
   scifi_direct_decoder_v4,
-  scifi_direct_decoder_v4_t,
+  scifi_direct_decoder_v4_allen_t,
   ARGUMENTS(dev_scifi_raw_input, dev_scifi_raw_input_offsets, dev_scifi_hit_count, dev_scifi_hits, dev_event_list))
+
+__global__ void scifi_direct_decoder_v4_mep(
+  char* scifi_events,
+  uint* scifi_event_offsets,
+  uint* scifi_hit_count,
+  uint* scifi_hits,
+  const uint* event_list,
+  char* scifi_geometry,
+  const float* dev_inv_clus_res);
+
+ALGORITHM(
+  scifi_direct_decoder_v4_mep,
+  scifi_direct_decoder_v4_mep_t,
+  ARGUMENTS(dev_scifi_raw_input, dev_scifi_raw_input_offsets, dev_scifi_hit_count, dev_scifi_hits, dev_event_list))
+
+XOR_ALGORITHM(scifi_direct_decoder_v4_mep_t,
+              scifi_direct_decoder_v4_allen_t,
+              scifi_direct_decoder_v4_t)
