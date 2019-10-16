@@ -13,8 +13,9 @@ void SequenceVisitor::visit<ut_decode_raw_banks_in_order_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], UT::Constants::n_layers), dim3(64), cuda_stream);
+  state.set_opts(runtime_options.mep_layout, dim3(host_buffers.host_number_of_selected_events[0], UT::Constants::n_layers), dim3(64), cuda_stream);
   state.set_arguments(
+    runtime_options.mep_layout,
     arguments.offset<dev_ut_raw_input>(),
     arguments.offset<dev_ut_raw_input_offsets>(),
     arguments.offset<dev_event_list>(),
@@ -28,5 +29,5 @@ void SequenceVisitor::visit<ut_decode_raw_banks_in_order_t>(
     arguments.offset<dev_ut_hit_count>(),
     arguments.offset<dev_ut_hit_permutations>());
 
-  state.invoke();
+  state.invoke(runtime_options.mep_layout);
 }
