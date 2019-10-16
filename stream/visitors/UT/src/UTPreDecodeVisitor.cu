@@ -25,8 +25,9 @@ void SequenceVisitor::visit<ut_pre_decode_t>(
 {
   cudaCheck(cudaMemsetAsync(arguments.offset<dev_ut_hit_count>(), 0, arguments.size<dev_ut_hit_count>(), cuda_stream));
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(64, 4), cuda_stream);
+  state.set_opts(runtime_options.mep_layout, dim3(host_buffers.host_number_of_selected_events[0]), dim3(64, 4), cuda_stream);
   state.set_arguments(
+    runtime_options.mep_layout,
     arguments.offset<dev_ut_raw_input>(),
     arguments.offset<dev_ut_raw_input_offsets>(),
     arguments.offset<dev_event_list>(),
@@ -39,5 +40,5 @@ void SequenceVisitor::visit<ut_pre_decode_t>(
     arguments.offset<dev_ut_hits>(),
     arguments.offset<dev_ut_hit_count>());
 
-  state.invoke();
+  state.invoke(runtime_options.mep_layout);
 }
