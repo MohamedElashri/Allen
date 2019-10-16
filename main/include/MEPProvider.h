@@ -274,6 +274,16 @@ public:
     // Check if I/O and transposition is done and return a slice index
     auto n_writable = count_writable();
     done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_status.size();
+
+    if (timed_out && logger::ll.verbosityLevel >= logger::verbose) {
+      this->debug_output("get_slice timed out; error " + std::to_string(m_read_error) +
+                         " done " + std::to_string(done) + " n_filled " + std::to_string(n_filled));
+    } else if (!timed_out) {
+      this->debug_output("get_slice returning " + std::to_string(slice_index) + "; error "
+                         + std::to_string(m_read_error) +
+                         " done " + std::to_string(done) + " n_filled " + std::to_string(n_filled));
+    }
+
     return {!m_read_error && !done, timed_out, slice_index, m_read_error ? 0 : n_filled};
   }
 
@@ -459,17 +469,18 @@ private:
     return {it, distance(m_buffer_status.begin(), it)};
   }
 
-  void set_intervals(std::vector<std::tuple<size_t, size_t>>& intervals) {
-    auto eps = this->events_per_slice();
-    auto n_interval = m_packing_factor / eps;
-    auto rest = m_packing_factor % eps;
+  void set_intervals(std::vector<std::tuple<size_t, size_t>>& intervals, size_t n_events) {
+    if (n_events == 0) return;
+
+    auto n_interval = m_packing_factor / n_events;
+    auto rest = m_packing_factor % n_events;
     if (rest) {
-      debug_cout << "Set interval (rest): " << n_interval * eps << "," << n_interval * eps + rest << "\n";
-      intervals.emplace_back(n_interval * eps, n_interval * eps + rest);
+      debug_cout << "Set interval (rest): " << n_interval * n_events << "," << n_interval * n_events + rest << "\n";
+      intervals.emplace_back(n_interval * n_events, n_interval * n_events + rest);
     }
     for (size_t i = n_interval; i != 0 ; --i) {
-      debug_cout << "Set interval: " << (i - 1) * eps << "," << i * eps << "\n";
-      intervals.emplace_back((i - 1) * eps, i * eps);
+      debug_cout << "Set interval: " << (i - 1) * n_events << "," << i * n_events << "\n";
+      intervals.emplace_back((i - 1) * n_events, i * n_events);
     }
   }
 
@@ -477,6 +488,9 @@ private:
   void mep_read() {
     bool receive_done = false;
     EB::Header mep_header;
+
+    auto to_read = this->n_events();
+    auto to_publish = 0;
 
     while (!receive_done) {
       // info_cout << MPI::rank_str() << "round " << current_file << "\n";
@@ -508,13 +522,19 @@ private:
 
         if (!eof) {
           debug_cout << "Read mep with packing factor " << mep_header.packing_factor << "\n";
+          if (to_read && success) {
+            to_publish = std::min(*to_read, size_t{mep_header.packing_factor});
+            *to_read -= to_publish;
+          } else {
+            to_publish = mep_header.packing_factor;
+          }
         }
 
         if (!success) {
           // Error encountered
           m_read_error = true;
           break;
-        } else if (eof && !open_file()) {
+        } else if (eof && !open_file() || (to_read && *to_read == 0)) {
           // Try to open the next file, if there is none, prefetching
           // is done.
           if (!m_read_error) {
@@ -546,8 +566,8 @@ private:
           auto& status = m_buffer_status[i_buffer];
           assert(status.work_counter == 0);
 
-          if (!eof) {
-            set_intervals(status.intervals);
+          if (!eof && to_publish != 0) {
+            set_intervals(status.intervals, to_read ? to_publish : this->events_per_slice());
           } else {
             // We didn't read anything, so free the buffer we got again
             status.writable = true;
@@ -685,7 +705,7 @@ private:
       if (!error) {
         {
           std::unique_lock<std::mutex> lock{m_mpi_mutex};
-          set_intervals(m_buffer_status[i_buffer].intervals);
+          set_intervals(m_buffer_status[i_buffer].intervals, this->events_per_slice());
           assert(m_buffer_status[i_buffer].work_counter == 0);
         }
         if (receive_done) {
