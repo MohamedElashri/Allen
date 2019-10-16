@@ -22,8 +22,10 @@ void SequenceVisitor::visit<scifi_pre_decode_v4_t>(
   cudaEvent_t& cuda_generic_event)
 {
   state.set_opts(
+    runtime_options.mep_layout,
     dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream);
   state.set_arguments(
+    runtime_options.mep_layout,
     arguments.offset<dev_scifi_raw_input>(),
     arguments.offset<dev_scifi_raw_input_offsets>(),
     arguments.offset<dev_scifi_hit_count>(),
@@ -32,5 +34,5 @@ void SequenceVisitor::visit<scifi_pre_decode_v4_t>(
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res);
 
-  state.invoke();
+  state.invoke(runtime_options.mep_layout);
 }
