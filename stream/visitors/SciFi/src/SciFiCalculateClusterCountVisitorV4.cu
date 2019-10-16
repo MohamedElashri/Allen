@@ -28,13 +28,14 @@ void SequenceVisitor::visit<scifi_calculate_cluster_count_v4_t>(
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(240), cuda_stream);
+  state.set_opts(runtime_options.mep_layout, dim3(host_buffers.host_number_of_selected_events[0]), dim3(240), cuda_stream);
   state.set_arguments(
+    runtime_options.mep_layout,
     arguments.offset<dev_scifi_raw_input>(),
     arguments.offset<dev_scifi_raw_input_offsets>(),
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_event_list>(),
     constants.dev_scifi_geometry);
 
-  state.invoke();
+  state.invoke(runtime_options.mep_layout);
 }

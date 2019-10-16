@@ -15,5 +15,21 @@ __global__ void scifi_calculate_cluster_count_v4(
 
 ALGORITHM(
   scifi_calculate_cluster_count_v4,
-  scifi_calculate_cluster_count_v4_t,
+  scifi_calculate_cluster_count_v4_allen_t,
   ARGUMENTS(dev_scifi_raw_input, dev_scifi_raw_input_offsets, dev_scifi_hit_count, dev_event_list))
+
+__global__ void scifi_calculate_cluster_count_v4_mep(
+  char* scifi_raw_input,
+  uint* scifi_raw_input_offsets,
+  uint* scifi_hit_count,
+  const uint* event_list,
+  char* scifi_geometry);
+
+ALGORITHM(
+  scifi_calculate_cluster_count_v4_mep,
+  scifi_calculate_cluster_count_v4_mep_t,
+  ARGUMENTS(dev_scifi_raw_input, dev_scifi_raw_input_offsets, dev_scifi_hit_count, dev_event_list))
+
+XOR_ALGORITHM(scifi_calculate_cluster_count_v4_mep_t,
+              scifi_calculate_cluster_count_v4_allen_t,
+              scifi_calculate_cluster_count_v4_t)
