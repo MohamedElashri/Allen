@@ -137,7 +137,6 @@ __global__ void ut_decode_raw_banks_in_order_mep(
   const uint selected_event_number = dev_event_list[event_number];
 
   const uint layer_number = blockIdx.y;
-  const uint32_t event_offset = dev_ut_raw_input_offsets[selected_event_number];
 
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 

@@ -34,7 +34,7 @@ using triple_arg_constructor = is_detected<constructor_t, T, Args...>;
 
 namespace detail {
   template <class Bank, typename... Args, std::enable_if_t<triple_arg_constructor<Bank, Args...>::value>* = nullptr>
-  __device__ Bank mep_raw_bank(char const* blocks, unsigned int const* offsets,
+  __forceinline__ __device__ Bank mep_raw_bank(char const* blocks, unsigned int const* offsets,
                                unsigned int const event, unsigned int const bank) {
     auto const source_id = offsets[2 + bank];
     auto const n_banks = offsets[0];
@@ -44,7 +44,7 @@ namespace detail {
   }
 
   template <class Bank, typename... Args, std::enable_if_t<!triple_arg_constructor<Bank, Args...>::value>* = nullptr>
-  __device__ Bank mep_raw_bank(char const* blocks, unsigned int const* offsets,
+  __forceinline__ __device__ Bank mep_raw_bank(char const* blocks, unsigned int const* offsets,
                                unsigned int const event, unsigned int const bank) {
     auto const source_id = offsets[2 + bank];
     auto const n_banks = offsets[0];
@@ -54,7 +54,7 @@ namespace detail {
 }
 
 template <class Bank>
-__device__ Bank mep_raw_bank(char const* blocks, unsigned int const* offsets,
+__forceinline__ __device__ Bank mep_raw_bank(char const* blocks, unsigned int const* offsets,
                              unsigned int const event, unsigned int const bank) {
   return detail::mep_raw_bank<Bank, uint32_t const, char const*, char const*>(blocks, offsets, event, bank);
 }
