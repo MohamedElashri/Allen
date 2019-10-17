@@ -55,10 +55,12 @@ void SequenceVisitor::visit<muon_pre_decoding_t>(
   cudaCheck(cudaMemsetAsync(arguments.offset<dev_atomics_muon>(), 0, arguments.size<dev_atomics_muon>(), cuda_stream));
 
   state.set_opts(
+    runtime_options.mep_layout,
     host_buffers.host_number_of_selected_events[0],
     Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
     cuda_stream);
   state.set_arguments(
+    runtime_options.mep_layout,
     arguments.offset<dev_event_list>(),
     arguments.offset<dev_muon_raw>(),
     arguments.offset<dev_muon_raw_offsets>(),
@@ -67,5 +69,5 @@ void SequenceVisitor::visit<muon_pre_decoding_t>(
     arguments.offset<dev_storage_tile_id>(),
     arguments.offset<dev_storage_tdc_value>(),
     arguments.offset<dev_atomics_muon>());
-  state.invoke();
+  state.invoke(runtime_options.mep_layout);
 }
