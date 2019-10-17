@@ -86,3 +86,56 @@ __global__ void scifi_raw_bank_decoder_v4(
       hit_count.offset_zones_without_mat_groups() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
   }
 }
+
+__global__ void scifi_raw_bank_decoder_v4_mep(
+  char* scifi_events,
+  uint* scifi_event_offsets,
+  uint* scifi_hit_count,
+  uint* scifi_hits,
+  const uint* event_list,
+  char* scifi_geometry,
+  const float* dev_inv_clus_res)
+{
+  const uint number_of_events = gridDim.x;
+  const uint event_number = blockIdx.x;
+  const uint selected_event_number = event_list[event_number];
+
+  const SciFiGeometry geom {scifi_geometry};
+
+  SciFi::Hits hits {
+    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
+  const SciFi::HitCount hit_count {scifi_hit_count, event_number};
+  const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
+
+  auto const n_scifi_banks = scifi_event_offsets[0];
+
+  for (int i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
+    const uint32_t cluster_reference = hits.cluster_reference[hit_count.offset_zones_without_mat_groups() + i];
+
+    const int raw_bank_number = (cluster_reference >> 8) & 0xFF;
+    const int it_number = (cluster_reference) &0xFF;
+
+    // Create SciFi raw bank from MEP layout, next bank for a given
+    // event is offset by the number of fragments
+    auto const source_id = scifi_event_offsets[2 + raw_bank_number];
+    auto const fragment_offset = scifi_event_offsets[2 + n_scifi_banks * (1 + selected_event_number) + raw_bank_number];
+    SciFiRawBank const raw_bank{source_id,
+                                scifi_events + fragment_offset,
+                                scifi_events + fragment_offset + n_scifi_banks};
+
+    const uint16_t* it = raw_bank.data + 2;
+    it += it_number;
+
+    const uint16_t c = *it;
+    const uint32_t ch = geom.bank_first_channel[raw_bank.sourceID] + channelInBank(c);
+    const auto chid = SciFiChannelID(ch);
+
+    // Call parameters for make_cluster
+    uint32_t cluster_chan = ch;
+    uint8_t cluster_fraction = fraction(c);
+    uint8_t pseudoSize = cSize(c) ? 0 : 4;
+
+    make_cluster_v4(
+      hit_count.offset_zones_without_mat_groups() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
+  }
+}
