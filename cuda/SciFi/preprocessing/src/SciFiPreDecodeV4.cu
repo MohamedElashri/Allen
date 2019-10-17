@@ -1,3 +1,4 @@
+#include "MEPTools.cuh"
 #include "SciFiPreDecodeV4.cuh"
 #include "assert.h"
 
@@ -146,12 +147,13 @@ __global__ void scifi_pre_decode_v4_mep(
 
     // Create SciFi raw bank from MEP layout, next bank for a given
     // event is offset by the number of fragments
-    auto const source_id = scifi_event_offsets[2 + i];
-    auto const fragment_offset = scifi_event_offsets[2 + n_scifi_banks * (1 + selected_event_number) + i];
-    SciFiRawBank const raw_bank{source_id,
-                                scifi_events + fragment_offset,
-                                scifi_events + fragment_offset + n_scifi_banks};
 
+    // auto const source_id = scifi_event_offsets[2 + i];
+    // auto const fragment_offset = scifi_event_offsets[2 + n_scifi_banks * (1 + selected_event_number) + i];
+    // SciFiRawBank const raw_bank{source_id,
+    //                             scifi_events + fragment_offset,
+    //                             scifi_events + fragment_offset + n_scifi_banks};
+    auto const raw_bank = mep_raw_bank<SciFiRawBank>(scifi_events, scifi_event_offsets, selected_event_number, i);
     pre_decode_raw_bank_v4(hit_count,
                            geom,
                            raw_bank,

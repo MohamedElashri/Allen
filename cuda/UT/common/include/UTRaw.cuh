@@ -17,7 +17,7 @@ struct UTRawBank {
     data = (uint16_t*) p;
   }
 
-  __device__ __host__ UTRawBank(uint32_t sID, const char* ut_fragment)
+  __device__ __host__ UTRawBank(const uint32_t sID, const char* ut_fragment)
   {
     sourceID = sID;
     uint32_t* p = (uint32_t*) ut_fragment;

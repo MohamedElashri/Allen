@@ -28,6 +28,7 @@
 #define half_t short
 #define __popcll __builtin_popcountll
 #define cudaEventBlockingSync 0x01
+#define __forceinline__ inline
 
 enum cudaMemcpyKind {
   cudaMemcpyHostToHost,
