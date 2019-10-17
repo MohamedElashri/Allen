@@ -5,12 +5,12 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------
-The project requires a graphics card with CUDA support, CUDA 10.0, CMake 3.12 and a compiler supporting C++17 (gcc 7.3, for instance).
+The project requires a graphics card with CUDA support, CUDA 10.0, CMake 3.12 and a compiler supporting C++17.
 
 If you are working from a node with CVMFS and CentOS 7, we suggest the following setup:
 
 ```shell
-source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc7-opt
+source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc8-opt
 export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
 export PATH=/usr/local/cuda/bin:$PATH
 ```
@@ -18,10 +18,10 @@ Regardless of the OS you are running on, you can check your compiler versions as
 
 ```shell
 $ g++ --version
-g++ (GCC) 7.3.0
+g++ (GCC) 8.2.0
 
 $ nvcc --version
-Cuda compilation tools, release 10.0, V10.0.130
+Cuda compilation tools, release 10.1, V10.1.243
 
 $ cmake --version
 cmake version 3.14.2
