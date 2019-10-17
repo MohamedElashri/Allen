@@ -39,7 +39,7 @@ namespace detail {
     auto const source_id = offsets[2 + bank];
     auto const n_banks = offsets[0];
     auto const* fragment = blocks + offsets[mep_offset_index(n_banks, event, bank)];
-    auto const* fragment_end = blocks + offsets[mep_offset_index(n_banks, event, bank + n_banks)];
+    auto const* fragment_end = blocks + offsets[mep_offset_index(n_banks, event + 1, bank)];
     return {source_id, fragment, fragment_end};
   }
 
