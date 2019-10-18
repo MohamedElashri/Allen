@@ -107,7 +107,7 @@ __global__ void muon_pre_decoding_mep(
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
 
-    const auto raw_bank = mep_raw_bank<Muon::MuonRawBank>(events, offsets, event_id, bank_index);
+    const auto raw_bank = MEP::raw_bank<Muon::MuonRawBank>(events, offsets, event_id, bank_index);
 
     decode_muon_bank(muon_raw_to_hits,
                      event_number,
