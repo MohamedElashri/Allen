@@ -124,7 +124,7 @@ void run_stream(
   uint n_reps,
   bool do_check,
   bool cpu_offload,
-  bool transposed_meps,
+  bool allen_layout,
   std::string folder_name_imported_forward_tracks)
 {
   auto make_control = [thread_id](std::string suffix = std::string {}) {
@@ -213,7 +213,7 @@ void run_stream(
          n_reps,
          do_check,
          cpu_offload,
-         !transposed_meps});
+         !allen_layout});
 
       // signal that we're done
       zmqSvc().send(control, "PROCESSED", zmq::SNDMORE);
@@ -318,7 +318,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   std::string mdf_input;
   std::string mep_input;
-  bool transpose_mep = false;
+  bool allen_layout = true;
   int device_id = 0;
   int cpu_offload = 1;
 
@@ -346,7 +346,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       mep_input = arg;
     }
     else if (flag_in({"transpose-mep"})) {
-      transpose_mep = atoi(arg.c_str());
+      allen_layout = atoi(arg.c_str());
     }
     else if (flag_in({"n", "number-of-events"})) {
       number_of_events_requested = atol(arg.c_str());
@@ -493,21 +493,23 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               mpi_window_size,   // MPI sliding window size
                               with_mpi,          // Receive from MPI or read files
                               non_stop,          // Run the application non-stop
-                              transpose_mep};    // Transpose MEPs
+                              allen_layout};     // MEPs should be transposed to Allen layout
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, split_input(mep_input), config);
   }
   else if (!mdf_input.empty()) {
-    MDFProviderConfig config {false,             // verify MDF checksums
-                              10,                // number of read buffers
-                              4,                 // number of transpose threads
-                              10001,             // maximum number event of offsets in read buffer
-                              *events_per_slice, // number of events per read buffer
-                              n_io_reps};        // number of loops over the input files
+    allen_layout = true;
+    MDFProviderConfig config {false,                      // verify MDF checksums
+                              10,                         // number of read buffers
+                              4,                          // number of transpose threads
+                              *events_per_slice * 10 + 1, // mximum number event of offsets in read buffer
+                              *events_per_slice,          // number of events per read buffer
+                              n_io_reps};                 // number of loops over the input files
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, split_input(mdf_input), config);
   }
   else {
+    allen_layout = true;
     // The binary input provider expects the folders for the bank types as connections
     vector<std::string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
@@ -572,7 +574,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                     number_of_repetitions,
                                     do_check,
                                     cpu_offload,
-                                    transpose_mep,
+                                    allen_layout,
                                     folder_name_imported_forward_tracks},
                        std::move(check_control)};
   };
@@ -764,6 +766,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
           if (!good && n_filled == 0 && !io_done) {
             error_cout << "I/O provider failed to decode events into slice.\n";
+            io_done = true;
             goto loop_error;
           }
           else {
