@@ -1,4 +1,5 @@
-#include "UTDecodeRawBanksInOrder.cuh"
+#include <MEPTools.cuh>
+#include <UTDecodeRawBanksInOrder.cuh>
 
 __device__ void decode_raw_bank(
   uint const* dev_ut_region_offsets,
@@ -159,9 +160,8 @@ __global__ void ut_decode_raw_banks_in_order_mep(
     const uint raw_bank_index = raw_bank_hit_index >> 24;
 
     // Create UT raw bank from MEP layout
-    auto const source_id = dev_ut_raw_input_offsets[2 + raw_bank_index];
-    auto const fragment_offset = dev_ut_raw_input_offsets[2 + number_of_ut_raw_banks * (1 + selected_event_number) + raw_bank_index];
-    UTRawBank const raw_bank{source_id, dev_ut_raw_input + fragment_offset};
+    const auto raw_bank = MEP::raw_bank<UTRawBank>(dev_ut_raw_input, dev_ut_raw_input_offsets,
+                                                   selected_event_number, raw_bank_index);
 
     decode_raw_bank(dev_ut_region_offsets,
                     geometry,

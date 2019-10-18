@@ -1,4 +1,5 @@
-#include "UTCalculateNumberOfHits.cuh"
+#include <MEPTools.cuh>
+#include <UTCalculateNumberOfHits.cuh>
 
 __device__ void calculate_number_of_hits(
   uint const* dev_ut_region_offsets,
@@ -83,9 +84,10 @@ __global__ void ut_calculate_number_of_hits_mep(
   for (uint32_t raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks;
        raw_bank_index += blockDim.x) {
 
-    auto const source_id = dev_ut_raw_input_offsets[2 + raw_bank_index];
-    auto const fragment_offset = dev_ut_raw_input_offsets[2 + number_of_ut_raw_banks * (1 + selected_event_number) + raw_bank_index];
-    UTRawBank const raw_bank{source_id, dev_ut_raw_input + fragment_offset};
+    // Construct UT raw bank from MEP layout
+    const auto raw_bank = MEP::raw_bank<UTRawBank>(dev_ut_raw_input, dev_ut_raw_input_offsets,
+                                                   selected_event_number, raw_bank_index);
+
     calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, raw_bank);
   }
 }
