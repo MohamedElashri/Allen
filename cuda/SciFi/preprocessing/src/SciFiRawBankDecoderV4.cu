@@ -1,5 +1,6 @@
-#include "SciFiRawBankDecoderV4.cuh"
-#include "assert.h"
+#include <MEPTools.cuh>
+#include <SciFiRawBankDecoderV4.cuh>
+#include <assert.h>
 
 using namespace SciFi;
 
@@ -115,13 +116,9 @@ __global__ void scifi_raw_bank_decoder_v4_mep(
     const int raw_bank_number = (cluster_reference >> 8) & 0xFF;
     const int it_number = (cluster_reference) &0xFF;
 
-    // Create SciFi raw bank from MEP layout, next bank for a given
-    // event is offset by the number of fragments
-    auto const source_id = scifi_event_offsets[2 + raw_bank_number];
-    auto const fragment_offset = scifi_event_offsets[2 + n_scifi_banks * (1 + selected_event_number) + raw_bank_number];
-    SciFiRawBank const raw_bank{source_id,
-                                scifi_events + fragment_offset,
-                                scifi_events + fragment_offset + n_scifi_banks};
+    // Create SciFi raw bank from MEP layout
+    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(scifi_events, scifi_event_offsets,
+                                                      selected_event_number, raw_bank_number);
 
     const uint16_t* it = raw_bank.data + 2;
     it += it_number;

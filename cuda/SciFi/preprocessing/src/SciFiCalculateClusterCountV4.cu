@@ -1,4 +1,5 @@
-#include "SciFiCalculateClusterCountV4.cuh"
+#include <MEPTools.cuh>
+#include <SciFiCalculateClusterCountV4.cuh>
 
 using namespace SciFi;
 
@@ -76,19 +77,14 @@ __global__ void scifi_calculate_cluster_count_v4_mep(
   const SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {scifi_hit_count, event_number};
 
-  auto const n_scifi_banks = scifi_raw_input_offsets[0];
+  auto const n_scifi_banks = MEP::number_of_banks(scifi_raw_input_offsets);
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
     const uint current_raw_bank = getRawBankIndexOrderedByX(i);
 
-    // Create SciFi raw bank from MEP layout, next bank for a given
-    // event is offset by the number of fragments
-    auto const source_id = scifi_raw_input_offsets[2 + current_raw_bank];
-    auto const fragment_offset = scifi_raw_input_offsets[2 + n_scifi_banks * (1 + selected_event_number) + current_raw_bank];
-    auto const fragment_end = scifi_raw_input_offsets[2 + n_scifi_banks * (2 + selected_event_number) + current_raw_bank];
-    SciFiRawBank const raw_bank{source_id,
-                                scifi_raw_input + fragment_offset,
-                                scifi_raw_input + fragment_end};
+    // Create SciFi raw bank from MEP layout
+    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(scifi_raw_input, scifi_raw_input_offsets,
+                                                      selected_event_number, current_raw_bank);
 
     uint16_t* it = raw_bank.data + 2;
     uint16_t* last = raw_bank.last;
@@ -107,14 +103,9 @@ __global__ void scifi_calculate_cluster_count_v4_mep(
   for (uint i = SciFi::Constants::n_consecutive_raw_banks + threadIdx.x; i < n_scifi_banks;
        i += blockDim.x) {
 
-    // Create SciFi raw bank from MEP layout, next bank for a given
-    // event is offset by the number of fragments
-    auto const source_id = scifi_raw_input_offsets[2 + i];
-    auto const fragment_offset = scifi_raw_input_offsets[2 + n_scifi_banks * (1 + selected_event_number) + i];
-    auto const fragment_end = scifi_raw_input_offsets[2 + n_scifi_banks * (2 + selected_event_number) + i];
-    SciFiRawBank const raw_bank{source_id,
-                                scifi_raw_input + fragment_offset,
-                                scifi_raw_input + fragment_end};
+    // Create SciFi raw bank from MEP layout
+    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(scifi_raw_input, scifi_raw_input_offsets,
+                                                      selected_event_number, i);
 
     uint16_t* it = raw_bank.data + 2;
     uint16_t* last = raw_bank.last;

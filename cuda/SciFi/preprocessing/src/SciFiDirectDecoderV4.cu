@@ -1,5 +1,6 @@
-#include "SciFiDirectDecoderV4.cuh"
-#include "assert.h"
+#include <MEPTools.cuh>
+#include <SciFiDirectDecoderV4.cuh>
+#include <assert.h>
 
 using namespace SciFi;
 
@@ -131,20 +132,15 @@ __global__ void scifi_direct_decoder_v4_mep(
     scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
   const SciFi::HitCount hit_count {scifi_hit_count, event_number};
 
-  auto const n_scifi_banks = scifi_event_offsets[0];
+  auto const n_scifi_banks = MEP::number_of_banks(scifi_event_offsets);
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
 
     const uint current_raw_bank = getRawBankIndexOrderedByX(i);
     const uint raw_bank_offset = hit_count.mat_group_offset(i);
 
-    // Create SciFi raw bank from MEP layout, next bank for a given
-    // event is offset by the number of fragments
-    auto const source_id = scifi_event_offsets[2 + i];
-    auto const fragment_offset = scifi_event_offsets[2 + n_scifi_banks * (1 + selected_event_number) + i];
-    SciFiRawBank const raw_bank{source_id,
-                                scifi_events + fragment_offset,
-                                scifi_events + fragment_offset + n_scifi_banks};
+    // Create SciFi raw bank from MEP layout
+    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(scifi_events, scifi_event_offsets, selected_event_number, i);
 
     direct_decode_raw_bank_v4(geom, raw_bank, i, raw_bank_offset, hits);
   }
