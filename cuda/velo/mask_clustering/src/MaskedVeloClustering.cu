@@ -1,4 +1,5 @@
-#include "MaskedVeloClustering.cuh"
+#include <MEPTools.cuh>
+#include <MaskedVeloClustering.cuh>
 
 // 8-connectivity mask
 __device__ uint64_t make_8con_mask(uint64_t cluster)
@@ -412,9 +413,8 @@ __global__ void masked_velo_clustering_mep(
     const uint cluster_start = module_cluster_start[module_number];
 
     // Read raw bank
-    auto const source_id = dev_raw_input_offsets[raw_bank_number + 2];
-    auto const fragment_offset = dev_raw_input_offsets[2 + number_of_raw_banks * (1 + selected_event_number) + raw_bank_number];
-    VeloRawBank const raw_bank{source_id, dev_raw_input + fragment_offset};
+    const auto raw_bank = MEP::raw_bank<VeloRawBank>(dev_raw_input, dev_raw_input_offsets,
+                                                     selected_event_number, raw_bank_number);
     no_neighbour_sp(module_cluster_start, dev_velo_sp_patterns, dev_velo_cluster_container,
                     estimated_number_of_clusters, module_cluster_num,
                     dev_velo_sp_fx, dev_velo_sp_fy, g,
@@ -430,9 +430,8 @@ __global__ void masked_velo_clustering_mep(
 
     assert(raw_bank_number < Velo::Constants::n_sensors);
 
-    auto const source_id = dev_raw_input_offsets[raw_bank_number + 2];
-    auto const fragment_offset = dev_raw_input_offsets[2 + number_of_raw_banks * (1 + selected_event_number) + raw_bank_number];
-    VeloRawBank const raw_bank{source_id, dev_raw_input + fragment_offset};
+    const auto raw_bank = MEP::raw_bank<VeloRawBank>(dev_raw_input, dev_raw_input_offsets,
+                                                     selected_event_number, raw_bank_number);
 
     rest_of_clusters(module_cluster_start, dev_velo_cluster_container,
                     estimated_number_of_clusters, module_cluster_num, g,
