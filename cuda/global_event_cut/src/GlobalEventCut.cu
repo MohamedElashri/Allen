@@ -1,4 +1,5 @@
-#include "GlobalEventCut.cuh"
+#include <MEPTools.cuh>
+#include <GlobalEventCut.cuh>
 
 __global__ void global_event_cut(
   char* ut_raw_input,
@@ -97,9 +98,9 @@ __global__ void global_event_cut_mep(
   if (threadIdx.x == 0) n_UT_clusters = 0;
   __syncthreads();
   for (uint i = threadIdx.x; i < number_of_ut_raw_banks; i += blockDim.x) {
-    auto sourceID = ut_raw_input_offsets[2 + i];
-    auto const fragment_offset = ut_raw_input_offsets[2 + number_of_ut_raw_banks * (1 + event_number)];
-    const UTRawBank ut_bank{sourceID, ut_raw_input + fragment_offset};
+    // Build UT raw bank from MEP layout
+    const auto ut_bank = MEP::raw_bank<UTRawBank>(ut_raw_input, ut_raw_input_offsets,
+                                                  event_number, i);
     const int n_UT_clusters_before = atomicAdd(&n_UT_clusters, ut_bank.number_of_hits);
     // if (n_UT_clusters_before + ut_bank.number_of_hits >= max_scifi_ut_clusters) return;
   }
