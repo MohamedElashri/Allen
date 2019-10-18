@@ -151,8 +151,6 @@ __global__ void ut_decode_raw_banks_in_order_mep(
   const uint layer_offset = ut_hit_offsets.layer_offset(layer_number);
   const uint layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
 
-  auto const number_of_ut_raw_banks = dev_ut_raw_input_offsets[0];
-
   for (int i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
 
     const uint hit_index = layer_offset + i;

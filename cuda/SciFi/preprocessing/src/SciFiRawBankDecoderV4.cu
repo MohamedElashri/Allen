@@ -108,8 +108,6 @@ __global__ void scifi_raw_bank_decoder_v4_mep(
   const SciFi::HitCount hit_count {scifi_hit_count, event_number};
   const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
-  auto const n_scifi_banks = scifi_event_offsets[0];
-
   for (int i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
     const uint32_t cluster_reference = hits.cluster_reference[hit_count.offset_zones_without_mat_groups() + i];
 
