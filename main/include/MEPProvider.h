@@ -184,13 +184,13 @@ public:
     // Set flag to indicate the prefetch thread should exit, wake it
     // up and join it
     m_done = true;
+    m_transpose_done = true;
     m_mpi_cond.notify_one();
     m_mpi_thread.join();
 
     // Set a flat to indicate all transpose threads should exit, wake
     // them up and join the threads. Ensure any waiting calls to
     // get_slice also return.
-    m_transpose_done = true;
     m_mpi_cond.notify_all();
     m_transpose_cond.notify_all();
     m_slice_cond.notify_all();
@@ -510,6 +510,11 @@ private:
                                                               lock);
         m_buffer_reading->writable = false;
       }
+      if (m_done) {
+        receive_done = true;
+        break;
+      }
+
       this->debug_output("Writing to MEP slice index " + std::to_string(i_buffer));
 
       auto& read_buffer = m_read_buffers[i_buffer];
