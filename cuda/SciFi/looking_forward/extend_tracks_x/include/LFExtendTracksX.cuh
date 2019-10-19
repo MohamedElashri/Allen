@@ -27,7 +27,7 @@ ALGORITHM(
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_ut,
-    dev_scifi_tracks,
-    dev_atomics_scifi,
+    dev_scifi_lf_tracks,
+    dev_scifi_lf_atomics,
     dev_scifi_lf_number_of_candidates,
     dev_scifi_lf_candidates))

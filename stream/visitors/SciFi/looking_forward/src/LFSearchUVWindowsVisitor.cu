@@ -1,9 +1,9 @@
-#include "LFCompositeExtendTracksUV.cuh"
+#include "LFSearchUVWindows.cuh"
 #include "SequenceVisitor.cuh"
 
 template<>
-void SequenceVisitor::set_arguments_size<lf_composite_extend_tracks_uv_t>(
-  lf_composite_extend_tracks_uv_t::arguments_t arguments,
+void SequenceVisitor::set_arguments_size<lf_search_uv_windows_t>(
+  lf_search_uv_windows_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers)
@@ -16,9 +16,9 @@ void SequenceVisitor::set_arguments_size<lf_composite_extend_tracks_uv_t>(
 }
 
 template<>
-void SequenceVisitor::visit<lf_composite_extend_tracks_uv_t>(
-  lf_composite_extend_tracks_uv_t& state,
-  const lf_composite_extend_tracks_uv_t::arguments_t& arguments,
+void SequenceVisitor::visit<lf_search_uv_windows_t>(
+  lf_search_uv_windows_t& state,
+  const lf_search_uv_windows_t::arguments_t& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
@@ -31,12 +31,10 @@ void SequenceVisitor::visit<lf_composite_extend_tracks_uv_t>(
   // 32 - 18.42% 13.0076s, 39822.61 events/s
   // 256 - 9.47% 6.01868s, 38491.16 events/s
 
-  state.handler_lf_search_uv_windows.set_opts(
-    dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream);
-  state.handler_lf_extend_tracks_uv.set_opts(
+  state.set_opts(
     dim3(host_buffers.host_number_of_selected_events[0]), dim3(128), cuda_stream);
 
-  state.handler_lf_search_uv_windows.set_arguments(
+  state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_atomics_ut>(),
@@ -49,19 +47,6 @@ void SequenceVisitor::visit<lf_composite_extend_tracks_uv_t>(
     arguments.offset<dev_scifi_lf_uv_windows>(),
     arguments.offset<dev_scifi_lf_initial_windows>());
 
-  state.handler_lf_extend_tracks_uv.set_arguments(
-    arguments.offset<dev_scifi_hits>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_lf_x_filtered_tracks>(),
-    arguments.offset<dev_scifi_lf_x_filtered_atomics>(),
-    constants.dev_scifi_geometry,
-    constants.dev_looking_forward_constants,
-    constants.dev_inv_clus_res,
-    arguments.offset<dev_ut_states>(),
-    arguments.offset<dev_scifi_lf_uv_windows>());
-
-  // * Forward to UV layers
-  state.handler_lf_search_uv_windows.invoke();
-  state.handler_lf_extend_tracks_uv.invoke();
+  // Forward to UV layers
+  state.invoke();
 }

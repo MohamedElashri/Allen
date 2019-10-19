@@ -82,7 +82,8 @@ file(GLOB stream_visitors_patPV "visitors/patPV/src/*cu")
 file(GLOB stream_visitors_beamlinePV "visitors/beamlinePV/src/*cu")
 file(GLOB stream_visitors_assoc "visitors/associate/src/*cu")
 file(GLOB stream_visitors_UT "visitors/UT/src/*cu")
-file(GLOB stream_visitors_SciFi "visitors/SciFi/src/*cu")
+file(GLOB stream_visitors_SciFi_decoding "visitors/SciFi/decoding/src/*cu")
+file(GLOB stream_visitors_SciFi_looking_forward "visitors/SciFi/looking_forward/src/*cu")
 file(GLOB stream_visitors_Muon "visitors/muon/src/*cu")
 file(GLOB stream_visitors_kalman "visitors/kalman/src/*cu")
 file(GLOB stream_visitors_vertex "visitors/vertex_fit/src/*cu")
@@ -101,7 +102,8 @@ if(TARGET_DEVICE STREQUAL "CPU")
     ${stream_sequence} ${stream_sequence_cpp} ${stream_setup} ${stream_visitors_gec}
     ${stream_visitors_ip} ${stream_visitors_velo} ${stream_visitors_patPV}
     ${stream_visitors_beamlinePV} ${stream_visitors_assoc} ${stream_visitors_UT}
-    ${stream_visitors_SciFi} ${stream_visitors_Muon} ${stream_visitors_kalman}
+    ${stream_visitors_SciFi_decoding} ${stream_visitors_SciFi_looking_forward}
+    ${stream_visitors_Muon} ${stream_visitors_kalman}
     ${stream_visitors_vertex} ${stream_visitors_selections})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
@@ -115,7 +117,8 @@ allen_add_library(Visitors STATIC
   ${stream_visitors_beamlinePV}
   ${stream_visitors_assoc}
   ${stream_visitors_UT}
-  ${stream_visitors_SciFi}
+  ${stream_visitors_SciFi_decoding}
+  ${stream_visitors_SciFi_looking_forward}
   ${stream_visitors_Muon}
   ${stream_visitors_kalman}
   ${stream_visitors_vertex}
