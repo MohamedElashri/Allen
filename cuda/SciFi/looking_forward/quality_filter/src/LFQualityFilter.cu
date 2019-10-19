@@ -22,6 +22,12 @@ __global__ void lf_quality_filter(
   uint* dev_scifi_selected_track_indices,
   SciFi::TrackHits* dev_scifi_tracks)
 {
+  if (Configuration::verbosity_level >= logger::debug) {
+    if (blockIdx.y == 0) {
+      printf("\n\n------------- Quality filter ---------------\n");
+    }
+  }
+
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
@@ -102,6 +108,11 @@ __global__ void lf_quality_filter(
       const auto& track = dev_scifi_lf_tracks
         [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
          best_track_index];
+
+      if (Configuration::verbosity_level >= logger::debug) {
+        track.print(event_number);
+      }
+
       dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
       dev_scifi_selected_track_indices
         [ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = best_track_index;

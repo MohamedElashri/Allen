@@ -20,12 +20,14 @@ __global__ void lf_quality_filter_x(
   const LookingForward::Constants* dev_looking_forward_constants,
   const SciFi::Tracking::Arrays* constArrays)
 {
+  if (Configuration::verbosity_level >= logger::debug) {
+    if (blockIdx.y == 0) {
+      printf("\n\n------------ Quality filter X --------------\n");
+    }
+  }
+
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-
-  // if (blockIdx.y == 0) {
-  //   printf("\n\n------------ Quality filter X --------------\n");
-  // }
 
   // UT consolidated tracks
   const UT::Consolidated::Tracks ut_tracks {(uint*) dev_atomics_ut,
@@ -55,8 +57,6 @@ __global__ void lf_quality_filter_x(
   __shared__ float xAtRef_average_array[LookingForward::maximum_number_of_candidates_per_ut_track];
 
   for (uint16_t i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
-    // printf("Event %i, track %i\n", blockIdx.x, i);
-
     const auto current_ut_track_index = ut_event_tracks_offset + i;
     const auto number_of_tracks = dev_scifi_lf_atomics[current_ut_track_index];
 
@@ -118,7 +118,9 @@ __global__ void lf_quality_filter_x(
         const SciFi::TrackHits& track =
           dev_scifi_lf_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j];
 
-        // printf(" %i, %i, %i, %f\n", track.hits[0], track.hits[1], track.hits[2], track.quality);
+        if (Configuration::verbosity_level >= logger::debug) {
+          track.print(event_number);
+        }
 
         dev_scifi_lf_x_filtered_tracks
           [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +

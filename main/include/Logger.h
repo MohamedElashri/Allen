@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <fstream>
 #include <string>
+#include "CudaCommon.h"
 
 // Dumb type, just making constructor public
 class FileStdLogger : public std::ostream {
@@ -66,8 +67,6 @@ public:
 };
 
 namespace logger {
-  enum { error = 1, warning = 2, info = 3, debug = 4, verbose = 5 };
-
   class Logger {
   public:
     int verbosityLevel = 3;

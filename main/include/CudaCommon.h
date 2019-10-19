@@ -101,6 +101,12 @@ cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream);
 cudaError_t cudaFreeHost(void* ptr);
 cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
+cudaError_t cudaMemcpyToSymbol(
+  void* symbol,
+  const void* src,
+  size_t count,
+  size_t offset = 0,
+  enum cudaMemcpyKind kind = cudaMemcpyDefault);
 
 template<class T, class S>
 T atomicAdd(T* address, S val)
@@ -143,6 +149,10 @@ half_t __float2half(float value);
       throw std::invalid_argument("cudaCheckKernelCall failed");    \
     }                                                               \
   }
+
+namespace Configuration {
+  extern uint verbosity_level;
+}
 
 #elif defined(HIP)
 
@@ -220,6 +230,10 @@ half_t __float2half(float value);
 
 __device__ __host__ half_t __float2half(float value);
 
+namespace Configuration {
+  extern __constant__ uint verbosity_level;
+}
+
 #else
 
 // ------------
@@ -252,6 +266,10 @@ __device__ __host__ half_t __float2half(float value);
       throw std::invalid_argument("cudaCheckKernelCall failed");    \
     }                                                               \
   }
+
+namespace Configuration {
+  extern __constant__ uint verbosity_level;
+}
 
 #endif
 
@@ -287,3 +305,7 @@ namespace cuda {
 void print_gpu_memory_consumption();
 
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
+
+namespace logger {
+  enum { error = 1, warning = 2, info = 3, debug = 4, verbose = 5 };
+}

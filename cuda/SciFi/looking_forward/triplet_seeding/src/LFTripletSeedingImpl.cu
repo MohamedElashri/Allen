@@ -37,14 +37,22 @@ __device__ void lf_triplet_seeding_impl(
 {
   std::vector<CombinedTripletValue> best_combined;
 
-  // printf("Event %i, track %i\n", blockIdx.x, number_of_ut_track);
-  // printf("Sizes: {%i, %i, %i}\n", l0_size, l1_size, l2_size);
+  if (Configuration::verbosity_level >= logger::debug) {
+    printf("---- Seeding of event %i with x layers {%i, %i, %i} ----\n", blockIdx.x,
+      layer_0, layer_1, layer_2);
+  }
 
-  // Required constants for the chi2 calculation below
-  float extrap1 = LookingForward::get_extrap(qop, z1 - z0);
-  extrap1 *= extrap1;
-  const float zdiff = (z2 - z0) / (z1 - z0);
-  const float extrap2 = LookingForward::get_extrap(qop, (z2 - z0));
+  const auto tx = ut_state->tx;
+
+  constexpr float p0 = -2.1156e-07f;  //   +/-   3.87224e-07
+  constexpr float p1 = 0.000829677f;  //   +/-   4.70098e-06
+  constexpr float p2 = -0.000174757f; //   +/-   1.00272e-05
+
+  // // Required constants for the chi2 calculation below
+  // const float zdiff = (z2 - z0) / (z1 - z0);
+  // float extrap1 = LookingForward::get_extrap(qop, z1 - z0);
+  // extrap1 *= extrap1;
+  // const float extrap2 = LookingForward::get_extrap(qop, (z2 - z0));
 
   // Dumb search of best triplet
   for (int i = 0; i < l0_size; ++i) {
@@ -52,13 +60,16 @@ __device__ void lf_triplet_seeding_impl(
 
     for (int j = 0; j < l2_size; ++j) {
       const auto x2 = scifi_hits_x0[l2_start + j];
-      const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
+      // const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
+
+      const float slope_t1_t3 = (x0 - x2) / (z0 - z2);
+      const float delta_slope = fabsf(tx - slope_t1_t3);
+      const auto updated_qop = 1.f / (1.f / (p0 + p1 * delta_slope - p2 * delta_slope * delta_slope) + 5.08211e+02f);
+      const auto expected_x1 = x0 + slope_t1_t3 * (z1 - z0) + 0.02528f + 13624.f * updated_qop;
 
       for (int k = 0; k < l1_size; ++k) {
         const auto x1 = scifi_hits_x0[l1_start + k];
-
-        auto chi2 = partial_chi2 - x1 * zdiff;
-        chi2 = extrap1 + chi2 * chi2;
+        const auto chi2 = fabsf(expected_x1 - x1);
 
         if (chi2 < LookingForward::chi2_max_triplet_single) {
           best_combined.push_back(CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j});
@@ -83,12 +94,10 @@ __device__ void lf_triplet_seeding_impl(
       const auto h1 = l1_start + best_combo.h1;
       const auto h2 = l2_start + best_combo.h2;
 
-      // printf(" %i, %i, %i, %f\n", h0, h1, h2, best_combo.chi2);
-
       const int insert_index = atomicAdd(atomics_scifi, 1);
 
       const auto l1_station = layer_1 / 2;
-      scifi_tracks[insert_index] = SciFi::TrackHits {
+      const auto track = SciFi::TrackHits {
         h0,
         h1,
         h2,
@@ -99,6 +108,11 @@ __device__ void lf_triplet_seeding_impl(
         LookingForward::qop_update_multi_par(
           *ut_state, scifi_hits_x0[h0], z0, scifi_hits_x0[h1], z1, l1_station, dev_looking_forward_constants),
         number_of_ut_track};
+      scifi_tracks[insert_index] = track;
+
+      if (Configuration::verbosity_level >= logger::debug) {
+        track.print(blockIdx.x);
+      }
     }
   }
 }

@@ -68,11 +68,25 @@ cudaError_t cudaDeviceReset() { return 0; }
 
 cudaError_t cudaStreamCreate(cudaStream_t*) { return 0; }
 
+cudaError_t cudaMemcpyToSymbol(
+  void* symbol,
+  const void* src,
+  size_t count,
+  size_t offset,
+  enum cudaMemcpyKind) {
+  std::memcpy(symbol, reinterpret_cast<const char*>(src) + offset, count);
+  return 0;
+}
+
 unsigned int atomicInc(unsigned int* address, unsigned int val)
 {
   unsigned int old = *address;
   *address = ((old >= val) ? 0 : (old + 1));
   return old;
+}
+
+namespace Configuration {
+  uint verbosity_level;
 }
 
 #endif
@@ -129,6 +143,14 @@ __device__ __host__ half_t __float2half(const float f)
   if (fint < f32infty) o = fint2 >> 13; // Take the bits!
 
   return (o | (sign >> 16));
+}
+
+#endif
+
+#if defined(__CUDACC__) || defined(HIP)
+
+namespace Configuration {
+  __constant__ uint verbosity_level;
 }
 
 #endif
