@@ -21,4 +21,5 @@ __device__ void lf_search_initial_windows_impl(
   const float qop,
   const int side,
   int* initial_windows,
-  const int number_of_tracks);
+  const int number_of_tracks,
+  const uint event_offset);

@@ -62,7 +62,7 @@ namespace LookingForward {
   constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 2;
   constexpr int maximum_number_of_triplets_per_h1 = 2;
   constexpr int n_threads_triplet_seeding = 32;
-  constexpr int n_triplet_seeds = 4;
+  constexpr int n_triplet_seeds = 2;
   constexpr int tile_size = 16;
   constexpr int tile_size_mask = 0xF;
   constexpr int tile_size_shift_div = 4;
@@ -117,10 +117,10 @@ namespace LookingForward {
 
     // Triplet creation
     uint8_t triplet_seeding_layers[n_triplet_seeds][3] {
-      {0, 1, 2},
-      {1, 2, 3},
-      {2, 3, 4},
-      {3, 4, 5}
+      {0, 2, 4},
+      {1, 3, 5}
+      // {2, 3, 4},
+      // {3, 4, 5}
       // {0, 2, 4},
       // {0, 3, 5},
       // {1, 3, 4},

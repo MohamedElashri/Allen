@@ -73,7 +73,7 @@ __global__ void lf_search_uv_windows(
 
       const auto layer_candidates = LookingForward::find_x_in_window(
         scifi_hits.x0 + event_offset,
-        uv_search_window_start - event_offset,
+        uv_search_window_start,
         uv_search_window_size,
         projection_x,
         LookingForward::chi2_max_extrapolation_to_uv_layers_single);

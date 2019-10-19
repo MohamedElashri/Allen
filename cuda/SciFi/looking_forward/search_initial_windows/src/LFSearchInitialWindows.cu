@@ -45,6 +45,7 @@ __global__ void lf_search_initial_windows(
   const SciFi::HitCount scifi_hit_count {(uint32_t*) dev_scifi_hit_count, event_number};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
   const SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
+  const auto event_offset = scifi_hit_count.event_offset();
 
   MiniState* ut_states = dev_ut_states + ut_event_tracks_offset;
 
@@ -84,6 +85,7 @@ __global__ void lf_search_initial_windows(
       ut_qop,
       (y_projection < 0 ? -1 : 1),
       dev_initial_windows + ut_event_tracks_offset + i,
-      ut_tracks.total_number_of_tracks);
+      ut_tracks.total_number_of_tracks,
+      event_offset);
   }
 }

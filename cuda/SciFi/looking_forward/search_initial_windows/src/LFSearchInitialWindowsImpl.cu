@@ -17,7 +17,8 @@ __device__ void lf_search_initial_windows_impl(
   const float qop,
   const int side,
   int* initial_windows,
-  const int number_of_tracks)
+  const int number_of_tracks,
+  const uint event_offset)
 {
   int iZoneStartingPoint = (side > 0) ? LookingForward::number_of_x_layers : 0;
   // uint8_t sizes = 0x00;
@@ -39,20 +40,41 @@ __device__ void lf_search_initial_windows_impl(
     // Get the hits within the bounds
     const int x_zone_offset_begin = scifi_hit_count.zone_offset(looking_forward_constants->xZones[iZone]);
     const int x_zone_size = scifi_hit_count.zone_number_of_hits(looking_forward_constants->xZones[iZone]);
-    int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
+    const int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
     const int hits_within_bounds_xInZone = binary_search_leftmost(
       scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xInZone);
     const int hits_within_bounds_size = binary_search_leftmost(
       scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
 
-    hits_within_bounds_start += x_zone_offset_begin;
-
     // Initialize windows
-    initial_windows[i * 8 * number_of_tracks] = hits_within_bounds_start;
+    initial_windows[i * 8 * number_of_tracks] = hits_within_bounds_start + x_zone_offset_begin - event_offset;
     initial_windows[(i * 8 + 1) * number_of_tracks] = hits_within_bounds_size;
-    initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_bounds_xInZone;
+    initial_windows[(i * 8 + 4) * number_of_tracks] = hits_within_bounds_xInZone;
 
     // sizes |= (hits_within_bounds_size > 0) << i;
+
+    // Skip making range but continue if the size is zero
+    if (hits_within_bounds_size > 0) {
+      // Now match the stereo hits
+      const float zZone = looking_forward_constants->Zone_zPos_xlayers[i];
+      const float this_uv_z = looking_forward_constants->Zone_zPos_uvlayers[i];
+      const float dz = this_uv_z - zZone;
+      const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
+      const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * looking_forward_constants->Zone_dxdy_uvlayers[i % 2];
+      const float xInUvCorr = xInUv - UvCorr;
+      const float xMinUV = xInUvCorr - 800.f;
+      const float dz_ratio = (this_uv_z - zZone) / (LookingForward::z_magnet - zZone);
+
+      // Get bounds in UV layers
+      // do one search on the same side as the x module
+      const int uv_zone_offset_begin = scifi_hit_count.zone_offset(looking_forward_constants->uvZones[iZone]);
+      const int uv_zone_size = scifi_hit_count.zone_number_of_hits(looking_forward_constants->uvZones[iZone]);
+      const int hits_within_uv_bounds =
+        binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
+
+      initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_uv_bounds + uv_zone_offset_begin - event_offset;
+      initial_windows[(i * 8 + 3) * number_of_tracks] = uv_zone_size - hits_within_uv_bounds;
+    }
   }
 
   // A track is processable if there is at least one recostructible triplet

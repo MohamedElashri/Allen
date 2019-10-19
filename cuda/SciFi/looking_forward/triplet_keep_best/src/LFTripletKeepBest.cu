@@ -140,7 +140,7 @@ __global__ void lf_triplet_keep_best(
               (uint16_t) layer_2,
               best_chi2[k],
               LookingForward::qop_update_multi_par(
-                dev_ut_states[current_ut_track_index], x0, z0, x1, z1, layer_1 / 2, dev_looking_forward_constants),
+                dev_ut_states[current_ut_track_index], x0, z0, x1, z1, layer_1, dev_looking_forward_constants),
               i};
       }
     }
