@@ -140,7 +140,8 @@ __global__ void scifi_direct_decoder_v4_mep(
     const uint raw_bank_offset = hit_count.mat_group_offset(i);
 
     // Create SciFi raw bank from MEP layout
-    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(scifi_events, scifi_event_offsets, selected_event_number, i);
+    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(scifi_events, scifi_event_offsets,
+                                                      selected_event_number, current_raw_bank);
 
     direct_decode_raw_bank_v4(geom, raw_bank, i, raw_bank_offset, hits);
   }
