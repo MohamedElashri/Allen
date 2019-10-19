@@ -13,26 +13,12 @@
 
 __device__ inline float evalCubicParameterization(const float value_at_ref, const float t, const float z);
 
-__device__ void lf_search_initial_windows_p_impl(
-  const SciFi::Hits& scifi_hits,
-  const SciFi::HitCount& scifi_hit_count,
-  const MiniState& UT_state,
-  const SciFi::Tracking::Arrays* constArrays,
-  const LookingForward::Constants* looking_forward_constants,
-  const float qop,
-  const int side,
-  int* initial_windows,
-  const int number_of_tracks);
-
 __device__ void lf_search_initial_windows_impl(
   const SciFi::Hits& scifi_hits,
   const SciFi::HitCount& scifi_hit_count,
-  const float xAtRef,
-  const float yAtRef,
   const MiniState& UT_state,
-  const SciFi::Tracking::Arrays* constArrays,
-  const float magnet_polarity,
-  const float qOverP,
+  const LookingForward::Constants* looking_forward_constants,
+  const float qop,
   const int side,
   int* initial_windows,
   const int number_of_tracks);

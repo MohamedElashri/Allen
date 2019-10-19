@@ -12,11 +12,3 @@ __device__ void lf_collect_candidates_impl(
   uint* number_of_candidates,
   short* candidates,
   const int event_offset);
-
-__device__ void lf_collect_candidates_p_impl(
-  const SciFi::Hits& scifi_hits,
-  const int* initial_windows,
-  const int number_of_tracks,
-  uint* number_of_candidates,
-  short* candidates,
-  const int event_offset);

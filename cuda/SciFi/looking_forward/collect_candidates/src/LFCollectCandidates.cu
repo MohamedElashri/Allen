@@ -26,7 +26,7 @@ __global__ void lf_collect_candidates(
   const SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
 
   for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
-    lf_collect_candidates_p_impl(
+    lf_collect_candidates_impl(
       scifi_hits,
       dev_initial_windows + ut_event_tracks_offset + i,
       ut_total_number_of_tracks,

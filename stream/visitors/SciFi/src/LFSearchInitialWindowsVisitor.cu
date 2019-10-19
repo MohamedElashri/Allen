@@ -42,7 +42,6 @@ void SequenceVisitor::visit<lf_search_initial_windows_t>(
     arguments.offset<dev_ut_track_velo_indices>(),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
-    constants.dev_scifi_constArrays,
     constants.dev_looking_forward_constants,
     arguments.offset<dev_scifi_lf_initial_windows>(),
     arguments.offset<dev_ut_states>());
