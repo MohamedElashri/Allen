@@ -35,10 +35,10 @@ __global__ void lf_triplet_seeding(
 
   constexpr int number_of_seeds = 4;
   uint triplet_seeding_layers[number_of_seeds][3] {
-    {0, 1, 2},
-    {1, 2, 3},
-    {2, 3, 4},
-    {3, 4, 5}
+    {0, 2, 4},
+    {1, 3, 5},
+    {0, 2, 5},
+    {1, 3, 4}
   };
 
   for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {

@@ -37,7 +37,7 @@ __device__ void lf_triplet_seeding_impl(
 {
   std::vector<CombinedTripletValue> best_combined;
 
-  printf("Event %i, track %i\n", blockIdx.x, number_of_ut_track);
+  // printf("Event %i, track %i\n", blockIdx.x, number_of_ut_track);
   // printf("Sizes: {%i, %i, %i}\n", l0_size, l1_size, l2_size);
 
   // Required constants for the chi2 calculation below
@@ -83,7 +83,7 @@ __device__ void lf_triplet_seeding_impl(
       const auto h1 = l1_start + best_combo.h1;
       const auto h2 = l2_start + best_combo.h2;
 
-      printf(" %i, %i, %i, %f\n", h0, h1, h2, best_combo.chi2);
+      // printf(" %i, %i, %i, %f\n", h0, h1, h2, best_combo.chi2);
 
       const int insert_index = atomicAdd(atomics_scifi, 1);
 
