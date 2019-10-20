@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
                  mep_header.source_ids, mep_header.versions, mep_header.offsets);
 
     for (auto& [block_header, n_filled, data] : blocks) {
-      assert(std::accumulate(block_header.sizes.begin(), block_header.sizes.end(), 0) == block_header.block_size);
+      assert(std::accumulate(block_header.sizes.begin(), block_header.sizes.end(), 0u) == block_header.block_size);
       writer.write(block_header.event_id, block_header.n_frag, block_header.reserved, block_header.block_size,
                    block_header.types, block_header.sizes);
       writer.write(gsl::span{data.data(), block_header.block_size});

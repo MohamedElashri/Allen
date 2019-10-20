@@ -39,9 +39,6 @@ int main(int argc, char* argv[])
     files[i] = argv[i + 2];
   }
 
-  // Bank types to test with
-  std::array<BankTypes, NBankTypes> bank_types {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
-
   // temporary storage
   vector<vector<char>> compress_buffers(n_slices, vector<char>(1024 * 1024));
 
