@@ -12,7 +12,7 @@ __device__ void direct_decode_raw_bank_v4(
   SciFi::Hits& hits)
 {
   const uint j = (bank_index / 10) % 4;
-  const bool reverse_cluster_order = j == 1 | j == 2;
+  const bool reverse_cluster_order = (j == 1) || (j == 2);
 
   uint16_t* it = raw_bank.data + 2;
   uint16_t* last = raw_bank.last;
@@ -131,8 +131,6 @@ __global__ void scifi_direct_decoder_v4_mep(
   SciFi::Hits hits {
     scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
   const SciFi::HitCount hit_count {scifi_hit_count, event_number};
-
-  auto const n_scifi_banks = MEP::number_of_banks(scifi_event_offsets);
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
 

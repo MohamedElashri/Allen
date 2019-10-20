@@ -97,15 +97,13 @@ __global__ void global_event_cut_mep(
     // Build UT raw bank from MEP layout
     const auto ut_bank = MEP::raw_bank<UTRawBank>(ut_raw_input, ut_raw_input_offsets,
                                                   event_number, i);
-    const int n_UT_clusters_before = atomicAdd(&n_UT_clusters, ut_bank.number_of_hits);
-    // if (n_UT_clusters_before + ut_bank.number_of_hits >= max_scifi_ut_clusters) return;
+    atomicAdd(&n_UT_clusters, ut_bank.number_of_hits);
   }
   __syncthreads();
 
   const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
 
   if (num_combined_clusters >= max_scifi_ut_clusters) return;
-  // if (num_combined_clusters < min_scifi_ut_clusters) return;
 
   // passed cut
   if (threadIdx.x == 0) {

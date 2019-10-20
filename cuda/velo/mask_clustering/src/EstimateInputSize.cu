@@ -6,11 +6,11 @@ __device__ void estimate_raw_bank_size(
   uint32_t* cluster_candidates,
   uint8_t* dev_velo_candidate_ks,
   uint* event_candidate_num,
-  int raw_bank_number,
+  uint raw_bank_number,
   VeloRawBank const& raw_bank)
 {
   uint* estimated_module_size = estimated_input_size + (raw_bank.sensor_index >> 2);
-  for (int sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
+  for (uint sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
     const uint32_t sp_word = raw_bank.sp_word[sp_index];
     const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
     const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
@@ -233,7 +233,7 @@ __global__ void estimate_input_size_mep(
   // Read raw event
   auto const number_of_raw_banks = dev_raw_input_offsets[0];
 
-  for (int raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks;
+  for (uint raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks;
        raw_bank_number += blockDim.y) {
 
     // Create raw bank from MEP layout

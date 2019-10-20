@@ -32,7 +32,7 @@ __device__ void no_neighbour_sp(
 
   const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
 
-  for (int sp_index = 0; sp_index < raw_bank.sp_count; ++sp_index) {
+  for (uint sp_index = 0; sp_index < raw_bank.sp_count; ++sp_index) {
     // Decode sp
     const uint32_t sp_word = raw_bank.sp_word[sp_index];
     const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
@@ -61,7 +61,7 @@ __device__ void no_neighbour_sp(
         const float fx = dev_velo_sp_fx[sp * 2];
         const float fy = dev_velo_sp_fy[sp * 2];
         const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-        const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
+        const float local_y = (cy + 0.5f + fy) * Velo::Constants::pixel_size;
 
         const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 
@@ -95,7 +95,7 @@ __device__ void no_neighbour_sp(
         const float fx = dev_velo_sp_fx[sp * 2 + 1];
         const float fy = dev_velo_sp_fy[sp * 2 + 1];
         const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-        const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
+        const float local_y = (cy + 0.5f + fy) * Velo::Constants::pixel_size;
 
         const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 
@@ -280,7 +280,7 @@ __device__ void rest_of_clusters(
     uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
 
     const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-    const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
+    const float local_y = (cy + 0.5f + fy) * Velo::Constants::pixel_size;
 
     const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 

@@ -107,7 +107,7 @@ __global__ void scifi_raw_bank_decoder_v4_mep(
   const SciFi::HitCount hit_count {scifi_hit_count, event_number};
   const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
-  for (int i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
     const uint32_t cluster_reference = hits.cluster_reference[hit_count.offset_zones_without_mat_groups() + i];
 
     const int raw_bank_number = (cluster_reference >> 8) & 0xFF;
@@ -122,7 +122,6 @@ __global__ void scifi_raw_bank_decoder_v4_mep(
 
     const uint16_t c = *it;
     const uint32_t ch = geom.bank_first_channel[raw_bank.sourceID] + channelInBank(c);
-    const auto chid = SciFiChannelID(ch);
 
     // Call parameters for make_cluster
     uint32_t cluster_chan = ch;
