@@ -24,17 +24,20 @@ using namespace std;
 
 namespace detail {
 
-  template <typename T>
-  std::ostream& write( std::ostream& os, const T& t ) {
+  template<typename T>
+  std::ostream& write(std::ostream& os, const T& t)
+  {
     // if you would like to know why there is a check for trivially copyable,
     // please read the 'notes' section of https://en.cppreference.com/w/cpp/types/is_trivially_copyable
-    if constexpr ( gsl::details::is_span<T>::value ) {
-      return os.write( reinterpret_cast<const char*>( t.data() ), t.size_bytes() );
-    } else if constexpr ( std::is_trivially_copyable_v<T> && !gsl::details::is_span<T>::value ) {
-      return os.write( reinterpret_cast<const char*>( &t ), sizeof( T ) );
-    } else {
-      static_assert( std::is_trivially_copyable_v<typename T::value_type> );
-      return write( os, as_bytes( gsl::make_span( t ) ) );
+    if constexpr (gsl::details::is_span<T>::value) {
+      return os.write(reinterpret_cast<const char*>(t.data()), t.size_bytes());
+    }
+    else if constexpr (std::is_trivially_copyable_v<T> && !gsl::details::is_span<T>::value) {
+      return os.write(reinterpret_cast<const char*>(&t), sizeof(T));
+    }
+    else {
+      static_assert(std::is_trivially_copyable_v<typename T::value_type>);
+      return write(os, as_bytes(gsl::make_span(t)));
     }
   }
 
@@ -44,27 +47,27 @@ class FileWriter {
   std::ofstream m_f;
 
 public:
-  FileWriter( const std::string& name ) : m_f{name, std::ios::out | std::ios::binary} {}
+  FileWriter(const std::string& name) : m_f {name, std::ios::out | std::ios::binary} {}
 
-  bool is_open() {
-    return m_f.is_open();
-  }
+  bool is_open() { return m_f.is_open(); }
 
-  template <typename... Args>
-  FileWriter& write( Args&&... args ) {
-    ( detail::write( m_f, std::forward<Args>( args ) ), ... );
+  template<typename... Args>
+  FileWriter& write(Args&&... args)
+  {
+    (detail::write(m_f, std::forward<Args>(args)), ...);
     return *this;
   }
 };
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 
   if (argc < 4) {
     cout << "usage: mdf_to_mep output_file #MEPs packing_factor input.mdf ...\n";
     return -1;
   }
 
-  string output_file{argv[1]};
+  string output_file {argv[1]};
   size_t n_meps = std::atol(argv[2]);
   uint16_t packing_factor = std::atoi(argv[3]);
 
@@ -93,7 +96,7 @@ int main(int argc, char* argv[]) {
   EB::Header mep_header;
 
   // offsets to fragments of the detector types
-  std::array<size_t, LHCb::NBankTypes> block_offsets{0};
+  std::array<size_t, LHCb::NBankTypes> block_offsets {0};
 
   // Header version 3
   auto hdr_size = LHCb::MDFHeader::sizeOf(3);
@@ -103,24 +106,23 @@ int main(int argc, char* argv[]) {
   header->setDataType(LHCb::MDFHeader::BODY_TYPE_MEP);
   header->setSubheaderLength(hdr_size - sizeof(LHCb::MDFHeader));
 
-  FileWriter writer{output_file};
+  FileWriter writer {output_file};
   if (!writer.is_open()) {
     cerr << "Failed to open output file: " << strerror(errno) << "\n";
     return -1;
   }
 
   auto write_fragments = [&writer, &blocks, &n_written, &mep_header, hdr_size, packing_factor, header] {
-    header->setSize(mep_header.header_size(blocks.size())
-                    + std::accumulate(blocks.begin(), blocks.end(), 0,
-                                      [packing_factor] (size_t s, const auto& entry) {
-                                        auto& [block_header, n_filled, data] = entry;
-                                        return s + block_header.header_size(packing_factor)
-                                          + block_header.block_size;
-                                      }));
-    writer.write(gsl::span{reinterpret_cast<char const*>(header), hdr_size});
+    header->setSize(
+      mep_header.header_size(blocks.size()) +
+      std::accumulate(blocks.begin(), blocks.end(), 0, [packing_factor](size_t s, const auto& entry) {
+        auto& [block_header, n_filled, data] = entry;
+        return s + block_header.header_size(packing_factor) + block_header.block_size;
+      }));
+    writer.write(gsl::span {reinterpret_cast<char const*>(header), hdr_size});
 
     size_t block_offset = 0;
-    for(size_t ib = 0; ib < blocks.size(); ++ib) {
+    for (size_t ib = 0; ib < blocks.size(); ++ib) {
       mep_header.offsets[ib] = block_offset;
       auto const& block = std::get<0>(blocks[ib]);
       block_offset += block.header_size(block.n_frag) + block.block_size;
@@ -128,15 +130,25 @@ int main(int argc, char* argv[]) {
     mep_header.mep_size = block_offset;
     mep_header.packing_factor = packing_factor;
 
-    writer.write(mep_header.n_blocks, mep_header.packing_factor, mep_header.reserved,
-                 mep_header.mep_size,
-                 mep_header.source_ids, mep_header.versions, mep_header.offsets);
+    writer.write(
+      mep_header.n_blocks,
+      mep_header.packing_factor,
+      mep_header.reserved,
+      mep_header.mep_size,
+      mep_header.source_ids,
+      mep_header.versions,
+      mep_header.offsets);
 
     for (auto& [block_header, n_filled, data] : blocks) {
       assert(std::accumulate(block_header.sizes.begin(), block_header.sizes.end(), 0u) == block_header.block_size);
-      writer.write(block_header.event_id, block_header.n_frag, block_header.reserved, block_header.block_size,
-                   block_header.types, block_header.sizes);
-      writer.write(gsl::span{data.data(), block_header.block_size});
+      writer.write(
+        block_header.event_id,
+        block_header.n_frag,
+        block_header.reserved,
+        block_header.block_size,
+        block_header.types,
+        block_header.sizes);
+      writer.write(gsl::span {data.data(), block_header.block_size});
 
       // Reset the fragments
       block_header.block_size = 0;
@@ -160,10 +172,12 @@ int main(int argc, char* argv[]) {
       if (eof) {
         eof = false;
         break;
-      } else if (error) {
+      }
+      else if (error) {
         cerr << "Failed to read event\n";
         return -1;
-      } else {
+      }
+      else {
         ++n_read;
       }
 
@@ -172,8 +186,8 @@ int main(int argc, char* argv[]) {
         // source ID range
         std::tie(count_success, banks_count) = fill_counts(bank_span);
         // Skip DAQ bank
-        uint16_t n_blocks = std::accumulate(banks_count.begin(), banks_count.end(), 0)
-          - banks_count[LHCb::RawBank::DAQ];
+        uint16_t n_blocks =
+          std::accumulate(banks_count.begin(), banks_count.end(), 0) - banks_count[LHCb::RawBank::DAQ];
         size_t offset = 0, i = 0;
         for (i = 0; i < banks_count.size(); ++i) {
           if (i != to_integral(LHCb::RawBank::DAQ)) {
@@ -186,7 +200,7 @@ int main(int argc, char* argv[]) {
           std::get<2>(block).resize(packing_factor * average_event_size * kB / n_blocks);
         }
 
-        mep_header = EB::Header{packing_factor, n_blocks};
+        mep_header = EB::Header {packing_factor, n_blocks};
         sizes_known = true;
       }
 
@@ -207,7 +221,8 @@ int main(int argc, char* argv[]) {
           if (b->type() != prev_type) {
             source_offset = 0;
             prev_type = b->type();
-          } else {
+          }
+          else {
             ++source_offset;
           }
           auto block_index = block_offsets[b->type()] + source_offset;
@@ -216,10 +231,11 @@ int main(int argc, char* argv[]) {
           if (n_filled == 0) {
             mep_header.source_ids[block_index] = b->sourceID();
             mep_header.versions[block_index] = b->version();
-            block_header = EB::BlockHeader{event_id, packing_factor};
-          } else if (mep_header.source_ids[block_index] != b->sourceID()) {
-            cout << "Error: banks not ordered in the same way: "
-                 << mep_header.source_ids[block_index] << " " << b->sourceID() << "\n";
+            block_header = EB::BlockHeader {event_id, packing_factor};
+          }
+          else if (mep_header.source_ids[block_index] != b->sourceID()) {
+            cout << "Error: banks not ordered in the same way: " << mep_header.source_ids[block_index] << " "
+                 << b->sourceID() << "\n";
             return -1;
           }
 
@@ -241,7 +257,8 @@ int main(int argc, char* argv[]) {
           block_header.block_size += word_size;
 
           ++n_filled;
-        } else if (b->type() != LHCb::RawBank::DAQ) {
+        }
+        else if (b->type() != LHCb::RawBank::DAQ) {
           cout << "unknown bank type: " << b->type() << endl;
         }
 
@@ -264,5 +281,4 @@ int main(int argc, char* argv[]) {
   }
 
   return error ? -1 : 0;
-
 }

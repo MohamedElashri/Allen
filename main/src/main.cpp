@@ -135,5 +135,4 @@ int main(int argc, char* argv[])
     Allen::NonEventData::Updater updater {allen_options};
     return allen(std::move(allen_options), &updater);
   }
-
 }

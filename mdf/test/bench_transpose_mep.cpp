@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 {
   string usage = "usage: bench_transpose n_slices <file.mep> <file.mep> <file.mep> ...";
   if (argc <= 2) {
-    cout << usage  << endl;
+    cout << usage << endl;
     return -1;
   }
 
@@ -44,7 +44,8 @@ int main(int argc, char* argv[])
   }
 
   // Allocate read buffer space
-  vector<tuple<vector<char>, EB::Header, gsl::span<char const>, MEP::Blocks, MEP::SourceOffsets>> mep_buffers{n_slices};
+  vector<tuple<vector<char>, EB::Header, gsl::span<char const>, MEP::Blocks, MEP::SourceOffsets>> mep_buffers {
+    n_slices};
 
   // Bank ID translation
   auto ids = bank_ids();
@@ -82,7 +83,7 @@ int main(int argc, char* argv[])
     if (i_buffer == 0) {
       auto pf = mep_header.packing_factor;
       auto size_fun = [pf](BankTypes) -> std::tuple<size_t, size_t> {
-       return {std::lround(average_event_size * pf * bank_size_fudge_factor * kB), pf};
+        return {std::lround(average_event_size * pf * bank_size_fudge_factor * kB), pf};
       };
       slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(n_meps, size_fun);
       blocks.resize(mep_header.n_blocks);
@@ -107,8 +108,9 @@ int main(int argc, char* argv[])
 
   // Measure and report read throughput
   t.stop();
-  auto n_read = std::accumulate(
-    mep_buffers.begin(), mep_buffers.end(), 0., [](double s, auto const& mb) { return s + std::get<1>(mb).packing_factor; });
+  auto n_read = std::accumulate(mep_buffers.begin(), mep_buffers.end(), 0., [](double s, auto const& mb) {
+    return s + std::get<1>(mb).packing_factor;
+  });
   cout << "read " << std::lround(n_read) << " events; " << n_read / t.get() << " events/s\n";
   cout << std::get<1>(mep_buffers[0]).packing_factor << "\n";
   // Count the number of banks of each type
@@ -134,14 +136,16 @@ int main(int argc, char* argv[])
       for (size_t rep = 0; rep < n_reps; ++rep) {
         // Reset the slice
         reset_slice<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(slices, i, event_ids[i]);
-        auto [success, transpose_full, n_transposed] = MEP::transpose_events(slices, i,
-                                                                             b_ids,
-                                                                             banks_count,
-                                                                             event_ids[i],
-                                                                             mep_header,
-                                                                             blocks,
-                                                                             source_offsets,
-                                                                             {0, mep_header.packing_factor});
+        auto [success, transpose_full, n_transposed] = MEP::transpose_events(
+          slices,
+          i,
+          b_ids,
+          banks_count,
+          event_ids[i],
+          mep_header,
+          blocks,
+          source_offsets,
+          {0, mep_header.packing_factor});
 
         info_cout << "thread " << i << " " << success << " " << transpose_full << " " << n_transposed << endl;
       }

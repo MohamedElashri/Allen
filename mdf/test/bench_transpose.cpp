@@ -67,9 +67,7 @@ int main(int argc, char* argv[])
   }
 
   // Transposed slices
-  auto size_fun = [buffer_size, n_events] (BankTypes) -> std::tuple<size_t, size_t> {
-                    return {buffer_size, n_events};
-                  };
+  auto size_fun = [buffer_size, n_events](BankTypes) -> std::tuple<size_t, size_t> { return {buffer_size, n_events}; };
   Slices slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(n_slices, size_fun);
 
   Timer t;

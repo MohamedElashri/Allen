@@ -13,9 +13,9 @@
 #include <read_mep.hpp>
 
 namespace {
-  using std::cout;
   using std::cerr;
-}
+  using std::cout;
+} // namespace
 
 /**
  * @brief      Read a mep from a file
@@ -25,8 +25,8 @@ namespace {
  *
  * @return     (eof, success, mep_header, span of mep data)
  */
-std::tuple<bool, bool, EB::Header, gsl::span<char const>>
-MEP::read_mep(Allen::IO& input, std::vector<char>& buffer) {
+std::tuple<bool, bool, EB::Header, gsl::span<char const>> MEP::read_mep(Allen::IO& input, std::vector<char>& buffer)
+{
 
   buffer.resize(sizeof(LHCb::MDFHeader));
   LHCb::MDFHeader* mdf_header = reinterpret_cast<LHCb::MDFHeader*>(buffer.data());
@@ -35,7 +35,8 @@ MEP::read_mep(Allen::IO& input, std::vector<char>& buffer) {
   if (n_bytes == 0) {
     cout << "Cannot read more data (Header). End-of-File reached.\n";
     return {true, true, {}, {}};
-  } else if (n_bytes < 0) {
+  }
+  else if (n_bytes < 0) {
     cerr << "Failed to read header " << strerror(errno) << "\n";
     return {false, false, {}, {}};
   }
@@ -70,14 +71,16 @@ MEP::read_mep(Allen::IO& input, std::vector<char>& buffer) {
   mep_buffer = &buffer[0] + hdr_size;
   mep_header = reinterpret_cast<EB::Header*>(mep_buffer);
 
-  n_bytes = input.read(mep_buffer + EB::Header::base_size(),
-                       EB::Header::header_size(mep_header->n_blocks) - EB::Header::base_size()
-                       + data_size);
+  n_bytes = input.read(
+    mep_buffer + EB::Header::base_size(),
+    EB::Header::header_size(mep_header->n_blocks) - EB::Header::base_size() + data_size);
   if (n_bytes <= 0) {
     cerr << "Failed to read MEP" << strerror(errno) << "\n";
     return {false, false, {}, {}};
   }
 
-  return {false, true, {reinterpret_cast<char const*>(mep_buffer)},
+  return {false,
+          true,
+          {reinterpret_cast<char const*>(mep_buffer)},
           {buffer.data() + hdr_size, EB::Header::header_size(mep_header->n_blocks) + data_size}};
 }

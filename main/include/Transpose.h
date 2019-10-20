@@ -29,7 +29,6 @@
 
 #include "TransposeTypes.h"
 
-
 //
 /**
  * @brief      read events from input file into prefetch buffer
@@ -112,8 +111,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
  *
  * @return     (success, number of banks per bank type; 0 if the bank is not needed)
  */
-std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>>
-fill_counts(gsl::span<char const> bank_data)
+std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::span<char const> bank_data)
 {
 
   std::array<unsigned int, LHCb::NBankTypes> count {0};
@@ -350,7 +348,8 @@ std::tuple<bool, bool, size_t> transpose_events(
 }
 
 template<BankTypes... Banks>
-Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun) {
+Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun)
+{
   Slices slices;
   for (auto bank_type : {Banks...}) {
     auto [n_bytes, n_offsets] = size_fun(bank_type);
@@ -371,13 +370,11 @@ Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>
       for (size_t i = 0; i < n_offsets + 1; ++i) {
         offsets_mem[i] = 0;
       }
-      std::vector<gsl::span<char>> spans{};
+      std::vector<gsl::span<char>> spans {};
       if (n_bytes) {
         spans.emplace_back(events_mem, n_bytes);
       }
-      bank_slices.emplace_back(std::move(spans), n_bytes,
-                               gsl::span<uint>{offsets_mem, n_offsets + 1},
-                               1);
+      bank_slices.emplace_back(std::move(spans), n_bytes, gsl::span<uint> {offsets_mem, n_offsets + 1}, 1);
     }
   }
   return slices;

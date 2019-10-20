@@ -26,7 +26,7 @@ namespace MPI {
       return "MPI::Receiver: ";
     }
   }
-}
+} // namespace MPI
 
 int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
 {
@@ -94,13 +94,10 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
     }
   }
 
- send:
+send:
 
-  info_cout << MPI::rank_str() << "EB header: "
-            << mep_header.n_blocks << ", "
-            << mep_header.packing_factor << ", "
-            << mep_header.reserved << ", "
-            << mep_header.mep_size << "\n";
+  info_cout << MPI::rank_str() << "EB header: " << mep_header.n_blocks << ", " << mep_header.packing_factor << ", "
+            << mep_header.reserved << ", " << mep_header.mep_size << "\n";
 
   size_t packing_factor = mep_header.packing_factor;
   MPI_Send(&packing_factor, 1, MPI_SIZE_T, MPI::receiver, MPI::message::packing_factor, MPI_COMM_WORLD);
@@ -132,13 +129,13 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
       const char* message = current_event_start + k * MPI::mdf_chunk_size;
       // info_cout << MPI::rank_str() << "Isend: Tag " << MPI::message::event_send_tag_start + k << "\n";
       MPI_Isend(
-                message,
-                MPI::mdf_chunk_size,
-                MPI_BYTE,
-                MPI::receiver,
-                MPI::message::event_send_tag_start + k,
-                MPI_COMM_WORLD,
-                &requests[k]);
+        message,
+        MPI::mdf_chunk_size,
+        MPI_BYTE,
+        MPI::receiver,
+        MPI::message::event_send_tag_start + k,
+        MPI_COMM_WORLD,
+        &requests[k]);
     }
     // Sliding window sends
     for (size_t k = n_sends; k < n_messages; k++) {
@@ -146,13 +143,13 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
       MPI_Waitany(window_size, requests.data(), &r, MPI_STATUS_IGNORE);
       const char* message = current_event_start + k * MPI::mdf_chunk_size;
       MPI_Isend(
-                message,
-                MPI::mdf_chunk_size,
-                MPI_BYTE,
-                MPI::receiver,
-                MPI::message::event_send_tag_start + k,
-                MPI_COMM_WORLD,
-                &requests[r]);
+        message,
+        MPI::mdf_chunk_size,
+        MPI_BYTE,
+        MPI::receiver,
+        MPI::message::event_send_tag_start + k,
+        MPI_COMM_WORLD,
+        &requests[r]);
     }
     // Last send (if necessary)
     if (rest) {
@@ -160,13 +157,13 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
       MPI_Waitany(window_size, requests.data(), &r, MPI_STATUS_IGNORE);
       const char* message = current_event_start + n_messages * MPI::mdf_chunk_size;
       MPI_Isend(
-                message,
-                rest,
-                MPI_BYTE,
-                MPI::receiver,
-                MPI::message::event_send_tag_start + n_messages,
-                MPI_COMM_WORLD,
-                &requests[r]);
+        message,
+        rest,
+        MPI_BYTE,
+        MPI::receiver,
+        MPI::message::event_send_tag_start + n_messages,
+        MPI_COMM_WORLD,
+        &requests[r]);
     }
     // Wait until all chunks have been sent
     MPI_Waitall(n_sends, requests.data(), MPI_STATUSES_IGNORE);

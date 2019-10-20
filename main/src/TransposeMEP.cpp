@@ -2,8 +2,9 @@
 #include <cstring>
 #include <TransposeMEP.h>
 
-std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>>
-MEP::fill_counts(EB::Header const& header, gsl::span<char const> const& mep_span)
+std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> MEP::fill_counts(
+  EB::Header const& header,
+  gsl::span<char const> const& mep_span)
 {
   // info_cout << "EB header: "
   //   << header.n_blocks << ", "
@@ -11,13 +12,12 @@ MEP::fill_counts(EB::Header const& header, gsl::span<char const> const& mep_span
   //   << header.reserved << ", "
   //   << header.mep_size << "\n";
 
-  auto header_size = + header.header_size(header.n_blocks);
-  gsl::span<char const> block_span{mep_span.data() + header_size,
-                                   mep_span.size() - header_size};
+  auto header_size = +header.header_size(header.n_blocks);
+  gsl::span<char const> block_span {mep_span.data() + header_size, mep_span.size() - header_size};
   std::array<unsigned int, LHCb::NBankTypes> count {0};
   for (size_t i = 0; i < header.n_blocks; ++i) {
     auto offset = header.offsets[i];
-    EB::BlockHeader bh{block_span.data() + offset};
+    EB::BlockHeader bh {block_span.data() + offset};
 
     // info_cout << "EB BlockHeader: "
     //   << bh.event_id << ", " << bh.n_frag << ", " << bh.reserved << ", " << bh.block_size << "\n";
@@ -32,26 +32,24 @@ MEP::fill_counts(EB::Header const& header, gsl::span<char const> const& mep_span
   return {true, count};
 }
 
-void MEP::find_blocks(EB::Header const& mep_header,
-                      gsl::span<char const>& buffer_span,
-                      Blocks& blocks) {
+void MEP::find_blocks(EB::Header const& mep_header, gsl::span<char const>& buffer_span, Blocks& blocks)
+{
 
   // Fill blocks
   auto hdr_size = mep_header.header_size(mep_header.n_blocks);
   auto block_hdr_size = EB::BlockHeader::header_size(mep_header.packing_factor);
-  gsl::span<char const> const mep_data{buffer_span.data() + hdr_size, buffer_span.size() - hdr_size};
+  gsl::span<char const> const mep_data {buffer_span.data() + hdr_size, buffer_span.size() - hdr_size};
 
   for (size_t i_block = 0; i_block < mep_header.n_blocks; ++i_block) {
     auto block_offset = mep_header.offsets[i_block];
-    EB::BlockHeader block_header{mep_data.data() + block_offset};
-    gsl::span<char const> block_data{mep_data.data() + block_offset + block_hdr_size,
-                                     block_header.block_size};
-    blocks[i_block] = std::tuple{std::move(block_header), std::move(block_data)};
+    EB::BlockHeader block_header {mep_data.data() + block_offset};
+    gsl::span<char const> block_data {mep_data.data() + block_offset + block_hdr_size, block_header.block_size};
+    blocks[i_block] = std::tuple {std::move(block_header), std::move(block_data)};
   }
 }
 
-void MEP::fragment_offsets(MEP::Blocks const& blocks,
-                           MEP::SourceOffsets& offsets) {
+void MEP::fragment_offsets(MEP::Blocks const& blocks, MEP::SourceOffsets& offsets)
+{
 
   // Reset input offsets
   for (auto& o : offsets) {
@@ -71,12 +69,14 @@ void MEP::fragment_offsets(MEP::Blocks const& blocks,
   }
 }
 
-size_t MEP::allen_offsets(::Slices& slices,
-                          int const slice_index,
-                          std::vector<int> const& bank_ids,
-                          std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
-                          MEP::Blocks const& blocks,
-                          std::tuple<size_t, size_t> const& interval) {
+size_t MEP::allen_offsets(
+  ::Slices& slices,
+  int const slice_index,
+  std::vector<int> const& bank_ids,
+  std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+  MEP::Blocks const& blocks,
+  std::tuple<size_t, size_t> const& interval)
+{
 
   auto [event_start, event_end] = interval;
 
@@ -140,7 +140,8 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
   EventIDs& event_ids,
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,
-  std::tuple<size_t, size_t> const& interval) {
+  std::tuple<size_t, size_t> const& interval)
+{
 
   auto [event_start, event_end] = interval;
 
@@ -215,7 +216,6 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
   }
   return {true, false, event_end - event_start};
 }
-
 
 bool MEP::transpose_event(
   ::Slices& slices,
@@ -297,9 +297,7 @@ bool MEP::transpose_event(
         banks_write[word_offset] = mep_header.source_ids[i_block];
 
         // Write bank data
-        std::memcpy(banks_write + word_offset + 1,
-                    block_data.data() + source_offsets[i_event],
-                    frag_size);
+        std::memcpy(banks_write + word_offset + 1, block_data.data() + source_offsets[i_event], frag_size);
       }
 
       ++bank_index;
@@ -323,16 +321,24 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
 
   bool success = true;
 
-  auto to_transpose = allen_offsets(slices, slice_index, bank_ids,
-                                    banks_count, blocks, interval);
+  auto to_transpose = allen_offsets(slices, slice_index, bank_ids, banks_count, blocks, interval);
 
-  transpose_event(slices, slice_index, bank_ids, banks_count, event_ids,
-                  mep_header, blocks, source_offsets, {event_start, event_start + to_transpose});
+  transpose_event(
+    slices,
+    slice_index,
+    bank_ids,
+    banks_count,
+    event_ids,
+    mep_header,
+    blocks,
+    source_offsets,
+    {event_start, event_start + to_transpose});
 
   return {success, to_transpose != (event_end - event_start), to_transpose};
 }
 
-std::vector<int> bank_ids() {
+std::vector<int> bank_ids()
+{
   // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
   std::vector<int> ids;
   ids.resize(LHCb::RawBank::LastType);
@@ -340,7 +346,8 @@ std::vector<int> bank_ids() {
     auto it = Allen::bank_types.find(static_cast<LHCb::RawBank::BankType>(bt));
     if (it != Allen::bank_types.end()) {
       ids[bt] = to_integral(it->second);
-    } else {
+    }
+    else {
       ids[bt] = -1;
     }
   }

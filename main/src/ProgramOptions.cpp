@@ -52,8 +52,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"non-stop"}, "Runs the program indefinitely", "0"},
           {{"with-mpi"}, "Read events with MPI", "0"},
           {{"mpi-window-size"}, "Size of MPI sliding window", "4"},
-          {{"mpi-number-of-slices"}, "Number of MPI network slices", "6"}
-        };
+          {{"mpi-number-of-slices"}, "Number of MPI network slices", "6"}};
 }
 
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name)

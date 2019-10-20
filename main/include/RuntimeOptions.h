@@ -34,7 +34,7 @@ struct RuntimeOptions {
     host_ut_events {std::move(ut_events)}, host_scifi_events {std::move(scifi_events)}, host_muon_events {std::move(
                                                                                           muon_events)},
     number_of_events(param_number_of_events), number_of_selected_events(param_number_of_events),
-    number_of_repetitions(param_number_of_repetitions), do_check(param_do_check), cpu_offload(param_cpu_offload),
-    mep_layout{param_mep_layout}
+    number_of_repetitions(param_number_of_repetitions), do_check(param_do_check),
+    cpu_offload(param_cpu_offload), mep_layout {param_mep_layout}
   {}
 };

@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
                             false,  // Receive from MPI or read files
                             false}; // Run the application non-stop
 
-  MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON> mep{
+  MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON> mep {
     n_slices, events_per_slice, {}, files, config};
 
   chrono::milliseconds sleep_interval {10};

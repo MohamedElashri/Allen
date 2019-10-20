@@ -292,17 +292,12 @@ void print_gpu_memory_consumption();
 
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
 
-
 template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
-void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream) {
+void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream)
+{
   char* offset = args.template offset<DATA_ARG>();
   for (gsl::span<char const> data_span : std::get<0>(bno)) {
-    cudaCheck(cudaMemcpyAsync(
-      offset,
-      data_span.begin(),
-      data_span.size_bytes(),
-      cudaMemcpyHostToDevice,
-      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(offset, data_span.begin(), data_span.size_bytes(), cudaMemcpyHostToDevice, cuda_stream));
     offset += data_span.size_bytes();
   }
 

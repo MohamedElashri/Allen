@@ -55,23 +55,20 @@ int main(int argc, char* argv[])
     auto header_size = mep_header.header_size(mep_header.n_blocks);
     auto const* d = mep_span.begin() + header_size;
     size_t i_block = 0;
-    while(d != mep_span.end()) {
-      EB::BlockHeader const block_header{d};
+    while (d != mep_span.end()) {
+      EB::BlockHeader const block_header {d};
       char const* block_data = d + block_header.header_size(block_header.n_frag);
       char const* block_end = block_data + block_header.block_size;
 
       assert(d - (mep_span.begin() + header_size) == mep_header.offsets[i_block]);
 
-      auto lhcb_type = int{block_header.types[0]};
+      auto lhcb_type = int {block_header.types[0]};
 
       cout << "fragment"
-           << " packing: " << std::setw(4) << block_header.n_frag
-           << " event_id: " << std::setw(6) << block_header.event_id
-           << " type: " << std::setw(3) << lhcb_type
-           << " source_id " << std::setw(4) << mep_header.source_ids[i_block]
-           << " version: " << std::setw(2) << mep_header.versions[i_block]
-           << " size: " << std::setw(6) << block_header.block_size
-           << "\n";
+           << " packing: " << std::setw(4) << block_header.n_frag << " event_id: " << std::setw(6)
+           << block_header.event_id << " type: " << std::setw(3) << lhcb_type << " source_id " << std::setw(4)
+           << mep_header.source_ids[i_block] << " version: " << std::setw(2) << mep_header.versions[i_block]
+           << " size: " << std::setw(6) << block_header.block_size << "\n";
 
       d = block_end;
       ++i_block;

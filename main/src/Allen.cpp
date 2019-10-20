@@ -260,7 +260,8 @@ void run_stream(
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants)
 {
   std::tuple consumers = std::make_tuple(
-    std::make_tuple(Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)),
+    std::make_tuple(
+      Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)),
     std::make_tuple(
       Allen::NonEventData::UTLookupTables {},
       std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)),
@@ -488,13 +489,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Create the InputProvider, either MDF or Binary
   // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
   if (!mep_input.empty()) {
-    MEPProviderConfig config {false,             // verify MEP checksums
-                              10,                // number of read buffers
-                              1,                 // number of transpose threads
-                              mpi_window_size,   // MPI sliding window size
-                              with_mpi,          // Receive from MPI or read files
-                              non_stop,          // Run the application non-stop
-                              allen_layout};     // MEPs should be transposed to Allen layout
+    MEPProviderConfig config {false,           // verify MEP checksums
+                              10,              // number of read buffers
+                              1,               // number of transpose threads
+                              mpi_window_size, // MPI sliding window size
+                              with_mpi,        // Receive from MPI or read files
+                              non_stop,        // Run the application non-stop
+                              allen_layout};   // MEPs should be transposed to Allen layout
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, split_input(mep_input), config);
   }
@@ -583,7 +584,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Lambda with the execution of the I/O thread
   const auto io_thread = [&](uint thread_id, uint) {
-    return std::make_tuple(std::thread {input_reader, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {});
+    return std::make_tuple(
+      std::thread {input_reader, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {});
   };
 
   using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(uint, uint)>;
@@ -655,7 +657,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   throughput_socket.bind(con.c_str());
 
   // Lambda to check if any event processors are done processing
-  auto check_processors = [&] () {
+  auto check_processors = [&]() {
     for (size_t i = 0; i < number_of_threads; ++i) {
       if (items[n_io + i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(streams[i]);
@@ -670,8 +672,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           if (t) {
             double elapsed_time = t->get_elapsed_time();
             if (elapsed_time - previous_time_measurement > 5) {
-              info_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events at a rate of " << n_events_processed * number_of_repetitions / elapsed_time << " events / s\n";
-              zmqSvc().send(throughput_socket, std::to_string(n_events_processed * number_of_repetitions / elapsed_time));
+              info_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions
+                        << " events at a rate of " << n_events_processed * number_of_repetitions / elapsed_time
+                        << " events / s\n";
+              zmqSvc().send(
+                throughput_socket, std::to_string(n_events_processed * number_of_repetitions / elapsed_time));
               previous_time_measurement = elapsed_time;
             }
           }
@@ -729,8 +734,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   if (error_count == 0) {
     info_cout << "Streams ready\n";
   }
-
-
 
   bool io_done = false;
 

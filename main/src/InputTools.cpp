@@ -25,16 +25,14 @@ namespace {
 
   // Check mdf files: they should match the regex and have not-empty filename
   auto check_ext = [](std::string ext) -> factory {
-    const std::regex format {std::string{"(.+)\\."} + ext};
-    return {format,
-            [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
+    const std::regex format {std::string {"(.+)\\."} + ext};
+    return {format, [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
   };
 
   // Check mep files: they should match the regex and have not-empty filename
   const std::regex mdf_format {"(.+)\\.mep"};
   auto check_mep = []() -> factory {
-    return {mdf_format,
-            [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
+    return {mdf_format, [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
   };
 
   // Check geometry files: they should match the regex.
@@ -170,7 +168,7 @@ std::vector<std::string> list_folder(const std::string& foldername, const std::s
       error_cout << "All files should be named N.bin or all files should be named N_M.bin\n";
     }
     else {
-      error_cout << "All files should end with " << extension  << ".\n";
+      error_cout << "All files should end with " << extension << ".\n";
     }
     exit(-1);
   }
@@ -334,7 +332,8 @@ void read_muon_field_of_interest(std::vector<float>& foi_params, const std::stri
   }
 }
 
-std::vector<std::string> split_input(std::string const& input) {
+std::vector<std::string> split_input(std::string const& input)
+{
   std::vector<std::string> s;
   size_t current = input.find(","), previous = 0;
   while (current != std::string::npos) {

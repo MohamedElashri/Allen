@@ -94,12 +94,12 @@ int main(int argc, char* argv[])
 
     size_t i_block = 0;
     for (auto const& [block_header, block_span] : blocks) {
-      auto const lhcb_type = int{block_header.types[0]};
+      auto const lhcb_type = int {block_header.types[0]};
       auto const allen_type = bank_ids[lhcb_type];
 
       // Copy blocks and calculate block offsets
-      for (auto& [ids, at] : {std::tuple{std::ref(scifi_block_ids), BankTypes::FT},
-                              std::tuple{std::ref(ut_block_ids), BankTypes::UT}}) {
+      for (auto& [ids, at] : {std::tuple {std::ref(scifi_block_ids), BankTypes::FT},
+                              std::tuple {std::ref(ut_block_ids), BankTypes::UT}}) {
         if (allen_type == to_integral(at)) {
           auto& [spans, offset, offsets, offsets_size] = slices[allen_type][0];
           ids.get().emplace_back(i_block);
@@ -125,7 +125,8 @@ int main(int argc, char* argv[])
         [[maybe_unused]] auto fragment_size = sizes[event];
 
         uint const offset_index = 2 + n_scifi_fragments * (1 + event);
-        [[maybe_unused]] uint bank_size = scifi_offsets[offset_index + i_block + n_scifi_fragments] - scifi_offsets[offset_index + i_block];
+        [[maybe_unused]] uint bank_size =
+          scifi_offsets[offset_index + i_block + n_scifi_fragments] - scifi_offsets[offset_index + i_block];
         assert(bank_size == fragment_size);
       }
     }
@@ -151,11 +152,7 @@ int main(int argc, char* argv[])
     vector<uint> event_list(interval, 0);
     uint number_of_selected_events = 0;
 
-    cpu_global_event_cut_mep(ut_banks,
-                             scifi_banks,
-                             &number_of_selected_events,
-                             event_list.data(),
-                             interval);
+    cpu_global_event_cut_mep(ut_banks, scifi_banks, &number_of_selected_events, event_list.data(), interval);
     cout << "selected " << number_of_selected_events << " events" << endl;
   }
 

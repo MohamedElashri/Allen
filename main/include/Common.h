@@ -98,16 +98,18 @@ void for_each(Tuple&& tup, F&& f)
 }
 
 // Detection idiom
-template <class... Ts>
+template<class... Ts>
 using void_t = void;
 
 namespace detail {
-  template <template <class...> class Trait, class Enabler, class... Args>
-  struct is_detected : std::false_type{};
+  template<template<class...> class Trait, class Enabler, class... Args>
+  struct is_detected : std::false_type {
+  };
 
-  template <template <class...> class Trait, class... Args>
-  struct is_detected<Trait, void_t<Trait<Args...>>, Args...> : std::true_type{};
-}
+  template<template<class...> class Trait, class... Args>
+  struct is_detected<Trait, void_t<Trait<Args...>>, Args...> : std::true_type {
+  };
+} // namespace detail
 
-template <template <class...> class Trait, class... Args>
+template<template<class...> class Trait, class... Args>
 using is_detected = typename detail::is_detected<Trait, void, Args...>::type;

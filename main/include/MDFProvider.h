@@ -93,8 +93,8 @@ public:
     std::vector<std::string> connections,
     MDFProviderConfig config = MDFProviderConfig {}) :
     InputProvider<MDFProvider<Banks...>> {n_slices, events_per_slice, n_events},
-    m_buffer_writable(config.n_buffers, true), m_slice_free(n_slices, true), m_banks_count {0},
-     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
+    m_buffer_writable(config.n_buffers, true), m_slice_free(n_slices, true), m_banks_count {0}, m_event_ids {n_slices},
+    m_connections {std::move(connections)}, m_config {config}
   {
 
     // Preallocate prefetch buffer memory
@@ -157,7 +157,8 @@ public:
         if (!count_success) {
           error_cout << "Failed to determine bank counts\n";
           m_read_error = true;
-        } else {
+        }
+        else {
           m_sizes_known = true;
         }
       }

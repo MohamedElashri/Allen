@@ -46,8 +46,8 @@ namespace {
   std::array<unsigned int, LHCb::RawBank::LastType> banks_count;
 } // namespace
 
-
-BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_index) {
+BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_index)
+{
   auto ib = to_integral<BankTypes>(bank_type);
   auto const& [banks, banks_size, offsets, offsets_size] = slices[ib][slice_index];
   span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
@@ -55,11 +55,13 @@ BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_inde
   return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
 }
 
-size_t transpose_mep(Slices& mep_slices,
-                     int output_index,
-                     EB::Header& mep_header,
-                     gsl::span<char const> mep_data,
-                     size_t chunk_size) {
+size_t transpose_mep(
+  Slices& mep_slices,
+  int output_index,
+  EB::Header& mep_header,
+  gsl::span<char const> mep_data,
+  size_t chunk_size)
+{
 
   bool success = false;
   std::tie(success, banks_count) = MEP::fill_counts(mep_header, mep_data);
@@ -77,14 +79,8 @@ size_t transpose_mep(Slices& mep_slices,
 
   MEP::fragment_offsets(blocks, input_offsets);
 
-  auto r = MEP::transpose_events(mep_slices, output_index,
-                                 ids,
-                                 banks_count,
-                                 events_mep,
-                                 mep_header,
-                                 blocks,
-                                 input_offsets,
-                                 {0, chunk_size});
+  auto r = MEP::transpose_events(
+    mep_slices, output_index, ids, banks_count, events_mep, mep_header, blocks, input_offsets, {0, chunk_size});
   return std::get<2>(r);
 }
 
@@ -114,8 +110,8 @@ int main(int argc, char* argv[])
 
   s_config.run = !directory.empty();
   if (s_config.run) {
-    for (auto [ext, dir] : {std::tuple{string{"mdf"}, std::ref(s_config.mdf_files)},
-                            std::tuple{string{"mep"}, std::ref(s_config.mep_files)}}) {
+    for (auto [ext, dir] : {std::tuple {string {"mdf"}, std::ref(s_config.mdf_files)},
+                            std::tuple {string {"mep"}, std::ref(s_config.mep_files)}}) {
       for (auto file : list_folder(directory + "/banks/" + ext, ext)) {
         dir.get().push_back(directory + "/banks/" + ext + "/" + file);
       }
@@ -251,7 +247,6 @@ TEMPLATE_TEST_CASE(
   // Get the events
   auto const& events_binary = binary->event_ids(slice_binary);
 
-
   // Check that the events match
   SECTION("Checking Event IDs")
   {
@@ -271,5 +266,4 @@ TEMPLATE_TEST_CASE(
   SECTION("Checking offsets") { check_offsets(banks_mep, banks_binary); }
 
   SECTION("Checking data") { check_banks(banks_mep, banks_binary); }
-
 }
