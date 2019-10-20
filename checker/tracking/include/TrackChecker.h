@@ -76,52 +76,16 @@ public:
   void report(size_t n_events) const override;
 
   template<typename T>
-  std::vector<std::vector<std::vector<uint32_t>>> accumulate(
-    const MCEvents& mc_events,
-    const std::vector<Checker::Tracks>& tracks,
-    std::vector<std::vector<float>>& p_events)
+  void accumulate(const MCEvents& mc_events, const std::vector<Checker::Tracks>& tracks)
   {
-    std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_events;
-
-    for (size_t evnum = 0; evnum < mc_events.size(); ++evnum) {
+    for (size_t evnum = 0; evnum < tracks.size(); ++evnum) {
       const auto& mc_event = mc_events[evnum];
       const auto& event_tracks = tracks[evnum];
 
-      auto matched_mcps = (*this)(event_tracks, mc_event, get_num_hits_subdetector<typename T::subdetector_t>);
-
-      std::vector<std::vector<uint32_t>> scifi_ids_tracks;
-      scifi_ids_tracks.reserve(
-        std::accumulate(matched_mcps.begin(), matched_mcps.end(), 0, [&mc_event](size_t s, auto const& it) {
-          return s + (it == mc_event.m_mcps.end());
-        }));
-      std::vector<float> p_tracks;
-      for (const auto& it : matched_mcps) {
-        std::vector<uint32_t> scifi_ids;
-        float p = 1e9;
-        if (it != mc_event.m_mcps.end()) { // track was matched to an MCP
-          auto const& mcp = *it;
-          // Save momentum and charge of this MCP
-          p = mcp.p * mcp.charge;
-          // debug_cout << "Adding particle with PID = " << mcp.pid << " and charge " << charge << std::endl;
-          // Find SciFi IDs of this MCP
-          if (mcp.isLong) { // found matched long MCP
-            for (const auto id : mcp.hits) {
-              const uint32_t detector_id = (id >> 20) & 0xFFF;
-              if (detector_id == 0xa00) { // hit in the SciFi
-                scifi_ids.push_back(id);
-              }
-            }
-          }
-        }
-        scifi_ids_tracks.push_back(scifi_ids);
-        p_tracks.push_back(p);
-      }
-
-      scifi_ids_events.push_back(scifi_ids_tracks);
-      p_events.push_back(p_tracks);
+      (*this)(event_tracks, mc_event, get_num_hits_subdetector<typename T::subdetector_t>);
 
       // Check all tracks for duplicate LHCb IDs
-      for (int i_track = 0; i_track < event_tracks.size(); ++i_track) {
+      for (size_t i_track = 0; i_track < event_tracks.size(); ++i_track) {
         const auto& track = event_tracks[i_track];
         auto ids = track.ids();
         std::sort(std::begin(ids), std::end(ids));
@@ -135,10 +99,9 @@ public:
         }
       }
     }
-    return scifi_ids_events;
   }
 
-  std::vector<MCParticles::const_iterator> operator()(
+  void operator()(
     const Checker::Tracks& tracks,
     const MCEvent& mc_event,
     const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector);

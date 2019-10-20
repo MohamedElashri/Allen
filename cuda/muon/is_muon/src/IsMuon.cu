@@ -43,12 +43,12 @@ __device__ bool is_in_window(
 {
   std::pair<float, float> foi = field_of_interest(dev_muon_foi, station, region, momentum);
 
-  return (fabs(hit_x - extrapolation_x) < hit_dx * foi.first * dev_muon_foi->factor) &&
-         (fabs(hit_y - extrapolation_y) < hit_dy * foi.second * dev_muon_foi->factor);
+  return (fabsf(hit_x - extrapolation_x) < hit_dx * foi.first * dev_muon_foi->factor) &&
+         (fabsf(hit_y - extrapolation_y) < hit_dy * foi.second * dev_muon_foi->factor);
 }
 
 __global__ void is_muon(
-  int* dev_atomics_scifi,
+  uint* dev_atomics_scifi,
   uint* dev_scifi_track_hit_number,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
@@ -56,7 +56,6 @@ __global__ void is_muon(
   const Muon::HitsSoA* muon_hits,
   int* dev_muon_track_occupancies,
   bool* dev_is_muon,
-  const uint* event_list,
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
   const float* dev_muon_momentum_cuts)
 {
@@ -110,9 +109,9 @@ __global__ void is_muon(
         }
       }
     }
-    
+
     __syncthreads();
-      
+
     if (threadIdx.y == 0) {
       if (momentum < dev_muon_momentum_cuts[0]) {
         dev_is_muon[event_offset + track_id] = false;

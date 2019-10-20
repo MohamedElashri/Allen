@@ -6,7 +6,7 @@
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsSciFi.cuh"
 
-__device__ void make_cluster_v6 (
+__device__ void make_cluster_v6(
   const int hit_index,
   const SciFi::HitCount& hit_count,
   const SciFi::SciFiGeometry& geom,

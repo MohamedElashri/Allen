@@ -1,11 +1,10 @@
 #include "PVCheckerHistos.h"
 
-float binomial_error(float k, float N) { return sqrt(k * (1 - k / N)) / N; }
+float binomial_error(float k, float N) { return sqrtf(k * (1 - k / N)) / N; }
 
 PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file)
 {
 #ifdef WITH_ROOT
-
   m_file = invoker->root_file(root_file);
   m_file->cd();
 
@@ -46,7 +45,9 @@ PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string cons
   m_allPV->Branch("erry", &m_erry);
   m_allPV->Branch("errz", &m_errz);
   m_allPV->Branch("isFake", &m_isFake);
-
+#else
+  _unused(invoker);
+  _unused(root_file);
 #endif
 }
 
@@ -72,9 +73,8 @@ void PVCheckerHistos::accumulate(
   std::vector<double> const& vec_mc_y,
   std::vector<double> const& vec_mc_z)
 {
-  // save information about matched reconstructed PVs for pulls distributions
 #ifdef WITH_ROOT
-
+  // save information about matched reconstructed PVs for pulls distributions
   for (size_t i = 0; i < vec_diff_x.size(); i++) {
     m_nmcpv = vec_n_mcpv.at(i);
     m_ntrinmcpv = vec_n_trinmcpv.at(i);
@@ -109,8 +109,8 @@ void PVCheckerHistos::accumulate(
 
   // Proper uncertainties for efficiencies
   for (int i = 1; i <= m_bins_norm_z; i++) {
-    float N = 1.f * eff_norm_z->GetBinContent(i);
-    float k = 1.f * eff_vs_z->GetBinContent(i);
+    float N = 1.f * static_cast<float>(eff_norm_z->GetBinContent(i));
+    float k = 1.f * static_cast<float>(eff_vs_z->GetBinContent(i));
     if (k < N && N > 0) {
       binerrors_vs_z.push_back(binomial_error(k, N));
     }
@@ -118,8 +118,8 @@ void PVCheckerHistos::accumulate(
       binerrors_vs_z.push_back(0.);
   }
   for (int i = 1; i <= m_bins_norm_mult; i++) {
-    float N = 1.f * eff_norm_mult->GetBinContent(i);
-    float k = 1.f * eff_vs_mult->GetBinContent(i);
+    float N = 1.f * static_cast<float>(eff_norm_mult->GetBinContent(i));
+    float k = 1.f * static_cast<float>(eff_vs_mult->GetBinContent(i));
     if (k < N && N > 0) {
       binerrors_vs_mult.push_back(binomial_error(k, N));
     }
@@ -154,7 +154,27 @@ void PVCheckerHistos::accumulate(
     m_isFake = rec_pv.indexMCPVInfo < 0;
     m_allPV->Fill();
   }
-
+#else
+  _unused(vec_all_rec);
+  _unused(vec_rec_x);
+  _unused(vec_rec_y);
+  _unused(vec_rec_z);
+  _unused(vec_diff_x);
+  _unused(vec_diff_y);
+  _unused(vec_diff_z);
+  _unused(vec_err_x);
+  _unused(vec_err_y);
+  _unused(vec_err_z);
+  _unused(vec_n_trinmcpv);
+  _unused(vec_n_mcpv);
+  _unused(vec_mcpv_recd);
+  _unused(vec_recpv_fake);
+  _unused(vec_mcpv_mult);
+  _unused(vec_recpv_mult);
+  _unused(vec_mcpv_zpos);
+  _unused(vec_mc_x);
+  _unused(vec_mc_y);
+  _unused(vec_mc_z);
 #endif
 }
 

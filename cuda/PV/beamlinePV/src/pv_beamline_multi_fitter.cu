@@ -1,7 +1,7 @@
 #include "pv_beamline_multi_fitter.cuh"
 
 __global__ void pv_beamline_multi_fitter(
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks,
   float* dev_pvtracks_denom,
@@ -30,6 +30,8 @@ __global__ void pv_beamline_multi_fitter(
   PV::Vertex vertex;
   float* pvtracks_denom = dev_pvtracks_denom + event_tracks_offset;
 
+  const float2 seed_pos_xy {dev_beamline[0], dev_beamline[1]};
+
   // make sure that we have one thread per seed
   for (uint i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
     bool converged = false;
@@ -37,8 +39,9 @@ __global__ void pv_beamline_multi_fitter(
     float vtxcov[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
 
     // initial vertex posisiton, use x,y of the beamline and z of the seed
-    float2 vtxpos_xy {dev_beamline[0], dev_beamline[1]};
-    auto vtxpos_z = zseeds[i_thisseed];
+    float2 vtxpos_xy = seed_pos_xy;
+    float seed_pos_z = zseeds[i_thisseed];
+    auto vtxpos_z = seed_pos_z;
     auto chi2tot = 0.f;
     float sum_weights = 0.f;
 
@@ -55,7 +58,7 @@ __global__ void pv_beamline_multi_fitter(
 
       uint nselectedtracks = 0;
 
-      for (int i = 0; i < number_of_tracks; i++) {
+      for (uint i = 0; i < number_of_tracks; i++) {
         // compute the chi2
         PVTrackInVertex trk = tracks[i];
         // skip tracks lying outside histogram range
@@ -65,6 +68,7 @@ __global__ void pv_beamline_multi_fitter(
           float2 res {0.f, 0.f};
           res = vtxpos_xy - (trk.x + trk.tx * dz);
           const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
+
           // compute the weight.
           if (chi2 < maxChi2) {
             ++nselectedtracks;
@@ -72,7 +76,11 @@ __global__ void pv_beamline_multi_fitter(
             // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
             // https://cds.cern.ch/record/803519/files/p280.pdf
             const auto denom = chi2CutExp + expf(chi2 * (-0.5f));
-            const auto nom = expf(chi2 * (-0.5f));
+            // use seed position for chi2 calculation of nominator
+            float dz_seed = seed_pos_z - trk.z;
+            float2 res_seed = seed_pos_xy - (trk.x + trk.tx * dz_seed);
+            float chi2_seed = res_seed.x * res_seed.x * trk.W_00 + res_seed.y * res_seed.y * trk.W_11;
+            const auto nom = expf(chi2_seed * (-0.5f));
             trk.weight = nom / (denom + pvtracks_denom[i]);
 
             // unfortunately branchy, but reduces fake rate

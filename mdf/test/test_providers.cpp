@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
   }
 
   if (s_config.run) {
-    int input = ::open(s_config.mep_files[0].c_str(), O_RDONLY);
+    auto input = MDF::open(s_config.mep_files[0], O_RDONLY);
     info_cout << "Opened " << s_config.mep_files[0] << "\n";
 
     // Transpose MEP
@@ -153,8 +153,7 @@ int main(int argc, char* argv[])
     };
     mep_slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(1, size_fun);
 
-    size_t n_transposed = 0;
-    n_transposed = transpose_mep(mep_slices, 0, mep_header, mep_span, s_config.n_events);
+    transpose_mep(mep_slices, 0, mep_header, mep_span, s_config.n_events);
   }
 
   return session.run();

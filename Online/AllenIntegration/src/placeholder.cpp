@@ -1,5 +1,3 @@
 #include <Integration/placeholder.h>
 
-void test_integration() {
-
-}
+void test_integration() {}

@@ -1,14 +1,13 @@
 #include "MuonFeaturesExtraction.cuh"
 
 __global__ void muon_catboost_features_extraction(
-  int* dev_atomics_scifi,
+  uint* dev_atomics_scifi,
   uint* dev_scifi_track_hit_number,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
   uint* dev_scifi_track_ut_indices,
   const Muon::HitsSoA* muon_hits,
-  float* dev_muon_catboost_features,
-  const uint* event_list)
+  float* dev_muon_catboost_features)
 {
   const uint number_of_events = gridDim.x;
   const uint event_id = blockIdx.x;
@@ -66,21 +65,21 @@ __global__ void muon_catboost_features_extraction(
       dev_muon_catboost_features[tracks_features_offset + offset::DTS + station_id] =
         muon_hits[event_id].delta_time[idx];
       dev_muon_catboost_features[tracks_features_offset + offset::CROSS + station_id] =
-        (muon_hits[event_id].uncrossed[idx] == 0) ? 2. : muon_hits[event_id].uncrossed[idx];
+        (muon_hits[event_id].uncrossed[idx] == 0) ? 2.f : muon_hits[event_id].uncrossed[idx];
 
-      const float trav_dist = sqrt(
+      const float trav_dist = sqrtf(
         (station_z - station_z0) * (station_z - station_z0) +
         (extrapolation_x - extrapolation_x0) * (extrapolation_x - extrapolation_x0) +
         (extrapolation_y - extrapolation_y0) * (extrapolation_y - extrapolation_y0));
-      const float errMS = common_factor * trav_dist * sqrt(trav_dist);
+      const float errMS = common_factor * trav_dist * sqrtf(trav_dist);
 
       dev_muon_catboost_features[tracks_features_offset + offset::RES_X + station_id] =
-        (extrapolation_x - muon_hits[event_id].x[idx]) / sqrt(
+        (extrapolation_x - muon_hits[event_id].x[idx]) / sqrtf(
                                                            (muon_hits[event_id].dx[idx] * Muon::Constants::INVSQRT3) *
                                                              (muon_hits[event_id].dx[idx] * Muon::Constants::INVSQRT3) +
                                                            errMS * errMS);
       dev_muon_catboost_features[tracks_features_offset + offset::RES_Y + station_id] =
-        (extrapolation_y - muon_hits[event_id].y[idx]) / sqrt(
+        (extrapolation_y - muon_hits[event_id].y[idx]) / sqrtf(
                                                            (muon_hits[event_id].dy[idx] * Muon::Constants::INVSQRT3) *
                                                              (muon_hits[event_id].dy[idx] * Muon::Constants::INVSQRT3) +
                                                            errMS * errMS);

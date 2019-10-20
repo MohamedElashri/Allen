@@ -23,7 +23,7 @@ endif()
 allen_add_library(Associate STATIC
   ${associate_srcs}
 )
-     
-if(USE_KALMAN_SINGLE_PRECISION)
-  target_compile_definitions(Associate PUBLIC KALMAN_SINGLE_PRECISION)
+
+if (USE_KALMAN_DOUBLE_PRECISION)
+  add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()

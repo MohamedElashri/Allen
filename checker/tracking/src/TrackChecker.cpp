@@ -85,14 +85,15 @@ void TrackChecker::report(size_t) const
     "TrackChecker output",
     m_nghosts,
     m_ntracks,
-    100.f * float(m_nghosts) / float(m_ntracks));
+    (100.0 * static_cast<double>(m_nghosts)) / (static_cast<double>(m_ntracks)));
+
   if (m_trackerName == "Forward") {
     std::printf(
       "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
       "for P>3GeV,Pt>0.5GeV",
       m_nghoststrigger,
       m_ntrackstrigger,
-      100.f * float(m_nghoststrigger) / float(m_ntrackstrigger));
+      100.0 * static_cast<double>(m_nghoststrigger) / static_cast<double>(m_ntrackstrigger));
   }
 
   for (auto const& report : m_categories) {
@@ -108,31 +109,31 @@ void TrackChecker::report(size_t) const
         "Muon fraction in all MCPs:                                          %9lu/%9lu %6.2f%% \n",
         m_n_MCPs_muon,
         m_n_MCPs_not_muon + m_n_MCPs_muon,
-        float(m_n_MCPs_muon) / (m_n_MCPs_not_muon + m_n_MCPs_muon));
+        static_cast<double>(m_n_MCPs_muon) / (m_n_MCPs_not_muon + m_n_MCPs_muon));
       std::printf(
         "Muon fraction in MCPs to which a track(s) was matched:              %9lu/%9lu %6.2f%% \n",
         n_matched_muons,
         n_matched_muons + n_matched_not_muons,
-        float(n_matched_muons) / (n_matched_muons + n_matched_not_muons));
+        static_cast<double>(n_matched_muons) / (n_matched_muons + n_matched_not_muons));
       std::printf(
         "Correctly identified muons with isMuon:                             %9lu/%9lu %6.2f%% \n",
         n_is_muon_true,
         n_matched_muons,
-        100.f * float(n_is_muon_true) / float(n_matched_muons));
+        100 * static_cast<double>(n_is_muon_true) / static_cast<double>(n_matched_muons));
     }
     if (n_matched_not_muons > 0) {
       std::printf(
         "Tracks identified as muon with isMuon, but matched to non-muon MCP: %9lu/%9lu %6.2f%% \n",
         n_is_muon_misID,
         n_matched_not_muons,
-        100.f * float(n_is_muon_misID) / float(n_matched_not_muons));
+        100 * static_cast<double>(n_is_muon_misID) / static_cast<double>(n_matched_not_muons));
     }
     if (m_nghosts > 0) {
       std::printf(
         "Ghost tracks identified as muon with isMuon:                        %9lu/%9lu %6.2f%% \n",
         n_is_muon_ghost,
         m_nghosts,
-        100.f * float(n_is_muon_ghost) / float(m_nghosts));
+        100 * static_cast<double>(n_is_muon_ghost) / static_cast<double>(m_nghosts));
     }
   }
   printf("\n");
@@ -212,12 +213,12 @@ void Checker::TrackEffReport::report() const
       m_name.c_str(),
       m_nfound,
       m_naccept,
-      100.f * eff,
-      100.f * eff_per_event,
+      100 * static_cast<double>(eff),
+      100 * static_cast<double>(eff_per_event),
       m_nclones,
-      100.f * clonerate,
-      100.f * m_hitpur,
-      100.f * m_hiteff);
+      100 * static_cast<double>(clonerate),
+      100 * static_cast<double>(m_hitpur),
+      100 * static_cast<double>(m_hiteff));
   }
 }
 
@@ -389,7 +390,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
   return {match, track_best_matched_MCP};
 }
 
-std::vector<MCParticles::const_iterator> TrackChecker::operator()(
+void TrackChecker::operator()(
   const Checker::Tracks& tracks,
   const MCEvent& mc_event,
   const std::function<uint32_t(const MCParticle&)>& get_num_hits_subdetector)
@@ -417,13 +418,11 @@ std::vector<MCParticles::const_iterator> TrackChecker::operator()(
   std::size_t ntracksperevt = 0;
   std::size_t nghoststriggerperevt = 0;
   std::size_t ntrackstriggerperevt = 0;
-  std::vector<MCParticles::const_iterator> matched_mcp_keys;
   for (size_t i_track = 0; i_track < tracks.size(); ++i_track) {
-    auto const& track = tracks[i_track];
-    m_histos->fillTotalHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
+    const auto& track = tracks[i_track];
+    m_histos->fillTotalHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
 
     auto [match, track_best_matched_MCP] = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
-    matched_mcp_keys.push_back(track_best_matched_MCP);
 
     bool eta25 = track.eta > 2.f && track.eta < 5.f;
     bool skipEtaCut = (m_trackerName == "Velo");
@@ -438,10 +437,11 @@ std::vector<MCParticles::const_iterator> TrackChecker::operator()(
     }
     if (!match) {
       ++nghostsperevt;
-      m_histos->fillGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
+      m_histos->fillGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
       if (triggerCondition) ++nghoststriggerperevt;
       if (track.is_muon) {
-        m_histos->fillMuonGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, track.eta);
+        m_histos->fillMuonGhostHistos(
+          mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
         ++n_is_muon_ghost;
       }
     }
@@ -512,8 +512,6 @@ std::vector<MCParticles::const_iterator> TrackChecker::operator()(
   }
   m_nghoststrigger += nghoststriggerperevt;
   m_ntrackstrigger += ntrackstriggerperevt;
-
-  return matched_mcp_keys;
 }
 
 TrackCheckerVelo::TrackCheckerVelo(CheckerInvoker const* invoker, std::string const& root_file) :

@@ -32,27 +32,20 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/classifiers/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/utils/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_first_layer_window/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_second_layer_window/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/form_seeds_from_candidates/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_candidate_extrapolation_window/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/promote_candidates/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_track_extrapolation_window/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/search_initial_windows/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/collect_candidates/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/find_compatible_windows/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/triplet_seeding/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/triplet_keep_best/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_x/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_missing_x/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/composite_algorithms/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_first_layers_x/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/extend_tracks_uv/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/quality_filter/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/quality_filter_x/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/search_uv_windows/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward_sbt/fit/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/search_initial_windows/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/collect_candidates/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/find_compatible_windows/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/triplet_seeding/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/triplet_keep_best/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks_x/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_missing_x/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/composite_algorithms/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks_first_layers_x/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks_uv/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/quality_filter/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/quality_filter_x/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/search_uv_windows/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/fit/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
@@ -64,12 +57,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding_steps/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/patPV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/x86/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/velo/clustering/include)
-include_directories(${CMAKE_SOURCE_DIR}/x86/UT/PrVeloUT/include)
-include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/LookingForward/include)
-include_directories(${CMAKE_SOURCE_DIR}/x86/SciFi/MomentumForward/include)
-include_directories(${CMAKE_SOURCE_DIR}/x86/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/global_event_cut/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
@@ -119,14 +107,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
   endforeach(source_file)
 endif()
 
-allen_add_library(Stream STATIC
-  "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-  ${stream_gear}
-  ${stream_memory_manager}
-  ${stream_scheduler}
-  ${stream_sequence}
-  ${stream_sequence_cpp}
-  ${stream_setup}
+allen_add_library(Visitors STATIC
   ${stream_visitors_gec}
   ${stream_visitors_ip}
   ${stream_visitors_velo}
@@ -141,6 +122,41 @@ allen_add_library(Stream STATIC
   ${stream_visitors_selections}
 )
 
+target_link_libraries(Visitors PRIVATE
+  CudaCommon
+  Associate
+  GlobalEventCut
+  Velo
+  AllenPatPV
+  PV_beamline
+  x86Clustering
+  UT
+  Kalman
+  VertexFitter
+  Hlt1
+  SciFi
+  CpuGEC
+  CpuUtils
+  Muon
+  Utils)
+
+# Avoid unused parameter warnings in Visitors
+if(TARGET_DEVICE STREQUAL "CUDA")
+  target_compile_options(Visitors PRIVATE "-Xcompiler=-Wno-unused-parameter")
+else()
+  target_compile_options(Visitors PRIVATE "-Wno-unused-parameter")
+endif()
+
+allen_add_library(Stream STATIC
+  "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+  ${stream_gear}
+  ${stream_memory_manager}
+  ${stream_scheduler}
+  ${stream_sequence}
+  ${stream_sequence_cpp}
+  ${stream_setup}
+)
+
 target_link_libraries(Stream PRIVATE
   CudaCommon
   Associate
@@ -149,21 +165,16 @@ target_link_libraries(Stream PRIVATE
   AllenPatPV
   PV_beamline
   x86Clustering
-  x86beamlinePV
   UT
   Kalman
   VertexFitter
   Hlt1
   SciFi
-  x86MuonDecoding
-  x86LookingForward
-  x86MomentumForward
-  x86VeloUT
-  x86Clustering
   CpuGEC
   CpuUtils
   Muon
-  Utils)
+  Utils
+  Visitors)
 
 set_property(TARGET Stream PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 

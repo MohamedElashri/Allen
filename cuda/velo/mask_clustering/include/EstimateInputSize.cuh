@@ -14,7 +14,6 @@ __global__ void estimate_input_size(
   uint* dev_module_candidate_num,
   uint32_t* dev_cluster_candidates,
   const uint* dev_event_list,
-  uint* dev_event_order,
   uint8_t* dev_velo_candidate_ks);
 
 ALGORITHM(
@@ -27,8 +26,7 @@ ALGORITHM(
     dev_module_cluster_num,
     dev_module_candidate_num,
     dev_cluster_candidates,
-    dev_event_list,
-    dev_event_order))
+    dev_event_list))
 
 __global__ void estimate_input_size_mep(
   char* dev_raw_input,
@@ -37,7 +35,6 @@ __global__ void estimate_input_size_mep(
   uint* dev_module_candidate_num,
   uint32_t* dev_cluster_candidates,
   const uint* dev_event_list,
-  uint* dev_event_order,
   uint8_t* dev_velo_candidate_ks);
 
 ALGORITHM(
@@ -50,8 +47,7 @@ ALGORITHM(
     dev_module_cluster_num,
     dev_module_candidate_num,
     dev_cluster_candidates,
-    dev_event_list,
-    dev_event_order))
+    dev_event_list))
 
 XOR_ALGORITHM(velo_estimate_input_size_mep_t,
               velo_estimate_input_size_allen_t,

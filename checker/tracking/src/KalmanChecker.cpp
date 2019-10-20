@@ -42,13 +42,16 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
   m_tree->Branch("ndofT", &m_trk_ndofT);
   m_tree->Branch("ghost", &m_trk_ghost);
   m_tree->Branch("mcp_p", &m_mcp_p);
+#else
+  _unused(invoker);
+  _unused(root_file);
 #endif
 }
 
 void KalmanChecker::accumulate(MCEvents const& mc_events, std::vector<Checker::Tracks> const& tracks)
 {
   // Loop over events.
-  for (size_t i_event = 0; i_event < mc_events.size(); ++i_event) {
+  for (size_t i_event = 0; i_event < tracks.size(); ++i_event) {
     const auto& mc_event = mc_events[i_event];
     const auto& mcps = mc_event.m_mcps;
     const auto& event_tracks = tracks[i_event];
@@ -59,13 +62,13 @@ void KalmanChecker::accumulate(MCEvents const& mc_events, std::vector<Checker::T
       const auto& ids = track.ids();
       const auto assoc = mcassoc(ids.begin(), ids.end(), track.n_matched_total);
       if (!assoc)
-        m_trk_ghost = 1.;
+        m_trk_ghost = 1.f;
       else {
         const auto weight = std::get<1>(assoc.front());
-        if (weight < 0.7)
-          m_trk_ghost = 1.;
+        if (weight < 0.7f)
+          m_trk_ghost = 1.f;
         else {
-          m_trk_ghost = 0.;
+          m_trk_ghost = 0.f;
           const auto mcp = std::get<0>(assoc.front());
           m_mcp_p = mcp.p;
         }
@@ -95,7 +98,7 @@ void KalmanChecker::accumulate(MCEvents const& mc_events, std::vector<Checker::T
       m_trk_ndofV = (float) track.ndofV;
       m_trk_ndofT = (float) track.ndofT;
       float sint =
-        std::sqrt((m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty) / (1. + m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty));
+        std::sqrt((m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty) / (1.f + m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty));
       m_trk_best_pt = sint / std::abs(track.best_qop);
 #ifdef WITH_ROOT
       m_tree->Fill();

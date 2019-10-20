@@ -27,7 +27,6 @@ void SequenceVisitor::visit<kalman_pv_ipchi2_t>(
     arguments.offset<dev_kf_tracks>(),
     arguments.offset<dev_atomics_scifi>(),
     arguments.offset<dev_scifi_track_hit_number>(),
-    arguments.offset<dev_scifi_track_hits>(),
     arguments.offset<dev_scifi_qop>(),
     arguments.offset<dev_scifi_states>(),
     arguments.offset<dev_scifi_track_ut_indices>(),

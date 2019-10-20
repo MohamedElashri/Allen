@@ -36,8 +36,8 @@ int main(int argc, char* argv[])
 
   gsl::span<const char> bank_span;
 
-  int input = ::open(filename.c_str(), O_RDONLY);
-  if (input != -1) {
+  auto input = MDF::open(filename.c_str(), O_RDONLY);
+  if (input.good) {
     info_cout << "Opened " << filename << "\n";
   }
   else {
@@ -88,6 +88,6 @@ int main(int argc, char* argv[])
     cout << "\n";
   }
 
- error:
-   ::close(input);
+error:
+  input.close();
 }

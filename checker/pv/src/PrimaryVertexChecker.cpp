@@ -11,9 +11,13 @@ PVChecker::PVChecker(CheckerInvoker const* invoker, std::string const& root_file
   m_histos = new PVCheckerHistos {invoker, root_file};
 }
 
-void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, int* number_of_vertex)
+void PVChecker::accumulate(
+  MCEvents const& mc_events,
+  PV::Vertex* rec_vertex,
+  int* number_of_vertex,
+  uint n_selected_events)
 {
-  passed += mc_events.size();
+  passed += n_selected_events;
 
   std::vector<RecPVInfo> vec_all_rec;
 
@@ -50,7 +54,7 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
   std::vector<double> vec_mc_z;
 
   // loop over selected events
-  for (uint i_event = 0; i_event < mc_events.size(); ++i_event) {
+  for (uint i_event = 0; i_event < n_selected_events; ++i_event) {
     std::vector<PV::Vertex*> vecOfVertices;
     // first fill vector with vertices
     for (int i = 0; i < number_of_vertex[i_event]; i++) {
@@ -65,20 +69,20 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
       pv = *itRecV;
       RecPVInfo recinfo;
       recinfo.pRECPV = pv;
-      recinfo.x = pv->position.x;
-      recinfo.y = pv->position.y;
-      recinfo.z = pv->position.z;
+      recinfo.x = static_cast<double>(pv->position.x);
+      recinfo.y = static_cast<double>(pv->position.y);
+      recinfo.z = static_cast<double>(pv->position.z);
 
-      double sigx = sqrt(pv->cov00);
-      double sigy = sqrt(pv->cov11);
-      double sigz = sqrt(pv->cov22);
+      double sigx = std::sqrt(static_cast<double>(pv->cov00));
+      double sigy = std::sqrt(static_cast<double>(pv->cov11));
+      double sigz = std::sqrt(static_cast<double>(pv->cov22));
       PatPV::XYZPoint a3d(sigx, sigy, sigz);
       recinfo.positionSigma = a3d;
       recinfo.nTracks = pv->nTracks;
       double minRD = 99999.;
       double maxRD = -99999.;
-      double chi2 = pv->chi2;
-      double nDoF = pv->ndof;
+      double chi2 = static_cast<double>(pv->chi2);
+      double nDoF = static_cast<double>(pv->ndof);
 
       int mother = 0;
       int velo = 0;
@@ -178,7 +182,7 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
         for (unsigned int imc = 0; imc < not_rble_but_visible.size(); imc++) {
           if (not_rble_but_visible[imc].indexRecPVInfo > -1) continue;
           double dist = fabs(mcpvvec[imc].pMCPV->z - recpvvec[ipv].z);
-          if (dist < 5.0 * recpvvec[ipv].positionSigma.z) {
+          if (dist < 5.0 * static_cast<double>(recpvvec[ipv].positionSigma.z)) {
             vis_found = true;
             not_rble_but_visible[imc].indexRecPVInfo = 10;
             break;
@@ -202,7 +206,7 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
         double diff_x = itmcl->pMCPV->x - cmc->pMCPV->x;
         double diff_y = itmcl->pMCPV->y - cmc->pMCPV->y;
         double diff_z = itmcl->pMCPV->z - cmc->pMCPV->z;
-        dist = sqrt(diff_x*diff_x + diff_y*diff_y + diff_z*diff_z);
+        dist = sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z);
         itmcl->distToClosestMCPV = dist;
         itmcl->multClosestMCPV = mult;
       }
@@ -276,9 +280,9 @@ void PVChecker::accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, in
       vec_rec_y.push_back(recpvvec[rec_index].y);
       vec_rec_z.push_back(recpvvec[rec_index].z);
 
-      double err_x = recpvvec[rec_index].positionSigma.x;
-      double err_y = recpvvec[rec_index].positionSigma.y;
-      double err_z = recpvvec[rec_index].positionSigma.z;
+      double err_x = static_cast<double>(recpvvec[rec_index].positionSigma.x);
+      double err_y = static_cast<double>(recpvvec[rec_index].positionSigma.y);
+      double err_z = static_cast<double>(recpvvec[rec_index].positionSigma.z);
 
       vec_err_x.push_back(err_x);
       vec_err_y.push_back(err_y);
@@ -318,19 +322,19 @@ void PVChecker::report(size_t) const
 
   info_cout << "REC and MC vertices matched " << ff << std::endl;
   std::printf(
-        "MC PV is reconstructible if at least %i tracks are reconstructed\n\
+    "MC PV is reconstructible if at least %i tracks are reconstructed\n\
 MC PV is isolated if dz to closest reconstructible MC PV > %2.2f mm\n\
 REC and MC vertices matched %s\n\n",
-        nTracksToBeRecble,
-        dzIsolated,
-        ff.c_str());
-  
+    nTracksToBeRecble,
+    dzIsolated,
+    ff.c_str());
+
   printRat("All", sum_nRecMCPV, sum_nMCPV);
   printRat("Isolated", sum_nRecMCPV_isol, sum_nMCPV_isol);
   printRat("Close", sum_nRecMCPV_close, sum_nMCPV_close);
   printRat("False rate", sum_nFalsePV, sum_nRecMCPV + sum_nFalsePV);
   printRat("Real false rate", sum_nFalsePV_real, sum_nRecMCPV + sum_nFalsePV_real);
-  printRat("Clones", 1.0f * sum_clones - sum_norm_clones, sum_norm_clones );
+  printRat("Clones", 1.0f * sum_clones - sum_norm_clones, sum_norm_clones);
   info_cout << std::endl;
 
   m_histos->write();
@@ -350,7 +354,7 @@ void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::ve
     }
   }
   if (indexmc > -1) {
-    if (mindist < 5.0 * rinfo[ipv].positionSigma.z) {
+    if (mindist < 5.0 * static_cast<double>(rinfo[ipv].positionSigma.z)) {
       rinfo[ipv].indexMCPVInfo = indexmc;
       mcpvvec[indexmc].indexRecPVInfo = ipv;
       mcpvvec[indexmc].number_rec_vtx++;
@@ -372,12 +376,7 @@ void printRat(std::string mes, int a, int b)
   }
   pmes += " : ";
 
-  std::printf(
-        "%s %.3f (%6lu/%6lu)\n",
-        pmes.c_str(),
-        rat,
-        a,
-        b);
+  std::printf("%s %.3f (%6i/%6i)\n", pmes.c_str(), static_cast<double>(rat), a, b);
 }
 
 std::vector<MCPVInfo>::iterator closestMCPV(std::vector<MCPVInfo>& rblemcpv, std::vector<MCPVInfo>::iterator& itmc)

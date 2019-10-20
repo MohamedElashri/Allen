@@ -5,9 +5,8 @@ pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeak
 {
   // At least parallelize over events, even if it's
   // one event on each thread
-  for (int event_number = blockIdx.x * blockDim.x + threadIdx.x; 
-     event_number < number_of_events;
-     event_number += blockDim.x * gridDim.x) {
+  for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
+       event_number += blockDim.x * gridDim.x) {
     float* zhisto = dev_zhisto + Nbins * event_number;
     float* zpeaks = dev_zpeaks + PV::max_number_vertices * event_number;
     uint number_of_peaks = 0;
@@ -17,7 +16,7 @@ pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeak
     using BinIndex = unsigned short;
     BinIndex clusteredges[PV::max_number_clusteredges];
     uint number_of_clusteredges = 0;
-    
+
     {
       const float inv_maxTrackZ0Err = 1.f / (10.f * maxTrackZ0Err);
       const float threshold = dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
@@ -102,7 +101,7 @@ pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeak
         Cluster subclusters[PV::max_number_subclusters];
         uint number_of_subclusters = 0;
         if (N > 3) {
-          for (unsigned int i = 1; i < N / 2 + 1; ++i) {
+          for (int i = 1; i < (N / 2) + 1; ++i) {
             if (extrema[2 * i].integral - extrema[2 * i - 2].integral > minTracksInSeed) {
               subclusters[number_of_subclusters] =
                 Cluster(extrema[2 * i - 2].index, extrema[2 * i].index, extrema[2 * i - 1].index);
@@ -122,7 +121,7 @@ pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeak
           // adjust the limit of the first and last to extend to the entire protocluster
           subclusters[0].izfirst = ibegin;
           subclusters[number_of_subclusters].izlast = iend;
-          for (int i = 0; i < number_of_subclusters; i++) {
+          for (uint i = 0; i < number_of_subclusters; i++) {
             Cluster subcluster = subclusters[i];
             clusters[number_of_clusters] = subcluster;
             number_of_clusters++;
@@ -139,7 +138,7 @@ pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeak
       return zmin + dz * (izmax + idz + 0.5f);
     };
 
-    for (int i = 0; i < number_of_clusters; ++i) {
+    for (uint i = 0; i < number_of_clusters; ++i) {
       zpeaks[number_of_peaks] = zClusterMean(clusters[i].izmax);
       number_of_peaks++;
     }

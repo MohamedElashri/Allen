@@ -6,7 +6,7 @@ void cpu_prefix_sum_impl(uint* host_prefix_sum_buffer, const size_t dev_prefix_s
   const size_t number_of_elements = (dev_prefix_sum_size >> 2) - 1;
   uint temp = 0;
   uint temp_sum = 0;
-  for (int i = 0; i < number_of_elements; ++i) {
+  for (uint i = 0; i < number_of_elements; ++i) {
     temp_sum += host_prefix_sum_buffer[i];
     host_prefix_sum_buffer[i] = temp;
     temp = temp_sum;
@@ -35,6 +35,9 @@ void cpu_prefix_sum(
   }
 
 #ifdef CPU
+  _unused(cuda_stream);
+  _unused(cuda_generic_event);
+
   host_prefix_sum_buffer = dev_prefix_sum_offset;
 #else
   cudaCheck(cudaMemcpyAsync(
@@ -61,7 +64,7 @@ void cpu_combo_prefix_sum_impl(
   const size_t number_of_elements = (dev_prefix_sum_size >> 2) - 1;
   uint temp = 0;
   uint temp_sum = 0;
-  for (int i = 0; i < number_of_elements; ++i) {
+  for (uint i = 0; i < number_of_elements; ++i) {
     temp_sum += host_prefix_sum_buffer[i] * (host_prefix_sum_buffer[i] - 1) / 2;
     host_prefix_sum_buffer[i] = temp;
     temp = temp_sum;

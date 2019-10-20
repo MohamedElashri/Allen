@@ -60,39 +60,47 @@ void RateChecker::accumulate(
   }
 }
 
+double binomial_error(int n, int k) { return 1. / n * std::sqrt(1. * k * (1. - 1. * k / n)); }
+
 void RateChecker::report(size_t requested_events) const
 {
 
   // Assume 30 MHz input rate.
-  float in_rate = 30000.0;
+  const double in_rate = 30000.0;
   std::printf(
-    "One track:        %6lu/%6lu, %8.2f kHz\n",
+    "One track:        %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
     m_evts_one_track,
     requested_events,
-    1. * m_evts_one_track / requested_events * in_rate);
+    1. * m_evts_one_track / requested_events * in_rate,
+    binomial_error(requested_events, m_evts_one_track) * in_rate);
   std::printf(
-    "Two track:        %6lu/%6lu, %8.2f kHz\n",
+    "Two track:        %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
     m_evts_two_track,
     requested_events,
-    1. * m_evts_two_track / requested_events * in_rate);
+    1. * m_evts_two_track / requested_events * in_rate,
+    binomial_error(requested_events, m_evts_two_track) * in_rate);
   std::printf(
-    "Single muon:      %6lu/%6lu, %8.2f kHz\n",
+    "Single muon:      %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
     m_evts_single_muon,
     requested_events,
-    1. * m_evts_single_muon / requested_events * in_rate);
+    1. * m_evts_single_muon / requested_events * in_rate,
+    binomial_error(requested_events, m_evts_single_muon) * in_rate);
   std::printf(
-    "Displaced dimuon: %6lu/%6lu, %8.2f kHz\n",
+    "Displaced dimuon: %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
     m_evts_disp_dimuon,
     requested_events,
-    1. * m_evts_disp_dimuon / requested_events * in_rate);
+    1. * m_evts_disp_dimuon / requested_events * in_rate,
+    binomial_error(requested_events, m_evts_disp_dimuon) * in_rate);
   std::printf(
-    "High mass dimuon: %6lu/%6lu, %8.2f kHz\n",
+    "High mass dimuon: %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
     m_evts_high_mass_dimuon,
     requested_events,
-    1. * m_evts_high_mass_dimuon / requested_events * in_rate);
+    1. * m_evts_high_mass_dimuon / requested_events * in_rate,
+    binomial_error(requested_events, m_evts_high_mass_dimuon) * in_rate);
   std::printf(
-    "Inclusive:        %6lu/%6lu, %8.2f kHz\n\n",
+    "Inclusive:        %6i/%6lu, (%8.2f +/- %8.2f) kHz\n\n",
     m_evts_inc,
     requested_events,
-    1. * m_evts_inc / requested_events * in_rate);
+    1. * m_evts_inc / requested_events * in_rate,
+    binomial_error(requested_events, m_evts_inc) * in_rate);
 }

@@ -32,7 +32,6 @@ void SequenceVisitor::visit<velo_masked_clustering_t>(
     arguments.offset<dev_cluster_candidates>(),
     arguments.offset<dev_velo_cluster_container>(),
     arguments.offset<dev_event_list>(),
-    arguments.offset<dev_event_order>(),
     constants.dev_velo_geometry,
     constants.dev_velo_sp_patterns.data(),
     constants.dev_velo_sp_fx.data(),

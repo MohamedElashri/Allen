@@ -9,10 +9,9 @@ __global__ void muon_sort_station_region_quarter(
   uint* dev_storage_tile_id,
   uint* dev_storage_tdc_value,
   const uint* dev_atomics_muon,
-  uint* dev_permutation_srq,
-  const Muon::MuonRawToHits* muon_raw_to_hits);
+  uint* dev_permutation_srq);
 
 ALGORITHM(
   muon_sort_station_region_quarter,
   muon_sort_station_region_quarter_t,
-  ARGUMENTS(dev_storage_tile_id, dev_storage_tdc_value, dev_atomics_muon, dev_permutation_srq, dev_muon_raw_to_hits))
+  ARGUMENTS(dev_storage_tile_id, dev_storage_tdc_value, dev_atomics_muon, dev_permutation_srq))

@@ -28,7 +28,7 @@ __device__ void store_sorted_cluster_reference_v4(
   //   raw bank: 8 bits
   //   element (it): 8 bits
   hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 8 | (it & 0xFF);
-};
+}
 
 __device__ void pre_decode_raw_bank_v4(
   SciFi::HitCount const& hit_count,

@@ -43,9 +43,6 @@ int main(int argc, char* argv[])
     files[i] = argv[i + 2];
   }
 
-  // Bank types to test with
-  array<BankTypes, NBankTypes> bank_types {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
-
   // Allocate read buffer space
   vector<tuple<vector<char>, EB::Header, gsl::span<char const>, MEP::Blocks, MEP::SourceOffsets>> mep_buffers{n_slices};
 
@@ -60,18 +57,18 @@ int main(int argc, char* argv[])
   // Header for storage
 
   // Read events into buffers, open more files if needed
-  optional<int> input;
-  size_t i_file = 0, n_bytes_read = 0;
+  optional<Allen::IO> input;
+  size_t i_file = 0;
   bool eof = false, success = false;
   string file;
   for (size_t i_buffer = 0; i_buffer < mep_buffers.size(); ++i_buffer) {
-    if (!input || eof) {
+    if (!input->good || eof) {
       file = files[i_file++];
       if (i_file == files.size()) {
         i_file = 0;
       }
-      input = ::open(file.c_str(), O_RDONLY);
-      if (input < 0) {
+      input = MDF::open(file.c_str(), O_RDONLY);
+      if (!input->good) {
         cerr << "error opening " << file << " " << strerror(errno) << "\n";
         return -1;
       }
@@ -97,8 +94,8 @@ int main(int argc, char* argv[])
     // Fill fragment offsets
     MEP::fragment_offsets(blocks, source_offsets);
 
-    if (input && eof) {
-      ::close(*input);
+    if (input->good && eof) {
+      input->close();
     }
     else if (!success) {
       cerr << "error reading " << file << "\n";
@@ -133,8 +130,6 @@ int main(int argc, char* argv[])
   // Start the transpose threads
   for (size_t i = 0; i < n_slices; ++i) {
     threads.emplace_back(thread {[i, n_reps, &event_ids, &mep_buffers, &slices, &b_ids, &banks_count] {
-      bool success = false;
-
       auto& [buffer, mep_header, mep_span, blocks, source_offsets] = mep_buffers[i];
       for (size_t rep = 0; rep < n_reps; ++rep) {
         // Reset the slice

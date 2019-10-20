@@ -3,7 +3,7 @@
 #ifdef CPU
 
 #include <cstring>
-#include <malloc.h>
+#include "stdlib.h"
 
 thread_local GridDimensions gridDim;
 thread_local BlockIndices blockIdx;
@@ -12,76 +12,66 @@ dim3::dim3(const unsigned int& x) : x(x) {}
 dim3::dim3(const unsigned int& x, const unsigned int& y) : x(x), y(y) {}
 dim3::dim3(const unsigned int& x, const unsigned int& y, const unsigned int& z) : x(x), y(y), z(z) {}
 
-cudaError_t cudaMalloc(void** devPtr, size_t size) {
-  devPtr[0] = memalign(64, size);
+cudaError_t cudaMalloc(void** devPtr, size_t size)
+{
+  posix_memalign(devPtr, 64, size);
   return 0;
 }
 
-cudaError_t cudaMallocHost(void** ptr, size_t size) {
-  ptr[0] = memalign(64, size);
+cudaError_t cudaMallocHost(void** ptr, size_t size)
+{
+  posix_memalign(ptr, 64, size);
   return 0;
 }
 
-cudaError_t cudaMemcpy(void* dst, const void* src, size_t count, enum cudaMemcpyKind kind) {
+cudaError_t cudaMemcpy(void* dst, const void* src, size_t count, enum cudaMemcpyKind)
+{
   std::memcpy(dst, src, count);
   return 0;
 }
 
-cudaError_t cudaMemcpyAsync(void* dst, const void* src, size_t count, enum cudaMemcpyKind kind, cudaStream_t stream) {
+cudaError_t cudaMemcpyAsync(void* dst, const void* src, size_t count, enum cudaMemcpyKind, cudaStream_t)
+{
   std::memcpy(dst, src, count);
   return 0;
 }
 
-cudaError_t cudaMemset(void* devPtr, int value, size_t count) {
+cudaError_t cudaMemset(void* devPtr, int value, size_t count)
+{
   std::memset(devPtr, value, count);
   return 0;
 }
 
-cudaError_t cudaMemsetAsync(void* devPtr, int value, size_t count, cudaStream_t stream) {
+cudaError_t cudaMemsetAsync(void* devPtr, int value, size_t count, cudaStream_t)
+{
   std::memset(devPtr, value, count);
   return 0;
 }
 
-cudaError_t cudaPeekAtLastError() {
-  return 0;
-}
+cudaError_t cudaPeekAtLastError() { return 0; }
 
-cudaError_t cudaEventCreate(cudaEvent_t* event) {
-  event = new cudaEvent_t;
-  return 0;
-}
+cudaError_t cudaEventCreate(cudaEvent_t*) { return 0; }
 
-cudaError_t cudaEventCreateWithFlags(cudaEvent_t* event, int flags) {
-  event = new cudaEvent_t;
-  return 0;
-}
+cudaError_t cudaEventCreateWithFlags(cudaEvent_t*, int) { return 0; }
 
-cudaError_t cudaEventSynchronize(cudaEvent_t event) {
-  return 0;
-}
+cudaError_t cudaEventSynchronize(cudaEvent_t) { return 0; }
 
-cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream) {
-  return 0;
-}
+cudaError_t cudaEventRecord(cudaEvent_t, cudaStream_t) { return 0; }
 
-cudaError_t cudaFreeHost(void* ptr) {
+cudaError_t cudaFreeHost(void* ptr)
+{
   free(ptr);
   return 0;
 }
 
-cudaError_t cudaDeviceReset() {
-  return 0;
-}
+cudaError_t cudaDeviceReset() { return 0; }
 
-cudaError_t cudaStreamCreate(cudaStream_t* pStream) {
-  pStream = new cudaStream_t;
-  return 0;
-}
+cudaError_t cudaStreamCreate(cudaStream_t*) { return 0; }
 
-unsigned int atomicInc(unsigned int* address,
-                       unsigned int val) {
+unsigned int atomicInc(unsigned int* address, unsigned int val)
+{
   unsigned int old = *address;
-  *address = ((old >= val) ? 0 : (old+1));
+  *address = ((old >= val) ? 0 : (old + 1));
   return old;
 }
 
@@ -89,17 +79,20 @@ unsigned int atomicInc(unsigned int* address,
 
 #if defined(CPU) || defined(HIP)
 
-__device__ __host__ int32_t intbits(const float f) {
+__device__ __host__ int32_t intbits(const float f)
+{
   const int32_t* bits = reinterpret_cast<const int32_t*>(&f);
   return *bits;
 }
 
-__device__ __host__ float floatbits(const int32_t i) {
+__device__ __host__ float floatbits(const int32_t i)
+{
   const float* bits = reinterpret_cast<const float*>(&i);
   return *bits;
 }
 
-__device__ __host__ half_t __float2half(const float f) {
+__device__ __host__ half_t __float2half(const float f)
+{
   // via Fabian "ryg" Giesen.
   // https://gist.github.com/2156668
   uint32_t sign_mask = 0x80000000u;
@@ -133,8 +126,7 @@ __device__ __host__ half_t __float2half(const float f) {
   int32_t fint2 = intbits(floatbits(fint & round_mask) * floatbits(magic)) - round_mask;
   fint2 = (fint2 > f16infty) ? f16infty : fint2; // Clamp to signed infinity if overflowed
 
-  if (fint < f32infty)
-    o = fint2 >> 13; // Take the bits!
+  if (fint < f32infty) o = fint2 >> 13; // Take the bits!
 
   return (o | (sign >> 16));
 }

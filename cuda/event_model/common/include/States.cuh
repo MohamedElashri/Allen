@@ -58,6 +58,17 @@ struct MiniState {
   __host__ __device__ MiniState(const float _x, const float _y, const float _z, const float _tx, const float _ty) :
     x(_x), y(_y), z(_z), tx(_tx), ty(_ty)
   {}
+
+  __host__ __device__ MiniState operator=(const MiniState& other)
+  {
+    x = other.x;
+    y = other.y;
+    z = other.z;
+    tx = other.tx;
+    ty = other.ty;
+
+    return *this;
+  }
 };
 
 struct ProjectionState {

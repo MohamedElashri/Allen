@@ -5,7 +5,6 @@ __global__ void muon_add_coords_crossing_maps(
   uint* dev_storage_tile_id,
   uint* dev_storage_tdc_value,
   uint* dev_atomics_muon,
-  uint* dev_permutation_srq,
   Muon::MuonRawToHits* muon_raw_to_hits,
   uint64_t* dev_muon_compact_hit,
   uint* dev_station_ocurrences_offset)
@@ -14,7 +13,7 @@ __global__ void muon_add_coords_crossing_maps(
   const auto event_number = blockIdx.x;
 
   __shared__ bool used[Muon::Constants::max_numhits_per_event];
-  for (int i = threadIdx.x; i < Muon::Constants::max_numhits_per_event; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < Muon::Constants::max_numhits_per_event; i += blockDim.x) {
     used[i] = false;
   }
 
@@ -30,17 +29,13 @@ __global__ void muon_add_coords_crossing_maps(
   auto station_ocurrences_offset = dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
   const auto base_offset = storage_station_region_quarter_offsets[0];
 
-  for (int i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+  for (uint i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
        i += blockDim.x) {
 
     const auto start_index = storage_station_region_quarter_offsets[i] - base_offset;
     const auto end_index = storage_station_region_quarter_offsets[i + 1] - base_offset;
 
     if (start_index != end_index) {
-
-      // muon_raw_to_hits->addCoordsCrossingMap(storage_tile_id, storage_tdc_value, used,
-      //   start_index, end_index, event_muon_hits, *current_hit_index);
-
       // TODO: We are fetching the first tile ID
       //       We should verify this logic holds (it does not atm)
       const auto tile = Muon::MuonTileID(storage_tile_id[start_index]);
@@ -95,27 +90,6 @@ __global__ void muon_add_coords_crossing_maps(
 
           if (keyX == candidateX && keyY == candidateY) {
             Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex]);
-            // padTile.setY(Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]));
-            // padTile.setLayout(Muon::MuonLayout(thisGridX, otherGridY));
-            // float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
-            // Muon::calcTilePos(muon_raw_to_hits->muonTables, padTile, x, dx, y, dy, z);
-            // const int clusterSize = 0;
-            // const int region = padTile.region();
-            // setAtIndex(
-            //   event_muon_hits,
-            //   localCurrentHitIndex,
-            //   padTile.id(),
-            //   x,
-            //   dx,
-            //   y,
-            //   dy,
-            //   z,
-            //   dz,
-            //   uncrossed,
-            //   storage_tdc_value[digitsOneIndex],
-            //   storage_tdc_value[digitsOneIndex] - storage_tdc_value[digitsTwoIndex],
-            //   clusterSize,
-            //   region);
             const int localCurrentHitIndex = atomicAdd(current_hit_index, 1);
 
             uint64_t compact_hit =
@@ -132,43 +106,23 @@ __global__ void muon_add_coords_crossing_maps(
         }
       }
 
-      for (int index = start_index; index < end_index; ++index) {
+      for (auto index = start_index; index < end_index; ++index) {
         if (!used[index]) {
-          // float x = 0., dx = 0., y = 0., dy = 0., z = 0., dz = 0.;
           const auto tile = Muon::MuonTileID(storage_tile_id[index]);
           const int region = tile.region();
 
           int condition;
           if (tile.station() > (Muon::Constants::n_stations - 3) && region == 0) {
             condition = 0;
-            // calcTilePos(muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
           }
           else {
             if (index < mid_index) {
               condition = 1;
-              // calcStripXPos(muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
             }
             else {
               condition = 2;
-              // calcStripYPos(muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
             }
           }
-          // const int clusterSize = 0;
-          // setAtIndex(
-          //   event_muon_hits,
-          //   localCurrentHitIndex,
-          //   tile.id(),
-          //   x,
-          //   dx,
-          //   y,
-          //   dy,
-          //   z,
-          //   dz,
-          //   uncrossed,
-          //   storage_tdc_value[index],
-          //   storage_tdc_value[index],
-          //   clusterSize,
-          //   region);
 
           const int localCurrentHitIndex = atomicAdd(current_hit_index, 1);
           const unsigned int uncrossed = 1;

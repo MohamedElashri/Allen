@@ -6,7 +6,7 @@
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsSciFi.cuh"
 
-__device__ void store_sorted_cluster_reference_v6 (
+__device__ void store_sorted_cluster_reference_v6(
   const SciFi::HitCount& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,

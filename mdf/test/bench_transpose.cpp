@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
   LHCb::MDFHeader header;
 
   // Read events into buffers, open more files if needed
-  optional<int> input;
+  optional<Allen::IO> input;
   size_t i_file = 0, n_bytes_read = 0;
   bool eof = false, error = false, read_full = false;
   string file;
@@ -92,12 +92,12 @@ int main(int argc, char* argv[])
         if (i_file == files.size()) {
           i_file = 0;
         }
-        input = ::open(file.c_str(), O_RDONLY);
-        if (input < 0) {
+        input = MDF::open(file.c_str(), O_RDONLY);
+        if (!input->good) {
           cerr << "error opening " << file << " " << strerror(errno) << "\n";
           return -1;
         }
-        ssize_t n_bytes = ::read(*input, &header, sizeof(header));
+        ssize_t n_bytes = input->read(reinterpret_cast<char*>(&header), sizeof(header));
         if (n_bytes <= 0) {
           cerr << "error reading " << file << " " << strerror(errno) << "\n";
           return -1;
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
       std::tie(eof, error, read_full, n_bytes_read) =
         read_events(*input, read_buffers[i_buffer], header, compress_buffers[i_buffer], n_events, false);
       if (input && eof) {
-        ::close(*input);
+        input->close();
       }
       else if (error) {
         cerr << "error reading " << file << "\n";

@@ -32,7 +32,6 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_atomics_ut>(),
     arguments.offset<dev_ut_qop>(),
-    arguments.offset<dev_ut_states>(),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
     arguments.offset<dev_scifi_lf_number_of_candidates>(),
@@ -44,7 +43,6 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_ut_qop>(),
     arguments.offset<dev_ut_states>(),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
@@ -81,10 +79,7 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
   //       that is, initializing the bytes individually:
   //       0x7F results in 0x7F7F7F7F, which is 3.3961514e38 in fp32
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_scifi_lf_triplet_best>(),
-    0x7F,
-    arguments.size<dev_scifi_lf_triplet_best>(),
-    cuda_stream));
+    arguments.offset<dev_scifi_lf_triplet_best>(), 0x7F, arguments.size<dev_scifi_lf_triplet_best>(), cuda_stream));
 
   state.handler_lf_triplet_seeding.invoke();
   state.handler_lf_triplet_keep_best.invoke();

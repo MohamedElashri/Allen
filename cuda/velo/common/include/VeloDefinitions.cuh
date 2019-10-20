@@ -2,7 +2,12 @@
 
 #include <cstdint>
 #include <cstdlib>
-
+#ifdef __APPLE__
+/* Old compatibility names for C types.  */
+typedef unsigned long int ulong;
+typedef unsigned short int ushort;
+typedef unsigned int uint;
+#endif
 namespace Velo {
   // Total number of atomics required
   static constexpr uint num_atomics = 5;

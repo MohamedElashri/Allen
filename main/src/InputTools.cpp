@@ -1,9 +1,15 @@
 #include <regex>
+#include <unordered_map>
 #include "InputTools.h"
 #include "Common.h"
 
-namespace {
+#ifdef __APPLE__
+#include <boost/filesystem.hpp>
+#else
+#include <filesystem>
+#endif
 
+namespace {
   // Factory for filename checking: a regex and a predicate on the its matches
   using factory = std::tuple<std::regex, std::function<bool(const std::smatch&)>>;
 
@@ -56,6 +62,11 @@ namespace {
     return std::less<EventID> {}(name_to_number(lhs), name_to_number(rhs));
   };
 
+#ifdef __APPLE__
+  namespace fs = boost::filesystem;
+#else
+  namespace fs = std::filesystem;
+#endif
 } // namespace
 
 /**
@@ -100,7 +111,7 @@ void readFileIntoVector(const std::string& filename, std::vector<char>& events)
   auto dataSize = end - infile.tellg();
 
   if (dataSize == 0) {
-    warning_cout << "Empty file: " << filename << std::endl;
+    warning_cout << "Empty file: " << filename << "\n";
   }
 
   events.resize(dataSize);
@@ -122,7 +133,7 @@ void appendFileToVector(const std::string& filename, std::vector<char>& events, 
   auto dataSize = end - infile.tellg();
 
   if (dataSize == 0) {
-    warning_cout << "Empty file: " << filename << std::endl;
+    warning_cout << "Empty file: " << filename << "\n";
   }
 
   // read content of infile with a vector
@@ -136,42 +147,35 @@ void appendFileToVector(const std::string& filename, std::vector<char>& events, 
 std::vector<std::string> list_folder(const std::string& foldername, const std::string& extension)
 {
   std::vector<std::string> folderContents;
-  DIR* dir;
-  struct dirent* ent;
   std::string suffix = std::string {"."} + extension;
-  // Find out folder contents
-  if ((dir = opendir(foldername.c_str())) != NULL) {
-    /* print all the files and directories within directory */
-    while ((ent = readdir(dir)) != NULL) {
-      std::string filename = ent->d_name;
-      if (filename != "." && filename != "..") {
-        folderContents.emplace_back(filename);
-      }
-    }
-    closedir(dir);
-    if (folderContents.size() == 0) {
-      error_cout << "No " << extension << " files found in folder " << foldername << std::endl;
-      exit(-1);
-    }
-    else if (
-      !check_names(folderContents, check_geom()) && !check_names(folderContents, check_bin(1)) &&
-      !check_names(folderContents, check_bin(2)) && !check_names(folderContents, check_ext(extension))) {
-      error_cout << "Not all files in the folder have the correct and the same filename format." << std::endl;
-      if (extension == ".bin") {
-        error_cout << "All files should be named N.bin or all files should be named N_M.bin" << std::endl;
-      }
-      else {
-        error_cout << "All files should end with ." << extension << std::endl;
-      }
-      exit(-1);
+
+  if (!fs::exists(foldername)) {
+    error_cout << "Folder " << foldername << " could not be opened\n.";
+    exit(-1);
+  }
+
+  for (auto const& p : fs::directory_iterator(foldername)) {
+    folderContents.emplace_back(p.path().filename().string());
+  }
+
+  if (folderContents.size() == 0) {
+    error_cout << "No " << extension << " files found in folder " << foldername << "\n";
+    exit(-1);
+  }
+  else if (
+    !check_names(folderContents, check_geom()) && !check_names(folderContents, check_bin(1)) &&
+    !check_names(folderContents, check_bin(2)) && !check_names(folderContents, check_ext(extension))) {
+    error_cout << "Not all files in the folder have the correct and the same filename format.\n";
+    if (extension == ".bin") {
+      error_cout << "All files should be named N.bin or all files should be named N_M.bin\n";
     }
     else {
-      verbose_cout << "Found " << folderContents.size() << " binary files" << std::endl;
+      error_cout << "All files should end with " << extension  << ".\n";
     }
+    exit(-1);
   }
   else {
-    error_cout << "Folder " << foldername << " could not be opened" << std::endl;
-    exit(-1);
+    verbose_cout << "Found " << folderContents.size() << " binary files\n";
   }
 
   // Sort folder contents (file names)
@@ -219,7 +223,7 @@ void read_folder(
   for (auto const event_id : requested_events) {
     auto missing = !tracks_files.count(event_id);
     if (missing) {
-      error_cout << "Missing file for event " << std::get<0>(event_id) << " " << std::get<1>(event_id) << std::endl;
+      error_cout << "Missing file for event " << std::get<0>(event_id) << " " << std::get<1>(event_id) << "\n";
       return;
     }
   }
@@ -237,7 +241,7 @@ void read_folder(
   read_files(files.cbegin(), files.cend(), events, event_offsets);
 
   if (!quiet) {
-    debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
+    debug_cout << "\n" << (event_offsets.size() - 1) << " files read\n\n";
   }
 }
 
@@ -253,7 +257,7 @@ EventIDs read_folder(
 {
   std::vector<std::string> folderContents = list_folder(foldername);
 
-  debug_cout << "Requested " << number_of_events_requested << " files" << std::endl;
+  debug_cout << "Requested " << number_of_events_requested << " files\n";
 
   EventIDs event_ids;
   event_ids.reserve(folderContents.size());
@@ -275,7 +279,7 @@ EventIDs read_folder(
 
   read_files(folderContents.begin() + start_event_offset, folderContents.end(), events, event_offsets);
 
-  debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
+  debug_cout << "\n" << (event_offsets.size() - 1) << " files read\n\n";
   return event_ids;
 }
 

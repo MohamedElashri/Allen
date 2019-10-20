@@ -5,11 +5,8 @@ namespace ParKalmanFilter {
   //----------------------------------------------------------------------
   // Create the output track.
   __device__ void MakeTrack(
-    const Velo::Consolidated::Hits& velo_hits,
     const uint n_velo_hits,
-    const UT::Consolidated::Hits& ut_hits,
     const uint n_ut_layers,
-    const SciFi::Consolidated::Hits& scifi_hits,
     const uint n_scifi_layers,
     const Vector5& x,
     const SymMatrix5x5& C,
@@ -54,7 +51,7 @@ namespace ParKalmanFilter {
 
     // Get UT hit indices.
     uint32_t n_ut_layers = n_ut_hits;
-    for (int i_ut = 0; i_ut < n_ut_hits; i_ut++) {
+    for (uint i_ut = 0; i_ut < n_ut_hits; i_ut++) {
       uint8_t layer = ut_hits.plane_code[i_ut];
       tI.m_UTLayerIdxs[layer] = i_ut;
     }
@@ -101,7 +98,7 @@ namespace ParKalmanFilter {
     //------------------------------ Start forward fit.
     // Velo loop.
     UpdateStateV(velo_hits, 1, n_velo_hits - 1, x, C, tI);
-    for (int i_hit = 1; i_hit < n_velo_hits; i_hit++) {
+    for (uint i_hit = 1; i_hit < n_velo_hits; i_hit++) {
       PredictStateV(velo_hits, n_velo_hits - 1 - i_hit, x, C, lastz, tI);
       UpdateStateV(velo_hits, 1, n_velo_hits - 1 - i_hit, x, C, tI);
     }
@@ -109,7 +106,7 @@ namespace ParKalmanFilter {
     KalmanFloat endVeloZ = lastz;
 
     // Velo -> UT.
-    PredictStateVUT(velo_hits, ut_hits, n_velo_hits, n_ut_layers, x, C, lastz, tI);
+    PredictStateVUT(ut_hits, x, C, lastz, tI);
     tI.m_PrevUTLayer = 0;
     while (tI.m_PrevUTLayer < 3 && tI.m_UTLayerIdxs[tI.m_PrevUTLayer] < 0) {
       tI.m_PrevUTLayer++;
@@ -119,7 +116,7 @@ namespace ParKalmanFilter {
 
     // UT loop.
     UpdateStateUT(ut_hits, tI.m_PrevUTLayer, x, C, lastz, tI);
-    for (int i_hit = 1; i_hit < n_ut_layers; i_hit++) {
+    for (uint i_hit = 1; i_hit < n_ut_layers; i_hit++) {
       tI.m_PrevUTLayer++;
       PredictStateUT(ut_hits, tI.m_PrevUTLayer, x, C, lastz, tI);
       while (tI.m_PrevUTLayer < 3 && tI.m_UTLayerIdxs[tI.m_PrevUTLayer] < 0) {
@@ -135,7 +132,7 @@ namespace ParKalmanFilter {
       tI.m_PrevUTLayer++;
       PredictStateUT(ut_hits, tI.m_PrevUTLayer, x, C, lastz, tI);
     }
-    PredictStateUTT(ut_hits, n_ut_layers, x, C, lastz, tI);
+    PredictStateUTT(x, C, lastz, tI);
     tI.m_PrevSciFiLayer = 0;
     while (tI.m_SciFiLayerIdxs[tI.m_PrevSciFiLayer] < 0) {
       tI.m_PrevSciFiLayer++;
@@ -144,15 +141,15 @@ namespace ParKalmanFilter {
     __syncthreads();
 
     // SciFi loop.
-    UpdateStateT(scifi_hits, 1, tI.m_PrevSciFiLayer, x, C, lastz, tI);
-    for (int i_hit = 1; i_hit < n_scifi_layers; i_hit++) {
+    UpdateStateT(scifi_hits, tI.m_PrevSciFiLayer, x, C, lastz, tI);
+    for (uint i_hit = 1; i_hit < n_scifi_layers; i_hit++) {
       tI.m_PrevSciFiLayer++;
       PredictStateT(scifi_hits, tI.m_PrevSciFiLayer, x, C, lastz, tI);
       while (tI.m_PrevSciFiLayer < 11 && tI.m_SciFiLayerIdxs[tI.m_PrevSciFiLayer] < 0) {
         tI.m_PrevSciFiLayer++;
         PredictStateT(scifi_hits, tI.m_PrevSciFiLayer, x, C, lastz, tI);
       }
-      UpdateStateT(scifi_hits, 1, tI.m_PrevSciFiLayer, x, C, lastz, tI);
+      UpdateStateT(scifi_hits, tI.m_PrevSciFiLayer, x, C, lastz, tI);
     }
     __syncthreads();
     //------------------------------ End forward fit.
@@ -183,22 +180,22 @@ namespace ParKalmanFilter {
     // when calculating IP info anyway.
     // ExtrapolateToVertex(xBest, C, lastz);
 
-    MakeTrack(velo_hits, n_velo_hits, ut_hits, n_ut_layers, scifi_hits, n_scifi_layers, xBest, CBest, zBest, tI, track);
+    MakeTrack(n_velo_hits, n_ut_layers, n_scifi_layers, xBest, CBest, zBest, tI, track);
   }
 } // End namespace ParKalmanFilter.
 
 //----------------------------------------------------------------------
 // Kalman filter kernel.
 __global__ void kalman_filter(
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
-  int* dev_atomics_veloUT,
+  uint* dev_atomics_veloUT,
   uint* dev_ut_track_hit_number,
   char* dev_ut_consolidated_hits,
   float* dev_ut_qop,
   uint* dev_velo_indices,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
   char* dev_scifi_consolidated_hits,
   float* dev_scifi_qop,

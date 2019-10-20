@@ -14,10 +14,10 @@ __device__ void track_seeding(
   Velo::TrackletHits* tracklets,
   uint* tracks_to_follow,
   unsigned short* h1_indices,
-  int* dev_shifted_atomics_velo)
+  uint* dev_shifted_atomics_velo)
 {
   // Add to an array all non-used h1 hits with candidates
-  for (int h1_rel_index = threadIdx.x; h1_rel_index < module_data[0].hitNums; h1_rel_index += blockDim.x) {
+  for (uint h1_rel_index = threadIdx.x; h1_rel_index < module_data[0].hitNums; h1_rel_index += blockDim.x) {
     const auto h1_index = module_data[0].hitStart + h1_rel_index;
     const auto h0_size = h0_candidates[2 * h1_index + 1];
     const auto h2_size = h2_candidates[2 * h1_index + 1];
@@ -28,7 +28,7 @@ __device__ void track_seeding(
   }
 
   // Also add other side, processing both sides simultaneously
-  for (int h1_rel_index = threadIdx.x; h1_rel_index < module_data[1].hitNums; h1_rel_index += blockDim.x) {
+  for (uint h1_rel_index = threadIdx.x; h1_rel_index < module_data[1].hitNums; h1_rel_index += blockDim.x) {
     const auto h1_index = module_data[1].hitStart + h1_rel_index;
     const auto h0_size = h0_candidates[2 * h1_index + 1];
     const auto h2_size = h2_candidates[2 * h1_index + 1];
@@ -43,7 +43,7 @@ __device__ void track_seeding(
 
   // Assign a h1 to each threadIdx.x
   const auto number_of_hits_h1 = dev_shifted_atomics_velo[3];
-  for (int h1_rel_index = threadIdx.x; h1_rel_index < number_of_hits_h1; h1_rel_index += blockDim.x) {
+  for (uint h1_rel_index = threadIdx.x; h1_rel_index < number_of_hits_h1; h1_rel_index += blockDim.x) {
     // The output we are searching for
     unsigned short best_h0 = 0;
     unsigned short best_h2 = 0;

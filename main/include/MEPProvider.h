@@ -426,10 +426,10 @@ private:
         }
       }
 
-      if (m_input) ::close(*m_input);
+      if (m_input) m_input->close();
 
-      m_input = ::open(m_current->c_str(), O_RDONLY);
-      if (m_input != -1) {
+      m_input = MDF::open(*m_current, O_RDONLY);
+      if (m_input->good) {
         info_cout << "Opened " << *m_current << "\n";
         good = true;
       } else {
@@ -501,7 +501,6 @@ private:
         m_mpi_cond.notify_one();
         return;
       }
-      auto it = m_buffer_status.end();
       size_t i_buffer;
       {
         std::unique_lock<std::mutex> lock{m_mpi_mutex};
@@ -539,7 +538,7 @@ private:
           // Error encountered
           m_read_error = true;
           break;
-        } else if (eof && !open_file() || (to_read && *to_read == 0)) {
+        } else if ((eof && !open_file()) || (to_read && *to_read == 0)) {
           // Try to open the next file, if there is none, prefetching
           // is done.
           if (!m_read_error) {
@@ -938,7 +937,7 @@ private:
   std::vector<std::string> m_connections;
 
   // Storage for the currently open file
-  mutable std::optional<int> m_input;
+  mutable std::optional<Allen::IO> m_input;
 
   // Iterator that points to the filename of the currently open file
   mutable std::vector<std::string>::const_iterator m_current;

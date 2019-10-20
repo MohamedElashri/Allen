@@ -14,9 +14,6 @@
 
 // Dumb type, just making constructor public
 class FileStdLogger : public std::ostream {
-private:
-  std::streambuf* b = nullptr;
-
 public:
   FileStdLogger() : std::ostream() {}
 };

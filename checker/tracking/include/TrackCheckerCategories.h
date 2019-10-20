@@ -24,19 +24,20 @@ namespace Categories {
      TrackEffReport({
        "Electrons long fromB eta25 p<5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3;
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3f;
        },
      }),
      TrackEffReport({
        "Electrons long fromB eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3 && mcp.pt > 400;
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
        "Electrons long fromB eta25 p>5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3;
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3f;
        },
      }),
      TrackEffReport({
@@ -48,37 +49,38 @@ namespace Categories {
      TrackEffReport({
        "Electrons long fromD eta25 p<5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3;
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3f;
        },
      }),
      TrackEffReport({
        "Electrons long fromD eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3 && mcp.pt > 400;
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
        "Electrons long fromD eta25 p>5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3;
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3f;
        },
      }),
      TrackEffReport({
        "Electrons long eta25 p<5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3;
+         return mcp.isLong && mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3f;
        },
      }),
      TrackEffReport({
        "Electrons long eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3 && mcp.pt > 400;
+         return mcp.isLong && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f && mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
        "Electrons long eta25 p>5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3;
+         return mcp.isLong && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3f;
        },
      }),
      TrackEffReport({
@@ -90,19 +92,20 @@ namespace Categories {
      TrackEffReport({
        "Electrons long strange eta25 p<5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromStrangeDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3;
+         return mcp.isLong && mcp.fromStrangeDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3f;
        },
      }),
      TrackEffReport({
        "Electrons long strange eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromStrangeDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3 && mcp.pt > 400;
+         return mcp.isLong && mcp.fromStrangeDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
        "Electrons long strange eta25 p>5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromStrangeDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3;
+         return mcp.isLong && mcp.fromStrangeDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3f;
        },
      }),
      TrackEffReport({
@@ -134,19 +137,20 @@ namespace Categories {
      TrackEffReport({
        "Not electron long fromB eta25 p<5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3;
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3f;
        },
      }),
      TrackEffReport({
        "Not electron long fromB eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3 && mcp.pt > 400;
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
        "Not electron long fromB eta25 p>5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3;
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3f;
        },
      }),
      TrackEffReport({
@@ -158,37 +162,38 @@ namespace Categories {
      TrackEffReport({
        "Not electron long fromD eta25 p<5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3;
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3f;
        },
      }),
      TrackEffReport({
        "Not electron long fromD eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3 && mcp.pt > 400;
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
        "Not electron long fromD eta25 p>5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3;
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3f;
        },
      }),
      TrackEffReport({
        "Not electron long eta25 p<5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3;
+         return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3f;
        },
      }),
      TrackEffReport({
        "Not electron long eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3 && mcp.pt > 400;
+         return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f && mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
        "Not electron long eta25 p>5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3;
+         return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3f;
        },
      }),
      TrackEffReport({
@@ -200,20 +205,20 @@ namespace Categories {
      TrackEffReport({
        "Not electron long strange eta25 p<5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3;
+         return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p < 5e3f;
        },
      }),
      TrackEffReport({
        "Not electron long strange eta25 p>3GeV pt>400MeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3 &&
-                mcp.pt > 400;
+         return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 400.f;
        },
      }),
      TrackEffReport({
        "Not electron long strange eta25 p>5GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3;
+         return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3f;
        },
      }),
      TrackEffReport({
@@ -301,7 +306,7 @@ namespace Categories {
     TrackEffReport({
       "Velo+UT, p > 5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.hasVelo && mcp.hasUT && mcp.p > 5e3 && !mcp.isElectron() && mcp.inEta2_5();
+        return mcp.hasVelo && mcp.hasUT && mcp.p > 5e3f && !mcp.isElectron() && mcp.inEta2_5();
       },
     }),
     TrackEffReport({
@@ -319,7 +324,7 @@ namespace Categories {
     TrackEffReport({
       "Velo+UT, not long, p > 5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.hasVelo && mcp.hasUT && !mcp.isLong && mcp.p > 5e3 && !mcp.isElectron() && mcp.inEta2_5();
+        return mcp.hasVelo && mcp.hasUT && !mcp.isLong && mcp.p > 5e3f && !mcp.isElectron() && mcp.inEta2_5();
       },
     }),
     TrackEffReport({
@@ -329,13 +334,13 @@ namespace Categories {
     TrackEffReport({
       "Long, p > 5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.p > 5e3 && !mcp.isElectron() && mcp.inEta2_5();
+        return mcp.isLong && mcp.p > 5e3f && !mcp.isElectron() && mcp.inEta2_5();
       },
     }),
     TrackEffReport({
       "Long, pt > 20 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.pt > 20e3 && !mcp.isElectron() && mcp.inEta2_5();
+        return mcp.isLong && mcp.pt > 20e3f && !mcp.isElectron() && mcp.inEta2_5();
       },
     }),
     TrackEffReport({
@@ -347,7 +352,7 @@ namespace Categories {
     TrackEffReport({
       "Long from B, p > 5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromBeautyDecay && mcp.p > 5e3 && !mcp.isElectron() && mcp.inEta2_5();
+        return mcp.isLong && mcp.fromBeautyDecay && mcp.p > 5e3f && !mcp.isElectron() && mcp.inEta2_5();
       },
     }),
     TrackEffReport({
@@ -363,60 +368,63 @@ namespace Categories {
     TrackEffReport({
       "Long from B electrons, p > 5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 5e3 && mcp.inEta2_5();
+        return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 5e3f && mcp.inEta2_5();
       },
     }),
     TrackEffReport({
       "Long from D electrons, p > 3 GeV, pt > 0.5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 && mcp.inEta2_5();
+        return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5();
       },
     }),
     TrackEffReport({
       "Long from D, p > 3 GeV, pt > 0.5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 && mcp.inEta2_5();
+        return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5();
       },
     }),
     TrackEffReport({
       "Long from B electrons, p > 3 GeV, pt > 0.5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 && mcp.inEta2_5();
+        return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5();
       },
     }),
     TrackEffReport({
       "Long from B, p > 3 GeV, pt > 0.5 GeV",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
                mcp.inEta2_5();
       },
     }),
     TrackEffReport({
       "Long from B, p > 3 GeV, pt > 0.5 GeV, eta < 2.5, (phi-pi/2)<0.8",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
-               mcp.inEta2_5() && mcp.eta < 2.5 && std::fabs(std::fabs(mcp.phi) - 1.57) < 0.8;
+        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5() && mcp.eta < 2.5f && std::fabs(std::fabs(mcp.phi) - 1.57f) < 0.8f;
       },
     }),
     TrackEffReport({
       "Long from B, p > 3 GeV, pt > 0.5 GeV, eta > 2.5, (phi-pi/2)<0.8",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
-               mcp.inEta2_5() && mcp.eta > 2.5 && std::fabs(std::fabs(mcp.phi) - 1.57) < 0.8;
+        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5() && mcp.eta > 2.5f && std::fabs(std::fabs(mcp.phi) - 1.57f) < 0.8f;
       },
     }),
     TrackEffReport({
       "Long from B, p > 3 GeV, pt > 0.5 GeV, eta < 2.5, (phi-pi/2)>0.8",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
-               mcp.inEta2_5() && mcp.eta < 2.5 && std::fabs(std::fabs(mcp.phi) - 1.57) > 0.8;
+        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5() && mcp.eta < 2.5f && std::fabs(std::fabs(mcp.phi) - 1.57f) > 0.8f;
       },
     }),
     TrackEffReport({
       "Long from B, p > 3 GeV, pt > 0.5 GeV, eta > 2.5, (phi-pi/2)>0.8",
       [](MCParticles::const_reference& mcp) {
-        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
-               mcp.inEta2_5() && mcp.eta > 2.5 && std::fabs(std::fabs(mcp.phi) - 1.57) > 0.8;
+        return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+               mcp.inEta2_5() && mcp.eta > 2.5f && std::fabs(std::fabs(mcp.phi) - 1.57f) > 0.8f;
       },
     }),
   }};
@@ -479,13 +487,13 @@ namespace Categories {
      TrackEffReport({
        "Long, p > 5 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.p > 5e3 && !mcp.isElectron() && mcp.inEta2_5();
+         return mcp.isLong && mcp.p > 5e3f && !mcp.isElectron() && mcp.inEta2_5();
        },
      }),
      TrackEffReport({
        "Long, pt > 20 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.pt > 20e3 && !mcp.isElectron() && mcp.inEta2_5();
+         return mcp.isLong && mcp.pt > 20e3f && !mcp.isElectron() && mcp.inEta2_5();
        },
      }),
      TrackEffReport({
@@ -497,7 +505,7 @@ namespace Categories {
      TrackEffReport({
        "Long strange, p > 5 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.p > 5e3 && mcp.inEta2_5();
+         return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.p > 5e3f && mcp.inEta2_5();
        },
      }),
      TrackEffReport({
@@ -509,7 +517,7 @@ namespace Categories {
      TrackEffReport({
        "Long from B, p > 5 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && mcp.p > 5e3 && !mcp.isElectron() && mcp.inEta2_5();
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.p > 5e3f && !mcp.isElectron() && mcp.inEta2_5();
        },
      }),
      TrackEffReport({
@@ -525,62 +533,63 @@ namespace Categories {
      TrackEffReport({
        "Long electrons from B, p > 5 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && mcp.p > 5e3 && mcp.isElectron() && mcp.inEta2_5();
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.p > 5e3f && mcp.isElectron() && mcp.inEta2_5();
        },
      }),
      TrackEffReport({
        "Long from D electrons, p > 3 GeV, pt > 0.5 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 && mcp.inEta2_5();
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+                mcp.inEta2_5();
        },
      }),
      TrackEffReport({
        "Long from D, p > 3 GeV, pt > 0.5 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
                 mcp.inEta2_5();
        },
      }),
      TrackEffReport({
        "Long from B electrons, p > 3 GeV, pt > 0.5 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
                 mcp.inEta2_5();
        },
      }),
      TrackEffReport({
        "Long from B, p > 3 GeV, pt > 0.5 GeV",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
                 mcp.inEta2_5();
        },
      }),
      TrackEffReport({
        "Long from B, p > 3 GeV, pt > 0.5 GeV, eta < 2.5, (phi-pi/2)<0.8",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
-                mcp.inEta2_5() && mcp.eta < 2.5 && std::fabs(std::fabs(mcp.phi) - 1.57) < 0.8;
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+                mcp.inEta2_5() && mcp.eta < 2.5f && std::fabs(std::fabs(mcp.phi) - 1.57f) < 0.8f;
        },
      }),
      TrackEffReport({
        "Long from B, p > 3 GeV, pt > 0.5 GeV, eta > 2.5, (phi-pi/2)<0.8",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
-                mcp.inEta2_5() && mcp.eta > 2.5 && std::fabs(std::fabs(mcp.phi) - 1.57) < 0.8;
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+                mcp.inEta2_5() && mcp.eta > 2.5f && std::fabs(std::fabs(mcp.phi) - 1.57f) < 0.8f;
        },
      }),
      TrackEffReport({
        "Long from B, p > 3 GeV, pt > 0.5 GeV, eta < 2.5, (phi-pi/2)>0.8",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
-                mcp.inEta2_5() && mcp.eta < 2.5 && std::fabs(std::fabs(mcp.phi) - 1.57) > 0.8;
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+                mcp.inEta2_5() && mcp.eta < 2.5f && std::fabs(std::fabs(mcp.phi) - 1.57f) > 0.8f;
        },
      }),
      TrackEffReport({
        "Long from B, p > 3 GeV, pt > 0.5 GeV, eta > 2.5, (phi-pi/2)>0.8",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3 && mcp.pt > 0.5e3 &&
-                mcp.inEta2_5() && mcp.eta > 2.5 && std::fabs(std::fabs(mcp.phi) - 1.57) > 0.8;
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+                mcp.inEta2_5() && mcp.eta > 2.5f && std::fabs(std::fabs(mcp.phi) - 1.57f) > 0.8f;
        },
      })}};
 
@@ -621,8 +630,8 @@ namespace Categories {
      HistoCategory({
        "LongFromB_eta25_notElectrons_p_gt_3_pt_gt_0p5",
        [](MCParticles::const_reference& mcp) {
-         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3 &&
-                mcp.pt > 0.5e3;
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 0.5e3f;
        },
      }),
      HistoCategory({

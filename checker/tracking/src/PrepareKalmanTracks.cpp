@@ -253,6 +253,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
         float locIPChi2 = ipChi2Kalman(track, *vertex);
         if (locIPChi2 < t.kalman_ip_chi2) {
           t.kalman_ip = ipKalman(track, *vertex);
+          t.kalman_ip_chi2 = locIPChi2;
           t.kalman_ipx = ipxKalman(track, *vertex);
           t.kalman_ipy = ipyKalman(track, *vertex);
           t.kalman_docaz = kalmanDOCAz(track, *vertex);
@@ -268,7 +269,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
       }
 
       // Get kalman filter information.
-      t.kalman_ip_chi2 = (float) track.ipChi2;
+      // t.kalman_ip_chi2 = (float) track.ipChi2;
       t.z = (float) track.z;
       t.x = (float) track.state[0];
       t.y = (float) track.state[1];
@@ -283,6 +284,8 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
       t.ndofT = track.ndofT;
       t.first_qop = (float) track.first_qop;
       t.best_qop = (float) track.best_qop;
+      t.p = (float) track.p();
+      t.pt = (float) track.pt();
 
       tracks.push_back(t);
 

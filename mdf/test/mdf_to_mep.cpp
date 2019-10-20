@@ -146,8 +146,8 @@ int main(int argc, char* argv[]) {
   };
 
   for (auto const& file : input_files) {
-    auto input = ::open(file.c_str(), O_RDONLY);
-    if (input != -1) {
+    auto input = MDF::open(file.c_str(), O_RDONLY);
+    if (input.good) {
       cout << "Opened " << file << "\n";
     }
     else {
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    ::close(input);
+    input.close();
     if (n_written >= n_meps) break;
   }
 

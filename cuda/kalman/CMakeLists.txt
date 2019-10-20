@@ -8,6 +8,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/UT/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
@@ -25,6 +26,6 @@ allen_add_library(Kalman STATIC
 
 target_link_libraries(Kalman SciFi)
 
-if(USE_KALMAN_SINGLE_PRECISION)
-  target_compile_definitions(Kalman PUBLIC KALMAN_SINGLE_PRECISION)
+if (USE_KALMAN_DOUBLE_PRECISION)
+  add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()

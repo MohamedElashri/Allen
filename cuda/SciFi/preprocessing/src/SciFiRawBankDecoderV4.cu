@@ -41,7 +41,7 @@ __device__ void make_cluster_v4(
   hits.m_endPointY[hit_index] = endPointY;
   assert(fraction <= 0x1 && plane_code <= 0x1f && pseudoSize <= 0xf && mat <= 0x7ff);
   hits.assembled_datatype[hit_index] = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
-};
+}
 
 __global__ void scifi_raw_bank_decoder_v4(
   char* scifi_events,
@@ -64,7 +64,7 @@ __global__ void scifi_raw_bank_decoder_v4(
   const SciFi::HitCount hit_count {scifi_hit_count, event_number};
   const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
-  for (int i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
     const uint32_t cluster_reference = hits.cluster_reference[hit_count.offset_zones_without_mat_groups() + i];
 
     const int raw_bank_number = (cluster_reference >> 8) & 0xFF;
@@ -76,7 +76,6 @@ __global__ void scifi_raw_bank_decoder_v4(
 
     const uint16_t c = *it;
     const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-    const auto chid = SciFiChannelID(ch);
 
     // Call parameters for make_cluster
     uint32_t cluster_chan = ch;

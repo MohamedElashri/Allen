@@ -23,9 +23,9 @@ namespace VertexFit {
     float yB = trackB.state[1];
     float txB = trackB.state[2];
     float tyB = trackB.state[3];
-    float secondAA = txA * txA + tyA * tyA + 1.0;
-    float secondBB = txB * txB + tyB * tyB + 1.0;
-    float secondAB = -txA * txB - tyA * tyB - 1.0;
+    float secondAA = txA * txA + tyA * tyA + 1.0f;
+    float secondBB = txB * txB + tyB * tyB + 1.0f;
+    float secondAB = -txA * txB - tyA * tyB - 1.0f;
     float det = secondAA * secondBB - secondAB * secondAB;
     if (fabsf(det) > 0) {
       float secondinvAA = secondBB / det;
@@ -35,9 +35,9 @@ namespace VertexFit {
       float firstB = -txB * (xA - xB) - tyB * (yA - yB) - (zA - zB);
       float muA = -(secondinvAA * firstA + secondinvAB * firstB);
       float muB = -(secondinvBB * firstB + secondinvAB * firstA);
-      x = 0.5 * (xA + muA * txA + xB + muB * txB);
-      y = 0.5 * (yA + muA * tyA + yB + muB * tyB);
-      z = 0.5 * (zA + muA + zB + muB);
+      x = 0.5f * (xA + muA * txA + xB + muB * txB);
+      y = 0.5f * (yA + muA * tyA + yB + muB * tyB);
+      z = 0.5f * (zA + muA + zB + muB);
       return true;
     }
     return false;
@@ -65,8 +65,8 @@ namespace VertexFit {
     float rY = track.state[1] + dz * track.state[3] - y;
     float cov00 = track.cov(0, 0) + dz * dz * track.cov(2, 2) + 2 * dz * track.cov(2, 0);
     float cov11 = track.cov(1, 1) + dz * dz * track.cov(3, 3) + 2 * dz * track.cov(3, 1);
-    float invcov00 = 1. / cov00;
-    float invcov11 = 1. / cov11;
+    float invcov00 = 1.f / cov00;
+    float invcov11 = 1.f / cov11;
     halfDChi2_0 += invcov00 * rX;
     halfDChi2_1 += invcov11 * rY;
     halfDChi2_2 += -(invcov00 * rX * track.state[2] + invcov11 * rY * track.state[3]);
@@ -100,7 +100,7 @@ namespace VertexFit {
   {
     const float det = halfD2Chi2_00 * halfD2Chi2_11 * halfD2Chi2_22 - halfD2Chi2_00 * halfD2Chi2_21 * halfD2Chi2_21 -
                       halfD2Chi2_11 * halfD2Chi2_20 * halfD2Chi2_20;
-    const float invdet = 1. / det;
+    const float invdet = 1.f / det;
     cov00 = (halfD2Chi2_11 * halfD2Chi2_22 - halfD2Chi2_21 * halfD2Chi2_21) * invdet;
     cov11 = (halfD2Chi2_00 * halfD2Chi2_22 - halfD2Chi2_20 * halfD2Chi2_20) * invdet;
     cov20 = -halfD2Chi2_11 * halfD2Chi2_20 * invdet;
@@ -198,9 +198,8 @@ namespace VertexFit {
     // Dimuon mass.
     if (sv.is_dimuon) {
       const float mdimu2 =
-        2.f * mMu * mMu +
-        2.f * (sqrtf((trackA.p() * trackA.p() + mMu * mMu) * (trackB.p() * trackB.p() + mMu * mMu)) -
-               trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+        2.f * mMu * mMu + 2.f * (sqrtf((trackA.p() * trackA.p() + mMu * mMu) * (trackB.p() * trackB.p() + mMu * mMu)) -
+                                 trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
       sv.mdimu = sqrtf(mdimu2);
     }
     else {
@@ -229,7 +228,7 @@ namespace VertexFit {
     const float cov20 = sv.cov20 + pv.cov20;
     const float cov21 = sv.cov21 + pv.cov21;
     const float cov22 = sv.cov22 + pv.cov22;
-    const float invdet = 1. / (cov00 * cov11 * cov22 - cov00 * cov21 * cov21 - cov11 * cov20 * cov20);
+    const float invdet = 1.f / (cov00 * cov11 * cov22 - cov00 * cov21 * cov21 - cov11 * cov20 * cov20);
     const float invcov00 = (cov11 * cov22 - cov21 * cov21) * invdet;
     const float invcov11 = (cov00 * cov22 - cov20 * cov20) * invdet;
     const float invcov20 = -cov11 * cov20 * invdet;
@@ -246,9 +245,8 @@ namespace VertexFit {
     const float py = trackA.py() + trackB.py();
     const float pz = trackA.pz() + trackB.pz();
     const float mvis2 =
-      2.f * mPi * mPi +
-      2.f * (sqrtf((trackA.p() * trackA.p() + mPi * mPi) * (trackB.p() * trackB.p() + mPi * mPi)) -
-             trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
+      2.f * mPi * mPi + 2.f * (sqrtf((trackA.p() * trackA.p() + mPi * mPi) * (trackB.p() * trackB.p() + mPi * mPi)) -
+                               trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
     const float pperp2 = ((py * dz - dy * pz) * (py * dz - dy * pz) + (pz * dx - dz * px) * (pz * dx - dz * px) +
                           (px * dy - dx * py) * (px * dy - dx * py)) /
                          fd / fd;
@@ -262,9 +260,8 @@ namespace VertexFit {
 
 __global__ void fit_secondary_vertices(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
-  char* dev_scifi_consolidated_hits,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
   uint* dev_ut_indices,
@@ -304,10 +301,10 @@ __global__ void fit_secondary_vertices(
   VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
 
   // Loop over tracks.
-  for (int i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
+  for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 
     // Set the fit status for all possible vertices.
-    for (int j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
+    for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
       uint vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
                         ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
       event_secondary_vertices[vertex_idx].chi2 = -1;
@@ -321,7 +318,7 @@ __global__ void fit_secondary_vertices(
     }
 
     // Loop over second track.
-    for (int j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
+    for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
 
       // Preselection on second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];

@@ -37,7 +37,8 @@ __device__ void down_sweep_2048(uint* data_block)
   }
 }
 
-__device__ void prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, const uint array_size, uint* data_block)
+__device__ void
+prefix_sum_single_block_implementation(uint* dev_total_sum, uint* dev_array, const uint array_size, uint* data_block)
 {
   // Prefix sum of elements in dev_array
   // Using Blelloch scan https://www.youtube.com/watch?v=mmYv3Haj6uc
@@ -174,14 +175,16 @@ __global__ void copy_square_and_prefix_sum_single_block(
 /**
  * @brief Copies Velo track hit numbers on a consecutive container
  */
-__global__ void
-copy_velo_track_hit_number(const Velo::TrackHits* dev_tracks, int* dev_atomics_storage, uint* dev_velo_track_hit_number)
+__global__ void copy_velo_track_hit_number(
+  const Velo::TrackHits* dev_tracks,
+  uint* dev_atomics_storage,
+  uint* dev_velo_track_hit_number)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const Velo::TrackHits* event_tracks = dev_tracks + event_number * Velo::Constants::max_tracks;
-  const int accumulated_tracks = dev_atomics_storage[number_of_events + event_number];
-  const int number_of_tracks = dev_atomics_storage[event_number];
+  const auto number_of_events = gridDim.x;
+  const auto event_number = blockIdx.x;
+  const auto* event_tracks = dev_tracks + event_number * Velo::Constants::max_tracks;
+  const auto accumulated_tracks = dev_atomics_storage[number_of_events + event_number];
+  const auto number_of_tracks = dev_atomics_storage[event_number];
 
   // Pointer to velo_track_hit_number of current event
   uint* velo_track_hit_number = dev_velo_track_hit_number + accumulated_tracks;
@@ -194,14 +197,16 @@ copy_velo_track_hit_number(const Velo::TrackHits* dev_tracks, int* dev_atomics_s
 /**
  * @brief Copies UT track hit numbers on a consecutive container.
  */
-__global__ void
-copy_ut_track_hit_number(const UT::TrackHits* dev_veloUT_tracks, int* dev_atomics_veloUT, uint* dev_ut_track_hit_number)
+__global__ void copy_ut_track_hit_number(
+  const UT::TrackHits* dev_veloUT_tracks,
+  uint* dev_atomics_veloUT,
+  uint* dev_ut_track_hit_number)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
-  const UT::TrackHits* event_tracks = dev_veloUT_tracks + event_number * UT::Constants::max_num_tracks;
-  const int accumulated_tracks = dev_atomics_veloUT[number_of_events + event_number];
-  const int number_of_tracks = dev_atomics_veloUT[event_number];
+  const auto number_of_events = gridDim.x;
+  const auto event_number = blockIdx.x;
+  const auto* event_tracks = dev_veloUT_tracks + event_number * UT::Constants::max_num_tracks;
+  const auto accumulated_tracks = dev_atomics_veloUT[number_of_events + event_number];
+  const auto number_of_tracks = dev_atomics_veloUT[event_number];
 
   // Pointer to ut_track_hit_number of current event.
   uint* ut_track_hit_number = dev_ut_track_hit_number + accumulated_tracks;
@@ -216,23 +221,22 @@ copy_ut_track_hit_number(const UT::TrackHits* dev_veloUT_tracks, int* dev_atomic
  * @brief Copies SciFi track hit numbers to a consecutive container.
  */
 __global__ void copy_scifi_track_hit_number(
-  const int* dev_atomics_ut,
+  const uint* dev_atomics_ut,
   const SciFi::TrackHits* dev_scifi_tracks,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number)
 {
-  const uint number_of_events = gridDim.x;
-  const uint event_number = blockIdx.x;
+  const auto number_of_events = gridDim.x;
+  const auto event_number = blockIdx.x;
+  const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
 
-  const uint ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
-
-  const SciFi::TrackHits* event_tracks =
+  const auto* event_tracks =
     dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
   // const SciFi::TrackHits* event_tracks =
   //   dev_scifi_tracks + ut_event_tracks_offset *
   //   LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter;
-  const int accumulated_tracks = dev_n_scifi_tracks[number_of_events + event_number];
-  const int number_of_tracks = dev_n_scifi_tracks[event_number];
+  const auto accumulated_tracks = dev_n_scifi_tracks[number_of_events + event_number];
+  const auto number_of_tracks = dev_n_scifi_tracks[event_number];
 
   // Pointer to scifi_track_hit_number of current event.
   uint* scifi_track_hit_number = dev_scifi_track_hit_number + accumulated_tracks;

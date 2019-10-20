@@ -25,10 +25,10 @@ namespace ParKalmanFilter {
     Ymax = ZINI * Tymax;
   }
 
-  __device__ __host__ double KalmanParametrizations::UTTExtrEndZ() const { return ZFIN; }
+  __device__ __host__ float KalmanParametrizations::UTTExtrEndZ() const { return ZFIN; }
 
-  __device__ __host__ double KalmanParametrizations::UTTExtrBeginZ() const { return ZINI; }
+  __device__ __host__ float KalmanParametrizations::UTTExtrBeginZ() const { return ZINI; }
 
-  __device__ __host__ double KalmanParametrizations::VUTExtrEndZ() const { return Par_UTLayer[0][0]; }
+  __device__ __host__ float KalmanParametrizations::VUTExtrEndZ() const { return Par_UTLayer[0][0]; }
 
 } // namespace ParKalmanFilter

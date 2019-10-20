@@ -1,5 +1,5 @@
 #include "../include/Clustering.h"
-
+#include <array>
 std::vector<std::vector<uint32_t>> clustering(
   const std::vector<char>& geometry,
   const std::vector<char>& events,
@@ -7,8 +7,8 @@ std::vector<std::vector<uint32_t>> clustering(
   const bool assume_never_no_sp)
 {
   std::vector<std::vector<uint32_t>> cluster_candidates;
-  std::vector<unsigned char> sp_patterns(256, 0);
-  std::vector<unsigned char> sp_sizes(256, 0);
+  std::vector<uint8_t> sp_patterns(256, 0);
+  std::vector<uint8_t> sp_sizes(256, 0);
   std::vector<float> sp_fx(512, 0);
   std::vector<float> sp_fy(512, 0);
 
@@ -16,7 +16,7 @@ std::vector<std::vector<uint32_t>> clustering(
 
   Timer t;
 
-  std::array<unsigned char, VP::NPixelsPerSensor> buffer {};
+  std::array<uint8_t, VP::NPixelsPerSensor> buffer;
 
   // Typecast files and print them
   VeloGeometry g(geometry);
@@ -25,28 +25,13 @@ std::vector<std::vector<uint32_t>> clustering(
 
     VeloRawEvent e(events.data() + event_offsets[i - 1]);
 
-    auto total_sp_count = 0;
-
-    unsigned int prev_size;
-    unsigned int module_sp_count;
-
     for (unsigned int raw_bank = 0; raw_bank < e.number_of_raw_banks; ++raw_bank) {
       std::vector<uint32_t> pixel_idx;
 
       const auto velo_raw_bank = VeloRawBank(e.payload + e.raw_bank_offset[raw_bank]);
-
       const unsigned int sensor = velo_raw_bank.sensor_index;
-      const unsigned int module = sensor / Velo::Constants::n_sensors_per_module;
-      const float* ltg = g.ltg + 16 * sensor;
-
-      total_sp_count += velo_raw_bank.sp_count;
-
-      prev_size = lhcb_ids.size();
-      if ((raw_bank % 4) == 0) {
-        module_sp_count = 0;
-      }
-
-      module_sp_count += velo_raw_bank.sp_count;
+      // const unsigned int module = sensor / Velo::Constants::n_sensors_per_module;
+      // const float* ltg = g.ltg + 16 * sensor;
 
       for (unsigned int j = 0; j < velo_raw_bank.sp_count; ++j) {
         const uint32_t sp_word = *(velo_raw_bank.sp_word + j);
@@ -84,14 +69,13 @@ std::vector<std::vector<uint32_t>> clustering(
 
             unsigned int cid = get_channel_id(sensor, chip, cx % VP::ChipColumns, cy);
 
-            const float fx = sp_fx[sp * 2];
-            const float fy = sp_fy[sp * 2];
-            const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-            const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
-
-            const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-            const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-            const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+            // const float fx = sp_fx[sp * 2];
+            // const float fy = sp_fy[sp * 2];
+            // const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
+            // const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
+            // const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+            // const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+            // const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
 
             lhcb_ids.emplace_back(get_lhcb_id(cid));
           }
@@ -106,14 +90,13 @@ std::vector<std::vector<uint32_t>> clustering(
 
             unsigned int cid = get_channel_id(sensor, chip, cx % VP::ChipColumns, cy);
 
-            const float fx = sp_fx[sp * 2 + 1];
-            const float fy = sp_fy[sp * 2 + 1];
-            const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-            const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
-
-            const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-            const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-            const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+            // const float fx = sp_fx[sp * 2 + 1];
+            // const float fy = sp_fy[sp * 2 + 1];
+            // const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
+            // const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
+            // const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+            // const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+            // const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
 
             lhcb_ids.emplace_back(get_lhcb_id(cid));
           }
@@ -249,20 +232,19 @@ std::vector<std::vector<uint32_t>> clustering(
           const unsigned int cy = y / n;
 
           // std::cout << "Cluster (cx, cy): " << cx << ", " << cy << std::endl;
-
-          const float fx = x / static_cast<float>(n) - cx;
-          const float fy = y / static_cast<float>(n) - cy;
+          // const float fx = x / static_cast<float>(n) - cx;
+          // const float fy = y / static_cast<float>(n) - cy;
 
           // store target (3D point for tracking)
           const uint32_t chip = cx / VP::ChipColumns;
           // LHCb::VPChannelID cid(sensor, chip, cx % VP::ChipColumns, cy);
           unsigned int cid = get_channel_id(sensor, chip, cx % VP::ChipColumns, cy);
 
-          const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-          const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
-          const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-          const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-          const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+          // const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
+          // const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
+          // const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+          // const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+          // const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
 
           lhcb_ids.emplace_back(get_lhcb_id(cid));
         }

@@ -83,18 +83,18 @@ struct MDFProviderConfig {
  * @param      Configuration struct
  *
  */
-template <BankTypes... Banks>
+template<BankTypes... Banks>
 class MDFProvider final : public InputProvider<MDFProvider<Banks...>> {
 public:
-  MDFProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
-              std::vector<std::string> connections, MDFProviderConfig config = MDFProviderConfig{}) :
-    InputProvider<MDFProvider<Banks...>>{n_slices, events_per_slice, n_events},
-    m_buffer_writable(config.n_buffers, true),
-    m_slice_free(n_slices, true),
-    m_banks_count{0},
-    m_event_ids{n_slices},
-    m_connections {std::move(connections)},
-    m_config{config}
+  MDFProvider(
+    size_t n_slices,
+    size_t events_per_slice,
+    std::optional<size_t> n_events,
+    std::vector<std::string> connections,
+    MDFProviderConfig config = MDFProviderConfig {}) :
+    InputProvider<MDFProvider<Banks...>> {n_slices, events_per_slice, n_events},
+    m_buffer_writable(config.n_buffers, true), m_slice_free(n_slices, true), m_banks_count {0},
+     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
     // Preallocate prefetch buffer memory
@@ -139,7 +139,7 @@ public:
     // is available
     {
       // aquire lock
-      std::unique_lock<std::mutex> lock{m_prefetch_mut};
+      std::unique_lock<std::mutex> lock {m_prefetch_mut};
 
       // start prefetch thread
       m_prefetch_thread = std::make_unique<std::thread>([this] { prefetch(); });
@@ -171,7 +171,8 @@ public:
 
     if (m_config.n_transpose_threads > m_config.n_buffers - 1) {
       warning_cout << "too many transpose threads requested with respect "
-        "to the number of read buffers; reducing the number of threads to " << m_config.n_buffers - 1;
+                      "to the number of read buffers; reducing the number of threads to "
+                   << m_config.n_buffers - 1;
       m_config.n_transpose_threads = m_config.n_buffers - 1;
     }
 
@@ -181,14 +182,13 @@ public:
         m_transpose_threads.emplace_back([this, i] { transpose(i); });
       }
     }
-
-
   }
 
   static constexpr const char* name = "MDF";
 
   /// Destructor
-  virtual ~MDFProvider() {
+  virtual ~MDFProvider()
+  {
 
     // Set flag to indicate the prefetch thread should exit, wake it
     // up and join it
@@ -240,30 +240,32 @@ public:
 
   //
 
-/**
- * @brief      Get a slice that is ready for processing; thread-safe
- *
- * @param      optional timeout
- *
- * @return     (good slice, timed out, slice index, number of events in slice)
- */
-  std::tuple<bool, bool, size_t, size_t> get_slice(std::optional<unsigned int> timeout = std::optional<unsigned int>{}) override
+  /**
+   * @brief      Get a slice that is ready for processing; thread-safe
+   *
+   * @param      optional timeout
+   *
+   * @return     (good slice, timed out, slice index, number of events in slice)
+   */
+  std::tuple<bool, bool, size_t, size_t> get_slice(
+    std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
-    std::unique_lock<std::mutex> lock{m_transpose_mut};
+    std::unique_lock<std::mutex> lock {m_transpose_mut};
     if (!m_read_error) {
       // If no transposed slices are ready for processing, wait until
       // one is; use a timeout if requested
       if (m_transposed.empty()) {
         auto wakeup = [this] {
-                        auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
-                        return (!m_transposed.empty() || m_read_error
-                                || (m_transpose_done && n_writable == m_buffer_writable.size()));
-                      };
+          auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
+          return (
+            !m_transposed.empty() || m_read_error || (m_transpose_done && n_writable == m_buffer_writable.size()));
+        };
         if (timeout) {
-          timed_out = !m_transpose_cond.wait_for(lock, std::chrono::milliseconds{*timeout}, wakeup);
-        } else {
+          timed_out = !m_transpose_cond.wait_for(lock, std::chrono::milliseconds {*timeout}, wakeup);
+        }
+        else {
           m_transpose_cond.wait(lock, wakeup);
         }
       }
@@ -280,19 +282,19 @@ public:
   }
 
   /**
-  * @brief      Declare a slice free for reuse; thread-safe
-  *
-  * @param      slice index
-  *
-  * @return     void
-  */
+   * @brief      Declare a slice free for reuse; thread-safe
+   *
+   * @param      slice index
+   *
+   * @return     void
+   */
   void slice_free(size_t slice_index) override
   {
     // Check if a slice was acually in use before and if it was, only
     // notify the transpose threads that a free slice is available
     bool freed = false;
     {
-      std::unique_lock<std::mutex> lock{m_slice_mut};
+      std::unique_lock<std::mutex> lock {m_slice_mut};
       if (!m_slice_free[slice_index]) {
         m_slice_free[slice_index] = true;
         freed = true;
@@ -305,7 +307,6 @@ public:
   }
 
 private:
-
   /**
    * @brief      Function to run in each thread transposing events
    *
@@ -313,7 +314,8 @@ private:
    *
    * @return     void
    */
-  void transpose(int thread_id) {
+  void transpose(int thread_id)
+  {
 
     size_t i_read = 0;
     std::optional<size_t> slice_index;
@@ -321,16 +323,18 @@ private:
     bool good = false, transpose_full = false;
     size_t n_transposed = 0;
 
-    while(!m_read_error && !m_transpose_done) {
+    while (!m_read_error && !m_transpose_done) {
 
       // Get a buffer to read from
       {
-        std::unique_lock<std::mutex> lock{m_prefetch_mut};
+        std::unique_lock<std::mutex> lock {m_prefetch_mut};
         if (m_prefetched.empty() && !m_transpose_done) {
           m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done; });
         }
         if (m_prefetched.empty()) {
-          this->debug_output("Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()), thread_id);
+          this->debug_output(
+            "Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()),
+            thread_id);
           break;
         }
         i_read = m_prefetched.front();
@@ -345,14 +349,14 @@ private:
         this->debug_output("Getting slice index", thread_id);
         auto it = m_slice_free.end();
         {
-          std::unique_lock<std::mutex> lock{m_slice_mut};
+          std::unique_lock<std::mutex> lock {m_slice_mut};
           it = find(m_slice_free.begin(), m_slice_free.end(), true);
           if (it == m_slice_free.end()) {
             this->debug_output("Waiting for free slice", thread_id);
             m_slice_cond.wait(lock, [this, &it] {
-                                      it = std::find(m_slice_free.begin(), m_slice_free.end(), true);
-                                      return it != m_slice_free.end() || m_transpose_done;
-                                    });
+              it = std::find(m_slice_free.begin(), m_slice_free.end(), true);
+              return it != m_slice_free.end() || m_transpose_done;
+            });
             // If transpose is done and there is no slice, we were
             // woken up be the desctructor before a slice was declared
             // free. In that case, exit without transposing
@@ -373,16 +377,18 @@ private:
       reset_slice<Banks...>(m_slices, *slice_index, event_ids);
 
       // Transpose the events in the read buffer into the slice
-      std::tie(good, transpose_full, n_transposed) = transpose_events<Banks...>(m_buffers[i_read],
-                                                                                m_slices,
-                                                                                *slice_index,
-                                                                                m_bank_ids,
-                                                                                m_banks_count,
-                                                                                event_ids,
-                                                                                this->events_per_slice());
-      this->debug_output("Transposed " + std::to_string(*slice_index) + " " + std::to_string(good)
-                         + " " + std::to_string(transpose_full) + " " + std::to_string(n_transposed),
-                         thread_id);
+      std::tie(good, transpose_full, n_transposed) = transpose_events<Banks...>(
+        m_buffers[i_read],
+        m_slices,
+        *slice_index,
+        m_bank_ids,
+        m_banks_count,
+        m_event_ids[*slice_index],
+        this->events_per_slice());
+      this->debug_output(
+        "Transposed " + std::to_string(*slice_index) + " " + std::to_string(good) + " " +
+          std::to_string(transpose_full) + " " + std::to_string(n_transposed),
+        thread_id);
 
       if (m_read_error || !good) {
         m_read_error = true;
@@ -392,7 +398,7 @@ private:
 
       // Notify any threads waiting in get_slice that a slice is available
       {
-        std::unique_lock<std::mutex> lock{m_transpose_mut};
+        std::unique_lock<std::mutex> lock {m_transpose_mut};
         m_transposed.emplace_back(*slice_index, n_transposed);
       }
       m_transpose_cond.notify_one();
@@ -403,17 +409,18 @@ private:
       if (n_transposed == std::get<0>(m_buffers[i_read])) {
         slice_index.reset();
         {
-          std::unique_lock<std::mutex> lock{m_prefetch_mut};
+          std::unique_lock<std::mutex> lock {m_prefetch_mut};
           m_buffer_writable[i_read] = true;
           // "Reset" buffer; the 0th offset is always 0.
           std::get<0>(m_buffers[i_read]) = 0;
           m_transpose_done = m_done && m_prefetched.empty();
         }
         m_prefetch_cond.notify_one();
-      } else {
+      }
+      else {
         // Put this prefetched slice back on the prefetched queue so
         // somebody else can finish it
-        std::unique_lock<std::mutex> lock{m_prefetch_mut};
+        std::unique_lock<std::mutex> lock {m_prefetch_mut};
         m_prefetched.push_front(i_read);
       }
     }
@@ -424,7 +431,8 @@ private:
    *
    * @return     success
    */
-  bool open_file() const {
+  bool open_file() const
+  {
     bool good = false;
 
     // Check if there are still files available
@@ -433,23 +441,25 @@ private:
       if (m_current == m_connections.end()) {
         if (++m_loop < m_config.n_loops) {
           m_current = m_connections.begin();
-        } else {
+        }
+        else {
           break;
         }
       }
 
-      if (m_input) ::close(*m_input);
+      if (m_input && m_input->good) m_input->close();
 
-      m_input = ::open(m_current->c_str(), O_RDONLY);
-      if (*m_input != -1) {
+      m_input = MDF::open(m_current->c_str(), O_RDONLY);
+      if (m_input->good) {
         // read the first header, needed by subsequent calls to read_events
-        ssize_t n_bytes = ::read(*m_input, reinterpret_cast<char*>(&m_header), header_size);
+        ssize_t n_bytes = m_input->read(reinterpret_cast<char*>(&m_header), header_size);
         good = (n_bytes > 0);
       }
 
       if (good) {
         info_cout << "Opened " << *m_current << "\n";
-      } else {
+      }
+      else {
         error_cout << "Failed to open " << *m_current << " " << strerror(errno) << "\n";
         m_read_error = true;
         return false;
@@ -465,7 +475,8 @@ private:
    *
    * @return     void
    */
-  void prefetch() {
+  void prefetch()
+  {
 
     bool eof = false, error = false, buffer_full = false, prefetch_done = false;
     size_t bytes_read = 0;
@@ -474,7 +485,7 @@ private:
     size_t eps = this->events_per_slice();
 
     // Loop while there are no errors and the flag to exit is not set
-    while(!m_done && !m_read_error && (!to_read || *to_read > 0)) {
+    while (!m_done && !m_read_error && (!to_read || *to_read > 0)) {
 
       // open the first file
       if (!m_input && !open_file()) {
@@ -488,17 +499,18 @@ private:
       // prefetch buffer
       auto it = m_buffer_writable.end();
       {
-        std::unique_lock<std::mutex> lock{m_prefetch_mut};
+        std::unique_lock<std::mutex> lock {m_prefetch_mut};
         it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
         if (it == m_buffer_writable.end()) {
           this->debug_output("Waiting for free buffer");
           m_prefetch_cond.wait(lock, [this] {
-            return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true)
-            != m_buffer_writable.end() || m_done;
+            return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true) != m_buffer_writable.end() ||
+                   m_done;
           });
           if (m_done) {
             break;
-          } else {
+          }
+          else {
             it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
           }
         }
@@ -510,14 +522,11 @@ private:
 
       // Read events into the prefetch buffer, open new files as
       // needed
-      while(true) {
+      while (true) {
         size_t read = std::get<0>(read_buffer);
         size_t to_prefetch = to_read ? std::min(eps, *to_read) : eps;
-        std::tie(eof, error, buffer_full, bytes_read) = read_events(*m_input, read_buffer,
-                                                                    m_header,
-                                                                    m_compress_buffer,
-                                                                    to_prefetch,
-                                                                    m_config.check_checksum);
+        std::tie(eof, error, buffer_full, bytes_read) =
+          read_events(*m_input, read_buffer, m_header, m_compress_buffer, to_prefetch, m_config.check_checksum);
         size_t n_read = std::get<0>(read_buffer) - read;
         if (to_read) {
           *to_read -= std::min(*to_read, n_read);
@@ -527,25 +536,29 @@ private:
           // Error encountered
           m_read_error = true;
           break;
-        } else if (to_read && *to_read == 0) {
+        }
+        else if (to_read && *to_read == 0) {
           if (m_config.n_loops != 0 && m_loop < (m_config.n_loops - 1)) {
             // Set things such that the next call to open_file will
             // result in a loop
             this->debug_output("Loop " + std::to_string(m_loop + 1));
             to_read = this->n_events();
             m_current = m_connections.end();
-            if (m_input) ::close(*m_input);
+            if (m_input && m_input->good) m_input->close();
             m_input.reset();
-          } else {
+          }
+          else {
             // No events left to read
             this->debug_output("Prefetch done: n_events reached");
             prefetch_done = true;
           }
           break;
-        } else if (std::get<0>(read_buffer) == eps || buffer_full) {
+        }
+        else if (std::get<0>(read_buffer) == eps || buffer_full) {
           // Number of events in a slice reached or buffer is full
           break;
-        } else if (eof && !open_file()) {
+        }
+        else if (eof && !open_file()) {
           // Try to open the next file, if there is none, prefetching
           // is done.
           if (!m_read_error) {
@@ -556,20 +569,22 @@ private:
         }
       }
 
-      this->debug_output("Read " + std::to_string(std::get<0>(read_buffer)) + " events into " + std::to_string(i_buffer));
+      this->debug_output(
+        "Read " + std::to_string(std::get<0>(read_buffer)) + " events into " + std::to_string(i_buffer));
 
       // Notify a transpose thread that a new buffer of events is
       // ready. If prefetching is done, wake up all threads
       if (!error) {
         {
-          std::unique_lock<std::mutex> lock{m_prefetch_mut};
+          std::unique_lock<std::mutex> lock {m_prefetch_mut};
           m_prefetched.push_back(i_buffer);
         }
         if (prefetch_done) {
           m_done = prefetch_done;
           this->debug_output("Prefetch notifying all");
           m_prefetch_cond.notify_all();
-        } else {
+        }
+        else {
           this->debug_output("Prefetch notifying one");
           m_prefetch_cond.notify_one();
         }
@@ -630,7 +645,7 @@ private:
   std::vector<std::string> m_connections;
 
   // Storage for the currently open file
-  mutable std::optional<int> m_input;
+  mutable std::optional<Allen::IO> m_input;
 
   // Iterator that points to the filename of the currently open file
   mutable std::vector<std::string>::const_iterator m_current;
@@ -642,5 +657,4 @@ private:
   MDFProviderConfig m_config;
 
   using base_class = InputProvider<MDFProvider<Banks...>>;
-
 };

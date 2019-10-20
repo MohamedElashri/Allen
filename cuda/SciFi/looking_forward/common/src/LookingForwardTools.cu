@@ -16,7 +16,7 @@ __device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
 
   final_state.tx = tx_ty_corr * qop + UT_state.tx;
 
-  final_state = state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   // final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   return final_state;
 }
@@ -33,8 +33,6 @@ __device__ float LookingForward::propagate_x_from_velo_multi_par(
   // get x and y at center of magnet
   const auto magnet_x =
     linear_propagation(UT_state.x, UT_state.tx, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
-  const auto magnet_y =
-    linear_propagation(UT_state.y, UT_state.ty, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
 
   return linear_propagation(
     magnet_x, final_tx, dev_looking_forward_constants->Zone_zPos[layer] - LookingForward::z_magnet);
@@ -111,45 +109,11 @@ __device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(
   const SciFi::HitCount& scifi_hit_count,
   const float y)
 {
-  assert(first_zone < SciFi::Constants::n_zones - 1);
+  assert(first_zone < (int) (SciFi::Constants::n_zones - 1));
   const auto offset = (y < 0) ? 0 : 1;
 
   return std::tuple<int, int> {scifi_hit_count.zone_offset(first_zone + offset),
                                scifi_hit_count.zone_number_of_hits(first_zone + offset)};
-}
-
-__device__ std::tuple<int, float> LookingForward::get_best_hit(
-  const SciFi::Hits& hits,
-  const SciFi::HitCount& hit_count,
-  const float m,
-  const std::tuple<int, int>& layer_candidates,
-  const std::tuple<float, float>& hit_layer_0_z_x,
-  const std::tuple<float, float>& hit_layer_3_z_x,
-  const float layer_projected_state_z,
-  const float layer_projected_state_y,
-  const float dxdy)
-{
-  const auto q = std::get<1>(hit_layer_0_z_x) - std::get<0>(hit_layer_0_z_x) * m;
-  const auto x_adjustment = layer_projected_state_y * dxdy;
-
-  int best_index = -1;
-  float min_chi2 = LookingForward::chi2_cut;
-  for (int i = 0; i < std::get<1>(layer_candidates); i++) {
-    const auto hit_index = hit_count.event_offset() + std::get<0>(layer_candidates) + i;
-    const auto chi_2 = chi2(
-      m,
-      q,
-      hit_layer_0_z_x,
-      std::make_tuple(layer_projected_state_z, hits.x0[hit_index] + x_adjustment),
-      hit_layer_3_z_x);
-
-    if (chi_2 < min_chi2) {
-      best_index = hit_index;
-      min_chi2 = chi_2;
-    }
-  }
-
-  return std::tuple<int, float> {best_index, min_chi2};
 }
 
 __device__ float LookingForward::tx_ty_corr_multi_par(
@@ -169,7 +133,7 @@ __device__ float LookingForward::tx_ty_corr_multi_par(
                            ut_state.ty * ut_state.ty,
                            ut_state.ty * ut_state.ty * ut_state.ty,
                            ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty};
-  // TODO this is probably the worst implementation possible
+
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
       tx_ty_corr += dev_looking_forward_constants->ds_multi_param[station][i][j] * tx_pow[i] * ty_pow[j];

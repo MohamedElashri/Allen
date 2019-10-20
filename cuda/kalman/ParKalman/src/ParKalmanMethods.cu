@@ -73,10 +73,7 @@ __device__ void PredictStateV(
 //----------------------------------------------------------------------
 // Predict VELO <-> UT
 __device__ bool PredictStateVUT(
-  const Velo::Consolidated::Hits& hitsVelo,
   const UT::Consolidated::Hits& hitsUT, // These probably don't exist yet.
-  const int nVeloHits,
-  const int nUTHits,
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -154,17 +151,8 @@ __device__ void PredictStateUT(
 
 //----------------------------------------------------------------------
 // Predict UT <-> T precise version (what does that mean?)
-__device__ void PredictStateUTT(
-  const UT::Consolidated::Hits& hits,
-  const int n_ut_hits,
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI)
+__device__ void PredictStateUTT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
 {
-
-  // int forward = lastz < 5000. ? 1 : -1;
-  int forward = 1;
   Matrix5x5 F;
 
   // Calculate the extrapolation for a reference state that uses
@@ -189,36 +177,18 @@ __device__ void PredictStateUTT(
   C = C + Q;
 
   // When going backwards: predict to the last VELO measurement.
-  PredictStateTFT(forward, x, C, lastz, tI);
+  PredictStateTFT(x, C, lastz, tI);
 }
 
 //----------------------------------------------------------------------
 // Predict UT (fixed z) <-> last UT layer.
-__device__ void PredictStateUTFUT(
-  const UT::Consolidated::Hits& hits,
-  int nUTHits,
-  int forward,
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI)
+__device__ void PredictStateUTFUT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
 {
   // Extrapolate.
   Matrix5x5 F;
   ExtrapolateUTFUTDef(lastz, x, F, tI);
 
   // Transport.
-  tI.m_RefPropForwardTotal = F * tI.m_RefPropForwardTotal;
-  C = similarity_5_5(F, C);
-}
-
-//----------------------------------------------------------------------
-// Predict UT (fixed z) <-> last UT layer.
-__device__ void PredictStateUTFUT(int forward, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
-{
-  // TODO: Only valid for the forward direction for now...maybe not safe?
-  Matrix5x5 F;
-  ExtrapolateUTFUTDef(lastz, x, F, tI);
   tI.m_RefPropForwardTotal = F * tI.m_RefPropForwardTotal;
   C = similarity_5_5(F, C);
 }
@@ -242,7 +212,7 @@ __device__ void PredictStateT(
     const uint32_t idx = (uint32_t) tI.m_SciFiLayerIdxs[layer];
     KalmanFloat z0 = (KalmanFloat) hits.z0[idx];
     KalmanFloat y0 = (KalmanFloat) hits.yMin(idx);
-    KalmanFloat dydz = 1. / hits.dzdy(idx);
+    KalmanFloat dydz = ((KalmanFloat) 1.) / hits.dzdy(idx);
     z = (lastz * x[3] - z0 * dydz - x[1] + y0) / (x[3] - dydz);
     KalmanFloat DzDy = ((KalmanFloat) -1.) / (x[3] - dydz);
     KalmanFloat DzDty = lastz * (-DzDy) - (lastz * x[3] - z0 * dydz - x[1] + y0) * DzDy * DzDy;
@@ -261,13 +231,8 @@ __device__ void PredictStateT(
 
 //----------------------------------------------------------------------
 // Predict T (fixed z) <-> first T layer.
-__device__ void PredictStateTFT(
-  const SciFi::Consolidated::Hits& hits,
-  int forward,
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  trackInfo& tI)
+__device__ void
+PredictStateTFT(const SciFi::Consolidated::Hits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
 {
   KalmanFloat z;
   Matrix5x5 F;
@@ -295,7 +260,7 @@ __device__ void PredictStateTFT(
 
 //----------------------------------------------------------------------
 // Predict T (fixed z) <-> first T layer.
-__device__ void PredictStateTFT(int forward, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
+__device__ void PredictStateTFT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
 {
   KalmanFloat z;
   Matrix5x5 F;
@@ -372,7 +337,7 @@ __device__ void UpdateStateUT(
   const KalmanFloat x1 = x0 + (y1 - y0) * slopes[layer];
 
   // Rotate by alpha = atan(dx/dy).
-  const KalmanFloat x2y2 = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+  const KalmanFloat x2y2 = sqrtf((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
   Vector2 H;
   H(0) = (y1 - y0) / x2y2;
   H(1) = -(x1 - x0) / x2y2;
@@ -394,7 +359,7 @@ __device__ void UpdateStateUT(
 
   // K*S*K(T)
   SymMatrix5x5 KCResKt;
-  tensorProduct(sqrt(CRes) * K, sqrt(CRes) * K, KCResKt);
+  tensorProduct(sqrtf(CRes) * K, sqrtf(CRes) * K, KCResKt);
 
   // P -= KSK(T)
   C = C - KCResKt;
@@ -410,7 +375,6 @@ __device__ void UpdateStateUT(
 // Update state with a SciFi measurement.
 __device__ void UpdateStateT(
   const SciFi::Consolidated::Hits& hits,
-  const int forward,
   const uint layer,
   Vector5& x,
   SymMatrix5x5& C,
@@ -428,7 +392,7 @@ __device__ void UpdateStateT(
   const KalmanFloat x0 = (KalmanFloat) hits.x0[nHit] + y0 * dxdy;
   const KalmanFloat x1 = x0 + (y1 - y0) * dxdy;
   const KalmanFloat z0 = (KalmanFloat) hits.z0[nHit];
-  const KalmanFloat x2y2 = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+  const KalmanFloat x2y2 = sqrtf((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
   Vector2 H;
   H(0) = (y1 - y0) / x2y2;
   H(1) = -(x1 - x0) / x2y2;
@@ -451,7 +415,7 @@ __device__ void UpdateStateT(
   K = K / CRes;
   x = x + res * K;
   SymMatrix5x5 KCResKt;
-  tensorProduct(sqrt(CRes) * K, sqrt(CRes) * K, KCResKt);
+  tensorProduct(sqrtf(CRes) * K, sqrtf(CRes) * K, KCResKt);
 
   // P -= KSK
   C = C - KCResKt;
@@ -516,7 +480,7 @@ ExtrapolateInV(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   F(1, 3) = dz;
 
   // tx
-  F(2, 4) = par[4] * (1.0e-5) * dz * ((dz > 0 ? zFrom : zTo) + par[5] * ((KalmanFloat) 1.0e3));
+  F(2, 4) = par[4] * ((KalmanFloat) 1.0e-5) * dz * ((dz > 0 ? zFrom : zTo) + par[5] * ((KalmanFloat) 1.0e3));
 
   // x
   F(0, 4) = ((KalmanFloat) 0.5) * dz * F(2, 4);
@@ -567,8 +531,7 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
   KalmanFloat coeff = par[8] * ((KalmanFloat) 1e1) + par[9] * ((KalmanFloat) 1e-2) * zFrom +
                       par[10] * ((KalmanFloat) 1e2) * x_old[3] * x_old[3];
 
-  KalmanFloat a =
-    x_old[2] / sqrtf(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]) - x_old[4] * coeff;
+  KalmanFloat a = x_old[2] / sqrtf(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]) - x_old[4] * coeff;
   KalmanFloat sqrtTmp = sqrtf((((KalmanFloat) 1.0) - a * a) * (((KalmanFloat) 1.0) + x[3] * x[3]));
 
   // Check that the track is not deflected
@@ -614,7 +577,7 @@ ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, Sym
             DtxDty * F(3, 2);
 
   F(2, 3) = DtxDa * (-x_old[2] * x_old[3] / (sqrtTmp * (1 + x_old[2] * x_old[2] + x_old[3] * x_old[3])) -
-                     x_old[4] * 2 * par[10] * 1e2 * x_old[3]) +
+                     x_old[4] * 2 * par[10] * ((KalmanFloat) 1e2) * x_old[3]) +
             DtxDty * F(3, 3);
 
   F(2, 4) = DtxDa * (-coeff) + DtxDty * F(3, 4);
@@ -809,26 +772,15 @@ __device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackI
 
   // determine the momentum at this state from the momentum saved in the state vector
   //(representing always the PV qop)
-  KalmanFloat qopHere = x[4] + x[4] * ((KalmanFloat) 1e-4) * par[18] +
-                        x[4] * fabsf(x[4]) * par[19]; // TODO make this a tuneable parameter
+  KalmanFloat qopHere =
+    x[4] + x[4] * ((KalmanFloat) 1e-4) * par[18] + x[4] * fabsf(x[4]) * par[19]; // TODO make this a tuneable parameter
 
   // do the actual extrapolation
   KalmanFloat der_tx[4];
   KalmanFloat der_ty[4];
   KalmanFloat der_qop[4]; //, der_x[4], der_y[4];
   extrapUTT(
-    tI.m_extr->UTTExtrBeginZ(),
-    tI.m_extr->UTTExtrEndZ(),
-    QUADRATICINTERPOLATION,
-    x[0],
-    x[1],
-    x[2],
-    x[3],
-    qopHere,
-    der_tx,
-    der_ty,
-    der_qop,
-    tI);
+    tI.m_extr->UTTExtrBeginZ(), tI.m_extr->UTTExtrEndZ(), x[0], x[1], x[2], x[3], qopHere, der_tx, der_ty, der_qop, tI);
 
   // apply additional correction
   x[0] += par[9] * x_old[4] * ((KalmanFloat) 1e2) + par[10] * x_old[4] * x_old[4] * ((KalmanFloat) 1e5) +
@@ -1097,7 +1049,6 @@ ExtrapolateTFT(KalmanFloat zFrom, KalmanFloat& zTo, Vector5& x, Matrix5x5& F, Sy
 __device__ int extrapUTT(
   KalmanFloat zi,
   KalmanFloat zf,
-  int quad_interp,
   KalmanFloat& x,
   KalmanFloat& y,
   KalmanFloat& tx,
@@ -1234,8 +1185,6 @@ __device__ int extrapUTT(
 
   x = x + tx * (zf - zi);
   y = y + ty * (zf - zi);
-  tx = tx;
-  ty = ty;
 
   for (int k = 0; k < 4; k++)
     der_tx[k] = der_ty[k] = der_qop[k] = 0;

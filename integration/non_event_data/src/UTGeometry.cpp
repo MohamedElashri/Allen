@@ -1,5 +1,5 @@
 #include <string>
-
+#include <vector>
 #include <CudaCommon.h>
 #include <Common.h>
 #include <Consumers.h>
@@ -11,7 +11,7 @@ namespace {
 
 Consumers::UTGeometry::UTGeometry(Constants& constants) : m_constants {constants} {}
 
-void Consumers::UTGeometry::initialize(vector<char> const& data)
+void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 {
 
   auto alloc_and_copy = [](auto const& host_numbers, auto& device_numbers) {
@@ -60,7 +60,7 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
     const auto size = offsets[i + 1] - offsets[i];
 
     // Copy elements into xs vector
-    vector<float> xs(size);
+    std::vector<float> xs(size);
     std::copy_n(geometry.p0X + offset, size, xs.begin());
 
     // Create permutation
@@ -118,11 +118,11 @@ void Consumers::UTGeometry::initialize(vector<char> const& data)
   }
 
   // Populate device constant into global memory
-  tuple numbers {
-    tuple {std::cref(host_unique_x_sector_layer_offsets),
-           std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
-    tuple {std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
-    tuple {std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
+  std::tuple numbers {
+    std::tuple {std::cref(host_unique_x_sector_layer_offsets),
+                std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
+    std::tuple {std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
+    std::tuple {std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
 
   for_each(
     numbers, [&alloc_and_copy](auto& entry) { alloc_and_copy(std::get<0>(entry).get(), std::get<1>(entry).get()); });

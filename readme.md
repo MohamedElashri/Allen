@@ -5,12 +5,12 @@ Welcome to Allen, a project providing a full HLT1 realization on GPU.
 
 Requisites
 ----------
-The project requires a graphics card with CUDA support, CUDA 10.0, CMake 3.12 and a compiler supporting C++17 (gcc 7.3, for instance).
+The project requires a graphics card with CUDA support, CUDA 10.0, CMake 3.12 and a compiler supporting C++17.
 
 If you are working from a node with CVMFS and CentOS 7, we suggest the following setup:
 
 ```shell
-source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc7-opt
+source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95 x86_64-centos7-gcc8-opt
 export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
 export PATH=/usr/local/cuda/bin:$PATH
 ```
@@ -18,10 +18,10 @@ Regardless of the OS you are running on, you can check your compiler versions as
 
 ```shell
 $ g++ --version
-g++ (GCC) 7.3.0
+g++ (GCC) 8.2.0
 
 $ nvcc --version
-Cuda compilation tools, release 10.0, V10.0.130
+Cuda compilation tools, release 10.1, V10.1.243
 
 $ cmake --version
 cmake version 3.14.2
@@ -38,10 +38,14 @@ Where to find input
 -------------
 Input from 5k events for each of the following decay modes can be found here:
 
-* minimum bias, mag down (for performance checks): `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/mag_down.tar.gz`
-* Bs->PhiPhi, mag down (for efficiency checks): `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_down.tar.gz`
-* Bs->PhiPhi, mag up (for efficiency checks): `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_up.tar.gz`
-* J/Psi->MuMu, mag down (for muon efficiency checks): `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/JpsiMuMu/mag_down.tar.gz`
+* minimum bias, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/minbias-mag_down.tar.gz`
+* Bs->PhiPhi, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_down.tar.gz`
+* Bs->PhiPhi, mag up: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_up.tar.gz`
+* J/Psi->MuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/JpsiMuMu/mag_down.tar.gz`
+* Ds->KKPi, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Ds2KKPi/Ds2KKPi_mag_down.tar.gz`
+* B->KstEE, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/KstEE/KstEE_mag_down.tar.gz`
+* B->KstMuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/KstMuMu/KstMuMu_mag_down.tar.gz`
+* Z->MuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Z2MuMu/Z2MuMu_mag_down.tar.gz`
 
 If other inputs are required, follow these instructions for producing them:
 [https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md](https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md)

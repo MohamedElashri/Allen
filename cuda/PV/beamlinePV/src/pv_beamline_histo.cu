@@ -11,13 +11,12 @@ __device__ float gauss_integral(float x)
 }
 
 __global__ void pv_beamline_histo(
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks,
   float* dev_zhisto,
   float* dev_beamline)
 {
-
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
@@ -37,8 +36,7 @@ __global__ void pv_beamline_histo(
   }
   __syncthreads();
 
-  for (int index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
-
+  for (uint index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
     PVTrack trk = dev_pvtracks[event_tracks_offset + index];
     // apply the z cut here
     if (zmin < trk.z && trk.z < zmax) {

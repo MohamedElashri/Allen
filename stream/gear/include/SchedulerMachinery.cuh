@@ -285,13 +285,7 @@ namespace Sch {
     std::tuple<SetSizeArguments...>,
     std::tuple<VisitArguments...>,
     std::index_sequence<>> {
-    constexpr static void run(
-      Scheduler& scheduler,
-      Functor& functor,
-      Tuple& tuple,
-      SetSizeArguments&&... set_size_arguments,
-      VisitArguments&&... visit_arguments)
-    {}
+    constexpr static void run(Scheduler&, Functor&, Tuple&, SetSizeArguments&&..., VisitArguments&&...) {}
   };
 
   template<
@@ -397,7 +391,7 @@ namespace Sch {
 
   template<typename Functor, typename... Arguments>
   struct RunChecker<Functor, std::tuple<>, std::tuple<Arguments...>> {
-    constexpr static void check(const Functor& functor, Arguments&&... arguments) {}
+    constexpr static void check(const Functor&, Arguments&&...) {}
   };
 
   template<typename Functor, typename Algorithm, typename... Algorithms, typename... Arguments>

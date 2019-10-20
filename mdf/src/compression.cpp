@@ -44,8 +44,6 @@ namespace {
     return is_valid_header_zlib(src) || is_valid_header_old(src) || is_valid_header_lzma(src) ||
            is_valid_header_lz4(src);
   }
-
-  static const int lzmaHeaderSize = 9;
 } // namespace
 
 int Compression::unzip_header(int* srcsize, unsigned char* src, int* tgtsize)
@@ -71,7 +69,6 @@ int Compression::unzip_header(int* srcsize, unsigned char* src, int* tgtsize)
 void Compression::unzip(int* srcsize, unsigned char* src, int* tgtsize, unsigned char* tgt, int* irep)
 {
   long isize;
-  unsigned char *ibufptr, *obufptr;
   long ibufcnt, obufcnt;
 
   *irep = 0L;
@@ -89,10 +86,8 @@ void Compression::unzip(int* srcsize, unsigned char* src, int* tgtsize, unsigned
     return;
   }
 
-  ibufptr = src + HDRSIZE;
   ibufcnt = (long) src[3] | ((long) src[4] << 8) | ((long) src[5] << 16);
   isize = (long) src[6] | ((long) src[7] << 8) | ((long) src[8] << 16);
-  obufptr = tgt;
   obufcnt = *tgtsize;
 
   if (obufcnt < isize) {

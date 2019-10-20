@@ -49,7 +49,7 @@ __device__ void associate_and_muon_id(
   Associate::Consolidated::EventTable& table,
   distance_fun fun)
 {
-  for (int i = threadIdx.x; i < table.size; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < table.size; i += blockDim.x) {
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;
@@ -68,9 +68,8 @@ __device__ void associate_and_muon_id(
 
 __global__ void kalman_pv_ipchi2(
   ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  int* dev_n_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number,
-  char* dev_scifi_consolidated_hits,
   float* dev_scifi_qop,
   MiniState* dev_scifi_states,
   uint* dev_ut_indices,
@@ -99,7 +98,7 @@ __global__ void kalman_pv_ipchi2(
   ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
   const bool* event_is_muon = dev_is_muon + event_tracks_offset;
   cuda::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-                                        *(dev_number_of_multi_fit_vertices + event_number)};
+                                         *(dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event.
   auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);

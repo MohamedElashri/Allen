@@ -13,7 +13,7 @@
 
 // configuration for PV checker -> check values
 static constexpr int nTracksToBeRecble = 4;
-static constexpr float dzIsolated = 10.f; // mm
+static constexpr double dzIsolated = 10.; // mm
 static constexpr bool matchByTracks = false;
 
 class PVCheckerHistos;
@@ -31,7 +31,7 @@ public:
 
   virtual ~PVChecker();
 
-  void accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, int* number_of_vertex);
+  void accumulate(MCEvents const& mc_events, PV::Vertex* rec_vertex, int* number_of_vertex, uint n_selected_events);
 
   void report(size_t n_events) const override;
 

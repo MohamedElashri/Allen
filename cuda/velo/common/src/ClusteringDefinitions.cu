@@ -35,7 +35,7 @@ VeloGeometry::VeloGeometry(std::vector<char> const& geometry)
 {
   char const* p = geometry.data();
 
-  auto copy_array = [this, &p](const size_t N, float* d) {
+  auto copy_array = [&p](const size_t N, float* d) {
     const size_t n = ((size_t*) p)[0];
     if (n != N) {
       error_cout << n << " != " << N << std::endl;

@@ -1,11 +1,21 @@
-set(SOURCES
-  src/compression.cpp
-  src/raw_helpers.cpp
-  src/read_mdf.cpp
-  src/read_mep.cpp)
+set(mdf_sources
+    src/compression.cpp
+    src/raw_helpers.cpp
+    src/read_mdf.cpp
+    src/read_mep.cpp)
 
-allen_add_library(mdf ${SOURCES})
+if (ROOT_FOUND AND USE_ROOT)
+  list(APPEND mdf_sources src/root_mdf.cpp)
+endif()
+
+allen_add_library(mdf ${mdf_sources})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+if (ROOT_FOUND AND USE_ROOT)
+  target_compile_definitions(mdf PUBLIC ${ALLEN_ROOT_DEFINITIONS})
+  target_include_directories(mdf SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(mdf PUBLIC ${ALLEN_ROOT_LIBRARIES})
+endif()
 
 target_include_directories(
   mdf PUBLIC
@@ -64,8 +74,6 @@ test_program(NAME mdf_to_mep)
 test_program(NAME dump_banks)
 
 if (BUILD_TESTS)
-  include(Catch)
-
   test_program(NAME test_read)
   test_program(NAME read_mep)
   test_program(NAME bench_read)
@@ -73,7 +81,11 @@ if (BUILD_TESTS)
   test_program(NAME bench_mep_provider)
   test_program(NAME bench_transpose)
   test_program(NAME bench_transpose_mep)
-
   test_program(NAME test_providers)
-  catch_discover_tests(test_providers EXTRA_ARGS --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+
+  if (NOT GaudiProject_FOUND)
+    add_test(NAME allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  else()
+    gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  endif()
 endif()

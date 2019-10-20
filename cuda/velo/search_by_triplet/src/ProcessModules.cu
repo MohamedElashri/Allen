@@ -22,14 +22,14 @@ __device__ void process_modules(
   unsigned short* h1_rel_indices,
   const uint hit_offset,
   const float* dev_velo_module_zs,
-  int* dev_atomics_velo)
+  uint* dev_atomics_velo)
 {
   const int ip_shift = gridDim.x + blockIdx.x * (Velo::num_atomics - 1);
   auto first_module = VP::NModules - 1;
 
   // Prepare the first seeding iteration
   // Load shared module information
-  for (int i = threadIdx.x; i < 4; i+=blockDim.x) {
+  for (uint i = threadIdx.x; i < 4; i += blockDim.x) {
     const auto module_number = first_module - i - 2;
     module_data[i].hitStart = module_hitStarts[module_number] - hit_offset;
     module_data[i].hitNums = module_hitNums[module_number];
@@ -63,7 +63,7 @@ __device__ void process_modules(
 
     // Iterate in modules
     // Load in shared
-    for (int i = threadIdx.x; i < 4; i+=blockDim.x) {
+    for (int i = threadIdx.x; i < 4; i += blockDim.x) {
       const auto module_number = first_module - i - 2;
       module_data[i].hitStart = module_hitStarts[module_number] - hit_offset;
       module_data[i].hitNums = module_hitNums[module_number];
@@ -94,8 +94,7 @@ __device__ void process_modules(
       tracks,
       number_of_hits,
       dev_atomics_velo,
-      ip_shift,
-      first_module);
+      ip_shift);
 
     // Due to ttf_insert_pointer
     __syncthreads();
@@ -124,7 +123,7 @@ __device__ void process_modules(
   const auto diff_ttf = last_ttf - prev_ttf;
 
   // Process the last bunch of track_to_follows
-  for (int ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
+  for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
     const int fulltrackno = tracks_to_follow[(prev_ttf + ttf_element) & Velo::Tracking::ttf_modulo_mask];
     const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
     const int trackno = fulltrackno & 0x0FFFFFFF;

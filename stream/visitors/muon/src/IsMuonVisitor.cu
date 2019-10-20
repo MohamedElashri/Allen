@@ -37,7 +37,6 @@ void SequenceVisitor::visit<is_muon_t>(
     arguments.offset<dev_muon_hits>(),
     arguments.offset<dev_muon_track_occupancies>(),
     arguments.offset<dev_is_muon>(),
-    arguments.offset<dev_event_list>(),
     constants.dev_muon_foi,
     constants.dev_muon_momentum_cuts);
 

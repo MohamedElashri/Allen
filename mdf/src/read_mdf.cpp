@@ -10,11 +10,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
+#include <Logger.h>
 #include "mdf_header.hpp"
 #include "read_mdf.hpp"
 #include "raw_bank.hpp"
 #include "raw_helpers.hpp"
+
+#ifdef WITH_ROOT
+#include "root_mdf.hpp"
+#endif
 
 namespace {
   using gsl::span;
@@ -25,6 +29,25 @@ namespace {
   using std::make_tuple;
   using std::vector;
 } // namespace
+
+Allen::IO MDF::open(std::string const& filepath, int flags)
+{
+  if (::strncmp(filepath.c_str(), "root:", 5) == 0) {
+#ifdef WITH_ROOT
+    return ROOT::open(filepath, flags);
+#else
+    cout << "Allen was not compiled with ROOT support\n";
+    return {};
+#endif
+  }
+  else {
+    int fd = ::open(filepath.c_str(), flags);
+    return {true,
+            [fd](char* ptr, size_t size) { return ::read(fd, ptr, size); },
+            [fd](char const* ptr, size_t size) { return ::write(fd, ptr, size); },
+            [fd] { return ::close(fd); }};
+  }
+}
 
 std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
   size_t n,
@@ -75,8 +98,8 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
   };
 
   for (const auto& filename : files) {
-    int input = ::open(filename.c_str(), O_RDONLY);
-    if (input < 0) {
+    auto input = MDF::open(filename.c_str(), O_RDONLY);
+    if (!input.good) {
       cout << "failed to open file " << filename << " " << strerror(errno) << "\n";
       break;
     }
@@ -185,7 +208,7 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
         event_offsets.push_back(event_offset);
       }
     }
-    ::close(input);
+    input.close();
   }
   n_read = n_read > 0 ? n_read - 1 : 0;
   return make_tuple(n_read, std::move(buffers), std::move(odins));
@@ -193,7 +216,7 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
-  int input,
+  Allen::IO& input,
   LHCb::MDFHeader& h,
   gsl::span<char> buffer,
   std::vector<char>& decompression_buffer,
@@ -203,7 +226,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
   int rawSize = sizeof(LHCb::MDFHeader);
 
   // Read the first part directly into the header
-  ssize_t n_bytes = ::read(input, reinterpret_cast<char*>(&h), rawSize);
+  ssize_t n_bytes = input.read(reinterpret_cast<char*>(&h), rawSize);
   if (n_bytes > 0) {
     return read_banks(input, h, buffer, decompression_buffer, checkChecksum, dbg);
   }
@@ -219,7 +242,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
 
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
-  int input,
+  Allen::IO& input,
   const LHCb::MDFHeader& h,
   gsl::span<char> buffer,
   std::vector<char>& decompression_buffer,
@@ -265,7 +288,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
   char* bptr = (char*) b->data();
 
   // Read the subheader and put it directly after the MDFHeader
-  ::read(input, bptr + sizeof(LHCb::MDFHeader), hdrSize);
+  input.read(bptr + sizeof(LHCb::MDFHeader), hdrSize);
 
   // The header and subheader are complete in the buffer,
   auto* hdr = reinterpret_cast<LHCb::MDFHeader*>(bptr);
@@ -294,7 +317,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     ::memcpy(decompression_buffer.data(), hdr, rawSize);
 
     // Read compressed data
-    ssize_t n_bytes = ::read(input, decompression_buffer.data() + rawSize, readSize);
+    ssize_t n_bytes = input.read(decompression_buffer.data() + rawSize, readSize);
     if (n_bytes == 0) {
       cout << "Cannot read more data  (Header). End-of-File reached.\n";
       return {true, false, {}};
@@ -329,7 +352,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
   }
   else {
     // Read uncompressed data from file
-    ssize_t n_bytes = ::read(input, bptr + rawSize, readSize);
+    ssize_t n_bytes = input.read(bptr + rawSize, readSize);
     if (n_bytes == 0) {
       cout << "Cannot read more data  (Header). End-of-File reached.\n";
       return {true, false, {}};

@@ -7,8 +7,8 @@ using namespace SciFi;
 __device__ void direct_decode_raw_bank_v4(
   SciFiGeometry const& geom,
   SciFiRawBank const& raw_bank,
-  const uint bank_index,
-  const uint raw_bank_offset,
+  uint const bank_index,
+  uint const raw_bank_offset,
   SciFi::Hits& hits)
 {
   const uint j = (bank_index / 10) % 4;
@@ -21,7 +21,7 @@ __device__ void direct_decode_raw_bank_v4(
   if (last > it) {
     const uint number_of_clusters = last - it;
 
-    for (int i_cluster = threadIdx.y; i_cluster < number_of_clusters; i_cluster += blockDim.y) {
+    for (uint i_cluster = threadIdx.y; i_cluster < number_of_clusters; i_cluster += blockDim.y) {
       const uint16_t current_cluster = reverse_cluster_order ? (number_of_clusters - 1 - i_cluster) : i_cluster;
 
       uint16_t c = *(it + current_cluster);

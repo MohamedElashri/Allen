@@ -10,7 +10,7 @@ __device__ void calculate_number_of_hits(
 {
   const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
 
-  for (uint32_t i = threadIdx.y; i < raw_bank.number_of_hits; i += blockDim.y) {
+  for (uint i = threadIdx.y; i < raw_bank.number_of_hits; i += blockDim.y) {
     const uint32_t channelID = (raw_bank.data[i] & UT::Decoding::chan_mask) >> UT::Decoding::chan_offset;
     const uint32_t index = channelID / m_nStripsPerHybrid;
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + index;
@@ -52,7 +52,7 @@ __global__ void ut_calculate_number_of_hits(
   const UTRawEvent raw_event(dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
 
-  for (uint32_t raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
+  for (uint raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;
        raw_bank_index += blockDim.x) {
     const UTRawBank raw_bank = raw_event.getUTRawBank(raw_bank_index);
     calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, raw_bank);
@@ -81,7 +81,7 @@ __global__ void ut_calculate_number_of_hits_mep(
   const UTBoards boards(ut_boards);
   auto const number_of_ut_raw_banks = dev_ut_raw_input_offsets[0];
 
-  for (uint32_t raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks;
+  for (uint raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks;
        raw_bank_index += blockDim.x) {
 
     // Construct UT raw bank from MEP layout

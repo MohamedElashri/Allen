@@ -42,7 +42,7 @@ void SequenceVisitor::visit<init_event_list_t>(
 
   // Initialize buffers
   host_buffers.host_number_of_selected_events[0] = runtime_options.number_of_events;
-  for (int i = 0; i < runtime_options.number_of_events; ++i) {
+  for (uint i = 0; i < runtime_options.number_of_events; ++i) {
     host_buffers.host_event_list[i] = i;
   }
 

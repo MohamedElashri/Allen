@@ -15,7 +15,7 @@
 #include "FloatOperations.cuh"
 
 __global__ void pv_beamline_histo(
-  int* dev_atomics_storage,
+  uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   PVTrack* dev_pvtracks,
   float* dev_zhisto,

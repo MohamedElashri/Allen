@@ -14,7 +14,8 @@ namespace {
   /**
    * @brief      Utility function to order files given an existing ordering
    */
-  void order_files(std::vector<std::string>& files, EventIDs const& order, std::string const& folder) {
+  void order_files(std::vector<std::string>& files, EventIDs const& order, std::string const& folder)
+  {
     std::map<std::tuple<int, long long>, std::string> file_ids;
     for (auto file : files) {
       file_ids.emplace(name_to_number(file), file);
@@ -24,14 +25,15 @@ namespace {
       auto file_it = file_ids.find(event_id);
       if (file_it != file_ids.end()) {
         files.emplace_back(std::move(file_it->second));
-      } else {
+      }
+      else {
         auto [run, event] = file_it->first;
-        throw StrException{std::string{"file with event ID "} + std::to_string(run)
-                           + " " + std::to_string(event) + " not found in " + folder};
+        throw StrException {std::string {"file with event ID "} + std::to_string(run) + " " + std::to_string(event) +
+                            " not found in " + folder};
       }
     }
   }
-}
+} // namespace
 
 /**
  * @brief      Provide event from binary files that are already in the correct
@@ -48,30 +50,32 @@ namespace {
  * @param      optional: order of event IDs in which to provide bank data
  *
  */
-template <BankTypes... Banks>
+template<BankTypes... Banks>
 class BinaryProvider final : public InputProvider<BinaryProvider<Banks...>> {
 public:
-  BinaryProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events,
-                 std::vector<std::string> connections,
-                 size_t repetitions = 1,
-                 std::optional<EventIDs> order = std::optional<EventIDs>{}) :
-    InputProvider<BinaryProvider<Banks...>>{n_slices, events_per_slice, n_events},
-    m_slice_free(n_slices, true),
-    m_repetitions {repetitions}, m_event_ids(n_slices)
+  BinaryProvider(
+    size_t n_slices,
+    size_t events_per_slice,
+    std::optional<size_t> n_events,
+    std::vector<std::string> connections,
+    size_t repetitions = 1,
+    std::optional<EventIDs> order = std::optional<EventIDs> {}) :
+    InputProvider<BinaryProvider<Banks...>> {n_slices, events_per_slice, n_events},
+    m_slice_free(n_slices, true), m_repetitions {repetitions}, m_event_ids(n_slices)
   {
 
     // Check that there is a folder for each bank type, find all the
     // files it contains and store their sizes
     struct stat stat_buf;
     for (auto bank_type : this->types()) {
-      auto it = std::find_if(connections.begin(), connections.end(),
-                             [bank_type] (auto const& folder) {
-                               auto bn = bank_name(bank_type);
-                               return folder.substr(folder.size() - bn.size(), std::string::npos) == bn;
-                             });
+      auto it = std::find_if(connections.begin(), connections.end(), [bank_type](auto const& folder) {
+        auto bn = bank_name(bank_type);
+        return folder.substr(folder.size() - bn.size(), std::string::npos) == bn;
+      });
       if (it == connections.end()) {
-        throw StrException{"Failed to find a folder for " + bank_name(bank_type) + " banks"};
-      } else {
+        throw StrException {"Failed to find a folder for " + bank_name(bank_type) + " banks"};
+      }
+      else {
         auto ib = to_integral<BankTypes>(bank_type);
         // Find files and order them if requested
         auto contents = list_folder(*it);
@@ -83,12 +87,13 @@ public:
         for (auto const& file : contents) {
           auto path = *it + "/" + file;
           if (::stat(path.c_str(), &stat_buf) != 0) {
-            throw StrException{"Failed to stat " + file};
-          } else {
+            throw StrException {"Failed to stat " + file};
+          }
+          else {
             m_sizes[ib].emplace_back(stat_buf.st_size);
           }
         }
-        m_files[ib] = std::tuple{*it, std::move(contents)};
+        m_files[ib] = std::tuple {*it, std::move(contents)};
       }
     }
 
@@ -130,7 +135,8 @@ public:
   /**
    * @brief      Destructor; ensure prefetch threads is cleaned up
    */
-  virtual ~BinaryProvider() {
+  virtual ~BinaryProvider()
+  {
     m_done = true;
     m_slice_cond.notify_one();
     m_prefetch_cond.notify_one();
@@ -152,25 +158,28 @@ public:
     return m_event_ids[slice_index];
   }
 
-/**
- * @brief      Get a slice that is ready for processing; thread-safe
- *
- * @param      optional timeout
- *
- * @return     (good slice, timed out, slice index, number of events in slice)
- */
-  std::tuple<bool, bool, size_t, size_t> get_slice(std::optional<unsigned int> timeout = std::optional<unsigned int>{}) override
+  /**
+   * @brief      Get a slice that is ready for processing; thread-safe
+   *
+   * @param      optional timeout
+   *
+   * @return     (good slice, timed out, slice index, number of events in slice)
+   */
+  std::tuple<bool, bool, size_t, size_t> get_slice(
+    std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
   {
     bool timed_out = false;
     size_t slice_index = 0, n_filled = 0;
-    std::unique_lock<std::mutex> lock{m_prefetch_mut};
+    std::unique_lock<std::mutex> lock {m_prefetch_mut};
     if (!m_read_error) {
       // If no slices are ready, wait until one is available
       if (m_prefetched.empty()) {
         if (timeout) {
-          timed_out = !m_prefetch_cond.wait_for(lock, std::chrono::milliseconds{*timeout},
-                                                [this] { return !m_prefetched.empty() || m_read_error || m_done; });
-        } else {
+          timed_out = !m_prefetch_cond.wait_for(lock, std::chrono::milliseconds {*timeout}, [this] {
+            return !m_prefetched.empty() || m_read_error || m_done;
+          });
+        }
+        else {
           m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_read_error || m_done; });
         }
       }
@@ -185,19 +194,19 @@ public:
   }
 
   /**
-  * @brief      Declare a slice free for reuse; thread-safe
-  *
-  * @param      slice index
-  *
-  * @return     void
-  */
+   * @brief      Declare a slice free for reuse; thread-safe
+   *
+   * @param      slice index
+   *
+   * @return     void
+   */
   void slice_free(size_t slice_index) override
   {
     // Check if a slice was acually in use before and if it was, only
     // notify the transpose threads that a free slice is available
     bool freed = false;
     {
-      std::unique_lock<std::mutex> lock{m_slice_mut};
+      std::unique_lock<std::mutex> lock {m_slice_mut};
       if (!m_slice_free[slice_index]) {
         m_slice_free[slice_index] = true;
         freed = true;
@@ -227,14 +236,14 @@ public:
   }
 
 private:
-
   /**
    * @brief      Function to steer prefetching of events; run on separate
    *             thread
    *
    * @return     void
    */
-  void prefetch() {
+  void prefetch()
+  {
 
     bool prefetch_done = false;
     size_t n_reps = 0;
@@ -244,11 +253,11 @@ private:
 
     // Loop until the flag is set to exit, or the number of requested
     // event is reached
-    while(!m_done) {
+    while (!m_done) {
       // Find a free slice
       auto it = m_slice_free.end();
       {
-        std::unique_lock<std::mutex> lock{m_slice_mut};
+        std::unique_lock<std::mutex> lock {m_slice_mut};
         it = find(m_slice_free.begin(), m_slice_free.end(), true);
 
         // If no free slice is available, wait for one
@@ -281,9 +290,9 @@ private:
         // Check if any of the slices would be full
         for (auto bank_type : {Banks...}) {
           auto ib = to_integral<BankTypes>(bank_type);
-          const auto& [slice, slice_size, offsets, offsets_size] = m_slices[ib][slice_index];
-          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice_size) {
-            this->debug_output(std::string{"Slice "} + std::to_string(slice_index) + " is full.");
+          const auto& [slice, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
+          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice.size()) {
+            this->debug_output(std::string {"Slice "} + std::to_string(slice_index) + " is full.");
             break;
           }
         }
@@ -299,7 +308,8 @@ private:
         ++m_current;
         ++n_read;
         if ((m_current == m_to_read || m_current == n_files) && (++n_reps < m_repetitions)) {
-          this->debug_output("Loop " + std::to_string(n_reps) + " of " + std::to_string(std::min(m_to_read, n_files)) + " events");
+          this->debug_output(
+            "Loop " + std::to_string(n_reps) + " of " + std::to_string(std::min(m_to_read, n_files)) + " events");
           m_current = 0;
         }
       }
@@ -313,7 +323,7 @@ private:
       // Notify waiting calls to get_slice that there is a new slice
       if (!m_read_error) {
         {
-          std::unique_lock<std::mutex> lock{m_prefetch_mut};
+          std::unique_lock<std::mutex> lock {m_prefetch_mut};
           m_prefetched.push_back(slice_index);
         }
         m_done = prefetch_done;
@@ -339,7 +349,7 @@ private:
       std::ifstream input(filename, std::ifstream::binary);
       if (!input.is_open() || !input.good()) {
         m_read_error = true;
-        this->debug_output(std::string{"Failed to open "} + filename);
+        this->debug_output(std::string {"Failed to open "} + filename);
         break;
       }
       auto data_size = m_sizes[ib][n];
@@ -412,6 +422,4 @@ private:
   std::array<std::tuple<std::string, std::vector<std::string>>, NBankTypes> m_files;
 
   using base_class = InputProvider<BinaryProvider<Banks...>>;
-
-
 };

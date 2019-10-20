@@ -6,10 +6,13 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <functional>
 
 #include <BankTypes.h>
 
 #include <gsl-lite.hpp>
+
+#include <sys/types.h>
 
 #include "odin.hpp"
 #include "raw_bank.hpp"
@@ -22,13 +25,23 @@ namespace Allen {
                                                                              {LHCb::RawBank::Muon, BankTypes::MUON}};
 
   using buffer_map = std::unordered_map<BankTypes, std::pair<std::vector<char>, std::vector<unsigned int>>>;
+
+  struct IO {
+    bool good = false;
+    std::function<ssize_t(char*, size_t)> read;
+    std::function<ssize_t(char*, size_t)> write;
+    std::function<void(void)> close;
+  };
 } // namespace Allen
 
 namespace MDF {
+
+  Allen::IO open(std::string const& filepath, int flags);
+
   void dump_hex(const char* start, int size);
 
   std::tuple<bool, bool, gsl::span<char>> read_event(
-    int input,
+    Allen::IO& input,
     LHCb::MDFHeader& h,
     gsl::span<char> buffer,
     std::vector<char>& decompression_buffer,
@@ -36,7 +49,7 @@ namespace MDF {
     bool dbg = false);
 
   std::tuple<bool, bool, gsl::span<char>> read_banks(
-    int input,
+    Allen::IO& input,
     const LHCb::MDFHeader& h,
     gsl::span<char> buffer,
     std::vector<char>& decompression_buffer,

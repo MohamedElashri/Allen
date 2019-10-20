@@ -48,7 +48,7 @@
  * @return     (eof, error, full, n_bytes)
  */
 std::tuple<bool, bool, bool, size_t> read_events(
-  int input,
+  Allen::IO& input,
   ReadBuffer& read_buffer,
   LHCb::MDFHeader& header,
   std::vector<char> compress_buffer,
@@ -78,7 +78,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
     n_bytes += bank_span.size();
 
     // read the next header
-    ssize_t n_bytes = ::read(input, &header, header_size);
+    ssize_t n_bytes = input.read(reinterpret_cast<char*>(&header), header_size);
     if (n_bytes != 0) {
       // Check if there is enough space to read this event
       int compress = header.compression() & 0xF;

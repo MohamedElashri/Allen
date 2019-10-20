@@ -12,6 +12,7 @@
 #include <fcntl.h>
 
 #include <raw_bank.hpp>
+#include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Timer.h>
 
@@ -24,9 +25,6 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  string filename = {argv[1]};
-  size_t n_slices = 10;
-  size_t events_per_slice = 100;
   double n_filled = 0;
   size_t n_bytes = 0;
 
@@ -42,11 +40,14 @@ int main(int argc, char* argv[])
   size_t offset = 0;
 
   LHCb::MDFHeader header;
+  bool success = true;
 
   for (auto const& file : files) {
-    int input = ::open(file.c_str(), O_RDONLY);
-    if (input < 0) {
+    auto input = MDF::open(file, O_RDONLY);
+    if (!input.good) {
       cerr << "Failed to open " << file << " " << strerror(errno) << "\n";
+      success = false;
+      break;
     }
     else {
       cout << "Opened " << file << "\n";
@@ -58,7 +59,7 @@ int main(int argc, char* argv[])
 
       ++n_filled;
       auto r = MDF::read_event(input, header, buffer_span, decompression_buffer, false);
-      size_t event_size = std::get<2>(r).size() + sizeof(header);
+      size_t event_size = std::get<2>(r).size() + LHCb::MDFHeader::sizeOf(3);
       n_bytes += event_size;
       eof = std::get<0>(r);
       offset += event_size;
@@ -66,10 +67,13 @@ int main(int argc, char* argv[])
         offset = 0;
       }
     }
-    ::close(input);
+    input.close();
   }
 
-  t.stop();
-  cout << "Filled " << n_filled << " events; " << n_bytes / (1024 * 1024) << " MB\n";
-  cout << "Filled " << n_bytes / (1024 * 1024 * t.get()) << " MB/s; " << n_filled / t.get() << " events/s\n";
+  if (success) {
+    t.stop();
+    cout << "Filled " << n_filled << " events; " << n_bytes / (1024 * 1024) << " MB\n";
+    cout << "Filled " << n_bytes / (1024 * 1024 * t.get()) << " MB/s; " << n_filled / t.get() << " events/s\n";
+  }
+  return success ? 0 : -1;
 }

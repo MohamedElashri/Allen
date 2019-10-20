@@ -157,6 +157,11 @@ TrackCheckerHistos::TrackCheckerHistos(
     std::make_unique<TH1D>("ghost_isMuon_Eta_reconstructed", "ghost_isMuon_Eta_reconstructed", 20, 0, 7);
   h_ghost_isMuon_nPV_reconstructed =
     std::make_unique<TH1D>("ghost_isMuon_nPV_reconstructed", "ghost_isMuon_nPV_reconstructed", 21, -0.5, 20.5);
+#else
+  _unused(invoker);
+  _unused(root_file);
+  _unused(directory);
+  _unused(histo_categories);
 #endif
 }
 
@@ -209,7 +214,8 @@ void TrackCheckerHistos::write()
                          std::ref(h_ghost_isMuon_Eta_reconstructed)};
   for_each(histograms, [dir](auto& histo) {
     histo.get()->SetDirectory(nullptr);
-    dir->WriteTObject(histo.get().get()); });
+    dir->WriteTObject(histo.get().get());
+  });
 
   std::tuple histo_maps {std::ref(h_reconstructible_eta),
                          std::ref(h_reconstructible_p),
@@ -229,7 +235,8 @@ void TrackCheckerHistos::write()
     for (auto const& entry : histo_map.get()) {
       entry.second->SetDirectory(nullptr);
       dir->WriteTObject(entry.second.get());
-    } });
+    }
+  });
 }
 #endif
 
@@ -257,6 +264,9 @@ void TrackCheckerHistos::fillReconstructibleHistos(const MCParticles& mcps, cons
       h_reconstructible_docaz[docaz_name]->Fill(docaz);
     }
   }
+#else
+  _unused(mcps);
+  _unused(category);
 #endif
 }
 
@@ -281,6 +291,9 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
   float ty = std::cos(mcp.phi) / std::sinh(mcp.eta);
   float docaz = std::abs(ty * mcp.ovtx_x - tx * mcp.ovtx_y) / std::sqrt(tx * tx + ty * ty);
   h_reconstructed_docaz[docaz_name]->Fill(docaz);
+#else
+  _unused(mcp);
+  _unused(category);
 #endif
 }
 
@@ -289,6 +302,9 @@ void TrackCheckerHistos::fillTotalHistos(double nPV, double eta)
 #ifdef WITH_ROOT
   h_total_nPV->Fill(nPV);
   h_total_eta->Fill(eta);
+#else
+  _unused(nPV);
+  _unused(eta);
 #endif
 }
 
@@ -297,6 +313,9 @@ void TrackCheckerHistos::fillGhostHistos(double nPV, double eta)
 #ifdef WITH_ROOT
   h_ghost_nPV->Fill(nPV);
   h_ghost_eta->Fill(eta);
+#else
+  _unused(nPV);
+  _unused(eta);
 #endif
 }
 
@@ -309,6 +328,10 @@ void TrackCheckerHistos::fillMomentumResolutionHisto(const MCParticle& mcp, cons
   h_qop_resolution->Fill(mc_qop, (mc_qop - qop) / mc_qop);
   h_dqop_versus_qop->Fill(mc_qop, mc_qop - qop);
   h_momentum_matched->Fill(mcp.p);
+#else
+  _unused(mcp);
+  _unused(p);
+  _unused(qop);
 #endif
 }
 
@@ -320,7 +343,8 @@ void TrackCheckerHistos::fillMuonReconstructedMatchedIsMuon(const MCParticle& mc
   h_matched_isMuon_Pt_reconstructed->Fill(mcp.pt);
   h_matched_isMuon_Phi_reconstructed->Fill(mcp.phi);
   h_matched_isMuon_nPV_reconstructed->Fill(mcp.nPV);
-
+#else
+  _unused(mcp);
 #endif
 }
 
@@ -332,6 +356,8 @@ void TrackCheckerHistos::fillMuonReconstructedNotMatchedIsMuon(const MCParticle&
   h_not_matched_isMuon_Pt_reconstructed->Fill(mcp.pt);
   h_not_matched_isMuon_Phi_reconstructed->Fill(mcp.phi);
   h_not_matched_isMuon_nPV_reconstructed->Fill(mcp.nPV);
+#else
+  _unused(mcp);
 #endif
 }
 
@@ -352,6 +378,8 @@ void TrackCheckerHistos::fillMuonReconstructible(const MCParticle& mcp)
     h_not_muon_Phi_reconstructible->Fill(mcp.phi);
     h_not_muon_nPV_reconstructible->Fill(mcp.nPV);
   }
+#else
+  _unused(mcp);
 #endif
 }
 
@@ -360,6 +388,9 @@ void TrackCheckerHistos::fillMuonGhostHistos(double nPV, double eta)
 #ifdef WITH_ROOT
   h_ghost_isMuon_nPV_reconstructed->Fill(nPV);
   h_ghost_isMuon_Eta_reconstructed->Fill(eta);
+#else
+  _unused(nPV);
+  _unused(eta);
 #endif
 }
 
@@ -386,5 +417,8 @@ void TrackCheckerHistos::fillMuonIDMatchedHistos(const Checker::Track& track, co
       h_muon_catboost_output_matched_notMuon_ismuon_false->Fill(track.muon_catboost_output);
     }
   }
+#else
+  _unused(track);
+  _unused(mcp);
 #endif
 }

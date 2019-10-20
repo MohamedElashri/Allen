@@ -18,6 +18,7 @@
 #include <raw_bank.hpp>
 #include <read_mdf.hpp>
 #include <eb_header.hpp>
+#include <read_mdf.hpp>
 #include <read_mep.hpp>
 #include <Transpose.h>
 #include <TransposeMEP.h>
@@ -41,8 +42,8 @@ int main(int argc, char* argv[])
   EB::Header mep_header;
   gsl::span<char const> mep_span;
 
-  int input = ::open(filename.c_str(), O_RDONLY);
-  if (input != -1) {
+  auto input = MDF::open(filename.c_str(), O_RDONLY);
+  if (input.good) {
     info_cout << "Opened " << filename << "\n";
   }
   else {
@@ -112,22 +113,19 @@ int main(int argc, char* argv[])
     }
 
     MEP::mep_offsets(slices, 0, bank_ids, banks_count, events, mep_header, blocks, {0, interval});
-    auto ut_allen_type = to_integral(BankTypes::UT);
     auto scifi_allen_type = to_integral(BankTypes::FT);
 
-    auto const& [ut_data, ut_data_size, ut_offsets, ut_offsets_size] = slices[ut_allen_type][0];
     auto const& [scifi_data, scifi_data_size, scifi_offsets, scifi_offsets_size] = slices[scifi_allen_type][0];
 
     auto n_scifi_fragments = scifi_block_ids.size();
-    auto n_ut_fragments = ut_block_ids.size();
 
     for (size_t i_block = 0; i_block < scifi_block_ids.size(); ++i_block) {
       for (size_t event = 0; event < interval; ++event) {
         auto const& sizes = std::get<0>(blocks[scifi_block_ids[i_block]]).sizes;
-        auto fragment_size = sizes[event];
+        [[maybe_unused]] auto fragment_size = sizes[event];
 
         uint const offset_index = 2 + n_scifi_fragments * (1 + event);
-        uint bank_size = scifi_offsets[offset_index + i_block + n_scifi_fragments] - scifi_offsets[offset_index + i_block];
+        [[maybe_unused]] uint bank_size = scifi_offsets[offset_index + i_block + n_scifi_fragments] - scifi_offsets[offset_index + i_block];
         assert(bank_size == fragment_size);
       }
     }

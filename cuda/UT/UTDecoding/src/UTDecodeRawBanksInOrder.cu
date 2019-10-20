@@ -7,7 +7,7 @@ __device__ void decode_raw_bank(
   UTBoards const& boards,
   UTRawBank const& raw_bank,
   uint const hit_index,
-  uint32_t const raw_bank_hit_index,
+  uint const raw_bank_hit_index,
   UT::Hits& ut_hits)
 {
   const uint hit_index_inside_raw_bank = raw_bank_hit_index & 0xFFFFFF;
@@ -75,10 +75,8 @@ __global__ void ut_decode_raw_banks_in_order(
   const char* ut_geometry,
   const uint* dev_ut_region_offsets,
   const uint* dev_unique_x_sector_layer_offsets,
-  const uint* dev_unique_x_sector_offsets,
   const uint32_t* dev_ut_hit_offsets,
   uint32_t* dev_ut_hits,
-  uint32_t* dev_ut_hit_count,
   uint* dev_hit_permutations)
 {
   const uint32_t number_of_events = gridDim.x;
@@ -101,10 +99,9 @@ __global__ void ut_decode_raw_banks_in_order(
   const uint layer_offset = ut_hit_offsets.layer_offset(layer_number);
   const uint layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
 
-  for (int i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
-
+  for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
     const uint hit_index = layer_offset + i;
-    const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index[dev_hit_permutations[hit_index]];
+    const uint raw_bank_hit_index = ut_hits.raw_bank_index[dev_hit_permutations[hit_index]];
     const uint raw_bank_index = raw_bank_hit_index >> 24;
 
     const UTRawBank raw_bank = raw_event.getUTRawBank(raw_bank_index);
@@ -127,10 +124,8 @@ __global__ void ut_decode_raw_banks_in_order_mep(
   const char* ut_geometry,
   const uint* dev_ut_region_offsets,
   const uint* dev_unique_x_sector_layer_offsets,
-  const uint* dev_unique_x_sector_offsets,
   const uint32_t* dev_ut_hit_offsets,
   uint32_t* dev_ut_hits,
-  uint32_t* dev_ut_hit_count,
   uint* dev_hit_permutations)
 {
   const uint32_t number_of_events = gridDim.x;
@@ -151,10 +146,10 @@ __global__ void ut_decode_raw_banks_in_order_mep(
   const uint layer_offset = ut_hit_offsets.layer_offset(layer_number);
   const uint layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
 
-  for (int i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
 
     const uint hit_index = layer_offset + i;
-    const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index[dev_hit_permutations[hit_index]];
+    const uint raw_bank_hit_index = ut_hits.raw_bank_index[dev_hit_permutations[hit_index]];
     const uint raw_bank_index = raw_bank_hit_index >> 24;
 
     // Create UT raw bank from MEP layout

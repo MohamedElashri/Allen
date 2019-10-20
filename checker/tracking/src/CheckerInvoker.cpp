@@ -1,6 +1,7 @@
 #include <regex>
 #include <ROOTHeaders.h>
 #include "CheckerInvoker.h"
+#include <unordered_map>
 
 CheckerInvoker::~CheckerInvoker()
 {
@@ -52,6 +53,7 @@ MCEvents CheckerInvoker::load(
   }
 
   std::vector<MCEvent> input;
+  std::vector<MCEvent> non_gec_input;
 
   verbose_cout << "Requested " << events.size() << " files" << std::endl;
 
@@ -71,14 +73,13 @@ MCEvents CheckerInvoker::load(
   }
 
   input.reserve(event_mask.size());
+  non_gec_input.reserve(event_mask.size());
 
   std::vector<char> raw_particles, raw_pvs;
 
   int readFiles = 0;
   for (size_t i = 0; i < events.size(); ++i) {
     readFiles++;
-
-    if (!event_mask[i]) continue;
 
     raw_particles.clear();
     raw_pvs.clear();
@@ -88,8 +89,14 @@ MCEvents CheckerInvoker::load(
     readFileIntoVector(mc_pvs_files[event_id], raw_pvs);
     readFileIntoVector(mc_tracks_files[event_id], raw_particles);
 
-    input.emplace_back(raw_particles, raw_pvs, m_check_events);
+    if (!event_mask[i]) {
+      non_gec_input.emplace_back(raw_particles, raw_pvs, m_check_events);
+    }
+    else {
+      input.emplace_back(raw_particles, raw_pvs, m_check_events);
+    }
   }
+  input.insert(input.end(), non_gec_input.begin(), non_gec_input.end());
   return input;
 }
 

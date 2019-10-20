@@ -23,10 +23,8 @@ void SequenceVisitor::visit<ut_decode_raw_banks_in_order_t>(
     constants.dev_ut_geometry.data(),
     constants.dev_ut_region_offsets.data(),
     constants.dev_unique_x_sector_layer_offsets.data(),
-    constants.dev_unique_x_sector_offsets.data(),
     arguments.offset<dev_ut_hit_offsets>(),
     arguments.offset<dev_ut_hits>(),
-    arguments.offset<dev_ut_hit_count>(),
     arguments.offset<dev_ut_hit_permutations>());
 
   state.invoke(runtime_options.mep_layout);

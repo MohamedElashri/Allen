@@ -4,7 +4,7 @@
 using namespace SciFi;
 
 // Merge of PrStoreFTHit and RawBankDecoder.
-__device__ void make_cluster_v6 (
+__device__ void make_cluster_v6(
   const int hit_index,
   const SciFiGeometry& geom,
   uint32_t chan,
@@ -20,7 +20,7 @@ __device__ void make_cluster_v6 (
   const float dxdy = geom.dxdy[mat];
   const float dzdy = geom.dzdy[mat];
   float uFromChannel = geom.uBegin[mat] + (2 * id.channel() + 1 + fraction) * geom.halfChannelPitch[mat];
-  if( id.die() ) uFromChannel += geom.dieGap[mat];
+  if (id.die()) uFromChannel += geom.dieGap[mat];
   uFromChannel += id.sipm() * geom.sipmPitch[mat];
   const float endPointX = geom.mirrorPointX[mat] + geom.ddxX[mat] * uFromChannel;
   const float endPointY = geom.mirrorPointY[mat] + geom.ddxY[mat] * uFromChannel;
@@ -28,7 +28,7 @@ __device__ void make_cluster_v6 (
   const float x0 = endPointX - dxdy * endPointY;
   const float z0 = endPointZ - dzdy * endPointY;
 
-  assert( pseudoSize < 9 && "Pseudosize of cluster is > 8. Out of range.");
+  assert(pseudoSize < 9 && "Pseudosize of cluster is > 8. Out of range.");
 
   // Apparently the unique* methods are not designed to start at 0, therefore -16
   const uint32_t uniqueZone = ((id.uniqueQuarter() - 16) >> 1);
@@ -40,7 +40,7 @@ __device__ void make_cluster_v6 (
   hits.m_endPointY[hit_index] = endPointY;
   assert(fraction <= 0x1 && plane_code <= 0x1f && pseudoSize <= 0xf && mat <= 0x7ff);
   hits.assembled_datatype[hit_index] = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
-};
+}
 
 __global__ void scifi_raw_bank_decoder_v6(
   char* scifi_events,
@@ -58,11 +58,12 @@ __global__ void scifi_raw_bank_decoder_v6(
   const SciFiGeometry geom {scifi_geometry};
   const auto event = SciFiRawEvent(scifi_events + scifi_event_offsets[selected_event_number]);
 
-  SciFi::Hits hits {scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
+  SciFi::Hits hits {
+    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
   SciFi::HitCount hit_count {scifi_hit_count, event_number};
   const uint number_of_hits_in_event = hit_count.event_number_of_hits();
 
-  for (int i=threadIdx.x; i < number_of_hits_in_event; i+=blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
     const uint32_t cluster_reference = hits.cluster_reference[hit_count.event_offset() + i];
     const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
     const int it_number = (cluster_reference >> 16) & 0xFF;
@@ -75,7 +76,6 @@ __global__ void scifi_raw_bank_decoder_v6(
 
     const uint16_t c = *it;
     const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-    const auto chid = SciFiChannelID(ch);
 
     // Call parameters for make_cluster
     uint32_t cluster_chan = ch;
@@ -84,33 +84,30 @@ __global__ void scifi_raw_bank_decoder_v6(
 
     assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
 
-    if(condition == 0x02) {
+    if (condition == 0x02) {
       pseudoSize = 0;
-    } else if(condition > 0x02) {
-      const auto c2 = *(it+1);
+    }
+    else if (condition > 0x02) {
+      const auto c2 = *(it + 1);
       const auto widthClus = (cell(c2) - cell(c) + 2);
 
-      if(condition == 0x03) {
+      if (condition == 0x03) {
         pseudoSize = 0;
         cluster_fraction = 1;
         cluster_chan += delta_parameter;
-      } else if(condition == 0x04) {
+      }
+      else if (condition == 0x04) {
         pseudoSize = 0;
         cluster_fraction = (widthClus - 1) % 2;
         cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
-      } else if(condition == 0x05) {
+      }
+      else if (condition == 0x05) {
         pseudoSize = widthClus;
         cluster_fraction = (widthClus - 1) % 2;
-        cluster_chan += (widthClus-1)/2 - 1;
+        cluster_chan += (widthClus - 1) / 2 - 1;
       }
     }
 
-    make_cluster_v6(
-      hit_count.event_offset() + i,
-      geom,
-      cluster_chan,
-      cluster_fraction,
-      pseudoSize,
-      hits);
+    make_cluster_v6(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
   }
 }

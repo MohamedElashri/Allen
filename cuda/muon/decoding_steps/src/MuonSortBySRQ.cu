@@ -4,8 +4,7 @@ __global__ void muon_sort_station_region_quarter(
   uint* dev_storage_tile_id,
   uint* dev_storage_tdc_value,
   const uint* dev_atomics_muon,
-  uint* dev_permutation_srq,
-  const Muon::MuonRawToHits* muon_raw_to_hits)
+  uint* dev_permutation_srq)
 {
   const auto event_number = blockIdx.x;
   const auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
@@ -13,28 +12,13 @@ __global__ void muon_sort_station_region_quarter(
   const auto number_of_hits = dev_atomics_muon[event_number];
   auto permutation_srq = dev_permutation_srq + event_number * Muon::Constants::max_numhits_per_event;
 
-  // Order that we actually want when IDs are the same
-  const auto tile_order = [&muon_raw_to_hits](const uint tile_id) {
-    const auto tile = Muon::MuonTileID(tile_id);
-    const auto station = tile.station();
-    const auto region = tile.region();
-    const auto x1 = getLayoutX(muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
-    const auto x2 = getLayoutX(muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
-
-    return x1 > x2;
-  };
-
   // Create a permutation according to Muon::MuonTileID::stationRegionQuarter
-  const auto get_srq = [&storage_tile_id, &tile_order](const uint a, const uint b) {
+  const auto get_srq = [&storage_tile_id](const uint a, const uint b) {
     const auto storage_tile_id_a = storage_tile_id[a];
     const auto storage_tile_id_b = storage_tile_id[b];
 
     const auto a_srq = Muon::MuonTileID::stationRegionQuarter(storage_tile_id_a);
     const auto b_srq = Muon::MuonTileID::stationRegionQuarter(storage_tile_id_b);
-
-    // if (a_srq == b_srq) {
-    //   return tile_order(storage_tile_id_a) - tile_order(storage_tile_id_b);
-    // }
 
     if (a_srq == b_srq) {
       return (storage_tile_id_a > storage_tile_id_b) - (storage_tile_id_a < storage_tile_id_b);
@@ -50,22 +34,22 @@ __global__ void muon_sort_station_region_quarter(
   __shared__ uint sorted_array[Muon::Constants::max_numhits_per_event];
 
   // Apply permutation to storage_tile_id
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     sorted_array[i] = storage_tile_id[permutation_srq[i]];
   }
   __syncthreads();
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     storage_tile_id[i] = sorted_array[i];
   }
 
   __syncthreads();
 
   // Apply permutation to storage_tdc_value
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     sorted_array[i] = storage_tdc_value[permutation_srq[i]];
   }
   __syncthreads();
-  for (int i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     storage_tdc_value[i] = sorted_array[i];
   }
 }

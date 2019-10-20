@@ -114,4 +114,4 @@ namespace Muon {
   {
     calcPos(muonTables, MuonTables::stripYTableNumber, tile, strip_y_offset(muonTables, tile), x, deltax, y, deltay, z);
   }
-}; // namespace Muon
+} // namespace Muon

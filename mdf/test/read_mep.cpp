@@ -36,8 +36,8 @@ int main(int argc, char* argv[])
   EB::Header mep_header;
   gsl::span<char const> mep_span;
 
-  int input = ::open(filename.c_str(), O_RDONLY);
-  if (input != -1) {
+  auto input = MDF::open(filename, O_RDONLY);
+  if (input.good) {
     info_cout << "Opened " << filename << "\n";
   }
   else {

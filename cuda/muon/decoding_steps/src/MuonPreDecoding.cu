@@ -16,7 +16,7 @@ __device__ void decode_muon_bank(Muon::MuonRawToHits const* muon_raw_to_hits,
 
   // Note: Review this logic
   p += (*p + 3) & 0xFFFE;
-  for (int j = 0; j < batch_index; ++j) {
+  for (uint j = 0; j < batch_index; ++j) {
     p += 1 + *p;
   }
 
@@ -62,7 +62,7 @@ __global__ void muon_pre_decoding(
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (int i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
+  for (uint i = threadIdx.x; i < Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank;
        i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;

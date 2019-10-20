@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <read_mdf.hpp>
 #include <read_mep.hpp>
 
 namespace MPI {
@@ -32,14 +33,10 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
 
   std::string mep_input;
   size_t window_size;
-  bool non_stop;
-  bool with_mpi = false;
+  bool non_stop = true;
   bool number_of_events = 0;
   for (auto const& [flag, arg] : allen_options) {
-    if (flag == "with-mpi") {
-      with_mpi = atoi(arg.c_str());
-    }
-    else if (flag == "mep") {
+    if (flag == "mep") {
       mep_input = arg;
     }
     else if (flag == "mpi-window-size") {
@@ -54,7 +51,7 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
   // them to the receiver.
 
   if (mep_input.empty()) {
-    error_cout << MPI::rank_str() << "Required argument --mdf not supplied. Exiting application.\n";
+    error_cout << MPI::rank_str() << "Required argument --mep not supplied. Exiting application.\n";
     return -1;
   }
 
@@ -78,7 +75,7 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
     while (success && !eof) {
       info_cout << "." << std::flush;
 
-      int input = ::open(connection.c_str(), O_RDONLY);
+      auto input = MDF::open(connection, O_RDONLY);
       std::tie(eof, success, mep_header, mep_span) = MEP::read_mep(input, data);
 
       if (!eof && success) {
@@ -112,7 +109,7 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
   MPI_Send(&number_of_meps, 1, MPI_SIZE_T, MPI::receiver, MPI::message::number_of_meps, MPI_COMM_WORLD);
 
   // Test: Send all the files
-  int current_mep = 0;
+  size_t current_mep = 0;
   while (non_stop || current_mep < meps.size()) {
     // info_cout << MPI::rank_str() << "round " << current_file << "\n";
 
@@ -124,14 +121,14 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
     MPI_Send(&current_event_size, 1, MPI_SIZE_T, MPI::receiver, MPI::message::event_size, MPI_COMM_WORLD);
 
     // Number of full-size (MPI::mdf_chunk_size) messages
-    int n_messages = current_event_size / MPI::mdf_chunk_size;
+    size_t n_messages = current_event_size / MPI::mdf_chunk_size;
     // Size of the last message (if the MFP size is not a multiple of MPI::mdf_chunk_size)
-    int rest = current_event_size - n_messages * MPI::mdf_chunk_size;
+    size_t rest = current_event_size - n_messages * MPI::mdf_chunk_size;
     // Number of parallel sends
-    int n_sends = n_messages > window_size ? window_size : n_messages;
+    size_t n_sends = n_messages > window_size ? window_size : n_messages;
 
     // Initial parallel sends
-    for (int k = 0; k < n_sends; k++) {
+    for (size_t k = 0; k < n_sends; k++) {
       const char* message = current_event_start + k * MPI::mdf_chunk_size;
       // info_cout << MPI::rank_str() << "Isend: Tag " << MPI::message::event_send_tag_start + k << "\n";
       MPI_Isend(
@@ -144,7 +141,7 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
                 &requests[k]);
     }
     // Sliding window sends
-    for (int k = n_sends; k < n_messages; k++) {
+    for (size_t k = n_sends; k < n_messages; k++) {
       int r;
       MPI_Waitany(window_size, requests.data(), &r, MPI_STATUS_IGNORE);
       const char* message = current_event_start + k * MPI::mdf_chunk_size;

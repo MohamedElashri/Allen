@@ -18,13 +18,13 @@ __device__ void store_sorted_cluster_reference_v5(
 {
   uint32_t uniqueGroupOrMat;
   // adaptation to hybrid decoding
-  if(uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
+  if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
     uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
   else
     uniqueGroupOrMat = uniqueMat - SciFi::Constants::mat_index_substract;
 
   uint32_t hitIndex = shared_mat_count[uniqueGroupOrMat]++;
-  
+
   const SciFi::SciFiChannelID id {chan};
   if (id.reversedZone()) {
     hitIndex = hit_count.mat_group_or_mat_number_of_hits(uniqueGroupOrMat) - 1 - hitIndex;
@@ -40,7 +40,7 @@ __device__ void store_sorted_cluster_reference_v5(
   //   Condition 2.1: log2(n+1) - 8 bits
   hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition_1 & 0x03) << 14 |
                                      (condition_2 & 0x01) << 13 | (delta & 0xFF);
-};
+}
 
 __global__ void scifi_pre_decode_v5(
   char* scifi_events,
@@ -58,7 +58,8 @@ __global__ void scifi_pre_decode_v5(
   SciFiGeometry geom(scifi_geometry);
   const auto event = SciFiRawEvent(scifi_events + scifi_event_offsets[selected_event_number]);
 
-  Hits hits {scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
+  Hits hits {
+    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
   HitCount hit_count {scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
@@ -72,18 +73,17 @@ __global__ void scifi_pre_decode_v5(
   __syncthreads();
 
   // Main execution loop
-  for(uint i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < event.number_of_raw_banks; i += blockDim.x) {
     const uint current_raw_bank = getRawBankIndexOrderedByX(i);
     auto rawbank = event.getSciFiRawBank(current_raw_bank);
     const uint16_t* starting_it = rawbank.data + 2;
     uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
-    if (starting_it >= last)
-      continue;
+    if (starting_it >= last) continue;
 
-    //loop over hits in a raw bank
-    for (uint it_number = 0; it_number < last - starting_it; ++it_number){
+    // loop over hits in a raw bank
+    for (uint it_number = 0; it_number < last - starting_it; ++it_number) {
       auto it = starting_it + it_number;
       const uint16_t c = *it;
       const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
@@ -155,8 +155,6 @@ __global__ void scifi_pre_decode_v5(
           else {
             // Condition 2: "1"
             const int condition_2 = 0x01;
-
-            const auto widthClus = 2 * delta - 1 + fraction(c2);
             store_sorted_cluster_reference_v5(
               hit_count,
               correctedMat,

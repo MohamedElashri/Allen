@@ -86,7 +86,7 @@ __global__ void muon_decoding(
 
   if (threadIdx.x < MuonRawEvent::number_of_raw_banks * MuonRawEvent::batches_per_bank) {
     uint16_t batchSize = *batchSizePointers[threadIdx.x];
-    for (size_t shift = 1; shift < 1 + batchSize; shift++) {
+    for (int shift = 1; shift < 1 + batchSize; shift++) {
       const unsigned int pp = *(batchSizePointers[threadIdx.x] + shift);
       const unsigned int add = (pp & 0x0FFF);
       const unsigned int tdc_value = ((pp & 0xF000) >> 12);
@@ -102,7 +102,7 @@ __global__ void muon_decoding(
   __syncthreads();
 
   if (threadIdx.x == 0) {
-    for (size_t i = 0; i < currentStorageIndex; i++) {
+    for (int i = 0; i < currentStorageIndex; i++) {
       size_t stationRegionQuarter = MuonTileID::stationRegionQuarter(storageTileId[i]);
       storageStationRegionQuarterOccurrencesOffset[stationRegionQuarter + 1]++;
     }
@@ -179,27 +179,5 @@ __global__ void muon_decoding(
         setAtIndex(event_muon_hits, i, &currentHit);
       }
     }
-
-    //     // Print
-    //     if (blockIdx.x == 900) {
-    //       printf("%i muon hits:\n", currentHitIndex);
-    //       for (int i=0; i<currentHitIndex; ++i) {
-    //         printf(" muon hit {tile %i, x %f, dx %f, \
-// y %f, dy %f, z %f, dz %f, uncrossed %i, time %i, \
-// delta_time %i, cluster_size %i, region %i}\n",
-    //           event_muon_hits->tile[i],
-    //           event_muon_hits->x[i],
-    //           event_muon_hits->dx[i],
-    //           event_muon_hits->y[i],
-    //           event_muon_hits->dy[i],
-    //           event_muon_hits->z[i],
-    //           event_muon_hits->dz[i],
-    //           event_muon_hits->uncrossed[i],
-    //           event_muon_hits->time[i],
-    //           event_muon_hits->delta_time[i],
-    //           event_muon_hits->cluster_size[i],
-    //           event_muon_hits->region_id[i]);
-    //       }
-    //     }
   }
 }

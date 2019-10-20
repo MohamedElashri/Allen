@@ -315,7 +315,6 @@ __global__ void masked_velo_clustering(
   uint* dev_cluster_candidates,
   uint32_t* dev_velo_cluster_container,
   const uint* dev_event_list,
-  uint* dev_event_order,
   const VeloGeometry* dev_velo_geometry,
   uint8_t* dev_velo_sp_patterns,
   float* dev_velo_sp_fx,
@@ -342,7 +341,7 @@ __global__ void masked_velo_clustering(
   const auto raw_event = VeloRawEvent(raw_input);
 
   // process no neighbour sp
-  for (int raw_bank_number = threadIdx.x; raw_bank_number < raw_event.number_of_raw_banks;
+  for (uint raw_bank_number = threadIdx.x; raw_bank_number < raw_event.number_of_raw_banks;
        raw_bank_number += blockDim.x) {
     const auto module_number = raw_bank_number >> 2;
     const uint cluster_start = module_cluster_start[module_number];
@@ -358,7 +357,7 @@ __global__ void masked_velo_clustering(
   __syncthreads();
 
   // Process rest of clusters
-  for (int candidate_number = threadIdx.x; candidate_number < number_of_candidates; candidate_number += blockDim.x) {
+  for (uint candidate_number = threadIdx.x; candidate_number < number_of_candidates; candidate_number += blockDim.x) {
     const uint32_t candidate = cluster_candidates[candidate_number];
     const uint8_t raw_bank_number = (candidate >> 3) & 0xFF;
 
@@ -381,7 +380,6 @@ __global__ void masked_velo_clustering_mep(
   uint* dev_cluster_candidates,
   uint32_t* dev_velo_cluster_container,
   const uint* dev_event_list,
-  uint* dev_event_order,
   const VeloGeometry* dev_velo_geometry,
   uint8_t* dev_velo_sp_patterns,
   float* dev_velo_sp_fx,
@@ -407,7 +405,7 @@ __global__ void masked_velo_clustering_mep(
   auto const number_of_raw_banks = dev_raw_input_offsets[0];
 
   // process no neighbour sp
-  for (int raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks;
+  for (uint raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks;
        raw_bank_number += blockDim.x) {
     const auto module_number = raw_bank_number >> 2;
     const uint cluster_start = module_cluster_start[module_number];
@@ -424,7 +422,7 @@ __global__ void masked_velo_clustering_mep(
   __syncthreads();
 
   // Process rest of clusters
-  for (int candidate_number = threadIdx.x; candidate_number < number_of_candidates; candidate_number += blockDim.x) {
+  for (uint candidate_number = threadIdx.x; candidate_number < number_of_candidates; candidate_number += blockDim.x) {
     const uint32_t candidate = cluster_candidates[candidate_number];
     const uint8_t raw_bank_number = (candidate >> 3) & 0xFF;
 

@@ -2,7 +2,8 @@
 #include <CheckerInvoker.h>
 #include <ROOTHeaders.h>
 
-struct PVCheckerHistos {
+class PVCheckerHistos {
+public:
 #ifdef WITH_ROOT
 
   TFile* m_file;
@@ -49,8 +50,6 @@ private:
   std::unique_ptr<TH1F> fakes_vs_mult;
   std::unique_ptr<TH1F> fakes_norm;
 
-#endif
-
   double m_diff_x = 0.;
   double m_diff_y = 0.;
   double m_diff_z = 0.;
@@ -78,4 +77,5 @@ private:
   int const m_bins_norm_z = 50;
   int const m_bins_norm_mult = 25;
   int const m_bins_fake_mult = 20;
+#endif
 };

@@ -20,14 +20,14 @@ namespace TrackMVALines {
 
   // Two track parameters.
   const float minComboPt = 2000.0f / Gaudi::Units::MeV;
-  const float maxVertexChi2 = 10.0f;
+  const float maxVertexChi2 = 25.0f;
   const float minMCor = 1000.0f / Gaudi::Units::MeV;
   const float minEta = 2.0f;
   const float maxEta = 5.0f;
   const float minTrackPt = 500.f / Gaudi::Units::MeV;
   const int maxNTrksAssoc = 1;  // Placeholder. To be replaced with MVA selection.
   const float minFDChi2 = 0.0f; // Placeholder. To be replaced with MVA selection.
-  const float minTrackIPChi2 = 10.f;
+  const float minTrackIPChi2 = 9.f;
 
   // Selections.
   __device__ bool OneTrackMVA(const ParKalmanFilter::FittedTrack& track);

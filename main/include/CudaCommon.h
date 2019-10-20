@@ -283,6 +283,11 @@ namespace cuda {
 #define FOR_STATEMENT(_TYPE, _I, _END) for (_TYPE _I = 0; _I < _END; ++_I)
 #endif
 
+/**
+ * @brief Macro to avoid warnings on Release builds with variables used by asserts.
+ */
+#define _unused(x) ((void) (x))
+
 void print_gpu_memory_consumption();
 
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
