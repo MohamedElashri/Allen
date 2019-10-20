@@ -28,7 +28,10 @@
 
 #include "Transpose.h"
 #include "TransposeMEP.h"
+
+#ifdef HAVE_MPI
 #include "MPIConfig.h"
+#endif
 
 #ifndef NO_CUDA
 #include <CudaCommon.h>
@@ -112,6 +115,7 @@ public:
     m_buffer_reading = m_buffer_status.begin();
 
     if (m_config.use_mpi) {
+#ifdef HAVE_MPI
       MPI_Recv(&m_packing_factor, 1, MPI_SIZE_T, MPI::sender, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
       // Allocate as many net slices as configured, of expected size
@@ -124,6 +128,10 @@ public:
                                   MEP::Blocks{}, MEP::SourceOffsets{}, n_bytes);
         m_mpi_buffers.emplace_back(contents);
       }
+#else
+      error_cout << "MPI requested, but Allen was not built with MPI support.\n";
+      throw std::runtime_error{"No MPI supoprt"};
+#endif
     } else {
       m_read_buffers.resize(m_config.n_buffers);
       m_net_slices.resize(m_config.n_buffers);
@@ -149,7 +157,9 @@ public:
 
     // start MPI receive or MEP reading thread
     if (m_config.use_mpi) {
+#ifdef HAVE_MPI
       m_mpi_thread = std::thread{&MEPProvider::mpi_read, this};
+#endif
     } else {
       m_mpi_thread = std::thread{&MEPProvider::mep_read, this};
     }
@@ -172,8 +182,6 @@ public:
         m_transpose_threads.emplace_back([this, i] { transpose(i); });
       }
     }
-
-
   }
 
   static constexpr const char* name = "MDF";
@@ -590,6 +598,7 @@ private:
     }
   }
 
+#ifdef HAVE_MPI
   // MPI reader thread
   void mpi_read() {
 
@@ -726,6 +735,7 @@ private:
       current_mep++;
     }
   }
+#endif
 
   /**
    * @brief      Function to run in each thread transposing events

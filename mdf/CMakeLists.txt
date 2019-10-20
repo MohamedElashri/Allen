@@ -65,8 +65,14 @@ function(test_program)
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Common mdf
-                                            ${MPI_CXX_LIBRARIES})
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Common mdf)
+
+  if (USE_MPI AND MPI_FOUND)
+    target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE HAVE_MPI)
+    target_include_directories(${PARSED_ARGS_NAME} PRIVATE SYSTEM ${MPI_CXX_INCLUDE_PATH})
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE ${MPI_CXX_LIBRARIES})
+  endif()
+
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 

@@ -46,6 +46,10 @@ target_include_directories(AllenZMQ PUBLIC ${CMAKE_SOURCE_DIR}/main/include)
 target_include_directories(AllenZMQ SYSTEM PUBLIC ${ZMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
 target_link_libraries(AllenZMQ PUBLIC ${ZMQ_LIBRARIES})
 
+if (WITH_ROOT AND USE_ROOT)
+target_include_directories(AllenZMQ SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
+endif()
+
 if (ZMQ_BUILTIN)
   add_dependencies(AllenZMQ BuiltinZMQ-install)
 elseif(GaudiProject_FOUND)

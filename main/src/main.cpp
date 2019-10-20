@@ -16,10 +16,13 @@
 #include <Allen.h>
 #include <Updater.h>
 #include <ProgramOptions.h>
-#include <MPIConfig.h>
-#include <MPISend.h>
 #include <Logger.h>
 #include <Timer.h>
+
+#ifdef HAVE_MPI
+#include <MPIConfig.h>
+#include <MPISend.h>
+#endif
 
 int main(int argc, char* argv[])
 {
@@ -101,6 +104,7 @@ int main(int argc, char* argv[])
   }
 
   if (allen_options.count("with-mpi") && std::atoi(allen_options["with-mpi"].c_str())) {
+#ifdef HAVE_MPI
     // MPI initialization
     MPI_Init(&argc, &argv);
 
@@ -122,6 +126,10 @@ int main(int argc, char* argv[])
       Allen::NonEventData::Updater updater {allen_options};
       return allen(std::move(allen_options), &updater);
     }
+#else
+    error_cout << "MPI requested, but Allen was not built with MPI support.\n";
+    return -1;
+#endif
   }
   else {
     Allen::NonEventData::Updater updater {allen_options};

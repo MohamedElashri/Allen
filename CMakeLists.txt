@@ -339,7 +339,15 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 endif()
 
 find_package(ZLIB REQUIRED)
-find_package(MPI REQUIRED)
+
+option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
+if (USE_MPI)
+  find_package(MPI REQUIRED)
+  include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
+  add_compile_definitions(HAVE_MPI)
+else(USE_MPI)
+  set(MPI_FOUND OFF)
+endif()
 
 option(USE_LZMA "build with lzma" OFF)
 if(USE_LZMA)
@@ -416,6 +424,10 @@ add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
 
+if ($ENV{CPATH})
+  include_directories(SYSTEM $ENV{CPATH})
+endif()
+
 # Include directories
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(main/include)
@@ -463,18 +475,22 @@ include_directories(cuda/UT/UTDecoding/include)
 include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
 include_directories(integration/non_event_data/include)
-include_directories(${ZMQ_INCLUDE_DIRS})
-include_directories(${MPI_C_INCLUDE_PATH})
+include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
 
 # Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")
 file(GLOB common_cuda_sources "main/src/*.cu")
 
 # Remove main.cpp from common_sources
-foreach(source main Allen)
+foreach(source main Allen MPISend)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
+
+if (USE_MPI AND MPI_FOUND)
+  list(APPEND common_sources "main/src/MPISend.cpp")
+endif()
+
 
 # common libraries
 add_library(Common STATIC ${common_sources})
@@ -510,10 +526,13 @@ target_link_libraries(AllenLib PUBLIC
   CheckClustering
   SelChecking
   NonEventData
-  AllenZMQ
-  ${MPI_CXX_LIBRARIES})
+  AllenZMQ)
 
-if (ROOT_FOUND)
+if (USE_MPI AND MPI_FOUND)
+  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES})
+endif()
+
+if (USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
   target_include_directories(AllenLib SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
   target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
