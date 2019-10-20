@@ -308,18 +308,17 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   long number_of_events_requested;
   std::optional<uint> events_per_slice;
   uint start_event_offset = 0;
-  uint number_of_threads;
-  uint number_of_repetitions;
-  uint verbosity;
-  bool print_memory_usage;
-  bool non_stop;
+  uint number_of_threads = 1;
+  uint number_of_repetitions = 1;
+  uint verbosity = 3;
+  bool print_memory_usage = false;
+  bool non_stop = false;
   // By default, do_check will be true when mc_check is enabled
   bool do_check = true;
-  size_t reserve_mb 1024;
+  size_t reserve_mb = 1024;
   // MPI options
   bool with_mpi = false;
   int mpi_window_size = 4;
-  size_t mpi_number_of_slices;
   // Input file options
   std::string mdf_input;
   std::string mep_input;
@@ -405,9 +404,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"non-stop"})) {
       non_stop = atoi(arg.c_str());
-    }
-    else if (flag_in({"mpi-number-of-slices"})) {
-      mpi_number_of_slices = atoi(arg.c_str());
     }
   }
 

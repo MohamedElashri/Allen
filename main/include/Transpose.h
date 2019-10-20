@@ -175,7 +175,6 @@ std::tuple<bool, bool> transpose_event(
 
   unsigned int bank_offset = 0;
   unsigned int bank_counter = 1;
-  unsigned int bank_type_index = 0;
 
   auto bank = bank_data.begin(), bank_end = bank_data.end();
 
