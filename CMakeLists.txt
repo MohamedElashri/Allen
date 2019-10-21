@@ -424,8 +424,12 @@ add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
 
-if ($ENV{CPATH})
-  include_directories(SYSTEM $ENV{CPATH})
+# Make sure extra search paths get included as system to avoid
+# warnings in external headers
+if (DEFINED ENV{CPLUS_INCLUDE_PATH})
+  include_directories(SYSTEM $ENV{CPLUS_INCLUDE_PATH})
+elseif (DEFINED ENV{CPATH})
+  include_directories(SYSTEM $ENV{PATH})
 endif()
 
 # Include directories
