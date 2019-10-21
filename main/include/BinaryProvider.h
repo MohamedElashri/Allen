@@ -291,9 +291,9 @@ private:
         for (auto bank_type : {Banks...}) {
           auto ib = to_integral<BankTypes>(bank_type);
           const auto& [slice, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
-          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice.size()) {
+          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice[0].size()) {
             this->debug_output(std::string {"Slice "} + std::to_string(slice_index) + " is full.");
-            break;
+            goto done;
           }
         }
 
@@ -313,7 +313,7 @@ private:
           m_current = 0;
         }
       }
-
+    done:
       this->debug_output("Read " + std::to_string(n_read) + " events into " + std::to_string(slice_index));
 
       prefetch_done = (m_current == m_to_read);
