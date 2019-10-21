@@ -70,8 +70,8 @@ __device__ void lf_triplet_seeding_impl(
   //   l2_size);
 
   constexpr int sliding_window_max_iterations = 0;
-  constexpr int extreme_layers_window_size = 256;
-  constexpr int middle_layer_window_size = 256;
+  constexpr int extreme_layers_window_size = 32;
+  constexpr int middle_layer_window_size = 64;
 
   const int central_window_l0[2] {max(l0_extrapolated - extreme_layers_window_size / 2, 0),
                                   min(l0_extrapolated + extreme_layers_window_size / 2, l0_size)};

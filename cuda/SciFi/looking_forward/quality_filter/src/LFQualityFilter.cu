@@ -78,44 +78,44 @@ __global__ void lf_quality_filter(
       dev_magnet_polarity[0],
       dev_tmva1);
 
-    // // Save all tracks for efficiency study
-    // if (track.quality > -0.01f) {
-    // const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-    // dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] =
-    // track; dev_scifi_selected_track_indices
-    //  [ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
-    // }
-  }
-
-  __syncthreads();
-
-  for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
-    float best_quality = LookingForward::track_min_quality;
-    short best_track_index = -1;
-
-    for (uint j = 0; j < number_of_tracks; j++) {
-      const SciFi::TrackHits& track = dev_scifi_lf_tracks
-        [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + j];
-      if (track.ut_track_index == i && track.quality > best_quality) {
-        best_quality = track.quality;
-        best_track_index = j;
-      }
-    }
-
-    if (best_track_index != -1) {
-      const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-      assert(insert_index < ut_event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
-      const auto& track = dev_scifi_lf_tracks
-        [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-         best_track_index];
-
-      if (Configuration::verbosity_level >= logger::debug) {
-        track.print(event_number);
-      }
-
-      dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
-      dev_scifi_selected_track_indices
-        [ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = best_track_index;
+    // Save all tracks for efficiency study
+    if (track.quality > -0.01f) {
+    const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
+    dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] =
+    track; dev_scifi_selected_track_indices
+     [ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
     }
   }
+
+  // __syncthreads();
+
+  // for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
+  //   float best_quality = LookingForward::track_min_quality;
+  //   short best_track_index = -1;
+
+  //   for (uint j = 0; j < number_of_tracks; j++) {
+  //     const SciFi::TrackHits& track = dev_scifi_lf_tracks
+  //       [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + j];
+  //     if (track.ut_track_index == i && track.quality > best_quality) {
+  //       best_quality = track.quality;
+  //       best_track_index = j;
+  //     }
+  //   }
+
+  //   if (best_track_index != -1) {
+  //     const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
+  //     assert(insert_index < ut_event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+  //     const auto& track = dev_scifi_lf_tracks
+  //       [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+  //        best_track_index];
+
+  //     if (Configuration::verbosity_level >= logger::debug) {
+  //       track.print(event_number);
+  //     }
+
+  //     dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
+  //     dev_scifi_selected_track_indices
+  //       [ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = best_track_index;
+  //   }
+  // }
 }

@@ -158,7 +158,7 @@ namespace SciFi {
     static constexpr uint max_hit_candidates_per_layer = 200;
 
     // Looking Forward
-    static constexpr int max_SciFi_tracks_per_UT_track = 100;
+    static constexpr int max_SciFi_tracks_per_UT_track = 64;
     static constexpr int max_tracks = 1000;
     static constexpr int max_lf_tracks = 6000;
     static constexpr int max_track_size = n_layers;
