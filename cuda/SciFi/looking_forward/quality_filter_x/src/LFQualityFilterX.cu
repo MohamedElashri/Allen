@@ -60,6 +60,10 @@ __global__ void lf_quality_filter_x(
     const auto current_ut_track_index = ut_event_tracks_offset + i;
     const auto number_of_tracks = dev_scifi_lf_atomics[current_ut_track_index];
 
+    if (Configuration::verbosity_level >= logger::debug) {
+      printf("Number of tracks for UT track %i: %i\n", i, number_of_tracks);
+    }
+
     __syncthreads();
 
     // first save indices and qualities of tracks
@@ -77,7 +81,7 @@ __global__ void lf_quality_filter_x(
       float hits_x_atRef[6];
       for (int k = 0; k < track.hitsNum; ++k) {
         const int hit = event_offset + track.hits[k];
-        const int plane_code = scifi_hits.planeCode(hit) >> 1;
+        const int plane_code = scifi_hits.planeCode(hit) / 2;
         hits_x[k] = scifi_hits.x0[hit];
         hits_z[k] = dev_looking_forward_constants->Zone_zPos[plane_code];
       }

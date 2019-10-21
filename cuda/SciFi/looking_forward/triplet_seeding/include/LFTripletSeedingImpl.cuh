@@ -4,6 +4,14 @@
 #include "SciFiEventModel.cuh"
 #include "UTDefinitions.cuh"
 #include "LookingForwardConstants.cuh"
+#include "CudaCommon.h"
+
+struct CombinedTripletValue {
+  float chi2 = 10000.f;
+  int16_t h0 = -1;
+  int16_t h1 = -1;
+  int16_t h2 = -1;
+};
 
 __device__ void lf_triplet_seeding_impl(
   const float* scifi_hits_x0,
@@ -29,4 +37,5 @@ __device__ void lf_triplet_seeding_impl(
   uint* atomics_scifi,
   const LookingForward::Constants* dev_looking_forward_constants,
   const uint number_of_ut_track,
-  const uint number_of_seeds);
+  const uint number_of_seeds,
+  const MiniState& velo_state);

@@ -14,7 +14,12 @@
 __global__ void lf_triplet_seeding(
   uint32_t* dev_scifi_hits,
   const uint32_t* dev_scifi_hit_count,
+  const uint* dev_atomics_velo,
+  const uint* dev_velo_track_hit_number,
+  const char* dev_velo_states,
   const uint* dev_atomics_ut,
+  const uint* dev_ut_track_hit_number,
+  const uint* dev_ut_track_velo_indices,
   const float* dev_ut_qop,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
@@ -37,4 +42,9 @@ ALGORITHM(
     dev_scifi_lf_triplet_best,
     dev_scifi_lf_tracks,
     dev_scifi_lf_atomics,
-    dev_ut_states))
+    dev_ut_states,
+    dev_ut_track_hit_number,
+    dev_ut_track_velo_indices,
+    dev_atomics_velo,
+    dev_velo_track_hit_number,
+    dev_velo_states))

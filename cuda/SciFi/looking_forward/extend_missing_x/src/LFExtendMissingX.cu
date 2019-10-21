@@ -12,6 +12,12 @@ __global__ void lf_extend_missing_x(
   const float* dev_inv_clus_res,
   const int* dev_initial_windows)
 {
+  // if (Configuration::verbosity_level >= logger::debug) {
+  //   if (blockIdx.y == 0) {
+  //     printf("---- Extend Missing X ----\n");
+  //   }
+  // }
+
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
@@ -26,12 +32,15 @@ __global__ void lf_extend_missing_x(
   const SciFi::Hits scifi_hits {
     const_cast<uint32_t*>(dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
-  const int number_of_tracks = dev_atomics_scifi[event_number];
   const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
 
   for (int i_ut_track = threadIdx.x; i_ut_track < ut_event_number_of_tracks; i_ut_track += blockDim.x) {
     const auto current_ut_track_index = ut_event_tracks_offset + i_ut_track;
     int number_of_tracks = dev_atomics_scifi[current_ut_track_index];
+
+    if (Configuration::verbosity_level >= logger::debug) {
+      printf("Number of tracks for UT track %i: %i\n", i_ut_track, number_of_tracks);
+    }
 
     for (int i = threadIdx.y; i < number_of_tracks; i += blockDim.y) {
       SciFi::TrackHits& track =
@@ -51,6 +60,15 @@ __global__ void lf_extend_missing_x(
           missing_layers[number_of_missing_layers++] = layer_j;
         }
       }
+
+      // if (Configuration::verbosity_level >= logger::debug) {
+      //   track.print(blockIdx.x);
+      //   printf("Missing layers: %i\n", number_of_missing_layers);
+      //   for (int k = 0; k < number_of_missing_layers; ++k) {
+      //     printf(" %i,", missing_layers[k]);
+      //   }
+      //   printf("\n");
+      // }
 
       const auto h0 = event_offset + track.hits[0];
       const auto h1 = event_offset + track.hits[1];

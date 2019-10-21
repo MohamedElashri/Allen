@@ -11,6 +11,8 @@
 // CPU support
 // -----------
 
+using std::signbit;
+
 #define __host__
 #define __device__
 #define __shared__

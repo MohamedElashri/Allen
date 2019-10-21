@@ -5,7 +5,12 @@
 __global__ void lf_triplet_seeding(
   uint32_t* dev_scifi_hits,
   const uint32_t* dev_scifi_hit_count,
+  const uint* dev_atomics_velo,
+  const uint* dev_velo_track_hit_number,
+  const char* dev_velo_states,
   const uint* dev_atomics_ut,
+  const uint* dev_ut_track_hit_number,
+  const uint* dev_ut_track_velo_indices,
   const float* dev_ut_qop,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
@@ -21,10 +26,24 @@ __global__ void lf_triplet_seeding(
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
+  // Velo consolidated types
+  const Velo::Consolidated::Tracks velo_tracks {
+    (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
+  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
+  const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+
   // UT consolidated tracks
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
   const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
   const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
+
+  // UT consolidated tracks
+  UT::Consolidated::Tracks ut_tracks {(uint*) dev_atomics_ut,
+                                      (uint*) dev_ut_track_hit_number,
+                                      (float*) dev_ut_qop,
+                                      (uint*) dev_ut_track_velo_indices,
+                                      event_number,
+                                      number_of_events};
 
   // SciFi hits
   const uint total_number_of_hits = dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
@@ -33,18 +52,25 @@ __global__ void lf_triplet_seeding(
   const SciFi::Hits scifi_hits {dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
 
-  constexpr int number_of_seeds = 4;
+  constexpr int number_of_seeds = 2;
   uint triplet_seeding_layers[number_of_seeds][3] {
     {0, 2, 4},
-    {1, 3, 5},
-    {0, 2, 5},
-    {1, 3, 4}
+    {0, 3, 4}
+
+    // {0, 2, 5},
+    // {1, 3, 4}
   };
 
   for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
+    const auto velo_track_index = ut_tracks.velo_track[i];
     const auto qop = dev_ut_qop[current_ut_track_index];
     const int* initial_windows = dev_initial_windows + current_ut_track_index;
+    
+    const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
+    const MiniState velo_state = velo_states.getMiniState(velo_states_index);
+
+    std::vector<CombinedTripletValue> best_combined;
 
     for (uint triplet_seed = 0; triplet_seed < number_of_seeds; ++triplet_seed) {
       const auto layer_0 = triplet_seeding_layers[triplet_seed][0];
@@ -91,7 +117,8 @@ __global__ void lf_triplet_seeding(
         dev_atomics_scifi + current_ut_track_index,
         dev_looking_forward_constants,
         i,
-        number_of_seeds);
+        number_of_seeds,
+        velo_state);
     }
   }
 }

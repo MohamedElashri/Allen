@@ -136,7 +136,7 @@ __device__ float LookingForward::tx_ty_corr_multi_par(
 
   for (int i = 0; i < 5; i++) {
     for (int j = 0; j < 5; j++) {
-      tx_ty_corr += dev_looking_forward_constants->ds_multi_param[station][i][j] * tx_pow[i] * ty_pow[j];
+      tx_ty_corr += dev_looking_forward_constants->ds_multi_param[station * 5 * 5 + i * 5 + j] * tx_pow[i] * ty_pow[j];
     }
   }
 

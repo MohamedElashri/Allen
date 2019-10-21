@@ -30,8 +30,7 @@ __device__ void lf_search_initial_windows_impl(
       UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
 
     const float xInZone = stateInZone.x;
-
-    const float xMag = LookingForward::state_at_z(UT_state, LookingForward::z_magnet).x;
+    // const float xMag = LookingForward::state_at_z(UT_state, LookingForward::z_magnet).x;
 
     const float xTol = 1.5f * LookingForward::dx_calc(UT_state.tx, qop);
     float xMin = xInZone - xTol;

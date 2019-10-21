@@ -2,13 +2,6 @@
 #include "BinarySearchTools.cuh"
 #include "LookingForwardTools.cuh"
 
-struct CombinedTripletValue {
-  float chi2 = 10000.f;
-  int16_t h0 = -1;
-  int16_t h1 = -1;
-  int16_t h2 = -1;
-};
-
 __device__ void lf_triplet_seeding_impl(
   const float* scifi_hits_x0,
   const uint layer_0,
@@ -33,7 +26,8 @@ __device__ void lf_triplet_seeding_impl(
   uint* atomics_scifi,
   const LookingForward::Constants* dev_looking_forward_constants,
   const uint number_of_ut_track,
-  const uint number_of_seeds)
+  const uint number_of_seeds,
+  const MiniState& velo_state)
 {
   std::vector<CombinedTripletValue> best_combined;
 
@@ -41,11 +35,36 @@ __device__ void lf_triplet_seeding_impl(
     printf("---- Seeding of event %i with x layers {%i, %i, %i} ----\n", blockIdx.x, layer_0, layer_1, layer_2);
   }
 
-  // Required constants for the chi2 calculation below
-  const float zdiff = (z2 - z0) / (z1 - z0);
-  float extrap1 = LookingForward::get_extrap(qop, z1 - z0);
-  extrap1 *= extrap1;
-  const float extrap2 = LookingForward::get_extrap(qop, (z2 - z0));
+  // // Extrapolation 1: Required constants for the chi2 calculation below
+  // const float zdiff = (z2 - z0) / (z1 - z0);
+  // float extrap1 = LookingForward::get_extrap(qop, z1 - z0);
+  // extrap1 *= extrap1;
+  // const float extrap2 = LookingForward::get_extrap(qop, (z2 - z0));
+
+  // Extrapolation 2: Renato's extrapolation
+  const auto tx = velo_state.tx;
+  constexpr float p0 = -2.1156e-07f;  //   +/-   3.87224e-07
+  constexpr float p1 = 0.000829677f;  //   +/-   4.70098e-06
+  constexpr float p2 = -0.000174757f; //   +/-   1.00272e-05
+
+  const auto x_at_z_magnet = velo_state.x + (LookingForward::z_magnet - velo_state.z) * velo_state.tx;
+
+  constexpr float x_at_z_p0 = 0.300706f;
+  constexpr float x_at_z_p1 = 14.814f;
+  constexpr float x_at_z_p2 = -29.8856f;
+  constexpr float x_at_z_p3 = -440.203f;
+
+  constexpr float linear_range_qop_end = 0.0005f;
+  constexpr float x_at_magnet_range [2] {8.f, 40.f};
+
+  const auto qop_range = fabsf(qop) > linear_range_qop_end ? 1.f : fabsf(qop) * (1.f / linear_range_qop_end);
+  const auto opening_x_at_z_magnet_diff = x_at_magnet_range[0] + qop_range * (x_at_magnet_range[1] - x_at_magnet_range[0]);
+
+  constexpr float do_sign_check_momentum_threshold = 5000.f;
+  const auto do_sign_check = fabsf(qop) > (1.f / do_sign_check_momentum_threshold);
+
+  // printf("qop %f, qop_range %f, opening_x_at_z_magnet_diff %f\n",
+  //   qop, qop_range, opening_x_at_z_magnet_diff);
 
   // printf(
   //   "\nExtrapolated and sizes: {%i, %i}, {%i, %i}, {%i, %i}\n",
@@ -56,9 +75,9 @@ __device__ void lf_triplet_seeding_impl(
   //   l2_extrapolated,
   //   l2_size);
 
-  constexpr int sliding_window_max_iterations = 1;
+  constexpr int sliding_window_max_iterations = 0;
   constexpr int extreme_layers_window_size = 16;
-  constexpr int middle_layer_window_size = 24;
+  constexpr int middle_layer_window_size = 32;
 
   const int central_window_l0[2] {max(l0_extrapolated - extreme_layers_window_size / 2, 0),
                                   min(l0_extrapolated + extreme_layers_window_size / 2, l0_size)};
@@ -73,15 +92,35 @@ __device__ void lf_triplet_seeding_impl(
 
     for (uint j = central_window_l2[0]; j < central_window_l2[1]; ++j) {
       const auto x2 = scifi_hits_x0[l2_start + j];
-      const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
+      // Extrapolation 1
+      // const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
 
-      for (uint k = central_window_l1[0]; k < central_window_l1[1]; ++k) {
-        const auto x1 = scifi_hits_x0[l1_start + k];
-        auto chi2 = partial_chi2 - x1 * zdiff;
-        chi2 = extrap1 + chi2 * chi2;
+      // Extrapolation 2
+      const float slope_t1_t3 = (x0 - x2) / (z0 - z2);
+      const float delta_slope = fabsf(tx - slope_t1_t3);
+      const auto updated_qop = 1.f / (1.f / (p0 + p1 * delta_slope - p2 * delta_slope * delta_slope) + 5.08211e+02f);
+      const auto expected_x1 = x0 + slope_t1_t3 * (z1 - z0) + 0.02528f + 13624.f * updated_qop;
 
-        if (chi2 < LookingForward::chi2_max_triplet_single) {
-          best_combined.push_back(CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j});
+      const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
+      const auto x_at_z_magnet_diff = fabsf(track_x_at_z_magnet - x_at_z_magnet -
+          (x_at_z_p0 + x_at_z_p1 * slope_t1_t3 + x_at_z_p2 * slope_t1_t3 * slope_t1_t3 +
+           x_at_z_p3 * slope_t1_t3 * slope_t1_t3 * slope_t1_t3));
+
+      const auto equal_signs_in_slopes = signbit(slope_t1_t3 - tx) == signbit(ut_state->tx - tx);
+
+      if (x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes)) {
+        for (uint k = central_window_l1[0]; k < central_window_l1[1]; ++k) {
+          const auto x1 = scifi_hits_x0[l1_start + k];
+          // auto chi2 = partial_chi2 - x1 * zdiff;
+          // chi2 = extrap1 + chi2 * chi2;
+
+          // Extrapolation 2
+          const auto chi2 = fabsf(expected_x1 - x1);
+
+          if (chi2 < LookingForward::chi2_max_triplet_single) {
+            // printf("chi2 %f, x_at_z_magnet diff %f\n", chi2, x_at_z_magnet_diff);
+            best_combined.push_back(CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j});
+          }
         }
       }
     }
@@ -126,12 +165,25 @@ __device__ void lf_triplet_seeding_impl(
 
       for (uint j = left_window_l2[0]; j < left_window_l2[1]; ++j) {
         const auto x2 = scifi_hits_x0[l2_start + j];
-        const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
+
+        // Extrapolation 1
+        // const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
+
+        // Extrapolation 2
+        const float slope_t1_t3 = (x0 - x2) / (z0 - z2);
+        const float delta_slope = fabsf(tx - slope_t1_t3);
+        const auto updated_qop = 1.f / (1.f / (p0 + p1 * delta_slope - p2 * delta_slope * delta_slope) + 5.08211e+02f);
+        const auto expected_x1 = x0 + slope_t1_t3 * (z1 - z0) + 0.02528f + 13624.f * updated_qop;
 
         for (uint k = left_window_l1[0]; k < left_window_l1[1]; ++k) {
           const auto x1 = scifi_hits_x0[l1_start + k];
-          auto chi2 = partial_chi2 - x1 * zdiff;
-          chi2 = extrap1 + chi2 * chi2;
+
+          // Extrapolation 1
+          // auto chi2 = partial_chi2 - x1 * zdiff;
+          // chi2 = extrap1 + chi2 * chi2;
+
+          // Extrapolation 2
+          const auto chi2 = fabsf(expected_x1 - x1);
 
           if (chi2 < LookingForward::chi2_max_triplet_single) {
             best_combined.push_back(CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j});
@@ -181,12 +233,25 @@ __device__ void lf_triplet_seeding_impl(
 
       for (uint j = right_window_l2[0]; j < right_window_l2[1]; ++j) {
         const auto x2 = scifi_hits_x0[l2_start + j];
-        const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
+
+        // Extrapolation 1
+        // const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
+
+        // Extrapolation 2
+        const float slope_t1_t3 = (x0 - x2) / (z0 - z2);
+        const float delta_slope = fabsf(tx - slope_t1_t3);
+        const auto updated_qop = 1.f / (1.f / (p0 + p1 * delta_slope - p2 * delta_slope * delta_slope) + 5.08211e+02f);
+        const auto expected_x1 = x0 + slope_t1_t3 * (z1 - z0) + 0.02528f + 13624.f * updated_qop;
 
         for (uint k = right_window_l1[0]; k < right_window_l1[1]; ++k) {
           const auto x1 = scifi_hits_x0[l1_start + k];
-          auto chi2 = partial_chi2 - x1 * zdiff;
-          chi2 = extrap1 + chi2 * chi2;
+
+          // Extrapolation 1
+          // auto chi2 = partial_chi2 - x1 * zdiff;
+          // chi2 = extrap1 + chi2 * chi2;
+
+          // Extrapolation 2
+          const auto chi2 = fabsf(expected_x1 - x1);
 
           if (chi2 < LookingForward::chi2_max_triplet_single) {
             best_combined.push_back(CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j});
@@ -204,12 +269,6 @@ __device__ void lf_triplet_seeding_impl(
     //   right_window_l2[0],
     //   right_window_l2[1]);
   }
-
-  // const auto tx = ut_state->tx;
-
-  // constexpr float p0 = -2.1156e-07f;  //   +/-   3.87224e-07
-  // constexpr float p1 = 0.000829677f;  //   +/-   4.70098e-06
-  // constexpr float p2 = -0.000174757f; //   +/-   1.00272e-05
 
   // // Dumb search of best triplet
   // for (int i = 0; i < l0_size; ++i) {
@@ -246,7 +305,7 @@ __device__ void lf_triplet_seeding_impl(
        ++i) {
     const auto best_combo = best_combined[i];
 
-    if (best_combo.h0 != -1) {
+    if (best_combo.h0 != 1) {
       const auto h0 = l0_start + best_combo.h0;
       const auto h1 = l1_start + best_combo.h1;
       const auto h2 = l2_start + best_combo.h2;
