@@ -35,13 +35,7 @@ __device__ void lf_triplet_seeding_impl(
     printf("---- Seeding of event %i with x layers {%i, %i, %i} ----\n", blockIdx.x, layer_0, layer_1, layer_2);
   }
 
-  // // Extrapolation 1: Required constants for the chi2 calculation below
-  // const float zdiff = (z2 - z0) / (z1 - z0);
-  // float extrap1 = LookingForward::get_extrap(qop, z1 - z0);
-  // extrap1 *= extrap1;
-  // const float extrap2 = LookingForward::get_extrap(qop, (z2 - z0));
-
-  // Extrapolation 2: Renato's extrapolation
+  // Extrapolation: Renato's extrapolation
   const auto tx = velo_state.tx;
   constexpr float p0 = -2.1156e-07f;  //   +/-   3.87224e-07
   constexpr float p1 = 0.000829677f;  //   +/-   4.70098e-06
@@ -76,8 +70,8 @@ __device__ void lf_triplet_seeding_impl(
   //   l2_size);
 
   constexpr int sliding_window_max_iterations = 0;
-  constexpr int extreme_layers_window_size = 16;
-  constexpr int middle_layer_window_size = 32;
+  constexpr int extreme_layers_window_size = 256;
+  constexpr int middle_layer_window_size = 256;
 
   const int central_window_l0[2] {max(l0_extrapolated - extreme_layers_window_size / 2, 0),
                                   min(l0_extrapolated + extreme_layers_window_size / 2, l0_size)};
@@ -92,10 +86,8 @@ __device__ void lf_triplet_seeding_impl(
 
     for (uint j = central_window_l2[0]; j < central_window_l2[1]; ++j) {
       const auto x2 = scifi_hits_x0[l2_start + j];
-      // Extrapolation 1
-      // const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
 
-      // Extrapolation 2
+      // Extrapolation
       const float slope_t1_t3 = (x0 - x2) / (z0 - z2);
       const float delta_slope = fabsf(tx - slope_t1_t3);
       const auto updated_qop = 1.f / (1.f / (p0 + p1 * delta_slope - p2 * delta_slope * delta_slope) + 5.08211e+02f);
@@ -111,10 +103,6 @@ __device__ void lf_triplet_seeding_impl(
       if (x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes)) {
         for (uint k = central_window_l1[0]; k < central_window_l1[1]; ++k) {
           const auto x1 = scifi_hits_x0[l1_start + k];
-          // auto chi2 = partial_chi2 - x1 * zdiff;
-          // chi2 = extrap1 + chi2 * chi2;
-
-          // Extrapolation 2
           const auto chi2 = fabsf(expected_x1 - x1);
 
           if (chi2 < LookingForward::chi2_max_triplet_single) {

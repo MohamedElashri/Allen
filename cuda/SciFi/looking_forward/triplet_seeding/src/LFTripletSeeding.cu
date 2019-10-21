@@ -52,10 +52,13 @@ __global__ void lf_triplet_seeding(
   const SciFi::Hits scifi_hits {dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
 
-  constexpr int number_of_seeds = 2;
+  constexpr int number_of_seeds = 1;
   uint triplet_seeding_layers[number_of_seeds][3] {
-    {0, 2, 4},
-    {0, 3, 4}
+    {0, 2, 4}
+    // ,
+    // {0, 3, 4},
+    // {1, 2, 5},
+    // {1, 3, 5}
 
     // {0, 2, 5},
     // {1, 3, 4}

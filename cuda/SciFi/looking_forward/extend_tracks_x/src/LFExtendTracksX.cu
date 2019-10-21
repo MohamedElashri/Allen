@@ -69,7 +69,7 @@ __global__ void lf_extend_tracks_x(
             z0,
             z1,
             dev_looking_forward_constants->Zone_zPos_xlayers[j],
-            LookingForward::chi2_max_extrapolation_to_x_layers_single);
+            1.f);
         }
       }
     }
