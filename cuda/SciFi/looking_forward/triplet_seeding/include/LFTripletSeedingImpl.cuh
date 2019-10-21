@@ -7,7 +7,7 @@
 #include "CudaCommon.h"
 
 struct CombinedTripletValue {
-  float chi2 = 10000.f;
+  float chi2 = LookingForward::chi2_max_triplet_single;
   int16_t h0 = -1;
   int16_t h1 = -1;
   int16_t h2 = -1;

@@ -58,7 +58,7 @@ namespace LookingForward {
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 16;
-  constexpr int maximum_number_of_candidates_per_ut_track = 128;
+  constexpr int maximum_number_of_candidates_per_ut_track = 256;
   constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 64;
   constexpr int maximum_number_of_triplets_per_h1 = 2;
   constexpr int n_threads_triplet_seeding = 32;
