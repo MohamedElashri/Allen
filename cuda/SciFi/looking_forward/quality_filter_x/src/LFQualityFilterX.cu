@@ -106,11 +106,29 @@ __global__ void lf_quality_filter_x(
 
     // Sort track candidates by quality
     for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
-      float xAtRef_spread = xAtRef_average_spread[j];
+      // float xAtRef_spread = xAtRef_average_spread[j];
+      // int16_t insert_position = 0;
+      // for (uint k = 0; k < number_of_tracks; ++k) {
+      //   const float other_xAtRef_spread = xAtRef_average_spread[k];
+      //   if (xAtRef_spread > other_xAtRef_spread || (xAtRef_spread == other_xAtRef_spread && j < k)) {
+      //     ++insert_position;
+      //   }
+      // }
+
+      const auto scifi_track_index =
+        current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
+      const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
+      const auto quality = track.hitsNum == 3 || track.quality > ((track.hitsNum - 3) * 15.f) ? 10000.f : track.quality;
       int16_t insert_position = 0;
       for (uint k = 0; k < number_of_tracks; ++k) {
-        const float other_xAtRef_spread = xAtRef_average_spread[k];
-        if (xAtRef_spread > other_xAtRef_spread || (xAtRef_spread == other_xAtRef_spread && j < k)) {
+        const auto other_scifi_track_index =
+          current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + k;
+        const SciFi::TrackHits& other_track = dev_scifi_lf_tracks[other_scifi_track_index];
+        const auto other_quality =
+          other_track.hitsNum == 3 || other_track.quality > ((other_track.hitsNum - 3) * 15.f) ? 10000.f :
+                                                                                                 other_track.quality;
+
+        if (quality > other_quality || (quality == other_quality && j < k)) {
           ++insert_position;
         }
       }
@@ -119,12 +137,12 @@ __global__ void lf_quality_filter_x(
       //       xAtRef_spread < 1e9
       //       kills about 2.3% fakes with something like 0.5% impact on RE
       if (
-        insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter &&
-        xAtRef_spread < LookingForward::filter_x_max_xAtRef_spread) {
+        insert_position < 20
+        && quality < 10000.f
+        // && xAtRef_spread < LookingForward::filter_x_max_xAtRef_spread
+      ) {
         // Save best track candidates
         const auto insert_index = atomicAdd(dev_scifi_lf_x_filtered_atomics + event_number, 1);
-        const auto scifi_track_index = current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
-        const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
 
         if (Configuration::verbosity_level >= logger::debug) {
           track.print(event_number);

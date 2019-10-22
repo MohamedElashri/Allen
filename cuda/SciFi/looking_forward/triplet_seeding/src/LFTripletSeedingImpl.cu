@@ -94,7 +94,7 @@ __device__ void lf_triplet_seeding_impl(
       if (x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes)) {
         for (int k = central_window_l1_begin; k < central_window_l1_end; ++k) {
           const auto x1 = scifi_hits_x0[l1_start + k];
-          const auto chi2 = fabsf(expected_x1 - x1);
+          const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
 
           if (chi2 < best_combined[k - central_window_l1_begin].chi2) {
             best_combined_second[k - central_window_l1_begin] = best_combined[k - central_window_l1_begin];

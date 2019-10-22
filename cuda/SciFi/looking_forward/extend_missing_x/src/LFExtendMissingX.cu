@@ -91,12 +91,12 @@ __global__ void lf_extend_missing_x(
 
         // Pick the best, according to chi2
         int best_index = -1;
-        float best_chi2 = 4.f;
+        float best_chi2 = 16.f;
 
         const auto scifi_hits_x0 = scifi_hits.x0 + event_offset + window_start;
         for (int h4_rel = 0; h4_rel < window_size; h4_rel++) {
           const auto x4 = scifi_hits_x0[h4_rel];
-          const auto chi2 = fabsf(x4 - predicted_x);
+          const auto chi2 = (x4 - predicted_x) * (x4 - predicted_x);
 
           if (chi2 < best_chi2) {
             best_chi2 = chi2;
@@ -105,7 +105,7 @@ __global__ void lf_extend_missing_x(
         }
 
         if (best_index != -1) {
-          track.add_hit((uint16_t)(window_start + best_index));
+          track.add_hit_with_quality((uint16_t)(window_start + best_index), best_chi2);
         }
       }
     }
