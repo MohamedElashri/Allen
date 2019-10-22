@@ -41,10 +41,10 @@ __device__ void lf_triplet_seeding_impl(
 
   const auto x_at_z_magnet = velo_state.x + (LookingForward::z_magnet - velo_state.z) * velo_state.tx;
 
-  constexpr float x_at_z_p0 = 0.300706f;
-  constexpr float x_at_z_p1 = 14.814f;
-  constexpr float x_at_z_p2 = -29.8856f;
-  constexpr float x_at_z_p3 = -440.203f;
+  constexpr float x_at_z_p0 = -0.819493;
+  constexpr float x_at_z_p1 = 19.3897;
+  constexpr float x_at_z_p2 = 16.6874;
+  constexpr float x_at_z_p3 = -375.478;
 
   constexpr float linear_range_qop_end = 0.0005f;
   constexpr float x_at_magnet_range[2] {8.f, 40.f};

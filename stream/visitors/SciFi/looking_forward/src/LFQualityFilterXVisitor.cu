@@ -16,6 +16,12 @@ void SequenceVisitor::set_arguments_size<lf_quality_filter_x_t>(
   arguments.set_size<dev_scifi_lf_xAtRef>(
     host_buffers.host_number_of_reconstructed_ut_tracks[0] *
     LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
+  arguments.set_size<dev_scifi_lf_xAtRef>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+    LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
+  arguments.set_size<dev_scifi_lf_parametrization_x_filter>(
+    4 * host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+    LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
 }
 
 template<>
@@ -53,7 +59,9 @@ void SequenceVisitor::visit<lf_quality_filter_x_t>(
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
     constants.dev_looking_forward_constants,
-    constants.dev_scifi_constArrays);
+    constants.dev_scifi_constArrays,
+    arguments.offset<dev_scifi_lf_parametrization>(),
+    arguments.offset<dev_scifi_lf_parametrization_x_filter>());
 
   state.invoke();
 }

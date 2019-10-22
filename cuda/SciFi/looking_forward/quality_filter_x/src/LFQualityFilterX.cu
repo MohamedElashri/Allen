@@ -18,7 +18,9 @@ __global__ void lf_quality_filter_x(
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const LookingForward::Constants* dev_looking_forward_constants,
-  const SciFi::Tracking::Arrays* constArrays)
+  const SciFi::Tracking::Arrays* constArrays,
+  const float* dev_scifi_lf_parametrization,
+  float* dev_scifi_lf_parametrization_x_filter)
 {
   if (Configuration::verbosity_level >= logger::debug) {
     if (blockIdx.y == 0) {
@@ -36,8 +38,9 @@ __global__ void lf_quality_filter_x(
                                             (uint*) dev_ut_track_velo_indices,
                                             event_number,
                                             number_of_events};
-  const int ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
-  const int ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
+  const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
+  const auto ut_event_number_of_tracks = ut_tracks.number_of_tracks(event_number);
+  const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
 
   // Velo states
   const Velo::Consolidated::Tracks velo_tracks {
@@ -56,7 +59,7 @@ __global__ void lf_quality_filter_x(
   __shared__ float xAtRef_average_spread[LookingForward::maximum_number_of_candidates_per_ut_track];
   __shared__ float xAtRef_average_array[LookingForward::maximum_number_of_candidates_per_ut_track];
 
-  for (uint16_t i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
+  for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
     const auto number_of_tracks = dev_scifi_lf_atomics[current_ut_track_index];
 
@@ -68,8 +71,9 @@ __global__ void lf_quality_filter_x(
 
     // first save indices and qualities of tracks
     for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
-      const SciFi::TrackHits& track =
-        dev_scifi_lf_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j];
+      const auto scifi_track_index =
+        current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
+      const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
 
       // calculate xAtRef average and the spread
       const auto velo_states_index = velo_tracks_offset_event + ut_tracks.velo_track[track.ut_track_index];
@@ -119,19 +123,40 @@ __global__ void lf_quality_filter_x(
         xAtRef_spread < LookingForward::filter_x_max_xAtRef_spread) {
         // Save best track candidates
         const auto insert_index = atomicAdd(dev_scifi_lf_x_filtered_atomics + event_number, 1);
-        const SciFi::TrackHits& track =
-          dev_scifi_lf_tracks[current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j];
+        const auto scifi_track_index = current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
+        const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
 
         if (Configuration::verbosity_level >= logger::debug) {
           track.print(event_number);
         }
 
-        dev_scifi_lf_x_filtered_tracks
-          [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-           insert_index] = track;
-        dev_scifi_lf_xAtRef
-          [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-           insert_index] = xAtRef_average_array[j];
+        const auto scifi_track_index_new =
+          ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+          insert_index;
+        dev_scifi_lf_x_filtered_tracks[scifi_track_index_new] = track;
+        dev_scifi_lf_xAtRef[scifi_track_index_new] = xAtRef_average_array[j];
+
+        // Save track parameters to new container as well
+        const auto a1 = dev_scifi_lf_parametrization[scifi_track_index];
+        const auto b1 = dev_scifi_lf_parametrization
+          [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
+        const auto c1 = dev_scifi_lf_parametrization
+          [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
+           scifi_track_index];
+        const auto d_ratio = dev_scifi_lf_parametrization
+          [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
+           scifi_track_index];
+
+        dev_scifi_lf_parametrization_x_filter[scifi_track_index_new] = a1;
+        dev_scifi_lf_parametrization_x_filter
+          [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+           scifi_track_index_new] = b1;
+        dev_scifi_lf_parametrization_x_filter
+          [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+           scifi_track_index_new] = c1;
+        dev_scifi_lf_parametrization_x_filter
+          [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+           scifi_track_index_new] = d_ratio;
       }
     }
   }

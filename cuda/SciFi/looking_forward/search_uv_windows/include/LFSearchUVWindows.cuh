@@ -18,7 +18,8 @@ __global__ void lf_search_uv_windows(
   const float* dev_inv_clus_res,
   const MiniState* dev_ut_states,
   short* dev_scifi_lf_uv_windows,
-  const int* dev_scifi_lf_initial_windows);
+  const int* dev_scifi_lf_initial_windows,
+  const float* dev_scifi_lf_parametrization_x_filter);
 
 ALGORITHM(
   lf_search_uv_windows,
@@ -31,4 +32,5 @@ ALGORITHM(
     dev_scifi_lf_x_filtered_atomics,
     dev_ut_states,
     dev_scifi_lf_uv_windows,
-    dev_scifi_lf_initial_windows))
+    dev_scifi_lf_initial_windows,
+    dev_scifi_lf_parametrization_x_filter))

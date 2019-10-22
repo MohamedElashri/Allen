@@ -62,7 +62,6 @@ __device__ void lf_search_initial_windows_impl(
       const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * looking_forward_constants->Zone_dxdy_uvlayers[i % 2];
       const float xInUvCorr = xInUv - UvCorr;
       const float xMinUV = xInUvCorr - 800.f;
-      const float dz_ratio = (this_uv_z - zZone) / (LookingForward::z_magnet - zZone);
 
       // Get bounds in UV layers
       // do one search on the same side as the x module

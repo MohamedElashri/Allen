@@ -1,10 +1,12 @@
 #pragma once
 
+#include "VeloConsolidated.cuh"
+#include "UTConsolidated.cuh"
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
-#include "LFExtendMissingXImpl.cuh"
 #include "SciFiEventModel.cuh"
 #include "Handler.cuh"
+#include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
 
@@ -17,7 +19,8 @@ __global__ void lf_extend_missing_x(
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
-  const int* dev_initial_windows);
+  const int* dev_initial_windows,
+  const float* dev_scifi_lf_parametrization);
 
 ALGORITHM(
   lf_extend_missing_x,
@@ -28,4 +31,5 @@ ALGORITHM(
     dev_atomics_ut,
     dev_scifi_lf_tracks,
     dev_scifi_lf_atomics,
-    dev_scifi_lf_initial_windows))
+    dev_scifi_lf_initial_windows,
+    dev_scifi_lf_parametrization))
