@@ -58,6 +58,7 @@
 #include "LFQualityFilterX.cuh"
 #include "LFQualityFilterLength.cuh"
 #include "LFFit.cuh"
+#include "LFCalculateParametrization.cuh"
 #include "MuonDecoding.cuh"
 #include "MuonPreDecoding.cuh"
 #include "MuonSortBySRQ.cuh"

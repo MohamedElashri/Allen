@@ -46,6 +46,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/quality_filte
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/quality_filter_x/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/search_uv_windows/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/fit/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_parametrization/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)

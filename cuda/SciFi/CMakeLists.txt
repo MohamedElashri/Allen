@@ -15,6 +15,7 @@ file(GLOB scifi_lf_fit "looking_forward/fit/src/*cu")
 file(GLOB scifi_utils "utils/src/*cu")
 file(GLOB scifi_classifiers "classifiers/src/*cu")
 file(GLOB scifi_consolidate "consolidate/src/*cu")
+file(GLOB scifi_lf_calculate_parametrization "looking_forward/calculate_parametrization/src/*cu")
 
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include)
@@ -48,6 +49,7 @@ include_directories(looking_forward/quality_filter/include)
 include_directories(looking_forward/quality_filter_x/include)
 include_directories(looking_forward/search_uv_windows/include)
 include_directories(looking_forward/fit/include)
+include_directories(looking_forward/calculate_parametrization/include)
 include_directories(utils/include)
 include_directories(classifiers/include)
 include_directories(consolidate/include)
@@ -62,7 +64,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     ${scifi_lf_extend_tracks_x} ${scifi_lf_extend_missing_x} ${scifi_lf_triplet_seeding}
     ${scifi_lf_triplet_keep_best} ${scifi_lf_extend_tracks_uv} ${scifi_lf_quality_filter}
     ${scifi_lf_quality_filter_x} ${scifi_lf_search_uv_windows} ${scifi_lf_fit}
-    ${scifi_classifiers} ${scifi_consolidate})
+    ${scifi_classifiers} ${scifi_consolidate} ${scifi_lf_calculate_parametrization})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
 endif()
@@ -85,4 +87,5 @@ allen_add_library(SciFi STATIC
   ${scifi_lf_fit}
   ${scifi_classifiers}
   ${scifi_consolidate}
+  ${scifi_lf_calculate_parametrization}
 )

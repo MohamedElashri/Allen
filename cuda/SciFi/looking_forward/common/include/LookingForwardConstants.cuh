@@ -52,9 +52,9 @@ namespace LookingForward {
   constexpr float yDownMin = -3030.f;
   constexpr float yDownMax = 50.f;
 
-  /*====================================
-   * Constants for lf search by triplet
-   =====================================*/
+  // ==================================
+  // Constants for lf search by triplet
+  // ==================================
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
   constexpr int maximum_number_of_candidates = 16;
@@ -91,6 +91,13 @@ namespace LookingForward {
   constexpr float chi2_max_triplet_single = 12.f;                  // 5.f;
   constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f; // 2.f; // 4.f;
   constexpr float chi2_max_extrapolation_to_uv_layers_single = 10.f;
+
+  // ======================================
+  // Constants for various parametrizations
+  // ======================================
+
+  // Reference z plane
+  constexpr float z_mid_t = 8520.f * Gaudi::Units::mm;
 
   struct Constants {
 
