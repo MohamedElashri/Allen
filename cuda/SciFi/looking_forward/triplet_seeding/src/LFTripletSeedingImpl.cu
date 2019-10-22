@@ -71,10 +71,10 @@ __device__ void lf_triplet_seeding_impl(
   CombinedTripletValue best_combined_second[middle_layer_window_size];
 
   // Treat central window iteration
-  for (uint i = central_window_l0_begin; i < central_window_l0_end; ++i) {
+  for (int i = central_window_l0_begin; i < central_window_l0_end; ++i) {
     const auto x0 = scifi_hits_x0[l0_start + i];
 
-    for (uint j = central_window_l2_begin; j < central_window_l2_end; ++j) {
+    for (int j = central_window_l2_begin; j < central_window_l2_end; ++j) {
       const auto x2 = scifi_hits_x0[l2_start + j];
 
       // Extrapolation
@@ -92,7 +92,7 @@ __device__ void lf_triplet_seeding_impl(
       const auto equal_signs_in_slopes = signbit(slope_t1_t3 - tx) == signbit(ut_state->tx - tx);
 
       if (x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes)) {
-        for (uint k = central_window_l1_begin; k < central_window_l1_end; ++k) {
+        for (int k = central_window_l1_begin; k < central_window_l1_end; ++k) {
           const auto x1 = scifi_hits_x0[l1_start + k];
           const auto chi2 = fabsf(expected_x1 - x1);
 
@@ -108,39 +108,45 @@ __device__ void lf_triplet_seeding_impl(
     }
   }
 
-  // std::sort(
-  //   best_combined.begin(), best_combined.end(), [](const CombinedTripletValue& a, const CombinedTripletValue& b) {
-  //     return a.chi2 < b.chi2;
-  //   });
+  std::array<CombinedTripletValue, 2 * middle_layer_window_size> best_combined_array;
+  for (uint i = 0; i < middle_layer_window_size; ++i) {
+    best_combined_array[i] = best_combined[i];
+    best_combined_array[middle_layer_window_size + i] = best_combined_second[i];
+  }
+
+  std::sort(
+    best_combined_array.begin(), best_combined_array.end(), [](const CombinedTripletValue& a, const CombinedTripletValue& b) {
+      return a.chi2 < b.chi2;
+    });
+
+  constexpr int maximum_number_of_candidates_per_ut_track_half = 20;
 
   // Note: LookingForward::maximum_number_of_candidates_per_ut_track / number of seeds is the maximum that can be stored
-  for (int i = 0; i < middle_layer_window_size; ++i) {
-    for (auto best_combo : {best_combined[i], best_combined_second[i]}) {
+  for (int i = 0; i < maximum_number_of_candidates_per_ut_track_half; ++i) {
+    const auto best_combo = best_combined_array[i];
+    if (best_combo.h0 != -1) {
+      const auto h0 = l0_start + best_combo.h0;
+      const auto h1 = l1_start + best_combo.h1;
+      const auto h2 = l2_start + best_combo.h2;
 
-      if (best_combo.h0 != -1) {
-        const auto h0 = l0_start + best_combo.h0;
-        const auto h1 = l1_start + best_combo.h1;
-        const auto h2 = l2_start + best_combo.h2;
+      const int insert_index = atomicAdd(atomics_scifi, 1);
 
-        const int insert_index = atomicAdd(atomics_scifi, 1);
+      const auto l1_station = layer_1 / 2;
+      const auto track = SciFi::TrackHits {
+        h0,
+        h1,
+        h2,
+        (uint16_t) layer_0,
+        (uint16_t) layer_1,
+        (uint16_t) layer_2,
+        best_combo.chi2,
+        LookingForward::qop_update_multi_par(
+          *ut_state, scifi_hits_x0[h0], z0, scifi_hits_x0[h1], z1, l1_station, dev_looking_forward_constants),
+        (uint16_t) number_of_ut_track};
+      scifi_tracks[insert_index] = track;
 
-        const auto l1_station = layer_1 / 2;
-        const auto track = SciFi::TrackHits {
-          h0,
-          h1,
-          h2,
-          (uint16_t) layer_0,
-          (uint16_t) layer_1,
-          (uint16_t) layer_2,
-          best_combo.chi2,
-          LookingForward::qop_update_multi_par(
-            *ut_state, scifi_hits_x0[h0], z0, scifi_hits_x0[h1], z1, l1_station, dev_looking_forward_constants),
-          number_of_ut_track};
-        scifi_tracks[insert_index] = track;
-
-        if (Configuration::verbosity_level >= logger::debug) {
-          track.print(blockIdx.x);
-        }
+      if (Configuration::verbosity_level >= logger::debug) {
+        track.print(blockIdx.x);
       }
     }
   }
