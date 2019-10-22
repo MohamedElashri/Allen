@@ -26,7 +26,8 @@ void SequenceVisitor::visit<lf_extend_tracks_uv_t>(
     constants.dev_looking_forward_constants,
     constants.dev_inv_clus_res,
     arguments.offset<dev_ut_states>(),
-    arguments.offset<dev_scifi_lf_uv_windows>());
+    arguments.offset<dev_scifi_lf_uv_windows>(),
+    arguments.offset<dev_scifi_lf_parametrization_x_filter>());
 
   state.invoke();
 }
