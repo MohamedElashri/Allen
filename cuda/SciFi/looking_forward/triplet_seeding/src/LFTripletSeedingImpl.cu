@@ -43,10 +43,10 @@ __device__ void lf_triplet_seeding_impl(
 
   const auto x_at_z_magnet = velo_state.x + (LookingForward::z_magnet - velo_state.z) * velo_state.tx;
 
-  constexpr float x_at_z_p0 = 0.300706f;
-  constexpr float x_at_z_p1 = 14.814f;
-  constexpr float x_at_z_p2 = -29.8856f;
-  constexpr float x_at_z_p3 = -440.203f;
+  constexpr float x_at_z_p0 = -0.819493;
+  constexpr float x_at_z_p1 = 19.3897;
+  constexpr float x_at_z_p2 = 16.6874;
+  constexpr float x_at_z_p3 = -375.478;
 
   constexpr float linear_range_qop_end = 0.0005f;
   constexpr float x_at_magnet_range [2] {8.f, 40.f};
@@ -56,18 +56,6 @@ __device__ void lf_triplet_seeding_impl(
 
   constexpr float do_sign_check_momentum_threshold = 5000.f;
   const auto do_sign_check = fabsf(qop) > (1.f / do_sign_check_momentum_threshold);
-
-  // printf("qop %f, qop_range %f, opening_x_at_z_magnet_diff %f\n",
-  //   qop, qop_range, opening_x_at_z_magnet_diff);
-
-  // printf(
-  //   "\nExtrapolated and sizes: {%i, %i}, {%i, %i}, {%i, %i}\n",
-  //   l0_extrapolated,
-  //   l0_size,
-  //   l1_extrapolated,
-  //   l1_size,
-  //   l2_extrapolated,
-  //   l2_size);
 
   constexpr int sliding_window_max_iterations = 0;
   constexpr int extreme_layers_window_size = 32;
@@ -113,15 +101,6 @@ __device__ void lf_triplet_seeding_impl(
       }
     }
   }
-
-  // printf(
-  //   " Starting windows: {%i, %i}, {%i, %i}, {%i, %i}\n",
-  //   central_window_l0[0],
-  //   central_window_l0[1],
-  //   central_window_l1[0],
-  //   central_window_l1[1],
-  //   central_window_l2[0],
-  //   central_window_l2[1]);
 
   // Iterate to the left
   int left_window_l0[2] {central_window_l0[0], central_window_l0[1]};
@@ -179,15 +158,6 @@ __device__ void lf_triplet_seeding_impl(
         }
       }
     }
-
-    // printf(
-    //   " Left windows: {%i, %i}, {%i, %i}, {%i, %i}\n",
-    //   left_window_l0[0],
-    //   left_window_l0[1],
-    //   left_window_l1[0],
-    //   left_window_l1[1],
-    //   left_window_l2[0],
-    //   left_window_l2[1]);
   }
 
   // Iterate to the right
@@ -247,40 +217,7 @@ __device__ void lf_triplet_seeding_impl(
         }
       }
     }
-
-    // printf(
-    //   " Right windows: {%i, %i}, {%i, %i}, {%i, %i}\n",
-    //   right_window_l0[0],
-    //   right_window_l0[1],
-    //   right_window_l1[0],
-    //   right_window_l1[1],
-    //   right_window_l2[0],
-    //   right_window_l2[1]);
   }
-
-  // // Dumb search of best triplet
-  // for (int i = 0; i < l0_size; ++i) {
-  //   const auto x0 = scifi_hits_x0[l0_start + i];
-
-  //   for (int j = 0; j < l2_size; ++j) {
-  //     const auto x2 = scifi_hits_x0[l2_start + j];
-  //     // const auto partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
-
-  //     const float slope_t1_t3 = (x0 - x2) / (z0 - z2);
-  //     const float delta_slope = fabsf(tx - slope_t1_t3);
-  //     const auto updated_qop = 1.f / (1.f / (p0 + p1 * delta_slope - p2 * delta_slope * delta_slope) + 5.08211e+02f);
-  //     const auto expected_x1 = x0 + slope_t1_t3 * (z1 - z0) + 0.02528f + 13624.f * updated_qop;
-
-  //     for (int k = 0; k < l1_size; ++k) {
-  //       const auto x1 = scifi_hits_x0[l1_start + k];
-  //       const auto chi2 = fabsf(expected_x1 - x1);
-
-  //       if (chi2 < LookingForward::chi2_max_triplet_single) {
-  //         best_combined.push_back(CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j});
-  //       }
-  //     }
-  //   }
-  // }
 
   std::sort(
     best_combined.begin(), best_combined.end(), [](const CombinedTripletValue& a, const CombinedTripletValue& b) {

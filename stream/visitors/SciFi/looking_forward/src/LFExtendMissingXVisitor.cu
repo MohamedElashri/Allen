@@ -16,7 +16,13 @@ void SequenceVisitor::visit<lf_extend_missing_x_t>(
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_atomics_velo>(),
+    arguments.offset<dev_velo_track_hit_number>(),
+    arguments.offset<dev_velo_states>(),
     arguments.offset<dev_atomics_ut>(),
+    arguments.offset<dev_ut_track_hit_number>(),
+    arguments.offset<dev_ut_track_velo_indices>(),
+    arguments.offset<dev_ut_qop>(),
     arguments.offset<dev_scifi_lf_tracks>(),
     arguments.offset<dev_scifi_lf_atomics>(),
     constants.dev_scifi_geometry,
