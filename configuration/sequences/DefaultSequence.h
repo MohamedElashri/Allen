@@ -47,12 +47,15 @@ SEQUENCE_T(
   
   lf_calculate_parametrization_t,
   lf_extend_missing_x_t,
+  // lf_quality_filter_collected_hits_t,
   lf_quality_filter_x_t,
   lf_search_uv_windows_t,
   lf_extend_tracks_uv_t,
+
   lf_quality_filter_length_t,
-  lf_fit_t,
+  // lf_fit_t,
   lf_quality_filter_t,
+  
   copy_and_prefix_sum_single_block_scifi_t,
   copy_scifi_track_hit_number_t,
   prefix_sum_scifi_track_hit_number_t,

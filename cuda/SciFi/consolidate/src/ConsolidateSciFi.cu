@@ -52,18 +52,23 @@ __global__ void consolidate_scifi_tracks(
     scifi_tracks.ut_track[i] = event_scifi_tracks[i].ut_track_index;
     scifi_tracks.qop[i] = event_scifi_tracks[i].qop;
     const uint original_track = event_scifi_selected_track_indices[i];
-    const float* trackParams = dev_scifi_lf_track_params +
-                               ut_event_tracks_offset *
-                                 LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter *
-                                 SciFi::Tracking::nTrackParams +
-                               original_track * SciFi::Tracking::nTrackParams;
-    MiniState scifi_state(
-      LookingForward::x_at_end_scifi(trackParams),
-      LookingForward::y_at_end_scifi(trackParams),
-      SciFi::Constants::ZEndT,
-      LookingForward::tx_at_end_scifi(trackParams),
-      LookingForward::ty_at_end_scifi(trackParams));
-    scifi_tracks.states[i] = scifi_state;
+    
+    // TODO: Use the track parameters in X
+    //       and calculate those in UV
+    //       to be able to fill this in
+    // const float* trackParams = dev_scifi_lf_track_params +
+    //                            ut_event_tracks_offset *
+    //                              LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter *
+    //                              SciFi::Tracking::nTrackParams +
+    //                            original_track * SciFi::Tracking::nTrackParams;
+    // MiniState scifi_state(
+    //   LookingForward::x_at_end_scifi(trackParams),
+    //   LookingForward::y_at_end_scifi(trackParams),
+    //   SciFi::Constants::ZEndT,
+    //   LookingForward::tx_at_end_scifi(trackParams),
+    //   LookingForward::ty_at_end_scifi(trackParams));
+    // scifi_tracks.states[i] = scifi_state;
+    
     SciFi::Consolidated::Hits consolidated_hits =
       scifi_tracks.get_hits(dev_scifi_consolidated_hits, i, &scifi_geometry, dev_inv_clus_res);
     SciFi::TrackHits track = event_scifi_tracks[i];

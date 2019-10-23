@@ -1,7 +1,7 @@
 #include "LFTrackQuality.cuh"
 
 __device__ float lf_track_quality(
-  SciFi::TrackHits& track,
+  const SciFi::TrackHits& track,
   const MiniState& velo_state,
   const float VeloUT_qOverP,
   const float* trackParams,
@@ -44,7 +44,7 @@ __device__ float lf_track_quality(
     mlpInput[6] = ay - ay1;
 
     quality = GetMvaValue(mlpInput, tmva1);
-    track.qop = qOverP;
+    // track.qop = qOverP;
   }
 
   return quality;

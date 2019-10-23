@@ -91,7 +91,7 @@ __global__ void lf_extend_missing_x(
 
         // Pick the best, according to chi2
         int best_index = -1;
-        float best_chi2 = 16.f;
+        float best_chi2 = 4.f;
 
         const auto scifi_hits_x0 = scifi_hits.x0 + event_offset + window_start;
         for (int h4_rel = 0; h4_rel < window_size; h4_rel++) {

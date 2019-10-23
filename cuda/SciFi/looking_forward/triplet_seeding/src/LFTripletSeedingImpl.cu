@@ -57,7 +57,7 @@ __device__ void lf_triplet_seeding_impl(
   const auto do_sign_check = fabsf(qop) > (1.f / do_sign_check_momentum_threshold);
 
   constexpr int extreme_layers_window_size = 32;
-  constexpr int middle_layer_window_size = 64;
+  constexpr int middle_layer_window_size = 48;
 
   const int central_window_l0_begin = max(l0_extrapolated - extreme_layers_window_size / 2, 0);
   const int central_window_l0_end = min(central_window_l0_begin + extreme_layers_window_size, l0_size);
@@ -80,8 +80,9 @@ __device__ void lf_triplet_seeding_impl(
       // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) / (z0 - z2);
       const auto delta_slope = fabsf(tx - slope_t1_t3);
-      const auto updated_qop = 1.f / (1.f / (p0 + p1 * delta_slope - p2 * delta_slope * delta_slope) + 5.08211e+02f);
-      const auto expected_x1 = x0 + slope_t1_t3 * (z1 - z0) + 0.02528f + 13624.f * updated_qop;
+      const auto eq = p0 + p1 * delta_slope - p2 * delta_slope * delta_slope;
+      const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
+      const auto precalc_expected_x1 = x0 - slope_t1_t3 * z0 + 0.02528f + 13624.f * updated_qop;
 
       const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
       const auto x_at_z_magnet_diff = fabsf(
@@ -94,6 +95,7 @@ __device__ void lf_triplet_seeding_impl(
       if (x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes)) {
         for (int k = central_window_l1_begin; k < central_window_l1_end; ++k) {
           const auto x1 = scifi_hits_x0[l1_start + k];
+          const auto expected_x1 = precalc_expected_x1 + z1 * slope_t1_t3;
           const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
 
           if (chi2 < best_combined[k - central_window_l1_begin].chi2) {
@@ -139,7 +141,7 @@ __device__ void lf_triplet_seeding_impl(
         (uint16_t) layer_0,
         (uint16_t) layer_1,
         (uint16_t) layer_2,
-        best_combo.chi2,
+        0.f,
         LookingForward::qop_update_multi_par(
           *ut_state, scifi_hits_x0[h0], z0, scifi_hits_x0[h1], z1, l1_station, dev_looking_forward_constants),
         (uint16_t) number_of_ut_track};

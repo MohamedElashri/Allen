@@ -69,7 +69,7 @@ namespace LookingForward {
 
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.05f;
-  constexpr int track_min_hits = 9;
+  constexpr int track_min_hits = 10;
   constexpr float filter_x_max_xAtRef_spread = 10.f;
 
   // z at the center of the magnet
