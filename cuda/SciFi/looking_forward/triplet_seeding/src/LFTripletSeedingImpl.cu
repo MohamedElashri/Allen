@@ -33,6 +33,8 @@ __device__ void lf_triplet_seeding_impl(
     printf("---- Seeding of event %i with x layers {%i, %i, %i} ----\n", blockIdx.x, layer_0, layer_1, layer_2);
   }
 
+  const auto inverse_dz2 = 1.f / (z0 - z2);
+
   // Extrapolation: Renato's extrapolation
   const auto tx = velo_state.tx;
   constexpr float p0 = -2.1156e-07f;
@@ -78,7 +80,7 @@ __device__ void lf_triplet_seeding_impl(
       const auto x2 = scifi_hits_x0[l2_start + j];
 
       // Extrapolation
-      const auto slope_t1_t3 = (x0 - x2) / (z0 - z2);
+      const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
       const auto delta_slope = fabsf(tx - slope_t1_t3);
       const auto eq = p0 + p1 * delta_slope - p2 * delta_slope * delta_slope;
       const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
@@ -127,11 +129,16 @@ __device__ void lf_triplet_seeding_impl(
   for (int i = 0; i < maximum_number_of_candidates_per_ut_track_half; ++i) {
     const auto best_combo = best_combined_array[i];
     if (best_combo.h0 != -1) {
+      const int insert_index = atomicAdd(atomics_scifi, 1);
+      
       const auto h0 = l0_start + best_combo.h0;
       const auto h1 = l1_start + best_combo.h1;
       const auto h2 = l2_start + best_combo.h2;
 
-      const int insert_index = atomicAdd(atomics_scifi, 1);
+      const auto slope_t1_t3 = (scifi_hits_x0[h0] - scifi_hits_x0[h2]) * inverse_dz2;
+      const auto delta_slope = fabsf(tx - slope_t1_t3);
+      const auto eq = p0 + p1 * delta_slope - p2 * delta_slope * delta_slope;
+      const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
 
       const auto l1_station = layer_1 / 2;
       const auto track = SciFi::TrackHits {
@@ -142,9 +149,9 @@ __device__ void lf_triplet_seeding_impl(
         (uint16_t) layer_1,
         (uint16_t) layer_2,
         0.f,
-        LookingForward::qop_update_multi_par(
-          *ut_state, scifi_hits_x0[h0], z0, scifi_hits_x0[h1], z1, l1_station, dev_looking_forward_constants),
+        updated_qop,
         (uint16_t) number_of_ut_track};
+
       scifi_tracks[insert_index] = track;
 
       if (Configuration::verbosity_level >= logger::debug) {
