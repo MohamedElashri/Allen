@@ -15,9 +15,9 @@ struct CombinedTripletValue {
 
 __device__ void lf_triplet_seeding_impl(
   const float* scifi_hits_x0,
-  const uint layer_0,
-  const uint layer_1,
-  const uint layer_2,
+  const int layer_0,
+  const int layer_1,
+  const int layer_2,
   const int l0_start,
   const int l1_start,
   const int l2_start,
@@ -32,10 +32,11 @@ __device__ void lf_triplet_seeding_impl(
   const float z2,
   const float qop,
   const MiniState* ut_state,
-  float* shared_partial_chi2,
+  float* shared_precalc_expected_x1,
   SciFi::TrackHits* scifi_tracks,
   uint* atomics_scifi,
   const LookingForward::Constants* dev_looking_forward_constants,
   const uint number_of_ut_track,
   const uint number_of_seeds,
-  const MiniState& velo_state);
+  const MiniState& velo_state,
+  SciFi::CombinedValue* scifi_lf_triplet_best);

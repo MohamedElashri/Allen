@@ -39,21 +39,16 @@ SEQUENCE_T(
   scifi_pre_decode_v4_t,
   scifi_raw_bank_decoder_v4_t,
   scifi_direct_decoder_v4_t,
+
   lf_search_initial_windows_t,
   lf_triplet_seeding_t,
-
-  // lf_triplet_keep_best_t,
-  // lf_extend_tracks_x_t,
-  
+  lf_triplet_keep_best_t,
   lf_calculate_parametrization_t,
   lf_extend_missing_x_t,
-  // lf_quality_filter_collected_hits_t,
   lf_quality_filter_x_t,
   lf_search_uv_windows_t,
   lf_extend_tracks_uv_t,
-
   lf_quality_filter_length_t,
-  // lf_fit_t,
   lf_quality_filter_t,
   
   copy_and_prefix_sum_single_block_scifi_t,

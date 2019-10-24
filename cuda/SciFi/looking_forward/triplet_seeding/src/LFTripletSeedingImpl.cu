@@ -4,9 +4,9 @@
 
 __device__ void lf_triplet_seeding_impl(
   const float* scifi_hits_x0,
-  const uint layer_0,
-  const uint layer_1,
-  const uint layer_2,
+  const int layer_0,
+  const int layer_1,
+  const int layer_2,
   const int l0_start,
   const int l1_start,
   const int l2_start,
@@ -21,17 +21,24 @@ __device__ void lf_triplet_seeding_impl(
   const float z2,
   const float qop,
   const MiniState* ut_state,
-  float* shared_partial_chi2,
+  float* shared_precalc_expected_x1,
   SciFi::TrackHits* scifi_tracks,
   uint* atomics_scifi,
   const LookingForward::Constants* dev_looking_forward_constants,
   const uint number_of_ut_track,
   const uint number_of_seeds,
-  const MiniState& velo_state)
+  const MiniState& velo_state,
+  SciFi::CombinedValue* scifi_lf_triplet_best)
 {
-  if (Configuration::verbosity_level >= logger::debug) {
-    printf("---- Seeding of event %i with x layers {%i, %i, %i} ----\n", blockIdx.x, layer_0, layer_1, layer_2);
-  }
+  // if (Configuration::verbosity_level >= logger::debug) {
+  //   printf(
+  //     "---- Seeding of event %i, UT track %i with x layers {%i, %i, %i} ----\n",
+  //     blockIdx.x,
+  //     number_of_ut_track,
+  //     layer_0,
+  //     layer_1,
+  //     layer_2);
+  // }
 
   const auto inverse_dz2 = 1.f / (z0 - z2);
 
@@ -48,26 +55,32 @@ __device__ void lf_triplet_seeding_impl(
 
   const auto do_sign_check = fabsf(qop) > (1.f / LookingForward::sign_check_momentum_threshold);
 
-  constexpr int extreme_layers_window_size = 32;
-  constexpr int middle_layer_window_size = 48;
+  const int central_window_l0_begin = max(l0_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
+  const int central_window_l0_end = min(central_window_l0_begin + LookingForward::extreme_layers_window_size, l0_size);
+  const int central_window_l1_begin = max(l1_extrapolated - LookingForward::middle_layer_window_size / 2, 0);
+  const int central_window_l1_end = min(central_window_l1_begin + LookingForward::middle_layer_window_size, l1_size);
+  const int central_window_l2_begin = max(l2_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
+  const int central_window_l2_end = min(central_window_l2_begin + LookingForward::extreme_layers_window_size, l2_size);
 
-  const int central_window_l0_begin = max(l0_extrapolated - extreme_layers_window_size / 2, 0);
-  const int central_window_l0_end = min(central_window_l0_begin + extreme_layers_window_size, l0_size);
-  const int central_window_l1_begin = max(l1_extrapolated - middle_layer_window_size / 2, 0);
-  const int central_window_l1_end = min(central_window_l1_begin + middle_layer_window_size, l1_size);
-  const int central_window_l2_begin = max(l2_extrapolated - extreme_layers_window_size / 2, 0);
-  const int central_window_l2_end = min(central_window_l2_begin + extreme_layers_window_size, l2_size);
+  // Due to shared_precalc_expected_x1
+  __syncthreads();
 
-  // std::vector<CombinedTripletValue> best_combined;
-  CombinedTripletValue best_combined[middle_layer_window_size];
-  CombinedTripletValue best_combined_second[middle_layer_window_size];
+  for (int i = threadIdx.x; i < 32 * 32; i += blockDim.x) {
+    shared_precalc_expected_x1[i] = 100000.f;
+  }
+
+  // Due to shared_precalc_expected_x1
+  __syncthreads();
 
   // Treat central window iteration
-  for (int i = central_window_l0_begin; i < central_window_l0_end; ++i) {
-    const auto x0 = scifi_hits_x0[l0_start + i];
+  for (uint h0_rel = 0; h0_rel < central_window_l0_end - central_window_l0_begin; ++h0_rel) {
+    const auto x0 = scifi_hits_x0[l0_start + central_window_l0_begin + h0_rel];
 
-    for (int j = central_window_l2_begin; j < central_window_l2_end; ++j) {
-      const auto x2 = scifi_hits_x0[l2_start + j];
+    // Due to shared_precalc_expected_x1
+    __syncthreads();
+
+    for (uint h2_rel = 0; h2_rel < central_window_l2_end - central_window_l2_begin; ++h2_rel) {
+      const auto x2 = scifi_hits_x0[l2_start + central_window_l2_begin + h2_rel];
 
       // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
@@ -85,71 +98,57 @@ __device__ void lf_triplet_seeding_impl(
          LookingForward::x_at_z_p3 * slope_t1_t3 * slope_t1_t3 * slope_t1_t3));
 
       const auto equal_signs_in_slopes = signbit(slope_t1_t3 - tx) == signbit(ut_state->tx - tx);
+      const bool process_element =
+        x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes);
 
-      if (x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes)) {
-        for (int k = central_window_l1_begin; k < central_window_l1_end; ++k) {
-          const auto x1 = scifi_hits_x0[l1_start + k];
-          const auto expected_x1 = precalc_expected_x1 + z1 * slope_t1_t3;
-          const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
+      shared_precalc_expected_x1[h0_rel + h2_rel* 32] = process_element ? precalc_expected_x1 + z1 * slope_t1_t3 : 100000.f;
+    }
 
-          if (chi2 < best_combined[k - central_window_l1_begin].chi2) {
-            best_combined_second[k - central_window_l1_begin] = best_combined[k - central_window_l1_begin];
-            best_combined[k - central_window_l1_begin] =
-              CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
-          }
-          else if (chi2 < best_combined_second[k - central_window_l1_begin].chi2) {
-            best_combined_second[k - central_window_l1_begin] =
-              CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
-          }
+    // Due to shared_precalc_expected_x1
+    __syncthreads();
+
+    for (uint h1_rel = threadIdx.x; h1_rel < central_window_l1_end - central_window_l1_begin; h1_rel += blockDim.x) {
+      const auto l1_element = central_window_l1_begin + h1_rel;
+
+      int best_index = -1;
+      float best_chi2 = 100.f;
+
+      const auto x1 = scifi_hits_x0[l1_start + l1_element];
+
+      // Iterate all elements in shared_precalc_expected_x1
+      for (uint k = threadIdx.x; k < 32 * 32; ++k) {
+        // Note: For this, we would need to save the slope_t1_t3 as well
+        // const auto expected_x1 = precalc_expected_x1 + z1 * slope_t1_t3;
+        const auto expected_x1 = shared_precalc_expected_x1[k];
+        const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
+
+        if (chi2 < best_chi2) {
+          best_index = k;
+          best_chi2 = chi2;
         }
       }
-    }
-  }
 
-  std::array<CombinedTripletValue, 2 * middle_layer_window_size> best_combined_array;
-  for (uint i = 0; i < middle_layer_window_size; ++i) {
-    best_combined_array[i] = best_combined[i];
-    best_combined_array[middle_layer_window_size + i] = best_combined_second[i];
-  }
+      if (best_index != -1 && best_chi2 < scifi_lf_triplet_best[h1_rel].chi2) {
+        // printf(
+        //   "Best seed for h1_rel : %i, %f; better than %f\n",
+        //   h1_rel,
+        //   best_index,
+        //   best_chi2,
+        //   scifi_lf_triplet_best[h1_rel].chi2);
 
-  std::sort(
-    best_combined_array.begin(),
-    best_combined_array.end(),
-    [](const CombinedTripletValue& a, const CombinedTripletValue& b) { return a.chi2 < b.chi2; });
-
-  constexpr int maximum_number_of_candidates_per_ut_track_half = 20;
-
-  // Note: LookingForward::maximum_number_of_candidates_per_ut_track / number of seeds is the maximum that can be stored
-  for (int i = 0; i < maximum_number_of_candidates_per_ut_track_half; ++i) {
-    const auto best_combo = best_combined_array[i];
-    if (best_combo.h0 != -1) {
-      const int insert_index = atomicAdd(atomics_scifi, 1);
-
-      const auto h0 = l0_start + best_combo.h0;
-      const auto h1 = l1_start + best_combo.h1;
-      const auto h2 = l2_start + best_combo.h2;
-
-      const auto slope_t1_t3 = (scifi_hits_x0[h0] - scifi_hits_x0[h2]) * inverse_dz2;
-      const auto delta_slope = fabsf(tx - slope_t1_t3);
-      const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope - LookingForward::qop_p2 * delta_slope * delta_slope;
-      const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
-
-      const auto l1_station = layer_1 / 2;
-      const auto track = SciFi::TrackHits {h0,
-                                           h1,
-                                           h2,
-                                           (uint16_t) layer_0,
-                                           (uint16_t) layer_1,
-                                           (uint16_t) layer_2,
-                                           0.f,
-                                           updated_qop,
-                                           (uint16_t) number_of_ut_track};
-
-      scifi_tracks[insert_index] = track;
-
-      if (Configuration::verbosity_level >= logger::debug) {
-        track.print(blockIdx.x);
+        scifi_lf_triplet_best[h1_rel] =
+          SciFi::CombinedValue {best_chi2, (int16_t)(best_index % 32), (int16_t)(best_index / 32)};
       }
+
+      // if (chi2 < best_combined[k - central_window_l1_begin].chi2) {
+      //   best_combined_second[k - central_window_l1_begin] = best_combined[k - central_window_l1_begin];
+      //   best_combined[k - central_window_l1_begin] =
+      //     CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
+      // }
+      // else if (chi2 < best_combined_second[k - central_window_l1_begin].chi2) {
+      //   best_combined_second[k - central_window_l1_begin] =
+      //     CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
+      // }
     }
   }
 }

@@ -67,6 +67,12 @@ __global__ void lf_quality_filter_x(
           insert_index;
         const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
 
+        if (Configuration::verbosity_level >= logger::debug) {
+          if (blockIdx.x == 0) {
+            track.print(event_number);
+          }
+        }
+        
         // Save track and xAtRef
         dev_scifi_lf_x_filtered_tracks[scifi_track_index_new] = track;
 

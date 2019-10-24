@@ -20,7 +20,7 @@ __global__ void lf_triplet_seeding(
   SciFi::TrackHits* dev_scifi_tracks,
   uint* dev_atomics_scifi)
 {
-  __shared__ float shared_partial_chi2[LookingForward::tile_size * LookingForward::tile_size];
+  __shared__ float shared_precalc_expected_x1[32 * 32];
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -49,32 +49,21 @@ __global__ void lf_triplet_seeding(
   const SciFi::Hits scifi_hits {dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
 
-  constexpr int number_of_seeds = 4;
+  constexpr int number_of_seeds = 2;
   uint triplet_seeding_layers[number_of_seeds][3] {
     {0, 2, 4},
-    // {0, 3, 4},
-    // {1, 2, 5},
     {1, 3, 5}
-    // ,
-    // {0, 3, 4},
-    // {1, 2, 5},
-    // {1, 3, 5}
-
-    // {0, 2, 5},
-    // {1, 3, 4}
   };
 
   for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
-    // const auto velo_track_index = ut_tracks.velo_track[i];
-    const auto velo_track_index = dev_ut_track_velo_indices[current_ut_track_index];
+    const auto velo_track_index = ut_tracks.velo_track[i];
+    // const auto velo_track_index = dev_ut_track_velo_indices[current_ut_track_index];
     const auto qop = dev_ut_qop[current_ut_track_index];
     const int* initial_windows = dev_initial_windows + current_ut_track_index;
     
     const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
-
-    std::vector<CombinedTripletValue> best_combined;
 
     for (uint triplet_seed = 0; triplet_seed < number_of_seeds; ++triplet_seed) {
       const auto layer_0 = triplet_seeding_layers[triplet_seed][0];
@@ -116,13 +105,15 @@ __global__ void lf_triplet_seeding(
         z2,
         qop,
         dev_ut_states + current_ut_track_index,
-        shared_partial_chi2,
+        shared_precalc_expected_x1,
         dev_scifi_tracks + current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track,
         dev_atomics_scifi + current_ut_track_index,
         dev_looking_forward_constants,
         i,
         number_of_seeds,
-        velo_state);
+        velo_state,
+        dev_scifi_lf_triplet_best + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
+                              LookingForward::maximum_number_of_triplets_per_seed);
     }
   }
 }

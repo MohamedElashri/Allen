@@ -57,15 +57,21 @@ namespace LookingForward {
   // ==================================
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
-  constexpr int maximum_number_of_candidates = 16;
-  constexpr int maximum_number_of_candidates_per_ut_track = 40;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 40;
-  constexpr int maximum_number_of_triplets_per_h1 = 2;
+  
+  constexpr int extreme_layers_window_size = 32;
+  constexpr int middle_layer_window_size = 32;
+
+  constexpr int maximum_number_of_triplets_per_h1 = 1;
+  constexpr int maximum_number_of_triplets_per_seed = 32;
   constexpr int n_threads_triplet_seeding = 32;
   constexpr int n_triplet_seeds = 2;
-  constexpr int tile_size = 16;
-  constexpr int tile_size_mask = 0xF;
-  constexpr int tile_size_shift_div = 4;
+  constexpr int tile_size = 32;
+  
+  // Deprecated
+  constexpr int maximum_number_of_candidates = maximum_number_of_triplets_per_seed;
+
+  constexpr int maximum_number_of_candidates_per_ut_track = 40;
+  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 40;
 
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.05f;
@@ -145,12 +151,6 @@ namespace LookingForward {
     uint8_t triplet_seeding_layers[n_triplet_seeds][3] {
       {0, 2, 4},
       {1, 3, 5}
-      // {2, 3, 4},
-      // {3, 4, 5}
-      // {0, 2, 4},
-      // {0, 3, 5},
-      // {1, 3, 4},
-      // {1, 2, 5}
     };
 
     // Extrapolation
