@@ -135,15 +135,12 @@ __global__ void lf_triplet_keep_best(
 
         const int l0_start = initial_windows[(layer_0 * 8) * ut_total_number_of_tracks];
         const int l0_extrapolated = initial_windows[(layer_0 * 8 + 4) * ut_total_number_of_tracks];
-        const int l0_size = initial_windows[(layer_0 * 8 + 1) * ut_total_number_of_tracks];
-
+        
         const int l1_start = initial_windows[(layer_1 * 8) * ut_total_number_of_tracks];
         const int l1_extrapolated = initial_windows[(layer_1 * 8 + 4) * ut_total_number_of_tracks];
-        const int l1_size = initial_windows[(layer_1 * 8 + 1) * ut_total_number_of_tracks];
 
         const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
         const int l2_extrapolated = initial_windows[(layer_2 * 8 + 4) * ut_total_number_of_tracks];
-        const int l2_size = initial_windows[(layer_2 * 8 + 1) * ut_total_number_of_tracks];
 
         const int central_window_l0_begin = max(l0_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
         const int central_window_l1_begin = max(l1_extrapolated - LookingForward::middle_layer_window_size / 2, 0);

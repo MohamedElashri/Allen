@@ -73,40 +73,37 @@ __device__ void lf_triplet_seeding_impl(
   __syncthreads();
 
   // Treat central window iteration
-  for (uint h0_rel = 0; h0_rel < central_window_l0_size; ++h0_rel) {
+  for (uint k = threadIdx.x; k < central_window_l0_size * central_window_l2_size; k += blockDim.x) {
+    const auto h0_rel = k % central_window_l0_size;
+    const auto h2_rel = k / central_window_l0_size;
+
     const auto x0 = scifi_hits_x0[l0_start + central_window_l0_begin + h0_rel];
+    const auto x2 = scifi_hits_x0[l2_start + central_window_l2_begin + h2_rel];
 
-    // Due to shared_precalc_expected_x1
-    __syncthreads();
+    // Extrapolation
+    const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
+    const auto delta_slope = fabsf(tx - slope_t1_t3);
+    const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope -
+                    LookingForward::qop_p2 * delta_slope * delta_slope;
+    const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
+    const auto precalc_expected_x1 = x0 - slope_t1_t3 * z0 + 0.02528f + 13624.f * updated_qop;
 
-    for (uint h2_rel = 0; h2_rel < central_window_l2_size; ++h2_rel) {
-      const auto x2 = scifi_hits_x0[l2_start + central_window_l2_begin + h2_rel];
+    const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
+    const auto x_at_z_magnet_diff = fabsf(
+      track_x_at_z_magnet - x_at_z_magnet -
+      (LookingForward::x_at_z_p0 + LookingForward::x_at_z_p1 * slope_t1_t3 +
+       LookingForward::x_at_z_p2 * slope_t1_t3 * slope_t1_t3 +
+       LookingForward::x_at_z_p3 * slope_t1_t3 * slope_t1_t3 * slope_t1_t3));
 
-      // Extrapolation
-      const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
-      const auto delta_slope = fabsf(tx - slope_t1_t3);
-      const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope -
-                      LookingForward::qop_p2 * delta_slope * delta_slope;
-      const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
-      const auto precalc_expected_x1 = x0 - slope_t1_t3 * z0 + 0.02528f + 13624.f * updated_qop;
+    const auto equal_signs_in_slopes = signbit(slope_t1_t3 - tx) == signbit(ut_state->tx - tx);
+    const bool process_element =
+      x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes);
 
-      const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
-      const auto x_at_z_magnet_diff = fabsf(
-        track_x_at_z_magnet - x_at_z_magnet -
-        (LookingForward::x_at_z_p0 + LookingForward::x_at_z_p1 * slope_t1_t3 +
-         LookingForward::x_at_z_p2 * slope_t1_t3 * slope_t1_t3 +
-         LookingForward::x_at_z_p3 * slope_t1_t3 * slope_t1_t3 * slope_t1_t3));
-
-      const auto equal_signs_in_slopes = signbit(slope_t1_t3 - tx) == signbit(ut_state->tx - tx);
-      const bool process_element =
-        x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes);
-
-      shared_precalc_expected_x1[h0_rel + h2_rel* 32] = process_element ? precalc_expected_x1 + z1 * slope_t1_t3 : 100000.f;
-    }
-
-    // Due to shared_precalc_expected_x1
-    __syncthreads();
+    shared_precalc_expected_x1[h0_rel + h2_rel* 32] = process_element ? precalc_expected_x1 + z1 * slope_t1_t3 : 100000.f;
   }
+
+  // Due to shared_precalc_expected_x1
+  __syncthreads();
 
   for (uint h1_rel = threadIdx.x; h1_rel < central_window_l1_size; h1_rel += blockDim.x) {
     const auto l1_element = central_window_l1_begin + h1_rel;

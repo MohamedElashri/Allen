@@ -13,6 +13,9 @@ void SequenceVisitor::set_arguments_size<consolidate_scifi_tracks_t>(
   arguments.set_size<dev_scifi_qop>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
   arguments.set_size<dev_scifi_track_ut_indices>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
   arguments.set_size<dev_scifi_states>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+
+  // TODO: Deal with dev_scifi_lf_track_params properly
+  arguments.set_size<dev_scifi_lf_track_params>(1);
 }
 
 template<>
