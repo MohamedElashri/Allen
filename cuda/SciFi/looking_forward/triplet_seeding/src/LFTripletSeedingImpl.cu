@@ -37,26 +37,16 @@ __device__ void lf_triplet_seeding_impl(
 
   // Extrapolation: Renato's extrapolation
   const auto tx = velo_state.tx;
-  constexpr float p0 = -2.1156e-07f;
-  constexpr float p1 = 0.000829677f;
-  constexpr float p2 = -0.000174757f;
 
   const auto x_at_z_magnet = velo_state.x + (LookingForward::z_magnet - velo_state.z) * velo_state.tx;
 
-  constexpr float x_at_z_p0 = -0.819493;
-  constexpr float x_at_z_p1 = 19.3897;
-  constexpr float x_at_z_p2 = 16.6874;
-  constexpr float x_at_z_p3 = -375.478;
-
-  constexpr float linear_range_qop_end = 0.0005f;
-  constexpr float x_at_magnet_range[2] {8.f, 40.f};
-
-  const auto qop_range = fabsf(qop) > linear_range_qop_end ? 1.f : fabsf(qop) * (1.f / linear_range_qop_end);
+  const auto qop_range =
+    fabsf(qop) > LookingForward::linear_range_qop_end ? 1.f : fabsf(qop) * (1.f / LookingForward::linear_range_qop_end);
   const auto opening_x_at_z_magnet_diff =
-    x_at_magnet_range[0] + qop_range * (x_at_magnet_range[1] - x_at_magnet_range[0]);
+    LookingForward::x_at_magnet_range_0 +
+    qop_range * (LookingForward::x_at_magnet_range_1 - LookingForward::x_at_magnet_range_0);
 
-  constexpr float do_sign_check_momentum_threshold = 5000.f;
-  const auto do_sign_check = fabsf(qop) > (1.f / do_sign_check_momentum_threshold);
+  const auto do_sign_check = fabsf(qop) > (1.f / LookingForward::sign_check_momentum_threshold);
 
   constexpr int extreme_layers_window_size = 32;
   constexpr int middle_layer_window_size = 48;
@@ -82,15 +72,17 @@ __device__ void lf_triplet_seeding_impl(
       // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
       const auto delta_slope = fabsf(tx - slope_t1_t3);
-      const auto eq = p0 + p1 * delta_slope - p2 * delta_slope * delta_slope;
+      const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope -
+                      LookingForward::qop_p2 * delta_slope * delta_slope;
       const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
       const auto precalc_expected_x1 = x0 - slope_t1_t3 * z0 + 0.02528f + 13624.f * updated_qop;
 
       const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
       const auto x_at_z_magnet_diff = fabsf(
         track_x_at_z_magnet - x_at_z_magnet -
-        (x_at_z_p0 + x_at_z_p1 * slope_t1_t3 + x_at_z_p2 * slope_t1_t3 * slope_t1_t3 +
-         x_at_z_p3 * slope_t1_t3 * slope_t1_t3 * slope_t1_t3));
+        (LookingForward::x_at_z_p0 + LookingForward::x_at_z_p1 * slope_t1_t3 +
+         LookingForward::x_at_z_p2 * slope_t1_t3 * slope_t1_t3 +
+         LookingForward::x_at_z_p3 * slope_t1_t3 * slope_t1_t3 * slope_t1_t3));
 
       const auto equal_signs_in_slopes = signbit(slope_t1_t3 - tx) == signbit(ut_state->tx - tx);
 
@@ -102,10 +94,12 @@ __device__ void lf_triplet_seeding_impl(
 
           if (chi2 < best_combined[k - central_window_l1_begin].chi2) {
             best_combined_second[k - central_window_l1_begin] = best_combined[k - central_window_l1_begin];
-            best_combined[k - central_window_l1_begin] = CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
+            best_combined[k - central_window_l1_begin] =
+              CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
           }
           else if (chi2 < best_combined_second[k - central_window_l1_begin].chi2) {
-            best_combined_second[k - central_window_l1_begin] = CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
+            best_combined_second[k - central_window_l1_begin] =
+              CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
           }
         }
       }
@@ -119,9 +113,9 @@ __device__ void lf_triplet_seeding_impl(
   }
 
   std::sort(
-    best_combined_array.begin(), best_combined_array.end(), [](const CombinedTripletValue& a, const CombinedTripletValue& b) {
-      return a.chi2 < b.chi2;
-    });
+    best_combined_array.begin(),
+    best_combined_array.end(),
+    [](const CombinedTripletValue& a, const CombinedTripletValue& b) { return a.chi2 < b.chi2; });
 
   constexpr int maximum_number_of_candidates_per_ut_track_half = 20;
 
@@ -130,27 +124,26 @@ __device__ void lf_triplet_seeding_impl(
     const auto best_combo = best_combined_array[i];
     if (best_combo.h0 != -1) {
       const int insert_index = atomicAdd(atomics_scifi, 1);
-      
+
       const auto h0 = l0_start + best_combo.h0;
       const auto h1 = l1_start + best_combo.h1;
       const auto h2 = l2_start + best_combo.h2;
 
       const auto slope_t1_t3 = (scifi_hits_x0[h0] - scifi_hits_x0[h2]) * inverse_dz2;
       const auto delta_slope = fabsf(tx - slope_t1_t3);
-      const auto eq = p0 + p1 * delta_slope - p2 * delta_slope * delta_slope;
+      const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope - LookingForward::qop_p2 * delta_slope * delta_slope;
       const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
 
       const auto l1_station = layer_1 / 2;
-      const auto track = SciFi::TrackHits {
-        h0,
-        h1,
-        h2,
-        (uint16_t) layer_0,
-        (uint16_t) layer_1,
-        (uint16_t) layer_2,
-        0.f,
-        updated_qop,
-        (uint16_t) number_of_ut_track};
+      const auto track = SciFi::TrackHits {h0,
+                                           h1,
+                                           h2,
+                                           (uint16_t) layer_0,
+                                           (uint16_t) layer_1,
+                                           (uint16_t) layer_2,
+                                           0.f,
+                                           updated_qop,
+                                           (uint16_t) number_of_ut_track};
 
       scifi_tracks[insert_index] = track;
 

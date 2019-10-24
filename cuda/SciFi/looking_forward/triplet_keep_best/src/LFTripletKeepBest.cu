@@ -3,8 +3,10 @@
 __global__ void lf_triplet_keep_best(
   uint32_t* dev_scifi_hits,
   const uint32_t* dev_scifi_hit_count,
+  const uint* dev_atomics_velo,
+  const char* dev_velo_states,
   const uint* dev_atomics_ut,
-  const MiniState* dev_ut_states,
+  const uint* dev_ut_track_velo_indices,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const short* dev_scifi_lf_candidates,
@@ -22,6 +24,10 @@ __global__ void lf_triplet_keep_best(
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
+  // Velo datatypes
+  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, dev_atomics_velo[2 * number_of_events]};
+  const uint velo_tracks_offset_event = dev_atomics_velo[number_of_events + event_number];
+
   // UT consolidated tracks
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
   const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
@@ -38,6 +44,9 @@ __global__ void lf_triplet_keep_best(
     const auto scifi_lf_candidates = dev_scifi_lf_candidates + current_ut_track_index *
                                                                  LookingForward::number_of_x_layers *
                                                                  LookingForward::maximum_number_of_candidates;
+    const auto velo_track_index = dev_ut_track_velo_indices[current_ut_track_index];
+    const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
+    const auto velo_tx = velo_states.tx[velo_states_index];
 
     // Initialize shared memory buffers
     __syncthreads();
@@ -125,9 +134,14 @@ __global__ void lf_triplet_keep_best(
           (uint16_t) scifi_lf_candidates[layer_2 * LookingForward::maximum_number_of_candidates + combined_element.h2];
 
         const float x0 = scifi_hits.x0[event_offset + h0];
-        const float x1 = scifi_hits.x0[event_offset + h1];
+        const float x2 = scifi_hits.x0[event_offset + h2];
         const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
-        const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_1];
+        const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_2];
+
+        const auto slope_t1_t3 = (x0 - x2) / (z0 - z2);
+        const auto delta_slope = fabsf(velo_tx - slope_t1_t3);
+        const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope - LookingForward::qop_p2 * delta_slope * delta_slope;
+        const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
 
         dev_scifi_tracks
           [current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + current_insert_index] =
@@ -138,9 +152,8 @@ __global__ void lf_triplet_keep_best(
               (uint16_t) layer_0,
               (uint16_t) layer_1,
               (uint16_t) layer_2,
-              best_chi2[k],
-              LookingForward::qop_update_multi_par(
-                dev_ut_states[current_ut_track_index], x0, z0, x1, z1, layer_1, dev_looking_forward_constants),
+              0.f,
+              updated_qop,
               i};
       }
     }

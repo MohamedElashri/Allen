@@ -36,7 +36,6 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_track_hit_number>(),
     arguments.offset<dev_velo_states>(),
     arguments.offset<dev_atomics_ut>(),
     arguments.offset<dev_ut_track_hit_number>(),

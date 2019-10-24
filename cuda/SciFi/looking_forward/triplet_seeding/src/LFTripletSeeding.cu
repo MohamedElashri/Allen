@@ -6,7 +6,6 @@ __global__ void lf_triplet_seeding(
   uint32_t* dev_scifi_hits,
   const uint32_t* dev_scifi_hit_count,
   const uint* dev_atomics_velo,
-  const uint* dev_velo_track_hit_number,
   const char* dev_velo_states,
   const uint* dev_atomics_ut,
   const uint* dev_ut_track_hit_number,
@@ -27,10 +26,8 @@ __global__ void lf_triplet_seeding(
   const uint event_number = blockIdx.x;
 
   // Velo consolidated types
-  const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
-  const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, dev_atomics_velo[2 * number_of_events]};
+  const uint velo_tracks_offset_event = dev_atomics_velo[number_of_events + event_number];
 
   // UT consolidated tracks
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
@@ -69,7 +66,8 @@ __global__ void lf_triplet_seeding(
 
   for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
-    const auto velo_track_index = ut_tracks.velo_track[i];
+    // const auto velo_track_index = ut_tracks.velo_track[i];
+    const auto velo_track_index = dev_ut_track_velo_indices[current_ut_track_index];
     const auto qop = dev_ut_qop[current_ut_track_index];
     const int* initial_windows = dev_initial_windows + current_ut_track_index;
     

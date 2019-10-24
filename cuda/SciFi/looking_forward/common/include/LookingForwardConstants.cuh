@@ -96,6 +96,25 @@ namespace LookingForward {
   // Constants for various parametrizations
   // ======================================
 
+  // qop update parametrization
+  constexpr float qop_p0 = -2.1156e-07f;
+  constexpr float qop_p1 = 0.000829677f;
+  constexpr float qop_p2 = -0.000174757f;
+
+  // x at z parametrization
+  constexpr float x_at_z_p0 = -0.819493;
+  constexpr float x_at_z_p1 = 19.3897;
+  constexpr float x_at_z_p2 = 16.6874;
+  constexpr float x_at_z_p3 = -375.478;
+
+  // Linear range qop setup
+  constexpr float linear_range_qop_end = 0.0005f;
+  constexpr float x_at_magnet_range_0 = 8.f;
+  constexpr float x_at_magnet_range_1 = 40.f;
+
+  // Sign check momentum threshold
+  constexpr float sign_check_momentum_threshold = 5000.f;
+
   // Reference z plane
   constexpr float z_mid_t = 8520.f * Gaudi::Units::mm;
 
