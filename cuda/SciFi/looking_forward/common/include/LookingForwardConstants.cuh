@@ -62,7 +62,7 @@ namespace LookingForward {
   constexpr int middle_layer_window_size = 32;
 
   constexpr int maximum_number_of_triplets_per_h1 = 1;
-  constexpr int maximum_number_of_triplets_per_seed = 32;
+  constexpr int maximum_number_of_triplets_per_seed = 64;
   constexpr int n_threads_triplet_seeding = 32;
   constexpr int n_triplet_seeds = 2;
   constexpr int tile_size = 32;

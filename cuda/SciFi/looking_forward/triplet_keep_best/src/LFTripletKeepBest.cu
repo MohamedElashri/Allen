@@ -16,8 +16,7 @@ __global__ void lf_triplet_keep_best(
   const int* dev_initial_windows)
 {
   // Keep best for each h1 hit
-  __shared__ float best_chi2
-    [LookingForward::n_triplet_seeds * LookingForward::maximum_number_of_triplets_per_seed];
+  __shared__ float best_chi2[LookingForward::n_triplet_seeds * LookingForward::maximum_number_of_triplets_per_seed];
   __shared__ int16_t best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
 
   const uint number_of_events = gridDim.x;
@@ -50,16 +49,13 @@ __global__ void lf_triplet_keep_best(
 
     // Initialize the best_ shared memory buffers
     for (uint8_t triplet_seed = 0; triplet_seed < LookingForward::n_triplet_seeds; ++triplet_seed) {
-      for (uint16_t j = threadIdx.x;
-           j < LookingForward::maximum_number_of_triplets_per_seed;
-           j += blockDim.x) {
-        best_chi2
-          [triplet_seed * LookingForward::maximum_number_of_triplets_per_seed +
-           j] = dev_scifi_lf_triplet_best
-                  [(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-                     LookingForward::maximum_number_of_triplets_per_seed +
-                   j]
-                    .chi2;
+      for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_triplets_per_seed; j += blockDim.x) {
+        best_chi2[triplet_seed * LookingForward::maximum_number_of_triplets_per_seed + j] =
+          dev_scifi_lf_triplet_best
+            [(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
+               LookingForward::maximum_number_of_triplets_per_seed +
+             j]
+              .chi2;
       }
     }
 
@@ -72,7 +68,8 @@ __global__ void lf_triplet_keep_best(
 
     // Now, we have the best candidates populated in best_chi2 and best_h0h2
     // Sort the candidates (insertion sort) into best_triplets
-    for (uint16_t j = threadIdx.x; j < LookingForward::n_triplet_seeds * LookingForward::maximum_number_of_triplets_per_seed;
+    for (uint16_t j = threadIdx.x;
+         j < LookingForward::n_triplet_seeds * LookingForward::maximum_number_of_triplets_per_seed;
          j += blockDim.x) {
       const float chi2 = best_chi2[j];
       if (chi2 < LookingForward::chi2_max_triplet_single) {
@@ -96,11 +93,11 @@ __global__ void lf_triplet_keep_best(
 
     if (Configuration::verbosity_level >= logger::debug) {
       // if (event_number == 0 && i == 0) {
-        printf("Best triplets: ");
-        for (uint j = 0; j < LookingForward::maximum_number_of_candidates_per_ut_track; ++j) {
-          printf(" %i,", best_triplets[j]);
-        }
-        printf("\n");
+      printf("Best triplets: ");
+      for (uint j = 0; j < LookingForward::maximum_number_of_candidates_per_ut_track; ++j) {
+        printf(" %i,", best_triplets[j]);
+      }
+      printf("\n");
       // }
     }
 
@@ -109,13 +106,9 @@ __global__ void lf_triplet_keep_best(
       const auto k = best_triplets[j];
       if (k != -1) {
 
-        const auto triplet_seed =
-          k / (LookingForward::maximum_number_of_triplets_per_seed);
+        const auto triplet_seed = k / (LookingForward::maximum_number_of_triplets_per_seed);
 
-        const auto triplet_element =
-          k % (LookingForward::maximum_number_of_triplets_per_seed);
-
-        const auto h1_element = k % LookingForward::maximum_number_of_triplets_per_seed;
+        const auto triplet_element = k % (LookingForward::maximum_number_of_triplets_per_seed);
 
         const auto combined_element = dev_scifi_lf_triplet_best
           [(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
@@ -133,25 +126,8 @@ __global__ void lf_triplet_keep_best(
         const auto layer_1 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1];
         const auto layer_2 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
 
-        const int l0_start = initial_windows[(layer_0 * 8) * ut_total_number_of_tracks];
-        const int l0_extrapolated = initial_windows[(layer_0 * 8 + 4) * ut_total_number_of_tracks];
-        
-        const int l1_start = initial_windows[(layer_1 * 8) * ut_total_number_of_tracks];
-        const int l1_extrapolated = initial_windows[(layer_1 * 8 + 4) * ut_total_number_of_tracks];
-
-        const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
-        const int l2_extrapolated = initial_windows[(layer_2 * 8 + 4) * ut_total_number_of_tracks];
-
-        const int central_window_l0_begin = max(l0_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-        const int central_window_l1_begin = max(l1_extrapolated - LookingForward::middle_layer_window_size / 2, 0);
-        const int central_window_l2_begin = max(l2_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-        
-        const uint16_t h0 = (uint16_t) l0_start + central_window_l0_begin + combined_element.h0;
-        const uint16_t h1 = (uint16_t) l1_start + central_window_l1_begin + h1_element;
-        const uint16_t h2 = (uint16_t) l2_start + central_window_l2_begin + combined_element.h2;
-
-        const float x0 = scifi_hits.x0[event_offset + h0];
-        const float x2 = scifi_hits.x0[event_offset + h2];
+        const float x0 = scifi_hits.x0[event_offset + combined_element.h0];
+        const float x2 = scifi_hits.x0[event_offset + combined_element.h2];
         const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
         const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_2];
 
@@ -163,8 +139,15 @@ __global__ void lf_triplet_keep_best(
 
         dev_scifi_tracks
           [current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + current_insert_index] =
-            SciFi::TrackHits {
-              h0, h1, h2, (uint16_t) layer_0, (uint16_t) layer_1, (uint16_t) layer_2, 0.f, updated_qop, i};
+            SciFi::TrackHits {combined_element.h0,
+                              combined_element.h1,
+                              combined_element.h2,
+                              (uint16_t) layer_0,
+                              (uint16_t) layer_1,
+                              (uint16_t) layer_2,
+                              0.f,
+                              updated_qop,
+                              i};
       }
     }
   }

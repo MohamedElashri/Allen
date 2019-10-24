@@ -377,7 +377,8 @@ namespace SciFi {
 
   struct CombinedValue {
     float chi2 = 10000.f;
-    int16_t h0 = -1;
-    int16_t h2 = -1;
+    uint16_t h0 = 0;
+    uint16_t h1 = 0;
+    uint16_t h2 = 0;
   };
 } // namespace SciFi
