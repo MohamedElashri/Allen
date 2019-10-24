@@ -56,11 +56,11 @@ __device__ void lf_triplet_seeding_impl(
   const auto do_sign_check = fabsf(qop) > (1.f / LookingForward::sign_check_momentum_threshold);
 
   const int central_window_l0_begin = max(l0_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-  const int central_window_l0_end = min(central_window_l0_begin + LookingForward::extreme_layers_window_size, l0_size);
+  const int central_window_l0_size = min(central_window_l0_begin + LookingForward::extreme_layers_window_size, l0_size) - central_window_l0_begin;
   const int central_window_l1_begin = max(l1_extrapolated - LookingForward::middle_layer_window_size / 2, 0);
-  const int central_window_l1_end = min(central_window_l1_begin + LookingForward::middle_layer_window_size, l1_size);
+  const int central_window_l1_size = min(central_window_l1_begin + LookingForward::middle_layer_window_size, l1_size) - central_window_l1_begin;
   const int central_window_l2_begin = max(l2_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-  const int central_window_l2_end = min(central_window_l2_begin + LookingForward::extreme_layers_window_size, l2_size);
+  const int central_window_l2_size = min(central_window_l2_begin + LookingForward::extreme_layers_window_size, l2_size) - central_window_l2_begin;
 
   // Due to shared_precalc_expected_x1
   __syncthreads();
@@ -73,13 +73,13 @@ __device__ void lf_triplet_seeding_impl(
   __syncthreads();
 
   // Treat central window iteration
-  for (uint h0_rel = 0; h0_rel < central_window_l0_end - central_window_l0_begin; ++h0_rel) {
+  for (uint h0_rel = 0; h0_rel < central_window_l0_size; ++h0_rel) {
     const auto x0 = scifi_hits_x0[l0_start + central_window_l0_begin + h0_rel];
 
     // Due to shared_precalc_expected_x1
     __syncthreads();
 
-    for (uint h2_rel = 0; h2_rel < central_window_l2_end - central_window_l2_begin; ++h2_rel) {
+    for (uint h2_rel = 0; h2_rel < central_window_l2_size; ++h2_rel) {
       const auto x2 = scifi_hits_x0[l2_start + central_window_l2_begin + h2_rel];
 
       // Extrapolation
@@ -106,49 +106,49 @@ __device__ void lf_triplet_seeding_impl(
 
     // Due to shared_precalc_expected_x1
     __syncthreads();
+  }
 
-    for (uint h1_rel = threadIdx.x; h1_rel < central_window_l1_end - central_window_l1_begin; h1_rel += blockDim.x) {
-      const auto l1_element = central_window_l1_begin + h1_rel;
+  for (uint h1_rel = threadIdx.x; h1_rel < central_window_l1_size; h1_rel += blockDim.x) {
+    const auto l1_element = central_window_l1_begin + h1_rel;
 
-      int best_index = -1;
-      float best_chi2 = 100.f;
+    int best_index = -1;
+    float best_chi2 = 100.f;
 
-      const auto x1 = scifi_hits_x0[l1_start + l1_element];
+    const auto x1 = scifi_hits_x0[l1_start + l1_element];
 
-      // Iterate all elements in shared_precalc_expected_x1
-      for (uint k = threadIdx.x; k < 32 * 32; ++k) {
-        // Note: For this, we would need to save the slope_t1_t3 as well
-        // const auto expected_x1 = precalc_expected_x1 + z1 * slope_t1_t3;
-        const auto expected_x1 = shared_precalc_expected_x1[k];
-        const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
+    // Iterate all elements in shared_precalc_expected_x1
+    for (uint k = threadIdx.x; k < 32 * 32; ++k) {
+      // Note: For this, we would need to save the slope_t1_t3 as well
+      // const auto expected_x1 = precalc_expected_x1 + z1 * slope_t1_t3;
+      const auto expected_x1 = shared_precalc_expected_x1[k];
+      const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
 
-        if (chi2 < best_chi2) {
-          best_index = k;
-          best_chi2 = chi2;
-        }
+      if (chi2 < best_chi2) {
+        best_index = k;
+        best_chi2 = chi2;
       }
-
-      if (best_index != -1 && best_chi2 < scifi_lf_triplet_best[h1_rel].chi2) {
-        // printf(
-        //   "Best seed for h1_rel : %i, %f; better than %f\n",
-        //   h1_rel,
-        //   best_index,
-        //   best_chi2,
-        //   scifi_lf_triplet_best[h1_rel].chi2);
-
-        scifi_lf_triplet_best[h1_rel] =
-          SciFi::CombinedValue {best_chi2, (int16_t)(best_index % 32), (int16_t)(best_index / 32)};
-      }
-
-      // if (chi2 < best_combined[k - central_window_l1_begin].chi2) {
-      //   best_combined_second[k - central_window_l1_begin] = best_combined[k - central_window_l1_begin];
-      //   best_combined[k - central_window_l1_begin] =
-      //     CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
-      // }
-      // else if (chi2 < best_combined_second[k - central_window_l1_begin].chi2) {
-      //   best_combined_second[k - central_window_l1_begin] =
-      //     CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
-      // }
     }
+
+    if (best_index != -1 && best_chi2 < scifi_lf_triplet_best[h1_rel].chi2) {
+      // printf(
+      //   "Best seed for h1_rel : %i, %f; better than %f\n",
+      //   h1_rel,
+      //   best_index,
+      //   best_chi2,
+      //   scifi_lf_triplet_best[h1_rel].chi2);
+
+      scifi_lf_triplet_best[h1_rel] =
+        SciFi::CombinedValue {best_chi2, (int16_t)(best_index % 32), (int16_t)(best_index / 32)};
+    }
+
+    // if (chi2 < best_combined[k - central_window_l1_begin].chi2) {
+    //   best_combined_second[k - central_window_l1_begin] = best_combined[k - central_window_l1_begin];
+    //   best_combined[k - central_window_l1_begin] =
+    //     CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
+    // }
+    // else if (chi2 < best_combined_second[k - central_window_l1_begin].chi2) {
+    //   best_combined_second[k - central_window_l1_begin] =
+    //     CombinedTripletValue {chi2, (int16_t) i, (int16_t) k, (int16_t) j};
+    // }
   }
 }
