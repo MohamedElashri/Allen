@@ -342,27 +342,3 @@ dev_velo_track_hit_number (0.01), unused (0.05), dev_atomics_storage (0.00), unu
 Max memory required: 9.61 MiB
 ```
 
-
-Before placing a merge request
-==============================
-Before starting to edit files, please ensure that your editor produces spaces, not tabs!
-
-You can apply the clang format on all files with this command:
-`find . \! -wholename "*InstallArea*" -a \! -wholename "*build*/*"  | egrep "(\.cpp|\.cu|\.cuh|\.h|\.hpp)$" | xargs -n 1 /cvmfs/lhcb.cern.ch/lib/bin/x86_64-centos7/lcg-clang-format-8.0.0 -i --color=0
-`
-
-Before placing a merge request, please go through the following list and check that BOTH compilation and running work after your changes:
-   * Release and debug mode `cmake -DCMAKE_BUILD_TYPE=release ..` and `cmake -DCMAKE_BUILD_TYPE=debug ..`
-   * Different sequences:
-      * Default sequence: `cmake -DSEQUENCE=DefaultSequence ..`
-      * CPU SciFi tracking sequence: `cmake -DSEQUENCE=CPUSciFi ..`
-      * CPU PV finding sequence: `cmake -DSEQUENCE=CPUPVSequence ..`
-  * Compilation with ROOT (if you have a ROOT installation available): `cmake -DUSE_ROOT=TRUE ..` If you don't have ROOT available, please mention this in the merge request, then we will test it.
-  
-
-Check that you can run `./Allen` after every compilation. 
-  
-
-Now you are ready to take over!
-
-Good luck!
