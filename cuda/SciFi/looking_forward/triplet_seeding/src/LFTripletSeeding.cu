@@ -20,7 +20,7 @@ __global__ void lf_triplet_seeding(
   SciFi::TrackHits* dev_scifi_tracks,
   uint* dev_atomics_scifi)
 {
-  __shared__ float shared_precalc_expected_x1[32];
+  __shared__ float shared_precalc_expected_x1[2 * 32];
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -66,7 +66,7 @@ __global__ void lf_triplet_seeding(
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
     const auto x_at_z_magnet = velo_state.x + (LookingForward::z_magnet - velo_state.z) * velo_state.tx;
 
-    for (uint triplet_seed = 0; triplet_seed < number_of_seeds; ++triplet_seed) {
+    for (uint triplet_seed = threadIdx.y; triplet_seed < number_of_seeds; triplet_seed += blockDim.y) {
       const auto layer_0 = triplet_seeding_layers[triplet_seed][0];
       const auto layer_2 = triplet_seeding_layers[triplet_seed][2];
 
@@ -95,7 +95,8 @@ __global__ void lf_triplet_seeding(
         shared_precalc_expected_x1,
         dev_scifi_lf_triplet_best + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
                               LookingForward::maximum_number_of_triplets_per_seed,
-        dev_looking_forward_constants);
+        dev_looking_forward_constants,
+        triplet_seed);
     }
   }
 }

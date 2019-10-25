@@ -25,4 +25,5 @@ __device__ void lf_triplet_seeding_impl(
   const float x_at_z_magnet,
   float* shared_x1,
   SciFi::CombinedValue* scifi_lf_triplet_best,
-  const LookingForward::Constants* dev_looking_forward_constants);
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const uint triplet_seed);

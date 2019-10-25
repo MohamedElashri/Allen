@@ -59,7 +59,7 @@ namespace LookingForward {
   constexpr int number_of_uv_layers = 6;
   
   constexpr int extreme_layers_window_size = 32;
-  constexpr int middle_layer_window_size = 32;
+  constexpr int middle_layer_window_size = 40;
 
   constexpr int maximum_number_of_triplets_per_h1 = 1;
   constexpr int maximum_number_of_triplets_per_seed = 64;
@@ -147,8 +147,9 @@ namespace LookingForward {
     Constant arrays for search by triplet
     ======================================*/
 
+
     // Triplet creation
-    uint8_t triplet_seeding_layers[n_triplet_seeds][3] {
+    uint triplet_seeding_layers[n_triplet_seeds][3] {
       {0, 2, 4},
       {1, 3, 5}
     };
@@ -157,8 +158,10 @@ namespace LookingForward {
     float chi2_stddev_extrapolation_to_x_layers[3] {6.33f, 5.09f, 7.42f};
 
     // Extrapolation to UV
-    uint8_t x_layers[6] {0, 3, 4, 7, 8, 11};
-    uint8_t extrapolation_uv_layers[6] {1, 2, 5, 6, 9, 10};    
+    uint x_layers[6] {0, 3, 4, 7, 8, 11};
+    uint reverse_layers[12] {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
+
+    uint extrapolation_uv_layers[6] {1, 2, 5, 6, 9, 10};
     float extrapolation_uv_stddev[6] {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
 
     // TODO optimize then umber of parameters

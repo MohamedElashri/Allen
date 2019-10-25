@@ -123,8 +123,8 @@ __global__ void lf_triplet_keep_best(
         const int* initial_windows = dev_initial_windows + current_ut_track_index;
 
         const auto layer_0 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
-        const auto layer_1 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1];
         const auto layer_2 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
+        const auto layer_1 = dev_looking_forward_constants->reverse_layers[scifi_hits.planeCode(event_offset + combined_element.h1) / 2];
 
         const float x0 = scifi_hits.x0[event_offset + combined_element.h0];
         const float x2 = scifi_hits.x0[event_offset + combined_element.h2];
