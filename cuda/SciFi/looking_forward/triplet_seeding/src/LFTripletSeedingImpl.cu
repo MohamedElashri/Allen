@@ -27,24 +27,8 @@ __device__ void lf_triplet_seeding_impl(
   const uint triplet_seed)
 {
   const int l0_start = initial_windows[(layer_0 * 8) * ut_total_number_of_tracks];
-  const int l0_extrapolated = initial_windows[(layer_0 * 8 + 4) * ut_total_number_of_tracks];
-
   const int l1_start = initial_windows[(layer_1 * 8) * ut_total_number_of_tracks];
-  const int l1_extrapolated = initial_windows[(layer_1 * 8 + 4) * ut_total_number_of_tracks];
-
   const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
-  const int l2_extrapolated = initial_windows[(layer_2 * 8 + 4) * ut_total_number_of_tracks];
-
-  const int central_window_l0_begin = max(l0_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-  const int central_window_l1_begin = max(l1_extrapolated - LookingForward::middle_layer_window_size / 2, 0);
-  const int central_window_l2_begin = max(l2_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-
-  const int central_window_l0_size =
-    min(central_window_l0_begin + LookingForward::extreme_layers_window_size, l0_size) - central_window_l0_begin;
-  const int central_window_l1_size =
-    min(central_window_l1_begin + LookingForward::middle_layer_window_size, l1_size) - central_window_l1_begin;
-  const int central_window_l2_size =
-    min(central_window_l2_begin + LookingForward::extreme_layers_window_size, l2_size) - central_window_l2_begin;
 
   const auto inverse_dz2 = 1.f / (z0 - z2);
 
@@ -59,8 +43,8 @@ __device__ void lf_triplet_seeding_impl(
   // Due to shared_x1
   __syncthreads();
 
-  for (int i = threadIdx.x; i < central_window_l1_size; i += blockDim.x) {
-    shared_x1[i] = scifi_hits_x0[l1_start + central_window_l1_begin + i];
+  for (int i = threadIdx.x; i < l1_size; i += blockDim.x) {
+    shared_x1[i] = scifi_hits_x0[l1_start + i];
   }
 
   // Due to shared_x1
@@ -71,12 +55,12 @@ __device__ void lf_triplet_seeding_impl(
     uint16_t number_of_found_triplets = 0;
 
     // Treat central window iteration
-    for (int i = tid_x; i < central_window_l0_size * central_window_l2_size; i += blockdim_x) {
-      const auto h0_rel = i % central_window_l0_size;
-      const auto h2_rel = i / central_window_l0_size;
+    for (int i = tid_x; i < l0_size * l2_size; i += blockdim_x) {
+      const auto h0_rel = i % l0_size;
+      const auto h2_rel = i / l0_size;
 
-      const auto x0 = scifi_hits_x0[l0_start + central_window_l0_begin + h0_rel];
-      const auto x2 = scifi_hits_x0[l2_start + central_window_l2_begin + h2_rel];
+      const auto x0 = scifi_hits_x0[l0_start + h0_rel];
+      const auto x2 = scifi_hits_x0[l2_start + h2_rel];
 
       // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
@@ -84,7 +68,7 @@ __device__ void lf_triplet_seeding_impl(
       const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope -
                       LookingForward::qop_p2 * delta_slope * delta_slope;
       const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
-      const auto precalc_expected_x1 = x0 - slope_t1_t3 * z0 + 0.02528f + 13624.f * updated_qop;
+      const auto expected_x1 = x0 + (z1 - z0) * slope_t1_t3 + 0.02528f + 13624.f * updated_qop;
 
       const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
       const auto x_at_z_magnet_diff = fabsf(
@@ -100,17 +84,16 @@ __device__ void lf_triplet_seeding_impl(
       if (process_element) {
         constexpr int local_l1_size = 12;
 
-        const auto mean1 = h0_rel / ((float) central_window_l0_size);
-        const auto mean2 = h2_rel / ((float) central_window_l2_size);
-        const int l1_extrap = (mean1 + mean2) * 0.5f * central_window_l1_size;
-        const auto local_central_window_l1_begin = max(l1_extrap - local_l1_size / 2, 0);
-        const auto local_central_window_l1_end = min(local_central_window_l1_begin + local_l1_size, central_window_l1_size);
+        const auto mean1 = h0_rel / ((float) l0_size);
+        const auto mean2 = h2_rel / ((float) l2_size);
+        const int l1_extrap = (mean1 + mean2) * 0.5f * l1_size;
+        const auto local_l1_start = max(l1_extrap - local_l1_size / 2, 0);
+        const auto local_l1_end = min(local_l1_start + local_l1_size, l1_size);
 
         float best_chi2 = LookingForward::chi2_max_triplet_single;
         int best_h1_rel = -1;
 
-        for (int h1_rel = local_central_window_l1_begin; h1_rel < local_central_window_l1_end; ++h1_rel) {
-          const auto expected_x1 = precalc_expected_x1 + z1 * slope_t1_t3;
+        for (int h1_rel = local_l1_start; h1_rel < local_l1_end; ++h1_rel) {
           const auto x1 = shared_x1[h1_rel];
           const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
 
@@ -136,29 +119,6 @@ __device__ void lf_triplet_seeding_impl(
           scifi_lf_found_triplets[tid_x * (LookingForward::maximum_number_of_triplets_per_seed / blockdim_x) + number_of_found_triplets++] =
             static_cast<int16_t>(triplet_seed * LookingForward::maximum_number_of_triplets_per_seed + h0_rel * LookingForward::extreme_layers_window_size + h2_rel);
         }
-
-        // if (best_h1_rel != -1) {
-        //   // if (Configuration::verbosity_level >= logger::info) {
-        //   //   printf("Best triplet found: %i, %i, %i, %f\n", h0_rel, h2_rel, best_h1_rel, best_chi2);
-        //   // }
-
-        //   const int current_insert_index = atomicAdd(atomics_scifi, 1);
-
-        //   if (current_insert_index >= LookingForward::maximum_number_of_candidates_per_ut_track) {
-        //     printf("Over limit (%i)\n", current_insert_index);
-        //   }
-
-        //   scifi_tracks[current_insert_index] = SciFi::TrackHits {
-        //                         static_cast<uint16_t>(l0_start + central_window_l0_begin + h0_rel),
-        //                         static_cast<uint16_t>(l1_start + central_window_l1_begin + best_h1_rel),
-        //                         static_cast<uint16_t>(l2_start + central_window_l2_begin + h2_rel),
-        //                         static_cast<uint16_t>(layer_0),
-        //                         static_cast<uint16_t>(layer_1),
-        //                         static_cast<uint16_t>(layer_2),
-        //                         0.f,
-        //                         updated_qop,
-        //                         static_cast<uint16_t>(ut_track_number)};
-        // }
       }
     }
 

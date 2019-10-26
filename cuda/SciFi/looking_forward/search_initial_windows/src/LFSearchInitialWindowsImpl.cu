@@ -47,10 +47,14 @@ __device__ void lf_search_initial_windows_impl(
     const int hits_within_bounds_size = binary_search_leftmost(
       scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
 
+    // Cap the central windows to a certain size
+    const int central_window_begin = max(hits_within_bounds_xInZone - LookingForward::extreme_layers_window_size / 2, 0);
+    const int central_window_size =
+      min(central_window_begin + LookingForward::extreme_layers_window_size, hits_within_bounds_size) - central_window_begin;
+
     // Initialize windows
-    initial_windows[i * 8 * number_of_tracks] = hits_within_bounds_start + x_zone_offset_begin - event_offset;
-    initial_windows[(i * 8 + 1) * number_of_tracks] = hits_within_bounds_size;
-    initial_windows[(i * 8 + 4) * number_of_tracks] = hits_within_bounds_xInZone;
+    initial_windows[i * 8 * number_of_tracks] = hits_within_bounds_start + x_zone_offset_begin - event_offset + central_window_begin;
+    initial_windows[(i * 8 + 1) * number_of_tracks] = central_window_size;
 
     sizes |= (hits_within_bounds_size > 0) << i;
 

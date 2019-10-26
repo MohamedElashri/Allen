@@ -105,7 +105,8 @@ __global__ void lf_triplet_keep_best(
 
       // Note: if the number of tracks is less than LookingForward::maximum_number_of_candidates_per_ut_track
       //       then just store them all in best_triplets
-      if (number_of_tracks < LookingForward::maximum_number_of_candidates_per_ut_track) {
+      constexpr int maximum_number_of_candidates_per_ut_track = 20;
+      if (number_of_tracks < maximum_number_of_candidates_per_ut_track) {
         for (int j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
           const auto chi2_index = found_triplets[j];
           best_triplets[j] = static_cast<int16_t>(chi2_index);
@@ -123,7 +124,7 @@ __global__ void lf_triplet_keep_best(
             insert_position += chi2 > other_chi2 || (chi2 == other_chi2 && chi2_index < other_chi2_index);
           }
 
-          if (insert_position < LookingForward::maximum_number_of_candidates_per_ut_track) {
+          if (insert_position < maximum_number_of_candidates_per_ut_track) {
             best_triplets[insert_position] = static_cast<int16_t>(chi2_index);
           }
         }
@@ -152,7 +153,7 @@ __global__ void lf_triplet_keep_best(
       // }
 
       // Save best triplet candidates as TrackHits candidates for further extrapolation
-      for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_candidates_per_ut_track; j += blockDim.x) {
+      for (uint16_t j = threadIdx.x; j < maximum_number_of_candidates_per_ut_track; j += blockDim.x) {
         const auto k = best_triplets[j];
         if (k != -1) {
           const auto triplet_seed = k / (LookingForward::maximum_number_of_triplets_per_seed);
@@ -177,21 +178,12 @@ __global__ void lf_triplet_keep_best(
           const int* initial_windows = dev_initial_windows + current_ut_track_index;
 
           const int l0_start = initial_windows[(layer_0 * 8) * ut_total_number_of_tracks];
-          const int l0_extrapolated = initial_windows[(layer_0 * 8 + 4) * ut_total_number_of_tracks];
-
           const int l1_start = initial_windows[(layer_1 * 8) * ut_total_number_of_tracks];
-          const int l1_extrapolated = initial_windows[(layer_1 * 8 + 4) * ut_total_number_of_tracks];
-
           const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
-          const int l2_extrapolated = initial_windows[(layer_2 * 8 + 4) * ut_total_number_of_tracks];
 
-          const int central_window_l0_begin = max(l0_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-          const int central_window_l1_begin = max(l1_extrapolated - LookingForward::middle_layer_window_size / 2, 0);
-          const int central_window_l2_begin = max(l2_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-
-          const auto h0 = l0_start + central_window_l0_begin + h0_rel;
-          const auto h1 = l1_start + central_window_l1_begin + h1_rel;
-          const auto h2 = l2_start + central_window_l2_begin + h2_rel;
+          const auto h0 = l0_start + h0_rel;
+          const auto h1 = l1_start + h1_rel;
+          const auto h2 = l2_start + h2_rel;
 
           const float x0 = scifi_hits.x0[event_offset + h0];
           const float x2 = scifi_hits.x0[event_offset + h2];
