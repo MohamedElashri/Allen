@@ -68,6 +68,13 @@ __global__ void lf_quality_filter(
 
     const auto ndof = track.hitsNum - 5;
     track.quality = (hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV) ? track.quality / ndof : 10000.f;
+
+    // // This code is to keep all the tracks
+    // if (track.quality < 10.f) {
+    //   const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
+    //   dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
+    //   dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
+    // }
   }
 
   __syncthreads();

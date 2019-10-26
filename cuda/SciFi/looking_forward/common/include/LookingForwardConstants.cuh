@@ -70,7 +70,7 @@ namespace LookingForward {
   // Deprecated
   constexpr int maximum_number_of_candidates = maximum_number_of_triplets_per_seed;
 
-  constexpr int maximum_number_of_candidates_per_ut_track = 40;
+  constexpr int maximum_number_of_candidates_per_ut_track = 20;
   constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 10;
 
   constexpr int num_atomics = 1;

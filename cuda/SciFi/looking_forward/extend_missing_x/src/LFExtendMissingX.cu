@@ -56,7 +56,10 @@ __global__ void lf_extend_missing_x(
       const auto d_ratio = dev_scifi_lf_parametrization
         [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
 
-      // Note: This logic assumes the candidate layers are {0,2,4} and {1,3,5}.
+      // Note: This logic assumes the candidate layers have hits in {T0, T1, T2}
+      // for (auto current_layer : {1 - track.get_layer(0), 5 - track.get_layer(1), 9 - track.get_layer(2)}) {
+
+      // Note: This logic assumes the candidate layers are {0, 2, 4} and {1, 3, 5}
       for (auto current_layer : {1 - track.get_layer(0), 3 - track.get_layer(0), 5 - track.get_layer(0)}) {
         // Find window
         const auto window_start =
@@ -78,7 +81,7 @@ __global__ void lf_extend_missing_x(
         // Binary search of candidate
         const auto candidate_index = binary_search_leftmost(scifi_hits_x0, window_size, predicted_x);
 
-        // It is now either candidate_index-1 or candidate_index
+        // It is now either candidate_index - 1 or candidate_index
         for (int h4_rel = candidate_index - 1; h4_rel < candidate_index + 1; ++h4_rel) {
           if (h4_rel >= 0 && h4_rel < window_size) {
             const auto x4 = scifi_hits_x0[h4_rel];
