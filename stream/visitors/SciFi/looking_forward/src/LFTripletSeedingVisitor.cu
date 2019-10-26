@@ -11,12 +11,11 @@ void SequenceVisitor::set_arguments_size<lf_triplet_seeding_t>(
   arguments.set_size<dev_scifi_lf_triplet_best>(
     host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::n_triplet_seeds *
     LookingForward::maximum_number_of_triplets_per_seed);
-
-  // Momentarily this is here
-  arguments.set_size<dev_scifi_lf_tracks>(
-    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track);
-  arguments.set_size<dev_scifi_lf_atomics>(
-    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::num_atomics * 2 + 1);
+  arguments.set_size<dev_scifi_lf_found_triplets>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::n_triplet_seeds *
+    LookingForward::maximum_number_of_triplets_per_seed);
+  arguments.set_size<dev_scifi_lf_number_of_found_triplets>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::n_triplet_seeds * 32 /* blockDim.x */);
 }
 
 template<>
@@ -30,7 +29,7 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
   cudaEvent_t& cuda_generic_event)
 {
   cudaCheck(
-    cudaMemsetAsync(arguments.offset<dev_scifi_lf_atomics>(), 0, arguments.size<dev_scifi_lf_atomics>(), cuda_stream));
+    cudaMemsetAsync(arguments.offset<dev_scifi_lf_number_of_found_triplets>(), 0, arguments.size<dev_scifi_lf_number_of_found_triplets>(), cuda_stream));
 
   // Note: The initialization of dev_scifi_lf_triplet_best_chi2 is the highest positive
   //       number represented as fp32 that can be initialized using cudaMemsetAsync,
@@ -54,9 +53,9 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
     constants.dev_looking_forward_constants,
     arguments.offset<dev_ut_states>(),
     arguments.offset<dev_scifi_lf_triplet_best>(),
-    arguments.offset<dev_scifi_lf_tracks>(),
-    arguments.offset<dev_scifi_lf_atomics>(),
-    arguments.offset<dev_scifi_lf_process_track>());
+    arguments.offset<dev_scifi_lf_process_track>(),
+    arguments.offset<dev_scifi_lf_found_triplets>(),
+    arguments.offset<dev_scifi_lf_number_of_found_triplets>());
 
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32, 2), cuda_stream);
 

@@ -17,9 +17,9 @@ __global__ void lf_triplet_seeding(
   const LookingForward::Constants* dev_looking_forward_constants,
   const MiniState* dev_ut_states,
   float* dev_scifi_lf_triplet_best,
-  SciFi::TrackHits* dev_scifi_tracks,
-  uint* dev_atomics_scifi,
-  const bool* dev_scifi_lf_process_track)
+  const bool* dev_scifi_lf_process_track,
+  int16_t* dev_scifi_lf_found_triplets,
+  int16_t* dev_scifi_lf_number_of_found_triplets)
 {
   __shared__ float shared_precalc_expected_x1 [2 * 32];
 
@@ -50,18 +50,11 @@ __global__ void lf_triplet_seeding(
   const SciFi::Hits scifi_hits {dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
   const auto event_offset = scifi_hit_count.event_offset();
 
-  constexpr int number_of_seeds = 2;
-  uint triplet_seeding_layers[number_of_seeds][3] {
-    {0, 2, 4},
-    {1, 3, 5}
-  };
-
-  for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
-    const auto current_ut_track_index = ut_event_tracks_offset + i;
+  for (uint ut_track_number = blockIdx.y; ut_track_number < ut_event_number_of_tracks; ut_track_number += gridDim.y) {
+    const auto current_ut_track_index = ut_event_tracks_offset + ut_track_number;
 
     if (dev_scifi_lf_process_track[current_ut_track_index]) {
-      const auto velo_track_index = ut_tracks.velo_track[i];
-      // const auto velo_track_index = dev_ut_track_velo_indices[current_ut_track_index];
+      const auto velo_track_index = ut_tracks.velo_track[ut_track_number];
       const auto qop = dev_ut_qop[current_ut_track_index];
       const int* initial_windows = dev_initial_windows + current_ut_track_index;
       
@@ -69,48 +62,33 @@ __global__ void lf_triplet_seeding(
       const MiniState velo_state = velo_states.getMiniState(velo_states_index);
       const auto x_at_z_magnet = velo_state.x + (LookingForward::z_magnet - velo_state.z) * velo_state.tx;
 
-      for (uint triplet_seed = threadIdx.y; triplet_seed < number_of_seeds; triplet_seed += blockDim.y) {
-        const auto layer_0 = triplet_seeding_layers[triplet_seed][0];
-        const auto layer_1 = triplet_seeding_layers[triplet_seed][1];
-        const auto layer_2 = triplet_seeding_layers[triplet_seed][2];
+      for (uint triplet_seed = threadIdx.y; triplet_seed < LookingForward::n_triplet_seeds; triplet_seed += blockDim.y) {
+        const auto layer_0 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
+        const auto layer_1 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1];
+        const auto layer_2 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
 
         const int l0_size = initial_windows[(layer_0 * 8 + 1) * ut_total_number_of_tracks];
         const int l1_size = initial_windows[(layer_1 * 8 + 1) * ut_total_number_of_tracks];
         const int l2_size = initial_windows[(layer_2 * 8 + 1) * ut_total_number_of_tracks];
 
         if (l0_size > 0 && l1_size > 0 && l2_size > 0) {
-          const int l0_start = initial_windows[(layer_0 * 8) * ut_total_number_of_tracks];
-          const int l0_extrapolated = initial_windows[(layer_0 * 8 + 4) * ut_total_number_of_tracks];
-
-          const int l1_start = initial_windows[(layer_1 * 8) * ut_total_number_of_tracks];
-          const int l1_extrapolated = initial_windows[(layer_1 * 8 + 4) * ut_total_number_of_tracks];
-
-          const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
-          const int l2_extrapolated = initial_windows[(layer_2 * 8 + 4) * ut_total_number_of_tracks];
-
-          const int central_window_l0_begin = max(l0_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-          const int central_window_l1_begin = max(l1_extrapolated - LookingForward::middle_layer_window_size / 2, 0);
-          const int central_window_l2_begin = max(l2_extrapolated - LookingForward::extreme_layers_window_size / 2, 0);
-
           const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
           const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_1];
           const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_2];
 
           lf_triplet_seeding_impl(
             scifi_hits.x0 + event_offset,
-            z0,
-            z1,
-            z2,
-            l0_start,
-            l1_start,
-            l2_start,
+            layer_0,
+            layer_1,
+            layer_2,
             l0_size,
             l1_size,
             l2_size,
-            central_window_l0_begin,
-            central_window_l1_begin,
-            central_window_l2_begin,
+            z0,
+            z1,
+            z2,
             initial_windows,
+            ut_track_number,
             ut_total_number_of_tracks,
             qop,
             (dev_ut_states + current_ut_track_index)->tx,
@@ -118,7 +96,12 @@ __global__ void lf_triplet_seeding(
             x_at_z_magnet,
             shared_precalc_expected_x1 + triplet_seed * LookingForward::middle_layer_window_size,
             dev_scifi_lf_triplet_best + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-                                  LookingForward::maximum_number_of_triplets_per_seed);
+                                  LookingForward::maximum_number_of_triplets_per_seed,
+            dev_scifi_lf_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
+                                  LookingForward::maximum_number_of_triplets_per_seed,
+            dev_scifi_lf_number_of_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
+                                  /* blockDim.x == 32 */ 32,
+            triplet_seed);
         }
       }
     }

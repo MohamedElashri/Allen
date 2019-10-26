@@ -71,7 +71,7 @@ namespace LookingForward {
   constexpr int maximum_number_of_candidates = maximum_number_of_triplets_per_seed;
 
   constexpr int maximum_number_of_candidates_per_ut_track = 40;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 40;
+  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 10;
 
   constexpr int num_atomics = 1;
   constexpr float track_min_quality = 0.05f;
@@ -87,7 +87,7 @@ namespace LookingForward {
   constexpr float zReferenceEndTDiff = SciFi::Constants::ZEndT - SciFi::Tracking::zReference;
 
   // Parameter for forwarding through SciFi layers
-  constexpr float forward_param = 2.41902127e-02;
+  constexpr float forward_param = 2.41902127e-02f;
   // constexpr float forward_param = 0.04518205911571838;
   constexpr float d_ratio = -0.00017683181567234045f * forward_param;
   // constexpr float d_ratio = -2.62e-04 * forward_param;
