@@ -82,24 +82,22 @@ __device__ void lf_triplet_seeding_impl(
         x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes);
 
       if (process_element) {
-        constexpr int local_l1_size = 12;
-
-        const auto mean1 = h0_rel / ((float) l0_size);
-        const auto mean2 = h2_rel / ((float) l2_size);
-        const int l1_extrap = (mean1 + mean2) * 0.5f * l1_size;
-        const auto local_l1_start = max(l1_extrap - local_l1_size / 2, 0);
-        const auto local_l1_end = min(local_l1_start + local_l1_size, l1_size);
+        // Binary search of candidate
+        const auto candidate_index = binary_search_leftmost(shared_x1, l1_size, expected_x1);
 
         float best_chi2 = LookingForward::chi2_max_triplet_single;
         int best_h1_rel = -1;
 
-        for (int h1_rel = local_l1_start; h1_rel < local_l1_end; ++h1_rel) {
-          const auto x1 = shared_x1[h1_rel];
-          const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
+        // It is now either candidate_index - 1 or candidate_index
+        for (int h1_rel = candidate_index - 1; h1_rel < candidate_index + 1; ++h1_rel) {
+          if (h1_rel >= 0 && h1_rel < l1_size) {
+            const auto x1 = shared_x1[h1_rel];
+            const auto chi2 = (x1 - expected_x1) * (x1 - expected_x1);
 
-          if (chi2 < best_chi2) {
-            best_chi2 = chi2;
-            best_h1_rel = h1_rel;
+            if (chi2 < best_chi2) {
+              best_chi2 = chi2;
+              best_h1_rel = h1_rel;
+            }
           }
         }
 

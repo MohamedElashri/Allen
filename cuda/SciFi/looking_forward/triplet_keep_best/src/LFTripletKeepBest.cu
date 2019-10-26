@@ -21,7 +21,7 @@ __global__ void lf_triplet_keep_best(
 {
   // Keep best for each h1 hit
   __shared__ int16_t best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
-  __shared__ int16_t found_triplets[LookingForward::maximum_number_of_triplets_per_seed];
+  __shared__ int16_t found_triplets[LookingForward::maximum_number_of_triplets_per_seed / 2];
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
