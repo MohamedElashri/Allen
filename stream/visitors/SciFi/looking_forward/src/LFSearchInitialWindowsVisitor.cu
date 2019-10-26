@@ -11,6 +11,7 @@ void SequenceVisitor::set_arguments_size<lf_search_initial_windows_t>(
   arguments.set_size<dev_scifi_lf_initial_windows>(
     host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::number_of_x_layers * 8);
   arguments.set_size<dev_ut_states>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
+  arguments.set_size<dev_scifi_lf_process_track>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
 }
 
 template<>
@@ -44,7 +45,8 @@ void SequenceVisitor::visit<lf_search_initial_windows_t>(
     constants.dev_inv_clus_res,
     constants.dev_looking_forward_constants,
     arguments.offset<dev_scifi_lf_initial_windows>(),
-    arguments.offset<dev_ut_states>());
+    arguments.offset<dev_ut_states>(),
+    arguments.offset<dev_scifi_lf_process_track>());
 
   state.invoke();
 }

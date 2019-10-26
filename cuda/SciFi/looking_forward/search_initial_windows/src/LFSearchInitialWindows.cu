@@ -18,7 +18,8 @@ __global__ void lf_search_initial_windows(
   const float* dev_inv_clus_res,
   const LookingForward::Constants* dev_looking_forward_constants,
   int* dev_initial_windows,
-  MiniState* dev_ut_states)
+  MiniState* dev_ut_states,
+  bool* dev_scifi_lf_process_track)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -86,6 +87,8 @@ __global__ void lf_search_initial_windows(
       (y_projection < 0 ? -1 : 1),
       dev_initial_windows + ut_event_tracks_offset + i,
       ut_tracks.total_number_of_tracks,
-      event_offset);
+      event_offset,
+      dev_scifi_lf_process_track,
+      ut_track_index);
   }
 }

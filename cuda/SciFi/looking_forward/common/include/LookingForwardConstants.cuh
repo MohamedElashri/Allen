@@ -59,10 +59,10 @@ namespace LookingForward {
   constexpr int number_of_uv_layers = 6;
   
   constexpr int extreme_layers_window_size = 32;
-  constexpr int middle_layer_window_size = 40;
+  constexpr int middle_layer_window_size = 32;
 
   constexpr int maximum_number_of_triplets_per_h1 = 1;
-  constexpr int maximum_number_of_triplets_per_seed = 64;
+  constexpr int maximum_number_of_triplets_per_seed = extreme_layers_window_size * extreme_layers_window_size;
   constexpr int n_threads_triplet_seeding = 32;
   constexpr int n_triplet_seeds = 2;
   constexpr int tile_size = 32;
@@ -94,9 +94,9 @@ namespace LookingForward {
   // constexpr float d_ratio = -8.585717012100695e-06;
 
   // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
-  constexpr float chi2_max_triplet_single = 12.f;                  // 5.f;
-  constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f; // 2.f; // 4.f;
-  constexpr float chi2_max_extrapolation_to_uv_layers_single = 10.f;
+  constexpr float chi2_max_triplet_single = 100.f;
+  constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f;
+  constexpr float chi2_max_extrapolation_to_uv_layers_single = 16.f;
 
   // ======================================
   // Constants for various parametrizations

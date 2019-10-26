@@ -29,7 +29,8 @@ __global__ void lf_search_initial_windows(
   const float* dev_inv_clus_res,
   const LookingForward::Constants* dev_looking_forward_constants,
   int* dev_initial_windows,
-  MiniState* dev_ut_states);
+  MiniState* dev_ut_states,
+  bool* dev_scifi_lf_process_track);
 
 ALGORITHM(
   lf_search_initial_windows,
@@ -48,4 +49,5 @@ ALGORITHM(
     dev_ut_qop,
     dev_ut_track_velo_indices,
     dev_ut_states,
-    dev_scifi_lf_initial_windows))
+    dev_scifi_lf_initial_windows,
+    dev_scifi_lf_process_track))

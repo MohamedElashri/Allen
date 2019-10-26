@@ -18,10 +18,12 @@ __device__ void lf_search_initial_windows_impl(
   const int side,
   int* initial_windows,
   const int number_of_tracks,
-  const uint event_offset)
+  const uint event_offset,
+  bool* dev_process_track,
+  const uint ut_track_index)
 {
   int iZoneStartingPoint = (side > 0) ? LookingForward::number_of_x_layers : 0;
-  // uint8_t sizes = 0x00;
+  uint16_t sizes = 0;
 
   for (int i = 0; i < LookingForward::number_of_x_layers; i++) {
     const auto iZone = iZoneStartingPoint + i;
@@ -50,7 +52,7 @@ __device__ void lf_search_initial_windows_impl(
     initial_windows[(i * 8 + 1) * number_of_tracks] = hits_within_bounds_size;
     initial_windows[(i * 8 + 4) * number_of_tracks] = hits_within_bounds_xInZone;
 
-    // sizes |= (hits_within_bounds_size > 0) << i;
+    sizes |= (hits_within_bounds_size > 0) << i;
 
     // Skip making range but continue if the size is zero
     if (hits_within_bounds_size > 0) {
@@ -62,6 +64,7 @@ __device__ void lf_search_initial_windows_impl(
       const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * looking_forward_constants->Zone_dxdy_uvlayers[i % 2];
       const float xInUvCorr = xInUv - UvCorr;
       const float xMinUV = xInUvCorr - 800.f;
+      const float xMaxUV = xInUvCorr + 800.f;
 
       // Get bounds in UV layers
       // do one search on the same side as the x module
@@ -69,16 +72,26 @@ __device__ void lf_search_initial_windows_impl(
       const int uv_zone_size = scifi_hit_count.zone_number_of_hits(looking_forward_constants->uvZones[iZone]);
       const int hits_within_uv_bounds =
         binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
+      const int hits_within_uv_bounds_size =
+        binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin + hits_within_uv_bounds, uv_zone_size - hits_within_uv_bounds, xMaxUV);
 
       initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_uv_bounds + uv_zone_offset_begin - event_offset;
-      initial_windows[(i * 8 + 3) * number_of_tracks] = uv_zone_size - hits_within_uv_bounds;
+      initial_windows[(i * 8 + 3) * number_of_tracks] = hits_within_uv_bounds_size;
+
+      sizes |= (hits_within_uv_bounds_size > 0) << (8 + i);
     }
   }
 
-  // A track is processable if there is at least one recostructible triplet
-  // const bool process_track = 
-  //   ((sizes & 0x01) && (sizes & 0x02) && (sizes & 0x04)) ||
-  //   ((sizes & 0x02) && (sizes & 0x04) && (sizes & 0x08)) ||
-  //   ((sizes & 0x04) && (sizes & 0x08) && (sizes & 0x10)) ||
-  //   ((sizes & 0x08) && (sizes & 0x10) && (sizes & 0x20));
+  // Process track if:
+  // * It can have a triplet 0,2,4 or 1,3,5
+  // * It can have at least one hit in UV layers
+  //   (1 or 2) and (5 or 6) and (9 or 10)
+  const bool do_process = 
+    (((sizes & 0x01) && (sizes & 0x04) && (sizes & 0x10)) ||
+    ((sizes & 0x02) && (sizes & 0x08) && (sizes & 0x20))) &&
+    ((sizes & 0x0100) || (sizes & 0x0200)) &&
+    ((sizes & 0x0400) || (sizes & 0x0800)) &&
+    ((sizes & 0x1000) || (sizes & 0x2000));
+
+  dev_process_track[ut_track_index] = do_process;
 }

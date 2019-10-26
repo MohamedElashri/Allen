@@ -25,9 +25,10 @@ __global__ void lf_triplet_seeding(
   const int* dev_initial_windows,
   const LookingForward::Constants* dev_looking_forward_constants,
   const MiniState* dev_ut_states,
-  SciFi::CombinedValue* dev_scifi_lf_triplet_best,
+  float* dev_scifi_lf_triplet_best,
   SciFi::TrackHits* dev_scifi_tracks,
-  uint* dev_atomics_scifi);
+  uint* dev_atomics_scifi,
+  const bool* dev_scifi_lf_process_track);
 
 ALGORITHM(
   lf_triplet_seeding,
@@ -45,4 +46,5 @@ ALGORITHM(
     dev_ut_track_hit_number,
     dev_ut_track_velo_indices,
     dev_atomics_velo,
-    dev_velo_states))
+    dev_velo_states,
+    dev_scifi_lf_process_track))

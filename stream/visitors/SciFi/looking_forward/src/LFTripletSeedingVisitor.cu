@@ -55,7 +55,8 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
     arguments.offset<dev_ut_states>(),
     arguments.offset<dev_scifi_lf_triplet_best>(),
     arguments.offset<dev_scifi_lf_tracks>(),
-    arguments.offset<dev_scifi_lf_atomics>());
+    arguments.offset<dev_scifi_lf_atomics>(),
+    arguments.offset<dev_scifi_lf_process_track>());
 
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32, 2), cuda_stream);
 

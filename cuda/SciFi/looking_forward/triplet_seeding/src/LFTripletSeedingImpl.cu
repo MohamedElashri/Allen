@@ -4,8 +4,18 @@
 
 __device__ void lf_triplet_seeding_impl(
   const float* scifi_hits_x0,
-  const uint layer_0,
-  const uint layer_2,
+  const float z0,
+  const float z1,
+  const float z2,
+  const int l0_start,
+  const int l1_start,
+  const int l2_start,
+  const int l0_size,
+  const int l1_size,
+  const int l2_size,
+  const int central_window_l0_begin,
+  const int central_window_l1_begin,
+  const int central_window_l2_begin,
   const int* initial_windows,
   const uint ut_total_number_of_tracks,
   const float qop,
@@ -13,24 +23,8 @@ __device__ void lf_triplet_seeding_impl(
   const float velo_tx,
   const float x_at_z_magnet,
   float* shared_x1,
-  SciFi::CombinedValue* scifi_lf_triplet_best,
-  const LookingForward::Constants* dev_looking_forward_constants,
-  const uint triplet_seed)
+  float* scifi_lf_triplet_best)
 {
-  constexpr int extreme_layers_window_size = 32;
-  constexpr int middle_layer_window_size = 32;
-
-  const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
-  const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_2];
-
-  const int l0_start = initial_windows[(layer_0 * 8) * ut_total_number_of_tracks];
-  const int l0_extrapolated = initial_windows[(layer_0 * 8 + 4) * ut_total_number_of_tracks];
-  const int l0_size = initial_windows[(layer_0 * 8 + 1) * ut_total_number_of_tracks];
-
-  const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
-  const int l2_extrapolated = initial_windows[(layer_2 * 8 + 4) * ut_total_number_of_tracks];
-  const int l2_size = initial_windows[(layer_2 * 8 + 1) * ut_total_number_of_tracks];
-
   const auto inverse_dz2 = 1.f / (z0 - z2);
 
   const auto qop_range =
@@ -41,60 +35,25 @@ __device__ void lf_triplet_seeding_impl(
 
   const auto do_sign_check = fabsf(qop) > (1.f / LookingForward::sign_check_momentum_threshold);
 
-  const int central_window_l0_begin = max(l0_extrapolated - extreme_layers_window_size / 2, 0);
   const int central_window_l0_size =
-    min(central_window_l0_begin + extreme_layers_window_size, l0_size) - central_window_l0_begin;
-  const int central_window_l2_begin = max(l2_extrapolated - extreme_layers_window_size / 2, 0);
-  const int central_window_l2_size =
-    min(central_window_l2_begin + extreme_layers_window_size, l2_size) - central_window_l2_begin;
-
-  // Middle layers
-  const auto layer_1 = layer_0 + 2;
-  const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_1];
-
-  const int l1_start = initial_windows[(layer_1 * 8) * ut_total_number_of_tracks];
-  const int l1_extrapolated = initial_windows[(layer_1 * 8 + 4) * ut_total_number_of_tracks];
-  const int l1_size = initial_windows[(layer_1 * 8 + 1) * ut_total_number_of_tracks];
-
-  const int central_window_l1_begin = max(l1_extrapolated - middle_layer_window_size / 2, 0);
+    min(central_window_l0_begin + LookingForward::extreme_layers_window_size, l0_size) - central_window_l0_begin;
   const int central_window_l1_size =
-    min(central_window_l1_begin + middle_layer_window_size, l1_size) - central_window_l1_begin;
-
-  // const auto layer_1b = 3 - layer_0;
-  // const auto z1b = dev_looking_forward_constants->Zone_zPos_xlayers[layer_1b];
-
-  // const int l1b_start = initial_windows[(layer_1b * 8) * ut_total_number_of_tracks];
-  // const int l1b_extrapolated = initial_windows[(layer_1b * 8 + 4) * ut_total_number_of_tracks];
-  // const int l1b_size = initial_windows[(layer_1b * 8 + 1) * ut_total_number_of_tracks];
-
-  // const int central_window_l1b_begin = max(l1b_extrapolated - middle_layer_window_size / 2, 0);
-  // const int central_window_l1b_size =
-  //   min(central_window_l1b_begin + middle_layer_window_size, l1b_size) - central_window_l1b_begin;
+    min(central_window_l1_begin + LookingForward::middle_layer_window_size, l1_size) - central_window_l1_begin;
+  const int central_window_l2_size =
+    min(central_window_l2_begin + LookingForward::extreme_layers_window_size, l2_size) - central_window_l2_begin;
 
   // Due to shared_x1
   __syncthreads();
 
   for (int i = threadIdx.x; i < central_window_l1_size; i += blockDim.x) {
-    shared_x1[triplet_seed * 32 + i] = scifi_hits_x0[l1_start + central_window_l1_begin + i];
+    shared_x1[i] = scifi_hits_x0[l1_start + central_window_l1_begin + i];
   }
-
-  // for (int i = threadIdx.x; i < central_window_l1b_size; i += blockDim.x) {
-  //   shared_x1[middle_layer_window_size + i] = scifi_hits_x0[l1b_start + central_window_l1b_begin + i];
-  // }
 
   // Due to shared_x1
   __syncthreads();
 
   constexpr int blockdim = 32;
   for (uint tid = threadIdx.x; tid < blockdim; tid += blockDim.x) {
-    int best_index = -1;
-    int best_h1 = -1;
-    float best_chi2 = 100.f;
-
-    // int second_best_index = -1;
-    // int second_best_h1 = -1;
-    // int second_best_chi2 = 100.f;
-
     // Treat central window iteration
     for (uint i = tid; i < central_window_l0_size * central_window_l2_size; i += blockdim) {
       const auto h0_rel = i % central_window_l0_size;
@@ -128,51 +87,36 @@ __device__ void lf_triplet_seeding_impl(
         const auto mean1 = h0_rel / ((float) central_window_l0_size);
         const auto mean2 = h2_rel / ((float) central_window_l2_size);
         const int l1_extrap = (mean1 + mean2) * 0.5f * central_window_l1_size;
-
-        auto local_central_window_l1_begin = max(l1_extrap - local_l1_size / 2, 0);
+        const auto local_central_window_l1_begin = max(l1_extrap - local_l1_size / 2, 0);
         const auto local_central_window_l1_end = min(local_central_window_l1_begin + local_l1_size, central_window_l1_size);
+
+        float best_chi2 = LookingForward::chi2_max_triplet_single;
+        int best_j = -1;
 
         for (uint j = local_central_window_l1_begin; j < local_central_window_l1_end; ++j) {
           const auto expected_x1 = precalc_expected_x1 + z1 * slope_t1_t3;
-          const auto x1 = shared_x1[triplet_seed * 32 + j];
+          const auto x1 = shared_x1[j];
           const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
 
           if (chi2 < best_chi2) {
-            best_index = i;
-            best_h1 = j;
             best_chi2 = chi2;
+            best_j = j;
           }
         }
 
-        // for (uint j = 0; j < central_window_l1b_size; ++j) {
-        //   const auto expected_x1 = precalc_expected_x1 + z1b * slope_t1_t3;
-        //   const auto x1 = shared_x1[middle_layer_window_size + j];
-        //   const auto chi2 = (expected_x1 - x1) * (expected_x1 - x1);
+        if (best_j != -1) {
+          // if (Configuration::verbosity_level >= logger::debug) {
+          //   printf("Best triplet found: %i, %i, %i, %f\n", h0_rel, h2_rel, best_j, best_chi2);
+          // }
 
-        //   if (chi2 < second_best_chi2) {
-        //     second_best_index = i;
-        //     second_best_h1 = j;
-        //     second_best_chi2 = chi2;
-        //   }
-        // }
+          // Encode j into chi2
+          int* best_chi2_int = reinterpret_cast<int*>(&best_chi2);
+          best_chi2_int[0] = (best_chi2_int[0] & 0xFFFFFFE0) + best_j;
+
+          // Store chi2 with encoded j
+          scifi_lf_triplet_best[h0_rel * LookingForward::extreme_layers_window_size + h2_rel] = best_chi2;
+        }
       }
     }
-
-    if (best_h1 != -1) {
-      scifi_lf_triplet_best[tid] =
-        SciFi::CombinedValue {best_chi2,
-                              (uint16_t)(l0_start + central_window_l0_begin + (best_index % central_window_l0_size)),
-                              (uint16_t)(l1_start + central_window_l1_begin + best_h1),
-                              (uint16_t)(l2_start + central_window_l2_begin + (best_index / central_window_l0_size))};
-
-    }
-
-    // if (second_best_h1 != -1) {
-    //   scifi_lf_triplet_best[middle_layer_window_size + tid] =
-    //     SciFi::CombinedValue {second_best_chi2,
-    //                           (uint16_t)(l0_start + central_window_l0_begin + (second_best_index % central_window_l0_size)),
-    //                           (uint16_t)(l1b_start + central_window_l1b_begin + second_best_h1),
-    //                           (uint16_t)(l2_start + central_window_l2_begin + (second_best_index / central_window_l0_size))};
-    // }
   }
 }
