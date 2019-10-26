@@ -46,7 +46,6 @@ SEQUENCE_T(
   lf_calculate_parametrization_t,
   lf_extend_missing_x_t,
   lf_quality_filter_x_t,
-  lf_search_uv_windows_t,
   lf_extend_tracks_uv_t,
   lf_quality_filter_length_t,
   lf_quality_filter_t,

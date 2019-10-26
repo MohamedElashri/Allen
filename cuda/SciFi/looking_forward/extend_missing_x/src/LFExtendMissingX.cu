@@ -48,21 +48,6 @@ __global__ void lf_extend_missing_x(
         current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + i;
       SciFi::TrackHits& track = dev_scifi_tracks[scifi_track_index];
 
-      // Find out missing layers
-      uint8_t number_of_missing_layers = 0;
-      uint8_t missing_layers[3];
-
-      for (int layer_j = 0; layer_j < LookingForward::number_of_x_layers; ++layer_j) {
-        bool found = false;
-        for (int k = 0; k < track.hitsNum; ++k) {
-          const auto layer_k = track.get_layer(k);
-          found |= layer_j == layer_k;
-        }
-        if (!found) {
-          missing_layers[number_of_missing_layers++] = layer_j;
-        }
-      }
-
       const auto a1 = dev_scifi_lf_parametrization[scifi_track_index];
       const auto b1 = dev_scifi_lf_parametrization
         [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
@@ -71,9 +56,8 @@ __global__ void lf_extend_missing_x(
       const auto d_ratio = dev_scifi_lf_parametrization
         [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
 
-      for (int j = 0; j < number_of_missing_layers; ++j) {
-        const auto current_layer = missing_layers[j];
-
+      // Note: This logic assumes the candidate layers are {0,2,4} and {1,3,5}.
+      for (auto current_layer : {1 - track.get_layer(0), 3 - track.get_layer(0), 5 - track.get_layer(0)}) {
         // Find window
         const auto window_start =
           dev_initial_windows[current_ut_track_index + current_layer * 8 * ut_total_number_of_tracks];
@@ -85,22 +69,25 @@ __global__ void lf_extend_missing_x(
                                  a1 * (zZone - LookingForward::z_mid_t) * (zZone - LookingForward::z_mid_t) *
                                    (1.f + d_ratio * (zZone - LookingForward::z_mid_t));
 
-        // if (Configuration::verbosity_level >= logger::debug) {
-        //   printf(" Predicted x: %f\n", static_cast<double>(predicted_x));
-        // }
-
         // Pick the best, according to chi2
         int best_index = -1;
         float best_chi2 = 4.f;
 
         const auto scifi_hits_x0 = scifi_hits.x0 + event_offset + window_start;
-        for (int h4_rel = 0; h4_rel < window_size; h4_rel++) {
-          const auto x4 = scifi_hits_x0[h4_rel];
-          const auto chi2 = (x4 - predicted_x) * (x4 - predicted_x);
 
-          if (chi2 < best_chi2) {
-            best_chi2 = chi2;
-            best_index = h4_rel;
+        // Binary search of candidate
+        const auto candidate_index = binary_search_leftmost(scifi_hits_x0, window_size, predicted_x);
+
+        // It is now either candidate_index-1 or candidate_index
+        for (int h4_rel = candidate_index - 1; h4_rel < candidate_index + 1; ++h4_rel) {
+          if (h4_rel >= 0 && h4_rel < window_size) {
+            const auto x4 = scifi_hits_x0[h4_rel];
+            const auto chi2 = (x4 - predicted_x) * (x4 - predicted_x);
+
+            if (chi2 < best_chi2) {
+              best_chi2 = chi2;
+              best_index = h4_rel;
+            }
           }
         }
 

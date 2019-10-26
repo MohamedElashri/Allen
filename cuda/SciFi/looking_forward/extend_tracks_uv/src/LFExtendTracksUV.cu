@@ -1,4 +1,5 @@
 #include "LFExtendTracksUV.cuh"
+#include "BinarySearch.cuh"
 
 __global__ void lf_extend_tracks_uv(
   const uint32_t* dev_scifi_hits,
@@ -10,7 +11,7 @@ __global__ void lf_extend_tracks_uv(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
   const MiniState* dev_ut_states,
-  const short* dev_scifi_lf_uv_windows,
+  const int* dev_scifi_lf_initial_windows,
   const float* dev_scifi_lf_parametrization_x_filter)
 {
   const auto number_of_events = gridDim.x;
@@ -48,43 +49,46 @@ __global__ void lf_extend_tracks_uv(
       [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index];
 
-    for (int relative_extrapolation_layer = 0; relative_extrapolation_layer < 6; relative_extrapolation_layer++) {
-      const auto layer4 = dev_looking_forward_constants->extrapolation_uv_layers[relative_extrapolation_layer];
+    for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
+      const auto layer4 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
       const auto z4 = dev_looking_forward_constants->Zone_zPos[layer4];
       const auto projection_y_zone_dxdy =
         LookingForward::y_at_z_dzdy_corrected(dev_ut_states[current_ut_track_index], z4) *
-        dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_extrapolation_layer & 0x1];
+        dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1];
 
       // Use UV windows
-      const auto uv_window_start = dev_scifi_lf_uv_windows
-        [ut_event_tracks_offset * 6 * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-         ut_event_number_of_tracks * relative_extrapolation_layer *
-           LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-         i];
+      const auto uv_window_start = dev_scifi_lf_initial_windows
+        [ut_event_tracks_offset + track.ut_track_index + (relative_uv_layer * 8 + 2) * ut_total_number_of_tracks];
+      const auto uv_window_size = dev_scifi_lf_initial_windows
+        [ut_event_tracks_offset + track.ut_track_index + (relative_uv_layer * 8 + 3) * ut_total_number_of_tracks];
 
-      const auto uv_window_size = dev_scifi_lf_uv_windows
-        [ut_total_number_of_tracks * 6 * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-         ut_event_tracks_offset * 6 * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-         ut_event_number_of_tracks * relative_extrapolation_layer *
-           LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-         i];
+      const auto projection_y = LookingForward::y_at_z_dzdy_corrected(dev_ut_states[current_ut_track_index], z4);
 
-      const auto predicted_x = c1 + b1 * (z4 - LookingForward::z_mid_t) +
-                               a1 * (z4 - LookingForward::z_mid_t) * (z4 - LookingForward::z_mid_t) *
-                                 (1.f + d_ratio * (z4 - LookingForward::z_mid_t));
+      const auto predicted_x =
+        c1 + b1 * (z4 - LookingForward::z_mid_t) +
+        a1 * (z4 - LookingForward::z_mid_t) * (z4 - LookingForward::z_mid_t) *
+          (1.f + d_ratio * (z4 - LookingForward::z_mid_t)) -
+        dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1] * projection_y;
 
       // Pick the best, according to chi2
       int best_index = -1;
       float best_chi2 = 16.f;
 
       const auto scifi_hits_x0 = scifi_hits.x0 + event_offset + uv_window_start;
-      for (int h4 = 0; h4 < uv_window_size; h4++) {
-        const auto x4 = scifi_hits_x0[h4] + projection_y_zone_dxdy;
-        const auto chi2 = (x4 - predicted_x) * (x4 - predicted_x);
 
-        if (chi2 < best_chi2) {
-          best_chi2 = chi2;
-          best_index = h4;
+      // Binary search of candidate
+      const auto candidate_index = binary_search_leftmost(scifi_hits_x0, uv_window_size, predicted_x);
+
+      // It is now either candidate_index - 1 or candidate_index
+      for (int h4_rel = candidate_index - 1; h4_rel < candidate_index + 1; ++h4_rel) {
+        if (h4_rel >= 0 && h4_rel < uv_window_size) {
+          const auto x4 = scifi_hits_x0[h4_rel];
+          const auto chi2 = (x4 - predicted_x) * (x4 - predicted_x);
+
+          if (chi2 < best_chi2) {
+            best_chi2 = chi2;
+            best_index = h4_rel;
+          }
         }
       }
 
