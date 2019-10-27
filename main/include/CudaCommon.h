@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include "LoggerCommon.h"
 
 #ifdef CPU
 
@@ -307,7 +308,3 @@ namespace cuda {
 void print_gpu_memory_consumption();
 
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
-
-namespace logger {
-  enum { error = 1, warning = 2, info = 3, debug = 4, verbose = 5 };
-}

@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <fstream>
 #include <string>
-#include "CudaCommon.h"
+#include "LoggerCommon.h"
 
 // Dumb type, just making constructor public
 class FileStdLogger : public std::ostream {
