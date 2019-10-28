@@ -429,7 +429,7 @@ add_subdirectory(zmq)
 if (DEFINED ENV{CPLUS_INCLUDE_PATH})
   include_directories(SYSTEM $ENV{CPLUS_INCLUDE_PATH})
 elseif (DEFINED ENV{CPATH})
-  include_directories(SYSTEM $ENV{PATH})
+  include_directories(SYSTEM $ENV{CPATH})
 endif()
 
 # Include directories
