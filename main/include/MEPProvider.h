@@ -25,9 +25,16 @@
 #include <read_mdf.hpp>
 #include <read_mep.hpp>
 #include <raw_bank.hpp>
+#include <write_mdf.hpp>
 
 #include "Transpose.h"
 #include "TransposeMEP.h"
+
+#ifndef CPU
+#define CPU
+#include <MEPTools.h>
+#undef CPU
+#endif
 
 #ifdef HAVE_MPI
 #include "MPIConfig.h"
@@ -71,7 +78,9 @@ struct MEPProviderConfig {
 
   bool non_stop = true;
 
-  bool transpose_mep = true;
+  bool transpose_mep = false;
+
+  std::string output_file = "";
 };
 
 /**
@@ -106,8 +115,8 @@ public:
     std::vector<std::string> connections,
     MEPProviderConfig config = MEPProviderConfig {}) :
     InputProvider<MEPProvider<Banks...>> {n_slices, events_per_slice, n_events},
-    m_buffer_status(config.n_buffers), m_slice_free(n_slices, true), m_banks_count {0}, m_event_ids {n_slices},
-    m_connections {std::move(connections)}, m_config {config}
+    m_buffer_status(config.n_buffers), m_output_offsets(n_slices), m_slice_free(n_slices, true), m_banks_count {0},
+    m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
     m_buffer_transpose = m_buffer_status.begin();
@@ -141,6 +150,11 @@ public:
     // Reinitialize to take the possible minimum number of events per
     // slice into account
     events_per_slice = this->events_per_slice();
+
+    // Resize output offsets
+    for (auto& output_offsets : m_output_offsets) {
+      output_offsets.resize(events_per_slice);
+    }
 
     // Initialize the current input filename
     m_current = m_connections.begin();
@@ -186,8 +200,6 @@ public:
       }
     }
   }
-
-  static constexpr const char* name = "MDF";
 
   /// Destructor
   virtual ~MEPProvider()
@@ -321,15 +333,18 @@ public:
         freed = true;
 
         // Clear relation between slice and buffer
-        i_buffer = m_slice_to_buffer[slice_index];
+        i_buffer = std::get<0>(m_slice_to_buffer[slice_index]);
         auto& status = m_buffer_status[i_buffer];
-        m_slice_to_buffer[slice_index] = -1;
+        m_slice_to_buffer[slice_index] = {-1, 0, 0};
 
         // If MEPs are not transposed and the respective buffer is no
         // longer in use, set it to writable
         if (
           !m_config.transpose_mep && status.work_counter == 0 &&
-          (std::find(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), i_buffer) == m_slice_to_buffer.end())) {
+          (std::find_if(m_slice_to_buffer.begin(), m_slice_to_buffer.end(),
+                        [i_buffer] (const auto& entry) {
+                          return std::get<0>(entry) == i_buffer;
+                        }) == m_slice_to_buffer.end())) {
           status.writable = true;
           set_writable = true;
         }
@@ -344,6 +359,72 @@ public:
       m_mpi_cond.notify_one();
     }
   }
+
+  void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events,
+                   std::vector<size_t>& sizes) const
+  {
+    auto [i_buffer, interval_start, interval_end] = m_slice_to_buffer[slice_index];
+    auto const& blocks = std::get<2>(m_net_slices[i_buffer]);
+    for (unsigned int i = 0; i < selected_events.size(); ++i) {
+      auto event = selected_events[i];
+      sizes[i] += std::accumulate(blocks.begin(), blocks.end(), 0ul,
+        [event, interval_start] (size_t s, const auto& entry) {
+          return s + std::get<0>(entry).sizes[interval_start + event];
+        });
+    }
+  }
+
+  void copy_banks(size_t const slice_index, gsl::span<unsigned int> const selected_events,
+                  gsl::span<char> buffer, std::vector<unsigned int> const& event_offsets) const {
+    auto [i_buffer, interval_start, interval_end] = m_slice_to_buffer[slice_index];
+
+    auto const& mep_header = std::get<0>(m_net_slices[i_buffer]);
+    auto const& blocks = std::get<2>(m_net_slices[i_buffer]);
+
+    auto& output_offsets = m_output_offsets[slice_index];
+    std::copy(event_offsets.begin(), event_offsets.end(), output_offsets.begin());
+
+    unsigned char prev_type = 0;
+    auto block_index = 0;
+
+    for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
+      auto const& [block_header, block_data] = blocks[i_block];
+      auto lhcb_type = block_header.types[0];
+      auto allen_type = m_bank_ids[lhcb_type];
+
+      if (prev_type != lhcb_type) {
+        block_index = 0;
+        prev_type = lhcb_type;
+      }
+
+      if (allen_type != -1) {
+        auto const& [banks, data_size, offsets, offsets_size] = m_slices[allen_type][slice_index];
+        size_t n_banks = MEP::number_of_banks(offsets.data());
+        for (unsigned int i = 0; i < selected_events.size(); ++i) {
+          auto& offset = output_offsets[i];
+          auto event = selected_events[i];
+
+          // On the device, the block data is back to back and the
+          // offsets are built for that format. Here the block data is
+          // separate, so all offsets need to be compensated for the
+          // block offset. The 0th event offset is exactly that block
+          // offset
+          auto block_start = MEP::offset_index(n_banks, 0, block_index);
+          auto const fragment_offset = offsets[MEP::offset_index(n_banks, event, block_index)] - block_start;
+          // The end of a fragment is the offset of the fragment that
+          // belongs to the next event
+          auto const fragment_end = offsets[MEP::offset_index(n_banks, event + 1, block_index)] - block_start;
+          auto fragment_size = fragment_end - fragment_offset;
+          offset += add_raw_bank(block_header.types[interval_start + event],
+                                 mep_header.versions[i_block], mep_header.source_ids[i_block],
+                                 {banks[block_index].data() + fragment_offset, fragment_size},
+                                 buffer.data() + offset);
+        }
+      }
+      ++block_index;
+    }
+  }
+
 
 private:
   size_t count_writable() const
@@ -413,7 +494,7 @@ private:
       }
     };
     m_slices = allocate_slices<Banks...>(this->n_slices(), size_fun);
-    m_slice_to_buffer = std::vector(this->n_slices(), -1);
+    m_slice_to_buffer = std::vector(this->n_slices(), std::tuple{-1, 0ul, 0ul});
 
     if (!count_success) {
       error_cout << "Failed to determine bank counts\n";
@@ -548,7 +629,7 @@ private:
         if (!eof) {
           debug_cout << "Read mep with packing factor " << mep_header.packing_factor << "\n";
           if (to_read && success) {
-            to_publish = std::min(*to_read, size_t {mep_header.packing_factor});
+            to_publish = std::min(*to_read, this->events_per_slice());
             *to_read -= to_publish;
           }
           else {
@@ -842,7 +923,7 @@ private:
           this->debug_output("Got slice index " + std::to_string(*slice_index), thread_id);
 
           // Keep track of what buffer this slice belonged to
-          m_slice_to_buffer[*slice_index] = i_buffer;
+          m_slice_to_buffer[*slice_index] = {i_buffer, std::get<0>(interval), std::get<1>(interval)};
         }
       }
 
@@ -949,7 +1030,8 @@ private:
 
   // Memory slices, N for each raw bank type
   Slices m_slices;
-  std::vector<int> m_slice_to_buffer;
+  std::vector<std::tuple<int, size_t, size_t>> m_slice_to_buffer;
+  mutable std::vector<std::vector<size_t>> m_output_offsets;
 
   // Mutex, condition varaible and queue for parallel transposition of slices
   std::mutex m_transpose_mut;
@@ -974,7 +1056,7 @@ private:
   // File names to read
   std::vector<std::string> m_connections;
 
-  // Storage for the currently open file
+  // Storage for the currently open input file
   mutable std::optional<Allen::IO> m_input;
 
   // Iterator that points to the filename of the currently open file

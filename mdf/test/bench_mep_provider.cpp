@@ -38,7 +38,9 @@ int main(int argc, char* argv[])
                             2,      // number of transpose threads
                             4,      // MPI sliding window size
                             false,  // Receive from MPI or read files
-                            false}; // Run the application non-stop
+                            false,  // Run the application non-stop
+                            true,   // Transpose MEP
+                            ""};    // Output file
 
   MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON> mep {
     n_slices, events_per_slice, {}, files, config};

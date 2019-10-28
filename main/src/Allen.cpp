@@ -496,7 +496,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               mpi_window_size, // MPI sliding window size
                               with_mpi,        // Receive from MPI or read files
                               non_stop,        // Run the application non-stop
-                              allen_layout};   // MEPs should be transposed to Allen layout
+                              allen_layout,    // MEPs should be transposed to Allen layout
+                              ""};             // Output file
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, split_input(mep_input), config);
   }

@@ -19,7 +19,7 @@ __preamble__ unsigned int number_of_banks(unsigned int const* offsets) {
 }
 
 __preamble__ unsigned int offset_index(unsigned int const n_banks, unsigned int const event,
-                                                     unsigned int const bank) {
+                                       unsigned int const bank) {
   return 2 + n_banks * (1 + event) + bank;
 }
 

@@ -6,7 +6,6 @@
 #include <Common.h>
 #include <Logger.h>
 #include <SystemOfUnits.h>
-#include <mdf_header.hpp>
 #include <raw_bank.hpp>
 
 #ifndef NO_CUDA
