@@ -1,4 +1,4 @@
-#include <MEPTools.cuh>
+#include <MEPTools.h>
 #include <UTCalculateNumberOfHits.cuh>
 
 __device__ void calculate_number_of_hits(

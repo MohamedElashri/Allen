@@ -1,4 +1,4 @@
-#include <MEPTools.cuh>
+#include <MEPTools.h>
 #include <SciFiCalculateClusterCountV4.cuh>
 
 using namespace SciFi;

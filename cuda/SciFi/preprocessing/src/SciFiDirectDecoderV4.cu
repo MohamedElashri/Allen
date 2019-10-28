@@ -1,4 +1,4 @@
-#include <MEPTools.cuh>
+#include <MEPTools.h>
 #include <SciFiDirectDecoderV4.cuh>
 #include <assert.h>
 

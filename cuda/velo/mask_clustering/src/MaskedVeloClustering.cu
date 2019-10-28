@@ -1,4 +1,4 @@
-#include <MEPTools.cuh>
+#include <MEPTools.h>
 #include <MaskedVeloClustering.cuh>
 
 // 8-connectivity mask

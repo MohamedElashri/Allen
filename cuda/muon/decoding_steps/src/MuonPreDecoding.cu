@@ -1,4 +1,4 @@
-#include <MEPTools.cuh>
+#include <MEPTools.h>
 #include <MuonPreDecoding.cuh>
 
 __device__ void decode_muon_bank(Muon::MuonRawToHits const* muon_raw_to_hits,

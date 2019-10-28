@@ -1,4 +1,4 @@
-#include "MEPTools.cuh"
+#include "MEPTools.h"
 #include "SciFiPreDecodeV4.cuh"
 #include "assert.h"
 

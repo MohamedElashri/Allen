@@ -1,4 +1,4 @@
-#include <MEPTools.cuh>
+#include <MEPTools.h>
 #include <EstimateInputSize.cuh>
 
 __device__ void estimate_raw_bank_size(

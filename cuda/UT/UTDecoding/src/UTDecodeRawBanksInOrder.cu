@@ -1,4 +1,4 @@
-#include <MEPTools.cuh>
+#include <MEPTools.h>
 #include <UTDecodeRawBanksInOrder.cuh>
 
 __device__ void decode_raw_bank(

@@ -1,19 +1,24 @@
 #pragma once
 
 #include "Common.h"
-#include "CudaCommon.h"
+
+#ifndef CPU
+#define __preamble__ __forceinline__ __device__
+#else
+#define __preamble__ inline
+#endif
 
 namespace MEP {
 
-__forceinline__ __device__ unsigned int source_id(unsigned int const* offsets, unsigned int const bank) {
+__preamble__ unsigned int source_id(unsigned int const* offsets, unsigned int const bank) {
   return offsets[2 + bank];
 }
 
-__forceinline__ __device__ unsigned int number_of_banks(unsigned int const* offsets) {
+__preamble__ unsigned int number_of_banks(unsigned int const* offsets) {
   return offsets[0];
 }
 
-__forceinline__ __device__ unsigned int offset_index(unsigned int const n_banks, unsigned int const event,
+__preamble__ unsigned int offset_index(unsigned int const n_banks, unsigned int const event,
                                                      unsigned int const bank) {
   return 2 + n_banks * (1 + event) + bank;
 }
@@ -27,7 +32,7 @@ using has_constructor = is_detected<constructor_t, T, Args...>;
 
 namespace detail {
   template <class Bank, typename... Args, std::enable_if_t<has_constructor<Bank, Args...>::value>* = nullptr>
-  __forceinline__ __device__ Bank raw_bank(char const* blocks, unsigned int const* offsets,
+  __preamble__ Bank raw_bank(char const* blocks, unsigned int const* offsets,
                                unsigned int const event, unsigned int const bank) {
     auto const source_id = offsets[2 + bank];
     auto const n_banks = offsets[0];
@@ -37,7 +42,7 @@ namespace detail {
   }
 
   template <class Bank, typename... Args, std::enable_if_t<!has_constructor<Bank, Args...>::value>* = nullptr>
-  __forceinline__ __device__ Bank raw_bank(char const* blocks, unsigned int const* offsets,
+  __preamble__ Bank raw_bank(char const* blocks, unsigned int const* offsets,
                                unsigned int const event, unsigned int const bank) {
     auto const source_id = offsets[2 + bank];
     auto const n_banks = offsets[0];
@@ -47,7 +52,7 @@ namespace detail {
 }
 
 template <class Bank>
-__forceinline__ __device__ Bank raw_bank(char const* blocks, unsigned int const* offsets,
+__preamble__ Bank raw_bank(char const* blocks, unsigned int const* offsets,
                              unsigned int const event, unsigned int const bank) {
   return detail::raw_bank<Bank, uint32_t const, char const*, char const*>(blocks, offsets, event, bank);
 }

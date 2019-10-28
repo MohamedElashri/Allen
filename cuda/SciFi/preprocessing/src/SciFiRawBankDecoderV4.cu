@@ -1,4 +1,4 @@
-#include <MEPTools.cuh>
+#include <MEPTools.h>
 #include <SciFiRawBankDecoderV4.cuh>
 #include <assert.h>
 
