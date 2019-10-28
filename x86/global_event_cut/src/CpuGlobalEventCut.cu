@@ -70,7 +70,6 @@ void cpu_global_event_cut_mep(
     uint n_SciFi_clusters = 0;
 
     for (uint i = 0; i < number_of_scifi_raw_banks; ++i) {
-      // get bank size in bytes, subtract four bytes for header word
       uint const offset_index = 2 + number_of_scifi_raw_banks * (1 + event_number);
       uint bank_size = scifi_offsets[offset_index + i + number_of_scifi_raw_banks] - scifi_offsets[offset_index + i];
       // std::cout << "scifi " << std::setw(4) << event_number << " " << std::setw(3) << i << " " << bank_size << "\n";
