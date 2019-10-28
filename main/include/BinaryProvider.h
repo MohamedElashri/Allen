@@ -119,7 +119,8 @@ public:
       if (it == end(BankSizes)) {
         throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
       }
-      return {std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB), events_per_slice};
+      return {std::lround((401 * sizeof(uint32_t) + it->second) *
+                          events_per_slice * bank_size_fudge_factor * kB), events_per_slice};
     };
     m_slices = allocate_slices<Banks...>(n_slices, size_fun);
 
@@ -143,8 +144,6 @@ public:
 
     if (m_prefetch_thread) m_prefetch_thread->join();
   }
-
-  static constexpr const char* name = "Binary";
 
   /**
    * @brief      Get event IDs for a given slice
@@ -233,6 +232,16 @@ public:
     span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
     span<unsigned int const> o {offsets.data(), offsets_size};
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
+  }
+
+  void event_sizes(size_t const, gsl::span<unsigned int> const,
+                   std::vector<size_t>&) const
+  {
+  }
+
+  void copy_banks(size_t const, gsl::span<unsigned int> const,
+                  gsl::span<char>, std::vector<unsigned int> const&) const
+  {
   }
 
 private:
@@ -340,9 +349,9 @@ private:
    *
    * @return     array of (bank type, open ifstrea, file size)
    */
-  std::array<std::tuple<BankTypes, std::ifstream, size_t>, NBankTypes> open_files(size_t n)
+  std::array<std::tuple<BankTypes, std::ifstream, size_t>, sizeof...(Banks)> open_files(size_t n)
   {
-    std::array<std::tuple<BankTypes, std::ifstream, size_t>, NBankTypes> result;
+    std::array<std::tuple<BankTypes, std::ifstream, size_t>, sizeof...(Banks)> result;
     for (auto bank_type : {Banks...}) {
       auto ib = to_integral<BankTypes>(bank_type);
       auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[n];
@@ -416,10 +425,9 @@ private:
   std::vector<std::vector<std::tuple<unsigned int, unsigned long>>> m_event_ids;
 
   // Sizes of all files
-  std::array<std::vector<size_t>, NBankTypes> m_sizes;
+  std::array<std::vector<size_t>, sizeof...(Banks)> m_sizes;
 
   // Folder and file names per bank type
-  std::array<std::tuple<std::string, std::vector<std::string>>, NBankTypes> m_files;
+  std::array<std::tuple<std::string, std::vector<std::string>>, sizeof...(Banks)> m_files;
 
-  using base_class = InputProvider<BinaryProvider<Banks...>>;
 };

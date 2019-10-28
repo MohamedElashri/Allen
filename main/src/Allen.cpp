@@ -43,6 +43,7 @@
 #include "MuonDefinitions.cuh"
 #include "Consumers.h"
 #include "CheckerInvoker.h"
+#include "FileWriter.h"
 #include "Allen.h"
 
 namespace {

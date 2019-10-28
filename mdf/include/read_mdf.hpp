@@ -29,7 +29,7 @@ namespace Allen {
   struct IO {
     bool good = false;
     std::function<ssize_t(char*, size_t)> read;
-    std::function<ssize_t(char*, size_t)> write;
+    std::function<ssize_t(char const*, size_t)> write;
     std::function<void(void)> close;
   };
 } // namespace Allen

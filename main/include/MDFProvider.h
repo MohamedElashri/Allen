@@ -110,18 +110,6 @@ public:
     // slice into account
     events_per_slice = this->events_per_slice();
 
-    // Allocate slice memory that will contain transposed banks ready
-    // for processing by the Allen kernels
-    auto size_fun = [events_per_slice](BankTypes bank_type) -> std::tuple<size_t, size_t> {
-      auto it = BankSizes.find(bank_type);
-      auto ib = to_integral<BankTypes>(bank_type);
-      if (it == end(BankSizes)) {
-        throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
-      }
-      return {std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB), events_per_slice};
-    };
-    m_slices = allocate_slices<Banks...>(n_slices, size_fun);
-
     // Initialize the current input filename
     m_current = m_connections.begin();
 
@@ -160,6 +148,22 @@ public:
         }
         else {
           m_sizes_known = true;
+
+          // Allocate slice memory that will contain transposed banks ready
+          // for processing by the Allen kernels
+          auto size_fun = [events_per_slice, this](BankTypes bank_type) -> std::tuple<size_t, size_t> {
+            auto it = BankSizes.find(bank_type);
+            auto ib = to_integral<BankTypes>(bank_type);
+            if (it == end(BankSizes)) {
+              throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
+            }
+            auto it_id = std::find(m_bank_ids.begin(), m_bank_ids.end(), to_integral(bank_type));
+            auto lhcb_type = std::distance(m_bank_ids.begin(), it_id);
+            auto n_banks = m_banks_count[lhcb_type];
+            return {std::lround(((1 + n_banks) * sizeof(uint32_t) + it->second) *
+                                events_per_slice * bank_size_fudge_factor * kB), events_per_slice};
+          };
+          m_slices = allocate_slices<Banks...>(n_slices, size_fun);
         }
       }
     }
@@ -184,8 +188,6 @@ public:
       }
     }
   }
-
-  static constexpr const char* name = "MDF";
 
   /// Destructor
   virtual ~MDFProvider()
@@ -305,6 +307,16 @@ public:
       this->debug_output("Freed slice " + std::to_string(slice_index));
       m_slice_cond.notify_one();
     }
+  }
+
+  void event_sizes(size_t const, gsl::span<unsigned int> const,
+                   std::vector<size_t>&) const
+  {
+  }
+
+  void copy_banks(size_t const, gsl::span<unsigned int> const,
+                  gsl::span<char>, std::vector<unsigned int> const&) const
+  {
   }
 
 private:

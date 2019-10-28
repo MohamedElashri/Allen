@@ -4,11 +4,17 @@
 #include <map>
 #include <vector>
 #include <cmath>
+#include <mutex>
 
+#include <gsl-lite.hpp>
+#include <Logger.h>
 #include <BankTypes.h>
 #include <Common.h>
 
 struct IInputProvider {
+
+  /// Descturctor
+  virtual ~IInputProvider() {};
 
   /**
    * @brief      Get event ids in a given slice
@@ -45,8 +51,13 @@ struct IInputProvider {
    */
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 
-  /// Descturctor
-  virtual ~IInputProvider() {};
+  virtual void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events,
+                           std::vector<size_t>& sizes) = 0;
+
+  virtual void copy_banks(size_t const slice_index, gsl::span<unsigned int> const selected_events,
+                          gsl::span<char> buffer, std::vector<unsigned int> const& event_offsets) const = 0;
+
+
 };
 
 // InputProvider
@@ -141,6 +152,20 @@ public:
   {
     return static_cast<const Derived<Banks...>*>(this)->banks(bank_type, slice_index);
   }
+
+  void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events,
+                   std::vector<size_t>& sizes)
+  {
+    return static_cast<const Derived<Banks...>*>(this)->event_sizes(slice_index, selected_events, sizes);
+  }
+
+  void copy_banks(size_t const slice_index, gsl::span<unsigned int> const selected_events,
+                  gsl::span<char> buffer, std::vector<unsigned int> const& event_offsets) const
+  {
+    return static_cast<const Derived<Banks...>*>(this)->copy_banks(slice_index, selected_events,
+                                                                   buffer, event_offsets);
+  }
+
 
 protected:
   template<typename MSG>
