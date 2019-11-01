@@ -23,6 +23,7 @@ __global__ void lf_quality_filter_x(
   const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
 
   __shared__ float chi2_ndofs[LookingForward::maximum_number_of_candidates_per_ut_track];
+  __shared__ bool six_hit_track[LookingForward::maximum_number_of_candidates_per_ut_track];
 
   for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
@@ -39,6 +40,37 @@ __global__ void lf_quality_filter_x(
 
       const auto ndof = track.hitsNum - 3;
       chi2_ndofs[j] = ndof > 0 ? track.quality / ndof : 10000.f;
+      six_hit_track[j] = track.hitsNum == 6;
+    }
+
+    __syncthreads();
+
+    // first save indices and qualities of tracks
+    for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
+      if (six_hit_track[j]) {
+        const auto scifi_track_index =
+          current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
+        const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
+
+        for (uint k = j + 1; k < number_of_tracks; ++k) {
+          if (six_hit_track[k]) {
+            const auto other_scifi_track_index =
+              current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + k;
+            const SciFi::TrackHits& other_track = dev_scifi_lf_tracks[other_scifi_track_index];
+
+            const bool same_track = track.hits[0] == other_track.hits[3] &&
+              track.hits[1] == other_track.hits[4] &&
+              track.hits[2] == other_track.hits[5] &&
+              track.hits[3] == other_track.hits[0] &&
+              track.hits[4] == other_track.hits[1] &&
+              track.hits[5] == other_track.hits[2];
+
+            if (same_track) {
+              chi2_ndofs[j] = 10000.f;
+            }
+          }
+        }
+      }
     }
 
     // Due to chi2_ndofs
