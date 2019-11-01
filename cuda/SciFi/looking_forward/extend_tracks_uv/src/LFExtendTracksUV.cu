@@ -36,6 +36,9 @@ __global__ void lf_extend_tracks_uv(
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i;
     SciFi::TrackHits& track = dev_scifi_tracks[scifi_track_index];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
+    
+    // Normalize quality to max chi2
+    track.quality *= 0.5f;
 
     // Load parametrization
     const auto a1 = dev_scifi_lf_parametrization_x_filter[scifi_track_index];
@@ -89,7 +92,7 @@ __global__ void lf_extend_tracks_uv(
       }
 
       if (best_index != -1) {
-        track.add_hit_with_quality((uint16_t) uv_window_start + best_index, best_chi2);
+        track.add_hit_with_quality((uint16_t) uv_window_start + best_index, best_chi2 * (1.f / 16.f));
       }
     }
   }

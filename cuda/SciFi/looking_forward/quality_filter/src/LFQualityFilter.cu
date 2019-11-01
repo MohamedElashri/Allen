@@ -80,7 +80,7 @@ __global__ void lf_quality_filter(
   __syncthreads();
 
   for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
-    float best_quality = 10.f;
+    float best_quality = 1.f;
     short best_track_index = -1;
 
     for (uint j = 0; j < number_of_tracks; j++) {
