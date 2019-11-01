@@ -45,9 +45,6 @@ __global__ void lf_extend_tracks_uv(
     const auto c1 = dev_scifi_lf_parametrization_x_filter
       [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index];
-    const auto d_ratio = dev_scifi_lf_parametrization_x_filter
-      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-       scifi_track_index];
 
     for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
       const auto layer4 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
@@ -66,8 +63,7 @@ __global__ void lf_extend_tracks_uv(
 
       const auto predicted_x =
         c1 + b1 * (z4 - LookingForward::z_mid_t) +
-        a1 * (z4 - LookingForward::z_mid_t) * (z4 - LookingForward::z_mid_t) *
-          (1.f + d_ratio * (z4 - LookingForward::z_mid_t)) -
+        a1 * (z4 - LookingForward::z_mid_t) * (z4 - LookingForward::z_mid_t) -
         dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1] * projection_y;
 
       // Pick the best, according to chi2
