@@ -88,7 +88,7 @@ __global__ void lf_quality_filter_x(
         }
       }
 
-      if (insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter && chi2_ndof < 3.f) {
+      if (insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter && chi2_ndof < 2.f) {
         // Save best track candidates
         const auto insert_index = atomicAdd(dev_scifi_lf_x_filtered_atomics + event_number, 1);
 
