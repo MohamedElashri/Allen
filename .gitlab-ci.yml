@@ -137,7 +137,7 @@ check-formatting:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
-    - RUN_OPTIONS="-n 1000 -m 700"
+    - RUN_OPTIONS="-n 1000 -m 1000"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
     - mkdir validation_output
@@ -173,9 +173,9 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
-    - RUN_OPTIONS="-n 1000 -m 700 -r 100 -t 12 -c 0"
+    - RUN_OPTIONS="-n 1000 -m 1000 -r 100 -t 9 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
-    -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
+    -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 1000 -c 0"
     - fi
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
@@ -208,7 +208,7 @@ check-formatting:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
-    - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t ${THREADS} -c 0" # If we ever execute on other CPUs we'll have to set this configurable
+    - RUN_OPTIONS="-n 1000 -m 1000 -r 10 -t ${THREADS} -c 0" # If we ever execute on other CPUs we'll have to set this configurable
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
     - mkdir output_${DEVICE_ID}
@@ -243,9 +243,9 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
-    - RUN_OPTIONS="-n 1000 -m 700 -r 100 -t 12 -c 0"
+    - RUN_OPTIONS="-n 1000 -m 1000 -r 100 -t 9 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
-    -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
+    -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 1000 -c 0"
     - fi
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
