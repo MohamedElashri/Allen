@@ -110,6 +110,14 @@ T atomicAdd(T* address, S val)
   return old;
 }
 
+template<class T, class S>
+T atomicOr(T* address, S val)
+{
+  const T old = *address;
+  *address |= val;
+  return old;
+}
+
 template<class T>
 T max(const T& a, const T& b)
 {

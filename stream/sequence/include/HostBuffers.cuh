@@ -18,8 +18,11 @@ struct HostBuffers {
   uint* host_number_of_selected_events;
   uint* host_event_list;
   uint* host_prefix_sum_buffer;
+  uint* host_number_of_passing_events;
+  uint* host_passing_event_list;
+  uint32_t* host_dec_reports;
   size_t host_allocated_prefix_sum_space;
-
+  
   // Velo
   uint* host_atomics_velo;
   uint* host_velo_track_hit_number;
