@@ -44,11 +44,15 @@ def getGhostHistoNames():
     return ["nPV"]
 
 
-# f = [ROOT.TFile.Open("../../../output/checkerplots/KstEE/PrCheckerPlots.root", "read"),
-#      ROOT.TFile.Open("../../../output/checkerplots/KstMuMu/PrCheckerPlots.root", "read"),
-#      ROOT.TFile.Open("../../../output/checkerplots/Ds2KKPi/PrCheckerPlots.root", "read"),
-#      ROOT.TFile.Open("../../../output/checkerplots/minbias/PrCheckerPlots.root", "read"),
-#      ROOT.TFile.Open("../../../output/checkerplots/Bs2PhiPhi/PrCheckerPlots.root", "read")]
+# f = [ROOT.TFile.Open("../../../output/KstEE/PrCheckerPLots-KstEE.root", "read"),
+#      ROOT.TFile.Open("../../../output/KstMuMu/PrCheckerPLots-KstMuMu.root", "read"),
+#      ROOT.TFile.Open("../../../output/Ds2KKPi/PrCheckerPLots-Ds2KKPi.root", "read"),
+#      #ROOT.TFile.Open("../../../output/minbias/PrCheckerPLots-minbias.root", "read"),
+#      ROOT.TFile.Open("../../../output/Bs2PhiPhi/PrCheckerPLots-Bs2PhiPhi.root", "read"),
+#      ROOT.TFile.Open("../../../output/Z2MuMu/PrCheckerPLots-Z2MuMu.root", "read")
+
+# ]
+
 f = [ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")]
 outputfile = ROOT.TFile("../../../plotsfornote_root/efficiency_plots.root",
                         "recreate")
@@ -89,11 +93,11 @@ for tracker in trackers:
             print("not electrons: " + histoName)
             numeratorName = histoName + "_reconstructed"
             numerator = f[0].Get(numeratorName)
-            for infile in f:
+            for infile in f[1:]:
                 numerator.Add(infile.Get(numeratorName))
             denominatorName = histoName + "_reconstructible"
             denominator = f[0].Get(denominatorName)
-            for infile in f:
+            for infile in f[1:]:
                 denominator.Add(infile.Get(denominatorName))
             print(numerator.GetEntries())
             print(denominator.GetEntries())
@@ -117,11 +121,11 @@ for tracker in trackers:
                 print("electrons: " + histoName)
                 numeratorName = histoName + "_reconstructed"
                 numerator = f[0].Get(numeratorName)
-                for infile in f:
+                for infile in f[1:]:
                     numerator.Add(infile.Get(numeratorName))
                 denominatorName = histoName + "_reconstructible"
                 denominator = f[0].Get(denominatorName)
-                for infile in f:
+                for infile in f[1:]:
                     denominator.Add(infile.Get(denominatorName))
                 if numerator.GetEntries() == 0 or denominator.GetEntries(
                 ) == 0:
@@ -147,14 +151,14 @@ for tracker in trackers:
             xtitle = efficiencyHistoDict[histo]["xTitle"]
             mg.GetXaxis().SetTitle(xtitle)
             mg.GetYaxis().SetTitle("efficiency")
-            mg.GetYaxis().SetRangeUser(0, 1)
+            mg.GetYaxis().SetRangeUser(0, 1.05)
 
             # draw variable distribution in same canvas
             histoName = histoBaseName + "notElectrons_" + efficiencyHistoDict[
                 histo]["variable"]
             variableHistoName = histoName + "_reconstructed"
             variable = f[0].Get(variableHistoName)
-            for infile in f:
+            for infile in f[1:]:
                 variable.Add(infile.Get(variableHistoName))
             norm = 0.9 / variable.GetMaximum()
             variable.Scale(norm)
@@ -173,7 +177,7 @@ for tracker in trackers:
                     histo]["variable"]
                 variableHistoName = histoName + "_reconstructed"
                 variable_electrons = f[0].Get(variableHistoName)
-                for infile in f:
+                for infile in f[1:]:
                     variable_electrons.Add(infile.Get(variableHistoName))
                 norm = 0.9 / variable_electrons.GetMaximum()
                 variable_electrons.Scale(norm)
@@ -205,8 +209,20 @@ for tracker in trackers:
                     variable_electrons, efficiencyHistoDict[histo]["title"] +
                     " distribution, electrons", "f")
             legend.SetFillColorAlpha(ROOT.kWhite, 0.)
+            legend.SetTextSize(0.06)
             legend.Draw("same")
 
+            # Draw second y axis
+            low = 0
+            high = 1.05
+            axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(),gPad.GetUxmax(),gPad.GetUymax(),low,high,510,"+L")
+            axis.SetTitleFont(132)
+            axis.SetTitleSize(0.06)
+            axis.SetTitleOffset(0.55)
+            axis.SetTitle("Number of events [a.u.]")
+            axis.SetLabelSize(0)
+            axis.Draw()
+            
             canvas.Write()
             cleantitle = categories[tracker][cut]["title"].replace(
                 " ", "").replace(",", "_").replace("<", "_")
@@ -227,10 +243,10 @@ for tracker in trackers:
             "variable"] + "_Total"
         print("ghost histo: " + histoBaseName)
         numerator = f[0].Get(numeratorName)
-        for infile in f:
+        for infile in f[1:]:
             numerator.Add(infile.Get(numeratorName))
         denominator = f[0].Get(denominatorName)
-        for infile in f:
+        for infile in f[1:]:
             denominator.Add(infile.Get(denominatorName))
         numerator.Sumw2()
         denominator.Sumw2()

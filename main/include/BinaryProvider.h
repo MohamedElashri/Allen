@@ -58,6 +58,7 @@ public:
     std::optional<size_t> n_events,
     std::vector<std::string> connections,
     size_t repetitions = 1,
+    std::optional<std::string> file_list = {},
     std::optional<EventIDs> order = std::optional<EventIDs> {}) :
     InputProvider<BinaryProvider<Banks...>> {n_slices, events_per_slice, n_events},
     m_slice_free(n_slices, true), m_repetitions {repetitions}, m_event_ids(n_slices)
@@ -77,7 +78,24 @@ public:
       else {
         auto ib = to_integral<BankTypes>(bank_type);
         // Find files and order them if requested
-        auto contents = list_folder(*it);
+        std::vector<std::string> contents;
+        if (file_list) {
+          if (!file_list.value().empty()) {
+            std::string line;
+            std::ifstream list(*file_list);
+            if (list.is_open()) {
+              while (std::getline(list, line)) {
+                contents.push_back(line);
+              }
+            }
+            else{
+              throw StrException{"Could not open list of files" };
+            }
+            
+          } else {
+            contents = list_folder(*it);
+          }
+        }
         if (order) {
           order_files(contents, *order, *it);
         }

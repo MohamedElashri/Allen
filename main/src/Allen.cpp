@@ -321,6 +321,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::string mdf_input;
   int device_id = 0;
   int cpu_offload = 1;
+  std::string file_list;
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -385,6 +386,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"device"})) {
       device_id = atoi(arg.c_str());
+    }
+    else if (flag_in({"file-list"})) {
+      file_list = arg;
     }
   }
 
@@ -490,7 +494,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     std::vector<std::string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
     input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps);
+                                                                                                                    number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
   }
 
   // Read the Muon catboost model

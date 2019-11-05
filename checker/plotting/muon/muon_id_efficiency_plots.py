@@ -54,7 +54,16 @@ def muonCategoryDict():
     return basedict
 
 
-f = ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")
+# f = [ROOT.TFile.Open("../../../output/KstEE/PrCheckerPLots-KstEE.root", "read"),
+#      ROOT.TFile.Open("../../../output/KstMuMu/PrCheckerPLots-KstMuMu.root", "read"),
+#      ROOT.TFile.Open("../../../output/Ds2KKPi/PrCheckerPLots-Ds2KKPi.root", "read"),
+#      #ROOT.TFile.Open("../../../output/minbias/PrCheckerPLots-minbias.root", "read"),
+#      ROOT.TFile.Open("../../../output/Bs2PhiPhi/PrCheckerPLots-Bs2PhiPhi.root", "read"),
+#      ROOT.TFile.Open("../../../output/Z2MuMu/PrCheckerPLots-Z2MuMu.root", "read"),
+# ]
+
+
+f = [ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")]
 outputfile = ROOT.TFile(
     "../../../plotsfornote_root/muon_id_efficiency_plots.root", "recreate")
 
@@ -79,11 +88,15 @@ for category in muonCategories:
             "numerator"] + efficiencyHistoDict[histo][
                 "variable"] + "_reconstructed"
         print("Opening " + numeratorName)
-        numerator = f.Get(numeratorName)
+        numerator = f[0].Get(numeratorName)
+        for infile in f[1:]:
+            numerator.Add(infile.Get(numeratorName))
         denominatorName = "Forward/" + muonCatDict[category][
             "denominator"] + efficiencyHistoDict[histo][
                 "variable"] + "_reconstructible"
-        denominator = f.Get(denominatorName)
+        denominator = f[0].Get(denominatorName)
+        for infile in f[1:]:
+            denominator.Add(infile.Get(denominatorName))
         print(numerator.GetEntries())
         print(denominator.GetEntries())
         if numerator.GetEntries() == 0 or denominator.GetEntries() == 0:
@@ -99,7 +112,7 @@ for category in muonCategories:
         xtitle = efficiencyHistoDict[histo]["xTitle"]
         g_efficiency.GetXaxis().SetTitle(xtitle)
         g_efficiency.GetYaxis().SetTitle(muonCatDict[category]["title"])
-        g_efficiency.GetYaxis().SetRangeUser(0, 1)
+        g_efficiency.GetYaxis().SetRangeUser(0, 1.05)
 
         # draw variable distribution in same canvas
         norm = 0.9 / numerator.GetMaximum()
@@ -121,8 +134,20 @@ for category in muonCategories:
                         efficiencyHistoDict[histo]["title"] + " distribution",
                         "f")
         legend.SetFillColorAlpha(ROOT.kWhite, 0.)
+        legend.SetTextSize(0.06)
         legend.Draw("same")
 
+        # Draw second y axis
+        low = 0
+        high = 1.05
+        axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(),gPad.GetUxmax(),gPad.GetUymax(),low,high,510,"+L")
+        axis.SetTitleFont(132)
+        axis.SetTitleSize(0.06)
+        axis.SetTitleOffset(0.55)
+        axis.SetTitle("Number of events [a.u.]")
+        axis.SetLabelSize(0)
+        axis.Draw()
+        
         canvas.Write()
         cleantitle = muonCatDict[category]["title"].replace(" ", "").replace(
             ",", "_").replace("<", "_")
@@ -140,8 +165,12 @@ for histo in ghostHistos:
     print("Opening " + numeratorName)
     print("Opening " + denominatorName)
 
-    numerator = f.Get(numeratorName)
-    denominator = f.Get(denominatorName)
+    numerator = f[0].Get(numeratorName)
+    for infile in f[1:]:
+        numerator.Add(infile.Get(numeratorName))
+    denominator = f[0].Get(denominatorName)
+    for infile in f[1:]:
+        denominator.Add(infile.Get(denominatorName))
     numerator.Sumw2()
     denominator.Sumw2()
 
@@ -152,7 +181,7 @@ for histo in ghostHistos:
     g_efficiency.GetXaxis().SetTitle(xtitle)
     g_efficiency.GetYaxis().SetTitle("muon ID in ghost tracks")
     g_efficiency.Draw("ap")
-    g_efficiency.GetYaxis().SetRangeUser(0, 1)
+    g_efficiency.GetYaxis().SetRangeUser(0, 1.05)
 
     # draw variable distribution in same canvas
     norm = 0.9 / numerator.GetMaximum()
@@ -175,4 +204,6 @@ for histo in ghostHistos:
 
 outputfile.Write()
 outputfile.Close()
-f.Close()
+f[0].Close()
+for infile in f:
+    infile.Close()

@@ -8,7 +8,7 @@ import itertools
 
 # Start a bit right of the Yaxis and above the Xaxis to not overlap with the ticks
 start, stop = 0.18, 0.89
-x_width, y_width = 0.3, 0.2
+x_width, y_width = 0.6, 0.2
 PLACES = [
     (start, stop - y_width, start + x_width, stop),  # top left opt
     (start, start, start + x_width, start + y_width),  # bottom left opt
