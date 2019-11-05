@@ -70,6 +70,7 @@ namespace Muon {
   {
     const int station = tile.station();
     const auto index = lookup_index(muonTables, tableNumber, tile, offset_index);
+
     x = muonTables->coordinates[tableNumber * Constants::n_stations + station][index];
     y = muonTables->coordinates[tableNumber * Constants::n_stations + station][index + 1];
     z = muonTables->coordinates[tableNumber * Constants::n_stations + station][index + 2];
