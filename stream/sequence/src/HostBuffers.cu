@@ -2,6 +2,7 @@
 #include "SciFiDefinitions.cuh"
 #include "BeamlinePVConstants.cuh"
 #include "LookingForwardConstants.cuh"
+#include "RawBanksDefinitions.cuh"
 
 void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
 {
@@ -22,10 +23,18 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_tiles, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_svs, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_hits, sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_number_of_passing_events, sizeof(uint)));
 
   // Buffer for performing GEC on CPU
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
 
+  // Buffer for saving events passing Hlt1 selections.
+  cudaCheck(cudaMallocHost((void**) &host_passing_event_list, max_number_of_events * sizeof(uint)));
+
+  // Buffer for saving raw banks.
+  int n_hlt1_lines = Hlt1::Hlt1Lines::End;
+  cudaCheck(cudaMallocHost((void**) &host_dec_reports, (n_hlt1_lines + 2) * max_number_of_events * sizeof(uint)));
+  
   // Buffer for performing prefix sum
   // Note: If it is of insufficient space, it will get reallocated
   host_allocated_prefix_sum_space = 10000000;
