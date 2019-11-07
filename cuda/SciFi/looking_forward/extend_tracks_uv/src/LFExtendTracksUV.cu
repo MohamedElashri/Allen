@@ -67,7 +67,7 @@ __global__ void lf_extend_tracks_uv(
 
       // Pick the best, according to chi2
       int best_index = -1;
-      float best_chi2 = 16.f;
+      float best_chi2 = 8.f;
 
       const auto scifi_hits_x0 = scifi_hits.x0 + event_offset + uv_window_start;
 

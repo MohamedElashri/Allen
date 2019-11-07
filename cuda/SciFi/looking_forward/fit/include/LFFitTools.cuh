@@ -7,6 +7,15 @@
 #include "TrackUtils.cuh"
 
 namespace LookingForward {
+  __device__ std::tuple<float, float, float> lms_y_fit(
+    const SciFi::TrackHits& track,
+    const uint number_of_uv_hits,
+    const SciFi::Hits& scifi_hits,
+    const float a1,
+    const float b1,
+    const float c1,
+    const uint event_offset,
+    const LookingForward::Constants* dev_looking_forward_constants);
 
   /* Calculate variables at end of SciFi, from trackParams
      given at zRef within SciFi */

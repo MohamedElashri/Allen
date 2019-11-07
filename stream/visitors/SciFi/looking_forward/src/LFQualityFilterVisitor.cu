@@ -43,7 +43,10 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
     constants.dev_inv_clus_res,
     arguments.offset<dev_atomics_scifi>(),
     arguments.offset<dev_scifi_selected_track_indices>(),
-    arguments.offset<dev_scifi_tracks>());
+    arguments.offset<dev_scifi_tracks>(),
+    constants.dev_looking_forward_constants,
+    arguments.offset<dev_scifi_lf_parametrization_length_filter>(),
+    arguments.offset<dev_ut_states>());
 
   state.invoke();
 

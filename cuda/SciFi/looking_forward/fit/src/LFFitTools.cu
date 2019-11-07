@@ -2,6 +2,75 @@
 #include <cmath>
 #include <cstdlib>
 
+__device__ std::tuple<float, float, float> LookingForward::lms_y_fit(
+  const SciFi::TrackHits& track,
+  const uint number_of_uv_hits,
+  const SciFi::Hits& scifi_hits,
+  const float a1,
+  const float b1,
+  const float c1,
+  const uint event_offset,
+  const LookingForward::Constants* dev_looking_forward_constants) {
+  // Traverse all UV hits
+  auto z_mean = 0.f;
+  auto y_mean = 0.f;
+  for (uint j = track.hitsNum - number_of_uv_hits; j < track.hitsNum; ++j) {
+    const auto hit_index = event_offset + track.hits[j];
+    const auto plane = scifi_hits.planeCode(hit_index) / 2;
+    const auto z = scifi_hits.z0[hit_index];
+    const auto predicted_x = 
+      c1 + b1 * (z - LookingForward::z_mid_t) +
+      a1 * (z - LookingForward::z_mid_t) * (z - LookingForward::z_mid_t) *
+        (1.f + LookingForward::d_ratio * (z - LookingForward::z_mid_t));
+
+    z_mean += z;
+    y_mean += (predicted_x - scifi_hits.x0[hit_index]) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
+  }
+  z_mean /= number_of_uv_hits;
+  y_mean /= number_of_uv_hits;
+  
+  auto nom = 0.f;
+  auto denom = 0.f;
+  for (uint j = track.hitsNum - number_of_uv_hits; j < track.hitsNum; ++j) {
+    const auto hit_index = event_offset + track.hits[j];
+    const auto plane = scifi_hits.planeCode(hit_index) / 2;
+    const auto z = scifi_hits.z0[hit_index];
+    const auto predicted_x = 
+      c1 + b1 * (z - LookingForward::z_mid_t) +
+      a1 * (z - LookingForward::z_mid_t) * (z - LookingForward::z_mid_t) *
+        (1.f + LookingForward::d_ratio * (z - LookingForward::z_mid_t));
+
+    const auto y = (predicted_x - scifi_hits.x0[hit_index]) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
+
+    nom += (z - z_mean) * (y - y_mean);
+    denom += (z - z_mean) * (z - z_mean);
+  }
+
+  const auto m = nom / denom;
+  const auto b = y_mean - m * z_mean;
+
+  // printf("m: %f, b: %f\n", m, b);
+
+  auto lms_fit = 0.f;
+  for (uint j = track.hitsNum - number_of_uv_hits; j < track.hitsNum; ++j) {
+    const auto hit_index = event_offset + track.hits[j];
+    const auto plane = scifi_hits.planeCode(hit_index) / 2;
+    const auto z = scifi_hits.z0[hit_index];
+    const auto predicted_x = 
+      c1 + b1 * (z - LookingForward::z_mid_t) +
+      a1 * (z - LookingForward::z_mid_t) * (z - LookingForward::z_mid_t) *
+        (1.f + LookingForward::d_ratio * (z - LookingForward::z_mid_t));
+
+    const auto y = (predicted_x - scifi_hits.x0[hit_index]) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
+
+    const auto expected_y = b + m * z;
+    // printf("z: %f, y: %f, expected_y: %f\n", z, y, expected_y);
+    lms_fit += (y - expected_y) * (y - expected_y);
+  }
+
+  return {lms_fit / (number_of_uv_hits - 2), b, m};
+}
+
 __device__ float LookingForward::x_at_end_scifi(const float* trackParams)
 {
   return trackParams[0] + LookingForward::zReferenceEndTDiff *
