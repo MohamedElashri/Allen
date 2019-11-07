@@ -105,7 +105,7 @@ __global__ void lf_quality_filter_x(
           }
         }
         
-        // Save track and xAtRef
+        // Save track
         dev_scifi_lf_x_filtered_tracks[scifi_track_index_new] = track;
 
         // Save track parameters to new container as well

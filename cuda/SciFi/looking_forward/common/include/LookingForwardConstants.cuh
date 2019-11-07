@@ -89,7 +89,7 @@ namespace LookingForward {
   // Parameter for forwarding through SciFi layers
   constexpr float forward_param = 2.41902127e-02f;
   // constexpr float forward_param = 0.04518205911571838;
-  constexpr float d_ratio = -0.00017683181567234045f * forward_param;
+  // constexpr float d_ratio = -0.00017683181567234045f * forward_param;
   // constexpr float d_ratio = -2.62e-04 * forward_param;
   // constexpr float d_ratio = -8.585717012100695e-06;
 
@@ -123,6 +123,9 @@ namespace LookingForward {
 
   // Reference z plane
   constexpr float z_mid_t = 8520.f * Gaudi::Units::mm;
+
+  // d_ratio from new parametrization
+  constexpr float d_ratio = -0.000262f;
 
   struct Constants {
 

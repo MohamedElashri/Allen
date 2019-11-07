@@ -56,6 +56,24 @@ __global__ void lf_quality_filter(
       number_of_uv_hits += current_hit_in_T1_UV + current_hit_in_T2_UV + current_hit_in_T3_UV;
     }
 
+    // TODO: Do X fit
+    // // Update track quality
+    // // Note: track quality could be better updated in the last quality filter
+    // float chi2 = 0.f;
+    // for (uint i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
+    //   const auto hit_index = event_offset + track.hits[i_hit];
+    //   const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
+    //   const auto x = scifi_hits.x0[hit_index];
+    //   const auto z = dev_looking_forward_constants->Zone_zPos[layer_index];
+    //   const auto dz = z - LookingForward::z_mid_t;
+    //   const auto predicted_x =
+    //     offset + tx * dz +
+    //     curvature * dz * dz * (1.f + d_ratio * dz);
+    //   chi2 += (x - predicted_x) * (x - predicted_x);
+    // }
+    // track.quality = chi2;
+
+
     // TODO: Do Y line fit and check it doesn't deviate too much
     // // Traverse all UV hits
     // for (uint j = track.hitsNum - number_of_uv_hits; j < track.hitsNum; ++j) {
@@ -70,39 +88,37 @@ __global__ void lf_quality_filter(
     track.quality = (hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV) ? track.quality / ndof : 10000.f;
 
     // // This code is to keep all the tracks
-    // if (track.quality < 10.f) {
-    //   const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-    //   dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
-    //   dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
-    // }
+    const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
+    dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
+    dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
   }
 
-  __syncthreads();
+  // __syncthreads();
 
-  for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
-    float best_quality = 1.f;
-    short best_track_index = -1;
+  // for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
+  //   float best_quality = 1.f;
+  //   short best_track_index = -1;
 
-    for (uint j = 0; j < number_of_tracks; j++) {
-      const SciFi::TrackHits& track = dev_scifi_lf_tracks
-        [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + j];
-      if (track.ut_track_index == i && track.quality < best_quality) {
-        best_quality = track.quality;
-        best_track_index = j;
-      }
-    }
+  //   for (uint j = 0; j < number_of_tracks; j++) {
+  //     const SciFi::TrackHits& track = dev_scifi_lf_tracks
+  //       [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + j];
+  //     if (track.ut_track_index == i && track.quality < best_quality) {
+  //       best_quality = track.quality;
+  //       best_track_index = j;
+  //     }
+  //   }
 
-    if (best_track_index != -1) {
-      const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-      assert(insert_index < ut_event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+  //   if (best_track_index != -1) {
+  //     const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
+  //     assert(insert_index < ut_event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
 
-      const auto& track = dev_scifi_lf_tracks
-        [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-         best_track_index];
+  //     const auto& track = dev_scifi_lf_tracks
+  //       [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+  //        best_track_index];
 
-      dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
-      dev_scifi_selected_track_indices
-        [ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = best_track_index;
-    }
-  }
+  //     dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
+  //     dev_scifi_selected_track_indices
+  //       [ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = best_track_index;
+  //   }
+  // }
 }
