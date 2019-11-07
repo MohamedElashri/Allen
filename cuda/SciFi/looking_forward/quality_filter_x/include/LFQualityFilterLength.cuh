@@ -12,7 +12,9 @@ __global__ void lf_quality_filter_length(
   const SciFi::TrackHits* dev_scifi_lf_x_filtered_tracks,
   const uint* dev_scifi_lf_x_filtered_atomics,
   SciFi::TrackHits* dev_scifi_lf_length_filtered_tracks,
-  uint* dev_scifi_lf_length_filtered_atomics);
+  uint* dev_scifi_lf_length_filtered_atomics,
+  const float* dev_scifi_lf_parametrization_x_filter,
+  float* dev_scifi_lf_parametrization_length_filter);
 
 ALGORITHM(
   lf_quality_filter_length,
@@ -22,4 +24,6 @@ ALGORITHM(
     dev_scifi_lf_x_filtered_tracks,
     dev_scifi_lf_x_filtered_atomics,
     dev_scifi_lf_length_filtered_tracks,
-    dev_scifi_lf_length_filtered_atomics))
+    dev_scifi_lf_length_filtered_atomics,
+    dev_scifi_lf_parametrization_x_filter,
+    dev_scifi_lf_parametrization_length_filter))

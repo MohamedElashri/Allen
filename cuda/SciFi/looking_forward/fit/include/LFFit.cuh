@@ -34,7 +34,7 @@ __global__ void lf_fit(
   const uint* dev_ut_track_velo_indices,
   SciFi::TrackHits* dev_scifi_lf_tracks,
   const uint* dev_scifi_lf_atomics,
-  const float* dev_scifi_lf_xAtRef_after_length_filter,
+  const float* dev_scifi_lf_parametrization_length_filter,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const SciFi::Tracking::Arrays* constArrays,
@@ -59,4 +59,4 @@ ALGORITHM(
     dev_scifi_lf_length_filtered_atomics,
     dev_scifi_lf_length_filtered_tracks,
     dev_scifi_lf_track_params,
-    dev_scifi_lf_xAtRef_after_length_filter))
+    dev_scifi_lf_parametrization_length_filter))
