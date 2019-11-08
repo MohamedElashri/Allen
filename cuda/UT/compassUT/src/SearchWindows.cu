@@ -3,6 +3,11 @@
 #include "Handler.cuh"
 #include <tuple>
 
+__constant__ float Configuration::ut_search_windows_t::min_momentum;
+__constant__ float Configuration::ut_search_windows_t::min_pt;
+__constant__ float Configuration::ut_search_windows_t::y_tol;
+__constant__ float Configuration::ut_search_windows_t::y_tol_slope;
+
 __global__ void ut_search_windows(
   uint* dev_ut_hits, // actual hit content
   const uint* dev_ut_hit_offsets,

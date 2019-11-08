@@ -78,4 +78,11 @@ struct Stream {
     std::vector<Checker::Tracks> const& forward_tracks);
 
   cudaError_t run_sequence(RuntimeOptions const& runtime_options);
+
+  void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
+  {
+    scheduler.configure_algorithms(config);
+  }
+
+  auto get_algorithm_configuration() { return scheduler.get_algorithm_configuration(); }
 };

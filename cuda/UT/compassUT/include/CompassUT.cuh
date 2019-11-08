@@ -70,17 +70,59 @@ __device__ void save_track(
   UT::TrackHits* VeloUT_tracks,
   const int event_hit_offset);
 
-ALGORITHM(
-  compass_ut,
-  compass_ut_t,
-  ARGUMENTS(
-    dev_ut_hits,
-    dev_ut_hit_offsets,
-    dev_atomics_velo,
-    dev_velo_track_hit_number,
-    dev_velo_states,
-    dev_ut_tracks,
-    dev_atomics_ut,
-    dev_ut_active_tracks,
-    dev_ut_windows_layers,
-    dev_accepted_velo_tracks))
+namespace Configuration {
+  namespace compass_ut_t {
+    extern __constant__ float sigma_velo_slope;
+    extern __constant__ float inv_sigma_velo_slope;
+    extern __constant__ float min_momentum_final;
+    extern __constant__ float min_pt_final;
+    extern __constant__ float hit_tol_2;
+    extern __constant__ float delta_tx_2;
+  } // namespace compass_ut_t
+} // namespace Configuration
+
+ALGORITHM(compass_ut,
+          compass_ut_t,
+          ARGUMENTS(
+            dev_ut_hits,
+            dev_ut_hit_offsets,
+            dev_atomics_velo,
+            dev_velo_track_hit_number,
+            dev_velo_states,
+            dev_ut_tracks,
+            dev_atomics_ut,
+            dev_ut_active_tracks,
+            dev_ut_windows_layers,
+            dev_accepted_velo_tracks),
+          Property<float> m_slope {this,
+                                   "sigma_velo_slope",
+                                   Configuration::compass_ut_t::sigma_velo_slope,
+                                   0.010f * Gaudi::Units::mrad,
+                                   "sigma velo slope [radians]"};
+          DerivedProperty<float> m_inv_slope {this,
+                                              "inv_sigma_velo_slope",
+                                              Configuration::compass_ut_t::inv_sigma_velo_slope,
+                                              Configuration::Relations::inverse,
+                                              std::vector<Property<float>*> {&this->m_slope},
+                                              "inv sigma velo slope"};
+          Property<float> m_mom_fin {this,
+                                     "min_momentum_final",
+                                     Configuration::compass_ut_t::min_momentum_final,
+                                     2.5f * Gaudi::Units::GeV,
+                                     "final min momentum cut [MeV/c]"};
+          Property<float> m_pt_fin {this,
+                                    "min_pt_final",
+                                    Configuration::compass_ut_t::min_pt_final,
+                                    0.425f * Gaudi::Units::GeV,
+                                    "final min pT cut [MeV/c]"};
+          Property<float> m_hit_tol_2 {this,
+                                       "hit_tol_2",
+                                       Configuration::compass_ut_t::hit_tol_2,
+                                       0.8f * Gaudi::Units::mm,
+                                       "hit_tol_2 [mm]"};
+          Property<float> m_delta_tx_2 {this,
+                                        "delta_tx_2",
+                                        Configuration::compass_ut_t::delta_tx_2,
+                                        0.018f,
+                                        "delta_tx_2"};
+    )

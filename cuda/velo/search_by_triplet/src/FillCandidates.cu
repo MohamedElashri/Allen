@@ -1,5 +1,4 @@
-#include "FillCandidates.cuh"
-#include "VeloEventModel.cuh"
+#include "SearchByTriplet.cuh"
 #include "VeloTools.cuh"
 #include "BinarySearch.cuh"
 #include <cassert>
@@ -116,8 +115,8 @@ __device__ void fill_candidates_impl(
 
     // Calculate phi limits
     const auto h1_phi = hit_Phis[h1_index];
-    const auto phi_window =
-      Velo::Tracking::phi_extrapolation_base + fabsf(hit_Zs[h1_index]) * Velo::Tracking::phi_extrapolation_coef;
+    const auto phi_window = Configuration::velo_search_by_triplet_t::phi_extrapolation_base +
+                            fabsf(hit_Zs[h1_index]) * Configuration::velo_search_by_triplet_t::phi_extrapolation_coef;
 
     const auto found_h0_candidates = candidate_binary_search(hit_Phis, m0_hitStarts, m0_hitNums, h1_phi, phi_window);
 

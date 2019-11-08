@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_sort_by_station_t>(
+  muon_sort_by_station_t& state,
   muon_sort_by_station_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -25,7 +26,7 @@ void SequenceVisitor::visit<muon_sort_by_station_t>(
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_permutation_station>(), 0, arguments.size<dev_permutation_station>(), cuda_stream));
 
-  state.set_opts(host_buffers.host_number_of_selected_events[0], 256, cuda_stream);
+  state.set_opts(host_buffers.host_number_of_selected_events[0], cuda_stream);
   state.set_arguments(
     arguments.offset<dev_storage_tile_id>(),
     arguments.offset<dev_storage_tdc_value>(),

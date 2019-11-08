@@ -6,6 +6,7 @@
 #ifdef CPU
 
 #include <cmath>
+#include <cstring>
 
 // -----------
 // CPU support
@@ -101,6 +102,30 @@ cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream);
 cudaError_t cudaFreeHost(void* ptr);
 cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
+
+template<class T>
+cudaError_t cudaMemcpyToSymbol(
+  const T& symbol,
+  const void* src,
+  size_t count,
+  size_t offset = 0,
+  enum cudaMemcpyKind kind = cudaMemcpyHostToDevice)
+{
+  std::memcpy(reinterpret_cast<void*>(((char*) &symbol) + offset), src, count);
+  return 0;
+}
+
+template<class T>
+cudaError_t cudaMemcpyFromSymbol(
+  void* dst,
+  const T& symbol,
+  size_t count,
+  size_t offset = 0,
+  enum cudaMemcpyKind kind = cudaMemcpyHostToDevice)
+{
+  std::memcpy(dst, reinterpret_cast<void*>(((char*) &symbol) + offset), count);
+  return 0;
+}
 
 template<class T, class S>
 T atomicAdd(T* address, S val)

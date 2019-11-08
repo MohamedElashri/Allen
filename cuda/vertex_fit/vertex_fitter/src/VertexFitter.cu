@@ -2,6 +2,13 @@
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
 
+__constant__ float Configuration::fit_secondary_vertices_t::track_min_pt;
+
+__constant__ float Configuration::fit_secondary_vertices_t::track_min_ipchi2;
+__constant__ float Configuration::fit_secondary_vertices_t::track_muon_min_ipchi2;
+
+__constant__ float Configuration::fit_secondary_vertices_t::max_assoc_ipchi2;
+
 namespace VertexFit {
 
   //----------------------------------------------------------------------
@@ -214,7 +221,8 @@ namespace VertexFit {
     const ParKalmanFilter::FittedTrack& trackB)
   {
     // Number of tracks with ip chi2 < 16.
-    sv.ntrksassoc = (trackA.ipChi2 < VertexFit::maxAssocIPChi2) + (trackB.ipChi2 < VertexFit::maxAssocIPChi2);
+    sv.ntrksassoc = (trackA.ipChi2 < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2) +
+                    (trackB.ipChi2 < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2);
 
     // Get PV-SV separation.
     const float dx = sv.x - pv.position.x;
@@ -313,7 +321,9 @@ __global__ void fit_secondary_vertices(
 
     // Preselection on first track.
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
-    if (trackA.pt() < VertexFit::trackMinPt || (trackA.ipChi2 < VertexFit::trackMinIPChi2 && !trackA.is_muon)) {
+    if (
+      trackA.pt() < Configuration::fit_secondary_vertices_t::track_min_pt ||
+      (trackA.ipChi2 < Configuration::fit_secondary_vertices_t::track_min_ipchi2 && !trackA.is_muon)) {
       continue;
     }
 
@@ -322,14 +332,17 @@ __global__ void fit_secondary_vertices(
 
       // Preselection on second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
-      if (trackB.pt() < VertexFit::trackMinPt || (trackB.ipChi2 < VertexFit::trackMinIPChi2 && !trackB.is_muon)) {
+      if (
+        trackB.pt() < Configuration::fit_secondary_vertices_t::track_min_pt ||
+        (trackB.ipChi2 < Configuration::fit_secondary_vertices_t::track_min_ipchi2 && !trackB.is_muon)) {
         continue;
       }
 
       // Only combine tracks from the same PV.
       if (
-        pv_table.pv[i_track] != pv_table.pv[j_track] && pv_table.value[i_track] > VertexFit::maxAssocIPChi2 &&
-        pv_table.value[j_track] > VertexFit::maxAssocIPChi2) {
+        pv_table.pv[i_track] != pv_table.pv[j_track] &&
+        pv_table.value[i_track] > Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
+        pv_table.value[j_track] > Configuration::fit_secondary_vertices_t::max_assoc_ipchi2) {
         continue;
       }
 

@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_quality_filter_length_t>(
+  lf_quality_filter_length_t& state,
   lf_quality_filter_length_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -35,7 +36,7 @@ void SequenceVisitor::visit<lf_quality_filter_length_t>(
     cuda_stream));
 
   // Code for running the quality filter after this algorithm
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_ut>(),
     arguments.offset<dev_scifi_lf_x_filtered_tracks>(),

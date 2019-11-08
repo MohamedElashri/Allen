@@ -16,7 +16,7 @@
 //     decltype(composite_handler(FUNCTIONS)) handlers {composite_handler(FUNCTIONS)};
 //   };
 
-struct lf_composite_track_seeding_t {
+struct lf_composite_track_seeding_t : public Algorithm {
   constexpr static auto name {"lf_composite_track_seeding_t"};
   using Arguments = std::tuple<
     dev_scifi_hits,

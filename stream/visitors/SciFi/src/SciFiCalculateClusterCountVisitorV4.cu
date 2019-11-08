@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<scifi_calculate_cluster_count_v4_t>(
+  scifi_calculate_cluster_count_v4_t& state,
   scifi_calculate_cluster_count_v4_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -28,7 +29,7 @@ void SequenceVisitor::visit<scifi_calculate_cluster_count_v4_t>(
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(240), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_raw_input>(),
     arguments.offset<dev_scifi_raw_input_offsets>(),

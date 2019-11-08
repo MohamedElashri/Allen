@@ -304,6 +304,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   const std::string folder_rawdata = "banks/";
   // Folder containing detector configuration and catboost model
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
+  std::string json_constants_configuration_file = "../configuration/constants/default.json";
 
   std::string folder_name_imported_forward_tracks = "";
   uint number_of_slices = 0;
@@ -314,6 +315,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   uint number_of_repetitions = 1;
   uint verbosity = 3;
   bool print_memory_usage = false;
+  bool write_config = false;
   // By default, do_check will be true when mc_check is enabled
   bool do_check = true;
   size_t reserve_mb = 1024;
@@ -342,6 +344,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"mdf"})) {
       mdf_input = arg;
+    }
+    else if (flag_in({"configuration"})) {
+      json_constants_configuration_file = arg;
+    }
+    else if (flag_in({"write-configuration"})) {
+      write_config = atoi(arg.c_str());
     }
     else if (flag_in({"n", "number-of-events"})) {
       number_of_events_requested = atol(arg.c_str());
@@ -460,6 +468,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
   const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
 
+  std::unique_ptr<ConfigurationReader> configuration_reader;
+
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
 
   std::unique_ptr<IInputProvider> input_provider {};
@@ -497,6 +507,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                                                                                                                     number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
   }
 
+  // Load constant parameters from JSON
+  configuration_reader = std::make_unique<ConfigurationReader>(json_constants_configuration_file);
+
   // Read the Muon catboost model
   muon_catboost_model_reader =
     std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
@@ -526,7 +539,28 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Create streams
   StreamWrapper stream_wrapper;
   stream_wrapper.initialize_streams(
-    number_of_threads, *events_per_slice, print_memory_usage, start_event_offset, reserve_mb, constants, do_check);
+    number_of_threads,
+    *events_per_slice,
+    print_memory_usage,
+    start_event_offset,
+    reserve_mb,
+    constants,
+    do_check,
+    configuration_reader->params());
+
+  auto algo_config = stream_wrapper.get_algorithm_configuration();
+  info_cout << "Algorithm configuration" << std::endl;
+  for (auto kv : algo_config) {
+    for (auto kv2 : kv.second) {
+      info_cout << kv.first << ":" << kv2.first << "=" << kv2.second << std::endl;
+    }
+  }
+  if (write_config) {
+    info_cout << "Write full configuration" << std::endl;
+    ConfigurationReader saveToJson(algo_config);
+    saveToJson.save("config.json");
+    return 0;
+  }
 
   // Notify used memory if requested verbose mode
   if (logger::ll.verbosityLevel >= logger::verbose) {

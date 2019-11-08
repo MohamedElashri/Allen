@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_collect_candidates_t>(
+  lf_collect_candidates_t& state,
   lf_collect_candidates_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -32,7 +33,7 @@ void SequenceVisitor::visit<lf_collect_candidates_t>(
     arguments.size<dev_scifi_lf_number_of_candidates>(),
     cuda_stream));
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(64, 6), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),

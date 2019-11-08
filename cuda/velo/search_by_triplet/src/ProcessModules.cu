@@ -2,6 +2,7 @@
 #include "TrackSeeding.cuh"
 #include "TrackForwarding.cuh"
 #include "ClusteringDefinitions.cuh"
+#include "SearchByTriplet.cuh"
 
 /**
  * @brief Processes modules in decreasing order with some stride
@@ -124,7 +125,8 @@ __device__ void process_modules(
 
   // Process the last bunch of track_to_follows
   for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
-    const int fulltrackno = tracks_to_follow[(prev_ttf + ttf_element) & Velo::Tracking::ttf_modulo_mask];
+    const int fulltrackno =
+      tracks_to_follow[(prev_ttf + ttf_element) & Configuration::velo_search_by_triplet_t::ttf_modulo_mask];
     const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
     const int trackno = fulltrackno & 0x0FFFFFFF;
 

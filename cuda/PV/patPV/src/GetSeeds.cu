@@ -1,6 +1,17 @@
 #include "GetSeeds.cuh"
 // simplficiations: no tracks2disable
 
+__constant__ float Configuration::pv_get_seeds_t::max_chi2_merge;
+__constant__ float Configuration::pv_get_seeds_t::factor_to_increase_errors;
+
+__constant__ int Configuration::pv_get_seeds_t::min_cluster_mult;
+__constant__ int Configuration::pv_get_seeds_t::min_close_tracks_in_cluster;
+
+__constant__ float Configuration::pv_get_seeds_t::dz_close_tracks_in_cluster;
+__constant__ int Configuration::pv_get_seeds_t::high_mult;
+__constant__ float Configuration::pv_get_seeds_t::ratio_sig2_high_mult;
+__constant__ float Configuration::pv_get_seeds_t::ratio_sig2_low_mult;
+
 __device__ float zCloseBeam(KalmanVeloState track, const PatPV::XYZPoint& beamspot)
 {
 
@@ -101,7 +112,8 @@ __device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int num
 {
 
   for (int i = 0; i < number_of_clusters; i++) {
-    vclus[i].sigsq *= PatPV::mcu_factorToIncreaseErrors * PatPV::mcu_factorToIncreaseErrors; // blow up errors
+    vclus[i].sigsq *= Configuration::pv_get_seeds_t::factor_to_increase_errors *
+                      Configuration::pv_get_seeds_t::factor_to_increase_errors; // blow up errors
     vclus[i].sigsqmin = vclus[i].sigsq;
   }
 
@@ -138,7 +150,7 @@ __device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int num
         float zdist = z1 - z2;
         float chi2dist = zdist * zdist / (s1 + s2);
         // merge if chi2dist is smaller than max
-        if (chi2dist < PatPV::mcu_maxChi2Merge) {
+        if (chi2dist < Configuration::pv_get_seeds_t::max_chi2_merge) {
           no_merges = false;
           float w_inv = (s1 * s2 / (s1 + s2));
           float zmerge = w_inv * (z1 / s1 + z2 / s2);
@@ -177,7 +189,8 @@ __device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int num
 
     int n_tracks_close = 0;
     for (int i = 0; i < number_of_clusters; i++)
-      if (fabsf(vclus[i].z - pvclus[index].z) < PatPV::mcu_dzCloseTracksInCluster) n_tracks_close++;
+      if (fabsf(vclus[i].z - pvclus[index].z) < Configuration::pv_get_seeds_t::dz_close_tracks_in_cluster)
+        n_tracks_close++;
 
     float dist_to_closest = 1000000.;
     if (return_number_of_clusters > 1) {
@@ -191,13 +204,18 @@ __device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int num
     float rat = pvclus[index].sigsq / pvclus[index].sigsqmin;
     bool igood = false;
     int ntracks = pvclus[index].ntracks;
-    if (ntracks >= PatPV::mcu_minClusterMult) {
+    if (ntracks >= Configuration::pv_get_seeds_t::min_cluster_mult) {
       if (dist_to_closest > 10.f && rat < 0.95f) igood = true;
-      if (ntracks >= PatPV::mcu_highMult && rat < PatPV::mcu_ratioSig2HighMult) igood = true;
-      if (ntracks < PatPV::mcu_highMult && rat < PatPV::mcu_ratioSig2LowMult) igood = true;
+      if (
+        ntracks >= Configuration::pv_get_seeds_t::high_mult &&
+        rat < Configuration::pv_get_seeds_t::ratio_sig2_high_mult)
+        igood = true;
+      if (
+        ntracks < Configuration::pv_get_seeds_t::high_mult && rat < Configuration::pv_get_seeds_t::ratio_sig2_low_mult)
+        igood = true;
     }
     // veto
-    if (n_tracks_close < PatPV::mcu_minCloseTracksInCluster) igood = false;
+    if (n_tracks_close < Configuration::pv_get_seeds_t::min_close_tracks_in_cluster) igood = false;
     if (igood) {
       zclusters[number_good_clusters] = pvclus[index].z;
       number_good_clusters++;

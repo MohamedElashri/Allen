@@ -125,7 +125,7 @@ __device__ void weak_tracks_adder_impl(
     const float chi2 = means_square_fit_chi2(hit_Xs, hit_Ys, hit_Zs, t);
 
     // Store them in the tracks bag
-    if (!any_used && chi2 < Velo::Tracking::max_chi2) {
+    if (!any_used && chi2 < Configuration::velo_search_by_triplet_t::max_chi2) {
       const uint trackno = atomicAdd(tracks_insert_pointer, 1);
       assert(trackno < Velo::Constants::max_tracks);
       tracks[trackno] = Velo::TrackHits {t};
@@ -164,7 +164,8 @@ __global__ void weak_tracks_adder(
 
   // Per side datatypes
   bool* hit_used = dev_hit_used + hit_offset;
-  Velo::TrackletHits* weak_tracks = dev_weak_tracks + event_number * Velo::Tracking::max_weak_tracks;
+  Velo::TrackletHits* weak_tracks =
+    dev_weak_tracks + event_number * Configuration::velo_search_by_triplet_t::max_weak_tracks;
 
   // Initialize variables according to event number and module side
   // Insert pointers (atomics)
