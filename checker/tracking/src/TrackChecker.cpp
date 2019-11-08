@@ -391,6 +391,20 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
     }
   }
 
+  // if (total_counter.n_scifi > 2) {
+  //   if (match) {
+  //     std::ofstream ofs_xchi2;
+  //     ofs_xchi2.open("good_combined_chi2.txt", std::ofstream::out | std::ofstream::app);
+  //     ofs_xchi2 << track.qop << ", ";
+  //     ofs_xchi2.close();
+  //   } else {
+  //     std::ofstream ofs_xchi2;
+  //     ofs_xchi2.open("bad_combined_chi2.txt", std::ofstream::out | std::ofstream::app);
+  //     ofs_xchi2 << track.qop << ", ";
+  //     ofs_xchi2.close();
+  //   }
+  // }
+
   return {match, track_best_matched_MCP};
 }
 

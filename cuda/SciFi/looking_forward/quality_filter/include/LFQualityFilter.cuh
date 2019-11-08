@@ -29,8 +29,7 @@ __global__ void lf_quality_filter(
   SciFi::TrackHits* dev_scifi_tracks,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_scifi_lf_parametrization_length_filter,
-  const MiniState* dev_ut_states,
-  const uint number_of_events);
+  const MiniState* dev_ut_states);
 
 ALGORITHM(
   lf_quality_filter,
