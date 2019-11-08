@@ -36,6 +36,7 @@ __global__ void lf_extend_tracks_uv(
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i;
     SciFi::TrackHits& track = dev_scifi_tracks[scifi_track_index];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
+    const auto ut_state = dev_ut_states[current_ut_track_index];
 
     // Load parametrization
     const auto a1 = dev_scifi_lf_parametrization_x_filter[scifi_track_index];
@@ -45,6 +46,32 @@ __global__ void lf_extend_tracks_uv(
     const auto c1 = dev_scifi_lf_parametrization_x_filter
       [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index];
+
+    // constexpr float deltaYParams[8] {3.78837f, 73.1636f, 7353.89f, -6347.68f, 20270.3f, 3721.02f, -46038.2f, 230943.f};
+
+    // const auto layer0 = scifi_hits.planeCode(event_offset + track.hits[0]) / 2;
+    // const auto layer2 = scifi_hits.planeCode(event_offset + track.hits[2]) / 2;
+
+    // const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];
+    // const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
+
+    // const auto x0 = scifi_hits.x0[event_offset + track.hits[0]];
+    // const auto x2 = scifi_hits.x0[event_offset + track.hits[2]];
+    // const auto SciFi_tx = (x2 - x0) / (z2 - z0);
+    // const auto deltaSlope = SciFi_tx - ut_state.tx;
+    // const auto absDSlope = fabsf(deltaSlope);
+    // const auto direction = -1.f * signbit(deltaSlope);
+    // const auto endv_ty = ut_state.ty;
+    // const auto endv_ty2 = endv_ty * endv_ty;
+    // const auto endv_tx = ut_state.tx;
+    // const auto endv_tx2 = endv_tx * endv_tx;
+
+    // const auto ycorr =
+    //   absDSlope *
+    //   (direction * deltaYParams[0] + deltaYParams[1] * endv_ty + deltaYParams[2] * direction * endv_tx * endv_ty +
+    //    deltaYParams[3] * endv_tx2 * endv_ty + deltaYParams[4] * direction * endv_tx2 * endv_tx * endv_ty +
+    //    deltaYParams[5] * endv_ty2 * endv_ty + deltaYParams[6] * direction * endv_tx * endv_ty2 * endv_ty +
+    //    deltaYParams[7] * endv_tx2 * endv_ty2 * endv_ty);
 
     for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
       const auto layer4 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
@@ -58,6 +85,7 @@ __global__ void lf_extend_tracks_uv(
 
       // TODO: Do ycorr
       const auto projection_y = LookingForward::y_at_z_dzdy_corrected(dev_ut_states[current_ut_track_index], z4);
+      // const auto projection_y = ut_state.y + endv_ty * (z4 - ut_state.z) - ycorr;
 
       const auto dz = z4 - LookingForward::z_mid_t;
       const auto predicted_x =
@@ -67,7 +95,7 @@ __global__ void lf_extend_tracks_uv(
 
       // Pick the best, according to chi2
       int best_index = -1;
-      float best_chi2 = 8.f;
+      float best_chi2 = 16.f;
 
       const auto scifi_hits_x0 = scifi_hits.x0 + event_offset + uv_window_start;
 

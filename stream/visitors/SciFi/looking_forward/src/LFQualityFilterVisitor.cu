@@ -46,7 +46,8 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
     arguments.offset<dev_scifi_tracks>(),
     constants.dev_looking_forward_constants,
     arguments.offset<dev_scifi_lf_parametrization_length_filter>(),
-    arguments.offset<dev_ut_states>());
+    arguments.offset<dev_ut_states>(),
+    host_buffers.host_number_of_selected_events[0]);
 
   state.invoke();
 
