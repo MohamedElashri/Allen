@@ -6,21 +6,11 @@
 
 namespace VertexFit {
 
-  // Track pT cut.
-  const float trackMinPt = 200.0;
-
-  // Track IP chi2 cut.
-  const float trackMinIPChi2 = 9.;
-  const float trackMuonMinIPChi2 = 4.0;
-
-  // Maximum IP chi2 for a track to be associated to a PV.
-  const float maxAssocIPChi2 = 16.0;
-
   // Charged pion mass for calculating Mcor.
-  const float mPi = 139.57;
+  const float mPi = 139.57f;
 
   // Muon mass.
-  const float mMu = 105.66;
+  const float mMu = 105.66f;
 
   struct TrackMVAVertex {
     // Fit results.

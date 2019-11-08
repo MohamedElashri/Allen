@@ -4,6 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_station_ocurrence_prefix_sum_t>(
+  muon_station_ocurrence_prefix_sum_t& state,
   muon_station_ocurrence_prefix_sum_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

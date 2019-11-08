@@ -1,4 +1,5 @@
 #include "FindBestHits.cuh"
+#include "CompassUT.cuh"
 
 //=========================================================================
 // Get the best 3 or 4 hits, 1 per layer, for a given VELO track
@@ -63,13 +64,13 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
-      if (fabsf(tx - velo_state.tx) <= UT::Constants::deltaTx2) {
+      if (fabsf(tx - velo_state.tx) <= Configuration::compass_ut_t::delta_tx_2) {
 
         int temp_best_hits[4] = {i_hit0, -1, i_hit2, -1};
 
         const int layers[2] = {forward ? 1 : 2, forward ? 3 : 0};
 
-        float hitTol = UT::Constants::hitTol2;
+        float hitTol = Configuration::compass_ut_t::hit_tol_2;
 
         // search for a triplet in 3rd layer
         for (int i1 = 0; i1 < sum_layer_hits(ranges, layers[0]); ++i1) {
@@ -89,7 +90,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
         }
 
         // search for triplet/quadruplet in 4th layer
-        hitTol = UT::Constants::hitTol2;
+        hitTol = Configuration::compass_ut_t::hit_tol_2;
         for (int i3 = 0; i3 < sum_layer_hits(ranges, layers[1]); ++i3) {
 
           int i_hit3 = calc_index(i3, ranges, layers[1], ut_hit_offsets);
@@ -153,7 +154,7 @@ __device__ BestParams pkick_fit(
 
   // Helper stuff from velo state
   const float xMidField = velo_state.x + velo_state.tx * (UT::Constants::zKink - velo_state.z);
-  const float a = UT::Constants::sigmaVeloSlope * (UT::Constants::zKink - velo_state.z);
+  const float a = Configuration::compass_ut_t::sigma_velo_slope * (UT::Constants::zKink - velo_state.z);
   const float wb = 1.0f / (a * a);
 
   float mat[3] = {wb, wb * UT::Constants::zDiff, wb * UT::Constants::zDiff * UT::Constants::zDiff};
@@ -193,7 +194,7 @@ __device__ BestParams pkick_fit(
   const float xb = xUTFit + xSlopeUTFit * (UT::Constants::zKink - UT::Constants::zMidUT);
   const float invKinkVeloDist = 1.f / (UT::Constants::zKink - velo_state.z);
   const float xSlopeVeloFit = (xb - velo_state.x) * invKinkVeloDist;
-  const float chi2VeloSlope = (velo_state.tx - xSlopeVeloFit) * UT::Constants::invSigmaVeloSlope;
+  const float chi2VeloSlope = (velo_state.tx - xSlopeVeloFit) * Configuration::compass_ut_t::inv_sigma_velo_slope;
 
   // chi2 takes chi2 from velo fit + chi2 from UT fit
   float chi2UT = chi2VeloSlope * chi2VeloSlope;
@@ -354,34 +355,4 @@ __device__ __inline__ int calc_index(
   }
 
   return hit;
-}
-
-//=========================================================================
-// Check if hit is inside tolerance and refine by Y
-//=========================================================================
-__device__ __inline__ bool check_tol_refine(
-  const int hit_index,
-  const UT::Hits& ut_hits,
-  const MiniState& velo_state,
-  const float normFactNum,
-  const float xTol,
-  const float dxDy)
-{
-  const float xTolNormFact = xTol * (1.0f / normFactNum);
-
-  const float zInit = ut_hits.zAtYEq0[hit_index];
-  const float yApprox = velo_state.y + velo_state.ty * (zInit - velo_state.z);
-  const float xOnTrackProto = velo_state.x + velo_state.tx * (zInit - velo_state.z);
-
-  const float xx = ut_hits.xAt(hit_index, yApprox, dxDy);
-  const float dx = xx - xOnTrackProto;
-
-  if (dx < -xTolNormFact || dx > xTolNormFact) return false;
-
-  // Now refine the tolerance in Y
-  if (ut_hits.isNotYCompatible(
-        hit_index, yApprox, UT::Constants::yTol + UT::Constants::yTolSlope * fabsf(dx * (1.0f / normFactNum))))
-    return false;
-
-  return true;
 }

@@ -128,4 +128,20 @@ private:
   std::vector<int> m_split_feature;
 };
 
+struct ConfigurationReader {
+  ConfigurationReader(const std::string& file_name);
+  ConfigurationReader(const std::map<std::string, std::map<std::string, std::string>>& params) : m_params(params) {}
+
+  std::map<std::string, std::string> params(std::string key) const
+  {
+    return (m_params.count(key) > 0 ? m_params.at(key) : std::map<std::string, std::string>());
+  }
+  std::map<std::string, std::map<std::string, std::string>> params() const { return m_params; }
+
+  void save(std::string file_name);
+
+private:
+  std::map<std::string, std::map<std::string, std::string>> m_params;
+};
+
 #endif

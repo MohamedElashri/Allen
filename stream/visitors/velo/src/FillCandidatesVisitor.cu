@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<velo_fill_candidates_t>(
+  velo_fill_candidates_t& state,
   velo_fill_candidates_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -23,7 +24,7 @@ void SequenceVisitor::visit<velo_fill_candidates_t>(
   cudaEvent_t& cuda_generic_event)
 {
   // Setup opts and arguments
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 48), dim3(128), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 48), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_velo_cluster_container>(),
     arguments.offset<dev_estimated_input_size>(),

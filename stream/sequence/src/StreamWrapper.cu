@@ -9,10 +9,12 @@ void StreamWrapper::initialize_streams(
   const uint start_event_offset,
   const size_t reserve_mb,
   const Constants& constants,
-  const bool do_check)
+  const bool do_check,
+  const std::map<std::string, std::map<std::string, std::string>>& config)
 {
   for (uint i = 0; i < n; ++i) {
     streams.push_back(new Stream());
+    streams.back()->configure_algorithms(config);
   }
 
   for (size_t i = 0; i < streams.size(); ++i) {
@@ -35,6 +37,11 @@ void StreamWrapper::run_monte_carlo_test(
   std::vector<Checker::Tracks> const& forward_tracks)
 {
   streams[i]->run_monte_carlo_test(invoker, mc_events, forward_tracks);
+}
+
+std::map<std::string, std::map<std::string, std::string>> StreamWrapper::get_algorithm_configuration()
+{
+  return streams.front()->get_algorithm_configuration();
 }
 
 StreamWrapper::~StreamWrapper()

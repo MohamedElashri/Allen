@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<ut_calculate_number_of_hits_t>(
+  ut_calculate_number_of_hits_t& state,
   ut_calculate_number_of_hits_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -26,7 +27,7 @@ void SequenceVisitor::visit<ut_calculate_number_of_hits_t>(
   cudaCheck(
     cudaMemsetAsync(arguments.offset<dev_ut_hit_offsets>(), 0, arguments.size<dev_ut_hit_offsets>(), cuda_stream));
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(64, 4), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_ut_raw_input>(),
     arguments.offset<dev_ut_raw_input_offsets>(),

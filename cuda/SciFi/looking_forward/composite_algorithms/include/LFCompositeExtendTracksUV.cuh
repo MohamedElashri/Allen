@@ -7,7 +7,7 @@
 #include "LFExtendTracksUV.cuh"
 #include "LFSearchUVWindows.cuh"
 
-struct lf_composite_extend_tracks_uv_t {
+struct lf_composite_extend_tracks_uv_t : public Algorithm {
   constexpr static auto name {"lf_composite_extend_tracks_uv_t"};
   using Arguments = std::tuple<
     dev_scifi_hits,

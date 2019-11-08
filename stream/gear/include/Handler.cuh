@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ArgumentManager.cuh"
+#include "Configuration.cuh"
 #include "CudaCommon.h"
 #include <tuple>
 #include <utility>
@@ -11,26 +12,54 @@
  *             A struct is created with name EXPOSED_TYPE_NAME that encapsulates
  *             a Handler of type FUNCTION.
  */
-#define ALGORITHM(FUNCTION, EXPOSED_TYPE_NAME, DEPENDENCIES)                                         \
-  struct EXPOSED_TYPE_NAME {                                                                         \
-    constexpr static auto name {#EXPOSED_TYPE_NAME};                                                 \
-    using Arguments = DEPENDENCIES;                                                                  \
-    using arguments_t = ArgumentRefManager<Arguments>;                                               \
-    decltype(make_handler(name, FUNCTION)) handler {name, FUNCTION};                                 \
-    void set_opts(                                                                                   \
-      const dim3& param_num_blocks,                                                                  \
-      const dim3& param_num_threads,                                                                 \
-      cudaStream_t& param_stream,                                                                    \
-      const unsigned param_shared_memory_size = 0)                                                   \
-    {                                                                                                \
-      handler.set_opts(param_num_blocks, param_num_threads, param_stream, param_shared_memory_size); \
-    }                                                                                                \
-    template<typename... T>                                                                          \
-    void set_arguments(T... param_arguments)                                                         \
-    {                                                                                                \
-      handler.set_arguments(param_arguments...);                                                     \
-    }                                                                                                \
-    void invoke() { handler.invoke(); }                                                              \
+#define ALGORITHM(FUNCTION, EXPOSED_TYPE_NAME, DEPENDENCIES, ...)                                                   \
+  struct EXPOSED_TYPE_NAME : public Algorithm {                                                                     \
+    constexpr static auto name {#EXPOSED_TYPE_NAME};                                                                \
+    using Arguments = DEPENDENCIES;                                                                                 \
+    using arguments_t = ArgumentRefManager<Arguments>;                                                              \
+    decltype(make_handler(name, FUNCTION)) handler {name, FUNCTION};                                                \
+    template<typename T>                                                                                            \
+    T get_property_value(std::string property_name) const                                                           \
+    {                                                                                                               \
+      T holder;                                                                                                     \
+      auto prop = dynamic_cast<Property<T> const*>(get_prop(property_name));                                        \
+      if (prop)                                                                                                     \
+        holder = prop->get_value();                                                                                 \
+      else                                                                                                          \
+        warning_cout << "property " << property_name << " not found" << std::endl;                                  \
+      return holder;                                                                                                \
+    }                                                                                                               \
+    void set_opts(                                                                                                  \
+      const dim3& param_num_blocks,                                                                                 \
+      const dim3& param_num_threads,                                                                                \
+      cudaStream_t& param_stream,                                                                                   \
+      const unsigned param_shared_memory_size = 0)                                                                  \
+    {                                                                                                               \
+      handler.set_opts(param_num_blocks, param_num_threads, param_stream, param_shared_memory_size);                \
+    }                                                                                                               \
+    void                                                                                                            \
+    set_opts(const dim3& param_num_blocks, cudaStream_t& param_stream, const unsigned param_shared_memory_size = 0) \
+    {                                                                                                               \
+      dim3 n_threads(m_block_dim.get_value()[0], m_block_dim.get_value()[1], m_block_dim.get_value()[2]);           \
+      handler.set_opts(param_num_blocks, n_threads, param_stream, param_shared_memory_size);                        \
+    }                                                                                                               \
+    void set_opts(cudaStream_t& param_stream, const unsigned param_shared_memory_size = 0)                          \
+    {                                                                                                               \
+      dim3 n_blocks(m_grid_dim.get_value()[0], m_grid_dim.get_value()[1], m_grid_dim.get_value()[2]);               \
+      dim3 n_threads(m_block_dim.get_value()[0], m_block_dim.get_value()[1], m_block_dim.get_value()[2]);           \
+      handler.set_opts(n_blocks, n_threads, param_stream, param_shared_memory_size);                                \
+    }                                                                                                               \
+    template<typename... T>                                                                                         \
+    void set_arguments(T... param_arguments)                                                                        \
+    {                                                                                                               \
+      handler.set_arguments(param_arguments...);                                                                    \
+    }                                                                                                               \
+    void invoke() { handler.invoke(); }                                                                             \
+                                                                                                                    \
+  private:                                                                                                          \
+    CPUProperty<std::array<int, 3>> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};                \
+    CPUProperty<std::array<int, 3>> m_grid_dim {this, "grid_dim", {1, 1, 1}, "grid dimensions"};                    \
+    __VA_ARGS__                                                                                                     \
   };
 
 /**
