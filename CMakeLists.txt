@@ -86,8 +86,8 @@ endmacro()
 
 # Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
+  add_compile_definitions(CPU) 
   allen_project()
-  add_compile_definitions(CPU)
 
   # This seems to be needed across compilers
   add_definitions("-x c++")

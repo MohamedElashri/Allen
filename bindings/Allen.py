@@ -8,7 +8,7 @@ from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables
 import argparse
 
 # Load Allen entry point and helpers
-gbl.gSystem.Load("libAllen")
+gbl.gSystem.Load("libAllenLib")
 gbl.gSystem.Load("libBinaryDumpersLib")
 interpreter = gbl.gInterpreter
 interpreter.Declare("#include <main/include/Allen.h>")
@@ -44,7 +44,7 @@ app = LHCbApp(
 
 # Upgrade DBs
 CondDB().Upgrade = True
-
+# include from here
 producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
                                            DumpUTGeometry,
                                            DumpFTGeometry,
@@ -62,6 +62,9 @@ ApplicationMgr().ExtSvc += [
 # Some extra stuff for timing table
 ApplicationMgr().EvtSel = "NONE"
 ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc']
+
+# until here
+
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()
