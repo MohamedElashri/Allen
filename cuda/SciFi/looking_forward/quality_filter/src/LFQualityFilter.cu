@@ -76,69 +76,72 @@ __global__ void lf_quality_filter(
         number_of_uv_hits += current_hit_in_T1_UV + current_hit_in_T2_UV + current_hit_in_T3_UV;
       }
 
-      // Load parametrization
-      const auto a1 = dev_scifi_lf_parametrization_length_filter[scifi_track_index];
-      const auto b1 = dev_scifi_lf_parametrization_length_filter
-        [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-         scifi_track_index];
-      const auto c1 = dev_scifi_lf_parametrization_length_filter
-        [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
-         scifi_track_index];
-      
-      // Do X fit
-      float x_fit_chi2 = 0.f;
-      for (uint i_hit = 0; i_hit < track.hitsNum - number_of_uv_hits; ++i_hit) {
-        const auto hit_index = event_offset + track.hits[i_hit];
-        const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
-        const auto x = scifi_hits.x0[hit_index];
-        const auto z = dev_looking_forward_constants->Zone_zPos[layer_index];
-        const auto dz = z - LookingForward::z_mid_t;
-        const auto predicted_x =
-          c1 + b1 * dz +
-          a1 * dz * dz * (1.f + LookingForward::d_ratio * dz);
-        x_fit_chi2 += (x - predicted_x) * (x - predicted_x);
-      }
-      x_fit_chi2 /= (track.hitsNum - number_of_uv_hits - 3);
+      if (number_of_uv_hits >= 4) {
 
-      // Do Y line fit
-      const auto y_lms_fit = LookingForward::lms_y_fit(
-        track,
-        number_of_uv_hits,
-        scifi_hits,
-        a1,
-        b1,
-        c1,
-        event_offset,
-        dev_looking_forward_constants);
+        // Load parametrization
+        const auto a1 = dev_scifi_lf_parametrization_length_filter[scifi_track_index];
+        const auto b1 = dev_scifi_lf_parametrization_length_filter
+          [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+           scifi_track_index];
+        const auto c1 = dev_scifi_lf_parametrization_length_filter
+          [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+           scifi_track_index];
+        
+        // Do X fit
+        float x_fit_chi2 = 0.f;
+        for (uint i_hit = 0; i_hit < track.hitsNum - number_of_uv_hits; ++i_hit) {
+          const auto hit_index = event_offset + track.hits[i_hit];
+          const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
+          const auto x = scifi_hits.x0[hit_index];
+          const auto z = dev_looking_forward_constants->Zone_zPos[layer_index];
+          const auto dz = z - LookingForward::z_mid_t;
+          const auto predicted_x =
+            c1 + b1 * dz +
+            a1 * dz * dz * (1.f + LookingForward::d_ratio * dz);
+          x_fit_chi2 += (x - predicted_x) * (x - predicted_x);
+        }
+        x_fit_chi2 /= (track.hitsNum - number_of_uv_hits - 3);
 
-      // Stereo hits X fit
-      const auto uv_x_fit = track.quality / (number_of_uv_hits - 3);
+        // Do Y line fit
+        const auto y_lms_fit = LookingForward::lms_y_fit(
+          track,
+          number_of_uv_hits,
+          scifi_hits,
+          a1,
+          b1,
+          c1,
+          event_offset,
+          dev_looking_forward_constants);
 
-      // Combined value
-      const auto combined_value = x_fit_chi2 + std::get<0>(y_lms_fit) / 1000.f + uv_x_fit / 8.f;
+        // Stereo hits X fit
+        const auto uv_x_fit = track.quality / (number_of_uv_hits - 3);
 
-      t_xchi2 = x_fit_chi2;
-      t_ychi2 = std::get<0>(y_lms_fit);
-      t_uvchi2 = uv_x_fit;
+        // Combined value
+        const auto combined_value = x_fit_chi2 + std::get<0>(y_lms_fit) / 1000.f + uv_x_fit / 8.f;
 
-      t_scifi_tracks_chi2s->Fill();
+        t_xchi2 = x_fit_chi2;
+        t_ychi2 = std::get<0>(y_lms_fit);
+        t_uvchi2 = uv_x_fit;
 
-      // printf("Qualities: %f, %f, %f, %f\n", x_fit_chi2, std::get<0>(y_lms_fit), uv_x_fit, combined_value);
+        t_scifi_tracks_chi2s->Fill();
 
-      if (Configuration::verbosity_level >= logger::debug) {
-        track.print(event_number);
-      }
+        // printf("Qualities: %f, %f, %f, %f\n", x_fit_chi2, std::get<0>(y_lms_fit), uv_x_fit, combined_value);
 
-      const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < 0.02f;
+        if (Configuration::verbosity_level >= logger::debug) {
+          track.print(event_number);
+        }
 
-      track.quality = (in_ty_window && 
-        hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV) ? combined_value : 10000.f;
+        const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < 0.02f;
 
-      // // This code is to keep all the tracks
-      if (track.quality < 1000.f) {
-        const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-        dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
-        dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
+        track.quality = (in_ty_window && 
+          hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV) ? combined_value : 10000.f;
+
+        // // This code is to keep all the tracks
+        if (track.quality < 1000.f) {
+          const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
+          dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
+          dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
+        }
       }
     }
 
