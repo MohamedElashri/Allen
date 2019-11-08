@@ -149,6 +149,9 @@ __global__ void lf_quality_filter(
     f->Write();
     f->Close();
 
+    free(t_scifi_tracks_chi2s);
+    free(f);
+
     // __syncthreads();
 
     // for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
