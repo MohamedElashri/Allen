@@ -462,6 +462,7 @@ include_directories(stream/sequence/include)
 include_directories(cuda/UT/UTDecoding/include)
 include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
+include_directories(integration/monitoring/include)
 include_directories(integration/non_event_data/include)
 include_directories(${ZMQ_INCLUDE_DIRS})
 
@@ -508,6 +509,7 @@ target_link_libraries(AllenLib PUBLIC
   PVChecking
   CheckClustering
   SelChecking
+  AllenMonitoring
   NonEventData
   AllenZMQ)
 
