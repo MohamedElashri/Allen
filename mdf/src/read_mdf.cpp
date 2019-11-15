@@ -16,6 +16,8 @@
 #include "raw_bank.hpp"
 #include "raw_helpers.hpp"
 
+#include "Logger.h"
+
 #ifdef WITH_ROOT
 #include "root_mdf.hpp"
 #endif
