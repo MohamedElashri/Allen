@@ -83,7 +83,7 @@ __global__ void lf_quality_filter(
         a1 * dz * dz * (1.f + LookingForward::d_ratio * dz);
       x_fit_chi2 += (x - predicted_x) * (x - predicted_x);
     }
-    x_fit_chi2 /= (track.hitsNum - number_of_uv_hits - 3);
+    // x_fit_chi2 /= (track.hitsNum - number_of_uv_hits - 3);
 
     // Do Y line fit
     const auto y_lms_fit = LookingForward::lms_y_fit(
@@ -105,31 +105,31 @@ __global__ void lf_quality_filter(
     const float uv_x_fit_contribution = uv_x_fit / range_uv_x_fit_end;
     const float y_fit_contribution = std::get<0>(y_lms_fit) / range_y_fit_end;
 
-    // Combined value
-    const auto combined_value = x_fit_chi2 + uv_x_fit_contribution + y_fit_contribution;
-
     if (Configuration::verbosity_level >= logger::debug) {
       track.print(event_number);
     }
 
     const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < 0.02f;
 
-    track.quality = (in_ty_window && hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV) ? combined_value : 10000.f;
+    // Combined value
+    const auto combined_value = (x_fit_chi2 / 2.f + track.quality / 16.f) / (track.hitsNum - 5);
+
+    track.quality = (hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV) ? combined_value : 10000.f;
 
     // track.qop = track.quality;
 
     // // This code is to keep all the tracks
-    // if (track.quality < 8.f) {
-      // const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-      // dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
-      // dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
+    // if (track.quality < 2.f) {
+    //   const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
+    //   dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
+    //   dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
     // }
   }
 
   __syncthreads();
 
   for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
-    float best_quality = 2.f;
+    float best_quality = 1.f;
     short best_track_index = -1;
 
     for (uint j = 0; j < number_of_tracks; j++) {
