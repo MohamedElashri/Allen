@@ -99,7 +99,7 @@ __global__ void lf_quality_filter(
     // Stereo hits X fit
     const auto uv_x_fit = track.quality / (number_of_uv_hits - 3);
 
-    constexpr float range_uv_x_fit_end = 10.f;
+    constexpr float range_uv_x_fit_end = 16.f;
     constexpr float range_y_fit_end = 800.f;
 
     const float uv_x_fit_contribution = uv_x_fit / range_uv_x_fit_end;
