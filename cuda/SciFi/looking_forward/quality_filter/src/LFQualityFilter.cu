@@ -109,17 +109,21 @@ __global__ void lf_quality_filter(
       track.print(event_number);
     }
 
-    const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < 0.02f;
+    const auto y_at_mid_z = ut_state.y + ut_state.ty * LookingForward::z_mid_t;
+    const auto y_at_mid_z_track = std::get<1>(y_lms_fit) + std::get<2>(y_lms_fit) * LookingForward::z_mid_t;
+    const auto diff_y = fabsf(y_at_mid_z_track - y_at_mid_z);
+
+    // printf("Diff y: %f\n", diff_y);
+
+    // const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < 0.02f;
 
     // Combined value
-    const auto combined_value = (x_fit_chi2 / 2.f + track.quality / 16.f) / (track.hitsNum - 5);
+    const auto combined_value = track.quality / (track.hitsNum - 3);
 
     track.quality = (hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV) ? combined_value : 10000.f;
 
-    // track.qop = track.quality;
-
     // // This code is to keep all the tracks
-    // if (track.quality < 2.f) {
+    // if (track.quality < 1000.f) {
     //   const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
     //   dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
     //   dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
@@ -132,6 +136,8 @@ __global__ void lf_quality_filter(
     float best_quality = 1.f;
     short best_track_index = -1;
 
+    // printf("Tracks from UT track %i:\n", i);
+
     for (uint j = 0; j < number_of_tracks; j++) {
       const SciFi::TrackHits& track = dev_scifi_lf_tracks
         [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + j];
@@ -139,7 +145,13 @@ __global__ void lf_quality_filter(
         best_quality = track.quality;
         best_track_index = j;
       }
+
+      // if (track.ut_track_index == i) {
+      //   track.print();
+      // }
     }
+
+    // printf("\n");
 
     if (best_track_index != -1) {
       const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);

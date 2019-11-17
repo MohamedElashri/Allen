@@ -2,15 +2,12 @@ file(GLOB scifi_common "common/src/*cu")
 file(GLOB scifi_preprocessing "preprocessing/src/*cu")
 file(GLOB scifi_lf_common "looking_forward/common/src/*cu")
 file(GLOB scifi_lf_search_initial_windows "looking_forward/search_initial_windows/src/*cu")
-file(GLOB scifi_lf_collect_candidates "looking_forward/collect_candidates/src/*cu")
 file(GLOB scifi_lf_extend_tracks_x "looking_forward/extend_tracks_x/src/*cu")
-file(GLOB scifi_lf_extend_missing_x "looking_forward/extend_missing_x/src/*cu")
 file(GLOB scifi_lf_triplet_seeding "looking_forward/triplet_seeding/src/*cu")
 file(GLOB scifi_lf_triplet_keep_best "looking_forward/triplet_keep_best/src/*cu")
 file(GLOB scifi_lf_extend_tracks_uv "looking_forward/extend_tracks_uv/src/*cu")
 file(GLOB scifi_lf_quality_filter "looking_forward/quality_filter/src/*cu")
 file(GLOB scifi_lf_quality_filter_x "looking_forward/quality_filter_x/src/*cu")
-file(GLOB scifi_lf_search_uv_windows "looking_forward/search_uv_windows/src/*cu")
 file(GLOB scifi_lf_fit "looking_forward/fit/src/*cu")
 file(GLOB scifi_utils "utils/src/*cu")
 file(GLOB scifi_classifiers "classifiers/src/*cu")
@@ -38,16 +35,12 @@ include_directories(common/include)
 include_directories(preprocessing/include)
 include_directories(looking_forward/common/include)
 include_directories(looking_forward/search_initial_windows/include)
-include_directories(looking_forward/collect_candidates/include)
 include_directories(looking_forward/extend_tracks_x/include)
-include_directories(looking_forward/extend_missing_x/include)
 include_directories(looking_forward/triplet_seeding/include)
 include_directories(looking_forward/triplet_keep_best/include)
-include_directories(looking_forward/composite_algorithms/include)
 include_directories(looking_forward/extend_tracks_uv/include)
 include_directories(looking_forward/quality_filter/include)
 include_directories(looking_forward/quality_filter_x/include)
-include_directories(looking_forward/search_uv_windows/include)
 include_directories(looking_forward/fit/include)
 include_directories(looking_forward/calculate_parametrization/include)
 include_directories(utils/include)
@@ -61,9 +54,9 @@ if(TARGET_DEVICE STREQUAL "CPU")
     ${scifi_lf_calculate_candidate_extrapolation_window} ${scifi_lf_promote_candidates}
     ${scifi_lf_calculate_track_extrapolation_window} ${scifi_lf_extend_tracks}
     ${scifi_lf_search_initial_windows} ${scifi_lf_collect_candidates}
-    ${scifi_lf_extend_tracks_x} ${scifi_lf_extend_missing_x} ${scifi_lf_triplet_seeding}
+    ${scifi_lf_extend_tracks_x} ${scifi_lf_triplet_seeding}
     ${scifi_lf_triplet_keep_best} ${scifi_lf_extend_tracks_uv} ${scifi_lf_quality_filter}
-    ${scifi_lf_quality_filter_x} ${scifi_lf_search_uv_windows} ${scifi_lf_fit}
+    ${scifi_lf_quality_filter_x} ${scifi_lf_fit}
     ${scifi_classifiers} ${scifi_consolidate} ${scifi_lf_calculate_parametrization})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
@@ -75,15 +68,12 @@ allen_add_library(SciFi STATIC
   ${scifi_utils}
   ${scifi_lf_common}
   ${scifi_lf_search_initial_windows}
-  ${scifi_lf_collect_candidates}
   ${scifi_lf_extend_tracks_x}
-  ${scifi_lf_extend_missing_x}
   ${scifi_lf_triplet_seeding}
   ${scifi_lf_triplet_keep_best}
   ${scifi_lf_extend_tracks_uv}
   ${scifi_lf_quality_filter}
   ${scifi_lf_quality_filter_x}
-  ${scifi_lf_search_uv_windows}
   ${scifi_lf_fit}
   ${scifi_classifiers}
   ${scifi_consolidate}

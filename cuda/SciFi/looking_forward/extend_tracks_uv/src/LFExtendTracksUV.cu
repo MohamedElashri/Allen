@@ -38,6 +38,9 @@ __global__ void lf_extend_tracks_uv(
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
     const auto ut_state = dev_ut_states[current_ut_track_index];
 
+    // Use quality normalized
+    track.quality *= 0.5f;
+
     // Load parametrization
     const auto a1 = dev_scifi_lf_parametrization_x_filter[scifi_track_index];
     const auto b1 = dev_scifi_lf_parametrization_x_filter
@@ -47,7 +50,7 @@ __global__ void lf_extend_tracks_uv(
       [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index];
 
-    const auto y_correction =
+    const auto project_y =
       [&](const float x_hit, const float z_module, const int layer) {
         const auto Dx = x_hit - (ut_state.x + ut_state.tx * z_module);
         const auto tx = ut_state.tx;
@@ -92,33 +95,6 @@ __global__ void lf_extend_tracks_uv(
         return y;
       };
 
-    // constexpr float deltaYParams[8] {3.78837f, 73.1636f, 7353.89f, -6347.68f, 20270.3f, 3721.02f, -46038.2f,
-    // 230943.f};
-
-    // const auto layer0 = scifi_hits.planeCode(event_offset + track.hits[0]) / 2;
-    // const auto layer2 = scifi_hits.planeCode(event_offset + track.hits[2]) / 2;
-
-    // const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];
-    // const auto z2 = dev_looking_forward_constants->Zone_zPos[layer2];
-
-    // const auto x0 = scifi_hits.x0[event_offset + track.hits[0]];
-    // const auto x2 = scifi_hits.x0[event_offset + track.hits[2]];
-    // const auto SciFi_tx = (x2 - x0) / (z2 - z0);
-    // const auto deltaSlope = SciFi_tx - ut_state.tx;
-    // const auto absDSlope = fabsf(deltaSlope);
-    // const auto direction = -1.f * signbit(deltaSlope);
-    // const auto endv_ty = ut_state.ty;
-    // const auto endv_ty2 = endv_ty * endv_ty;
-    // const auto endv_tx = ut_state.tx;
-    // const auto endv_tx2 = endv_tx * endv_tx;
-
-    // const auto ycorr =
-    //   absDSlope *
-    //   (direction * deltaYParams[0] + deltaYParams[1] * endv_ty + deltaYParams[2] * direction * endv_tx * endv_ty +
-    //    deltaYParams[3] * endv_tx2 * endv_ty + deltaYParams[4] * direction * endv_tx2 * endv_tx * endv_ty +
-    //    deltaYParams[5] * endv_ty2 * endv_ty + deltaYParams[6] * direction * endv_tx * endv_ty2 * endv_ty +
-    //    deltaYParams[7] * endv_tx2 * endv_ty2 * endv_ty);
-
     for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++)
     {
       const auto layer4 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
@@ -130,19 +106,10 @@ __global__ void lf_extend_tracks_uv(
       const auto uv_window_size = dev_scifi_lf_initial_windows
         [ut_event_tracks_offset + track.ut_track_index + (relative_uv_layer * 8 + 3) * ut_total_number_of_tracks];
 
-      // // TODO: Do ycorr
-      // const auto projection_y = LookingForward::y_at_z_dzdy_corrected(dev_ut_states[current_ut_track_index], z4);
-      // // const auto projection_y = ut_state.y + endv_ty * (z4 - ut_state.z) - ycorr;
-
-      // const auto dz = z4 - LookingForward::z_mid_t;
-      // const auto predicted_x =
-      //   c1 + b1 * dz + a1 * dz * dz -
-      //   dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1] * projection_y;
-
       const auto dz = z4 - LookingForward::z_mid_t;
       const auto expected_x = c1 + b1 * dz + a1 * dz * dz;
       const auto expected_y =
-        y_correction(expected_x, z4, dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
+        project_y(expected_x, z4, dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
       const auto predicted_x =
         expected_x - expected_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1];
 
@@ -169,7 +136,7 @@ __global__ void lf_extend_tracks_uv(
       }
 
       if (best_index != -1) {
-        track.add_hit_with_quality((uint16_t) uv_window_start + best_index, best_chi2);
+        track.add_hit_with_quality((uint16_t) uv_window_start + best_index, best_chi2 * (1.f / 16.f));
       }
     }
   }
