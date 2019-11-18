@@ -24,7 +24,7 @@ __device__ std::tuple<float, float, float> LookingForward::lms_y_fit(
     const auto plane = scifi_hits.planeCode(hit_index) / 2;
     const auto z = scifi_hits.z0[hit_index];
     const auto dz = z - LookingForward::z_mid_t;
-    const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + LookingForward::d_ratio * dz);
+    const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
     const auto y =
       (predicted_x - scifi_hits.x0[hit_index]) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
 
