@@ -39,7 +39,8 @@ __global__ void lf_quality_filter(
   const auto event_offset = scifi_hit_count.event_offset();
 
   for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    const auto scifi_track_index = ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i;
+    const auto scifi_track_index =
+      ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i;
     SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
     const auto& ut_state = dev_ut_states[ut_event_tracks_offset + track.ut_track_index];
 
@@ -54,7 +55,7 @@ __global__ void lf_quality_filter(
       const bool current_hit_in_T1_UV = (layer_number == 1) || (layer_number == 2);
       const bool current_hit_in_T2_UV = (layer_number == 5) || (layer_number == 6);
       const bool current_hit_in_T3_UV = (layer_number == 9) || (layer_number == 10);
-      
+
       hit_in_T1_UV |= current_hit_in_T1_UV;
       hit_in_T2_UV |= current_hit_in_T2_UV;
       hit_in_T3_UV |= current_hit_in_T3_UV;
@@ -69,71 +70,46 @@ __global__ void lf_quality_filter(
     const auto c1 = dev_scifi_lf_parametrization_length_filter
       [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index];
-    
-    // Do X fit
-    float x_fit_chi2 = 0.f;
-    for (uint i_hit = 0; i_hit < track.hitsNum - number_of_uv_hits; ++i_hit) {
-      const auto hit_index = event_offset + track.hits[i_hit];
-      const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
-      const auto x = scifi_hits.x0[hit_index];
-      const auto z = dev_looking_forward_constants->Zone_zPos[layer_index];
-      const auto dz = z - LookingForward::z_mid_t;
-      const auto predicted_x =
-        c1 + b1 * dz +
-        a1 * dz * dz * (1.f + LookingForward::d_ratio * dz);
-      x_fit_chi2 += (x - predicted_x) * (x - predicted_x);
-    }
-    // x_fit_chi2 /= (track.hitsNum - number_of_uv_hits - 3);
 
     // Do Y line fit
     const auto y_lms_fit = LookingForward::lms_y_fit(
-      track,
-      number_of_uv_hits,
-      scifi_hits,
-      a1,
-      b1,
-      c1,
-      event_offset,
-      dev_looking_forward_constants);
+      track, number_of_uv_hits, scifi_hits, a1, b1, c1, event_offset, dev_looking_forward_constants);
 
-    // Stereo hits X fit
-    const auto uv_x_fit = track.quality / (number_of_uv_hits - 3);
-
-    constexpr float range_uv_x_fit_end = 16.f;
     constexpr float range_y_fit_end = 800.f;
-
-    const float uv_x_fit_contribution = uv_x_fit / range_uv_x_fit_end;
     const float y_fit_contribution = std::get<0>(y_lms_fit) / range_y_fit_end;
 
     if (Configuration::verbosity_level >= logger::debug) {
       track.print(event_number);
     }
 
-    const auto y_at_mid_z = ut_state.y + ut_state.ty * LookingForward::z_mid_t;
-    const auto y_at_mid_z_track = std::get<1>(y_lms_fit) + std::get<2>(y_lms_fit) * LookingForward::z_mid_t;
-    const auto diff_y = fabsf(y_at_mid_z_track - y_at_mid_z);
-
-    // printf("Diff y: %f\n", diff_y);
-
-    // const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < 0.02f;
+    const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < 0.02f;
+    const bool acceptable = hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV && (track.hitsNum >= 11 || in_ty_window);
 
     // Combined value
     const auto combined_value = track.quality / (track.hitsNum - 3);
 
-    track.quality = (hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV) ? combined_value : 10000.f;
+    track.quality = acceptable ? combined_value + y_fit_contribution : 10000.f;
+
+    if (track.hitsNum == 11) {
+      track.quality *= 0.8f;
+    }
+    else if (track.hitsNum == 12) {
+      track.quality *= 0.5f;
+    }
 
     // // This code is to keep all the tracks
     // if (track.quality < 1000.f) {
     //   const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-    //   dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = track;
-    //   dev_scifi_selected_track_indices[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
+    //   dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] =
+    //   track; dev_scifi_selected_track_indices[ut_event_tracks_offset *
+    //   SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
     // }
   }
 
   __syncthreads();
 
   for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
-    float best_quality = 1.f;
+    float best_quality = 0.5f;
     short best_track_index = -1;
 
     // printf("Tracks from UT track %i:\n", i);
