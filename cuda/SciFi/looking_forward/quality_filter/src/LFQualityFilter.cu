@@ -9,7 +9,6 @@ __global__ void lf_quality_filter(
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   uint* dev_atomics_scifi,
-  uint* dev_scifi_selected_track_indices,
   SciFi::TrackHits* dev_scifi_tracks,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_scifi_lf_parametrization_length_filter,
@@ -72,10 +71,13 @@ __global__ void lf_quality_filter(
     const auto c1 = dev_scifi_lf_parametrization_length_filter
       [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index];
+    const auto d_ratio = dev_scifi_lf_parametrization_length_filter
+      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+       scifi_track_index];
 
     // Do Y line fit
     const auto y_lms_fit = LookingForward::lms_y_fit(
-      track, number_of_uv_hits, scifi_hits, a1, b1, c1, event_offset, dev_looking_forward_constants);
+      track, number_of_uv_hits, scifi_hits, a1, b1, c1, d_ratio, event_offset, dev_looking_forward_constants);
 
     // Save Y line fit
     dev_scifi_lf_y_parametrization_length_filter[scifi_track_index] = std::get<1>(y_lms_fit);
@@ -104,8 +106,7 @@ __global__ void lf_quality_filter(
     // // This code is to keep all the tracks
     // const auto insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
     // dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] =
-    // track; dev_scifi_selected_track_indices[ut_event_tracks_offset *
-    // SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index] = i;
+    // track;
   }
 
   __syncthreads();
@@ -133,7 +134,6 @@ __global__ void lf_quality_filter(
 
       const auto new_scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index;
       dev_scifi_tracks[new_scifi_track_index] = track;
-      dev_scifi_selected_track_indices[new_scifi_track_index] = best_track_index;
 
       // Save track parameters to last container as well
       const auto a1 = dev_scifi_lf_parametrization_length_filter[scifi_track_index];

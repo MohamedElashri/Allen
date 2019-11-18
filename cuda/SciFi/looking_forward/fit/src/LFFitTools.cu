@@ -9,11 +9,13 @@ __device__ std::tuple<float, float, float> LookingForward::lms_y_fit(
   const float a1,
   const float b1,
   const float c1,
+  const float d_ratio,
   const uint event_offset,
-  const LookingForward::Constants* dev_looking_forward_constants) {
+  const LookingForward::Constants* dev_looking_forward_constants)
+{
   // Traverse all UV hits
-  float y_values [6];
-  float z_values [6];
+  float y_values[6];
+  float z_values[6];
   auto y_mean = 0.f;
   auto z_mean = 0.f;
 
@@ -21,11 +23,10 @@ __device__ std::tuple<float, float, float> LookingForward::lms_y_fit(
     const auto hit_index = event_offset + track.hits[track.hitsNum - number_of_uv_hits + j];
     const auto plane = scifi_hits.planeCode(hit_index) / 2;
     const auto z = scifi_hits.z0[hit_index];
-    const auto predicted_x = 
-      c1 + b1 * (z - LookingForward::z_mid_t) +
-      a1 * (z - LookingForward::z_mid_t) * (z - LookingForward::z_mid_t) *
-        (1.f + LookingForward::d_ratio * (z - LookingForward::z_mid_t));
-    const auto y = (predicted_x - scifi_hits.x0[hit_index]) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
+    const auto dz = z - LookingForward::z_mid_t;
+    const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + LookingForward::d_ratio * dz);
+    const auto y =
+      (predicted_x - scifi_hits.x0[hit_index]) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
 
     y_values[j] = y;
     z_values[j] = z;
@@ -34,7 +35,7 @@ __device__ std::tuple<float, float, float> LookingForward::lms_y_fit(
   }
   z_mean /= number_of_uv_hits;
   y_mean /= number_of_uv_hits;
-  
+
   auto nom = 0.f;
   auto denom = 0.f;
   for (uint j = 0; j < number_of_uv_hits; ++j) {

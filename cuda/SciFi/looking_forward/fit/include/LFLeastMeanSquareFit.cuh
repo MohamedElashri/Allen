@@ -20,8 +20,6 @@ __global__ void lf_least_mean_square_fit(
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
-  const MiniState* dev_ut_states,
-  const int* dev_scifi_lf_initial_windows,
   float* dev_scifi_lf_parametrization_x_filter);
 
 ALGORITHM(
@@ -33,6 +31,4 @@ ALGORITHM(
     dev_atomics_ut,
     dev_scifi_lf_x_filtered_tracks,
     dev_scifi_lf_x_filtered_atomics,
-    dev_ut_states,
-    dev_scifi_lf_initial_windows,
     dev_scifi_lf_parametrization_x_filter))

@@ -66,11 +66,10 @@ __global__ void lf_extend_tracks_x(
           dev_initial_windows[current_ut_track_index + current_layer * 8 * ut_total_number_of_tracks];
         const auto window_size =
           dev_initial_windows[current_ut_track_index + (current_layer * 8 + 1) * ut_total_number_of_tracks];
-        const float zZone = dev_looking_forward_constants->Zone_zPos_xlayers[current_layer];
+        const float z = dev_looking_forward_constants->Zone_zPos_xlayers[current_layer];
 
-        const auto predicted_x = c1 + b1 * (zZone - LookingForward::z_mid_t) +
-                                 a1 * (zZone - LookingForward::z_mid_t) * (zZone - LookingForward::z_mid_t) *
-                                   (1.f + d_ratio * (zZone - LookingForward::z_mid_t));
+        const auto dz = z - LookingForward::z_mid_t;
+        const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
 
         // Pick the best, according to chi2
         int best_index = -1;

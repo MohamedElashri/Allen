@@ -48,6 +48,9 @@ __global__ void lf_extend_tracks_uv(
     const auto c1 = dev_scifi_lf_parametrization_x_filter
       [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index];
+    const auto d_ratio = dev_scifi_lf_parametrization_x_filter
+      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+       scifi_track_index];
 
     const auto project_y = [&](const float x_hit, const float z_module, const int layer) {
       const auto Dx = x_hit - (ut_state.x + ut_state.tx * (z_module - ut_state.z));
@@ -101,7 +104,7 @@ __global__ void lf_extend_tracks_uv(
         [ut_event_tracks_offset + track.ut_track_index + (relative_uv_layer * 8 + 3) * ut_total_number_of_tracks];
 
       const auto dz = z4 - LookingForward::z_mid_t;
-      const auto expected_x = c1 + b1 * dz + a1 * dz * dz;
+      const auto expected_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
       const auto expected_y =
         project_y(expected_x, z4, dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
       const auto predicted_x =

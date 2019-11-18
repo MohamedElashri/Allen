@@ -11,8 +11,6 @@ __global__ void consolidate_scifi_tracks(
   uint* dev_scifi_track_ut_indices,
   uint* dev_atomics_ut,
   SciFi::TrackHits* dev_scifi_tracks,
-  const uint* dev_scifi_selected_track_indices,
-  const float* dev_scifi_lf_track_params,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const float* dev_scifi_lf_parametrization_consolidate)
@@ -29,9 +27,7 @@ __global__ void consolidate_scifi_tracks(
   //   LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter;
   const SciFi::TrackHits* event_scifi_tracks =
     dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
-  const uint* event_scifi_selected_track_indices =
-    dev_scifi_selected_track_indices + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
-
+  
   const uint total_number_of_scifi_hits =
     dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
@@ -53,7 +49,6 @@ __global__ void consolidate_scifi_tracks(
   for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     scifi_tracks.ut_track[i] = event_scifi_tracks[i].ut_track_index;
     scifi_tracks.qop[i] = event_scifi_tracks[i].qop;
-    const uint original_track = event_scifi_selected_track_indices[i];
     const auto scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + i;
     
     const auto curvature = dev_scifi_lf_parametrization_consolidate[scifi_track_index];

@@ -72,7 +72,7 @@ __global__ void lf_triplet_keep_best(
         if (number_of_found_triplets > 0) {
           const auto insert_index =
             atomicAdd(dev_scifi_lf_total_number_of_found_triplets + current_ut_track_index, number_of_found_triplets);
-          for (uint k = 0; k < number_of_found_triplets; ++k) {
+          for (int k = 0; k < number_of_found_triplets; ++k) {
             const auto found_triplet = scifi_lf_found_triplets
               [triplet_index *
                  (LookingForward::maximum_number_of_triplets_per_seed / LookingForward::extreme_layers_window_size) +
@@ -110,18 +110,18 @@ __global__ void lf_triplet_keep_best(
       // Note: if the number of tracks is less than LookingForward::maximum_number_of_candidates_per_ut_track
       //       then just store them all in best_triplets
       if (number_of_tracks < LookingForward::maximum_number_of_candidates_per_ut_track) {
-        for (int j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
+        for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
           const auto chi2_index = found_triplets[j];
           best_triplets[j] = static_cast<int16_t>(chi2_index);
         }
       }
       else {
-        for (int j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
+        for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
           const auto chi2_index = found_triplets[j];
           const auto chi2 = best_chi2[chi2_index];
 
           int insert_position = 0;
-          for (int k = 0; k < number_of_tracks; ++k) {
+          for (uint k = 0; k < number_of_tracks; ++k) {
             const auto other_chi2_index = found_triplets[k];
             const auto other_chi2 = best_chi2[other_chi2_index];
             insert_position += chi2 > other_chi2 || (chi2 == other_chi2 && chi2_index < other_chi2_index);

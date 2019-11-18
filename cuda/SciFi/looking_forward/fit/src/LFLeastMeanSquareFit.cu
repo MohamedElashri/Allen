@@ -9,8 +9,6 @@ __global__ void lf_least_mean_square_fit(
   const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
-  const MiniState* dev_ut_states,
-  const int* dev_scifi_lf_initial_windows,
   float* dev_scifi_lf_parametrization_x_filter)
 {
   if (Configuration::verbosity_level >= logger::debug) {
@@ -23,7 +21,6 @@ __global__ void lf_least_mean_square_fit(
   const uint event_number = blockIdx.x;
 
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
-  const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
   const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
 
   // SciFi hits
@@ -49,7 +46,6 @@ __global__ void lf_least_mean_square_fit(
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i;
     SciFi::TrackHits& track = dev_scifi_tracks[scifi_track_index];
-    const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
 
     // Load parametrization
     const auto prev_curvature = dev_scifi_lf_parametrization_x_filter[scifi_track_index];

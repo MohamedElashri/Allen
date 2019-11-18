@@ -14,6 +14,7 @@ namespace LookingForward {
     const float a1,
     const float b1,
     const float c1,
+    const float d_ratio,
     const uint event_offset,
     const LookingForward::Constants* dev_looking_forward_constants);
 

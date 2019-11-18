@@ -25,7 +25,6 @@ __device__ void lf_triplet_seeding_impl(
   const float z1,
   const float z2,
   const int* initial_windows,
-  const uint ut_track_number,
   const uint ut_total_number_of_tracks,
   const float qop,
   const float ut_tx,

@@ -88,7 +88,6 @@ __global__ void lf_triplet_seeding(
             z1,
             z2,
             initial_windows,
-            ut_track_number,
             ut_total_number_of_tracks,
             qop,
             (dev_ut_states + current_ut_track_index)->tx,

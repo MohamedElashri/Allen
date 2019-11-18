@@ -1,14 +1,7 @@
 #include "LFLeastMeanSquareFit.cuh"
 #include "SequenceVisitor.cuh"
 
-template<>
-void SequenceVisitor::set_arguments_size<lf_least_mean_square_fit_t>(
-  lf_least_mean_square_fit_t::arguments_t arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers)
-{
-}
+DEFINE_EMPTY_SET_ARGUMENTS_SIZE(lf_least_mean_square_fit_t)
 
 template<>
 void SequenceVisitor::visit<lf_least_mean_square_fit_t>(
@@ -30,8 +23,6 @@ void SequenceVisitor::visit<lf_least_mean_square_fit_t>(
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
     constants.dev_inv_clus_res,
-    arguments.offset<dev_ut_states>(),
-    arguments.offset<dev_scifi_lf_initial_windows>(),
     arguments.offset<dev_scifi_lf_parametrization_x_filter>());
 
   state.invoke();
