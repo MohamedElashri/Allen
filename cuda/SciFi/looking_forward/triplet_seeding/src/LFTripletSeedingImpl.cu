@@ -31,6 +31,7 @@ __device__ void lf_triplet_seeding_impl(
   const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
 
   const auto inverse_dz2 = 1.f / (z0 - z2);
+  const auto constant_expected_x1 = (triplet_seed == 0 ? 1.00177513f : 1.00142634f);
 
   const auto qop_range =
     fabsf(qop) > LookingForward::linear_range_qop_end ? 1.f : fabsf(qop) * (1.f / LookingForward::linear_range_qop_end);
@@ -50,12 +51,11 @@ __device__ void lf_triplet_seeding_impl(
   // Due to shared_x1
   __syncthreads();
 
-  constexpr int blockdim_x = 32;
-  for (uint tid_x = threadIdx.x; tid_x < blockdim_x; tid_x += blockDim.x) {
+  for (uint tid_x = threadIdx.x; tid_x < LookingForward::triplet_seeding_block_dim_x; tid_x += blockDim.x) {
     uint16_t number_of_found_triplets = 0;
 
     // Treat central window iteration
-    for (int i = tid_x; i < l0_size * l2_size; i += blockdim_x) {
+    for (int i = tid_x; i < l0_size * l2_size; i += LookingForward::triplet_seeding_block_dim_x) {
       const auto h0_rel = i % l0_size;
       const auto h2_rel = i / l0_size;
 
@@ -64,7 +64,7 @@ __device__ void lf_triplet_seeding_impl(
 
       // // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
-      const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * 1.001834f;
+      const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * constant_expected_x1;
 
       const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
       const auto x_at_z_magnet_diff = fabsf(
@@ -81,7 +81,6 @@ __device__ void lf_triplet_seeding_impl(
         // Binary search of candidate
         const auto candidate_index = binary_search_leftmost(shared_x1, l1_size, expected_x1);
 
-        // float best_chi2 = (0.75f * 0.75f) * (1.f + fabsf(delta_slope) * 1.f / 0.4f);
         float best_chi2 = LookingForward::chi2_max_triplet_single;
         int best_h1_rel = -1;
 
@@ -112,7 +111,9 @@ __device__ void lf_triplet_seeding_impl(
 
           // Store in per-thread storage the found hits
           scifi_lf_found_triplets
-            [tid_x * (LookingForward::maximum_number_of_triplets_per_seed / blockdim_x) + number_of_found_triplets++] =
+            [tid_x *
+               (LookingForward::maximum_number_of_triplets_per_seed / LookingForward::triplet_seeding_block_dim_x) +
+             number_of_found_triplets++] =
               static_cast<int16_t>(
                 triplet_seed * LookingForward::maximum_number_of_triplets_per_seed +
                 h0_rel * LookingForward::extreme_layers_window_size + h2_rel);

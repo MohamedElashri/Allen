@@ -60,17 +60,18 @@ namespace LookingForward {
 
   constexpr int extreme_layers_window_size = 32;
   constexpr int middle_layer_window_size = 32;
+  constexpr int triplet_seeding_block_dim_x = 32;
 
   constexpr int maximum_number_of_triplets_per_h1 = 1;
   constexpr int maximum_number_of_triplets_per_seed = extreme_layers_window_size * extreme_layers_window_size;
-  constexpr int n_threads_triplet_seeding = 32;
   constexpr int n_triplet_seeds = 2;
+  constexpr int n_threads_triplet_seeding = 32;
   constexpr int tile_size = 32;
 
   // Deprecated
   constexpr int maximum_number_of_candidates = maximum_number_of_triplets_per_seed;
 
-  constexpr int maximum_number_of_candidates_per_ut_track = 20;
+  constexpr int maximum_number_of_candidates_per_ut_track = 12;
   constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 10;
 
   constexpr int num_atomics = 1;
@@ -94,7 +95,7 @@ namespace LookingForward {
   // constexpr float d_ratio = -8.585717012100695e-06;
 
   // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
-  constexpr float chi2_max_triplet_single = 4.f;
+  constexpr float chi2_max_triplet_single = 8.f;
   constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f;
   constexpr float chi2_max_extrapolation_to_uv_layers_single = 16.f;
 

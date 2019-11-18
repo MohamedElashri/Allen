@@ -19,7 +19,6 @@ __global__ void lf_extend_tracks_uv(
 
   // UT consolidated tracks
   const int ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
-  const int ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
   const int ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
 
   // SciFi hits
@@ -58,9 +57,7 @@ __global__ void lf_extend_tracks_uv(
       const auto tx4 = ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx;
       const auto tx5 = ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx;
       const auto ty = ut_state.ty;
-      const auto ty2 = ut_state.ty * ut_state.ty;
       const auto ty3 = ut_state.ty * ut_state.ty * ut_state.ty;
-      const auto ty4 = ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty;
       const auto ty5 = ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty;
 
       const auto C1y_0 = dev_looking_forward_constants->parametrization_layers[18 * layer];

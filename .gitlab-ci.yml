@@ -417,26 +417,26 @@ t4:CUDA:DefaultSequence:run_throughput:
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-gtx10606g:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx10606g
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtx10606g:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx10606g
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-gtx680:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx680
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtx680:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx680
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-gtxtitanx:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtxtitanx
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtxtitanx:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtxtitanx
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 x862630v4:CPU:DefaultSequence:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
@@ -445,19 +445,19 @@ x862630v4:CPU:DefaultSequence:run_throughput_cpu:
   dependencies:
     - CPU:DefaultSequence:RelWithDebInfo::build_x86
 
-gtx670:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx670
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtx670:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx670
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-gtx1080ti:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx1080ti
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtx1080ti:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx1080ti
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 # Physics runs
 
@@ -509,9 +509,9 @@ throughput:DefaultSequence:publish_throughput:
     - rtx6000:CUDA:DefaultSequence:run_throughput
     - v100:CUDA:DefaultSequence:run_throughput
     - t4:CUDA:DefaultSequence:run_throughput
-    - gtx10606g:CUDA:DefaultSequence:run_throughput
-    - gtx680:CUDA:DefaultSequence:run_throughput
-    - gtxtitanx:CUDA:DefaultSequence:run_throughput
-    - gtx670:CUDA:DefaultSequence:run_throughput
-    - gtx1080ti:CUDA:DefaultSequence:run_throughput
     - x862630v4:CPU:DefaultSequence:run_throughput_cpu
+    # - gtx1080ti:CUDA:DefaultSequence:run_throughput
+    # - gtxtitanx:CUDA:DefaultSequence:run_throughput
+    # - gtx670:CUDA:DefaultSequence:run_throughput
+    # - gtx10606g:CUDA:DefaultSequence:run_throughput
+    # - gtx680:CUDA:DefaultSequence:run_throughput

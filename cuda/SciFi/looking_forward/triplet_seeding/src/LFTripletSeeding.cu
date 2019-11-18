@@ -21,7 +21,7 @@ __global__ void lf_triplet_seeding(
   int16_t* dev_scifi_lf_found_triplets,
   int16_t* dev_scifi_lf_number_of_found_triplets)
 {
-  __shared__ float shared_precalc_expected_x1 [2 * 32];
+  __shared__ float shared_precalc_expected_x1 [2 * LookingForward::triplet_seeding_block_dim_x];
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -100,7 +100,7 @@ __global__ void lf_triplet_seeding(
             dev_scifi_lf_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
                                   LookingForward::maximum_number_of_triplets_per_seed,
             dev_scifi_lf_number_of_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-                                  /* blockDim.x == 32 */ 32,
+                                  LookingForward::triplet_seeding_block_dim_x,
             triplet_seed);
         }
       }
