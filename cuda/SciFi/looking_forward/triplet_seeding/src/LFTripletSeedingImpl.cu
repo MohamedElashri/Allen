@@ -62,13 +62,9 @@ __device__ void lf_triplet_seeding_impl(
       const auto x0 = scifi_hits_x0[l0_start + h0_rel];
       const auto x2 = scifi_hits_x0[l2_start + h2_rel];
 
-      // Extrapolation
+      // // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
-      const auto delta_slope = fabsf(velo_tx - slope_t1_t3);
-      const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope -
-                      LookingForward::qop_p2 * delta_slope * delta_slope;
-      const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
-      const auto expected_x1 = x0 + (z1 - z0) * slope_t1_t3 + 0.02528f + 13624.f * updated_qop;
+      const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * 1.001834f;
 
       const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
       const auto x_at_z_magnet_diff = fabsf(
@@ -85,6 +81,7 @@ __device__ void lf_triplet_seeding_impl(
         // Binary search of candidate
         const auto candidate_index = binary_search_leftmost(shared_x1, l1_size, expected_x1);
 
+        // float best_chi2 = (0.75f * 0.75f) * (1.f + fabsf(delta_slope) * 1.f / 0.4f);
         float best_chi2 = LookingForward::chi2_max_triplet_single;
         int best_h1_rel = -1;
 
@@ -114,8 +111,11 @@ __device__ void lf_triplet_seeding_impl(
           scifi_lf_triplet_best[h0_rel * LookingForward::extreme_layers_window_size + h2_rel] = best_chi2;
 
           // Store in per-thread storage the found hits
-          scifi_lf_found_triplets[tid_x * (LookingForward::maximum_number_of_triplets_per_seed / blockdim_x) + number_of_found_triplets++] =
-            static_cast<int16_t>(triplet_seed * LookingForward::maximum_number_of_triplets_per_seed + h0_rel * LookingForward::extreme_layers_window_size + h2_rel);
+          scifi_lf_found_triplets
+            [tid_x * (LookingForward::maximum_number_of_triplets_per_seed / blockdim_x) + number_of_found_triplets++] =
+              static_cast<int16_t>(
+                triplet_seed * LookingForward::maximum_number_of_triplets_per_seed +
+                h0_rel * LookingForward::extreme_layers_window_size + h2_rel);
         }
       }
     }

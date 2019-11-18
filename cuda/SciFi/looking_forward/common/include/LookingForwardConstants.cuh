@@ -94,7 +94,7 @@ namespace LookingForward {
   // constexpr float d_ratio = -8.585717012100695e-06;
 
   // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
-  constexpr float chi2_max_triplet_single = 100.f;
+  constexpr float chi2_max_triplet_single = 4.f;
   constexpr float chi2_max_extrapolation_to_x_layers_single = 4.f;
   constexpr float chi2_max_extrapolation_to_uv_layers_single = 16.f;
 
