@@ -29,6 +29,8 @@ __global__ void lf_quality_filter(
   SciFi::TrackHits* dev_scifi_tracks,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_scifi_lf_parametrization_length_filter,
+  float* dev_scifi_lf_y_parametrization_length_filter,
+  float* dev_scifi_lf_parametrization_consolidate,
   const MiniState* dev_ut_states);
 
 ALGORITHM(
@@ -44,4 +46,6 @@ ALGORITHM(
     dev_scifi_selected_track_indices,
     dev_scifi_tracks,
     dev_scifi_lf_parametrization_length_filter,
+    dev_scifi_lf_y_parametrization_length_filter,
+    dev_scifi_lf_parametrization_consolidate,
     dev_ut_states))

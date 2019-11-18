@@ -43,7 +43,8 @@ void SequenceVisitor::visit<consolidate_scifi_tracks_t>(
     arguments.offset<dev_scifi_selected_track_indices>(),
     arguments.offset<dev_scifi_lf_track_params>(),
     constants.dev_scifi_geometry,
-    constants.dev_inv_clus_res);
+    constants.dev_inv_clus_res,
+    arguments.offset<dev_scifi_lf_parametrization_consolidate>());
 
   state.invoke();
 
