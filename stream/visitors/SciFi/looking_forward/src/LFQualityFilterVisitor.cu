@@ -14,7 +14,6 @@ void SequenceVisitor::set_arguments_size<lf_quality_filter_t>(
     host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
   arguments.set_size<dev_scifi_tracks>(
     host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
-
   arguments.set_size<dev_scifi_lf_y_parametrization_length_filter>(
     2 * host_buffers.host_number_of_reconstructed_ut_tracks[0] *
     LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);

@@ -56,16 +56,6 @@ __global__ void consolidate_scifi_tracks(
     const uint original_track = event_scifi_selected_track_indices[i];
     const auto scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + i;
     
-    // TODO: Use the track parameters in X
-    //       and calculate those in UV
-    //       to be able to fill this in
-    // const float* trackParams = dev_scifi_lf_track_params +
-    //                            ut_event_tracks_offset *
-    //                              LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter *
-    //                              SciFi::Tracking::nTrackParams +
-    //                            original_track * SciFi::Tracking::nTrackParams;
-
-
     const auto curvature = dev_scifi_lf_parametrization_consolidate[scifi_track_index];
     const auto tx = dev_scifi_lf_parametrization_consolidate
       [ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track +
@@ -83,7 +73,7 @@ __global__ void consolidate_scifi_tracks(
       [5 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track +
        scifi_track_index];
 
-    const auto dz = LookingForward::z_mid_t - SciFi::Constants::ZEndT;
+    const auto dz = SciFi::Constants::ZEndT - LookingForward::z_mid_t;
     const MiniState scifi_state {
       x0 + tx * dz + curvature * dz * dz * (1.f + d_ratio * dz),
       y0 + ty * SciFi::Constants::ZEndT,
