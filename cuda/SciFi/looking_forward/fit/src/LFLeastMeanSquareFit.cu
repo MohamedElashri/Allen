@@ -44,19 +44,19 @@ __global__ void lf_least_mean_square_fit(
 
   for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto scifi_track_index =
-      ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i;
+      ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     SciFi::TrackHits& track = dev_scifi_tracks[scifi_track_index];
 
     // Load parametrization
     const auto prev_curvature = dev_scifi_lf_parametrization_x_filter[scifi_track_index];
     const auto prev_tx = dev_scifi_lf_parametrization_x_filter
-      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
        scifi_track_index];
     const auto prev_offset = dev_scifi_lf_parametrization_x_filter
-      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
        scifi_track_index];
     const auto d_ratio = dev_scifi_lf_parametrization_x_filter
-      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
        scifi_track_index];
 
     for (uint i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
@@ -103,10 +103,10 @@ __global__ void lf_least_mean_square_fit(
     // Update parametrization
     dev_scifi_lf_parametrization_x_filter[scifi_track_index] = curvature;
     dev_scifi_lf_parametrization_x_filter
-      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
        scifi_track_index] = tx;
     dev_scifi_lf_parametrization_x_filter
-      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
        scifi_track_index] = offset;
 
     // Update track quality

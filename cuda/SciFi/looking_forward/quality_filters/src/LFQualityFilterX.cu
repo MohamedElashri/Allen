@@ -88,14 +88,14 @@ __global__ void lf_quality_filter_x(
         }
       }
 
-      if (insert_position < LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter && chi2_ndof < 2.f) {
+      if (insert_position < LookingForward::maximum_number_of_candidates_per_ut_track && chi2_ndof < 2.f) {
         // Save best track candidates
         const auto insert_index = atomicAdd(dev_scifi_lf_x_filtered_atomics + event_number, 1);
 
         const auto scifi_track_index =
           current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
         const auto scifi_track_index_new =
-          ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+          ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track +
           insert_index;
         const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
 
@@ -121,13 +121,13 @@ __global__ void lf_quality_filter_x(
 
         dev_scifi_lf_parametrization_x_filter[scifi_track_index_new] = a1;
         dev_scifi_lf_parametrization_x_filter
-          [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+          [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
            scifi_track_index_new] = b1;
         dev_scifi_lf_parametrization_x_filter
-          [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+          [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
            scifi_track_index_new] = c1;
         dev_scifi_lf_parametrization_x_filter
-          [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+          [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
            scifi_track_index_new] = d_ratio;
       }
     }

@@ -84,23 +84,23 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
 
     host_scifi_tracks = reinterpret_cast<decltype(host_scifi_tracks)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
-      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(SciFi::TrackHits)));
+      LookingForward::maximum_number_of_candidates_per_ut_track * sizeof(SciFi::TrackHits)));
     host_scifi_track_hit_number = reinterpret_cast<decltype(host_scifi_track_hit_number)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
-      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(uint)));
+      LookingForward::maximum_number_of_candidates_per_ut_track * sizeof(uint)));
     host_scifi_track_hits = reinterpret_cast<decltype(host_scifi_track_hits)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
-      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * SciFi::Constants::max_track_size *
+      LookingForward::maximum_number_of_candidates_per_ut_track * SciFi::Constants::max_track_size *
       sizeof(SciFi::Hit)));
     host_scifi_qop = reinterpret_cast<decltype(host_scifi_qop)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
-      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(float)));
+      LookingForward::maximum_number_of_candidates_per_ut_track * sizeof(float)));
     host_scifi_states = reinterpret_cast<decltype(host_scifi_states)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
-      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(MiniState)));
+      LookingForward::maximum_number_of_candidates_per_ut_track * sizeof(MiniState)));
     host_scifi_track_ut_indices = reinterpret_cast<decltype(host_scifi_track_ut_indices)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
-      LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(uint)));
+      LookingForward::maximum_number_of_candidates_per_ut_track * sizeof(uint)));
 
     host_reconstructed_pvs = reinterpret_cast<decltype(host_reconstructed_pvs)>(
       malloc(max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));

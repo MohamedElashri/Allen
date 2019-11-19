@@ -12,7 +12,7 @@ __global__ void lf_extend_tracks_uv(
   const float* dev_inv_clus_res,
   const MiniState* dev_ut_states,
   const int* dev_scifi_lf_initial_windows,
-  const float* dev_scifi_lf_parametrization_x_filter)
+  const float* dev_scifi_lf_parametrization)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -32,7 +32,7 @@ __global__ void lf_extend_tracks_uv(
 
   for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto scifi_track_index =
-      ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter + i;
+      ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     SciFi::TrackHits& track = dev_scifi_tracks[scifi_track_index];
     const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
     const auto ut_state = dev_ut_states[current_ut_track_index];
@@ -41,15 +41,15 @@ __global__ void lf_extend_tracks_uv(
     track.quality *= (1.f / LookingForward::chi2_max_extrapolation_to_x_layers_single);
 
     // Load parametrization
-    const auto a1 = dev_scifi_lf_parametrization_x_filter[scifi_track_index];
-    const auto b1 = dev_scifi_lf_parametrization_x_filter
-      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+    const auto a1 = dev_scifi_lf_parametrization[scifi_track_index];
+    const auto b1 = dev_scifi_lf_parametrization
+      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
        scifi_track_index];
-    const auto c1 = dev_scifi_lf_parametrization_x_filter
-      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+    const auto c1 = dev_scifi_lf_parametrization
+      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
        scifi_track_index];
-    const auto d_ratio = dev_scifi_lf_parametrization_x_filter
-      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+    const auto d_ratio = dev_scifi_lf_parametrization
+      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
        scifi_track_index];
 
     const auto project_y = [](const LookingForward::Constants* dev_looking_forward_constants, const MiniState& ut_state, const float x_hit, const float z_module, const int layer) {

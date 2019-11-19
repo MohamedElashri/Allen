@@ -27,9 +27,8 @@ namespace LookingForward {
   constexpr int n_triplet_seeds = 2;
 
   constexpr int maximum_number_of_candidates_per_ut_track = 12;
-  constexpr int maximum_number_of_candidates_per_ut_track_after_x_filter = 12;
 
-  constexpr int track_min_hits = 10;
+  constexpr int track_min_hits = 9;
   constexpr float quality_filter_max_quality = 0.5f;
   constexpr float range_y_fit_end = 800.f;
   constexpr int num_atomics = 1;

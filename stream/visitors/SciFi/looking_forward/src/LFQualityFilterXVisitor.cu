@@ -11,12 +11,12 @@ void SequenceVisitor::set_arguments_size<lf_quality_filter_x_t>(
 {
   arguments.set_size<dev_scifi_lf_x_filtered_tracks>(
     host_buffers.host_number_of_reconstructed_ut_tracks[0] *
-    LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
+    LookingForward::maximum_number_of_candidates_per_ut_track);
   arguments.set_size<dev_scifi_lf_x_filtered_atomics>(
     host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
   arguments.set_size<dev_scifi_lf_parametrization_x_filter>(
     4 * host_buffers.host_number_of_reconstructed_ut_tracks[0] *
-    LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter);
+    LookingForward::maximum_number_of_candidates_per_ut_track);
 }
 
 template<>
