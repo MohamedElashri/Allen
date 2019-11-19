@@ -41,7 +41,6 @@ std::vector<ProgramOption> allen_program_options()
           {{"print-config"}, "show current algorithm configuration", "0"},
           {{"write-configuration"}, "write current algorithm configuration to file", "0"},
           {{"n", "number-of-events"}, "number of events to process", "0", "all"},
-          // {{"o", "offset"}, "offset of events from which to start", "0 (beginning)"},
           {{"s", "number-of-slices"}, "number of input slices to allocate", "0", "one more than the number of threads"},
           {{"events-per-slice"}, "number of events per slice", "1000"},
           {{"t", "threads"}, "number of threads / streams", "1"},
