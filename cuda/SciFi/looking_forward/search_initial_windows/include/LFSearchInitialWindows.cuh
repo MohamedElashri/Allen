@@ -10,7 +10,6 @@
 #include "ArgumentsSciFi.cuh"
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
-#include "TrackUtils.cuh"
 
 __global__ void lf_search_initial_windows(
   uint32_t* dev_scifi_hits,

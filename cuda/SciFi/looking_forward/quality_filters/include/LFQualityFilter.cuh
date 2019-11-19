@@ -2,19 +2,14 @@
 
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
-#include "LFTrackQuality.cuh"
 #include "SciFiEventModel.cuh"
 #include "Handler.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
-#include "TMVA_Forward.cuh"
-#include "TMVA_Forward_1.cuh"
-#include "TMVA_Forward_2.cuh"
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
-#include "LFFit.cuh"
-#include "LFFitTools.cuh"
+#include "LookingForwardTools.cuh"
 
 __global__ void lf_quality_filter(
   const uint32_t* dev_scifi_hits,

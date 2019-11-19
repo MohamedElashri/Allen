@@ -8,8 +8,6 @@
 #include "ArgumentsUT.cuh"
 #include "ArgumentsVelo.cuh"
 #include "UTConsolidated.cuh"
-#include "TrackUtils.cuh"
-#include "LFFit.cuh"
 
 __global__ void lf_least_mean_square_fit(
   const uint32_t* dev_scifi_hits,

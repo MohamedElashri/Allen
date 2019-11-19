@@ -22,19 +22,6 @@ namespace LookingForward {
   /*=====================================
     Constants for looking forward
     ======================================*/
-  constexpr float chi2_cut = 4.f;
-
-  /**
-   * Station where seeding starts from
-   */
-  constexpr uint seeding_station = 3;
-  constexpr int seeding_first_layer = 8;
-
-  /**
-   * Form seeds from candidates
-   */
-  constexpr int maximum_iteration_l3_window = 4;
-  constexpr int track_candidates_per_window = 1;
 
   // z distance between various layers of a station
   // FIXME_GEOMETRY_HARDCODING
@@ -45,12 +32,15 @@ namespace LookingForward {
   constexpr float dz_x_v_layers = 2.f * dz_layers_station;
 
   // detector limits
-  constexpr float xMin = -4090.f;
-  constexpr float xMax = 4090.f;
-  constexpr float yUpMin = -50.f;
-  constexpr float yUpMax = 3030.f;
-  constexpr float yDownMin = -3030.f;
-  constexpr float yDownMax = 50.f;
+  // constexpr float xMin = -4090.f;
+  // constexpr float xMax = 4090.f;
+  // constexpr float yUpMin = -50.f;
+  // constexpr float yUpMax = 3030.f;
+  // constexpr float yDownMin = -3030.f;
+  // constexpr float yDownMax = 50.f;
+  
+  // Reference z plane
+  constexpr float z_mid_t = 8520.f * Gaudi::Units::mm;
 
   // ==================================
   // Constants for lf search by triplet
@@ -85,7 +75,7 @@ namespace LookingForward {
   constexpr float z_last_UT_plane = 2642.f; // FIXME_GEOMETRY_HARDCODING
 
   // z difference between reference plane and end of SciFi
-  constexpr float zReferenceEndTDiff = SciFi::Constants::ZEndT - SciFi::Tracking::zReference;
+  constexpr float zReferenceEndTDiff = SciFi::Constants::ZEndT - z_mid_t;
 
   // Parameter for forwarding through SciFi layers
   constexpr float forward_param = 2.41902127e-02f;
@@ -122,14 +112,10 @@ namespace LookingForward {
   // Sign check momentum threshold
   constexpr float sign_check_momentum_threshold = 5000.f;
 
-  // Reference z plane
-  constexpr float z_mid_t = 8520.f * Gaudi::Units::mm;
-
   // d_ratio from new parametrization
   constexpr float d_ratio = -0.000262f;
 
   struct Constants {
-
     int xZones[12] {0, 6, 8, 14, 16, 22, 1, 7, 9, 15, 17, 23};
     int uvZones[12] {2, 4, 10, 12, 18, 20, 3, 5, 11, 13, 19, 21};
 
@@ -165,8 +151,7 @@ namespace LookingForward {
     uint extrapolation_uv_layers[6] {1, 2, 5, 6, 9, 10};
     float extrapolation_uv_stddev[6] {1.112f, 1.148f, 2.139f, 2.566f, 6.009f, 6.683f};
 
-    // TODO optimize then umber of parameters
-
+    // Parametrization for calculation of initial search window
     float ds_multi_param[3 * 5 * 5] {
       1.17058336e+03f,  0.00000000e+00f, 6.39200125e+03f,  0.00000000e+00f,  -1.45707998e+05f,
       0.00000000e+00f,  0.00000000e+00f, 0.00000000e+00f,  0.00000000e+00f,  0.00000000e+00f,

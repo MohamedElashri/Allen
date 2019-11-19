@@ -1,121 +1,6 @@
 #include "LookingForwardTools.cuh"
 #include "BinarySearch.cuh"
 
-__device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
-  const MiniState& UT_state,
-  const float qop,
-  const int layer,
-  const LookingForward::Constants* dev_looking_forward_constants)
-{
-  // center of the magnet
-  const MiniState magnet_state = state_at_z(UT_state, dev_looking_forward_constants->zMagnetParams[0]);
-
-  MiniState final_state = magnet_state;
-
-  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
-
-  final_state.tx = tx_ty_corr * qop + UT_state.tx;
-
-  state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
-  // final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
-  return final_state;
-}
-__device__ float LookingForward::propagate_x_from_velo_multi_par(
-  const MiniState& UT_state,
-  const float qop,
-  const int layer,
-  const LookingForward::Constants* dev_looking_forward_constants)
-{
-  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
-
-  const float final_tx = tx_ty_corr * qop + UT_state.tx;
-
-  // get x and y at center of magnet
-  const auto magnet_x =
-    linear_propagation(UT_state.x, UT_state.tx, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
-
-  return linear_propagation(
-    magnet_x, final_tx, dev_looking_forward_constants->Zone_zPos[layer] - LookingForward::z_magnet);
-}
-
-__device__ float LookingForward::dx_calc(const float state_tx, float qop)
-{
-  float ret_val;
-  float qop_window = fabsf(LookingForward::dx_slope * qop + LookingForward::dx_min);
-  float tx_window = fabsf(LookingForward::tx_slope * state_tx + LookingForward::tx_min);
-  ret_val = LookingForward::tx_weight * tx_window + LookingForward::dx_weight * qop_window;
-
-  // TODO this must be verified
-  // ret_val = 1.2e+05*qop + LookingForward::dx_min;
-  if (ret_val > LookingForward::max_window_layer0) {
-    ret_val = LookingForward::max_window_layer0;
-  }
-
-  ret_val = 100.f + 1.4e6f * fabsf(qop);
-
-  return ret_val;
-}
-
-__device__ std::tuple<int, int> LookingForward::find_x_in_window(
-  const SciFi::Hits& hits,
-  const int zone_offset,
-  const int num_hits,
-  const float value,
-  const float margin)
-{
-  return find_x_in_window(hits, zone_offset, num_hits, value, value, margin);
-}
-
-__device__ std::tuple<int, int> LookingForward::find_x_in_window(
-  const SciFi::Hits& hits,
-  const int zone_offset,
-  const int num_hits,
-  const float value0,
-  const float value1,
-  const float margin)
-{
-  int first_candidate = binary_search_first_candidate(hits.x0 + zone_offset, num_hits, value0, margin);
-  int last_candidate = -1;
-
-  if (first_candidate != -1) {
-    last_candidate = binary_search_second_candidate(
-      hits.x0 + zone_offset + first_candidate, num_hits - first_candidate, value1, margin);
-    first_candidate = zone_offset + first_candidate;
-    last_candidate += first_candidate;
-  }
-
-  return std::tuple<int, int> {first_candidate, last_candidate};
-}
-
-__device__ std::tuple<short, short> LookingForward::find_x_in_window(
-  const float* hits_x0,
-  const int zone_offset,
-  const int num_hits,
-  const float value,
-  const float margin)
-{
-  short first_candidate = (short) binary_search_first_candidate(hits_x0 + zone_offset, num_hits, value, margin);
-  short candidate_size = 0;
-  if (first_candidate != -1) {
-    candidate_size = (short) binary_search_second_candidate(
-      hits_x0 + zone_offset + first_candidate, num_hits - first_candidate, value, margin);
-    first_candidate += zone_offset;
-  }
-  return std::tuple<short, short> {first_candidate, candidate_size};
-}
-
-__device__ std::tuple<int, int> LookingForward::get_offset_and_n_hits_for_layer(
-  const int first_zone,
-  const SciFi::HitCount& scifi_hit_count,
-  const float y)
-{
-  assert(first_zone < (int) (SciFi::Constants::n_zones - 1));
-  const auto offset = (y < 0) ? 0 : 1;
-
-  return std::tuple<int, int> {scifi_hit_count.zone_offset(first_zone + offset),
-                               scifi_hit_count.zone_number_of_hits(first_zone + offset)};
-}
-
 __device__ float LookingForward::tx_ty_corr_multi_par(
   const MiniState& ut_state,
   const int station,
@@ -143,24 +28,92 @@ __device__ float LookingForward::tx_ty_corr_multi_par(
   return tx_ty_corr;
 }
 
-__device__ float LookingForward::qop_update_multi_par(
-  const MiniState& ut_state,
-  const float h0_x,
-  const float h0_z,
-  const float h1_x,
-  const float h1_z,
-  const int station,
+__device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
+  const MiniState& UT_state,
+  const float qop,
+  const int layer,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  const float slope = (h1_x - h0_x) / (h1_z - h0_z);
-  return LookingForward::qop_update_multi_par(ut_state, slope, station, dev_looking_forward_constants);
+  // center of the magnet
+  const MiniState magnet_state = state_at_z(UT_state, dev_looking_forward_constants->zMagnetParams[0]);
+
+  MiniState final_state = magnet_state;
+
+  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
+
+  final_state.tx = tx_ty_corr * qop + UT_state.tx;
+
+  state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  // final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+  return final_state;
 }
 
-__device__ float LookingForward::qop_update_multi_par(
-  const MiniState& ut_state,
-  const float slope,
-  const int station,
+__device__ float LookingForward::propagate_x_from_velo_multi_par(
+  const MiniState& UT_state,
+  const float qop,
+  const int layer,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  return (slope - ut_state.tx) / LookingForward::tx_ty_corr_multi_par(ut_state, station, dev_looking_forward_constants);
+  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
+
+  const float final_tx = tx_ty_corr * qop + UT_state.tx;
+
+  // get x and y at center of magnet
+  const auto magnet_x =
+    linear_propagation(UT_state.x, UT_state.tx, dev_looking_forward_constants->zMagnetParams[0] - UT_state.z);
+
+  return linear_propagation(
+    magnet_x, final_tx, dev_looking_forward_constants->Zone_zPos[layer] - LookingForward::z_magnet);
+}
+
+__device__ std::tuple<float, float, float> LookingForward::lms_y_fit(
+  const SciFi::TrackHits& track,
+  const uint number_of_uv_hits,
+  const SciFi::Hits& scifi_hits,
+  const float a1,
+  const float b1,
+  const float c1,
+  const float d_ratio,
+  const uint event_offset,
+  const LookingForward::Constants* dev_looking_forward_constants)
+{
+  // Traverse all UV hits
+  float y_values[6];
+  float z_values[6];
+  auto y_mean = 0.f;
+  auto z_mean = 0.f;
+
+  for (uint j = 0; j < number_of_uv_hits; ++j) {
+    const auto hit_index = event_offset + track.hits[track.hitsNum - number_of_uv_hits + j];
+    const auto plane = scifi_hits.planeCode(hit_index) / 2;
+    const auto z = scifi_hits.z0[hit_index];
+    const auto dz = z - LookingForward::z_mid_t;
+    const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
+    const auto y =
+      (predicted_x - scifi_hits.x0[hit_index]) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
+
+    y_values[j] = y;
+    z_values[j] = z;
+    y_mean += y;
+    z_mean += z;
+  }
+  z_mean /= number_of_uv_hits;
+  y_mean /= number_of_uv_hits;
+
+  auto nom = 0.f;
+  auto denom = 0.f;
+  for (uint j = 0; j < number_of_uv_hits; ++j) {
+    nom += (z_values[j] - z_mean) * (y_values[j] - y_mean);
+    denom += (z_values[j] - z_mean) * (z_values[j] - z_mean);
+  }
+  const auto m = nom / denom;
+  const auto b = y_mean - m * z_mean;
+
+  auto lms_fit = 0.f;
+  for (uint j = 0; j < number_of_uv_hits; ++j) {
+    const auto expected_y = b + m * z_values[j];
+    lms_fit += (y_values[j] - expected_y) * (y_values[j] - expected_y);
+  }
+
+  return {lms_fit / (number_of_uv_hits - 2), b, m};
 }

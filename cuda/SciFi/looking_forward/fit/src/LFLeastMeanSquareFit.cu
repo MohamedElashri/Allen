@@ -55,20 +55,21 @@ __global__ void lf_least_mean_square_fit(
     const auto prev_offset = dev_scifi_lf_parametrization_x_filter
       [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index];
+    const auto d_ratio = dev_scifi_lf_parametrization_x_filter
+      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
+       scifi_track_index];
 
     for (uint i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
       const auto hit_index = event_offset + track.hits[i_hit];
       const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
       const auto x = scifi_hits.x0[hit_index];
       const auto z = dev_looking_forward_constants->Zone_zPos[layer_index];
-      
+
       const auto dz = z - LookingForward::z_mid_t;
-      const auto predicted_x =
-        prev_offset + prev_tx * dz +
-        prev_curvature * dz * dz * (1.f + LookingForward::d_ratio * dz);
+      const auto predicted_x = prev_offset + prev_tx * dz + prev_curvature * dz * dz * (1.f + d_ratio * dz);
 
       const auto dz2 = dz * dz;
-      const auto deta = dz2 * (1.f + LookingForward::d_ratio * dz);
+      const auto deta = dz2 * (1.f + d_ratio * dz);
       const auto dzeta = dz * deta;
       const auto deta2 = deta * deta;
 
@@ -108,8 +109,18 @@ __global__ void lf_least_mean_square_fit(
       [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index] = offset;
 
-    // Note: Track quality will now contain the UV quality.
-    //       Quality in X will be calculated in the last quality filter.
+    // Update track quality
     track.quality = 0.f;
+    for (uint i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
+      const auto hit_index = event_offset + track.hits[i_hit];
+      const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
+      const auto x = scifi_hits.x0[hit_index];
+      const auto z = dev_looking_forward_constants->Zone_zPos[layer_index];
+
+      const auto dz = z - LookingForward::z_mid_t;
+      const auto predicted_x = offset + tx * dz + curvature * dz * dz * (1.f + d_ratio * dz);
+
+      track.quality += (x - predicted_x) * (x - predicted_x);
+    }
   }
 }

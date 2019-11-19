@@ -7,7 +7,6 @@
 #include "Handler.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsUT.cuh"
-#include "LFFitTools.cuh"
 #include "LookingForwardConstants.cuh"
 
 __global__ void consolidate_scifi_tracks(
