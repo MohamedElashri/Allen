@@ -39,11 +39,12 @@ void SequenceVisitor::visit<lf_quality_filter_length_t>(
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_lf_x_filtered_tracks>(),
-    arguments.offset<dev_scifi_lf_x_filtered_atomics>(),
+    arguments.offset<dev_scifi_lf_tracks>(),
+    arguments.offset<dev_scifi_lf_atomics>(),
     arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
     arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
-    arguments.offset<dev_scifi_lf_parametrization_x_filter>(),
+    arguments.offset<dev_scifi_lf_parametrization>(),
     arguments.offset<dev_scifi_lf_parametrization_length_filter>());
+
   state.invoke();
 }

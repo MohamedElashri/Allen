@@ -27,8 +27,8 @@ ALGORITHM(
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_ut,
-    dev_scifi_lf_x_filtered_tracks,
-    dev_scifi_lf_x_filtered_atomics,
+    dev_scifi_lf_tracks,
+    dev_scifi_lf_atomics,
     dev_ut_states,
     dev_scifi_lf_initial_windows,
-    dev_scifi_lf_parametrization_x_filter))
+    dev_scifi_lf_parametrization))

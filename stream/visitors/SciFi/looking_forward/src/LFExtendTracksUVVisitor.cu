@@ -20,14 +20,14 @@ void SequenceVisitor::visit<lf_extend_tracks_uv_t>(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_lf_x_filtered_tracks>(),
-    arguments.offset<dev_scifi_lf_x_filtered_atomics>(),
+    arguments.offset<dev_scifi_lf_tracks>(),
+    arguments.offset<dev_scifi_lf_atomics>(),
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
     constants.dev_inv_clus_res,
     arguments.offset<dev_ut_states>(),
     arguments.offset<dev_scifi_lf_initial_windows>(),
-    arguments.offset<dev_scifi_lf_parametrization_x_filter>());
+    arguments.offset<dev_scifi_lf_parametrization>());
 
   state.invoke();
 }

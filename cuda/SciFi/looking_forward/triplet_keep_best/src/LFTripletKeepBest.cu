@@ -57,13 +57,13 @@ __global__ void lf_triplet_keep_best(
       __syncthreads();
 
       // Populate dev_scifi_lf_total_number_of_found_triplets and found_triplets
-      for (uint j = threadIdx.x; j < 2 * LookingForward::extreme_layers_window_size; j += blockDim.x) {
-        const auto triplet_seed = j / LookingForward::extreme_layers_window_size;
-        const auto triplet_index = j % LookingForward::extreme_layers_window_size;
+      for (uint j = threadIdx.x; j < 2 * LookingForward::max_number_of_hits_in_window; j += blockDim.x) {
+        const auto triplet_seed = j / LookingForward::max_number_of_hits_in_window;
+        const auto triplet_index = j % LookingForward::max_number_of_hits_in_window;
 
         const auto number_of_found_triplets = dev_scifi_lf_number_of_found_triplets
           [(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-             LookingForward::extreme_layers_window_size +
+             LookingForward::max_number_of_hits_in_window +
            triplet_index];
         const auto scifi_lf_found_triplets =
           dev_scifi_lf_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
@@ -75,7 +75,7 @@ __global__ void lf_triplet_keep_best(
           for (int k = 0; k < number_of_found_triplets; ++k) {
             const auto found_triplet = scifi_lf_found_triplets
               [triplet_index *
-                 (LookingForward::maximum_number_of_triplets_per_seed / LookingForward::extreme_layers_window_size) +
+                 (LookingForward::maximum_number_of_triplets_per_seed / LookingForward::max_number_of_hits_in_window) +
                k];
             found_triplets[insert_index + k] = found_triplet;
           }
@@ -166,11 +166,11 @@ __global__ void lf_triplet_keep_best(
           const int* chi2_intp = reinterpret_cast<const int*>(&chi2);
           const auto h1_rel = chi2_intp[0] & 0x1F;
 
-          const auto h0_rel = triplet_element / LookingForward::extreme_layers_window_size;
-          const auto h2_rel = triplet_element % LookingForward::extreme_layers_window_size;
+          const auto h0_rel = triplet_element / LookingForward::max_number_of_hits_in_window;
+          const auto h2_rel = triplet_element % LookingForward::max_number_of_hits_in_window;
 
           // Create triplet candidate with all information we have
-          const int current_insert_index = atomicAdd(dev_atomics_scifi + current_ut_track_index, 1);
+          const int current_insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
           assert(current_insert_index < LookingForward::maximum_number_of_candidates_per_ut_track);
 
           const auto layer_0 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
@@ -200,7 +200,7 @@ __global__ void lf_triplet_keep_best(
           const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
 
           dev_scifi_tracks
-            [current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track +
+            [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track +
              current_insert_index] = SciFi::TrackHits {static_cast<uint16_t>(h0),
                                                        static_cast<uint16_t>(h1),
                                                        static_cast<uint16_t>(h2),

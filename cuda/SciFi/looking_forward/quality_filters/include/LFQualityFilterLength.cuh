@@ -21,9 +21,9 @@ ALGORITHM(
   lf_quality_filter_length_t,
   ARGUMENTS(
     dev_atomics_ut,
-    dev_scifi_lf_x_filtered_tracks,
-    dev_scifi_lf_x_filtered_atomics,
+    dev_scifi_lf_tracks,
+    dev_scifi_lf_atomics,
     dev_scifi_lf_length_filtered_tracks,
     dev_scifi_lf_length_filtered_atomics,
-    dev_scifi_lf_parametrization_x_filter,
+    dev_scifi_lf_parametrization,
     dev_scifi_lf_parametrization_length_filter))

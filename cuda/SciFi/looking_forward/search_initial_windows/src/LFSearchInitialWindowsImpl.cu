@@ -41,9 +41,9 @@ __device__ void lf_search_initial_windows_impl(
 
     // Cap the central windows to a certain size
     const int central_window_begin =
-      max(hits_within_bounds_xInZone - LookingForward::extreme_layers_window_size / 2, 0);
+      max(hits_within_bounds_xInZone - LookingForward::max_number_of_hits_in_window / 2, 0);
     const int central_window_size =
-      min(central_window_begin + LookingForward::extreme_layers_window_size, hits_within_bounds_size) -
+      min(central_window_begin + LookingForward::max_number_of_hits_in_window, hits_within_bounds_size) -
       central_window_begin;
 
     // Initialize windows

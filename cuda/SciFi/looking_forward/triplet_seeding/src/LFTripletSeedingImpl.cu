@@ -106,7 +106,7 @@ __device__ void lf_triplet_seeding_impl(
           best_chi2_int[0] = (best_chi2_int[0] & 0xFFFFFFE0) + best_h1_rel;
 
           // Store chi2 with encoded j
-          scifi_lf_triplet_best[h0_rel * LookingForward::extreme_layers_window_size + h2_rel] = best_chi2;
+          scifi_lf_triplet_best[h0_rel * LookingForward::max_number_of_hits_in_window + h2_rel] = best_chi2;
 
           // Store in per-thread storage the found hits
           scifi_lf_found_triplets
@@ -115,7 +115,7 @@ __device__ void lf_triplet_seeding_impl(
              number_of_found_triplets++] =
               static_cast<int16_t>(
                 triplet_seed * LookingForward::maximum_number_of_triplets_per_seed +
-                h0_rel * LookingForward::extreme_layers_window_size + h2_rel);
+                h0_rel * LookingForward::max_number_of_hits_in_window + h2_rel);
         }
       }
     }
