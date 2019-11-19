@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_composite_extend_tracks_uv_t>(
-  lf_composite_extend_tracks_uv_t& state,
+  const lf_composite_extend_tracks_uv_t& state,
   lf_composite_extend_tracks_uv_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

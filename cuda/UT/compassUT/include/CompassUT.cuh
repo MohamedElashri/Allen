@@ -78,6 +78,7 @@ namespace Configuration {
     extern __constant__ float min_pt_final;
     extern __constant__ float hit_tol_2;
     extern __constant__ float delta_tx_2;
+    extern __constant__ uint max_considered_before_found;
   } // namespace compass_ut_t
 } // namespace Configuration
 
@@ -125,4 +126,9 @@ ALGORITHM(compass_ut,
                                         Configuration::compass_ut_t::delta_tx_2,
                                         0.018f,
                                         "delta_tx_2"};
+          Property<uint> m_max_considered_before_found {this,
+                                                        "max_considered_before_found",
+                                                        Configuration::compass_ut_t::max_considered_before_found,
+                                                        6u,
+                                                        "max_considered_before_found"};
     )

@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<scifi_raw_bank_decoder_v6_t>(
-  scifi_raw_bank_decoder_v6_t& state,
+  const scifi_raw_bank_decoder_v6_t& state,
   scifi_raw_bank_decoder_v6_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

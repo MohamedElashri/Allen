@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<pv_beamline_multi_fitter_t>(
-  pv_beamline_multi_fitter_t& state,
+  const pv_beamline_multi_fitter_t& state,
   pv_beamline_multi_fitter_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

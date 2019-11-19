@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<consolidate_scifi_tracks_t>(
-  consolidate_scifi_tracks_t& state,
+  const consolidate_scifi_tracks_t& state,
   consolidate_scifi_tracks_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

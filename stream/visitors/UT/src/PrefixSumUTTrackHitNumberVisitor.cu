@@ -4,7 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<prefix_sum_ut_track_hit_number_t>(
-  prefix_sum_ut_track_hit_number_t& state,
+  const prefix_sum_ut_track_hit_number_t& state,
   prefix_sum_ut_track_hit_number_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

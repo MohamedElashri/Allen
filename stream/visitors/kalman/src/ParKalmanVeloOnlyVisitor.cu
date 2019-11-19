@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<kalman_velo_only_t>(
-  kalman_velo_only_t& state,
+  const kalman_velo_only_t& state,
   kalman_velo_only_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_collect_candidates_t>(
-  lf_collect_candidates_t& state,
+  const lf_collect_candidates_t& state,
   lf_collect_candidates_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

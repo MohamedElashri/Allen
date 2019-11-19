@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<velo_estimate_input_size_t>(
-  velo_estimate_input_size_t& state,
+  const velo_estimate_input_size_t& state,
   velo_estimate_input_size_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

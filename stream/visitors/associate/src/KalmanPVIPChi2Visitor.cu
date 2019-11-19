@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<kalman_pv_ipchi2_t>(
-  kalman_pv_ipchi2_t& state,
+  const kalman_pv_ipchi2_t& state,
   kalman_pv_ipchi2_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

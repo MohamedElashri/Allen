@@ -4,7 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<pv_beamline_histo_t>(
-  pv_beamline_histo_t& state,
+  const pv_beamline_histo_t& state,
   pv_beamline_histo_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

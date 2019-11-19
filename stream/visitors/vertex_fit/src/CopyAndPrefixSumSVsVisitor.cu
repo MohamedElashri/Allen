@@ -4,7 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<copy_and_prefix_sum_single_block_sv_t>(
-  copy_and_prefix_sum_single_block_sv_t& state,
+  const copy_and_prefix_sum_single_block_sv_t& state,
   copy_and_prefix_sum_single_block_sv_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

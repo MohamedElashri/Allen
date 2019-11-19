@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_search_initial_windows_t>(
-  lf_search_initial_windows_t& state,
+  const lf_search_initial_windows_t& state,
   lf_search_initial_windows_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
