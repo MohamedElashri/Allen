@@ -85,8 +85,7 @@ __global__ void lf_quality_filter(
       [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index] = std::get<2>(y_lms_fit);
 
-    constexpr float range_y_fit_end = 800.f;
-    const float y_fit_contribution = std::get<0>(y_lms_fit) / range_y_fit_end;
+    const float y_fit_contribution = std::get<0>(y_lms_fit) / LookingForward::range_y_fit_end;
 
     const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < 0.02f;
     const bool acceptable = hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV && (track.hitsNum >= 11 || in_ty_window);
@@ -96,6 +95,7 @@ __global__ void lf_quality_filter(
 
     track.quality = acceptable ? combined_value + y_fit_contribution : 10000.f;
 
+    // Prefer tracks with 11 and 12 hits
     if (track.hitsNum == 11) {
       track.quality *= 0.8f;
     }
@@ -112,7 +112,7 @@ __global__ void lf_quality_filter(
   __syncthreads();
 
   for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
-    float best_quality = 0.5f;
+    float best_quality = LookingForward::quality_filter_max_quality;
     short best_track_index = -1;
 
     for (uint j = 0; j < number_of_tracks; j++) {

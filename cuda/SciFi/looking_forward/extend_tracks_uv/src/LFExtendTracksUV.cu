@@ -38,7 +38,7 @@ __global__ void lf_extend_tracks_uv(
     const auto ut_state = dev_ut_states[current_ut_track_index];
 
     // Use quality normalized
-    track.quality *= 0.5f;
+    track.quality *= (1.f / LookingForward::chi2_max_extrapolation_to_x_layers_single);
 
     // Load parametrization
     const auto a1 = dev_scifi_lf_parametrization_x_filter[scifi_track_index];
@@ -52,7 +52,7 @@ __global__ void lf_extend_tracks_uv(
       [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter +
        scifi_track_index];
 
-    const auto project_y = [&](const float x_hit, const float z_module, const int layer) {
+    const auto project_y = [](const LookingForward::Constants* dev_looking_forward_constants, const MiniState& ut_state, const float x_hit, const float z_module, const int layer) {
       const auto Dx = x_hit - (ut_state.x + ut_state.tx * (z_module - ut_state.z));
       const auto tx = ut_state.tx;
       const auto tx2 = ut_state.tx * ut_state.tx;
@@ -106,12 +106,12 @@ __global__ void lf_extend_tracks_uv(
       const auto dz = z4 - LookingForward::z_mid_t;
       const auto expected_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
       const auto expected_y =
-        project_y(expected_x, z4, dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
+        project_y(dev_looking_forward_constants, ut_state, expected_x, z4, dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
       const auto predicted_x =
         expected_x - expected_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1];
 
       // Pick the best, according to chi2
-      const float max_chi2 = 4.f + 20.f / 0.3f * fabsf(ut_state.ty) + 20.f / 0.3f * fabsf(a1 - ut_state.tx);
+      const float max_chi2 = 4.f + 60.f * fabsf(ut_state.ty) + 60.f * fabsf(a1 - ut_state.tx);
 
       int best_index = -1;
       float best_chi2 = max_chi2;

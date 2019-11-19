@@ -73,7 +73,7 @@ __global__ void lf_extend_tracks_x(
 
         // Pick the best, according to chi2
         int best_index = -1;
-        float best_chi2 = 2.f;
+        float best_chi2 = LookingForward::chi2_max_extrapolation_to_x_layers_single;
 
         const auto scifi_hits_x0 = scifi_hits.x0 + event_offset + window_start;
 
