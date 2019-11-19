@@ -458,6 +458,7 @@ include_directories(cuda/event_model/velo/include)
 include_directories(cuda/event_model/UT/include)
 include_directories(cuda/event_model/SciFi/include)
 include_directories(cuda/event_model/common/include)
+include_directories(cuda/raw_banks/include)
 include_directories(checker/tracking/include)
 include_directories(checker/pv/include)
 include_directories(checker/selections/include)
@@ -465,6 +466,7 @@ include_directories(stream/sequence/include)
 include_directories(cuda/UT/UTDecoding/include)
 include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
+include_directories(integration/monitoring/include)
 include_directories(integration/non_event_data/include)
 include_directories(${ZMQ_INCLUDE_DIRS})
 
@@ -511,6 +513,7 @@ target_link_libraries(AllenLib PUBLIC
   PVChecking
   CheckClustering
   SelChecking
+  AllenMonitoring
   NonEventData
   AllenZMQ)
 

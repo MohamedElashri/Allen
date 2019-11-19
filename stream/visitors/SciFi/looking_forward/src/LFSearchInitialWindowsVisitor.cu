@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_search_initial_windows_t>(
+  lf_search_initial_windows_t& state,
   lf_search_initial_windows_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -27,7 +28,7 @@ void SequenceVisitor::visit<lf_search_initial_windows_t>(
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_scifi_lf_initial_windows>(), 0, arguments.size<dev_scifi_lf_initial_windows>(), cuda_stream));
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),

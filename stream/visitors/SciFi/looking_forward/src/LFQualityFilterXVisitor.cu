@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_quality_filter_x_t>(
+  lf_quality_filter_x_t& state,
   lf_quality_filter_x_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -34,7 +35,7 @@ void SequenceVisitor::visit<lf_quality_filter_x_t>(
     arguments.size<dev_scifi_lf_x_filtered_atomics>(),
     cuda_stream));
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 24), dim3(32), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], 24), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_ut>(),
     arguments.offset<dev_scifi_lf_tracks>(),

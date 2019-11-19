@@ -1,6 +1,23 @@
 #include "SearchByTriplet.cuh"
 #include "ClusteringDefinitions.cuh"
 
+__constant__ float Configuration::velo_search_by_triplet_t::forward_phi_tolerance;
+
+__constant__ float Configuration::velo_search_by_triplet_t::max_chi2;
+
+__constant__ float Configuration::velo_search_by_triplet_t::max_scatter_forwarding;
+__constant__ float Configuration::velo_search_by_triplet_t::max_scatter_seeding;
+
+__constant__ uint Configuration::velo_search_by_triplet_t::max_skipped_modules;
+
+__constant__ uint Configuration::velo_search_by_triplet_t::max_weak_tracks;
+
+__constant__ float Configuration::velo_search_by_triplet_t::phi_extrapolation_base;
+__constant__ float Configuration::velo_search_by_triplet_t::phi_extrapolation_coef;
+__constant__ uint Configuration::velo_search_by_triplet_t::ttf_modulo;
+
+__constant__ int Configuration::velo_search_by_triplet_t::ttf_modulo_mask;
+
 /**
  * @brief Track forwarding algorithm based on triplet finding
  * @detail For details, check out paper
@@ -29,6 +46,7 @@
  *         uint* ttf_insert_pointer = (uint*) dev_atomics_velo + ip_shift + 2;
  *         uint* local_number_of_hits = (uint*) dev_atomics_velo + ip_shift + 3;
  */
+
 __global__ void search_by_triplet(
   uint32_t* dev_velo_cluster_container,
   uint* dev_module_cluster_start,
@@ -65,9 +83,10 @@ __global__ void search_by_triplet(
   short* h0_candidates = dev_h0_candidates + 2 * hit_offset;
   short* h2_candidates = dev_h2_candidates + 2 * hit_offset;
 
-  uint* tracks_to_follow = dev_tracks_to_follow + event_number * Velo::Tracking::ttf_modulo;
-  Velo::TrackletHits* weak_tracks = dev_weak_tracks + event_number * Velo::Tracking::max_weak_tracks;
-  Velo::TrackletHits* tracklets = dev_tracklets + event_number * Velo::Tracking::ttf_modulo;
+  uint* tracks_to_follow = dev_tracks_to_follow + event_number * Configuration::velo_search_by_triplet_t::ttf_modulo;
+  Velo::TrackletHits* weak_tracks =
+    dev_weak_tracks + event_number * Configuration::velo_search_by_triplet_t::max_weak_tracks;
+  Velo::TrackletHits* tracklets = dev_tracklets + event_number * Configuration::velo_search_by_triplet_t::ttf_modulo;
   unsigned short* h1_rel_indices = dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
 
   // Shared memory size is defined externally

@@ -1,6 +1,7 @@
 #include "BinarySearch.cuh"
 #include "VeloTools.cuh"
 #include "CalculateWindows.cuh"
+#include "SearchWindows.cuh"
 
 //=============================================================================
 // Reject tracks outside of acceptance or pointing to the beam pipe
@@ -25,7 +26,7 @@ __device__ bool velo_track_in_UTA_acceptance(const MiniState& state)
 //=========================================================================
 // Check if hit is inside tolerance and refine by Y
 //=========================================================================
-__host__ __device__ void tol_refine(
+__device__ void tol_refine(
   int& first_candidate,
   int& last_candidate,
   const UT::Hits& ut_hits,
@@ -45,7 +46,11 @@ __host__ __device__ void tol_refine(
 
     if (
       dx >= -xTolNormFact && dx <= xTolNormFact &&
-      !ut_hits.isNotYCompatible(i, yApprox, UT::Constants::yTol + UT::Constants::yTolSlope * fabsf(dx * invNormfact))) {
+      !ut_hits.isNotYCompatible(
+        i,
+        yApprox,
+        Configuration::ut_search_windows_t::y_tol +
+          Configuration::ut_search_windows_t::y_tol_slope * fabsf(dx * invNormfact))) {
       // It is compatible
       if (!first_found) {
         first_found = true;
@@ -88,7 +93,8 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   // -- this 500 seems a little odd...
   // to do: change back!
   const float invTheta = min(500.0f, 1.0f / sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
-  const float minMom = max(UT::Constants::minPT * invTheta, UT::Constants::minMomentum);
+  const float minMom =
+    max(Configuration::ut_search_windows_t::min_pt * invTheta, Configuration::ut_search_windows_t::min_momentum);
   const float xTol = fabsf(1.0f / (UT::Constants::distToMomentum * minMom));
   // const float yTol     = UT::Constants::yTol + UT::Constants::yTolSlope * xTol;
 
@@ -249,7 +255,8 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
   const float xx_at_right_sector = x_at_right_sector + y_track * dx_dy;
   const float dx_max = max(xx_at_left_sector - x_track, xx_at_right_sector - x_track);
 
-  const float tol = UT::Constants::yTol + UT::Constants::yTolSlope * fabsf(dx_max * invNormFact);
+  const float tol = Configuration::ut_search_windows_t::y_tol +
+                    Configuration::ut_search_windows_t::y_tol_slope * fabsf(dx_max * invNormFact);
   const uint sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group);
 
   int first_candidate = -1, last_candidate = -1;

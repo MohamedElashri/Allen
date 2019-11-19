@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<pv_beamline_cleanup_t>(
+  pv_beamline_cleanup_t& state,
   pv_beamline_cleanup_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -24,7 +25,7 @@ void SequenceVisitor::visit<pv_beamline_cleanup_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_multi_fit_vertices>(),
     arguments.offset<dev_number_of_multi_fit_vertices>(),

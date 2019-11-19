@@ -2,6 +2,7 @@
 #include "SciFiDefinitions.cuh"
 #include "BeamlinePVConstants.cuh"
 #include "LookingForwardConstants.cuh"
+#include "RawBanksDefinitions.cuh"
 
 void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
 {
@@ -22,14 +23,24 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_tiles, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_svs, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_hits, sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_number_of_passing_events, sizeof(uint)));
 
   // Buffer for performing GEC on CPU
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
 
+  // Buffer for saving events passing Hlt1 selections.
+  cudaCheck(cudaMallocHost((void**) &host_passing_event_list, max_number_of_events * sizeof(uint)));
+
+  // Buffer for saving raw banks.
+  int n_hlt1_lines = Hlt1::Hlt1Lines::End;
+  cudaCheck(cudaMallocHost((void**) &host_dec_reports, (n_hlt1_lines + 2) * max_number_of_events * sizeof(uint)));
+  
   // Buffer for performing prefix sum
   // Note: If it is of insufficient space, it will get reallocated
   host_allocated_prefix_sum_space = 10000000;
   cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(uint)));
+
+  int n_max_svs = SciFi::Constants::max_tracks * 100;
 
   if (do_check) {
     // Datatypes to be reserved only if checking is on
@@ -65,8 +76,12 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     host_scifi_tracks = reinterpret_cast<decltype(host_scifi_tracks)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
       LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(SciFi::TrackHits)));
-    host_atomics_scifi =
-      reinterpret_cast<decltype(host_atomics_scifi)>(malloc(max_number_of_events * SciFi::num_atomics * sizeof(int)));
+  }
+
+  host_atomics_scifi =
+    reinterpret_cast<decltype(host_atomics_scifi)>(malloc(max_number_of_events * SciFi::num_atomics * sizeof(int)));
+
+  if (do_check) {
     host_scifi_track_hit_number = reinterpret_cast<decltype(host_scifi_track_hit_number)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
       LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter * sizeof(uint)));
@@ -107,21 +122,21 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     host_is_muon = reinterpret_cast<decltype(host_is_muon)>(
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
 
-    int n_max_svs = SciFi::Constants::max_tracks * 100;
     host_secondary_vertices = reinterpret_cast<decltype(host_secondary_vertices)>(
       malloc(max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
-    host_one_track_decisions = reinterpret_cast<decltype(host_one_track_decisions)>(
-      malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
-    host_single_muon_decisions = reinterpret_cast<decltype(host_single_muon_decisions)>(
-      malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
-    host_sv_offsets = reinterpret_cast<decltype(host_sv_offsets)>(malloc((max_number_of_events + 1) * sizeof(uint)));
-    host_two_track_decisions =
-      reinterpret_cast<decltype(host_two_track_decisions)>(malloc(max_number_of_events * n_max_svs * sizeof(bool)));
-    host_disp_dimuon_decisions =
-      reinterpret_cast<decltype(host_disp_dimuon_decisions)>(malloc(max_number_of_events * n_max_svs * sizeof(bool)));
-    host_high_mass_dimuon_decisions = reinterpret_cast<decltype(host_high_mass_dimuon_decisions)>(
-      malloc(max_number_of_events * n_max_svs * sizeof(bool)));
   }
+
+  host_one_track_decisions = reinterpret_cast<decltype(host_one_track_decisions)>(
+    malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
+  host_single_muon_decisions = reinterpret_cast<decltype(host_single_muon_decisions)>(
+    malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
+  host_sv_offsets = reinterpret_cast<decltype(host_sv_offsets)>(malloc((max_number_of_events + 1) * sizeof(uint)));
+  host_two_track_decisions =
+    reinterpret_cast<decltype(host_two_track_decisions)>(malloc(max_number_of_events * n_max_svs * sizeof(bool)));
+  host_disp_dimuon_decisions =
+    reinterpret_cast<decltype(host_disp_dimuon_decisions)>(malloc(max_number_of_events * n_max_svs * sizeof(bool)));
+  host_high_mass_dimuon_decisions = reinterpret_cast<decltype(host_high_mass_dimuon_decisions)>(
+    malloc(max_number_of_events * n_max_svs * sizeof(bool)));
 }
 
 size_t HostBuffers::velo_track_hit_number_size() const { return host_number_of_reconstructed_velo_tracks[0] + 1; }

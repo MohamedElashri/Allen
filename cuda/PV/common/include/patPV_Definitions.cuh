@@ -9,28 +9,6 @@ namespace PatPV {
 
   // auxiliary class for searching of clusters of tracks
 
-  // configuration for seeding
-  // steering parameters for merging procedure
-  static constexpr float mcu_maxChi2Merge = 25.;
-  static constexpr float mcu_factorToIncreaseErrors = 15.;
-
-  // try parameters from RecoUpgradeTracking.py
-  static constexpr int mcu_minClusterMult = 4;
-  static constexpr int mcu_minCloseTracksInCluster = 3;
-
-  // steering parameters for final cluster selection
-  // int    m_minClusterMult = 3;
-  static constexpr float mcu_dzCloseTracksInCluster = 5.; // unit: mm
-  // int    m_minCloseTracksInCluster = 3;
-  static constexpr int mcu_highMult = 10;
-  static constexpr float mcu_ratioSig2HighMult = 1.0;
-  static constexpr float mcu_ratioSig2LowMult = 0.9;
-
-  static constexpr int mcu_max_clusters = 1200; // maximmum number of clusters
-
-  static constexpr float mcu_x0MS = 0.01; // X0 (tunable) of MS to add for extrapolation of
-                                          // track parameters to PV
-
   // don't forget to actually calculate this!!
   // double  m_scatCons = 0;     // calculated from m_x0MS
   static constexpr float X0cu = 0.01;

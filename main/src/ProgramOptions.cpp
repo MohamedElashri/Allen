@@ -34,6 +34,10 @@ std::vector<ProgramOption> allen_program_options()
   return {{{"f", "folder"}, "folder containing data directories", "../input/minbias/"},
           {{"g", "geometry"}, "folder containing detector configuration", "../input/detector_configuration/down/"},
           {{"mdf"}, "comma-separated list of MDF files to use as input instead of binary files"},
+          {{"configuration"},
+           "path to json file containing values of configurable algorithm constants",
+           "../configuration/constants/default.json"},
+          {{"write-configuration"}, "write current algorithm configuration to file", "0"},
           {{"n", "number-of-events"}, "number of events to process", "0", "all"},
           // {{"o", "offset"}, "offset of events from which to start", "0 (beginning)"},
           {{"s", "number-of-slices"}, "number of input slices to allocate", "0", "one more than the number of threads"},
@@ -46,7 +50,8 @@ std::vector<ProgramOption> allen_program_options()
           {{"p", "print-memory"}, "print memory usage", "0"},
           {{"i", "import-tracks"}, "import forward tracks dumped from Brunel"},
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
-          {{"device"}, "select device to use", "0"}};
+          {{"device"}, "select device to use", "0"},
+          {{"file-list"}, "list of files to process", ""}};
 }
 
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name)

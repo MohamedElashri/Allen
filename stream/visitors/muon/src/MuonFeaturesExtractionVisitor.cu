@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_catboost_features_extraction_t>(
+  muon_catboost_features_extraction_t& state,
   muon_catboost_features_extraction_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -23,8 +24,7 @@ void SequenceVisitor::visit<muon_catboost_features_extraction_t>(
   cudaEvent_t& cuda_generic_event)
 {
   // Setup opts for kernel call
-  state.set_opts(
-    dim3(host_buffers.host_number_of_selected_events[0], Muon::Constants::n_stations), dim3(32), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0], Muon::Constants::n_stations), cuda_stream);
 
   // Setup arguments for kernel call
   state.set_arguments(

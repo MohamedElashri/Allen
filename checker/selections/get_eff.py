@@ -111,9 +111,12 @@ class Reader:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '--fname', action='store', dest='fname', default='../../output/SelCheckerTuple.root')
+    parser.add_argument(
         '--signal', action='store', dest='signal', type=int, default=0)
     parser.add_argument(
         '--fs', action='store', dest='fs', type=int, nargs='+', default=[])
+
     return parser.parse_args()
 
 
@@ -232,8 +235,9 @@ def report_eff(sigs, svs, trks):
 
 
 if __name__ == '__main__':
-    fname = '../../output/SelCheckerTuple.root'
+    #fname = '../../output/SelCheckerTuple.root'
     parser = parse_args()
+    fname = parser.fname
     if parser.signal == 0:
         for key, val in channels.iteritems():
             sigs, svs, trks = calculate_eff(fname, signal=val[0], fs=val[1])

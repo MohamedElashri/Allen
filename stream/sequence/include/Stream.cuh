@@ -17,6 +17,7 @@
 #include "RuntimeOptions.h"
 #include "EstimateInputSize.cuh"
 #include "HostBuffers.cuh"
+#include "HostBuffersManager.cuh"
 #include "SequenceVisitor.cuh"
 #include "SchedulerMachinery.cuh"
 #include "Scheduler.cuh"
@@ -44,7 +45,8 @@ struct Stream {
   bool do_print_memory_manager;
 
   // Host buffers
-  HostBuffers host_buffers;
+  HostBuffersManager const* host_buffers_manager;
+  HostBuffers* host_buffers {0};
 
   // Start event offset
   uint start_event_offset;
@@ -62,13 +64,12 @@ struct Stream {
   SequenceVisitor sequence_visitor;
 
   cudaError_t initialize(
-    const uint max_number_of_events,
     const bool param_print_memory_usage,
     const uint param_start_event_offset,
     const size_t param_reserve_mb,
     const uint param_stream_number,
     const Constants& param_constants,
-    const bool do_check);
+    HostBuffersManager const* buffers_manager);
 
   std::vector<bool> reconstructed_events() const;
 
@@ -77,5 +78,12 @@ struct Stream {
     MCEvents const& mc_events,
     std::vector<Checker::Tracks> const& forward_tracks);
 
-  cudaError_t run_sequence(RuntimeOptions const& runtime_options);
+  cudaError_t run_sequence(const uint buf_idx, RuntimeOptions const& runtime_options);
+
+  void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
+  {
+    scheduler.configure_algorithms(config);
+  }
+
+  auto get_algorithm_configuration() { return scheduler.get_algorithm_configuration(); }
 };

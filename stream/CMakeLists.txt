@@ -52,6 +52,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding_steps/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/patPV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/raw_banks/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/velo/clustering/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/global_event_cut/include)
@@ -83,6 +84,7 @@ file(GLOB stream_visitors_Muon "visitors/muon/src/*cu")
 file(GLOB stream_visitors_kalman "visitors/kalman/src/*cu")
 file(GLOB stream_visitors_vertex "visitors/vertex_fit/src/*cu")
 file(GLOB stream_visitors_selections "visitors/selections/src/*cu")
+file(GLOB stream_visitors_raw_banks "visitors/raw_banks/src/*cu")
 
 add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -99,7 +101,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     ${stream_visitors_beamlinePV} ${stream_visitors_assoc} ${stream_visitors_UT}
     ${stream_visitors_SciFi_decoding} ${stream_visitors_SciFi_looking_forward}
     ${stream_visitors_Muon} ${stream_visitors_kalman}
-    ${stream_visitors_vertex} ${stream_visitors_selections})
+    ${stream_visitors_vertex} ${stream_visitors_selections} ${stream_visitors_raw_banks})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
 endif()
@@ -118,6 +120,7 @@ allen_add_library(Visitors STATIC
   ${stream_visitors_kalman}
   ${stream_visitors_vertex}
   ${stream_visitors_selections}
+  ${stream_visitors_raw_banks}
 )
 
 target_link_libraries(Visitors PRIVATE
@@ -132,6 +135,7 @@ target_link_libraries(Visitors PRIVATE
   Kalman
   VertexFitter
   Hlt1
+  RawBanks
   SciFi
   CpuGEC
   CpuUtils
@@ -167,6 +171,7 @@ target_link_libraries(Stream PRIVATE
   Kalman
   VertexFitter
   Hlt1
+  RawBanks
   SciFi
   CpuGEC
   CpuUtils

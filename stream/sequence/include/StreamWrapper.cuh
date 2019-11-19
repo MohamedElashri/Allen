@@ -13,6 +13,7 @@
 #include "RuntimeOptions.h"
 #include "CheckerTypes.h"
 #include "CheckerInvoker.h"
+#include "HostBuffersManager.cuh"
 
 // Forward definition of Stream, to avoid
 // inability to compile kernel calls (due to <<< >>>
@@ -36,17 +37,17 @@ struct StreamWrapper {
    */
   void initialize_streams(
     const uint n,
-    const uint number_of_events,
     const bool print_memory_usage,
     const uint start_event_offset,
     const size_t reserve_mb,
     const Constants& constants,
-    const bool do_check);
+    HostBuffersManager const * buffers_manager,
+    const std::map<std::string, std::map<std::string, std::string>>& config);
 
   /**
    * @brief Runs stream.
    */
-  void run_stream(const uint i, const RuntimeOptions& runtime_options);
+  void run_stream(const uint i, const uint buf_idx, const RuntimeOptions& runtime_options);
 
   /**
    * @brief Mask of the events selected by the stream
@@ -61,6 +62,8 @@ struct StreamWrapper {
     CheckerInvoker& invoker,
     MCEvents const& mc_events,
     std::vector<Checker::Tracks> const& forward_tracks);
+
+  std::map<std::string, std::map<std::string, std::string>> get_algorithm_configuration();
 };
 
 /**

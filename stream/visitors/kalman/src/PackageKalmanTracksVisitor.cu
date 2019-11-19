@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<package_kalman_tracks_t>(
+  package_kalman_tracks_t& state,
   package_kalman_tracks_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

@@ -27,8 +27,8 @@ if __name__ == '__main__':
     full.Draw('E')
     simple.Draw('E same')
     legend = ROOT.TLegend(0.55, 0.92, 0.95, 0.72)
-    legend.AddEntry(full, 'Full Kalman', 'lp')
-    legend.AddEntry(simple, 'Simple Kalman', 'lp')
+    legend.AddEntry(full, 'parameterized', 'lp')
+    legend.AddEntry(simple, 'simple', 'lp')
     legend.SetFillStyle(0)
     legend.Draw('same')
 

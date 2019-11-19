@@ -106,3 +106,41 @@ CatboostModelReader::CatboostModelReader(const std::string& file_name)
     m_split_feature.insert(std::end(m_split_feature), std::begin(tree_split_features), std::end(tree_split_features));
   }
 }
+
+ConfigurationReader::ConfigurationReader(const std::string& file_name)
+{
+  if (!exists_test(file_name)) {
+    throw StrException("Configuration JSON file " + file_name + " does not exist.");
+  }
+  std::ifstream i(file_name);
+  nlohmann::json j;
+  i >> j;
+  for (auto& el : j.items()) {
+    std::string component = el.key();
+    for (auto& el2 : el.value().items()) {
+      std::string property = el2.key();
+      std::string value = "";
+      if (el2.value().is_string())
+        value = el2.value().get<std::string>();
+      else
+        throw StrException("Configuration JSON file " + file_name + " contains non-string parameter values.");
+      m_params[component][property] = value;
+    }
+  }
+
+  if (logger::ll.verbosityLevel >= logger::verbose) {
+    for (auto it = m_params.begin(); it != m_params.end(); ++it) {
+      for (auto it2 = (*it).second.begin(); it2 != (*it).second.end(); ++it2) {
+        verbose_cout << (*it).first << ":" << (*it2).first << ":" << (*it2).second << std::endl;
+      }
+    }
+  }
+}
+
+void ConfigurationReader::save(std::string file_name)
+{
+  nlohmann::json j(m_params);
+  std::ofstream o(file_name);
+  o << j;
+  o.close();
+}
