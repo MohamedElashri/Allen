@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_triplet_keep_best_t>(
+  lf_triplet_keep_best_t& state,
   lf_triplet_keep_best_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

@@ -130,7 +130,7 @@ cudaError_t cudaMemcpyFromSymbol(
   const T& symbol,
   size_t count,
   size_t offset = 0,
-  enum cudaMemcpyKind kind = cudaMemcpyHostToDevice)
+  enum cudaMemcpyKind = cudaMemcpyHostToDevice)
 {
   std::memcpy(dst, reinterpret_cast<void*>(((char*) &symbol) + offset), count);
   return 0;

@@ -37,6 +37,8 @@ std::vector<ProgramOption> allen_program_options()
           {{"configuration"},
            "path to json file containing values of configurable algorithm constants",
            "../configuration/constants/default.json"},
+          {{"print-buffer-status"}, "show buffer status", "0"},
+          {{"print-config"}, "show current algorithm configuration", "0"},
           {{"write-configuration"}, "write current algorithm configuration to file", "0"},
           {{"n", "number-of-events"}, "number of events to process", "0", "all"},
           // {{"o", "offset"}, "offset of events from which to start", "0 (beginning)"},
@@ -51,7 +53,8 @@ std::vector<ProgramOption> allen_program_options()
           {{"i", "import-tracks"}, "import forward tracks dumped from Brunel"},
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
           {{"device"}, "select device to use", "0"},
-          {{"file-list"}, "list of files to process", ""}};
+          {{"file-list"}, "list of files to process", ""}
+        };
 }
 
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name)

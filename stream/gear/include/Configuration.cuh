@@ -50,7 +50,7 @@ public:
 
   virtual void sync_value() const = 0;
 
-  virtual ~BaseProperty() = 0;
+  virtual ~BaseProperty() {}
 };
 
 /**
@@ -68,7 +68,7 @@ struct BaseAlgorithm {
 
   virtual BaseProperty const* get_prop(const std::string& prop_name) const = 0;
 
-  virtual ~BaseAlgorithm() = 0;
+  virtual ~BaseAlgorithm() {}
 };
 
 /**

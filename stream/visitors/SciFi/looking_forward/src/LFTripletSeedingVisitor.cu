@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_triplet_seeding_t>(
+  lf_triplet_seeding_t& state,
   lf_triplet_seeding_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
