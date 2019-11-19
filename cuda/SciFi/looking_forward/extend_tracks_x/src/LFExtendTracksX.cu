@@ -24,7 +24,6 @@ __global__ void lf_extend_tracks_x(
 
   // UT consolidated tracks
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
-  const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
   const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
 
   // SciFi hits

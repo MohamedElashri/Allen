@@ -34,7 +34,6 @@ __global__ void lf_calculate_parametrization(
 
   // UT consolidated tracks
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
-  const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
   const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
 
   // UT consolidated tracks
@@ -57,8 +56,6 @@ __global__ void lf_calculate_parametrization(
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = dev_scifi_tracks[scifi_track_index];
-    const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
-
     const auto velo_track_index = ut_tracks.velo_track[track.ut_track_index];
 
     const uint velo_states_index = velo_tracks_offset_event + velo_track_index;

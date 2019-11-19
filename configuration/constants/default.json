@@ -22,7 +22,7 @@
   "lf_extend_tracks_x_t": {"block_dim" : "[128, 1, 1]"},
   "lf_extend_tracks_uv_t": {"block_dim" : "[256, 1, 1]"},
   "lf_quality_filter_length_t": {"block_dim" : "[256, 1, 1]"},
-  "lf_quality_filter_t": {"block_dim" : "[256, 1, 1]"},
+  "lf_quality_filter_t": {"block_dim" : "[128, 1, 1]"},
   "muon_add_coords_crossing_maps_t": {"block_dim" : "[256, 1, 1]"},
   "muon_catboost_evaluator_t": {"block_dim" : "[32, 1, 1]"},
   "muon_catboost_features_extraction_t": {"block_dim" : "[32, 1, 1]"},
