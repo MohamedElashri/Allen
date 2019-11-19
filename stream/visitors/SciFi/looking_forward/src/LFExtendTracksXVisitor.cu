@@ -25,6 +25,6 @@ void SequenceVisitor::visit<lf_extend_tracks_x_t>(
     arguments.offset<dev_scifi_lf_initial_windows>(),
     arguments.offset<dev_scifi_lf_parametrization>());
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(128, 4), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.invoke();
 }

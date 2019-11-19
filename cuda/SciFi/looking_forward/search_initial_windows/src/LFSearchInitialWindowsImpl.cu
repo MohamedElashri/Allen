@@ -26,9 +26,13 @@ __device__ void lf_search_initial_windows_impl(
       UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
     const float xInZone = stateInZone.x;
 
-    const float xTol = 150.f + 2e6f * fabsf(qop);
-    const float xMin = xInZone - xTol - 100.f * signbit(qop);
-    const float xMax = xInZone + xTol + 100.f * (signbit(qop) ^ 0x01);
+    const float xTol = 1.5f * (100.f + 1.4e6f * fabsf(qop));
+    const float xMin = xInZone - xTol;
+    const float xMax = xInZone + xTol;
+
+    // const float xTol = 150.f + 2e6f * fabsf(qop);
+    // const float xMin = xInZone - xTol - 100.f * signbit(qop);
+    // const float xMax = xInZone + xTol + 100.f * (signbit(qop) ^ 0x01);
 
     // Get the hits within the bounds
     const int x_zone_offset_begin = scifi_hit_count.zone_offset(looking_forward_constants->xZones[iZone]);

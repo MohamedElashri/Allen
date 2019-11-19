@@ -43,6 +43,11 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_scifi_lf_triplet_best>(), 0x7F, arguments.size<dev_scifi_lf_triplet_best>(), cuda_stream));
 
+  state.set_opts(
+    dim3(host_buffers.host_number_of_selected_events[0]),
+    dim3(LookingForward::triplet_seeding_block_dim_x, 2),
+    cuda_stream);
+
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
@@ -61,11 +66,6 @@ void SequenceVisitor::visit<lf_triplet_seeding_t>(
     arguments.offset<dev_scifi_lf_process_track>(),
     arguments.offset<dev_scifi_lf_found_triplets>(),
     arguments.offset<dev_scifi_lf_number_of_found_triplets>());
-
-  state.set_opts(
-    dim3(host_buffers.host_number_of_selected_events[0]),
-    dim3(LookingForward::triplet_seeding_block_dim_x, 2),
-    cuda_stream);
 
   state.invoke();
 }
