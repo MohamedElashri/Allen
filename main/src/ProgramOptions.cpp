@@ -52,8 +52,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"i", "import-tracks"}, "import forward tracks dumped from Brunel"},
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
           {{"device"}, "select device to use", "0"},
-          {{"file-list"}, "list of files to process", ""}
-        };
+          {{"file-list"}, "list of files to process", ""}};
 }
 
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name)

@@ -101,9 +101,7 @@ void TrackChecker::report(size_t) const
   }
 
   if (m_trackerName == "Forward") {
-    if (n_matched_muons > 0 || 
-      n_matched_not_muons > 0 || 
-      m_nghosts > 0) {
+    if (n_matched_muons > 0 || n_matched_not_muons > 0 || m_nghosts > 0) {
       std::printf("\n\nMuon matching:\n");
     }
     if (n_matched_muons > 0) {

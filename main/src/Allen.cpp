@@ -630,7 +630,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffer_manager =
     std::make_unique<HostBuffersManager>(number_of_buffers, *events_per_slice, do_check);
-  
+
   if (print_buffer_status) {
     buffer_manager->printStatus();
   }
