@@ -13,7 +13,7 @@ static constexpr float minTracksInSeed = 2.5f; // "MinTrackIntegralInSeed"
 static constexpr float maxVertexRho2 = 0.05f;  // unit:: mm^2 "Maximum distance squared of vertex to beam line"
 static constexpr float maxTrackRho2 =
   0.1f; // unit:: mm^2 "Maximum distance squared of a track to beamline when filling histogram"
-static constexpr unsigned int maxFitIter = 7;        // "Maximum number of iterations for vertex fit"
+static constexpr unsigned int maxFitIter = 4;        // "Maximum number of iterations for vertex fit"
 static constexpr float maxDeltaChi2 = 9.f;           //"Maximum chi2 contribution of track to vertex fit"
 static constexpr int order_polynomial = 2;           // order of the polynomial used to approximate Gaussian
 static constexpr float maxChi2 = 9.f;                // Maximum chi2 for track to be used in fit
