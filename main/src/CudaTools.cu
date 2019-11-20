@@ -90,10 +90,10 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
     return {false, ""};
   }
 
-#if __CUDA_ARCH__ >= 750
-  // Setup cache configuration on Turing onwards to L1
-  cudaCheck(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
-#endif
+  if (device_properties.major > 7 || (device_properties.major == 7 && device_properties.minor >= 5)) {
+    // Setup cache configuration on Turing onwards to L1
+    cudaCheck(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
+  }
 
   return {true, device_properties.name};
 }
