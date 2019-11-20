@@ -145,7 +145,7 @@ else()
   if(CMAKE_CUDA_FLAGS)
 	list(REMOVE_ITEM CMAKE_CUDA_FLAGS "-cudart static")
   endif()
-  string(APPEND CMAKE_CUDA_FLAGS "-cudart shared")
+  string(APPEND CMAKE_CUDA_FLAGS "-cudart shared --shared --compiler-options -fPIC")
 
   allen_project()
   enable_language(CUDA)
@@ -299,7 +299,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
-  set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  string(APPEND CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
 elseif(TARGET_DEVICE STREQUAL "HIP")
   # HCC Options (HIPCC compiler)
