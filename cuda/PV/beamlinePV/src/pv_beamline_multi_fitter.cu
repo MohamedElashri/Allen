@@ -176,7 +176,7 @@ __global__ void pv_beamline_multi_fitter(
         }
       }
 
-      converged = __any_sync(0xFFFFFFFF, converged);
+      // converged = __any_sync(0xFFFFFFFF, converged);
     } // end iteration loop
 
     if (accept && threadIdx.y == 0) {
