@@ -151,6 +151,9 @@ void run_stream(
 
   auto [device_set, device_name] = set_device(device_id, stream_id);
 
+  // Set cache configuration to L1
+  cudaCheck(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
+
   zmq::pollitem_t items[] = {
     {control, 0, ZMQ_POLLIN, 0},
   };
