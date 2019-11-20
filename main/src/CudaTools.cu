@@ -90,6 +90,10 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
     return {false, ""};
   }
 
+  // Setup cache configuration
+  cudaCheck(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
+  // cudaCheck(cudaFuncSetCacheConfig(lf_triplet_keep_best, cudaFuncCachePreferShared));
+
   return {true, device_properties.name};
 }
 

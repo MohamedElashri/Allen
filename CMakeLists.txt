@@ -483,7 +483,8 @@ endforeach()
 # common libraries
 add_library(Common STATIC ${common_sources})
 
-if(APPLE)
+if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0))
+  add_compile_definitions(USE_BOOST_FILESYSTEM)
   find_package(Boost COMPONENTS filesystem)
   target_include_directories(Common SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
   target_link_libraries(Common mdf ${Boost_LIBRARIES})

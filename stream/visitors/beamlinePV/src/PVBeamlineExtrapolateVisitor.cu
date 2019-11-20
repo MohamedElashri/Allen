@@ -11,6 +11,7 @@ void SequenceVisitor::set_arguments_size<pv_beamline_extrapolate_t>(
 {
   // Set arguments size
   arguments.set_size<dev_pvtracks>(host_buffers.host_number_of_reconstructed_velo_tracks[0]);
+  arguments.set_size<dev_pvtrack_z>(2 * host_buffers.host_number_of_reconstructed_velo_tracks[0]);
 }
 
 template<>
@@ -28,7 +29,8 @@ void SequenceVisitor::visit<pv_beamline_extrapolate_t>(
     arguments.offset<dev_velo_kalman_beamline_states>(),
     arguments.offset<dev_atomics_velo>(),
     arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_pvtracks>());
+    arguments.offset<dev_pvtracks>(),
+    arguments.offset<dev_pvtrack_z>());
 
   state.invoke();
 }

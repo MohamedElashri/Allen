@@ -1,8 +1,7 @@
 #include "TrackBeamLineVertexFinder.cuh"
 
 __host__ __device__ PVTrack::PVTrack(const KalmanVeloState& state, float dz) :
-  z {float(state.z + dz)}, x {float(state.x + dz * state.tx), float(state.y + dz * state.ty)}, tx {float(state.tx),
-                                                                                                   float(state.ty)}
+  z {state.z + dz}, x {state.x + dz * state.tx, state.y + dz * state.ty}, tx {state.tx, state.ty}
 {
 
   float state_tmp_c00 = state.c00;

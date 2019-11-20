@@ -17,9 +17,10 @@ __global__ void pv_beamline_extrapolate(
   char* dev_velo_kalman_beamline_states,
   uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
-  PVTrack* dev_pvtracks);
+  PVTrack* dev_pvtracks,
+  float* dev_pvtrack_z);
 
 ALGORITHM(
   pv_beamline_extrapolate,
   pv_beamline_extrapolate_t,
-  ARGUMENTS(dev_velo_kalman_beamline_states, dev_atomics_velo, dev_velo_track_hit_number, dev_pvtracks))
+  ARGUMENTS(dev_velo_kalman_beamline_states, dev_atomics_velo, dev_velo_track_hit_number, dev_pvtracks, dev_pvtrack_z))

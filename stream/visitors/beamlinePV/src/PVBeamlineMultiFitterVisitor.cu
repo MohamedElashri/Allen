@@ -35,7 +35,8 @@ void SequenceVisitor::visit<pv_beamline_multi_fitter_t>(
     arguments.offset<dev_number_of_zpeaks>(),
     arguments.offset<dev_multi_fit_vertices>(),
     arguments.offset<dev_number_of_multi_fit_vertices>(),
-    constants.dev_beamline.data());
+    constants.dev_beamline.data(),
+    arguments.offset<dev_pvtrack_z>());
 
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_number_of_multi_fit_vertices>(),
