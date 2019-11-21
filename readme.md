@@ -108,6 +108,10 @@ Here are some example run options:
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
 
+How to enable Nvidia persistenced mode
+-----------------------------------------
+Enabling Nvidia [persistenced mode](https://docs.nvidia.com/deploy/driver-persistence/index.html) will increase the throughput of Allen, as the GPU will remain initialized even when no process is running. To enable:
+`sudo systemctl enable nvidia-persistenced`, reboot the machine.
 
 How to profile it
 ------------------
