@@ -3,11 +3,25 @@
 ################################################################################
 gaudi_subdir(AllenIntegration v1r0)
 
-gaudi_depends_on_subdirs(Online/OnlineKernel)
+gaudi_depends_on_subdirs(Online/OnlineKernel
+        Det/FTDet
+                         Det/VPDet      
+                         UT/UTDAQ
+                         UT/UTKernel
+                         Event/FTEvent
+                         DAQ/DAQKernel
+                         Event/DAQEvent
+                         Event/DigiEvent
+                         GaudiAlg
+                         Pr/PrKernel
+			 Muon/MuonID 
+)
 
 find_package(Boost REQUIRED)
 find_package(Rangev3 REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${Rangev3_INCLUDE_DIRS})
+find_package(cppgsl REQUIRED)
+find_package(Rangev3 REQUIRED)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIR} ${RANGEV3_INCLUDE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/main/include) 
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
@@ -78,9 +92,11 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 
 # gaudi_install_headers()
 
-gaudi_add_library(AllenIntegration
+gaudi_add_module(AllenIntegration
                   src/*.cpp
-                  PUBLIC_HEADERS Integration
-                  INCLUDE_DIRS Online/OnlineKernel
-                  LINK_LIBRARIES OnlineKernel AllenLib)
+                  INCLUDE_DIRS Online/OnlineKernel 
+                  LINK_LIBRARIES OnlineKernel AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
+                                 PrKernel VPDetLib UTDetLib UTKernelLib
+                                 FTDetLib MuonIDLib )
+
 

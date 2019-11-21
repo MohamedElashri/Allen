@@ -54,7 +54,7 @@ producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
                                            DumpBeamline,
                                            DumpUTLookupTables)]
 
-# Add the services that will produce the non-event-data
+ # Add the services that will produce the non-event-data
 ApplicationMgr().ExtSvc += [
     AllenUpdater(OutputLevel=2),
 ] + producers
