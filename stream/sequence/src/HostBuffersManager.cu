@@ -48,8 +48,38 @@ void HostBuffersManager::returnBufferFilled(size_t b) {
 }
 
 void HostBuffersManager::returnBufferProcessed(size_t b) {
-  buffer_statuses[b] = BufferStatus::Empty;
-  empty_buffers.push(b);
+  //buffer must be both processed (monitoring) and written (I/O)
+  //if I/O is already finished then mark "empty"
+  //otherwise, mark "processed" and wait for I/O
+  if(buffer_statuses[b]==BufferStatus::Written) {
+    buffer_statuses[b] = BufferStatus::Empty;
+    empty_buffers.push(b);
+  } else {
+    buffer_statuses[b] = BufferStatus::Processed;
+  }
+}
+
+void HostBuffersManager::returnBufferWritten(size_t b) {
+  //buffer must be both processed (monitoring) and written (I/O)
+  //if monitoring is already finished then mark "empty"
+  //otherwise, mark "written" and wait for I/O
+  if(buffer_statuses[b]==BufferStatus::Processed) {
+    buffer_statuses[b] = BufferStatus::Empty;
+    empty_buffers.push(b);
+  } else {
+    buffer_statuses[b] = BufferStatus::Written;
+  }
+}
+
+std::tuple<uint, uint*, uint32_t*> HostBuffersManager::getBufferOutputData(size_t b) {
+  if(b>host_buffers.size()) return {0u, nullptr, nullptr};
+
+  HostBuffers* buf = host_buffers.at(b);
+  auto n_selected = buf->host_number_of_passing_events[0];
+  auto passing_event_list = buf->host_passing_event_list;
+  auto dec_reports = buf->host_dec_reports;
+
+  return {n_selected, passing_event_list, dec_reports};
 }
 
 void HostBuffersManager::printStatus() const {

@@ -13,7 +13,7 @@
 struct HostBuffers;
 
 struct HostBuffersManager {
-  enum class BufferStatus { Empty, Filling, Filled, Processing, Processed };
+  enum class BufferStatus { Empty, Filling, Filled, Processing, Processed, Written };
   
   HostBuffersManager(size_t nBuffers, const uint max_number_of_events, const bool do_check)
     : max_events(max_number_of_events), check(do_check) {init(nBuffers);}
@@ -25,6 +25,9 @@ struct HostBuffersManager {
 
   void returnBufferFilled(size_t);
   void returnBufferProcessed(size_t);
+  void returnBufferWritten(size_t);
+
+  std::tuple<uint, uint*, uint32_t*> getBufferOutputData(size_t b);
 
   void printStatus() const;
   bool buffersEmpty() const { return (empty_buffers.size()==host_buffers.size());}

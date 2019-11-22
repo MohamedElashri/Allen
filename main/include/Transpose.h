@@ -32,8 +32,8 @@ namespace {
 } // namespace
 
 // Read buffer containing the number of events, offsets to the start
-// of the event and the event data
-using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>>;
+// of the event, the event data and event from which trasposition should start
+using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>, size_t>;
 using ReadBuffers = std::vector<ReadBuffer>;
 
 // A slice contains transposed bank data, offsets to the start of each
@@ -67,7 +67,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
   size_t n_events,
   bool check_checksum)
 {
-  auto& [n_filled, event_offsets, buffer] = read_buffer;
+  auto& [n_filled, event_offsets, buffer, transpose_start] = read_buffer;
 
   // Keep track of where to write and the end of the prefetch buffer
   auto* buffer_start = &buffer[0];
@@ -342,10 +342,10 @@ std::tuple<bool, bool, size_t> transpose_events(
 {
 
   bool full = false, success = true;
-  auto const& [n_filled, event_offsets, buffer] = read_buffer;
+  auto const& [n_filled, event_offsets, buffer, event_start] = read_buffer;
 
   // Loop over events in the prefetch buffer
-  size_t i_event = 0;
+  size_t i_event = event_start;
   for (; i_event < n_filled && i_event < n_events && success && !full; ++i_event) {
     // Offsets are to the start of the event, which includes the header
     auto const* bank = buffer.data() + event_offsets[i_event];
@@ -355,4 +355,33 @@ std::tuple<bool, bool, size_t> transpose_events(
   }
 
   return {success, full, i_event};
+}
+
+template<BankTypes... Banks>
+Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>(BankTypes)> size_fun)
+{
+  Slices slices;
+  for (auto bank_type : {Banks...}) {
+    auto [n_bytes, n_offsets] = size_fun(bank_type);
+    auto ib = to_integral<BankTypes>(bank_type);
+    auto& bank_slices = slices[ib];
+    bank_slices.reserve(n_slices);
+    for (size_t i = 0; i < n_slices; ++i) {
+      char* events_mem = nullptr;
+      uint* offsets_mem = nullptr;
+
+#ifndef NO_CUDA
+      if (n_bytes) cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
+      if (n_offsets) cudaCheck(cudaMallocHost((void**) &offsets_mem, (n_offsets + 1) * sizeof(uint)));
+#else
+      if (n_bytes) events_mem = static_cast<char*>(malloc(n_bytes));
+      if (n_offsets) offsets_mem = static_cast<uint*>(malloc((n_offsets + 1) * sizeof(uint)));
+#endif
+      for (size_t i = 0; i < n_offsets + 1; ++i) {
+        offsets_mem[i] = 0;
+      }
+      bank_slices.emplace_back(gsl::span<char> {events_mem, n_bytes}, gsl::span<uint> {offsets_mem, n_offsets + 1}, 1);
+    }
+  }
+  return slices;
 }
