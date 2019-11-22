@@ -28,7 +28,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   BestParams best_params;
 
   // Get total number of hits for forward + backward in first layer (0 for fwd, 3 for bwd)
-  for (int i = 0; (!found || considered < CompassUT::max_considered_before_found) && i < sum_layer_hits(ranges, 0, 3);
+  for (int i = 0; (!found || considered < Configuration::compass_ut_t::max_considered_before_found) && i < sum_layer_hits(ranges, 0, 3);
        ++i) {
     const int i_hit0 = calc_index(i, ranges, 0, 3, ut_hit_offsets);
 
@@ -53,7 +53,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
     // 2nd layer
     const int total_hits_2layers_2 = sum_layer_hits(ranges, layer_2);
-    for (int j = 0; (!found || considered < CompassUT::max_considered_before_found) && j < total_hits_2layers_2; ++j) {
+    for (int j = 0; (!found || considered < Configuration::compass_ut_t::max_considered_before_found) && j < total_hits_2layers_2; ++j) {
       int i_hit2 = calc_index(j, ranges, layer_2, ut_hit_offsets);
 
       // Get info to calculate slope

@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<kalman_filter_t>(
-  kalman_filter_t& state,
+  const kalman_filter_t& state,
   kalman_filter_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

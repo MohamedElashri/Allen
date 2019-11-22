@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<ut_find_permutation_t>(
-  ut_find_permutation_t& state,
+  const ut_find_permutation_t& state,
   ut_find_permutation_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

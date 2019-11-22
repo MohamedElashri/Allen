@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<velo_calculate_phi_and_sort_t>(
-  velo_calculate_phi_and_sort_t& state,
+  const velo_calculate_phi_and_sort_t& state,
   velo_calculate_phi_and_sort_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<run_hlt1_t>(
-  run_hlt1_t& state,
+  const run_hlt1_t& state,
   run_hlt1_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

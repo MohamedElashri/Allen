@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<copy_scifi_track_hit_number_t>(
-  copy_scifi_track_hit_number_t& state,
+  const copy_scifi_track_hit_number_t& state,
   copy_scifi_track_hit_number_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

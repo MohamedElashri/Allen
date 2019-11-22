@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_quality_filter_x_t>(
-  lf_quality_filter_x_t& state,
+  const lf_quality_filter_x_t& state,
   lf_quality_filter_x_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

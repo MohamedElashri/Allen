@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_sort_by_station_t>(
-  muon_sort_by_station_t& state,
+  const muon_sort_by_station_t& state,
   muon_sort_by_station_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

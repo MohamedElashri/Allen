@@ -4,7 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<velo_pv_ip_t>(
-  velo_pv_ip_t& state,
+  const velo_pv_ip_t& state,
   velo_pv_ip_t::arguments_t arguments,
   const RuntimeOptions&,
   const Constants&,

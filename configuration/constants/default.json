@@ -1,5 +1,5 @@
 {
-  "compass_ut_t": {"sigma_velo_slope" : "0.00010", "min_momentum_final" : "2500.0", "min_pt_final" : "425.0", "hit_tol_2" : "0.8f", "delta_tx_2" : "0.018f"},
+  "compass_ut_t": {"sigma_velo_slope" : "0.00010", "min_momentum_final" : "2500.0", "min_pt_final" : "425.0", "hit_tol_2" : "0.8f", "delta_tx_2" : "0.018f", "max_considered_before_found" : "6u"},
   "consolidate_ut_tracks_t": {"block_dim" : "[256, 1, 1]"},
   "consolidate_scifi_tracks_t": {"block_dim" : "[256, 1, 1]"},
   "consolidate_velo_tracks_t": {"block_dim" : "[256, 1, 1]"},

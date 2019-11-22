@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<init_event_list_t>(
-  init_event_list_t& state,
+  const init_event_list_t& state,
   init_event_list_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

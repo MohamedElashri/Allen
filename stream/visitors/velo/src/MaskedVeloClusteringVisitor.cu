@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<velo_masked_clustering_t>(
-  velo_masked_clustering_t& state,
+  const velo_masked_clustering_t& state,
   velo_masked_clustering_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

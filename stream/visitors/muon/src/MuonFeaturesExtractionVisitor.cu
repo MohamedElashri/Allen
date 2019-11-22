@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_catboost_features_extraction_t>(
-  muon_catboost_features_extraction_t& state,
+  const muon_catboost_features_extraction_t& state,
   muon_catboost_features_extraction_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
