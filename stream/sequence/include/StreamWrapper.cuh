@@ -14,6 +14,7 @@
 #include "CheckerTypes.h"
 #include "CheckerInvoker.h"
 #include "HostBuffersManager.cuh"
+#include "OutputHandler.h"
 
 // Forward definition of Stream, to avoid
 // inability to compile kernel calls (due to <<< >>>
@@ -65,6 +66,7 @@ struct StreamWrapper {
 
   std::map<std::string, std::map<std::string, std::string>> get_algorithm_configuration();
 };
+
 
 /**
  * @brief Prints the configured sequence.

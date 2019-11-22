@@ -127,7 +127,7 @@ namespace LHCb {
     void setMagic() { m_magic = MagicPattern; }
 
     /// Header size
-    constexpr int hdrSize() const { return sizeof(RawBank) - sizeof(m_data); }
+    static constexpr int hdrSize() { return sizeof(RawBank) - sizeof(m_data); }
 
     /// Return size of the data body part of the bank
     int size() const { return m_length - hdrSize(); }
