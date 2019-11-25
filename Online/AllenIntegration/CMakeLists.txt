@@ -97,6 +97,6 @@ gaudi_add_module(AllenIntegration
                   INCLUDE_DIRS Online/OnlineKernel 
                   LINK_LIBRARIES OnlineKernel AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
                                  PrKernel VPDetLib UTDetLib UTKernelLib
-                                 FTDetLib MuonIDLib )
+                                 FTDetLib )
 
 
