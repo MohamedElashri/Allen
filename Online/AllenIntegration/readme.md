@@ -21,7 +21,7 @@ lb-project-init
 make configure
 make install
 cd ..
-export CMAKE_PREFIX_PATH=/path/to/user/directory/Allen_Gaudi_integration/Rec:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=/path/to/user/directory/Allen_Gaudi_integration:$CMAKE_PREFIX_PATH
 cd Allen
 lb-project-init
 make configure
@@ -30,7 +30,13 @@ cd ..
 cd Brunel
 ```
 
-In Brunel, change `CMakeLists.txt` line 20 to `USE Allen	v0r7` and delete the `Rec` directory.
+In Brunel, change `CMakeLists.txt` line 20 to `USE Allen	v0r7` and delete the `Rec` directory, then:
+```
+lb-project-init
+make configure
+make install
+```
 
+The calss to `lb-project-init` are only required when setting up the directories for the first time.
 
 Adopt the day of the nightly build according to when you are building (Tue in the above example). Possibly check that the nightly build was successful.
