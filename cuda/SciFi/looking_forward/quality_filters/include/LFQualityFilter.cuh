@@ -27,7 +27,7 @@ __global__ void lf_quality_filter(
   float* dev_scifi_lf_parametrization_consolidate,
   const MiniState* dev_ut_states,
   const char* dev_velo_states,
-  const float magnet_polarity,
+  const float* dev_magnet_polarity,
   const uint* dev_atomics_velo,
   const uint* dev_velo_track_hit_number,
   const uint* dev_ut_track_velo_indices);

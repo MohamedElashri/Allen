@@ -16,7 +16,7 @@ __global__ void lf_quality_filter(
   float* dev_scifi_lf_parametrization_consolidate,
   const MiniState* dev_ut_states,
   const char* dev_velo_states,
-  const float magnet_polarity,
+  const float* dev_magnet_polarity,
   const uint* dev_atomics_velo,
   const uint* dev_velo_track_hit_number,
   const uint* dev_ut_track_velo_indices)
@@ -172,7 +172,7 @@ __global__ void lf_quality_filter(
       const auto tx2 = velo_state.tx * velo_state.tx;
       const auto slope2 = tx2 + ty2;
       const auto proj = sqrtf((1.f + slope2) / (1.f + tx2));
-      const auto updated_qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * magnet_polarity);
+      const auto updated_qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * dev_magnet_polarity[0]);
       dev_scifi_tracks[new_scifi_track_index].qop = updated_qop;
 
       // Save track parameters to last container as well
