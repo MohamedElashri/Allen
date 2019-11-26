@@ -194,7 +194,7 @@ __global__ void lf_triplet_keep_best(
           const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_2];
 
           const auto slope_t1_t3 = (x0 - x2) / (z0 - z2);
-          const auto delta_slope = fabsf(velo_tx - slope_t1_t3);
+          const auto delta_slope = slope_t1_t3 - velo_tx;
           const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope -
                           LookingForward::qop_p2 * delta_slope * delta_slope;
           const auto updated_qop = (delta_slope/fabsf(delta_slope))*eq / (1.f + 5.08211e+02f * eq);
