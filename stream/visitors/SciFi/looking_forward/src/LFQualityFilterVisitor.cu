@@ -49,7 +49,12 @@ void SequenceVisitor::visit<lf_quality_filter_t>(
     arguments.offset<dev_scifi_lf_parametrization_length_filter>(),
     arguments.offset<dev_scifi_lf_y_parametrization_length_filter>(),
     arguments.offset<dev_scifi_lf_parametrization_consolidate>(),
-    arguments.offset<dev_ut_states>());
+    arguments.offset<dev_ut_states>(),
+    arguments.offset<dev_velo_states>(),
+    constants.dev_magnet_polarity[0],
+    arguments.offset<dev_atomics_velo>(),
+    arguments.offset<dev_velo_track_hit_number>(),
+    arguments.offset<dev_ut_track_velo_indices>());
 
   state.invoke();
 

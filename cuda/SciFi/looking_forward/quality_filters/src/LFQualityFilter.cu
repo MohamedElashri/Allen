@@ -14,7 +14,12 @@ __global__ void lf_quality_filter(
   const float* dev_scifi_lf_parametrization_length_filter,
   float* dev_scifi_lf_y_parametrization_length_filter,
   float* dev_scifi_lf_parametrization_consolidate,
-  const MiniState* dev_ut_states)
+  const MiniState* dev_ut_states,
+  const char* dev_velo_states,
+  const float magnet_polarity,
+  const uint* dev_atomics_velo,
+  const uint* dev_velo_track_hit_number,
+  const uint* dev_ut_track_velo_indices)
 {
   if (Configuration::verbosity_level >= logger::debug) {
     if (blockIdx.y == 0) {
@@ -24,6 +29,13 @@ __global__ void lf_quality_filter(
 
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
+
+  // Velo consolidated types
+  const Velo::Consolidated::Tracks velo_tracks {
+    (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
+
+  const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
 
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
   const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
@@ -138,6 +150,30 @@ __global__ void lf_quality_filter(
 
       const auto new_scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index;
       dev_scifi_tracks[new_scifi_track_index] = track;
+
+      // Update qop of the track
+      const auto velo_track_index = dev_ut_track_velo_indices[ut_event_tracks_offset + track.ut_track_index];
+      const auto velo_states_index = velo_tracks_offset_event + velo_track_index;
+      const auto velo_state = velo_states.getMiniState(velo_states_index);
+
+      const auto x0 = scifi_hits.x0[event_offset + track.hits[0]];
+      const auto x1 = scifi_hits.x0[event_offset + track.hits[1]];
+      const auto layer0 = scifi_hits.planeCode(event_offset + track.hits[0]) / 2;
+      const auto layer1 = scifi_hits.planeCode(event_offset + track.hits[1]) / 2;
+      const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];
+      const auto z1 = dev_looking_forward_constants->Zone_zPos[layer1];
+      const auto bx = (x0 - x1) / (z0 - z1);
+      const auto bx2 = bx * bx;
+      const auto ty2 = velo_state.ty * velo_state.ty;
+      const auto coef =
+        (dev_looking_forward_constants->momentumParams[0] + dev_looking_forward_constants->momentumParams[1] * bx2 +
+         dev_looking_forward_constants->momentumParams[2] * bx2 * bx2 + dev_looking_forward_constants->momentumParams[3] * bx * velo_state.tx +
+         dev_looking_forward_constants->momentumParams[4] * ty2 + dev_looking_forward_constants->momentumParams[5] * ty2 * ty2);
+      const auto tx2 = velo_state.tx * velo_state.tx;
+      const auto slope2 = tx2 + ty2;
+      const auto proj = sqrtf((1.f + slope2) / (1.f + tx2));
+      const auto updated_qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * magnet_polarity);
+      dev_scifi_tracks[new_scifi_track_index].qop = updated_qop;
 
       // Save track parameters to last container as well
       const auto a1 = dev_scifi_lf_parametrization_length_filter[scifi_track_index];
