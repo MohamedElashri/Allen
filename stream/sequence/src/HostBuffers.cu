@@ -125,6 +125,8 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     host_is_muon = reinterpret_cast<decltype(host_is_muon)>(
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
 
+    int n_max_svs = SciFi::Constants::max_tracks * 100;
+
     host_secondary_vertices = reinterpret_cast<decltype(host_secondary_vertices)>(
       malloc(max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
   }

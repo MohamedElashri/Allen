@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<ut_search_windows_t>(
-  ut_search_windows_t& state,
+  const ut_search_windows_t& state,
   ut_search_windows_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

@@ -51,6 +51,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"p", "print-memory"}, "print memory usage", "0"},
           {{"i", "import-tracks"}, "import forward tracks dumped from Brunel"},
           {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
+          {{"output-file"}, "Write selected event to output file", ""},
           {{"device"}, "select device to use", "0"},
           {{"file-list"}, "list of files to process", ""}};
 }

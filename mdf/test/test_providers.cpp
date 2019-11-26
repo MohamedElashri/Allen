@@ -76,14 +76,14 @@ int main(int argc, char* argv[])
     mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
 
-    bool good = false, timed_out = false;
-    std::tie(good, timed_out, slice_mdf, filled_mdf) = mdf->get_slice();
+    bool good = false, timed_out = false, done = false;
+    std::tie(good, done, timed_out, slice_mdf, filled_mdf) = mdf->get_slice();
     auto const& events_mdf = mdf->event_ids(slice_mdf);
 
     binary = make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-                                                                                                       s_config.n_slices, s_config.n_events, s_config.n_events, s_config.banks_dirs, false, std::nullopt, events_mdf);
+      s_config.n_slices, s_config.n_events, s_config.n_events, s_config.banks_dirs, false, std::nullopt, events_mdf);
 
-    std::tie(good, timed_out, slice_binary, filled_binary) = binary->get_slice();
+    std::tie(good, done, timed_out, slice_binary, filled_binary) = binary->get_slice();
   }
 
   return session.run();

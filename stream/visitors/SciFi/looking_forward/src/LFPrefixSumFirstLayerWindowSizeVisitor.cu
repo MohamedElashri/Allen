@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<lf_prefix_sum_first_layer_window_size_t>(
-  lf_prefix_sum_first_layer_window_size_t& state,
+  const lf_prefix_sum_first_layer_window_size_t& state,
   lf_prefix_sum_first_layer_window_size_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

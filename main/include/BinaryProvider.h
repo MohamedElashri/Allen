@@ -88,11 +88,11 @@ public:
                 contents.push_back(line);
               }
             }
-            else{
-              throw StrException{"Could not open list of files" };
+            else {
+              throw StrException {"Could not open list of files"};
             }
-            
-          } else {
+          }
+          else {
             contents = list_folder(*it);
           }
         }
@@ -130,37 +130,16 @@ public:
     }
     m_to_read = this->n_events() ? std::min(*this->n_events(), some_files.size()) : some_files.size();
 
-    // Allocate memory for banks
-    for (auto bank_type : {Banks...}) {
+    auto size_fun = [events_per_slice](BankTypes bank_type) -> std::tuple<size_t, size_t> {
       auto it = BankSizes.find(bank_type);
       auto ib = to_integral<BankTypes>(bank_type);
       if (it == end(BankSizes)) {
         throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
       }
-
-      // Fudge with extra 20% memory
-      size_t n_bytes = std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB);
-      auto& slices = m_slices[ib];
-      slices.reserve(n_slices);
-      for (size_t i = 0; i < n_slices; ++i) {
-        char* events_mem = nullptr;
-        uint* offsets_mem = nullptr;
-
-#ifndef NO_CUDA
-        cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
-        cudaCheck(cudaMallocHost((void**) &offsets_mem, (events_per_slice + 1) * sizeof(uint)));
-#else
-        events_mem = static_cast<char*>(malloc(n_bytes));
-        offsets_mem = static_cast<uint*>(malloc((events_per_slice + 1) * sizeof(uint)));
-#endif
-
-        offsets_mem[0] = 0;
-        slices.emplace_back(
-          gsl::span<char> {events_mem, n_bytes}, gsl::span<uint> {offsets_mem, events_per_slice + 1}, 1);
-        debug_cout << "Allocated slice " << std::setw(3) << i << " of size " << n_bytes << " for "
-                   << bank_name(bank_type) << "\n";
-      }
-    }
+      return {std::lround((401 * sizeof(uint32_t) + it->second) * events_per_slice * bank_size_fudge_factor * kB),
+              events_per_slice};
+    };
+    m_slices = allocate_slices<Banks...>(n_slices, size_fun);
 
     // Reserve space for event IDs
     for (size_t n = 0; n < n_slices; ++n) {
@@ -183,8 +162,6 @@ public:
     if (m_prefetch_thread) m_prefetch_thread->join();
   }
 
-  static constexpr const char* name = "Binary";
-
   /**
    * @brief      Get event IDs for a given slice
    *
@@ -202,9 +179,9 @@ public:
    *
    * @param      optional timeout
    *
-   * @return     (good slice, timed out, slice index, number of events in slice)
+   * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
     std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
   {
     bool timed_out = false;
@@ -229,7 +206,7 @@ public:
       }
     }
 
-    return {!m_read_error && !m_done, timed_out, slice_index, m_read_error ? 0 : n_filled};
+    return {!m_read_error, m_done, timed_out, slice_index, n_filled};
   }
 
   /**
@@ -273,6 +250,10 @@ public:
     span<unsigned int const> o {offsets.data(), offsets_size};
     return BanksAndOffsets {std::move(b), std::move(o)};
   }
+
+  void event_sizes(size_t const, gsl::span<unsigned int> const, std::vector<size_t>&) const override {}
+
+  void copy_banks(size_t const, unsigned int const, gsl::span<char>) const override {}
 
 private:
   /**
@@ -383,9 +364,9 @@ private:
    *
    * @return     array of (bank type, open ifstrea, file size)
    */
-  std::array<std::tuple<BankTypes, std::ifstream, size_t>, NBankTypes> open_files(size_t n)
+  std::array<std::tuple<BankTypes, std::ifstream, size_t>, sizeof...(Banks)> open_files(size_t n)
   {
-    std::array<std::tuple<BankTypes, std::ifstream, size_t>, NBankTypes> result;
+    std::array<std::tuple<BankTypes, std::ifstream, size_t>, sizeof...(Banks)> result;
     for (auto bank_type : {Banks...}) {
       auto ib = to_integral<BankTypes>(bank_type);
       auto filename = std::get<0>(m_files[ib]) + "/" + std::get<1>(m_files[ib])[n];
@@ -459,10 +440,8 @@ private:
   std::vector<std::vector<std::tuple<unsigned int, unsigned long>>> m_event_ids;
 
   // Sizes of all files
-  std::array<std::vector<size_t>, NBankTypes> m_sizes;
+  std::array<std::vector<size_t>, sizeof...(Banks)> m_sizes;
 
   // Folder and file names per bank type
-  std::array<std::tuple<std::string, std::vector<std::string>>, NBankTypes> m_files;
-
-  using base_class = InputProvider<BinaryProvider<Banks...>>;
+  std::array<std::tuple<std::string, std::vector<std::string>>, sizeof...(Banks)> m_files;
 };

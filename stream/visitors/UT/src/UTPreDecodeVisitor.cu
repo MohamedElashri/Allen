@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<ut_pre_decode_t>(
-  ut_pre_decode_t& state,
+  const ut_pre_decode_t& state,
   ut_pre_decode_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

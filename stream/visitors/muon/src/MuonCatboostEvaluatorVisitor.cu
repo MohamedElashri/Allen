@@ -4,7 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_catboost_evaluator_t>(
-  muon_catboost_evaluator_t& state,
+  const muon_catboost_evaluator_t& state,
   muon_catboost_evaluator_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

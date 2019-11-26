@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_add_coords_crossing_maps_t>(
-  muon_add_coords_crossing_maps_t& state,
+  const muon_add_coords_crossing_maps_t& state,
   muon_add_coords_crossing_maps_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

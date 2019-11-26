@@ -44,6 +44,7 @@
 #include "CheckerInvoker.h"
 #include "HostBuffersManager.cuh"
 #include "MonitorManager.h"
+#include "FileWriter.h"
 #include "Allen.h"
 #include <tuple>
 
@@ -60,7 +61,11 @@ namespace {
  *
  * @return     void
  */
-void input_reader(const size_t io_id, IInputProvider* input_provider)
+void run_io(
+  const size_t io_id,
+  IInputProvider* input_provider,
+  OutputHandler* output_handler,
+  HostBuffersManager* buffer_manager)
 {
 
   // Create a control socket and connect it.
@@ -77,6 +82,8 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
 
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
+  bool input_done(false);
+
   while (true) {
 
     // Check if there are messages
@@ -87,21 +94,43 @@ void input_reader(const size_t io_id, IInputProvider* input_provider)
       if (msg == "DONE") {
         break;
       }
+      else if (msg == "WRITE") {
+        auto slc_idx = zmqSvc().receive<size_t>(control);
+        auto buf_idx = zmqSvc().receive<size_t>(control);
+
+        auto [n_selected, passing_event_list, dec_reports] = buffer_manager->getBufferOutputData(buf_idx);
+        bool success(true);
+
+        if (output_handler != nullptr) {
+          success = output_handler->output_selected_events(slc_idx, {passing_event_list, n_selected}, dec_reports);
+        }
+
+        zmqSvc().send(control, "WRITTEN", zmq::SNDMORE);
+        zmqSvc().send(control, slc_idx, zmq::SNDMORE);
+        zmqSvc().send(control, buf_idx, zmq::SNDMORE);
+        zmqSvc().send(control, success, zmq::SNDMORE);
+        zmqSvc().send(control, n_selected);
+      }
     }
 
-    // Get a slice and inform the main thread that it is available
-    // NOTE: the argument specifies the timeout in ms, not the number of events.
-    auto [good, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
-    // Report errors or good slices that contain events
-    if (!good || (!timed_out && (good && n_filled != 0))) {
-      zmqSvc().send(control, "SLICE", zmq::SNDMORE);
-      zmqSvc().send(control, slice_index, zmq::SNDMORE);
-      zmqSvc().send(control, good, zmq::SNDMORE);
-      zmqSvc().send(control, n_filled);
-    }
-    if (!good) {
-      zmqSvc().send(control, "DONE");
-      break;
+    if (!input_done) {
+      // Get a slice and inform the main thread that it is available
+      // NOTE: the argument specifies the timeout in ms, not the number of events.
+      auto [good, done, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
+      // Report errors or good slices that contain events
+      if (!timed_out && good && n_filled != 0) {
+        zmqSvc().send(control, "SLICE", zmq::SNDMORE);
+        zmqSvc().send(control, slice_index, zmq::SNDMORE);
+        zmqSvc().send(control, n_filled);
+      }
+      else if (!good) {
+        zmqSvc().send(control, "ERROR");
+        break;
+      }
+      if (done) {
+        input_done = true;
+        zmqSvc().send(control, "DONE");
+      }
     }
   }
 }
@@ -123,6 +152,7 @@ void run_stream(
   int device_id,
   StreamWrapper* wrapper,
   IInputProvider const* input_provider,
+  OutputHandler* output_handler,
   CheckerInvoker* checker_invoker,
   uint n_reps,
   bool do_check,
@@ -145,7 +175,7 @@ void run_stream(
 
   zmq::socket_t control = make_control();
   std::optional<zmq::socket_t> check_control;
-  if (do_check) {
+  if (do_check || output_handler != nullptr) {
     check_control = make_control("check");
   }
 
@@ -340,24 +370,25 @@ void run_monitoring(const size_t mon_id, MonitorManager* monitor_manager, uint i
  */
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants)
 {
-  std::tuple consumers = make_tuple(
-    make_tuple(Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)),
-    make_tuple(
+  std::tuple consumers = std::make_tuple(
+    std::make_tuple(
+      Allen::NonEventData::UTBoards {}, std::make_unique<Consumers::BasicGeometry>(constants.dev_ut_boards)),
+    std::make_tuple(
       Allen::NonEventData::UTLookupTables {},
       std::make_unique<Consumers::UTLookupTables>(constants.dev_ut_magnet_tool)),
-    make_tuple(Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)),
-    make_tuple(
+    std::make_tuple(Allen::NonEventData::UTGeometry {}, std::make_unique<Consumers::UTGeometry>(constants)),
+    std::make_tuple(
       Allen::NonEventData::SciFiGeometry {},
       std::make_unique<Consumers::SciFiGeometry>(constants.host_scifi_geometry, constants.dev_scifi_geometry)),
-    make_tuple(
+    std::make_tuple(
       Allen::NonEventData::MagneticField {}, std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity)),
-    make_tuple(Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)),
-    make_tuple(Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::VPGeometry>(constants)),
-    make_tuple(
+    std::make_tuple(Allen::NonEventData::Beamline {}, std::make_unique<Consumers::Beamline>(constants.dev_beamline)),
+    std::make_tuple(Allen::NonEventData::VeloGeometry {}, std::make_unique<Consumers::VPGeometry>(constants)),
+    std::make_tuple(
       Allen::NonEventData::MuonGeometry {},
       std::make_unique<Consumers::MuonGeometry>(
         constants.host_muon_geometry_raw, constants.dev_muon_geometry_raw, constants.dev_muon_geometry)),
-    make_tuple(
+    std::make_tuple(
       Allen::NonEventData::MuonLookupTables {},
       std::make_unique<Consumers::MuonLookupTables>(
         constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables)));
@@ -401,6 +432,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   size_t reserve_mb = 1024;
 
   std::string mdf_input;
+  std::string output_file;
   int device_id = 0;
   int cpu_offload = 1;
   std::string file_list;
@@ -474,6 +506,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"cpu-offload"})) {
       cpu_offload = atoi(arg.c_str());
+    }
+    else if (flag_in({"output-file"})) {
+      output_file = arg;
     }
     else if (flag_in({"device"})) {
       device_id = atoi(arg.c_str());
@@ -598,6 +633,16 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
   }
 
+  std::unique_ptr<OutputHandler> output_handler;
+  if (!output_file.empty()) {
+    try {
+      output_handler = std::make_unique<FileWriter>(input_provider.get(), *events_per_slice, output_file);
+    } catch (std::runtime_error const& e) {
+      error_cout << e.what() << "\n";
+      exit(1);
+    }
+  }
+
   // Load constant parameters from JSON
   configuration_reader = std::make_unique<ConfigurationReader>(json_constants_configuration_file);
 
@@ -676,19 +721,20 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Lambda with the execution of a thread-stream pair
   const auto stream_thread = [&](uint thread_id, uint stream_id) {
     std::optional<zmq::socket_t> check_control;
-    if (do_check) {
+    if (do_check || !output_file.empty()) {
       check_control = zmqSvc().socket(zmq::PAIR);
       zmq::setsockopt(*check_control, zmq::LINGER, 0);
       auto con = ZMQ::connection(thread_id, "check");
       check_control->bind(con.c_str());
     }
-    return make_tuple(
+    return std::make_tuple(
       std::thread {run_stream,
                    thread_id,
                    stream_id,
                    device_id,
                    &stream_wrapper,
                    input_provider.get(),
+                   output_handler ? output_handler.get() : nullptr,
                    checker_invoker.get(),
                    number_of_repetitions,
                    do_check,
@@ -699,7 +745,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Lambda with the execution of the I/O thread
   const auto io_thread = [&](uint thread_id, uint) {
-    return make_tuple(std::thread {input_reader, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {});
+    return std::make_tuple(
+      std::thread {
+        run_io, thread_id, input_provider.get(), output_handler ? output_handler.get() : nullptr, buffer_manager.get()},
+      std::optional<zmq::socket_t> {});
   };
 
   // Lambda with the execution of the monitoring thread
@@ -769,8 +818,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   size_t slices_processed = 0;
   std::optional<size_t> slice_index;
   std::optional<size_t> buffer_index;
+  size_t prev_io = 0;
 
+  size_t n_events_output = 0;
   size_t error_count = 0;
+
+  // queue of slice/buffer pairs to write out
+  std::queue<std::pair<size_t, size_t>> write_queue;
 
   // Lambda to check if any event processors are done processing
   auto check_processors = [&] {
@@ -789,10 +843,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           debug_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
         }
 
+        // Add the slice and buffer to the queue for output
+        write_queue.push(std::make_pair(slice_index, buffer_index));
+
         // Run the checker accumulation here in a blocking fashion;
         // the blocking is ensured by sending a message and
         // immediately waiting for a reply
         auto& check_control = std::get<2>(streams[i]);
+
         if (do_check && check_control) {
           zmqSvc().send(*check_control, folder_data + "/MC_info");
           auto success = zmqSvc().receive<bool>(*check_control);
@@ -803,14 +861,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             info_cout << "Checked " << n_events_processed << " events\n";
           }
         }
-        if (enable_async_io) {
-          input_slice_status[slice_index] = SliceStatus::Empty;
-          input_provider->slice_free(slice_index);
-          events_in_slice[slice_index] = 0;
-        }
-        else {
-          input_slice_status[slice_index] = SliceStatus::Processed;
-        }
+        input_slice_status[slice_index] = SliceStatus::Processed;
         buffer_manager->returnBufferFilled(buffer_index);
       }
     }
@@ -890,29 +941,44 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         auto msg = zmqSvc().receive<std::string>(socket);
         if (msg == "SLICE") {
           slice_index = zmqSvc().receive<size_t>(socket);
-          auto good = zmqSvc().receive<bool>(socket);
           auto n_filled = zmqSvc().receive<size_t>(socket);
 
-          if (!good && n_filled == 0 && !io_done) {
-            error_cout << "I/O provider failed to decode events into slice.\n";
-            goto loop_error;
+          // FIXME: make the warmup time configurable
+          if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
+            info_cout << "Starting timer for throughput measurement\n";
+            throughput_start = n_events_processed * number_of_repetitions;
+            t = Timer {};
           }
-          else {
-            // FIXME: make the warmup time configurable
-            if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
-              info_cout << "Starting timer for throughput measurement\n";
-              throughput_start = n_events_processed * number_of_repetitions;
-              t = Timer {};
-            }
-            input_slice_status[*slice_index] = SliceStatus::Filled;
-            events_in_slice[*slice_index] = n_filled;
-            n_events_read += n_filled;
+          input_slice_status[*slice_index] = SliceStatus::Filled;
+          events_in_slice[*slice_index] = n_filled;
+          n_events_read += n_filled;
+        }
+        else if (msg == "WRITTEN") {
+          auto slc_idx = zmqSvc().receive<size_t>(socket);
+          auto buf_idx = zmqSvc().receive<size_t>(socket);
+          auto success = zmqSvc().receive<bool>(socket);
+          n_events_output += zmqSvc().receive<uint>(socket);
+          if (!success) {
+            error_cout << "Failed to write output events.\n";
           }
+
+          if (enable_async_io) {
+            input_slice_status[slc_idx] = SliceStatus::Empty;
+            input_provider->slice_free(slc_idx);
+            events_in_slice[slc_idx] = 0;
+          }
+
+          buffer_manager->returnBufferWritten(buf_idx);
+        }
+        else if (msg == "DONE") {
+          io_done = true;
+          info_cout << "Input complete\n";
         }
         else {
-          assert(msg == "DONE");
+          assert(msg == "ERROR");
+          error_cout << "I/O provider failed to decode events into slice.\n";
           io_done = true;
-          info_cout << "I/O complete\n";
+          goto loop_error;
         }
       }
     }
@@ -948,6 +1014,23 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
     // Check if any processors are ready
     check_processors();
+
+    // Send slices and buffers back to I/O threads for writing
+    while (write_queue.size()) {
+      size_t slc_index = write_queue.front().first;
+      size_t buf_index = write_queue.front().second;
+      write_queue.pop();
+
+      size_t io_index = prev_io++;
+      if (prev_io == n_io) {
+        prev_io = 0;
+      }
+
+      auto& socket = std::get<1>(io_workers[io_index]);
+      zmqSvc().send(socket, "WRITE", zmq::SNDMORE);
+      zmqSvc().send(socket, slc_index, zmq::SNDMORE);
+      zmqSvc().send(socket, buf_index);
+    }
 
     // Send any available HostBuffers to montoring threads
     buffer_index = std::optional<size_t> {buffer_manager->assignBufferToProcess()};
@@ -1019,7 +1102,8 @@ loop_error:
 
   // Send stop signal to all threads and join them if they haven't
   // exited yet (as indicated by pred)
-  for (auto [workers, pred] : {std::tuple {std::ref(io_workers), !io_done},
+  // this now needs to be done for all workers as I/O workers never finish early - could remove pred
+  for (auto [workers, pred] : {std::tuple {std::ref(io_workers), true},
                                std::tuple {std::ref(mon_workers), true},
                                std::tuple {std::ref(streams), true}}) {
     for (auto& worker : workers.get()) {
@@ -1049,6 +1133,10 @@ loop_error:
   else {
     warning_cout << "Timer wasn't started."
                  << "\n";
+  }
+
+  if (!output_file.empty()) {
+    info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to " << output_file << "\n";
   }
 
   // Reset device

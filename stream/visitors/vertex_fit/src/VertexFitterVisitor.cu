@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<fit_secondary_vertices_t>(
-  fit_secondary_vertices_t& state,
+  const fit_secondary_vertices_t& state,
   fit_secondary_vertices_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

@@ -3,7 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<pv_get_seeds_t>(
-  pv_get_seeds_t& state,
+  const pv_get_seeds_t& state,
   pv_get_seeds_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

@@ -9,6 +9,7 @@ __constant__ float Configuration::compass_ut_t::min_momentum_final;
 __constant__ float Configuration::compass_ut_t::min_pt_final;
 __constant__ float Configuration::compass_ut_t::hit_tol_2;
 __constant__ float Configuration::compass_ut_t::delta_tx_2;
+__constant__ uint Configuration::compass_ut_t::max_considered_before_found;
 
 __global__ void compass_ut(
   uint* dev_ut_hits, // actual hit content

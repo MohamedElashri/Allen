@@ -32,16 +32,11 @@ namespace {
   using namespace Allen::Units;
 } // namespace
 
-// Read buffer containing the number of events, offsets to the start
-// of the event and the event data
-using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>>;
-using ReadBuffers = std::vector<ReadBuffer>;
-
-// A slice contains transposed bank data, offsets to the start of each
-// set of banks and the number of sets of banks
-using Slice = std::tuple<gsl::span<char>, gsl::span<unsigned int>, size_t>;
-using BankSlices = std::vector<Slice>;
-using Slices = std::array<BankSlices, NBankTypes>;
+struct BufferStatus {
+  bool writable = true;
+  int work_counter = 0;
+  std::vector<std::tuple<size_t, size_t>> intervals;
+};
 
 /**
  * @brief      Configuration parameters for the MDFProvider
@@ -99,52 +94,23 @@ public:
     std::vector<std::string> connections,
     MDFProviderConfig config = MDFProviderConfig {}) :
     InputProvider<MDFProvider<Banks...>> {n_slices, events_per_slice, n_events},
-    m_buffer_writable(config.n_buffers, true), m_slice_free(n_slices, true), m_banks_count {0},
-     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
+    m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, -1), m_slice_free(n_slices, true), m_banks_count {0},
+    m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
     // Preallocate prefetch buffer memory
     m_buffers.resize(config.n_buffers);
-    for (auto& [n_filled, event_offsets, buffer] : m_buffers) {
+    for (auto& [n_filled, event_offsets, buffer, transpose_start] : m_buffers) {
       buffer.resize(config.events_per_buffer * average_event_size * bank_size_fudge_factor * kB);
       event_offsets.resize(config.offsets_size);
       event_offsets[0] = 0;
       n_filled = 0;
+      transpose_start = 0;
     }
 
     // Reinitialize to take the possible minimum number of events per
     // slice into account
     events_per_slice = this->events_per_slice();
-
-    // Allocate slice memory that will contain transposed banks ready
-    // for processing by the Allen kernels
-    for (auto bank_type : {Banks...}) {
-      auto it = BankSizes.find(bank_type);
-      auto ib = to_integral<BankTypes>(bank_type);
-      if (it == end(BankSizes)) {
-        throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
-      }
-
-      // Fudge with extra 20% memory
-      size_t n_bytes = std::lround(it->second * events_per_slice * bank_size_fudge_factor * kB);
-      auto& slices = m_slices[ib];
-      slices.reserve(n_slices);
-      for (size_t i = 0; i < n_slices; ++i) {
-        char* events_mem = nullptr;
-        uint* offsets_mem = nullptr;
-
-#ifndef NO_CUDA
-        cudaCheck(cudaMallocHost((void**) &events_mem, n_bytes));
-        cudaCheck(cudaMallocHost((void**) &offsets_mem, (events_per_slice + 1) * sizeof(uint)));
-#else
-        events_mem = static_cast<char*>(malloc(n_bytes));
-        offsets_mem = static_cast<uint*>(malloc((events_per_slice + 1) * sizeof(uint)));
-#endif
-        offsets_mem[0] = 0;
-        slices.emplace_back(
-          gsl::span<char> {events_mem, n_bytes}, gsl::span<uint> {offsets_mem, events_per_slice + 1}, 1);
-      }
-    }
 
     // Initialize the current input filename
     m_current = m_connections.begin();
@@ -186,18 +152,31 @@ public:
 
         // Offsets are to the start of the event, which includes the header
         auto i_read = m_prefetched.front();
-        auto& [n_filled, event_offsets, buffer] = m_buffers[i_read];
+        auto& [n_filled, event_offsets, buffer, transpose_start] = m_buffers[i_read];
         std::tie(count_success, m_banks_count) = fill_counts({buffer.data(), event_offsets[1]});
         if (!count_success) {
           error_cout << "Failed to determine bank counts\n";
           m_read_error = true;
         }
         else {
-          for (auto bank_type : this->types()) {
-            debug_cout << std::setw(10) << bank_name(bank_type) << " banks:" << std::setw(4)
-                       << m_banks_count[to_integral(bank_type)] << "\n";
-            m_sizes_known = true;
-          }
+          m_sizes_known = true;
+
+          // Allocate slice memory that will contain transposed banks ready
+          // for processing by the Allen kernels
+          auto size_fun = [events_per_slice, this](BankTypes bank_type) -> std::tuple<size_t, size_t> {
+            auto it = BankSizes.find(bank_type);
+            auto ib = to_integral<BankTypes>(bank_type);
+            if (it == end(BankSizes)) {
+              throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
+            }
+            auto it_id = std::find(m_bank_ids.begin(), m_bank_ids.end(), to_integral(bank_type));
+            auto lhcb_type = std::distance(m_bank_ids.begin(), it_id);
+            auto n_banks = m_banks_count[lhcb_type];
+            return {std::lround(
+                      ((1 + n_banks) * sizeof(uint32_t) + it->second) * events_per_slice * bank_size_fudge_factor * kB),
+                    events_per_slice};
+          };
+          m_slices = allocate_slices<Banks...>(n_slices, size_fun);
         }
       }
     }
@@ -222,8 +201,6 @@ public:
       }
     }
   }
-
-  static constexpr const char* name = "MDF";
 
   /// Destructor
   virtual ~MDFProvider()
@@ -284,9 +261,9 @@ public:
    *
    * @param      optional timeout
    *
-   * @return     (good slice, timed out, slice index, number of events in slice)
+   * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
     std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
   {
     bool timed_out = false, done = false;
@@ -297,9 +274,8 @@ public:
       // one is; use a timeout if requested
       if (m_transposed.empty()) {
         auto wakeup = [this] {
-          auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
-          return (
-            !m_transposed.empty() || m_read_error || (m_transpose_done && n_writable == m_buffer_writable.size()));
+          auto n_writable = count_writable();
+          return (!m_transposed.empty() || m_read_error || (m_transpose_done && n_writable == m_buffer_status.size()));
         };
         if (timeout) {
           timed_out = !m_transpose_cond.wait_for(lock, std::chrono::milliseconds {*timeout}, wakeup);
@@ -315,9 +291,9 @@ public:
     }
 
     // Check if I/O and transposition is done and return a slice index
-    auto n_writable = std::accumulate(m_buffer_writable.begin(), m_buffer_writable.end(), 0ul);
-    done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_writable.size();
-    return {!m_read_error && !done, timed_out, slice_index, m_read_error ? 0 : n_filled};
+    auto n_writable = count_writable();
+    done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_status.size();
+    return {!m_read_error, done, timed_out, slice_index, n_filled};
   }
 
   /**
@@ -331,21 +307,82 @@ public:
   {
     // Check if a slice was acually in use before and if it was, only
     // notify the transpose threads that a free slice is available
-    bool freed = false;
+    bool freed = false, set_writable = false;
+    int i_read = 0;
     {
       std::unique_lock<std::mutex> lock {m_slice_mut};
       if (!m_slice_free[slice_index]) {
         m_slice_free[slice_index] = true;
         freed = true;
+
+        // Clear relation between slice and buffer
+        i_read = m_slice_to_buffer[slice_index];
+        auto& status = m_buffer_status[i_read];
+        m_slice_to_buffer[slice_index] = -1;
+
+        if (
+          status.work_counter == 0 &&
+          (std::find(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), i_read) == m_slice_to_buffer.end())) {
+          status.writable = true;
+          set_writable = true;
+          // "Reset" buffer; the 0th offset is always 0. Set transpose
+          // start to 0.
+          std::get<0>(m_buffers[i_read]) = 0;
+          std::get<3>(m_buffers[i_read]) = 0;
+          m_transpose_done = m_done && m_prefetched.empty();
+        }
       }
     }
     if (freed) {
       this->debug_output("Freed slice " + std::to_string(slice_index));
       m_slice_cond.notify_one();
     }
+    if (set_writable) {
+      this->debug_output("Set buffer " + std::to_string(i_read) + " writable");
+      m_prefetch_cond.notify_one();
+    }
+  }
+
+  void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events, std::vector<size_t>& sizes)
+    const override
+  {
+    auto const header_size = LHCb::MDFHeader::sizeOf(3);
+
+    // The first bank in the read buffer is the DAQ bank, which
+    // contains the MDF header as bank payload
+    auto const daq_bank_size = LHCb::RawBank::hdrSize() + header_size;
+    auto i_read = m_slice_to_buffer[slice_index];
+    auto const& event_offsets = std::get<1>(m_buffers[i_read]);
+    size_t transpose_start = std::get<3>(m_buffers[i_read]);
+    for (size_t i = 0; i < selected_events.size(); ++i) {
+      auto event = selected_events[i];
+      sizes[i] = event_offsets[transpose_start + event + 1] - event_offsets[transpose_start + event] - daq_bank_size;
+    }
+  }
+
+  void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const override
+  {
+    // The first bank in the read buffer is the DAQ bank, which
+    // contains the MDF header as bank payload
+    auto const header_size = LHCb::MDFHeader::sizeOf(3);
+    auto const daq_bank_size = LHCb::RawBank::hdrSize() + header_size;
+
+    auto i_read = m_slice_to_buffer[slice_index];
+    auto const& [n_filled, event_offsets, event_buffer, transpose_start] = m_buffers[i_read];
+    auto const event_size =
+      event_offsets[transpose_start + event + 1] - event_offsets[event + transpose_start] - daq_bank_size;
+    auto const* banks_start = event_buffer.data() + event_offsets[event + transpose_start] + daq_bank_size;
+    std::memcpy(buffer.data(), banks_start, event_size);
   }
 
 private:
+  size_t count_writable() const
+  {
+    return std::accumulate(m_buffer_status.begin(), m_buffer_status.end(), 0ul, [](size_t s, BufferStatus const& stat) {
+      return s + stat.writable;
+    });
+  }
+
   /**
    * @brief      Function to run in each thread transposing events
    *
@@ -379,8 +416,9 @@ private:
         i_read = m_prefetched.front();
         m_prefetched.pop_front();
         this->debug_output("Got read buffer index " + std::to_string(i_read), thread_id);
-
-        m_buffer_writable[i_read] = false;
+        auto& status = m_buffer_status[i_read];
+        status.writable = false;
+        ++status.work_counter;
       }
 
       // Get a slice to write to
@@ -407,6 +445,7 @@ private:
         }
         if (it != m_slice_free.end()) {
           slice_index = distance(m_slice_free.begin(), it);
+          m_slice_to_buffer[*slice_index] = i_read;
           this->debug_output("Got slice index " + std::to_string(*slice_index), thread_id);
         }
       }
@@ -431,6 +470,8 @@ private:
 
       if (m_read_error || !good) {
         m_read_error = true;
+        auto& status = m_buffer_status[i_read];
+        --status.work_counter;
         m_transpose_cond.notify_one();
         break;
       }
@@ -445,21 +486,19 @@ private:
       // Check if the read buffer is now empty. If it is, it can be
       // reused, otherwise give it to another transpose thread once a
       // new target slice is available
-      if (n_transposed == std::get<0>(m_buffers[i_read])) {
+      if (n_transposed == std::get<0>(m_buffers[i_read]) - std::get<3>(m_buffers[i_read])) {
         slice_index.reset();
         {
           std::unique_lock<std::mutex> lock {m_prefetch_mut};
-          m_buffer_writable[i_read] = true;
-          // "Reset" buffer; the 0th offset is always 0.
-          std::get<0>(m_buffers[i_read]) = 0;
-          m_transpose_done = m_done && m_prefetched.empty();
+          auto& status = m_buffer_status[i_read];
+          --status.work_counter;
         }
-        m_prefetch_cond.notify_one();
       }
       else {
         // Put this prefetched slice back on the prefetched queue so
         // somebody else can finish it
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
+        std::get<3>(m_buffers[i_read]) = n_transposed;
         m_prefetched.push_front(i_read);
       }
     }
@@ -536,27 +575,30 @@ private:
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
       // prefetch buffer
-      auto it = m_buffer_writable.end();
+      auto it = m_buffer_status.end();
       {
+        auto find_writable = [this] {
+          return std::find_if(
+            m_buffer_status.begin(), m_buffer_status.end(), [](const auto& stat) { return stat.writable; });
+        };
+
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
-        it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
-        if (it == m_buffer_writable.end()) {
+        it = find_writable();
+        if (it == m_buffer_status.end()) {
           this->debug_output("Waiting for free buffer");
-          m_prefetch_cond.wait(lock, [this] {
-            return std::find(m_buffer_writable.begin(), m_buffer_writable.end(), true) != m_buffer_writable.end() ||
-                   m_done;
-          });
+          m_prefetch_cond.wait(
+            lock, [this, &find_writable] { return (find_writable() != m_buffer_status.end()) || m_done; });
           if (m_done) {
             break;
           }
           else {
-            it = find(m_buffer_writable.begin(), m_buffer_writable.end(), true);
+            it = find_writable();
           }
         }
         // Flag the prefetch buffer as unavailable
-        *it = false;
+        it->writable = false;
       }
-      size_t i_buffer = distance(m_buffer_writable.begin(), it);
+      size_t i_buffer = distance(m_buffer_status.begin(), it);
       auto& read_buffer = m_buffers[i_buffer];
 
       // Read events into the prefetch buffer, open new files as
@@ -639,7 +681,7 @@ private:
   std::mutex m_prefetch_mut;
   std::condition_variable m_prefetch_cond;
   std::deque<size_t> m_prefetched;
-  std::vector<bool> m_buffer_writable;
+  std::vector<BufferStatus> m_buffer_status;
   std::unique_ptr<std::thread> m_prefetch_thread;
 
   // Atomics to flag errors and completion
@@ -659,6 +701,7 @@ private:
 
   // Memory slices, N for each raw bank type
   Slices m_slices;
+  std::vector<size_t> m_slice_to_buffer;
 
   // Mutex, condition varaible and queue for parallel transposition of slices
   std::mutex m_transpose_mut;

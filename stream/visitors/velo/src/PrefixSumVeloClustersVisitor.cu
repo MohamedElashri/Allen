@@ -4,7 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<prefix_sum_velo_clusters_t>(
-  prefix_sum_velo_clusters_t& state,
+  const prefix_sum_velo_clusters_t& state,
   prefix_sum_velo_clusters_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
