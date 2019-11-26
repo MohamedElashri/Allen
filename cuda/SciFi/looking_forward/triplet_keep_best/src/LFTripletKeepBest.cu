@@ -197,7 +197,7 @@ __global__ void lf_triplet_keep_best(
           const auto delta_slope = fabsf(velo_tx - slope_t1_t3);
           const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * delta_slope -
                           LookingForward::qop_p2 * delta_slope * delta_slope;
-          const auto updated_qop = eq / (1.f + 5.08211e+02f * eq);
+          const auto updated_qop = (delta_slope/fabsf(delta_slope))*eq / (1.f + 5.08211e+02f * eq);
 
           dev_scifi_tracks
             [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track +
