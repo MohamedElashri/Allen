@@ -89,6 +89,7 @@ struct HostBuffers {
   bool* host_single_muon_decisions;
   bool* host_disp_dimuon_decisions;
   bool* host_high_mass_dimuon_decisions;
+  bool* host_dimuon_soft_decisions;
 
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;
