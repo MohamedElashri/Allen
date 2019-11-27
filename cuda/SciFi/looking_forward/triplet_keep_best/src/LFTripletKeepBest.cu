@@ -12,16 +12,15 @@ __global__ void lf_triplet_keep_best(
   const LookingForward::Constants* dev_looking_forward_constants,
   SciFi::TrackHits* dev_scifi_tracks,
   uint* dev_atomics_scifi,
-  const float* dev_scifi_lf_triplet_best,
   const int* dev_initial_windows,
   const bool* dev_scifi_lf_process_track,
-  const int16_t* dev_scifi_lf_found_triplets,
-  const int16_t* dev_scifi_lf_number_of_found_triplets,
+  const int* dev_scifi_lf_found_triplets,
+  const int8_t* dev_scifi_lf_number_of_found_triplets,
   uint* dev_scifi_lf_total_number_of_found_triplets)
 {
   // Keep best for each h1 hit
-  __shared__ int16_t best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
-  __shared__ int16_t found_triplets[2 * LookingForward::maximum_number_of_triplets_per_seed];
+  __shared__ int best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
+  __shared__ int found_triplets[2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -50,9 +49,6 @@ __global__ void lf_triplet_keep_best(
       const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
       const auto velo_tx = velo_states.tx[velo_states_index];
 
-      const auto best_chi2 = dev_scifi_lf_triplet_best + current_ut_track_index * LookingForward::n_triplet_seeds *
-                                                           LookingForward::maximum_number_of_triplets_per_seed;
-
       // Initialize shared memory buffers
       __syncthreads();
 
@@ -67,16 +63,13 @@ __global__ void lf_triplet_keep_best(
            triplet_index];
         const auto scifi_lf_found_triplets =
           dev_scifi_lf_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-                                          LookingForward::maximum_number_of_triplets_per_seed;
+                                  LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread;
 
         if (number_of_found_triplets > 0) {
           const auto insert_index =
             atomicAdd(dev_scifi_lf_total_number_of_found_triplets + current_ut_track_index, number_of_found_triplets);
           for (int k = 0; k < number_of_found_triplets; ++k) {
-            const auto found_triplet = scifi_lf_found_triplets
-              [triplet_index *
-                 (LookingForward::maximum_number_of_triplets_per_seed / LookingForward::max_number_of_hits_in_window) +
-               k];
+            const auto found_triplet = scifi_lf_found_triplets[triplet_index * LookingForward::maximum_number_of_triplets_per_thread + k];
             found_triplets[insert_index + k] = found_triplet;
           }
         }
@@ -91,19 +84,6 @@ __global__ void lf_triplet_keep_best(
 
       const auto number_of_tracks = dev_scifi_lf_total_number_of_found_triplets[current_ut_track_index];
 
-      // if (Configuration::verbosity_level >= logger::info) {
-      //   printf("Number of tracks: %i\n", number_of_tracks);
-
-      //   // uint population = 0;
-      //   printf("Best chi2s:");
-      //   for (uint j = 0; j < number_of_tracks; ++j) {
-      //     const auto chi2_index = found_triplets[j];
-      //     const auto chi2 = best_chi2[chi2_index];
-      //     printf(" %f (%i),", best_chi2[chi2_index], chi2_index);
-      //   }
-      //   printf("\n");
-      // }
-
       // Now, we have the best candidates populated in best_chi2 and best_h0h2
       // Sort the candidates (insertion sort) into best_triplets
 
@@ -111,63 +91,35 @@ __global__ void lf_triplet_keep_best(
       //       then just store them all in best_triplets
       if (number_of_tracks < LookingForward::maximum_number_of_candidates_per_ut_track) {
         for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
-          const auto chi2_index = found_triplets[j];
-          best_triplets[j] = static_cast<int16_t>(chi2_index);
+          best_triplets[j] = found_triplets[j];
         }
       }
       else {
         for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
-          const auto chi2_index = found_triplets[j];
-          const auto chi2 = best_chi2[chi2_index];
+          const auto chi2 = found_triplets[j];
 
           int insert_position = 0;
           for (uint k = 0; k < number_of_tracks; ++k) {
-            const auto other_chi2_index = found_triplets[k];
-            const auto other_chi2 = best_chi2[other_chi2_index];
-            insert_position += chi2 > other_chi2 || (chi2 == other_chi2 && chi2_index < other_chi2_index);
+            const auto other_chi2 = found_triplets[k];
+            insert_position += chi2 > other_chi2 || (chi2 == other_chi2 && j < k);
           }
 
           if (insert_position < LookingForward::maximum_number_of_candidates_per_ut_track) {
-            best_triplets[insert_position] = static_cast<int16_t>(chi2_index);
+            best_triplets[insert_position] = chi2;
           }
         }
       }
 
-      // if (Configuration::verbosity_level >= logger::info) {
-      //   // uint population = 0;
-      //   printf("Best triplets:");
-      //   for (uint j = 0; j < LookingForward::maximum_number_of_candidates_per_ut_track; ++j) {
-      //     const auto k = best_triplets[j];
-      //     if (k != -1) {
-      //       printf(" %f,", best_chi2[k]);
-      //     }
-      //   }
-      //   printf("\n");
-      // }
-
       __syncthreads();
-
-      // if (Configuration::verbosity_level >= logger::debug) {
-      //   printf("Best triplets: ");
-      //   for (uint j = 0; j < LookingForward::maximum_number_of_candidates_per_ut_track; ++j) {
-      //     printf(" %i,", best_triplets[j]);
-      //   }
-      //   printf("\n");
-      // }
 
       // Save best triplet candidates as TrackHits candidates for further extrapolation
       for (uint16_t j = threadIdx.x; j < LookingForward::maximum_number_of_candidates_per_ut_track; j += blockDim.x) {
         const auto k = best_triplets[j];
         if (k != -1) {
-          const auto triplet_seed = k / (LookingForward::maximum_number_of_triplets_per_seed);
-          const auto triplet_element = k % (LookingForward::maximum_number_of_triplets_per_seed);
-
-          const float chi2 = best_chi2[k];
-          const int* chi2_intp = reinterpret_cast<const int*>(&chi2);
-          const auto h1_rel = chi2_intp[0] & 0x1F;
-
-          const auto h0_rel = triplet_element / LookingForward::max_number_of_hits_in_window;
-          const auto h2_rel = triplet_element % LookingForward::max_number_of_hits_in_window;
+          const auto triplet_seed = (k >> 15) & 0x01;
+          const auto h0_rel = (k >> 10) & 0x1F;
+          const auto h1_rel = (k >> 5) & 0x1F;
+          const auto h2_rel = k & 0x1F;
 
           // Create triplet candidate with all information we have
           const int current_insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);

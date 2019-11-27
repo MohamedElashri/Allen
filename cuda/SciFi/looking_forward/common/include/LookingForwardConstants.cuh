@@ -25,6 +25,7 @@ namespace LookingForward {
   constexpr int maximum_number_of_triplets_per_h1 = 1;
   constexpr int maximum_number_of_triplets_per_seed = max_number_of_hits_in_window * max_number_of_hits_in_window;
   constexpr int n_triplet_seeds = 2;
+  constexpr int maximum_number_of_triplets_per_thread = 8;
 
   constexpr int maximum_number_of_candidates_per_ut_track = 12;
 

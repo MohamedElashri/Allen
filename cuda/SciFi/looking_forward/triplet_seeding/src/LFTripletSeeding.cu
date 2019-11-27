@@ -16,10 +16,9 @@ __global__ void lf_triplet_seeding(
   const int* dev_initial_windows,
   const LookingForward::Constants* dev_looking_forward_constants,
   const MiniState* dev_ut_states,
-  float* dev_scifi_lf_triplet_best,
   const bool* dev_scifi_lf_process_track,
-  int16_t* dev_scifi_lf_found_triplets,
-  int16_t* dev_scifi_lf_number_of_found_triplets)
+  int* dev_scifi_lf_found_triplets,
+  int8_t* dev_scifi_lf_number_of_found_triplets)
 {
   __shared__ float shared_precalc_expected_x1 [2 * LookingForward::max_number_of_hits_in_window];
 
@@ -94,10 +93,8 @@ __global__ void lf_triplet_seeding(
             velo_state.tx,
             x_at_z_magnet,
             shared_precalc_expected_x1 + triplet_seed * LookingForward::max_number_of_hits_in_window,
-            dev_scifi_lf_triplet_best + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-                                  LookingForward::maximum_number_of_triplets_per_seed,
             dev_scifi_lf_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-                                  LookingForward::maximum_number_of_triplets_per_seed,
+                                  LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread,
             dev_scifi_lf_number_of_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
                                   LookingForward::triplet_seeding_block_dim_x,
             triplet_seed);

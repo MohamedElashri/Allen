@@ -20,9 +20,8 @@ __device__ void lf_triplet_seeding_impl(
   const float velo_tx,
   const float x_at_z_magnet,
   float* shared_x1,
-  float* scifi_lf_triplet_best,
-  int16_t* scifi_lf_found_triplets,
-  int16_t* scifi_lf_number_of_found_triplets,
+  int* scifi_lf_found_triplets,
+  int8_t* scifi_lf_number_of_found_triplets,
   const uint triplet_seed)
 {
   const int l0_start = initial_windows[(layer_0 * 8) * ut_total_number_of_tracks];
@@ -76,7 +75,7 @@ __device__ void lf_triplet_seeding_impl(
       const bool process_element =
         x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes);
 
-      if (process_element) {
+      if (process_element && number_of_found_triplets < LookingForward::maximum_number_of_triplets_per_thread) {
         // Binary search of candidate
         const auto candidate_index = binary_search_leftmost(shared_x1, l1_size, expected_x1);
 
@@ -101,21 +100,19 @@ __device__ void lf_triplet_seeding_impl(
           //   printf("Best triplet found: %i, %i, %i, %f\n", h0_rel, h2_rel, best_j, best_chi2);
           // }
 
-          // Encode j into chi2
+          // Store chi2, h0, h1 and h2 encoded in a 32-bit type
+          // Bits (LSB):
+          //  0-4: h2_rel
+          //  5-9: h1_rel
+          //  10-14: h0_rel
+          //  15: triplet seed
+          //  16-31: most significant bits of chi2
           int* best_chi2_int = reinterpret_cast<int*>(&best_chi2);
-          best_chi2_int[0] = (best_chi2_int[0] & 0xFFFFFFE0) + best_h1_rel;
+          int h0_h1_h2_rel = (triplet_seed << 15) | (h0_rel << 10) | (best_h1_rel << 5) | h2_rel;
 
-          // Store chi2 with encoded j
-          scifi_lf_triplet_best[h0_rel * LookingForward::max_number_of_hits_in_window + h2_rel] = best_chi2;
-
-          // Store in per-thread storage the found hits
-          scifi_lf_found_triplets
-            [tid_x *
-               (LookingForward::maximum_number_of_triplets_per_seed / LookingForward::triplet_seeding_block_dim_x) +
-             number_of_found_triplets++] =
-              static_cast<int16_t>(
-                triplet_seed * LookingForward::maximum_number_of_triplets_per_seed +
-                h0_rel * LookingForward::max_number_of_hits_in_window + h2_rel);
+          scifi_lf_found_triplets[
+            tid_x * LookingForward::maximum_number_of_triplets_per_thread +
+            number_of_found_triplets++] = (best_chi2_int[0] & 0xFFFF0000) + h0_h1_h2_rel;
         }
       }
     }

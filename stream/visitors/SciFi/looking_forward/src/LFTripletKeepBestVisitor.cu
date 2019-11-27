@@ -48,7 +48,6 @@ void SequenceVisitor::visit<lf_triplet_keep_best_t>(
     constants.dev_looking_forward_constants,
     arguments.offset<dev_scifi_lf_tracks>(),
     arguments.offset<dev_scifi_lf_atomics>(),
-    arguments.offset<dev_scifi_lf_triplet_best>(),
     arguments.offset<dev_scifi_lf_initial_windows>(),
     arguments.offset<dev_scifi_lf_process_track>(),
     arguments.offset<dev_scifi_lf_found_triplets>(),
