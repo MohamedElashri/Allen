@@ -52,47 +52,6 @@ __global__ void lf_extend_tracks_uv(
       [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
        scifi_track_index];
 
-    const auto project_y = [](const LookingForward::Constants* dev_looking_forward_constants, const MiniState& ut_state, const float x_hit, const float z_module, const int layer) {
-      const auto Dx = x_hit - (ut_state.x + ut_state.tx * (z_module - ut_state.z));
-      const auto tx = ut_state.tx;
-      const auto tx2 = ut_state.tx * ut_state.tx;
-      const auto tx3 = ut_state.tx * ut_state.tx * ut_state.tx;
-      const auto tx4 = ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx;
-      const auto tx5 = ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx;
-      const auto ty = ut_state.ty;
-      const auto ty3 = ut_state.ty * ut_state.ty * ut_state.ty;
-      const auto ty5 = ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty;
-
-      const auto C1y_0 = dev_looking_forward_constants->parametrization_layers[18 * layer];
-      const auto C1y_1 = dev_looking_forward_constants->parametrization_layers[18 * layer + 1];
-      const auto C1y_2 = dev_looking_forward_constants->parametrization_layers[18 * layer + 2];
-      const auto C1y_3 = dev_looking_forward_constants->parametrization_layers[18 * layer + 3];
-      const auto C1y_4 = dev_looking_forward_constants->parametrization_layers[18 * layer + 4];
-      const auto C1y_5 = dev_looking_forward_constants->parametrization_layers[18 * layer + 5];
-      const auto C2y_0 = dev_looking_forward_constants->parametrization_layers[18 * layer + 6];
-      const auto C2y_1 = dev_looking_forward_constants->parametrization_layers[18 * layer + 7];
-      const auto C2y_2 = dev_looking_forward_constants->parametrization_layers[18 * layer + 8];
-      const auto C2y_3 = dev_looking_forward_constants->parametrization_layers[18 * layer + 9];
-      const auto C2y_4 = dev_looking_forward_constants->parametrization_layers[18 * layer + 10];
-      const auto C2y_5 = dev_looking_forward_constants->parametrization_layers[18 * layer + 11];
-      const auto C3y_0 = dev_looking_forward_constants->parametrization_layers[18 * layer + 12];
-      const auto C3y_1 = dev_looking_forward_constants->parametrization_layers[18 * layer + 13];
-      const auto C3y_2 = dev_looking_forward_constants->parametrization_layers[18 * layer + 14];
-      const auto C3y_3 = dev_looking_forward_constants->parametrization_layers[18 * layer + 15];
-      const auto C3y_4 = dev_looking_forward_constants->parametrization_layers[18 * layer + 16];
-      const auto C3y_5 = dev_looking_forward_constants->parametrization_layers[18 * layer + 17];
-
-      const auto C1y =
-        C1y_0 * tx * ty + C1y_1 * tx3 * ty + C1y_2 * tx * ty3 + C1y_3 * tx5 * ty + C1y_4 * tx3 * ty3 + C1y_5 * tx * ty5;
-      const auto C2y = C2y_0 * ty + C2y_1 * tx2 * ty + C2y_2 * ty3 + C2y_3 * tx4 * ty + C2y_4 * tx2 * ty3 + C2y_5 * ty5;
-      const auto C3y =
-        C3y_0 * tx * ty + C3y_1 * tx3 * ty + C3y_2 * tx * ty3 + C3y_3 * tx5 * ty + C3y_4 * tx3 * ty3 + C3y_5 * tx * ty5;
-      const auto Dy = Dx * C1y + Dx * Dx * C2y + Dx * Dx * Dx * C3y;
-      const auto y = ut_state.y + ut_state.ty * (z_module - ut_state.z) + Dy;
-
-      return y;
-    };
-
     for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
       const auto layer4 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
       const auto z4 = dev_looking_forward_constants->Zone_zPos[layer4];
@@ -106,7 +65,7 @@ __global__ void lf_extend_tracks_uv(
       const auto dz = z4 - LookingForward::z_mid_t;
       const auto expected_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
       const auto expected_y =
-        project_y(dev_looking_forward_constants, ut_state, expected_x, z4, dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
+        LookingForward::project_y(dev_looking_forward_constants, ut_state, expected_x, z4, dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
       const auto predicted_x =
         expected_x - expected_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1];
 

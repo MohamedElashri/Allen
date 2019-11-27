@@ -53,13 +53,13 @@ __global__ void lf_triplet_keep_best(
       __syncthreads();
 
       // Populate dev_scifi_lf_total_number_of_found_triplets and found_triplets
-      for (uint j = threadIdx.x; j < 2 * LookingForward::max_number_of_hits_in_window; j += blockDim.x) {
-        const auto triplet_seed = j / LookingForward::max_number_of_hits_in_window;
-        const auto triplet_index = j % LookingForward::max_number_of_hits_in_window;
+      for (uint j = threadIdx.x; j < 2 * LookingForward::triplet_seeding_block_dim_x; j += blockDim.x) {
+        const auto triplet_seed = j / LookingForward::triplet_seeding_block_dim_x;
+        const auto triplet_index = j % LookingForward::triplet_seeding_block_dim_x;
 
         const auto number_of_found_triplets = dev_scifi_lf_number_of_found_triplets
           [(current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-             LookingForward::max_number_of_hits_in_window +
+             LookingForward::triplet_seeding_block_dim_x +
            triplet_index];
         const auto scifi_lf_found_triplets =
           dev_scifi_lf_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
