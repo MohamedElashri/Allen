@@ -3,10 +3,7 @@
 __global__ void lf_triplet_keep_best(
   uint32_t* dev_scifi_hits,
   const uint32_t* dev_scifi_hit_count,
-  const uint* dev_atomics_velo,
-  const char* dev_velo_states,
   const uint* dev_atomics_ut,
-  const uint* dev_ut_track_velo_indices,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
   const LookingForward::Constants* dev_looking_forward_constants,
@@ -25,10 +22,6 @@ __global__ void lf_triplet_keep_best(
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
-  // Velo datatypes
-  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, dev_atomics_velo[2 * number_of_events]};
-  const uint velo_tracks_offset_event = dev_atomics_velo[number_of_events + event_number];
-
   // UT consolidated tracks
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
   const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
@@ -39,15 +32,11 @@ __global__ void lf_triplet_keep_best(
   const SciFi::HitCount scifi_hit_count {(uint32_t*) dev_scifi_hit_count, event_number};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
   const SciFi::Hits scifi_hits {dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
-  const auto event_offset = scifi_hit_count.event_offset();
 
   for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
 
     if (dev_scifi_lf_process_track[current_ut_track_index]) {
-      const auto velo_track_index = dev_ut_track_velo_indices[current_ut_track_index];
-      const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
-      const auto velo_tx = velo_states.tx[velo_states_index];
 
       // Initialize shared memory buffers
       __syncthreads();
@@ -140,17 +129,6 @@ __global__ void lf_triplet_keep_best(
           const auto h1 = l1_start + h1_rel;
           const auto h2 = l2_start + h2_rel;
 
-          const float x0 = scifi_hits.x0[event_offset + h0];
-          const float x2 = scifi_hits.x0[event_offset + h2];
-          const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
-          const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_2];
-
-          const auto slope_t1_t3 = (x0 - x2) / (z0 - z2);
-          const auto delta_slope = slope_t1_t3 - velo_tx;
-          const auto eq = LookingForward::qop_p0 + LookingForward::qop_p1 * fabsf(delta_slope) -
-                          LookingForward::qop_p2 * delta_slope * delta_slope;
-          const auto updated_qop = (delta_slope/fabsf(delta_slope))*eq / (1.f + 5.08211e+02f * eq);
-
           dev_scifi_tracks
             [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track +
              current_insert_index] = SciFi::TrackHits {static_cast<uint16_t>(h0),
@@ -160,7 +138,7 @@ __global__ void lf_triplet_keep_best(
                                                        static_cast<uint16_t>(layer_1),
                                                        static_cast<uint16_t>(layer_2),
                                                        0.f,
-                                                       updated_qop,
+                                                       0.f,
                                                        static_cast<uint16_t>(i)};
         }
       }

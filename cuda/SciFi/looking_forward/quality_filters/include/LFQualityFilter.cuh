@@ -25,7 +25,12 @@ __global__ void lf_quality_filter(
   const float* dev_scifi_lf_parametrization_length_filter,
   float* dev_scifi_lf_y_parametrization_length_filter,
   float* dev_scifi_lf_parametrization_consolidate,
-  const MiniState* dev_ut_states);
+  const MiniState* dev_ut_states,
+  const char* dev_velo_states,
+  const float* dev_magnet_polarity,
+  const uint* dev_atomics_velo,
+  const uint* dev_velo_track_hit_number,
+  const uint* dev_ut_track_velo_indices);
 
 ALGORITHM(
   lf_quality_filter,
@@ -41,4 +46,8 @@ ALGORITHM(
     dev_scifi_lf_parametrization_length_filter,
     dev_scifi_lf_y_parametrization_length_filter,
     dev_scifi_lf_parametrization_consolidate,
-    dev_ut_states))
+    dev_ut_states,
+    dev_velo_states,
+    dev_atomics_velo,
+    dev_velo_track_hit_number,
+    dev_ut_track_velo_indices))

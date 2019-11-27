@@ -39,10 +39,7 @@ void SequenceVisitor::visit<lf_triplet_keep_best_t>(
   state.set_arguments(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_states>(),
     arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_ut_track_velo_indices>(),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
     constants.dev_looking_forward_constants,

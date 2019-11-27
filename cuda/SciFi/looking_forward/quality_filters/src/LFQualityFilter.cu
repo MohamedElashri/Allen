@@ -14,7 +14,12 @@ __global__ void lf_quality_filter(
   const float* dev_scifi_lf_parametrization_length_filter,
   float* dev_scifi_lf_y_parametrization_length_filter,
   float* dev_scifi_lf_parametrization_consolidate,
-  const MiniState* dev_ut_states)
+  const MiniState* dev_ut_states,
+  const char* dev_velo_states,
+  const float* dev_magnet_polarity,
+  const uint* dev_atomics_velo,
+  const uint* dev_velo_track_hit_number,
+  const uint* dev_ut_track_velo_indices)
 {
   if (Configuration::verbosity_level >= logger::debug) {
     if (blockIdx.y == 0) {
@@ -24,6 +29,13 @@ __global__ void lf_quality_filter(
 
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
+
+  // Velo consolidated types
+  const Velo::Consolidated::Tracks velo_tracks {
+    (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
+
+  const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
 
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
   const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
@@ -170,6 +182,34 @@ __global__ void lf_quality_filter(
       dev_scifi_lf_parametrization_consolidate
         [5 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track +
          new_scifi_track_index] = y_m;
+
+      // Update qop of the track
+      const auto velo_track_index = dev_ut_track_velo_indices[ut_event_tracks_offset + track.ut_track_index];
+      const auto velo_states_index = velo_tracks_offset_event + velo_track_index;
+      const auto velo_state = velo_states.getMiniState(velo_states_index);
+
+      const auto x_at_ref = c1;
+      const auto dz_magnet_param = dev_looking_forward_constants->zMagnetParams[0] - LookingForward::z_mid_t;
+      const auto x_at_magnet_param = c1 + b1 * dz_magnet_param + a1 * dz_magnet_param * dz_magnet_param * (1.f + d_ratio * dz_magnet_param);
+
+      const auto d_slope = (x_at_ref - x_at_magnet_param) / (LookingForward::z_mid_t - dev_looking_forward_constants->zMagnetParams[0]);
+      const auto z_mag_slope = dev_looking_forward_constants->zMagnetParams[2] * velo_state.tx * velo_state.tx +
+                              dev_looking_forward_constants->zMagnetParams[3] * velo_state.ty * velo_state.ty;
+      const auto z_mag = dev_looking_forward_constants->zMagnetParams[0] + dev_looking_forward_constants->zMagnetParams[1] * d_slope * d_slope + z_mag_slope;
+      const auto x_mag = velo_state.x + velo_state.tx * (LookingForward::z_mid_t - z_mag);
+      
+      const auto bx = (x_at_ref - x_mag) / (LookingForward::z_mid_t - z_mag);
+      const auto bx2 = bx * bx;
+      const auto ty2 = velo_state.ty * velo_state.ty;
+      const auto coef =
+        (dev_looking_forward_constants->momentumParams[0] + dev_looking_forward_constants->momentumParams[1] * bx2 +
+         dev_looking_forward_constants->momentumParams[2] * bx2 * bx2 + dev_looking_forward_constants->momentumParams[3] * bx * velo_state.tx +
+         dev_looking_forward_constants->momentumParams[4] * ty2 + dev_looking_forward_constants->momentumParams[5] * ty2 * ty2);
+      const auto tx2 = velo_state.tx * velo_state.tx;
+      const auto slope2 = tx2 + ty2;
+      const auto proj = sqrtf((1.f + slope2) / (1.f + tx2));
+      const auto updated_qop = (velo_state.tx - bx) / (coef * Gaudi::Units::GeV * proj * dev_magnet_polarity[0]);
+      dev_scifi_tracks[new_scifi_track_index].qop = updated_qop;
     }
   }
 }

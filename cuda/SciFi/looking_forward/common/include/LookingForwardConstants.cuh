@@ -86,6 +86,9 @@ namespace LookingForward {
     uint extrapolation_uv_layers[6] {1, 2, 5, 6, 9, 10};
     uint reverse_layers[12] {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5};
 
+    // momentum Parametrization
+    float momentumParams[6] = {1.21014f, 0.637339f, -0.200292f, 0.632298f, 3.23793f, -27.0259f};
+
     // Parametrization for calculation of initial search window
     float ds_multi_param[3 * 5 * 5] {
       1.17058336e+03f,  0.00000000e+00f, 6.39200125e+03f,  0.00000000e+00f,  -1.45707998e+05f,
