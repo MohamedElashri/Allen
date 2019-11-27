@@ -31,7 +31,6 @@ __device__ void lf_triplet_seeding_impl(
   const float velo_tx,
   const float x_at_z_magnet,
   float* shared_x1,
-  float* scifi_lf_triplet_best,
-  int16_t* scifi_lf_found_triplets,
-  int16_t* scifi_lf_number_of_found_triplets,
+  int* scifi_lf_found_triplets,
+  int8_t* scifi_lf_number_of_found_triplets,
   const uint triplet_seed);

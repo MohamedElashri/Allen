@@ -45,7 +45,7 @@ namespace LookingForward {
     const MiniState& ut_state,
     const int station,
     const LookingForward::Constants* dev_looking_forward_constants);
-  
+
   __device__ std::tuple<float, float, float> lms_y_fit(
     const SciFi::TrackHits& track,
     const uint number_of_uv_hits,
@@ -56,4 +56,11 @@ namespace LookingForward {
     const float d_ratio,
     const uint event_offset,
     const LookingForward::Constants* dev_looking_forward_constants);
+
+  __device__ float project_y(
+    const LookingForward::Constants* dev_looking_forward_constants,
+    const MiniState& ut_state,
+    const float x_hit,
+    const float z_module,
+    const int layer);
 } // namespace LookingForward

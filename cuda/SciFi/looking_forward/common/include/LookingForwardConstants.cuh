@@ -19,13 +19,12 @@ namespace LookingForward {
   constexpr float chi2_max_triplet_single = 8.f;
   constexpr float chi2_max_extrapolation_to_x_layers_single = 2.f;
 
+  // Maximum number of hits in window
   constexpr int max_number_of_hits_in_window = 32;
   constexpr int triplet_seeding_block_dim_x = 32;
 
-  constexpr int maximum_number_of_triplets_per_h1 = 1;
-  constexpr int maximum_number_of_triplets_per_seed = max_number_of_hits_in_window * max_number_of_hits_in_window;
   constexpr int n_triplet_seeds = 2;
-
+  constexpr int maximum_number_of_triplets_per_thread = 8;
   constexpr int maximum_number_of_candidates_per_ut_track = 12;
 
   constexpr int track_min_hits = 9;
