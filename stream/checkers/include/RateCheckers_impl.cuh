@@ -16,6 +16,8 @@ void SequenceVisitor::check<run_hlt1_t>(
     host_buffers.host_single_muon_decisions,
     host_buffers.host_disp_dimuon_decisions,
     host_buffers.host_high_mass_dimuon_decisions,
+    host_buffers.host_dimuon_soft_decisions,
+
     host_buffers.host_atomics_scifi,
     host_buffers.host_sv_offsets,
     host_buffers.host_number_of_selected_events[0]);
@@ -55,6 +57,8 @@ void SequenceVisitor::check<run_hlt1_t>(
     host_buffers.host_single_muon_decisions,
     host_buffers.host_disp_dimuon_decisions,
     host_buffers.host_high_mass_dimuon_decisions,
+    host_buffers.host_dimuon_soft_decisions,
+
     host_buffers.host_atomics_scifi,
     host_buffers.host_sv_offsets,
     host_buffers.host_number_of_selected_events[0]);
