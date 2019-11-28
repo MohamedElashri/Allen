@@ -66,7 +66,8 @@ void RateChecker::accumulate(
     m_evts_high_mass_dimuon += high_mass_dimuon_pass;
     m_evts_dimuon_soft += dimuon_soft_pass;
 
-    m_evts_inc += one_track_pass || two_track_pass || single_muon_pass || disp_dimuon_pass || high_mass_dimuon_pass || dimuon_soft_pass;
+    m_evts_inc += one_track_pass || two_track_pass || single_muon_pass || disp_dimuon_pass || high_mass_dimuon_pass ||
+                  dimuon_soft_pass;
   }
 }
 
@@ -107,7 +108,7 @@ void RateChecker::report(size_t requested_events) const
     requested_events,
     1. * m_evts_high_mass_dimuon / requested_events * in_rate,
     binomial_error(requested_events, m_evts_high_mass_dimuon) * in_rate);
- std::printf(
+  std::printf(
     "Dimuon Soft: %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
     m_evts_dimuon_soft,
     requested_events,

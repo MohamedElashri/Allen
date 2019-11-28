@@ -327,7 +327,6 @@ void SelCheckerTuple::accumulate(
           m_sv_pass_disp_dimuon.push_back(event_disp_dimuon_decisions[vertex_idx] ? 1. : 0.);
           m_sv_pass_high_mass_dimuon.push_back(event_high_mass_dimuon_decisions[vertex_idx] ? 1. : 0.);
           m_sv_pass_dimuon_soft.push_back(event_dimuon_soft_decisions[vertex_idx] ? 1. : 0.);
-
         }
       }
     }
