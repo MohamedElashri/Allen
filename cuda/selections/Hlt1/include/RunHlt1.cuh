@@ -44,7 +44,8 @@ __global__ void run_hlt1(
   bool* dev_two_track_results,
   bool* dev_single_muon_results,
   bool* dev_disp_dimuon_results,
-  bool* dev_high_mass_dimuon_results);
+  bool* dev_high_mass_dimuon_results,
+  bool* dev_dimuon_soft_results);
 
 ALGORITHM(
   run_hlt1,
@@ -58,4 +59,5 @@ ALGORITHM(
     dev_two_track_results,
     dev_single_muon_results,
     dev_disp_dimuon_results,
-    dev_high_mass_dimuon_results))
+    dev_high_mass_dimuon_results,
+    dev_dimuon_soft_results))
