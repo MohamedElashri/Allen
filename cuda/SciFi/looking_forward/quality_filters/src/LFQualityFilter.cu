@@ -188,17 +188,24 @@ __global__ void lf_quality_filter(
       const auto velo_states_index = velo_tracks_offset_event + velo_track_index;
       const auto velo_state = velo_states.getMiniState(velo_states_index);
 
-      const auto x_at_ref = c1;
-      const auto dz_magnet_param = dev_looking_forward_constants->zMagnetParams[0] - LookingForward::z_mid_t;
-      const auto x_at_magnet_param = c1 + b1 * dz_magnet_param + a1 * dz_magnet_param * dz_magnet_param * (1.f + d_ratio * dz_magnet_param);
+      // const auto x_at_ref = c1;
+      // const auto dz_magnet_param = dev_looking_forward_constants->zMagnetParams[0] - LookingForward::z_mid_t;
+      // const auto x_at_magnet_param = c1 + b1 * dz_magnet_param + a1 * dz_magnet_param * dz_magnet_param * (1.f + d_ratio * dz_magnet_param);
+      // const auto d_slope = (x_at_ref - x_at_magnet_param) / (LookingForward::z_mid_t - dev_looking_forward_constants->zMagnetParams[0]);
+      // const auto z_mag_slope = dev_looking_forward_constants->zMagnetParams[2] * velo_state.tx * velo_state.tx +
+      //                         dev_looking_forward_constants->zMagnetParams[3] * velo_state.ty * velo_state.ty;
+      // const auto z_mag = dev_looking_forward_constants->zMagnetParams[0] + dev_looking_forward_constants->zMagnetParams[1] * d_slope * d_slope + z_mag_slope;
+      // const auto x_mag = velo_state.x + velo_state.tx * (LookingForward::z_mid_t - z_mag);
+      // const auto bx = (x_at_ref - x_mag) / (LookingForward::z_mid_t - z_mag);
 
-      const auto d_slope = (x_at_ref - x_at_magnet_param) / (LookingForward::z_mid_t - dev_looking_forward_constants->zMagnetParams[0]);
-      const auto z_mag_slope = dev_looking_forward_constants->zMagnetParams[2] * velo_state.tx * velo_state.tx +
-                              dev_looking_forward_constants->zMagnetParams[3] * velo_state.ty * velo_state.ty;
-      const auto z_mag = dev_looking_forward_constants->zMagnetParams[0] + dev_looking_forward_constants->zMagnetParams[1] * d_slope * d_slope + z_mag_slope;
-      const auto x_mag = velo_state.x + velo_state.tx * (LookingForward::z_mid_t - z_mag);
-      
-      const auto bx = (x_at_ref - x_mag) / (LookingForward::z_mid_t - z_mag);
+      const auto x0 = scifi_hits.x0[event_offset + track.hits[0]];
+      const auto x1 = scifi_hits.x0[event_offset + track.hits[2]];
+      const auto layer0 = scifi_hits.planeCode(event_offset + track.hits[0]) / 2;
+      const auto layer1 = scifi_hits.planeCode(event_offset + track.hits[2]) / 2;
+      const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];
+      const auto z1 = dev_looking_forward_constants->Zone_zPos[layer1];
+      const auto bx = (x0 - x1) / (z0 - z1);
+
       const auto bx2 = bx * bx;
       const auto ty2 = velo_state.ty * velo_state.ty;
       const auto coef =
