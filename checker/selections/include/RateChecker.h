@@ -10,6 +10,7 @@ void checkHlt1Rate(
   const bool* single_muon_decisions,
   const bool* disp_dimuon_decisions,
   const bool* high_mass_dimuon_decisions,
+  const bool* dimuon_soft_decisions,
   const int* track_atomics,
   const uint* sv_atomics,
   const uint selected_events,
@@ -33,6 +34,8 @@ public:
     bool const* single_muon_decisions,
     bool const* disp_dimuon_decisions,
     bool const* high_mass_dimuon_decisions,
+    bool const* dimuon_soft_decisions,
+
     int const* track_atomics,
     uint const* sv_atomics,
     uint const selected_events);
@@ -46,5 +49,6 @@ private:
   uint m_evts_single_muon = 0;
   uint m_evts_disp_dimuon = 0;
   uint m_evts_high_mass_dimuon = 0;
+  uint m_evts_dimuon_soft = 0;
   uint m_evts_inc = 0;
 };
