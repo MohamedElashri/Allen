@@ -27,8 +27,8 @@ def main():
     
     (options, args) = parser.parse_args()
 
-    _, throughput_text = produce_plot(options.throughput, unit="kHz", scale=1e-3, print_text=True)
-    _, breakdown_text = produce_plot(options.breakdown, unit="%", print_text=True)
+    throughput_text = produce_plot(options.throughput, unit="kHz", scale=1e-3, print_text=True)
+    breakdown_text = produce_plot(options.breakdown, unit="%", print_text=True)
 
     text = '{"text": "%s:\n```\n%s```\n\nBreakdown of sequence:\n```\n%s```"}' % (options.title, throughput_text, throughput_breakdown)
     print(text)
