@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from optparse import OptionParser
-from csv_plotter import produce_plot
+from csv_plotter import produce_plot, send_to_mattermost
 
 
 def main():
