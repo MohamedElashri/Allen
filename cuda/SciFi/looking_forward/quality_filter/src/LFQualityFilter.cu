@@ -1,4 +1,9 @@
 #include "LFQualityFilter.cuh"
+#include "Invoke.cuh"
+
+void lf_quality_filter_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_quality_filter(
   const uint32_t* dev_scifi_hits,

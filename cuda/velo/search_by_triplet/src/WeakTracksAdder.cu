@@ -1,5 +1,10 @@
 #include "SearchByTriplet.cuh"
 #include "WeakTracksAdder.cuh"
+#include "Invoke.cuh"
+
+void velo_weak_tracks_adder_t::invoke() {
+  invoke_helper(handler);
+}
 
 /**
  * @brief Calculates the parameters according to a root means square fit

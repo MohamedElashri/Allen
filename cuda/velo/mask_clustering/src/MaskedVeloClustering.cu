@@ -1,4 +1,9 @@
 #include "MaskedVeloClustering.cuh"
+#include "Invoke.cuh"
+
+void velo_masked_clustering_t::invoke() {
+  invoke_helper(handler);
+}
 
 // 8-connectivity mask
 __device__ uint64_t make_8con_mask(uint64_t cluster)

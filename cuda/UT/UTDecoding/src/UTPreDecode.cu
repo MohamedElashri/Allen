@@ -1,4 +1,9 @@
 #include "UTPreDecode.cuh"
+#include "Invoke.cuh"
+
+void ut_pre_decode_t::invoke() {
+  invoke_helper(handler);
+}
 
 /**
  * Iterate over raw banks / hits and store only the Y coordinate,

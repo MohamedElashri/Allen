@@ -1,4 +1,9 @@
 #include "pv_beamline_extrapolate.cuh"
+#include "Invoke.cuh"
+
+void pv_beamline_extrapolate_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void pv_beamline_extrapolate(
   char* dev_velo_kalman_beamline_states,

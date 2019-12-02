@@ -82,9 +82,5 @@ void SequenceVisitor::visit<lf_composite_track_seeding_t>(
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_scifi_lf_triplet_best>(), 0x7F, arguments.size<dev_scifi_lf_triplet_best>(), cuda_stream));
 
-  state.handler_lf_triplet_seeding.invoke();
-  state.handler_lf_triplet_keep_best.invoke();
-
-  // Extrapolate to all other layers
-  state.handler_lf_extend_tracks_x.invoke();
+  state.invoke();
 }

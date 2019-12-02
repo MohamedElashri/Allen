@@ -4,6 +4,11 @@
 #include <cassert>
 #include <cstdio>
 #include <tuple>
+#include "Invoke.cuh"
+
+void velo_fill_candidates_t::invoke() {
+  invoke_helper(handler);
+}
 
 /**
  * @brief Fills candidates according to the phi window,

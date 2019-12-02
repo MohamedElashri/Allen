@@ -1,4 +1,9 @@
 #include "MuonSortByStation.cuh"
+#include "Invoke.cuh"
+
+void muon_sort_by_station_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void muon_sort_by_station(
   uint* dev_storage_tile_id,

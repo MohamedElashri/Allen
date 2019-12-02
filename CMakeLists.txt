@@ -102,7 +102,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
     set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
@@ -177,7 +177,7 @@ else()
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
     set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")

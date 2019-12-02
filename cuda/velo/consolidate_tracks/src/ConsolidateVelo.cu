@@ -1,4 +1,9 @@
 #include "../include/ConsolidateVelo.cuh"
+#include "Invoke.cuh"
+
+void consolidate_velo_tracks_t::invoke() {
+  invoke_helper(handler);
+}
 
 /**
  * @brief Calculates the parameters according to a root means square fit

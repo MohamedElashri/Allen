@@ -12,6 +12,7 @@ file(GLOB scifi_lf_quality_filter "looking_forward/quality_filter/src/*cu")
 file(GLOB scifi_lf_quality_filter_x "looking_forward/quality_filter_x/src/*cu")
 file(GLOB scifi_lf_search_uv_windows "looking_forward/search_uv_windows/src/*cu")
 file(GLOB scifi_lf_fit "looking_forward/fit/src/*cu")
+file(GLOB scifi_lf_composite "looking_forward/composite_algorithms/src/*cu")
 file(GLOB scifi_utils "utils/src/*cu")
 file(GLOB scifi_classifiers "classifiers/src/*cu")
 file(GLOB scifi_consolidate "consolidate/src/*cu")
@@ -62,7 +63,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     ${scifi_lf_extend_tracks_x} ${scifi_lf_extend_missing_x} ${scifi_lf_triplet_seeding}
     ${scifi_lf_triplet_keep_best} ${scifi_lf_extend_tracks_uv} ${scifi_lf_quality_filter}
     ${scifi_lf_quality_filter_x} ${scifi_lf_search_uv_windows} ${scifi_lf_fit}
-    ${scifi_classifiers} ${scifi_consolidate})
+    ${scifi_classifiers} ${scifi_consolidate} ${scifi_lf_composite})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
 endif()
@@ -85,4 +86,5 @@ allen_add_library(SciFi STATIC
   ${scifi_lf_fit}
   ${scifi_classifiers}
   ${scifi_consolidate}
+  ${scifi_lf_composite}
 )

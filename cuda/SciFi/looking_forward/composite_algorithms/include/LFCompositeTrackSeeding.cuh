@@ -39,6 +39,8 @@ struct lf_composite_track_seeding_t : public Algorithm {
     lf_triplet_keep_best};
   decltype(make_handler("lf_extend_tracks_x", lf_extend_tracks_x)) handler_lf_extend_tracks_x {"lf_extend_tracks_x",
                                                                                                lf_extend_tracks_x};
+
+  void invoke();
 };
 
 // COMPOSITE_ALGORITHM(

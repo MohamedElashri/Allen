@@ -1,4 +1,9 @@
 #include "ConsolidateUT.cuh"
+#include "Invoke.cuh"
+
+void consolidate_ut_tracks_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void consolidate_ut_tracks(
   uint* dev_ut_hits,

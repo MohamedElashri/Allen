@@ -2,6 +2,11 @@
 #include "BinarySearch.cuh"
 #include "CalculateWindows.cuh"
 #include "UTFastFitter.cuh"
+#include "Invoke.cuh"
+
+void compass_ut_t::invoke() {
+  invoke_helper(handler);
+}
 
 __constant__ float Configuration::compass_ut_t::sigma_velo_slope;
 __constant__ float Configuration::compass_ut_t::inv_sigma_velo_slope;

@@ -1,5 +1,10 @@
 #include "SciFiPreDecodeV4.cuh"
 #include "assert.h"
+#include "Invoke.cuh"
+
+void scifi_pre_decode_v4_t::invoke() {
+  invoke_helper(handler);
+}
 
 using namespace SciFi;
 

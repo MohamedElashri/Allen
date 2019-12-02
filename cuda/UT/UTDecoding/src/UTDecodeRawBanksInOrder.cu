@@ -1,4 +1,9 @@
 #include "UTDecodeRawBanksInOrder.cuh"
+#include "Invoke.cuh"
+
+void ut_decode_raw_banks_in_order_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void ut_decode_raw_banks_in_order(
   const char* dev_ut_raw_input,

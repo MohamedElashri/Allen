@@ -1,4 +1,9 @@
 #include "../include/VeloKalmanFilter.cuh"
+#include "Invoke.cuh"
+
+void velo_kalman_fit_t::invoke() {
+  invoke_helper(handler);
+}
 
 /**
  * @brief Helper function to filter one hit

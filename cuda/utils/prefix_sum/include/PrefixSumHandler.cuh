@@ -48,12 +48,7 @@
       handler_single_block.set_arguments(array + array_size, auxiliary_array, auxiliary_array_size);            \
       handler_scan.set_arguments(array, auxiliary_array, array_size);                                           \
     }                                                                                                           \
-    void invoke()                                                                                               \
-    {                                                                                                           \
-      handler_reduce.invoke();                                                                                  \
-      handler_single_block.invoke();                                                                            \
-      handler_scan.invoke();                                                                                    \
-    }                                                                                                           \
+    void invoke();                                                                                              \
   };
 
 PREFIX_SUM_ALGORITHM(prefix_sum_velo_clusters_t, ARGUMENTS(dev_estimated_input_size, dev_cluster_offset))

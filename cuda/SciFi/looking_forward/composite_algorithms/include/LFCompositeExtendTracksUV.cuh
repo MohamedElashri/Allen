@@ -28,4 +28,6 @@ struct lf_composite_extend_tracks_uv_t : public Algorithm {
     lf_search_uv_windows};
   decltype(make_handler("lf_extend_tracks_uv", lf_extend_tracks_uv)) handler_lf_extend_tracks_uv {"lf_extend_tracks_uv",
                                                                                                   lf_extend_tracks_uv};
+  
+  void invoke();
 };

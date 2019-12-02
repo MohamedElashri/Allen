@@ -1,4 +1,9 @@
 #include "MuonPreDecoding.cuh"
+#include "Invoke.cuh"
+
+void muon_pre_decoding_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void muon_pre_decoding(
   const uint* event_list,

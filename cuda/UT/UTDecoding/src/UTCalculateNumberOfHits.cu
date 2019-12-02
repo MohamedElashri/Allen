@@ -1,4 +1,9 @@
 #include "UTCalculateNumberOfHits.cuh"
+#include "Invoke.cuh"
+
+void ut_calculate_number_of_hits_t::invoke() {
+  invoke_helper(handler);
+}
 
 /**
  * @brief Calculates the number of hits to be decoded for the UT detector.

@@ -1,4 +1,9 @@
 #include "MuonAddCoordsCrossingMaps.cuh"
+#include "Invoke.cuh"
+
+void muon_add_coords_crossing_maps_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void muon_add_coords_crossing_maps(
   uint* dev_storage_station_region_quarter_offsets,

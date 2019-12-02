@@ -1,4 +1,9 @@
 #include "LFQualityFilterLength.cuh"
+#include "Invoke.cuh"
+
+void lf_quality_filter_length_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_quality_filter_length(
   const uint* dev_atomics_ut,

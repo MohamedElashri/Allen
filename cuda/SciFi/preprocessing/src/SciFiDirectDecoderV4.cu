@@ -1,5 +1,10 @@
 #include "SciFiDirectDecoderV4.cuh"
 #include "assert.h"
+#include "Invoke.cuh"
+
+void scifi_direct_decoder_v4_t::invoke() {
+  invoke_helper(handler);
+}
 
 using namespace SciFi;
 

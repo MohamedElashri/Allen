@@ -1,4 +1,9 @@
 #include "pv_beamline_cleanup.cuh"
+#include "Invoke.cuh"
+
+void pv_beamline_cleanup_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void pv_beamline_cleanup(
   PV::Vertex* dev_multi_fit_vertices,

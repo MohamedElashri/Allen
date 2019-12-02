@@ -1,4 +1,9 @@
 #include "LFTripletKeepBest.cuh"
+#include "Invoke.cuh"
+
+void lf_triplet_keep_best_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_triplet_keep_best(
   uint32_t* dev_scifi_hits,

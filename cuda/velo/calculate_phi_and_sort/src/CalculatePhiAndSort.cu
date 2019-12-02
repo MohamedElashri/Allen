@@ -1,4 +1,9 @@
 #include "CalculatePhiAndSort.cuh"
+#include "Invoke.cuh"
+
+void velo_calculate_phi_and_sort_t::invoke() {
+  invoke_helper(handler);
+}
 
 /**
  * @brief Track forwarding algorithm based on triplet finding

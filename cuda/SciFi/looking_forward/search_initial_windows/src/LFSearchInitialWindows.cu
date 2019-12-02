@@ -1,5 +1,10 @@
 #include "LFSearchInitialWindows.cuh"
 #include "LFSearchInitialWindowsImpl.cuh"
+#include "Invoke.cuh"
+
+void lf_search_initial_windows_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_search_initial_windows(
   uint32_t* dev_scifi_hits,

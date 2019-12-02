@@ -1,5 +1,10 @@
 #include "IsMuon.cuh"
 #include "SystemOfUnits.h"
+#include "Invoke.cuh"
+
+void is_muon_t::invoke() {
+  invoke_helper(handler);
+}
 
 __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
 {

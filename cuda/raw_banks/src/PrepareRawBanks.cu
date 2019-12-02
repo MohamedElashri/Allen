@@ -1,4 +1,9 @@
 #include "PrepareRawBanks.cuh"
+#include "Invoke.cuh"
+
+void prepare_raw_banks_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void prepare_raw_banks(
   const uint* dev_atomics_scifi,

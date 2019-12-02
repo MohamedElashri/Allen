@@ -5,6 +5,11 @@
 #include <SciFiConsolidated.cuh>
 #include <AssociateConsolidated.cuh>
 #include <AssociateConstants.cuh>
+#include "Invoke.cuh"
+
+void kalman_pv_ipchi2_t::invoke() {
+  invoke_helper(handler);
+}
 
 namespace Distance {
   __device__ float kalman_ipchi2(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& vertex)

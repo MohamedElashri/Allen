@@ -1,4 +1,33 @@
 #include "PrefixSum.cuh"
+#include "Invoke.cuh"
+
+void copy_and_prefix_sum_single_block_velo_t::invoke() {
+  invoke_helper(handler);
+}
+
+void copy_velo_track_hit_number_t::invoke() {
+  invoke_helper(handler);
+}
+
+void copy_and_prefix_sum_single_block_ut_t::invoke() {
+  invoke_helper(handler);
+}
+
+void copy_ut_track_hit_number_t::invoke() {
+  invoke_helper(handler);
+}
+
+void copy_and_prefix_sum_single_block_scifi_t::invoke() {
+  invoke_helper(handler);
+}
+
+void copy_scifi_track_hit_number_t::invoke() {
+  invoke_helper(handler);
+}
+
+void copy_and_prefix_sum_single_block_sv_t::invoke() {
+  invoke_helper(handler);
+}
 
 /**
  * @brief Up-Sweep

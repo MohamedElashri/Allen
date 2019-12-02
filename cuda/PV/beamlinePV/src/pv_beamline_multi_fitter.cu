@@ -1,4 +1,9 @@
 #include "pv_beamline_multi_fitter.cuh"
+#include "Invoke.cuh"
+
+void pv_beamline_multi_fitter_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void pv_beamline_multi_fitter(
   uint* dev_atomics_storage,

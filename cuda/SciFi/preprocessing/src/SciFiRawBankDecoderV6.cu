@@ -1,5 +1,10 @@
 #include "SciFiRawBankDecoderV6.cuh"
 #include "assert.h"
+#include "Invoke.cuh"
+
+void scifi_raw_bank_decoder_v6_t::invoke() {
+  invoke_helper(handler);
+}
 
 using namespace SciFi;
 

@@ -1,4 +1,9 @@
 #include "EstimateInputSize.cuh"
+#include "Invoke.cuh"
+
+void velo_estimate_input_size_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void estimate_input_size(
   char* dev_raw_input,

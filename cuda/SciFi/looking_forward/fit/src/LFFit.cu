@@ -1,4 +1,9 @@
 #include "LFFit.cuh"
+#include "Invoke.cuh"
+
+void lf_fit_t::invoke() {
+  invoke_helper(handler);
+}
 
 __device__ void lf_fit_impl(
   SciFi::TrackHits& track,

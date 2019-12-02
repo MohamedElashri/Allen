@@ -63,6 +63,5 @@ void SequenceVisitor::visit<lf_composite_extend_tracks_uv_t>(
     arguments.offset<dev_scifi_lf_uv_windows>());
 
   // * Forward to UV layers
-  state.handler_lf_search_uv_windows.invoke();
-  state.handler_lf_extend_tracks_uv.invoke();
+  state.invoke();
 }

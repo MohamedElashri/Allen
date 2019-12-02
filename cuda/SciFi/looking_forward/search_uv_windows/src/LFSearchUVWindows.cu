@@ -1,4 +1,9 @@
 #include "LFSearchUVWindows.cuh"
+#include "Invoke.cuh"
+
+void lf_search_uv_windows_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_search_uv_windows(
   const uint32_t* dev_scifi_hits,

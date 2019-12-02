@@ -8,6 +8,11 @@
 #include "ArgumentsPV.cuh"
 #include "ArgumentsSelections.cuh"
 #include "ArgumentsVertex.cuh"
+#include "Invoke.cuh"
+
+void run_hlt1_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void run_hlt1(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,

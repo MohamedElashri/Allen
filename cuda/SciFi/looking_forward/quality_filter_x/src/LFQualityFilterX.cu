@@ -1,4 +1,9 @@
 #include "LFQualityFilterX.cuh"
+#include "Invoke.cuh"
+
+void lf_quality_filter_x_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_quality_filter_x(
   const uint* dev_atomics_ut,

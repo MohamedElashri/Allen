@@ -1,4 +1,13 @@
 #include "ParKalmanVeloOnly.cuh"
+#include "Invoke.cuh"
+
+void kalman_velo_only_t::invoke() {
+  invoke_helper(handler);
+}
+
+void package_kalman_tracks_t::invoke() {
+  invoke_helper(handler);
+}
 
 __device__ void simplified_step(
   const KalmanFloat z,

@@ -2,6 +2,11 @@
 #include "SearchWindows.cuh"
 #include "Handler.cuh"
 #include <tuple>
+#include "Invoke.cuh"
+
+void ut_search_windows_t::invoke() {
+  invoke_helper(handler);
+}
 
 __constant__ float Configuration::ut_search_windows_t::min_momentum;
 __constant__ float Configuration::ut_search_windows_t::min_pt;

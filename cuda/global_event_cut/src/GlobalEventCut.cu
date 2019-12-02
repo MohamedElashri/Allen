@@ -1,4 +1,9 @@
 #include "GlobalEventCut.cuh"
+#include "Invoke.cuh"
+
+void global_event_cut_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void global_event_cut(
   char* ut_raw_input,

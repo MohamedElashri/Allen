@@ -1,4 +1,9 @@
 #include "pv_beamline_peak.cuh"
+#include "Invoke.cuh"
+
+void pv_beamline_peak_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void
 pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeaks, uint number_of_events)

@@ -1,4 +1,9 @@
 #include "pv_beamline_histo.cuh"
+#include "Invoke.cuh"
+
+void pv_beamline_histo_t::invoke() {
+  invoke_helper(handler);
+}
 
 __device__ float gauss_integral(float x)
 {

@@ -1,4 +1,9 @@
 #include "MuonSortBySRQ.cuh"
+#include "Invoke.cuh"
+
+void muon_sort_station_region_quarter_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void muon_sort_station_region_quarter(
   uint* dev_storage_tile_id,

@@ -1,4 +1,9 @@
 #include "FitSeeds.cuh"
+#include "Invoke.cuh"
+
+void pv_fit_seeds_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void fit_seeds(
   PV::Vertex* dev_vertex,

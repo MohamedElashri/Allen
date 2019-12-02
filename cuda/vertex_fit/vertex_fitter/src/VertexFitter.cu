@@ -1,12 +1,15 @@
 #include "VertexFitter.cuh"
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
+#include "Invoke.cuh"
+
+void fit_secondary_vertices_t::invoke() {
+  invoke_helper(handler);
+}
 
 __constant__ float Configuration::fit_secondary_vertices_t::track_min_pt;
-
 __constant__ float Configuration::fit_secondary_vertices_t::track_min_ipchi2;
 __constant__ float Configuration::fit_secondary_vertices_t::track_muon_min_ipchi2;
-
 __constant__ float Configuration::fit_secondary_vertices_t::max_assoc_ipchi2;
 
 namespace VertexFit {

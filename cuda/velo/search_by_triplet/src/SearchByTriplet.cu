@@ -1,22 +1,21 @@
 #include "SearchByTriplet.cuh"
 #include "ClusteringDefinitions.cuh"
+#include "Invoke.cuh"
 
 __constant__ float Configuration::velo_search_by_triplet_t::forward_phi_tolerance;
-
 __constant__ float Configuration::velo_search_by_triplet_t::max_chi2;
-
 __constant__ float Configuration::velo_search_by_triplet_t::max_scatter_forwarding;
 __constant__ float Configuration::velo_search_by_triplet_t::max_scatter_seeding;
-
 __constant__ uint Configuration::velo_search_by_triplet_t::max_skipped_modules;
-
 __constant__ uint Configuration::velo_search_by_triplet_t::max_weak_tracks;
-
 __constant__ float Configuration::velo_search_by_triplet_t::phi_extrapolation_base;
 __constant__ float Configuration::velo_search_by_triplet_t::phi_extrapolation_coef;
 __constant__ uint Configuration::velo_search_by_triplet_t::ttf_modulo;
-
 __constant__ int Configuration::velo_search_by_triplet_t::ttf_modulo_mask;
+
+void velo_search_by_triplet_t::invoke() {
+  invoke_helper(handler);
+}
 
 /**
  * @brief Track forwarding algorithm based on triplet finding

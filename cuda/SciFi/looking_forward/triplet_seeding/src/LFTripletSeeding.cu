@@ -1,6 +1,11 @@
 #include "LFTripletSeeding.cuh"
 #include "LFTripletSeedingImpl.cuh"
 #include "LookingForwardTools.cuh"
+#include "Invoke.cuh"
+
+void lf_triplet_seeding_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_triplet_seeding(
   uint32_t* dev_scifi_hits,

@@ -1,4 +1,9 @@
 #include "ConsolidateSciFi.cuh"
+#include "Invoke.cuh"
+
+void consolidate_scifi_tracks_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void consolidate_scifi_tracks(
   uint* dev_scifi_hits,

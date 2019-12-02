@@ -1,5 +1,10 @@
 #include "LFCollectCandidates.cuh"
 #include "LFCollectCandidatesImpl.cuh"
+#include "Invoke.cuh"
+
+void lf_collect_candidates_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_collect_candidates(
   uint32_t* dev_scifi_hits,

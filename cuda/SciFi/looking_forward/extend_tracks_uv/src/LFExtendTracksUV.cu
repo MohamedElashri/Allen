@@ -1,4 +1,9 @@
 #include "LFExtendTracksUV.cuh"
+#include "Invoke.cuh"
+
+void lf_extend_tracks_uv_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_extend_tracks_uv(
   const uint32_t* dev_scifi_hits,

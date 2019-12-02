@@ -1,6 +1,11 @@
 #include "UTFindPermutation.cuh"
 #include "FindPermutation.cuh"
 #include <cstdio>
+#include "Invoke.cuh"
+
+void ut_find_permutation_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void ut_find_permutation(
   uint32_t* dev_ut_hits,

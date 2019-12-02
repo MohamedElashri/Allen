@@ -1,5 +1,10 @@
 #include "LFExtendMissingX.cuh"
 #include "BinarySearch.cuh"
+#include "Invoke.cuh"
+
+void lf_extend_missing_x_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void lf_extend_missing_x(
   const uint32_t* dev_scifi_hits,

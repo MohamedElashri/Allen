@@ -1,4 +1,9 @@
 #include "pv_beamline_calculate_denom.cuh"
+#include "Invoke.cuh"
+
+void pv_beamline_calculate_denom_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void pv_beamline_calculate_denom(
   uint* dev_atomics_storage,
