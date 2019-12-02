@@ -6,7 +6,7 @@ from optparse import OptionParser
 from termgraph import TermGraph
 
 
-def format_text(title, plot_data, options):
+def format_text(title, plot_data, unit, x_max):
     # Prepare data
     final_vals = []
     final_tags = []
@@ -22,11 +22,11 @@ def format_text(title, plot_data, options):
     # Plot
     print(final_tags)
     print(final_vals)
-    tg = TermGraph(suffix=options.unit, x_max=options.x_max)
+    tg = TermGraph(suffix=unit, x_max=x_max)
     output = tg.chart(final_vals, final_tags)
 
-    text = '{"text": "%s\n```\n%s```"}' % (title, output)
-    return text
+    text = '{"text": "%s:\n```\n%s```"}' % (title, output)
+    return text, output
 
 
 def send_to_mattermost(text, mattermost_url):
@@ -36,12 +36,36 @@ def send_to_mattermost(text, mattermost_url):
     ])
 
 
-"""
-Produces a plot of the performance breakdown of the sequence under execution
-"""
+def produce_plot(filename, unit="", title="", x_max=10, mattermost_url=None, scale=1.0, normalize=False, print_text=True):
+    plot_data = {}
+    with open(filename) as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter=',')
+        for row in csv_reader:
+            try:
+                plot_data[row[0]] = float(row[1]) * scale
+            except:
+                print(traceback.format_exc())
+
+    # Convert throughputs to speedups
+    if normalize:
+        norm = min(plot_data.values())
+        for k in plot_data.keys():
+            plot_data[k] /= norm
+
+    text, raw_output = format_text(title, plot_data, unit, x_max)
+    if print_text:
+        print(text)
+
+    if mattermost_url is not None:
+        send_to_mattermost(text, mattermost_url)
+    else:
+        return raw_output
 
 
 def main():
+    '''
+    Produces a plot of the performance breakdown of the sequence under execution
+    '''
     usage = '%prog [options] <-d data_file>\n' + \
             'Example: %prog -d data.csv -m "http://{your-mattermost-site}/hooks/xxx-generatedkey-xxx"'
     parser = OptionParser(usage=usage)
@@ -61,9 +85,9 @@ def main():
         '-x',
         '--x_max',
         dest='x_max',
-        default=50,
+        default=10,
         type=float,
-        help='Graph X axis is at least this many units wide. (default=50)')
+        help='Graph X axis is at least this many units wide. (default=10)')
     parser.add_option('-t',
                       '--title',
                       dest='title',
@@ -86,26 +110,9 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    plot_data = {}
-    with open(args[0]) as csvfile:
-        csv_reader = csv.reader(csvfile, delimiter=',')
-        for row in csv_reader:
-            try:
-                plot_data[row[0]] = float(row[1]) * options.scale
-            except:
-                print(traceback.format_exc())
-
-    # Convert throughputs to speedups
-    if options.normalize:
-        norm = min(plot_data.values())
-        for k in plot_data.keys():
-            plot_data[k] /= norm
-
-    text = format_text(options.title, plot_data, options)
-    print(text)
-    if options.mattermost_url is not None:
-        send_to_mattermost(text, options.mattermost_url)
-
+    return produce_plot(filename=args[0],
+        unit=options.unit, title=options.title, x_max=options.x_max, mattermost_url=options.mattermost_url,
+        scale=options.scale, normalize=options.normalize)
 
 if __name__ == "__main__":
     main()

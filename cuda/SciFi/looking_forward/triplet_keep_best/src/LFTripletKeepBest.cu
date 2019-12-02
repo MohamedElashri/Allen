@@ -112,8 +112,6 @@ __global__ void lf_triplet_keep_best(
 
           // Create triplet candidate with all information we have
           const int current_insert_index = atomicAdd(dev_atomics_scifi + event_number, 1);
-          assert(current_insert_index < LookingForward::maximum_number_of_candidates_per_ut_track);
-
           const auto layer_0 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][0];
           const auto layer_1 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][1];
           const auto layer_2 = dev_looking_forward_constants->triplet_seeding_layers[triplet_seed][2];
