@@ -30,7 +30,7 @@ def main():
     throughput_text = produce_plot(options.throughput, unit="kHz", scale=1e-3, print_text=True)
     breakdown_text = produce_plot(options.breakdown, unit="%", print_text=True)
 
-    text = '{"text": "%s:\n```\n%s```\n\nBreakdown of sequence:\n```\n%s```"}' % (options.title, throughput_text, throughput_breakdown)
+    text = '{"text": "%s:\n```\n%s```\n\nBreakdown of sequence:\n```\n%s```"}' % (options.title, throughput_text, breakdown_text)
     print(text)
 
     if mattermost_url is not None:
