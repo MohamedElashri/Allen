@@ -33,8 +33,8 @@ def main():
     text = '{"text": "%s:\n```\n%s```\n\nBreakdown of sequence:\n```\n%s```"}' % (options.title, throughput_text, breakdown_text)
     print(text)
 
-    if mattermost_url is not None:
-        send_to_mattermost(text, mattermost_url)
+    if options.mattermost_url is not None:
+        send_to_mattermost(text, options.mattermost_url)
 
 
 if __name__ == "__main__":
