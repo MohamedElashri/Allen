@@ -258,7 +258,6 @@ __device__ __host__ half_t __float2half(float value);
 // ------------
 // CUDA support
 // ------------
-
 #include "cuda_runtime.h"
 #include <mma.h>
 #define half_t half

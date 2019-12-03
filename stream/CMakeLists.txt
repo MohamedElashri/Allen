@@ -71,12 +71,12 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 
-file(GLOB stream_gear "gear/src/*cu")
-file(GLOB stream_memory_manager "memory_manager/src/*cu")
-file(GLOB stream_scheduler "scheduler/src/*cu")
-file(GLOB stream_sequence "sequence/src/*cu")
+file(GLOB stream_gear "gear/src/*cpp")
+file(GLOB stream_memory_manager "memory_manager/src/*cpp")
+file(GLOB stream_scheduler "scheduler/src/*cpp")
+file(GLOB stream_sequence "sequence/src/*cpp")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
-file(GLOB stream_setup "setup/src/*cu")
+file(GLOB stream_setup "setup/src/*cpp")
 file(GLOB stream_visitors_gec "visitors/global_event_cut/src/*cu")
 file(GLOB stream_visitors_velo "visitors/velo/src/*cu")
 file(GLOB stream_visitors_patPV "visitors/patPV/src/*cu")
@@ -99,11 +99,9 @@ add_custom_command(
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
 if(TARGET_DEVICE STREQUAL "CPU")
-  foreach(source_file ${stream_gear} ${stream_memory_manager} ${stream_scheduler}
-    ${stream_sequence} ${stream_sequence_cpp} ${stream_setup} ${stream_visitors_gec}
-    ${stream_visitors_ip} ${stream_visitors_velo} ${stream_visitors_patPV}
-    ${stream_visitors_beamlinePV} ${stream_visitors_assoc} ${stream_visitors_UT}
-    ${stream_visitors_SciFi} ${stream_visitors_Muon} ${stream_visitors_kalman}
+  foreach(source_file ${stream_visitors_gec} ${stream_visitors_ip} ${stream_visitors_velo}
+    ${stream_visitors_patPV} ${stream_visitors_beamlinePV} ${stream_visitors_assoc}
+    ${stream_visitors_UT} ${stream_visitors_SciFi} ${stream_visitors_Muon} ${stream_visitors_kalman}
     ${stream_visitors_vertex} ${stream_visitors_selections} ${stream_visitors_raw_banks})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
