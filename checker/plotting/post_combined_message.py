@@ -15,22 +15,31 @@ def main():
         '--mattermost_url',
         dest='mattermost_url',
         help='The url where to post outputs generated for mattermost')
-    parser.add_option("-t", dest="throughput",
-                  help="CSV file containing throughput of various GPUs", metavar="FILE")
-    parser.add_option("-b", dest="breakdown",
-                  help="CSV file containing breakdown of throughput on one GPU", metavar="FILE")
-    parser.add_option('-l',
-                      '--title',
-                      dest='title',
-                      default='',
-                      help='Title for your graph. (default: empty string)')
-    
+    parser.add_option(
+        "-t",
+        dest="throughput",
+        help="CSV file containing throughput of various GPUs",
+        metavar="FILE")
+    parser.add_option(
+        "-b",
+        dest="breakdown",
+        help="CSV file containing breakdown of throughput on one GPU",
+        metavar="FILE")
+    parser.add_option(
+        '-l',
+        '--title',
+        dest='title',
+        default='',
+        help='Title for your graph. (default: empty string)')
+
     (options, args) = parser.parse_args()
 
-    throughput_text = produce_plot(options.throughput, unit="kHz", scale=1e-3, print_text=True)
+    throughput_text = produce_plot(
+        options.throughput, unit="kHz", scale=1e-3, print_text=True)
     breakdown_text = produce_plot(options.breakdown, unit="%", print_text=True)
 
-    text = '{"text": "%s:\n```\n%s```\n\nBreakdown of sequence:\n```\n%s```"}' % (options.title, throughput_text, breakdown_text)
+    text = '{"text": "%s:\n```\n%s```\n\nBreakdown of sequence:\n```\n%s```"}' % (
+        options.title, throughput_text, breakdown_text)
     print(text)
 
     if options.mattermost_url is not None:

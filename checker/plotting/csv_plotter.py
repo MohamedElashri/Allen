@@ -11,9 +11,8 @@ def format_text(title, plot_data, unit, x_max):
     final_vals = []
     final_tags = []
 
-    keylist = sorted(plot_data.keys(),
-                     key=lambda x: plot_data[x],
-                     reverse=True)
+    keylist = sorted(
+        plot_data.keys(), key=lambda x: plot_data[x], reverse=True)
     for k in keylist:
         val = plot_data[k]
         final_tags.append(k)
@@ -36,7 +35,14 @@ def send_to_mattermost(text, mattermost_url):
     ])
 
 
-def produce_plot(filename, unit="", title="", x_max=10, mattermost_url=None, scale=1.0, normalize=False, print_text=True):
+def produce_plot(filename,
+                 unit="",
+                 title="",
+                 x_max=10,
+                 mattermost_url=None,
+                 scale=1.0,
+                 normalize=False,
+                 print_text=True):
     plot_data = {}
     with open(filename) as csvfile:
         csv_reader = csv.reader(csvfile, delimiter=',')
@@ -88,11 +94,12 @@ def main():
         default=10,
         type=float,
         help='Graph X axis is at least this many units wide. (default=10)')
-    parser.add_option('-t',
-                      '--title',
-                      dest='title',
-                      default='',
-                      help='Title for your graph. (default: empty string)')
+    parser.add_option(
+        '-t',
+        '--title',
+        dest='title',
+        default='',
+        help='Title for your graph. (default: empty string)')
     parser.add_option(
         '-s',
         '--scale',
@@ -110,9 +117,15 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    return produce_plot(filename=args[0],
-        unit=options.unit, title=options.title, x_max=options.x_max, mattermost_url=options.mattermost_url,
-        scale=options.scale, normalize=options.normalize)
+    return produce_plot(
+        filename=args[0],
+        unit=options.unit,
+        title=options.title,
+        x_max=options.x_max,
+        mattermost_url=options.mattermost_url,
+        scale=options.scale,
+        normalize=options.normalize)
+
 
 if __name__ == "__main__":
     main()
