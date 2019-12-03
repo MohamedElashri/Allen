@@ -240,7 +240,7 @@ public:
   std::string to_string() const override
   {
     V holder;
-    cudaCheck(cudaMemcpyFromSymbol(&holder, m_value.get(), sizeof(V)));
+    cudaCheck(cudaMemcpyFromSymbol(static_cast<void*>(&holder), static_cast<const void*>(&m_value.get()), sizeof(V)));
     return Configuration::to_string(holder);
   }
 
@@ -256,7 +256,7 @@ public:
 
   virtual void sync_value() const override
   {
-    cudaCheck(cudaMemcpyToSymbol(m_value.get(), &m_cached_value, sizeof(V)));
+    cudaCheck(cudaMemcpyToSymbol(&m_value.get(), static_cast<const void*>(&m_cached_value), sizeof(V)));
   }
 
 protected:

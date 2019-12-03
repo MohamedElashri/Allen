@@ -14,25 +14,25 @@
 #include "ArgumentsVertex.cuh"
 #include "LookingForwardConstants.cuh"
 
-__global__ void __launch_bounds__(256)
+__global__ void
   prefix_sum_reduce(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);
 
-__global__ void __launch_bounds__(1024)
+__global__ void
   prefix_sum_single_block(uint* dev_total_sum, uint* dev_array, const uint array_size);
 
-__global__ void __launch_bounds__(1024) copy_and_prefix_sum_single_block(
+__global__ void copy_and_prefix_sum_single_block(
   uint* dev_total_sum,
   uint* dev_input_array,
   uint* dev_output_array,
   const uint array_size);
 
-__global__ void __launch_bounds__(1024) copy_square_and_prefix_sum_single_block(
+__global__ void copy_square_and_prefix_sum_single_block(
   uint* dev_total_sum,
   uint* dev_input_array,
   uint* dev_output_array,
   const uint array_size);
 
-__global__ void __launch_bounds__(512)
+__global__ void
   prefix_sum_scan(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);
 
 __global__ void copy_velo_track_hit_number(

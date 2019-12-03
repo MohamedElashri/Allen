@@ -4,6 +4,12 @@
 #include <VeloConsolidated.cuh>
 #include <AssociateConsolidated.cuh>
 #include <AssociateConstants.cuh>
+#include <VeloPVIP.cuh>
+#include <Invoke.cuh>
+
+void velo_pv_ip_t::invoke() {
+  invoke_helper(handler);
+}
 
 namespace Distance {
   __device__ float

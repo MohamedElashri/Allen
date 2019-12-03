@@ -1,4 +1,9 @@
 #include "MuonFeaturesExtraction.cuh"
+#include "Invoke.cuh"
+
+void muon_catboost_features_extraction_t::invoke() {
+  invoke_helper(handler);
+}
 
 __global__ void muon_catboost_features_extraction(
   uint* dev_atomics_scifi,

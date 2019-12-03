@@ -1,4 +1,10 @@
 #include "MuonCatboostEvaluator.cuh"
+#include "Invoke.cuh"
+
+void muon_catboost_evaluator_t::invoke() {
+  invoke_helper(handler);
+}
+
 /**
 * Computes probability of being a muon.
 * CatBoost uses oblivious trees as base predictors. In such trees same splitting criterion is used

@@ -1,13 +1,8 @@
 #include "RunHlt1.cuh"
 #include "TrackMVALines.cuh"
 #include "MuonLines.cuh"
-
+#include "LineHandler.cuh"
 #include "Handler.cuh"
-#include "ArgumentsSciFi.cuh"
-#include "ArgumentsKalmanFilter.cuh"
-#include "ArgumentsPV.cuh"
-#include "ArgumentsSelections.cuh"
-#include "ArgumentsVertex.cuh"
 #include "Invoke.cuh"
 
 void run_hlt1_t::invoke() {

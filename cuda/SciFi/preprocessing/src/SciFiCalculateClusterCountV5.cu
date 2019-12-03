@@ -1,4 +1,9 @@
 #include "SciFiCalculateClusterCountV5.cuh"
+#include "Invoke.cuh"
+
+void scifi_calculate_cluster_count_v5_t::invoke() {
+  invoke_helper(handler);
+}
 
 using namespace SciFi;
 

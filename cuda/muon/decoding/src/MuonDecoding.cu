@@ -1,5 +1,10 @@
 #include "MuonDecoding.cuh"
 #include <cstdio>
+#include "Invoke.cuh"
+
+void muon_decoding_t::invoke() {
+  invoke_helper(handler);
+}
 
 #ifdef CPU
 #include <cstring>

@@ -1,4 +1,9 @@
 #include "ParKalmanFilter.cuh"
+#include "Invoke.cuh"
+
+void kalman_filter_t::invoke() {
+  invoke_helper(handler);
+}
 
 namespace ParKalmanFilter {
 
