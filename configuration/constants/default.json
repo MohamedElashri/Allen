@@ -1,5 +1,5 @@
 {
-  "compass_ut_t": {"sigma_velo_slope" : "0.00010", "min_momentum_final" : "2500.0", "min_pt_final" : "425.0", "hit_tol_2" : "0.8f", "delta_tx_2" : "0.018f", "max_considered_before_found" : "6u"},
+  "compass_ut_t": {"max_considered_before_found" : "16", "sigma_velo_slope" : "0.00010", "min_momentum_final" : "0.0", "min_pt_final" : "0.0", "hit_tol_2" : "0.8f", "delta_tx_2" : "0.018f"},
   "consolidate_ut_tracks_t": {"block_dim" : "[256, 1, 1]"},
   "consolidate_scifi_tracks_t": {"block_dim" : "[256, 1, 1]"},
   "consolidate_velo_tracks_t": {"block_dim" : "[256, 1, 1]"},
@@ -44,7 +44,7 @@
   "ut_decode_raw_banks_in_order_t": {"block_dim" : "[64, 1, 1]"},
   "ut_find_permutation_t": {"block_dim" : "[16, 1, 1]"},
   "ut_pre_decode_t": {"block_dim" : "[64, 4, 1]"},
-  "ut_search_windows_t": {"min_momentum" : "1500.0", "min_pt" : "300.0", "y_tol" : "0.5", "y_tol_slope" : "0.08"},
+  "ut_search_windows_t": {"min_momentum" : "3000.0", "min_pt" : "0.0", "y_tol" : "0.5", "y_tol_slope" : "0.08"},
   "velo_calculate_phi_and_sort_t": {"block_dim" : "[64, 1, 1]"},
   "velo_estimate_input_size_t": {"block_dim" : "[16, 16, 1]"},
   "velo_fill_candidates_t": {"block_dim" : "[128, 1, 1]"},

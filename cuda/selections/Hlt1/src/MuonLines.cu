@@ -31,4 +31,19 @@ namespace MuonLines {
     return decision;
   }
 
+  __device__ bool DiMuonSoft(const VertexFit::TrackMVAVertex& vertex)
+  {
+    bool decision = vertex.chi2 > 0;
+    decision &= vertex.minipchi2 >  DMSoftMinIPChi2 ;
+    //decision &= vertex.chi2 < maxVertexChi2;
+    decision &= ( vertex.mdimu < DMSoftM0 || vertex.mdimu > DMSoftM1); // KS pipi misid veto
+    decision &= vertex.is_dimuon; 
+    decision &= vertex.eta > 0; 
+
+    decision &= (vertex.x*vertex.x + vertex.y*vertex.y) > DMSoftMinRho2; 
+    decision &= ( vertex.z >  DMSoftMinZ ) &  ( vertex.z <  DMSoftMaxZ );
+
+    return decision;
+  }
+
 } // namespace MuonLines

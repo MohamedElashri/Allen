@@ -58,6 +58,8 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("sv_pass_two_track", &m_sv_pass_two_track);
   m_tree->Branch("sv_pass_disp_dimuon", &m_sv_pass_disp_dimuon);
   m_tree->Branch("sv_pass_high_mass_dimuon", &m_sv_pass_high_mass_dimuon);
+  m_tree->Branch("sv_pass_dimuon_soft", &m_sv_pass_dimuon_soft);
+
   m_tree->Branch("trk_p", &m_trk_p);
   m_tree->Branch("trk_pt", &m_trk_pt);
   m_tree->Branch("trk_eta", &m_trk_eta);
@@ -128,6 +130,8 @@ void SelCheckerTuple::clear()
   m_sv_pass_two_track.clear();
   m_sv_pass_disp_dimuon.clear();
   m_sv_pass_high_mass_dimuon.clear();
+  m_sv_pass_dimuon_soft.clear();
+
   m_trk_p.clear();
   m_trk_pt.clear();
   m_trk_eta.clear();
@@ -258,6 +262,8 @@ void SelCheckerTuple::accumulate(
   const bool* single_muon_decisions,
   const bool* disp_dimuon_decisions,
   const bool* high_mass_dimuon_decisions,
+  const bool* dimuon_soft_decisions,
+
   const int* track_atomics,
   const uint* sv_atomics,
   const uint selected_events)
@@ -288,6 +294,7 @@ void SelCheckerTuple::accumulate(
       const bool* event_single_muon_decisions = single_muon_decisions + event_tracks_offsets[i_event];
       const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_atomics[i_event];
       const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_atomics[i_event];
+      const bool* event_dimuon_soft_decisions = dimuon_soft_decisions + sv_atomics[i_event];
 
       // Loop over tracks.
       for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
@@ -319,6 +326,7 @@ void SelCheckerTuple::accumulate(
           m_sv_pass_two_track.push_back(event_two_track_decisions[vertex_idx] ? 1. : 0.);
           m_sv_pass_disp_dimuon.push_back(event_disp_dimuon_decisions[vertex_idx] ? 1. : 0.);
           m_sv_pass_high_mass_dimuon.push_back(event_high_mass_dimuon_decisions[vertex_idx] ? 1. : 0.);
+          m_sv_pass_dimuon_soft.push_back(event_dimuon_soft_decisions[vertex_idx] ? 1. : 0.);
         }
       }
     }
@@ -334,6 +342,7 @@ void SelCheckerTuple::accumulate(
   MCEvents const&,
   std::vector<Checker::Tracks> const&,
   const VertexFit::TrackMVAVertex*,
+  const bool*,
   const bool*,
   const bool*,
   const bool*,

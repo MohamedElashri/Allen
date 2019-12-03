@@ -874,7 +874,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         auto msg = zmqSvc().receive<std::string>(socket);
         assert(msg == "MONITORED");
         auto buffer_index = zmqSvc().receive<size_t>(socket);
-        auto monitor_index = zmqSvc().receive<size_t>(socket);
+        auto monitor_index = zmqSvc().receive<uint>(socket);
         buffer_manager->returnBufferProcessed(buffer_index);
         monitor_manager->freeMonitor(monitor_index);
       }
