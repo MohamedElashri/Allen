@@ -8,18 +8,18 @@
 namespace LookingForward {
   // Enum only used for initial window search
   enum layer_bits {
-    layer0 = 0x01,
-    layer3 = 0x02,
-    layer4 = 0x04,
-    layer7 = 0x08,
-    layer8 = 0x10,
-    layer11 = 0x20,
-    layer1 = 0x0100,
-    layer2 = 0x0200,
-    layer5 = 0x0400,
-    layer6 = 0x0800,
-    layer9 = 0x1000,
-    layer10 = 0x2000
+    bit_layer0 = 0x01,
+    bit_layer3 = 0x02,
+    bit_layer4 = 0x04,
+    bit_layer7 = 0x08,
+    bit_layer8 = 0x10,
+    bit_layer11 = 0x20,
+    bit_layer1 = 0x0100,
+    bit_layer2 = 0x0200,
+    bit_layer5 = 0x0400,
+    bit_layer6 = 0x0800,
+    bit_layer9 = 0x1000,
+    bit_layer10 = 0x2000
   };
 
   // Reference z plane

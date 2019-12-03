@@ -6,7 +6,7 @@ __device__ float LookingForward::tx_ty_corr_multi_par(
   const int station,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
-  float tx_ty_corr = 0;
+  float tx_ty_corr = 0.f;
   const float tx_pow[5] = {1,
                            ut_state.tx,
                            ut_state.tx * ut_state.tx,

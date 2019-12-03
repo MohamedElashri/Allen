@@ -92,11 +92,11 @@ __device__ void lf_search_initial_windows_impl(
   // * It can have at least one hit in UV layers
   //   (1 or 2) and (5 or 6) and (9 or 10)
   const bool do_process =
-    (((sizes & LookingForward::layer0) && (sizes & LookingForward::layer4) && (sizes & LookingForward::layer8)) ||
-     ((sizes & LookingForward::layer3) && (sizes & LookingForward::layer7) && (sizes & LookingForward::layer11))) &&
-    ((sizes & LookingForward::layer1) || (sizes & LookingForward::layer2)) &&
-    ((sizes & LookingForward::layer5) || (sizes & LookingForward::layer6)) &&
-    ((sizes & LookingForward::layer9) || (sizes & LookingForward::layer10));
+    (((sizes & LookingForward::bit_layer0) && (sizes & LookingForward::bit_layer4) && (sizes & LookingForward::bit_layer8)) ||
+     ((sizes & LookingForward::bit_layer3) && (sizes & LookingForward::bit_layer7) && (sizes & LookingForward::bit_layer11))) &&
+    ((sizes & LookingForward::bit_layer1) || (sizes & LookingForward::bit_layer2)) &&
+    ((sizes & LookingForward::bit_layer5) || (sizes & LookingForward::bit_layer6)) &&
+    ((sizes & LookingForward::bit_layer9) || (sizes & LookingForward::bit_layer10));
 
   dev_process_track[ut_track_index] = do_process;
 }

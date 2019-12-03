@@ -38,19 +38,16 @@ __global__ void lf_extend_tracks_uv(
     const auto ut_state = dev_ut_states[current_ut_track_index];
 
     // Use quality normalized
-    track.quality *= (1.f / LookingForward::chi2_max_extrapolation_to_x_layers_single);
+    track.quality *= 1.f / LookingForward::chi2_max_extrapolation_to_x_layers_single;
 
     // Load parametrization
     const auto a1 = dev_scifi_lf_parametrization[scifi_track_index];
     const auto b1 = dev_scifi_lf_parametrization
-      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-       scifi_track_index];
+      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
     const auto c1 = dev_scifi_lf_parametrization
-      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-       scifi_track_index];
+      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
     const auto d_ratio = dev_scifi_lf_parametrization
-      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-       scifi_track_index];
+      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
 
     for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
       const auto layer4 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
@@ -58,14 +55,20 @@ __global__ void lf_extend_tracks_uv(
 
       // Use UV windows
       const auto uv_window_start = dev_scifi_lf_initial_windows
-        [ut_event_tracks_offset + track.ut_track_index + (relative_uv_layer * 8 + 2) * ut_total_number_of_tracks];
+        [ut_event_tracks_offset + track.ut_track_index +
+         (relative_uv_layer * LookingForward::number_of_elements_initial_window + 2) * ut_total_number_of_tracks];
       const auto uv_window_size = dev_scifi_lf_initial_windows
-        [ut_event_tracks_offset + track.ut_track_index + (relative_uv_layer * 8 + 3) * ut_total_number_of_tracks];
+        [ut_event_tracks_offset + track.ut_track_index +
+         (relative_uv_layer * LookingForward::number_of_elements_initial_window + 3) * ut_total_number_of_tracks];
 
       const auto dz = z4 - LookingForward::z_mid_t;
       const auto expected_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
-      const auto expected_y =
-        LookingForward::project_y(dev_looking_forward_constants, ut_state, expected_x, z4, dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
+      const auto expected_y = LookingForward::project_y(
+        dev_looking_forward_constants,
+        ut_state,
+        expected_x,
+        z4,
+        dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
       const auto predicted_x =
         expected_x - expected_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1];
 

@@ -70,9 +70,7 @@ __global__ void lf_search_initial_windows(
     const MiniState state_at_z_last_ut_plane = LookingForward::state_at_z(ut_state, LookingForward::z_last_UT_plane);
 
     // Store state for access in other algorithms
-    if (threadIdx.y == 0) {
-      ut_states[i] = state_at_z_last_ut_plane;
-    }
+    ut_states[i] = state_at_z_last_ut_plane;
 
     // Parameters for the calculation of the windows
     const float y_projection =

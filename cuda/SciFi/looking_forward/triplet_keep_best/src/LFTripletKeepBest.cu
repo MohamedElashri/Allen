@@ -119,9 +119,9 @@ __global__ void lf_triplet_keep_best(
           // Offsets to h0, h1 and h2
           const int* initial_windows = dev_initial_windows + current_ut_track_index;
 
-          const int l0_start = initial_windows[(layer_0 * 8) * ut_total_number_of_tracks];
-          const int l1_start = initial_windows[(layer_1 * 8) * ut_total_number_of_tracks];
-          const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
+          const int l0_start = initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+          const int l1_start = initial_windows[layer_1 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+          const int l2_start = initial_windows[layer_2 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
 
           const auto h0 = l0_start + h0_rel;
           const auto h1 = l1_start + h1_rel;
