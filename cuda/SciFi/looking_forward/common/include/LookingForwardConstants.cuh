@@ -32,7 +32,7 @@ namespace LookingForward {
   constexpr int number_of_uv_layers = 6;
 
   // Number of ints per track in initial window (xbegin, xend, uvbegin, uvend == 4)
-  constexpr int number_of_elements_initial_window = 8;
+  constexpr int number_of_elements_initial_window = 4;
 
   // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
   constexpr float chi2_max_triplet_single = 8.f;
@@ -87,8 +87,8 @@ namespace LookingForward {
   constexpr float x_at_magnet_range_1 = 40.f;
 
   // Parametrization of expected x1 in triplet formation
-  constexpr int sagitta_alignment_x1_triplet0 = 1.00177513f;
-  constexpr int sagitta_alignment_x1_triplet1 = 1.00142634f;
+  constexpr float sagitta_alignment_x1_triplet0 = 1.00177513f;
+  constexpr float sagitta_alignment_x1_triplet1 = 1.00142634f;
 
   // Windows
   constexpr int min_hits_or_ty_window = 11;
