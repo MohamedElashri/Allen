@@ -38,7 +38,7 @@ __global__ void lf_extend_tracks_uv(
     const auto ut_state = dev_ut_states[current_ut_track_index];
 
     // Use quality normalized
-    track.quality *= 1.f / LookingForward::chi2_max_extrapolation_to_x_layers_single;
+    track.quality *= (1.f / LookingForward::chi2_max_extrapolation_to_x_layers_single);
 
     // Load parametrization
     const auto a1 = dev_scifi_lf_parametrization[scifi_track_index];

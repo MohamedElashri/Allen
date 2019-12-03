@@ -32,7 +32,7 @@ namespace LookingForward {
   constexpr int number_of_uv_layers = 6;
 
   // Number of ints per track in initial window (xbegin, xend, uvbegin, uvend == 4)
-  constexpr int number_of_elements_initial_window = 4;
+  constexpr int number_of_elements_initial_window = 8;
 
   // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
   constexpr float chi2_max_triplet_single = 8.f;

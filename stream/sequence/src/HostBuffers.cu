@@ -40,17 +40,6 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   host_allocated_prefix_sum_space = 10000000;
   cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(uint)));
 
-  int n_max_svs = SciFi::Constants::max_tracks * 100;
-
-  // Datatypes required for monitoring
-  cudaCheck(cudaMallocHost((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int)));
-  cudaCheck(cudaMallocHost((void**) &host_one_track_decisions, max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
-  cudaCheck(cudaMallocHost((void**) &host_single_muon_decisions, max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
-  cudaCheck(cudaMallocHost((void**) &host_sv_offsets, (max_number_of_events + 1) * sizeof(uint)));
-  cudaCheck(cudaMallocHost((void**) &host_two_track_decisions, max_number_of_events * n_max_svs * sizeof(bool)));
-  cudaCheck(cudaMallocHost((void**) &host_disp_dimuon_decisions, max_number_of_events * n_max_svs * sizeof(bool)));
-  cudaCheck(cudaMallocHost((void**) &host_high_mass_dimuon_decisions, max_number_of_events * n_max_svs * sizeof(bool)));
-
   if (do_check) {
     // Datatypes to be reserved only if checking is on
     // Note: These datatypes in principle do not require to be pinned
@@ -82,6 +71,8 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     host_ut_track_velo_indices = reinterpret_cast<decltype(host_ut_track_velo_indices)>(
       malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(int)));
 
+    host_atomics_scifi = reinterpret_cast<decltype(host_atomics_scifi)>(malloc(
+      max_number_of_events * SciFi::num_atomics * sizeof(int)));
     host_scifi_tracks = reinterpret_cast<decltype(host_scifi_tracks)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
       LookingForward::maximum_number_of_candidates_per_ut_track * sizeof(SciFi::TrackHits)));
@@ -129,6 +120,21 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
 
     host_secondary_vertices = reinterpret_cast<decltype(host_secondary_vertices)>(
       malloc(max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
+
+    host_one_track_decisions = reinterpret_cast<decltype(host_one_track_decisions)>(
+      malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
+    host_single_muon_decisions = reinterpret_cast<decltype(host_single_muon_decisions)>(
+      malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
+    host_sv_offsets = reinterpret_cast<decltype(host_sv_offsets)>(
+      malloc((max_number_of_events + 1) * sizeof(uint)));
+    host_two_track_decisions = reinterpret_cast<decltype(host_two_track_decisions)>(
+      malloc(max_number_of_events * n_max_svs * sizeof(bool)));
+    host_disp_dimuon_decisions = reinterpret_cast<decltype(host_disp_dimuon_decisions)>(
+      malloc(max_number_of_events * n_max_svs * sizeof(bool)));
+    host_high_mass_dimuon_decisions = reinterpret_cast<decltype(host_high_mass_dimuon_decisions)>(
+      malloc(max_number_of_events * n_max_svs * sizeof(bool)));
+    host_dimuon_soft_decisions = reinterpret_cast<decltype(host_dimuon_soft_decisions)>(
+      malloc(max_number_of_events * n_max_svs * sizeof(bool)));
   }
 }
 

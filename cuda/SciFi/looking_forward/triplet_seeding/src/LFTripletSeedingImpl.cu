@@ -24,9 +24,9 @@ __device__ void lf_triplet_seeding_impl(
   int8_t* scifi_lf_number_of_found_triplets,
   const uint triplet_seed)
 {
-  const int l0_start = initial_windows[(layer_0 * 8) * ut_total_number_of_tracks];
-  const int l1_start = initial_windows[(layer_1 * 8) * ut_total_number_of_tracks];
-  const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
+  const int l0_start = initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+  const int l1_start = initial_windows[layer_1 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+  const int l2_start = initial_windows[layer_2 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
 
   const auto inverse_dz2 = 1.f / (z0 - z2);
   const auto constant_expected_x1 =

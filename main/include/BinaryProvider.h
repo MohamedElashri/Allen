@@ -136,7 +136,7 @@ public:
       if (it == end(BankSizes)) {
         throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
       }
-      return {std::lround(401 * sizeof(uint32_t) + it->second * events_per_slice * bank_size_fudge_factor * kB),
+      return {std::lround((10 * sizeof(uint32_t) + it->second) * events_per_slice * bank_size_fudge_factor * kB),
               events_per_slice};
     };
     m_slices = allocate_slices<Banks...>(n_slices, size_fun);
