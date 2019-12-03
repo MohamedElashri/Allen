@@ -11,12 +11,6 @@ __global__ void lf_least_mean_square_fit(
   const float* dev_inv_clus_res,
   float* dev_scifi_lf_parametrization_x_filter)
 {
-  if (Configuration::verbosity_level >= logger::debug) {
-    if (blockIdx.y == 0) {
-      printf("\n\n-------- LF Least Mean Square Fit ----------\n");
-    }
-  }
-
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 

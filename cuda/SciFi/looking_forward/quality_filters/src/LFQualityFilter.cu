@@ -21,12 +21,6 @@ __global__ void lf_quality_filter(
   const uint* dev_velo_track_hit_number,
   const uint* dev_ut_track_velo_indices)
 {
-  if (Configuration::verbosity_level >= logger::debug) {
-    if (blockIdx.y == 0) {
-      printf("\n\n------------- Quality filter ---------------\n");
-    }
-  }
-
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
@@ -88,7 +82,7 @@ __global__ void lf_quality_filter(
        scifi_track_index];
 
     // Do Y line fit
-    const auto y_lms_fit = LookingForward::lms_y_fit(
+    const auto y_lms_fit = LookingForward::least_mean_square_y_fit(
       track, number_of_uv_hits, scifi_hits, a1, b1, c1, d_ratio, event_offset, dev_looking_forward_constants);
 
     // Save Y line fit
@@ -99,24 +93,26 @@ __global__ void lf_quality_filter(
 
     const float y_fit_contribution = std::get<0>(y_lms_fit) / LookingForward::range_y_fit_end;
 
-    const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < 0.02f;
-    const bool acceptable = hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV && (track.hitsNum >= 11 || in_ty_window);
+    const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - ut_state.ty) < LookingForward::max_diff_ty_window;
+    const bool acceptable = hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV && (track.hitsNum >= LookingForward::min_hits_or_ty_window || in_ty_window);
 
     // Combined value
     const auto combined_value = track.quality / (track.hitsNum - 3);
 
     track.quality = acceptable ? combined_value + y_fit_contribution : 10000.f;
 
-    // Prefer tracks with 11 and 12 hits
-    if (track.hitsNum == 11) {
-      track.quality *= 0.8f;
+    // Apply multipliers to quality of tracks depending on number of hits
+    if (track.hitsNum == 9) {
+      track.quality *= LookingForward::track_9_hits_quality_multiplier;
+    }
+    else if (track.hitsNum == 10) {
+      track.quality *= LookingForward::track_10_hits_quality_multiplier;
+    }
+    else if (track.hitsNum == 11) {
+      track.quality *= LookingForward::track_11_hits_quality_multiplier;
     }
     else if (track.hitsNum == 12) {
-      track.quality *= 0.5f;
-    }
-    // Penalize tracks with only 9 hits
-    else if (track.hitsNum == 9) {
-      track.quality *= 5.f;
+      track.quality *= LookingForward::track_12_hits_quality_multiplier;
     }
 
     // // This code is to keep all the tracks
@@ -187,16 +183,6 @@ __global__ void lf_quality_filter(
       const auto velo_track_index = dev_ut_track_velo_indices[ut_event_tracks_offset + track.ut_track_index];
       const auto velo_states_index = velo_tracks_offset_event + velo_track_index;
       const auto velo_state = velo_states.getMiniState(velo_states_index);
-
-      // const auto x_at_ref = c1;
-      // const auto dz_magnet_param = dev_looking_forward_constants->zMagnetParams[0] - LookingForward::z_mid_t;
-      // const auto x_at_magnet_param = c1 + b1 * dz_magnet_param + a1 * dz_magnet_param * dz_magnet_param * (1.f + d_ratio * dz_magnet_param);
-      // const auto d_slope = (x_at_ref - x_at_magnet_param) / (LookingForward::z_mid_t - dev_looking_forward_constants->zMagnetParams[0]);
-      // const auto z_mag_slope = dev_looking_forward_constants->zMagnetParams[2] * velo_state.tx * velo_state.tx +
-      //                         dev_looking_forward_constants->zMagnetParams[3] * velo_state.ty * velo_state.ty;
-      // const auto z_mag = dev_looking_forward_constants->zMagnetParams[0] + dev_looking_forward_constants->zMagnetParams[1] * d_slope * d_slope + z_mag_slope;
-      // const auto x_mag = velo_state.x + velo_state.tx * (LookingForward::z_mid_t - z_mag);
-      // const auto bx = (x_at_ref - x_mag) / (LookingForward::z_mid_t - z_mag);
 
       const auto x0 = scifi_hits.x0[event_offset + track.hits[0]];
       const auto x1 = scifi_hits.x0[event_offset + track.hits[2]];

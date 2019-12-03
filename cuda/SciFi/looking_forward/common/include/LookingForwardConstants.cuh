@@ -6,14 +6,33 @@
 #include <cstdint>
 
 namespace LookingForward {
+  // Enum only used for initial window search
+  enum layer_bits {
+    layer0 = 0x01,
+    layer3 = 0x02,
+    layer4 = 0x04,
+    layer7 = 0x08,
+    layer8 = 0x10,
+    layer11 = 0x20,
+    layer1 = 0x0100,
+    layer2 = 0x0200,
+    layer5 = 0x0400,
+    layer6 = 0x0800,
+    layer9 = 0x1000,
+    layer10 = 0x2000
+  };
+
   // Reference z plane
-  constexpr float z_mid_t = 8520.f * Gaudi::Units::mm;
+  constexpr float z_mid_t = 8520.f * Gaudi::Units::mm; // FIXME_GEOMETRY_HARDCODING
 
   // ==================================
   // Constants for lf search by triplet
   // ==================================
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
+
+  // Number of ints per track in initial window (xbegin, xend, uvbegin, uvend == 4)
+  constexpr int number_of_elements_initial_window = 4;
 
   // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
   constexpr float chi2_max_triplet_single = 8.f;
@@ -54,6 +73,11 @@ namespace LookingForward {
   constexpr float x_at_z_p2 = 16.6874;
   constexpr float x_at_z_p3 = -375.478;
 
+  // d_ratio correction as in the seeding algorithm
+  constexpr float d_ratio_par_0 = 0.000267957f;
+  constexpr float d_ratio_par_1 = -8.651e-06f;
+  constexpr float d_ratio_par_2 = 4.60324e-05f;
+
   // Sign check momentum threshold
   constexpr float sign_check_momentum_threshold = 5000.f;
 
@@ -61,6 +85,26 @@ namespace LookingForward {
   constexpr float linear_range_qop_end = 0.0005f;
   constexpr float x_at_magnet_range_0 = 8.f;
   constexpr float x_at_magnet_range_1 = 40.f;
+
+  // Parametrization of expected x1 in triplet formation
+  constexpr int sagitta_alignment_x1_triplet0 = 1.00177513f;
+  constexpr int sagitta_alignment_x1_triplet1 = 1.00142634f;
+
+  // Windows
+  constexpr int min_hits_or_ty_window = 11;
+  constexpr float max_diff_ty_window = 0.02f;
+
+  // Quality multipliers
+  constexpr float track_9_hits_quality_multiplier = 5.f;
+  constexpr float track_10_hits_quality_multiplier = 1.f;
+  constexpr float track_11_hits_quality_multiplier = 0.8f;
+  constexpr float track_12_hits_quality_multiplier = 0.5f;
+
+  // Initial search windows parameters
+  constexpr float initial_window_offset_xtol = 150.f;
+  constexpr float initial_window_factor_qop = 2e6f;
+  constexpr float initial_window_factor_assymmetric_opening = 100.f;
+  constexpr float initial_windows_max_offset_uv_window = 800.f;
 
   struct Constants {
     int xZones[12] {0, 6, 8, 14, 16, 22, 1, 7, 9, 15, 17, 23};
@@ -79,6 +123,15 @@ namespace LookingForward {
     ======================================*/
 
     // Triplet creation
+    // Note: In the code there are several assumptions associated with these set of triplets:
+    // * In the initial window search, where a track will only be processed if it has at least one candidate
+    //   in {0, 2, 4} or {1, 3, 5}.
+    // * In the triplet creation, the constants sagitta_alignment_x1_triplet0 and sagitta_alignment_x1_triplet1
+    //   were created assuming triplets in X layers {0, 2, 4} and {1, 3, 5} respectively.
+    // * In the extension of tracks to other X layers, hits 0, 1 and 2 are expected to
+    //   be from T1, T2 and T3 respectively.
+    // * Hit 0 and hit 2 of the track are expected to be a T1 and T3 hit,
+    //   in the calculation of QualityFilter.cu of the updated qop.
     uint triplet_seeding_layers[n_triplet_seeds][3] {{0, 2, 4}, {1, 3, 5}};
 
     // Extrapolation to UV

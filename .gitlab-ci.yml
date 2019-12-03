@@ -175,7 +175,7 @@ check-formatting:
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
     - RUN_OPTIONS="-n 1000 -m 700 -r 100 -t 12 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
-    -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 1000 -c 0"
+    -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
@@ -245,7 +245,7 @@ check-formatting:
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
     - RUN_OPTIONS="-n 1000 -m 700 -r 100 -t 12 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
-    -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 1000 -c 0"
+    -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH

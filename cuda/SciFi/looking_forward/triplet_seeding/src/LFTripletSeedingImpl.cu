@@ -29,7 +29,8 @@ __device__ void lf_triplet_seeding_impl(
   const int l2_start = initial_windows[(layer_2 * 8) * ut_total_number_of_tracks];
 
   const auto inverse_dz2 = 1.f / (z0 - z2);
-  const auto constant_expected_x1 = (triplet_seed == 0 ? 1.00177513f : 1.00142634f);
+  const auto constant_expected_x1 =
+    (triplet_seed == 0 ? LookingForward::sagitta_alignment_x1_triplet0 : LookingForward::sagitta_alignment_x1_triplet1);
 
   const auto qop_range =
     fabsf(qop) > LookingForward::linear_range_qop_end ? 1.f : fabsf(qop) * (1.f / LookingForward::linear_range_qop_end);
@@ -37,7 +38,7 @@ __device__ void lf_triplet_seeding_impl(
     LookingForward::x_at_magnet_range_0 +
     qop_range * (LookingForward::x_at_magnet_range_1 - LookingForward::x_at_magnet_range_0);
 
-  const auto do_sign_check = fabsf(qop) > (1.f / LookingForward::sign_check_momentum_threshold);
+  const auto do_slope_sign_check = fabsf(qop) > (1.f / LookingForward::sign_check_momentum_threshold);
 
   // Due to shared_x1
   __syncthreads();
@@ -73,7 +74,7 @@ __device__ void lf_triplet_seeding_impl(
 
       const auto equal_signs_in_slopes = signbit(slope_t1_t3 - velo_tx) == signbit(ut_tx - velo_tx);
       const bool process_element =
-        x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_sign_check || equal_signs_in_slopes);
+        x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_slope_sign_check || equal_signs_in_slopes);
 
       if (process_element && number_of_found_triplets < LookingForward::maximum_number_of_triplets_per_thread) {
         // Binary search of candidate
@@ -96,10 +97,6 @@ __device__ void lf_triplet_seeding_impl(
         }
 
         if (best_h1_rel != -1) {
-          // if (Configuration::verbosity_level >= logger::debug) {
-          //   printf("Best triplet found: %i, %i, %i, %f\n", h0_rel, h2_rel, best_j, best_chi2);
-          // }
-
           // Store chi2, h0, h1 and h2 encoded in a 32-bit type
           // Bits (LSB):
           //  0-4: h2_rel
@@ -110,9 +107,9 @@ __device__ void lf_triplet_seeding_impl(
           int* best_chi2_int = reinterpret_cast<int*>(&best_chi2);
           int h0_h1_h2_rel = (triplet_seed << 15) | (h0_rel << 10) | (best_h1_rel << 5) | h2_rel;
 
-          scifi_lf_found_triplets[
-            tid_x * LookingForward::maximum_number_of_triplets_per_thread +
-            number_of_found_triplets++] = (best_chi2_int[0] & 0xFFFF0000) + h0_h1_h2_rel;
+          scifi_lf_found_triplets
+            [tid_x * LookingForward::maximum_number_of_triplets_per_thread + number_of_found_triplets++] =
+              (best_chi2_int[0] & 0xFFFF0000) + h0_h1_h2_rel;
         }
       }
     }

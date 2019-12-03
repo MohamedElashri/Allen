@@ -26,9 +26,11 @@ __device__ void lf_search_initial_windows_impl(
       UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
     const float xInZone = stateInZone.x;
 
-    const float xTol = 150.f + 2e6f * fabsf(qop);
-    const float xMin = xInZone - xTol - 100.f * signbit(qop);
-    const float xMax = xInZone + xTol + 100.f * (signbit(qop) ^ 0x01);
+    const float xTol =
+      LookingForward::initial_window_offset_xtol + LookingForward::initial_window_factor_qop * fabsf(qop);
+    const float xMin = xInZone - xTol - LookingForward::initial_window_factor_assymmetric_opening * signbit(qop);
+    const float xMax =
+      xInZone + xTol + LookingForward::initial_window_factor_assymmetric_opening * (signbit(qop) ^ 0x01);
 
     // Get the hits within the bounds
     const int x_zone_offset_begin = scifi_hit_count.zone_offset(looking_forward_constants->xZones[iZone]);
@@ -47,9 +49,10 @@ __device__ void lf_search_initial_windows_impl(
       central_window_begin;
 
     // Initialize windows
-    initial_windows[i * 8 * number_of_tracks] =
+    initial_windows[i * LookingForward::number_of_elements_initial_window * number_of_tracks] =
       hits_within_bounds_start + x_zone_offset_begin - event_offset + central_window_begin;
-    initial_windows[(i * 8 + 1) * number_of_tracks] = central_window_size;
+    initial_windows[(i * LookingForward::number_of_elements_initial_window + 1) * number_of_tracks] =
+      central_window_size;
 
     sizes |= (hits_within_bounds_size > 0) << i;
 
@@ -63,8 +66,8 @@ __device__ void lf_search_initial_windows_impl(
       const float UvCorr =
         LookingForward::y_at_z(stateInZone, this_uv_z) * looking_forward_constants->Zone_dxdy_uvlayers[i % 2];
       const float xInUvCorr = xInUv - UvCorr;
-      const float xMinUV = xInUvCorr - 800.f;
-      const float xMaxUV = xInUvCorr + 800.f;
+      const float xMinUV = xInUvCorr - LookingForward::initial_windows_max_offset_uv_window;
+      const float xMaxUV = xInUvCorr + LookingForward::initial_windows_max_offset_uv_window;
 
       // Get bounds in UV layers
       // do one search on the same side as the x module
@@ -75,8 +78,10 @@ __device__ void lf_search_initial_windows_impl(
       const int hits_within_uv_bounds_size = binary_search_leftmost(
         scifi_hits.x0 + uv_zone_offset_begin + hits_within_uv_bounds, uv_zone_size - hits_within_uv_bounds, xMaxUV);
 
-      initial_windows[(i * 8 + 2) * number_of_tracks] = hits_within_uv_bounds + uv_zone_offset_begin - event_offset;
-      initial_windows[(i * 8 + 3) * number_of_tracks] = hits_within_uv_bounds_size;
+      initial_windows[(i * LookingForward::number_of_elements_initial_window + 2) * number_of_tracks] =
+        hits_within_uv_bounds + uv_zone_offset_begin - event_offset;
+      initial_windows[(i * LookingForward::number_of_elements_initial_window + 3) * number_of_tracks] =
+        hits_within_uv_bounds_size;
 
       sizes |= (hits_within_uv_bounds_size > 0) << (8 + i);
     }
@@ -87,9 +92,11 @@ __device__ void lf_search_initial_windows_impl(
   // * It can have at least one hit in UV layers
   //   (1 or 2) and (5 or 6) and (9 or 10)
   const bool do_process =
-    (((sizes & 0x01) && (sizes & 0x04) && (sizes & 0x10)) || ((sizes & 0x02) && (sizes & 0x08) && (sizes & 0x20))) &&
-    ((sizes & 0x0100) || (sizes & 0x0200)) && ((sizes & 0x0400) || (sizes & 0x0800)) &&
-    ((sizes & 0x1000) || (sizes & 0x2000));
+    (((sizes & LookingForward::layer0) && (sizes & LookingForward::layer4) && (sizes & LookingForward::layer8)) ||
+     ((sizes & LookingForward::layer3) && (sizes & LookingForward::layer7) && (sizes & LookingForward::layer11))) &&
+    ((sizes & LookingForward::layer1) || (sizes & LookingForward::layer2)) &&
+    ((sizes & LookingForward::layer5) || (sizes & LookingForward::layer6)) &&
+    ((sizes & LookingForward::layer9) || (sizes & LookingForward::layer10));
 
   dev_process_track[ut_track_index] = do_process;
 }

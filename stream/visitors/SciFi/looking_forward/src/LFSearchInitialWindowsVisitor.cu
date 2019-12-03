@@ -10,7 +10,8 @@ void SequenceVisitor::set_arguments_size<lf_search_initial_windows_t>(
   const HostBuffers& host_buffers)
 {
   arguments.set_size<dev_scifi_lf_initial_windows>(
-    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::number_of_x_layers * 8);
+    LookingForward::number_of_elements_initial_window * host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+    LookingForward::number_of_x_layers);
   arguments.set_size<dev_ut_states>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
   arguments.set_size<dev_scifi_lf_process_track>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
 }

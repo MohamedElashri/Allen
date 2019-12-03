@@ -13,12 +13,6 @@ __global__ void lf_extend_tracks_x(
   const int* dev_initial_windows,
   const float* dev_scifi_lf_parametrization)
 {
-  // if (Configuration::verbosity_level >= logger::debug) {
-  //   if (blockIdx.y == 0) {
-  //     printf("---- Extend Missing X ----\n");
-  //   }
-  // }
-
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
@@ -51,10 +45,10 @@ __global__ void lf_extend_tracks_x(
       [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
 
     // Note: This logic assumes the candidate layers have hits in {T0, T1, T2}
-    // for (auto current_layer : {1 - track.get_layer(0), 5 - track.get_layer(1), 9 - track.get_layer(2)}) {
+    for (auto current_layer : {1 - track.get_layer(0), 5 - track.get_layer(1), 9 - track.get_layer(2)}) {
 
     // Note: This logic assumes the candidate layers are {0, 2, 4} and {1, 3, 5}
-    for (auto current_layer : {1 - track.get_layer(0), 3 - track.get_layer(0), 5 - track.get_layer(0)}) {
+    // for (auto current_layer : {1 - track.get_layer(0), 3 - track.get_layer(0), 5 - track.get_layer(0)}) {
       // Find window
       const auto window_start =
         dev_initial_windows[current_ut_track_index + current_layer * 8 * ut_total_number_of_tracks];

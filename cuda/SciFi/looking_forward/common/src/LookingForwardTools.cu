@@ -66,7 +66,7 @@ __device__ float LookingForward::propagate_x_from_velo_multi_par(
     magnet_x, final_tx, dev_looking_forward_constants->Zone_zPos[layer] - LookingForward::z_magnet);
 }
 
-__device__ std::tuple<float, float, float> LookingForward::lms_y_fit(
+__device__ std::tuple<float, float, float> LookingForward::least_mean_square_y_fit(
   const SciFi::TrackHits& track,
   const uint number_of_uv_hits,
   const SciFi::Hits& scifi_hits,

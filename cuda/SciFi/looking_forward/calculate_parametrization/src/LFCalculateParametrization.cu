@@ -17,12 +17,6 @@ __global__ void lf_calculate_parametrization(
   const float* dev_inv_clus_res,
   float* dev_scifi_lf_parametrization)
 {
-  // if (Configuration::verbosity_level >= logger::debug) {
-  //   if (blockIdx.y == 0) {
-  //     printf("---- Extend Missing X ----\n");
-  //   }
-  // }
-
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
@@ -73,24 +67,15 @@ __global__ void lf_calculate_parametrization(
     const auto z2_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(1)];
     const auto z3_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(2)];
 
-    // From hybrid seeding
-    constexpr float z_mid_t = 8520.f * Gaudi::Units::mm;
-
-    // the dRatio for solving the parabola has to be
-    constexpr float d_ratio_par_0 = 0.000267957f;
-    constexpr float d_ratio_par_1 = -8.651e-06f;
-    constexpr float d_ratio_par_2 = 4.60324e-05f;
-
-    // constexpr float d_ratio = -0.0000262f;
     // Updated d_ratio
     const auto track_y_ref = velo_state.y + velo_state.ty * (z2_noref - velo_state.z);
     const auto radius_position = sqrtf((5.f * 5.f * 1.e-8f * x2 * x2 + 1e-6f * track_y_ref * track_y_ref));
     const auto d_ratio =
-      -1.f * (d_ratio_par_0 + d_ratio_par_1 * radius_position + d_ratio_par_2 * radius_position * radius_position);
+      -1.f * (LookingForward::d_ratio_par_0 + LookingForward::d_ratio_par_1 * radius_position + LookingForward::d_ratio_par_2 * radius_position * radius_position);
 
-    const auto z1 = z1_noref - z_mid_t;
-    const auto z2 = z2_noref - z_mid_t;
-    const auto z3 = z3_noref - z_mid_t;
+    const auto z1 = z1_noref - LookingForward::z_mid_t;
+    const auto z2 = z2_noref - LookingForward::z_mid_t;
+    const auto z3 = z3_noref - LookingForward::z_mid_t;
     const auto corrZ1 = 1.f + d_ratio * z1;
     const auto corrZ2 = 1.f + d_ratio * z2;
     const auto corrZ3 = 1.f + d_ratio * z3;

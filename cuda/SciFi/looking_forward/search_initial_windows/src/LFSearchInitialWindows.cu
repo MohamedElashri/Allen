@@ -28,7 +28,7 @@ __global__ void lf_search_initial_windows(
   const Velo::Consolidated::Tracks velo_tracks {
     (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
   const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
-  const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+  const uint velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks
   UT::Consolidated::Tracks ut_tracks {(uint*) dev_atomics_ut,
@@ -61,7 +61,7 @@ __global__ void lf_search_initial_windows(
     const float ut_tx = dev_ut_tx[ut_track_index];
     const float ut_z = dev_ut_z[ut_track_index];
 
-    const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
+    const uint velo_states_index = velo_event_tracks_offset + velo_track_index;
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
 
     // extrapolate velo y & ty to z of UT x and tx
