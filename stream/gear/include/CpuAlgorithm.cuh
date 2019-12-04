@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ArgumentManager.cuh"
+#include "Configuration.cuh"
 #include <functional>
 #include <tuple>
 #include <utility>
@@ -11,14 +12,14 @@
  *             invokes calls it.
  */
 template<typename R, typename... T>
-struct CpuFunctionWrapper {
+struct CpuAlgorithm : public Algorithm {
 private:
   std::function<R(T...)> fn;
 
 public:
-  CpuFunctionWrapper(std::function<R(T...)> param_function) : fn(param_function) {}
+  CpuAlgorithm(std::function<R(T...)> param_function) : fn(param_function) {}
 
-  auto invoke(T... arguments)
+  auto invoke(T... arguments) const
   {
     return fn(arguments...);
   }
@@ -29,7 +30,7 @@ public:
  *             to specify its function type (ie. "make_cpu_handler(function)").
  */
 template<typename R, typename... T>
-static CpuFunctionWrapper<R, T...> cpu_function_wrapper(R(f)(T...))
+static CpuAlgorithm<R, T...> cpu_algorithm(R(f)(T...))
 {
-  return CpuFunctionWrapper<R, T...> {f};
+  return CpuAlgorithm<R, T...> {f};
 }

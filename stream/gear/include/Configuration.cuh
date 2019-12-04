@@ -71,6 +71,10 @@ struct BaseAlgorithm {
   virtual ~BaseAlgorithm() {}
 };
 
+// Forward declare to use in Algorithm
+template<typename V>
+class Property;
+
 /**
  * @brief      In addition to functionality in BaseAlgorithm, algorithms may need to access properties shared with other
  * algorithms
@@ -92,6 +96,18 @@ public:
         it->second->from_string(kv.second);
       }
     }
+  }
+
+  template<typename T>
+  T get_property_value(std::string property_name) const
+  {
+    T holder;
+    auto prop = dynamic_cast<Property<T> const*>(get_prop(property_name));
+    if (prop)
+      holder = prop->get_value();
+    else
+      std::cout << "property " << property_name << " not found" << std::endl;
+    return holder;
   }
 
   std::map<std::string, std::string> get_properties() override

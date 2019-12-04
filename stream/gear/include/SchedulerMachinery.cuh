@@ -237,10 +237,10 @@ namespace Sch {
       using Algo = typename std::tuple_element<I, Tuple>::type;
       if (config.find(Algo::name) != config.end()) {
         auto& a = std::get<I>(algs);
-        a.set_properties(config.at(Algo::name));
-        for (auto s : a.get_shared_sets()) {
+        a.algorithm.set_properties(config.at(Algo::name));
+        for (auto s : a.algorithm.get_shared_sets()) {
           if (config.find(s) != config.end()) {
-            a.set_shared_properties(s, config.at(s));
+            a.algorithm.set_shared_properties(s, config.at(s));
           }
         }
       }
@@ -272,10 +272,10 @@ namespace Sch {
     {
       using Algo = typename std::tuple_element<I, Tuple>::type;
       auto a = std::get<I>(algs);
-      auto props = a.get_properties();
+      auto props = a.algorithm.get_properties();
       config.emplace(std::string(Algo::name), props);
-      for (auto s : a.get_shared_sets()) {
-        auto props = a.get_shared_properties(s);
+      for (auto s : a.algorithm.get_shared_sets()) {
+        auto props = a.algorithm.get_shared_properties(s);
         if (config.find(s) == config.end()) {
           config.emplace(s, props);
         }
@@ -331,11 +331,11 @@ namespace Sch {
    */
   template<typename ArgumentsTuple, typename Algorithm>
   struct ProduceArgumentsTuple {
-    constexpr static typename Algorithm::arguments_t produce(ArgumentsTuple& arguments_tuple)
+    constexpr static ArgumentRefManager<typename Algorithm::Arguments> produce(ArgumentsTuple& arguments_tuple)
     {
       return ProduceArgumentsTupleHelper<
         ArgumentsTuple,
-        typename Algorithm::arguments_t,
+        ArgumentRefManager<typename Algorithm::Arguments>,
         typename Algorithm::Arguments>::produce(arguments_tuple);
     }
   };
@@ -393,7 +393,7 @@ namespace Sch {
       using t = typename std::tuple_element<I, Tuple>::type;
 
       // Sets the arguments sizes, setups the scheduler and visits the algorithm.
-      std::get<I>(tuple).set_arguments_size<t>(
+      std::get<I>(tuple).set_arguments_size(
         ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
           scheduler.argument_manager.arguments_tuple),
         std::forward<SetSizeArguments>(set_size_arguments)...);

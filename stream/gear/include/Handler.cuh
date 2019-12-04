@@ -18,17 +18,6 @@
     using Arguments = DEPENDENCIES;                                                                                 \
     using arguments_t = ArgumentRefManager<Arguments>;                                                              \
     decltype(make_handler(name, FUNCTION)) handler {name, FUNCTION};                                                \
-    template<typename T>                                                                                            \
-    T get_property_value(std::string property_name) const                                                           \
-    {                                                                                                               \
-      T holder;                                                                                                     \
-      auto prop = dynamic_cast<Property<T> const*>(get_prop(property_name));                                        \
-      if (prop)                                                                                                     \
-        holder = prop->get_value();                                                                                 \
-      else                                                                                                          \
-        warning_cout << "property " << property_name << " not found" << std::endl;                                  \
-      return holder;                                                                                                \
-    }                                                                                                               \
     void set_opts(                                                                                                  \
       const dim3& param_num_blocks,                                                                                 \
       const dim3& param_num_threads,                                                                                \
