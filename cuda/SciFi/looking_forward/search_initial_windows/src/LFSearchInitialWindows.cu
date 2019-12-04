@@ -82,7 +82,7 @@ __global__ void lf_search_initial_windows(
       state_at_z_last_ut_plane,
       dev_looking_forward_constants,
       ut_qop,
-      (y_projection < 0 ? -1 : 1),
+      y_projection >= 0.f,
       dev_initial_windows + ut_event_tracks_offset + i,
       ut_tracks.total_number_of_tracks,
       event_offset,

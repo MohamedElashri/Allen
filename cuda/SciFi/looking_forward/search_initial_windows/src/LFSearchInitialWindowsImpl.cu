@@ -9,14 +9,14 @@ __device__ void lf_search_initial_windows_impl(
   const MiniState& UT_state,
   const LookingForward::Constants* looking_forward_constants,
   const float qop,
-  const int side,
+  const bool side,
   int* initial_windows,
   const int number_of_tracks,
   const uint event_offset,
   bool* dev_process_track,
   const uint ut_track_index)
 {
-  int iZoneStartingPoint = (side > 0) ? LookingForward::number_of_x_layers : 0;
+  int iZoneStartingPoint = side ? LookingForward::number_of_x_layers : 0;
   uint16_t sizes = 0;
 
   for (int i = 0; i < LookingForward::number_of_x_layers; i++) {

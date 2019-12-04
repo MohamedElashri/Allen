@@ -16,7 +16,7 @@ __device__ void lf_search_initial_windows_impl(
   const MiniState& UT_state,
   const LookingForward::Constants* looking_forward_constants,
   const float qop,
-  const int side,
+  const bool side,
   int* initial_windows,
   const int number_of_tracks,
   const uint event_offset,

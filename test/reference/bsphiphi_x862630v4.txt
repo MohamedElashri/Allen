@@ -116,3 +116,4 @@ Single muon:           1/  1000, (   30.00 +/-    29.98) kHz
 Displaced dimuon:     12/  1000, (  360.00 +/-   103.30) kHz
 High mass dimuon:     11/  1000, (  330.00 +/-    98.95) kHz
 Dimuon Soft:          22/  1000, (  660.00 +/-   139.16) kHz
+Inclusive:           417/  1000, (12510.00 +/-   467.76) kHz
