@@ -4,178 +4,117 @@
 
 __device__ void lf_triplet_seeding_impl(
   const float* scifi_hits_x0,
-  const uint8_t h0_candidate_size,
-  const uint8_t h1_candidate_size,
-  const uint8_t h2_candidate_size,
-  const uint8_t layer_0,
-  const uint8_t layer_1,
-  const uint8_t layer_2,
-  SciFi::CombinedValue* best_combined,
-  const short* scifi_lf_candidates,
-  const float dz1,
-  const float dz2,
+  const uint layer_0,
+  const uint layer_1,
+  const uint layer_2,
+  const int l0_size,
+  const int l1_size,
+  const int l2_size,
+  const float z0,
+  const float z1,
+  const float z2,
+  const int* initial_windows,
+  const uint ut_total_number_of_tracks,
   const float qop,
-  float* shared_partial_chi2)
+  const float ut_tx,
+  const float velo_tx,
+  const float x_at_z_magnet,
+  float* shared_x1,
+  int* scifi_lf_found_triplets,
+  int8_t* scifi_lf_number_of_found_triplets,
+  const uint triplet_seed)
 {
-  // Required constants for the chi2 calculation below
-  float extrap1 = LookingForward::get_extrap(qop, dz1);
-  extrap1 *= extrap1;
-  const float zdiff = dz2 / dz1;
-  const float extrap2 = LookingForward::get_extrap(qop, dz2);
+  const int l0_start = initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+  const int l1_start = initial_windows[layer_1 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+  const int l2_start = initial_windows[layer_2 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
 
-// Tensor core specialization
-#if __CUDA_ARCH__ >= 700 && defined(TENSOR_CORES_ENABLED)
-  const half zdiff_half = ((half) zdiff);
+  const auto inverse_dz2 = 1.f / (z0 - z2);
+  const auto constant_expected_x1 =
+    (triplet_seed == 0 ? LookingForward::sagitta_alignment_x1_triplet0 : LookingForward::sagitta_alignment_x1_triplet1);
 
-  // Tensor core magic
-  half* shared_wmma_a = (half*) shared_partial_chi2;
-  half* shared_wmma_b = (half*) (shared_partial_chi2 + ((LookingForward::tile_size * LookingForward::tile_size) >> 1));
+  const auto qop_range =
+    fabsf(qop) > LookingForward::linear_range_qop_end ? 1.f : fabsf(qop) * (1.f / LookingForward::linear_range_qop_end);
+  const auto opening_x_at_z_magnet_diff =
+    LookingForward::x_at_magnet_range_0 +
+    qop_range * (LookingForward::x_at_magnet_range_1 - LookingForward::x_at_magnet_range_0);
 
-  nvcuda::wmma::fragment<
-    nvcuda::wmma::matrix_a,
-    LookingForward::tile_size,
-    LookingForward::tile_size,
-    LookingForward::tile_size,
-    half,
-    nvcuda::wmma::col_major>
-    a_frag;
-  nvcuda::wmma::fragment<
-    nvcuda::wmma::matrix_b,
-    LookingForward::tile_size,
-    LookingForward::tile_size,
-    LookingForward::tile_size,
-    half,
-    nvcuda::wmma::row_major>
-    b_frag;
-  nvcuda::wmma::fragment<
-    nvcuda::wmma::accumulator,
-    LookingForward::tile_size,
-    LookingForward::tile_size,
-    LookingForward::tile_size,
-    float>
-    c_frag;
-  nvcuda::wmma::fragment<
-    nvcuda::wmma::accumulator,
-    LookingForward::tile_size,
-    LookingForward::tile_size,
-    LookingForward::tile_size,
-    float>
-    d_frag;
-  nvcuda::wmma::fill_fragment(c_frag, -extrap2);
-#endif
+  const auto do_slope_sign_check = fabsf(qop) > (1.f / LookingForward::sign_check_momentum_threshold);
 
-  // Search best triplets per h1
-  // Tiled processing of h0 and h2
-  for (int8_t i = 0; i<(h0_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div; ++i) {
-    for (int8_t j = 0; j<(h2_candidate_size + LookingForward::tile_size - 1)>> LookingForward::tile_size_shift_div;
-         ++j) {
-      __syncthreads();
+  // Due to shared_x1
+  __syncthreads();
 
-#if __CUDA_ARCH__ >= 700 && defined(TENSOR_CORES_ENABLED)
-      // Initialize wmma shared memory arrays
-      for (int16_t k = threadIdx.x; k < LookingForward::tile_size * LookingForward::tile_size; k += blockDim.x) {
-        shared_partial_chi2[k] = 0;
-      }
+  for (int i = threadIdx.x; i < l1_size; i += blockDim.x) {
+    shared_x1[i] = scifi_hits_x0[l1_start + i];
+  }
 
-      for (int16_t k = threadIdx.x; k < LookingForward::tile_size; k += blockDim.x) {
-        shared_wmma_a[k] = 1;
-        shared_wmma_b[LookingForward::tile_size + k] = 1;
-        shared_wmma_b[2 * LookingForward::tile_size + k] = zdiff_half;
-      }
+  // Due to shared_x1
+  __syncthreads();
 
-      for (int16_t k = threadIdx.x; k < LookingForward::tile_size; k += blockDim.x) {
-        const int8_t h0_rel = i * LookingForward::tile_size + k;
-        if (h0_rel < h0_candidate_size) {
-          const half x0 =
-            scifi_hits_x0[scifi_lf_candidates[layer_0 * LookingForward::maximum_number_of_candidates + h0_rel]];
-          shared_wmma_a[LookingForward::tile_size + k] = -x0;
-          shared_wmma_a[2 * LookingForward::tile_size + k] = x0;
-        }
-        else {
-          shared_wmma_a[LookingForward::tile_size + k] = 10000.f * LookingForward::chi2_max_triplet_single;
-          shared_wmma_a[2 * LookingForward::tile_size + k] = 10000.f * LookingForward::chi2_max_triplet_single;
-        }
-      }
-      // TODO: Needed?
-      __syncthreads();
-      nvcuda::wmma::load_matrix_sync(a_frag, shared_wmma_a, LookingForward::tile_size);
+  for (uint tid_x = threadIdx.x; tid_x < LookingForward::triplet_seeding_block_dim_x; tid_x += blockDim.x) {
+    uint16_t number_of_found_triplets = 0;
 
-      for (int16_t k = threadIdx.x; k < LookingForward::tile_size; k += blockDim.x) {
-        const int8_t h2_rel = j * LookingForward::tile_size + k;
-        if (h2_rel < h2_candidate_size) {
-          shared_wmma_b[k] =
-            scifi_hits_x0[scifi_lf_candidates[layer_2 * LookingForward::maximum_number_of_candidates + h2_rel]];
-        }
-        else {
-          shared_wmma_b[k] = 10000.f * LookingForward::chi2_max_triplet_single;
-        }
-      }
-      // TODO: Needed?
-      __syncthreads();
-      nvcuda::wmma::load_matrix_sync(b_frag, shared_wmma_b, LookingForward::tile_size);
+    // Treat central window iteration
+    for (int i = tid_x; i < l0_size * l2_size; i += LookingForward::triplet_seeding_block_dim_x) {
+      const auto h0_rel = i % l0_size;
+      const auto h2_rel = i / l0_size;
 
-      nvcuda::wmma::mma_sync(d_frag, a_frag, b_frag, c_frag);
-      nvcuda::wmma::store_matrix_sync(
-        shared_partial_chi2, d_frag, LookingForward::tile_size, nvcuda::wmma::mem_col_major);
-#else
-      // Search best triplets per h1
-      for (int k = threadIdx.x; k < LookingForward::tile_size * LookingForward::tile_size; k += blockDim.x) {
-        const int8_t h0_rel = i * LookingForward::tile_size + (k % LookingForward::tile_size);
-        const int8_t h2_rel = j * LookingForward::tile_size + (k / LookingForward::tile_size);
+      const auto x0 = scifi_hits_x0[l0_start + h0_rel];
+      const auto x2 = scifi_hits_x0[l2_start + h2_rel];
 
-        float partial_chi2 = 10000.f * LookingForward::chi2_max_triplet_single;
-        if (h0_rel < h0_candidate_size && h2_rel < h2_candidate_size) {
-          const auto x0 =
-            scifi_hits_x0[scifi_lf_candidates[layer_0 * LookingForward::maximum_number_of_candidates + h0_rel]];
-          const auto x2 =
-            scifi_hits_x0[scifi_lf_candidates[layer_2 * LookingForward::maximum_number_of_candidates + h2_rel]];
-          partial_chi2 = x2 - x0 + x0 * zdiff - extrap2;
-        }
-        shared_partial_chi2[k] = partial_chi2;
-      }
-      __syncthreads();
-#endif
+      // // Extrapolation
+      const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
+      const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * constant_expected_x1;
 
-      // Iterate over all h1s
-      // Find best chi2, h0 and h2 using the partial chi2 from before
-      for (int h1_all_threads = threadIdx.x; h1_all_threads < LookingForward::maximum_number_of_triplets_per_h1 *
-                                                                LookingForward::maximum_number_of_candidates;
-           h1_all_threads += blockDim.x) {
-        const auto h1_rel = h1_all_threads % LookingForward::maximum_number_of_candidates;
+      const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
+      const auto x_at_z_magnet_diff = fabsf(
+        track_x_at_z_magnet - x_at_z_magnet -
+        (LookingForward::x_at_z_p0 + LookingForward::x_at_z_p1 * slope_t1_t3 +
+         LookingForward::x_at_z_p2 * slope_t1_t3 * slope_t1_t3 +
+         LookingForward::x_at_z_p3 * slope_t1_t3 * slope_t1_t3 * slope_t1_t3));
 
-        if (h1_rel < h1_candidate_size) {
-          const auto section = h1_all_threads / LookingForward::maximum_number_of_candidates;
+      const auto equal_signs_in_slopes = signbit(slope_t1_t3 - velo_tx) == signbit(ut_tx - velo_tx);
+      const bool process_element =
+        x_at_z_magnet_diff < opening_x_at_z_magnet_diff && (!do_slope_sign_check || equal_signs_in_slopes);
 
-          const float x1_zdiff =
-            scifi_hits_x0[scifi_lf_candidates[layer_1 * LookingForward::maximum_number_of_candidates + h1_rel]] * zdiff;
+      if (process_element && number_of_found_triplets < LookingForward::maximum_number_of_triplets_per_thread) {
+        // Binary search of candidate
+        const auto candidate_index = binary_search_leftmost(shared_x1, l1_size, expected_x1);
 
-          float best_chi2 = LookingForward::chi2_max_triplet_single;
-          int best_k = -1;
+        float best_chi2 = LookingForward::chi2_max_triplet_single;
+        int best_h1_rel = -1;
 
-          for (int k = 0 + section * LookingForward::tile_size * LookingForward::tile_size / 2;
-               k < LookingForward::tile_size * LookingForward::tile_size / 2 +
-                     section * LookingForward::tile_size * LookingForward::tile_size / 2;
-               ++k) {
-
-            float chi2 = shared_partial_chi2[k] - x1_zdiff;
-            chi2 = extrap1 + chi2 * chi2;
+        // It is now either candidate_index - 1 or candidate_index
+        for (int h1_rel = candidate_index - 1; h1_rel < candidate_index + 1; ++h1_rel) {
+          if (h1_rel >= 0 && h1_rel < l1_size) {
+            const auto x1 = shared_x1[h1_rel];
+            const auto chi2 = (x1 - expected_x1) * (x1 - expected_x1);
 
             if (chi2 < best_chi2) {
               best_chi2 = chi2;
-              best_k = k;
+              best_h1_rel = h1_rel;
             }
           }
+        }
 
-          if (
-            best_k != -1 &&
-            best_chi2 < best_combined[h1_rel + section * LookingForward::maximum_number_of_candidates].chi2) {
-            best_combined[h1_rel + section * LookingForward::maximum_number_of_candidates] =
-              SciFi::CombinedValue {best_chi2,
-                                    (int16_t)(i * LookingForward::tile_size + (best_k % LookingForward::tile_size)),
-                                    (int16_t)(j * LookingForward::tile_size + (best_k / LookingForward::tile_size))};
-          }
+        if (best_h1_rel != -1) {
+          // Store chi2, h0, h1 and h2 encoded in a 32-bit type
+          // Bits (LSB):
+          //  0-4: h2_rel
+          //  5-9: h1_rel
+          //  10-14: h0_rel
+          //  15: triplet seed
+          //  16-31: most significant bits of chi2
+          int* best_chi2_int = reinterpret_cast<int*>(&best_chi2);
+          int h0_h1_h2_rel = (triplet_seed << 15) | (h0_rel << 10) | (best_h1_rel << 5) | h2_rel;
+
+          scifi_lf_found_triplets
+            [tid_x * LookingForward::maximum_number_of_triplets_per_thread + number_of_found_triplets++] =
+              (best_chi2_int[0] & 0xFFFF0000) + h0_h1_h2_rel;
         }
       }
     }
+
+    // Store number of found triplets by this thread
+    scifi_lf_number_of_found_triplets[tid_x] = number_of_found_triplets;
   }
 }

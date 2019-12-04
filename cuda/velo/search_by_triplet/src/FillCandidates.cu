@@ -25,21 +25,20 @@ __device__ std::tuple<int, int> candidate_binary_search(
   const float h1_phi,
   const float phi_window)
 {
-  int first_candidate = -1;
   int number_of_candidates = 0;
 
-  if (module_number_of_hits > 0) {
-    // Do a binary search for the first candidate
-    first_candidate =
-      binary_search_first_candidate(hit_Phis + module_hit_start, module_number_of_hits, h1_phi, phi_window);
-    if (first_candidate != -1) {
-      // Find number of candidates with a second binary search
-      number_of_candidates = binary_search_second_candidate(
-        hit_Phis + module_hit_start + first_candidate, module_number_of_hits - first_candidate, h1_phi, phi_window);
-    }
-  }
+  // Do a binary search for the first candidate
+  const auto first_candidate = binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, h1_phi - phi_window);
 
-  return {first_candidate, number_of_candidates};
+  if (first_candidate == module_number_of_hits ||
+    fabsf(hit_Phis[module_hit_start + first_candidate] - h1_phi) > phi_window) {
+    return {-1, 0};
+  } else {
+    // Find number of candidates with a second binary search
+    const auto number_of_candidates = binary_search_leftmost(hit_Phis + module_hit_start + first_candidate,
+      module_number_of_hits - first_candidate, h1_phi + phi_window);
+    return {first_candidate, number_of_candidates};
+  }
 }
 
 /**

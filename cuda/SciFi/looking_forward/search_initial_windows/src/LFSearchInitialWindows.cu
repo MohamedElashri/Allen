@@ -21,10 +21,10 @@ __global__ void lf_search_initial_windows(
   const uint* dev_ut_track_velo_indices,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
-  const SciFi::Tracking::Arrays* dev_constArrays,
   const LookingForward::Constants* dev_looking_forward_constants,
   int* dev_initial_windows,
-  MiniState* dev_ut_states)
+  MiniState* dev_ut_states,
+  bool* dev_scifi_lf_process_track)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -33,7 +33,7 @@ __global__ void lf_search_initial_windows(
   const Velo::Consolidated::Tracks velo_tracks {
     (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
   const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
-  const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
+  const uint velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks
   UT::Consolidated::Tracks ut_tracks {(uint*) dev_atomics_ut,
@@ -51,6 +51,7 @@ __global__ void lf_search_initial_windows(
   const SciFi::HitCount scifi_hit_count {(uint32_t*) dev_scifi_hit_count, event_number};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
   const SciFi::Hits scifi_hits(dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res);
+  const auto event_offset = scifi_hit_count.event_offset();
 
   MiniState* ut_states = dev_ut_states + ut_event_tracks_offset;
 
@@ -65,7 +66,7 @@ __global__ void lf_search_initial_windows(
     const float ut_tx = dev_ut_tx[ut_track_index];
     const float ut_z = dev_ut_z[ut_track_index];
 
-    const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
+    const uint velo_states_index = velo_event_tracks_offset + velo_track_index;
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
 
     // extrapolate velo y & ty to z of UT x and tx
@@ -74,23 +75,23 @@ __global__ void lf_search_initial_windows(
     const MiniState state_at_z_last_ut_plane = LookingForward::state_at_z(ut_state, LookingForward::z_last_UT_plane);
 
     // Store state for access in other algorithms
-    if (threadIdx.y == 0) {
-      ut_states[i] = state_at_z_last_ut_plane;
-    }
+    ut_states[i] = state_at_z_last_ut_plane;
 
     // Parameters for the calculation of the windows
     const float y_projection =
-      LookingForward::y_at_z_dzdy_corrected(state_at_z_last_ut_plane, dev_constArrays->xZone_zPos[0]);
+      LookingForward::y_at_z_dzdy_corrected(state_at_z_last_ut_plane, dev_looking_forward_constants->Zone_zPos_xlayers[0]);
 
-    lf_search_initial_windows_p_impl(
+    lf_search_initial_windows_impl(
       scifi_hits,
       scifi_hit_count,
       state_at_z_last_ut_plane,
-      dev_constArrays,
       dev_looking_forward_constants,
       ut_qop,
-      (y_projection < 0 ? -1 : 1),
+      y_projection >= 0.f,
       dev_initial_windows + ut_event_tracks_offset + i,
-      ut_tracks.total_number_of_tracks);
+      ut_tracks.total_number_of_tracks,
+      event_offset,
+      dev_scifi_lf_process_track,
+      ut_track_index);
   }
 }

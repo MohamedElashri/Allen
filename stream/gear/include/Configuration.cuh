@@ -20,7 +20,7 @@ namespace Configuration {
 
   // General template
   template<typename T>
-  bool from_string(T& holder, std::string value);
+  bool from_string(T& holder, const std::string& value);
 
   // General template
   template<typename T>
@@ -42,13 +42,15 @@ namespace Configuration {
  */
 class BaseProperty {
 public:
-  virtual bool from_string(std::string value) = 0;
+  virtual bool from_string(const std::string& value) = 0;
 
   virtual std::string to_string() const = 0;
 
   virtual std::string print() const = 0;
 
   virtual void sync_value() const = 0;
+
+  virtual ~BaseProperty() {}
 };
 
 /**
@@ -56,15 +58,17 @@ public:
  *
  */
 struct BaseAlgorithm {
-  virtual void set_properties(std::map<std::string, std::string> algo_config) = 0;
+  virtual void set_properties(const std::map<std::string, std::string>& algo_config) = 0;
 
   virtual std::map<std::string, std::string> get_properties() = 0;
 
-  virtual bool register_property(std::string const& name, BaseProperty* property) = 0;
+  virtual bool register_property(const std::string& name, BaseProperty* property) = 0;
 
-  virtual bool property_used(std::string const& name) const = 0;
+  virtual bool property_used(const std::string& name) const = 0;
 
-  virtual BaseProperty const* get_prop(std::string prop_name) const = 0;
+  virtual BaseProperty const* get_prop(const std::string& prop_name) const = 0;
+
+  virtual ~BaseAlgorithm() {}
 };
 
 /**
@@ -74,10 +78,11 @@ struct BaseAlgorithm {
  */
 class Algorithm : public BaseAlgorithm {
 public:
-  void set_properties(std::map<std::string, std::string> algo_config) override
+  void set_properties(const std::map<std::string, std::string>& algo_config) override
   {
     for (auto kv : algo_config) {
       auto it = m_properties.find(kv.first);
+
       if (it == m_properties.end()) {
         std::cout << "could not set " << kv.first << "=" << kv.second << std::endl;
         std::cout << "parameter does not exist" << std::endl;
@@ -92,7 +97,7 @@ public:
   std::map<std::string, std::string> get_properties() override
   {
     std::map<std::string, std::string> properties;
-    for (auto const kv : m_properties) {
+    for (const auto& kv : m_properties) {
       properties.emplace(kv.first, kv.second->to_string());
     }
     return properties;
@@ -107,16 +112,16 @@ public:
     return std::get<1>(r);
   }
 
-  bool property_used(std::string const& name) const override { return true; }
+  bool property_used(std::string const&) const override { return true; }
 
-  void set_shared_properties(std::string set_name, std::map<std::string, std::string> algo_config)
+  void set_shared_properties(const std::string& set_name, const std::map<std::string, std::string>& algo_config)
   {
     if (m_shared_sets.find(set_name) != m_shared_sets.end()) {
       m_shared_sets.at(set_name)->set_properties(algo_config);
     }
   }
 
-  std::map<std::string, std::string> get_shared_properties(std::string set_name) const
+  std::map<std::string, std::string> get_shared_properties(const std::string& set_name) const
   {
     if (m_shared_sets.find(set_name) != m_shared_sets.end()) {
       return m_shared_sets.at(set_name)->get_properties();
@@ -135,16 +140,16 @@ public:
 
   bool register_shared_property(
     std::string const& set_name,
-    std::string const& prop_name,
+    std::string const&,
     BaseAlgorithm* prop_set,
-    BaseProperty* property)
+    BaseProperty*)
   {
     m_shared_sets.emplace(set_name, prop_set);
     return true;
   }
 
 protected:
-  BaseProperty const* get_prop(std::string prop_name) const override
+  BaseProperty const* get_prop(const std::string& prop_name) const override
   {
     if (m_properties.find(prop_name) != m_properties.end()) {
       return m_properties.at(prop_name);
@@ -166,7 +171,7 @@ class CPUProperty : public BaseProperty {
 public:
   CPUProperty() = delete;
 
-  CPUProperty(BaseAlgorithm* algo, std::string name, V const default_value, std::string description = "") :
+  CPUProperty(BaseAlgorithm* algo, const std::string& name, V const default_value, const std::string& description = "") :
     m_algo {algo}, m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
   {
     algo->register_property(m_name, this);
@@ -174,7 +179,7 @@ public:
 
   V get_value() const { return m_cached_value; }
 
-  virtual bool from_string(std::string value) override
+  virtual bool from_string(const std::string& value) override
   {
     if (!Configuration::from_string<V>(m_cached_value, value)) return false;
     return true;
@@ -217,7 +222,7 @@ class Property : public BaseProperty {
 public:
   Property() = delete;
 
-  Property(BaseAlgorithm* algo, std::string name, V& value, V const default_value, std::string description = "") :
+  Property(BaseAlgorithm* algo, const std::string& name, V& value, V const default_value, const std::string& description = "") :
     m_algo {algo}, m_value {value}, m_cached_value {default_value}, m_name {std::move(name)}, m_description {
                                                                                                 std::move(description)}
   {
@@ -228,7 +233,7 @@ public:
 
   V get_value() const { return m_cached_value; }
 
-  virtual bool from_string(std::string value) override
+  virtual bool from_string(const std::string& value) override
   {
     V holder;
     if (!Configuration::from_string<V>(holder, value)) return false;
@@ -237,12 +242,7 @@ public:
     return true;
   }
 
-  std::string to_string() const override
-  {
-    V holder;
-    cudaCheck(cudaMemcpyFromSymbol(static_cast<void*>(&holder), static_cast<const void*>(&m_value.get()), sizeof(V)));
-    return Configuration::to_string(holder);
-  }
+  std::string to_string() const;
 
   std::string print() const override
   {
@@ -254,10 +254,7 @@ public:
 
   void register_derived_property(DerivedProperty<V>* p) { m_derived.push_back(p); }
 
-  virtual void sync_value() const override
-  {
-    cudaCheck(cudaMemcpyToSymbol(&m_value.get(), static_cast<const void*>(&m_cached_value), sizeof(V)));
-  }
+  virtual void sync_value() const;
 
 protected:
   virtual void update()
@@ -304,7 +301,7 @@ public:
     register_with_dependencies();
   }
 
-  bool from_string(std::string) override
+  bool from_string(const std::string&) override
   {
     std::cout << "derived properties may not be set directly" << std::endl;
     return false;
@@ -345,7 +342,7 @@ namespace Configuration {
 struct SharedPropertySet : public BaseAlgorithm {
   SharedPropertySet() = default;
 
-  void set_properties(std::map<std::string, std::string> algo_config) override
+  void set_properties(const std::map<std::string, std::string>& algo_config) override
   {
     for (auto kv : algo_config) {
       if (!m_used.count(kv.first)) continue;
@@ -371,7 +368,7 @@ struct SharedPropertySet : public BaseAlgorithm {
     return properties;
   }
 
-  bool register_property(std::string const& name, BaseProperty* property) override
+  bool register_property(const std::string& name, BaseProperty* property) override
   {
     auto r = m_properties.emplace(name, property);
     if (!std::get<1>(r)) {
@@ -380,9 +377,9 @@ struct SharedPropertySet : public BaseAlgorithm {
     return std::get<1>(r);
   }
 
-  bool property_used(std::string const& name) const override { return (m_used.count(name) > 0); }
+  bool property_used(const std::string& name) const override { return (m_used.count(name) > 0); }
 
-  BaseProperty const* get_and_register_prop(std::string prop_name)
+  BaseProperty const* get_and_register_prop(const std::string& prop_name)
   {
     auto prop = get_prop(prop_name);
     if (prop) m_used.insert(prop_name);
@@ -390,7 +387,7 @@ struct SharedPropertySet : public BaseAlgorithm {
   }
 
 protected:
-  BaseProperty const* get_prop(std::string prop_name) const override
+  BaseProperty const* get_prop(const std::string& prop_name) const override
   {
     if (m_properties.find(prop_name) != m_properties.end()) {
       return m_properties.at(prop_name);
@@ -405,7 +402,7 @@ private:
 
 // function to access singleton instances of all SharedPropertySets
 namespace Configuration {
-  SharedPropertySet* getSharedPropertySet(std::string name);
+  SharedPropertySet* getSharedPropertySet(const std::string& name);
 }
 
 /**
@@ -416,13 +413,13 @@ template<typename V>
 class SharedProperty : public BaseProperty {
 public:
   SharedProperty() = delete;
-  SharedProperty(Algorithm* algo, std::string set_name, std::string prop_name) : m_algo(algo)
+  SharedProperty(Algorithm* algo, const std::string& set_name, const std::string& prop_name) : m_algo(algo)
   {
     init(set_name, prop_name);
     algo->register_shared_property(set_name, prop_name, m_set, this);
   }
 
-  bool from_string(std::string value) override
+  bool from_string(const std::string&) override
   {
     std::cout << "shared properties may not be set directly" << std::endl;
     return false;
@@ -446,7 +443,7 @@ public:
   }
 
 private:
-  void init(std::string set_name, std::string prop_name)
+  void init(const std::string& set_name, const std::string& prop_name)
   {
     m_set = Configuration::getSharedPropertySet(set_name);
     if (!m_set) {

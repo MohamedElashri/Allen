@@ -436,6 +436,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   int device_id = 0;
   int cpu_offload = 1;
   std::string file_list;
+  bool print_config = 0;
+  bool print_buffer_status = 0;
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -494,6 +496,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
+      cudaMemcpyToSymbol(&Configuration::verbosity_level, &verbosity, sizeof(uint));
     }
     else if (flag_in({"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
@@ -512,6 +515,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"file-list"})) {
       file_list = arg;
+    }
+    else if (flag_in({"print-config"})) {
+      print_config = atoi(arg.c_str());
+    }
+    else if (flag_in({"print-buffer-status"})) {
+      print_buffer_status = atoi(arg.c_str());
     }
   }
 
@@ -666,7 +675,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffer_manager =
     std::make_unique<HostBuffersManager>(number_of_buffers, *events_per_slice, do_check);
-  buffer_manager->printStatus();
+
+  if (print_buffer_status) {
+    buffer_manager->printStatus();
+  }
 
   // create rate monitors
   std::unique_ptr<MonitorManager> monitor_manager =
@@ -684,14 +696,16 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     configuration_reader->params());
 
   auto algo_config = stream_wrapper.get_algorithm_configuration();
-  info_cout << "Algorithm configuration" << std::endl;
-  for (auto kv : algo_config) {
-    for (auto kv2 : kv.second) {
-      info_cout << kv.first << ":" << kv2.first << "=" << kv2.second << std::endl;
+  if (print_config) {
+    info_cout << "Algorithm configuration\n";
+    for (auto kv : algo_config) {
+      for (auto kv2 : kv.second) {
+        info_cout << " " << kv.first << ":" << kv2.first << " = " << kv2.second << "\n";
+      }
     }
   }
   if (write_config) {
-    info_cout << "Write full configuration" << std::endl;
+    info_cout << "Write full configuration\n";
     ConfigurationReader saveToJson(algo_config);
     saveToJson.save("config.json");
     return 0;
@@ -1100,7 +1114,9 @@ loop_error:
     }
   }
 
-  buffer_manager->printStatus();
+  if (print_buffer_status) {
+    buffer_manager->printStatus();
+  }
   monitor_manager->saveHistograms("monitoringHists.root");
 
   // Print checker reports

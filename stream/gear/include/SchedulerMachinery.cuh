@@ -226,8 +226,8 @@ namespace Sch {
   template<typename Tuple>
   struct ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<>> {
     static constexpr void configure(
-      Tuple algs,
-      const std::map<std::string, std::map<std::string, std::string>>& config) {};
+      Tuple,
+      const std::map<std::string, std::map<std::string, std::string>>&) {};
   };
 
   template<typename Tuple, unsigned long I, unsigned long... Is>
@@ -236,11 +236,12 @@ namespace Sch {
     {
       using Algo = typename std::tuple_element<I, Tuple>::type;
       if (config.find(Algo::name) != config.end()) {
-        auto a = std::get<I>(algs);
+        auto& a = std::get<I>(algs);
         a.set_properties(config.at(Algo::name));
         for (auto s : a.get_shared_sets()) {
-          if (config.find(s) == config.end()) continue;
-          a.set_shared_properties(s, config.at(s));
+          if (config.find(s) != config.end()) {
+            a.set_shared_properties(s, config.at(s));
+          }
         }
       }
       ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<Is...>>::configure(algs, config);
@@ -262,7 +263,7 @@ namespace Sch {
 
   template<typename Tuple>
   struct GetSequenceConfigurationImpl<Tuple, std::index_sequence<>> {
-    static auto get(Tuple algs, std::map<std::string, std::map<std::string, std::string>> config) { return config; };
+    static auto get(Tuple, std::map<std::string, std::map<std::string, std::string>> config) { return config; };
   };
 
   template<typename Tuple, unsigned long I, unsigned long... Is>

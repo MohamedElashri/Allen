@@ -20,6 +20,14 @@ void StreamWrapper::initialize_streams(
     streams[i]->initialize(
       print_memory_usage, start_event_offset, reserve_mb, i, constants, buffers_manager);
   }
+
+  // for (const auto& kv : config) {
+  //   info_cout << kv.first << "\n";
+
+  //   for (const auto& kv2 : kv.second) {
+  //     info_cout << " " << kv2.first << ", " << kv2.second << "\n";
+  //   }
+  // }
 }
 
 void StreamWrapper::run_stream(const uint i, const uint buf_idx, const RuntimeOptions& runtime_options)

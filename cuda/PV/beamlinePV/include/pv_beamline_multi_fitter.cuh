@@ -22,7 +22,8 @@ __global__ void pv_beamline_multi_fitter(
   uint* dev_number_of_zpeaks,
   PV::Vertex* dev_multi_fit_vertices,
   uint* dev_number_of_multi_fit_vertices,
-  float* dev_beamline);
+  float* dev_beamline,
+  const float* dev_pvtrack_z);
 
 ALGORITHM(
   pv_beamline_multi_fitter,
@@ -35,4 +36,5 @@ ALGORITHM(
     dev_number_of_zpeaks,
     dev_multi_fit_vertices,
     dev_number_of_multi_fit_vertices,
-    dev_pvtracks_denom))
+    dev_pvtracks_denom,
+    dev_pvtrack_z))

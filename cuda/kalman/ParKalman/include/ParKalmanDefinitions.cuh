@@ -3,6 +3,7 @@
 #include "States.cuh"
 #include "ParKalmanMath.cuh"
 #include <cstdio>
+#include <cmath>
 
 namespace ParKalmanFilter {
 
