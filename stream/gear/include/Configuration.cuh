@@ -138,11 +138,7 @@ public:
     return ret;
   }
 
-  bool register_shared_property(
-    std::string const& set_name,
-    std::string const&,
-    BaseAlgorithm* prop_set,
-    BaseProperty*)
+  bool register_shared_property(std::string const& set_name, std::string const&, BaseAlgorithm* prop_set, BaseProperty*)
   {
     m_shared_sets.emplace(set_name, prop_set);
     return true;
@@ -171,8 +167,13 @@ class CPUProperty : public BaseProperty {
 public:
   CPUProperty() = delete;
 
-  CPUProperty(BaseAlgorithm* algo, const std::string& name, V const default_value, const std::string& description = "") :
-    m_algo {algo}, m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
+  CPUProperty(
+    BaseAlgorithm* algo,
+    const std::string& name,
+    V const default_value,
+    const std::string& description = "") :
+    m_algo {algo},
+    m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
   {
     algo->register_property(m_name, this);
   }
@@ -222,9 +223,14 @@ class Property : public BaseProperty {
 public:
   Property() = delete;
 
-  Property(BaseAlgorithm* algo, const std::string& name, V& value, V const default_value, const std::string& description = "") :
-    m_algo {algo}, m_value {value}, m_cached_value {default_value}, m_name {std::move(name)}, m_description {
-                                                                                                std::move(description)}
+  Property(
+    BaseAlgorithm* algo,
+    const std::string& name,
+    V& value,
+    V const default_value,
+    const std::string& description = "") :
+    m_algo {algo},
+    m_value {value}, m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
   {
     algo->register_property(m_name, this);
     // don't sync if this is an unused shared property
@@ -242,7 +248,12 @@ public:
     return true;
   }
 
-  std::string to_string() const;
+  std::string to_string() const override
+  {
+    V holder;
+    cudaCheck(cudaMemcpyFromSymbol(&holder, m_value.get(), sizeof(V)));
+    return Configuration::to_string(holder);
+  }
 
   std::string print() const override
   {
@@ -254,7 +265,7 @@ public:
 
   void register_derived_property(DerivedProperty<V>* p) { m_derived.push_back(p); }
 
-  virtual void sync_value() const;
+  virtual void sync_value() const override { cudaCheck(cudaMemcpyToSymbol(m_value.get(), &m_cached_value, sizeof(V))); }
 
 protected:
   virtual void update()

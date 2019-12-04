@@ -128,17 +128,3 @@ SharedPropertySet* Configuration::getSharedPropertySet(const std::string& name)
   warning_cout << "Unknown shared property set " << name << std::endl;
   return nullptr;
 }
-
-template<typename V>
-std::string Property::to_string() const override
-{
-  V holder;
-  cudaCheck(cudaMemcpyFromSymbol(&holder, m_value.get(), sizeof(V)));
-  return Configuration::to_string(holder);
-}
-
-template<typename V>
-virtual void Property::sync_value() const override
-{
-  cudaCheck(cudaMemcpyToSymbol(m_value.get(), &m_cached_value, sizeof(V)));
-}

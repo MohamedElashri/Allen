@@ -393,19 +393,29 @@ namespace Sch {
       using t = typename std::tuple_element<I, Tuple>::type;
 
       // Sets the arguments sizes, setups the scheduler and visits the algorithm.
-      functor.template set_arguments_size<t>(
-        std::get<I>(tuple),
+      std::get<I>(tuple).set_arguments_size<t>(
         ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
           scheduler.argument_manager.arguments_tuple),
         std::forward<SetSizeArguments>(set_size_arguments)...);
 
+      // functor.template set_arguments_size<t>(
+      //   std::get<I>(tuple),
+      //   ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
+      //     scheduler.argument_manager.arguments_tuple),
+      //   std::forward<SetSizeArguments>(set_size_arguments)...);
+
       scheduler.template setup<I, t>();
 
-      functor.template visit<t>(
-        std::get<I>(tuple),
+      std::get<I>(tuple).visit(
         ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
           scheduler.argument_manager.arguments_tuple),
         std::forward<VisitArguments>(visit_arguments)...);
+
+      // functor.template visit<t>(
+      //   std::get<I>(tuple),
+      //   ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
+      //     scheduler.argument_manager.arguments_tuple),
+      //   std::forward<VisitArguments>(visit_arguments)...);
 
       RunSequenceTupleImpl<
         Scheduler,

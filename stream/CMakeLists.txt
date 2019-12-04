@@ -56,6 +56,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/raw_banks/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/velo/clustering/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/global_event_cut/include)
+include_directories(${CMAKE_SOURCE_DIR}/x86/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/pv/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/selections/include)
@@ -166,6 +167,7 @@ target_link_libraries(Stream PRIVATE
   AllenPatPV
   PV_beamline
   x86Clustering
+  CpuPrefixSum
   UT
   Kalman
   VertexFitter

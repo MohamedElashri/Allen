@@ -68,6 +68,8 @@
 #include "MuonSortByStation.cuh"
 #include "PrepareRawBanks.cuh"
 
+#include "CpuPrefixSumVeloClusters.h"
+
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 
 // SEQUENCE must be defined at compile time.
