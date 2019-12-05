@@ -15,5 +15,5 @@ void cpu_velo_prefix_sum_number_of_hits_t::visit(
     arguments.size<dev_velo_track_hit_number>(),
     cuda_stream,
     cuda_generic_event,
-    host_buffers.host_total_number_of_velo_clusters);
+    host_buffers.host_accumulated_number_of_hits_in_velo_tracks);
 }
