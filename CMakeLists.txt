@@ -145,7 +145,7 @@ else()
   if(CMAKE_CUDA_FLAGS)
 	list(REMOVE_ITEM CMAKE_CUDA_FLAGS "-cudart static")
   endif()
-  string(APPEND CMAKE_CUDA_FLAGS "-cudart shared")
+  string(APPEND CMAKE_CUDA_FLAGS "-cudart shared --shared --compiler-options -fPIC")
 
   allen_project()
   enable_language(CUDA)
@@ -165,15 +165,19 @@ else()
 	add_compile_definitions(TENSOR_CORES_ENABLED)
   endif()
 
+  find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
+  message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+
   function(allen_add_library)
     add_library(${ARGV})
-    set_property(TARGET ${ARGV0} PROPERTY
-      CUDA_SEPARABLE_COMPILATION ON)
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -295,7 +299,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
-  set(CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  string(APPEND CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=300 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
 elseif(TARGET_DEVICE STREQUAL "HIP")
   # HCC Options (HIPCC compiler)
@@ -479,7 +483,8 @@ endforeach()
 # common libraries
 add_library(Common STATIC ${common_sources})
 
-if(APPLE)
+if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0))
+  add_compile_definitions(USE_BOOST_FILESYSTEM)
   find_package(Boost COMPONENTS filesystem)
   target_include_directories(Common SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
   target_link_libraries(Common mdf ${Boost_LIBRARIES})

@@ -15,7 +15,6 @@ void SequenceVisitor::set_arguments_size<run_hlt1_t>(
   arguments.set_size<dev_disp_dimuon_results>(host_buffers.host_number_of_svs[0]);
   arguments.set_size<dev_high_mass_dimuon_results>(host_buffers.host_number_of_svs[0]);
   arguments.set_size<dev_dimuon_soft_results>(host_buffers.host_number_of_svs[0]);
-
 }
 
 template<>
@@ -80,5 +79,5 @@ void SequenceVisitor::visit<run_hlt1_t>(
       arguments.size<dev_dimuon_soft_results>(),
       cudaMemcpyDeviceToHost,
       cuda_stream)); 
- }
+  }
 }

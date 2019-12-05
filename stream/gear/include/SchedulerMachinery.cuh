@@ -226,8 +226,8 @@ namespace Sch {
   template<typename Tuple>
   struct ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<>> {
     static constexpr void configure(
-      Tuple algs,
-      const std::map<std::string, std::map<std::string, std::string>>& config) {};
+      Tuple,
+      const std::map<std::string, std::map<std::string, std::string>>&) {};
   };
 
   template<typename Tuple, unsigned long I, unsigned long... Is>
@@ -262,7 +262,7 @@ namespace Sch {
 
   template<typename Tuple>
   struct GetSequenceConfigurationImpl<Tuple, std::index_sequence<>> {
-    static auto get(Tuple algs, std::map<std::string, std::map<std::string, std::string>> config) { return config; };
+    static auto get(Tuple, std::map<std::string, std::map<std::string, std::string>> config) { return config; };
   };
 
   template<typename Tuple, unsigned long I, unsigned long... Is>
