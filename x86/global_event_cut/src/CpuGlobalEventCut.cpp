@@ -1,4 +1,28 @@
-#include "CpuGlobalEventCut.cuh"
+#include "CpuGlobalEventCut.h"
+
+void cpu_global_event_cut_t::visit(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const {
+  algorithm.invoke(
+    std::get<0>(runtime_options.host_ut_events).begin(),
+    std::get<1>(runtime_options.host_ut_events).begin(),
+    std::get<0>(runtime_options.host_scifi_events).begin(),
+    std::get<1>(runtime_options.host_scifi_events).begin(),
+    host_buffers.host_number_of_selected_events,
+    host_buffers.host_event_list,
+    runtime_options.number_of_events);
+
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_event_list>(),
+    host_buffers.host_event_list,
+    runtime_options.number_of_events * sizeof(uint),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+}
 
 void cpu_global_event_cut(
   char const* ut_raw_input,

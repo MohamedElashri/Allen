@@ -3,6 +3,8 @@
 #include <CudaCommon.h>
 #include <Common.h>
 #include <Consumers.h>
+#include "UTDefinitions.cuh"
+#include "UTMagnetToolDefinitions.h"
 
 namespace {
   using std::string;

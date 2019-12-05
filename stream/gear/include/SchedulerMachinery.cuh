@@ -237,10 +237,10 @@ namespace Sch {
       using Algo = typename std::tuple_element<I, Tuple>::type;
       if (config.find(Algo::name) != config.end()) {
         auto& a = std::get<I>(algs);
-        a.algorithm.set_properties(config.at(Algo::name));
-        for (auto s : a.algorithm.get_shared_sets()) {
+        a.set_properties(config.at(Algo::name));
+        for (auto s : a.get_shared_sets()) {
           if (config.find(s) != config.end()) {
-            a.algorithm.set_shared_properties(s, config.at(s));
+            a.set_shared_properties(s, config.at(s));
           }
         }
       }
@@ -272,10 +272,10 @@ namespace Sch {
     {
       using Algo = typename std::tuple_element<I, Tuple>::type;
       auto a = std::get<I>(algs);
-      auto props = a.algorithm.get_properties();
+      auto props = a.get_properties();
       config.emplace(std::string(Algo::name), props);
-      for (auto s : a.algorithm.get_shared_sets()) {
-        auto props = a.algorithm.get_shared_properties(s);
+      for (auto s : a.get_shared_sets()) {
+        auto props = a.get_shared_properties(s);
         if (config.find(s) == config.end()) {
           config.emplace(s, props);
         }

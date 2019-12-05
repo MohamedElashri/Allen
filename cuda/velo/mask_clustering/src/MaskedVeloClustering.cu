@@ -1,8 +1,35 @@
 #include "MaskedVeloClustering.cuh"
-#include "Invoke.cuh"
 
-void velo_masked_clustering_t::invoke() {
-  invoke_helper(handler);
+void velo_masked_clustering_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_velo_cluster_container>(6 * host_buffers.host_total_number_of_velo_clusters[0]);
+}
+
+void velo_masked_clustering_t::visit(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  algorithm.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_velo_raw_input>(),
+    arguments.offset<dev_velo_raw_input_offsets>(),
+    arguments.offset<dev_estimated_input_size>(),
+    arguments.offset<dev_module_cluster_num>(),
+    arguments.offset<dev_module_candidate_num>(),
+    arguments.offset<dev_cluster_candidates>(),
+    arguments.offset<dev_velo_cluster_container>(),
+    arguments.offset<dev_event_list>(),
+    constants.dev_velo_geometry,
+    constants.dev_velo_sp_patterns.data(),
+    constants.dev_velo_sp_fx.data(),
+    constants.dev_velo_sp_fy.data());
 }
 
 // 8-connectivity mask
@@ -19,7 +46,7 @@ __device__ uint32_t mask_east(uint64_t cluster)
   return mask | (mask << 1) | (mask >> 1);
 }
 
-__global__ void masked_velo_clustering(
+__global__ void velo_masked_clustering(
   char* dev_raw_input,
   uint* dev_raw_input_offsets,
   uint* dev_module_cluster_start,

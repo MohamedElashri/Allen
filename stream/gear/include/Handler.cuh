@@ -46,8 +46,8 @@
     void invoke(); \
                                                                                                                     \
   private:                                                                                                          \
-    CPUProperty<std::array<int, 3>> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};                \
-    CPUProperty<std::array<int, 3>> m_grid_dim {this, "grid_dim", {1, 1, 1}, "grid dimensions"};                    \
+    CPUProperty<std::array<uint, 3>> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};                \
+    CPUProperty<std::array<uint, 3>> m_grid_dim {this, "grid_dim", {1, 1, 1}, "grid dimensions"};                    \
     __VA_ARGS__                                                                                                     \
   };
 

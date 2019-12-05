@@ -4,16 +4,16 @@
 #include "CpuPrefixSum.h"
 #include "ArgumentsVelo.cuh"
 
-struct cpu_prefix_sum_velo_clusters_t {
-  constexpr static auto name {"cpu_prefix_sum_velo_clusters_t"};
-  decltype(cpu_algorithm(cpu_prefix_sum)) algorithm {cpu_prefix_sum};
+struct cpu_velo_prefix_sum_number_of_clusters_t : public CpuAlgorithm {
+  constexpr static auto name {"cpu_velo_prefix_sum_number_of_clusters_t"};
+  decltype(cpu_function(cpu_prefix_sum)) algorithm {cpu_prefix_sum};
   using Arguments = std::tuple<dev_estimated_input_size>;
 
   void set_arguments_size(
     ArgumentRefManager<Arguments> arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
-    const HostBuffers& host_buffers) const;
+    const HostBuffers& host_buffers) const {}
 
   void visit(
     const ArgumentRefManager<Arguments>& arguments,

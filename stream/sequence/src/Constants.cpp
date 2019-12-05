@@ -1,7 +1,21 @@
 #include "Constants.cuh"
+#include "ClusteringCommon.h"
+#include "UTDefinitions.cuh"
+#include "UTMagnetToolDefinitions.h"
+#include "VeloDefinitions.cuh"
+#include "ClusteringDefinitions.cuh"
+#include "KalmanParametrizations.cuh"
+#include "LookingForwardConstants.cuh"
+#include "MuonDefinitions.cuh"
+#include "MuonGeometry.cuh"
+#include "MuonTables.cuh"
 
 void Constants::reserve_constants()
 {
+  host_ut_region_offsets.resize(UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1);
+  host_ut_dxDy.resize(UT::Constants::n_layers);
+  host_unique_x_sector_layer_offsets.resize(UT::Constants::n_layers + 1);
+
   cudaCheck(cudaMalloc((void**) &dev_inv_clus_res, host_inv_clus_res.size() * sizeof(float)));
   cudaCheck(cudaMalloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations)));
   cudaCheck(cudaMalloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants)));
@@ -13,19 +27,12 @@ void Constants::initialize_constants(
   const std::vector<float>& muon_field_of_interest_params,
   const std::string& folder_params_kalman)
 {
-  // Velo module constants
-  // const std::array<float, Velo::Constants::n_modules> velo_module_zs = {
-  //   -287.5, -275,  -262.5, -250,  -237.5, -225,  -212.5, -200,  -137.5, -125,  -62.5, -50,   -37.5,
-  //   -25,    -12.5, 0,      12.5,  25,     37.5,  50,     62.5,  75,     87.5,  100,   112.5, 125,
-  //   137.5,  150,   162.5,  175,   187.5,  200,   212.5,  225,   237.5,  250,   262.5, 275,   312.5,
-  //   325,    387.5, 400,    487.5, 500,    587.5, 600,    637.5, 650,    687.5, 700,   737.5, 750};
-  // cudaCheck(cudaMemcpy(
-  //   dev_velo_module_zs, velo_module_zs.data(), velo_module_zs.size() * sizeof(float), cudaMemcpyHostToDevice));
-
   // SciFi constants
   host_inv_clus_res = {1 / 0.05, 1 / 0.08, 1 / 0.11, 1 / 0.14, 1 / 0.17, 1 / 0.20, 1 / 0.23, 1 / 0.26, 1 / 0.29};
   cudaCheck(
     cudaMemcpy(dev_inv_clus_res, &host_inv_clus_res, host_inv_clus_res.size() * sizeof(float), cudaMemcpyHostToDevice));
+
+  host_looking_forward_constants = new LookingForward::Constants{};
 
   // Kalman filter constants.
   ParKalmanFilter::KalmanParametrizations host_kalman_params;
@@ -35,7 +42,7 @@ void Constants::initialize_constants(
 
   cudaCheck(cudaMemcpy(
     dev_looking_forward_constants,
-    &host_looking_forward_constants,
+    host_looking_forward_constants,
     sizeof(LookingForward::Constants),
     cudaMemcpyHostToDevice))
 

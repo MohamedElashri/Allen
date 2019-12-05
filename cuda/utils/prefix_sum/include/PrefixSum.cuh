@@ -35,11 +35,6 @@ __global__ void copy_square_and_prefix_sum_single_block(
 __global__ void
   prefix_sum_scan(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size);
 
-__global__ void copy_velo_track_hit_number(
-  const Velo::TrackHits* dev_tracks,
-  uint* dev_atomics_storage,
-  uint* dev_velo_track_hit_number);
-
 __global__ void copy_ut_track_hit_number(
   const UT::TrackHits* dev_veloUT_tracks,
   uint* dev_atomics_veloUT,
@@ -52,11 +47,6 @@ __global__ void copy_scifi_track_hit_number(
   uint* dev_scifi_track_hit_number);
 
 ALGORITHM(copy_and_prefix_sum_single_block, copy_and_prefix_sum_single_block_velo_t, ARGUMENTS(dev_atomics_velo))
-
-ALGORITHM(
-  copy_velo_track_hit_number,
-  copy_velo_track_hit_number_t,
-  ARGUMENTS(dev_tracks, dev_atomics_velo, dev_velo_track_hit_number))
 
 ALGORITHM(copy_and_prefix_sum_single_block, copy_and_prefix_sum_single_block_ut_t, ARGUMENTS(dev_atomics_ut))
 

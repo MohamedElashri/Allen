@@ -1,11 +1,66 @@
 #include "EstimateInputSize.cuh"
-#include "Invoke.cuh"
 
-void velo_estimate_input_size_t::invoke() {
-  invoke_helper(handler);
+void velo_estimate_input_size_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  if (logger::ll.verbosityLevel >= logger::debug) {
+    debug_cout << "# of events = " << host_buffers.host_number_of_selected_events[0] << std::endl;
+  }
+
+  arguments.set_size<dev_velo_raw_input>(std::get<0>(runtime_options.host_velo_events).size_bytes());
+  arguments.set_size<dev_velo_raw_input_offsets>(std::get<1>(runtime_options.host_velo_events).size_bytes());
+  arguments.set_size<dev_estimated_input_size>(
+    host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules + 1);
+  arguments.set_size<dev_module_cluster_num>(
+    host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules);
+  arguments.set_size<dev_module_candidate_num>(host_buffers.host_number_of_selected_events[0]);
+  arguments.set_size<dev_cluster_candidates>(
+    host_buffers.host_number_of_selected_events[0] * VeloClustering::max_candidates_event);
 }
 
-__global__ void estimate_input_size(
+void velo_estimate_input_size_t::visit(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_velo_raw_input>(),
+    std::get<0>(runtime_options.host_velo_events).begin(),
+    std::get<0>(runtime_options.host_velo_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_velo_raw_input_offsets>(),
+    std::get<1>(runtime_options.host_velo_events).begin(),
+    std::get<1>(runtime_options.host_velo_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+  
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_estimated_input_size>(), 0, arguments.size<dev_estimated_input_size>(), cuda_stream));
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_module_cluster_num>(), 0, arguments.size<dev_module_cluster_num>(), cuda_stream));
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_module_candidate_num>(), 0, arguments.size<dev_module_candidate_num>(), cuda_stream));
+
+  // Invoke kernel
+  algorithm.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_velo_raw_input>(),
+    arguments.offset<dev_velo_raw_input_offsets>(),
+    arguments.offset<dev_estimated_input_size>(),
+    arguments.offset<dev_module_candidate_num>(),
+    arguments.offset<dev_cluster_candidates>(),
+    arguments.offset<dev_event_list>(),
+    constants.dev_velo_candidate_ks.data());
+}
+
+__global__ void velo_estimate_input_size(
   char* dev_raw_input,
   uint* dev_raw_input_offsets,
   uint* dev_estimated_input_size,

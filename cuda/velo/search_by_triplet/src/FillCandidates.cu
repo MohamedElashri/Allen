@@ -4,10 +4,31 @@
 #include <cassert>
 #include <cstdio>
 #include <tuple>
-#include "Invoke.cuh"
 
-void velo_fill_candidates_t::invoke() {
-  invoke_helper(handler);
+void velo_fill_candidates_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_h0_candidates>(2 * host_buffers.host_total_number_of_velo_clusters[0]);
+  arguments.set_size<dev_h2_candidates>(2 * host_buffers.host_total_number_of_velo_clusters[0]);
+}
+
+void velo_fill_candidates_t::visit(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  algorithm.invoke(dim3(host_buffers.host_number_of_selected_events[0], 48), block_dimension(), cuda_stream)(
+    arguments.offset<dev_velo_cluster_container>(),
+    arguments.offset<dev_estimated_input_size>(),
+    arguments.offset<dev_module_cluster_num>(),
+    arguments.offset<dev_h0_candidates>(),
+    arguments.offset<dev_h2_candidates>());
 }
 
 /**
@@ -146,7 +167,7 @@ __device__ void fill_candidates_impl(
  *
  *          These candidates will be then iterated in the seeding step of Sbt.
  */
-__global__ void fill_candidates(
+__global__ void velo_fill_candidates(
   uint* dev_velo_cluster_container,
   uint* dev_module_cluster_start,
   uint* dev_module_cluster_num,

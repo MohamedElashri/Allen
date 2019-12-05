@@ -33,7 +33,7 @@ namespace Configuration {
   }
 
   template<>
-  std::string to_string<std::array<int, 3>>(std::array<int, 3> const& holder);
+  std::string to_string<std::array<uint, 3>>(std::array<uint, 3> const& holder);
 } // namespace Configuration
 
 /**

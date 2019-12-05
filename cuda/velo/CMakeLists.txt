@@ -22,6 +22,7 @@ include_directories(../utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 
 if(TARGET_DEVICE STREQUAL "CPU")
   foreach(source_file ${velo_common} ${velo_clustering_sources} ${velo_prefix_sum}

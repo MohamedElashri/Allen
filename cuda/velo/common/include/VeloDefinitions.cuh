@@ -2,12 +2,41 @@
 
 #include <cstdint>
 #include <cstdlib>
-#ifdef __APPLE__
-/* Old compatibility names for C types.  */
-typedef unsigned long int ulong;
-typedef unsigned short int ushort;
-typedef unsigned int uint;
-#endif
+#include <CudaCommon.h>
+
+namespace Configuration {
+  namespace velo_search_by_triplet_t {
+    // Forward tolerance in phi
+    extern __constant__ float forward_phi_tolerance;
+
+    // Max chi2
+    extern __constant__ float max_chi2;
+
+    // Max scatter for forming triplets (seeding) and forwarding
+    extern __constant__ float max_scatter_forwarding;
+    extern __constant__ float max_scatter_seeding;
+
+    // Maximum number of skipped modules allowed for a track
+    // before storing it
+    extern __constant__ uint max_skipped_modules;
+
+    // Maximum number of tracks to follow at a time
+    extern __constant__ uint max_weak_tracks;
+
+    // These parameters impact the found tracks
+    // Maximum / minimum acceptable phi
+    // These two parameters impacts enourmously the speed of track seeding
+    extern __constant__ float phi_extrapolation_base;
+    // A higher coefficient improves efficiency at the
+    // cost of performance
+    extern __constant__ float phi_extrapolation_coef;
+
+    // Maximum number of tracks to follow at a time
+    extern __constant__ uint ttf_modulo;
+    extern __constant__ int ttf_modulo_mask;
+  } // namespace velo_search_by_triplet_t
+} // namespace Configuration
+
 namespace Velo {
   // Total number of atomics required
   static constexpr uint num_atomics = 5;

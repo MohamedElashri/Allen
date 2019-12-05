@@ -4,12 +4,12 @@
 #include "VeloConsolidated.cuh"
 #include "States.cuh"
 #include "Common.h"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include <cstdint>
 
-__global__ void consolidate_velo_tracks(
+__global__ void velo_consolidate_tracks(
   uint* dev_atomics_velo,
   const Velo::TrackHits* dev_tracks,
   uint* dev_velo_track_hit_number,
@@ -18,10 +18,10 @@ __global__ void consolidate_velo_tracks(
   char* dev_velo_track_hits,
   char* dev_velo_states);
 
-ALGORITHM(
-  consolidate_velo_tracks,
-  consolidate_velo_tracks_t,
-  ARGUMENTS(
+struct velo_consolidate_tracks_t : public GpuAlgorithm {
+  constexpr static auto name {"velo_consolidate_tracks_t"};
+  decltype(gpu_function(velo_consolidate_tracks)) algorithm {velo_consolidate_tracks};
+  using Arguments = std::tuple<
     dev_atomics_velo,
     dev_tracks,
     dev_velo_track_hit_number,
@@ -29,4 +29,19 @@ ALGORITHM(
     dev_estimated_input_size,
     dev_velo_track_hits,
     dev_velo_states,
-    dev_accepted_velo_tracks))
+    dev_accepted_velo_tracks>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void visit(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

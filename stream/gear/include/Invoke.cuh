@@ -18,14 +18,12 @@ void invoke_impl(
   Fn&& function,
   const dim3& num_blocks,
   const dim3& num_threads,
-  const unsigned shared_memory_size,
   cudaStream_t* stream,
   const Tuple& invoke_arguments,
   std::index_sequence<I...>)
 {
 #ifdef CPU
   _unused(num_threads);
-  _unused(shared_memory_size);
   _unused(stream);
 
   gridDim = {num_blocks.x, num_blocks.y, num_blocks.z};
@@ -38,9 +36,9 @@ void invoke_impl(
     }
   }
 #elif defined(HIP)
-  hipLaunchKernelGGL(function, num_blocks, num_threads, shared_memory_size, *stream, std::get<I>(invoke_arguments)...);
+  hipLaunchKernelGGL(function, num_blocks, num_threads, *stream, std::get<I>(invoke_arguments)...);
 #else
-  function<<<num_blocks, num_threads, shared_memory_size, *stream>>>(std::get<I>(invoke_arguments)...);
+  function<<<num_blocks, num_threads, *stream>>>(std::get<I>(invoke_arguments)...);
 #endif
 }
 
@@ -50,11 +48,10 @@ void invoke_helper(const Handler& handler) {
     handler.function,
     handler.num_blocks,
     handler.num_threads,
-    handler.shared_memory_size,
     handler.stream,
     handler.invoke_arguments,
     std::make_index_sequence<std::tuple_size<decltype(handler.invoke_arguments)>::value>());
 
   // Check result of kernel call
-  cudaCheckKernelCall(cudaPeekAtLastError(), handler.name);
+  cudaCheckKernelCall(cudaPeekAtLastError());
 }

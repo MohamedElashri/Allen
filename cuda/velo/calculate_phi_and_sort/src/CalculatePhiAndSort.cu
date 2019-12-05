@@ -1,14 +1,33 @@
 #include "CalculatePhiAndSort.cuh"
-#include "Invoke.cuh"
 
-void velo_calculate_phi_and_sort_t::invoke() {
-  invoke_helper(handler);
+void velo_calculate_phi_and_sort_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_hit_permutation>(host_buffers.host_total_number_of_velo_clusters[0]);
+}
+
+void velo_calculate_phi_and_sort_t::visit(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  algorithm.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_estimated_input_size>(),
+    arguments.offset<dev_module_cluster_num>(),
+    arguments.offset<dev_velo_cluster_container>(),
+    arguments.offset<dev_hit_permutation>());
 }
 
 /**
  * @brief Track forwarding algorithm based on triplet finding
  */
-__global__ void calculate_phi_and_sort(
+__global__ void velo_calculate_phi_and_sort(
   uint* dev_module_cluster_start,
   uint* dev_module_cluster_num,
   uint32_t* dev_velo_cluster_container,

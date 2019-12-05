@@ -1,12 +1,6 @@
 #pragma once
 
 #include "CudaCommon.h"
-#include "CheckerInvoker.h"
-#include "Logger.h"
-#include "RuntimeOptions.h"
-#include "Constants.cuh"
-#include "HostBuffers.cuh"
-#include "OutputArguments.cuh"
 
 /**
  * @brief An algorithm that performs the prefix sum on the CPU.

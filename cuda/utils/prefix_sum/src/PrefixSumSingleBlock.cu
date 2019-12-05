@@ -1,14 +1,6 @@
 #include "PrefixSum.cuh"
 #include "Invoke.cuh"
 
-void copy_and_prefix_sum_single_block_velo_t::invoke() {
-  invoke_helper(handler);
-}
-
-void copy_velo_track_hit_number_t::invoke() {
-  invoke_helper(handler);
-}
-
 void copy_and_prefix_sum_single_block_ut_t::invoke() {
   invoke_helper(handler);
 }

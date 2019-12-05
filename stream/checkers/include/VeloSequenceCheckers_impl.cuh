@@ -7,7 +7,7 @@
  *        consolidate_tracks_t as last step.
  */
 template<>
-void SequenceVisitor::check<consolidate_velo_tracks_t>(
+void SequenceVisitor::check<velo_consolidate_tracks_t>(
   HostBuffers& host_buffers,
   const Constants&,
   const CheckerInvoker& checker_invoker,

@@ -35,7 +35,7 @@ bool Configuration::from_string<int>(int& holder, const std::string& value)
 
 // Specialization for std::array<int, 3>
 template<>
-bool Configuration::from_string<std::array<int, 3>>(std::array<int, 3>& holder, const std::string& string_value)
+bool Configuration::from_string<std::array<uint, 3>>(std::array<uint, 3>& holder, const std::string& string_value)
 {
   std::smatch matches;
   auto r = std::regex_match(string_value, matches, Detail::array_expr);
@@ -51,7 +51,7 @@ bool Configuration::from_string<std::array<int, 3>>(std::array<int, 3>& holder, 
 }
 
 template<>
-std::string Configuration::to_string<std::array<int, 3>>(std::array<int, 3> const& holder)
+std::string Configuration::to_string<std::array<uint, 3>>(std::array<uint, 3> const& holder)
 {
   // very basic implementation based on streaming
   std::stringstream s;

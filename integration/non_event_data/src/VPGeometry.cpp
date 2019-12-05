@@ -3,6 +3,9 @@
 #include <CudaCommon.h>
 #include <Common.h>
 #include <Consumers.h>
+#include "ClusteringCommon.h"
+#include "VeloDefinitions.cuh"
+#include "ClusteringDefinitions.cuh"
 
 namespace {
   using std::string;

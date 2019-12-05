@@ -1,17 +1,26 @@
 #pragma once
 
-#include "CudaCommon.h"
-#include "VeloEventModel.cuh"
-#include "UTDefinitions.cuh"
-#include "SciFiDefinitions.cuh"
-#include "MuonDefinitions.cuh"
-#include "TrackChecker.h"
-#include "SciFiEventModel.cuh"
-#include "UTEventModel.cuh"
-#include "patPV_Definitions.cuh"
-#include "PV_Definitions.cuh"
-#include "ParKalmanDefinitions.cuh"
-#include "VertexDefinitions.cuh"
+#include <vector>
+#include <cstdint>
+#include <cstdlib>
+
+// Forward declarations
+namespace PV {
+  class Vertex;
+}
+namespace UT {
+  class TrackHits;
+}
+namespace SciFi {
+  class TrackHits;
+}
+class MiniState;
+namespace ParKalmanFilter {
+  class FittedTrack;
+}
+namespace VertexFit {
+  class TrackMVAVertex;
+}
 
 struct HostBuffers {
   // Pinned host datatypes
@@ -92,9 +101,7 @@ struct HostBuffers {
   bool* host_dimuon_soft_decisions;
 
   // Non pinned datatypes: CPU algorithms
-  std::vector<SciFi::TrackHits> scifi_tracks_events;
   std::vector<char> host_velo_states;
-  // std::vector<uint> n_scifi_tracks;
   std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_ut_tracks;
   std::vector<uint> host_scifi_hits;
   std::vector<uint> host_scifi_hit_count;

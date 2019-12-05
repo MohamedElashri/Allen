@@ -168,22 +168,22 @@ unsigned int atomicInc(unsigned int* address, unsigned int val);
 
 half_t __float2half(float value);
 
-#define cudaCheck(stmt)                                    \
-  {                                                        \
-    cudaError_t err = stmt;                                \
-    if (err != cudaSuccess) {                              \
-      std::cerr << "Failed to run " << #stmt << std::endl; \
-      throw std::invalid_argument("cudaCheck failed");     \
-    }                                                      \
+#define cudaCheck(stmt)                                \
+  {                                                    \
+    cudaError_t err = stmt;                            \
+    if (err != cudaSuccess) {                          \
+      std::cerr << "Failed to run " << #stmt << "\n";  \
+      throw std::invalid_argument("cudaCheck failed"); \
+    }                                                  \
   }
 
-#define cudaCheckKernelCall(stmt, kernel_name)                      \
-  {                                                                 \
-    cudaError_t err = stmt;                                         \
-    if (err != cudaSuccess) {                                       \
-      std::cerr << "Failed to invoke " << kernel_name << std::endl; \
-      throw std::invalid_argument("cudaCheckKernelCall failed");    \
-    }                                                               \
+#define cudaCheckKernelCall(stmt)                                \
+  {                                                              \
+    cudaError_t err = stmt;                                      \
+    if (err != cudaSuccess) {                                    \
+      std::cerr << "Failed to invoke kernel.\n";                 \
+      throw std::invalid_argument("cudaCheckKernelCall failed"); \
+    }                                                            \
   }
 
 namespace Configuration {
@@ -246,20 +246,14 @@ namespace Configuration {
     }                                                                                                             \
   }
 
-#define cudaCheckKernelCall(stmt, kernel_name)                   \
-  {                                                              \
-    cudaError_t err = stmt;                                      \
-    if (err != cudaSuccess) {                                    \
-      fprintf(                                                   \
-        stderr,                                                  \
-        "Failed to invoke %s\n%s (%d) at %s: %d\n",              \
-        kernel_name.c_str(),                                     \
-        hipGetErrorString(err),                                  \
-        err,                                                     \
-        __FILE__,                                                \
-        __LINE__);                                               \
-      throw std::invalid_argument("cudaCheckKernelCall failed"); \
-    }                                                            \
+#define cudaCheckKernelCall(stmt)                                                                                 \
+  {                                                                                                               \
+    cudaError_t err = stmt;                                                                                       \
+    if (err != cudaSuccess) {                                                                                     \
+      fprintf(                                                                                                    \
+        stderr, "Failed to invoke kernel\n%s (%d) at %s: %d\n", hipGetErrorString(err), err, __FILE__, __LINE__); \
+      throw std::invalid_argument("cudaCheckKernelCall failed");                                                  \
+    }                                                                                                             \
   }
 
 #define half_t short
@@ -282,24 +276,24 @@ namespace Configuration {
 /**
  * @brief Macro to check cuda calls.
  */
-#define cudaCheck(stmt)                                    \
-  {                                                        \
-    cudaError_t err = stmt;                                \
-    if (err != cudaSuccess) {                              \
-      std::cerr << "Failed to run " << #stmt << std::endl; \
-      std::cerr << cudaGetErrorString(err) << std::endl;   \
-      throw std::invalid_argument("cudaCheck failed");     \
-    }                                                      \
+#define cudaCheck(stmt)                                \
+  {                                                    \
+    cudaError_t err = stmt;                            \
+    if (err != cudaSuccess) {                          \
+      std::cerr << "Failed to run " << #stmt << "\n";  \
+      std::cerr << cudaGetErrorString(err) << "\n";    \
+      throw std::invalid_argument("cudaCheck failed"); \
+    }                                                  \
   }
 
-#define cudaCheckKernelCall(stmt, kernel_name)                      \
-  {                                                                 \
-    cudaError_t err = stmt;                                         \
-    if (err != cudaSuccess) {                                       \
-      std::cerr << "Failed to invoke " << kernel_name << std::endl; \
-      std::cerr << cudaGetErrorString(err) << std::endl;            \
-      throw std::invalid_argument("cudaCheckKernelCall failed");    \
-    }                                                               \
+#define cudaCheckKernelCall(stmt)                                                                                  \
+  {                                                                                                                \
+    cudaError_t err = stmt;                                                                                        \
+    if (err != cudaSuccess) {                                                                                      \
+      fprintf(                                                                                                     \
+        stderr, "Failed to invoke kernel\n%s (%d) at %s: %d\n", cudaGetErrorString(err), err, __FILE__, __LINE__); \
+      throw std::invalid_argument("cudaCheckKernelCall failed");                                                   \
+    }                                                                                                              \
   }
 
 namespace Configuration {

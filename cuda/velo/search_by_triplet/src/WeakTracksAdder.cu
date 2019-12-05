@@ -1,9 +1,21 @@
 #include "SearchByTriplet.cuh"
 #include "WeakTracksAdder.cuh"
-#include "Invoke.cuh"
 
-void velo_weak_tracks_adder_t::invoke() {
-  invoke_helper(handler);
+void velo_weak_tracks_adder_t::visit(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  algorithm.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_velo_cluster_container>(),
+    arguments.offset<dev_estimated_input_size>(),
+    arguments.offset<dev_tracks>(),
+    arguments.offset<dev_weak_tracks>(),
+    arguments.offset<dev_hit_used>(),
+    arguments.offset<dev_atomics_velo>());
 }
 
 /**
@@ -138,7 +150,7 @@ __device__ void weak_tracks_adder_impl(
   }
 }
 
-__global__ void weak_tracks_adder(
+__global__ void velo_weak_tracks_adder(
   uint32_t* dev_velo_cluster_container,
   uint* dev_module_cluster_start,
   Velo::TrackHits* dev_tracks,
