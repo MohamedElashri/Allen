@@ -8,8 +8,6 @@
 #include "VeloDefinitions.cuh"
 #include "ClusteringDefinitions.cuh"
 #include "ClusteringCommon.h"
-#include "TMVA_Forward_1.cuh"
-#include "TMVA_Forward_2.cuh"
 #include "UTDefinitions.cuh"
 #include "Logger.h"
 #include "UTMagnetToolDefinitions.h"
@@ -54,9 +52,6 @@ struct Constants {
   UTMagnetTool* dev_ut_magnet_tool = nullptr;
 
   std::array<float, 9> host_inv_clus_res;
-  SciFi::Tracking::TMVA* dev_scifi_tmva1 = nullptr;
-  SciFi::Tracking::TMVA* dev_scifi_tmva2 = nullptr;
-  SciFi::Tracking::Arrays* dev_scifi_constArrays;
   float* dev_inv_clus_res;
 
   // Geometry constants

@@ -15,14 +15,16 @@ __global__ void lf_triplet_keep_best(
   uint32_t* dev_scifi_hits,
   const uint32_t* dev_scifi_hit_count,
   const uint* dev_atomics_ut,
-  const MiniState* dev_ut_states,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
-  const short* dev_scifi_lf_candidates,
   const LookingForward::Constants* dev_looking_forward_constants,
   SciFi::TrackHits* dev_scifi_tracks,
   uint* dev_atomics_scifi,
-  const SciFi::CombinedValue* dev_scifi_lf_triplet_best);
+  const int* dev_initial_windows,
+  const bool* dev_scifi_lf_process_track,
+  const int* dev_scifi_lf_found_triplets,
+  const int8_t* dev_scifi_lf_number_of_found_triplets,
+  uint* dev_scifi_lf_total_number_of_found_triplets);
 
 ALGORITHM(
   lf_triplet_keep_best,
@@ -31,8 +33,10 @@ ALGORITHM(
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_ut,
-    dev_ut_states,
-    dev_scifi_lf_candidates,
     dev_scifi_lf_tracks,
     dev_scifi_lf_atomics,
-    dev_scifi_lf_triplet_best))
+    dev_scifi_lf_initial_windows,
+    dev_scifi_lf_process_track,
+    dev_scifi_lf_found_triplets,
+    dev_scifi_lf_number_of_found_triplets,
+    dev_scifi_lf_total_number_of_found_triplets))

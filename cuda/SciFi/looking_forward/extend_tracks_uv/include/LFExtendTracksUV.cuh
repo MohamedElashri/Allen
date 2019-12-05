@@ -2,7 +2,6 @@
 
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
-#include "LFExtendTracksUVImpl.cuh"
 #include "SciFiEventModel.cuh"
 #include "Handler.cuh"
 #include "ArgumentsUT.cuh"
@@ -18,7 +17,8 @@ __global__ void lf_extend_tracks_uv(
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_inv_clus_res,
   const MiniState* dev_ut_states,
-  const short* dev_scifi_lf_uv_windows);
+  const int* dev_scifi_lf_initial_windows,
+  const float* dev_scifi_lf_parametrization_x_filter);
 
 ALGORITHM(
   lf_extend_tracks_uv,
@@ -27,9 +27,8 @@ ALGORITHM(
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_ut,
-    dev_scifi_lf_x_filtered_tracks,
-    dev_scifi_lf_x_filtered_atomics,
-    dev_scifi_lf_number_of_candidates,
-    dev_scifi_lf_candidates,
+    dev_scifi_lf_tracks,
+    dev_scifi_lf_atomics,
     dev_ut_states,
-    dev_scifi_lf_uv_windows))
+    dev_scifi_lf_initial_windows,
+    dev_scifi_lf_parametrization))
