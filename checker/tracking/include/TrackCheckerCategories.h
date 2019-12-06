@@ -344,6 +344,30 @@ namespace Categories {
       },
     }),
     TrackEffReport({
+      "Long strange",
+      [](MCParticles::const_reference& mcp) {
+        return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5();
+      },
+    }),
+    TrackEffReport({
+      "Long strange, p > 5 GeV",
+      [](MCParticles::const_reference& mcp) {
+        return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.p > 5e3f && mcp.inEta2_5();
+      },
+    }),
+    TrackEffReport({
+      "Long strange muons",
+      [](MCParticles::const_reference& mcp) {
+        return mcp.isLong && mcp.fromStrangeDecay && mcp.isMuon() && mcp.inEta2_5();
+      },
+    }),
+    TrackEffReport({
+      "Long strange muons, p > 3 GeV",
+      [](MCParticles::const_reference& mcp) {
+        return mcp.isLong && mcp.fromStrangeDecay && mcp.isMuon() && mcp.p > 3e3f && mcp.inEta2_5();
+      },
+    }),
+    TrackEffReport({
       "Long from B",
       [](MCParticles::const_reference& mcp) {
         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5();
@@ -509,6 +533,18 @@ namespace Categories {
        },
      }),
      TrackEffReport({
+       "Long strange muons",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromStrangeDecay && mcp.isMuon() && mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
+       "Long strange muons, p > 3 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromStrangeDecay && mcp.isMuon() && mcp.p > 3e3f && mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
        "Long from B",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5();
@@ -537,9 +573,23 @@ namespace Categories {
        },
      }),
      TrackEffReport({
+       "Long from D electrons, p > 3 GeV, pt > 0.3 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.3e3f &&
+                mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
        "Long from D electrons, p > 3 GeV, pt > 0.5 GeV",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+                mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
+       "Long from D, p > 3 GeV, pt > 0.3 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.3e3f &&
                 mcp.inEta2_5();
        },
      }),
@@ -551,9 +601,23 @@ namespace Categories {
        },
      }),
      TrackEffReport({
+       "Long from B electrons, p > 3 GeV, pt > 0.3 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.3e3f &&
+                mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
        "Long from B electrons, p > 3 GeV, pt > 0.5 GeV",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.5e3f &&
+                mcp.inEta2_5();
+       },
+     }),
+     TrackEffReport({
+       "Long from B, p > 3 GeV, pt > 0.3 GeV",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.pt > 0.3e3f &&
                 mcp.inEta2_5();
        },
      }),
@@ -618,6 +682,40 @@ namespace Categories {
        },
      }),
      HistoCategory({
+       "LongStrange_eta25_muons",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromStrangeDecay && mcp.isMuon() && mcp.inEta2_5();
+       },
+     }),
+     HistoCategory({
+       "LongFromD_eta25_p_gt_3_pt_gt_0p5_electrons",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 0.5e3f;
+       },
+     }),
+     HistoCategory({
+       "LongFromD_eta25_p_gt_3_pt_gt_0p3_electrons",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 0.3e3f;
+       },
+     }),
+     HistoCategory({
+       "LongFromB_eta25_p_gt_3_pt_gt_0p5_electrons",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 0.5e3f;
+       },
+     }),
+     HistoCategory({
+       "LongFromB_eta25_p_gt_3_pt_gt_0p3_electrons",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 0.3e3f;
+       },
+     }),
+     HistoCategory({
        "Long_eta25_notElectrons",
        [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5(); },
      }),
@@ -628,10 +726,31 @@ namespace Categories {
        },
      }),
      HistoCategory({
-       "LongFromB_eta25_notElectrons_p_gt_3_pt_gt_0p5",
+       "LongFromD_eta25_p_gt_3_pt_gt_0p5_notElectrons",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 0.5e3f;
+       },
+     }),
+     HistoCategory({
+       "LongFromD_eta25_p_gt_3_pt_gt_0p3_notElectrons",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 0.3e3f;
+       },
+     }),
+     HistoCategory({
+       "LongFromB_eta25_p_gt_3_pt_gt_0p5_notElectrons",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
                 mcp.pt > 0.5e3f;
+       },
+     }),
+     HistoCategory({
+       "LongFromB_eta25_p_gt_3_pt_gt_0p3_notElectrons",
+       [](MCParticles::const_reference& mcp) {
+         return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                mcp.pt > 0.3e3f;
        },
      }),
      HistoCategory({
