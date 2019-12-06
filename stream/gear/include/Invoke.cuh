@@ -38,20 +38,10 @@ void invoke_impl(
 #elif defined(HIP)
   hipLaunchKernelGGL(function, num_blocks, num_threads, *stream, std::get<I>(invoke_arguments)...);
 #else
-  function<<<num_blocks, num_threads, *stream>>>(std::get<I>(invoke_arguments)...);
+
+#if defined(__NVCC__) || defined(__CUDACC__)
+  function<<<num_blocks, num_threads, 0, *stream>>>(std::get<I>(invoke_arguments)...);
 #endif
-}
-
-template<class Handler>
-void invoke_helper(const Handler& handler) {
-  // invoke_impl(
-  //   handler.function,
-  //   handler.num_blocks,
-  //   handler.num_threads,
-  //   handler.stream,
-  //   handler.invoke_arguments,
-  //   std::make_index_sequence<std::tuple_size<decltype(handler.invoke_arguments)>::value>());
-
-  // // Check result of kernel call
-  // cudaCheckKernelCall(cudaPeekAtLastError());
+  
+#endif
 }

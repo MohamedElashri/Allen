@@ -5,6 +5,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
+#include <cassert>
 #include <gsl-lite.hpp>
 
 namespace {

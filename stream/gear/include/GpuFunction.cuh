@@ -46,7 +46,8 @@ public:
   auto invoke(const dim3& param_num_blocks,
     const dim3& param_num_threads,
     cudaStream_t& param_stream) const {
-    return [&param_num_blocks, &param_num_threads, &param_stream, *this] (T... arguments) {
+    // return [&param_num_blocks, &param_num_threads, &param_stream, *this] (T... arguments) {
+    return [&] (T... arguments) {
       invoke_fn(param_num_blocks, param_num_threads, param_stream, arguments...);
     };
   }
