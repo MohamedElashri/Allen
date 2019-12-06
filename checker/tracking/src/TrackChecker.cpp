@@ -122,6 +122,16 @@ void TrackChecker::report(size_t) const
         n_is_muon_true,
         n_matched_muons,
         100 * static_cast<double>(n_is_muon_true) / static_cast<double>(n_matched_muons));
+      std::printf(
+        "Correctly identified muons from strange decays with isMuon:         %9lu/%9lu %6.2f%% \n",
+        n_is_muon_true_fromS,
+        n_matched_muons_fromS,
+        100 * static_cast<double>(n_is_muon_true_fromS) / static_cast<double>(n_matched_muons_fromS));
+      std::printf(
+        "Correctly identified muons from B decays with isMuon:               %9lu/%9lu %6.2f%% \n",
+        n_is_muon_true_fromB,
+        n_matched_muons_fromB,
+        100 * static_cast<double>(n_is_muon_true_fromB) / static_cast<double>(n_matched_muons_fromB));
     }
     if (n_matched_not_muons > 0) {
       std::printf(
@@ -249,6 +259,22 @@ void TrackChecker::muon_id_matching(
       if (match_is_muon) {
         n_is_muon_true++;
         m_histos->fillMuonReconstructedMatchedIsMuon(mcp);
+      }
+    }
+    // Correctly identified muons from strange decays
+    if (std::abs(mcp.pid) == 13 && mcp.fromStrangeDecay) {
+      n_matched_muons_fromS++;
+      if (match_is_muon) {
+        n_is_muon_true_fromS++;
+        m_histos->fillMuonFromSReconstructedMatchedIsMuon(mcp);
+      }
+    }
+    // Correctly identified muons from b decays
+    if (std::abs(mcp.pid) == 13 && mcp.fromBeautyDecay) {
+      n_matched_muons_fromB++;
+      if (match_is_muon) {
+        n_is_muon_true_fromB++;
+        m_histos->fillMuonFromBReconstructedMatchedIsMuon(mcp);
       }
     }
     // Track identified as muon, but was matched to non-muon MCP
@@ -389,6 +415,20 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
     }
   }
 
+  // if (total_counter.n_scifi > 2) {
+  //   if (match) {
+  //     std::ofstream ofs_xchi2;
+  //     ofs_xchi2.open("good_combined_chi2.txt", std::ofstream::out | std::ofstream::app);
+  //     ofs_xchi2 << track.qop << ", ";
+  //     ofs_xchi2.close();
+  //   } else {
+  //     std::ofstream ofs_xchi2;
+  //     ofs_xchi2.open("bad_combined_chi2.txt", std::ofstream::out | std::ofstream::app);
+  //     ofs_xchi2 << track.qop << ", ";
+  //     ofs_xchi2.close();
+  //   }
+  // }
+
   return {match, track_best_matched_MCP};
 }
 
@@ -491,7 +531,12 @@ void TrackChecker::operator()(
       m_histos->fillReconstructedHistos(mcp, histo_cat);
     }
     // fill histogram of momentum resolution
-    m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
+    if (m_trackerName == "Forward" && mcp.hasVelo && mcp.hasUT && mcp.hasSciFi) {
+      m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
+    }
+    if (m_trackerName == "VeloUT" && mcp.hasVelo && mcp.hasUT) {
+      m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
+    }
   }
 
   for (auto& report : m_categories) {

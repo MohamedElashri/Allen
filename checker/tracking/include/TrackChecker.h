@@ -53,8 +53,12 @@ protected:
   std::size_t m_n_MCPs_not_muon = 0;
 
   std::size_t n_is_muon_true = 0;
+  std::size_t n_is_muon_true_fromS = 0;
+  std::size_t n_is_muon_true_fromB = 0;
   std::size_t n_is_muon_misID = 0;
   std::size_t n_matched_muons = 0;
+  std::size_t n_matched_muons_fromS = 0;
+  std::size_t n_matched_muons_fromB = 0;
   std::size_t n_matched_not_muons = 0;
   std::size_t n_is_muon_ghost = 0;
 
