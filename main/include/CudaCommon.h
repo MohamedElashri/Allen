@@ -111,30 +111,12 @@ cudaError_t cudaMemcpyToSymbol(
   size_t count,
   size_t offset = 0,
   enum cudaMemcpyKind kind = cudaMemcpyDefault);
-
-template<class T>
-cudaError_t cudaMemcpyToSymbol(
-  const T& symbol,
-  const void* src,
-  size_t count,
-  size_t offset = 0,
-  enum cudaMemcpyKind = cudaMemcpyHostToDevice)
-{
-  std::memcpy(reinterpret_cast<void*>(((char*) &symbol) + offset), src, count);
-  return 0;
-}
-
-template<class T>
 cudaError_t cudaMemcpyFromSymbol(
   void* dst,
-  const T& symbol,
+  const void* symbol,
   size_t count,
   size_t offset = 0,
-  enum cudaMemcpyKind = cudaMemcpyHostToDevice)
-{
-  std::memcpy(dst, reinterpret_cast<void*>(((char*) &symbol) + offset), count);
-  return 0;
-}
+  enum cudaMemcpyKind = cudaMemcpyHostToDevice);
 
 template<class T, class S>
 T atomicAdd(T* address, S val)

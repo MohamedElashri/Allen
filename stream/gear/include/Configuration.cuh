@@ -267,7 +267,7 @@ public:
   std::string to_string() const override
   {
     V holder;
-    cudaCheck(cudaMemcpyFromSymbol(&holder, m_value.get(), sizeof(V)));
+    cudaCheck(cudaMemcpyFromSymbol(&holder, &m_value.get(), sizeof(V)));
     return Configuration::to_string(holder);
   }
 
@@ -281,7 +281,7 @@ public:
 
   void register_derived_property(DerivedProperty<V>* p) { m_derived.push_back(p); }
 
-  virtual void sync_value() const override { cudaCheck(cudaMemcpyToSymbol(m_value.get(), &m_cached_value, sizeof(V))); }
+  virtual void sync_value() const override { cudaCheck(cudaMemcpyToSymbol(&m_value.get(), &m_cached_value, sizeof(V))); }
 
 protected:
   virtual void update()
