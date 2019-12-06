@@ -4,14 +4,11 @@
 
 // All includes of all algorithms
 #include "PrefixSum.cuh"
-#include "PrefixSumHandler.cuh"
-
 #include "EstimateInputSize.cuh"
 #include "MaskedVeloClustering.cuh"
 #include "CalculatePhiAndSort.cuh"
 #include "SearchByTriplet.cuh"
 #include "ConsolidateVelo.cuh"
-
 #include "UTCalculateNumberOfHits.cuh"
 #include "UTPreDecode.cuh"
 #include "UTFindPermutation.cuh"

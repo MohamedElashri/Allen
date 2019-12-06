@@ -3,6 +3,7 @@
 #include "CpuAlgorithm.cuh"
 #include "CpuPrefixSum.h"
 #include "ArgumentsSciFi.cuh"
+#include "ArgumentsVertex.cuh"
 
 struct cpu_sv_prefix_sum_offsets_t : public CpuAlgorithm {
   constexpr static auto name {"cpu_sv_prefix_sum_offsets_t"};
@@ -13,7 +14,7 @@ struct cpu_sv_prefix_sum_offsets_t : public CpuAlgorithm {
     ArgumentRefManager<Arguments> arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
-    const HostBuffers& host_buffers) const {}
+    const HostBuffers& host_buffers) const;
 
   void operator()(
     const ArgumentRefManager<Arguments>& arguments,

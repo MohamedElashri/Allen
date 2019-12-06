@@ -1,8 +1,32 @@
 #include "SciFiCalculateClusterCountV6.cuh"
-#include "Invoke.cuh"
 
-void scifi_calculate_cluster_count_v6_t::invoke() {
-  invoke_helper(handler);
+void scifi_calculate_cluster_count_v6_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_scifi_hit_count>(
+    2 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mats + 1);
+}
+
+void scifi_calculate_cluster_count_v6_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(
+    cudaMemsetAsync(arguments.offset<dev_scifi_hit_count>(), 0, arguments.size<dev_scifi_hit_count>(), cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+    arguments.offset<dev_scifi_raw_input>(),
+    arguments.offset<dev_scifi_raw_input_offsets>(),
+    arguments.offset<dev_event_list>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    constants.dev_scifi_geometry);
 }
 
 using namespace SciFi;

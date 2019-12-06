@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CudaCommon.h"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsMuon.cuh"
 #include "MuonDefinitions.cuh"
 #include "MuonRawToHits.cuh"
@@ -13,7 +13,22 @@ __global__ void muon_decoding(
   Muon::MuonRawToHits* muon_raw_to_hits,
   Muon::HitsSoA* muon_hits);
 
-ALGORITHM(
-  muon_decoding,
-  muon_decoding_t,
-  ARGUMENTS(dev_event_list, dev_muon_raw, dev_muon_raw_offsets, dev_muon_raw_to_hits, dev_muon_hits))
+struct muon_decoding_t : public GpuAlgorithm {
+  constexpr static auto name {"muon_decoding_t"};
+  decltype(gpu_function(muon_decoding)) function {muon_decoding};
+  using Arguments = std::tuple<dev_event_list, dev_muon_raw, dev_muon_raw_offsets, dev_muon_raw_to_hits, dev_muon_hits>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

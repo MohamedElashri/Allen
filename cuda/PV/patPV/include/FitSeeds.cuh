@@ -10,8 +10,8 @@
 #include "VeloConsolidated.cuh"
 #include "PV_Definitions.cuh"
 
-__global__ void pv_fit_seeds(
-  PatPV::Vertex* dev_vertex,
+__global__ void fit_seeds(
+  PV::Vertex* dev_vertex,
   int* dev_number_vertex,
   PatPV::XYZPoint* dev_seeds,
   uint* dev_number_seeds,
@@ -30,7 +30,7 @@ __device__ float get_tukey_weight(float trchi2, int iter);
 
 struct pv_fit_seeds_t : public GpuAlgorithm {
   constexpr static auto name {"pv_fit_seeds_t"};
-  decltype(gpu_function(pv_fit_seeds)) function {pv_fit_seeds};
+  decltype(gpu_function(fit_seeds)) function {fit_seeds};
   using Arguments = std::tuple<
     dev_vertex,
     dev_number_vertex,

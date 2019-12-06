@@ -106,7 +106,7 @@ __global__ void package_kalman_tracks(
 
 struct kalman_velo_only_t : public GpuAlgorithm {
   constexpr static auto name {"kalman_velo_only_t"};
-  decltype(gpu_function(velo_kalman_fit)) function {velo_kalman_fit};
+  decltype(gpu_function(kalman_velo_only)) function {kalman_velo_only};
   using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,

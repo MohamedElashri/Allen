@@ -74,19 +74,6 @@ file(GLOB stream_scheduler "scheduler/src/*cpp")
 file(GLOB stream_sequence "sequence/src/*cpp")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
 file(GLOB stream_setup "setup/src/*cpp")
-file(GLOB stream_visitors_gec "visitors/global_event_cut/src/*cu")
-file(GLOB stream_visitors_velo "visitors/velo/src/*cu")
-file(GLOB stream_visitors_patPV "visitors/patPV/src/*cu")
-file(GLOB stream_visitors_beamlinePV "visitors/beamlinePV/src/*cu")
-file(GLOB stream_visitors_assoc "visitors/associate/src/*cu")
-file(GLOB stream_visitors_UT "visitors/UT/src/*cu")
-file(GLOB stream_visitors_SciFi_decoding "visitors/SciFi/decoding/src/*cu")
-file(GLOB stream_visitors_SciFi_looking_forward "visitors/SciFi/looking_forward/src/*cu")
-file(GLOB stream_visitors_Muon "visitors/muon/src/*cu")
-file(GLOB stream_visitors_kalman "visitors/kalman/src/*cu")
-file(GLOB stream_visitors_vertex "visitors/vertex_fit/src/*cu")
-file(GLOB stream_visitors_selections "visitors/selections/src/*cu")
-file(GLOB stream_visitors_raw_banks "visitors/raw_banks/src/*cu")
 
 add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -95,60 +82,6 @@ add_custom_command(
 )
 
 message(STATUS "Configured sequence: " ${SEQUENCE})
-
-if(TARGET_DEVICE STREQUAL "CPU")
-  foreach(source_file ${stream_visitors_gec}
-    ${stream_visitors_ip} ${stream_visitors_velo} ${stream_visitors_patPV}
-    ${stream_visitors_beamlinePV} ${stream_visitors_assoc} ${stream_visitors_UT}
-    ${stream_visitors_SciFi_decoding} ${stream_visitors_SciFi_looking_forward}
-    ${stream_visitors_Muon} ${stream_visitors_kalman}
-    ${stream_visitors_vertex} ${stream_visitors_selections} ${stream_visitors_raw_banks})
-    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
-  endforeach(source_file)
-endif()
-
-allen_add_library(Visitors STATIC
-  ${stream_visitors_gec}
-  ${stream_visitors_ip}
-  ${stream_visitors_velo}
-  ${stream_visitors_patPV}
-  ${stream_visitors_beamlinePV}
-  ${stream_visitors_assoc}
-  ${stream_visitors_UT}
-  ${stream_visitors_SciFi_decoding}
-  ${stream_visitors_SciFi_looking_forward}
-  ${stream_visitors_Muon}
-  ${stream_visitors_kalman}
-  ${stream_visitors_vertex}
-  ${stream_visitors_selections}
-  ${stream_visitors_raw_banks}
-)
-
-target_link_libraries(Visitors PRIVATE
-  CudaCommon
-  Associate
-  GlobalEventCut
-  Velo
-  AllenPatPV
-  PV_beamline
-  x86Clustering
-  UT
-  Kalman
-  VertexFitter
-  Hlt1
-  RawBanks
-  SciFi
-  CpuGEC
-  CpuUtils
-  Muon
-  Utils)
-
-# Avoid unused parameter warnings in Visitors
-if(TARGET_DEVICE STREQUAL "CUDA")
-  target_compile_options(Visitors PRIVATE "-Xcompiler=-Wno-unused-parameter")
-else()
-  target_compile_options(Visitors PRIVATE "-Wno-unused-parameter")
-endif()
 
 allen_add_library(Stream STATIC
   "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -177,10 +110,8 @@ target_link_libraries(Stream PRIVATE
   RawBanks
   SciFi
   CpuGEC
-  CpuUtils
   Muon
-  Utils
-  Visitors)
+  Utils)
 
 set_property(TARGET Stream PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 

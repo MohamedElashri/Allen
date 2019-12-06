@@ -67,15 +67,6 @@ void prepare_raw_banks_t::operator()(
     arguments.size<dev_passing_event_list>(),
     cudaMemcpyDeviceToHost,
     cuda_stream));
-
-  if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_kalmanvelo_states,
-      arguments.offset<dev_velo_kalman_beamline_states>(),
-      arguments.size<dev_velo_kalman_beamline_states>(),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-  }
 }
 
 __global__ void prepare_raw_banks(

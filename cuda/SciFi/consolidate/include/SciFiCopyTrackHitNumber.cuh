@@ -10,14 +10,15 @@
 #include "LookingForwardConstants.cuh"
 
 __global__ void scifi_copy_track_hit_number(
-  const SciFi::TrackHits* dev_tracks,
-  uint* dev_atomics_storage,
+  const uint* dev_atomics_ut,
+  const SciFi::TrackHits* dev_scifi_tracks,
+  uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number);
 
 struct scifi_copy_track_hit_number_t : public GpuAlgorithm {
   constexpr static auto name {"scifi_copy_track_hit_number_t"};
   decltype(gpu_function(scifi_copy_track_hit_number)) function {scifi_copy_track_hit_number};
-  using Arguments = std::tuple<dev_tracks, dev_atomics_ut, dev_scifi_track_hit_number>;
+  using Arguments = std::tuple<dev_atomics_ut, dev_scifi_tracks, dev_atomics_scifi, dev_scifi_track_hit_number>;
 
   void set_arguments_size(
     ArgumentRefManager<Arguments> arguments,

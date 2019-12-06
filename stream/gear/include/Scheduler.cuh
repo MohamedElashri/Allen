@@ -4,7 +4,6 @@
 #include "SchedulerMachinery.cuh"
 #include "ArgumentManager.cuh"
 #include "Logger.h"
-#include "InitEventList.cuh"
 #include <utility>
 
 template<typename ConfiguredSequence, typename OutputArguments>

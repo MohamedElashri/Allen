@@ -1,8 +1,23 @@
 #include "LFLeastMeanSquareFit.cuh"
-#include "Invoke.cuh"
 
-void lf_least_mean_square_fit_t::invoke() {
-  invoke_helper(handler);
+void lf_least_mean_square_fit_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_scifi_hits>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_atomics_ut>(),
+    arguments.offset<dev_scifi_lf_x_filtered_tracks>(),
+    arguments.offset<dev_scifi_lf_x_filtered_atomics>(),
+    constants.dev_scifi_geometry,
+    constants.dev_looking_forward_constants,
+    constants.dev_inv_clus_res,
+    arguments.offset<dev_scifi_lf_parametrization_x_filter>());
 }
 
 __global__ void lf_least_mean_square_fit(

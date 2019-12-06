@@ -18,7 +18,8 @@ void muon_catboost_features_extraction_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0], Muon::Constants::n_stations), cuda_stream)(
+  function.invoke(
+    dim3(host_buffers.host_number_of_selected_events[0], Muon::Constants::n_stations), block_dimension(), cuda_stream)(
     arguments.offset<dev_atomics_scifi>(),
     arguments.offset<dev_scifi_track_hit_number>(),
     arguments.offset<dev_scifi_qop>(),

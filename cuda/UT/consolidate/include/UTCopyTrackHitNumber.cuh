@@ -17,7 +17,7 @@ __global__ void ut_copy_track_hit_number(
 struct ut_copy_track_hit_number_t : public GpuAlgorithm {
   constexpr static auto name {"ut_copy_track_hit_number_t"};
   decltype(gpu_function(ut_copy_track_hit_number)) function {ut_copy_track_hit_number};
-  using Arguments = std::tuple<dev_tracks, dev_atomics_ut, dev_ut_track_hit_number>;
+  using Arguments = std::tuple<dev_ut_tracks, dev_atomics_ut, dev_ut_track_hit_number>;
 
   void set_arguments_size(
     ArgumentRefManager<Arguments> arguments,

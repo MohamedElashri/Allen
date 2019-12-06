@@ -4,7 +4,7 @@
  * @brief Specialization when invoking scifi_pr_forward_t as last step.
  */
 template<>
-void SequenceVisitor::check<consolidate_scifi_tracks_t>(
+void SequenceVisitor::check<scifi_consolidate_tracks_t>(
   HostBuffers& host_buffers,
   const Constants& constants,
   const CheckerInvoker& checker_invoker,

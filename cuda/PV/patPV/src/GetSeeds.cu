@@ -1,16 +1,48 @@
 #include "GetSeeds.cuh"
-// simplficiations: no tracks2disable
 
 __constant__ float Configuration::pv_get_seeds_t::max_chi2_merge;
 __constant__ float Configuration::pv_get_seeds_t::factor_to_increase_errors;
-
 __constant__ int Configuration::pv_get_seeds_t::min_cluster_mult;
 __constant__ int Configuration::pv_get_seeds_t::min_close_tracks_in_cluster;
-
 __constant__ float Configuration::pv_get_seeds_t::dz_close_tracks_in_cluster;
 __constant__ int Configuration::pv_get_seeds_t::high_mult;
 __constant__ float Configuration::pv_get_seeds_t::ratio_sig2_high_mult;
 __constant__ float Configuration::pv_get_seeds_t::ratio_sig2_low_mult;
+
+void pv_get_seeds_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_seeds>(host_buffers.host_number_of_reconstructed_velo_tracks[0]);
+  arguments.set_size<dev_number_seeds>(host_buffers.host_number_of_selected_events[0]);
+}
+
+void pv_get_seeds_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_velo_kalman_beamline_states>(),
+    arguments.offset<dev_atomics_velo>(),
+    arguments.offset<dev_velo_track_hit_number>(),
+    arguments.offset<dev_seeds>(),
+    arguments.offset<dev_number_seeds>());
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_number_of_seeds,
+      arguments.offset<dev_number_seeds>(),
+      arguments.size<dev_number_seeds>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }  
+}
 
 __device__ float zCloseBeam(KalmanVeloState track, const PatPV::XYZPoint& beamspot)
 {

@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "VeloEventModel.cuh"
 #include "Common.h"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
 #include "VeloConsolidated.cuh"
@@ -19,30 +19,27 @@ __global__ void get_seeds(
 
 __device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int number_of_clusters);
 
-namespace Configuration {
-  namespace pv_get_seeds_t {
-    // configuration for seeding
-    // steering parameters for merging procedure
-    extern __constant__ float max_chi2_merge;
-    extern __constant__ float factor_to_increase_errors;
+struct pv_get_seeds_t : public GpuAlgorithm {
+  constexpr static auto name {"pv_get_seeds_t"};
+  decltype(gpu_function(get_seeds)) function {get_seeds};
+  using Arguments = std::tuple<
+    dev_velo_kalman_beamline_states, dev_atomics_velo, dev_velo_track_hit_number, dev_seeds, dev_number_seeds>;
 
-    // try parameters from RecoUpgradeTracking.py
-    extern __constant__ int min_cluster_mult;
-    extern __constant__ int min_close_tracks_in_cluster;
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
 
-    // steering parameters for final cluster selection
-    // unit: mm
-    extern __constant__ float dz_close_tracks_in_cluster;
-    extern __constant__ int high_mult;
-    extern __constant__ float ratio_sig2_high_mult;
-    extern __constant__ float ratio_sig2_low_mult;
-  } // namespace pv_get_seeds_t
-} // namespace Configuration
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
 
-ALGORITHM(
-  get_seeds,
-  pv_get_seeds_t,
-  ARGUMENTS(dev_velo_kalman_beamline_states, dev_atomics_velo, dev_velo_track_hit_number, dev_seeds, dev_number_seeds),
+private:
   Property<float>
     m_chi2 {this, "max_chi2_merge", Configuration::pv_get_seeds_t::max_chi2_merge, 25.f, "max chi2 merge"};
   Property<float> m_ferr {this,
@@ -72,4 +69,5 @@ ALGORITHM(
                              "ratio_sig2_low_mult",
                              Configuration::pv_get_seeds_t::ratio_sig2_low_mult,
                              0.9f,
-                             "ratio sig2 low mult"};)
+                             "ratio sig2 low mult"};
+};
