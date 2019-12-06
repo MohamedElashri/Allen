@@ -67,13 +67,24 @@
 #include "RunHlt1.cuh"
 #include "MuonSortByStation.cuh"
 #include "PrepareRawBanks.cuh"
+#include "VeloCopyTrackHitNumber.cuh"
+#include "UTCopyTrackHitNumber.cuh"
+#include "SciFiCopyTrackHitNumber.cuh"
 
 #include "CpuInitEventList.h"
 #include "CpuGlobalEventCut.h"
 #include "CpuVeloPrefixSumNumberOfClusters.h"
 #include "CpuVeloPrefixSumNumberOfTracks.h"
-#include "VeloCopyTrackHitNumber.cuh"
-#include "CpuVeloPrefixSumNumberOfHits.h"
+#include "CpuVeloPrefixSumNumberOfTrackHits.h"
+#include "CpuUTPrefixSumNumberOfHits.h"
+#include "CpuUTPrefixSumNumberOfTracks.h"
+#include "CpuUTPrefixSumNumberOfTrackHits.h"
+#include "CpuSciFiPrefixSumNumberOfHits.h"
+#include "CpuSciFiPrefixSumNumberOfTracks.h"
+#include "CpuSciFiPrefixSumNumberOfTrackHits.h"
+#include "CpuMuonPrefixSumStorage.h"
+#include "CpuMuonPrefixSumStation.h"
+#include "CpuSVPrefixSumOffsets.h"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

@@ -5,7 +5,7 @@
 #include "PV_Definitions.cuh"
 #include "AssociateConsolidated.cuh"
 #include "Common.h"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -19,13 +19,28 @@ __global__ void velo_pv_ip(
   uint* dev_number_of_multi_fit_vertices,
   char* dev_velo_pv_ip);
 
-ALGORITHM(
-  velo_pv_ip,
-  velo_pv_ip_t,
-  ARGUMENTS(
+struct velo_pv_ip_t : public GpuAlgorithm {
+  constexpr static auto name {"velo_pv_ip_t"};
+  decltype(gpu_function(velo_pv_ip)) function {velo_pv_ip};
+  using Arguments = std::tuple<
     dev_velo_kalman_beamline_states,
     dev_atomics_velo,
     dev_velo_track_hit_number,
     dev_multi_fit_vertices,
     dev_number_of_multi_fit_vertices,
-    dev_velo_pv_ip))
+    dev_velo_pv_ip>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

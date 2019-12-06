@@ -5,7 +5,7 @@
 #include "PV_Definitions.cuh"
 #include "AssociateConsolidated.cuh"
 #include "Common.h"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -29,10 +29,10 @@ __global__ void kalman_pv_ipchi2(
   char* dev_kalman_pv_ipchi2,
   const bool* dev_is_muon);
 
-ALGORITHM(
-  kalman_pv_ipchi2,
-  kalman_pv_ipchi2_t,
-  ARGUMENTS(
+struct kalman_pv_ipchi2_t : public GpuAlgorithm {
+  constexpr static auto name {"kalman_pv_ipchi2_t"};
+  decltype(gpu_function(kalman_pv_ipchi2)) function {kalman_pv_ipchi2};
+  using Arguments = std::tuple<
     dev_kf_tracks,
     dev_atomics_scifi,
     dev_scifi_track_hit_number,
@@ -43,4 +43,19 @@ ALGORITHM(
     dev_multi_fit_vertices,
     dev_number_of_multi_fit_vertices,
     dev_kalman_pv_ipchi2,
-    dev_is_muon))
+    dev_is_muon>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

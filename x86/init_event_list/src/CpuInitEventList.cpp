@@ -8,7 +8,7 @@ void cpu_init_event_list_t::set_arguments_size(
   arguments.set_size<dev_event_list>(runtime_options.number_of_events);
 }
 
-void cpu_init_event_list_t::visit(
+void cpu_init_event_list_t::operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
@@ -28,5 +28,3 @@ void cpu_init_event_list_t::visit(
     cudaMemcpyHostToDevice,
     cuda_stream));
 }
-
-void empty_function() {}

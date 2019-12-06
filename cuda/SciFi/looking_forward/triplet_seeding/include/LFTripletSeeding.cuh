@@ -4,7 +4,7 @@
 #include "UTConsolidated.cuh"
 #include "SciFiEventModel.cuh"
 #include "SciFiDefinitions.cuh"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -29,10 +29,10 @@ __global__ void lf_triplet_seeding(
   int* dev_scifi_lf_found_triplets,
   int8_t* dev_scifi_lf_number_of_found_triplets);
 
-ALGORITHM(
-  lf_triplet_seeding,
-  lf_triplet_seeding_t,
-  ARGUMENTS(
+struct lf_triplet_seeding_t : public GpuAlgorithm {
+  constexpr static auto name {"lf_triplet_seeding_t"};
+  decltype(gpu_function(lf_triplet_seeding)) function {lf_triplet_seeding};
+  using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_ut,
@@ -45,4 +45,19 @@ ALGORITHM(
     dev_velo_states,
     dev_scifi_lf_process_track,
     dev_scifi_lf_found_triplets,
-    dev_scifi_lf_number_of_found_triplets))
+    dev_scifi_lf_number_of_found_triplets>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

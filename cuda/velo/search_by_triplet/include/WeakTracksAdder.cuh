@@ -25,7 +25,7 @@ __global__ void velo_weak_tracks_adder(
 
 struct velo_weak_tracks_adder_t : public GpuAlgorithm {
   constexpr static auto name {"velo_weak_tracks_adder_t"};
-  decltype(gpu_function(velo_weak_tracks_adder)) algorithm {velo_weak_tracks_adder};
+  decltype(gpu_function(velo_weak_tracks_adder)) function {velo_weak_tracks_adder};
   using Arguments = std::tuple<
     dev_velo_cluster_container,
     dev_estimated_input_size,
@@ -40,7 +40,7 @@ struct velo_weak_tracks_adder_t : public GpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const {}
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

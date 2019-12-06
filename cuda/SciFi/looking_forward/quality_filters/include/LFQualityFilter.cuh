@@ -3,7 +3,7 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -32,10 +32,10 @@ __global__ void lf_quality_filter(
   const uint* dev_velo_track_hit_number,
   const uint* dev_ut_track_velo_indices);
 
-ALGORITHM(
-  lf_quality_filter,
-  lf_quality_filter_t,
-  ARGUMENTS(
+struct lf_quality_filter_t : public GpuAlgorithm {
+  constexpr static auto name {"lf_quality_filter_t"};
+  decltype(gpu_function(lf_quality_filter)) function {lf_quality_filter};
+  using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_ut,
@@ -50,4 +50,19 @@ ALGORITHM(
     dev_velo_states,
     dev_atomics_velo,
     dev_velo_track_hit_number,
-    dev_ut_track_velo_indices))
+    dev_ut_track_velo_indices>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

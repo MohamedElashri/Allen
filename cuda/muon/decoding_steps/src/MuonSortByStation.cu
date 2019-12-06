@@ -1,8 +1,35 @@
 #include "MuonSortByStation.cuh"
-#include "Invoke.cuh"
 
-void muon_sort_by_station_t::invoke() {
-  invoke_helper(handler);
+void muon_sort_by_station_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_permutation_station>(
+    host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
+}
+
+void muon_sort_by_station_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_permutation_station>(), 0, arguments.size<dev_permutation_station>(), cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_storage_tile_id>(),
+    arguments.offset<dev_storage_tdc_value>(),
+    arguments.offset<dev_atomics_muon>(),
+    arguments.offset<dev_permutation_station>(),
+    arguments.offset<dev_muon_hits>(),
+    arguments.offset<dev_station_ocurrences_offset>(),
+    arguments.offset<dev_muon_compact_hit>(),
+    arguments.offset<dev_muon_raw_to_hits>());
 }
 
 __global__ void muon_sort_by_station(

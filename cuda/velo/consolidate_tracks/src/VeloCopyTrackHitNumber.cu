@@ -9,7 +9,7 @@ void velo_copy_track_hit_number_t::set_arguments_size(
   arguments.set_size<dev_velo_track_hit_number>(host_buffers.velo_track_hit_number_size());
 }
 
-void velo_copy_track_hit_number_t::visit(
+void velo_copy_track_hit_number_t::operator()(
   const ArgumentRefManager<Arguments>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -17,7 +17,7 @@ void velo_copy_track_hit_number_t::visit(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  algorithm.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
     arguments.offset<dev_tracks>(),
     arguments.offset<dev_atomics_velo>(),
     arguments.offset<dev_velo_track_hit_number>());

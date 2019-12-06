@@ -11,6 +11,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/float_operations/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/PV/beamlinePV/include)
 
 if(TARGET_DEVICE STREQUAL "CPU")

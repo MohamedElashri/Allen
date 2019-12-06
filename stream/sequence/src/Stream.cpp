@@ -57,13 +57,11 @@ cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runti
       // Visit all algorithms in configured sequence
       Sch::RunSequenceTuple<
         scheduler_t,
-        SequenceVisitor,
         configured_sequence_t,
         std::tuple<const RuntimeOptions&, const Constants&, const HostBuffers&>,
         std::tuple<const RuntimeOptions&, const Constants&, HostBuffers&, cudaStream_t&, cudaEvent_t&>>::
         run(
           scheduler,
-          sequence_visitor,
           scheduler.sequence_tuple,
           // Arguments to set_arguments_size
           runtime_options,

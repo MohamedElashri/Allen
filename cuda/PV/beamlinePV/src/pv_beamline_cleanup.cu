@@ -1,8 +1,52 @@
 #include "pv_beamline_cleanup.cuh"
-#include "Invoke.cuh"
 
-void pv_beamline_cleanup_t::invoke() {
-  invoke_helper(handler);
+void pv_beamline_cleanup_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_multi_final_vertices>(
+    host_buffers.host_number_of_selected_events[0] * PV::max_number_vertices);
+  arguments.set_size<dev_number_of_multi_final_vertices>(host_buffers.host_number_of_selected_events[0]);
+}
+
+void pv_beamline_cleanup_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_number_of_multi_final_vertices>(),
+    0,
+    arguments.size<dev_number_of_multi_final_vertices>(),
+    cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_multi_fit_vertices>(),
+    arguments.offset<dev_number_of_multi_fit_vertices>(),
+    arguments.offset<dev_multi_final_vertices>(),
+    arguments.offset<dev_number_of_multi_final_vertices>());
+
+  if (runtime_options.do_check) {
+    // Retrieve result
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_reconstructed_multi_pvs,
+      arguments.offset<dev_multi_final_vertices>(),
+      arguments.size<dev_multi_final_vertices>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_number_of_multivertex,
+      arguments.offset<dev_number_of_multi_final_vertices>(),
+      arguments.size<dev_number_of_multi_final_vertices>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }
 
 __global__ void pv_beamline_cleanup(

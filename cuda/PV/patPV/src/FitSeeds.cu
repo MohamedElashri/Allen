@@ -1,11 +1,51 @@
 #include "FitSeeds.cuh"
-#include "Invoke.cuh"
 
-void pv_fit_seeds_t::invoke() {
-  invoke_helper(handler);
+void pv_fit_seeds_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_vertex>(PatPV::max_number_vertices * host_buffers.host_number_of_selected_events[0]);
+  arguments.set_size<dev_number_vertex>(host_buffers.host_number_of_selected_events[0]);
 }
 
-__global__ void fit_seeds(
+void pv_fit_seeds_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_vertex>(),
+    arguments.offset<dev_number_vertex>(),
+    arguments.offset<dev_seeds>(),
+    arguments.offset<dev_number_seeds>(),
+    arguments.offset<dev_velo_kalman_beamline_states>(),
+    arguments.offset<dev_atomics_velo>(),
+    arguments.offset<dev_velo_track_hit_number>());
+
+  if (runtime_options.do_check) {
+    // Retrieve result
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_reconstructed_pvs,
+      arguments.offset<dev_vertex>(),
+      arguments.size<dev_vertex>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_number_of_vertex,
+      arguments.offset<dev_number_vertex>(),
+      arguments.size<dev_number_vertex>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
+
+__global__ void pv_fit_seeds(
   PV::Vertex* dev_vertex,
   int* dev_number_vertex,
   PatPV::XYZPoint* dev_seeds,

@@ -4,6 +4,20 @@
 #include "ParKalmanMath.cuh"
 #include "CudaCommon.h"
 
+namespace Configuration {
+  namespace fit_secondary_vertices_t {
+    // Track pT cut.
+    extern __constant__ float track_min_pt;
+
+    // Track IP chi2 cut.
+    extern __constant__ float track_min_ipchi2;
+    extern __constant__ float track_muon_min_ipchi2;
+
+    // Maximum IP chi2 for a track to be associated to a PV.
+    extern __constant__ float max_assoc_ipchi2;
+  } // namespace fit_secondary_vertices_t
+} // namespace Configuration
+
 namespace VertexFit {
 
   // Charged pion mass for calculating Mcor.

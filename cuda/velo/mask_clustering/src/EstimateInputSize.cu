@@ -21,7 +21,7 @@ void velo_estimate_input_size_t::set_arguments_size(
     host_buffers.host_number_of_selected_events[0] * VeloClustering::max_candidates_event);
 }
 
-void velo_estimate_input_size_t::visit(
+void velo_estimate_input_size_t::operator()(
   const ArgumentRefManager<Arguments>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -50,7 +50,7 @@ void velo_estimate_input_size_t::visit(
     arguments.offset<dev_module_candidate_num>(), 0, arguments.size<dev_module_candidate_num>(), cuda_stream));
 
   // Invoke kernel
-  algorithm.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
     arguments.offset<dev_velo_raw_input>(),
     arguments.offset<dev_velo_raw_input_offsets>(),
     arguments.offset<dev_estimated_input_size>(),

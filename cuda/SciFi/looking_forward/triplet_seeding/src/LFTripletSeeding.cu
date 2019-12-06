@@ -1,10 +1,53 @@
 #include "LFTripletSeeding.cuh"
 #include "LFTripletSeedingImpl.cuh"
 #include "LookingForwardTools.cuh"
-#include "Invoke.cuh"
 
-void lf_triplet_seeding_t::invoke() {
-  invoke_helper(handler);
+void lf_triplet_seeding_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_scifi_lf_found_triplets>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::n_triplet_seeds *
+    LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread);
+  arguments.set_size<dev_scifi_lf_number_of_found_triplets>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::n_triplet_seeds *
+    LookingForward::triplet_seeding_block_dim_x);
+}
+
+void lf_triplet_seeding_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_scifi_lf_number_of_found_triplets>(),
+    0,
+    arguments.size<dev_scifi_lf_number_of_found_triplets>(),
+    cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]),
+    dim3(LookingForward::triplet_seeding_block_dim_x, 2), cuda_stream)(
+    arguments.offset<dev_scifi_hits>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_atomics_velo>(),
+    arguments.offset<dev_velo_states>(),
+    arguments.offset<dev_atomics_ut>(),
+    arguments.offset<dev_ut_track_hit_number>(),
+    arguments.offset<dev_ut_track_velo_indices>(),
+    arguments.offset<dev_ut_qop>(),
+    constants.dev_scifi_geometry,
+    constants.dev_inv_clus_res,
+    arguments.offset<dev_scifi_lf_initial_windows>(),
+    constants.dev_looking_forward_constants,
+    arguments.offset<dev_ut_states>(),
+    arguments.offset<dev_scifi_lf_process_track>(),
+    arguments.offset<dev_scifi_lf_found_triplets>(),
+    arguments.offset<dev_scifi_lf_number_of_found_triplets>());
 }
 
 __global__ void lf_triplet_seeding(

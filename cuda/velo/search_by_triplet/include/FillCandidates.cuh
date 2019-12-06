@@ -20,7 +20,7 @@ __global__ void velo_fill_candidates(
 
 struct velo_fill_candidates_t : public GpuAlgorithm {
   constexpr static auto name {"velo_fill_candidates_t"};
-  decltype(gpu_function(velo_fill_candidates)) algorithm {velo_fill_candidates};
+  decltype(gpu_function(velo_fill_candidates)) function {velo_fill_candidates};
   using Arguments = std::tuple<
     dev_velo_cluster_container,
     dev_estimated_input_size,
@@ -34,7 +34,7 @@ struct velo_fill_candidates_t : public GpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

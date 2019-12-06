@@ -2,7 +2,7 @@
 
 #include "BeamlinePVConstants.cuh"
 #include "Common.h"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -21,13 +21,28 @@ __global__ void pv_beamline_calculate_denom(
   float* dev_zpeaks,
   uint* dev_number_of_zpeaks);
 
-ALGORITHM(
-  pv_beamline_calculate_denom,
-  pv_beamline_calculate_denom_t,
-  ARGUMENTS(
+struct pv_beamline_calculate_denom_t : public GpuAlgorithm {
+  constexpr static auto name {"pv_beamline_calculate_denom_t"};
+  decltype(gpu_function(pv_beamline_calculate_denom)) function {pv_beamline_calculate_denom};
+  using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,
     dev_pvtracks,
     dev_zpeaks,
     dev_number_of_zpeaks,
-    dev_pvtracks_denom))
+    dev_pvtracks_denom>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

@@ -1,14 +1,35 @@
 #include <Common.h>
-#include <Handler.cuh>
 #include <PV_Definitions.cuh>
 #include <VeloConsolidated.cuh>
 #include <AssociateConsolidated.cuh>
 #include <AssociateConstants.cuh>
 #include <VeloPVIP.cuh>
-#include <Invoke.cuh>
 
-void velo_pv_ip_t::invoke() {
-  invoke_helper(handler);
+void velo_pv_ip_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  auto n_velo_tracks = host_buffers.host_number_of_reconstructed_velo_tracks[0];
+  arguments.set_size<dev_velo_pv_ip>(Associate::Consolidated::Table::size(n_velo_tracks));
+}
+
+void velo_pv_ip_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_velo_kalman_beamline_states>(),
+    arguments.offset<dev_atomics_velo>(),
+    arguments.offset<dev_velo_track_hit_number>(),
+    arguments.offset<dev_multi_fit_vertices>(),
+    arguments.offset<dev_number_of_multi_fit_vertices>(),
+    arguments.offset<dev_velo_pv_ip>());
 }
 
 namespace Distance {

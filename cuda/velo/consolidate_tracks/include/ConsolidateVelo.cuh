@@ -20,7 +20,7 @@ __global__ void velo_consolidate_tracks(
 
 struct velo_consolidate_tracks_t : public GpuAlgorithm {
   constexpr static auto name {"velo_consolidate_tracks_t"};
-  decltype(gpu_function(velo_consolidate_tracks)) algorithm {velo_consolidate_tracks};
+  decltype(gpu_function(velo_consolidate_tracks)) function {velo_consolidate_tracks};
   using Arguments = std::tuple<
     dev_atomics_velo,
     dev_tracks,
@@ -37,7 +37,7 @@ struct velo_consolidate_tracks_t : public GpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

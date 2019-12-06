@@ -345,7 +345,6 @@ namespace Sch {
    */
   template<
     typename Scheduler,
-    typename Functor,
     typename Tuple,
     typename SetSizeArguments,
     typename VisitArguments,
@@ -354,23 +353,20 @@ namespace Sch {
 
   template<
     typename Scheduler,
-    typename Functor,
     typename Tuple,
     typename... SetSizeArguments,
     typename... VisitArguments>
   struct RunSequenceTupleImpl<
     Scheduler,
-    Functor,
     Tuple,
     std::tuple<SetSizeArguments...>,
     std::tuple<VisitArguments...>,
     std::index_sequence<>> {
-    constexpr static void run(Scheduler&, Functor&, Tuple&, SetSizeArguments&&..., VisitArguments&&...) {}
+    constexpr static void run(Scheduler&, Tuple&, SetSizeArguments&&..., VisitArguments&&...) {}
   };
 
   template<
     typename Scheduler,
-    typename Functor,
     typename Tuple,
     typename... SetSizeArguments,
     typename... VisitArguments,
@@ -378,14 +374,12 @@ namespace Sch {
     unsigned long... Is>
   struct RunSequenceTupleImpl<
     Scheduler,
-    Functor,
     Tuple,
     std::tuple<SetSizeArguments...>,
     std::tuple<VisitArguments...>,
     std::index_sequence<I, Is...>> {
     constexpr static void run(
       Scheduler& scheduler,
-      Functor& functor,
       Tuple& tuple,
       SetSizeArguments&&... set_size_arguments,
       VisitArguments&&... visit_arguments)
@@ -398,35 +392,21 @@ namespace Sch {
           scheduler.argument_manager.arguments_tuple),
         std::forward<SetSizeArguments>(set_size_arguments)...);
 
-      // functor.template set_arguments_size<t>(
-      //   std::get<I>(tuple),
-      //   ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
-      //     scheduler.argument_manager.arguments_tuple),
-      //   std::forward<SetSizeArguments>(set_size_arguments)...);
-
       scheduler.template setup<I, t>();
 
-      std::get<I>(tuple).visit(
+      std::get<I>(tuple).operator()(
         ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
           scheduler.argument_manager.arguments_tuple),
         std::forward<VisitArguments>(visit_arguments)...);
 
-      // functor.template visit<t>(
-      //   std::get<I>(tuple),
-      //   ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
-      //     scheduler.argument_manager.arguments_tuple),
-      //   std::forward<VisitArguments>(visit_arguments)...);
-
       RunSequenceTupleImpl<
         Scheduler,
-        Functor,
         Tuple,
         std::tuple<SetSizeArguments...>,
         std::tuple<VisitArguments...>,
         std::index_sequence<Is...>>::
         run(
           scheduler,
-          functor,
           tuple,
           std::forward<SetSizeArguments>(set_size_arguments)...,
           std::forward<VisitArguments>(visit_arguments)...);
@@ -436,38 +416,33 @@ namespace Sch {
   /**
    * @brief Runs a sequence of algorithms.
    *
-   * @tparam Functor          Functor containing the visit function for all types in the tuple.
    * @tparam Tuple            Sequence of algorithms
    * @tparam SetSizeArguments Arguments to set_arguments_size
    * @tparam VisitArguments   Arguments to visit
    */
-  template<typename Scheduler, typename Functor, typename Tuple, typename SetSizeArguments, typename VisitArguments>
+  template<typename Scheduler, typename Tuple, typename SetSizeArguments, typename VisitArguments>
   struct RunSequenceTuple;
 
   template<
     typename Scheduler,
-    typename Functor,
     typename Tuple,
     typename... SetSizeArguments,
     typename... VisitArguments>
-  struct RunSequenceTuple<Scheduler, Functor, Tuple, std::tuple<SetSizeArguments...>, std::tuple<VisitArguments...>> {
+  struct RunSequenceTuple<Scheduler, Tuple, std::tuple<SetSizeArguments...>, std::tuple<VisitArguments...>> {
     constexpr static void run(
       Scheduler& scheduler,
-      Functor& functor,
       Tuple& tuple,
       SetSizeArguments&&... set_size_arguments,
       VisitArguments&&... visit_arguments)
     {
       RunSequenceTupleImpl<
         Scheduler,
-        Functor,
         Tuple,
         std::tuple<SetSizeArguments...>,
         std::tuple<VisitArguments...>,
         std::make_index_sequence<std::tuple_size<Tuple>::value>>::
         run(
           scheduler,
-          functor,
           tuple,
           std::forward<SetSizeArguments>(set_size_arguments)...,
           std::forward<VisitArguments>(visit_arguments)...);

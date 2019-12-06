@@ -2,11 +2,79 @@
 #include "TrackMVALines.cuh"
 #include "MuonLines.cuh"
 #include "LineHandler.cuh"
-#include "Handler.cuh"
-#include "Invoke.cuh"
 
-void run_hlt1_t::invoke() {
-  invoke_helper(handler);
+void run_hlt1_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_one_track_results>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+  arguments.set_size<dev_two_track_results>(host_buffers.host_number_of_svs[0]);
+  arguments.set_size<dev_single_muon_results>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+  arguments.set_size<dev_disp_dimuon_results>(host_buffers.host_number_of_svs[0]);
+  arguments.set_size<dev_high_mass_dimuon_results>(host_buffers.host_number_of_svs[0]);
+  arguments.set_size<dev_dimuon_soft_results>(host_buffers.host_number_of_svs[0]);
+}
+
+void run_hlt1_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_kf_tracks>(),
+    arguments.offset<dev_secondary_vertices>(),
+    arguments.offset<dev_atomics_scifi>(),
+    arguments.offset<dev_sv_offsets>(),
+    arguments.offset<dev_one_track_results>(),
+    arguments.offset<dev_two_track_results>(),
+    arguments.offset<dev_single_muon_results>(),
+    arguments.offset<dev_disp_dimuon_results>(),
+    arguments.offset<dev_high_mass_dimuon_results>(),
+    arguments.offset<dev_dimuon_soft_results>());
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_one_track_decisions,
+      arguments.offset<dev_one_track_results>(),
+      arguments.size<dev_one_track_results>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_two_track_decisions,
+      arguments.offset<dev_two_track_results>(),
+      arguments.size<dev_two_track_results>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_single_muon_decisions,
+      arguments.offset<dev_single_muon_results>(),
+      arguments.size<dev_single_muon_results>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_disp_dimuon_decisions,
+      arguments.offset<dev_disp_dimuon_results>(),
+      arguments.size<dev_disp_dimuon_results>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_high_mass_dimuon_decisions,
+      arguments.offset<dev_high_mass_dimuon_results>(),
+      arguments.size<dev_high_mass_dimuon_results>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_dimuon_soft_decisions,
+      arguments.offset<dev_dimuon_soft_results>(),
+      arguments.size<dev_dimuon_soft_results>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream)); 
+  }
 }
 
 __global__ void run_hlt1(

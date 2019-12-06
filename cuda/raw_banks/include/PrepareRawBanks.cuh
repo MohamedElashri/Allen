@@ -3,7 +3,7 @@
 #include "HltDecReport.cuh"
 #include "RawBanksDefinitions.cuh"
 
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsSelections.cuh"
 #include "ArgumentsVertex.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -22,10 +22,10 @@ __global__ void prepare_raw_banks(
   uint* number_of_passing_events,
   uint* event_list);
 
-ALGORITHM(
-  prepare_raw_banks,
-  prepare_raw_banks_t,
-  ARGUMENTS(
+struct prepare_raw_banks_t : public GpuAlgorithm {
+  constexpr static auto name {"prepare_raw_banks_t"};
+  decltype(gpu_function(prepare_raw_banks)) function {prepare_raw_banks};
+  using Arguments = std::tuple<
     dev_atomics_scifi,
     dev_sv_offsets,
     dev_one_track_results,
@@ -35,4 +35,19 @@ ALGORITHM(
     dev_high_mass_dimuon_results,
     dev_dec_reports,
     dev_number_of_passing_events,
-    dev_passing_event_list))
+    dev_passing_event_list>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

@@ -1,8 +1,50 @@
 #include "LFTripletKeepBest.cuh"
-#include "Invoke.cuh"
 
-void lf_triplet_keep_best_t::invoke() {
-  invoke_helper(handler);
+void lf_triplet_keep_best_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_scifi_lf_tracks>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::maximum_number_of_candidates_per_ut_track);
+  arguments.set_size<dev_scifi_lf_atomics>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * LookingForward::num_atomics * 2 + 1);
+  arguments.set_size<dev_scifi_lf_total_number_of_found_triplets>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0]);
+}
+
+void lf_triplet_keep_best_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_scifi_lf_total_number_of_found_triplets>(),
+    0,
+    arguments.size<dev_scifi_lf_total_number_of_found_triplets>(),
+    cuda_stream));
+
+  cudaCheck(
+    cudaMemsetAsync(arguments.offset<dev_scifi_lf_atomics>(), 0, arguments.size<dev_scifi_lf_atomics>(), cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_scifi_hits>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_atomics_ut>(),
+    constants.dev_scifi_geometry,
+    constants.dev_inv_clus_res,
+    constants.dev_looking_forward_constants,
+    arguments.offset<dev_scifi_lf_tracks>(),
+    arguments.offset<dev_scifi_lf_atomics>(),
+    arguments.offset<dev_scifi_lf_initial_windows>(),
+    arguments.offset<dev_scifi_lf_process_track>(),
+    arguments.offset<dev_scifi_lf_found_triplets>(),
+    arguments.offset<dev_scifi_lf_number_of_found_triplets>(),
+    arguments.offset<dev_scifi_lf_total_number_of_found_triplets>());
 }
 
 __global__ void lf_triplet_keep_best(
@@ -22,7 +64,8 @@ __global__ void lf_triplet_keep_best(
 {
   // Keep best for each h1 hit
   __shared__ int best_triplets[LookingForward::maximum_number_of_candidates_per_ut_track];
-  __shared__ int found_triplets[2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
+  __shared__ int found_triplets
+    [2 * LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread];
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -57,13 +100,15 @@ __global__ void lf_triplet_keep_best(
            triplet_index];
         const auto scifi_lf_found_triplets =
           dev_scifi_lf_found_triplets + (current_ut_track_index * LookingForward::n_triplet_seeds + triplet_seed) *
-                                  LookingForward::triplet_seeding_block_dim_x * LookingForward::maximum_number_of_triplets_per_thread;
+                                          LookingForward::triplet_seeding_block_dim_x *
+                                          LookingForward::maximum_number_of_triplets_per_thread;
 
         if (number_of_found_triplets > 0) {
           const auto insert_index =
             atomicAdd(dev_scifi_lf_total_number_of_found_triplets + current_ut_track_index, number_of_found_triplets);
           for (int k = 0; k < number_of_found_triplets; ++k) {
-            const auto found_triplet = scifi_lf_found_triplets[triplet_index * LookingForward::maximum_number_of_triplets_per_thread + k];
+            const auto found_triplet =
+              scifi_lf_found_triplets[triplet_index * LookingForward::maximum_number_of_triplets_per_thread + k];
             found_triplets[insert_index + k] = found_triplet;
           }
         }
@@ -124,9 +169,12 @@ __global__ void lf_triplet_keep_best(
           // Offsets to h0, h1 and h2
           const int* initial_windows = dev_initial_windows + current_ut_track_index;
 
-          const int l0_start = initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
-          const int l1_start = initial_windows[layer_1 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
-          const int l2_start = initial_windows[layer_2 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+          const int l0_start =
+            initial_windows[layer_0 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+          const int l1_start =
+            initial_windows[layer_1 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+          const int l2_start =
+            initial_windows[layer_2 * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
 
           const auto h0 = l0_start + h0_rel;
           const auto h1 = l1_start + h1_rel;

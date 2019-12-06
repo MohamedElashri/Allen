@@ -4,7 +4,7 @@
 #include "UTConsolidated.cuh"
 #include "SciFiEventModel.cuh"
 #include "SciFiDefinitions.cuh"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -31,10 +31,10 @@ __global__ void lf_search_initial_windows(
   MiniState* dev_ut_states,
   bool* dev_scifi_lf_process_track);
 
-ALGORITHM(
-  lf_search_initial_windows,
-  lf_search_initial_windows_t,
-  ARGUMENTS(
+struct lf_search_initial_windows_t : public GpuAlgorithm {
+  constexpr static auto name {"lf_search_initial_windows_t"};
+  decltype(gpu_function(lf_search_initial_windows)) function {lf_search_initial_windows};
+  using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_velo,
@@ -49,4 +49,19 @@ ALGORITHM(
     dev_ut_track_velo_indices,
     dev_ut_states,
     dev_scifi_lf_initial_windows,
-    dev_scifi_lf_process_track))
+    dev_scifi_lf_process_track>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

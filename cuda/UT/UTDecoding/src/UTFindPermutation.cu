@@ -1,10 +1,32 @@
 #include "UTFindPermutation.cuh"
 #include "FindPermutation.cuh"
 #include <cstdio>
-#include "Invoke.cuh"
 
-void ut_find_permutation_t::invoke() {
-  invoke_helper(handler);
+void ut_find_permutation_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_ut_hit_permutations>(host_buffers.host_accumulated_number_of_ut_hits[0]);
+}
+
+void ut_find_permutation_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(
+    dim3(host_buffers.host_number_of_selected_events[0], constants.host_unique_x_sector_layer_offsets[4]),
+    block_dimension(),
+    cuda_stream)(
+    arguments.offset<dev_ut_hits>(),
+    arguments.offset<dev_ut_hit_offsets>(),
+    arguments.offset<dev_ut_hit_permutations>(),
+    constants.dev_unique_x_sector_layer_offsets.data());
 }
 
 __global__ void ut_find_permutation(

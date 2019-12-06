@@ -30,7 +30,7 @@ __global__ void velo_search_by_triplet(
 
 struct velo_search_by_triplet_t : public GpuAlgorithm {
   constexpr static auto name {"velo_search_by_triplet_t"};
-  decltype(gpu_function(velo_search_by_triplet)) algorithm {velo_search_by_triplet};
+  decltype(gpu_function(velo_search_by_triplet)) function {velo_search_by_triplet};
   using Arguments = std::tuple<
     dev_velo_cluster_container,
     dev_estimated_input_size,
@@ -51,7 +51,7 @@ struct velo_search_by_triplet_t : public GpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

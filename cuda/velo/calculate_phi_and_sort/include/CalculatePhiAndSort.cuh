@@ -34,7 +34,7 @@ __global__ void velo_calculate_phi_and_sort(
 
 struct velo_calculate_phi_and_sort_t : public GpuAlgorithm {
   constexpr static auto name {"velo_calculate_phi_and_sort_t"};
-  decltype(gpu_function(velo_calculate_phi_and_sort)) algorithm {velo_calculate_phi_and_sort};
+  decltype(gpu_function(velo_calculate_phi_and_sort)) function {velo_calculate_phi_and_sort};
   using Arguments =
     std::tuple<dev_estimated_input_size, dev_module_cluster_num, dev_velo_cluster_container, dev_hit_permutation>;
 
@@ -44,7 +44,7 @@ struct velo_calculate_phi_and_sort_t : public GpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

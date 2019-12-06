@@ -1,6 +1,6 @@
 #include "CpuVeloPrefixSumNumberOfTracks.h"
 
-void cpu_velo_prefix_sum_number_of_tracks_t::visit(
+void cpu_velo_prefix_sum_number_of_tracks_t::operator()(
   const ArgumentRefManager<Arguments>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -17,7 +17,7 @@ void cpu_velo_prefix_sum_number_of_tracks_t::visit(
     cuda_stream));
 
   // Prefix sum
-  cpu_prefix_sum(
+  function.invoke(
     host_buffers.host_prefix_sum_buffer,
     host_buffers.host_allocated_prefix_sum_space,
     (uint*) arguments.offset<dev_atomics_velo>() + host_buffers.host_number_of_selected_events[0],

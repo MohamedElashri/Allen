@@ -1,8 +1,48 @@
 #include "SciFiCalculateClusterCountV4.cuh"
-#include "Invoke.cuh"
 
-void scifi_calculate_cluster_count_v4_t::invoke() {
-  invoke_helper(handler);
+void scifi_calculate_cluster_count_v4_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_scifi_raw_input>(std::get<0>(runtime_options.host_scifi_events).size_bytes());
+  arguments.set_size<dev_scifi_raw_input_offsets>(std::get<1>(runtime_options.host_scifi_events).size_bytes());
+  arguments.set_size<dev_scifi_hit_count>(
+    host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats + 1);
+}
+
+void scifi_calculate_cluster_count_v4_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_scifi_raw_input>(),
+    std::get<0>(runtime_options.host_scifi_events).begin(),
+    std::get<0>(runtime_options.host_scifi_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+  
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_scifi_raw_input_offsets>(),
+    std::get<1>(runtime_options.host_scifi_events).begin(),
+    std::get<1>(runtime_options.host_scifi_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+
+  cudaCheck(
+    cudaMemsetAsync(arguments.offset<dev_scifi_hit_count>(), 0, arguments.size<dev_scifi_hit_count>(), cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_scifi_raw_input>(),
+    arguments.offset<dev_scifi_raw_input_offsets>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_event_list>(),
+    constants.dev_scifi_geometry);
 }
 
 using namespace SciFi;

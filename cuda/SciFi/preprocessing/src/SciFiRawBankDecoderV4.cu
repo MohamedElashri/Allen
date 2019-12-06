@@ -1,9 +1,22 @@
 #include "SciFiRawBankDecoderV4.cuh"
-#include "assert.h"
-#include "Invoke.cuh"
+#include <cassert>
 
-void scifi_raw_bank_decoder_v4_t::invoke() {
-  invoke_helper(handler);
+void scifi_raw_bank_decoder_v4_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_scifi_raw_input>(),
+    arguments.offset<dev_scifi_raw_input_offsets>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_scifi_hits>(),
+    arguments.offset<dev_event_list>(),
+    constants.dev_scifi_geometry,
+    constants.dev_inv_clus_res);
 }
 
 using namespace SciFi;

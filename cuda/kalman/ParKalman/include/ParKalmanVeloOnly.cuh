@@ -12,7 +12,7 @@
 #include "States.cuh"
 #include "SciFiDefinitions.cuh"
 
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsMuon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
@@ -71,7 +71,7 @@ __device__ void simplified_fit(
   const KalmanParametrizations* kalman_params,
   FittedTrack& track);
 
-__global__ void velo_filter(
+__global__ void kalman_velo_only(
   uint* dev_atomics_storage,
   uint* dev_velo_track_hit_number,
   char* dev_velo_track_hits,
@@ -104,10 +104,10 @@ __global__ void package_kalman_tracks(
   bool* dev_is_muon,
   ParKalmanFilter::FittedTrack* dev_kf_tracks);
 
-ALGORITHM(
-  velo_filter,
-  kalman_velo_only_t,
-  ARGUMENTS(
+struct kalman_velo_only_t : public GpuAlgorithm {
+  constexpr static auto name {"kalman_velo_only_t"};
+  decltype(gpu_function(velo_kalman_fit)) function {velo_kalman_fit};
+  using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,
     dev_velo_track_hits,
@@ -120,12 +120,27 @@ ALGORITHM(
     dev_scifi_qop,
     dev_scifi_states,
     dev_scifi_track_ut_indices,
-    dev_kf_tracks))
+    dev_kf_tracks>;
 
-ALGORITHM(
-  package_kalman_tracks,
-  package_kalman_tracks_t,
-  ARGUMENTS(
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};
+
+struct package_kalman_tracks_t : public GpuAlgorithm {
+  constexpr static auto name {"package_kalman_tracks_t"};
+  decltype(gpu_function(package_kalman_tracks)) function {package_kalman_tracks};
+  using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,
     dev_atomics_ut,
@@ -139,4 +154,19 @@ ALGORITHM(
     dev_scifi_track_ut_indices,
     dev_velo_kalman_beamline_states,
     dev_is_muon,
-    dev_kf_tracks))
+    dev_kf_tracks>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

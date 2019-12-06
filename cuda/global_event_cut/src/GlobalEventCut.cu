@@ -1,8 +1,80 @@
 #include "GlobalEventCut.cuh"
-#include "Invoke.cuh"
 
-void global_event_cut_t::invoke() {
-  invoke_helper(handler);
+void global_event_cut_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  // Note: The GEC on the GPU needs UT and SciFi data
+  arguments.set_size<dev_ut_raw_input>(std::get<0>(runtime_options.host_ut_events).size_bytes());
+  arguments.set_size<dev_ut_raw_input_offsets>(std::get<1>(runtime_options.host_ut_events).size_bytes());
+  arguments.set_size<dev_scifi_raw_input>(std::get<0>(runtime_options.host_scifi_events).size_bytes());
+  arguments.set_size<dev_scifi_raw_input_offsets>(std::get<1>(runtime_options.host_scifi_events).size_bytes());
+}
+
+void global_event_cut_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+    cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_ut_raw_input>(),
+    std::get<0>(runtime_options.host_ut_events).begin(),
+    std::get<0>(runtime_options.host_ut_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_ut_raw_input_offsets>(),
+    std::get<1>(runtime_options.host_ut_events).begin(),
+    std::get<1>(runtime_options.host_ut_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_scifi_raw_input>(),
+    std::get<0>(runtime_options.host_scifi_events).begin(),
+    std::get<0>(runtime_options.host_scifi_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+  
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_scifi_raw_input_offsets>(),
+    std::get<1>(runtime_options.host_scifi_events).begin(),
+    std::get<1>(runtime_options.host_scifi_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+
+  cudaCheck(cudaMemsetAsync(arguments.offset<dev_number_of_selected_events>(), 0, sizeof(uint), cuda_stream));
+
+  function.invoke(dim3(runtime_options.number_of_events), block_dimension(), cuda_stream)(
+    arguments.offset<dev_ut_raw_input>(),
+    arguments.offset<dev_ut_raw_input_offsets>(),
+    arguments.offset<dev_scifi_raw_input>(),
+    arguments.offset<dev_scifi_raw_input_offsets>(),
+    arguments.offset<dev_number_of_selected_events>(),
+    arguments.offset<dev_event_list>());
+
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_number_of_selected_events,
+    arguments.offset<dev_number_of_selected_events>(),
+    sizeof(uint),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
+
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_event_list,
+    arguments.offset<dev_event_list>(),
+    runtime_options.number_of_events * sizeof(uint),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+
+  cudaEventRecord(cuda_generic_event, cuda_stream);
+  cudaEventSynchronize(cuda_generic_event);
 }
 
 __global__ void global_event_cut(

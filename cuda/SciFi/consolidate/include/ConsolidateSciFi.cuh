@@ -4,12 +4,12 @@
 #include "SciFiConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
 #include "States.cuh"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsUT.cuh"
 #include "LookingForwardConstants.cuh"
 
-__global__ void consolidate_scifi_tracks(
+__global__ void scifi_consolidate_tracks(
   uint* dev_scifi_hits,
   uint* dev_scifi_hit_count,
   char* dev_scifi_track_hits,
@@ -24,10 +24,10 @@ __global__ void consolidate_scifi_tracks(
   const float* dev_inv_clus_res,
   const float* dev_scifi_lf_parametrization_consolidate);
 
-ALGORITHM(
-  consolidate_scifi_tracks,
-  consolidate_scifi_tracks_t,
-  ARGUMENTS(
+struct scifi_consolidate_tracks_t : public GpuAlgorithm {
+  constexpr static auto name {"scifi_consolidate_tracks_t"};
+  decltype(gpu_function(scifi_consolidate_tracks)) function {scifi_consolidate_tracks};
+  using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_scifi_track_hits,
@@ -38,4 +38,19 @@ ALGORITHM(
     dev_scifi_track_ut_indices,
     dev_atomics_ut,
     dev_scifi_tracks,
-    dev_scifi_lf_parametrization_consolidate))
+    dev_scifi_lf_parametrization_consolidate>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

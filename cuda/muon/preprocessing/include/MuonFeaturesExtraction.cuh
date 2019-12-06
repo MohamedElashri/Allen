@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "MuonDefinitions.cuh"
 #include "States.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -24,14 +24,29 @@ __global__ void muon_catboost_features_extraction(
   const Muon::HitsSoA* muon_hits,
   float* dev_muon_catboost_features);
 
-ALGORITHM(
-  muon_catboost_features_extraction,
-  muon_catboost_features_extraction_t,
-  ARGUMENTS(
+struct muon_catboost_features_extraction_t : public GpuAlgorithm {
+  constexpr static auto name {"muon_catboost_features_extraction_t"};
+  decltype(gpu_function(muon_catboost_features_extraction)) function {muon_catboost_features_extraction};
+  using Arguments = std::tuple<
     dev_atomics_scifi,
     dev_scifi_track_hit_number,
     dev_scifi_qop,
     dev_scifi_states,
     dev_scifi_track_ut_indices,
     dev_muon_hits,
-    dev_muon_catboost_features))
+    dev_muon_catboost_features>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

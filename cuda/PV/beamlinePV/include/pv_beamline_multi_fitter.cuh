@@ -2,7 +2,7 @@
 
 #include "BeamlinePVConstants.cuh"
 #include "Common.h"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -25,10 +25,10 @@ __global__ void pv_beamline_multi_fitter(
   float* dev_beamline,
   const float* dev_pvtrack_z);
 
-ALGORITHM(
-  pv_beamline_multi_fitter,
-  pv_beamline_multi_fitter_t,
-  ARGUMENTS(
+struct pv_beamline_multi_fitter_t : public GpuAlgorithm {
+  constexpr static auto name {"pv_beamline_multi_fitter_t"};
+  decltype(gpu_function(pv_beamline_multi_fitter)) function {pv_beamline_multi_fitter};
+  using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,
     dev_pvtracks,
@@ -37,4 +37,19 @@ ALGORITHM(
     dev_multi_fit_vertices,
     dev_number_of_multi_fit_vertices,
     dev_pvtracks_denom,
-    dev_pvtrack_z))
+    dev_pvtrack_z>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

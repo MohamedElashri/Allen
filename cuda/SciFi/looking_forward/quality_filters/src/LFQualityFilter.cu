@@ -1,8 +1,70 @@
 #include "LFQualityFilter.cuh"
-#include "Invoke.cuh"
 
-void lf_quality_filter_t::invoke() {
-  invoke_helper(handler);
+void lf_quality_filter_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_atomics_scifi>(
+    host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
+  arguments.set_size<dev_scifi_tracks>(
+    host_buffers.host_number_of_reconstructed_ut_tracks[0] * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+  arguments.set_size<dev_scifi_lf_y_parametrization_length_filter>(
+    2 * host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+    LookingForward::maximum_number_of_candidates_per_ut_track);
+  arguments.set_size<dev_scifi_lf_parametrization_consolidate>(
+    6 * host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+    SciFi::Constants::max_SciFi_tracks_per_UT_track);
+}
+
+void lf_quality_filter_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(
+    cudaMemsetAsync(arguments.offset<dev_atomics_scifi>(), 0, arguments.size<dev_atomics_scifi>(), cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_scifi_hits>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_atomics_ut>(),
+    arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
+    arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
+    constants.dev_scifi_geometry,
+    constants.dev_inv_clus_res,
+    arguments.offset<dev_atomics_scifi>(),
+    arguments.offset<dev_scifi_tracks>(),
+    constants.dev_looking_forward_constants,
+    arguments.offset<dev_scifi_lf_parametrization_length_filter>(),
+    arguments.offset<dev_scifi_lf_y_parametrization_length_filter>(),
+    arguments.offset<dev_scifi_lf_parametrization_consolidate>(),
+    arguments.offset<dev_ut_states>(),
+    arguments.offset<dev_velo_states>(),
+    constants.dev_magnet_polarity.data(),
+    arguments.offset<dev_atomics_velo>(),
+    arguments.offset<dev_velo_track_hit_number>(),
+    arguments.offset<dev_ut_track_velo_indices>());
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_atomics_scifi,
+      arguments.offset<dev_atomics_scifi>(),
+      arguments.size<dev_atomics_scifi>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_scifi_tracks,
+      arguments.offset<dev_scifi_tracks>(),
+      arguments.size<dev_scifi_tracks>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }
 
 __global__ void lf_quality_filter(

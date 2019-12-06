@@ -1,8 +1,51 @@
 #include "UTCalculateNumberOfHits.cuh"
-#include "Invoke.cuh"
 
-void ut_calculate_number_of_hits_t::invoke() {
-  invoke_helper(handler);
+void ut_calculate_number_of_hits_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_ut_raw_input>(std::get<0>(runtime_options.host_ut_events).size_bytes());
+  arguments.set_size<dev_ut_raw_input_offsets>(std::get<1>(runtime_options.host_ut_events).size_bytes());
+  arguments.set_size<dev_ut_hit_offsets>(
+    host_buffers.host_number_of_selected_events[0] * constants.host_unique_x_sector_layer_offsets[4] + 1);
+}
+
+void ut_calculate_number_of_hits_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_ut_raw_input>(),
+    std::get<0>(runtime_options.host_ut_events).begin(),
+    std::get<0>(runtime_options.host_ut_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+  
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_ut_raw_input_offsets>(),
+    std::get<1>(runtime_options.host_ut_events).begin(),
+    std::get<1>(runtime_options.host_ut_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+
+  cudaCheck(
+    cudaMemsetAsync(arguments.offset<dev_ut_hit_offsets>(), 0, arguments.size<dev_ut_hit_offsets>(), cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_ut_raw_input>(),
+    arguments.offset<dev_ut_raw_input_offsets>(),
+    constants.dev_ut_boards.data(),
+    constants.dev_ut_region_offsets.data(),
+    constants.dev_unique_x_sector_layer_offsets.data(),
+    constants.dev_unique_x_sector_offsets.data(),
+    arguments.offset<dev_ut_hit_offsets>(),
+    arguments.offset<dev_event_list>());
 }
 
 /**

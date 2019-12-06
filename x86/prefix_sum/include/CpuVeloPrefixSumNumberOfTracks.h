@@ -6,7 +6,7 @@
 
 struct cpu_velo_prefix_sum_number_of_tracks_t : public CpuAlgorithm {
   constexpr static auto name {"cpu_velo_prefix_sum_number_of_tracks_t"};
-  decltype(cpu_function(cpu_prefix_sum)) algorithm {cpu_prefix_sum};
+  decltype(cpu_function(cpu_prefix_sum)) function {cpu_prefix_sum};
   using Arguments = std::tuple<dev_atomics_velo>;
 
   void set_arguments_size(
@@ -15,7 +15,7 @@ struct cpu_velo_prefix_sum_number_of_tracks_t : public CpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const {}
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

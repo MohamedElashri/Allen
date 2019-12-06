@@ -4,7 +4,7 @@
 #include "ParKalmanDefinitions.cuh"
 #include "VertexDefinitions.cuh"
 
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsKalmanFilter.cuh"
 #include "ArgumentsPV.cuh"
@@ -23,10 +23,10 @@ __global__ void run_hlt1(
   bool* dev_high_mass_dimuon_results,
   bool* dev_dimuon_soft_results);
 
-ALGORITHM(
-  run_hlt1,
-  run_hlt1_t,
-  ARGUMENTS(
+struct run_hlt1_t : public GpuAlgorithm {
+  constexpr static auto name {"run_hlt1_t"};
+  decltype(gpu_function(run_hlt1)) function {run_hlt1};
+  using Arguments = std::tuple<
     dev_kf_tracks,
     dev_secondary_vertices,
     dev_atomics_scifi,
@@ -36,4 +36,19 @@ ALGORITHM(
     dev_single_muon_results,
     dev_disp_dimuon_results,
     dev_high_mass_dimuon_results,
-    dev_dimuon_soft_results))
+    dev_dimuon_soft_results>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

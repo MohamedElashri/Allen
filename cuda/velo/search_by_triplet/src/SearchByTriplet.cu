@@ -31,7 +31,7 @@ void velo_search_by_triplet_t::set_arguments_size(
     host_buffers.host_number_of_selected_events[0] * 2 * Velo::Constants::max_numhits_in_module);
 }
 
-void velo_search_by_triplet_t::visit(
+void velo_search_by_triplet_t::operator()(
   const ArgumentRefManager<Arguments>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -42,7 +42,7 @@ void velo_search_by_triplet_t::visit(
   cudaCheck(cudaMemsetAsync(arguments.offset<dev_atomics_velo>(), 0, arguments.size<dev_atomics_velo>(), cuda_stream));
   cudaCheck(cudaMemsetAsync(arguments.offset<dev_hit_used>(), 0, arguments.size<dev_hit_used>(), cuda_stream));
 
-  algorithm.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
     arguments.offset<dev_velo_cluster_container>(),
     arguments.offset<dev_estimated_input_size>(),
     arguments.offset<dev_module_cluster_num>(),

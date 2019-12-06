@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "MuonDefinitions.cuh"
 #include "States.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -19,10 +19,10 @@ __global__ void is_muon(
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
   const float* dev_muon_momentum_cuts);
 
-ALGORITHM(
-  is_muon,
-  is_muon_t,
-  ARGUMENTS(
+struct is_muon_t : public GpuAlgorithm {
+  constexpr static auto name {"is_muon_t"};
+  decltype(gpu_function(is_muon)) function {is_muon};
+  using Arguments = std::tuple<
     dev_atomics_scifi,
     dev_scifi_track_hit_number,
     dev_scifi_qop,
@@ -30,4 +30,19 @@ ALGORITHM(
     dev_scifi_track_ut_indices,
     dev_muon_hits,
     dev_muon_track_occupancies,
-    dev_is_muon))
+    dev_is_muon>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

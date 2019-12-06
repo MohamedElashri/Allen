@@ -9,6 +9,25 @@
 #include <stdint.h>
 #include <vector>
 
+namespace Configuration {
+  namespace ut_search_windows_t {
+    extern __constant__ float min_momentum;
+    extern __constant__ float min_pt;
+    extern __constant__ float y_tol;
+    extern __constant__ float y_tol_slope;
+  } // namespace ut_search_windows_t
+
+  namespace compass_ut_t {
+    extern __constant__ float sigma_velo_slope;
+    extern __constant__ float inv_sigma_velo_slope;
+    extern __constant__ float min_momentum_final;
+    extern __constant__ float min_pt_final;
+    extern __constant__ float hit_tol_2;
+    extern __constant__ float delta_tx_2;
+    extern __constant__ uint max_considered_before_found;
+  } // namespace compass_ut_t
+} // namespace Configuration
+
 namespace UT {
   namespace Decoding {
 

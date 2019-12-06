@@ -1,14 +1,48 @@
 #include <Common.h>
 #include <KalmanPVIPChi2.cuh>
-#include <Handler.cuh>
 #include <PV_Definitions.cuh>
 #include <SciFiConsolidated.cuh>
 #include <AssociateConsolidated.cuh>
 #include <AssociateConstants.cuh>
-#include "Invoke.cuh"
 
-void kalman_pv_ipchi2_t::invoke() {
-  invoke_helper(handler);
+void kalman_pv_ipchi2_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  auto n_scifi_tracks = host_buffers.host_number_of_reconstructed_scifi_tracks[0];
+  arguments.set_size<dev_kalman_pv_ipchi2>(Associate::Consolidated::Table::size(n_scifi_tracks));
+}
+
+void kalman_pv_ipchi2_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_kf_tracks>(),
+    arguments.offset<dev_atomics_scifi>(),
+    arguments.offset<dev_scifi_track_hit_number>(),
+    arguments.offset<dev_scifi_qop>(),
+    arguments.offset<dev_scifi_states>(),
+    arguments.offset<dev_scifi_track_ut_indices>(),
+    arguments.offset<dev_multi_fit_vertices>(),
+    arguments.offset<dev_number_of_multi_fit_vertices>(),
+    arguments.offset<dev_kalman_pv_ipchi2>(),
+    arguments.offset<dev_is_muon>());
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_kf_tracks,
+      arguments.offset<dev_kf_tracks>(),
+      arguments.size<dev_kf_tracks>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }
 
 namespace Distance {

@@ -23,7 +23,7 @@ __global__ void velo_masked_clustering(
 
 struct velo_masked_clustering_t : public GpuAlgorithm {
   constexpr static auto name {"velo_masked_clustering_t"};
-  decltype(gpu_function(velo_masked_clustering)) algorithm {velo_masked_clustering};
+  decltype(gpu_function(velo_masked_clustering)) function {velo_masked_clustering};
   using Arguments = std::tuple<
     dev_velo_raw_input,
     dev_velo_raw_input_offsets,
@@ -40,7 +40,7 @@ struct velo_masked_clustering_t : public GpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

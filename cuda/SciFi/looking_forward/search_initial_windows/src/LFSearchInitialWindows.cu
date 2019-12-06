@@ -1,9 +1,49 @@
 #include "LFSearchInitialWindows.cuh"
 #include "LFSearchInitialWindowsImpl.cuh"
-#include "Invoke.cuh"
 
-void lf_search_initial_windows_t::invoke() {
-  invoke_helper(handler);
+void lf_search_initial_windows_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_scifi_lf_initial_windows>(
+    LookingForward::number_of_elements_initial_window * host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+    LookingForward::number_of_x_layers);
+  arguments.set_size<dev_ut_states>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
+  arguments.set_size<dev_scifi_lf_process_track>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
+}
+
+void lf_search_initial_windows_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_scifi_lf_initial_windows>(), 0, arguments.size<dev_scifi_lf_initial_windows>(), cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_scifi_hits>(),
+    arguments.offset<dev_scifi_hit_count>(),
+    arguments.offset<dev_atomics_velo>(),
+    arguments.offset<dev_velo_track_hit_number>(),
+    arguments.offset<dev_velo_states>(),
+    arguments.offset<dev_atomics_ut>(),
+    arguments.offset<dev_ut_track_hit_number>(),
+    arguments.offset<dev_ut_x>(),
+    arguments.offset<dev_ut_tx>(),
+    arguments.offset<dev_ut_z>(),
+    arguments.offset<dev_ut_qop>(),
+    arguments.offset<dev_ut_track_velo_indices>(),
+    constants.dev_scifi_geometry,
+    constants.dev_inv_clus_res,
+    constants.dev_looking_forward_constants,
+    arguments.offset<dev_scifi_lf_initial_windows>(),
+    arguments.offset<dev_ut_states>(),
+    arguments.offset<dev_scifi_lf_process_track>());
 }
 
 __global__ void lf_search_initial_windows(

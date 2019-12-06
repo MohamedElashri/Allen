@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsUT.cuh"
 
@@ -15,7 +15,23 @@ __global__ void ut_calculate_number_of_hits(
   uint32_t* dev_ut_hit_offsets,
   const uint* dev_event_list);
 
-ALGORITHM(
-  ut_calculate_number_of_hits,
-  ut_calculate_number_of_hits_t,
-  ARGUMENTS(dev_ut_raw_input, dev_ut_raw_input_offsets, dev_ut_hit_offsets, dev_event_list))
+struct ut_calculate_number_of_hits_t : public GpuAlgorithm {
+  constexpr static auto name {"ut_calculate_number_of_hits_t"};
+  decltype(gpu_function(ut_calculate_number_of_hits)) function {ut_calculate_number_of_hits};
+  using Arguments = std::tuple<
+    dev_ut_raw_input, dev_ut_raw_input_offsets, dev_ut_hit_offsets, dev_event_list>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

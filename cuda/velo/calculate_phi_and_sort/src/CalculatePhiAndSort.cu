@@ -9,7 +9,7 @@ void velo_calculate_phi_and_sort_t::set_arguments_size(
   arguments.set_size<dev_hit_permutation>(host_buffers.host_total_number_of_velo_clusters[0]);
 }
 
-void velo_calculate_phi_and_sort_t::visit(
+void velo_calculate_phi_and_sort_t::operator()(
   const ArgumentRefManager<Arguments>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -17,7 +17,7 @@ void velo_calculate_phi_and_sort_t::visit(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  algorithm.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
     arguments.offset<dev_estimated_input_size>(),
     arguments.offset<dev_module_cluster_num>(),
     arguments.offset<dev_velo_cluster_container>(),

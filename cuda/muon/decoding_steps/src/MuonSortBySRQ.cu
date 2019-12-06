@@ -1,8 +1,31 @@
 #include "MuonSortBySRQ.cuh"
-#include "Invoke.cuh"
 
-void muon_sort_station_region_quarter_t::invoke() {
-  invoke_helper(handler);
+void muon_sort_station_region_quarter_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_permutation_srq>(
+    host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
+}
+
+void muon_sort_station_region_quarter_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(
+    cudaMemsetAsync(arguments.offset<dev_permutation_srq>(), 0, arguments.size<dev_permutation_srq>(), cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_storage_tile_id>(),
+    arguments.offset<dev_storage_tdc_value>(),
+    arguments.offset<dev_atomics_muon>(),
+    arguments.offset<dev_permutation_srq>());
 }
 
 __global__ void muon_sort_station_region_quarter(

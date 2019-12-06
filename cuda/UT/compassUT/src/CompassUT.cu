@@ -2,11 +2,6 @@
 #include "BinarySearch.cuh"
 #include "CalculateWindows.cuh"
 #include "UTFastFitter.cuh"
-#include "Invoke.cuh"
-
-void compass_ut_t::invoke() {
-  invoke_helper(handler);
-}
 
 __constant__ float Configuration::compass_ut_t::sigma_velo_slope;
 __constant__ float Configuration::compass_ut_t::inv_sigma_velo_slope;
@@ -15,6 +10,45 @@ __constant__ float Configuration::compass_ut_t::min_pt_final;
 __constant__ float Configuration::compass_ut_t::hit_tol_2;
 __constant__ float Configuration::compass_ut_t::delta_tx_2;
 __constant__ uint Configuration::compass_ut_t::max_considered_before_found;
+
+void compass_ut_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_ut_tracks>(host_buffers.host_number_of_selected_events[0] * UT::Constants::max_num_tracks);
+  arguments.set_size<dev_atomics_ut>(host_buffers.host_number_of_selected_events[0] * UT::num_atomics + 1);
+}
+
+void compass_ut_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  cudaCheck(
+    cudaMemsetAsync(arguments.offset<dev_ut_active_tracks>(), 0, arguments.size<dev_ut_active_tracks>(), cuda_stream));
+  cudaCheck(cudaMemsetAsync(arguments.offset<dev_atomics_ut>(), 0, arguments.size<dev_atomics_ut>(), cuda_stream));
+
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
+    arguments.offset<dev_ut_hits>(),
+    arguments.offset<dev_ut_hit_offsets>(),
+    arguments.offset<dev_atomics_velo>(),
+    arguments.offset<dev_velo_track_hit_number>(),
+    arguments.offset<dev_velo_states>(),
+    constants.dev_ut_magnet_tool,
+    constants.dev_magnet_polarity.data(),
+    constants.dev_ut_dxDy.data(),
+    arguments.offset<dev_ut_active_tracks>(),
+    constants.dev_unique_x_sector_layer_offsets.data(),
+    arguments.offset<dev_ut_tracks>(),
+    arguments.offset<dev_atomics_ut>(),
+    arguments.offset<dev_ut_windows_layers>(),
+    arguments.offset<dev_accepted_velo_tracks>());
+}
 
 __global__ void compass_ut(
   uint* dev_ut_hits, // actual hit content

@@ -1,9 +1,45 @@
 #include "IsMuon.cuh"
 #include "SystemOfUnits.h"
-#include "Invoke.cuh"
 
-void is_muon_t::invoke() {
-  invoke_helper(handler);
+void is_muon_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_muon_track_occupancies>(
+    Muon::Constants::n_stations * host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+  arguments.set_size<dev_is_muon>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+}
+
+void is_muon_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32, Muon::Constants::n_stations), cuda_stream)(
+    arguments.offset<dev_atomics_scifi>(),
+    arguments.offset<dev_scifi_track_hit_number>(),
+    arguments.offset<dev_scifi_qop>(),
+    arguments.offset<dev_scifi_states>(),
+    arguments.offset<dev_scifi_track_ut_indices>(),
+    arguments.offset<dev_muon_hits>(),
+    arguments.offset<dev_muon_track_occupancies>(),
+    arguments.offset<dev_is_muon>(),
+    constants.dev_muon_foi,
+    constants.dev_muon_momentum_cuts);
+  
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_is_muon,
+      arguments.offset<dev_is_muon>(),
+      arguments.size<dev_is_muon>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }
 
 __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)

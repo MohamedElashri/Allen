@@ -4,7 +4,7 @@
 #include "VeloEventModel.cuh"
 #include "States.cuh"
 #include "Common.h"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "VeloConsolidated.cuh"
 #include "ArgumentsVelo.cuh"
 
@@ -98,12 +98,27 @@ __global__ void velo_kalman_fit(
   char* dev_velo_states,
   char* dev_velo_kalman_beamline_states);
 
-ALGORITHM(
-  velo_kalman_fit,
-  velo_kalman_fit_t,
-  ARGUMENTS(
+struct velo_kalman_fit_t : public GpuAlgorithm {
+  constexpr static auto name {"velo_kalman_fit_t"};
+  decltype(gpu_function(velo_kalman_fit)) function {velo_kalman_fit};
+  using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,
     dev_velo_track_hits,
     dev_velo_states,
-    dev_velo_kalman_beamline_states))
+    dev_velo_kalman_beamline_states>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

@@ -2,12 +2,12 @@
 
 #include "CpuAlgorithm.cuh"
 #include "CpuPrefixSum.h"
-#include "ArgumentsVelo.cuh"
+#include "ArgumentsSciFi.cuh"
 
-struct cpu_velo_prefix_sum_number_of_hits_t : public CpuAlgorithm {
-  constexpr static auto name {"cpu_velo_prefix_sum_number_of_hits_t"};
-  decltype(cpu_function(cpu_prefix_sum)) algorithm {cpu_prefix_sum};
-  using Arguments = std::tuple<dev_velo_track_hit_number>;
+struct cpu_scifi_prefix_sum_number_of_track_hits_t : public CpuAlgorithm {
+  constexpr static auto name {"cpu_scifi_prefix_sum_number_of_track_hits_t"};
+  decltype(cpu_function(cpu_prefix_sum)) function {cpu_prefix_sum};
+  using Arguments = std::tuple<dev_scifi_track_hit_number>;
 
   void set_arguments_size(
     ArgumentRefManager<Arguments> arguments,
@@ -15,7 +15,7 @@ struct cpu_velo_prefix_sum_number_of_hits_t : public CpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const {}
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

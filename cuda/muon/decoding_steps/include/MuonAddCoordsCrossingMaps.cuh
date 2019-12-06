@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsMuon.cuh"
 #include "MuonDefinitions.cuh"
 #include "MuonRawToHits.cuh"
@@ -15,10 +15,10 @@ __global__ void muon_add_coords_crossing_maps(
   uint64_t* dev_muon_compact_hit,
   uint* dev_station_ocurrences_offset);
 
-ALGORITHM(
-  muon_add_coords_crossing_maps,
-  muon_add_coords_crossing_maps_t,
-  ARGUMENTS(
+struct muon_add_coords_crossing_maps_t : public GpuAlgorithm {
+  constexpr static auto name {"muon_add_coords_crossing_maps_t"};
+  decltype(gpu_function(muon_add_coords_crossing_maps)) function {muon_add_coords_crossing_maps};
+  using Arguments = std::tuple<
     dev_storage_station_region_quarter_offsets,
     dev_storage_tile_id,
     dev_storage_tdc_value,
@@ -26,4 +26,19 @@ ALGORITHM(
     dev_muon_hits,
     dev_muon_raw_to_hits,
     dev_station_ocurrences_offset,
-    dev_muon_compact_hit))
+    dev_muon_compact_hit>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const;
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

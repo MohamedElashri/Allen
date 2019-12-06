@@ -20,7 +20,7 @@ void cpu_global_event_cut(
 
 struct cpu_global_event_cut_t : public CpuAlgorithm {
   constexpr static auto name {"cpu_global_event_cut_t"};
-  decltype(cpu_function(cpu_global_event_cut)) algorithm {cpu_global_event_cut};
+  decltype(cpu_function(cpu_global_event_cut)) function {cpu_global_event_cut};
   using Arguments = std::tuple<dev_event_list>;
 
   void set_arguments_size(
@@ -29,7 +29,7 @@ struct cpu_global_event_cut_t : public CpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const {}
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

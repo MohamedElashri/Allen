@@ -10,7 +10,7 @@ __global__ void velo_copy_track_hit_number(
 
 struct velo_copy_track_hit_number_t : public GpuAlgorithm {
   constexpr static auto name {"velo_copy_track_hit_number_t"};
-  decltype(gpu_function(velo_copy_track_hit_number)) algorithm {velo_copy_track_hit_number};
+  decltype(gpu_function(velo_copy_track_hit_number)) function {velo_copy_track_hit_number};
   using Arguments = std::tuple<dev_tracks, dev_atomics_velo, dev_velo_track_hit_number>;
 
   void set_arguments_size(
@@ -19,7 +19,7 @@ struct velo_copy_track_hit_number_t : public GpuAlgorithm {
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
-  void visit(
+  void operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

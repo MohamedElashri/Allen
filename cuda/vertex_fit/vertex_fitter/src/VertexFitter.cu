@@ -1,16 +1,51 @@
 #include "VertexFitter.cuh"
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
-#include "Invoke.cuh"
-
-void fit_secondary_vertices_t::invoke() {
-  invoke_helper(handler);
-}
 
 __constant__ float Configuration::fit_secondary_vertices_t::track_min_pt;
 __constant__ float Configuration::fit_secondary_vertices_t::track_min_ipchi2;
 __constant__ float Configuration::fit_secondary_vertices_t::track_muon_min_ipchi2;
 __constant__ float Configuration::fit_secondary_vertices_t::max_assoc_ipchi2;
+
+void fit_secondary_vertices_t::set_arguments_size(
+  ArgumentRefManager<Arguments> arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  const HostBuffers& host_buffers) const
+{
+  arguments.set_size<dev_secondary_vertices>(host_buffers.host_number_of_svs[0]);
+}
+
+void fit_secondary_vertices_t::operator()(
+  const ArgumentRefManager<Arguments>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers& host_buffers,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event) const
+{
+  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+    arguments.offset<dev_kf_tracks>(),
+    arguments.offset<dev_atomics_scifi>(),
+    arguments.offset<dev_scifi_track_hit_number>(),
+    arguments.offset<dev_scifi_qop>(),
+    arguments.offset<dev_scifi_states>(),
+    arguments.offset<dev_scifi_track_ut_indices>(),
+    arguments.offset<dev_multi_fit_vertices>(),
+    arguments.offset<dev_number_of_multi_fit_vertices>(),
+    arguments.offset<dev_kalman_pv_ipchi2>(),
+    arguments.offset<dev_sv_offsets>(),
+    arguments.offset<dev_secondary_vertices>());
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_secondary_vertices,
+      arguments.offset<dev_secondary_vertices>(),
+      arguments.size<dev_secondary_vertices>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
+}
 
 namespace VertexFit {
 

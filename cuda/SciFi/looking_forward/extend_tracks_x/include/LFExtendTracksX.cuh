@@ -5,7 +5,7 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "Handler.cuh"
+#include "GpuAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -22,14 +22,29 @@ __global__ void lf_extend_tracks_x(
   const int* dev_initial_windows,
   const float* dev_scifi_lf_parametrization);
 
-ALGORITHM(
-  lf_extend_tracks_x,
-  lf_extend_tracks_x_t,
-  ARGUMENTS(
+struct lf_extend_tracks_x_t : public GpuAlgorithm {
+  constexpr static auto name {"lf_extend_tracks_x_t"};
+  decltype(gpu_function(lf_extend_tracks_x)) function {lf_extend_tracks_x};
+  using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,
     dev_atomics_ut,
     dev_scifi_lf_tracks,
     dev_scifi_lf_atomics,
     dev_scifi_lf_initial_windows,
-    dev_scifi_lf_parametrization))
+    dev_scifi_lf_parametrization>;
+
+  void set_arguments_size(
+    ArgumentRefManager<Arguments> arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    const HostBuffers& host_buffers) const {}
+
+  void operator()(
+    const ArgumentRefManager<Arguments>& arguments,
+    const RuntimeOptions& runtime_options,
+    const Constants& constants,
+    HostBuffers& host_buffers,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event) const;
+};

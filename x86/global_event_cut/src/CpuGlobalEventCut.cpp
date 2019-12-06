@@ -1,13 +1,13 @@
 #include "CpuGlobalEventCut.h"
 
-void cpu_global_event_cut_t::visit(
+void cpu_global_event_cut_t::operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& host_buffers,
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event) const {
-  algorithm.invoke(
+  function.invoke(
     std::get<0>(runtime_options.host_ut_events).begin(),
     std::get<1>(runtime_options.host_ut_events).begin(),
     std::get<0>(runtime_options.host_scifi_events).begin(),

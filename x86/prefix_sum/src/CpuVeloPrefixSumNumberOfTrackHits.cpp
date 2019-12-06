@@ -1,6 +1,6 @@
-#include "CpuVeloPrefixSumNumberOfHits.h"
+#include "CpuVeloPrefixSumNumberOfTrackHits.h"
 
-void cpu_velo_prefix_sum_number_of_hits_t::visit(
+void cpu_velo_prefix_sum_number_of_track_hits_t::operator()(
     const ArgumentRefManager<Arguments>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
@@ -8,7 +8,7 @@ void cpu_velo_prefix_sum_number_of_hits_t::visit(
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event) const {
   // Invokes the function
-  algorithm.invoke(
+  function.invoke(
     host_buffers.host_prefix_sum_buffer,
     host_buffers.host_allocated_prefix_sum_space,
     arguments.offset<dev_velo_track_hit_number>(),
