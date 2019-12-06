@@ -10,14 +10,15 @@ namespace MuonLines {
   const float maxChi2Ndof = 10000.f; // Large until we better understand the parameterized Kalman fit quality.
 
   // Vertex quality.
-  const float maxVertexChi2 = 8.f;
+  const float maxVertexChi2 = 6.f;
 
   // Single muon selections.
   const float singleMinPt = 10000.f / Gaudi::Units::MeV;
 
   // Dimuon track pt.
-  const float minTrackPt = 500.f / Gaudi::Units::MeV;
-
+  const float minDispTrackPt = 500.f / Gaudi::Units::MeV;
+  const float minHighMassTrackPt = 750.f / Gaudi::Units::MeV;
+  
   // Displaced dimuon selections.
   const float dispMinIPChi2 = 6.f;
   const float dispMinEta = 2.f;
