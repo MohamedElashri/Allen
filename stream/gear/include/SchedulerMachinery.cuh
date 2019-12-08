@@ -23,14 +23,7 @@ namespace Sch {
   //   Out<a_t>,
   //   Out<b_t, dev_a>,
   //   Out<c_t, dev_c>,
-  //   Out<last_t, dev_b, dev_d>
   // > output_t;
-
-  // A dummy for last element in Out
-  struct last_t {
-    constexpr static auto name {"last"};
-    using Arguments = std::tuple<>;
-  };
 
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
   template<typename T, typename Algorithms>
@@ -38,10 +31,6 @@ namespace Sch {
 
   template<typename T>
   struct IsInAlgorithmsArguments<T, std::tuple<>> : std::false_type {
-  };
-
-  template<typename T>
-  struct IsInAlgorithmsArguments<T, std::tuple<last_t>> : std::false_type {
   };
 
   template<typename T, typename Algorithm, typename... Algorithms>
@@ -86,9 +75,8 @@ namespace Sch {
   struct OutDependenciesImpl;
 
   template<typename OutputArguments, typename Algorithm>
-  struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm, last_t>> {
-    using t =
-      std::tuple<last_t, std::tuple<typename TupleElementsNotIn<typename Algorithm::Arguments, OutputArguments>::t>>;
+  struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm>> {
+    using t = std::tuple<>;
   };
 
   template<typename OutputArguments, typename Algorithm, typename NextAlgorithm, typename... Algorithms>
@@ -112,7 +100,7 @@ namespace Sch {
     using t = typename TupleReverse<typename TupleAppend<
       typename OutDependenciesImpl<
         OutputArguments,
-        typename TupleAppend<std::tuple<FirstAlgorithmInSequence, RestOfSequence...>, last_t>::t>::t,
+        std::tuple<FirstAlgorithmInSequence, RestOfSequence...>>::t,
       ScheduledDependencies<FirstAlgorithmInSequence, std::tuple<>>>::t>::t;
   };
 
@@ -168,12 +156,20 @@ namespace Sch {
     static constexpr void print() {}
   };
 
-  template<typename Argument, typename... Arguments>
-  struct PrintArguments<std::tuple<Argument, Arguments...>> {
+  template<typename Argument>
+  struct PrintArguments<std::tuple<Argument>> {
     static constexpr void print()
     {
-      info_cout << Argument::name << ", ";
-      PrintArguments<std::tuple<Arguments...>>::print();
+      info_cout << "'" << Argument::name << "'";
+    }
+  };  
+
+  template<typename Argument, typename ArgumentSecond, typename... Arguments>
+  struct PrintArguments<std::tuple<Argument, ArgumentSecond, Arguments...>> {
+    static constexpr void print()
+    {
+      info_cout << "'" << Argument::name << "', ";
+      PrintArguments<std::tuple<ArgumentSecond, Arguments...>>::print();
     }
   };
 
@@ -191,11 +187,9 @@ namespace Sch {
     std::tuple<ScheduledDependencies<Algorithm, std::tuple<Arguments...>>, Dependencies...>> {
     static constexpr void print()
     {
-      info_cout << "Algorithm " << Algorithm::name << ":" << std::endl
-                << std::tuple_size<std::tuple<Arguments...>>::value << " dependencies" << std::endl;
-
+      info_cout << "  ['" << Algorithm::name << "', [";
       PrintArguments<std::tuple<Arguments...>>::print();
-      info_cout << std::endl << std::endl;
+      info_cout << "]]," << std::endl;
 
       PrintAlgorithmDependencies<std::tuple<Dependencies...>>::print();
     }
@@ -216,6 +210,26 @@ namespace Sch {
     {
       info_cout << " " << Algorithm::name << std::endl;
       PrintAlgorithmSequence<std::tuple<Algorithms...>>::print();
+    }
+  };
+
+  template<typename Dependencies>
+  struct PrintAlgorithmSequenceDetailed;
+
+  template<>
+  struct PrintAlgorithmSequenceDetailed<std::tuple<>> {
+    static constexpr void print() {};
+  };
+
+  template<typename Algorithm, typename... Algorithms>
+  struct PrintAlgorithmSequenceDetailed<std::tuple<Algorithm, Algorithms...>> {
+    static constexpr void print()
+    {
+      info_cout << "  ['" << Algorithm::name << "', [";
+      PrintArguments<typename Algorithm::Arguments>::print();
+      info_cout << "]]," << std::endl;
+
+      PrintAlgorithmSequenceDetailed<std::tuple<Algorithms...>>::print();
     }
   };
 
