@@ -22,9 +22,9 @@ void StreamWrapper::initialize_streams(
   }
 }
 
-void StreamWrapper::run_stream(const uint i, const uint buf_idx, const RuntimeOptions& runtime_options)
+cudaError_t StreamWrapper::run_stream(const uint i, const uint buf_idx, const RuntimeOptions& runtime_options)
 {
-  streams[i]->run_sequence(buf_idx, runtime_options);
+  return streams[i]->run_sequence(buf_idx, runtime_options);
 }
 
 std::vector<bool> StreamWrapper::reconstructed_events(const uint i) const { return streams[i]->reconstructed_events(); }

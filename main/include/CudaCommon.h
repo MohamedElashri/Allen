@@ -26,6 +26,7 @@ using std::signbit;
 #define cudaEvent_t int
 #define cudaStream_t int
 #define cudaSuccess 0
+#define cudaErrorMemoryAllocation 2
 #define half_t short
 #define __popcll __builtin_popcountll
 #define cudaEventBlockingSync 0x01
@@ -228,6 +229,7 @@ namespace Configuration {
 #define cudaEvent_t hipEvent_t
 #define cudaStream_t hipStream_t
 #define cudaSuccess hipSuccess
+#define cudaErrorMemoryAllocation hipErrorMemoryAllocation
 #define cudaEventBlockingSync hipEventBlockingSync
 
 #define cudaMemcpyHostToHost hipMemcpyHostToHost

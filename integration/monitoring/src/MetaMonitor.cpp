@@ -22,6 +22,13 @@ void MetaMonitor::fill(bool successful, uint monitoringLevel)
   }
 }
 
+void MetaMonitor::fillSplit()
+{
+  uint time = getWallTimeBin();
+
+  m_histograms[MonHistType::SplitSlices]->Fill(time);
+}
+
 void MetaMonitor::init()
 {
   // set number of bins such that histograms cover approximately 80 minutes
@@ -36,6 +43,7 @@ void MetaMonitor::init()
   m_histograms.emplace(MonHistType::MonitoringLevel3, new TH1D("monitoringLevel3", "", nBins, 0., max));
   m_histograms.emplace(MonHistType::MonitoringLevel4, new TH1D("monitoringLevel4", "", nBins, 0., max));
   m_histograms.emplace(MonHistType::MonitoringLevel5P, new TH1D("monitoringLevel5p", "", nBins, 0., max));
+  m_histograms.emplace(MonHistType::SplitSlices, new TH1D("splitSlices", "", nBins, 0., max));
 
   for (auto kv : m_histograms) {
     kv.second->SetDirectory(nullptr);
@@ -43,5 +51,6 @@ void MetaMonitor::init()
 }
 #else
 void MetaMonitor::fill(bool, uint) {}
+void MetaMonitor::fillSplit() {}
 void MetaMonitor::init() {}
 #endif

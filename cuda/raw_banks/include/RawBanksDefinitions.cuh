@@ -10,6 +10,7 @@ namespace Hlt1 {
   
   // Hlt1 lines.
   enum Hlt1Lines {
+    PassThrough,
     OneTrackMVA,
     TwoTrackMVA,
     SingleMuon,

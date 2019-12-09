@@ -21,6 +21,7 @@ public:
 
   bool output_selected_events(
     size_t const slice_index,
+    size_t const event_offset,
     gsl::span<unsigned int> const selected_events,
     uint32_t const* const dec_reports);
 
