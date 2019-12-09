@@ -77,7 +77,7 @@ struct MemoryManager {
     // Complain if no space was available
     if (it == memory_segments.end()) {
       print();
-      throw StrException(
+      throw MemoryException(
         "Reserve: Requested size for argument " + std::string(Argument::name) + " could not be met (" +
         std::to_string(((float) aligned_request) / (1024 * 1024)) + " MiB)");
     }

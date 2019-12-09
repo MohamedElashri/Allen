@@ -16,6 +16,8 @@ struct MonitorBase {
     MonitoringLevel3,
     MonitoringLevel4,
     MonitoringLevel5P,
+    SplitSlices,
+    PassThroughRate,
     OneTrackRate,
     TwoTrackRate,
     SingleMuonRate,

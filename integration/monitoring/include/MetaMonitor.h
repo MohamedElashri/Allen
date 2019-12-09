@@ -8,6 +8,7 @@ struct MetaMonitor : public MonitorBase {
   virtual ~MetaMonitor() = default;
 
   void fill(bool successful, uint monitoringLevel);
+  void fillSplit();
 
 private:
   void init();
