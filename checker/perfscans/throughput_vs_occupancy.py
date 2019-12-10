@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib import font_manager
 import numpy as np
+import random
 
 def file_len(fname):
     if (os.stat(fname).st_size == 0):
@@ -20,8 +21,7 @@ def file_len(fname):
                 pass
             return i + 1
 
-input_directory = "/data/dvombruc/2019-07/minbias/mag_down/"
-#input_directory = "/home/dvombruc/Allen/input/minbias/"
+input_directory = "/scratch/dvombruc/minbias/mag_down/"
 banks_directory = input_directory + "banks/FTCluster/"
 allen_dir = "/home/dvombruc/Allen/"
 n_bins = 13
@@ -52,7 +52,7 @@ for line in proc.stdout:
         elif (ibin == n_bins-1):
             if (size > size_bins[ibin-1]):
                 event_lists[ibin].append(name)
- 
+
 # write event lists to files
 file_lists_dir = allen_dir + "checker/perfscans/file_lists"
 if not os.path.exists(file_lists_dir):
@@ -62,7 +62,11 @@ for ibin in range(n_bins):
     f = open(file_name, "w")
     for event in event_lists[ibin]:
         f.write(event.decode("utf-8")+'\n')
- 
+
+# randomly shuffle events within one bin
+# this ensures realistic throughput measurement with the first 1000 events
+for ibin in range(n_bins):
+    random.shuffle(event_lists[ibin])
 
 # Run Allen on the different occupancy events
 # save throughput for every run
@@ -140,8 +144,8 @@ for labelx, labely, labelsecy in zip(ax.get_xticklabels(), ax.get_yticklabels(),
     labelx.set_fontproperties(ticks_font)
     labely.set_fontproperties(ticks_font)
     labelsecy.set_fontproperties(ticks_font)
-    
-plt.ylim(0, 160)
+
+plt.ylim(0, 175)
 plt.xlim(5, 17)
 
 # Legend
