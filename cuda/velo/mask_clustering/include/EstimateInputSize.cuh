@@ -25,20 +25,20 @@ void set_size(Args arguments, const size_t size) {
 template <typename internal_t>
 struct input_datatype {
   using type = internal_t;
-  const type* const x;
+  type* m_value;
 
-  operator const type* const() const {
-    return x;
+  operator const type*() const {
+    return const_cast<const type*>(m_value);
   }
 };
 
 template <typename internal_t>
 struct output_datatype {
   using type = internal_t;
-  type* x;
+  type* m_value;
 
   operator type*() const {
-    return x;
+    return m_value;
   }
 };
 

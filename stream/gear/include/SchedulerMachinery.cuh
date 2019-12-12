@@ -22,15 +22,8 @@ namespace Sch {
   // typedef std::tuple<
   //   Out<a_t>,
   //   Out<b_t, dev_a>,
-  //   Out<c_t, dev_c>,
-  //   Out<last_t, dev_b, dev_d>
+  //   Out<c_t, dev_c, dev_b, dev_d>,
   // > output_t;
-
-  // A dummy for last element in Out
-  struct last_t {
-    constexpr static auto name {"last"};
-    using Arguments = std::tuple<>;
-  };
 
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
   template<typename T, typename Algorithms>
@@ -38,10 +31,6 @@ namespace Sch {
 
   template<typename T>
   struct IsInAlgorithmsArguments<T, std::tuple<>> : std::false_type {
-  };
-
-  template<typename T>
-  struct IsInAlgorithmsArguments<T, std::tuple<last_t>> : std::false_type {
   };
 
   template<typename T, typename Algorithm, typename... Algorithms>
@@ -86,9 +75,9 @@ namespace Sch {
   struct OutDependenciesImpl;
 
   template<typename OutputArguments, typename Algorithm>
-  struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm, last_t>> {
+  struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm>> {
     using t =
-      std::tuple<last_t, std::tuple<typename TupleElementsNotIn<typename Algorithm::Arguments, OutputArguments>::t>>;
+      std::tuple<std::tuple<typename TupleElementsNotIn<typename Algorithm::Arguments, OutputArguments>::t>>;
   };
 
   template<typename OutputArguments, typename Algorithm, typename NextAlgorithm, typename... Algorithms>
@@ -112,7 +101,7 @@ namespace Sch {
     using t = typename TupleReverse<typename TupleAppend<
       typename OutDependenciesImpl<
         OutputArguments,
-        typename TupleAppend<std::tuple<FirstAlgorithmInSequence, RestOfSequence...>, last_t>::t>::t,
+        typename std::tuple<FirstAlgorithmInSequence, RestOfSequence...>>::t,
       ScheduledDependencies<FirstAlgorithmInSequence, std::tuple<>>>::t>::t;
   };
 

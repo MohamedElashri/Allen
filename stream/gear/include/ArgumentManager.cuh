@@ -12,7 +12,10 @@
  */
 template<typename Tuple>
 struct ArgumentManager {
-  Tuple arguments_tuple;
+  typename std::tuple_element<0, Tuple>::type a {};
+  typename std::tuple_element<1, Tuple>::type b {};
+
+  Tuple arguments_tuple {};
   char* base_pointer;
 
   ArgumentManager() = default;

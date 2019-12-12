@@ -16,8 +16,6 @@ struct Scheduler {
   using arguments_tuple_t = typename Sch::ArgumentsTuple<in_deps_t>::t;
   using argument_manager_t = ArgumentManager<arguments_tuple_t>;
 
-  in_deps_t in_deps;
-  out_deps_t out_deps;
   MemoryManager memory_manager;
   argument_manager_t argument_manager;
   bool do_print = false;
