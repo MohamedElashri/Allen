@@ -16,15 +16,20 @@
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
-#include <GaudiAlg/Consumer.h>  
+#include <GaudiAlg/Consumer.h>
 
-lass AllenTransformer final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>( const LHCb::Tracks&, const MuonHitHandler& )> {
+#include "Event/Track.h"
+
+
+class AllenTransformer final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin)> {
  public:
   /// Standard constructor
   AllenTransformer( const std::string& name, ISvcLocator* pSvcLocator );
 
   /// initialization
   StatusCode                               initialize() override;
+
+  /// Algorithm execution
   std::tuple<LHCb::Tracks, LHCb::Tracks> operator()( const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin ) const override;
 
  private:
