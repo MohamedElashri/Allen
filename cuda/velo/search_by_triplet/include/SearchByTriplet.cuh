@@ -44,6 +44,20 @@ struct velo_search_by_triplet_t : public GpuAlgorithm {
     dev_h0_candidates,
     dev_h2_candidates,
     dev_rel_indices>;
+    
+  // // Arguments
+  // struct dev_velo_cluster_container { using type = uint; }
+  // struct dev_estimated_input_size {using type = uint};
+  // struct dev_module_cluster_num {using type = uint};
+  // struct dev_tracks {using type = Velo::TrackHits};
+  // struct dev_tracklets {using type = Velo::TrackletHits};
+  // struct dev_tracks_to_follow {using type = uint};
+  // struct dev_weak_tracks {using type = Velo::TrackletHits};
+  // struct dev_hit_used {using type = bool};
+  // struct dev_atomics_velo {using type = uint};
+  // struct dev_h0_candidates {using type = short};
+  // struct dev_h2_candidates {using type = short};
+  // struct dev_rel_indices {using type = unsigned short};
 
   void set_arguments_size(
     ArgumentRefManager<Arguments> arguments,

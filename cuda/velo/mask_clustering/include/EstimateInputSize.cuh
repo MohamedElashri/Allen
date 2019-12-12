@@ -5,38 +5,137 @@
 #include "ArgumentsVelo.cuh"
 #include "ClusteringDefinitions.cuh"
 
-__global__ void velo_estimate_input_size(
-  char* dev_raw_input,
-  uint* dev_raw_input_offsets,
-  uint* dev_estimated_input_size,
-  uint* dev_module_candidate_num,
-  uint32_t* dev_cluster_candidates,
-  const uint* dev_event_list,
-  uint8_t* dev_velo_candidate_ks);
+// Helpers
+template<typename Arg, typename Args>
+auto offset(const Args& arguments) {
+  return Arg{arguments.template offset<Arg>()};
+}
 
-struct velo_estimate_input_size_t : public GpuAlgorithm {
-  constexpr static auto name {"velo_estimate_input_size_t"};
-  decltype(gpu_function(velo_estimate_input_size)) function {velo_estimate_input_size};
-  using Arguments = std::tuple<
-    dev_velo_raw_input,
-    dev_velo_raw_input_offsets,
-    dev_estimated_input_size,
-    dev_module_cluster_num,
-    dev_module_candidate_num,
-    dev_cluster_candidates,
-    dev_event_list>;
+template<typename Arg, typename Args>
+size_t size(const Args& arguments) {
+  return arguments.template size<Arg>();
+}
 
-  void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    const HostBuffers& host_buffers) const;
+template<typename Arg, typename Args>
+void set_size(Args arguments, const size_t size) {
+  arguments.template set_size<Arg>(size);
+}
 
-  void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event) const;
+// Datatype
+template <typename internal_t>
+struct input_datatype {
+  using type = internal_t;
+  const type* const x;
+
+  operator const type* const() const {
+    return x;
+  }
 };
+
+template <typename internal_t>
+struct output_datatype {
+  using type = internal_t;
+  type* x;
+
+  operator type*() const {
+    return x;
+  }
+};
+
+namespace velo_estimate_input_size {
+  // Arguments
+  struct event_list_t : input_datatype<uint> {};
+  struct velo_raw_input_t : output_datatype<char> {};
+  struct velo_raw_input_offsets_t : output_datatype<uint> {};
+  struct estimated_input_size_t : output_datatype<uint> {};
+  struct module_candidate_num_t : output_datatype<uint> {};
+  struct cluster_candidates_t : output_datatype<uint> {};
+
+  // Global function
+  __global__ void velo_estimate_input_size(
+    velo_raw_input_t velo_raw_input,
+    velo_raw_input_offsets_t velo_raw_input_offsets,
+    estimated_input_size_t estimated_input_size,
+    module_candidate_num_t module_candidate_num,
+    cluster_candidates_t cluster_candidates,
+    event_list_t event_list,
+    uint8_t* candidate_ks);
+
+  // Algorithm
+  template<typename Args>
+  struct velo_estimate_input_size_t : public GpuAlgorithm
+  {
+    constexpr static auto name {"velo_estimate_input_size_t"};
+    decltype(gpu_function(velo_estimate_input_size)) function {velo_estimate_input_size};
+    using Arguments = Args;
+
+    void set_arguments_size(
+      ArgumentRefManager<Arguments> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) const
+    {
+      if (logger::ll.verbosityLevel >= logger::debug) {
+        debug_cout << "# of events = " << host_buffers.host_number_of_selected_events[0] << std::endl;
+      }
+
+      set_size<velo_raw_input_t>(arguments, std::get<0>(runtime_options.host_velo_events).size_bytes());
+      set_size<velo_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_velo_events).size_bytes());
+      set_size<estimated_input_size_t>(arguments,
+        host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules + 1);
+      // set_size<module_cluster_num_t>(arguments,
+      //   host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules);
+      set_size<module_candidate_num_t>(arguments,host_buffers.host_number_of_selected_events[0]);
+      set_size<cluster_candidates_t>(arguments,
+        host_buffers.host_number_of_selected_events[0] * VeloClustering::max_candidates_event);
+    }
+
+    void operator()(
+      const ArgumentRefManager<Arguments>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t& cuda_generic_event) const
+    {
+      cudaCheck(cudaMemcpyAsync(
+        offset<velo_raw_input_t>(arguments),
+        std::get<0>(runtime_options.host_velo_events).begin(),
+        std::get<0>(runtime_options.host_velo_events).size_bytes(),
+        cudaMemcpyHostToDevice,
+        cuda_stream));
+      cudaCheck(cudaMemcpyAsync(
+        offset<velo_raw_input_offsets_t>(arguments),
+        std::get<1>(runtime_options.host_velo_events).begin(),
+        std::get<1>(runtime_options.host_velo_events).size_bytes(),
+        cudaMemcpyHostToDevice,
+        cuda_stream));
+
+      cudaCheck(cudaMemsetAsync(
+        offset<estimated_input_size_t>(arguments),
+        0,
+        size<estimated_input_size_t>(arguments),
+        cuda_stream));
+      // cudaCheck(cudaMemsetAsync(
+      //   offset<module_cluster_num_t>(arguments),
+      //   0,
+      //   size<module_cluster_num_t>(arguments),
+      //   cuda_stream));
+      cudaCheck(cudaMemsetAsync(
+        offset<module_candidate_num_t>(arguments),
+        0,
+        size<module_candidate_num_t>(arguments),
+        cuda_stream));
+
+      // Invoke kernel
+      function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+        offset<velo_raw_input_t>(arguments),
+        offset<velo_raw_input_offsets_t>(arguments),
+        offset<estimated_input_size_t>(arguments),
+        offset<module_candidate_num_t>(arguments),
+        offset<cluster_candidates_t>(arguments),
+        offset<event_list_t>(arguments),
+        constants.dev_velo_candidate_ks.data());
+    }
+  };
+}

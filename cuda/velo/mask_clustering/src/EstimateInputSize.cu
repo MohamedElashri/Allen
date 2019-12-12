@@ -1,84 +1,26 @@
 #include "EstimateInputSize.cuh"
 
-void velo_estimate_input_size_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  if (logger::ll.verbosityLevel >= logger::debug) {
-    debug_cout << "# of events = " << host_buffers.host_number_of_selected_events[0] << std::endl;
-  }
+using namespace velo_estimate_input_size;
 
-  arguments.set_size<dev_velo_raw_input>(std::get<0>(runtime_options.host_velo_events).size_bytes());
-  arguments.set_size<dev_velo_raw_input_offsets>(std::get<1>(runtime_options.host_velo_events).size_bytes());
-  arguments.set_size<dev_estimated_input_size>(
-    host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules + 1);
-  arguments.set_size<dev_module_cluster_num>(
-    host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules);
-  arguments.set_size<dev_module_candidate_num>(host_buffers.host_number_of_selected_events[0]);
-  arguments.set_size<dev_cluster_candidates>(
-    host_buffers.host_number_of_selected_events[0] * VeloClustering::max_candidates_event);
-}
-
-void velo_estimate_input_size_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_velo_raw_input>(),
-    std::get<0>(runtime_options.host_velo_events).begin(),
-    std::get<0>(runtime_options.host_velo_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_velo_raw_input_offsets>(),
-    std::get<1>(runtime_options.host_velo_events).begin(),
-    std::get<1>(runtime_options.host_velo_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-  
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_estimated_input_size>(), 0, arguments.size<dev_estimated_input_size>(), cuda_stream));
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_module_cluster_num>(), 0, arguments.size<dev_module_cluster_num>(), cuda_stream));
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_module_candidate_num>(), 0, arguments.size<dev_module_candidate_num>(), cuda_stream));
-
-  // Invoke kernel
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_velo_raw_input>(),
-    arguments.offset<dev_velo_raw_input_offsets>(),
-    arguments.offset<dev_estimated_input_size>(),
-    arguments.offset<dev_module_candidate_num>(),
-    arguments.offset<dev_cluster_candidates>(),
-    arguments.offset<dev_event_list>(),
-    constants.dev_velo_candidate_ks.data());
-}
-
-__global__ void velo_estimate_input_size(
-  char* dev_raw_input,
-  uint* dev_raw_input_offsets,
-  uint* dev_estimated_input_size,
-  uint* dev_event_candidate_num,
-  uint32_t* dev_cluster_candidates,
-  const uint* dev_event_list,
+__global__ void velo_estimate_input_size::velo_estimate_input_size(
+  velo_raw_input_t dev_velo_raw_input,
+  velo_raw_input_offsets_t dev_velo_raw_input_offsets,
+  estimated_input_size_t dev_estimated_input_size,
+  module_candidate_num_t dev_module_candidate_num,
+  cluster_candidates_t dev_cluster_candidates,
+  event_list_t dev_event_list,
   uint8_t* dev_velo_candidate_ks)
 {
   const auto event_number = blockIdx.x;
   const auto selected_event_number = dev_event_list[event_number];
 
-  const char* raw_input = dev_raw_input + dev_raw_input_offsets[selected_event_number];
+  const char* velo_raw_input = dev_velo_raw_input + dev_velo_raw_input_offsets[selected_event_number];
   uint* estimated_input_size = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
-  uint* event_candidate_num = dev_event_candidate_num + event_number;
+  uint* event_candidate_num = dev_module_candidate_num + event_number;
   uint32_t* cluster_candidates = dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
 
   // Read raw event
-  const auto raw_event = VeloRawEvent(raw_input);
+  const auto raw_event = VeloRawEvent(velo_raw_input);
 
   for (uint raw_bank_number = threadIdx.y; raw_bank_number < raw_event.number_of_raw_banks;
        raw_bank_number += blockDim.y) {
