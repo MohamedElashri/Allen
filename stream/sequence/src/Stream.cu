@@ -81,10 +81,9 @@ cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runti
         cudaEventRecord(cuda_generic_event, cuda_stream);
         cudaEventSynchronize(cuda_generic_event);
 
-      }
-      catch (MemoryException e) {
-	warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
-	return cudaErrorMemoryAllocation;
+      } catch (const MemoryException& e) {
+        warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
+        return cudaErrorMemoryAllocation;
       }
     }
   }
