@@ -70,8 +70,8 @@ namespace VertexFit {
     float dz = z - track.z;
     float rX = track.state[0] + dz * track.state[2] - x;
     float rY = track.state[1] + dz * track.state[3] - y;
-    float cov00 = track.cov(0, 0) + dz * dz * track.cov(2, 2) + 2 * dz * track.cov(2, 0);
-    float cov11 = track.cov(1, 1) + dz * dz * track.cov(3, 3) + 2 * dz * track.cov(3, 1);
+    float cov00 = track.cov(0, 0) + dz * dz * track.cov(2, 2) + 2.f * dz * track.cov(2, 0);
+    float cov11 = track.cov(1, 1) + dz * dz * track.cov(3, 3) + 2.f * dz * track.cov(3, 1);
     float invcov00 = 1.f / cov00;
     float invcov11 = 1.f / cov11;
     halfDChi2_0 += invcov00 * rX;
