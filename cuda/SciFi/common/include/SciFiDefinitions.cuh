@@ -17,99 +17,6 @@ namespace SciFi {
   // need 3 arrays (size: number_of_events) for copy_and_prefix_sum_scifi_t
   static constexpr int num_atomics = 3;
 
-  namespace Tracking {
-
-    // The base PT threshold which is common to all algorithms
-    constexpr float minPt = 500 * Gaudi::Units::MeV;
-
-    constexpr int max_scifi_hits = 20; // for x and u/v layers
-    constexpr int nTrackParams = 9;
-
-    constexpr float tolYMag = 10.f * Gaudi::Units::mm;
-    constexpr float tolYMagSlope = 0.015f;
-
-    // parameterizations
-    constexpr float byParams = -0.667996f;
-    constexpr float cyParams = -3.68424e-05f;
-
-    // stereo hit matching
-    // Not used in Looking Forward when using qop from VeloUT
-    constexpr float tolYCollectX = 3.5f * Gaudi::Units::mm;        // 4.1* Gaudi::Units::mm ;
-    constexpr float tolYSlopeCollectX = 0.001f * Gaudi::Units::mm; // 0.0018 * Gaudi::Units::mm ;
-
-    // veloUT momentum estimate
-    constexpr bool useMomentumEstimate = true;
-    constexpr bool useWrongSignWindow = true;
-    constexpr float wrongSignPT = 500.f * Gaudi::Units::MeV;
-    constexpr float wrongSignQoP = 1.f / wrongSignPT;
-
-    // z Reference plane
-    constexpr float zReference = 8520.f * Gaudi::Units::mm; // in T2
-    constexpr float zRefInv = 1.f / zReference;
-
-    // TODO: CHECK THESE VALUES USING FRAMEWORK
-    constexpr float xLim_Max = 3300.f;
-    constexpr float yLim_Max = 2500.f;
-    constexpr float xLim_Min = -3300.f;
-    constexpr float yLim_Min = -25.f;
-
-    // TO BE READ FROM XML EVENTUALLY
-    // constexpr float magscalefactor = -1;
-    constexpr int zoneoffsetpar = 6;
-
-    struct Arrays {
-      // Returns whether the current layer is an X plane
-      const bool is_x_plane[12] {1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1};
-
-      // the Magnet Parametrization
-      // parameterized in offset [0], (slope difference due to kick)^2 [1],
-      // tx^2 [2], ty^2 [3]
-      const float zMagnetParams[4] = {5212.38f, 406.609f, -1102.35f, -498.039f};
-
-      // more Parametrizations
-      const float xParams[2] = {18.6195f, -5.55793f};
-
-      // momentum Parametrization
-      const float momentumParams[6] = {1.21014f, 0.637339f, -0.200292f, 0.632298f, 3.23793f, -27.0259f};
-
-      // covariance values
-      const float covarianceValues[5] = {4.0f, 400.0f, 4.e-6f, 1.e-4f, 0.1f};
-
-      // definition of zones
-      // access upper with offset of 6
-      const int zoneoffsetpar = 6;
-      const int xZones[12] = {0, 6, 8, 14, 16, 22, 1, 7, 9, 15, 17, 23};
-      const int uvZones[12] = {2, 4, 10, 12, 18, 20, 3, 5, 11, 13, 19, 21};
-
-      // ASSORTED GEOMETRY VALUES, eventually read this from some xml
-      const float xZone_zPos[6] = {7826.f, 8036.f, 8508.f, 8718.f, 9193.f, 9403.f};
-      const float uvZone_zPos[6] =
-        {7896.f, 7966.f, 8578.f, 8648.f, 9263.f, 9333.f}; //, 7896., 7966., 8578., 8648., 9263., 9333.};
-      const float uvZone_dxdy[12] = {0.0874892f,
-                                     -0.0874892f,
-                                     0.0874892f,
-                                     -0.0874892f,
-                                     0.0874892f,
-                                     -0.0874892f,
-                                     0.0874892f,
-                                     -0.0874892f,
-                                     0.0874892f,
-                                     -0.0874892f,
-                                     0.0874892f,
-                                     -0.0874892f};
-      const float Zone_dzdy[24] = {0.0036010f};
-
-      // this is used by looking_forward_sbt maybe this is not the right place to put it
-      const float uv_dx[6] = {1.6739478541449213f,
-                              1.6738495069872612f,
-                              1.935683825160498f,
-                              1.9529279746403518f,
-                              2.246931985749485f,
-                              2.2797556995480273f};
-    };
-
-  } // namespace Tracking
-
   namespace Constants {
     // Detector description
     // There are three stations with four layers each
@@ -118,10 +25,6 @@ namespace SciFi {
     static constexpr uint n_zones = 24;
     static constexpr uint n_layers = 12;
     static constexpr uint n_mats = 1024;
-
-    // FIXME_GEOMETRY_HARDCODING
-    // todo: use dzdy defined in geometry, read by mat
-    static constexpr float dzdy = 0.003601f;
 
     /**
      * The following constants are based on the number of modules per quarter.
@@ -151,21 +54,19 @@ namespace SciFi {
     static constexpr uint mat_index_substract = n_consecutive_raw_banks * 3;
     static constexpr uint n_mats_without_group = n_mats - n_consecutive_raw_banks * n_mats_per_consec_raw_bank;
 
+    // FIXME_GEOMETRY_HARDCODING
+    // todo: use dzdy defined in geometry, read by mat
+    static constexpr float dzdy = 0.003601f;
     static constexpr float ZEndT = 9410.f * Gaudi::Units::mm; // FIXME_GEOMETRY_HARDCODING
 
-    /* Cut-offs */
-    static constexpr uint max_numhits_per_event = 10000;
-    static constexpr uint max_hit_candidates_per_layer = 200;
-
     // Looking Forward
-    static constexpr int max_SciFi_tracks_per_UT_track = 1;
-    static constexpr int max_tracks = 1000;
-    static constexpr int max_lf_tracks = 6000;
     static constexpr int max_track_size = n_layers;
-
-    static constexpr int max_track_candidates = 2000;
     static constexpr int max_track_candidate_size = 4;
     static constexpr int hit_layer_offset = 6;
+    static constexpr int max_SciFi_tracks_per_UT_track = 1;
+
+    // This constant is for the HostBuffer reserve method, when validating
+    static constexpr int max_tracks = 1000;
   } // namespace Constants
 
   /**

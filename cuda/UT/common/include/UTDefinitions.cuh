@@ -53,21 +53,9 @@ namespace UT {
     static constexpr float zMidUT = 2484.6f;
     //  distToMomentum is properly recalculated in UTMagnetTool when B field changes
     static constexpr float distToMomentum = 4.0212e-05f;
-    static constexpr float sigmaVeloSlope = 0.10f * Gaudi::Units::mrad;
-    static constexpr float invSigmaVeloSlope = 1.0f / sigmaVeloSlope;
     static constexpr float zKink = 1780.0f;
 
-    static constexpr float minMomentum = 1.5f * Gaudi::Units::GeV;
-    static constexpr float minMomentumFinal = 2.5f * Gaudi::Units::GeV;
-    static constexpr float minPT = 0.3f * Gaudi::Units::GeV;
-    static constexpr float minPTFinal = 0.425f * Gaudi::Units::GeV;
     static constexpr float maxPseudoChi2 = 1280.0f;
-    static constexpr float yTol = 0.5f * Gaudi::Units::mm;
-    static constexpr float yTolSlope = 0.08f;
-    static constexpr float hitTol1 = 6.0f * Gaudi::Units::mm;
-    static constexpr float hitTol2 = 0.8f * Gaudi::Units::mm;
-    static constexpr float deltaTx1 = 0.035f;
-    static constexpr float deltaTx2 = 0.018f;
     static constexpr float maxXSlope = 0.350f;
     static constexpr float maxYSlope = 0.300f;
     static constexpr float centralHoleSize = 33.0f * Gaudi::Units::mm;
@@ -86,7 +74,6 @@ namespace UT {
     //
     static constexpr float LD3Hits = -0.5f;
     static constexpr float LD4Hits = -0.5f;
-
   } // namespace Constants
 } // namespace UT
 

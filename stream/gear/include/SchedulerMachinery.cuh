@@ -219,6 +219,85 @@ namespace Sch {
     }
   };
 
+  // Configure constants for algorithms in the sequence
+  template<typename Dependencies, typename Indices>
+  struct ConfigureAlgorithmSequenceImpl;
+
+  template<typename Tuple>
+  struct ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<>> {
+    static constexpr void configure(
+      Tuple&,
+      const std::map<std::string, std::map<std::string, std::string>>&) {};
+  };
+
+  template<typename Tuple, unsigned long I, unsigned long... Is>
+  struct ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<I, Is...>> {
+    static constexpr void configure(Tuple& algs, const std::map<std::string, std::map<std::string, std::string>>& config)
+    {
+      using Algo = typename std::tuple_element<I, Tuple>::type;
+      if (config.find(Algo::name) != config.end()) {
+        auto& a = std::get<I>(algs);
+        a.set_properties(config.at(Algo::name));
+        for (auto s : a.get_shared_sets()) {
+          if (config.find(s) == config.end()) continue;
+          a.set_shared_properties(s, config.at(s));
+        }
+      }
+      ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<Is...>>::configure(algs, config);
+    }
+  };
+
+  template<typename Tuple>
+  struct ConfigureAlgorithmSequence {
+    static constexpr void configure(Tuple& algs, const std::map<std::string, std::map<std::string, std::string>>& config)
+    {
+      ConfigureAlgorithmSequenceImpl<Tuple, std::make_index_sequence<std::tuple_size<Tuple>::value>>::configure(
+        algs, config);
+    }
+  };
+
+  // Return constants for algorithms in the sequence
+  template<typename Dependencies, typename Indices>
+  struct GetSequenceConfigurationImpl;
+
+  template<typename Tuple>
+  struct GetSequenceConfigurationImpl<Tuple, std::index_sequence<>> {
+    static auto get(Tuple const&, std::map<std::string, std::map<std::string, std::string>>& config) { return config; };
+  };
+
+  template<typename Tuple, unsigned long I, unsigned long... Is>
+  struct GetSequenceConfigurationImpl<Tuple, std::index_sequence<I, Is...>> {
+    static auto get(Tuple const& algs, std::map<std::string, std::map<std::string, std::string>>& config)
+    {
+      using Algo = typename std::tuple_element<I, Tuple>::type;
+      auto const& a = std::get<I>(algs);
+      auto props = a.get_properties();
+      config.emplace(std::string(Algo::name), props);
+      for (auto s : a.get_shared_sets()) {
+        auto props = a.get_shared_properties(s);
+        if (config.find(s) == config.end()) {
+          config.emplace(s, props);
+        }
+        else {
+          auto c = config.at(s);
+          for (auto kv : props) {
+            c.emplace(kv.first, kv.second);
+          }
+        }
+      }
+      return GetSequenceConfigurationImpl<Tuple, std::index_sequence<Is...>>::get(algs, config);
+    }
+  };
+
+  template<typename Tuple>
+  struct GetSequenceConfiguration {
+    static auto get(Tuple const& algs, std::map<std::string, std::map<std::string, std::string>>& config)
+    {
+      return GetSequenceConfigurationImpl<Tuple, std::make_index_sequence<std::tuple_size<Tuple>::value>>::get(
+        algs, config);
+    }
+  };
+
   /**
    * @brief Produces a single argument reference.
    */
@@ -314,6 +393,7 @@ namespace Sch {
 
       // Sets the arguments sizes, setups the scheduler and visits the algorithm.
       functor.template set_arguments_size<t>(
+        std::get<I>(tuple),
         ProduceArgumentsTuple<typename Scheduler::arguments_tuple_t, t>::produce(
           scheduler.argument_manager.arguments_tuple),
         std::forward<SetSizeArguments>(set_size_arguments)...);

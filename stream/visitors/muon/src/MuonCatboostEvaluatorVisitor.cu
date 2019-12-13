@@ -4,6 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_catboost_evaluator_t>(
+  const muon_catboost_evaluator_t& state,
   muon_catboost_evaluator_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -22,7 +23,7 @@ void SequenceVisitor::visit<muon_catboost_evaluator_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  state.set_opts(dim3(host_buffers.host_number_of_reconstructed_scifi_tracks[0]), dim3(32), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_reconstructed_scifi_tracks[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_muon_catboost_features>(),
     arguments.offset<dev_muon_catboost_output>(),

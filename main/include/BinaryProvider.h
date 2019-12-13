@@ -59,6 +59,7 @@ public:
     std::optional<size_t> n_events,
     std::vector<std::string> connections,
     size_t repetitions = 1,
+    std::optional<std::string> file_list = {},
     std::optional<EventIDs> order = std::optional<EventIDs> {}) :
     InputProvider<BinaryProvider<Banks...>> {n_slices, events_per_slice, n_events},
     m_slice_free(n_slices, true), m_repetitions {repetitions}, m_event_ids(n_slices)
@@ -78,7 +79,24 @@ public:
       else {
         auto ib = to_integral<BankTypes>(bank_type);
         // Find files and order them if requested
-        auto contents = list_folder(*it);
+        std::vector<std::string> contents;
+        if (file_list) {
+          if (!file_list.value().empty()) {
+            std::string line;
+            std::ifstream list(*file_list);
+            if (list.is_open()) {
+              while (std::getline(list, line)) {
+                contents.push_back(line);
+              }
+            }
+            else {
+              throw StrException {"Could not open list of files"};
+            }
+          }
+          else {
+            contents = list_folder(*it);
+          }
+        }
         if (order) {
           order_files(contents, *order, *it);
         }
@@ -119,8 +137,8 @@ public:
       if (it == end(BankSizes)) {
         throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
       }
-      return {std::lround((401 * sizeof(uint32_t) + it->second) *
-                          events_per_slice * bank_size_fudge_factor * kB), events_per_slice};
+      return {std::lround((10 * sizeof(uint32_t) + it->second) * events_per_slice * bank_size_fudge_factor * kB),
+              events_per_slice};
     };
     m_slices = allocate_slices<Banks...>(n_slices, size_fun);
 
@@ -162,9 +180,9 @@ public:
    *
    * @param      optional timeout
    *
-   * @return     (good slice, timed out, slice index, number of events in slice)
+   * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
     std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
   {
     bool timed_out = false;
@@ -189,7 +207,7 @@ public:
       }
     }
 
-    return {!m_read_error && !m_done, timed_out, slice_index, m_read_error ? 0 : n_filled};
+    return {!m_read_error, m_done, timed_out, slice_index, n_filled};
   }
 
   /**
@@ -234,15 +252,9 @@ public:
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
   }
 
-  void event_sizes(size_t const, gsl::span<unsigned int> const,
-                   std::vector<size_t>&) const
-  {
-  }
+  void event_sizes(size_t const, gsl::span<unsigned int> const, std::vector<size_t>&) const override {}
 
-  void copy_banks(size_t const, gsl::span<unsigned int> const,
-                  gsl::span<char>, std::vector<unsigned int> const&) const
-  {
-  }
+  void copy_banks(size_t const, unsigned int const, gsl::span<char>) const override {}
 
 private:
   /**
@@ -429,5 +441,4 @@ private:
 
   // Folder and file names per bank type
   std::array<std::tuple<std::string, std::vector<std::string>>, sizeof...(Banks)> m_files;
-
 };

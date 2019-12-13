@@ -115,23 +115,35 @@ TrackCheckerHistos::TrackCheckerHistos(
     std::make_unique<TH1D>("not_muon_Eta_reconstructible", "not_muon_Eta_reconstructible", 20, 0, 7);
   h_matched_isMuon_Eta_reconstructed =
     std::make_unique<TH1D>("matched_isMuon_Eta_reconstructed", "matched_isMuon_Eta_reconstructed", 20, 0, 7);
+  h_matched_FromS_isMuon_Eta_reconstructed = std::make_unique<TH1D>(
+    "matched_FromS_isMuon_Eta_reconstructed", "matched_FromS_isMuon_Eta_reconstructed", 20, 0, 7);
+  h_matched_FromB_isMuon_Eta_reconstructed = std::make_unique<TH1D>(
+    "matched_FromB_isMuon_Eta_reconstructed", "matched_FromB_isMuon_Eta_reconstructed", 20, 0, 7);
   h_not_matched_isMuon_Eta_reconstructed =
     std::make_unique<TH1D>("not_matched_isMuon_Eta_reconstructed", "not_matched_isMuon_Eta_reconstructed", 20, 0, 7);
 
   h_muon_P_reconstructible =
-    std::make_unique<TH1D>("muon_P_reconstructible", "muon_P_reconstructible", 10, 0., 100000.);
+    std::make_unique<TH1D>("muon_P_reconstructible", "muon_P_reconstructible", 50, 0., 100000.);
   h_not_muon_P_reconstructible =
-    std::make_unique<TH1D>("not_muon_P_reconstructible", "not_muon_P_reconstructible", 10, 0., 100000.);
+    std::make_unique<TH1D>("not_muon_P_reconstructible", "not_muon_P_reconstructible", 50, 0., 100000.);
   h_matched_isMuon_P_reconstructed =
-    std::make_unique<TH1D>("matched_isMuon_P_reconstructed", "matched_isMuon_P_reconstructed", 10, 0., 100000.);
+    std::make_unique<TH1D>("matched_isMuon_P_reconstructed", "matched_isMuon_P_reconstructed", 50, 0., 100000.);
+  h_matched_FromS_isMuon_P_reconstructed = std::make_unique<TH1D>(
+    "matched_FromS_isMuon_P_reconstructed", "matched_FromS_isMuon_P_reconstructed", 50, 0., 100000.);
+  h_matched_FromB_isMuon_P_reconstructed = std::make_unique<TH1D>(
+    "matched_FromB_isMuon_P_reconstructed", "matched_FromB_isMuon_P_reconstructed", 50, 0., 100000.);
   h_not_matched_isMuon_P_reconstructed =
-    std::make_unique<TH1D>("not_matched_isMuon_P_reconstructed", "not_matched_isMuon_P_reconstructed", 10, 0., 100000.);
+    std::make_unique<TH1D>("not_matched_isMuon_P_reconstructed", "not_matched_isMuon_P_reconstructed", 50, 0., 100000.);
   h_muon_Pt_reconstructible =
     std::make_unique<TH1D>("muon_Pt_reconstructible", "muon_Pt_reconstructible", 30, 0., 5000.);
   h_not_muon_Pt_reconstructible =
     std::make_unique<TH1D>("not_muon_Pt_reconstructible", "not_muon_Pt_reconstructible", 30, 0., 5000.);
   h_matched_isMuon_Pt_reconstructed =
     std::make_unique<TH1D>("matched_isMuon_Pt_reconstructed", "matched_isMuon_Pt_reconstructed", 30, 0., 5000.);
+  h_matched_FromS_isMuon_Pt_reconstructed = std::make_unique<TH1D>(
+    "matched_FromS_isMuon_Pt_reconstructed", "matched_FromS_isMuon_Pt_reconstructed", 30, 0., 5000.);
+  h_matched_FromB_isMuon_Pt_reconstructed = std::make_unique<TH1D>(
+    "matched_FromB_isMuon_Pt_reconstructed", "matched_FromB_isMuon_Pt_reconstructed", 30, 0., 5000.);
   h_not_matched_isMuon_Pt_reconstructed =
     std::make_unique<TH1D>("not_matched_isMuon_Pt_reconstructed", "not_matched_isMuon_Pt_reconstructed", 30, 0., 5000.);
 
@@ -141,6 +153,10 @@ TrackCheckerHistos::TrackCheckerHistos(
     std::make_unique<TH1D>("not_muon_Phi_reconstructible", "not_muon_Phi_reconstructible", 15, -3.142, 3.142);
   h_matched_isMuon_Phi_reconstructed =
     std::make_unique<TH1D>("matched_isMuon_Phi_reconstructed", "matched_isMuon_Phi_reconstructed", 15, -3.142, 3.142);
+  h_matched_FromS_isMuon_Phi_reconstructed = std::make_unique<TH1D>(
+    "matched_FromS_isMuon_Phi_reconstructed", "matched_FromS_isMuon_Phi_reconstructed", 15, -3.142, 3.142);
+  h_matched_FromB_isMuon_Phi_reconstructed = std::make_unique<TH1D>(
+    "matched_FromB_isMuon_Phi_reconstructed", "matched_FromB_isMuon_Phi_reconstructed", 15, -3.142, 3.142);
   h_not_matched_isMuon_Phi_reconstructed = std::make_unique<TH1D>(
     "not_matched_isMuon_Phi_reconstructed", "not_matched_isMuon_Phi_reconstructed", 15, -3.142, 3.142);
 
@@ -150,6 +166,10 @@ TrackCheckerHistos::TrackCheckerHistos(
     std::make_unique<TH1D>("not_muon_nPV_reconstructible", "not_muon_nPV_reconstructible", 21, -0.5, 20.5);
   h_matched_isMuon_nPV_reconstructed =
     std::make_unique<TH1D>("matched_isMuon_nPV_reconstructed", "matched_isMuon_nPV_reconstructed", 21, -0.5, 20.5);
+  h_matched_FromS_isMuon_nPV_reconstructed = std::make_unique<TH1D>(
+    "matched_FromS_isMuon_nPV_reconstructed", "matched_FromS_isMuon_nPV_reconstructed", 21, -0.5, 20.5);
+  h_matched_FromB_isMuon_nPV_reconstructed = std::make_unique<TH1D>(
+    "matched_FromB_isMuon_nPV_reconstructed", "matched_FromB_isMuon_nPV_reconstructed", 21, -0.5, 20.5);
   h_not_matched_isMuon_nPV_reconstructed = std::make_unique<TH1D>(
     "not_matched_isMuon_nPV_reconstructed", "not_matched_isMuon_nPV_reconstructed", 21, -0.5, 20.5);
 
@@ -193,22 +213,32 @@ void TrackCheckerHistos::write()
                          std::ref(h_muon_Eta_reconstructible),
                          std::ref(h_not_muon_Eta_reconstructible),
                          std::ref(h_matched_isMuon_Eta_reconstructed),
+                         std::ref(h_matched_FromS_isMuon_Eta_reconstructed),
+                         std::ref(h_matched_FromB_isMuon_Eta_reconstructed),
                          std::ref(h_not_matched_isMuon_Eta_reconstructed),
                          std::ref(h_muon_P_reconstructible),
                          std::ref(h_not_muon_P_reconstructible),
                          std::ref(h_matched_isMuon_P_reconstructed),
+                         std::ref(h_matched_FromS_isMuon_P_reconstructed),
+                         std::ref(h_matched_FromB_isMuon_P_reconstructed),
                          std::ref(h_not_matched_isMuon_P_reconstructed),
                          std::ref(h_muon_Pt_reconstructible),
                          std::ref(h_not_muon_Pt_reconstructible),
                          std::ref(h_matched_isMuon_Pt_reconstructed),
+                         std::ref(h_matched_FromS_isMuon_Pt_reconstructed),
+                         std::ref(h_matched_FromB_isMuon_Pt_reconstructed),
                          std::ref(h_not_matched_isMuon_Pt_reconstructed),
                          std::ref(h_muon_Phi_reconstructible),
                          std::ref(h_not_muon_Phi_reconstructible),
                          std::ref(h_matched_isMuon_Phi_reconstructed),
+                         std::ref(h_matched_FromS_isMuon_Phi_reconstructed),
+                         std::ref(h_matched_FromB_isMuon_Phi_reconstructed),
                          std::ref(h_not_matched_isMuon_Phi_reconstructed),
                          std::ref(h_muon_nPV_reconstructible),
                          std::ref(h_not_muon_nPV_reconstructible),
                          std::ref(h_matched_isMuon_nPV_reconstructed),
+                         std::ref(h_matched_FromS_isMuon_nPV_reconstructed),
+                         std::ref(h_matched_FromB_isMuon_nPV_reconstructed),
                          std::ref(h_not_matched_isMuon_nPV_reconstructed),
                          std::ref(h_ghost_isMuon_nPV_reconstructed),
                          std::ref(h_ghost_isMuon_Eta_reconstructed)};
@@ -343,6 +373,32 @@ void TrackCheckerHistos::fillMuonReconstructedMatchedIsMuon(const MCParticle& mc
   h_matched_isMuon_Pt_reconstructed->Fill(mcp.pt);
   h_matched_isMuon_Phi_reconstructed->Fill(mcp.phi);
   h_matched_isMuon_nPV_reconstructed->Fill(mcp.nPV);
+#else
+  _unused(mcp);
+#endif
+}
+
+void TrackCheckerHistos::fillMuonFromSReconstructedMatchedIsMuon(const MCParticle& mcp)
+{
+#ifdef WITH_ROOT
+  h_matched_FromS_isMuon_Eta_reconstructed->Fill(mcp.eta);
+  h_matched_FromS_isMuon_P_reconstructed->Fill(mcp.p);
+  h_matched_FromS_isMuon_Pt_reconstructed->Fill(mcp.pt);
+  h_matched_FromS_isMuon_Phi_reconstructed->Fill(mcp.phi);
+  h_matched_FromS_isMuon_nPV_reconstructed->Fill(mcp.nPV);
+#else
+  _unused(mcp);
+#endif
+}
+
+void TrackCheckerHistos::fillMuonFromBReconstructedMatchedIsMuon(const MCParticle& mcp)
+{
+#ifdef WITH_ROOT
+  h_matched_FromB_isMuon_Eta_reconstructed->Fill(mcp.eta);
+  h_matched_FromB_isMuon_P_reconstructed->Fill(mcp.p);
+  h_matched_FromB_isMuon_Pt_reconstructed->Fill(mcp.pt);
+  h_matched_FromB_isMuon_Phi_reconstructed->Fill(mcp.phi);
+  h_matched_FromB_isMuon_nPV_reconstructed->Fill(mcp.nPV);
 #else
   _unused(mcp);
 #endif

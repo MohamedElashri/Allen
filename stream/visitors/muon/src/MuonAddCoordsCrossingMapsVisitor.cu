@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_add_coords_crossing_maps_t>(
+  const muon_add_coords_crossing_maps_t& state,
   muon_add_coords_crossing_maps_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -34,7 +35,7 @@ void SequenceVisitor::visit<muon_add_coords_crossing_maps_t>(
   cudaCheck(
     cudaMemsetAsync(arguments.offset<dev_muon_compact_hit>(), 0, arguments.size<dev_muon_compact_hit>(), cuda_stream));
 
-  state.set_opts(host_buffers.host_number_of_selected_events[0], 256, cuda_stream);
+  state.set_opts(host_buffers.host_number_of_selected_events[0], cuda_stream);
   state.set_arguments(
     arguments.offset<dev_storage_station_region_quarter_offsets>(),
     arguments.offset<dev_storage_tile_id>(),

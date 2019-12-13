@@ -37,9 +37,9 @@ struct IInputProvider {
    *
    * @param      optional timeout in ms to wait for slice
    *
-   * @return     tuple of (eof, timed_out, slice_index, n_filled)
+   * @return     tuple of (success, eof, timed_out, slice_index, n_filled)
    */
-  virtual std::tuple<bool, bool, size_t, size_t> get_slice(
+  virtual std::tuple<bool, bool, bool, size_t, size_t> get_slice(
     std::optional<unsigned int> timeout = std::optional<unsigned int> {}) = 0;
 
   /**
@@ -51,13 +51,12 @@ struct IInputProvider {
    */
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 
-  virtual void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events,
-                           std::vector<size_t>& sizes) = 0;
+  virtual void event_sizes(
+    size_t const slice_index,
+    gsl::span<unsigned int> const selected_events,
+    std::vector<size_t>& sizes) const = 0;
 
-  virtual void copy_banks(size_t const slice_index, gsl::span<unsigned int> const selected_events,
-                          gsl::span<char> buffer, std::vector<unsigned int> const& event_offsets) const = 0;
-
-
+  virtual void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const = 0;
 };
 
 // InputProvider
@@ -123,9 +122,9 @@ public:
    *
    * @param      optional timeout in ms to wait for slice
    *
-   * @return     tuple of (eof, timed_out, slice_index, n_filled)
+   * @return     tuple of (succes, eof, timed_out, slice_index, n_filled)
    */
-  std::tuple<bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
     std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
   {
     return static_cast<Derived<Banks...>*>(this)->get_slice(timeout);
@@ -153,19 +152,16 @@ public:
     return static_cast<const Derived<Banks...>*>(this)->banks(bank_type, slice_index);
   }
 
-  void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events,
-                   std::vector<size_t>& sizes)
+  void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events, std::vector<size_t>& sizes)
+    const override
   {
     return static_cast<const Derived<Banks...>*>(this)->event_sizes(slice_index, selected_events, sizes);
   }
 
-  void copy_banks(size_t const slice_index, gsl::span<unsigned int> const selected_events,
-                  gsl::span<char> buffer, std::vector<unsigned int> const& event_offsets) const
+  void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const override
   {
-    return static_cast<const Derived<Banks...>*>(this)->copy_banks(slice_index, selected_events,
-                                                                   buffer, event_offsets);
+    return static_cast<const Derived<Banks...>*>(this)->copy_banks(slice_index, event, buffer);
   }
-
 
 protected:
   template<typename MSG>
@@ -192,4 +188,10 @@ private:
 
   // Mutex for ordered debug output
   mutable std::mutex m_output_mut;
+};
+
+struct BufferStatus {
+  bool writable = true;
+  int work_counter = 0;
+  std::vector<std::tuple<size_t, size_t>> intervals;
 };

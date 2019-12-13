@@ -40,6 +40,7 @@ public:
     const bool* single_muon_decisions,
     const bool* disp_dimuon_decisions,
     const bool* high_mass_dimuon_decisions,
+    const bool* dimuon_soft_decisions,
     const int* track_atomics,
     const uint* sv_atomics,
     const uint selected_events);
@@ -114,6 +115,7 @@ private:
   std::vector<double> m_sv_pass_two_track;
   std::vector<double> m_sv_pass_disp_dimuon;
   std::vector<double> m_sv_pass_high_mass_dimuon;
+  std::vector<double> m_sv_pass_dimuon_soft;
 
   // Track info.
   std::vector<double> m_trk_p;

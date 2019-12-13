@@ -4,6 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<velo_pv_ip_t>(
+  const velo_pv_ip_t& state,
   velo_pv_ip_t::arguments_t arguments,
   const RuntimeOptions&,
   const Constants&,
@@ -24,7 +25,7 @@ void SequenceVisitor::visit<velo_pv_ip_t>(
   cudaEvent_t& cuda_generic_event)
 {
   // Setup opts and arguments for kernel call
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_velo_kalman_beamline_states>(),
     arguments.offset<dev_atomics_velo>(),

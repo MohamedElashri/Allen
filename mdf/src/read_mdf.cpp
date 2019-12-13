@@ -16,6 +16,8 @@
 #include "raw_bank.hpp"
 #include "raw_helpers.hpp"
 
+#include "Logger.h"
+
 #ifdef WITH_ROOT
 #include "root_mdf.hpp"
 #endif
@@ -30,7 +32,7 @@ namespace {
   using std::vector;
 } // namespace
 
-Allen::IO MDF::open(std::string const& filepath, int flags)
+Allen::IO MDF::open(std::string const& filepath, int flags, int mode)
 {
   if (::strncmp(filepath.c_str(), "root:", 5) == 0) {
 #ifdef WITH_ROOT
@@ -41,7 +43,7 @@ Allen::IO MDF::open(std::string const& filepath, int flags)
 #endif
   }
   else {
-    int fd = ::open(filepath.c_str(), flags);
+    int fd = ::open(filepath.c_str(), flags, mode);
     return {true,
             [fd](char* ptr, size_t size) { return ::read(fd, ptr, size); },
             [fd](char const* ptr, size_t size) { return ::write(fd, ptr, size); },
@@ -299,7 +301,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     if (!checkChecksum) {
       hdr->setChecksum(0);
     }
-    else {
+    else if (checksum != 0) {
       auto c = LHCb::genChecksum(1, buffer + 4 * sizeof(int), size);
       if (checksum != c) {
         cerr << "Checksum doesn't match: " << std::hex << c << " instead of 0x" << checksum << std::dec << "\n";

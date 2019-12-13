@@ -4,6 +4,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<copy_and_prefix_sum_single_block_sv_t>(
+  const copy_and_prefix_sum_single_block_sv_t& state,
   copy_and_prefix_sum_single_block_sv_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -40,7 +41,7 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_sv_t>(
       host_buffers.host_number_of_svs);
   }
   else {
-    state.set_opts(dim3(1), dim3(1024), cuda_stream);
+    state.set_opts(cuda_stream);
     state.set_arguments(
       (uint*) arguments.offset<dev_sv_offsets>() + host_buffers.host_number_of_selected_events[0],
       (uint*) arguments.offset<dev_atomics_scifi>(),
@@ -74,8 +75,5 @@ void SequenceVisitor::visit<copy_and_prefix_sum_single_block_sv_t>(
       (host_buffers.host_number_of_selected_events[0] + 1) * sizeof(uint),
       cudaMemcpyDeviceToHost,
       cuda_stream));
-
-    cudaEventRecord(cuda_generic_event, cuda_stream);
-    cudaEventSynchronize(cuda_generic_event);
   }
 }

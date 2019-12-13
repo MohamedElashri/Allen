@@ -357,11 +357,28 @@ namespace SciFi {
       assert(hitsNum > 2);
       return quality / ((float) hitsNum - 2);
     }
+
+    __host__ __device__ void print(int event_number = -1) const {
+      printf("Track with %i hits:", hitsNum);
+      for (int i = 0; i < hitsNum; ++i) {
+        printf(" %i,", hits[i]);
+      }
+      printf(
+        " qop %f, quality %f, UT track %i",
+        static_cast<double>(qop),
+        static_cast<double>(quality),
+        ut_track_index);
+      if (event_number >= 0)  {
+        printf(" (event %i)", event_number);
+      }
+      printf("\n");
+    }
   };
 
   struct CombinedValue {
     float chi2 = 10000.f;
-    int16_t h0 = -1;
-    int16_t h2 = -1;
+    uint16_t h0 = 0;
+    uint16_t h1 = 0;
+    uint16_t h2 = 0;
   };
 } // namespace SciFi

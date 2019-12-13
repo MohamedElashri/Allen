@@ -34,6 +34,8 @@
 #define CPU
 #include <MEPTools.h>
 #undef CPU
+#else
+#include <MEPTools.h>
 #endif
 
 #ifdef HAVE_MPI
@@ -47,17 +49,6 @@
 namespace {
   using namespace Allen::Units;
 } // namespace
-
-// Read buffer containing the number of events, offsets to the start
-// of the event and the event data
-using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>>;
-using ReadBuffers = std::vector<ReadBuffer>;
-
-struct BufferStatus {
-  bool writable = true;
-  int work_counter = 0;
-  std::vector<std::tuple<size_t, size_t>> intervals;
-};
 
 /**
  * @brief      Configuration parameters for the MEPProvider
@@ -115,7 +106,7 @@ public:
     std::vector<std::string> connections,
     MEPProviderConfig config = MEPProviderConfig {}) :
     InputProvider<MEPProvider<Banks...>> {n_slices, events_per_slice, n_events},
-    m_buffer_status(config.n_buffers), m_output_offsets(n_slices), m_slice_free(n_slices, true), m_banks_count {0},
+    m_buffer_status(config.n_buffers), m_slice_free(n_slices, true), m_banks_count {0},
     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
@@ -150,11 +141,6 @@ public:
     // Reinitialize to take the possible minimum number of events per
     // slice into account
     events_per_slice = this->events_per_slice();
-
-    // Resize output offsets
-    for (auto& output_offsets : m_output_offsets) {
-      output_offsets.resize(events_per_slice);
-    }
 
     // Initialize the current input filename
     m_current = m_connections.begin();
@@ -267,7 +253,7 @@ public:
    *
    * @return     (good slice, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
     std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
   {
     bool timed_out = false, done = false;
@@ -310,7 +296,7 @@ public:
         std::to_string(done) + " n_filled " + std::to_string(n_filled));
     }
 
-    return {!m_read_error && !done, timed_out, slice_index, m_read_error ? 0 : n_filled};
+    return {!m_read_error, done, timed_out, slice_index, m_read_error ? 0 : n_filled};
   }
 
   /**
@@ -374,18 +360,16 @@ public:
     }
   }
 
-  void copy_banks(size_t const slice_index, gsl::span<unsigned int> const selected_events,
-                  gsl::span<char> buffer, std::vector<unsigned int> const& event_offsets) const {
+  void copy_banks(size_t const slice_index, unsigned int const event,
+                  gsl::span<char> buffer) const {
     auto [i_buffer, interval_start, interval_end] = m_slice_to_buffer[slice_index];
 
     auto const& mep_header = std::get<0>(m_net_slices[i_buffer]);
     auto const& blocks = std::get<2>(m_net_slices[i_buffer]);
 
-    auto& output_offsets = m_output_offsets[slice_index];
-    std::copy(event_offsets.begin(), event_offsets.end(), output_offsets.begin());
-
     unsigned char prev_type = 0;
     auto block_index = 0;
+    size_t offset = 0;
 
     for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
       auto const& [block_header, block_data] = blocks[i_block];
@@ -400,31 +384,26 @@ public:
       if (allen_type != -1) {
         auto const& [banks, data_size, offsets, offsets_size] = m_slices[allen_type][slice_index];
         size_t n_banks = MEP::number_of_banks(offsets.data());
-        for (unsigned int i = 0; i < selected_events.size(); ++i) {
-          auto& offset = output_offsets[i];
-          auto event = selected_events[i];
 
-          // On the device, the block data is back to back and the
-          // offsets are built for that format. Here the block data is
-          // separate, so all offsets need to be compensated for the
-          // block offset. The 0th event offset is exactly that block
-          // offset
-          auto block_start = MEP::offset_index(n_banks, 0, block_index);
-          auto const fragment_offset = offsets[MEP::offset_index(n_banks, event, block_index)] - block_start;
-          // The end of a fragment is the offset of the fragment that
-          // belongs to the next event
-          auto const fragment_end = offsets[MEP::offset_index(n_banks, event + 1, block_index)] - block_start;
-          auto fragment_size = fragment_end - fragment_offset;
-          offset += add_raw_bank(block_header.types[interval_start + event],
-                                 mep_header.versions[i_block], mep_header.source_ids[i_block],
-                                 {banks[block_index].data() + fragment_offset, fragment_size},
-                                 buffer.data() + offset);
-        }
+        // On the device, the block data is back to back and the
+        // offsets are built for that format. Here the block data is
+        // separate, so all offsets need to be compensated for the
+        // block offset. The 0th event offset is exactly that block
+        // offset
+        auto block_start = MEP::offset_index(n_banks, 0, block_index);
+        auto const fragment_offset = offsets[MEP::offset_index(n_banks, event, block_index)] - block_start;
+        // The end of a fragment is the offset of the fragment that
+        // belongs to the next event
+        auto const fragment_end = offsets[MEP::offset_index(n_banks, event + 1, block_index)] - block_start;
+        auto fragment_size = fragment_end - fragment_offset;
+        offset += add_raw_bank(block_header.types[interval_start + event],
+                               mep_header.versions[i_block], mep_header.source_ids[i_block],
+                               {banks[block_index].data() + fragment_offset, fragment_size},
+                               buffer.data() + offset);
       }
       ++block_index;
     }
   }
-
 
 private:
   size_t count_writable() const
@@ -1031,7 +1010,6 @@ private:
   // Memory slices, N for each raw bank type
   Slices m_slices;
   std::vector<std::tuple<int, size_t, size_t>> m_slice_to_buffer;
-  mutable std::vector<std::vector<size_t>> m_output_offsets;
 
   // Mutex, condition varaible and queue for parallel transposition of slices
   std::mutex m_transpose_mut;

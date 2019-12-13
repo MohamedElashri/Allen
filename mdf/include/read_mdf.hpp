@@ -36,7 +36,7 @@ namespace Allen {
 
 namespace MDF {
 
-  Allen::IO open(std::string const& filepath, int flags);
+  Allen::IO open(std::string const& filepath, int flags, int mode = 0);
 
   void dump_hex(const char* start, int size);
 

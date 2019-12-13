@@ -9,11 +9,13 @@ PVCheckerHistos::PVCheckerHistos(CheckerInvoker const* invoker, std::string cons
   m_file->cd();
 
   eff_vs_z = std::make_unique<TH1F>("eff_vs_z", "eff_vs_z", m_bins_norm_z, -300, 300);
+  eff_matched_vs_z = std::make_unique<TH1F>("eff_matched_z", "eff_matched_z", m_bins_norm_z, -300, 300);
   eff_vs_mult = std::make_unique<TH1F>("eff_vs_mult", "eff_vs_mult", m_bins_norm_mult, 0, 50);
-  eff_norm_z = std::make_unique<TH1F>("eff_norm", "eff_norm", m_bins_norm_z, -300, 300);
+  eff_matched_vs_mult = std::make_unique<TH1F>("eff_matched_mult", "eff_matched_mult", m_bins_norm_mult, 0, 50);
+  eff_norm_z = std::make_unique<TH1F>("eff_norm_z", "eff_norm_z", m_bins_norm_z, -300, 300);
   eff_norm_mult = std::make_unique<TH1F>("eff_norm_mult", "eff_norm_mult", m_bins_norm_mult, 0, 50);
   fakes_vs_mult = std::make_unique<TH1F>("fakes_vs_mult", "fakes_vs_mult", m_bins_fake_mult, 0, 20);
-  fakes_norm = std::make_unique<TH1F>("fakes_norm", "fakes_norm", m_bins_fake_mult, 0, 20);
+  fakes_norm = std::make_unique<TH1F>("fakes_norm_mult", "fakes_norm_mult", m_bins_fake_mult, 0, 20);
 
   std::string tree_name = "PV_tree";
 
@@ -100,6 +102,10 @@ void PVCheckerHistos::accumulate(
   for (size_t i = 0; i < vec_mcpv_mult.size(); i++) {
     eff_vs_z->Fill(vec_mcpv_zpos.at(i), vec_mcpv_recd.at(i));
     eff_vs_mult->Fill(vec_mcpv_mult.at(i), vec_mcpv_recd.at(i));
+    if ( vec_mcpv_recd.at(i) ) {
+      eff_matched_vs_z->Fill(vec_mcpv_zpos.at(i));
+      eff_matched_vs_mult->Fill(vec_mcpv_mult.at(i));
+    }
     eff_norm_z->Fill(vec_mcpv_zpos.at(i), 1);
     eff_norm_mult->Fill(vec_mcpv_mult.at(i), 1);
   }
@@ -187,6 +193,8 @@ void PVCheckerHistos::write()
                        std::ref(m_allPV),
                        std::ref(eff_vs_z),
                        std::ref(eff_vs_mult),
+                       std::ref(eff_matched_vs_z),
+                       std::ref(eff_matched_vs_mult),
                        std::ref(eff_norm_z),
                        std::ref(eff_norm_mult),
                        std::ref(fakes_vs_mult),

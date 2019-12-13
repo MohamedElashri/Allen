@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<velo_estimate_input_size_t>(
+  const velo_estimate_input_size_t& state,
   velo_estimate_input_size_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -39,7 +40,7 @@ void SequenceVisitor::visit<velo_estimate_input_size_t>(
     arguments.offset<dev_module_candidate_num>(), 0, arguments.size<dev_module_candidate_num>(), cuda_stream));
 
   // Setup opts and arguments for kernel call
-  state.set_opts(runtime_options.mep_layout, dim3(host_buffers.host_number_of_selected_events[0]), dim3(16, 16), cuda_stream);
+  state.set_opts(runtime_options.mep_layout, dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
 
   state.set_arguments(
     runtime_options.mep_layout,

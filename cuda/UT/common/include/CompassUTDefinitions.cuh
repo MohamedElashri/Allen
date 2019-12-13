@@ -7,7 +7,6 @@ namespace CompassUT {
 
   constexpr uint num_sectors = 5;
   constexpr uint num_elems = num_sectors * 2;
-  constexpr uint max_considered_before_found = 6;
 
 } // namespace CompassUT
 

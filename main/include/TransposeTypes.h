@@ -24,7 +24,7 @@ namespace LHCb {
 
 // Read buffer containing the number of events, offsets to the start
 // of the event and the event data
-using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>>;
+using ReadBuffer = std::tuple<size_t, std::vector<unsigned int>, std::vector<char>, size_t>;
 using ReadBuffers = std::vector<ReadBuffer>;
 
 // A slice contains transposed bank data, offsets to the start of each

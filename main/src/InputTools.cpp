@@ -3,7 +3,7 @@
 #include "InputTools.h"
 #include "Common.h"
 
-#ifdef __APPLE__
+#ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>
 #else
 #include <filesystem>
@@ -60,7 +60,7 @@ namespace {
     return std::less<EventID> {}(name_to_number(lhs), name_to_number(rhs));
   };
 
-#ifdef __APPLE__
+#ifdef USE_BOOST_FILESYSTEM
   namespace fs = boost::filesystem;
 #else
   namespace fs = std::filesystem;

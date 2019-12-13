@@ -18,8 +18,11 @@ struct HostBuffers {
   uint* host_number_of_selected_events;
   uint* host_event_list;
   uint* host_prefix_sum_buffer;
+  uint* host_number_of_passing_events;
+  uint* host_passing_event_list;
+  uint32_t* host_dec_reports;
   size_t host_allocated_prefix_sum_space;
-
+  
   // Velo
   uint* host_atomics_velo;
   uint* host_velo_track_hit_number;
@@ -86,6 +89,7 @@ struct HostBuffers {
   bool* host_single_muon_decisions;
   bool* host_disp_dimuon_decisions;
   bool* host_high_mass_dimuon_decisions;
+  bool* host_dimuon_soft_decisions;
 
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;

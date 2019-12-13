@@ -29,23 +29,18 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/search_by_triplet/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/simplified_kalman_filter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/classifiers/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/utils/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/search_initial_windows/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/collect_candidates/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/find_compatible_windows/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/triplet_seeding/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/triplet_keep_best/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks_x/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_missing_x/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/composite_algorithms/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks_first_layers_x/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/extend_tracks_uv/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/quality_filter/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/quality_filter_x/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/search_uv_windows/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/quality_filters/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/fit/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/calculate_parametrization/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/consolidate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
@@ -57,6 +52,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding_steps/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/patPV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/raw_banks/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/velo/clustering/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/global_event_cut/include)
@@ -82,11 +78,13 @@ file(GLOB stream_visitors_patPV "visitors/patPV/src/*cu")
 file(GLOB stream_visitors_beamlinePV "visitors/beamlinePV/src/*cu")
 file(GLOB stream_visitors_assoc "visitors/associate/src/*cu")
 file(GLOB stream_visitors_UT "visitors/UT/src/*cu")
-file(GLOB stream_visitors_SciFi "visitors/SciFi/src/*cu")
+file(GLOB stream_visitors_SciFi_decoding "visitors/SciFi/decoding/src/*cu")
+file(GLOB stream_visitors_SciFi_looking_forward "visitors/SciFi/looking_forward/src/*cu")
 file(GLOB stream_visitors_Muon "visitors/muon/src/*cu")
 file(GLOB stream_visitors_kalman "visitors/kalman/src/*cu")
 file(GLOB stream_visitors_vertex "visitors/vertex_fit/src/*cu")
 file(GLOB stream_visitors_selections "visitors/selections/src/*cu")
+file(GLOB stream_visitors_raw_banks "visitors/raw_banks/src/*cu")
 
 add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -101,8 +99,9 @@ if(TARGET_DEVICE STREQUAL "CPU")
     ${stream_sequence} ${stream_sequence_cpp} ${stream_setup} ${stream_visitors_gec}
     ${stream_visitors_ip} ${stream_visitors_velo} ${stream_visitors_patPV}
     ${stream_visitors_beamlinePV} ${stream_visitors_assoc} ${stream_visitors_UT}
-    ${stream_visitors_SciFi} ${stream_visitors_Muon} ${stream_visitors_kalman}
-    ${stream_visitors_vertex} ${stream_visitors_selections})
+    ${stream_visitors_SciFi_decoding} ${stream_visitors_SciFi_looking_forward}
+    ${stream_visitors_Muon} ${stream_visitors_kalman}
+    ${stream_visitors_vertex} ${stream_visitors_selections} ${stream_visitors_raw_banks})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
 endif()
@@ -115,11 +114,13 @@ allen_add_library(Visitors STATIC
   ${stream_visitors_beamlinePV}
   ${stream_visitors_assoc}
   ${stream_visitors_UT}
-  ${stream_visitors_SciFi}
+  ${stream_visitors_SciFi_decoding}
+  ${stream_visitors_SciFi_looking_forward}
   ${stream_visitors_Muon}
   ${stream_visitors_kalman}
   ${stream_visitors_vertex}
   ${stream_visitors_selections}
+  ${stream_visitors_raw_banks}
 )
 
 target_link_libraries(Visitors PRIVATE
@@ -134,6 +135,7 @@ target_link_libraries(Visitors PRIVATE
   Kalman
   VertexFitter
   Hlt1
+  RawBanks
   SciFi
   CpuGEC
   CpuUtils
@@ -169,6 +171,7 @@ target_link_libraries(Stream PRIVATE
   Kalman
   VertexFitter
   Hlt1
+  RawBanks
   SciFi
   CpuGEC
   CpuUtils

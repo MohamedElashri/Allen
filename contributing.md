@@ -342,27 +342,198 @@ dev_velo_track_hit_number (0.01), unused (0.05), dev_atomics_storage (0.00), unu
 Max memory required: 9.61 MiB
 ```
 
-
-Before placing a merge request
+Adding configurable parameters
 ==============================
-Before starting to edit files, please ensure that your editor produces spaces, not tabs!
 
-You can apply the clang format on all files with this command:
-`find . \! -wholename "*InstallArea*" -a \! -wholename "*build*/*"  | egrep "(\.cpp|\.cu|\.cuh|\.h|\.hpp)$" | xargs -n 1 /cvmfs/lhcb.cern.ch/lib/bin/x86_64-centos7/lcg-clang-format-8.0.0 -i --color=0
-`
+To allow a parameter to be configurable via the JSON configuration interface, a `Property` must be
+added to the corresponding `ALGORITHM` call. This makes uses of variadic macros so multiple `Property`
+objects can be included and will be appended verbatim to the class definition written by the `ALGORITHM` macro.
+For example, the following code will add two properties to the `search_by_triplet` algorithm:
 
-Before placing a merge request, please go through the following list and check that BOTH compilation and running work after your changes:
-   * Release and debug mode `cmake -DCMAKE_BUILD_TYPE=release ..` and `cmake -DCMAKE_BUILD_TYPE=debug ..`
-   * Different sequences:
-      * Default sequence: `cmake -DSEQUENCE=DefaultSequence ..`
-      * CPU SciFi tracking sequence: `cmake -DSEQUENCE=CPUSciFi ..`
-      * CPU PV finding sequence: `cmake -DSEQUENCE=CPUPVSequence ..`
-  * Compilation with ROOT (if you have a ROOT installation available): `cmake -DUSE_ROOT=TRUE ..` If you don't have ROOT available, please mention this in the merge request, then we will test it.
-  
+```
+ALGORITHM(search_by_triplet,
+          velo_search_by_triplet_t,
+          ARGUMENTS(
+            dev_velo_cluster_container,
+            ...
+            dev_rel_indices),
+          Property<float> m_tol {this,
+                                 "forward_phi_tolerance",
+                                 Configuration::velo_search_by_triplet_t::forward_phi_tolerance,
+                                 0.052f,
+                                 "tolerance"};
+          Property<float> m_scat {this,
+                                  "max_scatter_forwarding",
+                                  Configuration::velo_search_by_triplet_t::max_scatter_forwarding,
+                                  0.1f,
+                                  "scatter forwarding"};
+          )
+```
 
-Check that you can run `./Allen` after every compilation. 
-  
+The arguments passed to the `Property` constructor are
+* the `Algorithm` that "owns" it;
+* the name of the property in the JSON configuration;
+* the underlying variable - this must be in `__constant__` memory for regular properties (see below);
+* the default value of the property;
+* a description of the property.
 
-Now you are ready to take over!
+As the underlying parameters make use of GPU constant memory, they may not be defined within the
+algorithm's class. They should instead be placed inside of namespace of the same name within the
+`Configuration` namespace. For the example above, the following needs to be added to the header file:
 
-Good luck!
+```
+namespace Configuration {
+  namespace velo_search_by_triplet_t {
+    // Forward tolerance in phi
+    extern __constant__ float forward_phi_tolerance;
+    // Max scatter for forming triplets (seeding) and forwarding
+    extern __constant__ float max_scatter_forwarding;
+  } // namespace velo_search_by_triplet_t
+} // namespace Configuration
+```
+
+and the following to the code file:
+```
+__constant__ float Configuration::velo_search_by_triplet_t::forward_phi_tolerance;
+__constant__ float Configuration::velo_search_by_triplet_t::max_scatter_forwarding;
+```
+
+Finally, the following can be added to the configuration file (default: `configuration/constants/default.json`)
+to configure the values of these parameters at runtime:
+```
+"velo_search_by_triplet_t": {"forward_phi_tolerance" : "0.052", "max_scatter_forwarding" : "0.1"}
+```
+
+Derived properties
+------------------
+
+For properties derived from other configurable properties, the `DerivedProperty` class may be used:
+
+```
+Property<float> m_slope {this,
+                         "sigma_velo_slope",
+                         Configuration::compass_ut_t::sigma_velo_slope,
+                         0.010f * Gaudi::Units::mrad,
+                         "sigma velo slope [radians]"};
+DerivedProperty<float> m_inv_slope {this,
+                                    "inv_sigma_velo_slope",
+                                    Configuration::compass_ut_t::inv_sigma_velo_slope,
+                                    Configuration::Relations::inverse,
+                                    std::vector<Property<float>*> {&this->m_slope},
+                                    "inv sigma velo slope"};
+```
+
+Here, the value of the `m_inv_slope` property is determined by the function and the
+vector of properties given in the third and fourth arguments. Additional functions
+may be added to the `Configuration::Relations` and defined in `stream/gear/src/Configuration.cu`.
+All functions take a vector of properties as an argument, to allow for functions of an
+arbitrary number of properties.
+
+CPU properties
+--------------
+
+Regular properties are designed to be used in GPU algorithms and are stored
+in GPU constant memory with a cached copy within the `Property` class.
+For properties that are only needed on the CPU, e.g. grid and block dimensions,
+a `CPUProperty` can be used, which only stores the configured value internally.
+This is also useful for properties tht are only needed when first configuring the
+algorithm, such as properties only used in the visitor class.
+Note that regular properties may also be used in this case
+(e.g. `../stream/visitors/velo/src/SearchByTripletVisitor.cu` accesses non-CPU properties)
+but if a property is *only* needed on the CPU then there is a reduced overhead in using a `CPUProperty`.
+
+These are defined in the same way as a `Property` but take one fewer argument as there is no underlying
+constant memory object to reference.
+
+```
+CPUProperty<std::array<int, 3>> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
+CPUProperty<std::array<int, 3>> m_grid_dim {this, "grid_dim", {1, 1, 1}, "grid dimensions"};
+```
+
+Shared properties
+-----------------
+
+For properties that are shared between multiple top-level algorithms, it may be preferred
+to keep the properties in a neutral location. This ensures that properties are configured
+regardless of which algorithms are used in the configured sequence and can be achieved by
+using a `SharedProperty`.
+
+Shared properties are owned by a `SharedPropertySet` rather than an `Algorithm`
+and example of which is given below.
+
+```
+#include "Configuration.cuh"
+
+namespace Configuration {
+  namespace example_common {
+    extern __constant__ float param;
+  }
+}
+
+struct ExampleConfiguration : public SharedPropertySet {
+  ExampleConfiguration() = default;
+  constexpr static auto name{ "example_common" };
+private:
+  Property<float> m_par{this, "param", Configuration::example_common::param, 0., "an example parameter"};
+};
+```
+
+This may be used by any algorithm by including the header and adding the following line
+to the end of the arguments of the `ALGORITHM` call.
+
+```
+SharedProperty<float> m_shared{this, "example_common", "param"};
+```
+
+These must also be plumbed in to `Configuration::getSharedPropertySet` in `stream/gear/src/Configuration.cu`
+to allow the property set to be found by algorithms.
+
+Adding monitoring histograms
+============================
+
+Overview
+--------
+
+Monitoring in Allen is performed by dedicated monitoring threads (by default there is a single thread). 
+After a slice of data is processed, the `HostBuffers` corresponding to that slice are sent to the monitoring 
+thread concurrent with being sent to the I/O thread for output. The flow of `HostBuffers` is shown below:
+
+```mermaid
+graph LR
+A((HostBuffer<br>Manager))-->B[GPU thread]
+B-->C[I/O thread]
+B-->|if free|D[Monitoring thread]
+C-->A
+D-->A
+```
+
+To avoid excessive load on the CPU, monitoring threads will not queue `HostBuffers`, i.e, if the 
+monitoring thread is already busy then new `HostBuffers` will be immediately marked as monitored. 
+Functionality exists within `MonitorManager` to reactively reduce the amount of monitoring performed 
+(n.b. this corresponds to an **increase** in the `monitoring_level`) in response to a large number of skipped 
+slices. This is not currently used but would allow monitoring to favour running *some* types of monitors 
+for *all* slices over running *all* types of monitors for *some* slices. Additionally, less important monitors 
+could be run on a random sub-sample of slices. The `MetaMonitor` provides monitoring histograms that track 
+the numbers of successfully monitored and skipped slices as well as the monitoring level. 
+
+Monitor classes
+---------------
+
+Additional monitors that produce histograms based on information in the `HostBuffers` should be added to 
+`integration/monitoring` and inherit from the `BufferMonitor` class. The `RateMonitor` class provides an 
+example of this. Furthermore, each histogram that is added must be given a unique key in MonitorBase::MonHistType. 
+
+Once a new monitoring class has been written, this may be added to the monitoring thread(s) by including an instance 
+of the class in the vectors created in `MonitorManager::init`, e.g.
+```
+m_monitors.back().push_back(new RateMonitor(buffers_manager, time_step, offset));
+```
+
+Saving histograms
+-----------------
+
+All histograms may be saved by calling `MonitorManager::saveHistograms`. This is currently performed once after 
+Allen has finished executing. In principle, this could be performed on a regular basis within the main loop but 
+ideally would require monitoring threads to be paused for thread safety. 
+
+Histograms are currently written to `monitoringHists.root`.

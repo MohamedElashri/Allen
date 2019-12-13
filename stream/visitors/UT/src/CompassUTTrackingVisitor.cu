@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<compass_ut_t>(
+  const compass_ut_t& state,
   compass_ut_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

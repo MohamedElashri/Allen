@@ -44,12 +44,13 @@ int main(int argc, char* argv[])
 
   // Allocate read buffer space
   std::vector<ReadBuffer> read_buffers(n_slices);
-  for (auto& [n_filled, event_offsets, buffer] : read_buffers) {
+  for (auto& [n_filled, event_offsets, buffer, transpose_start] : read_buffers) {
     // FIXME: Make this configurable
     buffer.resize(n_events * average_event_size * bank_size_fudge_factor * 1024);
     event_offsets.resize(offsets_size);
     event_offsets[0] = 0;
     n_filled = 0;
+    transpose_start = 0;
   }
 
   // Bank ID translation
@@ -120,7 +121,7 @@ int main(int argc, char* argv[])
   cout << "read " << std::lround(n_read) << " events; " << n_read / t.get() << " events/s\n";
 
   // Count the number of banks of each type
-  auto& [n_filled, event_offsets, read_buffer] = read_buffers[0];
+  auto& [n_filled, event_offsets, read_buffer, transpose_start] = read_buffers[0];
   auto [count_success, banks_count] = fill_counts({read_buffer.data(), event_offsets[1]});
 
   // Allocate space for event ids

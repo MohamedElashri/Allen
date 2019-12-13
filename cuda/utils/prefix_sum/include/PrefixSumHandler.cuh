@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ArgumentManager.cuh"
+#include "Configuration.cuh"
 #include "PrefixSum.cuh"
 
 // TODO: Allow to configure the size of the Prefix Sum sweep at compile time
@@ -13,7 +14,7 @@
  *          An auxiliary array must be provided.
  */
 #define PREFIX_SUM_ALGORITHM(EXPOSED_TYPE_NAME, DEPENDENCIES)                                                   \
-  struct EXPOSED_TYPE_NAME {                                                                                    \
+  struct EXPOSED_TYPE_NAME : public Algorithm {                                                                 \
     constexpr static auto name {#EXPOSED_TYPE_NAME};                                                            \
     constexpr static size_t aux_array_size(size_t array_size)                                                   \
     {                                                                                                           \

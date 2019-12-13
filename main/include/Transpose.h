@@ -54,7 +54,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
   size_t n_events,
   bool check_checksum)
 {
-  auto& [n_filled, event_offsets, buffer] = read_buffer;
+  auto& [n_filled, event_offsets, buffer, transpose_start] = read_buffer;
 
   // Keep track of where to write and the end of the prefetch buffer
   auto* buffer_start = &buffer[0];
@@ -332,10 +332,10 @@ std::tuple<bool, bool, size_t> transpose_events(
 {
 
   bool full = false, success = true;
-  auto const& [n_filled, event_offsets, buffer] = read_buffer;
+  auto const& [n_filled, event_offsets, buffer, event_start] = read_buffer;
 
   // Loop over events in the prefetch buffer
-  size_t i_event = 0;
+  size_t i_event = event_start;
   for (; i_event < n_filled && i_event < n_events && success && !full; ++i_event) {
     // Offsets are to the start of the event, which includes the header
     auto const* bank = buffer.data() + event_offsets[i_event];

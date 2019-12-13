@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<kalman_pv_ipchi2_t>(
+  const kalman_pv_ipchi2_t& state,
   kalman_pv_ipchi2_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -22,7 +23,7 @@ void SequenceVisitor::visit<kalman_pv_ipchi2_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32), cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_kf_tracks>(),
     arguments.offset<dev_atomics_scifi>(),

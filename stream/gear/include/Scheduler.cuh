@@ -91,4 +91,15 @@ struct Scheduler {
       memory_manager.print();
     }
   }
+
+  void configure_algorithms(const std::map<std::string, std::map<std::string, std::string>>& config)
+  {
+    Sch::ConfigureAlgorithmSequence<ConfiguredSequence>::configure(sequence_tuple, config);
+  }
+
+  auto get_algorithm_configuration()
+  {
+    std::map<std::string, std::map<std::string, std::string>> config;
+    return Sch::GetSequenceConfiguration<ConfiguredSequence>::get(sequence_tuple, config);
+  }
 };

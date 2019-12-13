@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<muon_pre_decoding_t>(
+  const muon_pre_decoding_t& state,
   muon_pre_decoding_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

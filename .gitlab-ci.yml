@@ -297,7 +297,7 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n122 ${i} | head -n118 > efficiency_${i}; colordiff ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n133 ${i} | head -n129 > efficiency_${i}; colordiff ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
@@ -335,14 +335,16 @@ run_built_tests:
     - IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
     - IFS=${PREVIOUS_IFS}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
+    - BREAKDOWN_DEVICE_ID=${JOB_NAME_SPLIT[2]}
     - cat output_*/output.txt | grep --color=none "device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
     - cat output_*/output.txt | grep --color=none "events/s" | awk '{ print $1; }' > throughputs.txt
     - cat devices.txt
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
-    - python3 checker/plotting/csv_plotter.py -t "Throughput of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
-    - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME} 
+    - python3 checker/plotting/post_combined_message.py -l "Throughput of [sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
+    # - python3 checker/plotting/csv_plotter.py -t "Throughput of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
+    - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME}
 
 .throughput_speedup_job: &publish_speedup_job_def
   only:
@@ -355,7 +357,7 @@ run_built_tests:
   script:
     - cat output_*/output.txt | grep --color=none "device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
     - cat output_*/output.txt | grep --color=none "events/s" | awk '{ print $1; }' > throughputs.txt
-    - cat devices.txt 
+    - cat devices.txt
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
@@ -389,10 +391,10 @@ CPU:DefaultSequence:RelWithDebInfo::build_x86_clang:
 
 # Run on all platforms
 # Performance runs
-rtx2080tinofan:CUDA:DefaultSequence:run_throughput:
+rtx2080tifan:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_def
   tags:
-    - rtx2080tinofan
+    - rtx2080tifan
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
@@ -417,26 +419,26 @@ t4:CUDA:DefaultSequence:run_throughput:
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-gtx10606g:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx10606g
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtx10606g:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx10606g
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-gtx680:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx680
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtx680:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx680
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-gtxtitanx:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtxtitanx
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtxtitanx:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtxtitanx
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 x862630v4:CPU:DefaultSequence:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
@@ -445,19 +447,19 @@ x862630v4:CPU:DefaultSequence:run_throughput_cpu:
   dependencies:
     - CPU:DefaultSequence:RelWithDebInfo::build_x86
 
-gtx670:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx670
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtx670:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx670
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-gtx1080ti:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - gtx1080ti
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# gtx1080ti:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - gtx1080ti
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 # Physics runs
 
@@ -491,27 +493,26 @@ gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug_root:
 
 # Publish
 
-# Velo
 # Plain results to mattermost
-rtx2080tinofan:DefaultSequence:publish_algo_breakdown_plot:
-  <<: *publish_algo_breakdown_plot_def
-  tags:
-    - gpu
-  dependencies:
-    - rtx2080tinofan:CUDA:DefaultSequence:run_throughput
+# rtx2080tifan:DefaultSequence:publish_algo_breakdown_plot:
+#   <<: *publish_algo_breakdown_plot_def
+#   tags:
+#     - gpu
+#   dependencies:
+#     - rtx2080tifan:CUDA:DefaultSequence:run_throughput
 
-throughput:DefaultSequence:publish_throughput:
+throughput:DefaultSequence:rtx2080tifan:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - gpu
   dependencies:
-    - rtx2080tinofan:CUDA:DefaultSequence:run_throughput
+    - rtx2080tifan:CUDA:DefaultSequence:run_throughput
     - rtx6000:CUDA:DefaultSequence:run_throughput
     - v100:CUDA:DefaultSequence:run_throughput
     - t4:CUDA:DefaultSequence:run_throughput
-    - gtx10606g:CUDA:DefaultSequence:run_throughput
-    - gtx680:CUDA:DefaultSequence:run_throughput
-    - gtxtitanx:CUDA:DefaultSequence:run_throughput
-    - gtx670:CUDA:DefaultSequence:run_throughput
-    - gtx1080ti:CUDA:DefaultSequence:run_throughput
     - x862630v4:CPU:DefaultSequence:run_throughput_cpu
+    # - gtx1080ti:CUDA:DefaultSequence:run_throughput
+    # - gtxtitanx:CUDA:DefaultSequence:run_throughput
+    # - gtx670:CUDA:DefaultSequence:run_throughput
+    # - gtx10606g:CUDA:DefaultSequence:run_throughput
+    # - gtx680:CUDA:DefaultSequence:run_throughput

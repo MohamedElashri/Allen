@@ -34,11 +34,3 @@ __device__ __inline__ int calc_index(
   const int layer0,
   const int layer2,
   const UT::HitOffsets& ut_hit_offsets);
-
-__device__ __inline__ bool check_tol_refine(
-  const int hit_index,
-  const UT::Hits& ut_hits,
-  const MiniState& velo_state,
-  const float normFactNum,
-  const float xTol,
-  const float dxDy);

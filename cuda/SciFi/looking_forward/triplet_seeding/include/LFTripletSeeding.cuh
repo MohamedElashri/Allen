@@ -14,14 +14,20 @@
 __global__ void lf_triplet_seeding(
   uint32_t* dev_scifi_hits,
   const uint32_t* dev_scifi_hit_count,
+  const uint* dev_atomics_velo,
+  const char* dev_velo_states,
   const uint* dev_atomics_ut,
+  const uint* dev_ut_track_hit_number,
+  const uint* dev_ut_track_velo_indices,
   const float* dev_ut_qop,
   const char* dev_scifi_geometry,
   const float* dev_inv_clus_res,
-  const uint* dev_scifi_lf_number_of_candidates,
-  const short* dev_scifi_lf_candidates,
+  const int* dev_initial_windows,
   const LookingForward::Constants* dev_looking_forward_constants,
-  SciFi::CombinedValue* dev_scifi_lf_triplet_best);
+  const MiniState* dev_ut_states,
+  const bool* dev_scifi_lf_process_track,
+  int* dev_scifi_lf_found_triplets,
+  int8_t* dev_scifi_lf_number_of_found_triplets);
 
 ALGORITHM(
   lf_triplet_seeding,
@@ -31,6 +37,12 @@ ALGORITHM(
     dev_scifi_hit_count,
     dev_atomics_ut,
     dev_ut_qop,
-    dev_scifi_lf_number_of_candidates,
-    dev_scifi_lf_candidates,
-    dev_scifi_lf_triplet_best))
+    dev_scifi_lf_initial_windows,
+    dev_ut_states,
+    dev_ut_track_hit_number,
+    dev_ut_track_velo_indices,
+    dev_atomics_velo,
+    dev_velo_states,
+    dev_scifi_lf_process_track,
+    dev_scifi_lf_found_triplets,
+    dev_scifi_lf_number_of_found_triplets))

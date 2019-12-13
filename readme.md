@@ -38,7 +38,7 @@ Where to find input
 -------------
 Input from 5k events for each of the following decay modes can be found here:
 
-* minimum bias, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/minbias-mag_down.tar.gz`
+* minimum bias, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/minbias/minbias_mag_down.tar.gz`
 * Bs->PhiPhi, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_down.tar.gz`
 * Bs->PhiPhi, mag up: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Bs2PhiPhi/mag_up.tar.gz`
 * J/Psi->MuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/JpsiMuMu/mag_down.tar.gz`
@@ -46,6 +46,7 @@ Input from 5k events for each of the following decay modes can be found here:
 * B->KstEE, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/KstEE/KstEE_mag_down.tar.gz`
 * B->KstMuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/KstMuMu/KstMuMu_mag_down.tar.gz`
 * Z->MuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Z2MuMu/Z2MuMu_mag_down.tar.gz`
+* Ks0->MuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Ks0mumu/Ks02MuMu_mag_down.tar.gz`
 
 If other inputs are required, follow these instructions for producing them:
 [https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md](https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md)
@@ -108,6 +109,10 @@ Here are some example run options:
     # Run one stream and print all memory allocations
     ./Allen -n 5000 -p
 
+How to enable Nvidia persistenced mode
+-----------------------------------------
+Enabling Nvidia [persistenced mode](https://docs.nvidia.com/deploy/driver-persistence/index.html) will increase the throughput of Allen, as the GPU will remain initialized even when no process is running. To enable:
+`sudo systemctl enable nvidia-persistenced`, reboot the machine.
 
 How to profile it
 ------------------

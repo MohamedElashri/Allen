@@ -61,9 +61,9 @@ struct MemoryManager {
     const size_t aligned_request =
       requested_size + guarantee_alignment - 1 - ((requested_size + guarantee_alignment - 1) % guarantee_alignment);
 
-    if (logger::ll.verbosityLevel >= 4) {
-      debug_cout << "MemoryManager: Requested to reserve " << requested_size << " B (" << aligned_request
-                 << " B aligned) for argument " << Argument::name << std::endl;
+    if (logger::ll.verbosityLevel >= 5) {
+      verbose_cout << "MemoryManager: Requested to reserve " << requested_size << " B (" << aligned_request
+                   << " B aligned) for argument " << Argument::name << std::endl;
     }
 
     // Finds first free segment providing that space
@@ -77,7 +77,7 @@ struct MemoryManager {
     // Complain if no space was available
     if (it == memory_segments.end()) {
       print();
-      throw StrException(
+      throw MemoryException(
         "Reserve: Requested size for argument " + std::string(Argument::name) + " could not be met (" +
         std::to_string(((float) aligned_request) / (1024 * 1024)) + " MiB)");
     }
@@ -111,8 +111,8 @@ struct MemoryManager {
   {
     const auto tag = std::string(Argument::name);
 
-    if (logger::ll.verbosityLevel >= 4) {
-      debug_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
+    if (logger::ll.verbosityLevel >= 5) {
+      verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
     }
 
     auto it = std::find_if(memory_segments.begin(), memory_segments.end(), [&tag](const MemorySegment& segment) {

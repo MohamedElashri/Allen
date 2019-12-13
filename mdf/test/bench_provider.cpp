@@ -41,10 +41,10 @@ int main(int argc, char* argv[])
 
   chrono::milliseconds sleep_interval {10};
 
-  bool good = true, timed_out = false;
+  bool good = true, timed_out = false, done = false;
   size_t filled = 0, slice = 0;
-  while (good || filled != 0) {
-    std::tie(good, timed_out, slice, filled) = mdf.get_slice();
+  while (good && !done) {
+    std::tie(good, done, timed_out, slice, filled) = mdf.get_slice();
     n_filled += filled;
     this_thread::sleep_for(sleep_interval);
     mdf.slice_free(slice);

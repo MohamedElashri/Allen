@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<pv_fit_seeds_t>(
+  const pv_fit_seeds_t& state,
   pv_fit_seeds_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
@@ -24,7 +25,7 @@ void SequenceVisitor::visit<pv_fit_seeds_t>(
   cudaEvent_t& cuda_generic_event)
 {
 
-  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), 1, cuda_stream);
+  state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_vertex>(),
     arguments.offset<dev_number_vertex>(),

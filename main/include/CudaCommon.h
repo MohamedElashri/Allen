@@ -5,14 +5,18 @@
 #include <cassert>
 
 #include "BankTypes.h"
+#include "LoggerCommon.h"
 
 #ifdef CPU
 
 #include <cmath>
+#include <cstring>
 
 // -----------
 // CPU support
 // -----------
+
+using std::signbit;
 
 #define __host__
 #define __device__
@@ -25,6 +29,7 @@
 #define cudaEvent_t int
 #define cudaStream_t int
 #define cudaSuccess 0
+#define cudaErrorMemoryAllocation 2
 #define half_t short
 #define __popcll __builtin_popcountll
 #define cudaEventBlockingSync 0x01
@@ -105,12 +110,50 @@ cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream);
 cudaError_t cudaFreeHost(void* ptr);
 cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
+cudaError_t cudaMemcpyToSymbol(
+  void* symbol,
+  const void* src,
+  size_t count,
+  size_t offset = 0,
+  enum cudaMemcpyKind kind = cudaMemcpyDefault);
+
+template<class T>
+cudaError_t cudaMemcpyToSymbol(
+  const T& symbol,
+  const void* src,
+  size_t count,
+  size_t offset = 0,
+  enum cudaMemcpyKind = cudaMemcpyHostToDevice)
+{
+  std::memcpy(reinterpret_cast<void*>(((char*) &symbol) + offset), src, count);
+  return 0;
+}
+
+template<class T>
+cudaError_t cudaMemcpyFromSymbol(
+  void* dst,
+  const T& symbol,
+  size_t count,
+  size_t offset = 0,
+  enum cudaMemcpyKind = cudaMemcpyHostToDevice)
+{
+  std::memcpy(dst, reinterpret_cast<void*>(((char*) &symbol) + offset), count);
+  return 0;
+}
 
 template<class T, class S>
 T atomicAdd(T* address, S val)
 {
   const T old = *address;
   *address += val;
+  return old;
+}
+
+template<class T, class S>
+T atomicOr(T* address, S val)
+{
+  const T old = *address;
+  *address |= val;
   return old;
 }
 
@@ -147,6 +190,10 @@ half_t __float2half(float value);
       throw std::invalid_argument("cudaCheckKernelCall failed");    \
     }                                                               \
   }
+
+namespace Configuration {
+  extern uint verbosity_level;
+}
 
 #elif defined(HIP)
 
@@ -186,6 +233,7 @@ half_t __float2half(float value);
 #define cudaEvent_t hipEvent_t
 #define cudaStream_t hipStream_t
 #define cudaSuccess hipSuccess
+#define cudaErrorMemoryAllocation hipErrorMemoryAllocation
 #define cudaEventBlockingSync hipEventBlockingSync
 
 #define cudaMemcpyHostToHost hipMemcpyHostToHost
@@ -224,6 +272,10 @@ half_t __float2half(float value);
 
 __device__ __host__ half_t __float2half(float value);
 
+namespace Configuration {
+  extern __constant__ uint verbosity_level;
+}
+
 #else
 
 // ------------
@@ -256,6 +308,10 @@ __device__ __host__ half_t __float2half(float value);
       throw std::invalid_argument("cudaCheckKernelCall failed");    \
     }                                                               \
   }
+
+namespace Configuration {
+  extern __constant__ uint verbosity_level;
+}
 
 #endif
 

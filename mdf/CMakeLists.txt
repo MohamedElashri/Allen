@@ -25,6 +25,7 @@ target_include_directories(
 
 target_link_libraries(
   mdf PUBLIC
+  Common
   ${ZLIB_LIBRARIES})
 
 if (LZMA_FOUND)

@@ -45,6 +45,8 @@ private:
 
   std::unique_ptr<TH1F> eff_vs_z;
   std::unique_ptr<TH1F> eff_vs_mult;
+  std::unique_ptr<TH1F> eff_matched_vs_z;
+  std::unique_ptr<TH1F> eff_matched_vs_mult;
   std::unique_ptr<TH1F> eff_norm_z;
   std::unique_ptr<TH1F> eff_norm_mult;
   std::unique_ptr<TH1F> fakes_vs_mult;

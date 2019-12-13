@@ -53,7 +53,7 @@ void SequenceVisitor::visit<global_event_cut_t>(
     cudaCheck(cudaMemsetAsync(arguments.offset<dev_number_of_selected_events>(), 0, sizeof(uint), cuda_stream));
 
     // Setup opts and arguments for kernel call
-    state.set_opts(runtime_options.mep_layout, dim3(runtime_options.number_of_events), dim3(32), cuda_stream);
+    state.set_opts(runtime_options.mep_layout, dim3(runtime_options.number_of_events), cuda_stream);
     state.set_arguments(
       runtime_options.mep_layout,
       arguments.offset<dev_ut_raw_input>(),

@@ -3,6 +3,7 @@
 
 template<>
 void SequenceVisitor::set_arguments_size<is_muon_t>(
+  const is_muon_t& state,
   is_muon_t::arguments_t arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,

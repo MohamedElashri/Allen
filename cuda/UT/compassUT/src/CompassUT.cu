@@ -3,6 +3,14 @@
 #include "CalculateWindows.cuh"
 #include "UTFastFitter.cuh"
 
+__constant__ float Configuration::compass_ut_t::sigma_velo_slope;
+__constant__ float Configuration::compass_ut_t::inv_sigma_velo_slope;
+__constant__ float Configuration::compass_ut_t::min_momentum_final;
+__constant__ float Configuration::compass_ut_t::min_pt_final;
+__constant__ float Configuration::compass_ut_t::hit_tol_2;
+__constant__ float Configuration::compass_ut_t::delta_tx_2;
+__constant__ uint Configuration::compass_ut_t::max_considered_before_found;
+
 __global__ void compass_ut(
   uint* dev_ut_hits, // actual hit content
   const uint* dev_ut_hit_offsets,
@@ -321,7 +329,7 @@ __device__ void save_track(
   const float p = 1.3f * fabsf(1.f / qop);
   const float pt = p * sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty);
 
-  if (p < UT::Constants::minMomentumFinal || pt < UT::Constants::minPTFinal) return;
+  if (p < Configuration::compass_ut_t::min_momentum_final || pt < Configuration::compass_ut_t::min_pt_final) return;
   // if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return;
 
   const float xUT = finalParams[0];
