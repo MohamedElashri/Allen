@@ -16,7 +16,7 @@ from Gaudi.Configuration import appendPostConfigAction
 from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
-from Configurables import AllenConsumer, AllenUpdater
+from Configurables import AllenTransformer, AllenUpdater
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
 from Configurables import DumpMuonGeometry, DumpVPGeometry, AllenUpdater
 from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables 
@@ -65,6 +65,7 @@ FTRawBankDecoder("createFTClusters").DecodingVersion = 5
 NTupleSvc().Output = ["FILE1 DATAFILE='velo_states.root' TYP='ROOT' OPT='NEW'"]
 
 
+# remove algorithms that are not needed
 def modifySequences():
     try:
         # empty the calo sequence
@@ -83,12 +84,16 @@ def modifySequences():
         GaudiSequencer("RecoDecodingSeq").Members.append(MuonRec())
     except ValueError:
         None
-
-
 appendPostConfigAction(modifySequences)
 
+# add call to Allen consumer
+allen_seq = GaudiSequencer("AllenSeq")
+allen_transformer = AllenTransformer()
+allen_seq.Members += [allen_transformer]
 
-producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
+ApplicationMgr().TopAlg += [allen_seq]
+
+producers = [p(DumpToFile=True) for p in (DumpVPGeometry,
                                            DumpUTGeometry,
                                            DumpFTGeometry,
                                            DumpMuonGeometry,
@@ -102,3 +107,5 @@ producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
 ApplicationMgr().ExtSvc += [
     AllenUpdater(OutputLevel=2),
 ] + producers
+
+
