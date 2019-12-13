@@ -7,6 +7,7 @@
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
 #include "CpuFunction.cuh"
+#include "Argument.cuh"
 
 // Note: For the moment, a CpuAlgorithm does not
 //       differ from an Algorithm.

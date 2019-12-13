@@ -3,25 +3,28 @@
 #include <tuple>
 
 // Datatype
-template <typename internal_t>
+template<typename internal_t>
 struct input_datatype {
   using type = internal_t;
   type* m_value;
 
-  operator const type*() const {
-    return const_cast<const type*>(m_value);
-  }
+  operator const type*() const { return const_cast<const type*>(m_value); }
 };
 
-template <typename internal_t>
+template<typename internal_t>
 struct output_datatype {
   using type = internal_t;
   type* m_value;
 
-  operator type*() const {
-    return m_value;
-  }
+  operator type*() const { return m_value; }
 };
+
+#define ARG(ARGUMENT_NAME, ...)         \
+  struct ARGUMENT_NAME : __VA_ARGS__ {           \
+    constexpr static auto name {#ARGUMENT_NAME}; \
+    size_t size;                                 \
+    char* offset;                                \
+  };
 
 /**
  * @brief Macro for defining arguments in a Handler.

@@ -1,58 +1,64 @@
+
+/**
+ * Specify here all arguments with their association to algorithm arguments.
+ */
+ARG(
+  dev_event_list_t,
+  cpu_global_event_cut::dev_event_list_t,
+  velo_estimate_input_size::dev_event_list_t,
+  velo_masked_clustering::dev_event_list_t)
+ARG(
+  dev_estimated_input_size_t,
+  velo_estimate_input_size::dev_estimated_input_size_t,
+  cpu_velo_prefix_sum_number_of_clusters::dev_estimated_input_size_t,
+  velo_masked_clustering::dev_estimated_input_size_t)
+ARG(dev_velo_raw_input_t,
+  velo_estimate_input_size::dev_velo_raw_input_t,
+  velo_masked_clustering::dev_velo_raw_input_t)
+ARG(
+  dev_velo_raw_input_offsets_t,
+  velo_estimate_input_size::dev_velo_raw_input_offsets_t,
+  velo_masked_clustering::dev_velo_raw_input_offsets_t)
+ARG(dev_module_candidate_num_t,
+  velo_estimate_input_size::dev_module_candidate_num_t,
+  velo_masked_clustering::dev_module_candidate_num_t)
+ARG(
+  dev_cluster_candidates_t,
+  velo_estimate_input_size::dev_cluster_candidates_t,
+  velo_masked_clustering::dev_cluster_candidates_t)
+ARG(dev_module_cluster_num_t,
+  velo_masked_clustering::dev_module_cluster_num_t)
+ARG(dev_velo_cluster_container_t,
+  velo_masked_clustering::dev_velo_cluster_container_t)
+
 /**
  * Specify here the algorithms to be executed in the sequence,
- * in the expected order of execution.
+ * in the expected order of execution, with their arguments.
  */
-struct dev_velo_raw_input_t : velo_estimate_input_size::velo_raw_input_t {
-  constexpr static auto name {"dev_velo_raw_input_t"};
-  size_t size;
-  char* offset;
-};
-
-struct dev_velo_raw_input_offsets_t : velo_estimate_input_size::velo_raw_input_offsets_t {
-  constexpr static auto name {"dev_velo_raw_input_offsets_t"};
-  size_t size;
-  char* offset;
-};
-
-struct dev_estimated_input_size_t : velo_estimate_input_size::estimated_input_size_t {
-  constexpr static auto name {"dev_estimated_input_size_t"};
-  size_t size;
-  char* offset;
-};
-
-struct dev_module_candidate_num_t : velo_estimate_input_size::module_candidate_num_t {
-  constexpr static auto name {"dev_module_candidate_num_t"};
-  size_t size;
-  char* offset;
-};
-
-struct dev_cluster_candidates_t : velo_estimate_input_size::cluster_candidates_t {
-  constexpr static auto name {"dev_cluster_candidates_t"};
-  size_t size;
-  char* offset;
-};
-
-struct dev_event_list_t : velo_estimate_input_size::event_list_t {
-  constexpr static auto name {"dev_event_list_t"};
-  size_t size;
-  char* offset;
-};
-
 SEQUENCE_T(
-  // cpu_init_event_list_t,
-  // cpu_global_event_cut_t,
+  cpu_global_event_cut::cpu_global_event_cut_t<std::tuple<dev_event_list_t>>,
   velo_estimate_input_size::velo_estimate_input_size_t<std::tuple<
     dev_velo_raw_input_t,
     dev_velo_raw_input_offsets_t,
     dev_estimated_input_size_t,
     dev_module_candidate_num_t,
     dev_cluster_candidates_t,
-    dev_event_list_t>>
-  // cpu_velo_prefix_sum_number_of_clusters_t,
-  // velo_masked_clustering_t,
+    dev_event_list_t>>,
+  cpu_velo_prefix_sum_number_of_clusters::cpu_velo_prefix_sum_number_of_clusters_t<
+    std::tuple<dev_estimated_input_size_t>>,
+  velo_masked_clustering::velo_masked_clustering_t<std::tuple<
+    dev_velo_raw_input_t,
+    dev_velo_raw_input_offsets_t,
+    dev_estimated_input_size_t,
+    dev_module_candidate_num_t,
+    dev_cluster_candidates_t,
+    dev_event_list_t,
+    dev_module_cluster_num_t,
+    dev_velo_cluster_container_t
+  >>
   // velo_calculate_phi_and_sort_t,
   // velo_fill_candidates_t,
-  // velo_search_by_triplet_t<dev_velo_raw_input_t>,
+  // velo_search_by_triplet_t<dev_dev_velo_raw_input_t>,
   // velo_weak_tracks_adder_t,
   // cpu_velo_prefix_sum_number_of_tracks_t,
   // velo_copy_track_hit_number_t,

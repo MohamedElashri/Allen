@@ -3,12 +3,12 @@
 using namespace velo_estimate_input_size;
 
 __global__ void velo_estimate_input_size::velo_estimate_input_size(
-  velo_raw_input_t dev_velo_raw_input,
-  velo_raw_input_offsets_t dev_velo_raw_input_offsets,
-  estimated_input_size_t dev_estimated_input_size,
-  module_candidate_num_t dev_module_candidate_num,
-  cluster_candidates_t dev_cluster_candidates,
-  event_list_t dev_event_list,
+  dev_velo_raw_input_t dev_velo_raw_input,
+  dev_velo_raw_input_offsets_t dev_velo_raw_input_offsets,
+  dev_estimated_input_size_t dev_estimated_input_size,
+  dev_module_candidate_num_t dev_module_candidate_num,
+  dev_cluster_candidates_t dev_cluster_candidates,
+  dev_event_list_t dev_event_list,
   uint8_t* dev_velo_candidate_ks)
 {
   const auto event_number = blockIdx.x;
