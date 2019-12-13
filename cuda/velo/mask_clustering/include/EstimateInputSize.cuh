@@ -1,46 +1,7 @@
 #pragma once
 
 #include "GpuAlgorithm.cuh"
-#include "ArgumentsCommon.cuh"
-#include "ArgumentsVelo.cuh"
 #include "ClusteringDefinitions.cuh"
-
-// Helpers
-template<typename Arg, typename Args>
-auto offset(const Args& arguments) {
-  return Arg{arguments.template offset<Arg>()};
-}
-
-template<typename Arg, typename Args>
-size_t size(const Args& arguments) {
-  return arguments.template size<Arg>();
-}
-
-template<typename Arg, typename Args>
-void set_size(Args arguments, const size_t size) {
-  arguments.template set_size<Arg>(size);
-}
-
-// Datatype
-template <typename internal_t>
-struct input_datatype {
-  using type = internal_t;
-  type* m_value;
-
-  operator const type*() const {
-    return const_cast<const type*>(m_value);
-  }
-};
-
-template <typename internal_t>
-struct output_datatype {
-  using type = internal_t;
-  type* m_value;
-
-  operator type*() const {
-    return m_value;
-  }
-};
 
 namespace velo_estimate_input_size {
   // Arguments
@@ -62,12 +23,11 @@ namespace velo_estimate_input_size {
     uint8_t* candidate_ks);
 
   // Algorithm
-  template<typename Args>
+  template<typename Arguments>
   struct velo_estimate_input_size_t : public GpuAlgorithm
   {
     constexpr static auto name {"velo_estimate_input_size_t"};
     decltype(gpu_function(velo_estimate_input_size)) function {velo_estimate_input_size};
-    using Arguments = Args;
 
     void set_arguments_size(
       ArgumentRefManager<Arguments> arguments,

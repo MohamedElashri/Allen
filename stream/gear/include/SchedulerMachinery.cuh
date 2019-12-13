@@ -5,6 +5,7 @@
 #include <type_traits>
 #include "Logger.h"
 #include "Argument.cuh"
+#include "ArgumentManager.cuh"
 #include "TupleTools.cuh"
 
 namespace Sch {
@@ -25,6 +26,20 @@ namespace Sch {
   //   Out<c_t, dev_c, dev_b, dev_d>,
   // > output_t;
 
+  // Get the Arguments from the function operator()
+  template<typename Function>
+  struct FunctionTraits;
+
+  template<typename Function, typename FirstArgument, typename... OtherArguments>
+  struct FunctionTraits<void (Function::*)(const ArgumentRefManager<FirstArgument>&, OtherArguments...) const> {
+    using Arguments = FirstArgument;
+  };
+
+  template<typename Algorithm>
+  struct AlgorithmTraits {
+    using Arguments = typename FunctionTraits<decltype(&Algorithm::operator())>::Arguments;
+  };
+
   // Checks whether an argument T is in any of the arguments specified in the Algorithms
   template<typename T, typename Algorithms>
   struct IsInAlgorithmsArguments;
@@ -36,7 +51,7 @@ namespace Sch {
   template<typename T, typename Algorithm, typename... Algorithms>
   struct IsInAlgorithmsArguments<T, std::tuple<Algorithm, Algorithms...>>
     : std::conditional_t<
-        TupleContains<T, typename Algorithm::Arguments>::value,
+        TupleContains<T, typename AlgorithmTraits<Algorithm>::Arguments>::value,
         std::true_type,
         IsInAlgorithmsArguments<T, std::tuple<Algorithms...>>> {
   };
@@ -77,7 +92,7 @@ namespace Sch {
   template<typename OutputArguments, typename Algorithm>
   struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm>> {
     using t =
-      std::tuple<std::tuple<typename TupleElementsNotIn<typename Algorithm::Arguments, OutputArguments>::t>>;
+      std::tuple<std::tuple<typename TupleElementsNotIn<typename AlgorithmTraits<Algorithm>::Arguments, OutputArguments>::t>>;
   };
 
   template<typename OutputArguments, typename Algorithm, typename NextAlgorithm, typename... Algorithms>
@@ -88,7 +103,7 @@ namespace Sch {
       ScheduledDependencies<
         NextAlgorithm,
         typename TupleElementsNotIn<
-          typename ArgumentsNotIn<typename Algorithm::Arguments, std::tuple<NextAlgorithm, Algorithms...>>::t,
+          typename ArgumentsNotIn<typename AlgorithmTraits<Algorithm>::Arguments, std::tuple<NextAlgorithm, Algorithms...>>::t,
           OutputArguments>::t>>::t;
   };
 
@@ -121,7 +136,7 @@ namespace Sch {
       previous_t,
       ScheduledDependencies<
         Algorithm,
-        typename ArgumentsNotIn<typename Algorithm::Arguments, std::tuple<Algorithms...>>::t>>::t;
+        typename ArgumentsNotIn<typename AlgorithmTraits<Algorithm>::Arguments, std::tuple<Algorithms...>>::t>>::t;
   };
 
   template<typename ConfiguredSequence>
@@ -320,12 +335,12 @@ namespace Sch {
    */
   template<typename ArgumentsTuple, typename Algorithm>
   struct ProduceArgumentsTuple {
-    constexpr static ArgumentRefManager<typename Algorithm::Arguments> produce(ArgumentsTuple& arguments_tuple)
+    constexpr static ArgumentRefManager<typename AlgorithmTraits<Algorithm>::Arguments> produce(ArgumentsTuple& arguments_tuple)
     {
       return ProduceArgumentsTupleHelper<
         ArgumentsTuple,
-        ArgumentRefManager<typename Algorithm::Arguments>,
-        typename Algorithm::Arguments>::produce(arguments_tuple);
+        ArgumentRefManager<typename AlgorithmTraits<Algorithm>::Arguments>,
+        typename AlgorithmTraits<Algorithm>::Arguments>::produce(arguments_tuple);
     }
   };
 

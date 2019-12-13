@@ -2,6 +2,27 @@
 
 #include <tuple>
 
+// Datatype
+template <typename internal_t>
+struct input_datatype {
+  using type = internal_t;
+  type* m_value;
+
+  operator const type*() const {
+    return const_cast<const type*>(m_value);
+  }
+};
+
+template <typename internal_t>
+struct output_datatype {
+  using type = internal_t;
+  type* m_value;
+
+  operator type*() const {
+    return m_value;
+  }
+};
+
 /**
  * @brief Macro for defining arguments in a Handler.
  */

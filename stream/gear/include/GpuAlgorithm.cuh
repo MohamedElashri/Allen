@@ -7,6 +7,7 @@
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
 #include "GpuFunction.cuh"
+#include "Argument.cuh"
 
 struct GpuAlgorithm : public Algorithm {
 private:

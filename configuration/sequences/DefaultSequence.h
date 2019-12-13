@@ -6,48 +6,36 @@ struct dev_velo_raw_input_t : velo_estimate_input_size::velo_raw_input_t {
   constexpr static auto name {"dev_velo_raw_input_t"};
   size_t size;
   char* offset;
-
-  dev_velo_raw_input_t() = default;
 };
 
 struct dev_velo_raw_input_offsets_t : velo_estimate_input_size::velo_raw_input_offsets_t {
   constexpr static auto name {"dev_velo_raw_input_offsets_t"};
   size_t size;
   char* offset;
-
-  dev_velo_raw_input_offsets_t() = default;
 };
 
 struct dev_estimated_input_size_t : velo_estimate_input_size::estimated_input_size_t {
   constexpr static auto name {"dev_estimated_input_size_t"};
   size_t size;
   char* offset;
-
-  dev_estimated_input_size_t() = default;
 };
 
 struct dev_module_candidate_num_t : velo_estimate_input_size::module_candidate_num_t {
   constexpr static auto name {"dev_module_candidate_num_t"};
   size_t size;
   char* offset;
-
-  dev_module_candidate_num_t() = default;
 };
 
 struct dev_cluster_candidates_t : velo_estimate_input_size::cluster_candidates_t {
   constexpr static auto name {"dev_cluster_candidates_t"};
   size_t size;
   char* offset;
-
-  dev_cluster_candidates_t() = default;
 };
 
 struct dev_event_list_t : velo_estimate_input_size::event_list_t {
   constexpr static auto name {"dev_event_list_t"};
   size_t size;
   char* offset;
-
-  dev_event_list_t() = default;
 };
 
 SEQUENCE_T(

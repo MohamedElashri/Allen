@@ -93,3 +93,19 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
     info_cout << std::endl;
   }
 };
+
+// Helpers
+template<typename Arg, typename Args>
+auto offset(const Args& arguments) {
+  return Arg{arguments.template offset<Arg>()};
+}
+
+template<typename Arg, typename Args>
+size_t size(const Args& arguments) {
+  return arguments.template size<Arg>();
+}
+
+template<typename Arg, typename Args>
+void set_size(Args arguments, const size_t size) {
+  arguments.template set_size<Arg>(size);
+}
