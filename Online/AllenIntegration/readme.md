@@ -30,7 +30,7 @@ cd ..
 cd Brunel
 ```
 
-In Brunel, change `CMakeLists.txt` line 20 to `USE Allen	v0r7` and delete the `Rec` directory, then:
+In Brunel, change `CMakeLists.txt` line 20 to `USE Allen	v0r7` and delete the `Rec/BrunelCache` directory, then:
 ```
 lb-project-init
 make configure
