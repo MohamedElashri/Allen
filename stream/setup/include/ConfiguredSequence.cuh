@@ -65,6 +65,7 @@
 #include "VertexDefinitions.cuh"
 #include "TrackMVALines.cuh"
 #include "RunHlt1.cuh"
+#include "RunPostscale.cuh"
 #include "MuonSortByStation.cuh"
 #include "PrepareRawBanks.cuh"
 

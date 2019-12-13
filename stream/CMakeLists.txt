@@ -64,6 +64,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Postscale/include)
+include_directories(${CMAKE_SOURCE_DIR}/mdf/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 
 file(GLOB stream_gear "gear/src/*cu")

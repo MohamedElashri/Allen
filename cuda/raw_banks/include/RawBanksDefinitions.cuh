@@ -16,6 +16,7 @@ namespace Hlt1 {
     SingleMuon,
     DisplacedDiMuon,
     HighMassDiMuon,
+    SoftDiMuon,
     End
   };
   

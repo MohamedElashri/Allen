@@ -63,4 +63,5 @@ SEQUENCE_T(
   copy_and_prefix_sum_single_block_sv_t,
   fit_secondary_vertices_t,
   run_hlt1_t,
+  run_postscale_t,
   prepare_raw_banks_t)

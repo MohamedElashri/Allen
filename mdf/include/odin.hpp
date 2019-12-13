@@ -25,6 +25,7 @@ namespace LHCb {
     unsigned int event_type;
     unsigned int orbit_number;
     unsigned long long event_number;
+    unsigned long long gps_time;
     unsigned int version;
     unsigned int calibration_step;
     unsigned int tck;

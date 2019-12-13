@@ -385,6 +385,9 @@ LHCb::ODIN MDF::decode_odin(const LHCb::RawBank* bank)
   temp64 = odinData[LHCb::ODIN::Data::L0EventIDHi];
   odin.event_number = (temp64 << 32) + odinData[LHCb::ODIN::Data::L0EventIDLo];
 
+  temp64 = odinData[LHCb::ODIN::Data::GPSTimeHi];
+  odin.gps_time = (temp64 << 32) + odinData[LHCb::ODIN::Data::GPSTimeLo];
+
   temp32 = odinData[LHCb::ODIN::Data::EventType];
   odin.event_type =
     (temp32 & LHCb::ODIN::EventTypeMasks::EventTypeMask) >> LHCb::ODIN::EventTypeBitsEnum::EventTypeBits;
