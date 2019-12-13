@@ -16,10 +16,13 @@ from Gaudi.Configuration import appendPostConfigAction
 from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
-from Configurables import AllenTransformer, AllenUpdater
+from Configurables import RunAllen, AllenUpdater
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
 from Configurables import DumpMuonGeometry, DumpVPGeometry, AllenUpdater
-from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables 
+from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables
+from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
+                           DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
+                           MuonRec, PrepareMuonHits)
 from Configurables import ApplicationMgr
 import os
 
@@ -86,12 +89,17 @@ def modifySequences():
         None
 appendPostConfigAction(modifySequences)
 
-# add call to Allen consumer
-allen_seq = GaudiSequencer("AllenSeq")
-allen_transformer = AllenTransformer()
-allen_seq.Members += [allen_transformer]
+# Save raw banks in Allen format on the TES
+dump_banks = DumpRawBanks(BankTypes=["VP", "UT", "FTCluster", "Muon"], DumpToFile=False)
+dump_seq = GaudiSequencer("DumpSeq")
+dump_seq.Members += [dump_banks]
 
-ApplicationMgr().TopAlg += [allen_seq]
+# call Allen
+allen_seq = GaudiSequencer("AllenSeq")
+run_allen = RunAllen()
+allen_seq.Members += [run_allen]
+
+ApplicationMgr().TopAlg += [dump_seq]
 
 producers = [p(DumpToFile=True) for p in (DumpVPGeometry,
                                            DumpUTGeometry,
