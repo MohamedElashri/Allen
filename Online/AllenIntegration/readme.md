@@ -4,7 +4,7 @@ Setup Allen as Gaudi project, linked to Rec and Brunel
 This readme explains how to setup Allen as Gaudi project, linking to libraries from Rec and using Brunel for the configuration, on lxplus.
 
 ```
-LbLogin x86_64-centos7-gcc9-opt
+LbLogin -c x86_64-centos7-gcc9-opt
 ```
 
 Create a new directory `Allen_Gaudi_integration` and clone all of the `Rec`, `Brunel` and `Allen` repositories into this new directory. The directory should now contain the following sub-directories:
