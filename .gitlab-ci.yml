@@ -307,20 +307,20 @@ test_physics_efficiency:
     - rtx6000 # Note: colordiff must be installed
   allow_failure: true
 
-run_built_tests:
-  only:
-    refs:
-      - master
-      - schedules
-      - web
-      - merge_requests
-  stage: test
-  script:
-    - cd build_CUDA
-    - ctest -V
-  dependencies:
-    - CUDA:DefaultSequence:Debug::build
-  allow_failure: true
+# run_built_tests:
+#   only:
+#     refs:
+#       - master
+#       - schedules
+#       - web
+#       - merge_requests
+#   stage: test
+#   script:
+#     - cd build_CUDA
+#     - ctest -V
+#   dependencies:
+#     - CUDA:DefaultSequence:Debug::build
+#   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
   only:

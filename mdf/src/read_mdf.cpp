@@ -10,13 +10,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <Logger.h>
 #include "mdf_header.hpp"
 #include "read_mdf.hpp"
 #include "raw_bank.hpp"
 #include "raw_helpers.hpp"
-
-#include "Logger.h"
 
 #ifdef WITH_ROOT
 #include "root_mdf.hpp"

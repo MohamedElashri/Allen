@@ -121,9 +121,9 @@ Ghost tracks identified as muon with isMuon:                              554/  
 
 HLT1 rates:
 One track:            64/  1000, ( 1920.00 +/-   232.19) kHz
-Two track:           371/  1000, (11130.00 +/-   458.28) kHz
+Two track:           378/  1000, (11340.00 +/-   460.00) kHz
 Single muon:           1/  1000, (   30.00 +/-    29.98) kHz
 Displaced dimuon:      8/  1000, (  240.00 +/-    84.51) kHz
 High mass dimuon:      8/  1000, (  240.00 +/-    84.51) kHz
-Dimuon Soft:          22/  1000, (  660.00 +/-   139.16) kHz
-Inclusive:           400/  1000, (12000.00 +/-   464.76) kHz
+Dimuon Soft:           7/  1000, (  210.00 +/-    79.09) kHz
+Inclusive:           398/  1000, (11940.00 +/-   464.37) kHz
