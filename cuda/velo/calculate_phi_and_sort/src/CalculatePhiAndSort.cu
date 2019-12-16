@@ -1,37 +1,15 @@
 #include "CalculatePhiAndSort.cuh"
 
-void velo_calculate_phi_and_sort_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  arguments.set_size<dev_hit_permutation>(host_buffers.host_total_number_of_velo_clusters[0]);
-}
-
-void velo_calculate_phi_and_sort_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_estimated_input_size>(),
-    arguments.offset<dev_module_cluster_num>(),
-    arguments.offset<dev_velo_cluster_container>(),
-    arguments.offset<dev_hit_permutation>());
-}
+using namespace velo_calculate_phi_and_sort;
 
 /**
  * @brief Track forwarding algorithm based on triplet finding
  */
-__global__ void velo_calculate_phi_and_sort(
-  uint* dev_module_cluster_start,
-  uint* dev_module_cluster_num,
-  uint32_t* dev_velo_cluster_container,
-  uint* dev_hit_permutations)
+__global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
+  dev_estimated_input_size_t dev_estimated_input_size,
+  dev_module_cluster_num_t dev_module_cluster_num,
+  dev_velo_cluster_container_t dev_velo_cluster_container,
+  dev_hit_permutation_t dev_hit_permutations)
 {
   __shared__ float shared_hit_phis[Velo::Constants::max_numhits_in_module];
 
@@ -41,11 +19,11 @@ __global__ void velo_calculate_phi_and_sort(
   const uint number_of_events = gridDim.x;
 
   // Pointers to data within the event
-  const uint number_of_hits = dev_module_cluster_start[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = dev_module_cluster_start + event_number * Velo::Constants::n_modules;
+  const uint number_of_hits = dev_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint* module_hitStarts = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint* module_hitNums = dev_module_cluster_num + event_number * Velo::Constants::n_modules;
 
-  float* hit_Xs = (float*) (dev_velo_cluster_container);
+  float* hit_Xs = (float*) (dev_velo_cluster_container.get());
   float* hit_Ys = (float*) (dev_velo_cluster_container + number_of_hits);
   float* hit_Zs = (float*) (dev_velo_cluster_container + 2 * number_of_hits);
   uint32_t* hit_IDs = (uint32_t*) (dev_velo_cluster_container + 3 * number_of_hits);

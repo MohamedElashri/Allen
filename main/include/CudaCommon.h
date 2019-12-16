@@ -119,30 +119,26 @@ cudaError_t cudaMemcpyFromSymbol(
   enum cudaMemcpyKind = cudaMemcpyHostToDevice);
 
 template<class T, class S>
-T atomicAdd(T* address, S val)
-{
+T atomicAdd(T* address, S val) {
   const T old = *address;
   *address += val;
   return old;
 }
 
 template<class T, class S>
-T atomicOr(T* address, S val)
-{
+T atomicOr(T* address, S val) {
   const T old = *address;
   *address |= val;
   return old;
 }
 
 template<class T>
-T max(const T& a, const T& b)
-{
+T max(const T& a, const T& b) {
   return std::max(a, b);
 }
 
 template<class T>
-T min(const T& a, const T& b)
-{
+T min(const T& a, const T& b) {
   return std::min(a, b);
 }
 

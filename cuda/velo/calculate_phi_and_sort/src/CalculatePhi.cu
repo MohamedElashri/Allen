@@ -3,6 +3,8 @@
 #include "CudaMathConstants.h"
 #include "VeloTools.cuh"
 
+using namespace velo_calculate_phi_and_sort;
+
 /**
  * @brief Calculates a phi side
  */

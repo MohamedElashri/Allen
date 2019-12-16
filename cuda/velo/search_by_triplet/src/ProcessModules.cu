@@ -126,7 +126,7 @@ __device__ void process_modules(
   // Process the last bunch of track_to_follows
   for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
     const int fulltrackno =
-      tracks_to_follow[(prev_ttf + ttf_element) & Configuration::velo_search_by_triplet_t::ttf_modulo_mask];
+      tracks_to_follow[(prev_ttf + ttf_element) & Configuration::velo_search_by_triplet::ttf_modulo_mask];
     const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
     const int trackno = fulltrackno & 0x0FFFFFFF;
 

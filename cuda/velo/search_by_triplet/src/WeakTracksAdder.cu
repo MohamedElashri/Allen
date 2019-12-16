@@ -1,22 +1,7 @@
 #include "SearchByTriplet.cuh"
 #include "WeakTracksAdder.cuh"
 
-void velo_weak_tracks_adder_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_velo_cluster_container>(),
-    arguments.offset<dev_estimated_input_size>(),
-    arguments.offset<dev_tracks>(),
-    arguments.offset<dev_weak_tracks>(),
-    arguments.offset<dev_hit_used>(),
-    arguments.offset<dev_atomics_velo>());
-}
+using namespace velo_weak_tracks_adder;
 
 /**
  * @brief Calculates the parameters according to a root means square fit
@@ -142,7 +127,7 @@ __device__ void weak_tracks_adder_impl(
     const float chi2 = means_square_fit_chi2(hit_Xs, hit_Ys, hit_Zs, t);
 
     // Store them in the tracks bag
-    if (!any_used && chi2 < Configuration::velo_search_by_triplet_t::max_chi2) {
+    if (!any_used && chi2 < Configuration::velo_search_by_triplet::max_chi2) {
       const uint trackno = atomicAdd(tracks_insert_pointer, 1);
       assert(trackno < Velo::Constants::max_tracks);
       tracks[trackno] = Velo::TrackHits {t};
@@ -150,13 +135,13 @@ __device__ void weak_tracks_adder_impl(
   }
 }
 
-__global__ void velo_weak_tracks_adder(
-  uint32_t* dev_velo_cluster_container,
-  uint* dev_module_cluster_start,
-  Velo::TrackHits* dev_tracks,
-  Velo::TrackletHits* dev_weak_tracks,
-  bool* dev_hit_used,
-  uint* dev_atomics_velo)
+__global__ void velo_weak_tracks_adder::velo_weak_tracks_adder(
+  dev_velo_cluster_container_t dev_velo_cluster_container,
+  dev_estimated_input_size_t dev_estimated_input_size,
+  dev_tracks_t dev_tracks,
+  dev_weak_tracks_t dev_weak_tracks,
+  dev_hit_used_t dev_hit_used,
+  dev_atomics_velo_t dev_atomics_velo)
 {
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
@@ -165,8 +150,8 @@ __global__ void velo_weak_tracks_adder(
   const uint tracks_offset = event_number * Velo::Constants::max_tracks;
 
   // Pointers to data within the event
-  const uint number_of_hits = dev_module_cluster_start[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = dev_module_cluster_start + event_number * Velo::Constants::n_modules;
+  const uint number_of_hits = dev_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint* module_hitStarts = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
   assert((module_hitStarts[52] - module_hitStarts[0]) < Velo::Constants::max_number_of_hits_per_event);
 
@@ -182,7 +167,7 @@ __global__ void velo_weak_tracks_adder(
   // Per side datatypes
   bool* hit_used = dev_hit_used + hit_offset;
   Velo::TrackletHits* weak_tracks =
-    dev_weak_tracks + event_number * Configuration::velo_search_by_triplet_t::max_weak_tracks;
+    dev_weak_tracks + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
 
   // Initialize variables according to event number and module side
   // Insert pointers (atomics)

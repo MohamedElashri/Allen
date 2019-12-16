@@ -6,17 +6,37 @@
 template<typename internal_t>
 struct input_datatype {
   using type = internal_t;
-  type* m_value;
 
   operator const type*() const { return const_cast<const type*>(m_value); }
+  
+  const type* get() const { return const_cast<const type*>(m_value); }
+
+  input_datatype(type* value) : m_value(value) {}
+
+  input_datatype() = default;
+
+  input_datatype(const input_datatype&) = default;
+
+private:
+  type* m_value;
 };
 
 template<typename internal_t>
 struct output_datatype {
   using type = internal_t;
-  type* m_value;
 
   operator type*() const { return m_value; }
+
+  type* get() const { return m_value; }
+
+  output_datatype(type* value) : m_value(value) {}
+
+  output_datatype() = default;
+
+  output_datatype(const output_datatype&) = default;
+
+private:
+  type* m_value;
 };
 
 #define ARG(ARGUMENT_NAME, ...)         \

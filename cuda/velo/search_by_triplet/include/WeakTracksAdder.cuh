@@ -2,49 +2,60 @@
 
 #include "VeloEventModel.cuh"
 #include "GpuAlgorithm.cuh"
-#include "ArgumentsVelo.cuh"
 #include "States.cuh"
 
-__device__ void weak_tracks_adder_impl(
-  uint* weaktracks_insert_pointer,
-  uint* tracks_insert_pointer,
-  Velo::TrackletHits* weak_tracks,
-  Velo::TrackHits* tracks,
-  bool* hit_used,
-  const float* hit_Xs,
-  const float* hit_Ys,
-  const float* hit_Zs);
+namespace velo_weak_tracks_adder {
+  // Arguments
+  struct dev_velo_cluster_container_t : input_datatype<uint> {};
+  struct dev_estimated_input_size_t : input_datatype<uint> {};
+  struct dev_tracks_t : output_datatype<Velo::TrackHits> {};
+  struct dev_weak_tracks_t : output_datatype<Velo::TrackletHits> {};
+  struct dev_hit_used_t : output_datatype<bool> {};
+  struct dev_atomics_velo_t : output_datatype<uint> {};
 
-__global__ void velo_weak_tracks_adder(
-  uint32_t* dev_velo_cluster_container,
-  uint* dev_module_cluster_start,
-  Velo::TrackHits* dev_tracks,
-  Velo::TrackletHits* dev_weak_tracks,
-  bool* dev_hit_used,
-  uint* dev_atomics_velo);
+  __device__ void weak_tracks_adder_impl(
+    uint* weaktracks_insert_pointer,
+    uint* tracks_insert_pointer,
+    Velo::TrackletHits* weak_tracks,
+    Velo::TrackHits* tracks,
+    bool* hit_used,
+    const float* hit_Xs,
+    const float* hit_Ys,
+    const float* hit_Zs);
 
-struct velo_weak_tracks_adder_t : public GpuAlgorithm {
-  constexpr static auto name {"velo_weak_tracks_adder_t"};
-  decltype(gpu_function(velo_weak_tracks_adder)) function {velo_weak_tracks_adder};
-  using Arguments = std::tuple<
-    dev_velo_cluster_container,
-    dev_estimated_input_size,
-    dev_tracks,
-    dev_weak_tracks,
-    dev_hit_used,
-    dev_atomics_velo>;
+  __global__ void velo_weak_tracks_adder(
+    dev_velo_cluster_container_t dev_velo_cluster_container,
+    dev_estimated_input_size_t dev_estimated_input_size,
+    dev_tracks_t dev_tracks,
+    dev_weak_tracks_t dev_weak_tracks,
+    dev_hit_used_t dev_hit_used,
+    dev_atomics_velo_t dev_atomics_velo);
 
-  void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    const HostBuffers& host_buffers) const {}
+  template<typename Arguments>
+  struct velo_weak_tracks_adder_t : public GpuAlgorithm {
+    constexpr static auto name {"velo_weak_tracks_adder_t"};
+    decltype(gpu_function(velo_weak_tracks_adder)) function {velo_weak_tracks_adder};
 
-  void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event) const;
-};
+    void set_arguments_size(
+      ArgumentRefManager<Arguments> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) const {}
+
+    void operator()(
+      const ArgumentRefManager<Arguments>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t& cuda_generic_event) const {
+      function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+        arguments.offset<dev_velo_cluster_container>(),
+        arguments.offset<dev_estimated_input_size>(),
+        arguments.offset<dev_tracks>(),
+        arguments.offset<dev_weak_tracks>(),
+        arguments.offset<dev_hit_used>(),
+        arguments.offset<dev_atomics_velo>());
+    }
+  };
+} // namespace velo_weak_tracks_adder

@@ -5,7 +5,7 @@
 #include <CudaCommon.h>
 
 namespace Configuration {
-  namespace velo_search_by_triplet_t {
+  namespace velo_search_by_triplet {
     // Forward tolerance in phi
     extern __constant__ float forward_phi_tolerance;
 

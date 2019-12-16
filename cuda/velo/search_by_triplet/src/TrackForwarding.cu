@@ -22,12 +22,12 @@ __device__ void track_forwarding(
   // Assign a track to follow to each thread
   for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
     const auto fulltrackno =
-      tracks_to_follow[(prev_ttf + ttf_element) & Configuration::velo_search_by_triplet_t::ttf_modulo_mask];
+      tracks_to_follow[(prev_ttf + ttf_element) & Configuration::velo_search_by_triplet::ttf_modulo_mask];
     const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
     const auto skipped_modules = (fulltrackno & 0x70000000) >> 28;
     auto trackno = fulltrackno & 0x0FFFFFFF;
     assert(
-      track_flag ? trackno < Configuration::velo_search_by_triplet_t::ttf_modulo :
+      track_flag ? trackno < Configuration::velo_search_by_triplet::ttf_modulo :
                    trackno < Velo::Constants::max_tracks);
 
     Velo::TrackHitsScratch track_scratch;
@@ -65,7 +65,7 @@ __device__ void track_forwarding(
     const auto ty = tyn * td;
 
     // Find the best candidate
-    float best_fit = Configuration::velo_search_by_triplet_t::max_scatter_forwarding;
+    float best_fit = Configuration::velo_search_by_triplet::max_scatter_forwarding;
     int best_h2 = -1;
 
     // Get candidates by performing a binary search in expected phi
@@ -138,26 +138,26 @@ __device__ void track_forwarding(
 
       // Add the tracks to the bag of tracks to_follow
       const auto ttfP =
-        atomicAdd(dev_atomics_velo + ip_shift + 2, 1) & Configuration::velo_search_by_triplet_t::ttf_modulo_mask;
+        atomicAdd(dev_atomics_velo + ip_shift + 2, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
       tracks_to_follow[ttfP] = trackno;
     }
     // A track just skipped a module
     // We keep it for another round
-    else if (skipped_modules < Configuration::velo_search_by_triplet_t::max_skipped_modules) {
+    else if (skipped_modules < Configuration::velo_search_by_triplet::max_skipped_modules) {
       // Form the new mask
       trackno = ((skipped_modules + 1) << 28) | (fulltrackno & 0x8FFFFFFF);
 
       // Add the tracks to the bag of tracks to_follow
       const auto ttfP =
-        atomicAdd(dev_atomics_velo + ip_shift + 2, 1) & Configuration::velo_search_by_triplet_t::ttf_modulo_mask;
+        atomicAdd(dev_atomics_velo + ip_shift + 2, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
       tracks_to_follow[ttfP] = trackno;
     }
     // If there are only three hits in this track,
     // mark it as "doubtful"
     else if (t->hitsNum == 3) {
       const auto weakP =
-        atomicAdd(dev_atomics_velo + ip_shift, 1) & Configuration::velo_search_by_triplet_t::ttf_modulo_mask;
-      assert(weakP < Configuration::velo_search_by_triplet_t::max_weak_tracks);
+        atomicAdd(dev_atomics_velo + ip_shift, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
+      assert(weakP < Configuration::velo_search_by_triplet::max_weak_tracks);
       weak_tracks[weakP] = Velo::TrackletHits {t->hits[0], t->hits[1], t->hits[2]};
     }
     // In the "else" case, we couldn't follow up the track,

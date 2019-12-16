@@ -11,113 +11,110 @@
 #include "TrackSeeding.cuh"
 #include "WeakTracksAdder.cuh"
 #include "GpuAlgorithm.cuh"
-#include "ArgumentsVelo.cuh"
 
-__global__ void velo_search_by_triplet(
-  uint32_t* dev_velo_cluster_container,
-  uint* dev_module_cluster_start,
-  uint* dev_module_cluster_num,
-  Velo::TrackHits* dev_tracks,
-  Velo::TrackletHits* dev_tracklets,
-  uint* dev_tracks_to_follow,
-  Velo::TrackletHits* dev_weak_tracks,
-  bool* dev_hit_used,
-  uint* dev_atomics_velo,
-  short* dev_h0_candidates,
-  short* dev_h2_candidates,
-  unsigned short* dev_rel_indices,
-  const VeloGeometry* dev_velo_geometry);
+namespace velo_search_by_triplet {
+  // Arguments
+  struct dev_velo_cluster_container_t : input_datatype<uint> {};
+  struct dev_estimated_input_size_t : input_datatype<uint> {};
+  struct dev_module_cluster_num_t : input_datatype<uint> {};
+  struct dev_tracks_t : output_datatype<Velo::TrackHits> {};
+  struct dev_tracklets_t : output_datatype<Velo::TrackletHits> {};
+  struct dev_tracks_to_follow_t : output_datatype<uint> {};
+  struct dev_weak_tracks_t : output_datatype<Velo::TrackletHits> {};
+  struct dev_hit_used_t : output_datatype<bool> {};
+  struct dev_atomics_velo_t : output_datatype<uint> {};
+  struct dev_h0_candidates_t : input_datatype<short> {};
+  struct dev_h2_candidates_t : input_datatype<short> {};
+  struct dev_rel_indices_t : output_datatype<unsigned short> {};
 
-struct velo_search_by_triplet_t : public GpuAlgorithm {
-  constexpr static auto name {"velo_search_by_triplet_t"};
-  decltype(gpu_function(velo_search_by_triplet)) function {velo_search_by_triplet};
-  using Arguments = std::tuple<
-    dev_velo_cluster_container,
-    dev_estimated_input_size,
-    dev_module_cluster_num,
-    dev_tracks,
-    dev_tracklets,
-    dev_tracks_to_follow,
-    dev_weak_tracks,
-    dev_hit_used,
-    dev_atomics_velo,
-    dev_h0_candidates,
-    dev_h2_candidates,
-    dev_rel_indices>;
-    
-  // // Arguments
-  // struct dev_velo_cluster_container { using type = uint; }
-  // struct dev_estimated_input_size {using type = uint};
-  // struct dev_module_cluster_num {using type = uint};
-  // struct dev_tracks {using type = Velo::TrackHits};
-  // struct dev_tracklets {using type = Velo::TrackletHits};
-  // struct dev_tracks_to_follow {using type = uint};
-  // struct dev_weak_tracks {using type = Velo::TrackletHits};
-  // struct dev_hit_used {using type = bool};
-  // struct dev_atomics_velo {using type = uint};
-  // struct dev_h0_candidates {using type = short};
-  // struct dev_h2_candidates {using type = short};
-  // struct dev_rel_indices {using type = unsigned short};
+  __global__ void velo_search_by_triplet(
+    dev_velo_cluster_container_t dev_velo_cluster_container,
+    dev_estimated_input_size_t dev_estimated_input_size,
+    dev_module_cluster_num_t dev_module_cluster_num,
+    dev_tracks_t dev_tracks,
+    dev_tracklets_t dev_tracklets,
+    dev_tracks_to_follow_t dev_tracks_to_follow,
+    dev_weak_tracks_t dev_weak_tracks,
+    dev_hit_used_t dev_hit_used,
+    dev_atomics_velo_t dev_atomics_velo,
+    dev_h0_candidates_t dev_h0_candidates,
+    dev_h2_candidates_t dev_h2_candidates,
+    dev_rel_indices_t dev_rel_indices,
+    const VeloGeometry* dev_velo_geometry);
 
-  void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    const HostBuffers& host_buffers) const;
+  template<typename Arguments>
+  struct velo_search_by_triplet_t : public GpuAlgorithm {
+    constexpr static auto name {"velo_search_by_triplet_t"};
+    decltype(gpu_function(velo_search_by_triplet)) function {velo_search_by_triplet};
 
-  void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event) const;
+    void set_arguments_size(
+      ArgumentRefManager<Arguments> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) const {
+      set_size<dev_tracks_t>(arguments, host_buffers.host_number_of_selected_events[0] * Velo::Constants::max_tracks);
+      set_size<dev_tracklets_t>(
+        arguments, host_buffers.host_number_of_selected_events[0] * get_property_value<uint>("ttf_modulo"));
+      set_size<dev_tracks_to_follow_t>(
+        arguments, host_buffers.host_number_of_selected_events[0] * get_property_value<uint>("ttf_modulo"));
+      set_size<dev_weak_tracks_t>(
+        arguments, host_buffers.host_number_of_selected_events[0] * get_property_value<uint>("max_weak_tracks"));
+      set_size<dev_hit_used_t>(arguments, host_buffers.host_total_number_of_velo_clusters[0]);
+      set_size<dev_atomics_velo_t>(arguments, host_buffers.host_number_of_selected_events[0] * Velo::num_atomics);
+      set_size<dev_rel_indices_t>(
+        arguments, host_buffers.host_number_of_selected_events[0] * 2 * Velo::Constants::max_numhits_in_module);
+    }
 
-private:
-  Property<float> m_tol {this,
-                         "forward_phi_tolerance",
-                         Configuration::velo_search_by_triplet_t::forward_phi_tolerance,
-                         0.052f,
-                         "tolerance"};
-  Property<float> m_chi2 {this, "max_chi2", Configuration::velo_search_by_triplet_t::max_chi2, 20.0f, "chi2"};
-  Property<float> m_scat {this,
-                          "max_scatter_forwarding",
-                          Configuration::velo_search_by_triplet_t::max_scatter_forwarding,
-                          0.1f,
-                          "scatter forwarding"};
-  Property<float> m_seed {this,
-                          "max_scatter_seeding",
-                          Configuration::velo_search_by_triplet_t::max_scatter_seeding,
-                          0.1f,
-                          "scatter seeding"};
-  Property<uint> m_skip {this,
-                         "max_skipped_modules",
-                         Configuration::velo_search_by_triplet_t::max_skipped_modules,
-                         1u,
-                         "skipped modules"};
-  Property<uint> m_max_weak {this,
-                             "max_weak_tracks",
-                             Configuration::velo_search_by_triplet_t::max_weak_tracks,
-                             500u,
-                             "max weak tracks"};
-  Property<float> m_ext_base {this,
-                              "phi_extrapolation_base",
-                              Configuration::velo_search_by_triplet_t::phi_extrapolation_base,
-                              0.03f,
-                              "phi extrapolation base"};
-  Property<float> m_ext_coef {this,
-                              "phi_extrapolation_coef",
-                              Configuration::velo_search_by_triplet_t::phi_extrapolation_coef,
-                              0.0002f,
-                              "phi extrapolation coefficient"};
-  Property<uint> m_ttf_mod {this,
-                            "ttf_modulo",
-                            Configuration::velo_search_by_triplet_t::ttf_modulo,
-                            2048u,
-                            "ttf modulo"};
-  Property<int> m_ttf_mask {this,
-                            "ttf_modulo_mask",
-                            Configuration::velo_search_by_triplet_t::ttf_modulo_mask,
-                            0x7FF,
-                            "ttf modulo mask"};
-};
+    void operator()(
+      const ArgumentRefManager<Arguments>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t& cuda_generic_event) const {
+
+      cudaCheck(
+        cudaMemsetAsync(offset<dev_atomics_velo_t>(arguments), 0, size<dev_atomics_velo_t>(arguments), cuda_stream));
+      cudaCheck(cudaMemsetAsync(offset<dev_hit_used_t>(arguments), 0, size<dev_hit_used_t>(arguments), cuda_stream));
+
+      function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+        offset<dev_velo_cluster_container_t>(arguments),
+        offset<dev_estimated_input_size_t>(arguments),
+        offset<dev_module_cluster_num_t>(arguments),
+        offset<dev_tracks_t>(arguments),
+        offset<dev_tracklets_t>(arguments),
+        offset<dev_tracks_to_follow_t>(arguments),
+        offset<dev_weak_tracks_t>(arguments),
+        offset<dev_hit_used_t>(arguments),
+        offset<dev_atomics_velo_t>(arguments),
+        offset<dev_h0_candidates_t>(arguments),
+        offset<dev_h2_candidates_t>(arguments),
+        offset<dev_rel_indices_t>(arguments),
+        constants.dev_velo_geometry);
+    }
+
+  private:
+    Property<float> m_tol {this, "forward_phi_tolerance", Configuration::velo_search_by_triplet::forward_phi_tolerance, 0.052f, "tolerance"};
+    Property<float> m_chi2 {this, "max_chi2", Configuration::velo_search_by_triplet::max_chi2, 20.0f, "chi2"};
+    Property<float> m_scat {this,
+                            "max_scatter_forwarding",
+                            Configuration::velo_search_by_triplet::max_scatter_forwarding,
+                            0.1f,
+                            "scatter forwarding"};
+    Property<float> m_seed {this, "max_scatter_seeding", Configuration::velo_search_by_triplet::max_scatter_seeding, 0.1f, "scatter seeding"};
+    Property<uint> m_skip {this, "max_skipped_modules", Configuration::velo_search_by_triplet::max_skipped_modules, 1u, "skipped modules"};
+    Property<uint> m_max_weak {this, "max_weak_tracks", Configuration::velo_search_by_triplet::max_weak_tracks, 500u, "max weak tracks"};
+    Property<float> m_ext_base {this,
+                                "phi_extrapolation_base",
+                                Configuration::velo_search_by_triplet::phi_extrapolation_base,
+                                0.03f,
+                                "phi extrapolation base"};
+    Property<float> m_ext_coef {this,
+                                "phi_extrapolation_coef",
+                                Configuration::velo_search_by_triplet::phi_extrapolation_coef,
+                                0.0002f,
+                                "phi extrapolation coefficient"};
+    Property<uint> m_ttf_mod {this, "ttf_modulo", Configuration::velo_search_by_triplet::ttf_modulo, 2048u, "ttf modulo"};
+    Property<int> m_ttf_mask {this, "ttf_modulo_mask", Configuration::velo_search_by_triplet::ttf_modulo_mask, 0x7FF, "ttf modulo mask"};
+  };
+} // namespace velo_search_by_triplet
