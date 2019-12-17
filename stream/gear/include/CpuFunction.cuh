@@ -40,3 +40,9 @@ static CpuFunction<R, T...> cpu_function(R(f)(T...))
 {
   return CpuFunction<R, T...> {f};
 }
+
+template<typename R, typename... T>
+static CpuFunction<R, T...> host_function(R(f)(T...))
+{
+  return CpuFunction<R, T...> {f};
+}

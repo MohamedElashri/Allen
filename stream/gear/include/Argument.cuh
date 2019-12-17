@@ -72,10 +72,10 @@ struct output_host_datatype : host_datatype, out_datatype<internal_t> {
 };
 
 // Macros in case we go for them
-#define DEV_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE) \
+#define DEVICE_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE) \
   struct ARGUMENT_NAME : input_datatype<ARGUMENT_TYPE> {};
 
-#define DEV_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE) \
+#define DEVICE_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE) \
   struct ARGUMENT_NAME : output_datatype<ARGUMENT_TYPE> {};
 
 #define HOST_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE) \

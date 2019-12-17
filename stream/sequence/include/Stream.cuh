@@ -62,9 +62,6 @@ struct Stream {
   // Constants
   Constants constants;
 
-  // Visitor for checker algorithms
-  SequenceVisitor sequence_visitor;
-
   cudaError_t initialize(
     const bool param_print_memory_usage,
     const uint param_start_event_offset,

@@ -456,22 +456,22 @@ namespace Sch {
   /**
    * @brief Runs the PrChecker for all configured algorithms in the sequence.
    */
-  template<typename Functor, typename ConfiguredSequence, typename Arguments>
+  template<typename ConfiguredSequence, typename Arguments>
   struct RunChecker;
 
-  template<typename Functor, typename... Arguments>
-  struct RunChecker<Functor, std::tuple<>, std::tuple<Arguments...>> {
-    constexpr static void check(const Functor&, Arguments&&...) {}
+  template<typename... Arguments>
+  struct RunChecker<std::tuple<>, std::tuple<Arguments...>> {
+    constexpr static void check(Arguments&&...) {}
   };
 
-  template<typename Functor, typename Algorithm, typename... Algorithms, typename... Arguments>
-  struct RunChecker<Functor, std::tuple<Algorithm, Algorithms...>, std::tuple<Arguments...>> {
-    constexpr static void check(const Functor& functor, Arguments&&... arguments)
+  template<typename Algorithm, typename... Algorithms, typename... Arguments>
+  struct RunChecker<std::tuple<Algorithm, Algorithms...>, std::tuple<Arguments...>> {
+    constexpr static void check(Arguments&&... arguments)
     {
-      functor.template check<Algorithm>(std::forward<Arguments>(arguments)...);
+      SequenceVisitor<Algorithm>::check(std::forward<Arguments>(arguments)...);
 
-      RunChecker<Functor, std::tuple<Algorithms...>, std::tuple<Arguments...>>::check(
-        functor, std::forward<Arguments>(arguments)...);
+      RunChecker<std::tuple<Algorithms...>, std::tuple<Arguments...>>::check(
+        std::forward<Arguments>(arguments)...);
     }
   };
 

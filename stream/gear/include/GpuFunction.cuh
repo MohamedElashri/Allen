@@ -62,3 +62,9 @@ GpuFunction<R, T...> gpu_function(R(f)(T...))
 {
   return GpuFunction<R, T...> {f};
 }
+
+template<typename R, typename... T>
+GpuFunction<R, T...> global_function(R(f)(T...))
+{
+  return GpuFunction<R, T...> {f};
+}

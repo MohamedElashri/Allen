@@ -7,15 +7,15 @@
 
 namespace velo_masked_clustering {
   // Arguments
-  struct dev_velo_raw_input_t : input_datatype<char> {};
-  struct dev_velo_raw_input_offsets_t : input_datatype<uint> {};
-  struct dev_estimated_input_size_t : input_datatype<uint> {};
-  struct dev_module_candidate_num_t : input_datatype<uint> {};
-  struct dev_cluster_candidates_t : input_datatype<uint> {};
-  struct dev_event_list_t : input_datatype<uint> {};
-  struct dev_module_cluster_num_t : output_datatype<uint> {};
-  struct dev_velo_cluster_container_t : output_datatype<float> {};
   HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
+  DEVICE_INPUT(dev_velo_raw_input_t, char)
+  DEVICE_INPUT(dev_velo_raw_input_offsets_t, uint)
+  DEVICE_INPUT(dev_estimated_input_size_t, uint)
+  DEVICE_INPUT(dev_module_candidate_num_t, uint)
+  DEVICE_INPUT(dev_cluster_candidates_t, uint)
+  DEVICE_INPUT(dev_event_list_t, uint)
+  DEVICE_OUTPUT(dev_module_cluster_num_t, uint)
+  DEVICE_OUTPUT(dev_velo_cluster_container_t, float)
 
   // Function
   __global__ void velo_masked_clustering(

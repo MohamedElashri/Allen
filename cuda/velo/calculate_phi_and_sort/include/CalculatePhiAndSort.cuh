@@ -8,11 +8,11 @@
 
 namespace velo_calculate_phi_and_sort {
   // Arguments
-  struct dev_estimated_input_size_t : input_datatype<uint> {};
-  struct dev_module_cluster_num_t : input_datatype<uint> {};
-  struct dev_velo_cluster_container_t : output_datatype<uint> {};
-  struct dev_hit_permutation_t : output_datatype<uint> {};
   HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
+  DEVICE_INPUT(dev_estimated_input_size_t, uint)
+  DEVICE_INPUT(dev_module_cluster_num_t, uint)
+  DEVICE_OUTPUT(dev_velo_cluster_container_t, uint)
+  DEVICE_OUTPUT(dev_hit_permutation_t, uint)
 
   __device__ void calculate_phi(
     const uint* module_hitStarts,
@@ -40,9 +40,9 @@ namespace velo_calculate_phi_and_sort {
     dev_hit_permutation_t dev_hit_permutations);
 
   template<typename Arguments>
-  struct velo_calculate_phi_and_sort_t : public GpuAlgorithm {
+  struct velo_calculate_phi_and_sort_t : public DeviceAlgorithm {
     constexpr static auto name {"velo_calculate_phi_and_sort_t"};
-    decltype(gpu_function(velo_calculate_phi_and_sort)) function {velo_calculate_phi_and_sort};
+    decltype(global_function(velo_calculate_phi_and_sort)) function {velo_calculate_phi_and_sort};
 
     void set_arguments_size(
       ArgumentRefManager<Arguments> arguments,

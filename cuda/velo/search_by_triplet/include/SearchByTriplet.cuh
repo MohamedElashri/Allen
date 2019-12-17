@@ -15,18 +15,18 @@
 namespace velo_search_by_triplet {
   // Arguments
   HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
-  DEV_INPUT(dev_velo_cluster_container_t, uint)
-  DEV_INPUT(dev_estimated_input_size_t, uint)
-  DEV_INPUT(dev_module_cluster_num_t, uint)
-  DEV_INPUT(dev_h0_candidates_t, short)
-  DEV_INPUT(dev_h2_candidates_t, short)
-  DEV_OUTPUT(dev_tracks_t, Velo::TrackHits)
-  DEV_OUTPUT(dev_tracklets_t, Velo::TrackletHits)
-  DEV_OUTPUT(dev_tracks_to_follow_t, uint)
-  DEV_OUTPUT(dev_weak_tracks_t, Velo::TrackletHits)
-  DEV_OUTPUT(dev_hit_used_t, bool)
-  DEV_OUTPUT(dev_atomics_velo_t, uint)
-  DEV_OUTPUT(dev_rel_indices_t, unsigned short)
+  DEVICE_INPUT(dev_velo_cluster_container_t, uint)
+  DEVICE_INPUT(dev_estimated_input_size_t, uint)
+  DEVICE_INPUT(dev_module_cluster_num_t, uint)
+  DEVICE_INPUT(dev_h0_candidates_t, short)
+  DEVICE_INPUT(dev_h2_candidates_t, short)
+  DEVICE_OUTPUT(dev_tracks_t, Velo::TrackHits)
+  DEVICE_OUTPUT(dev_tracklets_t, Velo::TrackletHits)
+  DEVICE_OUTPUT(dev_tracks_to_follow_t, uint)
+  DEVICE_OUTPUT(dev_weak_tracks_t, Velo::TrackletHits)
+  DEVICE_OUTPUT(dev_hit_used_t, bool)
+  DEVICE_OUTPUT(dev_atomics_velo_t, uint)
+  DEVICE_OUTPUT(dev_rel_indices_t, unsigned short)
 
   __global__ void velo_search_by_triplet(
     dev_velo_cluster_container_t dev_velo_cluster_container,

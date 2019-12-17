@@ -6,25 +6,27 @@
 #include "GlobalEventCutConfiguration.cuh"
 #include "CpuAlgorithm.cuh"
 
-namespace cpu_global_event_cut {
+namespace host_global_event_cut {
   // Arguments
-  struct dev_event_list_t : output_datatype<uint> {};
+  HOST_OUTPUT(host_event_list_t, uint)
+  HOST_OUTPUT(host_number_of_selected_events_t, uint)
+  DEVICE_OUTPUT(dev_event_list_t, uint)
 
   // Function
-  void cpu_global_event_cut(
+  void host_global_event_cut(
     const char* ut_raw_input,
     const uint* ut_raw_input_offsets,
     const char* scifi_raw_input,
     const uint* scifi_raw_input_offsets,
-    uint* number_of_selected_events,
-    uint* event_list,
+    host_number_of_selected_events_t number_of_selected_events,
+    host_event_list_t event_list,
     uint number_of_events);
 
   // Algorithm
   template<typename Arguments>
-  struct cpu_global_event_cut_t : public CpuAlgorithm {
-    constexpr static auto name {"cpu_global_event_cut_t"};
-    decltype(cpu_function(cpu_global_event_cut)) function {cpu_global_event_cut};
+  struct host_global_event_cut_t : public HostAlgorithm {
+    constexpr static auto name {"host_global_event_cut_t"};
+    decltype(host_function(host_global_event_cut)) function {host_global_event_cut};
 
     void set_arguments_size(
       ArgumentRefManager<Arguments> arguments,
@@ -32,6 +34,8 @@ namespace cpu_global_event_cut {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
+      set_size<host_number_of_selected_events_t>(arguments, 1);
+      set_size<host_event_list_t>(arguments, runtime_options.number_of_events);
       set_size<dev_event_list_t>(arguments, runtime_options.number_of_events);
     }
 
@@ -44,9 +48,9 @@ namespace cpu_global_event_cut {
       cudaEvent_t& cuda_generic_event) const
     {
       // Initialize host event list
-      host_buffers.host_number_of_selected_events[0] = runtime_options.number_of_events;
+      offset<host_number_of_selected_events_t>(arguments)[0] = runtime_options.number_of_events;
       for (uint i = 0; i < runtime_options.number_of_events; ++i) {
-        host_buffers.host_event_list[i] = i;
+        offset<host_event_list_t>(arguments)[i] = i;
       }
 
       function.invoke(
@@ -54,8 +58,8 @@ namespace cpu_global_event_cut {
         std::get<1>(runtime_options.host_ut_events).begin(),
         std::get<0>(runtime_options.host_scifi_events).begin(),
         std::get<1>(runtime_options.host_scifi_events).begin(),
-        host_buffers.host_number_of_selected_events,
-        host_buffers.host_event_list,
+        offset<host_number_of_selected_events_t>(arguments),
+        offset<host_event_list_t>(arguments),
         runtime_options.number_of_events);
 
       cudaCheck(cudaMemcpyAsync(
@@ -64,6 +68,12 @@ namespace cpu_global_event_cut {
         runtime_options.number_of_events * sizeof(uint),
         cudaMemcpyHostToDevice,
         cuda_stream));
+
+      // TODO: Remove
+      host_buffers.host_number_of_selected_events[0] = offset<host_number_of_selected_events_t>(arguments)[0];
+      for (uint i = 0; i < runtime_options.number_of_events; ++i) {
+        host_buffers.host_event_list[i] = offset<host_event_list_t>(arguments)[i];
+      }
     }
   };
 } // namespace cpu_global_event_cut

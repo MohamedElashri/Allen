@@ -12,3 +12,5 @@
 // Note: For the moment, a CpuAlgorithm does not
 //       differ from an Algorithm.
 struct CpuAlgorithm : public Algorithm {};
+
+typedef CpuAlgorithm HostAlgorithm;

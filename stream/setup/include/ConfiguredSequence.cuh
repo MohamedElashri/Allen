@@ -69,7 +69,7 @@
 #include "SciFiCopyTrackHitNumber.cuh"
 
 #include "CpuInitEventList.h"
-#include "CpuGlobalEventCut.h"
+#include "HostGlobalEventCut.h"
 #include "CpuVeloPrefixSumNumberOfClusters.h"
 #include "CpuVeloPrefixSumNumberOfTracks.h"
 #include "CpuVeloPrefixSumNumberOfTrackHits.h"

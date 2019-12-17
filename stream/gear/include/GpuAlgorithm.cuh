@@ -27,3 +27,5 @@ public:
     return {m_block_dim.get_value()[0], m_block_dim.get_value()[1], m_block_dim.get_value()[2]};
   }
 };
+
+typedef GpuAlgorithm DeviceAlgorithm;

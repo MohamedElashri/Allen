@@ -2,9 +2,11 @@
 /**
  * Specify here all arguments with their association to algorithm arguments.
  */
+ARG(host_event_list_t, host_global_event_cut::host_event_list_t)
+ARG(host_number_of_selected_events_t, host_global_event_cut::host_number_of_selected_events_t)
 ARG(
   dev_event_list_t,
-  cpu_global_event_cut::dev_event_list_t,
+  host_global_event_cut::dev_event_list_t,
   velo_estimate_input_size::dev_event_list_t,
   velo_masked_clustering::dev_event_list_t)
 ARG(
@@ -87,7 +89,8 @@ ARG(
  * in the expected order of execution, with their arguments.
  */
 SEQUENCE_T(
-  cpu_global_event_cut::cpu_global_event_cut_t<std::tuple<dev_event_list_t>>,
+  host_global_event_cut::host_global_event_cut_t<
+    std::tuple<dev_event_list_t, host_event_list_t, host_number_of_selected_events_t>>,
   velo_estimate_input_size::velo_estimate_input_size_t<std::tuple<
     dev_velo_raw_input_t,
     dev_velo_raw_input_offsets_t,

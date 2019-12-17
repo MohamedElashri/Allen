@@ -7,7 +7,7 @@ namespace _cpu_prefix_sum {
   // Arguments
   // struct host_total_sum_holder_t : output_host_datatype<uint> {};
   HOST_OUTPUT(host_total_sum_holder_t, uint)
-  DEV_OUTPUT(dev_buffer_t, uint)
+  DEVICE_OUTPUT(dev_buffer_t, uint)
 
   /**
    * @brief An algorithm that performs the prefix sum on the CPU.

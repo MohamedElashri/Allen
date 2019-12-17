@@ -1,12 +1,14 @@
-#include "CpuGlobalEventCut.h"
+#include "HostGlobalEventCut.h"
 
-void cpu_global_event_cut::cpu_global_event_cut(
+using namespace host_global_event_cut;
+
+void host_global_event_cut::host_global_event_cut(
   const char* ut_raw_input,
   const uint* ut_raw_input_offsets,
   const char* scifi_raw_input,
   const uint* scifi_raw_input_offsets,
-  uint* number_of_selected_events,
-  uint* event_list,
+  host_number_of_selected_events_t number_of_selected_events,
+  host_event_list_t event_list,
   uint number_of_events)
 {
   uint insert_index = 0;
