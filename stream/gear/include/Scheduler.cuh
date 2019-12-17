@@ -42,11 +42,18 @@ struct Scheduler {
     argument_manager.set_base_pointers(device_base_pointer, host_base_pointer);
 
     if (logger::ll.verbosityLevel >= logger::verbose) {
-      // verbose_cout << "IN deps" << std::endl;
-      // Sch::PrintAlgorithmDependencies<in_deps_t>::print();
+      // TODO
+      // verbose_cout << "All arguments:" << std::endl << "[" << std::endl;
+      // Sch::PrintAlgorithmSequenceDetailed<ConfiguredSequence>::print();
+      // verbose_cout << "]\n\n";
 
-      // verbose_cout << "OUT deps" << std::endl;
+      // verbose_cout << "IN deps:" << std::endl << "[" << std::endl;
+      // Sch::PrintAlgorithmDependencies<in_deps_t>::print();
+      // verbose_cout << "]\n\n";
+
+      // verbose_cout << "OUT deps:" << std::endl << "[" << std::endl;
       // Sch::PrintAlgorithmDependencies<out_deps_t>::print();
+      // verbose_cout << "]\n\n";
     }
   }
 

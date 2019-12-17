@@ -172,12 +172,20 @@ namespace Sch {
     static constexpr void print() {}
   };
 
-  template<typename Argument, typename... Arguments>
-  struct PrintArguments<std::tuple<Argument, Arguments...>> {
+  template<typename Argument>
+  struct PrintArguments<std::tuple<Argument>> {
     static constexpr void print()
     {
-      info_cout << Argument::name << ", ";
-      PrintArguments<std::tuple<Arguments...>>::print();
+      info_cout << "'" << Argument::name << "'";
+    }
+  };  
+
+  template<typename Argument, typename ArgumentSecond, typename... Arguments>
+  struct PrintArguments<std::tuple<Argument, ArgumentSecond, Arguments...>> {
+    static constexpr void print()
+    {
+      info_cout << "'" << Argument::name << "', ";
+      PrintArguments<std::tuple<ArgumentSecond, Arguments...>>::print();
     }
   };
 
@@ -195,11 +203,9 @@ namespace Sch {
     std::tuple<ScheduledDependencies<Algorithm, std::tuple<Arguments...>>, Dependencies...>> {
     static constexpr void print()
     {
-      info_cout << "Algorithm " << Algorithm::name << ":" << std::endl
-                << std::tuple_size<std::tuple<Arguments...>>::value << " dependencies" << std::endl;
-
+      info_cout << "  ['" << Algorithm::name << "', [";
       PrintArguments<std::tuple<Arguments...>>::print();
-      info_cout << std::endl << std::endl;
+      info_cout << "]]," << std::endl;
 
       PrintAlgorithmDependencies<std::tuple<Dependencies...>>::print();
     }
@@ -220,6 +226,26 @@ namespace Sch {
     {
       info_cout << " " << Algorithm::name << std::endl;
       PrintAlgorithmSequence<std::tuple<Algorithms...>>::print();
+    }
+  };
+
+  template<typename Dependencies>
+  struct PrintAlgorithmSequenceDetailed;
+
+  template<>
+  struct PrintAlgorithmSequenceDetailed<std::tuple<>> {
+    static constexpr void print() {};
+  };
+
+  template<typename Algorithm, typename... Algorithms>
+  struct PrintAlgorithmSequenceDetailed<std::tuple<Algorithm, Algorithms...>> {
+    static constexpr void print()
+    {
+      info_cout << "  ['" << Algorithm::name << "', [";
+      PrintArguments<typename Algorithm::Arguments>::print();
+      info_cout << "]]," << std::endl;
+
+      PrintAlgorithmSequenceDetailed<std::tuple<Algorithms...>>::print();
     }
   };
 

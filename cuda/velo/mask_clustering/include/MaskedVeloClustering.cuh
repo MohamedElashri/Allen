@@ -33,9 +33,9 @@ namespace velo_masked_clustering {
     float* dev_velo_sp_fy);
 
   template<typename Arguments>
-  struct velo_masked_clustering_t : public GpuAlgorithm {
+  struct velo_masked_clustering_t : public DeviceAlgorithm {
     constexpr static auto name {"velo_masked_clustering_t"};
-    decltype(gpu_function(velo_masked_clustering)) function {velo_masked_clustering};
+    decltype(global_function(velo_masked_clustering)) function {velo_masked_clustering};
 
     void set_arguments_size(
       ArgumentRefManager<Arguments> arguments,
