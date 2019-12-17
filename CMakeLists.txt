@@ -407,6 +407,15 @@ else()
    message(STATUS "Compiling without ROOT")
 endif()
 
+find_package(cppgsl QUIET)
+if (CPPGSL_FOUND)
+  message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIRS})
+else()
+  include_directories(main/cppgsl)
+  message(STATUS "Using internal gsl-lite")
+endif()
+
+
 set(EXTERNAL_DIR "external")
 
 add_subdirectory(cuda)
@@ -469,6 +478,7 @@ include_directories(mdf/include)
 include_directories(integration/monitoring/include)
 include_directories(integration/non_event_data/include)
 include_directories(${ZMQ_INCLUDE_DIRS})
+include_directories(${CPPGSL_INCLUDE_DIRS})
 
 # Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")

@@ -67,6 +67,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include) 
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 
+include_directories(${CPPGSL_INCLUDE_DIRS})
+
 file(GLOB stream_gear "gear/src/*cu")
 file(GLOB stream_memory_manager "memory_manager/src/*cu")
 file(GLOB stream_scheduler "scheduler/src/*cu")

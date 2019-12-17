@@ -25,8 +25,7 @@ RunAllen::RunAllen( const std::string& name, ISvcLocator* pSvcLocator )
                      KeyValue{"AllenRawFTClusterOffsets", "Allen/Raw/FTClusterOffsets"},
                      KeyValue{"AllenRawMuonOffsets", "Allen/Raw/MuonOffsets"}}
                     // Outputs
-                    // {KeyValue{"AllenVeloTracks", "Allen/VeloTracks"},
-                    //     KeyValue{"AllenUTTracks", "Allen/UTTracks"}}
+                   
             ) {}
 
 StatusCode RunAllen::initialize() {
@@ -34,6 +33,10 @@ StatusCode RunAllen::initialize() {
   if ( sc.isFailure() ) return sc;
   if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
 
+  // initialize Allen
+  
+  
+  
   return StatusCode::SUCCESS;
 }
 
@@ -49,8 +52,5 @@ void RunAllen::operator()(
   const std::vector<uint32_t>& SciFiRawOffsets,
   const std::vector<uint32_t>& MuonRawOffsets) const {
 
-  // LHCb::Tracks VeloTracks;
-  // LHCb::Tracks UTTracks;
-  
-  // return std::make_tuple( std::move( VeloTracks ), std::move( UTTracks ) );
+ 
 }

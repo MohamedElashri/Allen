@@ -21,7 +21,7 @@ namespace VeloClustering {
   static constexpr uint32_t lookup_table_size = 9;
 } // namespace VeloClustering
 
-namespace LHCb {
+namespace Allen {
   namespace VPChannelID {
     /// Offsets of bitfield channelID
     enum channelIDBits { rowBits = 0, colBits = 8, chipBits = 16, sensorBits = 18 };

@@ -1,4 +1,4 @@
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 size_t add_raw_bank(
   unsigned char const type,

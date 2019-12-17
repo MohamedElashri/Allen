@@ -85,3 +85,6 @@ endfunction()
 #     gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
 #   endif()
 # endif()
+
+include_directories(${CPPGSL_INCLUDE_DIRS})
+

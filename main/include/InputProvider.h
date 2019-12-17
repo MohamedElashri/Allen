@@ -6,7 +6,7 @@
 #include <cmath>
 #include <mutex>
 
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 #include <Logger.h>
 #include <BankTypes.h>
 #include <Common.h>

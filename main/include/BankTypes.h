@@ -5,7 +5,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 namespace {
   using gsl::span;

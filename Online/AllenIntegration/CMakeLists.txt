@@ -1,27 +1,6 @@
 ################################################################################
 # Package: AllenIntegration
 ################################################################################
-gaudi_subdir(AllenIntegration v1r0)
-
-gaudi_depends_on_subdirs(Online/OnlineKernel
-        Det/FTDet
-                         Det/VPDet      
-                         UT/UTDAQ
-                         UT/UTKernel
-                         Event/FTEvent
-                         DAQ/DAQKernel
-                         Event/DAQEvent
-                         Event/DigiEvent
-                         GaudiAlg
-                         Pr/PrKernel
-			 Muon/MuonID 
-)
-
-find_package(Boost REQUIRED)
-find_package(Rangev3 REQUIRED)
-find_package(cppgsl REQUIRED)
-find_package(Rangev3 REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIR} ${RANGEV3_INCLUDE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/main/include) 
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
@@ -91,6 +70,28 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include) 
 
 # gaudi_install_headers()
+
+gaudi_subdir(AllenIntegration v1r0)
+
+gaudi_depends_on_subdirs(Online/OnlineKernel
+        Det/FTDet
+                         Det/VPDet      
+                         UT/UTDAQ
+                         UT/UTKernel
+                         Event/FTEvent
+                         DAQ/DAQKernel
+                         Event/DAQEvent
+                         Event/DigiEvent
+                         GaudiAlg
+                         Pr/PrKernel
+			 Muon/MuonID 
+)
+
+find_package(Boost REQUIRED)
+find_package(Rangev3 REQUIRED)
+find_package(cppgsl REQUIRED)
+find_package(Rangev3 REQUIRED)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIRS} ${RANGEV3_INCLUDE_DIR} ${GSL_INCLUDE_DIRS})
 
 gaudi_add_module(AllenIntegration
                   src/*.cpp

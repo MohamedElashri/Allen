@@ -21,6 +21,7 @@
 
 #include "Event/Track.h"
 
+#include "Constants.cuh"
 
 class RunAllen final : public Gaudi::Functional::Consumer<void(
   const std::vector<uint32_t>& VeloRawInput,
@@ -50,7 +51,7 @@ class RunAllen final : public Gaudi::Functional::Consumer<void(
     const std::vector<uint32_t>& MuonRawOffsets) const override;
 
  private:
- 
+  Constants m_constants;
  
   
   

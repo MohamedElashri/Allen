@@ -16,7 +16,7 @@
 #include "MuonDefinitions.cuh"
 #include "MuonGeometry.cuh"
 #include "MuonTables.cuh"
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
