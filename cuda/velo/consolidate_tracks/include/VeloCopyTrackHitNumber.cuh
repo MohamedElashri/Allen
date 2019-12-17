@@ -3,9 +3,10 @@
 
 namespace velo_copy_track_hit_number {
   // Arguments
-  struct dev_tracks_t : input_datatype<Velo::TrackHits> {};
-  struct dev_atomics_velo_t : input_datatype<uint> {};
-  struct dev_velo_track_hit_number_t : output_datatype<uint> {};
+  HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint)
+  DEVICE_INPUT(dev_tracks_t, Velo::TrackHits)
+  DEVICE_INPUT(dev_atomics_velo_t, uint)
+  DEVICE_OUTPUT(dev_velo_track_hit_number_t, uint)
 
   __global__ void velo_copy_track_hit_number(
     dev_tracks_t dev_tracks,
@@ -13,16 +14,16 @@ namespace velo_copy_track_hit_number {
     dev_velo_track_hit_number_t dev_velo_track_hit_number);
 
   template<typename Arguments>
-  struct velo_copy_track_hit_number_t : public GpuAlgorithm {
+  struct velo_copy_track_hit_number_t : public DeviceAlgorithm {
     constexpr static auto name {"velo_copy_track_hit_number_t"};
-    decltype(gpu_function(velo_copy_track_hit_number)) function {velo_copy_track_hit_number};
+    decltype(global_function(velo_copy_track_hit_number)) function {velo_copy_track_hit_number};
 
     void set_arguments_size(
       ArgumentRefManager<Arguments> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
-      set_size<dev_velo_track_hit_number_t>(arguments, host_buffers.velo_track_hit_number_size());
+      set_size<dev_velo_track_hit_number_t>(arguments, offset<host_number_of_reconstructed_velo_tracks_t>(arguments)[0] + 1);
     }
 
     void operator()(
