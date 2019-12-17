@@ -55,7 +55,8 @@ struct Stream {
   // Number of input events
   uint number_of_input_events;
 
-  // GPU Memory base pointer
+  // Memory base pointers
+  char* host_base_pointer;
   char* dev_base_pointer;
 
   // Constants

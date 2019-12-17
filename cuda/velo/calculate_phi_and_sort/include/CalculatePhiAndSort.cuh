@@ -12,6 +12,7 @@ namespace velo_calculate_phi_and_sort {
   struct dev_module_cluster_num_t : input_datatype<uint> {};
   struct dev_velo_cluster_container_t : output_datatype<uint> {};
   struct dev_hit_permutation_t : output_datatype<uint> {};
+  HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
 
   __device__ void calculate_phi(
     const uint* module_hitStarts,
@@ -48,7 +49,7 @@ namespace velo_calculate_phi_and_sort {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
-      set_size<dev_hit_permutation_t>(arguments, host_buffers.host_total_number_of_velo_clusters[0]);
+      set_size<dev_hit_permutation_t>(arguments, offset<host_total_number_of_velo_clusters_t>(arguments)[0]);
     }
 
     void operator()(

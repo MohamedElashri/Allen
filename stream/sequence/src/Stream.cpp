@@ -88,11 +88,15 @@ cudaError_t Stream::initialize(
   // Reserve host buffers
   host_buffers_manager = buffers_manager;
 
-  // Malloc a configurable reserved memory
+  // Malloc a configurable reserved memory on the host
+  // TODO: Make configurable
+  cudaCheck(cudaMallocHost((void**) &host_base_pointer, 10 * 1024 * 1024));
+
+  // Malloc a configurable reserved memory on the device
   cudaCheck(cudaMalloc((void**) &dev_base_pointer, reserve_mb * 1024 * 1024));
 
   // Prepare scheduler
-  scheduler.initialize(do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer);
+  scheduler.initialize(do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer, 10 * 1024 * 1024, host_base_pointer);
 
   return cudaSuccess;
 }

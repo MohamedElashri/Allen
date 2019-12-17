@@ -70,7 +70,7 @@ __device__ void calculate_phi_side(
 /**
  * @brief Calculates phi for each hit
  */
-__device__ void calculate_phi(
+__device__ void velo_calculate_phi_and_sort::calculate_phi(
   const unsigned int* module_hitStarts,
   const unsigned int* module_hitNums,
   const float* hit_Xs,

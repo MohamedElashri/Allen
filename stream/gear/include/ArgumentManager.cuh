@@ -5,6 +5,7 @@
 #include "CudaCommon.h"
 #include "Logger.h"
 #include "TupleTools.cuh"
+#include "Argument.cuh"
 
 /**
  * @brief Helper class to generate arguments based on
@@ -12,15 +13,18 @@
  */
 template<typename Tuple>
 struct ArgumentManager {
-  typename std::tuple_element<0, Tuple>::type a {};
-  typename std::tuple_element<1, Tuple>::type b {};
-
-  Tuple arguments_tuple {};
-  char* base_pointer;
+  Tuple arguments_tuple;
+  char* device_base_pointer;
+  char* host_base_pointer;
 
   ArgumentManager() = default;
 
-  void set_base_pointer(char* param_base_pointer) { base_pointer = param_base_pointer; }
+  void set_base_pointers(
+    char* param_device_base_pointer,
+    char* param_host_base_pointer) {
+    device_base_pointer = param_device_base_pointer;
+    host_base_pointer = param_host_base_pointer;
+  }
 
   template<typename T>
   auto offset() const
@@ -36,9 +40,17 @@ struct ArgumentManager {
   }
 
   template<typename T>
-  void set_offset(const uint offset)
+  typename std::enable_if<std::is_base_of<device_datatype, T>::value>::type
+  set_offset(const uint offset)
   {
-    tuple_ref_by_inheritance<T>(arguments_tuple).offset = base_pointer + offset;
+    tuple_ref_by_inheritance<T>(arguments_tuple).offset = device_base_pointer + offset;
+  }
+
+  template<typename T>
+  typename std::enable_if<std::is_base_of<host_datatype, T>::value>::type
+  set_offset(const uint offset)
+  {
+    tuple_ref_by_inheritance<T>(arguments_tuple).offset = host_base_pointer + offset;
   }
 
   template<typename T>

@@ -13,16 +13,6 @@ namespace velo_weak_tracks_adder {
   struct dev_hit_used_t : output_datatype<bool> {};
   struct dev_atomics_velo_t : output_datatype<uint> {};
 
-  __device__ void weak_tracks_adder_impl(
-    uint* weaktracks_insert_pointer,
-    uint* tracks_insert_pointer,
-    Velo::TrackletHits* weak_tracks,
-    Velo::TrackHits* tracks,
-    bool* hit_used,
-    const float* hit_Xs,
-    const float* hit_Ys,
-    const float* hit_Zs);
-
   __global__ void velo_weak_tracks_adder(
     dev_velo_cluster_container_t dev_velo_cluster_container,
     dev_estimated_input_size_t dev_estimated_input_size,

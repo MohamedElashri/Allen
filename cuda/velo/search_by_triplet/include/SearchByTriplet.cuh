@@ -14,18 +14,19 @@
 
 namespace velo_search_by_triplet {
   // Arguments
-  struct dev_velo_cluster_container_t : input_datatype<uint> {};
-  struct dev_estimated_input_size_t : input_datatype<uint> {};
-  struct dev_module_cluster_num_t : input_datatype<uint> {};
-  struct dev_tracks_t : output_datatype<Velo::TrackHits> {};
-  struct dev_tracklets_t : output_datatype<Velo::TrackletHits> {};
-  struct dev_tracks_to_follow_t : output_datatype<uint> {};
-  struct dev_weak_tracks_t : output_datatype<Velo::TrackletHits> {};
-  struct dev_hit_used_t : output_datatype<bool> {};
-  struct dev_atomics_velo_t : output_datatype<uint> {};
-  struct dev_h0_candidates_t : input_datatype<short> {};
-  struct dev_h2_candidates_t : input_datatype<short> {};
-  struct dev_rel_indices_t : output_datatype<unsigned short> {};
+  HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
+  DEV_INPUT(dev_velo_cluster_container_t, uint)
+  DEV_INPUT(dev_estimated_input_size_t, uint)
+  DEV_INPUT(dev_module_cluster_num_t, uint)
+  DEV_INPUT(dev_h0_candidates_t, short)
+  DEV_INPUT(dev_h2_candidates_t, short)
+  DEV_OUTPUT(dev_tracks_t, Velo::TrackHits)
+  DEV_OUTPUT(dev_tracklets_t, Velo::TrackletHits)
+  DEV_OUTPUT(dev_tracks_to_follow_t, uint)
+  DEV_OUTPUT(dev_weak_tracks_t, Velo::TrackletHits)
+  DEV_OUTPUT(dev_hit_used_t, bool)
+  DEV_OUTPUT(dev_atomics_velo_t, uint)
+  DEV_OUTPUT(dev_rel_indices_t, unsigned short)
 
   __global__ void velo_search_by_triplet(
     dev_velo_cluster_container_t dev_velo_cluster_container,
@@ -59,7 +60,7 @@ namespace velo_search_by_triplet {
         arguments, host_buffers.host_number_of_selected_events[0] * get_property_value<uint>("ttf_modulo"));
       set_size<dev_weak_tracks_t>(
         arguments, host_buffers.host_number_of_selected_events[0] * get_property_value<uint>("max_weak_tracks"));
-      set_size<dev_hit_used_t>(arguments, host_buffers.host_total_number_of_velo_clusters[0]);
+      set_size<dev_hit_used_t>(arguments, offset<host_total_number_of_velo_clusters_t>(arguments)[0]);
       set_size<dev_atomics_velo_t>(arguments, host_buffers.host_number_of_selected_events[0] * Velo::num_atomics);
       set_size<dev_rel_indices_t>(
         arguments, host_buffers.host_number_of_selected_events[0] * 2 * Velo::Constants::max_numhits_in_module);

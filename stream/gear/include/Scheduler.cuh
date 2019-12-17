@@ -16,7 +16,8 @@ struct Scheduler {
   using arguments_tuple_t = typename Sch::ArgumentsTuple<in_deps_t>::t;
   using argument_manager_t = ArgumentManager<arguments_tuple_t>;
 
-  MemoryManager memory_manager;
+  MemoryManager device_memory_manager;
+  MemoryManager host_memory_manager;
   argument_manager_t argument_manager;
   bool do_print = false;
 
@@ -26,17 +27,23 @@ struct Scheduler {
   Scheduler() = default;
   Scheduler(const Scheduler&) = delete;
 
-  void initialize(const bool param_do_print, const size_t reserved_mb, char* base_pointer)
+  void initialize(
+    const bool param_do_print,
+    const size_t device_reserved_mb,
+    char* device_base_pointer,
+    const size_t host_reserved_mb,
+    char* host_base_pointer)
   {
     do_print = param_do_print;
 
     // Set max mb to memory_manager
-    memory_manager.set_reserved_memory(reserved_mb);
-    argument_manager.set_base_pointer(base_pointer);
+    device_memory_manager.set_reserved_memory(device_reserved_mb);
+    host_memory_manager.set_reserved_memory(host_reserved_mb);
+    argument_manager.set_base_pointers(device_base_pointer, host_base_pointer);
 
     if (logger::ll.verbosityLevel >= logger::verbose) {
-      verbose_cout << "IN deps" << std::endl;
-      Sch::PrintAlgorithmDependencies<in_deps_t>::print();
+      // verbose_cout << "IN deps" << std::endl;
+      // Sch::PrintAlgorithmDependencies<in_deps_t>::print();
 
       // verbose_cout << "OUT deps" << std::endl;
       // Sch::PrintAlgorithmDependencies<out_deps_t>::print();
@@ -46,7 +53,10 @@ struct Scheduler {
   /**
    * @brief Resets the memory manager.
    */
-  void reset() { memory_manager.free_all(); }
+  void reset() {
+    device_memory_manager.free_all();
+    host_memory_manager.free_all();
+  }
 
   /**
    * @brief Runs a step of the scheduler and determines
@@ -77,15 +87,16 @@ struct Scheduler {
     static_assert(std::is_same<T, out_algorithm>::value, "Scheduler index mismatch (out_algorithm)");
 
     // Free all arguments in OutDependencies
-    MemoryManagerFree<out_arguments>::free(memory_manager);
+    MemoryManagerFree<out_arguments>::free(device_memory_manager, host_memory_manager);
 
     // Reserve all arguments in InDependencies
-    MemoryManagerReserve<argument_manager_t, in_arguments>::reserve(memory_manager, argument_manager);
+    MemoryManagerReserve<argument_manager_t, in_arguments>::reserve(device_memory_manager, host_memory_manager, argument_manager);
 
     // Print memory manager state
     if (do_print) {
-      info_cout << "Sequence step " << I << " \"" << T::name << "\":" << std::endl;
-      memory_manager.print();
+      info_cout << "Sequence step " << I << " \"" << T::name << "\":\n";
+      device_memory_manager.print();
+      host_memory_manager.print();
     }
   }
 

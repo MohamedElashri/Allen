@@ -15,6 +15,7 @@ namespace velo_masked_clustering {
   struct dev_event_list_t : input_datatype<uint> {};
   struct dev_module_cluster_num_t : output_datatype<uint> {};
   struct dev_velo_cluster_container_t : output_datatype<float> {};
+  HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
 
   // Function
   __global__ void velo_masked_clustering(
@@ -44,7 +45,7 @@ namespace velo_masked_clustering {
     {
       set_size<dev_module_cluster_num_t>(
         arguments, host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules);
-      set_size<dev_velo_cluster_container_t>(arguments, 6 * host_buffers.host_total_number_of_velo_clusters[0]);
+      set_size<dev_velo_cluster_container_t>(arguments, 6 * offset<host_total_number_of_velo_clusters_t>(arguments)[0]);
     }
 
     void operator()(

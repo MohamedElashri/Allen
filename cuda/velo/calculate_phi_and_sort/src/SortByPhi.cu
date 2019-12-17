@@ -1,11 +1,12 @@
 #include "VeloDefinitions.cuh"
 #include "ApplyPermutation.cuh"
+#include "CalculatePhiAndSort.cuh"
 #include "CudaMathConstants.h"
 
 /**
  * @brief Calculates phi for each hit
  */
-__device__ void sort_by_phi(
+__device__ void velo_calculate_phi_and_sort::sort_by_phi(
   const uint event_hit_start,
   const uint event_number_of_hits,
   float* hit_Xs,

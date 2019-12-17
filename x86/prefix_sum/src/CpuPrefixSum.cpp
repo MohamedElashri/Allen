@@ -18,14 +18,14 @@ void cpu_prefix_sum_impl(uint* host_prefix_sum_buffer, const size_t dev_prefix_s
   }
 }
 
-void cpu_prefix_sum(
+void _cpu_prefix_sum::cpu_prefix_sum(
   uint* host_prefix_sum_buffer,
   size_t& host_allocated_prefix_sum_space,
-  uint* dev_prefix_sum_offset,
+  _cpu_prefix_sum::dev_buffer_t dev_prefix_sum_offset,
   const size_t dev_prefix_sum_size,
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event,
-  uint* host_total_sum_holder)
+  _cpu_prefix_sum::host_total_sum_holder_t host_total_sum_holder)
 {
   // Reallocate if insufficient space on host buffer
   if ((dev_prefix_sum_size >> 2) > host_allocated_prefix_sum_space) {
@@ -53,4 +53,21 @@ void cpu_prefix_sum(
   cudaCheck(cudaMemcpyAsync(
     dev_prefix_sum_offset, host_prefix_sum_buffer, dev_prefix_sum_size, cudaMemcpyHostToDevice, cuda_stream));
 #endif
+}
+
+void cpu_prefix_sum(
+    uint* host_prefix_sum_buffer,
+    size_t& host_allocated_prefix_sum_space,
+    uint* dev_prefix_sum_offset,
+    const size_t dev_prefix_sum_size,
+    cudaStream_t& cuda_stream,
+    cudaEvent_t& cuda_generic_event,
+    uint* host_total_sum_holder) {
+  _cpu_prefix_sum::cpu_prefix_sum(host_prefix_sum_buffer,
+    host_allocated_prefix_sum_space,
+    _cpu_prefix_sum::dev_buffer_t{dev_prefix_sum_offset},
+    dev_prefix_sum_size,
+    cuda_stream,
+    cuda_generic_event,
+    _cpu_prefix_sum::host_total_sum_holder_t{host_total_sum_holder});
 }

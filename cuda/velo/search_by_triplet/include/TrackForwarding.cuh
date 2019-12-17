@@ -48,7 +48,7 @@ __device__ std::tuple<int, int> find_forward_candidates(
     hit_Phis + module.hitStart,
     module.hitNums,
     track_extrapolation_phi,
-    Configuration::velo_search_by_triplet_t::forward_phi_tolerance);
+    Configuration::velo_search_by_triplet::forward_phi_tolerance);
 
   if (first_candidate != -1) {
     // Find last candidate
@@ -56,7 +56,7 @@ __device__ std::tuple<int, int> find_forward_candidates(
       hit_Phis + module.hitStart + first_candidate,
       module.hitNums - first_candidate,
       track_extrapolation_phi,
-      Configuration::velo_search_by_triplet_t::forward_phi_tolerance);
+      Configuration::velo_search_by_triplet::forward_phi_tolerance);
     first_candidate += module.hitStart;
     last_candidate = first_candidate + last_candidate;
   }
