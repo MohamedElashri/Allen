@@ -3,7 +3,7 @@
 
 namespace velo_copy_track_hit_number {
   // Arguments
-  struct dev_tracks_t : input_datatype<Velo::Trackhits> {};
+  struct dev_tracks_t : input_datatype<Velo::TrackHits> {};
   struct dev_atomics_velo_t : input_datatype<uint> {};
   struct dev_velo_track_hit_number_t : output_datatype<uint> {};
 
@@ -22,7 +22,7 @@ namespace velo_copy_track_hit_number {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
-      arguments.set_size<dev_velo_track_hit_number_t>(host_buffers.velo_track_hit_number_size());
+      set_size<dev_velo_track_hit_number_t>(arguments, host_buffers.velo_track_hit_number_size());
     }
 
     void operator()(
@@ -33,9 +33,9 @@ namespace velo_copy_track_hit_number {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-        arguments.offset<dev_tracks>(),
-        arguments.offset<dev_atomics_velo>(),
-        arguments.offset<dev_velo_track_hit_number_t>());
+        offset<dev_tracks_t>(arguments),
+        offset<dev_atomics_velo_t>(arguments),
+        offset<dev_velo_track_hit_number_t>(arguments));
     }
   };
 } // namespace velo_copy_track_hit_number

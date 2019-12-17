@@ -141,7 +141,7 @@ SEQUENCE_T(
     dev_hit_used_t,
     dev_atomics_velo_t
   >>,
-  cpu_velo_prefix_sum_number_of_tracks_t<std::tuple<
+  cpu_velo_prefix_sum_number_of_tracks::cpu_velo_prefix_sum_number_of_tracks_t<std::tuple<
     dev_atomics_velo_t
   >>,
   velo_copy_track_hit_number::velo_copy_track_hit_number_t<std::tuple<
@@ -149,7 +149,7 @@ SEQUENCE_T(
     dev_atomics_velo_t,
     dev_velo_track_hit_number_t
   >>,
-  cpu_velo_prefix_sum_number_of_track_hits_t<std::tuple<
+  cpu_velo_prefix_sum_number_of_track_hits::cpu_velo_prefix_sum_number_of_track_hits_t<std::tuple<
     dev_velo_track_hit_number_t
   >>,
   velo_consolidate_tracks::velo_consolidate_tracks_t<std::tuple<

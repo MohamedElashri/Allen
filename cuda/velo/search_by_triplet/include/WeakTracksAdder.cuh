@@ -50,12 +50,12 @@ namespace velo_weak_tracks_adder {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-        arguments.offset<dev_velo_cluster_container>(),
-        arguments.offset<dev_estimated_input_size>(),
-        arguments.offset<dev_tracks>(),
-        arguments.offset<dev_weak_tracks>(),
-        arguments.offset<dev_hit_used>(),
-        arguments.offset<dev_atomics_velo>());
+        offset<dev_velo_cluster_container_t>(arguments),
+        offset<dev_estimated_input_size_t>(arguments),
+        offset<dev_tracks_t>(arguments),
+        offset<dev_weak_tracks_t>(arguments),
+        offset<dev_hit_used_t>(arguments),
+        offset<dev_atomics_velo_t>(arguments));
     }
   };
 } // namespace velo_weak_tracks_adder

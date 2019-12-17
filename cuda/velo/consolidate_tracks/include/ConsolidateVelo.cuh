@@ -14,16 +14,16 @@ namespace velo_consolidate_tracks {
   struct dev_velo_track_hit_number_t : input_datatype<uint> {};
   struct dev_velo_cluster_container_t : input_datatype<uint> {};
   struct dev_estimated_input_size_t : input_datatype<uint> {};
-  struct dev_velo_track_hits_t : input_datatype<char> {};
   struct dev_velo_states_t : input_datatype<char> {};
-  struct dev_accepted_velo_tracks_t : input_datatype<uint> {};
+  struct dev_accepted_velo_tracks_t : output_datatype<uint> {};
+  struct dev_velo_track_hits_t : output_datatype<char> {};
 
   __global__ void velo_consolidate_tracks(
     dev_atomics_velo_t dev_atomics_velo,
     dev_tracks_t dev_tracks,
     dev_velo_track_hit_number_t dev_velo_track_hit_number,
     dev_velo_cluster_container_t dev_velo_cluster_container,
-    dev_module_cluster_start_t dev_module_cluster_start,
+    dev_estimated_input_size_t dev_estimated_input_size,
     dev_velo_track_hits_t dev_velo_track_hits,
     dev_velo_states_t dev_velo_states);
 

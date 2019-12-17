@@ -11,7 +11,6 @@ namespace cpu_velo_prefix_sum_number_of_tracks {
   struct cpu_velo_prefix_sum_number_of_tracks_t : public CpuAlgorithm {
     constexpr static auto name {"cpu_velo_prefix_sum_number_of_tracks_t"};
     decltype(cpu_function(cpu_prefix_sum)) function {cpu_prefix_sum};
-    using Arguments = std::tuple<dev_atomics_velo>;
 
     void set_arguments_size(
       ArgumentRefManager<Arguments> arguments,

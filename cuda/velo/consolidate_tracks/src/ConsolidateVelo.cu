@@ -1,23 +1,6 @@
 #include "../include/ConsolidateVelo.cuh"
 
-void velo_consolidate_tracks_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-}
-
-void velo_consolidate_tracks_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  
-}
+using namespace velo_consolidate_tracks;
 
 /**
  * @brief Calculates the parameters according to a root means square fit
@@ -84,12 +67,12 @@ __device__ void populate(const Velo::TrackHits& track, T* __restrict__ a, const 
   }
 }
 
-__global__ void velo_consolidate_tracks(
+__global__ void velo_consolidate_tracks::velo_consolidate_tracks(
   dev_atomics_velo_t dev_atomics_velo,
   dev_tracks_t dev_tracks,
   dev_velo_track_hit_number_t dev_velo_track_hit_number,
   dev_velo_cluster_container_t dev_velo_cluster_container,
-  dev_module_cluster_start_t dev_module_cluster_start,
+  dev_estimated_input_size_t dev_estimated_input_size,
   dev_velo_track_hits_t dev_velo_track_hits,
   dev_velo_states_t dev_velo_states)
 {
@@ -99,19 +82,19 @@ __global__ void velo_consolidate_tracks(
 
   // Consolidated datatypes
   const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_velo, dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::States velo_states {dev_velo_states, velo_tracks.total_number_of_tracks};
+    const_cast<uint*>(dev_atomics_velo.get()), const_cast<uint*>(dev_velo_track_hit_number.get()), event_number, number_of_events};
+  Velo::Consolidated::States velo_states {const_cast<char*>(dev_velo_states.get()), velo_tracks.total_number_of_tracks};
 
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   // Pointers to data within event
-  const uint number_of_hits = dev_module_cluster_start[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = dev_module_cluster_start + event_number * Velo::Constants::n_modules;
+  const uint number_of_hits = dev_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint* module_hitStarts = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
 
   // Order has changed since SortByPhi
-  const float* float_dev_velo_cluster_container = (float*) (dev_velo_cluster_container);
+  const float* float_dev_velo_cluster_container = reinterpret_cast<const float*>(dev_velo_cluster_container.get());
   // const uint32_t* hit_IDs = (uint32_t*) (dev_velo_cluster_container + 2 * number_of_hits + hit_offset);
   // const float* hit_Xs = (float*) (dev_velo_cluster_container + 5 * number_of_hits + hit_offset);
   // const float* hit_Ys = (float*) (dev_velo_cluster_container + hit_offset);
@@ -125,7 +108,7 @@ __global__ void velo_consolidate_tracks(
     populate<float>(track, consolidated_hits.y, float_dev_velo_cluster_container + hit_offset);
     populate<float>(track, consolidated_hits.z, float_dev_velo_cluster_container + number_of_hits + hit_offset);
     populate<uint32_t>(
-      track, consolidated_hits.LHCbID, (uint32_t*) dev_velo_cluster_container + 2 * number_of_hits + hit_offset);
+      track, consolidated_hits.LHCbID, dev_velo_cluster_container + 2 * number_of_hits + hit_offset);
 
     // Calculate and store fit in consolidated container
     VeloState beam_state = means_square_fit(consolidated_hits, track);
