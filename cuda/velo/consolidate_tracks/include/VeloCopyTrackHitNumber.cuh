@@ -33,10 +33,12 @@ namespace velo_copy_track_hit_number {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+      function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
         offset<dev_tracks_t>(arguments),
         offset<dev_atomics_velo_t>(arguments),
         offset<dev_velo_track_hit_number_t>(arguments));
+
+      arguments.template print<dev_velo_track_hit_number_t>();
     }
   };
 } // namespace velo_copy_track_hit_number

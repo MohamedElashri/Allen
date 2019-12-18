@@ -3,28 +3,31 @@
 #include "CudaCommon.h"
 #include "CpuAlgorithm.cuh"
 
-namespace _cpu_prefix_sum {
+namespace host_prefix_sum {
   // Arguments
   // struct host_total_sum_holder_t : output_host_datatype<uint> {};
   HOST_OUTPUT(host_total_sum_holder_t, uint)
-  DEVICE_OUTPUT(dev_buffer_t, uint)
+  DEVICE_INPUT(dev_input_buffer_t, uint)
+  DEVICE_OUTPUT(dev_output_buffer_t, uint)
 
   /**
    * @brief An algorithm that performs the prefix sum on the CPU.
    */
-  void cpu_prefix_sum(
+  void host_prefix_sum(
     uint* host_prefix_sum_buffer,
     size_t& host_allocated_prefix_sum_space,
-    dev_buffer_t dev_prefix_sum_offset,
-    const size_t dev_prefix_sum_size,
+    dev_input_buffer_t dev_input_buffer,
+    dev_output_buffer_t dev_output_buffer,
+    const size_t dev_input_buffer_size,
+    const size_t dev_output_buffer_size,
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event,
     host_total_sum_holder_t host_total_sum_holder);
 
   template<typename Arguments>
-  struct cpu_prefix_sum_t : public CpuAlgorithm {
-    constexpr static auto name {"cpu_prefix_sum_t"};
-    decltype(cpu_function(cpu_prefix_sum)) function {cpu_prefix_sum};
+  struct host_prefix_sum_t : public HostAlgorithm {
+    constexpr static auto name {"host_prefix_sum_t"};
+    decltype(host_function(host_prefix_sum)) function {host_prefix_sum};
 
     void set_arguments_size(
       ArgumentRefManager<Arguments> arguments,
@@ -34,6 +37,7 @@ namespace _cpu_prefix_sum {
     {
       // The total sum holder just holds a single unsigned integer.
       set_size<host_total_sum_holder_t>(arguments, 1);
+      set_size<dev_output_buffer_t>(arguments, offset<dev_input_buffer_t>(arguments)[0] / sizeof(uint) + 1);
     }
 
     void operator()(
@@ -45,11 +49,13 @@ namespace _cpu_prefix_sum {
       cudaEvent_t& cuda_generic_event) const
     {
       // Invokes the function
-      function.invoke(
+      function(
         host_buffers.host_prefix_sum_buffer,
         host_buffers.host_allocated_prefix_sum_space,
-        offset<dev_buffer_t>(arguments),
-        size<dev_buffer_t>(arguments),
+        offset<dev_input_buffer_t>(arguments),
+        offset<dev_output_buffer_t>(arguments),
+        size<dev_input_buffer_t>(arguments),
+        size<dev_output_buffer_t>(arguments),
         cuda_stream,
         cuda_generic_event,
         offset<host_total_sum_holder_t>(arguments));

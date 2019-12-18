@@ -39,7 +39,7 @@ namespace Configuration {
 
 namespace Velo {
   // Total number of atomics required
-  static constexpr uint num_atomics = 5;
+  static constexpr uint num_atomics = 4;
 
   namespace Constants {
 

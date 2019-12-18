@@ -27,6 +27,7 @@ namespace velo_search_by_triplet {
   DEVICE_OUTPUT(dev_hit_used_t, bool)
   DEVICE_OUTPUT(dev_atomics_velo_t, uint)
   DEVICE_OUTPUT(dev_rel_indices_t, unsigned short)
+  DEVICE_OUTPUT(dev_number_of_velo_tracks_t, uint)
 
   __global__ void velo_search_by_triplet(
     dev_velo_cluster_container_t dev_velo_cluster_container,
@@ -41,6 +42,7 @@ namespace velo_search_by_triplet {
     dev_h0_candidates_t dev_h0_candidates,
     dev_h2_candidates_t dev_h2_candidates,
     dev_rel_indices_t dev_rel_indices,
+    dev_number_of_velo_tracks_t dev_number_of_velo_tracks,
     const VeloGeometry* dev_velo_geometry);
 
   template<typename Arguments>
@@ -62,6 +64,7 @@ namespace velo_search_by_triplet {
         arguments, host_buffers.host_number_of_selected_events[0] * get_property_value<uint>("max_weak_tracks"));
       set_size<dev_hit_used_t>(arguments, offset<host_total_number_of_velo_clusters_t>(arguments)[0]);
       set_size<dev_atomics_velo_t>(arguments, host_buffers.host_number_of_selected_events[0] * Velo::num_atomics);
+      set_size<dev_number_of_velo_tracks_t>(arguments, host_buffers.host_number_of_selected_events[0]);
       set_size<dev_rel_indices_t>(
         arguments, host_buffers.host_number_of_selected_events[0] * 2 * Velo::Constants::max_numhits_in_module);
     }
@@ -91,6 +94,7 @@ namespace velo_search_by_triplet {
         offset<dev_h0_candidates_t>(arguments),
         offset<dev_h2_candidates_t>(arguments),
         offset<dev_rel_indices_t>(arguments),
+        offset<dev_number_of_velo_tracks_t>(arguments),
         constants.dev_velo_geometry);
     }
 

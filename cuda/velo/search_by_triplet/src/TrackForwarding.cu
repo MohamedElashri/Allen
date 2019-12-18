@@ -17,7 +17,7 @@ __device__ void track_forwarding(
   Velo::TrackHits* tracks,
   const uint number_of_hits,
   uint* dev_atomics_velo,
-  const int ip_shift)
+  uint* dev_number_of_velo_tracks)
 {
   // Assign a track to follow to each thread
   for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
@@ -130,15 +130,15 @@ __device__ void track_forwarding(
         hit_used[t->hits[1]] = true;
         hit_used[t->hits[2]] = true;
 
-        // If it is a track made out of less than or equal than 4 hits,
+        // If it is a track made out of less than or equal to 4 hits,
         // we have to allocate it in the tracks pointer
-        trackno = atomicAdd(dev_atomics_velo + blockIdx.x, 1);
+        trackno = atomicAdd(dev_number_of_velo_tracks + blockIdx.x, 1);
         *((Velo::TrackHitsScratch*) &tracks[trackno]) = track_scratch;
       }
 
       // Add the tracks to the bag of tracks to_follow
       const auto ttfP =
-        atomicAdd(dev_atomics_velo + ip_shift + 2, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
+        atomicAdd(dev_atomics_velo + 2, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
       tracks_to_follow[ttfP] = trackno;
     }
     // A track just skipped a module
@@ -149,14 +149,14 @@ __device__ void track_forwarding(
 
       // Add the tracks to the bag of tracks to_follow
       const auto ttfP =
-        atomicAdd(dev_atomics_velo + ip_shift + 2, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
+        atomicAdd(dev_atomics_velo + 2, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
       tracks_to_follow[ttfP] = trackno;
     }
     // If there are only three hits in this track,
     // mark it as "doubtful"
     else if (t->hitsNum == 3) {
       const auto weakP =
-        atomicAdd(dev_atomics_velo + ip_shift, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
+        atomicAdd(dev_atomics_velo, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
       assert(weakP < Configuration::velo_search_by_triplet::max_weak_tracks);
       weak_tracks[weakP] = Velo::TrackletHits {t->hits[0], t->hits[1], t->hits[2]};
     }

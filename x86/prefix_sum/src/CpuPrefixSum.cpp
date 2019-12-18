@@ -1,35 +1,44 @@
 #include "CpuPrefixSum.h"
 
-void cpu_prefix_sum_impl(uint* host_prefix_sum_buffer, const size_t dev_prefix_sum_size, uint* host_total_sum_holder)
+using namespace host_prefix_sum;
+
+void host_prefix_sum_impl(uint* host_prefix_sum_buffer, const size_t input_number_of_elements, uint* host_total_sum_holder)
 {
-  // Do prefix sum on CPU
-  const size_t number_of_elements = (dev_prefix_sum_size >> 2) - 1;
+  // Do prefix sum on the host
   uint temp = 0;
   uint temp_sum = 0;
-  for (uint i = 0; i < number_of_elements; ++i) {
+  for (uint i = 0; i < input_number_of_elements; ++i) {
     temp_sum += host_prefix_sum_buffer[i];
     host_prefix_sum_buffer[i] = temp;
     temp = temp_sum;
   }
-  host_prefix_sum_buffer[number_of_elements] = temp;
 
+  // Store the total sum in the output buffer
+  host_prefix_sum_buffer[input_number_of_elements] = temp;
+
+  // Store the total sum in host_total_sum_holder as well
   if (host_total_sum_holder != nullptr) {
-    host_total_sum_holder[0] = host_prefix_sum_buffer[number_of_elements];
+    host_total_sum_holder[0] = host_prefix_sum_buffer[input_number_of_elements];
   }
 }
 
-void _cpu_prefix_sum::cpu_prefix_sum(
+void host_prefix_sum::host_prefix_sum(
   uint* host_prefix_sum_buffer,
   size_t& host_allocated_prefix_sum_space,
-  _cpu_prefix_sum::dev_buffer_t dev_prefix_sum_offset,
-  const size_t dev_prefix_sum_size,
+  dev_input_buffer_t dev_input_buffer,
+  dev_output_buffer_t dev_output_buffer,
+  const size_t dev_input_buffer_size,
+  const size_t dev_output_buffer_size,
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event,
-  _cpu_prefix_sum::host_total_sum_holder_t host_total_sum_holder)
+  host_total_sum_holder_t host_total_sum_holder)
 {
+  assert(dev_output_buffer_size == (dev_input_buffer_size + 1 * sizeof(uint)));
+  const auto input_number_of_elements = dev_input_buffer_size / sizeof(uint);
+
   // Reallocate if insufficient space on host buffer
-  if ((dev_prefix_sum_size >> 2) > host_allocated_prefix_sum_space) {
-    host_allocated_prefix_sum_space = (dev_prefix_sum_size >> 2) * 1.2f;
+  if ((input_number_of_elements + 1) > host_allocated_prefix_sum_space) {
+    host_allocated_prefix_sum_space = (input_number_of_elements + 1) * 1.2f;
     cudaCheck(cudaFreeHost(host_prefix_sum_buffer));
     cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(uint)));
   }
@@ -38,20 +47,26 @@ void _cpu_prefix_sum::cpu_prefix_sum(
   _unused(cuda_stream);
   _unused(cuda_generic_event);
 
-  host_prefix_sum_buffer = dev_prefix_sum_offset;
-#else
-  cudaCheck(cudaMemcpyAsync(
-    host_prefix_sum_buffer, dev_prefix_sum_offset, dev_prefix_sum_size, cudaMemcpyDeviceToHost, cuda_stream));
+  // Copy directly data to the output buffer
+  std::memcpy(dev_output_buffer, dev_input_buffer, dev_input_buffer_size);
 
+  // Perform the prefix sum on the output buffer
+  host_prefix_sum_impl(dev_output_buffer, input_number_of_elements, host_total_sum_holder);
+#else
+  // Copy data over to the host
+  cudaCheck(cudaMemcpyAsync(
+    host_prefix_sum_buffer, dev_input_buffer, dev_input_buffer_size, cudaMemcpyDeviceToHost, cuda_stream));
+
+  // Synchronize
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
-#endif
 
-  cpu_prefix_sum_impl(host_prefix_sum_buffer, dev_prefix_sum_size, host_total_sum_holder);
+  // Perform the prefix sum
+  host_prefix_sum_impl(host_prefix_sum_buffer, input_number_of_elements, host_total_sum_holder);
 
-#ifndef CPU
+  // Copy prefix summed data to the output buffer
   cudaCheck(cudaMemcpyAsync(
-    dev_prefix_sum_offset, host_prefix_sum_buffer, dev_prefix_sum_size, cudaMemcpyHostToDevice, cuda_stream));
+    dev_output_buffer, host_prefix_sum_buffer, dev_output_buffer_size, cudaMemcpyHostToDevice, cuda_stream));
 #endif
 }
 
@@ -63,11 +78,11 @@ void cpu_prefix_sum(
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event,
     uint* host_total_sum_holder) {
-  _cpu_prefix_sum::cpu_prefix_sum(host_prefix_sum_buffer,
-    host_allocated_prefix_sum_space,
-    _cpu_prefix_sum::dev_buffer_t{dev_prefix_sum_offset},
-    dev_prefix_sum_size,
-    cuda_stream,
-    cuda_generic_event,
-    _cpu_prefix_sum::host_total_sum_holder_t{host_total_sum_holder});
+  // host_prefix_sum::cpu_prefix_sum(host_prefix_sum_buffer,
+  //   host_allocated_prefix_sum_space,
+  //   host_prefix_sum::dev_buffer_t{dev_prefix_sum_offset},
+  //   dev_prefix_sum_size,
+  //   cuda_stream,
+  //   cuda_generic_event,
+  //   host_prefix_sum::host_total_sum_holder_t{host_total_sum_holder});
 }

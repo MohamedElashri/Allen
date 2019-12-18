@@ -10,13 +10,12 @@ namespace Consolidated {
   // second: an array with offsets to the tracks for every event
   struct TracksDescription {
     // Prefix sum of all Velo track sizes
-    uint* event_number_of_tracks;
     uint* event_tracks_offsets;
     uint total_number_of_tracks;
     uint number_of_events;
 
     __device__ __host__ TracksDescription(uint* base_pointer, const uint param_number_of_events) :
-      event_number_of_tracks(base_pointer), event_tracks_offsets(base_pointer + param_number_of_events),
+      event_tracks_offsets(base_pointer),
       number_of_events(param_number_of_events)
     {
       total_number_of_tracks = event_tracks_offsets[number_of_events];
@@ -25,7 +24,7 @@ namespace Consolidated {
     __device__ __host__ uint number_of_tracks(const uint event_number) const
     {
       assert(event_number < number_of_events);
-      return event_number_of_tracks[event_number];
+      return event_tracks_offsets[event_number + 1] - event_tracks_offsets[event_number];
     }
 
     __device__ __host__ uint tracks_offset(const uint event_number) const

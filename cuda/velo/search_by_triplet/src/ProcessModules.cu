@@ -23,9 +23,9 @@ __device__ void process_modules(
   unsigned short* h1_rel_indices,
   const uint hit_offset,
   const float* dev_velo_module_zs,
-  uint* dev_atomics_velo)
+  uint* dev_atomics_velo,
+  uint* dev_number_of_velo_tracks)
 {
-  const int ip_shift = gridDim.x + blockIdx.x * (Velo::num_atomics - 1);
   auto first_module = VP::NModules - 1;
 
   // Prepare the first seeding iteration
@@ -51,7 +51,7 @@ __device__ void process_modules(
     tracklets,
     tracks_to_follow,
     h1_rel_indices,
-    dev_atomics_velo + ip_shift);
+    dev_atomics_velo);
 
   // Prepare forwarding - seeding loop
   uint last_ttf = 0;
@@ -72,12 +72,12 @@ __device__ void process_modules(
     }
 
     const auto prev_ttf = last_ttf;
-    last_ttf = dev_atomics_velo[ip_shift + 2];
+    last_ttf = dev_atomics_velo[2];
     const auto diff_ttf = last_ttf - prev_ttf;
 
     // Reset atomics
     // Note: local_number_of_hits
-    dev_atomics_velo[ip_shift + 3] = 0;
+    dev_atomics_velo[3] = 0;
 
     // Due to module data loading
     __syncthreads();
@@ -95,7 +95,7 @@ __device__ void process_modules(
       tracks,
       number_of_hits,
       dev_atomics_velo,
-      ip_shift);
+      dev_number_of_velo_tracks);
 
     // Due to ttf_insert_pointer
     __syncthreads();
@@ -111,7 +111,7 @@ __device__ void process_modules(
       tracklets,
       tracks_to_follow,
       h1_rel_indices,
-      dev_atomics_velo + ip_shift);
+      dev_atomics_velo);
 
     first_module -= 2;
   }
@@ -120,7 +120,7 @@ __device__ void process_modules(
   __syncthreads();
 
   const auto prev_ttf = last_ttf;
-  last_ttf = dev_atomics_velo[ip_shift + 2];
+  last_ttf = dev_atomics_velo[2];
   const auto diff_ttf = last_ttf - prev_ttf;
 
   // Process the last bunch of track_to_follows
@@ -133,7 +133,7 @@ __device__ void process_modules(
     // Here we are only interested in three-hit tracks,
     // to mark them as "doubtful"
     if (track_flag) {
-      const auto weakP = atomicAdd(dev_atomics_velo + ip_shift, 1);
+      const auto weakP = atomicAdd(dev_atomics_velo, 1);
       assert(weakP < number_of_hits);
       weak_tracks[weakP] = tracklets[trackno];
     }

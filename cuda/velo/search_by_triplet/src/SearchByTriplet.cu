@@ -56,6 +56,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   dev_h0_candidates_t dev_h0_candidates,
   dev_h2_candidates_t dev_h2_candidates,
   dev_rel_indices_t dev_rel_indices,
+  dev_number_of_velo_tracks_t dev_number_of_velo_tracks,
   const VeloGeometry* dev_velo_geometry)
 {
   /* Data initialization */
@@ -104,5 +105,6 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     h1_rel_indices,
     hit_offset,
     dev_velo_geometry->module_zs,
-    dev_atomics_velo);
+    dev_atomics_velo + blockIdx.x * (Velo::num_atomics - 1),
+    dev_number_of_velo_tracks);
 }

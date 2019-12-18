@@ -29,6 +29,11 @@ public:
   {
     return fn(arguments...);
   }
+
+  auto operator()(T... arguments) const
+  {
+    return fn(arguments...);
+  }
 };
 
 /**

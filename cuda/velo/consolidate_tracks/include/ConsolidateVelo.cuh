@@ -55,7 +55,7 @@ namespace velo_consolidate_tracks {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function.invoke(dim3(offset<host_number_of_selected_events_t>(arguments)[0]), block_dimension(), cuda_stream)(
+      function(dim3(offset<host_number_of_selected_events_t>(arguments)[0]), block_dimension(), cuda_stream)(
         offset<dev_atomics_velo_t>(arguments),
         offset<dev_tracks_t>(arguments),
         offset<dev_velo_track_hit_number_t>(arguments),
@@ -74,7 +74,7 @@ namespace velo_consolidate_tracks {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_atomics_velo,
           offset<dev_atomics_velo_t>(arguments),
-          (2 * offset<host_number_of_selected_events_t>(arguments)[0] + 1) * sizeof(uint),
+          size<dev_atomics_velo_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
@@ -88,7 +88,7 @@ namespace velo_consolidate_tracks {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_velo_track_hits,
           offset<dev_velo_track_hits_t>(arguments),
-          offset<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments)[0] * sizeof(Velo::Hit),
+          size<dev_velo_track_hits_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
       }
