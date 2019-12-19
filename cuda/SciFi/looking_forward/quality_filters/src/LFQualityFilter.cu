@@ -96,7 +96,7 @@ __global__ void lf_quality_filter(
     (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
 
   const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
-  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
+  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks()};
 
   const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
   const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;

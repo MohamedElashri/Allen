@@ -92,7 +92,7 @@ namespace Sch {
   template<typename OutputArguments, typename Algorithm>
   struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm>> {
     using t =
-      std::tuple<std::tuple<typename TupleElementsNotIn<typename AlgorithmTraits<Algorithm>::Arguments, OutputArguments>::t>>;
+      std::tuple<>;
   };
 
   template<typename OutputArguments, typename Algorithm, typename NextAlgorithm, typename... Algorithms>

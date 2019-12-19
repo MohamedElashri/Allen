@@ -17,7 +17,6 @@ namespace UT {
       float* weight = nullptr;
       uint32_t* LHCbID = nullptr;
       uint8_t* plane_code = nullptr;
-      uint number_of_hits = 0;
 
       __device__ __host__ Hits(const Hits& hits) :
         yBegin(hits.yBegin), yEnd(hits.yEnd), zAtYEq0(hits.zAtYEq0), xAtYEq0(hits.xAtYEq0), weight(hits.weight),
@@ -41,7 +40,6 @@ namespace UT {
         weight += track_offset;
         LHCbID += track_offset;
         plane_code += track_offset;
-        number_of_hits += track_offset;
       }
 
       __device__ __host__ void set(const uint hit_number, const UT::Hit& hit)
@@ -96,7 +94,7 @@ namespace UT {
 
       __device__ __host__ Hits get_hits(char* hits_base_pointer, const uint track_number) const
       {
-        return Hits {hits_base_pointer, track_offset(track_number), total_number_of_hits};
+        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
     };
 

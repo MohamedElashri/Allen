@@ -23,7 +23,7 @@ namespace velo_copy_track_hit_number {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
-      set_size<dev_velo_track_hit_number_t>(arguments, offset<host_number_of_reconstructed_velo_tracks_t>(arguments)[0] + 1);
+      set_size<dev_velo_track_hit_number_t>(arguments, offset<host_number_of_reconstructed_velo_tracks_t>(arguments)[0]);
     }
 
     void operator()(
@@ -37,8 +37,6 @@ namespace velo_copy_track_hit_number {
         offset<dev_tracks_t>(arguments),
         offset<dev_atomics_velo_t>(arguments),
         offset<dev_velo_track_hit_number_t>(arguments));
-
-      arguments.template print<dev_velo_track_hit_number_t>();
     }
   };
 } // namespace velo_copy_track_hit_number

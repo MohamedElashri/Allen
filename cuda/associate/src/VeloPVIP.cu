@@ -124,12 +124,12 @@ __global__ void velo_pv_ip(
     (uint*) dev_atomics_velo, dev_velo_track_hit_number, event_number, number_of_events};
   uint const event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  Associate::Consolidated::Table velo_pv_ip {dev_velo_pv_ip, velo_tracks.total_number_of_tracks};
+  Associate::Consolidated::Table velo_pv_ip {dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
   velo_pv_ip.set_cutoff(Associate::VeloPVIP::baseline);
 
   // Consolidated Velo fitted states for this event
   Velo::Consolidated::KalmanStates const velo_kalman_states {
-    dev_kalman_velo_states + sizeof(float) * event_tracks_offset, velo_tracks.total_number_of_tracks};
+    dev_kalman_velo_states + sizeof(float) * event_tracks_offset, velo_tracks.total_number_of_tracks()};
 
   cuda::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices,
                                          *(dev_number_of_multi_fit_vertices + event_number)};

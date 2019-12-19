@@ -41,7 +41,7 @@ namespace velo_estimate_input_size {
       set_size<dev_velo_raw_input_t>(arguments, std::get<0>(runtime_options.host_velo_events).size_bytes());
       set_size<dev_velo_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_velo_events).size_bytes());
       set_size<dev_estimated_input_size_t>(
-        arguments, offset<host_number_of_selected_events_t>(arguments)[0] * Velo::Constants::n_modules + 1);
+        arguments, offset<host_number_of_selected_events_t>(arguments)[0] * Velo::Constants::n_modules);
       set_size<dev_module_candidate_num_t>(arguments, offset<host_number_of_selected_events_t>(arguments)[0]);
       set_size<dev_cluster_candidates_t>(
         arguments, offset<host_number_of_selected_events_t>(arguments)[0] * VeloClustering::max_candidates_event);

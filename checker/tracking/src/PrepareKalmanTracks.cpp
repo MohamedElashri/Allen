@@ -213,7 +213,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
 
     // Make the VELO states.
     const uint event_velo_tracks_offset = velo_tracks.tracks_offset(i_event);
-    const Velo::Consolidated::KalmanStates velo_states {velo_states_base, velo_tracks.total_number_of_tracks};
+    const Velo::Consolidated::KalmanStates velo_states {velo_states_base, velo_tracks.total_number_of_tracks()};
 
     // Loop over tracks.
     const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);

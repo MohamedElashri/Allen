@@ -37,7 +37,7 @@ namespace host_prefix_sum {
     {
       // The total sum holder just holds a single unsigned integer.
       set_size<host_total_sum_holder_t>(arguments, 1);
-      set_size<dev_output_buffer_t>(arguments, offset<dev_input_buffer_t>(arguments)[0] / sizeof(uint) + 1);
+      set_size<dev_output_buffer_t>(arguments, size<dev_input_buffer_t>(arguments) / sizeof(uint) + 1);
     }
 
     void operator()(

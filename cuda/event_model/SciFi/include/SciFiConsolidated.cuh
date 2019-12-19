@@ -76,7 +76,7 @@ namespace SciFi {
         const float* dev_inv_clus_res) const
       {
         return Hits {
-          hits_base_pointer, track_offset(track_number), total_number_of_hits, scifi_geometry, dev_inv_clus_res};
+          hits_base_pointer, track_offset(track_number), m_total_number_of_hits, scifi_geometry, dev_inv_clus_res};
       }
     }; // namespace Consolidated
 

@@ -10,9 +10,7 @@
 #include "UTDefinitions.cuh"
 #include "VeloConsolidated.cuh"
 #include "VeloEventModel.cuh"
-
 #include "ROOTHeaders.h"
-
 #include <random>
 
 std::vector<Checker::Tracks> prepareVeloTracks(
@@ -29,6 +27,7 @@ std::vector<Checker::Tracks> prepareVeloTracks(
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) track_atomics, (uint*) track_hit_number, i_event, number_of_events};
     const uint number_of_tracks_event = velo_tracks.number_of_tracks(i_event);
+
     tracks.resize(number_of_tracks_event);
 
     for (uint i_track = 0; i_track < number_of_tracks_event; i_track++) {
@@ -65,7 +64,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) velo_track_atomics, (uint*) velo_track_hit_number, i_event, number_of_events};
-    const Velo::Consolidated::States velo_states {(char*) kalman_velo_states, velo_tracks.total_number_of_tracks};
+    const Velo::Consolidated::States velo_states {(char*) kalman_velo_states, velo_tracks.total_number_of_tracks()};
     const uint velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
     const UT::Consolidated::Tracks ut_tracks {(uint*) ut_track_atomics,
                                               (uint*) ut_track_hit_number,
@@ -149,7 +148,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) velo_track_atomics, (uint*) velo_track_hit_number, i_event, number_of_events};
-    const Velo::Consolidated::States velo_states {(char*) kalman_velo_states, velo_tracks.total_number_of_tracks};
+    const Velo::Consolidated::States velo_states {(char*) kalman_velo_states, velo_tracks.total_number_of_tracks()};
     const uint velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
     const UT::Consolidated::Tracks ut_tracks {(uint*) ut_track_atomics,
                                               (uint*) ut_track_hit_number,
@@ -262,7 +261,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
 
     const Velo::Consolidated::Tracks velo_tracks {
       (uint*) velo_track_atomics, (uint*) velo_track_hit_number, i_event, number_of_events};
-    const Velo::Consolidated::States velo_states {(char*) kalman_velo_states, velo_tracks.total_number_of_tracks};
+    const Velo::Consolidated::States velo_states {(char*) kalman_velo_states, velo_tracks.total_number_of_tracks()};
     const uint velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
 
     const UT::Consolidated::Tracks ut_tracks {(uint*) ut_track_atomics,

@@ -4,12 +4,13 @@
 
 namespace velo_fill_candidates {
   // Arguments
-  struct dev_velo_cluster_container_t : input_datatype<uint> {};
-  struct dev_estimated_input_size_t : input_datatype<uint> {};
-  struct dev_module_cluster_num_t : input_datatype<uint> {};
-  struct dev_h0_candidates_t : output_datatype<short> {};
-  struct dev_h2_candidates_t : output_datatype<short> {};
+  HOST_INPUT(host_number_of_selected_events_t, uint)
   HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
+  DEVICE_INPUT(dev_velo_cluster_container_t, uint)
+  DEVICE_INPUT(dev_estimated_input_size_t, uint)
+  DEVICE_INPUT(dev_module_cluster_num_t, uint)
+  DEVICE_OUTPUT(dev_h0_candidates_t, short)
+  DEVICE_OUTPUT(dev_h2_candidates_t, short)
 
   __global__ void velo_fill_candidates(
     dev_velo_cluster_container_t dev_velo_cluster_container,
@@ -19,9 +20,9 @@ namespace velo_fill_candidates {
     dev_h2_candidates_t dev_h2_candidates);
 
   template<typename Arguments>
-  struct velo_fill_candidates_t : public GpuAlgorithm {
+  struct velo_fill_candidates_t : public DeviceAlgorithm {
     constexpr static auto name {"velo_fill_candidates_t"};
-    decltype(gpu_function(velo_fill_candidates)) function {velo_fill_candidates};
+    decltype(global_function(velo_fill_candidates)) function {velo_fill_candidates};
 
     void set_arguments_size(
       ArgumentRefManager<Arguments> arguments,
@@ -39,7 +40,7 @@ namespace velo_fill_candidates {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function.invoke(dim3(host_buffers.host_number_of_selected_events[0], 48), block_dimension(), cuda_stream)(
+      function.invoke(dim3(offset<host_number_of_selected_events_t>(arguments)[0], 48), block_dimension(), cuda_stream)(
         offset<dev_velo_cluster_container_t>(arguments),
         offset<dev_estimated_input_size_t>(arguments),
         offset<dev_module_cluster_num_t>(arguments),

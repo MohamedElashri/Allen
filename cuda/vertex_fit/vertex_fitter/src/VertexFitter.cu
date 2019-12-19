@@ -333,7 +333,7 @@ __global__ void fit_secondary_vertices(
   const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
 
   // Track-PV association table.
-  const Associate::Consolidated::Table kalman_pv_ipchi2 {dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks};
+  const Associate::Consolidated::Table kalman_pv_ipchi2 {dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks()};
   const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Kalman fitted tracks.

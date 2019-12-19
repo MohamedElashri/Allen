@@ -15,7 +15,6 @@ namespace Velo {
       float* y;
       float* z;
       uint* LHCbID;
-      uint number_of_hits;
 
       __device__ __host__ Hits(const Hits& hits) : x(hits.x), y(hits.y), z(hits.z), LHCbID(hits.LHCbID) {}
 
@@ -48,8 +47,8 @@ namespace Velo {
 
     struct Tracks : public ::Consolidated::Tracks {
       __device__ __host__ Tracks(
-        uint* atomics_base_pointer,
-        uint* track_hit_number_base_pointer,
+        const uint* atomics_base_pointer,
+        const uint* track_hit_number_base_pointer,
         const uint current_event_number,
         const uint number_of_events) :
         ::Consolidated::Tracks(
@@ -61,7 +60,7 @@ namespace Velo {
 
       __device__ __host__ Hits get_hits(char* hits_base_pointer, const uint track_number) const
       {
-        return Hits {hits_base_pointer, track_offset(track_number), total_number_of_hits};
+        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
     };
 

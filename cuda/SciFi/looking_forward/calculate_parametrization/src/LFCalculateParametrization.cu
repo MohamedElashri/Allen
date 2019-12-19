@@ -59,7 +59,7 @@ __global__ void lf_calculate_parametrization(
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
     (uint*) dev_atomics_velo, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks};
+  const Velo::Consolidated::States velo_states {(char*) dev_velo_states, velo_tracks.total_number_of_tracks()};
   const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks

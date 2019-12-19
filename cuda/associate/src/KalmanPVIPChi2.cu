@@ -131,7 +131,7 @@ __global__ void kalman_pv_ipchi2(
   const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
 
   // The total track-PV association table.
-  Associate::Consolidated::Table kalman_pv_ipchi2 {dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks};
+  Associate::Consolidated::Table kalman_pv_ipchi2 {dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks()};
 
   // Kalman-fitted tracks for this event.
   ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
