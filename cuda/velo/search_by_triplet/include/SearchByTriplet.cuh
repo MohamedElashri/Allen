@@ -80,6 +80,8 @@ namespace velo_search_by_triplet {
       cudaCheck(
         cudaMemsetAsync(offset<dev_atomics_velo_t>(arguments), 0, size<dev_atomics_velo_t>(arguments), cuda_stream));
       cudaCheck(cudaMemsetAsync(offset<dev_hit_used_t>(arguments), 0, size<dev_hit_used_t>(arguments), cuda_stream));
+      cudaCheck(cudaMemsetAsync(
+        offset<dev_number_of_velo_tracks_t>(arguments), 0, size<dev_number_of_velo_tracks_t>(arguments), cuda_stream));
 
       function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
         offset<dev_velo_cluster_container_t>(arguments),
@@ -99,16 +101,32 @@ namespace velo_search_by_triplet {
     }
 
   private:
-    Property<float> m_tol {this, "forward_phi_tolerance", Configuration::velo_search_by_triplet::forward_phi_tolerance, 0.052f, "tolerance"};
+    Property<float> m_tol {this,
+                           "forward_phi_tolerance",
+                           Configuration::velo_search_by_triplet::forward_phi_tolerance,
+                           0.052f,
+                           "tolerance"};
     Property<float> m_chi2 {this, "max_chi2", Configuration::velo_search_by_triplet::max_chi2, 20.0f, "chi2"};
     Property<float> m_scat {this,
                             "max_scatter_forwarding",
                             Configuration::velo_search_by_triplet::max_scatter_forwarding,
                             0.1f,
                             "scatter forwarding"};
-    Property<float> m_seed {this, "max_scatter_seeding", Configuration::velo_search_by_triplet::max_scatter_seeding, 0.1f, "scatter seeding"};
-    Property<uint> m_skip {this, "max_skipped_modules", Configuration::velo_search_by_triplet::max_skipped_modules, 1u, "skipped modules"};
-    Property<uint> m_max_weak {this, "max_weak_tracks", Configuration::velo_search_by_triplet::max_weak_tracks, 500u, "max weak tracks"};
+    Property<float> m_seed {this,
+                            "max_scatter_seeding",
+                            Configuration::velo_search_by_triplet::max_scatter_seeding,
+                            0.1f,
+                            "scatter seeding"};
+    Property<uint> m_skip {this,
+                           "max_skipped_modules",
+                           Configuration::velo_search_by_triplet::max_skipped_modules,
+                           1u,
+                           "skipped modules"};
+    Property<uint> m_max_weak {this,
+                               "max_weak_tracks",
+                               Configuration::velo_search_by_triplet::max_weak_tracks,
+                               500u,
+                               "max weak tracks"};
     Property<float> m_ext_base {this,
                                 "phi_extrapolation_base",
                                 Configuration::velo_search_by_triplet::phi_extrapolation_base,
@@ -119,7 +137,15 @@ namespace velo_search_by_triplet {
                                 Configuration::velo_search_by_triplet::phi_extrapolation_coef,
                                 0.0002f,
                                 "phi extrapolation coefficient"};
-    Property<uint> m_ttf_mod {this, "ttf_modulo", Configuration::velo_search_by_triplet::ttf_modulo, 2048u, "ttf modulo"};
-    Property<int> m_ttf_mask {this, "ttf_modulo_mask", Configuration::velo_search_by_triplet::ttf_modulo_mask, 0x7FF, "ttf modulo mask"};
+    Property<uint> m_ttf_mod {this,
+                              "ttf_modulo",
+                              Configuration::velo_search_by_triplet::ttf_modulo,
+                              2048u,
+                              "ttf modulo"};
+    Property<int> m_ttf_mask {this,
+                              "ttf_modulo_mask",
+                              Configuration::velo_search_by_triplet::ttf_modulo_mask,
+                              0x7FF,
+                              "ttf modulo mask"};
   };
 } // namespace velo_search_by_triplet
