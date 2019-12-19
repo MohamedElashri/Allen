@@ -8,6 +8,7 @@
 
 namespace velo_calculate_phi_and_sort {
   // Arguments
+  HOST_INPUT(host_number_of_selected_events_t, uint)
   HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
   DEVICE_INPUT(dev_estimated_input_size_t, uint)
   DEVICE_INPUT(dev_module_cluster_num_t, uint)
@@ -49,7 +50,7 @@ namespace velo_calculate_phi_and_sort {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
-      set_size<dev_hit_permutation_t>(arguments, offset<host_total_number_of_velo_clusters_t>(arguments)[0]);
+      set_size<dev_hit_permutation_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
     }
 
     void operator()(
@@ -59,7 +60,7 @@ namespace velo_calculate_phi_and_sort {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         offset<dev_estimated_input_size_t>(arguments),
         offset<dev_module_cluster_num_t>(arguments),
         offset<dev_velo_cluster_container_t>(arguments),

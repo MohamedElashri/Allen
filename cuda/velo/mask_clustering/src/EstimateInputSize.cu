@@ -27,6 +27,7 @@ __global__ void velo_estimate_input_size::velo_estimate_input_size(
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
     uint* estimated_module_size = estimated_input_size + (raw_bank.sensor_index >> 2);
+    
     for (uint sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
       const uint32_t sp_word = raw_bank.sp_word[sp_index];
       const uint32_t no_sp_neighbours = sp_word & 0x80000000U;

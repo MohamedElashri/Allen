@@ -35,16 +35,16 @@ namespace velo_estimate_input_size {
       const Constants& constants,
       const HostBuffers& host_buffers) const {
       if (logger::ll.verbosityLevel >= logger::debug) {
-        debug_cout << "# of events = " << offset<host_number_of_selected_events_t>(arguments)[0] << std::endl;
+        debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
       }
 
       set_size<dev_velo_raw_input_t>(arguments, std::get<0>(runtime_options.host_velo_events).size_bytes());
       set_size<dev_velo_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_velo_events).size_bytes());
       set_size<dev_estimated_input_size_t>(
-        arguments, offset<host_number_of_selected_events_t>(arguments)[0] * Velo::Constants::n_modules);
-      set_size<dev_module_candidate_num_t>(arguments, offset<host_number_of_selected_events_t>(arguments)[0]);
+        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_modules);
+      set_size<dev_module_candidate_num_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_cluster_candidates_t>(
-        arguments, offset<host_number_of_selected_events_t>(arguments)[0] * VeloClustering::max_candidates_event);
+        arguments, value<host_number_of_selected_events_t>(arguments) * VeloClustering::max_candidates_event);
     }
 
     void operator()(
@@ -73,7 +73,7 @@ namespace velo_estimate_input_size {
         offset<dev_module_candidate_num_t>(arguments), 0, size<dev_module_candidate_num_t>(arguments), cuda_stream));
 
       // Invoke kernel
-      function(dim3(offset<host_number_of_selected_events_t>(arguments)[0]), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         offset<dev_velo_raw_input_t>(arguments),
         offset<dev_velo_raw_input_offsets_t>(arguments),
         offset<dev_estimated_input_size_t>(arguments),

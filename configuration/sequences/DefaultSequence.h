@@ -6,8 +6,12 @@ ARG(
   host_number_of_selected_events_t,
   host_global_event_cut::host_number_of_selected_events_t,
   velo_estimate_input_size::host_number_of_selected_events_t,
+  velo_masked_clustering::host_number_of_selected_events_t,
+  velo_calculate_phi_and_sort::host_number_of_selected_events_t,
+  velo_weak_tracks_adder::host_number_of_selected_events_t,
   velo_consolidate_tracks::host_number_of_selected_events_t,
-  velo_fill_candidates::host_number_of_selected_events_t)
+  velo_fill_candidates::host_number_of_selected_events_t,
+  velo_copy_track_hit_number::host_number_of_selected_events_t)
 ARG(
   dev_event_list_t,
   host_global_event_cut::dev_event_list_t,
@@ -20,13 +24,14 @@ ARG(
 ARG(
   dev_offsets_estimated_input_size_t,
   host_prefix_sum::dev_output_buffer_t,
-  velo_masked_clustering::dev_estimated_input_size_t,
+  velo_masked_clustering::dev_offsets_estimated_input_size_t,
   velo_calculate_phi_and_sort::dev_estimated_input_size_t,
   velo_fill_candidates::dev_estimated_input_size_t,
   velo_search_by_triplet::dev_estimated_input_size_t,
   velo_weak_tracks_adder::dev_estimated_input_size_t,
   velo_consolidate_tracks::dev_estimated_input_size_t)
-ARG(dev_number_of_velo_tracks_t,
+ARG(
+  dev_number_of_velo_tracks_t,
   velo_search_by_triplet::dev_number_of_velo_tracks_t,
   velo_weak_tracks_adder::dev_atomics_velo_t,
   host_prefix_sum::dev_input_buffer_t)
@@ -85,7 +90,8 @@ ARG(
   dev_velo_track_hit_number_t,
   velo_copy_track_hit_number::dev_velo_track_hit_number_t,
   host_prefix_sum::dev_input_buffer_t)
-ARG(dev_offsets_velo_track_hit_number_t,
+ARG(
+  dev_offsets_velo_track_hit_number_t,
   host_prefix_sum::dev_output_buffer_t,
   velo_consolidate_tracks::dev_velo_track_hit_number_t)
 ARG(dev_velo_track_hits_t, velo_consolidate_tracks::dev_velo_track_hits_t)
@@ -137,13 +143,15 @@ SEQUENCE_T(
     dev_event_list_t,
     dev_module_cluster_num_t,
     dev_velo_cluster_container_t,
-    host_total_number_of_velo_clusters_t>>,
+    host_total_number_of_velo_clusters_t,
+    host_number_of_selected_events_t>>,
   velo_calculate_phi_and_sort::velo_calculate_phi_and_sort_t<std::tuple<
     dev_offsets_estimated_input_size_t,
     dev_module_cluster_num_t,
     dev_velo_cluster_container_t,
     dev_hit_permutation_t,
-    host_total_number_of_velo_clusters_t>>,
+    host_total_number_of_velo_clusters_t,
+    host_number_of_selected_events_t>>,
   velo_fill_candidates::velo_fill_candidates_t<std::tuple<
     dev_velo_cluster_container_t,
     dev_offsets_estimated_input_size_t,
@@ -173,13 +181,20 @@ SEQUENCE_T(
     dev_velo_tracks_t,
     dev_weak_tracks_t,
     dev_hit_used_t,
-    dev_number_of_velo_tracks_t>>,
-  host_prefix_sum::host_prefix_sum_t<std::tuple<host_number_of_reconstructed_velo_tracks_t, dev_number_of_velo_tracks_t, dev_offsets_velo_tracks_t>>,
-  velo_copy_track_hit_number::velo_copy_track_hit_number_t<
-    std::
-      tuple<host_number_of_reconstructed_velo_tracks_t, dev_velo_tracks_t, dev_offsets_velo_tracks_t, dev_velo_track_hit_number_t>>,
+    dev_number_of_velo_tracks_t,
+    host_number_of_selected_events_t>>,
   host_prefix_sum::host_prefix_sum_t<
-    std::tuple<host_accumulated_number_of_hits_in_velo_tracks_t, dev_velo_track_hit_number_t, dev_offsets_velo_track_hit_number_t>>,
+    std::tuple<host_number_of_reconstructed_velo_tracks_t, dev_number_of_velo_tracks_t, dev_offsets_velo_tracks_t>>,
+  velo_copy_track_hit_number::velo_copy_track_hit_number_t<std::tuple<
+    host_number_of_reconstructed_velo_tracks_t,
+    dev_velo_tracks_t,
+    dev_offsets_velo_tracks_t,
+    dev_velo_track_hit_number_t,
+    host_number_of_selected_events_t>>,
+  host_prefix_sum::host_prefix_sum_t<std::tuple<
+    host_accumulated_number_of_hits_in_velo_tracks_t,
+    dev_velo_track_hit_number_t,
+    dev_offsets_velo_track_hit_number_t>>,
   velo_consolidate_tracks::velo_consolidate_tracks_t<std::tuple<
     host_accumulated_number_of_hits_in_velo_tracks_t,
     host_number_of_reconstructed_velo_tracks_t,

@@ -41,11 +41,11 @@ namespace velo_consolidate_tracks {
       const Constants& constants,
       const HostBuffers& host_buffers) const {
       set_size<dev_velo_track_hits_t>(
-        arguments, offset<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments)[0] * sizeof(Velo::Hit));
+        arguments, value<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments) * sizeof(Velo::Hit));
       set_size<dev_velo_states_t>(
-        arguments, offset<host_number_of_reconstructed_velo_tracks_t>(arguments)[0] * sizeof(VeloState));
+        arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments) * sizeof(VeloState));
       set_size<dev_accepted_velo_tracks_t>(
-        arguments, offset<host_number_of_reconstructed_velo_tracks_t>(arguments)[0]);
+        arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments));
     }
 
     void operator()(
@@ -55,7 +55,7 @@ namespace velo_consolidate_tracks {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function(dim3(offset<host_number_of_selected_events_t>(arguments)[0]), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         offset<dev_atomics_velo_t>(arguments),
         offset<dev_tracks_t>(arguments),
         offset<dev_velo_track_hit_number_t>(arguments),

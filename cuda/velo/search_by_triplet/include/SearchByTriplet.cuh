@@ -83,7 +83,7 @@ namespace velo_search_by_triplet {
       cudaCheck(cudaMemsetAsync(
         offset<dev_number_of_velo_tracks_t>(arguments), 0, size<dev_number_of_velo_tracks_t>(arguments), cuda_stream));
 
-      function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+      function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
         offset<dev_velo_cluster_container_t>(arguments),
         offset<dev_estimated_input_size_t>(arguments),
         offset<dev_module_cluster_num_t>(arguments),

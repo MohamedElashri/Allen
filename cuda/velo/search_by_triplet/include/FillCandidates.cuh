@@ -40,7 +40,7 @@ namespace velo_fill_candidates {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function.invoke(dim3(offset<host_number_of_selected_events_t>(arguments)[0], 48), block_dimension(), cuda_stream)(
+      function(dim3(offset<host_number_of_selected_events_t>(arguments)[0], 48), block_dimension(), cuda_stream)(
         offset<dev_velo_cluster_container_t>(arguments),
         offset<dev_estimated_input_size_t>(arguments),
         offset<dev_module_cluster_num_t>(arguments),

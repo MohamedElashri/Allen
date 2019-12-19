@@ -8,9 +8,10 @@
 namespace velo_masked_clustering {
   // Arguments
   HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
+  HOST_INPUT(host_number_of_selected_events_t, uint)
   DEVICE_INPUT(dev_velo_raw_input_t, char)
   DEVICE_INPUT(dev_velo_raw_input_offsets_t, uint)
-  DEVICE_INPUT(dev_estimated_input_size_t, uint)
+  DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint)
   DEVICE_INPUT(dev_module_candidate_num_t, uint)
   DEVICE_INPUT(dev_cluster_candidates_t, uint)
   DEVICE_INPUT(dev_event_list_t, uint)
@@ -21,7 +22,7 @@ namespace velo_masked_clustering {
   __global__ void velo_masked_clustering(
     dev_velo_raw_input_t dev_velo_raw_input,
     dev_velo_raw_input_offsets_t dev_velo_raw_input_offsets,
-    dev_estimated_input_size_t dev_estimated_input_size,
+    dev_offsets_estimated_input_size_t dev_offsets_estimated_input_size,
     dev_module_cluster_num_t dev_module_cluster_num,
     dev_module_candidate_num_t dev_module_candidate_num,
     dev_cluster_candidates_t dev_cluster_candidates,
@@ -44,8 +45,8 @@ namespace velo_masked_clustering {
       const HostBuffers& host_buffers) const
     {
       set_size<dev_module_cluster_num_t>(
-        arguments, host_buffers.host_number_of_selected_events[0] * Velo::Constants::n_modules);
-      set_size<dev_velo_cluster_container_t>(arguments, 6 * offset<host_total_number_of_velo_clusters_t>(arguments)[0]);
+        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_modules);
+      set_size<dev_velo_cluster_container_t>(arguments, 6 * value<host_total_number_of_velo_clusters_t>(arguments));
     }
 
     void operator()(
@@ -62,10 +63,10 @@ namespace velo_masked_clustering {
         size<dev_module_cluster_num_t>(arguments),
         cuda_stream));
       
-      function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+      function(dim3(offset<host_number_of_selected_events_t>(arguments)[0]), block_dimension(), cuda_stream)(
         offset<dev_velo_raw_input_t>(arguments),
         offset<dev_velo_raw_input_offsets_t>(arguments),
-        offset<dev_estimated_input_size_t>(arguments),
+        offset<dev_offsets_estimated_input_size_t>(arguments),
         offset<dev_module_cluster_num_t>(arguments),
         offset<dev_module_candidate_num_t>(arguments),
         offset<dev_cluster_candidates_t>(arguments),
