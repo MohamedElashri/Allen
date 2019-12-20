@@ -137,36 +137,40 @@ namespace Velo {
     uint m_total_estimated_number_of_clusters;
 
   public:
-    Clusters(T* base_pointer, uint total_estimated_number_of_clusters) :
+    __host__ __device__ Clusters(T* base_pointer, const uint total_estimated_number_of_clusters) :
       m_base_pointer(base_pointer), m_total_estimated_number_of_clusters(total_estimated_number_of_clusters) {}
 
     // Accessors and lvalue references for all types
-    float x(const uint index) const {
+    __host__ __device__ float x(const uint index) const {
       return reinterpret_cast<typename ForwardType<T>::float_t*>(m_base_pointer)[index];
     }
 
-    float& x(const uint index) { return reinterpret_cast<float*>(m_base_pointer)[index]; }
+    __host__ __device__ float& x(const uint index) { return reinterpret_cast<float*>(m_base_pointer)[index]; }
 
-    float y(const uint index) const {
+    __host__ __device__ float y(const uint index) const {
       return reinterpret_cast<typename ForwardType<T>::float_t*>(
         m_base_pointer)[m_total_estimated_number_of_clusters + index];
     }
 
-    float& y(const uint index) {
+    __host__ __device__ float& y(const uint index) {
       return reinterpret_cast<float*>(m_base_pointer)[m_total_estimated_number_of_clusters + index];
     }
 
-    float z(const uint index) const {
+    __host__ __device__ float z(const uint index) const {
       return reinterpret_cast<typename ForwardType<T>::float_t*>(
         m_base_pointer)[2 * m_total_estimated_number_of_clusters + index];
     }
 
-    float& z(const uint index) {
+    __host__ __device__ float& z(const uint index) {
       return reinterpret_cast<float*>(m_base_pointer)[2 * m_total_estimated_number_of_clusters + index];
     }
 
-    uint32_t id(const uint index) const { return m_base_pointer[3 * m_total_estimated_number_of_clusters + index]; }
+    __host__ __device__ uint32_t id(const uint index) const {
+      return m_base_pointer[3 * m_total_estimated_number_of_clusters + index];
+    }
 
-    uint32_t& id(const uint index) { return m_base_pointer[3 * m_total_estimated_number_of_clusters + index]; }
+    __host__ __device__ uint32_t& id(const uint index) {
+      return m_base_pointer[3 * m_total_estimated_number_of_clusters + index];
+    }
   };
 } // namespace Velo

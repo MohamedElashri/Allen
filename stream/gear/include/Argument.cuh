@@ -12,7 +12,7 @@ struct device_datatype {};
 template<typename internal_t>
 struct datatype {
   using type = internal_t;
-  datatype(type* value) : m_value(value) {}
+  __host__ __device__ datatype(type* value) : m_value(value) {}
   datatype() = default;
   datatype(const datatype&) = default;
 
@@ -25,9 +25,9 @@ template<typename internal_t>
 struct input_datatype : datatype<internal_t> {
   using type = typename datatype<internal_t>::type;
   input_datatype() = default;
-  input_datatype(type* value) : datatype<internal_t>(value) {}
-  operator const type*() const { return const_cast<const type*>(this->m_value); }
-  const type* get() const { return const_cast<const type*>(this->m_value); }
+  __host__ __device__ input_datatype(type* value) : datatype<internal_t>(value) {}
+  __host__ __device__ operator const type*() const { return const_cast<const type*>(this->m_value); }
+  __host__ __device__ const type* get() const { return const_cast<const type*>(this->m_value); }
 };
 
 // Output datatypes return pointers that can be modified.
@@ -35,9 +35,9 @@ template<typename internal_t>
 struct output_datatype : datatype<internal_t> {
   using type = typename datatype<internal_t>::type;
   output_datatype() = default;
-  output_datatype(type* value) : datatype<internal_t>(value) {}
-  operator type*() const { return this->m_value; }
-  type* get() const { return this->m_value; }
+  __host__ __device__ output_datatype(type* value) : datatype<internal_t>(value) {}
+  __host__ __device__ operator type*() const { return this->m_value; }
+  __host__ __device__ type* get() const { return this->m_value; }
 };
 
 // Datatypes can be:
@@ -47,28 +47,28 @@ template<typename internal_t>
 struct input_device_datatype : device_datatype, input_datatype<internal_t> {
   using type = typename input_datatype<internal_t>::type;
   input_device_datatype() = default;
-  input_device_datatype(type* value) : input_datatype<internal_t>(value) {}
+  __host__ __device__ input_device_datatype(type* value) : input_datatype<internal_t>(value) {}
 };
 
 template<typename internal_t>
 struct output_device_datatype : device_datatype, output_datatype<internal_t> {
   using type = typename output_datatype<internal_t>::type;
   output_device_datatype() = default;
-  output_device_datatype(type* value) : output_datatype<internal_t>(value) {}
+  __host__ __device__ output_device_datatype(type* value) : output_datatype<internal_t>(value) {}
 };
 
 template<typename internal_t>
 struct input_host_datatype : host_datatype, input_datatype<internal_t> {
   using type = typename input_datatype<internal_t>::type;
   input_host_datatype() = default;
-  input_host_datatype(type* value) : input_datatype<internal_t>(value) {}
+  __host__ __device__ input_host_datatype(type* value) : input_datatype<internal_t>(value) {}
 };
 
 template<typename internal_t>
 struct output_host_datatype : host_datatype, output_datatype<internal_t> {
   using type = typename output_datatype<internal_t>::type;
   output_host_datatype() = default;
-  output_host_datatype(type* value) : output_datatype<internal_t>(value) {}
+  __host__ __device__ output_host_datatype(type* value) : output_datatype<internal_t>(value) {}
 };
 
 // Macros in case we go for them

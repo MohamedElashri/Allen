@@ -102,7 +102,7 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
     for (const auto& i : v) {
       info_cout << i << ", ";
     }
-    info_cout << std::endl;
+    info_cout << "\n";
   }
 };
 

@@ -76,6 +76,19 @@ namespace velo_calculate_phi_and_sort {
         offset<dev_sorted_velo_cluster_container_t>(arguments),
         offset<dev_hit_permutation_t>(arguments),
         offset<dev_hit_phi_t>(arguments));
+
+      // Prints the x values
+      // std::vector<uint> a (size<dev_velo_cluster_container_t>(arguments) / sizeof(uint));
+      // cudaCheck(cudaMemcpy(
+      //   a.data(),
+      //   offset<dev_velo_cluster_container_t>(arguments),
+      //   size<dev_velo_cluster_container_t>(arguments),
+      //   cudaMemcpyDeviceToHost));
+      // const auto velo_cluster_container = Velo::Clusters<const uint>{a.data(), value<host_total_number_of_velo_clusters_t>(arguments)};
+      // for (uint i = 0; i < value<host_total_number_of_velo_clusters_t>(arguments); ++i) {
+      //   std::cout << velo_cluster_container.x(i) << ", ";
+      // }
+      // std::cout << "\n";
     }
   };
 } // namespace velo_calculate_phi_and_sort

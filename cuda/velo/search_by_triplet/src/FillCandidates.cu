@@ -21,8 +21,6 @@ __device__ std::tuple<int, int> candidate_binary_search(
   const int module_number_of_hits,
   const float h1_phi,
   const float phi_window) {
-  int number_of_candidates = 0;
-
   // Do a binary search for the first candidate
   const auto first_candidate =
     binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, h1_phi - phi_window);
@@ -98,7 +96,8 @@ __device__ void fill_candidates_impl(
   const uint* module_hitNums,
   const Velo::Clusters<const uint32_t>& velo_cluster_container,
   const float* hit_Phis,
-  const uint hit_offset) {
+  const uint hit_offset)
+{
   // Notation is m0, m1, m2 in reverse order for each module
   // A hit in those is h0, h1, h2 respectively
 
@@ -107,12 +106,12 @@ __device__ void fill_candidates_impl(
   const auto m1_hitNums = module_hitNums[module_index];
   for (uint h1_rel_index = threadIdx.x; h1_rel_index < m1_hitNums; h1_rel_index += blockDim.x) {
     // Find for module module_index, hit h1_rel_index the candidates
-    const auto m0_hitStarts = module_hitStarts[module_index + 2] - hit_offset;
-    const auto m2_hitStarts = module_hitStarts[module_index - 2] - hit_offset;
+    const auto m0_hitStarts = module_hitStarts[module_index + 2];
+    const auto m2_hitStarts = module_hitStarts[module_index - 2];
     const auto m0_hitNums = module_hitNums[module_index + 2];
     const auto m2_hitNums = module_hitNums[module_index - 2];
 
-    const auto h1_index = module_hitStarts[module_index] + h1_rel_index - hit_offset;
+    const auto h1_index = module_hitStarts[module_index] + h1_rel_index;
 
     // Calculate phi limits
     const auto h1_phi = hit_Phis[h1_index];
@@ -122,12 +121,12 @@ __device__ void fill_candidates_impl(
 
     const auto found_h0_candidates = candidate_binary_search(hit_Phis, m0_hitStarts, m0_hitNums, h1_phi, phi_window);
 
-    h0_candidates[2 * h1_index] = std::get<0>(found_h0_candidates) + m0_hitStarts;
+    h0_candidates[2 * h1_index] = std::get<0>(found_h0_candidates) + m0_hitStarts - hit_offset;
     h0_candidates[2 * h1_index + 1] = std::get<1>(found_h0_candidates);
 
     const auto found_h2_candidates = candidate_binary_search(hit_Phis, m2_hitStarts, m2_hitNums, h1_phi, phi_window);
 
-    h2_candidates[2 * h1_index] = std::get<0>(found_h2_candidates) + m2_hitStarts;
+    h2_candidates[2 * h1_index] = std::get<0>(found_h2_candidates) + m2_hitStarts - hit_offset;
     h2_candidates[2 * h1_index + 1] = std::get<1>(found_h2_candidates);
   }
 }
@@ -159,14 +158,12 @@ __global__ void velo_fill_candidates::velo_fill_candidates(
     dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
   const uint* module_hitStarts = dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint* module_hitNums = dev_module_cluster_num + event_number * Velo::Constants::n_modules;
-  const uint hit_offset = module_hitStarts[0];
+  const auto hit_offset = module_hitStarts[0];
   assert((module_hitStarts[52] - module_hitStarts[0]) < Velo::Constants::max_number_of_hits_per_event);
 
   const auto velo_cluster_container =
-    Velo::Clusters {dev_sorted_velo_cluster_container.get(), total_estimated_number_of_clusters};
-  short* h0_candidates = dev_h0_candidates + 2 * hit_offset;
-  short* h2_candidates = dev_h2_candidates + 2 * hit_offset;
+    Velo::Clusters<const uint>{dev_sorted_velo_cluster_container.get(), total_estimated_number_of_clusters};
 
   fill_candidates_impl(
-    h0_candidates, h2_candidates, module_hitStarts, module_hitNums, velo_cluster_container, dev_hit_phi, hit_offset);
+    dev_h0_candidates, dev_h2_candidates, module_hitStarts, module_hitNums, velo_cluster_container, dev_hit_phi, hit_offset);
 }

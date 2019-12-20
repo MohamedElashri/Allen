@@ -160,7 +160,7 @@ __global__ void velo_weak_tracks_adder::velo_weak_tracks_adder(
 
   // TODO: Offseted container
   const auto velo_cluster_container =
-    Velo::Clusters {dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
+    Velo::Clusters<const uint>{dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
 
   // Per event datatypes
   Velo::TrackHits* tracks = dev_tracks + tracks_offset;

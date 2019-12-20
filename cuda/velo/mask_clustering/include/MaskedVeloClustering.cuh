@@ -47,7 +47,7 @@ namespace velo_masked_clustering {
     {
       set_size<dev_module_cluster_num_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_modules);
-      set_size<dev_velo_cluster_container_t>(arguments, 6 * value<host_total_number_of_velo_clusters_t>(arguments));
+      set_size<dev_velo_cluster_container_t>(arguments, 4 * value<host_total_number_of_velo_clusters_t>(arguments));
     }
 
     void operator()(

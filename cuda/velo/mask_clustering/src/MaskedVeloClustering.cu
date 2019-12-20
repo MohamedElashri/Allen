@@ -41,7 +41,8 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
   // Local pointers to dev_velo_cluster_container
   const uint total_estimated_number_of_clusters =
     dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  auto velo_cluster_container = Velo::Clusters{dev_velo_cluster_container.get(), total_estimated_number_of_clusters};
+  auto velo_cluster_container =
+    Velo::Clusters<uint> {dev_velo_cluster_container.get(), total_estimated_number_of_clusters};
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;

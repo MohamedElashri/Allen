@@ -10,7 +10,6 @@ __global__ void velo_copy_track_hit_number::velo_copy_track_hit_number(
   dev_atomics_velo_t dev_atomics_storage,
   dev_velo_track_hit_number_t dev_velo_track_hit_number)
 {
-  const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
   const auto* event_tracks = dev_tracks + event_number * Velo::Constants::max_tracks;
   const auto accumulated_tracks = dev_atomics_storage[event_number];
