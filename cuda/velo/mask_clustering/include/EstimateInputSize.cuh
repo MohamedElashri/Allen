@@ -15,12 +15,12 @@ namespace velo_estimate_input_size {
 
   // Global function
   __global__ void velo_estimate_input_size(
-    dev_velo_raw_input_t dev_velo_raw_input,
-    dev_velo_raw_input_offsets_t dev_velo_raw_input_offsets,
-    dev_estimated_input_size_t dev_estimated_input_size,
-    dev_module_candidate_num_t dev_module_candidate_num,
-    dev_cluster_candidates_t dev_cluster_candidates,
-    dev_event_list_t dev_event_list,
+    dev_velo_raw_input_t,
+    dev_velo_raw_input_offsets_t,
+    dev_estimated_input_size_t,
+    dev_module_candidate_num_t,
+    dev_cluster_candidates_t,
+    dev_event_list_t,
     uint8_t* candidate_ks);
 
   // Algorithm

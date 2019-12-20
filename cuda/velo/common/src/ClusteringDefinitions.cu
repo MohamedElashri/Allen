@@ -57,10 +57,10 @@ VeloGeometry::VeloGeometry(std::vector<char> const& geometry)
   }
 }
 
-__device__ __host__ uint32_t get_channel_id(unsigned int sensor, unsigned int chip, unsigned int col, unsigned int row)
+__device__ __host__ uint32_t get_channel_id(const uint sensor, const uint chip, const uint col, const uint row)
 {
   return (sensor << LHCb::VPChannelID::sensorBits) | (chip << LHCb::VPChannelID::chipBits) |
          (col << LHCb::VPChannelID::colBits) | row;
 }
 
-__device__ __host__ int32_t get_lhcb_id(int32_t cid) { return (LHCb::VPChannelID::VP << LHCb::detectorTypeBits) + cid; }
+__device__ __host__ int32_t get_lhcb_id(const int32_t cid) { return (LHCb::VPChannelID::VP << LHCb::detectorTypeBits) + cid; }

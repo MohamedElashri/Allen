@@ -44,8 +44,8 @@ __constant__ int Configuration::velo_search_by_triplet::ttf_modulo_mask;
  */
 
 __global__ void velo_search_by_triplet::velo_search_by_triplet(
-  dev_velo_cluster_container_t dev_velo_cluster_container,
-  dev_estimated_input_size_t dev_estimated_input_size,
+  dev_sorted_velo_cluster_container_t dev_sorted_velo_cluster_container,
+  dev_offsets_estimated_input_size_t dev_offsets_estimated_input_size,
   dev_module_cluster_num_t dev_module_cluster_num,
   dev_tracks_t dev_tracks,
   dev_tracklets_t dev_tracklets,
@@ -57,8 +57,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   dev_h2_candidates_t dev_h2_candidates,
   dev_rel_indices_t dev_rel_indices,
   dev_number_of_velo_tracks_t dev_number_of_velo_tracks,
-  const VeloGeometry* dev_velo_geometry)
-{
+  dev_hit_phi_t dev_hit_phi,
+  const VeloGeometry* dev_velo_geometry) {
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
   const uint event_number = blockIdx.x;
@@ -66,11 +66,18 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const uint tracks_offset = event_number * Velo::Constants::max_tracks;
 
   // Pointers to data within the event
-  const uint number_of_hits = dev_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
+  const uint total_estimated_number_of_clusters =
+    dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint* module_hitStarts = dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint* module_hitNums = dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
   assert((module_hitStarts[52] - module_hitStarts[0]) < Velo::Constants::max_number_of_hits_per_event);
+
+  // TODO: Think whether this offset'ed container is a good solution
+  const auto velo_cluster_container =
+    Velo::Clusters {dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
+
+  const auto hit_phi = dev_hit_phi + hit_offset;
 
   // Per event datatypes
   Velo::TrackHits* tracks = dev_tracks + tracks_offset;
@@ -96,15 +103,16 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     h2_candidates,
     module_hitStarts,
     module_hitNums,
-    (const float*) dev_velo_cluster_container.get() + hit_offset,
+    velo_cluster_container,
+    hit_phi,
     tracks_to_follow,
     weak_tracks,
     tracklets,
     tracks,
-    number_of_hits,
+    total_estimated_number_of_clusters,
     h1_rel_indices,
     hit_offset,
     dev_velo_geometry->module_zs,
-    dev_atomics_velo + blockIdx.x * (Velo::num_atomics - 1),
+    dev_atomics_velo + blockIdx.x * Velo::num_atomics,
     dev_number_of_velo_tracks);
 }

@@ -11,27 +11,26 @@ using namespace velo_calculate_phi_and_sort;
 template<class T>
 __device__ void calculate_phi_side(
   float* shared_hit_phis,
-  const unsigned int* module_hitStarts,
-  const unsigned int* module_hitNums,
-  const float* hit_Xs,
-  const float* hit_Ys,
+  const uint* module_hitStarts,
+  const uint* module_hitNums,
+  const Velo::Clusters<const uint32_t>& velo_cluster_container,
   float* hit_Phis,
   uint* hit_permutations,
-  const unsigned int starting_module,
+  const uint starting_module,
   T calculate_hit_phi)
 {
-  for (unsigned int module = starting_module; module < Velo::Constants::n_modules; module += 2) {
+  for (uint module = starting_module; module < Velo::Constants::n_modules; module += 2) {
     const auto hit_start = module_hitStarts[module];
     const auto hit_num = module_hitNums[module];
 
     assert(hit_num < Velo::Constants::max_numhits_in_module);
 
     // Calculate phis
-    for (unsigned int i = 0; i < (hit_num + blockDim.x - 1) / blockDim.x; ++i) {
+    for (uint i = 0; i < (hit_num + blockDim.x - 1) / blockDim.x; ++i) {
       const auto hit_rel_id = i * blockDim.x + threadIdx.x;
       if (hit_rel_id < hit_num) {
         const auto hit_index = hit_start + hit_rel_id;
-        const auto hit_phi = calculate_hit_phi(hit_Xs[hit_index], hit_Ys[hit_index]);
+        const auto hit_phi = calculate_hit_phi(velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index));
         shared_hit_phis[hit_rel_id] = hit_phi;
       }
     }
@@ -40,15 +39,15 @@ __device__ void calculate_phi_side(
     __syncthreads();
 
     // Find the permutations given the phis in shared_hit_phis
-    for (unsigned int i = 0; i < (hit_num + blockDim.x - 1) / blockDim.x; ++i) {
+    for (uint i = 0; i < (hit_num + blockDim.x - 1) / blockDim.x; ++i) {
       const auto hit_rel_id = i * blockDim.x + threadIdx.x;
       if (hit_rel_id < hit_num) {
         const auto hit_index = hit_start + hit_rel_id;
         const auto phi = shared_hit_phis[hit_rel_id];
 
         // Find out local position
-        unsigned int position = 0;
-        for (unsigned int j = 0; j < hit_num; ++j) {
+        uint position = 0;
+        for (uint j = 0; j < hit_num; ++j) {
           const auto other_phi = shared_hit_phis[j];
           // Stable sorting
           position += phi > other_phi || (phi == other_phi && hit_rel_id > j);
@@ -71,21 +70,19 @@ __device__ void calculate_phi_side(
  * @brief Calculates phi for each hit
  */
 __device__ void velo_calculate_phi_and_sort::calculate_phi(
-  const unsigned int* module_hitStarts,
-  const unsigned int* module_hitNums,
-  const float* hit_Xs,
-  const float* hit_Ys,
+  const uint* module_hitStarts,
+  const uint* module_hitNums,
+  const Velo::Clusters<const uint32_t>& velo_cluster_container,
   float* hit_Phis,
   uint* hit_permutations,
   float* shared_hit_phis)
 {
   // Odd modules
   calculate_phi_side(
-    (float*) &shared_hit_phis[0],
+    shared_hit_phis,
     module_hitStarts,
     module_hitNums,
-    hit_Xs,
-    hit_Ys,
+    velo_cluster_container,
     hit_Phis,
     hit_permutations,
     1,
@@ -93,11 +90,10 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
 
   // Even modules
   calculate_phi_side(
-    (float*) &shared_hit_phis[0],
+    shared_hit_phis,
     module_hitStarts,
     module_hitNums,
-    hit_Xs,
-    hit_Ys,
+    velo_cluster_container,
     hit_Phis,
     hit_permutations,
     0,

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cassert>
 #include "ClusteringDefinitions.cuh"
+#include "VeloEventModel.cuh"
 #include "GpuAlgorithm.cuh"
 
 namespace velo_masked_clustering {
@@ -16,18 +17,18 @@ namespace velo_masked_clustering {
   DEVICE_INPUT(dev_cluster_candidates_t, uint)
   DEVICE_INPUT(dev_event_list_t, uint)
   DEVICE_OUTPUT(dev_module_cluster_num_t, uint)
-  DEVICE_OUTPUT(dev_velo_cluster_container_t, float)
+  DEVICE_OUTPUT(dev_velo_cluster_container_t, uint32_t)
 
   // Function
   __global__ void velo_masked_clustering(
-    dev_velo_raw_input_t dev_velo_raw_input,
-    dev_velo_raw_input_offsets_t dev_velo_raw_input_offsets,
-    dev_offsets_estimated_input_size_t dev_offsets_estimated_input_size,
-    dev_module_cluster_num_t dev_module_cluster_num,
-    dev_module_candidate_num_t dev_module_candidate_num,
-    dev_cluster_candidates_t dev_cluster_candidates,
-    dev_velo_cluster_container_t dev_velo_cluster_container,
-    dev_event_list_t dev_event_list,
+    dev_velo_raw_input_t,
+    dev_velo_raw_input_offsets_t,
+    dev_offsets_estimated_input_size_t,
+    dev_module_cluster_num_t,
+    dev_module_candidate_num_t,
+    dev_cluster_candidates_t,
+    dev_velo_cluster_container_t,
+    dev_event_list_t,
     const VeloGeometry* dev_velo_geometry,
     uint8_t* dev_velo_sp_patterns,
     float* dev_velo_sp_fx,

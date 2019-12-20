@@ -14,7 +14,8 @@ __device__ void process_modules(
   const short* h2_candidates,
   const uint* module_hitStarts,
   const uint* module_hitNums,
-  const float* dev_velo_cluster_container,
+  const Velo::Clusters<const uint>& velo_cluster_container,
+  const float* hit_phi,
   uint* tracks_to_follow,
   Velo::TrackletHits* weak_tracks,
   Velo::TrackletHits* tracklets,
@@ -42,7 +43,7 @@ __device__ void process_modules(
 
   // Do first track seeding
   track_seeding(
-    dev_velo_cluster_container,
+    velo_cluster_container,
     number_of_hits,
     module_data,
     h0_candidates,
@@ -84,7 +85,8 @@ __device__ void process_modules(
 
     // Track Forwarding
     track_forwarding(
-      dev_velo_cluster_container,
+      velo_cluster_container,
+      hit_phi,
       hit_used,
       module_data,
       diff_ttf,
@@ -102,7 +104,7 @@ __device__ void process_modules(
 
     // Seeding
     track_seeding(
-      dev_velo_cluster_container,
+      velo_cluster_container,
       number_of_hits,
       module_data,
       h0_candidates,

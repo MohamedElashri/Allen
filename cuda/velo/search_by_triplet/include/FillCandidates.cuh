@@ -6,18 +6,20 @@ namespace velo_fill_candidates {
   // Arguments
   HOST_INPUT(host_number_of_selected_events_t, uint)
   HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
-  DEVICE_INPUT(dev_velo_cluster_container_t, uint)
-  DEVICE_INPUT(dev_estimated_input_size_t, uint)
+  DEVICE_INPUT(dev_sorted_velo_cluster_container_t, uint)
+  DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint)
   DEVICE_INPUT(dev_module_cluster_num_t, uint)
+  DEVICE_INPUT(dev_hit_phi_t, float)
   DEVICE_OUTPUT(dev_h0_candidates_t, short)
   DEVICE_OUTPUT(dev_h2_candidates_t, short)
 
   __global__ void velo_fill_candidates(
-    dev_velo_cluster_container_t dev_velo_cluster_container,
-    dev_estimated_input_size_t dev_estimated_input_size,
-    dev_module_cluster_num_t dev_module_cluster_num,
-    dev_h0_candidates_t dev_h0_candidates,
-    dev_h2_candidates_t dev_h2_candidates);
+    dev_sorted_velo_cluster_container_t,
+    dev_offsets_estimated_input_size_t,
+    dev_module_cluster_num_t,
+    dev_h0_candidates_t,
+    dev_h2_candidates_t,
+    dev_hit_phi_t);
 
   template<typename Arguments>
   struct velo_fill_candidates_t : public DeviceAlgorithm {
@@ -40,12 +42,18 @@ namespace velo_fill_candidates {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
+      cudaCheck(
+        cudaMemsetAsync(offset<dev_h0_candidates_t>(arguments), 0, size<dev_h0_candidates_t>(arguments), cuda_stream));
+      cudaCheck(
+        cudaMemsetAsync(offset<dev_h2_candidates_t>(arguments), 0, size<dev_h2_candidates_t>(arguments), cuda_stream));
+
       function(dim3(offset<host_number_of_selected_events_t>(arguments)[0], 48), block_dimension(), cuda_stream)(
-        offset<dev_velo_cluster_container_t>(arguments),
-        offset<dev_estimated_input_size_t>(arguments),
+        offset<dev_sorted_velo_cluster_container_t>(arguments),
+        offset<dev_offsets_estimated_input_size_t>(arguments),
         offset<dev_module_cluster_num_t>(arguments),
         offset<dev_h0_candidates_t>(arguments),
-        offset<dev_h2_candidates_t>(arguments));
+        offset<dev_h2_candidates_t>(arguments),
+        offset<dev_hit_phi_t>(arguments));
     }
   };
 } // namespace velo_fill_candidates

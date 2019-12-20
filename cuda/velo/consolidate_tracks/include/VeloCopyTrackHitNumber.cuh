@@ -10,9 +10,9 @@ namespace velo_copy_track_hit_number {
   DEVICE_OUTPUT(dev_velo_track_hit_number_t, uint)
 
   __global__ void velo_copy_track_hit_number(
-    dev_tracks_t dev_tracks,
-    dev_atomics_velo_t dev_atomics_storage,
-    dev_velo_track_hit_number_t dev_velo_track_hit_number);
+    dev_tracks_t,
+    dev_atomics_velo_t,
+    dev_velo_track_hit_number_t);
 
   template<typename Arguments>
   struct velo_copy_track_hit_number_t : public DeviceAlgorithm {

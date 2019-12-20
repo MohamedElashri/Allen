@@ -3,15 +3,13 @@
 using namespace velo_masked_clustering;
 
 // 8-connectivity mask
-__device__ uint64_t make_8con_mask(uint64_t cluster)
-{
+__device__ uint64_t make_8con_mask(uint64_t cluster) {
   return cluster | (cluster << 1) | (cluster << 15) | (cluster << 16) | (cluster << 17) | (cluster >> 1) |
          (cluster >> 15) | (cluster >> 16) | (cluster >> 17);
 }
 
 // East-most mask
-__device__ uint32_t mask_east(uint64_t cluster)
-{
+__device__ uint32_t mask_east(uint64_t cluster) {
   const uint32_t mask = (cluster >> 48);
   return mask | (mask << 1) | (mask >> 1);
 }
@@ -28,8 +26,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
   const VeloGeometry* dev_velo_geometry,
   uint8_t* dev_velo_sp_patterns,
   float* dev_velo_sp_fx,
-  float* dev_velo_sp_fy)
-{
+  float* dev_velo_sp_fy) {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
   const uint selected_event_number = dev_event_list[event_number];
@@ -42,8 +39,9 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
     (uint32_t*) &dev_cluster_candidates[event_number * VeloClustering::max_candidates_event];
 
   // Local pointers to dev_velo_cluster_container
-  const uint total_estimated_number_of_clusters = dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  float* float_velo_cluster_container = (float*) dev_velo_cluster_container;
+  const uint total_estimated_number_of_clusters =
+    dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  auto velo_cluster_container = Velo::Clusters{dev_velo_cluster_container.get(), total_estimated_number_of_clusters};
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
@@ -101,14 +99,15 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
           assert(cluster_num <= module_estimated_num);
 #endif
 
-          const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-          const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-          const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+          const auto gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+          const auto gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+          const auto gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+          const auto lhcb_id = get_lhcb_id(cid);
 
-          float_velo_cluster_container[cluster_start + cluster_num] = gx;
-          float_velo_cluster_container[total_estimated_number_of_clusters + cluster_start + cluster_num] = gy;
-          float_velo_cluster_container[2 * total_estimated_number_of_clusters + cluster_start + cluster_num] = gz;
-          dev_velo_cluster_container[3 * total_estimated_number_of_clusters + cluster_start + cluster_num] = get_lhcb_id(cid);
+          velo_cluster_container.x(cluster_start + cluster_num) = gx;
+          velo_cluster_container.y(cluster_start + cluster_num) = gy;
+          velo_cluster_container.z(cluster_start + cluster_num) = gz;
+          velo_cluster_container.id(cluster_start + cluster_num) = lhcb_id;
         }
 
         // if there is a second cluster for this pattern
@@ -135,14 +134,15 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
           assert(cluster_num <= module_estimated_num);
 #endif
 
-          const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-          const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-          const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+          const auto gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+          const auto gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+          const auto gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+          const auto lhcb_id = get_lhcb_id(cid);
 
-          float_velo_cluster_container[cluster_start + cluster_num] = gx;
-          float_velo_cluster_container[total_estimated_number_of_clusters + cluster_start + cluster_num] = gy;
-          float_velo_cluster_container[2 * total_estimated_number_of_clusters + cluster_start + cluster_num] = gz;
-          dev_velo_cluster_container[3 * total_estimated_number_of_clusters + cluster_start + cluster_num] = get_lhcb_id(cid);
+          velo_cluster_container.x(cluster_start + cluster_num) = gx;
+          velo_cluster_container.y(cluster_start + cluster_num) = gy;
+          velo_cluster_container.z(cluster_start + cluster_num) = gz;
+          velo_cluster_container.id(cluster_start + cluster_num) = lhcb_id;
         }
       }
     }
@@ -317,18 +317,17 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
       assert(cluster_num <= module_estimated_num);
 #endif
 
-      const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-      const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-      const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+      const auto gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+      const auto gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+      const auto gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+      const auto lhcb_id = get_lhcb_id(cid);
 
       const uint cluster_start = module_cluster_start[module_number];
 
-      const auto lhcb_id = get_lhcb_id(cid);
-
-      float_velo_cluster_container[cluster_start + cluster_num] = gx;
-      float_velo_cluster_container[total_estimated_number_of_clusters + cluster_start + cluster_num] = gy;
-      float_velo_cluster_container[2 * total_estimated_number_of_clusters + cluster_start + cluster_num] = gz;
-      dev_velo_cluster_container[3 * total_estimated_number_of_clusters + cluster_start + cluster_num] = lhcb_id;
+      velo_cluster_container.x(cluster_start + cluster_num) = gx;
+      velo_cluster_container.y(cluster_start + cluster_num) = gy;
+      velo_cluster_container.z(cluster_start + cluster_num) = gz;
+      velo_cluster_container.id(cluster_start + cluster_num) = lhcb_id;
     }
   }
 }

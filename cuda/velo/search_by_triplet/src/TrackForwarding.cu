@@ -6,7 +6,8 @@
  * @brief Performs the track forwarding of forming tracks
  */
 __device__ void track_forwarding(
-  const float* dev_velo_cluster_container,
+  const Velo::Clusters<const uint>& velo_cluster_container,
+  const float* hit_phi,
   bool* hit_used,
   const Velo::Module* module_data,
   const uint diff_ttf,
@@ -47,14 +48,14 @@ __device__ void track_forwarding(
     const auto h1_num = t->hits[t->hitsNum - 1];
 
     assert(h0_num < number_of_hits);
-    const Velo::HitBase h0 {dev_velo_cluster_container[5 * number_of_hits + h0_num],
-                            dev_velo_cluster_container[h0_num],
-                            dev_velo_cluster_container[number_of_hits + h0_num]};
+    const Velo::HitBase h0 {velo_cluster_container.x(h0_num),
+                            velo_cluster_container.y(h0_num),
+                            velo_cluster_container.z(h0_num)};
 
     assert(h1_num < number_of_hits);
-    const Velo::HitBase h1 {dev_velo_cluster_container[5 * number_of_hits + h1_num],
-                            dev_velo_cluster_container[h1_num],
-                            dev_velo_cluster_container[number_of_hits + h1_num]};
+    const Velo::HitBase h1 {velo_cluster_container.x(h1_num),
+                            velo_cluster_container.y(h1_num),
+                            velo_cluster_container.z(h1_num)};
 
     // Track forwarding over t, for all hits in the next module
     // Line calculations
@@ -70,12 +71,12 @@ __device__ void track_forwarding(
 
     // Get candidates by performing a binary search in expected phi
     const auto odd_module_candidates = find_forward_candidates(
-      module_data[2], tx, ty, dev_velo_cluster_container + 4 * number_of_hits, h0, [](const float x, const float y) {
+      module_data[2], tx, ty, hit_phi, h0, [](const float x, const float y) {
         return hit_phi_odd(x, y);
       });
 
     const auto even_module_candidates = find_forward_candidates(
-      module_data[3], tx, ty, dev_velo_cluster_container + 4 * number_of_hits, h0, [](const float x, const float y) {
+      module_data[3], tx, ty, hit_phi, h0, [](const float x, const float y) {
         return hit_phi_even(x, y);
       });
 
@@ -88,9 +89,9 @@ __device__ void track_forwarding(
       const int h2_index = j < total_odd_candidates ? std::get<0>(odd_module_candidates) + j :
                                                       std::get<0>(even_module_candidates) + j - total_odd_candidates;
 
-      const Velo::HitBase h2 {dev_velo_cluster_container[5 * number_of_hits + h2_index],
-                              dev_velo_cluster_container[h2_index],
-                              dev_velo_cluster_container[number_of_hits + h2_index]};
+      const Velo::HitBase h2 {velo_cluster_container.x(h2_index),
+                              velo_cluster_container.y(h2_index),
+                              velo_cluster_container.z(h2_index)};
 
       const auto dz = h2.z - h0.z;
       const auto predx = h0.x + tx * dz;

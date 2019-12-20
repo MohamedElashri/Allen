@@ -15,20 +15,20 @@ namespace velo_consolidate_tracks {
   DEVICE_INPUT(dev_atomics_velo_t, uint)
   DEVICE_INPUT(dev_tracks_t, Velo::TrackHits)
   DEVICE_INPUT(dev_velo_track_hit_number_t, uint)
-  DEVICE_INPUT(dev_velo_cluster_container_t, uint)
-  DEVICE_INPUT(dev_estimated_input_size_t, uint)
+  DEVICE_INPUT(dev_sorted_velo_cluster_container_t, uint)
+  DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint)
   DEVICE_INPUT(dev_velo_states_t, char)
   DEVICE_OUTPUT(dev_accepted_velo_tracks_t, uint)
   DEVICE_OUTPUT(dev_velo_track_hits_t, char)
 
   __global__ void velo_consolidate_tracks(
-    dev_atomics_velo_t dev_atomics_velo,
-    dev_tracks_t dev_tracks,
-    dev_velo_track_hit_number_t dev_velo_track_hit_number,
-    dev_velo_cluster_container_t dev_velo_cluster_container,
-    dev_estimated_input_size_t dev_estimated_input_size,
-    dev_velo_track_hits_t dev_velo_track_hits,
-    dev_velo_states_t dev_velo_states);
+    dev_atomics_velo_t,
+    dev_tracks_t,
+    dev_velo_track_hit_number_t,
+    dev_sorted_velo_cluster_container_t,
+    dev_offsets_estimated_input_size_t,
+    dev_velo_track_hits_t,
+    dev_velo_states_t);
 
   template<typename Arguments>
   struct velo_consolidate_tracks_t : public DeviceAlgorithm {
@@ -59,8 +59,8 @@ namespace velo_consolidate_tracks {
         offset<dev_atomics_velo_t>(arguments),
         offset<dev_tracks_t>(arguments),
         offset<dev_velo_track_hit_number_t>(arguments),
-        offset<dev_velo_cluster_container_t>(arguments),
-        offset<dev_estimated_input_size_t>(arguments),
+        offset<dev_sorted_velo_cluster_container_t>(arguments),
+        offset<dev_offsets_estimated_input_size_t>(arguments),
         offset<dev_velo_track_hits_t>(arguments),
         offset<dev_velo_states_t>(arguments));
 

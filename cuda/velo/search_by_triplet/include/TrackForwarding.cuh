@@ -11,7 +11,8 @@ namespace Configuration {
 } // namespace Configuration
 
 __device__ void track_forwarding(
-  const float* dev_velo_cluster_container,
+  const Velo::Clusters<const uint>& velo_cluster_container,
+  const float* hit_phi,
   bool* hit_used,
   const Velo::Module* module_data,
   const uint diff_ttf,

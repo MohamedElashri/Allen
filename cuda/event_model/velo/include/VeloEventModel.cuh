@@ -5,7 +5,6 @@
 #include "VeloDefinitions.cuh"
 
 namespace Velo {
-
   struct Module {
     uint hitStart;
     uint hitNums;
@@ -13,8 +12,7 @@ namespace Velo {
 
     __device__ Module() {}
     __device__ Module(const uint _hitStart, const uint _hitNums, const float _z) :
-      hitStart(_hitStart), hitNums(_hitNums), z(_z)
-    {}
+      hitStart(_hitStart), hitNums(_hitNums), z(_z) {}
   };
 
   struct HitBase { // 3 * 4 = 16 B
@@ -33,8 +31,7 @@ namespace Velo {
     __device__ Hit() {}
 
     __device__ Hit(const float _x, const float _y, const float _z, const uint _LHCbID) :
-      HitBase(_x, _y, _z), LHCbID(_LHCbID)
-    {}
+      HitBase(_x, _y, _z), LHCbID(_LHCbID) {}
   };
 
   /**
@@ -44,8 +41,7 @@ namespace Velo {
     unsigned short hits[3];
 
     __device__ TrackletHits() {}
-    __device__ TrackletHits(const unsigned short h0, const unsigned short h1, const unsigned short h2)
-    {
+    __device__ TrackletHits(const unsigned short h0, const unsigned short h1, const unsigned short h2) {
       hits[0] = h0;
       hits[1] = h1;
       hits[2] = h2;
@@ -60,15 +56,13 @@ namespace Velo {
     unsigned short hits[4];
 
     __device__ TrackHitsScratch() {}
-    __device__ TrackHitsScratch(const unsigned short h0, const unsigned short h1, const unsigned short h2)
-    {
+    __device__ TrackHitsScratch(const unsigned short h0, const unsigned short h1, const unsigned short h2) {
       hits[0] = h0;
       hits[1] = h1;
       hits[2] = h2;
     }
 
-    __device__ TrackHitsScratch(const TrackletHits& tracklet)
-    {
+    __device__ TrackHitsScratch(const TrackletHits& tracklet) {
       hits[0] = tracklet.hits[0];
       hits[1] = tracklet.hits[1];
       hits[2] = tracklet.hits[2];
@@ -82,15 +76,13 @@ namespace Velo {
 
     __device__ TrackHits() {}
 
-    __device__ TrackHits(const unsigned short _h0, const unsigned short _h1, const unsigned short _h2)
-    {
+    __device__ TrackHits(const unsigned short _h0, const unsigned short _h1, const unsigned short _h2) {
       hits[0] = _h0;
       hits[1] = _h1;
       hits[2] = _h2;
     }
 
-    __device__ TrackHits(const TrackletHits& tracklet)
-    {
+    __device__ TrackHits(const TrackletHits& tracklet) {
       hits[0] = tracklet.hits[0];
       hits[1] = tracklet.hits[1];
       hits[2] = tracklet.hits[2];
@@ -109,8 +101,7 @@ namespace Velo {
 
     __device__ Track() { hitsNum = 0; }
 
-    __device__ void addHit(const Hit& _h)
-    {
+    __device__ void addHit(const Hit& _h) {
       hits[hitsNum] = _h;
       hitsNum++;
     }
@@ -125,4 +116,57 @@ namespace Velo {
     bool backward;
   };
 
+  // Helper structure to deal with constness of T
+  template<typename T>
+  struct ForwardType {
+    using float_t = float;
+  };
+  template<>
+  struct ForwardType<const uint32_t> {
+    using float_t = const float;
+  };
+
+  /**
+   * @brief Structure to access VELO clusters.
+   */
+  template<typename T>
+  struct Clusters {
+  private:
+    // T can either be const uint32_t or uint32_t
+    T* m_base_pointer;
+    uint m_total_estimated_number_of_clusters;
+
+  public:
+    Clusters(T* base_pointer, uint total_estimated_number_of_clusters) :
+      m_base_pointer(base_pointer), m_total_estimated_number_of_clusters(total_estimated_number_of_clusters) {}
+
+    // Accessors and lvalue references for all types
+    float x(const uint index) const {
+      return reinterpret_cast<typename ForwardType<T>::float_t*>(m_base_pointer)[index];
+    }
+
+    float& x(const uint index) { return reinterpret_cast<float*>(m_base_pointer)[index]; }
+
+    float y(const uint index) const {
+      return reinterpret_cast<typename ForwardType<T>::float_t*>(
+        m_base_pointer)[m_total_estimated_number_of_clusters + index];
+    }
+
+    float& y(const uint index) {
+      return reinterpret_cast<float*>(m_base_pointer)[m_total_estimated_number_of_clusters + index];
+    }
+
+    float z(const uint index) const {
+      return reinterpret_cast<typename ForwardType<T>::float_t*>(
+        m_base_pointer)[2 * m_total_estimated_number_of_clusters + index];
+    }
+
+    float& z(const uint index) {
+      return reinterpret_cast<float*>(m_base_pointer)[2 * m_total_estimated_number_of_clusters + index];
+    }
+
+    uint32_t id(const uint index) const { return m_base_pointer[3 * m_total_estimated_number_of_clusters + index]; }
+
+    uint32_t& id(const uint index) { return m_base_pointer[3 * m_total_estimated_number_of_clusters + index]; }
+  };
 } // namespace Velo

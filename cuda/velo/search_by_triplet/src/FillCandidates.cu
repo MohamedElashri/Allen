@@ -96,8 +96,8 @@ __device__ void fill_candidates_impl(
   short* h2_candidates,
   const uint* module_hitStarts,
   const uint* module_hitNums,
+  const Velo::Clusters<const uint32_t>& velo_cluster_container,
   const float* hit_Phis,
-  const float* hit_Zs,
   const uint hit_offset) {
   // Notation is m0, m1, m2 in reverse order for each module
   // A hit in those is h0, h1, h2 respectively
@@ -116,8 +116,9 @@ __device__ void fill_candidates_impl(
 
     // Calculate phi limits
     const auto h1_phi = hit_Phis[h1_index];
-    const auto phi_window = Configuration::velo_search_by_triplet::phi_extrapolation_base +
-                            fabsf(hit_Zs[h1_index]) * Configuration::velo_search_by_triplet::phi_extrapolation_coef;
+    const auto phi_window =
+      Configuration::velo_search_by_triplet::phi_extrapolation_base +
+      fabsf(velo_cluster_container.z(h1_index)) * Configuration::velo_search_by_triplet::phi_extrapolation_coef;
 
     const auto found_h0_candidates = candidate_binary_search(hit_Phis, m0_hitStarts, m0_hitNums, h1_phi, phi_window);
 
@@ -144,26 +145,28 @@ __device__ void fill_candidates_impl(
  *          These candidates will be then iterated in the seeding step of Sbt.
  */
 __global__ void velo_fill_candidates::velo_fill_candidates(
-  dev_velo_cluster_container_t dev_velo_cluster_container,
-  dev_estimated_input_size_t dev_estimated_input_size,
+  dev_sorted_velo_cluster_container_t dev_sorted_velo_cluster_container,
+  dev_offsets_estimated_input_size_t dev_offsets_estimated_input_size,
   dev_module_cluster_num_t dev_module_cluster_num,
   dev_h0_candidates_t dev_h0_candidates,
-  dev_h2_candidates_t dev_h2_candidates) {
+  dev_h2_candidates_t dev_h2_candidates,
+  dev_hit_phi_t dev_hit_phi) {
   const uint event_number = blockIdx.x;
   const uint number_of_events = gridDim.x;
 
   // Pointers to data within the event
-  const uint number_of_hits = dev_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
+  const uint total_estimated_number_of_clusters =
+    dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint* module_hitStarts = dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint* module_hitNums = dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
   assert((module_hitStarts[52] - module_hitStarts[0]) < Velo::Constants::max_number_of_hits_per_event);
 
-  // Order has changed since SortByPhi
-  const float* hit_Phis = (const float*) (dev_velo_cluster_container.get() + 4 * number_of_hits + hit_offset);
-  const float* hit_Zs = (const float*) (dev_velo_cluster_container.get() + number_of_hits + hit_offset);
+  const auto velo_cluster_container =
+    Velo::Clusters {dev_sorted_velo_cluster_container.get(), total_estimated_number_of_clusters};
   short* h0_candidates = dev_h0_candidates + 2 * hit_offset;
   short* h2_candidates = dev_h2_candidates + 2 * hit_offset;
 
-  fill_candidates_impl(h0_candidates, h2_candidates, module_hitStarts, module_hitNums, hit_Phis, hit_Zs, hit_offset);
+  fill_candidates_impl(
+    h0_candidates, h2_candidates, module_hitStarts, module_hitNums, velo_cluster_container, dev_hit_phi, hit_offset);
 }

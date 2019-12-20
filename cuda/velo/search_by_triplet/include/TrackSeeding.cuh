@@ -3,7 +3,7 @@
 #include "VeloEventModel.cuh"
 
 __device__ void track_seeding(
-  const float* dev_velo_cluster_container,
+  const Velo::Clusters<const uint>& velo_cluster_container,
   const uint number_of_hits,
   const Velo::Module* module_data,
   const short* h0_candidates,

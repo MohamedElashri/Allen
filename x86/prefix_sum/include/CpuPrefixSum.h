@@ -5,7 +5,6 @@
 
 namespace host_prefix_sum {
   // Arguments
-  // struct host_total_sum_holder_t : output_host_datatype<uint> {};
   HOST_OUTPUT(host_total_sum_holder_t, uint)
   DEVICE_INPUT(dev_input_buffer_t, uint)
   DEVICE_OUTPUT(dev_output_buffer_t, uint)
@@ -59,8 +58,6 @@ namespace host_prefix_sum {
         cuda_stream,
         cuda_generic_event,
         offset<host_total_sum_holder_t>(arguments));
-
-      arguments.template print<dev_output_buffer_t>();
     }
   };
 } // namespace cpu_velo_prefix_sum_number_of_clusters
