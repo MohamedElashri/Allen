@@ -356,18 +356,6 @@ __global__ void fit_secondary_vertices(
   
   // Loop over tracks.
   for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
-
-    /*
-    // Set the fit status for all possible vertices.
-    for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
-      uint vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
-                        ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
-      event_secondary_vertices[vertex_idx].chi2 = -1;
-      event_secondary_vertices[vertex_idx].minipchi2 = 0;
-    }
-    */
-
-    
     
     // Preselection on first track.
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
@@ -399,13 +387,13 @@ __global__ void fit_secondary_vertices(
         continue;
       }
 
-      //const int vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
-      //((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
       uint vertex_idx = atomicAdd(event_sv_number, 1);
 
       // Do the vertex fit.
       doFit(trackA, trackB, event_secondary_vertices[vertex_idx]);
-
+      event_secondary_vertices[vertex_idx].trk1 = i_track;
+      event_secondary_vertices[vertex_idx].trk2 = j_track;
+      
       // Fill extra info.
       fill_extra_info(event_secondary_vertices[vertex_idx], trackA, trackB);
       if (n_pvs_event > 0) {

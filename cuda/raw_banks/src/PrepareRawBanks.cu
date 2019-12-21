@@ -2,7 +2,6 @@
 
 __global__ void prepare_raw_banks(
   const uint* dev_atomics_scifi,
-  const uint* dev_sv_offsets,
   const uint* dev_sv_atomics,
   const bool* dev_one_track_results,
   const bool* dev_two_track_results,
@@ -24,10 +23,10 @@ __global__ void prepare_raw_banks(
   const int n_tracks_event = dev_atomics_scifi[event_number];
 
   // Vertices.
+  const uint* dev_sv_offsets = dev_sv_atomics + number_of_events;
   const bool* event_two_track_results = dev_two_track_results + dev_sv_offsets[event_number];
   const bool* event_disp_dimuon_results = dev_disp_dimuon_results + dev_sv_offsets[event_number];
   const bool* event_high_mass_dimuon_results = dev_high_mass_dimuon_results + dev_sv_offsets[event_number];
-  //const int n_vertices_event = dev_sv_offsets[event_number + 1] - dev_sv_offsets[event_number];
   const uint n_vertices_event = dev_sv_atomics[event_number];
 
   // Dec reports.

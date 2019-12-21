@@ -28,4 +28,13 @@ void SequenceVisitor::visit<consolidate_svs_t>(
     arguments.offset<dev_secondary_vertices>(),
     arguments.offset<dev_consolidated_svs>());
   state.invoke();
+
+  if (runtime_options.do_check) {
+    cudaCheck(cudaMemcpyAsync(
+      host_buffers.host_secondary_vertices,
+      arguments.offset<dev_consolidated_svs>(),
+      arguments.size<dev_consolidated_svs>(),
+      cudaMemcpyDeviceToHost,
+      cuda_stream));
+  }
 }
