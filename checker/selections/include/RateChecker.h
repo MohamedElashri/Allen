@@ -35,7 +35,6 @@ public:
     bool const* disp_dimuon_decisions,
     bool const* high_mass_dimuon_decisions,
     bool const* dimuon_soft_decisions,
-
     int const* track_atomics,
     uint const* sv_atomics,
     uint const selected_events);

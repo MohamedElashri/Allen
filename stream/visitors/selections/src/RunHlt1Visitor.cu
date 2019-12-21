@@ -30,9 +30,9 @@ void SequenceVisitor::visit<run_hlt1_t>(
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_kf_tracks>(),
-    arguments.offset<dev_secondary_vertices>(),
+    arguments.offset<dev_consolidated_svs>(),
     arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_sv_offsets>(),
+    arguments.offset<dev_sv_atomics>(),
     arguments.offset<dev_one_track_results>(),
     arguments.offset<dev_two_track_results>(),
     arguments.offset<dev_single_muon_results>(),

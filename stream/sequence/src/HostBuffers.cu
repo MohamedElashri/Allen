@@ -127,6 +127,8 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
     host_sv_offsets = reinterpret_cast<decltype(host_sv_offsets)>(
       malloc((max_number_of_events + 1) * sizeof(uint)));
+    host_sv_atomics = reinterpret_cast<decltype(host_sv_atomics)>(
+      malloc((2 * max_number_of_events + 1) * sizeof(uint)));
     host_two_track_decisions = reinterpret_cast<decltype(host_two_track_decisions)>(
       malloc(max_number_of_events * n_max_svs * sizeof(bool)));
     host_disp_dimuon_decisions = reinterpret_cast<decltype(host_disp_dimuon_decisions)>(

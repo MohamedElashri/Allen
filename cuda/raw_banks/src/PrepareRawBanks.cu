@@ -3,6 +3,7 @@
 __global__ void prepare_raw_banks(
   const uint* dev_atomics_scifi,
   const uint* dev_sv_offsets,
+  const uint* dev_sv_atomics,
   const bool* dev_one_track_results,
   const bool* dev_two_track_results,
   const bool* dev_single_muon_results,
@@ -26,7 +27,8 @@ __global__ void prepare_raw_banks(
   const bool* event_two_track_results = dev_two_track_results + dev_sv_offsets[event_number];
   const bool* event_disp_dimuon_results = dev_disp_dimuon_results + dev_sv_offsets[event_number];
   const bool* event_high_mass_dimuon_results = dev_high_mass_dimuon_results + dev_sv_offsets[event_number];
-  const int n_vertices_event = dev_sv_offsets[event_number + 1] - dev_sv_offsets[event_number];
+  //const int n_vertices_event = dev_sv_offsets[event_number + 1] - dev_sv_offsets[event_number];
+  const uint n_vertices_event = dev_sv_atomics[event_number];
 
   // Dec reports.
   const int n_hlt1_lines = Hlt1::Hlt1Lines::End;

@@ -37,13 +37,14 @@ void RateChecker::accumulate(
     bool disp_dimuon_pass = false;
     bool high_mass_dimuon_pass = false;
     bool dimuon_soft_pass = false;
+    const uint* sv_offsets = sv_atomics + selected_events;
+    
+    const bool* event_two_track_decisions = two_track_decisions + sv_offsets[i_event];
+    const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_offsets[i_event];
+    const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_offsets[i_event];
+    const bool* event_dimuon_soft_decisions = dimuon_soft_decisions + sv_offsets[i_event];
 
-    const bool* event_two_track_decisions = two_track_decisions + sv_atomics[i_event];
-    const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_atomics[i_event];
-    const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_atomics[i_event];
-    const bool* event_dimuon_soft_decisions = dimuon_soft_decisions + sv_atomics[i_event];
-
-    const int n_svs_event = sv_atomics[i_event + 1] - sv_atomics[i_event];
+    const uint n_svs_event = sv_atomics[i_event]; 
     for (int i_sv = 0; i_sv < n_svs_event; i_sv++) {
       if (event_two_track_decisions[i_sv]) {
         two_track_pass = true;

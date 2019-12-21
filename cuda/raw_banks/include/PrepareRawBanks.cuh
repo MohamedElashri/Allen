@@ -13,6 +13,7 @@
 __global__ void prepare_raw_banks(
   const uint* dev_atomics_scifi,
   const uint* dev_sv_offsets,
+  const uint* dev_sv_atomics,
   const bool* dev_one_track_results,
   const bool* dev_two_track_results,
   const bool* dev_single_muon_results,
@@ -28,6 +29,7 @@ ALGORITHM(
   ARGUMENTS(
     dev_atomics_scifi,
     dev_sv_offsets,
+    dev_sv_atomics,
     dev_one_track_results,
     dev_two_track_results,
     dev_single_muon_results,
