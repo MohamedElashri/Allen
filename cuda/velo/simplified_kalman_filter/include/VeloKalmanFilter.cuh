@@ -6,119 +6,143 @@
 #include "Common.h"
 #include "GpuAlgorithm.cuh"
 #include "VeloConsolidated.cuh"
-#include "ArgumentsVelo.cuh"
 
-__device__ void velo_kalman_filter_step(
-  const float z,
-  const float zhit,
-  const float xhit,
-  const float whit,
-  float& x,
-  float& tx,
-  float& covXX,
-  float& covXTx,
-  float& covTxTx);
+namespace velo_kalman_filter {
 
-/**
- * @brief Fit the track with a Kalman filter,
- *        allowing for some scattering at every hit
- */
-template<bool upstream>
-__device__ KalmanVeloState
-simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits)
-{
-  // backward = state.z > track.hits[0].z;
-  const bool backward = stateAtBeamLine.z > consolidated_hits.z[0];
-  const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
-  const float noise2PerLayer =
-    1e-8f + 7e-6f * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
+  __device__ void velo_kalman_filter_step(
+    const float z,
+    const float zhit,
+    const float xhit,
+    const float whit,
+    float& x,
+    float& tx,
+    float& covXX,
+    float& covXTx,
+    float& covTxTx);
 
-  // assume the hits are sorted,
-  // but don't assume anything on the direction of sorting
-  int firsthit = 0;
-  int lasthit = nhits - 1;
-  int dhit = 1;
-  if ((consolidated_hits.z[lasthit] - consolidated_hits.z[firsthit]) * direction < 0) {
-    const int temp = firsthit;
-    firsthit = lasthit;
-    lasthit = temp;
-    dhit = -1;
-  }
+  /**
+   * @brief Fit the track with a Kalman filter,
+   *        allowing for some scattering at every hit
+   */
+  template<bool upstream>
+  __device__ KalmanVeloState
+  simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits) {
+    // backward = state.z > track.hits[0].z;
+    const bool backward = stateAtBeamLine.z > consolidated_hits.z[0];
+    const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
+    const float noise2PerLayer =
+      1e-8f + 7e-6f * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
 
-  // We filter x and y simultaneously but take them uncorrelated.
-  // filter first the first hit.
-  KalmanVeloState state;
-  state.x = consolidated_hits.x[firsthit];
-  state.y = consolidated_hits.y[firsthit];
-  state.z = consolidated_hits.z[firsthit];
-  state.tx = stateAtBeamLine.tx;
-  state.ty = stateAtBeamLine.ty;
+    // assume the hits are sorted,
+    // but don't assume anything on the direction of sorting
+    int firsthit = 0;
+    int lasthit = nhits - 1;
+    int dhit = 1;
+    if ((consolidated_hits.z[lasthit] - consolidated_hits.z[firsthit]) * direction < 0) {
+      const int temp = firsthit;
+      firsthit = lasthit;
+      lasthit = temp;
+      dhit = -1;
+    }
 
-  // Initialize the covariance matrix
-  state.c00 = Velo::Tracking::param_w_inverted;
-  state.c11 = Velo::Tracking::param_w_inverted;
-  state.c20 = 0.f;
-  state.c31 = 0.f;
-  state.c22 = 1.f;
-  state.c33 = 1.f;
+    // We filter x and y simultaneously but take them uncorrelated.
+    // filter first the first hit.
+    KalmanVeloState state;
+    state.x = consolidated_hits.x[firsthit];
+    state.y = consolidated_hits.y[firsthit];
+    state.z = consolidated_hits.z[firsthit];
+    state.tx = stateAtBeamLine.tx;
+    state.ty = stateAtBeamLine.ty;
 
-  // add remaining hits
-  for (auto i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
-    int hitindex = i;
-    const auto hit_x = consolidated_hits.x[hitindex];
-    const auto hit_y = consolidated_hits.y[hitindex];
-    const auto hit_z = consolidated_hits.z[hitindex];
+    // Initialize the covariance matrix
+    state.c00 = Velo::Tracking::param_w_inverted;
+    state.c11 = Velo::Tracking::param_w_inverted;
+    state.c20 = 0.f;
+    state.c31 = 0.f;
+    state.c22 = 1.f;
+    state.c33 = 1.f;
 
-    // add the noise
+    // add remaining hits
+    for (auto i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
+      int hitindex = i;
+      const auto hit_x = consolidated_hits.x[hitindex];
+      const auto hit_y = consolidated_hits.y[hitindex];
+      const auto hit_z = consolidated_hits.z[hitindex];
+
+      // add the noise
+      state.c22 += noise2PerLayer;
+      state.c33 += noise2PerLayer;
+
+      // filter X and filter Y
+      velo_kalman_filter_step(
+        state.z, hit_z, hit_x, Velo::Tracking::param_w, state.x, state.tx, state.c00, state.c20, state.c22);
+      velo_kalman_filter_step(
+        state.z, hit_z, hit_y, Velo::Tracking::param_w, state.y, state.ty, state.c11, state.c31, state.c33);
+
+      // update z (note done in the filter, since needed only once)
+      state.z = hit_z;
+    }
+
+    // add the noise at the last hit
     state.c22 += noise2PerLayer;
     state.c33 += noise2PerLayer;
 
-    // filter X and filter Y
-    velo_kalman_filter_step(
-      state.z, hit_z, hit_x, Velo::Tracking::param_w, state.x, state.tx, state.c00, state.c20, state.c22);
-    velo_kalman_filter_step(
-      state.z, hit_z, hit_y, Velo::Tracking::param_w, state.y, state.ty, state.c11, state.c31, state.c33);
-
-    // update z (note done in the filter, since needed only once)
-    state.z = hit_z;
+    // finally, store the state
+    return state;
   }
 
-  // add the noise at the last hit
-  state.c22 += noise2PerLayer;
-  state.c33 += noise2PerLayer;
+  // Arguments
+  HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint)
+  HOST_INPUT(host_number_of_selected_events_t, uint)
+  DEVICE_INPUT(dev_offsets_atomics_velo_t, uint)
+  DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint)
+  DEVICE_INPUT(dev_velo_track_hits_t, char)
+  DEVICE_INPUT(dev_velo_states_t, char)
+  DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char)
 
-  // finally, store the state
-  return state;
-}
+  __global__ void velo_kalman_filter(
+    dev_offsets_atomics_velo_t,
+    dev_offsets_velo_track_hit_number_t,
+    dev_velo_track_hits_t,
+    dev_velo_states_t,
+    dev_velo_kalman_beamline_states_t);
 
-__global__ void velo_kalman_fit(
-  uint* dev_atomics_velo,
-  uint* dev_velo_track_hit_number,
-  char* dev_velo_track_hits,
-  char* dev_velo_states,
-  char* dev_velo_kalman_beamline_states);
+  template<typename Arguments>
+  struct velo_kalman_filter_t : public DeviceAlgorithm {
+    constexpr static auto name {"velo_kalman_filter_t"};
+    decltype(global_function(velo_kalman_filter)) function {velo_kalman_filter};
 
-struct velo_kalman_fit_t : public GpuAlgorithm {
-  constexpr static auto name {"velo_kalman_fit_t"};
-  decltype(gpu_function(velo_kalman_fit)) function {velo_kalman_fit};
-  using Arguments = std::tuple<
-    dev_atomics_velo,
-    dev_velo_track_hit_number,
-    dev_velo_track_hits,
-    dev_velo_states,
-    dev_velo_kalman_beamline_states>;
+    void set_arguments_size(
+      ArgumentRefManager<Arguments> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) const {
+      set_size<dev_velo_kalman_beamline_states_t>(arguments,
+        value<host_number_of_reconstructed_velo_tracks_t>(arguments) * sizeof(KalmanVeloState));
+    }
 
-  void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    const HostBuffers& host_buffers) const;
+    void operator()(
+      const ArgumentRefManager<Arguments>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t& cuda_generic_event) const {
+      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+        offset<dev_offsets_atomics_velo_t>(arguments),
+        offset<dev_offsets_velo_track_hit_number_t>(arguments),
+        offset<dev_velo_track_hits_t>(arguments),
+        offset<dev_velo_states_t>(arguments),
+        offset<dev_velo_kalman_beamline_states_t>(arguments));
 
-  void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event) const;
-};
+      if (runtime_options.do_check) {
+        cudaCheck(cudaMemcpyAsync(
+          host_buffers.host_kalmanvelo_states,
+          offset<dev_velo_kalman_beamline_states_t>(arguments),
+          size<dev_velo_kalman_beamline_states_t>(arguments),
+          cudaMemcpyDeviceToHost,
+          cuda_stream));
+      }
+    }
+  };
+} // namespace velo_kalman_filter

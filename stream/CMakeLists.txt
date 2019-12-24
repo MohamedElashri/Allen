@@ -69,11 +69,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 
 file(GLOB stream_gear "gear/src/*cpp")
-file(GLOB stream_memory_manager "memory_manager/src/*cpp")
-file(GLOB stream_scheduler "scheduler/src/*cpp")
-file(GLOB stream_sequence "sequence/src/*cpp")
+file(GLOB stream_sequence "sequence/src/*cu")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
-file(GLOB stream_setup "setup/src/*cpp")
 
 add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -83,14 +80,17 @@ add_custom_command(
 
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
+if(TARGET_DEVICE STREQUAL "CPU")
+  foreach(source_file ${stream_sequence})
+    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
+  endforeach(source_file)
+endif()
+
 allen_add_library(Stream STATIC
   "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
   ${stream_gear}
-  ${stream_memory_manager}
-  ${stream_scheduler}
   ${stream_sequence}
   ${stream_sequence_cpp}
-  ${stream_setup}
 )
 
 target_link_libraries(Stream PRIVATE

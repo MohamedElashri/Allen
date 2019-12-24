@@ -1,39 +1,6 @@
-#include "../include/VeloKalmanFilter.cuh"
+#include "VeloKalmanFilter.cuh"
 
-void velo_kalman_fit_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  arguments.set_size<dev_velo_kalman_beamline_states>(
-    host_buffers.host_number_of_reconstructed_velo_tracks[0] * sizeof(KalmanVeloState));
-}
-
-void velo_kalman_fit_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_velo_track_hits>(),
-    arguments.offset<dev_velo_states>(),
-    arguments.offset<dev_velo_kalman_beamline_states>());
-
-  if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_kalmanvelo_states,
-      arguments.offset<dev_velo_kalman_beamline_states>(),
-      arguments.size<dev_velo_kalman_beamline_states>(),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-  }
-}
+using namespace velo_kalman_filter;
 
 /**
  * @brief Helper function to filter one hit
@@ -47,8 +14,7 @@ __device__ void velo_kalman_filter_step(
   float& tx,
   float& covXX,
   float& covXTx,
-  float& covTxTx)
-{
+  float& covTxTx) {
   // compute the prediction
   const float dz = zhit - z;
   const float predx = x + dz * tx;
@@ -75,20 +41,21 @@ __device__ void velo_kalman_filter_step(
   // const float chi2 = r * r * R;
 }
 
-__global__ void velo_kalman_fit(
-  uint* dev_atomics_velo,
-  uint* dev_velo_track_hit_number,
-  char* dev_velo_track_hits,
-  char* dev_velo_states,
-  char* dev_velo_kalman_beamline_states)
-{
+__global__ void velo_kalman_filter::velo_kalman_filter(
+  dev_offsets_atomics_velo_t dev_offsets_atomics_velo,
+  dev_offsets_velo_track_hit_number_t dev_offsets_velo_track_hit_number,
+  dev_velo_track_hits_t dev_velo_track_hits,
+  dev_velo_states_t dev_velo_states,
+  dev_velo_kalman_beamline_states_t dev_velo_kalman_beamline_states) {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
   // Consolidated datatypes
   const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_velo, dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::States velo_states {dev_velo_states, velo_tracks.total_number_of_tracks()};
+    dev_offsets_atomics_velo, dev_offsets_velo_track_hit_number, event_number, number_of_events};
+
+  // TODO: Make const
+  Velo::Consolidated::States velo_states {const_cast<char*>(dev_velo_states.get()), velo_tracks.total_number_of_tracks()};
   Velo::Consolidated::KalmanStates kalmanvelo_states {dev_velo_kalman_beamline_states,
                                                       velo_tracks.total_number_of_tracks()};
 
@@ -97,7 +64,7 @@ __global__ void velo_kalman_fit(
 
   for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
 
-    Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(dev_velo_track_hits, i);
+    Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(const_cast<char*>(dev_velo_track_hits.get()), i);
     const uint n_hits = velo_tracks.number_of_hits(i);
 
     MiniState stateAtBeamline = velo_states.getMiniState(event_tracks_offset + i);
