@@ -23,7 +23,7 @@ void print_usage(char* argv[], const std::vector<ProgramOption>& program_options
     }
     std::cerr << std::endl;
   }
-  std::cerr << " -h {show this help}" << std::endl;
+  std::cerr << " -h, --help {show this help}" << std::endl;
 }
 
 std::vector<ProgramOption> allen_program_options()

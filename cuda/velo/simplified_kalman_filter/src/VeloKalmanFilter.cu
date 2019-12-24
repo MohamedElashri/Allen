@@ -5,7 +5,7 @@ using namespace velo_kalman_filter;
 /**
  * @brief Helper function to filter one hit
  */
-__device__ void velo_kalman_filter_step(
+__device__ void velo_kalman_filter::velo_kalman_filter_step(
   const float z,
   const float zhit,
   const float xhit,

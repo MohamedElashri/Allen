@@ -38,11 +38,6 @@ void invoke_impl(
 #elif defined(HIP)
   hipLaunchKernelGGL(function, num_blocks, num_threads, *stream, std::get<I>(invoke_arguments)...);
 #else
-
-#if defined(__NVCC__) || defined(__CUDACC__)
-  printf("Invoking\n");
   function<<<num_blocks, num_threads, 0, *stream>>>(std::get<I>(invoke_arguments)...);
-#endif
-  
 #endif
 }

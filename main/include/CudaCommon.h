@@ -105,18 +105,31 @@ cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream);
 cudaError_t cudaFreeHost(void* ptr);
 cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
+
+// CUDA accepts more bindings to cudaMemcpyTo/FromSymbol
+template<class T>
 cudaError_t cudaMemcpyToSymbol(
-  void* symbol,
+  T& symbol,
   const void* src,
   size_t count,
   size_t offset = 0,
-  enum cudaMemcpyKind kind = cudaMemcpyDefault);
+  enum cudaMemcpyKind = cudaMemcpyHostToDevice)
+{
+  std::memcpy(reinterpret_cast<void*>(((char*) &symbol) + offset), src, count);
+  return 0;
+}
+
+template<class T>
 cudaError_t cudaMemcpyFromSymbol(
   void* dst,
-  const void* symbol,
+  const T& symbol,
   size_t count,
   size_t offset = 0,
-  enum cudaMemcpyKind = cudaMemcpyHostToDevice);
+  enum cudaMemcpyKind = cudaMemcpyHostToDevice)
+{
+  std::memcpy(dst, reinterpret_cast<void*>(((char*) &symbol) + offset), count);
+  return 0;
+}
 
 template<class T, class S>
 T atomicAdd(T* address, S val) {
@@ -312,3 +325,5 @@ namespace cuda {
 void print_gpu_memory_consumption();
 
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
+
+void populate_verbosity_constant_in_device(const uint verbosity);

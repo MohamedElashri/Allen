@@ -8,7 +8,6 @@
 #include "VeloConsolidated.cuh"
 
 namespace velo_kalman_filter {
-
   __device__ void velo_kalman_filter_step(
     const float z,
     const float zhit,

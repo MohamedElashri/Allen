@@ -2,6 +2,10 @@
 
 using namespace velo_estimate_input_size;
 
+// template class Foo<velo_estimate_input_size::velo_estimate_input_size> {
+  
+// }
+
 __global__ void velo_estimate_input_size::velo_estimate_input_size(
   dev_velo_raw_input_t dev_velo_raw_input,
   dev_velo_raw_input_offsets_t dev_velo_raw_input_offsets,

@@ -496,7 +496,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
-      cudaMemcpyToSymbol(&Configuration::verbosity_level, &verbosity, sizeof(uint));
     }
     else if (flag_in({"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
@@ -523,6 +522,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       print_buffer_status = atoi(arg.c_str());
     }
   }
+
+  populate_verbosity_constant_in_device(verbosity);
 
   // Options sanity check
   if (folder_data.empty() || folder_detector_configuration.empty()) {
