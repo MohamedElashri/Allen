@@ -238,7 +238,7 @@ namespace Sch {
       if (config.find(Algo::name) != config.end()) {
         auto& a = std::get<I>(algs);
         a.set_properties(config.at(Algo::name));
-        for (auto s : a.get_shared_sets()) {
+        for (auto const& s : a.get_shared_sets()) {
           if (config.find(s) == config.end()) continue;
           a.set_shared_properties(s, config.at(s));
         }
