@@ -11,11 +11,14 @@ namespace Hlt1 {
   // Hlt1 lines.
   enum Hlt1Lines {
     PassThrough,
+    StartOneTrackLines, // Flag for start of list of 1-track lines.
     OneTrackMVA,
-    TwoTrackMVA,
     SingleMuon,
+    StartTwoTrackLines, // Flag for start of list of 2-track lines.
+    TwoTrackMVA,
     DisplacedDiMuon,
     HighMassDiMuon,
+    SoftDiMuon,
     End
   };
   

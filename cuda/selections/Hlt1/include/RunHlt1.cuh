@@ -40,12 +40,8 @@ __global__ void run_hlt1(
   const VertexFit::TrackMVAVertex* dev_consolidated_svs,
   const uint* dev_atomics_scifi,
   const uint* dev_sv_atomics,
-  bool* dev_one_track_results,
-  bool* dev_two_track_results,
-  bool* dev_single_muon_results,
-  bool* dev_disp_dimuon_results,
-  bool* dev_high_mass_dimuon_results,
-  bool* dev_dimuon_soft_results);
+  bool* dev_sel_results,
+  uint* dev_sel_results_atomics);
 
 ALGORITHM(
   run_hlt1,
@@ -55,9 +51,5 @@ ALGORITHM(
     dev_consolidated_svs,
     dev_atomics_scifi,
     dev_sv_atomics,
-    dev_one_track_results,
-    dev_two_track_results,
-    dev_single_muon_results,
-    dev_disp_dimuon_results,
-    dev_high_mass_dimuon_results,
-    dev_dimuon_soft_results))
+    dev_sel_results,
+    dev_sel_results_atomics))

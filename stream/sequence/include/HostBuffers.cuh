@@ -85,6 +85,8 @@ struct HostBuffers {
   VertexFit::TrackMVAVertex* host_secondary_vertices;
 
   // Selections
+  bool* host_sel_results;
+  uint* host_sel_results_atomics;
   bool* host_one_track_decisions;
   bool* host_two_track_decisions;
   bool* host_single_muon_decisions;

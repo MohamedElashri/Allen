@@ -137,6 +137,10 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       malloc(max_number_of_events * n_max_svs * sizeof(bool)));
     host_dimuon_soft_decisions = reinterpret_cast<decltype(host_dimuon_soft_decisions)>(
       malloc(max_number_of_events * n_max_svs * sizeof(bool)));
+    host_sel_results = reinterpret_cast<decltype(host_sel_results)>(
+      malloc(max_number_of_events * SciFi::Constants::max_tracks * n_hlt1_lines * sizeof(bool)));
+    host_sel_results_atomics = reinterpret_cast<decltype(host_sel_results_atomics)>(
+      2 * n_hlt1_lines + 1 * sizeof(uint));
   }
 }
 

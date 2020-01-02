@@ -41,11 +41,8 @@ void SequenceVisitor::visit<prepare_raw_banks_t>(
   state.set_arguments(
     arguments.offset<dev_atomics_scifi>(),
     arguments.offset<dev_sv_atomics>(),
-    arguments.offset<dev_one_track_results>(),
-    arguments.offset<dev_two_track_results>(),
-    arguments.offset<dev_single_muon_results>(),
-    arguments.offset<dev_disp_dimuon_results>(),
-    arguments.offset<dev_high_mass_dimuon_results>(),
+    arguments.offset<dev_sel_results>(),
+    arguments.offset<dev_sel_results_atomics>(),
     arguments.offset<dev_dec_reports>(),
     arguments.offset<dev_number_of_passing_events>(),
     arguments.offset<dev_passing_event_list>());
