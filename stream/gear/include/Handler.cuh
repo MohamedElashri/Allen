@@ -19,7 +19,7 @@
     using arguments_t = ArgumentRefManager<Arguments>;                                                              \
     decltype(make_handler(name, FUNCTION)) handler {name, FUNCTION};                                                \
     template<typename T>                                                                                            \
-    T get_property_value(std::string property_name) const                                                           \
+    T property_value(std::string property_name) const                                                           \
     {                                                                                                               \
       T holder;                                                                                                     \
       auto prop = dynamic_cast<Property<T> const*>(get_prop(property_name));                                        \
@@ -27,6 +27,17 @@
         holder = prop->get_value();                                                                                 \
       else                                                                                                          \
         warning_cout << "property " << property_name << " not found" << std::endl;                                  \
+      return holder;                                                                                                \
+    }                                                                                                               \
+    template<typename T>                                                                                            \
+    T cpu_property_value(std::string const& property_name) const                                                    \
+    {                                                                                                               \
+      T holder;                                                                                                     \
+      auto prop = dynamic_cast<CPUProperty<T> const*>(get_prop(property_name));                                     \
+      if (prop)                                                                                                     \
+        holder = prop->get_value();                                                                                 \
+      else                                                                                                          \
+        warning_cout << "cpu property " << property_name << " not found" << std::endl;                              \
       return holder;                                                                                                \
     }                                                                                                               \
     void set_opts(                                                                                                  \
@@ -211,15 +222,15 @@ static Handler<R, T...> make_handler(const char* name, R(f)(T...))
     }                                                                   \
     void set_opts(bool cond, const dim3& param_num_blocks, cudaStream_t& param_stream, const unsigned param_shared_memory_size = 0) \
     {                                                                   \
-      auto bd = false_algorithm->get_property_value<std::array<int, 3>>("block_dim"); \
+      auto bd = false_algorithm->cpu_property_value<std::array<int, 3>>("block_dim"); \
       dim3 n_threads(bd[0], bd[1], bd[2]);                              \
       set_opts(cond, param_num_blocks, n_threads, param_stream, param_shared_memory_size); \
     }                                                                   \
     void set_opts(bool cond, cudaStream_t& param_stream, const unsigned param_shared_memory_size = 0) \
     {                                                                   \
-      auto gd = false_algorithm->get_property_value<std::array<int, 3>>("grid_dim");         \
+      auto gd = false_algorithm->cpu_property_value<std::array<int, 3>>("grid_dim");         \
       dim3 n_blocks(gd[0], gd[1], gd[2]);                               \
-      auto bd = false_algorithm->get_property_value<std::array<int, 3>>("block_dim");        \
+      auto bd = false_algorithm->cpu_property_value<std::array<int, 3>>("block_dim");        \
       dim3 n_threads(bd[0], bd[1], bd[2]);                              \
       set_opts(cond, n_blocks, n_threads, param_stream, param_shared_memory_size); \
     }                                                                   \
