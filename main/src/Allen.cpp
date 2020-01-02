@@ -472,7 +472,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Input file options
   std::string mdf_input;
   std::string mep_input;
-  bool allen_layout = true;
+  bool allen_layout = false;
   std::string output_file;
   int device_id = 0;
   int cpu_offload = 1;
