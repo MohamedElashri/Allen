@@ -28,7 +28,7 @@ allen_add_library(AllenMonitoring STATIC
 
 if(ROOT_FOUND)
   target_compile_definitions(AllenMonitoring PRIVATE ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(AllenMonitoring BEFORE PRIVATE
+  target_include_directories(AllenMonitoring SYSTEM BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
   )
 endif()

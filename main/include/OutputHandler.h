@@ -9,7 +9,7 @@ namespace Allen {
   constexpr int mdf_header_version = 3;
 }
 
-class IInputProvider;
+struct IInputProvider;
 
 class OutputHandler {
 public:

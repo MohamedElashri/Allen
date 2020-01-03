@@ -29,12 +29,6 @@ namespace {
     return {format, [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
   };
 
-  // Check mep files: they should match the regex and have not-empty filename
-  const std::regex mdf_format {"(.+)\\.mep"};
-  auto check_mep = []() -> factory {
-    return {mdf_format, [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
-  };
-
   // Check geometry files: they should match the regex.
   const std::regex geom_format {".*geometry.*"};
   auto check_geom = []() -> factory {

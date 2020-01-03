@@ -21,9 +21,9 @@
     template<typename T>                                                                                            \
     T property_value(std::string property_name) const                                                           \
     {                                                                                                               \
-      T holder;                                                                                                     \
+      T holder{};                                                       \
       auto prop = dynamic_cast<Property<T> const*>(get_prop(property_name));                                        \
-      if (prop)                                                                                                     \
+      if (prop != nullptr)                                                                                                     \
         holder = prop->get_value();                                                                                 \
       else                                                                                                          \
         warning_cout << "property " << property_name << " not found" << std::endl;                                  \
@@ -34,7 +34,7 @@
     {                                                                                                               \
       T holder;                                                                                                     \
       auto prop = dynamic_cast<CPUProperty<T> const*>(get_prop(property_name));                                     \
-      if (prop)                                                                                                     \
+      if (prop != nullptr)                                                                                                     \
         holder = prop->get_value();                                                                                 \
       else                                                                                                          \
         warning_cout << "cpu property " << property_name << " not found" << std::endl;                              \

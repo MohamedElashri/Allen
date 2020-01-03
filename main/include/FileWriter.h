@@ -34,7 +34,7 @@ protected:
     return {0, gsl::span {&m_buffer[0], buffer_size}};
   }
 
-  virtual bool write_buffer(size_t)
+  virtual bool write_buffer(size_t) override
   {
     if (m_checksum) {
       auto* header = reinterpret_cast<LHCb::MDFHeader*>(&m_buffer[0]);
