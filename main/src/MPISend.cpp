@@ -31,19 +31,32 @@ namespace MPI {
 int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
 {
 
+  std::string flag, arg;
+  const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
+    if (std::find(std::begin(option_flags), std::end(option_flags), flag) != std::end(option_flags)) {
+      return true;
+    }
+    return false;
+  };
+
   std::string mep_input;
   size_t window_size;
   bool non_stop = true;
-  bool number_of_events = 0;
-  for (auto const& [flag, arg] : allen_options) {
-    if (flag == "mep") {
+  size_t number_of_events = 0;
+  for (auto const& entry : allen_options) {
+    std::tie(flag, arg) = entry;
+
+    if (flag_in({"mep"})) {
       mep_input = arg;
     }
-    else if (flag == "mpi-window-size") {
+    else if (flag_in({"mpi-window-size"})) {
       window_size = atoi(arg.c_str());
     }
-    else if (flag == "non-stop") {
+    else if (flag_in({"non-stop"})) {
       non_stop = atoi(arg.c_str());
+    }
+    else if (flag_in({"n", "number-of-events"})) {
+      number_of_events = atol(arg.c_str());
     }
   }
 
