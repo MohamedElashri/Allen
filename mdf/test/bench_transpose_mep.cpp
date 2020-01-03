@@ -115,7 +115,9 @@ int main(int argc, char* argv[])
   cout << std::get<1>(mep_buffers[0]).packing_factor << "\n";
   // Count the number of banks of each type
   auto& [buffer, mep_header, mep_span, blocks, source_offsets] = mep_buffers[0];
-  auto [count_success, banks_count] = MEP::fill_counts(mep_header, mep_span);
+  bool count_success = false;
+  std::array<unsigned int, LHCb::NBankTypes> banks_count{};
+  std::tie(count_success, banks_count) = MEP::fill_counts(mep_header, mep_span);
 
   // Allocate space for event ids
   std::vector<EventIDs> event_ids(n_slices);

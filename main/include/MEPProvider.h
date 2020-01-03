@@ -353,9 +353,11 @@ public:
   }
 
   void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events,
-                   std::vector<size_t>& sizes) const
+                   std::vector<size_t>& sizes) const override
   {
-    auto [i_buffer, interval_start, interval_end] = m_slice_to_buffer[slice_index];
+    int i_buffer = 0;
+    size_t interval_start = 0, interval_end = 0;
+    std::tie(i_buffer, interval_start, interval_end) = m_slice_to_buffer[slice_index];
     auto const& blocks = std::get<2>(m_net_slices[i_buffer]);
     for (unsigned int i = 0; i < selected_events.size(); ++i) {
       auto event = selected_events[i];
@@ -367,7 +369,7 @@ public:
   }
 
   void copy_banks(size_t const slice_index, unsigned int const event,
-                  gsl::span<char> buffer) const {
+                  gsl::span<char> buffer) const override {
     auto [i_buffer, interval_start, interval_end] = m_slice_to_buffer[slice_index];
 
     auto const& mep_header = std::get<0>(m_net_slices[i_buffer]);
