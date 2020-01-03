@@ -208,6 +208,12 @@ public:
     for (auto& thread : m_transpose_threads) {
       thread.join();
     }
+
+#ifdef HAVE_MPI
+    for (auto* buf : m_mpi_buffers) {
+      MPI_Free_mem(buf);
+    }
+#endif
   }
 
   /**
@@ -703,25 +709,20 @@ private:
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
       // prefetch buffer
-      auto it = m_buffer_status.end();
       size_t i_buffer;
       {
         std::unique_lock<std::mutex> lock {m_mpi_mutex};
-        std::tie(it, i_buffer) =
+        std::tie(m_buffer_reading, i_buffer) =
           get_mep_buffer([](BufferStatus const& s) { return s.writable; }, m_buffer_reading, lock);
         m_buffer_reading->writable = false;
-        assert(it->work_counter == 0);
+        assert(m_buffer_reading->work_counter == 0);
       }
 
       auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
-      char* contents = m_mpi_buffers[i_buffer];
+      char*& contents = m_mpi_buffers[i_buffer];
 
       size_t mep_size = 0;
       MPI_Recv(&mep_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-      // info_cout << MPI::rank_str() << "event size: " << mep_size << "\n";
-
-      // info_cout << MPI::rank_str() << "Max event size " << mep_size << "\n";
 
       // Reallocate if needed
       if (mep_size > buffer_size) {
@@ -786,6 +787,10 @@ private:
 
       mep_header = EB::Header {contents};
       buffer_span = gsl::span {contents, mep_size};
+
+      if (!m_sizes_known) {
+        allocate_storage(i_buffer);
+      }
 
       // Fill blocks
       MEP::find_blocks(mep_header, buffer_span, blocks);
