@@ -168,7 +168,7 @@ void run_stream(
   uint n_reps,
   bool do_check,
   bool cpu_offload,
-  bool allen_layout,
+  bool mep_layout,
   std::string folder_name_imported_forward_tracks)
 {
   auto make_control = [thread_id](std::string suffix = std::string {}) {
@@ -264,7 +264,7 @@ void run_stream(
          n_reps,
          do_check,
          cpu_offload,
-         !allen_layout});
+         mep_layout});
 
       if (status == cudaErrorMemoryAllocation) {
         zmqSvc().send(control, "SPLIT", zmq::SNDMORE);
@@ -472,7 +472,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Input file options
   std::string mdf_input;
   std::string mep_input;
-  bool allen_layout = false;
+  bool mep_layout = true;
   std::string output_file;
   int device_id = 0;
   int cpu_offload = 1;
@@ -507,7 +507,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       json_constants_configuration_file = arg;
     }
     else if (flag_in({"transpose-mep"})) {
-      allen_layout = atoi(arg.c_str());
+      mep_layout = !atoi(arg.c_str());
     }
     else if (flag_in({"write-configuration"})) {
       write_config = atoi(arg.c_str());
@@ -671,13 +671,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               mpi_window_size, // MPI sliding window size
                               with_mpi,        // Receive from MPI or read files
                               non_stop,        // Run the application non-stop
-                              allen_layout,    // MEPs should be transposed to Allen layout
+                              !mep_layout,     // MEPs should be transposed to Allen layout
                               ""};             // Output file
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
       number_of_slices, *events_per_slice, n_events, split_input(mep_input), config);
   }
   else if (!mdf_input.empty()) {
-    allen_layout = true;
+    mep_layout = false;
     MDFProviderConfig config {false,                      // verify MDF checksums
                               10,                         // number of read buffers
                               4,                          // number of transpose threads
@@ -688,7 +688,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       number_of_slices, *events_per_slice, n_events, split_input(mdf_input), config);
   }
   else {
-    allen_layout = true;
+    mep_layout = false;
     // The binary input provider expects the folders for the bank types as connections
     std::vector<std::string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
@@ -802,7 +802,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                    number_of_repetitions,
                    do_check,
                    cpu_offload,
-                   allen_layout,
+                   mep_layout,
                    folder_name_imported_forward_tracks},
       std::move(check_control));
   };

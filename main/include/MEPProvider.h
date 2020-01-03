@@ -110,6 +110,12 @@ public:
     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
+    if (m_config.transpose_mep) {
+      info_cout << "Providing events in Allen layout by transposing MEPs\n";
+    } else {
+      info_cout << "Providing events in MEP layout\n";
+    }
+
     m_buffer_transpose = m_buffer_status.begin();
     m_buffer_reading = m_buffer_status.begin();
 
