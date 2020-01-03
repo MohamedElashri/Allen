@@ -31,6 +31,17 @@ namespace EB {
     }
   } // namespace detail
 
+  /**
+   * @brief MEP header produced by the event-building application.
+   *
+   * @details Implementation - at the best knowledge at the end of
+   * 2019 - of what the MEP header produced by the event-builder
+   * application running on the event-builder servers will look
+   * like. It contains the number of blocks, packing factor of the
+   * MEP, the combined size of the MEP fragments, and then for each
+   * fragment its source ID, version and offset in the MEP.
+   *
+   */
   struct Header {
 
     Header() = default;
@@ -87,6 +98,17 @@ namespace EB {
     std::vector<uint32_t> m_offsets;
   };
 
+  /**
+   * @brief Header of a MEP fragment
+   *
+   * @details Implementation the header produced by PCIe40 for each
+   * block will look like. A block consists of a collection of
+   * raw-bank fragment for a number of events - expected to be around
+   * 10k. It contains the event id of the first event, the number of
+   * fragments, the size of the block data and then for each fragment
+   * its type and size.
+   *
+   */
   struct BlockHeader {
 
     BlockHeader() = default;
