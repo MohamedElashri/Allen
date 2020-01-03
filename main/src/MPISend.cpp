@@ -76,7 +76,8 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
   // Read all files in connections
   std::vector<gsl::span<char>> meps;
 
-  info_cout << MPI::rank_str() << "Reading files\n" << MPI::rank_str();
+  info_cout << MPI::rank_str() << "Reading " << (number_of_events != 0 ? std::to_string(number_of_events) : std::string{"all"})
+            << " meps from files\n";
 
   std::vector<char> data;
   gsl::span<char const> mep_span;
@@ -85,10 +86,11 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
 
   for (const auto& connection : connections) {
     bool eof = false, success = true;
+    auto input = MDF::open(connection, O_RDONLY);
+
     while (success && !eof) {
       info_cout << "." << std::flush;
 
-      auto input = MDF::open(connection, O_RDONLY);
       std::tie(eof, success, mep_header, mep_span) = MEP::read_mep(input, data);
 
       if (!eof && success) {
@@ -102,14 +104,16 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
         meps.emplace_back(contents, mep_span.size());
       }
       if (n_meps >= number_of_events && number_of_events != 0) {
+        input.close();
         goto send;
       }
     }
+    input.close();
   }
 
 send:
 
-  info_cout << MPI::rank_str() << "EB header: " << mep_header.n_blocks << ", " << mep_header.packing_factor << ", "
+  info_cout << "\n" << MPI::rank_str() << "EB header: " << mep_header.n_blocks << ", " << mep_header.packing_factor << ", "
             << mep_header.reserved << ", " << mep_header.mep_size << "\n";
 
   size_t packing_factor = mep_header.packing_factor;
@@ -121,7 +125,6 @@ send:
   // Test: Send all the files
   size_t current_mep = 0;
   while (non_stop || current_mep < meps.size()) {
-    // info_cout << MPI::rank_str() << "round " << current_file << "\n";
 
     // Get event data
     const char* current_event_start = meps[current_mep].data();
