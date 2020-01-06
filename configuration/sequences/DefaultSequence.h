@@ -218,6 +218,9 @@ SEQUENCE_T(
     host_number_of_selected_events_t,
     dev_hit_phi_t>>,
 
+  host_prefix_sum::host_prefix_sum_t<
+    std::tuple<host_number_of_reconstructed_velo_tracks_t, dev_number_of_velo_tracks_t, dev_offsets_velo_tracks_t>>,
+
   velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t<std::tuple<
     host_number_of_selected_events_t,
     dev_sorted_velo_cluster_container_t,
@@ -227,9 +230,6 @@ SEQUENCE_T(
     dev_hit_used_t,
     dev_three_hit_tracks_output_t,
     dev_number_of_three_hit_tracks_filtered_t>>,
-
-  host_prefix_sum::host_prefix_sum_t<
-    std::tuple<host_number_of_reconstructed_velo_tracks_t, dev_number_of_velo_tracks_t, dev_offsets_velo_tracks_t>>,
 
   host_prefix_sum::host_prefix_sum_t<std::tuple<
     dev_number_of_three_hit_tracks_filtered_t,
