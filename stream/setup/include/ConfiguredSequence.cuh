@@ -7,6 +7,7 @@
 #include "EstimateInputSize.cuh"
 #include "MaskedVeloClustering.cuh"
 #include "CalculatePhiAndSort.cuh"
+#include "FillCandidates.cuh"
 #include "SearchByTriplet.cuh"
 #include "ThreeHitTracksFilter.cuh"
 #include "VeloConsolidateTracks.cuh"

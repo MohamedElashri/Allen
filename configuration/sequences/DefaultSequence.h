@@ -8,7 +8,7 @@ ARG(
   velo_estimate_input_size::host_number_of_selected_events_t,
   velo_masked_clustering::host_number_of_selected_events_t,
   velo_calculate_phi_and_sort::host_number_of_selected_events_t,
-  velo_three_hit_tracks_adder::host_number_of_selected_events_t,
+  velo_three_hit_tracks_filter::host_number_of_selected_events_t,
   velo_consolidate_tracks::host_number_of_selected_events_t,
   velo_fill_candidates::host_number_of_selected_events_t,
   velo_search_by_triplet::host_number_of_selected_events_t,
@@ -29,7 +29,7 @@ ARG(
   velo_calculate_phi_and_sort::dev_offsets_estimated_input_size_t,
   velo_fill_candidates::dev_offsets_estimated_input_size_t,
   velo_search_by_triplet::dev_offsets_estimated_input_size_t,
-  velo_three_hit_tracks_adder::dev_offsets_estimated_input_size_t,
+  velo_three_hit_tracks_filter::dev_offsets_estimated_input_size_t,
   velo_consolidate_tracks::dev_offsets_estimated_input_size_t)
 ARG(
   dev_number_of_velo_tracks_t,
@@ -70,12 +70,12 @@ ARG(dev_tracklets_t, velo_search_by_triplet::dev_tracklets_t)
 ARG(dev_velo_tracks_to_follow_t, velo_search_by_triplet::dev_tracks_to_follow_t)
 ARG(dev_three_hit_tracks_t,
   velo_search_by_triplet::dev_three_hit_tracks_t,
-  velo_three_hit_tracks_adder::dev_three_hit_tracks_input_t)
-ARG(dev_hit_used_t, velo_search_by_triplet::dev_hit_used_t, velo_three_hit_tracks_adder::dev_hit_used_t)
+  velo_three_hit_tracks_filter::dev_three_hit_tracks_input_t)
+ARG(dev_hit_used_t, velo_search_by_triplet::dev_hit_used_t, velo_three_hit_tracks_filter::dev_hit_used_t)
 ARG(
   dev_atomics_velo_t,
   velo_search_by_triplet::dev_atomics_velo_t,
-  velo_three_hit_tracks_adder::dev_atomics_velo_t,
+  velo_three_hit_tracks_filter::dev_atomics_velo_t,
   host_prefix_sum::dev_input_buffer_t)
 ARG(
   dev_offsets_velo_tracks_t,
@@ -120,7 +120,7 @@ ARG(dev_sorted_velo_cluster_container_t,
   velo_calculate_phi_and_sort::dev_sorted_velo_cluster_container_t,
   velo_fill_candidates::dev_sorted_velo_cluster_container_t,
   velo_search_by_triplet::dev_sorted_velo_cluster_container_t,
-  velo_three_hit_tracks_adder::dev_sorted_velo_cluster_container_t,
+  velo_three_hit_tracks_filter::dev_sorted_velo_cluster_container_t,
   velo_consolidate_tracks::dev_sorted_velo_cluster_container_t)
 
 ARG(dev_hit_phi_t,
@@ -132,11 +132,11 @@ ARG(dev_velo_kalman_beamline_states_t,
   velo_kalman_filter::dev_velo_kalman_beamline_states_t)
 
 ARG(dev_three_hit_tracks_output_t,
-  velo_three_hit_tracks_adder::dev_three_hit_tracks_output_t,
+  velo_three_hit_tracks_filter::dev_three_hit_tracks_output_t,
   velo_consolidate_tracks::dev_three_hit_tracks_output_t)
 
 ARG(dev_number_of_three_hit_tracks_filtered_t,
-  velo_three_hit_tracks_adder::dev_number_of_three_hit_tracks_output_t,
+  velo_three_hit_tracks_filter::dev_number_of_three_hit_tracks_output_t,
   host_prefix_sum::dev_input_buffer_t)
 
 ARG(dev_offsets_number_of_three_hit_tracks_filtered_t,
@@ -218,11 +218,11 @@ SEQUENCE_T(
     host_number_of_selected_events_t,
     dev_hit_phi_t>>,
 
-  velo_three_hit_tracks_adder::velo_three_hit_tracks_adder_t<std::tuple<
+  velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t<std::tuple<
     host_number_of_selected_events_t,
     dev_sorted_velo_cluster_container_t,
     dev_offsets_estimated_input_size_t,
-    dev_three_hit_tracks_input_t,
+    dev_three_hit_tracks_t,
     dev_atomics_velo_t,
     dev_hit_used_t,
     dev_three_hit_tracks_output_t,
@@ -265,15 +265,15 @@ SEQUENCE_T(
     dev_velo_states_t,
     dev_accepted_velo_tracks_t,
     dev_offsets_number_of_three_hit_tracks_filtered_t,
-    dev_three_hit_tracks_output_t>>,
+    dev_three_hit_tracks_output_t>>
 
-  velo_kalman_filter::velo_kalman_filter_t<std::tuple<
-    dev_offsets_all_velo_tracks_t,
-    dev_offsets_velo_track_hit_number_t,
-    dev_velo_track_hits_t,
-    dev_velo_states_t,
-    dev_velo_kalman_beamline_states_t
-  >>
+  // velo_kalman_filter::velo_kalman_filter_t<std::tuple<
+  //   dev_offsets_all_velo_tracks_t,
+  //   dev_offsets_velo_track_hit_number_t,
+  //   dev_velo_track_hits_t,
+  //   dev_velo_states_t,
+  //   dev_velo_kalman_beamline_states_t
+  // >>
   // pv_beamline_extrapolate_t,
   // pv_beamline_histo_t,
   // pv_beamline_peak_t,

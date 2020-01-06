@@ -31,7 +31,7 @@ namespace velo_copy_track_hit_number {
       const HostBuffers& host_buffers) const {
       set_size<dev_velo_track_hit_number_t>(arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments)
         + value<host_number_of_three_hit_tracks_filtered_t>(arguments));
-      set_size<dev_offsets_all_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_offsets_all_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments) + 1);
     }
 
     void operator()(
@@ -44,7 +44,7 @@ namespace velo_copy_track_hit_number {
       cudaCheck(cudaMemsetAsync(
         offset<dev_offsets_all_velo_tracks_t>(arguments),
         0,
-        sizeof(uint),
+        sizeof(uint), // Note: Only the first element needs to be initialized here.
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
