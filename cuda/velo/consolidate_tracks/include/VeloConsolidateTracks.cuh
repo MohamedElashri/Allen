@@ -11,6 +11,7 @@ namespace velo_consolidate_tracks {
   // Arguments
   HOST_INPUT(host_accumulated_number_of_hits_in_velo_tracks_t, uint)
   HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint)
+  HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, uint)
   HOST_INPUT(host_number_of_selected_events_t, uint)
   DEVICE_INPUT(dev_atomics_velo_t, uint)
   DEVICE_INPUT(dev_tracks_t, Velo::TrackHits)
@@ -18,6 +19,8 @@ namespace velo_consolidate_tracks {
   DEVICE_INPUT(dev_sorted_velo_cluster_container_t, uint)
   DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint)
   DEVICE_INPUT(dev_velo_states_t, char)
+  DEVICE_INPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits)
+  DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint)
   DEVICE_OUTPUT(dev_accepted_velo_tracks_t, uint)
   DEVICE_OUTPUT(dev_velo_track_hits_t, char)
 
@@ -28,7 +31,9 @@ namespace velo_consolidate_tracks {
     dev_sorted_velo_cluster_container_t,
     dev_offsets_estimated_input_size_t,
     dev_velo_track_hits_t,
-    dev_velo_states_t);
+    dev_velo_states_t,
+    dev_three_hit_tracks_output_t,
+    dev_offsets_number_of_three_hit_tracks_filtered_t);
 
   template<typename Arguments>
   struct velo_consolidate_tracks_t : public DeviceAlgorithm {
@@ -43,9 +48,14 @@ namespace velo_consolidate_tracks {
       set_size<dev_velo_track_hits_t>(
         arguments, value<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments) * sizeof(Velo::Hit));
       set_size<dev_velo_states_t>(
-        arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments) * sizeof(VeloState));
+        arguments,
+        (value<host_number_of_reconstructed_velo_tracks_t>(arguments) +
+         value<host_number_of_three_hit_tracks_filtered_t>(arguments)) *
+          sizeof(VeloState));
       set_size<dev_accepted_velo_tracks_t>(
-        arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments));
+        arguments,
+        value<host_number_of_reconstructed_velo_tracks_t>(arguments) +
+          value<host_number_of_three_hit_tracks_filtered_t>(arguments));
     }
 
     void operator()(
@@ -62,7 +72,9 @@ namespace velo_consolidate_tracks {
         offset<dev_sorted_velo_cluster_container_t>(arguments),
         offset<dev_offsets_estimated_input_size_t>(arguments),
         offset<dev_velo_track_hits_t>(arguments),
-        offset<dev_velo_states_t>(arguments));
+        offset<dev_velo_states_t>(arguments),
+        offset<dev_three_hit_tracks_output_t>(arguments),
+        offset<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments));
 
       // Set all found tracks to accepted
       cudaCheck(cudaMemsetAsync(

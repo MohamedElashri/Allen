@@ -1,0 +1,247 @@
+digraph G {
+	rankdir=LR
+	subgraph cpu_init_event_list_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	start -> cpu_init_event_list_t
+	subgraph cpu_global_event_cut_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_init_event_list_t -> cpu_global_event_cut_t
+	subgraph velo_estimate_input_size_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_global_event_cut_t -> velo_estimate_input_size_t
+	subgraph cpu_velo_prefix_sum_number_of_clusters_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	velo_estimate_input_size_t -> cpu_velo_prefix_sum_number_of_clusters_t
+	subgraph velo_masked_clustering_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_velo_prefix_sum_number_of_clusters_t -> velo_masked_clustering_t
+	subgraph velo_calculate_phi_and_sort_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	velo_masked_clustering_t -> velo_calculate_phi_and_sort_t
+	subgraph velo_fill_candidates_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	velo_calculate_phi_and_sort_t -> velo_fill_candidates_t
+	subgraph velo_search_by_triplet_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	velo_fill_candidates_t -> velo_search_by_triplet_t
+	subgraph velo_weak_tracks_adder_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	velo_search_by_triplet_t -> velo_weak_tracks_adder_t
+	subgraph cpu_velo_prefix_sum_number_of_tracks_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	velo_weak_tracks_adder_t -> cpu_velo_prefix_sum_number_of_tracks_t
+	subgraph velo_copy_track_hit_number_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_velo_prefix_sum_number_of_tracks_t -> velo_copy_track_hit_number_t
+	subgraph cpu_velo_prefix_sum_number_of_track_hits_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	velo_copy_track_hit_number_t -> cpu_velo_prefix_sum_number_of_track_hits_t
+	subgraph velo_consolidate_tracks_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_velo_prefix_sum_number_of_track_hits_t -> velo_consolidate_tracks_t
+	subgraph velo_kalman_fit_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	velo_consolidate_tracks_t -> velo_kalman_fit_t
+	subgraph pv_beamline_extrapolate_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	velo_kalman_fit_t -> pv_beamline_extrapolate_t
+	subgraph pv_beamline_histo_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	pv_beamline_extrapolate_t -> pv_beamline_histo_t
+	subgraph pv_beamline_peak_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	pv_beamline_histo_t -> pv_beamline_peak_t
+	subgraph pv_beamline_calculate_denom_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	pv_beamline_peak_t -> pv_beamline_calculate_denom_t
+	subgraph pv_beamline_multi_fitter_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	pv_beamline_calculate_denom_t -> pv_beamline_multi_fitter_t
+	subgraph pv_beamline_cleanup_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	pv_beamline_multi_fitter_t -> pv_beamline_cleanup_t
+	subgraph ut_calculate_number_of_hits_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	pv_beamline_cleanup_t -> ut_calculate_number_of_hits_t
+	subgraph cpu_ut_prefix_sum_number_of_hits_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	ut_calculate_number_of_hits_t -> cpu_ut_prefix_sum_number_of_hits_t
+	subgraph ut_pre_decode_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_ut_prefix_sum_number_of_hits_t -> ut_pre_decode_t
+	subgraph ut_find_permutation_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	ut_pre_decode_t -> ut_find_permutation_t
+	subgraph ut_decode_raw_banks_in_order_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	ut_find_permutation_t -> ut_decode_raw_banks_in_order_t
+	subgraph ut_search_windows_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	ut_decode_raw_banks_in_order_t -> ut_search_windows_t
+	subgraph compass_ut_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	ut_search_windows_t -> compass_ut_t
+	subgraph cpu_ut_prefix_sum_number_of_tracks_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	compass_ut_t -> cpu_ut_prefix_sum_number_of_tracks_t
+	subgraph ut_copy_track_hit_number_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_ut_prefix_sum_number_of_tracks_t -> ut_copy_track_hit_number_t
+	subgraph cpu_ut_prefix_sum_number_of_track_hits_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	ut_copy_track_hit_number_t -> cpu_ut_prefix_sum_number_of_track_hits_t
+	subgraph ut_consolidate_tracks_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_ut_prefix_sum_number_of_track_hits_t -> ut_consolidate_tracks_t
+	subgraph scifi_calculate_cluster_count_v4_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	ut_consolidate_tracks_t -> scifi_calculate_cluster_count_v4_t
+	subgraph cpu_scifi_prefix_sum_number_of_hits_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	scifi_calculate_cluster_count_v4_t -> cpu_scifi_prefix_sum_number_of_hits_t
+	subgraph scifi_pre_decode_v4_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_scifi_prefix_sum_number_of_hits_t -> scifi_pre_decode_v4_t
+	subgraph scifi_raw_bank_decoder_v4_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	scifi_pre_decode_v4_t -> scifi_raw_bank_decoder_v4_t
+	subgraph scifi_direct_decoder_v4_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	scifi_raw_bank_decoder_v4_t -> scifi_direct_decoder_v4_t
+	subgraph lf_search_initial_windows_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	scifi_direct_decoder_v4_t -> lf_search_initial_windows_t
+	subgraph lf_triplet_seeding_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	lf_search_initial_windows_t -> lf_triplet_seeding_t
+	subgraph lf_triplet_keep_best_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	lf_triplet_seeding_t -> lf_triplet_keep_best_t
+	subgraph lf_calculate_parametrization_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	lf_triplet_keep_best_t -> lf_calculate_parametrization_t
+	subgraph lf_extend_tracks_x_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	lf_calculate_parametrization_t -> lf_extend_tracks_x_t
+	subgraph lf_extend_tracks_uv_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	lf_extend_tracks_x_t -> lf_extend_tracks_uv_t
+	subgraph lf_quality_filter_length_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	lf_extend_tracks_uv_t -> lf_quality_filter_length_t
+	subgraph lf_quality_filter_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	lf_quality_filter_length_t -> lf_quality_filter_t
+	subgraph cpu_scifi_prefix_sum_number_of_tracks_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	lf_quality_filter_t -> cpu_scifi_prefix_sum_number_of_tracks_t
+	subgraph scifi_copy_track_hit_number_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_scifi_prefix_sum_number_of_tracks_t -> scifi_copy_track_hit_number_t
+	subgraph cpu_scifi_prefix_sum_number_of_track_hits_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	scifi_copy_track_hit_number_t -> cpu_scifi_prefix_sum_number_of_track_hits_t
+	subgraph scifi_consolidate_tracks_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_scifi_prefix_sum_number_of_track_hits_t -> scifi_consolidate_tracks_t
+	subgraph muon_pre_decoding_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	scifi_consolidate_tracks_t -> muon_pre_decoding_t
+	subgraph cpu_muon_prefix_sum_storage_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	muon_pre_decoding_t -> cpu_muon_prefix_sum_storage_t
+	subgraph muon_sort_station_region_quarter_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_muon_prefix_sum_storage_t -> muon_sort_station_region_quarter_t
+	subgraph muon_add_coords_crossing_maps_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	muon_sort_station_region_quarter_t -> muon_add_coords_crossing_maps_t
+	subgraph cpu_muon_prefix_sum_station_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	muon_add_coords_crossing_maps_t -> cpu_muon_prefix_sum_station_t
+	subgraph muon_sort_by_station_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_muon_prefix_sum_station_t -> muon_sort_by_station_t
+	subgraph is_muon_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	muon_sort_by_station_t -> is_muon_t
+	subgraph kalman_velo_only_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	is_muon_t -> kalman_velo_only_t
+	subgraph kalman_pv_ipchi2_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	kalman_velo_only_t -> kalman_pv_ipchi2_t
+	subgraph cpu_sv_prefix_sum_offsets_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	kalman_pv_ipchi2_t -> cpu_sv_prefix_sum_offsets_t
+	subgraph fit_secondary_vertices_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	cpu_sv_prefix_sum_offsets_t -> fit_secondary_vertices_t
+	subgraph run_hlt1_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	fit_secondary_vertices_t -> run_hlt1_t
+	subgraph prepare_raw_banks_t {
+		color="#f0f8ff" shape=rectangle style=filled
+	}
+	run_hlt1_t -> prepare_raw_banks_t
+}

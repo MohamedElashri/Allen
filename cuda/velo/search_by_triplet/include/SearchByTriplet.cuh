@@ -5,11 +5,9 @@
 #include "ClusteringDefinitions.cuh"
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
-#include "FillCandidates.cuh"
 #include "ProcessModules.cuh"
 #include "TrackForwarding.cuh"
 #include "TrackSeeding.cuh"
-#include "WeakTracksAdder.cuh"
 #include "GpuAlgorithm.cuh"
 
 namespace velo_search_by_triplet {
@@ -25,7 +23,7 @@ namespace velo_search_by_triplet {
   DEVICE_OUTPUT(dev_tracks_t, Velo::TrackHits)
   DEVICE_OUTPUT(dev_tracklets_t, Velo::TrackletHits)
   DEVICE_OUTPUT(dev_tracks_to_follow_t, uint)
-  DEVICE_OUTPUT(dev_weak_tracks_t, Velo::TrackletHits)
+  DEVICE_OUTPUT(dev_three_hit_tracks_t, Velo::TrackletHits)
   DEVICE_OUTPUT(dev_hit_used_t, bool)
   DEVICE_OUTPUT(dev_atomics_velo_t, uint)
   DEVICE_OUTPUT(dev_rel_indices_t, unsigned short)
@@ -38,7 +36,7 @@ namespace velo_search_by_triplet {
     dev_tracks_t,
     dev_tracklets_t,
     dev_tracks_to_follow_t,
-    dev_weak_tracks_t,
+    dev_three_hit_tracks_t,
     dev_hit_used_t,
     dev_atomics_velo_t,
     dev_h0_candidates_t,
@@ -63,7 +61,7 @@ namespace velo_search_by_triplet {
         arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<uint>("ttf_modulo"));
       set_size<dev_tracks_to_follow_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<uint>("ttf_modulo"));
-      set_size<dev_weak_tracks_t>(
+      set_size<dev_three_hit_tracks_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<uint>("max_weak_tracks"));
       set_size<dev_hit_used_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
       set_size<dev_atomics_velo_t>(arguments, value<host_number_of_selected_events_t>(arguments) * Velo::num_atomics);
@@ -92,7 +90,7 @@ namespace velo_search_by_triplet {
         offset<dev_tracks_t>(arguments),
         offset<dev_tracklets_t>(arguments),
         offset<dev_tracks_to_follow_t>(arguments),
-        offset<dev_weak_tracks_t>(arguments),
+        offset<dev_three_hit_tracks_t>(arguments),
         offset<dev_hit_used_t>(arguments),
         offset<dev_atomics_velo_t>(arguments),
         offset<dev_h0_candidates_t>(arguments),

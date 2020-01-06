@@ -1,4 +1,7 @@
-#include "SearchByTriplet.cuh"
+#include "FillCandidates.cuh"
+#include "ClusteringDefinitions.cuh"
+#include "VeloDefinitions.cuh"
+#include "VeloEventModel.cuh"
 #include "VeloTools.cuh"
 #include "BinarySearch.cuh"
 #include <cassert>

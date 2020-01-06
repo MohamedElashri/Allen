@@ -1,7 +1,6 @@
-#include "SearchByTriplet.cuh"
-#include "WeakTracksAdder.cuh"
+#include "ThreeHitTracksFilter.cuh"
 
-using namespace velo_weak_tracks_adder;
+using namespace velo_three_hit_tracks_filter;
 
 /**
  * @brief Calculates the parameters according to a root means square fit
@@ -20,10 +19,10 @@ __device__ float means_square_fit_chi2(
 
   // Iterate over hits
   for (unsigned short h = 0; h < 3; ++h) {
-    const auto hitno = track.hits[h];
-    const auto x = velo_cluster_container.x(hitno);
-    const auto y = velo_cluster_container.y(hitno);
-    const auto z = velo_cluster_container.z(hitno);
+    const auto hit_number = track.hits[h];
+    const auto x = velo_cluster_container.x(hit_number);
+    const auto y = velo_cluster_container.y(hit_number);
+    const auto z = velo_cluster_container.z(hit_number);
 
     const auto wx = Velo::Tracking::param_w;
     const auto wx_t_x = wx * x;
@@ -63,21 +62,21 @@ __device__ float means_square_fit_chi2(
     float ch = 0.0f;
     int nDoF = -4;
     for (uint h = 0; h < 3; ++h) {
-      const auto hitno = track.hits[h];
+      const auto hit_number = track.hits[h];
 
-      const auto z = velo_cluster_container.z(hitno);
+      const auto z = velo_cluster_container.z(hit_number);
       const auto x = state.x + state.tx * z;
       const auto y = state.y + state.ty * z;
 
-      const auto dx = x - velo_cluster_container.x(hitno);
-      const auto dy = y - velo_cluster_container.y(hitno);
+      const auto dx = x - velo_cluster_container.x(hit_number);
+      const auto dy = y - velo_cluster_container.y(hit_number);
 
       ch += dx * dx * Velo::Tracking::param_w + dy * dy * Velo::Tracking::param_w;
 
       // Nice :)
       // TODO: We can get rid of the X and Y read here
       // float sum_w_xzi_2 = CL_Velo::Tracking::param_w * x; // for each hit
-      // float sum_w_xi_2 = CL_Velo::Tracking::param_w * velo_cluster_container.x(hitno]; // for each hit
+      // float sum_w_xi_2 = CL_Velo::Tracking::param_w * velo_cluster_container.x(hit_number]; // for each hit
       // ch = (sum_w_xzi_2 - sum_w_xi_2) + (sum_w_yzi_2 - sum_w_yi_2);
 
       nDoF += 2;
@@ -114,39 +113,37 @@ __device__ float scatter(const Velo::Clusters<const uint>& velo_cluster_containe
   return (dx * dx) + (dy * dy);
 }
 
-__device__ void weak_tracks_adder_impl(
-  uint* weaktracks_insert_pointer,
-  uint* tracks_insert_pointer,
-  Velo::TrackletHits* weak_tracks,
-  Velo::TrackHits* tracks,
-  bool* hit_used,
+__device__ void three_hit_tracks_filter_impl(
+  const Velo::TrackletHits* input_tracks,
+  const uint number_of_input_tracks,
+  Velo::TrackletHits* output_tracks,
+  uint* number_of_output_tracks,
+  const bool* hit_used,
   const Velo::Clusters<const uint>& velo_cluster_container) {
-  // Compute the weak tracks
-  const auto weaktracks_total = weaktracks_insert_pointer[0];
-  for (uint weaktrack_no = threadIdx.x; weaktrack_no < weaktracks_total; weaktrack_no += blockDim.x) {
-    const Velo::TrackletHits& t = weak_tracks[weaktrack_no];
+
+  for (uint track_number = threadIdx.x; track_number < number_of_input_tracks; track_number += blockDim.x) {
+    const Velo::TrackletHits& t = input_tracks[track_number];
     const bool any_used = hit_used[t.hits[0]] || hit_used[t.hits[1]] || hit_used[t.hits[2]];
     const float chi2 = means_square_fit_chi2(velo_cluster_container, t);
 
     // Store them in the tracks bag
     if (!any_used && chi2 < Configuration::velo_search_by_triplet::max_chi2) {
-      const uint trackno = atomicAdd(tracks_insert_pointer, 1);
-      assert(trackno < Velo::Constants::max_tracks);
-      tracks[trackno] = Velo::TrackHits {t};
+      const uint track_insert_number = atomicAdd(number_of_output_tracks, 1);
+      assert(track_insert_number < Velo::Constants::max_tracks);
+      output_tracks[track_insert_number] = t;
     }
   }
 }
 
-__global__ void velo_weak_tracks_adder::velo_weak_tracks_adder(
+__global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   dev_sorted_velo_cluster_container_t dev_sorted_velo_cluster_container,
   dev_offsets_estimated_input_size_t dev_offsets_estimated_input_size,
-  dev_tracks_t dev_tracks,
-  dev_weak_tracks_t dev_weak_tracks,
+  dev_three_hit_tracks_output_t dev_three_hit_tracks_output,
+  dev_three_hit_tracks_input_t dev_three_hit_tracks_input,
   dev_hit_used_t dev_hit_used,
   dev_atomics_velo_t dev_atomics_velo,
-  dev_number_of_velo_tracks_t dev_number_of_velo_tracks) {
-  /* Data initialization */
-  // Each event is treated with two blocks, one for each side.
+  dev_number_of_three_hit_tracks_output_t dev_number_of_three_hit_tracks_output) {
+  // Data initialization
   const uint event_number = blockIdx.x;
   const uint number_of_events = gridDim.x;
   const uint tracks_offset = event_number * Velo::Constants::max_tracks;
@@ -156,25 +153,21 @@ __global__ void velo_weak_tracks_adder::velo_weak_tracks_adder(
     dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
   const uint* module_hitStarts = dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
-  assert((module_hitStarts[52] - module_hitStarts[0]) < Velo::Constants::max_number_of_hits_per_event);
+  const bool* hit_used = dev_hit_used + hit_offset;
 
-  // TODO: Offseted container
+  // Offseted VELO cluster container
   const auto velo_cluster_container =
     Velo::Clusters<const uint>{dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
 
-  // Per event datatypes
-  Velo::TrackHits* tracks = dev_tracks + tracks_offset;
-  uint* tracks_insert_pointer = (uint*) dev_number_of_velo_tracks + event_number;
+  // Input three hit tracks
+  const Velo::TrackletHits* input_tracks =
+    dev_three_hit_tracks_input + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
+  const auto number_of_input_tracks = dev_atomics_velo[event_number * Velo::num_atomics];
 
-  // Per side datatypes
-  bool* hit_used = dev_hit_used + hit_offset;
-  Velo::TrackletHits* weak_tracks =
-    dev_weak_tracks + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
+  // Output containers
+  Velo::TrackletHits* output_tracks = dev_three_hit_tracks_output.get() + tracks_offset;
+  uint* number_of_output_tracks = dev_number_of_three_hit_tracks_output.get() + event_number;
 
-  // Initialize variables according to event number and module side
-  // Insert pointers (atomics)
-  uint* weaktracks_insert_pointer = (uint*) dev_atomics_velo + event_number * Velo::num_atomics;
-
-  weak_tracks_adder_impl(
-    weaktracks_insert_pointer, tracks_insert_pointer, weak_tracks, tracks, hit_used, velo_cluster_container);
+  three_hit_tracks_filter_impl(
+    input_tracks, number_of_input_tracks, output_tracks, number_of_output_tracks, hit_used, velo_cluster_container);
 }

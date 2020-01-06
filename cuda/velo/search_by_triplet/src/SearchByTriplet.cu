@@ -50,7 +50,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   dev_tracks_t dev_tracks,
   dev_tracklets_t dev_tracklets,
   dev_tracks_to_follow_t dev_tracks_to_follow,
-  dev_weak_tracks_t dev_weak_tracks,
+  dev_three_hit_tracks_t dev_three_hit_tracks,
   dev_hit_used_t dev_hit_used,
   dev_atomics_velo_t dev_atomics_velo,
   dev_h0_candidates_t dev_h0_candidates,
@@ -71,9 +71,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const uint* module_hitStarts = dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint* module_hitNums = dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
-  assert((module_hitStarts[52] - module_hitStarts[0]) < Velo::Constants::max_number_of_hits_per_event);
 
-  // TODO: Think whether this offset'ed container is a good solution
+  // Think whether this offset'ed container is a good solution
   const auto velo_cluster_container =
     Velo::Clusters<const uint>{dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
 
@@ -88,8 +87,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const short* h2_candidates = dev_h2_candidates + 2 * hit_offset;
 
   uint* tracks_to_follow = dev_tracks_to_follow + event_number * Configuration::velo_search_by_triplet::ttf_modulo;
-  Velo::TrackletHits* weak_tracks =
-    dev_weak_tracks + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
+  Velo::TrackletHits* three_hit_tracks =
+    dev_three_hit_tracks + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
   Velo::TrackletHits* tracklets = dev_tracklets + event_number * Configuration::velo_search_by_triplet::ttf_modulo;
   unsigned short* h1_rel_indices = dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
 
@@ -106,7 +105,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     velo_cluster_container,
     hit_phi,
     tracks_to_follow,
-    weak_tracks,
+    three_hit_tracks,
     tracklets,
     tracks,
     total_estimated_number_of_clusters,

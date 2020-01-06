@@ -42,7 +42,7 @@ __device__ void velo_kalman_filter_step(
 }
 
 __global__ void velo_kalman_filter::velo_kalman_filter(
-  dev_offsets_atomics_velo_t dev_offsets_atomics_velo,
+  dev_offsets_velo_tracks_t dev_offsets_atomics_velo,
   dev_offsets_velo_track_hit_number_t dev_offsets_velo_track_hit_number,
   dev_velo_track_hits_t dev_velo_track_hits,
   dev_velo_states_t dev_velo_states,

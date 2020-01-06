@@ -94,14 +94,14 @@ namespace velo_kalman_filter {
   // Arguments
   HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint)
   HOST_INPUT(host_number_of_selected_events_t, uint)
-  DEVICE_INPUT(dev_offsets_atomics_velo_t, uint)
+  DEVICE_INPUT(dev_offsets_velo_tracks_t, uint)
   DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint)
   DEVICE_INPUT(dev_velo_track_hits_t, char)
   DEVICE_INPUT(dev_velo_states_t, char)
   DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char)
 
   __global__ void velo_kalman_filter(
-    dev_offsets_atomics_velo_t,
+    dev_offsets_velo_tracks_t,
     dev_offsets_velo_track_hit_number_t,
     dev_velo_track_hits_t,
     dev_velo_states_t,
@@ -129,7 +129,7 @@ namespace velo_kalman_filter {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        offset<dev_offsets_atomics_velo_t>(arguments),
+        offset<dev_offsets_velo_tracks_t>(arguments),
         offset<dev_offsets_velo_track_hit_number_t>(arguments),
         offset<dev_velo_track_hits_t>(arguments),
         offset<dev_velo_states_t>(arguments),

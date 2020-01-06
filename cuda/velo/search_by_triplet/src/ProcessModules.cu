@@ -44,7 +44,6 @@ __device__ void process_modules(
   // Do first track seeding
   track_seeding(
     velo_cluster_container,
-    number_of_hits,
     module_data,
     h0_candidates,
     h2_candidates,
@@ -95,7 +94,6 @@ __device__ void process_modules(
       prev_ttf,
       tracklets,
       tracks,
-      number_of_hits,
       dev_atomics_velo,
       dev_number_of_velo_tracks);
 
@@ -105,7 +103,6 @@ __device__ void process_modules(
     // Seeding
     track_seeding(
       velo_cluster_container,
-      number_of_hits,
       module_data,
       h0_candidates,
       h2_candidates,
@@ -136,7 +133,6 @@ __device__ void process_modules(
     // to mark them as "doubtful"
     if (track_flag) {
       const auto weakP = atomicAdd(dev_atomics_velo, 1);
-      assert(weakP < number_of_hits);
       weak_tracks[weakP] = tracklets[trackno];
     }
   }

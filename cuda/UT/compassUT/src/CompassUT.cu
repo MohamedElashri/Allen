@@ -53,7 +53,7 @@ void compass_ut_t::operator()(
 __global__ void compass_ut(
   uint* dev_ut_hits, // actual hit content
   const uint* dev_ut_hit_offsets,
-  uint* dev_atomics_storage, // semi_prefixsum, offset to tracks
+  uint* dev_atomics_storage, // prefixsum, offset to tracks
   uint* dev_velo_track_hit_number,
   char* dev_velo_states,
   UTMagnetTool* dev_ut_magnet_tool,
