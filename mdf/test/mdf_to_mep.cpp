@@ -248,8 +248,8 @@ int main(int argc, char* argv[])
           block_header.sizes[n_filled] = n_words * sizeof(uint32_t);
 
           // Resize on demand
-          if (block_header.block_size + word_size > data.size()) {
-            data.resize(1.5 * data.size());
+          if (block_header.block_size + word_size >= data.size()) {
+            data.resize(std::max(static_cast<size_t>(1.5 * data.size()), data.size() + word_size));
           }
 
           // Copy bank data
