@@ -5,7 +5,7 @@
 #include "PV_Definitions.cuh"
 #include "AssociateConsolidated.cuh"
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -19,9 +19,9 @@ __global__ void velo_pv_ip(
   uint* dev_number_of_multi_fit_vertices,
   char* dev_velo_pv_ip);
 
-struct velo_pv_ip_t : public GpuAlgorithm {
+struct velo_pv_ip_t : public DeviceAlgorithm {
   constexpr static auto name {"velo_pv_ip_t"};
-  decltype(gpu_function(velo_pv_ip)) function {velo_pv_ip};
+  decltype(global_function(velo_pv_ip)) function {velo_pv_ip};
   using Arguments = std::tuple<
     dev_velo_kalman_beamline_states,
     dev_atomics_velo,

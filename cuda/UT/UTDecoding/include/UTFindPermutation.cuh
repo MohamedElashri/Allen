@@ -2,7 +2,7 @@
 
 #include "UTEventModel.cuh"
 #include "UTDefinitions.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsUT.cuh"
 
@@ -12,9 +12,9 @@ __global__ void ut_find_permutation(
   uint* dev_hit_permutations,
   const uint* dev_unique_x_sector_layer_offsets);
 
-struct ut_find_permutation_t : public GpuAlgorithm {
+struct ut_find_permutation_t : public DeviceAlgorithm {
   constexpr static auto name {"ut_find_permutation_t"};
-  decltype(gpu_function(ut_find_permutation)) function {ut_find_permutation};
+  decltype(global_function(ut_find_permutation)) function {ut_find_permutation};
   using Arguments = std::tuple<dev_ut_hits, dev_ut_hit_offsets, dev_ut_hit_permutations>;
 
   void set_arguments_size(

@@ -2,7 +2,7 @@
 
 #include "BeamlinePVConstants.cuh"
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsPV.cuh"
 #include "TrackBeamLineVertexFinder.cuh"
 #include "VeloConsolidated.cuh"
@@ -15,9 +15,9 @@
 __global__ void
 pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeaks, uint number_of_events);
 
-struct pv_beamline_peak_t : public GpuAlgorithm {
+struct pv_beamline_peak_t : public DeviceAlgorithm {
   constexpr static auto name {"pv_beamline_peak_t"};
-  decltype(gpu_function(pv_beamline_peak)) function {pv_beamline_peak};
+  decltype(global_function(pv_beamline_peak)) function {pv_beamline_peak};
   using Arguments = std::tuple<dev_zhisto, dev_zpeaks, dev_number_of_zpeaks>;
 
   void set_arguments_size(

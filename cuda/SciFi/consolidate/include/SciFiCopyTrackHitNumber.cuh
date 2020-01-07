@@ -4,7 +4,7 @@
 #include "SciFiConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
 #include "States.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsUT.cuh"
 #include "LookingForwardConstants.cuh"
@@ -15,9 +15,9 @@ __global__ void scifi_copy_track_hit_number(
   uint* dev_n_scifi_tracks,
   uint* dev_scifi_track_hit_number);
 
-struct scifi_copy_track_hit_number_t : public GpuAlgorithm {
+struct scifi_copy_track_hit_number_t : public DeviceAlgorithm {
   constexpr static auto name {"scifi_copy_track_hit_number_t"};
-  decltype(gpu_function(scifi_copy_track_hit_number)) function {scifi_copy_track_hit_number};
+  decltype(global_function(scifi_copy_track_hit_number)) function {scifi_copy_track_hit_number};
   using Arguments = std::tuple<dev_atomics_ut, dev_scifi_tracks, dev_atomics_scifi, dev_scifi_track_hit_number>;
 
   void set_arguments_size(

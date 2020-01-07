@@ -12,7 +12,7 @@
 #include "States.cuh"
 #include "SciFiDefinitions.cuh"
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsMuon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
@@ -104,9 +104,9 @@ __global__ void package_kalman_tracks(
   bool* dev_is_muon,
   ParKalmanFilter::FittedTrack* dev_kf_tracks);
 
-struct kalman_velo_only_t : public GpuAlgorithm {
+struct kalman_velo_only_t : public DeviceAlgorithm {
   constexpr static auto name {"kalman_velo_only_t"};
-  decltype(gpu_function(kalman_velo_only)) function {kalman_velo_only};
+  decltype(global_function(kalman_velo_only)) function {kalman_velo_only};
   using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,
@@ -137,9 +137,9 @@ struct kalman_velo_only_t : public GpuAlgorithm {
     cudaEvent_t& cuda_generic_event) const;
 };
 
-struct package_kalman_tracks_t : public GpuAlgorithm {
+struct package_kalman_tracks_t : public DeviceAlgorithm {
   constexpr static auto name {"package_kalman_tracks_t"};
-  decltype(gpu_function(package_kalman_tracks)) function {package_kalman_tracks};
+  decltype(global_function(package_kalman_tracks)) function {package_kalman_tracks};
   using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,

@@ -5,7 +5,7 @@
 #include "CudaCommon.h"
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 
 namespace velo_calculate_phi_and_sort {
   struct Arguments {

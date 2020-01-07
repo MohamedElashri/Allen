@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsMuon.cuh"
 #include "MuonDefinitions.cuh"
 #include "MuonRawToHits.cuh"
@@ -15,9 +15,9 @@ __global__ void muon_add_coords_crossing_maps(
   uint64_t* dev_muon_compact_hit,
   uint* dev_station_ocurrences_offset);
 
-struct muon_add_coords_crossing_maps_t : public GpuAlgorithm {
+struct muon_add_coords_crossing_maps_t : public DeviceAlgorithm {
   constexpr static auto name {"muon_add_coords_crossing_maps_t"};
-  decltype(gpu_function(muon_add_coords_crossing_maps)) function {muon_add_coords_crossing_maps};
+  decltype(global_function(muon_add_coords_crossing_maps)) function {muon_add_coords_crossing_maps};
   using Arguments = std::tuple<
     dev_storage_station_region_quarter_offsets,
     dev_storage_tile_id,

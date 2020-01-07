@@ -170,11 +170,11 @@ private:
  *
  */
 template<typename V>
-class CPUProperty : public BaseProperty {
+class HostProperty : public BaseProperty {
 public:
-  CPUProperty() = delete;
+  HostProperty() = delete;
 
-  CPUProperty(
+  HostProperty(
     BaseAlgorithm* algo,
     const std::string& name,
     V const default_value,

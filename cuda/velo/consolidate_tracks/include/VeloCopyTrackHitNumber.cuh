@@ -1,5 +1,5 @@
 #include "VeloEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 
 namespace velo_copy_track_hit_number {
   struct Arguments {

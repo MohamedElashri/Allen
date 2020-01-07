@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "SciFiRaw.cuh"
 #include "UTRaw.cuh"
 #include "ArgumentsCommon.cuh"
@@ -15,9 +15,9 @@ __global__ void global_event_cut(
   uint* number_of_selected_events,
   uint* event_list);
 
-struct global_event_cut_t : public GpuAlgorithm {
+struct global_event_cut_t : public DeviceAlgorithm {
   constexpr static auto name {"global_event_cut_t"};
-  decltype(gpu_function(global_event_cut)) function {global_event_cut};
+  decltype(global_function(global_event_cut)) function {global_event_cut};
   using Arguments = std::tuple<
     dev_ut_raw_input,
     dev_ut_raw_input_offsets,

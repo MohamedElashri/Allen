@@ -12,7 +12,7 @@
 #include "States.cuh"
 #include "SciFiDefinitions.cuh"
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -129,9 +129,9 @@ __global__ void kalman_filter(
   const float* dev_inv_clus_res,
   const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
 
-struct kalman_filter_t : public GpuAlgorithm {
+struct kalman_filter_t : public DeviceAlgorithm {
   constexpr static auto name {"kalman_filter_t"};
-  decltype(gpu_function(kalman_filter)) function {kalman_filter};
+  decltype(global_function(kalman_filter)) function {kalman_filter};
   using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,

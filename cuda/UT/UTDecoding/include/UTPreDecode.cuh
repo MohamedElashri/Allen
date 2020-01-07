@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsUT.cuh"
 #include "UTEventModel.cuh"
@@ -19,9 +19,9 @@ __global__ void ut_pre_decode(
   uint32_t* dev_ut_hits,
   uint32_t* dev_ut_hit_count);
 
-struct ut_pre_decode_t : public GpuAlgorithm {
+struct ut_pre_decode_t : public DeviceAlgorithm {
   constexpr static auto name {"ut_pre_decode_t"};
-  decltype(gpu_function(ut_pre_decode)) function {ut_pre_decode};
+  decltype(global_function(ut_pre_decode)) function {ut_pre_decode};
   using Arguments = std::tuple<
     dev_ut_raw_input,
     dev_ut_raw_input_offsets,

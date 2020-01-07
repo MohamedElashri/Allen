@@ -3,7 +3,7 @@
 #include "HltDecReport.cuh"
 #include "RawBanksDefinitions.cuh"
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsSelections.cuh"
 #include "ArgumentsVertex.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -22,9 +22,9 @@ __global__ void prepare_raw_banks(
   uint* number_of_passing_events,
   uint* event_list);
 
-struct prepare_raw_banks_t : public GpuAlgorithm {
+struct prepare_raw_banks_t : public DeviceAlgorithm {
   constexpr static auto name {"prepare_raw_banks_t"};
-  decltype(gpu_function(prepare_raw_banks)) function {prepare_raw_banks};
+  decltype(global_function(prepare_raw_banks)) function {prepare_raw_banks};
   using Arguments = std::tuple<
     dev_atomics_scifi,
     dev_sv_offsets,

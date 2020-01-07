@@ -5,7 +5,7 @@
 #include "VeloDefinitions.cuh"
 #include "CompassUTDefinitions.cuh"
 #include "FindBestHits.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
@@ -70,9 +70,9 @@ __device__ void save_track(
   UT::TrackHits* VeloUT_tracks,
   const int event_hit_offset);
 
-struct compass_ut_t : public GpuAlgorithm {
+struct compass_ut_t : public DeviceAlgorithm {
   constexpr static auto name {"compass_ut_t"};
-  decltype(gpu_function(compass_ut)) function {compass_ut};
+  decltype(global_function(compass_ut)) function {compass_ut};
   using Arguments = std::tuple<
     dev_ut_hits,
     dev_ut_hit_offsets,

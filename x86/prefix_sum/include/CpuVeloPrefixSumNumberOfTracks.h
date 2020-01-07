@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CpuAlgorithm.cuh"
+#include "HostAlgorithm.cuh"
 #include "CpuPrefixSum.h"
 
 namespace cpu_velo_prefix_sum_number_of_tracks {
@@ -8,9 +8,9 @@ namespace cpu_velo_prefix_sum_number_of_tracks {
   struct dev_atomics_velo_t : output_datatype<uint> {};
 
   template<typename Arguments>
-  struct cpu_velo_prefix_sum_number_of_tracks_t : public CpuAlgorithm {
+  struct cpu_velo_prefix_sum_number_of_tracks_t : public HostAlgorithm {
     constexpr static auto name {"cpu_velo_prefix_sum_number_of_tracks_t"};
-    decltype(cpu_function(cpu_prefix_sum)) function {cpu_prefix_sum};
+    decltype(host_function(cpu_prefix_sum)) function {cpu_prefix_sum};
 
     void set_arguments_size(
       ArgumentRefManager<Arguments> arguments,

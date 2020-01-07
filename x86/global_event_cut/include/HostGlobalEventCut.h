@@ -4,7 +4,7 @@
 #include "SciFiRaw.cuh"
 #include "UTRaw.cuh"
 #include "GlobalEventCutConfiguration.cuh"
-#include "CpuAlgorithm.cuh"
+#include "HostAlgorithm.cuh"
 
 namespace host_global_event_cut {
   struct Arguments {

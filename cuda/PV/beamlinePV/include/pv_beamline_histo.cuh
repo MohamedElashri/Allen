@@ -8,7 +8,7 @@
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "patPV_Definitions.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -21,9 +21,9 @@ __global__ void pv_beamline_histo(
   float* dev_zhisto,
   float* dev_beamline);
 
-struct pv_beamline_histo_t : public GpuAlgorithm {
+struct pv_beamline_histo_t : public DeviceAlgorithm {
   constexpr static auto name {"pv_beamline_histo_t"};
-  decltype(gpu_function(pv_beamline_histo)) function {pv_beamline_histo};
+  decltype(global_function(pv_beamline_histo)) function {pv_beamline_histo};
   using Arguments = std::tuple<dev_atomics_velo, dev_velo_track_hit_number, dev_pvtracks, dev_zhisto>;
 
   void set_arguments_size(

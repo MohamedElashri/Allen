@@ -2,7 +2,7 @@
 
 #include "BeamlinePVConstants.cuh"
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -25,9 +25,9 @@ __global__ void pv_beamline_multi_fitter(
   float* dev_beamline,
   const float* dev_pvtrack_z);
 
-struct pv_beamline_multi_fitter_t : public GpuAlgorithm {
+struct pv_beamline_multi_fitter_t : public DeviceAlgorithm {
   constexpr static auto name {"pv_beamline_multi_fitter_t"};
-  decltype(gpu_function(pv_beamline_multi_fitter)) function {pv_beamline_multi_fitter};
+  decltype(global_function(pv_beamline_multi_fitter)) function {pv_beamline_multi_fitter};
   using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,

@@ -2,7 +2,7 @@
 
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsSciFi.cuh"
 
@@ -25,9 +25,9 @@ __global__ void scifi_raw_bank_decoder_v5(
   char* scifi_geometry,
   const float* dev_inv_clus_res);
 
-struct scifi_raw_bank_decoder_v5_t : public GpuAlgorithm {
+struct scifi_raw_bank_decoder_v5_t : public DeviceAlgorithm {
   constexpr static auto name {"scifi_raw_bank_decoder_v5_t"};
-  decltype(gpu_function(scifi_raw_bank_decoder_v5)) function {scifi_raw_bank_decoder_v5};
+  decltype(global_function(scifi_raw_bank_decoder_v5)) function {scifi_raw_bank_decoder_v5};
   using Arguments = std::tuple<
     dev_scifi_raw_input, dev_scifi_raw_input_offsets, dev_scifi_hit_count, dev_scifi_hits, dev_event_list>;
 

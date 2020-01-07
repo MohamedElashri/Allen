@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CpuAlgorithm.cuh"
+#include "HostAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 
 namespace cpu_init_event_list {
@@ -9,7 +9,7 @@ namespace cpu_init_event_list {
 
   // Algorithm
   template<typename Arguments>
-  struct cpu_init_event_list_t : public CpuAlgorithm {
+  struct cpu_init_event_list_t : public HostAlgorithm {
     constexpr static auto name {"cpu_init_event_list_t"};
 
     void set_arguments_size(

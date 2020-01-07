@@ -2,7 +2,7 @@
 
 #include "BeamlinePVConstants.cuh"
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
 #include "TrackBeamLineVertexFinder.cuh"
@@ -18,9 +18,9 @@ __global__ void pv_beamline_cleanup(
   PV::Vertex* dev_multi_final_vertices,
   uint* dev_number_of_multi_final_vertices);
 
-struct pv_beamline_cleanup_t : public GpuAlgorithm {
+struct pv_beamline_cleanup_t : public DeviceAlgorithm {
   constexpr static auto name {"pv_beamline_cleanup_t"};
-  decltype(gpu_function(pv_beamline_cleanup)) function {pv_beamline_cleanup};
+  decltype(global_function(pv_beamline_cleanup)) function {pv_beamline_cleanup};
   using Arguments = std::tuple<
     dev_multi_fit_vertices,
     dev_number_of_multi_fit_vertices,

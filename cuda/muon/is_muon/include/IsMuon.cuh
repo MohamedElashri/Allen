@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "MuonDefinitions.cuh"
 #include "States.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -19,9 +19,9 @@ __global__ void is_muon(
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
   const float* dev_muon_momentum_cuts);
 
-struct is_muon_t : public GpuAlgorithm {
+struct is_muon_t : public DeviceAlgorithm {
   constexpr static auto name {"is_muon_t"};
-  decltype(gpu_function(is_muon)) function {is_muon};
+  decltype(global_function(is_muon)) function {is_muon};
   using Arguments = std::tuple<
     dev_atomics_scifi,
     dev_scifi_track_hit_number,

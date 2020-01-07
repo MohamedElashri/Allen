@@ -5,7 +5,7 @@
 #include "PV_Definitions.cuh"
 #include "AssociateConsolidated.cuh"
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -29,9 +29,9 @@ __global__ void kalman_pv_ipchi2(
   char* dev_kalman_pv_ipchi2,
   const bool* dev_is_muon);
 
-struct kalman_pv_ipchi2_t : public GpuAlgorithm {
+struct kalman_pv_ipchi2_t : public DeviceAlgorithm {
   constexpr static auto name {"kalman_pv_ipchi2_t"};
-  decltype(gpu_function(kalman_pv_ipchi2)) function {kalman_pv_ipchi2};
+  decltype(global_function(kalman_pv_ipchi2)) function {kalman_pv_ipchi2};
   using Arguments = std::tuple<
     dev_kf_tracks,
     dev_atomics_scifi,

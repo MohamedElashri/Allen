@@ -2,7 +2,7 @@
 
 #include "BeamlinePVConstants.cuh"
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -21,9 +21,9 @@ __global__ void pv_beamline_calculate_denom(
   float* dev_zpeaks,
   uint* dev_number_of_zpeaks);
 
-struct pv_beamline_calculate_denom_t : public GpuAlgorithm {
+struct pv_beamline_calculate_denom_t : public DeviceAlgorithm {
   constexpr static auto name {"pv_beamline_calculate_denom_t"};
-  decltype(gpu_function(pv_beamline_calculate_denom)) function {pv_beamline_calculate_denom};
+  decltype(global_function(pv_beamline_calculate_denom)) function {pv_beamline_calculate_denom};
   using Arguments = std::tuple<
     dev_atomics_velo,
     dev_velo_track_hit_number,

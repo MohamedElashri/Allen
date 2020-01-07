@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 
 namespace velo_fill_candidates {
   struct Arguments {

@@ -10,7 +10,7 @@
 #include "AssociateConsolidated.cuh"
 #include "States.cuh"
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -90,9 +90,9 @@ __global__ void fit_secondary_vertices(
   uint* dev_sv_offsets,
   VertexFit::TrackMVAVertex* dev_secondary_vertices);
 
-struct fit_secondary_vertices_t : public GpuAlgorithm {
+struct fit_secondary_vertices_t : public DeviceAlgorithm {
   constexpr static auto name {"fit_secondary_vertices_t"};
-  decltype(gpu_function(fit_secondary_vertices)) function {fit_secondary_vertices};
+  decltype(global_function(fit_secondary_vertices)) function {fit_secondary_vertices};
   using Arguments = std::tuple<
     dev_kf_tracks,
     dev_atomics_scifi,

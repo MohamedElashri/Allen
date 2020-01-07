@@ -4,7 +4,7 @@
 #include "UTDefinitions.cuh"
 #include "UTEventModel.cuh"
 #include "UTConsolidated.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
@@ -14,9 +14,9 @@ __global__ void ut_copy_track_hit_number(
   uint* dev_atomics_storage,
   uint* dev_ut_track_hit_number);
 
-struct ut_copy_track_hit_number_t : public GpuAlgorithm {
+struct ut_copy_track_hit_number_t : public DeviceAlgorithm {
   constexpr static auto name {"ut_copy_track_hit_number_t"};
-  decltype(gpu_function(ut_copy_track_hit_number)) function {ut_copy_track_hit_number};
+  decltype(global_function(ut_copy_track_hit_number)) function {ut_copy_track_hit_number};
   using Arguments = std::tuple<dev_ut_tracks, dev_atomics_ut, dev_ut_track_hit_number>;
 
   void set_arguments_size(

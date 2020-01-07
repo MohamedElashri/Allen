@@ -3,7 +3,7 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -32,9 +32,9 @@ __global__ void lf_quality_filter(
   const uint* dev_velo_track_hit_number,
   const uint* dev_ut_track_velo_indices);
 
-struct lf_quality_filter_t : public GpuAlgorithm {
+struct lf_quality_filter_t : public DeviceAlgorithm {
   constexpr static auto name {"lf_quality_filter_t"};
-  decltype(gpu_function(lf_quality_filter)) function {lf_quality_filter};
+  decltype(global_function(lf_quality_filter)) function {lf_quality_filter};
   using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,

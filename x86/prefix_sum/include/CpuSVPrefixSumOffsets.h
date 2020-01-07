@@ -1,13 +1,13 @@
 #pragma once
 
-#include "CpuAlgorithm.cuh"
+#include "HostAlgorithm.cuh"
 #include "CpuPrefixSum.h"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsVertex.cuh"
 
-struct cpu_sv_prefix_sum_offsets_t : public CpuAlgorithm {
+struct cpu_sv_prefix_sum_offsets_t : public HostAlgorithm {
   constexpr static auto name {"cpu_sv_prefix_sum_offsets_t"};
-  decltype(cpu_function(cpu_prefix_sum)) function {cpu_prefix_sum};
+  decltype(host_function(cpu_prefix_sum)) function {cpu_prefix_sum};
   using Arguments = std::tuple<dev_sv_offsets, dev_atomics_scifi>;
 
   void set_arguments_size(

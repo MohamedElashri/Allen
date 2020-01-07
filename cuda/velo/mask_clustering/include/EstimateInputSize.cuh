@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ClusteringDefinitions.cuh"
 
 namespace velo_estimate_input_size {

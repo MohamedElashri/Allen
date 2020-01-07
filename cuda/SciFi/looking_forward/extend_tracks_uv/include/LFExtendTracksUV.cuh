@@ -3,7 +3,7 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
 
@@ -20,9 +20,9 @@ __global__ void lf_extend_tracks_uv(
   const int* dev_scifi_lf_initial_windows,
   const float* dev_scifi_lf_parametrization_x_filter);
 
-struct lf_extend_tracks_uv_t : public GpuAlgorithm {
+struct lf_extend_tracks_uv_t : public DeviceAlgorithm {
   constexpr static auto name {"lf_extend_tracks_uv_t"};
-  decltype(gpu_function(lf_extend_tracks_uv)) function {lf_extend_tracks_uv};
+  decltype(global_function(lf_extend_tracks_uv)) function {lf_extend_tracks_uv};
   using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,

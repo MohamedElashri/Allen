@@ -1,12 +1,12 @@
 #pragma once
 
-#include "CpuAlgorithm.cuh"
+#include "HostAlgorithm.cuh"
 #include "CpuPrefixSum.h"
 #include "ArgumentsSciFi.cuh"
 
-struct cpu_scifi_prefix_sum_number_of_track_hits_t : public CpuAlgorithm {
+struct cpu_scifi_prefix_sum_number_of_track_hits_t : public HostAlgorithm {
   constexpr static auto name {"cpu_scifi_prefix_sum_number_of_track_hits_t"};
-  decltype(cpu_function(cpu_prefix_sum)) function {cpu_prefix_sum};
+  decltype(host_function(cpu_prefix_sum)) function {cpu_prefix_sum};
   using Arguments = std::tuple<dev_scifi_track_hit_number>;
 
   void set_arguments_size(

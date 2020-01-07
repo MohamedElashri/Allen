@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsMuon.cuh"
 #include "MuonDefinitions.cuh"
 #include "MuonRawToHits.cuh"
@@ -16,9 +16,9 @@ __global__ void muon_pre_decoding(
   uint* dev_storage_tdc_value,
   uint* dev_atomics_muon);
 
-struct muon_pre_decoding_t : public GpuAlgorithm {
+struct muon_pre_decoding_t : public DeviceAlgorithm {
   constexpr static auto name {"muon_pre_decoding_t"};
-  decltype(gpu_function(muon_pre_decoding)) function {muon_pre_decoding};
+  decltype(global_function(muon_pre_decoding)) function {muon_pre_decoding};
   using Arguments = std::tuple<
     dev_event_list,
     dev_muon_raw,

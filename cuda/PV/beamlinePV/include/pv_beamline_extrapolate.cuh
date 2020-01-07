@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
@@ -20,9 +20,9 @@ __global__ void pv_beamline_extrapolate(
   PVTrack* dev_pvtracks,
   float* dev_pvtrack_z);
 
-struct pv_beamline_extrapolate_t : public GpuAlgorithm {
+struct pv_beamline_extrapolate_t : public DeviceAlgorithm {
   constexpr static auto name {"pv_beamline_extrapolate_t"};
-  decltype(gpu_function(pv_beamline_extrapolate)) function {pv_beamline_extrapolate};
+  decltype(global_function(pv_beamline_extrapolate)) function {pv_beamline_extrapolate};
   using Arguments = std::
     tuple<dev_velo_kalman_beamline_states, dev_atomics_velo, dev_velo_track_hit_number, dev_pvtracks, dev_pvtrack_z>;
 

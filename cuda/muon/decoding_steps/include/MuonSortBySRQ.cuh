@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsMuon.cuh"
 #include "MuonDefinitions.cuh"
 #include "FindPermutation.cuh"
@@ -11,9 +11,9 @@ __global__ void muon_sort_station_region_quarter(
   const uint* dev_atomics_muon,
   uint* dev_permutation_srq);
 
-struct muon_sort_station_region_quarter_t : public GpuAlgorithm {
+struct muon_sort_station_region_quarter_t : public DeviceAlgorithm {
   constexpr static auto name {"muon_sort_station_region_quarter_t"};
-  decltype(gpu_function(muon_sort_station_region_quarter)) function {muon_sort_station_region_quarter};
+  decltype(global_function(muon_sort_station_region_quarter)) function {muon_sort_station_region_quarter};
   using Arguments = std::tuple<
     dev_storage_tile_id, dev_storage_tdc_value, dev_atomics_muon, dev_permutation_srq>;
 

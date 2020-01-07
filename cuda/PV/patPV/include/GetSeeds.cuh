@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include "VeloEventModel.cuh"
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
 #include "VeloConsolidated.cuh"
@@ -19,9 +19,9 @@ __global__ void get_seeds(
 
 __device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int number_of_clusters);
 
-struct pv_get_seeds_t : public GpuAlgorithm {
+struct pv_get_seeds_t : public DeviceAlgorithm {
   constexpr static auto name {"pv_get_seeds_t"};
-  decltype(gpu_function(get_seeds)) function {get_seeds};
+  decltype(global_function(get_seeds)) function {get_seeds};
   using Arguments = std::tuple<
     dev_velo_kalman_beamline_states, dev_atomics_velo, dev_velo_track_hit_number, dev_seeds, dev_number_seeds>;
 

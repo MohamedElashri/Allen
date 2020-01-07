@@ -5,7 +5,7 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -27,9 +27,9 @@ __global__ void lf_calculate_parametrization(
   const float* dev_inv_clus_res,
   float* dev_scifi_lf_parametrization);
 
-struct lf_calculate_parametrization_t : public GpuAlgorithm {
+struct lf_calculate_parametrization_t : public DeviceAlgorithm {
   constexpr static auto name {"lf_calculate_parametrization_t"};
-  decltype(gpu_function(lf_calculate_parametrization)) function {lf_calculate_parametrization};
+  decltype(global_function(lf_calculate_parametrization)) function {lf_calculate_parametrization};
   using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,

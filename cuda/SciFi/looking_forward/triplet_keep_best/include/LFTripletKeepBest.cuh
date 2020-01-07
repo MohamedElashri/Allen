@@ -4,7 +4,7 @@
 #include "UTConsolidated.cuh"
 #include "SciFiEventModel.cuh"
 #include "SciFiDefinitions.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -26,9 +26,9 @@ __global__ void lf_triplet_keep_best(
   const int8_t* dev_scifi_lf_number_of_found_triplets,
   uint* dev_scifi_lf_total_number_of_found_triplets);
 
-struct lf_triplet_keep_best_t : public GpuAlgorithm {
+struct lf_triplet_keep_best_t : public DeviceAlgorithm {
   constexpr static auto name {"lf_triplet_keep_best_t"};
-  decltype(gpu_function(lf_triplet_keep_best)) function {lf_triplet_keep_best};
+  decltype(global_function(lf_triplet_keep_best)) function {lf_triplet_keep_best};
   using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,

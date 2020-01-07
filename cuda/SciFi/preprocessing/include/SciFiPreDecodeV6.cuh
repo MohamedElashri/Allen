@@ -2,7 +2,7 @@
 
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsSciFi.cuh"
 
@@ -28,9 +28,9 @@ __global__ void scifi_pre_decode_v6(
   char* scifi_geometry,
   const float* dev_inv_clus_res);
 
-struct scifi_pre_decode_v6_t : public GpuAlgorithm {
+struct scifi_pre_decode_v6_t : public DeviceAlgorithm {
   constexpr static auto name {"scifi_pre_decode_v6_t"};
-  decltype(gpu_function(scifi_pre_decode_v6)) function {scifi_pre_decode_v6};
+  decltype(global_function(scifi_pre_decode_v6)) function {scifi_pre_decode_v6};
   using Arguments = std::tuple<
     dev_scifi_raw_input, dev_scifi_raw_input_offsets, dev_scifi_hit_count, dev_scifi_hits, dev_event_list>;
 

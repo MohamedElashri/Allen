@@ -4,7 +4,7 @@
 #include "ParKalmanDefinitions.cuh"
 #include "VertexDefinitions.cuh"
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsKalmanFilter.cuh"
 #include "ArgumentsPV.cuh"
@@ -23,9 +23,9 @@ __global__ void run_hlt1(
   bool* dev_high_mass_dimuon_results,
   bool* dev_dimuon_soft_results);
 
-struct run_hlt1_t : public GpuAlgorithm {
+struct run_hlt1_t : public DeviceAlgorithm {
   constexpr static auto name {"run_hlt1_t"};
-  decltype(gpu_function(run_hlt1)) function {run_hlt1};
+  decltype(global_function(run_hlt1)) function {run_hlt1};
   using Arguments = std::tuple<
     dev_kf_tracks,
     dev_secondary_vertices,

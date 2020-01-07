@@ -6,11 +6,9 @@
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
-#include "CpuFunction.cuh"
+#include "HostFunction.cuh"
 #include "Argument.cuh"
 
-// Note: For the moment, a CpuAlgorithm does not
+// Note: For the moment, a HostAlgorithm does not
 //       differ from an Algorithm.
-struct CpuAlgorithm : public Algorithm {};
-
-typedef CpuAlgorithm HostAlgorithm;
+struct HostAlgorithm : public Algorithm {};

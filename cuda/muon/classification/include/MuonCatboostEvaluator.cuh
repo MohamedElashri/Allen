@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "MuonDefinitions.cuh"
 #include "ArgumentsMuon.cuh"
 
@@ -15,9 +15,9 @@ __global__ void muon_catboost_evaluator(
   const int* dev_muon_catboost_tree_offsets,
   const int n_trees);
 
-struct muon_catboost_evaluator_t : public GpuAlgorithm {
+struct muon_catboost_evaluator_t : public DeviceAlgorithm {
   constexpr static auto name {"muon_catboost_evaluator_t"};
-  decltype(gpu_function(muon_catboost_evaluator)) function {muon_catboost_evaluator};
+  decltype(global_function(muon_catboost_evaluator)) function {muon_catboost_evaluator};
   using Arguments = std::tuple<dev_muon_catboost_features, dev_muon_catboost_output, dev_is_muon>;
 
   void set_arguments_size(

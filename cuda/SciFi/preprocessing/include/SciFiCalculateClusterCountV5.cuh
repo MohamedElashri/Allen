@@ -2,7 +2,7 @@
 
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsSciFi.cuh"
 
@@ -13,9 +13,9 @@ __global__ void scifi_calculate_cluster_count_v5(
   uint* scifi_hit_count,
   char* scifi_geometry);
 
-struct scifi_calculate_cluster_count_v5_t : public GpuAlgorithm {
+struct scifi_calculate_cluster_count_v5_t : public DeviceAlgorithm {
   constexpr static auto name {"scifi_calculate_cluster_count_v5_t"};
-  decltype(gpu_function(scifi_calculate_cluster_count_v5)) function {scifi_calculate_cluster_count_v5};
+  decltype(global_function(scifi_calculate_cluster_count_v5)) function {scifi_calculate_cluster_count_v5};
   using Arguments = std::tuple<
     dev_scifi_raw_input, dev_scifi_raw_input_offsets, dev_scifi_hit_count, dev_event_list>;
 

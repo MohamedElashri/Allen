@@ -3,7 +3,7 @@
 #include "UTDefinitions.cuh"
 #include "UTMagnetToolDefinitions.h"
 #include "CompassUTDefinitions.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
@@ -22,9 +22,9 @@ __global__ void ut_search_windows(
   uint* dev_active_tracks,
   bool* dev_accepted_velo_tracks);
 
-struct ut_search_windows_t : public GpuAlgorithm {
+struct ut_search_windows_t : public DeviceAlgorithm {
   constexpr static auto name {"ut_search_windows_t"};
-  decltype(gpu_function(ut_search_windows)) function {ut_search_windows};
+  decltype(global_function(ut_search_windows)) function {ut_search_windows};
   using Arguments = std::tuple<
     dev_ut_hits,
     dev_ut_hit_offsets,

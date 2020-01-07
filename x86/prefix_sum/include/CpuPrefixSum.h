@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CudaCommon.h"
-#include "CpuAlgorithm.cuh"
+#include "HostAlgorithm.cuh"
 
 namespace host_prefix_sum {
   struct Arguments {

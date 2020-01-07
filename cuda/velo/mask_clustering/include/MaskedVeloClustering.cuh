@@ -4,7 +4,7 @@
 #include <cassert>
 #include "ClusteringDefinitions.cuh"
 #include "VeloEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 
 namespace velo_masked_clustering {
   struct Arguments {

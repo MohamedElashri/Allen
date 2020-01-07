@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsCommon.cuh"
 #include "ArgumentsUT.cuh"
 
@@ -15,9 +15,9 @@ __global__ void ut_calculate_number_of_hits(
   uint32_t* dev_ut_hit_offsets,
   const uint* dev_event_list);
 
-struct ut_calculate_number_of_hits_t : public GpuAlgorithm {
+struct ut_calculate_number_of_hits_t : public DeviceAlgorithm {
   constexpr static auto name {"ut_calculate_number_of_hits_t"};
-  decltype(gpu_function(ut_calculate_number_of_hits)) function {ut_calculate_number_of_hits};
+  decltype(global_function(ut_calculate_number_of_hits)) function {ut_calculate_number_of_hits};
   using Arguments = std::tuple<
     dev_ut_raw_input, dev_ut_raw_input_offsets, dev_ut_hit_offsets, dev_event_list>;
 

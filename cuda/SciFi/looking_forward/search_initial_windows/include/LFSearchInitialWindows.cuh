@@ -4,7 +4,7 @@
 #include "UTConsolidated.cuh"
 #include "SciFiEventModel.cuh"
 #include "SciFiDefinitions.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -31,9 +31,9 @@ __global__ void lf_search_initial_windows(
   MiniState* dev_ut_states,
   bool* dev_scifi_lf_process_track);
 
-struct lf_search_initial_windows_t : public GpuAlgorithm {
+struct lf_search_initial_windows_t : public DeviceAlgorithm {
   constexpr static auto name {"lf_search_initial_windows_t"};
-  decltype(gpu_function(lf_search_initial_windows)) function {lf_search_initial_windows};
+  decltype(global_function(lf_search_initial_windows)) function {lf_search_initial_windows};
   using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,

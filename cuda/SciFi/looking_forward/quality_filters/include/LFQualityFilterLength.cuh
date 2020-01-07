@@ -3,7 +3,7 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsUT.cuh"
 
@@ -16,9 +16,9 @@ __global__ void lf_quality_filter_length(
   const float* dev_scifi_lf_parametrization_x_filter,
   float* dev_scifi_lf_parametrization_length_filter);
 
-struct lf_quality_filter_length_t : public GpuAlgorithm {
+struct lf_quality_filter_length_t : public DeviceAlgorithm {
   constexpr static auto name {"lf_quality_filter_length_t"};
-  decltype(gpu_function(lf_quality_filter_length)) function {lf_quality_filter_length};
+  decltype(global_function(lf_quality_filter_length)) function {lf_quality_filter_length};
   using Arguments = std::tuple<
     dev_atomics_ut,
     dev_scifi_lf_tracks,

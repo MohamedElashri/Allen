@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsVelo.cuh"
 #include "ArgumentsPV.cuh"
 #include "patPV_Definitions.cuh"
@@ -28,9 +28,9 @@ __device__ bool fit_vertex(
 
 __device__ float get_tukey_weight(float trchi2, int iter);
 
-struct pv_fit_seeds_t : public GpuAlgorithm {
+struct pv_fit_seeds_t : public DeviceAlgorithm {
   constexpr static auto name {"pv_fit_seeds_t"};
-  decltype(gpu_function(fit_seeds)) function {fit_seeds};
+  decltype(global_function(fit_seeds)) function {fit_seeds};
   using Arguments = std::tuple<
     dev_vertex,
     dev_number_vertex,

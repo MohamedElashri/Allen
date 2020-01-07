@@ -3,7 +3,7 @@
 #include "UTDefinitions.cuh"
 #include "UTEventModel.cuh"
 #include "UTConsolidated.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsUT.cuh"
 
 __global__ void ut_consolidate_tracks(
@@ -20,9 +20,9 @@ __global__ void ut_consolidate_tracks(
   const UT::TrackHits* dev_veloUT_tracks,
   const uint* dev_unique_x_sector_layer_offsets);
 
-struct ut_consolidate_tracks_t : public GpuAlgorithm {
+struct ut_consolidate_tracks_t : public DeviceAlgorithm {
   constexpr static auto name {"ut_consolidate_tracks_t"};
-  decltype(gpu_function(ut_consolidate_tracks)) function {ut_consolidate_tracks};
+  decltype(global_function(ut_consolidate_tracks)) function {ut_consolidate_tracks};
   using Arguments = std::tuple<
     dev_ut_hits,
     dev_ut_hit_offsets,

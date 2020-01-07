@@ -4,7 +4,7 @@
 #include "SciFiConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
 #include "States.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsUT.cuh"
 #include "LookingForwardConstants.cuh"
@@ -24,9 +24,9 @@ __global__ void scifi_consolidate_tracks(
   const float* dev_inv_clus_res,
   const float* dev_scifi_lf_parametrization_consolidate);
 
-struct scifi_consolidate_tracks_t : public GpuAlgorithm {
+struct scifi_consolidate_tracks_t : public DeviceAlgorithm {
   constexpr static auto name {"scifi_consolidate_tracks_t"};
-  decltype(gpu_function(scifi_consolidate_tracks)) function {scifi_consolidate_tracks};
+  decltype(global_function(scifi_consolidate_tracks)) function {scifi_consolidate_tracks};
   using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,

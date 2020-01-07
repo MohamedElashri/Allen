@@ -3,7 +3,7 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsUT.cuh"
 #include "ArgumentsVelo.cuh"
@@ -20,9 +20,9 @@ __global__ void lf_least_mean_square_fit(
   const float* dev_inv_clus_res,
   float* dev_scifi_lf_parametrization_x_filter);
 
-struct lf_least_mean_square_fit_t : public GpuAlgorithm {
+struct lf_least_mean_square_fit_t : public DeviceAlgorithm {
   constexpr static auto name {"lf_least_mean_square_fit_t"};
-  decltype(gpu_function(lf_least_mean_square_fit)) function {lf_least_mean_square_fit};
+  decltype(global_function(lf_least_mean_square_fit)) function {lf_least_mean_square_fit};
   using Arguments = std::tuple<
     dev_scifi_hits,
     dev_scifi_hit_count,

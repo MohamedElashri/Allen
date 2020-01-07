@@ -8,7 +8,7 @@
 #include "ProcessModules.cuh"
 #include "TrackForwarding.cuh"
 #include "TrackSeeding.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 
 namespace velo_search_by_triplet {
   struct Arguments {

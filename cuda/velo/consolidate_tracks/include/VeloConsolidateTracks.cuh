@@ -4,7 +4,7 @@
 #include "VeloConsolidated.cuh"
 #include "States.cuh"
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include <cstdint>
 
 namespace velo_consolidate_tracks {

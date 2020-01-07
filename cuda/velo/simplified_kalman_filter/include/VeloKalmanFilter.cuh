@@ -4,7 +4,7 @@
 #include "VeloEventModel.cuh"
 #include "States.cuh"
 #include "Common.h"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "VeloConsolidated.cuh"
 
 namespace velo_kalman_filter {

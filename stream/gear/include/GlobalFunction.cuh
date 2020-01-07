@@ -11,7 +11,7 @@
  * @brief A class that encapsulates a CUDA function.
  */
 template<typename R, typename... T>
-struct GpuFunction {
+struct GlobalFunction {
 private:
   // Function
   R (*fn)(T...);
@@ -39,7 +39,7 @@ private:
 
 public:
   // Constructor. Encapsulates a CUDA function.
-  GpuFunction(R (*param_function)(T...)) : fn(param_function) {}
+  GlobalFunction(R (*param_function)(T...)) : fn(param_function) {}
 
   // The syntax of invoke resembles the CUDA syntax:
   //  invoke(num_blocks, num_threads, cuda_stream)(arguments...)
@@ -65,17 +65,11 @@ public:
 };
 
 /**
- * @brief      A helper to make GpuFunctions without needing
+ * @brief      A helper to make GlobalFunctions without needing
  *             to specify its function type (ie. "gpu_function(function)").
  */
 template<typename R, typename... T>
-GpuFunction<R, T...> gpu_function(R(f)(T...))
+GlobalFunction<R, T...> global_function(R(f)(T...))
 {
-  return GpuFunction<R, T...> {f};
-}
-
-template<typename R, typename... T>
-GpuFunction<R, T...> global_function(R(f)(T...))
-{
-  return GpuFunction<R, T...> {f};
+  return GlobalFunction<R, T...> {f};
 }

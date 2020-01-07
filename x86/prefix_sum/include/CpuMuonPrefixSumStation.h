@@ -1,12 +1,12 @@
 #pragma once
 
-#include "CpuAlgorithm.cuh"
+#include "HostAlgorithm.cuh"
 #include "CpuPrefixSum.h"
 #include "ArgumentsMuon.cuh"
 
-struct cpu_muon_prefix_sum_station_t : public CpuAlgorithm {
+struct cpu_muon_prefix_sum_station_t : public HostAlgorithm {
   constexpr static auto name {"cpu_muon_prefix_sum_station_t"};
-  decltype(cpu_function(cpu_prefix_sum)) function {cpu_prefix_sum};
+  decltype(host_function(cpu_prefix_sum)) function {cpu_prefix_sum};
   using Arguments = std::tuple<dev_station_ocurrences_offset>;
 
   void set_arguments_size(

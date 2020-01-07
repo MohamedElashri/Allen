@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VeloEventModel.cuh"
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "States.cuh"
 
 namespace velo_three_hit_tracks_filter {

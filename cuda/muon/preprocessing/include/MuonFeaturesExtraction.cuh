@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GpuAlgorithm.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "MuonDefinitions.cuh"
 #include "States.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -24,9 +24,9 @@ __global__ void muon_catboost_features_extraction(
   const Muon::HitsSoA* muon_hits,
   float* dev_muon_catboost_features);
 
-struct muon_catboost_features_extraction_t : public GpuAlgorithm {
+struct muon_catboost_features_extraction_t : public DeviceAlgorithm {
   constexpr static auto name {"muon_catboost_features_extraction_t"};
-  decltype(gpu_function(muon_catboost_features_extraction)) function {muon_catboost_features_extraction};
+  decltype(global_function(muon_catboost_features_extraction)) function {muon_catboost_features_extraction};
   using Arguments = std::tuple<
     dev_atomics_scifi,
     dev_scifi_track_hit_number,
