@@ -135,14 +135,7 @@ __device__ void three_hit_tracks_filter_impl(
   }
 }
 
-__global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
-  dev_sorted_velo_cluster_container_t dev_sorted_velo_cluster_container,
-  dev_offsets_estimated_input_size_t dev_offsets_estimated_input_size,
-  dev_three_hit_tracks_output_t dev_three_hit_tracks_output,
-  dev_three_hit_tracks_input_t dev_three_hit_tracks_input,
-  dev_hit_used_t dev_hit_used,
-  dev_atomics_velo_t dev_atomics_velo,
-  dev_number_of_three_hit_tracks_output_t dev_number_of_three_hit_tracks_output) {
+__global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(Arguments arguments) {
   // Data initialization
   const uint event_number = blockIdx.x;
   const uint number_of_events = gridDim.x;
@@ -150,23 +143,23 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
 
   // Pointers to data within the event
   const uint total_estimated_number_of_clusters =
-    dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
+    arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint* module_hitStarts = arguments.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
-  const bool* hit_used = dev_hit_used + hit_offset;
+  const bool* hit_used = arguments.dev_hit_used + hit_offset;
 
   // Offseted VELO cluster container
   const auto velo_cluster_container =
-    Velo::Clusters<const uint>{dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
+    Velo::Clusters<const uint>{arguments.dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
 
   // Input three hit tracks
   const Velo::TrackletHits* input_tracks =
-    dev_three_hit_tracks_input + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
-  const auto number_of_input_tracks = dev_atomics_velo[event_number * Velo::num_atomics];
+    arguments.dev_three_hit_tracks_input + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
+  const auto number_of_input_tracks = arguments.dev_atomics_velo[event_number * Velo::num_atomics];
 
   // Output containers
-  Velo::TrackletHits* output_tracks = dev_three_hit_tracks_output.get() + tracks_offset;
-  uint* number_of_output_tracks = dev_number_of_three_hit_tracks_output.get() + event_number;
+  Velo::TrackletHits* output_tracks = arguments.dev_three_hit_tracks_output.get() + tracks_offset;
+  uint* number_of_output_tracks = arguments.dev_number_of_three_hit_tracks_output.get() + event_number;
 
   three_hit_tracks_filter_impl(
     input_tracks, number_of_input_tracks, output_tracks, number_of_output_tracks, hit_used, velo_cluster_container);

@@ -3,21 +3,16 @@
 using namespace velo_estimate_input_size;
 
 __global__ void velo_estimate_input_size::velo_estimate_input_size(
-  dev_velo_raw_input_t dev_velo_raw_input,
-  dev_velo_raw_input_offsets_t dev_velo_raw_input_offsets,
-  dev_estimated_input_size_t dev_estimated_input_size,
-  dev_module_candidate_num_t dev_module_candidate_num,
-  dev_cluster_candidates_t dev_cluster_candidates,
-  dev_event_list_t dev_event_list,
+  Arguments arguments,
   uint8_t* dev_velo_candidate_ks)
 {
   const auto event_number = blockIdx.x;
-  const auto selected_event_number = dev_event_list[event_number];
+  const auto selected_event_number = arguments.dev_event_list[event_number];
 
-  const char* velo_raw_input = dev_velo_raw_input + dev_velo_raw_input_offsets[selected_event_number];
-  uint* estimated_input_size = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
-  uint* event_candidate_num = dev_module_candidate_num + event_number;
-  uint32_t* cluster_candidates = dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
+  const char* velo_raw_input = arguments.dev_velo_raw_input + arguments.dev_velo_raw_input_offsets[selected_event_number];
+  uint* estimated_input_size = arguments.dev_estimated_input_size + event_number * Velo::Constants::n_modules;
+  uint* event_candidate_num = arguments.dev_module_candidate_num + event_number;
+  uint32_t* cluster_candidates = arguments.dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
 
   // Read raw event
   const auto raw_event = VeloRawEvent(velo_raw_input);

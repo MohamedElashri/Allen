@@ -15,34 +15,27 @@ __device__ uint32_t mask_east(uint64_t cluster) {
 }
 
 __global__ void velo_masked_clustering::velo_masked_clustering(
-  dev_velo_raw_input_t dev_velo_raw_input,
-  dev_velo_raw_input_offsets_t dev_velo_raw_input_offsets,
-  dev_offsets_estimated_input_size_t dev_offsets_estimated_input_size,
-  dev_module_cluster_num_t dev_module_cluster_num,
-  dev_module_candidate_num_t dev_module_candidate_num,
-  dev_cluster_candidates_t dev_cluster_candidates,
-  dev_velo_cluster_container_t dev_velo_cluster_container,
-  dev_event_list_t dev_event_list,
+  Arguments arguments,
   const VeloGeometry* dev_velo_geometry,
   uint8_t* dev_velo_sp_patterns,
   float* dev_velo_sp_fx,
   float* dev_velo_sp_fy) {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = dev_event_list[event_number];
+  const uint selected_event_number = arguments.dev_event_list[event_number];
 
-  const char* raw_input = dev_velo_raw_input + dev_velo_raw_input_offsets[selected_event_number];
-  const uint* module_cluster_start = dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
-  uint* module_cluster_num = dev_module_cluster_num + event_number * Velo::Constants::n_modules;
-  uint number_of_candidates = dev_module_candidate_num[event_number];
+  const char* raw_input = arguments.dev_velo_raw_input + arguments.dev_velo_raw_input_offsets[selected_event_number];
+  const uint* module_cluster_start = arguments.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
+  uint* module_cluster_num = arguments.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
+  uint number_of_candidates = arguments.dev_module_candidate_num[event_number];
   uint32_t* cluster_candidates =
-    (uint32_t*) &dev_cluster_candidates[event_number * VeloClustering::max_candidates_event];
+    (uint32_t*) &arguments.dev_cluster_candidates[event_number * VeloClustering::max_candidates_event];
 
-  // Local pointers to dev_velo_cluster_container
+  // Local pointers to arguments.dev_velo_cluster_container
   const uint total_estimated_number_of_clusters =
-    dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+    arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
   auto velo_cluster_container =
-    Velo::Clusters<uint> {dev_velo_cluster_container.get(), total_estimated_number_of_clusters};
+    Velo::Clusters<uint> {arguments.dev_velo_cluster_container.get(), total_estimated_number_of_clusters};
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
@@ -95,8 +88,8 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
 
 #if DEBUG
           const auto module_estimated_num =
-            dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number + 1] -
-            dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number];
+            arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number + 1] -
+            arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number];
           assert(cluster_num <= module_estimated_num);
 #endif
 
@@ -130,8 +123,8 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
 
 #if DEBUG
           const auto module_estimated_num =
-            dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number + 1] -
-            dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number];
+            arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number + 1] -
+            arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number];
           assert(cluster_num <= module_estimated_num);
 #endif
 
@@ -313,8 +306,8 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
 
 #if DEBUG
       const auto module_estimated_num =
-        dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number + 1] -
-        dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number];
+        arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number + 1] -
+        arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * event_number + module_number];
       assert(cluster_num <= module_estimated_num);
 #endif
 
