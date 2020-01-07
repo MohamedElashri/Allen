@@ -32,19 +32,19 @@ namespace ut_search_windows {
     decltype(global_function(ut_search_windows)) function {ut_search_windows};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
       set_size<dev_ut_windows_layers_t>(
-        arguments,
-        CompassUT::num_elems * UT::Constants::n_layers * value<host_number_of_reconstructed_velo_tracks_t>(arguments));
-      set_size<dev_ut_active_tracks_t>(arguments, runtime_options.number_of_events);
+        manager,
+        CompassUT::num_elems * UT::Constants::n_layers * value<host_number_of_reconstructed_velo_tracks_t>(manager));
+      set_size<dev_ut_active_tracks_t>(manager, runtime_options.number_of_events);
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
@@ -52,20 +52,20 @@ namespace ut_search_windows {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_ut_active_tracks_t>(arguments), 0, size<dev_ut_active_tracks_t>(arguments), cuda_stream));
+        offset<dev_ut_active_tracks_t>(manager), 0, size<dev_ut_active_tracks_t>(manager), cuda_stream));
 
       function.invoke(
-        dim3(value<host_number_of_selected_events_t>(arguments)),
+        dim3(value<host_number_of_selected_events_t>(manager)),
         dim3(UT::Constants::n_layers, UT::Constants::num_thr_searchwin),
         cuda_stream)(
-        Arguments {offset<dev_ut_hits_t>(arguments),
-                   offset<dev_ut_hit_offsets_t>(arguments),
-                   offset<dev_atomics_velo_t>(arguments),
-                   offset<dev_velo_track_hit_number_t>(arguments),
-                   offset<dev_velo_states_t>(arguments),
-                   offset<dev_ut_windows_layers_t>(arguments),
-                   offset<dev_ut_active_tracks_t>(arguments),
-                   offset<dev_accepted_velo_tracks_t>(arguments)},
+        Arguments {offset<dev_ut_hits_t>(manager),
+                   offset<dev_ut_hit_offsets_t>(manager),
+                   offset<dev_atomics_velo_t>(manager),
+                   offset<dev_velo_track_hit_number_t>(manager),
+                   offset<dev_velo_states_t>(manager),
+                   offset<dev_ut_windows_layers_t>(manager),
+                   offset<dev_ut_active_tracks_t>(manager),
+                   offset<dev_accepted_velo_tracks_t>(manager)},
         constants.dev_ut_magnet_tool,
         constants.dev_ut_dxDy.data(),
         constants.dev_unique_x_sector_layer_offsets.data(),

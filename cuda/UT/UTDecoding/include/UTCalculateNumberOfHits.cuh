@@ -25,46 +25,48 @@ namespace ut_calculate_number_of_hits {
     decltype(global_function(ut_calculate_number_of_hits)) function {ut_calculate_number_of_hits};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const {
-      set_size<dev_ut_raw_input_t>(arguments, std::get<0>(runtime_options.host_ut_events).size_bytes());
-      set_size<dev_ut_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_ut_events).size_bytes());
+      const HostBuffers& host_buffers) const
+    {
+      set_size<dev_ut_raw_input_t>(manager, std::get<0>(runtime_options.host_ut_events).size_bytes());
+      set_size<dev_ut_raw_input_offsets_t>(manager, std::get<1>(runtime_options.host_ut_events).size_bytes());
       set_size<dev_ut_hit_offsets_t>(
-        arguments,
-        value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4] + 1);
+        manager,
+        value<host_number_of_selected_events_t>(manager) * constants.host_unique_x_sector_layer_offsets[4] + 1);
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t& cuda_generic_event) const
+    {
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_ut_raw_input_t>(arguments),
+        offset<dev_ut_raw_input_t>(manager),
         std::get<0>(runtime_options.host_ut_events).begin(),
         std::get<0>(runtime_options.host_ut_events).size_bytes(),
         cudaMemcpyHostToDevice,
         cuda_stream));
 
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_ut_raw_input_offsets_t>(arguments),
+        offset<dev_ut_raw_input_offsets_t>(manager),
         std::get<1>(runtime_options.host_ut_events).begin(),
         std::get<1>(runtime_options.host_ut_events).size_bytes(),
         cudaMemcpyHostToDevice,
         cuda_stream));
 
-      cudaCheck(cudaMemsetAsync(
-        offset<dev_ut_hit_offsets_t>(arguments), 0, size<dev_ut_hit_offsets_t>(arguments), cuda_stream));
+      cudaCheck(
+        cudaMemsetAsync(offset<dev_ut_hit_offsets_t>(manager), 0, size<dev_ut_hit_offsets_t>(manager), cuda_stream));
 
-      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments {offset<dev_event_list_t>(arguments),
-                   offset<dev_ut_raw_input_t>(arguments),
-                   offset<dev_ut_raw_input_offsets_t>(arguments),
-                   offset<dev_ut_hit_offsets_t>(arguments)},
+      function.invoke(dim3(value<host_number_of_selected_events_t>(manager)), block_dimension(), cuda_stream)(
+        Arguments {offset<dev_event_list_t>(manager),
+                   offset<dev_ut_raw_input_t>(manager),
+                   offset<dev_ut_raw_input_offsets_t>(manager),
+                   offset<dev_ut_hit_offsets_t>(manager)},
         constants.dev_ut_boards.data(),
         constants.dev_ut_region_offsets.data(),
         constants.dev_unique_x_sector_layer_offsets.data(),

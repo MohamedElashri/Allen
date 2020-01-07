@@ -30,32 +30,34 @@ namespace ut_pre_decode {
     decltype(global_function(ut_pre_decode)) function {ut_pre_decode};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const {
-      set_size<dev_ut_hits_t>(arguments, UT::Hits::number_of_arrays * value<host_accumulated_number_of_ut_hits>(arguments));
-      set_size<dev_ut_hit_count_t>(arguments,
-        value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+      const HostBuffers& host_buffers) const
+    {
+      set_size<dev_ut_hits_t>(manager, UT::Hits::number_of_arrays * value<host_accumulated_number_of_ut_hits>(manager));
+      set_size<dev_ut_hit_count_t>(
+        manager, value<host_number_of_selected_events_t>(manager) * constants.host_unique_x_sector_layer_offsets[4]);
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t& cuda_generic_event) const
+    {
       cudaCheck(
-        cudaMemsetAsync(offset<dev_ut_hit_count_t>(arguments), 0, size<dev_ut_hit_count_t>(arguments), cuda_stream));
+        cudaMemsetAsync(offset<dev_ut_hit_count_t>(manager), 0, size<dev_ut_hit_count_t>(manager), cuda_stream));
 
-      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments{offset<dev_ut_raw_input_t>(arguments),
-                  offset<dev_ut_raw_input_offsets_t>(arguments),
-                  offset<dev_event_list_t>(arguments),
-                  offset<dev_ut_hit_offsets_t>(arguments),
-                  offset<dev_ut_hits_t>(arguments),
-                  offset<dev_ut_hit_count_t>(arguments)},
+      function.invoke(dim3(value<host_number_of_selected_events_t>(manager)), block_dimension(), cuda_stream)(
+        Arguments {offset<dev_ut_raw_input_t>(manager),
+                   offset<dev_ut_raw_input_offsets_t>(manager),
+                   offset<dev_event_list_t>(manager),
+                   offset<dev_ut_hit_offsets_t>(manager),
+                   offset<dev_ut_hits_t>(manager),
+                   offset<dev_ut_hit_count_t>(manager)},
 
         constants.dev_ut_boards.data(),
         constants.dev_ut_geometry.data(),

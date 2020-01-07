@@ -8,7 +8,8 @@ namespace velo_copy_track_hit_number {
     HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, uint);
     DEVICE_INPUT(dev_tracks_t, Velo::TrackHits) dev_tracks;
     DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
-    DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint) dev_offsets_number_of_three_hit_tracks_filtered;
+    DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint)
+      dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_OUTPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_OUTPUT(dev_offsets_all_velo_tracks_t, uint) dev_offsets_all_velo_tracks;
   };
@@ -21,36 +22,38 @@ namespace velo_copy_track_hit_number {
     decltype(global_function(velo_copy_track_hit_number)) function {velo_copy_track_hit_number};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const {
-      set_size<dev_velo_track_hit_number_t>(arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments)
-        + value<host_number_of_three_hit_tracks_filtered_t>(arguments));
-      set_size<dev_offsets_all_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments) + 1);
+      const HostBuffers& host_buffers) const
+    {
+      set_size<dev_velo_track_hit_number_t>(
+        manager,
+        value<host_number_of_reconstructed_velo_tracks_t>(manager) +
+          value<host_number_of_three_hit_tracks_filtered_t>(manager));
+      set_size<dev_offsets_all_velo_tracks_t>(manager, value<host_number_of_selected_events_t>(manager) + 1);
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t& cuda_generic_event) const
+    {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_offsets_all_velo_tracks_t>(arguments),
+        offset<dev_offsets_all_velo_tracks_t>(manager),
         0,
         sizeof(uint), // Note: Only the first element needs to be initialized here.
         cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments{
-          offset<dev_tracks_t>(arguments),
-          offset<dev_atomics_velo_t>(arguments),
-          offset<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments),
-          offset<dev_velo_track_hit_number_t>(arguments),
-          offset<dev_offsets_all_velo_tracks_t>(arguments)
-        });
+      function(dim3(value<host_number_of_selected_events_t>(manager)), block_dimension(), cuda_stream)(
+        Arguments {offset<dev_tracks_t>(manager),
+                   offset<dev_atomics_velo_t>(manager),
+                   offset<dev_offsets_number_of_three_hit_tracks_filtered_t>(manager),
+                   offset<dev_velo_track_hit_number_t>(manager),
+                   offset<dev_offsets_all_velo_tracks_t>(manager)});
     }
   };
 } // namespace velo_copy_track_hit_number

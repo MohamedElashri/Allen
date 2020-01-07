@@ -79,18 +79,18 @@ namespace compass_ut {
     decltype(global_function(compass_ut)) function {compass_ut};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_ut_tracks_t>(arguments,
-        value<host_number_of_selected_events_t>(arguments) * UT::Constants::max_num_tracks);
-      set_size<dev_atomics_ut_t>(arguments, value<host_number_of_selected_events_t>(arguments) * UT::num_atomics + 1);
+      set_size<dev_ut_tracks_t>(
+        manager, value<host_number_of_selected_events_t>(manager) * UT::Constants::max_num_tracks);
+      set_size<dev_atomics_ut_t>(manager, value<host_number_of_selected_events_t>(manager) * UT::num_atomics + 1);
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
@@ -98,21 +98,21 @@ namespace compass_ut {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_ut_active_tracks_t>(arguments), 0, size<dev_ut_active_tracks_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(offset<dev_atomics_ut_t>(arguments), 0, size<dev_atomics_ut_t>(arguments), cuda_stream));
+        offset<dev_ut_active_tracks_t>(manager), 0, size<dev_ut_active_tracks_t>(manager), cuda_stream));
+      cudaCheck(cudaMemsetAsync(offset<dev_atomics_ut_t>(manager), 0, size<dev_atomics_ut_t>(manager), cuda_stream));
 
       function.invoke(
-        dim3(value<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
-        Arguments {offset<dev_ut_hits_t>(arguments),
-                   offset<dev_ut_hit_offsets_t>(arguments),
-                   offset<dev_atomics_velo_t>(arguments),
-                   offset<dev_velo_track_hit_number_t>(arguments),
-                   offset<dev_velo_states_t>(arguments),
-                   offset<dev_ut_active_tracks_t>(arguments),
-                   offset<dev_ut_tracks_t>(arguments),
-                   offset<dev_atomics_ut_t>(arguments),
-                   offset<dev_ut_windows_layers_t>(arguments),
-                   offset<dev_accepted_velo_tracks_t>(arguments)},
+        dim3(value<host_number_of_selected_events_t>(manager)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
+        Arguments {offset<dev_ut_hits_t>(manager),
+                   offset<dev_ut_hit_offsets_t>(manager),
+                   offset<dev_atomics_velo_t>(manager),
+                   offset<dev_velo_track_hit_number_t>(manager),
+                   offset<dev_velo_states_t>(manager),
+                   offset<dev_ut_active_tracks_t>(manager),
+                   offset<dev_ut_tracks_t>(manager),
+                   offset<dev_atomics_ut_t>(manager),
+                   offset<dev_ut_windows_layers_t>(manager),
+                   offset<dev_accepted_velo_tracks_t>(manager)},
         constants.dev_ut_magnet_tool,
         constants.dev_magnet_polarity.data(),
         constants.dev_ut_dxDy.data(),

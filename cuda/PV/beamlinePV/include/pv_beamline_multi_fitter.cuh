@@ -25,9 +25,7 @@ namespace pv_beamline_multi_fitter {
     DEVICE_OUTPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
   };
 
-  __global__ void pv_beamline_multi_fitter(
-    Arguments arguments,
-    const float* dev_beamline);
+  __global__ void pv_beamline_multi_fitter(Arguments arguments, const float* dev_beamline);
 
   template<typename T>
   struct pv_beamline_multi_fitter_t : public DeviceAlgorithm, Arguments {
@@ -35,39 +33,41 @@ namespace pv_beamline_multi_fitter {
     decltype(global_function(pv_beamline_multi_fitter)) function {pv_beamline_multi_fitter};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const {
+      const HostBuffers& host_buffers) const
+    {
       set_size<dev_multi_fit_vertices_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
-      set_size<dev_number_of_multi_fit_vertices_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_pvtracks_denom_t>(arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments));
+        manager, value<host_number_of_selected_events_t>(manager) * PV::max_number_vertices);
+      set_size<dev_number_of_multi_fit_vertices_t>(manager, value<host_number_of_selected_events_t>(manager));
+      set_size<dev_pvtracks_denom_t>(manager, value<host_number_of_reconstructed_velo_tracks_t>(manager));
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t& cuda_generic_event) const
+    {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_number_of_multi_fit_vertices_t>(arguments),
+        offset<dev_number_of_multi_fit_vertices_t>(manager),
         0,
-        size<dev_number_of_multi_fit_vertices_t>(arguments),
+        size<dev_number_of_multi_fit_vertices_t>(manager),
         cuda_stream));
 
-      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments {offset<dev_atomics_velo_t>(arguments),
-                   offset<dev_velo_track_hit_number_t>(arguments),
-                   offset<dev_pvtracks_t>(arguments),
-                   offset<dev_pvtracks_denom_t>(arguments),
-                   offset<dev_zpeaks_t>(arguments),
-                   offset<dev_number_of_zpeaks_t>(arguments),
-                   offset<dev_multi_fit_vertices_t>(arguments),
-                   offset<dev_number_of_multi_fit_vertices_t>(arguments),
-                   offset<dev_pvtrack_z_t>(arguments)},
+      function.invoke(dim3(value<host_number_of_selected_events_t>(manager)), block_dimension(), cuda_stream)(
+        Arguments {offset<dev_atomics_velo_t>(manager),
+                   offset<dev_velo_track_hit_number_t>(manager),
+                   offset<dev_pvtracks_t>(manager),
+                   offset<dev_pvtracks_denom_t>(manager),
+                   offset<dev_zpeaks_t>(manager),
+                   offset<dev_number_of_zpeaks_t>(manager),
+                   offset<dev_multi_fit_vertices_t>(manager),
+                   offset<dev_number_of_multi_fit_vertices_t>(manager),
+                   offset<dev_pvtrack_z_t>(manager)},
         constants.dev_beamline.data());
     }
   };

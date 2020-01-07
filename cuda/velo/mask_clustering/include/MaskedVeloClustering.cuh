@@ -34,18 +34,18 @@ namespace velo_masked_clustering {
     decltype(global_function(velo_masked_clustering)) function {velo_masked_clustering};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
       set_size<dev_module_cluster_num_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_modules);
-      set_size<dev_velo_cluster_container_t>(arguments, 4 * value<host_total_number_of_velo_clusters_t>(arguments));
+        manager, value<host_number_of_selected_events_t>(manager) * Velo::Constants::n_modules);
+      set_size<dev_velo_cluster_container_t>(manager, 4 * value<host_total_number_of_velo_clusters_t>(manager));
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
@@ -53,22 +53,17 @@ namespace velo_masked_clustering {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_module_cluster_num_t>(arguments),
-        0,
-        size<dev_module_cluster_num_t>(arguments),
-        cuda_stream));
-      
-      function(dim3(offset<host_number_of_selected_events_t>(arguments)[0]), block_dimension(), cuda_stream)(
-        Arguments{
-          offset<dev_velo_raw_input_t>(arguments),
-          offset<dev_velo_raw_input_offsets_t>(arguments),
-          offset<dev_offsets_estimated_input_size_t>(arguments),
-          offset<dev_module_candidate_num_t>(arguments),
-          offset<dev_cluster_candidates_t>(arguments),
-          offset<dev_event_list_t>(arguments),
-          offset<dev_module_cluster_num_t>(arguments),
-          offset<dev_velo_cluster_container_t>(arguments)
-        },
+        offset<dev_module_cluster_num_t>(manager), 0, size<dev_module_cluster_num_t>(manager), cuda_stream));
+
+      function(dim3(offset<host_number_of_selected_events_t>(manager)[0]), block_dimension(), cuda_stream)(
+        Arguments {offset<dev_velo_raw_input_t>(manager),
+                   offset<dev_velo_raw_input_offsets_t>(manager),
+                   offset<dev_offsets_estimated_input_size_t>(manager),
+                   offset<dev_module_candidate_num_t>(manager),
+                   offset<dev_cluster_candidates_t>(manager),
+                   offset<dev_event_list_t>(manager),
+                   offset<dev_module_cluster_num_t>(manager),
+                   offset<dev_velo_cluster_container_t>(manager)},
         constants.dev_velo_geometry,
         constants.dev_velo_sp_patterns.data(),
         constants.dev_velo_sp_fx.data(),

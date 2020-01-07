@@ -30,9 +30,7 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_number_of_velo_tracks_t, uint) dev_number_of_velo_tracks;
   };
 
-  __global__ void velo_search_by_triplet(
-    Arguments,
-    const VeloGeometry*);
+  __global__ void velo_search_by_triplet(Arguments, const VeloGeometry*);
 
   template<typename T>
   struct velo_search_by_triplet_t : public DeviceAlgorithm, Arguments {
@@ -40,54 +38,54 @@ namespace velo_search_by_triplet {
     decltype(global_function(velo_search_by_triplet)) function {velo_search_by_triplet};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const {
-      set_size<dev_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
+      const HostBuffers& host_buffers) const
+    {
+      set_size<dev_tracks_t>(manager, value<host_number_of_selected_events_t>(manager) * Velo::Constants::max_tracks);
       set_size<dev_tracklets_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<uint>("ttf_modulo"));
+        manager, value<host_number_of_selected_events_t>(manager) * get_property_value<uint>("ttf_modulo"));
       set_size<dev_tracks_to_follow_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<uint>("ttf_modulo"));
+        manager, value<host_number_of_selected_events_t>(manager) * get_property_value<uint>("ttf_modulo"));
       set_size<dev_three_hit_tracks_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<uint>("max_weak_tracks"));
-      set_size<dev_hit_used_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
-      set_size<dev_atomics_velo_t>(arguments, value<host_number_of_selected_events_t>(arguments) * Velo::num_atomics);
-      set_size<dev_number_of_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+        manager, value<host_number_of_selected_events_t>(manager) * get_property_value<uint>("max_weak_tracks"));
+      set_size<dev_hit_used_t>(manager, value<host_total_number_of_velo_clusters_t>(manager));
+      set_size<dev_atomics_velo_t>(manager, value<host_number_of_selected_events_t>(manager) * Velo::num_atomics);
+      set_size<dev_number_of_velo_tracks_t>(manager, value<host_number_of_selected_events_t>(manager));
       set_size<dev_rel_indices_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * 2 * Velo::Constants::max_numhits_in_module);
+        manager, value<host_number_of_selected_events_t>(manager) * 2 * Velo::Constants::max_numhits_in_module);
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t& cuda_generic_event) const
+    {
       cudaCheck(
-        cudaMemsetAsync(offset<dev_atomics_velo_t>(arguments), 0, size<dev_atomics_velo_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(offset<dev_hit_used_t>(arguments), 0, size<dev_hit_used_t>(arguments), cuda_stream));
+        cudaMemsetAsync(offset<dev_atomics_velo_t>(manager), 0, size<dev_atomics_velo_t>(manager), cuda_stream));
+      cudaCheck(cudaMemsetAsync(offset<dev_hit_used_t>(manager), 0, size<dev_hit_used_t>(manager), cuda_stream));
       cudaCheck(cudaMemsetAsync(
-        offset<dev_number_of_velo_tracks_t>(arguments), 0, size<dev_number_of_velo_tracks_t>(arguments), cuda_stream));
+        offset<dev_number_of_velo_tracks_t>(manager), 0, size<dev_number_of_velo_tracks_t>(manager), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments{
-          offset<dev_sorted_velo_cluster_container_t>(arguments),
-          offset<dev_offsets_estimated_input_size_t>(arguments),
-          offset<dev_module_cluster_num_t>(arguments),
-          offset<dev_h0_candidates_t>(arguments),
-          offset<dev_h2_candidates_t>(arguments),
-          offset<dev_hit_phi_t>(arguments),
-          offset<dev_tracks_t>(arguments),
-          offset<dev_tracklets_t>(arguments),
-          offset<dev_tracks_to_follow_t>(arguments),
-          offset<dev_three_hit_tracks_t>(arguments),
-          offset<dev_hit_used_t>(arguments),
-          offset<dev_atomics_velo_t>(arguments),
-          offset<dev_rel_indices_t>(arguments),
-          offset<dev_number_of_velo_tracks_t>(arguments)
-        },
+      function(dim3(value<host_number_of_selected_events_t>(manager)), block_dimension(), cuda_stream)(
+        Arguments {offset<dev_sorted_velo_cluster_container_t>(manager),
+                   offset<dev_offsets_estimated_input_size_t>(manager),
+                   offset<dev_module_cluster_num_t>(manager),
+                   offset<dev_h0_candidates_t>(manager),
+                   offset<dev_h2_candidates_t>(manager),
+                   offset<dev_hit_phi_t>(manager),
+                   offset<dev_tracks_t>(manager),
+                   offset<dev_tracklets_t>(manager),
+                   offset<dev_tracks_to_follow_t>(manager),
+                   offset<dev_three_hit_tracks_t>(manager),
+                   offset<dev_hit_used_t>(manager),
+                   offset<dev_atomics_velo_t>(manager),
+                   offset<dev_rel_indices_t>(manager),
+                   offset<dev_number_of_velo_tracks_t>(manager)},
         constants.dev_velo_geometry);
     }
 

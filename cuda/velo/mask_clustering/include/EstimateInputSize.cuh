@@ -15,9 +15,7 @@ namespace velo_estimate_input_size {
   };
 
   // Global function
-  __global__ void velo_estimate_input_size(
-    Arguments arguments,
-    uint8_t* candidate_ks);
+  __global__ void velo_estimate_input_size(Arguments arguments, uint8_t* candidate_ks);
 
   // Algorithm
   template<typename T>
@@ -26,58 +24,58 @@ namespace velo_estimate_input_size {
     decltype(global_function(velo_estimate_input_size)) function {velo_estimate_input_size};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const {
+      const HostBuffers& host_buffers) const
+    {
       if (logger::ll.verbosityLevel >= logger::debug) {
-        debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
+        debug_cout << "# of events = " << value<host_number_of_selected_events_t>(manager) << std::endl;
       }
 
-      set_size<dev_velo_raw_input_t>(arguments, std::get<0>(runtime_options.host_velo_events).size_bytes());
-      set_size<dev_velo_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_velo_events).size_bytes());
+      set_size<dev_velo_raw_input_t>(manager, std::get<0>(runtime_options.host_velo_events).size_bytes());
+      set_size<dev_velo_raw_input_offsets_t>(manager, std::get<1>(runtime_options.host_velo_events).size_bytes());
       set_size<dev_estimated_input_size_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_modules);
-      set_size<dev_module_candidate_num_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+        manager, value<host_number_of_selected_events_t>(manager) * Velo::Constants::n_modules);
+      set_size<dev_module_candidate_num_t>(manager, value<host_number_of_selected_events_t>(manager));
       set_size<dev_cluster_candidates_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * VeloClustering::max_candidates_event);
+        manager, value<host_number_of_selected_events_t>(manager) * VeloClustering::max_candidates_event);
     }
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t& cuda_generic_event) const
+    {
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_velo_raw_input_t>(arguments),
+        offset<dev_velo_raw_input_t>(manager),
         std::get<0>(runtime_options.host_velo_events).begin(),
         std::get<0>(runtime_options.host_velo_events).size_bytes(),
         cudaMemcpyHostToDevice,
         cuda_stream));
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_velo_raw_input_offsets_t>(arguments),
+        offset<dev_velo_raw_input_offsets_t>(manager),
         std::get<1>(runtime_options.host_velo_events).begin(),
         std::get<1>(runtime_options.host_velo_events).size_bytes(),
         cudaMemcpyHostToDevice,
         cuda_stream));
 
       cudaCheck(cudaMemsetAsync(
-        offset<dev_estimated_input_size_t>(arguments), 0, size<dev_estimated_input_size_t>(arguments), cuda_stream));
+        offset<dev_estimated_input_size_t>(manager), 0, size<dev_estimated_input_size_t>(manager), cuda_stream));
       cudaCheck(cudaMemsetAsync(
-        offset<dev_module_candidate_num_t>(arguments), 0, size<dev_module_candidate_num_t>(arguments), cuda_stream));
+        offset<dev_module_candidate_num_t>(manager), 0, size<dev_module_candidate_num_t>(manager), cuda_stream));
 
       // Invoke kernel
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments{
-          offset<dev_event_list_t>(arguments),
-          offset<dev_velo_raw_input_t>(arguments),
-          offset<dev_velo_raw_input_offsets_t>(arguments),
-          offset<dev_estimated_input_size_t>(arguments),
-          offset<dev_module_candidate_num_t>(arguments),
-          offset<dev_cluster_candidates_t>(arguments)
-        },
+      function(dim3(value<host_number_of_selected_events_t>(manager)), block_dimension(), cuda_stream)(
+        Arguments {offset<dev_event_list_t>(manager),
+                   offset<dev_velo_raw_input_t>(manager),
+                   offset<dev_velo_raw_input_offsets_t>(manager),
+                   offset<dev_estimated_input_size_t>(manager),
+                   offset<dev_module_candidate_num_t>(manager),
+                   offset<dev_cluster_candidates_t>(manager)},
         constants.dev_velo_candidate_ks.data());
     }
   };

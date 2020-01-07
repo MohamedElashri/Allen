@@ -28,14 +28,14 @@ namespace ut_decode_raw_banks_in_order {
     decltype(global_function(ut_decode_raw_banks_in_order)) function {ut_decode_raw_banks_in_order};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
+      ArgumentRefManager<T> manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {}
 
     void operator()(
-      const ArgumentRefManager<T>& arguments,
+      const ArgumentRefManager<T>& manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
@@ -43,15 +43,15 @@ namespace ut_decode_raw_banks_in_order {
       cudaEvent_t& cuda_generic_event) const
     {
       function.invoke(
-        dim3(value<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+        dim3(value<host_number_of_selected_events_t>(manager), UT::Constants::n_layers),
         block_dimension(),
         cuda_stream)(
-        Arguments {offset<dev_ut_raw_input_t>(arguments),
-                   offset<dev_ut_raw_input_offsets_t>(arguments),
-                   offset<dev_event_list_t>(arguments),
-                   offset<dev_ut_hit_offsets_t>(arguments),
-                   offset<dev_ut_hits_t>(arguments),
-                   offset<dev_ut_hit_permutations_t>(arguments)},
+        Arguments {offset<dev_ut_raw_input_t>(manager),
+                   offset<dev_ut_raw_input_offsets_t>(manager),
+                   offset<dev_event_list_t>(manager),
+                   offset<dev_ut_hit_offsets_t>(manager),
+                   offset<dev_ut_hits_t>(manager),
+                   offset<dev_ut_hit_permutations_t>(manager)},
         constants.dev_ut_boards.data(),
         constants.dev_ut_geometry.data(),
         constants.dev_ut_region_offsets.data(),
