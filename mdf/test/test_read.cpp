@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
     array<size_t, LHCb::RawBank::LastType + 1> bank_counts {0};
 
     // Put the banks in the event-local buffers
-    char const* bank = bank_span.begin();
-    char const* end = bank_span.end();
+    char const* bank = bank_span.data();
+    char const* end = bank_span.data() + bank_span.size();
     while (bank < end) {
       const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
       if (b->magic() != LHCb::RawBank::MagicPattern) {

@@ -16,10 +16,10 @@ void SequenceVisitor::visit<global_event_cut_t>(
 {
   if (runtime_options.cpu_offload) {
     cpu_global_event_cut(
-      std::get<0>(runtime_options.host_ut_events).begin(),
-      std::get<1>(runtime_options.host_ut_events).begin(),
-      std::get<0>(runtime_options.host_scifi_events).begin(),
-      std::get<1>(runtime_options.host_scifi_events).begin(),
+      std::get<0>(runtime_options.host_ut_events).data(),
+      std::get<1>(runtime_options.host_ut_events).data(),
+      std::get<0>(runtime_options.host_scifi_events).data(),
+      std::get<1>(runtime_options.host_scifi_events).data(),
       host_buffers.host_number_of_selected_events,
       host_buffers.host_event_list,
       runtime_options.number_of_events);

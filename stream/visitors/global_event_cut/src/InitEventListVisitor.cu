@@ -33,37 +33,37 @@ void SequenceVisitor::visit<init_event_list_t>(
   // the various decoding algorithms
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_velo_raw_input>(),
-    std::get<0>(runtime_options.host_velo_events).begin(),
+    std::get<0>(runtime_options.host_velo_events).data(),
     std::get<0>(runtime_options.host_velo_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_velo_raw_input_offsets>(),
-    std::get<1>(runtime_options.host_velo_events).begin(),
+    std::get<1>(runtime_options.host_velo_events).data(),
     std::get<1>(runtime_options.host_velo_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_ut_raw_input>(),
-    std::get<0>(runtime_options.host_ut_events).begin(),
+    std::get<0>(runtime_options.host_ut_events).data(),
     std::get<0>(runtime_options.host_ut_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_ut_raw_input_offsets>(),
-    std::get<1>(runtime_options.host_ut_events).begin(),
+    std::get<1>(runtime_options.host_ut_events).data(),
     std::get<1>(runtime_options.host_ut_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_scifi_raw_input>(),
-    std::get<0>(runtime_options.host_scifi_events).begin(),
+    std::get<0>(runtime_options.host_scifi_events).data(),
     std::get<0>(runtime_options.host_scifi_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_scifi_raw_input_offsets>(),
-    std::get<1>(runtime_options.host_scifi_events).begin(),
+    std::get<1>(runtime_options.host_scifi_events).data(),
     std::get<1>(runtime_options.host_scifi_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));

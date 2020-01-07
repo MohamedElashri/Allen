@@ -41,13 +41,13 @@ void SequenceVisitor::visit<muon_decoding_t>(
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_muon_raw>(),
-    std::get<0>(runtime_options.host_muon_events).begin(),
+    std::get<0>(runtime_options.host_muon_events).data(),
     std::get<0>(runtime_options.host_muon_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_muon_raw_offsets>(),
-    std::get<1>(runtime_options.host_muon_events).begin(),
+    std::get<1>(runtime_options.host_muon_events).data(),
     std::get<1>(runtime_options.host_muon_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));

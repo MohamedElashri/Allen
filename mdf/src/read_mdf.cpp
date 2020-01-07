@@ -127,8 +127,8 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
       }
 
       // Put the banks in the event-local buffers
-      const auto* bank = bank_span.begin();
-      const auto* end = bank_span.end();
+      const auto* bank = bank_span.data();
+      const auto* end = bank_span.data() + bank_span.size();
       while (bank < end) {
         const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
         if (b->magic() != LHCb::RawBank::MagicPattern) {
