@@ -4,10 +4,11 @@
 #include "CpuAlgorithm.cuh"
 
 namespace host_prefix_sum {
-  // Arguments
-  HOST_OUTPUT(host_total_sum_holder_t, uint)
-  DEVICE_INPUT(dev_input_buffer_t, uint)
-  DEVICE_OUTPUT(dev_output_buffer_t, uint)
+  struct Arguments {
+    HOST_OUTPUT(host_total_sum_holder_t, uint) host_total_sum_holder;
+    DEVICE_INPUT(dev_input_buffer_t, uint) dev_input_buffer;
+    DEVICE_OUTPUT(dev_output_buffer_t, uint) dev_output_buffer;
+  };
 
   /**
    * @brief An algorithm that performs the prefix sum on the CPU.
@@ -15,21 +16,19 @@ namespace host_prefix_sum {
   void host_prefix_sum(
     uint* host_prefix_sum_buffer,
     size_t& host_allocated_prefix_sum_space,
-    dev_input_buffer_t dev_input_buffer,
-    dev_output_buffer_t dev_output_buffer,
     const size_t dev_input_buffer_size,
     const size_t dev_output_buffer_size,
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event,
-    host_total_sum_holder_t host_total_sum_holder);
+    Arguments arguments);
 
-  template<typename Arguments>
-  struct host_prefix_sum_t : public HostAlgorithm {
+  template<typename T>
+  struct host_prefix_sum_t : public HostAlgorithm, Arguments {
     constexpr static auto name {"host_prefix_sum_t"};
     decltype(host_function(host_prefix_sum)) function {host_prefix_sum};
 
     void set_arguments_size(
-      ArgumentRefManager<Arguments> arguments,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const
@@ -40,7 +39,7 @@ namespace host_prefix_sum {
     }
 
     void operator()(
-      const ArgumentRefManager<Arguments>& arguments,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
@@ -51,13 +50,15 @@ namespace host_prefix_sum {
       function(
         host_buffers.host_prefix_sum_buffer,
         host_buffers.host_allocated_prefix_sum_space,
-        offset<dev_input_buffer_t>(arguments),
-        offset<dev_output_buffer_t>(arguments),
         size<dev_input_buffer_t>(arguments),
         size<dev_output_buffer_t>(arguments),
         cuda_stream,
         cuda_generic_event,
-        offset<host_total_sum_holder_t>(arguments));
+        Arguments{
+          offset<host_total_sum_holder_t>(arguments),
+          offset<dev_input_buffer_t>(arguments),
+          offset<dev_output_buffer_t>(arguments)
+        });
     }
   };
 } // namespace cpu_velo_prefix_sum_number_of_clusters

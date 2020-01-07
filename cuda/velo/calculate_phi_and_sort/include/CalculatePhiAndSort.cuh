@@ -8,15 +8,16 @@
 #include "GpuAlgorithm.cuh"
 
 namespace velo_calculate_phi_and_sort {
-  // Arguments
-  HOST_INPUT(host_number_of_selected_events_t, uint)
-  HOST_INPUT(host_total_number_of_velo_clusters_t, uint)
-  DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint)
-  DEVICE_INPUT(dev_module_cluster_num_t, uint)
-  DEVICE_INPUT(dev_velo_cluster_container_t, uint32_t)
-  DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, uint32_t)
-  DEVICE_OUTPUT(dev_hit_permutation_t, uint)
-  DEVICE_OUTPUT(dev_hit_phi_t, float)
+  struct Arguments {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_total_number_of_velo_clusters_t, uint);
+    DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
+    DEVICE_INPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
+    DEVICE_INPUT(dev_velo_cluster_container_t, uint32_t) dev_velo_cluster_container;
+    DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, uint32_t) dev_sorted_velo_cluster_container;
+    DEVICE_OUTPUT(dev_hit_permutation_t, uint) dev_hit_permutation;
+    DEVICE_OUTPUT(dev_hit_phi_t, float) dev_hit_phi;
+  };
 
   __device__ void calculate_phi(
     const uint* module_hitStarts,
@@ -33,21 +34,15 @@ namespace velo_calculate_phi_and_sort {
     Velo::Clusters<uint32_t>& velo_sorted_cluster_container,
     uint* hit_permutations);
 
-  __global__ void velo_calculate_phi_and_sort(
-    dev_offsets_estimated_input_size_t,
-    dev_module_cluster_num_t,
-    dev_velo_cluster_container_t,
-    dev_sorted_velo_cluster_container_t,
-    dev_hit_permutation_t,
-    dev_hit_phi_t);
+  __global__ void velo_calculate_phi_and_sort(Arguments);
 
-  template<typename Arguments>
-  struct velo_calculate_phi_and_sort_t : public DeviceAlgorithm {
+  template<typename T>
+  struct velo_calculate_phi_and_sort_t : public DeviceAlgorithm, Arguments {
     constexpr static auto name {"velo_calculate_phi_and_sort_t"};
     decltype(global_function(velo_calculate_phi_and_sort)) function {velo_calculate_phi_and_sort};
 
     void set_arguments_size(
-      ArgumentRefManager<Arguments> arguments,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
@@ -57,7 +52,7 @@ namespace velo_calculate_phi_and_sort {
     }
 
     void operator()(
-      const ArgumentRefManager<Arguments>& arguments,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
@@ -70,12 +65,14 @@ namespace velo_calculate_phi_and_sort {
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        offset<dev_offsets_estimated_input_size_t>(arguments),
-        offset<dev_module_cluster_num_t>(arguments),
-        offset<dev_velo_cluster_container_t>(arguments),
-        offset<dev_sorted_velo_cluster_container_t>(arguments),
-        offset<dev_hit_permutation_t>(arguments),
-        offset<dev_hit_phi_t>(arguments));
+        Arguments{
+          offset<dev_offsets_estimated_input_size_t>(arguments),
+          offset<dev_module_cluster_num_t>(arguments),
+          offset<dev_velo_cluster_container_t>(arguments),
+          offset<dev_sorted_velo_cluster_container_t>(arguments),
+          offset<dev_hit_permutation_t>(arguments),
+          offset<dev_hit_phi_t>(arguments)
+        });
 
       // Prints the x values
       // std::vector<uint> a (size<dev_velo_cluster_container_t>(arguments) / sizeof(uint));

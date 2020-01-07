@@ -70,26 +70,25 @@ struct output_host_datatype : host_datatype, output_datatype<internal_t> {
   __host__ __device__ output_host_datatype(type* value) : output_datatype<internal_t>(value) {}
 };
 
-// Macros in case we go for them
 #define DEVICE_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                     \
   struct ARGUMENT_NAME : input_device_datatype<ARGUMENT_TYPE> {        \
     using input_device_datatype<ARGUMENT_TYPE>::input_device_datatype; \
-  };
+  }
 
 #define DEVICE_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                      \
   struct ARGUMENT_NAME : output_device_datatype<ARGUMENT_TYPE> {         \
     using output_device_datatype<ARGUMENT_TYPE>::output_device_datatype; \
-  };
+  }
 
 #define HOST_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                   \
   struct ARGUMENT_NAME : input_host_datatype<ARGUMENT_TYPE> {      \
     using input_host_datatype<ARGUMENT_TYPE>::input_host_datatype; \
-  };
+  }
 
 #define HOST_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                    \
   struct ARGUMENT_NAME : output_host_datatype<ARGUMENT_TYPE> {       \
     using output_host_datatype<ARGUMENT_TYPE>::output_host_datatype; \
-  };
+  }
 
 // Macro for defining an argument that depends on types.
 // This is for the sequence definition.

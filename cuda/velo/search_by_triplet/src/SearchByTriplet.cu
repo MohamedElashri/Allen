@@ -44,20 +44,7 @@ __constant__ int Configuration::velo_search_by_triplet::ttf_modulo_mask;
  */
 
 __global__ void velo_search_by_triplet::velo_search_by_triplet(
-  dev_sorted_velo_cluster_container_t dev_sorted_velo_cluster_container,
-  dev_offsets_estimated_input_size_t dev_offsets_estimated_input_size,
-  dev_module_cluster_num_t dev_module_cluster_num,
-  dev_tracks_t dev_tracks,
-  dev_tracklets_t dev_tracklets,
-  dev_tracks_to_follow_t dev_tracks_to_follow,
-  dev_weak_tracks_t dev_weak_tracks,
-  dev_hit_used_t dev_hit_used,
-  dev_atomics_velo_t dev_atomics_velo,
-  dev_h0_candidates_t dev_h0_candidates,
-  dev_h2_candidates_t dev_h2_candidates,
-  dev_rel_indices_t dev_rel_indices,
-  dev_number_of_velo_tracks_t dev_number_of_velo_tracks,
-  dev_hit_phi_t dev_hit_phi,
+  Arguments arguments,
   const VeloGeometry* dev_velo_geometry) {
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
@@ -67,31 +54,30 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
 
   // Pointers to data within the event
   const uint total_estimated_number_of_clusters =
-    dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
-  const uint* module_hitNums = dev_module_cluster_num + event_number * Velo::Constants::n_modules;
+    arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint* module_hitStarts = arguments.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
+  const uint* module_hitNums = arguments.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
-  assert((module_hitStarts[52] - module_hitStarts[0]) < Velo::Constants::max_number_of_hits_per_event);
 
-  // TODO: Think whether this offset'ed container is a good solution
+  // Think whether this offset'ed container is a good solution
   const auto velo_cluster_container =
-    Velo::Clusters<const uint>{dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
+    Velo::Clusters<const uint>{arguments.dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
 
-  const auto hit_phi = dev_hit_phi + hit_offset;
+  const auto hit_phi = arguments.dev_hit_phi + hit_offset;
 
   // Per event datatypes
-  Velo::TrackHits* tracks = dev_tracks + tracks_offset;
+  Velo::TrackHits* tracks = arguments.dev_tracks + tracks_offset;
 
   // Per side datatypes
-  bool* hit_used = dev_hit_used + hit_offset;
-  const short* h0_candidates = dev_h0_candidates + 2 * hit_offset;
-  const short* h2_candidates = dev_h2_candidates + 2 * hit_offset;
+  bool* hit_used = arguments.dev_hit_used + hit_offset;
+  const short* h0_candidates = arguments.dev_h0_candidates + 2 * hit_offset;
+  const short* h2_candidates = arguments.dev_h2_candidates + 2 * hit_offset;
 
-  uint* tracks_to_follow = dev_tracks_to_follow + event_number * Configuration::velo_search_by_triplet::ttf_modulo;
-  Velo::TrackletHits* weak_tracks =
-    dev_weak_tracks + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
-  Velo::TrackletHits* tracklets = dev_tracklets + event_number * Configuration::velo_search_by_triplet::ttf_modulo;
-  unsigned short* h1_rel_indices = dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
+  uint* tracks_to_follow = arguments.dev_tracks_to_follow + event_number * Configuration::velo_search_by_triplet::ttf_modulo;
+  Velo::TrackletHits* three_hit_tracks =
+    arguments.dev_three_hit_tracks + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
+  Velo::TrackletHits* tracklets = arguments.dev_tracklets + event_number * Configuration::velo_search_by_triplet::ttf_modulo;
+  unsigned short* h1_rel_indices = arguments.dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
 
   // Shared memory size is defined externally
   __shared__ float module_data[12];
@@ -106,13 +92,13 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     velo_cluster_container,
     hit_phi,
     tracks_to_follow,
-    weak_tracks,
+    three_hit_tracks,
     tracklets,
     tracks,
     total_estimated_number_of_clusters,
     h1_rel_indices,
     hit_offset,
     dev_velo_geometry->module_zs,
-    dev_atomics_velo + blockIdx.x * Velo::num_atomics,
-    dev_number_of_velo_tracks);
+    arguments.dev_atomics_velo + blockIdx.x * Velo::num_atomics,
+    arguments.dev_number_of_velo_tracks);
 }

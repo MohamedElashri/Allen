@@ -21,7 +21,6 @@ __device__ void track_forwarding(
   const uint prev_ttf,
   Velo::TrackletHits* tracklets,
   Velo::TrackHits* tracks,
-  const uint number_of_hits,
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks);
 

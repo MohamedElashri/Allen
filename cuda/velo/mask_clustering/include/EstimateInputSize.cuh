@@ -4,33 +4,29 @@
 #include "ClusteringDefinitions.cuh"
 
 namespace velo_estimate_input_size {
-  // Arguments
-  HOST_INPUT(host_number_of_selected_events_t, uint)
-  DEVICE_INPUT(dev_event_list_t, uint)
-  DEVICE_OUTPUT(dev_velo_raw_input_t, char)
-  DEVICE_OUTPUT(dev_velo_raw_input_offsets_t, uint)
-  DEVICE_OUTPUT(dev_estimated_input_size_t, uint)
-  DEVICE_OUTPUT(dev_module_candidate_num_t, uint)
-  DEVICE_OUTPUT(dev_cluster_candidates_t, uint)
+  struct Arguments {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
+    DEVICE_OUTPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
+    DEVICE_OUTPUT(dev_velo_raw_input_offsets_t, uint) dev_velo_raw_input_offsets;
+    DEVICE_OUTPUT(dev_estimated_input_size_t, uint) dev_estimated_input_size;
+    DEVICE_OUTPUT(dev_module_candidate_num_t, uint) dev_module_candidate_num;
+    DEVICE_OUTPUT(dev_cluster_candidates_t, uint) dev_cluster_candidates;
+  };
 
   // Global function
   __global__ void velo_estimate_input_size(
-    dev_velo_raw_input_t,
-    dev_velo_raw_input_offsets_t,
-    dev_estimated_input_size_t,
-    dev_module_candidate_num_t,
-    dev_cluster_candidates_t,
-    dev_event_list_t,
+    Arguments arguments,
     uint8_t* candidate_ks);
 
   // Algorithm
-  template<typename Arguments>
-  struct velo_estimate_input_size_t : public DeviceAlgorithm {
+  template<typename T>
+  struct velo_estimate_input_size_t : public DeviceAlgorithm, Arguments {
     constexpr static auto name {"velo_estimate_input_size_t"};
     decltype(global_function(velo_estimate_input_size)) function {velo_estimate_input_size};
 
     void set_arguments_size(
-      ArgumentRefManager<Arguments> arguments,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
@@ -48,7 +44,7 @@ namespace velo_estimate_input_size {
     }
 
     void operator()(
-      const ArgumentRefManager<Arguments>& arguments,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
@@ -74,12 +70,14 @@ namespace velo_estimate_input_size {
 
       // Invoke kernel
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        offset<dev_velo_raw_input_t>(arguments),
-        offset<dev_velo_raw_input_offsets_t>(arguments),
-        offset<dev_estimated_input_size_t>(arguments),
-        offset<dev_module_candidate_num_t>(arguments),
-        offset<dev_cluster_candidates_t>(arguments),
-        offset<dev_event_list_t>(arguments),
+        Arguments{
+          offset<dev_event_list_t>(arguments),
+          offset<dev_velo_raw_input_t>(arguments),
+          offset<dev_velo_raw_input_offsets_t>(arguments),
+          offset<dev_estimated_input_size_t>(arguments),
+          offset<dev_module_candidate_num_t>(arguments),
+          offset<dev_cluster_candidates_t>(arguments)
+        },
         constants.dev_velo_candidate_ks.data());
     }
   };

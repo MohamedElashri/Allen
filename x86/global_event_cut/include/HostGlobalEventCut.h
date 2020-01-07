@@ -7,10 +7,11 @@
 #include "CpuAlgorithm.cuh"
 
 namespace host_global_event_cut {
-  // Arguments
-  HOST_OUTPUT(host_event_list_t, uint)
-  HOST_OUTPUT(host_number_of_selected_events_t, uint)
-  DEVICE_OUTPUT(dev_event_list_t, uint)
+  struct Arguments {
+    HOST_OUTPUT(host_event_list_t, uint) host_event_list;
+    HOST_OUTPUT(host_number_of_selected_events_t, uint) host_number_of_selected_events;
+    DEVICE_OUTPUT(dev_event_list_t, uint);
+  };
 
   // Function
   void host_global_event_cut(
@@ -18,18 +19,17 @@ namespace host_global_event_cut {
     const uint* ut_raw_input_offsets,
     const char* scifi_raw_input,
     const uint* scifi_raw_input_offsets,
-    host_number_of_selected_events_t number_of_selected_events,
-    host_event_list_t event_list,
-    uint number_of_events);
+    uint number_of_events,
+    Arguments arguments);
 
   // Algorithm
-  template<typename Arguments>
-  struct host_global_event_cut_t : public HostAlgorithm {
+  template<typename T>
+  struct host_global_event_cut_t : public HostAlgorithm, Arguments {
     constexpr static auto name {"host_global_event_cut_t"};
     decltype(host_function(host_global_event_cut)) function {host_global_event_cut};
 
     void set_arguments_size(
-      ArgumentRefManager<Arguments> arguments,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const
@@ -40,7 +40,7 @@ namespace host_global_event_cut {
     }
 
     void operator()(
-      const ArgumentRefManager<Arguments>& arguments,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
@@ -58,9 +58,11 @@ namespace host_global_event_cut {
         std::get<1>(runtime_options.host_ut_events).begin(),
         std::get<0>(runtime_options.host_scifi_events).begin(),
         std::get<1>(runtime_options.host_scifi_events).begin(),
-        offset<host_number_of_selected_events_t>(arguments),
-        offset<host_event_list_t>(arguments),
-        runtime_options.number_of_events);
+        runtime_options.number_of_events,
+        Arguments{
+          offset<host_event_list_t>(arguments),
+          offset<host_number_of_selected_events_t>(arguments)
+        });
 
       cudaCheck(cudaMemcpyAsync(
         offset<dev_event_list_t>(arguments),
