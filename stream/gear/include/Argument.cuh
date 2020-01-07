@@ -70,18 +70,34 @@ struct output_host_datatype : host_datatype, output_datatype<internal_t> {
   __host__ __device__ output_host_datatype(type* value) : output_datatype<internal_t>(value) {}
 };
 
-// Macros in case we go for them
-#define DEVICE_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE) \
-  struct ARGUMENT_NAME : input_device_datatype<ARGUMENT_TYPE> {}
+// Note: CUDACC seems to require explicit constructors, instead of picking the inherited ones.
+#define DEVICE_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                                                  \
+  struct ARGUMENT_NAME : input_device_datatype<ARGUMENT_TYPE> {                                     \
+    using type = typename input_device_datatype<ARGUMENT_TYPE>::type;                               \
+    __host__ __device__ ARGUMENT_NAME() {}                                                          \
+    __host__ __device__ ARGUMENT_NAME(type* value) : input_device_datatype<ARGUMENT_TYPE>(value) {} \
+  }
 
-#define DEVICE_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE) \
-  struct ARGUMENT_NAME : output_device_datatype<ARGUMENT_TYPE> {}
+#define DEVICE_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                                                  \
+  struct ARGUMENT_NAME : output_device_datatype<ARGUMENT_TYPE> {                                     \
+    using type = typename output_device_datatype<ARGUMENT_TYPE>::type;                               \
+    __host__ __device__ ARGUMENT_NAME() {}                                                           \
+    __host__ __device__ ARGUMENT_NAME(type* value) : output_device_datatype<ARGUMENT_TYPE>(value) {} \
+  }
 
-#define HOST_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE) \
-  struct ARGUMENT_NAME : input_host_datatype<ARGUMENT_TYPE> {}
+#define HOST_INPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                                                  \
+  struct ARGUMENT_NAME : input_host_datatype<ARGUMENT_TYPE> {                                     \
+    using type = typename input_host_datatype<ARGUMENT_TYPE>::type;                               \
+    __host__ __device__ ARGUMENT_NAME() {}                                                        \
+    __host__ __device__ ARGUMENT_NAME(type* value) : input_host_datatype<ARGUMENT_TYPE>(value) {} \
+  }
 
-#define HOST_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE) \
-  struct ARGUMENT_NAME : output_host_datatype<ARGUMENT_TYPE> {}
+#define HOST_OUTPUT(ARGUMENT_NAME, ARGUMENT_TYPE)                                                  \
+  struct ARGUMENT_NAME : output_host_datatype<ARGUMENT_TYPE> {                                     \
+    using type = typename output_host_datatype<ARGUMENT_TYPE>::type;                               \
+    __host__ __device__ ARGUMENT_NAME() {}                                                         \
+    __host__ __device__ ARGUMENT_NAME(type* value) : output_host_datatype<ARGUMENT_TYPE>(value) {} \
+  }
 
 // Macro for defining an argument that depends on types.
 // This is for the sequence definition.

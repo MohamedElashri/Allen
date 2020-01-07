@@ -7,9 +7,8 @@ void host_global_event_cut::host_global_event_cut(
   const uint* ut_raw_input_offsets,
   const char* scifi_raw_input,
   const uint* scifi_raw_input_offsets,
-  host_number_of_selected_events_t number_of_selected_events,
-  host_event_list_t event_list,
-  uint number_of_events)
+  uint number_of_events,
+  Arguments arguments)
 {
   uint insert_index = 0;
   for (uint event_number = 0; event_number < number_of_events; ++event_number) {
@@ -42,9 +41,9 @@ void host_global_event_cut::host_global_event_cut(
 
     const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
     if (num_combined_clusters < max_scifi_ut_clusters && num_combined_clusters > min_scifi_ut_clusters) {
-      event_list[insert_index++] = event_number;
+      arguments.host_event_list[insert_index++] = event_number;
     }
   }
 
-  number_of_selected_events[0] = insert_index;
+  arguments.host_number_of_selected_events[0] = insert_index;
 }

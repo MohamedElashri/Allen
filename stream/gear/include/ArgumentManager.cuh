@@ -107,16 +107,6 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
 };
 
 // Helpers
-// template<typename Arg, typename Args>
-// auto offset(Args arguments) {
-//   return Arg{arguments.template offset<Arg>()};
-// }
-
-// template<typename Arg, typename Args>
-// auto value(Args arguments) {
-//   return Arg{arguments.template offset<Arg>()}[0];
-// }
-
 template<typename Arg, typename Args>
 size_t size(Args arguments) {
   return arguments.template size<Arg>();

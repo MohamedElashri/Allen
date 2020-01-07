@@ -10,12 +10,12 @@ __global__ void velo_copy_track_hit_number::velo_copy_track_hit_number(Arguments
   const auto event_number = blockIdx.x;
   const auto event_tracks = arguments.dev_tracks + event_number * Velo::Constants::max_tracks;
   const auto number_of_tracks =
-    arguments.dev_atomics_storage[event_number + 1] - arguments.dev_atomics_storage[event_number];
+    arguments.dev_atomics_velo[event_number + 1] - arguments.dev_atomics_velo[event_number];
   const auto number_of_three_hit_tracks = arguments.dev_offsets_number_of_three_hit_tracks_filtered[event_number + 1] -
                                           arguments.dev_offsets_number_of_three_hit_tracks_filtered[event_number];
 
   // Pointer to velo_track_hit_number of current event
-  const auto accumulated_tracks = arguments.dev_atomics_storage[event_number] +
+  const auto accumulated_tracks = arguments.dev_atomics_velo[event_number] +
                                   arguments.dev_offsets_number_of_three_hit_tracks_filtered[event_number];
   uint* velo_track_hit_number = arguments.dev_velo_track_hit_number + accumulated_tracks;
 
@@ -29,7 +29,7 @@ __global__ void velo_copy_track_hit_number::velo_copy_track_hit_number(Arguments
 
   if (threadIdx.x == 0) {
     arguments.dev_offsets_all_velo_tracks[event_number + 1] =
-      arguments.dev_atomics_storage[event_number + 1] +
+      arguments.dev_atomics_velo[event_number + 1] +
       arguments.dev_offsets_number_of_three_hit_tracks_filtered[event_number + 1];
   }
 }
