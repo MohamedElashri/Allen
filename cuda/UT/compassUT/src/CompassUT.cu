@@ -11,98 +11,44 @@ __constant__ float Configuration::compass_ut_t::hit_tol_2;
 __constant__ float Configuration::compass_ut_t::delta_tx_2;
 __constant__ uint Configuration::compass_ut_t::max_considered_before_found;
 
-void compass_ut_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  arguments.set_size<dev_ut_tracks>(host_buffers.host_number_of_selected_events[0] * UT::Constants::max_num_tracks);
-  arguments.set_size<dev_atomics_ut>(host_buffers.host_number_of_selected_events[0] * UT::num_atomics + 1);
-}
-
-void compass_ut_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(
-    cudaMemsetAsync(arguments.offset<dev_ut_active_tracks>(), 0, arguments.size<dev_ut_active_tracks>(), cuda_stream));
-  cudaCheck(cudaMemsetAsync(arguments.offset<dev_atomics_ut>(), 0, arguments.size<dev_atomics_ut>(), cuda_stream));
-
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
-    arguments.offset<dev_ut_hits>(),
-    arguments.offset<dev_ut_hit_offsets>(),
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_velo_states>(),
-    constants.dev_ut_magnet_tool,
-    constants.dev_magnet_polarity.data(),
-    constants.dev_ut_dxDy.data(),
-    arguments.offset<dev_ut_active_tracks>(),
-    constants.dev_unique_x_sector_layer_offsets.data(),
-    arguments.offset<dev_ut_tracks>(),
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_ut_windows_layers>(),
-    arguments.offset<dev_accepted_velo_tracks>());
-}
-
-__global__ void compass_ut(
-  uint* dev_ut_hits, // actual hit content
-  const uint* dev_ut_hit_offsets,
-  uint* dev_atomics_storage, // prefixsum, offset to tracks
-  uint* dev_velo_track_hit_number,
-  char* dev_velo_states,
+__global__ void compass_ut::compass_ut(
+  compass_ut::Arguments arguments,
   UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_magnet_polarity,
   const float* dev_ut_dxDy,
-  uint* dev_active_tracks,
-  const uint* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
-  UT::TrackHits* dev_compassUT_tracks,
-  uint* dev_atomics_compassUT, // size of number of events
-  short* dev_windows_layers,
-  bool* dev_accepted_velo_tracks)
+  const uint* dev_unique_x_sector_layer_offsets) // prefixsum to point to the x hit of the sector, per layer
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const uint total_number_of_hits = dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
+  const uint total_number_of_hits = arguments.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
 
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_storage, dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::States velo_states {dev_velo_states, velo_tracks.total_number_of_tracks()};
+    arguments.dev_atomics_velo, arguments.dev_velo_track_hit_number, event_number, number_of_events};
+  // TODO: Make const container
+  const Velo::Consolidated::States velo_states {const_cast<char*>(arguments.dev_velo_states.get()), velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  short* windows_layers = dev_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
+  const short* windows_layers =
+    arguments.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
 
   const UT::HitOffsets ut_hit_offsets {
-    dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  const UT::Hits ut_hits {dev_ut_hits, total_number_of_hits};
+    arguments.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const UT::Hits ut_hits {const_cast<uint*>(arguments.dev_ut_hits.get()), total_number_of_hits};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
 
   // active track pointer
-  uint* active_tracks = dev_active_tracks + event_number;
+  uint* active_tracks = arguments.dev_ut_active_tracks + event_number;
 
-  // dev_atomics_compassUT contains in an SoA:
+  // arguments.dev_atomics_ut contains in an SoA:
   //   1. # of veloUT tracks
   //   2. # velo tracks in UT acceptance
   // This is to write the final track
-  uint* n_veloUT_tracks_event = dev_atomics_compassUT + event_number;
-  UT::TrackHits* veloUT_tracks_event = dev_compassUT_tracks + event_number * UT::Constants::max_num_tracks;
-
-  // initialize atomic veloUT tracks counter && active track
-  if (threadIdx.x == 0) {
-    *n_veloUT_tracks_event = 0;
-    *active_tracks = 0;
-  }
-
-  __syncthreads();
+  uint* n_veloUT_tracks_event = arguments.dev_atomics_ut + event_number;
+  UT::TrackHits* veloUT_tracks_event = arguments.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 
   // store the tracks with valid windows
   __shared__ int shared_active_tracks[2 * UT::Constants::num_thr_compassut - 1];
@@ -122,7 +68,7 @@ __global__ void compass_ut(
       const auto velo_state = velo_states.get(current_track_offset);
 
       if (
-        !velo_states.backward[current_track_offset] && dev_accepted_velo_tracks[current_track_offset] &&
+        !velo_states.backward[current_track_offset] && arguments.dev_accepted_velo_tracks[current_track_offset] &&
         velo_track_in_UTA_acceptance(velo_state) &&
         found_active_windows(windows_layers, number_of_tracks_event, i_track)) {
         uint current_track = atomicAdd(active_tracks, 1);
@@ -187,7 +133,7 @@ __global__ void compass_ut(
   }
 }
 
-__device__ void compass_ut_tracking(
+__device__ void compass_ut::compass_ut_tracking(
   const short* windows_layers,
   const uint number_of_tracks_event,
   const int i_track,
@@ -239,7 +185,7 @@ __device__ void compass_ut_tracking(
 // we store the initial hit of the window and the size of the window
 // (3 windows per layer)
 //=============================================================================
-__device__ __inline__ void fill_shared_windows(
+__device__ __inline__ void compass_ut::fill_shared_windows(
   const short* windows_layers,
   const int number_of_tracks_event,
   const int i_track,
@@ -260,7 +206,7 @@ __device__ __inline__ void fill_shared_windows(
 // Determine if there are valid windows for this track looking at the sizes
 //=========================================================================
 __device__ __inline__ bool
-found_active_windows(const short* windows_layers, const int number_of_tracks_event, const int i_track)
+compass_ut::found_active_windows(const short* windows_layers, const int number_of_tracks_event, const int i_track)
 {
   const int track_pos = UT::Constants::n_layers * number_of_tracks_event;
 
@@ -305,7 +251,7 @@ __host__ __device__ __inline__ int master_index(const int index1, const int inde
 //=========================================================================
 // prepare the final track
 //=========================================================================
-__device__ void save_track(
+__device__ void compass_ut::save_track(
   const int i_track,
   const float* bdl_table,
   const MiniState& velo_state,

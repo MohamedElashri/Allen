@@ -1,52 +1,26 @@
 #include "UTDecodeRawBanksInOrder.cuh"
 
-void ut_decode_raw_banks_in_order_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0], UT::Constants::n_layers), block_dimension(), cuda_stream)(
-    arguments.offset<dev_ut_raw_input>(),
-    arguments.offset<dev_ut_raw_input_offsets>(),
-    arguments.offset<dev_event_list>(),
-    constants.dev_ut_boards.data(),
-    constants.dev_ut_geometry.data(),
-    constants.dev_ut_region_offsets.data(),
-    constants.dev_unique_x_sector_layer_offsets.data(),
-    arguments.offset<dev_ut_hit_offsets>(),
-    arguments.offset<dev_ut_hits>(),
-    arguments.offset<dev_ut_hit_permutations>());
-}
-
-__global__ void ut_decode_raw_banks_in_order(
-  const char* dev_ut_raw_input,
-  const uint32_t* dev_ut_raw_input_offsets,
-  const uint* dev_event_list,
+__global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
+  ut_decode_raw_banks_in_order::Arguments arguments,
   const char* ut_boards,
   const char* ut_geometry,
   const uint* dev_ut_region_offsets,
-  const uint* dev_unique_x_sector_layer_offsets,
-  const uint32_t* dev_ut_hit_offsets,
-  uint32_t* dev_ut_hits,
-  uint* dev_hit_permutations)
+  const uint* dev_unique_x_sector_layer_offsets)
 {
   const uint32_t number_of_events = gridDim.x;
   const uint32_t event_number = blockIdx.x;
-  const uint selected_event_number = dev_event_list[event_number];
+  const uint selected_event_number = arguments.dev_event_list[event_number];
 
   const uint layer_number = blockIdx.y;
-  const uint32_t event_offset = dev_ut_raw_input_offsets[selected_event_number];
+  const uint32_t event_offset = arguments.dev_ut_raw_input_offsets[selected_event_number];
 
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
   const UT::HitOffsets ut_hit_offsets {
-    dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  UT::Hits ut_hits {dev_ut_hits, dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+    arguments.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  UT::Hits ut_hits {arguments.dev_ut_hits, arguments.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  const UTRawEvent raw_event(dev_ut_raw_input + event_offset);
+  const UTRawEvent raw_event(arguments.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
@@ -59,7 +33,7 @@ __global__ void ut_decode_raw_banks_in_order(
 
   for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
     const uint hit_index = layer_offset + i;
-    const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index[dev_hit_permutations[hit_index]];
+    const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index[arguments.dev_ut_hit_permutations[hit_index]];
     const uint raw_bank_index = raw_bank_hit_index >> 24;
     const uint hit_index_inside_raw_bank = raw_bank_hit_index & 0xFFFFFF;
 

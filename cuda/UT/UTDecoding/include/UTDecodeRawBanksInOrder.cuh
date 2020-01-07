@@ -2,44 +2,60 @@
 
 #include "UTDefinitions.cuh"
 #include "DeviceAlgorithm.cuh"
-#include "ArgumentsCommon.cuh"
-#include "ArgumentsUT.cuh"
 #include "UTEventModel.cuh"
 
-__global__ void ut_decode_raw_banks_in_order(
-  const char* dev_ut_raw_input,
-  const uint32_t* dev_ut_raw_input_offsets,
-  const uint* dev_event_list,
-  const char* ut_boards,
-  const char* ut_geometry,
-  const uint* dev_ut_region_offsets,
-  const uint* dev_unique_x_sector_layer_offsets,
-  const uint32_t* dev_ut_hit_offsets,
-  uint32_t* dev_ut_hits,
-  uint* dev_hit_permutations);
+namespace ut_decode_raw_banks_in_order {
+  struct Arguments {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
+    DEVICE_INPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
+    DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
+    DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
+    DEVICE_OUTPUT(dev_ut_hits_t, uint) dev_ut_hits;
+    DEVICE_INPUT(dev_ut_hit_permutations_t, uint) dev_ut_hit_permutations;
+  };
 
-struct ut_decode_raw_banks_in_order_t : public DeviceAlgorithm {
-  constexpr static auto name {"ut_decode_raw_banks_in_order_t"};
-  decltype(global_function(ut_decode_raw_banks_in_order)) function {ut_decode_raw_banks_in_order};
-  using Arguments = std::tuple<
-    dev_ut_raw_input,
-    dev_ut_raw_input_offsets,
-    dev_ut_hits,
-    dev_ut_hit_offsets,
-    dev_ut_hit_permutations,
-    dev_event_list>;
+  __global__ void ut_decode_raw_banks_in_order(
+    Arguments,
+    const char* ut_boards,
+    const char* ut_geometry,
+    const uint* dev_ut_region_offsets,
+    const uint* dev_unique_x_sector_layer_offsets);
 
-  void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    const HostBuffers& host_buffers) const {}
+  template<typename T>
+  struct ut_decode_raw_banks_in_order_t : public DeviceAlgorithm, Arguments {
+    constexpr static auto name {"ut_decode_raw_banks_in_order_t"};
+    decltype(global_function(ut_decode_raw_banks_in_order)) function {ut_decode_raw_banks_in_order};
 
-  void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event) const;
-};
+    void set_arguments_size(
+      ArgumentRefManager<T> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) const
+    {}
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t& cuda_generic_event) const
+    {
+      function.invoke(
+        dim3(value<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+        block_dimension(),
+        cuda_stream)(
+        Arguments {offset<dev_ut_raw_input_t>(arguments),
+                   offset<dev_ut_raw_input_offsets_t>(arguments),
+                   offset<dev_event_list_t>(arguments),
+                   offset<dev_ut_hit_offsets_t>(arguments),
+                   offset<dev_ut_hits_t>(arguments),
+                   offset<dev_ut_hit_permutations_t>(arguments)},
+        constants.dev_ut_boards.data(),
+        constants.dev_ut_geometry.data(),
+        constants.dev_ut_region_offsets.data(),
+        constants.dev_unique_x_sector_layer_offsets.data());
+    }
+  };
+} // namespace ut_decode_raw_banks_in_order

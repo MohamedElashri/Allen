@@ -2,37 +2,8 @@
 #include "FindPermutation.cuh"
 #include <cstdio>
 
-void ut_find_permutation_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  arguments.set_size<dev_ut_hit_permutations>(host_buffers.host_accumulated_number_of_ut_hits[0]);
-}
-
-void ut_find_permutation_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function.invoke(
-    dim3(host_buffers.host_number_of_selected_events[0], constants.host_unique_x_sector_layer_offsets[4]),
-    block_dimension(),
-    cuda_stream)(
-    arguments.offset<dev_ut_hits>(),
-    arguments.offset<dev_ut_hit_offsets>(),
-    arguments.offset<dev_ut_hit_permutations>(),
-    constants.dev_unique_x_sector_layer_offsets.data());
-}
-
-__global__ void ut_find_permutation(
-  uint32_t* dev_ut_hits,
-  uint32_t* dev_ut_hit_offsets,
-  uint* dev_hit_permutations,
+__global__ void ut_find_permutation::ut_find_permutation(
+  ut_find_permutation::Arguments arguments,
   const uint* dev_unique_x_sector_layer_offsets)
 {
   const uint number_of_events = gridDim.x;
@@ -41,8 +12,11 @@ __global__ void ut_find_permutation(
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
 
   const UT::HitOffsets ut_hit_offsets {
-    dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  const UT::Hits ut_hits {dev_ut_hits, dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+    arguments.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+
+  // TODO: Make const container
+  const UT::Hits ut_hits {const_cast<uint*>(arguments.dev_ut_hits.get()),
+                          arguments.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const uint sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group_number);
   const uint sector_group_number_of_hits = ut_hit_offsets.sector_group_number_of_hits(sector_group_number);
@@ -62,10 +36,12 @@ __global__ void ut_find_permutation(
     __syncthreads();
 
     // Sort according to the natural order in s_y_begin
-    // Store the permutation found into dev_hit_permutations
+    // Store the permutation found into arguments.dev_ut_hit_permutations
     find_permutation(
-      0, sector_group_offset, sector_group_number_of_hits, dev_hit_permutations, [&](const int a, const int b) -> int {
-        return (s_y_begin[a] > s_y_begin[b]) - (s_y_begin[a] < s_y_begin[b]);
-      });
+      0,
+      sector_group_offset,
+      sector_group_number_of_hits,
+      arguments.dev_ut_hit_permutations,
+      [&](const int a, const int b) -> int { return (s_y_begin[a] > s_y_begin[b]) - (s_y_begin[a] < s_y_begin[b]); });
   }
 }

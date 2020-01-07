@@ -9,34 +9,45 @@
 #include "VeloEventModel.cuh"
 #include "patPV_Definitions.cuh"
 #include "DeviceAlgorithm.cuh"
-#include "ArgumentsCommon.cuh"
-#include "ArgumentsVelo.cuh"
-#include "ArgumentsPV.cuh"
 #include "FloatOperations.cuh"
 
-__global__ void pv_beamline_histo(
-  uint* dev_atomics_storage,
-  uint* dev_velo_track_hit_number,
-  PVTrack* dev_pvtracks,
-  float* dev_zhisto,
-  float* dev_beamline);
+namespace pv_beamline_histo {
+  struct Arguments {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
+    DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_pvtracks_t, PVTrack) dev_pvtracks;
+    DEVICE_OUTPUT(dev_zhisto_t, float) dev_zhisto;
+  };
 
-struct pv_beamline_histo_t : public DeviceAlgorithm {
-  constexpr static auto name {"pv_beamline_histo_t"};
-  decltype(global_function(pv_beamline_histo)) function {pv_beamline_histo};
-  using Arguments = std::tuple<dev_atomics_velo, dev_velo_track_hit_number, dev_pvtracks, dev_zhisto>;
+  __global__ void pv_beamline_histo(Arguments arguments, float* dev_beamline);
 
-  void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    const HostBuffers& host_buffers) const;
+  template<typename T>
+  struct pv_beamline_histo_t : public DeviceAlgorithm, Arguments {
+    constexpr static auto name {"pv_beamline_histo_t"};
+    decltype(global_function(pv_beamline_histo)) function {pv_beamline_histo};
 
-  void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event) const;
-};
+    void set_arguments_size(
+      ArgumentRefManager<T> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) const {
+      set_size<dev_zhisto_t>(arguments, value<host_number_of_selected_events_t>(arguments) * (zmax - zmin) / dz);
+    }
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t& cuda_generic_event) const {
+      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+        Arguments {offset<dev_atomics_velo_t>(arguments),
+                   offset<dev_velo_track_hit_number_t>(arguments),
+                   offset<dev_pvtracks_t>(arguments),
+                   offset<dev_zhisto_t>(arguments)},
+        constants.dev_beamline.data());
+    }
+  };
+} // namespace pv_beamline_histo

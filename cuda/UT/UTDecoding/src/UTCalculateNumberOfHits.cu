@@ -1,74 +1,23 @@
 #include "UTCalculateNumberOfHits.cuh"
 
-void ut_calculate_number_of_hits_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  arguments.set_size<dev_ut_raw_input>(std::get<0>(runtime_options.host_ut_events).size_bytes());
-  arguments.set_size<dev_ut_raw_input_offsets>(std::get<1>(runtime_options.host_ut_events).size_bytes());
-  arguments.set_size<dev_ut_hit_offsets>(
-    host_buffers.host_number_of_selected_events[0] * constants.host_unique_x_sector_layer_offsets[4] + 1);
-}
-
-void ut_calculate_number_of_hits_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_ut_raw_input>(),
-    std::get<0>(runtime_options.host_ut_events).begin(),
-    std::get<0>(runtime_options.host_ut_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-  
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_ut_raw_input_offsets>(),
-    std::get<1>(runtime_options.host_ut_events).begin(),
-    std::get<1>(runtime_options.host_ut_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-
-  cudaCheck(
-    cudaMemsetAsync(arguments.offset<dev_ut_hit_offsets>(), 0, arguments.size<dev_ut_hit_offsets>(), cuda_stream));
-
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_ut_raw_input>(),
-    arguments.offset<dev_ut_raw_input_offsets>(),
-    constants.dev_ut_boards.data(),
-    constants.dev_ut_region_offsets.data(),
-    constants.dev_unique_x_sector_layer_offsets.data(),
-    constants.dev_unique_x_sector_offsets.data(),
-    arguments.offset<dev_ut_hit_offsets>(),
-    arguments.offset<dev_event_list>());
-}
-
 /**
  * @brief Calculates the number of hits to be decoded for the UT detector.
  */
-__global__ void ut_calculate_number_of_hits(
-  const char* dev_ut_raw_input,
-  const uint32_t* dev_ut_raw_input_offsets,
+__global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
+  ut_calculate_number_of_hits::Arguments arguments,
   const char* ut_boards,
   const uint* dev_ut_region_offsets,
   const uint* dev_unique_x_sector_layer_offsets,
-  const uint* dev_unique_x_sector_offsets,
-  uint32_t* dev_ut_hit_offsets,
-  const uint* dev_event_list)
+  const uint* dev_unique_x_sector_offsets)
 {
   const uint32_t event_number = blockIdx.x;
-  const uint selected_event_number = dev_event_list[event_number];
+  const uint selected_event_number = arguments.dev_event_list[event_number];
 
-  const uint32_t event_offset = dev_ut_raw_input_offsets[selected_event_number];
+  const uint32_t event_offset = arguments.dev_ut_raw_input_offsets[selected_event_number];
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
-  uint32_t* hit_offsets = dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
+  uint32_t* hit_offsets = arguments.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
 
-  const UTRawEvent raw_event(dev_ut_raw_input + event_offset);
+  const UTRawEvent raw_event(arguments.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
 
   for (uint raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks;

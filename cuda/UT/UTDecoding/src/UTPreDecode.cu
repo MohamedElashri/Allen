@@ -1,72 +1,32 @@
 #include "UTPreDecode.cuh"
 
-void ut_pre_decode_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  arguments.set_size<dev_ut_hits>(UT::Hits::number_of_arrays * host_buffers.host_accumulated_number_of_ut_hits[0]);
-  arguments.set_size<dev_ut_hit_count>(
-    host_buffers.host_number_of_selected_events[0] * constants.host_unique_x_sector_layer_offsets[4]);
-}
-
-void ut_pre_decode_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(cudaMemsetAsync(arguments.offset<dev_ut_hit_count>(), 0, arguments.size<dev_ut_hit_count>(), cuda_stream));
-
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_ut_raw_input>(),
-    arguments.offset<dev_ut_raw_input_offsets>(),
-    arguments.offset<dev_event_list>(),
-    constants.dev_ut_boards.data(),
-    constants.dev_ut_geometry.data(),
-    constants.dev_ut_region_offsets.data(),
-    constants.dev_unique_x_sector_layer_offsets.data(),
-    constants.dev_unique_x_sector_offsets.data(),
-    arguments.offset<dev_ut_hit_offsets>(),
-    arguments.offset<dev_ut_hits>(),
-    arguments.offset<dev_ut_hit_count>());
-}
-
 /**
  * Iterate over raw banks / hits and store only the Y coordinate,
  * and an uint32_t encoding the following:
  * raw_bank number and hit id inside the raw bank.
  * Let's refer to this array as raw_bank_hits.
  */
-__global__ void ut_pre_decode(
-  const char* dev_ut_raw_input,
-  const uint32_t* dev_ut_raw_input_offsets,
-  const uint* dev_event_list,
+__global__ void ut_pre_decode::ut_pre_decode(
+  ut_pre_decode::Arguments arguments,
   const char* ut_boards,
   const char* ut_geometry,
   const uint* dev_ut_region_offsets,
   const uint* dev_unique_x_sector_layer_offsets,
-  const uint* dev_unique_x_sector_offsets,
-  const uint32_t* dev_ut_hit_offsets,
-  uint32_t* dev_ut_hits,
-  uint32_t* dev_ut_hit_count)
-{
+  const uint* dev_unique_x_sector_offsets) {
+
   const uint32_t number_of_events = gridDim.x;
   const uint32_t event_number = blockIdx.x;
-  const uint selected_event_number = dev_event_list[event_number];
+  const uint selected_event_number = arguments.dev_event_list[event_number];
 
-  const uint32_t event_offset = dev_ut_raw_input_offsets[selected_event_number];
+  const uint32_t event_offset = arguments.dev_ut_raw_input_offsets[selected_event_number];
 
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
-  const uint32_t* hit_offsets = dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
-  uint32_t* hit_count = dev_ut_hit_count + event_number * number_of_unique_x_sectors;
+  const uint32_t* hit_offsets = arguments.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
+  uint32_t* hit_count = arguments.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
 
-  UT::Hits ut_hits {dev_ut_hits, dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::Hits ut_hits {arguments.dev_ut_hits, arguments.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  const UTRawEvent raw_event(dev_ut_raw_input + event_offset);
+  const UTRawEvent raw_event(arguments.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 

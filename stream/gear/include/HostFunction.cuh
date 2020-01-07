@@ -13,7 +13,7 @@
 #include "HostBuffers.cuh"
 
 /**
- * @brief      A Handler that encapsulates a CPU function.
+ * @brief      A Handler that encapsulates a host function.
  *             set_arguments allows to set up the arguments of the function.
  *             invokes calls it.
  */
@@ -38,7 +38,7 @@ public:
 
 /**
  * @brief      A helper to make Handlers without needing
- *             to specify its function type (ie. "make_cpu_handler(function)").
+ *             to specify its function type (ie. "host_function(function)").
  */
 template<typename R, typename... T>
 static HostFunction<R, T...> host_function(R(f)(T...))

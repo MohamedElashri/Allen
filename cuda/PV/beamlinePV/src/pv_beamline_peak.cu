@@ -1,43 +1,12 @@
 #include "pv_beamline_peak.cuh"
 
-void pv_beamline_peak_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  arguments.set_size<dev_zpeaks>(host_buffers.host_number_of_selected_events[0] * PV::max_number_vertices);
-  arguments.set_size<dev_number_of_zpeaks>(host_buffers.host_number_of_selected_events[0]);
-}
-
-void pv_beamline_peak_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  const auto grid_dim = dim3(
-    (host_buffers.host_number_of_selected_events[0] + PV::num_threads_pv_beamline_peak_t - 1) /
-    PV::num_threads_pv_beamline_peak_t);
-
-  function.invoke(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
-    arguments.offset<dev_zhisto>(),
-    arguments.offset<dev_zpeaks>(),
-    arguments.offset<dev_number_of_zpeaks>(),
-    host_buffers.host_number_of_selected_events[0]);
-}
-
-__global__ void
-pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeaks, uint number_of_events)
-{
+__global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Arguments arguments, const uint number_of_events) {
   // At least parallelize over events, even if it's
   // one event on each thread
   for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
-    float* zhisto = dev_zhisto + Nbins * event_number;
-    float* zpeaks = dev_zpeaks + PV::max_number_vertices * event_number;
+    const float* zhisto = arguments.dev_zhisto + Nbins * event_number;
+    float* zpeaks = arguments.dev_zpeaks + PV::max_number_vertices * event_number;
     uint number_of_peaks = 0;
 
     Cluster clusters[PV::max_number_of_clusters];
@@ -172,6 +141,6 @@ pv_beamline_peak(float* dev_zhisto, float* dev_zpeaks, uint* dev_number_of_zpeak
       number_of_peaks++;
     }
 
-    dev_number_of_zpeaks[event_number] = number_of_peaks;
+    arguments.dev_number_of_zpeaks[event_number] = number_of_peaks;
   }
 }

@@ -1,74 +1,20 @@
 #include "pv_beamline_cleanup.cuh"
 
-void pv_beamline_cleanup_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  arguments.set_size<dev_multi_final_vertices>(
-    host_buffers.host_number_of_selected_events[0] * PV::max_number_vertices);
-  arguments.set_size<dev_number_of_multi_final_vertices>(host_buffers.host_number_of_selected_events[0]);
-}
-
-void pv_beamline_cleanup_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_number_of_multi_final_vertices>(),
-    0,
-    arguments.size<dev_number_of_multi_final_vertices>(),
-    cuda_stream));
-
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_multi_fit_vertices>(),
-    arguments.offset<dev_number_of_multi_fit_vertices>(),
-    arguments.offset<dev_multi_final_vertices>(),
-    arguments.offset<dev_number_of_multi_final_vertices>());
-
-  if (runtime_options.do_check) {
-    // Retrieve result
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_reconstructed_multi_pvs,
-      arguments.offset<dev_multi_final_vertices>(),
-      arguments.size<dev_multi_final_vertices>(),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_number_of_multivertex,
-      arguments.offset<dev_number_of_multi_final_vertices>(),
-      arguments.size<dev_number_of_multi_final_vertices>(),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-  }
-}
-
-__global__ void pv_beamline_cleanup(
-  PV::Vertex* dev_multi_fit_vertices,
-  uint* dev_number_of_multi_fit_vertices,
-  PV::Vertex* dev_multi_final_vertices,
-  uint* dev_number_of_multi_final_vertices)
-{
+__global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Arguments arguments) {
 
   __shared__ uint tmp_number_vertices[1];
   *tmp_number_vertices = 0;
 
   const uint event_number = blockIdx.x;
 
-  PV::Vertex* vertices = dev_multi_fit_vertices + event_number * PV::max_number_vertices;
-  PV::Vertex* final_vertices = dev_multi_final_vertices + event_number * PV::max_number_vertices;
-  uint* number_of_multi_fit_vertices = dev_number_of_multi_fit_vertices + event_number;
+  const PV::Vertex* vertices = arguments.dev_multi_fit_vertices + event_number * PV::max_number_vertices;
+  PV::Vertex* final_vertices = arguments.dev_multi_final_vertices + event_number * PV::max_number_vertices;
+  const uint number_of_multi_fit_vertices = arguments.dev_number_of_multi_fit_vertices[event_number];
   // loop over all rec PVs, check if another one is within certain sigma range, only fill if not
-  for (uint i_pv = threadIdx.x; i_pv < number_of_multi_fit_vertices[0]; i_pv += blockDim.x) {
+  for (uint i_pv = threadIdx.x; i_pv < number_of_multi_fit_vertices; i_pv += blockDim.x) {
     bool unique = true;
     PV::Vertex vertex1 = vertices[i_pv];
-    for (uint j_pv = 0; j_pv < number_of_multi_fit_vertices[0]; j_pv++) {
+    for (uint j_pv = 0; j_pv < number_of_multi_fit_vertices; j_pv++) {
       if (i_pv == j_pv) continue;
       PV::Vertex vertex2 = vertices[j_pv];
       float z1 = vertex1.position.z;
@@ -87,5 +33,5 @@ __global__ void pv_beamline_cleanup(
     }
   }
   __syncthreads();
-  dev_number_of_multi_final_vertices[event_number] = *tmp_number_vertices;
+  arguments.dev_number_of_multi_final_vertices[event_number] = *tmp_number_vertices;
 }
