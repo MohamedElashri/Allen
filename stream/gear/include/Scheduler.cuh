@@ -6,13 +6,13 @@
 #include "Logger.h"
 #include <utility>
 
-template<typename ConfiguredSequence, typename OutputArguments>
+template<typename ConfiguredSequence>
 struct Scheduler {
   // Dependencies calculated at compile time
   // Determines what to free (out_deps) and reserve (in_deps)
   // at every iteration.
   using in_deps_t = typename Sch::InDependencies<ConfiguredSequence>::t;
-  using out_deps_t = typename Sch::OutDependencies<ConfiguredSequence, OutputArguments>::t;
+  using out_deps_t = typename Sch::OutDependencies<ConfiguredSequence>::t;
   using arguments_tuple_t = typename Sch::ArgumentsTuple<in_deps_t>::t;
   using argument_manager_t = ArgumentManager<arguments_tuple_t>;
 

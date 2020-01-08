@@ -86,37 +86,34 @@ namespace Sch {
   };
 
   // Consume the algorithms and put their dependencies one by one
-  template<typename OutputArguments, typename Algorithms>
+  template<typename Algorithms>
   struct OutDependenciesImpl;
 
-  template<typename OutputArguments, typename Algorithm>
-  struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm>> {
-    using t =
-      std::tuple<>;
+  template<typename Algorithm>
+  struct OutDependenciesImpl<std::tuple<Algorithm>> {
+    using t = std::tuple<>;
   };
 
-  template<typename OutputArguments, typename Algorithm, typename NextAlgorithm, typename... Algorithms>
-  struct OutDependenciesImpl<OutputArguments, std::tuple<Algorithm, NextAlgorithm, Algorithms...>> {
-    using previous_t = typename OutDependenciesImpl<OutputArguments, std::tuple<NextAlgorithm, Algorithms...>>::t;
+  template<typename Algorithm, typename NextAlgorithm, typename... Algorithms>
+  struct OutDependenciesImpl<std::tuple<Algorithm, NextAlgorithm, Algorithms...>> {
+    using previous_t = typename OutDependenciesImpl<std::tuple<NextAlgorithm, Algorithms...>>::t;
     using t = typename TupleAppend<
-      previous_t,
-      ScheduledDependencies<
-        NextAlgorithm,
-        typename TupleElementsNotIn<
-          typename ArgumentsNotIn<typename AlgorithmTraits<Algorithm>::Arguments, std::tuple<NextAlgorithm, Algorithms...>>::t,
-          OutputArguments>::t>>::t;
+                previous_t,
+                ScheduledDependencies<
+                  NextAlgorithm,
+                  typename ArgumentsNotIn<
+                    typename AlgorithmTraits<Algorithm>::Arguments,
+                    std::tuple<NextAlgorithm, Algorithms...>>::t>::t>> ::t;
   };
 
   // Helper to calculate OUT dependencies
-  template<typename ConfiguredSequence, typename OutputArguments>
+  template<typename ConfiguredSequence>
   struct OutDependencies;
 
-  template<typename FirstAlgorithmInSequence, typename... RestOfSequence, typename OutputArguments>
-  struct OutDependencies<std::tuple<FirstAlgorithmInSequence, RestOfSequence...>, OutputArguments> {
+  template<typename FirstAlgorithmInSequence, typename... RestOfSequence>
+  struct OutDependencies<std::tuple<FirstAlgorithmInSequence, RestOfSequence...>> {
     using t = typename TupleReverse<typename TupleAppend<
-      typename OutDependenciesImpl<
-        OutputArguments,
-        typename std::tuple<FirstAlgorithmInSequence, RestOfSequence...>>::t,
+      typename OutDependenciesImpl<typename std::tuple<FirstAlgorithmInSequence, RestOfSequence...>>::t,
       ScheduledDependencies<FirstAlgorithmInSequence, std::tuple<>>>::t>::t;
   };
 
@@ -174,11 +171,8 @@ namespace Sch {
 
   template<typename Argument>
   struct PrintArguments<std::tuple<Argument>> {
-    static constexpr void print()
-    {
-      info_cout << "'" << Argument::name << "'";
-    }
-  };  
+    static constexpr void print() { info_cout << "'" << Argument::name << "'"; }
+  };
 
   template<typename Argument, typename ArgumentSecond, typename... Arguments>
   struct PrintArguments<std::tuple<Argument, ArgumentSecond, Arguments...>> {
@@ -255,9 +249,7 @@ namespace Sch {
 
   template<typename Tuple>
   struct ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<>> {
-    static constexpr void configure(
-      Tuple,
-      const std::map<std::string, std::map<std::string, std::string>>&) {};
+    static constexpr void configure(Tuple, const std::map<std::string, std::map<std::string, std::string>>&) {};
   };
 
   template<typename Tuple, unsigned long I, unsigned long... Is>
@@ -361,7 +353,8 @@ namespace Sch {
    */
   template<typename ArgumentsTuple, typename Algorithm>
   struct ProduceArgumentsTuple {
-    constexpr static ArgumentRefManager<typename AlgorithmTraits<Algorithm>::Arguments> produce(ArgumentsTuple& arguments_tuple)
+    constexpr static ArgumentRefManager<typename AlgorithmTraits<Algorithm>::Arguments> produce(
+      ArgumentsTuple& arguments_tuple)
     {
       return ProduceArgumentsTupleHelper<
         ArgumentsTuple,
@@ -373,19 +366,10 @@ namespace Sch {
   /**
    * @brief Runs the sequence tuple (implementation).
    */
-  template<
-    typename Scheduler,
-    typename Tuple,
-    typename SetSizeArguments,
-    typename VisitArguments,
-    typename Indices>
+  template<typename Scheduler, typename Tuple, typename SetSizeArguments, typename VisitArguments, typename Indices>
   struct RunSequenceTupleImpl;
 
-  template<
-    typename Scheduler,
-    typename Tuple,
-    typename... SetSizeArguments,
-    typename... VisitArguments>
+  template<typename Scheduler, typename Tuple, typename... SetSizeArguments, typename... VisitArguments>
   struct RunSequenceTupleImpl<
     Scheduler,
     Tuple,
@@ -453,11 +437,7 @@ namespace Sch {
   template<typename Scheduler, typename Tuple, typename SetSizeArguments, typename VisitArguments>
   struct RunSequenceTuple;
 
-  template<
-    typename Scheduler,
-    typename Tuple,
-    typename... SetSizeArguments,
-    typename... VisitArguments>
+  template<typename Scheduler, typename Tuple, typename... SetSizeArguments, typename... VisitArguments>
   struct RunSequenceTuple<Scheduler, Tuple, std::tuple<SetSizeArguments...>, std::tuple<VisitArguments...>> {
     constexpr static void run(
       Scheduler& scheduler,
@@ -496,8 +476,7 @@ namespace Sch {
     {
       SequenceVisitor<Algorithm>::check(std::forward<Arguments>(arguments)...);
 
-      RunChecker<std::tuple<Algorithms...>, std::tuple<Arguments...>>::check(
-        std::forward<Arguments>(arguments)...);
+      RunChecker<std::tuple<Algorithms...>, std::tuple<Arguments...>>::check(std::forward<Arguments>(arguments)...);
     }
   };
 

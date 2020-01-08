@@ -21,7 +21,6 @@
 #include "SequenceVisitor.cuh"
 #include "SchedulerMachinery.cuh"
 #include "Scheduler.cuh"
-#include "OutputArguments.cuh"
 #include "CheckerInvoker.h"
 #include "OutputHandler.h"
 #include "ConfiguredSequence.cuh"
@@ -29,7 +28,7 @@
 class Timer;
 
 struct Stream {
-  using scheduler_t = Scheduler<configured_sequence_t, output_arguments_t>;
+  using scheduler_t = Scheduler<configured_sequence_t>;
   using argument_manager_t = ArgumentManager<scheduler_t::arguments_tuple_t>;
 
   Stream() = default;
