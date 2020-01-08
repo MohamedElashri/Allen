@@ -316,9 +316,9 @@ SEQUENCE_T(
   // lf_triplet_seeding_t,
   // lf_triplet_keep_best_t,
   // lf_calculate_parametrization_t,
- 
   // lf_extend_tracks_x_t,
   // lf_extend_tracks_uv_t,
+  
   // lf_quality_filter_length_t,
   // lf_quality_filter_t,
   // cpu_scifi_prefix_sum_number_of_tracks_t,

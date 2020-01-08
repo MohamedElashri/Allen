@@ -1,46 +1,8 @@
 #include "LFQualityFilterLength.cuh"
 
-void lf_quality_filter_length_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_scifi_lf_length_filtered_tracks_t>(arguments, 
-    value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
-    LookingForward::maximum_number_of_candidates_per_ut_track);
-  set_size<dev_scifi_lf_length_filtered_atomics_t>(arguments, 
-    value<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics * 2 + 1);
-  set_size<dev_scifi_lf_parametrization_length_filter_t>(arguments, 
-    4 * value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
-    LookingForward::maximum_number_of_candidates_per_ut_track);
-}
-
-void lf_quality_filter_length_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(cudaMemsetAsync(
-    offset<dev_scifi_lf_length_filtered_atomics_t>(arguments),
-    0,
-    size<dev_scifi_lf_length_filtered_atomics_t>(arguments),
-    cuda_stream));
+__global__ void lf_quality_filter_length::lf_quality_filter_length(
+  lf_quality_filter_length::Parameters parameters,
   
-  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-    offset<dev_atomics_ut_t>(arguments),
-    offset<dev_scifi_lf_tracks_t>(arguments),
-    offset<dev_scifi_lf_atomics_t>(arguments),
-    offset<dev_scifi_lf_length_filtered_tracks_t>(arguments),
-    offset<dev_scifi_lf_length_filtered_atomics_t>(arguments),
-    offset<dev_scifi_lf_parametrization_t>(arguments),
-    offset<dev_scifi_lf_parametrization_length_filter_t>(arguments));
-}
-
-__global__ void lf_quality_filter_length(
   const uint* dev_atomics_ut,
   const SciFi::TrackHits* dev_scifi_lf_tracks,
   const uint* dev_scifi_lf_atomics,
