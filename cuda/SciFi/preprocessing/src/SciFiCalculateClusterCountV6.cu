@@ -7,7 +7,7 @@ void scifi_calculate_cluster_count_v6_t::set_arguments_size(
   const HostBuffers& host_buffers) const
 {
   set_size<dev_scifi_hit_count_t>(arguments, 
-    2 * value<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mats + 1);
+    2 * value<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mats);
 }
 
 void scifi_calculate_cluster_count_v6_t::operator()(

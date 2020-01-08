@@ -7,46 +7,6 @@ __constant__ float Configuration::fit_secondary_vertices_t::track_min_ipchi2;
 __constant__ float Configuration::fit_secondary_vertices_t::track_muon_min_ipchi2;
 __constant__ float Configuration::fit_secondary_vertices_t::max_assoc_ipchi2;
 
-void fit_secondary_vertices_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_secondary_vertices_t>(arguments, host_buffers.host_number_of_svs[0]);
-}
-
-void fit_secondary_vertices_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-    offset<dev_kf_tracks_t>(arguments),
-    offset<dev_atomics_scifi_t>(arguments),
-    offset<dev_scifi_track_hit_number_t>(arguments),
-    offset<dev_scifi_qop_t>(arguments),
-    offset<dev_scifi_states_t>(arguments),
-    offset<dev_scifi_track_ut_indices_t>(arguments),
-    offset<dev_multi_fit_vertices_t>(arguments),
-    offset<dev_number_of_multi_fit_vertices_t>(arguments),
-    offset<dev_kalman_pv_ipchi2_t>(arguments),
-    offset<dev_sv_offsets_t>(arguments),
-    offset<dev_secondary_vertices_t>(arguments));
-
-  if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_secondary_vertices,
-      offset<dev_secondary_vertices_t>(arguments),
-      size<dev_secondary_vertices_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-  }
-}
-
 namespace VertexFit {
 
   //----------------------------------------------------------------------
@@ -304,47 +264,38 @@ namespace VertexFit {
 
 } // namespace VertexFit
 
-__global__ void fit_secondary_vertices(
-  const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  uint* dev_n_scifi_tracks,
-  uint* dev_scifi_track_hit_number,
-  float* dev_scifi_qop,
-  MiniState* dev_scifi_states,
-  uint* dev_ut_indices,
-  PV::Vertex* dev_multi_fit_vertices,
-  uint* dev_number_of_multi_fit_vertices,
-  char* dev_kalman_pv_ipchi2,
-  uint* dev_sv_offsets,
-  VertexFit::TrackMVAVertex* dev_secondary_vertices)
+__global__ void fit_secondary_vertices::fit_secondary_vertices(fit_secondary_vertices::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint sv_offset = dev_sv_offsets[event_number];
+  const uint sv_offset = parameters.dev_sv_offsets[event_number];
 
   // Consolidated SciFi tracks.
-  const SciFi::Consolidated::Tracks scifi_tracks {(uint*) dev_n_scifi_tracks,
-                                                  (uint*) dev_scifi_track_hit_number,
-                                                  (float*) dev_scifi_qop,
-                                                  (MiniState*) dev_scifi_states,
-                                                  (uint*) dev_ut_indices,
+  const SciFi::Consolidated::Tracks scifi_tracks {(uint*) parameters.dev_atomics_scifi,
+                                                  (uint*) parameters.dev_scifi_track_hit_number,
+                                                  (float*) parameters.dev_scifi_qop,
+                                                  (MiniState*) parameters.dev_scifi_states,
+                                                  (uint*) parameters.dev_scifi_track_ut_indices,
                                                   event_number,
                                                   number_of_events};
   const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
   const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
 
   // Track-PV association table.
-  const Associate::Consolidated::Table kalman_pv_ipchi2 {dev_kalman_pv_ipchi2, scifi_tracks.total_number_of_tracks()};
+  const Associate::Consolidated::Table kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
+                                                         scifi_tracks.total_number_of_tracks()};
   const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Kalman fitted tracks.
-  const ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offset;
+  const ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
 
   // Primary vertices.
-  const uint n_pvs_event = *(dev_number_of_multi_fit_vertices + event_number);
-  cuda::span<PV::Vertex const> vertices {dev_multi_fit_vertices + event_number * PV::max_number_vertices, n_pvs_event};
+  const uint n_pvs_event = *(parameters.dev_number_of_multi_fit_vertices + event_number);
+  cuda::span<PV::Vertex const> vertices {parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
+                                         n_pvs_event};
 
   // Secondary vertices.
-  VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
+  VertexFit::TrackMVAVertex* event_secondary_vertices = parameters.dev_secondary_vertices + sv_offset;
 
   // Loop over tracks.
   for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {

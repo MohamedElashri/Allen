@@ -1,44 +1,14 @@
 #include "MuonSortBySRQ.cuh"
 
-void muon_sort_station_region_quarter_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_permutation_srq_t>(arguments, 
-    value<host_number_of_selected_events_t>(arguments) * Muon::Constants::max_numhits_per_event);
-}
-
-void muon_sort_station_region_quarter_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(
-    cudaMemsetAsync(offset<dev_permutation_srq_t>(arguments), 0, size<dev_permutation_srq_t>(arguments), cuda_stream));
-
-  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-    offset<dev_storage_tile_id_t>(arguments),
-    offset<dev_storage_tdc_value_t>(arguments),
-    offset<dev_atomics_muon_t>(arguments),
-    offset<dev_permutation_srq_t>(arguments));
-}
-
-__global__ void muon_sort_station_region_quarter(
-  uint* dev_storage_tile_id,
-  uint* dev_storage_tdc_value,
-  const uint* dev_atomics_muon,
-  uint* dev_permutation_srq)
+__global__ void muon_sort_station_region_quarter::muon_sort_station_region_quarter(
+  muon_sort_station_region_quarter::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
-  const auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
-  const auto storage_tdc_value = dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
-  const auto number_of_hits = dev_atomics_muon[event_number];
-  auto permutation_srq = dev_permutation_srq + event_number * Muon::Constants::max_numhits_per_event;
+  const auto storage_tile_id = parameters.dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
+  const auto storage_tdc_value =
+    parameters.dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
+  const auto number_of_hits = parameters.dev_atomics_muon[event_number];
+  auto permutation_srq = parameters.dev_permutation_srq + event_number * Muon::Constants::max_numhits_per_event;
 
   // Create a permutation according to Muon::MuonTileID::stationRegionQuarter
   const auto get_srq = [&storage_tile_id](const uint a, const uint b) {

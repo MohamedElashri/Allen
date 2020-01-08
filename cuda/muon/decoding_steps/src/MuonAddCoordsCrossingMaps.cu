@@ -1,53 +1,7 @@
 #include "MuonAddCoordsCrossingMaps.cuh"
 
-void muon_add_coords_crossing_maps_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_muon_hits_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-  set_size<dev_station_ocurrences_offset_t>(arguments, 
-    value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations + 1);
-  set_size<dev_muon_compact_hit_t>(arguments, 
-    value<host_number_of_selected_events_t>(arguments) * Muon::Constants::max_numhits_per_event);
-}
-
-void muon_add_coords_crossing_maps_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(cudaMemsetAsync(
-    offset<dev_station_ocurrences_offset_t>(arguments),
-    0,
-    size<dev_station_ocurrences_offset_t>(arguments),
-    cuda_stream));
-
-  cudaCheck(
-    cudaMemsetAsync(offset<dev_muon_compact_hit_t>(arguments), 0, size<dev_muon_compact_hit_t>(arguments), cuda_stream));
-
-  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-    offset<dev_storage_station_region_quarter_offsets_t>(arguments),
-    offset<dev_storage_tile_id_t>(arguments),
-    offset<dev_storage_tdc_value_t>(arguments),
-    offset<dev_atomics_muon_t>(arguments),
-    offset<dev_muon_raw_to_hits_t>(arguments),
-    offset<dev_muon_compact_hit_t>(arguments),
-    offset<dev_station_ocurrences_offset_t>(arguments));
-}
-
-__global__ void muon_add_coords_crossing_maps(
-  uint* dev_storage_station_region_quarter_offsets,
-  uint* dev_storage_tile_id,
-  uint* dev_storage_tdc_value,
-  uint* dev_atomics_muon,
-  Muon::MuonRawToHits* muon_raw_to_hits,
-  uint64_t* dev_muon_compact_hit,
-  uint* dev_station_ocurrences_offset)
+__global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
+  muon_add_coords_crossing_maps::Parameters parameters)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
@@ -59,14 +13,15 @@ __global__ void muon_add_coords_crossing_maps(
 
   __syncthreads();
 
-  auto muon_compact_hit = dev_muon_compact_hit + event_number * Muon::Constants::max_numhits_per_event;
-  auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
-  auto storage_tdc_value = dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
-  auto current_hit_index = dev_atomics_muon + number_of_events + event_number;
+  auto muon_compact_hit = parameters.dev_muon_compact_hit + event_number * Muon::Constants::max_numhits_per_event;
+  auto storage_tile_id = parameters.dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
+  auto storage_tdc_value = parameters.dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
+  auto current_hit_index = parameters.dev_atomics_muon + number_of_events + event_number;
   auto storage_station_region_quarter_offsets =
-    dev_storage_station_region_quarter_offsets +
+    parameters.dev_storage_station_region_quarter_offsets +
     event_number * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
-  auto station_ocurrences_offset = dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
+  auto station_ocurrences_offset =
+    parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
   const auto base_offset = storage_station_region_quarter_offsets[0];
 
   for (uint i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
@@ -82,10 +37,14 @@ __global__ void muon_add_coords_crossing_maps(
       const auto station = tile.station();
       const auto region = tile.region();
 
-      const auto x1 = getLayoutX(muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
-      const auto y1 = getLayoutY(muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
-      const auto x2 = getLayoutX(muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
-      const auto y2 = getLayoutY(muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+      const auto x1 =
+        getLayoutX(parameters.dev_muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+      const auto y1 =
+        getLayoutY(parameters.dev_muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+      const auto x2 =
+        getLayoutX(parameters.dev_muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+      const auto y2 =
+        getLayoutY(parameters.dev_muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
 
       Muon::MuonLayout layout_one;
       Muon::MuonLayout layout_two;

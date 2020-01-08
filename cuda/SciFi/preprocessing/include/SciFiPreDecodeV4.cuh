@@ -7,6 +7,7 @@
 namespace scifi_pre_decode_v4 {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_accumulated_number_of_scifi_hits_t, uint);
     DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
@@ -27,10 +28,7 @@ namespace scifi_pre_decode_v4 {
     const int delta,
     SciFi::Hits& hits);
 
-  __global__ void scifi_pre_decode_v4(
-    Parameters,
-    char* scifi_geometry,
-    const float* dev_inv_clus_res);
+  __global__ void scifi_pre_decode_v4(Parameters, char* scifi_geometry, const float* dev_inv_clus_res);
 
   template<typename T>
   struct scifi_pre_decode_v4_t : public DeviceAlgorithm, Parameters {
@@ -43,7 +41,9 @@ namespace scifi_pre_decode_v4 {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_scifi_hits_t>(arguments, host_buffers.scifi_hits_uints());
+      const auto dev_scifi_hits_size =
+        value<host_accumulated_number_of_scifi_hits_t>(arguments) * sizeof(SciFi::Hit) / sizeof(uint);
+      set_size<dev_scifi_hits_t>(arguments, dev_scifi_hits_size);
     }
 
     void operator()(
@@ -55,7 +55,9 @@ namespace scifi_pre_decode_v4 {
       cudaEvent_t& cuda_generic_event) const
     {
       function(
-        dim3(value<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+        dim3(value<host_number_of_selected_events_t>(arguments)),
+        dim3(SciFi::SciFiRawBankParams::NbBanks),
+        cuda_stream)(
         Parameters {offset<dev_scifi_raw_input_t_t>(arguments),
                     offset<dev_scifi_raw_input_offsets_t_t>(arguments),
                     offset<dev_scifi_hit_count_t_t>(arguments),

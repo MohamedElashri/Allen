@@ -9,16 +9,7 @@
 #include "VeloConsolidated.cuh"
 #include "AssociateConsolidated.cuh"
 #include "States.cuh"
-
 #include "DeviceAlgorithm.cuh"
-#include "ArgumentsVelo.cuh"
-#include "ArgumentsUT.cuh"
-#include "ArgumentsSciFi.cuh"
-#include "ArgumentsVertex.cuh"
-#include "ArgumentsKalmanFilter.cuh"
-#include "ArgumentsPV.cuh"
-#include "ArgumentsSelections.cuh"
-#include "ArgumentsMuon.cuh"
 
 namespace VertexFit {
 
@@ -77,68 +68,90 @@ namespace VertexFit {
 
 } // namespace VertexFit
 
-__global__ void fit_secondary_vertices(
-  const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  uint* dev_n_scifi_tracks,
-  uint* dev_scifi_track_hit_number,
-  float* dev_scifi_qop,
-  MiniState* dev_scifi_states,
-  uint* dev_ut_indices,
-  PV::Vertex* dev_multi_fit_vertices,
-  uint* dev_number_of_multi_fit_vertices,
-  char* dev_kalman_pv_ipchi2,
-  uint* dev_sv_offsets,
-  VertexFit::TrackMVAVertex* dev_secondary_vertices);
+namespace fit_secondary_vertices {
+  struct Parameters {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_number_of_svs_t, uint);
+    DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
+    DEVICE_INPUT(dev_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
+    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
+    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
+    DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
+    DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
+    DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
+    DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
+    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
+    DEVICE_INPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
+  };
 
-struct fit_secondary_vertices_t : public DeviceAlgorithm {
-  constexpr static auto name {"fit_secondary_vertices_t"};
-  decltype(global_function(fit_secondary_vertices)) function {fit_secondary_vertices};
-  using Arguments = std::tuple<
-    dev_kf_tracks,
-    dev_atomics_scifi,
-    dev_scifi_track_hit_number,
-    dev_scifi_qop,
-    dev_scifi_states,
-    dev_scifi_track_ut_indices,
-    dev_multi_fit_vertices,
-    dev_number_of_multi_fit_vertices,
-    dev_kalman_pv_ipchi2,
-    dev_sv_offsets,
-    dev_secondary_vertices>;
+  __global__ void fit_secondary_vertices(Parameters);
 
-  void set_arguments_size(
-    ArgumentRefManager<T> arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    const HostBuffers& host_buffers) const;
+  template<typename T>
+  struct fit_secondary_vertices_t : public DeviceAlgorithm, Parameters {
+    constexpr static auto name {"fit_secondary_vertices_t"};
+    decltype(global_function(fit_secondary_vertices)) function {fit_secondary_vertices};
 
-  void operator()(
-    const ArgumentRefManager<T>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event) const;
+    void set_arguments_size(
+      ArgumentRefManager<T> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) const
+    {
+      set_size<dev_secondary_vertices_t>(arguments, value<host_number_of_svs_t>(arguments));
+    }
 
-private:
-  Property<float> m_minpt {this,
-                           "track_min_pt",
-                           Configuration::fit_secondary_vertices_t::track_min_pt,
-                           200.0f,
-                           "minimum track pT"};
-  Property<float> m_minipchi2 {this,
-                               "track_min_ipchi2",
-                               Configuration::fit_secondary_vertices_t::track_min_ipchi2,
-                               9.0f,
-                               "minimum track IP chi2"};
-  Property<float> m_minmuipchi2 {this,
-                                 "track_muon_min_ipchi2",
-                                 Configuration::fit_secondary_vertices_t::track_muon_min_ipchi2,
-                                 4.0f,
-                                 "minimum muon IP chi2"};
-  Property<float> m_maxassocipchi2 {this,
-                                    "max_assoc_ipchi2",
-                                    Configuration::fit_secondary_vertices_t::max_assoc_ipchi2,
-                                    16.0f,
-                                    "maximum IP chi2 to associate to PV"};
-};
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t& cuda_generic_event) const
+    {
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+        Parameters {offset<dev_kf_tracks_t>(arguments),
+                    offset<dev_atomics_scifi_t>(arguments),
+                    offset<dev_scifi_track_hit_number_t>(arguments),
+                    offset<dev_scifi_qop_t>(arguments),
+                    offset<dev_scifi_states_t>(arguments),
+                    offset<dev_scifi_track_ut_indices_t>(arguments),
+                    offset<dev_multi_fit_vertices_t>(arguments),
+                    offset<dev_number_of_multi_fit_vertices_t>(arguments),
+                    offset<dev_kalman_pv_ipchi2_t>(arguments),
+                    offset<dev_sv_offsets_t>(arguments),
+                    offset<dev_secondary_vertices_t>(arguments)});
+
+      if (runtime_options.do_check) {
+        cudaCheck(cudaMemcpyAsync(
+          host_buffers.host_secondary_vertices,
+          offset<dev_secondary_vertices_t>(arguments),
+          size<dev_secondary_vertices_t>(arguments),
+          cudaMemcpyDeviceToHost,
+          cuda_stream));
+      }
+    }
+
+  private:
+    Property<float> m_minpt {this,
+                             "track_min_pt",
+                             Configuration::fit_secondary_vertices_t::track_min_pt,
+                             200.0f,
+                             "minimum track pT"};
+    Property<float> m_minipchi2 {this,
+                                 "track_min_ipchi2",
+                                 Configuration::fit_secondary_vertices_t::track_min_ipchi2,
+                                 9.0f,
+                                 "minimum track IP chi2"};
+    Property<float> m_minmuipchi2 {this,
+                                   "track_muon_min_ipchi2",
+                                   Configuration::fit_secondary_vertices_t::track_muon_min_ipchi2,
+                                   4.0f,
+                                   "minimum muon IP chi2"};
+    Property<float> m_maxassocipchi2 {this,
+                                      "max_assoc_ipchi2",
+                                      Configuration::fit_secondary_vertices_t::max_assoc_ipchi2,
+                                      16.0f,
+                                      "maximum IP chi2 to associate to PV"};
+  };
+} // namespace fit_secondary_vertices

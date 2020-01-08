@@ -31,7 +31,7 @@ namespace scifi_calculate_cluster_count_v4 {
       set_size<dev_scifi_raw_input_t>(arguments, std::get<0>(runtime_options.host_scifi_events).size_bytes());
       set_size<dev_scifi_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_scifi_events).size_bytes());
       set_size<dev_scifi_hit_count_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats + 1);
+        arguments, value<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
     }
 
     void operator()(

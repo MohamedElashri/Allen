@@ -33,7 +33,7 @@ namespace ut_calculate_number_of_hits {
       set_size<dev_ut_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_ut_events).size_bytes());
       set_size<dev_ut_hit_offsets_t>(
         arguments,
-        value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4] + 1);
+        value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
     }
 
     void operator()(

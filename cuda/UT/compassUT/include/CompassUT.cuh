@@ -86,7 +86,7 @@ namespace compass_ut {
     {
       set_size<dev_ut_tracks_t>(arguments,
         value<host_number_of_selected_events_t>(arguments) * UT::Constants::max_num_tracks);
-      set_size<dev_atomics_ut_t>(arguments, value<host_number_of_selected_events_t>(arguments) * UT::num_atomics + 1);
+      set_size<dev_atomics_ut_t>(arguments, value<host_number_of_selected_events_t>(arguments) * UT::num_atomics);
     }
 
     void operator()(

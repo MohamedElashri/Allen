@@ -1,40 +1,5 @@
 #include "ParKalmanVeloOnly.cuh"
 
-void kalman_velo_only_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_kf_tracks_t>(arguments, host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
-}
-
-void kalman_velo_only_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-    offset<dev_atomics_velo_t>(arguments),
-    offset<dev_velo_track_hit_number_t>(arguments),
-    offset<dev_velo_track_hits_t>(arguments),
-    offset<dev_atomics_ut_t>(arguments),
-    offset<dev_ut_track_hit_number_t>(arguments),
-    offset<dev_ut_qop_t>(arguments),
-    offset<dev_ut_track_velo_indices_t>(arguments),
-    offset<dev_atomics_scifi_t>(arguments),
-    offset<dev_scifi_track_hit_number_t>(arguments),
-    offset<dev_scifi_qop_t>(arguments),
-    offset<dev_scifi_states_t>(arguments),
-    offset<dev_scifi_track_ut_indices_t>(arguments),
-    offset<dev_kf_tracks_t>(arguments),
-    constants.dev_scifi_geometry,
-    constants.dev_kalman_params);
-}
-
 __device__ void simplified_step(
   const KalmanFloat z,
   const KalmanFloat zhit,
@@ -322,45 +287,32 @@ __device__ void simplified_fit(
   track.nhits = n_velo_hits;
 }
 
-__global__ void kalman_velo_only(
-  uint* dev_atomics_storage,
-  uint* dev_velo_track_hit_number,
-  char* dev_velo_track_hits,
-  uint* dev_atomics_veloUT,
-  uint* dev_ut_track_hit_number,
-  float* dev_ut_qop,
-  uint* dev_velo_indices,
-  uint* dev_n_scifi_tracks,
-  uint* dev_scifi_track_hit_number,
-  float* dev_scifi_qop,
-  MiniState* dev_scifi_states,
-  uint* dev_ut_indices,
-  ParKalmanFilter::FittedTrack* dev_kf_tracks,
+__global__ void kalman_velo_only::kalman_velo_only(
+  kalman_velo_only::Parameters parameters,
   const char* dev_scifi_geometry,
   const ParKalmanFilter::KalmanParametrizations* dev_kalman_params)
 {
-
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
   // Create velo tracks.
   const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_storage, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
+    (uint*) parameters.dev_atomics_velo, (uint*) parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
   // Create UT tracks.
-  const UT::Consolidated::Tracks ut_tracks {(uint*) dev_atomics_veloUT,
-                                            (uint*) dev_ut_track_hit_number,
-                                            (float*) dev_ut_qop,
-                                            (uint*) dev_velo_indices,
+  const UT::Consolidated::Tracks ut_tracks {(uint*) parameters.dev_atomics_veloUT,
+                                            (uint*) parameters.dev_ut_track_hit_number,
+                                            (float*) parameters.dev_ut_qop,
+                                            (uint*) parameters.dev_ut_track_velo_indices,
                                             event_number,
                                             number_of_events};
 
   // Create SciFi tracks.
-  const SciFi::Consolidated::Tracks scifi_tracks {(uint*) dev_n_scifi_tracks,
-                                                  (uint*) dev_scifi_track_hit_number,
-                                                  (float*) dev_scifi_qop,
-                                                  (MiniState*) dev_scifi_states,
-                                                  (uint*) dev_ut_indices,
+  const SciFi::Consolidated::Tracks scifi_tracks {(uint*) parameters.dev_atomics_scifi,
+                                                  (uint*) parameters.dev_scifi_track_hit_number,
+                                                  (float*) parameters.dev_scifi_qop,
+                                                  (MiniState*) parameters.dev_scifi_states,
+                                                  (uint*) parameters.dev_scifi_track_ut_indices,
                                                   event_number,
                                                   number_of_events};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
@@ -371,7 +323,8 @@ __global__ void kalman_velo_only(
     // Prepare fit input.
     const int i_ut_track = scifi_tracks.ut_track[i_scifi_track];
     const int i_velo_track = ut_tracks.velo_track[i_ut_track];
-    const Velo::Consolidated::Hits velo_hits = velo_tracks.get_hits((char*) dev_velo_track_hits, i_velo_track);
+    const Velo::Consolidated::Hits velo_hits =
+      velo_tracks.get_hits((char*) parameters.dev_velo_track_hits, i_velo_track);
     const uint n_velo_hits = velo_tracks.number_of_hits(i_velo_track);
     const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop[i_scifi_track];
     simplified_fit(
@@ -379,6 +332,6 @@ __global__ void kalman_velo_only(
       n_velo_hits,
       init_qop,
       dev_kalman_params,
-      dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
+      parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
   }
 }

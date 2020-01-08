@@ -149,11 +149,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   }
 }
 
-size_t HostBuffers::velo_track_hit_number_size() const { return host_number_of_reconstructed_velo_tracks[0] + 1; }
-
-size_t HostBuffers::ut_track_hit_number_size() const { return host_number_of_reconstructed_ut_tracks[0] + 1; }
-
-uint32_t HostBuffers::scifi_hits_uints() const
-{
-  return (sizeof(SciFi::Hit) / sizeof(uint32_t) + 1) * host_accumulated_number_of_scifi_hits[0];
-}
+// uint32_t HostBuffers::scifi_hits_uints() const
+// {
+//   return (sizeof(SciFi::Hit) / sizeof(uint32_t) + 1) * host_accumulated_number_of_scifi_hits[0];
+// }

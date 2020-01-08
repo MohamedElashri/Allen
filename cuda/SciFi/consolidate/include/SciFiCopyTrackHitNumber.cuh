@@ -30,7 +30,7 @@ namespace scifi_copy_track_hit_number {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_scifi_track_hit_number_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments) + 1);
+      set_size<dev_scifi_track_hit_number_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
     }
 
     void operator()(

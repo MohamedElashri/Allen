@@ -46,7 +46,7 @@ namespace lf_triplet_keep_best {
         value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
           LookingForward::maximum_number_of_candidates_per_ut_track);
       set_size<dev_scifi_lf_atomics_t>(
-        arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments) * LookingForward::num_atomics * 2 + 1);
+        arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments) * LookingForward::num_atomics);
       set_size<dev_scifi_lf_total_number_of_found_triplets_t>(
         arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
     }

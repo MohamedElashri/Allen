@@ -73,7 +73,7 @@ namespace ut_consolidate_tracks {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_atomics_ut,
           offset<dev_atomics_ut_t>(arguments),
-          (2 * value<host_number_of_selected_events_t>(arguments) + 1) * sizeof(uint),
+          size<dev_atomics_ut_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
@@ -87,7 +87,7 @@ namespace ut_consolidate_tracks {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_ut_track_hits,
           offset<dev_ut_track_hits_t>(arguments),
-          value<host_accumulated_number_of_hits_in_ut_tracks_t>(arguments) * sizeof(UT::Hit),
+          size<dev_ut_track_hits_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 

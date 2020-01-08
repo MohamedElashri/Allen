@@ -48,7 +48,7 @@ namespace lf_quality_filter {
       const HostBuffers& host_buffers) const
     {
       set_size<dev_atomics_scifi_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics * 2 + 1);
+        arguments, value<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
       set_size<dev_scifi_tracks_t>(
         arguments,
         value<host_number_of_reconstructed_ut_tracks_t>(arguments) * SciFi::Constants::max_SciFi_tracks_per_UT_track);
