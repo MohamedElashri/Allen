@@ -25,8 +25,7 @@ namespace velo_kalman_filter {
    */
   template<bool upstream>
   __device__ KalmanVeloState
-  simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits)
-  {
+  simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits) {
     // backward = state.z > track.hits[0].z;
     const bool backward = stateAtBeamLine.z > consolidated_hits.z[0];
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
@@ -109,35 +108,35 @@ namespace velo_kalman_filter {
     decltype(global_function(velo_kalman_filter)) function {velo_kalman_filter};
 
     void set_arguments_size(
-      ArgumentRefManager<T> manager,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const
-    {
-      set_size<dev_velo_kalman_beamline_states_t>(
-        manager, value<host_number_of_reconstructed_velo_tracks_t>(manager) * sizeof(KalmanVeloState));
+      const HostBuffers& host_buffers) const {
+      set_size<dev_velo_kalman_beamline_states_t>(arguments,
+        value<host_number_of_reconstructed_velo_tracks_t>(arguments) * sizeof(KalmanVeloState));
     }
 
     void operator()(
-      const ArgumentRefManager<T>& manager,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
-    {
-      function.invoke(dim3(value<host_number_of_selected_events_t>(manager)), block_dimension(), cuda_stream)(
-        Arguments {offset<dev_offsets_velo_tracks_t>(manager),
-                   offset<dev_offsets_velo_track_hit_number_t>(manager),
-                   offset<dev_velo_track_hits_t>(manager),
-                   offset<dev_velo_states_t>(manager),
-                   offset<dev_velo_kalman_beamline_states_t>(manager)});
+      cudaEvent_t& cuda_generic_event) const {
+      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+        Arguments {
+          offset<dev_offsets_velo_tracks_t>(arguments),
+          offset<dev_offsets_velo_track_hit_number_t>(arguments),
+          offset<dev_velo_track_hits_t>(arguments),
+          offset<dev_velo_states_t>(arguments),
+          offset<dev_velo_kalman_beamline_states_t>(arguments)
+        });
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_kalmanvelo_states,
-          offset<dev_velo_kalman_beamline_states_t>(manager),
-          size<dev_velo_kalman_beamline_states_t>(manager),
+          offset<dev_velo_kalman_beamline_states_t>(arguments),
+          size<dev_velo_kalman_beamline_states_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
       }

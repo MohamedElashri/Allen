@@ -27,49 +27,47 @@ namespace pv_beamline_cleanup {
     decltype(global_function(pv_beamline_cleanup)) function {pv_beamline_cleanup};
 
     void set_arguments_size(
-      ArgumentRefManager<T> manager,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const
-    {
-      set_size<dev_multi_final_vertices_t>(
-        manager, value<host_number_of_selected_events_t>(manager) * PV::max_number_vertices);
-      set_size<dev_number_of_multi_final_vertices_t>(manager, value<host_number_of_selected_events_t>(manager));
+      const HostBuffers& host_buffers) const {
+      set_size<dev_multi_final_vertices_t>(arguments,
+        value<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
+      set_size<dev_number_of_multi_final_vertices_t>(arguments, value<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
-      const ArgumentRefManager<T>& manager,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
-    {
+      cudaEvent_t& cuda_generic_event) const {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_number_of_multi_final_vertices_t>(manager),
+        offset<dev_number_of_multi_final_vertices_t>(arguments),
         0,
-        size<dev_number_of_multi_final_vertices_t>(manager),
+        size<dev_number_of_multi_final_vertices_t>(arguments),
         cuda_stream));
 
-      function.invoke(dim3(value<host_number_of_selected_events_t>(manager)), block_dimension(), cuda_stream)(
-        Arguments {offset<dev_multi_fit_vertices_t>(manager),
-                   offset<dev_number_of_multi_fit_vertices_t>(manager),
-                   offset<dev_multi_final_vertices_t>(manager),
-                   offset<dev_number_of_multi_final_vertices_t>(manager)});
+      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+        offset<dev_multi_fit_vertices_t>(arguments),
+        offset<dev_number_of_multi_fit_vertices_t>(arguments),
+        offset<dev_multi_final_vertices_t>(arguments),
+        offset<dev_number_of_multi_final_vertices_t>(arguments));
 
       if (runtime_options.do_check) {
         // Retrieve result
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_reconstructed_multi_pvs,
-          offset<dev_multi_final_vertices_t>(manager),
-          size<dev_multi_final_vertices_t>(manager),
+          offset<dev_multi_final_vertices_t>(arguments),
+          size<dev_multi_final_vertices_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_number_of_multivertex,
-          offset<dev_number_of_multi_final_vertices_t>(manager),
-          size<dev_number_of_multi_final_vertices_t>(manager),
+          offset<dev_number_of_multi_final_vertices_t>(arguments),
+          size<dev_number_of_multi_final_vertices_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
       }

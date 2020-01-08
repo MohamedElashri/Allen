@@ -22,26 +22,26 @@ namespace ut_copy_track_hit_number {
     decltype(global_function(ut_copy_track_hit_number)) function {ut_copy_track_hit_number};
 
     void set_arguments_size(
-      ArgumentRefManager<T> manager,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_ut_track_hit_number_t>(manager, host_buffers.ut_track_hit_number_size());
+      set_size<dev_ut_track_hit_number_t>(arguments, host_buffers.ut_track_hit_number_size());
     }
 
     void operator()(
-      const ArgumentRefManager<T>& manager,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function.invoke(dim3(value<host_number_of_selected_events>(manager)), block_dimension(), cuda_stream)(
-        Arguments {offset<dev_ut_tracks_t>(manager),
-                   offset<dev_atomics_ut_t>(manager),
-                   offset<dev_ut_track_hit_number_t>(manager)});
+      function.invoke(dim3(value<host_number_of_selected_events>(arguments)), block_dimension(), cuda_stream)(
+        Arguments {offset<dev_ut_tracks_t>(arguments),
+                   offset<dev_atomics_ut_t>(arguments),
+                   offset<dev_ut_track_hit_number_t>(arguments)});
     }
   };
 } // namespace ut_copy_track_hit_number

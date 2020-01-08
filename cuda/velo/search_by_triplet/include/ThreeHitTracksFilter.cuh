@@ -24,37 +24,37 @@ namespace velo_three_hit_tracks_filter {
     decltype(global_function(velo_three_hit_tracks_filter)) function {velo_three_hit_tracks_filter};
 
     void set_arguments_size(
-      ArgumentRefManager<T> manager,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
-      set_size<dev_number_of_three_hit_tracks_output_t>(manager, value<host_number_of_selected_events_t>(manager));
+      set_size<dev_number_of_three_hit_tracks_output_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_three_hit_tracks_output_t>(
-        manager, value<host_number_of_selected_events_t>(manager) * Velo::Constants::max_tracks);
+        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
     }
 
     void operator()(
-      const ArgumentRefManager<T>& manager,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_number_of_three_hit_tracks_output_t>(manager),
+        offset<dev_number_of_three_hit_tracks_output_t>(arguments),
         0,
-        size<dev_number_of_three_hit_tracks_output_t>(manager),
+        size<dev_number_of_three_hit_tracks_output_t>(arguments),
         cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(manager)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Arguments {
-          offset<dev_sorted_velo_cluster_container_t>(manager),
-          offset<dev_offsets_estimated_input_size_t>(manager),
-          offset<dev_three_hit_tracks_input_t>(manager),
-          offset<dev_atomics_velo_t>(manager),
-          offset<dev_hit_used_t>(manager),
-          offset<dev_three_hit_tracks_output_t>(manager),
-          offset<dev_number_of_three_hit_tracks_output_t>(manager)
+          offset<dev_sorted_velo_cluster_container_t>(arguments),
+          offset<dev_offsets_estimated_input_size_t>(arguments),
+          offset<dev_three_hit_tracks_input_t>(arguments),
+          offset<dev_atomics_velo_t>(arguments),
+          offset<dev_hit_used_t>(arguments),
+          offset<dev_three_hit_tracks_output_t>(arguments),
+          offset<dev_number_of_three_hit_tracks_output_t>(arguments)
         });
     }
   };
