@@ -19,13 +19,13 @@ void scifi_calculate_cluster_count_v5_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   cudaCheck(
-    cudaMemsetAsync(arguments.offset<dev_scifi_hit_count>(), 0, arguments.size<dev_scifi_hit_count>(), cuda_stream));
+    cudaMemsetAsync(offset<dev_scifi_hit_count_t>(arguments), 0, size<dev_scifi_hit_count_t>(arguments), cuda_stream));
 
   function(dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
-    arguments.offset<dev_scifi_raw_input>(),
-    arguments.offset<dev_scifi_raw_input_offsets>(),
-    arguments.offset<dev_event_list>(),
-    arguments.offset<dev_scifi_hit_count>(),
+    offset<dev_scifi_raw_input_t>(arguments),
+    offset<dev_scifi_raw_input_offsets_t>(arguments),
+    offset<dev_event_list_t>(arguments),
+    offset<dev_scifi_hit_count_t>(arguments),
     constants.dev_scifi_geometry);
 }
 

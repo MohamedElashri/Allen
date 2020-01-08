@@ -22,53 +22,53 @@ void global_event_cut_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
     cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_ut_raw_input>(),
+    offset<dev_ut_raw_input_t>(arguments),
     std::get<0>(runtime_options.host_ut_events).begin(),
     std::get<0>(runtime_options.host_ut_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
 
   cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_ut_raw_input_offsets>(),
+    offset<dev_ut_raw_input_offsets_t>(arguments),
     std::get<1>(runtime_options.host_ut_events).begin(),
     std::get<1>(runtime_options.host_ut_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
 
   cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_scifi_raw_input>(),
+    offset<dev_scifi_raw_input_t>(arguments),
     std::get<0>(runtime_options.host_scifi_events).begin(),
     std::get<0>(runtime_options.host_scifi_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
   
   cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_scifi_raw_input_offsets>(),
+    offset<dev_scifi_raw_input_offsets_t>(arguments),
     std::get<1>(runtime_options.host_scifi_events).begin(),
     std::get<1>(runtime_options.host_scifi_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
 
-  cudaCheck(cudaMemsetAsync(arguments.offset<dev_number_of_selected_events>(), 0, sizeof(uint), cuda_stream));
+  cudaCheck(cudaMemsetAsync(offset<dev_number_of_selected_events_t>(arguments), 0, sizeof(uint), cuda_stream));
 
   function(dim3(runtime_options.number_of_events), block_dimension(), cuda_stream)(
-    arguments.offset<dev_ut_raw_input>(),
-    arguments.offset<dev_ut_raw_input_offsets>(),
-    arguments.offset<dev_scifi_raw_input>(),
-    arguments.offset<dev_scifi_raw_input_offsets>(),
-    arguments.offset<dev_number_of_selected_events>(),
-    arguments.offset<dev_event_list>());
+    offset<dev_ut_raw_input_t>(arguments),
+    offset<dev_ut_raw_input_offsets_t>(arguments),
+    offset<dev_scifi_raw_input_t>(arguments),
+    offset<dev_scifi_raw_input_offsets_t>(arguments),
+    offset<dev_number_of_selected_events_t>(arguments),
+    offset<dev_event_list_t>(arguments));
 
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_number_of_selected_events,
-    arguments.offset<dev_number_of_selected_events>(),
+    offset<dev_number_of_selected_events_t>(arguments),
     sizeof(uint),
     cudaMemcpyDeviceToHost,
     cuda_stream));
 
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_event_list,
-    arguments.offset<dev_event_list>(),
+    offset<dev_event_list_t>(arguments),
     runtime_options.number_of_events * sizeof(uint),
     cudaMemcpyHostToDevice,
     cuda_stream));

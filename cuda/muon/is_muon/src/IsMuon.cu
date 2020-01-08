@@ -21,22 +21,22 @@ void is_muon_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_selected_events[0]), dim3(32, Muon::Constants::n_stations), cuda_stream)(
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_scifi_track_hit_number>(),
-    arguments.offset<dev_scifi_qop>(),
-    arguments.offset<dev_scifi_states>(),
-    arguments.offset<dev_scifi_track_ut_indices>(),
-    arguments.offset<dev_muon_hits>(),
-    arguments.offset<dev_muon_track_occupancies>(),
-    arguments.offset<dev_is_muon>(),
+    offset<dev_atomics_scifi_t>(arguments),
+    offset<dev_scifi_track_hit_number_t>(arguments),
+    offset<dev_scifi_qop_t>(arguments),
+    offset<dev_scifi_states_t>(arguments),
+    offset<dev_scifi_track_ut_indices_t>(arguments),
+    offset<dev_muon_hits_t>(arguments),
+    offset<dev_muon_track_occupancies_t>(arguments),
+    offset<dev_is_muon_t>(arguments),
     constants.dev_muon_foi,
     constants.dev_muon_momentum_cuts);
   
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_is_muon,
-      arguments.offset<dev_is_muon>(),
-      arguments.size<dev_is_muon>(),
+      offset<dev_is_muon_t>(arguments),
+      size<dev_is_muon_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
   }

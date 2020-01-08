@@ -11,8 +11,8 @@ void cpu_muon_prefix_sum_storage_t::operator()(
   function(
     host_buffers.host_prefix_sum_buffer,
     host_buffers.host_allocated_prefix_sum_space,
-    arguments.offset<dev_storage_station_region_quarter_offsets>(),
-    arguments.size<dev_storage_station_region_quarter_offsets>(),
+    offset<dev_storage_station_region_quarter_offsets_t>(arguments),
+    size<dev_storage_station_region_quarter_offsets_t>(arguments),
     cuda_stream,
     cuda_generic_event,
     host_buffers.host_muon_total_number_of_tiles);

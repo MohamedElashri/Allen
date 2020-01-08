@@ -18,10 +18,10 @@ void scifi_copy_track_hit_number_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_tracks>(),
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_scifi_track_hit_number>());
+    offset<dev_atomics_ut_t>(arguments),
+    offset<dev_scifi_tracks_t>(arguments),
+    offset<dev_atomics_scifi_t>(arguments),
+    offset<dev_scifi_track_hit_number_t>(arguments));
 }
 
 /**

@@ -10,17 +10,17 @@ void lf_extend_tracks_uv_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_scifi_hits>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_lf_tracks>(),
-    arguments.offset<dev_scifi_lf_atomics>(),
+    offset<dev_scifi_hits_t>(arguments),
+    offset<dev_scifi_hit_count_t>(arguments),
+    offset<dev_atomics_ut_t>(arguments),
+    offset<dev_scifi_lf_tracks_t>(arguments),
+    offset<dev_scifi_lf_atomics_t>(arguments),
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
     constants.dev_inv_clus_res,
-    arguments.offset<dev_ut_states>(),
-    arguments.offset<dev_scifi_lf_initial_windows>(),
-    arguments.offset<dev_scifi_lf_parametrization>());
+    offset<dev_ut_states_t>(arguments),
+    offset<dev_scifi_lf_initial_windows_t>(arguments),
+    offset<dev_scifi_lf_parametrization_t>(arguments));
 }
 
 __global__ void lf_extend_tracks_uv(

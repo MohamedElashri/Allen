@@ -18,8 +18,8 @@ void muon_catboost_evaluator_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_reconstructed_scifi_tracks[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_muon_catboost_features>(),
-    arguments.offset<dev_muon_catboost_output>(),
+    offset<dev_muon_catboost_features_t>(arguments),
+    offset<dev_muon_catboost_output_t>(arguments),
     constants.dev_muon_catboost_leaf_values,
     constants.dev_muon_catboost_leaf_offsets,
     constants.dev_muon_catboost_split_borders,
@@ -31,8 +31,8 @@ void muon_catboost_evaluator_t::operator()(
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_muon_catboost_output,
-      arguments.offset<dev_muon_catboost_output>(),
-      arguments.size<dev_muon_catboost_output>(),
+      offset<dev_muon_catboost_output_t>(arguments),
+      size<dev_muon_catboost_output_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
   }

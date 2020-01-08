@@ -25,29 +25,29 @@ void lf_triplet_seeding_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_scifi_lf_number_of_found_triplets>(),
+    offset<dev_scifi_lf_number_of_found_triplets_t>(arguments),
     0,
-    arguments.size<dev_scifi_lf_number_of_found_triplets>(),
+    size<dev_scifi_lf_number_of_found_triplets_t>(arguments),
     cuda_stream));
 
   function(dim3(host_buffers.host_number_of_selected_events[0]),
     dim3(LookingForward::triplet_seeding_block_dim_x, 2), cuda_stream)(
-    arguments.offset<dev_scifi_hits>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_states>(),
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_ut_track_hit_number>(),
-    arguments.offset<dev_ut_track_velo_indices>(),
-    arguments.offset<dev_ut_qop>(),
+    offset<dev_scifi_hits_t>(arguments),
+    offset<dev_scifi_hit_count_t>(arguments),
+    offset<dev_atomics_velo_t>(arguments),
+    offset<dev_velo_states_t>(arguments),
+    offset<dev_atomics_ut_t>(arguments),
+    offset<dev_ut_track_hit_number_t>(arguments),
+    offset<dev_ut_track_velo_indices_t>(arguments),
+    offset<dev_ut_qop_t>(arguments),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
-    arguments.offset<dev_scifi_lf_initial_windows>(),
+    offset<dev_scifi_lf_initial_windows_t>(arguments),
     constants.dev_looking_forward_constants,
-    arguments.offset<dev_ut_states>(),
-    arguments.offset<dev_scifi_lf_process_track>(),
-    arguments.offset<dev_scifi_lf_found_triplets>(),
-    arguments.offset<dev_scifi_lf_number_of_found_triplets>());
+    offset<dev_ut_states_t>(arguments),
+    offset<dev_scifi_lf_process_track_t>(arguments),
+    offset<dev_scifi_lf_found_triplets_t>(arguments),
+    offset<dev_scifi_lf_number_of_found_triplets_t>(arguments));
 }
 
 __global__ void lf_triplet_seeding(

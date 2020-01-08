@@ -18,20 +18,20 @@ void package_kalman_tracks_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_ut_track_hit_number>(),
-    arguments.offset<dev_ut_qop>(),
-    arguments.offset<dev_ut_track_velo_indices>(),
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_scifi_track_hit_number>(),
-    arguments.offset<dev_scifi_qop>(),
-    arguments.offset<dev_scifi_states>(),
-    arguments.offset<dev_scifi_track_ut_indices>(),
-    arguments.offset<dev_velo_kalman_beamline_states>(),
-    arguments.offset<dev_is_muon>(),
-    arguments.offset<dev_kf_tracks>());
+    offset<dev_atomics_velo_t>(arguments),
+    offset<dev_velo_track_hit_number_t>(arguments),
+    offset<dev_atomics_ut_t>(arguments),
+    offset<dev_ut_track_hit_number_t>(arguments),
+    offset<dev_ut_qop_t>(arguments),
+    offset<dev_ut_track_velo_indices_t>(arguments),
+    offset<dev_atomics_scifi_t>(arguments),
+    offset<dev_scifi_track_hit_number_t>(arguments),
+    offset<dev_scifi_qop_t>(arguments),
+    offset<dev_scifi_states_t>(arguments),
+    offset<dev_scifi_track_ut_indices_t>(arguments),
+    offset<dev_velo_kalman_beamline_states_t>(arguments),
+    offset<dev_is_muon_t>(arguments),
+    offset<dev_kf_tracks_t>(arguments));
 }
 
 __global__ void package_kalman_tracks(

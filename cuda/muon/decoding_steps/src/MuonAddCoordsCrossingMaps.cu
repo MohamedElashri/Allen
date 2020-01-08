@@ -22,22 +22,22 @@ void muon_add_coords_crossing_maps_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_station_ocurrences_offset>(),
+    offset<dev_station_ocurrences_offset_t>(arguments),
     0,
-    arguments.size<dev_station_ocurrences_offset>(),
+    size<dev_station_ocurrences_offset_t>(arguments),
     cuda_stream));
 
   cudaCheck(
-    cudaMemsetAsync(arguments.offset<dev_muon_compact_hit>(), 0, arguments.size<dev_muon_compact_hit>(), cuda_stream));
+    cudaMemsetAsync(offset<dev_muon_compact_hit_t>(arguments), 0, size<dev_muon_compact_hit_t>(arguments), cuda_stream));
 
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_storage_station_region_quarter_offsets>(),
-    arguments.offset<dev_storage_tile_id>(),
-    arguments.offset<dev_storage_tdc_value>(),
-    arguments.offset<dev_atomics_muon>(),
-    arguments.offset<dev_muon_raw_to_hits>(),
-    arguments.offset<dev_muon_compact_hit>(),
-    arguments.offset<dev_station_ocurrences_offset>());
+    offset<dev_storage_station_region_quarter_offsets_t>(arguments),
+    offset<dev_storage_tile_id_t>(arguments),
+    offset<dev_storage_tdc_value_t>(arguments),
+    offset<dev_atomics_muon_t>(arguments),
+    offset<dev_muon_raw_to_hits_t>(arguments),
+    offset<dev_muon_compact_hit_t>(arguments),
+    offset<dev_station_ocurrences_offset_t>(arguments));
 }
 
 __global__ void muon_add_coords_crossing_maps(

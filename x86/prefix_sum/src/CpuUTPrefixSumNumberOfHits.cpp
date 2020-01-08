@@ -11,8 +11,8 @@ void cpu_ut_prefix_sum_number_of_hits_t::operator()(
   function(
     host_buffers.host_prefix_sum_buffer,
     host_buffers.host_allocated_prefix_sum_space,
-    arguments.offset<dev_ut_hit_offsets>(),
-    arguments.size<dev_ut_hit_offsets>(),
+    offset<dev_ut_hit_offsets_t>(arguments),
+    size<dev_ut_hit_offsets_t>(arguments),
     cuda_stream,
     cuda_generic_event,
     host_buffers.host_accumulated_number_of_ut_hits);

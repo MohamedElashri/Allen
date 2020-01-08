@@ -19,17 +19,17 @@ void muon_sort_by_station_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_permutation_station>(), 0, arguments.size<dev_permutation_station>(), cuda_stream));
+    offset<dev_permutation_station_t>(arguments), 0, size<dev_permutation_station_t>(arguments), cuda_stream));
 
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_storage_tile_id>(),
-    arguments.offset<dev_storage_tdc_value>(),
-    arguments.offset<dev_atomics_muon>(),
-    arguments.offset<dev_permutation_station>(),
-    arguments.offset<dev_muon_hits>(),
-    arguments.offset<dev_station_ocurrences_offset>(),
-    arguments.offset<dev_muon_compact_hit>(),
-    arguments.offset<dev_muon_raw_to_hits>());
+    offset<dev_storage_tile_id_t>(arguments),
+    offset<dev_storage_tdc_value_t>(arguments),
+    offset<dev_atomics_muon_t>(arguments),
+    offset<dev_permutation_station_t>(arguments),
+    offset<dev_muon_hits_t>(arguments),
+    offset<dev_station_ocurrences_offset_t>(arguments),
+    offset<dev_muon_compact_hit_t>(arguments),
+    offset<dev_muon_raw_to_hits_t>(arguments));
 }
 
 __global__ void muon_sort_by_station(

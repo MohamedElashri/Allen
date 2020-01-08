@@ -18,8 +18,8 @@ void cpu_sv_prefix_sum_offsets_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   cudaCheck(cudaMemcpyAsync(
-    (uint*) arguments.offset<dev_sv_offsets>(),
-    (uint*) arguments.offset<dev_atomics_scifi>(),
+    (uint*) offset<dev_sv_offsets_t>(arguments),
+    (uint*) offset<dev_atomics_scifi_t>(arguments),
     host_buffers.host_number_of_selected_events[0] * sizeof(uint),
     cudaMemcpyDeviceToDevice,
     cuda_stream));
@@ -27,7 +27,7 @@ void cpu_sv_prefix_sum_offsets_t::operator()(
   function(
     host_buffers.host_prefix_sum_buffer,
     host_buffers.host_allocated_prefix_sum_space,
-    (uint*) arguments.offset<dev_sv_offsets>(),
+    (uint*) offset<dev_sv_offsets_t>(arguments),
     (host_buffers.host_number_of_selected_events[0] + 1) * sizeof(uint),
     cuda_stream,
     cuda_generic_event,
@@ -36,14 +36,14 @@ void cpu_sv_prefix_sum_offsets_t::operator()(
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_number_of_svs,
-      arguments.offset<dev_sv_offsets>() + host_buffers.host_number_of_selected_events[0],
+      offset<dev_sv_offsets_t>(arguments) + host_buffers.host_number_of_selected_events[0],
       sizeof(uint),
       cudaMemcpyDeviceToHost,
       cuda_stream));
 
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_sv_offsets,
-      arguments.offset<dev_sv_offsets>(),
+      offset<dev_sv_offsets_t>(arguments),
       (host_buffers.host_number_of_selected_events[0] + 1) * sizeof(uint),
       cudaMemcpyDeviceToHost,
       cuda_stream));

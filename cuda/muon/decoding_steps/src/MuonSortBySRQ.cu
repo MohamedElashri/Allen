@@ -19,13 +19,13 @@ void muon_sort_station_region_quarter_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   cudaCheck(
-    cudaMemsetAsync(arguments.offset<dev_permutation_srq>(), 0, arguments.size<dev_permutation_srq>(), cuda_stream));
+    cudaMemsetAsync(offset<dev_permutation_srq_t>(arguments), 0, size<dev_permutation_srq_t>(arguments), cuda_stream));
 
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_storage_tile_id>(),
-    arguments.offset<dev_storage_tdc_value>(),
-    arguments.offset<dev_atomics_muon>(),
-    arguments.offset<dev_permutation_srq>());
+    offset<dev_storage_tile_id_t>(arguments),
+    offset<dev_storage_tdc_value_t>(arguments),
+    offset<dev_atomics_muon_t>(arguments),
+    offset<dev_permutation_srq_t>(arguments));
 }
 
 __global__ void muon_sort_station_region_quarter(

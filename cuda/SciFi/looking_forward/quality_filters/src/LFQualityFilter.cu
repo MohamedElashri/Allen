@@ -27,41 +27,41 @@ void lf_quality_filter_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   cudaCheck(
-    cudaMemsetAsync(arguments.offset<dev_atomics_scifi>(), 0, arguments.size<dev_atomics_scifi>(), cuda_stream));
+    cudaMemsetAsync(offset<dev_atomics_scifi_t>(arguments), 0, size<dev_atomics_scifi_t>(arguments), cuda_stream));
 
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_scifi_hits>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
-    arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
+    offset<dev_scifi_hits_t>(arguments),
+    offset<dev_scifi_hit_count_t>(arguments),
+    offset<dev_atomics_ut_t>(arguments),
+    offset<dev_scifi_lf_length_filtered_tracks_t>(arguments),
+    offset<dev_scifi_lf_length_filtered_atomics_t>(arguments),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_scifi_tracks>(),
+    offset<dev_atomics_scifi_t>(arguments),
+    offset<dev_scifi_tracks_t>(arguments),
     constants.dev_looking_forward_constants,
-    arguments.offset<dev_scifi_lf_parametrization_length_filter>(),
-    arguments.offset<dev_scifi_lf_y_parametrization_length_filter>(),
-    arguments.offset<dev_scifi_lf_parametrization_consolidate>(),
-    arguments.offset<dev_ut_states>(),
-    arguments.offset<dev_velo_states>(),
+    offset<dev_scifi_lf_parametrization_length_filter_t>(arguments),
+    offset<dev_scifi_lf_y_parametrization_length_filter_t>(arguments),
+    offset<dev_scifi_lf_parametrization_consolidate_t>(arguments),
+    offset<dev_ut_states_t>(arguments),
+    offset<dev_velo_states_t>(arguments),
     constants.dev_magnet_polarity.data(),
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_ut_track_velo_indices>());
+    offset<dev_atomics_velo_t>(arguments),
+    offset<dev_velo_track_hit_number_t>(arguments),
+    offset<dev_ut_track_velo_indices_t>(arguments));
 
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_atomics_scifi,
-      arguments.offset<dev_atomics_scifi>(),
-      arguments.size<dev_atomics_scifi>(),
+      offset<dev_atomics_scifi_t>(arguments),
+      size<dev_atomics_scifi_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
 
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_scifi_tracks,
-      arguments.offset<dev_scifi_tracks>(),
-      arguments.size<dev_scifi_tracks>(),
+      offset<dev_scifi_tracks_t>(arguments),
+      size<dev_scifi_tracks_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
   }

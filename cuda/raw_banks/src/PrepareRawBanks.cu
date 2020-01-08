@@ -22,49 +22,49 @@ void prepare_raw_banks_t::operator()(
 {
   // Initialize number of events passing Hlt1.
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_number_of_passing_events>(),
+    offset<dev_number_of_passing_events_t>(arguments),
     0,
     sizeof(uint),
     cuda_stream));
 
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_dec_reports>(),
+    offset<dev_dec_reports_t>(arguments),
     0,
-    arguments.size<dev_dec_reports>(),
+    size<dev_dec_reports_t>(arguments),
     cuda_stream));
   
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_sv_offsets>(),
-    arguments.offset<dev_one_track_results>(),
-    arguments.offset<dev_two_track_results>(),
-    arguments.offset<dev_single_muon_results>(),
-    arguments.offset<dev_disp_dimuon_results>(),
-    arguments.offset<dev_high_mass_dimuon_results>(),
-    arguments.offset<dev_dec_reports>(),
-    arguments.offset<dev_number_of_passing_events>(),
-    arguments.offset<dev_passing_event_list>());
+    offset<dev_atomics_scifi_t>(arguments),
+    offset<dev_sv_offsets_t>(arguments),
+    offset<dev_one_track_results_t>(arguments),
+    offset<dev_two_track_results_t>(arguments),
+    offset<dev_single_muon_results_t>(arguments),
+    offset<dev_disp_dimuon_results_t>(arguments),
+    offset<dev_high_mass_dimuon_results_t>(arguments),
+    offset<dev_dec_reports_t>(arguments),
+    offset<dev_number_of_passing_events_t>(arguments),
+    offset<dev_passing_event_list_t>(arguments));
 
   // Copy raw bank data.
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_dec_reports,
-    arguments.offset<dev_dec_reports>(),
-    arguments.size<dev_dec_reports>(),
+    offset<dev_dec_reports_t>(arguments),
+    size<dev_dec_reports_t>(arguments),
     cudaMemcpyDeviceToHost,
     cuda_stream));
 
   // Copy list of passing events.
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_number_of_passing_events,
-    arguments.offset<dev_number_of_passing_events>(),
-    arguments.size<dev_number_of_passing_events>(),
+    offset<dev_number_of_passing_events_t>(arguments),
+    size<dev_number_of_passing_events_t>(arguments),
     cudaMemcpyDeviceToHost,
     cuda_stream));
   
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_passing_event_list,
-    arguments.offset<dev_passing_event_list>(),
-    arguments.size<dev_passing_event_list>(),
+    offset<dev_passing_event_list_t>(arguments),
+    size<dev_passing_event_list_t>(arguments),
     cudaMemcpyDeviceToHost,
     cuda_stream));
 }

@@ -26,52 +26,52 @@ void run_hlt1_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_kf_tracks>(),
-    arguments.offset<dev_secondary_vertices>(),
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_sv_offsets>(),
-    arguments.offset<dev_one_track_results>(),
-    arguments.offset<dev_two_track_results>(),
-    arguments.offset<dev_single_muon_results>(),
-    arguments.offset<dev_disp_dimuon_results>(),
-    arguments.offset<dev_high_mass_dimuon_results>(),
-    arguments.offset<dev_dimuon_soft_results>());
+    offset<dev_kf_tracks_t>(arguments),
+    offset<dev_secondary_vertices_t>(arguments),
+    offset<dev_atomics_scifi_t>(arguments),
+    offset<dev_sv_offsets_t>(arguments),
+    offset<dev_one_track_results_t>(arguments),
+    offset<dev_two_track_results_t>(arguments),
+    offset<dev_single_muon_results_t>(arguments),
+    offset<dev_disp_dimuon_results_t>(arguments),
+    offset<dev_high_mass_dimuon_results_t>(arguments),
+    offset<dev_dimuon_soft_results_t>(arguments));
 
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_one_track_decisions,
-      arguments.offset<dev_one_track_results>(),
-      arguments.size<dev_one_track_results>(),
+      offset<dev_one_track_results_t>(arguments),
+      size<dev_one_track_results_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_two_track_decisions,
-      arguments.offset<dev_two_track_results>(),
-      arguments.size<dev_two_track_results>(),
+      offset<dev_two_track_results_t>(arguments),
+      size<dev_two_track_results_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_single_muon_decisions,
-      arguments.offset<dev_single_muon_results>(),
-      arguments.size<dev_single_muon_results>(),
+      offset<dev_single_muon_results_t>(arguments),
+      size<dev_single_muon_results_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_disp_dimuon_decisions,
-      arguments.offset<dev_disp_dimuon_results>(),
-      arguments.size<dev_disp_dimuon_results>(),
+      offset<dev_disp_dimuon_results_t>(arguments),
+      size<dev_disp_dimuon_results_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_high_mass_dimuon_decisions,
-      arguments.offset<dev_high_mass_dimuon_results>(),
-      arguments.size<dev_high_mass_dimuon_results>(),
+      offset<dev_high_mass_dimuon_results_t>(arguments),
+      size<dev_high_mass_dimuon_results_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_dimuon_soft_decisions,
-      arguments.offset<dev_dimuon_soft_results>(),
-      arguments.size<dev_dimuon_soft_results>(),
+      offset<dev_dimuon_soft_results_t>(arguments),
+      size<dev_dimuon_soft_results_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream)); 
   }

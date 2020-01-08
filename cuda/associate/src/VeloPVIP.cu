@@ -24,12 +24,12 @@ void velo_pv_ip_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_velo_kalman_beamline_states>(),
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_multi_fit_vertices>(),
-    arguments.offset<dev_number_of_multi_fit_vertices>(),
-    arguments.offset<dev_velo_pv_ip>());
+    offset<dev_velo_kalman_beamline_states_t>(arguments),
+    offset<dev_atomics_velo_t>(arguments),
+    offset<dev_velo_track_hit_number_t>(arguments),
+    offset<dev_multi_fit_vertices_t>(arguments),
+    offset<dev_number_of_multi_fit_vertices_t>(arguments),
+    offset<dev_velo_pv_ip_t>(arguments));
 }
 
 namespace Distance {

@@ -22,54 +22,54 @@ void scifi_consolidate_tracks_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_scifi_hits>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_scifi_track_hits>(),
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_scifi_track_hit_number>(),
-    arguments.offset<dev_scifi_qop>(),
-    arguments.offset<dev_scifi_states>(),
-    arguments.offset<dev_scifi_track_ut_indices>(),
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_tracks>(),
+    offset<dev_scifi_hits_t>(arguments),
+    offset<dev_scifi_hit_count_t>(arguments),
+    offset<dev_scifi_track_hits_t>(arguments),
+    offset<dev_atomics_scifi_t>(arguments),
+    offset<dev_scifi_track_hit_number_t>(arguments),
+    offset<dev_scifi_qop_t>(arguments),
+    offset<dev_scifi_states_t>(arguments),
+    offset<dev_scifi_track_ut_indices_t>(arguments),
+    offset<dev_atomics_ut_t>(arguments),
+    offset<dev_scifi_tracks_t>(arguments),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
-    arguments.offset<dev_scifi_lf_parametrization_consolidate>());
+    offset<dev_scifi_lf_parametrization_consolidate_t>(arguments));
 
   // Transmission device to host of Scifi consolidated tracks
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_atomics_scifi,
-      arguments.offset<dev_atomics_scifi>(),
-      arguments.size<dev_atomics_scifi>(),
+      offset<dev_atomics_scifi_t>(arguments),
+      size<dev_atomics_scifi_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
 
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_scifi_track_hit_number,
-      arguments.offset<dev_scifi_track_hit_number>(),
-      arguments.size<dev_scifi_track_hit_number>(),
+      offset<dev_scifi_track_hit_number_t>(arguments),
+      size<dev_scifi_track_hit_number_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
 
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_scifi_track_hits,
-      arguments.offset<dev_scifi_track_hits>(),
-      arguments.size<dev_scifi_track_hits>(),
+      offset<dev_scifi_track_hits_t>(arguments),
+      size<dev_scifi_track_hits_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
 
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_scifi_qop,
-      arguments.offset<dev_scifi_qop>(),
-      arguments.size<dev_scifi_qop>(),
+      offset<dev_scifi_qop_t>(arguments),
+      size<dev_scifi_qop_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
 
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_scifi_track_ut_indices,
-      arguments.offset<dev_scifi_track_ut_indices>(),
-      arguments.size<dev_scifi_track_ut_indices>(),
+      offset<dev_scifi_track_ut_indices_t>(arguments),
+      size<dev_scifi_track_ut_indices_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
   }

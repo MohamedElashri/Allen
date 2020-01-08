@@ -19,21 +19,21 @@ void lf_calculate_parametrization_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_scifi_hits>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_velo_states>(),
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_ut_track_hit_number>(),
-    arguments.offset<dev_ut_track_velo_indices>(),
-    arguments.offset<dev_ut_qop>(),
-    arguments.offset<dev_scifi_lf_tracks>(),
-    arguments.offset<dev_scifi_lf_atomics>(),
+    offset<dev_scifi_hits_t>(arguments),
+    offset<dev_scifi_hit_count_t>(arguments),
+    offset<dev_atomics_velo_t>(arguments),
+    offset<dev_velo_track_hit_number_t>(arguments),
+    offset<dev_velo_states_t>(arguments),
+    offset<dev_atomics_ut_t>(arguments),
+    offset<dev_ut_track_hit_number_t>(arguments),
+    offset<dev_ut_track_velo_indices_t>(arguments),
+    offset<dev_ut_qop_t>(arguments),
+    offset<dev_scifi_lf_tracks_t>(arguments),
+    offset<dev_scifi_lf_atomics_t>(arguments),
     constants.dev_scifi_geometry,
     constants.dev_looking_forward_constants,
     constants.dev_inv_clus_res,
-    arguments.offset<dev_scifi_lf_parametrization>());
+    offset<dev_scifi_lf_parametrization_t>(arguments));
 }
 
 __global__ void lf_calculate_parametrization(

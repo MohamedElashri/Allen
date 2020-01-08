@@ -25,23 +25,23 @@ void fit_secondary_vertices_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_kf_tracks>(),
-    arguments.offset<dev_atomics_scifi>(),
-    arguments.offset<dev_scifi_track_hit_number>(),
-    arguments.offset<dev_scifi_qop>(),
-    arguments.offset<dev_scifi_states>(),
-    arguments.offset<dev_scifi_track_ut_indices>(),
-    arguments.offset<dev_multi_fit_vertices>(),
-    arguments.offset<dev_number_of_multi_fit_vertices>(),
-    arguments.offset<dev_kalman_pv_ipchi2>(),
-    arguments.offset<dev_sv_offsets>(),
-    arguments.offset<dev_secondary_vertices>());
+    offset<dev_kf_tracks_t>(arguments),
+    offset<dev_atomics_scifi_t>(arguments),
+    offset<dev_scifi_track_hit_number_t>(arguments),
+    offset<dev_scifi_qop_t>(arguments),
+    offset<dev_scifi_states_t>(arguments),
+    offset<dev_scifi_track_ut_indices_t>(arguments),
+    offset<dev_multi_fit_vertices_t>(arguments),
+    offset<dev_number_of_multi_fit_vertices_t>(arguments),
+    offset<dev_kalman_pv_ipchi2_t>(arguments),
+    offset<dev_sv_offsets_t>(arguments),
+    offset<dev_secondary_vertices_t>(arguments));
 
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_secondary_vertices,
-      arguments.offset<dev_secondary_vertices>(),
-      arguments.size<dev_secondary_vertices>(),
+      offset<dev_secondary_vertices_t>(arguments),
+      size<dev_secondary_vertices_t>(arguments),
       cudaMemcpyDeviceToHost,
       cuda_stream));
   }

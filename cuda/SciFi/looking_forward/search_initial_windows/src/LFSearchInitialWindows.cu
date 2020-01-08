@@ -23,27 +23,27 @@ void lf_search_initial_windows_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_scifi_lf_initial_windows>(), 0, arguments.size<dev_scifi_lf_initial_windows>(), cuda_stream));
+    offset<dev_scifi_lf_initial_windows_t>(arguments), 0, size<dev_scifi_lf_initial_windows_t>(arguments), cuda_stream));
 
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_scifi_hits>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_atomics_velo>(),
-    arguments.offset<dev_velo_track_hit_number>(),
-    arguments.offset<dev_velo_states>(),
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_ut_track_hit_number>(),
-    arguments.offset<dev_ut_x>(),
-    arguments.offset<dev_ut_tx>(),
-    arguments.offset<dev_ut_z>(),
-    arguments.offset<dev_ut_qop>(),
-    arguments.offset<dev_ut_track_velo_indices>(),
+    offset<dev_scifi_hits_t>(arguments),
+    offset<dev_scifi_hit_count_t>(arguments),
+    offset<dev_atomics_velo_t>(arguments),
+    offset<dev_velo_track_hit_number_t>(arguments),
+    offset<dev_velo_states_t>(arguments),
+    offset<dev_atomics_ut_t>(arguments),
+    offset<dev_ut_track_hit_number_t>(arguments),
+    offset<dev_ut_x_t>(arguments),
+    offset<dev_ut_tx_t>(arguments),
+    offset<dev_ut_z_t>(arguments),
+    offset<dev_ut_qop_t>(arguments),
+    offset<dev_ut_track_velo_indices_t>(arguments),
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
     constants.dev_looking_forward_constants,
-    arguments.offset<dev_scifi_lf_initial_windows>(),
-    arguments.offset<dev_ut_states>(),
-    arguments.offset<dev_scifi_lf_process_track>());
+    offset<dev_scifi_lf_initial_windows_t>(arguments),
+    offset<dev_ut_states_t>(arguments),
+    offset<dev_scifi_lf_process_track_t>(arguments));
 }
 
 __global__ void lf_search_initial_windows(

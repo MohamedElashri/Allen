@@ -25,19 +25,19 @@ void lf_quality_filter_length_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   cudaCheck(cudaMemsetAsync(
-    arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
+    offset<dev_scifi_lf_length_filtered_atomics_t>(arguments),
     0,
-    arguments.size<dev_scifi_lf_length_filtered_atomics>(),
+    size<dev_scifi_lf_length_filtered_atomics_t>(arguments),
     cuda_stream));
   
   function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_atomics_ut>(),
-    arguments.offset<dev_scifi_lf_tracks>(),
-    arguments.offset<dev_scifi_lf_atomics>(),
-    arguments.offset<dev_scifi_lf_length_filtered_tracks>(),
-    arguments.offset<dev_scifi_lf_length_filtered_atomics>(),
-    arguments.offset<dev_scifi_lf_parametrization>(),
-    arguments.offset<dev_scifi_lf_parametrization_length_filter>());
+    offset<dev_atomics_ut_t>(arguments),
+    offset<dev_scifi_lf_tracks_t>(arguments),
+    offset<dev_scifi_lf_atomics_t>(arguments),
+    offset<dev_scifi_lf_length_filtered_tracks_t>(arguments),
+    offset<dev_scifi_lf_length_filtered_atomics_t>(arguments),
+    offset<dev_scifi_lf_parametrization_t>(arguments),
+    offset<dev_scifi_lf_parametrization_length_filter_t>(arguments));
 }
 
 __global__ void lf_quality_filter_length(
