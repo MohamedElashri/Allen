@@ -7,7 +7,7 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace velo_masked_clustering {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_total_number_of_velo_clusters_t, uint);
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
@@ -22,14 +22,14 @@ namespace velo_masked_clustering {
 
   // Function
   __global__ void velo_masked_clustering(
-    Arguments arguments,
+    Parameters parameters,
     const VeloGeometry* dev_velo_geometry,
     uint8_t* dev_velo_sp_patterns,
     float* dev_velo_sp_fx,
     float* dev_velo_sp_fy);
 
   template<typename T>
-  struct velo_masked_clustering_t : public DeviceAlgorithm, Arguments {
+  struct velo_masked_clustering_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"velo_masked_clustering_t"};
     decltype(global_function(velo_masked_clustering)) function {velo_masked_clustering};
 
@@ -59,7 +59,7 @@ namespace velo_masked_clustering {
         cuda_stream));
       
       function(dim3(offset<host_number_of_selected_events_t>(arguments)[0]), block_dimension(), cuda_stream)(
-        Arguments{
+        Parameters{
           offset<dev_velo_raw_input_t>(arguments),
           offset<dev_velo_raw_input_offsets_t>(arguments),
           offset<dev_offsets_estimated_input_size_t>(arguments),

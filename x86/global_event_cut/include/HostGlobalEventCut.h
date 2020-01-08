@@ -7,7 +7,7 @@
 #include "HostAlgorithm.cuh"
 
 namespace host_global_event_cut {
-  struct Arguments {
+  struct Parameters {
     HOST_OUTPUT(host_event_list_t, uint) host_event_list;
     HOST_OUTPUT(host_number_of_selected_events_t, uint) host_number_of_selected_events;
     DEVICE_OUTPUT(dev_event_list_t, uint);
@@ -20,11 +20,11 @@ namespace host_global_event_cut {
     const char* scifi_raw_input,
     const uint* scifi_raw_input_offsets,
     uint number_of_events,
-    Arguments arguments);
+    Parameters parameters);
 
   // Algorithm
   template<typename T>
-  struct host_global_event_cut_t : public HostAlgorithm, Arguments {
+  struct host_global_event_cut_t : public HostAlgorithm, Parameters {
     constexpr static auto name {"host_global_event_cut_t"};
     decltype(host_function(host_global_event_cut)) function {host_global_event_cut};
 
@@ -59,10 +59,7 @@ namespace host_global_event_cut {
         std::get<0>(runtime_options.host_scifi_events).begin(),
         std::get<1>(runtime_options.host_scifi_events).begin(),
         runtime_options.number_of_events,
-        Arguments{
-          offset<host_event_list_t>(arguments),
-          offset<host_number_of_selected_events_t>(arguments)
-        });
+        Parameters {offset<host_event_list_t>(arguments), offset<host_number_of_selected_events_t>(arguments)});
 
       cudaCheck(cudaMemcpyAsync(
         offset<dev_event_list_t>(arguments),
@@ -78,4 +75,4 @@ namespace host_global_event_cut {
       }
     }
   };
-} // namespace cpu_global_event_cut
+} // namespace host_global_event_cut

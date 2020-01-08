@@ -1,26 +1,26 @@
 #include "pv_beamline_multi_fitter.cuh"
 
 __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
-  pv_beamline_multi_fitter::Arguments arguments,
+  pv_beamline_multi_fitter::Parameters parameters,
   const float* dev_beamline) {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  uint* number_of_multi_fit_vertices = arguments.dev_number_of_multi_fit_vertices + event_number;
+  uint* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
 
   const Velo::Consolidated::Tracks velo_tracks {
-    arguments.dev_atomics_velo, arguments.dev_velo_track_hit_number, event_number, number_of_events};
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
   const uint number_of_tracks = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  const float* zseeds = arguments.dev_zpeaks + event_number * PV::max_number_vertices;
-  const uint number_of_seeds = arguments.dev_number_of_zpeaks[event_number];
+  const float* zseeds = parameters.dev_zpeaks + event_number * PV::max_number_vertices;
+  const uint number_of_seeds = parameters.dev_number_of_zpeaks[event_number];
 
-  const PVTrack* tracks = arguments.dev_pvtracks + event_tracks_offset;
+  const PVTrack* tracks = parameters.dev_pvtracks + event_tracks_offset;
 
-  PV::Vertex* vertices = arguments.dev_multi_fit_vertices + event_number * PV::max_number_vertices;
+  PV::Vertex* vertices = parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices;
   PV::Vertex vertex;
-  const float* pvtracks_denom = arguments.dev_pvtracks_denom + event_tracks_offset;
+  const float* pvtracks_denom = parameters.dev_pvtracks_denom + event_tracks_offset;
 
   const float2 seed_pos_xy {dev_beamline[0], dev_beamline[1]};
 
@@ -29,7 +29,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   int first_track_in_range = -1;
   uint number_of_tracks_in_range = 0;
   for (uint i = 0; i < number_of_tracks; i++) {
-    const auto z = arguments.dev_pvtrack_z[event_tracks_offset + i];
+    const auto z = parameters.dev_pvtrack_z[event_tracks_offset + i];
     if (zmin < z && z < zmax) {
       if (first_track_in_range == -1) {
         first_track_in_range = i;

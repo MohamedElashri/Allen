@@ -4,7 +4,7 @@
 #include "HostAlgorithm.cuh"
 
 namespace host_prefix_sum {
-  struct Arguments {
+  struct Parameters {
     HOST_OUTPUT(host_total_sum_holder_t, uint) host_total_sum_holder;
     DEVICE_INPUT(dev_input_buffer_t, uint) dev_input_buffer;
     DEVICE_OUTPUT(dev_output_buffer_t, uint) dev_output_buffer;
@@ -20,10 +20,10 @@ namespace host_prefix_sum {
     const size_t dev_output_buffer_size,
     cudaStream_t& cuda_stream,
     cudaEvent_t& cuda_generic_event,
-    Arguments arguments);
+    Parameters parameters);
 
   template<typename T>
-  struct host_prefix_sum_t : public HostAlgorithm, Arguments {
+  struct host_prefix_sum_t : public HostAlgorithm, Parameters {
     constexpr static auto name {"host_prefix_sum_t"};
     decltype(host_function(host_prefix_sum)) function {host_prefix_sum};
 
@@ -54,7 +54,7 @@ namespace host_prefix_sum {
         size<dev_output_buffer_t>(arguments),
         cuda_stream,
         cuda_generic_event,
-        Arguments{
+        Parameters{
           offset<host_total_sum_holder_t>(arguments),
           offset<dev_input_buffer_t>(arguments),
           offset<dev_output_buffer_t>(arguments)

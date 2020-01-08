@@ -11,7 +11,7 @@
 #include <cstdint>
 
 namespace pv_beamline_extrapolate {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
@@ -21,10 +21,10 @@ namespace pv_beamline_extrapolate {
     DEVICE_OUTPUT(dev_pvtrack_z_t, float) dev_pvtrack_z;
   };
 
-  __global__ void pv_beamline_extrapolate(Arguments);
+  __global__ void pv_beamline_extrapolate(Parameters);
 
   template<typename T>
-  struct pv_beamline_extrapolate_t : public DeviceAlgorithm, Arguments {
+  struct pv_beamline_extrapolate_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"pv_beamline_extrapolate_t"};
     decltype(global_function(pv_beamline_extrapolate)) function {pv_beamline_extrapolate};
     
@@ -45,7 +45,7 @@ namespace pv_beamline_extrapolate {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments{
+        Parameters{
           offset<dev_velo_kalman_beamline_states_t>(arguments),
           offset<dev_atomics_velo_t>(arguments),
           offset<dev_velo_track_hit_number_t>(arguments),

@@ -8,8 +8,6 @@
 #include <cstdio>
 #include <tuple>
 
-using namespace velo_fill_candidates;
-
 /**
  * @brief Fills candidates according to the phi window,
  *        with no restriction on the number of candidates.
@@ -146,21 +144,20 @@ __device__ void fill_candidates_impl(
  *
  *          These candidates will be then iterated in the seeding step of Sbt.
  */
-__global__ void velo_fill_candidates::velo_fill_candidates(Arguments arguments) {
+__global__ void velo_fill_candidates::velo_fill_candidates(velo_fill_candidates::Parameters parameters) {
   const uint event_number = blockIdx.x;
   const uint number_of_events = gridDim.x;
 
   // Pointers to data within the event
   const uint total_estimated_number_of_clusters =
-    arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = arguments.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
-  const uint* module_hitNums = arguments.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
+    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint* module_hitStarts = parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
+  const uint* module_hitNums = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   const auto hit_offset = module_hitStarts[0];
-  assert((module_hitStarts[52] - module_hitStarts[0]) < Velo::Constants::max_number_of_hits_per_event);
 
   const auto velo_cluster_container =
-    Velo::Clusters<const uint>{arguments.dev_sorted_velo_cluster_container.get(), total_estimated_number_of_clusters};
+    Velo::Clusters<const uint>{parameters.dev_sorted_velo_cluster_container.get(), total_estimated_number_of_clusters};
 
   fill_candidates_impl(
-    arguments.dev_h0_candidates, arguments.dev_h2_candidates, module_hitStarts, module_hitNums, velo_cluster_container, arguments.dev_hit_phi, hit_offset);
+    parameters.dev_h0_candidates, parameters.dev_h2_candidates, module_hitStarts, module_hitNums, velo_cluster_container, parameters.dev_hit_phi, hit_offset);
 }

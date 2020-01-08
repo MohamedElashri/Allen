@@ -7,7 +7,7 @@
  * Let's refer to this array as raw_bank_hits.
  */
 __global__ void ut_pre_decode::ut_pre_decode(
-  ut_pre_decode::Arguments arguments,
+  ut_pre_decode::Parameters parameters,
   const char* ut_boards,
   const char* ut_geometry,
   const uint* dev_ut_region_offsets,
@@ -16,17 +16,17 @@ __global__ void ut_pre_decode::ut_pre_decode(
 
   const uint32_t number_of_events = gridDim.x;
   const uint32_t event_number = blockIdx.x;
-  const uint selected_event_number = arguments.dev_event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
-  const uint32_t event_offset = arguments.dev_ut_raw_input_offsets[selected_event_number];
+  const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[selected_event_number];
 
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
-  const uint32_t* hit_offsets = arguments.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
-  uint32_t* hit_count = arguments.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
+  const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
+  uint32_t* hit_count = parameters.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
 
-  UT::Hits ut_hits {arguments.dev_ut_hits, arguments.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::Hits ut_hits {parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  const UTRawEvent raw_event(arguments.dev_ut_raw_input + event_offset);
+  const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 

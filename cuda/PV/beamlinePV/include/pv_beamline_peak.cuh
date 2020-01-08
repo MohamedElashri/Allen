@@ -12,7 +12,7 @@
 #include <cstdint>
 
 namespace pv_beamline_peak {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_zhisto_t, float) dev_zhisto;
     DEVICE_OUTPUT(dev_zpeaks_t, float) dev_zpeaks;
@@ -20,10 +20,10 @@ namespace pv_beamline_peak {
   };
 
   __global__ void
-  pv_beamline_peak(Arguments arguments, const uint number_of_events);
+  pv_beamline_peak(Parameters, const uint number_of_events);
 
   template<typename T>
-  struct pv_beamline_peak_t : public DeviceAlgorithm, Arguments {
+  struct pv_beamline_peak_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"pv_beamline_peak_t"};
     decltype(global_function(pv_beamline_peak)) function {pv_beamline_peak};
 
@@ -48,7 +48,7 @@ namespace pv_beamline_peak {
         PV::num_threads_pv_beamline_peak_t);
 
       function.invoke(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
-        Arguments {
+        Parameters {
           offset<dev_zhisto_t>(arguments), offset<dev_zpeaks_t>(arguments), offset<dev_number_of_zpeaks_t>(arguments)},
         value<host_number_of_selected_events_t>(arguments));
     }

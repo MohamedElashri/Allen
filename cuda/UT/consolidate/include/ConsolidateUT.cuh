@@ -6,7 +6,7 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace ut_consolidate_tracks {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_accumulated_number_of_ut_hits_t, uint);
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, uint);
     HOST_INPUT(host_number_of_selected_events_t, uint);
@@ -24,10 +24,10 @@ namespace ut_consolidate_tracks {
     DEVICE_INPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
   };
 
-  __global__ void ut_consolidate_tracks(Arguments, const uint* dev_unique_x_sector_layer_offsets);
+  __global__ void ut_consolidate_tracks(Parameters, const uint* dev_unique_x_sector_layer_offsets);
 
   template<typename T>
-  struct ut_consolidate_tracks_t : public DeviceAlgorithm, Arguments {
+  struct ut_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"ut_consolidate_tracks_t"};
     decltype(global_function(ut_consolidate_tracks)) function {ut_consolidate_tracks};
 
@@ -55,7 +55,7 @@ namespace ut_consolidate_tracks {
       cudaEvent_t& cuda_generic_event) const
     {
       function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments {offset<dev_ut_hits_t>(arguments),
+        Parameters {offset<dev_ut_hits_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments),
                    offset<dev_ut_track_hits_t>(arguments),
                    offset<dev_atomics_ut_t>(arguments),

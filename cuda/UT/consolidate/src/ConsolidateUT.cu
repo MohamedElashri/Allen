@@ -1,27 +1,27 @@
 #include "ConsolidateUT.cuh"
 
 __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
-  ut_consolidate_tracks::Arguments arguments,
+  ut_consolidate_tracks::Parameters parameters,
   const uint* dev_unique_x_sector_layer_offsets)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
-  const uint total_number_of_hits = arguments.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
-  const UT::TrackHits* event_veloUT_tracks = arguments.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
+  const uint total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
+  const UT::TrackHits* event_veloUT_tracks = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 
   // TODO: Make const container
-  const UT::Hits ut_hits {const_cast<uint*>(arguments.dev_ut_hits.get()), total_number_of_hits};
+  const UT::Hits ut_hits {const_cast<uint*>(parameters.dev_ut_hits.get()), total_number_of_hits};
   const UT::HitOffsets ut_hit_offsets {
-    arguments.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
   const auto event_offset = ut_hit_offsets.event_offset();
 
   // Create consolidated SoAs.
   // TODO: Make const container
-  UT::Consolidated::Tracks ut_tracks {const_cast<uint*>(arguments.dev_atomics_ut.get()),
-                                      const_cast<uint*>(arguments.dev_ut_track_hit_number.get()),
-                                      arguments.dev_ut_qop,
-                                      arguments.dev_ut_track_velo_indices,
+  UT::Consolidated::Tracks ut_tracks {const_cast<uint*>(parameters.dev_atomics_ut.get()),
+                                      const_cast<uint*>(parameters.dev_ut_track_hit_number.get()),
+                                      parameters.dev_ut_qop,
+                                      parameters.dev_ut_track_velo_indices,
                                       event_number,
                                       number_of_events};
   const uint number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
@@ -32,10 +32,10 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
     ut_tracks.velo_track[i] = event_veloUT_tracks[i].velo_track_index;
     ut_tracks.qop[i] = event_veloUT_tracks[i].qop;
     const int track_index = event_tracks_offset + i;
-    arguments.dev_ut_x[track_index] = event_veloUT_tracks[i].x;
-    arguments.dev_ut_z[track_index] = event_veloUT_tracks[i].z;
-    arguments.dev_ut_tx[track_index] = event_veloUT_tracks[i].tx;
-    UT::Consolidated::Hits consolidated_hits = ut_tracks.get_hits(arguments.dev_ut_track_hits, i);
+    parameters.dev_ut_x[track_index] = event_veloUT_tracks[i].x;
+    parameters.dev_ut_z[track_index] = event_veloUT_tracks[i].z;
+    parameters.dev_ut_tx[track_index] = event_veloUT_tracks[i].tx;
+    UT::Consolidated::Hits consolidated_hits = ut_tracks.get_hits(parameters.dev_ut_track_hits, i);
     const UT::TrackHits track = event_veloUT_tracks[i];
 
     // Lambda for populating arrays.

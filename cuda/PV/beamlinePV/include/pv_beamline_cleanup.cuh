@@ -11,7 +11,7 @@
 #include <cstdint>
 
 namespace pv_beamline_cleanup {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
@@ -19,10 +19,10 @@ namespace pv_beamline_cleanup {
     DEVICE_OUTPUT(dev_number_of_multi_final_vertices_t, uint) dev_number_of_multi_final_vertices;
   };
 
-  __global__ void pv_beamline_cleanup(Arguments);
+  __global__ void pv_beamline_cleanup(Parameters);
 
   template<typename T>
-  struct pv_beamline_cleanup_t : public DeviceAlgorithm, Arguments {
+  struct pv_beamline_cleanup_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"pv_beamline_cleanup_t"};
     decltype(global_function(pv_beamline_cleanup)) function {pv_beamline_cleanup};
 

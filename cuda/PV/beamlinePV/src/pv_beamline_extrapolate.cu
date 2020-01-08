@@ -1,16 +1,16 @@
 #include "pv_beamline_extrapolate.cuh"
 
-__global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_extrapolate::Arguments arguments)
+__global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_extrapolate::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
   const Velo::Consolidated::Tracks velo_tracks {
-    arguments.dev_atomics_velo, arguments.dev_velo_track_hit_number, event_number, number_of_events};
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
   // TODO: Make const container
   const Velo::Consolidated::KalmanStates velo_states = Velo::Consolidated::KalmanStates(
-    const_cast<char*>(arguments.dev_velo_kalman_beamline_states.get()), velo_tracks.total_number_of_tracks());
+    const_cast<char*>(parameters.dev_velo_kalman_beamline_states.get()), velo_tracks.total_number_of_tracks());
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
   const uint total_number_of_tracks = velo_tracks.total_number_of_tracks();
@@ -25,24 +25,24 @@ __global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_ext
       z = s.z + dz;
     }
 
-    arguments.dev_pvtrack_z[total_number_of_tracks + event_tracks_offset + index] = z;
+    parameters.dev_pvtrack_z[total_number_of_tracks + event_tracks_offset + index] = z;
   }
 
   __syncthreads();
 
   // Insert in order
   for (uint index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
-    const auto z = arguments.dev_pvtrack_z[total_number_of_tracks + event_tracks_offset + index];
+    const auto z = parameters.dev_pvtrack_z[total_number_of_tracks + event_tracks_offset + index];
     uint insert_position = 0;
 
     for (uint other = 0; other < number_of_tracks_event; ++other) {
-      const auto other_z = arguments.dev_pvtrack_z[total_number_of_tracks + event_tracks_offset + other];
+      const auto other_z = parameters.dev_pvtrack_z[total_number_of_tracks + event_tracks_offset + other];
       insert_position += z > other_z || (z == other_z && index > other);
     }
 
     const KalmanVeloState s = velo_states.get(event_tracks_offset + index);
     PVTrack pvtrack = PVTrack {s, z - s.z};
-    arguments.dev_pvtracks[event_tracks_offset + insert_position] = pvtrack;
-    arguments.dev_pvtrack_z[event_tracks_offset + index] = z;
+    parameters.dev_pvtracks[event_tracks_offset + insert_position] = pvtrack;
+    parameters.dev_pvtrack_z[event_tracks_offset + index] = z;
   }
 }

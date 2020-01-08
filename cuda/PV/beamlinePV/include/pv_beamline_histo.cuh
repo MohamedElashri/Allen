@@ -12,7 +12,7 @@
 #include "FloatOperations.cuh"
 
 namespace pv_beamline_histo {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
@@ -20,10 +20,10 @@ namespace pv_beamline_histo {
     DEVICE_OUTPUT(dev_zhisto_t, float) dev_zhisto;
   };
 
-  __global__ void pv_beamline_histo(Arguments arguments, float* dev_beamline);
+  __global__ void pv_beamline_histo(Parameters, float* dev_beamline);
 
   template<typename T>
-  struct pv_beamline_histo_t : public DeviceAlgorithm, Arguments {
+  struct pv_beamline_histo_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"pv_beamline_histo_t"};
     decltype(global_function(pv_beamline_histo)) function {pv_beamline_histo};
 
@@ -43,7 +43,7 @@ namespace pv_beamline_histo {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments {offset<dev_atomics_velo_t>(arguments),
+        Parameters {offset<dev_atomics_velo_t>(arguments),
                    offset<dev_velo_track_hit_number_t>(arguments),
                    offset<dev_pvtracks_t>(arguments),
                    offset<dev_zhisto_t>(arguments)},

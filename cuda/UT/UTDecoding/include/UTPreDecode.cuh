@@ -5,7 +5,7 @@
 #include "UTEventModel.cuh"
 
 namespace ut_pre_decode {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_accumulated_number_of_ut_hits, uint);
     DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
@@ -17,7 +17,7 @@ namespace ut_pre_decode {
   };
 
   __global__ void ut_pre_decode(
-    Arguments,
+    Parameters,
     const char* ut_boards,
     const char* ut_geometry,
     const uint* dev_ut_region_offsets,
@@ -25,7 +25,7 @@ namespace ut_pre_decode {
     const uint* dev_unique_x_sector_offsets);
 
   template<typename T>
-  struct ut_pre_decode_t : public DeviceAlgorithm, Arguments {
+  struct ut_pre_decode_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"ut_pre_decode_t"};
     decltype(global_function(ut_pre_decode)) function {ut_pre_decode};
 
@@ -50,7 +50,7 @@ namespace ut_pre_decode {
         cudaMemsetAsync(offset<dev_ut_hit_count_t>(arguments), 0, size<dev_ut_hit_count_t>(arguments), cuda_stream));
 
       function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments{offset<dev_ut_raw_input_t>(arguments),
+        Parameters{offset<dev_ut_raw_input_t>(arguments),
                   offset<dev_ut_raw_input_offsets_t>(arguments),
                   offset<dev_event_list_t>(arguments),
                   offset<dev_ut_hit_offsets_t>(arguments),

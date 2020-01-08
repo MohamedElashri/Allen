@@ -8,7 +8,7 @@
 #include <cstdint>
 
 namespace velo_consolidate_tracks {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_accumulated_number_of_hits_in_velo_tracks_t, uint);
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, uint);
@@ -25,10 +25,10 @@ namespace velo_consolidate_tracks {
     DEVICE_OUTPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
   };
 
-  __global__ void velo_consolidate_tracks(Arguments);
+  __global__ void velo_consolidate_tracks(Parameters);
 
   template<typename T>
-  struct velo_consolidate_tracks_t : public DeviceAlgorithm, Arguments {
+  struct velo_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"velo_consolidate_tracks_t"};
     decltype(global_function(velo_consolidate_tracks)) function {velo_consolidate_tracks};
 
@@ -58,7 +58,7 @@ namespace velo_consolidate_tracks {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments {
+        Parameters {
           offset<dev_atomics_velo_t>(arguments),
           offset<dev_tracks_t>(arguments),
           offset<dev_velo_track_hit_number_t>(arguments),
