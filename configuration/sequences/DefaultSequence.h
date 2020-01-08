@@ -318,13 +318,14 @@ SEQUENCE_T(
   // lf_calculate_parametrization_t,
   // lf_extend_tracks_x_t,
   // lf_extend_tracks_uv_t,
-  
   // lf_quality_filter_length_t,
   // lf_quality_filter_t,
+  
   // cpu_scifi_prefix_sum_number_of_tracks_t,
   // scifi_copy_track_hit_number_t,
   // cpu_scifi_prefix_sum_number_of_track_hits_t,
   // scifi_consolidate_tracks_t,
+  
   // muon_pre_decoding_t,
   // cpu_muon_prefix_sum_storage_t,
   // muon_sort_station_region_quarter_t,
