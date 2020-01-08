@@ -6,7 +6,7 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace ut_search_windows {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     DEVICE_INPUT(dev_ut_hits_t, uint) dev_ut_hits;
@@ -20,14 +20,14 @@ namespace ut_search_windows {
   };
 
   __global__ void ut_search_windows(
-    Arguments,
+    Parameters,
     UTMagnetTool* dev_ut_magnet_tool,
     const float* dev_ut_dxDy,
     const uint* dev_unique_x_sector_layer_offsets,
     const float* dev_unique_sector_xs);
 
   template<typename T>
-  struct ut_search_windows_t : public DeviceAlgorithm, Arguments {
+  struct ut_search_windows_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"ut_search_windows_t"};
     decltype(global_function(ut_search_windows)) function {ut_search_windows};
 
@@ -58,7 +58,7 @@ namespace ut_search_windows {
         dim3(value<host_number_of_selected_events_t>(arguments)),
         dim3(UT::Constants::n_layers, UT::Constants::num_thr_searchwin),
         cuda_stream)(
-        Arguments {offset<dev_ut_hits_t>(arguments),
+        Parameters {offset<dev_ut_hits_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments),
                    offset<dev_atomics_velo_t>(arguments),
                    offset<dev_velo_track_hit_number_t>(arguments),

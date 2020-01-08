@@ -1,7 +1,5 @@
 #include "CpuPrefixSum.h"
 
-using namespace host_prefix_sum;
-
 void host_prefix_sum_impl(uint* host_prefix_sum_buffer, const size_t input_number_of_elements, uint* host_total_sum_holder)
 {
   // Do prefix sum on the host
@@ -29,7 +27,7 @@ void host_prefix_sum::host_prefix_sum(
   const size_t dev_output_buffer_size,
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event,
-  Arguments arguments)
+  host_prefix_sum::Parameters parameters)
 {
   assert(dev_output_buffer_size == (dev_input_buffer_size + 1 * sizeof(uint)));
   const auto input_number_of_elements = dev_input_buffer_size / sizeof(uint);
@@ -46,25 +44,25 @@ void host_prefix_sum::host_prefix_sum(
   _unused(cuda_generic_event);
 
   // Copy directly data to the output buffer
-  std::memcpy(arguments.dev_output_buffer, arguments.dev_input_buffer, dev_input_buffer_size);
+  std::memcpy(parameters.dev_output_buffer, parameters.dev_input_buffer, dev_input_buffer_size);
 
   // Perform the prefix sum on the output buffer
-  host_prefix_sum_impl(arguments.dev_output_buffer, input_number_of_elements, arguments.host_total_sum_holder);
+  host_prefix_sum_impl(parameters.dev_output_buffer, input_number_of_elements, parameters.host_total_sum_holder);
 #else
   // Copy data over to the host
   cudaCheck(cudaMemcpyAsync(
-    host_prefix_sum_buffer, arguments.dev_input_buffer, dev_input_buffer_size, cudaMemcpyDeviceToHost, cuda_stream));
+    host_prefix_sum_buffer, parameters.dev_input_buffer, dev_input_buffer_size, cudaMemcpyDeviceToHost, cuda_stream));
 
   // Synchronize
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
 
   // Perform the prefix sum
-  host_prefix_sum_impl(host_prefix_sum_buffer, input_number_of_elements, arguments.host_total_sum_holder);
+  host_prefix_sum_impl(host_prefix_sum_buffer, input_number_of_elements, parameters.host_total_sum_holder);
 
   // Copy prefix summed data to the output buffer
   cudaCheck(cudaMemcpyAsync(
-    arguments.dev_output_buffer, host_prefix_sum_buffer, dev_output_buffer_size, cudaMemcpyHostToDevice, cuda_stream));
+    parameters.dev_output_buffer, host_prefix_sum_buffer, dev_output_buffer_size, cudaMemcpyHostToDevice, cuda_stream));
 #endif
 }
 

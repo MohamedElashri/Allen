@@ -11,7 +11,7 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace velo_search_by_triplet {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_total_number_of_velo_clusters_t, uint);
     DEVICE_INPUT(dev_sorted_velo_cluster_container_t, uint) dev_sorted_velo_cluster_container;
@@ -31,11 +31,11 @@ namespace velo_search_by_triplet {
   };
 
   __global__ void velo_search_by_triplet(
-    Arguments,
+    Parameters,
     const VeloGeometry*);
 
   template<typename T>
-  struct velo_search_by_triplet_t : public DeviceAlgorithm, Arguments {
+  struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"velo_search_by_triplet_t"};
     decltype(global_function(velo_search_by_triplet)) function {velo_search_by_triplet};
 
@@ -72,7 +72,7 @@ namespace velo_search_by_triplet {
         offset<dev_number_of_velo_tracks_t>(arguments), 0, size<dev_number_of_velo_tracks_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments{
+        Parameters{
           offset<dev_sorted_velo_cluster_container_t>(arguments),
           offset<dev_offsets_estimated_input_size_t>(arguments),
           offset<dev_module_cluster_num_t>(arguments),

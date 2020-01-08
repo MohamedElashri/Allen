@@ -1,22 +1,16 @@
 #include "EstimateInputSize.cuh"
 
-using namespace velo_estimate_input_size;
-
-// template class Foo<velo_estimate_input_size::velo_estimate_input_size> {
-  
-// }
-
 __global__ void velo_estimate_input_size::velo_estimate_input_size(
-  Arguments arguments,
+  velo_estimate_input_size::Parameters parameters,
   uint8_t* dev_velo_candidate_ks)
 {
   const auto event_number = blockIdx.x;
-  const auto selected_event_number = arguments.dev_event_list[event_number];
+  const auto selected_event_number = parameters.dev_event_list[event_number];
 
-  const char* velo_raw_input = arguments.dev_velo_raw_input + arguments.dev_velo_raw_input_offsets[selected_event_number];
-  uint* estimated_input_size = arguments.dev_estimated_input_size + event_number * Velo::Constants::n_modules;
-  uint* event_candidate_num = arguments.dev_module_candidate_num + event_number;
-  uint32_t* cluster_candidates = arguments.dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
+  const char* velo_raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
+  uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_modules;
+  uint* event_candidate_num = parameters.dev_module_candidate_num + event_number;
+  uint32_t* cluster_candidates = parameters.dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
 
   // Read raw event
   const auto raw_event = VeloRawEvent(velo_raw_input);

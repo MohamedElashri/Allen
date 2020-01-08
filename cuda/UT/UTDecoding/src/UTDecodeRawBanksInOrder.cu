@@ -1,7 +1,7 @@
 #include "UTDecodeRawBanksInOrder.cuh"
 
 __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
-  ut_decode_raw_banks_in_order::Arguments arguments,
+  ut_decode_raw_banks_in_order::Parameters parameters,
   const char* ut_boards,
   const char* ut_geometry,
   const uint* dev_ut_region_offsets,
@@ -9,18 +9,18 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
 {
   const uint32_t number_of_events = gridDim.x;
   const uint32_t event_number = blockIdx.x;
-  const uint selected_event_number = arguments.dev_event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
   const uint layer_number = blockIdx.y;
-  const uint32_t event_offset = arguments.dev_ut_raw_input_offsets[selected_event_number];
+  const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[selected_event_number];
 
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
   const UT::HitOffsets ut_hit_offsets {
-    arguments.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  UT::Hits ut_hits {arguments.dev_ut_hits, arguments.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  UT::Hits ut_hits {parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  const UTRawEvent raw_event(arguments.dev_ut_raw_input + event_offset);
+  const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
@@ -33,7 +33,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
 
   for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
     const uint hit_index = layer_offset + i;
-    const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index[arguments.dev_ut_hit_permutations[hit_index]];
+    const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index[parameters.dev_ut_hit_permutations[hit_index]];
     const uint raw_bank_index = raw_bank_hit_index >> 24;
     const uint hit_index_inside_raw_bank = raw_bank_hit_index & 0xFFFFFF;
 

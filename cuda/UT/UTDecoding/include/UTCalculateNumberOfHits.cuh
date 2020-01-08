@@ -4,7 +4,7 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace ut_calculate_number_of_hits {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_OUTPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
@@ -13,14 +13,14 @@ namespace ut_calculate_number_of_hits {
   };
 
   __global__ void ut_calculate_number_of_hits(
-    Arguments,
+    Parameters,
     const char* ut_boards,
     const uint* dev_ut_region_offsets,
     const uint* dev_unique_x_sector_layer_offsets,
     const uint* dev_unique_x_sector_offsets);
 
   template<typename T>
-  struct ut_calculate_number_of_hits_t : public DeviceAlgorithm, Arguments {
+  struct ut_calculate_number_of_hits_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"ut_calculate_number_of_hits_t"};
     decltype(global_function(ut_calculate_number_of_hits)) function {ut_calculate_number_of_hits};
 
@@ -61,7 +61,7 @@ namespace ut_calculate_number_of_hits {
         offset<dev_ut_hit_offsets_t>(arguments), 0, size<dev_ut_hit_offsets_t>(arguments), cuda_stream));
 
       function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments {offset<dev_event_list_t>(arguments),
+        Parameters {offset<dev_event_list_t>(arguments),
                    offset<dev_ut_raw_input_t>(arguments),
                    offset<dev_ut_raw_input_offsets_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments)},

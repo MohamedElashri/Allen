@@ -5,7 +5,7 @@
 #include "States.cuh"
 
 namespace velo_three_hit_tracks_filter {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_sorted_velo_cluster_container_t, uint) dev_sorted_velo_cluster_container;
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
@@ -16,10 +16,10 @@ namespace velo_three_hit_tracks_filter {
     DEVICE_OUTPUT(dev_number_of_three_hit_tracks_output_t, uint) dev_number_of_three_hit_tracks_output;
   };
 
-  __global__ void velo_three_hit_tracks_filter(Arguments);
+  __global__ void velo_three_hit_tracks_filter(Parameters);
 
   template<typename T>
-  struct velo_three_hit_tracks_filter_t : public DeviceAlgorithm, Arguments {
+  struct velo_three_hit_tracks_filter_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"velo_three_hit_tracks_filter_t"};
     decltype(global_function(velo_three_hit_tracks_filter)) function {velo_three_hit_tracks_filter};
 
@@ -47,7 +47,7 @@ namespace velo_three_hit_tracks_filter {
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments {
+        Parameters {
           offset<dev_sorted_velo_cluster_container_t>(arguments),
           offset<dev_offsets_estimated_input_size_t>(arguments),
           offset<dev_three_hit_tracks_input_t>(arguments),

@@ -8,7 +8,7 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace velo_calculate_phi_and_sort {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_total_number_of_velo_clusters_t, uint);
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
@@ -34,10 +34,10 @@ namespace velo_calculate_phi_and_sort {
     Velo::Clusters<uint32_t>& velo_sorted_cluster_container,
     uint* hit_permutations);
 
-  __global__ void velo_calculate_phi_and_sort(Arguments);
+  __global__ void velo_calculate_phi_and_sort(Parameters);
 
   template<typename T>
-  struct velo_calculate_phi_and_sort_t : public DeviceAlgorithm, Arguments {
+  struct velo_calculate_phi_and_sort_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"velo_calculate_phi_and_sort_t"};
     decltype(global_function(velo_calculate_phi_and_sort)) function {velo_calculate_phi_and_sort};
 
@@ -65,7 +65,7 @@ namespace velo_calculate_phi_and_sort {
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments{
+        Parameters{
           offset<dev_offsets_estimated_input_size_t>(arguments),
           offset<dev_module_cluster_num_t>(arguments),
           offset<dev_velo_cluster_container_t>(arguments),

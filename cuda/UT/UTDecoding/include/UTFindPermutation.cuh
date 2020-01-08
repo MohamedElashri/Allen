@@ -5,7 +5,7 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace ut_find_permutation {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_accumulated_number_of_ut_hits_t, uint);
     DEVICE_INPUT(dev_ut_hits_t, uint) dev_ut_hits;
@@ -13,10 +13,10 @@ namespace ut_find_permutation {
     DEVICE_OUTPUT(dev_ut_hit_permutations_t, uint) dev_ut_hit_permutations;
   };
 
-  __global__ void ut_find_permutation(Arguments, const uint* dev_unique_x_sector_layer_offsets);
+  __global__ void ut_find_permutation(Parameters, const uint* dev_unique_x_sector_layer_offsets);
 
   template<typename T>
-  struct ut_find_permutation_t : public DeviceAlgorithm, Arguments {
+  struct ut_find_permutation_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"ut_find_permutation_t"};
     decltype(global_function(ut_find_permutation)) function {ut_find_permutation};
 
@@ -41,7 +41,7 @@ namespace ut_find_permutation {
         dim3(value<host_number_of_selected_events_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
         block_dimension(),
         cuda_stream)(
-        Arguments {offset<dev_ut_hits_t>(arguments),
+        Parameters {offset<dev_ut_hits_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments),
                    offset<dev_ut_hit_permutations_t>(arguments)},
         constants.dev_unique_x_sector_layer_offsets.data());

@@ -12,7 +12,7 @@ __constant__ float Configuration::compass_ut_t::delta_tx_2;
 __constant__ uint Configuration::compass_ut_t::max_considered_before_found;
 
 __global__ void compass_ut::compass_ut(
-  compass_ut::Arguments arguments,
+  compass_ut::Parameters parameters,
   UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_magnet_polarity,
   const float* dev_ut_dxDy,
@@ -22,33 +22,34 @@ __global__ void compass_ut::compass_ut(
   const uint event_number = blockIdx.x;
 
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const uint total_number_of_hits = arguments.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
+  const uint total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
 
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
-    arguments.dev_atomics_velo, arguments.dev_velo_track_hit_number, event_number, number_of_events};
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   // TODO: Make const container
-  const Velo::Consolidated::States velo_states {const_cast<char*>(arguments.dev_velo_states.get()), velo_tracks.total_number_of_tracks()};
+  const Velo::Consolidated::States velo_states {const_cast<char*>(parameters.dev_velo_states.get()),
+                                                velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   const short* windows_layers =
-    arguments.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
+    parameters.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
 
   const UT::HitOffsets ut_hit_offsets {
-    arguments.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  const UT::Hits ut_hits {const_cast<uint*>(arguments.dev_ut_hits.get()), total_number_of_hits};
+    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const UT::Hits ut_hits {const_cast<uint*>(parameters.dev_ut_hits.get()), total_number_of_hits};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
 
   // active track pointer
-  uint* active_tracks = arguments.dev_ut_active_tracks + event_number;
+  uint* active_tracks = parameters.dev_ut_active_tracks + event_number;
 
-  // arguments.dev_atomics_ut contains in an SoA:
+  // parameters.dev_atomics_ut contains in an SoA:
   //   1. # of veloUT tracks
   //   2. # velo tracks in UT acceptance
   // This is to write the final track
-  uint* n_veloUT_tracks_event = arguments.dev_atomics_ut + event_number;
-  UT::TrackHits* veloUT_tracks_event = arguments.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
+  uint* n_veloUT_tracks_event = parameters.dev_atomics_ut + event_number;
+  UT::TrackHits* veloUT_tracks_event = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 
   // store the tracks with valid windows
   __shared__ int shared_active_tracks[2 * UT::Constants::num_thr_compassut - 1];
@@ -68,7 +69,7 @@ __global__ void compass_ut::compass_ut(
       const auto velo_state = velo_states.get(current_track_offset);
 
       if (
-        !velo_states.backward[current_track_offset] && arguments.dev_accepted_velo_tracks[current_track_offset] &&
+        !velo_states.backward[current_track_offset] && parameters.dev_accepted_velo_tracks[current_track_offset] &&
         velo_track_in_UTA_acceptance(velo_state) &&
         found_active_windows(windows_layers, number_of_tracks_event, i_track)) {
         uint current_track = atomicAdd(active_tracks, 1);

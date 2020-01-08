@@ -11,7 +11,7 @@
 #include <cstdint>
 
 namespace pv_beamline_multi_fitter {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
@@ -26,11 +26,11 @@ namespace pv_beamline_multi_fitter {
   };
 
   __global__ void pv_beamline_multi_fitter(
-    Arguments arguments,
+    Parameters,
     const float* dev_beamline);
 
   template<typename T>
-  struct pv_beamline_multi_fitter_t : public DeviceAlgorithm, Arguments {
+  struct pv_beamline_multi_fitter_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"pv_beamline_multi_fitter_t"};
     decltype(global_function(pv_beamline_multi_fitter)) function {pv_beamline_multi_fitter};
 
@@ -59,7 +59,7 @@ namespace pv_beamline_multi_fitter {
         cuda_stream));
 
       function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments {offset<dev_atomics_velo_t>(arguments),
+        Parameters {offset<dev_atomics_velo_t>(arguments),
                    offset<dev_velo_track_hit_number_t>(arguments),
                    offset<dev_pvtracks_t>(arguments),
                    offset<dev_pvtracks_denom_t>(arguments),

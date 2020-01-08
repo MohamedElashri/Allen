@@ -1,11 +1,10 @@
 #include "VeloConsolidateTracks.cuh"
 
-using namespace velo_consolidate_tracks;
-
 /**
  * @brief Calculates the parameters according to a root means square fit
  */
-__device__ VeloState means_square_fit(Velo::Consolidated::Hits& consolidated_hits, const uint number_of_hits) {
+__device__ VeloState means_square_fit(Velo::Consolidated::Hits& consolidated_hits, const uint number_of_hits)
+{
   VeloState state;
 
   // Fit parameters
@@ -58,48 +57,51 @@ __device__ VeloState means_square_fit(Velo::Consolidated::Hits& consolidated_hit
 }
 
 template<typename T, typename F>
-__device__ void populate(const Velo::TrackHits* track, const uint number_of_hits, T* __restrict__ a, const F& fn) {
+__device__ void populate(const Velo::TrackHits* track, const uint number_of_hits, T* __restrict__ a, const F& fn)
+{
   for (int i = 0; i < number_of_hits; ++i) {
     const auto hit_index = track->hits[i];
     a[i] = fn(hit_index);
   }
 }
 
-__global__ void velo_consolidate_tracks::velo_consolidate_tracks(Arguments arguments) {
+__global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidate_tracks::Parameters parameters)
+{
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
-  const Velo::TrackHits* event_tracks = arguments.dev_tracks + event_number * Velo::Constants::max_tracks;
+  const Velo::TrackHits* event_tracks = parameters.dev_tracks + event_number * Velo::Constants::max_tracks;
   const Velo::TrackletHits* three_hit_tracks =
-    arguments.dev_three_hit_tracks_output + event_number * Velo::Constants::max_tracks;
+    parameters.dev_three_hit_tracks_output + event_number * Velo::Constants::max_tracks;
 
   // Consolidated datatypes
   const Velo::Consolidated::Tracks velo_tracks {
-    arguments.dev_atomics_velo, arguments.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::States velo_states {const_cast<char*>(arguments.dev_velo_states.get()),
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+  Velo::Consolidated::States velo_states {const_cast<char*>(parameters.dev_velo_states.get()),
                                           velo_tracks.total_number_of_tracks()};
 
   const uint event_number_of_tracks = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   const auto event_number_of_three_hit_tracks_filtered =
-    arguments.dev_offsets_number_of_three_hit_tracks_filtered[event_number + 1] -
-    arguments.dev_offsets_number_of_three_hit_tracks_filtered[event_number];
+    parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number + 1] -
+    parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number];
   const auto event_number_of_tracks_in_main_track_container =
     event_number_of_tracks - event_number_of_three_hit_tracks_filtered;
 
   // Pointers to data within event
   const uint total_estimated_number_of_clusters =
-    arguments.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = arguments.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
+    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint* module_hitStarts =
+    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
 
   // TODO: Offset'ed container
   const auto velo_cluster_container = Velo::Clusters<const uint> {
-    arguments.dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
+    parameters.dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
 
   for (uint i = threadIdx.x; i < event_number_of_tracks; i += blockDim.x) {
-    Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(arguments.dev_velo_track_hits, i);
+    Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i);
 
     Velo::TrackHits* track;
     uint number_of_hits;

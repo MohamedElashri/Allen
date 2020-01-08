@@ -1,8 +1,6 @@
 #include "SearchByTriplet.cuh"
 #include "ClusteringDefinitions.cuh"
 
-using namespace velo_search_by_triplet;
-
 __constant__ float Configuration::velo_search_by_triplet::forward_phi_tolerance;
 __constant__ float Configuration::velo_search_by_triplet::max_chi2;
 __constant__ float Configuration::velo_search_by_triplet::max_scatter_forwarding;
@@ -44,7 +42,7 @@ __constant__ int Configuration::velo_search_by_triplet::ttf_modulo_mask;
  */
 
 __global__ void velo_search_by_triplet::velo_search_by_triplet(
-  Arguments arguments,
+  velo_search_by_triplet::Parameters parameters,
   const VeloGeometry* dev_velo_geometry) {
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.

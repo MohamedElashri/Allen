@@ -5,7 +5,7 @@
 #include "UTEventModel.cuh"
 
 namespace ut_decode_raw_banks_in_order {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
@@ -16,14 +16,14 @@ namespace ut_decode_raw_banks_in_order {
   };
 
   __global__ void ut_decode_raw_banks_in_order(
-    Arguments,
+    Parameters,
     const char* ut_boards,
     const char* ut_geometry,
     const uint* dev_ut_region_offsets,
     const uint* dev_unique_x_sector_layer_offsets);
 
   template<typename T>
-  struct ut_decode_raw_banks_in_order_t : public DeviceAlgorithm, Arguments {
+  struct ut_decode_raw_banks_in_order_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"ut_decode_raw_banks_in_order_t"};
     decltype(global_function(ut_decode_raw_banks_in_order)) function {ut_decode_raw_banks_in_order};
 
@@ -46,7 +46,7 @@ namespace ut_decode_raw_banks_in_order {
         dim3(value<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
         block_dimension(),
         cuda_stream)(
-        Arguments {offset<dev_ut_raw_input_t>(arguments),
+        Parameters {offset<dev_ut_raw_input_t>(arguments),
                    offset<dev_ut_raw_input_offsets_t>(arguments),
                    offset<dev_event_list_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments),

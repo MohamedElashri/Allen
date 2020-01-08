@@ -90,7 +90,7 @@ namespace velo_kalman_filter {
     return state;
   }
 
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_offsets_velo_tracks_t, uint) dev_offsets_velo_tracks;
@@ -100,10 +100,10 @@ namespace velo_kalman_filter {
     DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
   };
 
-  __global__ void velo_kalman_filter(Arguments);
+  __global__ void velo_kalman_filter(Parameters);
 
   template<typename T>
-  struct velo_kalman_filter_t : public DeviceAlgorithm, Arguments {
+  struct velo_kalman_filter_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"velo_kalman_filter_t"};
     decltype(global_function(velo_kalman_filter)) function {velo_kalman_filter};
 
@@ -124,7 +124,7 @@ namespace velo_kalman_filter {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments {
+        Parameters {
           offset<dev_offsets_velo_tracks_t>(arguments),
           offset<dev_offsets_velo_track_hit_number_t>(arguments),
           offset<dev_velo_track_hits_t>(arguments),

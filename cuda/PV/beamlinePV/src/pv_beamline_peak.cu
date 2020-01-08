@@ -1,12 +1,12 @@
 #include "pv_beamline_peak.cuh"
 
-__global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Arguments arguments, const uint number_of_events) {
+__global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters parameters, const uint number_of_events) {
   // At least parallelize over events, even if it's
   // one event on each thread
   for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
-    const float* zhisto = arguments.dev_zhisto + Nbins * event_number;
-    float* zpeaks = arguments.dev_zpeaks + PV::max_number_vertices * event_number;
+    const float* zhisto = parameters.dev_zhisto + Nbins * event_number;
+    float* zpeaks = parameters.dev_zpeaks + PV::max_number_vertices * event_number;
     uint number_of_peaks = 0;
 
     Cluster clusters[PV::max_number_of_clusters];
@@ -141,6 +141,6 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Arguments a
       number_of_peaks++;
     }
 
-    arguments.dev_number_of_zpeaks[event_number] = number_of_peaks;
+    parameters.dev_number_of_zpeaks[event_number] = number_of_peaks;
   }
 }

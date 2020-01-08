@@ -2,7 +2,7 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace velo_copy_track_hit_number {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, uint);
@@ -13,10 +13,10 @@ namespace velo_copy_track_hit_number {
     DEVICE_OUTPUT(dev_offsets_all_velo_tracks_t, uint) dev_offsets_all_velo_tracks;
   };
 
-  __global__ void velo_copy_track_hit_number(Arguments);
+  __global__ void velo_copy_track_hit_number(Parameters);
 
   template<typename T>
-  struct velo_copy_track_hit_number_t : public DeviceAlgorithm, Arguments {
+  struct velo_copy_track_hit_number_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"velo_copy_track_hit_number_t"};
     decltype(global_function(velo_copy_track_hit_number)) function {velo_copy_track_hit_number};
 
@@ -44,7 +44,7 @@ namespace velo_copy_track_hit_number {
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Arguments{
+        Parameters{
           offset<dev_tracks_t>(arguments),
           offset<dev_atomics_velo_t>(arguments),
           offset<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments),

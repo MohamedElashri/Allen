@@ -12,7 +12,7 @@
 // Function definitions
 //=========================================================================
 namespace compass_ut {
-  struct Arguments {
+  struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_ut_hits_t, uint) dev_ut_hits; // actual hit content
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
@@ -27,7 +27,7 @@ namespace compass_ut {
   };
 
   __global__ void compass_ut(
-    Arguments,
+    Parameters,
     UTMagnetTool* dev_ut_magnet_tool,
     const float* dev_magnet_polarity,
     const float* dev_ut_dxDy,
@@ -74,7 +74,7 @@ namespace compass_ut {
     const int event_hit_offset);
 
   template<typename T>
-  struct compass_ut_t : public DeviceAlgorithm, Arguments {
+  struct compass_ut_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"compass_ut_t"};
     decltype(global_function(compass_ut)) function {compass_ut};
 
@@ -103,7 +103,7 @@ namespace compass_ut {
 
       function.invoke(
         dim3(value<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
-        Arguments {offset<dev_ut_hits_t>(arguments),
+        Parameters {offset<dev_ut_hits_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments),
                    offset<dev_atomics_velo_t>(arguments),
                    offset<dev_velo_track_hit_number_t>(arguments),
