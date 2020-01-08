@@ -101,7 +101,7 @@ namespace compass_ut {
         offset<dev_ut_active_tracks_t>(arguments), 0, size<dev_ut_active_tracks_t>(arguments), cuda_stream));
       cudaCheck(cudaMemsetAsync(offset<dev_atomics_ut_t>(arguments), 0, size<dev_atomics_ut_t>(arguments), cuda_stream));
 
-      function.invoke(
+      function(
         dim3(value<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
         Parameters {offset<dev_ut_hits_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments),

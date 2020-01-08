@@ -33,7 +33,7 @@ void prepare_raw_banks_t::operator()(
     arguments.size<dev_dec_reports>(),
     cuda_stream));
   
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
     arguments.offset<dev_atomics_scifi>(),
     arguments.offset<dev_sv_offsets>(),
     arguments.offset<dev_one_track_results>(),

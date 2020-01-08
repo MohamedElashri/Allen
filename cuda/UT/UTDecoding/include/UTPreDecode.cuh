@@ -49,7 +49,7 @@ namespace ut_pre_decode {
       cudaCheck(
         cudaMemsetAsync(offset<dev_ut_hit_count_t>(arguments), 0, size<dev_ut_hit_count_t>(arguments), cuda_stream));
 
-      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters{offset<dev_ut_raw_input_t>(arguments),
                   offset<dev_ut_raw_input_offsets_t>(arguments),
                   offset<dev_event_list_t>(arguments),

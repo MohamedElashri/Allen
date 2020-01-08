@@ -30,7 +30,7 @@ void lf_triplet_seeding_t::operator()(
     arguments.size<dev_scifi_lf_number_of_found_triplets>(),
     cuda_stream));
 
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]),
+  function(dim3(host_buffers.host_number_of_selected_events[0]),
     dim3(LookingForward::triplet_seeding_block_dim_x, 2), cuda_stream)(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),

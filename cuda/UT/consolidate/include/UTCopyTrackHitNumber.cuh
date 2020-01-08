@@ -38,7 +38,7 @@ namespace ut_copy_track_hit_number {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function.invoke(dim3(value<host_number_of_selected_events>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_ut_tracks_t>(arguments),
                    offset<dev_atomics_ut_t>(arguments),
                    offset<dev_ut_track_hit_number_t>(arguments)});

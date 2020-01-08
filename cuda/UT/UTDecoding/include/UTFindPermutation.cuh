@@ -37,7 +37,7 @@ namespace ut_find_permutation {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function.invoke(
+      function(
         dim3(value<host_number_of_selected_events_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
         block_dimension(),
         cuda_stream)(

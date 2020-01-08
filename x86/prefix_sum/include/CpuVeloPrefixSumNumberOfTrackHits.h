@@ -25,7 +25,7 @@ namespace cpu_velo_prefix_sum_number_of_track_hits {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function.invoke(
+      function(
         host_buffers.host_prefix_sum_buffer,
         host_buffers.host_allocated_prefix_sum_space,
         offset<dev_velo_track_hit_number_t>(arguments),

@@ -8,7 +8,7 @@ void cpu_muon_prefix_sum_storage_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  function.invoke(
+  function(
     host_buffers.host_prefix_sum_buffer,
     host_buffers.host_allocated_prefix_sum_space,
     arguments.offset<dev_storage_station_region_quarter_offsets>(),

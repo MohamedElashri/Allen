@@ -54,7 +54,7 @@ namespace ut_search_windows {
       cudaCheck(cudaMemsetAsync(
         offset<dev_ut_active_tracks_t>(arguments), 0, size<dev_ut_active_tracks_t>(arguments), cuda_stream));
 
-      function.invoke(
+      function(
         dim3(value<host_number_of_selected_events_t>(arguments)),
         dim3(UT::Constants::n_layers, UT::Constants::num_thr_searchwin),
         cuda_stream)(

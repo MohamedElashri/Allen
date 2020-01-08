@@ -41,18 +41,8 @@ public:
   // Constructor. Encapsulates a CUDA function.
   GlobalFunction(R (*param_function)(T...)) : fn(param_function) {}
 
-  // The syntax of invoke resembles the CUDA syntax:
-  //  invoke(num_blocks, num_threads, cuda_stream)(arguments...)
-  auto invoke(const dim3& param_num_blocks,
-    const dim3& param_num_threads,
-    cudaStream_t& param_stream) const {
-    return [&] (T... arguments) {
-      invoke_fn(param_num_blocks, param_num_threads, param_stream, arguments...);
-    };
-  }
-
-  // The syntax of invoke resembles the CUDA syntax:
-  //  invoke(num_blocks, num_threads, cuda_stream)(arguments...)
+  // The syntax of operator() resembles the CUDA syntax:
+  //  foo(num_blocks, num_threads, cuda_stream)(arguments...)
   auto operator()(const dim3& param_num_blocks,
     const dim3& param_num_threads,
     cudaStream_t& param_stream) const {

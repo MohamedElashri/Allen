@@ -47,7 +47,7 @@ namespace pv_beamline_peak {
         (value<host_number_of_selected_events_t>(arguments) + PV::num_threads_pv_beamline_peak_t - 1) /
         PV::num_threads_pv_beamline_peak_t);
 
-      function.invoke(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
+      function(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
         Parameters {
           offset<dev_zhisto_t>(arguments), offset<dev_zpeaks_t>(arguments), offset<dev_number_of_zpeaks_t>(arguments)},
         value<host_number_of_selected_events_t>(arguments));

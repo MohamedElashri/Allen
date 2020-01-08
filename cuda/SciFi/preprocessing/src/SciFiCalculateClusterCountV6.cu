@@ -21,7 +21,7 @@ void scifi_calculate_cluster_count_v6_t::operator()(
   cudaCheck(
     cudaMemsetAsync(arguments.offset<dev_scifi_hit_count>(), 0, arguments.size<dev_scifi_hit_count>(), cuda_stream));
 
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+  function(dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
     arguments.offset<dev_scifi_raw_input>(),
     arguments.offset<dev_scifi_raw_input_offsets>(),
     arguments.offset<dev_event_list>(),

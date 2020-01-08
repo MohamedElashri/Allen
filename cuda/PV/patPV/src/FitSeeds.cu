@@ -18,7 +18,7 @@ void pv_fit_seeds_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
     arguments.offset<dev_vertex>(),
     arguments.offset<dev_number_vertex>(),
     arguments.offset<dev_seeds>(),

@@ -1,36 +1,9 @@
 #include "SciFiPreDecodeV4.cuh"
 #include <cassert>
 
-void scifi_pre_decode_v4_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  arguments.set_size<dev_scifi_hits>(host_buffers.scifi_hits_uints());
-}
-
-void scifi_pre_decode_v4_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
-    arguments.offset<dev_scifi_raw_input>(),
-    arguments.offset<dev_scifi_raw_input_offsets>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_scifi_hits>(),
-    arguments.offset<dev_event_list>(),
-    constants.dev_scifi_geometry,
-    constants.dev_inv_clus_res);
-}
-
 using namespace SciFi;
 
-__device__ void store_sorted_cluster_reference_v4(
+__device__ void scifi_pre_decode_v4::store_sorted_cluster_reference_v4(
   const SciFi::HitCount& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,
@@ -56,25 +29,21 @@ __device__ void store_sorted_cluster_reference_v4(
   hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 8 | (it & 0xFF);
 }
 
-__global__ void scifi_pre_decode_v4(
-  char* scifi_events,
-  uint* scifi_event_offsets,
-  uint* scifi_hit_count,
-  uint* scifi_hits,
-  const uint* event_list,
+__global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
+  scifi_pre_decode_v4::Parameters parameters,
   char* scifi_geometry,
   const float* dev_inv_clus_res)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
   SciFiGeometry geom(scifi_geometry);
-  const auto event = SciFiRawEvent(scifi_events + scifi_event_offsets[selected_event_number]);
+  const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
   SciFi::Hits hits {
-    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  const SciFi::HitCount hit_count {scifi_hit_count, event_number};
+    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
+  const SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mats_without_group];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mats_without_group];

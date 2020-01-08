@@ -18,7 +18,7 @@ void scifi_pre_decode_v6_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+  function(dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
     arguments.offset<dev_scifi_raw_input>(),
     arguments.offset<dev_scifi_raw_input_offsets>(),
     arguments.offset<dev_event_list>(),

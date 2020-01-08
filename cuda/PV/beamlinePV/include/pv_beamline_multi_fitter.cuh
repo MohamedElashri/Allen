@@ -58,7 +58,7 @@ namespace pv_beamline_multi_fitter {
         size<dev_number_of_multi_fit_vertices_t>(arguments),
         cuda_stream));
 
-      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_atomics_velo_t>(arguments),
                    offset<dev_velo_track_hit_number_t>(arguments),
                    offset<dev_pvtracks_t>(arguments),

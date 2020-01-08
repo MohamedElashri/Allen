@@ -47,7 +47,7 @@ void muon_decoding_t::operator()(
     cudaMemcpyHostToDevice,
     cuda_stream));
 
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]),
+  function(dim3(host_buffers.host_number_of_selected_events[0]),
     dim3(Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters),
     cuda_stream)(
     arguments.offset<dev_event_list>(),

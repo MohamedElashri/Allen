@@ -51,7 +51,7 @@ void global_event_cut_t::operator()(
 
   cudaCheck(cudaMemsetAsync(arguments.offset<dev_number_of_selected_events>(), 0, sizeof(uint), cuda_stream));
 
-  function.invoke(dim3(runtime_options.number_of_events), block_dimension(), cuda_stream)(
+  function(dim3(runtime_options.number_of_events), block_dimension(), cuda_stream)(
     arguments.offset<dev_ut_raw_input>(),
     arguments.offset<dev_ut_raw_input_offsets>(),
     arguments.offset<dev_scifi_raw_input>(),

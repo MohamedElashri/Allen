@@ -62,7 +62,7 @@ void muon_pre_decoding_t::operator()(
 
   cudaCheck(cudaMemsetAsync(arguments.offset<dev_atomics_muon>(), 0, arguments.size<dev_atomics_muon>(), cuda_stream));
 
-  function.invoke(
+  function(
     host_buffers.host_number_of_selected_events[0],
     Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
     cuda_stream)(

@@ -17,7 +17,7 @@ void muon_catboost_evaluator_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  function.invoke(dim3(host_buffers.host_number_of_reconstructed_scifi_tracks[0]), block_dimension(), cuda_stream)(
+  function(dim3(host_buffers.host_number_of_reconstructed_scifi_tracks[0]), block_dimension(), cuda_stream)(
     arguments.offset<dev_muon_catboost_features>(),
     arguments.offset<dev_muon_catboost_output>(),
     constants.dev_muon_catboost_leaf_values,

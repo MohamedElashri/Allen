@@ -34,7 +34,7 @@ namespace cpu_velo_prefix_sum_number_of_tracks {
         cuda_stream));
 
       // Prefix sum
-      function.invoke(
+      function(
         host_buffers.host_prefix_sum_buffer,
         host_buffers.host_allocated_prefix_sum_space,
         (uint*) offset<dev_atomics_velo_t>(arguments) + host_buffers.host_number_of_selected_events[0],

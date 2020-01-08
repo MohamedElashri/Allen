@@ -25,7 +25,7 @@ void lf_search_initial_windows_t::operator()(
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_scifi_lf_initial_windows>(), 0, arguments.size<dev_scifi_lf_initial_windows>(), cuda_stream));
 
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
     arguments.offset<dev_scifi_hits>(),
     arguments.offset<dev_scifi_hit_count>(),
     arguments.offset<dev_atomics_velo>(),

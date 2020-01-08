@@ -1,24 +1,6 @@
 #include "SciFiDirectDecoderV4.cuh"
 #include <cassert>
 
-void scifi_direct_decoder_v4_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_scifi_raw_input>(),
-    arguments.offset<dev_scifi_raw_input_offsets>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_scifi_hits>(),
-    arguments.offset<dev_event_list>(),
-    constants.dev_scifi_geometry,
-    constants.dev_inv_clus_res);
-}
-
 using namespace SciFi;
 
 /**
@@ -32,25 +14,21 @@ using namespace SciFi;
  *         and using that information as a relative index, given the raw bank offset.
  *         This kind of decoding is what we call "direct decoding".
  */
-__global__ void scifi_direct_decoder_v4(
-  char* scifi_events,
-  uint* scifi_event_offsets,
-  uint* scifi_hit_count,
-  uint* scifi_hits,
-  const uint* event_list,
+__global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4(
+  scifi_direct_decoder_v4::Parameters parameters,
   char* scifi_geometry,
   const float* dev_inv_clus_res)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiGeometry geom(scifi_geometry);
-  const auto event = SciFiRawEvent(scifi_events + scifi_event_offsets[selected_event_number]);
+  const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
   SciFi::Hits hits {
-    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  const SciFi::HitCount hit_count {scifi_hit_count, event_number};
+    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
+  const SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
     const uint j = (i / 10) % 4;

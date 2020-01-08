@@ -123,7 +123,7 @@ namespace velo_kalman_filter {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {
           offset<dev_offsets_velo_tracks_t>(arguments),
           offset<dev_offsets_velo_track_hit_number_t>(arguments),

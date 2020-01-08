@@ -21,7 +21,7 @@ void muon_sort_by_station_t::operator()(
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_permutation_station>(), 0, arguments.size<dev_permutation_station>(), cuda_stream));
 
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
     arguments.offset<dev_storage_tile_id>(),
     arguments.offset<dev_storage_tdc_value>(),
     arguments.offset<dev_atomics_muon>(),

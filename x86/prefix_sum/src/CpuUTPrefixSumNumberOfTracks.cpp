@@ -16,7 +16,7 @@ void cpu_ut_prefix_sum_number_of_tracks_t::operator()(
     cudaMemcpyDeviceToDevice,
     cuda_stream));
 
-  function.invoke(
+  function(
     host_buffers.host_prefix_sum_buffer,
     host_buffers.host_allocated_prefix_sum_space,
     (uint*) arguments.offset<dev_atomics_ut>() + host_buffers.host_number_of_selected_events[0],

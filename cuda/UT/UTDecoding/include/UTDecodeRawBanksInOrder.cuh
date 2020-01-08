@@ -42,7 +42,7 @@ namespace ut_decode_raw_banks_in_order {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function.invoke(
+      function(
         dim3(value<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
         block_dimension(),
         cuda_stream)(

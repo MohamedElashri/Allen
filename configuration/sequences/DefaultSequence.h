@@ -311,6 +311,7 @@ SEQUENCE_T(
   // scifi_pre_decode_v4_t,
   // scifi_raw_bank_decoder_v4_t,
   // scifi_direct_decoder_v4_t,
+
   // lf_search_initial_windows_t,
   // lf_triplet_seeding_t,
   // lf_triplet_keep_best_t,

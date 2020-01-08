@@ -44,7 +44,7 @@ namespace pv_beamline_extrapolate {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters{
           offset<dev_velo_kalman_beamline_states_t>(arguments),
           offset<dev_atomics_velo_t>(arguments),

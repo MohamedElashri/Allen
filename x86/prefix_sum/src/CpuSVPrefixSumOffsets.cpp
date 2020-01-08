@@ -24,7 +24,7 @@ void cpu_sv_prefix_sum_offsets_t::operator()(
     cudaMemcpyDeviceToDevice,
     cuda_stream));
 
-  function.invoke(
+  function(
     host_buffers.host_prefix_sum_buffer,
     host_buffers.host_allocated_prefix_sum_space,
     (uint*) arguments.offset<dev_sv_offsets>(),

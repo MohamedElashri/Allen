@@ -25,11 +25,6 @@ private:
 public:
   HostFunction(std::function<R(T...)> param_function) : fn(param_function) {}
 
-  auto invoke(T... arguments) const
-  {
-    return fn(arguments...);
-  }
-
   auto operator()(T... arguments) const
   {
     return fn(arguments...);

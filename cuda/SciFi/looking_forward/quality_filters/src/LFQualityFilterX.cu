@@ -30,7 +30,7 @@ void lf_quality_filter_x_t::operator()(
     arguments.size<dev_scifi_lf_x_filtered_atomics>(),
     cuda_stream));
   
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0], 24), block_dimension(), cuda_stream)(
+  function(dim3(host_buffers.host_number_of_selected_events[0], 24), block_dimension(), cuda_stream)(
     arguments.offset<dev_atomics_ut>(),
     arguments.offset<dev_scifi_lf_tracks>(),
     arguments.offset<dev_scifi_lf_atomics>(),

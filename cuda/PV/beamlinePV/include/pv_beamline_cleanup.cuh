@@ -49,7 +49,7 @@ namespace pv_beamline_cleanup {
         size<dev_number_of_multi_final_vertices_t>(arguments),
         cuda_stream));
 
-      function.invoke(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         offset<dev_multi_fit_vertices_t>(arguments),
         offset<dev_number_of_multi_fit_vertices_t>(arguments),
         offset<dev_multi_final_vertices_t>(arguments),

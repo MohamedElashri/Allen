@@ -6,10 +6,6 @@ void scifi_calculate_cluster_count_v4_t::set_arguments_size(
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_scifi_raw_input>(std::get<0>(runtime_options.host_scifi_events).size_bytes());
-  arguments.set_size<dev_scifi_raw_input_offsets>(std::get<1>(runtime_options.host_scifi_events).size_bytes());
-  arguments.set_size<dev_scifi_hit_count>(
-    host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mat_groups_and_mats + 1);
 }
 
 void scifi_calculate_cluster_count_v4_t::operator()(
@@ -20,29 +16,6 @@ void scifi_calculate_cluster_count_v4_t::operator()(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_scifi_raw_input>(),
-    std::get<0>(runtime_options.host_scifi_events).begin(),
-    std::get<0>(runtime_options.host_scifi_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-  
-  cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_scifi_raw_input_offsets>(),
-    std::get<1>(runtime_options.host_scifi_events).begin(),
-    std::get<1>(runtime_options.host_scifi_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-
-  cudaCheck(
-    cudaMemsetAsync(arguments.offset<dev_scifi_hit_count>(), 0, arguments.size<dev_scifi_hit_count>(), cuda_stream));
-
-  function.invoke(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-    arguments.offset<dev_scifi_raw_input>(),
-    arguments.offset<dev_scifi_raw_input_offsets>(),
-    arguments.offset<dev_scifi_hit_count>(),
-    arguments.offset<dev_event_list>(),
-    constants.dev_scifi_geometry);
 }
 
 using namespace SciFi;
@@ -52,19 +25,16 @@ using namespace SciFi;
  * @details More details about the SciFi format:
  *          https://cds.cern.ch/record/2630154/files/LHCb-INT-2018-024.pdf
  */
-__global__ void scifi_calculate_cluster_count_v4(
-  char* scifi_raw_input,
-  uint* scifi_raw_input_offsets,
-  uint* scifi_hit_count,
-  const uint* event_list,
+__global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_v4(
+  scifi_calculate_cluster_count_v4::Parameters parameters,
   char* scifi_geometry)
 {
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
-  const SciFiRawEvent event(scifi_raw_input + scifi_raw_input_offsets[selected_event_number]);
+  const SciFiRawEvent event(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
   const SciFiGeometry geom(scifi_geometry);
-  SciFi::HitCount hit_count {scifi_hit_count, event_number};
+  SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
     const uint current_raw_bank = getRawBankIndexOrderedByX(i);

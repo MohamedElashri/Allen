@@ -28,7 +28,7 @@ namespace cpu_velo_prefix_sum_number_of_clusters {
       cudaEvent_t& cuda_generic_event) const
     {
       // Invokes the function
-      function.invoke(
+      function(
         host_buffers.host_prefix_sum_buffer,
         host_buffers.host_allocated_prefix_sum_space,
         offset<dev_estimated_input_size_t>(arguments),
