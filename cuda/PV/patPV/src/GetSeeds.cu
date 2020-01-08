@@ -9,41 +9,6 @@ __constant__ int Configuration::pv_get_seeds_t::high_mult;
 __constant__ float Configuration::pv_get_seeds_t::ratio_sig2_high_mult;
 __constant__ float Configuration::pv_get_seeds_t::ratio_sig2_low_mult;
 
-void pv_get_seeds_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_seeds_t>(arguments, host_buffers.host_number_of_reconstructed_velo_tracks[0]);
-  set_size<dev_number_seeds_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-}
-
-void pv_get_seeds_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-    offset<dev_velo_kalman_beamline_states_t>(arguments),
-    offset<dev_atomics_velo_t>(arguments),
-    offset<dev_velo_track_hit_number_t>(arguments),
-    offset<dev_seeds_t>(arguments),
-    offset<dev_number_seeds_t>(arguments));
-
-  if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_number_of_seeds,
-      offset<dev_number_seeds_t>(arguments),
-      size<dev_number_seeds_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-  }  
-}
-
 __device__ float zCloseBeam(KalmanVeloState track, const PatPV::XYZPoint& beamspot)
 {
 
@@ -86,12 +51,7 @@ __device__ void errorForPVSeedFinding(float tx, float ty, float& sigz2)
   if (sigz2 == 0) sigz2 = 100.f;
 }
 
-__global__ void get_seeds(
-  char* dev_velo_kalman_beamline_states,
-  uint* dev_atomics_storage,
-  uint* dev_velo_track_hit_number,
-  PatPV::XYZPoint* dev_seeds,
-  uint* dev_number_seed)
+__global__ void pv_get_seeds::pv_get_seeds(pv_get_seeds::Parameters parameters)
 {
   PatPV::XYZPoint beamspot;
   beamspot.x = 0;
@@ -102,8 +62,8 @@ __global__ void get_seeds(
   const uint event_number = blockIdx.x;
 
   const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_storage, dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::KalmanStates velo_states {dev_velo_kalman_beamline_states,
+    (uint*) parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+  const Velo::Consolidated::KalmanStates velo_states {parameters.dev_velo_kalman_beamline_states,
                                                       velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
@@ -135,9 +95,10 @@ __global__ void get_seeds(
   int number_final_clusters = find_clusters(vclusters, zseeds, counter_number_of_clusters);
 
   for (int i = 0; i < number_final_clusters; i++)
-    dev_seeds[event_number * PatPV::max_number_vertices + i] = PatPV::XYZPoint {beamspot.x, beamspot.y, zseeds[i]};
+    parameters.dev_seeds[event_number * PatPV::max_number_vertices + i] =
+      PatPV::XYZPoint {beamspot.x, beamspot.y, zseeds[i]};
 
-  dev_number_seed[event_number] = number_final_clusters;
+  parameters.dev_number_seed[event_number] = number_final_clusters;
 }
 
 __device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int number_of_clusters)

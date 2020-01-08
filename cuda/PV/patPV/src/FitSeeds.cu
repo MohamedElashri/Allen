@@ -1,66 +1,14 @@
 #include "FitSeeds.cuh"
 
-void pv_fit_seeds_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_vertex_t>(arguments, PatPV::max_number_vertices * value<host_number_of_selected_events_t>(arguments));
-  set_size<dev_number_vertex_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-}
-
-void pv_fit_seeds_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-    offset<dev_vertex_t>(arguments),
-    offset<dev_number_vertex_t>(arguments),
-    offset<dev_seeds_t>(arguments),
-    offset<dev_number_seeds_t>(arguments),
-    offset<dev_velo_kalman_beamline_states_t>(arguments),
-    offset<dev_atomics_velo_t>(arguments),
-    offset<dev_velo_track_hit_number_t>(arguments));
-
-  if (runtime_options.do_check) {
-    // Retrieve result
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_reconstructed_pvs,
-      offset<dev_vertex_t>(arguments),
-      size<dev_vertex_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_number_of_vertex,
-      offset<dev_number_vertex_t>(arguments),
-      size<dev_number_vertex_t>(arguments),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-  }
-}
-
-__global__ void fit_seeds(
-  PV::Vertex* dev_vertex,
-  int* dev_number_vertex,
-  PatPV::XYZPoint* dev_seeds,
-  uint* dev_number_seeds,
-  char* dev_velo_kalman_beamline_states,
-  uint* dev_atomics_storage,
-  uint* dev_velo_track_hit_number)
+__global__ void fit_seeds::fit_seeds(fit_seeds::Parameters Parameters)
 {
 
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
   const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_storage, dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::KalmanStates velo_states {dev_velo_kalman_beamline_states,
+    (uint*) parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+  const Velo::Consolidated::KalmanStates velo_states {parameters.dev_velo_kalman_beamline_states,
                                                       velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
@@ -68,21 +16,21 @@ __global__ void fit_seeds(
   PV::Vertex vertex;
 
   int counter_vertex = 0;
-  for (uint i_seed = 0; i_seed < dev_number_seeds[event_number]; i_seed++) {
+  for (uint i_seed = 0; i_seed < parameters.dev_number_seeds[event_number]; i_seed++) {
     bool success = fit_vertex(
-      dev_seeds[event_number * PatPV::max_number_vertices + i_seed],
+      parameters.dev_seeds[event_number * PatPV::max_number_vertices + i_seed],
       velo_states,
       vertex,
       number_of_tracks_event,
       event_tracks_offset);
     if (success) {
 
-      dev_vertex[PatPV::max_number_vertices * event_number + counter_vertex] = vertex;
+      parameters.dev_vertex[PatPV::max_number_vertices * event_number + counter_vertex] = vertex;
       counter_vertex++;
     }
   }
 
-  dev_number_vertex[event_number] = counter_vertex;
+  parameters.dev_number_vertex[event_number] = counter_vertex;
 }
 
 __device__ bool fit_vertex(

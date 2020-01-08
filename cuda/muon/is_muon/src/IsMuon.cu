@@ -106,27 +106,18 @@ __global__ void is_muon::is_muon(
     __syncthreads();
 
     if (threadIdx.y == 0) {
-      if (momentum < dev_muon_momentum_cuts[0]) {
-        parameters.dev_is_muon[event_offset + track_id] = false;
-      }
-      else if (
-        parameters.dev_muon_track_occupancies[track_offset + 0] == 0 ||
-        parameters.dev_muon_track_occupancies[track_offset + 1] == 0) {
-        parameters.dev_is_muon[event_offset + track_id] = false;
-      }
-      else if (momentum < dev_muon_momentum_cuts[1]) {
-        parameters.dev_is_muon[event_offset + track_id] = true;
-      }
-      else if (momentum < dev_muon_momentum_cuts[2]) {
-        parameters.dev_is_muon[event_offset + track_id] =
-          (parameters.dev_muon_track_occupancies[track_offset + 2] != 0) ||
-          (parameters.dev_muon_track_occupancies[track_offset + 3] != 0);
-      }
-      else {
-        parameters.dev_is_muon[event_offset + track_id] =
-          (parameters.dev_muon_track_occupancies[track_offset + 2] != 0) &&
-          (parameters.dev_muon_track_occupancies[track_offset + 3] != 0);
-      }
+      parameters.dev_is_muon[event_offset + track_id] =
+        momentum >= dev_muon_momentum_cuts[0] && // Condition 1
+        (parameters.dev_muon_track_occupancies[track_offset + 0] == 0 || // Condition 2
+          parameters.dev_muon_track_occupancies[track_offset + 1] == 0) &&
+        ( 
+          momentum < dev_muon_momentum_cuts[1] || // Condition 3
+          (momentum < dev_muon_momentum_cuts[2] && // Condition 4
+            (parameters.dev_muon_track_occupancies[track_offset + 2] != 0 ||
+            parameters.dev_muon_track_occupancies[track_offset + 3] != 0)) ||
+          (parameters.dev_muon_track_occupancies[track_offset + 2] != 0 && // Condition 5
+            parameters.dev_muon_track_occupancies[track_offset + 3] != 0)
+        );
     }
   }
 }

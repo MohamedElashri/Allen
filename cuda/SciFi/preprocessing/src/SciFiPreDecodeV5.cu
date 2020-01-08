@@ -1,34 +1,6 @@
 #include "SciFiPreDecodeV5.cuh"
 #include "assert.h"
 
-void scifi_pre_decode_v5_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_scifi_hits_t>(arguments, host_buffers.scifi_hits_uints());
-}
-
-void scifi_pre_decode_v5_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  function(dim3(value<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
-    offset<dev_scifi_raw_input_t>(arguments),
-    offset<dev_scifi_raw_input_offsets_t>(arguments),
-    offset<dev_event_list_t>(arguments),
-    offset<dev_scifi_hit_count_t>(arguments),
-    offset<dev_scifi_hits_t>(arguments),
-    constants.dev_scifi_geometry,
-    constants.dev_inv_clus_res);
-}
-
-
 using namespace SciFi;
 
 __device__ void store_sorted_cluster_reference_v5(
@@ -70,25 +42,21 @@ __device__ void store_sorted_cluster_reference_v5(
                                      (condition_2 & 0x01) << 13 | (delta & 0xFF);
 }
 
-__global__ void scifi_pre_decode_v5(
-  char* scifi_events,
-  uint* scifi_event_offsets,
-  const uint* event_list,
-  uint* scifi_hit_count,
-  uint* scifi_hits,
+__global__ void scifi_pre_decode_v5::scifi_pre_decode_v5(
+  scifi_pre_decode_v5::Parameters parameters,
   char* scifi_geometry,
   const float* dev_inv_clus_res)
 {
   const int number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
   SciFiGeometry geom(scifi_geometry);
-  const auto event = SciFiRawEvent(scifi_events + scifi_event_offsets[selected_event_number]);
+  const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
   Hits hits {
-    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  HitCount hit_count {scifi_hit_count, event_number};
+    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
+  HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];

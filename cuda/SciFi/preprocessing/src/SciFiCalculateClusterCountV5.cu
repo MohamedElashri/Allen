@@ -1,49 +1,18 @@
 #include "SciFiCalculateClusterCountV5.cuh"
 
-void scifi_calculate_cluster_count_v5_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_scifi_hit_count_t>(arguments, 
-    2 * value<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mats);
-}
-
-void scifi_calculate_cluster_count_v5_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(
-    cudaMemsetAsync(offset<dev_scifi_hit_count_t>(arguments), 0, size<dev_scifi_hit_count_t>(arguments), cuda_stream));
-
-  function(dim3(value<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
-    offset<dev_scifi_raw_input_t>(arguments),
-    offset<dev_scifi_raw_input_offsets_t>(arguments),
-    offset<dev_event_list_t>(arguments),
-    offset<dev_scifi_hit_count_t>(arguments),
-    constants.dev_scifi_geometry);
-}
-
 using namespace SciFi;
 
-__global__ void scifi_calculate_cluster_count_v5(
-  char* scifi_raw_input,
-  uint* scifi_raw_input_offsets,
-  const uint* event_list,
-  uint* scifi_hit_count,
+__global__ void scifi_calculate_cluster_count_v5::scifi_calculate_cluster_count_v5(
+  scifi_calculate_cluster_count_v5::Parameters parameters,
   char* scifi_geometry)
 {
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
-  const SciFiRawEvent event(scifi_raw_input + scifi_raw_input_offsets[selected_event_number]);
+  const SciFiRawEvent event(
+    parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
   const SciFiGeometry geom(scifi_geometry);
-  SciFi::HitCount hit_count {scifi_hit_count, event_number};
+  SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   // NO version checking. Be careful, as v5 is assumed.
 
