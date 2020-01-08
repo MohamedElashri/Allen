@@ -41,13 +41,13 @@ struct pv_fit_seeds_t : public DeviceAlgorithm {
     dev_velo_track_hit_number>;
 
   void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
+    ArgumentRefManager<T> arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
   void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
+    const ArgumentRefManager<T>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& host_buffers,

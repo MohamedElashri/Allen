@@ -13,7 +13,7 @@ namespace cpu_init_event_list {
     constexpr static auto name {"cpu_init_event_list_t"};
 
     void set_arguments_size(
-      ArgumentRefManager<Arguments> arguments,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const
@@ -22,7 +22,7 @@ namespace cpu_init_event_list {
     }
 
     void operator()(
-      const ArgumentRefManager<Arguments>& arguments,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
@@ -30,7 +30,7 @@ namespace cpu_init_event_list {
       cudaEvent_t& cuda_generic_event) const
     {
       // Initialize buffers
-      host_buffers.host_number_of_selected_events[0] = runtime_options.number_of_events;
+      value<host_number_of_selected_events_t>(arguments) = runtime_options.number_of_events;
       for (uint i = 0; i < runtime_options.number_of_events; ++i) {
         host_buffers.host_event_list[i] = i;
       }

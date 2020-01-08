@@ -1,7 +1,7 @@
 #include "SciFiCalculateClusterCountV4.cuh"
 
 void scifi_calculate_cluster_count_v4_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
@@ -9,7 +9,7 @@ void scifi_calculate_cluster_count_v4_t::set_arguments_size(
 }
 
 void scifi_calculate_cluster_count_v4_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,

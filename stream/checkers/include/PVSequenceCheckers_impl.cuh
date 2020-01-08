@@ -15,7 +15,7 @@
 //     mc_events,
 //     host_buffers.host_reconstructed_pvs,
 //     host_buffers.host_number_of_vertex,
-//     host_buffers.host_number_of_selected_events[0]);
+//     value<host_number_of_selected_events_t>(arguments));
 // }
 
 /**
@@ -33,5 +33,5 @@
 //     mc_events,
 //     host_buffers.host_reconstructed_multi_pvs,
 //     host_buffers.host_number_of_multivertex,
-//     host_buffers.host_number_of_selected_events[0]);
+//     value<host_number_of_selected_events_t>(arguments));
 // }

@@ -11,13 +11,13 @@ struct cpu_sv_prefix_sum_offsets_t : public HostAlgorithm {
   using Arguments = std::tuple<dev_sv_offsets, dev_atomics_scifi>;
 
   void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
+    ArgumentRefManager<T> arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
   void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
+    const ArgumentRefManager<T>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& host_buffers,

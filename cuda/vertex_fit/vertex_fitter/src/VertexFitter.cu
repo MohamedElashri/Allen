@@ -8,23 +8,23 @@ __constant__ float Configuration::fit_secondary_vertices_t::track_muon_min_ipchi
 __constant__ float Configuration::fit_secondary_vertices_t::max_assoc_ipchi2;
 
 void fit_secondary_vertices_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_secondary_vertices>(host_buffers.host_number_of_svs[0]);
+  set_size<dev_secondary_vertices_t>(arguments, host_buffers.host_number_of_svs[0]);
 }
 
 void fit_secondary_vertices_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
     offset<dev_kf_tracks_t>(arguments),
     offset<dev_atomics_scifi_t>(arguments),
     offset<dev_scifi_track_hit_number_t>(arguments),

@@ -1,20 +1,20 @@
 #include "GlobalEventCut.cuh"
 
 void global_event_cut_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
   // Note: The GEC on the GPU needs UT and SciFi data
-  arguments.set_size<dev_ut_raw_input>(std::get<0>(runtime_options.host_ut_events).size_bytes());
-  arguments.set_size<dev_ut_raw_input_offsets>(std::get<1>(runtime_options.host_ut_events).size_bytes());
-  arguments.set_size<dev_scifi_raw_input>(std::get<0>(runtime_options.host_scifi_events).size_bytes());
-  arguments.set_size<dev_scifi_raw_input_offsets>(std::get<1>(runtime_options.host_scifi_events).size_bytes());
+  set_size<dev_ut_raw_input_t>(arguments, std::get<0>(runtime_options.host_ut_events).size_bytes());
+  set_size<dev_ut_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_ut_events).size_bytes());
+  set_size<dev_scifi_raw_input_t>(arguments, std::get<0>(runtime_options.host_scifi_events).size_bytes());
+  set_size<dev_scifi_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_scifi_events).size_bytes());
 }
 
 void global_event_cut_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,

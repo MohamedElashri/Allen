@@ -1,27 +1,27 @@
 #include "ConsolidateSciFi.cuh"
 
 void scifi_consolidate_tracks_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_scifi_track_hits>(
+  set_size<dev_scifi_track_hits_t>(arguments, 
     host_buffers.host_accumulated_number_of_hits_in_scifi_tracks[0] * sizeof(SciFi::Hit));
-  arguments.set_size<dev_scifi_qop>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
-  arguments.set_size<dev_scifi_track_ut_indices>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
-  arguments.set_size<dev_scifi_states>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+  set_size<dev_scifi_qop_t>(arguments, host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+  set_size<dev_scifi_track_ut_indices_t>(arguments, host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+  set_size<dev_scifi_states_t>(arguments, host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
 }
 
 void scifi_consolidate_tracks_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
     offset<dev_scifi_hits_t>(arguments),
     offset<dev_scifi_hit_count_t>(arguments),
     offset<dev_scifi_track_hits_t>(arguments),

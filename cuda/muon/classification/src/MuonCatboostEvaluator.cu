@@ -1,16 +1,16 @@
 #include "MuonCatboostEvaluator.cuh"
 
 void muon_catboost_evaluator_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_muon_catboost_output>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
+  set_size<dev_muon_catboost_output_t>(arguments, host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
 }
 
 void muon_catboost_evaluator_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,

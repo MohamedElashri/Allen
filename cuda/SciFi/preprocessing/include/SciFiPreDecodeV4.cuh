@@ -43,7 +43,7 @@ namespace scifi_pre_decode_v4 {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      arguments.set_size<dev_scifi_hits>(host_buffers.scifi_hits_uints());
+      set_size<dev_scifi_hits_t>(arguments, host_buffers.scifi_hits_uints());
     }
 
     void operator()(

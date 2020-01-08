@@ -107,13 +107,13 @@ struct fit_secondary_vertices_t : public DeviceAlgorithm {
     dev_secondary_vertices>;
 
   void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
+    ArgumentRefManager<T> arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
   void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
+    const ArgumentRefManager<T>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& host_buffers,

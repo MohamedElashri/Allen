@@ -1,20 +1,20 @@
 #include "MuonAddCoordsCrossingMaps.cuh"
 
 void muon_add_coords_crossing_maps_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_muon_hits>(host_buffers.host_number_of_selected_events[0]);
-  arguments.set_size<dev_station_ocurrences_offset>(
-    host_buffers.host_number_of_selected_events[0] * Muon::Constants::n_stations + 1);
-  arguments.set_size<dev_muon_compact_hit>(
-    host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
+  set_size<dev_muon_hits_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+  set_size<dev_station_ocurrences_offset_t>(arguments, 
+    value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations + 1);
+  set_size<dev_muon_compact_hit_t>(arguments, 
+    value<host_number_of_selected_events_t>(arguments) * Muon::Constants::max_numhits_per_event);
 }
 
 void muon_add_coords_crossing_maps_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
@@ -30,7 +30,7 @@ void muon_add_coords_crossing_maps_t::operator()(
   cudaCheck(
     cudaMemsetAsync(offset<dev_muon_compact_hit_t>(arguments), 0, size<dev_muon_compact_hit_t>(arguments), cuda_stream));
 
-  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
     offset<dev_storage_station_region_quarter_offsets_t>(arguments),
     offset<dev_storage_tile_id_t>(arguments),
     offset<dev_storage_tdc_value_t>(arguments),

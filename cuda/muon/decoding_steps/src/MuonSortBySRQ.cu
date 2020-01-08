@@ -1,17 +1,17 @@
 #include "MuonSortBySRQ.cuh"
 
 void muon_sort_station_region_quarter_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_permutation_srq>(
-    host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
+  set_size<dev_permutation_srq_t>(arguments, 
+    value<host_number_of_selected_events_t>(arguments) * Muon::Constants::max_numhits_per_event);
 }
 
 void muon_sort_station_region_quarter_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
@@ -21,7 +21,7 @@ void muon_sort_station_region_quarter_t::operator()(
   cudaCheck(
     cudaMemsetAsync(offset<dev_permutation_srq_t>(arguments), 0, size<dev_permutation_srq_t>(arguments), cuda_stream));
 
-  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
     offset<dev_storage_tile_id_t>(arguments),
     offset<dev_storage_tdc_value_t>(arguments),
     offset<dev_atomics_muon_t>(arguments),

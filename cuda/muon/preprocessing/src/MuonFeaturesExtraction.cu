@@ -1,17 +1,17 @@
 #include "MuonFeaturesExtraction.cuh"
 
 void muon_catboost_features_extraction_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_muon_catboost_features>(
+  set_size<dev_muon_catboost_features_t>(arguments, 
     Muon::Constants::n_catboost_features * host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
 }
 
 void muon_catboost_features_extraction_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
@@ -19,7 +19,7 @@ void muon_catboost_features_extraction_t::operator()(
   cudaEvent_t& cuda_generic_event) const
 {
   function(
-    dim3(host_buffers.host_number_of_selected_events[0], Muon::Constants::n_stations), block_dimension(), cuda_stream)(
+    dim3(value<host_number_of_selected_events_t>(arguments), Muon::Constants::n_stations), block_dimension(), cuda_stream)(
     offset<dev_atomics_scifi_t>(arguments),
     offset<dev_scifi_track_hit_number_t>(arguments),
     offset<dev_scifi_qop_t>(arguments),

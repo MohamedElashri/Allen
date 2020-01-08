@@ -10,42 +10,30 @@
 
 namespace lf_search_initial_windows {
   struct Parameters {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, uint);
     DEVICE_INPUT(dev_scifi_hits_t, uint) dev_scifi_hits;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_velo_states_t, uint) dev_velo_states;
+    DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
     DEVICE_INPUT(dev_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
-    DEVICE_INPUT(dev_ut_x_t, uint) dev_ut_x;
-    DEVICE_INPUT(dev_ut_tx_t, uint) dev_ut_tx;
-    DEVICE_INPUT(dev_ut_z_t, uint) dev_ut_z;
-    DEVICE_INPUT(dev_ut_qop_t, uint) dev_ut_qop;
+    DEVICE_INPUT(dev_ut_x_t, float) dev_ut_x;
+    DEVICE_INPUT(dev_ut_tx_t, float) dev_ut_tx;
+    DEVICE_INPUT(dev_ut_z_t, float) dev_ut_z;
+    DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
-    DEVICE_INPUT(dev_ut_states_t, uint) dev_ut_states;
-    DEVICE_INPUT(dev_scifi_lf_initial_windows_t, uint) dev_scifi_lf_initial_windows;
-    DEVICE_INPUT(dev_scifi_lf_process_track_t, uint) dev_scifi_lf_process_track;
+    DEVICE_OUTPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
+    DEVICE_OUTPUT(dev_ut_states_t, MiniState) dev_ut_states;
+    DEVICE_OUTPUT(dev_scifi_lf_process_track_t, bool) dev_scifi_lf_process_track;
   };
 
   __global__ void lf_search_initial_windows(
-    uint32_t* dev_scifi_hits,
-    const uint32_t* dev_scifi_hit_count,
-    const uint* dev_atomics_velo,
-    const uint* dev_velo_track_hit_number,
-    const char* dev_velo_states,
-    const uint* dev_atomics_ut,
-    const uint* dev_ut_track_hit_number,
-    const float* dev_ut_x,
-    const float* dev_ut_tx,
-    const float* dev_ut_z,
-    const float* dev_ut_qop,
-    const uint* dev_ut_track_velo_indices,
+    Parameters,
     const char* dev_scifi_geometry,
     const float* dev_inv_clus_res,
-    const LookingForward::Constants* dev_looking_forward_constants,
-    int* dev_initial_windows,
-    MiniState* dev_ut_states,
-    bool* dev_scifi_lf_process_track);
+    const LookingForward::Constants* dev_looking_forward_constants);
 
   template<typename T>
   struct lf_search_initial_windows_t : public DeviceAlgorithm, Parameters {
@@ -58,11 +46,12 @@ namespace lf_search_initial_windows {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      arguments.set_size<dev_scifi_lf_initial_windows>(
-        LookingForward::number_of_elements_initial_window * host_buffers.host_number_of_reconstructed_ut_tracks[0] *
-        LookingForward::number_of_x_layers);
-      arguments.set_size<dev_ut_states>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
-      arguments.set_size<dev_scifi_lf_process_track>(host_buffers.host_number_of_reconstructed_ut_tracks[0]);
+      set_size<dev_scifi_lf_initial_windows_t>(
+        arguments,
+        LookingForward::number_of_elements_initial_window * value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
+          LookingForward::number_of_x_layers);
+      set_size<dev_ut_states_t>(arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
+      set_size<dev_scifi_lf_process_track_t>(arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
     }
 
     void operator()(
@@ -79,25 +68,25 @@ namespace lf_search_initial_windows {
         size<dev_scifi_lf_initial_windows_t>(arguments),
         cuda_stream));
 
-      function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
-        offset<dev_scifi_hits_t>(arguments),
-        offset<dev_scifi_hit_count_t>(arguments),
-        offset<dev_atomics_velo_t>(arguments),
-        offset<dev_velo_track_hit_number_t>(arguments),
-        offset<dev_velo_states_t>(arguments),
-        offset<dev_atomics_ut_t>(arguments),
-        offset<dev_ut_track_hit_number_t>(arguments),
-        offset<dev_ut_x_t>(arguments),
-        offset<dev_ut_tx_t>(arguments),
-        offset<dev_ut_z_t>(arguments),
-        offset<dev_ut_qop_t>(arguments),
-        offset<dev_ut_track_velo_indices_t>(arguments),
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+        Parameters {offset<dev_scifi_hits_t>(arguments),
+                    offset<dev_scifi_hit_count_t>(arguments),
+                    offset<dev_atomics_velo_t>(arguments),
+                    offset<dev_velo_track_hit_number_t>(arguments),
+                    offset<dev_velo_states_t>(arguments),
+                    offset<dev_atomics_ut_t>(arguments),
+                    offset<dev_ut_track_hit_number_t>(arguments),
+                    offset<dev_ut_x_t>(arguments),
+                    offset<dev_ut_tx_t>(arguments),
+                    offset<dev_ut_z_t>(arguments),
+                    offset<dev_ut_qop_t>(arguments),
+                    offset<dev_ut_track_velo_indices_t>(arguments),
+                    offset<dev_scifi_lf_initial_windows_t>(arguments),
+                    offset<dev_ut_states_t>(arguments),
+                    offset<dev_scifi_lf_process_track_t>(arguments)},
         constants.dev_scifi_geometry,
         constants.dev_inv_clus_res,
-        constants.dev_looking_forward_constants,
-        offset<dev_scifi_lf_initial_windows_t>(arguments),
-        offset<dev_ut_states_t>(arguments),
-        offset<dev_scifi_lf_process_track_t>(arguments));
+        constants.dev_looking_forward_constants);
     }
   };
 } // namespace lf_search_initial_windows

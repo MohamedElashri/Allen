@@ -18,13 +18,13 @@ struct muon_sort_station_region_quarter_t : public DeviceAlgorithm {
     dev_storage_tile_id, dev_storage_tdc_value, dev_atomics_muon, dev_permutation_srq>;
 
   void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
+    ArgumentRefManager<T> arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
   void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
+    const ArgumentRefManager<T>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& host_buffers,

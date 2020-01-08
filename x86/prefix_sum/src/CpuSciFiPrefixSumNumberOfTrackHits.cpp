@@ -1,7 +1,7 @@
 #include "CpuSciFiPrefixSumNumberOfTrackHits.h"
 
 void cpu_scifi_prefix_sum_number_of_track_hits_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,

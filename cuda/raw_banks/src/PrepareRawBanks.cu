@@ -1,19 +1,19 @@
 #include "PrepareRawBanks.cuh"
 
 void prepare_raw_banks_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
   int n_hlt1_lines = Hlt1::Hlt1Lines::End;
-  arguments.set_size<dev_dec_reports>((2 + n_hlt1_lines) * host_buffers.host_number_of_selected_events[0]);
-  arguments.set_size<dev_number_of_passing_events>(1);
-  arguments.set_size<dev_passing_event_list>(host_buffers.host_number_of_selected_events[0]);
+  set_size<dev_dec_reports_t>(arguments, (2 + n_hlt1_lines) * value<host_number_of_selected_events_t>(arguments));
+  set_size<dev_number_of_passing_events_t>(arguments, 1);
+  set_size<dev_passing_event_list_t>(arguments, value<host_number_of_selected_events_t>(arguments));
 }
 
 void prepare_raw_banks_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
@@ -33,7 +33,7 @@ void prepare_raw_banks_t::operator()(
     size<dev_dec_reports_t>(arguments),
     cuda_stream));
   
-  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
     offset<dev_atomics_scifi_t>(arguments),
     offset<dev_sv_offsets_t>(arguments),
     offset<dev_one_track_results_t>(arguments),

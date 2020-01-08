@@ -20,7 +20,7 @@
 
 //     host_buffers.host_atomics_scifi,
 //     host_buffers.host_sv_offsets,
-//     host_buffers.host_number_of_selected_events[0]);
+//     value<host_number_of_selected_events_t>(arguments));
 
 //   [[maybe_unused]] const auto tracks = prepareKalmanTracks(
 //     host_buffers.host_atomics_velo,
@@ -43,7 +43,7 @@
 //     host_buffers.host_kalmanvelo_states,
 //     host_buffers.host_reconstructed_multi_pvs,
 //     host_buffers.host_number_of_multivertex,
-//     host_buffers.host_number_of_selected_events[0]);
+//     value<host_number_of_selected_events_t>(arguments));
 
 // #ifdef WITH_ROOT
 //   auto& ntuple =
@@ -61,7 +61,7 @@
 
 //     host_buffers.host_atomics_scifi,
 //     host_buffers.host_sv_offsets,
-//     host_buffers.host_number_of_selected_events[0]);
+//     value<host_number_of_selected_events_t>(arguments));
 // #else
 //   // Avoid warning
 //   [[maybe_unused]] const auto& mc_event = mc_events.front();

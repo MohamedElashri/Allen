@@ -69,7 +69,7 @@ namespace host_global_event_cut {
         cuda_stream));
 
       // TODO: Remove
-      host_buffers.host_number_of_selected_events[0] = value<host_number_of_selected_events_t>(arguments);
+      value<host_number_of_selected_events_t>(arguments) = value<host_number_of_selected_events_t>(arguments);
       for (uint i = 0; i < runtime_options.number_of_events; ++i) {
         host_buffers.host_event_list[i] = offset<host_event_list_t>(arguments)[i];
       }

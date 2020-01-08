@@ -26,13 +26,13 @@ struct pv_get_seeds_t : public DeviceAlgorithm {
     dev_velo_kalman_beamline_states, dev_atomics_velo, dev_velo_track_hit_number, dev_seeds, dev_number_seeds>;
 
   void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
+    ArgumentRefManager<T> arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
   void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
+    const ArgumentRefManager<T>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& host_buffers,

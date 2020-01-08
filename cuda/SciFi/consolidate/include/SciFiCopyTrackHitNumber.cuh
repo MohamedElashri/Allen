@@ -21,13 +21,13 @@ struct scifi_copy_track_hit_number_t : public DeviceAlgorithm {
   using Arguments = std::tuple<dev_atomics_ut, dev_scifi_tracks, dev_atomics_scifi, dev_scifi_track_hit_number>;
 
   void set_arguments_size(
-    ArgumentRefManager<Arguments> arguments,
+    ArgumentRefManager<T> arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     const HostBuffers& host_buffers) const;
 
   void operator()(
-    const ArgumentRefManager<Arguments>& arguments,
+    const ArgumentRefManager<T>& arguments,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& host_buffers,

@@ -1,27 +1,27 @@
 #include "MuonPreDecoding.cuh"
 
 void muon_pre_decoding_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_muon_raw>(std::get<0>(runtime_options.host_muon_events).size_bytes());
-  arguments.set_size<dev_muon_raw_offsets>(std::get<1>(runtime_options.host_muon_events).size_bytes());
-  arguments.set_size<dev_muon_raw_to_hits>(1);
-  arguments.set_size<dev_storage_station_region_quarter_offsets>(
-    host_buffers.host_number_of_selected_events[0] * Muon::Constants::n_stations * Muon::Constants::n_regions *
+  set_size<dev_muon_raw_t>(arguments, std::get<0>(runtime_options.host_muon_events).size_bytes());
+  set_size<dev_muon_raw_offsets_t>(arguments, std::get<1>(runtime_options.host_muon_events).size_bytes());
+  set_size<dev_muon_raw_to_hits_t>(arguments, 1);
+  set_size<dev_storage_station_region_quarter_offsets_t>(arguments, 
+    value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations * Muon::Constants::n_regions *
       Muon::Constants::n_quarters +
     1);
-  arguments.set_size<dev_storage_tile_id>(
-    host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
-  arguments.set_size<dev_storage_tdc_value>(
-    host_buffers.host_number_of_selected_events[0] * Muon::Constants::max_numhits_per_event);
-  arguments.set_size<dev_atomics_muon>(2 * host_buffers.host_number_of_selected_events[0]);
+  set_size<dev_storage_tile_id_t>(arguments, 
+    value<host_number_of_selected_events_t>(arguments) * Muon::Constants::max_numhits_per_event);
+  set_size<dev_storage_tdc_value_t>(arguments, 
+    value<host_number_of_selected_events_t>(arguments) * Muon::Constants::max_numhits_per_event);
+  set_size<dev_atomics_muon_t>(arguments, 2 * value<host_number_of_selected_events_t>(arguments));
 }
 
 void muon_pre_decoding_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
@@ -63,7 +63,7 @@ void muon_pre_decoding_t::operator()(
   cudaCheck(cudaMemsetAsync(offset<dev_atomics_muon_t>(arguments), 0, size<dev_atomics_muon_t>(arguments), cuda_stream));
 
   function(
-    host_buffers.host_number_of_selected_events[0],
+    value<host_number_of_selected_events_t>(arguments),
     Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
     cuda_stream)(
     offset<dev_event_list_t>(arguments),

@@ -34,7 +34,7 @@
 //     host_buffers.host_kalmanvelo_states,
 //     host_buffers.host_reconstructed_multi_pvs,
 //     host_buffers.host_number_of_multivertex,
-//     host_buffers.host_number_of_selected_events[0]);
+//     value<host_number_of_selected_events_t>(arguments));
 
 //   auto& checker = checker_invoker.checker<KalmanChecker>("Producing Kalman plots", "KalmanIPCheckerOutput.root");
 //   checker.accumulate(mc_events, tracks);
@@ -76,7 +76,7 @@
 //     host_buffers.host_kalmanvelo_states,
 //     host_buffers.host_reconstructed_multi_pvs,
 //     host_buffers.host_number_of_multivertex,
-//     host_buffers.host_number_of_selected_events[0]);
+//     value<host_number_of_selected_events_t>(arguments));
 
 //   auto& checker = checker_invoker.checker<KalmanChecker>("Producing Kalman plots", "KalmanIPCheckerOutput.root");
 //   checker.accumulate(mc_events, tracks);

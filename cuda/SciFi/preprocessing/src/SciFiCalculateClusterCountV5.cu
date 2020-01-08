@@ -1,17 +1,17 @@
 #include "SciFiCalculateClusterCountV5.cuh"
 
 void scifi_calculate_cluster_count_v5_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_scifi_hit_count>(
-    2 * host_buffers.host_number_of_selected_events[0] * SciFi::Constants::n_mats + 1);
+  set_size<dev_scifi_hit_count_t>(arguments, 
+    2 * value<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mats + 1);
 }
 
 void scifi_calculate_cluster_count_v5_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
@@ -21,7 +21,7 @@ void scifi_calculate_cluster_count_v5_t::operator()(
   cudaCheck(
     cudaMemsetAsync(offset<dev_scifi_hit_count_t>(arguments), 0, size<dev_scifi_hit_count_t>(arguments), cuda_stream));
 
-  function(dim3(host_buffers.host_number_of_selected_events[0]), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
+  function(dim3(value<host_number_of_selected_events_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), cuda_stream)(
     offset<dev_scifi_raw_input_t>(arguments),
     offset<dev_scifi_raw_input_offsets_t>(arguments),
     offset<dev_event_list_t>(arguments),

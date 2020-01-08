@@ -1,23 +1,23 @@
 #include "LFQualityFilterLength.cuh"
 
 void lf_quality_filter_length_t::set_arguments_size(
-  ArgumentRefManager<Arguments> arguments,
+  ArgumentRefManager<T> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  arguments.set_size<dev_scifi_lf_length_filtered_tracks>(
-    host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+  set_size<dev_scifi_lf_length_filtered_tracks_t>(arguments, 
+    value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
     LookingForward::maximum_number_of_candidates_per_ut_track);
-  arguments.set_size<dev_scifi_lf_length_filtered_atomics>(
-    host_buffers.host_number_of_selected_events[0] * LookingForward::num_atomics * 2 + 1);
-  arguments.set_size<dev_scifi_lf_parametrization_length_filter>(
-    4 * host_buffers.host_number_of_reconstructed_ut_tracks[0] *
+  set_size<dev_scifi_lf_length_filtered_atomics_t>(arguments, 
+    value<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics * 2 + 1);
+  set_size<dev_scifi_lf_parametrization_length_filter_t>(arguments, 
+    4 * value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
     LookingForward::maximum_number_of_candidates_per_ut_track);
 }
 
 void lf_quality_filter_length_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
@@ -30,7 +30,7 @@ void lf_quality_filter_length_t::operator()(
     size<dev_scifi_lf_length_filtered_atomics_t>(arguments),
     cuda_stream));
   
-  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
     offset<dev_atomics_ut_t>(arguments),
     offset<dev_scifi_lf_tracks_t>(arguments),
     offset<dev_scifi_lf_atomics_t>(arguments),

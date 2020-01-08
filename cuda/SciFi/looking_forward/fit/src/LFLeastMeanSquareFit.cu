@@ -1,14 +1,14 @@
 #include "LFLeastMeanSquareFit.cuh"
 
 void lf_least_mean_square_fit_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event) const
 {
-  function(dim3(host_buffers.host_number_of_selected_events[0]), block_dimension(), cuda_stream)(
+  function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
     offset<dev_scifi_hits_t>(arguments),
     offset<dev_scifi_hit_count_t>(arguments),
     offset<dev_atomics_ut_t>(arguments),

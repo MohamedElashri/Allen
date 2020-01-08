@@ -1,7 +1,7 @@
 #include "CpuMuonPrefixSumStorage.h"
 
 void cpu_muon_prefix_sum_storage_t::operator()(
-  const ArgumentRefManager<Arguments>& arguments,
+  const ArgumentRefManager<T>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
   HostBuffers& host_buffers,
