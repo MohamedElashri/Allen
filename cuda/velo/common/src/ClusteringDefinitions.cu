@@ -37,8 +37,20 @@ VeloGeometry::VeloGeometry(std::vector<char> const& geometry)
   };
 
   copy_array(Velo::Constants::n_modules, module_zs);
+  std::cout << "read " << Velo::Constants::n_modules << " modules: " << std::endl;
+  for ( int i = 0; i < Velo::Constants::n_modules; ++i ) {
+    std::cout << " zs = " << module_zs[i] << std::endl;
+  }
   copy_array(Velo::Constants::number_of_sensor_columns, local_x);
+  std::cout << "read " << Velo::Constants::number_of_sensor_columns << " local_x: " << std::endl;
+  for ( int i = 0; i < Velo::Constants::number_of_sensor_columns; ++i ) {
+    std::cout << " local_x = " << local_x[i] << std::endl;
+  }
   copy_array(Velo::Constants::number_of_sensor_columns, x_pitch);
+  std::cout << "read " << Velo::Constants::number_of_sensor_columns << " x_pitch: " << std::endl;
+  for ( int i = 0; i < Velo::Constants::number_of_sensor_columns; ++i ) {
+    std::cout << " x_pitch = " << x_pitch[i] << std::endl;
+  }
 
   size_t n_ltg = ((size_t*) p)[0];
   assert(n_ltg == Velo::Constants::n_sensors);

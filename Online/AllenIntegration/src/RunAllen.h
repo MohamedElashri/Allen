@@ -1,4 +1,5 @@
-/*****************************************************************************\
+
+/***************************************************************************** \
  * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
  *                                                                             *
  * This software is distributed under the terms of the GNU General Public      *

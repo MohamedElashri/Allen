@@ -24,33 +24,8 @@
 #include <GaudiAlg/Consumer.h>  
 #include <GaudiAlg/GaudiHistoAlg.h>
 
-// Parsers for the bank type property are put in namespace LHCb for
-// ADL to work.
-namespace LHCb {
 
-  StatusCode parse( RawBank::BankType& result, const std::string& in );
-  StatusCode parse( std::set<RawBank::BankType>& s, const std::string& in );
-} // namespace LHCb
-
-// Raw bank format:
-// -----------------------------------------------------------------------------
-// name                |  type    |  size [bytes]         | array_size
-// =============================================================================
-// Once
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// number_of_rawbanks  | uint32_t | 4
-// -----------------------------------------------------------------------------
-// raw_bank_offset     | uint32_t | number_of_rawbanks * 4
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// for each raw bank:
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// sourceID            | uint32_t | 4                     |
-// ------------------------------------------------------------------------------
-// bank_data           | char     | variable
-// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-class AllenConsumer : public Gaudi::Functional::Consumer<void( const LHCb::RawEvent&, const LHCb::ODIN& ),
-                                                        Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
+class AllenConsumer : public Gaudi::Functional::Consumer<void( const LHCb::RawEvent&, const LHCb::ODIN& )> {
 public:
   /// Standard constructor
   AllenConsumer( const std::string& name, ISvcLocator* pSvcLocator );
@@ -60,12 +35,6 @@ public:
   void operator()( const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin ) const override;
 
 private:
-  std::string outputDirectory( LHCb::RawBank::BankType bankType ) const;
-
-  Gaudi::Property<std::string>                       m_outputDirectory{this, "OutputDirectory", "banks"};
-  Gaudi::Property<std::set<LHCb::RawBank::BankType>> m_bankTypes{
-      this, "BankTypes", {LHCb::RawBank::VP, LHCb::RawBank::UT, LHCb::RawBank::FTCluster, LHCb::RawBank::Muon}};
-
-  std::unordered_map<std::string, AIDA::IHistogram1D*> m_histos;
+  
 };
 #endif // ALLENCONSUMER_H

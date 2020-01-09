@@ -19,8 +19,8 @@ AllenTransformer::AllenTransformer( const std::string& name, ISvcLocator* pSvcLo
                     {KeyValue{"RawEventLocation", LHCb::RawEventLocation::Default}, 
                         KeyValue{"ODINLocation", LHCb::ODINLocation::Default}},
                     // Outputs
-                    {KeyValue{"VeloTracks", LHCb::TrackLocation::Velo},
-                        KeyValue{"UTTracks", LHCb::TrackLocation::UT}} ) {}
+                    {KeyValue{"VeloTracks", "Event/Allen/Track/Velo"},
+                        KeyValue{"UTTracks", "Event/Allen/Track/UT"}} ) {}
 
 StatusCode AllenTransformer::initialize() {
   auto sc = MultiTransformer::initialize();

@@ -23,7 +23,8 @@ RunAllen::RunAllen( const std::string& name, ISvcLocator* pSvcLocator )
                      KeyValue{"AllenRawVeloOffsets", "Allen/Raw/VeloOffsets"},
                      KeyValue{"AllenRawUTOffsets", "Allen/Raw/UTOffsets"},
                      KeyValue{"AllenRawFTClusterOffsets", "Allen/Raw/FTClusterOffsets"},
-                     KeyValue{"AllenRawMuonOffsets", "Allen/Raw/MuonOffsets"}}
+                     KeyValue{"AllenRawMuonOffsets", "Allen/Raw/MuonOffsets"}
+                    }
                     // Outputs
                    
             ) {}
@@ -50,7 +51,8 @@ void RunAllen::operator()(
   const std::vector<uint32_t>& VeloRawOffsets,
   const std::vector<uint32_t>& UTRawOffsets,
   const std::vector<uint32_t>& SciFiRawOffsets,
-  const std::vector<uint32_t>& MuonRawOffsets) const {
+  const std::vector<uint32_t>& MuonRawOffsets
+                          ) const {
 
  
 }

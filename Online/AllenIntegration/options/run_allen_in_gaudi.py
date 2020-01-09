@@ -16,7 +16,7 @@ from Gaudi.Configuration import appendPostConfigAction
 from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
-from Configurables import RunAllen, AllenUpdater
+from Configurables import RunAllen, AllenUpdater, AllenTransformer, AllenConsumer
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
 from Configurables import DumpMuonGeometry, DumpVPGeometry, AllenUpdater
 from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables
@@ -77,6 +77,8 @@ def modifySequences():
         from Configurables import TrackResChecker
         GaudiSequencer("CheckPatSeq").Members.remove(
             TrackResChecker("TrackResCheckerFast"))
+        GaudiSequencer("CheckPatSeq").Members.remove(
+            TrackResChecker("PrimaryVertexChecker"))
         from Configurables import VectorOfTracksFitter
         GaudiSequencer("RecoTrFastSeq").Members.remove(
             VectorOfTracksFitter("ForwardFitterAlgFast"))
@@ -96,10 +98,10 @@ dump_seq.Members += [dump_banks]
 
 # call Allen
 allen_seq = GaudiSequencer("AllenSeq")
-run_allen = RunAllen()
+run_allen = AllenConsumer() #RunAllen()
 allen_seq.Members += [run_allen]
 
-ApplicationMgr().TopAlg += [dump_seq]
+ApplicationMgr().TopAlg += [dump_seq, allen_seq]
 
 producers = [p(DumpToFile=True) for p in (DumpVPGeometry,
                                            DumpUTGeometry,

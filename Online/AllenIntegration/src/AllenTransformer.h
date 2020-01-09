@@ -34,10 +34,7 @@ class AllenTransformer final : public Gaudi::Functional::MultiTransformer<std::t
 
  private:
   // Helper functions
-  //bool isGoodOfflineTrack( const LHCb::Track& ) const;
-
-  //LHCb::Track makeMuonTrack( const LHCb::MuonPID& ) const;
-
+ 
   
   
 };
