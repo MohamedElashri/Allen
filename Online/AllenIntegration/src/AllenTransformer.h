@@ -21,7 +21,7 @@
 #include "Event/Track.h"
 
 
-class AllenTransformer final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin)> {
+class AllenTransformer final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
  public:
   /// Standard constructor
   AllenTransformer( const std::string& name, ISvcLocator* pSvcLocator );
@@ -30,13 +30,13 @@ class AllenTransformer final : public Gaudi::Functional::MultiTransformer<std::t
   StatusCode                               initialize() override;
 
   /// Algorithm execution
-  std::tuple<LHCb::Tracks, LHCb::Tracks> operator()( const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin ) const override;
+  std::tuple<LHCb::Tracks, LHCb::Tracks> operator()( const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
 
  private:
   // Helper functions
- 
-  
-  
+
+
+
 };
 
 

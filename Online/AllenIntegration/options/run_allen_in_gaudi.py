@@ -17,6 +17,7 @@ from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
 from Configurables import RunAllen, AllenUpdater, AllenTransformer, AllenConsumer
+from Configurables import TrackResChecker, PrimaryVertexChecker
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
 from Configurables import DumpMuonGeometry, DumpVPGeometry, AllenUpdater
 from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables
@@ -24,6 +25,7 @@ from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
 from Configurables import ApplicationMgr
+from Configurables import ProcessPhase
 import os
 
 # DDDBtag = "dddb-20171010"
@@ -68,54 +70,58 @@ FTRawBankDecoder("createFTClusters").DecodingVersion = 5
 NTupleSvc().Output = ["FILE1 DATAFILE='velo_states.root' TYP='ROOT' OPT='NEW'"]
 
 
-# remove algorithms that are not needed
-def modifySequences():
-    try:
-        # empty the calo sequence
-        GaudiSequencer("MCLinksCaloSeq").Members = []
-        #        GaudiSequencer("MCLinksCaloSeq").Members = []
-        from Configurables import TrackResChecker
-        GaudiSequencer("CheckPatSeq").Members.remove(
-            TrackResChecker("TrackResCheckerFast"))
-        GaudiSequencer("CheckPatSeq").Members.remove(
-            TrackResChecker("PrimaryVertexChecker"))
-        from Configurables import VectorOfTracksFitter
-        GaudiSequencer("RecoTrFastSeq").Members.remove(
-            VectorOfTracksFitter("ForwardFitterAlgFast"))
-        from Configurables import PrTrackAssociator
-        GaudiSequencer("ForwardFastFittedExtraChecker").Members.remove(
-            PrTrackAssociator("ForwardFastFittedAssociator"))
-        from Configurables import MuonRec
-        GaudiSequencer("RecoDecodingSeq").Members.append(MuonRec())
-    except ValueError:
-        None
-appendPostConfigAction(modifySequences)
-
 # Save raw banks in Allen format on the TES
-dump_banks = DumpRawBanks(BankTypes=["VP", "UT", "FTCluster", "Muon"], DumpToFile=False)
-dump_seq = GaudiSequencer("DumpSeq")
+dump_banks = DumpRawBanks(
+    BankTypes=["VP", "UT", "FTCluster", "Muon"], DumpToFile=False)
+dump_seq = GaudiSequencer("RecoAllenPrepareSeq")
 dump_seq.Members += [dump_banks]
 
 # call Allen
-allen_seq = GaudiSequencer("AllenSeq")
-run_allen = AllenConsumer() #RunAllen()
+allen_seq = GaudiSequencer("RecoAllenSeq")
+run_allen = AllenTransformer()  # RunAllen()
 allen_seq.Members += [run_allen]
 
-ApplicationMgr().TopAlg += [dump_seq, allen_seq]
+ApplicationMgr().TopAlg += []
 
-producers = [p(DumpToFile=True) for p in (DumpVPGeometry,
-                                           DumpUTGeometry,
-                                           DumpFTGeometry,
-                                           DumpMuonGeometry,
-                                           DumpMuonTable,
-                                           DumpMagneticField,
-                                           DumpBeamline,
-                                           DumpUTLookupTables)]
- 
+producers = [p() for p in (DumpVPGeometry,
+                           DumpUTGeometry,
+                           DumpFTGeometry,
+                           DumpMuonGeometry,
+                           DumpMuonTable,
+                           DumpMagneticField,
+                           DumpBeamline,
+                           DumpUTLookupTables)]
+
 
 # Add the services that will produce the non-event-data
 ApplicationMgr().ExtSvc += [
     AllenUpdater(OutputLevel=2),
 ] + producers
 
+# remove algorithms that are not needed
 
+
+def modifySequences():
+    try:
+        # empty the calo sequence
+        GaudiSequencer("MCLinksCaloSeq").Members = []
+        ProcessPhase("Reco").DetectorList += ["AllenPrepare", "Allen"]
+        #        GaudiSequencer("MCLinksCaloSeq").Members = []
+        # from Configurables import TrackResChecker
+        GaudiSequencer("CheckPatSeq").Members.remove(
+            TrackResChecker("TrackResCheckerFast"))
+        GaudiSequencer("CheckPatSeq").Members.remove(
+            PrimaryVertexChecker("PVChecker"))
+        # from Configurables import VectorOfTracksFitter
+        # GaudiSequencer("RecoTrFastSeq").Members.remove(
+        #     VectorOfTracksFitter("ForwardFitterAlgFast"))
+        # from Configurables import PrTrackAssociator
+        # GaudiSequencer("ForwardFastFittedExtraChecker").Members.remove(
+        #     PrTrackAssociator("ForwardFastFittedAssociator"))
+        from Configurables import MuonRec
+        GaudiSequencer("RecoDecodingSeq").Members.append(MuonRec())
+    except ValueError:
+        None
+
+
+appendPostConfigAction(modifySequences)
