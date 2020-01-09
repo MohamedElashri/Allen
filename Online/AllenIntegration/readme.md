@@ -43,5 +43,5 @@ Adopt the day of the nightly build according to when you are building (Tue in th
 
 Call the executable from within the Brunel directory:
 ```
-./build.x86_64-centos7-gcc9-opt/run gaudirun.py ../Allen/Online/AllenIntegration/options/call_AllenConsumer.py ../Rec/GPU/BinaryDumpers/options/upgrade-minbias-magdown-scifi-v5.py
+./build.x86_64-centos7-gcc9-opt/run gaudirun.py ../Allen/Online/AllenIntegration/options/run_allen_in_gaudi.py ../Rec/GPU/BinaryDumpers/options/upgrade-minbias-magdown-scifi-v5.py
 ```
