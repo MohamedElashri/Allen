@@ -327,3 +327,22 @@ void print_gpu_memory_consumption();
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
 
 void populate_verbosity_constant_in_device(const uint verbosity);
+
+// Helper structure to deal with constness of T
+template<typename T>
+struct ForwardType {
+  using char_t = char;
+  using float_t = float;
+  using int_t = int;
+  using uint_t = uint;
+  using bool_t = bool;
+};
+
+template<typename T>
+struct ForwardType<const T> {
+  using char_t = const char;
+  using float_t = const float;
+  using int_t = const int;
+  using uint_t = const uint;
+  using bool_t = const bool;
+};

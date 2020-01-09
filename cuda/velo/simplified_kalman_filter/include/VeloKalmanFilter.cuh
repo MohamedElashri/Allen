@@ -25,9 +25,9 @@ namespace velo_kalman_filter {
    */
   template<bool upstream>
   __device__ KalmanVeloState
-  simplified_fit(const Velo::Consolidated::Hits consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits) {
+  simplified_fit(const Velo::Consolidated::Hits<const char>& consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits) {
     // backward = state.z > track.hits[0].z;
-    const bool backward = stateAtBeamLine.z > consolidated_hits.z[0];
+    const bool backward = stateAtBeamLine.z > consolidated_hits.z(0);
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
     const float noise2PerLayer =
       1e-8f + 7e-6f * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
@@ -37,7 +37,7 @@ namespace velo_kalman_filter {
     int firsthit = 0;
     int lasthit = nhits - 1;
     int dhit = 1;
-    if ((consolidated_hits.z[lasthit] - consolidated_hits.z[firsthit]) * direction < 0) {
+    if ((consolidated_hits.z(lasthit) - consolidated_hits.z(firsthit)) * direction < 0) {
       const int temp = firsthit;
       firsthit = lasthit;
       lasthit = temp;
@@ -47,9 +47,9 @@ namespace velo_kalman_filter {
     // We filter x and y simultaneously but take them uncorrelated.
     // filter first the first hit.
     KalmanVeloState state;
-    state.x = consolidated_hits.x[firsthit];
-    state.y = consolidated_hits.y[firsthit];
-    state.z = consolidated_hits.z[firsthit];
+    state.x = consolidated_hits.x(firsthit);
+    state.y = consolidated_hits.y(firsthit);
+    state.z = consolidated_hits.z(firsthit);
     state.tx = stateAtBeamLine.tx;
     state.ty = stateAtBeamLine.ty;
 
@@ -64,9 +64,9 @@ namespace velo_kalman_filter {
     // add remaining hits
     for (auto i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
       int hitindex = i;
-      const auto hit_x = consolidated_hits.x[hitindex];
-      const auto hit_y = consolidated_hits.y[hitindex];
-      const auto hit_z = consolidated_hits.z[hitindex];
+      const auto hit_x = consolidated_hits.x(hitindex);
+      const auto hit_y = consolidated_hits.y(hitindex);
+      const auto hit_z = consolidated_hits.z(hitindex);
 
       // add the noise
       state.c22 += noise2PerLayer;

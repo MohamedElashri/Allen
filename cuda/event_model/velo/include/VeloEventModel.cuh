@@ -96,16 +96,6 @@ namespace Velo {
     bool backward;
   };
 
-  // Helper structure to deal with constness of T
-  template<typename T>
-  struct ForwardType {
-    using float_t = float;
-  };
-  template<>
-  struct ForwardType<const uint32_t> {
-    using float_t = const float;
-  };
-
   /**
    * @brief Structure to access VELO clusters.
    */
@@ -114,7 +104,7 @@ namespace Velo {
   private:
     // T can either be const uint32_t or uint32_t
     T* m_base_pointer;
-    uint m_total_estimated_number_of_clusters;
+    const uint m_total_estimated_number_of_clusters;
 
   public:
     __host__ __device__ Clusters(T* base_pointer, const uint total_estimated_number_of_clusters) :

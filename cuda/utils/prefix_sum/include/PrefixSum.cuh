@@ -5,12 +5,6 @@
 #include "UTEventModel.cuh"
 #include "UTDefinitions.cuh"
 #include "SciFiDefinitions.cuh"
-#include "ArgumentsCommon.cuh"
-#include "ArgumentsVelo.cuh"
-#include "ArgumentsUT.cuh"
-#include "ArgumentsSciFi.cuh"
-#include "ArgumentsMuon.cuh"
-#include "ArgumentsVertex.cuh"
 #include "LookingForwardConstants.cuh"
 
 __global__ void
