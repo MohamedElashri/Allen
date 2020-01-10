@@ -106,6 +106,11 @@ struct HostBuffers {
   void reserve(const uint max_number_of_events, const bool do_check);
 
   /**
+   * @brief Frees all host buffers.
+   */
+  cudaError_t free(const bool do_check);
+
+  /**
    * @brief Returns total number of velo track hits.
    */
   size_t velo_track_hit_number_size() const;
@@ -124,4 +129,6 @@ struct HostBuffers {
    * @brief Retrieve total number of hit uints.
    */
   uint32_t scifi_hits_uints() const;
+
+  
 };

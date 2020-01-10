@@ -64,6 +64,12 @@ cudaError_t cudaFreeHost(void* ptr)
   return 0;
 }
 
+cudaError_t cudaFree(void* ptr)
+{
+  free(ptr);
+  return 0;
+}
+
 cudaError_t cudaDeviceReset() { return 0; }
 
 cudaError_t cudaStreamCreate(cudaStream_t*) { return 0; }

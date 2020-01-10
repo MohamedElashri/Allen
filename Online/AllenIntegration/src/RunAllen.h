@@ -30,6 +30,7 @@
 #include "RegisterConsumers.h"
 #include <Dumpers/IUpdater.h>
 
+
 class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
  public:
   /// Standard constructor

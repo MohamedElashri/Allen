@@ -28,7 +28,7 @@ struct StreamWrapper {
   // Note: We need Stream* here due to the compiler
   //       needing to know the size of the allocated object
   std::vector<Stream*> streams;
-
+  bool do_check;
   StreamWrapper() = default;
 
   ~StreamWrapper();

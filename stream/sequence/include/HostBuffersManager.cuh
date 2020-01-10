@@ -37,7 +37,8 @@ struct HostBuffersManager {
 
 private:
   void init(size_t nBuffers);
-
+  void initFromSingleHostBuffer(HostBuffers* host_buffer);
+  
   std::vector<HostBuffers*> host_buffers;
   std::vector<BufferStatus> buffer_statuses;
 

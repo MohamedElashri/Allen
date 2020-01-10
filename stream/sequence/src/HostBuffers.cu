@@ -150,3 +150,80 @@ uint32_t HostBuffers::scifi_hits_uints() const
 {
   return (sizeof(SciFi::Hit) / sizeof(uint32_t) + 1) * host_accumulated_number_of_scifi_hits[0];
 }
+
+cudaError_t HostBuffers::free(const bool do_check) {
+  // Datatypes needed to run, regardless of checking
+  // Note: These datatypes must be pinned to allow for asynchronicity
+  cudaCheck(cudaFreeHost(host_number_of_selected_events));
+  cudaCheck(cudaFreeHost(host_total_number_of_velo_clusters));
+  cudaCheck(cudaFreeHost(host_number_of_reconstructed_velo_tracks));
+  cudaCheck(cudaFreeHost(host_accumulated_number_of_hits_in_velo_tracks));
+  cudaCheck(cudaFreeHost(host_accumulated_number_of_ut_hits));
+  cudaCheck(cudaFreeHost(host_number_of_reconstructed_ut_tracks));
+  cudaCheck(cudaFreeHost(host_accumulated_number_of_hits_in_ut_tracks));
+  cudaCheck(cudaFreeHost(host_accumulated_number_of_scifi_hits));
+  cudaCheck(cudaFreeHost(host_number_of_reconstructed_scifi_tracks));
+  cudaCheck(cudaFreeHost(host_accumulated_number_of_hits_in_scifi_tracks));
+  cudaCheck(cudaFreeHost(host_lf_total_number_of_candidates));
+  cudaCheck(cudaFreeHost(host_lf_total_size_first_window_layer));
+  cudaCheck(cudaFreeHost(host_muon_total_number_of_tiles));
+  cudaCheck(cudaFreeHost(host_number_of_svs));
+  cudaCheck(cudaFreeHost(host_muon_total_number_of_hits));
+  cudaCheck(cudaFreeHost(host_number_of_passing_events));
+
+  // Buffer for performing GEC on CPU
+  cudaCheck(cudaFreeHost(host_event_list));
+
+  // Buffer for saving events passing Hlt1 selections.
+  cudaCheck(cudaFreeHost(host_passing_event_list));
+
+  // Buffer for saving raw banks.
+  cudaCheck(cudaFreeHost(host_dec_reports));
+  
+  // Buffer for performing prefix sum
+  cudaCheck(cudaFreeHost(host_prefix_sum_buffer));
+
+  // if (do_check) {
+  //   // Datatypes to be reserved only if checking is on
+  //   // Note: These datatypes in principle do not require to be pinned
+  //   free(host_atomics_velo);
+  //   free(host_velo_track_hit_number);
+  //   free(host_velo_track_hits);
+  //   free(host_kalmanvelo_states);
+  //   free(host_atomics_ut);
+  //   free(host_ut_tracks);
+  //   free(host_ut_track_hit_number);
+  //   free(host_ut_track_hits);
+  //   free(host_ut_qop);
+  //   free(host_ut_x);
+  //   free(host_ut_tx);
+  //   free(host_ut_z);
+  //   free(host_ut_track_velo_indices);
+  //   free(host_scifi_tracks);
+  //   free(host_atomics_scifi);
+  //   free(host_scifi_track_hit_number);
+  //   free(host_scifi_track_hits);
+  //   free(host_scifi_qop);
+  //   free(host_scifi_states);
+  //   free(host_scifi_track_ut_indices);
+  //   free(host_reconstructed_pvs);
+  //   free(host_number_of_vertex);
+  //   free(host_number_of_seeds);
+  //   free(host_peaks);
+  //   free(host_number_of_peaks);
+  //   free(host_reconstructed_multi_pvs);
+  //   free(host_number_of_multivertex);
+  //   free(host_kf_tracks);
+  //   free(host_muon_catboost_output);
+  //   free(host_is_muon);
+  //   free(host_secondary_vertices);
+  //   free(host_one_track_decisions);
+  //   free(host_single_muon_decisions);
+  //   free(host_sv_offsets);
+  //   free(host_two_track_decisions);
+  //   free(host_disp_dimuon_decisions);
+  //   free(host_high_mass_dimuon_decisions);
+  // }
+  
+  return cudaSuccess;
+}

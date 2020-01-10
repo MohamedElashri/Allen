@@ -33,7 +33,7 @@ struct Stream {
   using argument_manager_t = ArgumentManager<scheduler_t::arguments_tuple_t>;
 
   Stream() = default;
-
+   
   // Dynamic scheduler
   scheduler_t scheduler;
 
@@ -54,7 +54,7 @@ struct Stream {
 
   // Number of input events
   uint number_of_input_events;
-
+ 
   // GPU Memory base pointer
   char* dev_base_pointer;
 
@@ -72,6 +72,8 @@ struct Stream {
     const Constants& param_constants,
     HostBuffersManager const* buffers_manager);
 
+  cudaError_t free(const bool do_check);
+  
   std::vector<bool> reconstructed_events() const;
 
   void run_monte_carlo_test(

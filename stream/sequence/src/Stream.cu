@@ -28,7 +28,7 @@ cudaError_t Stream::initialize(
   do_print_memory_manager = param_do_print_memory_manager;
   start_event_offset = param_start_event_offset;
   constants = param_constants;
-
+  
   // Reserve host buffers
   host_buffers_manager = buffers_manager;
 
@@ -116,4 +116,13 @@ void Stream::run_monte_carlo_test(
     auto& checker = invoker.checker<TrackCheckerForward>("PrCheckerPlots.root");
     checker.accumulate<TrackCheckerForward>(mc_events, forward_tracks);
   }
+}
+
+cudaError_t Stream::free(const bool do_check)
+{
+  if (host_buffers)
+    host_buffers->free(do_check);
+  cudaCheck(cudaFree(dev_base_pointer));
+  
+  return cudaSuccess;
 }
