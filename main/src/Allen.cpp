@@ -657,15 +657,17 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               10001,             // maximum number event of offsets in read buffer
                               *events_per_slice, // number of events per read buffer
                               n_io_reps};        // number of loops over the input files
-    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), config);
+    input_provider =
+      std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+        number_of_slices, *events_per_slice, n_events, std::move(connections), config);
   }
   else {
     // The binary input provider expects the folders for the bank types as connections
     std::vector<std::string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw, folder_name_ODIN_raw};
-    input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
+    input_provider =
+      std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+        number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
   }
 
   std::unique_ptr<OutputHandler> output_handler;

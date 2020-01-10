@@ -31,9 +31,8 @@ struct RuntimeOptions {
     bool param_do_check,
     bool param_cpu_offload) :
     host_velo_events {std::move(velo_events)},
-    host_ut_events {std::move(ut_events)}, host_scifi_events {std::move(scifi_events)}, host_muon_events {std::move(
-                                                                                          muon_events)},
-    host_odin_events {std::move(odin_events)},
+    host_ut_events {std::move(ut_events)}, host_scifi_events {std::move(scifi_events)},
+    host_muon_events {std::move(muon_events)}, host_odin_events {std::move(odin_events)},
     number_of_events(param_number_of_events), number_of_selected_events(param_number_of_events),
     number_of_repetitions(param_number_of_repetitions), do_check(param_do_check), cpu_offload(param_cpu_offload)
   {}
