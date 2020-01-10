@@ -120,7 +120,7 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
       consolidated_hits.x(i) = velo_cluster_container.x(hit_index);
     });
     populate<float>(track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-      consolidated_hits.x(i) = velo_cluster_container.y(hit_index);
+      consolidated_hits.y(i) = velo_cluster_container.y(hit_index);
     });
     populate<float>(track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
       consolidated_hits.z(i) = velo_cluster_container.z(hit_index);

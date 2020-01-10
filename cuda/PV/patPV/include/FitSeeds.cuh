@@ -9,7 +9,7 @@
 #include "PV_Definitions.cuh"
 
 __device__ bool fit_vertex(
-  PatPV::XYZPoint& seedPoint,
+  const PatPV::XYZPoint& seedPoint,
   const Velo::Consolidated::KalmanStates<const char>& velo_states,
   PV::Vertex& vtx,
   int number_of_tracks,

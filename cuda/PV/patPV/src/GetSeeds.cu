@@ -62,8 +62,8 @@ __global__ void pv_get_seeds::pv_get_seeds(pv_get_seeds::Parameters parameters)
   const uint event_number = blockIdx.x;
 
   const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::KalmanStates velo_states {parameters.dev_velo_kalman_beamline_states,
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+  const Velo::Consolidated::KalmanStates<const char> velo_states {parameters.dev_velo_kalman_beamline_states,
                                                       velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
@@ -98,7 +98,7 @@ __global__ void pv_get_seeds::pv_get_seeds(pv_get_seeds::Parameters parameters)
     parameters.dev_seeds[event_number * PatPV::max_number_vertices + i] =
       PatPV::XYZPoint {beamspot.x, beamspot.y, zseeds[i]};
 
-  parameters.dev_number_seed[event_number] = number_final_clusters;
+  parameters.dev_number_seeds[event_number] = number_final_clusters;
 }
 
 __device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int number_of_clusters)

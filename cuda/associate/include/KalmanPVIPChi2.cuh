@@ -14,7 +14,7 @@ namespace kalman_pv_ipchi2 {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
-    DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
     DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
     DEVICE_INPUT(dev_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
@@ -22,7 +22,7 @@ namespace kalman_pv_ipchi2 {
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
     DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
-    DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
+    DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
   };
 
@@ -39,8 +39,8 @@ namespace kalman_pv_ipchi2 {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      auto n_scifi_tracks = value<host_number_of_reconstructed_scifi_tracks_t>();
-      set_size<dev_kalman_pv_ipchi2_t>(arguments, Associate::Consolidated::Table::size(n_scifi_tracks));
+      auto n_scifi_tracks = value<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+      set_size<dev_kalman_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(n_scifi_tracks));
     }
 
     void operator()(

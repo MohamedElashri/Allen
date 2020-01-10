@@ -45,10 +45,10 @@ __device__ void associate_and_muon_id(
   ParKalmanFilter::FittedTrack* tracks,
   const bool* is_muon,
   cuda::span<const PV::Vertex> const& vertices,
-  Associate::Consolidated::EventTable& table,
+  Associate::Consolidated::EventTable<char>& table,
   distance_fun fun)
 {
-  for (uint i = threadIdx.x; i < table.size; i += blockDim.x) {
+  for (uint i = threadIdx.x; i < table.size(); i += blockDim.x) {
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;
@@ -58,8 +58,8 @@ __device__ void associate_and_muon_id(
       best_value = (first || val < best_value) ? val : best_value;
       first = false;
     }
-    table.pv[i] = best_index;
-    table.value[i] = best_value;
+    table.pv(i) = best_index;
+    table.value(i) = best_value;
     tracks[i].ipChi2 = best_value;
     tracks[i].is_muon = is_muon[i];
   }
@@ -71,17 +71,17 @@ __global__ void kalman_pv_ipchi2::kalman_pv_ipchi2(kalman_pv_ipchi2::Parameters 
   const uint event_number = blockIdx.x;
 
   // Consolidated SciFi tracks.
-  const SciFi::Consolidated::Tracks scifi_tracks {(uint*) parameters.dev_atomics_scifi,
-                                                  (uint*) parameters.dev_scifi_track_hit_number,
-                                                  (float*) parameters.dev_scifi_qop,
-                                                  (MiniState*) parameters.dev_scifi_states,
-                                                  (uint*) dev_scifi_track_ut_indices,
+  const SciFi::Consolidated::Tracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                  parameters.dev_scifi_track_hit_number,
+                                                  parameters.dev_scifi_qop,
+                                                  parameters.dev_scifi_states,
+                                                  parameters.dev_scifi_track_ut_indices,
                                                   event_number,
                                                   number_of_events};
   const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
 
   // The total track-PV association table.
-  Associate::Consolidated::Table kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
+  Associate::Consolidated::Table<char> kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
                                                    scifi_tracks.total_number_of_tracks()};
 
   // Kalman-fitted tracks for this event.
@@ -91,7 +91,7 @@ __global__ void kalman_pv_ipchi2::kalman_pv_ipchi2(kalman_pv_ipchi2::Parameters 
                                          *(parameters.dev_number_of_multi_fit_vertices + event_number)};
 
   // The track <-> PV association table for this event.
-  auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
+  Associate::Consolidated::EventTable<char> pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Perform the association for this event.
   associate_and_muon_id(event_tracks, event_is_muon, vertices, pv_table, Distance::kalman_ipchi2);

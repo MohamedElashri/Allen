@@ -6,41 +6,51 @@
 #include "AssociateConsolidated.cuh"
 #include "Common.h"
 #include "DeviceAlgorithm.cuh"
-#include "ArgumentsCommon.cuh"
-#include "ArgumentsVelo.cuh"
-#include "ArgumentsPV.cuh"
-#include "ArgumentsKalmanFilter.cuh"
 
-__global__ void velo_pv_ip(
-  char* dev_kalman_velo_states,
-  uint* dev_atomics_velo,
-  uint* dev_velo_track_hit_number,
-  PV::Vertex* dev_multi_fit_vertices,
-  uint* dev_number_of_multi_fit_vertices,
-  char* dev_velo_pv_ip);
+namespace velo_pv_ip {
+  struct Parameters {
+    HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    DEVICE_INPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
+    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
+    DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
+    DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
+    DEVICE_OUTPUT(dev_velo_pv_ip_t, char) dev_velo_pv_ip;
+  };
 
-struct velo_pv_ip_t : public DeviceAlgorithm {
-  constexpr static auto name {"velo_pv_ip_t"};
-  decltype(global_function(velo_pv_ip)) function {velo_pv_ip};
-  using Arguments = std::tuple<
-    dev_velo_kalman_beamline_states,
-    dev_atomics_velo,
-    dev_velo_track_hit_number,
-    dev_multi_fit_vertices,
-    dev_number_of_multi_fit_vertices,
-    dev_velo_pv_ip>;
+  __global__ void velo_pv_ip(Parameters);
 
-  void set_arguments_size(
-    ArgumentRefManager<T> arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    const HostBuffers& host_buffers) const;
+  template<typename T>
+  struct velo_pv_ip_t : public DeviceAlgorithm, Parameters {
+    constexpr static auto name {"velo_pv_ip_t"};
+    decltype(global_function(velo_pv_ip)) function {velo_pv_ip};
 
-  void operator()(
-    const ArgumentRefManager<T>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event) const;
-};
+    void set_arguments_size(
+      ArgumentRefManager<T> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) const
+    {
+      auto n_velo_tracks = value<host_number_of_reconstructed_velo_tracks_t>(arguments);
+      set_size<dev_velo_pv_ip_t>(arguments, Associate::Consolidated::table_size(n_velo_tracks));
+    }
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t& cuda_generic_event) const
+    {
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+        Parameters {offset<dev_velo_kalman_beamline_states_t>(arguments),
+                   offset<dev_atomics_velo_t>(arguments),
+                   offset<dev_velo_track_hit_number_t>(arguments),
+                   offset<dev_multi_fit_vertices_t>(arguments),
+                   offset<dev_number_of_multi_fit_vertices_t>(arguments),
+                   offset<dev_velo_pv_ip_t>(arguments)});
+    }
+  };
+} // namespace velo_pv_ip

@@ -33,7 +33,7 @@ __global__ void fit_seeds::fit_seeds(fit_seeds::Parameters parameters)
 }
 
 __device__ bool fit_vertex(
-  PatPV::XYZPoint& seedPoint,
+  const PatPV::XYZPoint& seedPoint,
   const Velo::Consolidated::KalmanStates<const char>& velo_states,
   PV::Vertex& vtx,
   int number_of_tracks,
