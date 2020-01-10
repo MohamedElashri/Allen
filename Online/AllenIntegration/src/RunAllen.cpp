@@ -1,4 +1,5 @@
-/*****************************************************************************\
+
+/***************************************************************************** \
  * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
  *                                                                             *
  * This software is distributed under the terms of the GNU General Public      *
@@ -14,23 +15,16 @@
 DECLARE_COMPONENT( RunAllen )
 
 RunAllen::RunAllen( const std::string& name, ISvcLocator* pSvcLocator )
-: Consumer( name, pSvcLocator,
+: MultiTransformer( name, pSvcLocator,
                     // Inputs
-                    {KeyValue{"AllenRawVeloInput", "Allen/Raw/VeloInput"},
-                     KeyValue{"AllenRawUTnput", "Allen/Raw/UTInput"},
-                     KeyValue{"AllenRawFTClusternput", "Allen/Raw/FTClusterInput"},
-                     KeyValue{"AllenRawMuonnput", "Allen/Raw/MuonInput"},
-                     KeyValue{"AllenRawVeloOffsets", "Allen/Raw/VeloOffsets"},
-                     KeyValue{"AllenRawUTOffsets", "Allen/Raw/UTOffsets"},
-                     KeyValue{"AllenRawFTClusterOffsets", "Allen/Raw/FTClusterOffsets"},
-                     KeyValue{"AllenRawMuonOffsets", "Allen/Raw/MuonOffsets"}
-                    }
+                    {KeyValue{"AllenRawInput", "Allen/Raw/Input"},
+                     KeyValue{"ODINLocation", LHCb::ODINLocation::Default}},
                     // Outputs
-                   
-            ) {}
+                    {KeyValue{"VeloTracks", "Allen/Track/Velo"},
+                     KeyValue{"UTTracks", "Allen/Track/UT"}} ) {}
 
 StatusCode RunAllen::initialize() {
-  auto sc = Consumer::initialize();
+  auto sc = MultiTransformer::initialize();
   if ( sc.isFailure() ) return sc;
   if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
 
@@ -43,16 +37,10 @@ StatusCode RunAllen::initialize() {
 
 /** Calls Allen for one event
  */
-void RunAllen::operator()(
-  const std::vector<uint32_t>& VeloRawInput,
-  const std::vector<uint32_t>& UTRawInput,
-  const std::vector<uint32_t>& SciFiRawInput,
-  const std::vector<uint32_t>& MuonRawInput,
-  const std::vector<uint32_t>& VeloRawOffsets,
-  const std::vector<uint32_t>& UTRawOffsets,
-  const std::vector<uint32_t>& SciFiRawOffsets,
-  const std::vector<uint32_t>& MuonRawOffsets
-                          ) const {
+std::tuple<LHCb::Tracks, LHCb::Tracks> RunAllen::operator()(const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const {
 
- 
+  LHCb::Tracks VeloTracks;
+  LHCb::Tracks UTTracks;
+
+  return std::make_tuple( std::move( VeloTracks ), std::move( UTTracks ) );
 }

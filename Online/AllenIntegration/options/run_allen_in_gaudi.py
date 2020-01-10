@@ -78,7 +78,7 @@ dump_seq.Members += [dump_banks]
 
 # call Allen
 allen_seq = GaudiSequencer("RecoAllenSeq")
-run_allen = AllenTransformer()  # RunAllen()
+run_allen = RunAllen()
 allen_seq.Members += [run_allen]
 
 ApplicationMgr().TopAlg += []

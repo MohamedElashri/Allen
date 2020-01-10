@@ -13,26 +13,16 @@
 #define RUNALLEN_H
 
 #include "GaudiAlg/Transformer.h"
-#include "GaudiAlg/Consumer.h"
 
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
-#include <GaudiAlg/Consumer.h>
 
 #include "Event/Track.h"
 
 #include "Constants.cuh"
 
-class RunAllen final : public Gaudi::Functional::Consumer<void(
-  const std::vector<uint32_t>& VeloRawInput,
-  const std::vector<uint32_t>& UTRawInput,
-  const std::vector<uint32_t>& SciFiRawInput,
-  const std::vector<uint32_t>& MuonRawInput,
-  const std::vector<uint32_t>& VeloRawOffsets,
-  const std::vector<uint32_t>& UTRawOffsets,
-  const std::vector<uint32_t>& SciFiRawOffsets,
-  const std::vector<uint32_t>& MuonRawOffsets)> {
+class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
  public:
   /// Standard constructor
   RunAllen( const std::string& name, ISvcLocator* pSvcLocator );
@@ -41,15 +31,7 @@ class RunAllen final : public Gaudi::Functional::Consumer<void(
   StatusCode                               initialize() override;
 
   /// Algorithm execution
-  void operator()(
-    const std::vector<uint32_t>& VeloRawInput,
-    const std::vector<uint32_t>& UTRawInput,
-    const std::vector<uint32_t>& SciFiRawInput,
-    const std::vector<uint32_t>& MuonRawInput,
-    const std::vector<uint32_t>& VeloRawOffsets,
-    const std::vector<uint32_t>& UTRawOffsets,
-    const std::vector<uint32_t>& SciFiRawOffsets,
-    const std::vector<uint32_t>& MuonRawOffsets) const override;
+  std::tuple<LHCb::Tracks, LHCb::Tracks> operator()( const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
 
  private:
   Constants m_constants;
