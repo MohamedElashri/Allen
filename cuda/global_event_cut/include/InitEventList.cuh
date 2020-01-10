@@ -16,5 +16,7 @@ ALGORITHM(
     dev_ut_raw_input_offsets,
     dev_scifi_raw_input,
     dev_scifi_raw_input_offsets,
+    dev_odin_raw_input,
+    dev_odin_raw_input_offsets,
     dev_number_of_selected_events,
     dev_event_list))

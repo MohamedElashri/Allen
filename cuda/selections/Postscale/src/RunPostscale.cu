@@ -21,18 +21,24 @@ __device__ uint32_t postscale::mix32( uint32_t state, uint32_t extra )
   return postscale::mix( state + extra );
 }
 
-__device__ uint32_t postscale::mix64( uint32_t state, uint64_t extra )
+__device__ uint32_t postscale::mix64( uint32_t state, uint32_t extra_hi, uint32_t extra_lo )
 {
-  constexpr auto mask = ( ( ~uint64_t{0} ) >> 32 );
-  state               = mix32( state, uint32_t( extra & mask ) );
-  return postscale::mix32( state, uint32_t( ( extra >> 32 ) & mask ) );
+  state           = mix32( state, extra_lo );
+  return postscale::mix32( state, extra_hi );
 }
 
-__device__ void DeterministicPostscaler::operator()(const int n_candidates, bool* results, const LHCb::ODIN& odin)
+__device__ void DeterministicPostscaler::operator()(
+  const int n_candidates,
+  bool* results,
+  const uint32_t run_number,
+  const uint32_t evt_number_hi,
+  const uint32_t evt_number_lo,
+  const uint32_t gps_time_hi,
+  const uint32_t gps_time_lo)
 {
   if (accept_threshold == std::numeric_limits<uint32_t>::max()) return;
 
-  auto x = postscale::mix64( postscale::mix32( postscale::mix64( initial_value, odin.gps_time ), odin.run_number ), odin.event_number );
+  auto x = postscale::mix64( postscale::mix32( postscale::mix64( initial_value, gps_time_hi, gps_time_lo ), run_number ), evt_number_hi, evt_number_lo );
 
   if (x >= accept_threshold) {
     for ( auto i_cand = 0; i_cand < n_candidates; ++i_cand ) {
@@ -42,6 +48,8 @@ __device__ void DeterministicPostscaler::operator()(const int n_candidates, bool
 }
 
 __global__ void run_postscale(
+    char* dev_odin_raw_input,
+    uint* dev_odin_raw_input_offsets,
     const uint* dev_atomics_scifi,
     const uint* dev_sv_offsets,
     bool* dev_one_track_results,
@@ -75,20 +83,26 @@ __global__ void run_postscale(
   DeterministicPostscaler ps_high_mass_dimuon(Hlt1::HighMassDiMuon, postscale::factor_high_mass_dimuon);
   DeterministicPostscaler ps_dimuon_soft(Hlt1::SoftDiMuon, postscale::factor_dimuon_soft);
 
-  //TODO fake ODIN
-  LHCb::ODIN odin;
+  const uint hdr_size(8);
+  const unsigned int* odinData = reinterpret_cast<const uint*>(dev_odin_raw_input + dev_odin_raw_input_offsets[event_number] + hdr_size);
+
+  uint32_t run_no = odinData[LHCb::ODIN::Data::RunNumber];
+  uint32_t evt_hi = odinData[LHCb::ODIN::Data::L0EventIDHi];
+  uint32_t evt_lo = odinData[LHCb::ODIN::Data::L0EventIDLo];
+  uint32_t gps_hi = odinData[LHCb::ODIN::Data::GPSTimeHi];
+  uint32_t gps_lo = odinData[LHCb::ODIN::Data::GPSTimeLo];
 
   // One track lines.
-  ps_one_track(n_tracks_event, event_one_track_results, odin);
+  ps_one_track(n_tracks_event, event_one_track_results, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
 
-  ps_single_muon(n_tracks_event, event_single_muon_results, odin);
+  ps_single_muon(n_tracks_event, event_single_muon_results, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
 
   // Two track lines.
-  ps_two_tracks(n_vertices_event, event_two_track_results, odin);
+  ps_two_tracks(n_vertices_event, event_two_track_results, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
 
-  ps_disp_dimuon(n_vertices_event, event_disp_dimuon_results, odin);
+  ps_disp_dimuon(n_vertices_event, event_disp_dimuon_results, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
 
-  ps_high_mass_dimuon(n_vertices_event, event_high_mass_dimuon_results, odin);
-  ps_dimuon_soft(n_vertices_event, event_dimuon_soft_results, odin);
+  ps_high_mass_dimuon(n_vertices_event, event_high_mass_dimuon_results, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  ps_dimuon_soft(n_vertices_event, event_dimuon_soft_results, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
 
 }

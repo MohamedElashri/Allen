@@ -259,6 +259,7 @@ void run_stream(
          input_provider->banks(BankTypes::UT, *idx, *first, *last),
          input_provider->banks(BankTypes::FT, *idx, *first, *last),
          input_provider->banks(BankTypes::MUON, *idx, *first, *last),
+         input_provider->banks(BankTypes::ODIN, *idx, *first, *last),
          n_events,
          n_reps,
          do_check,
@@ -625,6 +626,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
   const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
   const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
+  const auto folder_name_ODIN_raw = folder_data + folder_rawdata + "ODIN";
   const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
 
   std::unique_ptr<ConfigurationReader> configuration_reader;
@@ -655,14 +657,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               10001,             // maximum number event of offsets in read buffer
                               *events_per_slice, // number of events per read buffer
                               n_io_reps};        // number of loops over the input files
-    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       number_of_slices, *events_per_slice, n_events, std::move(connections), config);
   }
   else {
     // The binary input provider expects the folders for the bank types as connections
     std::vector<std::string> connections = {
-      folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
-    input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+      folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw, folder_name_ODIN_raw};
+    input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
   }
 

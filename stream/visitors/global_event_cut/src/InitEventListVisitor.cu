@@ -15,6 +15,8 @@ void SequenceVisitor::set_arguments_size<init_event_list_t>(
   arguments.set_size<dev_ut_raw_input_offsets>(std::get<1>(runtime_options.host_ut_events).size_bytes());
   arguments.set_size<dev_scifi_raw_input>(std::get<0>(runtime_options.host_scifi_events).size_bytes());
   arguments.set_size<dev_scifi_raw_input_offsets>(std::get<1>(runtime_options.host_scifi_events).size_bytes());
+  arguments.set_size<dev_odin_raw_input>(std::get<0>(runtime_options.host_odin_events).size_bytes());
+  arguments.set_size<dev_odin_raw_input_offsets>(std::get<1>(runtime_options.host_odin_events).size_bytes());
   arguments.set_size<dev_event_list>(runtime_options.number_of_events);
   arguments.set_size<dev_number_of_selected_events>(1);
 }
@@ -65,6 +67,18 @@ void SequenceVisitor::visit<init_event_list_t>(
     arguments.offset<dev_scifi_raw_input_offsets>(),
     std::get<1>(runtime_options.host_scifi_events).begin(),
     std::get<1>(runtime_options.host_scifi_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_odin_raw_input>(),
+    std::get<0>(runtime_options.host_odin_events).begin(),
+    std::get<0>(runtime_options.host_odin_events).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+  cudaCheck(cudaMemcpyAsync(
+    arguments.offset<dev_odin_raw_input_offsets>(),
+    std::get<1>(runtime_options.host_odin_events).begin(),
+    std::get<1>(runtime_options.host_odin_events).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));
 
