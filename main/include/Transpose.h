@@ -211,10 +211,8 @@ std::tuple<bool, bool> transpose_event(
       // decode ODIN bank to obtain run and event numbers
       auto odin = MDF::decode_odin(b);
       event_ids.emplace_back(odin.run_number, odin.event_number);
-      bank += b->totalSize();
-      continue;
     }
-    else if (bt >= LHCb::RawBank::LastType || bank_ids[bt] == -1) {
+    if (bt >= LHCb::RawBank::LastType || bank_ids[bt] == -1) {
       // This bank is not required: skip it
       bank += b->totalSize();
       continue;
