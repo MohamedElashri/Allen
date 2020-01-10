@@ -9,13 +9,6 @@
 #include "odin.hpp"
 
 namespace postscale {
-  const float factor_one_track = 1.;
-  const float factor_single_muon = 1.;
-  const float factor_two_tracks = 1.;
-  const float factor_disp_dimuon = 1.;
-  const float factor_high_mass_dimuon = 1.;
-  const float factor_dimuon_soft = 1.;
-
   __device__ uint32_t mix( uint32_t state );
   __device__ uint32_t mix32( uint32_t state, uint32_t extra );
   __device__ uint32_t mix64( uint32_t state, uint32_t extra_hi, uint32_t extra_lo );
@@ -55,6 +48,17 @@ __global__ void run_postscale(
   bool* dev_high_mass_dimuon_results,
   bool* dev_dimuon_soft_results);
 
+namespace Configuration {
+  namespace run_postscale_t {
+    extern __constant__ float factor_one_track;
+    extern __constant__ float factor_single_muon;
+    extern __constant__ float factor_two_tracks;
+    extern __constant__ float factor_disp_dimuon;
+    extern __constant__ float factor_high_mass_dimuon;
+    extern __constant__ float factor_dimuon_soft;
+  } // namespace run_postscale_t
+} // namespace Configuration
+
 ALGORITHM(
   run_postscale,
   run_postscale_t,
@@ -68,4 +72,35 @@ ALGORITHM(
     dev_single_muon_results,
     dev_disp_dimuon_results,
     dev_high_mass_dimuon_results,
-    dev_dimuon_soft_results))
+    dev_dimuon_soft_results),
+  Property<float> factor_one_track {this,
+                    "factor_one_track",
+                    Configuration::run_postscale_t::factor_one_track,
+                    1.,
+                    "postscale for one-track line"};
+  Property<float> factor_single_muon {this,
+                    "factor_single_muon",
+                    Configuration::run_postscale_t::factor_single_muon,
+                    1.,
+                    "postscale for single-muon line"};
+  Property<float> factor_two_tracks {this,
+                    "factor_two_tracks",
+                    Configuration::run_postscale_t::factor_two_tracks,
+                    1.,
+                    "postscale for two-track line"};
+  Property<float> factor_disp_dimuon {this,
+                    "factor_disp_dimuon",
+                    Configuration::run_postscale_t::factor_disp_dimuon,
+                    1.,
+                    "postscale for displaced-dimuon line"};
+  Property<float> factor_high_mass_dimuon {this,
+                    "factor_high_mass_dimuon",
+                    Configuration::run_postscale_t::factor_high_mass_dimuon,
+                    1.,
+                    "postscale for high-mass-dimuon line"};
+  Property<float> factor_dimuon_soft {this,
+                    "factor_dimuon_soft",
+                    Configuration::run_postscale_t::factor_dimuon_soft,
+                    1.,
+                    "postscale for soft-dimuon line"};
+  )

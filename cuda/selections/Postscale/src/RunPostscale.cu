@@ -2,6 +2,13 @@
 
 #include "RunPostscale.cuh"
 
+__constant__ float Configuration::run_postscale_t::factor_one_track;
+__constant__ float Configuration::run_postscale_t::factor_single_muon;
+__constant__ float Configuration::run_postscale_t::factor_two_tracks;
+__constant__ float Configuration::run_postscale_t::factor_disp_dimuon;
+__constant__ float Configuration::run_postscale_t::factor_high_mass_dimuon;
+__constant__ float Configuration::run_postscale_t::factor_dimuon_soft;
+
 __device__ uint32_t postscale::mix( uint32_t state )
 {
   state += ( state << 16 );
@@ -76,12 +83,12 @@ __global__ void run_postscale(
 
   const auto n_vertices_event = dev_sv_offsets[event_number + 1] - dev_sv_offsets[event_number];
 
-  DeterministicPostscaler ps_one_track(Hlt1::OneTrackMVA, postscale::factor_one_track);
-  DeterministicPostscaler ps_single_muon(Hlt1::SingleMuon, postscale::factor_single_muon);
-  DeterministicPostscaler ps_two_tracks(Hlt1::TwoTrackMVA, postscale::factor_two_tracks);
-  DeterministicPostscaler ps_disp_dimuon(Hlt1::DisplacedDiMuon, postscale::factor_disp_dimuon);
-  DeterministicPostscaler ps_high_mass_dimuon(Hlt1::HighMassDiMuon, postscale::factor_high_mass_dimuon);
-  DeterministicPostscaler ps_dimuon_soft(Hlt1::SoftDiMuon, postscale::factor_dimuon_soft);
+  DeterministicPostscaler ps_one_track(Hlt1::OneTrackMVA, Configuration::run_postscale_t::factor_one_track);
+  DeterministicPostscaler ps_single_muon(Hlt1::SingleMuon, Configuration::run_postscale_t::factor_single_muon);
+  DeterministicPostscaler ps_two_tracks(Hlt1::TwoTrackMVA, Configuration::run_postscale_t::factor_two_tracks);
+  DeterministicPostscaler ps_disp_dimuon(Hlt1::DisplacedDiMuon, Configuration::run_postscale_t::factor_disp_dimuon);
+  DeterministicPostscaler ps_high_mass_dimuon(Hlt1::HighMassDiMuon, Configuration::run_postscale_t::factor_high_mass_dimuon);
+  DeterministicPostscaler ps_dimuon_soft(Hlt1::SoftDiMuon, Configuration::run_postscale_t::factor_dimuon_soft);
 
   const uint hdr_size(8);
   const unsigned int* odinData = reinterpret_cast<const uint*>(dev_odin_raw_input + dev_odin_raw_input_offsets[event_number] + hdr_size);
