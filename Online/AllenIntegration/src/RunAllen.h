@@ -12,15 +12,23 @@
 #ifndef RUNALLEN_H
 #define RUNALLEN_H
 
+// Gaudi includes
 #include "GaudiAlg/Transformer.h"
 
+// LHCb includes
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
 
+// Rec includes
 #include "Event/Track.h"
 
+// Allen includes
 #include "Constants.cuh"
+#include "InputTools.h"
+#include "InputReader.h"
+#include "RegisterConsumers.h"
+#include <Dumpers/IUpdater.h>
 
 class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
  public:
@@ -36,7 +44,8 @@ class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHC
  private:
   Constants m_constants;
  
-  
+  Gaudi::Property<std::string>       m_updaterName{this, "UpdaterName", "AllenUpdater"};
+  Gaudi::Property<std::string>       m_configurationPath{this, "ConfigurationPath", "../Allen/input/detector_configuration/down/"};
   
 };
 

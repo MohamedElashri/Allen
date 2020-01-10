@@ -129,3 +129,4 @@ Allen::NonEventData::IUpdater* make_updater(std::map<std::string, std::string>& 
 {
   return new Allen::NonEventData::Updater {options};
 }
+

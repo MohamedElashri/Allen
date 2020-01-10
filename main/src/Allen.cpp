@@ -46,6 +46,7 @@
 #include "MonitorManager.h"
 #include "FileWriter.h"
 #include "Allen.h"
+#include "RegisterConsumers.h"
 #include <tuple>
 
 namespace {
@@ -433,6 +434,7 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
 }
 
 /**
+=======
  * @brief      Main entry point
  *
  * @param      {key : value} command-line arguments as strings

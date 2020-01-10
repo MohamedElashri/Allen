@@ -16,10 +16,10 @@ from Gaudi.Configuration import appendPostConfigAction
 from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
-from Configurables import RunAllen, AllenUpdater, AllenTransformer, AllenConsumer
+from Configurables import RunAllen, AllenUpdater
 from Configurables import TrackResChecker, PrimaryVertexChecker
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
-from Configurables import DumpMuonGeometry, DumpVPGeometry, AllenUpdater
+from Configurables import DumpMuonGeometry, DumpVPGeometry
 from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables
 from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
@@ -83,7 +83,7 @@ allen_seq.Members += [run_allen]
 
 ApplicationMgr().TopAlg += []
 
-producers = [p() for p in (DumpVPGeometry,
+producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
                            DumpUTGeometry,
                            DumpFTGeometry,
                            DumpMuonGeometry,
@@ -98,9 +98,9 @@ ApplicationMgr().ExtSvc += [
     AllenUpdater(OutputLevel=2),
 ] + producers
 
+
+
 # remove algorithms that are not needed
-
-
 def modifySequences():
     try:
         # empty the calo sequence
