@@ -288,13 +288,15 @@ void SelCheckerTuple::accumulate(
       const auto& event_tracks = tracks[i_event];
       MCAssociator mcassoc {mcps};
       const int* event_tracks_offsets = track_atomics + selected_events;
-      const VertexFit::TrackMVAVertex* event_vertices = svs + sv_atomics[i_event];
+      const uint* sv_offsets = sv_atomics + selected_events;
+      const uint event_n_svs = sv_atomics[i_event];
+      const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
       const bool* event_one_track_decisions = one_track_decisions + event_tracks_offsets[i_event];
-      const bool* event_two_track_decisions = two_track_decisions + sv_atomics[i_event];
+      const bool* event_two_track_decisions = two_track_decisions + sv_offsets[i_event];
       const bool* event_single_muon_decisions = single_muon_decisions + event_tracks_offsets[i_event];
-      const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_atomics[i_event];
-      const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_atomics[i_event];
-      const bool* event_dimuon_soft_decisions = dimuon_soft_decisions + sv_atomics[i_event];
+      const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_offsets[i_event];
+      const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_offsets[i_event];
+      const bool* event_dimuon_soft_decisions = dimuon_soft_decisions + sv_offsets[i_event];
 
       // Loop over tracks.
       for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
@@ -305,29 +307,22 @@ void SelCheckerTuple::accumulate(
           m_trk_pass_one_track.push_back(event_one_track_decisions[i_track] ? 1. : 0.);
           m_trk_pass_single_muon.push_back(event_single_muon_decisions[i_track] ? 1. : 0.);
         }
+      }
 
-        for (size_t j_track = i_track + 1; j_track < event_tracks.size(); j_track++) {
-
-          // Second track.
-          auto trackB = event_tracks[j_track];
-          size_t idx2 = addTrack(trackB, mcassoc);
-          if (idx2 == m_trk_p.size() - 1) {
-            m_trk_pass_one_track.push_back(event_one_track_decisions[j_track] ? 1. : 0.);
-            m_trk_pass_single_muon.push_back(event_single_muon_decisions[j_track] ? 1. : 0.);
-          }
-          uint vertex_idx = (int) event_tracks.size() * ((int) event_tracks.size() - 3) / 2 -
-                            ((int) event_tracks.size() - 1 - i_track) * ((int) event_tracks.size() - 2 - i_track) / 2 +
-                            j_track;
-
-          if (event_vertices[vertex_idx].chi2 < 0) {
-            continue;
-          }
-          addSV(event_vertices[vertex_idx], idx1, idx2);
-          m_sv_pass_two_track.push_back(event_two_track_decisions[vertex_idx] ? 1. : 0.);
-          m_sv_pass_disp_dimuon.push_back(event_disp_dimuon_decisions[vertex_idx] ? 1. : 0.);
-          m_sv_pass_high_mass_dimuon.push_back(event_high_mass_dimuon_decisions[vertex_idx] ? 1. : 0.);
-          m_sv_pass_dimuon_soft.push_back(event_dimuon_soft_decisions[vertex_idx] ? 1. : 0.);
+      // Loop over SVs.
+      for (size_t i_sv = 0; i_sv < event_n_svs; i_sv++) {
+        if (event_vertices[i_sv].chi2 < 0) {
+          continue;
         }
+        auto trackA = event_tracks[(size_t)event_vertices[i_sv].trk1];
+        auto trackB = event_tracks[(size_t)event_vertices[i_sv].trk2];
+        size_t i_track = addTrack(trackA, mcassoc);
+        size_t j_track = addTrack(trackB, mcassoc);
+        addSV(event_vertices[i_sv], i_track, j_track);
+        m_sv_pass_two_track.push_back(event_two_track_decisions[i_sv] ? 1. : 0.);
+        m_sv_pass_disp_dimuon.push_back(event_disp_dimuon_decisions[i_sv] ? 1. : 0.);
+        m_sv_pass_high_mass_dimuon.push_back(event_high_mass_dimuon_decisions[i_sv] ? 1. : 0.);
+        m_sv_pass_dimuon_soft.push_back(event_dimuon_soft_decisions[i_sv] ? 1. : 0.);
       }
     }
     else {

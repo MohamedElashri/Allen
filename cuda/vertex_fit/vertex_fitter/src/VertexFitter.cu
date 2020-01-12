@@ -315,13 +315,14 @@ __global__ void fit_secondary_vertices(
   PV::Vertex* dev_multi_fit_vertices,
   uint* dev_number_of_multi_fit_vertices,
   char* dev_kalman_pv_ipchi2,
-  uint* dev_sv_offsets,
+  uint* dev_sv_atomics,
   VertexFit::TrackMVAVertex* dev_secondary_vertices)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint sv_offset = dev_sv_offsets[event_number];
-
+  const uint sv_offset = event_number * VertexFit::max_svs;
+  uint* event_sv_number = dev_sv_atomics + event_number;
+  
   // Consolidated SciFi tracks.
   const SciFi::Consolidated::Tracks scifi_tracks {(uint*) dev_n_scifi_tracks,
                                                   (uint*) dev_scifi_track_hit_number,
@@ -347,17 +348,15 @@ __global__ void fit_secondary_vertices(
   // Secondary vertices.
   VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
 
+  // Initialize SVs.
+  for (uint i_sv = threadIdx.x; i_sv < VertexFit::max_svs; i_sv += blockDim.x) {
+    event_secondary_vertices[i_sv].chi2 = -1;
+    event_secondary_vertices[i_sv].minipchi2 = 0;
+  }
+  
   // Loop over tracks.
   for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
-
-    // Set the fit status for all possible vertices.
-    for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
-      uint vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
-                        ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
-      event_secondary_vertices[vertex_idx].chi2 = -1;
-      event_secondary_vertices[vertex_idx].minipchi2 = 0;
-    }
-
+    
     // Preselection on first track.
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     if (
@@ -388,12 +387,13 @@ __global__ void fit_secondary_vertices(
         continue;
       }
 
-      const int vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
-                             ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
+      uint vertex_idx = atomicAdd(event_sv_number, 1);
 
       // Do the vertex fit.
       doFit(trackA, trackB, event_secondary_vertices[vertex_idx]);
-
+      event_secondary_vertices[vertex_idx].trk1 = i_track;
+      event_secondary_vertices[vertex_idx].trk2 = j_track;
+      
       // Fill extra info.
       fill_extra_info(event_secondary_vertices[vertex_idx], trackA, trackB);
       if (n_pvs_event > 0) {

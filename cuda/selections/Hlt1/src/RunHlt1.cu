@@ -11,9 +11,9 @@
 
 __global__ void run_hlt1(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  const VertexFit::TrackMVAVertex* dev_secondary_vertices,
+  const VertexFit::TrackMVAVertex* dev_consolidated_svs,
   const uint* dev_atomics_scifi,
-  const uint* dev_sv_offsets,
+  const uint* dev_sv_atomics,
   bool* dev_one_track_results,
   bool* dev_two_track_results,
   bool* dev_single_muon_results,
@@ -26,20 +26,21 @@ __global__ void run_hlt1(
 
   // Tracks.
   const auto* event_tracks_offsets = dev_atomics_scifi + number_of_events;
+  const auto* event_svs_offsets = dev_sv_atomics + number_of_events;
   const ParKalmanFilter::FittedTrack* event_tracks = dev_kf_tracks + event_tracks_offsets[event_number];
   bool* event_one_track_results = dev_one_track_results + event_tracks_offsets[event_number];
   bool* event_single_muon_results = dev_single_muon_results + event_tracks_offsets[event_number];
   const auto n_tracks_event = dev_atomics_scifi[event_number];
 
   // Vertices.
-  const VertexFit::TrackMVAVertex* event_vertices = dev_secondary_vertices + dev_sv_offsets[event_number];
-  bool* event_two_track_results = dev_two_track_results + dev_sv_offsets[event_number];
-  bool* event_disp_dimuon_results = dev_disp_dimuon_results + dev_sv_offsets[event_number];
-  bool* event_high_mass_dimuon_results = dev_high_mass_dimuon_results + dev_sv_offsets[event_number];
-  bool* event_dimuon_soft_results = dev_dimuon_soft_results + dev_sv_offsets[event_number];
+  const VertexFit::TrackMVAVertex* event_vertices = dev_consolidated_svs + event_svs_offsets[event_number];
+  bool* event_two_track_results = dev_two_track_results + event_svs_offsets[event_number];
+  bool* event_disp_dimuon_results = dev_disp_dimuon_results + event_svs_offsets[event_number];
+  bool* event_high_mass_dimuon_results = dev_high_mass_dimuon_results + event_svs_offsets[event_number];
+  bool* event_dimuon_soft_results = dev_dimuon_soft_results + event_svs_offsets[event_number];
 
-  const auto n_vertices_event = dev_sv_offsets[event_number + 1] - dev_sv_offsets[event_number];
-
+  const auto n_vertices_event = dev_sv_atomics[event_number];
+  
   LineHandler<ParKalmanFilter::FittedTrack> oneTrackHandler {TrackMVALines::OneTrackMVA};
   LineHandler<VertexFit::TrackMVAVertex> twoTrackHandler {TrackMVALines::TwoTrackMVA};
   LineHandler<ParKalmanFilter::FittedTrack> singleMuonHandler {MuonLines::SingleMuon};
@@ -54,10 +55,9 @@ __global__ void run_hlt1(
 
   // Two track lines.
   twoTrackHandler(event_vertices, n_vertices_event, event_two_track_results);
-
+  
   dispDiMuonHandler(event_vertices, n_vertices_event, event_disp_dimuon_results);
 
   highMassDiMuonHandler(event_vertices, n_vertices_event, event_high_mass_dimuon_results);
   diMuonSoftHandler(event_vertices, n_vertices_event, event_dimuon_soft_results);
-
 }
