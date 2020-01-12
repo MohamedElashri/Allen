@@ -37,12 +37,10 @@ void SequenceVisitor::visit<kalman_pv_ipchi2_t>(
     arguments.offset<dev_is_muon>());
   state.invoke();
 
-  if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_kf_tracks,
-      arguments.offset<dev_kf_tracks>(),
-      arguments.size<dev_kf_tracks>(),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
-  }
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_kf_tracks,
+    arguments.offset<dev_kf_tracks>(),
+    arguments.size<dev_kf_tracks>(),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
 }

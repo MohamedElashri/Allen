@@ -23,7 +23,10 @@ struct MonitorBase {
     SingleMuonRate,
     DispDimuonRate,
     HighMassDimuonRate,
-    InclusiveRate
+    InclusiveRate,
+    KalmanTrackP,
+    KalmanTrackPt,
+    KalmanTrackIPChi2
   };
 
   MonitorBase(std::string name, int timeStep, int offset) : m_name(name), m_time_step(timeStep), m_offset(offset) {};
