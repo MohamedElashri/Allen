@@ -63,6 +63,7 @@
 #include "KalmanPVIPChi2.cuh"
 #include "VertexFitter.cuh"
 #include "VertexDefinitions.cuh"
+#include "ConsolidateSVs.cuh"
 #include "TrackMVALines.cuh"
 #include "RunHlt1.cuh"
 #include "MuonSortByStation.cuh"

@@ -96,7 +96,7 @@ __global__ void fit_secondary_vertices(
   PV::Vertex* dev_multi_fit_vertices,
   uint* dev_number_of_multi_fit_vertices,
   char* dev_kalman_pv_ipchi2,
-  uint* dev_sv_offsets,
+  uint* dev_sv_atomics,
   VertexFit::TrackMVAVertex* dev_secondary_vertices);
 
 namespace Configuration {
@@ -125,7 +125,7 @@ ALGORITHM(fit_secondary_vertices,
             dev_multi_fit_vertices,
             dev_number_of_multi_fit_vertices,
             dev_kalman_pv_ipchi2,
-            dev_sv_offsets,
+            dev_sv_atomics,
             dev_secondary_vertices),
           Property<float> m_minpt {this,
                                    "track_min_pt",

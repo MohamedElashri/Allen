@@ -12,6 +12,8 @@ namespace VertexFit {
   // Muon mass.
   const float mMu = 105.66f;
 
+  const uint max_svs = 1000;
+  
   struct TrackMVAVertex {
     // Fit results.
     float px = 0.0f;
@@ -56,6 +58,9 @@ namespace VertexFit {
     // Degrees of freedom.
     int ndof = 0;
 
+    // Track indices.
+    uint trk1 = 0;
+    uint trk2 = 0;
 
     // Muon ID.
     bool is_dimuon;
