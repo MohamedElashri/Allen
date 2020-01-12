@@ -45,14 +45,14 @@ void SequenceVisitor::visit<consolidate_scifi_tracks_t>(
   state.invoke();
 
   // Transmission device to host of Scifi consolidated tracks
-  if (runtime_options.do_check) {
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_atomics_scifi,
-      arguments.offset<dev_atomics_scifi>(),
-      arguments.size<dev_atomics_scifi>(),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_atomics_scifi,
+    arguments.offset<dev_atomics_scifi>(),
+    arguments.size<dev_atomics_scifi>(),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
 
+  if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_scifi_track_hit_number,
       arguments.offset<dev_scifi_track_hit_number>(),

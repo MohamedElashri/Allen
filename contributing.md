@@ -519,6 +519,10 @@ the numbers of successfully monitored and skipped slices as well as the monitori
 Monitor classes
 ---------------
 
+Currently, monitoring is performed of the rate for each HLT line (`RateMonitor`) and for the momentum,
+pT and chi^2(IP) of each track produced by the Kalman filter (`TrackMonitor`). Further monitoring histograms
+can be either added to one of these classes or to a new monitoring class, as appropriate.
+
 Additional monitors that produce histograms based on information in the `HostBuffers` should be added to 
 `integration/monitoring` and inherit from the `BufferMonitor` class. The `RateMonitor` class provides an 
 example of this. Furthermore, each histogram that is added must be given a unique key in MonitorBase::MonHistType. 
@@ -528,6 +532,14 @@ of the class in the vectors created in `MonitorManager::init`, e.g.
 ```
 m_monitors.back().push_back(new RateMonitor(buffers_manager, time_step, offset));
 ```
+
+To monitor a feature, either that feature or others from which it can be calculated must be present in the
+`HostBuffers`. For example, the features recorded by `TrackMonitor` depend on the buffers `host_kf_tracks`
+(for the track objects) and `host_atomics_scifi` (for the number of tracks in each event and the offset to the
+start of each event). It is important that any buffers used by the monitoring are copied from the device to
+the host memory and that they do not depend on `runtime_options.do_check` being set. Additionally, to avoid
+a loss of performance, these buffers must be written to pinned memory, i.e. the memory must be allocated by
+`cudaMallocHost` and not by `malloc` in `HostBuffers::reserve`.
 
 Saving histograms
 -----------------
