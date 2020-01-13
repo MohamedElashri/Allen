@@ -18,7 +18,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  UT::Hits ut_hits {parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::Hits<char> ut_hits {parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
@@ -33,7 +33,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
 
   for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
     const uint hit_index = layer_offset + i;
-    const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index[parameters.dev_ut_hit_permutations[hit_index]];
+    const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index(parameters.dev_ut_hit_permutations[hit_index]);
     const uint raw_bank_index = raw_bank_hit_index >> 24;
     const uint hit_index_inside_raw_bank = raw_bank_hit_index & 0xFFFFFF;
 
@@ -85,11 +85,11 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
     const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | channelStripID;
     // const uint32_t planeCode = 2 * station + (layer & 1);
 
-    ut_hits.yBegin[hit_index] = yBegin;
-    ut_hits.yEnd[hit_index] = yEnd;
-    ut_hits.zAtYEq0[hit_index] = zAtYEq0;
-    ut_hits.xAtYEq0[hit_index] = xAtYEq0;
-    ut_hits.weight[hit_index] = weight;
-    ut_hits.LHCbID[hit_index] = LHCbID;
+    ut_hits.yBegin(hit_index) = yBegin;
+    ut_hits.yEnd(hit_index) = yEnd;
+    ut_hits.zAtYEq0(hit_index) = zAtYEq0;
+    ut_hits.xAtYEq0(hit_index) = xAtYEq0;
+    ut_hits.weight(hit_index) = weight;
+    ut_hits.id(hit_index) = LHCbID;
   }
 }

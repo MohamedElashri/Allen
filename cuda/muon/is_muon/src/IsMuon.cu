@@ -55,7 +55,7 @@ __global__ void is_muon::is_muon(
   const uint number_of_events = gridDim.x;
   const uint event_id = blockIdx.x;
 
-  SciFi::Consolidated::Tracks scifi_tracks {(uint*) parameters.dev_atomics_scifi,
+  SciFi::Consolidated::Tracks scifi_tracks {parameters.dev_atomics_scifi,
                                             parameters.dev_scifi_track_hit_number,
                                             parameters.dev_scifi_qop,
                                             parameters.dev_scifi_states,

@@ -6,39 +6,10 @@
 
 namespace SciFi {
   namespace Consolidated {
-
-    // Consolidated hits SoA.
-    struct Hits : BaseHits {
-      __device__ __host__ Hits(
-        char* base_pointer,
-        const uint track_offset,
-        const uint total_number_of_hits,
-        const SciFiGeometry* param_geom,
-        const float* param_dev_inv_clus_res)
-      {
-        x0 = reinterpret_cast<float*>(base_pointer);
-        z0 = reinterpret_cast<float*>(base_pointer + sizeof(float) * total_number_of_hits);
-        m_endPointY = reinterpret_cast<float*>(base_pointer + sizeof(float) * 2 * total_number_of_hits);
-        channel = reinterpret_cast<uint32_t*>(base_pointer + sizeof(float) * 3 * total_number_of_hits);
-        assembled_datatype = reinterpret_cast<uint32_t*>(base_pointer + sizeof(float) * 4 * total_number_of_hits);
-
-        x0 += track_offset;
-        z0 += track_offset;
-        m_endPointY += track_offset;
-        channel += track_offset;
-        assembled_datatype += track_offset;
-
-        geom = param_geom;
-        dev_inv_clus_res = param_dev_inv_clus_res;
-      }
-
-      __device__ __host__ SciFi::Hit get(const uint hit_number) const
-      {
-        return SciFi::Hit {
-          x0[hit_number], z0[hit_number], m_endPointY[hit_number], channel[hit_number], assembled_datatype[hit_number]};
-      }
-
-      __device__ __host__ uint32_t LHCbID(uint32_t index) const { return (10u << 28) + channel[index]; };
+    template<typename T>
+    struct Hits : public SciFi::Hits<T> {
+      __host__ __device__ Hits(typename ForwardType<T>::char_t* base_pointer, const uint track_offset, const uint total_number_of_hits) :
+        SciFi::Hits<T>(base_pointer, total_number_of_hits, track_offset) {}
     };
 
     //---------------------------------------------------------
@@ -52,7 +23,7 @@ namespace SciFi {
       const MiniState* m_states;
 
     public:
-      __device__ __host__ Tracks(
+      __host__ __device__ Tracks(
         const uint* atomics_base_pointer,
         const uint* track_hit_number_base_pointer,
         const float* qop_base_pointer,
@@ -82,13 +53,14 @@ namespace SciFi {
         return m_states[index];
       }
 
-      __device__ __host__ Hits get_hits(
-        char* hits_base_pointer,
+      template<typename T>
+      __host__ __device__ Hits<T> get_hits(
+        T* hits_base_pointer,
         const uint track_number,
         const SciFiGeometry* scifi_geometry,
         const float* dev_inv_clus_res) const
       {
-        return Hits {
+        return Hits<T> {
           hits_base_pointer, track_offset(track_number), m_total_number_of_hits, scifi_geometry, dev_inv_clus_res};
       }
     }; // namespace Consolidated

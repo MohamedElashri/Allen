@@ -5,7 +5,6 @@
 #include "UTDefinitions.cuh"
 
 namespace UT {
-
   // Hit base containing just the geometrical information about the hit.
   struct Hit {
     float yBegin;
@@ -30,7 +29,7 @@ namespace UT {
       yEnd(_yEnd), zAtYEq0(_zAtYEq0), xAtYEq0(_xAtYEq0), weight(_weight), LHCbID(_LHCbID), plane_code(_plane_code)
     {}
 
-#define cmpf(a, b) (fabsf((a) - (b)) > 0.000065f)
+#define cmpf(a, b) (fabsf(a - b) > 0.000065f)
 
     bool operator!=(const Hit& h) const
     {
@@ -121,62 +120,96 @@ namespace UT {
      are stored for access;
      one Hits structure exists per event
   */
-  struct Hits {
-    constexpr static uint number_of_arrays = 7;
-    float* yBegin;
-    float* yEnd;
-    float* zAtYEq0;
-    float* xAtYEq0;
-    float* weight;
-    uint32_t* LHCbID;
-    uint32_t* raw_bank_index;
+  constexpr static uint hits_number_of_arrays = 7;
 
+  template<typename T>
+  struct Hits {
+  private:
+    typename ForwardType<T>::float_t* m_base_pointer;
+    const uint m_total_number_of_hits;
+
+  public:
     /**
      * @brief Populates the UTHits object pointers to an array of data
      *        pointed by base_pointer.
      */
-    __host__ __device__ Hits(uint32_t* base_pointer, uint32_t total_number_of_hits)
+    __host__ __device__ Hits(typename ForwardType<T>::char_t* base_pointer, const uint total_number_of_hits) :
+      m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer)),
+      m_total_number_of_hits(total_number_of_hits)
+    {}
+
+    // Const and lvalue accessors
+    float yBegin(const uint index) const { return m_base_pointer[index]; }
+
+    float& yBegin(const uint index) { return m_base_pointer[index]; }
+
+    float yEnd(const uint index) const { return m_base_pointer[m_total_number_of_hits + index]; }
+
+    float& yEnd(const uint index) { return m_base_pointer[m_total_number_of_hits + index]; }
+
+    float zAtYEq0(const uint index) const { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+
+    float& zAtYEq0(const uint index) { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+
+    float xAtYEq0(const uint index) const { return m_base_pointer[3 * m_total_number_of_hits + index]; }
+
+    float& xAtYEq0(const uint index) { return m_base_pointer[3 * m_total_number_of_hits + index]; }
+
+    float weight(const uint index) const { return m_base_pointer[4 * m_total_number_of_hits + index]; }
+
+    float& weight(const uint index) { return m_base_pointer[4 * m_total_number_of_hits + index]; }
+
+    uint id(const uint index) const
     {
-      raw_bank_index = base_pointer;
-      yBegin = reinterpret_cast<float*>(base_pointer + total_number_of_hits);
-      yEnd = reinterpret_cast<float*>(base_pointer + 2 * total_number_of_hits);
-      zAtYEq0 = reinterpret_cast<float*>(base_pointer + 3 * total_number_of_hits);
-      xAtYEq0 = reinterpret_cast<float*>(base_pointer + 4 * total_number_of_hits);
-      weight = reinterpret_cast<float*>(base_pointer + 5 * total_number_of_hits);
-      LHCbID = base_pointer + 6 * total_number_of_hits;
+      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+    }
+
+    uint& id(const uint index)
+    {
+      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+    }
+
+    uint raw_bank_index(const uint index) const
+    {
+      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[6 * m_total_number_of_hits + index];
+    }
+
+    uint& raw_bank_index(const uint index)
+    {
+      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[6 * m_total_number_of_hits + index];
     }
 
     /**
      * @brief Gets a hit in the UT::Hit format from the global hit index.
      */
-    Hit getHit(uint32_t index) const
+    Hit getHit(const uint index) const
     {
-      return {yBegin[index], yEnd[index], zAtYEq0[index], xAtYEq0[index], weight[index], LHCbID[index], 0};
+      return {yBegin(index), yEnd(index), zAtYEq0(index), xAtYEq0(index), weight(index), id(index), 0};
     }
 
-    __host__ __device__ inline bool isYCompatible(const int i_hit, const float y, const float tol) const
+    __host__ __device__ bool isYCompatible(const int i_hit, const float y, const float tol) const
     {
       return yMin(i_hit) - tol <= y && y <= yMax(i_hit) + tol;
     }
-    __host__ __device__ inline bool isNotYCompatible(const int i_hit, const float y, const float tol) const
+    __host__ __device__ bool isNotYCompatible(const int i_hit, const float y, const float tol) const
     {
       return yMin(i_hit) - tol > y || y > yMax(i_hit) + tol;
     }
-    __host__ __device__ inline float cosT(const int i_hit, const float dxDy) const
+    __host__ __device__ float cosT(const int i_hit, const float dxDy) const
     {
-      return (fabsf(xAtYEq0[i_hit]) < 1.0e-9f) ? 1.f / sqrtf(1.f + dxDy * dxDy) : cosf(dxDy);
+      return (fabsf(xAtYEq0(i_hit)) < 1.0e-9f) ? 1.f / sqrtf(1.f + dxDy * dxDy) : cosf(dxDy);
     }
-    __host__ __device__ inline float sinT(const int i_hit, const float dxDy) const
+    __host__ __device__ float sinT(const int i_hit, const float dxDy) const
     {
       return tanT(dxDy) * cosT(i_hit, dxDy);
     }
-    __host__ __device__ inline float tanT(const float dxDy) const { return -1.f * dxDy; }
-    __host__ __device__ inline float xAt(const int i_hit, const float globalY, const float dxDy) const
+    __host__ __device__ float tanT(const float dxDy) const { return -1.f * dxDy; }
+    __host__ __device__ float xAt(const int i_hit, const float globalY, const float dxDy) const
     {
-      return xAtYEq0[i_hit] + globalY * dxDy;
+      return xAtYEq0(i_hit) + globalY * dxDy;
     }
-    __host__ __device__ inline float yMax(const int i_hit) const { return fmaxf(yBegin[i_hit], yEnd[i_hit]); }
-    __host__ __device__ inline float yMid(const int i_hit) const { return 0.5f * (yBegin[i_hit] + yEnd[i_hit]); }
-    __host__ __device__ inline float yMin(const int i_hit) const { return fminf(yBegin[i_hit], yEnd[i_hit]); }
+    __host__ __device__ float yMax(const int i_hit) const { return fmaxf(yBegin(i_hit), yEnd(i_hit)); }
+    __host__ __device__ float yMid(const int i_hit) const { return 0.5f * (yBegin(i_hit) + yEnd(i_hit)); }
+    __host__ __device__ float yMin(const int i_hit) const { return fminf(yBegin(i_hit), yEnd(i_hit)); }
   };
 } // namespace UT

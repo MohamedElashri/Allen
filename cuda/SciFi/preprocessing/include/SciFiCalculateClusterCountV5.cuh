@@ -20,7 +20,8 @@ namespace scifi_calculate_cluster_count_v5 {
     uint* scifi_hit_count,
     char* scifi_geometry);
 
-  struct scifi_calculate_cluster_count_v5_t : public DeviceAlgorithm {
+  template<typename T>
+  struct scifi_calculate_cluster_count_v5_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name {"scifi_calculate_cluster_count_v5_t"};
     decltype(global_function(scifi_calculate_cluster_count_v5)) function {scifi_calculate_cluster_count_v5};
 

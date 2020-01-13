@@ -11,7 +11,7 @@ namespace ut_decode_raw_banks_in_order {
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
-    DEVICE_OUTPUT(dev_ut_hits_t, uint) dev_ut_hits;
+    DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_permutations_t, uint) dev_ut_hit_permutations;
   };
 

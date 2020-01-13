@@ -6,7 +6,7 @@
 
 // match stereo hits to x hits
 __host__ __device__ bool binary_search_match_stereo_hit(
-  const SciFi::Hits& scifi_hits,
+  const SciFi::Hits<const char>& scifi_hits,
   const int itUV1,
   const int uv_zone_offset_end,
   const float xMinUV,
@@ -15,7 +15,7 @@ __host__ __device__ bool binary_search_match_stereo_hit(
 template<class T>
 __host__ __device__ std::tuple<int, int> find_x_in_window(
   const T* candidates,
-  const SciFi::Hits& hits,
+  const SciFi::Hits<const char>& hits,
   const int num_hits,
   const float value,
   const float margin,

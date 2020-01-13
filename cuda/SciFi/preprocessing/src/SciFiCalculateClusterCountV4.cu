@@ -1,23 +1,5 @@
 #include "SciFiCalculateClusterCountV4.cuh"
 
-void scifi_calculate_cluster_count_v4_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-}
-
-void scifi_calculate_cluster_count_v4_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-}
-
 using namespace SciFi;
 
 /**
@@ -27,7 +9,7 @@ using namespace SciFi;
  */
 __global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_v4(
   scifi_calculate_cluster_count_v4::Parameters parameters,
-  char* scifi_geometry)
+  const char* scifi_geometry)
 {
   const uint event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
