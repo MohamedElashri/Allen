@@ -20,6 +20,7 @@
 #include <InputProvider.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
+#include <write_mdf.hpp>
 #include <raw_bank.hpp>
 
 #include "Transpose.h"
@@ -330,7 +331,7 @@ public:
   void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events, std::vector<size_t>& sizes)
     const override
   {
-    auto const header_size = LHCb::MDFHeader::sizeOf(3);
+    auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
 
     // The first bank in the read buffer is the DAQ bank, which
     // contains the MDF header as bank payload

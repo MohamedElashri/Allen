@@ -1,13 +1,10 @@
+
 #pragma once
 #include <vector>
 
 #include <Logger.h>
 #include <BankTypes.h>
 #include <Timer.h>
-
-namespace Allen {
-  constexpr int mdf_header_version = 3;
-}
 
 struct IInputProvider;
 
