@@ -51,6 +51,18 @@ struct IInputProvider {
    */
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 
+  /**
+   * @brief      Get a subset of banks and offsets of a given type
+   *
+   * @param      bank type requested
+   * @param      slice index
+   * @param      first event (inc)
+   * @param      last event (exc)
+   *
+   * @return     spans spanning bank and offset memory
+   */
+  virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index, size_t first, size_t last) const = 0;
+
   virtual void event_sizes(
     size_t const slice_index,
     gsl::span<unsigned int> const selected_events,
@@ -150,6 +162,31 @@ public:
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     return static_cast<const Derived<Banks...>*>(this)->banks(bank_type, slice_index);
+  }
+
+  /**
+   * @brief      Get a subset of banks and offsets of a given type
+   *
+   * @param      bank type requested
+   * @param      slice index
+   * @param      first event (inc)
+   * @param      last event (exc)
+   *
+   * @return     spans spanning bank and offset memory
+   */
+  BanksAndOffsets banks(BankTypes bank_type, size_t slice_index, size_t first, size_t last) const override
+  {
+    auto bo = banks(bank_type, slice_index);
+    auto entries = std::get<1>(bo).size() - 1;
+    if (last > entries) {
+      last = entries;
+    }
+    if (first == 0 && last == std::get<1>(bo).size() - 1) return std::move(bo);
+
+    auto b = std::get<0>(bo);
+    auto o = std::get<1>(bo).subspan(first, last - first + 1);
+
+    return BanksAndOffsets {std::move(b), std::move(o)};
   }
 
   void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events, std::vector<size_t>& sizes)

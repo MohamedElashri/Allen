@@ -24,8 +24,11 @@ struct HostBuffersManager {
   size_t assignBufferToProcess();
 
   void returnBufferFilled(size_t);
+  void returnBufferUnfilled(size_t);
   void returnBufferProcessed(size_t);
   void returnBufferWritten(size_t);
+
+  void writeSingleEventPassthrough(size_t);
 
   std::tuple<uint, uint*, uint32_t*> getBufferOutputData(size_t b);
 

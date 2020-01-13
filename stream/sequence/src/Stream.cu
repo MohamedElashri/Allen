@@ -54,31 +54,37 @@ cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runti
       // Reset scheduler
       scheduler.reset();
 
-      // Visit all algorithms in configured sequence
-      Sch::RunSequenceTuple<
-        scheduler_t,
-        SequenceVisitor,
-        configured_sequence_t,
-        std::tuple<const RuntimeOptions&, const Constants&, const HostBuffers&>,
-        std::tuple<const RuntimeOptions&, const Constants&, HostBuffers&, cudaStream_t&, cudaEvent_t&>>::
-        run(
-          scheduler,
-          sequence_visitor,
-          scheduler.sequence_tuple,
-          // Arguments to set_arguments_size
-          runtime_options,
-          constants,
-          *host_buffers,
-          // Arguments to visit
-          runtime_options,
-          constants,
-          *host_buffers,
-          cuda_stream,
-          cuda_generic_event);
+      try {
+        // Visit all algorithms in configured sequence
+        Sch::RunSequenceTuple<
+          scheduler_t,
+          SequenceVisitor,
+          configured_sequence_t,
+          std::tuple<const RuntimeOptions&, const Constants&, const HostBuffers&>,
+          std::tuple<const RuntimeOptions&, const Constants&, HostBuffers&, cudaStream_t&, cudaEvent_t&>>::
+          run(
+            scheduler,
+            sequence_visitor,
+            scheduler.sequence_tuple,
+            // Arguments to set_arguments_size
+            runtime_options,
+            constants,
+            *host_buffers,
+            // Arguments to visit
+            runtime_options,
+            constants,
+            *host_buffers,
+            cuda_stream,
+            cuda_generic_event);
 
-      // Synchronize CUDA device
-      cudaEventRecord(cuda_generic_event, cuda_stream);
-      cudaEventSynchronize(cuda_generic_event);
+        // Synchronize CUDA device
+        cudaEventRecord(cuda_generic_event, cuda_stream);
+        cudaEventSynchronize(cuda_generic_event);
+
+      } catch (const MemoryException& e) {
+        warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
+        return cudaErrorMemoryAllocation;
+      }
     }
   }
 

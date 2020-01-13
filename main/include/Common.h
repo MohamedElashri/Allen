@@ -19,6 +19,11 @@ struct StrException : public std::exception {
   const char* what() const throw() override { return s.c_str(); }
 };
 
+struct MemoryException : public StrException {
+  MemoryException(std::string s) : StrException(s) {}
+  ~MemoryException() throw() {}
+};
+
 using EventID = std::tuple<unsigned int, unsigned long>;
 using EventIDs = std::vector<EventID>;
 

@@ -73,6 +73,6 @@ ALGORITHM(
   ARGUMENTS(dev_atomics_ut, dev_scifi_tracks, dev_atomics_scifi, dev_scifi_track_hit_number))
 
 ALGORITHM(
-  copy_square_and_prefix_sum_single_block,
+  copy_and_prefix_sum_single_block,
   copy_and_prefix_sum_single_block_sv_t,
-  ARGUMENTS(dev_atomics_scifi, dev_sv_offsets))
+  ARGUMENTS(dev_sv_atomics))

@@ -49,6 +49,21 @@ namespace VertexFit {
     }
     return false;
   }
+ __device__ float ip (
+    float x0,
+    float y0,
+    float z0,
+    float x,
+    float y,
+    float z,
+    float tx,
+    float ty)
+  {
+   float dz = z0 - z;
+   float dx = x + dz * tx - x0;
+   float dy = y + dz * ty - y0;
+   return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
+  }
 
   //----------------------------------------------------------------------
   // Add the contribution from one track to the vertex weight
@@ -70,8 +85,8 @@ namespace VertexFit {
     float dz = z - track.z;
     float rX = track.state[0] + dz * track.state[2] - x;
     float rY = track.state[1] + dz * track.state[3] - y;
-    float cov00 = track.cov(0, 0) + dz * dz * track.cov(2, 2) + 2 * dz * track.cov(2, 0);
-    float cov11 = track.cov(1, 1) + dz * dz * track.cov(3, 3) + 2 * dz * track.cov(3, 1);
+    float cov00 = track.cov(0, 0) + dz * dz * track.cov(2, 2) + 2.f * dz * track.cov(2, 0);
+    float cov11 = track.cov(1, 1) + dz * dz * track.cov(3, 3) + 2.f * dz * track.cov(3, 1);
     float invcov00 = 1.f / cov00;
     float invcov11 = 1.f / cov11;
     halfDChi2_0 += invcov00 * rX;
@@ -137,6 +152,8 @@ namespace VertexFit {
     float halfDChi2_0 = 0.f;
     float halfDChi2_1 = 0.f;
     float halfDChi2_2 = 0.f;
+    /// Add DOCA
+    vertex.doca = 2.f * ip ( vertex.x,vertex.y, vertex.z, trackA.state[0], trackA.state[1],trackA.z, trackA.state[2], trackA.state[3]);
     vertex.chi2 = addToDerivatives(
       trackA,
       vertex.x,
@@ -192,8 +209,8 @@ namespace VertexFit {
     sv.px = trackA.px() + trackB.px();
     sv.py = trackA.py() + trackB.py();
     sv.pz = trackA.pz() + trackB.pz();
-
-    // Sum of track pT.
+    
+   // Sum of track pT.
     sv.sumpt = trackA.pt() + trackB.pt();
 
     // Minimum pt of constituent tracks.
@@ -208,6 +225,7 @@ namespace VertexFit {
         2.f * mMu * mMu + 2.f * (sqrtf((trackA.p() * trackA.p() + mMu * mMu) * (trackB.p() * trackB.p() + mMu * mMu)) -
                                  trackA.px() * trackB.px() - trackA.py() * trackB.py() - trackA.pz() * trackB.pz());
       sv.mdimu = sqrtf(mdimu2);
+
     }
     else {
       sv.mdimu = -1.f;
@@ -247,6 +265,27 @@ namespace VertexFit {
 
     // PV-SV eta.
     sv.eta = atanhf(dz / fd);
+    // SVz - PVz
+    sv.dz = dz;
+
+   if (sv.is_dimuon) {
+     sv.dimu_ip = ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px/sv.pz, sv.py/sv.pz); 
+     const float txA = trackA.state[2];
+     const float tyA = trackA.state[3];
+   
+     const float txB = trackB.state[2];
+     const float tyB = trackB.state[3];
+     
+     const float vx = tyA - tyB;
+     const float vy = -txA + txB;
+     const float vz = txA*tyB - txB*tyA;
+     sv.dimu_clone_sin2 = (vx*vx + vy*vy + vz*vz) / ( (txA*txA + tyA*tyA + 1.f) * (txB*txB + txB*txB + 1.f)); 
+
+   }
+   else {
+     sv.dimu_ip = -1.f;
+     sv.dimu_clone_sin2 = -1.f;
+  }
 
     // Corrected mass.
     const float px = trackA.px() + trackB.px();
@@ -276,13 +315,14 @@ __global__ void fit_secondary_vertices(
   PV::Vertex* dev_multi_fit_vertices,
   uint* dev_number_of_multi_fit_vertices,
   char* dev_kalman_pv_ipchi2,
-  uint* dev_sv_offsets,
+  uint* dev_sv_atomics,
   VertexFit::TrackMVAVertex* dev_secondary_vertices)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint sv_offset = dev_sv_offsets[event_number];
-
+  const uint sv_offset = event_number * VertexFit::max_svs;
+  uint* event_sv_number = dev_sv_atomics + event_number;
+  
   // Consolidated SciFi tracks.
   const SciFi::Consolidated::Tracks scifi_tracks {(uint*) dev_n_scifi_tracks,
                                                   (uint*) dev_scifi_track_hit_number,
@@ -308,17 +348,15 @@ __global__ void fit_secondary_vertices(
   // Secondary vertices.
   VertexFit::TrackMVAVertex* event_secondary_vertices = dev_secondary_vertices + sv_offset;
 
+  // Initialize SVs.
+  for (uint i_sv = threadIdx.x; i_sv < VertexFit::max_svs; i_sv += blockDim.x) {
+    event_secondary_vertices[i_sv].chi2 = -1;
+    event_secondary_vertices[i_sv].minipchi2 = 0;
+  }
+  
   // Loop over tracks.
   for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
-
-    // Set the fit status for all possible vertices.
-    for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
-      uint vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
-                        ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
-      event_secondary_vertices[vertex_idx].chi2 = -1;
-      event_secondary_vertices[vertex_idx].minipchi2 = 0;
-    }
-
+    
     // Preselection on first track.
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     if (
@@ -338,20 +376,24 @@ __global__ void fit_secondary_vertices(
         continue;
       }
 
-      // Only combine tracks from the same PV.
+      // Only combine tracks from the same PV, except for dimuons,
+      // which should be independent of PV reconstruction.
       if (
         pv_table.pv[i_track] != pv_table.pv[j_track] &&
-        pv_table.value[i_track] > Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
-        pv_table.value[j_track] > Configuration::fit_secondary_vertices_t::max_assoc_ipchi2) {
+        pv_table.value[i_track] < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
+        pv_table.value[j_track] < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
+        (!trackA.is_muon || !trackB.is_muon)
+          ) {
         continue;
       }
 
-      const int vertex_idx = (int) n_scifi_tracks * ((int) n_scifi_tracks - 3) / 2 -
-                             ((int) n_scifi_tracks - 1 - i_track) * ((int) n_scifi_tracks - 2 - i_track) / 2 + j_track;
+      uint vertex_idx = atomicAdd(event_sv_number, 1);
 
       // Do the vertex fit.
       doFit(trackA, trackB, event_secondary_vertices[vertex_idx]);
-
+      event_secondary_vertices[vertex_idx].trk1 = i_track;
+      event_secondary_vertices[vertex_idx].trk2 = j_track;
+      
       // Fill extra info.
       fill_extra_info(event_secondary_vertices[vertex_idx], trackA, trackB);
       if (n_pvs_event > 0) {

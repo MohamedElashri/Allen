@@ -1,6 +1,7 @@
 #include "MonitorManager.h"
 
 #include "RateMonitor.h"
+#include "TrackMonitor.h"
 
 #include "HostBuffersManager.cuh"
 #include "Logger.h"
@@ -66,6 +67,7 @@ void MonitorManager::init(uint n_mon_thread, HostBuffersManager* buffers_manager
   for (uint i = 0; i < n_mon_thread; ++i) {
     m_monitors.push_back(std::vector<BufferMonitor*>());
     m_monitors.back().push_back(new RateMonitor(buffers_manager, time_step, offset));
+    m_monitors.back().push_back(new TrackMonitor(buffers_manager, time_step, offset));
     free_monitors.push(i);
   }
 }

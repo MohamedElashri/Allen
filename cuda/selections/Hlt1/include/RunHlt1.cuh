@@ -37,9 +37,9 @@ __device__ void LineHandler<T>::operator()(const T* candidates, const int n_cand
 
 __global__ void run_hlt1(
   const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  const VertexFit::TrackMVAVertex* dev_secondary_vertices,
+  const VertexFit::TrackMVAVertex* dev_consolidated_svs,
   const uint* dev_atomics_scifi,
-  const uint* dev_sv_offsets,
+  const uint* dev_sv_atomics,
   bool* dev_one_track_results,
   bool* dev_two_track_results,
   bool* dev_single_muon_results,
@@ -52,9 +52,9 @@ ALGORITHM(
   run_hlt1_t,
   ARGUMENTS(
     dev_kf_tracks,
-    dev_secondary_vertices,
+    dev_consolidated_svs,
     dev_atomics_scifi,
-    dev_sv_offsets,
+    dev_sv_atomics,
     dev_one_track_results,
     dev_two_track_results,
     dev_single_muon_results,

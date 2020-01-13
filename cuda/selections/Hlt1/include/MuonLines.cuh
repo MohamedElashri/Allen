@@ -34,6 +34,9 @@ namespace MuonLines {
   const float DMSoftMinRho2 = 9.f;	
   const float DMSoftMinZ = -375.f;	
   const float DMSoftMaxZ = 635.f;	
+  const float DMSoftMaxDOCA = 0.2f;	
+  const float DMSoftMaxIPDZ = 0.17f;	
+  const float DMSoftGhost = 4.e-06f;
 
   // Selection functions.
   __device__ bool SingleMuon(const ParKalmanFilter::FittedTrack& track);

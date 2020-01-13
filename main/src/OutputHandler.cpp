@@ -18,6 +18,7 @@
 
 bool OutputHandler::output_selected_events(
   size_t const slice_index,
+  size_t const event_offset,
   gsl::span<unsigned int> const selected_events,
   uint32_t const* const dec_reports)
 {
@@ -68,7 +69,8 @@ bool OutputHandler::output_selected_events(
       LHCb::RawBank::HltDecReports,
       2u,
       1 << 13,
-      {reinterpret_cast<char const*>(dec_reports) + dec_report_size * selected_events[i], dec_report_size},
+      {reinterpret_cast<char const*>(dec_reports) + dec_report_size * (selected_events[i] - event_offset),
+       dec_report_size},
       buffer_span.data() + header_size + m_sizes[i]);
 
     auto s = write_buffer(buffer_id);
