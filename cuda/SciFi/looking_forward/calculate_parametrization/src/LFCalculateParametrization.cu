@@ -2,18 +2,15 @@
 
 __global__ void lf_calculate_parametrization::lf_calculate_parametrization(
   lf_calculate_parametrization::Parameters parameters,
-  const char* dev_scifi_geometry,
-  const LookingForward::Constants* dev_looking_forward_constants,
-  const float* dev_inv_clus_res)
+  const LookingForward::Constants* dev_looking_forward_constants)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
 
   // Velo consolidated types
-  const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) parameters.dev_atomics_velo, (uint*) parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::States velo_states {(char*) parameters.dev_velo_states,
-                                                velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::Tracks velo_tracks {
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
   const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks
@@ -21,19 +18,19 @@ __global__ void lf_calculate_parametrization::lf_calculate_parametrization(
   const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
 
   // UT consolidated tracks
-  UT::Consolidated::Tracks ut_tracks {(uint*) parameters.dev_atomics_ut,
-                                      (uint*) parameters.dev_ut_track_hit_number,
-                                      (float*) parameters.dev_ut_qop,
-                                      (uint*) parameters.dev_ut_track_velo_indices,
-                                      event_number,
-                                      number_of_events};
+  UT::Consolidated::ConstTracks ut_tracks {parameters.dev_atomics_ut,
+                                           parameters.dev_ut_track_hit_number,
+                                           parameters.dev_ut_qop,
+                                           parameters.dev_ut_track_velo_indices,
+                                           event_number,
+                                           number_of_events};
   // SciFi hits
   const uint total_number_of_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
-  const SciFi::HitCount scifi_hit_count {(uint32_t*) parameters.dev_scifi_hit_count, event_number};
-  const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
-  const SciFi::Hits scifi_hits {
-    const_cast<uint32_t*>(parameters.dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
+
+  SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
+
   const auto event_offset = scifi_hit_count.event_offset();
   const auto number_of_tracks = parameters.dev_scifi_lf_atomics[event_number];
 
@@ -41,7 +38,7 @@ __global__ void lf_calculate_parametrization::lf_calculate_parametrization(
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
-    const auto velo_track_index = ut_tracks.velo_track[track.ut_track_index];
+    const auto velo_track_index = ut_tracks.velo_track(track.ut_track_index);
 
     const uint velo_states_index = velo_tracks_offset_event + velo_track_index;
     const MiniState velo_state = velo_states.getMiniState(velo_states_index);
@@ -51,9 +48,9 @@ __global__ void lf_calculate_parametrization::lf_calculate_parametrization(
     const auto h1 = event_offset + track.hits[0];
     const auto h2 = event_offset + track.hits[1];
     const auto h3 = event_offset + track.hits[2];
-    const auto x1 = scifi_hits.x0[h1];
-    const auto x2 = scifi_hits.x0[h2];
-    const auto x3 = scifi_hits.x0[h3];
+    const auto x1 = scifi_hits.x0(h1);
+    const auto x2 = scifi_hits.x0(h2);
+    const auto x3 = scifi_hits.x0(h3);
     const auto z1_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(0)];
     const auto z2_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(1)];
     const auto z3_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(2)];

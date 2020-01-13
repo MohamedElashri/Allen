@@ -22,7 +22,7 @@ namespace velo_calculate_phi_and_sort {
   __device__ void calculate_phi(
     const uint* module_hitStarts,
     const uint* module_hitNums,
-    const Velo::Clusters<const uint32_t>& velo_cluster_container,
+    Velo::ConstClusters& velo_cluster_container,
     float* hit_Phis,
     uint* hit_permutations,
     float* shared_hit_phis);
@@ -30,8 +30,8 @@ namespace velo_calculate_phi_and_sort {
   __device__ void sort_by_phi(
     const uint event_hit_start,
     const uint event_number_of_hits,
-    const Velo::Clusters<const uint32_t>& velo_cluster_container,
-    Velo::Clusters<uint32_t>& velo_sorted_cluster_container,
+    Velo::ConstClusters& velo_cluster_container,
+    Velo::Clusters& velo_sorted_cluster_container,
     uint* hit_permutations);
 
   __global__ void velo_calculate_phi_and_sort(Parameters);

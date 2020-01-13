@@ -49,7 +49,7 @@ namespace LookingForward {
   __device__ std::tuple<float, float, float> least_mean_square_y_fit(
     const SciFi::TrackHits& track,
     const uint number_of_uv_hits,
-    const SciFi::Hits<const char>& scifi_hits,
+    SciFi::ConstHits& scifi_hits,
     const float a1,
     const float b1,
     const float c1,

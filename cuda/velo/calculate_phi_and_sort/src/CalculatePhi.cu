@@ -13,7 +13,7 @@ __device__ void calculate_phi_side(
   float* shared_hit_phis,
   const uint* module_hitStarts,
   const uint* module_hitNums,
-  const Velo::Clusters<const uint32_t>& velo_cluster_container,
+  Velo::ConstClusters& velo_cluster_container,
   float* hit_Phis,
   uint* hit_permutations,
   const uint starting_module,
@@ -66,7 +66,7 @@ __device__ void calculate_phi_side(
 __device__ void velo_calculate_phi_and_sort::calculate_phi(
   const uint* module_hitStarts,
   const uint* module_hitNums,
-  const Velo::Clusters<const uint32_t>& velo_cluster_container,
+  Velo::ConstClusters& velo_cluster_container,
   float* hit_Phis,
   uint* hit_permutations,
   float* shared_hit_phis)

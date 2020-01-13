@@ -5,8 +5,8 @@ template<typename L, typename R>
 __device__ void apply_permutation(
   const uint event_hit_start,
   const uint event_number_of_hits,
-  const Velo::Clusters<const uint32_t>& velo_cluster_container,
-  Velo::Clusters<uint32_t>& velo_sorted_cluster_container,
+  Velo::ConstClusters& velo_cluster_container,
+  Velo::Clusters& velo_sorted_cluster_container,
   uint* hit_permutations,
   const L& lvalue_accessor,
   const R& const_accessor) {
@@ -22,8 +22,8 @@ __device__ void apply_permutation(
 __device__ void velo_calculate_phi_and_sort::sort_by_phi(
   const uint event_hit_start,
   const uint event_number_of_hits,
-  const Velo::Clusters<const uint32_t>& velo_cluster_container,
-  Velo::Clusters<uint32_t>& velo_sorted_cluster_container,
+  Velo::ConstClusters& velo_cluster_container,
+  Velo::Clusters& velo_sorted_cluster_container,
   uint* hit_permutations)
 {
   // Apply permutation across all arrays

@@ -1,67 +1,20 @@
 #include "LFQualityFilterX.cuh"
 
-void lf_quality_filter_x_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_scifi_lf_x_filtered_tracks_t>(arguments, 
-    value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
-    LookingForward::maximum_number_of_candidates_per_ut_track);
-  set_size<dev_scifi_lf_x_filtered_atomics_t>(arguments, 
-    value<host_number_of_selected_events_t>(arguments) * LookingForward::num_atomics);
-  set_size<dev_scifi_lf_parametrization_x_filter_t>(arguments, 
-    4 * value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
-    LookingForward::maximum_number_of_candidates_per_ut_track);
-}
-
-void lf_quality_filter_x_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  cudaCheck(cudaMemsetAsync(
-    offset<dev_scifi_lf_x_filtered_atomics_t>(arguments),
-    0,
-    size<dev_scifi_lf_x_filtered_atomics_t>(arguments),
-    cuda_stream));
-  
-  function(dim3(value<host_number_of_selected_events_t>(arguments), 24), block_dimension(), cuda_stream)(
-    offset<dev_atomics_ut_t>(arguments),
-    offset<dev_scifi_lf_tracks_t>(arguments),
-    offset<dev_scifi_lf_atomics_t>(arguments),
-    offset<dev_scifi_lf_x_filtered_tracks_t>(arguments),
-    offset<dev_scifi_lf_x_filtered_atomics_t>(arguments),
-    offset<dev_scifi_lf_parametrization_t>(arguments),
-    offset<dev_scifi_lf_parametrization_x_filter_t>(arguments));
-}
-
-__global__ void lf_quality_filter_x(
-  const uint* dev_atomics_ut,
-  const SciFi::TrackHits* dev_scifi_lf_tracks,
-  const uint* dev_scifi_lf_atomics,
-  SciFi::TrackHits* dev_scifi_lf_x_filtered_tracks,
-  uint* dev_scifi_lf_x_filtered_atomics,
-  const float* dev_scifi_lf_parametrization,
-  float* dev_scifi_lf_parametrization_x_filter)
+__global__ void lf_quality_filter_x::lf_quality_filter_x(lf_quality_filter_x::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
-  const auto ut_event_tracks_offset = dev_atomics_ut[number_of_events + event_number];
-  const auto ut_event_number_of_tracks = dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
-  const auto ut_total_number_of_tracks = dev_atomics_ut[2 * number_of_events];
+  const auto ut_event_tracks_offset = parameters.dev_atomics_ut[number_of_events + event_number];
+  const auto ut_event_number_of_tracks = parameters.dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
+  const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
 
   __shared__ float chi2_ndofs[LookingForward::maximum_number_of_candidates_per_ut_track];
   __shared__ bool six_hit_track[LookingForward::maximum_number_of_candidates_per_ut_track];
 
   for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;
-    const auto number_of_tracks = dev_scifi_lf_atomics[current_ut_track_index];
+    const auto number_of_tracks = parameters.dev_scifi_lf_atomics[current_ut_track_index];
 
     // Due to chi2_ndofs
     __syncthreads();
@@ -70,7 +23,7 @@ __global__ void lf_quality_filter_x(
     for (uint j = threadIdx.x; j < number_of_tracks; j += blockDim.x) {
       const auto scifi_track_index =
         current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
-      const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
+      const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
 
       const auto ndof = track.hitsNum - 3;
       chi2_ndofs[j] = ndof > 0 ? track.quality / ndof : 10000.f;
@@ -84,13 +37,13 @@ __global__ void lf_quality_filter_x(
       if (six_hit_track[j]) {
         const auto scifi_track_index =
           current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
-        const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
+        const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
 
         for (uint k = j + 1; k < number_of_tracks; ++k) {
           if (six_hit_track[k]) {
             const auto other_scifi_track_index =
               current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + k;
-            const SciFi::TrackHits& other_track = dev_scifi_lf_tracks[other_scifi_track_index];
+            const SciFi::TrackHits& other_track = parameters.dev_scifi_lf_tracks[other_scifi_track_index];
 
             const bool same_track = track.hits[0] == other_track.hits[3] &&
               track.hits[1] == other_track.hits[4] &&
@@ -124,37 +77,37 @@ __global__ void lf_quality_filter_x(
 
       if (insert_position < LookingForward::maximum_number_of_candidates_per_ut_track && chi2_ndof < 2.f) {
         // Save best track candidates
-        const auto insert_index = atomicAdd(dev_scifi_lf_x_filtered_atomics + event_number, 1);
+        const auto insert_index = atomicAdd(parameters.dev_scifi_lf_x_filtered_atomics + event_number, 1);
 
         const auto scifi_track_index =
           current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
         const auto scifi_track_index_new =
           ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track +
           insert_index;
-        const SciFi::TrackHits& track = dev_scifi_lf_tracks[scifi_track_index];
+        const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
 
         // Save track
-        dev_scifi_lf_x_filtered_tracks[scifi_track_index_new] = track;
+        parameters.dev_scifi_lf_x_filtered_tracks[scifi_track_index_new] = track;
 
         // Save track parameters to new container as well
-        const auto a1 = dev_scifi_lf_parametrization[scifi_track_index];
-        const auto b1 = dev_scifi_lf_parametrization
+        const auto a1 = parameters.dev_scifi_lf_parametrization[scifi_track_index];
+        const auto b1 = parameters.dev_scifi_lf_parametrization
           [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
-        const auto c1 = dev_scifi_lf_parametrization
+        const auto c1 = parameters.dev_scifi_lf_parametrization
           [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
            scifi_track_index];
-        const auto d_ratio = dev_scifi_lf_parametrization
+        const auto d_ratio = parameters.dev_scifi_lf_parametrization
           [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
            scifi_track_index];
 
-        dev_scifi_lf_parametrization_x_filter[scifi_track_index_new] = a1;
-        dev_scifi_lf_parametrization_x_filter
+        parameters.dev_scifi_lf_parametrization_x_filter[scifi_track_index_new] = a1;
+        parameters.dev_scifi_lf_parametrization_x_filter
           [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
            scifi_track_index_new] = b1;
-        dev_scifi_lf_parametrization_x_filter
+        parameters.dev_scifi_lf_parametrization_x_filter
           [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
            scifi_track_index_new] = c1;
-        dev_scifi_lf_parametrization_x_filter
+        parameters.dev_scifi_lf_parametrization_x_filter
           [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
            scifi_track_index_new] = d_ratio;
       }

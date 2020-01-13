@@ -10,8 +10,9 @@
 
 namespace lf_triplet_seeding {
   struct Parameters {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, uint);
-    DEVICE_INPUT(dev_scifi_hits_t, uint) dev_scifi_hits;
+    DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
@@ -22,14 +23,12 @@ namespace lf_triplet_seeding {
     DEVICE_INPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
     DEVICE_INPUT(dev_ut_states_t, MiniState) dev_ut_states;
     DEVICE_INPUT(dev_scifi_lf_process_track_t, bool) dev_scifi_lf_process_track;
-    DEVICE_OUTPUT(dev_scifi_lf_found_triplets_t, uint) dev_scifi_lf_found_triplets;
+    DEVICE_OUTPUT(dev_scifi_lf_found_triplets_t, int) dev_scifi_lf_found_triplets;
     DEVICE_OUTPUT(dev_scifi_lf_number_of_found_triplets_t, int8_t) dev_scifi_lf_number_of_found_triplets;
   };
 
   __global__ void lf_triplet_seeding(
     Parameters,
-    const char* dev_scifi_geometry,
-    const float* dev_inv_clus_res,
     const LookingForward::Constants* dev_looking_forward_constants);
 
   template<typename T>
@@ -84,8 +83,6 @@ namespace lf_triplet_seeding {
                     offset<dev_scifi_lf_process_track_t>(arguments),
                     offset<dev_scifi_lf_found_triplets_t>(arguments),
                     offset<dev_scifi_lf_number_of_found_triplets_t>(arguments)},
-        constants.dev_scifi_geometry,
-        constants.dev_inv_clus_res,
         constants.dev_looking_forward_constants);
     }
   };

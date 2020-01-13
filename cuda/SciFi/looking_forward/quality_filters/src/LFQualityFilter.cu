@@ -2,8 +2,6 @@
 
 __global__ void lf_quality_filter::lf_quality_filter(
   lf_quality_filter::Parameters parameters,
-  const char* dev_scifi_geometry,
-  const float* dev_inv_clus_res,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity)
 {
@@ -12,10 +10,10 @@ __global__ void lf_quality_filter::lf_quality_filter(
 
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) parameters.dev_atomics_velo, (uint*) parameters.dev_velo_track_hit_number, event_number, number_of_events};
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
   const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
-  const Velo::Consolidated::States velo_states {(char*) parameters.dev_velo_states,
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,
                                                 velo_tracks.total_number_of_tracks()};
 
   const auto ut_event_tracks_offset = parameters.dev_atomics_ut[number_of_events + event_number];
@@ -26,10 +24,9 @@ __global__ void lf_quality_filter::lf_quality_filter(
   // SciFi hits
   const uint total_number_of_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
-  const SciFi::HitCount scifi_hit_count {(uint32_t*) parameters.dev_scifi_hit_count, event_number};
-  const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
-  const SciFi::Hits scifi_hits {
-    const_cast<uint32_t*>(parameters.dev_scifi_hits), total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
+
+  SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
 
   const auto number_of_tracks = parameters.dev_scifi_lf_length_filtered_atomics[event_number];
   const auto event_offset = scifi_hit_count.event_offset();
@@ -174,8 +171,8 @@ __global__ void lf_quality_filter::lf_quality_filter(
       const auto velo_states_index = velo_tracks_offset_event + velo_track_index;
       const auto velo_state = velo_states.getMiniState(velo_states_index);
 
-      const auto x0 = scifi_hits.x0[event_offset + track.hits[0]];
-      const auto x1 = scifi_hits.x0[event_offset + track.hits[2]];
+      const auto x0 = scifi_hits.x0(event_offset + track.hits[0]);
+      const auto x1 = scifi_hits.x0(event_offset + track.hits[2]);
       const auto layer0 = scifi_hits.planeCode(event_offset + track.hits[0]) / 2;
       const auto layer1 = scifi_hits.planeCode(event_offset + track.hits[2]) / 2;
       const auto z0 = dev_looking_forward_constants->Zone_zPos[layer0];

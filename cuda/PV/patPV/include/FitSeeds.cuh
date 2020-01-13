@@ -10,7 +10,7 @@
 
 __device__ bool fit_vertex(
   const PatPV::XYZPoint& seedPoint,
-  const Velo::Consolidated::KalmanStates<const char>& velo_states,
+  Velo::Consolidated::ConstKalmanStates& velo_states,
   PV::Vertex& vtx,
   int number_of_tracks,
   uint tracks_offset);

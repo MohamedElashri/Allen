@@ -2,8 +2,6 @@
 
 __global__ void lf_triplet_keep_best::lf_triplet_keep_best(
   lf_triplet_keep_best::Parameters parameters,
-  const char* dev_scifi_geometry,
-  const float* dev_inv_clus_res,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   // Keep best for each h1 hit
@@ -19,13 +17,6 @@ __global__ void lf_triplet_keep_best::lf_triplet_keep_best(
   const auto ut_event_number_of_tracks =
     parameters.dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
   const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
-
-  // SciFi hits
-  const uint total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
-  const SciFi::HitCount scifi_hit_count {(uint32_t*) parameters.dev_scifi_hit_count, event_number};
-  const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
-  const SciFi::Hits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits, &scifi_geometry, dev_inv_clus_res};
 
   for (uint i = blockIdx.y; i < ut_event_number_of_tracks; i += gridDim.y) {
     const auto current_ut_track_index = ut_event_tracks_offset + i;

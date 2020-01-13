@@ -1,7 +1,7 @@
 #include "BinarySearchTools.cuh"
 
 __host__ __device__ bool binary_search_match_stereo_hit(
-  const SciFi::Hits<const char>& scifi_hits,
+  SciFi::ConstHits& scifi_hits,
   const int itUV1,
   const int uv_zone_size,
   const float xMinUV,

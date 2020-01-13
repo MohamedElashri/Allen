@@ -25,7 +25,7 @@ namespace velo_kalman_filter {
    */
   template<bool upstream>
   __device__ KalmanVeloState
-  simplified_fit(const Velo::Consolidated::Hits<const char>& consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits) {
+  simplified_fit(Velo::Consolidated::ConstHits& consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits) {
     // backward = state.z > track.hits[0].z;
     const bool backward = stateAtBeamLine.z > consolidated_hits.z(0);
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);

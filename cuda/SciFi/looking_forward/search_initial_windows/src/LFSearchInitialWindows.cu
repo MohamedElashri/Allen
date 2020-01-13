@@ -13,12 +13,12 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::States<const char> velo_states {parameters.dev_velo_states,
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,
                                                 velo_tracks.total_number_of_tracks()};
   const uint velo_event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks
-  const UT::Consolidated::Tracks<const char> ut_tracks {parameters.dev_atomics_ut,
+  UT::Consolidated::ConstTracks ut_tracks {parameters.dev_atomics_ut,
                                       parameters.dev_ut_track_hit_number,
                                       parameters.dev_ut_qop,
                                       parameters.dev_ut_track_velo_indices,
@@ -31,17 +31,17 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   // SciFi hits
   const uint total_number_of_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
-  const SciFi::HitCount<const char> scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
-  const SciFi::Hits<const char> scifi_hits(parameters.dev_scifi_hits, total_number_of_hits);
+  SciFi::ConstHits scifi_hits(parameters.dev_scifi_hits, total_number_of_hits);
   const auto event_offset = scifi_hit_count.event_offset();
 
   MiniState* ut_states = parameters.dev_ut_states + ut_event_tracks_offset;
 
   for (int i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
-    const int velo_track_index = ut_tracks.velo_track[i];
+    const int velo_track_index = ut_tracks.velo_track(i);
     const int ut_track_index = ut_event_tracks_offset + i;
-    const float ut_qop = ut_tracks.qop[i];
+    const float ut_qop = ut_tracks.qop(i);
 
     // Note: These data should be accessed like
     //       the previous ut_tracks.qop[i] in the future

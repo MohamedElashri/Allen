@@ -7,7 +7,6 @@
 #include "SciFiDefinitions.cuh"
 
 namespace SciFi {
-
   //----------------------------
   // Struct for hit information.
   //----------------------------
@@ -40,10 +39,11 @@ namespace SciFi {
   template<typename T>
   struct HitCount_t {
   private:
-    typename ForwardType<T>::uint_t* m_mat_offsets;
+    typename ForwardType<T, uint>::t* m_mat_offsets;
+    // TODO: Add "total number of hits" to information of this struct
 
   public:
-    __host__ __device__ HitCount_t(typename ForwardType<T>::uint_t* base_pointer, const uint event_number) :
+    __host__ __device__ HitCount_t(typename ForwardType<T, uint>::t* base_pointer, const uint event_number) :
       m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_mat_groups_and_mats)
     {}
 
@@ -65,7 +65,7 @@ namespace SciFi {
       return m_mat_offsets[corrected_mat_number];
     }
 
-    __host__ __device__ typename ForwardType<T>::uint_t* mat_offsets_p(const uint mat_number)
+    __host__ __device__ typename ForwardType<T, uint>::t* mat_offsets_p(const uint mat_number)
     {
       assert(
         mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
@@ -142,13 +142,13 @@ namespace SciFi {
   template<typename T>
   struct Hits_t {
   private:
-    typename ForwardType<T>::float_t* m_base_pointer;
+    typename ForwardType<T, float>::t* m_base_pointer;
     const uint m_total_number_of_hits;
 
   public:
     __host__ __device__
     Hits_t(T* base_pointer, const uint total_number_of_hits, const uint offset = 0) :
-      m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer) + offset),
+      m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + offset),
       m_total_number_of_hits(total_number_of_hits)
     {}
 
@@ -192,37 +192,37 @@ namespace SciFi {
     __host__ __device__ uint channel(const uint index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint& channel(const uint index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint assembled_datatype(const uint index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[4 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[4 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint& assembled_datatype(const uint index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[4 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[4 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint cluster_reference(const uint index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint& cluster_reference(const uint index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint id(const uint index) const { return (10u << 28) + channel(index); };
@@ -242,7 +242,7 @@ namespace SciFi {
     }
 
     // Pointer accessor for binary search
-    __host__ __device__ typename ForwardType<T>::float_t* x0_p(const uint index) const
+    __host__ __device__ typename ForwardType<T, float>::t* x0_p(const uint index) const
     {
       assert(index < m_total_number_of_hits);
       return m_base_pointer + index;

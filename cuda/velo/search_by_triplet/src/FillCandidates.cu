@@ -95,7 +95,7 @@ __device__ void fill_candidates_impl(
   short* h2_candidates,
   const uint* module_hitStarts,
   const uint* module_hitNums,
-  const Velo::Clusters<const uint32_t>& velo_cluster_container,
+  Velo::ConstClusters& velo_cluster_container,
   const float* hit_Phis,
   const uint hit_offset)
 {
@@ -156,7 +156,7 @@ __global__ void velo_fill_candidates::velo_fill_candidates(velo_fill_candidates:
   const auto hit_offset = module_hitStarts[0];
 
   const auto velo_cluster_container =
-    Velo::Clusters<const uint>{parameters.dev_sorted_velo_cluster_container.get(), total_estimated_number_of_clusters};
+    Velo::ConstClusters{parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters};
 
   fill_candidates_impl(
     parameters.dev_h0_candidates, parameters.dev_h2_candidates, module_hitStarts, module_hitNums, velo_cluster_container, parameters.dev_hit_phi, hit_offset);

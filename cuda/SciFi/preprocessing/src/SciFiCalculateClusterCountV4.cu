@@ -16,7 +16,7 @@ __global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_
 
   const SciFiRawEvent event(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
   const SciFiGeometry geom(scifi_geometry);
-  SciFi::HitCount<uint> hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
     const uint current_raw_bank = getRawBankIndexOrderedByX(i);

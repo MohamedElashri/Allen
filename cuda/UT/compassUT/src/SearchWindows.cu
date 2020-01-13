@@ -22,14 +22,14 @@ __global__ void ut_search_windows::ut_search_windows(
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  const Velo::Consolidated::States<const char> velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
 
-  const UT::Hits<const char> ut_hits {parameters.dev_ut_hits, total_number_of_hits};
+  UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
 
   const float* fudge_factors = &(dev_ut_magnet_tool->dxLayTable[0]);
   uint* active_tracks = parameters.dev_ut_active_tracks + event_number;

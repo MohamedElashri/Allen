@@ -8,10 +8,10 @@
 namespace lf_extend_tracks_uv {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_scifi_hits_t, uint) dev_scifi_hits;
+    DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits) dev_scifi_lf_tracks;
+    DEVICE_OUTPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits) dev_scifi_lf_tracks;
     DEVICE_INPUT(dev_scifi_lf_atomics_t, uint) dev_scifi_lf_atomics;
     DEVICE_INPUT(dev_ut_states_t, MiniState) dev_ut_states;
     DEVICE_INPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
@@ -20,9 +20,7 @@ namespace lf_extend_tracks_uv {
 
   __global__ void lf_extend_tracks_uv(
     Parameters,
-    const char* dev_scifi_geometry,
-    const LookingForward::Constants* dev_looking_forward_constants,
-    const float* dev_inv_clus_res);
+    const LookingForward::Constants* dev_looking_forward_constants);
 
   template<typename T>
   struct lf_extend_tracks_uv_t : public DeviceAlgorithm, Parameters {
@@ -53,9 +51,7 @@ namespace lf_extend_tracks_uv {
                     offset<dev_ut_states_t>(arguments),
                     offset<dev_scifi_lf_initial_windows_t>(arguments),
                     offset<dev_scifi_lf_parametrization_t>(arguments)},
-        constants.dev_scifi_geometry,
-        constants.dev_looking_forward_constants,
-        constants.dev_inv_clus_res);
+        constants.dev_looking_forward_constants);
     }
   };
 } // namespace lf_extend_tracks_uv

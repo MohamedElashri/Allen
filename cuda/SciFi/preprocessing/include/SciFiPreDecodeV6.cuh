@@ -5,7 +5,7 @@
 #include "DeviceAlgorithm.cuh"
 
 __device__ void store_sorted_cluster_reference_v6(
-  const SciFi::HitCount<const uint>& hit_count,
+  SciFi::ConstHitCount& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,
   const uint32_t* shared_mat_offsets,
@@ -15,7 +15,7 @@ __device__ void store_sorted_cluster_reference_v6(
   const int condition_1,
   const int condition_2,
   const int delta,
-  SciFi::Hits<char>& hits);
+  SciFi::Hits& hits);
 
 namespace scifi_pre_decode_v6 {
   struct Parameters {

@@ -15,7 +15,7 @@ __host__ __device__ bool binary_search_match_stereo_hit(
 template<class T>
 __host__ __device__ std::tuple<int, int> find_x_in_window(
   const T* candidates,
-  const SciFi::Hits<const char>& hits,
+  SciFi::ConstHits& hits,
   const int num_hits,
   const float value,
   const float margin,

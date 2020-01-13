@@ -12,7 +12,7 @@ namespace scifi_consolidate_tracks {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
-    DEVICE_INPUT(dev_scifi_hits_t, uint) dev_scifi_hits;
+    DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_OUTPUT(dev_scifi_track_hits_t, char) dev_scifi_track_hits;
     DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
@@ -25,7 +25,7 @@ namespace scifi_consolidate_tracks {
     DEVICE_INPUT(dev_scifi_lf_parametrization_consolidate_t, float) dev_scifi_lf_parametrization_consolidate;
   };
 
-  __global__ void scifi_consolidate_tracks(Parameters, const char* dev_scifi_geometry, const float* dev_inv_clus_res);
+  __global__ void scifi_consolidate_tracks(Parameters);
 
   template<typename T>
   struct scifi_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
@@ -64,9 +64,7 @@ namespace scifi_consolidate_tracks {
                     offset<dev_scifi_track_ut_indices_t>(arguments),
                     offset<dev_atomics_ut_t>(arguments),
                     offset<dev_scifi_tracks_t>(arguments),
-                    offset<dev_scifi_lf_parametrization_consolidate_t>(arguments)},
-        constants.dev_scifi_geometry,
-        constants.dev_inv_clus_res);
+                    offset<dev_scifi_lf_parametrization_consolidate_t>(arguments)});
 
       // Transmission device to host of Scifi consolidated tracks
       if (runtime_options.do_check) {

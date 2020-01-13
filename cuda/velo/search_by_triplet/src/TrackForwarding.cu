@@ -6,7 +6,7 @@
  * @brief Performs the track forwarding of forming tracks
  */
 __device__ void track_forwarding(
-  const Velo::Clusters<const uint>& velo_cluster_container,
+  Velo::ConstClusters& velo_cluster_container,
   const float* hit_phi,
   bool* hit_used,
   const Velo::Module* module_data,

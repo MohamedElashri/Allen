@@ -125,7 +125,7 @@ namespace UT {
   template<typename T>
   struct Hits_t {
   private:
-    typename ForwardType<T>::float_t* m_base_pointer;
+    typename ForwardType<T, float>::t* m_base_pointer;
     const uint m_total_number_of_hits;
 
   public:
@@ -133,8 +133,8 @@ namespace UT {
      * @brief Populates the UTHits object pointers to an array of data
      *        pointed by base_pointer.
      */
-    __host__ __device__ Hits_t(typename ForwardType<T>::char_t* base_pointer, const uint total_number_of_hits) :
-      m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer)),
+    __host__ __device__ Hits_t(typename ForwardType<T, char>::t* base_pointer, const uint total_number_of_hits) :
+      m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
       m_total_number_of_hits(total_number_of_hits)
     {}
 
@@ -161,22 +161,22 @@ namespace UT {
 
     __host__ __device__ uint id(const uint index) const
     {
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint& id(const uint index)
     {
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint raw_bank_index(const uint index) const
     {
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[6 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[6 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint& raw_bank_index(const uint index)
     {
-      return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[6 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[6 * m_total_number_of_hits + index];
     }
 
     /**
@@ -215,11 +215,11 @@ namespace UT {
     __host__ __device__ float yMin(const uint index) const { return fminf(yBegin(index), yEnd(index)); }
 
     // Pointer accessors for binary search
-    __host__ __device__ typename ForwardType<T>::float_t* yBegin_p(const uint index) const {
+    __host__ __device__ typename ForwardType<T, float>::t* yBegin_p(const uint index) const {
       return m_base_pointer + index;
     }
     
-    __host__ __device__ typename ForwardType<T>::float_t* yEnd_p(const uint index) const {
+    __host__ __device__ typename ForwardType<T, float>::t* yEnd_p(const uint index) const {
       return m_base_pointer + m_total_number_of_hits + index;
     }
   };

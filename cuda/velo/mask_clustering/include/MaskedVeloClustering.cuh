@@ -17,7 +17,7 @@ namespace velo_masked_clustering {
     DEVICE_INPUT(dev_cluster_candidates_t, uint) dev_cluster_candidates;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_OUTPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
-    DEVICE_OUTPUT(dev_velo_cluster_container_t, uint32_t) dev_velo_cluster_container;
+    DEVICE_OUTPUT(dev_velo_cluster_container_t, uint) dev_velo_cluster_container;
   };
 
   // Function

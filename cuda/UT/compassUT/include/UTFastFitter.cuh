@@ -15,5 +15,5 @@ __host__ __device__ float fastfitter(
   const int best_hits[UT::Constants::n_layers],
   const float qpxz2p,
   const float* ut_dxDy,
-  const UT::Hits<const char>& ut_hits,
+  UT::ConstHits& ut_hits,
   float improvedParams[4]);

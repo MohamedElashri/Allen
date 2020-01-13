@@ -10,22 +10,15 @@ namespace lf_quality_filter_length {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, uint);
     DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_scifi_lf_tracks_t, uint) dev_scifi_lf_tracks;
+    DEVICE_OUTPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits) dev_scifi_lf_tracks;
     DEVICE_INPUT(dev_scifi_lf_atomics_t, uint) dev_scifi_lf_atomics;
-    DEVICE_INPUT(dev_scifi_lf_length_filtered_tracks_t, uint) dev_scifi_lf_length_filtered_tracks;
-    DEVICE_INPUT(dev_scifi_lf_length_filtered_atomics_t, uint) dev_scifi_lf_length_filtered_atomics;
-    DEVICE_INPUT(dev_scifi_lf_parametrization_t, uint) dev_scifi_lf_parametrization;
-    DEVICE_INPUT(dev_scifi_lf_parametrization_length_filter_t, uint) dev_scifi_lf_parametrization_length_filter;
+    DEVICE_OUTPUT(dev_scifi_lf_length_filtered_tracks_t, SciFi::TrackHits) dev_scifi_lf_length_filtered_tracks;
+    DEVICE_OUTPUT(dev_scifi_lf_length_filtered_atomics_t, uint) dev_scifi_lf_length_filtered_atomics;
+    DEVICE_INPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;
+    DEVICE_OUTPUT(dev_scifi_lf_parametrization_length_filter_t, float) dev_scifi_lf_parametrization_length_filter;
   };
 
-  __global__ void lf_quality_filter_length(
-    const uint* dev_atomics_ut,
-    const SciFi::TrackHits* dev_scifi_lf_x_filtered_tracks,
-    const uint* dev_scifi_lf_x_filtered_atomics,
-    SciFi::TrackHits* dev_scifi_lf_length_filtered_tracks,
-    uint* dev_scifi_lf_length_filtered_atomics,
-    const float* dev_scifi_lf_parametrization_x_filter,
-    float* dev_scifi_lf_parametrization_length_filter);
+  __global__ void lf_quality_filter_length(Parameters);
 
   template<typename T>
   struct lf_quality_filter_length_t : public DeviceAlgorithm, Parameters {

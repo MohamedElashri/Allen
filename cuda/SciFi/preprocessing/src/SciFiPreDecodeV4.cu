@@ -4,14 +4,14 @@
 using namespace SciFi;
 
 __device__ void store_sorted_cluster_reference_v4(
-  const SciFi::HitCount<const uint>& hit_count,
+  SciFi::ConstHitCount& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,
   const uint32_t* shared_mat_offsets,
   uint32_t* shared_mat_count,
   const int raw_bank,
   const int it,
-  SciFi::Hits<char>& hits)
+  SciFi::Hits& hits)
 {
   uint32_t hitIndex = (*shared_mat_count)++;
 
@@ -40,9 +40,9 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
   SciFiGeometry geom(scifi_geometry);
   const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  SciFi::Hits<char> hits {
+  SciFi::Hits hits {
     parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
-  const SciFi::HitCount<const uint> hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mats_without_group];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mats_without_group];

@@ -13,18 +13,18 @@ namespace Velo {
      * @brief Structure to access VELO hits.
      */
     template<typename T>
-    struct Hits {
+    struct Hits_t {
     private:
-      typename ForwardType<T>::float_t* m_base_pointer;
+      typename ForwardType<T, float>::t* m_base_pointer;
       const uint m_total_number_of_hits;
 
     public:
-      __host__ __device__ Hits(T* base_pointer, const uint track_offset, const uint total_number_of_hits) :
-        m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer) + track_offset),
+      __host__ __device__ Hits_t(T* base_pointer, const uint track_offset, const uint total_number_of_hits) :
+        m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + track_offset),
         m_total_number_of_hits(total_number_of_hits)
       {}
 
-      __host__ __device__ Hits(const Hits& hits) :
+      __host__ __device__ Hits_t(const Hits_t<T>& hits) :
         m_base_pointer(hits.m_base_pointer), m_total_number_of_hits(hits.m_total_number_of_hits)
       {}
 
@@ -43,12 +43,12 @@ namespace Velo {
 
       __host__ __device__ uint id(const uint index) const
       {
-        return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+        return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
       }
 
       __host__ __device__ uint& id(const uint index)
       {
-        return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+        return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
       }
 
       __host__ __device__ void set(const uint hit_number, const Velo::Hit& hit)
@@ -65,6 +65,9 @@ namespace Velo {
       }
     };
 
+    typedef const Hits_t<const char> ConstHits;
+    typedef Hits_t<char> Hits;
+
     struct Tracks : public ::Consolidated::Tracks {
       __host__ __device__ Tracks(
         const uint* atomics_base_pointer,
@@ -79,27 +82,28 @@ namespace Velo {
       {}
 
       template<typename T>
-      __host__ __device__ Hits<typename ForwardType<T>::char_t> get_hits(T* hits_base_pointer, const uint track_number)
-        const
+      __host__ __device__ Hits_t<typename ForwardType<T, char>::t> get_hits(
+        T* hits_base_pointer,
+        const uint track_number) const
       {
-        return Hits<typename ForwardType<T>::char_t> {
+        return Hits_t<typename ForwardType<T, char>::t> {
           hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
     };
 
     template<typename T>
-    struct States {
+    struct States_t {
     private:
-      typename ForwardType<T>::float_t* m_base_pointer;
+      typename ForwardType<T, float>::t* m_base_pointer;
       const uint m_total_number_of_tracks;
 
     public:
-      __host__ __device__ States(typename ForwardType<T>::char_t* base_pointer, const uint total_number_of_tracks) :
-        m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer)),
+      __host__ __device__ States_t(typename ForwardType<T, char>::t* base_pointer, const uint total_number_of_tracks) :
+        m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
         m_total_number_of_tracks(total_number_of_tracks)
       {}
 
-      __host__ __device__ States(const States& states) :
+      __host__ __device__ States_t(const States_t<T>& states) :
         m_base_pointer(states.m_base_pointer), m_total_number_of_tracks(states.m_total_number_of_tracks)
       {}
 
@@ -135,12 +139,14 @@ namespace Velo {
 
       __host__ __device__ bool backward(const uint index) const
       {
-        return reinterpret_cast<typename ForwardType<T>::bool_t*>(m_base_pointer)[5 * m_total_number_of_tracks + index];
+        return reinterpret_cast<typename ForwardType<T, bool>::t*>(
+          m_base_pointer)[5 * m_total_number_of_tracks + index];
       }
 
       __host__ __device__ bool& backward(const uint index)
       {
-        return reinterpret_cast<typename ForwardType<T>::bool_t*>(m_base_pointer)[5 * m_total_number_of_tracks + index];
+        return reinterpret_cast<typename ForwardType<T, bool>::t*>(
+          m_base_pointer)[5 * m_total_number_of_tracks + index];
       }
 
       __host__ __device__ void set(const uint track_number, const VeloState& state)
@@ -181,19 +187,22 @@ namespace Velo {
       }
     };
 
+    typedef const States_t<const char> ConstStates;
+    typedef States_t<char> States;
+
     template<typename T>
-    struct KalmanStates {
+    struct KalmanStates_t {
     private:
-      typename ForwardType<T>::float_t* m_base_pointer;
+      typename ForwardType<T, float>::t* m_base_pointer;
       const uint m_total_number_of_tracks;
 
     public:
-      __host__ __device__ KalmanStates(T* base_pointer, const uint total_number_of_tracks) :
-        m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer)),
+      __host__ __device__ KalmanStates_t(T* base_pointer, const uint total_number_of_tracks) :
+        m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
         m_total_number_of_tracks(total_number_of_tracks)
       {}
 
-      __host__ __device__ KalmanStates(const KalmanStates& states) :
+      __host__ __device__ KalmanStates_t(const KalmanStates_t<T>& states) :
         m_base_pointer(states.m_base_pointer), m_total_number_of_tracks(states.m_total_number_of_tracks)
       {}
 
@@ -308,5 +317,7 @@ namespace Velo {
       }
     };
 
+    typedef const KalmanStates_t<const char> ConstKalmanStates;
+    typedef KalmanStates_t<char> KalmanStates;
   } // namespace Consolidated
 } // namespace Velo

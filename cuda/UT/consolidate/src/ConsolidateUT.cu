@@ -23,18 +23,19 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
   const UT::TrackHits* event_veloUT_tracks = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 
   // TODO: Make const container
-  const UT::Hits<const char> ut_hits {parameters.dev_ut_hits, total_number_of_hits};
+  UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
   const auto event_offset = ut_hit_offsets.event_offset();
 
   // Create consolidated SoAs.
-  UT::Consolidated::Tracks<char> ut_tracks {parameters.dev_atomics_ut,
+  UT::Consolidated::Tracks ut_tracks {parameters.dev_atomics_ut,
                                             parameters.dev_ut_track_hit_number,
                                             parameters.dev_ut_qop,
                                             parameters.dev_ut_track_velo_indices,
                                             event_number,
                                             number_of_events};
+                                            
   const uint number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = ut_tracks.tracks_offset(event_number);
 

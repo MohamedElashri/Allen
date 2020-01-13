@@ -25,9 +25,9 @@ __global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4(
   const SciFiGeometry geom(scifi_geometry);
   const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  SciFi::Hits<char> hits {
+  SciFi::Hits hits {
     parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
-  const SciFi::HitCount<const uint> hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
     const uint j = (i / 10) % 4;

@@ -21,9 +21,9 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
   const uint* module_hitNums = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
 
   const auto velo_cluster_container =
-    Velo::Clusters<const uint> {parameters.dev_velo_cluster_container.get(), total_estimated_number_of_clusters};
+    Velo::ConstClusters {parameters.dev_velo_cluster_container, total_estimated_number_of_clusters};
   auto velo_sorted_cluster_container =
-    Velo::Clusters<uint> {parameters.dev_sorted_velo_cluster_container.get(), total_estimated_number_of_clusters};
+    Velo::Clusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters};
 
   const uint event_hit_start = module_hitStarts[0];
   const uint event_number_of_hits = module_hitStarts[Velo::Constants::n_modules] - event_hit_start;

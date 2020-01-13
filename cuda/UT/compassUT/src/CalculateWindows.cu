@@ -29,7 +29,7 @@ __device__ bool velo_track_in_UTA_acceptance(const MiniState& state)
 __device__ void tol_refine(
   int& first_candidate,
   int& last_candidate,
-  const UT::Hits<const char>& ut_hits,
+  UT::ConstHits& ut_hits,
   const MiniState& velo_state,
   const float invNormfact,
   const float xTolNormFact,
@@ -76,7 +76,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const int layer,
   const MiniState& velo_state,
   const float* fudge_factors,
-  const UT::Hits<const char>& ut_hits,
+  UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const float* ut_dxDy,
   const float* dev_unique_sector_xs,
@@ -238,7 +238,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 }
 
 __device__ std::tuple<int, int> find_candidates_in_sector_group(
-  const UT::Hits<const char>& ut_hits,
+  UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
   const float* dev_unique_sector_xs,

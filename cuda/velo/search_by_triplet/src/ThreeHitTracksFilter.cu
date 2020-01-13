@@ -5,7 +5,7 @@
  *        and returns the chi2.
  */
 __device__ float means_square_fit_chi2(
-  const Velo::Clusters<const uint>& velo_cluster_container,
+  Velo::ConstClusters& velo_cluster_container,
   const Velo::TrackletHits& track)
 {
   VeloState state;
@@ -90,7 +90,7 @@ __device__ float means_square_fit_chi2(
  * @brief Calculates the scatter of the three hits.
  *        Unused, but it can be a replacement of the above if needed.
  */
-__device__ float scatter(const Velo::Clusters<const uint>& velo_cluster_container, const Velo::TrackletHits& track)
+__device__ float scatter(Velo::ConstClusters& velo_cluster_container, const Velo::TrackletHits& track)
 {
   const Velo::HitBase h0 {velo_cluster_container.x(track.hits[0]),
                           velo_cluster_container.y(track.hits[0]),
@@ -119,7 +119,7 @@ __device__ void three_hit_tracks_filter_impl(
   Velo::TrackletHits* output_tracks,
   uint* number_of_output_tracks,
   const bool* hit_used,
-  const Velo::Clusters<const uint>& velo_cluster_container)
+  Velo::ConstClusters& velo_cluster_container)
 {
 
   for (uint track_number = threadIdx.x; track_number < number_of_input_tracks; track_number += blockDim.x) {
@@ -153,8 +153,8 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   const bool* hit_used = parameters.dev_hit_used + hit_offset;
 
   // Offseted VELO cluster container
-  const auto velo_cluster_container = Velo::Clusters<const uint> {
-    parameters.dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
+  const auto velo_cluster_container = Velo::ConstClusters {
+    parameters.dev_sorted_velo_cluster_container + hit_offset, total_estimated_number_of_clusters};
 
   // Input three hit tracks
   const Velo::TrackletHits* input_tracks =

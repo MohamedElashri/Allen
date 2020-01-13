@@ -112,13 +112,13 @@ namespace Velo {
 
     // Accessors and lvalue references for all types
     __host__ __device__ float x(const uint index) const {
-      return reinterpret_cast<typename ForwardType<T>::float_t*>(m_base_pointer)[index];
+      return reinterpret_cast<typename ForwardType<T, float>::t*>(m_base_pointer)[index];
     }
 
     __host__ __device__ float& x(const uint index) { return reinterpret_cast<float*>(m_base_pointer)[index]; }
 
     __host__ __device__ float y(const uint index) const {
-      return reinterpret_cast<typename ForwardType<T>::float_t*>(
+      return reinterpret_cast<typename ForwardType<T, float>::t*>(
         m_base_pointer)[m_total_estimated_number_of_clusters + index];
     }
 
@@ -127,7 +127,7 @@ namespace Velo {
     }
 
     __host__ __device__ float z(const uint index) const {
-      return reinterpret_cast<typename ForwardType<T>::float_t*>(
+      return reinterpret_cast<typename ForwardType<T, float>::t*>(
         m_base_pointer)[2 * m_total_estimated_number_of_clusters + index];
     }
 
@@ -144,6 +144,6 @@ namespace Velo {
     }
   };
 
-  typedef const Clusters_t<const char> ConstClusters;
-  typedef Clusters_t<char> Clusters;
+  typedef const Clusters_t<const uint> ConstClusters;
+  typedef Clusters_t<uint> Clusters;
 } // namespace Velo

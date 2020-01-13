@@ -3,7 +3,7 @@
 /**
  * @brief Calculates the parameters according to a root means square fit
  */
-__device__ VeloState means_square_fit(const Velo::Consolidated::Hits<char>& consolidated_hits, const uint number_of_hits)
+__device__ VeloState means_square_fit(const Velo::Consolidated::Hits& consolidated_hits, const uint number_of_hits)
 {
   VeloState state;
 
@@ -77,7 +77,7 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
   // Consolidated datatypes
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::States<char> velo_states {parameters.dev_velo_states,
+  Velo::Consolidated::States velo_states {parameters.dev_velo_states,
                                           velo_tracks.total_number_of_tracks()};
 
   const uint event_number_of_tracks = velo_tracks.number_of_tracks(event_number);
@@ -97,11 +97,11 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
   const uint hit_offset = module_hitStarts[0];
 
   // TODO: Offset'ed container
-  const auto velo_cluster_container = Velo::Clusters<const uint> {
-    parameters.dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
+  const auto velo_cluster_container = Velo::ConstClusters {
+    parameters.dev_sorted_velo_cluster_container + hit_offset, total_estimated_number_of_clusters};
 
   for (uint i = threadIdx.x; i < event_number_of_tracks; i += blockDim.x) {
-    Velo::Consolidated::Hits<char> consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits.get(), i);
+    Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits.get(), i);
 
     Velo::TrackHits* track;
     uint number_of_hits;

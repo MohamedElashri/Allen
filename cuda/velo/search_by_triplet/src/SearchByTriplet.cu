@@ -60,7 +60,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const uint hit_offset = module_hitStarts[0];
 
   // Think whether this offset'ed container is a good solution
-  const auto velo_cluster_container = Velo::Clusters<const uint> {
+  const auto velo_cluster_container = Velo::ConstClusters {
     parameters.dev_sorted_velo_cluster_container.get() + hit_offset, total_estimated_number_of_clusters};
 
   const auto hit_phi = parameters.dev_hit_phi + hit_offset;

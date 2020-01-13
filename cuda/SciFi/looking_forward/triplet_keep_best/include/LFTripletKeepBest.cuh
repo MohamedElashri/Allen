@@ -12,8 +12,6 @@ namespace lf_triplet_keep_best {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, uint);
-    DEVICE_INPUT(dev_scifi_hits_t, uint) dev_scifi_hits;
-    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
     DEVICE_OUTPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits) dev_scifi_lf_tracks;
     DEVICE_OUTPUT(dev_scifi_lf_atomics_t, uint) dev_scifi_lf_atomics;
@@ -26,8 +24,6 @@ namespace lf_triplet_keep_best {
 
   __global__ void lf_triplet_keep_best(
     Parameters,
-    const char* dev_scifi_geometry,
-    const float* dev_inv_clus_res,
     const LookingForward::Constants* dev_looking_forward_constants);
 
   template<typename T>
@@ -69,9 +65,7 @@ namespace lf_triplet_keep_best {
         offset<dev_scifi_lf_atomics_t>(arguments), 0, size<dev_scifi_lf_atomics_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_scifi_hits_t>(arguments),
-                    offset<dev_scifi_hit_count_t>(arguments),
-                    offset<dev_atomics_ut_t>(arguments),
+        Parameters {offset<dev_atomics_ut_t>(arguments),
                     offset<dev_scifi_lf_tracks_t>(arguments),
                     offset<dev_scifi_lf_atomics_t>(arguments),
                     offset<dev_scifi_lf_initial_windows_t>(arguments),
@@ -79,8 +73,6 @@ namespace lf_triplet_keep_best {
                     offset<dev_scifi_lf_found_triplets_t>(arguments),
                     offset<dev_scifi_lf_number_of_found_triplets_t>(arguments),
                     offset<dev_scifi_lf_total_number_of_found_triplets_t>(arguments)},
-        constants.dev_scifi_geometry,
-        constants.dev_inv_clus_res,
         constants.dev_looking_forward_constants);
     }
   };

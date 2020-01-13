@@ -7,7 +7,7 @@
 
 namespace Distance {
   __device__ float
-  velo_ip(const Velo::Consolidated::KalmanStates<const char>& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
+  velo_ip(Velo::Consolidated::ConstKalmanStates& velo_kalman_states, const uint state_index, const PV::Vertex& vertex)
   {
     float tx = velo_kalman_states.tx(state_index);
     float ty = velo_kalman_states.ty(state_index);
@@ -18,7 +18,7 @@ namespace Distance {
   }
 
   __device__ float velo_ip_chi2(
-    const Velo::Consolidated::KalmanStates<const char>& velo_kalman_states,
+    Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
     const uint state_index,
     const PV::Vertex& vertex)
   {
@@ -55,14 +55,14 @@ namespace Distance {
 } // namespace Distance
 
 typedef float (*distance_fun)(
-  const Velo::Consolidated::KalmanStates<const char>& velo_kalman_states,
+  Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
   const uint state_index,
   const PV::Vertex& vertex);
 
 __device__ void associate(
-  const Velo::Consolidated::KalmanStates<const char>& velo_kalman_states,
+  Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
   cuda::span<const PV::Vertex> const& vertices,
-  Associate::Consolidated::EventTable<char>& table,
+  Associate::Consolidated::EventTable& table,
   distance_fun fun)
 {
   for (uint i = threadIdx.x; i < table.size(); i += blockDim.x) {
@@ -90,11 +90,11 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   uint const event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  Associate::Consolidated::Table<char> velo_pv_ip {parameters.dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
+  Associate::Consolidated::Table velo_pv_ip {parameters.dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
   velo_pv_ip.cutoff() = Associate::VeloPVIP::baseline;
 
   // Consolidated Velo fitted states for this event
-  const Velo::Consolidated::KalmanStates<const char> velo_kalman_states {
+  Velo::Consolidated::ConstKalmanStates velo_kalman_states {
     parameters.dev_velo_kalman_beamline_states + sizeof(float) * event_tracks_offset, velo_tracks.total_number_of_tracks()};
 
   cuda::span<const PV::Vertex> vertices {parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
