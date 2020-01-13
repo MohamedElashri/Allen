@@ -368,8 +368,11 @@ public:
     for (unsigned int i = 0; i < selected_events.size(); ++i) {
       auto event = selected_events[i];
       sizes[i] += std::accumulate(blocks.begin(), blocks.end(), 0ul,
-        [event, interval_start] (size_t s, const auto& entry) {
-          return s + std::get<0>(entry).sizes[interval_start + event];
+        [event, interval_start, this] (size_t s, const auto& entry) {
+          auto const& block_header = std::get<0>(entry);
+          auto lhcb_type = block_header.types[0];
+          auto allen_type = m_bank_ids[lhcb_type];
+          return allen_type == -1 ? s : s + LHCb::RawBank::hdrSize() + block_header.sizes[interval_start + event];
         });
     }
   }
@@ -404,12 +407,15 @@ public:
         // separate, so all offsets need to be compensated for the
         // block offset. The 0th event offset is exactly that block
         // offset
-        auto block_start = MEP::offset_index(n_banks, 0, block_index);
+        auto block_start = offsets[MEP::offset_index(n_banks, 0, block_index)];
         auto const fragment_offset = offsets[MEP::offset_index(n_banks, event, block_index)] - block_start;
         // The end of a fragment is the offset of the fragment that
         // belongs to the next event
         auto const fragment_end = offsets[MEP::offset_index(n_banks, event + 1, block_index)] - block_start;
         auto fragment_size = fragment_end - fragment_offset;
+        assert(block_header.sizes[interval_start + event] == fragment_size);
+        assert((fragment_offset + fragment_size) < banks[block_index].size());
+        assert((offset + fragment_size) < buffer.size());
         offset += add_raw_bank(block_header.types[interval_start + event],
                                mep_header.versions[i_block], mep_header.source_ids[i_block],
                                {banks[block_index].data() + fragment_offset, fragment_size},
