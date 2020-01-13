@@ -188,16 +188,30 @@ else()
   endif()
 endif()
 
-# Deal with build type
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif(NOT CMAKE_BUILD_TYPE)
-MESSAGE(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 # Configured sequence
 if(NOT SEQUENCE)
   set(SEQUENCE DefaultSequence)
 endif(NOT SEQUENCE)
+
+add_custom_command(
+  OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
+  COMMENT "Configuring sequence "
+  VERBATIM
+  )
+
+add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h")
+
+message(STATUS "Configured sequence: " ${SEQUENCE})
+
+# Deal with build type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif(NOT CMAKE_BUILD_TYPE)
+MESSAGE(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 if(NOT DEFINED CPU_ARCH)
   set(CPU_ARCH native)

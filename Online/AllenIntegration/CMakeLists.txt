@@ -4,6 +4,9 @@
 
 include_directories(${CMAKE_SOURCE_DIR}/main/include) 
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
+include_directories(${CMAKE_SOURCE_DIR}/configuration/sequences) 
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/float_operations/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/sorting/include)
@@ -69,8 +72,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include) 
 
-# gaudi_install_headers()
-
 gaudi_subdir(AllenIntegration v1r0)
 
 gaudi_depends_on_subdirs(Online/OnlineKernel
@@ -91,13 +92,15 @@ find_package(Boost REQUIRED)
 find_package(Rangev3 REQUIRED)
 find_package(cppgsl REQUIRED)
 find_package(Rangev3 REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIRS} ${RANGEV3_INCLUDE_DIR} ${GSL_INCLUDE_DIRS})
+
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIRS} ${RANGEV3_INCLUDE_DIR} ${GSL_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}/configuration/sequences")
 
 gaudi_add_module(AllenIntegration
-                  src/*.cpp
+                  src/*.cpp 
                   INCLUDE_DIRS Online/OnlineKernel 
                   LINK_LIBRARIES OnlineKernel AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
                                  PrKernel VPDetLib UTDetLib UTKernelLib
                                  FTDetLib )
+
 
 

@@ -89,13 +89,6 @@ file(GLOB stream_visitors_vertex "visitors/vertex_fit/src/*cu")
 file(GLOB stream_visitors_selections "visitors/selections/src/*cu")
 file(GLOB stream_visitors_raw_banks "visitors/raw_banks/src/*cu")
 
-add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-    DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
-)
-
-message(STATUS "Configured sequence: " ${SEQUENCE})
 
 if(TARGET_DEVICE STREQUAL "CPU")
   foreach(source_file ${stream_gear} ${stream_memory_manager} ${stream_scheduler}
@@ -153,7 +146,6 @@ else()
 endif()
 
 allen_add_library(Stream STATIC
-  "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
   ${stream_gear}
   ${stream_memory_manager}
   ${stream_scheduler}
@@ -161,6 +153,10 @@ allen_add_library(Stream STATIC
   ${stream_sequence_cpp}
   ${stream_setup}
 )
+
+target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration/sequences")
+
+add_dependencies(Stream configured_sequence)
 
 target_link_libraries(Stream PRIVATE
   CudaCommon
