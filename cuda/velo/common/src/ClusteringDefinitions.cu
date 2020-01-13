@@ -6,6 +6,7 @@ __device__ __host__ VeloRawEvent::VeloRawEvent(const char* event)
 {
   const char* p = event;
   number_of_raw_banks = *((uint32_t*) p);
+  printf("number of Velo raw banks = %u \n", number_of_raw_banks);
   p += sizeof(uint32_t);
   raw_bank_offset = (uint32_t*) p;
   p += (number_of_raw_banks + 1) * sizeof(uint32_t);

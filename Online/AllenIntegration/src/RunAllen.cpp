@@ -93,19 +93,21 @@ std::tuple<LHCb::Tracks, LHCb::Tracks> RunAllen::operator()(const std::array<std
     std::vector<uint32_t> bankOffsets = std::get<2>(allen_banks[bankType]);
     std::vector<uint32_t> combined_banks;
     combined_banks.push_back(number_of_raw_banks);
+    combined_banks.insert(combined_banks.end(), bankOffsets.begin(), bankOffsets.end()); 
     combined_banks.insert(combined_banks.end(), bankData.begin(), bankData.end());
-    combined_banks.insert(combined_banks.end(), bankOffsets.begin(), bankOffsets.end());
-
-    for ( uint i = 0; i < bankOffsets.size(); ++i ) {
-      info() << "at bank type " << bankType << ": offset for i = " << i << " is "  << bankOffsets[i] << endmsg;
-    }
-    
+        
     // Offsets to events (we only process one event)
     unsigned int offsets_mem[2];
     offsets_mem[0] = 0;
     offsets_mem[1] = gsl::span<unsigned int>{combined_banks}.size_bytes();
     gsl::span<unsigned int> offsets{offsets_mem, 2};
-        
+    
+    info() << "For bank " << bankType << ": # of banks = " << number_of_raw_banks << endmsg;
+    for ( uint i = 0; i < bankOffsets.size(); ++i ) {
+      info() << "at bank type " << bankType << ": offset for i = " << i << " is "  << bankOffsets[i] << endmsg;
+    }
+
+
     banks_and_offsets[bankType] = std::make_tuple(gsl::span{reinterpret_cast<char const*>(combined_banks.data()), gsl::span<uint32_t>{combined_banks}.size_bytes()}, offsets);
   }
   
