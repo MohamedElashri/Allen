@@ -183,7 +183,7 @@ check-formatting:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
   artifacts:
     expire_in: 2 hrs
     paths:
@@ -215,7 +215,7 @@ check-formatting:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
   artifacts:
     expire_in: 2 hrs
     paths:
@@ -253,8 +253,8 @@ check-formatting:
     - cd build_${TARGET}
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} nvprof ./Allen -f /localdisk/shared/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} nvprof ./Allen -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -d ${TOPLEVEL}
   artifacts:
     expire_in: 2 hrs
