@@ -15,7 +15,6 @@ cudaError_t Stream::initialize(
   const bool param_do_print_memory_manager,
   const uint param_start_event_offset,
   const size_t reserve_mb,
-  const uint param_stream_number,
   const Constants& param_constants,
   HostBuffersManager const* buffers_manager)
 {
@@ -24,7 +23,6 @@ cudaError_t Stream::initialize(
   cudaCheck(cudaEventCreateWithFlags(&cuda_generic_event, cudaEventBlockingSync));
 
   // Set stream options
-  stream_number = param_stream_number;
   do_print_memory_manager = param_do_print_memory_manager;
   start_event_offset = param_start_event_offset;
   constants = param_constants;

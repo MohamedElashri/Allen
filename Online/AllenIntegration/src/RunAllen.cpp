@@ -66,6 +66,16 @@ StatusCode RunAllen::initialize() {
 
   // Run all registered producers and consumers
   updater->update(0);
+
+  // Initialize stream
+  const bool print_memory_usage = false;
+  const uint start_event_offset = 0;
+  const size_t reserve_mb = 5; // to do: how much do we need maximally for one event?
+  m_stream = new Stream();
+  m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants, &m_host_buffers_manager);
+
+  // Set verbosity level
+  logger::ll.verbosityLevel = 5;
   
   return StatusCode::SUCCESS;
 }
@@ -74,10 +84,28 @@ StatusCode RunAllen::initialize() {
  */
 std::tuple<LHCb::Tracks, LHCb::Tracks> RunAllen::operator()(const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const {
 
-  // get raw input data
+  // Get raw input and offsets for every detector
+  std::array<BanksAndOffsets, LHCb::RawBank::LastType> banks_and_offsets; 
+  for ( const auto bankType : m_bankTypes ) {
+    // to do: catch that raw bank type was not dumped
+    std::vector<uint32_t> bankData = std::get<0>(allen_banks[bankType]);
+    std::vector<uint32_t> bankOffsets = std::get<1>(allen_banks[bankType]);
+    banks_and_offsets[bankType] = std::make_tuple(gsl::span{reinterpret_cast<char const*>(bankData.data()), gsl::span<uint32_t>{bankData}.size_bytes()}, gsl::span{reinterpret_cast<unsigned int const*>(bankOffsets.data()), gsl::span<uint32_t>{bankOffsets}.size_bytes()});
+  }
+  
+  // initialize RuntimeOptions
+  RuntimeOptions runtime_options (
+    std::move(banks_and_offsets[LHCb::RawBank::VP]),
+    std::move(banks_and_offsets[LHCb::RawBank::UT]),
+    std::move(banks_and_offsets[LHCb::RawBank::FTCluster]),
+    std::move(banks_and_offsets[LHCb::RawBank::Muon]),
+    m_number_of_events,
+    m_number_of_repetitions,
+    m_do_check,
+    m_cpu_offload);
 
-  // call run_stream
-
+  const uint buf_idx = 0;
+  cudaError_t rv = m_stream->run_sequence(buf_idx, runtime_options);
   
   LHCb::Tracks VeloTracks;
   LHCb::Tracks UTTracks;

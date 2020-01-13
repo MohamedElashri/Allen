@@ -43,17 +43,17 @@ ALGORITHM(ut_search_windows,
             dev_ut_windows_layers,
             dev_accepted_velo_tracks,
             dev_ut_active_tracks),
-          Property<float> m_mom {this,
+          Allen::Property<float> m_mom {this,
                                  "min_momentum",
                                  Configuration::ut_search_windows_t::min_momentum,
                                  1.5f * Gaudi::Units::GeV,
                                  "min momentum cut [MeV/c]"};
-          Property<float> m_pt {this,
+          Allen::Property<float> m_pt {this,
                                 "min_pt",
                                 Configuration::ut_search_windows_t::min_pt,
                                 0.3f * Gaudi::Units::GeV,
                                 "min pT cut [MeV/c]"};
-          Property<float>
+          Allen::Property<float>
             m_ytol {this, "y_tol", Configuration::ut_search_windows_t::y_tol, 0.5f * Gaudi::Units::mm, "y tol [mm]"};
-          Property<float>
+          Allen::Property<float>
             m_yslope {this, "y_tol_slope", Configuration::ut_search_windows_t::y_tol_slope, 0.08f, "y tol slope [mm]"};)

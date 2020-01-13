@@ -40,8 +40,7 @@ struct Stream {
   // Stream datatypes
   cudaStream_t cuda_stream;
   cudaEvent_t cuda_generic_event;
-  uint stream_number;
-
+  
   // Launch options
   bool do_print_memory_manager;
 
@@ -68,7 +67,6 @@ struct Stream {
     const bool param_print_memory_usage,
     const uint param_start_event_offset,
     const size_t param_reserve_mb,
-    const uint param_stream_number,
     const Constants& param_constants,
     HostBuffersManager const* buffers_manager);
 

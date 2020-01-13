@@ -29,6 +29,13 @@
 #include "InputReader.h"
 #include "RegisterConsumers.h"
 #include <Dumpers/IUpdater.h>
+#include "StreamWrapper.cuh"
+#include "HostBuffers.cuh"
+#include "HostBuffersManager.cuh"
+#include "RuntimeOptions.h"
+#include "BankTypes.h"
+#include "Stream.cuh"
+#include "Logger.h"
 
 
 class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
@@ -41,12 +48,21 @@ class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHC
 
   /// Algorithm execution
   std::tuple<LHCb::Tracks, LHCb::Tracks> operator()( const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
-
+  
  private:
   Constants m_constants;
- 
+  std::set<LHCb::RawBank::BankType> m_bankTypes = {LHCb::RawBank::VP, LHCb::RawBank::UT, LHCb::RawBank::FTCluster, LHCb::RawBank::Muon};
+    
+  const uint m_number_of_events = 1;
+  const uint m_number_of_repetitions = 1;
+  const bool m_cpu_offload = false;
+
+  Stream* m_stream;
+  HostBuffersManager m_host_buffers_manager = HostBuffersManager(m_number_of_events, m_do_check, 1); 
+  
   Gaudi::Property<std::string>       m_updaterName{this, "UpdaterName", "AllenUpdater"};
   Gaudi::Property<std::string>       m_configurationPath{this, "ConfigurationPath", "../Allen/input/detector_configuration/down/"};
+  Gaudi::Property<bool>              m_do_check{this, "do_check", true};
   
 };
 

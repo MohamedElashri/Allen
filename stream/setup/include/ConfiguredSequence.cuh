@@ -52,7 +52,6 @@
 #include "LFExtendTracksX.cuh"
 #include "LFExtendTracksUV.cuh"
 #include "LFQualityFilter.cuh"
-#include "LFQualityFilterX.cuh"
 #include "LFQualityFilterLength.cuh"
 #include "LFCalculateParametrization.cuh"
 #include "LFLeastMeanSquareFit.cuh"

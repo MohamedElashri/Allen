@@ -16,13 +16,6 @@ void HostBuffersManager::init(size_t nBuffers) {
   }
 }
 
-void HostBuffersManager::initFromSingleHostBuffer(HostBuffers* host_buffer) {
-  host_buffers.reserve(1);
-  host_buffers.push_back(host_buffer);
-  buffer_statuses.push_back(BufferStatus::Empty);
-  empty_buffers.push(0);
-}
-
 size_t HostBuffersManager::assignBufferToFill() {
   if(empty_buffers.empty()) {
     warning_cout << "No empty buffers available" << std::endl;

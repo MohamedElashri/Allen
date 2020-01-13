@@ -72,7 +72,7 @@ std::string Configuration::to_string<std::array<int, 3>>(std::array<int, 3> cons
 
 // function to define one float property as the inverse of another
 template<>
-float Configuration::Relations::inverse<float>(std::vector<Property<float>*> pars)
+float Configuration::Relations::inverse<float>(std::vector<Allen::Property<float>*> pars)
 {
   if (pars.size() > 1) {
     warning_cout << "inverse relation will only use the first input Property" << std::endl;
@@ -111,9 +111,9 @@ float Configuration::Relations::inverse<float>(std::vector<Property<float>*> par
  * SharedProperty<float> m_shared{this, "example_common", "param"};
  *
  */
-SharedPropertySet* Configuration::getSharedPropertySet(const std::string& name)
+Allen::SharedPropertySet* Configuration::getSharedPropertySet(const std::string& name)
 {
-  static std::map<std::string, SharedPropertySet*> m_sets;
+  static std::map<std::string, Allen::SharedPropertySet*> m_sets;
 
   if (m_sets.find(name) != m_sets.end()) {
     return m_sets.at(name);

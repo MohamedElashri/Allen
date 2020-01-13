@@ -75,45 +75,45 @@ ALGORITHM(search_by_triplet,
             dev_h0_candidates,
             dev_h2_candidates,
             dev_rel_indices),
-          Property<float> m_tol {this,
+          Allen::Property<float> m_tol {this,
                                  "forward_phi_tolerance",
                                  Configuration::velo_search_by_triplet_t::forward_phi_tolerance,
                                  0.052f,
                                  "tolerance"};
-          Property<float> m_chi2 {this, "max_chi2", Configuration::velo_search_by_triplet_t::max_chi2, 20.0f, "chi2"};
-          Property<float> m_scat {this,
+          Allen::Property<float> m_chi2 {this, "max_chi2", Configuration::velo_search_by_triplet_t::max_chi2, 20.0f, "chi2"};
+          Allen::Property<float> m_scat {this,
                                   "max_scatter_forwarding",
                                   Configuration::velo_search_by_triplet_t::max_scatter_forwarding,
                                   0.1f,
                                   "scatter forwarding"};
-          Property<float> m_seed {this,
+          Allen::Property<float> m_seed {this,
                                   "max_scatter_seeding",
                                   Configuration::velo_search_by_triplet_t::max_scatter_seeding,
                                   0.1f,
                                   "scatter seeding"};
-          Property<uint> m_skip {this,
+          Allen::Property<uint> m_skip {this,
                                  "max_skipped_modules",
                                  Configuration::velo_search_by_triplet_t::max_skipped_modules,
                                  1u,
                                  "skipped modules"};
-          Property<uint> m_max_weak {this,
+          Allen::Property<uint> m_max_weak {this,
                                      "max_weak_tracks",
                                      Configuration::velo_search_by_triplet_t::max_weak_tracks,
                                      500u,
                                      "max weak tracks"};
-          Property<float> m_ext_base {this,
+          Allen::Property<float> m_ext_base {this,
                                       "phi_extrapolation_base",
                                       Configuration::velo_search_by_triplet_t::phi_extrapolation_base,
                                       0.03f,
                                       "phi extrapolation base"};
-          Property<float> m_ext_coef {this,
+          Allen::Property<float> m_ext_coef {this,
                                       "phi_extrapolation_coef",
                                       Configuration::velo_search_by_triplet_t::phi_extrapolation_coef,
                                       0.0002f,
                                       "phi extrapolation coefficient"};
-          Property<uint>
+          Allen::Property<uint>
             m_ttf_mod {this, "ttf_modulo", Configuration::velo_search_by_triplet_t::ttf_modulo, 2048u, "ttf modulo"};
-          Property<int> m_ttf_mask {this,
+          Allen::Property<int> m_ttf_mask {this,
                                     "ttf_modulo_mask",
                                     Configuration::velo_search_by_triplet_t::ttf_modulo_mask,
                                     0x7FF,

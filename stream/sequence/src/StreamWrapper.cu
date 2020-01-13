@@ -18,7 +18,7 @@ void StreamWrapper::initialize_streams(
 
   for (size_t i = 0; i < streams.size(); ++i) {
     streams[i]->initialize(
-      print_memory_usage, start_event_offset, reserve_mb, i, constants, buffers_manager);
+      print_memory_usage, start_event_offset, reserve_mb, constants, buffers_manager);
   }
 }
 
