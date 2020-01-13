@@ -15,7 +15,7 @@ __global__ void ut_find_permutation::ut_find_permutation(
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
 
   // TODO: Make const container
-  const UT::Hits ut_hits {const_cast<uint*>(parameters.dev_ut_hits.get()),
+  const UT::Hits ut_hits {parameters.dev_ut_hits,
                           parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const uint sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group_number);
