@@ -24,7 +24,7 @@ __global__ void ut_pre_decode::ut_pre_decode(
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
   uint32_t* hit_count = parameters.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
 
-  UT::Hits ut_hits {parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::Hits<char> ut_hits {parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
@@ -99,13 +99,13 @@ __global__ void ut_pre_decode::ut_pre_decode(
       assert(current_hit_count < hit_offsets[base_sector_group_offset + 1] - hit_offsets[base_sector_group_offset]);
 
       const uint hit_index = hit_offsets[base_sector_group_offset] + current_hit_count;
-      ut_hits.yBegin[hit_index] = composed_value_float[0];
+      ut_hits.yBegin(hit_index) = composed_value_float[0];
 
       // Raw bank hit index:
       // [raw bank 8 bits] [hit id inside raw bank 24 bits]
       assert(i < (0x1 << 24));
       const uint32_t raw_bank_hit_index = raw_bank_index << 24 | i;
-      ut_hits.raw_bank_index[hit_index] = raw_bank_hit_index;
+      ut_hits.raw_bank_index(hit_index) = raw_bank_hit_index;
     }
   }
 }

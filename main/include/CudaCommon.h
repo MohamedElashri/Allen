@@ -332,6 +332,7 @@ void populate_verbosity_constant_in_device(const uint verbosity);
 template<typename T>
 struct ForwardType {
   using char_t = char;
+  using uint_8_t = uint8_t;
   using float_t = float;
   using int_t = int;
   using uint_t = uint;
@@ -341,6 +342,7 @@ struct ForwardType {
 template<typename T>
 struct ForwardType<const T> {
   using char_t = const char;
+  using uint_8_t = const uint8_t;
   using float_t = const float;
   using int_t = const int;
   using uint_t = const uint;

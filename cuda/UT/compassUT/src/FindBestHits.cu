@@ -8,7 +8,7 @@
 //=========================================================================
 __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   const short* win_size_shared,
-  const UT::Hits& ut_hits,
+  const UT::Hits<const char>& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
   const float* ut_dxDy)
@@ -47,9 +47,9 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
     }
 
     // Get info to calculate slope
-    const float yy0 = yyProto + (velo_state.ty * ut_hits.zAtYEq0[i_hit0]);
+    const float yy0 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit0));
     const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
-    const auto zhitLayer0 = ut_hits.zAtYEq0[i_hit0];
+    const auto zhitLayer0 = ut_hits.zAtYEq0(i_hit0);
 
     // 2nd layer
     const int total_hits_2layers_2 = sum_layer_hits(ranges, layer_2);
@@ -58,9 +58,9 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
       // Get info to calculate slope
       const int dxdy_layer_2 = forward ? 2 : 1;
-      const float yy2 = yyProto + (velo_state.ty * ut_hits.zAtYEq0[i_hit2]);
+      const float yy2 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit2));
       const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
-      const auto zhitLayer2 = ut_hits.zAtYEq0[i_hit2];
+      const auto zhitLayer2 = ut_hits.zAtYEq0(i_hit2);
 
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
@@ -78,9 +78,9 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
           int i_hit1 = calc_index(i1, ranges, layers[0], ut_hit_offsets);
 
           // Get info to check tolerance
-          const float yy1 = yyProto + (velo_state.ty * ut_hits.zAtYEq0[i_hit1]);
+          const float yy1 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit1));
           const float xhitLayer1 = ut_hits.xAt(i_hit1, yy1, ut_dxDy[layers[0]]);
-          const float zhitLayer1 = ut_hits.zAtYEq0[i_hit1];
+          const float zhitLayer1 = ut_hits.zAtYEq0(i_hit1);
           const float xextrapLayer1 = xhitLayer0 + tx * (zhitLayer1 - zhitLayer0);
 
           if (fabsf(xhitLayer1 - xextrapLayer1) < hitTol) {
@@ -96,9 +96,9 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
           int i_hit3 = calc_index(i3, ranges, layers[1], ut_hit_offsets);
 
           // Get info to check tolerance
-          const float yy3 = yyProto + (velo_state.ty * ut_hits.zAtYEq0[i_hit3]);
+          const float yy3 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit3));
           const float xhitLayer3 = ut_hits.xAt(i_hit3, yy3, ut_dxDy[layers[1]]);
-          const float zhitLayer3 = ut_hits.zAtYEq0[i_hit3];
+          const float zhitLayer3 = ut_hits.zAtYEq0(i_hit3);
           const float xextrapLayer3 = xhitLayer2 + tx * (zhitLayer3 - zhitLayer2);
           if (fabsf(xhitLayer3 - xextrapLayer3) < hitTol) {
             hitTol = fabsf(xhitLayer3 - xextrapLayer3);
@@ -144,7 +144,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 //=========================================================================
 __device__ BestParams pkick_fit(
   const int best_hits[UT::Constants::n_layers],
-  const UT::Hits& ut_hits,
+  const UT::Hits<const char>& ut_hits,
   const MiniState& velo_state,
   const float* ut_dxDy,
   const float yyProto,
@@ -166,15 +166,15 @@ __device__ BestParams pkick_fit(
   for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
-      const float wi = ut_hits.weight[hit_index];
+      const float wi = ut_hits.weight(hit_index);
       const int plane_code = forward ? i : UT::Constants::n_layers - 1 - i;
       const float dxDy = ut_dxDy[plane_code];
       const float ci = ut_hits.cosT(hit_index, dxDy);
-      last_z = ut_hits.zAtYEq0[hit_index];
+      last_z = ut_hits.zAtYEq0(hit_index);
       const float dz = 0.001f * (last_z - UT::Constants::zMidUT);
 
       // x_pos_layer
-      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit_index]);
+      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0(hit_index));
       const float ui = ut_hits.xAt(hit_index, yy, dxDy);
 
       mat[0] += wi * ci;
@@ -204,16 +204,16 @@ __device__ BestParams pkick_fit(
   for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
-      const float zd = ut_hits.zAtYEq0[hit_index];
+      const float zd = ut_hits.zAtYEq0(hit_index);
       const float xd = xUTFit + xSlopeUTFit * (zd - UT::Constants::zMidUT);
       // x_pos_layer
       const int plane_code = forward ? i : UT::Constants::n_layers - 1 - i;
       const float dxDy = ut_dxDy[plane_code];
-      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit_index]);
+      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0(hit_index));
       const float x = ut_hits.xAt(hit_index, yy, dxDy);
 
       const float du = xd - x;
-      chi2UT += (du * du) * ut_hits.weight[hit_index];
+      chi2UT += (du * du) * ut_hits.weight(hit_index);
 
       // count the number of processed htis
       total_num_hits++;

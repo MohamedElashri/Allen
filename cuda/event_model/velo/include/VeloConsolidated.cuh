@@ -79,9 +79,11 @@ namespace Velo {
       {}
 
       template<typename T>
-      __host__ __device__ Hits<typename ForwardType<T>::char_t> get_hits(T* hits_base_pointer, const uint track_number) const
+      __host__ __device__ Hits<typename ForwardType<T>::char_t> get_hits(T* hits_base_pointer, const uint track_number)
+        const
       {
-        return Hits<typename ForwardType<T>::char_t> {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        return Hits<typename ForwardType<T>::char_t> {
+          hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
     };
 
@@ -92,7 +94,7 @@ namespace Velo {
       const uint m_total_number_of_tracks;
 
     public:
-      __host__ __device__ States(T* base_pointer, const uint total_number_of_tracks) :
+      __host__ __device__ States(typename ForwardType<T>::char_t* base_pointer, const uint total_number_of_tracks) :
         m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer)),
         m_total_number_of_tracks(total_number_of_tracks)
       {}

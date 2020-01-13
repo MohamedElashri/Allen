@@ -29,7 +29,7 @@ __device__ bool velo_track_in_UTA_acceptance(const MiniState& state)
 __device__ void tol_refine(
   int& first_candidate,
   int& last_candidate,
-  const UT::Hits& ut_hits,
+  const UT::Hits<const char>& ut_hits,
   const MiniState& velo_state,
   const float invNormfact,
   const float xTolNormFact,
@@ -38,7 +38,7 @@ __device__ void tol_refine(
   bool first_found = false;
   const auto const_last_candidate = last_candidate;
   for (int i = first_candidate; i < const_last_candidate; ++i) {
-    const auto zInit = ut_hits.zAtYEq0[i];
+    const auto zInit = ut_hits.zAtYEq0(i);
     const auto yApprox = velo_state.y + velo_state.ty * (zInit - velo_state.z);
     const auto xOnTrackProto = velo_state.x + velo_state.tx * (zInit - velo_state.z);
     const auto xx = ut_hits.xAt(i, yApprox, dxDy);
@@ -76,7 +76,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const int layer,
   const MiniState& velo_state,
   const float* fudge_factors,
-  const UT::Hits& ut_hits,
+  const UT::Hits<const char>& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const float* ut_dxDy,
   const float* dev_unique_sector_xs,
@@ -101,7 +101,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   int layer_offset = ut_hit_offsets.layer_offset(layer);
 
   const float dx_dy = ut_dxDy[layer];
-  const float z_at_layer = ut_hits.zAtYEq0[layer_offset];
+  const float z_at_layer = ut_hits.zAtYEq0(layer_offset);
   const float y_track = velo_state.y + velo_state.ty * (z_at_layer - velo_state.z);
   const float x_track = velo_state.x + velo_state.tx * (z_at_layer - velo_state.z);
   const float invNormFact = 1.0f / normFact[layer];
@@ -238,7 +238,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 }
 
 __device__ std::tuple<int, int> find_candidates_in_sector_group(
-  const UT::Hits& ut_hits,
+  const UT::Hits<const char>& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
   const float* dev_unique_sector_xs,
@@ -261,17 +261,17 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
 
   int first_candidate = -1, last_candidate = -1;
   first_candidate = binary_search_first_candidate(
-    ut_hits.yEnd + sector_group_offset,
+    ut_hits.yEnd_p(sector_group_offset),
     ut_hit_offsets.sector_group_number_of_hits(sector_group),
     y_track,
     tol,
     [&](const auto value, const auto array_element, const int index, const float margin) {
-      return (value + margin > ut_hits.yBegin[sector_group_offset + index] && value - margin < array_element);
+      return (value + margin > ut_hits.yBegin(sector_group_offset + index) && value - margin < array_element);
     });
 
   if (first_candidate != -1) {
     last_candidate = binary_search_second_candidate(
-      ut_hits.yBegin + sector_group_offset + first_candidate,
+      ut_hits.yBegin_p(sector_group_offset + first_candidate),
       ut_hit_offsets.sector_group_number_of_hits(sector_group) - first_candidate,
       y_track,
       tol);

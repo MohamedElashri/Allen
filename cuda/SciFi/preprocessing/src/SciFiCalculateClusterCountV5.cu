@@ -12,7 +12,7 @@ __global__ void scifi_calculate_cluster_count_v5::scifi_calculate_cluster_count_
   const SciFiRawEvent event(
     parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
   const SciFiGeometry geom(scifi_geometry);
-  SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::HitCount<uint> hit_count {parameters.dev_scifi_hit_count, event_number};
 
   // NO version checking. Be careful, as v5 is assumed.
 
@@ -29,10 +29,10 @@ __global__ void scifi_calculate_cluster_count_v5::scifi_calculate_cluster_count_
       uint16_t c = *it;
       uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
       if (current_raw_bank < SciFi::Constants::n_consecutive_raw_banks)
-        hits_module = hit_count.mat_offsets + i;
+        hits_module = hit_count.mat_offsets_p(i);
       else
         hits_module =
-          hit_count.mat_offsets + SciFiChannelID(ch).correctedUniqueMat() - SciFi::Constants::mat_index_substract;
+          hit_count.mat_offsets_p(SciFiChannelID(ch).correctedUniqueMat() - SciFi::Constants::mat_index_substract);
       if (!cSize(c) || it + 1 == last) { // No size flag or last cluster
         atomicAdd(hits_module, 1);
       }

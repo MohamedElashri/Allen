@@ -14,7 +14,7 @@
 namespace compass_ut {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_ut_hits_t, uint) dev_ut_hits; // actual hit content
+    DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits; // actual hit content
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
     DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo; // prefixsum, offset to tracks
     DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
@@ -38,8 +38,8 @@ namespace compass_ut {
     const uint number_of_tracks_event,
     const int i_track,
     const uint current_track_offset,
-    const Velo::Consolidated::States& velo_states,
-    const UT::Hits& ut_hits,
+    const Velo::Consolidated::States<const char>& velo_states,
+    const UT::Hits<const char>& ut_hits,
     const UT::HitOffsets& ut_hit_offsets,
     const float* bdl_table,
     const float* dev_ut_dxDy,
@@ -66,7 +66,7 @@ namespace compass_ut {
     const MiniState& velo_state,
     const BestParams& best_params,
     const int* best_hits,
-    const UT::Hits& ut_hits,
+    const UT::Hits<const char>& ut_hits,
     const float* ut_dxDy,
     const float magSign,
     uint* n_veloUT_tracks,

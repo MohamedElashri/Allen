@@ -39,7 +39,7 @@ __host__ __device__ float fastfitter(
   const int best_hits[UT::Constants::n_layers],
   const float qpxz2p,
   const float* ut_dxDy,
-  const UT::Hits& ut_hits,
+  const UT::Hits<const char>& ut_hits,
   float improvedParams[4])
 {
 
@@ -73,10 +73,10 @@ __host__ __device__ float fastfitter(
 
       const int plane_code = i;
       const float dxDy = ut_dxDy[plane_code];
-      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit]);
+      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0(hit));
       const float ui = ut_hits.xAt(hit, yy, dxDy);
-      const float dz = 0.001f * (ut_hits.zAtYEq0[hit] - UT::Constants::zMidUT);
-      const float w = ut_hits.weight[hit];
+      const float dz = 0.001f * (ut_hits.zAtYEq0(hit) - UT::Constants::zMidUT);
+      const float w = ut_hits.weight(hit);
       const float t = ut_hits.sinT(hit, dxDy);
 
       mat[0] += w;
@@ -118,11 +118,11 @@ __host__ __device__ float fastfitter(
     if (best_hits[i] != -1) {
       const auto hit = best_hits[i];
 
-      const float w = ut_hits.weight[hit];
-      const float dz = ut_hits.zAtYEq0[hit] - UT::Constants::zMidUT;
+      const float w = ut_hits.weight(hit);
+      const float dz = ut_hits.zAtYEq0(hit) - UT::Constants::zMidUT;
       const int plane_code = i;
       const float dxDy = ut_dxDy[plane_code];
-      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit]);
+      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0(hit));
       const float x = ut_hits.xAt(hit, yy, dxDy);
       const float dist = (x - xUTFit - xSlopeUTFit * dz - offsetY * ut_hits.sinT(hit, dxDy));
       chi2 += w * dist * dist * distCorrectionX2;

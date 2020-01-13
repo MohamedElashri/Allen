@@ -5,7 +5,7 @@
 #include "DeviceAlgorithm.cuh"
 
 __device__ void store_sorted_cluster_reference_v6(
-  const SciFi::HitCount& hit_count,
+  const SciFi::HitCount<const uint>& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,
   const uint32_t* shared_mat_offsets,
@@ -15,7 +15,7 @@ __device__ void store_sorted_cluster_reference_v6(
   const int condition_1,
   const int condition_2,
   const int delta,
-  SciFi::Hits& hits);
+  SciFi::Hits<char>& hits);
 
 namespace scifi_pre_decode_v6 {
   struct Parameters {
@@ -25,10 +25,10 @@ namespace scifi_pre_decode_v6 {
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
-    DEVICE_OUTPUT(dev_scifi_hits_t, uint) dev_scifi_hits;
+    DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
   };
 
-  __global__ void scifi_pre_decode_v6(Parameters, char* scifi_geometry, const float* dev_inv_clus_res);
+  __global__ void scifi_pre_decode_v6(Parameters, const char* scifi_geometry);
 
   template<typename T>
   struct scifi_pre_decode_v6_t : public DeviceAlgorithm, Parameters {
@@ -42,7 +42,7 @@ namespace scifi_pre_decode_v6 {
       const HostBuffers& host_buffers) const
     {
       const auto dev_scifi_hits_size =
-        value<host_accumulated_number_of_scifi_hits_t>(arguments) * sizeof(SciFi::Hit) / sizeof(uint);
+        value<host_accumulated_number_of_scifi_hits_t>(arguments) * sizeof(SciFi::Hit);
       set_size<dev_scifi_hits_t>(arguments, dev_scifi_hits_size);
     }
 
@@ -63,8 +63,7 @@ namespace scifi_pre_decode_v6 {
                     offset<dev_event_list_t>(arguments),
                     offset<dev_scifi_hit_count_t>(arguments),
                     offset<dev_scifi_hits_t>(arguments)},
-        constants.dev_scifi_geometry,
-        constants.dev_inv_clus_res);
+        constants.dev_scifi_geometry);
     }
   };
 } // namespace scifi_pre_decode_v6

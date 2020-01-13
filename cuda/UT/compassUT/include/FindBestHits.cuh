@@ -8,14 +8,14 @@
 
 __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   const short* win_size_shared,
-  const UT::Hits& ut_hits,
+  const UT::Hits<const char>& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
   const float* ut_dxDy);
 
 __device__ BestParams pkick_fit(
   const int best_hits[UT::Constants::n_layers],
-  const UT::Hits& ut_hits,
+  const UT::Hits<const char>& ut_hits,
   const MiniState& velo_state,
   const float* ut_dxDy,
   const float yyProto,

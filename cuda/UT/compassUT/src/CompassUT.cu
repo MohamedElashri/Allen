@@ -28,7 +28,7 @@ __global__ void compass_ut::compass_ut(
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   // TODO: Make const container
-  const Velo::Consolidated::States velo_states {const_cast<char*>(parameters.dev_velo_states.get()),
+  const Velo::Consolidated::States<const char> velo_states {parameters.dev_velo_states,
                                                 velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
@@ -38,7 +38,7 @@ __global__ void compass_ut::compass_ut(
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  const UT::Hits ut_hits {const_cast<uint*>(parameters.dev_ut_hits.get()), total_number_of_hits};
+  const UT::Hits<const char> ut_hits {parameters.dev_ut_hits, total_number_of_hits};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
 
   // active track pointer
@@ -69,7 +69,7 @@ __global__ void compass_ut::compass_ut(
       const auto velo_state = velo_states.get(current_track_offset);
 
       if (
-        !velo_states.backward[current_track_offset] && parameters.dev_accepted_velo_tracks[current_track_offset] &&
+        !velo_states.backward(current_track_offset) && parameters.dev_accepted_velo_tracks[current_track_offset] &&
         velo_track_in_UTA_acceptance(velo_state) &&
         found_active_windows(windows_layers, number_of_tracks_event, i_track)) {
         uint current_track = atomicAdd(active_tracks, 1);
@@ -139,8 +139,8 @@ __device__ void compass_ut::compass_ut_tracking(
   const uint number_of_tracks_event,
   const int i_track,
   const uint current_track_offset,
-  const Velo::Consolidated::States& velo_states,
-  const UT::Hits& ut_hits,
+  const Velo::Consolidated::States<const char>& velo_states,
+  const UT::Hits<const char>& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const float* bdl_table,
   const float* dev_ut_dxDy,
@@ -258,7 +258,7 @@ __device__ void compass_ut::save_track(
   const MiniState& velo_state,
   const BestParams& best_params,
   const int* best_hits,
-  const UT::Hits& ut_hits,
+  const UT::Hits<const char>& ut_hits,
   const float* ut_dxDy,
   const float magSign,
   uint* n_veloUT_tracks,        // increment number of tracks

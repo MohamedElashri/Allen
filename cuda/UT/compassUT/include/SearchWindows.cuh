@@ -9,7 +9,7 @@ namespace ut_search_windows {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
-    DEVICE_INPUT(dev_ut_hits_t, uint) dev_ut_hits;
+    DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
     DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;

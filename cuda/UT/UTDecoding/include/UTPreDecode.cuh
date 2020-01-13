@@ -12,7 +12,7 @@ namespace ut_pre_decode {
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
-    DEVICE_OUTPUT(dev_ut_hits_t, uint) dev_ut_hits;
+    DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_OUTPUT(dev_ut_hit_count_t, uint) dev_ut_hit_count;
   };
 
@@ -34,7 +34,7 @@ namespace ut_pre_decode {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
-      set_size<dev_ut_hits_t>(arguments, UT::Hits::number_of_arrays * value<host_accumulated_number_of_ut_hits>(arguments));
+      set_size<dev_ut_hits_t>(arguments, UT::hits_number_of_arrays * value<host_accumulated_number_of_ut_hits>(arguments));
       set_size<dev_ut_hit_count_t>(arguments,
         value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
     }

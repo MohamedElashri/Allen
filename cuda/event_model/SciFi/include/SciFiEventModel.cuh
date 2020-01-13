@@ -8,8 +8,9 @@
 
 namespace SciFi {
 
-  //----------------------------------------------------------------------
-  // Struct for hit information. For now don't use a HitBase.
+  //----------------------------
+  // Struct for hit information.
+  //----------------------------
   struct Hit {
     float x0;
     float z0;
@@ -44,17 +45,35 @@ namespace SciFi {
   public:
     __host__ __device__ HitCount() {}
 
-    __host__ __device__ HitCount(typename ForwardType<T>::uint_t* base_pointer, const uint event_number) :
+    __host__ __device__ HitCount(T* base_pointer, const uint event_number) :
       m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_mat_groups_and_mats)
     {}
 
-    __host__ __device__ uint mat_offset(const uint mat_number) const
+    __host__ __device__ uint& mat_offsets(const uint mat_number)
     {
       assert(
         mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
         mat_number < SciFi::Constants::n_mats);
       const uint corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
       return m_mat_offsets[corrected_mat_number];
+    }
+
+    __host__ __device__ uint mat_offsets(const uint mat_number) const
+    {
+      assert(
+        mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
+        mat_number < SciFi::Constants::n_mats);
+      const uint corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
+      return m_mat_offsets[corrected_mat_number];
+    }
+
+    __host__ __device__ typename ForwardType<T>::uint_t* mat_offsets_p(const uint mat_number)
+    {
+      assert(
+        mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
+        mat_number < SciFi::Constants::n_mats);
+      const uint corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
+      return m_mat_offsets + corrected_mat_number;
     }
 
     __host__ __device__ uint mat_number_of_hits(const uint mat_number) const
@@ -127,7 +146,7 @@ namespace SciFi {
 
   public:
     __host__ __device__
-    Hits(typename ForwardType<T>::char_t* base_pointer, const uint total_number_of_hits, const uint offset = 0) :
+    Hits(T* base_pointer, const uint total_number_of_hits, const uint offset = 0) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer) + offset),
       m_total_number_of_hits(total_number_of_hits)
     {}
@@ -222,7 +241,7 @@ namespace SciFi {
     }
 
     // Pointer accessor for binary search
-    __host__ __device__ const float* x0_p(const uint index) const
+    __host__ __device__ typename ForwardType<T>::float_t* x0_p(const uint index) const
     {
       assert(index < m_total_number_of_hits);
       return m_base_pointer + index;

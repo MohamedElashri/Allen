@@ -11,7 +11,7 @@ namespace UT {
     template<typename T>
     struct Hits {
     private:
-      ForwardType<T>::float_t* m_base_pointer;
+      typename ForwardType<T>::float_t* m_base_pointer;
       const uint m_total_number_of_hits;
       const uint m_track_offset;
 
@@ -19,8 +19,8 @@ namespace UT {
       __host__ __device__ Hits(const Hits& hits) : m_base_pointer(hits.m_base_pointer) {}
 
       __host__ __device__
-      Hits(ForwardType<T>::char_t* base_pointer, const uint track_offset, const uint total_number_of_hits) :
-        m_base_pointer(reinterpret_cast<ForwardType<T>::float_t*>(base_pointer) + track_offset),
+      Hits(typename ForwardType<T>::char_t* base_pointer, const uint track_offset, const uint total_number_of_hits) :
+        m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer) + track_offset),
         m_total_number_of_hits(total_number_of_hits), m_track_offset(track_offset)
       {}
 
@@ -47,23 +47,23 @@ namespace UT {
 
       uint id(const uint index) const
       {
-        return reinterpret_cast<ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+        return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
       }
 
       uint& id(const uint index)
       {
-        return reinterpret_cast<ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+        return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
       }
 
       uint8_t plane_code(const uint index) const
       {
-        return reinterpret_cast<uint8_t>(
+        return reinterpret_cast<typename ForwardType<T>::uint_8_t*>(
           m_base_pointer + 6 * m_total_number_of_hits - m_track_offset)[m_track_offset + index];
       }
 
       uint8_t& plane_code(const uint index)
       {
-        return reinterpret_cast<uint8_t>(
+        return reinterpret_cast<typename ForwardType<T>::uint_8_t*>(
           m_base_pointer + 6 * m_total_number_of_hits - m_track_offset)[m_track_offset + index];
       }
 
@@ -74,7 +74,7 @@ namespace UT {
         zAtYEq0(hit_number) = hit.zAtYEq0;
         xAtYEq0(hit_number) = hit.xAtYEq0;
         weight(hit_number) = hit.weight;
-        LHCbID(hit_number) = hit.LHCbID;
+        id(hit_number) = hit.LHCbID;
         plane_code(hit_number) = hit.plane_code;
       }
 
@@ -85,7 +85,7 @@ namespace UT {
                         zAtYEq0(hit_number),
                         xAtYEq0(hit_number),
                         weight(hit_number),
-                        LHCbID(hit_number),
+                        id(hit_number),
                         plane_code(hit_number)};
       }
     };
@@ -97,16 +97,16 @@ namespace UT {
     struct Tracks : public ::Consolidated::Tracks {
     private:
       // Indices of associated VELO tracks.
-      ForwardType<T>::uint_t* m_velo_track;
+      typename ForwardType<T>::uint_t* m_velo_track;
       // Array of q/p for each track.
-      ForwardType<T>::float_t* m_qop;
+      typename ForwardType<T>::float_t* m_qop;
 
     public:
       __host__ __device__ Tracks(
         const uint* atomics_base_pointer,
         const uint* track_hit_number_base_pointer,
-        ForwardType<T>::float_t* qop_base_pointer,
-        ForwardType<T>::uint_t* velo_track_base_pointer,
+        typename ForwardType<T>::float_t* qop_base_pointer,
+        typename ForwardType<T>::uint_t* velo_track_base_pointer,
         const uint current_event_number,
         const uint number_of_events) :
         ::Consolidated::Tracks(
@@ -126,7 +126,8 @@ namespace UT {
 
       __host__ __device__ float& qop(const uint index) { return m_qop[index]; }
 
-      __host__ __device__ Hits<T> get_hits(ForwardType<T>::char_t* hits_base_pointer, const uint track_number) const
+      __host__ __device__ Hits<T> get_hits(typename ForwardType<T>::char_t* hits_base_pointer, const uint track_number)
+        const
       {
         return Hits<T> {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }

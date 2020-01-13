@@ -139,42 +139,42 @@ namespace UT {
     {}
 
     // Const and lvalue accessors
-    float yBegin(const uint index) const { return m_base_pointer[index]; }
+    __host__ __device__ float yBegin(const uint index) const { return m_base_pointer[index]; }
 
-    float& yBegin(const uint index) { return m_base_pointer[index]; }
+    __host__ __device__ float& yBegin(const uint index) { return m_base_pointer[index]; }
 
-    float yEnd(const uint index) const { return m_base_pointer[m_total_number_of_hits + index]; }
+    __host__ __device__ float yEnd(const uint index) const { return m_base_pointer[m_total_number_of_hits + index]; }
 
-    float& yEnd(const uint index) { return m_base_pointer[m_total_number_of_hits + index]; }
+    __host__ __device__ float& yEnd(const uint index) { return m_base_pointer[m_total_number_of_hits + index]; }
 
-    float zAtYEq0(const uint index) const { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+    __host__ __device__ float zAtYEq0(const uint index) const { return m_base_pointer[2 * m_total_number_of_hits + index]; }
 
-    float& zAtYEq0(const uint index) { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+    __host__ __device__ float& zAtYEq0(const uint index) { return m_base_pointer[2 * m_total_number_of_hits + index]; }
 
-    float xAtYEq0(const uint index) const { return m_base_pointer[3 * m_total_number_of_hits + index]; }
+    __host__ __device__ float xAtYEq0(const uint index) const { return m_base_pointer[3 * m_total_number_of_hits + index]; }
 
-    float& xAtYEq0(const uint index) { return m_base_pointer[3 * m_total_number_of_hits + index]; }
+    __host__ __device__ float& xAtYEq0(const uint index) { return m_base_pointer[3 * m_total_number_of_hits + index]; }
 
-    float weight(const uint index) const { return m_base_pointer[4 * m_total_number_of_hits + index]; }
+    __host__ __device__ float weight(const uint index) const { return m_base_pointer[4 * m_total_number_of_hits + index]; }
 
-    float& weight(const uint index) { return m_base_pointer[4 * m_total_number_of_hits + index]; }
+    __host__ __device__ float& weight(const uint index) { return m_base_pointer[4 * m_total_number_of_hits + index]; }
 
-    uint id(const uint index) const
+    __host__ __device__ uint id(const uint index) const
     {
       return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
     }
 
-    uint& id(const uint index)
+    __host__ __device__ uint& id(const uint index)
     {
       return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
     }
 
-    uint raw_bank_index(const uint index) const
+    __host__ __device__ uint raw_bank_index(const uint index) const
     {
       return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[6 * m_total_number_of_hits + index];
     }
 
-    uint& raw_bank_index(const uint index)
+    __host__ __device__ uint& raw_bank_index(const uint index)
     {
       return reinterpret_cast<typename ForwardType<T>::uint_t*>(m_base_pointer)[6 * m_total_number_of_hits + index];
     }
@@ -182,34 +182,45 @@ namespace UT {
     /**
      * @brief Gets a hit in the UT::Hit format from the global hit index.
      */
-    Hit getHit(const uint index) const
+    __host__ __device__ Hit getHit(const uint index) const
     {
       return {yBegin(index), yEnd(index), zAtYEq0(index), xAtYEq0(index), weight(index), id(index), 0};
     }
 
-    __host__ __device__ bool isYCompatible(const int i_hit, const float y, const float tol) const
+    __host__ __device__ bool isYCompatible(const uint index, const float y, const float tol) const
     {
-      return yMin(i_hit) - tol <= y && y <= yMax(i_hit) + tol;
+      return yMin(index) - tol <= y && y <= yMax(index) + tol;
     }
-    __host__ __device__ bool isNotYCompatible(const int i_hit, const float y, const float tol) const
+    __host__ __device__ bool isNotYCompatible(const uint index, const float y, const float tol) const
     {
-      return yMin(i_hit) - tol > y || y > yMax(i_hit) + tol;
+      return yMin(index) - tol > y || y > yMax(index) + tol;
     }
-    __host__ __device__ float cosT(const int i_hit, const float dxDy) const
+    __host__ __device__ float cosT(const uint index, const float dxDy) const
     {
-      return (fabsf(xAtYEq0(i_hit)) < 1.0e-9f) ? 1.f / sqrtf(1.f + dxDy * dxDy) : cosf(dxDy);
+      return (fabsf(xAtYEq0(index)) < 1.0e-9f) ? 1.f / sqrtf(1.f + dxDy * dxDy) : cosf(dxDy);
     }
-    __host__ __device__ float sinT(const int i_hit, const float dxDy) const
+    __host__ __device__ float sinT(const uint index, const float dxDy) const
     {
-      return tanT(dxDy) * cosT(i_hit, dxDy);
+      return tanT(dxDy) * cosT(index, dxDy);
     }
     __host__ __device__ float tanT(const float dxDy) const { return -1.f * dxDy; }
-    __host__ __device__ float xAt(const int i_hit, const float globalY, const float dxDy) const
+    __host__ __device__ float xAt(const uint index, const float globalY, const float dxDy) const
     {
-      return xAtYEq0(i_hit) + globalY * dxDy;
+      return xAtYEq0(index) + globalY * dxDy;
     }
-    __host__ __device__ float yMax(const int i_hit) const { return fmaxf(yBegin(i_hit), yEnd(i_hit)); }
-    __host__ __device__ float yMid(const int i_hit) const { return 0.5f * (yBegin(i_hit) + yEnd(i_hit)); }
-    __host__ __device__ float yMin(const int i_hit) const { return fminf(yBegin(i_hit), yEnd(i_hit)); }
+    __host__ __device__ float yMax(const uint index) const { return fmaxf(yBegin(index), yEnd(index)); }
+
+    __host__ __device__ float yMid(const uint index) const { return 0.5f * (yBegin(index) + yEnd(index)); }
+
+    __host__ __device__ float yMin(const uint index) const { return fminf(yBegin(index), yEnd(index)); }
+
+    // Pointer accessors for binary search
+    __host__ __device__ typename ForwardType<T>::float_t* yBegin_p(const uint index) const {
+      return m_base_pointer + index;
+    }
+    
+    __host__ __device__ typename ForwardType<T>::float_t* yEnd_p(const uint index) const {
+      return m_base_pointer + m_total_number_of_hits + index;
+    }
   };
 } // namespace UT

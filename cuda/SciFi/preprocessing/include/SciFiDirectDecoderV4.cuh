@@ -10,14 +10,13 @@ namespace scifi_direct_decoder_v4 {
     DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
-    DEVICE_OUTPUT(dev_scifi_hits_t, uint) dev_scifi_hits;
+    DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
   };
 
   __global__ void scifi_direct_decoder_v4(
     Parameters,
-    char* scifi_geometry,
-    const float* dev_inv_clus_res);
+    char* scifi_geometry);
 
   template<typename T>
   struct scifi_direct_decoder_v4_t : public DeviceAlgorithm, Parameters {
@@ -45,8 +44,7 @@ namespace scifi_direct_decoder_v4 {
                     offset<dev_scifi_hit_count_t>(arguments),
                     offset<dev_scifi_hits_t>(arguments),
                     offset<dev_event_list_t>(arguments)},
-        constants.dev_scifi_geometry,
-        constants.dev_inv_clus_res);
+        constants.dev_scifi_geometry);
     }
   };
 } // namespace scifi_direct_decoder_v4

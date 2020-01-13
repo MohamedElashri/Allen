@@ -4,7 +4,7 @@
 using namespace SciFi;
 
 __device__ void store_sorted_cluster_reference_v5(
-  const SciFi::HitCount& hit_count,
+  const SciFi::HitCount<const uint>& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,
   const uint32_t* shared_mat_offsets,
@@ -14,7 +14,7 @@ __device__ void store_sorted_cluster_reference_v5(
   const int condition_1,
   const int condition_2,
   const int delta,
-  SciFi::Hits& hits)
+  SciFi::Hits<char>& hits)
 {
   uint32_t uniqueGroupOrMat;
   // adaptation to hybrid decoding
@@ -38,14 +38,13 @@ __device__ void store_sorted_cluster_reference_v5(
   //   Condition 1-2-3: 2 bits
   //   Condition 2.1-2.2: 1 bit
   //   Condition 2.1: log2(n+1) - 8 bits
-  hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition_1 & 0x03) << 14 |
+  hits.cluster_reference(hitIndex) = (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition_1 & 0x03) << 14 |
                                      (condition_2 & 0x01) << 13 | (delta & 0xFF);
 }
 
 __global__ void scifi_pre_decode_v5::scifi_pre_decode_v5(
   scifi_pre_decode_v5::Parameters parameters,
-  char* scifi_geometry,
-  const float* dev_inv_clus_res)
+  const char* scifi_geometry)
 {
   const int number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -54,15 +53,15 @@ __global__ void scifi_pre_decode_v5::scifi_pre_decode_v5(
   SciFiGeometry geom(scifi_geometry);
   const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  Hits hits {
-    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+  Hits<char> hits {
+    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  const HitCount<const uint> hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
-    shared_mat_offsets[i] = hit_count.mat_offsets[i];
+    shared_mat_offsets[i] = hit_count.mat_offsets(i);
     shared_mat_count[i] = 0;
   }
 

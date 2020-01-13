@@ -16,7 +16,7 @@ __global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_
 
   const SciFiRawEvent event(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
   const SciFiGeometry geom(scifi_geometry);
-  SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::HitCount<uint> hit_count {parameters.dev_scifi_hit_count, event_number};
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
     const uint current_raw_bank = getRawBankIndexOrderedByX(i);
@@ -28,7 +28,7 @@ __global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_
     const uint number_of_clusters = last - it;
 
     if (last > it) {
-      hit_count.mat_offsets[i] = number_of_clusters;
+      hit_count.mat_offsets(i) = number_of_clusters;
     }
   }
 
@@ -41,11 +41,11 @@ __global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_
     uint16_t* last = rawbank.last;
 
     // For details see RawBankDecoder
-    if (*(last - 1) == 0) --last; // Remove phadding at the end
+    if (*(last - 1) == 0) --last; // Remove padding at the end
     for (; it < last; ++it) {     // loop over the clusters
       uint16_t c = *it;
       uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-      hits_mat = hit_count.mat_offsets + SciFiChannelID(ch).correctedUniqueMat() - mats_difference;
+      hits_mat = hit_count.mat_offsets_p(SciFiChannelID(ch).correctedUniqueMat() - mats_difference);
       atomicAdd(hits_mat, 1);
     }
   }

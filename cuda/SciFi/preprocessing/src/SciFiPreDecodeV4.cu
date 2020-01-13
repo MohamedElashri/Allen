@@ -3,15 +3,15 @@
 
 using namespace SciFi;
 
-__device__ void scifi_pre_decode_v4::store_sorted_cluster_reference_v4(
-  const SciFi::HitCount& hit_count,
+__device__ void store_sorted_cluster_reference_v4(
+  const SciFi::HitCount<const uint>& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,
   const uint32_t* shared_mat_offsets,
   uint32_t* shared_mat_count,
   const int raw_bank,
   const int it,
-  SciFi::Hits& hits)
+  SciFi::Hits<char>& hits)
 {
   uint32_t hitIndex = (*shared_mat_count)++;
 
@@ -26,13 +26,12 @@ __device__ void scifi_pre_decode_v4::store_sorted_cluster_reference_v4(
   // Cluster reference:
   //   raw bank: 8 bits
   //   element (it): 8 bits
-  hits.cluster_reference[hitIndex] = (raw_bank & 0xFF) << 8 | (it & 0xFF);
+  hits.cluster_reference(hitIndex) = (raw_bank & 0xFF) << 8 | (it & 0xFF);
 }
 
 __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
   scifi_pre_decode_v4::Parameters parameters,
-  char* scifi_geometry,
-  const float* dev_inv_clus_res)
+  const char* scifi_geometry)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -41,14 +40,14 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
   SciFiGeometry geom(scifi_geometry);
   const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  SciFi::Hits hits {
-    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  const SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::Hits<char> hits {
+    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  const SciFi::HitCount<const uint> hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mats_without_group];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mats_without_group];
   for (uint i = threadIdx.x; i < SciFi::Constants::n_mats_without_group; i += blockDim.x) {
-    shared_mat_offsets[i] = hit_count.mat_offset(
+    shared_mat_offsets[i] = hit_count.mat_offsets(
       i + SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank);
     shared_mat_count[i] = 0;
   }

@@ -4,13 +4,13 @@
 using namespace SciFi;
 
 // Merge of PrStoreFTHit and RawBankDecoder.
-__device__ void scifi_raw_bank_decoder_v4::make_cluster_v4(
+__device__ void make_cluster_v4(
   const int hit_index,
   const SciFiGeometry& geom,
   uint32_t chan,
   uint8_t fraction,
   uint8_t pseudoSize,
-  SciFi::Hits& hits)
+  SciFi::Hits<char>& hits)
 {
   const SciFi::SciFiChannelID id {chan};
 
@@ -34,18 +34,17 @@ __device__ void scifi_raw_bank_decoder_v4::make_cluster_v4(
   const uint32_t uniqueZone = ((id.uniqueQuarter() - 16) >> 1);
 
   const uint plane_code = 2 * planeCode + (uniqueZone % 2);
-  hits.x0[hit_index] = x0;
-  hits.z0[hit_index] = z0;
-  hits.channel[hit_index] = chan;
-  hits.m_endPointY[hit_index] = endPointY;
+  hits.x0(hit_index) = x0;
+  hits.z0(hit_index) = z0;
+  hits.channel(hit_index) = chan;
+  hits.endPointY(hit_index) = endPointY;
   assert(fraction <= 0x1 && plane_code <= 0x1f && pseudoSize <= 0xf && mat <= 0x7ff);
-  hits.assembled_datatype[hit_index] = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
+  hits.assembled_datatype(hit_index) = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
 }
 
 __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4(
   scifi_raw_bank_decoder_v4::Parameters parameters,
-  char* scifi_geometry,
-  const float* dev_inv_clus_res)
+  const char* scifi_geometry)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -54,13 +53,13 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4(
   const SciFiGeometry geom {scifi_geometry};
   const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  SciFi::Hits hits {
-    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  const SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::Hits<char> hits {
+    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  const SciFi::HitCount<const uint> hit_count {parameters.dev_scifi_hit_count, event_number};
   const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
   for (uint i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
-    const uint32_t cluster_reference = hits.cluster_reference[hit_count.offset_zones_without_mat_groups() + i];
+    const uint32_t cluster_reference = hits.cluster_reference(hit_count.offset_zones_without_mat_groups() + i);
 
     const int raw_bank_number = (cluster_reference >> 8) & 0xFF;
     const int it_number = (cluster_reference) &0xFF;

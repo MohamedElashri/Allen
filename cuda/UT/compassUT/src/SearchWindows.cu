@@ -22,16 +22,14 @@ __global__ void ut_search_windows::ut_search_windows(
   // Velo consolidated types
   const Velo::Consolidated::Tracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  // TODO: Make const container
-  const Velo::Consolidated::States velo_states {const_cast<char*>(parameters.dev_velo_states.get()), velo_tracks.total_number_of_tracks()};
+  const Velo::Consolidated::States<const char> velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
 
-  // TODO: Make const container
-  const UT::Hits ut_hits {const_cast<uint*>(parameters.dev_ut_hits.get()), total_number_of_hits};
+  const UT::Hits<const char> ut_hits {parameters.dev_ut_hits, total_number_of_hits};
 
   const float* fudge_factors = &(dev_ut_magnet_tool->dxLayTable[0]);
   uint* active_tracks = parameters.dev_ut_active_tracks + event_number;
@@ -54,7 +52,7 @@ __global__ void ut_search_windows::ut_search_windows(
         const MiniState velo_state = velo_states.get(current_track_offset);
         if (i_track < number_of_tracks_event) {
           if (
-            !velo_states.backward[current_track_offset] && parameters.dev_accepted_velo_tracks[current_track_offset] &&
+            !velo_states.backward(current_track_offset) && parameters.dev_accepted_velo_tracks[current_track_offset] &&
             velo_track_in_UTA_acceptance(velo_state)) {
             int current_track = atomicAdd(active_tracks, 1);
             shared_active_tracks[current_track] = i_track;

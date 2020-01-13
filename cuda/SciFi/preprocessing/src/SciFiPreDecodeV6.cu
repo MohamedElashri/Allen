@@ -4,14 +4,14 @@
 using namespace SciFi;
 
 __device__ void store_sorted_cluster_reference_v6(
-  const SciFi::HitCount& hit_count,
+  const SciFi::HitCount<const uint>& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,
   const uint32_t* shared_mat_offsets,
   uint32_t* shared_mat_count,
   const int raw_bank,
   const int it,
-  SciFi::Hits& hits,
+  SciFi::Hits<char>& hits,
   const int condition,
   const int delta)
 {
@@ -32,14 +32,13 @@ __device__ void store_sorted_cluster_reference_v6(
   assert(uniqueGroupOrMat < SciFi::Constants::n_mat_groups_and_mats);
   hitIndex += shared_mat_offsets[uniqueGroupOrMat];
 
-  hits.cluster_reference[hitIndex] =
+  hits.cluster_reference(hitIndex) =
     (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition & 0x07) << 13 | (delta & 0xFF);
 }
 
 __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
   scifi_pre_decode_v6::Parameters parameters,
-  char* scifi_geometry,
-  const float* dev_inv_clus_res)
+  const char* scifi_geometry)
 {
   const int number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -48,15 +47,15 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
   SciFiGeometry geom(scifi_geometry);
   const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  Hits hits {
-    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+  Hits<char> hits {
+    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  const HitCount<const uint> hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
-    shared_mat_offsets[i] = hit_count.mat_offsets[i];
+    shared_mat_offsets[i] = hit_count.mat_offsets(i);
     shared_mat_count[i] = 0;
   }
 

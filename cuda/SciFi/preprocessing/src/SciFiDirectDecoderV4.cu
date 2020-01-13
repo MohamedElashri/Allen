@@ -16,8 +16,7 @@ using namespace SciFi;
  */
 __global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4(
   scifi_direct_decoder_v4::Parameters parameters,
-  char* scifi_geometry,
-  const float* dev_inv_clus_res)
+  char* scifi_geometry)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -26,9 +25,9 @@ __global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4(
   const SciFiGeometry geom(scifi_geometry);
   const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  SciFi::Hits hits {
-    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  const SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+  SciFi::Hits<char> hits {
+    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  const SciFi::HitCount<const uint> hit_count {parameters.dev_scifi_hit_count, event_number};
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
     const uint j = (i / 10) % 4;
@@ -74,12 +73,12 @@ __global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4(
 
         assert(pseudoSize < 9 && "Pseudosize of cluster is > 8. Out of range.");
 
-        hits.x0[hit_index] = x0;
-        hits.z0[hit_index] = z0;
-        hits.channel[hit_index] = ch;
-        hits.m_endPointY[hit_index] = endPointY;
+        hits.x0(hit_index) = x0;
+        hits.z0(hit_index) = z0;
+        hits.channel(hit_index) = ch;
+        hits.endPointY(hit_index) = endPointY;
         assert(cluster_fraction <= 0x1 && plane_code <= 0x1f && pseudoSize <= 0xf && mat <= 0x7ff);
-        hits.assembled_datatype[hit_index] = cluster_fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
+        hits.assembled_datatype(hit_index) = cluster_fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
       }
     }
   }
