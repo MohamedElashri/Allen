@@ -45,7 +45,7 @@ bool OutputHandler::output_selected_events(
     header->setHeaderVersion(Allen::mdf_header_version);
     // MDFHeader::setSize adds the header size internally, so pass
     // only the payload size here
-    header->setSize(m_sizes[i] + dec_report_size);
+    header->setSize(m_sizes[i] + bank_header_size + dec_report_size);
     // No checksumming
     // FIXME: make configurable
     header->setChecksum(0);
