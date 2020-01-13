@@ -100,14 +100,14 @@ namespace Velo {
    * @brief Structure to access VELO clusters.
    */
   template<typename T>
-  struct Clusters {
+  struct Clusters_t {
   private:
     // T can either be const uint32_t or uint32_t
     T* m_base_pointer;
     const uint m_total_estimated_number_of_clusters;
 
   public:
-    __host__ __device__ Clusters(T* base_pointer, const uint total_estimated_number_of_clusters) :
+    __host__ __device__ Clusters_t(T* base_pointer, const uint total_estimated_number_of_clusters) :
       m_base_pointer(base_pointer), m_total_estimated_number_of_clusters(total_estimated_number_of_clusters) {}
 
     // Accessors and lvalue references for all types
@@ -143,4 +143,7 @@ namespace Velo {
       return m_base_pointer[3 * m_total_estimated_number_of_clusters + index];
     }
   };
+
+  typedef const Clusters_t<const char> ConstClusters;
+  typedef Clusters_t<char> Clusters;
 } // namespace Velo

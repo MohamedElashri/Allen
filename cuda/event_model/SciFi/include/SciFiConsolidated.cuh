@@ -7,10 +7,13 @@
 namespace SciFi {
   namespace Consolidated {
     template<typename T>
-    struct Hits : public SciFi::Hits<T> {
+    struct Hits_t : public SciFi::Hits_t<T> {
       __host__ __device__ Hits(typename ForwardType<T>::char_t* base_pointer, const uint track_offset, const uint total_number_of_hits) :
         SciFi::Hits<T>(base_pointer, total_number_of_hits, track_offset) {}
     };
+
+    typedef const Hits_t<const char> ConstHits;
+    typedef Hits_t<char> Hits;
 
     //---------------------------------------------------------
     // Struct for holding consolidated SciFi track information.
@@ -54,13 +57,13 @@ namespace SciFi {
       }
 
       template<typename T>
-      __host__ __device__ Hits<T> get_hits(
+      __host__ __device__ Hits_t<T> get_hits(
         T* hits_base_pointer,
         const uint track_number,
         const SciFiGeometry* scifi_geometry,
         const float* dev_inv_clus_res) const
       {
-        return Hits<T> {
+        return Hits_t<T> {
           hits_base_pointer, track_offset(track_number), m_total_number_of_hits, scifi_geometry, dev_inv_clus_res};
       }
     }; // namespace Consolidated

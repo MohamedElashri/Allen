@@ -51,10 +51,11 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4(
   const uint selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiGeometry geom {scifi_geometry};
-  const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
+  const auto event =
+    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  SciFi::Hits<char> hits {
-    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::Hits<char> hits {parameters.dev_scifi_hits,
+                          parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   const SciFi::HitCount<const uint> hit_count {parameters.dev_scifi_hit_count, event_number};
   const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 

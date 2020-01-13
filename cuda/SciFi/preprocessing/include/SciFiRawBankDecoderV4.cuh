@@ -4,22 +4,13 @@
 #include "SciFiEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
 
-__device__ void make_cluster_v4(
-  const int hit_index,
-  const SciFi::SciFiGeometry& geom,
-  uint32_t chan,
-  uint8_t fraction,
-  uint8_t pseudoSize,
-  uint32_t uniqueMat,
-  SciFi::Hits<char>& hits);
-
 namespace scifi_raw_bank_decoder_v4 {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
-    DEVICE_OUTPUT(dev_scifi_hits_t, uint) dev_scifi_hits;
+    DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
   };
 

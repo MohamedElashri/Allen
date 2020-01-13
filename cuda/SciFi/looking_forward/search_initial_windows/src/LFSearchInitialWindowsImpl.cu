@@ -4,8 +4,8 @@
 #include "BinarySearch.cuh"
 
 __device__ void lf_search_initial_windows_impl(
-  const SciFi::Hits& scifi_hits,
-  const SciFi::HitCount& scifi_hit_count,
+  SciFi::ConstHits& scifi_hits,
+  SciFi::ConstHitCount& scifi_hit_count,
   const MiniState& UT_state,
   const LookingForward::Constants* looking_forward_constants,
   const float qop,
@@ -74,9 +74,9 @@ __device__ void lf_search_initial_windows_impl(
       const int uv_zone_offset_begin = scifi_hit_count.zone_offset(looking_forward_constants->uvZones[iZone]);
       const int uv_zone_size = scifi_hit_count.zone_number_of_hits(looking_forward_constants->uvZones[iZone]);
       const int hits_within_uv_bounds =
-        binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
+        binary_search_leftmost(scifi_hits.x0_p(uv_zone_offset_begin, uv_zone_size, xMinUV));
       const int hits_within_uv_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + uv_zone_offset_begin + hits_within_uv_bounds, uv_zone_size - hits_within_uv_bounds, xMaxUV);
+        scifi_hits.x0_p(uv_zone_offset_begin + hits_within_uv_bounds, uv_zone_size - hits_within_uv_bounds, xMaxUV));
 
       initial_windows[(i * LookingForward::number_of_elements_initial_window + 2) * number_of_tracks] =
         hits_within_uv_bounds + uv_zone_offset_begin - event_offset;

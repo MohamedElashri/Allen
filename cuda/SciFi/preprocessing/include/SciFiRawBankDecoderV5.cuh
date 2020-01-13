@@ -4,16 +4,6 @@
 #include "SciFiEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
 
-__device__ void make_cluster_v5(
-  const int hit_index,
-  const SciFi::HitCount& hit_count,
-  const SciFi::SciFiGeometry& geom,
-  uint32_t chan,
-  uint8_t fraction,
-  uint8_t pseudoSize,
-  uint32_t uniqueMat,
-  SciFi::Hits& hits);
-
 namespace scifi_raw_bank_decoder_v5 {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
@@ -22,17 +12,12 @@ namespace scifi_raw_bank_decoder_v5 {
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
-    DEVICE_OUTPUT(dev_scifi_hits_t, uint) dev_scifi_hits;
+    DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
   };
 
   __global__ void scifi_raw_bank_decoder_v5(
-    char* scifi_events,
-    uint* scifi_event_offsets,
-    const uint* event_list,
-    uint* scifi_hit_count,
-    uint* scifi_hits,
-    char* scifi_geometry,
-    const float* dev_inv_clus_res);
+    Parameters,
+    const char* scifi_geometry);
 
   template<typename T>
   struct scifi_raw_bank_decoder_v5_t : public DeviceAlgorithm, Parameters {
@@ -64,8 +49,7 @@ namespace scifi_raw_bank_decoder_v5 {
                     offset<dev_event_list_t>(arguments),
                     offset<dev_scifi_hit_count_t>(arguments),
                     offset<dev_scifi_hits_t>(arguments)},
-        constants.dev_scifi_geometry,
-        constants.dev_inv_clus_res);
+        constants.dev_scifi_geometry);
     }
   };
 } // namespace scifi_raw_bank_decoder_v5

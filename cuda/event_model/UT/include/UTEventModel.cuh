@@ -123,7 +123,7 @@ namespace UT {
   constexpr static uint hits_number_of_arrays = 7;
 
   template<typename T>
-  struct Hits {
+  struct Hits_t {
   private:
     typename ForwardType<T>::float_t* m_base_pointer;
     const uint m_total_number_of_hits;
@@ -133,7 +133,7 @@ namespace UT {
      * @brief Populates the UTHits object pointers to an array of data
      *        pointed by base_pointer.
      */
-    __host__ __device__ Hits(typename ForwardType<T>::char_t* base_pointer, const uint total_number_of_hits) :
+    __host__ __device__ Hits_t(typename ForwardType<T>::char_t* base_pointer, const uint total_number_of_hits) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer)),
       m_total_number_of_hits(total_number_of_hits)
     {}
@@ -223,4 +223,7 @@ namespace UT {
       return m_base_pointer + m_total_number_of_hits + index;
     }
   };
+
+  typedef const Hits_t<const char> ConstHits;
+  typedef Hits_t<char> Hits;
 } // namespace UT

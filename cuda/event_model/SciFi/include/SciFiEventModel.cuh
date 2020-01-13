@@ -38,14 +38,12 @@ namespace SciFi {
    * @brief Offset and number of hits of each layer.
    */
   template<typename T>
-  struct HitCount {
+  struct HitCount_t {
   private:
     typename ForwardType<T>::uint_t* m_mat_offsets;
 
   public:
-    __host__ __device__ HitCount() {}
-
-    __host__ __device__ HitCount(T* base_pointer, const uint event_number) :
+    __host__ __device__ HitCount_t(typename ForwardType<T>::uint_t* base_pointer, const uint event_number) :
       m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_mat_groups_and_mats)
     {}
 
@@ -138,15 +136,18 @@ namespace SciFi {
     }
   };
 
+  typedef const HitCount_t<const char> ConstHitCount;
+  typedef HitCount_t<char> HitCount;
+
   template<typename T>
-  struct Hits {
+  struct Hits_t {
   private:
     typename ForwardType<T>::float_t* m_base_pointer;
     const uint m_total_number_of_hits;
 
   public:
     __host__ __device__
-    Hits(T* base_pointer, const uint total_number_of_hits, const uint offset = 0) :
+    Hits_t(T* base_pointer, const uint total_number_of_hits, const uint offset = 0) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T>::float_t*>(base_pointer) + offset),
       m_total_number_of_hits(total_number_of_hits)
     {}
@@ -248,27 +249,30 @@ namespace SciFi {
     }
   };
 
+  typedef const Hits_t<const char> ConstHits;
+  typedef Hits_t<char> Hits;
+
   template<typename T>
-  struct ExtendedHits : public Hits<T> {
+  struct ExtendedHits_t : public Hits_t<T> {
   private:
     const float* m_inv_clus_res;
     const SciFiGeometry* m_geom;
 
   public:
-    __host__ __device__ ExtendedHits(
-      typename ForwardType<T>::char_t* base_pointer,
+    __host__ __device__ ExtendedHits_t(
+      T* base_pointer,
       const uint total_number_of_hits,
       const float* inv_clus_res,
       const SciFiGeometry* geom,
       const uint offset = 0) :
-      Hits<T>(base_pointer, total_number_of_hits, offset),
+      Hits_t<T>(base_pointer, total_number_of_hits, offset),
       m_inv_clus_res(inv_clus_res), m_geom(geom)
     {}
 
-    using Hits<T>::pseudoSize;
-    using Hits<T>::endPointY;
-    using Hits<T>::channel;
-    using Hits<T>::mat;
+    using Hits_t<T>::pseudoSize;
+    using Hits_t<T>::endPointY;
+    using Hits_t<T>::channel;
+    using Hits_t<T>::mat;
 
     // Additional accessors provided by having inv clus res and geometry information
     __host__ __device__ float hit_w(const uint index) const
@@ -304,6 +308,9 @@ namespace SciFi {
     //   return m_geom->mirrorPointY[mat(index)] + m_geom->ddxY[mat(index)] * uFromChannel;
     // }
   };
+
+  typedef const ExtendedHits_t<const char> ConstExtendedHits;
+  typedef ExtendedHits_t<char> ExtendedHits;
 
   /**
    * Track object used for storing tracks
