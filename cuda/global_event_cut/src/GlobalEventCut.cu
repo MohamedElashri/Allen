@@ -11,6 +11,7 @@ __global__ void global_event_cut(
   const uint event_number = blockIdx.x;
 
   // Check SciFi clusters
+  printf("at event number %u, offset = %u", event_number, scifi_raw_input_offsets[event_number]);
   const SciFi::SciFiRawEvent scifi_event(scifi_raw_input + scifi_raw_input_offsets[event_number]);
   __shared__ uint n_SciFi_clusters;
   if (threadIdx.x == 0) n_SciFi_clusters = 0;
@@ -35,10 +36,12 @@ __global__ void global_event_cut(
   __shared__ uint n_UT_clusters;
   if (threadIdx.x == 0) n_UT_clusters = 0;
   __syncthreads();
-  for (uint i = threadIdx.x; i < ut_event.number_of_raw_banks; i += blockDim.x) {
-    const UTRawBank ut_bank = ut_event.getUTRawBank(i);
-    atomicAdd(&n_UT_clusters, ut_bank.number_of_hits);
-  }
+  // printf("number of raw banks = %u \n", ut_event.number_of_raw_banks);
+  // for (uint i = threadIdx.x; i < ut_event.number_of_raw_banks; i += blockDim.x) {
+  //   printf(" at raw bank %u \n", i);
+  //   const UTRawBank ut_bank = ut_event.getUTRawBank(i);
+  //   atomicAdd(&n_UT_clusters, ut_bank.number_of_hits);
+  // }
   __syncthreads();
 
   const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;

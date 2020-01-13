@@ -82,15 +82,31 @@ StatusCode RunAllen::initialize() {
 
 /** Calls Allen for one event
  */
-std::tuple<LHCb::Tracks, LHCb::Tracks> RunAllen::operator()(const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const {
+std::tuple<LHCb::Tracks, LHCb::Tracks> RunAllen::operator()(const std::array<std::tuple<uint32_t, std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const {
 
   // Get raw input and offsets for every detector
   std::array<BanksAndOffsets, LHCb::RawBank::LastType> banks_and_offsets; 
   for ( const auto bankType : m_bankTypes ) {
     // to do: catch that raw bank type was not dumped
-    std::vector<uint32_t> bankData = std::get<0>(allen_banks[bankType]);
-    std::vector<uint32_t> bankOffsets = std::get<1>(allen_banks[bankType]);
-    banks_and_offsets[bankType] = std::make_tuple(gsl::span{reinterpret_cast<char const*>(bankData.data()), gsl::span<uint32_t>{bankData}.size_bytes()}, gsl::span{reinterpret_cast<unsigned int const*>(bankOffsets.data()), gsl::span<uint32_t>{bankOffsets}.size_bytes()});
+    uint32_t number_of_raw_banks = std::get<0>(allen_banks[bankType]);
+    std::vector<uint32_t> bankData = std::get<1>(allen_banks[bankType]);
+    std::vector<uint32_t> bankOffsets = std::get<2>(allen_banks[bankType]);
+    std::vector<uint32_t> combined_banks;
+    combined_banks.push_back(number_of_raw_banks);
+    combined_banks.insert(combined_banks.end(), bankData.begin(), bankData.end());
+    combined_banks.insert(combined_banks.end(), bankOffsets.begin(), bankOffsets.end());
+
+    for ( uint i = 0; i < bankOffsets.size(); ++i ) {
+      info() << "at bank type " << bankType << ": offset for i = " << i << " is "  << bankOffsets[i] << endmsg;
+    }
+    
+    // Offsets to events (we only process one event)
+    unsigned int offsets_mem[2];
+    offsets_mem[0] = 0;
+    offsets_mem[1] = gsl::span<unsigned int>{combined_banks}.size_bytes();
+    gsl::span<unsigned int> offsets{offsets_mem, 2};
+        
+    banks_and_offsets[bankType] = std::make_tuple(gsl::span{reinterpret_cast<char const*>(combined_banks.data()), gsl::span<uint32_t>{combined_banks}.size_bytes()}, offsets);
   }
   
   // initialize RuntimeOptions

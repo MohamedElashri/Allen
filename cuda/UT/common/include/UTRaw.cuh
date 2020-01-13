@@ -36,6 +36,7 @@ struct UTRawEvent {
   __device__ __host__ UTRawBank getUTRawBank(const uint32_t index) const
   {
     const uint32_t offset = raw_bank_offsets[index];
+    printf("UT raw bank offset = %u \n", offset);
     UTRawBank raw_bank(data + offset);
     return raw_bank;
   }
