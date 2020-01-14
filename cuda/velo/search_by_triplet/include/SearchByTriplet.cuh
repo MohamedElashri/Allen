@@ -34,9 +34,9 @@ namespace velo_search_by_triplet {
     Parameters,
     const VeloGeometry*);
 
-  template<typename T>
+  template<typename T, char... S>
   struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"velo_search_by_triplet_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(velo_search_by_triplet)) function {velo_search_by_triplet};
 
     void set_arguments_size(

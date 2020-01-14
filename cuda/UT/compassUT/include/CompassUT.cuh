@@ -73,9 +73,9 @@ namespace compass_ut {
     UT::TrackHits* VeloUT_tracks,
     const int event_hit_offset);
 
-  template<typename T>
+  template<typename T, char... S>
   struct compass_ut_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"compass_ut_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(compass_ut)) function {compass_ut};
 
     void set_arguments_size(

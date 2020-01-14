@@ -22,9 +22,9 @@ namespace pv_beamline_peak {
   __global__ void
   pv_beamline_peak(Parameters, const uint number_of_events);
 
-  template<typename T>
+  template<typename T, char... S>
   struct pv_beamline_peak_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"pv_beamline_peak_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(pv_beamline_peak)) function {pv_beamline_peak};
 
     void set_arguments_size(

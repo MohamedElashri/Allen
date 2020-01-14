@@ -19,9 +19,9 @@ namespace lf_least_mean_square_fit {
 
   __global__ void lf_least_mean_square_fit(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
-  template<typename T>
+  template<typename T, char... S>
   struct lf_least_mean_square_fit_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"lf_least_mean_square_fit_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(lf_least_mean_square_fit)) function {lf_least_mean_square_fit};
 
     void set_arguments_size(

@@ -25,9 +25,9 @@ namespace host_global_event_cut {
     Parameters parameters);
 
   // Algorithm
-  template<typename T>
+  template<typename T, char... S>
   struct host_global_event_cut_t : public HostAlgorithm, Parameters {
-    constexpr static auto name {"host_global_event_cut_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(host_function(host_global_event_cut)) function {host_global_event_cut};
 
     void set_arguments_size(

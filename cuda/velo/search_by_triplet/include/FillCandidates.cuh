@@ -16,9 +16,9 @@ namespace velo_fill_candidates {
 
   __global__ void velo_fill_candidates(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct velo_fill_candidates_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"velo_fill_candidates_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(velo_fill_candidates)) function {velo_fill_candidates};
 
     void set_arguments_size(

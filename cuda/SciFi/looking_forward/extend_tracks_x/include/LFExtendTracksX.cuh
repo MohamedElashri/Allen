@@ -21,9 +21,9 @@ namespace lf_extend_tracks_x {
 
   __global__ void lf_extend_tracks_x(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
-  template<typename T>
+  template<typename T, char... S>
   struct lf_extend_tracks_x_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"lf_extend_tracks_x_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(lf_extend_tracks_x)) function {lf_extend_tracks_x};
 
     void set_arguments_size(

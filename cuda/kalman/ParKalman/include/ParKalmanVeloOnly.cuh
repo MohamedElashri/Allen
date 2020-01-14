@@ -90,9 +90,9 @@ namespace kalman_velo_only {
     const char* dev_scifi_geometry,
     const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
 
-  template<typename T>
+  template<typename T, char... S>
   struct kalman_velo_only_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"kalman_velo_only_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(kalman_velo_only)) function {kalman_velo_only};
 
     void set_arguments_size(
@@ -154,9 +154,9 @@ namespace package_kalman_tracks {
 
   __global__ void package_kalman_tracks(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct package_kalman_tracks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"package_kalman_tracks_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(package_kalman_tracks)) function {package_kalman_tracks};
 
     void set_arguments_size(

@@ -36,9 +36,9 @@ namespace velo_calculate_phi_and_sort {
 
   __global__ void velo_calculate_phi_and_sort(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct velo_calculate_phi_and_sort_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"velo_calculate_phi_and_sort_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(velo_calculate_phi_and_sort)) function {velo_calculate_phi_and_sort};
 
     void set_arguments_size(

@@ -31,9 +31,9 @@ namespace fit_seeds {
 
   __global__ void fit_seeds(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct pv_fit_seeds_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"pv_fit_seeds_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(fit_seeds)) function {fit_seeds};
 
     void set_arguments_size(

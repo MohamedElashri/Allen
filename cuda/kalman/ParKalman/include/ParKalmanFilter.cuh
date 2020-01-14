@@ -133,9 +133,9 @@ namespace kalman_filter {
     const float* dev_inv_clus_res,
     const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
 
-  template<typename T>
+  template<typename T, char... S>
   struct kalman_filter_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"kalman_filter_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(kalman_filter)) function {kalman_filter};
 
     void set_arguments_size(

@@ -28,9 +28,9 @@ namespace kalman_pv_ipchi2 {
 
   __global__ void kalman_pv_ipchi2(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct kalman_pv_ipchi2_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"kalman_pv_ipchi2_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(kalman_pv_ipchi2)) function {kalman_pv_ipchi2};
 
     void set_arguments_size(

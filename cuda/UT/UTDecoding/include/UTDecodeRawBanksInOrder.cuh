@@ -22,9 +22,9 @@ namespace ut_decode_raw_banks_in_order {
     const uint* dev_ut_region_offsets,
     const uint* dev_unique_x_sector_layer_offsets);
 
-  template<typename T>
+  template<typename T, char... S>
   struct ut_decode_raw_banks_in_order_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"ut_decode_raw_banks_in_order_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(ut_decode_raw_banks_in_order)) function {ut_decode_raw_banks_in_order};
 
     void set_arguments_size(

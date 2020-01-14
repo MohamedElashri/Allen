@@ -20,9 +20,9 @@ namespace muon_catboost_evaluator {
     const int* dev_muon_catboost_tree_offsets,
     const int n_trees);
 
-  template<typename T>
+  template<typename T, char... S>
   struct muon_catboost_evaluator_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"muon_catboost_evaluator_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(muon_catboost_evaluator)) function {muon_catboost_evaluator};
 
     void set_arguments_size(

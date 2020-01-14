@@ -15,9 +15,9 @@ namespace velo_copy_track_hit_number {
 
   __global__ void velo_copy_track_hit_number(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct velo_copy_track_hit_number_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"velo_copy_track_hit_number_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(velo_copy_track_hit_number)) function {velo_copy_track_hit_number};
 
     void set_arguments_size(

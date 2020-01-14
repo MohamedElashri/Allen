@@ -29,9 +29,9 @@ namespace pv_beamline_multi_fitter {
     Parameters,
     const float* dev_beamline);
 
-  template<typename T>
+  template<typename T, char... S>
   struct pv_beamline_multi_fitter_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"pv_beamline_multi_fitter_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(pv_beamline_multi_fitter)) function {pv_beamline_multi_fitter};
 
     void set_arguments_size(

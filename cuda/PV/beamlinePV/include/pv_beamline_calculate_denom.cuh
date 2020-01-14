@@ -24,9 +24,9 @@ namespace pv_beamline_calculate_denom {
 
   __global__ void pv_beamline_calculate_denom(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct pv_beamline_calculate_denom_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"pv_beamline_calculate_denom_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(pv_beamline_calculate_denom)) function {pv_beamline_calculate_denom};
 
     void set_arguments_size(

@@ -16,9 +16,9 @@ namespace muon_sort_station_region_quarter {
 
   __global__ void muon_sort_station_region_quarter(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct muon_sort_station_region_quarter_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"muon_sort_station_region_quarter_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(muon_sort_station_region_quarter)) function {muon_sort_station_region_quarter};
 
     void set_arguments_size(

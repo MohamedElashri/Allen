@@ -20,9 +20,9 @@ namespace muon_pre_decoding {
 
   __global__ void muon_pre_decoding(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct muon_pre_decoding_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"muon_pre_decoding_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(muon_pre_decoding)) function {muon_pre_decoding};
 
     void set_arguments_size(

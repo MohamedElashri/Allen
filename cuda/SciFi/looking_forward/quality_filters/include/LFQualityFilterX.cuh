@@ -21,9 +21,9 @@ namespace lf_quality_filter_x {
 
   __global__ void lf_quality_filter_x(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct lf_quality_filter_x_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"lf_quality_filter_x_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(lf_quality_filter_x)) function {lf_quality_filter_x};
 
     void set_arguments_size(

@@ -21,9 +21,9 @@ namespace prepare_raw_banks {
 
   __global__ void prepare_raw_banks(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct prepare_raw_banks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"prepare_raw_banks_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(prepare_raw_banks)) function {prepare_raw_banks};
 
     void set_arguments_size(

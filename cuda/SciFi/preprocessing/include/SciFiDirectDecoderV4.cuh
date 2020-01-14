@@ -18,9 +18,9 @@ namespace scifi_direct_decoder_v4 {
     Parameters,
     char* scifi_geometry);
 
-  template<typename T>
+  template<typename T, char... S>
   struct scifi_direct_decoder_v4_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"scifi_direct_decoder_v4_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(scifi_direct_decoder_v4)) function {scifi_direct_decoder_v4};
 
     void set_arguments_size(

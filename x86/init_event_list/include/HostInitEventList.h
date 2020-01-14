@@ -10,9 +10,9 @@ namespace host_init_event_list {
   };
 
   // Algorithm
-  template<typename T>
+  template<typename T, char... S>
   struct host_init_event_list_t : public HostAlgorithm, Parameters {
-    constexpr static auto name {"host_init_event_list_t"};
+    constexpr static auto name = Name<S...>::s;
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,

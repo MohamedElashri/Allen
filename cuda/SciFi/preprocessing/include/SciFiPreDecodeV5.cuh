@@ -30,9 +30,9 @@ namespace scifi_pre_decode_v5 {
 
   __global__ void scifi_pre_decode_v5(Parameters, const char* scifi_geometry);
 
-  template<typename T>
+  template<typename T, char... S>
   struct scifi_pre_decode_v5_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"scifi_pre_decode_v5_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(scifi_pre_decode_v5)) function {scifi_pre_decode_v5};
 
     void set_arguments_size(

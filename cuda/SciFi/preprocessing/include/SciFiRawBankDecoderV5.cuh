@@ -19,9 +19,9 @@ namespace scifi_raw_bank_decoder_v5 {
     Parameters,
     const char* scifi_geometry);
 
-  template<typename T>
+  template<typename T, char... S>
   struct scifi_raw_bank_decoder_v5_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"scifi_raw_bank_decoder_v5_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(scifi_raw_bank_decoder_v5)) function {scifi_raw_bank_decoder_v5};
 
     void set_arguments_size(

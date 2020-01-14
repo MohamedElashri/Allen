@@ -35,9 +35,9 @@ namespace lf_search_initial_windows {
     const float* dev_inv_clus_res,
     const LookingForward::Constants* dev_looking_forward_constants);
 
-  template<typename T>
+  template<typename T, char... S>
   struct lf_search_initial_windows_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"lf_search_initial_windows_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(lf_search_initial_windows)) function {lf_search_initial_windows};
 
     void set_arguments_size(

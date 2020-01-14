@@ -102,9 +102,9 @@ namespace velo_kalman_filter {
 
   __global__ void velo_kalman_filter(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct velo_kalman_filter_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"velo_kalman_filter_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(velo_kalman_filter)) function {velo_kalman_filter};
 
     void set_arguments_size(

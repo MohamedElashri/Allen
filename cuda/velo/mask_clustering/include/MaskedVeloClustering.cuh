@@ -28,9 +28,9 @@ namespace velo_masked_clustering {
     float* dev_velo_sp_fx,
     float* dev_velo_sp_fy);
 
-  template<typename T>
+  template<typename T, char... S>
   struct velo_masked_clustering_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"velo_masked_clustering_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(velo_masked_clustering)) function {velo_masked_clustering};
 
     void set_arguments_size(

@@ -20,9 +20,9 @@ namespace muon_sort_by_station {
 
   __global__ void muon_sort_by_station(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct muon_sort_by_station_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"muon_sort_by_station_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(muon_sort_by_station)) function {muon_sort_by_station};
 
     void set_arguments_size(

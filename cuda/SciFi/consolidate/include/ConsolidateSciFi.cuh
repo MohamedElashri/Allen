@@ -27,9 +27,9 @@ namespace scifi_consolidate_tracks {
 
   __global__ void scifi_consolidate_tracks(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct scifi_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"scifi_consolidate_tracks_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(scifi_consolidate_tracks)) function {scifi_consolidate_tracks};
 
     void set_arguments_size(

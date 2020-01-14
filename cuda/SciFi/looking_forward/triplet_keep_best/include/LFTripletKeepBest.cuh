@@ -26,9 +26,9 @@ namespace lf_triplet_keep_best {
     Parameters,
     const LookingForward::Constants* dev_looking_forward_constants);
 
-  template<typename T>
+  template<typename T, char... S>
   struct lf_triplet_keep_best_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"lf_triplet_keep_best_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(lf_triplet_keep_best)) function {lf_triplet_keep_best};
 
     void set_arguments_size(

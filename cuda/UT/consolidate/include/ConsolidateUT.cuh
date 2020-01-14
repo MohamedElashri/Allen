@@ -26,9 +26,9 @@ namespace ut_consolidate_tracks {
 
   __global__ void ut_consolidate_tracks(Parameters, const uint* dev_unique_x_sector_layer_offsets);
 
-  template<typename T>
+  template<typename T, char... S>
   struct ut_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"ut_consolidate_tracks_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(ut_consolidate_tracks)) function {ut_consolidate_tracks};
 
     void set_arguments_size(

@@ -18,9 +18,9 @@ namespace velo_three_hit_tracks_filter {
 
   __global__ void velo_three_hit_tracks_filter(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct velo_three_hit_tracks_filter_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"velo_three_hit_tracks_filter_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(velo_three_hit_tracks_filter)) function {velo_three_hit_tracks_filter};
 
     void set_arguments_size(

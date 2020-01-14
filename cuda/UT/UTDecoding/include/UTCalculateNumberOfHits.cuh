@@ -19,9 +19,9 @@ namespace ut_calculate_number_of_hits {
     const uint* dev_unique_x_sector_layer_offsets,
     const uint* dev_unique_x_sector_offsets);
 
-  template<typename T>
+  template<typename T, char... S>
   struct ut_calculate_number_of_hits_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"ut_calculate_number_of_hits_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(ut_calculate_number_of_hits)) function {ut_calculate_number_of_hits};
 
     void set_arguments_size(

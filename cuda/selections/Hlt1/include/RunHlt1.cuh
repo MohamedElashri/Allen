@@ -24,9 +24,9 @@ namespace run_hlt1 {
 
   __global__ void run_hlt1(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct run_hlt1_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"run_hlt1_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(run_hlt1)) function {run_hlt1};
 
     void set_arguments_size(

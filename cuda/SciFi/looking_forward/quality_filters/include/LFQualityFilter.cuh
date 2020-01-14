@@ -34,9 +34,9 @@ namespace lf_quality_filter {
     const LookingForward::Constants* dev_looking_forward_constants,
     const float* dev_magnet_polarity);
 
-  template<typename T>
+  template<typename T, char... S>
   struct lf_quality_filter_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"lf_quality_filter_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(lf_quality_filter)) function {lf_quality_filter};
 
     void set_arguments_size(

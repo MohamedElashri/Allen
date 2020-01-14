@@ -19,9 +19,9 @@ namespace scifi_copy_track_hit_number {
 
   __global__ void scifi_copy_track_hit_number(Parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct scifi_copy_track_hit_number_t : public DeviceAlgorithm, Parameters {
-    constexpr static auto name {"scifi_copy_track_hit_number_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(global_function(scifi_copy_track_hit_number)) function {scifi_copy_track_hit_number};
 
     void set_arguments_size(

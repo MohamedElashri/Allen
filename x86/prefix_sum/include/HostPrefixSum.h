@@ -22,9 +22,9 @@ namespace host_prefix_sum {
     cudaEvent_t& cuda_generic_event,
     Parameters parameters);
 
-  template<typename T>
+  template<typename T, char... S>
   struct host_prefix_sum_t : public HostAlgorithm, Parameters {
-    constexpr static auto name {"host_prefix_sum_t"};
+    constexpr static auto name = Name<S...>::s;
     decltype(host_function(host_prefix_sum)) function {host_prefix_sum};
 
     void set_arguments_size(
