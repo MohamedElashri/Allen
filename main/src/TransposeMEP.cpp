@@ -250,7 +250,8 @@ bool MEP::transpose_event(
         event_ids.emplace_back(odin.run_number, odin.event_number);
       }
     }
-    else if (bank_type >= LHCb::RawBank::LastType || bank_ids[bank_type] == -1) {
+
+    if (bank_type >= LHCb::RawBank::LastType || bank_ids[bank_type] == -1) {
       prev_type = bank_type;
     }
     else {
