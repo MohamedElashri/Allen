@@ -54,7 +54,7 @@ class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHC
     
   const uint m_number_of_events = 1;
   const uint m_number_of_repetitions = 1;
-  const bool m_cpu_offload = false;
+  const bool m_cpu_offload = true;
 
   Stream* m_stream;
   HostBuffersManager m_host_buffers_manager = HostBuffersManager(m_number_of_events, m_do_check, 1); 

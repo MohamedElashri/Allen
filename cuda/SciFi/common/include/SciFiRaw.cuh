@@ -28,7 +28,6 @@ namespace SciFi {
     {
       const char* p = event;
       number_of_raw_banks = *((uint32_t*) p);
-      printf("Number of scifi raw banks = %u \n", number_of_raw_banks);
       p += sizeof(uint32_t);
       raw_bank_offset = (uint32_t*) p;
       p += (number_of_raw_banks + 1) * sizeof(uint32_t);

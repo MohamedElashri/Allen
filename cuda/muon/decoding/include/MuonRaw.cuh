@@ -32,7 +32,6 @@ namespace Muon {
     {
       const char* p = event;
       assert(*((uint32_t*) p) == number_of_raw_banks);
-      printf("number of muon raw banks = %u \n", number_of_raw_banks); 
       p += sizeof(uint32_t);
       raw_bank_offset = (uint32_t*) p;
       p += (number_of_raw_banks + 1) * sizeof(uint32_t);

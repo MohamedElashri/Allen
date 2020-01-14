@@ -75,7 +75,7 @@ StatusCode RunAllen::initialize() {
   m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants, &m_host_buffers_manager);
 
   // Set verbosity level
-  logger::ll.verbosityLevel = 5;
+  logger::ll.verbosityLevel = 4;
   
   return StatusCode::SUCCESS;
 }
