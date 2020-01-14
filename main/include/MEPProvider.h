@@ -556,16 +556,16 @@ private:
   void set_intervals(std::vector<std::tuple<size_t, size_t>>& intervals, size_t n_events)
   {
     if (n_events == 0) return;
-
-    auto n_interval = m_packing_factor / n_events;
-    auto rest = m_packing_factor % n_events;
+    const auto eps = this->events_per_slice();
+    auto n_interval = n_events / eps;
+    auto rest = n_events % eps;
     if (rest) {
-      debug_cout << "Set interval (rest): " << n_interval * n_events << "," << n_interval * n_events + rest << "\n";
-      intervals.emplace_back(n_interval * n_events, n_interval * n_events + rest);
+      debug_cout << "Set interval (rest): " << n_interval * eps << "," << n_interval * eps + rest << "\n";
+      intervals.emplace_back(n_interval * eps, n_interval * eps + rest);
     }
     for (size_t i = n_interval; i != 0; --i) {
-      debug_cout << "Set interval: " << (i - 1) * n_events << "," << i * n_events << "\n";
-      intervals.emplace_back((i - 1) * n_events, i * n_events);
+      debug_cout << "Set interval: " << (i - 1) * eps << "," << i * eps << "\n";
+      intervals.emplace_back((i - 1) * eps, i * eps);
     }
   }
 
@@ -576,6 +576,7 @@ private:
     EB::Header mep_header;
 
     auto to_read = this->n_events();
+    if (to_read) debug_cout << "Reading " << *to_read << " events\n";
     auto to_publish = 0;
 
     while (!receive_done) {
@@ -612,7 +613,7 @@ private:
         if (!eof) {
           debug_cout << "Read mep with packing factor " << mep_header.packing_factor << "\n";
           if (to_read && success) {
-            to_publish = std::min(*to_read, this->events_per_slice());
+            to_publish = std::min(*to_read, size_t{mep_header.packing_factor});
             *to_read -= to_publish;
           }
           else {
@@ -625,7 +626,7 @@ private:
           m_read_error = true;
           break;
         }
-        else if ((eof && !open_file()) || (to_read && *to_read == 0)) {
+        else if ((to_read && *to_read == 0) || (eof && !open_file())) {
           // Try to open the next file, if there is none, prefetching
           // is done.
           if (!m_read_error) {
@@ -650,7 +651,7 @@ private:
           assert(status.work_counter == 0);
 
           if (!eof && to_publish != 0) {
-            set_intervals(status.intervals, to_read ? to_publish : this->events_per_slice());
+            set_intervals(status.intervals, to_read ? to_publish : size_t{mep_header.packing_factor});
           }
           else {
             // We didn't read anything, so free the buffer we got again
@@ -802,7 +803,7 @@ private:
       if (!error) {
         {
           std::unique_lock<std::mutex> lock {m_mpi_mutex};
-          set_intervals(m_buffer_status[i_buffer].intervals, this->events_per_slice());
+          set_intervals(m_buffer_status[i_buffer].intervals, size_t{mep_header.packing_factor});
           assert(m_buffer_status[i_buffer].work_counter == 0);
         }
         if (receive_done) {
