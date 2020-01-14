@@ -15,16 +15,15 @@
 DECLARE_COMPONENT( RunAllen )
 
 RunAllen::RunAllen( const std::string& name, ISvcLocator* pSvcLocator )
-: MultiTransformer( name, pSvcLocator,
+: Transformer( name, pSvcLocator,
                     // Inputs
                     {KeyValue{"AllenRawInput", "Allen/Raw/Input"},
                      KeyValue{"ODINLocation", LHCb::ODINLocation::Default}},
                     // Outputs
-                    {KeyValue{"VeloTracks", "Allen/Track/Velo"},
-                     KeyValue{"UTTracks", "Allen/Track/UT"}} ) {}
+                    {KeyValue{"AllenOutput", "Allen/Out/HostBuffers"}} ) {}
 
 StatusCode RunAllen::initialize() {
-  auto sc = MultiTransformer::initialize();
+  auto sc = Transformer::initialize();
   if ( sc.isFailure() ) return sc;
   if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
 
@@ -82,7 +81,7 @@ StatusCode RunAllen::initialize() {
 
 /** Calls Allen for one event
  */
-std::tuple<LHCb::Tracks, LHCb::Tracks> RunAllen::operator()(const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const {
+HostBuffers RunAllen::operator()(const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const {
 
   // Get raw input and event offsets for every detector
   std::array<BanksAndOffsets, LHCb::RawBank::LastType> banks_and_offsets;
@@ -110,13 +109,10 @@ std::tuple<LHCb::Tracks, LHCb::Tracks> RunAllen::operator()(const std::array<std
     m_do_check,
     m_cpu_offload);
 
-  const uint buf_idx = 0;
+  const uint buf_idx = m_n_buffers - 1;
   cudaError_t rv = m_stream->run_sequence(buf_idx, runtime_options);
   
-  LHCb::Tracks VeloTracks;
-  LHCb::Tracks UTTracks;
-
-  return std::make_tuple( std::move( VeloTracks ), std::move( UTTracks ) );
+  return *(m_stream->host_buffers_manager->getBuffers(buf_idx));
 }
 
 StatusCode RunAllen::finalize() {
@@ -128,5 +124,5 @@ StatusCode RunAllen::finalize() {
     return StatusCode::FAILURE;
   }
   
-  return MultiTransformer::finalize(); 
+  return Transformer::finalize(); 
 }

@@ -37,7 +37,7 @@
 #include "Stream.cuh"
 #include "Logger.h"
 
-class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
+class RunAllen final : public Gaudi::Functional::Transformer<HostBuffers(const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
  public:
   /// Standard constructor
   RunAllen( const std::string& name, ISvcLocator* pSvcLocator );
@@ -46,7 +46,7 @@ class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHC
   StatusCode                               initialize() override;
   
   /// Algorithm execution
-  std::tuple<LHCb::Tracks, LHCb::Tracks> operator()( const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
+  HostBuffers operator()( const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
 
   /// Finalize
   StatusCode                               finalize() override;
@@ -58,9 +58,10 @@ class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHC
   const uint m_number_of_events = 1;
   const uint m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
+  const uint m_n_buffers = 1;
 
   Stream* m_stream;
-  HostBuffersManager m_host_buffers_manager = HostBuffersManager(m_number_of_events, m_do_check, 1); 
+  HostBuffersManager m_host_buffers_manager = HostBuffersManager(m_number_of_events, m_do_check, m_n_buffers); 
   
   Gaudi::Property<std::string>       m_updaterName{this, "UpdaterName", "AllenUpdater"};
   Gaudi::Property<std::string>       m_configurationPath{this, "ConfigurationPath", "../Allen/input/detector_configuration/down/"};
