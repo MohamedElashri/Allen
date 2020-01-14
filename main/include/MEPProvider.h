@@ -337,12 +337,11 @@ public:
 
         // If MEPs are not transposed and the respective buffer is no
         // longer in use, set it to writable
-        if (
-          !m_config.transpose_mep && status.work_counter == 0 &&
-          (std::find_if(m_slice_to_buffer.begin(), m_slice_to_buffer.end(),
-                        [i_buffer] (const auto& entry) {
-                          return std::get<0>(entry) == i_buffer;
-                        }) == m_slice_to_buffer.end())) {
+        if (status.work_counter == 0 &&
+            (std::find_if(m_slice_to_buffer.begin(), m_slice_to_buffer.end(),
+                          [i_buffer] (const auto& entry) {
+                            return std::get<0>(entry) == i_buffer;
+                          }) == m_slice_to_buffer.end())) {
           status.writable = true;
           set_writable = true;
         }
@@ -370,9 +369,7 @@ public:
       sizes[i] += std::accumulate(blocks.begin(), blocks.end(), 0ul,
         [event, interval_start, this] (size_t s, const auto& entry) {
           auto const& block_header = std::get<0>(entry);
-          auto lhcb_type = block_header.types[0];
-          auto allen_type = m_bank_ids[lhcb_type];
-          return allen_type == -1 ? s : s + LHCb::RawBank::hdrSize() + block_header.sizes[interval_start + event];
+          return s + LHCb::RawBank::hdrSize() + block_header.sizes[interval_start + event];
         });
     }
   }
@@ -380,9 +377,9 @@ public:
   void copy_banks(size_t const slice_index, unsigned int const event,
                   gsl::span<char> buffer) const override {
     auto [i_buffer, interval_start, interval_end] = m_slice_to_buffer[slice_index];
+    const auto mep_event = interval_start + event;
 
-    auto const& mep_header = std::get<0>(m_net_slices[i_buffer]);
-    auto const& blocks = std::get<2>(m_net_slices[i_buffer]);
+    auto const& [mep_header, mpi_slice, blocks, fragment_offsets, slice_size] = m_net_slices[i_buffer];
 
     unsigned char prev_type = 0;
     auto block_index = 0;
@@ -391,36 +388,23 @@ public:
     for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
       auto const& [block_header, block_data] = blocks[i_block];
       auto lhcb_type = block_header.types[0];
-      auto allen_type = m_bank_ids[lhcb_type];
 
       if (prev_type != lhcb_type) {
         block_index = 0;
         prev_type = lhcb_type;
       }
 
-      if (allen_type != -1) {
-        auto const& [banks, data_size, offsets, offsets_size] = m_slices[allen_type][slice_index];
-        size_t n_banks = MEP::number_of_banks(offsets.data());
+      // All banks are taken directly from the block data to be able
+      // to treat banks needed by Allen and banks not needed by Allen
+      // in the same way
+      auto const fragment_offset = fragment_offsets[i_block][mep_event];
+      auto fragment_size = block_header.sizes[mep_event];
 
-        // On the device, the block data is back to back and the
-        // offsets are built for that format. Here the block data is
-        // separate, so all offsets need to be compensated for the
-        // block offset. The 0th event offset is exactly that block
-        // offset
-        auto block_start = offsets[MEP::offset_index(n_banks, 0, block_index)];
-        auto const fragment_offset = offsets[MEP::offset_index(n_banks, event, block_index)] - block_start;
-        // The end of a fragment is the offset of the fragment that
-        // belongs to the next event
-        auto const fragment_end = offsets[MEP::offset_index(n_banks, event + 1, block_index)] - block_start;
-        auto fragment_size = fragment_end - fragment_offset;
-        assert(block_header.sizes[interval_start + event] == fragment_size);
-        assert((fragment_offset + fragment_size) < banks[block_index].size());
-        assert((offset + fragment_size) < buffer.size());
-        offset += add_raw_bank(block_header.types[interval_start + event],
-                               mep_header.versions[i_block], mep_header.source_ids[i_block],
-                               {banks[block_index].data() + fragment_offset, fragment_size},
-                               buffer.data() + offset);
-      }
+      assert((offset + fragment_size) < buffer.size());
+      offset += add_raw_bank(block_header.types[mep_event],
+                             mep_header.versions[i_block], mep_header.source_ids[i_block],
+                             {block_data.data() + fragment_offset, fragment_size},
+                             buffer.data() + offset);
       ++block_index;
     }
   }
@@ -973,14 +957,6 @@ private:
             m_done && std::all_of(m_buffer_status.begin(), m_buffer_status.end(), [](BufferStatus const& stat) {
               return stat.intervals.empty() && stat.work_counter == 0;
             });
-
-          // All events in this buffer have been fully transposed so
-          // it can be re-used
-          if (m_config.transpose_mep) {
-            status.writable = true;
-            // Notify read thread that a buffer is available
-            m_mpi_cond.notify_one();
-          }
         }
       }
     }
