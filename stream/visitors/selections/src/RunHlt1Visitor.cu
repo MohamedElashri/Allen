@@ -24,11 +24,33 @@ void SequenceVisitor::visit<run_hlt1_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  cudaCheck(cudaMemsetAsync(
+  
+  host_buffers.host_sel_results_atomics[Hlt1::Hlt1Lines::StartOneTrackLines] = 0;
+  host_buffers.host_sel_results_atomics[Hlt1::Hlt1Lines::StartTwoTrackLines] = 0;
+  for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+    host_buffers.host_sel_results_atomics[i_line] = 0;
+  }
+  for (uint i_line = Hlt1::Hlt1Lines::StartOneTrackLines + 1; i_line < Hlt1::Hlt1Lines::StartTwoTrackLines; i_line++) {
+    host_buffers.host_sel_results_atomics[i_line] =
+      host_buffers.host_number_of_reconstructed_scifi_tracks[0];
+  }
+  for (uint i_line = Hlt1::Hlt1Lines::StartTwoTrackLines + 1; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+    host_buffers.host_sel_results_atomics[i_line] =
+      host_buffers.host_number_of_svs[0];
+  }
+  for (uint i_line = 1; i_line <= Hlt1::Hlt1Lines::End; i_line++) {
+    host_buffers.host_sel_results_atomics[Hlt1::Hlt1Lines::End + i_line] =
+      host_buffers.host_sel_results_atomics[Hlt1::Hlt1Lines::End + i_line - 1] +
+      host_buffers.host_sel_results_atomics[i_line - 1];
+  }
+  
+  cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_sel_results_atomics>(),
-    0,
+    host_buffers.host_sel_results_atomics,
     arguments.size<dev_sel_results_atomics>(),
+    cudaMemcpyHostToDevice,
     cuda_stream));
+                            
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_sel_results>(),
     false,
@@ -53,11 +75,6 @@ void SequenceVisitor::visit<run_hlt1_t>(
       arguments.size<dev_sel_results>(),
       cudaMemcpyDeviceToHost,
       cuda_stream));
-    cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_sel_results_atomics,
-      arguments.offset<dev_sel_results_atomics>(),
-      arguments.size<dev_sel_results_atomics>(),
-      cudaMemcpyDeviceToHost,
-      cuda_stream));
   }
+
 }

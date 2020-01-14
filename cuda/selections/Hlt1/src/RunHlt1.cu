@@ -23,21 +23,7 @@ __global__ void run_hlt1(
 
   const uint total_tracks = dev_atomics_scifi[2 * number_of_events];
   const uint total_svs = dev_sv_atomics[2 * number_of_events];
-
-  if (threadIdx.x == 0) {
-    dev_sel_results_atomics[Hlt1::Hlt1Lines::OneTrackMVA] = total_tracks;
-    dev_sel_results_atomics[Hlt1::Hlt1Lines::TwoTrackMVA] = total_svs;
-    dev_sel_results_atomics[Hlt1::Hlt1Lines::SingleMuon] = total_tracks;
-    dev_sel_results_atomics[Hlt1::Hlt1Lines::DisplacedDiMuon] = total_svs;
-    dev_sel_results_atomics[Hlt1::Hlt1Lines::HighMassDiMuon] = total_svs;
-    dev_sel_results_atomics[Hlt1::Hlt1Lines::SoftDiMuon] = total_svs;
-    for (uint i_line = 1; i_line <= Hlt1::Hlt1Lines::End; i_line++) {
-      dev_sel_results_atomics[Hlt1::Hlt1Lines::End + i_line] =
-        dev_sel_results_atomics[Hlt1::Hlt1Lines::End - 1] + dev_sel_results_atomics[i_line];
-    }
-  }
-  __syncthreads();
-
+  
   const uint* dev_sel_result_offsets = dev_sel_results_atomics + Hlt1::Hlt1Lines::End;
   
   // Tracks.
@@ -63,8 +49,8 @@ __global__ void run_hlt1(
   const auto n_vertices_event = dev_sv_atomics[event_number];
   
   LineHandler<ParKalmanFilter::FittedTrack> oneTrackHandler {TrackMVALines::OneTrackMVA};
-  LineHandler<VertexFit::TrackMVAVertex> twoTrackHandler {TrackMVALines::TwoTrackMVA};
   LineHandler<ParKalmanFilter::FittedTrack> singleMuonHandler {MuonLines::SingleMuon};
+  LineHandler<VertexFit::TrackMVAVertex> twoTrackHandler {TrackMVALines::TwoTrackMVA};
   LineHandler<VertexFit::TrackMVAVertex> dispDiMuonHandler {MuonLines::DisplacedDiMuon};
   LineHandler<VertexFit::TrackMVAVertex> highMassDiMuonHandler {MuonLines::HighMassDiMuon};
   LineHandler<VertexFit::TrackMVAVertex> diMuonSoftHandler {MuonLines::DiMuonSoft};
@@ -78,4 +64,5 @@ __global__ void run_hlt1(
   dispDiMuonHandler(event_vertices, n_vertices_event, event_disp_dimuon_results);
   highMassDiMuonHandler(event_vertices, n_vertices_event, event_high_mass_dimuon_results);
   diMuonSoftHandler(event_vertices, n_vertices_event, event_dimuon_soft_results);
+  
 }

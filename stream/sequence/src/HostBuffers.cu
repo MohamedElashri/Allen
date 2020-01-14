@@ -24,6 +24,8 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_number_of_svs, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_hits, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_passing_events, sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_sel_results_atomics, (2 * Hlt1::Hlt1Lines::End + 1) * sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_sel_results, max_number_of_events * 1000 * Hlt1::Hlt1Lines::End * sizeof(bool)));
 
   // Buffer for performing GEC on CPU
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
@@ -137,10 +139,10 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       malloc(max_number_of_events * n_max_svs * sizeof(bool)));
     host_dimuon_soft_decisions = reinterpret_cast<decltype(host_dimuon_soft_decisions)>(
       malloc(max_number_of_events * n_max_svs * sizeof(bool)));
+    /*
     host_sel_results = reinterpret_cast<decltype(host_sel_results)>(
-      malloc(max_number_of_events * SciFi::Constants::max_tracks * n_hlt1_lines * sizeof(bool)));
-    host_sel_results_atomics = reinterpret_cast<decltype(host_sel_results_atomics)>(
-      2 * n_hlt1_lines + 1 * sizeof(uint));
+      malloc(max_number_of_events * SciFi::Constants::max_tracks * Hlt1::Hlt1Lines::End * sizeof(bool)));
+    */
   }
 }
 
