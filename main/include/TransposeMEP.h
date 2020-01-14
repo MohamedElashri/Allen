@@ -54,7 +54,7 @@ namespace MEP {
     EB::Header const& header,
     gsl::span<char const> const& data);
 
-  void find_blocks(EB::Header const& mep_header, gsl::span<char const>& buffer_span, Blocks& blocks);
+  void find_blocks(EB::Header const& mep_header, gsl::span<char const> const& buffer_span, Blocks& blocks);
 
   void fragment_offsets(Blocks const& blocks, std::vector<std::vector<uint32_t>>& offsets);
 

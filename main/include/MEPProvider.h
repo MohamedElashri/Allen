@@ -656,14 +656,6 @@ private:
         allocate_storage(i_buffer);
       }
 
-      // Fill blocks
-      MEP::find_blocks(mep_header, buffer_span, blocks);
-
-      // Fill fragment offsets
-      if (m_config.transpose_mep) {
-        MEP::fragment_offsets(blocks, input_offsets);
-      }
-
       // Notify a transpose thread that a new buffer of events is
       // ready. If prefetching is done, wake up all threads
       if (success) {
@@ -806,14 +798,6 @@ private:
         allocate_storage(i_buffer);
       }
 
-      // Fill blocks
-      MEP::find_blocks(mep_header, buffer_span, blocks);
-
-      // Fill fragment offsets
-      if (m_config.transpose_mep) {
-        MEP::fragment_offsets(blocks, input_offsets);
-      }
-
       bytes_received += mep_size;
       meps_received += 1;
       if (t.get_elapsed_time() >= reporting_period) {
@@ -930,7 +914,13 @@ private:
       reset_slice<Banks...>(m_slices, *slice_index, event_ids, !m_config.transpose_mep);
 
       // MEP data
-      auto const& [mep_header, mep_data, blocks, source_offsets, slice_size] = m_net_slices[i_buffer];
+      auto& [mep_header, mep_data, blocks, source_offsets, slice_size] = m_net_slices[i_buffer];
+
+      // Fill blocks
+      MEP::find_blocks(mep_header, mep_data, blocks);
+
+      // Fill fragment offsets
+      MEP::fragment_offsets(blocks, source_offsets);
 
       // Transpose or calculate offsets
       if (m_config.transpose_mep) {

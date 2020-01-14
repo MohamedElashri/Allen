@@ -32,7 +32,7 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> MEP::fill_counts(
   return {true, count};
 }
 
-void MEP::find_blocks(EB::Header const& mep_header, gsl::span<char const>& buffer_span, Blocks& blocks)
+void MEP::find_blocks(EB::Header const& mep_header, gsl::span<char const> const& buffer_span, Blocks& blocks)
 {
 
   // Fill blocks
