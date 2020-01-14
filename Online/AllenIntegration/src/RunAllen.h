@@ -37,7 +37,7 @@
 #include "Stream.cuh"
 #include "Logger.h"
 
-class RunAllen final : public Gaudi::Functional::Transformer<HostBuffers(const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
+class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
  public:
   /// Standard constructor
   RunAllen( const std::string& name, ISvcLocator* pSvcLocator );
@@ -46,7 +46,7 @@ class RunAllen final : public Gaudi::Functional::Transformer<HostBuffers(const s
   StatusCode                               initialize() override;
   
   /// Algorithm execution
-  HostBuffers operator()( const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
+  std::tuple<bool, HostBuffers> operator()( const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
 
   /// Finalize
   StatusCode                               finalize() override;

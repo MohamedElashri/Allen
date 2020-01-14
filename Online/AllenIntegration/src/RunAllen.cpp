@@ -15,7 +15,7 @@
 DECLARE_COMPONENT( RunAllen )
 
 RunAllen::RunAllen( const std::string& name, ISvcLocator* pSvcLocator )
-: Transformer( name, pSvcLocator,
+: MultiTransformerFilter( name, pSvcLocator,
                     // Inputs
                     {KeyValue{"AllenRawInput", "Allen/Raw/Input"},
                      KeyValue{"ODINLocation", LHCb::ODINLocation::Default}},
@@ -23,7 +23,7 @@ RunAllen::RunAllen( const std::string& name, ISvcLocator* pSvcLocator )
                     {KeyValue{"AllenOutput", "Allen/Out/HostBuffers"}} ) {}
 
 StatusCode RunAllen::initialize() {
-  auto sc = Transformer::initialize();
+  auto sc = MultiTransformerFilter::initialize();
   if ( sc.isFailure() ) return sc;
   if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
 
@@ -81,7 +81,7 @@ StatusCode RunAllen::initialize() {
 
 /** Calls Allen for one event
  */
-HostBuffers RunAllen::operator()(const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const {
+std::tuple<bool, HostBuffers> RunAllen::operator()(const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const {
 
   // Get raw input and event offsets for every detector
   std::array<BanksAndOffsets, LHCb::RawBank::LastType> banks_and_offsets;
@@ -112,7 +112,8 @@ HostBuffers RunAllen::operator()(const std::array<std::vector<char>, LHCb::RawBa
   const uint buf_idx = m_n_buffers - 1;
   cudaError_t rv = m_stream->run_sequence(buf_idx, runtime_options);
   
-  return *(m_stream->host_buffers_manager->getBuffers(buf_idx));
+  bool filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_selected_events[0];
+  return std::make_tuple( filter, *(m_stream->host_buffers_manager->getBuffers(buf_idx)) );
 }
 
 StatusCode RunAllen::finalize() {
@@ -124,5 +125,5 @@ StatusCode RunAllen::finalize() {
     return StatusCode::FAILURE;
   }
   
-  return Transformer::finalize(); 
+  return MultiTransformerFilter::finalize(); 
 }
