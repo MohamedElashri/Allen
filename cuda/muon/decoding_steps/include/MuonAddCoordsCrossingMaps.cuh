@@ -9,9 +9,9 @@ namespace muon_add_coords_crossing_maps {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, uint) dev_storage_station_region_quarter_offsets;
-    DEVICE_INPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
-    DEVICE_INPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
-    DEVICE_INPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
+    DEVICE_OUTPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
+    DEVICE_OUTPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
+    DEVICE_OUTPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
     DEVICE_OUTPUT(dev_muon_hits_t, uint) dev_muon_hits;
     DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
     DEVICE_OUTPUT(dev_station_ocurrences_offset_t, uint) dev_station_ocurrences_offset;

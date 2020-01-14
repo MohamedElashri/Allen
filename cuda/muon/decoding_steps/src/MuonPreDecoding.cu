@@ -36,7 +36,7 @@ __global__ void muon_pre_decoding::muon_pre_decoding(muon_pre_decoding::Paramete
       const auto pp = *(p + j);
       const auto add = (pp & 0x0FFF);
       const auto tdc_value = ((pp & 0xF000) >> 12);
-      const auto tileId = parameters.dev_muon_raw_to_hits->muonGeometry->getADDInTell1(tell_number, add);
+      const auto tileId = parameters.dev_muon_raw_to_hits.get()->muonGeometry->getADDInTell1(tell_number, add);
 
       if (tileId != 0) {
         const auto insert_index = atomicAdd(parameters.dev_atomics_muon + event_number, 1);

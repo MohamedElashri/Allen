@@ -3,8 +3,10 @@
 #include "Common.h"
 #include "SciFiRaw.cuh"
 #include "UTRaw.cuh"
-#include "GlobalEventCutConfiguration.cuh"
 #include "HostAlgorithm.cuh"
+
+static constexpr uint min_scifi_ut_clusters = 0;
+static constexpr uint max_scifi_ut_clusters = 9750;
 
 namespace host_global_event_cut {
   struct Parameters {
@@ -69,7 +71,7 @@ namespace host_global_event_cut {
         cuda_stream));
 
       // TODO: Remove
-      value<host_number_of_selected_events_t>(arguments) = value<host_number_of_selected_events_t>(arguments);
+      host_buffers.host_number_of_selected_events[0] = value<host_number_of_selected_events_t>(arguments);
       for (uint i = 0; i < runtime_options.number_of_events; ++i) {
         host_buffers.host_event_list[i] = offset<host_event_list_t>(arguments)[i];
       }

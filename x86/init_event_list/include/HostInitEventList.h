@@ -1,16 +1,18 @@
 #pragma once
 
 #include "HostAlgorithm.cuh"
-#include "ArgumentsCommon.cuh"
 
-namespace cpu_init_event_list {
-  // Arguments
-  struct dev_event_list_t : output_datatype<uint> {};
+namespace host_init_event_list {
+  struct Parameters {
+    HOST_OUTPUT(host_event_list_t, uint);
+    HOST_OUTPUT(host_number_of_selected_events_t, uint);
+    DEVICE_OUTPUT(dev_event_list_t, uint) dev_event_list;
+  };
 
   // Algorithm
-  template<typename Arguments>
-  struct cpu_init_event_list_t : public HostAlgorithm {
-    constexpr static auto name {"cpu_init_event_list_t"};
+  template<typename T>
+  struct host_init_event_list_t : public HostAlgorithm, Parameters {
+    constexpr static auto name {"host_init_event_list_t"};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -30,9 +32,9 @@ namespace cpu_init_event_list {
       cudaEvent_t& cuda_generic_event) const
     {
       // Initialize buffers
-      value<host_number_of_selected_events_t>(arguments) = runtime_options.number_of_events;
+      offset<host_number_of_selected_events_t>(arguments)[0] = runtime_options.number_of_events;
       for (uint i = 0; i < runtime_options.number_of_events; ++i) {
-        host_buffers.host_event_list[i] = i;
+        offset<host_event_list_t>(arguments)[i] = i;
       }
 
       cudaCheck(cudaMemcpyAsync(
@@ -43,4 +45,4 @@ namespace cpu_init_event_list {
         cuda_stream));
     }
   };
-} // namespace cpu_init_event_list
+} // namespace host_init_event_list

@@ -81,15 +81,22 @@ namespace Velo {
           number_of_events)
       {}
 
-      template<typename T>
-      __host__ __device__ Hits_t<typename ForwardType<T, char>::t> get_hits(
-        T* hits_base_pointer,
+      __host__ __device__ ConstHits get_hits(
+        const char* hits_base_pointer,
         const uint track_number) const
       {
-        return Hits_t<typename ForwardType<T, char>::t> {
-          hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ Hits get_hits(
+        char* hits_base_pointer,
+        const uint track_number) const
+      {
+        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
     };
+
+    typedef const Tracks ConstTracks;
 
     template<typename T>
     struct States_t {

@@ -2,35 +2,64 @@
 
 #include "DeviceAlgorithm.cuh"
 #include "MuonDefinitions.cuh"
-#include "ArgumentsMuon.cuh"
 
-__global__ void muon_catboost_evaluator(
-  const float* dev_muon_catboost_features,
-  float* dev_muon_catboost_output,
-  const float* dev_muon_catboost_leaf_values,
-  const int* dev_muon_catboost_leaf_offsets,
-  const float* dev_muon_catbost_split_borders,
-  const int* dev_muon_catboost_split_features,
-  const int* dev_muon_catboost_tree_sizes,
-  const int* dev_muon_catboost_tree_offsets,
-  const int n_trees);
+namespace muon_catboost_evaluator {
+  struct Parameters {
+    HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
+    DEVICE_INPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
+    DEVICE_OUTPUT(dev_muon_catboost_output_t, float) dev_muon_catboost_output;
+  };
 
-struct muon_catboost_evaluator_t : public DeviceAlgorithm {
-  constexpr static auto name {"muon_catboost_evaluator_t"};
-  decltype(global_function(muon_catboost_evaluator)) function {muon_catboost_evaluator};
-  using Arguments = std::tuple<dev_muon_catboost_features, dev_muon_catboost_output, dev_is_muon>;
+  __global__ void muon_catboost_evaluator(
+    Parameters,
+    const float* dev_muon_catboost_leaf_values,
+    const int* dev_muon_catboost_leaf_offsets,
+    const float* dev_muon_catbost_split_borders,
+    const int* dev_muon_catboost_split_features,
+    const int* dev_muon_catboost_tree_sizes,
+    const int* dev_muon_catboost_tree_offsets,
+    const int n_trees);
 
-  void set_arguments_size(
-    ArgumentRefManager<T> arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    const HostBuffers& host_buffers) const;
+  template<typename T>
+  struct muon_catboost_evaluator_t : public DeviceAlgorithm, Parameters {
+    constexpr static auto name {"muon_catboost_evaluator_t"};
+    decltype(global_function(muon_catboost_evaluator)) function {muon_catboost_evaluator};
 
-  void operator()(
-    const ArgumentRefManager<T>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Constants& constants,
-    HostBuffers& host_buffers,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event) const;
-};
+    void set_arguments_size(
+      ArgumentRefManager<T> arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      const HostBuffers& host_buffers) const
+    {
+      set_size<dev_muon_catboost_output_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+    }
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t& cuda_generic_event) const
+    {
+      function(dim3(value<host_number_of_reconstructed_scifi_tracks_t>(arguments)), block_dimension(), cuda_stream)(
+        Parameters {offset<dev_muon_catboost_features_t>(arguments), offset<dev_muon_catboost_output_t>(arguments)},
+        constants.dev_muon_catboost_leaf_values,
+        constants.dev_muon_catboost_leaf_offsets,
+        constants.dev_muon_catboost_split_borders,
+        constants.dev_muon_catboost_split_features,
+        constants.dev_muon_catboost_tree_depths,
+        constants.dev_muon_catboost_tree_offsets,
+        constants.muon_catboost_n_trees);
+
+      if (runtime_options.do_check) {
+        cudaCheck(cudaMemcpyAsync(
+          host_buffers.host_muon_catboost_output,
+          offset<dev_muon_catboost_output_t>(arguments),
+          size<dev_muon_catboost_output_t>(arguments),
+          cudaMemcpyDeviceToHost,
+          cuda_stream));
+      }
+    }
+  };
+} // namespace muon_catboost_evaluator

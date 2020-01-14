@@ -103,7 +103,10 @@ namespace Sch {
                   NextAlgorithm,
                   typename ArgumentsNotIn<
                     typename AlgorithmTraits<Algorithm>::Arguments,
-                    std::tuple<NextAlgorithm, Algorithms...>>::t>::t>> ::t;
+                    std::tuple<NextAlgorithm, Algorithms...>
+                  >::t
+                >
+              >::t;
   };
 
   // Helper to calculate OUT dependencies

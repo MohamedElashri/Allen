@@ -38,13 +38,13 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
       const auto region = tile.region();
 
       const auto x1 =
-        getLayoutX(parameters.dev_muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+        getLayoutX(parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
       const auto y1 =
-        getLayoutY(parameters.dev_muon_raw_to_hits->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+        getLayoutY(parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
       const auto x2 =
-        getLayoutX(parameters.dev_muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+        getLayoutX(parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
       const auto y2 =
-        getLayoutY(parameters.dev_muon_raw_to_hits->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+        getLayoutY(parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
 
       Muon::MuonLayout layout_one;
       Muon::MuonLayout layout_two;

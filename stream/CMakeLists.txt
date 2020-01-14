@@ -14,7 +14,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/UT/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/associate/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/global_event_cut/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/UTDecoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/sorting/include)
@@ -96,20 +95,18 @@ allen_add_library(Stream STATIC
 target_link_libraries(Stream PRIVATE
   CudaCommon
   Associate
-  GlobalEventCut
   Velo
   AllenPatPV
   PV_beamline
   x86Clustering
-  CpuPrefixSum
-  CpuInitEventList
+  HostPrefixSum
   UT
   Kalman
   VertexFitter
   Hlt1
   RawBanks
   SciFi
-  CpuGEC
+  HostGEC
   Muon
   Utils)
 

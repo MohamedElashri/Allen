@@ -3,6 +3,7 @@
 #include "DeviceAlgorithm.cuh"
 #include "MuonDefinitions.cuh"
 #include "FindPermutation.cuh"
+#include "MuonRawToHits.cuh"
 
 namespace muon_sort_by_station {
   struct Parameters {
@@ -10,8 +11,8 @@ namespace muon_sort_by_station {
     DEVICE_INPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
     DEVICE_INPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
     DEVICE_INPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
-    DEVICE_INPUT(dev_permutation_station_t, uint) dev_permutation_station;
-    DEVICE_INPUT(dev_muon_hits_t, Muon::HitsSoA) dev_muon_hits;
+    DEVICE_OUTPUT(dev_permutation_station_t, uint) dev_permutation_station;
+    DEVICE_OUTPUT(dev_muon_hits_t, Muon::HitsSoA) dev_muon_hits;
     DEVICE_INPUT(dev_station_ocurrences_offset_t, uint) dev_station_ocurrences_offset;
     DEVICE_INPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
     DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;

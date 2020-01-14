@@ -3,7 +3,6 @@
 #include <tuple>
 
 // All includes of all algorithms
-#include "PrefixSum.cuh"
 #include "EstimateInputSize.cuh"
 #include "MaskedVeloClustering.cuh"
 #include "CalculatePhiAndSort.cuh"
@@ -69,21 +68,11 @@
 #include "VeloCopyTrackHitNumber.cuh"
 #include "UTCopyTrackHitNumber.cuh"
 #include "SciFiCopyTrackHitNumber.cuh"
+#include "PrefixSum.cuh"
 
-#include "CpuInitEventList.h"
+#include "HostInitEventList.h"
 #include "HostGlobalEventCut.h"
-#include "CpuVeloPrefixSumNumberOfClusters.h"
-#include "CpuVeloPrefixSumNumberOfTracks.h"
-#include "CpuVeloPrefixSumNumberOfTrackHits.h"
-#include "CpuUTPrefixSumNumberOfHits.h"
-#include "CpuUTPrefixSumNumberOfTracks.h"
-#include "CpuUTPrefixSumNumberOfTrackHits.h"
-#include "CpuSciFiPrefixSumNumberOfHits.h"
-#include "CpuSciFiPrefixSumNumberOfTracks.h"
-#include "CpuSciFiPrefixSumNumberOfTrackHits.h"
-#include "CpuMuonPrefixSumStorage.h"
-#include "CpuMuonPrefixSumStation.h"
-#include "CpuSVPrefixSumOffsets.h"
+#include "HostPrefixSum.h"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

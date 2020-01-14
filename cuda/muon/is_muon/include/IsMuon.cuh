@@ -15,8 +15,8 @@ namespace is_muon {
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
     DEVICE_INPUT(dev_muon_hits_t, Muon::HitsSoA) dev_muon_hits;
-    DEVICE_INPUT(dev_muon_track_occupancies_t, int) dev_muon_track_occupancies;
-    DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
+    DEVICE_OUTPUT(dev_muon_track_occupancies_t, int) dev_muon_track_occupancies;
+    DEVICE_OUTPUT(dev_is_muon_t, bool) dev_is_muon;
   };
 
   __global__ void is_muon(

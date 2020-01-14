@@ -1,4 +1,4 @@
-file(GLOB cpu_gec "src/*cpp")
+file(GLOB host_gec "src/*cpp")
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
@@ -80,6 +80,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 
-allen_add_library(CpuGEC STATIC
-  ${cpu_gec}
+allen_add_library(HostGEC STATIC
+  ${host_gec}
 )

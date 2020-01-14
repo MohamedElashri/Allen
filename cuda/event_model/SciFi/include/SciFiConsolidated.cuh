@@ -8,14 +8,28 @@ namespace SciFi {
   namespace Consolidated {
     template<typename T>
     struct Hits_t : public SciFi::Hits_t<T> {
-      __host__ __device__
-      Hits_t(typename ForwardType<T, char>::t* base_pointer, const uint track_offset, const uint total_number_of_hits) :
+      __host__ __device__ Hits_t(T* base_pointer, const uint track_offset, const uint total_number_of_hits) :
         SciFi::Hits_t<T>(base_pointer, total_number_of_hits, track_offset)
       {}
     };
 
     typedef const Hits_t<const char> ConstHits;
     typedef Hits_t<char> Hits;
+
+    template<typename T>
+    struct ExtendedHits_t : public SciFi::ExtendedHits_t<T> {
+      __host__ __device__ ExtendedHits_t(
+        T* base_pointer,
+        const uint track_offset,
+        const uint total_number_of_hits,
+        const float* inv_clus_res,
+        const SciFiGeometry* geom) :
+        SciFi::ExtendedHits_t<T>(base_pointer, total_number_of_hits, inv_clus_res, geom, track_offset)
+      {}
+    };
+
+    typedef const ExtendedHits_t<const char> ConstExtendedHits;
+    typedef ExtendedHits_t<char> ExtendedHits;
 
     //---------------------------------------------------------
     // Struct for holding consolidated SciFi track information.
@@ -62,6 +76,16 @@ namespace SciFi {
       __host__ __device__ Hits_t<T> get_hits(T* hits_base_pointer, const uint track_number) const
       {
         return Hits_t<T> {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ ExtendedHits_t<T> get_hits(
+        T* hits_base_pointer,
+        const uint track_number,
+        const SciFiGeometry* geom,
+        const float* inv_clus_res) const
+      {
+        return ExtendedHits_t<T> {
+          hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
       }
     }; // namespace Consolidated
 

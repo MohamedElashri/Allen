@@ -82,7 +82,7 @@ namespace fit_secondary_vertices {
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
     DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
-    DEVICE_INPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
+    DEVICE_OUTPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
   };
 
   __global__ void fit_secondary_vertices(Parameters);

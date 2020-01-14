@@ -271,19 +271,19 @@ __global__ void fit_secondary_vertices::fit_secondary_vertices(fit_secondary_ver
   const uint sv_offset = parameters.dev_sv_offsets[event_number];
 
   // Consolidated SciFi tracks.
-  const SciFi::Consolidated::Tracks scifi_tracks {(uint*) parameters.dev_atomics_scifi,
-                                                  (uint*) parameters.dev_scifi_track_hit_number,
-                                                  (float*) parameters.dev_scifi_qop,
-                                                  (MiniState*) parameters.dev_scifi_states,
-                                                  (uint*) parameters.dev_scifi_track_ut_indices,
-                                                  event_number,
-                                                  number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 event_number,
+                                                 number_of_events};
   const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
   const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
 
   // Track-PV association table.
-  const Associate::Consolidated::Table kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
-                                                         scifi_tracks.total_number_of_tracks()};
+  Associate::Consolidated::ConstTable kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
+                                                        scifi_tracks.total_number_of_tracks()};
   const auto pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Kalman fitted tracks.
@@ -329,9 +329,9 @@ __global__ void fit_secondary_vertices::fit_secondary_vertices(fit_secondary_ver
 
       // Only combine tracks from the same PV.
       if (
-        pv_table.pv[i_track] != pv_table.pv[j_track] &&
-        pv_table.value[i_track] > Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
-        pv_table.value[j_track] > Configuration::fit_secondary_vertices_t::max_assoc_ipchi2) {
+        pv_table.pv(i_track) != pv_table.pv(j_track) &&
+        pv_table.value(i_track) > Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
+        pv_table.value(j_track) > Configuration::fit_secondary_vertices_t::max_assoc_ipchi2) {
         continue;
       }
 
@@ -344,7 +344,7 @@ __global__ void fit_secondary_vertices::fit_secondary_vertices(fit_secondary_ver
       // Fill extra info.
       fill_extra_info(event_secondary_vertices[vertex_idx], trackA, trackB);
       if (n_pvs_event > 0) {
-        int ipv = pv_table.value[i_track] < pv_table.value[j_track] ? pv_table.pv[i_track] : pv_table.pv[j_track];
+        int ipv = pv_table.value(i_track) < pv_table.value(j_track) ? pv_table.pv(i_track) : pv_table.pv(j_track);
         auto pv = vertices[ipv];
         fill_extra_pv_info(event_secondary_vertices[vertex_idx], pv, trackA, trackB);
       }

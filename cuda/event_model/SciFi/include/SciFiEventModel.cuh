@@ -275,24 +275,24 @@ namespace SciFi {
     using Hits_t<T>::mat;
 
     // Additional accessors provided by having inv clus res and geometry information
-    __host__ __device__ float hit_w(const uint index) const
+    __host__ __device__ float w(const uint index) const
     {
       assert(pseudoSize(index) < 9 && "Wrong pseudo size.");
       const auto werrX = m_inv_clus_res[pseudoSize(index)];
       return werrX * werrX;
     };
 
-    __host__ __device__ float hit_dxdy(const uint index) const { return m_geom->dxdy[mat(index)]; };
+    __host__ __device__ float dxdy(const uint index) const { return m_geom->dxdy[mat(index)]; };
 
-    __host__ __device__ float hit_dzdy(const uint index) const { return m_geom->dzdy[mat(index)]; };
+    __host__ __device__ float dzdy(const uint index) const { return m_geom->dzdy[mat(index)]; };
 
-    __host__ __device__ float hit_yMin(const uint index) const
+    __host__ __device__ float yMin(const uint index) const
     {
       const SciFiChannelID id(channel(index));
       return endPointY(index) + id.isBottom() * m_geom->globaldy[mat(index)];
     };
 
-    __host__ __device__ float hit_yMax(const uint index) const
+    __host__ __device__ float yMax(const uint index) const
     {
       const SciFiChannelID id(channel(index));
       return endPointY(index) + !id.isBottom() * m_geom->globaldy[mat(index)];

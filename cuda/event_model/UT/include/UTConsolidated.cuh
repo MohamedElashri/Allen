@@ -9,17 +9,17 @@ namespace UT {
     constexpr static uint hits_number_of_arrays = 8;
 
     template<typename T>
-    struct Hits {
+    struct Hits_t {
     private:
       typename ForwardType<T, float>::t* m_base_pointer;
       const uint m_total_number_of_hits;
       const uint m_track_offset;
 
     public:
-      __host__ __device__ Hits(const Hits& hits) : m_base_pointer(hits.m_base_pointer) {}
+      __host__ __device__ Hits_t(const Hits& hits) : m_base_pointer(hits.m_base_pointer) {}
 
       __host__ __device__
-      Hits(typename ForwardType<T, char>::t* base_pointer, const uint track_offset, const uint total_number_of_hits) :
+      Hits_t(typename ForwardType<T, char>::t* base_pointer, const uint track_offset, const uint total_number_of_hits) :
         m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + track_offset),
         m_total_number_of_hits(total_number_of_hits), m_track_offset(track_offset)
       {}
@@ -90,6 +90,9 @@ namespace UT {
       }
     };
 
+    typedef const Hits_t<const char> ConstHits;
+    typedef Hits_t<char> Hits;
+
     //-------------------------------------------
     // Struct for holding VELO track information.
     //-------------------------------------------
@@ -126,10 +129,10 @@ namespace UT {
 
       __host__ __device__ float& qop(const uint index) { return m_qop[index]; }
 
-      __host__ __device__ Hits<T> get_hits(typename ForwardType<T, char>::t* hits_base_pointer, const uint track_number)
+      __host__ __device__ Hits_t<T> get_hits(typename ForwardType<T, char>::t* hits_base_pointer, const uint track_number)
         const
       {
-        return Hits<T> {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        return Hits_t<T> {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
     };
 

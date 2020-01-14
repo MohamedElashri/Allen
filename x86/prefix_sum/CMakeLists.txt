@@ -1,4 +1,4 @@
-file(GLOB cpu_prefix_sum "src/*cpp")
+file(GLOB host_prefix_sum "src/*cpp")
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
@@ -71,6 +71,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 
-allen_add_library(CpuPrefixSum STATIC
-  ${cpu_prefix_sum}
+allen_add_library(HostPrefixSum STATIC
+  ${host_prefix_sum}
 )

@@ -9,13 +9,13 @@ namespace muon_pre_decoding {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    DEVICE_INPUT(dev_muon_raw_t, char) dev_muon_raw;
-    DEVICE_INPUT(dev_muon_raw_offsets_t, uint) dev_muon_raw_offsets;
-    DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
-    DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, uint) dev_storage_station_region_quarter_offsets;
-    DEVICE_INPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
-    DEVICE_INPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
-    DEVICE_INPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
+    DEVICE_OUTPUT(dev_muon_raw_t, char) dev_muon_raw;
+    DEVICE_OUTPUT(dev_muon_raw_offsets_t, uint) dev_muon_raw_offsets;
+    DEVICE_OUTPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
+    DEVICE_OUTPUT(dev_storage_station_region_quarter_offsets_t, uint) dev_storage_station_region_quarter_offsets;
+    DEVICE_OUTPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
+    DEVICE_OUTPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
+    DEVICE_OUTPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
   };
 
   __global__ void muon_pre_decoding(Parameters);

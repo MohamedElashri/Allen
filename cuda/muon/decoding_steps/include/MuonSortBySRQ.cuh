@@ -3,12 +3,13 @@
 #include "DeviceAlgorithm.cuh"
 #include "MuonDefinitions.cuh"
 #include "FindPermutation.cuh"
+#include "MuonTileID.cuh"
 
 namespace muon_sort_station_region_quarter {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
-    DEVICE_INPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
+    DEVICE_OUTPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
+    DEVICE_OUTPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
     DEVICE_INPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
     DEVICE_OUTPUT(dev_permutation_srq_t, uint) dev_permutation_srq;
   };

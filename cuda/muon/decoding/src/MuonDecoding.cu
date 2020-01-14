@@ -1,76 +1,17 @@
 #include "MuonDecoding.cuh"
 #include <cstdio>
-
-void muon_decoding_t::set_arguments_size(
-  ArgumentRefManager<T> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
-{
-  set_size<dev_muon_raw_t>(arguments, std::get<0>(runtime_options.host_muon_events).size_bytes());
-  set_size<dev_muon_raw_offsets_t>(arguments, std::get<1>(runtime_options.host_muon_events).size_bytes());
-  set_size<dev_muon_raw_to_hits_t>(arguments, 1);
-  set_size<dev_muon_hits_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-}
-
-void muon_decoding_t::operator()(
-  const ArgumentRefManager<T>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event) const
-{
-  // FIXME: this should be done as part of the consumers, but
-  // currently it cannot. This is because it is not possible to
-  // indicate dependencies between Consumer and/or Producers.
-  Muon::MuonRawToHits muonRawToHits {constants.dev_muon_tables, constants.dev_muon_geometry};
-  
-  cudaCheck(cudaMemcpyAsync(
-    offset<dev_muon_raw_to_hits_t>(arguments),
-    &muonRawToHits,
-    sizeof(muonRawToHits),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-  
-  cudaCheck(cudaMemcpyAsync(
-    offset<dev_muon_raw_t>(arguments),
-    std::get<0>(runtime_options.host_muon_events).begin(),
-    std::get<0>(runtime_options.host_muon_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-  
-  cudaCheck(cudaMemcpyAsync(
-    offset<dev_muon_raw_offsets_t>(arguments),
-    std::get<1>(runtime_options.host_muon_events).begin(),
-    std::get<1>(runtime_options.host_muon_events).size_bytes(),
-    cudaMemcpyHostToDevice,
-    cuda_stream));
-
-  function(dim3(value<host_number_of_selected_events_t>(arguments)),
-    dim3(Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters),
-    cuda_stream)(
-    offset<dev_event_list_t>(arguments),
-    offset<dev_muon_raw_t>(arguments),
-    offset<dev_muon_raw_offsets_t>(arguments),
-    offset<dev_muon_raw_to_hits_t>(arguments),
-    offset<dev_muon_hits_t>(arguments));
-}
-
-#ifdef CPU
 #include <cstring>
-#endif
 
 /**
  * This method decodes raw muon events into muon hits.
  * This method runs on a grid of `number of events` X `n_stations * n_regions * n_quarters`.
  *
- * Firstly, threads with numbers [`0` .. `Muon::MuonRawEvent::number_of_raw_banks`) stores pointers to the beginning of every
- *  batch in the corresponding raw bank(thread with number `n` populates
- *  `batchSizePointers`[`n * Muon::MuonRawEvent::batches_per_bank` .. `(n + 1) * Muon::MuonRawEvent::batches_per_bank`)).
+ * Firstly, threads with numbers [`0` .. `Muon::MuonRawEvent::number_of_raw_banks`) stores pointers to the beginning of
+ * every batch in the corresponding raw bank(thread with number `n` populates `batchSizePointers`[`n *
+ * Muon::MuonRawEvent::batches_per_bank` .. `(n + 1) * Muon::MuonRawEvent::batches_per_bank`)).
  *
- * Then, threads with numbers [`0` .. `Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank`) decode
- *   the corresponding batch (thread with number `n` decodes the batch that starts at `frontValuePointers`[`n`]).
+ * Then, threads with numbers [`0` .. `Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank`)
+ * decode the corresponding batch (thread with number `n` decodes the batch that starts at `frontValuePointers`[`n`]).
  *   Tile ids are stored in the `storageTileId` array. Tdcs are stored in the `storageTdcValue` array.
  *
  * Then, the `0`th thread reorders tiles ("zipped" `storageTileId` and `storageTdcValue` arrays)
@@ -89,15 +30,10 @@ void muon_decoding_t::operator()(
  * @param muon_raw_to_hits structure that contains muon geometry and muon lookup tables
  * @param muon_hits output array for hits
  */
-__global__ void muon_decoding(
-  const uint* event_list,
-  const char* events,
-  const unsigned int* offsets,
-  Muon::MuonRawToHits* muon_raw_to_hits,
-  Muon::HitsSoA* muon_hits)
+__global__ void muon_decoding::muon_decoding(muon_decoding::Parameters parameters)
 {
   __shared__ uint currentHitIndex;
-  const size_t eventId = event_list[blockIdx.x];
+  const size_t eventId = parameters.dev_event_list[blockIdx.x];
   const size_t output_event = blockIdx.x;
   __shared__ unsigned int storageTileId[Muon::Constants::max_numhits_per_event];
   __shared__ unsigned int storageTdcValue[Muon::Constants::max_numhits_per_event];
@@ -108,8 +44,10 @@ __global__ void muon_decoding(
     [Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters + 1];
   __shared__ bool used[Muon::Constants::max_numhits_per_event];
   __shared__ int stationOccurrencesOffset[Muon::Constants::n_stations + 1];
-  const Muon::MuonRawEvent rawEvent = Muon::MuonRawEvent(events + offsets[eventId]);
-  __shared__ uint16_t* batchSizePointers[Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank];
+  const Muon::MuonRawEvent rawEvent =
+    Muon::MuonRawEvent(parameters.dev_muon_raw + parameters.dev_muon_raw_offsets[eventId]);
+  __shared__ uint16_t*
+    batchSizePointers[Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank];
   __shared__ unsigned int tell1Numbers[Muon::MuonRawEvent::number_of_raw_banks];
   if (threadIdx.x == 0) {
     currentHitIndex = 0;
@@ -144,8 +82,8 @@ __global__ void muon_decoding(
       const unsigned int pp = *(batchSizePointers[threadIdx.x] + shift);
       const unsigned int add = (pp & 0x0FFF);
       const unsigned int tdc_value = ((pp & 0xF000) >> 12);
-      const unsigned int tileId =
-        muon_raw_to_hits->muonGeometry->getADDInTell1(tell1Numbers[threadIdx.x / Muon::MuonRawEvent::batches_per_bank], add);
+      const unsigned int tileId = parameters.dev_muon_raw_to_hits.get()->muonGeometry->getADDInTell1(
+        tell1Numbers[threadIdx.x / Muon::MuonRawEvent::batches_per_bank], add);
       if (tileId != 0) {
         int localCurrentStorageIndex = atomicAdd(&currentStorageIndex, 1);
         storageTileId[localCurrentStorageIndex] = tileId;
@@ -160,7 +98,8 @@ __global__ void muon_decoding(
       size_t stationRegionQuarter = Muon::MuonTileID::stationRegionQuarter(storageTileId[i]);
       storageStationRegionQuarterOccurrencesOffset[stationRegionQuarter + 1]++;
     }
-    for (size_t i = 0; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters; i++) {
+    for (size_t i = 0; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+         i++) {
       storageStationRegionQuarterOccurrencesOffset[i + 1] += storageStationRegionQuarterOccurrencesOffset[i];
       originalStorageStationRegionQuarterOccurrencesOffset[i + 1] = storageStationRegionQuarterOccurrencesOffset[i + 1];
     }
@@ -190,9 +129,9 @@ __global__ void muon_decoding(
   __syncthreads();
 
   // When storing the results, use the output_event
-  Muon::HitsSoA* event_muon_hits = &muon_hits[output_event];
+  Muon::HitsSoA* event_muon_hits = &parameters.dev_muon_hits[output_event];
 
-  muon_raw_to_hits->addCoordsCrossingMap(
+  parameters.dev_muon_raw_to_hits.get()->addCoordsCrossingMap(
     storageTileId,
     storageTdcValue,
     used,
@@ -204,17 +143,17 @@ __global__ void muon_decoding(
 
   if (threadIdx.x == 0) {
     for (size_t i = 0; i < currentHitIndex; i++) {
-      size_t currentStation = Muon::MuonTileID::station(muon_hits[output_event].tile[i]);
+      size_t currentStation = Muon::MuonTileID::station(parameters.dev_muon_hits[output_event].tile[i]);
       stationOccurrencesOffset[currentStation + 1]++;
     }
     for (size_t i = 0; i < Muon::Constants::n_stations; i++) {
-      muon_hits[output_event].number_of_hits_per_station[i] = stationOccurrencesOffset[i + 1];
+      parameters.dev_muon_hits[output_event].number_of_hits_per_station[i] = stationOccurrencesOffset[i + 1];
     }
     for (size_t i = 0; i < Muon::Constants::n_stations; i++) {
       stationOccurrencesOffset[i + 1] += stationOccurrencesOffset[i];
     }
     for (size_t i = 0; i < Muon::Constants::n_stations; i++) {
-      muon_hits[output_event].station_offsets[i] = stationOccurrencesOffset[i];
+      parameters.dev_muon_hits[output_event].station_offsets[i] = stationOccurrencesOffset[i];
     }
 
     for (int i = currentHitIndex - 1; i > -1; i--) {
