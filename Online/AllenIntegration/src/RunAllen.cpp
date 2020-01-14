@@ -118,3 +118,15 @@ std::tuple<LHCb::Tracks, LHCb::Tracks> RunAllen::operator()(const std::array<std
 
   return std::make_tuple( std::move( VeloTracks ), std::move( UTTracks ) );
 }
+
+StatusCode RunAllen::finalize() {
+  info() << "Finalizing Allen..." << endmsg;
+  
+  cudaError_t rv = m_stream->free(m_do_check);
+  if (rv != 0) {
+    error() << "Failed to free stream memory, cudaError = " << rv << endmsg;
+    return StatusCode::FAILURE;
+  }
+  
+  return MultiTransformer::finalize(); 
+}

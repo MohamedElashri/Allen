@@ -44,9 +44,12 @@ class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHC
 
   /// initialization
   StatusCode                               initialize() override;
-
+  
   /// Algorithm execution
   std::tuple<LHCb::Tracks, LHCb::Tracks> operator()( const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
+
+  /// Finalize
+  StatusCode                               finalize() override;
   
  private:
   Constants m_constants;

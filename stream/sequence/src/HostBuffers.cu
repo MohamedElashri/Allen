@@ -184,8 +184,6 @@ cudaError_t HostBuffers::free(const bool do_check) {
   cudaCheck(cudaFreeHost(host_prefix_sum_buffer));
 
   // if (do_check) {
-  //   // Datatypes to be reserved only if checking is on
-  //   // Note: These datatypes in principle do not require to be pinned
   //   free(host_atomics_velo);
   //   free(host_velo_track_hit_number);
   //   free(host_velo_track_hits);
