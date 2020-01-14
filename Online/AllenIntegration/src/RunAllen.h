@@ -37,7 +37,7 @@
 #include "Stream.cuh"
 #include "Logger.h"
 
-class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const std::array<std::tuple<uint32_t, std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
+class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHCb::Tracks, LHCb::Tracks>(const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin)> {
  public:
   /// Standard constructor
   RunAllen( const std::string& name, ISvcLocator* pSvcLocator );
@@ -46,7 +46,7 @@ class RunAllen final : public Gaudi::Functional::MultiTransformer<std::tuple<LHC
   StatusCode                               initialize() override;
 
   /// Algorithm execution
-  std::tuple<LHCb::Tracks, LHCb::Tracks> operator()( const std::array<std::tuple<uint32_t, std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
+  std::tuple<LHCb::Tracks, LHCb::Tracks> operator()( const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const override;
   
  private:
   Constants m_constants;

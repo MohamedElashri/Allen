@@ -27,6 +27,7 @@ struct UTRawEvent {
   {
     const char* p = event;
     number_of_raw_banks = *((uint32_t*) p);
+    printf("number of UT raw banks = %u \n", number_of_raw_banks); 
     p += sizeof(uint32_t);
     raw_bank_offsets = (uint32_t*) p;
     p += (number_of_raw_banks + 1) * sizeof(uint32_t);
@@ -36,7 +37,6 @@ struct UTRawEvent {
   __device__ __host__ UTRawBank getUTRawBank(const uint32_t index) const
   {
     const uint32_t offset = raw_bank_offsets[index];
-    printf("UT raw bank offset = %u \n", offset); 
     UTRawBank raw_bank(data + offset);
     return raw_bank;
   }
