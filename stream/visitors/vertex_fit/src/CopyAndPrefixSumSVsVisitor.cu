@@ -2,16 +2,7 @@
 #include "PrefixSum.cuh"
 #include "CpuPrefixSum.cuh"
 
-template<>
-void SequenceVisitor::set_arguments_size<copy_and_prefix_sum_single_block_sv_t>(
-  const copy_and_prefix_sum_single_block_sv_t& state,
-  copy_and_prefix_sum_single_block_sv_t::arguments_t arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers)
-{
-  //arguments.set_size<dev_sv_atomics>(host_buffers.host_number_of_selected_events[0] + 1);
-}
+DEFINE_EMPTY_SET_ARGUMENTS_SIZE(copy_and_prefix_sum_single_block_sv_t)
 
 template<>
 void SequenceVisitor::visit<copy_and_prefix_sum_single_block_sv_t>(

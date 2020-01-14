@@ -64,5 +64,4 @@ __global__ void run_hlt1(
   dispDiMuonHandler(event_vertices, n_vertices_event, event_disp_dimuon_results);
   highMassDiMuonHandler(event_vertices, n_vertices_event, event_high_mass_dimuon_results);
   diMuonSoftHandler(event_vertices, n_vertices_event, event_dimuon_soft_results);
-  
 }

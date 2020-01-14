@@ -47,9 +47,9 @@ void SequenceVisitor::visit<fit_secondary_vertices_t>(
 
   if (runtime_options.do_check) {
     cudaCheck(cudaMemcpyAsync(
-      host_buffers.host_secondary_vertices,
-      arguments.offset<dev_secondary_vertices>(),
-      arguments.size<dev_secondary_vertices>(),
+      host_buffers.host_sv_atomics,
+      arguments.offset<dev_sv_atomics>(),
+      arguments.size<dev_sv_atomics>(),
       cudaMemcpyDeviceToHost,
       cuda_stream));
     cudaCheck(cudaMemcpyAsync(
