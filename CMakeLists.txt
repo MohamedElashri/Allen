@@ -68,12 +68,6 @@ macro(allen_project)
       # Make sure the lcg compiler wrapper scripts are used to call
       # the host compiler
       set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-
-      # Build for maximum compatibility as the build host is different
-      # from the the machine running it and may not even have a GPU
-      foreach(arch 30 52 61 70 75)
-        set(OVERRIDE_ARCH_FLAG "${OVERRIDE_ARCH_FLAG} -gencode arch=compute_${arch},code=sm_${arch}")
-      endforeach()
     endif()
 
   else()
@@ -245,40 +239,23 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
   set(CMAKE_CUDA_STANDARD 14)
 
-  # Configuration of CUDA compute architecture
-  if(NOT DEFINED CUDA_ARCH)
-    set(CUDA_ARCH "MAX" CACHE STRING "Cuda architecture")
-  endif()
+  # By default, build for maximum compatibility.
+  # * These settings support natively archs 3.0, 5.0, 6.0, 7.0 and 7.5.
+  # * All other 3.X, 5.X and 6.X architectures are supported through their respective
+  #   major number builds, specifics of those architectures are not used.
+  # * Forward compatibility with newer devices is also supported by generating PTX from 7.5
+  #   (-gencode=arch=compute_75,compute=compute_75)
+  foreach(arch 30 50 60 70 75)
+    set(DEFAULT_CUDA_ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG} -gencode=arch=compute_${arch},code=sm_${arch}")
+  endforeach()
+  set(DEFAULT_CUDA_ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG} -gencode=arch=compute_75,code=compute_75")
 
   if(DEFINED OVERRIDE_ARCH_FLAG)
     message(STATUS "Cuda architecture set to ${OVERRIDE_ARCH_FLAG}")
     set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
-  elseif (CUDA_ARCH STREQUAL "MIN" OR CUDA_ARCH STREQUAL "MAX" OR CUDA_ARCH STREQUAL "COMP")
-    set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
-    set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
-    execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -ccbin=${CMAKE_CXX_COMPILER} -std=c++14 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
-    if(CUDA_ARCH STREQUAL "MAX")
-      set(CHECK_ARGS "-l")
-    endif()
-    message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture")
-    execute_process(COMMAND ${OUTPUTFILE} ${CHECK_ARGS}
-      RESULT_VARIABLE CUDA_RETURN_CODE
-      OUTPUT_VARIABLE CUDA_ARCH_OUTPUT)
-
-    if(${CUDA_RETURN_CODE} EQUAL 1)
-      message(FATAL_ERROR "${CUDA_ARCH}")
-    else()
-      if (CUDA_ARCH STREQUAL "MIN")
-        message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - sm_30")
-        set(ARCH_FLAG "-arch=sm_30")
-      else()
-        message(STATUS "Detecting ${CUDA_ARCH} CUDA architecture - ${CUDA_ARCH_OUTPUT}")
-        set(ARCH_FLAG "-arch=${CUDA_ARCH_OUTPUT}")
-      endif()
-    endif()
   else()
-    message(STATUS "Cuda architecture manually set to ${CUDA_ARCH}")
-    set(ARCH_FLAG "-arch=${CUDA_ARCH}")
+    message(STATUS "Cuda architecture set to ${DEFAULT_CUDA_ARCH_FLAG}")
+    set(ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG}")
   endif()
 
   # Cuda: Deal with build type
