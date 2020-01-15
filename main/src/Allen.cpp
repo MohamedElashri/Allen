@@ -135,7 +135,6 @@ void run_slices(
   auto con = ZMQ::connection(thread_id);
   try {
     control.connect(con.c_str());
-    info_cout << "Connected slices control to " << con << "\n";
   } catch (const zmq::error_t& e) {
     error_cout << "failed to connect connection " << con << "\n";
     throw e;
@@ -884,7 +883,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       zmq::setsockopt(control, zmq::LINGER, 0);
       auto con = ZMQ::connection(thread_id);
       control.bind(con.c_str());
-      info_cout << "Bound control connection " << con << "\n";
       // I don't know why, but this prevents problems. Probably
       // some race condition I haven't noticed.
       std::this_thread::sleep_for(std::chrono::milliseconds {50});

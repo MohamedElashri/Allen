@@ -104,7 +104,7 @@ public:
     size_t events_per_slice,
     std::optional<size_t> n_events,
     std::vector<std::string> connections,
-    MEPProviderConfig config = MEPProviderConfig {}) :
+    MEPProviderConfig config = MEPProviderConfig {}) noexcept(false) :
     InputProvider<MEPProvider<Banks...>> {n_slices, events_per_slice, n_events},
     m_buffer_status(config.n_buffers), m_slice_free(n_slices, true), m_banks_count {0},
     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
@@ -130,6 +130,9 @@ public:
       for (size_t i = 0; i < config.n_buffers; ++i) {
         char* contents = nullptr;
         MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
+#if !defined(NO_CUDA) && !defined(CPU)
+        cudaCheck(cudaHostRegister(contents, n_bytes, cudaHostRegisterDefault));
+#endif
         m_net_slices.emplace_back(
           EB::Header {}, gsl::span<char const> {contents, n_bytes}, MEP::Blocks {}, MEP::SourceOffsets {}, n_bytes);
         m_mpi_buffers.emplace_back(contents);
@@ -194,7 +197,7 @@ public:
   }
 
   /// Destructor
-  virtual ~MEPProvider()
+  virtual ~MEPProvider() noexcept(false)
   {
 
     // Set flag to indicate the prefetch thread should exit, wake it
@@ -217,6 +220,9 @@ public:
 
 #ifdef HAVE_MPI
     for (auto* buf : m_mpi_buffers) {
+#if !defined(NO_CUDA) && !defined(CPU)
+      cudaCheck(cudaHostUnregister(buf));
+#endif
       MPI_Free_mem(buf);
     }
 #endif
@@ -718,8 +724,19 @@ private:
       // Reallocate if needed
       if (mep_size > buffer_size) {
         buffer_size = mep_size * bank_size_fudge_factor;
+#if !defined(NO_CUDA) && !defined(CPU)
+        cudaCheck(cudaHostUnregister(contents));
+#endif
         MPI_Free_mem(contents);
         MPI_Alloc_mem(buffer_size, MPI_INFO_NULL, &contents);
+#if !defined(NO_CUDA) && !defined(CPU)
+        try {
+          cudaCheck(cudaHostRegister(contents, buffer_size, cudaHostRegisterDefault));
+        } catch (std::invalid_argument const&) {
+          m_read_error = true;
+          break;
+        }
+#endif
         buffer_span = gsl::span {contents, buffer_size};
       }
 
