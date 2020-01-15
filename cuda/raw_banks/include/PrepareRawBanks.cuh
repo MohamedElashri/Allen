@@ -18,6 +18,7 @@ __global__ void prepare_raw_banks(
   const bool* dev_single_muon_results,
   const bool* dev_disp_dimuon_results,
   const bool* dev_high_mass_dimuon_results,
+  const bool* dev_dimuon_soft_results,
   uint32_t* dev_dec_reports,
   uint* number_of_passing_events,
   uint* event_list);
@@ -33,6 +34,7 @@ ALGORITHM(
     dev_single_muon_results,
     dev_disp_dimuon_results,
     dev_high_mass_dimuon_results,
+    dev_dimuon_soft_results,
     dev_dec_reports,
     dev_number_of_passing_events,
     dev_passing_event_list))

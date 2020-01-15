@@ -36,7 +36,7 @@ void SequenceVisitor::visit<prepare_raw_banks_t>(
     0,
     arguments.size<dev_dec_reports>(),
     cuda_stream));
-  
+
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_scifi>(),
@@ -46,11 +46,12 @@ void SequenceVisitor::visit<prepare_raw_banks_t>(
     arguments.offset<dev_single_muon_results>(),
     arguments.offset<dev_disp_dimuon_results>(),
     arguments.offset<dev_high_mass_dimuon_results>(),
+    arguments.offset<dev_dimuon_soft_results>(),
     arguments.offset<dev_dec_reports>(),
     arguments.offset<dev_number_of_passing_events>(),
     arguments.offset<dev_passing_event_list>());
   state.invoke();
-  
+
   // Copy raw bank data.
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_dec_reports,
