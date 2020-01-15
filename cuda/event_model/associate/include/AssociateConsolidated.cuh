@@ -105,6 +105,6 @@ namespace Associate {
     typedef const Table_t<const char> ConstTable;
     typedef Table_t<char> Table;
 
-    __host__ __device__ uint table_size(uint const tn) { return sizeof(uint) * (tn + 1) + sizeof(float) * (tn + 1); }
+    __host__ __device__ inline uint table_size(uint const tn) { return sizeof(uint) * (tn + 1) + sizeof(float) * (tn + 1); }
   } // namespace Consolidated
 } // namespace Associate
