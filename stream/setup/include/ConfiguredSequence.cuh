@@ -67,7 +67,8 @@
 #include "TrackMVALines.cuh"
 #include "RunHlt1.cuh"
 #include "MuonSortByStation.cuh"
-#include "PrepareRawBanks.cuh"
+//#include "PrepareRawBanks.cuh"
+#include "PrepareDecisions.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 
