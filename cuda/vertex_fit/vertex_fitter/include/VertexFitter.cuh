@@ -130,7 +130,7 @@ ALGORITHM(fit_secondary_vertices,
           Property<float> m_minpt {this,
                                    "track_min_pt",
                                    Configuration::fit_secondary_vertices_t::track_min_pt,
-                                   200.0f,
+                                   0.0f,
                                    "minimum track pT"};
           Property<float> m_minipchi2 {this,
                                        "track_min_ipchi2",

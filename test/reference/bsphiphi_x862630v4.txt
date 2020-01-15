@@ -125,5 +125,5 @@ Two track:           378/  1000, (11340.00 +/-   460.00) kHz
 Single muon:           1/  1000, (   30.00 +/-    29.98) kHz
 Displaced dimuon:      8/  1000, (  240.00 +/-    84.51) kHz
 High mass dimuon:      8/  1000, (  240.00 +/-    84.51) kHz
-Dimuon Soft:           7/  1000, (  210.00 +/-    79.09) kHz
-Inclusive:           398/  1000, (11940.00 +/-   464.37) kHz
+Dimuon Soft:          10/  1000, (  300.00 +/-    94.39) kHz
+Inclusive:           400/  1000, (12000.00 +/-   464.76) kHz

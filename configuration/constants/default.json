@@ -10,7 +10,7 @@
   "copy_scifi_track_hit_number_t": {"block_dim" : "[512, 1, 1]"},
   "copy_ut_track_hit_number_t": {"block_dim" : "[512, 1, 1]"},
   "copy_velo_track_hit_number_t": {"block_dim" : "[512, 1, 1]"},
-  "fit_secondary_vertices_t": {"block_dim" : "[16, 16, 1]", "track_min_pt" : "200.0", "track_min_ipchi2" : "9.0", "track_muon_min_ipchi2" : "4.0", "max_assoc_ipchi2" : "16.0"},
+  "fit_secondary_vertices_t": {"block_dim" : "[16, 16, 1]", "track_min_pt" : "0.0", "track_min_ipchi2" : "9.0", "track_muon_min_ipchi2" : "4.0", "max_assoc_ipchi2" : "16.0"},
   "global_event_cut_t": {"block_dim" : "[32, 1, 1]"},
   "kalman_filter_t": {"block_dim" : "[256, 1, 1]"},
   "kalman_pv_ipchi2_t": {"block_dim" : "[32, 1, 1]"},
