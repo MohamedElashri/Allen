@@ -16,7 +16,7 @@ from Gaudi.Configuration import appendPostConfigAction
 from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
-from Configurables import RunAllen, AllenUpdater
+from Configurables import RunAllen, AllenUpdater, AllenToForwardTracks
 from Configurables import TrackResChecker, PrimaryVertexChecker
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
 from Configurables import DumpMuonGeometry, DumpVPGeometry
@@ -79,7 +79,8 @@ dump_seq.Members += [dump_banks]
 # call Allen
 allen_seq = GaudiSequencer("RecoAllenSeq")
 run_allen = RunAllen()
-allen_seq.Members += [run_allen]
+convert_allen_to_forward_tracks = AllenToForwardTracks()
+allen_seq.Members += [run_allen, convert_allen_to_forward_tracks]
 
 ApplicationMgr().TopAlg += []
 

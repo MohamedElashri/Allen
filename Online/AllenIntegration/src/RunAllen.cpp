@@ -10,6 +10,14 @@
  * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 
+/**
+ * Call Allen to run at one event at a time
+ *
+ * author Dorothea vom Bruch
+ *
+ */
+
+
 #include "RunAllen.h"
 
 DECLARE_COMPONENT( RunAllen )
@@ -74,7 +82,7 @@ StatusCode RunAllen::initialize() {
   m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants, &m_host_buffers_manager);
 
   // Set verbosity level
-  logger::ll.verbosityLevel = 4;
+  logger::ll.verbosityLevel = 3;
   
   return StatusCode::SUCCESS;
 }
@@ -113,8 +121,10 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(const std::array<std::vector<
   cudaError_t rv = m_stream->run_sequence(buf_idx, runtime_options);
   
   bool filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_selected_events[0];
+  info() << "Event selected by Allen: " << uint(filter) << endmsg;
   return std::make_tuple( filter, *(m_stream->host_buffers_manager->getBuffers(buf_idx)) );
 }
+
 
 StatusCode RunAllen::finalize() {
   info() << "Finalizing Allen..." << endmsg;

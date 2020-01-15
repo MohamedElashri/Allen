@@ -63,6 +63,21 @@ namespace Velo {
       {
         return Hits {hits_base_pointer, track_offset(track_number), total_number_of_hits};
       }
+
+      __host__ std::vector<uint32_t> get_lhcbids_for_track(
+        char* hits_base_pointer,
+        const uint track_number) const
+      {
+        uint32_t* LHCbID = reinterpret_cast<uint*>(hits_base_pointer + sizeof(float) * 3 * total_number_of_hits);
+        LHCbID += track_offset(track_number);
+        const uint n_hits = number_of_hits(track_number);
+        std::vector<uint32_t> lhcbids;
+        lhcbids.reserve(n_hits);
+        for (uint i_hit = 0; i_hit < n_hits; i_hit++) {
+          lhcbids.push_back(LHCbID[i_hit]);
+        }
+        return lhcbids;
+      }
     };
 
     struct States {
