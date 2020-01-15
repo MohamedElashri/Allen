@@ -1,5 +1,5 @@
 #include "LFTripletSeedingImpl.cuh"
-#include "BinarySearchTools.cuh"
+#include "BinarySearch.cuh"
 #include "LookingForwardTools.cuh"
 
 __device__ void lf_triplet_seeding_impl(

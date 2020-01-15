@@ -30,12 +30,12 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
 
   // Create consolidated SoAs.
   UT::Consolidated::Tracks ut_tracks {parameters.dev_atomics_ut,
-                                            parameters.dev_ut_track_hit_number,
-                                            parameters.dev_ut_qop,
-                                            parameters.dev_ut_track_velo_indices,
-                                            event_number,
-                                            number_of_events};
-                                            
+                                      parameters.dev_ut_track_hit_number,
+                                      parameters.dev_ut_qop,
+                                      parameters.dev_ut_track_velo_indices,
+                                      event_number,
+                                      number_of_events};
+
   const uint number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = ut_tracks.tracks_offset(event_number);
 
@@ -51,31 +51,31 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
     const UT::TrackHits track = event_veloUT_tracks[i];
 
     // Populate the consolidated hits.
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset] (const uint hit_number, const uint i) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint i) {
       consolidated_hits.yBegin(hit_number) = ut_hits.yBegin(event_offset + i);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset] (const uint hit_number, const uint i) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint i) {
       consolidated_hits.yEnd(hit_number) = ut_hits.yEnd(event_offset + i);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset] (const uint hit_number, const uint i) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint i) {
       consolidated_hits.zAtYEq0(hit_number) = ut_hits.zAtYEq0(event_offset + i);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset] (const uint hit_number, const uint i) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint i) {
       consolidated_hits.xAtYEq0(hit_number) = ut_hits.xAtYEq0(event_offset + i);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset] (const uint hit_number, const uint i) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint i) {
       consolidated_hits.id(hit_number) = ut_hits.id(event_offset + i);
     });
 
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset] (const uint hit_number, const uint i) {
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const uint hit_number, const uint i) {
       consolidated_hits.weight(hit_number) = ut_hits.weight(event_offset + i);
     });
 
-    populate(track, [&consolidated_hits] (const uint hit_number, const uint i) {
+    populate(track, [&consolidated_hits](const uint hit_number, const uint i) {
       consolidated_hits.plane_code(hit_number) = i;
     });
   }

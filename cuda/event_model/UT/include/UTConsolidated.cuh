@@ -25,43 +25,43 @@ namespace UT {
       {}
 
       // Const and lvalue accessors
-      float yBegin(const uint index) const { return m_base_pointer[index]; }
+      __host__ __device__ float yBegin(const uint index) const { return m_base_pointer[index]; }
 
-      float& yBegin(const uint index) { return m_base_pointer[index]; }
+      __host__ __device__ float& yBegin(const uint index) { return m_base_pointer[index]; }
 
-      float yEnd(const uint index) const { return m_base_pointer[m_total_number_of_hits + index]; }
+      __host__ __device__ float yEnd(const uint index) const { return m_base_pointer[m_total_number_of_hits + index]; }
 
-      float& yEnd(const uint index) { return m_base_pointer[m_total_number_of_hits + index]; }
+      __host__ __device__ float& yEnd(const uint index) { return m_base_pointer[m_total_number_of_hits + index]; }
 
-      float zAtYEq0(const uint index) const { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+      __host__ __device__ float zAtYEq0(const uint index) const { return m_base_pointer[2 * m_total_number_of_hits + index]; }
 
-      float& zAtYEq0(const uint index) { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+      __host__ __device__ float& zAtYEq0(const uint index) { return m_base_pointer[2 * m_total_number_of_hits + index]; }
 
-      float xAtYEq0(const uint index) const { return m_base_pointer[3 * m_total_number_of_hits + index]; }
+      __host__ __device__ float xAtYEq0(const uint index) const { return m_base_pointer[3 * m_total_number_of_hits + index]; }
 
-      float& xAtYEq0(const uint index) { return m_base_pointer[3 * m_total_number_of_hits + index]; }
+      __host__ __device__ float& xAtYEq0(const uint index) { return m_base_pointer[3 * m_total_number_of_hits + index]; }
 
-      float weight(const uint index) const { return m_base_pointer[4 * m_total_number_of_hits + index]; }
+      __host__ __device__ float weight(const uint index) const { return m_base_pointer[4 * m_total_number_of_hits + index]; }
 
-      float& weight(const uint index) { return m_base_pointer[4 * m_total_number_of_hits + index]; }
+      __host__ __device__ float& weight(const uint index) { return m_base_pointer[4 * m_total_number_of_hits + index]; }
 
-      uint id(const uint index) const
+      __host__ __device__ uint id(const uint index) const
       {
         return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
       }
 
-      uint& id(const uint index)
+      __host__ __device__ uint& id(const uint index)
       {
         return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
       }
 
-      uint8_t plane_code(const uint index) const
+      __host__ __device__ uint8_t plane_code(const uint index) const
       {
         return reinterpret_cast<typename ForwardType<T, uint8_t>::t*>(
           m_base_pointer + 6 * m_total_number_of_hits - m_track_offset)[m_track_offset + index];
       }
 
-      uint8_t& plane_code(const uint index)
+      __host__ __device__ uint8_t& plane_code(const uint index)
       {
         return reinterpret_cast<typename ForwardType<T, uint8_t>::t*>(
           m_base_pointer + 6 * m_total_number_of_hits - m_track_offset)[m_track_offset + index];
