@@ -30,9 +30,10 @@ namespace pv_beamline_cleanup {
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const {
-      set_size<dev_multi_final_vertices_t>(arguments,
-        value<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
+      const HostBuffers& host_buffers) const
+    {
+      set_size<dev_multi_final_vertices_t>(
+        arguments, value<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
       set_size<dev_number_of_multi_final_vertices_t>(arguments, value<host_number_of_selected_events_t>(arguments));
     }
 
@@ -42,7 +43,8 @@ namespace pv_beamline_cleanup {
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t& cuda_generic_event) const
+    {
       cudaCheck(cudaMemsetAsync(
         offset<dev_number_of_multi_final_vertices_t>(arguments),
         0,
@@ -50,10 +52,10 @@ namespace pv_beamline_cleanup {
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        offset<dev_multi_fit_vertices_t>(arguments),
-        offset<dev_number_of_multi_fit_vertices_t>(arguments),
-        offset<dev_multi_final_vertices_t>(arguments),
-        offset<dev_number_of_multi_final_vertices_t>(arguments));
+        Parameters {offset<dev_multi_fit_vertices_t>(arguments),
+                    offset<dev_number_of_multi_fit_vertices_t>(arguments),
+                    offset<dev_multi_final_vertices_t>(arguments),
+                    offset<dev_number_of_multi_final_vertices_t>(arguments)});
 
       if (runtime_options.do_check) {
         // Retrieve result

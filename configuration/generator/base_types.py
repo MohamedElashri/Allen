@@ -168,7 +168,7 @@ class Sequence():
     # Check there are not two outputs with the same name
     output_names = {}
     for algorithm in self.sequence:
-      for parameter in algorithm.parameters():
+      for parameter_name, parameter in iter(algorithm.parameters().items()):
         if issubclass(parameter.__class__, OutputParameter):
           if parameter.name() in output_names:
             output_names[parameter.name()].append(algorithm.name())
@@ -178,9 +178,13 @@ class Sequence():
     for k, v in iter(output_names.items()):
       # Note: This is a warning, as the sequence atm contains this
       if len(v) > 1:
-        print("Warning: Parameter \"" + k + "\" appears on algorithms ", end="")
+        print("Warning: OutputParameter \"" + k + "\" appears on algorithms: ", end="")
+        i = 0
         for algorithm_name in v:
-          print(v + " ", end="")
+          i += 1
+          print(algorithm_name, end="")
+          if i != len(v):
+            print(", ", end="")
         print()
         warnings += 1
     
@@ -217,7 +221,7 @@ class Sequence():
       print("Number of sequence errors:", errors)
       return False
     elif warnings >= 1:
-      print("Number of sequence warnings:", wanings)
+      print("Number of sequence warnings:", warnings)
 
     return True
 
@@ -283,6 +287,10 @@ class Sequence():
       s += " " + repr(i) + "\n\n"
     s = s[:-2]
     print(s)
+
+  def extend_sequence(self, *args):
+    for algorithm in args:
+      self.sequence.append(algorithm)
 
   def __repr__(self):
     s = "Sequence:\n"
