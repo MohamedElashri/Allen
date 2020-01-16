@@ -81,7 +81,6 @@ void SequenceVisitor::visit<prepare_decisions_t>(
     arguments.size<dev_n_hits_saved>(),
     cuda_stream));
 
-  /*
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_velo>(),
@@ -101,8 +100,8 @@ void SequenceVisitor::visit<prepare_decisions_t>(
     constants.dev_scifi_geometry,
     constants.dev_inv_clus_res,
     arguments.offset<dev_kf_tracks>(),
-    arguments.offset<dev_secondary_vertices>(),
-    arguments.offset<dev_sv_offsets>(),
+    arguments.offset<dev_consolidated_svs>(),
+    arguments.offset<dev_sv_atomics>(),
     arguments.offset<dev_sel_results>(),
     arguments.offset<dev_sel_results_atomics>(),
     arguments.offset<dev_candidate_lists>(),
@@ -116,9 +115,7 @@ void SequenceVisitor::visit<prepare_decisions_t>(
     arguments.offset<dev_dec_reports>(),
     arguments.offset<dev_save_track>(),
     arguments.offset<dev_save_sv>());
-
   state.invoke();
-  */
   
   // Copy list of passing events.
   /*
