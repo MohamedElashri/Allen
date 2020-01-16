@@ -12,6 +12,7 @@
 #include "ParKalmanDefinitions.cuh"
 #include "VertexDefinitions.cuh"
 #include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 #include "ROOTHeaders.h"
 #include <algorithm>

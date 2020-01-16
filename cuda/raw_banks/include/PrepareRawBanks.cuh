@@ -2,6 +2,7 @@
 
 #include "HltDecReport.cuh"
 #include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 #include "Handler.cuh"
 #include "ArgumentsSelections.cuh"

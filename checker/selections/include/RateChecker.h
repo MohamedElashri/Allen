@@ -4,6 +4,7 @@
 #include <CheckerTypes.h>
 #include <CheckerInvoker.h>
 #include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 void checkHlt1Rate(
   const bool* decisions,

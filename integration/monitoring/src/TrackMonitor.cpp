@@ -5,6 +5,7 @@
 
 #include "HltDecReport.cuh"
 #include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 #include <cmath>
 

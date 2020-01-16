@@ -1,6 +1,7 @@
 #include "RunHlt1.cuh"
 #include "SequenceVisitor.cuh"
 #include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 template<>
 void SequenceVisitor::set_arguments_size<run_hlt1_t>(

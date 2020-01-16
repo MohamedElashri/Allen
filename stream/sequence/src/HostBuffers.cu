@@ -3,6 +3,7 @@
 #include "BeamlinePVConstants.cuh"
 #include "LookingForwardConstants.cuh"
 #include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
 {
