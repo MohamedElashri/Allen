@@ -80,7 +80,7 @@ def create_var_type(scope, io):
 
 
 def write_preamble(i = 0):
-  s = "from base_types import *\n\n"
+  s = "from base_types import *\nfrom collections import OrderedDict\n\n"
   return s
 
 
@@ -99,6 +99,13 @@ def write_algorithm_code(algorithm, i = 0):
   s += prefix(i) + "self.__name = name\n"
   for var_name, var in iter(algorithm["variables"].items()):
     s += prefix(i) + "self.__" + var_name + " = " + var_name + "\n"
+  s += prefix(i) + "self.__ordered_parameters = OrderedDict(["
+  i += 1
+  for var_name, var in iter(algorithm["variables"].items()):
+    s += "\n" + prefix(i) + "(\"" + var_name + "\", self.__" + var_name + "),"
+  s = s[:-1]
+  s += "])\n"
+  i -= 1
   s += "\n"
   i -= 1
 
@@ -149,12 +156,15 @@ def write_algorithm_code(algorithm, i = 0):
   s += "\n" \
     + prefix(i) + "def __repr__(self):\n"
   i += 1
-  s += prefix(i) + "return \"" + algorithm["name"] + " \\\"\" + self.__name + \"\\\" (\""
-  for var_name, var in iter(algorithm["variables"].items()):
-    s += " + \"\\n  " + var_name + " = \" + repr(self.__" + var_name + ") + \", \""
-  s = s[:-4]
-  s += "\")\""
-  s += "\n\n\n"
+  s += prefix(i) + "s = \"" + algorithm["name"] + " \\\"\" + self.__name + \"\\\" (\"\n"
+  s += prefix(i) + "for k, v in iter(self.__ordered_parameters.items()):\n"
+  i += 1
+  s += prefix(i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
+  i -= 1
+  s += prefix(i) + "s = s[:-2]\n"
+  s += prefix(i) + "s += \")\"\n"
+  s += prefix(i) + "return s\n"
+  s += "\n\n"
 
   return s
 
