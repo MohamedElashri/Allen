@@ -16,8 +16,7 @@ void SequenceVisitor::check<run_hlt1_t>(
     host_buffers.host_atomics_scifi,
     host_buffers.host_sv_atomics,
     host_buffers.host_number_of_selected_events[0]);
-  
-  /*
+
   [[maybe_unused]] const auto tracks = prepareKalmanTracks(
     host_buffers.host_atomics_velo,
     host_buffers.host_velo_track_hit_number,
@@ -40,8 +39,7 @@ void SequenceVisitor::check<run_hlt1_t>(
     host_buffers.host_reconstructed_multi_pvs,
     host_buffers.host_number_of_multivertex,
     host_buffers.host_number_of_selected_events[0]);
-  */
-  /*
+
 #ifdef WITH_ROOT
   auto& ntuple =
     checker_invoker.checker<SelCheckerTuple>("Making ntuple for efficiency studies.", "SelCheckerTuple.root");
@@ -49,13 +47,8 @@ void SequenceVisitor::check<run_hlt1_t>(
     mc_events,
     tracks,
     host_buffers.host_secondary_vertices,
-    host_buffers.host_one_track_decisions,
-    host_buffers.host_two_track_decisions,
-    host_buffers.host_single_muon_decisions,
-    host_buffers.host_disp_dimuon_decisions,
-    host_buffers.host_high_mass_dimuon_decisions,
-    host_buffers.host_dimuon_soft_decisions,
-
+    host_buffers.host_sel_results,
+    host_buffers.host_sel_results_atomics,
     host_buffers.host_atomics_scifi,
     host_buffers.host_sv_atomics,
     host_buffers.host_number_of_selected_events[0]);
@@ -63,5 +56,4 @@ void SequenceVisitor::check<run_hlt1_t>(
   // Avoid warning
   [[maybe_unused]] const auto& mc_event = mc_events.front();
 #endif
-  */
 }

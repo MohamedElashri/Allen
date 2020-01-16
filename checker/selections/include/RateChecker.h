@@ -20,17 +20,6 @@ private:
   bool m_event_decs[Hlt1::Hlt1Lines::End];
   uint m_counters[Hlt1::Hlt1Lines::End];
   uint m_tot;
-  std::string m_line_names[Hlt1::Hlt1Lines::End] = {
-    "PassThrough",
-    "StartOneTrackLines",
-    "OneTrackMVA",
-    "SingleMuon",
-    "StartTwoTrackLines",
-    "TwoTrackMVA",
-    "DisplacedDiMuon",
-    "HighMassDiMuon",
-    "SoftDiMuon"
-  };
 
   
 public:

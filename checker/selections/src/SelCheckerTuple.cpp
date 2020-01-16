@@ -55,11 +55,13 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("sv_ntrksassoc", &m_sv_ntrksassoc);
   m_tree->Branch("sv_idx_trk1", &m_sv_idx_trk1);
   m_tree->Branch("sv_idx_trk2", &m_sv_idx_trk2);
-  m_tree->Branch("sv_pass_two_track", &m_sv_pass_two_track);
-  m_tree->Branch("sv_pass_disp_dimuon", &m_sv_pass_disp_dimuon);
-  m_tree->Branch("sv_pass_high_mass_dimuon", &m_sv_pass_high_mass_dimuon);
-  m_tree->Branch("sv_pass_dimuon_soft", &m_sv_pass_dimuon_soft);
-
+  for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
+    std::string line_name = Hlt1::Hlt1LineNames[i_line];
+    m_sv_decisions[line_name] = std::vector<double>();
+    std::string branch_name = "sv_pass_" + line_name;
+    m_tree->Branch(branch_name.c_str(), &m_sv_decisions[line_name]);
+  }
+  
   m_tree->Branch("trk_p", &m_trk_p);
   m_tree->Branch("trk_pt", &m_trk_pt);
   m_tree->Branch("trk_eta", &m_trk_eta);
@@ -71,8 +73,13 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("trk_velo_ip", &m_trk_velo_ip);
   m_tree->Branch("trk_velo_ipchi2", &m_trk_velo_ipchi2);
   m_tree->Branch("trk_idx_gen", &m_trk_idx_gen);
-  m_tree->Branch("trk_pass_one_track", &m_trk_pass_one_track);
-  m_tree->Branch("trk_pass_single_muon", &m_trk_pass_single_muon);
+  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
+    std::string line_name = Hlt1::Hlt1LineNames[i_line];
+    m_trk_decisions[line_name] = std::vector<double>();
+    std::string branch_name = "trk_pass_" + line_name;
+    m_tree->Branch(branch_name.c_str(), &m_trk_decisions[line_name]);
+  }
+  
 #else
 SelCheckerTuple::SelCheckerTuple(CheckerInvoker const*, std::string const&)
 {
@@ -127,11 +134,11 @@ void SelCheckerTuple::clear()
   m_sv_ntrksassoc.clear();
   m_sv_idx_trk1.clear();
   m_sv_idx_trk2.clear();
-  m_sv_pass_two_track.clear();
-  m_sv_pass_disp_dimuon.clear();
-  m_sv_pass_high_mass_dimuon.clear();
-  m_sv_pass_dimuon_soft.clear();
-
+  for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
+    std::string line_name = Hlt1::Hlt1LineNames[i_line];
+    m_sv_decisions[line_name].clear();
+  }
+  
   m_trk_p.clear();
   m_trk_pt.clear();
   m_trk_eta.clear();
@@ -143,8 +150,10 @@ void SelCheckerTuple::clear()
   m_trk_velo_ip.clear();
   m_trk_velo_ipchi2.clear();
   m_trk_idx_gen.clear();
-  m_trk_pass_one_track.clear();
-  m_trk_pass_single_muon.clear();
+  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
+    std::string line_name = Hlt1::Hlt1LineNames[i_line];
+    m_trk_decisions[line_name].clear();
+  }
 }
 
 size_t SelCheckerTuple::addGen(const MCParticle& mcp)
@@ -257,13 +266,8 @@ void SelCheckerTuple::accumulate(
   MCEvents const& mc_events,
   std::vector<Checker::Tracks> const& tracks,
   const VertexFit::TrackMVAVertex* svs,
-  const bool* one_track_decisions,
-  const bool* two_track_decisions,
-  const bool* single_muon_decisions,
-  const bool* disp_dimuon_decisions,
-  const bool* high_mass_dimuon_decisions,
-  const bool* dimuon_soft_decisions,
-
+  const bool* sel_results,
+  const uint* sel_results_atomics,
   const int* track_atomics,
   const uint* sv_atomics,
   const uint selected_events)
@@ -276,6 +280,8 @@ void SelCheckerTuple::accumulate(
     const auto& mc_event = mc_events[i_event];
     const auto& mcps = mc_event.m_mcps;
 
+    const uint* sel_results_offsets = sel_results_atomics + Hlt1::Hlt1Lines::End;
+    
     // Loop over MC particles
     for (auto mcp : mcps) {
       if (mcp.fromBeautyDecay || mcp.fromCharmDecay || mcp.fromStrangeDecay || mcp.DecayOriginMother_pid == 23) {
@@ -291,21 +297,18 @@ void SelCheckerTuple::accumulate(
       const uint* sv_offsets = sv_atomics + selected_events;
       const uint event_n_svs = sv_atomics[i_event];
       const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
-      const bool* event_one_track_decisions = one_track_decisions + event_tracks_offsets[i_event];
-      const bool* event_two_track_decisions = two_track_decisions + sv_offsets[i_event];
-      const bool* event_single_muon_decisions = single_muon_decisions + event_tracks_offsets[i_event];
-      const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_offsets[i_event];
-      const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_offsets[i_event];
-      const bool* event_dimuon_soft_decisions = dimuon_soft_decisions + sv_offsets[i_event];
-
+      
       // Loop over tracks.
       for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
         // First track.
         auto trackA = event_tracks[i_track];
         size_t idx1 = addTrack(trackA, mcassoc);
-        if (idx1 == m_trk_p.size() - 1) {
-          m_trk_pass_one_track.push_back(event_one_track_decisions[i_track] ? 1. : 0.);
-          m_trk_pass_single_muon.push_back(event_single_muon_decisions[i_track] ? 1. : 0.);
+        if (idx1 == m_trk_p.size() -1) {
+          for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
+            std::string line_name = Hlt1::Hlt1LineNames[i_line];
+            const bool* decs = sel_results + sel_results_offsets[i_line] + event_tracks_offsets[i_event];
+            m_trk_decisions[line_name].push_back(decs[i_track] ? 1. : 0.);
+          }
         }
       }
 
@@ -319,10 +322,11 @@ void SelCheckerTuple::accumulate(
         size_t i_track = addTrack(trackA, mcassoc);
         size_t j_track = addTrack(trackB, mcassoc);
         addSV(event_vertices[i_sv], i_track, j_track);
-        m_sv_pass_two_track.push_back(event_two_track_decisions[i_sv] ? 1. : 0.);
-        m_sv_pass_disp_dimuon.push_back(event_disp_dimuon_decisions[i_sv] ? 1. : 0.);
-        m_sv_pass_high_mass_dimuon.push_back(event_high_mass_dimuon_decisions[i_sv] ? 1. : 0.);
-        m_sv_pass_dimuon_soft.push_back(event_dimuon_soft_decisions[i_sv] ? 1. : 0.);
+        for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
+          std::string line_name = Hlt1::Hlt1LineNames[i_line];
+          const bool* decs = sel_results + sel_results_offsets[i_line] + sv_offsets[i_event];
+          m_sv_decisions[line_name].push_back(decs[i_track] ? 1. : 0.);
+        }
       }
     }
     else {

@@ -23,7 +23,7 @@ void RateChecker::accumulate(
     }
 
     const int n_tracks_event = track_atomics[i_event];
-    for (uint i_line = Hlt1::Hlt1Lines::StartOneTrackLines; i_line < Hlt1::Hlt1Lines::StartTwoTrackLines; i_line++) {
+    for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
       const bool* decs = decisions + decisions_offsets[i_line] + event_tracks_offsets[i_event];
       for (int i_track = 0; i_track < n_tracks_event; i_track++) {
         if (decs[i_track]) m_event_decs[i_line] = true;
@@ -33,7 +33,7 @@ void RateChecker::accumulate(
     // Check two track decisions.
     const uint* sv_offsets = sv_atomics + selected_events;
     const uint n_svs_event = sv_atomics[i_event];
-    for (uint i_line = Hlt1::Hlt1Lines::StartTwoTrackLines + 1; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+    for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
       const bool* decs = decisions + decisions_offsets[i_line] + sv_offsets[i_event];
       for (int i_sv = 0; i_sv < n_svs_event; i_sv++) {
         if (decs[i_sv]) m_event_decs[i_line] = true;
@@ -60,11 +60,10 @@ void RateChecker::report(size_t requested_events) const
 {
   // Assume 30 MHz input rate.
   const double in_rate = 30000.0;
-  for (uint i_line = Hlt1::Hlt1Lines::StartOneTrackLines + 1; i_line < Hlt1::Hlt1Lines::End; i_line++) {
-    if (i_line == Hlt1::Hlt1Lines::StartTwoTrackLines) continue;
+  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::Hlt1Lines::End; i_line++) {
     std::printf(
       "%20s: %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
-      m_line_names[i_line].c_str(),
+      Hlt1::Hlt1LineNames[i_line].c_str(),
       m_counters[i_line],
       requested_events,
       1. * m_counters[i_line] / requested_events * in_rate,

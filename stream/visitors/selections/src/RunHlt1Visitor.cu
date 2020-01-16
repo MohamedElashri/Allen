@@ -24,17 +24,16 @@ void SequenceVisitor::visit<run_hlt1_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
-  
-  host_buffers.host_sel_results_atomics[Hlt1::Hlt1Lines::StartOneTrackLines] = 0;
-  host_buffers.host_sel_results_atomics[Hlt1::Hlt1Lines::StartTwoTrackLines] = 0;
+
+  // TODO: Move this to its own visitor and add a GPU option.
   for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
     host_buffers.host_sel_results_atomics[i_line] = 0;
   }
-  for (uint i_line = Hlt1::Hlt1Lines::StartOneTrackLines + 1; i_line < Hlt1::Hlt1Lines::StartTwoTrackLines; i_line++) {
+  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
     host_buffers.host_sel_results_atomics[i_line] =
       host_buffers.host_number_of_reconstructed_scifi_tracks[0];
   }
-  for (uint i_line = Hlt1::Hlt1Lines::StartTwoTrackLines + 1; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+  for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
     host_buffers.host_sel_results_atomics[i_line] =
       host_buffers.host_number_of_svs[0];
   }

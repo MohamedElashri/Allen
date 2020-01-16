@@ -25,29 +25,29 @@ __global__ void prepare_raw_banks(
   const uint* dev_sel_results_offsets = dev_sel_results_atomics + Hlt1::Hlt1Lines::End;
   
   // Dec reports.
-  const int n_hlt1_lines = Hlt1::Hlt1Lines::End - 2;
+  const int n_hlt1_lines = Hlt1::Hlt1Lines::End;
   uint32_t* event_dec_reports = dev_dec_reports + (2 + n_hlt1_lines) * event_number;
-
+  
   // Set track decisions.
   uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
-  for (uint i_line = Hlt1::Hlt1Lines::StartOneTrackLines; i_line < Hlt1::Hlt1Lines::StartTwoTrackLines; i_line++) {
+  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
     const bool* decisions = dev_sel_results +
       dev_sel_results_offsets[i_line] + event_tracks_offsets[event_number];
     for (int i_track = threadIdx.x; i_track < n_tracks_event; i_track += blockDim.x) {    
       // One track.
       uint32_t dec = ((decisions[i_track] ? 1 : 0) & dec_mask);
-      atomicOr(event_dec_reports + 2 + i_line - 1, dec);
+      atomicOr(event_dec_reports + 2 + i_line, dec);
     }
   }
   
   // Set vertex decisions.
-  for (uint i_line = Hlt1::Hlt1Lines::StartTwoTrackLines; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+  for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
     const bool* decisions = dev_sel_results +
       dev_sel_results_offsets[i_line] + dev_sv_offsets[event_number];
     for (int i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
       // Two track.
       uint32_t dec = ((decisions[i_sv] ? 1 : 0) & dec_mask);
-      atomicOr(event_dec_reports + i_line, dec);
+      atomicOr(event_dec_reports + 2 + i_line, dec);
     }
   }
   __syncthreads();
@@ -58,12 +58,7 @@ __global__ void prepare_raw_banks(
     // Return if event has not passed.
     bool pass = false;
     for (int i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
-      if (i_line == Hlt1::Hlt1Lines::StartOneTrackLines ||
-          i_line == Hlt1::Hlt1Lines::StartTwoTrackLines) {
-        continue;
-      }      
-      int line_location = (i_line < Hlt1::Hlt1Lines::End ? i_line - 1 : i_line - 2);
-      pass = pass || ((event_dec_reports[2 + line_location] & dec_mask) == (1 & dec_mask));
+      pass = pass || ((event_dec_reports[2 + i_line] & dec_mask) == (1 & dec_mask));
       if (pass) {
         break;
       }
