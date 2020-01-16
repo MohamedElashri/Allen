@@ -17,6 +17,7 @@ from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
 from Configurables import RunAllen, AllenUpdater, AllenToForwardTracks
+from Configurables import LHCb__Converters__Track__v1__fromV2TrackV1TrackVector as FromV2TrackV1TrackVector
 from Configurables import TrackResChecker, PrimaryVertexChecker
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
 from Configurables import DumpMuonGeometry, DumpVPGeometry
@@ -79,8 +80,9 @@ dump_seq.Members += [dump_banks]
 # call Allen
 allen_seq = GaudiSequencer("RecoAllenSeq")
 run_allen = RunAllen()
-convert_allen_to_forward_tracks = AllenToForwardTracks()
-allen_seq.Members += [run_allen, convert_allen_to_forward_tracks]
+convert_allen_to_forward_tracks = AllenToForwardTracks(OutputTracks="Allen/Out/ForwardTracksV2")
+convert_v2_to_v1_forward = FromV2TrackV1TrackVector(InputTracksName="Allen/Out/ForwardTracksV2", OutputTracksName="Allen/Out/ForwardTracksV1")
+allen_seq.Members += [run_allen, convert_allen_to_forward_tracks, convert_v2_to_v1_forward]
 
 ApplicationMgr().TopAlg += []
 
@@ -126,3 +128,45 @@ def modifySequences():
 
 
 appendPostConfigAction(modifySequences)
+
+from Configurables import PrTrackChecker, PrUTHitChecker
+def addPrCheckerCutsAndPlots():
+    forwardcuts =  {
+        "Long_eta25_electrons" : "isLong & isElectron & eta25",
+        "Long_eta25_triggerNumbers_electrons" : "isLong & isElectron & eta25 & trigger",
+        "LongFromB_eta25_electrons" : "(isLong) & fromB & isElectron & eta25",
+        "LongFromD_eta25_electrons" : "(isLong) & fromD & isElectron & eta25",
+        "LongStrange_eta25_electrons" : "(isLong) & strange & isElectron & eta25",
+        "Long_eta25_notElectrons" : "isLong & isNotElectron & eta25",
+        "Long_eta25_triggerNumbers_notElectrons" : "isLong & isNotElectron & eta25 & trigger",
+        "LongFromB_eta25_notElectrons" : "(isLong) & fromB & isNotElectron & eta25",
+        "LongFromD_eta25_notElectrons" : "(isLong) & fromD & isNotElectron & eta25",
+        "LongStrange_eta25_notElectrons" : "(isLong) & strange & isNotElectron & eta25"
+    }
+    forwardChecker = PrTrackChecker(
+        "ForwardMCChecker",
+        Title="Forward baseline",
+        Tracks="Rec/Track/Keyed/ForwardFast",
+        Links="Link/Rec/Track/Keyed/ForwardFast",
+        HitTypesToCheck=8,
+        WriteHistos = 2,
+        VetoElectrons = False,
+        MyCuts = forwardcuts
+    )
+    forwardCheckerAllen = PrTrackChecker(
+        "ForwardMCChecker",
+        Title="Forward Allen",
+        Tracks="Allen/Out/ForwardTracksV1",
+        Links="Link/Rec/Track/Keyed/ForwardFast",
+        HitTypesToCheck=8,
+        WriteHistos = 2,
+        VetoElectrons = False,
+        MyCuts = forwardcuts
+    )
+    
+    # as configurations are not yet uniformized and properly handled, there is an ugly trick here
+    # all members are newly defined here as they have different names from the original ones
+    # defined in PrUpgradechecking, but the last one that we reuse as it
+    GaudiSequencer("CheckPatSeq").Members = [forwardChecker, forwardCheckerAllen]
+
+appendPostConfigAction( addPrCheckerCutsAndPlots )

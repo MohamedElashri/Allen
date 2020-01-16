@@ -16,7 +16,7 @@
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
 
-// Rec 
+// LHCb
 #include "Event/Track.h"
 
 // Allen 
