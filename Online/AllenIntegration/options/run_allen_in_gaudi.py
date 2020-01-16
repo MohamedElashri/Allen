@@ -18,6 +18,8 @@ from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            MuonRec, PrepareMuonHits)
 from Configurables import RunAllen, AllenUpdater, AllenToForwardTracks
 from Configurables import LHCb__Converters__Track__v1__fromV2TrackV1TrackVector as FromV2TrackV1TrackVector
+from Configurables import LHCb__Converters__Track__v1__fromVectorLHCbTrack as FromV1VectorV1Tracks
+from Configurables import PrTrackAssociator
 from Configurables import TrackResChecker, PrimaryVertexChecker
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
 from Configurables import DumpMuonGeometry, DumpVPGeometry
@@ -80,9 +82,23 @@ dump_seq.Members += [dump_banks]
 # call Allen
 allen_seq = GaudiSequencer("RecoAllenSeq")
 run_allen = RunAllen()
+allen_seq.Members += [run_allen]
+
+# check Allen tracks
+checker_seq = GaudiSequencer("AllenForwardChecker")
+
 convert_allen_to_forward_tracks = AllenToForwardTracks(OutputTracks="Allen/Out/ForwardTracksV2")
+
 convert_v2_to_v1_forward = FromV2TrackV1TrackVector(InputTracksName="Allen/Out/ForwardTracksV2", OutputTracksName="Allen/Out/ForwardTracksV1")
-allen_seq.Members += [run_allen, convert_allen_to_forward_tracks, convert_v2_to_v1_forward]
+trconverter = FromV1VectorV1Tracks("AllenForwardTracks" + "Converter")
+trconverter.InputTracksName = "Allen/Out/ForwardTracksV1"
+trconverter.OutputTracksName = "Allen/Out/ForwardTracksConverted"
+
+trassociator = PrTrackAssociator("AAssociator")
+trassociator.SingleContainer = "Allen/Out/ForwardTracksConverted"
+trassociator.OutputLocation = "Link/" + "Allen/Out/ForwardTracksConverted"
+
+checker_seq.Members += [convert_allen_to_forward_tracks, convert_v2_to_v1_forward, trconverter, trassociator]
 
 ApplicationMgr().TopAlg += []
 
@@ -109,6 +125,7 @@ def modifySequences():
         # empty the calo sequence
         GaudiSequencer("MCLinksCaloSeq").Members = []
         ProcessPhase("Reco").DetectorList += ["AllenPrepare", "Allen"]
+        GaudiSequencer("MCLinksTrSeq").Members += [checker_seq]
         #        GaudiSequencer("MCLinksCaloSeq").Members = []
         # from Configurables import TrackResChecker
         GaudiSequencer("CheckPatSeq").Members.remove(
@@ -156,8 +173,8 @@ def addPrCheckerCutsAndPlots():
     forwardCheckerAllen = PrTrackChecker(
         "ForwardMCChecker",
         Title="Forward Allen",
-        Tracks="Allen/Out/ForwardTracksV1",
-        Links="Link/Rec/Track/Keyed/ForwardFast",
+        Tracks="Allen/Out/ForwardTracksConverted",
+        Links="Link/" + "Allen/Out/ForwardTracksConverted",
         HitTypesToCheck=8,
         WriteHistos = 2,
         VetoElectrons = False,

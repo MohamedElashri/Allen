@@ -138,7 +138,12 @@ std::vector<LHCb::Event::v2::Track> AllenToForwardTracks::operator()(const HostB
     for (const auto id : velo_ids) {
       newTrack.addToLhcbIDs( static_cast<const LHCb::LHCbID&>(LHCb::LHCbID(id)) );
     }
-    
+
+    // std::cout << "Track has the following" << newTrack.lhcbIDs().size() << "LHCbIDs" << std::endl;
+    // for (const auto& id : newTrack.lhcbIDs() ) {
+    //   std::cout << "\t " << std::hex << id.lhcbID() << std::dec << std::endl;
+    // }
+   
   }
   
   return output;
