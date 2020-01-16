@@ -90,32 +90,6 @@ struct output_host_datatype : host_datatype, output_datatype<internal_t> {
     using output_host_datatype<ARGUMENT_TYPE>::output_host_datatype; \
   }
 
-// Macro for defining an argument that depends on types.
-// This is for the sequence definition.
-#define ARG(ARGUMENT_NAME, ...)                  \
-  struct ARGUMENT_NAME : __VA_ARGS__ {           \
-    constexpr static auto name {#ARGUMENT_NAME}; \
-    size_t size;                                 \
-    char* offset;                                \
-  };
-
-/**
- * @brief Macro for defining arguments in a Handler.
- */
-#define ARGUMENTS(...) std::tuple<__VA_ARGS__>
-
-/**
- * @brief Macro for defining arguments. An argument has an identifier
- *        and a type.
- */
-#define ARGUMENT(ARGUMENT_NAME, ARGUMENT_TYPE)   \
-  struct ARGUMENT_NAME {                         \
-    constexpr static auto name {#ARGUMENT_NAME}; \
-    using type = ARGUMENT_TYPE;                  \
-    size_t size;                                 \
-    char* offset;                                \
-  };
-
 /**
  * @brief Defines dependencies for an algorithm.
  *

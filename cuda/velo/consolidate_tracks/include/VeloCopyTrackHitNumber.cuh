@@ -7,7 +7,7 @@ namespace velo_copy_track_hit_number {
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, uint);
     DEVICE_INPUT(dev_tracks_t, Velo::TrackHits) dev_tracks;
-    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
+    DEVICE_INPUT(dev_offsets_velo_tracks_t, uint) dev_offsets_velo_tracks;
     DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint) dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_OUTPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_OUTPUT(dev_offsets_all_velo_tracks_t, uint) dev_offsets_all_velo_tracks;
@@ -48,7 +48,7 @@ namespace velo_copy_track_hit_number {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters{
           offset<dev_tracks_t>(arguments),
-          offset<dev_atomics_velo_t>(arguments),
+          offset<dev_offsets_velo_tracks_t>(arguments),
           offset<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments),
           offset<dev_velo_track_hit_number_t>(arguments),
           offset<dev_offsets_all_velo_tracks_t>(arguments)

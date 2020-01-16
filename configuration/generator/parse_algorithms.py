@@ -17,10 +17,12 @@ def get_filenames(folder, extensions):
   return list_of_files
 
 algorithm_pattern = "struct (?P<name>[\\w_]+) : public (?P<scope>Host|Device)Algorithm"
-variable_pattern = "(?P<scope>HOST|DEVICE)_(?P<io>INPUT|OUTPUT)\\((?P<name>[\\w_]+), (?P<type>[\\w_:]+)\\)" # ( [\\w_]+)?;
+variable_pattern = "(?P<scope>HOST|DEVICE)_(?P<io>INPUT|OUTPUT)\\((?P<name>[\\w_]+), (?P<type>[^)]+)\\)" # ( [\\w_]+)?;
+namespace_pattern = "namespace (?P<name>[\\w_]+).*?public (?P<scope>Host|Device)Algorithm"
 
 algorithm_pattern_compiled = re.compile(algorithm_pattern)
 variable_pattern_compiled = re.compile(variable_pattern)
+namespace_pattern_compiled = re.compile(namespace_pattern, re.DOTALL)
 
 prefix_project_folder = "../../"
 device_folder = prefix_project_folder + "cuda"
@@ -39,25 +41,23 @@ for filename in all_filenames:
 
   algorithm = algorithm_pattern_compiled.search(s)
   if algorithm:
-    variables = variable_pattern_compiled.finditer(s)
+    namespace = namespace_pattern_compiled.search(s)
+    if namespace:
+      variables = variable_pattern_compiled.finditer(s)
 
-    variable_map = OrderedDict([(v.group("name"), OrderedDict([
-      ("scope", v.group("scope")),
-      ("io", v.group("io")),
-      ("type", v.group("type"))
-      ])) for v in variables])
+      variable_map = OrderedDict([(v.group("name"), OrderedDict([
+        ("scope", v.group("scope")),
+        ("io", v.group("io")),
+        ("type", v.group("type"))
+        ])) for v in variables])
 
-    # print(algorithm.group("scope"), algorithm.group("name"))
-    # for v in variables:
-    #   print(v.group("scope"), v.group("io"), v.group("name"), v.group("type"))
-    # print()
-
-    parsed_algorithms.append(OrderedDict([
-      ("name", algorithm.group("name")),
-      ("scope", algorithm.group("scope")),
-      ("filename", filename),
-      ("variables", variable_map)
-      ]))
+      parsed_algorithms.append(OrderedDict([
+        ("name", algorithm.group("name")),
+        ("scope", algorithm.group("scope")),
+        ("filename", filename),
+        ("namespace", namespace.group("name")),
+        ("variables", variable_map)
+        ]))
 
 # print("Found", len(parsed_algorithms), "algorithms")
 # print(parsed_algorithms)
@@ -80,7 +80,7 @@ def create_var_type(scope, io):
 
 
 def write_preamble(i = 0):
-  s = "from base_types import *\nfrom collections import OrderedDict\n\n"
+  s = "from collections import OrderedDict\nfrom base_types import *\n\n"
   return s
 
 
@@ -97,12 +97,12 @@ def write_algorithm_code(algorithm, i = 0):
   s += "):\n"
   s += prefix(i) + "self.__filename = \"" + algorithm["filename"][len(prefix_project_folder):] + "\"\n"
   s += prefix(i) + "self.__name = name\n"
-  for var_name, var in iter(algorithm["variables"].items()):
-    s += prefix(i) + "self.__" + var_name + " = " + var_name + "\n"
+  s += prefix(i) + "self.__original_name = \"" + algorithm["name"] + "\"\n"
+  s += prefix(i) + "self.__namespace = \"" + algorithm["namespace"] + "\"\n"
   s += prefix(i) + "self.__ordered_parameters = OrderedDict(["
   i += 1
   for var_name, var in iter(algorithm["variables"].items()):
-    s += "\n" + prefix(i) + "(\"" + var_name + "\", self.__" + var_name + "),"
+    s += "\n" + prefix(i) + "(\"" + var_name + "\", " + var_name + "),"
   s = s[:-1]
   s += "])\n"
   i -= 1
@@ -112,6 +112,16 @@ def write_algorithm_code(algorithm, i = 0):
   s += prefix(i) + "def filename(self):\n"
   i += 1
   s += prefix(i) + "return self.__filename\n\n"
+  i -= 1
+
+  s += prefix(i) + "def namespace(self):\n"
+  i += 1
+  s += prefix(i) + "return self.__namespace\n\n"
+  i -= 1
+
+  s += prefix(i) + "def original_name(self):\n"
+  i += 1
+  s += prefix(i) + "return self.__original_name\n\n"
   i -= 1
 
   s += prefix(i) + "def name(self):\n"
@@ -127,7 +137,7 @@ def write_algorithm_code(algorithm, i = 0):
   for var_name, var in iter(algorithm["variables"].items()):
     s += prefix(i) + "def " + var_name + "(self):\n"
     i += 1
-    s += prefix(i) + "return self.__" + var_name + "\n\n"
+    s += prefix(i) + "return self.__ordered_parameters[\"" + var_name + "\"]\n\n"
     i -= 1
 
   for var_name, var in iter(algorithm["variables"].items()):
@@ -135,28 +145,24 @@ def write_algorithm_code(algorithm, i = 0):
     i += 1
     s += prefix(i) + "if value.__class__ == str:\n"
     i += 1
-    s += prefix(i) + "self.__" + var_name + ".name = value\n"
+    s += prefix(i) + "self.__ordered_parameters[\"" + var_name + "\"].set_name(value)\n"
     i -= 1
     s += prefix(i) + "else:\n"
     i += 1
     s += prefix(i) + "assert compatible_parameter_assignment(value.__class__, " + create_var_type(var["scope"], var["io"]) + ")\n"
-    s += prefix(i) + "assert value.type == \"" + var["type"] + "\"\n"
-    s += prefix(i) + "self.__" + var_name + ".name = value.name\n\n"
+    s += prefix(i) + "assert value.type() == \"" + var["type"] + "\"\n"
+    s += prefix(i) + "self.__ordered_parameters[\"" + var_name + "\"].set_name(value.name)\n\n"
     i -= 2
   
   s += prefix(i) + "def parameters(self):\n"
   i += 1
-  s += prefix(i) + "return ["
-  for var_name, var in iter(algorithm["variables"].items()):
-    s += "self.__" + var_name + ", "
-  s = s[:-2]
+  s += prefix(i) + "return self.__ordered_parameters\n"
   i -= 1
-  s += "]\n"
+  s += "\n"
 
-  s += "\n" \
-    + prefix(i) + "def __repr__(self):\n"
+  s += prefix(i) + "def __repr__(self):\n"
   i += 1
-  s += prefix(i) + "s = \"" + algorithm["name"] + " \\\"\" + self.__name + \"\\\" (\"\n"
+  s += prefix(i) + "s = self.__original_name + \" \\\"\" + self.__name + \"\\\" (\"\n"
   s += prefix(i) + "for k, v in iter(self.__ordered_parameters.items()):\n"
   i += 1
   s += prefix(i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"

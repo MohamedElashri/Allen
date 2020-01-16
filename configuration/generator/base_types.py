@@ -1,3 +1,36 @@
+class Type():
+  def __init__(self, vtype):
+    if vtype == "uint" or vtype == "unsigned int" or vtype == "unsigned int32_t":
+      self.__type = "uint32_t"
+    elif vtype == "int" or vtype == "signed int":
+      self.__type = "int32_t"
+    elif vtype == "unsigned short" or vtype == "unsigned int16_t":
+      self.__type = "uint16_t"
+    elif vtype == "short" or vtype == "signed short":
+      self.__type = "int16_t"
+    elif vtype == "unsigned char":
+      self.__type = "uint8_t"
+    elif vtype == "signed char":
+      self.__type = "int8_t"
+    else:
+      self.__type = vtype
+
+  def type(self):
+    return self.__type
+
+  def __eq__(self, other):
+    return self.type() == other.type()
+
+  def __ne__(self, other):
+    return self.type() != other.type()
+
+  def __repr__(self):
+    return self.__type
+
+  def __str__(self):
+    return self.__type
+
+
 class HostAlgorithm():
   def __init__(self):
     pass
@@ -31,7 +64,7 @@ class OutputParameter():
 class HostInput(HostParameter, InputParameter):
   def __init__(self, name, vtype):
     self.__name = name
-    self.__type = vtype
+    self.__type = Type(vtype)
 
   def name(self):
     return self.__name
@@ -43,16 +76,16 @@ class HostInput(HostParameter, InputParameter):
     self.__name = value
 
   def set_type(self, value):
-    self.__type = value
+    self.__type = Type(value)
 
   def __repr__(self):
-    return "HostInput(\"" + self.__name + "\", " + self.__type + ")"
+    return "HostInput(\"" + self.__name + "\", " + repr(self.__type) + ")"
 
 
 class HostOutput(HostParameter, OutputParameter):
   def __init__(self, name, vtype):
     self.__name = name
-    self.__type = vtype
+    self.__type = Type(vtype)
 
   def name(self):
     return self.__name
@@ -64,16 +97,16 @@ class HostOutput(HostParameter, OutputParameter):
     self.__name = value
 
   def set_type(self, value):
-    self.__type = value
+    self.__type = Type(value)
 
   def __repr__(self):
-    return "HostOutput(\"" + self.__name + "\", " + self.__type + ")"
+    return "HostOutput(\"" + self.__name + "\", " + repr(self.__type) + ")"
 
 
 class DeviceInput(DeviceParameter, InputParameter):
   def __init__(self, name, vtype):
     self.__name = name
-    self.__type = vtype
+    self.__type = Type(vtype)
 
   def name(self):
     return self.__name
@@ -85,16 +118,16 @@ class DeviceInput(DeviceParameter, InputParameter):
     self.__name = value
 
   def set_type(self, value):
-    self.__type = value
+    self.__type = Type(value)
 
   def __repr__(self):
-    return "DeviceInput(\"" + self.__name + "\", " + self.__type + ")"
+    return "DeviceInput(\"" + self.__name + "\", " + repr(self.__type) + ")"
 
 
 class DeviceOutput(DeviceParameter, OutputParameter):
   def __init__(self, name, vtype):
     self.__name = name
-    self.__type = vtype
+    self.__type = Type(vtype)
 
   def name(self):
     return self.__name
@@ -106,10 +139,10 @@ class DeviceOutput(DeviceParameter, OutputParameter):
     self.__name = value
 
   def set_type(self, value):
-    self.__type = value
+    self.__type = Type(value)
 
   def __repr__(self):
-    return "DeviceOutput(\"" + self.__name + "\", " + self.__type + ")"
+    return "DeviceOutput(\"" + self.__name + "\", " + repr(self.__type) + ")"
 
 
 def compatible_parameter_assignment(a, b):
@@ -118,6 +151,10 @@ def compatible_parameter_assignment(a, b):
   return ((issubclass(b, DeviceParameter) and issubclass(a, DeviceParameter)) or \
     (issubclass(b, HostParameter) and issubclass(a, HostParameter))) and \
     (issubclass(b, InputParameter) or (issubclass(b, OutputParameter) and issubclass(a, OutputParameter)))
+
+
+def prefix(indentation_level, indent_by = 2):
+  return "".join([" "] * indentation_level * indent_by)
 
 
 class Sequence():
@@ -150,7 +187,7 @@ class Sequence():
     # Check the inputs of all algorithms
     output_parameters = {}
     for algorithm in self.sequence:
-      for parameter in algorithm.parameters():
+      for parameter_name, parameter in iter(algorithm.parameters().items()):
         if issubclass(parameter.__class__, InputParameter):
           # Check the input is not orphaned (ie. that there is a previous Output that generated it)
           if parameter.name() not in output_parameters:
@@ -160,7 +197,7 @@ class Sequence():
           # Check that the input and output types correspond
           if parameter.name() in output_parameters and \
             output_parameters[parameter.name()].type() != parameter.type():
-            print("Error: Type mismatch (" + parameter.type() + ", " + output_parameters[parameter.name()].type() + ") " \
+            print("Error: Type mismatch (" + repr(parameter.type()) + ", " + repr(output_parameters[parameter.name()].type()) + ") " \
               + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
             errors += 1
           # Check the scope (Device, Host) of the input and output parameters matches
@@ -172,28 +209,84 @@ class Sequence():
             print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.name()].__class__ + ") " \
               + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
             errors += 1
-      for parameter in algorithm.parameters():
+      for parameter_name, parameter in iter(algorithm.parameters().items()):
         if issubclass(parameter.__class__, OutputParameter):
           output_parameters[parameter.name()] = parameter
 
     if errors >= 1:
+      print("Number of sequence errors:", errors)
       return False
     elif warnings >= 1:
       print("Number of sequence warnings:", wanings)
 
     return True
 
-  def generate(self):
+  def generate(self, output_filename = "ConfiguredSequence.h", prefix_includes = "../../"):
     # Check that sequence is valid
     print("Validating sequence...")
     if self.validate():
       print("Generating sequence file...")
-
+      # Add all the includes
+      s = "#pragma once\n\n#include <tuple>\n"
+      for algorithm in self.sequence:
+        s += "#include <" + prefix_includes + algorithm.filename() + ">\n"
+      s += "\n"
+      # Generate all parameters
+      parameters = {}
+      for algorithm in self.sequence:
+        for parameter_t, parameter in iter(algorithm.parameters().items()):
+          if parameter.name() in parameters:
+            parameters[parameter.name()].append((algorithm.name(), algorithm.namespace(), parameter_t))
+          else:
+            parameters[parameter.name()] = [(algorithm.name(), algorithm.namespace(), parameter_t)]
+      # Generate configuration
+      for paramenter_name, v in iter(parameters.items()):
+        s += "struct " + paramenter_name + " : "
+        for algorithm_name, algorithm_namespace, parameter_t in v:
+          s += algorithm_namespace + "::Parameters::" + parameter_t + ", "
+        s = s[:-2]
+        s += " { constexpr static auto name {\"" + paramenter_name + "\"}; size_t size; char* offset; };\n"
+      # Generate sequence
+      s += "\ntypedef std::tuple<\n"
+      i_alg = 0
+      for algorithm in self.sequence:
+        i_alg += 1
+        s += prefix(1) + algorithm.namespace() + "::" + algorithm.original_name() + "<std::tuple<"
+        i = 0
+        for parameter_t, parameter in iter(algorithm.parameters().items()):
+          i += 1
+          s += parameter.name()
+          if i != len(algorithm.parameters()):
+            s += ", "
+        s += ">, "
+        i = 0
+        for c in algorithm.name():
+          i += 1
+          s += "'" + c + "'"
+          if i != len(algorithm.name()):
+            s += ", "
+        s += ">"
+        if i_alg != len(self.sequence):
+          s += ","
+        s += "\n"
+      s += "> configured_sequence_t;\n"
+      f = open(output_filename, "w")
+      f.write(s)
+      f.close()
+      print("Generated sequence file " + output_filename)
     else:
       print("The sequence contains errors. Please fix them and generate again.")  
+
+  def print_detail(self):
+    s = "Sequence:\n"
+    for i in self.sequence:
+      s += " " + repr(i) + "\n\n"
+    s = s[:-2]
+    print(s)
 
   def __repr__(self):
     s = "Sequence:\n"
     for i in self.sequence:
-      s += " " + repr(i) + "\n"
+      s += "  " + i.name() + "\n"
+    s = s[:-1]
     return s

@@ -47,7 +47,7 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
 
   // Consolidated datatypes
   const Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, number_of_events};
+    parameters.dev_offsets_all_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, number_of_events};
 
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,
                                                            velo_tracks.total_number_of_tracks()};
