@@ -2,7 +2,7 @@
 
 __global__ void velo_estimate_input_size::velo_estimate_input_size(
   velo_estimate_input_size::Parameters parameters,
-  uint8_t* dev_velo_candidate_ks)
+  const uint8_t* dev_velo_candidate_ks)
 {
   const auto event_number = blockIdx.x;
   const auto selected_event_number = parameters.dev_event_list[event_number];

@@ -15,7 +15,7 @@ namespace velo_estimate_input_size {
   };
 
   // Global function
-  __global__ void velo_estimate_input_size(Parameters parameters, uint8_t* candidate_ks);
+  __global__ void velo_estimate_input_size(Parameters parameters, const uint8_t* candidate_ks);
 
   // Algorithm
   template<typename T, char... S>
