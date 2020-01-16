@@ -279,7 +279,7 @@ namespace VertexFit {
      const float vx = tyA - tyB;
      const float vy = -txA + txB;
      const float vz = txA*tyB - txB*tyA;
-     sv.dimu_clone_sin2 = (vx*vx + vy*vy + vz*vz) / ( (txA*txA + tyA*tyA + 1.f) * (txB*txB + txB*txB + 1.f)); 
+     sv.dimu_clone_sin2 = (vx*vx + vy*vy + vz*vz) / ( (txA*txA + tyA*tyA + 1.f) * (txB*txB + tyB*tyB + 1.f)); 
 
    }
    else {
