@@ -64,6 +64,5 @@ SEQUENCE_T(
   copy_and_prefix_sum_single_block_sv_t,
   consolidate_svs_t,
   run_hlt1_t,
-  prepare_decisions_t//,
-  //prepare_raw_banks_t
-           )
+  prepare_decisions_t,
+  prepare_raw_banks_t)

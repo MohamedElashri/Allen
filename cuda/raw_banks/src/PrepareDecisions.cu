@@ -76,7 +76,7 @@ __global__ void prepare_decisions(
   // Vertices.
   const uint* dev_sv_offsets = dev_sv_atomics + number_of_events;
   int* event_save_sv = dev_save_sv + dev_sv_offsets[event_number];
-  const int n_vertices_event = dev_sv_offsets[event_number + 1] - dev_sv_offsets[event_number];
+  const int n_vertices_event = dev_sv_atomics[event_number];
   uint* event_saved_svs_list = dev_saved_svs_list + dev_sv_offsets[event_number];
   const VertexFit::TrackMVAVertex* event_svs = dev_svs + dev_sv_offsets[event_number];
 
@@ -86,7 +86,7 @@ __global__ void prepare_decisions(
   // Set vertex decisions first.
   uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
   uint insert_index = 0;
-  for (int i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
+  for (uint i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
     uint32_t save_sv = 0;
     for (uint i_line = Hlt1::Hlt1Lines::StartTwoTrackLines + 1; i_line < Hlt1::Hlt1Lines::End; i_line++) {
       const bool* decisions = dev_sel_results +
@@ -104,15 +104,14 @@ __global__ void prepare_decisions(
     }
     if (save_sv) {
       const uint sv_insert_index = atomicAdd(dev_n_svs_saved + event_number, 1);
-      int i_track = event_svs[i_sv].trk1;
-      int j_track = event_svs[i_sv].trk2;
       event_save_sv[i_sv] = sv_insert_index;
       event_saved_svs_list[sv_insert_index] = i_sv;
       // Set to 1 for as a placeholder.
-      event_save_track[i_track] = 1;
-      event_save_track[j_track] = 1;
+      event_save_track[event_svs[i_sv].trk1] = 1;
+      event_save_track[event_svs[i_sv].trk2] = 1;
     }
   }
+  __syncthreads();
   
   // Set track decisions.
   for (int i_track = threadIdx.x; i_track < n_tracks_event; i_track += blockDim.x) {
