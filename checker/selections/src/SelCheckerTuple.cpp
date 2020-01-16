@@ -342,11 +342,7 @@ void SelCheckerTuple::accumulate(
   std::vector<Checker::Tracks> const&,
   const VertexFit::TrackMVAVertex*,
   const bool*,
-  const bool*,
-  const bool*,
-  const bool*,
-  const bool*,
-  const bool*,
+  const uint*,
   const int*,
   const uint*,
   const uint)
