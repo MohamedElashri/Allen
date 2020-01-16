@@ -565,12 +565,12 @@ Trigger selections should be `__device__` functions that take either a
 VertexFit::TrackMVAVertex&` as an argument and return a `bool`. For
 example, a line selecting high-pT tracks might look like:
 
-'''
+```
 __device__ bool HighPtTrack(const ParKalmanFilter::FittedTrack& track)
 {
   return track.pt() > 10.0 / Gaudi::Units::GeV
 }
-'''
+```
 
 The header file for the selection should be placed in
 `cuda/selections/Hlt1/include` and the implementation should be placed
