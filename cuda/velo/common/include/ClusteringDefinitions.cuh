@@ -9,7 +9,7 @@
 namespace VeloClustering {
   // Adjusted to minbias events. In the future, it should
   // be adjusted on the go.
-  static constexpr uint32_t max_candidates_event = 4000;
+  static constexpr uint32_t max_candidates_event = 3000;
 
   static constexpr uint32_t mask_bottom = 0xFFFEFFFF;
   static constexpr uint32_t mask_top = 0xFFFF7FFF;
