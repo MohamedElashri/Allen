@@ -58,6 +58,8 @@ std::vector<LHCb::Event::v2::Track> AllenToForwardTracks::operator()(const HostB
       i_event,
       number_of_events};
 
+  
+  
   // Do the conversion
   ParKalmanFilter::FittedTrack* kf_tracks = host_buffers.host_kf_tracks;
   const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
@@ -124,26 +126,27 @@ std::vector<LHCb::Event::v2::Track> AllenToForwardTracks::operator()(const HostB
     // add SciFi hits
     std::vector<uint32_t> scifi_ids = scifi_tracks.get_lhcbids_for_track(host_buffers.host_scifi_track_hits, t);
     for (const auto id : scifi_ids) {
+      const LHCb::LHCbID lhcbid = LHCb::LHCbID(id);
       newTrack.addToLhcbIDs( static_cast<const LHCb::LHCbID&>(LHCb::LHCbID(id)) );
+
     }
     
     // add UT hits
-    std::vector<uint32_t> ut_ids = ut_tracks.get_lhcbids_for_track(host_buffers.host_ut_track_hits, t);
+    const uint UT_track_index = scifi_tracks.ut_track[t];
+    std::vector<uint32_t> ut_ids = ut_tracks.get_lhcbids_for_track(host_buffers.host_ut_track_hits, UT_track_index);
     for (const auto id : ut_ids) {
+      const LHCb::LHCbID lhcbid = LHCb::LHCbID(id);
       newTrack.addToLhcbIDs( static_cast<const LHCb::LHCbID&>(LHCb::LHCbID(id)) );
     }
     
     // add Velo hits
-    std::vector<uint32_t> velo_ids = velo_tracks.get_lhcbids_for_track(host_buffers.host_velo_track_hits, t);
+    const int velo_track_index = ut_tracks.velo_track[UT_track_index];
+    std::vector<uint32_t> velo_ids = velo_tracks.get_lhcbids_for_track(host_buffers.host_velo_track_hits, velo_track_index);
     for (const auto id : velo_ids) {
+      const LHCb::LHCbID lhcbid = LHCb::LHCbID(id);
       newTrack.addToLhcbIDs( static_cast<const LHCb::LHCbID&>(LHCb::LHCbID(id)) );
     }
 
-    // std::cout << "Track has the following" << newTrack.lhcbIDs().size() << "LHCbIDs" << std::endl;
-    // for (const auto& id : newTrack.lhcbIDs() ) {
-    //   std::cout << "\t " << std::hex << id.lhcbID() << std::dec << std::endl;
-    // }
-   
   }
   
   return output;

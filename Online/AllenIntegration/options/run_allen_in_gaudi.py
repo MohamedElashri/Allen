@@ -94,9 +94,10 @@ trconverter = FromV1VectorV1Tracks("AllenForwardTracks" + "Converter")
 trconverter.InputTracksName = "Allen/Out/ForwardTracksV1"
 trconverter.OutputTracksName = "Allen/Out/ForwardTracksConverted"
 
-trassociator = PrTrackAssociator("AAssociator")
+trassociator = PrTrackAssociator("AllenAssociator")
 trassociator.SingleContainer = "Allen/Out/ForwardTracksConverted"
 trassociator.OutputLocation = "Link/" + "Allen/Out/ForwardTracksConverted"
+trassociator.OutputLevel = 2
 
 checker_seq.Members += [convert_allen_to_forward_tracks, convert_v2_to_v1_forward, trconverter, trassociator]
 
@@ -118,7 +119,6 @@ ApplicationMgr().ExtSvc += [
 ] + producers
 
 
-
 # remove algorithms that are not needed
 def modifySequences():
     try:
@@ -132,6 +132,8 @@ def modifySequences():
             TrackResChecker("TrackResCheckerFast"))
         GaudiSequencer("CheckPatSeq").Members.remove(
             PrimaryVertexChecker("PVChecker"))
+        from Configurables import PrGECFilter
+        GaudiSequencer("RecoDecodingSeq").Members.remove(PrGECFilter())
         # from Configurables import VectorOfTracksFitter
         # GaudiSequencer("RecoTrFastSeq").Members.remove(
         #     VectorOfTracksFitter("ForwardFitterAlgFast"))
