@@ -16,9 +16,10 @@ from Gaudi.Configuration import appendPostConfigAction
 from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
-from Configurables import RunAllen, AllenUpdater, AllenToForwardTracks
+from Configurables import RunAllen, AllenUpdater, AllenForwardToV2Tracks, AllenVeloToV2Tracks
 from Configurables import LHCb__Converters__Track__v1__fromV2TrackV1TrackVector as FromV2TrackV1TrackVector
 from Configurables import LHCb__Converters__Track__v1__fromVectorLHCbTrack as FromV1VectorV1Tracks
+from Configurables import LHCb__Converters__Track__v1__fromV2TrackV1Track as FromV2TrackV1Track
 from Configurables import PrTrackAssociator
 from Configurables import TrackResChecker, PrimaryVertexChecker
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
@@ -31,11 +32,51 @@ from Configurables import ApplicationMgr
 from Configurables import ProcessPhase
 import os
 
-# DDDBtag = "dddb-20171010"
-# CondDBtag = "sim-20170301-vc-md100"
+MCCuts = {
+    "Velo": {
+        "01_velo": "isVelo",
+        "02_long": "isLong",
+        "03_long>5GeV": "isLong & over5",
+        "04_long_strange": "isLong & strange",
+        "05_long_strange>5GeV": "isLong & strange & over5",
+        "06_long_fromB": "isLong & fromB",
+        "07_long_fromB>5GeV": "isLong & fromB & over5",
+        "08_long_electrons": "isLong & isElectron",
+        "09_long_fromB_electrons": "isLong & isElectron & fromB",
+        "10_long_fromB_electrons_P>5GeV": "isLong & isElectron & over5 & fromB"
+    },
+    "Forward": {
+        "01_long": "isLong",
+        "02_long>5GeV": "isLong & over5",
+        "03_long_strange": "isLong & strange",
+        "04_long_strange>5GeV": "isLong & strange & over5",
+        "05_long_fromB": "isLong & fromB",
+        "06_long_fromB>5GeV": "isLong & fromB & over5",
+        "07_long_electrons": "isLong & isElectron",
+        "08_long_electrons_P>5GeV": "isLong & isElectron & over5",
+        "09_long_fromB_electrons": "isLong & isElectron & fromB",
+        "10_long_fromB_electrons_P>5GeV": "isLong & isElectron & over5 & fromB"
+    },
+    "Upstream": {
+        "01_velo": "isVelo",
+        "02_velo+UT": "isVelo & isUT",
+        "03_velo+UT>5GeV": "isVelo & isUT & over5",
+        "04_velo+notLong": "isNotLong & isVelo ",
+        "05_velo+UT+notLong": "isNotLong & isVelo & isUT",
+        "06_velo+UT+notLong>5GeV": "isNotLong & isVelo & isUT & over5",
+        "07_long": "isLong",
+        "08_long>5GeV": "isLong & over5 ",
+        "09_long_fromB": "isLong & fromB",
+        "10_long_fromB>5GeV": "isLong & fromB & over5",
+        "11_long_electrons": "isLong & isElectron",
+        "12_long_fromB_electrons": "isLong & isElectron & fromB",
+        "13_long_fromB_electrons_P>5GeV": "isLong & isElectron & over5 & fromB"
+    }
+}
 
-# DDDBtag = "dddb-20190223" # for v6 samples
-# CondDBtag = "sim-20180530-vc-md100"
+def getMCCuts(key):
+    cuts = dict(MCCuts[key]) if key in MCCuts else {}
+    return cuts
 
 # For privately produced v5 samples
 DDDBtag = "dddb-20180815"
@@ -85,27 +126,30 @@ run_allen = RunAllen()
 allen_seq.Members += [run_allen]
 
 # check Allen tracks
-checker_seq = GaudiSequencer("AllenForwardChecker")
+tracksToConvert = ["Velo", "Forward"]
+checker_seq = GaudiSequencer("AllenChecker")
 
-convert_allen_to_forward_tracks = AllenToForwardTracks(OutputTracks="Allen/Out/ForwardTracksV2")
+allen_forward_to_v2 = AllenForwardToV2Tracks(OutputTracks="Allen/Track/v2/Forward")
+allen_velo_to_v2 = AllenVeloToV2Tracks(OutputTracks="Allen/Track/v2/Velo")
+checker_seq.Members += [allen_forward_to_v2, allen_velo_to_v2]
 
-convert_v2_to_v1_forward = FromV2TrackV1TrackVector(InputTracksName="Allen/Out/ForwardTracksV2", OutputTracksName="Allen/Out/ForwardTracksV1")
-trconverter = FromV1VectorV1Tracks("AllenForwardTracks" + "Converter")
-trconverter.InputTracksName = "Allen/Out/ForwardTracksV1"
-trconverter.OutputTracksName = "Allen/Out/ForwardTracksConverted"
+for tracktype in tracksToConvert:
+    trconverter = FromV2TrackV1Track("Allen" + tracktype + "Converter")
+    trconverter.InputTracksName = "Allen/Track/v2/" + tracktype
+    trconverter.OutputTracksName = "Allen/Track/v1/" + tracktype + "Converted"
+    checker_seq.Members += [trconverter]
+    
+    trassociator = PrTrackAssociator("Allen" + tracktype + "Associator")
+    trassociator.SingleContainer = "Allen/Track/v1/" + tracktype + "Converted"
+    trassociator.OutputLocation = "Link/" + "Allen/Track/v1/" + tracktype + "Converted"
+    checker_seq.Members += [trassociator]
 
-trassociator = PrTrackAssociator("AllenAssociator")
-trassociator.SingleContainer = "Allen/Out/ForwardTracksConverted"
-trassociator.OutputLocation = "Link/" + "Allen/Out/ForwardTracksConverted"
-trassociator.OutputLevel = 2
-
-checker_seq.Members += [convert_allen_to_forward_tracks, convert_v2_to_v1_forward, trconverter, trassociator]
-
+    
 ApplicationMgr().TopAlg += []
 
 producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
                            DumpUTGeometry,
-                           DumpFTGeometry,
+                           DumpFTGeometry, 
                            DumpMuonGeometry,
                            DumpMuonTable,
                            DumpMagneticField,
@@ -126,20 +170,12 @@ def modifySequences():
         GaudiSequencer("MCLinksCaloSeq").Members = []
         ProcessPhase("Reco").DetectorList += ["AllenPrepare", "Allen"]
         GaudiSequencer("MCLinksTrSeq").Members += [checker_seq]
-        #        GaudiSequencer("MCLinksCaloSeq").Members = []
-        # from Configurables import TrackResChecker
         GaudiSequencer("CheckPatSeq").Members.remove(
             TrackResChecker("TrackResCheckerFast"))
         GaudiSequencer("CheckPatSeq").Members.remove(
             PrimaryVertexChecker("PVChecker"))
         from Configurables import PrGECFilter
         GaudiSequencer("RecoDecodingSeq").Members.remove(PrGECFilter())
-        # from Configurables import VectorOfTracksFitter
-        # GaudiSequencer("RecoTrFastSeq").Members.remove(
-        #     VectorOfTracksFitter("ForwardFitterAlgFast"))
-        # from Configurables import PrTrackAssociator
-        # GaudiSequencer("ForwardFastFittedExtraChecker").Members.remove(
-        #     PrTrackAssociator("ForwardFastFittedAssociator"))
         from Configurables import MuonRec
         GaudiSequencer("RecoDecodingSeq").Members.append(MuonRec())
     except ValueError:
@@ -149,43 +185,32 @@ def modifySequences():
 appendPostConfigAction(modifySequences)
 
 from Configurables import PrTrackChecker, PrUTHitChecker
+
 def addPrCheckerCutsAndPlots():
-    forwardcuts =  {
-        "Long_eta25_electrons" : "isLong & isElectron & eta25",
-        "Long_eta25_triggerNumbers_electrons" : "isLong & isElectron & eta25 & trigger",
-        "LongFromB_eta25_electrons" : "(isLong) & fromB & isElectron & eta25",
-        "LongFromD_eta25_electrons" : "(isLong) & fromD & isElectron & eta25",
-        "LongStrange_eta25_electrons" : "(isLong) & strange & isElectron & eta25",
-        "Long_eta25_notElectrons" : "isLong & isNotElectron & eta25",
-        "Long_eta25_triggerNumbers_notElectrons" : "isLong & isNotElectron & eta25 & trigger",
-        "LongFromB_eta25_notElectrons" : "(isLong) & fromB & isNotElectron & eta25",
-        "LongFromD_eta25_notElectrons" : "(isLong) & fromD & isNotElectron & eta25",
-        "LongStrange_eta25_notElectrons" : "(isLong) & strange & isNotElectron & eta25"
-    }
-    forwardChecker = PrTrackChecker(
-        "ForwardMCChecker",
-        Title="Forward baseline",
-        Tracks="Rec/Track/Keyed/ForwardFast",
-        Links="Link/Rec/Track/Keyed/ForwardFast",
+    veloCheckerAllen = PrTrackChecker(
+        "VeloMCChecker",
+        Title="Velo Allen",
+        Tracks="Allen/Track/v1/VeloConverted",
+        Links="Link/" + "Allen/Track/v1/VeloConverted",
         HitTypesToCheck=8,
         WriteHistos = 2,
         VetoElectrons = False,
-        MyCuts = forwardcuts
+        MyCuts = getMCCuts("Velo")
     )
     forwardCheckerAllen = PrTrackChecker(
         "ForwardMCChecker",
         Title="Forward Allen",
-        Tracks="Allen/Out/ForwardTracksConverted",
-        Links="Link/" + "Allen/Out/ForwardTracksConverted",
+        Tracks="Allen/Track/v1/ForwardConverted",
+        Links="Link/" + "Allen/Track/v1/ForwardConverted",
         HitTypesToCheck=8,
         WriteHistos = 2,
         VetoElectrons = False,
-        MyCuts = forwardcuts
+        MyCuts = getMCCuts("Forward")
     )
     
     # as configurations are not yet uniformized and properly handled, there is an ugly trick here
     # all members are newly defined here as they have different names from the original ones
     # defined in PrUpgradechecking, but the last one that we reuse as it
-    GaudiSequencer("CheckPatSeq").Members = [forwardChecker, forwardCheckerAllen]
+    GaudiSequencer("CheckPatSeq").Members = [veloCheckerAllen, forwardCheckerAllen]
 
 appendPostConfigAction( addPrCheckerCutsAndPlots )

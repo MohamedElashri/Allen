@@ -18,18 +18,18 @@
  */
 
 
-#include "AllenToForwardTracks.h"
+#include "AllenForwardToV2Tracks.h"
 
-DECLARE_COMPONENT( AllenToForwardTracks )
+DECLARE_COMPONENT( AllenForwardToV2Tracks )
 
-AllenToForwardTracks::AllenToForwardTracks( const std::string& name, ISvcLocator* pSvcLocator )
+AllenForwardToV2Tracks::AllenForwardToV2Tracks( const std::string& name, ISvcLocator* pSvcLocator )
 : Transformer( name, pSvcLocator,
                     // Inputs
                           {KeyValue{"AllenOutput", "Allen/Out/HostBuffers"}},
                     // Outputs
                     {KeyValue{"OutputTracks", "Allen/Out/ForwardTracks"}} ) {}
 
-StatusCode AllenToForwardTracks::initialize() {
+StatusCode AllenForwardToV2Tracks::initialize() {
   auto sc = Transformer::initialize();
   if ( sc.isFailure() ) return sc;
   if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
@@ -37,7 +37,7 @@ StatusCode AllenToForwardTracks::initialize() {
   return StatusCode::SUCCESS;
 }
 
-std::vector<LHCb::Event::v2::Track> AllenToForwardTracks::operator()(const HostBuffers& host_buffers ) const {
+std::vector<LHCb::Event::v2::Track> AllenForwardToV2Tracks::operator()(const HostBuffers& host_buffers ) const {
 
   // Make the consolidated tracks.
   const uint i_event = 0;
@@ -57,17 +57,15 @@ std::vector<LHCb::Event::v2::Track> AllenToForwardTracks::operator()(const HostB
       (uint*) host_buffers.host_scifi_track_ut_indices,
       i_event,
       number_of_events};
-
-  
   
   // Do the conversion
   ParKalmanFilter::FittedTrack* kf_tracks = host_buffers.host_kf_tracks;
-  const uint number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
-  info() << "Number of SciFi tracks to convert = " << number_of_tracks_event << endmsg;
+  const uint number_of_tracks = scifi_tracks.number_of_tracks(i_event);
+  info() << "Number of SciFi tracks to convert = " << number_of_tracks << endmsg;
   
   std::vector<LHCb::Event::v2::Track> output;
-  output.reserve( number_of_tracks_event );
-  for (uint t = 0; t < number_of_tracks_event; t++) {
+  output.reserve( number_of_tracks );
+  for (uint t = 0; t < number_of_tracks; t++) {
     ParKalmanFilter::FittedTrack track = kf_tracks[t];
     auto& newTrack = output.emplace_back();
 

@@ -9,8 +9,8 @@
  * granted to it by virtue of its status as an Intergovernmental Organization  *
  * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
-#ifndef ALLENTOFORWARDTRACKS_H
-#define ALLENTOFORWARDTRACKS_H
+#ifndef ALLENFORWARDTOV2TRACKS_H
+#define ALLENFORWARDTOV2TRACKS_H
 
 // Gaudi 
 #include "GaudiAlg/Transformer.h"
@@ -27,10 +27,10 @@
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
 
-class AllenToForwardTracks final : public Gaudi::Functional::Transformer<std::vector<LHCb::Event::v2::Track>(const HostBuffers&)> {
+class AllenForwardToV2Tracks final : public Gaudi::Functional::Transformer<std::vector<LHCb::Event::v2::Track>(const HostBuffers&)> {
  public:
   /// Standard constructor
-  AllenToForwardTracks( const std::string& name, ISvcLocator* pSvcLocator );
+  AllenForwardToV2Tracks( const std::string& name, ISvcLocator* pSvcLocator );
 
   /// initialization
   StatusCode                               initialize() override;

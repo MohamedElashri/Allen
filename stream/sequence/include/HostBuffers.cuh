@@ -94,7 +94,6 @@ struct HostBuffers {
 
   // Non pinned datatypes: CPU algorithms
   std::vector<SciFi::TrackHits> scifi_tracks_events;
-  std::vector<char> host_velo_states;
   // std::vector<uint> n_scifi_tracks;
   std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_ut_tracks;
   std::vector<uint> host_scifi_hits;
