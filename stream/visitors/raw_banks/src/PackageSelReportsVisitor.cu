@@ -28,6 +28,7 @@ void SequenceVisitor::visit<package_sel_reps_t>(
     0,
     arguments.size<dev_sel_rep_raw_banks>(),
     cuda_stream));
+  
   state.set_opts(dim3(host_buffers.host_number_of_passing_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_scifi>(),
@@ -47,7 +48,13 @@ void SequenceVisitor::visit<package_sel_reps_t>(
     arguments.size<dev_sel_rep_offsets>(),
     cudaMemcpyDeviceToHost,
     cuda_stream));
-
+  cudaCheck(cudaMemcpyAsync(
+    host_buffers.host_sel_rep_raw_banks,
+    arguments.offset<dev_sel_rep_raw_banks>(),
+    arguments.size<dev_sel_rep_raw_banks>(),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
+  
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
 
