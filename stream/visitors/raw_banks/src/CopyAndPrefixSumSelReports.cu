@@ -69,8 +69,13 @@ void SequenceVisitor::visit<copy_and_prefix_sum_sel_reps_t>(
   // For some reason I can't get the prefix sum to work correctly. For
   // now manually set the total number of words needed for the sel
   // reports.
-  host_buffers.host_number_of_sel_rep_words[0] =
-    host_buffers.host_sel_rep_offsets[host_buffers.host_number_of_passing_events[0] - 1] +
-    host_buffers.host_sel_rep_offsets[2 * host_buffers.host_number_of_passing_events[0] - 1];
+
+  if (host_buffers.host_number_of_passing_events[0] > 0) {
+    host_buffers.host_number_of_sel_rep_words[0] =
+      host_buffers.host_sel_rep_offsets[host_buffers.host_number_of_passing_events[0] - 1] +
+      host_buffers.host_sel_rep_offsets[2 * host_buffers.host_number_of_passing_events[0] - 1];
+  } else {
+    host_buffers.host_number_of_sel_rep_words[0] = 0;
+  }
   
 }
