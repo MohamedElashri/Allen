@@ -69,6 +69,7 @@
 #include "MuonSortByStation.cuh"
 #include "PrepareRawBanks.cuh"
 #include "PrepareDecisions.cuh"
+#include "PackageSelReports.cuh"
 
 #define SEQUENCE_T(...) typedef std::tuple<__VA_ARGS__> configured_sequence_t;
 

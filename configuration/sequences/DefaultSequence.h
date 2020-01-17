@@ -65,4 +65,6 @@ SEQUENCE_T(
   consolidate_svs_t,
   run_hlt1_t,
   prepare_decisions_t,
-  prepare_raw_banks_t)
+  prepare_raw_banks_t,
+  copy_and_prefix_sum_sel_reps_t,
+  package_sel_reps_t)

@@ -12,6 +12,7 @@
 #include "ArgumentsSciFi.cuh"
 #include "ArgumentsMuon.cuh"
 #include "ArgumentsVertex.cuh"
+#include "ArgumentsRawBanks.cuh"
 #include "LookingForwardConstants.cuh"
 
 __global__ void __launch_bounds__(256)
@@ -76,3 +77,8 @@ ALGORITHM(
   copy_and_prefix_sum_single_block,
   copy_and_prefix_sum_single_block_sv_t,
   ARGUMENTS(dev_sv_atomics))
+
+ALGORITHM(
+  copy_and_prefix_sum_single_block,
+  copy_and_prefix_sum_sel_reps_t,
+  ARGUMENTS(dev_sel_rep_offsets))

@@ -4,6 +4,7 @@
 #include "LookingForwardConstants.cuh"
 #include "RawBanksDefinitions.cuh"
 #include "LineInfo.cuh"
+#include "HltSelReport.cuh"
 
 void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
 {
@@ -27,6 +28,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_number_of_passing_events, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_sel_results_atomics, (2 * Hlt1::Hlt1Lines::End + 1) * sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_sel_results, max_number_of_events * 1000 * Hlt1::Hlt1Lines::End * sizeof(bool)));
+  cudaCheck(cudaMallocHost((void**) &host_number_of_sel_rep_words, sizeof(uint)));
 
   // Buffer for performing GEC on CPU
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
@@ -37,6 +39,11 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   // Buffer for saving raw banks.
   int n_hlt1_lines = Hlt1::Hlt1Lines::End;
   cudaCheck(cudaMallocHost((void**) &host_dec_reports, (n_hlt1_lines + 2) * max_number_of_events * sizeof(uint)));
+  cudaCheck(cudaMallocHost(
+    (void**) &host_sel_rep_raw_banks,
+    4 * HltSelRepRawBank::DefaultAllocation::kDefaultAllocation * max_number_of_events * sizeof(uint)));
+  cudaCheck(cudaMallocHost(
+    (void**) &host_sel_rep_offsets, (2 * max_number_of_events + 1) * sizeof(uint)));
   
   // Buffer for performing prefix sum
   // Note: If it is of insufficient space, it will get reallocated

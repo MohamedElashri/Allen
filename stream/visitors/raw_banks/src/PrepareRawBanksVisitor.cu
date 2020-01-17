@@ -31,7 +31,7 @@ void SequenceVisitor::visit<prepare_raw_banks_t>(
   // Initialize number of events passing Hlt1.
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
-                            
+  
   cudaCheck(cudaMemsetAsync(
     arguments.offset<dev_sel_rb_hits>(),
     0,
@@ -57,8 +57,12 @@ void SequenceVisitor::visit<prepare_raw_banks_t>(
     0,
     arguments.size<dev_sel_rep_offsets>(),
     cuda_stream));
-
-  /*
+  cudaCheck(cudaMemsetAsync(
+    arguments.offset<dev_number_of_passing_events>(),
+    0,
+    arguments.size<dev_number_of_passing_events>(),
+    cuda_stream));
+  
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), cuda_stream);
   state.set_arguments(
     arguments.offset<dev_atomics_velo>(),
@@ -123,5 +127,5 @@ void SequenceVisitor::visit<prepare_raw_banks_t>(
 
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
-  */
+  
 }

@@ -11,13 +11,12 @@ void SequenceVisitor::set_arguments_size<prepare_decisions_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
-  int n_hlt1_lines = Hlt1::Hlt1Lines::End - 2;
+  int n_hlt1_lines = Hlt1::Hlt1Lines::End;
   arguments.set_size<dev_dec_reports>((2 + n_hlt1_lines) * host_buffers.host_number_of_selected_events[0]);
 
   // This is not technically enough to save every single track, but
   // should be more than enough in practice.
   // TODO: Implement some check for this.
-  //printf("N(tracks) = %i\n", host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
   arguments.set_size<dev_candidate_lists>(host_buffers.host_number_of_selected_events[0] * Hlt1::maxCandidates * Hlt1::Hlt1Lines::End);
   arguments.set_size<dev_candidate_counts>(host_buffers.host_number_of_selected_events[0] * Hlt1::Hlt1Lines::End);
   arguments.set_size<dev_saved_tracks_list>(host_buffers.host_number_of_reconstructed_scifi_tracks[0]);
@@ -115,24 +114,7 @@ void SequenceVisitor::visit<prepare_decisions_t>(
     arguments.offset<dev_dec_reports>(),
     arguments.offset<dev_save_track>(),
     arguments.offset<dev_save_sv>());
-  state.invoke();
-  
-  // Copy list of passing events.
-  /*
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_number_of_passing_events,
-    arguments.offset<dev_number_of_passing_events>(),
-    //arguments.size<dev_number_of_passing_events>(),
-    sizeof(uint),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
-  cudaCheck(cudaMemcpyAsync(
-    host_buffers.host_passing_event_list,
-    arguments.offset<dev_passing_event_list>(),
-    arguments.size<dev_passing_event_list>(),
-    cudaMemcpyDeviceToHost,
-    cuda_stream));
-  */
+  state.invoke();  
   
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);

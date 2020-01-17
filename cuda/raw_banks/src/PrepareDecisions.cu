@@ -80,7 +80,7 @@ __global__ void prepare_decisions(
   uint* event_saved_svs_list = dev_saved_svs_list + dev_sv_offsets[event_number];
   const VertexFit::TrackMVAVertex* event_svs = dev_svs + dev_sv_offsets[event_number];
 
-  const int n_hlt1_lines = Hlt1::Hlt1Lines::End - 2;
+  const int n_hlt1_lines = Hlt1::Hlt1Lines::End;
   uint32_t* event_dec_reports = dev_dec_reports + (2 + n_hlt1_lines) * event_number;
 
   // Set vertex decisions first.
@@ -90,10 +90,10 @@ __global__ void prepare_decisions(
     uint32_t save_sv = 0;
     for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
       const bool* decisions = dev_sel_results +
-        dev_sel_results_offsets[i_line] + event_tracks_offsets[event_number];
+        dev_sel_results_offsets[i_line] + dev_sv_offsets[event_number];
       uint* candidate_counts = dev_candidate_counts + i_line * number_of_events + event_number;
       uint* candidate_list = dev_candidate_lists + number_of_events * Hlt1::maxCandidates * i_line +
-        event_number * Hlt1::maxCandidates;
+      event_number * Hlt1::maxCandidates;
       uint32_t dec = ((decisions[i_sv] ? 1 : 0) & dec_mask);
       atomicOr(event_dec_reports + 2 + i_line, dec);
       insert_index = atomicAdd(candidate_counts, dec);
@@ -102,7 +102,7 @@ __global__ void prepare_decisions(
         candidate_list[insert_index] = i_sv;
       }
     }
-    if (save_sv) {
+    if (save_sv & dec_mask) {
       const uint sv_insert_index = atomicAdd(dev_n_svs_saved + event_number, 1);
       event_save_sv[i_sv] = sv_insert_index;
       event_saved_svs_list[sv_insert_index] = i_sv;
@@ -112,7 +112,7 @@ __global__ void prepare_decisions(
     }
   }
   __syncthreads();
-  
+
   // Set track decisions.
   for (int i_track = threadIdx.x; i_track < n_tracks_event; i_track += blockDim.x) {
     uint32_t save_track = 0;
@@ -133,7 +133,7 @@ __global__ void prepare_decisions(
     if (save_track) {
       event_save_track[i_track] = 1;
     }
-
+  
     // Count the number of tracks and hits to save in the SelReport.
     if (event_save_track[i_track] >= 0) {
       const int i_ut_track = scifi_tracks.ut_track[i_track];
@@ -145,6 +145,7 @@ __global__ void prepare_decisions(
       event_saved_tracks_list[track_insert_index] = (uint) i_track;
       event_save_track[i_track] = (int) track_insert_index;
     }
-  }  
+  }
+  __syncthreads();
   
 }
