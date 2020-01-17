@@ -88,7 +88,6 @@ __global__ void prepare_raw_banks(
   // Dec reports.
   const int n_hlt1_lines = Hlt1::Hlt1Lines::End;
   uint32_t* event_dec_reports = dev_dec_reports + (2 + n_hlt1_lines) * event_number;
-  
 
   // Sel reports.
   const uint event_sel_rb_hits_offset =
@@ -122,12 +121,23 @@ __global__ void prepare_raw_banks(
     event_dec_reports[1] = Hlt1::taskID;
     uint n_decisions = 0;
     for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+      int line_index;
+      if (i_line > Hlt1::Hlt1Lines::StartOneTrackLines) {
+        line_index = i_line - 1;
+      } else if (i_line > Hlt1::Hlt1Lines::StartTwoTrackLines) {
+        line_index = i_line - 2;
+      } else if (i_line == Hlt1::Hlt1Lines::StartOneTrackLines ||
+                 i_line == Hlt1::Hlt1Lines::StartTwoTrackLines) {
+        continue;
+      } else {
+        line_index = i_line;
+      }
       HltDecReport dec_report;
       dec_report.setDecision(false);
       // TODO: These are all placeholder values for now.
       dec_report.setErrorBits(0);
       dec_report.setNumberOfCandidates(1);
-      dec_report.setIntDecisionID(i_line);
+      dec_report.setIntDecisionID(line_index);
       dec_report.setExecutionStage(1);
       event_dec_reports[2 + i_line] |= dec_report.getDecReport();
       if (event_dec_reports[2 + i_line] & dec_mask) {

@@ -127,5 +127,8 @@ void SequenceVisitor::visit<prepare_raw_banks_t>(
 
   cudaEventRecord(cuda_generic_event, cuda_stream);
   cudaEventSynchronize(cuda_generic_event);
+<<<<<<< HEAD
   
+=======
+>>>>>>> fbe71be3c193fedc2811b35f563e7ca7f9ff0e48
 }

@@ -10,6 +10,11 @@
 #include "VeloConsolidated.cuh"
 #include "ParKalmanDefinitions.cuh"
 
+#include "SciFiConsolidated.cuh"
+#include "UTConsolidated.cuh"
+#include "VeloConsolidated.cuh"
+#include "ParKalmanDefinitions.cuh"
+
 #include "Handler.cuh"
 #include "ArgumentsSelections.cuh"
 #include "ArgumentsVertex.cuh"

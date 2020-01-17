@@ -133,7 +133,6 @@ __global__ void prepare_decisions(
     if (save_track) {
       event_save_track[i_track] = 1;
     }
-  
     // Count the number of tracks and hits to save in the SelReport.
     if (event_save_track[i_track] >= 0) {
       const int i_ut_track = scifi_tracks.ut_track[i_track];
