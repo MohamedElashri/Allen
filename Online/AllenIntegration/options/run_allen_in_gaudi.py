@@ -16,7 +16,7 @@ from Gaudi.Configuration import appendPostConfigAction
 from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
                            MuonRec, PrepareMuonHits)
-from Configurables import RunAllen, AllenUpdater, AllenForwardToV2Tracks, AllenVeloToV2Tracks
+from Configurables import RunAllen, AllenUpdater, AllenForwardToV2Tracks, AllenVeloToV2Tracks, AllenUTToV2Tracks
 from Configurables import LHCb__Converters__Track__v1__fromV2TrackV1TrackVector as FromV2TrackV1TrackVector
 from Configurables import LHCb__Converters__Track__v1__fromVectorLHCbTrack as FromV1VectorV1Tracks
 from Configurables import LHCb__Converters__Track__v1__fromV2TrackV1Track as FromV2TrackV1Track
@@ -78,11 +78,27 @@ def getMCCuts(key):
     cuts = dict(MCCuts[key]) if key in MCCuts else {}
     return cuts
 
+# Has to mirror the enum HitType in PrTrackCounter.h
+HitType = {"VP": 3, "UT": 4, "FT": 8}
+
+
+def getHitTypeMask(dets):
+    mask = 0
+    for det in dets:
+        if det not in HitType:
+            log.warning(
+                "Hit type to check unknown. Ignoring hit type, counting all.")
+            return 0
+        mask += HitType[det]
+
+    return mask
+
+
 # For privately produced v5 samples
 DDDBtag = "dddb-20180815"
 CondDBtag = "sim-20180530-vc-md100"
 
-Evts_to_Run = 10  # set to -1 to process all
+Evts_to_Run = 1000  # set to -1 to process all
 
 # by default write output to the current directory
 output_file = "./"
@@ -126,12 +142,13 @@ run_allen = RunAllen()
 allen_seq.Members += [run_allen]
 
 # check Allen tracks
-tracksToConvert = ["Velo", "Forward"]
+tracksToConvert = ["Velo", "Upstream", "Forward"]
 checker_seq = GaudiSequencer("AllenChecker")
 
-allen_forward_to_v2 = AllenForwardToV2Tracks(OutputTracks="Allen/Track/v2/Forward")
 allen_velo_to_v2 = AllenVeloToV2Tracks(OutputTracks="Allen/Track/v2/Velo")
-checker_seq.Members += [allen_forward_to_v2, allen_velo_to_v2]
+allen_ut_to_v2 = AllenUTToV2Tracks(OutputTracks="Allen/Track/v2/Upstream")
+allen_forward_to_v2 = AllenForwardToV2Tracks(OutputTracks="Allen/Track/v2/Forward")
+checker_seq.Members += [allen_velo_to_v2, allen_ut_to_v2, allen_forward_to_v2]
 
 for tracktype in tracksToConvert:
     trconverter = FromV2TrackV1Track("Allen" + tracktype + "Converter")
@@ -192,25 +209,33 @@ def addPrCheckerCutsAndPlots():
         Title="Velo Allen",
         Tracks="Allen/Track/v1/VeloConverted",
         Links="Link/" + "Allen/Track/v1/VeloConverted",
-        HitTypesToCheck=8,
-        WriteHistos = 2,
-        VetoElectrons = False,
+        TriggerNumbers=False,
+        CheckNegEtaPlot=True,
+        HitTypesToCheck=getHitTypeMask(["VP"]),
         MyCuts = getMCCuts("Velo")
+    )
+    upCheckerAllen = PrTrackChecker(
+        "UpMCChecker",
+        Title="Upstream Allen",
+        Tracks="Allen/Track/v1/UpstreamConverted",
+        Links="Link/" + "Allen/Track/v1/UpstreamConverted",
+        TriggerNumbers=True,
+        HitTypesToCheck=getHitTypeMask(["UT"]),
+        MyCuts = getMCCuts("Upstream")
     )
     forwardCheckerAllen = PrTrackChecker(
         "ForwardMCChecker",
         Title="Forward Allen",
         Tracks="Allen/Track/v1/ForwardConverted",
         Links="Link/" + "Allen/Track/v1/ForwardConverted",
-        HitTypesToCheck=8,
-        WriteHistos = 2,
-        VetoElectrons = False,
+        TriggerNumbers=True,
+        HitTypesToCheck=getHitTypeMask(["FT"]),
         MyCuts = getMCCuts("Forward")
     )
     
     # as configurations are not yet uniformized and properly handled, there is an ugly trick here
     # all members are newly defined here as they have different names from the original ones
     # defined in PrUpgradechecking, but the last one that we reuse as it
-    GaudiSequencer("CheckPatSeq").Members = [veloCheckerAllen, forwardCheckerAllen]
+    GaudiSequencer("CheckPatSeq").Members = [veloCheckerAllen, upCheckerAllen, forwardCheckerAllen]
 
 appendPostConfigAction( addPrCheckerCutsAndPlots )
