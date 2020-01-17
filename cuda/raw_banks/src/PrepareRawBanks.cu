@@ -122,26 +122,15 @@ __global__ void prepare_raw_banks(
     event_dec_reports[1] = Hlt1::taskID;
     uint n_decisions = 0;
     for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
-      int line_index;
-      if (i_line > Hlt1::Hlt1Lines::StartOneTrackLines) {
-        line_index = i_line - 1;
-      } else if (i_line > Hlt1::Hlt1Lines::StartTwoTrackLines) {
-        line_index = i_line - 2;
-      } else if (i_line == Hlt1::Hlt1Lines::StartOneTrackLines ||
-                 i_line == Hlt1::Hlt1Lines::StartTwoTrackLines) {
-        continue;
-      } else {
-        line_index = i_line;
-      }
       HltDecReport dec_report;
       dec_report.setDecision(false);
       // TODO: These are all placeholder values for now.
       dec_report.setErrorBits(0);
       dec_report.setNumberOfCandidates(1);
-      dec_report.setIntDecisionID(line_index);
+      dec_report.setIntDecisionID(i_line);
       dec_report.setExecutionStage(1);
-      event_dec_reports[2 + line_index] |= dec_report.getDecReport();
-      if (event_dec_reports[2 + line_index] & dec_mask) {
+      event_dec_reports[2 + i_line] |= dec_report.getDecReport();
+      if (event_dec_reports[2 + i_line] & dec_mask) {
         n_decisions++;
       }
     }
@@ -174,26 +163,15 @@ __global__ void prepare_raw_banks(
     // TODO: Don't loop over the decision lines multiple times.
     if (writeStdInfo) {
       for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
-        uint line_index;
-        if (i_line > Hlt1::Hlt1Lines::StartOneTrackLines) {
-          line_index = i_line - 1;
-        } else if (i_line > Hlt1::Hlt1Lines::StartTwoTrackLines) {
-          line_index = i_line - 2;
-        } else if (i_line == Hlt1::Hlt1Lines::StartOneTrackLines ||
-                   i_line == Hlt1::Hlt1Lines::StartTwoTrackLines) {
-          continue;
-        } else {
-          line_index = i_line;
-        }
-        if (event_dec_reports[2 + line_index] & dec_mask) {
+        if (event_dec_reports[2 + i_line] & dec_mask) {
           stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
-          stdinfo_bank.addInfo(line_index);
+          stdinfo_bank.addInfo(i_line);
         }
       }
     }
 
     // Add decisions to the substr bank.
-    for (int i_line = Hlt1::Hlt1Lines::StartOneTrackLines; i_line < Hlt1::Hlt1Lines::StartTwoTrackLines; i_line++) {
+    for (int i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
       uint* candidate_counts = dev_candidate_counts + i_line * number_of_events + event_number;
       uint* candidate_list = dev_candidate_lists + (i_line * number_of_events + event_number) * Hlt1::maxCandidates;
       for (uint i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {

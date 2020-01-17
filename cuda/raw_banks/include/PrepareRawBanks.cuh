@@ -80,7 +80,7 @@ ALGORITHM(
     dev_ut_track_hits,
     dev_scifi_track_hits,
     dev_kf_tracks,
-    dev_secondary_vertices,
+    dev_consolidated_svs,
     dev_atomics_scifi,
     dev_sv_atomics,
     dev_candidate_lists,

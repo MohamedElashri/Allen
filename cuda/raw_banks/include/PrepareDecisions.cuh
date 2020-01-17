@@ -3,6 +3,7 @@
 #include "HltDecReport.cuh"
 #include "HltSelReport.cuh"
 #include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
@@ -71,7 +72,7 @@ ALGORITHM(
     dev_ut_track_hits,
     dev_scifi_track_hits,
     dev_kf_tracks,
-    dev_secondary_vertices,
+    dev_consolidated_svs,
     dev_sv_atomics,
     dev_sel_results,
     dev_sel_results_atomics,

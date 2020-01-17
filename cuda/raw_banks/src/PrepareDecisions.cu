@@ -88,14 +88,14 @@ __global__ void prepare_decisions(
   uint insert_index = 0;
   for (uint i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
     uint32_t save_sv = 0;
-    for (uint i_line = Hlt1::Hlt1Lines::StartTwoTrackLines + 1; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+    for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
       const bool* decisions = dev_sel_results +
         dev_sel_results_offsets[i_line] + event_tracks_offsets[event_number];
       uint* candidate_counts = dev_candidate_counts + i_line * number_of_events + event_number;
       uint* candidate_list = dev_candidate_lists + number_of_events * Hlt1::maxCandidates * i_line +
         event_number * Hlt1::maxCandidates;
       uint32_t dec = ((decisions[i_sv] ? 1 : 0) & dec_mask);
-      atomicOr(event_dec_reports + i_line, dec);
+      atomicOr(event_dec_reports + 2 + i_line, dec);
       insert_index = atomicAdd(candidate_counts, dec);
       save_sv |= dec;
       if (dec) {
@@ -116,14 +116,14 @@ __global__ void prepare_decisions(
   // Set track decisions.
   for (int i_track = threadIdx.x; i_track < n_tracks_event; i_track += blockDim.x) {
     uint32_t save_track = 0;
-    for (uint i_line = Hlt1::Hlt1Lines::StartOneTrackLines + 1; i_line < Hlt1::Hlt1Lines::StartTwoTrackLines; i_line++) {
+    for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
       const bool* decisions = dev_sel_results +
         dev_sel_results_offsets[i_line] + event_tracks_offsets[event_number];
       uint* candidate_counts = dev_candidate_counts + i_line * number_of_events + event_number;
       uint* candidate_list = dev_candidate_lists + number_of_events * Hlt1::maxCandidates * i_line +
         event_number * Hlt1::maxCandidates;
       uint32_t dec = ((decisions[i_track] ? 1 : 0) & dec_mask);
-      atomicOr(event_dec_reports + 2 + i_line - 1, dec);
+      atomicOr(event_dec_reports + 2 + i_line, dec);
       insert_index = atomicAdd(candidate_counts, dec);
       save_track |= dec;
       if (dec) {
