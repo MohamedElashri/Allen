@@ -11,7 +11,9 @@ void SequenceVisitor::set_arguments_size<ut_search_windows_t>(
 {
   arguments.set_size<dev_ut_windows_layers>(
     CompassUT::num_elems * UT::Constants::n_layers * host_buffers.host_number_of_reconstructed_velo_tracks[0]);
-  arguments.set_size<dev_ut_active_tracks>(runtime_options.number_of_events);
+  auto event_start = std::get<0>(runtime_options.event_interval);
+  auto event_end = std::get<1>(runtime_options.event_interval);
+  arguments.set_size<dev_ut_active_tracks>(event_end - event_start);
 }
 
 template<>

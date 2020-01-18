@@ -106,15 +106,14 @@ void HostBuffersManager::writeSingleEventPassthrough(size_t b) {
   returnBufferFilled(b);
 }
 
-std::tuple<uint, uint*, uint32_t*> HostBuffersManager::getBufferOutputData(size_t b) {
-  if(b>host_buffers.size()) return {0u, nullptr, nullptr};
+std::tuple<gsl::span<uint const>, gsl::span<uint32_t const>> HostBuffersManager::getBufferOutputData(size_t b) {
+  if(b>host_buffers.size()) return {};
 
   HostBuffers* buf = host_buffers.at(b);
-  auto n_selected = buf->host_number_of_passing_events[0];
-  auto passing_event_list = buf->host_passing_event_list;
-  auto dec_reports = buf->host_dec_reports;
-
-  return {n_selected, passing_event_list, dec_reports};
+  auto const n_selected = buf->host_number_of_passing_events[0];
+  gsl::span<uint const> passing_event_list{buf->host_passing_event_list, n_selected};
+  gsl::span<uint32_t const> dec_reports{buf->host_dec_reports, n_selected};
+  return {passing_event_list, dec_reports};
 }
 
 void HostBuffersManager::printStatus() const {

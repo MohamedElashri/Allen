@@ -10,13 +10,15 @@ void cpu_gec(Arguments const& arguments,
              HostBuffers& host_buffers,
              cudaStream_t& cuda_stream)
 {
+  auto event_start = std::get<0>(runtime_options.event_interval);
+  auto event_end = std::get<1>(runtime_options.event_interval);
   if (runtime_options.mep_layout) {
     cpu_global_event_cut_mep(
       runtime_options.host_ut_events,
       runtime_options.host_scifi_events,
       host_buffers.host_number_of_selected_events,
       host_buffers.host_event_list,
-      runtime_options.number_of_events);
+      event_end - event_start);
 
   } else {
     cpu_global_event_cut(
@@ -26,12 +28,12 @@ void cpu_gec(Arguments const& arguments,
       std::get<2>(runtime_options.host_scifi_events).begin(),
       host_buffers.host_number_of_selected_events,
       host_buffers.host_event_list,
-      runtime_options.number_of_events);
+      event_end - event_start);
   }
   cudaCheck(cudaMemcpyAsync(
     arguments.template offset<dev_event_list>(),
     host_buffers.host_event_list,
-    runtime_options.number_of_events * sizeof(uint),
+    (event_end - event_start) * sizeof(uint),
     cudaMemcpyHostToDevice,
     cuda_stream));
 }
@@ -46,6 +48,8 @@ void SequenceVisitor::visit<global_event_cut_t>(
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event)
 {
+  auto event_start = std::get<0>(runtime_options.event_interval);
+  auto event_end = std::get<1>(runtime_options.event_interval);
   if (runtime_options.cpu_offload) {
     cpu_gec(arguments, runtime_options, host_buffers, cuda_stream);
   }
@@ -53,7 +57,7 @@ void SequenceVisitor::visit<global_event_cut_t>(
     cudaCheck(cudaMemsetAsync(arguments.offset<dev_number_of_selected_events>(), 0, sizeof(uint), cuda_stream));
 
     // Setup opts and arguments for kernel call
-    state.set_opts(runtime_options.mep_layout, dim3(runtime_options.number_of_events), cuda_stream);
+    state.set_opts(runtime_options.mep_layout, dim3(event_end - event_start), cuda_stream);
     state.set_arguments(
       runtime_options.mep_layout,
       arguments.offset<dev_ut_raw_input>(),
@@ -75,7 +79,7 @@ void SequenceVisitor::visit<global_event_cut_t>(
     cudaCheck(cudaMemcpyAsync(
       host_buffers.host_event_list,
       arguments.offset<dev_event_list>(),
-      runtime_options.number_of_events * sizeof(uint),
+      (event_end - event_start) * sizeof(uint),
       cudaMemcpyHostToDevice,
       cuda_stream));
 
@@ -85,6 +89,6 @@ void SequenceVisitor::visit<global_event_cut_t>(
 
   if (logger::ll.verbosityLevel >= logger::debug) {
     debug_cout << "Selected " << host_buffers.host_number_of_selected_events[0] << " / "
-               << runtime_options.number_of_events << " events with global event cuts" << std::endl;
+               << event_end - event_start << " events with global event cuts" << std::endl;
   }
 }

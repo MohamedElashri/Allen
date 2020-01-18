@@ -9,13 +9,15 @@ void SequenceVisitor::set_arguments_size<init_event_list_t>(
   const Constants& constants,
   const HostBuffers& host_buffers)
 {
+  auto event_start = std::get<0>(runtime_options.event_interval);
+  auto event_end = std::get<1>(runtime_options.event_interval);
   arguments.set_size<dev_velo_raw_input>(std::get<1>(runtime_options.host_velo_events));
   arguments.set_size<dev_velo_raw_input_offsets>(std::get<2>(runtime_options.host_velo_events).size_bytes());
   arguments.set_size<dev_ut_raw_input>(std::get<1>(runtime_options.host_ut_events));
   arguments.set_size<dev_ut_raw_input_offsets>(std::get<2>(runtime_options.host_ut_events).size_bytes());
   arguments.set_size<dev_scifi_raw_input>(std::get<1>(runtime_options.host_scifi_events));
   arguments.set_size<dev_scifi_raw_input_offsets>(std::get<2>(runtime_options.host_scifi_events).size_bytes());
-  arguments.set_size<dev_event_list>(runtime_options.number_of_events);
+  arguments.set_size<dev_event_list>(event_end - event_start);
   arguments.set_size<dev_number_of_selected_events>(1);
 }
 
@@ -42,15 +44,17 @@ void SequenceVisitor::visit<init_event_list_t>(
     (arguments, runtime_options.host_scifi_events, cuda_stream);
 
   // Initialize buffers
-  host_buffers.host_number_of_selected_events[0] = runtime_options.number_of_events;
-  for (uint i = 0; i < runtime_options.number_of_events; ++i) {
-    host_buffers.host_event_list[i] = i;
+  auto event_start = std::get<0>(runtime_options.event_interval);
+  auto event_end = std::get<1>(runtime_options.event_interval);
+  host_buffers.host_number_of_selected_events[0] = event_end - event_start;
+  for (uint i = 0; i < event_end - event_start; ++i) {
+    host_buffers.host_event_list[i] = event_start + i;
   }
 
   cudaCheck(cudaMemcpyAsync(
     arguments.offset<dev_event_list>(),
     host_buffers.host_event_list,
-    runtime_options.number_of_events * sizeof(uint),
+    (event_end - event_start) * sizeof(uint),
     cudaMemcpyHostToDevice,
     cuda_stream));
 }

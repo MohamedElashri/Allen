@@ -39,6 +39,7 @@ void SequenceVisitor::visit<prepare_raw_banks_t>(
 
   state.set_opts(dim3(host_buffers.host_number_of_selected_events[0]), dim3(256), cuda_stream);
   state.set_arguments(
+    arguments.offset<dev_event_list>(),
     arguments.offset<dev_atomics_scifi>(),
     arguments.offset<dev_sv_offsets>(),
     arguments.offset<dev_one_track_results>(),

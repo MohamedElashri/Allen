@@ -3,6 +3,7 @@
 #include <map>
 #include <queue>
 #include <vector>
+#include <gsl-lite.hpp>
 
 // Forward definition of Stream, to avoid
 // inability to compile kernel calls (due to <<< >>>
@@ -14,7 +15,7 @@ struct HostBuffers;
 
 struct HostBuffersManager {
   enum class BufferStatus { Empty, Filling, Filled, Processing, Processed, Written };
-  
+
   HostBuffersManager(size_t nBuffers, const uint max_number_of_events, const bool do_check)
     : max_events(max_number_of_events), check(do_check) {init(nBuffers);}
 
@@ -30,7 +31,7 @@ struct HostBuffersManager {
 
   void writeSingleEventPassthrough(size_t);
 
-  std::tuple<uint, uint*, uint32_t*> getBufferOutputData(size_t b);
+  std::tuple<gsl::span<uint const>, gsl::span<uint32_t const>> getBufferOutputData(size_t b);
 
   void printStatus() const;
   bool buffersEmpty() const { return (empty_buffers.size()==host_buffers.size());}

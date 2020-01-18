@@ -88,19 +88,11 @@ void run_output(
         auto first_evt = zmqSvc().receive<size_t>(control);
         auto buf_idx = zmqSvc().receive<size_t>(control);
 
-        auto [n_selected, passing_event_list, dec_reports] = buffer_manager->getBufferOutputData(buf_idx);
-        // It's easier to shift indices for DecReports than for the input banks
-        // so shift all event numbers by the offset of the first event
-        if (first_evt != 0) {
-          for (size_t i = 0; i < n_selected; ++i) {
-            passing_event_list[i] += first_evt;
-          }
-        }
-        bool success(true);
-
+        bool success = true;
+        auto [passing_event_list, dec_reports] = buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
           success =
-            output_handler->output_selected_events(slc_idx, first_evt, {passing_event_list, n_selected}, dec_reports);
+            output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports);
         }
 
         zmqSvc().send(control, "WRITTEN", zmq::SNDMORE);
@@ -108,7 +100,7 @@ void run_output(
         zmqSvc().send(control, first_evt, zmq::SNDMORE);
         zmqSvc().send(control, buf_idx, zmq::SNDMORE);
         zmqSvc().send(control, success, zmq::SNDMORE);
-        zmqSvc().send(control, n_selected);
+        zmqSvc().send(control, static_cast<size_t>(passing_event_list.size()));
       }
     }
   }
@@ -256,9 +248,9 @@ void run_stream(
 
     std::string command;
     std::optional<size_t> idx;
-    std::optional<size_t> buf;
-    std::optional<size_t> first;
-    std::optional<size_t> last;
+    size_t buf;
+    size_t first;
+    size_t last;
     if (items[0].revents & zmq::POLLIN) {
       command = zmqSvc().receive<std::string>(control);
       if (command == "DONE") {
@@ -276,18 +268,15 @@ void run_stream(
     }
 
     if (idx) {
-      // Get list of events that are in the slice
-      auto const& events = input_provider->event_ids(*idx);
-
       // Run the stream
       auto status = wrapper->run_stream(
         stream_id,
-        *buf,
+        buf,
         {input_provider->banks(BankTypes::VP, *idx),
          input_provider->banks(BankTypes::UT, *idx),
          input_provider->banks(BankTypes::FT, *idx),
          input_provider->banks(BankTypes::MUON, *idx),
-         static_cast<uint>(events.size()),
+         {static_cast<uint>(first), static_cast<uint>(last)},
          n_reps,
          do_check,
          cpu_offload,
@@ -296,27 +285,19 @@ void run_stream(
       if (status == cudaErrorMemoryAllocation) {
         zmqSvc().send(control, "SPLIT", zmq::SNDMORE);
         zmqSvc().send(control, *idx, zmq::SNDMORE);
-        zmqSvc().send(control, *first, zmq::SNDMORE);
-        zmqSvc().send(control, *last, zmq::SNDMORE);
-        zmqSvc().send(control, *buf);
+        zmqSvc().send(control, first, zmq::SNDMORE);
+        zmqSvc().send(control, last, zmq::SNDMORE);
+        zmqSvc().send(control, buf);
       }
       else if (status == cudaSuccess) {
         // signal that we're done
         zmqSvc().send(control, "PROCESSED", zmq::SNDMORE);
         zmqSvc().send(control, *idx, zmq::SNDMORE);
-        zmqSvc().send(control, *first, zmq::SNDMORE);
-        zmqSvc().send(control, *buf);
+        zmqSvc().send(control, first, zmq::SNDMORE);
+        zmqSvc().send(control, buf);
         if (do_check && check_control) {
-          // Get list of events that are in the slice to load the right
-          // MC info
-          auto const& events = input_provider->event_ids(*idx);
-          EventIDs used_events;
-          if (first != 0 || last != events.size()) {
-            used_events = EventIDs(events.begin() + *first, events.begin() + *last);
-          }
-          else {
-            used_events = events;
-          }
+          // Get list of events that are in the slice
+          auto const& events = input_provider->event_ids(*idx, first, last);
 
           // synchronise to avoid threading issues with
           // CheckerInvoker. The main thread will send the folder to
@@ -324,7 +305,7 @@ void run_stream(
           // the message that informs it the checker is done.
           auto mc_folder = zmqSvc().receive<std::string>(*check_control);
           auto mask = wrapper->reconstructed_events(stream_id);
-          auto mc_events = checker_invoker->load(mc_folder, used_events, mask);
+          auto mc_events = checker_invoker->load(mc_folder, events, mask);
 
           if (mc_events.empty()) {
             zmqSvc().send(*check_control, false);
@@ -336,9 +317,9 @@ void run_stream(
               std::vector<char> events_tracks;
               std::vector<uint> event_tracks_offsets;
               read_folder(
-                folder_name_imported_forward_tracks, used_events, mask, events_tracks, event_tracks_offsets, true);
+                folder_name_imported_forward_tracks, events, mask, events_tracks, event_tracks_offsets, true);
               forward_tracks =
-                read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), used_events.size());
+                read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
             }
 
             wrapper->run_monte_carlo_test(stream_id, *checker_invoker, mc_events, forward_tracks);
@@ -1121,7 +1102,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           auto first_evt = zmqSvc().receive<size_t>(socket);
           auto buf_idx = zmqSvc().receive<size_t>(socket);
           auto success = zmqSvc().receive<bool>(socket);
-          n_events_output += zmqSvc().receive<uint>(socket);
+          n_events_output += zmqSvc().receive<size_t>(socket);
           if (!success) {
             error_cout << "Failed to write output events.\n";
           }

@@ -4,6 +4,7 @@
 #include "RawBanksDefinitions.cuh"
 
 #include "Handler.cuh"
+#include "ArgumentsCommon.cuh"
 #include "ArgumentsSelections.cuh"
 #include "ArgumentsVertex.cuh"
 #include "ArgumentsSciFi.cuh"
@@ -11,6 +12,7 @@
 #include "ArgumentsRawBanks.cuh"
 
 __global__ void prepare_raw_banks(
+  const uint* dev_input_event_list,
   const uint* dev_atomics_scifi,
   const uint* dev_sv_offsets,
   const bool* dev_one_track_results,
@@ -21,12 +23,13 @@ __global__ void prepare_raw_banks(
   const bool* dev_dimuon_soft_results,
   uint32_t* dev_dec_reports,
   uint* number_of_passing_events,
-  uint* event_list);
+  uint* passing_event_list);
 
 ALGORITHM(
   prepare_raw_banks,
   prepare_raw_banks_t,
   ARGUMENTS(
+    dev_event_list,
     dev_atomics_scifi,
     dev_sv_offsets,
     dev_one_track_results,

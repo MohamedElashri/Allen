@@ -23,7 +23,7 @@ struct IInputProvider {
    *
    * @return     event ids
    */
-  virtual EventIDs const& event_ids(size_t slice_index) const = 0;
+  virtual EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const = 0;
 
   /**
    * @brief      Indicate a slice is free for filling
@@ -53,7 +53,7 @@ struct IInputProvider {
 
   virtual void event_sizes(
     size_t const slice_index,
-    gsl::span<unsigned int> const selected_events,
+    gsl::span<unsigned int const> const selected_events,
     std::vector<size_t>& sizes) const = 0;
 
   virtual void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const = 0;
@@ -112,9 +112,9 @@ public:
    *
    * @return     event ids
    */
-  EventIDs const& event_ids(size_t slice_index) const override
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const override
   {
-    return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index);
+    return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index, first, last);
   }
 
   /**
@@ -152,7 +152,7 @@ public:
     return static_cast<const Derived<Banks...>*>(this)->banks(bank_type, slice_index);
   }
 
-  void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events, std::vector<size_t>& sizes)
+  void event_sizes(size_t const slice_index, gsl::span<unsigned int const> const selected_events, std::vector<size_t>& sizes)
     const override
   {
     return static_cast<const Derived<Banks...>*>(this)->event_sizes(slice_index, selected_events, sizes);

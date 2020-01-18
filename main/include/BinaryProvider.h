@@ -170,9 +170,10 @@ public:
    *
    * @return     event IDs in slice
    */
-  std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const override
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const override
   {
-    return m_event_ids[slice_index];
+    auto const& ids = m_event_ids[slice_index];
+    return {ids.begin() + (first ? *first : 0), ids.begin() + (last ? *last : ids.size())};
   }
 
   /**
@@ -252,7 +253,7 @@ public:
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
   }
 
-  void event_sizes(size_t const, gsl::span<unsigned int> const, std::vector<size_t>&) const override {}
+  void event_sizes(size_t const, gsl::span<unsigned int const> const, std::vector<size_t>&) const override {}
 
   void copy_banks(size_t const, unsigned int const, gsl::span<char>) const override {}
 

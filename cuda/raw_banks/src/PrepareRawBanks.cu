@@ -1,6 +1,7 @@
 #include "PrepareRawBanks.cuh"
 
 __global__ void prepare_raw_banks(
+  const uint* dev_input_event_list,
   const uint* dev_atomics_scifi,
   const uint* dev_sv_offsets,
   const bool* dev_one_track_results,
@@ -11,7 +12,7 @@ __global__ void prepare_raw_banks(
   const bool* dev_dimuon_soft_results,
   uint32_t* dev_dec_reports,
   uint* number_of_passing_events,
-  uint* event_list)
+  uint* passing_event_list)
 {
 
   const uint number_of_events = gridDim.x;
@@ -77,7 +78,7 @@ __global__ void prepare_raw_banks(
     if (!pass) return;
 
     const uint n_pass = atomicAdd(number_of_passing_events, 1);
-    event_list[n_pass] = event_number;
+    passing_event_list[n_pass] = dev_input_event_list[event_number];
     // Create the rest of the dec report.
     event_dec_reports[0] = Hlt1::TCK;
     event_dec_reports[1] = Hlt1::taskID;
