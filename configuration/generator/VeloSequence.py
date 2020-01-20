@@ -15,7 +15,7 @@ def VELO_sequence():
   velo_search_by_triplet = velo_search_by_triplet_t()
 
   prefix_sum_offsets_velo_tracks = host_prefix_sum_t("prefix_sum_offsets_velo_tracks",
-    host_total_sum_holder_t="host_number_of_reconstructed_velo_tracks_t",
+    host_total_sum_holder_t="host_number_of_velo_tracks_at_least_four_hits_t",
     dev_input_buffer_t=velo_search_by_triplet.dev_number_of_velo_tracks_t(),
     dev_output_buffer_t="dev_offsets_velo_tracks_t")
 

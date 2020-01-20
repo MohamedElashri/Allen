@@ -4,8 +4,9 @@
 namespace velo_copy_track_hit_number {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
+    HOST_INPUT(host_number_of_velo_tracks_at_least_four_hits_t, uint);
     HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, uint);
+    HOST_OUTPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     DEVICE_INPUT(dev_tracks_t, Velo::TrackHits) dev_tracks;
     DEVICE_INPUT(dev_offsets_velo_tracks_t, uint) dev_offsets_velo_tracks;
     DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint) dev_offsets_number_of_three_hit_tracks_filtered;
@@ -25,7 +26,7 @@ namespace velo_copy_track_hit_number {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
-      set_size<dev_velo_track_hit_number_t>(arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments)
+      set_size<dev_velo_track_hit_number_t>(arguments, value<host_number_of_velo_tracks_at_least_four_hits_t>(arguments)
         + value<host_number_of_three_hit_tracks_filtered_t>(arguments));
 
       // Note: Size is "+ 1" due to it storing offsets.
@@ -53,6 +54,13 @@ namespace velo_copy_track_hit_number {
           offset<dev_velo_track_hit_number_t>(arguments),
           offset<dev_offsets_all_velo_tracks_t>(arguments)
         });
+
+      cudaCheck(cudaMemcpyAsync(
+        offset<host_number_of_reconstructed_velo_tracks_t>(arguments),
+        offset<dev_offsets_all_velo_tracks_t>(arguments) + (size<dev_offsets_all_velo_tracks_t>(arguments) / sizeof(uint)) - 1,
+        sizeof(uint), // Note: Only the last element needs to be copied here.
+        cudaMemcpyDeviceToHost,
+        cuda_stream));
     }
   };
 } // namespace velo_copy_track_hit_number

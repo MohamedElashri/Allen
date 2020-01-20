@@ -52,9 +52,6 @@ namespace pv_beamline_extrapolate {
           offset<dev_pvtracks_t>(arguments),
           offset<dev_pvtrack_z_t>(arguments)
         });
-
-      printf("Size of dev_pvtrack_z_t: %i\n", 2 * value<host_number_of_reconstructed_velo_tracks_t>(arguments));
-      arguments.template print<dev_pvtrack_z_t>();
     }
   };
 } // namespace pv_beamline_extrapolate
