@@ -81,22 +81,20 @@ namespace Velo {
           number_of_events)
       {}
 
-      __host__ __device__ ConstHits get_hits(
-        const char* hits_base_pointer,
-        const uint track_number) const
+      __host__ __device__ ConstHits get_hits(const char* hits_base_pointer, const uint track_number) const
       {
         return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
 
-      __host__ __device__ Hits get_hits(
-        char* hits_base_pointer,
-        const uint track_number) const
+      __host__ __device__ Hits get_hits(char* hits_base_pointer, const uint track_number) const
       {
         return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
     };
 
     typedef const Tracks ConstTracks;
+
+    constexpr uint states_number_of_arrays = 6;
 
     template<typename T>
     struct States_t {
@@ -144,16 +142,14 @@ namespace Velo {
 
       __host__ __device__ float& z(const uint index) { return m_base_pointer[4 * m_total_number_of_tracks + index]; }
 
-      __host__ __device__ bool backward(const uint index) const
+      __host__ __device__ int backward(const uint index) const
       {
-        return reinterpret_cast<typename ForwardType<T, bool>::t*>(
-          m_base_pointer)[5 * m_total_number_of_tracks + index];
+        return reinterpret_cast<typename ForwardType<T, int>::t*>(m_base_pointer)[5 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ bool& backward(const uint index)
+      __host__ __device__ int& backward(const uint index)
       {
-        return reinterpret_cast<typename ForwardType<T, bool>::t*>(
-          m_base_pointer)[5 * m_total_number_of_tracks + index];
+        return reinterpret_cast<typename ForwardType<T, int>::t*>(m_base_pointer)[5 * m_total_number_of_tracks + index];
       }
 
       __host__ __device__ void set(const uint track_number, const VeloState& state)
@@ -197,6 +193,8 @@ namespace Velo {
     typedef const States_t<const char> ConstStates;
     typedef States_t<char> States;
 
+    constexpr uint kalman_states_number_of_arrays = 11;
+
     template<typename T>
     struct KalmanStates_t {
     private:
@@ -214,79 +212,142 @@ namespace Velo {
       {}
 
       // Accessors and lvalue references for all types
-      __host__ __device__ float x(const uint index) const { return m_base_pointer[index]; }
+      __host__ __device__ float x(const uint index) const
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[index];
+      }
 
-      __host__ __device__ float& x(const uint index) { return m_base_pointer[index]; }
+      __host__ __device__ float& x(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[index];
+      }
 
-      __host__ __device__ float y(const uint index) const { return m_base_pointer[m_total_number_of_tracks + index]; }
+      __host__ __device__ float y(const uint index) const
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[m_total_number_of_tracks + index];
+      }
 
-      __host__ __device__ float& y(const uint index) { return m_base_pointer[m_total_number_of_tracks + index]; }
+      __host__ __device__ float& y(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[m_total_number_of_tracks + index];
+      }
 
       __host__ __device__ float tx(const uint index) const
       {
+        assert(index < m_total_number_of_tracks);
         return m_base_pointer[2 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ float& tx(const uint index) { return m_base_pointer[2 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& tx(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[2 * m_total_number_of_tracks + index];
+      }
 
       __host__ __device__ float ty(const uint index) const
       {
+        assert(index < m_total_number_of_tracks);
         return m_base_pointer[3 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ float& ty(const uint index) { return m_base_pointer[3 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& ty(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[3 * m_total_number_of_tracks + index];
+      }
 
       __host__ __device__ float c00(const uint index) const
       {
+        assert(index < m_total_number_of_tracks);
         return m_base_pointer[4 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ float& c00(const uint index) { return m_base_pointer[4 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& c00(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[4 * m_total_number_of_tracks + index];
+      }
 
       __host__ __device__ float c20(const uint index) const
       {
+        assert(index < m_total_number_of_tracks);
         return m_base_pointer[5 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ float& c20(const uint index) { return m_base_pointer[5 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& c20(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[5 * m_total_number_of_tracks + index];
+      }
 
       __host__ __device__ float c22(const uint index) const
       {
+        assert(index < m_total_number_of_tracks);
         return m_base_pointer[6 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ float& c22(const uint index) { return m_base_pointer[6 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& c22(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[6 * m_total_number_of_tracks + index];
+      }
 
       __host__ __device__ float c11(const uint index) const
       {
+        assert(index < m_total_number_of_tracks);
         return m_base_pointer[7 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ float& c11(const uint index) { return m_base_pointer[7 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& c11(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[7 * m_total_number_of_tracks + index];
+      }
 
       __host__ __device__ float c31(const uint index) const
       {
+        assert(index < m_total_number_of_tracks);
         return m_base_pointer[8 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ float& c31(const uint index) { return m_base_pointer[8 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& c31(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[8 * m_total_number_of_tracks + index];
+      }
 
       __host__ __device__ float c33(const uint index) const
       {
+        assert(index < m_total_number_of_tracks);
         return m_base_pointer[9 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ float& c33(const uint index) { return m_base_pointer[9 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& c33(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[9 * m_total_number_of_tracks + index];
+      }
 
       __host__ __device__ float z(const uint index) const
       {
+        assert(index < m_total_number_of_tracks);
         return m_base_pointer[10 * m_total_number_of_tracks + index];
       }
 
-      __host__ __device__ float& z(const uint index) { return m_base_pointer[10 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& z(const uint index)
+      {
+        assert(index < m_total_number_of_tracks);
+        return m_base_pointer[10 * m_total_number_of_tracks + index];
+      }
 
       __device__ __host__ void set(const uint track_number, const KalmanVeloState& state)
       {
+        assert(track_number < m_total_number_of_tracks);
+
         x(track_number) = state.x;
         y(track_number) = state.y;
         tx(track_number) = state.tx;
@@ -304,6 +365,8 @@ namespace Velo {
 
       __device__ __host__ KalmanVeloState get(const uint track_number) const
       {
+        assert(track_number < m_total_number_of_tracks);
+
         KalmanVeloState state;
 
         state.x = x(track_number);

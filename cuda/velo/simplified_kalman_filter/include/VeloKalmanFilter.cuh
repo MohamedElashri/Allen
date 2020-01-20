@@ -115,7 +115,9 @@ namespace velo_kalman_filter {
       const HostBuffers& host_buffers) const
     {
       set_size<dev_velo_kalman_beamline_states_t>(
-        arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments) * sizeof(KalmanVeloState));
+        arguments,
+        value<host_number_of_reconstructed_velo_tracks_t>(arguments) *
+          Velo::Consolidated::kalman_states_number_of_arrays * sizeof(uint32_t));
     }
 
     void operator()(

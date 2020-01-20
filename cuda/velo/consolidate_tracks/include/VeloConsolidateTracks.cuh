@@ -43,7 +43,7 @@ namespace velo_consolidate_tracks {
         arguments,
         (value<host_number_of_reconstructed_velo_tracks_t>(arguments) +
          value<host_number_of_three_hit_tracks_filtered_t>(arguments)) *
-          sizeof(VeloState));
+          Velo::Consolidated::states_number_of_arrays * sizeof(uint32_t));
       set_size<dev_accepted_velo_tracks_t>(
         arguments,
         value<host_number_of_reconstructed_velo_tracks_t>(arguments) +
