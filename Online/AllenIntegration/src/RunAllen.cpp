@@ -36,27 +36,7 @@ StatusCode RunAllen::initialize() {
   if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
 
   // initialize Allen
-  
-  // get constants
-  std::string folder_detector_configuration = m_configurationPath;
-
-  std::vector<float> muon_field_of_interest_params;
-  read_muon_field_of_interest(
-    muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
-  
-  m_constants.reserve_and_initialize(
-    muon_field_of_interest_params, folder_detector_configuration + "params_kalman_FT6x2/");
-
-  std::unique_ptr<CatboostModelReader> muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
-  m_constants.initialize_muon_catboost_model_constants(
-    muon_catboost_model_reader->n_trees(),
-    muon_catboost_model_reader->tree_depths(),
-    muon_catboost_model_reader->tree_offsets(),
-    muon_catboost_model_reader->leaf_values(),
-    muon_catboost_model_reader->leaf_offsets(),
-    muon_catboost_model_reader->split_border(),
-    muon_catboost_model_reader->split_feature());
-  
+    
   // Get updater service and register all consumers
   auto svc = service( m_updaterName ); 
   if ( !svc ) {
@@ -74,11 +54,37 @@ StatusCode RunAllen::initialize() {
   // Run all registered producers and consumers
   updater->update(0);
 
+  // get constants
+  std::string folder_detector_configuration = m_detectorConfigurationPath;
+
+  std::vector<float> muon_field_of_interest_params;
+  read_muon_field_of_interest(
+    muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
+  
+  m_constants.reserve_and_initialize(
+    muon_field_of_interest_params, folder_detector_configuration + "params_kalman_FT6x2/");
+
+  std::unique_ptr<CatboostModelReader> muon_catboost_model_reader = std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
+  m_constants.initialize_muon_catboost_model_constants(
+    muon_catboost_model_reader->n_trees(),
+    muon_catboost_model_reader->tree_depths(),
+    muon_catboost_model_reader->tree_offsets(),
+    muon_catboost_model_reader->leaf_values(),
+    muon_catboost_model_reader->leaf_offsets(),
+    muon_catboost_model_reader->split_border(),
+    muon_catboost_model_reader->split_feature());
+
+  // Read configuration
+  std::string json_constants_configuration_file = m_algorithmConfigurationPath + "default.json";
+  ConfigurationReader configuration_reader(json_constants_configuration_file);
+  
+  
   // Initialize stream
   const bool print_memory_usage = false;
   const uint start_event_offset = 0;
   const size_t reserve_mb = 5; // to do: how much do we need maximally for one event?
   m_stream = new Stream();
+  m_stream->configure_algorithms(configuration_reader.params());
   m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants, &m_host_buffers_manager);
 
   // Set verbosity level

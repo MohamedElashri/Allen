@@ -98,7 +98,7 @@ def getHitTypeMask(dets):
 DDDBtag = "dddb-20180815"
 CondDBtag = "sim-20180530-vc-md100"
 
-Evts_to_Run = 100  # set to -1 to process all
+Evts_to_Run = 1000  # set to -1 to process all
 
 # by default write output to the current directory
 output_file = "./"

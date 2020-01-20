@@ -64,7 +64,8 @@ class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tup
   HostBuffersManager m_host_buffers_manager = HostBuffersManager(m_number_of_events, m_do_check, m_n_buffers); 
   
   Gaudi::Property<std::string>       m_updaterName{this, "UpdaterName", "AllenUpdater"};
-  Gaudi::Property<std::string>       m_configurationPath{this, "ConfigurationPath", "../Allen/input/detector_configuration/down/"};
+  Gaudi::Property<std::string>       m_detectorConfigurationPath{this, "DetectorConfigurationPath", "../Allen/input/detector_configuration/down/"};
+  Gaudi::Property<std::string>       m_algorithmConfigurationPath{this, "AlgorithmConfigurationPath", "../Allen/configuration/constants/"};
   Gaudi::Property<bool>              m_do_check{this, "do_check", true};
   
 };
