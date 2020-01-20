@@ -69,6 +69,8 @@ namespace pv_beamline_multi_fitter {
                    offset<dev_number_of_multi_fit_vertices_t>(arguments),
                    offset<dev_pvtrack_z_t>(arguments)},
         constants.dev_beamline.data());
+
+      arguments.template print<dev_zpeaks_t>();
     }
   };
 } // namespace pv_beamline_multi_fitter

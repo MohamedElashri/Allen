@@ -61,9 +61,22 @@ class OutputParameter():
     pass
 
 
+def compatible_parameter_assignment(a, b):
+  """Returns whether the parameter b can accept to be written
+  with class a."""
+  return ((issubclass(b, DeviceParameter) and issubclass(a, DeviceParameter)) or \
+    (issubclass(b, HostParameter) and issubclass(a, HostParameter))) and \
+    (issubclass(b, InputParameter) or (issubclass(b, OutputParameter) and issubclass(a, OutputParameter)))
+
+
 class HostInput(HostParameter, InputParameter):
-  def __init__(self, name, vtype):
-    self.__name = name
+  def __init__(self, value, vtype):
+    if value.__class__ == str:
+      self.__name = value
+    else:
+      assert compatible_parameter_assignment(value.__class__, __class__)
+      assert value.type() == Type(vtype)
+      self.__name = value.name()
     self.__type = Type(vtype)
 
   def name(self):
@@ -83,8 +96,13 @@ class HostInput(HostParameter, InputParameter):
 
 
 class HostOutput(HostParameter, OutputParameter):
-  def __init__(self, name, vtype):
-    self.__name = name
+  def __init__(self, value, vtype):
+    if value.__class__ == str:
+      self.__name = value
+    else:
+      assert compatible_parameter_assignment(value.__class__, __class__)
+      assert value.type() == Type(vtype)
+      self.__name = value.name()
     self.__type = Type(vtype)
 
   def name(self):
@@ -104,8 +122,13 @@ class HostOutput(HostParameter, OutputParameter):
 
 
 class DeviceInput(DeviceParameter, InputParameter):
-  def __init__(self, name, vtype):
-    self.__name = name
+  def __init__(self, value, vtype):
+    if value.__class__ == str:
+      self.__name = value
+    else:
+      assert compatible_parameter_assignment(value.__class__, __class__)
+      assert value.type() == Type(vtype)
+      self.__name = value.name()
     self.__type = Type(vtype)
 
   def name(self):
@@ -125,8 +148,13 @@ class DeviceInput(DeviceParameter, InputParameter):
 
 
 class DeviceOutput(DeviceParameter, OutputParameter):
-  def __init__(self, name, vtype):
-    self.__name = name
+  def __init__(self, value, vtype):
+    if value.__class__ == str:
+      self.__name = value
+    else:
+      assert compatible_parameter_assignment(value.__class__, __class__)
+      assert value.type() == Type(vtype)
+      self.__name = value.name()
     self.__type = Type(vtype)
 
   def name(self):
@@ -143,14 +171,6 @@ class DeviceOutput(DeviceParameter, OutputParameter):
 
   def __repr__(self):
     return "DeviceOutput(\"" + self.__name + "\", " + repr(self.__type) + ")"
-
-
-def compatible_parameter_assignment(a, b):
-  """Returns whether the parameter b can accept to be written
-  with class a."""
-  return ((issubclass(b, DeviceParameter) and issubclass(a, DeviceParameter)) or \
-    (issubclass(b, HostParameter) and issubclass(a, HostParameter))) and \
-    (issubclass(b, InputParameter) or (issubclass(b, OutputParameter) and issubclass(a, OutputParameter)))
 
 
 def prefix(indentation_level, indent_by = 2):
@@ -200,22 +220,24 @@ class Sequence():
             errors += 1
           # Check that the input and output types correspond
           if parameter.name() in output_parameters and \
-            output_parameters[parameter.name()].type() != parameter.type():
-            print("Error: Type mismatch (" + repr(parameter.type()) + ", " + repr(output_parameters[parameter.name()].type()) + ") " \
-              + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
+            output_parameters[parameter.name()]["parameter"].type() != parameter.type():
+            print("Error: Type mismatch (" + repr(parameter.type()) + ", " + repr(output_parameters[parameter.name()]["parameter"].type()) + ") " \
+              + "between " + algorithm.name() + "::" + repr(parameter) \
+              + " and " + output_parameters[parameter.name()]["algorithm"].name() \
+              + "::" + repr(output_parameters[parameter.name()]["parameter"]))
             errors += 1
           # Check the scope (Device, Host) of the input and output parameters matches
           if parameter.name() in output_parameters and \
             ((issubclass(parameter.__class__, DeviceParameter) and \
-              issubclass(output_parameters[parameter.name()].__class__, HostParameter)) or \
+              issubclass(output_parameters[parameter.name()]["parameter"].__class__, HostParameter)) or \
             (issubclass(parameter.__class__, HostParameter) and \
-              issubclass(output_parameters[parameter.name()].__class__, DeviceParameter))):
-            print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.name()].__class__ + ") " \
+              issubclass(output_parameters[parameter.name()]["parameter"].__class__, DeviceParameter))):
+            print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.name()]["parameter"].__class__ + ") " \
               + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
             errors += 1
       for parameter_name, parameter in iter(algorithm.parameters().items()):
         if issubclass(parameter.__class__, OutputParameter):
-          output_parameters[parameter.name()] = parameter
+          output_parameters[parameter.name()] = {"parameter": parameter, "algorithm": algorithm}
 
     if errors >= 1:
       print("Number of sequence errors:", errors)

@@ -133,7 +133,7 @@ namespace UT {
      * @brief Populates the UTHits object pointers to an array of data
      *        pointed by base_pointer.
      */
-    __host__ __device__ Hits_t(typename ForwardType<T, char>::t* base_pointer, const uint total_number_of_hits) :
+    __host__ __device__ Hits_t(T* base_pointer, const uint total_number_of_hits) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
       m_total_number_of_hits(total_number_of_hits)
     {}

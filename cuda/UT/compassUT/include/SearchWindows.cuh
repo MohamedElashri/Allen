@@ -11,8 +11,8 @@ namespace ut_search_windows {
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
-    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
-    DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_OUTPUT(dev_ut_active_tracks_t, uint) dev_ut_active_tracks;
@@ -60,8 +60,8 @@ namespace ut_search_windows {
         cuda_stream)(
         Parameters {offset<dev_ut_hits_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments),
-                   offset<dev_atomics_velo_t>(arguments),
-                   offset<dev_velo_track_hit_number_t>(arguments),
+                   offset<dev_offsets_all_velo_tracks_t>(arguments),
+                   offset<dev_offsets_velo_track_hit_number_t>(arguments),
                    offset<dev_velo_states_t>(arguments),
                    offset<dev_ut_windows_layers_t>(arguments),
                    offset<dev_ut_active_tracks_t>(arguments),

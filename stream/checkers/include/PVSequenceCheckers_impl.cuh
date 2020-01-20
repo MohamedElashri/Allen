@@ -33,6 +33,7 @@ struct SequenceVisitor<pv_beamline_cleanup::pv_beamline_cleanup_t<T, S...>> {
     const MCEvents& mc_events)
   {
     auto& checker = checker_invoker.checker<GPUPVChecker>("Primary vertices:", "GPU_PVChecker.root");
+
     checker.accumulate(
       mc_events,
       host_buffers.host_reconstructed_multi_pvs,

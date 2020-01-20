@@ -16,8 +16,8 @@ namespace compass_ut {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits; // actual hit content
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
-    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo; // prefixsum, offset to tracks
-    DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo; // prefixsum, offset to tracks
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_OUTPUT(dev_ut_active_tracks_t, uint) dev_ut_active_tracks;
     DEVICE_OUTPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
@@ -105,8 +105,8 @@ namespace compass_ut {
         dim3(value<host_number_of_selected_events_t>(arguments)), dim3(UT::Constants::num_thr_compassut), cuda_stream)(
         Parameters {offset<dev_ut_hits_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments),
-                   offset<dev_atomics_velo_t>(arguments),
-                   offset<dev_velo_track_hit_number_t>(arguments),
+                   offset<dev_offsets_all_velo_tracks_t>(arguments),
+                   offset<dev_offsets_velo_track_hit_number_t>(arguments),
                    offset<dev_velo_states_t>(arguments),
                    offset<dev_ut_active_tracks_t>(arguments),
                    offset<dev_ut_tracks_t>(arguments),

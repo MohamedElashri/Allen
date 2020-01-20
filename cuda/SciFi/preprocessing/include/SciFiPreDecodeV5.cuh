@@ -41,8 +41,9 @@ namespace scifi_pre_decode_v5 {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      const auto dev_scifi_hits_size = value<host_accumulated_number_of_scifi_hits_t>(arguments) * sizeof(SciFi::Hit);
-      set_size<dev_scifi_hits_t>(arguments, dev_scifi_hits_size);
+      set_size<dev_scifi_hits_t>(
+        arguments,
+        value<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::hits_number_of_arrays * sizeof(uint32_t));
     }
 
     void operator()(

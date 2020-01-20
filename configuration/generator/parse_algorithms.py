@@ -102,7 +102,8 @@ def write_algorithm_code(algorithm, i = 0):
   s += prefix(i) + "self.__ordered_parameters = OrderedDict(["
   i += 1
   for var_name, var in iter(algorithm["variables"].items()):
-    s += "\n" + prefix(i) + "(\"" + var_name + "\", " + var_name + "),"
+    s += "\n" + prefix(i) + "(\"" + var_name + "\", " + create_var_type(var["scope"], var["io"]) \
+      + "(" + var_name + ", \"" + var["type"] + "\")),"
   s = s[:-1]
   s += "])\n"
   i -= 1

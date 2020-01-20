@@ -25,7 +25,8 @@ namespace velo_kalman_filter {
    */
   template<bool upstream>
   __device__ KalmanVeloState
-  simplified_fit(Velo::Consolidated::ConstHits& consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits) {
+  simplified_fit(Velo::Consolidated::ConstHits& consolidated_hits, const MiniState& stateAtBeamLine, const uint nhits)
+  {
     // backward = state.z > track.hits[0].z;
     const bool backward = stateAtBeamLine.z > consolidated_hits.z(0);
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
@@ -111,9 +112,10 @@ namespace velo_kalman_filter {
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const {
-      set_size<dev_velo_kalman_beamline_states_t>(arguments,
-        value<host_number_of_reconstructed_velo_tracks_t>(arguments) * sizeof(KalmanVeloState));
+      const HostBuffers& host_buffers) const
+    {
+      set_size<dev_velo_kalman_beamline_states_t>(
+        arguments, value<host_number_of_reconstructed_velo_tracks_t>(arguments) * sizeof(KalmanVeloState));
     }
 
     void operator()(
@@ -122,15 +124,14 @@ namespace velo_kalman_filter {
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t& cuda_generic_event) const
+    {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {
-          offset<dev_offsets_all_velo_tracks_t>(arguments),
-          offset<dev_offsets_velo_track_hit_number_t>(arguments),
-          offset<dev_velo_track_hits_t>(arguments),
-          offset<dev_velo_states_t>(arguments),
-          offset<dev_velo_kalman_beamline_states_t>(arguments)
-        });
+        Parameters {offset<dev_offsets_all_velo_tracks_t>(arguments),
+                    offset<dev_offsets_velo_track_hit_number_t>(arguments),
+                    offset<dev_velo_track_hits_t>(arguments),
+                    offset<dev_velo_states_t>(arguments),
+                    offset<dev_velo_kalman_beamline_states_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(

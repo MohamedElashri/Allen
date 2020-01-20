@@ -5,6 +5,8 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Pa
   __shared__ uint tmp_number_vertices[1];
   *tmp_number_vertices = 0;
 
+  __syncthreads();
+
   const uint event_number = blockIdx.x;
 
   const PV::Vertex* vertices = parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices;
@@ -28,7 +30,7 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Pa
       }
     }
     if (unique) {
-      auto vtx_index = atomicInc(tmp_number_vertices, 100);
+      auto vtx_index = atomicAdd(tmp_number_vertices, 1);
       final_vertices[vtx_index] = vertex1;
     }
   }

@@ -14,8 +14,8 @@ namespace ut_consolidate_tracks {
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
     DEVICE_OUTPUT(dev_ut_track_hits_t, char) dev_ut_track_hits;
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
     DEVICE_OUTPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_OUTPUT(dev_ut_x_t, float) dev_ut_x;
     DEVICE_OUTPUT(dev_ut_tx_t, float) dev_ut_tx;
@@ -58,8 +58,8 @@ namespace ut_consolidate_tracks {
         Parameters {offset<dev_ut_hits_t>(arguments),
                    offset<dev_ut_hit_offsets_t>(arguments),
                    offset<dev_ut_track_hits_t>(arguments),
-                   offset<dev_atomics_ut_t>(arguments),
-                   offset<dev_ut_track_hit_number_t>(arguments),
+                   offset<dev_offsets_ut_tracks_t>(arguments),
+                   offset<dev_offsets_ut_track_hit_number_t>(arguments),
                    offset<dev_ut_qop_t>(arguments),
                    offset<dev_ut_x_t>(arguments),
                    offset<dev_ut_tx_t>(arguments),
@@ -72,15 +72,15 @@ namespace ut_consolidate_tracks {
         // Transmission device to host of UT consolidated tracks
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_atomics_ut,
-          offset<dev_atomics_ut_t>(arguments),
-          size<dev_atomics_ut_t>(arguments),
+          offset<dev_offsets_ut_tracks_t>(arguments),
+          size<dev_offsets_ut_tracks_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_ut_track_hit_number,
-          offset<dev_ut_track_hit_number_t>(arguments),
-          size<dev_ut_track_hit_number_t>(arguments),
+          offset<dev_offsets_ut_track_hit_number_t>(arguments),
+          size<dev_offsets_ut_track_hit_number_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 

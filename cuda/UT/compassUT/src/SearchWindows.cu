@@ -20,9 +20,10 @@ __global__ void ut_search_windows::ut_search_windows(
   const uint total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
 
   // Velo consolidated types
-  const Velo::Consolidated::Tracks velo_tracks {
+  Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
+
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
@@ -41,18 +42,19 @@ __global__ void ut_search_windows::ut_search_windows(
   for (uint layer = threadIdx.x; layer < UT::Constants::n_layers; layer += blockDim.x) {
     const uint layer_offset = ut_hit_offsets.layer_offset(layer);
 
-    for (uint i = 0; i < ((number_of_tracks_event + blockDim.y - 1) / blockDim.y) + 1; i += 1) {
+    for (uint i = 0; i < ((number_of_tracks_event + blockDim.y - 1) / blockDim.y); i += 1) {
       const auto i_track = i * blockDim.y + threadIdx.y;
 
       __syncthreads();
 
       // filter the tracks that won't be valid
       if (threadIdx.x == 0) {
-        const uint current_track_offset = event_tracks_offset + i_track;
-        const MiniState velo_state = velo_states.get(current_track_offset);
         if (i_track < number_of_tracks_event) {
+          const uint current_track_offset = event_tracks_offset + i_track;
+          const auto velo_state = velo_states.get(current_track_offset);
           if (
-            !velo_states.backward(current_track_offset) && parameters.dev_accepted_velo_tracks[current_track_offset] &&
+            !velo_state.backward &&
+            parameters.dev_accepted_velo_tracks[current_track_offset] &&
             velo_track_in_UTA_acceptance(velo_state)) {
             int current_track = atomicAdd(active_tracks, 1);
             shared_active_tracks[current_track] = i_track;

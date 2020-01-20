@@ -139,6 +139,8 @@ namespace SciFi {
   typedef const HitCount_t<const char> ConstHitCount;
   typedef HitCount_t<char> HitCount;
 
+  constexpr uint hits_number_of_arrays = 6;
+
   template<typename T>
   struct Hits_t {
   private:

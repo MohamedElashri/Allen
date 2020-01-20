@@ -105,7 +105,7 @@ namespace Velo {
       const uint m_total_number_of_tracks;
 
     public:
-      __host__ __device__ States_t(typename ForwardType<T, char>::t* base_pointer, const uint total_number_of_tracks) :
+      __host__ __device__ States_t(T* base_pointer, const uint total_number_of_tracks) :
         m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
         m_total_number_of_tracks(total_number_of_tracks)
       {}

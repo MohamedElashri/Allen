@@ -13,7 +13,7 @@ namespace velo_consolidate_tracks {
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, uint);
     HOST_INPUT(host_number_of_three_hit_tracks_filtered_t, uint);
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_OUTPUT(dev_accepted_velo_tracks_t, uint);
+    DEVICE_OUTPUT(dev_accepted_velo_tracks_t, bool);
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_offsets_all_velo_tracks;
     DEVICE_INPUT(dev_tracks_t, Velo::TrackHits) dev_tracks;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_offsets_velo_track_hit_number;

@@ -7,7 +7,7 @@
 namespace ut_pre_decode {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_accumulated_number_of_ut_hits, uint);
+    HOST_INPUT(host_accumulated_number_of_ut_hits_t, uint);
     DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
@@ -33,9 +33,13 @@ namespace ut_pre_decode {
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const {
-      set_size<dev_ut_hits_t>(arguments, UT::hits_number_of_arrays * value<host_accumulated_number_of_ut_hits>(arguments));
-      set_size<dev_ut_hit_count_t>(arguments,
+      const HostBuffers& host_buffers) const
+    {
+      set_size<dev_ut_hits_t>(
+        arguments,
+        UT::hits_number_of_arrays * value<host_accumulated_number_of_ut_hits_t>(arguments) * sizeof(uint32_t));
+      set_size<dev_ut_hit_count_t>(
+        arguments,
         value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
     }
 
@@ -45,18 +49,18 @@ namespace ut_pre_decode {
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t& cuda_generic_event) const
+    {
       cudaCheck(
         cudaMemsetAsync(offset<dev_ut_hit_count_t>(arguments), 0, size<dev_ut_hit_count_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters{offset<dev_ut_raw_input_t>(arguments),
-                  offset<dev_ut_raw_input_offsets_t>(arguments),
-                  offset<dev_event_list_t>(arguments),
-                  offset<dev_ut_hit_offsets_t>(arguments),
-                  offset<dev_ut_hits_t>(arguments),
-                  offset<dev_ut_hit_count_t>(arguments)},
-
+        Parameters {offset<dev_ut_raw_input_t>(arguments),
+                    offset<dev_ut_raw_input_offsets_t>(arguments),
+                    offset<dev_event_list_t>(arguments),
+                    offset<dev_ut_hit_offsets_t>(arguments),
+                    offset<dev_ut_hits_t>(arguments),
+                    offset<dev_ut_hit_count_t>(arguments)},
         constants.dev_ut_boards.data(),
         constants.dev_ut_geometry.data(),
         constants.dev_ut_region_offsets.data(),

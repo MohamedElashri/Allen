@@ -51,6 +51,7 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
 
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,
                                                            velo_tracks.total_number_of_tracks()};
+
   Velo::Consolidated::KalmanStates kalmanvelo_states {parameters.dev_velo_kalman_beamline_states,
                                                            velo_tracks.total_number_of_tracks()};
 

@@ -131,7 +131,7 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
       });
 
     // Calculate and store fit in consolidated container
-    VeloState beam_state = means_square_fit(consolidated_hits, number_of_hits);
+    const VeloState beam_state = means_square_fit(consolidated_hits, number_of_hits);
     velo_states.set(event_tracks_offset + i, beam_state);
   }
 }

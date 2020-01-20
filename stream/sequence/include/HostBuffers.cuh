@@ -51,7 +51,7 @@ struct HostBuffers {
   int* host_number_of_multivertex;
 
   // UT
-  int* host_atomics_ut;
+  uint* host_atomics_ut;
   UT::TrackHits* host_ut_tracks;
   uint* host_number_of_reconstructed_ut_tracks;
   uint* host_accumulated_number_of_ut_hits;
@@ -68,7 +68,7 @@ struct HostBuffers {
   uint* host_accumulated_number_of_scifi_hits;
   uint* host_number_of_reconstructed_scifi_tracks;
   SciFi::TrackHits* host_scifi_tracks;
-  int* host_atomics_scifi;
+  uint* host_atomics_scifi;
   uint* host_accumulated_number_of_hits_in_scifi_tracks;
   uint* host_scifi_track_hit_number;
   char* host_scifi_track_hits;

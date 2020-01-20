@@ -15,7 +15,7 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
 
   const uint32_t event_offset = parameters.dev_ut_raw_input_offsets[selected_event_number];
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
-  uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
+  uint32_t* hit_offsets = parameters.dev_ut_hit_sizes + event_number * number_of_unique_x_sectors;
 
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);

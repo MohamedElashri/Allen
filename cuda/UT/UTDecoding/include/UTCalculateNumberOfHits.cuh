@@ -9,7 +9,7 @@ namespace ut_calculate_number_of_hits {
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_OUTPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_OUTPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
-    DEVICE_OUTPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
+    DEVICE_OUTPUT(dev_ut_hit_sizes_t, uint) dev_ut_hit_sizes;
   };
 
   __global__ void ut_calculate_number_of_hits(
@@ -30,8 +30,8 @@ namespace ut_calculate_number_of_hits {
       const Constants& constants,
       const HostBuffers& host_buffers) const {
       set_size<dev_ut_raw_input_t>(arguments, std::get<0>(runtime_options.host_ut_events).size_bytes());
-      set_size<dev_ut_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_ut_events).size_bytes());
-      set_size<dev_ut_hit_offsets_t>(
+      set_size<dev_ut_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_ut_events).size_bytes() / sizeof(uint));
+      set_size<dev_ut_hit_sizes_t>(
         arguments,
         value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
     }
@@ -58,13 +58,13 @@ namespace ut_calculate_number_of_hits {
         cuda_stream));
 
       cudaCheck(cudaMemsetAsync(
-        offset<dev_ut_hit_offsets_t>(arguments), 0, size<dev_ut_hit_offsets_t>(arguments), cuda_stream));
+        offset<dev_ut_hit_sizes_t>(arguments), 0, size<dev_ut_hit_sizes_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_event_list_t>(arguments),
                    offset<dev_ut_raw_input_t>(arguments),
                    offset<dev_ut_raw_input_offsets_t>(arguments),
-                   offset<dev_ut_hit_offsets_t>(arguments)},
+                   offset<dev_ut_hit_sizes_t>(arguments)},
         constants.dev_ut_boards.data(),
         constants.dev_ut_region_offsets.data(),
         constants.dev_unique_x_sector_layer_offsets.data(),

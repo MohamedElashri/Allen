@@ -7,7 +7,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   const uint event_number = blockIdx.x;
   uint* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
 
-  const Velo::Consolidated::Tracks velo_tracks {
+  Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
   const uint number_of_tracks = velo_tracks.number_of_tracks(event_number);
@@ -181,7 +181,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
       if (vertex.nTracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
-        uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
+        const uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }
     }
