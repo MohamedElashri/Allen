@@ -134,10 +134,11 @@ void run_slices(
 
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
+  int timeout = 0;
   while (true) {
 
     // Check if there are messages without blocking
-    zmq::poll(&items[0], 1, 0);
+    zmq::poll(&items[0], 1, timeout);
 
     if (items[0].revents & zmq::POLLIN) {
       auto msg = zmqSvc().receive<std::string>(control);
@@ -161,7 +162,7 @@ void run_slices(
     }
     if (done) {
       zmqSvc().send(control, "DONE");
-      break;
+      timeout = -1;
     }
   }
 }
@@ -1283,18 +1284,9 @@ loop_error:
   // Send stop signal to all threads and join them if they haven't
   // exited yet (as indicated by pred)
   // this now needs to be done for all workers as I/O workers never finish early - could remove pred
-  using pred_t = std::function<bool(size_t)>;
-  auto input_done = [io_done](size_t i) { return i == 1 || (i == 0 && !io_done);};
-  auto pred_true = [] (size_t) {return true;};
-  for (auto [workers, pred] : {std::tuple {std::ref(io_workers), pred_t{input_done}},
-                               std::tuple {std::ref(mon_workers), pred_t{pred_true}},
-                               std::tuple {std::ref(streams), pred_t{pred_true}}}) {
-    auto& ws = workers.get();
-    for (size_t i_worker = 0; i_worker < ws.size(); ++i_worker) {
-      auto& worker = ws[i_worker];
-      if (pred(i_worker)) {
-        zmqSvc().send(std::get<1>(worker), "DONE");
-      }
+  for (auto workers : {std::ref(io_workers), std::ref(mon_workers), std::ref(streams)}) {
+    for (auto& worker : workers.get()) {
+      zmqSvc().send(std::get<1>(worker), "DONE");
       std::get<0>(worker).join();
     }
   }
