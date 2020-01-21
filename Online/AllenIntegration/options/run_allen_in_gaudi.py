@@ -98,7 +98,7 @@ def getHitTypeMask(dets):
 DDDBtag = "dddb-20180815"
 CondDBtag = "sim-20180530-vc-md100"
 
-Evts_to_Run = 1000  # set to -1 to process all
+Evts_to_Run = 10  # set to -1 to process all
 
 # by default write output to the current directory
 output_file = "./"
@@ -110,6 +110,7 @@ if "OUTPUT_DIR" in os.environ:
 mbrunel = Brunel(
     DataType="Upgrade",
     EvtMax=Evts_to_Run,
+    #SkipEvents = 20,
     PrintFreq=1,
     WithMC=True,
     Simulation=True,
@@ -131,8 +132,9 @@ NTupleSvc().Output = ["FILE1 DATAFILE='velo_states.root' TYP='ROOT' OPT='NEW'"]
 
 
 # Save raw banks in Allen format on the TES
+outputdirectory = "dump/"
 dump_banks = DumpRawBanks(
-    BankTypes=["VP", "UT", "FTCluster", "Muon"], DumpToFile=False)
+    BankTypes=["VP", "UT", "FTCluster", "Muon"], DumpToFile=False, OutputDirectory=outputdirectory + "banks")
 dump_seq = GaudiSequencer("RecoAllenPrepareSeq")
 dump_seq.Members += [dump_banks]
 
@@ -161,6 +163,15 @@ for tracktype in tracksToConvert:
     trassociator.OutputLocation = "Link/" + "Allen/Track/v1/" + tracktype + "Converted"
     checker_seq.Members += [trassociator]
 
+mc_dumper_seq = GaudiSequencer("MCDumper")
+from Configurables import PrTrackerDumper, DumpVeloUTState, PVDumper
+dump_mc = PrTrackerDumper(
+    "DumpMCInfo", DumpToBinary=True, DumpToROOT=False)
+dump_mc.OutputDirectory = outputdirectory + "TrackerDumper"
+dump_mc.MCOutputDirectory = outputdirectory + "MC_info/tracks"
+dump_pvmc = PVDumper("DumpPVMCInfo")
+dump_pvmc.OutputDirectory = outputdirectory + "MC_info/PVs"
+mc_dumper_seq.Members += [dump_mc, dump_pvmc]
     
 ApplicationMgr().TopAlg += []
 
@@ -192,7 +203,7 @@ def modifySequences():
         GaudiSequencer("CheckPatSeq").Members.remove(
             PrimaryVertexChecker("PVChecker"))
         from Configurables import PrGECFilter
-        #GaudiSequencer("RecoDecodingSeq").Members.remove(PrGECFilter())
+        GaudiSequencer("RecoDecodingSeq").Members.remove(PrGECFilter())
         from Configurables import MuonRec
         GaudiSequencer("RecoDecodingSeq").Members.append(MuonRec())
     except ValueError:
