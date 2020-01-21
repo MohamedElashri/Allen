@@ -3,6 +3,7 @@
 #include "SciFiEventModel.cuh"
 #include "SciFiConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
+#include "UTConsolidated.cuh"
 #include "States.cuh"
 #include "DeviceAlgorithm.cuh"
 #include "LookingForwardConstants.cuh"
@@ -20,7 +21,8 @@ namespace scifi_consolidate_tracks {
     DEVICE_OUTPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_OUTPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_OUTPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
     DEVICE_INPUT(dev_scifi_lf_parametrization_consolidate_t, float) dev_scifi_lf_parametrization_consolidate;
   };
@@ -62,7 +64,8 @@ namespace scifi_consolidate_tracks {
                     offset<dev_scifi_qop_t>(arguments),
                     offset<dev_scifi_states_t>(arguments),
                     offset<dev_scifi_track_ut_indices_t>(arguments),
-                    offset<dev_atomics_ut_t>(arguments),
+                    offset<dev_offsets_ut_tracks_t>(arguments),
+                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
                     offset<dev_scifi_tracks_t>(arguments),
                     offset<dev_scifi_lf_parametrization_consolidate_t>(arguments)});
 

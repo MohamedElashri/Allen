@@ -14,8 +14,12 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consoli
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
-  const uint ut_event_tracks_offset = parameters.dev_atomics_ut[number_of_events + event_number];
-  const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
+  // UT consolidated tracks
+  UT::Consolidated::ConstTracks ut_tracks {
+    parameters.dev_atomics_ut, parameters.dev_ut_track_hit_number, event_number, number_of_events};
+
+  const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
+  const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
 
   // const SciFi::TrackHits* event_scifi_tracks =
   //   parameters.dev_scifi_tracks + ut_event_tracks_offset *
