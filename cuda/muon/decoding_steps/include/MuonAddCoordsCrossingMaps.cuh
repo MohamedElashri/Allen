@@ -14,8 +14,8 @@ namespace muon_add_coords_crossing_maps {
     DEVICE_OUTPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
     DEVICE_OUTPUT(dev_muon_hits_t, uint) dev_muon_hits;
     DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
-    DEVICE_OUTPUT(dev_station_ocurrences_offset_t, uint) dev_station_ocurrences_offset;
-    DEVICE_OUTPUT(dev_muon_compact_hit_t, uint) dev_muon_compact_hit;
+    DEVICE_OUTPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
+    DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, uint) dev_station_ocurrences_sizes;
   };
 
   __global__ void muon_add_coords_crossing_maps(Parameters);
@@ -32,7 +32,7 @@ namespace muon_add_coords_crossing_maps {
       const HostBuffers& host_buffers) const
     {
       set_size<dev_muon_hits_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_station_ocurrences_offset_t>(
+      set_size<dev_station_ocurrences_sizes_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations);
       set_size<dev_muon_compact_hit_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Muon::Constants::max_numhits_per_event);
@@ -47,9 +47,9 @@ namespace muon_add_coords_crossing_maps {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_station_ocurrences_offset_t>(arguments),
+        offset<dev_station_ocurrences_sizes_t>(arguments),
         0,
-        size<dev_station_ocurrences_offset_t>(arguments),
+        size<dev_station_ocurrences_sizes_t>(arguments),
         cuda_stream));
 
       cudaCheck(cudaMemsetAsync(
@@ -60,9 +60,10 @@ namespace muon_add_coords_crossing_maps {
                     offset<dev_storage_tile_id_t>(arguments),
                     offset<dev_storage_tdc_value_t>(arguments),
                     offset<dev_atomics_muon_t>(arguments),
+                    offset<dev_muon_hits_t>(arguments),
                     offset<dev_muon_raw_to_hits_t>(arguments),
                     offset<dev_muon_compact_hit_t>(arguments),
-                    offset<dev_station_ocurrences_offset_t>(arguments)});
+                    offset<dev_station_ocurrences_sizes_t>(arguments)});
     }
   };
 } // namespace muon_add_coords_crossing_maps

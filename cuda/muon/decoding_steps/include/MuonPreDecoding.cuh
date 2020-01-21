@@ -12,7 +12,7 @@ namespace muon_pre_decoding {
     DEVICE_OUTPUT(dev_muon_raw_t, char) dev_muon_raw;
     DEVICE_OUTPUT(dev_muon_raw_offsets_t, uint) dev_muon_raw_offsets;
     DEVICE_OUTPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
-    DEVICE_OUTPUT(dev_storage_station_region_quarter_offsets_t, uint) dev_storage_station_region_quarter_offsets;
+    DEVICE_OUTPUT(dev_storage_station_region_quarter_sizes_t, uint) dev_storage_station_region_quarter_offsets;
     DEVICE_OUTPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
     DEVICE_OUTPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
     DEVICE_OUTPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
@@ -34,7 +34,7 @@ namespace muon_pre_decoding {
       set_size<dev_muon_raw_t>(arguments, std::get<0>(runtime_options.host_muon_events).size_bytes());
       set_size<dev_muon_raw_offsets_t>(arguments, std::get<1>(runtime_options.host_muon_events).size_bytes());
       set_size<dev_muon_raw_to_hits_t>(arguments, 1);
-      set_size<dev_storage_station_region_quarter_offsets_t>(
+      set_size<dev_storage_station_region_quarter_sizes_t>(
         arguments,
         value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations * Muon::Constants::n_regions *
             Muon::Constants::n_quarters +
@@ -81,9 +81,9 @@ namespace muon_pre_decoding {
         cuda_stream));
 
       cudaCheck(cudaMemsetAsync(
-        offset<dev_storage_station_region_quarter_offsets_t>(arguments),
+        offset<dev_storage_station_region_quarter_sizes_t>(arguments),
         0,
-        size<dev_storage_station_region_quarter_offsets_t>(arguments),
+        size<dev_storage_station_region_quarter_sizes_t>(arguments),
         cuda_stream));
 
       cudaCheck(
@@ -96,7 +96,7 @@ namespace muon_pre_decoding {
                                  offset<dev_muon_raw_t>(arguments),
                                  offset<dev_muon_raw_offsets_t>(arguments),
                                  offset<dev_muon_raw_to_hits_t>(arguments),
-                                 offset<dev_storage_station_region_quarter_offsets_t>(arguments),
+                                 offset<dev_storage_station_region_quarter_sizes_t>(arguments),
                                  offset<dev_storage_tile_id_t>(arguments),
                                  offset<dev_storage_tdc_value_t>(arguments),
                                  offset<dev_atomics_muon_t>(arguments)});

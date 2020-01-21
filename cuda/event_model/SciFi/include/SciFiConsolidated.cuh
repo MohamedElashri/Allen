@@ -73,18 +73,33 @@ namespace SciFi {
 
       __host__ __device__ MiniState& states(const uint index) { return m_states[index]; }
 
-      __host__ __device__ Hits_t<T> get_hits(T* hits_base_pointer, const uint track_number) const
+      __host__ __device__ Hits get_hits(char* hits_base_pointer, const uint track_number) const
       {
-        return Hits_t<T> {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
 
-      __host__ __device__ ExtendedHits_t<T> get_hits(
-        T* hits_base_pointer,
+      __host__ __device__ ConstHits get_hits(const char* hits_base_pointer, const uint track_number) const
+      {
+        return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ ExtendedHits get_hits(
+        char* hits_base_pointer,
         const uint track_number,
         const SciFiGeometry* geom,
         const float* inv_clus_res) const
       {
-        return ExtendedHits_t<T> {
+        return ExtendedHits {
+          hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
+      }
+
+      __host__ __device__ ConstExtendedHits get_hits(
+        const char* hits_base_pointer,
+        const uint track_number,
+        const SciFiGeometry* geom,
+        const float* inv_clus_res) const
+      {
+        return ConstExtendedHits {
           hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
       }
     }; // namespace Consolidated

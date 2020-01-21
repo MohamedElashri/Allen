@@ -20,8 +20,7 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
   auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
-  auto station_ocurrences_offset =
-    parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
+  auto station_ocurrences_sizes = parameters.dev_station_ocurrences_sizes + event_number * Muon::Constants::n_stations;
   const auto base_offset = storage_station_region_quarter_offsets[0];
 
   for (uint i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
@@ -37,14 +36,14 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
       const auto station = tile.station();
       const auto region = tile.region();
 
-      const auto x1 =
-        getLayoutX(parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
-      const auto y1 =
-        getLayoutY(parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
-      const auto x2 =
-        getLayoutX(parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
-      const auto y2 =
-        getLayoutY(parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+      const auto x1 = getLayoutX(
+        parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+      const auto y1 = getLayoutY(
+        parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
+      const auto x2 = getLayoutX(
+        parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
+      const auto y2 = getLayoutY(
+        parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripYTableNumber, station, region);
 
       Muon::MuonLayout layout_one;
       Muon::MuonLayout layout_two;
@@ -98,7 +97,7 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
 
             muon_compact_hit[localCurrentHitIndex] = compact_hit;
 
-            atomicAdd(station_ocurrences_offset + station, 1);
+            atomicAdd(station_ocurrences_sizes + station, 1);
 
             used[digitsOneIndex] = used[digitsTwoIndex] = true;
           }
@@ -131,7 +130,7 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
                                  (((tile.id() & Muon::MuonBase::MaskStation) >> Muon::MuonBase::ShiftStation) & 0xF);
           muon_compact_hit[localCurrentHitIndex] = compact_hit;
 
-          atomicAdd(station_ocurrences_offset + station, 1);
+          atomicAdd(station_ocurrences_sizes + station, 1);
         }
       }
     }
