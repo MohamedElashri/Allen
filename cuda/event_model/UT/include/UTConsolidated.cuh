@@ -6,7 +6,7 @@
 
 namespace UT {
   namespace Consolidated {
-    constexpr static uint hits_number_of_arrays = 8;
+    constexpr static uint hits_number_of_arrays = 7;
 
     template<typename T>
     struct Hits_t {
@@ -16,10 +16,8 @@ namespace UT {
       const uint m_track_offset;
 
     public:
-      __host__ __device__ Hits_t(const Hits& hits) : m_base_pointer(hits.m_base_pointer) {}
-
       __host__ __device__
-      Hits_t(typename ForwardType<T, char>::t* base_pointer, const uint track_offset, const uint total_number_of_hits) :
+      Hits_t(T* base_pointer, const uint track_offset, const uint total_number_of_hits) :
         m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + track_offset),
         m_total_number_of_hits(total_number_of_hits), m_track_offset(track_offset)
       {}
@@ -129,10 +127,14 @@ namespace UT {
 
       __host__ __device__ float& qop(const uint index) { return m_qop[index]; }
 
-      __host__ __device__ Hits_t<T> get_hits(typename ForwardType<T, char>::t* hits_base_pointer, const uint track_number)
-        const
+      __host__ __device__ ConstHits get_hits(const char* hits_base_pointer, const uint track_number) const
       {
-        return Hits_t<T> {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ Hits get_hits(char* hits_base_pointer, const uint track_number) const
+      {
+        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
     };
 

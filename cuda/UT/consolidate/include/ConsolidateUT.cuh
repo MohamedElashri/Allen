@@ -38,7 +38,9 @@ namespace ut_consolidate_tracks {
       const HostBuffers& host_buffers) const
     {
       set_size<dev_ut_track_hits_t>(
-        arguments, value<host_accumulated_number_of_ut_hits_t>(arguments) * sizeof(UT::Hit));
+        arguments,
+        value<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Consolidated::hits_number_of_arrays *
+          sizeof(uint32_t));
       set_size<dev_ut_qop_t>(arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
       set_size<dev_ut_track_velo_indices_t>(arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
       set_size<dev_ut_x_t>(arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
@@ -56,16 +58,16 @@ namespace ut_consolidate_tracks {
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_ut_hits_t>(arguments),
-                   offset<dev_ut_hit_offsets_t>(arguments),
-                   offset<dev_ut_track_hits_t>(arguments),
-                   offset<dev_offsets_ut_tracks_t>(arguments),
-                   offset<dev_offsets_ut_track_hit_number_t>(arguments),
-                   offset<dev_ut_qop_t>(arguments),
-                   offset<dev_ut_x_t>(arguments),
-                   offset<dev_ut_tx_t>(arguments),
-                   offset<dev_ut_z_t>(arguments),
-                   offset<dev_ut_track_velo_indices_t>(arguments),
-                   offset<dev_ut_tracks_t>(arguments)},
+                    offset<dev_ut_hit_offsets_t>(arguments),
+                    offset<dev_ut_track_hits_t>(arguments),
+                    offset<dev_offsets_ut_tracks_t>(arguments),
+                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
+                    offset<dev_ut_qop_t>(arguments),
+                    offset<dev_ut_x_t>(arguments),
+                    offset<dev_ut_tx_t>(arguments),
+                    offset<dev_ut_z_t>(arguments),
+                    offset<dev_ut_track_velo_indices_t>(arguments),
+                    offset<dev_ut_tracks_t>(arguments)},
         constants.dev_unique_x_sector_layer_offsets.data());
 
       if (runtime_options.do_check) {

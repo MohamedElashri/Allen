@@ -56,7 +56,7 @@ __device__ VeloState means_square_fit(const Velo::Consolidated::Hits& consolidat
   return state;
 }
 
-template<typename T, typename F>
+template<typename F>
 __device__ void populate(const Velo::TrackHits* track, const uint number_of_hits, const F& assign)
 {
   for (int i = 0; i < number_of_hits; ++i) {
@@ -75,10 +75,11 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
     parameters.dev_three_hit_tracks_output + event_number * Velo::Constants::max_tracks;
 
   // Consolidated datatypes
-  const Velo::Consolidated::Tracks velo_tracks {
-    parameters.dev_offsets_all_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::States velo_states {parameters.dev_velo_states,
-                                          velo_tracks.total_number_of_tracks()};
+  const Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
+                                                parameters.dev_offsets_velo_track_hit_number,
+                                                event_number,
+                                                number_of_events};
+  Velo::Consolidated::States velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
 
   const uint event_number_of_tracks = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
@@ -97,11 +98,11 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
   const uint hit_offset = module_hitStarts[0];
 
   // TODO: Offset'ed container
-  const auto velo_cluster_container = Velo::ConstClusters {
-    parameters.dev_sorted_velo_cluster_container + hit_offset, total_estimated_number_of_clusters};
+  const auto velo_cluster_container =
+    Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container + hit_offset, total_estimated_number_of_clusters};
 
   for (uint i = threadIdx.x; i < event_number_of_tracks; i += blockDim.x) {
-    Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits.get(), i);
+    Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i);
 
     Velo::TrackHits* track;
     uint number_of_hits;
@@ -116,16 +117,22 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
       number_of_hits = 3;
     }
 
-    populate<float>(track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-      consolidated_hits.x(i) = velo_cluster_container.x(hit_index);
-    });
-    populate<float>(track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-      consolidated_hits.y(i) = velo_cluster_container.y(hit_index);
-    });
-    populate<float>(track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-      consolidated_hits.z(i) = velo_cluster_container.z(hit_index);
-    });
-    populate<uint32_t>(
+    populate(
+      track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
+        consolidated_hits.x(i) = velo_cluster_container.x(hit_index);
+      });
+
+    populate(
+      track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
+        consolidated_hits.y(i) = velo_cluster_container.y(hit_index);
+      });
+
+    populate(
+      track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
+        consolidated_hits.z(i) = velo_cluster_container.z(hit_index);
+      });
+
+    populate(
       track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
         consolidated_hits.id(i) = velo_cluster_container.id(hit_index);
       });

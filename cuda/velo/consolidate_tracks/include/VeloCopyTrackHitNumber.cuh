@@ -26,6 +26,7 @@ namespace velo_copy_track_hit_number {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
+      set_size<host_number_of_reconstructed_velo_tracks_t>(arguments, 1);
       set_size<dev_velo_track_hit_number_t>(arguments, value<host_number_of_velo_tracks_at_least_four_hits_t>(arguments)
         + value<host_number_of_three_hit_tracks_filtered_t>(arguments));
 
