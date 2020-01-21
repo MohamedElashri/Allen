@@ -196,7 +196,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
 
     // Make the consolidated tracks.
     Velo::Consolidated::ConstTracks velo_tracks {velo_track_atomics, velo_track_hit_number, i_event, number_of_events};
-    UT::Consolidated::ConstTracks ut_tracks {
+    UT::Consolidated::ConstExtendedTracks ut_tracks {
       ut_track_atomics, ut_track_hit_number, ut_qop, ut_track_velo_indices, i_event, number_of_events};
     SciFi::Consolidated::ConstTracks scifi_tracks {scifi_track_atomics,
                                                    scifi_track_hit_number,

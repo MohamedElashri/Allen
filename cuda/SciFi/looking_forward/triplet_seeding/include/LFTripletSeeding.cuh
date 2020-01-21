@@ -13,11 +13,11 @@ namespace lf_triplet_seeding {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, uint);
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
-    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
+    DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
     DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_INPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
@@ -71,11 +71,11 @@ namespace lf_triplet_seeding {
         dim3(LookingForward::triplet_seeding_block_dim_x, 2),
         cuda_stream)(
         Parameters {offset<dev_scifi_hits_t>(arguments),
-                    offset<dev_scifi_hit_count_t>(arguments),
-                    offset<dev_atomics_velo_t>(arguments),
+                    offset<dev_scifi_hit_offsets_t>(arguments),
+                    offset<dev_offsets_all_velo_tracks_t>(arguments),
                     offset<dev_velo_states_t>(arguments),
-                    offset<dev_atomics_ut_t>(arguments),
-                    offset<dev_ut_track_hit_number_t>(arguments),
+                    offset<dev_offsets_ut_tracks_t>(arguments),
+                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
                     offset<dev_ut_track_velo_indices_t>(arguments),
                     offset<dev_ut_qop_t>(arguments),
                     offset<dev_scifi_lf_initial_windows_t>(arguments),

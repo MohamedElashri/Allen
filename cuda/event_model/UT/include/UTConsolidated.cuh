@@ -94,8 +94,34 @@ namespace UT {
     //-------------------------------------------
     // Struct for holding VELO track information.
     //-------------------------------------------
+    struct Tracks : public ::Consolidated::Tracks {
+      __host__ __device__ Tracks(
+        const uint* atomics_base_pointer,
+        const uint* track_hit_number_base_pointer,
+        const uint current_event_number,
+        const uint number_of_events) :
+        ::Consolidated::Tracks(
+          atomics_base_pointer,
+          track_hit_number_base_pointer,
+          current_event_number,
+          number_of_events)
+      {}
+
+      __host__ __device__ ConstHits get_hits(const char* hits_base_pointer, const uint track_number) const
+      {
+        return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ Hits get_hits(char* hits_base_pointer, const uint track_number) const
+      {
+        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+    };
+
+    typedef const Tracks ConstTracks;
+
     template<typename T>
-    struct Tracks_t : public ::Consolidated::Tracks {
+    struct ExtendedTracks_t : public Tracks {
     private:
       // Indices of associated VELO tracks.
       typename ForwardType<T, uint>::t* m_velo_track;
@@ -103,14 +129,14 @@ namespace UT {
       typename ForwardType<T, float>::t* m_qop;
 
     public:
-      __host__ __device__ Tracks_t(
+      __host__ __device__ ExtendedTracks_t(
         const uint* atomics_base_pointer,
         const uint* track_hit_number_base_pointer,
         typename ForwardType<T, float>::t* qop_base_pointer,
         typename ForwardType<T, uint>::t* velo_track_base_pointer,
         const uint current_event_number,
         const uint number_of_events) :
-        ::Consolidated::Tracks(
+        Tracks(
           atomics_base_pointer,
           track_hit_number_base_pointer,
           current_event_number,
@@ -126,19 +152,9 @@ namespace UT {
       __host__ __device__ float qop(const uint index) const { return m_qop[index]; }
 
       __host__ __device__ float& qop(const uint index) { return m_qop[index]; }
-
-      __host__ __device__ ConstHits get_hits(const char* hits_base_pointer, const uint track_number) const
-      {
-        return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
-      }
-
-      __host__ __device__ Hits get_hits(char* hits_base_pointer, const uint track_number) const
-      {
-        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
-      }
     };
 
-    typedef const Tracks_t<const char> ConstTracks;
-    typedef Tracks_t<char> Tracks;
+    typedef const ExtendedTracks_t<const char> ConstExtendedTracks;
+    typedef ExtendedTracks_t<char> ExtendedTracks;
   } // end namespace Consolidated
 } // end namespace UT

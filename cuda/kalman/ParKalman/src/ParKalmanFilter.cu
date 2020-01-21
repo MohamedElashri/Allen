@@ -199,12 +199,12 @@ __global__ void kalman_filter::kalman_filter(
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
   // Create UT tracks.
-  UT::Consolidated::ConstTracks ut_tracks {parameters.dev_atomics_ut,
-                                           parameters.dev_ut_track_hit_number,
-                                           parameters.dev_ut_qop,
-                                           parameters.dev_ut_track_velo_indices,
-                                           event_number,
-                                           number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   event_number,
+                                                   number_of_events};
 
   // Create SciFi tracks.
   SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,

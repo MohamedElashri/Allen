@@ -11,9 +11,9 @@ namespace scifi_copy_track_hit_number {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
     DEVICE_INPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
-    DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
     DEVICE_OUTPUT(dev_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
   };
 
@@ -42,9 +42,9 @@ namespace scifi_copy_track_hit_number {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_atomics_ut_t>(arguments),
+        Parameters {offset<dev_offsets_ut_tracks_t>(arguments),
                     offset<dev_scifi_tracks_t>(arguments),
-                    offset<dev_atomics_scifi_t>(arguments),
+                    offset<dev_offsets_forward_tracks_t>(arguments),
                     offset<dev_scifi_track_hit_number_t>(arguments)});
     }
   };

@@ -9,7 +9,7 @@ namespace scifi_raw_bank_decoder_v4 {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
-    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
+    DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
   };
@@ -41,7 +41,7 @@ namespace scifi_raw_bank_decoder_v4 {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_scifi_raw_input_t>(arguments),
                     offset<dev_scifi_raw_input_offsets_t>(arguments),
-                    offset<dev_scifi_hit_count_t>(arguments),
+                    offset<dev_scifi_hit_offsets_t>(arguments),
                     offset<dev_scifi_hits_t>(arguments),
                     offset<dev_event_list_t>(arguments)},
         constants.dev_scifi_geometry);

@@ -41,12 +41,12 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
 
   // Create consolidated SoAs.
-  UT::Consolidated::Tracks ut_tracks {parameters.dev_atomics_ut,
-                                      parameters.dev_ut_track_hit_number,
-                                      parameters.dev_ut_qop,
-                                      parameters.dev_ut_track_velo_indices,
-                                      event_number,
-                                      number_of_events};
+  UT::Consolidated::ExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                              parameters.dev_ut_track_hit_number,
+                                              parameters.dev_ut_qop,
+                                              parameters.dev_ut_track_velo_indices,
+                                              event_number,
+                                              number_of_events};
 
   const uint number_of_tracks_event = ut_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = ut_tracks.tracks_offset(event_number);

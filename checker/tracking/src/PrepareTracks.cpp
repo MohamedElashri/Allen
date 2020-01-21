@@ -64,7 +64,7 @@ std::vector<Checker::Tracks> prepareUTTracks(
     Velo::Consolidated::ConstTracks velo_tracks {velo_track_atomics, velo_track_hit_number, i_event, number_of_events};
     Velo::Consolidated::ConstStates velo_states {kalman_velo_states, velo_tracks.total_number_of_tracks()};
     const uint velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
-    UT::Consolidated::ConstTracks ut_tracks {
+    UT::Consolidated::ConstExtendedTracks ut_tracks {
       ut_track_atomics, ut_track_hit_number, ut_qop, ut_track_velo_indices, i_event, number_of_events};
     const uint number_of_tracks_event = ut_tracks.number_of_tracks(i_event);
 
@@ -143,7 +143,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
     Velo::Consolidated::ConstTracks velo_tracks {velo_track_atomics, velo_track_hit_number, i_event, number_of_events};
     Velo::Consolidated::ConstStates velo_states {kalman_velo_states, velo_tracks.total_number_of_tracks()};
     const uint velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
-    UT::Consolidated::ConstTracks ut_tracks {
+    UT::Consolidated::ConstExtendedTracks ut_tracks {
       ut_track_atomics, ut_track_hit_number, ut_qop, ut_track_velo_indices, i_event, number_of_events};
 
     SciFi::Consolidated::ConstTracks scifi_tracks {scifi_track_atomics,
@@ -252,7 +252,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
     Velo::Consolidated::ConstStates velo_states {kalman_velo_states, velo_tracks.total_number_of_tracks()};
     const uint velo_event_tracks_offset = velo_tracks.tracks_offset(i_event);
 
-    UT::Consolidated::ConstTracks ut_tracks {
+    UT::Consolidated::ConstExtendedTracks ut_tracks {
       ut_track_atomics, ut_track_hit_number, ut_qop, ut_track_velo_indices, i_event, number_of_events};
 
     const SciFi::HitCount scifi_hit_count {(uint32_t*) host_scifi_hit_count, i_event};

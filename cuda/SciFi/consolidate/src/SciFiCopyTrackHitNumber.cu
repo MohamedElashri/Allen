@@ -8,15 +8,13 @@ __global__ void scifi_copy_track_hit_number::scifi_copy_track_hit_number(
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
-  const auto ut_event_tracks_offset = parameters.dev_atomics_ut[number_of_events + event_number];
+  const auto ut_event_tracks_offset = parameters.dev_atomics_ut[event_number];
 
-  const auto* event_tracks =
+  const auto event_tracks =
     parameters.dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
-  // const SciFi::TrackHits* event_tracks =
-  //   parameters.dev_scifi_tracks + ut_event_tracks_offset *
-  //   LookingForward::maximum_number_of_candidates_per_ut_track_after_x_filter;
-  const auto accumulated_tracks = parameters.dev_atomics_scifi[number_of_events + event_number];
-  const auto number_of_tracks = parameters.dev_atomics_scifi[event_number];
+  const auto accumulated_tracks = parameters.dev_atomics_scifi[event_number];
+  const auto number_of_tracks =
+    parameters.dev_atomics_scifi[event_number + 1] - parameters.dev_atomics_scifi[event_number];
 
   // Pointer to scifi_track_hit_number of current event.
   uint* scifi_track_hit_number = parameters.dev_scifi_track_hit_number + accumulated_tracks;

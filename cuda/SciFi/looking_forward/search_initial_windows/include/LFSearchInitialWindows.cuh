@@ -13,12 +13,12 @@ namespace lf_search_initial_windows {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, uint);
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
-    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
-    DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_x_t, float) dev_ut_x;
     DEVICE_INPUT(dev_ut_tx_t, float) dev_ut_tx;
     DEVICE_INPUT(dev_ut_z_t, float) dev_ut_z;
@@ -70,12 +70,12 @@ namespace lf_search_initial_windows {
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_scifi_hits_t>(arguments),
-                    offset<dev_scifi_hit_count_t>(arguments),
-                    offset<dev_atomics_velo_t>(arguments),
-                    offset<dev_velo_track_hit_number_t>(arguments),
+                    offset<dev_scifi_hit_offsets_t>(arguments),
+                    offset<dev_offsets_all_velo_tracks_t>(arguments),
+                    offset<dev_offsets_velo_track_hit_number_t>(arguments),
                     offset<dev_velo_states_t>(arguments),
-                    offset<dev_atomics_ut_t>(arguments),
-                    offset<dev_ut_track_hit_number_t>(arguments),
+                    offset<dev_offsets_ut_tracks_t>(arguments),
+                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
                     offset<dev_ut_x_t>(arguments),
                     offset<dev_ut_tx_t>(arguments),
                     offset<dev_ut_z_t>(arguments),

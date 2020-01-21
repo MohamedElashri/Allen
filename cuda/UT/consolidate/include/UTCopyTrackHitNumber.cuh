@@ -28,7 +28,6 @@ namespace ut_copy_track_hit_number {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      info_cout << "host_number_of_reconstructed_ut_tracks_t: " << value<host_number_of_reconstructed_ut_tracks_t>(arguments) << "\n";
       set_size<dev_ut_track_hit_number_t>(arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
     }
 

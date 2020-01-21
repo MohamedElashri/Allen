@@ -7,8 +7,8 @@
 namespace scifi_calculate_cluster_count_v4 {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
-    DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
+    DEVICE_OUTPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
+    DEVICE_OUTPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
     DEVICE_OUTPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
   };

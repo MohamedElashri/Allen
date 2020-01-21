@@ -1,7 +1,7 @@
 from algorithms import *
 from PVSequence import PV_sequence
 
-def UT_sequence():
+def UT_sequence(validate=True):
   ut_calculate_number_of_hits = ut_calculate_number_of_hits_t()
   
   prefix_sum_ut_hits = host_prefix_sum_t("prefix_sum_ut_hits",
@@ -15,7 +15,7 @@ def UT_sequence():
   ut_search_windows = ut_search_windows_t()
   compass_ut = compass_ut_t()
   
-  prefix_sum_single_block_ut = host_prefix_sum_t("prefix_sum_single_block_ut",
+  prefix_sum_ut_tracks = host_prefix_sum_t("prefix_sum_ut_tracks",
     host_total_sum_holder_t="host_number_of_reconstructed_ut_tracks_t",
     dev_input_buffer_t=compass_ut.dev_atomics_ut_t(),
     dev_output_buffer_t="dev_offsets_ut_tracks_t")
@@ -38,11 +38,12 @@ def UT_sequence():
     ut_decode_raw_banks_in_order,
     ut_search_windows,
     compass_ut,
-    prefix_sum_single_block_ut,
+    prefix_sum_ut_tracks,
     ut_copy_track_hit_number,
     prefix_sum_ut_track_hit_number,
     ut_consolidate_tracks)
 
-  s.validate()
+  if validate:
+    s.validate()
 
   return s

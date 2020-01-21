@@ -47,13 +47,10 @@ namespace SciFi {
       m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_mat_groups_and_mats)
     {}
 
-    __host__ __device__ uint& mat_offsets(const uint mat_number)
+    __host__ __device__ void set_mat_offsets(const uint mat_number, const uint value)
     {
-      assert(
-        mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
-        mat_number < SciFi::Constants::n_mats);
-      const uint corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
-      return m_mat_offsets[corrected_mat_number];
+      assert(mat_number < SciFi::Constants::n_mats);
+      m_mat_offsets[mat_number] = value;
     }
 
     __host__ __device__ uint mat_offsets(const uint mat_number) const
@@ -67,11 +64,11 @@ namespace SciFi {
 
     __host__ __device__ typename ForwardType<T, uint>::t* mat_offsets_p(const uint mat_number)
     {
-      assert(
-        mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
-        mat_number < SciFi::Constants::n_mats);
-      const uint corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
-      return m_mat_offsets + corrected_mat_number;
+      // assert(
+      //   mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
+      //   mat_number < SciFi::Constants::n_mats);
+      // const uint corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
+      return m_mat_offsets + mat_number;
     }
 
     __host__ __device__ uint mat_number_of_hits(const uint mat_number) const

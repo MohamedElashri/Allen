@@ -11,8 +11,9 @@ namespace lf_extend_tracks_x {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
     DEVICE_OUTPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits) dev_scifi_lf_tracks;
     DEVICE_INPUT(dev_scifi_lf_atomics_t, uint) dev_scifi_lf_atomics;
     DEVICE_INPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
@@ -43,8 +44,9 @@ namespace lf_extend_tracks_x {
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_scifi_hits_t>(arguments),
-                    offset<dev_scifi_hit_count_t>(arguments),
-                    offset<dev_atomics_ut_t>(arguments),
+                    offset<dev_scifi_hit_offsets_t>(arguments),
+                    offset<dev_offsets_ut_tracks_t>(arguments),
+                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
                     offset<dev_scifi_lf_tracks_t>(arguments),
                     offset<dev_scifi_lf_atomics_t>(arguments),
                     offset<dev_scifi_lf_initial_windows_t>(arguments),

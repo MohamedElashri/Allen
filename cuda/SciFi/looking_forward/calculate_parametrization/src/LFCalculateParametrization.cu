@@ -14,16 +14,16 @@ __global__ void lf_calculate_parametrization::lf_calculate_parametrization(
   const uint velo_tracks_offset_event = velo_tracks.tracks_offset(event_number);
 
   // UT consolidated tracks
-  const auto ut_event_tracks_offset = parameters.dev_atomics_ut[number_of_events + event_number];
-  const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   event_number,
+                                                   number_of_events};
 
-  // UT consolidated tracks
-  UT::Consolidated::ConstTracks ut_tracks {parameters.dev_atomics_ut,
-                                           parameters.dev_ut_track_hit_number,
-                                           parameters.dev_ut_qop,
-                                           parameters.dev_ut_track_velo_indices,
-                                           event_number,
-                                           number_of_events};
+  const auto ut_event_tracks_offset = ut_tracks.tracks_offset(event_number);
+  const auto ut_total_number_of_tracks = ut_tracks.total_number_of_tracks();
+
   // SciFi hits
   const uint total_number_of_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];

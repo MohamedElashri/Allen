@@ -24,7 +24,7 @@ namespace scifi_pre_decode_v4 {
     DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
+    DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
   };
 
@@ -61,7 +61,7 @@ namespace scifi_pre_decode_v4 {
         Parameters {offset<dev_scifi_raw_input_t>(arguments),
                     offset<dev_scifi_raw_input_offsets_t>(arguments),
                     offset<dev_event_list_t>(arguments),
-                    offset<dev_scifi_hit_count_t>(arguments),
+                    offset<dev_scifi_hit_offsets_t>(arguments),
                     offset<dev_scifi_hits_t>(arguments)},
         constants.dev_scifi_geometry);
     }

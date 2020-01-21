@@ -28,7 +28,7 @@ __global__ void scifi_calculate_cluster_count_v4::scifi_calculate_cluster_count_
     const uint number_of_clusters = last - it;
 
     if (last > it) {
-      hit_count.mat_offsets(i) = number_of_clusters;
+      hit_count.set_mat_offsets(i, number_of_clusters);
     }
   }
 

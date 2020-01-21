@@ -113,6 +113,11 @@ size_t size(Args arguments) {
 }
 
 template<typename Arg, typename Args>
+void set_size(Args arguments, const size_t size) {
+  arguments.template set_size<Arg>(size);
+}
+
+template<typename Arg, typename Args>
 auto offset(const Args& arguments) {
   return Arg{arguments.template offset<Arg>()};
 }
@@ -123,6 +128,6 @@ auto value(const Args& arguments) {
 }
 
 template<typename Arg, typename Args>
-void set_size(Args arguments, const size_t size) {
-  arguments.template set_size<Arg>(size);
+void print(Args arguments) {
+  arguments.template print<Arg>();
 }

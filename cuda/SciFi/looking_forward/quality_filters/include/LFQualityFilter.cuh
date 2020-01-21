@@ -13,8 +13,9 @@ namespace lf_quality_filter {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_ut_tracks_t, uint);
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
     DEVICE_OUTPUT(dev_scifi_lf_length_filtered_tracks_t, SciFi::TrackHits) dev_scifi_lf_length_filtered_tracks;
     DEVICE_INPUT(dev_scifi_lf_length_filtered_atomics_t, uint) dev_scifi_lf_length_filtered_atomics;
     DEVICE_OUTPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
@@ -24,8 +25,8 @@ namespace lf_quality_filter {
     DEVICE_OUTPUT(dev_scifi_lf_parametrization_consolidate_t, float) dev_scifi_lf_parametrization_consolidate;
     DEVICE_INPUT(dev_ut_states_t, MiniState) dev_ut_states;
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
-    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
-    DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
   };
 
@@ -73,8 +74,9 @@ namespace lf_quality_filter {
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_scifi_hits_t>(arguments),
-                    offset<dev_scifi_hit_count_t>(arguments),
-                    offset<dev_atomics_ut_t>(arguments),
+                    offset<dev_scifi_hit_offsets_t>(arguments),
+                    offset<dev_offsets_ut_tracks_t>(arguments),
+                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
                     offset<dev_scifi_lf_length_filtered_tracks_t>(arguments),
                     offset<dev_scifi_lf_length_filtered_atomics_t>(arguments),
                     offset<dev_atomics_scifi_t>(arguments),
@@ -84,8 +86,8 @@ namespace lf_quality_filter {
                     offset<dev_scifi_lf_parametrization_consolidate_t>(arguments),
                     offset<dev_ut_states_t>(arguments),
                     offset<dev_velo_states_t>(arguments),
-                    offset<dev_atomics_velo_t>(arguments),
-                    offset<dev_velo_track_hit_number_t>(arguments),
+                    offset<dev_offsets_all_velo_tracks_t>(arguments),
+                    offset<dev_offsets_velo_track_hit_number_t>(arguments),
                     offset<dev_ut_track_velo_indices_t>(arguments)},
         constants.dev_looking_forward_constants,
         constants.dev_magnet_polarity.data());
