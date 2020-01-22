@@ -42,7 +42,7 @@ __global__ void ut_search_windows::ut_search_windows(
   for (uint layer = threadIdx.x; layer < UT::Constants::n_layers; layer += blockDim.x) {
     const uint layer_offset = ut_hit_offsets.layer_offset(layer);
 
-    for (uint i = 0; i < ((number_of_tracks_event + blockDim.y - 1) / blockDim.y); i += 1) {
+    for (uint i = 0; i < ((number_of_tracks_event + blockDim.y - 1) / blockDim.y + 1); i += 1) {
       const auto i_track = i * blockDim.y + threadIdx.y;
 
       __syncthreads();
@@ -53,7 +53,7 @@ __global__ void ut_search_windows::ut_search_windows(
           const uint current_track_offset = event_tracks_offset + i_track;
           const auto velo_state = velo_states.get(current_track_offset);
           if (
-            !velo_state.backward &&
+            !velo_states.backward(current_track_offset) && // velo_state.backward
             parameters.dev_accepted_velo_tracks[current_track_offset] &&
             velo_track_in_UTA_acceptance(velo_state)) {
             int current_track = atomicAdd(active_tracks, 1);

@@ -162,7 +162,7 @@ __device__ BestParams pkick_fit(
 
   // add hits
   float last_z = -10000.f;
-  // #pragma unroll
+  #pragma unroll
   for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
@@ -200,7 +200,7 @@ __device__ BestParams pkick_fit(
   float chi2UT = chi2VeloSlope * chi2VeloSlope;
   // add chi2
   int total_num_hits = 0;
-  // #pragma unroll
+  #pragma unroll
   for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {

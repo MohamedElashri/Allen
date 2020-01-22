@@ -45,6 +45,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   velo_search_by_triplet::Parameters parameters,
   const VeloGeometry* dev_velo_geometry)
 {
+  printf("parameter forward_phi_tolerance: %f\n", parameters.forward_phi_tolerance);
+
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
   const uint event_number = blockIdx.x;

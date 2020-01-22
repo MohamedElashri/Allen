@@ -25,9 +25,8 @@ __global__ void compass_ut::compass_ut(
   const uint total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
 
   // Velo consolidated types
-  const Velo::Consolidated::Tracks velo_tracks {
+  Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  // TODO: Make const container
   Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,
                                                 velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
@@ -199,6 +198,9 @@ __device__ __inline__ void compass_ut::fill_shared_windows(
     for (uint pos = 0; pos < CompassUT::num_elems; ++pos) {
       win_size_shared[pos * track_pos_sh + layer * UT::Constants::num_thr_compassut + threadIdx.x] =
         windows_layers[pos * track_pos + layer * number_of_tracks_event + i_track];
+      // printf("Window %i: %i\n",
+      //   pos * track_pos + layer * number_of_tracks_event + i_track,
+      //   windows_layers[pos * track_pos + layer * number_of_tracks_event + i_track]);
     }
   }
 }

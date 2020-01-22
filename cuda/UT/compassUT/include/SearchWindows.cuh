@@ -52,6 +52,8 @@ namespace ut_search_windows {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
+        begin<dev_ut_windows_layers_t>(arguments), 0, size<dev_ut_windows_layers_t>(arguments), cuda_stream));
+      cudaCheck(cudaMemsetAsync(
         begin<dev_ut_active_tracks_t>(arguments), 0, size<dev_ut_active_tracks_t>(arguments), cuda_stream));
 
       function(

@@ -258,7 +258,7 @@ class Sequence():
       # Add all the includes
       s = "#pragma once\n\n#include <tuple>\n"
       for algorithm in self.sequence:
-        s += "#include <" + prefix_includes + algorithm.filename() + ">\n"
+        s += "#include \"" + prefix_includes + algorithm.filename() + "\"\n"
       s += "\n"
       # Generate all parameters
       parameters = {}
