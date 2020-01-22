@@ -30,6 +30,7 @@ from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
                            MuonRec, PrepareMuonHits)
 from Configurables import ApplicationMgr
 from Configurables import ProcessPhase
+
 import os
 
 MCCuts = {
@@ -43,7 +44,9 @@ MCCuts = {
         "07_long_fromB>5GeV": "isLong & fromB & over5",
         "08_long_electrons": "isLong & isElectron",
         "09_long_fromB_electrons": "isLong & isElectron & fromB",
-        "10_long_fromB_electrons_P>5GeV": "isLong & isElectron & over5 & fromB"
+        "10_long_fromB_electrons_P>5GeV": "isLong & isElectron & over5 & fromB",
+        "11_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger",
+        "12_UT_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger & isUT"
     },
     "Forward": {
         "01_long": "isLong",
@@ -55,7 +58,9 @@ MCCuts = {
         "07_long_electrons": "isLong & isElectron",
         "08_long_electrons_P>5GeV": "isLong & isElectron & over5",
         "09_long_fromB_electrons": "isLong & isElectron & fromB",
-        "10_long_fromB_electrons_P>5GeV": "isLong & isElectron & over5 & fromB"
+        "10_long_fromB_electrons_P>5GeV": "isLong & isElectron & over5 & fromB",
+        "10_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger",
+        "11_UT_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger & isUT"
     },
     "Upstream": {
         "01_velo": "isVelo",
@@ -70,7 +75,9 @@ MCCuts = {
         "10_long_fromB>5GeV": "isLong & fromB & over5",
         "11_long_electrons": "isLong & isElectron",
         "12_long_fromB_electrons": "isLong & isElectron & fromB",
-        "13_long_fromB_electrons_P>5GeV": "isLong & isElectron & over5 & fromB"
+        "13_long_fromB_electrons_P>5GeV": "isLong & isElectron & over5 & fromB",
+        "14_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger",
+        "15_UT_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger & isUT"
     }
 }
 
@@ -98,7 +105,7 @@ def getHitTypeMask(dets):
 DDDBtag = "dddb-20180815"
 CondDBtag = "sim-20180530-vc-md100"
 
-Evts_to_Run = 10  # set to -1 to process all
+Evts_to_Run = 1000  # set to -1 to process all
 
 # by default write output to the current directory
 output_file = "./"
@@ -203,7 +210,7 @@ def modifySequences():
         GaudiSequencer("CheckPatSeq").Members.remove(
             PrimaryVertexChecker("PVChecker"))
         from Configurables import PrGECFilter
-        GaudiSequencer("RecoDecodingSeq").Members.remove(PrGECFilter())
+        #GaudiSequencer("RecoDecodingSeq").Members.remove(PrGECFilter())
         from Configurables import MuonRec
         GaudiSequencer("RecoDecodingSeq").Members.append(MuonRec())
     except ValueError:
@@ -243,10 +250,11 @@ def addPrCheckerCutsAndPlots():
         HitTypesToCheck=getHitTypeMask(["FT"]),
         MyCuts = getMCCuts("Forward")
     )
-    
+
+   
     # as configurations are not yet uniformized and properly handled, there is an ugly trick here
     # all members are newly defined here as they have different names from the original ones
     # defined in PrUpgradechecking, but the last one that we reuse as it
-    GaudiSequencer("CheckPatSeq").Members = [veloCheckerAllen, upCheckerAllen, forwardCheckerAllen]
+    GaudiSequencer("CheckPatSeq").Members += [veloCheckerAllen, upCheckerAllen, forwardCheckerAllen]
 
 appendPostConfigAction( addPrCheckerCutsAndPlots )
