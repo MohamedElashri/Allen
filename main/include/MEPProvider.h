@@ -73,9 +73,9 @@ struct MEPProviderConfig {
 
   bool transpose_mep = false;
 
-  bool use_mpi const() { return std::get<0>(mpi); }
+  bool use_mpi() const { return std::get<0>(mpi); }
 
-  bool n_receivers const() { return std::get<1>(mpi); }
+  bool n_receivers() const { return std::get<1>(mpi); }
 
   // Mapping of MPI rank to NUMA domain
   std::vector<std::tuple<int, int>> domains;
@@ -147,12 +147,13 @@ public:
 
       std::vector<size_t> packing_factors(m_config.n_receivers());
       for (int receiver = 0; receiver < m_config.n_receivers(); ++receiver) {
-        auto const mpi_rank = std::get<0>(m_config.domains[receiver]);
+        auto const receiver_rank = std::get<0>(m_config.domains[receiver]);
         MPI_Recv(&packing_factors[receiver], 1, MPI_SIZE_T, receiver_rank, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
 
-      if (!std::all_of(packing_factors.begin(), packing_factors.end(), packing_factors.back())) {
-        throw StringException{"All packing factors must be the same"};
+      if (!std::all_of(packing_factors.begin(), packing_factors.end(),
+                       [v = packing_factors.back()](auto const p) { return p == v; })) {
+        throw StrException{"All packing factors must be the same"};
       } else {
         m_packing_factor = packing_factors.back();
       }
@@ -165,7 +166,7 @@ public:
         char* contents = nullptr;
         MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
 
-        hwloc_set_area_membind(topology, contents, n_bytes, numa_obj->nodeset,
+        hwloc_set_area_membind(m_topology, contents, n_bytes, numa_obj->nodeset,
                                HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
 #if !defined(NO_CUDA) && !defined(CPU)
         cudaCheck(cudaHostRegister(contents, n_bytes, cudaHostRegisterDefault));
@@ -734,12 +735,12 @@ private:
     bool error = false;
     bool receive_done = false;
 
-    for (size_t i = 0; i < m_config.domains(); ++i) {
+    for (size_t i = 0; i < m_config.n_receivers(); ++i) {
       auto [numa_domain, mpi_rank] = m_config.domains[i];
       MPI_Recv(&n_meps[i], 1, MPI_SIZE_T, mpi_rank,
                MPI::message::number_of_meps, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
-    auto number_of_meps = std::accumulate(n_meps.begin(), n_meps.end(), 0);
+    size_t number_of_meps = std::accumulate(n_meps.begin(), n_meps.end(), 0u);
 
     size_t current_mep = 0;
     while (m_config.non_stop || current_mep < number_of_meps) {
@@ -780,7 +781,7 @@ private:
 
         // Bind memory to numa domain of receiving card
         auto numa_obj = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
-        hwloc_set_area_membind(topology, contents, buffer_size, numa_obj->nodeset,
+        hwloc_set_area_membind(m_topology, contents, buffer_size, numa_obj->nodeset,
                                HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
 
 #if !defined(NO_CUDA) && !defined(CPU)
@@ -1049,7 +1050,7 @@ private:
   std::vector<BufferStatus> m_buffer_status;
   std::vector<BufferStatus>::iterator m_buffer_transpose;
   std::vector<BufferStatus>::iterator m_buffer_reading;
-  std::thread m_input_threads;
+  std::thread m_input_thread;
 
   // Atomics to flag errors and completion
   std::atomic<bool> m_done = false;

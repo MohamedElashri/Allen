@@ -674,14 +674,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Create the InputProvider, either MDF or Binary
   // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
   if (!mep_input.empty()) {
-    MEPProviderConfig config {false,           // verify MEP checksums
-                              10,              // number of read buffers
-                              1,               // number of transpose threads
-                              mpi_window_size, // MPI sliding window size
-                              with_mpi,        // Receive from MPI or read files
-                              non_stop,        // Run the application non-stop
-                              !mep_layout,     // MEPs should be transposed to Allen layout
-                              ""};             // Output file
+    MEPProviderConfig config {false,               // verify MEP checksums
+                              10,                  // number of read buffers
+                              1,                   // number of transpose threads
+                              mpi_window_size,     // MPI sliding window size
+                              {with_mpi, 1u},      // Receive from MPI or read files
+                              non_stop,            // Run the application non-stop
+                              !mep_layout,         // MEPs should be transposed to Allen layout
+                              {std::tuple{1, 0}}}; // MPI rank to receive on to their NUMA domains
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       number_of_slices, *events_per_slice, n_events, split_input(mep_input), config);
   }

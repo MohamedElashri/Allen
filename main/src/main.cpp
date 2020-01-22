@@ -119,12 +119,12 @@ int main(int argc, char* argv[])
     // MPI: Who am I?
     MPI_Comm_rank(MPI_COMM_WORLD, &MPI::rank);
 
-    if (MPI::rank == MPI::sender) {
-      return send_meps_mpi(allen_options);
-    }
-    else {
+    if (MPI::rank == MPI::receiver) {
       Allen::NonEventData::Updater updater {allen_options};
       return allen(std::move(allen_options), &updater);
+    }
+    else {
+      return send_meps_mpi(allen_options);
     }
 #else
     error_cout << "MPI requested, but Allen was not built with MPI support.\n";

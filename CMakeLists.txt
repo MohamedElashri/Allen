@@ -546,7 +546,7 @@ target_link_libraries(AllenLib PUBLIC
   AllenZMQ)
 
 if (USE_MPI AND MPI_FOUND)
-  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES})
+  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES} hwloc)
 endif()
 
 if (USE_ROOT AND ROOT_FOUND)
