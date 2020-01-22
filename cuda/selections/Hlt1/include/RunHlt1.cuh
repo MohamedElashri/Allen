@@ -11,7 +11,7 @@ namespace run_hlt1 {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
     HOST_INPUT(host_number_of_svs_t, uint);
     DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
+    DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
     DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
     DEVICE_INPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
     DEVICE_OUTPUT(dev_one_track_results_t, bool) dev_one_track_results;
@@ -105,16 +105,16 @@ namespace run_hlt1 {
   };
 } // namespace run_hlt1
 
-template<typename T>
-__device__ LineHandler<T>::LineHandler(bool (*line)(const T& candidate))
-{
-  m_line = line;
-}
+// template<typename T>
+// __device__ LineHandler<T>::LineHandler(bool (*line)(const T& candidate))
+// {
+//   m_line = line;
+// }
 
-template<typename T>
-__device__ void LineHandler<T>::operator()(const T* candidates, const int n_candidates, bool* results)
-{
-  for (int i_cand = threadIdx.x; i_cand < n_candidates; i_cand += blockDim.x) {
-    results[i_cand] = m_line(candidates[i_cand]);
-  }
-}
+// template<typename T>
+// __device__ void LineHandler<T>::operator()(const T* candidates, const int n_candidates, bool* results)
+// {
+//   for (int i_cand = threadIdx.x; i_cand < n_candidates; i_cand += blockDim.x) {
+//     results[i_cand] = m_line(candidates[i_cand]);
+//   }
+// }
