@@ -218,23 +218,26 @@ class Sequence():
             print("Error: Parameter " + repr(parameter) + " of algorithm " + algorithm.name() + \
               " is an InputParameter not provided by any previous OutputParameter.")
             errors += 1
-          # Check that the input and output types correspond
-          if parameter.name() in output_parameters and \
-            output_parameters[parameter.name()]["parameter"].type() != parameter.type():
-            print("Error: Type mismatch (" + repr(parameter.type()) + ", " + repr(output_parameters[parameter.name()]["parameter"].type()) + ") " \
-              + "between " + algorithm.name() + "::" + repr(parameter) \
-              + " and " + output_parameters[parameter.name()]["algorithm"].name() \
-              + "::" + repr(output_parameters[parameter.name()]["parameter"]))
-            errors += 1
-          # Check the scope (Device, Host) of the input and output parameters matches
-          if parameter.name() in output_parameters and \
-            ((issubclass(parameter.__class__, DeviceParameter) and \
-              issubclass(output_parameters[parameter.name()]["parameter"].__class__, HostParameter)) or \
-            (issubclass(parameter.__class__, HostParameter) and \
-              issubclass(output_parameters[parameter.name()]["parameter"].__class__, DeviceParameter))):
-            print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.name()]["parameter"].__class__ + ") " \
-              + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
-            errors += 1
+        # Note: Whenever we enforce InputParameters to come from OutputParameters always,
+        #       then we can move the following two if statements to be included in the 
+        #       "if issubclass(parameter.__class__, InputParameter):".
+        # Check that the input and output types correspond
+        if parameter.name() in output_parameters and \
+          output_parameters[parameter.name()]["parameter"].type() != parameter.type():
+          print("Error: Type mismatch (" + repr(parameter.type()) + ", " + repr(output_parameters[parameter.name()]["parameter"].type()) + ") " \
+            + "between " + algorithm.name() + "::" + repr(parameter) \
+            + " and " + output_parameters[parameter.name()]["algorithm"].name() \
+            + "::" + repr(output_parameters[parameter.name()]["parameter"]))
+          errors += 1
+        # Check the scope (Device, Host) of the input and output parameters matches
+        if parameter.name() in output_parameters and \
+          ((issubclass(parameter.__class__, DeviceParameter) and \
+            issubclass(output_parameters[parameter.name()]["parameter"].__class__, HostParameter)) or \
+          (issubclass(parameter.__class__, HostParameter) and \
+            issubclass(output_parameters[parameter.name()]["parameter"].__class__, DeviceParameter))):
+          print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.name()]["parameter"].__class__ + ") " \
+            + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
+          errors += 1
       for parameter_name, parameter in iter(algorithm.parameters().items()):
         if issubclass(parameter.__class__, OutputParameter):
           output_parameters[parameter.name()] = {"parameter": parameter, "algorithm": algorithm}

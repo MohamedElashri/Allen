@@ -4,8 +4,8 @@ __global__ void muon_sort_station_region_quarter::muon_sort_station_region_quart
   muon_sort_station_region_quarter::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
-  const auto storage_tile_id = parameters.dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
-  const auto storage_tdc_value =
+  auto storage_tile_id = parameters.dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
+  auto storage_tdc_value =
     parameters.dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
   const auto number_of_hits = parameters.dev_atomics_muon[event_number];
   auto permutation_srq = parameters.dev_permutation_srq + event_number * Muon::Constants::max_numhits_per_event;

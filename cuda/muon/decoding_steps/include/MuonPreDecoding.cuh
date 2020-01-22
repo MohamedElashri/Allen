@@ -32,7 +32,7 @@ namespace muon_pre_decoding {
       const HostBuffers& host_buffers) const
     {
       set_size<dev_muon_raw_t>(arguments, std::get<0>(runtime_options.host_muon_events).size_bytes());
-      set_size<dev_muon_raw_offsets_t>(arguments, std::get<1>(runtime_options.host_muon_events).size_bytes());
+      set_size<dev_muon_raw_offsets_t>(arguments, std::get<1>(runtime_options.host_muon_events).size_bytes() / sizeof(uint32_t));
       set_size<dev_muon_raw_to_hits_t>(arguments, 1);
       set_size<dev_storage_station_region_quarter_sizes_t>(
         arguments,

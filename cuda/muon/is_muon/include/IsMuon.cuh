@@ -9,8 +9,8 @@ namespace is_muon {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
-    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_scifi_track_hit_number;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_scifi_track_hit_number, uint) dev_scifi_track_hit_number;
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
@@ -50,8 +50,8 @@ namespace is_muon {
     {
       function(
         dim3(value<host_number_of_selected_events_t>(arguments)), dim3(32, Muon::Constants::n_stations), cuda_stream)(
-        Parameters {offset<dev_offsets_ut_tracks_t>(arguments),
-                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
+        Parameters {offset<dev_offsets_forward_tracks_t>(arguments),
+                    offset<dev_offsets_scifi_track_hit_number>(arguments),
                     offset<dev_scifi_qop_t>(arguments),
                     offset<dev_scifi_states_t>(arguments),
                     offset<dev_scifi_track_ut_indices_t>(arguments),

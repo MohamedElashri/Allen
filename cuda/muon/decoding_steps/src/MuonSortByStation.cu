@@ -11,8 +11,8 @@ __global__ void muon_sort_by_station::muon_sort_by_station(muon_sort_by_station:
   const auto storage_tdc_value =
     parameters.dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
   const auto muon_compact_hit = parameters.dev_muon_compact_hit + event_number * Muon::Constants::max_numhits_per_event;
-  auto permutation_station = parameters.dev_permutation_station + event_number * Muon::Constants::max_numhits_per_event;
-  auto event_muon_hits = parameters.dev_muon_hits + event_number;
+  auto permutation_station = parameters.dev_permutation_station.get() + event_number * Muon::Constants::max_numhits_per_event;
+  auto event_muon_hits = parameters.dev_muon_hits.get() + event_number;
 
   // Populate number of hits per station and offsets
   // TODO: There should be no need to re-populate this
@@ -66,6 +66,7 @@ __global__ void muon_sort_by_station::muon_sort_by_station(muon_sort_by_station:
       Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex_index]);
       padTile.setY(Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]));
       padTile.setLayout(Muon::MuonLayout(thisGridX, otherGridY_condition));
+
       Muon::calcTilePos(parameters.dev_muon_raw_to_hits.get()->muonTables, padTile, x, dx, y, dy, z);
       region = padTile.region();
       id = padTile.id();

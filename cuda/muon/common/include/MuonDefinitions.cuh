@@ -43,19 +43,19 @@ namespace Muon {
     one Hits structure exists per event
   */
   struct HitsSoA {
-    int number_of_hits_per_station[Constants::n_stations] = {0};
-    int station_offsets[Constants::n_stations] = {0};
-    int tile[Constants::max_numhits_per_event] = {0};
-    float x[Constants::max_numhits_per_event] = {0};
-    float dx[Constants::max_numhits_per_event] = {0};
-    float y[Constants::max_numhits_per_event] = {0};
-    float dy[Constants::max_numhits_per_event] = {0};
-    float z[Constants::max_numhits_per_event] = {0};
-    float dz[Constants::max_numhits_per_event] = {0};
-    int uncrossed[Constants::max_numhits_per_event] = {0};
-    unsigned int time[Constants::max_numhits_per_event] = {0};
-    int delta_time[Constants::max_numhits_per_event] = {0};
-    int cluster_size[Constants::max_numhits_per_event] = {0};
-    int region_id[Constants::max_numhits_per_event] = {0};
+    int number_of_hits_per_station[Constants::n_stations];
+    int station_offsets[Constants::n_stations];
+    int tile[Constants::max_numhits_per_event];
+    float x[Constants::max_numhits_per_event];
+    float dx[Constants::max_numhits_per_event];
+    float y[Constants::max_numhits_per_event];
+    float dy[Constants::max_numhits_per_event];
+    float z[Constants::max_numhits_per_event];
+    float dz[Constants::max_numhits_per_event];
+    int uncrossed[Constants::max_numhits_per_event];
+    unsigned int time[Constants::max_numhits_per_event];
+    int delta_time[Constants::max_numhits_per_event];
+    int cluster_size[Constants::max_numhits_per_event];
+    int region_id[Constants::max_numhits_per_event];
   };
 } // namespace Muon
