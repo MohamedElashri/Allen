@@ -21,10 +21,10 @@ from ROOT import TLegend
 from ROOT import TGraph
 from ROOT import TMultiGraph
 
-
 sys.path.append('../')
 from common.LHCbStyle import *
 from common.Legend import *
+
 
 def getHistos():
     basedict = {
@@ -34,15 +34,15 @@ def getHistos():
 
     basedict["p"]["name"] = "momentum_resolution_vs_p_gauss"
     basedict["p"]["title"] = "momentum resolution vs p, Gaussian fit"
-    basedict["p"]["x_axis_title"] = "p [MeV/c]"
-    basedict["p"]["y_axis_title"] = "#sigma_{p}/p [%]"
+    basedict["p"]["x_axis_title"] = "p [MeV]"
+    basedict["p"]["y_axis_title"] = "(p_{true}-p_{reco}) / p_{true} [%]"
     basedict["p"]["graph_name"] = "p resolution"
     basedict["p"]["distro_name"] = "p distribution"
 
     basedict["qop"]["name"] = "qop_resolution_vs_qop_gauss"
     basedict["qop"]["title"] = "q/p resolution vs q/p, Gaussian fit"
-    basedict["qop"]["x_axis_title"] = "q/p [c/MeV]"
-    basedict["qop"]["y_axis_title"] = "#sigma_{q/p}/(q/p)"
+    basedict["qop"]["x_axis_title"] = "q/p [1/MeV]"
+    basedict["qop"]["y_axis_title"] = "#Delta q/p / (q/p)"
     basedict["qop"]["graph_name"] = "q/p resolution"
     basedict["qop"]["distro_name"] = "q/p distribution"
 
@@ -61,7 +61,7 @@ def getResolutionInSlices(histo2D, var, var_dict):
     rms, rmsErr = array('d'), array('d')
     nBinsX = histo2D.GetNbinsX()
     xAxis = histo2D.GetXaxis()
-    for i in range(nBinsX+1):
+    for i in range(nBinsX + 1):
         histo1D = histo2D.ProjectionY("_py", i, i, "")
         if histo1D.GetEntries() >= 100:
             # fit Gaussian
@@ -79,10 +79,10 @@ def getResolutionInSlices(histo2D, var, var_dict):
             width = upEdge - lowEdge
             xFit.append(p)
             sigma_p = histo1D.GetFunction("g1").GetParameter(2)
-            yFit.append(sigma_p*100)
-            xFitErr.append(width/2)
+            yFit.append(sigma_p * 100)
+            xFitErr.append(width / 2)
             delta_sigma_p = histo1D.GetFunction("g1").GetParError(2)
-            yFitErr.append(delta_sigma_p*100)
+            yFitErr.append(delta_sigma_p * 100)
 
             # get RMS of histogram
             rms.append(histo1D.GetRMS())
@@ -128,7 +128,7 @@ def getResolutionInSlices(histo2D, var, var_dict):
     n_bins = histo1D.GetXaxis().GetNbins()
     histo1D.SetFillColorAlpha(ROOT.kBlack, 0.2)
     histo1D.SetLineColor(ROOT.kWhite)
-    histo1D.GetYaxis().SetRangeUser(0, max_y+2*max_y_error)
+    histo1D.GetYaxis().SetRangeUser(0, max_y + 2 * max_y_error)
     histo1D.GetXaxis().SetTitle(x_axis_title)
     histo1D.GetYaxis().SetTitle(y_axis_title)
     histo1D.GetYaxis().SetTitleOffset(0.8)
@@ -145,8 +145,9 @@ def getResolutionInSlices(histo2D, var, var_dict):
 
     # Draw second y axis
     low = 0
-    high = 1.1 * histo1D.GetYaxis().GetXmax() #1.2*max_y
-    axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(),gPad.GetUxmax(),gPad.GetUymax(),low,high,510,"+L")
+    high = 1.1 * histo1D.GetYaxis().GetXmax()  #1.2*max_y
+    axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(), gPad.GetUxmax(),
+                       gPad.GetUymax(), low, high, 510, "+L")
     axis.SetTitleFont(132)
     axis.SetTitleSize(0.06)
     axis.SetTitleOffset(0.55)
@@ -154,7 +155,7 @@ def getResolutionInSlices(histo2D, var, var_dict):
     axis.SetLabelSize(0)
     axis.SetNdivisions(1)
     axis.Draw()
-    
+
     # Save plots
     canvas.Write()
     canvas.SaveAs("../../../plotsfornote/" + tracker + "MomResVs" + var +
@@ -165,7 +166,6 @@ def getResolutionInSlices(histo2D, var, var_dict):
     delta_sigma_p = histo1D.GetFunction("gaus").GetParError(2)
     print('{:s}: sigma p = {:f} +/- {:f}'.format(tracker, sigma_p,
                                                  delta_sigma_p))
-
 
 
 outputfile = ROOT.TFile("../../../plotsfornote_root/momentum_resolution.root",
@@ -181,7 +181,7 @@ outputfile = ROOT.TFile("../../../plotsfornote_root/momentum_resolution.root",
 f = [ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")]
 
 setLHCbStyle()
-ROOT.gROOT.ForceStyle();
+ROOT.gROOT.ForceStyle()
 
 trackers = getTrackers()
 var_dict = getHistos()

@@ -87,4 +87,4 @@ __global__ void lf_extend_tracks_x::lf_extend_tracks_x(
       }
     }
   }
-}
+} 

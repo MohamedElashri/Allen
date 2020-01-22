@@ -8,7 +8,7 @@ namespace prepare_raw_banks {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
+    DEVICE_INPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
     DEVICE_INPUT(dev_one_track_results_t, bool) dev_one_track_results;
     DEVICE_INPUT(dev_two_track_results_t, bool) dev_two_track_results;
     DEVICE_INPUT(dev_single_muon_results_t, bool) dev_single_muon_results;
@@ -54,7 +54,7 @@ namespace prepare_raw_banks {
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_atomics_scifi_t>(arguments),
-                    offset<dev_sv_offsets_t>(arguments),
+                    offset<dev_sv_atomics_t>(arguments),
                     offset<dev_one_track_results_t>(arguments),
                     offset<dev_two_track_results_t>(arguments),
                     offset<dev_single_muon_results_t>(arguments),

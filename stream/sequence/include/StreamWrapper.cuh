@@ -48,7 +48,7 @@ struct StreamWrapper {
   /**
    * @brief Runs stream.
    */
-  void run_stream(const uint i, const uint buf_idx, const RuntimeOptions& runtime_options);
+  cudaError_t run_stream(const uint i, const uint buf_idx, const RuntimeOptions& runtime_options);
 
   /**
    * @brief Mask of the events selected by the stream

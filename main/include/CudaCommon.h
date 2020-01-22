@@ -26,6 +26,7 @@ using std::signbit;
 #define cudaEvent_t int
 #define cudaStream_t int
 #define cudaSuccess 0
+#define cudaErrorMemoryAllocation 2
 #define half_t short
 #define __popcll __builtin_popcountll
 #define cudaEventBlockingSync 0x01
@@ -105,6 +106,12 @@ cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream);
 cudaError_t cudaFreeHost(void* ptr);
 cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
+cudaError_t cudaMemcpyToSymbol(
+  void* symbol,
+  const void* src,
+  size_t count,
+  size_t offset = 0,
+  enum cudaMemcpyKind kind = cudaMemcpyDefault);
 
 // CUDA accepts more bindings to cudaMemcpyTo/FromSymbol
 template<class T>
@@ -219,6 +226,7 @@ namespace Configuration {
 #define cudaEvent_t hipEvent_t
 #define cudaStream_t hipStream_t
 #define cudaSuccess hipSuccess
+#define cudaErrorMemoryAllocation hipErrorMemoryAllocation
 #define cudaEventBlockingSync hipEventBlockingSync
 
 #define cudaMemcpyHostToHost hipMemcpyHostToHost

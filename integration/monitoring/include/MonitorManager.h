@@ -17,6 +17,7 @@ struct MonitorManager {
   }
 
   void fill(uint i_mon, uint i_buf, bool useWallTime = true);
+  void fillSplit() { meta_mon.fillSplit(); }
   void saveHistograms(std::string file_name);
 
   std::optional<size_t> getFreeMonitor();

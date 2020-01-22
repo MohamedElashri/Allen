@@ -11,9 +11,9 @@ namespace run_hlt1 {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
     HOST_INPUT(host_number_of_svs_t, uint);
     DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_INPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
+    DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
     DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
+    DEVICE_INPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
     DEVICE_OUTPUT(dev_one_track_results_t, bool) dev_one_track_results;
     DEVICE_OUTPUT(dev_two_track_results_t, bool) dev_two_track_results;
     DEVICE_OUTPUT(dev_single_muon_results_t, bool) dev_single_muon_results;
@@ -53,15 +53,15 @@ namespace run_hlt1 {
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_kf_tracks_t>(arguments),
-        offset<dev_secondary_vertices_t>(arguments),
-        offset<dev_atomics_scifi_t>(arguments),
-        offset<dev_sv_offsets_t>(arguments),
-        offset<dev_one_track_results_t>(arguments),
-        offset<dev_two_track_results_t>(arguments),
-        offset<dev_single_muon_results_t>(arguments),
-        offset<dev_disp_dimuon_results_t>(arguments),
-        offset<dev_high_mass_dimuon_results_t>(arguments),
-        offset<dev_dimuon_soft_results_t>(arguments)});
+                    offset<dev_consolidated_svs_t>(arguments),
+                    offset<dev_atomics_scifi_t>(arguments),
+                    offset<dev_sv_atomics_t>(arguments),
+                    offset<dev_one_track_results_t>(arguments),
+                    offset<dev_two_track_results_t>(arguments),
+                    offset<dev_single_muon_results_t>(arguments),
+                    offset<dev_disp_dimuon_results_t>(arguments),
+                    offset<dev_high_mass_dimuon_results_t>(arguments),
+                    offset<dev_dimuon_soft_results_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
@@ -104,3 +104,17 @@ namespace run_hlt1 {
     }
   };
 } // namespace run_hlt1
+
+template<typename T>
+__device__ LineHandler<T>::LineHandler(bool (*line)(const T& candidate))
+{
+  m_line = line;
+}
+
+template<typename T>
+__device__ void LineHandler<T>::operator()(const T* candidates, const int n_candidates, bool* results)
+{
+  for (int i_cand = threadIdx.x; i_cand < n_candidates; i_cand += blockDim.x) {
+    results[i_cand] = m_line(candidates[i_cand]);
+  }
+}

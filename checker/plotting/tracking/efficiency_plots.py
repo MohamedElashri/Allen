@@ -50,7 +50,6 @@ def getGhostHistoNames():
 #      #ROOT.TFile.Open("../../../output/minbias/PrCheckerPLots-minbias.root", "read"),
 #      ROOT.TFile.Open("../../../output/Bs2PhiPhi/PrCheckerPLots-Bs2PhiPhi.root", "read"),
 #      ROOT.TFile.Open("../../../output/Z2MuMu/PrCheckerPLots-Z2MuMu.root", "read")
-
 # ]
 
 f = [ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")]
@@ -187,7 +186,7 @@ for tracker in trackers:
                 variable_electrons.SetFillColorAlpha(ROOT.kAzure - 3, 0.2)
                 variable_electrons.Draw("hist bar same")
 
-            place = find_place(canvas, 3)
+            place = find_place(canvas, 4)
             legend = TLegend(place[0], place[1], place[2], place[3])
             if categories[tracker][cut]["plotElectrons"]:
                 legend.AddEntry(g_efficiency_notElectrons,
@@ -215,14 +214,16 @@ for tracker in trackers:
             # Draw second y axis
             low = 0
             high = 1.05
-            axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(),gPad.GetUxmax(),gPad.GetUymax(),low,high,510,"+L")
+            axis = ROOT.TGaxis(
+                gPad.GetUxmax(), gPad.GetUymin(), gPad.GetUxmax(),
+                gPad.GetUymax(), low, high, 510, "+L")
             axis.SetTitleFont(132)
             axis.SetTitleSize(0.06)
             axis.SetTitleOffset(0.55)
             axis.SetTitle("Number of events [a.u.]")
             axis.SetLabelSize(0)
             axis.Draw()
-            
+
             canvas.Write()
             cleantitle = categories[tracker][cut]["title"].replace(
                 " ", "").replace(",", "_").replace("<", "_")

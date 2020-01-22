@@ -60,6 +60,10 @@ __global__ void lf_extend_tracks_uv::lf_extend_tracks_uv(
           [ut_event_tracks_offset + track.ut_track_index +
            (relative_uv_layer * LookingForward::number_of_elements_initial_window + 3) * ut_total_number_of_tracks];
 
+      // Calculate expected X true position in z-UV layer, use expected X-position to evaluate expected Y with correction in Y
+      // Note : the correction in y is currently ONLY dependent on the x position of the choosen hit, and input VeloTracks. 
+      // Potentially stronger Y constraints can be obtained using (tx,ty from Velo(or Velo-UT)) 
+      // plus the local x-z projection under processing ( local SciFI ax,tx,cx ) , instead of a single x position of the hit
       const auto dz = z4 - LookingForward::z_mid_t;
       const auto expected_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
       const auto expected_y = LookingForward::project_y(
@@ -68,10 +72,17 @@ __global__ void lf_extend_tracks_uv::lf_extend_tracks_uv(
         expected_x,
         z4,
         dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
+      // This is the predicted_x in the u/v reference plane (i.e. the actual hit position measured)
       const auto predicted_x =
         expected_x - expected_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1];
 
-      // Pick the best, according to chi2
+      // Pick the best, according to chi2. 
+      // TODO : This needs some dedicated tuning. We scale the max_chi2 ( i.e the max distance in the x-plane ) 
+      // as a function of ty of the track and delta_slope (  of tracks ). 
+      // Bigger windows for higher slopes and delta_slope  (small momentum)
+      // If slopees are small the track is central,  the track bends a little, thee error on the estimation is small. +-2 mm windows is ok (2^{2}  = 4) .
+      // If we have large slope the error on x can be big,  For super peripheral tracks ( delta-slope = 0.3, ty = 0.3) you want to open up up to :
+      // sqrt(4+60*0.3+60*0.3) = 6 mm windows. Anyway, we need some retuning of this scaling windows.
       const float max_chi2 = 4.f + 60.f * fabsf(ut_state.ty) + 60.f * fabsf(a1 - ut_state.tx);
 
       int best_index = -1;

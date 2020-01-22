@@ -68,6 +68,16 @@ cudaError_t cudaDeviceReset() { return 0; }
 
 cudaError_t cudaStreamCreate(cudaStream_t*) { return 0; }
 
+cudaError_t cudaMemcpyToSymbol(
+  void* symbol,
+  const void* src,
+  size_t count,
+  size_t offset,
+  enum cudaMemcpyKind) {
+  std::memcpy(symbol, reinterpret_cast<const char*>(src) + offset, count);
+  return 0;
+}
+
 unsigned int atomicInc(unsigned int* address, unsigned int val)
 {
   unsigned int old = *address;

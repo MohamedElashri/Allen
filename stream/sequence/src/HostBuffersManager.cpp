@@ -1,7 +1,10 @@
 #include "HostBuffersManager.cuh"
 #include "HostBuffers.cuh"
 
-#include <iostream>
+#include "HltDecReport.cuh"
+#include "RawBanksDefinitions.cuh"
+
+#include "Logger.h"
 
 void HostBuffersManager::init(size_t nBuffers) {
   host_buffers.reserve(nBuffers);
@@ -14,9 +17,9 @@ void HostBuffersManager::init(size_t nBuffers) {
 }
 
 size_t HostBuffersManager::assignBufferToFill() {
-  if (empty_buffers.empty()) {
-    std::cout << "No empty buffers available" << std::endl;
-    std::cout << "Adding new buffers" << std::endl;
+  if(empty_buffers.empty()) {
+    warning_cout << "No empty buffers available" << std::endl;
+    warning_cout << "Adding new buffers" << std::endl;
     host_buffers.push_back(new HostBuffers());
     host_buffers.back()->reserve(max_events, check);
     buffer_statuses.push_back(BufferStatus::Filling);
@@ -47,6 +50,11 @@ void HostBuffersManager::returnBufferFilled(size_t b) {
   filled_buffers.push(b);
 }
 
+void HostBuffersManager::returnBufferUnfilled(size_t b) {
+  buffer_statuses[b] = BufferStatus::Empty;
+  empty_buffers.push(b);
+}
+
 void HostBuffersManager::returnBufferProcessed(size_t b) {
   // buffer must be both processed (monitoring) and written (I/O)
   // if I/O is already finished then mark "empty"
@@ -73,6 +81,33 @@ void HostBuffersManager::returnBufferWritten(size_t b) {
   }
 }
 
+void HostBuffersManager::writeSingleEventPassthrough(size_t b) {
+  if(b>=host_buffers.size()) {
+    error_cout << "Buffer index " << b << " is larger than the number of available buffers: " << host_buffers.size() << std::endl;
+    return;
+  }
+  auto buf = host_buffers[b];
+
+  buf->host_number_of_passing_events[0] = 1u;
+  buf->host_passing_event_list[0] = 0u;
+  buf->host_dec_reports[0] = Hlt1::TCK;
+  buf->host_dec_reports[1] = Hlt1::taskID;
+  for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+    HltDecReport dec_report;
+    dec_report.setDecision(false);
+    dec_report.setErrorBits(0);
+    dec_report.setNumberOfCandidates(0);
+    dec_report.setIntDecisionID(i_line);
+    dec_report.setExecutionStage(1);
+    if(i_line == Hlt1::Hlt1Lines::PassThrough) {
+      dec_report.setDecision(true);
+      dec_report.setNumberOfCandidates(1);
+    }
+    buf->host_dec_reports[i_line + 2] = dec_report.getDecReport();
+  }
+  returnBufferFilled(b);
+}
+
 std::tuple<uint, uint*, uint32_t*> HostBuffersManager::getBufferOutputData(size_t b) {
   if (b > host_buffers.size()) return {0u, nullptr, nullptr};
 
@@ -85,6 +120,5 @@ std::tuple<uint, uint*, uint32_t*> HostBuffersManager::getBufferOutputData(size_
 }
 
 void HostBuffersManager::printStatus() const {
-  std::cout << host_buffers.size() << " buffers; " << empty_buffers.size() << " empty; " << filled_buffers.size()
-            << " filled." << std::endl;
+  info_cout << host_buffers.size() << " buffers; " << empty_buffers.size() << " empty; " << filled_buffers.size() << " filled." << std::endl;
 }

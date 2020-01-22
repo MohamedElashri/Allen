@@ -12,37 +12,40 @@ namespace MuonLines {
 
   __device__ bool DisplacedDiMuon(const VertexFit::TrackMVAVertex& vertex)
   {
+    if (! vertex.is_dimuon) return false;
+    if ( vertex.minipchi2 < dispMinIPChi2) return false;
+
     bool decision = vertex.chi2 > 0;
     decision &= vertex.chi2 < maxVertexChi2;
     decision &= vertex.eta > dispMinEta && vertex.eta < dispMaxEta;
-    decision &= vertex.minipchi2 > dispMinIPChi2;
-    decision &= vertex.minpt > minTrackPt;
-    decision &= vertex.is_dimuon;
+    decision &= vertex.minpt > minDispTrackPt;
     return decision;
   }
 
   __device__ bool HighMassDiMuon(const VertexFit::TrackMVAVertex& vertex)
   {
+    if (! vertex.is_dimuon) return false;
+    if ( vertex.mdimu < minMass) return false;
+    if (vertex.minpt < minHighMassTrackPt) return false;
+
     bool decision = vertex.chi2 > 0;
     decision &= vertex.chi2 < maxVertexChi2;
-    decision &= vertex.mdimu > minMass;
-    decision &= vertex.minpt > minTrackPt;
-    decision &= vertex.is_dimuon;
     return decision;
   }
 
   __device__ bool DiMuonSoft(const VertexFit::TrackMVAVertex& vertex)
   {
+    if (! vertex.is_dimuon) return false; 
+    if (vertex.minipchi2 <  DMSoftMinIPChi2) return false; 
     bool decision = vertex.chi2 > 0;
-    decision &= vertex.minipchi2 >  DMSoftMinIPChi2 ;
-    //decision &= vertex.chi2 < maxVertexChi2;
     decision &= ( vertex.mdimu < DMSoftM0 || vertex.mdimu > DMSoftM1); // KS pipi misid veto
-    decision &= vertex.is_dimuon; 
     decision &= vertex.eta > 0; 
 
     decision &= (vertex.x*vertex.x + vertex.y*vertex.y) > DMSoftMinRho2; 
     decision &= ( vertex.z >  DMSoftMinZ ) &  ( vertex.z <  DMSoftMaxZ );
-
+    decision &= vertex.doca < DMSoftMaxDOCA;
+    decision &= vertex.dimu_ip/vertex.dz < DMSoftMaxIPDZ;
+    decision &= vertex.dimu_clone_sin2 > DMSoftGhost;
     return decision;
   }
 

@@ -19,6 +19,7 @@ namespace VertexFit {
     float& x,
     float& y,
     float& z);
+  __device__ float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
   __device__ float addToDerivatives(
     const ParKalmanFilter::FittedTrack& track,
@@ -81,7 +82,7 @@ namespace fit_secondary_vertices {
     DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
     DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
-    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
+    DEVICE_OUTPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
     DEVICE_OUTPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
   };
 
@@ -98,7 +99,9 @@ namespace fit_secondary_vertices {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_secondary_vertices_t>(arguments, value<host_number_of_svs_t>(arguments));
+      set_size<dev_secondary_vertices_t>(
+        arguments, VertexFit::max_svs * value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_sv_atomics_t>(arguments, value<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -109,6 +112,9 @@ namespace fit_secondary_vertices {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
+      cudaCheck(
+        cudaMemsetAsync(arguments.offset<dev_sv_atomics_t>(), 0, arguments.size<dev_sv_atomics_t>(), cuda_stream));
+
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_kf_tracks_t>(arguments),
                     offset<dev_atomics_scifi_t>(arguments),
@@ -119,14 +125,14 @@ namespace fit_secondary_vertices {
                     offset<dev_multi_fit_vertices_t>(arguments),
                     offset<dev_number_of_multi_fit_vertices_t>(arguments),
                     offset<dev_kalman_pv_ipchi2_t>(arguments),
-                    offset<dev_sv_offsets_t>(arguments),
+                    offset<dev_sv_atomics_t>(arguments),
                     offset<dev_secondary_vertices_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_secondary_vertices,
-          offset<dev_secondary_vertices_t>(arguments),
-          size<dev_secondary_vertices_t>(arguments),
+          host_buffers.host_sv_atomics,
+          offset<dev_sv_atomics_t>(arguments),
+          size<dev_sv_atomics_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
       }

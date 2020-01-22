@@ -61,9 +61,17 @@ __device__ void lf_triplet_seeding_impl(
       const auto x0 = scifi_hits_x0[l0_start + h0_rel];
       const auto x2 = scifi_hits_x0[l2_start + h2_rel];
 
-      // // Extrapolation
+      // Extrapolation
       const auto slope_t1_t3 = (x0 - x2) * inverse_dz2;
+      // Use a simple correction once T1-T2 hits are known to align expected position according to Sagitta-Quality 
+      // Same approach used in Seeding. Might be improved exploiting other dependencies (here only the line propagation at 0)
+
       const auto expected_x1 = z1 * slope_t1_t3 + (x0 - slope_t1_t3 * z0) * constant_expected_x1;
+
+      // Compute as well the x(z-magnet) from Velo-UT (or Velo) and SciFi doublet( T1 +T3 ) to check if 
+      // charge assumption is correct. The best Chi2 triplet is based on expected_x1. The more precise we can go on this, 
+      // the bigger the gain. Currently at low momentum spreads up to 5 mm in x-true - expected_t1 (after correection)
+      // We might could benefit with some more math of a q/p (updated) dependence and tx-SciFi dependence 
 
       const auto track_x_at_z_magnet = x0 + (LookingForward::z_magnet - z0) * slope_t1_t3;
       const auto x_at_z_magnet_diff = fabsf(

@@ -135,6 +135,15 @@ __device__ float LookingForward::project_y(
   const auto ty3 = ut_state.ty * ut_state.ty * ut_state.ty;
   const auto ty5 = ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty;
 
+  //NOTE : 
+  //Y expected is evaluated as follow : 
+  //You assume to know the x position at which the track is passing through via x(Hit), x(Hit) for xLayers is x(measured), 
+  //on u/v it has to be corrected by stereo angle (done outside this function call)
+  //DX = x_hit - (seed_state_projection_at_z_hit) 
+  //yExpected = C1 *DX + C2 *DX^{2} +  C3*DX^{3}
+  //Where C1,C2,C3 = polynomial expansion in tx,ty up to deegre 6. 
+  //TODO : swap signs in correct places where needed depending on Mag Field. 
+  //Parameters are computed with Mag-Down, Mag-Up to check.
   const auto C1y_0 = dev_looking_forward_constants->parametrization_layers[18 * layer];
   const auto C1y_1 = dev_looking_forward_constants->parametrization_layers[18 * layer + 1];
   const auto C1y_2 = dev_looking_forward_constants->parametrization_layers[18 * layer + 2];

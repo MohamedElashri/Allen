@@ -63,14 +63,12 @@ namespace kalman_pv_ipchi2 {
                     offset<dev_kalman_pv_ipchi2_t>(arguments),
                     offset<dev_is_muon_t>(arguments)});
 
-      if (runtime_options.do_check) {
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_kf_tracks,
-          offset<dev_kf_tracks_t>(arguments),
-          size<dev_kf_tracks_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
-      }
+      cudaCheck(cudaMemcpyAsync(
+        host_buffers.host_kf_tracks,
+        offset<dev_kf_tracks_t>(arguments),
+        size<dev_kf_tracks_t>(arguments),
+        cudaMemcpyDeviceToHost,
+        cuda_stream));
     }
   };
 } // namespace kalman_pv_ipchi2

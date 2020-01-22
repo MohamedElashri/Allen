@@ -45,6 +45,13 @@ __global__ void lf_calculate_parametrization::lf_calculate_parametrization(
 
     // Note: The notation 1, 2, 3 is used here (instead of h0, h1, h2)
     //       to avoid mistakes, as the code is similar to that of Hybrid Seeding
+    //       noref here means the raw z position of the hits.
+    //       The parameterization with the dratio values is valid for zHit - LookingForward::z_mid_t.
+    //       If LookingForward::z_mid_t will change , the tuning has to be redone.
+    //       The dRatio correction follows a second correctlion level as the seeding does when y-z plane motion becomes
+    //       known, including a parameterization as a function of the track expected position at X(z = zT2 station), Y(z
+    //       = zT2 station). Potentially something better can be done here parameterizing dRatio vs (tx,ty, txSciFi for
+    //       example) See : https://cds.cern.ch/record/2296404/files/CERN-THESIS-2017-254.pdf  (page 129)
     const auto h1 = event_offset + track.hits[0];
     const auto h2 = event_offset + track.hits[1];
     const auto h3 = event_offset + track.hits[2];
@@ -75,7 +82,8 @@ __global__ void lf_calculate_parametrization::lf_calculate_parametrization(
                       x1 * z2 * z2 * corrZ2 - x3 * z1 * z1 * corrZ1;
     const auto det3 = z1 * z1 * corrZ1 * z2 * x3 + z1 * z3 * z3 * corrZ3 * x2 + z2 * z2 * corrZ2 * z3 * x1 -
                       z2 * z3 * z3 * corrZ3 * x1 - z1 * z2 * z2 * corrZ2 * x3 - z3 * z1 * z1 * corrZ1 * x2;
-
+    // Differently  from  the Seeding, if the determinant is too small, we don't assume is a line, but we still compute
+    // values Not sure if numerically we might end up in a 1./0.f case.  How to protect from this?
     const auto recdet = 1.f / det;
     const auto a1 = recdet * det1;
     const auto b1 = recdet * det2;

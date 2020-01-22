@@ -297,7 +297,7 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n123 ${i} | head -n119 > efficiency_${i}; colordiff ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n133 ${i} | head -n129 > efficiency_${i}; colordiff ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
@@ -307,20 +307,20 @@ test_physics_efficiency:
     - rtx6000 # Note: colordiff must be installed
   allow_failure: true
 
-run_built_tests:
-  only:
-    refs:
-      - master
-      - schedules
-      - web
-      - merge_requests
-  stage: test
-  script:
-    - cd build_CUDA
-    - ctest -V
-  dependencies:
-    - CUDA:DefaultSequence:Debug::build
-  allow_failure: true
+# run_built_tests:
+#   only:
+#     refs:
+#       - master
+#       - schedules
+#       - web
+#       - merge_requests
+#   stage: test
+#   script:
+#     - cd build_CUDA
+#     - ctest -V
+#   dependencies:
+#     - CUDA:DefaultSequence:Debug::build
+#   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
   only:
@@ -344,7 +344,7 @@ run_built_tests:
     - cat devices_throughputs.csv
     - python3 checker/plotting/post_combined_message.py -l "Throughput of [sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
     # - python3 checker/plotting/csv_plotter.py -t "Throughput of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
-    - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME} 
+    - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME}
 
 .throughput_speedup_job: &publish_speedup_job_def
   only:
@@ -357,7 +357,7 @@ run_built_tests:
   script:
     - cat output_*/output.txt | grep --color=none "device" | sed 's/.*:\ [0-9]*\,\ //' > devices.txt
     - cat output_*/output.txt | grep --color=none "events/s" | awk '{ print $1; }' > throughputs.txt
-    - cat devices.txt 
+    - cat devices.txt
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv

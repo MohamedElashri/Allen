@@ -12,11 +12,12 @@ __global__ void prepare_raw_banks::prepare_raw_banks(prepare_raw_banks::Paramete
   const int n_tracks_event = parameters.dev_atomics_scifi[event_number];
 
   // Vertices.
-  const bool* event_two_track_results = parameters.dev_two_track_results + parameters.dev_sv_offsets[event_number];
-  const bool* event_disp_dimuon_results = parameters.dev_disp_dimuon_results + parameters.dev_sv_offsets[event_number];
+  const uint* dev_sv_offsets = parameters.dev_sv_atomics + number_of_events;
+  const bool* event_two_track_results = parameters.dev_two_track_results + dev_sv_offsets[event_number];
+  const bool* event_disp_dimuon_results = parameters.dev_disp_dimuon_results + dev_sv_offsets[event_number];
   const bool* event_high_mass_dimuon_results =
-    parameters.dev_high_mass_dimuon_results + parameters.dev_sv_offsets[event_number];
-  const int n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
+    parameters.dev_high_mass_dimuon_results + dev_sv_offsets[event_number];
+  const uint n_vertices_event = parameters.dev_sv_atomics[event_number];
 
   // Dec reports.
   const int n_hlt1_lines = Hlt1::Hlt1Lines::End;

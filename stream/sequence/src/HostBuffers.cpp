@@ -51,6 +51,10 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   host_allocated_prefix_sum_space = 10000000;
   cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(uint)));
 
+  // Needed for track monitoring
+  cudaCheck(cudaMallocHost((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int)));
+  cudaCheck(cudaMallocHost((void**) &host_kf_tracks, max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
+
   if (do_check) {
     // Datatypes to be reserved only if checking is on
     // Note: These datatypes in principle do not require to be pinned
@@ -82,8 +86,6 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     host_ut_track_velo_indices = reinterpret_cast<decltype(host_ut_track_velo_indices)>(
       malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(int)));
 
-    host_atomics_scifi = reinterpret_cast<decltype(host_atomics_scifi)>(malloc(
-      max_number_of_events * SciFi::num_atomics * sizeof(int)));
     host_scifi_tracks = reinterpret_cast<decltype(host_scifi_tracks)>(malloc(
       max_number_of_events * UT::Constants::max_num_tracks *
       LookingForward::maximum_number_of_candidates_per_ut_track * sizeof(SciFi::TrackHits)));
@@ -120,8 +122,6 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     host_number_of_multivertex =
       reinterpret_cast<decltype(host_number_of_multivertex)>(malloc(max_number_of_events * sizeof(int)));
 
-    host_kf_tracks = reinterpret_cast<decltype(host_kf_tracks)>(
-      malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
     host_muon_catboost_output = reinterpret_cast<decltype(host_muon_catboost_output)>(
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));
     host_is_muon = reinterpret_cast<decltype(host_is_muon)>(
@@ -138,6 +138,8 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
     host_sv_offsets = reinterpret_cast<decltype(host_sv_offsets)>(
       malloc((max_number_of_events + 1) * sizeof(uint)));
+    host_sv_atomics = reinterpret_cast<decltype(host_sv_atomics)>(
+      malloc((2 * max_number_of_events + 1) * sizeof(uint)));
     host_two_track_decisions = reinterpret_cast<decltype(host_two_track_decisions)>(
       malloc(max_number_of_events * n_max_svs * sizeof(bool)));
     host_disp_dimuon_decisions = reinterpret_cast<decltype(host_disp_dimuon_decisions)>(

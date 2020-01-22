@@ -90,6 +90,7 @@ struct HostBuffers {
   // Secondary vertices
   uint* host_number_of_svs;
   uint* host_sv_offsets;
+  uint* host_sv_atomics;
   VertexFit::TrackMVAVertex* host_secondary_vertices;
 
   // Selections

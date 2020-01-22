@@ -98,15 +98,12 @@ namespace Sch {
   struct OutDependenciesImpl<std::tuple<Algorithm, NextAlgorithm, Algorithms...>> {
     using previous_t = typename OutDependenciesImpl<std::tuple<NextAlgorithm, Algorithms...>>::t;
     using t = typename TupleAppend<
-                previous_t,
-                ScheduledDependencies<
-                  NextAlgorithm,
-                  typename ArgumentsNotIn<
-                    typename AlgorithmTraits<Algorithm>::Arguments,
-                    std::tuple<NextAlgorithm, Algorithms...>
-                  >::t
-                >
-              >::t;
+      previous_t,
+      ScheduledDependencies<
+        NextAlgorithm,
+        typename ArgumentsNotIn<
+          typename AlgorithmTraits<Algorithm>::Arguments,
+          std::tuple<NextAlgorithm, Algorithms...>>::t>>::t;
   };
 
   // Helper to calculate OUT dependencies

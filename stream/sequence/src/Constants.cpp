@@ -12,10 +12,6 @@
 
 void Constants::reserve_constants()
 {
-  host_ut_region_offsets.resize(UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1);
-  host_ut_dxDy.resize(UT::Constants::n_layers);
-  host_unique_x_sector_layer_offsets.resize(UT::Constants::n_layers + 1);
-
   cudaCheck(cudaMalloc((void**) &dev_inv_clus_res, host_inv_clus_res.size() * sizeof(float)));
   cudaCheck(cudaMalloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations)));
   cudaCheck(cudaMalloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants)));

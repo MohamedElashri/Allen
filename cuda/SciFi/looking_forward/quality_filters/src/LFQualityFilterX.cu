@@ -6,7 +6,8 @@ __global__ void lf_quality_filter_x::lf_quality_filter_x(lf_quality_filter_x::Pa
   const uint event_number = blockIdx.x;
 
   const auto ut_event_tracks_offset = parameters.dev_atomics_ut[number_of_events + event_number];
-  const auto ut_event_number_of_tracks = parameters.dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
+  const auto ut_event_number_of_tracks =
+    parameters.dev_atomics_ut[number_of_events + event_number + 1] - ut_event_tracks_offset;
   const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
 
   __shared__ float chi2_ndofs[LookingForward::maximum_number_of_candidates_per_ut_track];
@@ -45,12 +46,9 @@ __global__ void lf_quality_filter_x::lf_quality_filter_x(lf_quality_filter_x::Pa
               current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + k;
             const SciFi::TrackHits& other_track = parameters.dev_scifi_lf_tracks[other_scifi_track_index];
 
-            const bool same_track = track.hits[0] == other_track.hits[3] &&
-              track.hits[1] == other_track.hits[4] &&
-              track.hits[2] == other_track.hits[5] &&
-              track.hits[3] == other_track.hits[0] &&
-              track.hits[4] == other_track.hits[1] &&
-              track.hits[5] == other_track.hits[2];
+            const bool same_track = track.hits[0] == other_track.hits[3] && track.hits[1] == other_track.hits[4] &&
+                                    track.hits[2] == other_track.hits[5] && track.hits[3] == other_track.hits[0] &&
+                                    track.hits[4] == other_track.hits[1] && track.hits[5] == other_track.hits[2];
 
             if (same_track) {
               chi2_ndofs[j] = 10000.f;
@@ -82,8 +80,7 @@ __global__ void lf_quality_filter_x::lf_quality_filter_x(lf_quality_filter_x::Pa
         const auto scifi_track_index =
           current_ut_track_index * LookingForward::maximum_number_of_candidates_per_ut_track + j;
         const auto scifi_track_index_new =
-          ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track +
-          insert_index;
+          ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + insert_index;
         const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
 
         // Save track
@@ -91,14 +88,16 @@ __global__ void lf_quality_filter_x::lf_quality_filter_x(lf_quality_filter_x::Pa
 
         // Save track parameters to new container as well
         const auto a1 = parameters.dev_scifi_lf_parametrization[scifi_track_index];
-        const auto b1 = parameters.dev_scifi_lf_parametrization
-          [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
+        const auto b1 =
+          parameters.dev_scifi_lf_parametrization
+            [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
         const auto c1 = parameters.dev_scifi_lf_parametrization
-          [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-           scifi_track_index];
-        const auto d_ratio = parameters.dev_scifi_lf_parametrization
-          [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
-           scifi_track_index];
+                          [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
+                           scifi_track_index];
+        const auto d_ratio =
+          parameters.dev_scifi_lf_parametrization
+            [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track +
+             scifi_track_index];
 
         parameters.dev_scifi_lf_parametrization_x_filter[scifi_track_index_new] = a1;
         parameters.dev_scifi_lf_parametrization_x_filter
