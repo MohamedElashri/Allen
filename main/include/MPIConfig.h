@@ -20,7 +20,6 @@
 
 namespace MPI {
   // MPI ranks of sender and receiver
-  constexpr int sender = 1;
   constexpr int receiver = 0;
 
   // Required MPI communication size (number of ranks)

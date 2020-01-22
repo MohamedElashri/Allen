@@ -19,11 +19,11 @@ namespace MPI {
 
   std::string rank_str()
   {
-    if (rank == sender) {
-      return "MPI::Sender: ";
+    if (rank == receiver) {
+      return "MPI::Receiver: ";
     }
     else {
-      return "MPI::Receiver: ";
+      return "MPI::Sender: ";
     }
   }
 } // namespace MPI

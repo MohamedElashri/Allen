@@ -40,6 +40,7 @@
 
 #ifdef HAVE_MPI
 #include "MPIConfig.h"
+#include <hwloc.h>
 #endif
 
 #ifndef NO_CUDA
@@ -65,13 +66,20 @@ struct MEPProviderConfig {
 
   int window_size = 4;
 
-  bool use_mpi = false;
+  // Use MPI and number of receivers
+  std::tuple<bool, int> mpi = {false, 1};
 
   bool non_stop = true;
 
   bool transpose_mep = false;
 
-  std::string output_file = "";
+  bool use_mpi const() { return std::get<0>(mpi); }
+
+  bool n_receivers const() { return std::get<1>(mpi); }
+
+  // Mapping of MPI rank to NUMA domain
+  std::vector<std::tuple<int, int>> domains;
+
 };
 
 /**
@@ -119,22 +127,51 @@ public:
     m_buffer_transpose = m_buffer_status.begin();
     m_buffer_reading = m_buffer_status.begin();
 
-    if (m_config.use_mpi) {
+    if (m_config.use_mpi()) {
 #ifdef HAVE_MPI
-      MPI_Recv(
-        &m_packing_factor, 1, MPI_SIZE_T, MPI::sender, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      // Allocate and initialize topology object.
+      hwloc_topology_init(&m_topology);
+
+      // Perform the topology detection.
+      hwloc_topology_load(m_topology);
+
+      // Get last node. There's always at least one.
+      [[maybe_unused]] auto n_numa = hwloc_get_nbobjs_by_type(m_topology, HWLOC_OBJ_NUMANODE);
+      assert(n_numa == m_config.domains.size());
+
+      std::vector<hwloc_obj_t> numa_objs(m_config.n_receivers());
+      for (int receiver = 0; receiver < m_config.n_receivers(); ++receiver) {
+        int numa_node = std::get<1>(m_config.domains[receiver]);
+        numa_objs[receiver] = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
+      }
+
+      std::vector<size_t> packing_factors(m_config.n_receivers());
+      for (int receiver = 0; receiver < m_config.n_receivers(); ++receiver) {
+        auto const mpi_rank = std::get<0>(m_config.domains[receiver]);
+        MPI_Recv(&packing_factors[receiver], 1, MPI_SIZE_T, receiver_rank, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      }
+
+      if (!std::all_of(packing_factors.begin(), packing_factors.end(), packing_factors.back())) {
+        throw StringException{"All packing factors must be the same"};
+      } else {
+        m_packing_factor = packing_factors.back();
+      }
 
       // Allocate as many net slices as configured, of expected size
       // Packing factor can be done dynamically if needed
       size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
       for (size_t i = 0; i < config.n_buffers; ++i) {
+        auto const& numa_obj = numa_objs[i % m_config.n_receivers()];
         char* contents = nullptr;
         MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
+
+        hwloc_set_area_membind(topology, contents, n_bytes, numa_obj->nodeset,
+                               HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
 #if !defined(NO_CUDA) && !defined(CPU)
         cudaCheck(cudaHostRegister(contents, n_bytes, cudaHostRegisterDefault));
 #endif
-        m_net_slices.emplace_back(
-          EB::Header {}, gsl::span<char const> {contents, n_bytes}, MEP::Blocks {}, MEP::SourceOffsets {}, n_bytes);
+        m_net_slices.emplace_back(EB::Header {}, gsl::span<char const> {contents, n_bytes},
+                                  MEP::Blocks {}, MEP::SourceOffsets {}, n_bytes);
         m_mpi_buffers.emplace_back(contents);
       }
 #else
@@ -166,13 +203,13 @@ public:
     m_compress_buffer.reserve(1u * MB);
 
     // start MPI receive or MEP reading thread
-    if (m_config.use_mpi) {
+    if (m_config.use_mpi()) {
 #ifdef HAVE_MPI
-      m_mpi_thread = std::thread {&MEPProvider::mpi_read, this};
+      m_input_thread = std::thread{&MEPProvider::mpi_read, this};
 #endif
     }
     else {
-      m_mpi_thread = std::thread {&MEPProvider::mep_read, this};
+      m_input_thread = std::thread{&MEPProvider::mep_read, this};
     }
 
     // Sanity check on the number of buffers and threads
@@ -205,7 +242,7 @@ public:
     m_done = true;
     m_transpose_done = true;
     m_mpi_cond.notify_one();
-    m_mpi_thread.join();
+    m_input_thread.join();
 
     // Set a flat to indicate all transpose threads should exit, wake
     // them up and join the threads. Ensure any waiting calls to
@@ -691,14 +728,18 @@ private:
     size_t reporting_period = 5;
     size_t bytes_received = 0;
     size_t meps_received = 0;
-    size_t number_of_meps = 0;
+    std::vector<size_t> n_meps(m_config.n_receivers());
     Timer t;
     Timer t_origin;
     bool error = false;
     bool receive_done = false;
 
-    MPI_Recv(
-      &number_of_meps, 1, MPI_SIZE_T, MPI::sender, MPI::message::number_of_meps, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    for (size_t i = 0; i < m_config.domains(); ++i) {
+      auto [numa_domain, mpi_rank] = m_config.domains[i];
+      MPI_Recv(&n_meps[i], 1, MPI_SIZE_T, mpi_rank,
+               MPI::message::number_of_meps, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+    auto number_of_meps = std::accumulate(n_meps.begin(), n_meps.end(), 0);
 
     size_t current_mep = 0;
     while (m_config.non_stop || current_mep < number_of_meps) {
@@ -716,21 +757,34 @@ private:
         assert(m_buffer_reading->work_counter == 0);
       }
 
+      auto receiver = i_buffer % m_config.n_receivers();
+      auto [sender_rank, numa_node] = m_config.domains[receiver];
       auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
       char*& contents = m_mpi_buffers[i_buffer];
 
       size_t mep_size = 0;
-      MPI_Recv(&mep_size, 1, MPI_SIZE_T, MPI::sender, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(&mep_size, 1, MPI_SIZE_T, sender_rank, MPI::message::event_size, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
       // Reallocate if needed
       if (mep_size > buffer_size) {
         buffer_size = mep_size * bank_size_fudge_factor;
 #if !defined(NO_CUDA) && !defined(CPU)
+        // Unregister memory
         cudaCheck(cudaHostUnregister(contents));
 #endif
+        // Free memory
         MPI_Free_mem(contents);
+
+        // Allocate new memory
         MPI_Alloc_mem(buffer_size, MPI_INFO_NULL, &contents);
+
+        // Bind memory to numa domain of receiving card
+        auto numa_obj = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
+        hwloc_set_area_membind(topology, contents, buffer_size, numa_obj->nodeset,
+                               HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+
 #if !defined(NO_CUDA) && !defined(CPU)
+        // Register memory with CUDA
         try {
           cudaCheck(cudaHostRegister(contents, buffer_size, cudaHostRegisterDefault));
         } catch (std::invalid_argument const&) {
@@ -758,7 +812,7 @@ private:
           message,
           MPI::mdf_chunk_size,
           MPI_BYTE,
-          MPI::sender,
+          sender_rank,
           MPI::message::event_send_tag_start + k,
           MPI_COMM_WORLD,
           &requests[k]);
@@ -772,7 +826,7 @@ private:
           message,
           MPI::mdf_chunk_size,
           MPI_BYTE,
-          MPI::sender,
+          sender_rank,
           MPI::message::event_send_tag_start + k,
           MPI_COMM_WORLD,
           &requests[r]);
@@ -786,7 +840,7 @@ private:
           message,
           rest,
           MPI_BYTE,
-          MPI::sender,
+          sender_rank,
           MPI::message::event_send_tag_start + n_messages,
           MPI_COMM_WORLD,
           &requests[r]);
@@ -990,11 +1044,12 @@ private:
   // data members for mpi thread
   std::mutex m_mpi_mutex;
   std::condition_variable m_mpi_cond;
+  hwloc_topology_t m_topology;
 
   std::vector<BufferStatus> m_buffer_status;
   std::vector<BufferStatus>::iterator m_buffer_transpose;
   std::vector<BufferStatus>::iterator m_buffer_reading;
-  std::thread m_mpi_thread;
+  std::thread m_input_threads;
 
   // Atomics to flag errors and completion
   std::atomic<bool> m_done = false;
