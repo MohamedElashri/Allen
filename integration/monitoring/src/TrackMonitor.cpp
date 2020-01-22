@@ -5,6 +5,7 @@
 
 #include "HltDecReport.cuh"
 #include "RawBanksDefinitions.cuh"
+#include "ParKalmanDefinitions.cuh"
 
 #include <cmath>
 
@@ -14,14 +15,14 @@ void TrackMonitor::fill(uint i_buf, bool)
   HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
 
   uint nevt = buf->host_number_of_selected_events[0];
-  int* trk_offsets = buf->host_atomics_scifi + nevt;
+  uint* trk_offsets = buf->host_atomics_scifi + nevt;
 
   for (uint ievt = 0; ievt < nevt; ++ievt) {
     int ntrk = buf->host_atomics_scifi[ievt];
     uint trk_offset = trk_offsets[ievt];
 
     for (int itrk = 0; itrk < ntrk; ++itrk) {
-      ParKalmanFilter::FittedTrack track = buf->host_kf_tracks[trk_offset + itrk];
+      const auto& track = buf->host_kf_tracks[trk_offset + itrk];
 
       m_histograms[MonHistType::KalmanTrackP]->Fill(track.p());
       m_histograms[MonHistType::KalmanTrackPt]->Fill(track.pt());
