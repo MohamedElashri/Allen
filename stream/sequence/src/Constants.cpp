@@ -17,6 +17,10 @@ void Constants::reserve_constants()
   cudaCheck(cudaMalloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants)));
   cudaCheck(cudaMalloc((void**) &dev_muon_foi, sizeof(Muon::Constants::FieldOfInterest)));
   cudaCheck(cudaMalloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float)));
+
+  host_ut_region_offsets.resize(UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1);
+  host_ut_dxDy.resize(UT::Constants::n_layers);
+  host_unique_x_sector_layer_offsets.resize(UT::Constants::n_layers + 1);
 }
 
 void Constants::initialize_constants(

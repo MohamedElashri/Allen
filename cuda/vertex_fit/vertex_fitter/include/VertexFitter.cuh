@@ -113,7 +113,7 @@ namespace fit_secondary_vertices {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(
-        cudaMemsetAsync(arguments.offset<dev_sv_atomics_t>(), 0, arguments.size<dev_sv_atomics_t>(), cuda_stream));
+        cudaMemsetAsync(offset<dev_sv_atomics_t>(arguments), 0, size<dev_sv_atomics_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {offset<dev_kf_tracks_t>(arguments),

@@ -368,9 +368,9 @@ __global__ void fit_secondary_vertices::fit_secondary_vertices(fit_secondary_ver
       // Only combine tracks from the same PV, except for dimuons,
       // which should be independent of PV reconstruction.
       if (
-        pv_table.pv[i_track] != pv_table.pv[j_track] &&
-        pv_table.value[i_track] < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
-        pv_table.value[j_track] < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
+        pv_table.pv(i_track) != pv_table.pv(j_track) &&
+        pv_table.value(i_track) < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
+        pv_table.value(j_track) < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
         (!trackA.is_muon || !trackB.is_muon)
           ) {
         continue;
