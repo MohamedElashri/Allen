@@ -49,7 +49,7 @@ namespace pv_beamline_peak {
 
       function(grid_dim, PV::num_threads_pv_beamline_peak_t, cuda_stream)(
         Parameters {
-          offset<dev_zhisto_t>(arguments), offset<dev_zpeaks_t>(arguments), offset<dev_number_of_zpeaks_t>(arguments)},
+          begin<dev_zhisto_t>(arguments), begin<dev_zpeaks_t>(arguments), begin<dev_number_of_zpeaks_t>(arguments)},
         value<host_number_of_selected_events_t>(arguments));
     }
   };

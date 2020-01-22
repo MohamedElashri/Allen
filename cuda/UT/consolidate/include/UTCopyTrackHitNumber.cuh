@@ -40,9 +40,9 @@ namespace ut_copy_track_hit_number {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_ut_tracks_t>(arguments),
-                   offset<dev_offsets_ut_tracks_t>(arguments),
-                   offset<dev_ut_track_hit_number_t>(arguments)});
+        Parameters {begin<dev_ut_tracks_t>(arguments),
+                   begin<dev_offsets_ut_tracks_t>(arguments),
+                   begin<dev_ut_track_hit_number_t>(arguments)});
     }
   };
 } // namespace ut_copy_track_hit_number

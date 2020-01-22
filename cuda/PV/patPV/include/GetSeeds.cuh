@@ -47,16 +47,16 @@ namespace pv_get_seeds {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_velo_kalman_beamline_states_t>(arguments),
-                    offset<dev_atomics_velo_t>(arguments),
-                    offset<dev_velo_track_hit_number_t>(arguments),
-                    offset<dev_seeds_t>(arguments),
-                    offset<dev_number_seeds_t>(arguments)});
+        Parameters {begin<dev_velo_kalman_beamline_states_t>(arguments),
+                    begin<dev_atomics_velo_t>(arguments),
+                    begin<dev_velo_track_hit_number_t>(arguments),
+                    begin<dev_seeds_t>(arguments),
+                    begin<dev_number_seeds_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_number_of_seeds,
-          offset<dev_number_seeds_t>(arguments),
+          begin<dev_number_seeds_t>(arguments),
           size<dev_number_seeds_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

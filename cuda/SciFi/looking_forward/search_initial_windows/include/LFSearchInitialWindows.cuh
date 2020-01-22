@@ -63,27 +63,27 @@ namespace lf_search_initial_windows {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_scifi_lf_initial_windows_t>(arguments),
+        begin<dev_scifi_lf_initial_windows_t>(arguments),
         0,
         size<dev_scifi_lf_initial_windows_t>(arguments),
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_scifi_hits_t>(arguments),
-                    offset<dev_scifi_hit_offsets_t>(arguments),
-                    offset<dev_offsets_all_velo_tracks_t>(arguments),
-                    offset<dev_offsets_velo_track_hit_number_t>(arguments),
-                    offset<dev_velo_states_t>(arguments),
-                    offset<dev_offsets_ut_tracks_t>(arguments),
-                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
-                    offset<dev_ut_x_t>(arguments),
-                    offset<dev_ut_tx_t>(arguments),
-                    offset<dev_ut_z_t>(arguments),
-                    offset<dev_ut_qop_t>(arguments),
-                    offset<dev_ut_track_velo_indices_t>(arguments),
-                    offset<dev_scifi_lf_initial_windows_t>(arguments),
-                    offset<dev_ut_states_t>(arguments),
-                    offset<dev_scifi_lf_process_track_t>(arguments)},
+        Parameters {begin<dev_scifi_hits_t>(arguments),
+                    begin<dev_scifi_hit_offsets_t>(arguments),
+                    begin<dev_offsets_all_velo_tracks_t>(arguments),
+                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
+                    begin<dev_velo_states_t>(arguments),
+                    begin<dev_offsets_ut_tracks_t>(arguments),
+                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
+                    begin<dev_ut_x_t>(arguments),
+                    begin<dev_ut_tx_t>(arguments),
+                    begin<dev_ut_z_t>(arguments),
+                    begin<dev_ut_qop_t>(arguments),
+                    begin<dev_ut_track_velo_indices_t>(arguments),
+                    begin<dev_scifi_lf_initial_windows_t>(arguments),
+                    begin<dev_ut_states_t>(arguments),
+                    begin<dev_scifi_lf_process_track_t>(arguments)},
         constants.dev_scifi_geometry,
         constants.dev_inv_clus_res,
         constants.dev_looking_forward_constants);

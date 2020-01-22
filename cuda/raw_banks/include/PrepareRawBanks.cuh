@@ -7,8 +7,8 @@
 namespace prepare_raw_banks {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_offsets_forward_tracks;
+    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_INPUT(dev_one_track_results_t, bool) dev_one_track_results;
     DEVICE_INPUT(dev_two_track_results_t, bool) dev_two_track_results;
     DEVICE_INPUT(dev_single_muon_results_t, bool) dev_single_muon_results;
@@ -47,27 +47,27 @@ namespace prepare_raw_banks {
       cudaEvent_t& cuda_generic_event) const
     {
       // Initialize number of events passing Hlt1.
-      cudaCheck(cudaMemsetAsync(offset<dev_number_of_passing_events_t>(arguments), 0, sizeof(uint), cuda_stream));
+      cudaCheck(cudaMemsetAsync(begin<dev_number_of_passing_events_t>(arguments), 0, sizeof(uint), cuda_stream));
 
       cudaCheck(
-        cudaMemsetAsync(offset<dev_dec_reports_t>(arguments), 0, size<dev_dec_reports_t>(arguments), cuda_stream));
+        cudaMemsetAsync(begin<dev_dec_reports_t>(arguments), 0, size<dev_dec_reports_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_atomics_scifi_t>(arguments),
-                    offset<dev_sv_atomics_t>(arguments),
-                    offset<dev_one_track_results_t>(arguments),
-                    offset<dev_two_track_results_t>(arguments),
-                    offset<dev_single_muon_results_t>(arguments),
-                    offset<dev_disp_dimuon_results_t>(arguments),
-                    offset<dev_high_mass_dimuon_results_t>(arguments),
-                    offset<dev_dec_reports_t>(arguments),
-                    offset<dev_number_of_passing_events_t>(arguments),
-                    offset<dev_passing_event_list_t>(arguments)});
+        Parameters {begin<dev_offsets_forward_tracks_t>(arguments),
+                    begin<dev_sv_offsets_t>(arguments),
+                    begin<dev_one_track_results_t>(arguments),
+                    begin<dev_two_track_results_t>(arguments),
+                    begin<dev_single_muon_results_t>(arguments),
+                    begin<dev_disp_dimuon_results_t>(arguments),
+                    begin<dev_high_mass_dimuon_results_t>(arguments),
+                    begin<dev_dec_reports_t>(arguments),
+                    begin<dev_number_of_passing_events_t>(arguments),
+                    begin<dev_passing_event_list_t>(arguments)});
 
       // Copy raw bank data.
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_dec_reports,
-        offset<dev_dec_reports_t>(arguments),
+        begin<dev_dec_reports_t>(arguments),
         size<dev_dec_reports_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
@@ -75,14 +75,14 @@ namespace prepare_raw_banks {
       // Copy list of passing events.
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_number_of_passing_events,
-        offset<dev_number_of_passing_events_t>(arguments),
+        begin<dev_number_of_passing_events_t>(arguments),
         size<dev_number_of_passing_events_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_passing_event_list,
-        offset<dev_passing_event_list_t>(arguments),
+        begin<dev_passing_event_list_t>(arguments),
         size<dev_passing_event_list_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));

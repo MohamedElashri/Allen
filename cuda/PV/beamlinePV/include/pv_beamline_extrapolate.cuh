@@ -46,11 +46,11 @@ namespace pv_beamline_extrapolate {
       cudaEvent_t& cuda_generic_event) const {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters{
-          offset<dev_velo_kalman_beamline_states_t>(arguments),
-          offset<dev_offsets_all_velo_tracks_t>(arguments),
-          offset<dev_offsets_velo_track_hit_number_t>(arguments),
-          offset<dev_pvtracks_t>(arguments),
-          offset<dev_pvtrack_z_t>(arguments)
+          begin<dev_velo_kalman_beamline_states_t>(arguments),
+          begin<dev_offsets_all_velo_tracks_t>(arguments),
+          begin<dev_offsets_velo_track_hit_number_t>(arguments),
+          begin<dev_pvtracks_t>(arguments),
+          begin<dev_pvtrack_z_t>(arguments)
         });
     }
   };

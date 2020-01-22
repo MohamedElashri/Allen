@@ -129,16 +129,16 @@ namespace velo_kalman_filter {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_offsets_all_velo_tracks_t>(arguments),
-                    offset<dev_offsets_velo_track_hit_number_t>(arguments),
-                    offset<dev_velo_track_hits_t>(arguments),
-                    offset<dev_velo_states_t>(arguments),
-                    offset<dev_velo_kalman_beamline_states_t>(arguments)});
+        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
+                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
+                    begin<dev_velo_track_hits_t>(arguments),
+                    begin<dev_velo_states_t>(arguments),
+                    begin<dev_velo_kalman_beamline_states_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_kalmanvelo_states,
-          offset<dev_velo_kalman_beamline_states_t>(arguments),
+          begin<dev_velo_kalman_beamline_states_t>(arguments),
           size<dev_velo_kalman_beamline_states_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

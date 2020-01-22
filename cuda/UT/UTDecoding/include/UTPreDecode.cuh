@@ -52,15 +52,15 @@ namespace ut_pre_decode {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(
-        cudaMemsetAsync(offset<dev_ut_hit_count_t>(arguments), 0, size<dev_ut_hit_count_t>(arguments), cuda_stream));
+        cudaMemsetAsync(begin<dev_ut_hit_count_t>(arguments), 0, size<dev_ut_hit_count_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_ut_raw_input_t>(arguments),
-                    offset<dev_ut_raw_input_offsets_t>(arguments),
-                    offset<dev_event_list_t>(arguments),
-                    offset<dev_ut_hit_offsets_t>(arguments),
-                    offset<dev_ut_hits_t>(arguments),
-                    offset<dev_ut_hit_count_t>(arguments)},
+        Parameters {begin<dev_ut_raw_input_t>(arguments),
+                    begin<dev_ut_raw_input_offsets_t>(arguments),
+                    begin<dev_event_list_t>(arguments),
+                    begin<dev_ut_hit_offsets_t>(arguments),
+                    begin<dev_ut_hits_t>(arguments),
+                    begin<dev_ut_hit_count_t>(arguments)},
         constants.dev_ut_boards.data(),
         constants.dev_ut_geometry.data(),
         constants.dev_ut_region_offsets.data(),

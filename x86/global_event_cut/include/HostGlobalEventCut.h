@@ -50,9 +50,9 @@ namespace host_global_event_cut {
       cudaEvent_t& cuda_generic_event) const
     {
       // Initialize host event list
-      offset<host_number_of_selected_events_t>(arguments)[0] = runtime_options.number_of_events;
+      begin<host_number_of_selected_events_t>(arguments)[0] = runtime_options.number_of_events;
       for (uint i = 0; i < runtime_options.number_of_events; ++i) {
-        offset<host_event_list_t>(arguments)[i] = i;
+        begin<host_event_list_t>(arguments)[i] = i;
       }
 
       function(
@@ -61,11 +61,11 @@ namespace host_global_event_cut {
         std::get<0>(runtime_options.host_scifi_events).begin(),
         std::get<1>(runtime_options.host_scifi_events).begin(),
         runtime_options.number_of_events,
-        Parameters {offset<host_event_list_t>(arguments), offset<host_number_of_selected_events_t>(arguments)});
+        Parameters {begin<host_event_list_t>(arguments), begin<host_number_of_selected_events_t>(arguments)});
 
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_event_list_t>(arguments),
-        offset<host_event_list_t>(arguments),
+        begin<dev_event_list_t>(arguments),
+        begin<host_event_list_t>(arguments),
         size<dev_event_list_t>(arguments),
         cudaMemcpyHostToDevice,
         cuda_stream));
@@ -73,7 +73,7 @@ namespace host_global_event_cut {
       // TODO: Remove
       host_buffers.host_number_of_selected_events[0] = value<host_number_of_selected_events_t>(arguments);
       for (uint i = 0; i < runtime_options.number_of_events; ++i) {
-        host_buffers.host_event_list[i] = offset<host_event_list_t>(arguments)[i];
+        host_buffers.host_event_list[i] = begin<host_event_list_t>(arguments)[i];
       }
     }
   };

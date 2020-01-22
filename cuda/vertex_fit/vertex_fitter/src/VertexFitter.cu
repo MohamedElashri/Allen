@@ -303,7 +303,7 @@ namespace VertexFit {
 
 } // namespace VertexFit
 
-__global__ void fit_secondary_vertices::fit_secondary_vertices(fit_secondary_vertices::Parameters parameters)
+__global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;

@@ -27,7 +27,7 @@ struct ArgumentManager {
   }
 
   template<typename T>
-  auto offset() const
+  auto begin() const
   {
     auto pointer = tuple_ref_by_inheritance<T>(arguments_tuple).offset;
     return reinterpret_cast<typename T::type*>(pointer);
@@ -74,7 +74,7 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
   ArgumentRefManager(TupleToReferences arguments) : m_arguments(arguments) {}
 
   template<typename T>
-  auto offset() const
+  auto begin() const
   {
     auto pointer = tuple_ref_by_inheritance<T&>(m_arguments).offset;
     return reinterpret_cast<typename T::type*>(pointer);
@@ -96,7 +96,7 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
   void print() const
   {
     std::vector<typename T::type> v(size<T>() / sizeof(typename T::type));
-    cudaCheck(cudaMemcpy(v.data(), offset<T>(), size<T>(), cudaMemcpyDeviceToHost));
+    cudaCheck(cudaMemcpy(v.data(), begin<T>(), size<T>(), cudaMemcpyDeviceToHost));
 
     // info_cout << T::name << ": ";
     for (const auto& i : v) {
@@ -118,13 +118,13 @@ void set_size(Args arguments, const size_t size) {
 }
 
 template<typename Arg, typename Args>
-auto offset(const Args& arguments) {
-  return Arg{arguments.template offset<Arg>()};
+auto begin(const Args& arguments) {
+  return Arg{arguments.template begin<Arg>()};
 }
 
 template<typename Arg, typename Args>
 auto value(const Args& arguments) {
-  return Arg{arguments.template offset<Arg>()}[0];
+  return Arg{arguments.template begin<Arg>()}[0];
 }
 
 template<typename Arg, typename Args>

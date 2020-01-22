@@ -41,9 +41,9 @@ namespace ut_find_permutation {
         dim3(value<host_number_of_selected_events_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
         block_dimension(),
         cuda_stream)(
-        Parameters {offset<dev_ut_hits_t>(arguments),
-                   offset<dev_ut_hit_offsets_t>(arguments),
-                   offset<dev_ut_hit_permutations_t>(arguments)},
+        Parameters {begin<dev_ut_hits_t>(arguments),
+                   begin<dev_ut_hit_offsets_t>(arguments),
+                   begin<dev_ut_hit_permutations_t>(arguments)},
         constants.dev_unique_x_sector_layer_offsets.data());
     }
   };

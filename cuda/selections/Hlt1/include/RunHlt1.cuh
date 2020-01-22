@@ -12,8 +12,8 @@ namespace run_hlt1 {
     HOST_INPUT(host_number_of_svs_t, uint);
     DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
     DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
-    DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_offsets_forward_tracks;
+    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_OUTPUT(dev_one_track_results_t, bool) dev_one_track_results;
     DEVICE_OUTPUT(dev_two_track_results_t, bool) dev_two_track_results;
     DEVICE_OUTPUT(dev_single_muon_results_t, bool) dev_single_muon_results;
@@ -52,51 +52,51 @@ namespace run_hlt1 {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_kf_tracks_t>(arguments),
-                    offset<dev_consolidated_svs_t>(arguments),
-                    offset<dev_atomics_scifi_t>(arguments),
-                    offset<dev_sv_atomics_t>(arguments),
-                    offset<dev_one_track_results_t>(arguments),
-                    offset<dev_two_track_results_t>(arguments),
-                    offset<dev_single_muon_results_t>(arguments),
-                    offset<dev_disp_dimuon_results_t>(arguments),
-                    offset<dev_high_mass_dimuon_results_t>(arguments),
-                    offset<dev_dimuon_soft_results_t>(arguments)});
+        Parameters {begin<dev_kf_tracks_t>(arguments),
+                    begin<dev_consolidated_svs_t>(arguments),
+                    begin<dev_offsets_forward_tracks_t>(arguments),
+                    begin<dev_sv_offsets_t>(arguments),
+                    begin<dev_one_track_results_t>(arguments),
+                    begin<dev_two_track_results_t>(arguments),
+                    begin<dev_single_muon_results_t>(arguments),
+                    begin<dev_disp_dimuon_results_t>(arguments),
+                    begin<dev_high_mass_dimuon_results_t>(arguments),
+                    begin<dev_dimuon_soft_results_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_one_track_decisions,
-          offset<dev_one_track_results_t>(arguments),
+          begin<dev_one_track_results_t>(arguments),
           size<dev_one_track_results_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_two_track_decisions,
-          offset<dev_two_track_results_t>(arguments),
+          begin<dev_two_track_results_t>(arguments),
           size<dev_two_track_results_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_single_muon_decisions,
-          offset<dev_single_muon_results_t>(arguments),
+          begin<dev_single_muon_results_t>(arguments),
           size<dev_single_muon_results_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_disp_dimuon_decisions,
-          offset<dev_disp_dimuon_results_t>(arguments),
+          begin<dev_disp_dimuon_results_t>(arguments),
           size<dev_disp_dimuon_results_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_high_mass_dimuon_decisions,
-          offset<dev_high_mass_dimuon_results_t>(arguments),
+          begin<dev_high_mass_dimuon_results_t>(arguments),
           size<dev_high_mass_dimuon_results_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_dimuon_soft_decisions,
-          offset<dev_dimuon_soft_results_t>(arguments),
+          begin<dev_dimuon_soft_results_t>(arguments),
           size<dev_dimuon_soft_results_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

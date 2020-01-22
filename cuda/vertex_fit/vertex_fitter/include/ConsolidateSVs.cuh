@@ -7,7 +7,7 @@ namespace consolidate_svs {
   struct Parameters {
     HOST_INPUT(host_number_of_svs_t, uint);
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_INPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
+    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_INPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
     DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
   };
@@ -20,7 +20,7 @@ namespace consolidate_svs {
     decltype(global_function(consolidate_svs)) function {consolidate_svs};
 
     void set_arguments_size(
-      ArgumentManager<T> arguments,
+      ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const
@@ -29,22 +29,22 @@ namespace consolidate_svs {
     }
 
     void operator()(
-      const ArgumentManager<T>& arguments,
+      const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event)
+      cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        offset<dev_sv_atomics_t>(arguments),
-        offset<dev_secondary_vertices_t>(arguments),
-        offset<dev_consolidated_svs_t>(arguments));
+        Parameters {begin<dev_sv_offsets_t>(arguments),
+                    begin<dev_secondary_vertices_t>(arguments),
+                    begin<dev_consolidated_svs_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_secondary_vertices,
-          offset<dev_consolidated_svs_t>(arguments),
+          begin<dev_consolidated_svs_t>(arguments),
           size<dev_consolidated_svs_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

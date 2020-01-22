@@ -55,13 +55,13 @@ namespace muon_catboost_features_extraction {
       function(
         dim3(value<host_number_of_selected_events_t>(arguments), Muon::Constants::n_stations),
         block_dimension(),
-        cuda_stream)(Parameters {offset<dev_atomics_scifi_t>(arguments),
-                                 offset<dev_scifi_track_hit_number_t>(arguments),
-                                 offset<dev_scifi_qop_t>(arguments),
-                                 offset<dev_scifi_states_t>(arguments),
-                                 offset<dev_scifi_track_ut_indices_t>(arguments),
-                                 offset<dev_muon_hits_t>(arguments),
-                                 offset<dev_muon_catboost_features_t>(arguments)});
+        cuda_stream)(Parameters {begin<dev_atomics_scifi_t>(arguments),
+                                 begin<dev_scifi_track_hit_number_t>(arguments),
+                                 begin<dev_scifi_qop_t>(arguments),
+                                 begin<dev_scifi_states_t>(arguments),
+                                 begin<dev_scifi_track_ut_indices_t>(arguments),
+                                 begin<dev_muon_hits_t>(arguments),
+                                 begin<dev_muon_catboost_features_t>(arguments)});
     }
   };
 } // namespace muon_catboost_features_extraction

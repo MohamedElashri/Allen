@@ -58,11 +58,11 @@ namespace scifi_pre_decode_v5 {
         dim3(value<host_number_of_selected_events_t>(arguments)),
         dim3(SciFi::SciFiRawBankParams::NbBanks),
         cuda_stream)(
-        Parameters {offset<dev_scifi_raw_input_t>(arguments),
-                    offset<dev_scifi_raw_input_offsets_t>(arguments),
-                    offset<dev_event_list_t>(arguments),
-                    offset<dev_scifi_hit_count_t>(arguments),
-                    offset<dev_scifi_hits_t>(arguments)},
+        Parameters {begin<dev_scifi_raw_input_t>(arguments),
+                    begin<dev_scifi_raw_input_offsets_t>(arguments),
+                    begin<dev_event_list_t>(arguments),
+                    begin<dev_scifi_hit_count_t>(arguments),
+                    begin<dev_scifi_hits_t>(arguments)},
         constants.dev_scifi_geometry);
     }
   };

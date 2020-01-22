@@ -46,12 +46,12 @@ namespace pv_beamline_calculate_denom {
       cudaEvent_t& cuda_generic_event) const {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters{
-          offset<dev_offsets_all_velo_tracks_t>(arguments),
-          offset<dev_offsets_velo_track_hit_number_t>(arguments),
-          offset<dev_pvtracks_t>(arguments),
-          offset<dev_pvtracks_denom_t>(arguments),
-          offset<dev_zpeaks_t>(arguments),
-          offset<dev_number_of_zpeaks_t>(arguments)});
+          begin<dev_offsets_all_velo_tracks_t>(arguments),
+          begin<dev_offsets_velo_track_hit_number_t>(arguments),
+          begin<dev_pvtracks_t>(arguments),
+          begin<dev_pvtracks_denom_t>(arguments),
+          begin<dev_zpeaks_t>(arguments),
+          begin<dev_number_of_zpeaks_t>(arguments)});
     }
   };
 }

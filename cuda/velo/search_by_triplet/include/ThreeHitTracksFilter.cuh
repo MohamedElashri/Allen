@@ -41,20 +41,20 @@ namespace velo_three_hit_tracks_filter {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_number_of_three_hit_tracks_output_t>(arguments),
+        begin<dev_number_of_three_hit_tracks_output_t>(arguments),
         0,
         size<dev_number_of_three_hit_tracks_output_t>(arguments),
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {
-          offset<dev_sorted_velo_cluster_container_t>(arguments),
-          offset<dev_offsets_estimated_input_size_t>(arguments),
-          offset<dev_three_hit_tracks_input_t>(arguments),
-          offset<dev_atomics_velo_t>(arguments),
-          offset<dev_hit_used_t>(arguments),
-          offset<dev_three_hit_tracks_output_t>(arguments),
-          offset<dev_number_of_three_hit_tracks_output_t>(arguments)
+          begin<dev_sorted_velo_cluster_container_t>(arguments),
+          begin<dev_offsets_estimated_input_size_t>(arguments),
+          begin<dev_three_hit_tracks_input_t>(arguments),
+          begin<dev_atomics_velo_t>(arguments),
+          begin<dev_hit_used_t>(arguments),
+          begin<dev_three_hit_tracks_output_t>(arguments),
+          begin<dev_number_of_three_hit_tracks_output_t>(arguments)
         });
     }
   };

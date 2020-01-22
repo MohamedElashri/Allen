@@ -57,24 +57,24 @@ namespace lf_triplet_keep_best {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_scifi_lf_total_number_of_found_triplets_t>(arguments),
+        begin<dev_scifi_lf_total_number_of_found_triplets_t>(arguments),
         0,
         size<dev_scifi_lf_total_number_of_found_triplets_t>(arguments),
         cuda_stream));
 
       cudaCheck(cudaMemsetAsync(
-        offset<dev_scifi_lf_atomics_t>(arguments), 0, size<dev_scifi_lf_atomics_t>(arguments), cuda_stream));
+        begin<dev_scifi_lf_atomics_t>(arguments), 0, size<dev_scifi_lf_atomics_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_offsets_ut_tracks_t>(arguments),
-                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
-                    offset<dev_scifi_lf_tracks_t>(arguments),
-                    offset<dev_scifi_lf_atomics_t>(arguments),
-                    offset<dev_scifi_lf_initial_windows_t>(arguments),
-                    offset<dev_scifi_lf_process_track_t>(arguments),
-                    offset<dev_scifi_lf_found_triplets_t>(arguments),
-                    offset<dev_scifi_lf_number_of_found_triplets_t>(arguments),
-                    offset<dev_scifi_lf_total_number_of_found_triplets_t>(arguments)},
+        Parameters {begin<dev_offsets_ut_tracks_t>(arguments),
+                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
+                    begin<dev_scifi_lf_tracks_t>(arguments),
+                    begin<dev_scifi_lf_atomics_t>(arguments),
+                    begin<dev_scifi_lf_initial_windows_t>(arguments),
+                    begin<dev_scifi_lf_process_track_t>(arguments),
+                    begin<dev_scifi_lf_found_triplets_t>(arguments),
+                    begin<dev_scifi_lf_number_of_found_triplets_t>(arguments),
+                    begin<dev_scifi_lf_total_number_of_found_triplets_t>(arguments)},
         constants.dev_looking_forward_constants);
     }
   };

@@ -55,9 +55,9 @@ namespace host_prefix_sum {
         cuda_stream,
         cuda_generic_event,
         Parameters{
-          offset<host_total_sum_holder_t>(arguments),
-          offset<dev_input_buffer_t>(arguments),
-          offset<dev_output_buffer_t>(arguments)
+          begin<host_total_sum_holder_t>(arguments),
+          begin<dev_input_buffer_t>(arguments),
+          begin<dev_output_buffer_t>(arguments)
         });
     }
   };

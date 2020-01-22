@@ -60,46 +60,46 @@ namespace muon_pre_decoding {
       Muon::MuonRawToHits muonRawToHits {constants.dev_muon_tables, constants.dev_muon_geometry};
 
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_muon_raw_to_hits_t>(arguments),
+        begin<dev_muon_raw_to_hits_t>(arguments),
         &muonRawToHits,
         sizeof(muonRawToHits),
         cudaMemcpyHostToDevice,
         cuda_stream));
 
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_muon_raw_t>(arguments),
+        begin<dev_muon_raw_t>(arguments),
         std::get<0>(runtime_options.host_muon_events).begin(),
         std::get<0>(runtime_options.host_muon_events).size_bytes(),
         cudaMemcpyHostToDevice,
         cuda_stream));
 
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_muon_raw_offsets_t>(arguments),
+        begin<dev_muon_raw_offsets_t>(arguments),
         std::get<1>(runtime_options.host_muon_events).begin(),
         std::get<1>(runtime_options.host_muon_events).size_bytes(),
         cudaMemcpyHostToDevice,
         cuda_stream));
 
       cudaCheck(cudaMemsetAsync(
-        offset<dev_storage_station_region_quarter_sizes_t>(arguments),
+        begin<dev_storage_station_region_quarter_sizes_t>(arguments),
         0,
         size<dev_storage_station_region_quarter_sizes_t>(arguments),
         cuda_stream));
 
       cudaCheck(
-        cudaMemsetAsync(offset<dev_atomics_muon_t>(arguments), 0, size<dev_atomics_muon_t>(arguments), cuda_stream));
+        cudaMemsetAsync(begin<dev_atomics_muon_t>(arguments), 0, size<dev_atomics_muon_t>(arguments), cuda_stream));
 
       function(
         value<host_number_of_selected_events_t>(arguments),
         Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-        cuda_stream)(Parameters {offset<dev_event_list_t>(arguments),
-                                 offset<dev_muon_raw_t>(arguments),
-                                 offset<dev_muon_raw_offsets_t>(arguments),
-                                 offset<dev_muon_raw_to_hits_t>(arguments),
-                                 offset<dev_storage_station_region_quarter_sizes_t>(arguments),
-                                 offset<dev_storage_tile_id_t>(arguments),
-                                 offset<dev_storage_tdc_value_t>(arguments),
-                                 offset<dev_atomics_muon_t>(arguments)});
+        cuda_stream)(Parameters {begin<dev_event_list_t>(arguments),
+                                 begin<dev_muon_raw_t>(arguments),
+                                 begin<dev_muon_raw_offsets_t>(arguments),
+                                 begin<dev_muon_raw_to_hits_t>(arguments),
+                                 begin<dev_storage_station_region_quarter_sizes_t>(arguments),
+                                 begin<dev_storage_tile_id_t>(arguments),
+                                 begin<dev_storage_tdc_value_t>(arguments),
+                                 begin<dev_atomics_muon_t>(arguments)});
     }
   };
 } // namespace muon_pre_decoding

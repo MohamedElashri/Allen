@@ -57,73 +57,73 @@ namespace ut_consolidate_tracks {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_ut_hits_t>(arguments),
-                    offset<dev_ut_hit_offsets_t>(arguments),
-                    offset<dev_ut_track_hits_t>(arguments),
-                    offset<dev_offsets_ut_tracks_t>(arguments),
-                    offset<dev_offsets_ut_track_hit_number_t>(arguments),
-                    offset<dev_ut_qop_t>(arguments),
-                    offset<dev_ut_x_t>(arguments),
-                    offset<dev_ut_tx_t>(arguments),
-                    offset<dev_ut_z_t>(arguments),
-                    offset<dev_ut_track_velo_indices_t>(arguments),
-                    offset<dev_ut_tracks_t>(arguments)},
+        Parameters {begin<dev_ut_hits_t>(arguments),
+                    begin<dev_ut_hit_offsets_t>(arguments),
+                    begin<dev_ut_track_hits_t>(arguments),
+                    begin<dev_offsets_ut_tracks_t>(arguments),
+                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
+                    begin<dev_ut_qop_t>(arguments),
+                    begin<dev_ut_x_t>(arguments),
+                    begin<dev_ut_tx_t>(arguments),
+                    begin<dev_ut_z_t>(arguments),
+                    begin<dev_ut_track_velo_indices_t>(arguments),
+                    begin<dev_ut_tracks_t>(arguments)},
         constants.dev_unique_x_sector_layer_offsets.data());
 
       if (runtime_options.do_check) {
         // Transmission device to host of UT consolidated tracks
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_atomics_ut,
-          offset<dev_offsets_ut_tracks_t>(arguments),
+          begin<dev_offsets_ut_tracks_t>(arguments),
           size<dev_offsets_ut_tracks_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_ut_track_hit_number,
-          offset<dev_offsets_ut_track_hit_number_t>(arguments),
+          begin<dev_offsets_ut_track_hit_number_t>(arguments),
           size<dev_offsets_ut_track_hit_number_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_ut_track_hits,
-          offset<dev_ut_track_hits_t>(arguments),
+          begin<dev_ut_track_hits_t>(arguments),
           size<dev_ut_track_hits_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_ut_qop,
-          offset<dev_ut_qop_t>(arguments),
+          begin<dev_ut_qop_t>(arguments),
           size<dev_ut_qop_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_ut_x,
-          offset<dev_ut_x_t>(arguments),
+          begin<dev_ut_x_t>(arguments),
           size<dev_ut_x_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_ut_tx,
-          offset<dev_ut_tx_t>(arguments),
+          begin<dev_ut_tx_t>(arguments),
           size<dev_ut_tx_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_ut_z,
-          offset<dev_ut_z_t>(arguments),
+          begin<dev_ut_z_t>(arguments),
           size<dev_ut_z_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_ut_track_velo_indices,
-          offset<dev_ut_track_velo_indices_t>(arguments),
+          begin<dev_ut_track_velo_indices_t>(arguments),
           size<dev_ut_track_velo_indices_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

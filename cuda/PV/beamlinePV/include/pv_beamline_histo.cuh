@@ -43,10 +43,10 @@ namespace pv_beamline_histo {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_offsets_all_velo_tracks_t>(arguments),
-                   offset<dev_offsets_velo_track_hit_number_t>(arguments),
-                   offset<dev_pvtracks_t>(arguments),
-                   offset<dev_zhisto_t>(arguments)},
+        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
+                   begin<dev_offsets_velo_track_hit_number_t>(arguments),
+                   begin<dev_pvtracks_t>(arguments),
+                   begin<dev_zhisto_t>(arguments)},
         constants.dev_beamline.data());
     }
   };

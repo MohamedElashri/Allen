@@ -5,7 +5,6 @@
  */
 __global__ void ut_copy_track_hit_number::ut_copy_track_hit_number(ut_copy_track_hit_number::Parameters parameters)
 {
-  const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
   const auto event_tracks = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
   const auto accumulated_tracks = parameters.dev_atomics_ut[event_number];

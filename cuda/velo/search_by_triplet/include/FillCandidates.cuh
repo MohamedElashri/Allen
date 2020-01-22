@@ -38,18 +38,18 @@ namespace velo_fill_candidates {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       cudaCheck(
-        cudaMemsetAsync(offset<dev_h0_candidates_t>(arguments), 0, size<dev_h0_candidates_t>(arguments), cuda_stream));
+        cudaMemsetAsync(begin<dev_h0_candidates_t>(arguments), 0, size<dev_h0_candidates_t>(arguments), cuda_stream));
       cudaCheck(
-        cudaMemsetAsync(offset<dev_h2_candidates_t>(arguments), 0, size<dev_h2_candidates_t>(arguments), cuda_stream));
+        cudaMemsetAsync(begin<dev_h2_candidates_t>(arguments), 0, size<dev_h2_candidates_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments), 48), block_dimension(), cuda_stream)(
         Parameters {
-          offset<dev_sorted_velo_cluster_container_t>(arguments),
-          offset<dev_offsets_estimated_input_size_t>(arguments),
-          offset<dev_module_cluster_num_t>(arguments),
-          offset<dev_hit_phi_t>(arguments),
-          offset<dev_h0_candidates_t>(arguments),
-          offset<dev_h2_candidates_t>(arguments)
+          begin<dev_sorted_velo_cluster_container_t>(arguments),
+          begin<dev_offsets_estimated_input_size_t>(arguments),
+          begin<dev_module_cluster_num_t>(arguments),
+          begin<dev_hit_phi_t>(arguments),
+          begin<dev_h0_candidates_t>(arguments),
+          begin<dev_h2_candidates_t>(arguments)
         });
     }
   };

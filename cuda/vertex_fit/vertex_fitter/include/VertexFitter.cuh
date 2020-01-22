@@ -12,7 +12,6 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace VertexFit {
-
   __device__ bool poca(
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB,
@@ -67,15 +66,11 @@ namespace VertexFit {
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB);
 
-} // namespace VertexFit
-
-namespace fit_secondary_vertices {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_number_of_svs_t, uint);
     DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_scifi_track_hit_number, uint) dev_scifi_track_hit_number;
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
@@ -112,26 +107,25 @@ namespace fit_secondary_vertices {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(
-        cudaMemsetAsync(offset<dev_sv_atomics_t>(arguments), 0, size<dev_sv_atomics_t>(arguments), cuda_stream));
+      cudaCheck(cudaMemsetAsync(begin<dev_sv_atomics_t>(arguments), 0, size<dev_sv_atomics_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_kf_tracks_t>(arguments),
-                    offset<dev_atomics_scifi_t>(arguments),
-                    offset<dev_scifi_track_hit_number_t>(arguments),
-                    offset<dev_scifi_qop_t>(arguments),
-                    offset<dev_scifi_states_t>(arguments),
-                    offset<dev_scifi_track_ut_indices_t>(arguments),
-                    offset<dev_multi_fit_vertices_t>(arguments),
-                    offset<dev_number_of_multi_fit_vertices_t>(arguments),
-                    offset<dev_kalman_pv_ipchi2_t>(arguments),
-                    offset<dev_sv_atomics_t>(arguments),
-                    offset<dev_secondary_vertices_t>(arguments)});
+        Parameters {begin<dev_kf_tracks_t>(arguments),
+                    begin<dev_offsets_forward_tracks_t>(arguments),
+                    begin<dev_offsets_scifi_track_hit_number>(arguments),
+                    begin<dev_scifi_qop_t>(arguments),
+                    begin<dev_scifi_states_t>(arguments),
+                    begin<dev_scifi_track_ut_indices_t>(arguments),
+                    begin<dev_multi_fit_vertices_t>(arguments),
+                    begin<dev_number_of_multi_fit_vertices_t>(arguments),
+                    begin<dev_kalman_pv_ipchi2_t>(arguments),
+                    begin<dev_sv_atomics_t>(arguments),
+                    begin<dev_secondary_vertices_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_sv_atomics,
-          offset<dev_sv_atomics_t>(arguments),
+          begin<dev_sv_atomics_t>(arguments),
           size<dev_sv_atomics_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
@@ -160,4 +154,4 @@ namespace fit_secondary_vertices {
                                       16.0f,
                                       "maximum IP chi2 to associate to PV"};
   };
-} // namespace fit_secondary_vertices
+} // namespace VertexFit

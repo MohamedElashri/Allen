@@ -45,12 +45,12 @@ namespace velo_pv_ip {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_velo_kalman_beamline_states_t>(arguments),
-                   offset<dev_atomics_velo_t>(arguments),
-                   offset<dev_velo_track_hit_number_t>(arguments),
-                   offset<dev_multi_fit_vertices_t>(arguments),
-                   offset<dev_number_of_multi_fit_vertices_t>(arguments),
-                   offset<dev_velo_pv_ip_t>(arguments)});
+        Parameters {begin<dev_velo_kalman_beamline_states_t>(arguments),
+                   begin<dev_atomics_velo_t>(arguments),
+                   begin<dev_velo_track_hit_number_t>(arguments),
+                   begin<dev_multi_fit_vertices_t>(arguments),
+                   begin<dev_number_of_multi_fit_vertices_t>(arguments),
+                   begin<dev_velo_pv_ip_t>(arguments)});
     }
   };
 } // namespace velo_pv_ip

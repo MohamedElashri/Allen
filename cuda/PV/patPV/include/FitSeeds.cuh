@@ -56,26 +56,26 @@ namespace fit_seeds {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_vertex_t>(arguments),
-                    offset<dev_number_vertex_t>(arguments),
-                    offset<dev_seeds_t>(arguments),
-                    offset<dev_number_seeds_t>(arguments),
-                    offset<dev_velo_kalman_beamline_states_t>(arguments),
-                    offset<dev_atomics_velo_t>(arguments),
-                    offset<dev_velo_track_hit_number_t>(arguments)});
+        Parameters {begin<dev_vertex_t>(arguments),
+                    begin<dev_number_vertex_t>(arguments),
+                    begin<dev_seeds_t>(arguments),
+                    begin<dev_number_seeds_t>(arguments),
+                    begin<dev_velo_kalman_beamline_states_t>(arguments),
+                    begin<dev_atomics_velo_t>(arguments),
+                    begin<dev_velo_track_hit_number_t>(arguments)});
 
       if (runtime_options.do_check) {
         // Retrieve result
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_reconstructed_pvs,
-          offset<dev_vertex_t>(arguments),
+          begin<dev_vertex_t>(arguments),
           size<dev_vertex_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_number_of_vertex,
-          offset<dev_number_vertex_t>(arguments),
+          begin<dev_number_vertex_t>(arguments),
           size<dev_number_vertex_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

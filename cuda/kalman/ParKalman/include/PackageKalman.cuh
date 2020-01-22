@@ -56,20 +56,20 @@ namespace package_kalman_tracks {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_atomics_velo_t>(arguments),
-                    offset<dev_velo_track_hit_number_t>(arguments),
-                    offset<dev_atomics_ut_t>(arguments),
-                    offset<dev_ut_track_hit_number_t>(arguments),
-                    offset<dev_ut_qop_t>(arguments),
-                    offset<dev_ut_track_velo_indices_t>(arguments),
-                    offset<dev_atomics_scifi_t>(arguments),
-                    offset<dev_scifi_track_hit_number_t>(arguments),
-                    offset<dev_scifi_qop_t>(arguments),
-                    offset<dev_scifi_states_t>(arguments),
-                    offset<dev_scifi_track_ut_indices_t>(arguments),
-                    offset<dev_velo_kalman_beamline_states_t>(arguments),
-                    offset<dev_is_muon_t>(arguments),
-                    offset<dev_kf_tracks_t>(arguments)});
+        Parameters {begin<dev_atomics_velo_t>(arguments),
+                    begin<dev_velo_track_hit_number_t>(arguments),
+                    begin<dev_atomics_ut_t>(arguments),
+                    begin<dev_ut_track_hit_number_t>(arguments),
+                    begin<dev_ut_qop_t>(arguments),
+                    begin<dev_ut_track_velo_indices_t>(arguments),
+                    begin<dev_atomics_scifi_t>(arguments),
+                    begin<dev_scifi_track_hit_number_t>(arguments),
+                    begin<dev_scifi_qop_t>(arguments),
+                    begin<dev_scifi_states_t>(arguments),
+                    begin<dev_scifi_track_ut_indices_t>(arguments),
+                    begin<dev_velo_kalman_beamline_states_t>(arguments),
+                    begin<dev_is_muon_t>(arguments),
+                    begin<dev_kf_tracks_t>(arguments)});
     }
   };
 } // namespace package_kalman_tracks

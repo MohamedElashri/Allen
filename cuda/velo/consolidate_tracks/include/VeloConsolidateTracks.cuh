@@ -59,41 +59,41 @@ namespace velo_consolidate_tracks {
       cudaEvent_t& cuda_generic_event) const {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters {
-          offset<dev_offsets_all_velo_tracks_t>(arguments),
-          offset<dev_tracks_t>(arguments),
-          offset<dev_offsets_velo_track_hit_number_t>(arguments),
-          offset<dev_sorted_velo_cluster_container_t>(arguments),
-          offset<dev_offsets_estimated_input_size_t>(arguments),
-          offset<dev_velo_states_t>(arguments),
-          offset<dev_three_hit_tracks_output_t>(arguments),
-          offset<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments),
-          offset<dev_velo_track_hits_t>(arguments),
+          begin<dev_offsets_all_velo_tracks_t>(arguments),
+          begin<dev_tracks_t>(arguments),
+          begin<dev_offsets_velo_track_hit_number_t>(arguments),
+          begin<dev_sorted_velo_cluster_container_t>(arguments),
+          begin<dev_offsets_estimated_input_size_t>(arguments),
+          begin<dev_velo_states_t>(arguments),
+          begin<dev_three_hit_tracks_output_t>(arguments),
+          begin<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments),
+          begin<dev_velo_track_hits_t>(arguments),
         });
 
       // Set all found tracks to accepted
       cudaCheck(cudaMemsetAsync(
-        offset<dev_accepted_velo_tracks_t>(arguments), 1, size<dev_accepted_velo_tracks_t>(arguments), cuda_stream));
+        begin<dev_accepted_velo_tracks_t>(arguments), 1, size<dev_accepted_velo_tracks_t>(arguments), cuda_stream));
 
       if (runtime_options.do_check) {
         // Transmission device to host
         // Velo tracks
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_atomics_velo,
-          offset<dev_offsets_all_velo_tracks_t>(arguments),
+          begin<dev_offsets_all_velo_tracks_t>(arguments),
           size<dev_offsets_all_velo_tracks_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_velo_track_hit_number,
-          offset<dev_offsets_velo_track_hit_number_t>(arguments),
+          begin<dev_offsets_velo_track_hit_number_t>(arguments),
           size<dev_offsets_velo_track_hit_number_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
 
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_velo_track_hits,
-          offset<dev_velo_track_hits_t>(arguments),
+          begin<dev_velo_track_hits_t>(arguments),
           size<dev_velo_track_hits_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));

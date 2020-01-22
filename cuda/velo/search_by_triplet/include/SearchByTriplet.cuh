@@ -66,27 +66,27 @@ namespace velo_search_by_triplet {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       cudaCheck(
-        cudaMemsetAsync(offset<dev_atomics_velo_t>(arguments), 0, size<dev_atomics_velo_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(offset<dev_hit_used_t>(arguments), 0, size<dev_hit_used_t>(arguments), cuda_stream));
+        cudaMemsetAsync(begin<dev_atomics_velo_t>(arguments), 0, size<dev_atomics_velo_t>(arguments), cuda_stream));
+      cudaCheck(cudaMemsetAsync(begin<dev_hit_used_t>(arguments), 0, size<dev_hit_used_t>(arguments), cuda_stream));
       cudaCheck(cudaMemsetAsync(
-        offset<dev_number_of_velo_tracks_t>(arguments), 0, size<dev_number_of_velo_tracks_t>(arguments), cuda_stream));
+        begin<dev_number_of_velo_tracks_t>(arguments), 0, size<dev_number_of_velo_tracks_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters{
-          offset<dev_sorted_velo_cluster_container_t>(arguments),
-          offset<dev_offsets_estimated_input_size_t>(arguments),
-          offset<dev_module_cluster_num_t>(arguments),
-          offset<dev_h0_candidates_t>(arguments),
-          offset<dev_h2_candidates_t>(arguments),
-          offset<dev_hit_phi_t>(arguments),
-          offset<dev_tracks_t>(arguments),
-          offset<dev_tracklets_t>(arguments),
-          offset<dev_tracks_to_follow_t>(arguments),
-          offset<dev_three_hit_tracks_t>(arguments),
-          offset<dev_hit_used_t>(arguments),
-          offset<dev_atomics_velo_t>(arguments),
-          offset<dev_rel_indices_t>(arguments),
-          offset<dev_number_of_velo_tracks_t>(arguments)
+          begin<dev_sorted_velo_cluster_container_t>(arguments),
+          begin<dev_offsets_estimated_input_size_t>(arguments),
+          begin<dev_module_cluster_num_t>(arguments),
+          begin<dev_h0_candidates_t>(arguments),
+          begin<dev_h2_candidates_t>(arguments),
+          begin<dev_hit_phi_t>(arguments),
+          begin<dev_tracks_t>(arguments),
+          begin<dev_tracklets_t>(arguments),
+          begin<dev_tracks_to_follow_t>(arguments),
+          begin<dev_three_hit_tracks_t>(arguments),
+          begin<dev_hit_used_t>(arguments),
+          begin<dev_atomics_velo_t>(arguments),
+          begin<dev_rel_indices_t>(arguments),
+          begin<dev_number_of_velo_tracks_t>(arguments)
         },
         constants.dev_velo_geometry);
     }

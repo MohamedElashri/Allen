@@ -51,31 +51,31 @@ namespace velo_estimate_input_size {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_velo_raw_input_t>(arguments),
+        begin<dev_velo_raw_input_t>(arguments),
         std::get<0>(runtime_options.host_velo_events).begin(),
         std::get<0>(runtime_options.host_velo_events).size_bytes(),
         cudaMemcpyHostToDevice,
         cuda_stream));
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_velo_raw_input_offsets_t>(arguments),
+        begin<dev_velo_raw_input_offsets_t>(arguments),
         std::get<1>(runtime_options.host_velo_events).begin(),
         std::get<1>(runtime_options.host_velo_events).size_bytes(),
         cudaMemcpyHostToDevice,
         cuda_stream));
 
       cudaCheck(cudaMemsetAsync(
-        offset<dev_estimated_input_size_t>(arguments), 0, size<dev_estimated_input_size_t>(arguments), cuda_stream));
+        begin<dev_estimated_input_size_t>(arguments), 0, size<dev_estimated_input_size_t>(arguments), cuda_stream));
       cudaCheck(cudaMemsetAsync(
-        offset<dev_module_candidate_num_t>(arguments), 0, size<dev_module_candidate_num_t>(arguments), cuda_stream));
+        begin<dev_module_candidate_num_t>(arguments), 0, size<dev_module_candidate_num_t>(arguments), cuda_stream));
 
       // Invoke kernel
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_event_list_t>(arguments),
-                    offset<dev_velo_raw_input_t>(arguments),
-                    offset<dev_velo_raw_input_offsets_t>(arguments),
-                    offset<dev_estimated_input_size_t>(arguments),
-                    offset<dev_module_candidate_num_t>(arguments),
-                    offset<dev_cluster_candidates_t>(arguments)},
+        Parameters {begin<dev_event_list_t>(arguments),
+                    begin<dev_velo_raw_input_t>(arguments),
+                    begin<dev_velo_raw_input_offsets_t>(arguments),
+                    begin<dev_estimated_input_size_t>(arguments),
+                    begin<dev_module_candidate_num_t>(arguments),
+                    begin<dev_cluster_candidates_t>(arguments)},
         constants.dev_velo_candidate_ks.data());
     }
   };

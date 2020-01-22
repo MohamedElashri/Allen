@@ -32,13 +32,13 @@ namespace host_init_event_list {
       cudaEvent_t& cuda_generic_event) const
     {
       // Initialize buffers
-      offset<host_number_of_selected_events_t>(arguments)[0] = runtime_options.number_of_events;
+      begin<host_number_of_selected_events_t>(arguments)[0] = runtime_options.number_of_events;
       for (uint i = 0; i < runtime_options.number_of_events; ++i) {
-        offset<host_event_list_t>(arguments)[i] = i;
+        begin<host_event_list_t>(arguments)[i] = i;
       }
 
       cudaCheck(cudaMemcpyAsync(
-        offset<dev_event_list_t>(arguments),
+        begin<dev_event_list_t>(arguments),
         host_buffers.host_event_list,
         runtime_options.number_of_events * sizeof(uint),
         cudaMemcpyHostToDevice,

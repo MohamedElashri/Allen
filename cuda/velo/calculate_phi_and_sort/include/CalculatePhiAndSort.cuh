@@ -59,26 +59,26 @@ namespace velo_calculate_phi_and_sort {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_hit_permutation_t>(arguments),
+        begin<dev_hit_permutation_t>(arguments),
         0,
         size<dev_hit_permutation_t>(arguments),
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
         Parameters{
-          offset<dev_offsets_estimated_input_size_t>(arguments),
-          offset<dev_module_cluster_num_t>(arguments),
-          offset<dev_velo_cluster_container_t>(arguments),
-          offset<dev_sorted_velo_cluster_container_t>(arguments),
-          offset<dev_hit_permutation_t>(arguments),
-          offset<dev_hit_phi_t>(arguments)
+          begin<dev_offsets_estimated_input_size_t>(arguments),
+          begin<dev_module_cluster_num_t>(arguments),
+          begin<dev_velo_cluster_container_t>(arguments),
+          begin<dev_sorted_velo_cluster_container_t>(arguments),
+          begin<dev_hit_permutation_t>(arguments),
+          begin<dev_hit_phi_t>(arguments)
         });
 
       // Prints the x values
       // std::vector<uint> a (size<dev_velo_cluster_container_t>(arguments) / sizeof(uint));
       // cudaCheck(cudaMemcpy(
       //   a.data(),
-      //   offset<dev_velo_cluster_container_t>(arguments),
+      //   begin<dev_velo_cluster_container_t>(arguments),
       //   size<dev_velo_cluster_container_t>(arguments),
       //   cudaMemcpyDeviceToHost));
       // const auto velo_cluster_container = Velo::Clusters<const uint>{a.data(), value<host_total_number_of_velo_clusters_t>(arguments)};

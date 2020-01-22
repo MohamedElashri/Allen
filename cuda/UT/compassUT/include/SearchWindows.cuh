@@ -52,20 +52,20 @@ namespace ut_search_windows {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_ut_active_tracks_t>(arguments), 0, size<dev_ut_active_tracks_t>(arguments), cuda_stream));
+        begin<dev_ut_active_tracks_t>(arguments), 0, size<dev_ut_active_tracks_t>(arguments), cuda_stream));
 
       function(
         dim3(value<host_number_of_selected_events_t>(arguments)),
         dim3(UT::Constants::n_layers, UT::Constants::num_thr_searchwin),
         cuda_stream)(
-        Parameters {offset<dev_ut_hits_t>(arguments),
-                   offset<dev_ut_hit_offsets_t>(arguments),
-                   offset<dev_offsets_all_velo_tracks_t>(arguments),
-                   offset<dev_offsets_velo_track_hit_number_t>(arguments),
-                   offset<dev_velo_states_t>(arguments),
-                   offset<dev_ut_windows_layers_t>(arguments),
-                   offset<dev_ut_active_tracks_t>(arguments),
-                   offset<dev_accepted_velo_tracks_t>(arguments)},
+        Parameters {begin<dev_ut_hits_t>(arguments),
+                   begin<dev_ut_hit_offsets_t>(arguments),
+                   begin<dev_offsets_all_velo_tracks_t>(arguments),
+                   begin<dev_offsets_velo_track_hit_number_t>(arguments),
+                   begin<dev_velo_states_t>(arguments),
+                   begin<dev_ut_windows_layers_t>(arguments),
+                   begin<dev_ut_active_tracks_t>(arguments),
+                   begin<dev_accepted_velo_tracks_t>(arguments)},
         constants.dev_ut_magnet_tool,
         constants.dev_ut_dxDy.data(),
         constants.dev_unique_x_sector_layer_offsets.data(),

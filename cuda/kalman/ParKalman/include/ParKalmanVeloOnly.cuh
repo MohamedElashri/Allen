@@ -68,15 +68,15 @@ namespace kalman_velo_only {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
-    DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
-    DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
+    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
-    DEVICE_INPUT(dev_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
-    DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
-    DEVICE_INPUT(dev_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_scifi_track_hit_number, uint) dev_scifi_track_hit_number;
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
@@ -111,19 +111,19 @@ namespace kalman_velo_only {
       cudaEvent_t& cuda_generic_event) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_atomics_velo_t>(arguments),
-                    offset<dev_velo_track_hit_number_t>(arguments),
-                    offset<dev_velo_track_hits_t>(arguments),
-                    offset<dev_atomics_ut_t>(arguments),
-                    offset<dev_ut_track_hit_number_t>(arguments),
-                    offset<dev_ut_qop_t>(arguments),
-                    offset<dev_ut_track_velo_indices_t>(arguments),
-                    offset<dev_atomics_scifi_t>(arguments),
-                    offset<dev_scifi_track_hit_number_t>(arguments),
-                    offset<dev_scifi_qop_t>(arguments),
-                    offset<dev_scifi_states_t>(arguments),
-                    offset<dev_scifi_track_ut_indices_t>(arguments),
-                    offset<dev_kf_tracks_t>(arguments)},
+        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
+                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
+                    begin<dev_velo_track_hits_t>(arguments),
+                    begin<dev_offsets_ut_tracks_t>(arguments),
+                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
+                    begin<dev_ut_qop_t>(arguments),
+                    begin<dev_ut_track_velo_indices_t>(arguments),
+                    begin<dev_offsets_forward_tracks_t>(arguments),
+                    begin<dev_offsets_scifi_track_hit_number>(arguments),
+                    begin<dev_scifi_qop_t>(arguments),
+                    begin<dev_scifi_states_t>(arguments),
+                    begin<dev_scifi_track_ut_indices_t>(arguments),
+                    begin<dev_kf_tracks_t>(arguments)},
         constants.dev_scifi_geometry,
         constants.dev_kalman_params);
     }

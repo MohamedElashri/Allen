@@ -266,7 +266,7 @@ void SequenceVisitor::visit<saxpy_t>(
 
   // Copy memory from host to device
   cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_x>(),
+    arguments.begin<dev_x>(),
     host_buffers.host_x,
     saxpy_N * sizeof(float),
     cudaMemcpyHostToDevice,
@@ -274,7 +274,7 @@ void SequenceVisitor::visit<saxpy_t>(
   ));
 
   cudaCheck(cudaMemcpyAsync(
-    arguments.offset<dev_y>(),
+    arguments.begin<dev_y>(),
     host_buffers.host_y,
     saxpy_N * sizeof(float),
     cudaMemcpyHostToDevice,
@@ -286,8 +286,8 @@ void SequenceVisitor::visit<saxpy_t>(
   
   // Setup arguments for kernel call
   state.set_arguments(
-    arguments.offset<dev_x>(),
-    arguments.offset<dev_y>(),
+    arguments.begin<dev_x>(),
+    arguments.begin<dev_y>(),
     saxpy_N,
     2.0f
   );
@@ -298,7 +298,7 @@ void SequenceVisitor::visit<saxpy_t>(
   // Retrieve result
   cudaCheck(cudaMemcpyAsync(
     host_buffers.host_y,
-    arguments.offset<dev_y>(),
+    arguments.begin<dev_y>(),
     arguments.size<dev_y>(),
     cudaMemcpyDeviceToHost,
     cuda_stream

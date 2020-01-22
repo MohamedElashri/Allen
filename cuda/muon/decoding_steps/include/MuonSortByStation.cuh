@@ -44,17 +44,17 @@ namespace muon_sort_by_station {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_permutation_station_t>(arguments), 0, size<dev_permutation_station_t>(arguments), cuda_stream));
+        begin<dev_permutation_station_t>(arguments), 0, size<dev_permutation_station_t>(arguments), cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_storage_tile_id_t>(arguments),
-                    offset<dev_storage_tdc_value_t>(arguments),
-                    offset<dev_atomics_muon_t>(arguments),
-                    offset<dev_permutation_station_t>(arguments),
-                    offset<dev_muon_hits_t>(arguments),
-                    offset<dev_station_ocurrences_offset_t>(arguments),
-                    offset<dev_muon_compact_hit_t>(arguments),
-                    offset<dev_muon_raw_to_hits_t>(arguments)});
+        Parameters {begin<dev_storage_tile_id_t>(arguments),
+                    begin<dev_storage_tdc_value_t>(arguments),
+                    begin<dev_atomics_muon_t>(arguments),
+                    begin<dev_permutation_station_t>(arguments),
+                    begin<dev_muon_hits_t>(arguments),
+                    begin<dev_station_ocurrences_offset_t>(arguments),
+                    begin<dev_muon_compact_hit_t>(arguments),
+                    begin<dev_muon_raw_to_hits_t>(arguments)});
     }
   };
 } // namespace muon_sort_by_station

@@ -53,19 +53,19 @@ namespace lf_quality_filter_x {
       cudaEvent_t& cuda_generic_event) const
     {
       cudaCheck(cudaMemsetAsync(
-        offset<dev_scifi_lf_x_filtered_atomics_t>(arguments),
+        begin<dev_scifi_lf_x_filtered_atomics_t>(arguments),
         0,
         size<dev_scifi_lf_x_filtered_atomics_t>(arguments),
         cuda_stream));
 
       function(dim3(value<host_number_of_selected_events_t>(arguments), 24), block_dimension(), cuda_stream)(
-        Parameters {offset<dev_atomics_ut_t>(arguments),
-                    offset<dev_scifi_lf_tracks_t>(arguments),
-                    offset<dev_scifi_lf_atomics_t>(arguments),
-                    offset<dev_scifi_lf_x_filtered_tracks_t>(arguments),
-                    offset<dev_scifi_lf_x_filtered_atomics_t>(arguments),
-                    offset<dev_scifi_lf_parametrization_t>(arguments),
-                    offset<dev_scifi_lf_parametrization_x_filter_t>(arguments)});
+        Parameters {begin<dev_atomics_ut_t>(arguments),
+                    begin<dev_scifi_lf_tracks_t>(arguments),
+                    begin<dev_scifi_lf_atomics_t>(arguments),
+                    begin<dev_scifi_lf_x_filtered_tracks_t>(arguments),
+                    begin<dev_scifi_lf_x_filtered_atomics_t>(arguments),
+                    begin<dev_scifi_lf_parametrization_t>(arguments),
+                    begin<dev_scifi_lf_parametrization_x_filter_t>(arguments)});
     }
   };
 } // namespace lf_quality_filter_x

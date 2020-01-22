@@ -6,7 +6,6 @@
 __global__ void scifi_copy_track_hit_number::scifi_copy_track_hit_number(
   scifi_copy_track_hit_number::Parameters parameters)
 {
-  const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
   const auto ut_event_tracks_offset = parameters.dev_atomics_ut[event_number];
 
