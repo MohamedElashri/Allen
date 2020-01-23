@@ -8,8 +8,6 @@
 #include "DeviceAlgorithm.cuh"
 #include "VeloConsolidated.cuh"
 
-__device__ int find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int number_of_clusters);
-
 namespace pv_get_seeds {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
@@ -28,6 +26,9 @@ namespace pv_get_seeds {
     PROPERTY(ratio_sig2_high_mult_t, float) ratio_sig2_high_mult;
     PROPERTY(ratio_sig2_low_mult_t, float) ratio_sig2_low_mult;
   };
+
+  __device__ int
+  find_clusters(PatPV::vtxCluster* vclus, float* zclusters, int number_of_clusters, const Parameters& parameters);
 
   __global__ void pv_get_seeds(Parameters);
 

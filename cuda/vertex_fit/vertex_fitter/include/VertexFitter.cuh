@@ -64,7 +64,8 @@ namespace VertexFit {
     TrackMVAVertex& sv,
     const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB);
+    const ParKalmanFilter::FittedTrack& trackB,
+    const float max_assoc_ipchi2);
 
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);

@@ -2,11 +2,6 @@
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
 
-__constant__ float Configuration::fit_secondary_vertices_t::track_min_pt;
-__constant__ float Configuration::fit_secondary_vertices_t::track_min_ipchi2;
-__constant__ float Configuration::fit_secondary_vertices_t::track_muon_min_ipchi2;
-__constant__ float Configuration::fit_secondary_vertices_t::max_assoc_ipchi2;
-
 namespace VertexFit {
 
   //----------------------------------------------------------------------
@@ -234,11 +229,12 @@ namespace VertexFit {
     TrackMVAVertex& sv,
     const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB)
+    const ParKalmanFilter::FittedTrack& trackB,
+    const float max_assoc_ipchi2)
   {
     // Number of tracks with ip chi2 < 16.
-    sv.ntrksassoc = (trackA.ipChi2 < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2) +
-                    (trackB.ipChi2 < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2);
+    sv.ntrksassoc = (trackA.ipChi2 < max_assoc_ipchi2) +
+                    (trackB.ipChi2 < max_assoc_ipchi2);
 
     // Get PV-SV separation.
     const float dx = sv.x - pv.position.x;
@@ -349,8 +345,8 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     // Preselection on first track.
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     if (
-      trackA.pt() < Configuration::fit_secondary_vertices_t::track_min_pt ||
-      (trackA.ipChi2 < Configuration::fit_secondary_vertices_t::track_min_ipchi2 && !trackA.is_muon)) {
+      trackA.pt() < parameters.track_min_pt ||
+      (trackA.ipChi2 < parameters.track_min_ipchi2 && !trackA.is_muon)) {
       continue;
     }
 
@@ -360,8 +356,8 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
       // Preselection on second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
       if (
-        trackB.pt() < Configuration::fit_secondary_vertices_t::track_min_pt ||
-        (trackB.ipChi2 < Configuration::fit_secondary_vertices_t::track_min_ipchi2 && !trackB.is_muon)) {
+        trackB.pt() < parameters.track_min_pt ||
+        (trackB.ipChi2 < parameters.track_min_ipchi2 && !trackB.is_muon)) {
         continue;
       }
 
@@ -369,8 +365,8 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
       // which should be independent of PV reconstruction.
       if (
         pv_table.pv(i_track) != pv_table.pv(j_track) &&
-        pv_table.value(i_track) < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
-        pv_table.value(j_track) < Configuration::fit_secondary_vertices_t::max_assoc_ipchi2 &&
+        pv_table.value(i_track) < parameters.max_assoc_ipchi2 &&
+        pv_table.value(j_track) < parameters.max_assoc_ipchi2 &&
         (!trackA.is_muon || !trackB.is_muon)
           ) {
         continue;
@@ -388,7 +384,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
       if (n_pvs_event > 0) {
         int ipv = pv_table.value(i_track) < pv_table.value(j_track) ? pv_table.pv(i_track) : pv_table.pv(j_track);
         auto pv = vertices[ipv];
-        fill_extra_pv_info(event_secondary_vertices[vertex_idx], pv, trackA, trackB);
+        fill_extra_pv_info(event_secondary_vertices[vertex_idx], pv, trackA, trackB, parameters.max_assoc_ipchi2);
       }
       else {
         // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.

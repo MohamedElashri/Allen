@@ -2,26 +2,6 @@
 
 #include "CudaCommon.h"
 
-namespace Configuration {
-  namespace pv_get_seeds_t {
-    // configuration for seeding
-    // steering parameters for merging procedure
-    extern __constant__ float max_chi2_merge;
-    extern __constant__ float factor_to_increase_errors;
-
-    // try parameters from RecoUpgradeTracking.py
-    extern __constant__ int min_cluster_mult;
-    extern __constant__ int min_close_tracks_in_cluster;
-
-    // steering parameters for final cluster selection
-    // unit: mm
-    extern __constant__ float dz_close_tracks_in_cluster;
-    extern __constant__ int high_mult;
-    extern __constant__ float ratio_sig2_high_mult;
-    extern __constant__ float ratio_sig2_low_mult;
-  } // namespace pv_get_seeds_t
-} // namespace Configuration
-
 namespace PatPV {
 
   // maximum number of vertices in a event
