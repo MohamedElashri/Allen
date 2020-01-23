@@ -17,10 +17,10 @@ namespace ut_search_windows {
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_OUTPUT(dev_ut_active_tracks_t, uint) dev_ut_active_tracks;
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
-    PROPERTY(min_momentum_t, float, "min_momentum", 1.5f * Gaudi::Units::GeV, "min momentum cut [MeV/c]") min_momentum;
-    PROPERTY(min_pt_t, float, "min_pt", 0.3f * Gaudi::Units::GeV, "min pT cut [MeV/c]") min_pt;
-    PROPERTY(y_tol_t, float, "y_tol", 0.5f * Gaudi::Units::mm, "y tol [mm]") y_tol;
-    PROPERTY(y_tol_slope_t, float, "y_tol_slope", 0.08f, "y tol slope [mm]") y_tol_slope;
+    PROPERTY(min_momentum_t, float, "min_momentum", "min momentum cut [MeV/c]", 1.5f * Gaudi::Units::GeV) min_momentum;
+    PROPERTY(min_pt_t, float, "min_pt", "min pT cut [MeV/c]", 0.3f * Gaudi::Units::GeV) min_pt;
+    PROPERTY(y_tol_t, float, "y_tol", "y tol [mm]", 0.5f * Gaudi::Units::mm) y_tol;
+    PROPERTY(y_tol_slope_t, float, "y_tol_slope", "y tol slope [mm]", 0.08f) y_tol_slope;
   };
 
   __global__ void ut_search_windows(
@@ -72,10 +72,10 @@ namespace ut_search_windows {
                     begin<dev_ut_windows_layers_t>(arguments),
                     begin<dev_ut_active_tracks_t>(arguments),
                     begin<dev_accepted_velo_tracks_t>(arguments),
-                    get_property_value<min_momentum_t>(),
-                    get_property_value<min_pt_t>(),
-                    get_property_value<y_tol_t>(),
-                    get_property_value<y_tol_slope_t>()},
+                    property<min_momentum_t>(),
+                    property<min_pt_t>(),
+                    property<y_tol_t>(),
+                    property<y_tol_slope_t>()},
         constants.dev_ut_magnet_tool,
         constants.dev_ut_dxDy.data(),
         constants.dev_unique_x_sector_layer_offsets.data(),

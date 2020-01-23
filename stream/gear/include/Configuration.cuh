@@ -47,7 +47,7 @@ namespace Configuration {
 
   // General template
   template<typename T>
-  std::string to_string(T const& holder)
+  std::string to_string_impl(T const& holder)
   {
     // very basic implementation based on streaming
     std::stringstream s;
@@ -56,10 +56,13 @@ namespace Configuration {
   }
 
   template<>
-  std::string to_string<PropertyGridDimensions>(const PropertyGridDimensions& holder);
+  std::string to_string_impl<DeviceDimensions>(const DeviceDimensions& holder);
 
-  template<>
-  std::string to_string<PropertyBlockDimensions>(const PropertyBlockDimensions& holder);
+  template<typename T>
+  std::string to_string(T const& holder)
+  {
+    return to_string_impl<typename T::t>(holder);
+  }
 } // namespace Configuration
 
 /**
@@ -122,8 +125,9 @@ public:
     }
   }
 
+  // Gets the value of property with type T
   template<typename T>
-  T get_property_value() const
+  T property() const
   {
     T holder;
     auto prop = dynamic_cast<Property<T> const*>(get_prop(T::name));

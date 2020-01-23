@@ -19,6 +19,7 @@ namespace pv_beamline_extrapolate {
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_OUTPUT(dev_pvtracks_t, PVTrack) dev_pvtracks;
     DEVICE_OUTPUT(dev_pvtrack_z_t, float) dev_pvtrack_z;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void pv_beamline_extrapolate(Parameters);
@@ -44,7 +45,7 @@ namespace pv_beamline_extrapolate {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters{
           begin<dev_velo_kalman_beamline_states_t>(arguments),
           begin<dev_offsets_all_velo_tracks_t>(arguments),
@@ -53,5 +54,8 @@ namespace pv_beamline_extrapolate {
           begin<dev_pvtrack_z_t>(arguments)
         });
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace pv_beamline_extrapolate

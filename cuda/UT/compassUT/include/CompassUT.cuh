@@ -25,27 +25,27 @@ namespace compass_ut {
     DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
 
-    PROPERTY(sigma_velo_slope_t, float, "sigma_velo_slope", 0.010f * Gaudi::Units::mrad, "sigma velo slope [radians]")
+    PROPERTY(sigma_velo_slope_t, float, "sigma_velo_slope", "sigma velo slope [radians]", 0.010f * Gaudi::Units::mrad)
     sigma_velo_slope;
     PROPERTY(
       inv_sigma_velo_slope_t,
       float,
       "inv_sigma_velo_slope",
-      (100000.f * Gaudi::Units::rad),
-      "inv sigma velo slope")
+      "inv sigma velo slope",
+      100000.f * Gaudi::Units::rad)
     inv_sigma_velo_slope;
     PROPERTY(
       min_momentum_final_t,
       float,
       "min_momentum_final",
-      2.5f * Gaudi::Units::GeV,
-      "final min momentum cut [MeV/c]")
+      "final min momentum cut [MeV/c]",
+      2.5f * Gaudi::Units::GeV)
     min_momentum_final;
-    PROPERTY(min_pt_final_t, float, "min_pt_final", 0.425f * Gaudi::Units::GeV, "final min pT cut [MeV/c]")
+    PROPERTY(min_pt_final_t, float, "min_pt_final", "final min pT cut [MeV/c]", 0.425f * Gaudi::Units::GeV)
     min_pt_final;
-    PROPERTY(hit_tol_2_t, float, "hit_tol_2", 0.8f * Gaudi::Units::mm, "hit_tol_2 [mm]") hit_tol_2;
-    PROPERTY(delta_tx_2_t, float, "delta_tx_2", 0.018f, "delta_tx_2") delta_tx_2;
-    PROPERTY(max_considered_before_found_t, uint, "max_considered_before_found", 6u, "max_considered_before_found")
+    PROPERTY(hit_tol_2_t, float, "hit_tol_2", "hit_tol_2 [mm]", 0.8f * Gaudi::Units::mm) hit_tol_2;
+    PROPERTY(delta_tx_2_t, float, "delta_tx_2", "delta_tx_2", 0.018f) delta_tx_2;
+    PROPERTY(max_considered_before_found_t, uint, "max_considered_before_found", "max_considered_before_found", 6u)
     max_considered_before_found;
   };
 
@@ -145,13 +145,13 @@ namespace compass_ut {
                     begin<dev_atomics_ut_t>(arguments),
                     begin<dev_ut_windows_layers_t>(arguments),
                     begin<dev_accepted_velo_tracks_t>(arguments),
-                    get_property_value<sigma_velo_slope_t>(),
-                    get_property_value<inv_sigma_velo_slope_t>(),
-                    get_property_value<min_momentum_final_t>(),
-                    get_property_value<min_pt_final_t>(),
-                    get_property_value<hit_tol_2_t>(),
-                    get_property_value<delta_tx_2_t>(),
-                    get_property_value<max_considered_before_found_t>()},
+                    property<sigma_velo_slope_t>(),
+                    property<inv_sigma_velo_slope_t>(),
+                    property<min_momentum_final_t>(),
+                    property<min_pt_final_t>(),
+                    property<hit_tol_2_t>(),
+                    property<delta_tx_2_t>(),
+                    property<max_considered_before_found_t>()},
         constants.dev_ut_magnet_tool,
         constants.dev_magnet_polarity.data(),
         constants.dev_ut_dxDy.data(),

@@ -27,6 +27,7 @@ namespace lf_search_initial_windows {
     DEVICE_OUTPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
     DEVICE_OUTPUT(dev_ut_states_t, MiniState) dev_ut_states;
     DEVICE_OUTPUT(dev_scifi_lf_process_track_t, bool) dev_scifi_lf_process_track;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void lf_search_initial_windows(
@@ -68,7 +69,7 @@ namespace lf_search_initial_windows {
         size<dev_scifi_lf_initial_windows_t>(arguments),
         cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_scifi_hits_t>(arguments),
                     begin<dev_scifi_hit_offsets_t>(arguments),
                     begin<dev_offsets_all_velo_tracks_t>(arguments),
@@ -88,5 +89,8 @@ namespace lf_search_initial_windows {
         constants.dev_inv_clus_res,
         constants.dev_looking_forward_constants);
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace lf_search_initial_windows

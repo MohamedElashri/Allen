@@ -24,6 +24,7 @@ namespace kalman_pv_ipchi2 {
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
     DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
   };
 
   __global__ void kalman_pv_ipchi2(Parameters);
@@ -51,7 +52,7 @@ namespace kalman_pv_ipchi2 {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_kf_tracks_t>(arguments),
                     begin<dev_offsets_forward_tracks_t>(arguments),
                     begin<dev_offsets_scifi_track_hit_number>(arguments),
@@ -70,5 +71,8 @@ namespace kalman_pv_ipchi2 {
         cudaMemcpyDeviceToHost,
         cuda_stream));
     }
+    
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace kalman_pv_ipchi2

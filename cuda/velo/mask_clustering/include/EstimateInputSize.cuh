@@ -12,6 +12,7 @@ namespace velo_estimate_input_size {
     DEVICE_OUTPUT(dev_estimated_input_size_t, uint) dev_estimated_input_size;
     DEVICE_OUTPUT(dev_module_candidate_num_t, uint) dev_module_candidate_num;
     DEVICE_OUTPUT(dev_cluster_candidates_t, uint) dev_cluster_candidates;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
   };
 
   // Global function
@@ -69,7 +70,7 @@ namespace velo_estimate_input_size {
         begin<dev_module_candidate_num_t>(arguments), 0, size<dev_module_candidate_num_t>(arguments), cuda_stream));
 
       // Invoke kernel
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_event_list_t>(arguments),
                     begin<dev_velo_raw_input_t>(arguments),
                     begin<dev_velo_raw_input_offsets_t>(arguments),
@@ -78,5 +79,8 @@ namespace velo_estimate_input_size {
                     begin<dev_cluster_candidates_t>(arguments)},
         constants.dev_velo_candidate_ks.data());
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace velo_estimate_input_size

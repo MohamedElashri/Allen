@@ -17,6 +17,7 @@ namespace pv_beamline_cleanup {
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
     DEVICE_OUTPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_OUTPUT(dev_number_of_multi_final_vertices_t, uint) dev_number_of_multi_final_vertices;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
   };
 
   __global__ void pv_beamline_cleanup(Parameters);
@@ -51,7 +52,7 @@ namespace pv_beamline_cleanup {
         size<dev_number_of_multi_final_vertices_t>(arguments),
         cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_multi_fit_vertices_t>(arguments),
                     begin<dev_number_of_multi_fit_vertices_t>(arguments),
                     begin<dev_multi_final_vertices_t>(arguments),
@@ -74,5 +75,8 @@ namespace pv_beamline_cleanup {
           cuda_stream));
       }
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace pv_beamline_cleanup

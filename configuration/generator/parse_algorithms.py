@@ -19,7 +19,7 @@ def get_filenames(folder, extensions):
 algorithm_pattern = "struct (?P<name>[\\w_]+) : public (?P<scope>Host|Device)Algorithm"
 variable_pattern = "(?P<scope>HOST|DEVICE)_(?P<io>INPUT|OUTPUT)\\((?P<name>[\\w_]+), (?P<type>[^)]+)\\)" # ( [\\w_]+)?;
 namespace_pattern = "namespace (?P<name>[\\w_]+).*?public (?P<scope>Host|Device)Algorithm"
-property_pattern = "PROPERTY\\(.*?(?P<typename>[\\w_]+),.*?(?P<type>[^,]+),.*?(?P<name>[^,]+),.*?(?P<default_value>[^,]+),.*?(?P<description>[^)]+)\\)" # ( [\\w_]+)?;
+property_pattern = "PROPERTY\\(.*?(?P<typename>[\\w_]+),.*?(?P<type>[^,]+),.*?(?P<name>[^,]+),.*?(?P<default_value>({.*?}|[^{},]+)),.*?(?P<description>[^)]+)\\)" # ( [\\w_]+)?;
 
 algorithm_pattern_compiled = re.compile(algorithm_pattern)
 variable_pattern_compiled = re.compile(variable_pattern)
@@ -122,19 +122,6 @@ def write_algorithm_code(algorithm, i = 0):
   i -= 1
   s += prefix(i) + "self.__ordered_properties = OrderedDict(["
   i += 1
-  if algorithm["scope"] == "Device":
-    algorithm["properties"]["grid_dim"] = OrderedDict([
-      ("name", "\"grid_dim\""),
-      ("type", "std::array<uint, 3>"),
-      ("default_value", "{1, 1, 1}"),
-      ("description", "\"grid dimension\"")
-      ])
-    algorithm["properties"]["block_dim"] = OrderedDict([
-      ("name", "\"block_dim\""),
-      ("type", "std::array<uint, 3>"),
-      ("default_value", "{32, 1, 1}"),
-      ("description", "\"block dimension\"")
-      ])
   for prop_name, prop in iter(algorithm["properties"].items()):
     s += "\n" + prefix(i) + "(" + prop["name"].strip() + ", Property" \
       + "(\"" + prop["type"].strip() + "\", " \

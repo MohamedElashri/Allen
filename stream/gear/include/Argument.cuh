@@ -97,45 +97,39 @@ template<typename T>
 struct property_datatype {
   using t = T;
 
-  __host__ __device__ property_datatype(const T& value) : m_value(value) {}
-  __host__ __device__ property_datatype() {}
-  __host__ __device__ operator T() const { return this->m_value; }
-  __host__ __device__ T get() const { return this->m_value; }
+  __host__ __device__ constexpr property_datatype(const t& value) : m_value(value) {}
+  __host__ __device__ constexpr property_datatype() {}
+  __host__ __device__ operator t() const { return this->m_value; }
+  __host__ __device__ t get() const { return this->m_value; }
+  __host__ __device__ operator dim3() const;
 
 protected:
-  T m_value;
+  t m_value;
 };
 
-struct DeviceDimensions : property_datatype<std::array<uint, 3>> {
-  using property_datatype<std::array<uint, 3>>::property_datatype;
+template<>
+struct property_datatype<std::array<uint, 3>> {
+  using t = std::array<uint, 3>;
 
-  uint operator[](const uint index) const { return property_datatype<std::array<uint, 3>>::m_value[index]; }
+  __host__ __device__ constexpr property_datatype(const t& value) : m_value(value) {}
+  __host__ __device__ constexpr property_datatype() {}
+  __host__ __device__ operator t() const { return this->m_value; }
+  __host__ __device__ t get() const { return this->m_value; }
+  __host__ __device__ operator dim3() const { return {this->m_value[0], this->m_value[1], this->m_value[2]}; }
 
-  uint& operator[](const uint index) { return property_datatype<std::array<uint, 3>>::m_value[index]; }
-
-  size_t size() { return property_datatype<std::array<uint, 3>>::m_value.size(); }
+protected:
+  t m_value = {{1, 1, 1}};
 };
 
-struct PropertyBlockDimensions : public DeviceDimensions {
-  constexpr static auto name {"block_dim"};
-  constexpr static std::array<uint, 3> default_value {{32, 1, 1}};
-  constexpr static auto description {"block dimensions"};
-  using DeviceDimensions::DeviceDimensions;
-};
+using DeviceDimensions = std::array<uint, 3>;
 
-struct PropertyGridDimensions : public DeviceDimensions {
-  constexpr static auto name {"grid_dim"};
-  constexpr static std::array<uint, 3> default_value {{1, 1, 1}};
-  constexpr static auto description {"grid dimensions"};
-  using DeviceDimensions::DeviceDimensions;
-};
-
-#define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE, NAME, DEFAULT_VALUE, DESCRIPTION) \
-  struct ARGUMENT_NAME : property_datatype<ARGUMENT_TYPE> {                      \
-    constexpr static auto name {NAME};                                           \
-    constexpr static auto default_value {DEFAULT_VALUE};                         \
-    constexpr static auto description {DESCRIPTION};                             \
-    using property_datatype<ARGUMENT_TYPE>::property_datatype;                   \
+// TODO: Make the PROPERTY either explicit or less fragile
+#define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE, NAME, DESCRIPTION, ...) \
+  struct ARGUMENT_NAME : property_datatype<ARGUMENT_TYPE> {            \
+    constexpr static auto name {NAME};                                 \
+    constexpr static ARGUMENT_TYPE default_value {__VA_ARGS__};                 \
+    constexpr static auto description {DESCRIPTION};                   \
+    using property_datatype<ARGUMENT_TYPE>::property_datatype;         \
   }
 
 /**

@@ -18,6 +18,7 @@ namespace lf_quality_filter_length {
     DEVICE_OUTPUT(dev_scifi_lf_length_filtered_atomics_t, uint) dev_scifi_lf_length_filtered_atomics;
     DEVICE_INPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;
     DEVICE_OUTPUT(dev_scifi_lf_parametrization_length_filter_t, float) dev_scifi_lf_parametrization_length_filter;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void lf_quality_filter_length(Parameters);
@@ -59,7 +60,7 @@ namespace lf_quality_filter_length {
         size<dev_scifi_lf_length_filtered_atomics_t>(arguments),
         cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_ut_tracks_t>(arguments),
                     begin<dev_offsets_ut_track_hit_number_t>(arguments),
                     begin<dev_scifi_lf_tracks_t>(arguments),
@@ -69,5 +70,8 @@ namespace lf_quality_filter_length {
                     begin<dev_scifi_lf_parametrization_t>(arguments),
                     begin<dev_scifi_lf_parametrization_length_filter_t>(arguments)});
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace lf_quality_filter_length

@@ -22,6 +22,7 @@ namespace ut_consolidate_tracks {
     DEVICE_OUTPUT(dev_ut_z_t, float) dev_ut_z;
     DEVICE_OUTPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
     DEVICE_INPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void ut_consolidate_tracks(Parameters, const uint* dev_unique_x_sector_layer_offsets);
@@ -56,7 +57,7 @@ namespace ut_consolidate_tracks {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_ut_hits_t>(arguments),
                     begin<dev_ut_hit_offsets_t>(arguments),
                     begin<dev_ut_track_hits_t>(arguments),
@@ -129,5 +130,8 @@ namespace ut_consolidate_tracks {
           cuda_stream));
       }
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace ut_consolidate_tracks

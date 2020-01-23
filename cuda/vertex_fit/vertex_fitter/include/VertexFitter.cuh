@@ -80,12 +80,13 @@ namespace VertexFit {
     DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_OUTPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
     DEVICE_OUTPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
-    PROPERTY(track_min_pt_t, float, "track_min_pt", 200.0f, "minimum track pT") track_min_pt;
-    PROPERTY(track_min_ipchi2_t, float, "track_min_ipchi2", 9.0f, "minimum track IP chi2") track_min_ipchi2;
-    PROPERTY(track_muon_min_ipchi2_t, float, "track_muon_min_ipchi2", 4.0f, "minimum muon IP chi2")
+    PROPERTY(track_min_pt_t, float, "track_min_pt", "minimum track pT", 200.0f) track_min_pt;
+    PROPERTY(track_min_ipchi2_t, float, "track_min_ipchi2", "minimum track IP chi2", 9.0f) track_min_ipchi2;
+    PROPERTY(track_muon_min_ipchi2_t, float, "track_muon_min_ipchi2", "minimum muon IP chi2", 4.0f)
     track_muon_min_ipchi2;
-    PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", 16.0f, "maximum IP chi2 to associate to PV")
+    PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", 16.0f)
     max_assoc_ipchi2;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
   };
 
   __global__ void fit_secondary_vertices(Parameters);
@@ -116,7 +117,7 @@ namespace VertexFit {
     {
       cudaCheck(cudaMemsetAsync(begin<dev_sv_atomics_t>(arguments), 0, size<dev_sv_atomics_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_kf_tracks_t>(arguments),
                     begin<dev_offsets_forward_tracks_t>(arguments),
                     begin<dev_offsets_scifi_track_hit_number>(arguments),
@@ -128,10 +129,10 @@ namespace VertexFit {
                     begin<dev_kalman_pv_ipchi2_t>(arguments),
                     begin<dev_sv_atomics_t>(arguments),
                     begin<dev_secondary_vertices_t>(arguments),
-                    get_property_value<track_min_pt_t>(),
-                    get_property_value<track_min_ipchi2_t>(),
-                    get_property_value<track_muon_min_ipchi2_t>(),
-                    get_property_value<max_assoc_ipchi2_t>()});
+                    property<track_min_pt_t>(),
+                    property<track_min_ipchi2_t>(),
+                    property<track_muon_min_ipchi2_t>(),
+                    property<max_assoc_ipchi2_t>()});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
@@ -148,5 +149,6 @@ namespace VertexFit {
     Property<track_min_ipchi2_t> m_minipchi2 {this};
     Property<track_muon_min_ipchi2_t> m_minmuipchi2 {this};
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this};
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace VertexFit

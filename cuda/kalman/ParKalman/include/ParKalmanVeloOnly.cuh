@@ -81,6 +81,7 @@ namespace kalman_velo_only {
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
     DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void kalman_velo_only(
@@ -110,7 +111,7 @@ namespace kalman_velo_only {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
                     begin<dev_velo_track_hits_t>(arguments),
@@ -127,5 +128,8 @@ namespace kalman_velo_only {
         constants.dev_scifi_geometry,
         constants.dev_kalman_params);
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace kalman_velo_only

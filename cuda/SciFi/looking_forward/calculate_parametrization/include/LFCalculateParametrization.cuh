@@ -23,6 +23,7 @@ namespace lf_calculate_parametrization {
     DEVICE_INPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits) dev_scifi_lf_tracks;
     DEVICE_INPUT(dev_scifi_lf_atomics_t, uint) dev_scifi_lf_atomics;
     DEVICE_OUTPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {128, 1, 1});
   };
 
   __global__ void lf_calculate_parametrization(
@@ -54,7 +55,7 @@ namespace lf_calculate_parametrization {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_scifi_hits_t>(arguments),
                     begin<dev_scifi_hit_offsets_t>(arguments),
                     begin<dev_offsets_all_velo_tracks_t>(arguments),
@@ -69,5 +70,8 @@ namespace lf_calculate_parametrization {
                     begin<dev_scifi_lf_parametrization_t>(arguments)},
         constants.dev_looking_forward_constants);
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace lf_calculate_parametrization

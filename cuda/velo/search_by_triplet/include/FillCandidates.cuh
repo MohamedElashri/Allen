@@ -16,13 +16,14 @@ namespace velo_fill_candidates {
     // These parameters impact the found tracks
     // Maximum / minimum acceptable phi
     // These two parameters impacts enourmously the speed of track seeding
-    PROPERTY(phi_extrapolation_base_t, float, "phi_extrapolation_base", 0.03f, "phi extrapolation base")
+    PROPERTY(phi_extrapolation_base_t, float, "phi_extrapolation_base", "phi extrapolation base", 0.03f)
     phi_extrapolation_base;
 
     // A higher coefficient improves efficiency at the
     // cost of performance
-    PROPERTY(phi_extrapolation_coef_t, float, "phi_extrapolation_coef", 0.0002f, "phi extrapolation coefficient")
+    PROPERTY(phi_extrapolation_coef_t, float, "phi_extrapolation_coef", "phi extrapolation coefficient", 0.0002f)
     phi_extrapolation_coef;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {128, 1, 1});
   };
 
   __global__ void velo_fill_candidates(Parameters);
@@ -55,19 +56,20 @@ namespace velo_fill_candidates {
       cudaCheck(
         cudaMemsetAsync(begin<dev_h2_candidates_t>(arguments), 0, size<dev_h2_candidates_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments), 48), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments), 48), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_sorted_velo_cluster_container_t>(arguments),
                     begin<dev_offsets_estimated_input_size_t>(arguments),
                     begin<dev_module_cluster_num_t>(arguments),
                     begin<dev_hit_phi_t>(arguments),
                     begin<dev_h0_candidates_t>(arguments),
                     begin<dev_h2_candidates_t>(arguments),
-                    get_property_value<phi_extrapolation_base_t>(),
-                    get_property_value<phi_extrapolation_coef_t>()});
+                    property<phi_extrapolation_base_t>(),
+                    property<phi_extrapolation_coef_t>()});
     }
 
   private:
     Property<phi_extrapolation_base_t> m_ext_base {this};
     Property<phi_extrapolation_coef_t> m_ext_coef {this};
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace velo_fill_candidates

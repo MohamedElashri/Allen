@@ -30,23 +30,24 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_number_of_velo_tracks_t, uint) dev_number_of_velo_tracks;
 
     // Forward tolerance in phi
-    PROPERTY(forward_phi_tolerance_t, float, "forward_phi_tolerance", 0.052f, "tolerance") forward_phi_tolerance;
+    PROPERTY(forward_phi_tolerance_t, float, "forward_phi_tolerance", "tolerance of phi", 0.052f) forward_phi_tolerance;
 
     // Max scatter for forming triplets (seeding) and forwarding
-    PROPERTY(max_scatter_forwarding_t, float, "max_scatter_forwarding", 0.1f, "scatter forwarding")
+    PROPERTY(max_scatter_forwarding_t, float, "max_scatter_forwarding", "scatter forwarding", 0.1f)
     max_scatter_forwarding;
-    PROPERTY(max_scatter_seeding_t, float, "max_scatter_seeding", 0.1f, "scatter seeding") max_scatter_seeding;
+    PROPERTY(max_scatter_seeding_t, float, "max_scatter_seeding", "scatter seeding", 0.1f) max_scatter_seeding;
 
     // Maximum number of skipped modules allowed for a track
     // before storing it
-    PROPERTY(max_skipped_modules_t, uint, "max_skipped_modules", 1u, "skipped modules") max_skipped_modules;
+    PROPERTY(max_skipped_modules_t, uint, "max_skipped_modules", "skipped modules", 1u) max_skipped_modules;
 
     // Maximum number of tracks to follow at a time
-    PROPERTY(max_weak_tracks_t, uint, "max_weak_tracks", 500u, "max weak tracks") max_weak_tracks;
+    PROPERTY(max_weak_tracks_t, uint, "max_weak_tracks", "max weak tracks", 500u) max_weak_tracks;
 
     // Maximum number of tracks to follow at a time
-    PROPERTY(ttf_modulo_t, uint, "ttf_modulo", 2048u, "ttf modulo") ttf_modulo;
-    PROPERTY(ttf_modulo_mask_t, int, "ttf_modulo_mask", 0x7FF, "ttf modulo mask") ttf_modulo_mask;
+    PROPERTY(ttf_modulo_t, uint, "ttf_modulo", "ttf modulo", 2048u) ttf_modulo;
+    PROPERTY(ttf_modulo_mask_t, int, "ttf_modulo_mask", "ttf modulo mask", 0x7FF) ttf_modulo_mask;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
   };
 
   __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
@@ -65,11 +66,11 @@ namespace velo_search_by_triplet {
       set_size<dev_tracks_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
       set_size<dev_tracklets_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<ttf_modulo_t>());
+        arguments, value<host_number_of_selected_events_t>(arguments) * property<ttf_modulo_t>());
       set_size<dev_tracks_to_follow_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<ttf_modulo_t>());
+        arguments, value<host_number_of_selected_events_t>(arguments) * property<ttf_modulo_t>());
       set_size<dev_three_hit_tracks_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<max_weak_tracks_t>());
+        arguments, value<host_number_of_selected_events_t>(arguments) * property<max_weak_tracks_t>());
       set_size<dev_hit_used_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
       set_size<dev_atomics_velo_t>(arguments, value<host_number_of_selected_events_t>(arguments) * Velo::num_atomics);
       set_size<dev_number_of_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments));
@@ -91,7 +92,7 @@ namespace velo_search_by_triplet {
       cudaCheck(cudaMemsetAsync(
         begin<dev_number_of_velo_tracks_t>(arguments), 0, size<dev_number_of_velo_tracks_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_sorted_velo_cluster_container_t>(arguments),
                     begin<dev_offsets_estimated_input_size_t>(arguments),
                     begin<dev_module_cluster_num_t>(arguments),
@@ -106,13 +107,13 @@ namespace velo_search_by_triplet {
                     begin<dev_atomics_velo_t>(arguments),
                     begin<dev_rel_indices_t>(arguments),
                     begin<dev_number_of_velo_tracks_t>(arguments),
-                    get_property_value<forward_phi_tolerance_t>(),
-                    get_property_value<max_scatter_forwarding_t>(),
-                    get_property_value<max_scatter_seeding_t>(),
-                    get_property_value<max_skipped_modules_t>(),
-                    get_property_value<max_weak_tracks_t>(),
-                    get_property_value<ttf_modulo_t>(),
-                    get_property_value<ttf_modulo_mask_t>()},
+                    property<forward_phi_tolerance_t>(),
+                    property<max_scatter_forwarding_t>(),
+                    property<max_scatter_seeding_t>(),
+                    property<max_skipped_modules_t>(),
+                    property<max_weak_tracks_t>(),
+                    property<ttf_modulo_t>(),
+                    property<ttf_modulo_mask_t>()},
         constants.dev_velo_geometry);
     }
 
@@ -124,5 +125,6 @@ namespace velo_search_by_triplet {
     Property<max_weak_tracks_t> m_max_weak {this};
     Property<ttf_modulo_t> m_ttf_mod {this};
     Property<ttf_modulo_mask_t> m_ttf_mask {this};
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace velo_search_by_triplet

@@ -15,6 +15,7 @@ namespace scifi_copy_track_hit_number {
     DEVICE_INPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
     DEVICE_OUTPUT(dev_scifi_track_hit_number_t, uint) dev_scifi_track_hit_number;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {512, 1, 1});
   };
 
   __global__ void scifi_copy_track_hit_number(Parameters);
@@ -41,11 +42,14 @@ namespace scifi_copy_track_hit_number {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_ut_tracks_t>(arguments),
                     begin<dev_scifi_tracks_t>(arguments),
                     begin<dev_offsets_forward_tracks_t>(arguments),
                     begin<dev_scifi_track_hit_number_t>(arguments)});
     }
+    
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace scifi_copy_track_hit_number

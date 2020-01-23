@@ -16,10 +16,11 @@ namespace velo_three_hit_tracks_filter {
     DEVICE_OUTPUT(dev_number_of_three_hit_tracks_output_t, uint) dev_number_of_three_hit_tracks_output;
 
     // Max chi2
-    PROPERTY(max_chi2_t, float, "max_chi2", 20.0f, "chi2") max_chi2;
+    PROPERTY(max_chi2_t, float, "max_chi2", "chi2", 20.0f) max_chi2;
 
     // Maximum number of tracks to follow at a time
-    PROPERTY(max_weak_tracks_t, uint, "max_weak_tracks", 500u, "max weak tracks") max_weak_tracks;
+    PROPERTY(max_weak_tracks_t, uint, "max_weak_tracks", "max weak tracks", 500u) max_weak_tracks;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void velo_three_hit_tracks_filter(Parameters);
@@ -54,7 +55,7 @@ namespace velo_three_hit_tracks_filter {
         size<dev_number_of_three_hit_tracks_output_t>(arguments),
         cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_sorted_velo_cluster_container_t>(arguments),
                     begin<dev_offsets_estimated_input_size_t>(arguments),
                     begin<dev_three_hit_tracks_input_t>(arguments),
@@ -62,12 +63,13 @@ namespace velo_three_hit_tracks_filter {
                     begin<dev_hit_used_t>(arguments),
                     begin<dev_three_hit_tracks_output_t>(arguments),
                     begin<dev_number_of_three_hit_tracks_output_t>(arguments),
-                    get_property_value<max_chi2_t>(),
-                    get_property_value<max_weak_tracks_t>()});
+                    property<max_chi2_t>(),
+                    property<max_weak_tracks_t>()});
     }
 
   private:
     Property<max_chi2_t> m_chi2 {this};
     Property<max_weak_tracks_t> m_max_weak {this};
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace velo_three_hit_tracks_filter

@@ -17,6 +17,7 @@ namespace velo_pv_ip {
     DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
     DEVICE_OUTPUT(dev_velo_pv_ip_t, char) dev_velo_pv_ip;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void velo_pv_ip(Parameters);
@@ -44,7 +45,7 @@ namespace velo_pv_ip {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_velo_kalman_beamline_states_t>(arguments),
                    begin<dev_atomics_velo_t>(arguments),
                    begin<dev_velo_track_hit_number_t>(arguments),
@@ -52,5 +53,8 @@ namespace velo_pv_ip {
                    begin<dev_number_of_multi_fit_vertices_t>(arguments),
                    begin<dev_velo_pv_ip_t>(arguments)});
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace velo_pv_ip

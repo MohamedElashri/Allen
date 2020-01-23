@@ -25,11 +25,11 @@ uint Configuration::from_string<uint>(const std::string& s)
   return strtoul(s.c_str(), 0, 0);
 }
 
-// Specialization for std::array<int, 3>
+// Specialization for DeviceDimensions
 template<>
-std::array<uint, 3> Configuration::from_string<std::array<uint, 3>>(const std::string& string_value)
+DeviceDimensions Configuration::from_string<DeviceDimensions>(const std::string& string_value)
 {
-  std::array<uint, 3> dimensions {1, 1, 1};
+  DeviceDimensions dimensions {1, 1, 1};
   std::smatch matches;
   auto r = std::regex_match(string_value, matches, Detail::array_expr);
   if (!r) {
@@ -44,37 +44,17 @@ std::array<uint, 3> Configuration::from_string<std::array<uint, 3>>(const std::s
   for (auto i = digits_begin; i != digits_end; ++i) {
     dimensions[idx++] = atoi(i->str().c_str());
   }
-  return dimensions;
+  return DeviceDimensions {dimensions};
 }
 
 template<>
-std::string Configuration::to_string<PropertyGridDimensions>(const PropertyGridDimensions& holder)
+std::string Configuration::to_string_impl<DeviceDimensions>(const DeviceDimensions& holder)
 {
   // very basic implementation based on streaming
   std::stringstream s;
   s << "[";
   bool first = true;
-  for (auto v : holder.get()) {
-    if (first) {
-      s << v;
-      first = false;
-    }
-    else {
-      s << ", " << v;
-    }
-  }
-  s << "]";
-  return s.str();
-}
-
-template<>
-std::string Configuration::to_string<PropertyBlockDimensions>(const PropertyBlockDimensions& holder)
-{
-  // very basic implementation based on streaming
-  std::stringstream s;
-  s << "[";
-  bool first = true;
-  for (auto v : holder.get()) {
+  for (auto v : holder) {
     if (first) {
       s << v;
       first = false;

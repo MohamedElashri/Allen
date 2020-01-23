@@ -16,6 +16,7 @@ namespace muon_sort_by_station {
     DEVICE_INPUT(dev_station_ocurrences_offset_t, uint) dev_station_ocurrences_offset;
     DEVICE_INPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
     DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void muon_sort_by_station(Parameters);
@@ -46,7 +47,7 @@ namespace muon_sort_by_station {
       cudaCheck(cudaMemsetAsync(
         begin<dev_permutation_station_t>(arguments), 0, size<dev_permutation_station_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_storage_tile_id_t>(arguments),
                     begin<dev_storage_tdc_value_t>(arguments),
                     begin<dev_atomics_muon_t>(arguments),
@@ -56,5 +57,8 @@ namespace muon_sort_by_station {
                     begin<dev_muon_compact_hit_t>(arguments),
                     begin<dev_muon_raw_to_hits_t>(arguments)});
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace muon_sort_by_station

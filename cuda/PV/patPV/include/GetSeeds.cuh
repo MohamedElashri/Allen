@@ -17,17 +17,17 @@ namespace pv_get_seeds {
     DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_OUTPUT(dev_seeds_t, PatPV::XYZPoint) dev_seeds;
     DEVICE_OUTPUT(dev_number_seeds_t, uint) dev_number_seeds;
-    PROPERTY(max_chi2_merge_t, float, "max_chi2_merge", 25.f, "max chi2 merge") max_chi2_merge;
-    PROPERTY(factor_to_increase_errors_t, float, "factor_to_increase_errors", 15.f, "factor to increase errors")
+    PROPERTY(max_chi2_merge_t, float, "max_chi2_merge", "max chi2 merge", 25.f) max_chi2_merge;
+    PROPERTY(factor_to_increase_errors_t, float, "factor_to_increase_errors", "factor to increase errors", 15.f)
     factor_to_increase_errors;
-    PROPERTY(min_cluster_mult_t, int, "min_cluster_mult", 4, "min cluster mult") min_cluster_mult;
-    PROPERTY(min_close_tracks_in_cluster_t, int, "min_close_tracks_in_cluster", 3, "min close tracks in cluster")
+    PROPERTY(min_cluster_mult_t, int, "min_cluster_mult", "min cluster mult", 4) min_cluster_mult;
+    PROPERTY(min_close_tracks_in_cluster_t, int, "min_close_tracks_in_cluster", "min close tracks in cluster", 3)
     min_close_tracks_in_cluster;
-    PROPERTY(dz_close_tracks_in_cluster_t, float, "dz_close_tracks_in_cluster", 5.f, "dz close tracks in cluster [mm]")
+    PROPERTY(dz_close_tracks_in_cluster_t, float, "dz_close_tracks_in_cluster", "dz close tracks in cluster [mm]", 5.f)
     dz_close_tracks_in_cluster;
-    PROPERTY(high_mult_t, int, "high_mult", 10, "high mult") high_mult;
-    PROPERTY(ratio_sig2_high_mult_t, float, "ratio_sig2_high_mult", 1.0f, "ratio sig2 high mult") ratio_sig2_high_mult;
-    PROPERTY(ratio_sig2_low_mult_t, float, "ratio_sig2_low_mult", 0.9f, "ratio sig2 low mult") ratio_sig2_low_mult;
+    PROPERTY(high_mult_t, int, "high_mult", "high mult", 10) high_mult;
+    PROPERTY(ratio_sig2_high_mult_t, float, "ratio_sig2_high_mult", "ratio sig2 high mult", 1.0f) ratio_sig2_high_mult;
+    PROPERTY(ratio_sig2_low_mult_t, float, "ratio_sig2_low_mult", "ratio sig2 low mult", 0.9f) ratio_sig2_low_mult;
   };
 
   __device__ int
@@ -64,14 +64,14 @@ namespace pv_get_seeds {
                     begin<dev_velo_track_hit_number_t>(arguments),
                     begin<dev_seeds_t>(arguments),
                     begin<dev_number_seeds_t>(arguments),
-                    get_property_value<max_chi2_merge_t>(),
-                    get_property_value<factor_to_increase_errors_t>(),
-                    get_property_value<min_cluster_mult_t>(),
-                    get_property_value<min_close_tracks_in_cluster_t>(),
-                    get_property_value<dz_close_tracks_in_cluster_t>(),
-                    get_property_value<high_mult_t>(),
-                    get_property_value<ratio_sig2_high_mult_t>(),
-                    get_property_value<ratio_sig2_low_mult_t>()});
+                    property<max_chi2_merge_t>(),
+                    property<factor_to_increase_errors_t>(),
+                    property<min_cluster_mult_t>(),
+                    property<min_close_tracks_in_cluster_t>(),
+                    property<dz_close_tracks_in_cluster_t>(),
+                    property<high_mult_t>(),
+                    property<ratio_sig2_high_mult_t>(),
+                    property<ratio_sig2_low_mult_t>()});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(

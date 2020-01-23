@@ -20,6 +20,7 @@ namespace run_hlt1 {
     DEVICE_OUTPUT(dev_disp_dimuon_results_t, bool) dev_disp_dimuon_results;
     DEVICE_OUTPUT(dev_high_mass_dimuon_results_t, bool) dev_high_mass_dimuon_results;
     DEVICE_OUTPUT(dev_dimuon_soft_results_t, bool) dev_dimuon_soft_results;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void run_hlt1(Parameters);
@@ -51,7 +52,7 @@ namespace run_hlt1 {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_kf_tracks_t>(arguments),
                     begin<dev_consolidated_svs_t>(arguments),
                     begin<dev_offsets_forward_tracks_t>(arguments),
@@ -102,19 +103,8 @@ namespace run_hlt1 {
           cuda_stream));
       }
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace run_hlt1
-
-// template<typename T>
-// __device__ LineHandler<T>::LineHandler(bool (*line)(const T& candidate))
-// {
-//   m_line = line;
-// }
-
-// template<typename T>
-// __device__ void LineHandler<T>::operator()(const T* candidates, const int n_candidates, bool* results)
-// {
-//   for (int i_cand = threadIdx.x; i_cand < n_candidates; i_cand += blockDim.x) {
-//     results[i_cand] = m_line(candidates[i_cand]);
-//   }
-// }

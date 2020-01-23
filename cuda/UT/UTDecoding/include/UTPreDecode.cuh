@@ -14,6 +14,7 @@ namespace ut_pre_decode {
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
     DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_OUTPUT(dev_ut_hit_count_t, uint) dev_ut_hit_count;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 4, 1});
   };
 
   __global__ void ut_pre_decode(
@@ -54,7 +55,7 @@ namespace ut_pre_decode {
       cudaCheck(
         cudaMemsetAsync(begin<dev_ut_hit_count_t>(arguments), 0, size<dev_ut_hit_count_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_ut_raw_input_t>(arguments),
                     begin<dev_ut_raw_input_offsets_t>(arguments),
                     begin<dev_event_list_t>(arguments),
@@ -67,5 +68,8 @@ namespace ut_pre_decode {
         constants.dev_unique_x_sector_layer_offsets.data(),
         constants.dev_unique_x_sector_offsets.data());
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace ut_pre_decode

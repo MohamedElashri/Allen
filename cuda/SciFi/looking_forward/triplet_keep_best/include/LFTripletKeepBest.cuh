@@ -21,6 +21,7 @@ namespace lf_triplet_keep_best {
     DEVICE_INPUT(dev_scifi_lf_found_triplets_t, int) dev_scifi_lf_found_triplets;
     DEVICE_INPUT(dev_scifi_lf_number_of_found_triplets_t, int8_t) dev_scifi_lf_number_of_found_triplets;
     DEVICE_OUTPUT(dev_scifi_lf_total_number_of_found_triplets_t, uint) dev_scifi_lf_total_number_of_found_triplets;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {128, 1, 1});
   };
 
   __global__ void lf_triplet_keep_best(
@@ -65,7 +66,7 @@ namespace lf_triplet_keep_best {
       cudaCheck(cudaMemsetAsync(
         begin<dev_scifi_lf_atomics_t>(arguments), 0, size<dev_scifi_lf_atomics_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_ut_tracks_t>(arguments),
                     begin<dev_offsets_ut_track_hit_number_t>(arguments),
                     begin<dev_scifi_lf_tracks_t>(arguments),
@@ -77,5 +78,8 @@ namespace lf_triplet_keep_best {
                     begin<dev_scifi_lf_total_number_of_found_triplets_t>(arguments)},
         constants.dev_looking_forward_constants);
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace lf_triplet_keep_best

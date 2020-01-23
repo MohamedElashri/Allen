@@ -11,6 +11,7 @@ namespace ut_find_permutation {
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
     DEVICE_OUTPUT(dev_ut_hit_permutations_t, uint) dev_ut_hit_permutations;
+    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 1, 1});
   };
 
   __global__ void ut_find_permutation(Parameters, const uint* dev_unique_x_sector_layer_offsets);
@@ -39,12 +40,15 @@ namespace ut_find_permutation {
     {
       function(
         dim3(value<host_number_of_selected_events_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
-        block_dimension(),
+        property<blockdim_t>(),
         cuda_stream)(
         Parameters {begin<dev_ut_hits_t>(arguments),
                    begin<dev_ut_hit_offsets_t>(arguments),
                    begin<dev_ut_hit_permutations_t>(arguments)},
         constants.dev_unique_x_sector_layer_offsets.data());
     }
+
+  private:
+    Property<blockdim_t> m_blockdim {this};
   };
 } // namespace ut_find_permutation
