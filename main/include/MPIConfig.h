@@ -23,7 +23,7 @@ namespace MPI {
   constexpr int receiver = 0;
 
   // Required MPI communication size (number of ranks)
-  constexpr int comm_size = 2;
+  constexpr int comm_size = 3;
 
   // Chunk size of MDF events
   // Note: With MEPs, this in principle may not be needed

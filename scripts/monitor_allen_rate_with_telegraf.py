@@ -1,4 +1,7 @@
-import sys, os, time, signal
+import sys
+import os
+import time
+import signal
 from subprocess import PIPE, Popen
 from threading import Thread
 import requests
@@ -43,7 +46,7 @@ def main():
 
     ctx = zmq.Context()
     sockets = {}
-    for f in ["0", "1"]:
+    for f in ["0", "1", "2"]:
         con = "ipc:///tmp/allen_throughput_" + f
         print("connecting to: " + con)
         s = ctx.socket(zmq.SUB)

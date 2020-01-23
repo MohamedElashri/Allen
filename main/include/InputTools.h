@@ -53,5 +53,3 @@ std::vector<std::tuple<unsigned int, unsigned long>> read_folder(
 void read_geometry(const std::string& foldername, std::vector<char>& geometry);
 
 void read_muon_field_of_interest(std::vector<float>& foi_params, const std::string& filename);
-
-std::vector<std::string> split_input(std::string const& input);

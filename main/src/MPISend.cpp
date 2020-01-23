@@ -5,7 +5,6 @@
 #include <ProgramOptions.h>
 #include <MPIConfig.h>
 #include <Logger.h>
-#include <InputTools.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -68,13 +67,13 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
     return -1;
   }
 
-  auto connections = split_input(mep_input);
+  auto connections = split_string(mep_input, ",");
 
   // Create requests of appropiate size
   std::vector<MPI_Request> requests(window_size);
 
   // Read all files in connections
-  std::vector<gsl::span<char>> meps;
+  std::vector<std::tuple<EB::Header, gsl::span<char>>> meps;
 
   info_cout << MPI::rank_str() << "Reading " << (number_of_events != 0 ? std::to_string(number_of_events) : std::string{"all"})
             << " meps from files\n";
@@ -82,10 +81,10 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
   std::vector<char> data;
   gsl::span<char const> mep_span;
   size_t n_meps = 0;
-  EB::Header mep_header;
 
   for (const auto& connection : connections) {
     bool eof = false, success = true;
+    EB::Header mep_header;
     auto input = MDF::open(connection, O_RDONLY);
 
     while (success && !eof) {
@@ -101,7 +100,7 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
         std::copy_n(mep_span.data(), mep_span.size(), contents);
         ++n_meps;
 
-        meps.emplace_back(contents, mep_span.size());
+        meps.emplace_back(std::move(mep_header), gsl::span<char>{contents, mep_span.size()});
       }
       if (n_meps >= number_of_events && number_of_events != 0) {
         input.close();
@@ -113,10 +112,17 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
 
 send:
 
-  info_cout << "\n" << MPI::rank_str() << "EB header: " << mep_header.n_blocks << ", " << mep_header.packing_factor << ", "
-            << mep_header.reserved << ", " << mep_header.mep_size << "\n";
+  if (meps.empty()) {
+    info_cout << "Failed to read MEPs from file\n";
+    exit(1);
+  }
 
-  size_t packing_factor = mep_header.packing_factor;
+  auto const& first_header = std::get<0>(*meps.begin());
+
+  info_cout << "\n" << MPI::rank_str() << "EB header: " << first_header.n_blocks << ", " << first_header.packing_factor << ", "
+            << first_header.reserved << ", " << first_header.mep_size << "\n";
+
+  size_t packing_factor = first_header.packing_factor;
   MPI_Send(&packing_factor, 1, MPI_SIZE_T, MPI::receiver, MPI::message::packing_factor, MPI_COMM_WORLD);
 
   size_t number_of_meps = meps.size();
@@ -127,8 +133,9 @@ send:
   while (non_stop || current_mep < meps.size()) {
 
     // Get event data
-    const char* current_event_start = meps[current_mep].data();
-    const size_t current_event_size = meps[current_mep].size();
+    auto const& [mep_header, mep_span] = meps[current_mep];
+    const char* current_event_start = mep_span.data();
+    const size_t current_event_size = mep_span.size();
 
     // Notify the event size
     MPI_Send(&current_event_size, 1, MPI_SIZE_T, MPI::receiver, MPI::message::event_size, MPI_COMM_WORLD);

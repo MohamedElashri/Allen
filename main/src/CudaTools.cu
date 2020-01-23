@@ -98,4 +98,15 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
   return {true, device_properties.name};
 }
 
+std::tuple<bool, int> get_device_id(std::string pci_bus_id) {
+  int device = 0;
+  try {
+    cudaCheck(cudaDeviceGetByPCIBusId(&device, pci_bus_id.c_str()));
+  } catch (std::invalid_argument& a) {
+    error_cout << "Failed to get device by PCI bus ID: " << pci_bus_id << "\n";
+    return {false, 0};
+  }
+  return {true, device};
+}
+
 #endif

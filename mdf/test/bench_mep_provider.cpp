@@ -33,14 +33,14 @@ int main(int argc, char* argv[])
 
   Timer t;
 
-  MEPProviderConfig config {false,               // verify MEP checksums
-                            10,                  // number of read buffers
-                            2,                   // number of transpose threads
-                            4,                   // MPI sliding window size
-                            {false, 0u},         // Receive from MPI or read files
-                            false,               // Run the application non-stop
-                            true,                // Transpose MEP
-                            {std::tuple{1, 0}}}; // MPI rank to receive on to their NUMA domains
+  MEPProviderConfig config {false,         // verify MEP checksums
+                            10,            // number of read buffers
+                            2,             // number of transpose threads
+                            4,             // MPI sliding window size
+                            false,         // Receive from MPI or read files
+                            false,         // Run the application non-stop
+                            true,          // Transpose MEP
+                            {{"mem", 0}}}; // mapping of receiver to its numa node
 
 
   MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON> mep {

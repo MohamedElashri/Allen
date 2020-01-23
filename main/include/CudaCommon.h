@@ -348,6 +348,8 @@ void print_gpu_memory_consumption();
 
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
 
+std::tuple<bool, int> get_device_id(std::string pci_bus_id);
+
 template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
 void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream)
 {

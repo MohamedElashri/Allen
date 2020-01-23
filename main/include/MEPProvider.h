@@ -49,6 +49,7 @@
 
 namespace {
   using namespace Allen::Units;
+  using namespace std::string_literals;
 } // namespace
 
 /**
@@ -67,18 +68,16 @@ struct MEPProviderConfig {
   int window_size = 4;
 
   // Use MPI and number of receivers
-  std::tuple<bool, int> mpi = {false, 1};
+  bool mpi = false;
 
   bool non_stop = true;
 
   bool transpose_mep = false;
 
-  bool use_mpi() const { return std::get<0>(mpi); }
+  size_t n_receivers() const { return receivers.size(); }
 
-  bool n_receivers() const { return std::get<1>(mpi); }
-
-  // Mapping of MPI rank to NUMA domain
-  std::vector<std::tuple<int, int>> domains;
+  // Mapping of receiver card to MPI rank to receive from
+  std::map<std::string, int> receivers;
 
 };
 
@@ -127,58 +126,8 @@ public:
     m_buffer_transpose = m_buffer_status.begin();
     m_buffer_reading = m_buffer_status.begin();
 
-    if (m_config.use_mpi()) {
-#ifdef HAVE_MPI
-      // Allocate and initialize topology object.
-      hwloc_topology_init(&m_topology);
-
-      // Perform the topology detection.
-      hwloc_topology_load(m_topology);
-
-      // Get last node. There's always at least one.
-      [[maybe_unused]] auto n_numa = hwloc_get_nbobjs_by_type(m_topology, HWLOC_OBJ_NUMANODE);
-      assert(n_numa == m_config.domains.size());
-
-      std::vector<hwloc_obj_t> numa_objs(m_config.n_receivers());
-      for (int receiver = 0; receiver < m_config.n_receivers(); ++receiver) {
-        int numa_node = std::get<1>(m_config.domains[receiver]);
-        numa_objs[receiver] = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
-      }
-
-      std::vector<size_t> packing_factors(m_config.n_receivers());
-      for (int receiver = 0; receiver < m_config.n_receivers(); ++receiver) {
-        auto const receiver_rank = std::get<0>(m_config.domains[receiver]);
-        MPI_Recv(&packing_factors[receiver], 1, MPI_SIZE_T, receiver_rank, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      }
-
-      if (!std::all_of(packing_factors.begin(), packing_factors.end(),
-                       [v = packing_factors.back()](auto const p) { return p == v; })) {
-        throw StrException{"All packing factors must be the same"};
-      } else {
-        m_packing_factor = packing_factors.back();
-      }
-
-      // Allocate as many net slices as configured, of expected size
-      // Packing factor can be done dynamically if needed
-      size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
-      for (size_t i = 0; i < config.n_buffers; ++i) {
-        auto const& numa_obj = numa_objs[i % m_config.n_receivers()];
-        char* contents = nullptr;
-        MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
-
-        hwloc_set_area_membind(m_topology, contents, n_bytes, numa_obj->nodeset,
-                               HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
-#if !defined(NO_CUDA) && !defined(CPU)
-        cudaCheck(cudaHostRegister(contents, n_bytes, cudaHostRegisterDefault));
-#endif
-        m_net_slices.emplace_back(EB::Header {}, gsl::span<char const> {contents, n_bytes},
-                                  MEP::Blocks {}, MEP::SourceOffsets {}, n_bytes);
-        m_mpi_buffers.emplace_back(contents);
-      }
-#else
-      error_cout << "MPI requested, but Allen was not built with MPI support.\n";
-      throw std::runtime_error {"No MPI supoprt"};
-#endif
+    if (m_config.mpi) {
+      init_mpi();
     }
     else {
       m_read_buffers.resize(m_config.n_buffers);
@@ -204,7 +153,7 @@ public:
     m_compress_buffer.reserve(1u * MB);
 
     // start MPI receive or MEP reading thread
-    if (m_config.use_mpi()) {
+    if (m_config.mpi) {
 #ifdef HAVE_MPI
       m_input_thread = std::thread{&MEPProvider::mpi_read, this};
 #endif
@@ -262,6 +211,9 @@ public:
       cudaCheck(cudaHostUnregister(buf));
 #endif
       MPI_Free_mem(buf);
+    }
+    if (m_config.mpi) {
+      hwloc_topology_destroy(m_topology);
     }
 #endif
   }
@@ -455,6 +407,106 @@ public:
   }
 
 private:
+
+  void init_mpi()
+  {
+#ifdef HAVE_MPI
+    // Allocate and initialize topology object.
+    hwloc_topology_init(&m_topology);
+
+    // discover everything, in particular I/O devices like
+    // InfiniBand cards
+#if HWLOC_API_VERSION >= 0x20000
+    hwloc_topology_set_io_types_filter(m_topology, HWLOC_TYPE_FILTER_KEEP_IMPORTANT);
+#else
+    hwloc_topology_set_flags(m_topology, HWLOC_TOPOLOGY_FLAG_WHOLE_SYSTEM | HWLOC_TOPOLOGY_FLAG_IO_DEVICES);
+#endif
+    // Perform the topology detection.
+    hwloc_topology_load(m_topology);
+
+    hwloc_obj_t osdev = nullptr;
+    auto const& receivers = m_config.receivers;
+    m_domains.reserve(receivers.size());
+
+    if (receivers.size() > 1) {
+      // Find NUMA domain of receivers
+      while ((osdev = hwloc_get_next_osdev(m_topology, osdev))) {
+        // We're interested in InfiniBand cards
+        if (osdev->attr->osdev.type == HWLOC_OBJ_OSDEV_OPENFABRICS) {
+          auto parent = hwloc_get_non_io_ancestor_obj(m_topology, osdev);
+          auto it = receivers.find(osdev->name);
+          if (it != receivers.end()) {
+            m_domains.emplace_back(it->second, parent->os_index);
+            this->debug_output("Located receiver device "s + it->first + " in NUMA domain " + std::to_string(parent->os_index));
+          }
+        }
+      }
+      if (m_domains.size() != receivers.size()) {
+        throw StrException{"Failed to locate some receiver devices "};
+      }
+    }
+    else if (receivers.size() == 1){
+      auto [rec, rank] = *receivers.begin();
+      m_domains.emplace_back(rank, 0);
+    } else {
+      throw StrException{"MPI requested, but no receivers specified"};
+    }
+
+    // Get last node. There's always at least one.
+    [[maybe_unused]] auto n_numa = hwloc_get_nbobjs_by_type(m_topology, HWLOC_OBJ_NUMANODE);
+    assert(static_cast<size_t>(n_numa) == m_domains.size());
+
+    std::vector<hwloc_obj_t> numa_objs(m_config.n_receivers());
+    for (size_t receiver = 0; receiver < m_config.n_receivers(); ++receiver) {
+      int numa_node = std::get<1>(m_domains[receiver]);
+      numa_objs[receiver] = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
+    }
+
+    std::vector<size_t> packing_factors(m_config.n_receivers());
+    for (size_t receiver = 0; receiver < m_config.n_receivers(); ++receiver) {
+      auto const receiver_rank = std::get<0>(m_domains[receiver]);
+      MPI_Recv(&packing_factors[receiver], 1, MPI_SIZE_T, receiver_rank, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+
+    if (!std::all_of(packing_factors.begin(), packing_factors.end(),
+                     [v = packing_factors.back()](auto const p) { return p == v; })) {
+      throw StrException{"All packing factors must be the same"};
+    } else {
+      m_packing_factor = packing_factors.back();
+    }
+
+    // Allocate as many net slices as configured, of expected size
+    // Packing factor can be done dynamically if needed
+    size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
+    for (size_t i = 0; i < m_config.n_buffers; ++i) {
+      auto numa_node = i % m_config.n_receivers();
+      auto const& numa_obj = numa_objs[numa_node];
+      char* contents = nullptr;
+      MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
+
+      // Only bind explicitly if there are multiple receivers,
+      // otherwise assume a memory allocation policy is in effect
+      if (m_domains.size() > 1) {
+        auto s = hwloc_set_area_membind(m_topology, contents, n_bytes, numa_obj->nodeset,
+                                        HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+        if (s != 0) {
+          throw StrException{"Failed to bind memory to node "s + std::to_string(numa_node)
+                             + " " + strerror(errno)};
+        }
+      }
+#if !defined(NO_CUDA) && !defined(CPU)
+      cudaCheck(cudaHostRegister(contents, n_bytes, cudaHostRegisterDefault));
+#endif
+      m_net_slices.emplace_back(EB::Header {}, gsl::span<char const> {contents, n_bytes},
+                                MEP::Blocks {}, MEP::SourceOffsets {}, n_bytes);
+      m_mpi_buffers.emplace_back(contents);
+    }
+#else
+    error_cout << "MPI requested, but Allen was not built with MPI support.\n";
+    throw std::runtime_error {"No MPI supoprt"};
+#endif
+  }
+
   size_t count_writable() const
   {
     return std::accumulate(m_buffer_status.begin(), m_buffer_status.end(), 0ul, [](size_t s, BufferStatus const& stat) {
@@ -736,7 +788,7 @@ private:
     bool receive_done = false;
 
     for (size_t i = 0; i < m_config.n_receivers(); ++i) {
-      auto [numa_domain, mpi_rank] = m_config.domains[i];
+      auto [mpi_rank, numa_domain] = m_domains[i];
       MPI_Recv(&n_meps[i], 1, MPI_SIZE_T, mpi_rank,
                MPI::message::number_of_meps, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
@@ -758,8 +810,10 @@ private:
         assert(m_buffer_reading->work_counter == 0);
       }
 
+      this->debug_output("Writing to MEP slice index " + std::to_string(i_buffer));
+
       auto receiver = i_buffer % m_config.n_receivers();
-      auto [sender_rank, numa_node] = m_config.domains[receiver];
+      auto [sender_rank, numa_node] = m_domains[receiver];
       auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
       char*& contents = m_mpi_buffers[i_buffer];
 
@@ -779,11 +833,20 @@ private:
         // Allocate new memory
         MPI_Alloc_mem(buffer_size, MPI_INFO_NULL, &contents);
 
-        // Bind memory to numa domain of receiving card
-        auto numa_obj = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
-        hwloc_set_area_membind(m_topology, contents, buffer_size, numa_obj->nodeset,
-                               HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
-
+        // Only bind explicitly if there are multiple receivers,
+        // otherwise assume a memory allocation policy is in effect
+        if (m_domains.size() > 1) {
+          // Bind memory to numa domain of receiving card
+          auto numa_obj = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
+          auto s = hwloc_set_area_membind(m_topology, contents, buffer_size, numa_obj->nodeset,
+                                          HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+          if (s != 0) {
+            m_read_error = true;
+            error_cout << "Failed to bind memory to node " << std::to_string(numa_node)
+                       << " " << strerror(errno) << "\n";
+            break;
+          }
+        }
 #if !defined(NO_CUDA) && !defined(CPU)
         // Register memory with CUDA
         try {
@@ -1045,7 +1108,11 @@ private:
   // data members for mpi thread
   std::mutex m_mpi_mutex;
   std::condition_variable m_mpi_cond;
+
+#ifdef HAVE_MPI
   hwloc_topology_t m_topology;
+  std::vector<std::tuple<int, int>> m_domains;
+#endif
 
   std::vector<BufferStatus> m_buffer_status;
   std::vector<BufferStatus>::iterator m_buffer_transpose;

@@ -48,3 +48,7 @@ void print_usage(char* argv[], const std::vector<ProgramOption>& program_options
 std::vector<ProgramOption> allen_program_options();
 
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name);
+
+std::vector<std::string> split_string(std::string const& input, std::string const& sep);
+
+std::tuple<bool, std::map<std::string, int>> parse_receivers(const std::string& arg);

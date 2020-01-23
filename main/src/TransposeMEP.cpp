@@ -114,7 +114,7 @@ size_t MEP::allen_offsets(
 
         // Check for sufficient space
         if (event_offsets[i] > slice_size) {
-          n_frag = i;
+          n_frag = i -  1;
           break;
         }
       }

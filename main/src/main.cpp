@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  if (allen_options.count("with-mpi") && std::atoi(allen_options["with-mpi"].c_str())) {
+  if (allen_options.count("with-mpi")) {
 #ifdef HAVE_MPI
     // MPI initialization
     MPI_Init(&argc, &argv);
@@ -111,8 +111,8 @@ int main(int argc, char* argv[])
     // Communication size
     int comm_size;
     MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
-    if (comm_size != MPI::comm_size) {
-      error_cout << "This program requires exactly " << MPI::comm_size << " processes.\n";
+    if (comm_size > MPI::comm_size) {
+      error_cout << "This program requires at most " << MPI::comm_size << " processes.\n";
       return -1;
     }
 

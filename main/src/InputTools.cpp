@@ -325,16 +325,3 @@ void read_muon_field_of_interest(std::vector<float>& foi_params, const std::stri
     foi_params.push_back(f);
   }
 }
-
-std::vector<std::string> split_input(std::string const& input)
-{
-  std::vector<std::string> s;
-  size_t current = input.find(","), previous = 0;
-  while (current != std::string::npos) {
-    s.emplace_back(input.substr(previous, current - previous));
-    previous = current + 1;
-    current = input.find(",", previous);
-  }
-  s.emplace_back(input.substr(previous, current - previous));
-  return s;
-}

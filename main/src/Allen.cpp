@@ -477,6 +477,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   size_t reserve_mb = 1024;
   // MPI options
   bool with_mpi = false;
+  std::map<std::string, int> receivers = {{"mem", 1}};
   int mpi_window_size = 4;
   // Input file options
   std::string mdf_input;
@@ -567,10 +568,23 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       output_file = arg;
     }
     else if (flag_in({"device"})) {
-      device_id = atoi(arg.c_str());
+      if (arg.find(":") != std::string::npos) {
+        // Get by PCI bus ID
+        bool s = false;
+        std::tie(s, device_id) = get_device_id(arg);
+        if (!s) exit(1);
+      } else {
+        device_id = atoi(arg.c_str());
+      }
     }
     else if (flag_in({"with-mpi"})) {
-      with_mpi = atoi(arg.c_str());
+      with_mpi = true;
+      bool parsed = false;
+      std::tie(parsed, receivers) = parse_receivers(arg);
+      if (!parsed) {
+        error_cout << "Failed to parse argument to with-mpi\n";
+        exit(1);
+      }
     }
     else if (flag_in({"file-list"})) {
       file_list = arg;
@@ -674,16 +688,16 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Create the InputProvider, either MDF or Binary
   // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
   if (!mep_input.empty()) {
-    MEPProviderConfig config {false,               // verify MEP checksums
-                              10,                  // number of read buffers
-                              1,                   // number of transpose threads
-                              mpi_window_size,     // MPI sliding window size
-                              {with_mpi, 1u},      // Receive from MPI or read files
-                              non_stop,            // Run the application non-stop
-                              !mep_layout,         // MEPs should be transposed to Allen layout
-                              {std::tuple{1, 0}}}; // MPI rank to receive on to their NUMA domains
+    MEPProviderConfig config {false,                // verify MEP checksums
+                              10,                   // number of read buffers
+                              mep_layout ? 1u : 4u, // number of transpose threads
+                              mpi_window_size,      // MPI sliding window size
+                              with_mpi,             // Receive from MPI or read files
+                              non_stop,             // Run the application non-stop
+                              !mep_layout,          // MEPs should be transposed to Allen layout
+                              receivers};           // Map of receiver to MPI rank to receive from
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      number_of_slices, *events_per_slice, n_events, split_input(mep_input), config);
+      number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
@@ -693,8 +707,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               *events_per_slice * 10 + 1, // mximum number event of offsets in read buffer
                               *events_per_slice,          // number of events per read buffer
                               n_io_reps};                 // number of loops over the input files
-    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, split_input(mdf_input), config);
+    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+      number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
   else {
     mep_layout = false;
@@ -909,10 +923,15 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::optional<Timer> t;
   double previous_time_measurement = 0;
 
-  zmq::socket_t throughput_socket = zmqSvc().socket(zmq::PUB);
-  zmq::setsockopt(throughput_socket, zmq::LINGER, 0);
-  std::string con = "ipc:///tmp/allen_throughput_" + std::to_string(device_id);
-  throughput_socket.bind(con.c_str());
+  std::optional<zmq::socket_t> throughput_socket;
+  try {
+    throughput_socket = zmqSvc().socket(zmq::PUB);
+    zmq::setsockopt(*throughput_socket, zmq::LINGER, 0);
+    std::string con = "ipc:///tmp/allen_throughput_" + std::to_string(device_id);
+    throughput_socket->bind(con.c_str());
+  } catch (zmq::error_t const& e) {
+    debug_cout << "Failed to create or bind throughput socket " << e.what() << "\n";
+  }
 
   // queues of slice/buffer pairs to write out
   // and sub-slices to be resubmitted
@@ -970,14 +989,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           ++slices_processed;
           stream_ready[i] = true;
 
-          if (logger::ll.verbosityLevel >= logger::debug && t) {
+          if (throughput_socket && t) {
             double elapsed_time = t->get_elapsed_time();
             if (elapsed_time - previous_time_measurement > 5) {
               info_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions
                         << " events at a rate of " << n_events_processed * number_of_repetitions / elapsed_time
                         << " events / s\n";
               zmqSvc().send(
-                throughput_socket, std::to_string(n_events_processed * number_of_repetitions / elapsed_time));
+                *throughput_socket, std::to_string(n_events_processed * number_of_repetitions / elapsed_time));
               previous_time_measurement = elapsed_time;
             }
           }
