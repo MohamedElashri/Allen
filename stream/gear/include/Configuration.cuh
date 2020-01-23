@@ -1,8 +1,8 @@
 #pragma once
 
 #include "CudaCommon.h"
+#include "Logger.h"
 #include "Argument.cuh"
-
 #include <string>
 #include <sstream>
 #include <map>
@@ -34,7 +34,14 @@ namespace Configuration {
   // General template
   template<typename T>
   bool from_string(T& holder, const std::string& value) {
-    holder = from_string<typename T::t>(value);
+    try {
+      holder = from_string<typename T::t>(value);
+    }
+    catch (const std::exception&) {
+      warning_cout << "Could not parse JSON string from value \"" << value << "\"\n";
+      return false;
+    }
+
     return true;
   }
 

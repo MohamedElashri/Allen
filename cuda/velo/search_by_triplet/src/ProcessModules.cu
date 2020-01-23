@@ -30,7 +30,8 @@ __device__ void process_modules(
   const float max_scatter_seeding,
   const uint ttf_modulo,
   const float max_scatter_forwarding,
-  const uint max_skipped_modules)
+  const uint max_skipped_modules,
+  const float forward_phi_tolerance)
 {
   auto first_module = VP::NModules - 1;
 
@@ -103,6 +104,7 @@ __device__ void process_modules(
       tracks,
       dev_atomics_velo,
       dev_number_of_velo_tracks,
+      forward_phi_tolerance,
       ttf_modulo_mask,
       ttf_modulo,
       max_scatter_forwarding,

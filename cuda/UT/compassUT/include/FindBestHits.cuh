@@ -11,7 +11,12 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
-  const float* ut_dxDy);
+  const float* ut_dxDy,
+  const uint max_considered_before_found,
+  const float delta_tx_2,
+  const float hit_tol_2,
+  const float sigma_velo_slope,
+  const float inv_sigma_velo_slope);
 
 __device__ BestParams pkick_fit(
   const int best_hits[UT::Constants::n_layers],
@@ -19,7 +24,9 @@ __device__ BestParams pkick_fit(
   const MiniState& velo_state,
   const float* ut_dxDy,
   const float yyProto,
-  const bool forward);
+  const bool forward,
+  const float sigma_velo_slope,
+  const float inv_sigma_velo_slope);
 
 __device__ __inline__ int sum_layer_hits(const TrackCandidates& ranges, const int layer0, const int layer2);
 

@@ -54,7 +54,14 @@ namespace compass_ut {
     short* win_size_shared,
     uint* n_veloUT_tracks_event,
     UT::TrackHits* veloUT_tracks_event,
-    const int event_hit_offset);
+    const int event_hit_offset,
+    const float min_momentum_final,
+    const float min_pt_final,
+    const uint max_considered_before_found,
+    const float delta_tx_2,
+    const float hit_tol_2,
+    const float sigma_velo_slope,
+    const float inv_sigma_velo_slope);
 
   __host__ __device__ __inline__ bool velo_track_in_UT_acceptance(const MiniState& state);
 
@@ -78,7 +85,9 @@ namespace compass_ut {
     const float magSign,
     uint* n_veloUT_tracks,
     UT::TrackHits* VeloUT_tracks,
-    const int event_hit_offset);
+    const int event_hit_offset,
+    const float min_momentum_final,
+    const float min_pt_final);
 
   template<typename T, char... S>
   struct compass_ut_t : public DeviceAlgorithm, Parameters {
@@ -138,6 +147,8 @@ namespace compass_ut {
                                           "sigma_velo_slope",
                                           0.010f * Gaudi::Units::mrad,
                                           "sigma velo slope [radians]"};
+    // TODO: Due to having a different type per Property, the std::vector<Property<inv_sigma_velo_slope_t>*>
+    //       would have to be of type std::vector<Property<sigma_velo_slope_t>*> , so this is not straightforward.
     // DerivedProperty<inv_sigma_velo_slope_t> m_inv_slope {this,
     //                                                      "inv_sigma_velo_slope",
     //                                                      Configuration::Relations::inverse,

@@ -97,5 +97,6 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     parameters.max_scatter_seeding,
     parameters.ttf_modulo,
     parameters.max_scatter_forwarding,
-    parameters.max_skipped_modules);
+    parameters.max_skipped_modules,
+    parameters.forward_phi_tolerance);
 }

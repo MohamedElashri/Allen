@@ -2,11 +2,6 @@
 #include "SearchWindows.cuh"
 #include <tuple>
 
-__constant__ float Configuration::ut_search_windows_t::min_momentum;
-__constant__ float Configuration::ut_search_windows_t::min_pt;
-__constant__ float Configuration::ut_search_windows_t::y_tol;
-__constant__ float Configuration::ut_search_windows_t::y_tol_slope;
-
 __global__ void ut_search_windows::ut_search_windows(
   ut_search_windows::Parameters parameters,
   UTMagnetTool* dev_ut_magnet_tool,
@@ -78,7 +73,11 @@ __global__ void ut_search_windows::ut_search_windows(
           ut_hit_offsets,
           dev_ut_dxDy,
           dev_unique_sector_xs,
-          dev_unique_x_sector_layer_offsets);
+          dev_unique_x_sector_layer_offsets,
+          parameters.y_tol,
+          parameters.y_tol_slope,
+          parameters.min_pt,
+          parameters.min_momentum);
 
         // Write the windows in SoA style
         short* windows_layers =
@@ -136,7 +135,11 @@ __global__ void ut_search_windows::ut_search_windows(
         ut_hit_offsets,
         dev_ut_dxDy,
         dev_unique_sector_xs,
-        dev_unique_x_sector_layer_offsets);
+        dev_unique_x_sector_layer_offsets,
+        parameters.y_tol,
+        parameters.y_tol_slope,
+        parameters.min_pt,
+        parameters.min_momentum);
 
       // Write the windows in SoA style
       short* windows_layers =

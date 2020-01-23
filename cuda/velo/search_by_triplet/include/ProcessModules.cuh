@@ -22,8 +22,9 @@ __device__ void process_modules(
   const float* dev_velo_module_zs,
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks,
-  const float max_scatter_seeding,
   const int ttf_modulo_mask,
+  const float max_scatter_seeding,
   const uint ttf_modulo,
   const float max_scatter_forwarding,
-  const uint max_skipped_modules);
+  const uint max_skipped_modules,
+  const float forward_phi_tolerance);

@@ -11,7 +11,12 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
-  const float* ut_dxDy)
+  const float* ut_dxDy,
+  const uint max_considered_before_found,
+  const float delta_tx_2,
+  const float hit_tol_2,
+  const float sigma_velo_slope,
+  const float inv_sigma_velo_slope)
 {
   const float yyProto = velo_state.y - velo_state.ty * velo_state.z;
 
@@ -28,8 +33,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   BestParams best_params;
 
   // Get total number of hits for forward + backward in first layer (0 for fwd, 3 for bwd)
-  for (int i = 0; (!found || considered < Configuration::compass_ut_t::max_considered_before_found) && i < sum_layer_hits(ranges, 0, 3);
-       ++i) {
+  for (int i = 0; (!found || considered < max_considered_before_found) && i < sum_layer_hits(ranges, 0, 3); ++i) {
     const int i_hit0 = calc_index(i, ranges, 0, 3, ut_hit_offsets);
 
     // set range for next layer if forward or backward
@@ -53,7 +57,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
     // 2nd layer
     const int total_hits_2layers_2 = sum_layer_hits(ranges, layer_2);
-    for (int j = 0; (!found || considered < Configuration::compass_ut_t::max_considered_before_found) && j < total_hits_2layers_2; ++j) {
+    for (int j = 0; (!found || considered < max_considered_before_found) && j < total_hits_2layers_2; ++j) {
       int i_hit2 = calc_index(j, ranges, layer_2, ut_hit_offsets);
 
       // Get info to calculate slope
@@ -64,13 +68,13 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
-      if (fabsf(tx - velo_state.tx) <= Configuration::compass_ut_t::delta_tx_2) {
+      if (fabsf(tx - velo_state.tx) <= delta_tx_2) {
 
         int temp_best_hits[4] = {i_hit0, -1, i_hit2, -1};
 
         const int layers[2] = {forward ? 1 : 2, forward ? 3 : 0};
 
-        float hitTol = Configuration::compass_ut_t::hit_tol_2;
+        float hitTol = hit_tol_2;
 
         // search for a triplet in 3rd layer
         for (int i1 = 0; i1 < sum_layer_hits(ranges, layers[0]); ++i1) {
@@ -90,7 +94,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
         }
 
         // search for triplet/quadruplet in 4th layer
-        hitTol = Configuration::compass_ut_t::hit_tol_2;
+        hitTol = hit_tol_2;
         for (int i3 = 0; i3 < sum_layer_hits(ranges, layers[1]); ++i3) {
 
           int i_hit3 = calc_index(i3, ranges, layers[1], ut_hit_offsets);
@@ -108,7 +112,8 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
         // Fit the hits to get q/p, chi2
         const auto temp_number_of_hits = 2 + (temp_best_hits[1] != -1) + (temp_best_hits[3] != -1);
-        const auto params = pkick_fit(temp_best_hits, ut_hits, velo_state, ut_dxDy, yyProto, forward);
+        const auto params = pkick_fit(
+          temp_best_hits, ut_hits, velo_state, ut_dxDy, yyProto, forward, sigma_velo_slope, inv_sigma_velo_slope);
         ++considered;
 
         // Save the best chi2 and number of hits triplet/quadruplet
@@ -148,13 +153,15 @@ __device__ BestParams pkick_fit(
   const MiniState& velo_state,
   const float* ut_dxDy,
   const float yyProto,
-  const bool forward)
+  const bool forward,
+  const float sigma_velo_slope,
+  const float inv_sigma_velo_slope)
 {
   BestParams best_params;
 
   // Helper stuff from velo state
   const float xMidField = velo_state.x + velo_state.tx * (UT::Constants::zKink - velo_state.z);
-  const float a = Configuration::compass_ut_t::sigma_velo_slope * (UT::Constants::zKink - velo_state.z);
+  const float a = sigma_velo_slope * (UT::Constants::zKink - velo_state.z);
   const float wb = 1.0f / (a * a);
 
   float mat[3] = {wb, wb * UT::Constants::zDiff, wb * UT::Constants::zDiff * UT::Constants::zDiff};
@@ -162,7 +169,7 @@ __device__ BestParams pkick_fit(
 
   // add hits
   float last_z = -10000.f;
-  #pragma unroll
+#pragma unroll
   for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
@@ -194,13 +201,13 @@ __device__ BestParams pkick_fit(
   const float xb = xUTFit + xSlopeUTFit * (UT::Constants::zKink - UT::Constants::zMidUT);
   const float invKinkVeloDist = 1.f / (UT::Constants::zKink - velo_state.z);
   const float xSlopeVeloFit = (xb - velo_state.x) * invKinkVeloDist;
-  const float chi2VeloSlope = (velo_state.tx - xSlopeVeloFit) * Configuration::compass_ut_t::inv_sigma_velo_slope;
+  const float chi2VeloSlope = (velo_state.tx - xSlopeVeloFit) * inv_sigma_velo_slope;
 
   // chi2 takes chi2 from velo fit + chi2 from UT fit
   float chi2UT = chi2VeloSlope * chi2VeloSlope;
   // add chi2
   int total_num_hits = 0;
-  #pragma unroll
+#pragma unroll
   for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {

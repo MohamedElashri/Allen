@@ -27,29 +27,34 @@ uint Configuration::from_string<uint>(const std::string& s)
 
 // Specialization for std::array<int, 3>
 template<>
-bool Configuration::from_string<DeviceDimensions>(const DeviceDimensions& holder, const std::string& string_value)
+std::array<uint, 3> Configuration::from_string<std::array<uint, 3>>(const std::string& string_value)
 {
+  std::array<uint, 3> dimensions {1, 1, 1};
   std::smatch matches;
   auto r = std::regex_match(string_value, matches, Detail::array_expr);
-  if (!r) return r;
+  if (!r) {
+    throw std::exception{};
+  }
   auto digits_begin = std::sregex_iterator(string_value.begin(), string_value.end(), Detail::digit_expr);
   auto digits_end = std::sregex_iterator();
-  if (std::distance(digits_begin, digits_end) != holder.size()) return false;
-  int idx(0);
-  for (auto i = digits_begin; i != digits_end; ++i) {
-    holder[idx++] = atoi(i->str().c_str());
+  if (std::distance(digits_begin, digits_end) != dimensions.size()) {
+    throw std::exception{};
   }
-  return r;
+  int idx = 0;
+  for (auto i = digits_begin; i != digits_end; ++i) {
+    dimensions[idx++] = atoi(i->str().c_str());
+  }
+  return dimensions;
 }
 
 template<>
-std::string Configuration::to_string<std::array<uint, 3>>(std::array<uint, 3> const& holder)
+std::string Configuration::to_string<DeviceDimensions>(const DeviceDimensions& holder)
 {
   // very basic implementation based on streaming
   std::stringstream s;
   s << "[";
   bool first = true;
-  for (auto v : holder) {
+  for (auto v : holder.get()) {
     if (first) {
       s << v;
       first = false;

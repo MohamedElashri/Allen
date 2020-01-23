@@ -3,14 +3,6 @@
 #include "CalculateWindows.cuh"
 #include "UTFastFitter.cuh"
 
-__constant__ float Configuration::compass_ut_t::sigma_velo_slope;
-__constant__ float Configuration::compass_ut_t::inv_sigma_velo_slope;
-__constant__ float Configuration::compass_ut_t::min_momentum_final;
-__constant__ float Configuration::compass_ut_t::min_pt_final;
-__constant__ float Configuration::compass_ut_t::hit_tol_2;
-__constant__ float Configuration::compass_ut_t::delta_tx_2;
-__constant__ uint Configuration::compass_ut_t::max_considered_before_found;
-
 __global__ void compass_ut::compass_ut(
   compass_ut::Parameters parameters,
   UTMagnetTool* dev_ut_magnet_tool,
@@ -27,8 +19,7 @@ __global__ void compass_ut::compass_ut(
   // Velo consolidated types
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states,
-                                                velo_tracks.total_number_of_tracks()};
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
@@ -94,7 +85,14 @@ __global__ void compass_ut::compass_ut(
         win_size_shared,
         n_veloUT_tracks_event,
         veloUT_tracks_event,
-        event_hit_offset);
+        event_hit_offset,
+        parameters.min_momentum_final,
+        parameters.min_pt_final,
+        parameters.max_considered_before_found,
+        parameters.delta_tx_2,
+        parameters.hit_tol_2,
+        parameters.sigma_velo_slope,
+        parameters.inv_sigma_velo_slope);
 
       __syncthreads();
 
@@ -129,7 +127,14 @@ __global__ void compass_ut::compass_ut(
       win_size_shared,
       n_veloUT_tracks_event,
       veloUT_tracks_event,
-      event_hit_offset);
+      event_hit_offset,
+      parameters.min_momentum_final,
+      parameters.min_pt_final,
+      parameters.max_considered_before_found,
+      parameters.delta_tx_2,
+      parameters.hit_tol_2,
+      parameters.sigma_velo_slope,
+      parameters.inv_sigma_velo_slope);
   }
 }
 
@@ -147,7 +152,14 @@ __device__ void compass_ut::compass_ut_tracking(
   short* win_size_shared,
   uint* n_veloUT_tracks_event,
   UT::TrackHits* veloUT_tracks_event,
-  const int event_hit_offset)
+  const int event_hit_offset,
+  const float min_momentum_final,
+  const float min_pt_final,
+  const uint max_considered_before_found,
+  const float delta_tx_2,
+  const float hit_tol_2,
+  const float sigma_velo_slope,
+  const float inv_sigma_velo_slope)
 {
   // select velo track to join with UT hits
   const MiniState velo_state = velo_states.getMiniState(current_track_offset);
@@ -155,7 +167,17 @@ __device__ void compass_ut::compass_ut_tracking(
   fill_shared_windows(windows_layers, number_of_tracks_event, i_track, win_size_shared);
 
   // Find compatible hits in the windows for this VELO track
-  const auto best_hits_and_params = find_best_hits(win_size_shared, ut_hits, ut_hit_offsets, velo_state, dev_ut_dxDy);
+  const auto best_hits_and_params = find_best_hits(
+    win_size_shared,
+    ut_hits,
+    ut_hit_offsets,
+    velo_state,
+    dev_ut_dxDy,
+    max_considered_before_found,
+    delta_tx_2,
+    hit_tol_2,
+    sigma_velo_slope,
+    inv_sigma_velo_slope);
 
   const int best_hits[UT::Constants::n_layers] = {std::get<0>(best_hits_and_params),
                                                   std::get<1>(best_hits_and_params),
@@ -176,7 +198,9 @@ __device__ void compass_ut::compass_ut_tracking(
       magnet_polarity,
       n_veloUT_tracks_event,
       veloUT_tracks_event,
-      event_hit_offset);
+      event_hit_offset,
+      min_momentum_final,
+      min_pt_final);
   }
 }
 
@@ -265,7 +289,9 @@ __device__ void compass_ut::save_track(
   const float magSign,
   uint* n_veloUT_tracks,        // increment number of tracks
   UT::TrackHits* VeloUT_tracks, // write the track
-  const int event_hit_offset)
+  const int event_hit_offset,
+  const float min_momentum_final,
+  const float min_pt_final)
 {
   //== Handle states. copy Velo one, add UT.
   const float zOrigin = (fabsf(velo_state.ty) > 0.001f) ? velo_state.z - velo_state.y / velo_state.ty :
@@ -317,8 +343,7 @@ __device__ void compass_ut::save_track(
   const float p = 1.3f * fabsf(1.f / qop);
   const float pt = p * sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty);
 
-  if (p < Configuration::compass_ut_t::min_momentum_final || pt < Configuration::compass_ut_t::min_pt_final) return;
-  // if (p < UT::Constants::minMomentum || pt < UT::Constants::minPT) return;
+  if (p < min_momentum_final || pt < min_pt_final) return;
 
   const float xUT = finalParams[0];
   const float txUT = finalParams[1];
