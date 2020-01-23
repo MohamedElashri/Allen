@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<!--
+    (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration
+
+    This software is distributed under the terms of the GNU General Public
+    Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".
+
+    In applying this licence, CERN does not waive the privileges and immunities
+    granted to it by virtue of its status as an Intergovernmental Organization
+    or submit itself to any jurisdiction.
+-->
+<!-- Edited By PoolXMLCatalog.py -->
+<!DOCTYPE POOLFILECATALOG SYSTEM "InMemory">
+<POOLFILECATALOG>
+
+<File ID="1E8D2EBC-31BD-E711-B2FC-FA163EFF0355">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000098_1.xdigi" se="CERN_MC-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000098_1.xdigi"/>
+   </logical>
+</File>
+<File ID="6E4F715E-42B5-E711-8D8E-0CC47A07FA22">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000013_1.xdigi" se="CERN_MC-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000013_1.xdigi"/>
+   </logical>
+</File>
+<File ID="1E9DF25D-D7B5-E711-B6BD-0CC47A544F58">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000020_1.xdigi" se="CERN_MC-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000020_1.xdigi"/>
+   </logical>
+</File>
+<File ID="E401FBE2-2CB7-E711-BA0B-001E67C9B44C">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000034_1.xdigi" se="CERN_MC-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000034_1.xdigi"/>
+   </logical>
+</File>
+<File ID="BA0EA13F-B2BA-E711-BE73-02163E0136BD">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000083_1.xdigi" se="CERN_MC-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000083_1.xdigi"/>
+   </logical>
+</File>
+<File ID="DA49B6BA-8ABA-E711-BC75-FA163E32D1A2">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000076_1.xdigi" se="CERN_MC-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000076_1.xdigi"/>
+   </logical>
+</File>
+<File ID="AC539ABF-D1B8-E711-BED3-FA163EDA8862">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000067_1.xdigi" se="CERN_MC-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000067_1.xdigi"/>
+   </logical>
+</File>
+<File ID="8407CDD3-98BA-E711-9ECB-0CC47A5450F8">
+   <physical>
+      <pfn filetype="ROOT_All" name="root://eoslhcb.cern.ch//eos/lhcb/grid/prod/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000078_1.xdigi" se="CERN_MC-DST-EOS"/>
+   </physical>
+   <logical>
+      <lfn name="/lhcb/MC/Upgrade/XDIGI/00067189/0000/00067189_00000078_1.xdigi"/>
+   </logical>
+</File>
+
+</POOLFILECATALOG>
