@@ -11,8 +11,8 @@
 
 struct DeviceAlgorithm : public Algorithm {
 private:
-  HostProperty<DeviceDimensions> m_block_dim {this, "block_dim", {{32, 1, 1}}, "block dimensions"};
-  HostProperty<DeviceDimensions> m_grid_dim {this, "grid_dim", {{1, 1, 1}}, "grid dimensions"};
+  HostProperty<PropertyBlockDimensions> m_block_dim {this};
+  HostProperty<PropertyGridDimensions> m_grid_dim {this};
 
 public:
   // Obtains the grid dimension. The grid dimension obtained in this way

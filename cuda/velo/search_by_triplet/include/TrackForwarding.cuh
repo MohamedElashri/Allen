@@ -4,12 +4,6 @@
 #include "BinarySearch.cuh"
 #include <tuple>
 
-namespace Configuration {
-  namespace velo_search_by_triplet_t {
-    __constant__ extern float forward_phi_tolerance;
-  }
-} // namespace Configuration
-
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
   const float* hit_phi,

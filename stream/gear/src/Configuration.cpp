@@ -48,7 +48,27 @@ std::array<uint, 3> Configuration::from_string<std::array<uint, 3>>(const std::s
 }
 
 template<>
-std::string Configuration::to_string<DeviceDimensions>(const DeviceDimensions& holder)
+std::string Configuration::to_string<PropertyGridDimensions>(const PropertyGridDimensions& holder)
+{
+  // very basic implementation based on streaming
+  std::stringstream s;
+  s << "[";
+  bool first = true;
+  for (auto v : holder.get()) {
+    if (first) {
+      s << v;
+      first = false;
+    }
+    else {
+      s << ", " << v;
+    }
+  }
+  s << "]";
+  return s.str();
+}
+
+template<>
+std::string Configuration::to_string<PropertyBlockDimensions>(const PropertyBlockDimensions& holder)
 {
   // very basic implementation based on streaming
   std::stringstream s;

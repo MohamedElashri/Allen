@@ -24,13 +24,29 @@ namespace compass_ut {
     DEVICE_OUTPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
     DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
-    PROPERTY(sigma_velo_slope_t, float) sigma_velo_slope;
-    PROPERTY(inv_sigma_velo_slope_t, float) inv_sigma_velo_slope;
-    PROPERTY(min_momentum_final_t, float) min_momentum_final;
-    PROPERTY(min_pt_final_t, float) min_pt_final;
-    PROPERTY(hit_tol_2_t, float) hit_tol_2;
-    PROPERTY(delta_tx_2_t, float) delta_tx_2;
-    PROPERTY(max_considered_before_found_t, uint) max_considered_before_found;
+
+    PROPERTY(sigma_velo_slope_t, float, "sigma_velo_slope", 0.010f * Gaudi::Units::mrad, "sigma velo slope [radians]")
+    sigma_velo_slope;
+    PROPERTY(
+      inv_sigma_velo_slope_t,
+      float,
+      "inv_sigma_velo_slope",
+      (100000.f * Gaudi::Units::rad),
+      "inv sigma velo slope")
+    inv_sigma_velo_slope;
+    PROPERTY(
+      min_momentum_final_t,
+      float,
+      "min_momentum_final",
+      2.5f * Gaudi::Units::GeV,
+      "final min momentum cut [MeV/c]")
+    min_momentum_final;
+    PROPERTY(min_pt_final_t, float, "min_pt_final", 0.425f * Gaudi::Units::GeV, "final min pT cut [MeV/c]")
+    min_pt_final;
+    PROPERTY(hit_tol_2_t, float, "hit_tol_2", 0.8f * Gaudi::Units::mm, "hit_tol_2 [mm]") hit_tol_2;
+    PROPERTY(delta_tx_2_t, float, "delta_tx_2", 0.018f, "delta_tx_2") delta_tx_2;
+    PROPERTY(max_considered_before_found_t, uint, "max_considered_before_found", 6u, "max_considered_before_found")
+    max_considered_before_found;
   };
 
   __global__ void compass_ut(
@@ -129,13 +145,13 @@ namespace compass_ut {
                     begin<dev_atomics_ut_t>(arguments),
                     begin<dev_ut_windows_layers_t>(arguments),
                     begin<dev_accepted_velo_tracks_t>(arguments),
-                    get_property_value<sigma_velo_slope_t>("sigma_velo_slope"),
-                    get_property_value<inv_sigma_velo_slope_t>("inv_sigma_velo_slope"),
-                    get_property_value<min_momentum_final_t>("min_momentum_final"),
-                    get_property_value<min_pt_final_t>("min_pt_final"),
-                    get_property_value<hit_tol_2_t>("hit_tol_2"),
-                    get_property_value<delta_tx_2_t>("delta_tx_2"),
-                    get_property_value<max_considered_before_found_t>("max_considered_before_found")},
+                    get_property_value<sigma_velo_slope_t>(),
+                    get_property_value<inv_sigma_velo_slope_t>(),
+                    get_property_value<min_momentum_final_t>(),
+                    get_property_value<min_pt_final_t>(),
+                    get_property_value<hit_tol_2_t>(),
+                    get_property_value<delta_tx_2_t>(),
+                    get_property_value<max_considered_before_found_t>()},
         constants.dev_ut_magnet_tool,
         constants.dev_magnet_polarity.data(),
         constants.dev_ut_dxDy.data(),
@@ -143,10 +159,7 @@ namespace compass_ut {
     }
 
   private:
-    Property<sigma_velo_slope_t> m_slope {this,
-                                          "sigma_velo_slope",
-                                          0.010f * Gaudi::Units::mrad,
-                                          "sigma velo slope [radians]"};
+    Property<sigma_velo_slope_t> m_slope {this};
     // TODO: Due to having a different type per Property, the std::vector<Property<inv_sigma_velo_slope_t>*>
     //       would have to be of type std::vector<Property<sigma_velo_slope_t>*> , so this is not straightforward.
     // DerivedProperty<inv_sigma_velo_slope_t> m_inv_slope {this,
@@ -154,20 +167,11 @@ namespace compass_ut {
     //                                                      Configuration::Relations::inverse,
     //                                                      std::vector<Property<inv_sigma_velo_slope_t>*>
     //                                                      {&this->m_slope}, "inv sigma velo slope"};
-    Property<inv_sigma_velo_slope_t> m_inv_slope {this,
-                                                  "inv_sigma_velo_slope",
-                                                  (100000.f * Gaudi::Units::rad),
-                                                  "inv sigma velo slope"};
-    Property<min_momentum_final_t> m_mom_fin {this,
-                                              "min_momentum_final",
-                                              2.5f * Gaudi::Units::GeV,
-                                              "final min momentum cut [MeV/c]"};
-    Property<min_pt_final_t> m_pt_fin {this, "min_pt_final", 0.425f * Gaudi::Units::GeV, "final min pT cut [MeV/c]"};
-    Property<hit_tol_2_t> m_hit_tol_2 {this, "hit_tol_2", 0.8f * Gaudi::Units::mm, "hit_tol_2 [mm]"};
-    Property<delta_tx_2_t> m_delta_tx_2 {this, "delta_tx_2", 0.018f, "delta_tx_2"};
-    Property<max_considered_before_found_t> m_max_considered_before_found {this,
-                                                                           "max_considered_before_found",
-                                                                           6u,
-                                                                           "max_considered_before_found"};
+    Property<inv_sigma_velo_slope_t> m_inv_slope {this};
+    Property<min_momentum_final_t> m_mom_fin {this};
+    Property<min_pt_final_t> m_pt_fin {this};
+    Property<hit_tol_2_t> m_hit_tol_2 {this};
+    Property<delta_tx_2_t> m_delta_tx_2 {this};
+    Property<max_considered_before_found_t> m_max_considered_before_found {this};
   };
 } // namespace compass_ut

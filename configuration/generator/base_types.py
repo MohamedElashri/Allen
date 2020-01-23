@@ -173,6 +173,32 @@ class DeviceOutput(DeviceParameter, OutputParameter):
     return "DeviceOutput(\"" + self.__name + "\", " + repr(self.__type) + ")"
 
 
+class Property():
+  def __init__(self, vtype, default_value, description, value = ""):
+    self.__type = Type(vtype)
+    self.__default_value = default_value
+    self.__description = description
+    self.__value = value
+
+  def type(self):
+    return self.__type
+
+  def value(self):
+    return self.__value
+
+  def default_value(self):
+    return self.__default_value
+
+  def description(self):
+    return self.__description
+
+  def set_value(self, value):
+    self.__default_value = value
+
+  def __repr__(self):
+    return "Property(" + repr(self.__type) + ", " + self.__default_value + ", " + self.__description + ")"
+
+
 def prefix(indentation_level, indent_by = 2):
   return "".join([" "] * indentation_level * indent_by)
 
@@ -250,7 +276,10 @@ class Sequence():
 
     return True
 
-  def generate(self, output_filename = "ConfiguredSequence.h", prefix_includes = "../../"):
+  def generate(self, output_filename = "ConfiguredSequence.h",
+    json_configuration_filename = "Configuration.json",
+    json_defaults_configuration_filename = "ConfigurationGuide.json",
+    prefix_includes = "../../"):
     # Check that sequence is valid
     print("Validating sequence...")
     if self.validate():
@@ -303,6 +332,52 @@ class Sequence():
       f.write(s)
       f.close()
       print("Generated sequence file " + output_filename)
+      print("Generating JSON configuration file...")
+      s = "{\n"
+      i = 1
+      for algorithm in self.sequence:
+        has_modified_properties = False
+        for prop_name, prop in iter(algorithm.properties().items()):
+          if prop.value() != "":
+            has_modified_properties = True
+            break
+        if has_modified_properties:
+          s += prefix(i) + "\"" + algorithm.name() + "\": {"
+          for prop_name, prop in iter(algorithm.properties().items()):
+            if prop.value() != "":
+              s += "\"" + prop_name + "\": \"" + prop.value() + "\", "
+          s = s[:-2]
+          s += "},\n"
+      if s[-2] == ",":
+        s = s[:-2]
+      s += "\n}\n"
+      f = open(json_configuration_filename, "w")
+      f.write(s)
+      f.close()
+      print("Generated JSON configuration file " + json_configuration_filename)
+      print("Generating JSON defaults configuration file...")
+      s = "{\n"
+      i = 1
+      for algorithm in self.sequence:
+        has_modified_properties = False
+        for prop_name, prop in iter(algorithm.properties().items()):
+          if prop.default_value() != "":
+            has_modified_properties = True
+            break
+        if has_modified_properties:
+          s += prefix(i) + "\"" + algorithm.name() + "\": {"
+          for prop_name, prop in iter(algorithm.properties().items()):
+            if prop.default_value() != "":
+              s += "\"" + prop_name + "\": \"" + prop.default_value() + "\", "
+          s = s[:-2]
+          s += "},\n"
+      if s[-2] == ",":
+        s = s[:-2]
+      s += "\n}\n"
+      f = open(json_defaults_configuration_filename, "w")
+      f.write(s)
+      f.close()
+      print("Generated JSON defaults configuration file " + json_defaults_configuration_filename)
     else:
       print("The sequence contains errors. Please fix them and generate again.")  
 

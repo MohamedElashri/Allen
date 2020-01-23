@@ -19,10 +19,12 @@ def get_filenames(folder, extensions):
 algorithm_pattern = "struct (?P<name>[\\w_]+) : public (?P<scope>Host|Device)Algorithm"
 variable_pattern = "(?P<scope>HOST|DEVICE)_(?P<io>INPUT|OUTPUT)\\((?P<name>[\\w_]+), (?P<type>[^)]+)\\)" # ( [\\w_]+)?;
 namespace_pattern = "namespace (?P<name>[\\w_]+).*?public (?P<scope>Host|Device)Algorithm"
+property_pattern = "PROPERTY\\((?P<typename>[\\w_]+),.*?(?P<type>[^,]+),.*?(?P<name>[^,]+),.*?(?P<default_value>[^,]+),.*?(?P<description>[^)]+)\\)" # ( [\\w_]+)?;
 
 algorithm_pattern_compiled = re.compile(algorithm_pattern)
 variable_pattern_compiled = re.compile(variable_pattern)
 namespace_pattern_compiled = re.compile(namespace_pattern, re.DOTALL)
+property_pattern_compiled = re.compile(property_pattern, re.DOTALL)
 
 prefix_project_folder = "../../"
 device_folder = prefix_project_folder + "cuda"
@@ -44,6 +46,7 @@ for filename in all_filenames:
     namespace = namespace_pattern_compiled.search(s)
     if namespace:
       variables = variable_pattern_compiled.finditer(s)
+      properties = property_pattern_compiled.finditer(s)
 
       variable_map = OrderedDict([(v.group("name"), OrderedDict([
         ("scope", v.group("scope")),
@@ -51,12 +54,20 @@ for filename in all_filenames:
         ("type", v.group("type"))
         ])) for v in variables])
 
+      property_map = OrderedDict([(v.group("typename"), OrderedDict([
+        ("name", v.group("name")),
+        ("type", v.group("type")),
+        ("default_value", v.group("default_value")),
+        ("description", v.group("description"))
+        ])) for v in properties])
+
       parsed_algorithms.append(OrderedDict([
         ("name", algorithm.group("name")),
         ("scope", algorithm.group("scope")),
         ("filename", filename),
         ("namespace", namespace.group("name")),
-        ("variables", variable_map)
+        ("variables", variable_map),
+        ("properties", property_map)
         ]))
 
 # print("Found", len(parsed_algorithms), "algorithms")
@@ -105,7 +116,33 @@ def write_algorithm_code(algorithm, i = 0):
     s += "\n" + prefix(i) + "(\"" + var_name + "\", " + create_var_type(var["scope"], var["io"]) \
       + "(" + var_name + ", \"" + var["type"] + "\")),"
   s = s[:-1]
-  s += "])\n"
+  if len(algorithm["variables"]) > 0:
+    s += "]"
+  s += ")\n"
+  i -= 1
+  s += prefix(i) + "self.__ordered_properties = OrderedDict(["
+  i += 1
+  if algorithm["scope"] == "Device":
+    algorithm["properties"]["grid_dim"] = OrderedDict([
+      ("name", "\"grid_dim\""),
+      ("type", "std::array<uint, 3>"),
+      ("default_value", "{1, 1, 1}"),
+      ("description", "\"grid dimension\"")
+      ])
+    algorithm["properties"]["block_dim"] = OrderedDict([
+      ("name", "\"block_dim\""),
+      ("type", "std::array<uint, 3>"),
+      ("default_value", "{32, 1, 1}"),
+      ("description", "\"block dimension\"")
+      ])
+  for prop_name, prop in iter(algorithm["properties"].items()):
+    s += "\n" + prefix(i) + "(" + prop["name"].strip() + ", Property" \
+      + "(\"" + prop["type"].strip() + "\", " \
+      + "\"" + prop["default_value"].strip() + "\", " + prop["description"].strip() + ")),"
+  s = s[:-1]
+  if len(algorithm["properties"]) > 0:
+    s += "]"
+  s += ")\n"
   i -= 1
   s += "\n"
   i -= 1
@@ -141,6 +178,12 @@ def write_algorithm_code(algorithm, i = 0):
     s += prefix(i) + "return self.__ordered_parameters[\"" + var_name + "\"]\n\n"
     i -= 1
 
+  for prop_name, prop in iter(algorithm["properties"].items()):
+    s += prefix(i) + "def property_" + prop_name + "(self):\n"
+    i += 1
+    s += prefix(i) + "return self.__ordered_properties[\"" + prop_name + "\"]\n\n"
+    i -= 1
+
   for var_name, var in iter(algorithm["variables"].items()):
     s += prefix(i) + "def set_" + var_name + "(self, value):\n"
     i += 1
@@ -154,10 +197,24 @@ def write_algorithm_code(algorithm, i = 0):
     s += prefix(i) + "assert value.type() == \"" + var["type"] + "\"\n"
     s += prefix(i) + "self.__ordered_parameters[\"" + var_name + "\"].set_name(value.name)\n\n"
     i -= 2
+
+  for prop_name, prop in iter(algorithm["properties"].items()):
+    s += prefix(i) + "def set_property_" + prop_name + "(self, value):\n"
+    i += 1
+    s += prefix(i) + "if value.__class__ == str:\n"
+    i += 1
+    s += prefix(i) + "self.__ordered_properties[\"" + prop_name + "\"].set_value(value)\n\n"
+    i -= 2
   
   s += prefix(i) + "def parameters(self):\n"
   i += 1
   s += prefix(i) + "return self.__ordered_parameters\n"
+  i -= 1
+  s += "\n"
+
+  s += prefix(i) + "def properties(self):\n"
+  i += 1
+  s += prefix(i) + "return self.__ordered_properties\n"
   i -= 1
   s += "\n"
 

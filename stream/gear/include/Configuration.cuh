@@ -56,7 +56,10 @@ namespace Configuration {
   }
 
   template<>
-  std::string to_string<DeviceDimensions>(const DeviceDimensions& holder);
+  std::string to_string<PropertyGridDimensions>(const PropertyGridDimensions& holder);
+
+  template<>
+  std::string to_string<PropertyBlockDimensions>(const PropertyBlockDimensions& holder);
 } // namespace Configuration
 
 /**
@@ -120,14 +123,14 @@ public:
   }
 
   template<typename T>
-  T get_property_value(std::string property_name) const
+  T get_property_value() const
   {
     T holder;
-    auto prop = dynamic_cast<Property<T> const*>(get_prop(property_name));
+    auto prop = dynamic_cast<Property<T> const*>(get_prop(T::name));
     if (prop)
       holder = prop->get_value();
     else
-      std::cout << "property " << property_name << " not found" << std::endl;
+      std::cout << "property " << T::name << " not found" << std::endl;
     return holder;
   }
 
@@ -205,12 +208,11 @@ public:
   HostProperty() = delete;
 
   HostProperty(
-    BaseAlgorithm* algo,
-    const std::string& name,
-    const V& default_value,
-    const std::string& description = "") :
+    BaseAlgorithm* algo) :
     m_algo {algo},
-    m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
+    m_cached_value {V::default_value},
+    m_name {V::name},
+    m_description {V::description}
   {
     algo->register_property(m_name, this);
   }
@@ -259,12 +261,11 @@ public:
   Property() = delete;
 
   Property(
-    BaseAlgorithm* algo,
-    const std::string& name,
-    V const default_value,
-    const std::string& description = "") :
+    BaseAlgorithm* algo) :
     m_algo {algo},
-    m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
+    m_cached_value {V::default_value},
+    m_name {V::name},
+    m_description {V::description}
   {
     algo->register_property(m_name, this);
   }

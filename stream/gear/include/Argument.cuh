@@ -4,9 +4,11 @@
 
 // Datatypes can be host or device.
 // Note: These structs need to be not templated.
-struct host_datatype {};
+struct host_datatype {
+};
 
-struct device_datatype {};
+struct device_datatype {
+};
 
 // A generic datatype* data holder.
 template<typename internal_t>
@@ -94,6 +96,7 @@ struct output_host_datatype : host_datatype, output_datatype<internal_t> {
 template<typename T>
 struct property_datatype {
   using t = T;
+
   __host__ __device__ property_datatype(const T& value) : m_value(value) {}
   __host__ __device__ property_datatype() {}
   __host__ __device__ operator T() const { return this->m_value; }
@@ -106,22 +109,33 @@ protected:
 struct DeviceDimensions : property_datatype<std::array<uint, 3>> {
   using property_datatype<std::array<uint, 3>>::property_datatype;
 
-  uint operator[](const uint index) const {
-    return property_datatype<std::array<uint, 3>>::m_value[index];
-  }
+  uint operator[](const uint index) const { return property_datatype<std::array<uint, 3>>::m_value[index]; }
 
-  uint& operator[](const uint index) {
-    return property_datatype<std::array<uint, 3>>::m_value[index];
-  }
+  uint& operator[](const uint index) { return property_datatype<std::array<uint, 3>>::m_value[index]; }
 
-  size_t size() {
-    return property_datatype<std::array<uint, 3>>::m_value.size();
-  }
+  size_t size() { return property_datatype<std::array<uint, 3>>::m_value.size(); }
 };
 
-#define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE)                 \
-  struct ARGUMENT_NAME : property_datatype<ARGUMENT_TYPE> {    \
-    using property_datatype<ARGUMENT_TYPE>::property_datatype; \
+struct PropertyBlockDimensions : public DeviceDimensions {
+  constexpr static auto name {"block_dim"};
+  constexpr static std::array<uint, 3> default_value {{32, 1, 1}};
+  constexpr static auto description {"block dimensions"};
+  using DeviceDimensions::DeviceDimensions;
+};
+
+struct PropertyGridDimensions : public DeviceDimensions {
+  constexpr static auto name {"grid_dim"};
+  constexpr static std::array<uint, 3> default_value {{1, 1, 1}};
+  constexpr static auto description {"grid dimensions"};
+  using DeviceDimensions::DeviceDimensions;
+};
+
+#define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE, NAME, DEFAULT_VALUE, DESCRIPTION) \
+  struct ARGUMENT_NAME : property_datatype<ARGUMENT_TYPE> {                      \
+    constexpr static auto name {NAME};                                           \
+    constexpr static auto default_value {DEFAULT_VALUE};                         \
+    constexpr static auto description {DESCRIPTION};                             \
+    using property_datatype<ARGUMENT_TYPE>::property_datatype;                   \
   }
 
 /**
