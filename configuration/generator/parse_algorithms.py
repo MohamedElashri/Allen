@@ -19,7 +19,7 @@ def get_filenames(folder, extensions):
 algorithm_pattern = "struct (?P<name>[\\w_]+) : public (?P<scope>Host|Device)Algorithm"
 variable_pattern = "(?P<scope>HOST|DEVICE)_(?P<io>INPUT|OUTPUT)\\((?P<name>[\\w_]+), (?P<type>[^)]+)\\)" # ( [\\w_]+)?;
 namespace_pattern = "namespace (?P<name>[\\w_]+).*?public (?P<scope>Host|Device)Algorithm"
-property_pattern = "PROPERTY\\((?P<typename>[\\w_]+),.*?(?P<type>[^,]+),.*?(?P<name>[^,]+),.*?(?P<default_value>[^,]+),.*?(?P<description>[^)]+)\\)" # ( [\\w_]+)?;
+property_pattern = "PROPERTY\\(.*?(?P<typename>[\\w_]+),.*?(?P<type>[^,]+),.*?(?P<name>[^,]+),.*?(?P<default_value>[^,]+),.*?(?P<description>[^)]+)\\)" # ( [\\w_]+)?;
 
 algorithm_pattern_compiled = re.compile(algorithm_pattern)
 variable_pattern_compiled = re.compile(variable_pattern)
@@ -209,7 +209,7 @@ def write_algorithm_code(algorithm, i = 0):
   i -= 2
   s += prefix(i) + "else:\n"
   i += 1
-  s += prefix(i) + "print(\"\\\"\" + name + \"\\\" is not a property of this algorithm.\"):\n\n"
+  s += prefix(i) + "print(\"\\\"\" + name + \"\\\" is not a property of this algorithm.\")\n\n"
   i -= 2
 
   s += prefix(i) + "def parameters(self):\n"

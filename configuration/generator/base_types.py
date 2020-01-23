@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 class Type():
   def __init__(self, vtype):
     if vtype == "uint" or vtype == "unsigned int" or vtype == "unsigned int32_t":
@@ -193,7 +195,7 @@ class Property():
     return self.__description
 
   def set_value(self, value):
-    self.__default_value = value
+    self.__value = value
 
   def __repr__(self):
     return "Property(" + repr(self.__type) + ", " + self.__default_value + ", " + self.__description + ") = \"" + self.__value + "\""
@@ -398,3 +400,9 @@ class Sequence():
       s += "  " + i + "\n"
     s = s[:-1]
     return s
+
+  def __getitem__(self, value):
+    return self.__sequence[value]
+
+  def __setitem__(self, key, value):
+    self.__sequence[key] = value
