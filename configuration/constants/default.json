@@ -1,3 +1,1 @@
-{
-  "compass_ut_t": {"sigma_velo_slope": "0.00010", "min_momentum_final": "0.0", "min_pt_final": "0.0", "hit_tol_2": "0.8", "delta_tx_2": "0.018", "max_considered_before_found": "16"}
-}
+{}
