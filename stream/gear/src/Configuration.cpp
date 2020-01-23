@@ -29,7 +29,7 @@ uint Configuration::from_string<uint>(const std::string& s)
 template<>
 DeviceDimensions Configuration::from_string<DeviceDimensions>(const std::string& string_value)
 {
-  DeviceDimensions dimensions {1, 1, 1};
+  DeviceDimensions dimensions;
   std::smatch matches;
   auto r = std::regex_match(string_value, matches, Detail::array_expr);
   if (!r) {
@@ -37,14 +37,21 @@ DeviceDimensions Configuration::from_string<DeviceDimensions>(const std::string&
   }
   auto digits_begin = std::sregex_iterator(string_value.begin(), string_value.end(), Detail::digit_expr);
   auto digits_end = std::sregex_iterator();
-  if (std::distance(digits_begin, digits_end) != dimensions.size()) {
+  if (std::distance(digits_begin, digits_end) != 3) {
     throw std::exception{};
   }
   int idx = 0;
   for (auto i = digits_begin; i != digits_end; ++i) {
-    dimensions[idx++] = atoi(i->str().c_str());
+    if (idx == 0) {
+      dimensions.x = atoi(i->str().c_str());
+    } else if (idx == 1) {
+      dimensions.y = atoi(i->str().c_str());
+    } else {
+      dimensions.z = atoi(i->str().c_str());
+    }
+    idx++;
   }
-  return DeviceDimensions {dimensions};
+  return dimensions;
 }
 
 template<>
@@ -52,18 +59,7 @@ std::string Configuration::to_string_impl<DeviceDimensions>(const DeviceDimensio
 {
   // very basic implementation based on streaming
   std::stringstream s;
-  s << "[";
-  bool first = true;
-  for (auto v : holder) {
-    if (first) {
-      s << v;
-      first = false;
-    }
-    else {
-      s << ", " << v;
-    }
-  }
-  s << "]";
+  s << "[" << holder.x << ", " << holder.y << ", " << holder.z << "]";
   return s.str();
 }
 

@@ -92,6 +92,17 @@ struct output_host_datatype : host_datatype, output_datatype<internal_t> {
     using output_host_datatype<ARGUMENT_TYPE>::output_host_datatype; \
   }
 
+// Struct that mimics std::array<uint, 3> and works with CUDA.
+struct DeviceDimensions {
+  uint x;
+  uint y;
+  uint z;
+
+  constexpr DeviceDimensions() : x(1), y(1), z(1) {}
+  constexpr DeviceDimensions(const DeviceDimensions& other) : x(other.x), y(other.y), z(other.z) {}
+  constexpr DeviceDimensions(const std::array<uint, 3>& v) : x(v[0]), y(v[1]), z(v[2]) {}
+};
+
 // A property datatype data holder.
 template<typename T>
 struct property_datatype {
@@ -108,26 +119,24 @@ protected:
 };
 
 template<>
-struct property_datatype<std::array<uint, 3>> {
-  using t = std::array<uint, 3>;
+struct property_datatype<DeviceDimensions> {
+  using t = DeviceDimensions;
 
-  __host__ __device__ constexpr property_datatype(const t& value) : m_value(value) {}
-  __host__ __device__ constexpr property_datatype() {}
-  __host__ __device__ operator t() const { return this->m_value; }
-  __host__ __device__ t get() const { return this->m_value; }
-  __host__ __device__ operator dim3() const { return {this->m_value[0], this->m_value[1], this->m_value[2]}; }
+  constexpr property_datatype(const t& value) : m_value(value) {}
+  constexpr property_datatype() {}
+  operator t() const { return this->m_value; }
+  t get() const { return this->m_value; }
+  operator dim3() const { return {this->m_value.x, this->m_value.y, this->m_value.z}; }
 
 protected:
-  t m_value = {{1, 1, 1}};
+  t m_value;
 };
-
-using DeviceDimensions = std::array<uint, 3>;
 
 // TODO: Make the PROPERTY either explicit or less fragile
 #define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE, NAME, DESCRIPTION, ...) \
   struct ARGUMENT_NAME : property_datatype<ARGUMENT_TYPE> {            \
     constexpr static auto name {NAME};                                 \
-    constexpr static ARGUMENT_TYPE default_value {__VA_ARGS__};                 \
+    constexpr static ARGUMENT_TYPE default_value {__VA_ARGS__};        \
     constexpr static auto description {DESCRIPTION};                   \
     using property_datatype<ARGUMENT_TYPE>::property_datatype;         \
   }
