@@ -1,7 +1,7 @@
 from algorithms import *
 from PVSequence import PV_sequence
 
-def UT_sequence(validate=True):
+def UT_sequence(validate=False):
   ut_calculate_number_of_hits = ut_calculate_number_of_hits_t()
   
   prefix_sum_ut_hits = host_prefix_sum_t("prefix_sum_ut_hits",

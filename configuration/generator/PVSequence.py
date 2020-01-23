@@ -1,7 +1,7 @@
 from algorithms import *
 from VeloSequence import VELO_sequence
 
-def PV_sequence():
+def PV_sequence(validate=False):
   velo_kalman_filter = velo_kalman_filter_t()
   pv_beamline_extrapolate = pv_beamline_extrapolate_t()
   pv_beamline_histo = pv_beamline_histo_t()
@@ -19,6 +19,7 @@ def PV_sequence():
     pv_beamline_multi_fitter,
     pv_beamline_cleanup)
 
-  s.validate()
+  if validate:
+    s.validate()
 
   return s

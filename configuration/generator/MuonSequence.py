@@ -1,7 +1,7 @@
 from algorithms import *
 from ForwardSequence import Forward_sequence
 
-def Muon_sequence(validate=True):
+def Muon_sequence(validate=False):
   muon_pre_decoding = muon_pre_decoding_t()
 
   muon_pre_decoding_prefix_sum = host_prefix_sum_t("muon_pre_decoding_prefix_sum",

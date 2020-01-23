@@ -307,7 +307,7 @@ class Sequence():
         s = s[:-2]
         s += " { constexpr static auto name {\"" + paramenter_name + "\"}; size_t size; char* offset; };\n"
       # Generate sequence
-      s += "\ntypedef std::tuple<\n"
+      s += "\nusing configured_sequence_t = std::tuple<\n"
       i_alg = 0
       for _, algorithm in iter(self.__sequence.items()):
         i_alg += 1
@@ -329,7 +329,7 @@ class Sequence():
         if i_alg != len(self.__sequence):
           s += ","
         s += "\n"
-      s += "> configured_sequence_t;\n"
+      s += ">;\n"
       f = open(output_filename, "w")
       f.write(s)
       f.close()

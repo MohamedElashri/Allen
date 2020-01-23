@@ -1,6 +1,6 @@
 from algorithms import *
 
-def VELO_sequence(validate=True):
+def VELO_sequence(validate=False):
   host_global_event_cut = host_global_event_cut_t()
   velo_estimate_input_size = velo_estimate_input_size_t()
 

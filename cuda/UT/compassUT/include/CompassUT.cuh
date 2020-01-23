@@ -39,7 +39,7 @@ namespace compass_ut {
       float,
       "min_momentum_final",
       "final min momentum cut [MeV/c]",
-      2.5f * Gaudi::Units::GeV)
+      0.f)
     min_momentum_final;
     PROPERTY(min_pt_final_t, float, "min_pt_final", "final min pT cut [MeV/c]", 0.f)
     min_pt_final;

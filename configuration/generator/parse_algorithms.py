@@ -225,8 +225,17 @@ def write_algorithm_code(algorithm, i = 0):
 
   return s
 
-s = write_preamble()
-for algorithm in parsed_algorithms:
-  s += write_algorithm_code(algorithm)
 
-print(s)
+if __name__ == '__main__':
+  filename = "algorithms.py"
+  print("Generating " + filename + "...")
+
+  s = write_preamble()
+  for algorithm in parsed_algorithms:
+    s += write_algorithm_code(algorithm)
+
+  f = open(filename, "w")
+  f.write(s)
+  f.close()
+
+  print("File " + filename + " was successfully generated.")
