@@ -67,7 +67,6 @@ class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tup
   Gaudi::Property<std::string>       m_detectorConfigurationPath{this, "DetectorConfigurationPath", "../Allen/input/detector_configuration/down/"};
   Gaudi::Property<std::string>       m_algorithmConfigurationPath{this, "AlgorithmConfigurationPath", "../Allen/configuration/constants/"};
   Gaudi::Property<bool>              m_do_check{this, "do_check", true};
-  
 };
 
 

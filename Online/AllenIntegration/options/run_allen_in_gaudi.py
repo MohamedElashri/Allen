@@ -25,9 +25,6 @@ from Configurables import TrackResChecker, PrimaryVertexChecker
 from Configurables import DumpUTGeometry, DumpFTGeometry, DumpMuonTable
 from Configurables import DumpMuonGeometry, DumpVPGeometry
 from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables
-from Configurables import (VPClus, createODIN, DumpRawBanks, DumpUTHits,
-                           DumpFTHits, DumpMuonCoords, DumpMuonCommonHits,
-                           MuonRec, PrepareMuonHits)
 from Configurables import ApplicationMgr
 from Configurables import ProcessPhase
 

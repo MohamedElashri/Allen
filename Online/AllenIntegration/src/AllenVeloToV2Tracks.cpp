@@ -1,4 +1,3 @@
-
 /***************************************************************************** \
  * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
  *                                                                             *
