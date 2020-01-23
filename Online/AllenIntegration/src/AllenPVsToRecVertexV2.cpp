@@ -47,14 +47,14 @@ std::vector<LHCb::Event::v2::RecVertex> AllenPVsToRecVertexV2::operator()(const 
 
   std::vector<LHCb::Event::v2::RecVertex> recvertexcontainer;
   recvertexcontainer.reserve( n_pvs );
-  const auto maxVertexRho2 = std::sqrt( m_maxVertexRho.value() );
+  const auto maxVertexRho2 = m_maxVertexRho.value() * m_maxVertexRho.value() ;
   
   for ( int i = 0; i < n_pvs; i++ ) {
     const PV::Vertex& vertex = host_buffers.host_reconstructed_multi_pvs[i_event * PatPV::max_number_vertices + i];
 
     const auto beamlinedx   = vertex.position.x - beamline.X;
     const auto beamlinedy   = vertex.position.y - beamline.Y;
-    const auto beamlinerho2 = std::sqrt( beamlinedx ) + std::sqrt( beamlinedy );
+    const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
     if ( vertex.nTracks >= m_minNumTracksPerVertex && beamlinerho2 < maxVertexRho2 ) { // already checked in Allen PV finder
       Gaudi::SymMatrix3x3 poscov;
       poscov(0,0) = vertex.cov00;

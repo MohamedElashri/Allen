@@ -82,7 +82,7 @@ StatusCode RunAllen::initialize() {
   // Initialize stream
   const bool print_memory_usage = false;
   const uint start_event_offset = 0;
-  const size_t reserve_mb = 5; // to do: how much do we need maximally for one event?
+  const size_t reserve_mb = 10; // to do: how much do we need maximally for one event?
   m_stream = new Stream();
   m_stream->configure_algorithms(configuration_reader.params());
   m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants, &m_host_buffers_manager);
@@ -125,7 +125,10 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(const std::array<std::vector<
 
   const uint buf_idx = m_n_buffers - 1;
   cudaError_t rv = m_stream->run_sequence(buf_idx, runtime_options);
-  
+  if (rv != cudaSuccess) {
+    error() << "Allen exited with errorCode " << rv << endmsg;
+    // how to exit a filter with failure?
+  }
   bool filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_selected_events[0];
   info() << "Event selected by Allen: " << uint(filter) << endmsg;
   return std::make_tuple( filter, *(m_stream->host_buffers_manager->getBuffers(buf_idx)) );
