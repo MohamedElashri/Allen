@@ -12,6 +12,15 @@ namespace velo_fill_candidates {
     DEVICE_INPUT(dev_hit_phi_t, float) dev_hit_phi;
     DEVICE_OUTPUT(dev_h0_candidates_t, short) dev_h0_candidates;
     DEVICE_OUTPUT(dev_h2_candidates_t, short) dev_h2_candidates;
+
+    // These parameters impact the found tracks
+    // Maximum / minimum acceptable phi
+    // These two parameters impacts enourmously the speed of track seeding
+    PROPERTY(phi_extrapolation_base_t, float) phi_extrapolation_base;
+
+    // A higher coefficient improves efficiency at the
+    // cost of performance
+    PROPERTY(phi_extrapolation_coef_t, float) phi_extrapolation_coef;
   };
 
   __global__ void velo_fill_candidates(Parameters);
@@ -49,8 +58,17 @@ namespace velo_fill_candidates {
           begin<dev_module_cluster_num_t>(arguments),
           begin<dev_hit_phi_t>(arguments),
           begin<dev_h0_candidates_t>(arguments),
-          begin<dev_h2_candidates_t>(arguments)
+          begin<dev_h2_candidates_t>(arguments),
+          get_property_value<phi_extrapolation_base_t>("phi_extrapolation_base"),
+          get_property_value<phi_extrapolation_coef_t>("phi_extrapolation_coef")
         });
     }
+
+  private:
+    Property<phi_extrapolation_base_t> m_ext_base {this, "phi_extrapolation_base", 0.03f, "phi extrapolation base"};
+    Property<phi_extrapolation_coef_t> m_ext_coef {this,
+                                                   "phi_extrapolation_coef",
+                                                   0.0002f,
+                                                   "phi extrapolation coefficient"};
   };
 } // namespace velo_fill_candidates

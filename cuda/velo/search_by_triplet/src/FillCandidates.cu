@@ -21,7 +21,8 @@ __device__ std::tuple<int, int> candidate_binary_search(
   const int module_hit_start,
   const int module_number_of_hits,
   const float h1_phi,
-  const float phi_window) {
+  const float phi_window)
+{
   // Do a binary search for the first candidate
   const auto first_candidate =
     binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, h1_phi - phi_window);
@@ -49,7 +50,8 @@ __device__ std::tuple<int, int> candidate_capped_search(
   const int module_number_of_hits,
   const float h1_phi,
   const float phi_window,
-  const int maximum_candidates_side) {
+  const int maximum_candidates_side)
+{
   int first_candidate = -1;
   int number_of_candidates = 0;
 
@@ -97,7 +99,9 @@ __device__ void fill_candidates_impl(
   const uint* module_hitNums,
   Velo::ConstClusters& velo_cluster_container,
   const float* hit_Phis,
-  const uint hit_offset)
+  const uint hit_offset,
+  const float phi_extrapolation_base,
+  const float phi_extrapolation_coef)
 {
   // Notation is m0, m1, m2 in reverse order for each module
   // A hit in those is h0, h1, h2 respectively
@@ -116,9 +120,7 @@ __device__ void fill_candidates_impl(
 
     // Calculate phi limits
     const auto h1_phi = hit_Phis[h1_index];
-    const auto phi_window =
-      Configuration::velo_search_by_triplet::phi_extrapolation_base +
-      fabsf(velo_cluster_container.z(h1_index)) * Configuration::velo_search_by_triplet::phi_extrapolation_coef;
+    const auto phi_window = phi_extrapolation_base + fabsf(velo_cluster_container.z(h1_index)) * phi_extrapolation_coef;
 
     const auto found_h0_candidates = candidate_binary_search(hit_Phis, m0_hitStarts, m0_hitNums, h1_phi, phi_window);
 
@@ -144,20 +146,30 @@ __device__ void fill_candidates_impl(
  *
  *          These candidates will be then iterated in the seeding step of Sbt.
  */
-__global__ void velo_fill_candidates::velo_fill_candidates(velo_fill_candidates::Parameters parameters) {
+__global__ void velo_fill_candidates::velo_fill_candidates(velo_fill_candidates::Parameters parameters)
+{
   const uint event_number = blockIdx.x;
   const uint number_of_events = gridDim.x;
 
   // Pointers to data within the event
   const uint total_estimated_number_of_clusters =
     parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts = parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
+  const uint* module_hitStarts =
+    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint* module_hitNums = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   const auto hit_offset = module_hitStarts[0];
 
   const auto velo_cluster_container =
-    Velo::ConstClusters{parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters};
+    Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters};
 
   fill_candidates_impl(
-    parameters.dev_h0_candidates, parameters.dev_h2_candidates, module_hitStarts, module_hitNums, velo_cluster_container, parameters.dev_hit_phi, hit_offset);
+    parameters.dev_h0_candidates,
+    parameters.dev_h2_candidates,
+    module_hitStarts,
+    module_hitNums,
+    velo_cluster_container,
+    parameters.dev_hit_phi,
+    hit_offset,
+    parameters.phi_extrapolation_base,
+    parameters.phi_extrapolation_coef);
 }

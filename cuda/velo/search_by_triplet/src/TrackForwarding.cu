@@ -17,17 +17,23 @@ __device__ void track_forwarding(
   Velo::TrackletHits* tracklets,
   Velo::TrackHits* tracks,
   uint* dev_atomics_velo,
-  uint* dev_number_of_velo_tracks) {
+  uint* dev_number_of_velo_tracks,
+  const float forward_phi_tolerance,
+  const int ttf_modulo_mask,
+  const uint ttf_modulo,
+  const float max_scatter_forwarding,
+  const uint max_skipped_modules)
+{
   // Assign a track to follow to each thread
   for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
     const auto full_track_number =
-      tracks_to_follow[(prev_ttf + ttf_element) & Configuration::velo_search_by_triplet::ttf_modulo_mask];
+      tracks_to_follow[(prev_ttf + ttf_element) & ttf_modulo_mask];
     const bool track_flag = (full_track_number & 0x80000000) == 0x80000000;
     const auto skipped_modules = (full_track_number & 0x70000000) >> 28;
     auto track_number = full_track_number & 0x0FFFFFFF;
 
     assert(
-      track_flag ? track_number < Configuration::velo_search_by_triplet::ttf_modulo :
+      track_flag ? track_number < ttf_modulo :
                    track_number < Velo::Constants::max_tracks);
 
     int number_of_hits;
@@ -62,15 +68,27 @@ __device__ void track_forwarding(
     const auto ty = tyn * td;
 
     // Find the best candidate
-    float best_fit = Configuration::velo_search_by_triplet::max_scatter_forwarding;
+    float best_fit = max_scatter_forwarding;
     int best_h2 = -1;
 
     // Get candidates by performing a binary search in expected phi
     const auto odd_module_candidates = find_forward_candidates(
-      module_data[2], tx, ty, hit_phi, h0, [](const float x, const float y) { return hit_phi_odd(x, y); });
+      module_data[2],
+      tx,
+      ty,
+      hit_phi,
+      h0,
+      [](const float x, const float y) { return hit_phi_odd(x, y); },
+      forward_phi_tolerance);
 
     const auto even_module_candidates = find_forward_candidates(
-      module_data[3], tx, ty, hit_phi, h0, [](const float x, const float y) { return hit_phi_even(x, y); });
+      module_data[3],
+      tx,
+      ty,
+      hit_phi,
+      h0,
+      [](const float x, const float y) { return hit_phi_even(x, y); },
+      forward_phi_tolerance);
 
     // Search on both modules in the same for loop
     const int total_odd_candidates = std::get<1>(odd_module_candidates) - std::get<0>(odd_module_candidates);
@@ -130,17 +148,17 @@ __device__ void track_forwarding(
       }
 
       // Add the tracks to the bag of tracks to_follow
-      const auto ttf_p = atomicAdd(dev_atomics_velo + 2, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
+      const auto ttf_p = atomicAdd(dev_atomics_velo + 2, 1) & ttf_modulo_mask;
       tracks_to_follow[ttf_p] = track_number;
     }
     // A track just skipped a module
     // We keep it for another round
-    else if (skipped_modules < Configuration::velo_search_by_triplet::max_skipped_modules) {
+    else if (skipped_modules < max_skipped_modules) {
       // Form the new mask
       track_number = ((skipped_modules + 1) << 28) | (full_track_number & 0x8FFFFFFF);
 
       // Add the tracks to the bag of tracks to_follow
-      const auto ttf_p = atomicAdd(dev_atomics_velo + 2, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
+      const auto ttf_p = atomicAdd(dev_atomics_velo + 2, 1) & ttf_modulo_mask;
       tracks_to_follow[ttf_p] = track_number;
     }
     // If there are only three hits in this track,

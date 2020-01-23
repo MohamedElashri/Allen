@@ -4,11 +4,9 @@
 
 // Datatypes can be host or device.
 // Note: These structs need to be not templated.
-struct host_datatype {
-};
+struct host_datatype {};
 
-struct device_datatype {
-};
+struct device_datatype {};
 
 // A generic datatype* data holder.
 template<typename internal_t>
@@ -96,13 +94,29 @@ struct output_host_datatype : host_datatype, output_datatype<internal_t> {
 template<typename T>
 struct property_datatype {
   using t = T;
-  __host__ __device__ property_datatype(T value) : m_value(value) {}
+  __host__ __device__ property_datatype(const T& value) : m_value(value) {}
   __host__ __device__ property_datatype() {}
   __host__ __device__ operator T() const { return this->m_value; }
   __host__ __device__ T get() const { return this->m_value; }
 
 protected:
   T m_value;
+};
+
+struct DeviceDimensions : property_datatype<std::array<uint, 3>> {
+  using property_datatype<std::array<uint, 3>>::property_datatype;
+
+  uint operator[](const uint index) const {
+    return property_datatype<std::array<uint, 3>>::m_value[index];
+  }
+
+  uint& operator[](const uint index) {
+    return property_datatype<std::array<uint, 3>>::m_value[index];
+  }
+
+  size_t size() {
+    return property_datatype<std::array<uint, 3>>::m_value.size();
+  }
 };
 
 #define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE)                 \

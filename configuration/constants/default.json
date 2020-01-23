@@ -47,10 +47,10 @@
   "ut_search_windows_t": {"min_momentum" : "3000.0", "min_pt" : "0.0", "y_tol" : "0.5", "y_tol_slope" : "0.08"},
   "velo_calculate_phi_and_sort_t": {"block_dim" : "[64, 1, 1]"},
   "velo_estimate_input_size_t": {"block_dim" : "[16, 16, 1]"},
-  "velo_fill_candidates_t": {"block_dim" : "[128, 1, 1]"},
+  "velo_fill_candidates_t": {"block_dim" : "[128, 1, 1]", "phi_extrapolation_base" : "0.03", "phi_extrapolation_coef" : "0.0002"},
   "velo_kalman_fit_t": {"block_dim" : "[256, 1, 1]"},
   "velo_masked_clustering_t": {"block_dim" : "[256, 1, 1]"},
   "velo_pv_ip_t": {"block_dim" : "[32, 1, 1]"},
-  "velo_search_by_triplet_t": {"block_dim" : "[32, 1, 1]", "forward_phi_tolerance" : "0.052", "max_chi2" : "20.0", "max_scatter_forwarding" : "0.1", "max_scatter_seeding" : "0.1", "max_skipped_modules" : "1", "max_weak_tracks" : "500", "phi_extrapolation_base" : "0.03", "phi_extrapolation_coef" : "0.0002", "ttf_modulo" : "2048", "ttf_modulo_mask" : "0x7FF" },
-  "velo_weak_tracks_adder_t": {"block_dim" : "[256, 1, 1]"}
+  "velo_search_by_triplet_t": {"block_dim" : "[32, 1, 1]", "forward_phi_tolerance" : "0.052", "max_scatter_forwarding" : "0.1", "max_scatter_seeding" : "0.1", "max_skipped_modules" : "1", "ttf_modulo" : "2048", "ttf_modulo_mask" : "0x7FF", "max_weak_tracks" : "500"},
+  "velo_three_hit_tracks_filter_t": {"block_dim" : "[256, 1, 1]", "max_chi2" : "20.0", "max_weak_tracks" : "500"}
 }

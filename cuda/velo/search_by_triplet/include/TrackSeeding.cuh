@@ -11,4 +11,6 @@ __device__ void track_seeding(
   Velo::TrackletHits* tracklets,
   uint* tracks_to_follow,
   unsigned short* h1_rel_indices,
-  uint* dev_shifted_atomics_velo);
+  uint* dev_shifted_atomics_velo,
+  const float max_scatter_seeding,
+  const int ttf_modulo_mask);

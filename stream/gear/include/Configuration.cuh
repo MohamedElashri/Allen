@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CudaCommon.h"
+#include "Argument.cuh"
 
 #include <string>
 #include <sstream>
@@ -28,17 +29,14 @@ namespace Configuration {
 
   // Helper function to deal with a convertor from string
   template<typename T>
-  T temp_from_string(const std::string& s);
-
-  template<typename T>
-  bool new_from_string(const std::string& s) {
-    holder = T {temp_from_string<typename T::t>(value)};
-    return true;
-  }
+  T from_string(const std::string& s);
 
   // General template
   template<typename T>
-  bool from_string(T& holder, const std::string& value);
+  bool from_string(T& holder, const std::string& value) {
+    holder = from_string<typename T::t>(value);
+    return true;
+  }
 
   // General template
   template<typename T>
@@ -51,25 +49,8 @@ namespace Configuration {
   }
 
   template<>
-  std::string to_string<std::array<uint, 3>>(std::array<uint, 3> const& holder);
+  std::string to_string<DeviceDimensions>(const DeviceDimensions& holder);
 } // namespace Configuration
-
-// Specialization for std::array<int, 3>
-template<>
-bool Configuration::from_string<std::array<uint, 3>>(std::array<uint, 3>& holder, const std::string& string_value)
-{
-  std::smatch matches;
-  auto r = std::regex_match(string_value, matches, Detail::array_expr);
-  if (!r) return r;
-  auto digits_begin = std::sregex_iterator(string_value.begin(), string_value.end(), Detail::digit_expr);
-  auto digits_end = std::sregex_iterator();
-  if (std::distance(digits_begin, digits_end) != holder.size()) return false;
-  int idx(0);
-  for (auto i = digits_begin; i != digits_end; ++i) {
-    holder[idx++] = atoi(i->str().c_str());
-  }
-  return r;
-}
 
 /**
  * @brief      Common interface for templated Property and SharedProperty classes
@@ -82,8 +63,6 @@ public:
   virtual std::string to_string() const = 0;
 
   virtual std::string print() const = 0;
-
-  virtual void sync_value() const = 0;
 
   virtual ~BaseProperty() {}
 };
@@ -221,7 +200,7 @@ public:
   HostProperty(
     BaseAlgorithm* algo,
     const std::string& name,
-    V const default_value,
+    const V& default_value,
     const std::string& description = "") :
     m_algo {algo},
     m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
@@ -246,8 +225,6 @@ public:
     s << m_name << " " << to_string() << " " << m_description;
     return s.str();
   }
-
-  virtual void sync_value() const override {}
 
 protected:
   virtual void update() {}
@@ -277,15 +254,12 @@ public:
   Property(
     BaseAlgorithm* algo,
     const std::string& name,
-    V& value,
     V const default_value,
     const std::string& description = "") :
     m_algo {algo},
-    m_value {value}, m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
+    m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
   {
     algo->register_property(m_name, this);
-    // don't sync if this is an unused shared property
-    if (algo->property_used(m_name)) sync_value();
   }
 
   V get_value() const { return m_cached_value; }
@@ -302,7 +276,6 @@ public:
   std::string to_string() const override
   {
     V holder;
-    cudaCheck(cudaMemcpyFromSymbol(&holder, m_value.get(), sizeof(V)));
     return Configuration::to_string(holder);
   }
 
@@ -316,8 +289,6 @@ public:
 
   void register_derived_property(DerivedProperty<V>* p) { m_derived.push_back(p); }
 
-  virtual void sync_value() const override { cudaCheck(cudaMemcpyToSymbol(m_value.get(), &m_cached_value, sizeof(V))); }
-
 protected:
   virtual void update()
   {
@@ -329,12 +300,10 @@ protected:
   void set_value(V value)
   {
     m_cached_value = value;
-    sync_value();
   }
 
 private:
   BaseAlgorithm* m_algo = nullptr;
-  std::reference_wrapper<V> m_value;
   V m_cached_value;
   std::string m_name;
   std::string m_description;
@@ -352,12 +321,11 @@ public:
 
   DerivedProperty(
     BaseAlgorithm* algo,
-    std::string name,
-    V& value,
-    V (*func)(std::vector<Property<V>*>),
+    const std::string& name,
+    std::function<V(std::vector<Property<V>*>)> func,
     std::vector<Property<V>*> dependencies,
     std::string description = "") :
-    Property<V>(algo, name, value, V(), description),
+    Property<V>(algo, name, V(), description),
     m_func(func), m_deps(dependencies)
   {
     register_with_dependencies();
@@ -386,7 +354,7 @@ private:
     update();
   }
 
-  V (*m_func)(std::vector<Property<V>*>);
+  std::function<V(std::vector<Property<V>*>)> m_func;
   std::vector<Property<V>*> m_deps;
 };
 
@@ -499,11 +467,6 @@ public:
     return "";
   }
 
-  void sync_value() const override
-  {
-    if (m_prop) m_prop->sync_value();
-  }
-
 private:
   void init(const std::string& set_name, const std::string& prop_name)
   {
@@ -512,10 +475,7 @@ private:
       std::cout << "Unknown shared property set " << set_name << std::endl;
     }
     m_prop = dynamic_cast<Property<V> const*>(m_set->get_and_register_prop(prop_name));
-    if (m_prop) {
-      sync_value();
-    }
-    else {
+    if (!m_prop) {
       std::cout << "Unknown shared property " << prop_name << std::endl;
     }
   }

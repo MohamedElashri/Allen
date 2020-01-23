@@ -2,59 +2,44 @@
 #include "Logger.h"
 
 template<>
-float Configuration::temp_from_string<float>(const std::string& s)
+float Configuration::from_string<float>(const std::string& s)
 {
   return atof(s.c_str());
 }
 
 template<>
-double Configuration::temp_from_string<double>(const std::string& s)
+double Configuration::from_string<double>(const std::string& s)
 {
   return atof(s.c_str());
 }
 
 template<>
-int Configuration::temp_from_string<int>(const std::string& s)
+int Configuration::from_string<int>(const std::string& s)
 {
   return strtol(s.c_str(), 0, 0);
 }
 
 template<>
-uint Configuration::temp_from_string<uint>(const std::string& s)
+uint Configuration::from_string<uint>(const std::string& s)
 {
   return strtoul(s.c_str(), 0, 0);
 }
 
-// Specialization for double
+// Specialization for std::array<int, 3>
 template<>
-bool Configuration::from_string<double>(double& holder, const std::string& value)
+bool Configuration::from_string<DeviceDimensions>(const DeviceDimensions& holder, const std::string& string_value)
 {
-  holder = atof(value.c_str());
-  return true;
-}
-
-// Specialization for float
-template<>
-bool Configuration::from_string<float>(float& holder, const std::string& value)
-{
-  holder = atof(value.c_str());
-  return true;
-}
-
-// Specialization for uint
-template<>
-bool Configuration::from_string<uint>(uint& holder, const std::string& value)
-{
-  holder = strtoul(value.c_str(), 0, 0);
-  return true;
-}
-
-// Specialization for int
-template<>
-bool Configuration::from_string<int>(int& holder, const std::string& value)
-{
-  holder = strtol(value.c_str(), 0, 0);
-  return true;
+  std::smatch matches;
+  auto r = std::regex_match(string_value, matches, Detail::array_expr);
+  if (!r) return r;
+  auto digits_begin = std::sregex_iterator(string_value.begin(), string_value.end(), Detail::digit_expr);
+  auto digits_end = std::sregex_iterator();
+  if (std::distance(digits_begin, digits_end) != holder.size()) return false;
+  int idx(0);
+  for (auto i = digits_begin; i != digits_end; ++i) {
+    holder[idx++] = atoi(i->str().c_str());
+  }
+  return r;
 }
 
 template<>

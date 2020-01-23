@@ -22,7 +22,11 @@ __device__ void track_forwarding(
   Velo::TrackletHits* tracklets,
   Velo::TrackHits* tracks,
   uint* dev_atomics_velo,
-  uint* dev_number_of_velo_tracks);
+  uint* dev_number_of_velo_tracks,
+  const int ttf_modulo_mask,
+  const uint ttf_modulo,
+  const float max_scatter_forwarding,
+  const uint max_skipped_modules);
 
 /**
  * @brief Finds candidates in the specified module.
@@ -34,7 +38,8 @@ __device__ std::tuple<int, int> find_forward_candidates(
   const float ty,
   const float* hit_Phis,
   const Velo::HitBase& h0,
-  const T calculate_hit_phi)
+  const T calculate_hit_phi,
+  const float forward_phi_tolerance)
 {
   const auto dz = module.z - h0.z;
   const auto predx = tx * dz;
@@ -48,7 +53,7 @@ __device__ std::tuple<int, int> find_forward_candidates(
     hit_Phis + module.hitStart,
     module.hitNums,
     track_extrapolation_phi,
-    Configuration::velo_search_by_triplet::forward_phi_tolerance);
+    forward_phi_tolerance);
 
   if (first_candidate != -1) {
     // Find last candidate
@@ -56,7 +61,7 @@ __device__ std::tuple<int, int> find_forward_candidates(
       hit_Phis + module.hitStart + first_candidate,
       module.hitNums - first_candidate,
       track_extrapolation_phi,
-      Configuration::velo_search_by_triplet::forward_phi_tolerance);
+      forward_phi_tolerance);
     first_candidate += module.hitStart;
     last_candidate = first_candidate + last_candidate;
   }

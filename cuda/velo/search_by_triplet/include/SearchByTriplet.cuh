@@ -28,12 +28,24 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
     DEVICE_OUTPUT(dev_rel_indices_t, unsigned short) dev_rel_indices;
     DEVICE_OUTPUT(dev_number_of_velo_tracks_t, uint) dev_number_of_velo_tracks;
+    
+    // Forward tolerance in phi
     PROPERTY(forward_phi_tolerance_t, float) forward_phi_tolerance;
-    PROPERTY(max_chi2_t, float) max_chi2;
+
+    // Max scatter for forming triplets (seeding) and forwarding
     PROPERTY(max_scatter_forwarding_t, float) max_scatter_forwarding;
     PROPERTY(max_scatter_seeding_t, float) max_scatter_seeding;
+
+    // Maximum number of skipped modules allowed for a track
+    // before storing it
     PROPERTY(max_skipped_modules_t, uint) max_skipped_modules;
+
+    // Maximum number of tracks to follow at a time
     PROPERTY(max_weak_tracks_t, uint) max_weak_tracks;
+
+    // Maximum number of tracks to follow at a time
+    PROPERTY(ttf_modulo_t, uint) ttf_modulo;
+    PROPERTY(ttf_modulo_mask_t, int) ttf_modulo_mask;
   };
 
   __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
@@ -52,11 +64,12 @@ namespace velo_search_by_triplet {
       set_size<dev_tracks_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_tracks);
       set_size<dev_tracklets_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<uint>("ttf_modulo"));
+        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<ttf_modulo_t>("ttf_modulo"));
       set_size<dev_tracks_to_follow_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<uint>("ttf_modulo"));
+        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<ttf_modulo_t>("ttf_modulo"));
       set_size<dev_three_hit_tracks_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * get_property_value<uint>("max_weak_tracks"));
+        arguments,
+        value<host_number_of_selected_events_t>(arguments) * get_property_value<max_weak_tracks_t>("max_weak_tracks"));
       set_size<dev_hit_used_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
       set_size<dev_atomics_velo_t>(arguments, value<host_number_of_selected_events_t>(arguments) * Velo::num_atomics);
       set_size<dev_number_of_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments));
@@ -94,57 +107,22 @@ namespace velo_search_by_triplet {
                     begin<dev_rel_indices_t>(arguments),
                     begin<dev_number_of_velo_tracks_t>(arguments),
                     get_property_value<forward_phi_tolerance_t>("forward_phi_tolerance"),
-                    get_property_value<max_chi2_t>("max_chi2"),
                     get_property_value<max_scatter_forwarding_t>("max_scatter_forwarding"),
                     get_property_value<max_scatter_seeding_t>("max_scatter_seeding"),
                     get_property_value<max_skipped_modules_t>("max_skipped_modules"),
                     get_property_value<max_weak_tracks_t>("max_weak_tracks"),
-                  },
+                    get_property_value<ttf_modulo_t>("ttf_modulo"),
+                    get_property_value<ttf_modulo_mask_t>("ttf_modulo_mask")},
         constants.dev_velo_geometry);
     }
 
   private:
-    Property<forward_phi_tolerance_t> m_tol {this,
-                           "forward_phi_tolerance",
-                           0.052f,
-                           "tolerance"};
-    Property<max_chi2_t> m_chi2 {this, "max_chi2", 20.0f, "chi2"};
-    Property<max_scatter_forwarding_t> m_scat {this,
-                            "max_scatter_forwarding",
-                            0.1f,
-                            "scatter forwarding"};
-    Property<max_scatter_seeding_t> m_seed {this,
-                            "max_scatter_seeding",
-                            Configuration::velo_search_by_triplet::max_scatter_seeding,
-                            0.1f,
-                            "scatter seeding"};
-    Property<max_skipped_modules_t> m_skip {this,
-                           "max_skipped_modules",
-                           1u,
-                           "skipped modules"};
-    Property<max_weak_tracks_t> m_max_weak {this,
-                               "max_weak_tracks",
-                               500u,
-                               "max weak tracks"};
-    Property<float> m_ext_base {this,
-                                "phi_extrapolation_base",
-                                Configuration::velo_search_by_triplet::phi_extrapolation_base,
-                                0.03f,
-                                "phi extrapolation base"};
-    Property<float> m_ext_coef {this,
-                                "phi_extrapolation_coef",
-                                Configuration::velo_search_by_triplet::phi_extrapolation_coef,
-                                0.0002f,
-                                "phi extrapolation coefficient"};
-    Property<uint> m_ttf_mod {this,
-                              "ttf_modulo",
-                              Configuration::velo_search_by_triplet::ttf_modulo,
-                              2048u,
-                              "ttf modulo"};
-    Property<int> m_ttf_mask {this,
-                              "ttf_modulo_mask",
-                              Configuration::velo_search_by_triplet::ttf_modulo_mask,
-                              0x7FF,
-                              "ttf modulo mask"};
+    Property<forward_phi_tolerance_t> m_tol {this, "forward_phi_tolerance", 0.052f, "tolerance"};
+    Property<max_scatter_forwarding_t> m_scat {this, "max_scatter_forwarding", 0.1f, "scatter forwarding"};
+    Property<max_scatter_seeding_t> m_seed {this, "max_scatter_seeding", 0.1f, "scatter seeding"};
+    Property<max_skipped_modules_t> m_skip {this, "max_skipped_modules", 1u, "skipped modules"};
+    Property<max_weak_tracks_t> m_max_weak {this, "max_weak_tracks", 500u, "max weak tracks"};
+    Property<ttf_modulo_t> m_ttf_mod {this, "ttf_modulo", 2048u, "ttf modulo"};
+    Property<ttf_modulo_mask_t> m_ttf_mask {this, "ttf_modulo_mask", 0x7FF, "ttf modulo mask"};
   };
 } // namespace velo_search_by_triplet

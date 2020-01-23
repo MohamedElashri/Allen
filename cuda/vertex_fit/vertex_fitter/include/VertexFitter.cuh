@@ -79,6 +79,10 @@ namespace VertexFit {
     DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_OUTPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
     DEVICE_OUTPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
+    PROPERTY(track_min_pt_t, float) track_min_pt;
+    PROPERTY(track_min_ipchi2_t, float) track_min_ipchi2;
+    PROPERTY(track_muon_min_ipchi2_t, float) track_muon_min_ipchi2;
+    PROPERTY(max_assoc_ipchi2_t, float) max_assoc_ipchi2;
   };
 
   __global__ void fit_secondary_vertices(Parameters);
@@ -120,7 +124,11 @@ namespace VertexFit {
                     begin<dev_number_of_multi_fit_vertices_t>(arguments),
                     begin<dev_kalman_pv_ipchi2_t>(arguments),
                     begin<dev_sv_atomics_t>(arguments),
-                    begin<dev_secondary_vertices_t>(arguments)});
+                    begin<dev_secondary_vertices_t>(arguments),
+                    get_property_value<track_min_pt_t>("track_min_pt"),
+                    get_property_value<track_min_ipchi2_t>("track_min_ipchi2"),
+                    get_property_value<track_muon_min_ipchi2_t>("track_muon_min_ipchi2"),
+                    get_property_value<max_assoc_ipchi2_t>("max_assoc_ipchi2")});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
@@ -133,25 +141,12 @@ namespace VertexFit {
     }
 
   private:
-    Property<float> m_minpt {this,
-                             "track_min_pt",
-                             Configuration::fit_secondary_vertices_t::track_min_pt,
-                             200.0f,
-                             "minimum track pT"};
-    Property<float> m_minipchi2 {this,
-                                 "track_min_ipchi2",
-                                 Configuration::fit_secondary_vertices_t::track_min_ipchi2,
-                                 9.0f,
-                                 "minimum track IP chi2"};
-    Property<float> m_minmuipchi2 {this,
-                                   "track_muon_min_ipchi2",
-                                   Configuration::fit_secondary_vertices_t::track_muon_min_ipchi2,
-                                   4.0f,
-                                   "minimum muon IP chi2"};
-    Property<float> m_maxassocipchi2 {this,
-                                      "max_assoc_ipchi2",
-                                      Configuration::fit_secondary_vertices_t::max_assoc_ipchi2,
-                                      16.0f,
-                                      "maximum IP chi2 to associate to PV"};
+    Property<track_min_pt_t> m_minpt {this, "track_min_pt", 200.0f, "minimum track pT"};
+    Property<track_min_ipchi2_t> m_minipchi2 {this, "track_min_ipchi2", 9.0f, "minimum track IP chi2"};
+    Property<track_muon_min_ipchi2_t> m_minmuipchi2 {this, "track_muon_min_ipchi2", 4.0f, "minimum muon IP chi2"};
+    Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this,
+                                                   "max_assoc_ipchi2",
+                                                   16.0f,
+                                                   "maximum IP chi2 to associate to PV"};
   };
 } // namespace VertexFit

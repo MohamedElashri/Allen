@@ -13,7 +13,9 @@ __device__ void track_seeding(
   Velo::TrackletHits* tracklets,
   uint* tracks_to_follow,
   unsigned short* h1_indices,
-  uint* dev_atomics_velo)
+  uint* dev_atomics_velo,
+  const float max_scatter_seeding,
+  const int ttf_modulo_mask)
 {
   // Add to an array all non-used h1 hits with candidates
   for (uint h1_rel_index = threadIdx.x; h1_rel_index < module_data[0].hitNums; h1_rel_index += blockDim.x) {
@@ -47,7 +49,7 @@ __device__ void track_seeding(
     unsigned short best_h0 = 0;
     unsigned short best_h2 = 0;
     unsigned short h1_index = 0;
-    float best_fit = Configuration::velo_search_by_triplet::max_scatter_seeding;
+    float best_fit = max_scatter_seeding;
 
     // Fetch h1
     h1_index = h1_indices[h1_rel_index];
@@ -101,17 +103,17 @@ __device__ void track_seeding(
       }
     }
 
-    if (best_fit < Configuration::velo_search_by_triplet::max_scatter_seeding) {
+    if (best_fit < max_scatter_seeding) {
       // Add the track to the bag of tracks
       const auto trackP =
-        atomicAdd(dev_atomics_velo + 1, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
+        atomicAdd(dev_atomics_velo + 1, 1) & ttf_modulo_mask;
       tracklets[trackP] = Velo::TrackletHits {best_h0, h1_index, best_h2};
 
       // Add the tracks to the bag of tracks to_follow
       // Note: The first bit flag marks this is a tracklet (hitsNum == 3),
       // and hence it is stored in tracklets
       const auto ttfP =
-        atomicAdd(dev_atomics_velo + 2, 1) & Configuration::velo_search_by_triplet::ttf_modulo_mask;
+        atomicAdd(dev_atomics_velo + 2, 1) & ttf_modulo_mask;
       tracks_to_follow[ttfP] = 0x80000000 | trackP;
     }
   }

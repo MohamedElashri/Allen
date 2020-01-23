@@ -17,6 +17,10 @@ namespace ut_search_windows {
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_OUTPUT(dev_ut_active_tracks_t, uint) dev_ut_active_tracks;
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
+    PROPERTY(min_momentum_t, float) min_momentum;
+    PROPERTY(min_pt_t, float) min_pt;
+    PROPERTY(y_tol_t, float) y_tol;
+    PROPERTY(y_tol_slope_t, float) y_tol_slope;
   };
 
   __global__ void ut_search_windows(
@@ -61,13 +65,17 @@ namespace ut_search_windows {
         dim3(UT::Constants::n_layers, UT::Constants::num_thr_searchwin),
         cuda_stream)(
         Parameters {begin<dev_ut_hits_t>(arguments),
-                   begin<dev_ut_hit_offsets_t>(arguments),
-                   begin<dev_offsets_all_velo_tracks_t>(arguments),
-                   begin<dev_offsets_velo_track_hit_number_t>(arguments),
-                   begin<dev_velo_states_t>(arguments),
-                   begin<dev_ut_windows_layers_t>(arguments),
-                   begin<dev_ut_active_tracks_t>(arguments),
-                   begin<dev_accepted_velo_tracks_t>(arguments)},
+                    begin<dev_ut_hit_offsets_t>(arguments),
+                    begin<dev_offsets_all_velo_tracks_t>(arguments),
+                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
+                    begin<dev_velo_states_t>(arguments),
+                    begin<dev_ut_windows_layers_t>(arguments),
+                    begin<dev_ut_active_tracks_t>(arguments),
+                    begin<dev_accepted_velo_tracks_t>(arguments),
+                    get_property_value<min_momentum_t>("min_momentum"),
+                    get_property_value<min_pt_t>("min_pt"),
+                    get_property_value<y_tol_t>("y_tol"),
+                    get_property_value<y_tol_slope_t>("y_tol_slope")},
         constants.dev_ut_magnet_tool,
         constants.dev_ut_dxDy.data(),
         constants.dev_unique_x_sector_layer_offsets.data(),
@@ -75,25 +83,9 @@ namespace ut_search_windows {
     }
 
   private:
-    Property<float> m_mom {this,
-                           "min_momentum",
-                           Configuration::ut_search_windows_t::min_momentum,
-                           1.5f * Gaudi::Units::GeV,
-                           "min momentum cut [MeV/c]"};
-    Property<float> m_pt {this,
-                          "min_pt",
-                          Configuration::ut_search_windows_t::min_pt,
-                          0.3f * Gaudi::Units::GeV,
-                          "min pT cut [MeV/c]"};
-    Property<float> m_ytol {this,
-                            "y_tol",
-                            Configuration::ut_search_windows_t::y_tol,
-                            0.5f * Gaudi::Units::mm,
-                            "y tol [mm]"};
-    Property<float> m_yslope {this,
-                              "y_tol_slope",
-                              Configuration::ut_search_windows_t::y_tol_slope,
-                              0.08f,
-                              "y tol slope [mm]"};
+    Property<min_momentum_t> m_mom {this, "min_momentum", 1.5f * Gaudi::Units::GeV, "min momentum cut [MeV/c]"};
+    Property<min_pt_t> m_pt {this, "min_pt", 0.3f * Gaudi::Units::GeV, "min pT cut [MeV/c]"};
+    Property<y_tol_t> m_ytol {this, "y_tol", 0.5f * Gaudi::Units::mm, "y tol [mm]"};
+    Property<y_tol_slope_t> m_yslope {this, "y_tol_slope", 0.08f, "y tol slope [mm]"};
   };
 } // namespace ut_search_windows

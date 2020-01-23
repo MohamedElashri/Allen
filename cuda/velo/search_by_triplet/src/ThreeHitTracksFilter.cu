@@ -4,9 +4,7 @@
  * @brief Calculates the parameters according to a root means square fit
  *        and returns the chi2.
  */
-__device__ float means_square_fit_chi2(
-  Velo::ConstClusters& velo_cluster_container,
-  const Velo::TrackletHits& track)
+__device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_container, const Velo::TrackletHits& track)
 {
   VeloState state;
 
@@ -119,7 +117,8 @@ __device__ void three_hit_tracks_filter_impl(
   Velo::TrackletHits* output_tracks,
   uint* number_of_output_tracks,
   const bool* hit_used,
-  Velo::ConstClusters& velo_cluster_container)
+  Velo::ConstClusters& velo_cluster_container,
+  const float max_chi2)
 {
 
   for (uint track_number = threadIdx.x; track_number < number_of_input_tracks; track_number += blockDim.x) {
@@ -128,7 +127,7 @@ __device__ void three_hit_tracks_filter_impl(
     const float chi2 = means_square_fit_chi2(velo_cluster_container, t);
 
     // Store them in the tracks bag
-    if (!any_used && chi2 < Configuration::velo_search_by_triplet::max_chi2) {
+    if (!any_used && chi2 < max_chi2) {
       const uint track_insert_number = atomicAdd(number_of_output_tracks, 1);
       assert(track_insert_number < Velo::Constants::max_tracks);
       output_tracks[track_insert_number] = t;
@@ -153,12 +152,12 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   const bool* hit_used = parameters.dev_hit_used + hit_offset;
 
   // Offseted VELO cluster container
-  const auto velo_cluster_container = Velo::ConstClusters {
-    parameters.dev_sorted_velo_cluster_container + hit_offset, total_estimated_number_of_clusters};
+  const auto velo_cluster_container =
+    Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container + hit_offset, total_estimated_number_of_clusters};
 
   // Input three hit tracks
   const Velo::TrackletHits* input_tracks =
-    parameters.dev_three_hit_tracks_input + event_number * Configuration::velo_search_by_triplet::max_weak_tracks;
+    parameters.dev_three_hit_tracks_input + event_number * parameters.max_weak_tracks;
   const auto number_of_input_tracks = parameters.dev_atomics_velo[event_number * Velo::num_atomics];
 
   // Output containers
@@ -166,5 +165,11 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   uint* number_of_output_tracks = parameters.dev_number_of_three_hit_tracks_output.get() + event_number;
 
   three_hit_tracks_filter_impl(
-    input_tracks, number_of_input_tracks, output_tracks, number_of_output_tracks, hit_used, velo_cluster_container);
+    input_tracks,
+    number_of_input_tracks,
+    output_tracks,
+    number_of_output_tracks,
+    hit_used,
+    velo_cluster_container,
+    parameters.max_chi2);
 }

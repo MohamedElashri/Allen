@@ -14,6 +14,12 @@ namespace velo_three_hit_tracks_filter {
     DEVICE_INPUT(dev_hit_used_t, bool) dev_hit_used;
     DEVICE_OUTPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits) dev_three_hit_tracks_output;
     DEVICE_OUTPUT(dev_number_of_three_hit_tracks_output_t, uint) dev_number_of_three_hit_tracks_output;
+
+    // Max chi2
+    PROPERTY(max_chi2_t, float) max_chi2;
+
+    // Maximum number of tracks to follow at a time
+    PROPERTY(max_weak_tracks_t, uint) max_weak_tracks;
   };
 
   __global__ void velo_three_hit_tracks_filter(Parameters);
@@ -54,8 +60,14 @@ namespace velo_three_hit_tracks_filter {
           begin<dev_atomics_velo_t>(arguments),
           begin<dev_hit_used_t>(arguments),
           begin<dev_three_hit_tracks_output_t>(arguments),
-          begin<dev_number_of_three_hit_tracks_output_t>(arguments)
+          begin<dev_number_of_three_hit_tracks_output_t>(arguments),
+          get_property_value<max_chi2_t>("max_chi2"),
+          get_property_value<max_weak_tracks_t>("max_weak_tracks")
         });
     }
+
+  private:
+    Property<max_chi2_t> m_chi2 {this, "max_chi2", 20.0f, "chi2"};
+    Property<max_weak_tracks_t> m_max_weak {this, "max_weak_tracks", 500u, "max weak tracks"};
   };
 } // namespace velo_three_hit_tracks_filter

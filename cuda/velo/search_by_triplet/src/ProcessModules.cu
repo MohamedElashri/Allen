@@ -25,7 +25,12 @@ __device__ void process_modules(
   const uint hit_offset,
   const float* dev_velo_module_zs,
   uint* dev_atomics_velo,
-  uint* dev_number_of_velo_tracks)
+  uint* dev_number_of_velo_tracks,
+  const int ttf_modulo_mask,
+  const float max_scatter_seeding,
+  const uint ttf_modulo,
+  const float max_scatter_forwarding,
+  const uint max_skipped_modules)
 {
   auto first_module = VP::NModules - 1;
 
@@ -51,7 +56,9 @@ __device__ void process_modules(
     tracklets,
     tracks_to_follow,
     h1_rel_indices,
-    dev_atomics_velo);
+    dev_atomics_velo,
+    max_scatter_seeding,
+    ttf_modulo_mask);
 
   // Prepare forwarding - seeding loop
   uint last_ttf = 0;
@@ -95,7 +102,11 @@ __device__ void process_modules(
       tracklets,
       tracks,
       dev_atomics_velo,
-      dev_number_of_velo_tracks);
+      dev_number_of_velo_tracks,
+      ttf_modulo_mask,
+      ttf_modulo,
+      max_scatter_forwarding,
+      max_skipped_modules);
 
     // Due to ttf_insert_pointer
     __syncthreads();
@@ -110,7 +121,9 @@ __device__ void process_modules(
       tracklets,
       tracks_to_follow,
       h1_rel_indices,
-      dev_atomics_velo);
+      dev_atomics_velo,
+      max_scatter_seeding,
+      ttf_modulo_mask);
 
     first_module -= 2;
   }
@@ -125,7 +138,7 @@ __device__ void process_modules(
   // Process the last bunch of track_to_follows
   for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
     const int fulltrackno =
-      tracks_to_follow[(prev_ttf + ttf_element) & Configuration::velo_search_by_triplet::ttf_modulo_mask];
+      tracks_to_follow[(prev_ttf + ttf_element) & ttf_modulo_mask];
     const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
     const int trackno = fulltrackno & 0x0FFFFFFF;
 
