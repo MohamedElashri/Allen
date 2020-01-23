@@ -196,7 +196,7 @@ class Property():
     self.__default_value = value
 
   def __repr__(self):
-    return "Property(" + repr(self.__type) + ", " + self.__default_value + ", " + self.__description + ")"
+    return "Property(" + repr(self.__type) + ", " + self.__default_value + ", " + self.__description + ") = \"" + self.__value + "\""
 
 
 def prefix(indentation_level, indent_by = 2):
@@ -205,7 +205,7 @@ def prefix(indentation_level, indent_by = 2):
 
 class Sequence():
   def __init__(self, *args):
-    self.sequence = [i for i in args]
+    self.__sequence = OrderedDict([(algorithm.name(), algorithm) for algorithm in args])
 
   def validate(self):
     warnings = 0
@@ -213,7 +213,7 @@ class Sequence():
 
     # Check there are not two outputs with the same name
     output_names = {}
-    for algorithm in self.sequence:
+    for _, algorithm in iter(self.__sequence.items()):
       for parameter_name, parameter in iter(algorithm.parameters().items()):
         if issubclass(parameter.__class__, OutputParameter):
           if parameter.name() in output_names:
@@ -236,7 +236,7 @@ class Sequence():
     
     # Check the inputs of all algorithms
     output_parameters = {}
-    for algorithm in self.sequence:
+    for _, algorithm in iter(self.__sequence.items()):
       for parameter_name, parameter in iter(algorithm.parameters().items()):
         if issubclass(parameter.__class__, InputParameter):
           # Check the input is not orphaned (ie. that there is a previous Output that generated it)
@@ -276,9 +276,9 @@ class Sequence():
 
     return True
 
-  def generate(self, output_filename = "ConfiguredSequence.h",
-    json_configuration_filename = "Configuration.json",
-    json_defaults_configuration_filename = "ConfigurationGuide.json",
+  def generate(self, output_filename = "generated/ConfiguredSequence.h",
+    json_configuration_filename = "generated/Configuration.json",
+    json_defaults_configuration_filename = "generated/ConfigurationGuide.json",
     prefix_includes = "../../"):
     # Check that sequence is valid
     print("Validating sequence...")
@@ -286,12 +286,12 @@ class Sequence():
       print("Generating sequence file...")
       # Add all the includes
       s = "#pragma once\n\n#include <tuple>\n"
-      for algorithm in self.sequence:
+      for _, algorithm in iter(self.__sequence.items()):
         s += "#include \"" + prefix_includes + algorithm.filename() + "\"\n"
       s += "\n"
       # Generate all parameters
       parameters = {}
-      for algorithm in self.sequence:
+      for _, algorithm in iter(self.__sequence.items()):
         for parameter_t, parameter in iter(algorithm.parameters().items()):
           if parameter.name() in parameters:
             parameters[parameter.name()].append((algorithm.name(), algorithm.namespace(), parameter_t))
@@ -307,7 +307,7 @@ class Sequence():
       # Generate sequence
       s += "\ntypedef std::tuple<\n"
       i_alg = 0
-      for algorithm in self.sequence:
+      for _, algorithm in iter(self.__sequence.items()):
         i_alg += 1
         s += prefix(1) + algorithm.namespace() + "::" + algorithm.original_name() + "<std::tuple<"
         i = 0
@@ -324,7 +324,7 @@ class Sequence():
           if i != len(algorithm.name()):
             s += ", "
         s += ">"
-        if i_alg != len(self.sequence):
+        if i_alg != len(self.__sequence):
           s += ","
         s += "\n"
       s += "> configured_sequence_t;\n"
@@ -335,7 +335,7 @@ class Sequence():
       print("Generating JSON configuration file...")
       s = "{\n"
       i = 1
-      for algorithm in self.sequence:
+      for _, algorithm in iter(self.__sequence.items()):
         has_modified_properties = False
         for prop_name, prop in iter(algorithm.properties().items()):
           if prop.value() != "":
@@ -358,7 +358,7 @@ class Sequence():
       print("Generating JSON defaults configuration file...")
       s = "{\n"
       i = 1
-      for algorithm in self.sequence:
+      for _, algorithm in iter(self.__sequence.items()):
         has_modified_properties = False
         for prop_name, prop in iter(algorithm.properties().items()):
           if prop.default_value() != "":
@@ -383,18 +383,18 @@ class Sequence():
 
   def print_detail(self):
     s = "Sequence:\n"
-    for i in self.sequence:
+    for _, i in iter(self.__sequence.items()):
       s += " " + repr(i) + "\n\n"
     s = s[:-2]
     print(s)
 
   def extend_sequence(self, *args):
     for algorithm in args:
-      self.sequence.append(algorithm)
+      self.__sequence[algorithm.name()] = algorithm
 
   def __repr__(self):
     s = "Sequence:\n"
-    for i in self.sequence:
-      s += "  " + i.name() + "\n"
+    for i in self.__sequence:
+      s += "  " + i + "\n"
     s = s[:-1]
     return s

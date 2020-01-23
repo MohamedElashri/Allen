@@ -198,14 +198,20 @@ def write_algorithm_code(algorithm, i = 0):
     s += prefix(i) + "self.__ordered_parameters[\"" + var_name + "\"].set_name(value.name)\n\n"
     i -= 2
 
-  for prop_name, prop in iter(algorithm["properties"].items()):
-    s += prefix(i) + "def set_property_" + prop_name + "(self, value):\n"
-    i += 1
-    s += prefix(i) + "if value.__class__ == str:\n"
-    i += 1
-    s += prefix(i) + "self.__ordered_properties[\"" + prop_name + "\"].set_value(value)\n\n"
-    i -= 2
   
+  s += prefix(i) + "def set_property(self, name, value):\n"
+  i += 1
+  s += prefix(i) + "if name in self.__ordered_properties:\n"
+  i += 1
+  s += prefix(i) + "if value.__class__ == str:\n"
+  i += 1
+  s += prefix(i) + "self.__ordered_properties[name].set_value(value)\n"
+  i -= 2
+  s += prefix(i) + "else:\n"
+  i += 1
+  s += prefix(i) + "print(\"\\\"\" + name + \"\\\" is not a property of this algorithm.\"):\n\n"
+  i -= 2
+
   s += prefix(i) + "def parameters(self):\n"
   i += 1
   s += prefix(i) + "return self.__ordered_parameters\n"
