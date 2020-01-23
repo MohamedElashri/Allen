@@ -28,6 +28,7 @@ namespace pv_get_seeds {
     PROPERTY(high_mult_t, int, "high_mult", "high mult", 10) high_mult;
     PROPERTY(ratio_sig2_high_mult_t, float, "ratio_sig2_high_mult", "ratio sig2 high mult", 1.0f) ratio_sig2_high_mult;
     PROPERTY(ratio_sig2_low_mult_t, float, "ratio_sig2_low_mult", "ratio sig2 low mult", 0.9f) ratio_sig2_low_mult;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __device__ int
@@ -58,7 +59,7 @@ namespace pv_get_seeds {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), block_dimension(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_velo_kalman_beamline_states_t>(arguments),
                     begin<dev_atomics_velo_t>(arguments),
                     begin<dev_velo_track_hit_number_t>(arguments),
@@ -92,5 +93,6 @@ namespace pv_get_seeds {
     Property<high_mult_t> m_himult {this};
     Property<ratio_sig2_high_mult_t> m_ratiohi {this};
     Property<ratio_sig2_low_mult_t> m_ratiolo {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace pv_get_seeds

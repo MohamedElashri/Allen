@@ -86,7 +86,7 @@ namespace VertexFit {
     track_muon_min_ipchi2;
     PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", 16.0f)
     max_assoc_ipchi2;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
   };
 
   __global__ void fit_secondary_vertices(Parameters);
@@ -117,7 +117,7 @@ namespace VertexFit {
     {
       cudaCheck(cudaMemsetAsync(begin<dev_sv_atomics_t>(arguments), 0, size<dev_sv_atomics_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_kf_tracks_t>(arguments),
                     begin<dev_offsets_forward_tracks_t>(arguments),
                     begin<dev_offsets_scifi_track_hit_number>(arguments),
@@ -149,6 +149,6 @@ namespace VertexFit {
     Property<track_min_ipchi2_t> m_minipchi2 {this};
     Property<track_muon_min_ipchi2_t> m_minmuipchi2 {this};
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this};
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace VertexFit

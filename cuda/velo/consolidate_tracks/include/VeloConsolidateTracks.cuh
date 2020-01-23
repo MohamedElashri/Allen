@@ -23,7 +23,7 @@ namespace velo_consolidate_tracks {
     DEVICE_INPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits) dev_three_hit_tracks_output;
     DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint) dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_OUTPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void velo_consolidate_tracks(Parameters);
@@ -58,7 +58,7 @@ namespace velo_consolidate_tracks {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {
           begin<dev_offsets_all_velo_tracks_t>(arguments),
           begin<dev_tracks_t>(arguments),
@@ -102,6 +102,6 @@ namespace velo_consolidate_tracks {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace velo_consolidate_tracks

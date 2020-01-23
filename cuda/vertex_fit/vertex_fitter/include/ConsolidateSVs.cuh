@@ -10,7 +10,7 @@ namespace consolidate_svs {
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_INPUT(dev_secondary_vertices_t, VertexFit::TrackMVAVertex) dev_secondary_vertices;
     DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void consolidate_svs(Parameters);
@@ -37,7 +37,7 @@ namespace consolidate_svs {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_sv_offsets_t>(arguments),
                     begin<dev_secondary_vertices_t>(arguments),
                     begin<dev_consolidated_svs_t>(arguments)});
@@ -53,6 +53,6 @@ namespace consolidate_svs {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace consolidate_svs

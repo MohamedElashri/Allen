@@ -24,7 +24,7 @@ namespace muon_catboost_features_extraction {
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
     DEVICE_INPUT(dev_muon_hits_t, Muon::HitsSoA) dev_muon_hits;
     DEVICE_OUTPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
   };
 
   __global__ void muon_catboost_features_extraction(Parameters);
@@ -55,7 +55,7 @@ namespace muon_catboost_features_extraction {
     {
       function(
         dim3(value<host_number_of_selected_events_t>(arguments), Muon::Constants::n_stations),
-        property<blockdim_t>(),
+        property<block_dim_t>(),
         cuda_stream)(Parameters {begin<dev_atomics_scifi_t>(arguments),
                                  begin<dev_scifi_track_hit_number_t>(arguments),
                                  begin<dev_scifi_qop_t>(arguments),
@@ -66,6 +66,6 @@ namespace muon_catboost_features_extraction {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace muon_catboost_features_extraction

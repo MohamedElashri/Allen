@@ -12,7 +12,7 @@ namespace muon_sort_station_region_quarter {
     DEVICE_OUTPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
     DEVICE_INPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
     DEVICE_OUTPUT(dev_permutation_srq_t, uint) dev_permutation_srq;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void muon_sort_station_region_quarter(Parameters);
@@ -43,7 +43,7 @@ namespace muon_sort_station_region_quarter {
       cudaCheck(cudaMemsetAsync(
         begin<dev_permutation_srq_t>(arguments), 0, size<dev_permutation_srq_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_storage_tile_id_t>(arguments),
                     begin<dev_storage_tdc_value_t>(arguments),
                     begin<dev_atomics_muon_t>(arguments),
@@ -51,6 +51,6 @@ namespace muon_sort_station_region_quarter {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace muon_sort_station_region_quarter

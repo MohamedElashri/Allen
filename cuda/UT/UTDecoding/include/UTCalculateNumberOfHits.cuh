@@ -10,7 +10,7 @@ namespace ut_calculate_number_of_hits {
     DEVICE_OUTPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_OUTPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
     DEVICE_OUTPUT(dev_ut_hit_sizes_t, uint) dev_ut_hit_sizes;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 4, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 4, 1});
   };
 
   __global__ void ut_calculate_number_of_hits(
@@ -61,7 +61,7 @@ namespace ut_calculate_number_of_hits {
       cudaCheck(cudaMemsetAsync(
         begin<dev_ut_hit_sizes_t>(arguments), 0, size<dev_ut_hit_sizes_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_event_list_t>(arguments),
                    begin<dev_ut_raw_input_t>(arguments),
                    begin<dev_ut_raw_input_offsets_t>(arguments),
@@ -73,6 +73,6 @@ namespace ut_calculate_number_of_hits {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace ut_calculate_number_of_hits

@@ -16,7 +16,7 @@ namespace muon_add_coords_crossing_maps {
     DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
     DEVICE_OUTPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
     DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, uint) dev_station_ocurrences_sizes;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void muon_add_coords_crossing_maps(Parameters);
@@ -56,7 +56,7 @@ namespace muon_add_coords_crossing_maps {
       cudaCheck(cudaMemsetAsync(
         begin<dev_muon_compact_hit_t>(arguments), 0, size<dev_muon_compact_hit_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_storage_station_region_quarter_offsets_t>(arguments),
                     begin<dev_storage_tile_id_t>(arguments),
                     begin<dev_storage_tdc_value_t>(arguments),
@@ -68,6 +68,6 @@ namespace muon_add_coords_crossing_maps {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace muon_add_coords_crossing_maps

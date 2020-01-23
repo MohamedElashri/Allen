@@ -8,7 +8,7 @@ namespace muon_catboost_evaluator {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
     DEVICE_INPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
     DEVICE_OUTPUT(dev_muon_catboost_output_t, float) dev_muon_catboost_output;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
   };
 
   __global__ void muon_catboost_evaluator(
@@ -43,7 +43,7 @@ namespace muon_catboost_evaluator {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_reconstructed_scifi_tracks_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_reconstructed_scifi_tracks_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_muon_catboost_features_t>(arguments), begin<dev_muon_catboost_output_t>(arguments)},
         constants.dev_muon_catboost_leaf_values,
         constants.dev_muon_catboost_leaf_offsets,
@@ -64,6 +64,6 @@ namespace muon_catboost_evaluator {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace muon_catboost_evaluator

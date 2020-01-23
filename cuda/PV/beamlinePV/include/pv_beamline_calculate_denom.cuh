@@ -20,7 +20,7 @@ namespace pv_beamline_calculate_denom {
     DEVICE_OUTPUT(dev_pvtracks_denom_t, float) dev_pvtracks_denom;
     DEVICE_INPUT(dev_zpeaks_t, float) dev_zpeaks;
     DEVICE_INPUT(dev_number_of_zpeaks_t, uint) dev_number_of_zpeaks;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void pv_beamline_calculate_denom(Parameters);
@@ -45,7 +45,7 @@ namespace pv_beamline_calculate_denom {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters{
           begin<dev_offsets_all_velo_tracks_t>(arguments),
           begin<dev_offsets_velo_track_hit_number_t>(arguments),
@@ -56,6 +56,6 @@ namespace pv_beamline_calculate_denom {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 }

@@ -99,7 +99,7 @@ namespace velo_kalman_filter {
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void velo_kalman_filter(Parameters);
@@ -129,7 +129,7 @@ namespace velo_kalman_filter {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
                     begin<dev_velo_track_hits_t>(arguments),
@@ -147,6 +147,6 @@ namespace velo_kalman_filter {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace velo_kalman_filter

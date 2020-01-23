@@ -23,7 +23,7 @@ namespace velo_fill_candidates {
     // cost of performance
     PROPERTY(phi_extrapolation_coef_t, float, "phi_extrapolation_coef", "phi extrapolation coefficient", 0.0002f)
     phi_extrapolation_coef;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {128, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {128, 1, 1});
   };
 
   __global__ void velo_fill_candidates(Parameters);
@@ -56,7 +56,7 @@ namespace velo_fill_candidates {
       cudaCheck(
         cudaMemsetAsync(begin<dev_h2_candidates_t>(arguments), 0, size<dev_h2_candidates_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments), 48), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments), 48), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_sorted_velo_cluster_container_t>(arguments),
                     begin<dev_offsets_estimated_input_size_t>(arguments),
                     begin<dev_module_cluster_num_t>(arguments),
@@ -70,6 +70,6 @@ namespace velo_fill_candidates {
   private:
     Property<phi_extrapolation_base_t> m_ext_base {this};
     Property<phi_extrapolation_coef_t> m_ext_coef {this};
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace velo_fill_candidates

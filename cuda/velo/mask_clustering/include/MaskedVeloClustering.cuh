@@ -18,7 +18,7 @@ namespace velo_masked_clustering {
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_OUTPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
     DEVICE_OUTPUT(dev_velo_cluster_container_t, uint) dev_velo_cluster_container;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   // Function
@@ -59,7 +59,7 @@ namespace velo_masked_clustering {
         size<dev_module_cluster_num_t>(arguments),
         cuda_stream));
       
-      function(dim3(begin<host_number_of_selected_events_t>(arguments)[0]), property<blockdim_t>(), cuda_stream)(
+      function(dim3(begin<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
         Parameters{
           begin<dev_velo_raw_input_t>(arguments),
           begin<dev_velo_raw_input_offsets_t>(arguments),
@@ -77,6 +77,6 @@ namespace velo_masked_clustering {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace velo_masked_clustering

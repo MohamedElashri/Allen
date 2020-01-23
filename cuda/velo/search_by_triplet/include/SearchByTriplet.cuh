@@ -47,7 +47,7 @@ namespace velo_search_by_triplet {
     // Maximum number of tracks to follow at a time
     PROPERTY(ttf_modulo_t, uint, "ttf_modulo", "ttf modulo", 2048u) ttf_modulo;
     PROPERTY(ttf_modulo_mask_t, int, "ttf_modulo_mask", "ttf modulo mask", 0x7FF) ttf_modulo_mask;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
   };
 
   __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
@@ -92,7 +92,7 @@ namespace velo_search_by_triplet {
       cudaCheck(cudaMemsetAsync(
         begin<dev_number_of_velo_tracks_t>(arguments), 0, size<dev_number_of_velo_tracks_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_sorted_velo_cluster_container_t>(arguments),
                     begin<dev_offsets_estimated_input_size_t>(arguments),
                     begin<dev_module_cluster_num_t>(arguments),
@@ -125,6 +125,6 @@ namespace velo_search_by_triplet {
     Property<max_weak_tracks_t> m_max_weak {this};
     Property<ttf_modulo_t> m_ttf_mod {this};
     Property<ttf_modulo_mask_t> m_ttf_mask {this};
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace velo_search_by_triplet

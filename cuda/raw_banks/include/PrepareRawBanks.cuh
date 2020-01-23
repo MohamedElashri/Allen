@@ -17,7 +17,7 @@ namespace prepare_raw_banks {
     DEVICE_OUTPUT(dev_dec_reports_t, uint) dev_dec_reports;
     DEVICE_OUTPUT(dev_number_of_passing_events_t, uint) dev_number_of_passing_events;
     DEVICE_OUTPUT(dev_passing_event_list_t, uint) dev_passing_event_list;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void prepare_raw_banks(Parameters);
@@ -53,7 +53,7 @@ namespace prepare_raw_banks {
       cudaCheck(
         cudaMemsetAsync(begin<dev_dec_reports_t>(arguments), 0, size<dev_dec_reports_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_forward_tracks_t>(arguments),
                     begin<dev_sv_offsets_t>(arguments),
                     begin<dev_one_track_results_t>(arguments),
@@ -90,6 +90,6 @@ namespace prepare_raw_banks {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace prepare_raw_banks

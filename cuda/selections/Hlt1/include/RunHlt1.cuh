@@ -20,7 +20,7 @@ namespace run_hlt1 {
     DEVICE_OUTPUT(dev_disp_dimuon_results_t, bool) dev_disp_dimuon_results;
     DEVICE_OUTPUT(dev_high_mass_dimuon_results_t, bool) dev_high_mass_dimuon_results;
     DEVICE_OUTPUT(dev_dimuon_soft_results_t, bool) dev_dimuon_soft_results;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void run_hlt1(Parameters);
@@ -52,7 +52,7 @@ namespace run_hlt1 {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_kf_tracks_t>(arguments),
                     begin<dev_consolidated_svs_t>(arguments),
                     begin<dev_offsets_forward_tracks_t>(arguments),
@@ -105,6 +105,6 @@ namespace run_hlt1 {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace run_hlt1

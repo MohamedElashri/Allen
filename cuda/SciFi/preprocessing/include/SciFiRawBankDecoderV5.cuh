@@ -13,7 +13,7 @@ namespace scifi_raw_bank_decoder_v5 {
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void scifi_raw_bank_decoder_v5(
@@ -44,7 +44,7 @@ namespace scifi_raw_bank_decoder_v5 {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_scifi_raw_input_t>(arguments),
                     begin<dev_scifi_raw_input_offsets_t>(arguments),
                     begin<dev_event_list_t>(arguments),
@@ -54,6 +54,6 @@ namespace scifi_raw_bank_decoder_v5 {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace scifi_raw_bank_decoder_v5

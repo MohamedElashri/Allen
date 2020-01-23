@@ -13,7 +13,7 @@ namespace ut_decode_raw_banks_in_order {
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
     DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_permutations_t, uint) dev_ut_hit_permutations;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 1, 1});
   };
 
   __global__ void ut_decode_raw_banks_in_order(
@@ -45,7 +45,7 @@ namespace ut_decode_raw_banks_in_order {
     {
       function(
         dim3(value<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
-        property<blockdim_t>(),
+        property<block_dim_t>(),
         cuda_stream)(
         Parameters {begin<dev_ut_raw_input_t>(arguments),
                    begin<dev_ut_raw_input_offsets_t>(arguments),
@@ -60,6 +60,6 @@ namespace ut_decode_raw_banks_in_order {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace ut_decode_raw_banks_in_order

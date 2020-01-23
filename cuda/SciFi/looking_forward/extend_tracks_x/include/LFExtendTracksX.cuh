@@ -18,7 +18,7 @@ namespace lf_extend_tracks_x {
     DEVICE_INPUT(dev_scifi_lf_atomics_t, uint) dev_scifi_lf_atomics;
     DEVICE_INPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
     DEVICE_INPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void lf_extend_tracks_x(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
@@ -43,7 +43,7 @@ namespace lf_extend_tracks_x {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_scifi_hits_t>(arguments),
                     begin<dev_scifi_hit_offsets_t>(arguments),
                     begin<dev_offsets_ut_tracks_t>(arguments),
@@ -56,6 +56,6 @@ namespace lf_extend_tracks_x {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace lf_extend_tracks_x

@@ -12,7 +12,7 @@ namespace velo_copy_track_hit_number {
     DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint) dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_OUTPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_OUTPUT(dev_offsets_all_velo_tracks_t, uint) dev_offsets_all_velo_tracks;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {512, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {512, 1, 1});
   };
 
   __global__ void velo_copy_track_hit_number(Parameters);
@@ -48,7 +48,7 @@ namespace velo_copy_track_hit_number {
         sizeof(uint), // Note: Only the first element needs to be initialized here.
         cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters{
           begin<dev_tracks_t>(arguments),
           begin<dev_offsets_velo_tracks_t>(arguments),
@@ -66,6 +66,6 @@ namespace velo_copy_track_hit_number {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace velo_copy_track_hit_number

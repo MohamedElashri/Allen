@@ -27,7 +27,7 @@ namespace fit_seeds {
     DEVICE_INPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
     DEVICE_INPUT(dev_atomics_velo_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void fit_seeds(Parameters);
@@ -56,7 +56,7 @@ namespace fit_seeds {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_vertex_t>(arguments),
                     begin<dev_number_vertex_t>(arguments),
                     begin<dev_seeds_t>(arguments),
@@ -84,6 +84,6 @@ namespace fit_seeds {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace fit_seeds

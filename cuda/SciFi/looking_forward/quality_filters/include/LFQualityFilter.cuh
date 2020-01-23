@@ -28,7 +28,7 @@ namespace lf_quality_filter {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
-    PROPERTY(blockdim_t, DeviceDimensions, "block_dim", "block dimensions", {128, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {128, 1, 1});
   };
 
   __global__ void lf_quality_filter(
@@ -73,7 +73,7 @@ namespace lf_quality_filter {
       cudaCheck(
         cudaMemsetAsync(begin<dev_atomics_scifi_t>(arguments), 0, size<dev_atomics_scifi_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<blockdim_t>(), cuda_stream)(
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_scifi_hits_t>(arguments),
                     begin<dev_scifi_hit_offsets_t>(arguments),
                     begin<dev_offsets_ut_tracks_t>(arguments),
@@ -111,6 +111,6 @@ namespace lf_quality_filter {
     }
 
   private:
-    Property<blockdim_t> m_blockdim {this};
+    Property<block_dim_t> m_block_dim {this};
   };
 } // namespace lf_quality_filter
