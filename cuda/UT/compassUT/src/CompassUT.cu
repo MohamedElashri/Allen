@@ -157,48 +157,8 @@ __device__ __inline__ void compass_ut::fill_shared_windows(
     for (uint pos = 0; pos < CompassUT::num_elems; ++pos) {
       win_size_shared[pos * track_pos_sh + layer * UT::Constants::num_thr_compassut + threadIdx.x] =
         windows_layers[pos * track_pos + layer * number_of_tracks_event + i_track];
-      // printf("Window %i: %i\n",
-      //   pos * track_pos + layer * number_of_tracks_event + i_track,
-      //   windows_layers[pos * track_pos + layer * number_of_tracks_event + i_track]);
     }
   }
-}
-
-//=========================================================================
-// Determine if there are valid windows for this track looking at the sizes
-//=========================================================================
-__device__ __inline__ bool
-compass_ut::found_active_windows(const short* windows_layers, const int number_of_tracks_event, const int i_track)
-{
-  const int track_pos = UT::Constants::n_layers * number_of_tracks_event;
-
-  // The windows are stored in SOA, with the first 5 arrays being the first hits of the windows,
-  // and the next 5 the sizes of the windows. We check the sizes of all the windows.
-  const bool l0_found = windows_layers[5 * track_pos + 0 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[6 * track_pos + 0 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[7 * track_pos + 0 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[8 * track_pos + 0 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[9 * track_pos + 0 * number_of_tracks_event + i_track] != 0;
-
-  const bool l1_found = windows_layers[5 * track_pos + 1 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[6 * track_pos + 1 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[7 * track_pos + 1 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[8 * track_pos + 1 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[9 * track_pos + 1 * number_of_tracks_event + i_track] != 0;
-
-  const bool l2_found = windows_layers[5 * track_pos + 2 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[6 * track_pos + 2 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[7 * track_pos + 2 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[8 * track_pos + 2 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[9 * track_pos + 2 * number_of_tracks_event + i_track] != 0;
-
-  const bool l3_found = windows_layers[5 * track_pos + 3 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[6 * track_pos + 3 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[7 * track_pos + 3 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[8 * track_pos + 3 * number_of_tracks_event + i_track] != 0 ||
-                        windows_layers[9 * track_pos + 3 * number_of_tracks_event + i_track] != 0;
-
-  return (l0_found && l2_found && (l1_found || l3_found)) || (l3_found && l1_found && (l2_found || l0_found));
 }
 
 //=========================================================================

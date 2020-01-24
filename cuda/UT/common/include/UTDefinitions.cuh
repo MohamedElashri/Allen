@@ -30,7 +30,7 @@ namespace UT {
   static constexpr int num_atomics = 3;
 
   namespace Constants {
-    static constexpr uint num_thr_compassut = 128;
+    static constexpr uint num_thr_compassut = 256;
 
     /* Detector description
        There are two stations with two layers each

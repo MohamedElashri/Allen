@@ -22,8 +22,8 @@ namespace compass_ut {
     DEVICE_OUTPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
     DEVICE_OUTPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
     DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
-    DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, uint) dev_ut_number_of_selected_velo_tracks;
-    DEVICE_INPUT(dev_ut_selected_velo_tracks_t, uint) dev_ut_selected_velo_tracks;
+    DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, uint) dev_ut_number_of_selected_velo_tracks;
+    DEVICE_INPUT(dev_ut_selected_velo_tracks_with_windows_t, uint) dev_ut_selected_velo_tracks;
 
     PROPERTY(sigma_velo_slope_t, float, "sigma_velo_slope", "sigma velo slope [radians]", 0.1f * Gaudi::Units::mrad)
     sigma_velo_slope;
@@ -87,9 +87,6 @@ namespace compass_ut {
     const int i_track,
     short* win_size_shared);
 
-  __device__ __inline__ bool
-  found_active_windows(const short* dev_windows_layers, const int total_tracks_event, const int track);
-
   __device__ void save_track(
     const int i_track,
     const float* bdlTable,
@@ -141,8 +138,8 @@ namespace compass_ut {
                     begin<dev_ut_tracks_t>(arguments),
                     begin<dev_atomics_ut_t>(arguments),
                     begin<dev_ut_windows_layers_t>(arguments),
-                    begin<dev_ut_number_of_selected_velo_tracks_t>(arguments),
-                    begin<dev_ut_selected_velo_tracks_t>(arguments),
+                    begin<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments),
+                    begin<dev_ut_selected_velo_tracks_with_windows_t>(arguments),
                     property<sigma_velo_slope_t>(),
                     property<inv_sigma_velo_slope_t>(),
                     property<min_momentum_final_t>(),

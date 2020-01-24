@@ -14,6 +14,7 @@ def UT_sequence(validate=False):
   ut_decode_raw_banks_in_order = ut_decode_raw_banks_in_order_t()
   ut_select_velo_tracks = ut_select_velo_tracks_t()
   ut_search_windows = ut_search_windows_t()
+  ut_select_velo_tracks_with_windows = ut_select_velo_tracks_with_windows_t()
   compass_ut = compass_ut_t()
   
   prefix_sum_ut_tracks = host_prefix_sum_t("prefix_sum_ut_tracks",
@@ -39,6 +40,7 @@ def UT_sequence(validate=False):
     ut_decode_raw_banks_in_order,
     ut_select_velo_tracks,
     ut_search_windows,
+    ut_select_velo_tracks_with_windows,
     compass_ut,
     prefix_sum_ut_tracks,
     ut_copy_track_hit_number,
