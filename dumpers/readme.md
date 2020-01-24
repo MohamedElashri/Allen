@@ -1,9 +1,12 @@
 Produce binary input for Allen
--------------------------------
+================================
 
-These are instructions for how to produce binary input for Allen from lxplus using Brunel.
+These are instructions for how to produce binary input for Allen from lxplus using Brunel or Moore.
 
-Follow instructions [here]() to call Allen from Brunel.  
+Brunel
+-------
+
+Follow instructions [here](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_Gaudi_Allen_integration/Online/AllenIntegration/readme.md#call-allen-from-brunel) to call Allen from Brunel.  
 
 Note that after the installation, all of the following commands are executed from within the Brunel directory.
   
@@ -50,6 +53,11 @@ For changing the output location, the OutputDirectory can be set in the configur
     
 For the TrackerDumper, `OutputDirectory` is the directory for the ROOT files, `MCOutputDirectory` is the directory for the binary files.
 
+Moore
+--------
+
+The binary bank output can also be dumped with Moore. In this case follow [these](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_Gaudi_Allen_integration/Online/AllenIntegration/readme.md#call-allen-from-moore) instruction to call Allen from Moore.
+The dumping of banks to file needs to be enabled [here](https://gitlab.cern.ch/lhcb/Moore/blob/dovombru_Allen_Moore_integration/Hlt/RecoConf/python/RecoConf/hlt1_allen.py#L28).
 
     
     
