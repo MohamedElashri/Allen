@@ -3,8 +3,6 @@ Produce binary input for Allen
 
 These are instructions for how to produce binary input for Allen from lxplus using Brunel.
 
-Follow instructions [here](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_Gaudi_Allen_integration/readme.md#building-as-a-gaudilhcb-project) to compile Allen with Gaudi.
-
 Follow instructions [here]() to call Allen from Brunel.  
 
 Note that after the installation, all of the following commands are executed from within the Brunel directory.
