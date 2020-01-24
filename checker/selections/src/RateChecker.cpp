@@ -9,8 +9,8 @@ void RateChecker::accumulate(
   const bool* disp_dimuon_decisions,
   const bool* high_mass_dimuon_decisions,
   const bool* dimuon_soft_decisions,
-  const int* track_atomics,
-  const uint* sv_atomics,
+  const uint* track_offsets,
+  const uint* sv_offsets,
   const uint selected_events)
 {
   // Event loop.
@@ -19,10 +19,9 @@ void RateChecker::accumulate(
     // Check one track decisions.
     bool one_track_pass = false;
     bool single_muon_pass = false;
-    const int* event_tracks_offsets = track_atomics + selected_events;
-    const bool* event_one_track_decisions = one_track_decisions + event_tracks_offsets[i_event];
-    const bool* event_single_muon_decisions = single_muon_decisions + event_tracks_offsets[i_event];
-    const int n_tracks_event = track_atomics[i_event];
+    const bool* event_one_track_decisions = one_track_decisions + track_offsets[i_event];
+    const bool* event_single_muon_decisions = single_muon_decisions + track_offsets[i_event];
+    const int n_tracks_event = track_offsets[i_event + 1] - track_offsets[i_event];
     for (int i_track = 0; i_track < n_tracks_event; i_track++) {
       if (event_one_track_decisions[i_track]) {
         one_track_pass = true;
@@ -37,14 +36,13 @@ void RateChecker::accumulate(
     bool disp_dimuon_pass = false;
     bool high_mass_dimuon_pass = false;
     bool dimuon_soft_pass = false;
-    const uint* sv_offsets = sv_atomics + selected_events;
     
     const bool* event_two_track_decisions = two_track_decisions + sv_offsets[i_event];
     const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_offsets[i_event];
     const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_offsets[i_event];
     const bool* event_dimuon_soft_decisions = dimuon_soft_decisions + sv_offsets[i_event];
-
-    const uint n_svs_event = sv_atomics[i_event]; 
+    const uint n_svs_event = sv_offsets[i_event + 1] - sv_offsets[i_event]; 
+    
     for (int i_sv = 0; i_sv < n_svs_event; i_sv++) {
       if (event_two_track_decisions[i_sv]) {
         two_track_pass = true;
