@@ -47,8 +47,13 @@ __global__ void pv_beamline_multi_fitter(
     }
   }
 
+  
+
+
   // make sure that we have one thread per seed
   for (uint i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
+    float exp_chi2_0[1200];
+
     bool converged = false;
     bool accept = true;
     float vtxcov[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
@@ -60,13 +65,14 @@ __global__ void pv_beamline_multi_fitter(
     float chi2tot = 0.f;
     float sum_weights = 0.f;
 
-    for (uint iter = 0; iter < maxFitIter && !converged; ++iter) {
+    for (uint iter = 0; (iter < maxFitIter && !converged) || iter < minFitIter; ++iter) {
       auto halfD2Chi2DX2_00 = 0.f;
       auto halfD2Chi2DX2_11 = 0.f;
       auto halfD2Chi2DX2_20 = 0.f;
       auto halfD2Chi2DX2_21 = 0.f;
       auto halfD2Chi2DX2_22 = 0.f;
       float3 halfDChi2DX {0.f, 0.f, 0.f};
+      sum_weights = 0.f;
 
       uint nselectedtracks = 0;
       chi2tot = 0.f;
@@ -80,23 +86,33 @@ __global__ void pv_beamline_multi_fitter(
         const auto dz = vtxpos_z - trk.z;
         const float2 res = vtxpos_xy - (trk.x + trk.tx * dz);
         const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
+        if(iter == 0) exp_chi2_0[i] = expf(chi2 * (-0.5f));
+
 
         // compute the weight.
         if (chi2 < maxChi2) {
-          ++nselectedtracks;
+          
           // for more information on the weighted fitting, see e.g.
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
           // https://cds.cern.ch/record/803519/files/p280.pdf
-          const auto denom = chi2CutExp + expf(chi2 * (-0.5f));
-          // use seed position for chi2 calculation of nominator
+                    // use seed position for chi2 calculation of nominator
           const float dz_seed = seed_pos_z - trk.z;
           const float2 res_seed = seed_pos_xy - (trk.x + trk.tx * dz_seed);
           const float chi2_seed = res_seed.x * res_seed.x * trk.W_00 + res_seed.y * res_seed.y * trk.W_11;
           const auto nom = expf(chi2_seed * (-0.5f));
-          const auto track_weight = nom / (denom + pvtracks_denom[first_track_in_range + i]);
+          
+
+          const auto denom = chi2CutExp + nom;
+          //substract this term to avoid double counting
+
+          const auto track_weight = nom / (denom + pvtracks_denom[first_track_in_range + i] - exp_chi2_0[i]);
+
+
 
           // unfortunately branchy, but reduces fake rate
-          if (track_weight > minWeight) {
+           if (trk.weight > 0.5) {
+              ++nselectedtracks;
+
             const float3 HWr {
               res.x * trk.W_00, res.y * trk.W_11, -trk.tx.x * res.x * trk.W_00 - trk.tx.y * res.y * trk.W_11};
 
@@ -189,7 +205,7 @@ __global__ void pv_beamline_multi_fitter(
       const auto beamlinedx = vertex.position.x - dev_beamline[0];
       const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if (vertex.nTracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
+      if (vertex.nTracks >= 2.f && beamlinerho2 < maxVertexRho2) {
         uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }

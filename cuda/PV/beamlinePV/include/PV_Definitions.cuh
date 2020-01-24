@@ -104,7 +104,7 @@ namespace PV {
       cov21 = m_cov[4];
       cov22 = m_cov[5];
     }
-    int nTracks = 0;
+    float nTracks = 0; //float since weights are getting added
   };
 
 } // namespace PV
