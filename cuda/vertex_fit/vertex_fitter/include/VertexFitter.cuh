@@ -133,15 +133,6 @@ namespace VertexFit {
                     property<track_min_ipchi2_t>(),
                     property<track_muon_min_ipchi2_t>(),
                     property<max_assoc_ipchi2_t>()});
-
-      if (runtime_options.do_check) {
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_sv_atomics,
-          begin<dev_sv_atomics_t>(arguments),
-          size<dev_sv_atomics_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
-      }
     }
 
   private:

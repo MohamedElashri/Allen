@@ -49,6 +49,13 @@ namespace consolidate_svs {
           size<dev_consolidated_svs_t>(arguments),
           cudaMemcpyDeviceToHost,
           cuda_stream));
+
+        cudaCheck(cudaMemcpyAsync(
+          host_buffers.host_sv_atomics,
+          begin<dev_sv_offsets_t>(arguments),
+          size<dev_sv_offsets_t>(arguments),
+          cudaMemcpyDeviceToHost,
+          cuda_stream));
       }
     }
 
