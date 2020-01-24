@@ -27,7 +27,9 @@
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
 
-class AllenForwardToV2Tracks final : public Gaudi::Functional::Transformer<std::vector<LHCb::Event::v2::Track>(const HostBuffers&)> {
+class AllenForwardToV2Tracks final : public Gaudi::Functional::Transformer<std::vector<LHCb::Event::v2::Track>(const HostBuffers&),
+  Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
+  
  public:
   /// Standard constructor
   AllenForwardToV2Tracks( const std::string& name, ISvcLocator* pSvcLocator );
@@ -41,7 +43,8 @@ class AllenForwardToV2Tracks final : public Gaudi::Functional::Transformer<std::
  private:
   const std::array<float, 5> default_covarianceValues{4.0, 400.0, 4.e-6, 1.e-4, 0.1};
   Gaudi::Property<std::array<float, 5>> m_covarianceValues{this, "covarianceValues", default_covarianceValues};
-  
+
+  std::unordered_map<std::string, AIDA::IHistogram1D*> m_histos;
 };
 
 

@@ -34,6 +34,8 @@ StatusCode AllenForwardToV2Tracks::initialize() {
   if ( sc.isFailure() ) return sc;
   if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
 
+  m_histos["x"] = book1D( "x", -2, 2, 100 );
+  
   return StatusCode::SUCCESS;
 }
 
