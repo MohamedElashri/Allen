@@ -19,11 +19,11 @@ namespace compass_ut {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo; // prefixsum, offset to tracks
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
-    DEVICE_OUTPUT(dev_ut_active_tracks_t, uint) dev_ut_active_tracks;
     DEVICE_OUTPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
     DEVICE_OUTPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
     DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
-    DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
+    DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, uint) dev_ut_number_of_selected_velo_tracks;
+    DEVICE_INPUT(dev_ut_selected_velo_tracks_t, uint) dev_ut_selected_velo_tracks;
 
     PROPERTY(sigma_velo_slope_t, float, "sigma_velo_slope", "sigma velo slope [radians]", 0.1f * Gaudi::Units::mrad)
     sigma_velo_slope;
@@ -129,8 +129,6 @@ namespace compass_ut {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_ut_active_tracks_t>(arguments), 0, size<dev_ut_active_tracks_t>(arguments), cuda_stream));
       cudaCheck(cudaMemsetAsync(begin<dev_atomics_ut_t>(arguments), 0, size<dev_atomics_ut_t>(arguments), cuda_stream));
 
       function(
@@ -140,11 +138,11 @@ namespace compass_ut {
                     begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
                     begin<dev_velo_states_t>(arguments),
-                    begin<dev_ut_active_tracks_t>(arguments),
                     begin<dev_ut_tracks_t>(arguments),
                     begin<dev_atomics_ut_t>(arguments),
                     begin<dev_ut_windows_layers_t>(arguments),
-                    begin<dev_accepted_velo_tracks_t>(arguments),
+                    begin<dev_ut_number_of_selected_velo_tracks_t>(arguments),
+                    begin<dev_ut_selected_velo_tracks_t>(arguments),
                     property<sigma_velo_slope_t>(),
                     property<inv_sigma_velo_slope_t>(),
                     property<min_momentum_final_t>(),

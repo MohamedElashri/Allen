@@ -14,13 +14,14 @@ namespace ut_search_windows {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_states_t, char) dev_velo_states;
+    DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, uint) dev_ut_number_of_selected_velo_tracks;
+    DEVICE_INPUT(dev_ut_selected_velo_tracks_t, uint) dev_ut_selected_velo_tracks;
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
-    DEVICE_OUTPUT(dev_ut_active_tracks_t, uint) dev_ut_active_tracks;
-    DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
     PROPERTY(min_momentum_t, float, "min_momentum", "min momentum cut [MeV/c]", 3.0f * Gaudi::Units::GeV) min_momentum;
     PROPERTY(min_pt_t, float, "min_pt", "min pT cut [MeV/c]", 0.f) min_pt;
     PROPERTY(y_tol_t, float, "y_tol", "y tol [mm]", 0.5f * Gaudi::Units::mm) y_tol;
     PROPERTY(y_tol_slope_t, float, "y_tol_slope", "y tol slope [mm]", 0.08f) y_tol_slope;
+    PROPERTY(block_dim_y_t, uint, "block_dim_y_t", "block dimension Y", 64);
   };
 
   __global__ void ut_search_windows(
@@ -44,7 +45,6 @@ namespace ut_search_windows {
       set_size<dev_ut_windows_layers_t>(
         arguments,
         CompassUT::num_elems * UT::Constants::n_layers * value<host_number_of_reconstructed_velo_tracks_t>(arguments));
-      set_size<dev_ut_active_tracks_t>(arguments, runtime_options.number_of_events);
     }
 
     void operator()(
@@ -57,21 +57,19 @@ namespace ut_search_windows {
     {
       cudaCheck(cudaMemsetAsync(
         begin<dev_ut_windows_layers_t>(arguments), 0, size<dev_ut_windows_layers_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_ut_active_tracks_t>(arguments), 0, size<dev_ut_active_tracks_t>(arguments), cuda_stream));
 
       function(
         dim3(value<host_number_of_selected_events_t>(arguments)),
-        dim3(UT::Constants::n_layers, UT::Constants::num_thr_searchwin),
+        dim3(UT::Constants::n_layers, property<block_dim_y_t>()),
         cuda_stream)(
         Parameters {begin<dev_ut_hits_t>(arguments),
                     begin<dev_ut_hit_offsets_t>(arguments),
                     begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
                     begin<dev_velo_states_t>(arguments),
+                    begin<dev_ut_number_of_selected_velo_tracks_t>(arguments),
+                    begin<dev_ut_selected_velo_tracks_t>(arguments),
                     begin<dev_ut_windows_layers_t>(arguments),
-                    begin<dev_ut_active_tracks_t>(arguments),
-                    begin<dev_accepted_velo_tracks_t>(arguments),
                     property<min_momentum_t>(),
                     property<min_pt_t>(),
                     property<y_tol_t>(),
@@ -87,5 +85,6 @@ namespace ut_search_windows {
     Property<min_pt_t> m_pt {this};
     Property<y_tol_t> m_ytol {this};
     Property<y_tol_slope_t> m_yslope {this};
+    Property<block_dim_y_t> m_block_dim_y {this};
   };
 } // namespace ut_search_windows

@@ -31,9 +31,6 @@ __global__ void compass_ut::compass_ut(
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
 
-  // active track pointer
-  uint* active_tracks = parameters.dev_ut_active_tracks + event_number;
-
   // parameters.dev_atomics_ut contains in an SoA:
   //   1. # of veloUT tracks
   //   2. # velo tracks in UT acceptance
@@ -41,83 +38,21 @@ __global__ void compass_ut::compass_ut(
   uint* n_veloUT_tracks_event = parameters.dev_atomics_ut + event_number;
   UT::TrackHits* veloUT_tracks_event = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 
-  // store the tracks with valid windows
-  __shared__ int shared_active_tracks[2 * UT::Constants::num_thr_compassut - 1];
-
   // store windows and num candidates in shared mem
   __shared__ short win_size_shared[UT::Constants::num_thr_compassut * UT::Constants::n_layers * CompassUT::num_elems];
 
   const float* bdl_table = &(dev_ut_magnet_tool->bdlTable[0]);
 
-  for (uint i = 0; i < (number_of_tracks_event + blockDim.x - 1) / blockDim.x; i += 1) {
-    const auto i_track = i * blockDim.x + threadIdx.x;
+  const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
+  const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
 
-    __syncthreads();
-
-    if (i_track < number_of_tracks_event) {
-      const uint current_track_offset = event_tracks_offset + i_track;
-      const auto velo_state = velo_states.get(current_track_offset);
-
-      if (
-        !velo_states.backward(current_track_offset) && parameters.dev_accepted_velo_tracks[current_track_offset] &&
-        velo_track_in_UTA_acceptance(velo_state) &&
-        found_active_windows(windows_layers, number_of_tracks_event, i_track)) {
-        uint current_track = atomicAdd(active_tracks, 1);
-        shared_active_tracks[current_track] = i_track;
-      }
-    }
-
-    __syncthreads();
-
-    if (*active_tracks >= blockDim.x) {
-
-      compass_ut_tracking(
-        windows_layers,
-        number_of_tracks_event,
-        shared_active_tracks[threadIdx.x],
-        event_tracks_offset + shared_active_tracks[threadIdx.x],
-        velo_states,
-        ut_hits,
-        ut_hit_offsets,
-        bdl_table,
-        dev_ut_dxDy,
-        dev_magnet_polarity[0],
-        win_size_shared,
-        n_veloUT_tracks_event,
-        veloUT_tracks_event,
-        event_hit_offset,
-        parameters.min_momentum_final,
-        parameters.min_pt_final,
-        parameters.max_considered_before_found,
-        parameters.delta_tx_2,
-        parameters.hit_tol_2,
-        parameters.sigma_velo_slope,
-        parameters.inv_sigma_velo_slope);
-
-      __syncthreads();
-
-      const int j = blockDim.x + threadIdx.x;
-      if (j < *active_tracks) {
-        shared_active_tracks[threadIdx.x] = shared_active_tracks[j];
-      }
-
-      __syncthreads();
-
-      if (threadIdx.x == 0) {
-        *active_tracks -= blockDim.x;
-      }
-    }
-  }
-
-  __syncthreads();
-
-  // remaining tracks
-  if (threadIdx.x < *active_tracks) {
+  for (uint i = threadIdx.x; i < ut_number_of_selected_tracks; i += blockDim.x) {
+    const auto current_velo_track = ut_selected_velo_tracks[i];
     compass_ut_tracking(
       windows_layers,
       number_of_tracks_event,
-      shared_active_tracks[threadIdx.x],
-      event_tracks_offset + shared_active_tracks[threadIdx.x],
+      current_velo_track,
+      event_tracks_offset + current_velo_track,
       velo_states,
       ut_hits,
       ut_hit_offsets,

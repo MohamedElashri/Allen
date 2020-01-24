@@ -1,6 +1,7 @@
 #include "RateChecker.h"
 #include "SelCheckerTuple.h"
 #include "PrepareKalmanTracks.h"
+#include "RunHlt1.cuh"
 
 template<typename T, char... S>
 struct SequenceVisitor<run_hlt1::run_hlt1_t<T, S...>> {

@@ -28,104 +28,18 @@ __global__ void ut_search_windows::ut_search_windows(
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
 
   const float* fudge_factors = &(dev_ut_magnet_tool->dxLayTable[0]);
-  uint* active_tracks = parameters.dev_ut_active_tracks + event_number;
-
-  // Store only the valid tracks into shared memory.
-  // Fill the array until with find enough valid tracks = block size
-  __shared__ int shared_active_tracks[2 * UT::Constants::num_thr_searchwin - 1];
+  
+  const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
+  const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
 
   for (uint layer = threadIdx.x; layer < UT::Constants::n_layers; layer += blockDim.x) {
     const uint layer_offset = ut_hit_offsets.layer_offset(layer);
 
-    for (uint i = 0; i < ((number_of_tracks_event + blockDim.y - 1) / blockDim.y + 1); i += 1) {
-      const auto i_track = i * blockDim.y + threadIdx.y;
+    for (uint i = threadIdx.y; i < ut_number_of_selected_tracks; i += blockDim.y) {
+      const auto current_velo_track = ut_selected_velo_tracks[i];
 
-      __syncthreads();
-
-      // filter the tracks that won't be valid
-      if (threadIdx.x == 0) {
-        if (i_track < number_of_tracks_event) {
-          const uint current_track_offset = event_tracks_offset + i_track;
-          const auto velo_state = velo_states.get(current_track_offset);
-          if (
-            !velo_states.backward(current_track_offset) && // velo_state.backward
-            parameters.dev_accepted_velo_tracks[current_track_offset] &&
-            velo_track_in_UTA_acceptance(velo_state)) {
-            int current_track = atomicAdd(active_tracks, 1);
-            shared_active_tracks[current_track] = i_track;
-          }
-        }
-      }
-
-      __syncthreads();
-
-      // process only the active tracks
-      if (*active_tracks >= blockDim.y) {
-
-        const uint current_track_offset = event_tracks_offset + shared_active_tracks[threadIdx.y];
-        const MiniState velo_state = velo_states.getMiniState(current_track_offset);
-
-        const auto candidates = calculate_windows(
-          layer,
-          velo_state,
-          fudge_factors,
-          ut_hits,
-          ut_hit_offsets,
-          dev_ut_dxDy,
-          dev_unique_sector_xs,
-          dev_unique_x_sector_layer_offsets,
-          parameters.y_tol,
-          parameters.y_tol_slope,
-          parameters.min_pt,
-          parameters.min_momentum);
-
-        // Write the windows in SoA style
-        short* windows_layers =
-          parameters.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
-
-        const int track_pos = UT::Constants::n_layers * number_of_tracks_event;
-        const int layer_pos = layer * number_of_tracks_event + shared_active_tracks[threadIdx.y];
-
-        windows_layers[0 * track_pos + layer_pos] = std::get<0>(candidates) - layer_offset; // first_candidate
-        windows_layers[1 * track_pos + layer_pos] = std::get<2>(candidates) - layer_offset; // left_group_first
-        windows_layers[2 * track_pos + layer_pos] = std::get<4>(candidates) - layer_offset; // right_group_first
-        windows_layers[3 * track_pos + layer_pos] = std::get<6>(candidates) - layer_offset; // left2_group_first
-        windows_layers[4 * track_pos + layer_pos] = std::get<8>(candidates) - layer_offset; // right2_group_first
-        windows_layers[5 * track_pos + layer_pos] = std::get<1>(candidates) - std::get<0>(candidates); // last_size
-        windows_layers[6 * track_pos + layer_pos] = std::get<3>(candidates) - std::get<2>(candidates); // left_size_last
-        windows_layers[7 * track_pos + layer_pos] =
-          std::get<5>(candidates) - std::get<4>(candidates); // right_size_first
-        windows_layers[8 * track_pos + layer_pos] =
-          std::get<7>(candidates) - std::get<6>(candidates); // left2_size_last
-        windows_layers[9 * track_pos + layer_pos] =
-          std::get<9>(candidates) - std::get<8>(candidates); // right2_size_first
-
-        __syncthreads();
-
-        if (threadIdx.x == 0) {
-          const int j = blockDim.y + threadIdx.y;
-          if (j < *active_tracks) {
-            shared_active_tracks[threadIdx.y] = shared_active_tracks[j];
-          }
-        }
-
-        __syncthreads();
-
-        if (threadIdx.x == 0 && threadIdx.y == 0) {
-          *active_tracks -= blockDim.y;
-        }
-      }
-    }
-
-    __syncthreads();
-
-    // remaining tracks
-    if (threadIdx.y < *active_tracks) {
-
-      const int i_track = shared_active_tracks[threadIdx.y];
-      const uint current_track_offset = event_tracks_offset + i_track;
-
-      const auto velo_state = velo_states.get(current_track_offset);
+      const uint current_track_offset = event_tracks_offset + current_velo_track;
+      const MiniState velo_state = velo_states.getMiniState(current_track_offset);
 
       const auto candidates = calculate_windows(
         layer,
@@ -146,7 +60,8 @@ __global__ void ut_search_windows::ut_search_windows(
         parameters.dev_ut_windows_layers + event_tracks_offset * CompassUT::num_elems * UT::Constants::n_layers;
 
       const int track_pos = UT::Constants::n_layers * number_of_tracks_event;
-      const int layer_pos = layer * number_of_tracks_event + shared_active_tracks[threadIdx.y];
+      const int layer_pos = layer * number_of_tracks_event + current_velo_track;
+
       windows_layers[0 * track_pos + layer_pos] = std::get<0>(candidates) - layer_offset; // first_candidate
       windows_layers[1 * track_pos + layer_pos] = std::get<2>(candidates) - layer_offset; // left_group_first
       windows_layers[2 * track_pos + layer_pos] = std::get<4>(candidates) - layer_offset; // right_group_first
@@ -154,8 +69,10 @@ __global__ void ut_search_windows::ut_search_windows(
       windows_layers[4 * track_pos + layer_pos] = std::get<8>(candidates) - layer_offset; // right2_group_first
       windows_layers[5 * track_pos + layer_pos] = std::get<1>(candidates) - std::get<0>(candidates); // last_size
       windows_layers[6 * track_pos + layer_pos] = std::get<3>(candidates) - std::get<2>(candidates); // left_size_last
-      windows_layers[7 * track_pos + layer_pos] = std::get<5>(candidates) - std::get<4>(candidates); // right_size_first
-      windows_layers[8 * track_pos + layer_pos] = std::get<7>(candidates) - std::get<6>(candidates); // left2_size_last
+      windows_layers[7 * track_pos + layer_pos] =
+        std::get<5>(candidates) - std::get<4>(candidates); // right_size_first
+      windows_layers[8 * track_pos + layer_pos] =
+        std::get<7>(candidates) - std::get<6>(candidates); // left2_size_last
       windows_layers[9 * track_pos + layer_pos] =
         std::get<9>(candidates) - std::get<8>(candidates); // right2_size_first
     }

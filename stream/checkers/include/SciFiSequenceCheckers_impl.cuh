@@ -1,4 +1,5 @@
 #include "PrepareTracks.h"
+#include "ConsolidateSciFi.cuh"
 
 /**
  * @brief Specialization when invoking scifi_pr_forward_t as last step.

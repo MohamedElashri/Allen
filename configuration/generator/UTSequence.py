@@ -12,6 +12,7 @@ def UT_sequence(validate=False):
   ut_pre_decode = ut_pre_decode_t()
   ut_find_permutation = ut_find_permutation_t()
   ut_decode_raw_banks_in_order = ut_decode_raw_banks_in_order_t()
+  ut_select_velo_tracks = ut_select_velo_tracks_t()
   ut_search_windows = ut_search_windows_t()
   compass_ut = compass_ut_t()
   
@@ -36,6 +37,7 @@ def UT_sequence(validate=False):
     ut_pre_decode,
     ut_find_permutation,
     ut_decode_raw_banks_in_order,
+    ut_select_velo_tracks,
     ut_search_windows,
     compass_ut,
     prefix_sum_ut_tracks,
