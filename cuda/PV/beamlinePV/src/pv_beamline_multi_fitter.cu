@@ -47,12 +47,12 @@ __global__ void pv_beamline_multi_fitter(
     }
   }
 
-  float exp_chi2_0[6000];
+  
 
 
   // make sure that we have one thread per seed
   for (uint i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
-  
+    float exp_chi2_0[1200];
 
     bool converged = false;
     bool accept = true;
@@ -205,7 +205,7 @@ __global__ void pv_beamline_multi_fitter(
       const auto beamlinedx = vertex.position.x - dev_beamline[0];
       const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if (beamlinerho2 < maxVertexRho2) {
+      if (vertex.nTracks >= 2.f && beamlinerho2 < maxVertexRho2) {
         uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }
