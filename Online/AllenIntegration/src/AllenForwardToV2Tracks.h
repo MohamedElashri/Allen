@@ -27,6 +27,8 @@
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
 
+#include <AIDA/IHistogram1D.h>
+
 class AllenForwardToV2Tracks final : public Gaudi::Functional::Transformer<std::vector<LHCb::Event::v2::Track>(const HostBuffers&),
   Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
   

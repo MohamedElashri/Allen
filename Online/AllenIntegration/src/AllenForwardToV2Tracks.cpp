@@ -34,7 +34,15 @@ StatusCode AllenForwardToV2Tracks::initialize() {
   if ( sc.isFailure() ) return sc;
   if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
 
-  m_histos["x"] = book1D( "x", -2, 2, 100 );
+  m_histos["x"] = book1D( "x", -1, 1, 100 );
+  m_histos["y"] = book1D( "y", -1, 1, 100 );
+  m_histos["z"] = book1D( "z", -300, 600, 100 );
+  m_histos["tx"] = book1D( "tx", -0.5, 0.5, 100 );
+  m_histos["ty"] = book1D( "ty", -0.5, 0.5, 100 );
+  m_histos["chi2"] = book1D( "chi2", 0, 100, 100 );
+  m_histos["chi2_newTrack"] = book1D( "chi2_newTrack", 0, 100, 100 );
+  m_histos["ndof"] = book1D( "ndof", -0.5, 49.5, 500 );
+  m_histos["ndof_newTrack"] = book1D( "ndof_newTrack", -0.5, 49.5, 500 );
   
   return StatusCode::SUCCESS;
 }
@@ -116,10 +124,10 @@ std::vector<LHCb::Event::v2::Track> AllenForwardToV2Tracks::operator()(const Hos
     scifi_state.covariance()( 4, 4 ) = qopError;
     
     scifi_state.setLocation( LHCb::State::Location::AtT );
-    newTrack.addToStates( scifi_state );
+    //newTrack.addToStates( scifi_state );
     
     // set chi2 / chi2ndof
-    newTrack.setChi2PerDoF( LHCb::Event::v2::Track::Chi2PerDoF{track.chi2,track.ndof} );
+    newTrack.setChi2PerDoF( LHCb::Event::v2::Track::Chi2PerDoF{track.chi2 / track.ndof, track.ndof} );
 
     // set LHCb IDs
     std::vector<LHCbID> lhcbids;
@@ -147,6 +155,25 @@ std::vector<LHCb::Event::v2::Track> AllenForwardToV2Tracks::operator()(const Hos
       newTrack.addToLhcbIDs( static_cast<const LHCb::LHCbID&>(LHCb::LHCbID(id)) );
     }
 
+    // Fill histograms
+    auto hist = m_histos.find( "x" );
+    hist->second->fill(closesttobeam_state.x());
+    hist = m_histos.find( "y" );
+    hist->second->fill(closesttobeam_state.y());
+    hist = m_histos.find( "z" );
+    hist->second->fill(closesttobeam_state.z());
+    hist = m_histos.find( "tx" );
+    hist->second->fill(closesttobeam_state.tx());
+    hist = m_histos.find( "ty" );
+    hist->second->fill(closesttobeam_state.ty());
+    hist = m_histos.find( "chi2_newTrack" );
+    hist->second->fill(newTrack.chi2());
+    hist = m_histos.find( "chi2" );
+    hist->second->fill(track.chi2);
+    hist = m_histos.find( "ndof_newTrack" );
+    hist->second->fill(newTrack.nDoF());
+    hist = m_histos.find( "ndof" );
+    hist->second->fill(track.ndof);
   }
   
   return output;
