@@ -28,7 +28,7 @@ __global__ void ut_search_windows::ut_search_windows(
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
 
   const float* fudge_factors = &(dev_ut_magnet_tool->dxLayTable[0]);
-  
+
   const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
   const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_tracks_offset;
 
@@ -67,14 +67,11 @@ __global__ void ut_search_windows::ut_search_windows(
       windows_layers[2 * track_pos + layer_pos] = std::get<4>(candidates) - layer_offset; // right_group_first
       windows_layers[3 * track_pos + layer_pos] = std::get<6>(candidates) - layer_offset; // left2_group_first
       windows_layers[4 * track_pos + layer_pos] = std::get<8>(candidates) - layer_offset; // right2_group_first
-      windows_layers[5 * track_pos + layer_pos] = std::get<1>(candidates) - std::get<0>(candidates); // last_size
-      windows_layers[6 * track_pos + layer_pos] = std::get<3>(candidates) - std::get<2>(candidates); // left_size_last
-      windows_layers[7 * track_pos + layer_pos] =
-        std::get<5>(candidates) - std::get<4>(candidates); // right_size_first
-      windows_layers[8 * track_pos + layer_pos] =
-        std::get<7>(candidates) - std::get<6>(candidates); // left2_size_last
-      windows_layers[9 * track_pos + layer_pos] =
-        std::get<9>(candidates) - std::get<8>(candidates); // right2_size_first
+      windows_layers[5 * track_pos + layer_pos] = std::get<1>(candidates);                // last_size
+      windows_layers[6 * track_pos + layer_pos] = std::get<3>(candidates);                // left_size_last
+      windows_layers[7 * track_pos + layer_pos] = std::get<5>(candidates);                // right_size_first
+      windows_layers[8 * track_pos + layer_pos] = std::get<7>(candidates);                // left2_size_last
+      windows_layers[9 * track_pos + layer_pos] = std::get<9>(candidates);                // right2_size_first
     }
   }
 }
