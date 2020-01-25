@@ -22,11 +22,12 @@
  */
 class DumpMuonGeometry final : public DumpGeometry<DeMuonDetector> {
 public:
-  DumpMuonGeometry( std::string name, ISvcLocator* loc )
-      : DumpGeometry<DeMuonDetector>{std::move( name ), loc, DeMuonLocation::Default} {}
+  DumpMuonGeometry(std::string name, ISvcLocator* loc) :
+    DumpGeometry<DeMuonDetector> {std::move(name), loc, DeMuonLocation::Default}
+  {}
 
 protected:
-  StatusCode       registerConditions( IUpdateManagerSvc* updMgrSvc ) override;
+  StatusCode registerConditions(IUpdateManagerSvc* updMgrSvc) override;
   DumpUtils::Dumps dumpGeometry() const override;
 
 private:

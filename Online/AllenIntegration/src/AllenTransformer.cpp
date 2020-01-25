@@ -11,21 +11,23 @@
 
 #include "AllenTransformer.h"
 
-DECLARE_COMPONENT( AllenTransformer )
+DECLARE_COMPONENT(AllenTransformer)
 
-AllenTransformer::AllenTransformer( const std::string& name, ISvcLocator* pSvcLocator )
-: MultiTransformer( name, pSvcLocator,
-                    // Inputs
-                    {KeyValue{"AllenRawInput", "Allen/Raw/Input"},
-                     KeyValue{"ODINLocation", LHCb::ODINLocation::Default}},
-                    // Outputs
-                    {KeyValue{"VeloTracks", "Allen/Track/Velo"},
-                     KeyValue{"UTTracks", "Allen/Track/UT"}} ) {}
+AllenTransformer::AllenTransformer(const std::string& name, ISvcLocator* pSvcLocator) :
+  MultiTransformer(
+    name,
+    pSvcLocator,
+    // Inputs
+    {KeyValue {"AllenRawInput", "Allen/Raw/Input"}, KeyValue {"ODINLocation", LHCb::ODINLocation::Default}},
+    // Outputs
+    {KeyValue {"VeloTracks", "Allen/Track/Velo"}, KeyValue {"UTTracks", "Allen/Track/UT"}})
+{}
 
-StatusCode AllenTransformer::initialize() {
+StatusCode AllenTransformer::initialize()
+{
   auto sc = MultiTransformer::initialize();
-  if ( sc.isFailure() ) return sc;
-  if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
+  if (sc.isFailure()) return sc;
+  if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
 
   return StatusCode::SUCCESS;
 }
@@ -33,10 +35,13 @@ StatusCode AllenTransformer::initialize() {
 /** Iterates over all tracks in the current event and performs muon id on them.
  * Resulting PID objects as well as muon tracks are stored on the TES.
  */
-std::tuple<LHCb::Tracks, LHCb::Tracks> AllenTransformer::operator()(const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks, const LHCb::ODIN& odin ) const {
+std::tuple<LHCb::Tracks, LHCb::Tracks> AllenTransformer::operator()(
+  const std::array<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>>, LHCb::RawBank::LastType>& allen_banks,
+  const LHCb::ODIN& odin) const
+{
 
   LHCb::Tracks VeloTracks;
   LHCb::Tracks UTTracks;
 
-  return std::make_tuple( std::move( VeloTracks ), std::move( UTTracks ) );
+  return std::make_tuple(std::move(VeloTracks), std::move(UTTracks));
 }

@@ -13,15 +13,16 @@
 
 #include "DumpMagneticField.h"
 
-DECLARE_COMPONENT( DumpMagneticField )
+DECLARE_COMPONENT(DumpMagneticField)
 
-DumpUtils::Dumps DumpMagneticField::dumpGeometry() const {
+DumpUtils::Dumps DumpMagneticField::dumpGeometry() const
+{
 
   auto& magnetSvc = detector();
 
-  DumpUtils::Writer output{};
-  float             polarity = magnetSvc.isDown() ? -1.f : 1.f;
-  output.write( polarity );
+  DumpUtils::Writer output {};
+  float polarity = magnetSvc.isDown() ? -1.f : 1.f;
+  output.write(polarity);
 
-  return {{std::tuple{output.buffer(), "polarity", Allen::NonEventData::MagneticField::id}}};
+  return {{std::tuple {output.buffer(), "polarity", Allen::NonEventData::MagneticField::id}}};
 }

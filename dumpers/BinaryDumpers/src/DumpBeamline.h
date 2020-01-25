@@ -23,8 +23,9 @@
  */
 class DumpBeamline final : public DumpGeometry<Condition> {
 public:
-  DumpBeamline( std::string name, ISvcLocator* loc )
-      : DumpGeometry<Condition>{std::move( name ), loc, "/dd/Conditions/Online/Velo/MotionSystem"} {}
+  DumpBeamline(std::string name, ISvcLocator* loc) :
+    DumpGeometry<Condition> {std::move(name), loc, "/dd/Conditions/Online/Velo/MotionSystem"}
+  {}
 
 protected:
   DumpUtils::Dumps dumpGeometry() const override;

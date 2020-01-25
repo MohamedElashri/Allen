@@ -11,7 +11,7 @@
 #ifndef ALLENPVSTORECVERTEXV2_H
 #define ALLENPVSTORECVERTEXV2_H
 
-// Gaudi 
+// Gaudi
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
 
@@ -21,7 +21,7 @@
 #include "DetDesc/Condition.h"
 #include "DetDesc/ConditionAccessorHolder.h"
 
-// Allen 
+// Allen
 #include "HostBuffers.cuh"
 #include "Logger.h"
 #include "PV_Definitions.cuh"
@@ -29,33 +29,36 @@
 
 namespace {
   inline const std::string beamSpotCond = "/dd/Conditions/Online/Velo/MotionSystem";
-  
+
   struct Beamline_t {
     double X = std::numeric_limits<double>::signaling_NaN();
     double Y = std::numeric_limits<double>::signaling_NaN();
-    Beamline_t( Condition const& c )
-        : X{( c.param<double>( "ResolPosRC" ) + c.param<double>( "ResolPosLA" ) ) / 2}
-        , Y{c.param<double>( "ResolPosY" )} {}
+    Beamline_t(Condition const& c) :
+      X {(c.param<double>("ResolPosRC") + c.param<double>("ResolPosLA")) / 2}, Y {c.param<double>("ResolPosY")}
+    {}
   };
-}
+} // namespace
 
-class AllenPVsToRecVertexV2 final : public Gaudi::Functional::Transformer<std::vector<LHCb::Event::v2::RecVertex>(const HostBuffers&, const Beamline_t&), LHCb::DetDesc::usesConditions<Beamline_t>> {
- public:
+class AllenPVsToRecVertexV2 final : public Gaudi::Functional::Transformer<
+                                      std::vector<LHCb::Event::v2::RecVertex>(const HostBuffers&, const Beamline_t&),
+                                      LHCb::DetDesc::usesConditions<Beamline_t>> {
+public:
   /// Standard constructor
-  AllenPVsToRecVertexV2( const std::string& name, ISvcLocator* pSvcLocator );
+  AllenPVsToRecVertexV2(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// initialization
-  StatusCode                               initialize() override;
-  
+  StatusCode initialize() override;
+
   /// Algorithm execution
-  std::vector<LHCb::Event::v2::RecVertex> operator()( const HostBuffers&, const Beamline_t&) const override;
-  
- private:
-  Gaudi::Property<uint32_t> m_minNumTracksPerVertex{this, "MinNumTracksPerVertex", 4};
-  Gaudi::Property<float>    m_maxVertexRho{this, "BeamSpotRCut", 0.3 * Gaudi::Units::mm, "Maximum distance of vertex to beam line"};
-  mutable Gaudi::Accumulators::SummingCounter<unsigned int> m_nbPVsCounter{this, "Nb PVs"};
+  std::vector<LHCb::Event::v2::RecVertex> operator()(const HostBuffers&, const Beamline_t&) const override;
+
+private:
+  Gaudi::Property<uint32_t> m_minNumTracksPerVertex {this, "MinNumTracksPerVertex", 4};
+  Gaudi::Property<float> m_maxVertexRho {this,
+                                         "BeamSpotRCut",
+                                         0.3 * Gaudi::Units::mm,
+                                         "Maximum distance of vertex to beam line"};
+  mutable Gaudi::Accumulators::SummingCounter<unsigned int> m_nbPVsCounter {this, "Nb PVs"};
 };
-
-
 
 #endif

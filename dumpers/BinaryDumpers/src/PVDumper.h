@@ -30,19 +30,19 @@
  *  @author Florian Reiss
  *  @date   2018-12-17
  */
-class PVDumper : public Gaudi::Functional::Consumer<void( const LHCb::MCVertices& MCVertices, const LHCb::MCProperty&,
-                                                          const LHCb::ODIN& )> {
+class PVDumper : public Gaudi::Functional::Consumer<
+                   void(const LHCb::MCVertices& MCVertices, const LHCb::MCProperty&, const LHCb::ODIN&)> {
 public:
   /// Standard constructor
-  PVDumper( const std::string& name, ISvcLocator* pSvcLocator );
+  PVDumper(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  void operator()( const LHCb::MCVertices& MCVertices, const LHCb::MCProperty&, const LHCb::ODIN& odin ) const override;
+  void operator()(const LHCb::MCVertices& MCVertices, const LHCb::MCProperty&, const LHCb::ODIN& odin) const override;
 
 private:
-  int count_reconstructible_mc_particles( const LHCb::MCVertex&, const MCTrackInfo& ) const;
+  int count_reconstructible_mc_particles(const LHCb::MCVertex&, const MCTrackInfo&) const;
 
-  Gaudi::Property<std::string> m_outputDirectory{this, "OutputDirectory", "MC_info/PVs"};
+  Gaudi::Property<std::string> m_outputDirectory {this, "OutputDirectory", "MC_info/PVs"};
 };
 #endif // PVDUMPER_H

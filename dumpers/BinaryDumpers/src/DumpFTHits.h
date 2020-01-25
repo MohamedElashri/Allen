@@ -27,16 +27,16 @@
  *  @author Roel Aaij
  *  @date   2018-08-27
  */
-class DumpFTHits : public Gaudi::Functional::Consumer<void( const LHCb::ODIN&, const PrFTHitHandler<PrHit>& )> {
+class DumpFTHits : public Gaudi::Functional::Consumer<void(const LHCb::ODIN&, const PrFTHitHandler<PrHit>&)> {
 public:
   /// Standard constructor
-  DumpFTHits( const std::string& name, ISvcLocator* pSvcLocator );
+  DumpFTHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  void operator()( const LHCb::ODIN& odin, const PrFTHitHandler<PrHit>& hitHandler ) const override;
+  void operator()(const LHCb::ODIN& odin, const PrFTHitHandler<PrHit>& hitHandler) const override;
 
 private:
-  Gaudi::Property<std::string> m_outputDirectory{this, "OutputDirectory", "scifi_hits"};
+  Gaudi::Property<std::string> m_outputDirectory {this, "OutputDirectory", "scifi_hits"};
 };
 #endif // DUMPFTHITS_H

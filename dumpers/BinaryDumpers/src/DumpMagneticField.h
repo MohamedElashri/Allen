@@ -23,8 +23,9 @@
  */
 class DumpMagneticField final : public DumpGeometry<ILHCbMagnetSvc> {
 public:
-  DumpMagneticField( std::string name, ISvcLocator* loc )
-      : DumpGeometry<ILHCbMagnetSvc>{std::move( name ), loc, "MagneticFieldSvc"} {}
+  DumpMagneticField(std::string name, ISvcLocator* loc) :
+    DumpGeometry<ILHCbMagnetSvc> {std::move(name), loc, "MagneticFieldSvc"}
+  {}
 
 protected:
   DumpUtils::Dumps dumpGeometry() const override;

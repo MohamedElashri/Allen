@@ -41,7 +41,8 @@ MCCuts = {
         "07_long_fromB_P>5GeV": "isLong & fromB & over5",
         "08_long_electrons": "isLong & isElectron",
         "09_long_fromB_electrons": "isLong & isElectron & fromB",
-        "10_long_fromB_electrons_P_P>5GeV": "isLong & isElectron & over5 & fromB",
+        "10_long_fromB_electrons_P_P>5GeV":
+        "isLong & isElectron & over5 & fromB",
         "11_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger",
         "12_UT_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger & isUT"
     },
@@ -55,7 +56,8 @@ MCCuts = {
         "07_long_electrons": "isLong & isElectron",
         "08_long_electrons_P_P>5GeV": "isLong & isElectron & over5",
         "09_long_fromB_electrons": "isLong & isElectron & fromB",
-        "10_long_fromB_electrons_P_P>5GeV": "isLong & isElectron & over5 & fromB",
+        "10_long_fromB_electrons_P_P>5GeV":
+        "isLong & isElectron & over5 & fromB",
         "10_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger",
         "11_UT_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger & isUT"
     },
@@ -72,15 +74,18 @@ MCCuts = {
         "10_long_fromB_P>5GeV": "isLong & fromB & over5",
         "11_long_electrons": "isLong & isElectron",
         "12_long_fromB_electrons": "isLong & isElectron & fromB",
-        "13_long_fromB_electrons_P_P>5GeV": "isLong & isElectron & over5 & fromB",
+        "13_long_fromB_electrons_P_P>5GeV":
+        "isLong & isElectron & over5 & fromB",
         "14_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger",
         "15_UT_long_fromB_P>3GeV_Pt>0.5GeV": "isLong & fromB & trigger & isUT"
     }
 }
 
+
 def getMCCuts(key):
     cuts = dict(MCCuts[key]) if key in MCCuts else {}
     return cuts
+
 
 # Has to mirror the enum HitType in PrTrackCounter.h
 HitType = {"VP": 3, "UT": 4, "FT": 8}
@@ -134,11 +139,12 @@ FTRawBankDecoder("createFTClusters").DecodingVersion = 5
 
 NTupleSvc().Output = ["FILE1 DATAFILE='velo_states.root' TYP='ROOT' OPT='NEW'"]
 
-
 # Save raw banks in Allen format on the TES
 outputdirectory = "dump/"
 dump_banks = DumpRawBanks(
-    BankTypes=["VP", "UT", "FTCluster", "Muon"], DumpToFile=False, OutputDirectory=outputdirectory + "banks")
+    BankTypes=["VP", "UT", "FTCluster", "Muon"],
+    DumpToFile=False,
+    OutputDirectory=outputdirectory + "banks")
 dump_seq = GaudiSequencer("RecoAllenPrepareSeq")
 dump_seq.Members += [dump_banks]
 
@@ -153,7 +159,8 @@ checker_seq = GaudiSequencer("AllenChecker")
 
 allen_velo_to_v2 = AllenVeloToV2Tracks(OutputTracks="Allen/Track/v2/Velo")
 allen_ut_to_v2 = AllenUTToV2Tracks(OutputTracks="Allen/Track/v2/Upstream")
-allen_forward_to_v2 = AllenForwardToV2Tracks(OutputTracks="Allen/Track/v2/Forward")
+allen_forward_to_v2 = AllenForwardToV2Tracks(
+    OutputTracks="Allen/Track/v2/Forward")
 checker_seq.Members += [allen_velo_to_v2, allen_ut_to_v2, allen_forward_to_v2]
 
 for tracktype in tracksToConvert:
@@ -161,7 +168,7 @@ for tracktype in tracksToConvert:
     trconverter.InputTracksName = "Allen/Track/v2/" + tracktype
     trconverter.OutputTracksName = "Allen/Track/v1/" + tracktype + "Converted"
     checker_seq.Members += [trconverter]
-    
+
     trassociator = PrTrackAssociator("Allen" + tracktype + "Associator")
     trassociator.SingleContainer = "Allen/Track/v1/" + tracktype + "Converted"
     trassociator.OutputLocation = "Link/" + "Allen/Track/v1/" + tracktype + "Converted"
@@ -169,25 +176,21 @@ for tracktype in tracksToConvert:
 
 mc_dumper_seq = GaudiSequencer("MCDumper")
 from Configurables import PrTrackerDumper, DumpVeloUTState, PVDumper
-dump_mc = PrTrackerDumper(
-    "DumpMCInfo", DumpToBinary=True, DumpToROOT=False)
+dump_mc = PrTrackerDumper("DumpMCInfo", DumpToBinary=True, DumpToROOT=False)
 dump_mc.OutputDirectory = outputdirectory + "TrackerDumper"
 dump_mc.MCOutputDirectory = outputdirectory + "MC_info/tracks"
 dump_pvmc = PVDumper("DumpPVMCInfo")
 dump_pvmc.OutputDirectory = outputdirectory + "MC_info/PVs"
 mc_dumper_seq.Members += [dump_mc, dump_pvmc]
-    
+
 ApplicationMgr().TopAlg += []
 
-producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
-                           DumpUTGeometry,
-                           DumpFTGeometry, 
-                           DumpMuonGeometry,
-                           DumpMuonTable,
-                           DumpMagneticField,
-                           DumpBeamline,
-                           DumpUTLookupTables)]
-
+producers = [
+    p(DumpToFile=False)
+    for p in (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry, DumpMuonGeometry,
+              DumpMuonTable, DumpMagneticField, DumpBeamline,
+              DumpUTLookupTables)
+]
 
 # Add the services that will produce the non-event-data
 ApplicationMgr().ExtSvc += [
@@ -218,6 +221,7 @@ appendPostConfigAction(modifySequences)
 
 from Configurables import PrTrackChecker, PrUTHitChecker
 
+
 def addPrCheckerCutsAndPlots():
     veloCheckerAllen = PrTrackChecker(
         "VeloMCChecker",
@@ -227,8 +231,7 @@ def addPrCheckerCutsAndPlots():
         TriggerNumbers=False,
         CheckNegEtaPlot=True,
         HitTypesToCheck=getHitTypeMask(["VP"]),
-        MyCuts = getMCCuts("Velo")
-    )
+        MyCuts=getMCCuts("Velo"))
     upCheckerAllen = PrTrackChecker(
         "UpMCChecker",
         Title="Upstream Allen",
@@ -236,8 +239,7 @@ def addPrCheckerCutsAndPlots():
         Links="Link/" + "Allen/Track/v1/UpstreamConverted",
         TriggerNumbers=True,
         HitTypesToCheck=getHitTypeMask(["UT"]),
-        MyCuts = getMCCuts("Upstream")
-    )
+        MyCuts=getMCCuts("Upstream"))
     forwardCheckerAllen = PrTrackChecker(
         "ForwardMCChecker",
         Title="Forward Allen",
@@ -245,13 +247,14 @@ def addPrCheckerCutsAndPlots():
         Links="Link/" + "Allen/Track/v1/ForwardConverted",
         TriggerNumbers=True,
         HitTypesToCheck=getHitTypeMask(["FT"]),
-        MyCuts = getMCCuts("Forward")
-    )
+        MyCuts=getMCCuts("Forward"))
 
-   
     # as configurations are not yet uniformized and properly handled, there is an ugly trick here
     # all members are newly defined here as they have different names from the original ones
     # defined in PrUpgradechecking, but the last one that we reuse as it
-    GaudiSequencer("CheckPatSeq").Members += [veloCheckerAllen, upCheckerAllen, forwardCheckerAllen]
+    GaudiSequencer("CheckPatSeq").Members += [
+        veloCheckerAllen, upCheckerAllen, forwardCheckerAllen
+    ]
 
-appendPostConfigAction( addPrCheckerCutsAndPlots )
+
+appendPostConfigAction(addPrCheckerCutsAndPlots)

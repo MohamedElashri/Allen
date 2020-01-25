@@ -23,8 +23,9 @@
  */
 class DumpUTLookupTables final : public DumpGeometry<IPrUTMagnetTool> {
 public:
-  DumpUTLookupTables( std::string name, ISvcLocator* loc )
-      : DumpGeometry<IPrUTMagnetTool>{std::move( name ), loc, "PrUTMagnetTool"} {}
+  DumpUTLookupTables(std::string name, ISvcLocator* loc) :
+    DumpGeometry<IPrUTMagnetTool> {std::move(name), loc, "PrUTMagnetTool"}
+  {}
 
 protected:
   DumpUtils::Dumps dumpGeometry() const override;

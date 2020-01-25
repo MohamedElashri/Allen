@@ -29,8 +29,8 @@ namespace Allen {
        *
        * @return     void
        */
-      virtual void consume( std::vector<char> const& data ) = 0;
-      virtual ~Consumer()                                   = default;
+      virtual void consume(std::vector<char> const& data) = 0;
+      virtual ~Consumer() = default;
     };
 
     /**
@@ -58,9 +58,10 @@ namespace Allen {
        *
        * @return     void
        */
-      template <typename C>
-      void registerConsumer( std::unique_ptr<Consumer> c ) {
-        registerConsumer( C::id, std::move( c ) );
+      template<typename C>
+      void registerConsumer(std::unique_ptr<Consumer> c)
+      {
+        registerConsumer(C::id, std::move(c));
       }
 
       /**
@@ -71,9 +72,10 @@ namespace Allen {
        *
        * @return     void
        */
-      template <typename P>
-      void registerProducer( Producer p ) {
-        registerProducer( P::id, std::move( p ) );
+      template<typename P>
+      void registerProducer(Producer p)
+      {
+        registerProducer(P::id, std::move(p));
       }
 
       /**
@@ -84,7 +86,7 @@ namespace Allen {
        *
        * @return     void
        */
-      virtual void update( unsigned long run ) = 0;
+      virtual void update(unsigned long run) = 0;
 
       /**
        * @brief      Register a consumer for that will consume binary non-event
@@ -95,7 +97,7 @@ namespace Allen {
        *
        * @return     void
        */
-      virtual void registerConsumer( std::string const& id, std::unique_ptr<Consumer> c ) = 0;
+      virtual void registerConsumer(std::string const& id, std::unique_ptr<Consumer> c) = 0;
 
       /**
        * @brief      Register a producer that will produce binary non-event
@@ -106,7 +108,7 @@ namespace Allen {
        *
        * @return     void
        */
-      virtual void registerProducer( std::string const& id, Producer p ) = 0;
+      virtual void registerProducer(std::string const& id, Producer p) = 0;
     };
   } // namespace NonEventData
 } // namespace Allen

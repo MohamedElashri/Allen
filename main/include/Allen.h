@@ -12,4 +12,3 @@ namespace {
   constexpr size_t n_mon = 1;
   constexpr size_t max_stream_threads = 1024;
 } // namespace
-

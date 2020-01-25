@@ -14,7 +14,8 @@
 
 namespace Allen {
   namespace NonEventData {
-    struct Identifier {};
+    struct Identifier {
+    };
 
     /** @class VeloGeometry
      *  Identifier for the Velo Geometry non-event data for Allen

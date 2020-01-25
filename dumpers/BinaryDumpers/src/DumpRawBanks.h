@@ -29,8 +29,8 @@
 // ADL to work.
 namespace LHCb {
 
-  StatusCode parse( RawBank::BankType& result, const std::string& in );
-  StatusCode parse( std::set<RawBank::BankType>& s, const std::string& in );
+  StatusCode parse(RawBank::BankType& result, const std::string& in);
+  StatusCode parse(std::set<RawBank::BankType>& s, const std::string& in);
 } // namespace LHCb
 
 // Raw bank format:
@@ -57,25 +57,27 @@ namespace LHCb {
  *  @date   2018-08-27
  */
 class DumpRawBanks : public Gaudi::Functional::Transformer<
-std::array<std::vector<char>, LHCb::RawBank::LastType>(
-                             const LHCb::RawEvent&, const LHCb::ODIN& ),
-                         Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
+                       std::array<std::vector<char>, LHCb::RawBank::LastType>(const LHCb::RawEvent&, const LHCb::ODIN&),
+                       Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 public:
   /// Standard constructor
-  DumpRawBanks( const std::string& name, ISvcLocator* pSvcLocator );
+  DumpRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  std::array<std::vector<char>, LHCb::RawBank::LastType>
-  operator()( const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin ) const override;
+  std::array<std::vector<char>, LHCb::RawBank::LastType> operator()(
+    const LHCb::RawEvent& rawEvent,
+    const LHCb::ODIN& odin) const override;
 
 private:
-  std::string outputDirectory( LHCb::RawBank::BankType bankType ) const;
+  std::string outputDirectory(LHCb::RawBank::BankType bankType) const;
 
-  Gaudi::Property<std::string>                       m_outputDirectory{this, "OutputDirectory", "banks"};
-  Gaudi::Property<std::set<LHCb::RawBank::BankType>> m_bankTypes{
-      this, "BankTypes", {LHCb::RawBank::VP, LHCb::RawBank::UT, LHCb::RawBank::FTCluster, LHCb::RawBank::Muon}};
-  Gaudi::Property<bool> m_dumpToFile{this, "DumpToFile", true};
+  Gaudi::Property<std::string> m_outputDirectory {this, "OutputDirectory", "banks"};
+  Gaudi::Property<std::set<LHCb::RawBank::BankType>> m_bankTypes {
+    this,
+    "BankTypes",
+    {LHCb::RawBank::VP, LHCb::RawBank::UT, LHCb::RawBank::FTCluster, LHCb::RawBank::Muon}};
+  Gaudi::Property<bool> m_dumpToFile {this, "DumpToFile", true};
 
   std::unordered_map<std::string, AIDA::IHistogram1D*> m_histos;
 };

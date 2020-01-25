@@ -18,35 +18,38 @@
 
 #include "AllenDecReportsToTES.h"
 
-DECLARE_COMPONENT( AllenDecReportsToTES )
+DECLARE_COMPONENT(AllenDecReportsToTES)
 
-AllenDecReportsToTES::AllenDecReportsToTES( const std::string& name, ISvcLocator* pSvcLocator )
-: Transformer( name, pSvcLocator,
-                    // Inputs
-                    {KeyValue{"AllenOutput", "Allen/Out/HostBuffers"}},
-                    // Outputs
-                    {KeyValue{"OutputDecReports", "Allen/DecReports"}} ) {}
+AllenDecReportsToTES::AllenDecReportsToTES(const std::string& name, ISvcLocator* pSvcLocator) :
+  Transformer(
+    name,
+    pSvcLocator,
+    // Inputs
+    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}},
+    // Outputs
+    {KeyValue {"OutputDecReports", "Allen/DecReports"}})
+{}
 
-StatusCode AllenDecReportsToTES::initialize() {
+StatusCode AllenDecReportsToTES::initialize()
+{
   auto sc = Transformer::initialize();
 
-  if ( sc.isFailure() ) return sc;
-  if ( msgLevel( MSG::DEBUG ) ) debug() << "==> Initialize" << endmsg;
+  if (sc.isFailure()) return sc;
+  if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
 
   return StatusCode::SUCCESS;
 }
 
-std::vector<uint32_t> AllenDecReportsToTES::operator()(const HostBuffers& host_buffers) const {
+std::vector<uint32_t> AllenDecReportsToTES::operator()(const HostBuffers& host_buffers) const
+{
 
   const uint i_event = 0;
   std::vector<uint32_t> dec_reports;
   dec_reports.reserve((2 + Hlt1::Hlt1Lines::End) * i_event);
   // First two words contain the TCK and taskID, then one word per HLT1 line
-  for ( uint i = 0; i < (2 + Hlt1::End) * i_event; i++) {
+  for (uint i = 0; i < (2 + Hlt1::End) * i_event; i++) {
     dec_reports.push_back(host_buffers.host_dec_reports[i]);
   }
 
   return dec_reports;
 }
-
-

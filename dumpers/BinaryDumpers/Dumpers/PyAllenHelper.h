@@ -19,4 +19,4 @@
  *
  * @return     The Allen non-event data manager as an IUpdater
  */
-Allen::NonEventData::IUpdater* cast_updater( IService* updater_svc );
+Allen::NonEventData::IUpdater* cast_updater(IService* updater_svc);

@@ -23,8 +23,9 @@
  */
 class DumpUTGeometry final : public DumpGeometry<DeUTDetector> {
 public:
-  DumpUTGeometry( std::string name, ISvcLocator* loc )
-      : DumpGeometry<DeUTDetector>{std::move( name ), loc, DeUTDetLocation::UT} {}
+  DumpUTGeometry(std::string name, ISvcLocator* loc) :
+    DumpGeometry<DeUTDetector> {std::move(name), loc, DeUTDetLocation::UT}
+  {}
 
 protected:
   DumpUtils::Dumps dumpGeometry() const override;

@@ -23,11 +23,11 @@
  */
 class DumpVPGeometry final : public DumpGeometry<DeVP> {
 public:
-  DumpVPGeometry( std::string name, ISvcLocator* loc )
-      : DumpGeometry<DeVP>{std::move( name ), loc, DeVPLocation::Default} {}
+  DumpVPGeometry(std::string name, ISvcLocator* loc) : DumpGeometry<DeVP> {std::move(name), loc, DeVPLocation::Default}
+  {}
 
 protected:
-  StatusCode registerConditions( IUpdateManagerSvc* updMgrSvc ) override;
+  StatusCode registerConditions(IUpdateManagerSvc* updMgrSvc) override;
 
   DumpUtils::Dumps dumpGeometry() const override;
 };

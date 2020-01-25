@@ -17,10 +17,10 @@
  * @brief      Class to test reading UT boards non-event data
  */
 struct UTBoards {
-  UTBoards( std::vector<char> data );
+  UTBoards(std::vector<char> data);
 
-  uint32_t  number_of_boards;
-  uint32_t  number_of_channels;
+  uint32_t number_of_boards;
+  uint32_t number_of_channels;
   uint32_t* stripsPerHybrids;
   uint32_t* stations;
   uint32_t* layers;
@@ -32,4 +32,4 @@ private:
   std::vector<char> m_data;
 };
 
-UTBoards readBoards( std::string const& filename );
+UTBoards readBoards(std::string const& filename);

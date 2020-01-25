@@ -20,21 +20,21 @@
 
 #include "AllenConsumer.h"
 
-
 // Declaration of the Algorithm Factory
-DECLARE_COMPONENT( AllenConsumer )
+DECLARE_COMPONENT(AllenConsumer)
 
-AllenConsumer::AllenConsumer( const std::string& name, ISvcLocator* pSvcLocator )
-    : Consumer( name, pSvcLocator,
-                {KeyValue{"RawEventLocation", LHCb::RawEventLocation::Default},
-                 KeyValue{"ODINLocation", LHCb::ODINLocation::Default}} ) {}
+AllenConsumer::AllenConsumer(const std::string& name, ISvcLocator* pSvcLocator) :
+  Consumer(
+    name,
+    pSvcLocator,
+    {KeyValue {"RawEventLocation", LHCb::RawEventLocation::Default},
+     KeyValue {"ODINLocation", LHCb::ODINLocation::Default}})
+{}
 
-StatusCode AllenConsumer::initialize() {
- 
-  return StatusCode::SUCCESS;
-}
+StatusCode AllenConsumer::initialize() { return StatusCode::SUCCESS; }
 
-void AllenConsumer::operator()( const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin ) const {
+void AllenConsumer::operator()(const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin) const
+{
 
   std::cout << "Working on a bank" << std::endl;
 }

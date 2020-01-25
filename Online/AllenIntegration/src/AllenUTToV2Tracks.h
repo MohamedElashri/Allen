@@ -12,35 +12,32 @@
 #ifndef ALLENTOUTTRACKS_H
 #define ALLENTOUTTRACKS_H
 
-// Gaudi 
+// Gaudi
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
 
 // LHCb
 #include "Event/Track.h"
 
-// Allen 
+// Allen
 #include "HostBuffers.cuh"
 #include "Logger.h"
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 
-class AllenUTToV2Tracks final : public Gaudi::Functional::Transformer<std::vector<LHCb::Event::v2::Track>(const HostBuffers&)> {
- public:
+class AllenUTToV2Tracks final
+  : public Gaudi::Functional::Transformer<std::vector<LHCb::Event::v2::Track>(const HostBuffers&)> {
+public:
   /// Standard constructor
-  AllenUTToV2Tracks( const std::string& name, ISvcLocator* pSvcLocator );
+  AllenUTToV2Tracks(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// initialization
-  StatusCode                               initialize() override;
-  
+  StatusCode initialize() override;
+
   /// Algorithm execution
-  std::vector<LHCb::Event::v2::Track> operator()( const HostBuffers&) const override;
-  
- private:
+  std::vector<LHCb::Event::v2::Track> operator()(const HostBuffers&) const override;
 
-   
+private:
 };
-
-
 
 #endif

@@ -29,16 +29,16 @@
  *  @author Dorothea vom Bruch
  *  @date   2018-09-06
  */
-class DumpMuonCommonHits : public Gaudi::Functional::Consumer<void( const LHCb::ODIN&, const MuonHitContainer& )> {
+class DumpMuonCommonHits : public Gaudi::Functional::Consumer<void(const LHCb::ODIN&, const MuonHitContainer&)> {
 public:
   /// Standard constructor
-  DumpMuonCommonHits( const std::string& name, ISvcLocator* pSvcLocator );
+  DumpMuonCommonHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  void operator()( const LHCb::ODIN& odin, const MuonHitContainer& hitHandler ) const override;
+  void operator()(const LHCb::ODIN& odin, const MuonHitContainer& hitHandler) const override;
 
 private:
-  Gaudi::Property<std::string> m_outputDirectory{this, "OutputDirectory", "muon_common_hits"};
+  Gaudi::Property<std::string> m_outputDirectory {this, "OutputDirectory", "muon_common_hits"};
 };
 #endif // DUMPMUONCOMMONHITS_H

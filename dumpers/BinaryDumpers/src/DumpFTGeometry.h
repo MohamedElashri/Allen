@@ -23,8 +23,9 @@
  */
 class DumpFTGeometry final : public DumpGeometry<DeFTDetector> {
 public:
-  DumpFTGeometry( std::string name, ISvcLocator* loc )
-      : DumpGeometry<DeFTDetector>{std::move( name ), loc, DeFTDetectorLocation::Default} {}
+  DumpFTGeometry(std::string name, ISvcLocator* loc) :
+    DumpGeometry<DeFTDetector> {std::move(name), loc, DeFTDetectorLocation::Default}
+  {}
 
 protected:
   DumpUtils::Dumps dumpGeometry() const override;

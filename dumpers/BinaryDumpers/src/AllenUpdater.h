@@ -25,7 +25,7 @@
  */
 class AllenUpdater final : public Service, public Allen::NonEventData::IUpdater {
 public:
-  AllenUpdater( std::string name, ISvcLocator* loc ) : Service{name, loc} {}
+  AllenUpdater(std::string name, ISvcLocator* loc) : Service {name, loc} {}
 
   /**
    * @brief      Update all registered non-event data by calling all
@@ -35,7 +35,7 @@ public:
    *
    * @return     void
    */
-  void update( unsigned long run ) override;
+  void update(unsigned long run) override;
 
   /**
    * @brief      Register a consumer for that will consume binary non-event
@@ -46,7 +46,7 @@ public:
    *
    * @return     void
    */
-  void registerConsumer( std::string const& id, std::unique_ptr<Allen::NonEventData::Consumer> c ) override;
+  void registerConsumer(std::string const& id, std::unique_ptr<Allen::NonEventData::Consumer> c) override;
 
   /**
    * @brief      Register a producer that will produce binary non-event
@@ -57,10 +57,11 @@ public:
    *
    * @return     void
    */
-  void registerProducer( std::string const& id, Allen::NonEventData::Producer p ) override;
+  void registerProducer(std::string const& id, Allen::NonEventData::Producer p) override;
 
 private:
-  std::map<std::string,
-           std::tuple<Allen::NonEventData::Producer, std::vector<std::unique_ptr<Allen::NonEventData::Consumer>>>>
-      m_pairs;
+  std::map<
+    std::string,
+    std::tuple<Allen::NonEventData::Producer, std::vector<std::unique_ptr<Allen::NonEventData::Consumer>>>>
+    m_pairs;
 };

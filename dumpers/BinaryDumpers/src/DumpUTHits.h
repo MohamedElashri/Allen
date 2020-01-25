@@ -29,16 +29,16 @@
  *  @author Roel Aaij
  *  @date   2018-08-27
  */
-class DumpUTHits : public Gaudi::Functional::Consumer<void( const LHCb::ODIN&, const UT::HitHandler& )> {
+class DumpUTHits : public Gaudi::Functional::Consumer<void(const LHCb::ODIN&, const UT::HitHandler&)> {
 public:
   /// Standard constructor
-  DumpUTHits( const std::string& name, ISvcLocator* pSvcLocator );
+  DumpUTHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  void operator()( const LHCb::ODIN& odin, const UT::HitHandler& hitHandler ) const override;
+  void operator()(const LHCb::ODIN& odin, const UT::HitHandler& hitHandler) const override;
 
 private:
-  Gaudi::Property<std::string> m_outputDirectory{this, "OutputDirectory", "ut_hits"};
+  Gaudi::Property<std::string> m_outputDirectory {this, "OutputDirectory", "ut_hits"};
 };
 #endif // DUMPUTHITS_H

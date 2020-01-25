@@ -21,20 +21,18 @@
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <Event/RawEvent.h>
-#include <GaudiAlg/Consumer.h>  
+#include <GaudiAlg/Consumer.h>
 #include <GaudiAlg/GaudiHistoAlg.h>
 
-
-class AllenConsumer : public Gaudi::Functional::Consumer<void( const LHCb::RawEvent&, const LHCb::ODIN& )> {
+class AllenConsumer : public Gaudi::Functional::Consumer<void(const LHCb::RawEvent&, const LHCb::ODIN&)> {
 public:
   /// Standard constructor
-  AllenConsumer( const std::string& name, ISvcLocator* pSvcLocator );
+  AllenConsumer(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  void operator()( const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin ) const override;
+  void operator()(const LHCb::RawEvent& rawEvent, const LHCb::ODIN& odin) const override;
 
 private:
-  
 };
 #endif // ALLENCONSUMER_H

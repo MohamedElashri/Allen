@@ -11,32 +11,29 @@
 #ifndef ALLENDECREPORTSTOTES_H
 #define ALLENDECREPORTSTOTES_H
 
-// Gaudi 
+// Gaudi
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
 
 // LHCb
 
-
-// Allen 
+// Allen
 #include "HostBuffers.cuh"
 #include "Logger.h"
 #include "RawBanksDefinitions.cuh"
 
 class AllenDecReportsToTES final : public Gaudi::Functional::Transformer<std::vector<uint32_t>(const HostBuffers&)> {
- public:
+public:
   /// Standard constructor
-  AllenDecReportsToTES( const std::string& name, ISvcLocator* pSvcLocator );
+  AllenDecReportsToTES(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// initialization
-  StatusCode                               initialize() override;
-  
+  StatusCode initialize() override;
+
   /// Algorithm execution
-  std::vector<uint32_t> operator()( const HostBuffers&) const override;
-  
- private:
+  std::vector<uint32_t> operator()(const HostBuffers&) const override;
+
+private:
 };
-
-
 
 #endif

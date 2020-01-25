@@ -15,12 +15,13 @@ interpreter.Declare("#include <main/include/Allen.h>")
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
 
 # Handle commandline arguments
-parser = argparse.ArgumentParser(usage=('usage: %(prog)s app'
-                                        ' <node|subfarm|top> <runtime[s]>'))
+parser = argparse.ArgumentParser(
+    usage=('usage: %(prog)s app'
+           ' <node|subfarm|top> <runtime[s]>'))
 parser.add_argument("-f", dest="folder", default="../input/minbias")
-parser.add_argument("-g", dest="det_folder",
-                    default="../input/detector_configuration/down")
-parser.add_argument("-n", dest="n_events",  default="0")
+parser.add_argument(
+    "-g", dest="det_folder", default="../input/detector_configuration/down")
+parser.add_argument("-n", dest="n_events", default="0")
 parser.add_argument("-o", dest="event_offset", default="0")
 parser.add_argument("-t", dest="threads", default="1")
 parser.add_argument("-r", dest="repetitions", default="1")
@@ -45,16 +46,14 @@ app = LHCbApp(
 # Upgrade DBs
 CondDB().Upgrade = True
 # include from here
-producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
-                                           DumpUTGeometry,
-                                           DumpFTGeometry,
-                                           DumpMuonGeometry,
-                                           DumpMuonTable,
-                                           DumpMagneticField,
-                                           DumpBeamline,
-                                           DumpUTLookupTables)]
+producers = [
+    p(DumpToFile=False)
+    for p in (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry, DumpMuonGeometry,
+              DumpMuonTable, DumpMagneticField, DumpBeamline,
+              DumpUTLookupTables)
+]
 
- # Add the services that will produce the non-event-data
+# Add the services that will produce the non-event-data
 ApplicationMgr().ExtSvc += [
     AllenUpdater(OutputLevel=2),
 ] + producers
@@ -65,31 +64,24 @@ ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc']
 
 # until here
 
-
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()
 gaudi.initialize()
 svc = gaudi.service("AllenUpdater", interface=gbl.IService)
 
-
 updater = gbl.cast_updater(svc)
 
 # options map
 options = gbl.std.map("std::string", "std::string")()
-for flag, value in (("f", args.folder),
-                    ("g", args.det_folder),
-                    ("n", args.n_events),
-                    ("o", args.event_offset),
-                    ("t", args.threads),
-                    ("r", args.repetitions),
-                    ("c", args.check),
-                    ("m", args.reserve),
-                    ("v", args.verbosity),
-                    ("p", args.print_memory),
-                    ("i", args.import_fwd),
-                    ("mdf", args.mdf),
-                    ("cpu-offload", args.cpu_offload),
-                    ("device", args.device)):
+for flag, value in (("f", args.folder), ("g", args.det_folder),
+                    ("n", args.n_events), ("o", args.event_offset),
+                    ("t", args.threads), ("r", args.repetitions),
+                    ("c", args.check), ("m", args.reserve), ("v",
+                                                             args.verbosity),
+                    ("p", args.print_memory), ("i", args.import_fwd),
+                    ("mdf", args.mdf), ("cpu-offload",
+                                        args.cpu_offload), ("device",
+                                                            args.device)):
     options[flag] = value
 
 # run Allen

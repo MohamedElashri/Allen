@@ -19,25 +19,28 @@ namespace {
   using std::string;
 }
 
-DECLARE_COMPONENT( DumpVeloUTState )
+DECLARE_COMPONENT(DumpVeloUTState)
 
-DumpVeloUTState::DumpVeloUTState( const std::string& name, ISvcLocator* pSvcLocator )
-    : Consumer( name, pSvcLocator, {KeyValue{"UpstreamTrackLocation", "Rec/Track/Upstream"}} ) {}
+DumpVeloUTState::DumpVeloUTState(const std::string& name, ISvcLocator* pSvcLocator) :
+  Consumer(name, pSvcLocator, {KeyValue {"UpstreamTrackLocation", "Rec/Track/Upstream"}})
+{}
 
-StatusCode DumpVeloUTState::initialize() {
+StatusCode DumpVeloUTState::initialize()
+{
   auto sc = Consumer::initialize();
-  if ( !sc.isSuccess() ) return sc;
-  if ( sc ) m_tupleTool.retrieve();
+  if (!sc.isSuccess()) return sc;
+  if (sc) m_tupleTool.retrieve();
   return sc;
 }
 
-void DumpVeloUTState::operator()( const std::vector<LHCb::Event::v2::Track>& utTracks ) const {
-  auto tup = m_tupleTool->nTuple( string{"veloUT_tracks"} );
-  for ( const auto& track : utTracks ) {
-    for ( auto loc : {LHCb::State::Location::AtTT, LHCb::State::Location::EndVelo} ) {
-      if ( track.hasStateAt( loc ) ) {
-        auto const* state = track.stateAt( loc );
-        tup->column( "qop", state->qOverP() );
+void DumpVeloUTState::operator()(const std::vector<LHCb::Event::v2::Track>& utTracks) const
+{
+  auto tup = m_tupleTool->nTuple(string {"veloUT_tracks"});
+  for (const auto& track : utTracks) {
+    for (auto loc : {LHCb::State::Location::AtTT, LHCb::State::Location::EndVelo}) {
+      if (track.hasStateAt(loc)) {
+        auto const* state = track.stateAt(loc);
+        tup->column("qop", state->qOverP());
         tup->write();
         break;
       }
