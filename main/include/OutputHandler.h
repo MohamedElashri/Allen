@@ -1,3 +1,4 @@
+
 #pragma once
 #include <vector>
 
@@ -5,11 +6,7 @@
 #include <BankTypes.h>
 #include <Timer.h>
 
-namespace Allen {
-  constexpr int mdf_header_version = 3;
-}
-
-class IInputProvider;
+struct IInputProvider;
 
 class OutputHandler {
 public:
@@ -22,8 +19,8 @@ public:
   bool output_selected_events(
     size_t const slice_index,
     size_t const event_offset,
-    gsl::span<unsigned int> const selected_events,
-    uint32_t const* const dec_reports);
+    gsl::span<unsigned int const> const selected_events,
+    gsl::span<uint32_t const> const dec_reports);
 
 protected:
   virtual std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size) = 0;

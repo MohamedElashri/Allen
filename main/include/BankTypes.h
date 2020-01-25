@@ -24,7 +24,8 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 12.f},
                                                         {BankTypes::MUON, 1.2f},
                                                         {BankTypes::Rich, 21.f},
                                                         {BankTypes::HCal, 2.1},
-                                                        {BankTypes::ECal, 8.f}};
+                                                        {BankTypes::ECal, 8.f},
+                                                        {BankTypes::ODIN, 0.1f}};
 
 // Average measured event size, measured
 // FIXME: make this configurable
@@ -46,7 +47,7 @@ constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
   return static_cast<typename std::underlying_type<ENUM>::type>(e);
 }
 
-using BanksAndOffsets = std::tuple<span<const char>, span<const unsigned int>>;
+using BanksAndOffsets = std::tuple<std::vector<span<const char>>, size_t, span<const unsigned int>>;
 
 template<BankTypes... BANKS>
 std::unordered_set<BankTypes> banks_set()

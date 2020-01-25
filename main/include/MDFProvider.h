@@ -20,6 +20,7 @@
 #include <InputProvider.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
+#include <write_mdf.hpp>
 #include <raw_bank.hpp>
 
 #include "Transpose.h"
@@ -31,12 +32,6 @@
 namespace {
   using namespace Allen::Units;
 } // namespace
-
-struct BufferStatus {
-  bool writable = true;
-  int work_counter = 0;
-  std::vector<std::tuple<size_t, size_t>> intervals;
-};
 
 /**
  * @brief      Configuration parameters for the MDFProvider
@@ -120,17 +115,7 @@ public:
       m_event_ids[n].reserve(events_per_slice);
     }
 
-    // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
-    m_bank_ids.resize(LHCb::RawBank::LastType);
-    for (int bt = LHCb::RawBank::L0Calo; bt < LHCb::RawBank::LastType; ++bt) {
-      auto it = Allen::bank_types.find(static_cast<LHCb::RawBank::BankType>(bt));
-      if (it != Allen::bank_types.end()) {
-        m_bank_ids[bt] = to_integral(it->second);
-      }
-      else {
-        m_bank_ids[bt] = -1;
-      }
-    }
+    m_bank_ids = bank_ids();
 
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
@@ -232,9 +217,10 @@ public:
    *
    * @return     EventIDs of events in given slice
    */
-  std::vector<std::tuple<unsigned int, unsigned long>> const& event_ids(size_t slice_index) const override
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const override
   {
-    return m_event_ids[slice_index];
+    auto const& ids = m_event_ids[slice_index];
+    return {ids.begin() + (first ? *first : 0), ids.begin() + (last ? *last : ids.size())};
   }
 
   /**
@@ -248,10 +234,10 @@ public:
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     auto ib = to_integral<BankTypes>(bank_type);
-    auto const& [banks, offsets, offsets_size] = m_slices[ib][slice_index];
-    span<char const> b {banks.data(), offsets[offsets_size - 1]};
+    auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
+    span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
     span<unsigned int const> o {offsets.data(), offsets_size};
-    return BanksAndOffsets {std::move(b), std::move(o)};
+    return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
   }
 
   //
@@ -343,10 +329,10 @@ public:
     }
   }
 
-  void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events, std::vector<size_t>& sizes)
+  void event_sizes(size_t const slice_index, gsl::span<unsigned int const> const selected_events, std::vector<size_t>& sizes)
     const override
   {
-    auto const header_size = LHCb::MDFHeader::sizeOf(3);
+    auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
 
     // The first bank in the read buffer is the DAQ bank, which
     // contains the MDF header as bank payload
@@ -717,7 +703,7 @@ private:
   std::vector<std::thread> m_transpose_threads;
 
   // Array to store the number of banks per bank type
-  mutable std::array<unsigned int, NBankTypes> m_banks_count;
+  mutable std::array<unsigned int, LHCb::NBankTypes> m_banks_count;
   mutable bool m_sizes_known = false;
 
   // Run and event numbers present in each slice

@@ -8,7 +8,7 @@ from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables
 import argparse
 
 # Load Allen entry point and helpers
-gbl.gSystem.Load("libAllen")
+gbl.gSystem.Load("libAllenLib")
 gbl.gSystem.Load("libBinaryDumpersLib")
 interpreter = gbl.gInterpreter
 interpreter.Declare("#include <main/include/Allen.h>")

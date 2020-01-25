@@ -22,7 +22,7 @@ add_library(TrackChecking STATIC
 
 if(ROOT_FOUND)
   target_compile_definitions(TrackChecking PRIVATE ${ALLEN_ROOT_DEFINITIONS})
-  target_include_directories(TrackChecking BEFORE PRIVATE
+  target_include_directories(TrackChecking SYSTEM BEFORE PRIVATE
     ${ROOT_INCLUDE_DIRS}
   )
 endif()

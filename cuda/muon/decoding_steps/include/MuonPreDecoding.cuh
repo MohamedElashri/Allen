@@ -20,10 +20,13 @@ namespace muon_pre_decoding {
 
   __global__ void muon_pre_decoding(Parameters);
 
+  __global__ void muon_pre_decoding_mep(Parameters);
+
   template<typename T, char... S>
   struct muon_pre_decoding_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
     decltype(global_function(muon_pre_decoding)) function {muon_pre_decoding};
+    decltype(global_function(muon_pre_decoding_mep)) function_mep {muon_pre_decoding_mep};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -31,8 +34,9 @@ namespace muon_pre_decoding {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_muon_raw_t>(arguments, std::get<0>(runtime_options.host_muon_events).size_bytes());
-      set_size<dev_muon_raw_offsets_t>(arguments, std::get<1>(runtime_options.host_muon_events).size_bytes() / sizeof(uint32_t));
+      set_size<dev_muon_raw_t>(arguments, std::get<1>(runtime_options.host_muon_events));
+      set_size<dev_muon_raw_offsets_t>(
+        arguments, std::get<2>(runtime_options.host_muon_events).size_bytes() / sizeof(uint32_t));
       set_size<dev_muon_raw_to_hits_t>(arguments, 1);
       set_size<dev_storage_station_region_quarter_sizes_t>(
         arguments,
@@ -66,19 +70,8 @@ namespace muon_pre_decoding {
         cudaMemcpyHostToDevice,
         cuda_stream));
 
-      cudaCheck(cudaMemcpyAsync(
-        begin<dev_muon_raw_t>(arguments),
-        std::get<0>(runtime_options.host_muon_events).begin(),
-        std::get<0>(runtime_options.host_muon_events).size_bytes(),
-        cudaMemcpyHostToDevice,
-        cuda_stream));
-
-      cudaCheck(cudaMemcpyAsync(
-        begin<dev_muon_raw_offsets_t>(arguments),
-        std::get<1>(runtime_options.host_muon_events).begin(),
-        std::get<1>(runtime_options.host_muon_events).size_bytes(),
-        cudaMemcpyHostToDevice,
-        cuda_stream));
+      data_to_device<dev_muon_raw_t, dev_muon_raw_offsets_t>
+        (arguments, runtime_options.host_muon_events, cuda_stream);
 
       cudaCheck(cudaMemsetAsync(
         begin<dev_storage_station_region_quarter_sizes_t>(arguments),
@@ -89,17 +82,27 @@ namespace muon_pre_decoding {
       cudaCheck(
         cudaMemsetAsync(begin<dev_atomics_muon_t>(arguments), 0, size<dev_atomics_muon_t>(arguments), cuda_stream));
 
-      function(
-        value<host_number_of_selected_events_t>(arguments),
-        Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
-        cuda_stream)(Parameters {begin<dev_event_list_t>(arguments),
-                                 begin<dev_muon_raw_t>(arguments),
-                                 begin<dev_muon_raw_offsets_t>(arguments),
-                                 begin<dev_muon_raw_to_hits_t>(arguments),
-                                 begin<dev_storage_station_region_quarter_sizes_t>(arguments),
-                                 begin<dev_storage_tile_id_t>(arguments),
-                                 begin<dev_storage_tdc_value_t>(arguments),
-                                 begin<dev_atomics_muon_t>(arguments)});
+      const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
+                                          begin<dev_muon_raw_t>(arguments),
+                                          begin<dev_muon_raw_offsets_t>(arguments),
+                                          begin<dev_muon_raw_to_hits_t>(arguments),
+                                          begin<dev_storage_station_region_quarter_sizes_t>(arguments),
+                                          begin<dev_storage_tile_id_t>(arguments),
+                                          begin<dev_storage_tdc_value_t>(arguments),
+                                          begin<dev_atomics_muon_t>(arguments)};
+
+      if (runtime_options.mep_layout) {
+        function_mep(
+          value<host_number_of_selected_events_t>(arguments),
+          Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
+          cuda_stream)(parameters);
+      }
+      else {
+        function(
+          value<host_number_of_selected_events_t>(arguments),
+          Muon::MuonRawEvent::number_of_raw_banks * Muon::MuonRawEvent::batches_per_bank,
+          cuda_stream)(parameters);
+      }
     }
   };
 } // namespace muon_pre_decoding

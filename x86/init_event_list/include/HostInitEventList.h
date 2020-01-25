@@ -20,7 +20,9 @@ namespace host_init_event_list {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_event_list_t>(arguments, runtime_options.number_of_events);
+      const auto event_start = std::get<0>(runtime_options.event_interval);
+      const auto event_end = std::get<1>(runtime_options.event_interval);
+      set_size<dev_event_list_t>(arguments, event_end - event_start);
     }
 
     void operator()(
@@ -31,16 +33,20 @@ namespace host_init_event_list {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
+      const auto event_start = std::get<0>(runtime_options.event_interval);
+      const auto event_end = std::get<1>(runtime_options.event_interval);
+      const auto number_of_events = event_end - event_start;
+
       // Initialize buffers
-      begin<host_number_of_selected_events_t>(arguments)[0] = runtime_options.number_of_events;
-      for (uint i = 0; i < runtime_options.number_of_events; ++i) {
+      begin<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
+      for (uint i = 0; i < number_of_events; ++i) {
         begin<host_event_list_t>(arguments)[i] = i;
       }
 
       cudaCheck(cudaMemcpyAsync(
         begin<dev_event_list_t>(arguments),
         host_buffers.host_event_list,
-        runtime_options.number_of_events * sizeof(uint),
+        size<dev_event_list_t>(arguments),
         cudaMemcpyHostToDevice,
         cuda_stream));
     }

@@ -14,7 +14,7 @@
 struct IInputProvider {
 
   /// Descturctor
-  virtual ~IInputProvider() {};
+  virtual ~IInputProvider() noexcept(false) {};
 
   /**
    * @brief      Get event ids in a given slice
@@ -23,7 +23,7 @@ struct IInputProvider {
    *
    * @return     event ids
    */
-  virtual EventIDs const& event_ids(size_t slice_index) const = 0;
+  virtual EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const = 0;
 
   /**
    * @brief      Indicate a slice is free for filling
@@ -51,21 +51,9 @@ struct IInputProvider {
    */
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 
-  /**
-   * @brief      Get a subset of banks and offsets of a given type
-   *
-   * @param      bank type requested
-   * @param      slice index
-   * @param      first event (inc)
-   * @param      last event (exc)
-   *
-   * @return     spans spanning bank and offset memory
-   */
-  virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index, size_t first, size_t last) const = 0;
-
   virtual void event_sizes(
     size_t const slice_index,
-    gsl::span<unsigned int> const selected_events,
+    gsl::span<unsigned int const> const selected_events,
     std::vector<size_t>& sizes) const = 0;
 
   virtual void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const = 0;
@@ -124,9 +112,9 @@ public:
    *
    * @return     event ids
    */
-  EventIDs const& event_ids(size_t slice_index) const override
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const override
   {
-    return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index);
+    return static_cast<Derived<Banks...> const*>(this)->event_ids(slice_index, first, last);
   }
 
   /**
@@ -164,32 +152,7 @@ public:
     return static_cast<const Derived<Banks...>*>(this)->banks(bank_type, slice_index);
   }
 
-  /**
-   * @brief      Get a subset of banks and offsets of a given type
-   *
-   * @param      bank type requested
-   * @param      slice index
-   * @param      first event (inc)
-   * @param      last event (exc)
-   *
-   * @return     spans spanning bank and offset memory
-   */
-  BanksAndOffsets banks(BankTypes bank_type, size_t slice_index, size_t first, size_t last) const override
-  {
-    auto bo = banks(bank_type, slice_index);
-    auto entries = std::get<1>(bo).size() - 1;
-    if (last > entries) {
-      last = entries;
-    }
-    if (first == 0 && last == std::get<1>(bo).size() - 1) return std::move(bo);
-
-    auto b = std::get<0>(bo);
-    auto o = std::get<1>(bo).subspan(first, last - first + 1);
-
-    return BanksAndOffsets {std::move(b), std::move(o)};
-  }
-
-  void event_sizes(size_t const slice_index, gsl::span<unsigned int> const selected_events, std::vector<size_t>& sizes)
+  void event_sizes(size_t const slice_index, gsl::span<unsigned int const> const selected_events, std::vector<size_t>& sizes)
     const override
   {
     return static_cast<const Derived<Banks...>*>(this)->event_sizes(slice_index, selected_events, sizes);
@@ -225,4 +188,10 @@ private:
 
   // Mutex for ordered debug output
   mutable std::mutex m_output_mut;
+};
+
+struct BufferStatus {
+  bool writable = true;
+  int work_counter = 0;
+  std::vector<std::tuple<size_t, size_t>> intervals;
 };

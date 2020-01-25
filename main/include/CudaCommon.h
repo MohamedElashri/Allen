@@ -2,6 +2,9 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <cassert>
+
+#include "BankTypes.h"
 #include "LoggerCommon.h"
 
 #ifdef CPU
@@ -30,6 +33,7 @@ using std::signbit;
 #define half_t short
 #define __popcll __builtin_popcountll
 #define cudaEventBlockingSync 0x01
+#define __forceinline__ inline
 
 enum cudaMemcpyKind {
   cudaMemcpyHostToHost,
@@ -139,26 +143,30 @@ cudaError_t cudaMemcpyFromSymbol(
 }
 
 template<class T, class S>
-T atomicAdd(T* address, S val) {
+T atomicAdd(T* address, S val)
+{
   const T old = *address;
   *address += val;
   return old;
 }
 
 template<class T, class S>
-T atomicOr(T* address, S val) {
+T atomicOr(T* address, S val)
+{
   const T old = *address;
   *address |= val;
   return old;
 }
 
 template<class T>
-T max(const T& a, const T& b) {
+T max(const T& a, const T& b)
+{
   return std::max(a, b);
 }
 
 template<class T>
-T min(const T& a, const T& b) {
+T min(const T& a, const T& b)
+{
   return std::min(a, b);
 }
 
@@ -346,3 +354,22 @@ template<typename T, typename U>
 struct ForwardType<const T, U> {
   using t = const U;
 };
+
+std::tuple<bool, int> get_device_id(std::string pci_bus_id);
+
+template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
+void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream)
+{
+  auto offset = args.template begin<DATA_ARG>();
+  for (gsl::span<char const> data_span : std::get<0>(bno)) {
+    cudaCheck(cudaMemcpyAsync(offset, data_span.begin(), data_span.size_bytes(), cudaMemcpyHostToDevice, cuda_stream));
+    offset += data_span.size_bytes();
+  }
+
+  cudaCheck(cudaMemcpyAsync(
+    args.template begin<OFFSET_ARG>(),
+    std::get<2>(bno).begin(),
+    std::get<2>(bno).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+}

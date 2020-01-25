@@ -2,6 +2,7 @@ set(mdf_sources
     src/compression.cpp
     src/raw_helpers.cpp
     src/read_mdf.cpp
+    src/read_mep.cpp
     src/write_mdf.cpp)
 
 if (ROOT_FOUND AND USE_ROOT)
@@ -65,23 +66,34 @@ function(test_program)
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE mdf)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Common mdf)
+
+  if (USE_MPI AND MPI_FOUND)
+    target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE HAVE_MPI)
+    target_include_directories(${PARSED_ARGS_NAME} PRIVATE SYSTEM ${MPI_CXX_INCLUDE_PATH})
+    get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE ${MPI_CXX_LIBRARIES} -L${MPI_LIBRARY_DIR} hwloc open-pal)
+  endif()
+
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
-# TODO: Tests require Common library, which imposes a circular requirement
-#       only in Gaudi builds.
-#
-# if (BUILD_TESTS)
-#   test_program(NAME dump_banks)
-#   test_program(NAME test_read)
-#   test_program(NAME bench_read)
-#   test_program(NAME bench_provider)
-#   test_program(NAME bench_transpose)
-#   test_program(NAME test_providers)
-#   if (NOT GaudiProject_FOUND)
-#     add_test(NAME allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
-#   else()
-#     gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
-#   endif()
-# endif()
+test_program(NAME mdf_to_mep)
+test_program(NAME dump_banks)
+
+if (BUILD_TESTS)
+  test_program(NAME test_read)
+  test_program(NAME read_mep)
+  test_program(NAME bench_read)
+  test_program(NAME bench_provider)
+  test_program(NAME bench_mep_provider)
+  test_program(NAME bench_transpose)
+  test_program(NAME bench_transpose_mep)
+  test_program(NAME test_providers)
+
+  if (NOT GaudiProject_FOUND)
+    add_test(NAME allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  else()
+    gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  endif()
+endif()

@@ -4,19 +4,6 @@
 #include "SciFiEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
 
-__device__ void store_sorted_cluster_reference_v4(
-  SciFi::ConstHitCount& hit_count,
-  const uint32_t uniqueMat,
-  const uint32_t chan,
-  const uint32_t* shared_mat_offsets,
-  uint32_t* shared_mat_count,
-  const int raw_bank,
-  const int it,
-  const int condition_1,
-  const int condition_2,
-  const int delta,
-  SciFi::Hits& hits);
-
 namespace scifi_pre_decode_v4 {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
@@ -30,10 +17,13 @@ namespace scifi_pre_decode_v4 {
 
   __global__ void scifi_pre_decode_v4(Parameters, const char* scifi_geometry);
 
+  __global__ void scifi_pre_decode_v4_mep(Parameters, const char* scifi_geometry);
+
   template<typename T, char... S>
   struct scifi_pre_decode_v4_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
     decltype(global_function(scifi_pre_decode_v4)) function {scifi_pre_decode_v4};
+    decltype(global_function(scifi_pre_decode_v4_mep)) function_mep {scifi_pre_decode_v4_mep};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -54,16 +44,24 @@ namespace scifi_pre_decode_v4 {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      function(
-        dim3(value<host_number_of_selected_events_t>(arguments)),
-        dim3(SciFi::SciFiRawBankParams::NbBanks),
-        cuda_stream)(
-        Parameters {begin<dev_scifi_raw_input_t>(arguments),
-                    begin<dev_scifi_raw_input_offsets_t>(arguments),
-                    begin<dev_event_list_t>(arguments),
-                    begin<dev_scifi_hit_offsets_t>(arguments),
-                    begin<dev_scifi_hits_t>(arguments)},
-        constants.dev_scifi_geometry);
+      const auto parameters = Parameters {begin<dev_scifi_raw_input_t>(arguments),
+                                          begin<dev_scifi_raw_input_offsets_t>(arguments),
+                                          begin<dev_event_list_t>(arguments),
+                                          begin<dev_scifi_hit_offsets_t>(arguments),
+                                          begin<dev_scifi_hits_t>(arguments)};
+
+      if (runtime_options.mep_layout) {
+        function_mep(
+          dim3(value<host_number_of_selected_events_t>(arguments)),
+          dim3(SciFi::SciFiRawBankParams::NbBanks),
+          cuda_stream)(parameters, constants.dev_scifi_geometry);
+      }
+      else {
+        function(
+          dim3(value<host_number_of_selected_events_t>(arguments)),
+          dim3(SciFi::SciFiRawBankParams::NbBanks),
+          cuda_stream)(parameters, constants.dev_scifi_geometry);
+      }
     }
   };
 } // namespace scifi_pre_decode_v4

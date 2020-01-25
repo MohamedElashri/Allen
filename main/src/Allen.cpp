@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <memory>
+#include <tuple>
 
 #include <zmq.hpp>
 #include <ZeroMQSvc.h>
@@ -36,6 +37,7 @@
 #include "InputReader.h"
 #include "MDFProvider.h"
 #include "BinaryProvider.h"
+#include "MEPProvider.h"
 #include "Timer.h"
 #include "StreamWrapper.cuh"
 #include "Constants.cuh"
@@ -46,33 +48,22 @@
 #include "MonitorManager.h"
 #include "FileWriter.h"
 #include "Allen.h"
-#include <tuple>
 
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed, Writing, Written };
 } // namespace
 
-/**
- * @brief      Request slices from the input provider and report
- *             them to the main thread; run from a separate thread
- *
- * @param      thread ID of this I/O thread
- * @param      IInputProvider instance
- *
- * @return     void
- */
-void run_io(
-  const size_t io_id,
-  IInputProvider* input_provider,
+
+void run_output(
+  const size_t thread_id,
   OutputHandler* output_handler,
   HostBuffersManager* buffer_manager)
 {
-
   // Create a control socket and connect it.
   zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
   zmq::setsockopt(control, zmq::LINGER, 0);
 
-  auto con = ZMQ::connection(io_id);
+  auto con = ZMQ::connection(thread_id);
   try {
     control.connect(con.c_str());
   } catch (const zmq::error_t& e) {
@@ -82,12 +73,10 @@ void run_io(
 
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
-  bool input_done(false);
-
   while (true) {
 
     // Check if there are messages
-    zmq::poll(&items[0], 1, 0);
+    zmq::poll(&items[0], 1, -1);
 
     if (items[0].revents & zmq::POLLIN) {
       auto msg = zmqSvc().receive<std::string>(control);
@@ -99,19 +88,11 @@ void run_io(
         auto first_evt = zmqSvc().receive<size_t>(control);
         auto buf_idx = zmqSvc().receive<size_t>(control);
 
-        auto [n_selected, passing_event_list, dec_reports] = buffer_manager->getBufferOutputData(buf_idx);
-        // It's easier to shift indices for DecReports than for the input banks
-        // so shift all event numbers by the offset of the first event
-        if (first_evt != 0) {
-          for (size_t i = 0; i < n_selected; ++i) {
-            passing_event_list[i] += first_evt;
-          }
-        }
-        bool success(true);
-
+        bool success = true;
+        auto [passing_event_list, dec_reports] = buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
           success =
-            output_handler->output_selected_events(slc_idx, first_evt, {passing_event_list, n_selected}, dec_reports);
+            output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports);
         }
 
         zmqSvc().send(control, "WRITTEN", zmq::SNDMORE);
@@ -119,28 +100,69 @@ void run_io(
         zmqSvc().send(control, first_evt, zmq::SNDMORE);
         zmqSvc().send(control, buf_idx, zmq::SNDMORE);
         zmqSvc().send(control, success, zmq::SNDMORE);
-        zmqSvc().send(control, n_selected);
+        zmqSvc().send(control, static_cast<size_t>(passing_event_list.size()));
+      }
+    }
+  }
+}
+
+/**
+ * @brief      Request slices from the input provider and report
+ *             them to the main thread; run from a separate thread
+ *
+ * @param      thread ID of this I/O thread
+ * @param      IInputProvider instance
+ *
+ * @return     void
+ */
+void run_slices(
+  const size_t thread_id,
+  IInputProvider* input_provider)
+{
+
+  // Create a control socket and connect it.
+  zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
+  zmq::setsockopt(control, zmq::LINGER, 0);
+
+  auto con = ZMQ::connection(thread_id);
+  try {
+    control.connect(con.c_str());
+  } catch (const zmq::error_t& e) {
+    error_cout << "failed to connect connection " << con << "\n";
+    throw e;
+  }
+
+  zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
+
+  int timeout = 0;
+  while (true) {
+
+    // Check if there are messages without blocking
+    zmq::poll(&items[0], 1, timeout);
+
+    if (items[0].revents & zmq::POLLIN) {
+      auto msg = zmqSvc().receive<std::string>(control);
+      if (msg == "DONE") {
+        break;
       }
     }
 
-    if (!input_done) {
-      // Get a slice and inform the main thread that it is available
-      // NOTE: the argument specifies the timeout in ms, not the number of events.
-      auto [good, done, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
-      // Report errors or good slices that contain events
-      if (!timed_out && good && n_filled != 0) {
-        zmqSvc().send(control, "SLICE", zmq::SNDMORE);
-        zmqSvc().send(control, slice_index, zmq::SNDMORE);
-        zmqSvc().send(control, n_filled);
-      }
-      else if (!good) {
-        zmqSvc().send(control, "ERROR");
-        break;
-      }
-      if (done) {
-        input_done = true;
-        zmqSvc().send(control, "DONE");
-      }
+    // Get a slice and inform the main thread that it is available
+    // NOTE: the argument specifies the timeout in ms, not the number of events.
+    auto [good, done, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
+    // Report errors or good slices that contain events
+    if (!timed_out && good && n_filled != 0) {
+      zmqSvc().send(control, "SLICE", zmq::SNDMORE);
+      zmqSvc().send(control, slice_index, zmq::SNDMORE);
+      zmqSvc().send(control, n_filled);
+    }
+    else if (!good) {
+      zmqSvc().send(control, "ERROR");
+      break;
+    }
+    if (done) {
+      zmqSvc().send(control, "DONE");
+      timeout = -1;
     }
   }
 }
@@ -162,11 +184,11 @@ void run_stream(
   int device_id,
   StreamWrapper* wrapper,
   IInputProvider const* input_provider,
-  OutputHandler* output_handler,
   CheckerInvoker* checker_invoker,
   uint n_reps,
   bool do_check,
   bool cpu_offload,
+  bool mep_layout,
   std::string folder_name_imported_forward_tracks)
 {
   auto make_control = [thread_id](std::string suffix = std::string {}) {
@@ -185,7 +207,7 @@ void run_stream(
 
   zmq::socket_t control = make_control();
   std::optional<zmq::socket_t> check_control;
-  if (do_check || output_handler != nullptr) {
+  if (do_check) {
     check_control = make_control("check");
   }
 
@@ -227,9 +249,9 @@ void run_stream(
 
     std::string command;
     std::optional<size_t> idx;
-    std::optional<size_t> buf;
-    std::optional<size_t> first;
-    std::optional<size_t> last;
+    size_t buf;
+    size_t first;
+    size_t last;
     if (items[0].revents & zmq::POLLIN) {
       command = zmqSvc().receive<std::string>(control);
       if (command == "DONE") {
@@ -247,47 +269,36 @@ void run_stream(
     }
 
     if (idx) {
-      // process a slice
-      auto vp_banks = input_provider->banks(BankTypes::VP, *idx, *first, *last);
-      // Not very clear, but the number of event offsets is the number of filled events.
-      // NOTE: if the slice is empty, there might be one offset of 0
-      uint n_events = static_cast<uint>(std::get<1>(vp_banks).size() - 1);
+      // Run the stream
       auto status = wrapper->run_stream(
         stream_id,
-        *buf,
-        {std::move(vp_banks),
-         input_provider->banks(BankTypes::UT, *idx, *first, *last),
-         input_provider->banks(BankTypes::FT, *idx, *first, *last),
-         input_provider->banks(BankTypes::MUON, *idx, *first, *last),
-         n_events,
+        buf,
+        {input_provider->banks(BankTypes::VP, *idx),
+         input_provider->banks(BankTypes::UT, *idx),
+         input_provider->banks(BankTypes::FT, *idx),
+         input_provider->banks(BankTypes::MUON, *idx),
+         {static_cast<uint>(first), static_cast<uint>(last)},
          n_reps,
          do_check,
-         cpu_offload});
+         cpu_offload,
+         mep_layout});
 
       if (status == cudaErrorMemoryAllocation) {
         zmqSvc().send(control, "SPLIT", zmq::SNDMORE);
         zmqSvc().send(control, *idx, zmq::SNDMORE);
-        zmqSvc().send(control, *first, zmq::SNDMORE);
-        zmqSvc().send(control, *last, zmq::SNDMORE);
-        zmqSvc().send(control, *buf);
+        zmqSvc().send(control, first, zmq::SNDMORE);
+        zmqSvc().send(control, last, zmq::SNDMORE);
+        zmqSvc().send(control, buf);
       }
       else if (status == cudaSuccess) {
         // signal that we're done
         zmqSvc().send(control, "PROCESSED", zmq::SNDMORE);
         zmqSvc().send(control, *idx, zmq::SNDMORE);
-        zmqSvc().send(control, *first, zmq::SNDMORE);
-        zmqSvc().send(control, *buf);
+        zmqSvc().send(control, first, zmq::SNDMORE);
+        zmqSvc().send(control, buf);
         if (do_check && check_control) {
-          // Get list of events that are in the slice to load the right
-          // MC info
-          auto const& events = input_provider->event_ids(*idx);
-          EventIDs used_events;
-          if (first != 0 || last != events.size()) {
-            used_events = EventIDs(events.begin() + *first, events.begin() + *last);
-          }
-          else {
-            used_events = events;
-          }
+          // Get list of events that are in the slice
+          auto const& events = input_provider->event_ids(*idx, first, last);
 
           // synchronise to avoid threading issues with
           // CheckerInvoker. The main thread will send the folder to
@@ -295,7 +306,7 @@ void run_stream(
           // the message that informs it the checker is done.
           auto mc_folder = zmqSvc().receive<std::string>(*check_control);
           auto mask = wrapper->reconstructed_events(stream_id);
-          auto mc_events = checker_invoker->load(mc_folder, used_events, mask);
+          auto mc_events = checker_invoker->load(mc_folder, events, mask);
 
           if (mc_events.empty()) {
             zmqSvc().send(*check_control, false);
@@ -307,9 +318,9 @@ void run_stream(
               std::vector<char> events_tracks;
               std::vector<uint> event_tracks_offsets;
               read_folder(
-                folder_name_imported_forward_tracks, used_events, mask, events_tracks, event_tracks_offsets, true);
+                folder_name_imported_forward_tracks, events, mask, events_tracks, event_tracks_offsets, true);
               forward_tracks =
-                read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), used_events.size());
+                read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
             }
 
             wrapper->run_monte_carlo_test(stream_id, *checker_invoker, mc_events, forward_tracks);
@@ -435,7 +446,7 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
 /**
  * @brief      Main entry point
  *
- * @param      {key : value} command-line arguments as strings
+ * @param      {key : value} command-line arguments as std::strings
  * @param      IUpdater instance
  *
  * @return     int
@@ -459,12 +470,19 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   uint number_of_repetitions = 1;
   uint verbosity = 3;
   bool print_memory_usage = false;
+  bool non_stop = false;
   bool write_config = false;
   // By default, do_check will be true when mc_check is enabled
   bool do_check = true;
   size_t reserve_mb = 1024;
-
+  // MPI options
+  bool with_mpi = false;
+  std::map<std::string, int> receivers = {{"mem", 1}};
+  int mpi_window_size = 4;
+  // Input file options
   std::string mdf_input;
+  std::string mep_input;
+  bool mep_layout = true;
   std::string output_file;
   int device_id = 0;
   int cpu_offload = 1;
@@ -492,8 +510,14 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     else if (flag_in({"mdf"})) {
       mdf_input = arg;
     }
+    else if (flag_in({"mep"})) {
+      mep_input = arg;
+    }
     else if (flag_in({"configuration"})) {
       json_constants_configuration_file = arg;
+    }
+    else if (flag_in({"transpose-mep"})) {
+      mep_layout = !atoi(arg.c_str());
     }
     else if (flag_in({"write-configuration"})) {
       write_config = atoi(arg.c_str());
@@ -544,13 +568,35 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       output_file = arg;
     }
     else if (flag_in({"device"})) {
-      device_id = atoi(arg.c_str());
+      if (arg.find(":") != std::string::npos) {
+        // Get by PCI bus ID
+        bool s = false;
+        std::tie(s, device_id) = get_device_id(arg);
+        if (!s) exit(1);
+      } else {
+        device_id = atoi(arg.c_str());
+      }
+    }
+    else if (flag_in({"with-mpi"})) {
+      with_mpi = true;
+      bool parsed = false;
+      std::tie(parsed, receivers) = parse_receivers(arg);
+      if (!parsed) {
+        error_cout << "Failed to parse argument to with-mpi\n";
+        exit(1);
+      }
     }
     else if (flag_in({"file-list"})) {
       file_list = arg;
     }
+    else if (flag_in({"mpi-window-size"})) {
+      mpi_window_size = atoi(arg.c_str());
+    }
     else if (flag_in({"print-config"})) {
       print_config = atoi(arg.c_str());
+    }
+    else if (flag_in({"non-stop"})) {
+      non_stop = atoi(arg.c_str());
     }
     else if (flag_in({"print-buffer-status"})) {
       print_buffer_status = atoi(arg.c_str());
@@ -642,25 +688,32 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   }
 
   // Create the InputProvider, either MDF or Binary
-  if (!mdf_input.empty()) {
-    std::vector<std::string> connections;
-    size_t current = mdf_input.find(","), previous = 0;
-    while (current != std::string::npos) {
-      connections.emplace_back(mdf_input.substr(previous, current - previous));
-      previous = current + 1;
-      current = mdf_input.find(",", previous);
-    }
-    connections.emplace_back(mdf_input.substr(previous, current - previous));
-    MDFProviderConfig config {false,             // verify MDF checksums
-                              10,                // number of read buffers
-                              4,                 // number of transpose threads
-                              10001,             // maximum number event of offsets in read buffer
-                              *events_per_slice, // number of events per read buffer
-                              n_io_reps};        // number of loops over the input files
-    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), config);
+  // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
+  if (!mep_input.empty()) {
+    MEPProviderConfig config {false,                // verify MEP checksums
+                              10,                   // number of read buffers
+                              mep_layout ? 1u : 4u, // number of transpose threads
+                              mpi_window_size,      // MPI sliding window size
+                              with_mpi,             // Receive from MPI or read files
+                              non_stop,             // Run the application non-stop
+                              !mep_layout,          // MEPs should be transposed to Allen layout
+                              receivers};           // Map of receiver to MPI rank to receive from
+    input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+      number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
+  }
+  else if (!mdf_input.empty()) {
+    mep_layout = false;
+    MDFProviderConfig config {false,                      // verify MDF checksums
+                              10,                         // number of read buffers
+                              4,                          // number of transpose threads
+                              *events_per_slice * 10 + 1, // mximum number event of offsets in read buffer
+                              *events_per_slice,          // number of events per read buffer
+                              n_io_reps};                 // number of loops over the input files
+    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+      number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
   else {
+    mep_layout = false;
     // The binary input provider expects the folders for the bank types as connections
     std::vector<std::string> connections = {
       folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
@@ -769,26 +822,35 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                    device_id,
                    &stream_wrapper,
                    input_provider.get(),
-                   output_handler ? output_handler.get() : nullptr,
                    checker_invoker.get(),
                    number_of_repetitions,
                    do_check,
                    cpu_offload,
+                   mep_layout,
                    folder_name_imported_forward_tracks},
       std::move(check_control));
   };
 
-  // Lambda with the execution of the I/O thread
-  const auto io_thread = [&](uint thread_id, uint) {
+  // Lambda with the execution of the input thread that polls the
+  // input provider for slices.
+  const auto slice_thread = [&](uint thread_id, uint) {
     return std::make_tuple(
       std::thread {
-        run_io, thread_id, input_provider.get(), output_handler ? output_handler.get() : nullptr, buffer_manager.get()},
+        run_slices, thread_id, input_provider.get()},
+      std::optional<zmq::socket_t> {});
+  };
+
+  // Lambda with the execution of the output thread
+  const auto output_thread = [&](uint thread_id, uint) {
+    return std::make_tuple(
+      std::thread {
+        run_output, thread_id, output_handler ? output_handler.get() : nullptr, buffer_manager.get()},
       std::optional<zmq::socket_t> {});
   };
 
   // Lambda with the execution of the monitoring thread
-  const auto mon_thread = [&](uint thread_id, uint) {
-    return std::tuple {std::thread {run_monitoring, thread_id, monitor_manager.get(), thread_id - n_io},
+  const auto mon_thread = [&](uint thread_id, uint mon_id) {
+    return std::tuple {std::thread {run_monitoring, thread_id, monitor_manager.get(), mon_id},
                        std::optional<zmq::socket_t> {}};
   };
 
@@ -810,15 +872,15 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Start all workers
   size_t thread_id = 0;
   for (auto& [workers, start, n, type] :
-       {std::tuple {&io_workers, start_thread {io_thread}, static_cast<uint>(n_io), std::string("I/O")},
-        std::tuple {&mon_workers, start_thread {mon_thread}, static_cast<uint>(n_mon), std::string("Mon")},
-        std::tuple {&streams, start_thread {stream_thread}, number_of_threads, std::string("GPU")}}) {
+       {std::tuple {&streams, start_thread {stream_thread}, number_of_threads, std::string("GPU")},
+        std::tuple {&io_workers, start_thread {slice_thread}, static_cast<uint>(n_input), std::string("Slices")},
+        std::tuple {&io_workers, start_thread {output_thread}, static_cast<uint>(n_write), std::string("Output")},
+        std::tuple {&mon_workers, start_thread {mon_thread}, static_cast<uint>(n_mon), std::string("Mon")}}) {
     for (uint i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
       zmq::setsockopt(control, zmq::LINGER, 0);
       auto con = ZMQ::connection(thread_id);
       control.bind(con.c_str());
-
       // I don't know why, but this prevents problems. Probably
       // some race condition I haven't noticed.
       std::this_thread::sleep_for(std::chrono::milliseconds {50});
@@ -856,10 +918,22 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   size_t slices_processed = 0;
   std::optional<size_t> slice_index;
   std::optional<size_t> buffer_index;
-  size_t prev_io = 0;
 
   size_t n_events_output = 0;
   size_t error_count = 0;
+
+  std::optional<Timer> t;
+  double previous_time_measurement = 0;
+
+  std::optional<zmq::socket_t> throughput_socket;
+  try {
+    throughput_socket = zmqSvc().socket(zmq::PUB);
+    zmq::setsockopt(*throughput_socket, zmq::LINGER, 0);
+    std::string con = "ipc:///tmp/allen_throughput_" + std::to_string(device_id);
+    throughput_socket->bind(con.c_str());
+  } catch (zmq::error_t const& e) {
+    debug_cout << "Failed to create or bind throughput socket " << e.what() << "\n";
+  }
 
   // queues of slice/buffer pairs to write out
   // and sub-slices to be resubmitted
@@ -867,9 +941,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::queue<std::tuple<size_t, size_t, size_t>> sub_slice_queue;
 
   // Lambda to check if any event processors are done processing
-  auto check_processors = [&] {
+  auto check_processors = [&]() {
     for (size_t i = 0; i < number_of_threads; ++i) {
-      if (items[n_io + n_mon + i].revents & zmq::POLLIN) {
+      if (items[i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(streams[i]);
         auto msg = zmqSvc().receive<std::string>(socket);
         if (msg == "SPLIT") {
@@ -917,8 +991,16 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           ++slices_processed;
           stream_ready[i] = true;
 
-          if (logger::ll.verbosityLevel >= logger::debug) {
-            debug_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions << " events\n";
+          if (throughput_socket && t) {
+            double elapsed_time = t->get_elapsed_time();
+            if (elapsed_time - previous_time_measurement > 5) {
+              info_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions
+                        << " events at a rate of " << n_events_processed * number_of_repetitions / elapsed_time
+                        << " events / s\n";
+              zmqSvc().send(
+                *throughput_socket, std::to_string(n_events_processed * number_of_repetitions / elapsed_time));
+              previous_time_measurement = elapsed_time;
+            }
           }
 
           // Add the slice and buffer to the queue for output
@@ -948,7 +1030,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   auto check_monitors = [&] {
     for (size_t i = 0; i < n_mon; ++i) {
-      if (items[n_io + i].revents & zmq::POLLIN) {
+      if (items[number_of_threads + n_io + i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(mon_workers[i]);
         auto msg = zmqSvc().receive<std::string>(socket);
         assert(msg == "MONITORED");
@@ -965,13 +1047,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     std::optional<int> n;
     do {
       try {
-        n = zmq::poll(&items[n_io + n_mon], number_of_threads, -1);
+        n = zmq::poll(&items[0], number_of_threads, -1);
       } catch (const zmq::error_t& err) {
         if (err.num() == EINTR) continue;
       }
     } while (!n);
     for (size_t i = 0; i < number_of_threads; ++i) {
-      if (items[n_io + n_mon + i].revents & ZMQ_POLLIN) {
+      if (items[i].revents & ZMQ_POLLIN) {
         auto& socket = std::get<1>(streams[i]);
         auto msg = zmqSvc().receive<std::string>(socket);
         assert(msg == "READY");
@@ -986,8 +1068,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   if (error_count == 0) {
     info_cout << "Streams ready\n";
   }
-
-  std::optional<Timer> t;
 
   bool io_done = false;
 
@@ -1017,9 +1097,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       }
     } while (!n);
 
-    // Check if input_slices are ready
+    // Check if input slices are ready or events have been written
     for (size_t i = 0; i < n_io; ++i) {
-      if (items[i].revents & zmq::POLLIN) {
+      if (items[number_of_threads + i].revents & zmq::POLLIN) {
         auto& socket = std::get<1>(io_workers[i]);
         auto msg = zmqSvc().receive<std::string>(socket);
         if (msg == "SLICE") {
@@ -1031,6 +1111,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             info_cout << "Starting timer for throughput measurement\n";
             throughput_start = n_events_processed * number_of_repetitions;
             t = Timer {};
+            previous_time_measurement = t->get_elapsed_time();
           }
           input_slice_status[*slice_index][0] = SliceStatus::Filled;
           events_in_slice[*slice_index][0] = n_filled;
@@ -1043,7 +1124,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           auto first_evt = zmqSvc().receive<size_t>(socket);
           auto buf_idx = zmqSvc().receive<size_t>(socket);
           auto success = zmqSvc().receive<bool>(socket);
-          n_events_output += zmqSvc().receive<uint>(socket);
+          n_events_output += zmqSvc().receive<size_t>(socket);
           if (!success) {
             error_cout << "Failed to write output events.\n";
           }
@@ -1116,9 +1197,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
     // Check if any sub-slices have been queued for processing
     while (!sub_slice_queue.empty()) {
-      auto slice_idx = std::get<0>(sub_slice_queue.front());
-      auto first_evt = std::get<1>(sub_slice_queue.front());
-      auto last_evt = std::get<2>(sub_slice_queue.front());
+      auto [slice_idx, first_evt, last_evt] = sub_slice_queue.front();
       sub_slice_queue.pop();
 
       size_t processor_index = prev_processor++;
@@ -1143,19 +1222,12 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
     // Send slices and buffers back to I/O threads for writing
     while (write_queue.size()) {
-      size_t slc_index = std::get<0>(write_queue.front());
-      size_t first_event = std::get<1>(write_queue.front());
-      size_t buf_index = std::get<2>(write_queue.front());
+      auto [slc_index, first_event, buf_index] = write_queue.front();
       write_queue.pop();
-
-      size_t io_index = prev_io++;
-      if (prev_io == n_io) {
-        prev_io = 0;
-      }
 
       input_slice_status[slc_index][first_event] = SliceStatus::Writing;
 
-      auto& socket = std::get<1>(io_workers[io_index]);
+      auto& socket = std::get<1>(io_workers[n_input]);
       zmqSvc().send(socket, "WRITE", zmq::SNDMORE);
       zmqSvc().send(socket, slc_index, zmq::SNDMORE);
       zmqSvc().send(socket, first_event, zmq::SNDMORE);
@@ -1211,7 +1283,7 @@ loop_error:
     std::optional<int> n;
     do {
       try {
-        n = zmq::poll(&items[n_io + n_mon], number_of_threads, -1);
+        n = zmq::poll(&items[0], number_of_threads, -1);
       } catch (const zmq::error_t& err) {
         if (err.num() == EINTR) continue;
       }
@@ -1233,13 +1305,9 @@ loop_error:
   // Send stop signal to all threads and join them if they haven't
   // exited yet (as indicated by pred)
   // this now needs to be done for all workers as I/O workers never finish early - could remove pred
-  for (auto [workers, pred] : {std::tuple {std::ref(io_workers), true},
-                               std::tuple {std::ref(mon_workers), true},
-                               std::tuple {std::ref(streams), true}}) {
+  for (auto workers : {std::ref(io_workers), std::ref(mon_workers), std::ref(streams)}) {
     for (auto& worker : workers.get()) {
-      if (pred) {
-        zmqSvc().send(std::get<1>(worker), "DONE");
-      }
+      zmqSvc().send(std::get<1>(worker), "DONE");
       std::get<0>(worker).join();
     }
   }

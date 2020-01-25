@@ -14,14 +14,15 @@ namespace scifi_calculate_cluster_count_v4 {
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {240, 1, 1});
   };
 
-  __global__ void scifi_calculate_cluster_count_v4(
-    Parameters,
-    const char* scifi_geometry);
+  __global__ void scifi_calculate_cluster_count_v4(Parameters, const char* scifi_geometry);
+
+  __global__ void scifi_calculate_cluster_count_v4_mep(Parameters, const char* scifi_geometry);
 
   template<typename T, char... S>
   struct scifi_calculate_cluster_count_v4_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
     decltype(global_function(scifi_calculate_cluster_count_v4)) function {scifi_calculate_cluster_count_v4};
+    decltype(global_function(scifi_calculate_cluster_count_v4_mep)) function_mep {scifi_calculate_cluster_count_v4_mep};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -29,8 +30,9 @@ namespace scifi_calculate_cluster_count_v4 {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_scifi_raw_input_t>(arguments, std::get<0>(runtime_options.host_scifi_events).size_bytes());
-      set_size<dev_scifi_raw_input_offsets_t>(arguments, std::get<1>(runtime_options.host_scifi_events).size_bytes());
+      set_size<dev_scifi_raw_input_t>(arguments, std::get<1>(runtime_options.host_scifi_events));
+      set_size<dev_scifi_raw_input_offsets_t>(
+        arguments, std::get<2>(runtime_options.host_scifi_events).size_bytes() / sizeof(uint32_t));
       set_size<dev_scifi_hit_count_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
     }
@@ -43,29 +45,25 @@ namespace scifi_calculate_cluster_count_v4 {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(cudaMemcpyAsync(
-        begin<dev_scifi_raw_input_t>(arguments),
-        std::get<0>(runtime_options.host_scifi_events).begin(),
-        std::get<0>(runtime_options.host_scifi_events).size_bytes(),
-        cudaMemcpyHostToDevice,
-        cuda_stream));
-
-      cudaCheck(cudaMemcpyAsync(
-        begin<dev_scifi_raw_input_offsets_t>(arguments),
-        std::get<1>(runtime_options.host_scifi_events).begin(),
-        std::get<1>(runtime_options.host_scifi_events).size_bytes(),
-        cudaMemcpyHostToDevice,
-        cuda_stream));
+      data_to_device<dev_scifi_raw_input_t, dev_scifi_raw_input_offsets_t>
+        (arguments, runtime_options.host_scifi_events, cuda_stream);
 
       cudaCheck(cudaMemsetAsync(
         begin<dev_scifi_hit_count_t>(arguments), 0, size<dev_scifi_hit_count_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_scifi_raw_input_t>(arguments),
-                    begin<dev_scifi_raw_input_offsets_t>(arguments),
-                    begin<dev_scifi_hit_count_t>(arguments),
-                    begin<dev_event_list_t>(arguments)},
-        constants.dev_scifi_geometry);
+      const auto parameters = Parameters {begin<dev_scifi_raw_input_t>(arguments),
+                                          begin<dev_scifi_raw_input_offsets_t>(arguments),
+                                          begin<dev_scifi_hit_count_t>(arguments),
+                                          begin<dev_event_list_t>(arguments)};
+
+      if (runtime_options.mep_layout) {
+        function_mep(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+          parameters, constants.dev_scifi_geometry);
+      }
+      else {
+        function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+          parameters, constants.dev_scifi_geometry);
+      }
     }
 
   private:

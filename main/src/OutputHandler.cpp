@@ -19,15 +19,15 @@
 bool OutputHandler::output_selected_events(
   size_t const slice_index,
   size_t const event_offset,
-  gsl::span<unsigned int> const selected_events,
-  uint32_t const* const dec_reports)
+  gsl::span<unsigned int const> const selected_events,
+  gsl::span<uint32_t const> const dec_reports)
 {
   auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
 
   // m_sizes will contain the total size of all banks in the event
   std::fill_n(m_sizes.begin(), selected_events.size(), 0);
   m_input_provider->event_sizes(slice_index, selected_events, m_sizes);
-  auto const& event_ids = m_input_provider->event_ids(slice_index);
+  auto event_ids = m_input_provider->event_ids(slice_index);
 
   // size of the DecReport RawBank and its header
   const int bank_header_size = 4 * sizeof(short);
@@ -45,7 +45,7 @@ bool OutputHandler::output_selected_events(
     header->setHeaderVersion(Allen::mdf_header_version);
     // MDFHeader::setSize adds the header size internally, so pass
     // only the payload size here
-    header->setSize(m_sizes[i] + dec_report_size);
+    header->setSize(m_sizes[i] + bank_header_size + dec_report_size);
     // No checksumming
     // FIXME: make configurable
     header->setChecksum(0);
@@ -69,7 +69,7 @@ bool OutputHandler::output_selected_events(
       LHCb::RawBank::HltDecReports,
       2u,
       1 << 13,
-      {reinterpret_cast<char const*>(dec_reports) + dec_report_size * (selected_events[i] - event_offset),
+      {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * (selected_events[i] - event_offset),
        dec_report_size},
       buffer_span.data() + header_size + m_sizes[i]);
 

@@ -6,7 +6,8 @@
 
 #include "Logger.h"
 
-void HostBuffersManager::init(size_t nBuffers) {
+void HostBuffersManager::init(size_t nBuffers)
+{
   host_buffers.reserve(nBuffers);
   for (size_t i = 0; i < nBuffers; ++i) {
     host_buffers.push_back(new HostBuffers());
@@ -16,8 +17,9 @@ void HostBuffersManager::init(size_t nBuffers) {
   }
 }
 
-size_t HostBuffersManager::assignBufferToFill() {
-  if(empty_buffers.empty()) {
+size_t HostBuffersManager::assignBufferToFill()
+{
+  if (empty_buffers.empty()) {
     warning_cout << "No empty buffers available" << std::endl;
     warning_cout << "Adding new buffers" << std::endl;
     host_buffers.push_back(new HostBuffers());
@@ -33,7 +35,8 @@ size_t HostBuffersManager::assignBufferToFill() {
   return b;
 }
 
-size_t HostBuffersManager::assignBufferToProcess() {
+size_t HostBuffersManager::assignBufferToProcess()
+{
   // FIXME required until nvcc supports C++17
   // ideally, this fuction would return a std::optional<size_t>
   if (filled_buffers.empty()) return SIZE_MAX;
@@ -45,17 +48,20 @@ size_t HostBuffersManager::assignBufferToProcess() {
   return b;
 }
 
-void HostBuffersManager::returnBufferFilled(size_t b) {
+void HostBuffersManager::returnBufferFilled(size_t b)
+{
   buffer_statuses[b] = BufferStatus::Filled;
   filled_buffers.push(b);
 }
 
-void HostBuffersManager::returnBufferUnfilled(size_t b) {
+void HostBuffersManager::returnBufferUnfilled(size_t b)
+{
   buffer_statuses[b] = BufferStatus::Empty;
   empty_buffers.push(b);
 }
 
-void HostBuffersManager::returnBufferProcessed(size_t b) {
+void HostBuffersManager::returnBufferProcessed(size_t b)
+{
   // buffer must be both processed (monitoring) and written (I/O)
   // if I/O is already finished then mark "empty"
   // otherwise, mark "processed" and wait for I/O
@@ -68,7 +74,8 @@ void HostBuffersManager::returnBufferProcessed(size_t b) {
   }
 }
 
-void HostBuffersManager::returnBufferWritten(size_t b) {
+void HostBuffersManager::returnBufferWritten(size_t b)
+{
   // buffer must be both processed (monitoring) and written (I/O)
   // if monitoring is already finished then mark "empty"
   // otherwise, mark "written" and wait for I/O
@@ -81,9 +88,11 @@ void HostBuffersManager::returnBufferWritten(size_t b) {
   }
 }
 
-void HostBuffersManager::writeSingleEventPassthrough(size_t b) {
-  if(b>=host_buffers.size()) {
-    error_cout << "Buffer index " << b << " is larger than the number of available buffers: " << host_buffers.size() << std::endl;
+void HostBuffersManager::writeSingleEventPassthrough(size_t b)
+{
+  if (b >= host_buffers.size()) {
+    error_cout << "Buffer index " << b << " is larger than the number of available buffers: " << host_buffers.size()
+               << std::endl;
     return;
   }
   auto buf = host_buffers[b];
@@ -99,7 +108,7 @@ void HostBuffersManager::writeSingleEventPassthrough(size_t b) {
     dec_report.setNumberOfCandidates(0);
     dec_report.setIntDecisionID(i_line);
     dec_report.setExecutionStage(1);
-    if(i_line == Hlt1::Hlt1Lines::PassThrough) {
+    if (i_line == Hlt1::Hlt1Lines::PassThrough) {
       dec_report.setDecision(true);
       dec_report.setNumberOfCandidates(1);
     }
@@ -108,17 +117,19 @@ void HostBuffersManager::writeSingleEventPassthrough(size_t b) {
   returnBufferFilled(b);
 }
 
-std::tuple<uint, uint*, uint32_t*> HostBuffersManager::getBufferOutputData(size_t b) {
-  if (b > host_buffers.size()) return {0u, nullptr, nullptr};
+std::tuple<gsl::span<uint const>, gsl::span<uint32_t const>> HostBuffersManager::getBufferOutputData(size_t b)
+{
+  if (b > host_buffers.size()) return {};
 
   HostBuffers* buf = host_buffers.at(b);
-  auto n_selected = buf->host_number_of_passing_events[0];
-  auto passing_event_list = buf->host_passing_event_list;
-  auto dec_reports = buf->host_dec_reports;
-
-  return {n_selected, passing_event_list, dec_reports};
+  auto const n_selected = buf->host_number_of_passing_events[0];
+  gsl::span<uint const> passing_event_list {buf->host_passing_event_list, n_selected};
+  gsl::span<uint32_t const> dec_reports {buf->host_dec_reports, n_selected};
+  return {passing_event_list, dec_reports};
 }
 
-void HostBuffersManager::printStatus() const {
-  info_cout << host_buffers.size() << " buffers; " << empty_buffers.size() << " empty; " << filled_buffers.size() << " filled." << std::endl;
+void HostBuffersManager::printStatus() const
+{
+  info_cout << host_buffers.size() << " buffers; " << empty_buffers.size() << " empty; " << filled_buffers.size()
+            << " filled." << std::endl;
 }

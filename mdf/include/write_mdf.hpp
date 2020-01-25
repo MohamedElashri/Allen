@@ -1,4 +1,9 @@
+#pragma once
 #include <gsl-lite.hpp>
+
+namespace Allen {
+  constexpr int mdf_header_version = 3;
+}
 
 size_t add_raw_bank(
   unsigned char const type,

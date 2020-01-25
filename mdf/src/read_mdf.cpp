@@ -137,7 +137,7 @@ std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
 
         // Decode the odin bank
         if (b->type() == LHCb::RawBank::ODIN) {
-          odins.emplace_back(decode_odin(b));
+          odins.emplace_back(decode_odin(b->version(), b->data()));
         }
 
         // Check if Allen processes this type of bank
@@ -370,15 +370,14 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
 }
 
 // Decode the ODIN bank
-LHCb::ODIN MDF::decode_odin(const LHCb::RawBank* bank)
+LHCb::ODIN MDF::decode_odin(unsigned int version, unsigned int const* odinData)
 {
   LHCb::ODIN odin;
   unsigned long long temp64 {0};
   unsigned int temp32 {0};
-  const unsigned int* odinData = bank->data();
 
   // Fill the ODIN object
-  odin.version = bank->version();
+  odin.version = version;
   odin.run_number = odinData[LHCb::ODIN::Data::RunNumber];
   odin.orbit_number = odinData[LHCb::ODIN::Data::OrbitNumber];
 

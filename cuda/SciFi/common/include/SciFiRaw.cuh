@@ -17,6 +17,13 @@ namespace SciFi {
       data = (uint16_t*) p;
       last = (uint16_t*) end;
     }
+
+    __device__ __host__ SciFiRawBank(const uint32_t sID, const char* fragment, const char* end)
+    {
+      sourceID = sID;
+      data = (uint16_t*) fragment;
+      last = (uint16_t*) end;
+    }
   };
 
   struct SciFiRawEvent {

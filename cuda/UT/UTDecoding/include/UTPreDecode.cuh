@@ -25,10 +25,19 @@ namespace ut_pre_decode {
     const uint* dev_unique_x_sector_layer_offsets,
     const uint* dev_unique_x_sector_offsets);
 
+  __global__ void ut_pre_decode_mep(
+    Parameters,
+    const char* ut_boards,
+    const char* ut_geometry,
+    const uint* dev_ut_region_offsets,
+    const uint* dev_unique_x_sector_layer_offsets,
+    const uint* dev_unique_x_sector_offsets);
+
   template<typename T, char... S>
   struct ut_pre_decode_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
     decltype(global_function(ut_pre_decode)) function {ut_pre_decode};
+    decltype(global_function(ut_pre_decode_mep)) function_mep {ut_pre_decode_mep};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -55,18 +64,31 @@ namespace ut_pre_decode {
       cudaCheck(
         cudaMemsetAsync(begin<dev_ut_hit_count_t>(arguments), 0, size<dev_ut_hit_count_t>(arguments), cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_ut_raw_input_t>(arguments),
-                    begin<dev_ut_raw_input_offsets_t>(arguments),
-                    begin<dev_event_list_t>(arguments),
-                    begin<dev_ut_hit_offsets_t>(arguments),
-                    begin<dev_ut_hits_t>(arguments),
-                    begin<dev_ut_hit_count_t>(arguments)},
-        constants.dev_ut_boards.data(),
-        constants.dev_ut_geometry.data(),
-        constants.dev_ut_region_offsets.data(),
-        constants.dev_unique_x_sector_layer_offsets.data(),
-        constants.dev_unique_x_sector_offsets.data());
+      const auto parameters = Parameters {begin<dev_ut_raw_input_t>(arguments),
+                                          begin<dev_ut_raw_input_offsets_t>(arguments),
+                                          begin<dev_event_list_t>(arguments),
+                                          begin<dev_ut_hit_offsets_t>(arguments),
+                                          begin<dev_ut_hits_t>(arguments),
+                                          begin<dev_ut_hit_count_t>(arguments)};
+
+      if (runtime_options.mep_layout) {
+        function_mep(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+          parameters,
+          constants.dev_ut_boards.data(),
+          constants.dev_ut_geometry.data(),
+          constants.dev_ut_region_offsets.data(),
+          constants.dev_unique_x_sector_layer_offsets.data(),
+          constants.dev_unique_x_sector_offsets.data());
+      }
+      else {
+        function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+          parameters,
+          constants.dev_ut_boards.data(),
+          constants.dev_ut_geometry.data(),
+          constants.dev_ut_region_offsets.data(),
+          constants.dev_unique_x_sector_layer_offsets.data(),
+          constants.dev_unique_x_sector_offsets.data());
+      }
     }
 
   private:

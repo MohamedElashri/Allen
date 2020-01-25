@@ -71,8 +71,8 @@ namespace logger {
   public:
     int verbosityLevel = 3;
     FileStdLogger discardStream;
-    VoidLogger* discardLogger = nullptr;
-    Logger() { discardLogger = new VoidLogger(&discardStream); }
+    std::unique_ptr<VoidLogger> discardLogger;
+    Logger() { discardLogger.reset(new VoidLogger(&discardStream)); }
   };
 
   std::ostream& logger(int requestedLogLevel);

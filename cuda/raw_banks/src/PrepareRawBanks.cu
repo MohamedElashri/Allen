@@ -17,6 +17,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(prepare_raw_banks::Paramete
   const bool* event_disp_dimuon_results = parameters.dev_disp_dimuon_results + parameters.dev_sv_offsets[event_number];
   const bool* event_high_mass_dimuon_results =
     parameters.dev_high_mass_dimuon_results + parameters.dev_sv_offsets[event_number];
+  const bool* event_dimuon_soft_results = parameters.dev_dimuon_soft_results + parameters.dev_sv_offsets[event_number];
   const uint n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
 
   // Dec reports.
@@ -46,6 +47,9 @@ __global__ void prepare_raw_banks::prepare_raw_banks(prepare_raw_banks::Paramete
     // High mass dimuon.
     dec = ((event_high_mass_dimuon_results[i_sv] ? 1 : 0) & dec_mask);
     atomicOr(event_dec_reports + 2 + Hlt1::Hlt1Lines::HighMassDiMuon, dec);
+    // Dimuon soft.
+    dec = ((event_dimuon_soft_results[i_sv] ? 1 : 0) & dec_mask);
+    atomicOr(event_dec_reports + 2 + Hlt1::Hlt1Lines::DiMuonSoft, dec);
   }
   __syncthreads();
 
@@ -63,7 +67,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(prepare_raw_banks::Paramete
     if (!pass) return;
 
     const uint n_pass = atomicAdd(parameters.dev_number_of_passing_events.get(), 1);
-    parameters.dev_passing_event_list[n_pass] = event_number;
+    parameters.dev_passing_event_list[n_pass] = parameters.dev_event_list[event_number];
     // Create the rest of the dec report.
     event_dec_reports[0] = Hlt1::TCK;
     event_dec_reports[1] = Hlt1::taskID;

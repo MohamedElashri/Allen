@@ -11,12 +11,12 @@
 
 namespace {
   // Factory for filename checking: a regex and a predicate on the its matches
-  using factory = std::tuple<std::reference_wrapper<const std::regex>, std::function<bool(const std::smatch&)>>;
+  using factory = std::tuple<std::regex, std::function<bool(const std::smatch&)>>;
 
   // Check binary files: they should match the regex and have n non-zero sub-matches
   const std::regex bin_format {"(\\d+)(?:_(\\d+))?\\.bin"};
   auto check_bin = [](size_t n) -> factory {
-    return {std::cref(bin_format), [n](const std::smatch& matches) {
+    return {bin_format, [n](const std::smatch& matches) {
               return std::accumulate(begin(matches) + 1, end(matches), 0ul, [](const auto& v, const auto& m) {
                        return v + (m.length() != 0);
                      }) == n;
@@ -24,23 +24,22 @@ namespace {
   };
 
   // Check mdf files: they should match the regex and have not-empty filename
-  const std::regex mdf_format {"(.+)\\.mdf"};
-  auto check_mdf = []() -> factory {
-    return {std::cref(mdf_format),
-            [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
+  auto check_ext = [](std::string ext) -> factory {
+    const std::regex format {std::string {"(.+)\\."} + ext};
+    return {format, [](const std::smatch& matches) { return matches.size() == 2 && matches.length(1) > 0; }};
   };
 
   // Check geometry files: they should match the regex.
   const std::regex geom_format {".*geometry.*"};
   auto check_geom = []() -> factory {
-    return {std::cref(geom_format), [](const std::smatch& matches) { return matches.size() == 1; }};
+    return {geom_format, [](const std::smatch& matches) { return matches.size() == 1; }};
   };
 
   // Check all filenames using the regex and its match predicate
   // returned by calling the factory function
   auto check_names = [](const auto& names, const factory& fact) {
     // Check if all all names have the right format and the same format
-    const std::regex& expr = std::get<0>(fact).get();
+    auto expr = std::get<0>(fact);
     const auto& pred = std::get<1>(fact);
     return std::all_of(begin(names), end(names), [&expr, &pred](const auto& t) {
       std::smatch matches;
@@ -104,7 +103,7 @@ void readFileIntoVector(const std::string& filename, std::vector<char>& events)
   auto dataSize = end - infile.tellg();
 
   if (dataSize == 0) {
-    warning_cout << "Empty file: " << filename << std::endl;
+    warning_cout << "Empty file: " << filename << "\n";
   }
 
   events.resize(dataSize);
@@ -126,7 +125,7 @@ void appendFileToVector(const std::string& filename, std::vector<char>& events, 
   auto dataSize = end - infile.tellg();
 
   if (dataSize == 0) {
-    warning_cout << "Empty file: " << filename << std::endl;
+    warning_cout << "Empty file: " << filename << "\n";
   }
 
   // read content of infile with a vector
@@ -143,7 +142,7 @@ std::vector<std::string> list_folder(const std::string& foldername, const std::s
   std::string suffix = std::string {"."} + extension;
 
   if (!fs::exists(foldername)) {
-    error_cout << "Folder " << foldername << " could not be opened" << std::endl;
+    error_cout << "Folder " << foldername << " could not be opened\n.";
     exit(-1);
   }
 
@@ -152,23 +151,23 @@ std::vector<std::string> list_folder(const std::string& foldername, const std::s
   }
 
   if (folderContents.size() == 0) {
-    error_cout << "No " << extension << " files found in folder " << foldername << std::endl;
+    error_cout << "No " << extension << " files found in folder " << foldername << "\n";
     exit(-1);
   }
   else if (
     !check_names(folderContents, check_geom()) && !check_names(folderContents, check_bin(1)) &&
-    !check_names(folderContents, check_bin(2)) && !check_names(folderContents, check_mdf())) {
-    error_cout << "Not all files in the folder have the correct and the same filename format." << std::endl;
+    !check_names(folderContents, check_bin(2)) && !check_names(folderContents, check_ext(extension))) {
+    error_cout << "Not all files in the folder have the correct and the same filename format.\n";
     if (extension == ".bin") {
-      error_cout << "All files should be named N.bin or all files should be named N_M.bin" << std::endl;
+      error_cout << "All files should be named N.bin or all files should be named N_M.bin\n";
     }
     else {
-      error_cout << "All files should end with .mdf" << std::endl;
+      error_cout << "All files should end with " << extension << ".\n";
     }
     exit(-1);
   }
   else {
-    verbose_cout << "Found " << folderContents.size() << " binary files" << std::endl;
+    verbose_cout << "Found " << folderContents.size() << " binary files\n";
   }
 
   // Sort folder contents (file names)
@@ -216,7 +215,7 @@ void read_folder(
   for (auto const event_id : requested_events) {
     auto missing = !tracks_files.count(event_id);
     if (missing) {
-      error_cout << "Missing file for event " << std::get<0>(event_id) << " " << std::get<1>(event_id) << std::endl;
+      error_cout << "Missing file for event " << std::get<0>(event_id) << " " << std::get<1>(event_id) << "\n";
       return;
     }
   }
@@ -234,7 +233,7 @@ void read_folder(
   read_files(files.cbegin(), files.cend(), events, event_offsets);
 
   if (!quiet) {
-    debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
+    debug_cout << "\n" << (event_offsets.size() - 1) << " files read\n\n";
   }
 }
 
@@ -250,7 +249,7 @@ EventIDs read_folder(
 {
   std::vector<std::string> folderContents = list_folder(foldername);
 
-  debug_cout << "Requested " << number_of_events_requested << " files" << std::endl;
+  debug_cout << "Requested " << number_of_events_requested << " files\n";
 
   EventIDs event_ids;
   event_ids.reserve(folderContents.size());
@@ -272,7 +271,7 @@ EventIDs read_folder(
 
   read_files(folderContents.begin() + start_event_offset, folderContents.end(), events, event_offsets);
 
-  debug_cout << std::endl << (event_offsets.size() - 1) << " files read" << std::endl << std::endl;
+  debug_cout << "\n" << (event_offsets.size() - 1) << " files read\n\n";
   return event_ids;
 }
 

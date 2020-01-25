@@ -87,7 +87,7 @@ public:
 struct BaseAlgorithm {
   virtual void set_properties(const std::map<std::string, std::string>& algo_config) = 0;
 
-  virtual std::map<std::string, std::string> get_properties() = 0;
+  virtual std::map<std::string, std::string> get_properties() const = 0;
 
   virtual bool register_property(const std::string& name, BaseProperty* property) = 0;
 
@@ -138,7 +138,7 @@ public:
     return holder;
   }
 
-  std::map<std::string, std::string> get_properties() override
+  std::map<std::string, std::string> get_properties() const override
   {
     std::map<std::string, std::string> properties;
     for (const auto& kv : m_properties) {
@@ -400,7 +400,7 @@ struct SharedPropertySet : public BaseAlgorithm {
     }
   }
 
-  std::map<std::string, std::string> get_properties() override
+  std::map<std::string, std::string> get_properties() const override
   {
     std::map<std::string, std::string> properties;
     for (auto const kv : m_properties) {

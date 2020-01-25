@@ -64,6 +64,10 @@ struct VeloRawBank {
   uint32_t sp_count;
   uint32_t* sp_word;
 
+  // For MEP format
+  __device__ __host__ VeloRawBank(const uint32_t source_id, const char* fragment);
+
+  // For Allen format
   __device__ __host__ VeloRawBank(const char* raw_bank);
 };
 

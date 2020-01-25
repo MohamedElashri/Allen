@@ -105,11 +105,14 @@ cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runti
 {
   host_buffers = host_buffers_manager->getBuffers(buf_idx);
   // The sequence is only run if there are events to run on
-  number_of_input_events = runtime_options.number_of_events;
-  if (runtime_options.number_of_events > 0) {
+  auto event_start = std::get<0>(runtime_options.event_interval);
+  auto event_end = std::get<1>(runtime_options.event_interval);
+
+  number_of_input_events = event_end - event_start;
+  if (event_end > event_start) {
     for (uint repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
       // Initialize selected_number_of_events with requested_number_of_events
-      host_buffers->host_number_of_selected_events[0] = runtime_options.number_of_events;
+      host_buffers->host_number_of_selected_events[0] = event_end - event_start;
 
       // Reset scheduler
       scheduler.reset();
