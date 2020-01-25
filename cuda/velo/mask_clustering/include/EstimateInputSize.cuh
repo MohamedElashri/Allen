@@ -6,9 +6,11 @@
 namespace velo_estimate_input_size {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_number_of_cluster_candidates_t, uint);
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    DEVICE_OUTPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
-    DEVICE_OUTPUT(dev_velo_raw_input_offsets_t, uint) dev_velo_raw_input_offsets;
+    DEVICE_INPUT(dev_candidates_offsets_t, uint) dev_candidates_offsets;
+    DEVICE_INPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
+    DEVICE_INPUT(dev_velo_raw_input_offsets_t, uint) dev_velo_raw_input_offsets;
     DEVICE_OUTPUT(dev_estimated_input_size_t, uint) dev_estimated_input_size;
     DEVICE_OUTPUT(dev_module_candidate_num_t, uint) dev_module_candidate_num;
     DEVICE_OUTPUT(dev_cluster_candidates_t, uint) dev_cluster_candidates;
@@ -36,14 +38,10 @@ namespace velo_estimate_input_size {
         debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
       }
 
-      set_size<dev_velo_raw_input_t>(arguments, std::get<1>(runtime_options.host_velo_events));
-      set_size<dev_velo_raw_input_offsets_t>(
-        arguments, std::get<2>(runtime_options.host_velo_events).size_bytes() / sizeof(uint));
       set_size<dev_estimated_input_size_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_modules);
       set_size<dev_module_candidate_num_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_cluster_candidates_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * VeloClustering::max_candidates_event);
+      set_size<dev_cluster_candidates_t>(arguments, value<host_number_of_cluster_candidates_t>(arguments));
     }
 
     void operator()(
@@ -54,9 +52,6 @@ namespace velo_estimate_input_size {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      data_to_device<dev_velo_raw_input_t, dev_velo_raw_input_offsets_t>
-        (arguments, runtime_options.host_velo_events, cuda_stream);
-
       cudaCheck(cudaMemsetAsync(
         begin<dev_estimated_input_size_t>(arguments), 0, size<dev_estimated_input_size_t>(arguments), cuda_stream));
       cudaCheck(cudaMemsetAsync(
@@ -64,6 +59,7 @@ namespace velo_estimate_input_size {
 
       // Invoke kernel
       const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
+                                          begin<dev_candidates_offsets_t>(arguments),
                                           begin<dev_velo_raw_input_t>(arguments),
                                           begin<dev_velo_raw_input_offsets_t>(arguments),
                                           begin<dev_estimated_input_size_t>(arguments),
@@ -84,54 +80,3 @@ namespace velo_estimate_input_size {
     Property<block_dim_t> m_block_dim {this};
   };
 } // namespace velo_estimate_input_size
-// =======
-// #include "Handler.cuh"
-// #include "ArgumentsCommon.cuh"
-// #include "ArgumentsVelo.cuh"
-
-// __global__ void estimate_input_size(
-//   char* dev_raw_input,
-//   uint* dev_raw_input_offsets,
-//   uint* dev_estimated_input_size,
-//   uint* dev_module_candidate_num,
-//   uint32_t* dev_cluster_candidates,
-//   const uint* dev_event_list,
-//   uint8_t* dev_velo_candidate_ks);
-
-// ALGORITHM(
-//   estimate_input_size,
-//   velo_estimate_input_size_allen_t,
-//   ARGUMENTS(
-//     dev_velo_raw_input,
-//     dev_velo_raw_input_offsets,
-//     dev_estimated_input_size,
-//     dev_module_cluster_num,
-//     dev_module_candidate_num,
-//     dev_cluster_candidates,
-//     dev_event_list))
-
-// __global__ void estimate_input_size_mep(
-//   char* dev_raw_input,
-//   uint* dev_raw_input_offsets,
-//   uint* dev_estimated_input_size,
-//   uint* dev_module_candidate_num,
-//   uint32_t* dev_cluster_candidates,
-//   const uint* dev_event_list,
-//   uint8_t* dev_velo_candidate_ks);
-
-// ALGORITHM(
-//   estimate_input_size_mep,
-//   velo_estimate_input_size_mep_t,
-//   ARGUMENTS(
-//     dev_velo_raw_input,
-//     dev_velo_raw_input_offsets,
-//     dev_estimated_input_size,
-//     dev_module_cluster_num,
-//     dev_module_candidate_num,
-//     dev_cluster_candidates,
-//     dev_event_list))
-
-// XOR_ALGORITHM(velo_estimate_input_size_mep_t,
-//               velo_estimate_input_size_allen_t,
-//               velo_estimate_input_size_t)
-// >>>>>>> origin/raaij_mep_decoding

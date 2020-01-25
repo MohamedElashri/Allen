@@ -321,8 +321,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
   const uint* module_cluster_start = parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   uint* module_cluster_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   uint number_of_candidates = parameters.dev_module_candidate_num[event_number];
-  uint32_t* cluster_candidates =
-    (uint32_t*) &parameters.dev_cluster_candidates[event_number * VeloClustering::max_candidates_event];
+  const uint* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Local pointers to parameters.dev_velo_cluster_container
   const uint estimated_number_of_clusters = parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
@@ -377,8 +376,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
   const uint* module_cluster_start = parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   uint* module_cluster_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   uint number_of_candidates = parameters.dev_module_candidate_num[event_number];
-  uint32_t* cluster_candidates =
-    (uint32_t*) &parameters.dev_cluster_candidates[event_number * VeloClustering::max_candidates_event];
+  const uint* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Local pointers to parameters.dev_velo_cluster_container
   const uint estimated_number_of_clusters = parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];

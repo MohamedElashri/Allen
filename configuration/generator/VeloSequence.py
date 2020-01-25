@@ -2,6 +2,13 @@ from algorithms import *
 
 def VELO_sequence(validate=False):
   host_global_event_cut = host_global_event_cut_t()
+  velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t()
+
+  prefix_sum_offsets_velo_candidates = host_prefix_sum_t("prefix_sum_offsets_velo_candidates",
+    host_total_sum_holder_t="host_number_of_cluster_candidates_t",
+    dev_input_buffer_t=velo_calculate_number_of_candidates.dev_number_of_candidates_t(),
+    dev_output_buffer_t="dev_candidates_offsets_t")
+
   velo_estimate_input_size = velo_estimate_input_size_t()
 
   prefix_sum_offsets_estimated_input_size = host_prefix_sum_t("prefix_sum_offsets_estimated_input_size",
@@ -37,6 +44,8 @@ def VELO_sequence(validate=False):
   velo_consolidate_tracks = velo_consolidate_tracks_t()
 
   s = Sequence(host_global_event_cut,
+    velo_calculate_number_of_candidates,
+    prefix_sum_offsets_velo_candidates,
     velo_estimate_input_size,
     prefix_sum_offsets_estimated_input_size,
     velo_masked_clustering,

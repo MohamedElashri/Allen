@@ -156,7 +156,6 @@ __device__ void estimate_raw_bank_size(
         const uint8_t k = dev_velo_candidate_ks[candidates_uint8 & 0xF];
         auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
         const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | k;
-        assert(current_cluster_candidate < blockDim.x * VeloClustering::max_candidates_event);
         cluster_candidates[current_cluster_candidate] = candidate;
         ++found_cluster_candidates;
       }
@@ -168,7 +167,6 @@ __device__ void estimate_raw_bank_size(
         const uint8_t k = dev_velo_candidate_ks[(candidates_uint8 >> 4)] + 2;
         auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
         const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | k;
-        assert(current_cluster_candidate < blockDim.x * VeloClustering::max_candidates_event);
         cluster_candidates[current_cluster_candidate] = candidate;
         ++found_cluster_candidates;
       }
@@ -193,8 +191,7 @@ __global__ void velo_estimate_input_size::velo_estimate_input_size(
   const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
   uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_modules;
   uint* event_candidate_num = parameters.dev_module_candidate_num + event_number;
-  uint32_t* cluster_candidates =
-    parameters.dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
+  uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Read raw event
   const auto raw_event = VeloRawEvent(raw_input);
@@ -217,8 +214,7 @@ __global__ void velo_estimate_input_size::velo_estimate_input_size_mep(
 
   uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_modules;
   uint* event_candidate_num = parameters.dev_module_candidate_num + event_number;
-  uint32_t* cluster_candidates =
-    parameters.dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
+  uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Read raw event
   auto const number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
