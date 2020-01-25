@@ -280,18 +280,18 @@ calc_index(const int i, const TrackCandidates& ranges, const int layer, const UT
     hit = ranges.get_from(layer, 1) + sum_offset - ranges.get_size(layer, 0);
   }
   else if (i < ranges.get_size(layer, 0) + ranges.get_size(layer, 1) + ranges.get_size(layer, 2)) {
-    hit = ranges.get_from(layer, 2) + sum_offset - ranges.get_size(layer, 0) + ranges.get_size(layer, 1);
+    hit = ranges.get_from(layer, 2) + sum_offset - (ranges.get_size(layer, 0) + ranges.get_size(layer, 1));
   }
   else if (
     i < ranges.get_size(layer, 0) + ranges.get_size(layer, 1) + ranges.get_size(layer, 2) + ranges.get_size(layer, 3)) {
-    hit = ranges.get_from(layer, 3) + sum_offset - ranges.get_size(layer, 0) + ranges.get_size(layer, 1) +
-          ranges.get_size(layer, 2);
+    hit = ranges.get_from(layer, 3) + sum_offset - (ranges.get_size(layer, 0) + ranges.get_size(layer, 1) +
+          ranges.get_size(layer, 2));
   }
   else if (
     i < ranges.get_size(layer, 0) + ranges.get_size(layer, 1) + ranges.get_size(layer, 2) + ranges.get_size(layer, 3) +
           ranges.get_size(layer, 4)) {
-    hit = ranges.get_from(layer, 4) + sum_offset - ranges.get_size(layer, 0) + ranges.get_size(layer, 1) +
-          ranges.get_size(layer, 2) + ranges.get_size(layer, 3);
+    hit = ranges.get_from(layer, 4) + sum_offset - (ranges.get_size(layer, 0) + ranges.get_size(layer, 1) +
+          ranges.get_size(layer, 2) + ranges.get_size(layer, 3));
   }
 
   return hit;
@@ -323,19 +323,19 @@ __device__ __inline__ int calc_index(
     hit = ranges.get_from(layer0, 1) + sum_offset0 - ranges.get_size(layer0, 0);
   }
   else if (i < ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) + ranges.get_size(layer0, 2)) {
-    hit = ranges.get_from(layer0, 2) + sum_offset0 - ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1);
+    hit = ranges.get_from(layer0, 2) + sum_offset0 - (ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1));
   }
   else if (
     i <
     ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) + ranges.get_size(layer0, 2) + ranges.get_size(layer0, 3)) {
-    hit = ranges.get_from(layer0, 3) + sum_offset0 - ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) +
-          ranges.get_size(layer0, 2);
+    hit = ranges.get_from(layer0, 3) + sum_offset0 - (ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) +
+          ranges.get_size(layer0, 2));
   }
   else if (
     i < ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) + ranges.get_size(layer0, 2) +
           ranges.get_size(layer0, 3) + ranges.get_size(layer0, 4)) {
-    hit = ranges.get_from(layer0, 4) + sum_offset0 - ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) +
-          ranges.get_size(layer0, 2) + ranges.get_size(layer0, 3);
+    hit = ranges.get_from(layer0, 4) + sum_offset0 - (ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) +
+          ranges.get_size(layer0, 2) + ranges.get_size(layer0, 3));
   }
   // layer_cand2
   else if (i < cand0size + ranges.get_size(layer2, 0)) {
@@ -346,19 +346,19 @@ __device__ __inline__ int calc_index(
   }
   else if (i < cand0size + ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2)) {
     hit =
-      ranges.get_from(layer2, 2) + sum_offset2 - cand0size - ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1);
+      ranges.get_from(layer2, 2) + sum_offset2 - cand0size - (ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1));
   }
   else if (
     i < cand0size + ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2) +
           ranges.get_size(layer2, 3)) {
-    hit = ranges.get_from(layer2, 3) + sum_offset2 - cand0size - ranges.get_size(layer2, 0) +
-          ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2);
+    hit = ranges.get_from(layer2, 3) + sum_offset2 - cand0size - (ranges.get_size(layer2, 0) +
+          ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2));
   }
   else if (
     i < cand0size + ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2) +
           ranges.get_size(layer2, 3) + ranges.get_size(layer2, 4)) {
-    hit = ranges.get_from(layer2, 4) + sum_offset2 - cand0size - ranges.get_size(layer2, 0) +
-          ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2) + ranges.get_size(layer2, 3);
+    hit = ranges.get_from(layer2, 4) + sum_offset2 - cand0size - (ranges.get_size(layer2, 0) +
+          ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2) + ranges.get_size(layer2, 3));
   }
 
   return hit;
