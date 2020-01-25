@@ -21,7 +21,7 @@ namespace Categories {
          return mcp.isLong && !mcp.isElectron(); },
       }),
      TrackEffReport({
-       "03_long>5GeV",
+       "03_long_P>5GeV",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && !mcp.isElectron() && mcp.p > 5e3f; },
          }),
@@ -31,7 +31,7 @@ namespace Categories {
          return mcp.isLong && !mcp.isElectron() && mcp.fromStrangeDecay;},
          }),
       TrackEffReport({
-       "05_long_strange>5GeV",
+       "05_long_strange_P>5GeV",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && !mcp.isElectron() && mcp.fromStrangeDecay && mcp.p > 5e3f;},
          }),
@@ -41,7 +41,7 @@ namespace Categories {
          return mcp.isLong && !mcp.isElectron() && mcp.fromBeautyDecay;},
          }),
        TrackEffReport({
-       "07_long_fromB>5GeV",
+       "07_long_fromB_P>5GeV",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && !mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f;},
          }),
@@ -56,7 +56,7 @@ namespace Categories {
          return mcp.isLong && mcp.isElectron() && mcp.fromBeautyDecay;},
          }),
        TrackEffReport({
-       "10_long_fromB_electrons>5GeV",
+       "10_long_fromB_electrons_P>5GeV",
        [](MCParticles::const_reference& mcp) {
          return mcp.isLong && mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f;},
          })       
@@ -356,7 +356,7 @@ namespace Categories {
       [](MCParticles::const_reference& mcp) { return mcp.hasVelo && mcp.hasUT && !mcp.isElectron(); },
     }),
    TrackEffReport({
-      "03_velo+UT>5GeV",
+      "03_velo+UT_P>5GeV",
       [](MCParticles::const_reference& mcp) { return mcp.hasVelo && mcp.hasUT && !mcp.isElectron() && mcp.p > 5e3f; },
     }),
     TrackEffReport({
@@ -368,7 +368,7 @@ namespace Categories {
       [](MCParticles::const_reference& mcp) { return mcp.hasVelo && mcp.hasUT && !mcp.isElectron() && !mcp.isLong; },
     }),
     TrackEffReport({
-      "06_velo+UT+notLong>5GeV",
+      "06_velo+UT+notLong_P>5GeV",
       [](MCParticles::const_reference& mcp) { return mcp.hasVelo && mcp.hasUT && !mcp.isElectron() && !mcp.isLong && mcp.p > 5e3f; },
     }),
     TrackEffReport({
@@ -376,7 +376,7 @@ namespace Categories {
       [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron(); },
     }),
     TrackEffReport({
-      "08_long>5GeV",
+      "08_long_P>5GeV",
       [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.p > 5e3f; },
     }),
     TrackEffReport({
@@ -384,7 +384,7 @@ namespace Categories {
       [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.fromBeautyDecay; },
     }),
     TrackEffReport({
-      "10_long_fromB>5GeV",
+      "10_long_fromB_P>5GeV",
       [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f; },
     }),
     TrackEffReport({
@@ -396,7 +396,7 @@ namespace Categories {
       [](MCParticles::const_reference& mcp) { return mcp.isLong && mcp.isElectron() && mcp.fromBeautyDecay; },
     }),
     TrackEffReport({
-      "13_long_fromB_electrons>5GeV",
+      "13_long_fromB_electrons_P>5GeV",
       [](MCParticles::const_reference& mcp) { return mcp.isLong && mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f; },
     }),  
       
@@ -616,7 +616,7 @@ namespace Categories {
        [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron(); },
      }),
     TrackEffReport({
-       "02_long>5GeV",
+       "02_long_P>5GeV",
        [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.p > 5e3f; },
      }),
     TrackEffReport({
@@ -624,7 +624,7 @@ namespace Categories {
        [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.fromStrangeDecay; },
      }),
      TrackEffReport({
-       "04_long_strange>5GeV",
+       "04_long_strange_P>5GeV",
        [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.fromStrangeDecay && mcp.p > 5e3f; },
      }),
     TrackEffReport({
@@ -632,7 +632,7 @@ namespace Categories {
        [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.fromBeautyDecay; },
      }),
       TrackEffReport({
-       "06_long_fromB>5GeV",
+       "06_long_fromB_P>5GeV",
          [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f; },
      }),
      TrackEffReport({
