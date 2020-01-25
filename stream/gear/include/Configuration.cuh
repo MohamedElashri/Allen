@@ -23,7 +23,7 @@ constexpr char Name<Cs...>::s[sizeof...(Cs) + 1];
 
 namespace Configuration {
   namespace Detail {
-    std::regex const array_expr {"\\[(?:\\s*(\\d+)\\s*,?)+\\]"};
+    std::regex const array_expr {"\\{(?:\\s*(\\d+)\\s*,?)+\\}"};
     std::regex const digit_expr {"(\\d+)"};
   } // namespace Detail
 
@@ -47,7 +47,7 @@ namespace Configuration {
 
   // General template
   template<typename T>
-  std::string to_string_impl(T const& holder)
+  std::string to_string_impl(const T& holder)
   {
     // very basic implementation based on streaming
     std::stringstream s;
@@ -61,7 +61,7 @@ namespace Configuration {
   template<typename T>
   std::string to_string(T const& holder)
   {
-    return to_string_impl<typename T::t>(holder);
+    return to_string_impl<typename T::t>(holder.get());
   }
 } // namespace Configuration
 
