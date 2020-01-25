@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 namespace Hlt1 {
 
@@ -7,17 +8,4 @@ namespace Hlt1 {
 
   // Task ID.
   const unsigned int taskID = 1;
-
-  // Hlt1 lines.
-  enum Hlt1Lines {
-    PassThrough,
-    OneTrackMVA,
-    TwoTrackMVA,
-    SingleMuon,
-    DisplacedDiMuon,
-    HighMassDiMuon,
-    DiMuonSoft,
-    End
-  };
-
 }

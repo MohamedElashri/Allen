@@ -10,12 +10,8 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, S...>> {
   {
     auto& checker = checker_invoker.checker<RateChecker>("HLT1 rates:");
     checker.accumulate(
-      host_buffers.host_one_track_decisions,
-      host_buffers.host_two_track_decisions,
-      host_buffers.host_single_muon_decisions,
-      host_buffers.host_disp_dimuon_decisions,
-      host_buffers.host_high_mass_dimuon_decisions,
-      host_buffers.host_dimuon_soft_decisions,
+      host_buffers.host_sel_results,
+      host_buffers.host_sel_results_atomics,
       host_buffers.host_atomics_scifi,
       host_buffers.host_sv_atomics,
       host_buffers.host_number_of_selected_events[0]);
@@ -50,12 +46,8 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, S...>> {
       mc_events,
       tracks,
       host_buffers.host_secondary_vertices,
-      host_buffers.host_one_track_decisions,
-      host_buffers.host_two_track_decisions,
-      host_buffers.host_single_muon_decisions,
-      host_buffers.host_disp_dimuon_decisions,
-      host_buffers.host_high_mass_dimuon_decisions,
-      host_buffers.host_dimuon_soft_decisions,
+      host_buffers.host_sel_results,
+      host_buffers.host_sel_results_atomics,
       host_buffers.host_atomics_scifi,
       host_buffers.host_sv_atomics,
       host_buffers.host_number_of_selected_events[0]);

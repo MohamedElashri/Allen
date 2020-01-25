@@ -11,6 +11,8 @@
 #include "MCVertex.h"
 #include "ParKalmanDefinitions.cuh"
 #include "VertexDefinitions.cuh"
+#include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 #include "ROOTHeaders.h"
 #include <algorithm>
@@ -35,12 +37,8 @@ public:
     MCEvents const& mc_events,
     std::vector<Checker::Tracks> const& tracks,
     const VertexFit::TrackMVAVertex* svs,
-    const bool* one_track_decisions,
-    const bool* two_track_decisions,
-    const bool* single_muon_decisions,
-    const bool* disp_dimuon_decisions,
-    const bool* high_mass_dimuon_decisions,
-    const bool* dimuon_soft_decisions,
+    const bool* sel_results,
+    const uint* sel_results_atomics,
     const int* track_atomics,
     const uint* sv_atomics,
     const uint selected_events);
@@ -112,10 +110,7 @@ private:
   std::vector<double> m_sv_ntrksassoc;
   std::vector<double> m_sv_idx_trk1;
   std::vector<double> m_sv_idx_trk2;
-  std::vector<double> m_sv_pass_two_track;
-  std::vector<double> m_sv_pass_disp_dimuon;
-  std::vector<double> m_sv_pass_high_mass_dimuon;
-  std::vector<double> m_sv_pass_dimuon_soft;
+  std::map<std::string, std::vector<double>> m_sv_decisions;
 
   // Track info.
   std::vector<double> m_trk_p;
@@ -129,6 +124,5 @@ private:
   std::vector<double> m_trk_velo_ip;
   std::vector<double> m_trk_velo_ipchi2;
   std::vector<double> m_trk_idx_gen;
-  std::vector<double> m_trk_pass_one_track;
-  std::vector<double> m_trk_pass_single_muon;
+  std::map<std::string, std::vector<double>> m_trk_decisions;
 };

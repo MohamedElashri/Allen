@@ -3,6 +3,7 @@
 #include "HltDecReport.cuh"
 #include "RawBanksDefinitions.cuh"
 #include "DeviceAlgorithm.cuh"
+#include "LineInfo.cuh"
 
 namespace prepare_raw_banks {
   struct Parameters {
@@ -10,12 +11,8 @@ namespace prepare_raw_banks {
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_offsets_forward_tracks;
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
-    DEVICE_INPUT(dev_one_track_results_t, bool) dev_one_track_results;
-    DEVICE_INPUT(dev_two_track_results_t, bool) dev_two_track_results;
-    DEVICE_INPUT(dev_single_muon_results_t, bool) dev_single_muon_results;
-    DEVICE_INPUT(dev_disp_dimuon_results_t, bool) dev_disp_dimuon_results;
-    DEVICE_INPUT(dev_high_mass_dimuon_results_t, bool) dev_high_mass_dimuon_results;
-    DEVICE_INPUT(dev_dimuon_soft_results_t, bool) dev_dimuon_soft_results;
+    DEVICE_INPUT(dev_sel_results_t, bool) dev_sel_results;
+    DEVICE_INPUT(dev_sel_results_atomics_t, uint) dev_sel_results_atomics;
     DEVICE_OUTPUT(dev_dec_reports_t, uint) dev_dec_reports;
     DEVICE_OUTPUT(dev_number_of_passing_events_t, uint) dev_number_of_passing_events;
     DEVICE_OUTPUT(dev_passing_event_list_t, uint) dev_passing_event_list;
@@ -59,12 +56,8 @@ namespace prepare_raw_banks {
         Parameters {begin<dev_event_list_t>(arguments),
                     begin<dev_offsets_forward_tracks_t>(arguments),
                     begin<dev_sv_offsets_t>(arguments),
-                    begin<dev_one_track_results_t>(arguments),
-                    begin<dev_two_track_results_t>(arguments),
-                    begin<dev_single_muon_results_t>(arguments),
-                    begin<dev_disp_dimuon_results_t>(arguments),
-                    begin<dev_high_mass_dimuon_results_t>(arguments),
-                    begin<dev_dimuon_soft_results_t>(arguments),
+                    begin<dev_sel_results_t>(arguments),
+                    begin<dev_sel_results_atomics_t>(arguments),
                     begin<dev_dec_reports_t>(arguments),
                     begin<dev_number_of_passing_events_t>(arguments),
                     begin<dev_passing_event_list_t>(arguments)});

@@ -15,6 +15,7 @@
 #include <InputProvider.h>
 #include <OutputHandler.h>
 #include <RawBanksDefinitions.cuh>
+#include <LineInfo.cuh>
 
 bool OutputHandler::output_selected_events(
   size_t const slice_index,

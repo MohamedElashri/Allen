@@ -3,70 +3,51 @@
 std::string const RateChecker::RateTag::name = "RateChecker";
 
 void RateChecker::accumulate(
-  const bool* one_track_decisions,
-  const bool* two_track_decisions,
-  const bool* single_muon_decisions,
-  const bool* disp_dimuon_decisions,
-  const bool* high_mass_dimuon_decisions,
-  const bool* dimuon_soft_decisions,
-  const uint* track_offsets,
+  const bool* decisions,
+  const uint* decisions_atomics,
+  const uint* event_tracks_offsets,
   const uint* sv_offsets,
   const uint selected_events)
 {
   // Event loop.
   for (uint i_event = 0; i_event < selected_events; i_event++) {
 
+    // Sel results.
+    const uint* decisions_offsets = decisions_atomics + Hlt1::Hlt1Lines::End;
+
     // Check one track decisions.
-    bool one_track_pass = false;
-    bool single_muon_pass = false;
-    const bool* event_one_track_decisions = one_track_decisions + track_offsets[i_event];
-    const bool* event_single_muon_decisions = single_muon_decisions + track_offsets[i_event];
-    const int n_tracks_event = track_offsets[i_event + 1] - track_offsets[i_event];
-    for (int i_track = 0; i_track < n_tracks_event; i_track++) {
-      if (event_one_track_decisions[i_track]) {
-        one_track_pass = true;
-      }
-      if (event_single_muon_decisions[i_track]) {
-        single_muon_pass = true;
+    for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+      m_event_decs[i_line] = false;
+    }
+
+    const int n_tracks_event = event_tracks_offsets[i_event + 1] - event_tracks_offsets[i_event];
+    for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
+      const bool* decs = decisions + decisions_offsets[i_line] + event_tracks_offsets[i_event];
+      for (int i_track = 0; i_track < n_tracks_event; i_track++) {
+        if (decs[i_track]) m_event_decs[i_line] = true;
       }
     }
 
     // Check two track decisions.
-    bool two_track_pass = false;
-    bool disp_dimuon_pass = false;
-    bool high_mass_dimuon_pass = false;
-    bool dimuon_soft_pass = false;
-    
-    const bool* event_two_track_decisions = two_track_decisions + sv_offsets[i_event];
-    const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_offsets[i_event];
-    const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_offsets[i_event];
-    const bool* event_dimuon_soft_decisions = dimuon_soft_decisions + sv_offsets[i_event];
-    const uint n_svs_event = sv_offsets[i_event + 1] - sv_offsets[i_event]; 
-    
-    for (int i_sv = 0; i_sv < n_svs_event; i_sv++) {
-      if (event_two_track_decisions[i_sv]) {
-        two_track_pass = true;
-      }
-      if (event_disp_dimuon_decisions[i_sv]) {
-        disp_dimuon_pass = true;
-      }
-      if (event_high_mass_dimuon_decisions[i_sv]) {
-        high_mass_dimuon_pass = true;
-      }
-      if (event_dimuon_soft_decisions[i_sv]) {
-        dimuon_soft_pass = true;
+    const uint n_svs_event = sv_offsets[i_event + 1] - sv_offsets[i_event];
+    for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
+      const bool* decs = decisions + decisions_offsets[i_line] + sv_offsets[i_event];
+      for (int i_sv = 0; i_sv < n_svs_event; i_sv++) {
+        if (decs[i_sv]) m_event_decs[i_line] = true;
       }
     }
 
-    m_evts_one_track += one_track_pass;
-    m_evts_two_track += two_track_pass;
-    m_evts_single_muon += single_muon_pass;
-    m_evts_disp_dimuon += disp_dimuon_pass;
-    m_evts_high_mass_dimuon += high_mass_dimuon_pass;
-    m_evts_dimuon_soft += dimuon_soft_pass;
-
-    m_evts_inc += one_track_pass || two_track_pass || single_muon_pass || disp_dimuon_pass || high_mass_dimuon_pass ||
-                  dimuon_soft_pass;
+    // See if an event passes.
+    bool inc_dec = false;
+    for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+      if (m_event_decs[i_line]) {
+        inc_dec = true;
+        m_counters[i_line] += 1;
+      }
+    }
+    if (inc_dec) {
+      m_tot += 1;
+    }
   }
 }
 
@@ -74,49 +55,38 @@ double binomial_error(int n, int k) { return 1. / n * std::sqrt(1. * k * (1. - 1
 
 void RateChecker::report(size_t requested_events) const
 {
-
   // Assume 30 MHz input rate.
   const double in_rate = 30000.0;
+  auto longest_string = 10;
+  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+    if (Hlt1::Hlt1LineNames[i_line].length() > longest_string) {
+      longest_string = Hlt1::Hlt1LineNames[i_line].length();
+    }
+  }
+
+  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+    std::printf("%s:", Hlt1::Hlt1LineNames[i_line].c_str());
+    for (int i = 0; i < longest_string - Hlt1::Hlt1LineNames[i_line].length(); ++i) {
+      std::printf(" ");
+    }
+
+    std::printf(
+      " %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
+      m_counters[i_line],
+      requested_events,
+      1. * m_counters[i_line] / requested_events * in_rate,
+      binomial_error(requested_events, m_counters[i_line]) * in_rate);
+  }
+
+  std::printf("Inclusive:");
+  for (int i = 0; i < longest_string - 9; ++i) {
+    std::printf(" ");
+  }
+
   std::printf(
-    "OneTrackMVA:      %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
-    m_evts_one_track,
+    " %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
+    m_tot,
     requested_events,
-    1. * m_evts_one_track / requested_events * in_rate,
-    binomial_error(requested_events, m_evts_one_track) * in_rate);
-  std::printf(
-    "TwoTrackMVA:      %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
-    m_evts_two_track,
-    requested_events,
-    1. * m_evts_two_track / requested_events * in_rate,
-    binomial_error(requested_events, m_evts_two_track) * in_rate);
-  std::printf(
-    "SingleMuon:       %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
-    m_evts_single_muon,
-    requested_events,
-    1. * m_evts_single_muon / requested_events * in_rate,
-    binomial_error(requested_events, m_evts_single_muon) * in_rate);
-  std::printf(
-    "DisplacedDiMuon:  %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
-    m_evts_disp_dimuon,
-    requested_events,
-    1. * m_evts_disp_dimuon / requested_events * in_rate,
-    binomial_error(requested_events, m_evts_disp_dimuon) * in_rate);
-  std::printf(
-    "HighMassDiMuon:   %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
-    m_evts_high_mass_dimuon,
-    requested_events,
-    1. * m_evts_high_mass_dimuon / requested_events * in_rate,
-    binomial_error(requested_events, m_evts_high_mass_dimuon) * in_rate);
-  std::printf(
-    "DiMuonSoft:       %6i/%6lu, (%8.2f +/- %8.2f) kHz\n",
-    m_evts_dimuon_soft,
-    requested_events,
-    1. * m_evts_dimuon_soft / requested_events * in_rate,
-    binomial_error(requested_events, m_evts_dimuon_soft) * in_rate);
-  std::printf(
-    "Inclusive:        %6i/%6lu, (%8.2f +/- %8.2f) kHz\n\n",
-    m_evts_inc,
-    requested_events,
-    1. * m_evts_inc / requested_events * in_rate,
-    binomial_error(requested_events, m_evts_inc) * in_rate);
+    1. * m_tot / requested_events * in_rate,
+    binomial_error(requested_events, m_tot) * in_rate);
 }

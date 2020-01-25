@@ -14,6 +14,7 @@
 #include "BeamlinePVConstants.cuh"
 #include "LookingForwardConstants.cuh"
 #include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
 {
@@ -35,6 +36,8 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_number_of_svs, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_hits, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_passing_events, sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_sel_results_atomics, (2 * Hlt1::Hlt1Lines::End + 1) * sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_sel_results, max_number_of_events * 1000 * Hlt1::Hlt1Lines::End * sizeof(bool)));
 
   // Buffer for performing GEC on CPU
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
@@ -132,22 +135,10 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
     host_secondary_vertices = reinterpret_cast<decltype(host_secondary_vertices)>(
       malloc(max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
 
-    host_one_track_decisions = reinterpret_cast<decltype(host_one_track_decisions)>(
-      malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
-    host_single_muon_decisions = reinterpret_cast<decltype(host_single_muon_decisions)>(
-      malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
     host_sv_offsets = reinterpret_cast<decltype(host_sv_offsets)>(
       malloc((max_number_of_events + 1) * sizeof(uint)));
     host_sv_atomics = reinterpret_cast<decltype(host_sv_atomics)>(
       malloc((2 * max_number_of_events + 1) * sizeof(uint)));
-    host_two_track_decisions = reinterpret_cast<decltype(host_two_track_decisions)>(
-      malloc(max_number_of_events * n_max_svs * sizeof(bool)));
-    host_disp_dimuon_decisions = reinterpret_cast<decltype(host_disp_dimuon_decisions)>(
-      malloc(max_number_of_events * n_max_svs * sizeof(bool)));
-    host_high_mass_dimuon_decisions = reinterpret_cast<decltype(host_high_mass_dimuon_decisions)>(
-      malloc(max_number_of_events * n_max_svs * sizeof(bool)));
-    host_dimuon_soft_decisions = reinterpret_cast<decltype(host_dimuon_soft_decisions)>(
-      malloc(max_number_of_events * n_max_svs * sizeof(bool)));
   }
 }
 

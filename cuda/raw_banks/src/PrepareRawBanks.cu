@@ -5,51 +5,40 @@ __global__ void prepare_raw_banks::prepare_raw_banks(prepare_raw_banks::Paramete
   const uint event_number = blockIdx.x;
 
   // Tracks.
-  const bool* event_one_track_results =
-    parameters.dev_one_track_results + parameters.dev_offsets_forward_tracks[event_number];
-  const bool* event_single_muon_results =
-    parameters.dev_single_muon_results + parameters.dev_offsets_forward_tracks[event_number];
   const int n_tracks_event =
     parameters.dev_offsets_forward_tracks[event_number + 1] - parameters.dev_offsets_forward_tracks[event_number];
 
   // Vertices.
-  const bool* event_two_track_results = parameters.dev_two_track_results + parameters.dev_sv_offsets[event_number];
-  const bool* event_disp_dimuon_results = parameters.dev_disp_dimuon_results + parameters.dev_sv_offsets[event_number];
-  const bool* event_high_mass_dimuon_results =
-    parameters.dev_high_mass_dimuon_results + parameters.dev_sv_offsets[event_number];
-  const bool* event_dimuon_soft_results = parameters.dev_dimuon_soft_results + parameters.dev_sv_offsets[event_number];
   const uint n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
 
+  // Results.
+  const uint* dev_sel_results_offsets = parameters.dev_sel_results_atomics + Hlt1::Hlt1Lines::End;
+  
   // Dec reports.
   const int n_hlt1_lines = Hlt1::Hlt1Lines::End;
   uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
-
+  
   // Set track decisions.
   uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
-  for (int i_track = threadIdx.x; i_track < n_tracks_event; i_track += blockDim.x) {
-    // One track.
-    uint32_t dec = ((event_one_track_results[i_track] ? 1 : 0) & dec_mask);
-    atomicOr(event_dec_reports + 2 + Hlt1::Hlt1Lines::OneTrackMVA, dec);
-    // Single muon decision.
-    dec = ((event_single_muon_results[i_track] ? 1 : 0) & dec_mask);
-    atomicOr(event_dec_reports + 2 + Hlt1::Hlt1Lines::SingleMuon, dec);
+  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
+    const bool* decisions = parameters.dev_sel_results +
+      dev_sel_results_offsets[i_line] + parameters.dev_offsets_forward_tracks[event_number];
+    for (int i_track = threadIdx.x; i_track < n_tracks_event; i_track += blockDim.x) {    
+      // One track.
+      uint32_t dec = ((decisions[i_track] ? 1 : 0) & dec_mask);
+      atomicOr(event_dec_reports + 2 + i_line, dec);
+    }
   }
-  __syncthreads();
-
+  
   // Set vertex decisions.
-  for (int i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
-    // Two track.
-    uint32_t dec = ((event_two_track_results[i_sv] ? 1 : 0) & dec_mask);
-    atomicOr(event_dec_reports + 2 + Hlt1::Hlt1Lines::TwoTrackMVA, dec);
-    // Displaced dimuon.
-    dec = ((event_disp_dimuon_results[i_sv] ? 1 : 0) & dec_mask);
-    atomicOr(event_dec_reports + 2 + Hlt1::Hlt1Lines::DisplacedDiMuon, dec);
-    // High mass dimuon.
-    dec = ((event_high_mass_dimuon_results[i_sv] ? 1 : 0) & dec_mask);
-    atomicOr(event_dec_reports + 2 + Hlt1::Hlt1Lines::HighMassDiMuon, dec);
-    // Dimuon soft.
-    dec = ((event_dimuon_soft_results[i_sv] ? 1 : 0) & dec_mask);
-    atomicOr(event_dec_reports + 2 + Hlt1::Hlt1Lines::DiMuonSoft, dec);
+  for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
+    const bool* decisions = parameters.dev_sel_results +
+      dev_sel_results_offsets[i_line] + parameters.dev_sv_offsets[event_number];
+    for (int i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
+      // Two track.
+      uint32_t dec = ((decisions[i_sv] ? 1 : 0) & dec_mask);
+      atomicOr(event_dec_reports + 2 + i_line, dec);
+    }
   }
   __syncthreads();
 

@@ -94,12 +94,8 @@ struct HostBuffers {
   VertexFit::TrackMVAVertex* host_secondary_vertices;
 
   // Selections
-  bool* host_one_track_decisions;
-  bool* host_two_track_decisions;
-  bool* host_single_muon_decisions;
-  bool* host_disp_dimuon_decisions;
-  bool* host_high_mass_dimuon_decisions;
-  bool* host_dimuon_soft_decisions;
+  uint* host_sel_results_atomics;
+  bool* host_sel_results;
 
   // Non pinned datatypes: CPU algorithms
   std::vector<char> host_velo_states;

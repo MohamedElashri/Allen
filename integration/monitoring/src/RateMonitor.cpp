@@ -5,6 +5,7 @@
 
 #include "HltDecReport.cuh"
 #include "RawBanksDefinitions.cuh"
+#include "LineInfo.cuh"
 
 #ifdef WITH_ROOT
 void RateMonitor::fill(uint i_buf, bool useWallTime)
