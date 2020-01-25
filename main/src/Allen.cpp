@@ -53,11 +53,7 @@ namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed, Writing, Written };
 } // namespace
 
-
-void run_output(
-  const size_t thread_id,
-  OutputHandler* output_handler,
-  HostBuffersManager* buffer_manager)
+void run_output(const size_t thread_id, OutputHandler* output_handler, HostBuffersManager* buffer_manager)
 {
   // Create a control socket and connect it.
   zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
@@ -91,8 +87,7 @@ void run_output(
         bool success = true;
         auto [passing_event_list, dec_reports] = buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
-          success =
-            output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports);
+          success = output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports);
         }
 
         zmqSvc().send(control, "WRITTEN", zmq::SNDMORE);
@@ -115,9 +110,7 @@ void run_output(
  *
  * @return     void
  */
-void run_slices(
-  const size_t thread_id,
-  IInputProvider* input_provider)
+void run_slices(const size_t thread_id, IInputProvider* input_provider)
 {
 
   // Create a control socket and connect it.
@@ -317,10 +310,8 @@ void run_stream(
             if (!folder_name_imported_forward_tracks.empty()) {
               std::vector<char> events_tracks;
               std::vector<uint> event_tracks_offsets;
-              read_folder(
-                folder_name_imported_forward_tracks, events, mask, events_tracks, event_tracks_offsets, true);
-              forward_tracks =
-                read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
+              read_folder(folder_name_imported_forward_tracks, events, mask, events_tracks, event_tracks_offsets, true);
+              forward_tracks = read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
             }
 
             wrapper->run_monte_carlo_test(stream_id, *checker_invoker, mc_events, forward_tracks);
@@ -488,7 +479,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   int cpu_offload = 1;
   std::string file_list;
   bool print_config = 0;
-  bool print_buffer_status = 0;
+  bool print_status = 0;
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -573,7 +564,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         bool s = false;
         std::tie(s, device_id) = get_device_id(arg);
         if (!s) exit(1);
-      } else {
+      }
+      else {
         device_id = atoi(arg.c_str());
       }
     }
@@ -598,8 +590,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     else if (flag_in({"non-stop"})) {
       non_stop = atoi(arg.c_str());
     }
-    else if (flag_in({"print-buffer-status"})) {
-      print_buffer_status = atoi(arg.c_str());
+    else if (flag_in({"print-status"})) {
+      print_status = atoi(arg.c_str());
     }
   }
 
@@ -698,8 +690,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               non_stop,             // Run the application non-stop
                               !mep_layout,          // MEPs should be transposed to Allen layout
                               receivers};           // Map of receiver to MPI rank to receive from
-    input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
+    input_provider =
+      std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+        number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
@@ -709,8 +702,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               *events_per_slice * 10 + 1, // mximum number event of offsets in read buffer
                               *events_per_slice,          // number of events per read buffer
                               n_io_reps};                 // number of loops over the input files
-    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
+    input_provider =
+      std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+        number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
   else {
     mep_layout = false;
@@ -764,7 +758,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::unique_ptr<HostBuffersManager> buffer_manager =
     std::make_unique<HostBuffersManager>(number_of_buffers, *events_per_slice, do_check);
 
-  if (print_buffer_status) {
+  if (print_status) {
     buffer_manager->printStatus();
   }
 
@@ -834,17 +828,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Lambda with the execution of the input thread that polls the
   // input provider for slices.
   const auto slice_thread = [&](uint thread_id, uint) {
-    return std::make_tuple(
-      std::thread {
-        run_slices, thread_id, input_provider.get()},
-      std::optional<zmq::socket_t> {});
+    return std::make_tuple(std::thread {run_slices, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {});
   };
 
   // Lambda with the execution of the output thread
   const auto output_thread = [&](uint thread_id, uint) {
     return std::make_tuple(
-      std::thread {
-        run_output, thread_id, output_handler ? output_handler.get() : nullptr, buffer_manager.get()},
+      std::thread {run_output, thread_id, output_handler ? output_handler.get() : nullptr, buffer_manager.get()},
       std::optional<zmq::socket_t> {});
   };
 
@@ -994,9 +984,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           if (throughput_socket && t) {
             double elapsed_time = t->get_elapsed_time();
             if (elapsed_time - previous_time_measurement > 5) {
-              info_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions
-                        << " events at a rate of " << n_events_processed * number_of_repetitions / elapsed_time
-                        << " events / s\n";
+              if (print_status) {
+                info_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions
+                          << " events at a rate of " << n_events_processed * number_of_repetitions / elapsed_time
+                          << " events / s\n";
+              }
               zmqSvc().send(
                 *throughput_socket, std::to_string(n_events_processed * number_of_repetitions / elapsed_time));
               previous_time_measurement = elapsed_time;
@@ -1312,7 +1304,7 @@ loop_error:
     }
   }
 
-  if (print_buffer_status) {
+  if (print_status) {
     buffer_manager->printStatus();
   }
   monitor_manager->saveHistograms("monitoringHists.root");
