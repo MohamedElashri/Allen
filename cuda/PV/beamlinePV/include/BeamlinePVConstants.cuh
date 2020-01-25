@@ -10,7 +10,7 @@ static constexpr float minDensity = 1.0f;    // unit: 1./mm "Minimal density at 
 static constexpr float minDipDensity =
   2.0f; // unit: 1./mm,"Minimal depth of a dip to split cluster (inverse resolution)"
 static constexpr float minTracksInSeed = 2.5f; // "MinTrackIntegralInSeed"
-static constexpr float maxVertexRho2 = 0.05f;  // unit:: mm^2 "Maximum distance squared of vertex to beam line"
+static constexpr float maxVertexRho2 = 0.01f;  // unit:: mm^2 "Maximum distance squared of vertex to beam line"
 static constexpr float maxTrackRho2 =
   0.1f; // unit:: mm^2 "Maximum distance squared of a track to beamline when filling histogram"
 static constexpr unsigned int minFitIter = 3;        // "Minimum number of iterations for vertex fit"
