@@ -94,6 +94,7 @@ target_include_directories(mep_gec PUBLIC
 
 target_link_libraries(mep_gec PRIVATE Common mdf HostGEC
   ${MPI_CXX_LIBRARIES})
-target_compile_definitions(mep_gec PUBLIC NO_CUDA)
+
+target_compile_definitions(mep_gec PUBLIC CPU NO_CUDA)
 
 install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)
