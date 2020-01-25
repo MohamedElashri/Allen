@@ -70,7 +70,7 @@ struct Stream {
     const Constants& param_constants,
     HostBuffersManager const* buffers_manager);
 
-  cudaError_t free(const bool do_check);
+  //cudaError_t free(const bool do_check);
   
   std::vector<bool> reconstructed_events() const;
 

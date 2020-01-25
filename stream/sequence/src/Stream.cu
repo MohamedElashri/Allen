@@ -116,11 +116,11 @@ void Stream::run_monte_carlo_test(
   }
 }
 
-cudaError_t Stream::free(const bool do_check)
-{
-  if (host_buffers)
-    host_buffers->free(do_check);
-  cudaCheck(cudaFree(dev_base_pointer));
+// cudaError_t Stream::free(const bool do_check)
+// {
+//   if (host_buffers)
+//     host_buffers->free(do_check);
+//   cudaCheck(cudaFree(dev_base_pointer));
   
-  return cudaSuccess;
-}
+//   return cudaSuccess;
+// }

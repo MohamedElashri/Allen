@@ -46,7 +46,7 @@ std::map<std::string, std::map<std::string, std::string>> StreamWrapper::get_alg
 StreamWrapper::~StreamWrapper()
 {
   for (auto& stream : streams) {
-    stream->free(do_check);
+    //stream->free(do_check);
     delete stream;
   }
 }
