@@ -40,7 +40,6 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
 
   // make sure that we have one thread per seed
   for (uint i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
-    float exp_chi2_0[Velo::Constants::max_tracks];
 
     bool converged = false;
     bool accept = true;
@@ -74,7 +73,6 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
         const auto dz = vtxpos_z - trk.z;
         const float2 res = vtxpos_xy - (trk.x + trk.tx * dz);
         const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
-        if(iter == 0) exp_chi2_0[i] = expf(chi2 * (-0.5f));
 
 
         // compute the weight.
@@ -87,6 +85,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           const float dz_seed = seed_pos_z - trk.z;
           const float2 res_seed = seed_pos_xy - (trk.x + trk.tx * dz_seed);
           const float chi2_seed = res_seed.x * res_seed.x * trk.W_00 + res_seed.y * res_seed.y * trk.W_11;
+          const float exp_chi2_0 = expf(chi2_seed * (-0.5f));
           //calculating chi w.r.t to vtx position and not seed posotion very important for resolution of high mult vetices
           const auto nom = expf(chi2  * (-0.5f));
           
@@ -94,7 +93,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           const auto denom = chi2CutExp + nom;
           //substract this term to avoid double counting
 
-          const auto track_weight = nom / (denom + pvtracks_denom[first_track_in_range + i] - exp_chi2_0[i]);
+          const auto track_weight = nom / (denom + pvtracks_denom[first_track_in_range + i] - exp_chi2_0);
 
 
 
