@@ -8,8 +8,6 @@ __global__ void run_hlt1::run_hlt1(run_hlt1::Parameters parameters)
 {
   const uint event_number = blockIdx.x;
   
-  const uint* dev_sel_result_offsets = parameters.dev_sel_results_atomics + Hlt1::Hlt1Lines::End;
-  
   // Tracks.
   const ParKalmanFilter::FittedTrack* event_tracks =
     parameters.dev_kf_tracks + parameters.dev_offsets_forward_tracks[event_number];
@@ -24,14 +22,14 @@ __global__ void run_hlt1::run_hlt1(run_hlt1::Parameters parameters)
 
   // Process 1-track lines.
   for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
-    bool* decs = parameters.dev_sel_results + dev_sel_result_offsets[i_line] + parameters.dev_offsets_forward_tracks[event_number];
+    bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + parameters.dev_offsets_forward_tracks[event_number];
     LineHandler<ParKalmanFilter::FittedTrack> handler {Hlt1::OneTrackSelections[i_line - Hlt1::startOneTrackLines]};
     handler(event_tracks, n_tracks_event, decs);
   }
 
   // Process 2-track lines.
   for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
-    bool* decs = parameters.dev_sel_results + dev_sel_result_offsets[i_line] + parameters.dev_sv_offsets[event_number];
+    bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + parameters.dev_sv_offsets[event_number];
     LineHandler<VertexFit::TrackMVAVertex> handler {Hlt1::TwoTrackSelections[i_line - Hlt1::startTwoTrackLines]};
     handler(event_vertices, n_vertices_event, decs);
   }

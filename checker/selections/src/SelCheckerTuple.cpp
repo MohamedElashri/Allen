@@ -267,7 +267,7 @@ void SelCheckerTuple::accumulate(
   std::vector<Checker::Tracks> const& tracks,
   const VertexFit::TrackMVAVertex* svs,
   const bool* sel_results,
-  const uint* sel_results_atomics,
+  const uint* sel_results_offsets,
   const int* track_atomics,
   const uint* sv_atomics,
   const uint selected_events)
@@ -279,8 +279,6 @@ void SelCheckerTuple::accumulate(
 
     const auto& mc_event = mc_events[i_event];
     const auto& mcps = mc_event.m_mcps;
-
-    const uint* sel_results_offsets = sel_results_atomics + Hlt1::Hlt1Lines::End;
     
     // Loop over MC particles
     for (auto mcp : mcps) {

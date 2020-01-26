@@ -16,7 +16,7 @@ namespace run_hlt1 {
     DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_offsets_forward_tracks;
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_OUTPUT(dev_sel_results_t, bool) dev_sel_results;
-    DEVICE_OUTPUT(dev_sel_results_atomics_t, uint) dev_sel_results_atomics;
+    DEVICE_OUTPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
@@ -35,7 +35,7 @@ namespace run_hlt1 {
     {
       set_size<dev_sel_results_t>(
         arguments, 1000 * value<host_number_of_selected_events_t>(arguments) * Hlt1::Hlt1Lines::End);
-      set_size<dev_sel_results_atomics_t>(arguments, 2 * Hlt1::Hlt1Lines::End + 1);
+      set_size<dev_sel_results_offsets_t>(arguments, Hlt1::Hlt1Lines::End + 1);
     }
 
     void operator()(
@@ -46,26 +46,23 @@ namespace run_hlt1 {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      // TODO: Move this to its own visitor and add a GPU option.
+      // TODO: Do this on the GPU, or rather remove completely
       for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
         host_buffers.host_sel_results_atomics[i_line] = 0;
       }
       for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
-        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_reconstructed_scifi_tracks_t>(arguments)
+          + host_buffers.host_sel_results_atomics[i_line - 1];
       }
       for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
-        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_svs_t>(arguments);
-      }
-      for (uint i_line = 1; i_line <= Hlt1::Hlt1Lines::End; i_line++) {
-        host_buffers.host_sel_results_atomics[Hlt1::Hlt1Lines::End + i_line] =
-          host_buffers.host_sel_results_atomics[Hlt1::Hlt1Lines::End + i_line - 1] +
-          host_buffers.host_sel_results_atomics[i_line - 1];
+        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_svs_t>(arguments)
+          + host_buffers.host_sel_results_atomics[i_line - 1];
       }
 
       cudaCheck(cudaMemcpyAsync(
-        begin<dev_sel_results_atomics_t>(arguments),
+        begin<dev_sel_results_offsets_t>(arguments),
         host_buffers.host_sel_results_atomics,
-        size<dev_sel_results_atomics_t>(arguments),
+        size<dev_sel_results_offsets_t>(arguments),
         cudaMemcpyHostToDevice,
         cuda_stream));
 
@@ -77,7 +74,7 @@ namespace run_hlt1 {
                     begin<dev_offsets_forward_tracks_t>(arguments),
                     begin<dev_sv_offsets_t>(arguments),
                     begin<dev_sel_results_t>(arguments),
-                    begin<dev_sel_results_atomics_t>(arguments)});
+                    begin<dev_sel_results_offsets_t>(arguments)});
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(

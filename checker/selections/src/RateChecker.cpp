@@ -4,16 +4,13 @@ std::string const RateChecker::RateTag::name = "RateChecker";
 
 void RateChecker::accumulate(
   const bool* decisions,
-  const uint* decisions_atomics,
+  const uint* decisions_offsets,
   const uint* event_tracks_offsets,
   const uint* sv_offsets,
   const uint selected_events)
 {
   // Event loop.
   for (uint i_event = 0; i_event < selected_events; i_event++) {
-
-    // Sel results.
-    const uint* decisions_offsets = decisions_atomics + Hlt1::Hlt1Lines::End;
 
     // Check one track decisions.
     for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {

@@ -99,6 +99,12 @@ namespace host_global_event_cut {
         size<dev_event_list_t>(arguments),
         cudaMemcpyHostToDevice,
         cuda_stream));
+
+      // TODO: Remove whenever the checker uses variables
+      host_buffers.host_number_of_selected_events[0] = value<host_number_of_selected_events_t>(arguments);
+      for (uint i = 0; i < number_of_events; ++i) {
+        host_buffers.host_event_list[i] = begin<host_event_list_t>(arguments)[i];
+      }
     }
 
   private:

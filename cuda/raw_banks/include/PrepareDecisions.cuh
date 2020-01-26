@@ -34,7 +34,7 @@ namespace prepare_decisions {
     DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets; // dev_sv_atomics
     DEVICE_INPUT(dev_sel_results_t, bool) dev_sel_results;
-    DEVICE_INPUT(dev_sel_results_atomics_t, uint) dev_sel_results_atomics;
+    DEVICE_INPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
     DEVICE_OUTPUT(dev_candidate_lists_t, uint) dev_candidate_lists;
     DEVICE_OUTPUT(dev_candidate_counts_t, uint) dev_candidate_counts;
     DEVICE_OUTPUT(dev_n_passing_decisions_t, uint) dev_n_passing_decisions;
@@ -125,7 +125,7 @@ namespace prepare_decisions {
                     begin<dev_consolidated_svs_t>(arguments),
                     begin<dev_sv_offsets_t>(arguments),
                     begin<dev_sel_results_t>(arguments),
-                    begin<dev_sel_results_atomics_t>(arguments),
+                    begin<dev_sel_results_offsets_t>(arguments),
                     begin<dev_candidate_lists_t>(arguments),
                     begin<dev_candidate_counts_t>(arguments),
                     begin<dev_n_passing_decisions_t>(arguments),

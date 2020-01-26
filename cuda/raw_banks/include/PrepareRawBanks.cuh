@@ -45,10 +45,10 @@ namespace prepare_raw_banks {
     DEVICE_OUTPUT(dev_sel_rep_sizes_t, uint) dev_sel_rep_sizes;
     DEVICE_OUTPUT(dev_number_of_passing_events_t, uint) dev_number_of_passing_events;
     DEVICE_OUTPUT(dev_passing_event_list_t, uint) dev_passing_event_list;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 256);
   };
 
-  __global__ void prepare_raw_banks(Parameters);
+  __global__ void prepare_raw_banks(Parameters, const uint number_of_events);
 
   template<typename T, char... S>
   struct prepare_raw_banks_t : public DeviceAlgorithm, Parameters {
@@ -90,15 +90,19 @@ namespace prepare_raw_banks {
         cudaMemsetAsync(begin<dev_sel_rb_objtyp_t>(arguments), 0, size<dev_sel_rb_objtyp_t>(arguments), cuda_stream));
       cudaCheck(
         cudaMemsetAsync(begin<dev_sel_rb_substr_t>(arguments), 0, size<dev_sel_rb_substr_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_sel_rep_sizes_t>(arguments), 0, size<dev_sel_rep_sizes_t>(arguments), cuda_stream));
+      cudaCheck(
+        cudaMemsetAsync(begin<dev_sel_rep_sizes_t>(arguments), 0, size<dev_sel_rep_sizes_t>(arguments), cuda_stream));
       cudaCheck(cudaMemsetAsync(
         begin<dev_number_of_passing_events_t>(arguments),
         0,
         size<dev_number_of_passing_events_t>(arguments),
         cuda_stream));
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      const auto grid_size = dim3(
+        (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /
+        property<block_dim_x_t>());
+
+      function(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
         Parameters {begin<dev_event_list_t>(arguments),
                     begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
@@ -133,7 +137,8 @@ namespace prepare_raw_banks {
                     begin<dev_sel_rb_substr_t>(arguments),
                     begin<dev_sel_rep_sizes_t>(arguments),
                     begin<dev_number_of_passing_events_t>(arguments),
-                    begin<dev_passing_event_list_t>(arguments)});
+                    begin<dev_passing_event_list_t>(arguments)},
+        value<host_number_of_selected_events_t>(arguments));
 
       // Copy raw bank data.
       cudaCheck(cudaMemcpyAsync(
@@ -157,11 +162,9 @@ namespace prepare_raw_banks {
         size<dev_passing_event_list_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
-
-      print<dev_sel_rep_sizes_t>(arguments);
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_x_t> m_block_dim_x {this};
   };
 } // namespace prepare_raw_banks

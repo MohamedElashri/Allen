@@ -4,7 +4,6 @@
 #include "MuonLines.cuh"
 #include <string>
 
-
 namespace Hlt1 {
 
   // Number of special lines

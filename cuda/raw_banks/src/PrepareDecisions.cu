@@ -26,9 +26,6 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
                                                  parameters.dev_scifi_track_ut_indices,
                                                  event_number,
                                                  number_of_events};
-
-  // Selection results.
-  const uint* dev_sel_results_offsets = parameters.dev_sel_results_atomics + Hlt1::Hlt1Lines::End;
   
   // Tracks.
   int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(event_number);
@@ -52,7 +49,8 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
     uint32_t save_sv = 0;
     for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
       const bool* decisions = parameters.dev_sel_results +
-        dev_sel_results_offsets[i_line] + parameters.dev_sv_offsets[event_number];
+        parameters.dev_sel_results_offsets[i_line] + parameters.dev_sv_offsets[event_number];
+
       uint* candidate_counts = parameters.dev_candidate_counts + i_line * number_of_events + event_number;
       uint* candidate_list = parameters.dev_candidate_lists + number_of_events * Hlt1::maxCandidates * i_line +
       event_number * Hlt1::maxCandidates;
@@ -73,6 +71,7 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
       event_save_track[event_svs[i_sv].trk2] = 1;
     }
   }
+  
   __syncthreads();
 
   // Set track decisions.
@@ -80,7 +79,8 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
     uint32_t save_track = 0;
     for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
       const bool* decisions = parameters.dev_sel_results +
-        dev_sel_results_offsets[i_line] + scifi_tracks.tracks_offset(event_number);
+        parameters.dev_sel_results_offsets[i_line] + scifi_tracks.tracks_offset(event_number);
+
       uint* candidate_counts = parameters.dev_candidate_counts + i_line * number_of_events + event_number;
       uint* candidate_list = parameters.dev_candidate_lists + number_of_events * Hlt1::maxCandidates * i_line +
         event_number * Hlt1::maxCandidates;
