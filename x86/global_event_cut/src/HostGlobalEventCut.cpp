@@ -9,6 +9,7 @@ void host_global_event_cut::host_global_event_cut(
   host_global_event_cut::Parameters parameters)
 {
   uint insert_index = 0;
+  uint reverse_insert_index = number_of_events - 1;
   for (uint event_number = 0; event_number < number_of_events; ++event_number) {
     // Check SciFi clusters
     const SciFi::SciFiRawEvent scifi_event(scifi_raw_input + scifi_raw_input_offsets[event_number]);
@@ -38,8 +39,10 @@ void host_global_event_cut::host_global_event_cut(
     }
 
     const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
-    if (num_combined_clusters < max_scifi_ut_clusters && num_combined_clusters > min_scifi_ut_clusters) {
+    if (num_combined_clusters < parameters.max_scifi_ut_clusters && num_combined_clusters > parameters.min_scifi_ut_clusters) {
       parameters.host_event_list[insert_index++] = event_number;
+    } else {
+      parameters.host_event_list[reverse_insert_index--] = event_number;
     }
   }
 
@@ -53,6 +56,7 @@ void host_global_event_cut::host_global_event_cut_mep(
   host_global_event_cut::Parameters parameters)
 {
   uint insert_index = 0;
+  uint reverse_insert_index = number_of_events - 1;
   for (uint event_number = 0; event_number < number_of_events; ++event_number) {
     // Check SciFi clusters
 
@@ -90,8 +94,10 @@ void host_global_event_cut::host_global_event_cut_mep(
     }
 
     const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
-    if (num_combined_clusters < max_scifi_ut_clusters && num_combined_clusters > min_scifi_ut_clusters) {
+    if (num_combined_clusters < parameters.max_scifi_ut_clusters && num_combined_clusters > parameters.min_scifi_ut_clusters) {
       parameters.host_event_list[insert_index++] = event_number;
+    } else {
+      parameters.host_event_list[reverse_insert_index--] = event_number;
     }
   }
 

@@ -157,6 +157,8 @@ namespace prepare_raw_banks {
         size<dev_passing_event_list_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
+
+      print<dev_sel_rep_sizes_t>(arguments);
     }
 
   private:

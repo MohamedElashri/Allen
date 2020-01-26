@@ -45,7 +45,7 @@ namespace host_init_event_list {
 
       cudaCheck(cudaMemcpyAsync(
         begin<dev_event_list_t>(arguments),
-        host_buffers.host_event_list,
+        begin<host_event_list_t>(arguments),
         size<dev_event_list_t>(arguments),
         cudaMemcpyHostToDevice,
         cuda_stream));
