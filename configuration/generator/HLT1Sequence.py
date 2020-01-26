@@ -13,7 +13,15 @@ def HLT1_sequence(validate=False):
 
   consolidate_svs = consolidate_svs_t()
   run_hlt1 = run_hlt1_t()
+  prepare_decisions = prepare_decisions_t()
   prepare_raw_banks = prepare_raw_banks_t()
+
+  prefix_sum_sel_reps = host_prefix_sum_t("prefix_sum_sel_reps",
+    host_total_sum_holder_t="host_number_of_sel_rep_words_t",
+    dev_input_buffer_t=prepare_raw_banks.dev_sel_rep_sizes_t(),
+    dev_output_buffer_t="dev_sel_rep_offsets_t")
+
+  package_sel_reports = package_sel_reports_t()
 
   s = Muon_sequence(validate=False)
   s.extend_sequence(
@@ -23,7 +31,10 @@ def HLT1_sequence(validate=False):
     prefix_sum_secondary_vertices,
     consolidate_svs,
     run_hlt1,
-    prepare_raw_banks)
+    prepare_decisions,
+    prepare_raw_banks,
+    prefix_sum_sel_reps,
+    package_sel_reports)
 
   if validate:
     s.validate()

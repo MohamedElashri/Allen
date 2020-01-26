@@ -30,7 +30,10 @@ struct HostBuffers {
   uint* host_number_of_passing_events;
   uint* host_passing_event_list;
   uint32_t* host_dec_reports;
+  uint32_t* host_sel_rep_raw_banks;
   size_t host_allocated_prefix_sum_space;
+  uint* host_sel_rep_offsets;
+  uint* host_number_of_sel_rep_words;
   
   // Velo
   uint* host_atomics_velo;
