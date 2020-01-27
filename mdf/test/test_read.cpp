@@ -13,7 +13,6 @@
 
 #include "raw_bank.hpp"
 #include "read_mdf.hpp"
-#include "Logger.h"
 
 using namespace std;
 
@@ -38,7 +37,7 @@ int main(int argc, char* argv[])
 
   auto input = MDF::open(filename.c_str(), O_RDONLY);
   if (input.good) {
-    info_cout << "Opened " << filename << "\n";
+    cout << "Opened " << filename << "\n";
   }
   else {
     cerr << "Failed to open file " << filename << " " << strerror(errno) << "\n";
