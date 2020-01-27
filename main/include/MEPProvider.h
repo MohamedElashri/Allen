@@ -40,6 +40,9 @@
 
 #ifdef HAVE_MPI
 #include "MPIConfig.h"
+#endif
+
+#ifdef HAVE_HWLOC
 #include <hwloc.h>
 #endif
 
@@ -212,9 +215,11 @@ public:
 #endif
       MPI_Free_mem(buf);
     }
+#ifdef HAVE_HWLOC
     if (m_config.mpi) {
       hwloc_topology_destroy(m_topology);
     }
+#endif
 #endif
   }
 
@@ -411,6 +416,11 @@ private:
   void init_mpi()
   {
 #ifdef HAVE_MPI
+
+    auto const& receivers = m_config.receivers;
+    m_domains.reserve(receivers.size());
+
+#ifdef HAVE_HWLOC
     // Allocate and initialize topology object.
     hwloc_topology_init(&m_topology);
 
@@ -425,8 +435,6 @@ private:
     hwloc_topology_load(m_topology);
 
     hwloc_obj_t osdev = nullptr;
-    auto const& receivers = m_config.receivers;
-    m_domains.reserve(receivers.size());
 
     if (receivers.size() > 1) {
       // Find NUMA domain of receivers
@@ -445,6 +453,14 @@ private:
         throw StrException{"Failed to locate some receiver devices "};
       }
     }
+#else
+    if (receivers.size() > 1) {
+      warning_cout << "hwloc is not available, assuming NUMA domain 0 for all receivers.\n";
+      for (auto [rec, rank] : receivers) {
+        m_domains.emplace_back(rank, 0);
+      }
+    }
+#endif
     else if (receivers.size() == 1){
       auto [rec, rank] = *receivers.begin();
       m_domains.emplace_back(rank, 0);
@@ -452,6 +468,7 @@ private:
       throw StrException{"MPI requested, but no receivers specified"};
     }
 
+#ifdef HAVE_HWLOC
     // Get last node. There's always at least one.
     [[maybe_unused]] auto n_numa = hwloc_get_nbobjs_by_type(m_topology, HWLOC_OBJ_NUMANODE);
     assert(static_cast<size_t>(n_numa) == m_domains.size());
@@ -461,6 +478,7 @@ private:
       int numa_node = std::get<1>(m_domains[receiver]);
       numa_objs[receiver] = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
     }
+#endif
 
     std::vector<size_t> packing_factors(m_config.n_receivers());
     for (size_t receiver = 0; receiver < m_config.n_receivers(); ++receiver) {
@@ -480,13 +498,14 @@ private:
     size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
     for (size_t i = 0; i < m_config.n_buffers; ++i) {
       auto numa_node = i % m_config.n_receivers();
-      auto const& numa_obj = numa_objs[numa_node];
       char* contents = nullptr;
       MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
 
       // Only bind explicitly if there are multiple receivers,
       // otherwise assume a memory allocation policy is in effect
+#ifdef HAVE_HWLOC
       if (m_domains.size() > 1) {
+        auto const& numa_obj = numa_objs[numa_node];
         auto s = hwloc_set_area_membind(m_topology, contents, n_bytes, numa_obj->nodeset,
                                         HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
         if (s != 0) {
@@ -494,6 +513,7 @@ private:
                              + " " + strerror(errno)};
         }
       }
+#endif
 #if !defined(NO_CUDA) && !defined(CPU)
       cudaCheck(cudaHostRegister(contents, n_bytes, cudaHostRegisterDefault));
 #endif
@@ -835,6 +855,7 @@ private:
 
         // Only bind explicitly if there are multiple receivers,
         // otherwise assume a memory allocation policy is in effect
+#ifdef HAVE_HWLOC
         if (m_domains.size() > 1) {
           // Bind memory to numa domain of receiving card
           auto numa_obj = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
@@ -847,6 +868,7 @@ private:
             break;
           }
         }
+#endif
 #if !defined(NO_CUDA) && !defined(CPU)
         // Register memory with CUDA
         try {
@@ -1110,8 +1132,11 @@ private:
   std::condition_variable m_mpi_cond;
 
 #ifdef HAVE_MPI
-  hwloc_topology_t m_topology;
   std::vector<std::tuple<int, int>> m_domains;
+#endif
+
+#ifdef HAVE_HWLOC
+  hwloc_topology_t m_topology;
 #endif
 
   std::vector<BufferStatus> m_buffer_status;
