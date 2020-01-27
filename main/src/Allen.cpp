@@ -47,6 +47,7 @@
 #include "HostBuffersManager.cuh"
 #include "MonitorManager.h"
 #include "FileWriter.h"
+#include "ZMQOutputSender.h"
 #include "Allen.h"
 #include "RegisterConsumers.h"
 #include <tuple>
@@ -69,12 +70,22 @@ void run_output(const size_t thread_id, OutputHandler* output_handler, HostBuffe
     throw e;
   }
 
-  zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
+  auto* client_socket = output_handler ? output_handler->client_socket() : nullptr;
+
+  std::vector<zmq::pollitem_t> items(client_socket ? 2 : 1);
+  items[0] = {control, 0, zmq::POLLIN, 0};
+  if (client_socket) {
+    items[1] = {*client_socket, 0, zmq::POLLIN, 0};
+  }
 
   while (true) {
 
     // Check if there are messages
-    zmq::poll(&items[0], 1, -1);
+    zmq::poll(&items[0], items.size(), -1);
+
+    if (client_socket && (items[1].revents & zmq::POLLIN)) {
+      output_handler->handle();
+    }
 
     if (items[0].revents & zmq::POLLIN) {
       auto msg = zmqSvc().receive<std::string>(control);
@@ -721,7 +732,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {
     try {
-      output_handler = std::make_unique<FileWriter>(input_provider.get(), *events_per_slice, output_file);
+      if (output_file.substr(0, 6) == "tcp://") {
+        output_handler =
+          std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, *events_per_slice, &zmqSvc());
+      }
+      else {
+        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, *events_per_slice);
+      }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";
       exit(1);
@@ -905,7 +922,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // counters for bookkeeping
   size_t prev_processor = 0;
   long n_events_read = 0;
-  long n_events_processed = 0;
+  long n_events_processed = 0, n_events_measured = 0;
   size_t throughput_start = 0;
   std::optional<size_t> throughput_processed;
   size_t slices_processed = 0;
@@ -981,20 +998,22 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           auto first_event = zmqSvc().receive<size_t>(socket);
           auto buffer_index = zmqSvc().receive<size_t>(socket);
           n_events_processed += events_in_slice[slice_index][first_event];
+          n_events_measured += events_in_slice[slice_index][first_event];
           ++slices_processed;
           stream_ready[i] = true;
 
           if (throughput_socket && t) {
             double elapsed_time = t->get_elapsed_time();
-            if (elapsed_time - previous_time_measurement > 5) {
+            auto dt = elapsed_time - previous_time_measurement;
+            if (dt > 5.) {
               if (print_status) {
-                info_cout << "Processed " << std::setw(6) << n_events_processed * number_of_repetitions
-                          << " events at a rate of " << n_events_processed * number_of_repetitions / elapsed_time
+                info_cout << "Processed " << std::setw(6) << n_events_measured * number_of_repetitions
+                          << " events at a rate of " << n_events_measured * number_of_repetitions / dt
                           << " events / s\n";
               }
-              zmqSvc().send(
-                *throughput_socket, std::to_string(n_events_processed * number_of_repetitions / elapsed_time));
+              zmqSvc().send(*throughput_socket, std::to_string(n_events_measured * number_of_repetitions / dt));
               previous_time_measurement = elapsed_time;
+              n_events_measured = 0;
             }
           }
 

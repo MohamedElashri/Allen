@@ -37,3 +37,18 @@ namespace zmq {
   }
 
 } // namespace zmq
+
+namespace Utils {
+  std::string hostname() {
+    char hname[_POSIX_HOST_NAME_MAX];
+    std::string hn;
+    if (!gethostname(hname, sizeof(hname))) {
+      hn = std::string{hname};
+      auto pos = hn.find('.');
+      if (pos != std::string::npos) {
+        hn = hn.substr(0, pos);
+      }
+    }
+    return hn;
+  }
+}

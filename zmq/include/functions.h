@@ -116,4 +116,7 @@ namespace ZMQ {
 
 } // namespace ZMQ
 
+namespace Utils {
+  std::string hostname();
+}
 #endif // ZEROMQ_FUNCTIONS_H
