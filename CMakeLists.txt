@@ -497,7 +497,7 @@ file(GLOB common_sources "main/src/*.cpp")
 file(GLOB common_cuda_sources "main/src/*.cu")
 
 # Remove main.cpp from common_sources
-foreach(source main Allen MPISend)
+foreach(source main Allen OutputHandler ZMQOutputSender MPISend)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
@@ -526,13 +526,15 @@ endif()
 
 allen_add_library(CudaCommon STATIC ${common_cuda_sources})
 
+set(allen_lib_sources ${Allen_cpp_path} ${OutputHandler_cpp_path} ${ZMQOutputSender_cpp_path})
+
 if(TARGET_DEVICE STREQUAL "HIP")
   # Produce self-contained application
   # Otherwise, HIP doesn't seem to link properly
-  allen_add_library(AllenLib STATIC ${Allen_cpp_path})
+  allen_add_library(AllenLib STATIC ${allen_lib_sources})
 else()
   # Library containing all the code
-  allen_add_library(AllenLib SHARED ${Allen_cpp_path})
+  allen_add_library(AllenLib SHARED ${allen_lib_sources})
 endif()
 
 target_link_libraries(AllenLib PUBLIC
