@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <thread>
 
 #ifdef USE_BOOST_FILESYSTEM
 #include <boost/filesystem.hpp>
@@ -14,6 +15,7 @@
 #include <boost/format.hpp>
 
 #include <ZeroMQSvc.h>
+#include "Timer.h"
 
 #include <read_mdf.hpp>
 
@@ -26,6 +28,22 @@ namespace {
 #else
   namespace fs = std::filesystem;
 #endif
+}
+
+void timer(std::string connection) {
+  zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
+  zmq::setsockopt(control, zmq::LINGER, 0);
+  control.connect(connection);
+
+  zmq::pollitem_t items[] = {control, 0, zmq::POLLIN, 0};
+  while (true) {
+    zmq::poll(&items[0], 1, 500);
+    if (items[0].revents & zmq::POLLIN) {
+      auto msg = zmqSvc().receive<std::string>(control);
+      if (msg == "DONE") break;
+    }
+    zmqSvc().send(control, "TICK");
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -67,28 +85,41 @@ int main(int argc, char* argv[]) {
   zmq::setsockopt(server, zmq::LINGER, 0);
   server.bind("tcp://*:"s + std::to_string(request_port));
 
-  std::vector<zmq::pollitem_t> items(1);
+  // Create socket to monitor the output rate.
+  zmq::socket_t rate_socket = zmqSvc().socket(zmq::PUB);
+  zmq::setsockopt(rate_socket, zmq::LINGER, 0);
+  rate_socket.bind("tcp://*:"s + std::to_string(request_port + 1));
+
+  // Create a control socket and connect it.
+  std::string tick_connection = "inproc://tick";
+  zmq::socket_t tick = zmqSvc().socket(zmq::PAIR);
+  zmq::setsockopt(tick, zmq::LINGER, 0);
+  tick.bind(tick_connection);
+
+  std::thread tick_thread{timer, tick_connection};
+
+  std::vector<zmq::pollitem_t> items(2);
   items.reserve(10);
   items[0] = {server, 0, zmq::POLLIN, 0};
+  items[1] = {tick, 0, zmq::POLLIN, 0};
 
   std::vector<std::tuple<std::string, zmq::socket_t>> clients;
 
   size_t size_bytes = 0;
 
-  std::optional<Allen::IO> output_file;
+  std::optional<Allen::IO> output_file{};
   unsigned int n_file = 0;
-  fs::path filename;
+  fs::path filename{};
   bool stopping = false;
   unsigned int n_wait = 0;
+  std::tuple<size_t, size_t> n_written{};
 
   std::vector<std::tuple<std::string, size_t>> written;
 
   while (!stopping || (stopping && !clients.empty()) || (stopping && n_wait < 10)) {
 
     // Check if there are messages
-    zmq::poll(&items[0], items.size(), 500);
-
-    if (stopping) ++n_wait;
+    zmq::poll(&items[0], items.size(), -1);
 
     if (items[0].revents & zmq::POLLIN) {
       auto msg = zmqSvc().receive<std::string>(server);
@@ -112,7 +143,7 @@ int main(int argc, char* argv[]) {
           } catch (ZMQ::TimeOutException const&) {
           }
         }
-
+        n_wait = 0;
         stopping = true;
       }
       else if (msg == "CLIENT_EXIT") {
@@ -139,8 +170,25 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    for (size_t i = 0; i < items.size() - 1; ++i) {
-      if (items[i + 1].revents & zmq::POLLIN) {
+    if (items[1].revents & zmq::POLLIN) {
+      auto msg = zmqSvc().receive<std::string>(tick);
+      if (msg == "TICK") ++n_wait;
+
+      if (n_wait == 10 && !stopping) {
+        auto& [bytes_written, n_events] = n_written;
+        auto dt = double{n_wait * 0.5};
+        auto event_rate = n_events / dt;
+        auto data_rate =  bytes_written / (1024 * 1024 * dt);
+        zmqSvc().send(rate_socket, std::to_string(event_rate));
+        std::cout << "Wrote " << n_events << " events (" << event_rate << " events/s) and "
+                  << bytes_written / (1024 * 1024) << " MB (" << data_rate << " MB/s)\n";
+        n_written = {0, 0};
+        n_wait = 0;
+      }
+    }
+
+    for (size_t i = 0; i < items.size() - 2; ++i) {
+      if (items[i + 2].revents & zmq::POLLIN) {
         auto& client_socket = std::get<1>(clients[i]);
         auto msg = zmqSvc().receive<std::string>(client_socket);
         if (msg == "EVENT") {
@@ -159,8 +207,10 @@ int main(int argc, char* argv[]) {
           auto msg = zmqSvc().receive<zmq::message_t>(client_socket);
           output_file->write(static_cast<char const*>(msg.data()), msg.size());
           size_bytes += msg.size();
-
-          if (size_bytes > file_size * 1024 * 1024) {
+          auto& [bytes_written, n_events] = n_written;
+          bytes_written += msg.size();
+          ++n_events;
+          if (size_bytes > size_t{file_size} * 1024 * 1024) {
             output_file->close();
             output_file.reset();
             written.emplace_back(filename.string(), size_bytes);
@@ -170,10 +220,15 @@ int main(int argc, char* argv[]) {
         else if (msg == "OK") {
           std::cout << std::get<0>(clients[i]) << " acknowledged stop\n";
           clients.erase(clients.begin() + i);
+          items.erase(items.begin() + i + 2);
         }
       }
     }
   }
+
+  // Exit the tick thread;
+  zmqSvc().send(tick, "DONE");
+  tick_thread.join();
 
   if (output_file) {
     output_file->close();
