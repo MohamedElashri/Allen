@@ -78,8 +78,7 @@ int main(int argc, char* argv[])
     }
 
     cout << "Event " << std::setw(7) << i_event << "\n";
-    cout << "Type | #Banks"
-            "\n";
+    cout << "Type | #Banks\n";
     for (size_t i = 0; i < bank_counts.size(); ++i) {
       if (bank_counts[i] != 0) {
         cout << std::setw(4) << i << " | " << std::setw(6) << bank_counts[i] << "\n";

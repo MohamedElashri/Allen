@@ -934,7 +934,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::optional<size_t> slice_index;
   std::optional<size_t> buffer_index;
 
-  size_t n_events_output = 0;
+  size_t n_events_output = 0, n_output_measured = 0;
   size_t error_count = 0;
 
   std::optional<Timer> t;
@@ -1011,13 +1011,18 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             double elapsed_time = t->get_elapsed_time();
             auto dt = elapsed_time - previous_time_measurement;
             if (dt > 5.) {
-              info_cout << "Processed " << std::setw(6) << n_events_measured * number_of_repetitions
-                        << " events at a rate of " << n_events_measured * number_of_repetitions / dt
-                        << " events / s\n";
+              char buf[200];
+              std::snprintf(buf, sizeof(buf), "Processed %7li events at a rate of %8.2f events/s\n",
+                            n_events_measured * number_of_repetitions, n_events_measured * number_of_repetitions / dt);
+              info_cout << buf;
+              std::snprintf(buf, sizeof(buf), "Output    %7lu events at a rate of %8.2f events/s\n",
+                            n_output_measured, n_output_measured / dt);
+              info_cout << buf;
               zmqSvc().send(
                 *throughput_socket, std::to_string(n_events_measured * number_of_repetitions / dt));
               previous_time_measurement = elapsed_time;
               n_events_measured = 0;
+              n_output_measured = 0;
             }
           }
 
@@ -1142,7 +1147,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           auto first_evt = zmqSvc().receive<size_t>(socket);
           auto buf_idx = zmqSvc().receive<size_t>(socket);
           auto success = zmqSvc().receive<bool>(socket);
-          n_events_output += zmqSvc().receive<size_t>(socket);
+          auto n_written = zmqSvc().receive<size_t>(socket);
+          n_events_output += n_written;
+          n_output_measured += n_written;
           if (!success) {
             error_cout << "Failed to write output events.\n";
           }
