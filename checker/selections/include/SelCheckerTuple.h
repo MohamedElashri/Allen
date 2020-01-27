@@ -39,7 +39,7 @@ public:
     const VertexFit::TrackMVAVertex* svs,
     const bool* sel_results,
     const uint* sel_results_atomics,
-    const int* track_atomics,
+    const uint* track_atomics,
     const uint* sv_atomics,
     const uint selected_events);
 

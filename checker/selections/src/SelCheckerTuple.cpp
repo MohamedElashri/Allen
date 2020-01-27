@@ -61,7 +61,7 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
     std::string branch_name = "sv_pass_" + line_name;
     m_tree->Branch(branch_name.c_str(), &m_sv_decisions[line_name]);
   }
-  
+
   m_tree->Branch("trk_p", &m_trk_p);
   m_tree->Branch("trk_pt", &m_trk_pt);
   m_tree->Branch("trk_eta", &m_trk_eta);
@@ -79,7 +79,7 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
     std::string branch_name = "trk_pass_" + line_name;
     m_tree->Branch(branch_name.c_str(), &m_trk_decisions[line_name]);
   }
-  
+
 #else
 SelCheckerTuple::SelCheckerTuple(CheckerInvoker const*, std::string const&)
 {
@@ -138,7 +138,7 @@ void SelCheckerTuple::clear()
     std::string line_name = Hlt1::Hlt1LineNames[i_line];
     m_sv_decisions[line_name].clear();
   }
-  
+
   m_trk_p.clear();
   m_trk_pt.clear();
   m_trk_eta.clear();
@@ -268,7 +268,7 @@ void SelCheckerTuple::accumulate(
   const VertexFit::TrackMVAVertex* svs,
   const bool* sel_results,
   const uint* sel_results_offsets,
-  const int* track_atomics,
+  const uint* track_atomics,
   const uint* sv_atomics,
   const uint selected_events)
 {
@@ -279,7 +279,7 @@ void SelCheckerTuple::accumulate(
 
     const auto& mc_event = mc_events[i_event];
     const auto& mcps = mc_event.m_mcps;
-    
+
     // Loop over MC particles
     for (auto mcp : mcps) {
       if (mcp.fromBeautyDecay || mcp.fromCharmDecay || mcp.fromStrangeDecay || mcp.DecayOriginMother_pid == 23) {
@@ -291,11 +291,11 @@ void SelCheckerTuple::accumulate(
       m_event_pass_gec.push_back(1.);
       const auto& event_tracks = tracks[i_event];
       MCAssociator mcassoc {mcps};
-      const int* event_tracks_offsets = track_atomics + selected_events;
+      const uint* event_tracks_offsets = track_atomics + selected_events;
       const uint* sv_offsets = sv_atomics + selected_events;
       const uint event_n_svs = sv_atomics[i_event];
       const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
-      
+
       // Loop over tracks.
       for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
         // First track.
