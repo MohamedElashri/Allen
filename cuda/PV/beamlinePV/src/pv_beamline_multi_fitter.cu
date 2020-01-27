@@ -193,11 +193,10 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       vertex.setCovMatrix(vtxcov);
       vertex.nTracks = sum_weights;
 
-      // TODO integrate beamline position
       const auto beamlinedx = vertex.position.x - dev_beamline[0];
       const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if ( vertex.nTracks >= 2.f && beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
+      if ( vertex.nTracks >= 0.f && beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
         uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }

@@ -33,9 +33,10 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
     PVTrack trk = parameters.dev_pvtracks[event_tracks_offset + index];
     // apply the z cut here
     if (BeamlinePVConstants::Common::zmin < trk.z && trk.z < BeamlinePVConstants::Common::zmax) {
-      const float rho2 = (trk.x.x - dev_beamline[0]) * (trk.x.x - dev_beamline[0]) +
-                         (trk.x.y - dev_beamline[1]) * (trk.x.y - dev_beamline[1]);
-      if (rho2 > BeamlinePVConstants::Histo::maxTrackRho2) continue;
+      const float diffx2 = (trk.x.x - dev_beamline[0]) * (trk.x.x - dev_beamline[0]);
+      const float diffy2 = (trk.x.y - dev_beamline[1]) * (trk.x.y - dev_beamline[1]);
+      const float blchi2 = diffx2 * trk.W_00  + diffy2 * trk.W_11 ;
+      if (blchi2 >= BeamlinePVConstants::Histo::maxTrackBLChi2 ) continue;
 
       // bin in which z0 is, in floating point
       const float zbin = (trk.z - BeamlinePVConstants::Common::zmin) / BeamlinePVConstants::Common::dz;
