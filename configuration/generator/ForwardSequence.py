@@ -1,7 +1,7 @@
 from algorithms import *
 from UTSequence import UT_sequence
 
-def Forward_sequence(validate=True):
+def Forward_sequence(validate=False):
   scifi_calculate_cluster_count_v4 = scifi_calculate_cluster_count_v4_t()
   
   prefix_sum_scifi_hits = host_prefix_sum_t("prefix_sum_scifi_hits",
@@ -36,8 +36,8 @@ def Forward_sequence(validate=True):
   
   scifi_consolidate_tracks = scifi_consolidate_tracks_t()
 
-  s = UT_sequence(validate=False)
-  s.extend_sequence(
+  ut_sequence = UT_sequence()
+  forward_sequence = extend_sequence(ut_sequence,
     scifi_calculate_cluster_count_v4,
     prefix_sum_scifi_hits,
     scifi_pre_decode_v4,
@@ -57,6 +57,6 @@ def Forward_sequence(validate=True):
     scifi_consolidate_tracks)
 
   if validate:
-    s.validate()
+    forward_sequence.validate()
 
-  return s
+  return forward_sequence

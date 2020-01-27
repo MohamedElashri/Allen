@@ -10,8 +10,9 @@ def PV_sequence(validate=False):
   pv_beamline_multi_fitter = pv_beamline_multi_fitter_t()
   pv_beamline_cleanup = pv_beamline_cleanup_t()
 
-  s = VELO_sequence()
-  s.extend_sequence(velo_kalman_filter,
+  velo_sequence = VELO_sequence()
+  pv_sequence = extend_sequence(velo_sequence,
+    velo_kalman_filter,
     pv_beamline_extrapolate,
     pv_beamline_histo,
     pv_beamline_peak,
@@ -20,6 +21,6 @@ def PV_sequence(validate=False):
     pv_beamline_cleanup)
 
   if validate:
-    s.validate()
+    pv_sequence.validate()
 
-  return s
+  return pv_sequence

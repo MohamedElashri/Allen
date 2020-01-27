@@ -20,8 +20,8 @@ def Muon_sequence(validate=False):
   muon_sort_by_station = muon_sort_by_station_t()
   is_muon = is_muon_t()
   
-  s = Forward_sequence(validate=False)
-  s.extend_sequence(
+  forward_sequence = Forward_sequence()
+  muon_sequence = extend_sequence(forward_sequence,
     muon_pre_decoding,
     muon_pre_decoding_prefix_sum,
     muon_sort_station_region_quarter,
@@ -31,6 +31,6 @@ def Muon_sequence(validate=False):
     is_muon)
 
   if validate:
-    s.validate()
+    muon_sequence.validate()
 
-  return s
+  return muon_sequence

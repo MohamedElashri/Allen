@@ -31,8 +31,8 @@ def UT_sequence(validate=False):
 
   ut_consolidate_tracks = ut_consolidate_tracks_t()
 
-  s = PV_sequence()
-  s.extend_sequence(
+  pv_sequence = PV_sequence()
+  ut_sequence = extend_sequence(pv_sequence,
     ut_calculate_number_of_hits,
     prefix_sum_ut_hits,
     ut_pre_decode,
@@ -48,6 +48,6 @@ def UT_sequence(validate=False):
     ut_consolidate_tracks)
 
   if validate:
-    s.validate()
+    ut_sequence.validate()
 
-  return s
+  return ut_sequence

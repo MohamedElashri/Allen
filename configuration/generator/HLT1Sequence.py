@@ -23,8 +23,8 @@ def HLT1_sequence(validate=False):
 
   package_sel_reports = package_sel_reports_t()
 
-  s = Muon_sequence(validate=False)
-  s.extend_sequence(
+  muon_sequence = Muon_sequence()
+  hlt1_sequence = extend_sequence(muon_sequence,
     kalman_velo_only,
     kalman_pv_ipchi2,
     fit_secondary_vertices,
@@ -37,6 +37,6 @@ def HLT1_sequence(validate=False):
     package_sel_reports)
 
   if validate:
-    s.validate()
+    hlt1_sequence.validate()
 
-  return s
+  return hlt1_sequence

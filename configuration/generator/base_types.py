@@ -180,7 +180,12 @@ class Property():
     self.__type = Type(vtype)
     self.__default_value = default_value
     self.__description = description
-    self.__value = value
+    if value.__class__ == str:
+      self.__value = value
+    elif value.__class__ == Property:
+      self.__value = value.value()
+    else:
+      self.__value = ""
 
   def type(self):
     return self.__type
@@ -207,7 +212,10 @@ def prefix(indentation_level, indent_by = 2):
 
 class Sequence():
   def __init__(self, *args):
-    self.__sequence = OrderedDict([(algorithm.name(), algorithm) for algorithm in args])
+    if args[0].__class__ == list:
+      self.__sequence = OrderedDict([(algorithm.name(), algorithm) for algorithm in args[0]])
+    else:
+      self.__sequence = OrderedDict([(algorithm.name(), algorithm) for algorithm in args])
 
   def validate(self):
     warnings = 0
@@ -390,10 +398,6 @@ class Sequence():
     s = s[:-2]
     print(s)
 
-  def extend_sequence(self, *args):
-    for algorithm in args:
-      self.__sequence[algorithm.name()] = algorithm
-
   def __repr__(self):
     s = "Sequence:\n"
     for i in self.__sequence:
@@ -401,8 +405,27 @@ class Sequence():
     s = s[:-1]
     return s
 
+  def __iter__(self):
+    for _, algorithm in iter(self.__sequence.items()):
+      yield algorithm
+
   def __getitem__(self, value):
     return self.__sequence[value]
 
-  def __setitem__(self, key, value):
-    self.__sequence[key] = value
+
+def extend_sequence(sequence, *args):
+  new_sequence = []
+  for algorithm in sequence:
+    new_sequence.append(algorithm)
+  for algorithm in args:
+    new_sequence.append(algorithm)
+  return Sequence(new_sequence)
+
+
+def compose_sequences(sequence_a, sequence_b):
+  new_sequence = []
+  for algorithm in sequence_a:
+    new_sequence.append(algorithm)
+  for algorithm in sequence_b:
+    new_sequence.append(algorithm)
+  return Sequence(new_sequence)

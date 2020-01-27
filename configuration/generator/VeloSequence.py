@@ -43,7 +43,7 @@ def VELO_sequence(validate=False):
 
   velo_consolidate_tracks = velo_consolidate_tracks_t()
 
-  s = Sequence(host_global_event_cut,
+  velo_sequence = Sequence(host_global_event_cut,
     velo_calculate_number_of_candidates,
     prefix_sum_offsets_velo_candidates,
     velo_estimate_input_size,
@@ -60,6 +60,6 @@ def VELO_sequence(validate=False):
     velo_consolidate_tracks)
 
   if validate:
-    s.validate()
+    velo_sequence.validate()
 
-  return s
+  return velo_sequence

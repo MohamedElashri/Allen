@@ -105,6 +105,11 @@ def write_algorithm_code(algorithm, i = 0):
     s += ",\n" \
       + prefix(i) + var_name + "=" + create_var_type(var["scope"], var["io"]) \
       + "(\"" + var_name + "\", \"" + var["type"] + "\")"
+  for prop_name, prop in iter(algorithm["properties"].items()):
+    s += ",\n" \
+      + prefix(i) + prop_name + "= Property" \
+      + "(\"" + prop["type"].strip() + "\", " \
+      + "\"" + prop["default_value"].strip() + "\", " + prop["description"].strip() + ")"
   s += "):\n"
   s += prefix(i) + "self.__filename = \"" + algorithm["filename"][len(prefix_project_folder):] + "\"\n"
   s += prefix(i) + "self.__name = name\n"
@@ -125,7 +130,7 @@ def write_algorithm_code(algorithm, i = 0):
   for prop_name, prop in iter(algorithm["properties"].items()):
     s += "\n" + prefix(i) + "(" + prop["name"].strip() + ", Property" \
       + "(\"" + prop["type"].strip() + "\", " \
-      + "\"" + prop["default_value"].strip() + "\", " + prop["description"].strip() + ")),"
+      + "\"" + prop["default_value"].strip() + "\", " + prop["description"].strip() + ", " + prop_name + ")),"
   s = s[:-1]
   if len(algorithm["properties"]) > 0:
     s += "]"
@@ -154,11 +159,6 @@ def write_algorithm_code(algorithm, i = 0):
   s += prefix(i) + "return self.__name\n\n"
   i -= 1
 
-  s += prefix(i) + "def set_name(self, value):\n"
-  i += 1
-  s += prefix(i) + "self.__name = value\n\n"
-  i -= 1
-
   for var_name, var in iter(algorithm["variables"].items()):
     s += prefix(i) + "def " + var_name + "(self):\n"
     i += 1
@@ -170,34 +170,6 @@ def write_algorithm_code(algorithm, i = 0):
     i += 1
     s += prefix(i) + "return self.__ordered_properties[\"" + prop_name + "\"]\n\n"
     i -= 1
-
-  for var_name, var in iter(algorithm["variables"].items()):
-    s += prefix(i) + "def set_" + var_name + "(self, value):\n"
-    i += 1
-    s += prefix(i) + "if value.__class__ == str:\n"
-    i += 1
-    s += prefix(i) + "self.__ordered_parameters[\"" + var_name + "\"].set_name(value)\n"
-    i -= 1
-    s += prefix(i) + "else:\n"
-    i += 1
-    s += prefix(i) + "assert compatible_parameter_assignment(value.__class__, " + create_var_type(var["scope"], var["io"]) + ")\n"
-    s += prefix(i) + "assert value.type() == \"" + var["type"] + "\"\n"
-    s += prefix(i) + "self.__ordered_parameters[\"" + var_name + "\"].set_name(value.name)\n\n"
-    i -= 2
-
-  
-  s += prefix(i) + "def set_property(self, name, value):\n"
-  i += 1
-  s += prefix(i) + "if name in self.__ordered_properties:\n"
-  i += 1
-  s += prefix(i) + "if value.__class__ == str:\n"
-  i += 1
-  s += prefix(i) + "self.__ordered_properties[name].set_value(value)\n"
-  i -= 2
-  s += prefix(i) + "else:\n"
-  i += 1
-  s += prefix(i) + "print(\"\\\"\" + name + \"\\\" is not a property of this algorithm.\")\n\n"
-  i -= 2
 
   s += prefix(i) + "def parameters(self):\n"
   i += 1
@@ -215,6 +187,10 @@ def write_algorithm_code(algorithm, i = 0):
   i += 1
   s += prefix(i) + "s = self.__original_name + \" \\\"\" + self.__name + \"\\\" (\"\n"
   s += prefix(i) + "for k, v in iter(self.__ordered_parameters.items()):\n"
+  i += 1
+  s += prefix(i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
+  i -= 1
+  s += prefix(i) + "for k, v in iter(self.__ordered_properties.items()):\n"
   i += 1
   s += prefix(i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
   i -= 1
