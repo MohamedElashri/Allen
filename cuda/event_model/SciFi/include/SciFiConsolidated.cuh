@@ -107,7 +107,7 @@ namespace SciFi {
         char* hits_base_pointer,
         const uint track_number) const
       {
-        uint32_t* channel = reinterpret_cast<uint32_t*>(hits_base_pointer + sizeof(float) * 3 * total_number_of_hits);
+        uint32_t* channel = reinterpret_cast<uint32_t*>(hits_base_pointer + sizeof(float) * 3 * total_number_of_hits());
         channel += track_offset(track_number);
         const uint n_hits = number_of_hits(track_number);
         std::vector<uint32_t> lhcbids;

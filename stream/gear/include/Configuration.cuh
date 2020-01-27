@@ -109,10 +109,10 @@ namespace Allen {
    *
    */
   class Algorithm : public BaseAlgorithm {
+  public:
     template<typename T>
     using Property = Allen::Property<T>;
 
-  public:
     void set_properties(const std::map<std::string, std::string>& algo_config) override
     {
       for (auto kv : algo_config) {
