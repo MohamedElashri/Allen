@@ -35,6 +35,12 @@ std::tuple<bool, std::string> set_device(int, size_t)
 std::tuple<bool, std::string> set_device(int, size_t) { return {true, "CPU"}; }
 #endif // linux-dependent CPU detection
 
+std::tuple<bool, int> get_device_id(std::string pci_bus_id) {
+  int device = 0;
+  error_cout << "Cannot get CPU device by bus ID\n";
+  return {false, device};
+}
+
 #else
 
 void reset() { cudaCheck(cudaDeviceReset()); }
