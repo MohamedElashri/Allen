@@ -80,7 +80,7 @@ endmacro()
 
 # Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
-  add_compile_definitions(CPU) 
+  add_compile_definitions(CPU)
   allen_project()
 
   # This seems to be needed across compilers
@@ -347,6 +347,9 @@ find_package(ZLIB REQUIRED)
 option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 if (USE_MPI)
   find_package(MPI REQUIRED)
+  # hwloc is also needed
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(HWLOC IMPORTED_TARGET hwloc)
   include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
   add_compile_definitions(HAVE_MPI)
 else(USE_MPI)
@@ -505,7 +508,7 @@ file(GLOB common_sources "main/src/*.cpp")
 file(GLOB common_cuda_sources "main/src/*.cu")
 
 # Remove main.cpp from common_sources
-foreach(source main Allen MPISend)
+foreach(source main Allen OutputHandler ZMQOutputSender MPISend)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
@@ -519,13 +522,14 @@ endif()
 add_library(Common STATIC ${common_sources})
 
 if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0) OR (NOT CMAKE_COMPILER_IS_GNUCC))
-  add_compile_definitions(USE_BOOST_FILESYSTEM)
   find_package(Boost COMPONENTS filesystem)
-  target_include_directories(Common SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
-  target_link_libraries(Common mdf ${Boost_LIBRARIES})
+  add_library(allen_fs ALIAS Boost::filesystem)
+  target_compile_definitions(allen_fs USE_BOOST_FILESYSTEM)
 else()
-  target_link_libraries(Common mdf stdc++fs)
+  find_package(Filesystem)
+  add_library(allen_fs ALIAS std::filesystem)
 endif()
+target_link_libraries(Common mdf allen_fs)
 
 if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${common_cuda_sources} PROPERTIES LANGUAGE CXX)
@@ -533,13 +537,15 @@ endif()
 
 allen_add_library(CudaCommon STATIC ${common_cuda_sources})
 
+set(allen_lib_sources ${Allen_cpp_path} ${OutputHandler_cpp_path} ${ZMQOutputSender_cpp_path})
+
 if(TARGET_DEVICE STREQUAL "HIP")
   # Produce self-contained application
   # Otherwise, HIP doesn't seem to link properly
-  allen_add_library(AllenLib STATIC ${Allen_cpp_path})
+  allen_add_library(AllenLib STATIC ${allen_lib_sources})
 else()
   # Library containing all the code
-  allen_add_library(AllenLib SHARED ${Allen_cpp_path})
+  allen_add_library(AllenLib SHARED ${allen_lib_sources})
 endif()
 
 target_link_libraries(AllenLib PUBLIC
@@ -555,7 +561,11 @@ target_link_libraries(AllenLib PUBLIC
 
 if (USE_MPI AND MPI_FOUND)
   get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)
-  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES} -L${MPI_LIBRARY_DIR} hwloc open-pal)
+  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES})
+  if (HWLOC_FOUND)
+    target_link_libraries(AllenLib PUBLIC -L${MPI_LIBRARY_DIR} PkgConfig::HWLOC open-pal)
+    target_compile_definitions(AllenLib PRIVATE HAVE_HWLOC)
+  endif()
 endif()
 
 if (USE_ROOT AND ROOT_FOUND)

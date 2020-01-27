@@ -66,34 +66,42 @@ function(test_program)
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Common mdf)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE mdf MdfTestCommon)
 
   if (USE_MPI AND MPI_FOUND)
     target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE HAVE_MPI)
     target_include_directories(${PARSED_ARGS_NAME} PRIVATE SYSTEM ${MPI_CXX_INCLUDE_PATH})
     get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE ${MPI_CXX_LIBRARIES} -L${MPI_LIBRARY_DIR} hwloc open-pal)
+    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE ${MPI_CXX_LIBRARIES})
+    if (HWLOC_FOUND)
+      target_link_libraries(AllenLib PUBLIC -L${MPI_LIBRARY_DIR} PkgConfig::HWLOC open-pal)
+      target_compile_definitions(AllenLib PRIVATE HAVE_HWLOC)
+    endif()
   endif()
 
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
-# TODO: Tests require Common library, which imposes a circular requirement
-#       only in Gaudi builds.
-#
-# if (BUILD_TESTS)
-#   test_program(NAME dump_banks)
-#   test_program(NAME test_read)
-#   test_program(NAME bench_read)
-#   test_program(NAME bench_provider)
-#   test_program(NAME bench_transpose)
-#   test_program(NAME test_providers)
-#   if (NOT GaudiProject_FOUND)
-#     add_test(NAME allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
-#   else()
-#     gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
-#   endif()
-# endif()
+if (BUILD_TESTS)
+  # Build our own common library to avoid circular dependency in Gaudi build
+  foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp TransposeMEP.cpp InputTools.cpp)
+    list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
+  endforeach()
+  allen_add_library(MdfTestCommon STATIC ${common_sources})
+  target_include_directories(MdfTestCommon PUBLIC ${CMAKE_SOURCE_DIR}/main/include include)
+  target_link_libraries(MdfTestCommon PUBLIC allen_fs)
+
+  test_program(NAME dump_banks)
+  test_program(NAME test_read)
+  test_program(NAME bench_read)
+  test_program(NAME bench_provider )
+  test_program(NAME bench_transpose)
+  test_program(NAME test_providers)
+  if (NOT GaudiProject_FOUND)
+    add_test(NAME allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  else()
+    gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
+  endif()
+endif()
 
 include_directories(${CPPGSL_INCLUDE_DIRS})
-

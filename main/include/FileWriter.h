@@ -8,13 +8,14 @@ class FileWriter final : public OutputHandler {
 public:
   FileWriter(
     IInputProvider const* input_provider,
-    size_t const events_per_slice,
     std::string filename,
+    size_t events_per_slice,
     bool checksum = true) :
-    OutputHandler {input_provider, events_per_slice, filename},
+    OutputHandler {input_provider, events_per_slice},
+    m_filename {std::move(filename)},
     m_checksum {checksum}
   {
-    m_output = MDF::open(m_connection, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    m_output = MDF::open(m_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (!m_output.good) {
       throw std::runtime_error {"Failed to open output file"};
     }
@@ -47,6 +48,10 @@ protected:
   }
 
 private:
+
+  // Output filename
+  std::string const m_filename;
+
   // do checksum on write
   bool const m_checksum;
 

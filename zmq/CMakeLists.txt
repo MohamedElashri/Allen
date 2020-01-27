@@ -37,10 +37,9 @@ else()
 
 endif()
 
-find_package(Boost COMPONENTS serialization iostreams)
+find_package(Boost COMPONENTS serialization iostreams program_options)
 
-file(GLOB SOURCES "src/*.cpp")
-allen_add_library(AllenZMQ ${SOURCES})
+allen_add_library(AllenZMQ src/ZeroMQSvc.cpp src/functions.cpp)
 target_include_directories(AllenZMQ PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(AllenZMQ PUBLIC ${CMAKE_SOURCE_DIR}/main/include)
 target_include_directories(AllenZMQ SYSTEM PUBLIC ${ZMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
@@ -61,4 +60,21 @@ elseif(GaudiProject_FOUND)
     gaudi_env(PREPEND LD_LIBRARY_PATH "${SODIUM_LIBRARY_DIR}")
     target_link_libraries(AllenZMQ PUBLIC ${SODIUM_LIBRARY})
   endif()
+endif()
+
+function(zmq_program)
+  cmake_parse_arguments(PARSED_ARGS "" "NAME;SRC" "" ${ARGN})
+  add_executable(${PARSED_ARGS_NAME} ${PARSED_ARGS_SRC})
+  target_include_directories(${PARSED_ARGS_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/mdf/include)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs)
+  install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
+endfunction()
+
+# MDF receiver to receive output events from integration test
+zmq_program(NAME allen_mdf_receiver SRC src/MDFReceiver.cpp)
+
+if (BUILD_TESTS)
+  # Simple MDF sender to test MDF receiver
+  zmq_program(NAME allen_mdf_sender SRC test/mdf_sender.cpp)
 endif()
