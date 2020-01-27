@@ -29,7 +29,6 @@ class Timer;
 
 struct Stream {
   using scheduler_t = Scheduler<configured_sequence_t>;
-  using argument_manager_t = ArgumentManager<scheduler_t::arguments_tuple_t>;
 
   Stream() = default;
    

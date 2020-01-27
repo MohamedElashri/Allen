@@ -121,7 +121,7 @@ namespace UT {
         char* hits_base_pointer,
         const uint track_number) const
       {
-        uint32_t* LHCbID = reinterpret_cast<uint32_t*>(hits_base_pointer + sizeof(uint32_t) * 5 * total_number_of_hits);
+        uint32_t* LHCbID = reinterpret_cast<uint32_t*>(hits_base_pointer + sizeof(uint32_t) * 5 * total_number_of_hits());
         LHCbID += track_offset(track_number);
         const uint n_hits = number_of_hits(track_number);
         std::vector<uint32_t> lhcbids;

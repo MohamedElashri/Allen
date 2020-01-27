@@ -1,5 +1,6 @@
 #include "PrimaryVertexChecker.h"
 #include "FitSeeds.cuh"
+#include "pv_beamline_cleanup.cuh"
 
 /**
  * @brief Specialization for patPV PV finding algorithm

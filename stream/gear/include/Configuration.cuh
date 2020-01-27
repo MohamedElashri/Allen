@@ -109,8 +109,9 @@ namespace Allen {
    *
    */
   class Algorithm : public BaseAlgorithm {
-    using Property = Allen::Property;
-    
+    template<typename T>
+    using Property = Allen::Property<T>;
+
   public:
     void set_properties(const std::map<std::string, std::string>& algo_config) override
     {
@@ -120,18 +121,10 @@ namespace Allen {
         if (it == m_properties.end()) {
           std::cout << "could not set " << kv.first << "=" << kv.second << std::endl;
           std::cout << "parameter does not exist" << std::endl;
-
           throw std::exception {};
         }
-        return std::get<1>(r);
-      }
-
-      bool property_used(std::string const&) const override { return true; }
-
-      void set_shared_properties(std::string set_name, std::map<std::string, std::string> algo_config)
-      {
-        if (m_shared_sets.find(set_name) != m_shared_sets.end()) {
-          m_shared_sets.at(set_name)->set_properties(algo_config);
+        else {
+          it->second->from_string(kv.second);
         }
       }
     }
@@ -155,14 +148,14 @@ namespace Allen {
       for (const auto& kv : m_properties) {
         properties.emplace(kv.first, kv.second->to_string());
       }
+      return properties;
+    }
 
-      std::vector<std::string> get_shared_sets() const
-      {
-        std::vector<std::string> ret;
-        for (auto kv : m_shared_sets) {
-          ret.push_back(kv.first);
-        }
-        return ret;
+    bool register_property(std::string const& name, BaseProperty* property) override
+    {
+      auto r = m_properties.emplace(name, property);
+      if (!std::get<1>(r)) {
+        throw std::exception {};
       }
       return std::get<1>(r);
     }
@@ -174,40 +167,21 @@ namespace Allen {
       if (m_shared_sets.find(set_name) != m_shared_sets.end()) {
         m_shared_sets.at(set_name)->set_properties(algo_config);
       }
+    }
 
-    protected:
-      BaseProperty const* get_prop(const std::string& prop_name) const override
-      {
-        if (m_properties.find(prop_name) != m_properties.end()) {
-          return m_properties.at(prop_name);
-        }
-        return 0;
+    std::map<std::string, std::string> get_shared_properties(const std::string& set_name) const
+    {
+      if (m_shared_sets.find(set_name) != m_shared_sets.end()) {
+        return m_shared_sets.at(set_name)->get_properties();
       }
+      return std::map<std::string, std::string>();
+    }
 
-    private:
-      std::map<std::string, BaseProperty*> m_properties;
-      std::map<std::string, BaseAlgorithm*> m_shared_sets;
-    };
-
-    /**
-     * @brief      Store, update and readout the value of a configurable algorithm property without constant memory
-     * storage
-     *
-     */
-    template<typename V>
-    class CPUProperty : public BaseProperty {
-    public:
-      CPUProperty() = delete;
-
-      CPUProperty(
-        BaseAlgorithm* algo,
-        const std::string& name,
-        V const default_value,
-        const std::string& description = "") :
-        m_algo {algo},
-        m_cached_value {default_value}, m_name {std::move(name)}, m_description {std::move(description)}
-      {
-        algo->register_property(m_name, this);
+    std::vector<std::string> get_shared_sets() const
+    {
+      std::vector<std::string> ret;
+      for (auto kv : m_shared_sets) {
+        ret.push_back(kv.first);
       }
       return ret;
     }
@@ -231,52 +205,6 @@ namespace Allen {
   private:
     std::map<std::string, BaseProperty*> m_properties;
     std::map<std::string, BaseAlgorithm*> m_shared_sets;
-  };
-
-  /**
-   * @brief      Store, update and readout the value of a configurable algorithm property without constant memory
-   * storage
-   *
-   */
-  template<typename V>
-  class HostProperty : public BaseProperty {
-  public:
-    HostProperty() = delete;
-
-    HostProperty(BaseAlgorithm* algo) :
-      m_algo {algo}, m_cached_value {V::default_value}, m_name {V::name}, m_description {V::description}
-    {
-      algo->register_property(m_name, this);
-    }
-
-    V get_value() const { return m_cached_value; }
-
-    virtual bool from_string(const std::string& value) override
-    {
-      if (!Configuration::from_string<V>(m_cached_value, value)) return false;
-      return true;
-    }
-
-    std::string to_string() const override { return Configuration::to_string(m_cached_value); }
-
-    std::string print() const override
-    {
-      // very basic implementation based on streaming
-      std::stringstream s;
-      s << m_name << " " << to_string() << " " << m_description;
-      return s.str();
-    }
-
-  protected:
-    virtual void update() {}
-
-    void set_value(V value) { m_cached_value = value; }
-
-  private:
-    BaseAlgorithm* m_algo = nullptr;
-    V m_cached_value;
-    std::string m_name;
-    std::string m_description;
   };
 
   // forward declare to use in Property
@@ -423,7 +351,7 @@ namespace Allen {
       }
     }
 
-    std::map<std::string, std::string> get_properties() override
+    std::map<std::string, std::string> get_properties() const override
     {
       std::map<std::string, std::string> properties;
       for (auto const kv : m_properties) {
@@ -432,15 +360,14 @@ namespace Allen {
       }
       return properties;
     }
-  }
 
-  std::map<std::string, std::string>
-  get_properties() const override
-  {
-    std::map<std::string, std::string> properties;
-    for (auto const kv : m_properties) {
-      if (!m_used.count(kv.first)) continue;
-      properties.emplace(kv.first, kv.second->to_string());
+    bool register_property(const std::string& name, BaseProperty* property) override
+    {
+      auto r = m_properties.emplace(name, property);
+      if (!std::get<1>(r)) {
+        throw std::exception {};
+      }
+      return std::get<1>(r);
     }
 
     bool property_used(const std::string& name) const override { return (m_used.count(name) > 0); }
@@ -516,36 +443,10 @@ namespace Allen {
       if (!m_prop) {
         std::cout << "Unknown shared property " << prop_name << std::endl;
       }
+    }
 
-      std::string print() const override
-      {
-        if (m_prop) return m_prop->print();
-        return "";
-      }
-
-      void sync_value() const override
-      {
-        if (m_prop) m_prop->sync_value();
-      }
-
-    private:
-      void init(const std::string& set_name, const std::string& prop_name)
-      {
-        m_set = Configuration::getSharedPropertySet(set_name);
-        if (!m_set) {
-          std::cout << "Unknown shared property set " << set_name << std::endl;
-        }
-        m_prop = dynamic_cast<Property<V> const*>(m_set->get_and_register_prop(prop_name));
-        if (m_prop) {
-          sync_value();
-        }
-        else {
-          std::cout << "Unknown shared property " << prop_name << std::endl;
-        }
-      }
-
-      BaseAlgorithm* m_algo = nullptr;
-      SharedPropertySet* m_set = nullptr;
-      Property<V> const* m_prop = nullptr;
-    };
-  }
+    BaseAlgorithm* m_algo = nullptr;
+    SharedPropertySet* m_set = nullptr;
+    Property<V> const* m_prop = nullptr;
+  };
+} // namespace Allen
