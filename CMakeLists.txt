@@ -80,7 +80,7 @@ endmacro()
 
 # Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
-  add_compile_definitions(CPU) 
+  add_compile_definitions(CPU)
   allen_project()
 
   # This seems to be needed across compilers
@@ -347,6 +347,9 @@ find_package(ZLIB REQUIRED)
 option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 if (USE_MPI)
   find_package(MPI REQUIRED)
+  # hwloc is also needed
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(HWLOC IMPORTED_TARGET hwloc)
   include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
   add_compile_definitions(HAVE_MPI)
 else(USE_MPI)
@@ -558,7 +561,11 @@ target_link_libraries(AllenLib PUBLIC
 
 if (USE_MPI AND MPI_FOUND)
   get_filename_component(MPI_LIBRARY_DIR ${MPI_mpi_LIBRARY} DIRECTORY)
-  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES} -L${MPI_LIBRARY_DIR} hwloc open-pal)
+  target_link_libraries(AllenLib PUBLIC ${MPI_CXX_LIBRARIES})
+  if (HWLOC_FOUND)
+    target_link_libraries(AllenLib PUBLIC -L${MPI_LIBRARY_DIR} PkgConfig::HWLOC open-pal)
+    target_compile_definitions(AllenLib PRIVATE HAVE_HWLOC)
+  endif()
 endif()
 
 if (USE_ROOT AND ROOT_FOUND)
