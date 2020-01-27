@@ -80,8 +80,8 @@ endmacro()
 
 # Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
+  add_compile_definitions(CPU) 
   allen_project()
-  add_compile_definitions(CPU)
 
   # This seems to be needed across compilers
   add_definitions("-x c++")
@@ -186,7 +186,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-gnu-zero-variadic-macro-arguments")
 endif()
 
-
 # Deal with build type
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo)
@@ -197,6 +196,25 @@ MESSAGE(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 if(NOT SEQUENCE)
   set(SEQUENCE DefaultSequence)
 endif(NOT SEQUENCE)
+
+add_custom_command(
+  OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+  DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
+  COMMENT "Configuring sequence "
+  VERBATIM
+  )
+
+add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h")
+
+message(STATUS "Configured sequence: " ${SEQUENCE})
+
+# Deal with build type
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif(NOT CMAKE_BUILD_TYPE)
+MESSAGE(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 if(NOT DEFINED CPU_ARCH)
   set(CPU_ARCH native)
@@ -398,6 +416,15 @@ else()
    message(STATUS "Compiling without ROOT")
 endif()
 
+find_package(cppgsl QUIET)
+if (CPPGSL_FOUND)
+  message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIRS})
+else()
+  include_directories(main/cppgsl)
+  message(STATUS "Using internal gsl-lite")
+endif()
+
+
 set(EXTERNAL_DIR "external")
 
 add_subdirectory(cuda)
@@ -448,9 +475,11 @@ include_directories(cuda/SciFi/looking_forward/extend_tracks_uv/include)
 include_directories(cuda/SciFi/looking_forward/quality_filter/include)
 include_directories(cuda/SciFi/looking_forward/quality_filter_x/include)
 include_directories(cuda/SciFi/looking_forward/search_uv_windows/include)
+include_directories(cuda/SciFi/looking_forward/common/include)
 include_directories(cuda/SciFi/classifiers/include)
 include_directories(cuda/SciFi/consolidate/include)
 include_directories(cuda/muon/common/include)
+include_directories(cuda/muon/decoding/include)
 include_directories(cuda/utils/prefix_sum/include)
 include_directories(cuda/event_model/velo/include)
 include_directories(cuda/event_model/UT/include)
@@ -469,6 +498,7 @@ include_directories(mdf/include)
 include_directories(integration/monitoring/include)
 include_directories(integration/non_event_data/include)
 include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
+include_directories(SYSTEM ${CPPGSL_INCLUDE_DIRS})
 
 # Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")

@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 #include "eb_header.hpp"
 #include "mdf_header.hpp"

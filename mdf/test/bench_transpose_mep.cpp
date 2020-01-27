@@ -9,7 +9,7 @@
 #include <vector>
 #include <cmath>
 
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 #include <raw_bank.hpp>
 #include <read_mdf.hpp>
 #include <read_mep.hpp>

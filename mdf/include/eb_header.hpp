@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 namespace EB {
 

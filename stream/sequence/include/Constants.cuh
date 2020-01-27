@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <numeric>
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 #include "CudaCommon.h"
 #include "Logger.h"
 

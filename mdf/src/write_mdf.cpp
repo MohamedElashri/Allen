@@ -1,6 +1,5 @@
 #include <cstring>
 
-#include <gsl-lite.hpp>
 #include "raw_bank.hpp"
 #include "write_mdf.hpp"
 

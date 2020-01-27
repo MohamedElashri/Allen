@@ -9,4 +9,4 @@
 #include "GlobalFunction.cuh"
 #include "Argument.cuh"
 
-struct DeviceAlgorithm : public Algorithm {};
+struct DeviceAlgorithm : public Allen::Algorithm {};

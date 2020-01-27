@@ -117,6 +117,7 @@ namespace velo_search_by_triplet {
         constants.dev_velo_geometry);
     }
 
+<<<<<<< HEAD
   private:
     Property<forward_phi_tolerance_t> m_tol {this};
     Property<max_scatter_forwarding_t> m_scat {this};
@@ -128,3 +129,63 @@ namespace velo_search_by_triplet {
     Property<block_dim_t> m_block_dim {this};
   };
 } // namespace velo_search_by_triplet
+=======
+ALGORITHM(search_by_triplet,
+          velo_search_by_triplet_t,
+          ARGUMENTS(
+            dev_velo_cluster_container,
+            dev_estimated_input_size,
+            dev_module_cluster_num,
+            dev_tracks,
+            dev_tracklets,
+            dev_tracks_to_follow,
+            dev_weak_tracks,
+            dev_hit_used,
+            dev_atomics_velo,
+            dev_h0_candidates,
+            dev_h2_candidates,
+            dev_rel_indices),
+          Allen::Property<float> m_tol {this,
+                                 "forward_phi_tolerance",
+                                 Configuration::velo_search_by_triplet_t::forward_phi_tolerance,
+                                 0.052f,
+                                 "tolerance"};
+          Allen::Property<float> m_chi2 {this, "max_chi2", Configuration::velo_search_by_triplet_t::max_chi2, 20.0f, "chi2"};
+          Allen::Property<float> m_scat {this,
+                                  "max_scatter_forwarding",
+                                  Configuration::velo_search_by_triplet_t::max_scatter_forwarding,
+                                  0.1f,
+                                  "scatter forwarding"};
+          Allen::Property<float> m_seed {this,
+                                  "max_scatter_seeding",
+                                  Configuration::velo_search_by_triplet_t::max_scatter_seeding,
+                                  0.1f,
+                                  "scatter seeding"};
+          Allen::Property<uint> m_skip {this,
+                                 "max_skipped_modules",
+                                 Configuration::velo_search_by_triplet_t::max_skipped_modules,
+                                 1u,
+                                 "skipped modules"};
+          Allen::Property<uint> m_max_weak {this,
+                                     "max_weak_tracks",
+                                     Configuration::velo_search_by_triplet_t::max_weak_tracks,
+                                     500u,
+                                     "max weak tracks"};
+          Allen::Property<float> m_ext_base {this,
+                                      "phi_extrapolation_base",
+                                      Configuration::velo_search_by_triplet_t::phi_extrapolation_base,
+                                      0.03f,
+                                      "phi extrapolation base"};
+          Allen::Property<float> m_ext_coef {this,
+                                      "phi_extrapolation_coef",
+                                      Configuration::velo_search_by_triplet_t::phi_extrapolation_coef,
+                                      0.0002f,
+                                      "phi extrapolation coefficient"};
+          Allen::Property<uint>
+            m_ttf_mod {this, "ttf_modulo", Configuration::velo_search_by_triplet_t::ttf_modulo, 2048u, "ttf modulo"};
+          Allen::Property<int> m_ttf_mask {this,
+                                    "ttf_modulo_mask",
+                                    Configuration::velo_search_by_triplet_t::ttf_modulo_mask,
+                                    0x7FF,
+                                    "ttf modulo mask"};)
+>>>>>>> dovombru_Gaudi_Allen_integration

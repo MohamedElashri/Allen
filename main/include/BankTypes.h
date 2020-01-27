@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <cassert>
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 namespace {
   using gsl::span;

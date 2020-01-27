@@ -148,8 +148,3 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
       malloc((2 * max_number_of_events + 1) * sizeof(uint)));
   }
 }
-
-// uint32_t HostBuffers::scifi_hits_uints() const
-// {
-//   return (sizeof(SciFi::Hit) / sizeof(uint32_t) + 1) * host_accumulated_number_of_scifi_hits[0];
-// }

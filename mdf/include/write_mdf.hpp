@@ -1,5 +1,6 @@
 #pragma once
-#include <gsl-lite.hpp>
+
+#include <gsl/gsl>
 
 namespace Allen {
   constexpr int mdf_header_version = 3;

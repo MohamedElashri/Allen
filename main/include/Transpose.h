@@ -73,7 +73,7 @@ std::tuple<bool, bool, bool, size_t> read_events(
     std::tie(eof, error, bank_span) =
       MDF::read_banks(input, header, std::move(buffer_span), compress_buffer, check_checksum);
     // Fill the start offset of the next event
-    event_offsets[++n_filled] = bank_span.end() - buffer_start;
+    event_offsets[++n_filled] = bank_span.data() + bank_span.size() - buffer_start;
     n_bytes += bank_span.size();
 
     // read the next header
@@ -119,7 +119,7 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::sp
   auto const* bank = bank_data.data();
 
   // Loop over all the bank data
-  while (bank < bank_data.end()) {
+  while (bank < bank_data.data() + bank_data.size()) {
     const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
 
     if (b->magic() != LHCb::RawBank::MagicPattern) {
@@ -174,7 +174,7 @@ std::tuple<bool, bool> transpose_event(
   unsigned int bank_offset = 0;
   unsigned int bank_counter = 1;
 
-  auto bank = bank_data.begin(), bank_end = bank_data.end();
+  auto bank = bank_data.data(), bank_end = bank_data.data() + bank_data.size();
 
   // L0Calo doesn't exist in the upgrade
   LHCb::RawBank::BankType prev_type = LHCb::RawBank::L0Calo;

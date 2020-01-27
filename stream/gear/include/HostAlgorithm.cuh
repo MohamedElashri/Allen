@@ -11,4 +11,4 @@
 
 // Note: For the moment, a HostAlgorithm does not
 //       differ from an Algorithm.
-struct HostAlgorithm : public Algorithm {};
+struct HostAlgorithm : public Allen::Algorithm {};

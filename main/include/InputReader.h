@@ -8,7 +8,7 @@
 #include <string>
 #include <algorithm>
 #include <unordered_set>
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 #include "json.hpp"
 
 struct Reader {

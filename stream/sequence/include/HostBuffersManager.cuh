@@ -3,7 +3,7 @@
 #include <map>
 #include <queue>
 #include <vector>
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 // Forward definition of Stream, to avoid
 // inability to compile kernel calls (due to <<< >>>
@@ -38,7 +38,7 @@ struct HostBuffersManager {
 
 private:
   void init(size_t nBuffers);
-
+  
   std::vector<HostBuffers*> host_buffers;
   std::vector<BufferStatus> buffer_statuses;
 

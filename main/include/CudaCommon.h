@@ -108,6 +108,7 @@ cudaError_t cudaEventCreateWithFlags(cudaEvent_t* event, int flags);
 cudaError_t cudaEventSynchronize(cudaEvent_t event);
 cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream);
 cudaError_t cudaFreeHost(void* ptr);
+cudaError_t cudaFree(void* ptr);
 cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
 cudaError_t cudaMemcpyToSymbol(

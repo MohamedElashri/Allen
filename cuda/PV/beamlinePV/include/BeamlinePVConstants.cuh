@@ -1,6 +1,6 @@
 #pragma once
 
-static constexpr int minNumTracksPerVertex = 4;
+static constexpr unsigned int minNumTracksPerVertex = 4;
 static constexpr float zmin = -260.f;        // unit: mm Min z position of vertex seed
 static constexpr float zmax = 260.f;         // unit: mm Max z position of vertex seed
 static constexpr int Nbins = 2080;           // nubmer of bins in the histogram. Make sure that Nbins = (zmax-zmin)/dz
@@ -13,13 +13,15 @@ static constexpr float minTracksInSeed = 2.5f; // "MinTrackIntegralInSeed"
 static constexpr float maxVertexRho2 = 0.05f;  // unit:: mm^2 "Maximum distance squared of vertex to beam line"
 static constexpr float maxTrackRho2 =
   0.1f; // unit:: mm^2 "Maximum distance squared of a track to beamline when filling histogram"
-static constexpr unsigned int maxFitIter = 4;        // "Maximum number of iterations for vertex fit"
+static constexpr unsigned int minFitIter = 3;        // "Minimum number of iterations for vertex fit"
+static constexpr unsigned int maxFitIter = 7;        // "Maximum number of iterations for vertex fit"
 static constexpr float maxDeltaChi2 = 9.f;           //"Maximum chi2 contribution of track to vertex fit"
 static constexpr int order_polynomial = 2;           // order of the polynomial used to approximate Gaussian
-static constexpr float maxChi2 = 9.f;                // Maximum chi2 for track to be used in fit
-static constexpr float minWeight = 0.3f;             // Minimum weight for track to be used in fit
-static constexpr float chi2Cut = 25.f;               // chi2 cut in multi-fitter
-static constexpr float chi2CutExp = 0.000003727f;    // expf(-chi2Cut * 0.5f) = 0.000003727f
+static constexpr float maxChi2 = 25.f;                // Maximum chi2 for track to be used in fit
+static constexpr float minWeight = 0.05f;             // Minimum weight for track to be used in fit
+static constexpr float chi2Cut = 4.f;               // chi2 cut in multi-fitter
+
+static constexpr float chi2CutExp = 0.135335283f;    // expf(-chi2Cut * 0.5f) = 0.135335283f
 static constexpr float maxDeltaZConverged = 0.0005f; // convergence criterion for fit
 
 static constexpr float minChi2Dist =

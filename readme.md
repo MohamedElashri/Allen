@@ -132,7 +132,7 @@ Allen can also be built as a Gaudi/LHCb cmake project; it then depends
 on Rec and Online. To build Allen like this, is the same as building
 any other Gaudi/LHCb project:
 
-    source /cvmfs/lhcb.cern.ch/lib/LbEnv
+    LbLogin -c x86_64-centos7-gcc9-opt
     cd Allen
     lb-project-init
     make configure

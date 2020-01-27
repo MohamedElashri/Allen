@@ -9,7 +9,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/float_operations/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/sorting/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/binary_search/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include) 
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/UT/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
@@ -28,6 +28,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/search_by_triplet/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/simplified_kalman_filter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
+
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/search_initial_windows/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/find_compatible_windows/include)
@@ -64,13 +65,15 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include) 
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
+include_directories(${CPPGSL_INCLUDE_DIRS})
 
 file(GLOB stream_gear "gear/src/*cpp")
 file(GLOB stream_sequence "sequence/src/*cu")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
 
+# TODO: Maybe remove in Gaudi build
 add_custom_command(
   OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -86,11 +89,14 @@ if(TARGET_DEVICE STREQUAL "CPU")
 endif()
 
 allen_add_library(Stream STATIC
-  "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
   ${stream_gear}
   ${stream_sequence}
   ${stream_sequence_cpp}
 )
+
+target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration/sequences")
+
+add_dependencies(Stream configured_sequence)
 
 target_link_libraries(Stream PRIVATE
   CudaCommon

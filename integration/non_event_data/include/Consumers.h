@@ -2,8 +2,8 @@
 
 #include <Constants.cuh>
 #include <Dumpers/IUpdater.h>
-#include <gsl-lite.hpp>
 #include <cassert>
+#include <gsl/gsl>
 
 namespace Consumers {
 

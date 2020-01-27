@@ -10,7 +10,7 @@
 
 #include <BankTypes.h>
 
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 #include <sys/types.h>
 

@@ -2,6 +2,8 @@ file(GLOB SOURCES "src/*.cpp")
 
 allen_add_library(NonEventData ${SOURCES})
 
+include_directories(${CPPGSL_INCLUDE_DIRS})
+
 target_link_libraries(NonEventData
   x86Clustering
   VeloCommon
@@ -31,3 +33,4 @@ target_include_directories(NonEventData PUBLIC
   ${CMAKE_SOURCE_DIR}/x86/SciFi/MomentumForward/include
   ${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/common/include/
   ${CMAKE_SOURCE_DIR}/main/include)
+
