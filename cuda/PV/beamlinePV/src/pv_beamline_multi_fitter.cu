@@ -30,7 +30,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
   uint number_of_tracks_in_range = 0;
   for (uint i = 0; i < number_of_tracks; i++) {
     const auto z = parameters.dev_pvtrack_z[event_tracks_offset + i];
-    if (zmin < z && z < zmax) {
+    if (BeamlinePVConstants::Common::zmin < z && z < BeamlinePVConstants::Common::zmax) {
       if (first_track_in_range == -1) {
         first_track_in_range = i;
       }
@@ -52,7 +52,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
     float chi2tot = 0.f;
     float sum_weights = 0.f;
 
-    for (uint iter = 0; (iter < maxFitIter || iter < minFitIter) && !converged; ++iter) {
+    for (uint iter = 0; (iter < BeamlinePVConstants::MultiFitter::maxFitIter || iter < BeamlinePVConstants::MultiFitter::minFitIter) && !converged; ++iter) {
       auto halfD2Chi2DX2_00 = 0.f;
       auto halfD2Chi2DX2_11 = 0.f;
       auto halfD2Chi2DX2_20 = 0.f;
@@ -76,7 +76,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
 
 
         // compute the weight.
-        if (chi2 < maxChi2) {
+        if (chi2 < BeamlinePVConstants::MultiFitter::maxChi2) {
           
           // for more information on the weighted fitting, see e.g.
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
@@ -90,7 +90,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           const auto nom = expf(chi2  * (-0.5f));
           
 
-          const auto denom = chi2CutExp + nom;
+          const auto denom = BeamlinePVConstants::MultiFitter::chi2CutExp + nom;
           //substract this term to avoid double counting
 
           const auto track_weight = nom / (denom + pvtracks_denom[first_track_in_range + i] - exp_chi2_0);
@@ -99,7 +99,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
 
           // unfortunately branchy, but reduces fake rate
           // not cuttign on the weights seems to be important for reoslution of high multiplcitiy tracks
-           if (track_weight > 0.0) {
+           if (track_weight > BeamlinePVConstants::MultiFitter::minWeight) {
               ++nselectedtracks;
 
             const float3 HWr {
@@ -140,7 +140,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
         chi2tot += local_chi2tot;
         sum_weights += local_sum_weights;
        // printf("sum weights %f\n", sum_weights);
-        if (nselectedtracks >= 2 && sum_weights > 0.f) {
+        if (nselectedtracks >= 2 ) {
           // compute the new vertex covariance using analytical inversion
           //dividing matrix elements not important for resoltuon of high mult pvs
           const auto a00 = halfD2Chi2DX2_00;
@@ -175,8 +175,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           // update the position
           vtxpos_xy = vtxpos_xy + delta_xy;
           vtxpos_z = vtxpos_z + delta_z;
-          converged = fabsf(delta_z) < maxDeltaZConverged;
-         // printf("sum_weights delta  %f %f %f %f\n", sum_weights, delta_xy.x, delta_xy.y, delta_z);
+          converged = fabsf(delta_z) < BeamlinePVConstants::MultiFitter::maxDeltaZConverged;
         }
         else {
           // Finish loop and do not accept vertex
@@ -198,7 +197,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       const auto beamlinedx = vertex.position.x - dev_beamline[0];
       const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if ( vertex.nTracks >= 2.f && beamlinerho2 < maxVertexRho2) {
+      if ( vertex.nTracks >= 2.f && beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
         uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }

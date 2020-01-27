@@ -1,7 +1,7 @@
 #include "pv_beamline_histo.cuh"
 
 __device__ float gauss_integral(float x) {
-  const float a = sqrtf(float(2 * order_polynomial + 3));
+  const float a = sqrtf(float(2 * BeamlinePVConstants::Histo::order_polynomial + 3));
   const float xi = x / a;
   const float eta = 1.f - xi * xi;
   constexpr float p[] = {0.5f, 0.25f, 0.1875f, 0.15625f};
@@ -19,11 +19,11 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  float* histo_base_pointer = parameters.dev_zhisto + Nbins * event_number;
+  float* histo_base_pointer = parameters.dev_zhisto + BeamlinePVConstants::Common::Nbins * event_number;
 
   // find better wy to intialize histogram bins to zero
   if (threadIdx.x == 0) {
-    for (int i = 0; i < Nbins; i++) {
+    for (int i = 0; i < BeamlinePVConstants::Common::Nbins; i++) {
       *(histo_base_pointer + i) = 0.f;
     }
   }
@@ -32,13 +32,13 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
   for (uint index = threadIdx.x; index < number_of_tracks_event; index += blockDim.x) {
     PVTrack trk = parameters.dev_pvtracks[event_tracks_offset + index];
     // apply the z cut here
-    if (zmin < trk.z && trk.z < zmax) {
+    if (BeamlinePVConstants::Common::zmin < trk.z && trk.z < BeamlinePVConstants::Common::zmax) {
       const float rho2 = (trk.x.x - dev_beamline[0]) * (trk.x.x - dev_beamline[0]) +
                          (trk.x.y - dev_beamline[1]) * (trk.x.y - dev_beamline[1]);
-      if (rho2 > maxTrackRho2) continue;
+      if (rho2 > BeamlinePVConstants::Histo::maxTrackRho2) continue;
 
       // bin in which z0 is, in floating point
-      const float zbin = (trk.z - zmin) / dz;
+      const float zbin = (trk.z - BeamlinePVConstants::Common::zmin) / BeamlinePVConstants::Common::dz;
 
       // to compute the size of the window, we use the track
       // errors. eventually we can just parametrize this as function of
@@ -46,18 +46,18 @@ __global__ void pv_beamline_histo::pv_beamline_histo(pv_beamline_histo::Paramete
       const float zweight = trk.tx.x * trk.tx.x * trk.W_00 + trk.tx.y * trk.tx.y * trk.W_11;
       const float zerr = 1.f / sqrtf(zweight);
       // get rid of useless tracks. must be a bit carefull with this.
-      if (zerr < maxTrackZ0Err) { // m_nsigma < 10*m_dz ) {
+      if (zerr < BeamlinePVConstants::Common::maxTrackZ0Err) { // m_nsigma < 10*m_dz ) {
         // find better place to define this
-        const float a = sqrtf(float(2 * order_polynomial + 3));
-        const float halfwindow = a * zerr / dz;
+        const float a = sqrtf(float(2 * BeamlinePVConstants::Histo::order_polynomial + 3));
+        const float halfwindow = a * zerr / BeamlinePVConstants::Common::dz;
         // this looks a bit funny, but we need the first and last bin of the histogram to remain empty.
         const int minbin = max(int(zbin - halfwindow), 1);
-        const int maxbin = min(int(zbin + halfwindow), Nbins - 2);
+        const int maxbin = min(int(zbin + halfwindow), BeamlinePVConstants::Common::Nbins - 2);
         // we can get rid of this if statement if we make a selection of seeds earlier
         if (maxbin >= minbin) {
           float integral = 0;
           for (auto i = minbin; i < maxbin; ++i) {
-            const float relz = (zmin + (i + 1) * dz - trk.z) / zerr;
+            const float relz = (BeamlinePVConstants::Common::zmin + (i + 1) * BeamlinePVConstants::Common::dz - trk.z) / zerr;
             const float thisintegral = gauss_integral(relz);
             atomicAdd(histo_base_pointer + i, thisintegral - integral);
             integral = thisintegral;
