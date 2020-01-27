@@ -62,10 +62,19 @@ elseif(GaudiProject_FOUND)
   endif()
 endif()
 
-# MDF receiver to receive output events from integration test
-add_executable(allen_mdf_receiver src/MDFReceiver.cpp)
-target_include_directories(allen_mdf_receiver PRIVATE
-                           ${CMAKE_SOURCE_DIR}/mdf/include)
-target_link_libraries(allen_mdf_receiver PRIVATE Boost::program_options AllenZMQ mdf allen_fs)
+function(zmq_program)
+  cmake_parse_arguments(PARSED_ARGS "" "NAME;SRC" "" ${ARGN})
+  add_executable(${PARSED_ARGS_NAME} ${PARSED_ARGS_SRC})
+  target_include_directories(${PARSED_ARGS_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/mdf/include)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Boost::program_options AllenZMQ mdf allen_fs)
+  install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
+endfunction()
 
-install(TARGETS allen_mdf_receiver RUNTIME DESTINATION bin OPTIONAL)
+# MDF receiver to receive output events from integration test
+zmq_program(NAME allen_mdf_receiver SRC src/MDFReceiver.cpp)
+
+if (BUILD_TESTS)
+  # Simple MDF sender to test MDF receiver
+  zmq_program(NAME allen_mdf_sender SRC test/mdf_sender.cpp)
+endif()

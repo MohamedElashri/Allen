@@ -27,13 +27,13 @@ def send(telegraf_string):
         print(traceback.format_exc())
 
 
-def send_to_telegraf(rate, device):
+def send_to_telegraf(rate, device, app_name, rate_name):
 
     now = datetime.datetime.now()
     timestamp = datetime.datetime.timestamp(now) * 1000000000
 
-    telegraf_string = "AllenIntegrationTest,AllenInstance=%s " % (device)
-    telegraf_string += "allen_rate=%.2f " % (float(rate))
+    telegraf_string = "AllenIntegrationTest,%s=%s " % (app_name, device)
+    telegraf_string += "%s=%.2f " % (rate_name, float(rate))
     telegraf_string += " %d" % timestamp
 
     send(telegraf_string)
@@ -46,13 +46,16 @@ def main():
 
     ctx = zmq.Context()
     sockets = {}
-    for f in ["0", "1", "2"]:
-        con = "ipc:///tmp/allen_throughput_" + f
-        print("connecting to: " + con)
-        s = ctx.socket(zmq.SUB)
-        s.connect(con)
-        s.setsockopt(zmq.SUBSCRIBE, b'')
-        sockets[s] = f.split('_')[-1]
+    connections = {"ipc:///tmp/allen_throughput_%s": (["0", "1", "2"], 'AllenInstance', 'allen_rate'),
+                   "tcp://%s:%s": ([('lbdaqrome02', '35001')], 'OutputWriter', 'output_rate')}
+    for connection, (ids, app_name, rate_name) in connections.items():
+        for socket_id in ids:
+            con = connection % socket_id
+            print("connecting to: " + con)
+            s = ctx.socket(zmq.SUB)
+            s.connect(con)
+            s.setsockopt(zmq.SUBSCRIBE, b'')
+            sockets[s] = (app_name, rate_name, '_'.join(socket_id))
 
     poller = zmq.Poller()
     for socket in sockets.keys():
@@ -60,11 +63,11 @@ def main():
 
     while True:
         polled = dict(poller.poll())
-        for socket, device in sockets.items():
+        for socket, (app_name, rate_name, socket_id) in sockets.items():
             if socket in polled and polled[socket] == zmq.POLLIN:
                 message = socket.recv()
-                print(device, message)
-                send_to_telegraf(message, device)
+                print(socket_id, message)
+                send_to_telegraf(message, socket_id, app_name, rate_name)
 
 
 if __name__ == "__main__":
