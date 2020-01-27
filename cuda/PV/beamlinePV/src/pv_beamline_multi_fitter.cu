@@ -51,7 +51,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
     auto vtxpos_z = seed_pos_z;
     float chi2tot = 0.f;
     float sum_weights = 0.f;
-
+    uint nselectedtracks = 0;
     for (uint iter = 0; (iter < BeamlinePVConstants::MultiFitter::maxFitIter || iter < BeamlinePVConstants::MultiFitter::minFitIter) && !converged; ++iter) {
       auto halfD2Chi2DX2_00 = 0.f;
       auto halfD2Chi2DX2_11 = 0.f;
@@ -61,7 +61,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       float3 halfDChi2DX {0.f, 0.f, 0.f};
       sum_weights = 0.f;
 
-      uint nselectedtracks = 0;
+      nselectedtracks = 0;
       chi2tot = 0.f;
       float local_chi2tot = 0.f;
       float local_sum_weights = 0.f;
@@ -77,7 +77,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
 
         // compute the weight.
         if (chi2 < BeamlinePVConstants::MultiFitter::maxChi2) {
-          
+          ++nselectedtracks;
           // for more information on the weighted fitting, see e.g.
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
           // https://cds.cern.ch/record/803519/files/p280.pdf
@@ -100,8 +100,6 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           // unfortunately branchy, but reduces fake rate
           // not cuttign on the weights seems to be important for reoslution of high multiplcitiy tracks
            if (track_weight > BeamlinePVConstants::MultiFitter::minWeight) {
-              ++nselectedtracks;
-
             const float3 HWr {
               res.x * trk.W_00, res.y * trk.W_11, -trk.tx.x * res.x * trk.W_00 - trk.tx.y * res.y * trk.W_11};
 
@@ -140,7 +138,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
         chi2tot += local_chi2tot;
         sum_weights += local_sum_weights;
        // printf("sum weights %f\n", sum_weights);
-        if (nselectedtracks >= 2 ) {
+        if (nselectedtracks >= BeamlinePVConstants::MultiFitter::minNumTracksPerVertex ) {
           // compute the new vertex covariance using analytical inversion
           //dividing matrix elements not important for resoltuon of high mult pvs
           const auto a00 = halfD2Chi2DX2_00;
@@ -196,7 +194,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       const auto beamlinedx = vertex.position.x - dev_beamline[0];
       const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if ( vertex.nTracks >= 0.f && beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
+      if ( nselectedtracks >= BeamlinePVConstants::MultiFitter::minNumTracksPerVertex && beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
         uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }
