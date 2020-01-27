@@ -18,6 +18,7 @@
 #include "Timer.h"
 
 #include <read_mdf.hpp>
+#include <raw_helpers.hpp>
 
 namespace {
   using namespace std::string_literals;
@@ -74,6 +75,21 @@ void write_files(std::string connection, std::string const& directory,
 
         if (output_file->good) {
           auto const& [event_buffer, offset] = buffers[buffer];
+
+          auto const skip = 4 * sizeof(int);
+          char const* data = event_buffer.data();
+          while(data - event_buffer.data() < offset) {
+            auto* header = reinterpret_cast<LHCb::MDFHeader const*>(data);
+            auto const event_size = header->recordSize();
+            if (header->checkSum() != 0) {
+              auto c = LHCb::genChecksum(1, data + skip, event_size - skip);
+              if (header->checkSum() != c) {
+                std::cout << "Checksum failed.\n";
+              }
+            }
+            data += event_size;
+          }
+
           output_file->write(event_buffer.data(), offset);
           // reply "FREE" i_buffer
           zmqSvc().send(control, "FREE", zmq::SNDMORE);
