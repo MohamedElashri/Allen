@@ -73,7 +73,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     const uint n_pass = atomicAdd(parameters.dev_number_of_passing_events.get(), 1);
     // TODO: Check this is correct
-    parameters.dev_passing_event_list[n_pass] = parameters.dev_event_list[event_number];
+    parameters.dev_passing_event_list[n_pass] = event_number;
 
     // Create the rest of the dec report.
     event_dec_reports[0] = Hlt1::TCK;
