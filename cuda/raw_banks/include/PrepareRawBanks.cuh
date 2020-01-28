@@ -5,6 +5,7 @@
 #include "RawBanksDefinitions.cuh"
 #include "DeviceAlgorithm.cuh"
 #include "LineInfo.cuh"
+#include "ParKalmanFilter.cuh"
 
 namespace prepare_raw_banks {
   struct Parameters {
@@ -47,12 +48,13 @@ namespace prepare_raw_banks {
     PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 256);
   };
 
+  template<typename T>
   __global__ void prepare_raw_banks(Parameters, const uint number_of_events);
 
-  template<typename T, char... S>
+  template<typename T, typename U, char... S>
   struct prepare_raw_banks_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
-    decltype(global_function(prepare_raw_banks)) function {prepare_raw_banks};
+    decltype(global_function(prepare_raw_banks<U>)) function {prepare_raw_banks<U>};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -166,3 +168,5 @@ namespace prepare_raw_banks {
     Property<block_dim_x_t> m_block_dim_x {this};
   };
 } // namespace prepare_raw_banks
+
+#include "PrepareRawBanks.icc"

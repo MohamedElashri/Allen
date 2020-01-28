@@ -1,11 +1,29 @@
 #pragma once
 
-#include "TrackMVALines.cuh"
-#include "MuonLines.cuh"
+#include <functional>
+#include <tuple>
+#include <utility>
+#include <cstdio>
 #include <string>
+#include "VertexDefinitions.cuh"
 
 namespace Hlt1 {
+  // Types of lines
+  struct Line {
+  };
 
+  struct SpecialLine : Line {
+  };
+  struct OneTrackLine : Line {
+  };
+  struct TwoTrackLine : Line {
+  };
+  struct ThreeTrackLine : Line {
+  };
+  struct FourTrackLine : Line {
+  };
+
+  // Deprecated
   // Number of special lines
   const unsigned int nSpecialLines = 1;
   const unsigned int nOneTrackLines = 2;
@@ -16,7 +34,7 @@ namespace Hlt1 {
   const unsigned int startTwoTrackLines = startOneTrackLines + nOneTrackLines;
   const unsigned int startThreeTrackLines = startTwoTrackLines + nTwoTrackLines;
   const unsigned int startFourTrackLines = startThreeTrackLines + nThreeTrackLines;
-  
+
   // Hlt1 lines.
   enum Hlt1Lines {
     PassThrough,
@@ -47,18 +65,4 @@ namespace Hlt1 {
     // Begin 3-track lines.
     // Begin 4-track lines.
   };
-
-  // See if this works...
-  static __device__ bool (*OneTrackSelections[])(const ParKalmanFilter::FittedTrack&) = {
-    TrackMVALines::OneTrackMVA,
-    MuonLines::SingleMuon
-  };
-
-  static __device__ bool (*TwoTrackSelections[])(const VertexFit::TrackMVAVertex&) = {
-    TrackMVALines::TwoTrackMVA,
-    MuonLines::DisplacedDiMuon,
-    MuonLines::HighMassDiMuon,
-    MuonLines::DiMuonSoft
-  };
-  
-}
+} // namespace Hlt1

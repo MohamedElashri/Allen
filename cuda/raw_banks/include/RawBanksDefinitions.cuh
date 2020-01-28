@@ -1,8 +1,8 @@
 #pragma once
+
 #include <string>
 
 namespace Hlt1 {
-
   // Hlt1 TCK.
   const unsigned int TCK = 0x00000000;
 
@@ -11,13 +11,13 @@ namespace Hlt1 {
 
   // 1 StdInfo per passed decision.
   const unsigned int nStdInfoDecision = 1;
-  
+
   // 6 per passing track.
   const unsigned int nStdInfoTrack = 6;
-  
+
   // 3 per passing secondary vertex.
   const unsigned int nStdInfoSV = 3;
-  
+
   // Maximum number of StdInfo to store. Indices are 8 bits.
   const unsigned int maxStdInfoEvent = 256;
 
@@ -41,4 +41,4 @@ namespace Hlt1 {
   const unsigned int selectionCLID = 1;
   const unsigned int trackCLID = 10010;
   const unsigned int svCLID = 10030;
-}
+} // namespace Hlt1

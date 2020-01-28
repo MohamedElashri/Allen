@@ -4,7 +4,7 @@
 #include "HltSelReport.cuh"
 #include "RawBanksDefinitions.cuh"
 #include "LineInfo.cuh"
-
+#include "LineTraverser.cuh"
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
@@ -49,12 +49,13 @@ namespace prepare_decisions {
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
+  template<typename T>
   __global__ void prepare_decisions(Parameters);
 
-  template<typename T, char... S>
+  template<typename T, typename U, char... S>
   struct prepare_decisions_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
-    decltype(global_function(prepare_decisions)) function {prepare_decisions};
+    decltype(global_function(prepare_decisions<U>)) function {prepare_decisions<U>};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -143,3 +144,5 @@ namespace prepare_decisions {
     Property<block_dim_t> m_block_dim {this};
   };
 } // namespace prepare_decisions
+
+#include "PrepareDecisions.icc"

@@ -1,8 +1,4 @@
-#include "PrepareRawBanks.cuh"
-#include "VeloConsolidated.cuh"
-#include "UTConsolidated.cuh"
-#include "SciFiConsolidated.cuh"
-
+template<typename T>
 __global__ void prepare_raw_banks::prepare_raw_banks(
   prepare_raw_banks::Parameters parameters,
   const uint number_of_events)
@@ -45,7 +41,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       parameters.dev_consolidated_svs + parameters.dev_sv_offsets[event_number];
 
     // Dec reports.
-    const int n_hlt1_lines = Hlt1::Hlt1Lines::End;
+    const int n_hlt1_lines = std::tuple_size<T>::value;
     uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
 
     // Sel reports.
@@ -63,7 +59,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Return if event has not passed any selections.
     bool pass = false;
-    for (int i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+    for (int i_line = 0; i_line < n_hlt1_lines; i_line++) {
       pass = pass || ((event_dec_reports[2 + i_line] & dec_mask) == (1 & dec_mask));
       if (pass) {
         break;
@@ -79,7 +75,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     event_dec_reports[0] = Hlt1::TCK;
     event_dec_reports[1] = Hlt1::taskID;
     uint n_decisions = 0;
-    for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+    for (uint i_line = 0; i_line < n_hlt1_lines; i_line++) {
       HltDecReport dec_report;
       dec_report.setDecision(false);
       // TODO: These are all placeholder values for now.
@@ -118,7 +114,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     // Add decision summaries to the StdInfo subbank. CLID = 1.
     // TODO: Don't loop over the decision lines multiple times.
     if (writeStdInfo) {
-      for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+      for (uint i_line = 0; i_line < n_hlt1_lines; i_line++) {
         if (event_dec_reports[2 + i_line] & dec_mask) {
           stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
           stdinfo_bank.addInfo(i_line);

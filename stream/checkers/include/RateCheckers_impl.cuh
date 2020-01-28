@@ -3,8 +3,8 @@
 #include "PrepareKalmanTracks.h"
 #include "RunHlt1.cuh"
 
-template<typename T, char... S>
-struct SequenceVisitor<run_hlt1::run_hlt1_t<T, S...>> {
+template<typename T, typename U, char... S>
+struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
   static void
   check(HostBuffers& host_buffers, const Constants& constants, const CheckerInvoker& checker_invoker, MCEvents const& mc_events)
   {
