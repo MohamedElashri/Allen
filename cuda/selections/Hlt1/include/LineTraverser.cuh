@@ -129,7 +129,7 @@ namespace Hlt1 {
 
   // If the line does not inherit from U, ignore the line
   template<typename T, typename... OtherLines, typename U, typename F, unsigned long I, unsigned long... Is>
-  struct TraverseLinesImpl<std::tuple<T, OtherLines...>, U, F, std::index_sequence<I, Is...>, typename std::enable_if<std::bool_constant<!bool(std::is_base_of<U, T>::value)>::value>::type> {
+  struct TraverseLinesImpl<std::tuple<T, OtherLines...>, U, F, std::index_sequence<I, Is...>, typename std::enable_if<!bool(std::is_base_of<U, T>::value)>::type> {
     constexpr static void traverse(const F& lambda_fn) {
       TraverseLinesImpl<std::tuple<OtherLines...>, U, F, std::index_sequence<Is...>>::traverse(lambda_fn);
     }

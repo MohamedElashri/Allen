@@ -21,13 +21,15 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 file(GLOB vertex_fitter_src "vertex_fitter/src/*cu")
+file(GLOB common_src "common/src/*cu")
 
 if(TARGET_DEVICE STREQUAL "CPU")
-  set_source_files_properties(${vertex_fitter_src} PROPERTIES LANGUAGE CXX)
+  set_source_files_properties(${vertex_fitter_src} ${common_src} PROPERTIES LANGUAGE CXX)
 endif()
 
 allen_add_library(VertexFitter STATIC
   ${vertex_fitter_src}
+  ${common_src}
 )
 
 target_link_libraries(VertexFitter Kalman)
