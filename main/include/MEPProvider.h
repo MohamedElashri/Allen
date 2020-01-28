@@ -60,7 +60,7 @@ struct MEPProviderConfig {
   bool check_checksum = false;
 
   // number of prefetch buffers
-  size_t n_buffers = 10;
+  size_t n_buffers = 8;
 
   // number of transpose threads
   size_t n_transpose_threads = 5;
@@ -482,6 +482,8 @@ private:
       auto numa_node = i % m_config.n_receivers();
       auto const& numa_obj = numa_objs[numa_node];
       char* contents = nullptr;
+
+      info_cout << "Allocating buffer " << i << " in NUMA domain " << numa_node << "\n";
       MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
 
       // Only bind explicitly if there are multiple receivers,
@@ -779,8 +781,7 @@ private:
 
     // Iterate over the slices
     size_t reporting_period = 5;
-    size_t bytes_received = 0;
-    size_t meps_received = 0;
+    std::vector<std::tuple<size_t, size_t>> data_received(m_config.n_receivers());
     std::vector<size_t> n_meps(m_config.n_receivers());
     Timer t;
     Timer t_origin;
@@ -810,10 +811,12 @@ private:
         assert(m_buffer_reading->work_counter == 0);
       }
 
-      this->debug_output("Writing to MEP slice index " + std::to_string(i_buffer));
-
       auto receiver = i_buffer % m_config.n_receivers();
       auto [sender_rank, numa_node] = m_domains[receiver];
+
+      this->debug_output("Receiving from rank " + std::to_string(sender_rank) + " into buffer "
+                         + std::to_string(i_buffer) + "  NUMA domain " + std::to_string(numa_node));
+
       auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
       char*& contents = m_mpi_buffers[i_buffer];
 
@@ -919,17 +922,30 @@ private:
         allocate_storage(i_buffer);
       }
 
+      auto& [meps_received, bytes_received] = data_received[receiver];
       bytes_received += mep_size;
       meps_received += 1;
       if (t.get_elapsed_time() >= reporting_period) {
         const auto seconds = t.get_elapsed_time();
-        const double rate = (double) meps_received / seconds;
-        double bandwidth = ((double) (bytes_received * 8)) / (1024 * 1024 * 1024 * seconds);
+        auto total_rate = 0.;
+        auto total_bandwidth = 0.;
+        for (size_t i_rec = 0; i_rec < m_config.n_receivers(); ++i_rec) {
+          auto& [mr, br] = data_received[i_rec];
+          auto [rec_rank, rec_node] = m_domains[i_rec];
 
-        printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n", t_origin.get_elapsed_time(), seconds, rate, bandwidth);
+          const double rate = (double) mr / seconds;
+          const double bandwidth = ((double) (br * 8)) / (1024 * 1024 * 1024 * seconds);
+          total_rate += rate;
+          total_bandwidth += bandwidth;
+          printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s; Domain %2i; Rank %2i\n",
+                 t_origin.get_elapsed_time(), seconds, rate, bandwidth, rec_node, rec_rank);
 
-        bytes_received = 0;
-        meps_received = 0;
+          br = 0;
+          mr = 0;
+        }
+        printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n",
+               t_origin.get_elapsed_time(), seconds, total_rate, total_bandwidth);
+
 
         t.restart();
       }
