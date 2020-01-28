@@ -42,12 +42,12 @@ def send_to_telegraf(labels, values):
  
 
 
-p = Popen(['sudo', '/usr/local/bin/likwid-perfctr', '-f', '-c', '0', '-g', 'MEM2_eb', '-t', '2s' ],
+p = Popen(['sudo', '/usr/local/bin/likwid-perfctr', '-f', '-c', '0', '-g', 'MEM_eb', '-t', '2s' ],
           stdout=PIPE, stderr=PIPE,
           bufsize=1,
           close_fds=ON_POSIX)
   
-rate_names = ['memory_from', 'memory_to', 'memory_total']
+rate_names = ['memory_read', 'memory_write', 'memory_total']
  
 for stdout_line in iter(p.stderr.readline, b''):
     #print(stdout_line)
@@ -58,9 +58,9 @@ for stdout_line in iter(p.stderr.readline, b''):
     values = []
     if not 'Sleeping' in string_line:
         line_values = string_line.split()
-        values.append(line_values[4])
         values.append(line_values[5])
         values.append(line_values[6])
+        values.append(line_values[7])
         print(values)
     
     if not values:
