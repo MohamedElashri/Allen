@@ -47,15 +47,20 @@ def main():
     ctx = zmq.Context()
     sockets = {}
     connections = {"ipc:///tmp/allen_throughput_%s": (["0", "1", "2"], 'AllenInstance', 'allen_rate'),
-                   "tcp://%s:%s": ([('lbdaqrome02', '35001')], 'OutputWriter', 'output_rate')}
+                   "tcp://%s:%s": ([('192.168.1.101', '35001', 'lbquantaperf01')], 'OutputWriter', 'output_rate')}
     for connection, (ids, app_name, rate_name) in connections.items():
         for socket_id in ids:
-            con = connection % socket_id
+            if len(socket_id) > 1:
+                con = connection % socket_id[:-1]
+                app_id = socket_id[-1]
+            else:
+                con = connection % socket_id
+                app_id = socket_id
             print("connecting to: " + con)
             s = ctx.socket(zmq.SUB)
             s.connect(con)
             s.setsockopt(zmq.SUBSCRIBE, b'')
-            sockets[s] = (app_name, rate_name, '_'.join(socket_id))
+            sockets[s] = (app_name, rate_name, app_id)
 
     poller = zmq.Poller()
     for socket in sockets.keys():
