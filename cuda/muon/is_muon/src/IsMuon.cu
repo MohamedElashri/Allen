@@ -85,7 +85,6 @@ __global__ void is_muon::is_muon(
 
       parameters.dev_muon_track_occupancies[track_offset + station_id] = 0;
 
-
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
         const int idx = station_offset + i_hit;
         if (is_in_window(
