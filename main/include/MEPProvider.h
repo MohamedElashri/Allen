@@ -428,7 +428,7 @@ private:
     auto const& receivers = m_config.receivers;
     m_domains.reserve(receivers.size());
 
-    if (receivers.size() > 1) {
+    if (!receivers.empty()) {
       // Find NUMA domain of receivers
       while ((osdev = hwloc_get_next_osdev(m_topology, osdev))) {
         // We're interested in InfiniBand cards
@@ -444,10 +444,6 @@ private:
       if (m_domains.size() != receivers.size()) {
         throw StrException{"Failed to locate some receiver devices "};
       }
-    }
-    else if (receivers.size() == 1){
-      auto [rec, rank] = *receivers.begin();
-      m_domains.emplace_back(rank, 0);
     } else {
       throw StrException{"MPI requested, but no receivers specified"};
     }
@@ -479,11 +475,11 @@ private:
     // Packing factor can be done dynamically if needed
     size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
     for (size_t i = 0; i < m_config.n_buffers; ++i) {
-      auto numa_node = i % m_config.n_receivers();
-      auto const& numa_obj = numa_objs[numa_node];
+      auto i_rec = i % m_config.n_receivers();
+      auto const& numa_obj = numa_objs[i_rec];
       char* contents = nullptr;
 
-      info_cout << "Allocating buffer " << i << " in NUMA domain " << numa_node << "\n";
+      info_cout << "Allocating buffer " << i << " in NUMA domain " << numa_obj->os_index << "\n";
       MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
 
       // Only bind explicitly if there are multiple receivers,
@@ -492,7 +488,7 @@ private:
         auto s = hwloc_set_area_membind(m_topology, contents, n_bytes, numa_obj->nodeset,
                                         HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
         if (s != 0) {
-          throw StrException{"Failed to bind memory to node "s + std::to_string(numa_node)
+          throw StrException{"Failed to bind memory to node "s + std::to_string(numa_obj->os_index)
                              + " " + strerror(errno)};
         }
       }
@@ -943,10 +939,10 @@ private:
           br = 0;
           mr = 0;
         }
-        printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n",
-               t_origin.get_elapsed_time(), seconds, total_rate, total_bandwidth);
-
-
+        if (m_config.n_receivers() > 1) {
+          printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n",
+                 t_origin.get_elapsed_time(), seconds, total_rate, total_bandwidth);
+        }
         t.restart();
       }
 
