@@ -12,6 +12,7 @@ namespace HighMassDiMuon {
 
   struct HighMassDiMuon_t : public Hlt1::TwoTrackLine {
     constexpr static auto name {"HighMassDiMuon"};
+    
     static __device__ bool function(const VertexFit::TrackMVAVertex& vertex);
   };
 } // namespace HighMassDiMuon

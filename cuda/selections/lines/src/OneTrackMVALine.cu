@@ -1,6 +1,6 @@
 #include "OneTrackMVALine.cuh"
 
-__device__ bool OneTrackMVA::OneTrackMVA(const ParKalmanFilter::FittedTrack& track)
+__device__ bool OneTrackMVA::OneTrackMVA_t::function(const ParKalmanFilter::FittedTrack& track)
 {
   float ptShift = (track.pt() - alpha) / Gaudi::Units::GeV;
   bool decision = track.chi2 / track.ndof < maxChi2Ndof;

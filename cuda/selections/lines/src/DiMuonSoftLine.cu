@@ -1,6 +1,6 @@
 #include "DiMuonSoftLine.cuh"
 
-__device__ bool DiMuonSoft::DiMuonSoft(const VertexFit::TrackMVAVertex& vertex)
+__device__ bool DiMuonSoft::DiMuonSoft_t::function(const VertexFit::TrackMVAVertex& vertex)
 {
   if (!vertex.is_dimuon) return false;
   if (vertex.minipchi2 < DMSoftMinIPChi2) return false;

@@ -1,6 +1,6 @@
 #include "TwoTrackMVALine.cuh"
 
-__device__ bool TwoTrackMVA::TwoTrackMVA(const VertexFit::TrackMVAVertex& vertex)
+__device__ bool TwoTrackMVA::TwoTrackMVA_t::function(const VertexFit::TrackMVAVertex& vertex)
 {
   if (vertex.chi2 < 0) {
     return false;

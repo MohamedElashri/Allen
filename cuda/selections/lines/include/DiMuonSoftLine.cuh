@@ -16,10 +16,9 @@ namespace DiMuonSoft {
   constexpr float DMSoftMaxIPDZ = 0.17f;
   constexpr float DMSoftGhost = 4.e-06f;
 
-  __device__ bool DiMuonSoft(const VertexFit::TrackMVAVertex& vertex);
-
   struct DiMuonSoft_t : public Hlt1::TwoTrackLine {
     constexpr static auto name {"DiMuonSoft"};
-    constexpr static auto function = &DiMuonSoft;
+
+    static __device__ bool function(const VertexFit::TrackMVAVertex& vertex);
   };
 } // namespace DiMuonSoft

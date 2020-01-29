@@ -16,10 +16,9 @@ namespace OneTrackMVA {
   constexpr float param3 = 1.1f;
   constexpr float alpha = 2500.0f;
 
-  __device__ bool OneTrackMVA(const ParKalmanFilter::FittedTrack& track);
-
   struct OneTrackMVA_t : public Hlt1::OneTrackLine {
     constexpr static auto name {"OneTrackMVA"};
-    constexpr static auto function = &OneTrackMVA;
+
+    static __device__ bool function(const ParKalmanFilter::FittedTrack& track);
   };
 } // namespace OneTrackMVA

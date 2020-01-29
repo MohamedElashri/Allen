@@ -16,10 +16,9 @@ namespace TwoTrackMVA {
   constexpr float minFDChi2 = 0.0f; // Placeholder. To be replaced with MVA selection.
   constexpr float minTrackIPChi2 = 12.f;
 
-  __device__ bool TwoTrackMVA(const VertexFit::TrackMVAVertex& vertex);
-
   struct TwoTrackMVA_t : public Hlt1::TwoTrackLine {
     constexpr static auto name {"TwoTrackMVA"};
-    constexpr static auto function = &TwoTrackMVA;
+
+    static __device__ bool function(const VertexFit::TrackMVAVertex& vertex);
   };
 } // namespace TwoTrackMVA
