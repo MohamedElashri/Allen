@@ -154,9 +154,7 @@ public:
             if (it == end(BankSizes)) {
               throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
             }
-            auto it_id = std::find(m_bank_ids.begin(), m_bank_ids.end(), to_integral(bank_type));
-            auto lhcb_type = std::distance(m_bank_ids.begin(), it_id);
-            auto n_banks = m_banks_count[lhcb_type];
+            auto n_banks = m_banks_count[ib];
             return {std::lround(
                       ((1 + n_banks) * sizeof(uint32_t) + it->second) * events_per_slice * bank_size_fudge_factor * kB),
                     events_per_slice};

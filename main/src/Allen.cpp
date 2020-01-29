@@ -283,6 +283,7 @@ void run_stream(
          input_provider->banks(BankTypes::UT, *idx),
          input_provider->banks(BankTypes::FT, *idx),
          input_provider->banks(BankTypes::MUON, *idx),
+         input_provider->banks(BankTypes::ODIN, *idx),
          {static_cast<uint>(first), static_cast<uint>(last)},
          n_reps,
          do_check,
@@ -679,6 +680,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   const auto folder_name_UT_raw = folder_data + folder_rawdata + "UT";
   const auto folder_name_SciFi_raw = folder_data + folder_rawdata + "FTCluster";
   const auto folder_name_Muon_raw = folder_data + folder_rawdata + "Muon";
+  const auto folder_name_ODIN_raw = folder_data + folder_rawdata + "ODIN";
   const auto folder_name_mdf = folder_data + folder_rawdata + "mdf";
 
   std::unique_ptr<ConfigurationReader> configuration_reader;
@@ -724,9 +726,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     mep_layout = false;
     // The binary input provider expects the folders for the bank types as connections
     std::vector<std::string> connections = {
-      folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw};
-    input_provider = std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
-      number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
+      folder_name_velopix_raw, folder_name_UT_raw, folder_name_SciFi_raw, folder_name_Muon_raw, folder_name_ODIN_raw};
+    input_provider =
+      std::make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+        number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
   }
 
   std::unique_ptr<OutputHandler> output_handler;

@@ -13,7 +13,7 @@ namespace {
 }
 
 constexpr auto NBankTypes = 8;
-enum class BankTypes { VP, UT, FT, MUON, Rich, ECal, HCal, ODIN };
+enum class BankTypes { VP, UT, FT, MUON, ODIN, Rich, ECal, HCal };
 
 // Average size of all raw banks of a given type per
 // subdetector, in kB, measured in simulated minbias events.

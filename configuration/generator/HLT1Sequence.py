@@ -13,6 +13,7 @@ def HLT1_sequence(validate=False):
 
   consolidate_svs = consolidate_svs_t()
   run_hlt1 = run_hlt1_t()
+  run_postscale = run_postscale_t()
   prepare_decisions = prepare_decisions_t()
   prepare_raw_banks = prepare_raw_banks_t()
 
@@ -31,6 +32,7 @@ def HLT1_sequence(validate=False):
     prefix_sum_secondary_vertices,
     consolidate_svs,
     run_hlt1,
+    run_postscale,
     prepare_decisions,
     prepare_raw_banks,
     prefix_sum_sel_reps,
