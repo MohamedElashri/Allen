@@ -81,13 +81,13 @@ __global__ void is_muon::is_muon(
       const auto& state = scifi_tracks.states(track_id);
 
       parameters.dev_muon_track_occupancies[track_offset + station_id] = 0;
+      const float extrapolation_x = scifi_tracks.states[track_id].x +
+                                    scifi_tracks.states[track_id].tx * (station_z - scifi_tracks.states[track_id].z);
+      const float extrapolation_y = scifi_tracks.states[track_id].y +
+                                    scifi_tracks.states[track_id].ty * (station_z - scifi_tracks.states[track_id].z);
 
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
         const int idx = station_offset + i_hit;
-        const float extrapolation_x = scifi_tracks.states[track_id].x +
-                                    scifi_tracks.states[track_id].tx * (muon_hits_event.z[idx] - scifi_tracks.states[track_id].z);
-        const float extrapolation_y = scifi_tracks.states[track_id].y +
-                                    scifi_tracks.states[track_id].ty * (muon_hits_event.z[idx]- scifi_tracks.states[track_id].z);
         if (is_in_window(
               muon_hits_event.x[idx],
               muon_hits_event.y[idx],
