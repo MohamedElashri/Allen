@@ -19,7 +19,7 @@ __global__ void package_sel_reports::package_sel_reports(
     const uint event_sel_rb_substr_offset =
       sel_event_number * Hlt1::subStrDefaultAllocationSize;
     uint32_t* event_sel_rb_substr = parameters.dev_sel_rb_substr + event_sel_rb_substr_offset;
-
+    
     HltSelRepRBHits hits_bank;
     hits_bank.m_location = event_sel_rb_hits;
     HltSelRepRBSubstr substr_bank;
@@ -31,7 +31,7 @@ __global__ void package_sel_reports::package_sel_reports(
     HltSelRepRBObjTyp objtyp_bank;
     objtyp_bank.m_location = event_sel_rb_objtyp;
     objtyp_bank.saveSize();
-    
+
     HltSelRepRawBank selrep_bank(
       parameters.dev_sel_rep_raw_banks + parameters.dev_sel_rep_offsets[event_number]);
     selrep_bank.push_back(

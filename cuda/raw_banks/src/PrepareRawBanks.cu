@@ -108,7 +108,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     uint nObj = n_decisions + parameters.dev_n_tracks_saved[event_number] + parameters.dev_n_svs_saved[event_number];
     bool writeStdInfo = nAllInfo < Hlt1::maxStdInfoEvent;
     HltSelRepRBStdInfo stdinfo_bank(nObj, nAllInfo, event_sel_rb_stdinfo);
-
+    
     // Create the object type sub-bank.
     HltSelRepRBObjTyp objtyp_bank(Hlt1::nObjTyp, event_sel_rb_objtyp);
     objtyp_bank.addObj(Hlt1::selectionCLID, n_decisions);
@@ -135,7 +135,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         substr_bank.addPtr(n_decisions + event_save_track[candidate_list[i_sub]]);
       }
     }
-
+ 
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
     for (uint i_saved_track = 0; i_saved_track < parameters.dev_n_tracks_saved[event_number]; i_saved_track++) {
       uint i_track = event_saved_tracks_list[i_saved_track];
@@ -149,7 +149,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         stdinfo_bank.addInfo(event_kf_tracks[i_track].state[3]);
         stdinfo_bank.addInfo(event_kf_tracks[i_track].state[4]);
       }
-
+      
       // Add to Substr.
       // No substructure. Ptr will be to hits.
       substr_bank.addSubstr(0, 1);
@@ -183,7 +183,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         i_hit++;
       }
     }
-
+    
     // Add secondary vertices to the hits StdInfo. CLID = 10030.
     for (uint i_saved_sv = 0; i_saved_sv < parameters.dev_n_svs_saved[event_number]; i_saved_sv++) {
       uint i_sv = event_saved_svs_list[i_saved_sv];
@@ -204,7 +204,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         stdinfo_bank.addInfo(event_svs[i_sv].z);
       }
     }
-
+    
     // Get the sizes of the banks.
     objtyp_bank.saveSize();
     substr_bank.saveSize();

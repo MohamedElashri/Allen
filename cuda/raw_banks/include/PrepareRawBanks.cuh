@@ -44,7 +44,7 @@ namespace prepare_raw_banks {
     DEVICE_OUTPUT(dev_sel_rep_sizes_t, uint) dev_sel_rep_sizes;
     DEVICE_OUTPUT(dev_number_of_passing_events_t, uint) dev_number_of_passing_events;
     DEVICE_OUTPUT(dev_passing_event_list_t, uint) dev_passing_event_list;
-    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 256);
+    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 16);
   };
 
   __global__ void prepare_raw_banks(Parameters, const uint number_of_events);
