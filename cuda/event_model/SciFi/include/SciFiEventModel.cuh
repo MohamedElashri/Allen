@@ -243,7 +243,6 @@ namespace SciFi {
     // Pointer accessor for binary search
     __host__ __device__ typename ForwardType<T, float>::t* x0_p(const uint index) const
     {
-      assert(index < m_total_number_of_hits);
       return m_base_pointer + index;
     }
   };

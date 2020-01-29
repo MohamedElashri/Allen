@@ -10,8 +10,9 @@ public:
     IInputProvider const* input_provider,
     std::string filename,
     size_t events_per_slice,
+    const uint number_of_hlt1_lines,
     bool checksum = true) :
-    OutputHandler {input_provider, events_per_slice},
+    OutputHandler {input_provider, events_per_slice, number_of_hlt1_lines},
     m_filename {std::move(filename)},
     m_checksum {checksum}
   {

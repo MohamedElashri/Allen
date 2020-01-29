@@ -28,7 +28,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/search_by_triplet/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/simplified_kalman_filter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/preprocessing/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
-
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/search_initial_windows/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/looking_forward/find_compatible_windows/include)
@@ -109,9 +108,9 @@ target_link_libraries(Stream PRIVATE
   x86Clustering
   HostPrefixSum
   UT
+  Hlt1
   Kalman
   VertexFitter
-  Hlt1
   RawBanks
   SciFi
   HostGEC

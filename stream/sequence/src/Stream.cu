@@ -9,13 +9,22 @@
 #include "KalmanSequenceCheckers_impl.cuh"
 #include "RateCheckers_impl.cuh"
 
+StreamWrapper::StreamWrapper() {
+  number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
+  uint passthrough_line_index = 0;
+  const auto lambda_fn = [&] (const unsigned long i) {
+    passthrough_line_index = i;
+  };
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
+  passthrough_line = passthrough_line_index;
+}
+
 void StreamWrapper::initialize_streams(
   const uint n,
   const bool print_memory_usage,
   const uint start_event_offset,
   const size_t reserve_mb,
   const Constants& constants,
-  HostBuffersManager const * buffers_manager,
   const std::map<std::string, std::map<std::string, std::string>>& config)
 {
   for (uint i = 0; i < n; ++i) {
@@ -25,7 +34,14 @@ void StreamWrapper::initialize_streams(
 
   for (size_t i = 0; i < streams.size(); ++i) {
     streams[i]->initialize(
-      print_memory_usage, start_event_offset, reserve_mb, constants, buffers_manager);
+      print_memory_usage, start_event_offset, reserve_mb, constants);
+  }
+}
+
+void StreamWrapper::initialize_streams_host_buffers_manager(
+  HostBuffersManager* buffers_manager) {
+  for (size_t i = 0; i < streams.size(); ++i) {
+    streams[i]->set_host_buffer_manager(buffers_manager);
   }
 }
 
@@ -71,8 +87,7 @@ cudaError_t Stream::initialize(
   const bool param_do_print_memory_manager,
   const uint param_start_event_offset,
   const size_t reserve_mb,
-  const Constants& param_constants,
-  HostBuffersManager const* buffers_manager)
+  const Constants& param_constants)
 {
   // Set stream and events
   cudaCheck(cudaStreamCreate(&cuda_stream));
@@ -82,9 +97,6 @@ cudaError_t Stream::initialize(
   do_print_memory_manager = param_do_print_memory_manager;
   start_event_offset = param_start_event_offset;
   constants = param_constants;
-  
-  // Reserve host buffers
-  host_buffers_manager = buffers_manager;
 
   // Malloc a configurable reserved memory on the host
   // TODO: Make configurable
@@ -97,6 +109,11 @@ cudaError_t Stream::initialize(
   scheduler.initialize(do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer, 10 * 1024 * 1024, host_base_pointer);
 
   return cudaSuccess;
+}
+
+void Stream::set_host_buffer_manager(HostBuffersManager* buffers_manager) {
+  // Set host buffers manager
+  host_buffers_manager = buffers_manager;
 }
 
 cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runtime_options)
@@ -174,12 +191,3 @@ void Stream::run_monte_carlo_test(
     checker.accumulate<TrackCheckerForward>(mc_events, forward_tracks);
   }
 }
-
-// cudaError_t Stream::free(const bool do_check)
-// {
-//   if (host_buffers)
-//     host_buffers->free(do_check);
-//   cudaCheck(cudaFree(dev_base_pointer));
-  
-//   return cudaSuccess;
-// }

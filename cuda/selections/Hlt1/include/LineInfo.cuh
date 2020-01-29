@@ -1,79 +1,22 @@
 #pragma once
 
-#include "TrackMVALines.cuh"
-#include "MuonLines.cuh"
-#include <string>
-
 namespace Hlt1 {
+  // Types of lines
+  struct Line {};
 
-  // Number of special lines
-  const unsigned int nSpecialLines = 1;
-  const unsigned int nOneTrackLines = 2;
-  const unsigned int nTwoTrackLines = 4;
-  const unsigned int nThreeTrackLines = 0;
-  const unsigned int nFourTrackLines = 0;
-  const unsigned int startOneTrackLines = nSpecialLines;
-  const unsigned int startTwoTrackLines = startOneTrackLines + nOneTrackLines;
-  const unsigned int startThreeTrackLines = startTwoTrackLines + nTwoTrackLines;
-  const unsigned int startFourTrackLines = startThreeTrackLines + nThreeTrackLines;
-  
-  // Hlt1 lines.
-  enum Hlt1Lines {
-    PassThrough,
-    // Begin 1-track lines.
-    OneTrackMVA,
-    SingleMuon,
-    // Begin 2-track lines.
-    TwoTrackMVA,
-    DisplacedDiMuon,
-    HighMassDiMuon,
-    SoftDiMuon,
-    // Begin 3-track lines.
-    // Begin 4-track lines.
-    End
+  struct SpecialLine : Line {
+    constexpr static auto scale_factor = 1.f;
   };
-
-  // Hlt1 line post-scales.
-  static __device__ const float Hlt1LineScaleFactors[] = {
-    1.f,
-    // Begin 1-track lines.
-    1.f,
-    1.f,
-    // Begin 2-track lines.
-    1.f,
-    1.f,
-    1.f,
-    1.f
-    // Begin 3-track lines.
-    // Begin 4-track lines.
+  struct OneTrackLine : Line {
+    constexpr static auto scale_factor = 1.f;
   };
-
-  // Hlt1 line names.
-  static const std::string Hlt1LineNames[] = {
-    "PassThrough",
-    // Begin 1-track lines.
-    "OneTrackMVA",
-    "SingleMuon",
-    // Begin 2-track lines.
-    "TwoTrackMVA",
-    "DisplacedDiMuon",
-    "HighMassDiMuon",
-    "SoftDiMuon"
-    // Begin 3-track lines.
-    // Begin 4-track lines.
+  struct TwoTrackLine : Line {
+    constexpr static auto scale_factor = 1.f;
   };
-
-  // See if this works...
-  static __device__ bool (*OneTrackSelections[])(const ParKalmanFilter::FittedTrack&) = {
-    TrackMVALines::OneTrackMVA,
-    MuonLines::SingleMuon
+  struct ThreeTrackLine : Line {
+    constexpr static auto scale_factor = 1.f;
   };
-
-  static __device__ bool (*TwoTrackSelections[])(const VertexFit::TrackMVAVertex&) = {
-    TrackMVALines::TwoTrackMVA,
-    MuonLines::DisplacedDiMuon,
-    MuonLines::HighMassDiMuon,
-    MuonLines::DiMuonSoft
+  struct FourTrackLine : Line {
+    constexpr static auto scale_factor = 1.f;
   };
-  
-}
+} // namespace Hlt1

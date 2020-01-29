@@ -1,5 +1,5 @@
 include_directories(Hlt1/include)
-include_directories(Postscale/include)
+include_directories(postscale/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/associate/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
@@ -17,16 +17,13 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 
-file(GLOB hlt1_src "Hlt1/src/*cu")
-file(GLOB postscale_src "Postscale/src/*cu")
+file(GLOB postscale_src "postscale/src/*cu")
 
 if(TARGET_DEVICE STREQUAL "CPU")
-  set_source_files_properties(${hlt1_src} PROPERTIES LANGUAGE CXX)
   set_source_files_properties(${postscale_src} PROPERTIES LANGUAGE CXX)
 endif()
 
 allen_add_library(Hlt1 STATIC
-  ${hlt1_src}
   ${postscale_src}
 )
 

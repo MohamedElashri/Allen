@@ -30,3 +30,6 @@ input/10kevents_*
 input/test/*
 input/UT_*
 checker/plotting/output
+configuration/generator/generated/*.h
+configuration/generator/generated/*.json
+configuration/generator/algorithms.py

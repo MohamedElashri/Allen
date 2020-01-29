@@ -13,8 +13,9 @@ ZMQOutputSender::ZMQOutputSender(IInputProvider const* input_provider,
                                  std::string const receiver_connection,
                                  size_t const events_per_slice,
                                  ZeroMQSvc* zmqSvc,
+                                 const uint number_of_hlt1_lines,
                                  bool const checksum) :
-  OutputHandler {input_provider, events_per_slice},
+  OutputHandler {input_provider, events_per_slice, number_of_hlt1_lines},
   m_zmq{zmqSvc},
   m_checksum {checksum}
 {

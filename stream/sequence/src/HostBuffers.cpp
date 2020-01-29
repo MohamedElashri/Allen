@@ -17,7 +17,7 @@
 #include "LineInfo.cuh"
 #include "HltSelReport.cuh"
 
-void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
+void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, const uint number_of_hlt1_lines)
 {
   // Datatypes needed to run, regardless of checking
   // Note: These datatypes must be pinned to allow for asynchronicity
@@ -37,8 +37,6 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   cudaCheck(cudaMallocHost((void**) &host_number_of_svs, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_hits, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_passing_events, sizeof(uint)));
-  cudaCheck(cudaMallocHost((void**) &host_sel_results_atomics, (2 * Hlt1::Hlt1Lines::End + 1) * sizeof(uint)));
-  cudaCheck(cudaMallocHost((void**) &host_sel_results, max_number_of_events * 1000 * Hlt1::Hlt1Lines::End * sizeof(bool)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_sel_rep_words, sizeof(uint)));
 
   // Buffer for performing GEC on CPU
@@ -47,9 +45,11 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check)
   // Buffer for saving events passing Hlt1 selections.
   cudaCheck(cudaMallocHost((void**) &host_passing_event_list, max_number_of_events * sizeof(uint)));
 
+  cudaCheck(cudaMallocHost((void**) &host_sel_results_atomics, (2 * number_of_hlt1_lines + 1) * sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_sel_results, max_number_of_events * 1000 * number_of_hlt1_lines * sizeof(bool)));
   // Buffer for saving raw banks.
-  int n_hlt1_lines = Hlt1::Hlt1Lines::End;
-  cudaCheck(cudaMallocHost((void**) &host_dec_reports, (n_hlt1_lines + 2) * max_number_of_events * sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_dec_reports, (number_of_hlt1_lines + 2) * max_number_of_events * sizeof(uint)));
+
   cudaCheck(cudaMallocHost(
     (void**) &host_sel_rep_raw_banks,
     4 * HltSelRepRawBank::DefaultAllocation::kDefaultAllocation * max_number_of_events * sizeof(uint)));

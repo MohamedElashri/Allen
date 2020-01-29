@@ -1,5 +1,25 @@
 from collections import OrderedDict
 
+class Line():
+  def __init__(self):
+    pass
+
+
+class SpecialLine(Line):
+  def __init__(self):
+    pass
+
+
+class OneTrackLine(Line):
+  def __init__(self):
+    pass
+
+
+class TwoTrackLine(Line):
+  def __init__(self):
+    pass
+
+
 class Type():
   def __init__(self, vtype):
     if vtype == "uint" or vtype == "unsigned int" or vtype == "unsigned int32_t":
@@ -33,12 +53,17 @@ class Type():
     return self.__type
 
 
-class HostAlgorithm():
+class Algorithm():
   def __init__(self):
     pass
 
 
-class DeviceAlgorithm():
+class HostAlgorithm(Algorithm):
+  def __init__(self):
+    pass
+
+
+class DeviceAlgorithm(Algorithm):
   def __init__(self):
     pass
 
@@ -212,10 +237,20 @@ def prefix(indentation_level, indent_by = 2):
 
 class Sequence():
   def __init__(self, *args):
+    self.__sequence = OrderedDict()
+    self.__lines = OrderedDict()
     if args[0].__class__ == list:
-      self.__sequence = OrderedDict([(algorithm.name(), algorithm) for algorithm in args[0]])
+      for item in args[0]:
+        if issubclass(item.__class__, Algorithm):
+          self.__sequence[item.name()] = item
+        elif issubclass(item.__class__, Line):
+          self.__lines[item.name()] = item
     else:
-      self.__sequence = OrderedDict([(algorithm.name(), algorithm) for algorithm in args])
+      for item in args:
+        if issubclass(item.__class__, Algorithm):
+          self.__sequence[item.name()] = item
+        elif issubclass(item.__class__, Line):
+          self.__lines[item.name()] = item
 
   def validate(self):
     warnings = 0
@@ -298,6 +333,8 @@ class Sequence():
       s = "#pragma once\n\n#include <tuple>\n"
       for _, algorithm in iter(self.__sequence.items()):
         s += "#include \"" + prefix_includes + algorithm.filename() + "\"\n"
+      for _, line in iter(self.__lines.items()):
+        s += "#include \"" + prefix_includes + line.filename() + "\"\n"
       s += "\n"
       # Generate all parameters
       parameters = {}
@@ -310,17 +347,29 @@ class Sequence():
       # Generate configuration
       for paramenter_name, v in iter(parameters.items()):
         s += "struct " + paramenter_name + " : "
+        inheriting_classes = set()
         for algorithm_name, algorithm_namespace, parameter_t in v:
-          s += algorithm_namespace + "::Parameters::" + parameter_t + ", "
+          inheriting_classes.add(algorithm_namespace + "::Parameters::" + parameter_t)
+        for inheriting_class in inheriting_classes:
+          s += inheriting_class + ", "
         s = s[:-2]
         s += " { constexpr static auto name {\"" + paramenter_name + "\"}; size_t size; char* offset; };\n"
+      # Generate lines
+      s += "\nusing configured_lines_t = std::tuple<"
+      for _, line in iter(self.__lines.items()):
+        s += line.namespace() + "::" + line.name() + ", "
+      s = s[:-2]
+      s += ">;\n"
+
       # Generate sequence
       s += "\nusing configured_sequence_t = std::tuple<\n"
       i_alg = 0
       for _, algorithm in iter(self.__sequence.items()):
         i_alg += 1
+        # Add algorithm namespace::name
         s += prefix(1) + algorithm.namespace() + "::" + algorithm.original_name() + "<std::tuple<"
         i = 0
+        # Add parameters
         for parameter_t, parameter in iter(algorithm.parameters().items()):
           i += 1
           s += parameter.name()
@@ -328,6 +377,10 @@ class Sequence():
             s += ", "
         s += ">, "
         i = 0
+        # In case it is needed, pass the lines as an argument to the template
+        if algorithm.requires_lines():
+          s += "configured_lines_t, "
+        # Add name
         for c in algorithm.name():
           i += 1
           s += "'" + c + "'"
@@ -415,17 +468,17 @@ class Sequence():
 
 def extend_sequence(sequence, *args):
   new_sequence = []
-  for algorithm in sequence:
-    new_sequence.append(algorithm)
-  for algorithm in args:
-    new_sequence.append(algorithm)
+  for item in sequence:
+    new_sequence.append(item)
+  for item in args:
+    new_sequence.append(item)
   return Sequence(new_sequence)
 
 
 def compose_sequences(sequence_a, sequence_b):
   new_sequence = []
-  for algorithm in sequence_a:
-    new_sequence.append(algorithm)
-  for algorithm in sequence_b:
-    new_sequence.append(algorithm)
+  for item in sequence_a:
+    new_sequence.append(item)
+  for item in sequence_b:
+    new_sequence.append(item)
   return Sequence(new_sequence)
