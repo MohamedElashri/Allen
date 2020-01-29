@@ -14,7 +14,7 @@ namespace DisplacedDiMuon {
   constexpr float dispMinEta = 2.f;
   constexpr float dispMaxEta = 5.f;
 
-  __device__ bool DisplacedDiMuon(const VertexFit::TrackMVAVertex& vertex);
+  __host__ __device__ bool DisplacedDiMuon(const VertexFit::TrackMVAVertex& vertex);
 
   struct DisplacedDiMuon_t : public Hlt1::TwoTrackLine {
     constexpr static auto name {"DisplacedDiMuon"};

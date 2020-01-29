@@ -7,7 +7,6 @@ __global__ void package_sel_reports::package_sel_reports(
   for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
      event_number += blockDim.x * gridDim.x) {
     const uint sel_event_number = parameters.dev_passing_event_list[event_number];
-    //printf("%i\n", sel_event_number);
     const uint n_tracks_event = parameters.dev_offsets_forward_tracks[event_number + 1] - parameters.dev_offsets_forward_tracks[event_number];
     const uint event_sel_rb_hits_offset =
       parameters.dev_offsets_forward_tracks[sel_event_number] * ParKalmanFilter::nMaxMeasurements;

@@ -98,6 +98,8 @@ namespace prepare_raw_banks {
         0,
         size<dev_number_of_passing_events_t>(arguments),
         cuda_stream));
+      cudaCheck(
+        cudaMemsetAsync(begin<dev_passing_event_list_t>(arguments), 0, size<dev_passing_event_list_t>(arguments), cuda_stream));
 
       const auto grid_size = dim3(
         (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /

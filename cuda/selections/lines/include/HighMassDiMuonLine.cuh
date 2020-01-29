@@ -10,10 +10,8 @@ namespace HighMassDiMuon {
   constexpr float minMass = 2700.f / Gaudi::Units::MeV;
   constexpr float maxVertexChi2 = 6.f;
 
-  __device__ bool HighMassDiMuon(const VertexFit::TrackMVAVertex& vertex);
-
   struct HighMassDiMuon_t : public Hlt1::TwoTrackLine {
     constexpr static auto name {"HighMassDiMuon"};
-    constexpr static auto function = &HighMassDiMuon;
+    static __device__ bool function(const VertexFit::TrackMVAVertex& vertex);
   };
 } // namespace HighMassDiMuon

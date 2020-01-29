@@ -13,6 +13,7 @@ public:
     std::string receiver_connection,
     size_t events_per_slice,
     ZeroMQSvc* zmqSvc,
+    uint number_of_hlt1_lines,
     bool checksum = true);
 
   ~ZMQOutputSender();

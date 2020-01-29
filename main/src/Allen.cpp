@@ -729,22 +729,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       number_of_slices, *events_per_slice, n_events, std::move(connections), n_io_reps, file_list);
   }
 
-  std::unique_ptr<OutputHandler> output_handler;
-  if (!output_file.empty()) {
-    try {
-      if (output_file.substr(0, 6) == "tcp://") {
-        output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, *events_per_slice, &zmqSvc());
-      }
-      else {
-        output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, *events_per_slice);
-      }
-    } catch (std::runtime_error const& e) {
-      error_cout << e.what() << "\n";
-      exit(1);
-    }
-  }
-
   // Load constant parameters from JSON
   configuration_reader = std::make_unique<ConfigurationReader>(json_constants_configuration_file);
 
@@ -774,9 +758,20 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Run all registered produces and consumers
   updater->update(0);
 
+  // Create streams
+  StreamWrapper stream_wrapper;
+  stream_wrapper.initialize_streams(
+    number_of_threads, print_memory_usage, start_event_offset, reserve_mb, constants, configuration_reader->params());
+
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffer_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, *events_per_slice, do_check);
+  std::unique_ptr<HostBuffersManager> buffer_manager = std::make_unique<HostBuffersManager>(
+    number_of_buffers,
+    *events_per_slice,
+    do_check,
+    stream_wrapper.number_of_hlt1_lines,
+    stream_wrapper.passthrough_line);
+
+  stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
 
   if (print_status) {
     buffer_manager->printStatus();
@@ -786,16 +781,22 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::unique_ptr<MonitorManager> monitor_manager =
     std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), 30, time(0));
 
-  // Create streams
-  StreamWrapper stream_wrapper;
-  stream_wrapper.initialize_streams(
-    number_of_threads,
-    print_memory_usage,
-    start_event_offset,
-    reserve_mb,
-    constants,
-    buffer_manager.get(),
-    configuration_reader->params());
+  std::unique_ptr<OutputHandler> output_handler;
+  if (!output_file.empty()) {
+    try {
+      if (output_file.substr(0, 6) == "tcp://") {
+        output_handler = std::make_unique<ZMQOutputSender>(
+          input_provider.get(), output_file, *events_per_slice, &zmqSvc(), stream_wrapper.number_of_hlt1_lines);
+      }
+      else {
+        output_handler = std::make_unique<FileWriter>(
+          input_provider.get(), output_file, *events_per_slice, stream_wrapper.number_of_hlt1_lines);
+      }
+    } catch (std::runtime_error const& e) {
+      error_cout << e.what() << "\n";
+      exit(1);
+    }
+  }
 
   auto algo_config = stream_wrapper.get_algorithm_configuration();
   if (print_config) {
@@ -1008,15 +1009,22 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             if (dt > 5.) {
               if (print_status) {
                 char buf[200];
-                std::snprintf(buf, sizeof(buf), "Processed %7li events at a rate of %8.2f events/s\n",
-                              n_events_measured * number_of_repetitions, n_events_measured * number_of_repetitions / dt);
+                std::snprintf(
+                  buf,
+                  sizeof(buf),
+                  "Processed %7li events at a rate of %8.2f events/s\n",
+                  n_events_measured * number_of_repetitions,
+                  n_events_measured * number_of_repetitions / dt);
                 info_cout << buf;
-                std::snprintf(buf, sizeof(buf), "Output    %7lu events at a rate of %8.2f events/s\n",
-                              n_output_measured, n_output_measured / dt);
+                std::snprintf(
+                  buf,
+                  sizeof(buf),
+                  "Output    %7lu events at a rate of %8.2f events/s\n",
+                  n_output_measured,
+                  n_output_measured / dt);
                 info_cout << buf;
               }
-              zmqSvc().send(
-                *throughput_socket, std::to_string(n_events_measured * number_of_repetitions / dt));
+              zmqSvc().send(*throughput_socket, std::to_string(n_events_measured * number_of_repetitions / dt));
               previous_time_measurement = elapsed_time;
               n_events_measured = 0;
               n_output_measured = 0;

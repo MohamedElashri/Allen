@@ -18,9 +18,6 @@
 // Forward definition of Stream, to avoid
 // inability to compile kernel calls (due to <<< >>>
 // operators) from main.cpp
-//
-// Note: main.cu wouldn't work due to nvcc not
-//       supporting properly tbb (or the other way around).
 struct Stream;
 
 struct StreamWrapper {
@@ -28,7 +25,10 @@ struct StreamWrapper {
   //       needing to know the size of the allocated object
   std::vector<Stream*> streams;
   bool do_check;
-  StreamWrapper() = default;
+  uint number_of_hlt1_lines;
+  uint passthrough_line;
+
+  StreamWrapper();
 
   ~StreamWrapper();
 
@@ -41,7 +41,6 @@ struct StreamWrapper {
     const uint start_event_offset,
     const size_t reserve_mb,
     const Constants& constants,
-    HostBuffersManager const * buffers_manager,
     const std::map<std::string, std::map<std::string, std::string>>& config);
 
   /**
@@ -53,6 +52,11 @@ struct StreamWrapper {
    * @brief Mask of the events selected by the stream
    */
   std::vector<bool> reconstructed_events(const uint i) const;
+
+  /**
+   * @brief Initializes the host buffers managers of all streams.
+   */
+  void initialize_streams_host_buffers_manager(HostBuffersManager* buffers_manager);
 
   /**
    * @brief Runs Monte Carlo test. Stream must be run beforehand.

@@ -70,6 +70,7 @@
 #include "../../cuda/raw_banks/include/PrepareRawBanks.cuh"
 #include "../../x86/prefix_sum/include/HostPrefixSum.h"
 #include "../../cuda/raw_banks/include/PackageSelReports.cuh"
+#include "../../cuda/selections/lines/include/PassThrough.cuh"
 #include "../../cuda/selections/lines/include/DiMuonSoftLine.cuh"
 #include "../../cuda/selections/lines/include/DisplacedDiMuonLine.cuh"
 #include "../../cuda/selections/lines/include/HighMassDiMuonLine.cuh"
@@ -237,7 +238,7 @@ struct dev_secondary_vertices_t : VertexFit::Parameters::dev_secondary_vertices_
 struct dev_hit_used_t : velo_search_by_triplet::Parameters::dev_hit_used_t, velo_three_hit_tracks_filter::Parameters::dev_hit_used_t { constexpr static auto name {"dev_hit_used_t"}; size_t size; char* offset; };
 struct dev_ut_hit_permutations_t : ut_find_permutation::Parameters::dev_ut_hit_permutations_t, ut_decode_raw_banks_in_order::Parameters::dev_ut_hit_permutations_t { constexpr static auto name {"dev_ut_hit_permutations_t"}; size_t size; char* offset; };
 
-using configured_lines_t = std::tuple<Hlt1::SpecialLine, OneTrackMVA::OneTrackMVA_t, SingleMuon::SingleMuon_t, TwoTrackMVA::TwoTrackMVA_t, DisplacedDiMuon::DisplacedDiMuon_t, HighMassDiMuon::HighMassDiMuon_t, DiMuonSoft::DiMuonSoft_t>;
+using configured_lines_t = std::tuple<PassThrough::PassThrough_t, OneTrackMVA::OneTrackMVA_t, SingleMuon::SingleMuon_t, TwoTrackMVA::TwoTrackMVA_t, DisplacedDiMuon::DisplacedDiMuon_t, HighMassDiMuon::HighMassDiMuon_t, DiMuonSoft::DiMuonSoft_t>;
 
 using configured_sequence_t = std::tuple<
   host_global_event_cut::host_global_event_cut_t<std::tuple<host_total_number_of_events_t, host_event_list_t, host_number_of_selected_events_t, dev_event_list_t>, 'h', 'o', 's', 't', '_', 'g', 'l', 'o', 'b', 'a', 'l', '_', 'e', 'v', 'e', 'n', 't', '_', 'c', 'u', 't', '_', 't'>,

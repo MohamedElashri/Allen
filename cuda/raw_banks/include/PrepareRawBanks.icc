@@ -123,14 +123,15 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     }
 
     // Add decisions to the substr bank.
-    for (int i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
+    const auto lambda_fn = [&](const unsigned long i_line) {
       const uint* candidate_counts = parameters.dev_candidate_counts + i_line * number_of_events + event_number;
       const uint* candidate_list =
         parameters.dev_candidate_lists + (i_line * number_of_events + event_number) * Hlt1::maxCandidates;
       for (uint i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {
         substr_bank.addPtr(n_decisions + event_save_track[candidate_list[i_sub]]);
       }
-    }
+    };
+    Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
 
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
     for (uint i_saved_track = 0; i_saved_track < parameters.dev_n_tracks_saved[event_number]; i_saved_track++) {

@@ -9,7 +9,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
   check(HostBuffers& host_buffers, const Constants& constants, const CheckerInvoker& checker_invoker, MCEvents const& mc_events)
   {
     auto& checker = checker_invoker.checker<RateChecker>("HLT1 rates:");
-    checker.accumulate(
+    checker.accumulate<U>(
       host_buffers.host_sel_results,
       host_buffers.host_sel_results_atomics,
       host_buffers.host_atomics_scifi,
@@ -42,7 +42,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
 #ifdef WITH_ROOT
     auto& ntuple =
       checker_invoker.checker<SelCheckerTuple>("Making ntuple for efficiency studies.", "SelCheckerTuple.root");
-    ntuple.accumulate(
+    ntuple.accumulate<U>(
       mc_events,
       tracks,
       host_buffers.host_secondary_vertices,

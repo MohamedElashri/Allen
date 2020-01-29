@@ -36,8 +36,8 @@ namespace run_hlt1 {
       const HostBuffers& host_buffers) const
     {
       set_size<dev_sel_results_t>(
-        arguments, 1000 * value<host_number_of_selected_events_t>(arguments) * Hlt1::Hlt1Lines::End);
-      set_size<dev_sel_results_offsets_t>(arguments, Hlt1::Hlt1Lines::End + 1);
+        arguments, 1000 * value<host_number_of_selected_events_t>(arguments) * std::tuple_size<U>::value);
+      set_size<dev_sel_results_offsets_t>(arguments, std::tuple_size<U>::value + 1);
     }
 
     void operator()(
@@ -49,16 +49,23 @@ namespace run_hlt1 {
       cudaEvent_t& cuda_generic_event) const
     {
       // TODO: Do this on the GPU, or rather remove completely
-      for (uint i_line = 0; i_line < Hlt1::Hlt1Lines::End; i_line++) {
+      // Prepare prefix sum of sizes of number of tracks and number of secondary vertices
+      for (uint i_line = 0; i_line < std::tuple_size<U>::value + 1; i_line++) {
         host_buffers.host_sel_results_atomics[i_line] = 0;
       }
-      for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
-        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_reconstructed_scifi_tracks_t>(arguments)
-          + host_buffers.host_sel_results_atomics[i_line - 1];
-      }
-      for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
-        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_svs_t>(arguments)
-          + host_buffers.host_sel_results_atomics[i_line - 1];
+
+      const auto lambda_one_track_fn = [&](const unsigned long i_line) {
+        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+      };
+      Hlt1::TraverseLines<U, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
+
+      const auto lambda_two_track_fn = [&](const unsigned long i_line) {
+        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_svs_t>(arguments);
+      };
+      Hlt1::TraverseLines<U, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+
+      for (uint i_line = 1; i_line < std::tuple_size<U>::value; i_line++) {
+        host_buffers.host_sel_results_atomics[i_line] += host_buffers.host_sel_results_atomics[i_line - 1];
       }
 
       cudaCheck(cudaMemcpyAsync(

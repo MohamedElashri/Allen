@@ -15,7 +15,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/raw_banks/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
-
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 
 file(GLOB selection_checker_sources "src/*cpp")

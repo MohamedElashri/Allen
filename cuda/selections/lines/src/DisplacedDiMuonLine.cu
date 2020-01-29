@@ -1,6 +1,6 @@
 #include "DisplacedDiMuonLine.cuh"
 
-__device__ bool DisplacedDiMuon::DisplacedDiMuon(const VertexFit::TrackMVAVertex& vertex)
+__host__ __device__ bool DisplacedDiMuon::DisplacedDiMuon(const VertexFit::TrackMVAVertex& vertex)
 {
   if (!vertex.is_dimuon) return false;
   if (vertex.minipchi2 < dispMinIPChi2) return false;

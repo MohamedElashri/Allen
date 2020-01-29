@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DeviceAlgorithm.cuh"
+#include "Argument.cuh"
 #include "ParKalmanDefinitions.cuh"
 #include "VertexDefinitions.cuh"
 

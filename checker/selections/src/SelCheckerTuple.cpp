@@ -55,12 +55,6 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("sv_ntrksassoc", &m_sv_ntrksassoc);
   m_tree->Branch("sv_idx_trk1", &m_sv_idx_trk1);
   m_tree->Branch("sv_idx_trk2", &m_sv_idx_trk2);
-  for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
-    std::string line_name = Hlt1::Hlt1LineNames[i_line];
-    m_sv_decisions[line_name] = std::vector<double>();
-    std::string branch_name = "sv_pass_" + line_name;
-    m_tree->Branch(branch_name.c_str(), &m_sv_decisions[line_name]);
-  }
 
   m_tree->Branch("trk_p", &m_trk_p);
   m_tree->Branch("trk_pt", &m_trk_pt);
@@ -73,12 +67,6 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("trk_velo_ip", &m_trk_velo_ip);
   m_tree->Branch("trk_velo_ipchi2", &m_trk_velo_ipchi2);
   m_tree->Branch("trk_idx_gen", &m_trk_idx_gen);
-  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
-    std::string line_name = Hlt1::Hlt1LineNames[i_line];
-    m_trk_decisions[line_name] = std::vector<double>();
-    std::string branch_name = "trk_pass_" + line_name;
-    m_tree->Branch(branch_name.c_str(), &m_trk_decisions[line_name]);
-  }
 
 #else
 SelCheckerTuple::SelCheckerTuple(CheckerInvoker const*, std::string const&)
@@ -134,11 +122,6 @@ void SelCheckerTuple::clear()
   m_sv_ntrksassoc.clear();
   m_sv_idx_trk1.clear();
   m_sv_idx_trk2.clear();
-  for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
-    std::string line_name = Hlt1::Hlt1LineNames[i_line];
-    m_sv_decisions[line_name].clear();
-  }
-
   m_trk_p.clear();
   m_trk_pt.clear();
   m_trk_eta.clear();
@@ -150,10 +133,6 @@ void SelCheckerTuple::clear()
   m_trk_velo_ip.clear();
   m_trk_velo_ipchi2.clear();
   m_trk_idx_gen.clear();
-  for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
-    std::string line_name = Hlt1::Hlt1LineNames[i_line];
-    m_trk_decisions[line_name].clear();
-  }
 }
 
 size_t SelCheckerTuple::addGen(const MCParticle& mcp)
@@ -262,95 +241,8 @@ size_t SelCheckerTuple::addTrack(Checker::Track& track, const MCAssociator& mcas
 }
 
 #ifdef WITH_ROOT
-void SelCheckerTuple::accumulate(
-  MCEvents const& mc_events,
-  std::vector<Checker::Tracks> const& tracks,
-  const VertexFit::TrackMVAVertex* svs,
-  const bool* sel_results,
-  const uint* sel_results_offsets,
-  const uint* track_atomics,
-  const uint* sv_atomics,
-  const uint selected_events)
-{
-
-  for (size_t i_event = 0; i_event < mc_events.size(); ++i_event) {
-
-    clear();
-
-    const auto& mc_event = mc_events[i_event];
-    const auto& mcps = mc_event.m_mcps;
-
-    // Loop over MC particles
-    for (auto mcp : mcps) {
-      if (mcp.fromBeautyDecay || mcp.fromCharmDecay || mcp.fromStrangeDecay || mcp.DecayOriginMother_pid == 23) {
-        addGen(mcp);
-      }
-    }
-
-    if (i_event < selected_events) {
-      m_event_pass_gec.push_back(1.);
-      const auto& event_tracks = tracks[i_event];
-      MCAssociator mcassoc {mcps};
-      const uint* event_tracks_offsets = track_atomics + selected_events;
-      const uint* sv_offsets = sv_atomics + selected_events;
-      const uint event_n_svs = sv_atomics[i_event];
-      const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
-
-      // Loop over tracks.
-      for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
-        // First track.
-        auto trackA = event_tracks[i_track];
-        size_t idx1 = addTrack(trackA, mcassoc);
-        if (idx1 == m_trk_p.size() -1) {
-          for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
-            std::string line_name = Hlt1::Hlt1LineNames[i_line];
-            const bool* decs = sel_results + sel_results_offsets[i_line] + event_tracks_offsets[i_event];
-            m_trk_decisions[line_name].push_back(decs[i_track] ? 1. : 0.);
-          }
-        }
-      }
-
-      // Loop over SVs.
-      for (size_t i_sv = 0; i_sv < event_n_svs; i_sv++) {
-        if (event_vertices[i_sv].chi2 < 0) {
-          continue;
-        }
-        auto trackA = event_tracks[(size_t)event_vertices[i_sv].trk1];
-        auto trackB = event_tracks[(size_t)event_vertices[i_sv].trk2];
-        size_t i_track = addTrack(trackA, mcassoc);
-        size_t j_track = addTrack(trackB, mcassoc);
-        addSV(event_vertices[i_sv], i_track, j_track);
-        for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
-          std::string line_name = Hlt1::Hlt1LineNames[i_line];
-          const bool* decs = sel_results + sel_results_offsets[i_line] + sv_offsets[i_event];
-          m_sv_decisions[line_name].push_back(decs[i_track] ? 1. : 0.);
-        }
-      }
-    }
-    else {
-      m_event_pass_gec.push_back(0.);
-    }
-
-    m_tree->Fill();
-  }
-}
-#else
-void SelCheckerTuple::accumulate(
-  MCEvents const&,
-  std::vector<Checker::Tracks> const&,
-  const VertexFit::TrackMVAVertex*,
-  const bool*,
-  const uint*,
-  const uint*,
-  const uint*,
-  const uint)
-{}
-#endif
-
-#ifdef WITH_ROOT
 void SelCheckerTuple::report(size_t requested_events) const
 {
-  ;
   TArrayI nEvents(1);
   nEvents[0] = (int) requested_events;
   m_file->cd();
