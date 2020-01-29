@@ -10,7 +10,6 @@ namespace prepare_raw_banks {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
-    DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
@@ -45,7 +44,7 @@ namespace prepare_raw_banks {
     DEVICE_OUTPUT(dev_sel_rep_sizes_t, uint) dev_sel_rep_sizes;
     DEVICE_OUTPUT(dev_number_of_passing_events_t, uint) dev_number_of_passing_events;
     DEVICE_OUTPUT(dev_passing_event_list_t, uint) dev_passing_event_list;
-    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 256);
+    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 16);
   };
 
   __global__ void prepare_raw_banks(Parameters, const uint number_of_events);
@@ -103,8 +102,7 @@ namespace prepare_raw_banks {
         property<block_dim_x_t>());
 
       function(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
-        Parameters {begin<dev_event_list_t>(arguments),
-                    begin<dev_offsets_all_velo_tracks_t>(arguments),
+        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
                     begin<dev_velo_track_hits_t>(arguments),
                     begin<dev_offsets_ut_tracks_t>(arguments),

@@ -60,7 +60,7 @@ namespace package_sel_reports {
                     begin<dev_sel_rep_raw_banks_t>(arguments),
                     begin<dev_sel_rep_offsets_t>(arguments),
                     begin<dev_passing_event_list_t>(arguments)},
-        value<host_number_of_selected_events_t>(arguments));
+        host_buffers.host_number_of_passing_events[0]);
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_sel_rep_offsets,

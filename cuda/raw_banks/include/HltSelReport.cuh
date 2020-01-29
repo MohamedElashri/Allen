@@ -136,6 +136,8 @@ struct HltSelRepRBStdInfo {
     uint len = 1 + (3 + nObj) / 4 + nAllInfo;
     //m_location[0] = (std::min(len, 0xFFFFu) << 16);
     // Just set this to length and check if it's too large later.
+    m_iterator = 0;
+    m_iteratorInfo = 0;
     m_location[0] = (len << 16);
     m_floatLoc = 1 + (3 + nObj) / 4;
   }
