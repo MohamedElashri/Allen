@@ -23,6 +23,14 @@ def HLT1_sequence(validate=False):
 
   package_sel_reports = package_sel_reports_t()
 
+  PassThrough_line = PassThrough_t()
+  OneTrackMVA_line = OneTrackMVA_t()
+  SingleMuon_line = SingleMuon_t()
+  TwoTrackMVA_line = TwoTrackMVA_t()
+  HighMassDiMuon_line = HighMassDiMuon_t()
+  DisplacedDiMuon_line = DisplacedDiMuon_t()
+  DiMuonSoft_line = DiMuonSoft_t()
+
   muon_sequence = Muon_sequence()
   hlt1_sequence = extend_sequence(muon_sequence,
     kalman_velo_only,
@@ -34,7 +42,14 @@ def HLT1_sequence(validate=False):
     prepare_decisions,
     prepare_raw_banks,
     prefix_sum_sel_reps,
-    package_sel_reports)
+    package_sel_reports,
+    PassThrough_line,
+    OneTrackMVA_line,
+    SingleMuon_line,
+    TwoTrackMVA_line,
+    HighMassDiMuon_line,
+    DisplacedDiMuon_line,
+    DiMuonSoft_line)
 
   if validate:
     hlt1_sequence.validate()
