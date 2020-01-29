@@ -25,14 +25,14 @@ __global__ void run_postscale::run_postscale(run_postscale::Parameters parameter
   // Process 1-track lines.
   for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
     bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + parameters.dev_offsets_forward_tracks[event_number];
-    DeterministicPostscaler ps(i_line, 1.);//TODO
+    DeterministicPostscaler ps(i_line, Hlt1::Hlt1LineScaleFactors[i_line]);
     ps(n_tracks_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
   }
 
   // Process 2-track lines.
   for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
     bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + parameters.dev_sv_offsets[event_number];
-    DeterministicPostscaler ps(i_line, 1.);//TODO
+    DeterministicPostscaler ps(i_line, Hlt1::Hlt1LineScaleFactors[i_line]);
     ps(n_vertices_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
   }
 }

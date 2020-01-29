@@ -33,6 +33,21 @@ namespace Hlt1 {
     End
   };
 
+  // Hlt1 line post-scales.
+  static __device__ const float Hlt1LineScaleFactors[] = {
+    1.f,
+    // Begin 1-track lines.
+    1.f,
+    1.f,
+    // Begin 2-track lines.
+    1.f,
+    1.f,
+    1.f,
+    1.f
+    // Begin 3-track lines.
+    // Begin 4-track lines.
+  };
+
   // Hlt1 line names.
   static const std::string Hlt1LineNames[] = {
     "PassThrough",
