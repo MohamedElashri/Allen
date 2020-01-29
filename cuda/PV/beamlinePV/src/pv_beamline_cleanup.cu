@@ -4,7 +4,6 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Pa
 
   __shared__ uint tmp_number_vertices[1];
   *tmp_number_vertices = 0;
-  __syncthreads();
 
   __syncthreads();
 
