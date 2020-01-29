@@ -35,7 +35,8 @@ namespace {
 
 void write_files(std::string connection, std::string const& directory,
                  std::string const& file_pattern, unsigned int const max_files,
-                 unsigned int const max_file_size, Buffers const& buffers)
+                 unsigned int const max_file_size, bool const discard,
+                 Buffers const& buffers)
 {
 
   zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
@@ -54,13 +55,15 @@ void write_files(std::string connection, std::string const& directory,
     if (items[0].revents & zmq::POLLIN) {
       auto msg = zmqSvc().receive<std::string>(control);
       if (msg == "DONE") {
-        zmqSvc().send(control, filename.string(), zmq::SNDMORE);
-        zmqSvc().send(control, size_bytes);
+        if (!discard) {
+          zmqSvc().send(control, filename.string(), zmq::SNDMORE);
+          zmqSvc().send(control, size_bytes);
+        }
         break;
       } else if (msg == "WRITE" && good) {
         size_t buffer = zmqSvc().receive<size_t>(control);
 
-        if (!output_file) {
+        if (!discard && !output_file) {
           n_file = (n_file == max_files) ? 1 : n_file + 1;
           filename = fs::path{directory} / (boost::format{file_pattern} % n_file).str();
           output_file = MDF::open(filename.string(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | O_DIRECT);
@@ -73,30 +76,37 @@ void write_files(std::string connection, std::string const& directory,
           }
         }
 
-        if (output_file->good) {
-          auto const& [event_buffer, offset] = buffers[buffer];
+        auto const& [event_buffer, offset] = buffers[buffer];
 
-          auto const skip = 4 * sizeof(int);
-          char const* data = event_buffer.data();
-          while(data - event_buffer.data() < offset) {
-            auto* header = reinterpret_cast<LHCb::MDFHeader const*>(data);
-            auto const event_size = header->recordSize();
-            if (header->checkSum() != 0) {
-              auto c = LHCb::genChecksum(1, data + skip, event_size - skip);
-              if (header->checkSum() != c) {
-                std::cout << "Checksum failed.\n";
-              }
+        auto const skip = 4 * sizeof(int);
+        char const* data = event_buffer.data();
+        while(data - event_buffer.data() < offset) {
+          auto* header = reinterpret_cast<LHCb::MDFHeader const*>(data);
+          auto const event_size = header->recordSize();
+          if (header->checkSum() != 0) {
+            auto c = LHCb::genChecksum(1, data + skip, event_size - skip);
+            if (header->checkSum() != c) {
+              std::cout << "Checksum failed.\n";
             }
-            data += event_size;
           }
+          data += event_size;
+        }
 
+        if (!discard) {
+          if (output_file->good) {
           output_file->write(event_buffer.data(), offset);
-          // reply "FREE" i_buffer
-          zmqSvc().send(control, "FREE", zmq::SNDMORE);
-          zmqSvc().send(control, buffer);
-
           size_bytes += offset;
+          } else {
+            zmqSvc().send(control, "ERROR");
+          }
+        }
 
+        // reply "FREE" i_buffer
+        zmqSvc().send(control, "FREE", zmq::SNDMORE);
+        zmqSvc().send(control, buffer);
+
+
+        if (!discard && output_file->good) {
           if (size_bytes > size_t{max_file_size} * 1024 * 1024) {
             output_file->close();
             output_file.reset();
@@ -105,8 +115,6 @@ void write_files(std::string connection, std::string const& directory,
             zmqSvc().send(control, size_bytes);
             size_bytes = 0;
           }
-        } else {
-          zmqSvc().send(control, "ERROR");
         }
       }
     }
@@ -142,6 +150,7 @@ int main(int argc, char* argv[]) {
   unsigned int file_size;
   unsigned int max_files;
   unsigned int buffer_size;
+  bool discard;
 
   // Declare the supported options.
   po::options_description desc("Allowed options");
@@ -154,6 +163,7 @@ int main(int argc, char* argv[]) {
     ("file-size,s", po::value<unsigned int>(&file_size)->default_value(10240u), "File size [MB]")
     ("max-files", po::value<unsigned int>(&max_files)->default_value(10), "Maximum number of files")
     ("buffer-size,b", po::value<unsigned int>(&buffer_size)->default_value(32), "Receive buffer size [MB]")
+    ("discard,d", po::value<bool>(&discard)->default_value(false), "Discard events instead of writing them to disk")
     ;
 
   po::positional_options_description p;
@@ -204,8 +214,9 @@ int main(int argc, char* argv[]) {
   writer_socket.bind(writer_connection);
 
   // Start writing thread
-  std::thread writer_thread{[writer_connection, directory, file_pattern, max_files, file_size, &buffers] {
-                              write_files(writer_connection, directory, file_pattern, max_files, file_size, buffers);
+  std::thread writer_thread{[writer_connection, directory, file_pattern,
+                             max_files, file_size, discard, &buffers] {
+                              write_files(writer_connection, directory, file_pattern, max_files, file_size, discard, buffers);
                             }};
 
   std::vector<zmq::pollitem_t> items(3);
