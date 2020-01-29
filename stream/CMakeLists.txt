@@ -108,7 +108,6 @@ target_link_libraries(Stream PRIVATE
   x86Clustering
   HostPrefixSum
   UT
-  Hlt1
   Kalman
   VertexFitter
   RawBanks
