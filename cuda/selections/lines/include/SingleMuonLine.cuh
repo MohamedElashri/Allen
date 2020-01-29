@@ -10,7 +10,13 @@ namespace SingleMuon {
 
   struct SingleMuon_t : public Hlt1::OneTrackLine {
     constexpr static auto name {"SingleMuon"};
-    
-    static __device__ bool function(const ParKalmanFilter::FittedTrack& track);
+
+    static __device__ bool function(const ParKalmanFilter::FittedTrack& track)
+    {
+      bool decision = track.chi2 / track.ndof < maxChi2Ndof;
+      decision &= track.pt() > singleMinPt;
+      decision &= track.is_muon;
+      return decision;
+    }
   };
 } // namespace SingleMuon

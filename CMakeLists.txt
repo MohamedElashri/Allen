@@ -268,7 +268,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   #   major number builds, specifics of those architectures are not used.
   # * Forward compatibility with newer devices is also supported by generating PTX from 7.5
   #   (-gencode=arch=compute_75,compute=compute_75)
-  foreach(arch 30 50 60 70 75)
+  foreach(arch 50 60 70 75)
     set(DEFAULT_CUDA_ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG} -gencode=arch=compute_${arch},code=sm_${arch}")
   endforeach()
   set(DEFAULT_CUDA_ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG} -gencode=arch=compute_75,code=compute_75")

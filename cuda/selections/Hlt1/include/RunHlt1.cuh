@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DeviceAlgorithm.cuh"
-#include "LineTraverser.cuh"
+#include "DeviceLineTraverser.cuh"
 
 namespace run_hlt1 {
   struct Parameters {

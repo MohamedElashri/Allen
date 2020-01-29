@@ -16,7 +16,17 @@ namespace DisplacedDiMuon {
 
   struct DisplacedDiMuon_t : public Hlt1::TwoTrackLine {
     constexpr static auto name {"DisplacedDiMuon"};
-    
-    static __host__ __device__ bool function(const VertexFit::TrackMVAVertex& vertex);
+
+    static __device__ bool function(const VertexFit::TrackMVAVertex& vertex)
+    {
+      if (!vertex.is_dimuon) return false;
+      if (vertex.minipchi2 < dispMinIPChi2) return false;
+
+      bool decision = vertex.chi2 > 0;
+      decision &= vertex.chi2 < maxVertexChi2;
+      decision &= vertex.eta > dispMinEta && vertex.eta < dispMaxEta;
+      decision &= vertex.minpt > minDispTrackPt;
+      return decision;
+    }
   };
 } // namespace DisplacedDiMuon

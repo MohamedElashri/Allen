@@ -19,6 +19,15 @@ namespace TwoTrackMVA {
   struct TwoTrackMVA_t : public Hlt1::TwoTrackLine {
     constexpr static auto name {"TwoTrackMVA"};
 
-    static __device__ bool function(const VertexFit::TrackMVAVertex& vertex);
+    static __device__ bool function(const VertexFit::TrackMVAVertex& vertex)
+    {
+      if (vertex.chi2 < 0) {
+        return false;
+      }
+      const bool decision = vertex.pt() > minComboPt && vertex.chi2 < maxVertexChi2 && vertex.mcor > minMCor &&
+                            (vertex.eta > minEta && vertex.eta < maxEta) && vertex.ntrksassoc <= maxNTrksAssoc &&
+                            vertex.fdchi2 > minFDChi2 && vertex.minipchi2 > minTrackIPChi2 && vertex.minpt > minTrackPt;
+      return decision;
+    }
   };
 } // namespace TwoTrackMVA
