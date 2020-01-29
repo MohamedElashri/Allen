@@ -292,8 +292,8 @@ void SelCheckerTuple::accumulate(
       const auto& event_tracks = tracks[i_event];
       MCAssociator mcassoc {mcps};
       const uint* event_tracks_offsets = track_atomics + selected_events;
-      const uint* sv_offsets = sv_atomics + selected_events;
-      const uint event_n_svs = sv_atomics[i_event];
+      const uint* sv_offsets = sv_atomics;
+      const uint event_n_svs = sv_offsets[i_event + 1] - sv_offsets[i_event];
       const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
 
       // Loop over tracks.
