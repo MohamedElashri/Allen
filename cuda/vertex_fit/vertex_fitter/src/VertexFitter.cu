@@ -303,9 +303,12 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint sv_offset = event_number * VertexFit::max_svs;
-  uint* event_sv_number = parameters.dev_sv_atomics + event_number;
-
+  const uint sv_offset = parameters.dev_sv_offsets[event_number];
+  const uint n_svs = parameters.dev_sv_offsets[event_number + 1] - sv_offset;
+  const uint idx_offset = 10 * VertexFit::max_svs * event_number;
+  const uint* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
+  const uint* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
+  
   // Consolidated SciFi tracks.
   SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
                                                  parameters.dev_scifi_track_hit_number,
@@ -327,69 +330,35 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
 
   // Primary vertices.
   const uint n_pvs_event = *(parameters.dev_number_of_multi_fit_vertices + event_number);
-  cuda::span<PV::Vertex const> vertices {parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices,
-                                         n_pvs_event};
+  cuda::span<PV::Vertex const> vertices {parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices, n_pvs_event};
 
   // Secondary vertices.
-  VertexFit::TrackMVAVertex* event_secondary_vertices = parameters.dev_secondary_vertices + sv_offset;
+  VertexFit::TrackMVAVertex* event_secondary_vertices = parameters.dev_consolidated_svs + sv_offset;
 
-  // Initialize SVs.
-  for (uint i_sv = threadIdx.x; i_sv < VertexFit::max_svs; i_sv += blockDim.x) {
+  // Loop over svs.
+  for (uint i_sv = threadIdx.x; i_sv < n_svs; i_sv += blockDim.x) {
     event_secondary_vertices[i_sv].chi2 = -1;
     event_secondary_vertices[i_sv].minipchi2 = 0;
-  }
-  
-  // Loop over tracks.
-  for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
-    
-    // Preselection on first track.
+    auto i_track = event_svs_trk1_idx[i_sv];
+    auto j_track = event_svs_trk2_idx[i_sv];
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
-    if (
-      trackA.pt() < parameters.track_min_pt ||
-      (trackA.ipChi2 < parameters.track_min_ipchi2 && !trackA.is_muon)) {
-      continue;
+    const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
+
+    // Do the fit.
+    doFit(trackA, trackB, event_secondary_vertices[i_sv]);
+    event_secondary_vertices[i_sv].trk1 = i_track;
+    event_secondary_vertices[i_sv].trk2 = j_track;
+
+    // Fill extra info.
+    fill_extra_info(event_secondary_vertices[i_sv], trackA, trackB);
+    if (n_pvs_event > 0) {
+      int ipv = pv_table.value(i_track) < pv_table.value(j_track) ? pv_table.pv(i_track) : pv_table.pv(j_track);
+      auto pv = vertices[ipv];
+      fill_extra_pv_info(event_secondary_vertices[i_sv], pv, trackA, trackB, parameters.max_assoc_ipchi2);
     }
-
-    // Loop over second track.
-    for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
-
-      // Preselection on second track.
-      const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
-      if (
-        trackB.pt() < parameters.track_min_pt ||
-        (trackB.ipChi2 < parameters.track_min_ipchi2 && !trackB.is_muon)) {
-        continue;
-      }
-
-      // Only combine tracks from the same PV, except for dimuons,
-      // which should be independent of PV reconstruction.
-      if (
-        pv_table.pv(i_track) != pv_table.pv(j_track) &&
-        pv_table.value(i_track) < parameters.max_assoc_ipchi2 &&
-        pv_table.value(j_track) < parameters.max_assoc_ipchi2 &&
-        (!trackA.is_muon || !trackB.is_muon)
-          ) {
-        continue;
-      }
-
-      uint vertex_idx = atomicAdd(event_sv_number, 1);
-
-      // Do the vertex fit.
-      doFit(trackA, trackB, event_secondary_vertices[vertex_idx]);
-      event_secondary_vertices[vertex_idx].trk1 = i_track;
-      event_secondary_vertices[vertex_idx].trk2 = j_track;
-      
-      // Fill extra info.
-      fill_extra_info(event_secondary_vertices[vertex_idx], trackA, trackB);
-      if (n_pvs_event > 0) {
-        int ipv = pv_table.value(i_track) < pv_table.value(j_track) ? pv_table.pv(i_track) : pv_table.pv(j_track);
-        auto pv = vertices[ipv];
-        fill_extra_pv_info(event_secondary_vertices[vertex_idx], pv, trackA, trackB, parameters.max_assoc_ipchi2);
-      }
-      else {
-        // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
-        event_secondary_vertices[vertex_idx].minipchi2 = 0;
-      }
+    else {
+      // Set the minimum IP chi2 to 0 by default so this doesn't pass any displacement cuts.
+      event_secondary_vertices[i_sv].minipchi2 = 0;
     }
-  }
+  }  
 }
