@@ -4,7 +4,7 @@
 #include "HltSelReport.cuh"
 #include "RawBanksDefinitions.cuh"
 #include "LineInfo.cuh"
-
+#include "LineTraverser.cuh"
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
@@ -49,12 +49,13 @@ namespace prepare_decisions {
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
+  template<typename T>
   __global__ void prepare_decisions(Parameters);
 
-  template<typename T, char... S>
+  template<typename T, typename U, char... S>
   struct prepare_decisions_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
-    decltype(global_function(prepare_decisions)) function {prepare_decisions};
+    decltype(global_function(prepare_decisions<U>)) function {prepare_decisions<U>};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -62,16 +63,16 @@ namespace prepare_decisions {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      const auto n_hlt1_lines = Hlt1::Hlt1Lines::End;
+      const auto n_hlt1_lines = std::tuple_size<U>::value;
       set_size<dev_dec_reports_t>(arguments, (2 + n_hlt1_lines) * value<host_number_of_selected_events_t>(arguments));
 
       // This is not technically enough to save every single track, but
       // should be more than enough in practice.
       // TODO: Implement some check for this.
       set_size<dev_candidate_lists_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Hlt1::maxCandidates * Hlt1::Hlt1Lines::End);
+        arguments, value<host_number_of_selected_events_t>(arguments) * Hlt1::maxCandidates * n_hlt1_lines);
       set_size<dev_candidate_counts_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Hlt1::Hlt1Lines::End);
+        arguments, value<host_number_of_selected_events_t>(arguments) * n_hlt1_lines);
       set_size<dev_saved_tracks_list_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
       set_size<dev_saved_svs_list_t>(arguments, value<host_number_of_svs_t>(arguments));
       set_size<dev_save_track_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
@@ -143,3 +144,5 @@ namespace prepare_decisions {
     Property<block_dim_t> m_block_dim {this};
   };
 } // namespace prepare_decisions
+
+#include "PrepareDecisions.icc"

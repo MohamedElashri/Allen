@@ -16,15 +16,19 @@ def get_filenames(folder, extensions):
           break
   return list_of_files
 
-algorithm_pattern = "struct (?P<name>[\\w_]+) : public (?P<scope>Host|Device)Algorithm"
+algorithm_pattern = "template<typename T,[ ]*(?P<threetemplate>typename U,[ ]*)?char... S>.*?struct (?P<name>[\\w_]+) : public (?P<scope>Host|Device)Algorithm"
 variable_pattern = "(?P<scope>HOST|DEVICE)_(?P<io>INPUT|OUTPUT)\\((?P<name>[\\w_]+), (?P<type>[^)]+)\\)" # ( [\\w_]+)?;
 namespace_pattern = "namespace (?P<name>[\\w_]+).*?public (?P<scope>Host|Device)Algorithm"
 property_pattern = "PROPERTY\\(.*?(?P<typename>[\\w_]+),.*?(?P<type>[^,]+),.*?(?P<name>[^,]+),.*?(?P<description>[^,]+),.*?(?P<default_value>[^\\)]+)\\)" # ( [\\w_]+)?;
+line_pattern = "struct (?P<name>[\\w_]+) : public Hlt1::(?P<line_type>[\\w_]+)Line"
+line_namespace_pattern = "namespace (?P<name>[\\w_]+)"
 
-algorithm_pattern_compiled = re.compile(algorithm_pattern)
+algorithm_pattern_compiled = re.compile(algorithm_pattern, re.DOTALL)
 variable_pattern_compiled = re.compile(variable_pattern)
 namespace_pattern_compiled = re.compile(namespace_pattern, re.DOTALL)
 property_pattern_compiled = re.compile(property_pattern, re.DOTALL)
+line_pattern_compiled = re.compile(line_pattern, re.DOTALL)
+line_namespace_pattern_compiled = re.compile(line_namespace_pattern, re.DOTALL)
 
 prefix_project_folder = "../../"
 device_folder = prefix_project_folder + "cuda"
@@ -36,10 +40,22 @@ all_filenames = get_filenames(device_folder, sought_extensions_compiled) + get_f
 
 # Iterate all filenames in search for our pattern
 parsed_algorithms = []
+parsed_lines = []
 for filename in all_filenames:
   f = open(filename)
   s = f.read()
   f.close()
+
+  line = line_pattern_compiled.search(s)
+  if line:
+    namespace = line_namespace_pattern_compiled.search(s)
+    if namespace:
+      parsed_lines.append(OrderedDict([
+        ("name", line.group("name")),
+        ("line_type", line.group("line_type")),
+        ("namespace", namespace.group("name")),
+        ("filename", filename)
+        ]))
 
   algorithm = algorithm_pattern_compiled.search(s)
   if algorithm:
@@ -61,11 +77,13 @@ for filename in all_filenames:
         ("description", v.group("description"))
         ])) for v in properties])
 
+
       parsed_algorithms.append(OrderedDict([
         ("name", algorithm.group("name")),
         ("scope", algorithm.group("scope")),
         ("filename", filename),
         ("namespace", namespace.group("name")),
+        ("threetemplate", algorithm.group("threetemplate")),
         ("variables", variable_map),
         ("properties", property_map)
         ]))
@@ -95,6 +113,36 @@ def write_preamble(i = 0):
   return s
 
 
+def write_line_code(line, i = 0):
+  s = prefix(i) + "class " + line["name"] + "(" + line["line_type"] + "Line):\n"
+  i += 1
+  s += prefix(i) + "def __init__(self):\n"
+  i += 1
+  s += prefix(i) + "self.__name=\"" + line["name"] + "\"\n"
+  s += prefix(i) + "self.__filename=\"" + line["filename"][len(prefix_project_folder):] + "\"\n"
+  s += prefix(i) + "self.__namespace=\"" + line["namespace"] + "\"\n"
+  i -= 1
+  s += "\n"
+
+  s += prefix(i) + "def filename(self):\n"
+  i += 1
+  s += prefix(i) + "return self.__filename\n\n"
+  i -= 1
+
+  s += prefix(i) + "def namespace(self):\n"
+  i += 1
+  s += prefix(i) + "return self.__namespace\n\n"
+  i -= 1
+
+  s += prefix(i) + "def name(self):\n"
+  i += 1
+  s += prefix(i) + "return self.__name\n\n"
+  i -= 2
+  s += "\n"
+
+  return s
+
+
 def write_algorithm_code(algorithm, i = 0):
   s = prefix(i) + "class " + algorithm["name"] + "(" + algorithm["scope"] + "Algorithm):\n"
   i += 1
@@ -114,6 +162,10 @@ def write_algorithm_code(algorithm, i = 0):
   s += prefix(i) + "self.__filename = \"" + algorithm["filename"][len(prefix_project_folder):] + "\"\n"
   s += prefix(i) + "self.__name = name\n"
   s += prefix(i) + "self.__original_name = \"" + algorithm["name"] + "\"\n"
+  if algorithm["threetemplate"] == None:
+    s += prefix(i) + "self.__requires_lines = False\n"
+  else:
+    s += prefix(i) + "self.__requires_lines = True\n"
   s += prefix(i) + "self.__namespace = \"" + algorithm["namespace"] + "\"\n"
   s += prefix(i) + "self.__ordered_parameters = OrderedDict(["
   i += 1
@@ -157,6 +209,11 @@ def write_algorithm_code(algorithm, i = 0):
   s += prefix(i) + "def name(self):\n"
   i += 1
   s += prefix(i) + "return self.__name\n\n"
+  i -= 1
+
+  s += prefix(i) + "def requires_lines(self):\n"
+  i += 1
+  s += prefix(i) + "return self.__requires_lines\n\n"
   i -= 1
 
   for var_name, var in iter(algorithm["variables"].items()):
@@ -209,6 +266,9 @@ if __name__ == '__main__':
   s = write_preamble()
   for algorithm in parsed_algorithms:
     s += write_algorithm_code(algorithm)
+
+  for line in parsed_lines:
+    s += write_line_code(line)
 
   f = open(filename, "w")
   f.write(s)

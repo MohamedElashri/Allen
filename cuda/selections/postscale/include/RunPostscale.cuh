@@ -11,21 +11,26 @@ namespace run_postscale {
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_OUTPUT(dev_sel_results_t, bool) dev_sel_results;
     DEVICE_OUTPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
-    PROPERTY(factor_one_track_t, float, "factor_one_track", "postscale for one-track line", 1.f) factor_one_track; 
-    PROPERTY(factor_single_muon_t, float, "factor_single_muon", "postscale for single-muon line", 1.f) factor_single_muon; 
-    PROPERTY(factor_two_tracks_t, float, "factor_two_tracks", "postscale for two-track line", 1.f) factor_two_tracks; 
-    PROPERTY(factor_disp_dimuon_t, float, "factor_disp_dimuon", "postscale for displaced-dimuon line", 1.f) factor_disp_dimuon; 
-    PROPERTY(factor_high_mass_dimuon_t, float, "factor_high_mass_dimuon", "postscale for high-mass-dimuon line", 1.f) factor_high_mass_dimuon; 
-    PROPERTY(factor_dimuon_soft_t, float, "factor_dimuon_soft", "postscale for soft-dimuon line", 1.f) factor_dimuon_soft; 
+    PROPERTY(factor_one_track_t, float, "factor_one_track", "postscale for one-track line", 1.f) factor_one_track;
+    PROPERTY(factor_single_muon_t, float, "factor_single_muon", "postscale for single-muon line", 1.f)
+    factor_single_muon;
+    PROPERTY(factor_two_tracks_t, float, "factor_two_tracks", "postscale for two-track line", 1.f) factor_two_tracks;
+    PROPERTY(factor_disp_dimuon_t, float, "factor_disp_dimuon", "postscale for displaced-dimuon line", 1.f)
+    factor_disp_dimuon;
+    PROPERTY(factor_high_mass_dimuon_t, float, "factor_high_mass_dimuon", "postscale for high-mass-dimuon line", 1.f)
+    factor_high_mass_dimuon;
+    PROPERTY(factor_dimuon_soft_t, float, "factor_dimuon_soft", "postscale for soft-dimuon line", 1.f)
+    factor_dimuon_soft;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
+  template<typename T>
   __global__ void run_postscale(Parameters);
 
-  template<typename T, char... S>
+  template<typename T, typename U, char... S>
   struct run_postscale_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
-    decltype(global_function(run_postscale)) function {run_postscale};
+    decltype(global_function(run_postscale<U>)) function {run_postscale<U>};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -37,8 +42,8 @@ namespace run_postscale {
       set_size<dev_odin_raw_input_offsets_t>(
         arguments, std::get<2>(runtime_options.host_odin_events).size_bytes() / sizeof(uint));
       set_size<dev_sel_results_t>(
-        arguments, 1000 * value<host_number_of_selected_events_t>(arguments) * Hlt1::Hlt1Lines::End);
-      set_size<dev_sel_results_offsets_t>(arguments, Hlt1::Hlt1Lines::End + 1);
+        arguments, 1000 * value<host_number_of_selected_events_t>(arguments) * std::tuple_size<U>::value);
+      set_size<dev_sel_results_offsets_t>(arguments, std::tuple_size<U>::value + 1);
     }
 
     void operator()(
@@ -65,6 +70,7 @@ namespace run_postscale {
                     property<factor_disp_dimuon_t>(),
                     property<factor_high_mass_dimuon_t>(),
                     property<factor_dimuon_soft_t>()});
+
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_sel_results,
@@ -84,4 +90,7 @@ namespace run_postscale {
     Property<factor_dimuon_soft_t> m_factor_dimuon_soft {this};
     Property<block_dim_t> m_block_dim {this};
   };
-}// namespace run_postscale
+} // namespace run_postscale
+
+// Implementation of run_postscale
+#include "RunPostscale.icc"

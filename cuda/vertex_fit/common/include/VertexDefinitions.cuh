@@ -3,17 +3,20 @@
 #include "SciFiDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "CudaCommon.h"
+#if !defined(__NVCC__) && !defined(__CUDACC__)
+#include <cmath>
+#endif
 
 namespace VertexFit {
 
   // Charged pion mass for calculating Mcor.
-  const float mPi = 139.57f;
+  constexpr float mPi = 139.57f;
 
   // Muon mass.
-  const float mMu = 105.66f;
+  constexpr float mMu = 105.66f;
 
-  const uint max_svs = 1000;
-  
+  constexpr uint max_svs = 1000;
+
   struct TrackMVAVertex {
     // Fit results.
     float px = 0.0f;
@@ -30,7 +33,7 @@ namespace VertexFit {
     float cov20 = 0.0f;
     float cov21 = 0.0f;
     float cov22 = 0.0f;
-    
+
     // Variables for dimuon lines
     float dimu_ip = 0.0f;
     float dz = 0.0f;
@@ -65,7 +68,6 @@ namespace VertexFit {
     // Muon ID.
     bool is_dimuon;
 
-    __device__ __host__ float pt() { return sqrtf(px * px + py * py); }
     __device__ __host__ float pt() const { return sqrtf(px * px + py * py); }
   };
 

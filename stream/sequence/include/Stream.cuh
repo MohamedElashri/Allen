@@ -42,7 +42,7 @@ struct Stream {
   bool do_print_memory_manager;
 
   // Host buffers
-  HostBuffersManager const* host_buffers_manager;
+  HostBuffersManager* host_buffers_manager;
   HostBuffers* host_buffers {0};
 
   // Start event offset
@@ -62,10 +62,9 @@ struct Stream {
     const bool param_print_memory_usage,
     const uint param_start_event_offset,
     const size_t param_reserve_mb,
-    const Constants& param_constants,
-    HostBuffersManager const* buffers_manager);
+    const Constants& param_constants);
 
-  //cudaError_t free(const bool do_check);
+  void set_host_buffer_manager(HostBuffersManager* buffers_manager);
   
   std::vector<bool> reconstructed_events() const;
 

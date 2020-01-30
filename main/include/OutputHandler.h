@@ -11,8 +11,8 @@ struct IInputProvider;
 
 class OutputHandler {
 public:
-  OutputHandler(IInputProvider const* input_provider, size_t eps) :
-    m_input_provider {input_provider}, m_sizes(eps)
+  OutputHandler(IInputProvider const* input_provider, size_t eps, const uint number_of_hlt1_lines) :
+    m_input_provider {input_provider}, m_sizes(eps), m_number_of_hlt1_lines(number_of_hlt1_lines)
   {}
 
   virtual ~OutputHandler() {}
@@ -37,4 +37,5 @@ protected:
   IInputProvider const* m_input_provider = nullptr;
   std::vector<size_t> m_sizes;
   std::array<uint32_t, 4> m_trigger_mask = {~0u, ~0u, ~0u, ~0u};
+  uint m_number_of_hlt1_lines;
 };

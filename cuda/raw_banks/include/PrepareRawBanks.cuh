@@ -5,6 +5,7 @@
 #include "RawBanksDefinitions.cuh"
 #include "DeviceAlgorithm.cuh"
 #include "LineInfo.cuh"
+#include "ParKalmanFilter.cuh"
 
 namespace prepare_raw_banks {
   struct Parameters {
@@ -47,12 +48,13 @@ namespace prepare_raw_banks {
     PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 16);
   };
 
+  template<typename T>
   __global__ void prepare_raw_banks(Parameters, const uint number_of_events);
 
-  template<typename T, char... S>
+  template<typename T, typename U, char... S>
   struct prepare_raw_banks_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
-    decltype(global_function(prepare_raw_banks)) function {prepare_raw_banks};
+    decltype(global_function(prepare_raw_banks<U>)) function {prepare_raw_banks<U>};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -96,6 +98,8 @@ namespace prepare_raw_banks {
         0,
         size<dev_number_of_passing_events_t>(arguments),
         cuda_stream));
+      cudaCheck(
+        cudaMemsetAsync(begin<dev_passing_event_list_t>(arguments), 0, size<dev_passing_event_list_t>(arguments), cuda_stream));
 
       const auto grid_size = dim3(
         (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /
@@ -166,3 +170,5 @@ namespace prepare_raw_banks {
     Property<block_dim_x_t> m_block_dim_x {this};
   };
 } // namespace prepare_raw_banks
+
+#include "PrepareRawBanks.icc"

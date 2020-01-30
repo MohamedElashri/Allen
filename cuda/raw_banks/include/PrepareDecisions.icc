@@ -1,6 +1,4 @@
-#include "PrepareDecisions.cuh"
-#include "RawBanksDefinitions.cuh"
-
+template<typename T>
 __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;
@@ -39,7 +37,7 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
   uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[event_number];
   const VertexFit::TrackMVAVertex* event_svs = parameters.dev_consolidated_svs + parameters.dev_sv_offsets[event_number];
 
-  const int n_hlt1_lines = Hlt1::Hlt1Lines::End;
+  const int n_hlt1_lines = std::tuple_size<T>::value;
   uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
 
   // Set vertex decisions first.
@@ -47,7 +45,7 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
   uint insert_index = 0;
   for (uint i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
     uint32_t save_sv = 0;
-    for (uint i_line = Hlt1::startTwoTrackLines; i_line < Hlt1::startThreeTrackLines; i_line++) {
+    const auto lambda_fn = [&] (const unsigned long i_line) {
       const bool* decisions = parameters.dev_sel_results +
         parameters.dev_sel_results_offsets[i_line] + parameters.dev_sv_offsets[event_number];
 
@@ -61,7 +59,10 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
       if (dec) {
         candidate_list[insert_index] = i_sv;
       }
-    }
+    };
+
+    Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
+
     if (save_sv & dec_mask) {
       const uint sv_insert_index = atomicAdd(parameters.dev_n_svs_saved + event_number, 1);
       event_save_sv[i_sv] = sv_insert_index;
@@ -77,7 +78,7 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
   // Set track decisions.
   for (int i_track = threadIdx.x; i_track < n_tracks_event; i_track += blockDim.x) {
     uint32_t save_track = 0;
-    for (uint i_line = Hlt1::startOneTrackLines; i_line < Hlt1::startTwoTrackLines; i_line++) {
+    const auto lambda_fn = [&] (const unsigned long i_line) {
       const bool* decisions = parameters.dev_sel_results +
         parameters.dev_sel_results_offsets[i_line] + scifi_tracks.tracks_offset(event_number);
 
@@ -91,7 +92,10 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
       if (dec) {
         candidate_list[insert_index] = i_track;
       }
-    }
+    };
+
+    Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
+
     if (save_track) {
       event_save_track[i_track] = 1;
     }

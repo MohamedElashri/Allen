@@ -35,8 +35,7 @@ bool OutputHandler::output_selected_events(
   // size of a RawBank header
   const int bank_header_size = 4 * sizeof(short);
   // size of the DecReport RawBank
-  const int n_hlt1_lines = Hlt1::Hlt1Lines::End;
-  const int dec_report_size = (n_hlt1_lines + 2) * sizeof(uint32_t);
+  const int dec_report_size = (m_number_of_hlt1_lines + 2) * sizeof(uint32_t);
 
   for (size_t i = 0; i < selected_events.size(); ++i) {
 

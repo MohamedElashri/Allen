@@ -1,0 +1,42 @@
+#include "LineInfo.cuh"
+#include "RunPostscale.cuh"
+#include "DeterministicPostscaler.cuh"
+#include "odin.hpp"
+
+template<typename T>
+__global__ void run_postscale::run_postscale(run_postscale::Parameters parameters)
+{
+  const uint event_number = blockIdx.x;
+
+  const auto n_tracks_event =
+    parameters.dev_offsets_forward_tracks[event_number + 1] - parameters.dev_offsets_forward_tracks[event_number];
+  const auto n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
+
+  const uint hdr_size(8);
+  const unsigned int* odinData = reinterpret_cast<const uint*>(
+    parameters.dev_odin_raw_input + parameters.dev_odin_raw_input_offsets[event_number] + hdr_size);
+
+  const uint32_t run_no = odinData[LHCb::ODIN::Data::RunNumber];
+  const uint32_t evt_hi = odinData[LHCb::ODIN::Data::L0EventIDHi];
+  const uint32_t evt_lo = odinData[LHCb::ODIN::Data::L0EventIDLo];
+  const uint32_t gps_hi = odinData[LHCb::ODIN::Data::GPSTimeHi];
+  const uint32_t gps_lo = odinData[LHCb::ODIN::Data::GPSTimeLo];
+
+  // Process 1-track lines.
+  const auto lambda_one_track_fn = [&](const unsigned long i_line, const float scale_factor) {
+    bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
+                 parameters.dev_offsets_forward_tracks[event_number];
+    DeterministicPostscaler ps(i_line, scale_factor);
+    ps(n_tracks_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  };
+  Hlt1::TraverseLinesScaleFactors<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
+
+  // Process 2-track lines.
+  const auto lambda_two_track_fn = [&](const unsigned long i_line, const float scale_factor) {
+    bool* decs =
+      parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + parameters.dev_sv_offsets[event_number];
+    DeterministicPostscaler ps(i_line, scale_factor);
+    ps(n_vertices_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  };
+  Hlt1::TraverseLinesScaleFactors<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+}
