@@ -25,7 +25,7 @@ void RateMonitor::fill(uint i_buf, bool useWallTime)
   uint nevt = buf->host_number_of_selected_events[0];
 
   for (uint ievt = 0; ievt < nevt; ++ievt) {
-    auto dec_reports = buf->host_dec_reports + 2 + ievt * (2 + Hlt1::End);
+    auto dec_reports = buf->host_dec_reports + 2 + ievt * (2 + Hlt1::nHlt1Lines);
 
     bool pass_through_pass = (dec_reports[0] & HltDecReport::decisionMask);
     bool one_track_pass = (dec_reports[1] & HltDecReport::decisionMask);

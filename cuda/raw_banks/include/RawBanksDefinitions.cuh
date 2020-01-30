@@ -41,4 +41,9 @@ namespace Hlt1 {
   const unsigned int selectionCLID = 1;
   const unsigned int trackCLID = 10010;
   const unsigned int svCLID = 10030;
+
+  // Number of lines.
+  // TODO: need to get rid of this, but for now we need it for the rate monitor.
+  const unsigned int nHlt1Lines = 7;
+  
 } // namespace Hlt1

@@ -18,7 +18,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 
-file(GLOB selection_checker_sources "src/*cpp")
+#file(GLOB selection_checker_sources "src/*cpp")
+file(GLOB selection_checker_sources "src/RateChecker.cpp")
 
 add_library(SelChecking STATIC
   ${selection_checker_sources}
