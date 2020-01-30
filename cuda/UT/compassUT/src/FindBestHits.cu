@@ -16,25 +16,32 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   const float delta_tx_2,
   const float hit_tol_2,
   const float sigma_velo_slope,
-  const float inv_sigma_velo_slope)
+  const float inv_sigma_velo_slope,
+  const int event_hit_offset)
 {
+  __shared__ uint candidate_pairs [128 * 16];
+
   const float yyProto = velo_state.y - velo_state.ty * velo_state.z;
 
   const TrackCandidates ranges(win_size_shared);
 
   int best_hits[UT::Constants::n_layers] = {-1, -1, -1, -1};
 
-  bool found = false;
-  bool forward = false;
-  uint considered = 0;
 
   int best_number_of_hits = 3;
   int best_fit = UT::Constants::maxPseudoChi2;
   BestParams best_params;
 
+  uint number_of_candidates = 0;
+  for (uint candidate = 0; candidate < 16; candidate++) {
+    candidate_pairs[candidate * 128 + threadIdx.x] = 0;
+  }
+
+  // Fill in candidate pairs
   // Get total number of hits for forward + backward in first layer (0 for fwd, 3 for bwd)
-  for (int i = 0; (!found || considered < max_considered_before_found) && i < sum_layer_hits(ranges, 0, 3); ++i) {
+  for (int i = 0; number_of_candidates < max_considered_before_found && i < sum_layer_hits(ranges, 0, 3); ++i) {
     const int i_hit0 = calc_index(i, ranges, 0, 3, ut_hit_offsets);
+    bool forward = false;
 
     // set range for next layer if forward or backward
     int layer_2;
@@ -57,7 +64,7 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
     // 2nd layer
     const int total_hits_2layers_2 = sum_layer_hits(ranges, layer_2);
-    for (int j = 0; (!found || considered < max_considered_before_found) && j < total_hits_2layers_2; ++j) {
+    for (int j = 0; number_of_candidates < max_considered_before_found && j < total_hits_2layers_2; ++j) {
       int i_hit2 = calc_index(j, ranges, layer_2, ut_hit_offsets);
 
       // Get info to calculate slope
@@ -69,74 +76,92 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
       if (fabsf(tx - velo_state.tx) <= delta_tx_2) {
-
-        int temp_best_hits[4] = {i_hit0, -1, i_hit2, -1};
-
-        const int layers[2] = {forward ? 1 : 2, forward ? 3 : 0};
-
-        float hitTol = hit_tol_2;
-
-        // search for a triplet in 3rd layer
-        for (int i1 = 0; i1 < sum_layer_hits(ranges, layers[0]); ++i1) {
-
-          int i_hit1 = calc_index(i1, ranges, layers[0], ut_hit_offsets);
-
-          // Get info to check tolerance
-          const float yy1 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit1));
-          const float xhitLayer1 = ut_hits.xAt(i_hit1, yy1, ut_dxDy[layers[0]]);
-          const float zhitLayer1 = ut_hits.zAtYEq0(i_hit1);
-          const float xextrapLayer1 = xhitLayer0 + tx * (zhitLayer1 - zhitLayer0);
-
-          if (fabsf(xhitLayer1 - xextrapLayer1) < hitTol) {
-            hitTol = fabsf(xhitLayer1 - xextrapLayer1);
-            temp_best_hits[1] = i_hit1;
-          }
-        }
-
-        // search for triplet/quadruplet in 4th layer
-        hitTol = hit_tol_2;
-        for (int i3 = 0; i3 < sum_layer_hits(ranges, layers[1]); ++i3) {
-
-          int i_hit3 = calc_index(i3, ranges, layers[1], ut_hit_offsets);
-
-          // Get info to check tolerance
-          const float yy3 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit3));
-          const float xhitLayer3 = ut_hits.xAt(i_hit3, yy3, ut_dxDy[layers[1]]);
-          const float zhitLayer3 = ut_hits.zAtYEq0(i_hit3);
-          const float xextrapLayer3 = xhitLayer2 + tx * (zhitLayer3 - zhitLayer2);
-          if (fabsf(xhitLayer3 - xextrapLayer3) < hitTol) {
-            hitTol = fabsf(xhitLayer3 - xextrapLayer3);
-            temp_best_hits[3] = i_hit3;
-          }
-        }
-
-        // Fit the hits to get q/p, chi2
-        const auto temp_number_of_hits = 2 + (temp_best_hits[1] != -1) + (temp_best_hits[3] != -1);
-        const auto params = pkick_fit(
-          temp_best_hits, ut_hits, velo_state, ut_dxDy, yyProto, forward, sigma_velo_slope, inv_sigma_velo_slope);
-        ++considered;
-
-        // Save the best chi2 and number of hits triplet/quadruplet
-        if (params.chi2UT < best_fit && temp_number_of_hits >= best_number_of_hits) {
-          if (forward) {
-            best_hits[0] = temp_best_hits[0];
-            best_hits[1] = temp_best_hits[1];
-            best_hits[2] = temp_best_hits[2];
-            best_hits[3] = temp_best_hits[3];
-          }
-          else {
-            best_hits[0] = temp_best_hits[3];
-            best_hits[1] = temp_best_hits[2];
-            best_hits[2] = temp_best_hits[1];
-            best_hits[3] = temp_best_hits[0];
-          }
-          best_number_of_hits = temp_number_of_hits;
-          best_params = params;
-          best_fit = params.chi2UT;
-
-          found = true;
-        }
+        candidate_pairs[number_of_candidates * 128 + threadIdx.x] = (forward << 31) | ((i_hit0 - event_hit_offset) << 16) | (i_hit2 - event_hit_offset);
+        number_of_candidates++;
       }
+    }
+  }
+
+  // Iterate over candidate pairs
+  __syncthreads();
+  for (uint i = 0; i < number_of_candidates; ++i) {
+    const auto pair = candidate_pairs[i * 128 + threadIdx.x];
+    const bool forward = pair >> 31;
+    const int i_hit0 = event_hit_offset + ((pair >> 16) & 0x7FFF);
+    const int i_hit2 = event_hit_offset + (pair & 0x7FFF);
+
+    const auto dxdy_layer = forward ? 0 : 3;
+    const auto yy0 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit0));
+    const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
+    const auto zhitLayer0 = ut_hits.zAtYEq0(i_hit0);
+
+    const auto dxdy_layer_2 = forward ? 2 : 1;
+    const auto yy2 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit2));
+    const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
+    const auto zhitLayer2 = ut_hits.zAtYEq0(i_hit2);
+
+    const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
+
+    int temp_best_hits[4] = {i_hit0, -1, i_hit2, -1};
+    const int layers[2] = {forward ? 1 : 2, forward ? 3 : 0};
+
+    // search for a triplet in 3rd layer
+    float hitTol = hit_tol_2;
+    for (int i1 = 0; i1 < sum_layer_hits(ranges, layers[0]); ++i1) {
+
+      int i_hit1 = calc_index(i1, ranges, layers[0], ut_hit_offsets);
+
+      // Get info to check tolerance
+      const float yy1 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit1));
+      const float xhitLayer1 = ut_hits.xAt(i_hit1, yy1, ut_dxDy[layers[0]]);
+      const float zhitLayer1 = ut_hits.zAtYEq0(i_hit1);
+      const float xextrapLayer1 = xhitLayer0 + tx * (zhitLayer1 - zhitLayer0);
+
+      if (fabsf(xhitLayer1 - xextrapLayer1) < hitTol) {
+        hitTol = fabsf(xhitLayer1 - xextrapLayer1);
+        temp_best_hits[1] = i_hit1;
+      }
+    }
+
+    // search for triplet/quadruplet in 4th layer
+    hitTol = hit_tol_2;
+    for (int i3 = 0; i3 < sum_layer_hits(ranges, layers[1]); ++i3) {
+
+      int i_hit3 = calc_index(i3, ranges, layers[1], ut_hit_offsets);
+
+      // Get info to check tolerance
+      const float yy3 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit3));
+      const float xhitLayer3 = ut_hits.xAt(i_hit3, yy3, ut_dxDy[layers[1]]);
+      const float zhitLayer3 = ut_hits.zAtYEq0(i_hit3);
+      const float xextrapLayer3 = xhitLayer2 + tx * (zhitLayer3 - zhitLayer2);
+      if (fabsf(xhitLayer3 - xextrapLayer3) < hitTol) {
+        hitTol = fabsf(xhitLayer3 - xextrapLayer3);
+        temp_best_hits[3] = i_hit3;
+      }
+    }
+
+    // Fit the hits to get q/p, chi2
+    const auto temp_number_of_hits = 2 + (temp_best_hits[1] != -1) + (temp_best_hits[3] != -1);
+    const auto params = pkick_fit(
+      temp_best_hits, ut_hits, velo_state, ut_dxDy, yyProto, forward, sigma_velo_slope, inv_sigma_velo_slope);
+
+    // Save the best chi2 and number of hits triplet/quadruplet
+    if (params.chi2UT < best_fit && temp_number_of_hits >= best_number_of_hits) {
+      if (forward) {
+        best_hits[0] = temp_best_hits[0];
+        best_hits[1] = temp_best_hits[1];
+        best_hits[2] = temp_best_hits[2];
+        best_hits[3] = temp_best_hits[3];
+      }
+      else {
+        best_hits[0] = temp_best_hits[3];
+        best_hits[1] = temp_best_hits[2];
+        best_hits[2] = temp_best_hits[1];
+        best_hits[3] = temp_best_hits[0];
+      }
+      best_number_of_hits = temp_number_of_hits;
+      best_params = params;
+      best_fit = params.chi2UT;
     }
   }
 

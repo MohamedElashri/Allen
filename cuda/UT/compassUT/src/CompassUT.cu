@@ -112,7 +112,8 @@ __device__ void compass_ut::compass_ut_tracking(
     delta_tx_2,
     hit_tol_2,
     sigma_velo_slope,
-    inv_sigma_velo_slope);
+    inv_sigma_velo_slope,
+    event_hit_offset);
 
   const int best_hits[UT::Constants::n_layers] = {std::get<0>(best_hits_and_params),
                                                   std::get<1>(best_hits_and_params),

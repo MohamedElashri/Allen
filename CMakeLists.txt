@@ -500,8 +500,9 @@ include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
 include_directories(integration/monitoring/include)
 include_directories(integration/non_event_data/include)
+include_directories(stream/gear/include)
 include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
-include_directories(SYSTEM ${CPPGSL_INCLUDE_DIRS})
+include_directories(${CPPGSL_INCLUDE_DIRS})
 
 # Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")

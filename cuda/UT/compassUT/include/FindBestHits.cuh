@@ -16,7 +16,8 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   const float delta_tx_2,
   const float hit_tol_2,
   const float sigma_velo_slope,
-  const float inv_sigma_velo_slope);
+  const float inv_sigma_velo_slope,
+  const int event_hit_offset);
 
 __device__ BestParams pkick_fit(
   const int best_hits[UT::Constants::n_layers],
