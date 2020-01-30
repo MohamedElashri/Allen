@@ -21,6 +21,8 @@ namespace DisplacedDiMuon {
     {
       if (!vertex.is_dimuon) return false;
       if (vertex.minipchi2 < dispMinIPChi2) return false;
+      //TODO temporary hardcoded mass cut to reduce CPU-GPU differences
+      if (vertex.mdimu < 215.f) return false;
 
       bool decision = vertex.chi2 > 0;
       decision &= vertex.chi2 < maxVertexChi2;
