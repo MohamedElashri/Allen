@@ -21,7 +21,9 @@ bool OutputHandler::output_selected_events(
   size_t const slice_index,
   size_t const event_offset,
   gsl::span<unsigned int const> const selected_events,
-  gsl::span<uint32_t const> const dec_reports)
+  gsl::span<uint32_t const> const dec_reports,
+  gsl::span<uint32_t const> const sel_reports,
+  gsl::span<uint const> const sel_report_offsets)
 {
   auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
 
@@ -30,13 +32,18 @@ bool OutputHandler::output_selected_events(
   m_input_provider->event_sizes(slice_index, selected_events, m_sizes);
   auto event_ids = m_input_provider->event_ids(slice_index);
 
-  // size of the DecReport RawBank and its header
+  // size of a RawBank header
   const int bank_header_size = 4 * sizeof(short);
+  // size of the DecReport RawBank
   const int dec_report_size = (m_number_of_hlt1_lines + 2) * sizeof(uint32_t);
 
   for (size_t i = 0; i < selected_events.size(); ++i) {
 
-    auto [buffer_id, buffer_span] = buffer(m_sizes[i] + header_size + bank_header_size + dec_report_size);
+    // size of the SelReport RawBank
+    const uint sel_report_size = (sel_report_offsets[i + 1] - sel_report_offsets[i]) * sizeof(uint32_t);
+
+    //add DecReport and SelReport sizes to the total size (including two RawBank headers)
+    auto [buffer_id, buffer_span] = buffer(m_sizes[i] + header_size + 2*bank_header_size + dec_report_size + sel_report_size);
 
     // Add the header
     auto* header = reinterpret_cast<LHCb::MDFHeader*>(buffer_span.data());
@@ -45,7 +52,7 @@ bool OutputHandler::output_selected_events(
     header->setHeaderVersion(Allen::mdf_header_version);
     // MDFHeader::setSize adds the header size internally, so pass
     // only the payload size here
-    header->setSize(m_sizes[i] + bank_header_size + dec_report_size);
+    header->setSize(m_sizes[i] + 2*bank_header_size + dec_report_size + sel_report_size);
     // No checksumming
     // FIXME: make configurable
     header->setChecksum(0);
@@ -72,6 +79,15 @@ bool OutputHandler::output_selected_events(
       {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * (selected_events[i] - event_offset),
        dec_report_size},
       buffer_span.data() + header_size + m_sizes[i]);
+
+    // add the sel report
+    add_raw_bank(
+      LHCb::RawBank::HltSelReports,
+      2u,
+      1 << 13,
+      {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[i]*sizeof(uint32_t),
+       sel_report_size},
+      buffer_span.data() + header_size + m_sizes[i] + bank_header_size + dec_report_size);
 
     auto s = write_buffer(buffer_id);
     if (!s) return s;

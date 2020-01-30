@@ -2,6 +2,7 @@
 #include "HostBuffers.cuh"
 
 #include "HltDecReport.cuh"
+#include "HltSelReport.cuh"
 #include "RawBanksDefinitions.cuh"
 #include "LineInfo.cuh"
 
@@ -100,6 +101,7 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
 
   buf->host_number_of_passing_events[0] = 1u;
   buf->host_passing_event_list[0] = 0u;
+  //create DecReport
   buf->host_dec_reports[0] = Hlt1::TCK;
   buf->host_dec_reports[1] = Hlt1::taskID;
   for (uint i_line = 0; i_line < m_number_of_hlt1_lines; i_line++) {
@@ -115,18 +117,27 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
     }
     buf->host_dec_reports[i_line + 2] = dec_report.getDecReport();
   }
+  //create SelReport
+  HltSelRepRawBank(buf->host_sel_rep_raw_banks, HltSelRepRawBank::kHeaderSize);
+  buf->host_sel_rep_offsets[0] = 0u;
+  buf->host_sel_rep_offsets[1] = HltSelRepRawBank::kHeaderSize;
   returnBufferFilled(b);
 }
 
-std::tuple<gsl::span<uint const>, gsl::span<uint32_t const>> HostBuffersManager::getBufferOutputData(size_t b)
+std::tuple<gsl::span<uint const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<uint const>> HostBuffersManager::getBufferOutputData(size_t b)
 {
   if (b > host_buffers.size()) return {};
 
   HostBuffers* buf = host_buffers.at(b);
-  auto const n_selected = buf->host_number_of_passing_events[0];
-  gsl::span<uint const> passing_event_list {buf->host_passing_event_list, n_selected};
-  gsl::span<uint32_t const> dec_reports {buf->host_dec_reports, n_selected};
-  return {passing_event_list, dec_reports};
+  auto const n_passing = buf->host_number_of_passing_events[0];
+  const uint sel_rep_buf_size = buf->host_sel_rep_offsets[n_passing];
+  const uint dec_rep_buf_size = (Hlt1::Hlt1Lines::End + 2) * max_events;
+
+  gsl::span<uint const> passing_event_list {buf->host_passing_event_list, n_passing};
+  gsl::span<uint32_t const> dec_reports {buf->host_dec_reports, dec_rep_buf_size};
+  gsl::span<uint32_t const> sel_reports {buf->host_sel_rep_raw_banks, sel_rep_buf_size};
+  gsl::span<uint const> sel_report_offsets {buf->host_sel_rep_offsets, n_passing+1};
+  return {passing_event_list, dec_reports, sel_reports, sel_report_offsets};
 }
 
 void HostBuffersManager::printStatus() const
