@@ -21,7 +21,9 @@ public:
     size_t const slice_index,
     size_t const event_offset,
     gsl::span<unsigned int const> const selected_events,
-    gsl::span<uint32_t const> const dec_reports);
+    gsl::span<uint32_t const> const dec_reports,
+    gsl::span<uint32_t const> const sel_reports,
+    gsl::span<uint const> const sel_report_offsets);
 
   virtual zmq::socket_t* client_socket() { return nullptr; }
 

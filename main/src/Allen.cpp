@@ -98,9 +98,9 @@ void run_output(const size_t thread_id, OutputHandler* output_handler, HostBuffe
         auto buf_idx = zmqSvc().receive<size_t>(control);
 
         bool success = true;
-        auto [passing_event_list, dec_reports] = buffer_manager->getBufferOutputData(buf_idx);
+        auto [passing_event_list, dec_reports, sel_reports, sel_report_offsets] = buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
-          success = output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports);
+          success = output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
         }
 
         zmqSvc().send(control, "WRITTEN", zmq::SNDMORE);
