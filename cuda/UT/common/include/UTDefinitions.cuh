@@ -31,6 +31,7 @@ namespace UT {
 
   namespace Constants {
     static constexpr uint num_thr_compassut = 128;
+    static constexpr uint max_value_considered_before_found = 16;
 
     /* Detector description
        There are two stations with two layers each
