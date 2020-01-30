@@ -7,26 +7,22 @@
 #include "ROOTHeaders.h"
 
 struct MonitorBase {
-  enum class MonHistType {
-    MonitoringSuccess,
-    MonitoringSkipped,
-    MonitoringLevel0,
-    MonitoringLevel1,
-    MonitoringLevel2,
-    MonitoringLevel3,
-    MonitoringLevel4,
-    MonitoringLevel5P,
-    SplitSlices,
-    PassThroughRate,
-    OneTrackRate,
-    TwoTrackRate,
-    SingleMuonRate,
-    DispDimuonRate,
-    HighMassDimuonRate,
-    InclusiveRate,
-    KalmanTrackP,
-    KalmanTrackPt,
-    KalmanTrackIPChi2
+  enum MonHistType {
+    MonitoringSuccess = 0,
+    MonitoringSkipped = 1,
+    SplitSlices = 2,
+    MonitoringLevel0 = 3,
+    MonitoringLevel1 = 4,
+    MonitoringLevel2 = 5,
+    MonitoringLevel3 = 6,
+    MonitoringLevel4 = 7,
+    MonitoringLevel5P = 8,
+    InclusiveRate = 100,
+    LineRatesStart = 101,
+    LineRatesLast = 199,
+    KalmanTrackP = 200,
+    KalmanTrackPt = 201,
+    KalmanTrackIPChi2 = 202
   };
 
   MonitorBase(std::string name, int timeStep, int offset) : m_name(name), m_time_step(timeStep), m_offset(offset) {};
@@ -41,7 +37,7 @@ protected:
   std::string m_name;
 
 #ifdef WITH_ROOT
-  std::map<MonHistType, TH1*> m_histograms;
+  std::map<uint, TH1*> m_histograms;
 #endif
 
   uint m_time_step;

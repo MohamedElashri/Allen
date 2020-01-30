@@ -782,7 +782,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // create rate monitors
   std::unique_ptr<MonitorManager> monitor_manager =
-    std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), 30, time(0));
+    std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), stream_wrapper.number_of_hlt1_lines, 30, time(0));
 
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {

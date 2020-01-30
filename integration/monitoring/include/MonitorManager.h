@@ -10,10 +10,10 @@
 struct HostBuffersManager;
 
 struct MonitorManager {
-  MonitorManager(uint n_mon_thread, HostBuffersManager* buffers_manager, int time_step = 30, int offset = 0) :
+  MonitorManager(uint n_mon_thread, HostBuffersManager* buffers_manager, uint number_of_hlt1_lines, int time_step = 30, int offset = 0) :
     meta_mon(time_step, offset)
   {
-    init(n_mon_thread, buffers_manager, time_step, offset);
+    init(n_mon_thread, buffers_manager, number_of_hlt1_lines, time_step, offset);
   }
 
   void fill(uint i_mon, uint i_buf, bool useWallTime = true);
@@ -24,7 +24,7 @@ struct MonitorManager {
   void freeMonitor(size_t i_mon);
 
 private:
-  void init(uint n_mon_thread, HostBuffersManager* buffers_manager, int time_step, int offset);
+  void init(uint n_mon_thread, HostBuffersManager* buffers_manager, uint number_of_hlt1_lines, int time_step, int offset);
 
   std::vector<std::vector<BufferMonitor*>> m_monitors;
 

@@ -62,11 +62,11 @@ void MonitorManager::freeMonitor(size_t i_mon)
   free_monitors.push(i_mon);
 }
 
-void MonitorManager::init(uint n_mon_thread, HostBuffersManager* buffers_manager, int time_step, int offset)
+void MonitorManager::init(uint n_mon_thread, HostBuffersManager* buffers_manager, uint number_of_hlt1_lines, int time_step, int offset)
 {
   for (uint i = 0; i < n_mon_thread; ++i) {
     m_monitors.push_back(std::vector<BufferMonitor*>());
-    m_monitors.back().push_back(new RateMonitor(buffers_manager, time_step, offset));
+    m_monitors.back().push_back(new RateMonitor(buffers_manager, number_of_hlt1_lines, time_step, offset));
     m_monitors.back().push_back(new TrackMonitor(buffers_manager, time_step, offset));
     free_monitors.push(i);
   }
