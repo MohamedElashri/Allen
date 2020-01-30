@@ -71,14 +71,14 @@ namespace scifi_consolidate_tracks {
                     begin<dev_scifi_lf_parametrization_consolidate_t>(arguments)});
 
       // Transmission device to host of Scifi consolidated tracks
-      if (runtime_options.do_check) {
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_atomics_scifi,
-          begin<dev_offsets_forward_tracks_t>(arguments),
-          size<dev_offsets_forward_tracks_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
+      cudaCheck(cudaMemcpyAsync(
+        host_buffers.host_atomics_scifi,
+        begin<dev_offsets_forward_tracks_t>(arguments),
+        size<dev_offsets_forward_tracks_t>(arguments),
+        cudaMemcpyDeviceToHost,
+        cuda_stream));
 
+      if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_scifi_track_hit_number,
           begin<dev_offsets_scifi_track_hit_number>(arguments),

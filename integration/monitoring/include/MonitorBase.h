@@ -20,9 +20,11 @@ struct MonitorBase {
     InclusiveRate = 100,
     LineRatesStart = 101,
     LineRatesLast = 199,
-    KalmanTrackP = 200,
-    KalmanTrackPt = 201,
-    KalmanTrackIPChi2 = 202
+    KalmanTrackN = 200,
+    KalmanTrackP = 201,
+    KalmanTrackPt = 202,
+    KalmanTrackEta = 203,
+    KalmanTrackIPChi2 = 204
   };
 
   MonitorBase(std::string name, int timeStep, int offset) : m_name(name), m_time_step(timeStep), m_offset(offset) {};
