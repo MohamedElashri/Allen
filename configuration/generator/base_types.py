@@ -331,6 +331,7 @@ class Sequence():
       print("Generating sequence file...")
       # Add all the includes
       s = "#pragma once\n\n#include <tuple>\n"
+      s += "#include \"" + prefix_includes + "cuda/selections/Hlt1/include/LineTraverser.cuh\"\n"
       for _, algorithm in iter(self.__sequence.items()):
         s += "#include \"" + prefix_includes + algorithm.filename() + "\"\n"
       for _, line in iter(self.__lines.items()):
@@ -358,9 +359,9 @@ class Sequence():
       s += "\nusing configured_lines_t = std::tuple<"
       for _, line in iter(self.__lines.items()):
         s += line.namespace() + "::" + line.name() + ", "
-      s = s[:-2]
+      if len(self.__lines) > 0:
+        s = s[:-2]
       s += ">;\n"
-
       # Generate sequence
       s += "\nusing configured_sequence_t = std::tuple<\n"
       i_alg = 0
