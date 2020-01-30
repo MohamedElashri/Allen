@@ -1,5 +1,5 @@
 #include "RateChecker.h"
-#include "SelCheckerTuple.h"
+//#include "SelCheckerTuple.h"
 #include "PrepareKalmanTracks.h"
 #include "RunHlt1.cuh"
 
@@ -15,7 +15,8 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
       host_buffers.host_atomics_scifi,
       host_buffers.host_sv_atomics,
       host_buffers.host_number_of_selected_events[0]);
-    
+
+    /*
     [[maybe_unused]] const auto tracks = prepareKalmanTracks(
       host_buffers.host_atomics_velo,
       host_buffers.host_velo_track_hit_number,
@@ -55,5 +56,6 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
     // Avoid warning
     [[maybe_unused]] const auto& mc_event = mc_events.front();
 #endif
+    */
   }
 };

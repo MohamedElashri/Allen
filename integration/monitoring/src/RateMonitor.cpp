@@ -25,23 +25,18 @@ void RateMonitor::fill(uint i_buf, bool useWallTime)
   uint nevt = buf->host_number_of_selected_events[0];
 
   for (uint ievt = 0; ievt < nevt; ++ievt) {
-    auto dec_reports = buf->host_dec_reports + 2 + ievt * (2 + Hlt1::End);
+    auto dec_reports = buf->host_dec_reports + 2 + ievt * (2 + m_number_of_hlt1_lines);
 
-    bool pass_through_pass = (dec_reports[0] & HltDecReport::decisionMask);
-    bool one_track_pass = (dec_reports[1] & HltDecReport::decisionMask);
-    bool two_track_pass = (dec_reports[2] & HltDecReport::decisionMask);
-    bool single_muon_pass = (dec_reports[3] & HltDecReport::decisionMask);
-    bool disp_dimuon_pass = (dec_reports[4] & HltDecReport::decisionMask);
-    bool high_mass_dimuon_pass = (dec_reports[5] & HltDecReport::decisionMask);
+    bool pass(false);
 
-    if (pass_through_pass) m_histograms[MonHistType::PassThroughRate]->Fill(time, 1. / m_time_step);
-    if (one_track_pass) m_histograms[MonHistType::OneTrackRate]->Fill(time, 1. / m_time_step);
-    if (two_track_pass) m_histograms[MonHistType::TwoTrackRate]->Fill(time, 1. / m_time_step);
-    if (single_muon_pass) m_histograms[MonHistType::SingleMuonRate]->Fill(time, 1. / m_time_step);
-    if (disp_dimuon_pass) m_histograms[MonHistType::DispDimuonRate]->Fill(time, 1. / m_time_step);
-    if (high_mass_dimuon_pass) m_histograms[MonHistType::HighMassDimuonRate]->Fill(time, 1. / m_time_step);
-    if (one_track_pass || two_track_pass || single_muon_pass || disp_dimuon_pass || high_mass_dimuon_pass)
-      m_histograms[MonHistType::InclusiveRate]->Fill(time, 1. / m_time_step);
+    for (uint i_line=0; i_line<m_number_of_hlt1_lines; ++i_line) {
+      if (dec_reports[i_line] & HltDecReport::decisionMask) {
+        m_histograms[LineRatesStart + i_line]->Fill(time, 1. / m_time_step);
+	pass = true;
+      }
+    }
+
+    if (pass) m_histograms[InclusiveRate]->Fill(time, 1. / m_time_step);
   }
 }
 
@@ -51,13 +46,13 @@ void RateMonitor::init()
   uint nBins = 80 * 60 / m_time_step;
   double max = nBins * m_time_step;
 
-  m_histograms.emplace(MonHistType::PassThroughRate, new TH1D("passThroughRate", "", nBins, 0., max));
-  m_histograms.emplace(MonHistType::OneTrackRate, new TH1D("oneTrackRate", "", nBins, 0., max));
-  m_histograms.emplace(MonHistType::TwoTrackRate, new TH1D("twoTrackRate", "", nBins, 0., max));
-  m_histograms.emplace(MonHistType::SingleMuonRate, new TH1D("singleMuonRate", "", nBins, 0., max));
-  m_histograms.emplace(MonHistType::DispDimuonRate, new TH1D("dispDimuonRate", "", nBins, 0., max));
-  m_histograms.emplace(MonHistType::HighMassDimuonRate, new TH1D("highMassDimuonRate", "", nBins, 0., max));
-  m_histograms.emplace(MonHistType::InclusiveRate, new TH1D("inclusiveRate", "", nBins, 0., max));
+  m_histograms.emplace(InclusiveRate, new TH1D("inclusiveRate", "", nBins, 0., max));
+  for (uint i_line=0; i_line<m_number_of_hlt1_lines; ++i_line) {
+    TString name = "line";
+    name += i_line;
+    name += "Rate";
+    m_histograms.emplace(LineRatesStart+i_line, new TH1D(name, "", nBins, 0., max));
+  }
 
   for (auto kv : m_histograms) {
     kv.second->SetDirectory(nullptr);

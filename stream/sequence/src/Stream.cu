@@ -7,7 +7,7 @@
 #include "SciFiSequenceCheckers_impl.cuh"
 #include "PVSequenceCheckers_impl.cuh"
 #include "KalmanSequenceCheckers_impl.cuh"
-#include "RateCheckers_impl.cuh"
+//#include "RateCheckers_impl.cuh"
 
 StreamWrapper::StreamWrapper() {
   number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;

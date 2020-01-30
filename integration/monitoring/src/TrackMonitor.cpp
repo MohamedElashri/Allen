@@ -25,9 +25,9 @@ void TrackMonitor::fill(uint i_buf, bool)
     for (int itrk = 0; itrk < ntrk; ++itrk) {
       const auto& track = buf->host_kf_tracks[trk_offset + itrk];
 
-      m_histograms[MonHistType::KalmanTrackP]->Fill(track.p());
-      m_histograms[MonHistType::KalmanTrackPt]->Fill(track.pt());
-      m_histograms[MonHistType::KalmanTrackIPChi2]->Fill(log(track.ipChi2));
+      m_histograms[KalmanTrackP]->Fill(track.p());
+      m_histograms[KalmanTrackPt]->Fill(track.pt());
+      m_histograms[KalmanTrackIPChi2]->Fill(log(track.ipChi2));
     }
   }
 }
@@ -36,9 +36,9 @@ void TrackMonitor::init()
 {
   uint nBins = 1000;
 
-  m_histograms.emplace(MonHistType::KalmanTrackP, new TH1D("trackP", "", nBins, 0., 1e6));
-  m_histograms.emplace(MonHistType::KalmanTrackPt, new TH1D("trackPt", "", nBins, 0., 2e4));
-  m_histograms.emplace(MonHistType::KalmanTrackIPChi2, new TH1D("trackLogIPChi2", "", nBins, -10., 10.));
+  m_histograms.emplace(KalmanTrackP, new TH1D("trackP", "", nBins, 0., 1e6));
+  m_histograms.emplace(KalmanTrackPt, new TH1D("trackPt", "", nBins, 0., 2e4));
+  m_histograms.emplace(KalmanTrackIPChi2, new TH1D("trackLogIPChi2", "", nBins, -10., 10.));
 
   for (auto kv : m_histograms) {
     kv.second->SetDirectory(nullptr);

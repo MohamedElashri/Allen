@@ -98,9 +98,9 @@ void run_output(const size_t thread_id, OutputHandler* output_handler, HostBuffe
         auto buf_idx = zmqSvc().receive<size_t>(control);
 
         bool success = true;
-        auto [passing_event_list, dec_reports] = buffer_manager->getBufferOutputData(buf_idx);
+        auto [passing_event_list, dec_reports, sel_reports, sel_report_offsets] = buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
-          success = output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports);
+          success = output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
         }
 
         zmqSvc().send(control, "WRITTEN", zmq::SNDMORE);
@@ -782,7 +782,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // create rate monitors
   std::unique_ptr<MonitorManager> monitor_manager =
-    std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), 30, time(0));
+    std::make_unique<MonitorManager>(n_mon, buffer_manager.get(), stream_wrapper.number_of_hlt1_lines, 30, time(0));
 
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {

@@ -41,7 +41,7 @@ struct HostBuffersManager {
 
   void writeSingleEventPassthrough(const size_t b);
 
-  std::tuple<gsl::span<uint const>, gsl::span<uint32_t const>> getBufferOutputData(size_t b);
+  std::tuple<gsl::span<uint const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<uint const>> getBufferOutputData(size_t b);
 
   void printStatus() const;
   bool buffersEmpty() const { return (empty_buffers.size() == host_buffers.size()); }
