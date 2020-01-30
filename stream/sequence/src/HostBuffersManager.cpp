@@ -131,7 +131,7 @@ std::tuple<gsl::span<uint const>, gsl::span<uint32_t const>, gsl::span<uint32_t 
   HostBuffers* buf = host_buffers.at(b);
   auto const n_passing = buf->host_number_of_passing_events[0];
   const uint sel_rep_buf_size = buf->host_sel_rep_offsets[n_passing];
-  const uint dec_rep_buf_size = (Hlt1::nHlt1Lines + 2) * max_events; // Placeholder until we get this working with the new framework.
+  const uint dec_rep_buf_size = (m_number_of_hlt1_lines + 2) * max_events;
 
   gsl::span<uint const> passing_event_list {buf->host_passing_event_list, n_passing};
   gsl::span<uint32_t const> dec_reports {buf->host_dec_reports, dec_rep_buf_size};
