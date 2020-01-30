@@ -33,7 +33,7 @@ namespace pv_beamline_histo {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const HostBuffers& host_buffers) const {
-      set_size<dev_zhisto_t>(arguments, value<host_number_of_selected_events_t>(arguments) * (zmax - zmin) / dz);
+      set_size<dev_zhisto_t>(arguments, value<host_number_of_selected_events_t>(arguments) * (BeamlinePVConstants::Common::zmax - BeamlinePVConstants::Common::zmin) / BeamlinePVConstants::Common::dz);
     }
 
     void operator()(

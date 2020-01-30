@@ -125,7 +125,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
       reinterpret_cast<decltype(host_number_of_vertex)>(malloc(max_number_of_events * sizeof(int)));
     host_number_of_seeds = reinterpret_cast<decltype(host_number_of_seeds)>(malloc(max_number_of_events * sizeof(int)));
     host_zhisto =
-      reinterpret_cast<decltype(host_zhisto)>(malloc(max_number_of_events * sizeof(float) * (zmax - zmin) / dz));
+      reinterpret_cast<decltype(host_zhisto)>(malloc(max_number_of_events * sizeof(float) * (BeamlinePVConstants::Common::zmax - BeamlinePVConstants::Common::zmin) / BeamlinePVConstants::Common::dz));
     host_peaks =
       reinterpret_cast<decltype(host_peaks)>(malloc(max_number_of_events * sizeof(float) * PV::max_number_vertices));
     host_number_of_peaks =
