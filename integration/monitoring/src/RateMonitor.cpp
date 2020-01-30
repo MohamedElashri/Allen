@@ -61,5 +61,5 @@ void RateMonitor::init()
 }
 #else
 void RateMonitor::fill(uint, bool) {}
-void RateMonitor::init(int) {}
+void RateMonitor::init() {}
 #endif
