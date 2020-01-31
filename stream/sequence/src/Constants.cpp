@@ -17,7 +17,9 @@ void Constants::reserve_constants()
   cudaCheck(cudaMalloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants)));
   cudaCheck(cudaMalloc((void**) &dev_muon_foi, sizeof(Muon::Constants::FieldOfInterest)));
   cudaCheck(cudaMalloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float)));
-
+  cudaCheck(cudaMalloc((void**) &dev_muonmatch_search_muon_chambers, sizeof(MatchUpstreamMuon::MuonChambers)));
+  cudaCheck(cudaMalloc((void**) &dev_muonmatch_search_windows, sizeof(MatchUpstreamMuon::SearchWindows)));
+  
   host_ut_region_offsets.resize(UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1);
   host_ut_dxDy.resize(UT::Constants::n_layers);
   host_unique_x_sector_layer_offsets.resize(UT::Constants::n_layers + 1);
@@ -66,6 +68,22 @@ void Constants::initialize_constants(
   cudaCheck(
     cudaMemcpy(dev_muon_momentum_cuts, &Muon::Constants::momentum_cuts, 3 * sizeof(float), cudaMemcpyHostToDevice));
   cudaCheck(cudaMemcpy(dev_muon_foi, &host_muon_foi, sizeof(Muon::Constants::FieldOfInterest), cudaMemcpyHostToDevice));
+
+  // Velo-UT-muon
+  MatchUpstreamMuon::MuonChambers host_muonmatch_search_muon_chambers;
+  MatchUpstreamMuon::SearchWindows host_muonmatch_search_windows;
+  cudaCheck(cudaMemcpy(
+    dev_muonmatch_search_muon_chambers,
+    &host_muonmatch_search_muon_chambers,
+    sizeof(MatchUpstreamMuon::MuonChambers),
+    cudaMemcpyHostToDevice));
+
+  cudaCheck(cudaMemcpy(
+    dev_muonmatch_search_windows,
+    &host_muonmatch_search_windows,
+    sizeof(MatchUpstreamMuon::SearchWindows),
+    cudaMemcpyHostToDevice));
+  
 }
 
 void Constants::initialize_muon_catboost_model_constants(

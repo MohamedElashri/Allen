@@ -31,11 +31,22 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
   uint* event_saved_tracks_list = parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(event_number);
   const ParKalmanFilter::FittedTrack* event_kf_tracks = parameters.dev_kf_tracks + scifi_tracks.tracks_offset(event_number);
 
+  // Velo-UT-muon tracks.
+  int* event_save_mf_track = parameters.dev_save_mf_track + parameters.dev_mf_track_offsets[event_number];
+  const int n_mf_tracks_event = parameters.dev_mf_track_offsets[event_number + 1] - parameters.dev_mf_track_offsets[event_number];
+  uint* event_saved_mf_tracks_list = parameters.dev_saved_mf_tracks_list + parameters.dev_mf_track_offsets[event_number];
+
   // Vertices.
   int* event_save_sv = parameters.dev_save_sv + parameters.dev_sv_offsets[event_number];
   const int n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
   uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[event_number];
   const VertexFit::TrackMVAVertex* event_svs = parameters.dev_consolidated_svs + parameters.dev_sv_offsets[event_number];
+
+  //MF Vertices.
+  int* event_save_mf_sv = parameters.dev_save_mf_sv + parameters.dev_mf_sv_offsets[event_number];
+  const int n_mf_vertices_event = parameters.dev_mf_sv_offsets[event_number + 1] - parameters.dev_mf_sv_offsets[event_number];
+  uint* event_saved_mf_svs_list = parameters.dev_saved_mf_svs_list + parameters.dev_mf_sv_offsets[event_number];
+  const VertexFit::TrackMVAVertex* event_mf_svs = parameters.dev_mf_svs + parameters.dev_mf_sv_offsets[event_number];
 
   const int n_hlt1_lines = std::tuple_size<T>::value;
   uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
@@ -70,6 +81,39 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
       // Set to 1 for as a placeholder.
       event_save_track[event_svs[i_sv].trk1] = 1;
       event_save_track[event_svs[i_sv].trk2] = 1;
+    }
+  }
+  
+  __syncthreads();
+
+  // MF Vertices
+  for (uint i_mf_sv = threadIdx.x; i_mf_sv < n_mf_vertices_event; i_mf_sv += blockDim.x) {
+    uint32_t save_mf_sv = 0;
+    const auto lambda_fn = [&] (const unsigned long i_line) {
+      const bool* decisions = parameters.dev_sel_results +
+        parameters.dev_sel_results_offsets[i_line] + parameters.dev_mf_sv_offsets[event_number];
+
+      uint* candidate_counts = parameters.dev_candidate_counts + i_line * number_of_events + event_number;
+      uint* candidate_list = parameters.dev_candidate_lists + number_of_events * Hlt1::maxCandidates * i_line +
+      event_number * Hlt1::maxCandidates;
+      uint32_t dec = ((decisions[i_mf_sv] ? 1 : 0) & dec_mask);
+      atomicOr(event_dec_reports + 2 + i_line, dec);
+      insert_index = atomicAdd(candidate_counts, dec);
+      save_mf_sv |= dec;
+      if (dec) {
+        candidate_list[insert_index] = i_mf_sv;
+      }
+    };
+
+    Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
+
+    if (save_mf_sv & dec_mask) {
+      const uint mf_sv_insert_index = atomicAdd(parameters.dev_n_mf_svs_saved + event_number, 1);
+      event_save_mf_sv[i_mf_sv] = mf_sv_insert_index;
+      event_saved_mf_svs_list[mf_sv_insert_index] = i_mf_sv;
+      // Set to 1 for as a placeholder.
+      event_save_track[event_mf_svs[i_mf_sv].trk1] = 1;
+      event_save_mf_track[event_mf_svs[i_mf_sv].trk2] = 1;
     }
   }
   
@@ -111,4 +155,17 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
       event_save_track[i_track] = (int) track_insert_index;
     }
   }
+
+  // Check for velo-ut-muon tracks to save.
+  for (int i_track = threadIdx.x; i_track < n_mf_tracks_event; i_track += blockDim.x) {
+    if (event_save_mf_track[i_track] >= 0) {
+      const int i_velo_track = ut_tracks.velo_track(i_track);
+      const int n_hits = ut_tracks.number_of_hits(i_track) + velo_tracks.number_of_hits(i_velo_track);
+      const uint track_insert_index = atomicAdd(parameters.dev_n_mf_tracks_saved + event_number, 1);
+      atomicAdd(parameters.dev_n_hits_saved + event_number, n_hits);
+      event_saved_mf_tracks_list[track_insert_index] = (uint) i_track;
+      event_save_mf_track[i_track] = (int) track_insert_index;
+    }
+  }
+
 }
