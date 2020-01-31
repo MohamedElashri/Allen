@@ -15,7 +15,7 @@ __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)
   const uint* event_svs_mf_idx = parameters.dev_svs_mf_idx + idx_offset;
 
   // KF tracks.
-  const uint kf_offset = parameters.dev_atomics_scifi[event_number];
+  const uint kf_offset = parameters.dev_offsets_forward_tracks[event_number];
   const ParKalmanFilter::FittedTrack* kf_tracks = parameters.dev_kf_tracks + kf_offset;
 
   // MF tracks.

@@ -14,16 +14,20 @@ def HLT1_sequence(validate=False):
 
   muon_filter = muon_filter_t()
   match_upstream_muon = match_upstream_muon_t()
+  
   prefix_sum_mf_tracks = host_prefix_sum_t("prefix_sum_mf_tracks",
     host_total_sum_holder_t="host_number_of_mf_tracks_t",
     dev_input_buffer_t=muon_filter.dev_mf_track_atomics_t(),
     dev_output_buffer_t="dev_mf_track_offsets_t")
+
   package_mf_tracks = package_mf_tracks_t()
   filter_mf_tracks = filter_mf_tracks_t()
+  
   prefix_sum_mf_vertices = host_prefix_sum_t("prefix_sum_mf_vertices",
     host_total_sum_holder_t="host_number_of_mf_svs_t",
     dev_input_buffer_t=filter_mf_tracks.dev_mf_sv_atomics_t(),
     dev_output_buffer_t="dev_mf_sv_offsets_t")
+
   fit_mf_vertices = fit_mf_vertices_t()
   
   run_hlt1 = run_hlt1_t()

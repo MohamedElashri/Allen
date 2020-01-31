@@ -167,5 +167,4 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
       event_save_mf_track[i_track] = (int) track_insert_index;
     }
   }
-
 }

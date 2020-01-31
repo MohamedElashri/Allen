@@ -22,6 +22,7 @@ namespace run_postscale {
     PROPERTY(factor_dimuon_soft_t, float, "factor_dimuon_soft", "postscale for soft-dimuon line", 1.f)
     factor_dimuon_soft;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint);
   };
 
   template<typename T>
@@ -64,6 +65,8 @@ namespace run_postscale {
                     property<factor_disp_dimuon_t>(),
                     property<factor_high_mass_dimuon_t>(),
                     property<factor_dimuon_soft_t>()});
+
+      print<dev_offsets_all_velo_tracks_t>(arguments);
 
       if (runtime_options.do_check) {
         cudaCheck(cudaMemcpyAsync(

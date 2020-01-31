@@ -1,6 +1,6 @@
 #include "HostPrefixSum.h"
 
-void host_prefix_sum_impl(uint* host_prefix_sum_buffer, const size_t input_number_of_elements, uint* host_total_sum_holder)
+void host_prefix_sum::host_prefix_sum_impl(uint* host_prefix_sum_buffer, const size_t input_number_of_elements, uint* host_total_sum_holder)
 {
   // Do prefix sum on the host
   uint temp = 0;

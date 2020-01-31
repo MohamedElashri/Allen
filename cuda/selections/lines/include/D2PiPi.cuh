@@ -9,7 +9,7 @@ namespace D2PiPi {
 
   constexpr float mPi = 139.571 / Gaudi::Units::MeV;
   constexpr float mD = 1864.83 / Gaudi::Units::MeV;
-  
+
   constexpr float minComboPt = 2000.0f / Gaudi::Units::MeV;
   constexpr float maxVertexChi2 = 10.f;
   constexpr float minEta = 2.0f;
@@ -26,16 +26,10 @@ namespace D2PiPi {
       if (vertex.chi2 < 0) {
         return false;
       }
-      const bool decision =
-        vertex.pt() > minComboPt &&
-        vertex.chi2 < maxVertexChi2 &&
-        vertex.eta > minEta &&
-        vertex.eta < maxEta &&
-        vertex.minpt > minTrackPt &&
-        vertex.minipchi2 > minTrackIPChi2 &&
-        fabsf(vertex.m(mPi, mPi) - mD) < massWindow;
+      const bool decision = vertex.pt() > minComboPt && vertex.chi2 < maxVertexChi2 && vertex.eta > minEta &&
+                            vertex.eta < maxEta && vertex.minpt > minTrackPt && vertex.minipchi2 > minTrackIPChi2 &&
+                            fabsf(vertex.m(mPi, mPi) - mD) < massWindow;
       return decision;
-
     }
-  }; 
+  };
 } // namespace D2PiPi

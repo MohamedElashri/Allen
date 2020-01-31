@@ -49,7 +49,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
   // Buffer for saving events passing Hlt1 selections.
   cudaCheck(cudaMallocHost((void**) &host_passing_event_list, max_number_of_events * sizeof(uint)));
 
-  cudaCheck(cudaMallocHost((void**) &host_sel_results_atomics, (2 * number_of_hlt1_lines + 1) * sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_sel_results_atomics, (number_of_hlt1_lines + 1) * sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_sel_results, max_number_of_events * 1000 * number_of_hlt1_lines * sizeof(bool)));
   // Buffer for saving raw banks.
   cudaCheck(cudaMallocHost((void**) &host_dec_reports, (number_of_hlt1_lines + 2) * max_number_of_events * sizeof(uint)));

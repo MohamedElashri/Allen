@@ -181,8 +181,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
 
       // add SciFi hits
       const uint scifi_track_number_of_hits = scifi_tracks.number_of_hits(i_track);
-      SciFi::Consolidated::ConstHits track_hits_scifi =
-        scifi_tracks.get_hits(scifi_track_hits, i_track);
+      SciFi::Consolidated::ConstHits track_hits_scifi = scifi_tracks.get_hits(scifi_track_hits, i_track);
       for (uint i_hit = 0; i_hit < scifi_track_number_of_hits; ++i_hit) {
         t.addId(track_hits_scifi.id(i_hit));
       }

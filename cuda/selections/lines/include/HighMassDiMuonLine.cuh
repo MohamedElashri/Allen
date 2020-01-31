@@ -19,8 +19,7 @@ namespace HighMassDiMuon {
       if (vertex.mdimu < minMass) return false;
       if (vertex.minpt < minHighMassTrackPt) return false;
 
-      bool decision = vertex.chi2 > 0;
-      decision &= vertex.chi2 < maxVertexChi2;
+      const bool decision = vertex.chi2 > 0 && vertex.chi2 < maxVertexChi2;
       return decision;
     }
   };

@@ -10,6 +10,8 @@
 namespace package_mf_tracks {
 
   struct Parameters {
+    HOST_INPUT(host_number_of_mf_tracks_t, uint);
+    HOST_OUTPUT(host_selected_events_mf_t, uint);
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
@@ -21,7 +23,6 @@ namespace package_mf_tracks {
     DEVICE_INPUT(dev_event_list_mf_t, uint) dev_event_list_mf;
     DEVICE_INPUT(dev_mf_track_offsets_t, uint) dev_mf_track_offsets;
     DEVICE_OUTPUT(dev_mf_tracks_t, ParKalmanFilter::FittedTrack) dev_mf_tracks;
-    HOST_INPUT(host_number_of_mf_tracks_t, uint);
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
@@ -49,20 +50,18 @@ namespace package_mf_tracks {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      if (host_buffers.host_selected_events_mf[0] > 0) {
-        function(dim3(host_buffers.host_selected_events_mf[0]), property<block_dim_t>(), cuda_stream)(
-          Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
-              begin<dev_offsets_velo_track_hit_number_t>(arguments),
-              begin<dev_offsets_ut_tracks_t>(arguments),
-              begin<dev_offsets_ut_track_hit_number_t>(arguments),
-              begin<dev_ut_qop_t>(arguments),
-              begin<dev_ut_track_velo_indices_t>(arguments),
-              begin<dev_velo_kalman_beamline_states_t>(arguments),
-              begin<dev_match_upstream_muon_t>(arguments),
-              begin<dev_event_list_mf_t>(arguments),
-              begin<dev_mf_track_offsets_t>(arguments),
-              begin<dev_mf_tracks_t>(arguments)});
-      }
+      function(dim3(value<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
+            begin<dev_offsets_velo_track_hit_number_t>(arguments),
+            begin<dev_offsets_ut_tracks_t>(arguments),
+            begin<dev_offsets_ut_track_hit_number_t>(arguments),
+            begin<dev_ut_qop_t>(arguments),
+            begin<dev_ut_track_velo_indices_t>(arguments),
+            begin<dev_velo_kalman_beamline_states_t>(arguments),
+            begin<dev_match_upstream_muon_t>(arguments),
+            begin<dev_event_list_mf_t>(arguments),
+            begin<dev_mf_track_offsets_t>(arguments),
+            begin<dev_mf_tracks_t>(arguments)});
     }
 
   private:

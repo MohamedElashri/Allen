@@ -12,6 +12,7 @@ namespace FilterMFTracks {
 
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_selected_events_mf_t, uint);
     DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
     DEVICE_INPUT(dev_mf_tracks_t, ParKalmanFilter::FittedTrack) dev_mf_tracks;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
@@ -44,8 +45,10 @@ namespace FilterMFTracks {
       const HostBuffers& host_buffers) const
     {
       set_size<dev_mf_sv_atomics_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_svs_kf_idx_t>(arguments, 10 * VertexFit::max_svs * value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_svs_mf_idx_t>(arguments, 10 * VertexFit::max_svs * value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_svs_kf_idx_t>(
+        arguments, 10 * VertexFit::max_svs * value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_svs_mf_idx_t>(
+        arguments, 10 * VertexFit::max_svs * value<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -56,38 +59,29 @@ namespace FilterMFTracks {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_mf_sv_atomics_t>(arguments),
-        0,
-        size<dev_mf_sv_atomics_t>(arguments),
-        cuda_stream));
+      cudaCheck(
+        cudaMemsetAsync(begin<dev_mf_sv_atomics_t>(arguments), 0, size<dev_mf_sv_atomics_t>(arguments), cuda_stream));
 
-      if (host_buffers.host_selected_events_mf[0] > 0) {
-        function(
-                 dim3(host_buffers.host_selected_events_mf[0]),
-                 property<block_dim_t>(),
-                 cuda_stream)(
-          Parameters {begin<dev_kf_tracks_t>(arguments),
-              begin<dev_mf_tracks_t>(arguments),
-              begin<dev_offsets_forward_tracks_t>(arguments),
-              begin<dev_offsets_scifi_track_hit_number>(arguments),
-              begin<dev_scifi_qop_t>(arguments),
-              begin<dev_scifi_states_t>(arguments),
-              begin<dev_scifi_track_ut_indices_t>(arguments),
-              begin<dev_mf_track_offsets_t>(arguments),
-              begin<dev_event_list_mf_t>(arguments),
-              begin<dev_mf_sv_atomics_t>(arguments),
-              begin<dev_svs_kf_idx_t>(arguments),
-              begin<dev_svs_mf_idx_t>(arguments)});
-      }
-    } 
+      function(dim3(value<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {begin<dev_kf_tracks_t>(arguments),
+                    begin<dev_mf_tracks_t>(arguments),
+                    begin<dev_offsets_forward_tracks_t>(arguments),
+                    begin<dev_offsets_scifi_track_hit_number>(arguments),
+                    begin<dev_scifi_qop_t>(arguments),
+                    begin<dev_scifi_states_t>(arguments),
+                    begin<dev_scifi_track_ut_indices_t>(arguments),
+                    begin<dev_mf_track_offsets_t>(arguments),
+                    begin<dev_event_list_mf_t>(arguments),
+                    begin<dev_mf_sv_atomics_t>(arguments),
+                    begin<dev_svs_kf_idx_t>(arguments),
+                    begin<dev_svs_mf_idx_t>(arguments)});
+    }
 
   private:
     Property<kf_track_min_pt_t> m_kfminpt {this};
     Property<kf_track_min_ipchi2_t> m_kfminipchi2 {this};
     Property<mf_track_min_pt_t> m_mfminpt {this};
     Property<block_dim_t> m_block_dim {this};
-    
   };
 
 } // namespace FilterMFTracks

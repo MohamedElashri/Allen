@@ -11,6 +11,14 @@ namespace host_prefix_sum {
   };
 
   /**
+   * @brief Implementation of prefix sum.
+   */
+  void host_prefix_sum_impl(
+    uint* host_prefix_sum_buffer,
+    const size_t input_number_of_elements,
+    uint* host_total_sum_holder = nullptr);
+
+  /**
    * @brief An algorithm that performs the prefix sum on the CPU.
    */
   void host_prefix_sum(
@@ -54,21 +62,19 @@ namespace host_prefix_sum {
         size<dev_output_buffer_t>(arguments),
         cuda_stream,
         cuda_generic_event,
-        Parameters{
-          begin<host_total_sum_holder_t>(arguments),
-          begin<dev_input_buffer_t>(arguments),
-          begin<dev_output_buffer_t>(arguments)
-        });
+        Parameters {begin<host_total_sum_holder_t>(arguments),
+                    begin<dev_input_buffer_t>(arguments),
+                    begin<dev_output_buffer_t>(arguments)});
     }
   };
-} // namespace cpu_velo_prefix_sum_number_of_clusters
+} // namespace host_prefix_sum
 
 // TODO: Remove
 void cpu_prefix_sum(
-    uint* host_prefix_sum_buffer,
-    size_t& host_allocated_prefix_sum_space,
-    uint* dev_prefix_sum_offset,
-    const size_t dev_prefix_sum_size,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event,
-    uint* host_total_sum_holder);
+  uint* host_prefix_sum_buffer,
+  size_t& host_allocated_prefix_sum_space,
+  uint* dev_prefix_sum_offset,
+  const size_t dev_prefix_sum_size,
+  cudaStream_t& cuda_stream,
+  cudaEvent_t& cuda_generic_event,
+  uint* host_total_sum_holder);

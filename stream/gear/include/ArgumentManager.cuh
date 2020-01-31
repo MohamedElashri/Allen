@@ -108,13 +108,13 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
 
 // Helpers
 template<typename Arg, typename Args>
-size_t size(Args arguments) {
-  return arguments.template size<Arg>();
+void set_size(Args arguments, const size_t size) {
+  arguments.template set_size<Arg>(size);
 }
 
 template<typename Arg, typename Args>
-void set_size(Args arguments, const size_t size) {
-  arguments.template set_size<Arg>(size);
+size_t size(const Args& arguments) {
+  return arguments.template size<Arg>();
 }
 
 template<typename Arg, typename Args>
@@ -131,3 +131,58 @@ template<typename Arg, typename Args>
 void print(Args arguments) {
   arguments.template print<Arg>();
 }
+
+// SFINAE for single argument functions, like initialization and print of host / device parameters
+template<typename Arg, typename Args, typename Enabled = void>
+struct SingleArgumentOverloadResolution;
+
+template<typename Arg, typename Args>
+struct SingleArgumentOverloadResolution<
+  Arg,
+  Args,
+  typename std::enable_if<std::is_base_of<host_datatype, Arg>::value>::type> {
+  constexpr static void initialize(const Args& arguments, const int value, cudaStream_t)
+  {
+    std::memset(begin<Arg>(arguments), value, size<Arg>(arguments));
+  }
+};
+
+template<typename Arg, typename Args>
+struct SingleArgumentOverloadResolution<
+  Arg,
+  Args,
+  typename std::enable_if<std::is_base_of<device_datatype, Arg>::value>::type> {
+  constexpr static void initialize(const Args& arguments, const int value, cudaStream_t stream)
+  {
+    cudaCheck(cudaMemsetAsync(
+      begin<Arg>(arguments),
+      value,
+      size<Arg>(arguments),
+      stream));
+  }
+
+  // constexpr static void print(const Args& arguments, const int value, cudaStream_t stream)
+  // {
+  //   std::vector<typename T::type> v(size<T>() / sizeof(typename T::type));
+  //   cudaCheck(cudaMemcpy(v.data(), begin<T>(), size<T>(), cudaMemcpyDeviceToHost));
+
+  //   // info_cout << T::name << ": ";
+  //   for (const auto& i : v) {
+  //     info_cout << i << ", ";
+  //   }
+  //   info_cout << "\n";
+    
+  //   cudaCheck(cudaMemsetAsync(
+  //     begin<Arg>(arguments),
+  //     value,
+  //     size<Arg>(arguments),
+  //     stream));
+  // }
+};
+
+template<typename Arg, typename Args>
+void initialize(const Args& arguments, const int value, cudaStream_t stream = 0) {
+  SingleArgumentOverloadResolution<Arg, Args>::initialize(arguments, value, stream);
+}
+
+

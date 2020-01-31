@@ -29,20 +29,10 @@ namespace D2KPi {
       }
       const float m1 = vertex.m(mK, mPi);
       const float m2 = vertex.m(mPi, mK);
-      const bool decision =
-        vertex.pt() > minComboPt &&
-        vertex.chi2 < maxVertexChi2 &&
-        vertex.eta > minEta &&
-        vertex.eta < maxEta &&
-        vertex.minpt > minTrackPt &&
-        vertex.minipchi2 > minTrackIPChi2 &&
-        std::min(fabsf(m1 - mD), fabsf(m2 - mD)) < massWindow;
+      const bool decision = vertex.pt() > minComboPt && vertex.chi2 < maxVertexChi2 && vertex.eta > minEta &&
+                            vertex.eta < maxEta && vertex.minpt > minTrackPt && vertex.minipchi2 > minTrackIPChi2 &&
+                            std::min(fabsf(m1 - mD), fabsf(m2 - mD)) < massWindow;
       return decision;
-
     }
-  }; 
+  };
 } // namespace D2KPi
-
-
-
-} // namespace D -> K K

@@ -23,15 +23,12 @@ namespace DiMuonSoft {
     {
       if (!vertex.is_dimuon) return false;
       if (vertex.minipchi2 < DMSoftMinIPChi2) return false;
-      bool decision = vertex.chi2 > 0;
-      decision &= (vertex.mdimu < DMSoftM0 || vertex.mdimu > DMSoftM1); // KS pipi misid veto
-      decision &= vertex.eta > 0;
 
-      decision &= (vertex.x * vertex.x + vertex.y * vertex.y) > DMSoftMinRho2;
-      decision &= (vertex.z > DMSoftMinZ) & (vertex.z < DMSoftMaxZ);
-      decision &= vertex.doca < DMSoftMaxDOCA;
-      decision &= vertex.dimu_ip / vertex.dz < DMSoftMaxIPDZ;
-      decision &= vertex.dimu_clone_sin2 > DMSoftGhost;
+      // KS pipi misid veto
+      const bool decision = vertex.chi2 > 0 && (vertex.mdimu < DMSoftM0 || vertex.mdimu > DMSoftM1) && vertex.eta > 0 &&
+                            (vertex.x * vertex.x + vertex.y * vertex.y) > DMSoftMinRho2 &&
+                            (vertex.z > DMSoftMinZ) & (vertex.z < DMSoftMaxZ) && vertex.doca < DMSoftMaxDOCA &&
+                            vertex.dimu_ip / vertex.dz < DMSoftMaxIPDZ && vertex.dimu_clone_sin2 > DMSoftGhost;
       return decision;
     }
   };

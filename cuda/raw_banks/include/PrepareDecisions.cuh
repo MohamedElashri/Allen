@@ -109,26 +109,18 @@ namespace prepare_decisions {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_candidate_lists_t>(arguments), 0, size<dev_candidate_lists_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_candidate_counts_t>(arguments), 0, size<dev_candidate_counts_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_dec_reports_t>(arguments), 0, size<dev_dec_reports_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_save_track_t>(arguments), -1, size<dev_save_track_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(begin<dev_save_mf_track_t>(arguments), -1, size<dev_save_mf_track_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(begin<dev_save_sv_t>(arguments), -1, size<dev_save_sv_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(begin<dev_save_mf_sv_t>(arguments), -1, size<dev_save_sv_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_n_tracks_saved_t>(arguments), 0, size<dev_n_tracks_saved_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(begin<dev_n_mf_tracks_saved_t>(arguments), 0, size<dev_n_mf_tracks_saved_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_n_svs_saved_t>(arguments), 0, size<dev_n_svs_saved_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_n_mf_svs_saved_t>(arguments), 0, size<dev_n_svs_saved_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_n_hits_saved_t>(arguments), 0, size<dev_n_hits_saved_t>(arguments), cuda_stream));
+      initialize<dev_candidate_lists_t>(arguments, 0, cuda_stream);
+      initialize<dev_candidate_counts_t>(arguments, 0, cuda_stream);
+      initialize<dev_dec_reports_t>(arguments, 0, cuda_stream);
+      initialize<dev_save_track_t>(arguments, -1, cuda_stream);
+      initialize<dev_save_mf_track_t>(arguments, -1, cuda_stream);
+      initialize<dev_save_sv_t>(arguments, -1, cuda_stream);
+      initialize<dev_save_mf_sv_t>(arguments, -1, cuda_stream);
+      initialize<dev_n_tracks_saved_t>(arguments, 0, cuda_stream);
+      initialize<dev_n_mf_tracks_saved_t>(arguments, 0, cuda_stream);
+      initialize<dev_n_svs_saved_t>(arguments, 0, cuda_stream);
+      initialize<dev_n_mf_svs_saved_t>(arguments, 0, cuda_stream);
+      initialize<dev_n_hits_saved_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),

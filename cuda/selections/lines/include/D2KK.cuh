@@ -4,7 +4,6 @@
 #include "SystemOfUnits.h"
 #include "LineInfo.cuh"
 
-
 // D -> K K
 namespace D2KK {
 
@@ -27,15 +26,10 @@ namespace D2KK {
       if (vertex.chi2 < 0) {
         return false;
       }
-      const bool decision =
-        vertex.pt() > minComboPt &&
-        vertex.chi2 < maxVertexChi2 &&
-        vertex.eta > minEta &&
-        vertex.eta < maxEta &&
-        vertex.minpt > minTrackPt &&
-        vertex.minipchi2 > minTrackIPChi2 &&
-        fabsf(vertex.m(mK, mK) - mD) < massWindow;
+      const bool decision = vertex.pt() > minComboPt && vertex.chi2 < maxVertexChi2 && vertex.eta > minEta &&
+                            vertex.eta < maxEta && vertex.minpt > minTrackPt && vertex.minipchi2 > minTrackIPChi2 &&
+                            fabsf(vertex.m(mK, mK) - mD) < massWindow;
       return decision;
-
     }
-  }; 
+  };
+} // namespace D2KK

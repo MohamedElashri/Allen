@@ -2,6 +2,7 @@
 
 #include "DeviceAlgorithm.cuh"
 #include "DeviceLineTraverser.cuh"
+#include "HostPrefixSum.h"
 
 namespace run_hlt1 {
   struct Parameters {
@@ -42,7 +43,7 @@ namespace run_hlt1 {
       parameters.dev_mf_svs + parameters.dev_mf_sv_offsets[event_number];
     const auto number_of_mf_vertices_in_event =
       parameters.dev_mf_sv_offsets[event_number + 1] - parameters.dev_mf_sv_offsets[event_number];
-    
+
     // Process all lines
     Hlt1::Traverse<T>::traverse(
       parameters.dev_sel_results,
@@ -85,7 +86,7 @@ namespace run_hlt1 {
     {
       // TODO: Do this on the GPU, or rather remove completely
       // Prepare prefix sum of sizes of number of tracks and number of secondary vertices
-      for (uint i_line = 0; i_line < std::tuple_size<U>::value + 1; i_line++) {
+      for (uint i_line = 0; i_line < std::tuple_size<U>::value; i_line++) {
         host_buffers.host_sel_results_atomics[i_line] = 0;
       }
 
@@ -102,13 +103,12 @@ namespace run_hlt1 {
       const auto lambda_velo_ut_two_track_fn = [&](const unsigned long i_line) {
         host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_mf_svs_t>(arguments);
       };
-      Hlt1::TraverseLines<U, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(lambda_velo_ut_two_track_fn);
+      Hlt1::TraverseLines<U, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(
+        lambda_velo_ut_two_track_fn);
 
-      for (uint i_line = 1; i_line < std::tuple_size<U>::value; i_line++) {
-        host_buffers.host_sel_results_atomics[i_line] += host_buffers.host_sel_results_atomics[i_line - 1];
-      }
+      // Prefix sum
+      host_prefix_sum::host_prefix_sum_impl(host_buffers.host_sel_results_atomics, std::tuple_size<U>::value);
 
-      
       cudaCheck(cudaMemcpyAsync(
         begin<dev_sel_results_offsets_t>(arguments),
         host_buffers.host_sel_results_atomics,
