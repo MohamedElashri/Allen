@@ -5,7 +5,6 @@
 
 __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)
 {
-  const uint number_of_events = gridDim.x;
   const uint muon_filtered_event = blockIdx.x;
   const uint event_number = parameters.dev_event_list_mf[muon_filtered_event];
   const uint sv_offset = parameters.dev_mf_sv_offsets[event_number];
