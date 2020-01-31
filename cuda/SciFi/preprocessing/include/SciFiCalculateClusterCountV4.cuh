@@ -48,8 +48,7 @@ namespace scifi_calculate_cluster_count_v4 {
       data_to_device<dev_scifi_raw_input_t, dev_scifi_raw_input_offsets_t>
         (arguments, runtime_options.host_scifi_events, cuda_stream);
 
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_scifi_hit_count_t>(arguments), 0, size<dev_scifi_hit_count_t>(arguments), cuda_stream));
+      initialize<dev_scifi_hit_count_t>(arguments, 0, cuda_stream);
 
       const auto parameters = Parameters {begin<dev_scifi_raw_input_t>(arguments),
                                           begin<dev_scifi_raw_input_offsets_t>(arguments),

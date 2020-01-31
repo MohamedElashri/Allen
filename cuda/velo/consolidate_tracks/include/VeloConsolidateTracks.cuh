@@ -72,8 +72,7 @@ namespace velo_consolidate_tracks {
         });
 
       // Set all found tracks to accepted
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_accepted_velo_tracks_t>(arguments), 1, size<dev_accepted_velo_tracks_t>(arguments), cuda_stream));
+      initialize<dev_accepted_velo_tracks_t>(arguments, 1, cuda_stream);
 
       if (runtime_options.do_check) {
         // Transmission device to host

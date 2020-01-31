@@ -66,11 +66,7 @@ namespace FilterTracks {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_sv_atomics_t>(arguments),
-        0,
-        size<dev_sv_atomics_t>(arguments),
-        cuda_stream));
+      initialize<dev_sv_atomics_t>(arguments, 0, cuda_stream);
 
       function(
         dim3(value<host_number_of_selected_events_t>(arguments)),

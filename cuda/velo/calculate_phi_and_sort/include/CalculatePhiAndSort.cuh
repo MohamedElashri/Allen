@@ -59,11 +59,7 @@ namespace velo_calculate_phi_and_sort {
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const {
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_hit_permutation_t>(arguments),
-        0,
-        size<dev_hit_permutation_t>(arguments),
-        cuda_stream));
+      initialize<dev_hit_permutation_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters{

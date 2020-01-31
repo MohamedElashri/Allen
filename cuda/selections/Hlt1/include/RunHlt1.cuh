@@ -116,8 +116,7 @@ namespace run_hlt1 {
         cudaMemcpyHostToDevice,
         cuda_stream));
 
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_sel_results_t>(arguments), 0, size<dev_sel_results_t>(arguments), cuda_stream));
+      initialize<dev_sel_results_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_kf_tracks_t>(arguments),

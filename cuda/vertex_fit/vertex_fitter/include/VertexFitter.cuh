@@ -81,13 +81,13 @@ namespace VertexFit {
     DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_INPUT(dev_svs_trk1_idx_t, uint) dev_svs_trk1_idx;
     DEVICE_INPUT(dev_svs_trk2_idx_t, uint) dev_svs_trk2_idx;
-    DEVICE_OUTPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
+    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
-    PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", 16.0f) max_assoc_ipchi2;
+    PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", 16.0f)
+    max_assoc_ipchi2;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
-    
   };
-  
+
   __global__ void fit_secondary_vertices(Parameters);
 
   template<typename T, char... S>
@@ -101,8 +101,7 @@ namespace VertexFit {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_consolidated_svs_t>(
-        arguments, value<host_number_of_svs_t>(arguments));
+      set_size<dev_consolidated_svs_t>(arguments, value<host_number_of_svs_t>(arguments));
     }
 
     void operator()(
@@ -141,9 +140,8 @@ namespace VertexFit {
         size<dev_sv_offsets_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
-
     };
-    
+
   private:
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this};
     Property<block_dim_t> m_block_dim {this};

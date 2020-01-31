@@ -51,10 +51,8 @@ namespace velo_fill_candidates {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_h0_candidates_t>(arguments), 0, size<dev_h0_candidates_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_h2_candidates_t>(arguments), 0, size<dev_h2_candidates_t>(arguments), cuda_stream));
+      initialize<dev_h0_candidates_t>(arguments, 0, cuda_stream);
+      initialize<dev_h2_candidates_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_number_of_selected_events_t>(arguments), 48), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_sorted_velo_cluster_container_t>(arguments),

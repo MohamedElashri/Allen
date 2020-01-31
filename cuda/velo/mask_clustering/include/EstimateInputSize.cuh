@@ -52,11 +52,9 @@ namespace velo_estimate_input_size {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_estimated_input_size_t>(arguments), 0, size<dev_estimated_input_size_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_module_candidate_num_t>(arguments), 0, size<dev_module_candidate_num_t>(arguments), cuda_stream));
-
+      initialize<dev_estimated_input_size_t>(arguments, 0, cuda_stream);
+      initialize<dev_module_candidate_num_t>(arguments, 0, cuda_stream);
+      
       // Invoke kernel
       const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
                                           begin<dev_candidates_offsets_t>(arguments),

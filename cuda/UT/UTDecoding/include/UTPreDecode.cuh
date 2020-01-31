@@ -61,8 +61,7 @@ namespace ut_pre_decode {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_ut_hit_count_t>(arguments), 0, size<dev_ut_hit_count_t>(arguments), cuda_stream));
+      initialize<dev_ut_hit_count_t>(arguments, 0, cuda_stream);
 
       const auto parameters = Parameters {begin<dev_ut_raw_input_t>(arguments),
                                           begin<dev_ut_raw_input_offsets_t>(arguments),

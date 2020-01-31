@@ -59,8 +59,7 @@ namespace FilterMFTracks {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_mf_sv_atomics_t>(arguments), 0, size<dev_mf_sv_atomics_t>(arguments), cuda_stream));
+      initialize<dev_mf_sv_atomics_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_kf_tracks_t>(arguments),

@@ -58,8 +58,7 @@ namespace ut_calculate_number_of_hits {
       data_to_device<dev_ut_raw_input_t, dev_ut_raw_input_offsets_t>
         (arguments, runtime_options.host_ut_events, cuda_stream);
 
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_ut_hit_sizes_t>(arguments), 0, size<dev_ut_hit_sizes_t>(arguments), cuda_stream));
+      initialize<dev_ut_hit_sizes_t>(arguments, 0, cuda_stream);
 
       const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
                                           begin<dev_ut_raw_input_t>(arguments),

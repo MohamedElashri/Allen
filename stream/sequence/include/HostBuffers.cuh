@@ -97,7 +97,9 @@ struct HostBuffers {
   uint* host_number_of_svs;
   uint* host_sv_offsets;
   uint* host_sv_atomics;
+  uint* host_mf_sv_offsets;
   VertexFit::TrackMVAVertex* host_secondary_vertices;
+  VertexFit::TrackMVAVertex* host_mf_secondary_vertices;
 
   // Selections
   uint* host_sel_results_atomics;

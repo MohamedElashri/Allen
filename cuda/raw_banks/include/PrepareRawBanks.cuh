@@ -94,23 +94,13 @@ namespace prepare_raw_banks {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_sel_rb_hits_t>(arguments), 0, size<dev_sel_rb_hits_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_sel_rb_stdinfo_t>(arguments), 0, size<dev_sel_rb_stdinfo_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_sel_rb_objtyp_t>(arguments), 0, size<dev_sel_rb_objtyp_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_sel_rb_substr_t>(arguments), 0, size<dev_sel_rb_substr_t>(arguments), cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_sel_rep_sizes_t>(arguments), 0, size<dev_sel_rep_sizes_t>(arguments), cuda_stream));
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_number_of_passing_events_t>(arguments),
-        0,
-        size<dev_number_of_passing_events_t>(arguments),
-        cuda_stream));
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_passing_event_list_t>(arguments), 0, size<dev_passing_event_list_t>(arguments), cuda_stream));
+      initialize<dev_sel_rb_hits_t>(arguments, 0, cuda_stream);
+      initialize<dev_sel_rb_stdinfo_t>(arguments, 0, cuda_stream);
+      initialize<dev_sel_rb_objtyp_t>(arguments, 0, cuda_stream);
+      initialize<dev_sel_rb_substr_t>(arguments, 0, cuda_stream);
+      initialize<dev_sel_rep_sizes_t>(arguments, 0, cuda_stream);
+      initialize<dev_number_of_passing_events_t>(arguments, 0, cuda_stream);
+      initialize<dev_passing_event_list_t>(arguments, 0, cuda_stream);
 
       const auto grid_size = dim3(
         (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /

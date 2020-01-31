@@ -10,10 +10,8 @@ __device__ bool match(
   const MatchUpstreamMuon::MuonChambers& MuCh,
   const MatchUpstreamMuon::SearchWindows& Windows)
 {
-
   // Define the track type, if its momentum is too low, stop processing
   const int tt = trackTypeFromMomentum(fabsf(1.f / qop));
-
   if (tt == VeryLowP) return 0;
 
   // Parametrization of the z-position of the magnet’s focal plane as a function
@@ -96,9 +94,9 @@ __device__ MatchUpstreamMuon::Hit magnetFocalPlaneFromTx2(const KalmanVeloState&
 }
 
 /// Get the momentum given the slope in "x"
-__device__ float momentum(float dtx) { return kickScale / std::fabs(dtx) + kickOffset; }
+__device__ float momentum(float dtx) { return kickScale / fabsf(dtx) + kickOffset; }
 
-__device__ float dtx(const float& qop) { return kickScale / (std::abs(1.f / qop) - kickOffset); }
+__device__ float dtx(const float& qop) { return kickScale / (fabsf(1.f / qop) - kickOffset); }
 
 /** Calculate the window to search in the given station.
  *  Not to be applied in the first station.

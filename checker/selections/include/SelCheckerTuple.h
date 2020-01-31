@@ -36,6 +36,11 @@ public:
 #ifdef WITH_ROOT
   template<typename T>
   void clear_line_info() {
+    const auto lambda_velo_ut_two_track_fn = [&](const unsigned long, const std::string& line_name) {
+      m_mf_sv_decisions[line_name].clear();
+    };
+    Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(lambda_velo_ut_two_track_fn);
+
     const auto lambda_two_track_fn = [&](const unsigned long, const std::string& line_name) {
       m_sv_decisions[line_name].clear();
     };
@@ -54,12 +59,20 @@ public:
     const VertexFit::TrackMVAVertex* svs,
     const bool* sel_results,
     const uint* sel_results_offsets,
-    const uint* track_atomics,
-    const uint* sv_atomics,
+    const uint* track_offsets,
+    const uint* sv_offsets,
+    const uint* mf_sv_offsets,
     const uint selected_events)
   {
     if (!m_initialized_line_info) {
       m_initialized_line_info = true;
+
+      const auto lambda_velo_ut_two_track_fn = [&](const unsigned long, const std::string& line_name) {
+        m_mf_sv_decisions[line_name] = std::vector<double>();
+        std::string branch_name = "mf_sv_pass_" + line_name;
+        m_tree->Branch(branch_name.c_str(), &m_mf_sv_decisions[line_name]);
+      };
+      Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(lambda_velo_ut_two_track_fn);
 
       const auto lambda_two_track_fn = [&](const unsigned long, const std::string& line_name) {
         m_sv_decisions[line_name] = std::vector<double>();
@@ -95,8 +108,7 @@ public:
         m_event_pass_gec.push_back(1.);
         const auto& event_tracks = tracks[i_event];
         MCAssociator mcassoc {mcps};
-        const uint* event_tracks_offsets = track_atomics + selected_events;
-        const uint* sv_offsets = sv_atomics;
+        const uint* event_tracks_offsets = track_offsets + selected_events;
         const uint event_n_svs = sv_offsets[i_event + 1] - sv_offsets[i_event];
         const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
 
@@ -132,6 +144,8 @@ public:
         };
         Hlt1::TraverseLinesNames<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
       }
+
+      // TODO: Loop over VeloUT SVs.
     }
     else { m_event_pass_gec.push_back(0.); }
 
@@ -233,4 +247,7 @@ private:
   std::vector<double> m_trk_velo_ipchi2;
   std::vector<double> m_trk_idx_gen;
   std::map<std::string, std::vector<double>> m_trk_decisions;
+
+  // VeloUT SV info.
+  std::map<std::string, std::vector<double>> m_mf_sv_decisions;
 };

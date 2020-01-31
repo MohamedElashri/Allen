@@ -57,14 +57,9 @@ namespace lf_triplet_keep_best {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_scifi_lf_total_number_of_found_triplets_t>(arguments),
-        0,
-        size<dev_scifi_lf_total_number_of_found_triplets_t>(arguments),
-        cuda_stream));
+      initialize<dev_scifi_lf_total_number_of_found_triplets_t>(arguments, 0, cuda_stream);
 
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_scifi_lf_atomics_t>(arguments), 0, size<dev_scifi_lf_atomics_t>(arguments), cuda_stream));
+      initialize<dev_scifi_lf_atomics_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_ut_tracks_t>(arguments),

@@ -62,11 +62,7 @@ namespace velo_masked_clustering {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_module_cluster_num_t>(arguments),
-        0,
-        size<dev_module_cluster_num_t>(arguments),
-        cuda_stream));
+      initialize<dev_module_cluster_num_t>(arguments, 0, cuda_stream);
 
       const auto parameters = Parameters{
           begin<dev_velo_raw_input_t>(arguments),

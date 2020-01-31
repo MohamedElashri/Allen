@@ -57,6 +57,19 @@ namespace MFVertexFit {
                     begin<dev_svs_mf_idx_t>(arguments),
                     begin<dev_event_list_mf_t>(arguments),
                     begin<dev_mf_svs_t>(arguments)});
+
+      cudaCheck(cudaMemcpyAsync(
+        host_buffers.host_mf_secondary_vertices,
+        begin<dev_mf_svs_t>(arguments),
+        size<dev_mf_svs_t>(arguments),
+        cudaMemcpyDeviceToHost,
+        cuda_stream));
+      cudaCheck(cudaMemcpyAsync(
+        host_buffers.host_mf_sv_offsets,
+        begin<dev_mf_sv_offsets_t>(arguments),
+        size<dev_mf_sv_offsets_t>(arguments),
+        cudaMemcpyDeviceToHost,
+        cuda_stream));
     }
 
   private:

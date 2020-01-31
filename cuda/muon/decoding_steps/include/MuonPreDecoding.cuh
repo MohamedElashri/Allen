@@ -73,14 +73,9 @@ namespace muon_pre_decoding {
       data_to_device<dev_muon_raw_t, dev_muon_raw_offsets_t>
         (arguments, runtime_options.host_muon_events, cuda_stream);
 
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_storage_station_region_quarter_sizes_t>(arguments),
-        0,
-        size<dev_storage_station_region_quarter_sizes_t>(arguments),
-        cuda_stream));
+      initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, cuda_stream);
 
-      cudaCheck(
-        cudaMemsetAsync(begin<dev_atomics_muon_t>(arguments), 0, size<dev_atomics_muon_t>(arguments), cuda_stream));
+      initialize<dev_atomics_muon_t>(arguments, 0, cuda_stream);
 
       const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
                                           begin<dev_muon_raw_t>(arguments),
