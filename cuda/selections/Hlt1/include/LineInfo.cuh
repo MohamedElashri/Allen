@@ -13,6 +13,9 @@ namespace Hlt1 {
   struct TwoTrackLine : Line {
     constexpr static auto scale_factor = 1.f;
   };
+  struct VeloUTTwoTrackLine : Line {
+    constexpr static auto scale_factor = 1.f;
+  };
   struct ThreeTrackLine : Line {
     constexpr static auto scale_factor = 1.f;
   };

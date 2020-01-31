@@ -94,7 +94,6 @@ namespace FilterTracks {
             property<max_assoc_ipchi2_t>()});
     }
 
-
   private:
     Property<track_min_pt_t> m_minpt {this};
     Property<track_min_ipchi2_t> m_minipchi2 {this};

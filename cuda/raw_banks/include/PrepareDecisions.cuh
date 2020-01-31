@@ -16,6 +16,8 @@ namespace prepare_decisions {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
     HOST_INPUT(host_number_of_svs_t, uint);
+    HOST_INPUT(host_number_of_mf_svs_t, uint);
+    HOST_INPUT(host_number_of_mf_tracks_t, uint);
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
@@ -31,21 +33,31 @@ namespace prepare_decisions {
     DEVICE_INPUT(dev_ut_track_hits_t, char) dev_ut_track_hits;
     DEVICE_INPUT(dev_scifi_track_hits_t, char) dev_scifi_track_hits;
     DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    DEVICE_INPUT(dev_mf_tracks_t, ParKalmanFilter::FittedTrack) dev_mf_tracks;
     DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
+    DEVICE_INPUT(dev_mf_svs_t, VertexFit::TrackMVAVertex) dev_mf_svs;
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets; // dev_sv_atomics
+    DEVICE_INPUT(dev_mf_sv_offsets_t, uint) dev_mf_sv_offsets;
+    DEVICE_INPUT(dev_mf_track_offsets_t, uint) dev_mf_track_offsets;
     DEVICE_INPUT(dev_sel_results_t, bool) dev_sel_results;
     DEVICE_INPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
     DEVICE_OUTPUT(dev_candidate_lists_t, uint) dev_candidate_lists;
     DEVICE_OUTPUT(dev_candidate_counts_t, uint) dev_candidate_counts;
     DEVICE_OUTPUT(dev_n_passing_decisions_t, uint) dev_n_passing_decisions;
     DEVICE_OUTPUT(dev_n_svs_saved_t, uint) dev_n_svs_saved;
+    DEVICE_OUTPUT(dev_n_mf_svs_saved_t, uint) dev_n_mf_svs_saved;
     DEVICE_OUTPUT(dev_n_tracks_saved_t, uint) dev_n_tracks_saved;
+    DEVICE_OUTPUT(dev_n_mf_tracks_saved_t, uint) dev_n_mf_tracks_saved;
     DEVICE_OUTPUT(dev_n_hits_saved_t, uint) dev_n_hits_saved;
     DEVICE_OUTPUT(dev_saved_tracks_list_t, uint) dev_saved_tracks_list;
+    DEVICE_OUTPUT(dev_saved_mf_tracks_list_t, uint) dev_saved_mf_tracks_list;
     DEVICE_OUTPUT(dev_saved_svs_list_t, uint) dev_saved_svs_list;
+    DEVICE_OUTPUT(dev_saved_mf_svs_list_t, uint) dev_saved_mf_svs_list;
     DEVICE_OUTPUT(dev_dec_reports_t, uint) dev_dec_reports;
     DEVICE_OUTPUT(dev_save_track_t, int) dev_save_track;
+    DEVICE_OUTPUT(dev_save_mf_track_t, int) dev_save_mf_track;
     DEVICE_OUTPUT(dev_save_sv_t, int) dev_save_sv;
+    DEVICE_OUTPUT(dev_save_mf_sv_t, int) dev_save_mf_sv;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
@@ -74,11 +86,17 @@ namespace prepare_decisions {
       set_size<dev_candidate_counts_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * n_hlt1_lines);
       set_size<dev_saved_tracks_list_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+      set_size<dev_saved_mf_tracks_list_t>(arguments, value<host_number_of_mf_tracks_t>(arguments));
       set_size<dev_saved_svs_list_t>(arguments, value<host_number_of_svs_t>(arguments));
+      set_size<dev_saved_mf_svs_list_t>(arguments, value<host_number_of_mf_svs_t>(arguments));
       set_size<dev_save_track_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+      set_size<dev_save_mf_track_t>(arguments, value<host_number_of_mf_tracks_t>(arguments));
       set_size<dev_save_sv_t>(arguments, value<host_number_of_svs_t>(arguments));
+      set_size<dev_save_mf_sv_t>(arguments, value<host_number_of_mf_svs_t>(arguments));
       set_size<dev_n_tracks_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_n_mf_tracks_saved_t>(arguments, value<host_number_of_mf_tracks_t>(arguments));
       set_size<dev_n_svs_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_n_mf_svs_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_n_hits_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_n_passing_decisions_t>(arguments, value<host_number_of_selected_events_t>(arguments));
     }
@@ -99,11 +117,16 @@ namespace prepare_decisions {
         cudaMemsetAsync(begin<dev_dec_reports_t>(arguments), 0, size<dev_dec_reports_t>(arguments), cuda_stream));
       cudaCheck(
         cudaMemsetAsync(begin<dev_save_track_t>(arguments), -1, size<dev_save_track_t>(arguments), cuda_stream));
+      cudaCheck(cudaMemsetAsync(begin<dev_save_mf_track_t>(arguments), -1, size<dev_save_mf_track_t>(arguments), cuda_stream));
       cudaCheck(cudaMemsetAsync(begin<dev_save_sv_t>(arguments), -1, size<dev_save_sv_t>(arguments), cuda_stream));
+      cudaCheck(cudaMemsetAsync(begin<dev_save_mf_sv_t>(arguments), -1, size<dev_save_sv_t>(arguments), cuda_stream));
       cudaCheck(
         cudaMemsetAsync(begin<dev_n_tracks_saved_t>(arguments), 0, size<dev_n_tracks_saved_t>(arguments), cuda_stream));
+      cudaCheck(cudaMemsetAsync(begin<dev_n_mf_tracks_saved_t>(arguments), 0, size<dev_n_mf_tracks_saved_t>(arguments), cuda_stream));
       cudaCheck(
         cudaMemsetAsync(begin<dev_n_svs_saved_t>(arguments), 0, size<dev_n_svs_saved_t>(arguments), cuda_stream));
+      cudaCheck(
+        cudaMemsetAsync(begin<dev_n_mf_svs_saved_t>(arguments), 0, size<dev_n_svs_saved_t>(arguments), cuda_stream));
       cudaCheck(
         cudaMemsetAsync(begin<dev_n_hits_saved_t>(arguments), 0, size<dev_n_hits_saved_t>(arguments), cuda_stream));
 
@@ -123,21 +146,31 @@ namespace prepare_decisions {
                     begin<dev_ut_track_hits_t>(arguments),
                     begin<dev_scifi_track_hits_t>(arguments),
                     begin<dev_kf_tracks_t>(arguments),
+                    begin<dev_mf_tracks_t>(arguments),
                     begin<dev_consolidated_svs_t>(arguments),
+                    begin<dev_mf_svs_t>(arguments),
                     begin<dev_sv_offsets_t>(arguments),
+                    begin<dev_mf_sv_offsets_t>(arguments),
+                    begin<dev_mf_track_offsets_t>(arguments),
                     begin<dev_sel_results_t>(arguments),
                     begin<dev_sel_results_offsets_t>(arguments),
                     begin<dev_candidate_lists_t>(arguments),
                     begin<dev_candidate_counts_t>(arguments),
                     begin<dev_n_passing_decisions_t>(arguments),
                     begin<dev_n_svs_saved_t>(arguments),
+                    begin<dev_n_mf_svs_saved_t>(arguments),
                     begin<dev_n_tracks_saved_t>(arguments),
+                    begin<dev_n_mf_tracks_saved_t>(arguments),
                     begin<dev_n_hits_saved_t>(arguments),
                     begin<dev_saved_tracks_list_t>(arguments),
+                    begin<dev_saved_mf_tracks_list_t>(arguments),
                     begin<dev_saved_svs_list_t>(arguments),
+                    begin<dev_saved_mf_svs_list_t>(arguments),
                     begin<dev_dec_reports_t>(arguments),
                     begin<dev_save_track_t>(arguments),
-                    begin<dev_save_sv_t>(arguments)});
+                    begin<dev_save_mf_track_t>(arguments),
+                    begin<dev_save_sv_t>(arguments),
+                    begin<dev_save_mf_sv_t>(arguments)});
     }
 
   private:
