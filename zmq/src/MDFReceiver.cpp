@@ -33,18 +33,6 @@ namespace {
   using Buffers = std::array<std::tuple<std::vector<char>, unsigned int>, 3>;
 }
 
-int poll(zmq::pollitem_t* item, int n_items, int timeout) {
-  std::optional<int> n;
-  do {
-    try {
-      n = zmq::poll(item, n_items, timeout);
-    } catch (const zmq::error_t& err) {
-      if (err.num() == EINTR) continue;
-    }
-  } while (!n);
-  return *n;
-}
-
 void write_files(std::string connection, std::string const& directory,
                  std::string const& file_pattern, unsigned int const max_files,
                  unsigned int const max_file_size, bool const discard,
@@ -61,9 +49,9 @@ void write_files(std::string connection, std::string const& directory,
   bool good = true;
   size_t size_bytes = 0;
 
-  zmq::pollitem_t items[] = {control, 0, zmq::POLLIN, 0};
+  zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
   while (true) {
-    poll(&items[0], 1, -1);
+    zmqSvc().poll(&items[0], 1, -1);
     if (items[0].revents & zmq::POLLIN) {
       auto msg = zmqSvc().receive<std::string>(control);
       if (msg == "DONE") {
@@ -142,9 +130,9 @@ void timer(std::string connection) {
   zmq::setsockopt(control, zmq::LINGER, 0);
   control.connect(connection);
 
-  zmq::pollitem_t items[] = {control, 0, zmq::POLLIN, 0};
+  zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
   while (true) {
-    poll(&items[0], 1, 500);
+    zmqSvc().poll(&items[0], 1, 500);
     if (items[0].revents & zmq::POLLIN) {
       auto msg = zmqSvc().receive<std::string>(control);
       if (msg == "DONE") break;
@@ -282,7 +270,7 @@ int main(int argc, char* argv[]) {
   while (!stopping || (stopping && !clients.empty()) || (stopping && n_wait < 10)) {
 
     // Check if there are messages
-    poll(&items[0], items.size(), -1);
+    zmqSvc().poll(&items[0], items.size(), -1);
 
     if (items[0].revents & zmq::POLLIN) {
       auto msg = zmqSvc().receive<std::string>(server);

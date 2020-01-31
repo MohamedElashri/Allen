@@ -333,6 +333,18 @@ public:
     return *good;
   }
 
+  int poll(zmq::pollitem_t* item, int n_items, int timeout) {
+    std::optional<int> n;
+    do {
+      try {
+        n = zmq::poll(item, n_items, timeout);
+      } catch (const zmq::error_t& err) {
+        if (err.num() == EINTR) continue;
+      }
+    } while (!n);
+    return *n;
+  }
+
 private:
   Encoding m_enc = Text;
   mutable zmq::context_t* m_context = nullptr;

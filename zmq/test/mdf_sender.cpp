@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  zmq::pollitem_t items[] = {*data_socket, 0, zmq::POLLIN, 0};
+  zmq::pollitem_t items[] = {{*data_socket, 0, zmq::POLLIN, 0}};
 
   size_t i_event = 0;
   while (!eof && i_event++ < n_events) {
