@@ -31,7 +31,7 @@ namespace FilterMFTracks {
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
   };
 
-  __global__ void filter_mf_tracks(Parameters);
+  __global__ void filter_mf_tracks(Parameters, const uint number_of_events);
 
   template<typename T, char... S>
   struct filter_mf_tracks_t : public DeviceAlgorithm, Parameters {
@@ -74,7 +74,8 @@ namespace FilterMFTracks {
                     begin<dev_event_list_mf_t>(arguments),
                     begin<dev_mf_sv_atomics_t>(arguments),
                     begin<dev_svs_kf_idx_t>(arguments),
-                    begin<dev_svs_mf_idx_t>(arguments)});
+                    begin<dev_svs_mf_idx_t>(arguments)},
+        value<host_number_of_selected_events_t>(arguments));
     }
 
   private:

@@ -91,19 +91,6 @@ struct ArgumentRefManager<std::tuple<Arguments...>> {
   {
     tuple_ref_by_inheritance<T&>(m_arguments).size = size * sizeof(typename T::type);
   }
-
-  template<typename T>
-  void print() const
-  {
-    std::vector<typename T::type> v(size<T>() / sizeof(typename T::type));
-    cudaCheck(cudaMemcpy(v.data(), begin<T>(), size<T>(), cudaMemcpyDeviceToHost));
-
-    // info_cout << T::name << ": ";
-    for (const auto& i : v) {
-      info_cout << i << ", ";
-    }
-    info_cout << "\n";
-  }
 };
 
 // Helpers
@@ -127,11 +114,6 @@ auto value(const Args& arguments) {
   return Arg{arguments.template begin<Arg>()}[0];
 }
 
-template<typename Arg, typename Args>
-void print(Args arguments) {
-  arguments.template print<Arg>();
-}
-
 // SFINAE for single argument functions, like initialization and print of host / device parameters
 template<typename Arg, typename Args, typename Enabled = void>
 struct SingleArgumentOverloadResolution;
@@ -144,6 +126,15 @@ struct SingleArgumentOverloadResolution<
   constexpr static void initialize(const Args& arguments, const int value, cudaStream_t)
   {
     std::memset(begin<Arg>(arguments), value, size<Arg>(arguments));
+  }
+
+  constexpr static void print(const Args& arguments, const int value, cudaStream_t)
+  {
+    const auto array = begin<Arg>(arguments);
+    for (uint i = 0; i < size<Arg>(arguments) / sizeof(typename Arg::type); ++i) {
+      info_cout << array[i] << ", ";
+    }
+    info_cout << "\n";
   }
 };
 
@@ -161,28 +152,57 @@ struct SingleArgumentOverloadResolution<
       stream));
   }
 
-  // constexpr static void print(const Args& arguments, const int value, cudaStream_t stream)
-  // {
-  //   std::vector<typename T::type> v(size<T>() / sizeof(typename T::type));
-  //   cudaCheck(cudaMemcpy(v.data(), begin<T>(), size<T>(), cudaMemcpyDeviceToHost));
+  constexpr static void print(const Args& arguments, const int value, cudaStream_t)
+  {
+    std::vector<typename Arg::type> v(size<Arg>(arguments) / sizeof(typename Arg::type));
+    cudaCheck(cudaMemcpy(v.data(), begin<Arg>(arguments), size<Arg>(arguments), cudaMemcpyDeviceToHost));
 
-  //   // info_cout << T::name << ": ";
-  //   for (const auto& i : v) {
-  //     info_cout << i << ", ";
-  //   }
-  //   info_cout << "\n";
-    
-  //   cudaCheck(cudaMemsetAsync(
-  //     begin<Arg>(arguments),
-  //     value,
-  //     size<Arg>(arguments),
-  //     stream));
-  // }
+    for (const auto& i : v) {
+      info_cout << i << ", ";
+    }
+    info_cout << "\n";
+  }
 };
 
+// SFINAE for double argument functions, like copying
+// template<typename A, typename B, typename Args, typename Enabled = void>
+// struct DoubleArgumentOverloadResolution;
+
+// template<typename A, typename B, typename Args>
+// struct DoubleArgumentOverloadResolution<
+//   A,
+//   B,
+//   Args,
+//   std::conditional_t<
+//     std::is_base_of<host_datatype, A>::value,
+//     std::enable_if_t<std::is_base_of<host_datatype, B>::value>,
+//     std::enable_if_t<false>>> {
+//   constexpr static void copy(const Args& arguments, cudaStream_t)
+//   {
+//     // std::memset(begin<Arg>(arguments), value, size<Arg>(arguments));
+//   }
+// };
+
+/**
+ * @brief Initializes a datatype with the value specified.
+ *        Can be used to either initialize values on the host or on the device.
+ * @details On the host, this resolves to a std::memset.
+ *          On the device, this resolves to a cudaMemsetAsync. No synchronization
+ *          is performed after the initialization.
+ */
 template<typename Arg, typename Args>
 void initialize(const Args& arguments, const int value, cudaStream_t stream = 0) {
   SingleArgumentOverloadResolution<Arg, Args>::initialize(arguments, value, stream);
 }
 
-
+/**
+ * @brief Prints the value of an argument.
+ * @details On the host, a mere loop and a print statement is done.
+ *          On the device, a cudaMemcpy is used to first copy the data onto a std::vector.
+ *          Note that as a consequence of this, printing device variables results in a
+ *          considerable slowdown.
+ */
+template<typename Arg, typename Args>
+void print(const Args& arguments, const int value) {
+  SingleArgumentOverloadResolution<Arg, Args>::print(arguments, value, 0);
+}

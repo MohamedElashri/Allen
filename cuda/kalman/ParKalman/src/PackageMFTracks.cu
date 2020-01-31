@@ -1,10 +1,9 @@
 #include "ParKalmanVeloOnly.cuh"
 #include "PackageMFTracks.cuh"
 
-__global__ void package_mf_tracks::package_mf_tracks(package_mf_tracks::Parameters parameters)
+__global__ void package_mf_tracks::package_mf_tracks(package_mf_tracks::Parameters parameters,
+  const uint number_of_events)
 {
-
-  const uint number_of_events = gridDim.x;
   const uint muon_filtered_event = blockIdx.x;
   const uint i_event = parameters.dev_event_list_mf[muon_filtered_event];
 
