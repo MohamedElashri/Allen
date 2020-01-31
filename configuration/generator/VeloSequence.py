@@ -1,7 +1,7 @@
 from algorithms import *
 
 def VELO_sequence(validate=False):
-  copy_odin_to_device = copy_odin_to_device_t()
+  populate_odin_banks = populate_odin_banks_t()
   host_global_event_cut = host_global_event_cut_t()
   velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t()
 
@@ -44,7 +44,7 @@ def VELO_sequence(validate=False):
 
   velo_consolidate_tracks = velo_consolidate_tracks_t()
 
-  velo_sequence = Sequence(copy_odin_to_device,
+  velo_sequence = Sequence(populate_odin_banks,
     host_global_event_cut,
     velo_calculate_number_of_candidates,
     prefix_sum_offsets_velo_candidates,

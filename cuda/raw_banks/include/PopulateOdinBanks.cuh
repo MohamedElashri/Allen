@@ -2,17 +2,17 @@
 
 #include "DeviceAlgorithm.cuh"
 
-namespace copy_odin_to_device {
+namespace populate_odin_banks {
   struct Parameters {
     DEVICE_OUTPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
     DEVICE_OUTPUT(dev_odin_raw_input_offsets_t, uint) dev_odin_raw_input_offsets;
   };
 
   template<typename T>
-  __global__ void copy_odin_to_device(Parameters);
+  __global__ void populate_odin_banks(Parameters);
 
   template<typename T, typename U, char... S>
-  struct copy_odin_to_device_t : public DeviceAlgorithm, Parameters {
+  struct populate_odin_banks_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
 
     void set_arguments_size(
@@ -40,6 +40,6 @@ namespace copy_odin_to_device {
 
   private:
   };
-} // namespace copy_odin_to_device
+} // namespace populate_odin_banks
 
-// Implementation of copy_odin_to_device
+// Implementation of populate_odin_banks
