@@ -68,6 +68,14 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
   cudaCheck(cudaMallocHost((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int)));
   cudaCheck(cudaMallocHost((void**) &host_kf_tracks, max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
 
+  // Needed for SV monitoring
+  int n_max_svs = SciFi::Constants::max_tracks * 10;
+
+  cudaCheck(cudaMallocHost((void**) &host_secondary_vertices, max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
+  //host_secondary_vertices = reinterpret_cast<decltype(host_secondary_vertices)>(
+  //  malloc(max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
+  cudaCheck(cudaMallocHost((void**) &host_sv_offsets, (max_number_of_events + 1) * sizeof(uint)));
+
   if (do_check) {
     // Datatypes to be reserved only if checking is on
     // Note: These datatypes in principle do not require to be pinned
@@ -140,13 +148,6 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
     host_is_muon = reinterpret_cast<decltype(host_is_muon)>(
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
 
-    int n_max_svs = SciFi::Constants::max_tracks * 100;
-
-    host_secondary_vertices = reinterpret_cast<decltype(host_secondary_vertices)>(
-      malloc(max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
-
-    host_sv_offsets = reinterpret_cast<decltype(host_sv_offsets)>(
-      malloc((max_number_of_events + 1) * sizeof(uint)));
     host_sv_atomics = reinterpret_cast<decltype(host_sv_atomics)>(
       malloc((2 * max_number_of_events + 1) * sizeof(uint)));
   }

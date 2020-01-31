@@ -3,10 +3,7 @@
 #include "HostBuffersManager.cuh"
 #include "Logger.h"
 
-#include "HltDecReport.cuh"
-#include "RawBanksDefinitions.cuh"
 #include "ParKalmanDefinitions.cuh"
-#include "LineInfo.cuh"
 
 #include <cmath>
 
