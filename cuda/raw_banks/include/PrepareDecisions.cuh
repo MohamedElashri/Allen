@@ -94,7 +94,7 @@ namespace prepare_decisions {
       set_size<dev_save_sv_t>(arguments, value<host_number_of_svs_t>(arguments));
       set_size<dev_save_mf_sv_t>(arguments, value<host_number_of_mf_svs_t>(arguments));
       set_size<dev_n_tracks_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_n_mf_tracks_saved_t>(arguments, value<host_number_of_mf_tracks_t>(arguments));
+      set_size<dev_n_mf_tracks_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_n_svs_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_n_mf_svs_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_n_hits_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
