@@ -161,6 +161,7 @@ public:
     const uint*,
     const uint*,
     const uint*,
+    const uint*,
     const uint)
   {}
 #endif
