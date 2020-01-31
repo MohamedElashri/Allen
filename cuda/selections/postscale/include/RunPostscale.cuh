@@ -5,8 +5,8 @@
 namespace run_postscale {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_OUTPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_OUTPUT(dev_odin_raw_input_offsets_t, uint) dev_odin_raw_input_offsets;
+    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
+    DEVICE_INPUT(dev_odin_raw_input_offsets_t, uint) dev_odin_raw_input_offsets;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_offsets_forward_tracks;
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_OUTPUT(dev_sel_results_t, bool) dev_sel_results;
@@ -38,9 +38,6 @@ namespace run_postscale {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      set_size<dev_odin_raw_input_t>(arguments, std::get<1>(runtime_options.host_odin_events));
-      set_size<dev_odin_raw_input_offsets_t>(
-        arguments, std::get<2>(runtime_options.host_odin_events).size_bytes() / sizeof(uint));
       set_size<dev_sel_results_t>(
         arguments, 1000 * value<host_number_of_selected_events_t>(arguments) * std::tuple_size<U>::value);
       set_size<dev_sel_results_offsets_t>(arguments, std::tuple_size<U>::value + 1);
@@ -54,9 +51,6 @@ namespace run_postscale {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
-      data_to_device<dev_odin_raw_input_t, dev_odin_raw_input_offsets_t>(
-        arguments, runtime_options.host_odin_events, cuda_stream);
-
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_odin_raw_input_t>(arguments),
                     begin<dev_odin_raw_input_offsets_t>(arguments),
