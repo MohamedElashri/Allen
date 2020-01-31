@@ -102,8 +102,8 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
   if (device_properties.major > 7 || (device_properties.major == 7 && device_properties.minor >= 5)) {
     // Setup cache configuration on Turing onwards to L1
     cudaCheck(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
+    cudaCheck(cudaFuncSetCacheConfig(compass_ut::compass_ut, cudaFuncCachePreferShared));
   }
-  cudaCheck(cudaFuncSetCacheConfig(compass_ut::compass_ut, cudaFuncCachePreferShared));
 
   return {true, device_properties.name};
 }
