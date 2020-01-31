@@ -14,7 +14,7 @@ namespace D2PiPi {
   constexpr float maxVertexChi2 = 10.f;
   constexpr float minEta = 2.0f;
   constexpr float maxEta = 5.0f;
-  constexpr float minTrackPt = 200.f / Gaudi::Units::MeV;
+  constexpr float minTrackPt = 500.f / Gaudi::Units::MeV;
   constexpr float minTrackIPChi2 = 9.f;
   constexpr float massWindow = 100.f / Gaudi::Units::MeV;
 
