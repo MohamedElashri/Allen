@@ -24,7 +24,10 @@ namespace LookingForward {
 namespace ParKalmanFilter {
   class KalmanParametrizations;
 }
-
+namespace MatchUpstreamMuon {
+  class MuonChambers;
+  class SearchWindows;
+}
 
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
@@ -83,6 +86,10 @@ struct Constants {
   Muon::MuonGeometry* dev_muon_geometry = nullptr;
   Muon::MuonTables* dev_muon_tables = nullptr;
 
+  // Velo-UT-muon
+  MatchUpstreamMuon::MuonChambers* dev_muonmatch_search_muon_chambers = nullptr;
+  MatchUpstreamMuon::SearchWindows* dev_muonmatch_search_windows = nullptr;
+  
   // Muon classification model constatns
   Muon::Constants::FieldOfInterest* dev_muon_foi = nullptr;
   float* dev_muon_momentum_cuts = nullptr;

@@ -89,7 +89,10 @@ struct HostBuffers {
   bool* host_is_muon;
   uint* host_muon_total_number_of_tiles;
   uint* host_muon_total_number_of_hits;
-
+  uint* host_selected_events_mf;
+  uint* host_event_list_mf;
+  bool* host_match_upstream_muon;
+  
   // Secondary vertices
   uint* host_number_of_svs;
   uint* host_sv_offsets;

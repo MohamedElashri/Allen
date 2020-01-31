@@ -38,6 +38,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_hits, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_passing_events, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_sel_rep_words, sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_selected_events_mf, sizeof(uint)));
 
   // Initialize for sequences that don't fill this in.
   host_number_of_passing_events[0] = 0;
@@ -139,7 +140,11 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));
     host_is_muon = reinterpret_cast<decltype(host_is_muon)>(
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(bool)));
-
+    host_event_list_mf =
+      reinterpret_cast<decltype(host_event_list_mf)>(malloc(max_number_of_events * sizeof(uint)));
+    host_match_upstream_muon = reinterpret_cast<decltype(host_match_upstream_muon)>(
+      malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(bool)));
+    
     int n_max_svs = SciFi::Constants::max_tracks * 100;
 
     host_secondary_vertices = reinterpret_cast<decltype(host_secondary_vertices)>(

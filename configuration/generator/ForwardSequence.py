@@ -35,7 +35,7 @@ def Forward_sequence(validate=False):
     dev_output_buffer_t="dev_offsets_scifi_track_hit_number")
   
   scifi_consolidate_tracks = scifi_consolidate_tracks_t()
-
+  
   ut_sequence = UT_sequence()
   forward_sequence = extend_sequence(ut_sequence,
     scifi_calculate_cluster_count_v4,
