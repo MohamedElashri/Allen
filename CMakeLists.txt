@@ -382,9 +382,6 @@ if (USE_KALMAN_DOUBLE_PRECISION)
   add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()
 
-set(CUDA_SEPARABLE_COMPILATION ON)
-option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
-
 option(USE_ROOT "Build with ROOT" OFF)
 if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
    if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake

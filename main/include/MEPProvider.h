@@ -364,7 +364,7 @@ public:
     for (unsigned int i = 0; i < selected_events.size(); ++i) {
       auto event = selected_events[i];
       sizes[i] += std::accumulate(blocks.begin(), blocks.end(), 0ul,
-        [event, interval_start, this] (size_t s, const auto& entry) {
+        [event, interval_start] (size_t s, const auto& entry) {
           auto const& block_header = std::get<0>(entry);
           return s + LHCb::RawBank::hdrSize() + block_header.sizes[interval_start + event];
         });

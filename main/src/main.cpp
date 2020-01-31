@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 
     if (MPI::rank == MPI::receiver) {
       Allen::NonEventData::Updater updater {allen_options};
-      return allen(std::move(allen_options), &updater);
+      return allen(std::move(allen_options), &updater, "");
     }
     else {
       return send_meps_mpi(allen_options);
@@ -133,6 +133,6 @@ int main(int argc, char* argv[])
   }
   else {
     Allen::NonEventData::Updater updater {allen_options};
-    return allen(std::move(allen_options), &updater);
+    return allen(std::move(allen_options), &updater, "");
   }
 }

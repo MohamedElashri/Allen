@@ -463,7 +463,7 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
  *
  * @return     int
  */
-int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater)
+int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater, std::string_view control_connection)
 {
   // Folder containing raw, MC and muon information
   std::string folder_data = "../input/minbias/";
@@ -697,6 +697,20 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     n_events = number_of_events_requested;
   }
 
+  // items for 0MQ to poll
+  std::vector<zmq::pollitem_t> items;
+  items.resize(number_of_threads + n_io + n_mon + 1);
+
+  std::optional<zmq::socket_t> allen_control;
+  size_t control_index = 0;
+  if (!control_connection.empty()) {
+    allen_control = zmqSvc().socket(zmq::PAIR);
+    zmq::setsockopt(*allen_control, zmq::LINGER, 0);
+    allen_control->connect(control_connection.data());
+    control_index = items.size() - 1;
+    items[control_index] = {*allen_control, 0, zmq::POLLIN, 0};
+  }
+
   // Create the InputProvider, either MDF or Binary
   // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
   if (!mep_input.empty()) {
@@ -870,10 +884,6 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   };
 
   using start_thread = std::function<std::tuple<std::thread, std::optional<zmq::socket_t>>(uint, uint)>;
-
-  // items for 0MQ to poll
-  std::vector<zmq::pollitem_t> items;
-  items.resize(number_of_threads + n_io + n_mon);
 
   // Vector of worker threads
   using workers_t = std::vector<std::tuple<std::thread, zmq::socket_t, std::optional<zmq::socket_t>>>;
@@ -1090,6 +1100,17 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   }
   if (error_count == 0) {
     info_cout << "Streams ready\n";
+  }
+
+  if (allen_control) {
+    zmqSvc().send(*allen_control, "CONFIGURED");
+    zmqSvc().poll(&items[control_index], 1, -1);
+    if (items[control_index].revents & zmq::POLLIN) {
+      auto msg = zmqSvc().receive<std::string>(*allen_control);
+      if (msg == "RESET") {
+        return 0;
+      }
+    }
   }
 
   bool io_done = false;

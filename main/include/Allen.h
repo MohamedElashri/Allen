@@ -9,7 +9,7 @@ struct Constants;
 
 void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants);
 
-int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater);
+int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater, std::string_view control_connection);
 
 namespace {
   constexpr size_t n_write = 1;
