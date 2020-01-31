@@ -68,12 +68,14 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
   cudaCheck(cudaMallocHost((void**) &host_atomics_scifi, max_number_of_events * SciFi::num_atomics * sizeof(int)));
   cudaCheck(cudaMallocHost((void**) &host_kf_tracks, max_number_of_events * SciFi::Constants::max_tracks * sizeof(ParKalmanFilter::FittedTrack)));
 
+  // Needed for PV monitoring
+  cudaCheck(cudaMallocHost((void**) &host_reconstructed_multi_pvs, max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));
+  cudaCheck(cudaMallocHost((void**) &host_number_of_multivertex, max_number_of_events * sizeof(int)));
+
   // Needed for SV monitoring
   int n_max_svs = SciFi::Constants::max_tracks * 10;
 
   cudaCheck(cudaMallocHost((void**) &host_secondary_vertices, max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
-  //host_secondary_vertices = reinterpret_cast<decltype(host_secondary_vertices)>(
-  //  malloc(max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
   cudaCheck(cudaMallocHost((void**) &host_sv_offsets, (max_number_of_events + 1) * sizeof(uint)));
 
   if (do_check) {
@@ -138,10 +140,6 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
       reinterpret_cast<decltype(host_peaks)>(malloc(max_number_of_events * sizeof(float) * PV::max_number_vertices));
     host_number_of_peaks =
       reinterpret_cast<decltype(host_number_of_peaks)>(malloc(max_number_of_events * sizeof(uint)));
-    host_reconstructed_multi_pvs = reinterpret_cast<decltype(host_reconstructed_multi_pvs)>(
-      malloc(max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));
-    host_number_of_multivertex =
-      reinterpret_cast<decltype(host_number_of_multivertex)>(malloc(max_number_of_events * sizeof(int)));
 
     host_muon_catboost_output = reinterpret_cast<decltype(host_muon_catboost_output)>(
       malloc(max_number_of_events * SciFi::Constants::max_tracks * sizeof(float)));

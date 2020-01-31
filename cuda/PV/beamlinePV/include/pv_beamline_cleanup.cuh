@@ -58,22 +58,20 @@ namespace pv_beamline_cleanup {
                     begin<dev_multi_final_vertices_t>(arguments),
                     begin<dev_number_of_multi_final_vertices_t>(arguments)});
 
-      if (runtime_options.do_check) {
-        // Retrieve result
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_reconstructed_multi_pvs,
-          begin<dev_multi_final_vertices_t>(arguments),
-          size<dev_multi_final_vertices_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
+      // Retrieve result
+      cudaCheck(cudaMemcpyAsync(
+        host_buffers.host_reconstructed_multi_pvs,
+        begin<dev_multi_final_vertices_t>(arguments),
+        size<dev_multi_final_vertices_t>(arguments),
+        cudaMemcpyDeviceToHost,
+        cuda_stream));
 
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_number_of_multivertex,
-          begin<dev_number_of_multi_final_vertices_t>(arguments),
-          size<dev_number_of_multi_final_vertices_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
-      }
+      cudaCheck(cudaMemcpyAsync(
+        host_buffers.host_number_of_multivertex,
+        begin<dev_number_of_multi_final_vertices_t>(arguments),
+        size<dev_number_of_multi_final_vertices_t>(arguments),
+        cudaMemcpyDeviceToHost,
+        cuda_stream));
     }
 
   private:

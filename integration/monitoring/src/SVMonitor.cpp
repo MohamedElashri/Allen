@@ -48,7 +48,7 @@ void SVMonitor::init()
   m_histograms.emplace(SecondaryVertexPt, new TH1D("SVPt", "", nBins, 0., 2e4));
   m_histograms.emplace(SecondaryVertexEta, new TH1D("SVEta", "", nBins, 0., 7.));
   m_histograms.emplace(SecondaryVertexMinPt, new TH1D("SVMinPt", "", nBins, 0., 2e4));
-  m_histograms.emplace(SecondaryVertexMinIPChi2, new TH1D("SVLogMinIPChi2", "", nBins, 0., 100.));
+  m_histograms.emplace(SecondaryVertexMinIPChi2, new TH1D("SVMinIPChi2", "", nBins, 0., 100.));
   m_histograms.emplace(SecondaryVertexSumPt, new TH1D("SVSumPt", "", nBins, 0., 2e4));
   m_histograms.emplace(SecondaryVertexMDiMu, new TH1D("SVMdimu", "", nBins, 0., 1e5));
   m_histograms.emplace(SecondaryVertexMCor, new TH1D("SVMcor", "", nBins, 0., 1e5));
