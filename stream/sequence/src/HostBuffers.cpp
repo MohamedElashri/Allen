@@ -79,7 +79,9 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
   cudaCheck(cudaMallocHost((void**) &host_secondary_vertices, max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
   cudaCheck(cudaMallocHost((void**) &host_sv_offsets, (max_number_of_events + 1) * sizeof(uint)));
 
-  cudaCheck(cudaMallocHost((void**) &host_mf_secondary_vertices, max_number_of_events * n_max_svs * sizeof(VertexFit::TrackMVAVertex)));
+  int n_max_ut_svs = UT::Constants::max_num_tracks * 10;
+
+  cudaCheck(cudaMallocHost((void**) &host_mf_secondary_vertices, max_number_of_events * n_max_ut_svs * sizeof(VertexFit::TrackMVAVertex)));
   cudaCheck(cudaMallocHost((void**) &host_mf_sv_offsets, (max_number_of_events + 1) * sizeof(uint)));
 
   if (do_check) {
