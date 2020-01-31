@@ -110,8 +110,6 @@ namespace MuonFilter {
           cudaMemcpyDeviceToHost,
           cuda_stream));
         
-        printf("Fraction of filtered events: %f\n", 1.f * host_buffers.host_selected_events_mf[0]/value<host_number_of_selected_events_t>(arguments));
-        printf("No. of events that pass the filter: %i\n", host_buffers.host_selected_events_mf[0]);
       }
       
     }

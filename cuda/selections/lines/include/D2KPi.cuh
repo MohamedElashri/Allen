@@ -27,8 +27,8 @@ namespace D2KPi {
       if (vertex.chi2 < 0) {
         return false;
       }
-      const float m1 = vertex.m(Masses::K, Masses::Pi);
-      const float m2 = vertex.m(Masses::Pi, Masses::K);
+      const float m1 = vertex.m(mK, mPi);
+      const float m2 = vertex.m(mPi, mK);
       const bool decision =
         vertex.pt() > minComboPt &&
         vertex.chi2 < maxVertexChi2 &&
@@ -36,7 +36,7 @@ namespace D2KPi {
         vertex.eta < maxEta &&
         vertex.minpt > minTrackPt &&
         vertex.minipchi2 > minTrackIPChi2 &&
-        std::min(fabsf(m1 - Masses::D), fabsf(m2 - Masses::D)) < massWindow;
+        std::min(fabsf(m1 - mD), fabsf(m2 - mD)) < massWindow;
       return decision;
 
     }
