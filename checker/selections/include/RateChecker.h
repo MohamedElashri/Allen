@@ -46,7 +46,6 @@ public:
     const uint* decisions_offsets,
     const uint* event_tracks_offsets,
     const uint* sv_offsets,
-    const uint* mf_sv_offsets,
     const uint selected_events)
   {
     m_event_decs.resize(std::tuple_size<T>::value);
@@ -86,17 +85,7 @@ public:
         }
       };
       Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
-
-      // Check VeloUT track decisions
-      const uint n_mf_svs_event = mf_sv_offsets[i_event + 1] - mf_sv_offsets[i_event];
-      const auto lambda_velout_two_track_fn = [&](const unsigned long i_line) {
-        const bool* decs = decisions + decisions_offsets[i_line] + mf_sv_offsets[i_event];
-        for (int i_sv = 0; i_sv < n_mf_svs_event; i_sv++) {
-          if (decs[i_sv]) m_event_decs[i_line] = true;
-        }
-      };
-      Hlt1::TraverseLines<T, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velout_two_track_fn)>::traverse(lambda_velout_two_track_fn);
-
+      
       // See if an event passes.
       bool inc_dec = false;
       const auto lambda_all_tracks_fn1 = [&](const unsigned long i_line) {

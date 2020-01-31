@@ -34,24 +34,11 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     const ParKalmanFilter::FittedTrack* event_kf_tracks =
       parameters.dev_kf_tracks + scifi_tracks.tracks_offset(event_number);
 
-    // Velo-UT-muon tracks.
-    const int* event_save_mf_track = parameters.dev_save_mf_track + parameters.dev_mf_track_offsets[event_number];
-    const uint* event_saved_mf_tracks_list = parameters.dev_saved_mf_tracks_list + parameters.dev_mf_track_offsets[event_number];
-    const int n_mf_tracks_event = parameters.dev_mf_track_offsets[event_number + 1] - parameters.dev_mf_track_offsets[event_number];
-    const ParKalmanFilter::FittedTrack* event_mf_tracks =
-      parameters.dev_mf_tracks + parameters.dev_mf_track_offsets[event_number];
-
     // Vertices.
     const int n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
     const uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[event_number];
     const VertexFit::TrackMVAVertex* event_svs =
       parameters.dev_consolidated_svs + parameters.dev_sv_offsets[event_number];
-
-    // Velo-UT-muon vertices.
-    const int n_mf_vertices_event = parameters.dev_mf_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
-    const uint* event_saved_mf_svs_list = parameters.dev_saved_mf_svs_list + parameters.dev_mf_sv_offsets[event_number];
-    const VertexFit::TrackMVAVertex* event_mf_svs =
-      parameters.dev_mf_svs + parameters.dev_mf_sv_offsets[event_number];
 
     // Dec reports.
     const int n_hlt1_lines = std::tuple_size<T>::value;
@@ -81,7 +68,6 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     if (!pass) return;
 
     const uint n_pass = atomicAdd(parameters.dev_number_of_passing_events.get(), 1);
-    // TODO: Check this is correct
     parameters.dev_passing_event_list[n_pass] = event_number;
 
     // Create the rest of the dec report.
@@ -104,7 +90,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Create the hits sub-bank.
     HltSelRepRBHits hits_bank(
-      parameters.dev_n_tracks_saved[event_number] + parameters.dev_n_mf_tracks_saved[event_number],
+      parameters.dev_n_tracks_saved[event_number],
       parameters.dev_n_hits_saved[event_number],
       event_sel_rb_hits);
 
@@ -114,21 +100,19 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Create the standard info sub-bank.
     uint nAllInfo = Hlt1::nStdInfoDecision * n_decisions +
-                    Hlt1::nStdInfoTrack * (parameters.dev_n_tracks_saved[event_number] + parameters.dev_n_mf_tracks_saved[event_number]) +
-                    Hlt1::nStdInfoSV * (parameters.dev_n_svs_saved[event_number] + parameters.dev_n_mf_svs_saved[event_number]);
+                    Hlt1::nStdInfoTrack * (parameters.dev_n_tracks_saved[event_number]) +
+                    Hlt1::nStdInfoSV * (parameters.dev_n_svs_saved[event_number]);
     uint nObj = n_decisions +
          parameters.dev_n_tracks_saved[event_number] +
-         parameters.dev_n_mf_tracks_saved[event_number] +
-         parameters.dev_n_svs_saved[event_number] +
-         parameters.dev_n_mf_svs_saved[event_number];
+         parameters.dev_n_svs_saved[event_number];
     bool writeStdInfo = nAllInfo < Hlt1::maxStdInfoEvent;
     HltSelRepRBStdInfo stdinfo_bank(nObj, nAllInfo, event_sel_rb_stdinfo);
     
     // Create the object type sub-bank.
     HltSelRepRBObjTyp objtyp_bank(Hlt1::nObjTyp, event_sel_rb_objtyp);
     objtyp_bank.addObj(Hlt1::selectionCLID, n_decisions);
-    objtyp_bank.addObj(Hlt1::trackCLID, parameters.dev_n_tracks_saved[event_number] + parameters.dev_n_mf_tracks_saved[event_number]);
-    objtyp_bank.addObj(Hlt1::svCLID, parameters.dev_n_svs_saved[event_number] + parameters.dev_n_mf_svs_saved[event_number]);
+    objtyp_bank.addObj(Hlt1::trackCLID, parameters.dev_n_tracks_saved[event_number]);
+    objtyp_bank.addObj(Hlt1::svCLID, parameters.dev_n_svs_saved[event_number]);
 
     // Add decision summaries to the StdInfo subbank. CLID = 1.
     // TODO: Don't loop over the decision lines multiple times.
@@ -200,47 +184,6 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       }
     }
 
-    // Add velo-UT-muon tracks to the hits and StdInfo subbank. CLID = 10010.
-    for (uint i_saved_track = 0; i_saved_track < parameters.dev_n_mf_tracks_saved[event_number]; i_saved_track++) {
-      // Add track parameters to StdInfo.
-      uint i_track = event_saved_mf_tracks_list[i_saved_track];
-      if (writeStdInfo) {
-        stdinfo_bank.addObj(Hlt1::nStdInfoTrack);
-        stdinfo_bank.addInfo(event_mf_tracks[i_track].state[0]);
-        stdinfo_bank.addInfo(event_mf_tracks[i_track].state[1]);
-        stdinfo_bank.addInfo(event_mf_tracks[i_track].z);
-        stdinfo_bank.addInfo(event_mf_tracks[i_track].state[2]);
-        stdinfo_bank.addInfo(event_mf_tracks[i_track].state[3]);
-        stdinfo_bank.addInfo(event_mf_tracks[i_track].state[4]);
-      }
-
-      // Add to substr.
-      // No substructure. Ptr will be to hits.
-      substr_bank.addSubstr(0, 1);
-      // Stored after long tracks, so need to add this number.
-      substr_bank.addPtr(parameters.dev_n_tracks_saved[event_number] + i_saved_track);
-
-      // Create the tracks for saving.
-      const int i_velo_track = ut_tracks.velo_track(i_track);
-      const uint n_hits = ut_tracks.number_of_hits(i_track) + velo_tracks.number_of_hits(i_velo_track);
-      uint begin = hits_bank.addSeq(n_hits);
-      UT::Consolidated::ConstHits ut_hits = ut_tracks.get_hits(parameters.dev_ut_track_hits, i_track);
-      Velo::Consolidated::ConstHits velo_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i_velo_track);
-
-      // Add the velo hits.
-      // NB: stored in backwards order.
-      uint i_hit = 0;
-      for (uint i_velo_hit = 0; i_velo_hit < velo_tracks.number_of_hits(i_velo_track); i_velo_hit++) {
-        hits_bank.m_location[begin + i_hit] = velo_hits.id(velo_tracks.number_of_hits(i_velo_track) - 1 - i_velo_hit);
-        i_hit++;
-      }
-      // Add UT hits.
-      for (uint i_ut_hit = 0; i_ut_hit < ut_tracks.number_of_hits(i_track); i_ut_hit++) {
-        hits_bank.m_location[begin + i_hit] = ut_hits.id(i_ut_hit);
-        i_hit++;
-      }
-    }
-
     // Add secondary vertices to the hits StdInfo. CLID = 10030.
     for (uint i_saved_sv = 0; i_saved_sv < parameters.dev_n_svs_saved[event_number]; i_saved_sv++) {
       uint i_sv = event_saved_svs_list[i_saved_sv];
@@ -252,26 +195,6 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       substr_bank.addSubstr(2, 0);
       substr_bank.addPtr(n_decisions + event_save_track[i_track]);
       substr_bank.addPtr(n_decisions + event_save_track[j_track]);
-
-      // Add to StdInfo.
-      if (writeStdInfo) {
-        stdinfo_bank.addObj(Hlt1::nStdInfoSV);
-        stdinfo_bank.addInfo(event_svs[i_sv].x);
-        stdinfo_bank.addInfo(event_svs[i_sv].y);
-        stdinfo_bank.addInfo(event_svs[i_sv].z);
-      }
-    }
-      
-    // Add velo-UT-muon + SciFi vertices to the StdInfo. CLID = 10030.
-    for (uint i_saved_sv = 0; i_saved_sv < parameters.dev_n_mf_svs_saved[event_number]; i_saved_sv++) {
-      uint i_sv = event_saved_mf_svs_list[i_saved_sv];
-      // Add to Substr.
-      int i_track = event_mf_svs[i_sv].trk1;
-      int j_track = event_mf_svs[i_sv].trk2; // Velo-UT-muon track.
-      // Two substructures, pointers to objects.
-      substr_bank.addSubstr(2, 0);
-      substr_bank.addPtr(n_decisions + event_save_track[i_track]);
-      substr_bank.addPtr(n_decisions + parameters.dev_n_tracks_saved[event_number] + event_save_track[j_track]);
 
       // Add to StdInfo.
       if (writeStdInfo) {
