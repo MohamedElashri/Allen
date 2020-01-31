@@ -103,7 +103,7 @@ namespace prepare_raw_banks {
       initialize<dev_passing_event_list_t>(arguments, 0, cuda_stream);
 
 #ifdef CPU
-      const auto grid_dim = dim3(value<host_number_of_selected_events_t>(arguments));
+      const auto grid_dim = dim3(1);
       const auto block_dim = dim3(1);
 #else
       const auto grid_dim = dim3(
