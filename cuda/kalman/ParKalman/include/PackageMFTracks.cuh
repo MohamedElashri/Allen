@@ -51,6 +51,8 @@ namespace package_mf_tracks {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
+      initialize<dev_mf_tracks_t>(arguments, 0, cuda_stream);
+      
       function(dim3(value<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),

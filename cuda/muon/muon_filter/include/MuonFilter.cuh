@@ -69,6 +69,7 @@ namespace MuonFilter {
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const
     {
+      initialize<dev_event_list_mf_t>(arguments, 0, cuda_stream);
       initialize<dev_selected_events_mf_t>(arguments, 0, cuda_stream);
       initialize<dev_mf_decisions_t>(arguments, 0, cuda_stream);
       initialize<dev_mf_track_atomics_t>(arguments, 0, cuda_stream);
