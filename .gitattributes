@@ -1,2 +1,7 @@
 *.cu gitlab-language=c++
 *.cuh gitlab-language=c++
+catch2.hpp -linguist-vendored
+json.hpp -linguist-vendored
+zmq.hpp -linguist-vendored
+gsl-lite.hpp -linguist-vendored
+zmq_addon.hpp -linguist-vendored
