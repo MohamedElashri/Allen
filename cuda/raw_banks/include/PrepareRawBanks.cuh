@@ -102,11 +102,17 @@ namespace prepare_raw_banks {
       initialize<dev_number_of_passing_events_t>(arguments, 0, cuda_stream);
       initialize<dev_passing_event_list_t>(arguments, 0, cuda_stream);
 
-      const auto grid_size = dim3(
+#ifdef CPU
+      const auto grid_dim = dim3(value<host_number_of_selected_events_t>(arguments));
+      const auto block_dim = dim3(1);
+#else
+      const auto grid_dim = dim3(
         (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /
         property<block_dim_x_t>());
+      const auto block_dim = dim3(property<block_dim_x_t>().get());
+#endif
 
-      function(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
+      function(grid_dim, block_dim, cuda_stream)(
         Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
                     begin<dev_velo_track_hits_t>(arguments),
