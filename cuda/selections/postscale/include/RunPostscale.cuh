@@ -66,6 +66,12 @@ namespace run_postscale {
                     property<factor_dimuon_soft_t>()});
 
       if (runtime_options.do_check) {
+        if (size<dev_sel_results_t>(arguments) > host_buffers.host_sel_results_size) {
+          host_buffers.host_sel_results_size = size<dev_sel_results_t>(arguments) * 1.2f;
+          cudaCheck(cudaFreeHost(host_buffers.host_sel_results));
+          cudaCheck(cudaMallocHost((void**) &host_buffers.host_sel_results, host_buffers.host_sel_results_size));
+        }
+
         cudaCheck(cudaMemcpyAsync(
           host_buffers.host_sel_results,
           begin<dev_sel_results_t>(arguments),

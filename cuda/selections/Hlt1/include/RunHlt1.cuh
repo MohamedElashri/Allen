@@ -129,12 +129,8 @@ namespace run_hlt1 {
                     begin<dev_sel_results_offsets_t>(arguments)});
 
       if (runtime_options.do_check) {
-        cudaCheck(cudaMemcpyAsync(
-          host_buffers.host_sel_results,
-          begin<dev_sel_results_t>(arguments),
-          size<dev_sel_results_t>(arguments),
-          cudaMemcpyDeviceToHost,
-          cuda_stream));
+        safe_assign_to_host_buffer<dev_sel_results_t>(
+          host_buffers.host_sel_results, host_buffers.host_sel_results_size, arguments, cuda_stream);
       }
     }
 

@@ -67,12 +67,9 @@ namespace package_sel_reports {
         size<dev_sel_rep_offsets_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
-      cudaCheck(cudaMemcpyAsync(
-        host_buffers.host_sel_rep_raw_banks,
-        begin<dev_sel_rep_raw_banks_t>(arguments),
-        size<dev_sel_rep_raw_banks_t>(arguments),
-        cudaMemcpyDeviceToHost,
-        cuda_stream));
+      
+      safe_assign_to_host_buffer<dev_sel_rep_raw_banks_t>(
+        host_buffers.host_sel_rep_raw_banks, host_buffers.host_sel_rep_raw_banks_size, arguments, cuda_stream);
     }
 
   private:

@@ -31,6 +31,7 @@ struct HostBuffers {
   uint* host_passing_event_list;
   uint32_t* host_dec_reports;
   uint32_t* host_sel_rep_raw_banks;
+  uint host_sel_rep_raw_banks_size;
   size_t host_allocated_prefix_sum_space;
   uint* host_sel_rep_offsets;
   uint* host_number_of_sel_rep_words;
@@ -98,11 +99,16 @@ struct HostBuffers {
   uint* host_sv_offsets;
   uint* host_sv_atomics;
   uint* host_mf_sv_offsets;
+
+  uint host_secondary_vertices_size;
+  uint host_mf_secondary_vertices_size;
   VertexFit::TrackMVAVertex* host_secondary_vertices;
   VertexFit::TrackMVAVertex* host_mf_secondary_vertices;
 
   // Selections
   uint* host_sel_results_atomics;
+
+  uint host_sel_results_size;
   bool* host_sel_results;
 
   // Non pinned datatypes: CPU algorithms
@@ -140,6 +146,4 @@ struct HostBuffers {
    * @brief Retrieve total number of hit uints.
    */
   uint32_t scifi_hits_uints() const;
-
-  
 };

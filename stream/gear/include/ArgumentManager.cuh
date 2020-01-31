@@ -114,6 +114,27 @@ auto value(const Args& arguments) {
   return Arg{arguments.template begin<Arg>()}[0];
 }
 
+template<typename Arg, typename Args, typename T>
+void safe_assign_to_host_buffer(
+  T* array,
+  uint& size,
+  const Args& arguments,
+  cudaStream_t cuda_stream) {
+  if (arguments.template size<Arg>() > size) {
+    size = arguments.template size<Arg>() * 1.2f;
+    cudaCheck(cudaFreeHost(array));
+    cudaCheck(cudaMallocHost((void**) &array, size));
+  }
+
+  cudaCheck(cudaMemcpyAsync(
+    array,
+    arguments.template begin<Arg>(),
+    arguments.template size<Arg>(),
+    cudaMemcpyDeviceToHost,
+    cuda_stream));
+}
+
+
 // SFINAE for single argument functions, like initialization and print of host / device parameters
 template<typename Arg, typename Args, typename Enabled = void>
 struct SingleArgumentOverloadResolution;

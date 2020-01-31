@@ -57,8 +57,10 @@ __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
     const float min_ipchi2 = parameters.mf_min_ipchi2;
     pvcut = (pvchi2_table.value(i_scifi_track) > min_ipchi2);
 
-    bool dec = (isMuon && pTcut && pvcut);
-    atomicOr(event_mf_decision, dec);
+    const bool dec = isMuon && pTcut && pvcut;
+    if (dec) {
+      atomicOr(event_mf_decision, dec);
+    }
   }
 
   __syncthreads();

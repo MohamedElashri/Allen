@@ -96,6 +96,7 @@ namespace MuonFilter {
                     property<mf_min_pt_t>(),
                     property<mf_min_ipchi2_t>()});
 
+      // copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, cuda_stream);
       cudaCheck(cudaMemcpyAsync(
         begin<host_selected_events_mf_t>(arguments),
         begin<dev_selected_events_mf_t>(arguments),

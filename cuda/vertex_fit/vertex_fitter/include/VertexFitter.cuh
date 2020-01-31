@@ -128,12 +128,9 @@ namespace VertexFit {
                     begin<dev_consolidated_svs_t>(arguments),
                     property<max_assoc_ipchi2_t>()});
 
-      cudaCheck(cudaMemcpyAsync(
-        host_buffers.host_secondary_vertices,
-        begin<dev_consolidated_svs_t>(arguments),
-        size<dev_consolidated_svs_t>(arguments),
-        cudaMemcpyDeviceToHost,
-        cuda_stream));
+      safe_assign_to_host_buffer<dev_consolidated_svs_t>(
+        host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, cuda_stream);
+
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_sv_offsets,
         begin<dev_sv_offsets_t>(arguments),
