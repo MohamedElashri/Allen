@@ -203,8 +203,10 @@ namespace VertexFit {
     sv.py = trackA.py() + trackB.py();
     sv.pz = trackA.pz() + trackB.pz();
 
-    // Approximate m^2 - m1^2 - m2^2.
-    sv.q2 = 2.f * (trackA.p() * trackB.p() - trackA.px() * trackB.px() - trackA.py() * trackB.py() -trackA.pz() * trackB.pz());
+    // For calculating mass.
+    sv.p1 = trackA.p();
+    sv.p2 = trackB.p();
+    sv.cos = (trackA.px() * trackB.px() + trackA.py() * trackB.py() + trackA.pz() * trackB.pz()) / (sv.p1 * sv.p2);
       
    // Sum of track pT.
     sv.sumpt = trackA.pt() + trackB.pt();

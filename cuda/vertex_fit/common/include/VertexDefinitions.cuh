@@ -34,9 +34,11 @@ namespace VertexFit {
     float cov21 = 0.0f;
     float cov22 = 0.0f;
 
-    // Store the q2 value to get an approximate mass on demand.
-    float q2 = 0.f;
-    
+    // Store enough info to calculate masses on demand.
+    float p1 = 0.f;
+    float p2 = 0.f;
+    float cos = 1.f;
+
     // Variables for dimuon lines
     float dimu_ip = 0.0f;
     float dz = 0.0f;
@@ -73,8 +75,11 @@ namespace VertexFit {
 
     __device__ __host__ float pt() const { return sqrtf(px * px + py * py); }
     __device__ __host__ float m(float m1, float m2) const {
-      return sqrtf(m1 * m1 + m2 * m2 + q2);
+      const float E1 = sqrtf(p1 * p1 + m1 * m1);
+      const float E2 = sqrtf(p2 * p2 + m2 * m2);
+      return sqrtf(m1 * m1 + m2 * m2 + 2 * E1 * E2 - 2 * p1 * p2 * cos);
     }
+
   };
 
 } // namespace VertexFit
