@@ -1,3 +1,9 @@
+#include <dlfcn.h>
+
+#include <iostream>
+#include <chrono>
+#include <cmath>
+
 #include <GaudiKernel/IJobOptionsSvc.h>
 #include <GaudiKernel/IMessageSvc.h>
 #include <GaudiKernel/IAppMgrUI.h>
@@ -14,63 +20,12 @@
 
 #include <GaudiOnline/OnlineApplication.h>
 
-/// C/C++ include files
-#include <iostream>
-#include <chrono>
-#include <cmath>
-
 #include <Allen.h>
 
-class AllenApplication : public Online::OnlineApplication  {
-  public:
+#include "AllenConfiguration.h"
+#include "AllenApplication.h"
 
-  /// Structurte containing all monitoring items
-  struct monitor_t   {
-    long mepsIn          = 0;
-    long mepsDone        = 0;
-    long eventsOut       = 0;
-    monitor_t() = default;
-    virtual ~monitor_t() = default;
-    void reset();
-  } m_monitor;
-
-  // Specialized constructor
-  AllenApplication(Options opts);
-  // Default destructor
-  virtual ~AllenApplication();
-
-  /// Cancel the application: Cancel IO request/Event loop
-  int cancel()  override;
-
-  /// Internal: Initialize the application            (NOT_READY  -> READY)
-  int configureApplication()   override;
-  /// Internal: Finalize the application              (READY      -> NOT_READY)
-  int finalizeApplication()   override;
-
-  /// Internal: Start the application                 (READY      -> RUNNING)
-  int startApplication()   override;
-  /// Stop the application                            (RUNNING    -> READY)
-  int stop()    override;
-  /// Pause the application                           (RUNNING    -> PAUSED)
-  int pauseProcessing()   override;
-  /// Continue the application                        (PAUSED -> RUNNING )
-  int continueProcessing()    override;
-
-  // Main function running the Allen event loop
-  void allen_loop();
-
-private:
-
-  /// Reference to the monitoring service
-  SmartIF<IMonitorSvc>        m_monSvc;
-
-  /// Handles to helper service to properly name burst counters
-  SmartIF<IService>           m_monMEPs;
-  /// Handles to helper service to properly name event counters
-  SmartIF<IService>           m_monEvents;
-
-};
-
+/// Factory instantiation
 DECLARE_COMPONENT( AllenApplication )
 
 /// Reset counters at start
@@ -88,6 +43,9 @@ AllenApplication::AllenApplication(Options opts)
 // Default destructor
 AllenApplication::~AllenApplication()
 {
+  if (m_handle) {
+    dlclose(m_handle);
+  }
 }
 
 /// Stop the application                             (RUNNING    -> READY)
@@ -105,28 +63,67 @@ int AllenApplication::cancel()  {
 /// Internal: Initialize the application            (NOT_READY  -> READY)
 int AllenApplication::configureApplication()   {
   int ret = OnlineApplication::configureApplication();
-  if ( ret == Online::ONLINE_OK )   {
-    SmartIF<ISvcLocator> sloc = app.as<ISvcLocator>();
+  if ( ret != Online::ONLINE_OK ) return ret;
 
-    if ( !m_config->monitorType.empty() )   {
-
-      m_monMEPs.reset(new Service("MEPs", sloc));
-      m_monEvents.reset(new Service("Events", sloc));
-
-      m_monSvc = sloc->service<IMonitorSvc>(m_config->monitorType);
-      if ( !m_monSvc.get() )  {
-        m_logger->error("Cannot access monitoring service of type %s.",
-                        m_config->monitorType.c_str());
-        return Online::ONLINE_ERROR;
-      }
-      m_monSvc->declareInfo("IN",        m_monitor.mepsIn,
-			    "Number of MEPs received for processing", m_monMEPs);
-      m_monSvc->declareInfo("OUT",       m_monitor.mepsDone,
-			    "Number of MEPs fully processed", m_monMEPs);
-      m_monSvc->declareInfo("OUT",       m_monitor.eventsOut,
-			    "Number of events fully output", m_monEvents);
-    }
+  // dlopen libAllenLib
+  m_handle = dlopen("libAllenLib.so", RTLD_LAZY);
+  if (!m_handle) {
+    m_logger->error("Failed to dlopen libAllenLib");
+    return Online::ONLINE_ERROR;
   }
+
+  // reset errors
+  dlerror();
+  // load the symbol
+  m_allen_fun = (allen_t) dlsym(m_handle, "allen");
+  const char *dlsym_error = dlerror();
+  if (dlsym_error) {
+    m_logger->error("Failed to get 'allen' from libAllenLib");
+    dlclose(m_handle);
+    return Online::ONLINE_ERROR;
+  }
+
+  SmartIF<ISvcLocator> sloc = app.as<ISvcLocator>();
+
+  if ( !m_config->monitorType.empty() )   {
+
+    m_monMEPs.reset(new Service("MEPs", sloc));
+    m_monEvents.reset(new Service("Events", sloc));
+
+    m_monSvc = sloc->service<IMonitorSvc>(m_config->monitorType);
+    if ( !m_monSvc.get() )  {
+      m_logger->error("Cannot access monitoring service of type %s.",
+                      m_config->monitorType.c_str());
+      return Online::ONLINE_ERROR;
+    }
+    m_monSvc->declareInfo("IN",        m_monitor.mepsIn,
+                          "Number of MEPs received for processing", m_monMEPs);
+    m_monSvc->declareInfo("OUT",       m_monitor.mepsDone,
+                          "Number of MEPs fully processed", m_monMEPs);
+    m_monSvc->declareInfo("OUT",       m_monitor.eventsOut,
+                          "Number of events fully output", m_monEvents);
+  }
+
+  auto config = sloc->service("AllenConfiguration/AllenConfiguration").as<AllenConfiguration>();
+  if (!config.get()) {
+    m_logger->throwError("Failed to retrieve AllenConfiguration.");
+    return Online::ONLINE_ERROR;
+  }
+  m_config = config.get();
+
+  SmartIF<IService> updater = sloc->service<IService>("AllenUpdater");
+  if (!updater.get()) {
+    m_logger->error("Failed to retrieve AllenUpdater.");
+    return Online::ONLINE_ERROR;
+  }
+  m_updater = dynamic_cast<Allen::NonEventData::IUpdater*>(updater.get());
+  if (updater == nullptr) {
+    m_logger->error("Failed to cast AllenUpdater");
+    return Online::ONLINE_ERROR;
+  }
+
+
+
   return ret;
 }
 
@@ -161,4 +158,33 @@ int AllenApplication::pauseProcessing()   {
 int AllenApplication::continueProcessing()    {
   m_logger->debug("Resume application processing.");
   return OnlineApplication::continueProcessing();
+}
+
+void AllenApplication::allen_loop() {
+  //--events-per-slice 1000 --non-stop 1 --with-mpi $1:1 -c 0 -v 3 -t 8 -s 18 --output-file tcp://192.168.1.101:35000 --device 23:00.0
+  std::map<std::string, std::string> allen_options = {{"events-per-slice", std::to_string(m_allenConfig->eps.value())},
+                                                      {"non-stop", std::to_string(m_allenConfig->nonStop.value())},
+                                                      {"c", std::to_string(m_allenConfig->check.value())},
+                                                      {"v", std::to_string(6 - m_config->outputLevel())},
+                                                      {"t", std::to_string(m_allenConfig->nThreads.value())},
+                                                      {"device", m_allenConfig->device.value()}};
+
+  if (!m_allenConfig->output.value().empty()) {
+    allen_options["output-file"] = m_allenConfig->output.value();
+  }
+
+  if (m_allenConfig->nSlices.value() != 0) {
+    allen_options["s"] = std::to_string(m_allenConfig->nSlices.value());
+  }
+
+  if (m_allenConfig->withMPI.value() == true) {
+    if (!m_allenConfig->receivers.value().empty()) {
+      allen_options["with-mpi"] = m_allenConfig->receivers.value();
+    } else {
+      allen_options["with-mpi"] = "1";
+    }
+  }
+
+  m_allen_fun(allen_options, m_updater, m_controlConnection);
+
 }

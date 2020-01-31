@@ -51,6 +51,10 @@ struct IInputProvider {
    */
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 
+  virtual int start() = 0;
+
+  virtual int stop() = 0;
+
   virtual void event_sizes(
     size_t const slice_index,
     gsl::span<unsigned int const> const selected_events,
@@ -162,6 +166,11 @@ public:
   {
     return static_cast<const Derived<Banks...>*>(this)->copy_banks(slice_index, event, buffer);
   }
+
+  int start() override { return true; };
+
+  int stop() override { return true; };
+
 
 protected:
   template<typename MSG>

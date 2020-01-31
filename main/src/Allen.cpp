@@ -463,7 +463,7 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
  *
  * @return     int
  */
-int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater, std::string_view control_connection)
+extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater, std::string_view control_connection)
 {
   // Folder containing raw, MC and muon information
   std::string folder_data = "../input/minbias/";
@@ -713,7 +713,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   // Create the InputProvider, either MDF or Binary
   // info_cout << with_mpi << ", " << mdf_input[0] << "\n";
-  if (!mep_input.empty()) {
+  if (!mep_input.empty() || with_mpi) {
     MEPProviderConfig config {false,                // verify MEP checksums
                               10,                   // number of read buffers
                               mep_layout ? 1u : 4u, // number of transpose threads

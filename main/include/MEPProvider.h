@@ -192,6 +192,7 @@ public:
     m_done = true;
     m_transpose_done = true;
     m_mpi_cond.notify_one();
+    m_control_cond.notify_all();
     m_input_thread.join();
 
     // Set a flat to indicate all transpose threads should exit, wake
@@ -405,6 +406,17 @@ public:
       ++block_index;
     }
   }
+
+  int start() override {
+    if (!m_started) {
+      std::unique_lock<std::mutex> lock {m_control_mutex};
+      this->debug_output("Starting", 0);
+      m_control_cond.notify_one();
+    }
+    return true;
+  };
+
+  int stop() override { return true; };
 
 private:
 
@@ -772,6 +784,15 @@ private:
   void mpi_read()
   {
 
+    {
+      std::unique_lock<std::mutex> lock {m_control_mutex};
+      if (!m_started) {
+        this->debug_output("Waiting for start", 0);
+        m_control_cond.wait(lock, [this] { return m_started || m_done;  });
+        }
+      }
+
+
     int window_size = m_config.window_size;
     std::vector<MPI_Request> requests(window_size);
 
@@ -782,7 +803,6 @@ private:
     Timer t;
     Timer t_origin;
     bool error = false;
-    bool receive_done = false;
 
     for (size_t i = 0; i < m_config.n_receivers(); ++i) {
       auto [mpi_rank, numa_domain] = m_domains[i];
@@ -792,8 +812,19 @@ private:
     size_t number_of_meps = std::accumulate(n_meps.begin(), n_meps.end(), 0u);
 
     size_t current_mep = 0;
-    while (m_config.non_stop || current_mep < number_of_meps) {
+    while (!m_done && (m_config.non_stop || current_mep < number_of_meps)) {
       // info_cout << MPI::rank_str() << "round " << current_file << "\n";
+
+      // If we've been stopped, wait for start or exit
+      {
+        std::unique_lock<std::mutex> lock {m_control_mutex};
+        if (m_stopping) {
+          this->debug_output("Waiting for start", 0);
+          m_control_cond.wait(lock, [this] { return m_started || m_done;  });
+        }
+      }
+
+      if (m_done) break;
 
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
@@ -954,19 +985,18 @@ private:
           set_intervals(m_buffer_status[i_buffer].intervals, size_t{mep_header.packing_factor});
           assert(m_buffer_status[i_buffer].work_counter == 0);
         }
-        if (receive_done) {
-          m_done = receive_done;
-          this->debug_output("Prefetch notifying all");
-          m_mpi_cond.notify_all();
-        }
-        else {
-          this->debug_output("Prefetch notifying one");
-          m_mpi_cond.notify_one();
-        }
+        this->debug_output("Prefetch notifying one");
+        m_mpi_cond.notify_one();
       }
       m_mpi_cond.notify_one();
 
       current_mep++;
+    }
+
+    if (!m_done) {
+      m_done = true;
+      this->debug_output("Prefetch notifying all");
+      m_mpi_cond.notify_all();
     }
   }
 #endif
@@ -1116,6 +1146,12 @@ private:
   std::vector<std::vector<char>> m_read_buffers;
   std::vector<char*> m_mpi_buffers;
   MEP::Slices m_net_slices;
+
+  // data members for mpi thread
+  bool m_started = false;
+  bool m_stopping = false;
+  std::mutex m_control_mutex;
+  std::condition_variable m_control_cond;
 
   // data members for mpi thread
   std::mutex m_mpi_mutex;
