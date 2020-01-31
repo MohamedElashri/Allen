@@ -31,6 +31,9 @@ def HLT1_sequence(validate=False):
   HighMassDiMuon_line = HighMassDiMuon_t()
   DisplacedDiMuon_line = DisplacedDiMuon_t()
   DiMuonSoft_line = DiMuonSoft_t()
+  D2KPi_line = D2KPi_t()
+  D2PiPi_line = D2PiPi_t()
+  D2KK_line = D2KK_t()
 
   muon_sequence = Muon_sequence()
   hlt1_sequence = extend_sequence(muon_sequence,
@@ -51,7 +54,10 @@ def HLT1_sequence(validate=False):
     TwoTrackMVA_line,
     HighMassDiMuon_line,
     DisplacedDiMuon_line,
-    DiMuonSoft_line)
+    DiMuonSoft_line,
+    D2KPi_line,
+    D2PiPi_line,
+    D2KK_line)
 
   if validate:
     hlt1_sequence.validate()
