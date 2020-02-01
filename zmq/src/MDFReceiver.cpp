@@ -14,7 +14,7 @@
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
 
-#include <ZeroMQSvc.h>
+#include <IZeroMQSvc.h>
 #include "Timer.h"
 
 #include <read_mdf.hpp>

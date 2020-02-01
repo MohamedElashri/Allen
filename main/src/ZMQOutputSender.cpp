@@ -2,7 +2,7 @@
 
 #include <ZMQOutputSender.h>
 #include <InputProvider.h>
-#include <ZeroMQSvc.h>
+#include <IZeroMQSvc.h>
 #include <Logger.h>
 
 namespace {
@@ -12,7 +12,7 @@ namespace {
 ZMQOutputSender::ZMQOutputSender(IInputProvider const* input_provider,
                                  std::string const receiver_connection,
                                  size_t const events_per_slice,
-                                 ZeroMQSvc* zmqSvc,
+                                 IZeroMQSvc* zmqSvc,
                                  bool const checksum) :
   OutputHandler {input_provider, events_per_slice},
   m_zmq{zmqSvc},

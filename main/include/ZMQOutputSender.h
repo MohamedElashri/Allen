@@ -3,7 +3,7 @@
 #include <read_mdf.hpp>
 #include <raw_helpers.hpp>
 
-#include <ZeroMQSvc.h>
+#include <IZeroMQSvc.h>
 #include <OutputHandler.h>
 
 class ZMQOutputSender final : public OutputHandler {
@@ -12,7 +12,7 @@ public:
     IInputProvider const* input_provider,
     std::string receiver_connection,
     size_t events_per_slice,
-    ZeroMQSvc* zmqSvc,
+    IZeroMQSvc* zmqSvc,
     bool checksum = true);
 
   ~ZMQOutputSender();
@@ -30,7 +30,7 @@ protected:
 private:
 
   // ZeroMQSvc pointer for convenience.
-  ZeroMQSvc* m_zmq = nullptr;
+  IZeroMQSvc* m_zmq = nullptr;
 
   // ID string
   std::string m_id;

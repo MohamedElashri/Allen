@@ -1,12 +1,12 @@
 #include <memory>
 
-#include <ZeroMQSvc.h>
+#include <IZeroMQSvc.h>
 
-ZeroMQSvc& zmqSvc()
+IZeroMQSvc& zmqSvc()
 {
-  static std::unique_ptr<ZeroMQSvc> svc;
+  static std::unique_ptr<IZeroMQSvc> svc;
   if (!svc) {
-    svc = std::make_unique<ZeroMQSvc>();
+    svc = std::make_unique<IZeroMQSvc>();
   }
   return *svc;
 }

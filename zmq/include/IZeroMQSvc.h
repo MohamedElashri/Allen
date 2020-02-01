@@ -113,11 +113,11 @@ struct ZmqLingeringSocketPtrDeleter {
 template<int PERIOD = 0>
 using ZmqLingeringSocketPtr = std::unique_ptr<zmq::socket_t, ZmqLingeringSocketPtrDeleter<PERIOD>>;
 
-class ZeroMQSvc {
+class IZeroMQSvc {
 public:
-  ZeroMQSvc() = default;
+  IZeroMQSvc() = default;
 
-  virtual ~ZeroMQSvc() = default;
+  virtual ~IZeroMQSvc() = default;
 
   enum Encoding { Text = 0, Binary };
 
@@ -392,4 +392,4 @@ private:
 #endif
 };
 
-ZeroMQSvc& zmqSvc();
+IZeroMQSvc& zmqSvc();

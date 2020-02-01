@@ -26,7 +26,7 @@
 #include <tuple>
 
 #include <zmq.hpp>
-#include <ZeroMQSvc.h>
+#include <IZeroMQSvc.h>
 
 #include "CudaCommon.h"
 #include "RuntimeOptions.h"

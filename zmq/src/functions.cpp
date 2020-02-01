@@ -1,7 +1,6 @@
 #include <zmq.hpp>
-
-#include <ZeroMQSvc.h>
-
+#include <limits.h>
+#include <unistd.h>
 #include <functions.h>
 
 namespace ZMQ {
@@ -40,7 +39,7 @@ namespace zmq {
 
 namespace Utils {
   std::string hostname() {
-    char hname[_POSIX_HOST_NAME_MAX];
+    char hname[HOST_NAME_MAX];
     std::string hn;
     if (!gethostname(hname, sizeof(hname))) {
       hn = std::string{hname};

@@ -2,7 +2,7 @@
 
 #include <fcntl.h>
 
-#include <ZeroMQSvc.h>
+#include <IZeroMQSvc.h>
 #include <read_mdf.hpp>
 
 #include <boost/program_options.hpp>
