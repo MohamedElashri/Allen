@@ -8,12 +8,13 @@ namespace DiMuonSoft {
   // Dimuon Soft  (Very Detached)
   constexpr float DMSoftM0 = 400.f;
   constexpr float DMSoftM1 = 475.f;
+  constexpr float DMSoftM2 = 600.f;
   constexpr float DMSoftMinIPChi2 = 100.f;
   constexpr float DMSoftMinRho2 = 9.f;
   constexpr float DMSoftMinZ = -375.f;
   constexpr float DMSoftMaxZ = 635.f;
-  constexpr float DMSoftMaxDOCA = 0.2f;
-  constexpr float DMSoftMaxIPDZ = 0.17f;
+  constexpr float DMSoftMaxDOCA = 0.1f;
+  constexpr float DMSoftMaxIPDZ = 0.04f;
   constexpr float DMSoftGhost = 4.e-06f;
 
   struct DiMuonSoft_t : public Hlt1::TwoTrackLine {
@@ -25,7 +26,7 @@ namespace DiMuonSoft {
       if (vertex.minipchi2 < DMSoftMinIPChi2) return false;
 
       // KS pipi misid veto
-      const bool decision = vertex.chi2 > 0 && (vertex.mdimu < DMSoftM0 || vertex.mdimu > DMSoftM1) && vertex.eta > 0 &&
+      const bool decision = vertex.chi2 > 0 && (vertex.mdimu < DMSoftM0 || vertex.mdimu > DMSoftM1) &&  (vertex.mdimu < DMSoftM2) && vertex.eta > 0 &&
                             (vertex.x * vertex.x + vertex.y * vertex.y) > DMSoftMinRho2 &&
                             (vertex.z > DMSoftMinZ) & (vertex.z < DMSoftMaxZ) && vertex.doca < DMSoftMaxDOCA &&
                             vertex.dimu_ip / vertex.dz < DMSoftMaxIPDZ && vertex.dimu_clone_sin2 > DMSoftGhost;
