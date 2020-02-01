@@ -14,6 +14,8 @@ namespace Hlt1 {
       const uint* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
+      const char* event_odin_data,
+      const uint number_of_velo_tracks,
       const uint event_number,
       const uint number_of_tracks_in_event,
       const uint number_of_vertices_in_event)
@@ -32,6 +34,8 @@ namespace Hlt1 {
       const uint* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
+      const char* event_odin_data,
+      const uint number_of_velo_tracks,
       const uint event_number,
       const uint number_of_tracks_in_event,
       const uint number_of_vertices_in_event)
@@ -49,6 +53,8 @@ namespace Hlt1 {
         dev_sv_offsets,
         event_tracks,
         event_vertices,
+        event_odin_data,
+        number_of_velo_tracks,
         event_number,
         number_of_tracks_in_event,
         number_of_vertices_in_event);
@@ -67,6 +73,8 @@ namespace Hlt1 {
       const uint* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
+      const char* event_odin_data,
+      const uint number_of_velo_tracks,
       const uint event_number,
       const uint number_of_tracks_in_event,
       const uint number_of_vertices_in_event)
@@ -84,6 +92,8 @@ namespace Hlt1 {
         dev_sv_offsets,
         event_tracks,
         event_vertices,
+        event_odin_data,
+        number_of_velo_tracks,
         event_number,
         number_of_tracks_in_event,
         number_of_vertices_in_event);
@@ -102,11 +112,17 @@ namespace Hlt1 {
       const uint* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
+      const char* event_odin_data,
+      const uint number_of_velo_tracks,
       const uint event_number,
       const uint number_of_tracks_in_event,
       const uint number_of_vertices_in_event)
     {
-      // Ignore special lines
+      bool* decision = dev_sel_results + dev_sel_results_offsets[I] + event_number;
+      if (threadIdx.x == 0) {
+        decision[0] = T::function(event_odin_data, number_of_velo_tracks);
+      }
+      
       TraverseImpl<std::tuple<OtherLines...>, std::index_sequence<Is...>>::traverse(
         dev_sel_results,
         dev_sel_results_offsets,
@@ -114,6 +130,8 @@ namespace Hlt1 {
         dev_sv_offsets,
         event_tracks,
         event_vertices,
+        event_odin_data,
+        number_of_velo_tracks,
         event_number,
         number_of_tracks_in_event,
         number_of_vertices_in_event);
@@ -129,6 +147,8 @@ namespace Hlt1 {
       const uint* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
+      const char* event_odin_data,
+      const uint number_of_velo_tracks,
       const uint event_number,
       const uint number_of_tracks_in_event,
       const uint number_of_vertices_in_event)
@@ -140,6 +160,8 @@ namespace Hlt1 {
         dev_sv_offsets,
         event_tracks,
         event_vertices,
+        event_odin_data,
+        number_of_velo_tracks,
         event_number,
         number_of_tracks_in_event,
         number_of_vertices_in_event);
