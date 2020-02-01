@@ -13,6 +13,9 @@ namespace run_hlt1 {
     DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_offsets_forward_tracks;
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
+    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
+    DEVICE_INPUT(dev_odin_raw_input_offsets_t, uint) dev_odin_raw_input_offsets;
+    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_velo_offsets;
     DEVICE_OUTPUT(dev_sel_results_t, bool) dev_sel_results;
     DEVICE_OUTPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
@@ -35,6 +38,12 @@ namespace run_hlt1 {
     const auto number_of_vertices_in_event =
       parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
 
+    // Fetch ODIN info.
+    const char* event_odin_data = parameters.dev_odin_raw_input + parameters.dev_odin_raw_input_offsets[event_number];
+
+    // Fetch number of velo tracks.
+    const uint n_velo_tracks = parameters.dev_velo_offsets[event_number + 1] - parameters.dev_velo_offsets[event_number];
+    
     // Process all lines
     Hlt1::Traverse<T>::traverse(
       parameters.dev_sel_results,
@@ -43,6 +52,8 @@ namespace run_hlt1 {
       parameters.dev_sv_offsets,
       event_tracks,
       event_vertices,
+      event_odin_data,
+      n_velo_tracks,
       event_number,
       number_of_tracks_in_event,
       number_of_vertices_in_event);
@@ -88,6 +99,12 @@ namespace run_hlt1 {
       };
       Hlt1::TraverseLines<U, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
 
+      const auto lambda_special_fn = [&](const unsigned long i_line) {
+        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_selected_events_t>(arguments);
+      };
+      
+      Hlt1::TraverseLines<U, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+      
       // Prefix sum
       host_prefix_sum::host_prefix_sum_impl(host_buffers.host_sel_results_atomics, std::tuple_size<U>::value);
 
@@ -105,6 +122,9 @@ namespace run_hlt1 {
                     begin<dev_consolidated_svs_t>(arguments),
                     begin<dev_offsets_forward_tracks_t>(arguments),
                     begin<dev_sv_offsets_t>(arguments),
+                    begin<dev_odin_raw_input_t>(arguments),
+                    begin<dev_odin_raw_input_offsets_t>(arguments),
+                    begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_sel_results_t>(arguments),
                     begin<dev_sel_results_offsets_t>(arguments)});
 
