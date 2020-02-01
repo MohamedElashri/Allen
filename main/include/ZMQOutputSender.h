@@ -3,7 +3,7 @@
 #include <read_mdf.hpp>
 #include <raw_helpers.hpp>
 
-#include <IZeroMQSvc.h>
+#include <ZeroMQ/IZeroMQSvc.h>
 #include <OutputHandler.h>
 
 class ZMQOutputSender final : public OutputHandler {

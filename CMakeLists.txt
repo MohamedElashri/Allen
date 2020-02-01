@@ -40,6 +40,7 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 
 option(BUILD_TESTS "Build test programs" OFF)
+option(USE_ROOT "Build with ROOT" OFF)
 
 # Setup the project to build as a Gaudi project or else standalone
 macro(allen_project)
@@ -55,6 +56,9 @@ macro(allen_project)
 
     # Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
+
+    # Always enable ROOT for Gaudi builds
+    set(USE_ROOT ON)
 
     # Find the CUDA compiler if it's not set
     # FIXME: this assumes a standard cuda install: re-evaluate if
@@ -382,41 +386,49 @@ if (USE_KALMAN_DOUBLE_PRECISION)
   add_compile_definitions(KALMAN_DOUBLE_PRECISION)
 endif()
 
-option(USE_ROOT "Build with ROOT" OFF)
-if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
-   if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
-     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-   else() # ROOT was compiled with configure/make
-     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
-   endif()
-   find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
-   if (ROOT_FOUND)
-      message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
+if (USE_ROOT)
+   if (GaudiProject_FOUND)
+     find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO)
+     find_package(TBB REQUIRED)
+     set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
+     set(ALLEN_ROOT_LIBRARIES ${ROOT_LIBRARIES} ${TBB_LIBRARIES})
+   else()
+     if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
+       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+     elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
+       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
+     else()
+       message(FATAL "ROOTSYS must be set to use ROOT with a standalone build of Allen")
+     endif()
+     find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
+     if (ROOT_FOUND)
+       message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
 
-      # If ROOT is built with C++17 support, everything that includes ROOT
-      # headers must be built with C++17 support. CUDA doesn't support
-      # that, so we have to factor that out.
-      execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
-      string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
-      message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
-      if ("${ROOT_HAS_CXX17}" STREQUAL "yes")
-        set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-      else()
-        set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
-      endif()
+       # If ROOT is built with C++17 support, everything that includes ROOT
+       # headers must be built with C++17 support. CUDA doesn't support
+       # that, so we have to factor that out.
+       execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
+       string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
+       message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
+       if ("${ROOT_HAS_CXX17}" STREQUAL "yes")
+         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
+       else()
+         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
+       endif()
 
-      set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist -lRIO)
+       set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist -lRIO)
 
-      execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
-      string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
-      message(STATUS "ROOT built with implicit multi-threading: ${ROOT_HAS_IMT}")
-      if (${ROOT_HAS_IMT} STREQUAL "yes")
-        find_package(TBB REQUIRED)
-        get_filename_component(TBB_LIBDIR ${TBB_LIBRARIES} DIRECTORY)
-        set(ALLEN_ROOT_LIBRARIES ${ALLEN_ROOT_LIBRARIES} -L${TBB_LIBDIR} -ltbb)
-      endif()
-    else()
-      message(STATUS "Compiling without ROOT")
+       execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
+       string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
+       message(STATUS "ROOT built with implicit multi-threading: ${ROOT_HAS_IMT}")
+       if (${ROOT_HAS_IMT} STREQUAL "yes")
+         find_package(TBB REQUIRED)
+         get_filename_component(TBB_LIBDIR ${TBB_LIBRARIES} DIRECTORY)
+         set(ALLEN_ROOT_LIBRARIES ${ALLEN_ROOT_LIBRARIES} -L${TBB_LIBDIR} -ltbb)
+       endif()
+     else()
+       message(STATUS "Compiling without ROOT")
+     endif()
    endif()
 else()
    message(STATUS "Compiling without ROOT")
@@ -491,14 +503,13 @@ include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
 include_directories(integration/monitoring/include)
 include_directories(integration/non_event_data/include)
-include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
 
 # Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")
 file(GLOB common_cuda_sources "main/src/*.cu")
 
 # Remove main.cpp from common_sources
-foreach(source main Allen OutputHandler ZMQOutputSender MPISend)
+foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
@@ -527,7 +538,10 @@ endif()
 
 allen_add_library(CudaCommon STATIC ${common_cuda_sources})
 
-set(allen_lib_sources ${Allen_cpp_path} ${OutputHandler_cpp_path} ${ZMQOutputSender_cpp_path})
+set(allen_lib_sources ${Allen_cpp_path}
+                      ${AllenThreads_cpp_path}
+                      ${OutputHandler_cpp_path}
+                      ${ZMQOutputSender_cpp_path})
 
 if(TARGET_DEVICE STREQUAL "HIP")
   # Produce self-contained application
@@ -558,6 +572,11 @@ if (USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
   target_include_directories(AllenLib SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
   target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
+endif()
+
+if (GaudiProject_FOUND)
+  find_package(AIDA)
+  target_include_directories(AllenLib PUBLIC ${AIDA_INCLUDE_DIRS})
 endif()
 
 allen_add_executable(Allen ${main_cpp_path})
