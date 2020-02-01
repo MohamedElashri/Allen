@@ -109,7 +109,7 @@ int AllenApplication::configureApplication()   {
     m_logger->throwError("Failed to retrieve AllenConfiguration.");
     return Online::ONLINE_ERROR;
   }
-  m_config = config.get();
+  m_allenConfig = config.get();
 
   SmartIF<IService> updater = sloc->service<IService>("AllenUpdater");
   if (!updater.get()) {
@@ -121,8 +121,6 @@ int AllenApplication::configureApplication()   {
     m_logger->error("Failed to cast AllenUpdater");
     return Online::ONLINE_ERROR;
   }
-
-
 
   return ret;
 }

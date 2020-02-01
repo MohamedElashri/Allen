@@ -30,8 +30,8 @@ online_conf = OnlineConfiguration("Application")
 online_conf.debug                = False
 online_conf.classType            = 1
 online_conf.automatic            = False
-online_conf.monitorType          = ''
-online_conf.logDeviceType        = 'RTL::FmcLogDevice'
+online_conf.monitorType          = 'MonitorSvc'
+online_conf.logDeviceType        = 'RTL::Logger::LogDevice'
 online_conf.logDeviceFormat      = '%TIME%LEVEL%-8NODE: %-32PROCESS %-20SOURCE'
 online_conf.OutputLevel          = 3
 online_conf.IOOutputLevel        = 3
@@ -48,15 +48,21 @@ allen_conf.Output = "tcp://192.168.1.101:35000"
 allen_conf.Device = "01:00.1"
 allen_conf.OutputLevel = 2
 
+monSvc = MonitorSvc('MonitorSvc')
+monSvc.PartitionName = 'Allen'
+monSvc.ExpandNameInfix = '<proc>'
+monSvc.ExpandCounterServices = True
+monSvc.UniqueServiceNames = True
+
 # Add the services that will produce the non-event-data
 ApplicationMgr().ExtSvc += [
-    MonitorSvc(),
+    monSvc,
     AllenUpdater(OutputLevel=2),
 ] + producers
 
 # Some extra stuff for timing table
 ApplicationMgr().EvtSel = "NONE"
 ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc', 'AllenConfiguration',
-                            "Online::Configuration/Application"]
+                            'Online::Configuration/Application']
 
 # gaudi = AppMgr()
