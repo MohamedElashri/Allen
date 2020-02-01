@@ -85,6 +85,13 @@ public:
         }
       };
       Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+
+      // Check special decisions.
+      const auto lambda_special_fn = [&](const unsigned long i_line) {
+        const bool* decs = decisions + decisions_offsets[i_line] + i_event;
+        if (decs[0]) m_event_decs[i_line] = true;
+      };
+      Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
       
       // See if an event passes.
       bool inc_dec = false;

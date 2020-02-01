@@ -22,6 +22,15 @@ __global__ void run_postscale::run_postscale(run_postscale::Parameters parameter
   const uint32_t gps_hi = odinData[LHCb::ODIN::Data::GPSTimeHi];
   const uint32_t gps_lo = odinData[LHCb::ODIN::Data::GPSTimeLo];
 
+  // Process lines.
+  const auto lambda_special_fn = [&](const unsigned long i_line, const float scale_factor) {
+    bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
+                 event_number;
+    DeterministicPostscaler ps(i_line, scale_factor);
+    ps(1, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+  };
+  Hlt1::TraverseLinesScaleFactors<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+
   // Process 1-track lines.
   const auto lambda_one_track_fn = [&](const unsigned long i_line, const float scale_factor) {
     bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +

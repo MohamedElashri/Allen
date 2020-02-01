@@ -25,6 +25,13 @@ def HLT1_sequence(validate=False):
   package_sel_reports = package_sel_reports_t()
 
   PassThrough_line = PassThrough_t()
+  NoBeams_line = NoBeams_t()
+  BeamOne_line = BeamOne_t()
+  BeamTwo_line = BeamTwo_t()
+  BothBeams_line = BothBeams_t()
+  ODINNoBias_line = ODINNoBias_t()
+  ODINLumi_line = ODINLumi_t()
+  VeloMicroBias_line = VeloMicroBias_t()
   OneTrackMVA_line = OneTrackMVA_t()
   SingleMuon_line = SingleMuon_t()
   TwoTrackMVA_line = TwoTrackMVA_t()
@@ -49,6 +56,13 @@ def HLT1_sequence(validate=False):
     prefix_sum_sel_reps,
     package_sel_reports,
     PassThrough_line,
+    NoBeams_line,
+    BeamOne_line,
+    BeamTwo_line,
+    BothBeams_line,
+    ODINNoBias_line,
+    ODINLumi_line,
+    VeloMicroBias_line,
     OneTrackMVA_line,
     SingleMuon_line,
     TwoTrackMVA_line,
