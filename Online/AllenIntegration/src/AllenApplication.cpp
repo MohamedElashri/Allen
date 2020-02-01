@@ -183,6 +183,8 @@ void AllenApplication::allen_loop() {
     }
   }
 
-  m_allen_fun(allen_options, m_updater, m_controlConnection);
+
+
+  m_allenFun(allen_options, m_updater, m_controlConnection);
 
 }

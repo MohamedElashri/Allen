@@ -72,13 +72,19 @@ private:
   /// Handles to helper service to properly name event counters
   SmartIF<IService>           m_monEvents;
 
+  // ZeroMQSvc
+
+
   Allen::NonEventData::IUpdater* m_updater = nullptr;
   AllenConfiguration const* m_allenConfig = nullptr;
 
   std::string m_controlConnection = "inproc://AllenApplicationControl";
 
+  // dlopen stuff to workaround segfault in genconf.exe
   void* m_handle = nullptr;
   typedef int (*allen_t)(std::map<std::string, std::string>, Allen::NonEventData::IUpdater*, std::string_view);
-  allen_t m_allen_fun = nullptr;
+  allen_t m_allenFun = nullptr;
+
+  std::thread m_allenThread;
 
 };
