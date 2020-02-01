@@ -63,6 +63,6 @@ ApplicationMgr().ExtSvc += [
 # Some extra stuff for timing table
 ApplicationMgr().EvtSel = "NONE"
 ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc', 'AllenConfiguration',
-                            'Online::Configuration/Application']
+                            'Online::Configuration/Application', 'ZeroMQSvc']
 
 # gaudi = AppMgr()

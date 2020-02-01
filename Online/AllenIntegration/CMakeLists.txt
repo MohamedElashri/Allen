@@ -7,17 +7,19 @@ gaudi_depends_on_subdirs(Online/OnlineKernel
                          Online/GaudiOnline
                          Online/DIM
                          Online/RPC
+                         Online/ZeroMQ
                          Online/Parsers)
 
 find_package(Boost REQUIRED)
 find_package(cppgsl REQUIRED)
 find_package(ROOT REQUIRED)
 find_package(Rangev3 REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${Rangev3_INCLUDE_DIRS})
+find_package(ZMQ REQUIRED)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${Rangev3_INCLUDE_DIRS}  ${ZMQ_INCLUDE_DIRS})
 
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 
 gaudi_add_module(AllenIntegration
                  src/*.cpp
-                 INCLUDE_DIRS OnlineBase ROOT Online/DIM GaudiKernel cppgsl Online/OnlineKernel
+                 INCLUDE_DIRS OnlineBase ROOT Online/DIM GaudiKernel cppgsl Online/OnlineKernel Online/ZeroMQ
                  LINK_LIBRARIES GaudiKernel GaudiAlgLib dim OnlineBase GaudiOnline RPC Parsers -lrt)

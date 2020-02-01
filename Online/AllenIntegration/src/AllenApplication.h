@@ -19,6 +19,7 @@
 #include <dis.hxx>
 
 #include <GaudiOnline/OnlineApplication.h>
+#include <ZeroMQ/IZeroMQSvc.h>
 
 #include <Allen.h>
 
@@ -73,7 +74,7 @@ private:
   SmartIF<IService>           m_monEvents;
 
   // ZeroMQSvc
-
+  SmartIF<IZeroMQSvc>         m_zmqSvc;
 
   Allen::NonEventData::IUpdater* m_updater = nullptr;
   AllenConfiguration const* m_allenConfig = nullptr;
@@ -82,9 +83,12 @@ private:
 
   // dlopen stuff to workaround segfault in genconf.exe
   void* m_handle = nullptr;
-  typedef int (*allen_t)(std::map<std::string, std::string>, Allen::NonEventData::IUpdater*, std::string_view);
+  typedef int (*allen_t)(std::map<std::string, std::string>, Allen::NonEventData::IUpdater*,
+                         IZeroMQSvc* zmqSvc, std::string_view);
   allen_t m_allenFun = nullptr;
 
   std::thread m_allenThread;
+
+
 
 };

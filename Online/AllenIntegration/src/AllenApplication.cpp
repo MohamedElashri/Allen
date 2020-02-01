@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <thread>
 #include <cmath>
 
 #include <GaudiKernel/IJobOptionsSvc.h>
@@ -75,7 +76,7 @@ int AllenApplication::configureApplication()   {
   // reset errors
   dlerror();
   // load the symbol
-  m_allen_fun = (allen_t) dlsym(m_handle, "allen");
+  m_allenFun = (allen_t) dlsym(m_handle, "allen");
   const char *dlsym_error = dlerror();
   if (dlsym_error) {
     m_logger->error("Failed to get 'allen' from libAllenLib");
@@ -110,6 +111,12 @@ int AllenApplication::configureApplication()   {
     return Online::ONLINE_ERROR;
   }
   m_allenConfig = config.get();
+
+  m_zmqSvc = sloc->service<IZeroMQSvc>("ZeroMQSvc");
+  if (!m_zmqSvc) {
+    m_logger->error("Failed to retrieve IZeroMQSvc.");
+    return Online::ONLINE_ERROR;
+  }
 
   SmartIF<IService> updater = sloc->service<IService>("AllenUpdater");
   if (!updater.get()) {
@@ -183,8 +190,6 @@ void AllenApplication::allen_loop() {
     }
   }
 
-
-
-  m_allenFun(allen_options, m_updater, m_controlConnection);
+  m_allenFun(allen_options, m_updater, m_zmqSvc.get(), m_controlConnection);
 
 }
