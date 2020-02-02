@@ -17,9 +17,13 @@ find_package(Rangev3 REQUIRED)
 find_package(ZMQ REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${Rangev3_INCLUDE_DIRS}  ${ZMQ_INCLUDE_DIRS})
 
+find_package(MPI REQUIRED)
+include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
+add_compile_definitions(HAVE_MPI)
+
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 
 gaudi_add_module(AllenIntegration
                  src/*.cpp
                  INCLUDE_DIRS OnlineBase ROOT Online/DIM GaudiKernel cppgsl Online/OnlineKernel Online/ZeroMQ
-                 LINK_LIBRARIES GaudiKernel GaudiAlgLib dim OnlineBase GaudiOnline RPC Parsers -lrt)
+                 LINK_LIBRARIES GaudiKernel GaudiAlgLib dim OnlineBase GaudiOnline MPI ZMQ ZMQLib RPC Parsers -lrt)

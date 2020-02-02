@@ -45,7 +45,7 @@ allen_conf.Receivers = "mlx5_0:1"
 allen_conf.NThreads = 8
 allen_conf.NSlices = 16
 allen_conf.Output = "tcp://192.168.1.101:35000"
-allen_conf.Device = "01:00.1"
+allen_conf.Device = "01:00.0"
 allen_conf.OutputLevel = 2
 
 monSvc = MonitorSvc('MonitorSvc')

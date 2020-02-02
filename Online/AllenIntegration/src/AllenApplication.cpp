@@ -4,6 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <cmath>
+#include <regex>
 
 #include <GaudiKernel/IJobOptionsSvc.h>
 #include <GaudiKernel/IMessageSvc.h>
@@ -23,8 +24,27 @@
 
 #include <Allen.h>
 
+#ifdef HAVE_MPI
+#include <MPIConfig.h>
+#endif
+
 #include "AllenConfiguration.h"
 #include "AllenApplication.h"
+
+namespace {
+  using namespace std::string_literals;
+
+  std::string resolveEnvVars(std::string s) {
+    std::regex envExpr{"\\$\\{([A-Za-z0-9_]+)\\}"};
+    std::smatch m;
+    while(std::regex_search(s, m, envExpr)) {
+      std::string rep;
+      System::getEnv(m[1].str(), rep);
+      s = s.replace(m[1].first - 2, m[1].second + 1, rep);
+    }
+    return s;
+  }
+}
 
 /// Factory instantiation
 DECLARE_COMPONENT( AllenApplication )
@@ -129,6 +149,19 @@ int AllenApplication::configureApplication()   {
     return Online::ONLINE_ERROR;
   }
 
+  if (m_allenConfig->withMPI.value()) {
+    auto success = initMPI();
+    if (!success) {
+      m_logger->error("Failed to initialize MPI");
+      return Online::ONLINE_ERROR;
+    }
+  }
+
+  m_allenControl = m_zmqSvc->socket(zmq::PAIR);
+  m_allenControl->bind(m_controlConnection.c_str());
+
+  m_allenThread = std::thread{&AllenApplication::allenLoop, this};
+
   return ret;
 }
 
@@ -165,13 +198,56 @@ int AllenApplication::continueProcessing()    {
   return OnlineApplication::continueProcessing();
 }
 
-void AllenApplication::allen_loop() {
+
+bool AllenApplication::initMPI() {
+#ifdef HAVE_MPI
+  // MPI initialization
+  auto len = name().length();
+  int provided = 0;
+  m_mpiArgv = new char*[1];
+  m_mpiArgv[0] = new char[len];
+  ::strncpy(m_mpiArgv[0], name().c_str(), len);
+  MPI_Init_thread(&m_mpiArgc, &m_mpiArgv, MPI_THREAD_MULTIPLE, &provided);
+  if (provided != MPI_THREAD_MULTIPLE) {
+    m_logger->error("Failed to initialize MPI multi thread support.");
+    return false;
+  }
+
+  // Communication size
+  int comm_size = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+  if (comm_size > MPI::comm_size) {
+    std::string e = "This program requires at most "s + std::to_string(MPI::comm_size) + " processes.";
+    m_logger->error(e.c_str());
+    return false;
+  }
+
+  // MPI: Who am I?
+  MPI_Comm_rank(MPI_COMM_WORLD, &m_rank);
+
+  if (m_rank != MPI::receiver) {
+    m_logger->error("AllenApplication can only function as MPI receiver.");
+    return false;
+  } else {
+    return true;
+  }
+#else
+  m_logger->error("MPI requested, but Allen was not built with MPI support.");
+  return false;
+#endif
+}
+
+void AllenApplication::allenLoop() {
+
+  auto json = resolveEnvVars(m_allenConfig->json);
+
   //--events-per-slice 1000 --non-stop 1 --with-mpi $1:1 -c 0 -v 3 -t 8 -s 18 --output-file tcp://192.168.1.101:35000 --device 23:00.0
   std::map<std::string, std::string> allen_options = {{"events-per-slice", std::to_string(m_allenConfig->eps.value())},
                                                       {"non-stop", std::to_string(m_allenConfig->nonStop.value())},
                                                       {"c", std::to_string(m_allenConfig->check.value())},
                                                       {"v", std::to_string(6 - m_config->outputLevel())},
                                                       {"t", std::to_string(m_allenConfig->nThreads.value())},
+                                                      {"configuration", json},
                                                       {"device", m_allenConfig->device.value()}};
 
   if (!m_allenConfig->output.value().empty()) {

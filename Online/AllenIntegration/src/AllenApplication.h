@@ -61,7 +61,9 @@ class AllenApplication : public Online::OnlineApplication  {
   int continueProcessing()    override;
 
   // Main function running the Allen event loop
-  void allen_loop();
+  void allenLoop();
+
+  bool initMPI();
 
 private:
 
@@ -88,7 +90,10 @@ private:
   allen_t m_allenFun = nullptr;
 
   std::thread m_allenThread;
+  std::optional<zmq::socket_t> m_allenControl;
 
-
+  char** m_mpiArgv = nullptr;
+  int m_mpiArgc = 1;
+  int m_rank = -1;
 
 };

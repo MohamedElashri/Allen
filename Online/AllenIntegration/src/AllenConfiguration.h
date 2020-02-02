@@ -26,5 +26,6 @@ class AllenConfiguration : public Service  {
   Gaudi::Property<unsigned int> nSlices{this, "NSlices", 16};
   Gaudi::Property<std::string> output{this, "Output", ""};
   Gaudi::Property<std::string> device{this, "Device", "0"};
+  Gaudi::Property<std::string> json{this, "JSON", "${ALLEN_PROJECT_ROOT}/configuration/constants/default.json"};
 
 };
