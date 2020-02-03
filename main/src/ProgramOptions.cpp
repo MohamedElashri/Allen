@@ -60,7 +60,8 @@ std::vector<ProgramOption> allen_program_options()
           {{"non-stop"}, "Runs the program indefinitely", "0"},
           {{"with-mpi"}, "Read events with MPI"},
           {{"mpi-window-size"}, "Size of MPI sliding window", "4"},
-          {{"mpi-number-of-slices"}, "Number of MPI network slices", "6"}};
+          {{"mpi-number-of-slices"}, "Number of MPI network slices", "6"},
+          {{"inject-mem-fail"}, "Whether to insert random memory failures (0: off 1-15: rate of 1 in 2^N)", "0"}};
 }
 
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name)

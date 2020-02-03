@@ -201,6 +201,7 @@ void run_stream(
   bool do_check,
   bool cpu_offload,
   bool mep_layout,
+  uint inject_mem_fail,
   std::string folder_name_imported_forward_tracks)
 {
   auto make_control = [thread_id](std::string suffix = std::string {}) {
@@ -293,7 +294,8 @@ void run_stream(
          n_reps,
          do_check,
          cpu_offload,
-         mep_layout});
+         mep_layout,
+         inject_mem_fail});
 
       if (status == cudaErrorMemoryAllocation) {
         zmqSvc().send(control, "SPLIT", zmq::SNDMORE);
@@ -501,6 +503,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::string file_list;
   bool print_config = 0;
   bool print_buffer_status = 0;
+  uint inject_mem_fail = 0;
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -612,6 +615,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"print-buffer-status"})) {
       print_buffer_status = atoi(arg.c_str());
+    }
+    else if (flag_in({"inject-mem-fail"})) {
+      inject_mem_fail = atoi(arg.c_str());
     }
   }
 
@@ -842,6 +848,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                    do_check,
                    cpu_offload,
                    mep_layout,
+                   inject_mem_fail,
                    folder_name_imported_forward_tracks},
       std::move(check_control));
   };
