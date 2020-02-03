@@ -326,85 +326,6 @@ class Sequence():
 
     return True
 
-  def generate_algorithm(self, algorithm):
-    s = algorithm.namespace() + "::" + algorithm.original_name() + "<std::tuple<"
-    i = 0
-    # Add parameters
-    for parameter_t, parameter in iter(algorithm.parameters().items()):
-      i += 1
-      s += parameter.name()
-      if i != len(algorithm.parameters()):
-        s += ", "
-    s += ">, "
-    i = 0
-    # In case it is needed, pass the lines as an argument to the template
-    if algorithm.requires_lines():
-      s += "configured_lines_t, "
-    # Add name
-    for c in algorithm.name():
-      i += 1
-      s += "'" + c + "'"
-      if i != len(algorithm.name()):
-        s += ", "
-    s += ">"
-
-    return s
-
-  def schedule_arguments(self):
-    s = ""
-    in_arguments = []
-
-    # List of scheduled input arguments
-    s += "using scheduled_in_arguments_t = std::tuple<\n"
-    for _, algorithm in iter(self.__sequence.items()):
-      s += "  ScheduledDependencies<" + self.generate_algorithm(algorithm) + ", std::tuple<"
-      new_parameters = False
-      for parameter_t, parameter in iter(algorithm.parameters().items()):
-        if parameter.name() not in in_arguments:
-          in_arguments.append(parameter.name())
-          s += parameter.name() + ", "
-          new_parameters = True
-      if new_parameters:
-        s = s[:-2]
-      s += ">>,\n"
-    s = s[:-2]
-    s += "\n>;\n\n"
-
-    # List of scheduled output arguments
-    s += "using scheduled_out_arguments_t = std::tuple<\n"
-    algorithm_list = list(self.__sequence.items())
-    last_algorithm_freed_arguments = []
-    for i in range(len(algorithm_list)):
-      _, algorithm = algorithm_list[i]
-      print(_, last_algorithm_freed_arguments)
-      s += "  ScheduledDependencies<" + self.generate_algorithm(algorithm) + ", std::tuple<"
-      # Use freed argument list from last algorithm
-      for parameter in last_algorithm_freed_arguments:
-        s += parameter + ", "
-      if len(last_algorithm_freed_arguments):
-        s = s[:-2]
-      s += ">>,\n"
-      # Prepare list for next algorithm
-      last_algorithm_freed_arguments = [parameter.name() for _, parameter in iter(algorithm.parameters().items())]
-      temp_last_algorithm_freed_arguments = [parameter.name() for _, parameter in iter(algorithm.parameters().items())]
-      for _, other_algorithm in algorithm_list[i+1:]:
-        other_algorithm_parameters = [parameter.name() for _, parameter in iter(other_algorithm.parameters().items())]
-        for parameter in temp_last_algorithm_freed_arguments:
-          if parameter in other_algorithm_parameters and parameter in last_algorithm_freed_arguments:
-            last_algorithm_freed_arguments.remove(parameter)
-    s = s[:-2]
-    s += "\n>;\n\n"
-
-    # List of arguments
-    s += "using arguments_tuple_t = std::tuple<"
-    for argument in in_arguments:
-      s += argument + ", "
-    if len(in_arguments):
-      s = s[:-2]
-    s += ">;\n"
-
-    return s
-
   def generate(self, output_filename = "generated/ConfiguredSequence.h",
     json_configuration_filename = "generated/Configuration.json",
     json_defaults_configuration_filename = "generated/ConfigurationGuide.json",
@@ -452,12 +373,30 @@ class Sequence():
       for _, algorithm in iter(self.__sequence.items()):
         i_alg += 1
         # Add algorithm namespace::name
-        s += prefix(1) + self.generate_algorithm(algorithm)
+        s += prefix(1) + algorithm.namespace() + "::" + algorithm.original_name() + "<std::tuple<"
+        i = 0
+        # Add parameters
+        for parameter_t, parameter in iter(algorithm.parameters().items()):
+          i += 1
+          s += parameter.name()
+          if i != len(algorithm.parameters()):
+            s += ", "
+        s += ">, "
+        i = 0
+        # In case it is needed, pass the lines as an argument to the template
+        if algorithm.requires_lines():
+          s += "configured_lines_t, "
+        # Add name
+        for c in algorithm.name():
+          i += 1
+          s += "'" + c + "'"
+          if i != len(algorithm.name()):
+            s += ", "
+        s += ">"
         if i_alg != len(self.__sequence):
           s += ","
         s += "\n"
-      s += ">;\n\n"
-      s += self.schedule_arguments()
+      s += ">;\n"
       f = open(output_filename, "w")
       f.write(s)
       f.close()

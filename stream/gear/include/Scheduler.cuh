@@ -6,18 +6,14 @@
 #include "Logger.h"
 #include <utility>
 
-template<
-  typename ConfiguredSequence,
-  typename ScheduledInArguments,
-  typename ScheduledOutArguments,
-  typename ArgumentsTuple>
+template<typename ConfiguredSequence>
 struct Scheduler {
   // Dependencies calculated at compile time
   // Determines what to free (out_deps) and reserve (in_deps)
   // at every iteration.
-  using in_deps_t = ScheduledInArguments;
-  using out_deps_t = ScheduledOutArguments;
-  using arguments_tuple_t = ArgumentsTuple;
+  using in_deps_t = typename Sch::InDependencies<ConfiguredSequence>::t;
+  using out_deps_t = typename Sch::OutDependencies<ConfiguredSequence>::t;
+  using arguments_tuple_t = typename Sch::ArgumentsTuple<in_deps_t>::t;
   using argument_manager_t = ArgumentManager<arguments_tuple_t>;
 
   MemoryManager device_memory_manager;
@@ -64,8 +60,7 @@ struct Scheduler {
   /**
    * @brief Resets the memory manager.
    */
-  void reset()
-  {
+  void reset() {
     device_memory_manager.free_all();
     host_memory_manager.free_all();
   }
@@ -102,8 +97,7 @@ struct Scheduler {
     MemoryManagerFree<out_arguments>::free(device_memory_manager, host_memory_manager);
 
     // Reserve all arguments in InDependencies
-    MemoryManagerReserve<argument_manager_t, in_arguments>::reserve(
-      device_memory_manager, host_memory_manager, argument_manager);
+    MemoryManagerReserve<argument_manager_t, in_arguments>::reserve(device_memory_manager, host_memory_manager, argument_manager);
 
     // Print memory manager state
     if (do_print) {
