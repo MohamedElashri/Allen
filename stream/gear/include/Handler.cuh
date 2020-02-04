@@ -96,6 +96,11 @@ void invoke_impl(
   const Tuple& invoke_arguments,
   std::index_sequence<I...>)
 {
+  if (num_blocks.x*num_blocks.y*num_blocks.z<=0 ||
+      num_threads.x*num_threads.y*num_threads.z<=0) {
+    warning_cout << "Invalid dimensions: kernel invocation skipped" << std::endl;
+    return;
+  }
 #ifdef CPU
   _unused(num_threads);
   _unused(shared_memory_size);
