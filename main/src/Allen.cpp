@@ -504,6 +504,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   bool print_config = 0;
   bool print_buffer_status = 0;
   uint inject_mem_fail = 0;
+  uint mon_save_period = 0;
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -618,6 +619,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     }
     else if (flag_in({"inject-mem-fail"})) {
       inject_mem_fail = atoi(arg.c_str());
+    }
+    else if (flag_in({"monitoring-save-period"})) {
+      mon_save_period = atoi(arg.c_str());
     }
   }
 
@@ -946,6 +950,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
   std::optional<Timer> t;
   double previous_time_measurement = 0;
+
+  Timer t_mon;
 
   std::optional<zmq::socket_t> throughput_socket;
   try {
@@ -1286,6 +1292,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
 
     // Check for finished monitoring jobs
     check_monitors();
+
+    //periodically save monitoring histograms
+    if (mon_save_period>0 && t_mon.get_elapsed_time() >= mon_save_period) {
+      monitor_manager->saveHistograms("monitoringHists.root");
+      info_cout << "Saved monitoring histograms" << std::endl;
+      t_mon.restart();
+    }
 
     // Separate if statement to allow stopping in different ways
     // depending on whether async I/O or repetitions are enabled.
