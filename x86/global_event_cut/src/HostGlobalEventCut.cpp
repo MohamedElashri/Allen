@@ -10,7 +10,9 @@ void host_global_event_cut::host_global_event_cut(
 {
   uint insert_index = 0;
   uint reverse_insert_index = number_of_events - 1;
-  for (uint event_number = 0; event_number < number_of_events; ++event_number) {
+  uint first_event = parameters.host_event_list[0];
+  for (uint event_index = 0; event_index < number_of_events; ++event_index) {
+    uint event_number = first_event + event_index;
     // Check SciFi clusters
     const SciFi::SciFiRawEvent scifi_event(scifi_raw_input + scifi_raw_input_offsets[event_number]);
     uint n_SciFi_clusters = 0;

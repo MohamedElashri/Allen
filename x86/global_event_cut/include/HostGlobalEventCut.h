@@ -70,7 +70,7 @@ namespace host_global_event_cut {
       begin<host_total_number_of_events_t>(arguments)[0] = number_of_events;
       begin<host_number_of_selected_events_t>(arguments)[0] = number_of_events;
       for (uint i = 0; i < number_of_events; ++i) {
-        begin<host_event_list_t>(arguments)[i] = i;
+        begin<host_event_list_t>(arguments)[i] = event_start + i;
       }
 
       // Parameters for the function call
