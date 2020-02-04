@@ -89,7 +89,7 @@ cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runti
              if(runtime_options.inject_mem_fail<15)
                test_mask = (1<<runtime_options.inject_mem_fail)-1;
              if((host_buffers->host_number_of_selected_events[0] & test_mask) ==
-                (host_buffers->host_atomics_velo[0] & test_mask))
+                (host_buffers->host_total_number_of_velo_clusters[0] & test_mask))
                throw MemoryException("just a test");
            }
 
