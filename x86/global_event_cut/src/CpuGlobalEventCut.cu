@@ -17,7 +17,8 @@ void cpu_global_event_cut(
   uint number_of_events)
 {
   uint insert_index = 0;
-  for (uint event_number = 0; event_number < number_of_events; ++event_number) {
+  for (uint event_index = 0; event_index < number_of_events; ++event_index) {
+    uint event_number = event_list[event_index];
     // Check SciFi clusters
     const SciFi::SciFiRawEvent scifi_event(scifi_raw_input + scifi_raw_input_offsets[event_number]);
     uint n_SciFi_clusters = 0;
