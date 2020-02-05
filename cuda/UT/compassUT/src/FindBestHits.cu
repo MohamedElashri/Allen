@@ -61,9 +61,9 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
     }
 
     // Get info to calculate slope
-    const float yy0 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit0));
-    const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
     const auto zhitLayer0 = ut_hits.zAtYEq0(i_hit0);
+    const float yy0 = yyProto + (velo_state.ty * zhitLayer0);
+    const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
 
     // 2nd layer
     const int total_hits_2layers_2 = sum_layer_hits(ranges, layer_2);
@@ -72,9 +72,9 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
       // Get info to calculate slope
       const int dxdy_layer_2 = forward ? 2 : 1;
-      const float yy2 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit2));
-      const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
       const auto zhitLayer2 = ut_hits.zAtYEq0(i_hit2);
+      const float yy2 = yyProto + (velo_state.ty * zhitLayer2);
+      const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
 
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
@@ -93,14 +93,14 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
     const int i_hit2 = event_hit_offset + (pair & 0x7FFF);
 
     const auto dxdy_layer = forward ? 0 : 3;
-    const auto yy0 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit0));
-    const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
     const auto zhitLayer0 = ut_hits.zAtYEq0(i_hit0);
+    const auto yy0 = yyProto + (velo_state.ty * zhitLayer0);
+    const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
 
     const auto dxdy_layer_2 = forward ? 2 : 1;
-    const auto yy2 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit2));
-    const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
     const auto zhitLayer2 = ut_hits.zAtYEq0(i_hit2);
+    const auto yy2 = yyProto + (velo_state.ty * zhitLayer2);
+    const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
 
     const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
 
@@ -114,9 +114,9 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
       int i_hit1 = calc_index(i1, ranges, layers[0], ut_hit_offsets);
 
       // Get info to check tolerance
-      const float yy1 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit1));
-      const float xhitLayer1 = ut_hits.xAt(i_hit1, yy1, ut_dxDy[layers[0]]);
       const float zhitLayer1 = ut_hits.zAtYEq0(i_hit1);
+      const float yy1 = yyProto + (velo_state.ty * zhitLayer1);
+      const float xhitLayer1 = ut_hits.xAt(i_hit1, yy1, ut_dxDy[layers[0]]);
       const float xextrapLayer1 = xhitLayer0 + tx * (zhitLayer1 - zhitLayer0);
 
       if (fabsf(xhitLayer1 - xextrapLayer1) < hitTol) {
@@ -132,9 +132,9 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
       int i_hit3 = calc_index(i3, ranges, layers[1], ut_hit_offsets);
 
       // Get info to check tolerance
-      const float yy3 = yyProto + (velo_state.ty * ut_hits.zAtYEq0(i_hit3));
-      const float xhitLayer3 = ut_hits.xAt(i_hit3, yy3, ut_dxDy[layers[1]]);
       const float zhitLayer3 = ut_hits.zAtYEq0(i_hit3);
+      const float yy3 = yyProto + (velo_state.ty * zhitLayer3);
+      const float xhitLayer3 = ut_hits.xAt(i_hit3, yy3, ut_dxDy[layers[1]]);
       const float xextrapLayer3 = xhitLayer2 + tx * (zhitLayer3 - zhitLayer2);
       if (fabsf(xhitLayer3 - xextrapLayer3) < hitTol) {
         hitTol = fabsf(xhitLayer3 - xextrapLayer3);
@@ -196,7 +196,7 @@ __device__ BestParams pkick_fit(
 
   // add hits
   float last_z = -10000.f;
-#pragma unroll
+
   for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
@@ -208,7 +208,7 @@ __device__ BestParams pkick_fit(
       const float dz = 0.001f * (last_z - UT::Constants::zMidUT);
 
       // x_pos_layer
-      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0(hit_index));
+      const float yy = yyProto + (velo_state.ty * last_z);
       const float ui = ut_hits.xAt(hit_index, yy, dxDy);
 
       mat[0] += wi * ci;
@@ -234,7 +234,7 @@ __device__ BestParams pkick_fit(
   float chi2UT = chi2VeloSlope * chi2VeloSlope;
   // add chi2
   int total_num_hits = 0;
-#pragma unroll
+
   for (uint i = 0; i < UT::Constants::n_layers; ++i) {
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
@@ -243,7 +243,7 @@ __device__ BestParams pkick_fit(
       // x_pos_layer
       const int plane_code = forward ? i : UT::Constants::n_layers - 1 - i;
       const float dxDy = ut_dxDy[plane_code];
-      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0(hit_index));
+      const float yy = yyProto + (velo_state.ty * zd);
       const float x = ut_hits.xAt(hit_index, yy, dxDy);
 
       const float du = xd - x;
@@ -295,33 +295,19 @@ __device__ __inline__ int sum_layer_hits(const TrackCandidates& ranges, const in
 // return the index in the correct place depending on the iteration.
 // Put the index first in the central window, then left, then right
 //=========================================================================
-__device__ __inline__ int
-calc_index(const int i, const TrackCandidates& ranges, const int layer, const UT::HitOffsets& ut_hit_offsets)
+__device__ int
+calc_index(const int index, const TrackCandidates& ranges, const int layer, const UT::HitOffsets& ut_hit_offsets)
 {
-  int hit = -1;
-  const int sum_offset = i + ut_hit_offsets.layer_offset(layer);
-  if (i < ranges.get_size(layer, 0)) {
-    hit = ranges.get_from(layer, 0) + sum_offset;
-  }
-  else if (i < ranges.get_size(layer, 0) + ranges.get_size(layer, 1)) {
-    hit = ranges.get_from(layer, 1) + sum_offset - ranges.get_size(layer, 0);
-  }
-  else if (i < ranges.get_size(layer, 0) + ranges.get_size(layer, 1) + ranges.get_size(layer, 2)) {
-    hit = ranges.get_from(layer, 2) + sum_offset - (ranges.get_size(layer, 0) + ranges.get_size(layer, 1));
-  }
-  else if (
-    i < ranges.get_size(layer, 0) + ranges.get_size(layer, 1) + ranges.get_size(layer, 2) + ranges.get_size(layer, 3)) {
-    hit = ranges.get_from(layer, 3) + sum_offset - (ranges.get_size(layer, 0) + ranges.get_size(layer, 1) +
-          ranges.get_size(layer, 2));
-  }
-  else if (
-    i < ranges.get_size(layer, 0) + ranges.get_size(layer, 1) + ranges.get_size(layer, 2) + ranges.get_size(layer, 3) +
-          ranges.get_size(layer, 4)) {
-    hit = ranges.get_from(layer, 4) + sum_offset - (ranges.get_size(layer, 0) + ranges.get_size(layer, 1) +
-          ranges.get_size(layer, 2) + ranges.get_size(layer, 3));
+  auto temp_index = index;
+  for (int i = 0; i < CompassUT::num_sectors; ++i) {
+    const auto ranges_size = ranges.get_size(layer, i);
+    if (temp_index < ranges_size) {
+      return temp_index + ut_hit_offsets.layer_offset(layer) + ranges.get_from(layer, i);
+    }
+    temp_index -= ranges_size;
   }
 
-  return hit;
+  return -1;
 }
 
 //=========================================================================
@@ -329,64 +315,21 @@ calc_index(const int i, const TrackCandidates& ranges, const int layer, const UT
 // return the index in the correct place depending on the iteration.
 // Put the index first in the central window, then left, then right
 //=========================================================================
-__device__ __inline__ int calc_index(
-  const int i,
+__device__ int calc_index(
+  const int index,
   const TrackCandidates& ranges,
   const int layer0,
   const int layer2,
   const UT::HitOffsets& ut_hit_offsets)
 {
-  int hit = -1;
-  int cand0size = ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) + ranges.get_size(layer0, 2) +
-                  ranges.get_size(layer0, 3) + ranges.get_size(layer0, 4);
-
-  const int sum_offset0 = i + ut_hit_offsets.layer_offset(layer0);
-  const int sum_offset2 = i + ut_hit_offsets.layer_offset(layer2);
-
-  if (i < ranges.get_size(layer0, 0)) {
-    hit = ranges.get_from(layer0, 0) + sum_offset0;
-  }
-  else if (i < ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1)) {
-    hit = ranges.get_from(layer0, 1) + sum_offset0 - ranges.get_size(layer0, 0);
-  }
-  else if (i < ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) + ranges.get_size(layer0, 2)) {
-    hit = ranges.get_from(layer0, 2) + sum_offset0 - (ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1));
-  }
-  else if (
-    i <
-    ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) + ranges.get_size(layer0, 2) + ranges.get_size(layer0, 3)) {
-    hit = ranges.get_from(layer0, 3) + sum_offset0 - (ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) +
-          ranges.get_size(layer0, 2));
-  }
-  else if (
-    i < ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) + ranges.get_size(layer0, 2) +
-          ranges.get_size(layer0, 3) + ranges.get_size(layer0, 4)) {
-    hit = ranges.get_from(layer0, 4) + sum_offset0 - (ranges.get_size(layer0, 0) + ranges.get_size(layer0, 1) +
-          ranges.get_size(layer0, 2) + ranges.get_size(layer0, 3));
-  }
-  // layer_cand2
-  else if (i < cand0size + ranges.get_size(layer2, 0)) {
-    hit = ranges.get_from(layer2, 0) + sum_offset2 - cand0size;
-  }
-  else if (i < cand0size + ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1)) {
-    hit = ranges.get_from(layer2, 1) + sum_offset2 - cand0size - ranges.get_size(layer2, 0);
-  }
-  else if (i < cand0size + ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2)) {
-    hit =
-      ranges.get_from(layer2, 2) + sum_offset2 - cand0size - (ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1));
-  }
-  else if (
-    i < cand0size + ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2) +
-          ranges.get_size(layer2, 3)) {
-    hit = ranges.get_from(layer2, 3) + sum_offset2 - cand0size - (ranges.get_size(layer2, 0) +
-          ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2));
-  }
-  else if (
-    i < cand0size + ranges.get_size(layer2, 0) + ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2) +
-          ranges.get_size(layer2, 3) + ranges.get_size(layer2, 4)) {
-    hit = ranges.get_from(layer2, 4) + sum_offset2 - cand0size - (ranges.get_size(layer2, 0) +
-          ranges.get_size(layer2, 1) + ranges.get_size(layer2, 2) + ranges.get_size(layer2, 3));
+  auto temp_index = index;
+  for (int i = 0; i < CompassUT::num_sectors; ++i) {
+    const auto ranges_size = ranges.get_size(layer0, i);
+    if (temp_index < ranges_size) {
+      return temp_index + ut_hit_offsets.layer_offset(layer0) + ranges.get_from(layer0, i);
+    }
+    temp_index -= ranges_size;
   }
 
-  return hit;
+  return calc_index(temp_index, ranges, layer2, ut_hit_offsets);
 }

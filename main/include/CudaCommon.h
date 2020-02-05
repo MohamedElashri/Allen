@@ -32,6 +32,7 @@ using std::signbit;
 #define cudaErrorMemoryAllocation 2
 #define half_t short
 #define __popcll __builtin_popcountll
+#define __ffs __builtin_ffs
 #define cudaEventBlockingSync 0x01
 #define __forceinline__ inline
 
