@@ -1,6 +1,5 @@
 #include "Tools.h"
 #include "CudaCommon.h"
-#include "CompassUT.cuh"
 
 void reserve_pinned(void** buffer, size_t size) { cudaCheck(cudaMallocHost(buffer, size)); }
 
@@ -103,7 +102,6 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
     // Setup cache configuration on Turing onwards to L1
     cudaCheck(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
   }
-  cudaCheck(cudaFuncSetCacheConfig(compass_ut::compass_ut, cudaFuncCachePreferShared));
 
   return {true, device_properties.name};
 }
