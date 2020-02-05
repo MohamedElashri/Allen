@@ -19,7 +19,8 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   const float inv_sigma_velo_slope,
   const int event_hit_offset)
 {
-  __shared__ uint candidate_pairs [UT::Constants::num_thr_compassut * UT::Constants::max_value_considered_before_found];
+  uint number_of_candidates = 0;
+  uint candidate_pairs [16];
 
   const uint max_considered_before_found = parameter_max_considered_before_found > UT::Constants::max_value_considered_before_found ? 
     UT::Constants::max_value_considered_before_found : parameter_max_considered_before_found;
@@ -35,10 +36,6 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   int best_fit = UT::Constants::maxPseudoChi2;
   BestParams best_params;
 
-  uint number_of_candidates = 0;
-  for (uint candidate = 0; candidate < UT::Constants::max_value_considered_before_found; candidate++) {
-    candidate_pairs[candidate * UT::Constants::num_thr_compassut + threadIdx.x] = 0;
-  }
 
   // Fill in candidate pairs
   // Get total number of hits for forward + backward in first layer (0 for fwd, 3 for bwd)
@@ -79,15 +76,14 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
       if (fabsf(tx - velo_state.tx) <= delta_tx_2) {
-        candidate_pairs[number_of_candidates * UT::Constants::num_thr_compassut + threadIdx.x] = (forward << 31) | ((i_hit0 - event_hit_offset) << 16) | (i_hit2 - event_hit_offset);
-        number_of_candidates++;
+        candidate_pairs[number_of_candidates++] = (forward << 31) | ((i_hit0 - event_hit_offset) << 16) | (i_hit2 - event_hit_offset);
       }
     }
   }
 
   // Iterate over candidate pairs
   for (uint i = 0; i < number_of_candidates; ++i) {
-    const auto pair = candidate_pairs[i * UT::Constants::num_thr_compassut + threadIdx.x];
+    const auto pair = candidate_pairs[i];
     const bool forward = pair >> 31;
     const int i_hit0 = event_hit_offset + ((pair >> 16) & 0x7FFF);
     const int i_hit2 = event_hit_offset + (pair & 0x7FFF);

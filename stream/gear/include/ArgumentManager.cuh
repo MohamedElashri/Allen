@@ -149,7 +149,7 @@ struct SingleArgumentOverloadResolution<
     std::memset(begin<Arg>(arguments), value, size<Arg>(arguments));
   }
 
-  constexpr static void print(const Args& arguments, const int value)
+  constexpr static void print(const Args& arguments)
   {
     const auto array = begin<Arg>(arguments);
     for (uint i = 0; i < size<Arg>(arguments) / sizeof(typename Arg::type); ++i) {
@@ -173,7 +173,7 @@ struct SingleArgumentOverloadResolution<
       stream));
   }
 
-  constexpr static void print(const Args& arguments, const int value)
+  constexpr static void print(const Args& arguments)
   {
     std::vector<typename Arg::type> v(size<Arg>(arguments) / sizeof(typename Arg::type));
     cudaCheck(cudaMemcpy(v.data(), begin<Arg>(arguments), size<Arg>(arguments), cudaMemcpyDeviceToHost));
@@ -197,8 +197,8 @@ struct DoubleArgumentOverloadResolution<
   Args,
   typename std::conditional<
     std::is_base_of<host_datatype, A>::value,
-    std::enable_if<std::is_base_of<host_datatype, B>::value>,
-    std::enable_if<false>>::type> {
+    typename std::enable_if<std::is_base_of<host_datatype, B>::value>::type,
+    typename std::enable_if<false>>::type> {
   constexpr static void copy(const Args& arguments, cudaStream_t)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
@@ -220,8 +220,8 @@ struct DoubleArgumentOverloadResolution<
   Args,
   typename std::conditional<
     std::is_base_of<host_datatype, A>::value,
-    std::enable_if<std::is_base_of<device_datatype, B>::value>,
-    std::enable_if<false>>::type> {
+    typename std::enable_if<std::is_base_of<device_datatype, B>::value>::type,
+    typename std::enable_if<false>>::type> {
   constexpr static void copy(const Args& arguments, cudaStream_t cuda_stream)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
@@ -253,8 +253,8 @@ struct DoubleArgumentOverloadResolution<
   Args,
   typename std::conditional<
     std::is_base_of<device_datatype, A>::value,
-    std::enable_if<std::is_base_of<host_datatype, B>::value>,
-    std::enable_if<false>>::type> {
+    typename std::enable_if<std::is_base_of<host_datatype, B>::value>::type,
+    typename std::enable_if<false>>::type> {
   constexpr static void copy(const Args& arguments, cudaStream_t cuda_stream)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
@@ -286,8 +286,8 @@ struct DoubleArgumentOverloadResolution<
   Args,
   typename std::conditional<
     std::is_base_of<device_datatype, A>::value,
-    std::enable_if<std::is_base_of<device_datatype, B>::value>,
-    std::enable_if<false>>::type> {
+    typename std::enable_if<std::is_base_of<device_datatype, B>::value>::type,
+    typename std::enable_if<false>>::type> {
   constexpr static void copy(const Args& arguments, cudaStream_t cuda_stream)
   {
     assert(size<A>(arguments) >= size<B>(arguments));
@@ -331,8 +331,8 @@ void initialize(const Args& arguments, const int value, cudaStream_t stream = 0)
  *          considerable slowdown.
  */
 template<typename Arg, typename Args>
-void print(const Args& arguments, const int value) {
-  SingleArgumentOverloadResolution<Arg, Args>::print(arguments, value);
+void print(const Args& arguments) {
+  SingleArgumentOverloadResolution<Arg, Args>::print(arguments);
 }
 
 /**

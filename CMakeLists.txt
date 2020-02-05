@@ -524,7 +524,7 @@ endif()
 # common libraries
 add_library(Common STATIC ${common_sources})
 
-if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0) OR (NOT CMAKE_COMPILER_IS_GNUCC))
+if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0))
   find_package(Boost COMPONENTS filesystem)
   add_library(allen_fs ALIAS Boost::filesystem)
   target_compile_definitions(allen_fs USE_BOOST_FILESYSTEM)
