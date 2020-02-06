@@ -145,6 +145,15 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
 
   auto [event_start, event_end] = interval;
 
+  auto n_events = check_for_run_change(
+    mep_header,
+    blocks,
+    interval);
+
+  if (event_end > event_start + n_events) {
+	  event_end = event_start + n_events;
+  }
+
   unsigned char prev_type = 0;
   size_t offset_index = 0;
   for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
@@ -215,6 +224,43 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
     }
   }
   return {true, false, event_end - event_start};
+}
+
+size_t MEP::check_for_run_change(
+  EB::Header const& mep_header,
+  MEP::Blocks const& blocks,
+  std::tuple<size_t, size_t> const& interval)
+{
+  auto [start_event, end_event] = interval;
+
+  for (size_t i_block = 0; i_block < mep_header.n_blocks; ++i_block) {
+    auto const& [block_header, block_data] = blocks[i_block];
+    auto bank_type = static_cast<LHCb::RawBank::BankType>(block_header.types[0]);
+
+    // Find the block containing the ODIN banks
+    if (bank_type == LHCb::RawBank::ODIN) {
+      auto odin_version = mep_header.versions[i_block];
+      uint run_number = 0;
+      uint fragment_offset = 0;
+      for (uint i_event = 0; i_event < end_event; ++i_event) {
+        // decode ODIN bank for first event to obtain run number
+        if (i_event == start_event) {
+          auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + fragment_offset);
+          auto odin = MDF::decode_odin(odin_version, odin_data);
+          run_number = odin.run_number;
+	}
+        // ensure following events have the same run number
+	else if (i_event > start_event) {
+          auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + fragment_offset);
+          auto odin = MDF::decode_odin(odin_version, odin_data);
+	  if (odin.run_number != run_number) return i_event - start_event;
+	}
+        fragment_offset += block_header.sizes[i_event];
+      }
+      break;
+    }
+  }
+  return end_event - start_event;
 }
 
 bool MEP::transpose_event(
@@ -323,6 +369,12 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
   bool success = true;
 
   auto to_transpose = allen_offsets(slices, slice_index, bank_ids, banks_count, blocks, interval);
+
+  // Only transpose events from a single run
+  to_transpose = check_for_run_change(
+    mep_header,
+    blocks,
+    {event_start, event_start + to_transpose});
 
   transpose_event(
     slices,

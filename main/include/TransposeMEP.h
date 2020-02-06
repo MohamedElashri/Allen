@@ -76,6 +76,11 @@ namespace MEP {
     MEP::Blocks const& blocks,
     std::tuple<size_t, size_t> const& interval);
 
+  size_t check_for_run_change(
+    EB::Header const& mep_header,
+    MEP::Blocks const& blocks,
+    std::tuple<size_t, size_t> const& interval);
+
   /**
    * @brief      Transpose events to Allen layout
    *
