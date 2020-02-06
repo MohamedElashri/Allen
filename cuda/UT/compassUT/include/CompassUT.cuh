@@ -28,13 +28,6 @@ namespace compass_ut {
     PROPERTY(sigma_velo_slope_t, float, "sigma_velo_slope", "sigma velo slope [radians]", 0.1f * Gaudi::Units::mrad)
     sigma_velo_slope;
     PROPERTY(
-      inv_sigma_velo_slope_t,
-      float,
-      "inv_sigma_velo_slope",
-      "inv sigma velo slope",
-      10000.f * Gaudi::Units::rad)
-    inv_sigma_velo_slope;
-    PROPERTY(
       min_momentum_final_t,
       float,
       "min_momentum_final",
@@ -76,8 +69,7 @@ namespace compass_ut {
     const uint max_considered_before_found,
     const float delta_tx_2,
     const float hit_tol_2,
-    const float sigma_velo_slope,
-    const float inv_sigma_velo_slope);
+    const float sigma_velo_slope);
 
   __host__ __device__ __inline__ bool velo_track_in_UT_acceptance(const MiniState& state);
 
@@ -141,7 +133,6 @@ namespace compass_ut {
                     begin<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments),
                     begin<dev_ut_selected_velo_tracks_with_windows_t>(arguments),
                     property<sigma_velo_slope_t>(),
-                    property<inv_sigma_velo_slope_t>(),
                     property<min_momentum_final_t>(),
                     property<min_pt_final_t>(),
                     property<hit_tol_2_t>(),
@@ -155,14 +146,6 @@ namespace compass_ut {
 
   private:
     Property<sigma_velo_slope_t> m_slope {this};
-    // TODO: Due to having a different type per Property, the std::vector<Property<inv_sigma_velo_slope_t>*>
-    //       would have to be of type std::vector<Property<sigma_velo_slope_t>*> , so this is not straightforward.
-    // DerivedProperty<inv_sigma_velo_slope_t> m_inv_slope {this,
-    //                                                      "inv_sigma_velo_slope",
-    //                                                      Configuration::Relations::inverse,
-    //                                                      std::vector<Property<inv_sigma_velo_slope_t>*>
-    //                                                      {&this->m_slope}, "inv sigma velo slope"};
-    Property<inv_sigma_velo_slope_t> m_inv_slope {this};
     Property<min_momentum_final_t> m_mom_fin {this};
     Property<min_pt_final_t> m_pt_fin {this};
     Property<hit_tol_2_t> m_hit_tol_2 {this};

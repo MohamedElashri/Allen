@@ -68,8 +68,7 @@ __global__ void compass_ut::compass_ut(
       parameters.max_considered_before_found,
       parameters.delta_tx_2,
       parameters.hit_tol_2,
-      parameters.sigma_velo_slope,
-      parameters.inv_sigma_velo_slope);
+      parameters.sigma_velo_slope);
   }
 }
 
@@ -93,8 +92,7 @@ __device__ void compass_ut::compass_ut_tracking(
   const uint max_considered_before_found,
   const float delta_tx_2,
   const float hit_tol_2,
-  const float sigma_velo_slope,
-  const float inv_sigma_velo_slope)
+  const float sigma_velo_slope)
 {
   // select velo track to join with UT hits
   const MiniState velo_state = velo_states.getMiniState(current_track_offset);
@@ -112,7 +110,7 @@ __device__ void compass_ut::compass_ut_tracking(
     delta_tx_2,
     hit_tol_2,
     sigma_velo_slope,
-    inv_sigma_velo_slope,
+    1.f / sigma_velo_slope,
     event_hit_offset);
 
   const int best_hits[UT::Constants::n_layers] = {std::get<0>(best_hits_and_params),

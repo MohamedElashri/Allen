@@ -20,10 +20,12 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
   const int event_hit_offset)
 {
   uint number_of_candidates = 0;
-  uint candidate_pairs [16];
+  uint candidate_pairs[UT::Constants::max_value_considered_before_found];
 
-  const uint max_considered_before_found = parameter_max_considered_before_found > UT::Constants::max_value_considered_before_found ? 
-    UT::Constants::max_value_considered_before_found : parameter_max_considered_before_found;
+  const uint max_considered_before_found =
+    parameter_max_considered_before_found > UT::Constants::max_value_considered_before_found ?
+      UT::Constants::max_value_considered_before_found :
+      parameter_max_considered_before_found;
 
   const float yyProto = velo_state.y - velo_state.ty * velo_state.z;
 
@@ -31,11 +33,9 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
   int best_hits[UT::Constants::n_layers] = {-1, -1, -1, -1};
 
-
   int best_number_of_hits = 3;
   int best_fit = UT::Constants::maxPseudoChi2;
   BestParams best_params;
-
 
   // Fill in candidate pairs
   // Get total number of hits for forward + backward in first layer (0 for fwd, 3 for bwd)
@@ -76,7 +76,8 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
       if (fabsf(tx - velo_state.tx) <= delta_tx_2) {
-        candidate_pairs[number_of_candidates++] = (forward << 31) | ((i_hit0 - event_hit_offset) << 16) | (i_hit2 - event_hit_offset);
+        candidate_pairs[number_of_candidates++] =
+          (forward << 31) | ((i_hit0 - event_hit_offset) << 16) | (i_hit2 - event_hit_offset);
       }
     }
   }
@@ -140,8 +141,8 @@ __device__ std::tuple<int, int, int, int, BestParams> find_best_hits(
 
     // Fit the hits to get q/p, chi2
     const auto temp_number_of_hits = 2 + (temp_best_hits[1] != -1) + (temp_best_hits[3] != -1);
-    const auto params = pkick_fit(
-      temp_best_hits, ut_hits, velo_state, ut_dxDy, yyProto, forward, sigma_velo_slope, inv_sigma_velo_slope);
+    const auto params =
+      pkick_fit(temp_best_hits, ut_hits, velo_state, ut_dxDy, yyProto, forward, sigma_velo_slope, inv_sigma_velo_slope);
 
     // Save the best chi2 and number of hits triplet/quadruplet
     if (params.chi2UT < best_fit && temp_number_of_hits >= best_number_of_hits) {
