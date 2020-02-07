@@ -49,10 +49,11 @@ void Consumers::VPGeometry::consume(vector<char> const& data)
   if (dev_velo_geometry == nullptr) {
     initialize(data);
   }
-  else if (sizeof(VeloGeometry) != data.size()) {
-    throw StrException {string {"sizes don't match: "} + to_string(sizeof(VeloGeometry)) + " " +
-                        to_string(data.size())};
-  }
+  //FIXME need a better way to check the size
+  //else if (sizeof(VeloGeometry) != data.size()) {
+  //  throw StrException {string {"sizes don't match: "} + to_string(sizeof(VeloGeometry)) + " " +
+  //                      to_string(data.size())};
+  //}
 
   VeloGeometry host_velo_geometry {data};
   cudaCheck(cudaMemcpy(dev_velo_geometry, &host_velo_geometry, sizeof(VeloGeometry), cudaMemcpyHostToDevice));
