@@ -50,8 +50,9 @@ int main(int argc, char* argv[])
 
   bool good = true, done = false, timed_out = false;
   size_t filled = 0, slice = 0;
+  uint runno = 0;
   while (good || filled != 0) {
-    std::tie(good, done, timed_out, slice, filled) = mep.get_slice();
+    std::tie(good, done, timed_out, slice, filled, runno) = mep.get_slice();
     n_filled += filled;
     this_thread::sleep_for(sleep_interval);
     mep.slice_free(slice);
