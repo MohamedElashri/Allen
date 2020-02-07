@@ -147,6 +147,7 @@ void run_slices(
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
   int timeout = 0;
+  uint current_run_number = 0;
   while (true) {
 
     // Check if there are messages without blocking
@@ -161,9 +162,15 @@ void run_slices(
 
     // Get a slice and inform the main thread that it is available
     // NOTE: the argument specifies the timeout in ms, not the number of events.
-    auto [good, done, timed_out, slice_index, n_filled] = input_provider->get_slice(1000);
+    auto [good, done, timed_out, slice_index, n_filled, run_number] = input_provider->get_slice(1000);
     // Report errors or good slices that contain events
     if (!timed_out && good && n_filled != 0) {
+      // If run number has change then report this first
+      if (run_number != current_run_number) {
+        current_run_number = run_number;
+        zmqSvc().send(control, "RUN", zmq::SNDMORE);
+        zmqSvc().send(control, current_run_number);
+      }
       zmqSvc().send(control, "SLICE", zmq::SNDMORE);
       zmqSvc().send(control, slice_index, zmq::SNDMORE);
       zmqSvc().send(control, n_filled);
@@ -968,6 +975,10 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   std::queue<std::tuple<size_t, size_t, size_t>> write_queue;
   std::queue<std::tuple<size_t, size_t, size_t>> sub_slice_queue;
 
+  // track run changes
+  std::optional<uint> next_run_number;
+  uint current_run_number = 0;
+
   // Lambda to check if any event processors are done processing
   auto check_processors = [&]() {
     for (size_t i = 0; i < number_of_threads; ++i) {
@@ -1133,68 +1144,86 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
       }
     } while (!n);
 
-    // Check if input slices are ready or events have been written
-    for (size_t i = 0; i < n_io; ++i) {
-      if (items[number_of_threads + i].revents & zmq::POLLIN) {
-        auto& socket = std::get<1>(io_workers[i]);
-        auto msg = zmqSvc().receive<std::string>(socket);
-        if (msg == "SLICE") {
-          slice_index = zmqSvc().receive<size_t>(socket);
-          auto n_filled = zmqSvc().receive<size_t>(socket);
+    // If we have a pending run change we must do that before receiving further input from the I/O threads
+    if (next_run_number) {
+      // Only process the run change once all GPU streams have finished
+      if (stream_ready.count() == number_of_threads) {
+        debug_cout << "Run number changing from " << current_run_number << " to " << *next_run_number << std::endl;
+        updater->update(*next_run_number);
+        current_run_number = *next_run_number;
+        next_run_number.reset();
+      }
+    }
+    else {
+      // Check if input slices are ready or events have been written
+      for (size_t i = 0; i < n_io; ++i) {
+        if (items[number_of_threads + i].revents & zmq::POLLIN) {
+          auto& socket = std::get<1>(io_workers[i]);
+          auto msg = zmqSvc().receive<std::string>(socket);
+          if (msg == "SLICE") {
+            slice_index = zmqSvc().receive<size_t>(socket);
+            auto n_filled = zmqSvc().receive<size_t>(socket);
 
-          // FIXME: make the warmup time configurable
-          if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
-            info_cout << "Starting timer for throughput measurement\n";
-            throughput_start = n_events_processed * number_of_repetitions;
-            t = Timer {};
-            previous_time_measurement = t->get_elapsed_time();
-          }
-          input_slice_status[*slice_index][0] = SliceStatus::Filled;
-          events_in_slice[*slice_index][0] = n_filled;
-          n_events_read += n_filled;
-          // If we have a slice we must send it for processing before polling remaining I/O threads
-          break;
-        }
-        else if (msg == "WRITTEN") {
-          auto slc_idx = zmqSvc().receive<size_t>(socket);
-          auto first_evt = zmqSvc().receive<size_t>(socket);
-          auto buf_idx = zmqSvc().receive<size_t>(socket);
-          auto success = zmqSvc().receive<bool>(socket);
-          auto n_written = zmqSvc().receive<size_t>(socket);
-          n_events_output += n_written;
-          n_output_measured += n_written;
-          if (!success) {
-            error_cout << "Failed to write output events.\n";
-          }
-          input_slice_status[slc_idx][first_evt] = SliceStatus::Written;
-
-          // check to see if any parts of this slice still need to be written
-          bool slice_finished(true);
-          for (auto const& [k, v] : input_slice_status[slc_idx]) {
-            if (v != SliceStatus::Written) {
-              slice_finished = false;
-              break;
+            // FIXME: make the warmup time configurable
+            if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
+              info_cout << "Starting timer for throughput measurement\n";
+              throughput_start = n_events_processed * number_of_repetitions;
+              t = Timer {};
+              previous_time_measurement = t->get_elapsed_time();
             }
+            input_slice_status[*slice_index][0] = SliceStatus::Filled;
+            events_in_slice[*slice_index][0] = n_filled;
+            n_events_read += n_filled;
+            // If we have a slice we must send it for processing before polling remaining I/O threads
+            break;
           }
-          if (enable_async_io && slice_finished) {
-            input_slice_status[slc_idx].clear();
-            input_slice_status[slc_idx][0] = SliceStatus::Empty;
-            input_provider->slice_free(slc_idx);
-            events_in_slice[slc_idx].clear();
-            events_in_slice[slc_idx][0] = 0;
+          else if (msg == "RUN") {
+            next_run_number = zmqSvc().receive<uint>(socket);
+            debug_cout << "Requested run change from " << current_run_number << " to " << *next_run_number << std::endl;
+            //guard against double run changes if we have multiple input threads
+            if (*next_run_number == current_run_number) next_run_number.reset();
           }
+          else if (msg == "WRITTEN") {
+            auto slc_idx = zmqSvc().receive<size_t>(socket);
+            auto first_evt = zmqSvc().receive<size_t>(socket);
+            auto buf_idx = zmqSvc().receive<size_t>(socket);
+            auto success = zmqSvc().receive<bool>(socket);
+            auto n_written = zmqSvc().receive<size_t>(socket);
+            n_events_output += n_written;
+            n_output_measured += n_written;
+            if (!success) {
+              error_cout << "Failed to write output events.\n";
+            }
+            input_slice_status[slc_idx][first_evt] = SliceStatus::Written;
 
-          buffer_manager->returnBufferWritten(buf_idx);
-        }
-        else if (msg == "DONE") {
-          io_done = true;
-          info_cout << "Input complete\n";
-        }
-        else {
-          assert(msg == "ERROR");
-          error_cout << "I/O provider failed to decode events into slice.\n";
-          io_done = true;
-          goto loop_error;
+            // check to see if any parts of this slice still need to be written
+            bool slice_finished(true);
+            for (auto const& [k, v] : input_slice_status[slc_idx]) {
+              if (v != SliceStatus::Written) {
+                slice_finished = false;
+                break;
+              }
+            }
+            if (enable_async_io && slice_finished) {
+              input_slice_status[slc_idx].clear();
+              input_slice_status[slc_idx][0] = SliceStatus::Empty;
+              input_provider->slice_free(slc_idx);
+              events_in_slice[slc_idx].clear();
+              events_in_slice[slc_idx][0] = 0;
+            }
+
+            buffer_manager->returnBufferWritten(buf_idx);
+          }
+          else if (msg == "DONE") {
+            io_done = true;
+            info_cout << "Input complete\n";
+          }
+          else {
+            assert(msg == "ERROR");
+            error_cout << "I/O provider failed to decode events into slice.\n";
+            io_done = true;
+            goto loop_error;
+          }
         }
       }
     }

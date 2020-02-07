@@ -249,11 +249,12 @@ public:
    *
    * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, bool, size_t, size_t> get_slice(
+  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
     std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
+    uint run_no = 0;
     std::unique_lock<std::mutex> lock {m_transpose_mut};
     if (!m_read_error) {
       // If no transposed slices are ready for processing, wait until
@@ -273,13 +274,16 @@ public:
       if (!m_read_error && !m_transposed.empty() && (!timeout || (timeout && !timed_out))) {
         std::tie(slice_index, n_filled) = m_transposed.front();
         m_transposed.pop_front();
+	if (n_filled > 0) {
+	  run_no = std::get<0>(m_event_ids[slice_index].front());
+	}
       }
     }
 
     // Check if I/O and transposition is done and return a slice index
     auto n_writable = count_writable();
     done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_status.size();
-    return {!m_read_error, done, timed_out, slice_index, n_filled};
+    return {!m_read_error, done, timed_out, slice_index, n_filled, run_no};
   }
 
   /**
