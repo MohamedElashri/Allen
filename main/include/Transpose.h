@@ -140,6 +140,42 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::sp
   return {true, count};
 }
 
+size_t check_for_run_change(
+  std::vector<char> buffer,
+  std::vector<uint> event_offsets,
+  size_t event_start,
+  size_t event_end)
+{
+  uint run_number = 0u;
+  size_t i_event = event_start;
+
+  for (; i_event < event_end; ++i_event) {
+    auto const* bank = buffer.data() + event_offsets[i_event];
+    auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
+
+    while (bank < bank_end) {
+      const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
+
+      // Find ODIN bank
+      if (b->type() == LHCb::RawBank::ODIN) {
+        // decode ODIN bank to obtain run number
+        auto odin = MDF::decode_odin(b->version(), b->data());
+	if (i_event == event_start) {
+	  run_number = odin.run_number;
+	} else {
+	  if (run_number != odin.run_number) {
+	    return i_event;
+	  }
+	}
+	break;
+      }
+
+      bank += b->totalSize();
+    }
+  }
+  return i_event;
+}
+
 /**
  * @brief      Transpose events to Allen layout
  *
@@ -332,10 +368,15 @@ std::tuple<bool, bool, size_t> transpose_events(
 
   bool full = false, success = true;
   auto const& [n_filled, event_offsets, buffer, event_start] = read_buffer;
+  size_t event_end = event_start + n_events;
+  if (n_filled < event_end) event_end = n_filled;
+
+  // Only fill slice with events from a single run
+  event_end = check_for_run_change(buffer, event_offsets, event_start, event_end);
 
   // Loop over events in the prefetch buffer
   size_t i_event = event_start;
-  for (; i_event < n_filled && i_event < n_events && success && !full; ++i_event) {
+  for (; i_event < event_end && success && !full; ++i_event) {
     // Offsets are to the start of the event, which includes the header
     auto const* bank = buffer.data() + event_offsets[i_event];
     auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
@@ -343,7 +384,7 @@ std::tuple<bool, bool, size_t> transpose_events(
       transpose_event<Banks...>(slices, slice_index, bank_ids, banks_count, event_ids, {bank, bank_end});
   }
 
-  return {success, full, i_event};
+  return {success, full, i_event-event_start};
 }
 
 template<BankTypes... Banks>

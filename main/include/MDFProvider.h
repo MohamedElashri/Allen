@@ -457,7 +457,7 @@ private:
       if (m_read_error || !good) {
         m_read_error = true;
         auto& status = m_buffer_status[i_read];
-        --status.work_counter;
+        status.work_counter = 0;
         m_transpose_cond.notify_one();
         break;
       }
@@ -469,22 +469,22 @@ private:
       }
       m_transpose_cond.notify_one();
 
+      slice_index.reset();
       // Check if the read buffer is now empty. If it is, it can be
       // reused, otherwise give it to another transpose thread once a
       // new target slice is available
       if (n_transposed == std::get<0>(m_buffers[i_read]) - std::get<3>(m_buffers[i_read])) {
-        slice_index.reset();
         {
           std::unique_lock<std::mutex> lock {m_prefetch_mut};
           auto& status = m_buffer_status[i_read];
-          --status.work_counter;
+          status.work_counter = 0;
         }
       }
       else {
         // Put this prefetched slice back on the prefetched queue so
         // somebody else can finish it
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
-        std::get<3>(m_buffers[i_read]) = n_transposed;
+        std::get<3>(m_buffers[i_read]) += n_transposed;
         m_prefetched.push_front(i_read);
       }
     }
