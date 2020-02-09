@@ -241,6 +241,18 @@ size_t SelCheckerTuple::addTrack(Checker::Track& track, const MCAssociator& mcas
 }
 
 #ifdef WITH_ROOT
+void SelCheckerTuple::make_branch(
+  const std::string& line_name,
+  const std::string& prefix,
+  std::map<std::string, std::vector<double>>& decisions)
+{
+  decisions[line_name] = std::vector<double>();
+  std::string branch_name = prefix + line_name;
+  m_tree->Branch(branch_name.c_str(), &decisions[line_name]);
+}
+
+void SelCheckerTuple::fill() { m_tree->Fill(); }
+
 void SelCheckerTuple::report(size_t requested_events) const
 {
   TArrayI nEvents(1);

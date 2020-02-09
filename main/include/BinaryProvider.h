@@ -169,7 +169,8 @@ public:
    *
    * @return     event IDs in slice
    */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const override
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+    const override
   {
     auto const& ids = m_event_ids[slice_index];
     return {ids.begin() + (first ? *first : 0), ids.begin() + (last ? *last : ids.size())};
@@ -248,7 +249,7 @@ public:
     auto ib = to_integral<BankTypes>(bank_type);
     auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
     span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
-    span<unsigned int const> o {offsets.data(), offsets_size};
+    span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
   }
 
@@ -312,7 +313,7 @@ private:
         for (auto bank_type : {Banks...}) {
           auto ib = to_integral<BankTypes>(bank_type);
           const auto& [slice, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
-          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice[0].size()) {
+          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > static_cast<size_t>(slice[0].size())) {
             this->debug_output(std::string {"Slice "} + std::to_string(slice_index) + " is full.");
             goto done;
           }

@@ -41,9 +41,12 @@ void host_global_event_cut::host_global_event_cut(
     }
 
     const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
-    if (num_combined_clusters < parameters.max_scifi_ut_clusters && num_combined_clusters > parameters.min_scifi_ut_clusters) {
+    if (
+      num_combined_clusters < parameters.max_scifi_ut_clusters &&
+      num_combined_clusters > parameters.min_scifi_ut_clusters) {
       parameters.host_event_list[insert_index++] = event_number;
-    } else {
+    }
+    else {
       parameters.host_event_list[reverse_insert_index--] = event_number;
     }
   }
@@ -91,14 +94,17 @@ void host_global_event_cut::host_global_event_cut_mep(
       // We're on the host, so use the blocks directly
       auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
       auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
-      const UTRawBank ut_bank {sourceID, ut_data[i].begin() + fragment_offset};
+      const UTRawBank ut_bank {sourceID, ut_data[i].data() + fragment_offset};
       n_UT_clusters += ut_bank.number_of_hits;
     }
 
     const auto num_combined_clusters = n_UT_clusters + n_SciFi_clusters;
-    if (num_combined_clusters < parameters.max_scifi_ut_clusters && num_combined_clusters > parameters.min_scifi_ut_clusters) {
+    if (
+      num_combined_clusters < parameters.max_scifi_ut_clusters &&
+      num_combined_clusters > parameters.min_scifi_ut_clusters) {
       parameters.host_event_list[insert_index++] = event_number;
-    } else {
+    }
+    else {
       parameters.host_event_list[reverse_insert_index--] = event_number;
     }
   }

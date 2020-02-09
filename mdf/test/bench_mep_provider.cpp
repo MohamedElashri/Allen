@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <map>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <Timer.h>
 #include <MEPProvider.h>
 
@@ -41,7 +41,6 @@ int main(int argc, char* argv[])
                             false,         // Run the application non-stop
                             true,          // Transpose MEP
                             {{"mem", 0}}}; // mapping of receiver to its numa node
-
 
   MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON> mep {
     n_slices, events_per_slice, {}, files, config};

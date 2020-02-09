@@ -9,24 +9,24 @@
 #include "Logger.h"
 
 // Forward declarations
-class VeloGeometry;
-class UTMagnetTool;
+struct VeloGeometry;
+struct UTMagnetTool;
 namespace Muon {
   class MuonGeometry;
   class MuonTables;
   namespace Constants {
-    class FieldOfInterest;
+    struct FieldOfInterest;
   }
 }
 namespace LookingForward {
-  class Constants;
+  struct Constants;
 }
 namespace ParKalmanFilter {
-  class KalmanParametrizations;
+  struct KalmanParametrizations;
 }
 namespace MatchUpstreamMuon {
-  class MuonChambers;
-  class SearchWindows;
+  struct MuonChambers;
+  struct SearchWindows;
 }
 
 /**
@@ -89,7 +89,7 @@ struct Constants {
   // Velo-UT-muon
   MatchUpstreamMuon::MuonChambers* dev_muonmatch_search_muon_chambers = nullptr;
   MatchUpstreamMuon::SearchWindows* dev_muonmatch_search_windows = nullptr;
-  
+
   // Muon classification model constatns
   Muon::Constants::FieldOfInterest* dev_muon_foi = nullptr;
   float* dev_muon_momentum_cuts = nullptr;

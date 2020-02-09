@@ -13,8 +13,7 @@ public:
     const uint number_of_hlt1_lines,
     bool checksum = true) :
     OutputHandler {input_provider, events_per_slice, number_of_hlt1_lines},
-    m_filename {std::move(filename)},
-    m_checksum {checksum}
+    m_filename {std::move(filename)}, m_checksum {checksum}
   {
     m_output = MDF::open(m_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (!m_output.good) {
@@ -33,7 +32,7 @@ protected:
   std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size) override
   {
     m_buffer.resize(buffer_size);
-    return {0, gsl::span {&m_buffer[0], buffer_size}};
+    return {0, gsl::span {&m_buffer[0], static_cast<events_size>(buffer_size)}};
   }
 
   virtual bool write_buffer(size_t) override
@@ -49,7 +48,6 @@ protected:
   }
 
 private:
-
   // Output filename
   std::string const m_filename;
 

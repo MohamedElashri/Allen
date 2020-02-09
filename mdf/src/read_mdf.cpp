@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include "mdf_header.hpp"
 #include "read_mdf.hpp"
-#include "raw_bank.hpp"
+#include "Event/RawBank.h"
 #include "raw_helpers.hpp"
 
 #ifdef WITH_ROOT
@@ -275,7 +275,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
   }
 
   // accomodate for potential padding of MDF header bank!
-  if (buffer.size() < alloc_len + sizeof(int) + sizeof(LHCb::RawBank)) {
+  if (static_cast<size_t>(buffer.size()) < alloc_len + sizeof(int) + sizeof(LHCb::RawBank)) {
     cerr << "Failed to read banks: buffer too small " << buffer.size() << " "
          << alloc_len + sizeof(int) + sizeof(LHCb::RawBank) << "\n";
     return {false, true, {}};
@@ -342,7 +342,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
       hdr->setSize(new_len);
       hdr->setCompression(0);
       hdr->setChecksum(0);
-      return {false, false, {buffer.data(), bnkSize + new_len}};
+      return {false, false, {buffer.data(), static_cast<gsl::span<char>::index_type>(bnkSize + new_len)}};
     }
     else {
       cerr << "Failed to read compressed data\n";
@@ -365,7 +365,9 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     if (!test_checksum(bptr, chkSize)) {
       return {false, true, {}};
     }
-    return {false, false, {buffer.data(), bnkSize + static_cast<unsigned int>(readSize)}};
+    return {false,
+            false,
+            {buffer.data(), static_cast<gsl::span<char>::index_type>(bnkSize + static_cast<unsigned int>(readSize))}};
   }
 }
 
@@ -377,23 +379,23 @@ LHCb::ODIN MDF::decode_odin(unsigned int version, unsigned int const* odinData)
   unsigned int temp32 {0};
 
   // Fill the ODIN object
-  odin.version = version;
-  odin.run_number = odinData[LHCb::ODIN::Data::RunNumber];
-  odin.orbit_number = odinData[LHCb::ODIN::Data::OrbitNumber];
+  odin.setVersion(version);
+  odin.setRunNumber(odinData[LHCb::ODIN::Data::RunNumber]);
+  odin.setOrbitNumber(odinData[LHCb::ODIN::Data::OrbitNumber]);
 
   temp64 = odinData[LHCb::ODIN::Data::L0EventIDHi];
-  odin.event_number = (temp64 << 32) + odinData[LHCb::ODIN::Data::L0EventIDLo];
+  odin.setEventNumber((temp64 << 32) + odinData[LHCb::ODIN::Data::L0EventIDLo]);
 
   temp64 = odinData[LHCb::ODIN::Data::GPSTimeHi];
-  odin.gps_time = (temp64 << 32) + odinData[LHCb::ODIN::Data::GPSTimeLo];
+  odin.setGpsTime((temp64 << 32) + odinData[LHCb::ODIN::Data::GPSTimeLo]);
 
   temp32 = odinData[LHCb::ODIN::Data::EventType];
-  odin.event_type =
-    (temp32 & LHCb::ODIN::EventTypeMasks::EventTypeMask) >> LHCb::ODIN::EventTypeBitsEnum::EventTypeBits;
-  odin.calibration_step =
-    (temp32 & LHCb::ODIN::EventTypeMasks::CalibrationStepMask) >> LHCb::ODIN::EventTypeBitsEnum::CalibrationStepBits;
+  odin.setEventType(
+    (temp32 & LHCb::ODIN::EventTypeMasks::EventTypeMask) >> LHCb::ODIN::EventTypeBitsEnum::EventTypeBits);
+  odin.setCalibrationStep(
+    (temp32 & LHCb::ODIN::EventTypeMasks::CalibrationStepMask) >> LHCb::ODIN::EventTypeBitsEnum::CalibrationStepBits);
 
-  odin.tck = odinData[LHCb::ODIN::Data::TriggerConfigurationKey];
+  odin.setTriggerConfigurationKey(odinData[LHCb::ODIN::Data::TriggerConfigurationKey]);
   return odin;
 }
 

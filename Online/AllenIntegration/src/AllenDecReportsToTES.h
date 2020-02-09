@@ -16,13 +16,15 @@
 #include "GaudiKernel/StdArrayAsProperty.h"
 
 // LHCb
+#include "Event/RawEvent.h"
 
 // Allen
 #include "HostBuffers.cuh"
 #include "Logger.h"
 #include "RawBanksDefinitions.cuh"
 
-class AllenDecReportsToTES final : public Gaudi::Functional::Transformer<std::vector<uint32_t>(const HostBuffers&)> {
+
+class AllenDecReportsToTES final : public Gaudi::Functional::Transformer<LHCb::RawEvent(const HostBuffers&)> {
 public:
   /// Standard constructor
   AllenDecReportsToTES(const std::string& name, ISvcLocator* pSvcLocator);
@@ -31,7 +33,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::vector<uint32_t> operator()(const HostBuffers&) const override;
+  LHCb::RawEvent operator()(const HostBuffers&) const override;
 
 private:
 };

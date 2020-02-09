@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <map>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <read_mep.hpp>
 #include <Timer.h>
@@ -51,7 +51,7 @@ BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_inde
   auto ib = to_integral<BankTypes>(bank_type);
   auto const& [banks, banks_size, offsets, offsets_size] = slices[ib][slice_index];
   span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
-  span<unsigned int const> o {offsets.data(), offsets_size};
+  span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
   return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
 }
 
@@ -166,7 +166,7 @@ struct BTTag {
 void check_offsets(BanksAndOffsets const& left, BanksAndOffsets const& right)
 {
   REQUIRE(std::get<2>(left).size() == std::get<2>(right).size());
-  for (size_t i = 0; i < std::get<2>(left).size(); ++i) {
+  for (::offsets_size i = 0; i < std::get<2>(left).size(); ++i) {
     REQUIRE(std::get<2>(left)[i] == std::get<2>(right)[i]);
   }
 }
@@ -186,7 +186,7 @@ void check_banks(BanksAndOffsets const& left, BanksAndOffsets const& right)
   REQUIRE(lb.size() == rb.size());
   for (size_t i = 0; i < lb.size(); ++i) {
     REQUIRE(lb[i].size() == rb[i].size());
-    for (size_t j = 0; j < lb[i].size(); ++j) {
+    for (::events_size j = 0; j < lb[i].size(); ++j) {
       REQUIRE(lb[i][j] == rb[i][j]);
     }
   }

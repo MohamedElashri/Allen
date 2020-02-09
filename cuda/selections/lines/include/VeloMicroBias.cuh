@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LineInfo.cuh"
-#include "odin.hpp"
+#include "Event/ODIN.h"
 
 namespace VeloMicroBias {
   constexpr uint min_velo_tracks=1;

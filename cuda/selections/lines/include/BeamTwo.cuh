@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LineInfo.cuh"
-#include "odin.hpp"
+#include "Event/ODIN.h"
 
 namespace BeamTwo {
   constexpr uint bxType = LHCb::ODIN::Beam2;
@@ -18,7 +18,7 @@ namespace BeamTwo {
       const uint32_t word8 = odinData[LHCb::ODIN::Data::Word8];
       const uint bxt = (word8 & LHCb::ODIN::BXTypeMask) >> LHCb::ODIN::BXTypeBits;
       if (bxt == bxType) return true;
-      
+
       return false;
     }
   };

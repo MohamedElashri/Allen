@@ -15,7 +15,7 @@
 
 #include <Logger.h>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <eb_header.hpp>
 #include <read_mdf.hpp>
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
         if (allen_type == to_integral(at)) {
           auto& [spans, offset, offsets, offsets_size] = slices[allen_type][0];
           ids.get().emplace_back(i_block);
-          spans.emplace_back(const_cast<char*>(block_span.begin()), block_span.size());
+          spans.emplace_back(const_cast<char*>(block_span.data()), block_span.size());
           // auto* data_start = spans[0].begin();
           // std::memcpy(data_start + offset, block_span.data(), block_span.size());
           // offset += block_header.block_size;

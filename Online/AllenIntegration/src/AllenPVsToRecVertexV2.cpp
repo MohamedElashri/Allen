@@ -56,7 +56,7 @@ std::vector<LHCb::Event::v2::RecVertex> AllenPVsToRecVertexV2::operator()(
   recvertexcontainer.reserve(n_pvs);
   const auto maxVertexRho2 = m_maxVertexRho.value() * m_maxVertexRho.value();
 
-  for (int i = 0; i < n_pvs; i++) {
+  for (unsigned int i = 0; i < n_pvs; i++) {
     const PV::Vertex& vertex = host_buffers.host_reconstructed_multi_pvs[i_event * PatPV::max_number_vertices + i];
 
     const auto beamlinedx = vertex.position.x - beamline.X;

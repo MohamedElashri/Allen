@@ -8,3 +8,4 @@ file(GLOB x86_clustering "src/*cpp")
 # it depends on clustering functions in cuda/velo/mask_clustering,
 # we should make them __host__ and __device__ functions
 add_library(x86Clustering STATIC ${x86_clustering})
+target_include_directories(x86Clustering PRIVATE ${CPPGSL_INCLUDE_DIRS})
