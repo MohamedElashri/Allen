@@ -65,7 +65,8 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
   const uint number_of_events = 1;
   const Velo::Consolidated::Tracks velo_tracks {
     (uint*) host_buffers.host_atomics_velo, (uint*) host_buffers.host_velo_track_hit_number, i_event, number_of_events};
-  const Velo::Consolidated::States velo_states(host_buffers.host_kalmanvelo_states, velo_tracks.total_number_of_tracks);
+  const Velo::Consolidated::States velo_states(
+    host_buffers.host_kalmanvelo_states, velo_tracks.total_number_of_tracks());
   const uint event_tracks_offset = velo_tracks.tracks_offset(i_event);
 
   const uint number_of_tracks = velo_tracks.number_of_tracks(i_event);
@@ -74,14 +75,14 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
 
   info() << "Number of Velo tracks to convert = " << number_of_tracks << endmsg;
 
-  for (int t = 0; t < number_of_tracks; t++) {
+  for (unsigned int t = 0; t < number_of_tracks; t++) {
     auto& newTrack = output.emplace_back();
 
     // add Velo hits
     std::vector<uint32_t> velo_ids = velo_tracks.get_lhcbids_for_track(host_buffers.host_velo_track_hits, t);
     for (const auto id : velo_ids) {
       const LHCb::LHCbID lhcbid = LHCb::LHCbID(id);
-      newTrack.addToLhcbIDs(static_cast<const LHCb::LHCbID&>(LHCb::LHCbID(id)));
+      newTrack.addToLhcbIDs(lhcbid);
       if (msgLevel(MSG::DEBUG)) debug() << "Adding LHCbID " << std::hex << id << std::dec << endmsg;
     }
 

@@ -1,6 +1,9 @@
 #pragma once
 
+#include <algorithm>
+
 #include <Common.h>
+#include <CudaCommon.h>
 #include <CheckerTypes.h>
 #include <CheckerInvoker.h>
 #include <PV_Definitions.cuh>
@@ -14,7 +17,7 @@
 #include "RawBanksDefinitions.cuh"
 #include "LineInfo.cuh"
 #include "ROOTHeaders.h"
-#include <algorithm>
+#include "LineTraverser.cuh"
 
 class SelCheckerTuple : public Checker::BaseChecker {
   bool m_initialized_line_info = false;
@@ -35,11 +38,13 @@ public:
 
 #ifdef WITH_ROOT
   template<typename T>
-  void clear_line_info() {
+  void clear_line_info()
+  {
     const auto lambda_velo_ut_two_track_fn = [&](const unsigned long, const std::string& line_name) {
       m_mf_sv_decisions[line_name].clear();
     };
-    Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(lambda_velo_ut_two_track_fn);
+    Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(
+      lambda_velo_ut_two_track_fn);
 
     const auto lambda_two_track_fn = [&](const unsigned long, const std::string& line_name) {
       m_sv_decisions[line_name].clear();
@@ -52,6 +57,12 @@ public:
     Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
   }
 
+  void make_branch(
+    const std::string& line_name,
+    const std::string& prefix,
+    std::map<std::string, std::vector<double>>& decisions);
+  void fill();
+
   template<typename T>
   void accumulate(
     MCEvents const& mc_events,
@@ -61,30 +72,25 @@ public:
     const uint* sel_results_offsets,
     const uint* track_offsets,
     const uint* sv_offsets,
-    const uint* mf_sv_offsets,
+    const uint*,
     const uint selected_events)
   {
     if (!m_initialized_line_info) {
       m_initialized_line_info = true;
 
       const auto lambda_velo_ut_two_track_fn = [&](const unsigned long, const std::string& line_name) {
-        m_mf_sv_decisions[line_name] = std::vector<double>();
-        std::string branch_name = "mf_sv_pass_" + line_name;
-        m_tree->Branch(branch_name.c_str(), &m_mf_sv_decisions[line_name]);
+        make_branch(line_name, "mf_sv_pass_", m_mf_sv_decisions);
       };
-      Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(lambda_velo_ut_two_track_fn);
+      Hlt1::TraverseLinesNames<T, Hlt1::VeloUTTwoTrackLine, decltype(lambda_velo_ut_two_track_fn)>::traverse(
+        lambda_velo_ut_two_track_fn);
 
       const auto lambda_two_track_fn = [&](const unsigned long, const std::string& line_name) {
-        m_sv_decisions[line_name] = std::vector<double>();
-        std::string branch_name = "sv_pass_" + line_name;
-        m_tree->Branch(branch_name.c_str(), &m_sv_decisions[line_name]);
+        make_branch(line_name, "sv_pass_", m_sv_decisions);
       };
       Hlt1::TraverseLinesNames<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
 
       const auto lambda_one_track_fn = [&](const unsigned long, const std::string& line_name) {
-        m_trk_decisions[line_name] = std::vector<double>();
-        std::string branch_name = "trk_pass_" + line_name;
-        m_tree->Branch(branch_name.c_str(), &m_trk_decisions[line_name]);
+        make_branch(line_name, "trk_pass_", m_trk_decisions);
       };
       Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
     }
@@ -104,24 +110,27 @@ public:
         }
       }
 
-      if (i_event < selected_events) {
-        m_event_pass_gec.push_back(1.);
-        const auto& event_tracks = tracks[i_event];
-        MCAssociator mcassoc {mcps};
-        const uint* event_tracks_offsets = track_offsets + selected_events;
-        const uint event_n_svs = sv_offsets[i_event + 1] - sv_offsets[i_event];
-        const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
+      if (i_event >= selected_events) {
+        m_event_pass_gec.push_back(0.);
+        continue;
+      }
 
-        // Loop over tracks.
-        for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
-          // First track.
-          auto trackA = event_tracks[i_track];
-          size_t idx1 = addTrack(trackA, mcassoc);
-          if (idx1 == m_trk_p.size() - 1) {
-            const auto lambda_one_track_fn = [&](const unsigned long i_line, const std::string& line_name) {
-              const bool* decs = sel_results + sel_results_offsets[i_line] + event_tracks_offsets[i_event];
-              m_trk_decisions[line_name].push_back(decs[i_track] ? 1. : 0.);
-            }
+      m_event_pass_gec.push_back(1.);
+      const auto& event_tracks = tracks[i_event];
+      MCAssociator mcassoc {mcps};
+      const uint* event_tracks_offsets = track_offsets + selected_events;
+      const uint event_n_svs = sv_offsets[i_event + 1] - sv_offsets[i_event];
+      const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
+
+      // Loop over tracks.
+      for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
+        // First track.
+        auto trackA = event_tracks[i_track];
+        size_t idx1 = addTrack(trackA, mcassoc);
+        if (idx1 == m_trk_p.size() - 1) {
+          const auto lambda_one_track_fn = [&](const unsigned long i_line, const std::string& line_name) {
+            const bool* decs = sel_results + sel_results_offsets[i_line] + event_tracks_offsets[i_event];
+            m_trk_decisions[line_name].push_back(decs[i_track] ? 1. : 0.);
           };
           Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
         }
@@ -144,12 +153,9 @@ public:
         };
         Hlt1::TraverseLinesNames<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
       }
-
       // TODO: Loop over VeloUT SVs.
     }
-    else { m_event_pass_gec.push_back(0.); }
-
-    m_tree->Fill();
+    fill();
   }
 #else
   template<typename T>

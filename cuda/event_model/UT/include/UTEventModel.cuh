@@ -237,13 +237,13 @@ namespace UT {
       assert(index < m_total_number_of_hits);
       return yMin(index) - tol <= y && y <= yMax(index) + tol;
     }
-    
+
     __host__ __device__ bool isNotYCompatible(const uint index, const float y, const float tol) const
     {
       assert(index < m_total_number_of_hits);
       return yMin(index) - tol > y || y > yMax(index) + tol;
     }
-    
+
     __host__ __device__ float cosT(const uint index, const float dxDy) const
     {
       assert(index < m_total_number_of_hits);
@@ -255,15 +255,15 @@ namespace UT {
       assert(index < m_total_number_of_hits);
       return tanT(dxDy) * cosT(index, dxDy);
     }
-    
+
     __host__ __device__ float tanT(const float dxDy) const { return -1.f * dxDy; }
-    
+
     __host__ __device__ float xAt(const uint index, const float globalY, const float dxDy) const
     {
       assert(index < m_total_number_of_hits);
       return xAtYEq0(index) + globalY * dxDy;
     }
-    
+
     __host__ __device__ float yMax(const uint index) const
     {
       assert(index < m_total_number_of_hits);
@@ -291,7 +291,7 @@ namespace UT {
 
     __host__ __device__ typename ForwardType<T, float>::t* yEnd_p(const uint index) const
     {
-      assert(index < m_total_number_of_hits);
+      assert(index <= m_total_number_of_hits);
       return m_base_pointer + m_total_number_of_hits + index;
     }
   };

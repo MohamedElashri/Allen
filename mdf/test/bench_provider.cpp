@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <map>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <Timer.h>
 #include <MDFProvider.h>

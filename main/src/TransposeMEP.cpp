@@ -114,7 +114,7 @@ size_t MEP::allen_offsets(
 
         // Check for sufficient space
         if (event_offsets[i] > slice_size) {
-          n_frag = i -  1;
+          n_frag = i - 1;
           break;
         }
       }
@@ -162,7 +162,7 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
         if (i_event >= event_start) {
           auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + fragment_offset);
           auto odin = MDF::decode_odin(odin_version, odin_data);
-          event_ids.emplace_back(odin.run_number, odin.event_number);
+          event_ids.emplace_back(odin.runNumber(), odin.eventNumber());
         }
         fragment_offset += block_header.sizes[i_event];
       }
@@ -247,7 +247,7 @@ bool MEP::transpose_event(
       for (uint16_t i_event = start_event; i_event < end_event; ++i_event) {
         auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + source_offsets[i_event]);
         auto odin = MDF::decode_odin(odin_version, odin_data);
-        event_ids.emplace_back(odin.run_number, odin.event_number);
+        event_ids.emplace_back(odin.runNumber(), odin.eventNumber());
       }
     }
 

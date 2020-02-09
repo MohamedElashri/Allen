@@ -10,7 +10,7 @@
 #include <cmath>
 
 #include <gsl/gsl>
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <read_mep.hpp>
 #include <eb_header.hpp>
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
   // Count the number of banks of each type
   auto& [buffer, mep_header, mep_span, blocks, source_offsets] = mep_buffers[0];
   bool count_success = false;
-  std::array<unsigned int, LHCb::NBankTypes> banks_count{};
+  std::array<unsigned int, LHCb::NBankTypes> banks_count {};
   std::tie(count_success, banks_count) = MEP::fill_counts(mep_header, mep_span);
 
   // Allocate space for event ids

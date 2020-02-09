@@ -9,15 +9,15 @@ namespace {
   using namespace std::string_literals;
 }
 
-ZMQOutputSender::ZMQOutputSender(IInputProvider const* input_provider,
-                                 std::string const receiver_connection,
-                                 size_t const events_per_slice,
-                                 ZeroMQSvc* zmqSvc,
-                                 const uint number_of_hlt1_lines,
-                                 bool const checksum) :
+ZMQOutputSender::ZMQOutputSender(
+  IInputProvider const* input_provider,
+  std::string const receiver_connection,
+  size_t const events_per_slice,
+  ZeroMQSvc* zmqSvc,
+  const uint number_of_hlt1_lines,
+  bool const checksum) :
   OutputHandler {input_provider, events_per_slice, number_of_hlt1_lines},
-  m_zmq{zmqSvc},
-  m_checksum {checksum}
+  m_zmq {zmqSvc}, m_checksum {checksum}
 {
   auto const pos = receiver_connection.rfind(":");
   auto const receiver = receiver_connection.substr(0, pos);
@@ -40,7 +40,8 @@ ZMQOutputSender::ZMQOutputSender(IInputProvider const* input_provider,
     m_socket->connect(connection.c_str());
     info_cout << "Connected MDF output socket to " << connection << "\n";
     m_connected = true;
-  } else {
+  }
+  else {
     m_connected = false;
     throw std::runtime_error {"Failed to connect to receiver on "s + receiver_connection};
   }
@@ -59,10 +60,7 @@ ZMQOutputSender::~ZMQOutputSender()
   }
 }
 
-zmq::socket_t* ZMQOutputSender::client_socket()
-{
-  return (m_connected && m_socket) ? &(*m_socket) : nullptr;
-}
+zmq::socket_t* ZMQOutputSender::client_socket() { return (m_connected && m_socket) ? &(*m_socket) : nullptr; }
 
 void ZMQOutputSender::handle()
 {
@@ -71,7 +69,8 @@ void ZMQOutputSender::handle()
     info_cout << "MDF receiver is exiting\n";
     m_zmq->send(*m_socket, "OK");
     m_connected = false;
-  } else {
+  }
+  else {
     error_cout << "Received unknown message from output receiver: " << msg << "\n";
   }
 }
@@ -79,7 +78,7 @@ void ZMQOutputSender::handle()
 std::tuple<size_t, gsl::span<char>> ZMQOutputSender::buffer(size_t buffer_size)
 {
   m_buffer.rebuild(buffer_size);
-  return {0, gsl::span {static_cast<char*>(m_buffer.data()), buffer_size}};
+  return {0, gsl::span {static_cast<char*>(m_buffer.data()), static_cast<events_size>(buffer_size)}};
 }
 
 bool ZMQOutputSender::write_buffer(size_t)

@@ -364,13 +364,13 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStrea
 {
   auto offset = args.template begin<DATA_ARG>();
   for (gsl::span<char const> data_span : std::get<0>(bno)) {
-    cudaCheck(cudaMemcpyAsync(offset, data_span.begin(), data_span.size_bytes(), cudaMemcpyHostToDevice, cuda_stream));
+    cudaCheck(cudaMemcpyAsync(offset, data_span.data(), data_span.size_bytes(), cudaMemcpyHostToDevice, cuda_stream));
     offset += data_span.size_bytes();
   }
 
   cudaCheck(cudaMemcpyAsync(
     args.template begin<OFFSET_ARG>(),
-    std::get<2>(bno).begin(),
+    std::get<2>(bno).data(),
     std::get<2>(bno).size_bytes(),
     cudaMemcpyHostToDevice,
     cuda_stream));

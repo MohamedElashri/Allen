@@ -11,9 +11,10 @@ namespace {
   using namespace std::string_literals;
   namespace po = boost::program_options;
   using namespace std;
-}
+} // namespace
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 
   string filename;
   size_t n_events;
@@ -22,13 +23,11 @@ int main(int argc, char* argv[]) {
 
   // Declare the supported options.
   po::options_description desc("Allowed options");
-  desc.add_options()
-    ("help,h", "produce help message")
-    ("receiver", po::value<std::string>(&receiver_connection), "receiver connection")
-    ("mdf_file", po::value<std::string>(&filename), "MDF file")
-    ("events", po::value<size_t>(&n_events), "number of events")
-    ("interval,i", po::value<int>(&interval)->default_value(500), "interval between sending of events")
-    ;
+  desc.add_options()("help,h", "produce help message")(
+    "receiver", po::value<std::string>(&receiver_connection), "receiver connection")(
+    "mdf_file", po::value<std::string>(&filename), "MDF file")(
+    "events", po::value<size_t>(&n_events), "number of events")(
+    "interval,i", po::value<int>(&interval)->default_value(500), "interval between sending of events");
 
   po::positional_options_description p;
   p.add("receiver", 1);
@@ -36,8 +35,7 @@ int main(int argc, char* argv[]) {
   p.add("events", 1);
 
   po::variables_map vm;
-  po::store(po::command_line_parser(argc, argv).
-            options(desc).positional(p).run(), vm);
+  po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
   po::notify(vm);
 
   if (vm.count("help")) {
@@ -86,12 +84,13 @@ int main(int argc, char* argv[]) {
       zmq::setsockopt(*data_socket, zmq::LINGER, 0);
       data_socket->connect(connection.c_str());
       cout << "Connected MDF output socket to " << connection << "\n";
-    } else {
+    }
+    else {
       exit(1);
     }
   }
 
-  zmq::pollitem_t items[] = {*data_socket, 0, zmq::POLLIN, 0};
+  zmq::pollitem_t items[] = {{*data_socket, 0, zmq::POLLIN, 0}};
 
   size_t i_event = 0;
   while (!eof && i_event++ < n_events) {
@@ -106,7 +105,8 @@ int main(int argc, char* argv[]) {
         cout << "MDF receiver is exiting\n";
         zmqSvc().send(*data_socket, "OK");
         break;
-      } else {
+      }
+      else {
         cout << "Received unknown message from output receiver: " << msg << "\n";
       }
     }
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
       // status bank that contains the header as payload. By starting
       // there, the whole event can be read in one go.
       auto const* status_bank = reinterpret_cast<LHCb::RawBank const*>(bank_span.data());
-      auto const event_size = bank_span.size() - LHCb::RawBank::hdrSize();
+      auto const event_size = bank_span.size() - status_bank->hdrSize();
       zmq::message_t msg(event_size);
       memcpy(msg.data(), status_bank->data(), event_size);
       zmqSvc().send(*data_socket, "EVENT", zmq::SNDMORE);

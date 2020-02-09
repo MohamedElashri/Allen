@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "raw_bank.hpp"
+#include "Event/RawBank.h"
 #include "read_mdf.hpp"
 
 using namespace std;

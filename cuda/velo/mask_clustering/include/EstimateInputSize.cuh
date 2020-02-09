@@ -30,9 +30,9 @@ namespace velo_estimate_input_size {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       if (logger::ll.verbosityLevel >= logger::debug) {
         debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
@@ -48,13 +48,13 @@ namespace velo_estimate_input_size {
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_estimated_input_size_t>(arguments, 0, cuda_stream);
       initialize<dev_module_candidate_num_t>(arguments, 0, cuda_stream);
-      
+
       // Invoke kernel
       const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
                                           begin<dev_candidates_offsets_t>(arguments),

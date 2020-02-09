@@ -9,6 +9,6 @@ add_library(CheckClustering STATIC
 )
 
 target_link_libraries(CheckClustering PRIVATE x86Clustering)
-
+target_include_directories(CheckClustering PUBLIC ${CPPGSL_INCLUDE_DIRS})
 set_property(TARGET CheckClustering PROPERTY
              CUDA_SEPARABLE_COMPILATION ON)

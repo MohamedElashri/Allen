@@ -24,9 +24,8 @@ if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${raw_banks_src} PROPERTIES LANGUAGE CXX)
 endif()
 
-add_library(RawBanks STATIC
+allen_add_library(RawBanks STATIC
   ${raw_banks_src}
   )
 
 set_property(TARGET RawBanks PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-

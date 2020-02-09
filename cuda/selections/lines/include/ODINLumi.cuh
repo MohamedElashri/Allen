@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LineInfo.cuh"
-#include "odin.hpp"
+#include "Event/ODIN.h"
 
 namespace ODINLumi {
   constexpr uint eventType = LHCb::ODIN::Lumi;
@@ -17,7 +17,7 @@ namespace ODINLumi {
         odin + hdr_size);
       const uint32_t word2 = odinData[LHCb::ODIN::Data::EventType];
       if (word2 & eventType) return true;
-      
+
       return false;
     }
   };

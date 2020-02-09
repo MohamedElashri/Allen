@@ -65,7 +65,7 @@ __device__ void no_neighbour_sp(
 
         const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 
-#if DEBUG
+#if ALLEN_DEBUG
         const auto module_estimated_num =
           module_cluster_start[module_number + 1] -
           module_cluster_start[module_number];
@@ -99,7 +99,7 @@ __device__ void no_neighbour_sp(
 
         const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 
-#if DEBUG
+#if ALLEN_DEBUG
         const auto module_estimated_num =
           module_cluster_start[module_number + 1] -
           module_cluster_start[module_number];
@@ -284,7 +284,7 @@ __device__ void rest_of_clusters(
 
     const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 
-#if DEBUG
+#if ALLEN_DEBUG
     const auto module_estimated_num =
     module_cluster_start[module_number + 1] -
     module_cluster_start[module_number];
@@ -360,7 +360,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
                     estimated_number_of_clusters, module_cluster_num, g,
                     candidate, raw_bank);
   }
-} 
+}
 
 __global__ void velo_masked_clustering::velo_masked_clustering_mep(
   velo_masked_clustering::Parameters parameters,

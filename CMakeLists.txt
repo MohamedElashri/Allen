@@ -36,6 +36,8 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 
 option(BUILD_TESTS "Build test programs" OFF)
+option(USE_ROOT "Build with ROOT" OFF)
+option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 
 # Setup the project to build as a Gaudi project or else standalone
 macro(allen_project)
@@ -51,6 +53,10 @@ macro(allen_project)
 
     # Always enable tests for gaudi builds
     set(BUILD_TESTS ON)
+
+    # Always enable ROOT for Gaudi builds
+    set(USE_ROOT ON)
+    set(USE_MPI ON)
 
     # Find the CUDA compiler if it's not set
     # FIXME: this assumes a standard cuda install: re-evaluate if
@@ -88,11 +94,13 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
   function(allen_add_library)
     add_library(${ARGV})
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIRS})
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIRS})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -164,14 +172,14 @@ else()
 
   function(allen_add_library)
     add_library(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIRS})
     set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIRS})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -253,7 +261,7 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DALLEN_DEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -287,7 +295,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL Release)
     set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL Debug)
-    set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DDEBUG ")
+    set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DALLEN_DEBUG ")
   else()
     message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
   endif(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
@@ -330,6 +338,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     set_property(TARGET ${ARGV0} PROPERTY
       HIP_SEPARABLE_COMPILATION ON)
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIRS})
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
@@ -338,6 +347,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set_target_properties(${ARGV0}
          PROPERTIES HIP_SEPARABLE_COMPILATION ON
                   HIP_RESOLVE_DEVICE_SYMBOLS ON)
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIRS})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 endif()
@@ -379,54 +389,59 @@ endif()
 set(CUDA_SEPARABLE_COMPILATION ON)
 option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
 
-option(USE_ROOT "Build with ROOT" OFF)
-if ((EXISTS $ENV{ROOTSYS}) AND (USE_ROOT))
-   if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
-     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-   else() # ROOT was compiled with configure/make
-     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
-   endif()
-   find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
-   if (ROOT_FOUND)
-      message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
+if (USE_ROOT)
+   if (GaudiProject_FOUND)
+     find_package(ROOT REQUIRED COMPONENTS Core Hist Tree RIO)
+     find_package(TBB REQUIRED)
+     set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
+     set(ALLEN_ROOT_LIBRARIES ${ROOT_LIBRARIES} ${TBB_LIBRARIES})
+   else()
+     if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
+       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+     else() # ROOT was compiled with configure/make
+       set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
+     endif()
+     find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
+     if (ROOT_FOUND)
+       message(STATUS "Compiling with ROOT: " ${ROOT_INCLUDE_DIRS})
 
-      # If ROOT is built with C++17 support, everything that includes ROOT
-      # headers must be built with C++17 support. CUDA doesn't support
-      # that, so we have to factor that out.
-      execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
-      string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
-      message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
-      if ("${ROOT_HAS_CXX17}" STREQUAL "yes")
-        set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
-      else()
-        set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
-      endif()
+       # If ROOT is built with C++17 support, everything that includes ROOT
+       # headers must be built with C++17 support. CUDA doesn't support
+       # that, so we have to factor that out.
+       execute_process(COMMAND root-config --has-cxx17 OUTPUT_VARIABLE ROOT_HAS_CXX17 ERROR_QUIET)
+       string(REGEX REPLACE "\n$" "" ROOT_HAS_CXX17 "${ROOT_HAS_CXX17}")
+       message(STATUS "ROOT built with c++17: ${ROOT_HAS_CXX17}")
+       if ("${ROOT_HAS_CXX17}" STREQUAL "yes")
+         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT ROOT_CXX17)
+       else()
+         set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
+       endif()
 
-      set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist -lRIO)
+       set(ALLEN_ROOT_LIBRARIES -L$ENV{ROOTSYS}/lib -lTree -lCore -lCling -lHist -lRIO)
 
-      execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
-      string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
-      message(STATUS "ROOT built with implicit multi-threading: ${ROOT_HAS_IMT}")
-      if (${ROOT_HAS_IMT} STREQUAL "yes")
-        find_package(TBB REQUIRED)
-        get_filename_component(TBB_LIBDIR ${TBB_LIBRARIES} DIRECTORY)
-        set(ALLEN_ROOT_LIBRARIES ${ALLEN_ROOT_LIBRARIES} -L${TBB_LIBDIR} -ltbb)
-      endif()
-    else()
-      message(STATUS "Compiling without ROOT")
+       execute_process(COMMAND root-config --has-imt OUTPUT_VARIABLE ROOT_HAS_IMT ERROR_QUIET)
+       string(REGEX REPLACE "\n$" "" ROOT_HAS_IMT "${ROOT_HAS_IMT}")
+       message(STATUS "ROOT built with implicit multi-threading: ${ROOT_HAS_IMT}")
+       if (${ROOT_HAS_IMT} STREQUAL "yes")
+         find_package(TBB REQUIRED)
+         get_filename_component(TBB_LIBDIR ${TBB_LIBRARIES} DIRECTORY)
+         set(ALLEN_ROOT_LIBRARIES ${ALLEN_ROOT_LIBRARIES} -L${TBB_LIBDIR} -ltbb)
+       endif()
+     else()
+       message(STATUS "Compiling without ROOT")
+     endif()
    endif()
 else()
    message(STATUS "Compiling without ROOT")
 endif()
 
 find_package(cppgsl QUIET)
-if (CPPGSL_FOUND)
+if (cppgsl_FOUND)
   message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIRS})
 else()
-  include_directories(main/cppgsl)
+  set(CPPGSL_INCLUDE_DIRS ${CMAKE_CURRECT_SOURCE_DIR}/main/cppgsl)
   message(STATUS "Using internal gsl-lite")
 endif()
-
 
 set(EXTERNAL_DIR "external")
 
@@ -524,13 +539,14 @@ endif()
 # common libraries
 add_library(Common STATIC ${common_sources})
 
+add_library(allen_fs INTERFACE)
 if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0))
   find_package(Boost COMPONENTS filesystem)
-  add_library(allen_fs ALIAS Boost::filesystem)
-  target_compile_definitions(allen_fs USE_BOOST_FILESYSTEM)
+  target_compile_definitions(allen_fs INTERFACE USE_BOOST_FILESYSTEM)
+  target_link_libraries(allen_fs INTERFACE Boost::filesystem)
 else()
   find_package(Filesystem)
-  add_library(allen_fs ALIAS std::filesystem)
+  target_link_libraries(allen_fs INTERFACE std::filesystem)
 endif()
 target_link_libraries(Common mdf allen_fs)
 

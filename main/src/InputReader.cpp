@@ -1,4 +1,5 @@
-#include "InputReader.h"
+#include <gsl/gsl>
+#include <InputReader.h>
 
 namespace {
   using std::make_pair;
@@ -57,8 +58,9 @@ std::vector<std::tuple<unsigned int, unsigned long>> EventReader::read_events(
     std::copy_n(std::begin(events), events.size(), events_mem);
     std::copy_n(std::begin(event_offsets), event_offsets.size(), offsets_mem);
 
-    m_events[bank_type] =
-      make_pair(gsl::span<char> {events_mem, events.size()}, gsl::span<uint> {offsets_mem, event_offsets.size()});
+    m_events[bank_type] = make_pair(
+      events_span {events_mem, static_cast<events_size>(events.size())},
+      offsets_span {offsets_mem, static_cast<offsets_size>(event_offsets.size())});
   }
   return event_ids;
 }

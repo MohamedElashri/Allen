@@ -1,4 +1,3 @@
-
 /***************************************************************************** \
  * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
  *                                                                             *
@@ -16,10 +15,22 @@
  * author Dorothea vom Bruch
  *
  */
-
 #include "RunAllen.h"
 
 DECLARE_COMPONENT(RunAllen)
+
+namespace {
+  std::string resolveEnvVars(std::string s) {
+    std::regex envExpr{"\\$\\{([A-Za-z0-9_]+)\\}"};
+    std::smatch m;
+    while(std::regex_search(s, m, envExpr)) {
+      std::string rep;
+      System::getEnv(m[1].str(), rep);
+      s = s.replace(m[1].first - 2, m[1].second + 1, rep);
+    }
+    return s;
+  }
+}
 
 RunAllen::RunAllen(const std::string& name, ISvcLocator* pSvcLocator) :
   MultiTransformerFilter(
@@ -51,23 +62,18 @@ StatusCode RunAllen::initialize()
     return StatusCode::FAILURE;
   }
 
-  register_consumers(updater, m_constants);
-
-  // Run all registered producers and consumers
-  updater->update(0);
-
   // get constants
-  std::string folder_detector_configuration = m_detectorConfigurationPath;
+  std::string geometry_path = resolveEnvVars(m_paramDir);
 
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
-    muon_field_of_interest_params, folder_detector_configuration + "field_of_interest_params.bin");
+    muon_field_of_interest_params, geometry_path + "/field_of_interest_params.bin");
 
   m_constants.reserve_and_initialize(
-    muon_field_of_interest_params, folder_detector_configuration + "params_kalman_FT6x2/");
+    muon_field_of_interest_params, geometry_path + "/params_kalman_FT6x2/");
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader =
-    std::make_unique<CatboostModelReader>(folder_detector_configuration + "muon_catboost_model.json");
+    std::make_unique<CatboostModelReader>(geometry_path + "/muon_catboost_model.json");
   m_constants.initialize_muon_catboost_model_constants(
     muon_catboost_model_reader->n_trees(),
     muon_catboost_model_reader->tree_depths(),
@@ -77,17 +83,33 @@ StatusCode RunAllen::initialize()
     muon_catboost_model_reader->split_border(),
     muon_catboost_model_reader->split_feature());
 
+  // Allen Consumers
+  register_consumers(updater, m_constants);
+
+  // Run all registered producers and consumers
+  updater->update(0);
+
   // Read configuration
-  std::string json_constants_configuration_file = m_algorithmConfigurationPath + "default.json";
-  ConfigurationReader configuration_reader(json_constants_configuration_file);
+  std::string conf_file = resolveEnvVars(m_json);
+  ConfigurationReader configuration_reader(conf_file);
 
   // Initialize stream
   const bool print_memory_usage = false;
   const uint start_event_offset = 0;
   const size_t reserve_mb = 10; // to do: how much do we need maximally for one event?
-  m_stream = new Stream();
+
+  m_number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
+
+  uint passthrough_line = 0;
+  const auto lambda_fn = [&passthrough_line](const unsigned long i) { passthrough_line = i; };
+  Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
+
+  m_host_buffers_manager.reset(
+    new HostBuffersManager(m_n_buffers, m_number_of_events, m_do_check, m_number_of_hlt1_lines, passthrough_line));
+  m_stream.reset(new Stream());
   m_stream->configure_algorithms(configuration_reader.params());
-  m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants, &m_host_buffers_manager);
+  m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants);
+  m_stream->set_host_buffer_manager(m_host_buffers_manager.get());
 
   // Set verbosity level
   logger::ll.verbosityLevel = 3;
@@ -99,12 +121,12 @@ StatusCode RunAllen::initialize()
  */
 std::tuple<bool, HostBuffers> RunAllen::operator()(
   const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
-  const LHCb::ODIN& odin) const
+  const LHCb::ODIN&) const
 {
 
   // Get raw input and event offsets for every detector
   std::array<BanksAndOffsets, LHCb::RawBank::LastType> banks_and_offsets;
-  std::array<uint[2], LHCb::RawBank::LastType> event_offsets;
+  std::array<std::array<unsigned int, 2>, LHCb::RawBank::LastType> event_offsets;
   for (const auto bankType : m_bankTypes) {
     // to do: catch that raw bank type was not dumped
 
@@ -112,10 +134,11 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
     // unsigned int offsets_mem[2];
     event_offsets[bankType][0] = 0;
     event_offsets[bankType][1] = allen_banks[bankType].size();
-    gsl::span<unsigned int> offsets {event_offsets[bankType], 2};
-
-    banks_and_offsets[bankType] =
-      std::make_tuple(gsl::span {allen_banks[bankType].data(), allen_banks[bankType].size()}, offsets);
+    gsl::span<unsigned int const> offsets {event_offsets[bankType].data(), 2};
+    using data_span = gsl::span<char const>;
+    auto data_size = static_cast<data_span::index_type>(allen_banks[bankType].size());
+    std::vector<data_span> spans(1, data_span {allen_banks[bankType].data(), data_size});
+    banks_and_offsets[bankType] = std::make_tuple(std::move(spans), data_size, std::move(offsets));
   }
 
   // initialize RuntimeOptions
@@ -124,10 +147,12 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
     banks_and_offsets[LHCb::RawBank::UT],
     banks_and_offsets[LHCb::RawBank::FTCluster],
     banks_and_offsets[LHCb::RawBank::Muon],
-    m_number_of_events,
+    banks_and_offsets[LHCb::RawBank::ODIN],
+    {0u, m_number_of_events},
     m_number_of_repetitions,
     m_do_check,
-    m_cpu_offload);
+    m_cpu_offload,
+    false);
 
   const uint buf_idx = m_n_buffers - 1;
   cudaError_t rv = m_stream->run_sequence(buf_idx, runtime_options);
@@ -136,6 +161,9 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
     // how to exit a filter with failure?
   }
   bool filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_selected_events[0];
+  if (m_filter_hlt1) {
+    filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_passing_events[0];
+  }
   info() << "Event selected by Allen: " << uint(filter) << endmsg;
   return std::make_tuple(filter, *(m_stream->host_buffers_manager->getBuffers(buf_idx)));
 }
@@ -143,12 +171,6 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
 StatusCode RunAllen::finalize()
 {
   info() << "Finalizing Allen..." << endmsg;
-
-  cudaError_t rv = m_stream->free(m_do_check);
-  if (rv != 0) {
-    error() << "Failed to free stream memory, cudaError = " << rv << endmsg;
-    return StatusCode::FAILURE;
-  }
 
   return MultiTransformerFilter::finalize();
 }

@@ -21,7 +21,7 @@
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <write_mdf.hpp>
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 
 #include "Transpose.h"
 
@@ -215,7 +215,8 @@ public:
    *
    * @return     EventIDs of events in given slice
    */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const override
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+    const override
   {
     auto const& ids = m_event_ids[slice_index];
     return {ids.begin() + (first ? *first : 0), ids.begin() + (last ? *last : ids.size())};
@@ -234,7 +235,7 @@ public:
     auto ib = to_integral<BankTypes>(bank_type);
     auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
     span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
-    span<unsigned int const> o {offsets.data(), offsets_size};
+    span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
   }
 
@@ -327,18 +328,18 @@ public:
     }
   }
 
-  void event_sizes(size_t const slice_index, gsl::span<unsigned int const> const selected_events, std::vector<size_t>& sizes)
-    const override
+  void event_sizes(
+    size_t const slice_index,
+    gsl::span<unsigned int const> const selected_events,
+    std::vector<size_t>& sizes) const override
   {
-    auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
-
     // The first bank in the read buffer is the DAQ bank, which
     // contains the MDF header as bank payload
-    auto const daq_bank_size = LHCb::RawBank::hdrSize() + header_size;
+    auto const daq_bank_size = bank_header_size + mdf_header_size;
     auto i_read = m_slice_to_buffer[slice_index];
     auto const& event_offsets = std::get<1>(m_buffers[i_read]);
     size_t transpose_start = std::get<3>(m_buffers[i_read]);
-    for (size_t i = 0; i < selected_events.size(); ++i) {
+    for (size_t i = 0; i < static_cast<size_t>(selected_events.size()); ++i) {
       auto event = selected_events[i];
       sizes[i] = event_offsets[transpose_start + event + 1] - event_offsets[transpose_start + event] - daq_bank_size;
     }
@@ -349,7 +350,7 @@ public:
     // The first bank in the read buffer is the DAQ bank, which
     // contains the MDF header as bank payload
     auto const header_size = LHCb::MDFHeader::sizeOf(3);
-    auto const daq_bank_size = LHCb::RawBank::hdrSize() + header_size;
+    auto const daq_bank_size = 4 * sizeof(3) + header_size;
 
     auto i_read = m_slice_to_buffer[slice_index];
     auto const& [n_filled, event_offsets, event_buffer, transpose_start] = m_buffers[i_read];
@@ -514,7 +515,7 @@ private:
       m_input = MDF::open(m_current->c_str(), O_RDONLY);
       if (m_input->good) {
         // read the first header, needed by subsequent calls to read_events
-        ssize_t n_bytes = m_input->read(reinterpret_cast<char*>(&m_header), header_size);
+        ssize_t n_bytes = m_input->read(reinterpret_cast<char*>(&m_header), mdf_header_size);
         good = (n_bytes > 0);
       }
 

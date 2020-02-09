@@ -9,17 +9,17 @@ namespace PV {
   class Vertex;
 }
 namespace UT {
-  class TrackHits;
+  struct TrackHits;
 }
 namespace SciFi {
-  class TrackHits;
+  struct TrackHits;
 }
-class MiniState;
+struct MiniState;
 namespace ParKalmanFilter {
-  class FittedTrack;
+  struct FittedTrack;
 }
 namespace VertexFit {
-  class TrackMVAVertex;
+  struct TrackMVAVertex;
 }
 
 struct HostBuffers {
@@ -35,7 +35,7 @@ struct HostBuffers {
   size_t host_allocated_prefix_sum_space;
   uint* host_sel_rep_offsets;
   uint* host_number_of_sel_rep_words;
-  
+
   // Velo
   uint* host_atomics_velo;
   uint* host_velo_track_hit_number;
@@ -93,7 +93,7 @@ struct HostBuffers {
   uint* host_selected_events_mf;
   uint* host_event_list_mf;
   bool* host_match_upstream_muon;
-  
+
   // Secondary vertices
   uint* host_number_of_svs;
   uint* host_sv_offsets;
@@ -106,6 +106,7 @@ struct HostBuffers {
   VertexFit::TrackMVAVertex* host_mf_secondary_vertices;
 
   // Selections
+  uint host_number_of_hlt1_lines;
   uint* host_sel_results_atomics;
 
   uint host_sel_results_size;

@@ -57,7 +57,8 @@ public:
 
 private:
   Constants m_constants;
-  std::set<LHCb::RawBank::BankType> m_bankTypes = {LHCb::RawBank::VP,
+  std::set<LHCb::RawBank::BankType> m_bankTypes = {LHCb::RawBank::ODIN,
+                                                   LHCb::RawBank::VP,
                                                    LHCb::RawBank::UT,
                                                    LHCb::RawBank::FTCluster,
                                                    LHCb::RawBank::Muon};
@@ -66,18 +67,20 @@ private:
   const uint m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
   const uint m_n_buffers = 1;
+  uint m_number_of_hlt1_lines = 0;
 
-  Stream* m_stream;
-  HostBuffersManager m_host_buffers_manager = HostBuffersManager(m_number_of_events, m_do_check, m_n_buffers);
+  std::unique_ptr<Stream> m_stream;
+  std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
 
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
-  Gaudi::Property<std::string> m_detectorConfigurationPath {this,
-                                                            "DetectorConfigurationPath",
-                                                            "../Allen/input/detector_configuration/down/"};
-  Gaudi::Property<std::string> m_algorithmConfigurationPath {this,
-                                                             "AlgorithmConfigurationPath",
-                                                             "../Allen/configuration/constants/"};
+
+  Gaudi::Property<std::string> m_json{this, "JSON", "${ALLEN_PROJECT_ROOT}/configuration/constants/default.json"};
+  Gaudi::Property<std::string> m_paramDir{this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
+
   Gaudi::Property<bool> m_do_check {this, "do_check", true};
+  // If set to false, events are only filtered by the GEC
+  // If set to true, events are filtered based on an OR of the Allen selection lines
+  Gaudi::Property<bool> m_filter_hlt1 {this, "filter_HLT1", false};
 };
 
 #endif

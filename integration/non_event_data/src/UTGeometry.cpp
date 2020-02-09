@@ -18,9 +18,10 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 
   auto alloc_and_copy = [](auto const& host_numbers, auto& device_numbers) {
     using value_type = typename std::remove_reference_t<decltype(host_numbers)>::value_type;
+    using index_type = typename std::remove_reference_t<decltype(device_numbers)>::index_type;
     value_type* p = nullptr;
     cudaCheck(cudaMalloc((void**) &p, host_numbers.size() * sizeof(value_type)));
-    device_numbers = gsl::span {p, host_numbers.size()};
+    device_numbers = gsl::span {p, static_cast<index_type>(host_numbers.size())};
     cudaCheck(cudaMemcpy(
       device_numbers.data(), host_numbers.data(), host_numbers.size() * sizeof(value_type), cudaMemcpyHostToDevice));
   };
@@ -39,9 +40,10 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 
   // Allocate space for geometry
   auto& dev_ut_geometry = m_constants.get().dev_ut_geometry;
+  using index_type = typename std::remove_reference_t<decltype(dev_ut_geometry)>::index_type;
   char* g = nullptr;
   cudaCheck(cudaMalloc((void**) &g, data.size()));
-  dev_ut_geometry = gsl::span {g, data.size()};
+  dev_ut_geometry = gsl::span {g, static_cast<index_type>(data.size())};
   const ::UTGeometry geometry {data};
 
   // Offset for each station / layer
@@ -136,7 +138,7 @@ void Consumers::UTGeometry::consume(std::vector<char> const& data)
   if (dev_ut_geometry.empty()) {
     initialize(data);
   }
-  else if (dev_ut_geometry.size() != data.size()) {
+  else if (static_cast<size_t>(dev_ut_geometry.size()) != data.size()) {
     throw StrException {string {"sizes don't match: "} + to_string(dev_ut_geometry.size()) + " " +
                         to_string(data.size())};
   }

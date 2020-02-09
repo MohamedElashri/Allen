@@ -33,7 +33,7 @@ void Consumers::BasicGeometry::consume(std::vector<char> const& data)
     // Allocate space
     char* p = nullptr;
     cudaCheck(cudaMalloc((void**) &p, data.size()));
-    dev_geometry = gsl::span {p, data.size()};
+    dev_geometry = gsl::span {p, static_cast<gsl::span<char>::index_type>(data.size())};
   }
   else if (dev_geometry.size() != data.size()) {
     throw StrException {string {"sizes don't match: "} + to_string(dev_geometry.size()) + " " + to_string(data.size())};

@@ -1,8 +1,19 @@
-#ifndef RAWBANK_H
-#define RAWBANK_H 1
+/*****************************************************************************\
+* (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the GNU General Public      *
+* Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#ifndef DAQEVENT_RAWBANK_H
+#define DAQEVENT_RAWBANK_H 1
 
 #include <string>
 #include <vector>
+#include <gsl/gsl>
 
 /** @class LHCb::RawBank RawBank.h
  *
@@ -28,16 +39,27 @@
  *
  */
 namespace LHCb {
+  template<typename T>
+  using span = gsl::span<T>;
+
+  class RawBankSubClass;
 
   class RawBank {
+    /// Need to declare some friend to avoid compiler warnings
+    friend class RawBankSubClass;
+
   private:
     /// Default Constructor
-    RawBank() {}
+    RawBank() = default;
 
     /// Default Destructor
-    ~RawBank() {}
+    ~RawBank() = default;
 
   public:
+    // typedef for std::vector of RawBank
+    typedef std::vector<RawBank*> Vector;
+    typedef std::vector<const RawBank*> ConstVector;
+
     /// Define bank types for RawBank
     enum BankType {
       L0Calo = 0,       //  0
@@ -113,6 +135,7 @@ namespace LHCb {
       HC,               // 70
       HltTrackReports,  // 71
       HCError,          // 72
+      VPRetinaCluster,  // 73
       // Add new types here. Don't forget to update also RawBank.cpp
       LastType // LOOP Marker; add new bank types ONLY before!
     };
@@ -127,7 +150,7 @@ namespace LHCb {
     void setMagic() { m_magic = MagicPattern; }
 
     /// Header size
-    static constexpr int hdrSize() { return sizeof(RawBank) - sizeof(m_data); }
+    int hdrSize() const { return sizeof(RawBank) - sizeof(m_data); }
 
     /// Return size of the data body part of the bank
     int size() const { return m_length - hdrSize(); }
@@ -169,43 +192,50 @@ namespace LHCb {
     template<typename T>
     T* begin()
     {
-      return (T*) m_data;
+      return reinterpret_cast<T*>(m_data);
     }
 
     /// End iterator
     template<typename T>
     T* end()
     {
-      return ((T*) m_data) + size() / sizeof(T);
+      return begin<T>() + size() / sizeof(T);
     }
 
     /// Begin iterator over const iteration
     template<typename T>
     const T* begin() const
     {
-      return (T*) m_data;
+      return reinterpret_cast<const T*>(m_data);
     }
 
     /// End iterator of const iteration
     template<typename T>
     const T* end() const
     {
-      return ((T*) m_data) + size() / sizeof(T);
+      return begin<T>() + size() / sizeof(T);
+    }
+
+    /// return a range of 'const T'
+    template<typename T>
+    LHCb::span<const T> range() const
+    {
+      return {begin<T>(), end<T>()};
     }
 
   private:
     /// Magic word (by definition 0xCBCB)
-    unsigned short m_magic = MagicPattern;
+    unsigned short m_magic;
     /// Bank length in bytes (must be >= 0)
-    unsigned short m_length = 0;
+    unsigned short m_length;
     /// Bank type (must be >= 0)
-    unsigned char m_type = 0;
+    unsigned char m_type;
     /// Version identifier (must be >= 0)
-    unsigned char m_version = 0;
+    unsigned char m_version;
     /// Source ID (valid source IDs are > 0; invalid ones 0)
-    short m_sourceID = 0;
+    short m_sourceID;
     /// Opaque data block
-    unsigned int m_data[1] = {0};
+    unsigned int m_data[1];
   }; // class RawBank
 
 } // namespace LHCb

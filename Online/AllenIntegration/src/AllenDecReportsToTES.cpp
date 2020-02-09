@@ -27,7 +27,7 @@ AllenDecReportsToTES::AllenDecReportsToTES(const std::string& name, ISvcLocator*
     // Inputs
     {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}},
     // Outputs
-    {KeyValue {"OutputDecReports", "Allen/DecReports"}})
+    {KeyValue {"OutputDecReports", "Allen/Out/DecReports"}})
 {}
 
 StatusCode AllenDecReportsToTES::initialize()
@@ -40,16 +40,21 @@ StatusCode AllenDecReportsToTES::initialize()
   return StatusCode::SUCCESS;
 }
 
-std::vector<uint32_t> AllenDecReportsToTES::operator()(const HostBuffers& host_buffers) const
+LHCb::RawEvent AllenDecReportsToTES::operator()(const HostBuffers& host_buffers) const
 {
 
-  const uint i_event = 0;
-  std::vector<uint32_t> dec_reports;
-  dec_reports.reserve((2 + Hlt1::Hlt1Lines::End) * i_event);
+  std::vector<unsigned int> dec_reports;
   // First two words contain the TCK and taskID, then one word per HLT1 line
-  for (uint i = 0; i < (2 + Hlt1::End) * i_event; i++) {
+  dec_reports.reserve(2 + host_buffers.host_number_of_hlt1_lines);
+  for (uint i = 0; i < 2 + host_buffers.host_number_of_hlt1_lines; i++) {
     dec_reports.push_back(host_buffers.host_dec_reports[i]);
+    // std::cout << "adding " << std::hex << host_buffers.host_dec_reports[i] << " to dec report" << std::dec <<
+    // std::endl;
   }
+  LHCb::RawEvent raw_event;
+  // SourceID_Hlt1 = 1, SourceID_BitShift = 13, VersionNumber = 2
+  // SourceID_Hlt = 0
+  raw_event.addBank(int(0 << 13), LHCb::RawBank::HltDecReports, 2u, dec_reports);
 
-  return dec_reports;
+  return raw_event;
 }

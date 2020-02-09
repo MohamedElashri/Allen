@@ -21,7 +21,7 @@
 #include <SystemOfUnits.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 
 #ifndef NO_CUDA
 #include <CudaCommon.h>
@@ -69,7 +69,8 @@ std::tuple<bool, bool, bool, size_t> read_events(
     // It is
 
     // Read the banks
-    gsl::span<char> buffer_span {buffer_start + event_offsets[n_filled], buffer.size() - event_offsets[n_filled]};
+    gsl::span<char> buffer_span {buffer_start + event_offsets[n_filled],
+                                 static_cast<events_size>(buffer.size() - event_offsets[n_filled])};
     std::tie(eof, error, bank_span) =
       MDF::read_banks(input, header, std::move(buffer_span), compress_buffer, check_checksum);
     // Fill the start offset of the next event
@@ -77,14 +78,14 @@ std::tuple<bool, bool, bool, size_t> read_events(
     n_bytes += bank_span.size();
 
     // read the next header
-    ssize_t n_bytes = input.read(reinterpret_cast<char*>(&header), header_size);
+    ssize_t n_bytes = input.read(reinterpret_cast<char*>(&header), mdf_header_size);
     if (n_bytes != 0) {
       // Check if there is enough space to read this event
       int compress = header.compression() & 0xF;
       int expand = (header.compression() >> 4) + 1;
       int event_size =
-        (header.recordSize() + header_size + 2 * (sizeof(LHCb::RawBank) + sizeof(int)) +
-         (compress ? expand * (header.recordSize() - header_size) : 0));
+        (header.recordSize() + mdf_header_size + 2 * (sizeof(LHCb::RawBank) + sizeof(int)) +
+         (compress ? expand * (header.recordSize() - mdf_header_size) : 0));
       if (event_offsets[n_filled] + event_size > buffer.size()) {
         full = true;
         break;
@@ -195,7 +196,7 @@ std::tuple<bool, bool> transpose_event(
     if (bt == LHCb::RawBank::ODIN) {
       // decode ODIN bank to obtain run and event numbers
       auto odin = MDF::decode_odin(b->version(), b->data());
-      event_ids.emplace_back(odin.run_number, odin.event_number);
+      event_ids.emplace_back(odin.runNumber(), odin.eventNumber());
     }
 
     if (bt >= LHCb::RawBank::LastType || bank_ids[bt] == -1) {
@@ -276,7 +277,7 @@ std::tuple<bool, bool> transpose_event(
     // Use the event size of the next event here instead of the
     // per bank size because that's not yet known for the next
     // event
-    if ((slice_offsets[offsets_size - 1] + bank_data.size()) > slice_size) {
+    if ((slice_offsets[offsets_size - 1] + static_cast<size_t>(bank_data.size())) > slice_size) {
       return {true, true};
     }
   }
@@ -373,7 +374,8 @@ Slices allocate_slices(size_t n_slices, std::function<std::tuple<size_t, size_t>
       if (n_bytes) {
         spans.emplace_back(events_mem, n_bytes);
       }
-      bank_slices.emplace_back(std::move(spans), n_bytes, gsl::span<uint> {offsets_mem, n_offsets + 1}, 1);
+      bank_slices.emplace_back(
+        std::move(spans), n_bytes, offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)}, 1);
     }
   }
   return slices;

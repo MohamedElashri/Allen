@@ -19,6 +19,7 @@ file(GLOB tracking_checker_sources "src/*cpp")
 add_library(TrackChecking STATIC
   ${tracking_checker_sources}
 )
+target_include_directories(TrackChecking PUBLIC ${CPPGSL_INCLUDE_DIRS})
 
 if(ROOT_FOUND)
   target_compile_definitions(TrackChecking PRIVATE ${ALLEN_ROOT_DEFINITIONS})

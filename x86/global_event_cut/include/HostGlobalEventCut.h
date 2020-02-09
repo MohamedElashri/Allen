@@ -85,10 +85,10 @@ namespace host_global_event_cut {
       }
       else {
         function(
-          std::get<0>(runtime_options.host_ut_events)[0].begin(),
-          std::get<2>(runtime_options.host_ut_events).begin(),
-          std::get<0>(runtime_options.host_scifi_events)[0].begin(),
-          std::get<2>(runtime_options.host_scifi_events).begin(),
+          std::get<0>(runtime_options.host_ut_events)[0].data(),
+          std::get<2>(runtime_options.host_ut_events).data(),
+          std::get<0>(runtime_options.host_scifi_events)[0].data(),
+          std::get<2>(runtime_options.host_scifi_events).data(),
           number_of_events,
           parameters);
       }

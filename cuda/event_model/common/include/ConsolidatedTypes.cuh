@@ -13,7 +13,7 @@ namespace Consolidated {
     const uint* m_event_tracks_offsets;
     const uint m_total_number_of_tracks;
 
-#ifdef DEBUG
+#ifdef ALLEN_DEBUG
     // The datatype m_number_of_events is only used in asserts, which are
     // only available in DEBUG mode
     const uint m_number_of_events;
@@ -22,8 +22,8 @@ namespace Consolidated {
       const uint* event_tracks_offsets,
       const uint number_of_events) :
       m_event_tracks_offsets(event_tracks_offsets),
-      m_number_of_events(number_of_events),
-      m_total_number_of_tracks(event_tracks_offsets[number_of_events]) {}
+      m_total_number_of_tracks(event_tracks_offsets[number_of_events]),
+      m_number_of_events(number_of_events) {}
 #else
     __device__ __host__ TracksDescription(
       const uint* event_tracks_offsets,
