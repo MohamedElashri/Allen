@@ -24,12 +24,12 @@ else()
 endif()
 message(STATUS "Allen target: ${TARGET_DEVICE}")
 
-# Determine whether to use Tensor Cores
-# Note: Tensor cores are only supported in CUDA
-option(USE_TENSOR_CORES "Produce CUDA code with Tensor Cores enabled if available" OFF)
-if(TARGET_DEVICE STREQUAL "CUDA" AND TENSOR)
-  message(STATUS "Tensor core compilation enabled")
-  add_compile_definitions(TENSOR_CORES_ENABLED)
+find_package(cppgsl QUIET)
+if (cppgsl_FOUND)
+  message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIRS})
+else()
+  set(CPPGSL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
+  message(STATUS "Using internal gsl-lite")
 endif()
 
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
@@ -433,14 +433,6 @@ if (USE_ROOT)
    endif()
 else()
    message(STATUS "Compiling without ROOT")
-endif()
-
-find_package(cppgsl QUIET)
-if (cppgsl_FOUND)
-  message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIRS})
-else()
-  set(CPPGSL_INCLUDE_DIRS ${CMAKE_CURRECT_SOURCE_DIR}/main/cppgsl)
-  message(STATUS "Using internal gsl-lite")
 endif()
 
 set(EXTERNAL_DIR "external")
