@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 # Determine whether to produce a CPU version
 option(TARGET_CPU "Produce a CPU version" OFF)
 option(TARGET_HIP "Produce a HIP version" OFF)
+
 if(DEFINED ENV{LHCBRELEASES})
   message(STATUS "Forcing CPU target for Gaudi build")
   set(TARGET_DEVICE "CPU")
@@ -56,7 +57,9 @@ macro(allen_project)
 
     # Always enable ROOT for Gaudi builds
     set(USE_ROOT ON)
-    set(USE_MPI ON)
+
+    # Always disable MPI for Gaudi builds
+    set(USE_MPI OFF)
 
     # Find the CUDA compiler if it's not set
     # FIXME: this assumes a standard cuda install: re-evaluate if
