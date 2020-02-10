@@ -102,7 +102,7 @@ check-formatting:
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
-    - source /cvmfs/sft.cern.ch/lcg/releases/clang/9.0.0-a1c77/x86_64-centos7/setup.sh
+    - source /cvmfs/sft.cern.ch/lcg/releases/clang/8.0.0.1/x86_64-centos7/setup.sh
     - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
     - mkdir build_${TARGET}
     - cd build_${TARGET}
