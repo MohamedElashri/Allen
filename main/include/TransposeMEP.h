@@ -63,8 +63,11 @@ namespace MEP {
     int const slice_index,
     std::vector<int> const& bank_ids,
     std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
+    EB::Header const& mep_header,
     Blocks const& blocks,
-    std::tuple<size_t, size_t> const& interval);
+    MEP::SourceOffsets const& input_offsets,
+    std::tuple<size_t, size_t> const& interval,
+    bool split_by_run = false);
 
   std::tuple<bool, bool, size_t> mep_offsets(
     ::Slices& slices,
@@ -76,11 +79,6 @@ namespace MEP {
     MEP::Blocks const& blocks,
     std::tuple<size_t, size_t> const& interval,
     bool split_by_run = false);
-
-  size_t check_for_run_change(
-    EB::Header const& mep_header,
-    MEP::Blocks const& blocks,
-    std::tuple<size_t, size_t> const& interval);
 
   /**
    * @brief      Transpose events to Allen layout
