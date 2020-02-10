@@ -27,25 +27,28 @@ producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
                                            DumpUTLookupTables)]
 
 online_conf = OnlineConfiguration("Application")
-online_conf.debug                = False
-online_conf.classType            = 1
-online_conf.automatic            = False
-online_conf.monitorType          = 'MonitorSvc'
-online_conf.logDeviceType        = 'RTL::Logger::LogDevice'
-online_conf.logDeviceFormat      = '%TIME%LEVEL%-8NODE: %-32PROCESS %-20SOURCE'
-online_conf.OutputLevel          = 3
-online_conf.IOOutputLevel        = 3
+online_conf.debug = False
+online_conf.classType = 1
+online_conf.automatic = False
+online_conf.monitorType = 'MonitorSvc'
+online_conf.logDeviceType = 'RTL::Logger::LogDevice'
+online_conf.logDeviceFormat = '%TIME%LEVEL%-8NODE: %-32PROCESS %-20SOURCE'
+online_conf.OutputLevel = 3
+online_conf.IOOutputLevel = 3
 
 
 allen_conf = AllenConfiguration()
 allen_conf.EventsPerSlice = 1000
 allen_conf.NonStop = True
-allen_conf.MPI = True
+allen_conf.MPI = False
 allen_conf.Receivers = "mlx5_0:1"
 allen_conf.NThreads = 8
 allen_conf.NSlices = 16
-allen_conf.Output = "tcp://192.168.1.101:35000"
-allen_conf.Device = "01:00.0"
+# allen_conf.Output = "tcp://192.168.1.101:35000"
+# allen_conf.Device = "01:00.0"
+allen_conf.Input = [
+    "/scratch/raaij/mep/upgrade_mc_minbias_scifi_v5_pf3000.mep"]
+allen_conf.Device = "0"
 allen_conf.OutputLevel = 2
 
 monSvc = MonitorSvc('MonitorSvc')

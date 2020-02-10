@@ -346,7 +346,7 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
   size_t control_index = 0;
   if (!control_connection.empty()) {
     allen_control = zmqSvc->socket(zmq::PAIR);
-    zmq::setsockopt(*allen_control, zmq::LINGER, 0);
+    zmq::setsockopt(*allen_control, zmq::LINGER, -1);
     allen_control->connect(control_connection.data());
     control_index = items.size() - 1;
     items[control_index] = {*allen_control, 0, zmq::POLLIN, 0};
@@ -744,18 +744,19 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
     info_cout << "Streams ready\n";
   }
 
-  if (allen_control) {
-    zmqSvc->send(*allen_control, "CONFIGURED");
-    zmqSvc->poll(&items[control_index], 1, -1);
-    if (items[control_index].revents & zmq::POLLIN) {
-      auto msg = zmqSvc->receive<std::string>(*allen_control);
-      if (msg == "RESET") {
-        return 0;
-      }
+  if (!allen_control) {
+    input_provider->start();
+    for (size_t i = 0; i < n_io; ++i) {
+      auto& socket = std::get<1>(io_workers[i]);
+      zmqSvc->send(socket, "START");
     }
+  } else {
+    zmqSvc->send(*allen_control, "READY");
   }
 
   bool io_done = false;
+  // stop triggered, input done, output done
+  auto stop = false, exit_loop = false;
 
   // Main event loop
   // - Check if input slices are available from the input thread
@@ -777,7 +778,7 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
     std::optional<int> n;
     do {
       try {
-        n = zmq::poll(&items[0], number_of_threads + n_io + n_mon, -1);
+        n = zmq::poll(&items[0], number_of_threads + n_io + n_mon + 1, -1);
       } catch (const zmq::error_t& err) {
         if (err.num() == EINTR) continue;
       }
@@ -837,8 +838,10 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
           buffer_manager->returnBufferWritten(buf_idx);
         }
         else if (msg == "DONE") {
-          io_done = true;
-          info_cout << "Input complete\n";
+          if (((allen_control && stop) || !allen_control) && !io_done) {
+            io_done = true;
+            info_cout << "Input complete\n";
+          }
         }
         else {
           assert(msg == "ERROR");
@@ -943,7 +946,31 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
     // Check for finished monitoring jobs
     check_monitors();
 
-    // Separate if statement to allow stopping in different ways
+    if (allen_control && items[control_index].revents & zmq::POLLIN) {
+      auto msg = zmqSvc->receive<std::string>(*allen_control);
+      if (msg == "STOP") {
+        stop = true;
+        input_provider->stop();
+      } else if (msg == "START") {
+        // Start the input provider
+        io_done = false;
+        input_provider->start();
+
+        // Send slice thread start to start asking for slices
+        for (size_t i = 0; i < n_io; ++i) {
+          auto& socket = std::get<1>(io_workers[i]);
+          zmqSvc->send(socket, "START");
+        }
+
+        // Respond to steering
+        zmqSvc->send(*allen_control, "RUNNING");
+      } else if (msg == "RESET") {
+        io_done = true;
+        exit_loop = true;
+      }
+    }
+
+    // Separate if statement to allow stop in different ways
     // depending on whether async I/O or repetitions are enabled.
     // NOTE: This may be called several times when slices are ready
     bool io_cond = ((!enable_async_io && stream_ready.count() == number_of_threads) || (enable_async_io && io_done));
@@ -955,11 +982,15 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
     }
 
     // Check if we're done
-    if (
-      stream_ready.count() == number_of_threads && buffer_manager->buffersEmpty() && io_cond &&
+    if (stream_ready.count() == number_of_threads && buffer_manager->buffersEmpty() && io_cond &&
       (!enable_async_io || (enable_async_io && count_status(SliceStatus::Empty) == number_of_slices))) {
       info_cout << "Processing complete\n";
-      break;
+      if (allen_control && stop) {
+        stop = false;
+        zmqSvc->send(*allen_control, "READY");
+      } else if (!allen_control || (allen_control && exit_loop)) {
+        break;
+      }
     }
   }
 
@@ -1027,6 +1058,10 @@ loop_error:
 
   // Reset device
   cudaCheck(cudaDeviceReset());
+
+  if (allen_control) {
+    zmqSvc->send(*allen_control, "NOT_READY");
+  }
 
   return 0;
 }

@@ -27,5 +27,7 @@ class AllenConfiguration : public Service  {
   Gaudi::Property<std::string> output{this, "Output", ""};
   Gaudi::Property<std::string> device{this, "Device", "0"};
   Gaudi::Property<std::string> json{this, "JSON", "${ALLEN_PROJECT_ROOT}/configuration/constants/default.json"};
+  Gaudi::Property<std::string> paramDir{this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
+  Gaudi::Property<std::vector<std::string>> input{this, "Input"};
 
 };

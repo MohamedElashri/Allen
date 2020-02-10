@@ -13,17 +13,17 @@
  *             a Handler of type FUNCTION.
  */
 #define ALGORITHM(FUNCTION, EXPOSED_TYPE_NAME, DEPENDENCIES, ...)                                                   \
-  struct EXPOSED_TYPE_NAME : public Algorithm {                                                                     \
+  struct EXPOSED_TYPE_NAME : public Allen::Algorithm {                                                              \
     constexpr static auto name {#EXPOSED_TYPE_NAME};                                                                \
     using Arguments = DEPENDENCIES;                                                                                 \
     using arguments_t = ArgumentRefManager<Arguments>;                                                              \
     decltype(make_handler(name, FUNCTION)) handler {name, FUNCTION};                                                \
     template<typename T>                                                                                            \
-    T property_value(std::string property_name) const                                                           \
+    T property_value(std::string property_name) const                                                               \
     {                                                                                                               \
-      T holder{};                                                       \
-      auto prop = dynamic_cast<Property<T> const*>(get_prop(property_name));                                        \
-      if (prop != nullptr)                                                                                                     \
+      T holder{};                                                                                                   \
+      auto prop = dynamic_cast<Allen::Property<T> const*>(get_prop(property_name));                                 \
+      if (prop != nullptr)                                                                                          \
         holder = prop->get_value();                                                                                 \
       else                                                                                                          \
         warning_cout << "property " << property_name << " not found" << std::endl;                                  \
@@ -33,8 +33,8 @@
     T cpu_property_value(std::string const& property_name) const                                                    \
     {                                                                                                               \
       T holder;                                                                                                     \
-      auto prop = dynamic_cast<CPUProperty<T> const*>(get_prop(property_name));                                     \
-      if (prop != nullptr)                                                                                                     \
+      auto prop = dynamic_cast<Allen::CPUProperty<T> const*>(get_prop(property_name));                              \
+      if (prop != nullptr)                                                                                          \
         holder = prop->get_value();                                                                                 \
       else                                                                                                          \
         warning_cout << "cpu property " << property_name << " not found" << std::endl;                              \
@@ -68,9 +68,13 @@
     void invoke() { handler.invoke(); }                                                                             \
                                                                                                                     \
   private:                                                                                                          \
-    CPUProperty<std::array<int, 3>> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};                \
-    CPUProperty<std::array<int, 3>> m_grid_dim {this, "grid_dim", {1, 1, 1}, "grid dimensions"};                    \
-    __VA_ARGS__                                                                                                     \
+    Allen::CPUProperty<std::array<int, 3>> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};         \
+    Allen::CPUProperty<std::array<int, 3>> m_grid_dim {this, "grid_dim", {1, 1, 1}, "grid dimensions"};             \
+    template <typename V>                                               \
+    using Property = Allen::Property<V>;                                \
+    template <typename V>                                               \
+    using DerivedProperty = Allen::DerivedProperty<V>;                  \
+    __VA_ARGS__                                                         \
   };
 
 /**

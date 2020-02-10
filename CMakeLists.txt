@@ -41,6 +41,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 
 option(BUILD_TESTS "Build test programs" OFF)
 option(USE_ROOT "Build with ROOT" OFF)
+option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 
 # Setup the project to build as a Gaudi project or else standalone
 macro(allen_project)
@@ -173,7 +174,6 @@ else()
 	add_compile_definitions(TENSOR_CORES_ENABLED)
   endif()
 
-  find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
   function(allen_add_library)
@@ -357,7 +357,6 @@ endif()
 
 find_package(ZLIB REQUIRED)
 
-option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 if (USE_MPI)
   find_package(MPI REQUIRED)
   include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})
@@ -555,6 +554,7 @@ endif()
 target_link_libraries(AllenLib PUBLIC
   Stream
   Common
+  CudaCommon
   TrackChecking
   PVChecking
   CheckClustering

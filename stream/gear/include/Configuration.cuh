@@ -11,6 +11,8 @@
 #include <functional>
 #include <iostream>
 
+namespace Allen {
+
 namespace Configuration {
 
   namespace Detail {
@@ -40,6 +42,7 @@ namespace Configuration {
  * @brief      Common interface for templated Property and SharedProperty classes
  *
  */
+
 class BaseProperty {
 public:
   virtual bool from_string(const std::string& value) = 0;
@@ -335,13 +338,6 @@ private:
   std::vector<Property<V>*> m_deps;
 };
 
-namespace Configuration {
-  namespace Relations {
-    template<typename V>
-    V inverse(std::vector<Property<V>*> pars);
-  }
-} // namespace Configuration
-
 /**
  * @brief      Store a collection of related properties that are not tied to a single algorithm
  *
@@ -469,3 +465,11 @@ private:
   SharedPropertySet* m_set = nullptr;
   Property<V> const* m_prop = nullptr;
 };
+} // namespace Allen
+
+namespace Configuration {
+  namespace Relations {
+    template<typename V>
+    V inverse(std::vector<Allen::Property<V>*> pars);
+  }
+} // namespace Configuration

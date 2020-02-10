@@ -276,7 +276,8 @@ public:
       if (m_transposed.empty()) {
         auto wakeup = [this] {
           auto n_writable = count_writable();
-          return (!m_transposed.empty() || m_read_error || (m_transpose_done && n_writable == m_buffer_status.size()));
+          return (!m_transposed.empty() || m_read_error || (m_transpose_done && n_writable == m_buffer_status.size())
+                  || (m_stopping && n_writable == m_buffer_status.size()));
         };
         if (timeout) {
           timed_out = !m_transpose_cond.wait_for(lock, std::chrono::milliseconds {*timeout}, wakeup);
@@ -293,7 +294,7 @@ public:
 
     // Check if I/O and transposition is done and return a slice index
     auto n_writable = count_writable();
-    done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_status.size();
+    done = ((m_transpose_done && m_transposed.empty()) || m_stopping) && n_writable == m_buffer_status.size();
 
     if (timed_out && logger::ll.verbosityLevel >= logger::verbose) {
       this->debug_output(
@@ -411,12 +412,25 @@ public:
     if (!m_started) {
       std::unique_lock<std::mutex> lock {m_control_mutex};
       this->debug_output("Starting", 0);
-      m_control_cond.notify_one();
+      m_started = true;
+      m_stopping = false;
     }
+    m_control_cond.notify_one();
     return true;
   };
 
-  int stop() override { return true; };
+  int stop() override {
+    {
+      std::unique_lock<std::mutex> lock {m_control_mutex};
+      m_stopping = true;
+      m_started = false;
+    }
+    // Make sure all threads wait for start in case they were waiting
+    // for a buffer
+    m_mpi_cond.notify_all();
+
+    return true;
+  };
 
 private:
 
@@ -654,7 +668,7 @@ private:
     if (it == m_buffer_status.end() && !m_transpose_done) {
       m_mpi_cond.wait(lock, [this, &it, &find_buffer] {
         it = find_buffer();
-        return it != m_buffer_status.end() || m_transpose_done;
+        return it != m_buffer_status.end() || m_transpose_done || m_stopping;
       });
     }
     return {it, distance(m_buffer_status.begin(), it)};
@@ -689,6 +703,15 @@ private:
     while (!receive_done) {
       // info_cout << MPI::rank_str() << "round " << current_file << "\n";
 
+      // If we've been stopped, wait for start or exit
+      if (!m_started || m_stopping) {
+        std::unique_lock<std::mutex> lock {m_control_mutex};
+        this->debug_output("Waiting for start", 0);
+        m_control_cond.wait(lock, [this] { return m_started || m_done;  });
+      }
+
+      if (m_done) break;
+
       // open the first file
       if (!m_input && !open_file()) {
         m_read_error = true;
@@ -700,7 +723,12 @@ private:
         std::unique_lock<std::mutex> lock {m_mpi_mutex};
         std::tie(m_buffer_reading, i_buffer) =
           get_mep_buffer([](BufferStatus const& s) { return s.writable; }, m_buffer_reading, lock);
-        m_buffer_reading->writable = false;
+        if (m_buffer_reading != m_buffer_status.end()) {
+          m_buffer_reading->writable = false;
+          assert(m_buffer_reading->work_counter == 0);
+        } else {
+          continue;
+        }
       }
       if (m_done) {
         receive_done = true;
@@ -784,15 +812,6 @@ private:
   void mpi_read()
   {
 
-    {
-      std::unique_lock<std::mutex> lock {m_control_mutex};
-      if (!m_started) {
-        this->debug_output("Waiting for start", 0);
-        m_control_cond.wait(lock, [this] { return m_started || m_done;  });
-        }
-      }
-
-
     int window_size = m_config.window_size;
     std::vector<MPI_Request> requests(window_size);
 
@@ -816,12 +835,10 @@ private:
       // info_cout << MPI::rank_str() << "round " << current_file << "\n";
 
       // If we've been stopped, wait for start or exit
-      {
+      if (!m_started || m_stopping) {
         std::unique_lock<std::mutex> lock {m_control_mutex};
-        if (m_stopping) {
-          this->debug_output("Waiting for start", 0);
-          m_control_cond.wait(lock, [this] { return m_started || m_done;  });
-        }
+        this->debug_output("Waiting for start", 0);
+        m_control_cond.wait(lock, [this] { return m_started || m_done;  });
       }
 
       if (m_done) break;
@@ -834,8 +851,12 @@ private:
         std::unique_lock<std::mutex> lock {m_mpi_mutex};
         std::tie(m_buffer_reading, i_buffer) =
           get_mep_buffer([](BufferStatus const& s) { return s.writable; }, m_buffer_reading, lock);
-        m_buffer_reading->writable = false;
-        assert(m_buffer_reading->work_counter == 0);
+        if (m_buffer_reading != m_buffer_status.end()) {
+          m_buffer_reading->writable = false;
+          assert(m_buffer_reading->work_counter == 0);
+        } else {
+          continue;
+        }
       }
 
       auto receiver = i_buffer % m_config.n_receivers();
@@ -1027,6 +1048,8 @@ private:
         std::tie(m_buffer_transpose, i_buffer) = get_mep_buffer(has_intervals, m_buffer_transpose, lock);
         if (m_transpose_done) {
           break;
+        } else if (m_buffer_transpose == m_buffer_status.end()) {
+          continue;
         }
         auto& status = *m_buffer_transpose;
         assert(!status.intervals.empty());

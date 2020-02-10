@@ -20,6 +20,7 @@
 #include <Timer.h>
 
 #include <ZeroMQ/IZeroMQSvc.h>
+#include <zmq/svc.h>
 
 #ifdef HAVE_MPI
 #include <MPIConfig.h>
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  auto zmqSvc = std::make_unique<IZeroMQSvc>();
+  auto zmqSvc = makeZmqSvc();
 
   if (allen_options.count("with-mpi")) {
 #ifdef HAVE_MPI
@@ -125,7 +126,7 @@ int main(int argc, char* argv[])
 
     if (MPI::rank == MPI::receiver) {
       Allen::NonEventData::Updater updater {allen_options};
-      return allen(std::move(allen_options), &updater, zmqSvc.get(), "");
+      return allen(std::move(allen_options), &updater, zmqSvc, "");
     }
     else {
       return send_meps_mpi(allen_options);
@@ -137,6 +138,6 @@ int main(int argc, char* argv[])
   }
   else {
     Allen::NonEventData::Updater updater {allen_options};
-    return allen(std::move(allen_options), &updater, zmqSvc.get(), "");
+    return allen(std::move(allen_options), &updater, zmqSvc, "");
   }
 }

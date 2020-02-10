@@ -118,7 +118,7 @@ void run_slices(
 
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
-  int timeout = 0;
+  int timeout = -1;
   while (true) {
 
     // Check if there are messages without blocking
@@ -128,6 +128,8 @@ void run_slices(
       auto msg = zmqSvc->receive<std::string>(control);
       if (msg == "DONE") {
         break;
+      } else if (msg == "START") {
+        timeout = 0;
       }
     }
 

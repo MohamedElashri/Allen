@@ -14,7 +14,7 @@
  *          An auxiliary array must be provided.
  */
 #define PREFIX_SUM_ALGORITHM(EXPOSED_TYPE_NAME, DEPENDENCIES)                                                   \
-  struct EXPOSED_TYPE_NAME : public Algorithm {                                                                 \
+  struct EXPOSED_TYPE_NAME : public Allen::Algorithm {                                                          \
     constexpr static auto name {#EXPOSED_TYPE_NAME};                                                            \
     constexpr static size_t aux_array_size(size_t array_size)                                                   \
     {                                                                                                           \

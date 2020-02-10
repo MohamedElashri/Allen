@@ -10,12 +10,11 @@ gaudi_depends_on_subdirs(Online/OnlineKernel
                          Online/ZeroMQ
                          Online/Parsers)
 
-find_package(Boost REQUIRED)
 find_package(cppgsl REQUIRED)
 find_package(ROOT REQUIRED)
 find_package(Rangev3 REQUIRED)
 find_package(ZMQ REQUIRED)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${Rangev3_INCLUDE_DIRS}  ${ZMQ_INCLUDE_DIRS})
+include_directories(SYSTEM ${Rangev3_INCLUDE_DIRS}  ${ZMQ_INCLUDE_DIRS})
 
 find_package(MPI REQUIRED)
 include_directories(SYSTEM ${MPI_CXX_INCLUDE_PATH})

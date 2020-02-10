@@ -19,6 +19,7 @@
 
 #include <read_mdf.hpp>
 #include <raw_helpers.hpp>
+#include <zmq/svc.h>
 
 namespace {
   using namespace std::string_literals;
@@ -154,7 +155,7 @@ int main(int argc, char* argv[]) {
   unsigned int buffer_size;
   bool discard;
 
-  auto zmqSvc = std::make_unique<IZeroMQSvc>();
+  auto zmqSvc = makeZmqSvc();
 
   // Declare the supported options.
   po::options_description desc("Allowed options");
@@ -200,7 +201,7 @@ int main(int argc, char* argv[]) {
   tick_socket.bind(tick_connection);
 
   // Start tick thread
-  std::thread tick_thread{timer, zmqSvc.get(), tick_connection};
+  std::thread tick_thread{timer, zmqSvc, tick_connection};
 
   // Storage for incoming events
   Buffers buffers;
@@ -220,7 +221,7 @@ int main(int argc, char* argv[]) {
   // Start writing thread
   std::thread writer_thread{[&zmqSvc, writer_connection, directory, file_pattern,
                              max_files, file_size, discard, &buffers] {
-                              write_files(zmqSvc.get(), writer_connection, directory, file_pattern,
+                              write_files(zmqSvc, writer_connection, directory, file_pattern,
                                           max_files, file_size, discard, buffers);
                             }};
 

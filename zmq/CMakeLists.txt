@@ -37,16 +37,26 @@ else()
 
 endif()
 
-find_package(Boost COMPONENTS serialization iostreams program_options)
+find_package(Boost COMPONENTS serialization iostreams program_options filesystem)
 
 if (GaudiProject_FOUND)
   find_package(AIDA REQUIRED)
+  find_package(ROOT REQUIRED)
   add_library(AllenZMQ INTERFACE)
-  target_link_libraries(AllenZMQ INTERFACE ZMQLib ${ZMQ_LIBRARIES})
-  target_compile_definitions(AllenZMQ INTERFACE STANDALONE)
-  target_include_directories(AllenZMQ SYSTEM INTERFACE ${ZMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${AIDA_INCLUDE_DIRS})
+  add_library(ZMQSvc SHARED src/svc.cpp)
+  target_include_directories(ZMQSvc SYSTEM PUBLIC
+    include
+    ${ROOT_INCLUDE_DIRS}
+    ${ZMQ_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIR}
+    ${AIDA_INCLUDE_DIRS})
+  target_link_libraries(ZMQSvc PUBLIC GaudiKernel ZMQLib
+    Boost::filesystem
+    ${ZMQ_LIBRARIES}
+    ${ALLEN_ROOT_LIBRARIES})
+  target_link_libraries(AllenZMQ INTERFACE ZMQSvc ZMQLib)
 else()
-  allen_add_library(AllenZMQ src/functions.cpp)
+  allen_add_library(AllenZMQ src/functions.cpp src/svc.cpp)
   target_include_directories(AllenZMQ PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
   target_include_directories(AllenZMQ PUBLIC ${CMAKE_SOURCE_DIR}/main/include)
   target_include_directories(AllenZMQ PUBLIC SYSTEM ${ZMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})

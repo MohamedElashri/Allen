@@ -4,6 +4,7 @@
 
 #include <ZeroMQ/IZeroMQSvc.h>
 #include <read_mdf.hpp>
+#include <zmq/svc.h>
 
 #include <boost/program_options.hpp>
 
@@ -62,7 +63,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  auto zmqSvc = std::make_unique<IZeroMQSvc>();
+  auto zmqSvc = makeZmqSvc();
 
   // Some storage for reading the events into
   LHCb::MDFHeader header;

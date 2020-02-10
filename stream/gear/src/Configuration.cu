@@ -3,7 +3,7 @@
 
 // Specialization for double
 template<>
-bool Configuration::from_string<double>(double& holder, const std::string& value)
+bool Allen::Configuration::from_string<double>(double& holder, const std::string& value)
 {
   holder = atof(value.c_str());
   return true;
@@ -11,7 +11,7 @@ bool Configuration::from_string<double>(double& holder, const std::string& value
 
 // Specialization for float
 template<>
-bool Configuration::from_string<float>(float& holder, const std::string& value)
+bool Allen::Configuration::from_string<float>(float& holder, const std::string& value)
 {
   holder = atof(value.c_str());
   return true;
@@ -19,7 +19,7 @@ bool Configuration::from_string<float>(float& holder, const std::string& value)
 
 // Specialization for uint
 template<>
-bool Configuration::from_string<uint>(uint& holder, const std::string& value)
+bool Allen::Configuration::from_string<uint>(uint& holder, const std::string& value)
 {
   holder = strtoul(value.c_str(), 0, 0);
   return true;
@@ -27,7 +27,7 @@ bool Configuration::from_string<uint>(uint& holder, const std::string& value)
 
 // Specialization for int
 template<>
-bool Configuration::from_string<int>(int& holder, const std::string& value)
+bool Allen::Configuration::from_string<int>(int& holder, const std::string& value)
 {
   holder = strtol(value.c_str(), 0, 0);
   return true;
@@ -35,14 +35,14 @@ bool Configuration::from_string<int>(int& holder, const std::string& value)
 
 // Specialization for std::array<int, 3>
 template<>
-bool Configuration::from_string<std::array<int, 3>>(std::array<int, 3>& holder, const std::string& string_value)
+bool Allen::Configuration::from_string<std::array<int, 3>>(std::array<int, 3>& holder, const std::string& string_value)
 {
   std::smatch matches;
   auto r = std::regex_match(string_value, matches, Detail::array_expr);
   if (!r) return r;
   auto digits_begin = std::sregex_iterator(string_value.begin(), string_value.end(), Detail::digit_expr);
   auto digits_end = std::sregex_iterator();
-  if (std::distance(digits_begin, digits_end) != holder.size()) return false;
+  if (static_cast<size_t>(std::distance(digits_begin, digits_end)) != holder.size()) return false;
   int idx(0);
   for (auto i = digits_begin; i != digits_end; ++i) {
     holder[idx++] = atoi(i->str().c_str());
@@ -51,7 +51,7 @@ bool Configuration::from_string<std::array<int, 3>>(std::array<int, 3>& holder, 
 }
 
 template<>
-std::string Configuration::to_string<std::array<int, 3>>(std::array<int, 3> const& holder)
+std::string Allen::Configuration::to_string<std::array<int, 3>>(std::array<int, 3> const& holder)
 {
   // very basic implementation based on streaming
   std::stringstream s;
@@ -72,7 +72,7 @@ std::string Configuration::to_string<std::array<int, 3>>(std::array<int, 3> cons
 
 // function to define one float property as the inverse of another
 template<>
-float Configuration::Relations::inverse<float>(std::vector<Property<float>*> pars)
+float Configuration::Relations::inverse<float>(std::vector<Allen::Property<float>*> pars)
 {
   if (pars.size() > 1) {
     warning_cout << "inverse relation will only use the first input Property" << std::endl;
@@ -111,9 +111,9 @@ float Configuration::Relations::inverse<float>(std::vector<Property<float>*> par
  * SharedProperty<float> m_shared{this, "example_common", "param"};
  *
  */
-SharedPropertySet* Configuration::getSharedPropertySet(const std::string& name)
+Allen::SharedPropertySet* Allen::Configuration::getSharedPropertySet(const std::string& name)
 {
-  static std::map<std::string, SharedPropertySet*> m_sets;
+  static std::map<std::string, Allen::SharedPropertySet*> m_sets;
 
   if (m_sets.find(name) != m_sets.end()) {
     return m_sets.at(name);
