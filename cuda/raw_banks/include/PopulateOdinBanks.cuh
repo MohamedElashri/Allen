@@ -18,8 +18,8 @@ namespace populate_odin_banks {
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_odin_raw_input_t>(arguments, std::get<1>(runtime_options.host_odin_events));
       set_size<dev_odin_raw_input_offsets_t>(
@@ -29,10 +29,10 @@ namespace populate_odin_banks {
     void operator()(
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      HostBuffers& host_buffers,
+      const Constants&,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       data_to_device<dev_odin_raw_input_t, dev_odin_raw_input_offsets_t>(
         arguments, runtime_options.host_odin_events, cuda_stream);

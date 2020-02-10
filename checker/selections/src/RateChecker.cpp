@@ -8,7 +8,7 @@ void RateChecker::report(const size_t requested_events) const
 {
   // Assume 30 MHz input rate.
   const double in_rate = 30000.0;
-  auto longest_string = 10;
+  size_t longest_string = 10;
   for (const auto& line_name : m_line_names) {
     if (line_name.length() > longest_string) {
       longest_string = line_name.length();
@@ -17,7 +17,7 @@ void RateChecker::report(const size_t requested_events) const
 
   for (uint i_line = 0; i_line < m_line_names.size(); i_line++) {
     std::printf("%s:", m_line_names[i_line].c_str());
-    for (int i = 0; i < longest_string - m_line_names[i_line].length(); ++i) {
+    for (uint i = 0; i < longest_string - m_line_names[i_line].length(); ++i) {
       std::printf(" ");
     }
 
@@ -30,7 +30,7 @@ void RateChecker::report(const size_t requested_events) const
   }
 
   std::printf("Inclusive:");
-  for (int i = 0; i < longest_string - 9; ++i) {
+  for (uint i = 0; i < longest_string - 9; ++i) {
     std::printf(" ");
   }
 

@@ -24,9 +24,9 @@ namespace velo_copy_track_hit_number {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const {
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const {
       set_size<host_number_of_reconstructed_velo_tracks_t>(arguments, 1);
       set_size<dev_velo_track_hit_number_t>(arguments, value<host_number_of_velo_tracks_at_least_four_hits_t>(arguments)
         + value<host_number_of_three_hit_tracks_filtered_t>(arguments));
@@ -37,11 +37,11 @@ namespace velo_copy_track_hit_number {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      HostBuffers& host_buffers,
+      const RuntimeOptions&,
+      const Constants&,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const {
+      cudaEvent_t&) const {
       cudaCheck(cudaMemsetAsync(
         begin<dev_offsets_all_velo_tracks_t>(arguments),
         0,

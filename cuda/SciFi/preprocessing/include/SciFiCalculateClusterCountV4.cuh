@@ -27,8 +27,8 @@ namespace scifi_calculate_cluster_count_v4 {
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_scifi_raw_input_t>(arguments, std::get<1>(runtime_options.host_scifi_events));
       set_size<dev_scifi_raw_input_offsets_t>(
@@ -41,9 +41,9 @@ namespace scifi_calculate_cluster_count_v4 {
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       data_to_device<dev_scifi_raw_input_t, dev_scifi_raw_input_offsets_t>
         (arguments, runtime_options.host_scifi_events, cuda_stream);

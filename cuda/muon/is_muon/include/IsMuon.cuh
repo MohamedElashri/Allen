@@ -31,9 +31,9 @@ namespace is_muon {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_muon_track_occupancies_t>(
         arguments, Muon::Constants::n_stations * value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
@@ -46,7 +46,7 @@ namespace is_muon {
       const Constants& constants,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       function(
         dim3(value<host_number_of_selected_events_t>(arguments)), dim3(32, Muon::Constants::n_stations), cuda_stream)(

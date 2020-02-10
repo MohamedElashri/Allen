@@ -41,9 +41,9 @@ namespace ut_pre_decode {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
+      const RuntimeOptions&,
       const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const HostBuffers&) const
     {
       set_size<dev_ut_hits_t>(
         arguments,
@@ -57,9 +57,9 @@ namespace ut_pre_decode {
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_ut_hit_count_t>(arguments, 0, cuda_stream);
 

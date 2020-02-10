@@ -233,8 +233,7 @@ namespace Allen {
 
     std::string to_string() const override
     {
-      V holder;
-      return Configuration::to_string(holder.get());
+      return Configuration::to_string(m_cached_value.get());
     }
 
     std::string print() const override

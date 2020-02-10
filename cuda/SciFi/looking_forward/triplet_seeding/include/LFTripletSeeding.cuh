@@ -38,9 +38,9 @@ namespace lf_triplet_seeding {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_scifi_lf_found_triplets_t>(
         arguments,
@@ -54,11 +54,11 @@ namespace lf_triplet_seeding {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
+      const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, cuda_stream);
 

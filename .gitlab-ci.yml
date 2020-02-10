@@ -366,15 +366,15 @@ CUDA:DefaultSequence:RelWithDebInfo::build:
   tags:
     - cuda
 
-CUDA:DefaultSequence:Debug::build:
+CPU:DefaultSequence:Debug::build:
   <<: *build_test_job_def
   tags:
-    - cuda
+    - x86
 
-CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build:
+CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build:
   <<: *build_job_def
   tags:
-    - cuda
+    - x86
 
 CPU:DefaultSequence:RelWithDebInfo::build_x86:
   <<: *build_job_def
@@ -474,19 +474,19 @@ x862630v4:CPU:DefaultSequence:run_physics_efficiency:
   dependencies:
     - CPU:DefaultSequence:RelWithDebInfo::build_x86
 
-gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug:
+x86:CPU:DefaultSequence:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
-    - cuda
+    - x86
   dependencies:
-    - CUDA:DefaultSequence:Debug::build
+    - CPU:DefaultSequence:Debug::build
 
-gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug_root:
+x86:CPU:DefaultSequence:run_physics_efficiency_debug_root:
   <<: *run_physics_efficiency_job_def
   tags:
-    - cuda
+    - x86
   dependencies:
-    - CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build
+    - CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build
 
 # Publish
 

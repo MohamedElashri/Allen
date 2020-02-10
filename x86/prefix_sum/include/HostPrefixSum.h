@@ -37,9 +37,9 @@ namespace host_prefix_sum {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       // The total sum holder just holds a single unsigned integer.
       set_size<host_total_sum_holder_t>(arguments, 1);
@@ -48,8 +48,8 @@ namespace host_prefix_sum {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
+      const RuntimeOptions&,
+      const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t& cuda_generic_event) const

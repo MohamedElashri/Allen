@@ -26,19 +26,19 @@ namespace lf_least_mean_square_fit {
     decltype(global_function(lf_least_mean_square_fit)) function {lf_least_mean_square_fit};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      ArgumentRefManager<T>,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {}
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
+      const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_scifi_hits_t>(arguments),

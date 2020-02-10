@@ -26,19 +26,19 @@ namespace scifi_raw_bank_decoder_v4 {
     decltype(global_function(scifi_raw_bank_decoder_v4_mep)) function_mep {scifi_raw_bank_decoder_v4_mep};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      ArgumentRefManager<T>,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {}
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       const auto parameters = Parameters {begin<dev_scifi_raw_input_t>(arguments),
                                           begin<dev_scifi_raw_input_offsets_t>(arguments),
