@@ -78,3 +78,5 @@ if (BUILD_TESTS)
   # Simple MDF sender to test MDF receiver
   zmq_program(NAME allen_mdf_sender SRC test/mdf_sender.cpp)
 endif()
+
+include_directories(${CPPGSL_INCLUDE_DIRS})
