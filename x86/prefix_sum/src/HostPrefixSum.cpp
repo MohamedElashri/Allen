@@ -1,6 +1,9 @@
 #include "HostPrefixSum.h"
 
-void host_prefix_sum::host_prefix_sum_impl(uint* host_prefix_sum_buffer, const size_t input_number_of_elements, uint* host_total_sum_holder)
+void host_prefix_sum::host_prefix_sum_impl(
+  uint* host_prefix_sum_buffer,
+  const size_t input_number_of_elements,
+  uint* host_total_sum_holder)
 {
   // Do prefix sum on the host
   uint temp = 0;
@@ -35,7 +38,7 @@ void host_prefix_sum::host_prefix_sum(
   // Reallocate if insufficient space on host buffer
   if ((input_number_of_elements + 1) > host_allocated_prefix_sum_space) {
     info_cout << "Prefix sum host buffer: Number of elements surpassed (" << host_allocated_prefix_sum_space
-      << "). Allocating more space (" << ((input_number_of_elements + 1) * 1.2f) << ").\n";
+              << "). Allocating more space (" << ((input_number_of_elements + 1) * 1.2f) << ").\n";
     host_allocated_prefix_sum_space = (input_number_of_elements + 1) * 1.2f;
     cudaCheck(cudaFreeHost(host_prefix_sum_buffer));
     cudaCheck(cudaMallocHost((void**) &host_prefix_sum_buffer, host_allocated_prefix_sum_space * sizeof(uint)));

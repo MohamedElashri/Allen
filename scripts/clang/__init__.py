@@ -6,7 +6,6 @@
 # License. See LICENSE.TXT for details.
 #
 #===------------------------------------------------------------------------===#
-
 r"""
 Clang Library Bindings
 ======================
@@ -21,4 +20,3 @@ The available modules are:
 """
 
 __all__ = ['cindex']
-

@@ -74,8 +74,8 @@ private:
 
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
 
-  Gaudi::Property<std::string> m_json{this, "JSON", "${ALLEN_PROJECT_ROOT}/configuration/constants/default.json"};
-  Gaudi::Property<std::string> m_paramDir{this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
+  Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_PROJECT_ROOT}/configuration/constants/default.json"};
+  Gaudi::Property<std::string> m_paramDir {this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
 
   Gaudi::Property<bool> m_do_check {this, "do_check", true};
   // If set to false, events are only filtered by the GEC

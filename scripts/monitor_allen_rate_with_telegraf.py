@@ -46,8 +46,12 @@ def main():
 
     ctx = zmq.Context()
     sockets = {}
-    connections = {"ipc:///tmp/allen_throughput_%s": (["0", "1", "2"], 'AllenInstance', 'allen_rate'),
-                   "tcp://%s:%s": ([('lbdaqrome02', '35001')], 'OutputWriter', 'output_rate')}
+    connections = {
+        "ipc:///tmp/allen_throughput_%s": (["0", "1", "2"], 'AllenInstance',
+                                           'allen_rate'),
+        "tcp://%s:%s": ([('lbdaqrome02', '35001')], 'OutputWriter',
+                        'output_rate')
+    }
     for connection, (ids, app_name, rate_name) in connections.items():
         for socket_id in ids:
             con = connection % socket_id

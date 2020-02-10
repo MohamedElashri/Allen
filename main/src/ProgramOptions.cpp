@@ -114,13 +114,14 @@ std::vector<std::string> split_string(std::string const& input, std::string cons
 std::tuple<bool, std::map<std::string, int>> parse_receivers(const std::string& arg)
 {
   std::map<std::string, int> result;
-  const std::regex expr{"([a-z0-9_]+):([0-9]+)"};
+  const std::regex expr {"([a-z0-9_]+):([0-9]+)"};
   auto s = split_string(arg, ",");
   std::smatch match;
   for (auto const& r : s) {
     if (std::regex_match(r, match, expr)) {
       result.emplace(match[1].str(), atoi(match[2].str().c_str()));
-    } else {
+    }
+    else {
       result.clear();
       return {false, result};
     }

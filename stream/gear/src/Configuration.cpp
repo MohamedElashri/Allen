@@ -33,20 +33,22 @@ DeviceDimensions Configuration::from_string<DeviceDimensions>(const std::string&
   std::smatch matches;
   auto r = std::regex_match(string_value, matches, Detail::array_expr);
   if (!r) {
-    throw std::exception{};
+    throw std::exception {};
   }
   auto digits_begin = std::sregex_iterator(string_value.begin(), string_value.end(), Detail::digit_expr);
   auto digits_end = std::sregex_iterator();
   if (std::distance(digits_begin, digits_end) != 3) {
-    throw std::exception{};
+    throw std::exception {};
   }
   int idx = 0;
   for (auto i = digits_begin; i != digits_end; ++i) {
     if (idx == 0) {
       dimensions.x = atoi(i->str().c_str());
-    } else if (idx == 1) {
+    }
+    else if (idx == 1) {
       dimensions.y = atoi(i->str().c_str());
-    } else {
+    }
+    else {
       dimensions.z = atoi(i->str().c_str());
     }
     idx++;
