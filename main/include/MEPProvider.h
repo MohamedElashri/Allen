@@ -80,7 +80,6 @@ struct MEPProviderConfig {
 
   // Mapping of receiver card to MPI rank to receive from
   std::map<std::string, int> receivers;
-
 };
 
 /**
@@ -115,13 +114,14 @@ public:
     std::vector<std::string> connections,
     MEPProviderConfig config = MEPProviderConfig {}) noexcept(false) :
     InputProvider<MEPProvider<Banks...>> {n_slices, events_per_slice, n_events},
-    m_buffer_status(config.n_buffers), m_slice_free(n_slices, true), m_banks_count {0},
-    m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
+    m_buffer_status(config.n_buffers), m_slice_free(n_slices, true), m_banks_count {0}, m_event_ids {n_slices},
+    m_connections {std::move(connections)}, m_config {config}
   {
 
     if (m_config.transpose_mep) {
       info_cout << "Providing events in Allen layout by transposing MEPs\n";
-    } else {
+    }
+    else {
       info_cout << "Providing events in MEP layout\n";
     }
 
@@ -157,11 +157,11 @@ public:
     // start MPI receive or MEP reading thread
     if (m_config.mpi) {
 #ifdef HAVE_MPI
-      m_input_thread = std::thread{&MEPProvider::mpi_read, this};
+      m_input_thread = std::thread {&MEPProvider::mpi_read, this};
 #endif
     }
     else {
-      m_input_thread = std::thread{&MEPProvider::mep_read, this};
+      m_input_thread = std::thread {&MEPProvider::mep_read, this};
     }
 
     // Sanity check on the number of buffers and threads
@@ -227,7 +227,8 @@ public:
    *
    * @return     EventIDs of events in given slice
    */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const override
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+    const override
   {
     auto const& ids = m_event_ids[slice_index];
     return {ids.begin() + (first ? *first : 0), ids.begin() + (last ? *last : ids.size())};
@@ -340,11 +341,11 @@ public:
 
         // If MEPs are not transposed and the respective buffer is no
         // longer in use, set it to writable
-        if (status.work_counter == 0 &&
-            (std::find_if(m_slice_to_buffer.begin(), m_slice_to_buffer.end(),
-                          [i_buffer] (const auto& entry) {
-                            return std::get<0>(entry) == i_buffer;
-                          }) == m_slice_to_buffer.end())) {
+        if (
+          status.work_counter == 0 &&
+          (std::find_if(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), [i_buffer](const auto& entry) {
+             return std::get<0>(entry) == i_buffer;
+           }) == m_slice_to_buffer.end())) {
           status.writable = true;
           set_writable = true;
         }
@@ -360,8 +361,10 @@ public:
     }
   }
 
-  void event_sizes(size_t const slice_index, gsl::span<unsigned int const> const selected_events,
-                   std::vector<size_t>& sizes) const override
+  void event_sizes(
+    size_t const slice_index,
+    gsl::span<unsigned int const> const selected_events,
+    std::vector<size_t>& sizes) const override
   {
     int i_buffer = 0;
     size_t interval_start = 0, interval_end = 0;
@@ -369,16 +372,16 @@ public:
     auto const& blocks = std::get<2>(m_net_slices[i_buffer]);
     for (unsigned int i = 0; i < selected_events.size(); ++i) {
       auto event = selected_events[i];
-      sizes[i] += std::accumulate(blocks.begin(), blocks.end(), 0ul,
-        [event, interval_start, this] (size_t s, const auto& entry) {
+      sizes[i] +=
+        std::accumulate(blocks.begin(), blocks.end(), 0ul, [event, interval_start, this](size_t s, const auto& entry) {
           auto const& block_header = std::get<0>(entry);
           return s + LHCb::RawBank::hdrSize() + block_header.sizes[interval_start + event];
         });
     }
   }
 
-  void copy_banks(size_t const slice_index, unsigned int const event,
-                  gsl::span<char> buffer) const override {
+  void copy_banks(size_t const slice_index, unsigned int const event, gsl::span<char> buffer) const override
+  {
     auto [i_buffer, interval_start, interval_end] = m_slice_to_buffer[slice_index];
     const auto mep_event = interval_start + event;
 
@@ -404,16 +407,17 @@ public:
       auto fragment_size = block_header.sizes[mep_event];
 
       assert((offset + fragment_size) < buffer.size());
-      offset += add_raw_bank(block_header.types[mep_event],
-                             mep_header.versions[i_block], mep_header.source_ids[i_block],
-                             {block_data.data() + fragment_offset, fragment_size},
-                             buffer.data() + offset);
+      offset += add_raw_bank(
+        block_header.types[mep_event],
+        mep_header.versions[i_block],
+        mep_header.source_ids[i_block],
+        {block_data.data() + fragment_offset, fragment_size},
+        buffer.data() + offset);
       ++block_index;
     }
   }
 
 private:
-
   void init_mpi()
   {
 #ifdef HAVE_MPI
@@ -443,15 +447,17 @@ private:
           auto it = receivers.find(osdev->name);
           if (it != receivers.end()) {
             m_domains.emplace_back(it->second, parent->os_index);
-            this->debug_output("Located receiver device "s + it->first + " in NUMA domain " + std::to_string(parent->os_index));
+            this->debug_output(
+              "Located receiver device "s + it->first + " in NUMA domain " + std::to_string(parent->os_index));
           }
         }
       }
       if (m_domains.size() != receivers.size()) {
-        throw StrException{"Failed to locate some receiver devices "};
+        throw StrException {"Failed to locate some receiver devices "};
       }
-    } else {
-      throw StrException{"MPI requested, but no receivers specified"};
+    }
+    else {
+      throw StrException {"MPI requested, but no receivers specified"};
     }
 
     // Get last node. There's always at least one.
@@ -467,13 +473,22 @@ private:
     std::vector<size_t> packing_factors(m_config.n_receivers());
     for (size_t receiver = 0; receiver < m_config.n_receivers(); ++receiver) {
       auto const receiver_rank = std::get<0>(m_domains[receiver]);
-      MPI_Recv(&packing_factors[receiver], 1, MPI_SIZE_T, receiver_rank, MPI::message::packing_factor, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(
+        &packing_factors[receiver],
+        1,
+        MPI_SIZE_T,
+        receiver_rank,
+        MPI::message::packing_factor,
+        MPI_COMM_WORLD,
+        MPI_STATUS_IGNORE);
     }
 
-    if (!std::all_of(packing_factors.begin(), packing_factors.end(),
-                     [v = packing_factors.back()](auto const p) { return p == v; })) {
-      throw StrException{"All packing factors must be the same"};
-    } else {
+    if (!std::all_of(packing_factors.begin(), packing_factors.end(), [v = packing_factors.back()](auto const p) {
+          return p == v;
+        })) {
+      throw StrException {"All packing factors must be the same"};
+    }
+    else {
       m_packing_factor = packing_factors.back();
     }
 
@@ -491,18 +506,18 @@ private:
       // Only bind explicitly if there are multiple receivers,
       // otherwise assume a memory allocation policy is in effect
       if (m_domains.size() > 1) {
-        auto s = hwloc_set_area_membind(m_topology, contents, n_bytes, numa_obj->nodeset,
-                                        HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+        auto s = hwloc_set_area_membind(
+          m_topology, contents, n_bytes, numa_obj->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
         if (s != 0) {
-          throw StrException{"Failed to bind memory to node "s + std::to_string(numa_obj->os_index)
-                             + " " + strerror(errno)};
+          throw StrException {"Failed to bind memory to node "s + std::to_string(numa_obj->os_index) + " " +
+                              strerror(errno)};
         }
       }
 #if !defined(NO_CUDA) && !defined(CPU)
       cudaCheck(cudaHostRegister(contents, n_bytes, cudaHostRegisterDefault));
 #endif
-      m_net_slices.emplace_back(EB::Header {}, gsl::span<char const> {contents, n_bytes},
-                                MEP::Blocks {}, MEP::SourceOffsets {}, n_bytes);
+      m_net_slices.emplace_back(
+        EB::Header {}, gsl::span<char const> {contents, n_bytes}, MEP::Blocks {}, MEP::SourceOffsets {}, n_bytes);
       m_mpi_buffers.emplace_back(contents);
     }
 #else
@@ -578,7 +593,7 @@ private:
       }
     };
     m_slices = allocate_slices<Banks...>(this->n_slices(), size_fun);
-    m_slice_to_buffer = std::vector(this->n_slices(), std::tuple{-1, 0ul, 0ul});
+    m_slice_to_buffer = std::vector(this->n_slices(), std::tuple {-1, 0ul, 0ul});
 
     if (!count_success) {
       error_cout << "Failed to determine bank counts\n";
@@ -714,7 +729,7 @@ private:
         if (!eof) {
           debug_cout << "Read mep with packing factor " << mep_header.packing_factor << "\n";
           if (to_read && success) {
-            to_publish = std::min(*to_read, size_t{mep_header.packing_factor});
+            to_publish = std::min(*to_read, size_t {mep_header.packing_factor});
             *to_read -= to_publish;
           }
           else {
@@ -752,7 +767,7 @@ private:
           assert(status.work_counter == 0);
 
           if (!eof && to_publish != 0) {
-            set_intervals(status.intervals, to_read ? to_publish : size_t{mep_header.packing_factor});
+            set_intervals(status.intervals, to_read ? to_publish : size_t {mep_header.packing_factor});
           }
           else {
             // We didn't read anything, so free the buffer we got again
@@ -792,8 +807,7 @@ private:
 
     for (size_t i = 0; i < m_config.n_receivers(); ++i) {
       auto [mpi_rank, numa_domain] = m_domains[i];
-      MPI_Recv(&n_meps[i], 1, MPI_SIZE_T, mpi_rank,
-               MPI::message::number_of_meps, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(&n_meps[i], 1, MPI_SIZE_T, mpi_rank, MPI::message::number_of_meps, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
     size_t number_of_meps = std::accumulate(n_meps.begin(), n_meps.end(), 0u);
 
@@ -816,8 +830,9 @@ private:
       auto receiver = i_buffer % m_config.n_receivers();
       auto [sender_rank, numa_node] = m_domains[receiver];
 
-      this->debug_output("Receiving from rank " + std::to_string(sender_rank) + " into buffer "
-                         + std::to_string(i_buffer) + "  NUMA domain " + std::to_string(numa_node));
+      this->debug_output(
+        "Receiving from rank " + std::to_string(sender_rank) + " into buffer " + std::to_string(i_buffer) +
+        "  NUMA domain " + std::to_string(numa_node));
 
       auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
       char*& contents = m_mpi_buffers[i_buffer];
@@ -843,12 +858,12 @@ private:
         if (m_domains.size() > 1) {
           // Bind memory to numa domain of receiving card
           auto numa_obj = hwloc_get_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, numa_node);
-          auto s = hwloc_set_area_membind(m_topology, contents, buffer_size, numa_obj->nodeset,
-                                          HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
+          auto s = hwloc_set_area_membind(
+            m_topology, contents, buffer_size, numa_obj->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
           if (s != 0) {
             m_read_error = true;
-            error_cout << "Failed to bind memory to node " << std::to_string(numa_node)
-                       << " " << strerror(errno) << "\n";
+            error_cout << "Failed to bind memory to node " << std::to_string(numa_node) << " " << strerror(errno)
+                       << "\n";
             break;
           }
         }
@@ -939,15 +954,25 @@ private:
           const double bandwidth = ((double) (br * 8)) / (1024 * 1024 * 1024 * seconds);
           total_rate += rate;
           total_bandwidth += bandwidth;
-          printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s; Domain %2i; Rank %2i\n",
-                 t_origin.get_elapsed_time(), seconds, rate, bandwidth, rec_node, rec_rank);
+          printf(
+            "[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s; Domain %2i; Rank %2i\n",
+            t_origin.get_elapsed_time(),
+            seconds,
+            rate,
+            bandwidth,
+            rec_node,
+            rec_rank);
 
           br = 0;
           mr = 0;
         }
         if (m_config.n_receivers() > 1) {
-          printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n",
-                 t_origin.get_elapsed_time(), seconds, total_rate, total_bandwidth);
+          printf(
+            "[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n",
+            t_origin.get_elapsed_time(),
+            seconds,
+            total_rate,
+            total_bandwidth);
         }
         t.restart();
       }
@@ -957,7 +982,7 @@ private:
       if (!error) {
         {
           std::unique_lock<std::mutex> lock {m_mpi_mutex};
-          set_intervals(m_buffer_status[i_buffer].intervals, size_t{mep_header.packing_factor});
+          set_intervals(m_buffer_status[i_buffer].intervals, size_t {mep_header.packing_factor});
           assert(m_buffer_status[i_buffer].work_counter == 0);
         }
         if (receive_done) {
@@ -1065,7 +1090,16 @@ private:
       if (m_config.transpose_mep) {
         // Transpose the events into the slice
         std::tie(good, transpose_full, n_transposed) = MEP::transpose_events(
-          m_slices, *slice_index, m_bank_ids, m_banks_count, event_ids, mep_header, blocks, source_offsets, interval, m_config.split_by_run);
+          m_slices,
+          *slice_index,
+          m_bank_ids,
+          m_banks_count,
+          event_ids,
+          mep_header,
+          blocks,
+          source_offsets,
+          interval,
+          m_config.split_by_run);
         this->debug_output(
           "Transposed slice " + std::to_string(*slice_index) + "; good: " + std::to_string(good) +
             ";full: " + std::to_string(transpose_full) + "; n_transposed:  " + std::to_string(n_transposed),
@@ -1073,8 +1107,16 @@ private:
       }
       else {
         // Calculate fragment offsets in MEP per sub-detector
-        std::tie(good, transpose_full, n_transposed) =
-          MEP::mep_offsets(m_slices, *slice_index, m_bank_ids, m_banks_count, event_ids, mep_header, blocks, interval, m_config.split_by_run);
+        std::tie(good, transpose_full, n_transposed) = MEP::mep_offsets(
+          m_slices,
+          *slice_index,
+          m_bank_ids,
+          m_banks_count,
+          event_ids,
+          mep_header,
+          blocks,
+          interval,
+          m_config.split_by_run);
         this->debug_output("Calculated MEP offsets for slice " + std::to_string(*slice_index), thread_id);
       }
 

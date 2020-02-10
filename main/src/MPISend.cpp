@@ -75,8 +75,8 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
   // Read all files in connections
   std::vector<std::tuple<EB::Header, gsl::span<char>>> meps;
 
-  info_cout << MPI::rank_str() << "Reading " << (number_of_events != 0 ? std::to_string(number_of_events) : std::string{"all"})
-            << " meps from files\n";
+  info_cout << MPI::rank_str() << "Reading "
+            << (number_of_events != 0 ? std::to_string(number_of_events) : std::string {"all"}) << " meps from files\n";
 
   std::vector<char> data;
   gsl::span<char const> mep_span;
@@ -100,7 +100,7 @@ int send_meps_mpi(std::map<std::string, std::string> const& allen_options)
         std::copy_n(mep_span.data(), mep_span.size(), contents);
         ++n_meps;
 
-        meps.emplace_back(std::move(mep_header), gsl::span<char>{contents, mep_span.size()});
+        meps.emplace_back(std::move(mep_header), gsl::span<char> {contents, mep_span.size()});
       }
       if (n_meps >= number_of_events && number_of_events != 0) {
         input.close();
@@ -119,7 +119,8 @@ send:
 
   auto const& first_header = std::get<0>(*meps.begin());
 
-  info_cout << "\n" << MPI::rank_str() << "EB header: " << first_header.n_blocks << ", " << first_header.packing_factor << ", "
+  info_cout << "\n"
+            << MPI::rank_str() << "EB header: " << first_header.n_blocks << ", " << first_header.packing_factor << ", "
             << first_header.reserved << ", " << first_header.mep_size << "\n";
 
   size_t packing_factor = first_header.packing_factor;

@@ -219,7 +219,8 @@ public:
    *
    * @return     EventIDs of events in given slice
    */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const override
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+    const override
   {
     auto const& ids = m_event_ids[slice_index];
     return {ids.begin() + (first ? *first : 0), ids.begin() + (last ? *last : ids.size())};
@@ -335,8 +336,10 @@ public:
     }
   }
 
-  void event_sizes(size_t const slice_index, gsl::span<unsigned int const> const selected_events, std::vector<size_t>& sizes)
-    const override
+  void event_sizes(
+    size_t const slice_index,
+    gsl::span<unsigned int const> const selected_events,
+    std::vector<size_t>& sizes) const override
   {
     auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
 

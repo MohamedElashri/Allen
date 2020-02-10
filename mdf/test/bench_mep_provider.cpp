@@ -42,7 +42,6 @@ int main(int argc, char* argv[])
                             true,          // Transpose MEP
                             {{"mem", 0}}}; // mapping of receiver to its numa node
 
-
   MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON> mep {
     n_slices, events_per_slice, {}, files, config};
 

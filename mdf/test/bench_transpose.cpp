@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
   // Count the number of banks of each type
   auto& [n_filled, event_offsets, read_buffer, transpose_start] = read_buffers[0];
   bool count_success = false;
-  std::array<unsigned int, LHCb::NBankTypes> banks_count{};
+  std::array<unsigned int, LHCb::NBankTypes> banks_count {};
   std::tie(count_success, banks_count) = fill_counts({read_buffer.data(), event_offsets[1]});
 
   // Allocate space for event ids

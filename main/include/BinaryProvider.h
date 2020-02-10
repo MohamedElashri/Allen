@@ -170,7 +170,8 @@ public:
    *
    * @return     event IDs in slice
    */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {}) const override
+  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+    const override
   {
     auto const& ids = m_event_ids[slice_index];
     return {ids.begin() + (first ? *first : 0), ids.begin() + (last ? *last : ids.size())};

@@ -12,8 +12,7 @@ public:
     size_t events_per_slice,
     bool checksum = true) :
     OutputHandler {input_provider, events_per_slice},
-    m_filename {std::move(filename)},
-    m_checksum {checksum}
+    m_filename {std::move(filename)}, m_checksum {checksum}
   {
     m_output = MDF::open(m_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (!m_output.good) {
@@ -48,7 +47,6 @@ protected:
   }
 
 private:
-
   // Output filename
   std::string const m_filename;
 

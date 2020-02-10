@@ -21,7 +21,7 @@ for line in sys.stdin:
             if total is None:
                 total = int(m.group(3))
             else:
-                assert(int(m.group(3)) == total)
+                assert (int(m.group(3)) == total)
             print("LAZY_AND: Hlt1%sLine #=%d Sum=%d" % (m.group(1), total,
                                                         int(m.group(2))))
         else:

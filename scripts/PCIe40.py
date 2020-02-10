@@ -44,7 +44,8 @@ def send_to_telegraf(rates):
 
 
 pcie40_id = Popen(['pcie40_id'],
-                  stdout=PIPE, stderr=STDOUT,
+                  stdout=PIPE,
+                  stderr=STDOUT,
                   close_fds=ON_POSIX)
 o, e = pcie40_id.communicate()
 
@@ -60,7 +61,8 @@ for line in o.decode().split('\n'):
 with Popen(['unbuffer', 'pcie40_daq', '-rfegO'],
            bufsize=1,
            universal_newlines=True,
-           stdout=PIPE, stderr=STDOUT) as pcie40_daq:
+           stdout=PIPE,
+           stderr=STDOUT) as pcie40_daq:
     rates = defaultdict(list)
     n = 0
     for line in pcie40_daq.stdout:

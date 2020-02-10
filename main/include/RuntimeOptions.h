@@ -35,9 +35,9 @@ struct RuntimeOptions {
     host_velo_events {std::move(velo_events)},
     host_ut_events {std::move(ut_events)}, host_scifi_events {std::move(scifi_events)}, host_muon_events {std::move(
                                                                                           muon_events)},
-    event_interval(param_event_interval), number_of_selected_events(std::get<1>(param_event_interval) - std::get<0>(param_event_interval)),
+    event_interval(param_event_interval),
+    number_of_selected_events(std::get<1>(param_event_interval) - std::get<0>(param_event_interval)),
     number_of_repetitions(param_number_of_repetitions), do_check(param_do_check),
-    cpu_offload(param_cpu_offload), mep_layout {param_mep_layout},
-    inject_mem_fail{param_inject_mem_fail}
+    cpu_offload(param_cpu_offload), mep_layout {param_mep_layout}, inject_mem_fail {param_inject_mem_fail}
   {}
 };

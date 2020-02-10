@@ -351,11 +351,11 @@ std::tuple<bool, bool, size_t> transpose_events(
     auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
     std::tie(success, full, run_change) =
       transpose_event<Banks...>(slices, slice_index, bank_ids, banks_count, event_ids, {bank, bank_end}, split_by_run);
-    //break the loop if we detect a run change to avoid incrementing i_event
-    if(run_change) break;
+    // break the loop if we detect a run change to avoid incrementing i_event
+    if (run_change) break;
   }
 
-  return {success, full, i_event-event_start};
+  return {success, full, i_event - event_start};
 }
 
 template<BankTypes... Banks>

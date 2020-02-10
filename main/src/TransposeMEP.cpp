@@ -142,7 +142,7 @@ size_t MEP::allen_offsets(
 
         // Check for sufficient space
         if (event_offsets[i] > slice_size) {
-          n_frag = i -  1;
+          n_frag = i - 1;
           break;
         }
       }
@@ -361,7 +361,8 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
 
   bool success = true;
 
-  auto to_transpose = allen_offsets(slices, slice_index, bank_ids, banks_count, mep_header, blocks, source_offsets, interval, split_by_run);
+  auto to_transpose = allen_offsets(
+    slices, slice_index, bank_ids, banks_count, mep_header, blocks, source_offsets, interval, split_by_run);
 
   transpose_event(
     slices,

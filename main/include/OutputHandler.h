@@ -11,9 +11,7 @@ struct IInputProvider;
 
 class OutputHandler {
 public:
-  OutputHandler(IInputProvider const* input_provider, size_t eps) :
-    m_input_provider {input_provider}, m_sizes(eps)
-  {}
+  OutputHandler(IInputProvider const* input_provider, size_t eps) : m_input_provider {input_provider}, m_sizes(eps) {}
 
   virtual ~OutputHandler() {}
 

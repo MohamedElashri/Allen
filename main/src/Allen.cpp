@@ -54,11 +54,7 @@ namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed, Writing, Written };
 } // namespace
 
-
-void run_output(
-  const size_t thread_id,
-  OutputHandler* output_handler,
-  HostBuffersManager* buffer_manager)
+void run_output(const size_t thread_id, OutputHandler* output_handler, HostBuffersManager* buffer_manager)
 {
   // Create a control socket and connect it.
   zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
@@ -79,7 +75,6 @@ void run_output(
   if (client_socket) {
     items[1] = {*client_socket, 0, zmq::POLLIN, 0};
   }
-
 
   while (true) {
 
@@ -103,8 +98,7 @@ void run_output(
         bool success = true;
         auto [passing_event_list, dec_reports] = buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
-          success =
-            output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports);
+          success = output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports);
         }
 
         zmqSvc().send(control, "WRITTEN", zmq::SNDMORE);
@@ -127,9 +121,7 @@ void run_output(
  *
  * @return     void
  */
-void run_slices(
-  const size_t thread_id,
-  IInputProvider* input_provider)
+void run_slices(const size_t thread_id, IInputProvider* input_provider)
 {
 
   // Create a control socket and connect it.
@@ -338,10 +330,8 @@ void run_stream(
             if (!folder_name_imported_forward_tracks.empty()) {
               std::vector<char> events_tracks;
               std::vector<uint> event_tracks_offsets;
-              read_folder(
-                folder_name_imported_forward_tracks, events, mask, events_tracks, event_tracks_offsets, true);
-              forward_tracks =
-                read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
+              read_folder(folder_name_imported_forward_tracks, events, mask, events_tracks, event_tracks_offsets, true);
+              forward_tracks = read_forward_tracks(events_tracks.data(), event_tracks_offsets.data(), events.size());
             }
 
             wrapper->run_monte_carlo_test(stream_id, *checker_invoker, mc_events, forward_tracks);
@@ -597,7 +587,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
         bool s = false;
         std::tie(s, device_id) = get_device_id(arg);
         if (!s) exit(1);
-      } else {
+      }
+      else {
         device_id = atoi(arg.c_str());
       }
     }
@@ -728,10 +719,11 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               with_mpi,             // Receive from MPI or read files
                               non_stop,             // Run the application non-stop
                               !mep_layout,          // MEPs should be transposed to Allen layout
-                              !disable_run_changes,  // Whether to split slices by run number
+                              !disable_run_changes, // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
-    input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
+    input_provider =
+      std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+        number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
     mep_layout = false;
@@ -742,8 +734,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               *events_per_slice,          // number of events per read buffer
                               n_io_reps,                  // number of loops over the input files
                               !disable_run_changes};      // Whether to split slices by run number
-    input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
+    input_provider =
+      std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+        number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
   else {
     mep_layout = false;
@@ -758,7 +751,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler = std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, *events_per_slice, &zmqSvc());
+        output_handler =
+          std::make_unique<ZMQOutputSender>(input_provider.get(), output_file, *events_per_slice, &zmqSvc());
       }
       else {
         output_handler = std::make_unique<FileWriter>(input_provider.get(), output_file, *events_per_slice);
@@ -873,17 +867,13 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   // Lambda with the execution of the input thread that polls the
   // input provider for slices.
   const auto slice_thread = [&](uint thread_id, uint) {
-    return std::make_tuple(
-      std::thread {
-        run_slices, thread_id, input_provider.get()},
-      std::optional<zmq::socket_t> {});
+    return std::make_tuple(std::thread {run_slices, thread_id, input_provider.get()}, std::optional<zmq::socket_t> {});
   };
 
   // Lambda with the execution of the output thread
   const auto output_thread = [&](uint thread_id, uint) {
     return std::make_tuple(
-      std::thread {
-        run_output, thread_id, output_handler ? output_handler.get() : nullptr, buffer_manager.get()},
+      std::thread {run_output, thread_id, output_handler ? output_handler.get() : nullptr, buffer_manager.get()},
       std::optional<zmq::socket_t> {});
   };
 
@@ -1042,14 +1032,21 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             auto dt = elapsed_time - previous_time_measurement;
             if (dt > 5.) {
               char buf[200];
-              std::snprintf(buf, sizeof(buf), "Processed %7li events at a rate of %8.2f events/s\n",
-                            n_events_measured * number_of_repetitions, n_events_measured * number_of_repetitions / dt);
+              std::snprintf(
+                buf,
+                sizeof(buf),
+                "Processed %7li events at a rate of %8.2f events/s\n",
+                n_events_measured * number_of_repetitions,
+                n_events_measured * number_of_repetitions / dt);
               info_cout << buf;
-              std::snprintf(buf, sizeof(buf), "Output    %7lu events at a rate of %8.2f events/s\n",
-                            n_output_measured, n_output_measured / dt);
+              std::snprintf(
+                buf,
+                sizeof(buf),
+                "Output    %7lu events at a rate of %8.2f events/s\n",
+                n_output_measured,
+                n_output_measured / dt);
               info_cout << buf;
-              zmqSvc().send(
-                *throughput_socket, std::to_string(n_events_measured * number_of_repetitions / dt));
+              zmqSvc().send(*throughput_socket, std::to_string(n_events_measured * number_of_repetitions / dt));
               previous_time_measurement = elapsed_time;
               n_events_measured = 0;
               n_output_measured = 0;
@@ -1186,7 +1183,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
           else if (msg == "RUN") {
             next_run_number = zmqSvc().receive<uint>(socket);
             debug_cout << "Requested run change from " << current_run_number << " to " << *next_run_number << std::endl;
-            //guard against double run changes if we have multiple input threads
+            // guard against double run changes if we have multiple input threads
             if (disable_run_changes || *next_run_number == current_run_number) next_run_number.reset();
           }
           else if (msg == "WRITTEN") {
@@ -1328,8 +1325,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     // Check for finished monitoring jobs
     check_monitors();
 
-    //periodically save monitoring histograms
-    if (mon_save_period>0 && t_mon.get_elapsed_time() >= mon_save_period) {
+    // periodically save monitoring histograms
+    if (mon_save_period > 0 && t_mon.get_elapsed_time() >= mon_save_period) {
       monitor_manager->saveHistograms("monitoringHists.root");
       info_cout << "Saved monitoring histograms" << std::endl;
       t_mon.restart();

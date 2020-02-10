@@ -49,8 +49,8 @@ void Consumers::VPGeometry::consume(vector<char> const& data)
   if (dev_velo_geometry == nullptr) {
     initialize(data);
   }
-  //FIXME need a better way to check the size
-  //else if (sizeof(VeloGeometry) != data.size()) {
+  // FIXME need a better way to check the size
+  // else if (sizeof(VeloGeometry) != data.size()) {
   //  throw StrException {string {"sizes don't match: "} + to_string(sizeof(VeloGeometry)) + " " +
   //                      to_string(data.size())};
   //}
