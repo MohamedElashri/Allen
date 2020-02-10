@@ -273,30 +273,19 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
   set(CMAKE_CUDA_STANDARD 14)
 
-  # By default, build for maximum compatibility.
-  # * These settings support natively archs 3.0, 5.0, 6.0, 7.0 and 7.5.
-  # * All other 3.X, 5.X and 6.X architectures are supported through their respective
-  #   major number builds, specifics of those architectures are not used.
-  # * Forward compatibility with newer devices is also supported by generating PTX from 7.5
-  #   (-gencode=arch=compute_75,compute=compute_75)
-  foreach(arch 30 50 60 70 75)
-    set(DEFAULT_CUDA_ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG} -gencode=arch=compute_${arch},code=sm_${arch}")
-  endforeach()
-  set(DEFAULT_CUDA_ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG} -gencode=arch=compute_75,code=compute_75")
-
   # Settings can be overriden by setting OVERRIDE_ARCH_FLAG
   if(DEFINED OVERRIDE_ARCH_FLAG AND NOT OVERRIDE_ARCH_FLAG STREQUAL "")
     message(STATUS "Overriding CUDA architecture setting:")
     set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
   # Or by setting CUDA_ARCH to MAX
-  elseif (CUDA_ARCH STREQUAL "MAX")
+  elseif(CUDA_ARCH STREQUAL "MAX")
     set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
     set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
     execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -ccbin=${CMAKE_CXX_COMPILER} -std=c++14 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
     if(CUDA_ARCH STREQUAL "MAX")
       set(CHECK_ARGS "-l")
     endif()
-    message(STATUS "Detecting MAX CUDA architecture:")
+    message(STATUS "Detecting MAX CUDA architecture...")
     execute_process(COMMAND ${OUTPUTFILE} ${CHECK_ARGS}
       RESULT_VARIABLE CUDA_RETURN_CODE
       OUTPUT_VARIABLE CUDA_ARCH_OUTPUT)
@@ -308,13 +297,24 @@ if(TARGET_DEVICE STREQUAL "CUDA")
       set(ARCH_FLAG "-gencode=arch=compute_${CUDA_ARCH_OUTPUT},code=sm_${CUDA_ARCH_OUTPUT}")
     endif()
   # Or by setting CUDA_ARCH to MIN
-  elseif (CUDA_ARCH STREQUAL "MIN")
+  elseif(CUDA_ARCH STREQUAL "MIN")
     message(STATUS "Setting MIN CUDA architecture:")
     set(ARCH_FLAG "-gencode=arch=compute_30,code=compute_30")
-  # In any other case, set the default cuda arch flags
+  # By default, compile for compatibility
   else()
     message(STATUS "Setting default CUDA architecture:")
-    set(ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG}")
+
+    # Compatibility arch flag.
+    # * These settings support natively archs 3.0, 5.0, 6.0, 7.0 and 7.5.
+    # * All other 3.X, 5.X and 6.X architectures are supported through their respective
+    #   major number builds, specifics of those architectures are not used.
+    # * Forward compatibility with newer devices is also supported by generating PTX from 7.5
+    #   (-gencode=arch=compute_75,compute=compute_75)
+    foreach(arch 30 50 60 70 75)
+      set(COMPATIBILITY_CUDA_ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG} -gencode=arch=compute_${arch},code=sm_${arch}")
+    endforeach()
+    set(COMPATIBILITY_CUDA_ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG} -gencode=arch=compute_75,code=compute_75")
+    set(ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG}")
   endif()
   message(STATUS "Cuda architecture set to ${ARCH_FLAG}")
 
