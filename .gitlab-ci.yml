@@ -294,7 +294,7 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n133 ${i} | head -n129 > efficiency_${i}; colordiff ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n92 ${i} | head -n89 > efficiency_${i}; colordiff ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
@@ -481,12 +481,12 @@ x86:CPU:DefaultSequence:run_physics_efficiency_debug:
   dependencies:
     - CPU:DefaultSequence:Debug::build
 
-x86:CPU:DefaultSequence:run_physics_efficiency_debug_root:
-  <<: *run_physics_efficiency_job_def
-  tags:
-    - x86
-  dependencies:
-    - CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build
+# x86:CPU:DefaultSequence:run_physics_efficiency_debug_root:
+#   <<: *run_physics_efficiency_job_def
+#   tags:
+#     - x86
+#   dependencies:
+#     - CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build
 
 # Publish
 
