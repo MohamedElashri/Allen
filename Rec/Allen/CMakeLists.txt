@@ -1,5 +1,5 @@
 ################################################################################
-# Package: AllenIntegration
+# Package: Allen
 ################################################################################
 
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
@@ -69,7 +69,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 
-gaudi_subdir(AllenIntegration v1r0)
+gaudi_subdir(Allen v1r0)
 
 gaudi_depends_on_subdirs(Online/OnlineKernel
                          Det/FTDet
