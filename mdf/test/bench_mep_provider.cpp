@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
                             false,         // Receive from MPI or read files
                             false,         // Run the application non-stop
                             true,          // Transpose MEP
+                            false,          // Split by run number
                             {{"mem", 0}}}; // mapping of receiver to its numa node
 
   MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON> mep {
