@@ -27,14 +27,6 @@ message(STATUS "Allen target: ${TARGET_DEVICE}")
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 
-find_package(cppgsl QUIET)
-if (cppgsl_FOUND)
-  message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIRS})
-else()
-  set(CPPGSL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
-  message(STATUS "Using internal gsl-lite")
-endif()
-
 option(BUILD_TESTS "Build test programs" OFF)
 option(USE_ROOT "Build with ROOT" OFF)
 option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
@@ -56,7 +48,6 @@ macro(allen_project)
 
     # Always enable ROOT for Gaudi builds
     set(USE_ROOT ON)
-    set(USE_MPI ON)
 
     # Find the CUDA compiler if it's not set
     # FIXME: this assumes a standard cuda install: re-evaluate if
@@ -76,11 +67,22 @@ macro(allen_project)
       set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     endif()
 
+    find_package(cppgsl REQUIRED)
+
   else()
     project(Allen C CXX)
     if (BUILD_TESTS)
       enable_testing()
     endif()
+
+    find_package(cppgsl QUIET)
+    if (cppgsl_FOUND)
+      message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIRS})
+    else()
+      set(CPPGSL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
+      message(STATUS "Using internal gsl-lite")
+endif()
+
   endif()
 endmacro()
 

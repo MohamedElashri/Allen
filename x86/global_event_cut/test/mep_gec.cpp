@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
       ut_banks,
       scifi_banks,
       interval,
-      host_global_event_cut::Parameters {&number_of_selected_events, event_list.data()});
+      host_global_event_cut::Parameters {&number_of_selected_events, event_list.data(), 0, 10000});
     cout << "selected " << number_of_selected_events << " events" << endl;
   }
 
