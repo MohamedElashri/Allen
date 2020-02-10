@@ -36,7 +36,7 @@ __device__ void track_forwarding(
       track_flag ? track_number < ttf_modulo :
                    track_number < Velo::Constants::max_tracks);
 
-    int number_of_hits;
+    uint number_of_hits;
     Velo::TrackHits* t;
 
     if (track_flag) {
