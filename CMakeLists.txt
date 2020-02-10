@@ -24,6 +24,9 @@ else()
 endif()
 message(STATUS "Allen target: ${TARGET_DEVICE}")
 
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
+
 find_package(cppgsl QUIET)
 if (cppgsl_FOUND)
   message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIRS})
@@ -31,9 +34,6 @@ else()
   set(CPPGSL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
   message(STATUS "Using internal gsl-lite")
 endif()
-
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
 
 option(BUILD_TESTS "Build test programs" OFF)
 option(USE_ROOT "Build with ROOT" OFF)
