@@ -87,7 +87,6 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     three_hit_tracks,
     tracklets,
     tracks,
-    total_estimated_number_of_clusters,
     h1_rel_indices,
     hit_offset,
     dev_velo_geometry->module_zs,

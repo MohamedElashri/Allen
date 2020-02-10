@@ -33,7 +33,6 @@ namespace lf_search_initial_windows {
   __global__ void lf_search_initial_windows(
     Parameters,
     const char* dev_scifi_geometry,
-    const float* dev_inv_clus_res,
     const LookingForward::Constants* dev_looking_forward_constants);
 
   template<typename T, char... S>
@@ -82,7 +81,6 @@ namespace lf_search_initial_windows {
                     begin<dev_ut_states_t>(arguments),
                     begin<dev_scifi_lf_process_track_t>(arguments)},
         constants.dev_scifi_geometry,
-        constants.dev_inv_clus_res,
         constants.dev_looking_forward_constants);
     }
 

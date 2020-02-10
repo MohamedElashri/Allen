@@ -31,10 +31,6 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
   // Kalman fitted tracks.
   const ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
 
-  // Primary vertices.
-  const uint n_pvs_event = *(parameters.dev_number_of_multi_fit_vertices + event_number);
-  cuda::span<PV::Vertex const> vertices {parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices, n_pvs_event};
-
   // Loop over tracks.
   for (auto i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 

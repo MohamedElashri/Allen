@@ -24,7 +24,7 @@ void host_prefix_sum::host_prefix_sum(
   uint* host_prefix_sum_buffer,
   size_t& host_allocated_prefix_sum_space,
   const size_t dev_input_buffer_size,
-  const size_t dev_output_buffer_size,
+  [[maybe_unused]] const size_t dev_output_buffer_size,
   cudaStream_t& cuda_stream,
   cudaEvent_t& cuda_generic_event,
   host_prefix_sum::Parameters parameters)
@@ -66,21 +66,4 @@ void host_prefix_sum::host_prefix_sum(
   cudaCheck(cudaMemcpyAsync(
     parameters.dev_output_buffer, host_prefix_sum_buffer, dev_output_buffer_size, cudaMemcpyHostToDevice, cuda_stream));
 #endif
-}
-
-void cpu_prefix_sum(
-    uint* host_prefix_sum_buffer,
-    size_t& host_allocated_prefix_sum_space,
-    uint* dev_prefix_sum_offset,
-    const size_t dev_prefix_sum_size,
-    cudaStream_t& cuda_stream,
-    cudaEvent_t& cuda_generic_event,
-    uint* host_total_sum_holder) {
-  // host_prefix_sum::cpu_prefix_sum(host_prefix_sum_buffer,
-  //   host_allocated_prefix_sum_space,
-  //   host_prefix_sum::dev_buffer_t{dev_prefix_sum_offset},
-  //   dev_prefix_sum_size,
-  //   cuda_stream,
-  //   cuda_generic_event,
-  //   host_prefix_sum::host_total_sum_holder_t{host_total_sum_holder});
 }

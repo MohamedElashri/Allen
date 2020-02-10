@@ -29,13 +29,11 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Tracks.
     const int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(event_number);
-    const int n_tracks_event = scifi_tracks.number_of_tracks(event_number);
     const uint* event_saved_tracks_list = parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(event_number);
     const ParKalmanFilter::FittedTrack* event_kf_tracks =
       parameters.dev_kf_tracks + scifi_tracks.tracks_offset(event_number);
 
     // Vertices.
-    const int n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
     const uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[event_number];
     const VertexFit::TrackMVAVertex* event_svs =
       parameters.dev_consolidated_svs + parameters.dev_sv_offsets[event_number];

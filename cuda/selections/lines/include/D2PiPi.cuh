@@ -7,8 +7,8 @@
 // D -> Pi Pi
 namespace D2PiPi {
 
-  constexpr float mPi = 139.571 / Gaudi::Units::MeV;
-  constexpr float mD = 1864.83 / Gaudi::Units::MeV;
+  constexpr float mPi = 139.571f / Gaudi::Units::MeV;
+  constexpr float mD = 1864.83f / Gaudi::Units::MeV;
 
   constexpr float minComboPt = 2000.0f / Gaudi::Units::MeV;
   constexpr float maxVertexChi2 = 10.f;

@@ -39,7 +39,7 @@ std::tuple<bool, std::string> set_device(int, size_t)
 std::tuple<bool, std::string> set_device(int, size_t) { return {true, "CPU"}; }
 #endif // linux-dependent CPU detection
 
-std::tuple<bool, int> get_device_id(std::string pci_bus_id) {
+std::tuple<bool, int> get_device_id(std::string) {
   return {true, 0};
 }
 

@@ -55,7 +55,7 @@ DeviceDimensions Configuration::from_string<DeviceDimensions>(const std::string&
 }
 
 template<>
-std::string Configuration::to_string_impl<DeviceDimensions>(const DeviceDimensions& holder)
+std::string Configuration::to_string<DeviceDimensions>(const DeviceDimensions& holder)
 {
   // very basic implementation based on streaming
   std::stringstream s;

@@ -10,7 +10,7 @@ namespace ODINNoBias {
     constexpr static auto name {"ODINNoBias"};
     constexpr static auto scale_factor = 1e-3f;
 
-    static __device__ bool function(const char* odin, const uint n_velo_tracks)
+    static __device__ bool function(const char* odin, const uint)
     {
       const uint hdr_size(8);
       const uint32_t* odinData = reinterpret_cast<const uint32_t*>(

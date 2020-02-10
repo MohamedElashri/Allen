@@ -68,13 +68,3 @@ namespace host_prefix_sum {
     }
   };
 } // namespace host_prefix_sum
-
-// TODO: Remove
-void cpu_prefix_sum(
-  uint* host_prefix_sum_buffer,
-  size_t& host_allocated_prefix_sum_space,
-  uint* dev_prefix_sum_offset,
-  const size_t dev_prefix_sum_size,
-  cudaStream_t& cuda_stream,
-  cudaEvent_t& cuda_generic_event,
-  uint* host_total_sum_holder);

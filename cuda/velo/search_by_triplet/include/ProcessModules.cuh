@@ -16,7 +16,6 @@ __device__ void process_modules(
   Velo::TrackletHits* weak_tracks,
   Velo::TrackletHits* tracklets,
   Velo::TrackHits* tracks,
-  const uint number_of_hits,
   unsigned short* h1_rel_indices,
   const uint hit_offset,
   const float* dev_velo_module_zs,

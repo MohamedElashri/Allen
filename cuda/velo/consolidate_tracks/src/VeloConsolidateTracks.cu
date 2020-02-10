@@ -59,7 +59,7 @@ __device__ VeloState means_square_fit(const Velo::Consolidated::Hits& consolidat
 template<typename F>
 __device__ void populate(const Velo::TrackHits* track, const uint number_of_hits, const F& assign)
 {
-  for (int i = 0; i < number_of_hits; ++i) {
+  for (uint i = 0; i < number_of_hits; ++i) {
     const auto hit_index = track->hits[i];
     assign(i, hit_index);
   }

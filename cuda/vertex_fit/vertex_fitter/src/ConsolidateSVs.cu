@@ -9,7 +9,7 @@ __global__ void consolidate_svs::consolidate_svs(consolidate_svs::Parameters par
   const VertexFit::TrackMVAVertex* event_svs = parameters.dev_secondary_vertices + sv_offset;
   VertexFit::TrackMVAVertex* event_consolidated_svs = parameters.dev_consolidated_svs + fitted_sv_offset;
 
-  for (int i_sv = threadIdx.x; i_sv < n_svs; i_sv += blockDim.x) {
+  for (uint i_sv = threadIdx.x; i_sv < n_svs; i_sv += blockDim.x) {
     event_consolidated_svs[i_sv] = event_svs[i_sv];
   }
 }
