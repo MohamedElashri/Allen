@@ -74,6 +74,8 @@ struct MEPProviderConfig {
 
   bool transpose_mep = false;
 
+  bool split_by_run = false;
+
   size_t n_receivers() const { return receivers.size(); }
 
   // Mapping of receiver card to MPI rank to receive from
@@ -1063,7 +1065,7 @@ private:
       if (m_config.transpose_mep) {
         // Transpose the events into the slice
         std::tie(good, transpose_full, n_transposed) = MEP::transpose_events(
-          m_slices, *slice_index, m_bank_ids, m_banks_count, event_ids, mep_header, blocks, source_offsets, interval);
+          m_slices, *slice_index, m_bank_ids, m_banks_count, event_ids, mep_header, blocks, source_offsets, interval, m_config.split_by_run);
         this->debug_output(
           "Transposed slice " + std::to_string(*slice_index) + "; good: " + std::to_string(good) +
             ";full: " + std::to_string(transpose_full) + "; n_transposed:  " + std::to_string(n_transposed),
@@ -1072,7 +1074,7 @@ private:
       else {
         // Calculate fragment offsets in MEP per sub-detector
         std::tie(good, transpose_full, n_transposed) =
-          MEP::mep_offsets(m_slices, *slice_index, m_bank_ids, m_banks_count, event_ids, mep_header, blocks, interval);
+          MEP::mep_offsets(m_slices, *slice_index, m_bank_ids, m_banks_count, event_ids, mep_header, blocks, interval, m_config.split_by_run);
         this->debug_output("Calculated MEP offsets for slice " + std::to_string(*slice_index), thread_id);
       }
 

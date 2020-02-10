@@ -74,7 +74,8 @@ namespace MEP {
     EventIDs& event_ids,
     EB::Header const& mep_header,
     MEP::Blocks const& blocks,
-    std::tuple<size_t, size_t> const& interval);
+    std::tuple<size_t, size_t> const& interval,
+    bool split_by_run = false);
 
   size_t check_for_run_change(
     EB::Header const& mep_header,
@@ -123,6 +124,7 @@ namespace MEP {
     EB::Header const& mep_header,
     Blocks const& blocks,
     SourceOffsets const& source_offsets,
-    std::tuple<size_t, size_t> const& interval);
+    std::tuple<size_t, size_t> const& interval,
+    bool split_by_run = false);
 
 } // namespace MEP

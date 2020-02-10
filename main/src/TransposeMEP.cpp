@@ -140,15 +140,18 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
   EventIDs& event_ids,
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,
-  std::tuple<size_t, size_t> const& interval)
+  std::tuple<size_t, size_t> const& interval,
+  bool split_by_run)
 {
 
   auto [event_start, event_end] = interval;
 
-  auto n_events = check_for_run_change(
-    mep_header,
-    blocks,
-    interval);
+  auto n_events = event_end - event_start;
+
+  if (split_by_run) n_events = check_for_run_change(
+                      mep_header,
+                      blocks,
+                      interval);
 
   if (event_end > event_start + n_events) {
 	  event_end = event_start + n_events;
@@ -362,7 +365,8 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
   EB::Header const& mep_header,
   MEP::Blocks const& blocks,
   MEP::SourceOffsets const& source_offsets,
-  std::tuple<size_t, size_t> const& interval)
+  std::tuple<size_t, size_t> const& interval,
+  bool split_by_run)
 {
   auto [event_start, event_end] = interval;
 
@@ -371,10 +375,10 @@ std::tuple<bool, bool, size_t> MEP::transpose_events(
   auto to_transpose = allen_offsets(slices, slice_index, bank_ids, banks_count, blocks, interval);
 
   // Only transpose events from a single run
-  to_transpose = check_for_run_change(
-    mep_header,
-    blocks,
-    {event_start, event_start + to_transpose});
+  if (split_by_run) to_transpose = check_for_run_change(
+                      mep_header,
+                      blocks,
+                      {event_start, event_start + to_transpose});
 
   transpose_event(
     slices,

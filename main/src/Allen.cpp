@@ -512,6 +512,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
   bool print_buffer_status = 0;
   uint inject_mem_fail = 0;
   uint mon_save_period = 0;
+  bool disable_run_changes = 0;
 
   std::string flag, arg;
   const auto flag_in = [&flag](const std::vector<std::string>& option_flags) {
@@ -630,6 +631,9 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     else if (flag_in({"monitoring-save-period"})) {
       mon_save_period = atoi(arg.c_str());
     }
+    else if (flag_in({"disable-run-changes"})) {
+      disable_run_changes = atoi(arg.c_str());
+    }
   }
 
   // Options sanity check
@@ -724,6 +728,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               with_mpi,             // Receive from MPI or read files
                               non_stop,             // Run the application non-stop
                               !mep_layout,          // MEPs should be transposed to Allen layout
+			      !disable_run_changes,  // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
@@ -733,7 +738,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
     MDFProviderConfig config {false,                      // verify MDF checksums
                               10,                         // number of read buffers
                               4,                          // number of transpose threads
-                              *events_per_slice * 10 + 1, // mximum number event of offsets in read buffer
+                              *events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
                               *events_per_slice,          // number of events per read buffer
                               n_io_reps};                 // number of loops over the input files
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
@@ -1181,7 +1186,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
             next_run_number = zmqSvc().receive<uint>(socket);
             debug_cout << "Requested run change from " << current_run_number << " to " << *next_run_number << std::endl;
             //guard against double run changes if we have multiple input threads
-            if (*next_run_number == current_run_number) next_run_number.reset();
+            if (disable_run_changes || *next_run_number == current_run_number) next_run_number.reset();
           }
           else if (msg == "WRITTEN") {
             auto slc_idx = zmqSvc().receive<size_t>(socket);
