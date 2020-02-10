@@ -55,6 +55,8 @@ struct MDFProviderConfig {
 
   // number of loops over input data
   size_t n_loops = 0;
+
+  bool split_by_run = false;
 };
 
 /**
@@ -274,9 +276,9 @@ public:
       if (!m_read_error && !m_transposed.empty() && (!timeout || (timeout && !timed_out))) {
         std::tie(slice_index, n_filled) = m_transposed.front();
         m_transposed.pop_front();
-	if (n_filled > 0) {
-	  run_no = std::get<0>(m_event_ids[slice_index].front());
-	}
+        if (n_filled > 0) {
+          run_no = std::get<0>(m_event_ids[slice_index].front());
+        }
       }
     }
 
@@ -452,7 +454,8 @@ private:
         m_bank_ids,
         m_banks_count,
         m_event_ids[*slice_index],
-        this->events_per_slice());
+        this->events_per_slice(),
+        m_config.split_by_run);
       this->debug_output(
         "Transposed " + std::to_string(*slice_index) + " " + std::to_string(good) + " " +
           std::to_string(transpose_full) + " " + std::to_string(n_transposed),

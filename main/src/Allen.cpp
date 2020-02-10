@@ -728,7 +728,7 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               with_mpi,             // Receive from MPI or read files
                               non_stop,             // Run the application non-stop
                               !mep_layout,          // MEPs should be transposed to Allen layout
-			      !disable_run_changes,  // Whether to split slices by run number
+                              !disable_run_changes,  // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
     input_provider = std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       number_of_slices, *events_per_slice, n_events, split_string(mep_input, ","), config);
@@ -740,7 +740,8 @@ int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpda
                               4,                          // number of transpose threads
                               *events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
                               *events_per_slice,          // number of events per read buffer
-                              n_io_reps};                 // number of loops over the input files
+                              n_io_reps,                  // number of loops over the input files
+                              !disable_run_changes};      // Whether to split slices by run number
     input_provider = std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       number_of_slices, *events_per_slice, n_events, split_string(mdf_input, ","), config);
   }

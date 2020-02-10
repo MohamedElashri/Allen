@@ -140,42 +140,6 @@ std::tuple<bool, std::array<unsigned int, LHCb::NBankTypes>> fill_counts(gsl::sp
   return {true, count};
 }
 
-size_t check_for_run_change(
-  std::vector<char> buffer,
-  std::vector<uint> event_offsets,
-  size_t event_start,
-  size_t event_end)
-{
-  uint run_number = 0u;
-  size_t i_event = event_start;
-
-  for (; i_event < event_end; ++i_event) {
-    auto const* bank = buffer.data() + event_offsets[i_event];
-    auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
-
-    while (bank < bank_end) {
-      const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
-
-      // Find ODIN bank
-      if (b->type() == LHCb::RawBank::ODIN) {
-        // decode ODIN bank to obtain run number
-        auto odin = MDF::decode_odin(b->version(), b->data());
-	if (i_event == event_start) {
-	  run_number = odin.run_number;
-	} else {
-	  if (run_number != odin.run_number) {
-	    return i_event;
-	  }
-	}
-	break;
-      }
-
-      bank += b->totalSize();
-    }
-  }
-  return i_event;
-}
-
 /**
  * @brief      Transpose events to Allen layout
  *
@@ -188,13 +152,14 @@ size_t check_for_run_change(
  * @return     tuple of: (success, slice is full)
  */
 template<BankTypes... Banks>
-std::tuple<bool, bool> transpose_event(
+std::tuple<bool, bool, bool> transpose_event(
   Slices& slices,
   int const slice_index,
   std::vector<int> const& bank_ids,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
-  const gsl::span<char const> bank_data)
+  const gsl::span<char const> bank_data,
+  bool split_by_run)
 {
 
   unsigned int* banks_offsets = nullptr;
@@ -221,7 +186,7 @@ std::tuple<bool, bool> transpose_event(
 
     if (b->magic() != LHCb::RawBank::MagicPattern) {
       error_cout << "Magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
-      return {false, false};
+      return {false, false, false};
       // Decode the odin bank
     }
 
@@ -231,6 +196,12 @@ std::tuple<bool, bool> transpose_event(
     if (bt == LHCb::RawBank::ODIN) {
       // decode ODIN bank to obtain run and event numbers
       auto odin = MDF::decode_odin(b->version(), b->data());
+      // if splitting by run, check for a run change since the last event
+      if (split_by_run) {
+        if (!event_ids.empty() && odin.run_number != std::get<0>(event_ids.front())) {
+          return {true, false, true};
+        }
+      }
       event_ids.emplace_back(odin.run_number, odin.event_number);
     }
 
@@ -313,10 +284,10 @@ std::tuple<bool, bool> transpose_event(
     // per bank size because that's not yet known for the next
     // event
     if ((slice_offsets[offsets_size - 1] + bank_data.size()) > slice_size) {
-      return {true, true};
+      return {true, true, false};
     }
   }
-  return {true, false};
+  return {true, false, false};
 }
 
 /**
@@ -363,16 +334,14 @@ std::tuple<bool, bool, size_t> transpose_events(
   std::vector<int> const& bank_ids,
   std::array<unsigned int, LHCb::NBankTypes> const& banks_count,
   EventIDs& event_ids,
-  size_t n_events)
+  size_t n_events,
+  bool split_by_run = false)
 {
 
-  bool full = false, success = true;
+  bool full = false, success = true, run_change = false;
   auto const& [n_filled, event_offsets, buffer, event_start] = read_buffer;
   size_t event_end = event_start + n_events;
   if (n_filled < event_end) event_end = n_filled;
-
-  // Only fill slice with events from a single run
-  event_end = check_for_run_change(buffer, event_offsets, event_start, event_end);
 
   // Loop over events in the prefetch buffer
   size_t i_event = event_start;
@@ -380,8 +349,10 @@ std::tuple<bool, bool, size_t> transpose_events(
     // Offsets are to the start of the event, which includes the header
     auto const* bank = buffer.data() + event_offsets[i_event];
     auto const* bank_end = buffer.data() + event_offsets[i_event + 1];
-    std::tie(success, full) =
-      transpose_event<Banks...>(slices, slice_index, bank_ids, banks_count, event_ids, {bank, bank_end});
+    std::tie(success, full, run_change) =
+      transpose_event<Banks...>(slices, slice_index, bank_ids, banks_count, event_ids, {bank, bank_end}, split_by_run);
+    //break the loop if we detect a run change to avoid incrementing i_event
+    if(run_change) break;
   }
 
   return {success, full, i_event-event_start};
