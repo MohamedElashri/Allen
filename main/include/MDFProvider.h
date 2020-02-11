@@ -314,8 +314,7 @@ public:
         m_slice_to_buffer[slice_index] = -1;
 
         if (
-          status.work_counter == 0 &&
-	  std::get<0>(m_buffers[i_read]) == std::get<3>(m_buffers[i_read]) &&
+          status.work_counter == 0 && std::get<0>(m_buffers[i_read]) == std::get<3>(m_buffers[i_read]) &&
           (std::find(m_slice_to_buffer.begin(), m_slice_to_buffer.end(), i_read) == m_slice_to_buffer.end())) {
           status.writable = true;
           set_writable = true;
