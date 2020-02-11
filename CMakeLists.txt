@@ -54,9 +54,6 @@ macro(allen_project)
     # Always enable ROOT for Gaudi builds
     set(USE_ROOT ON)
 
-    # Always disable MPI for Gaudi builds
-    set(USE_MPI OFF)
-
     # Find the CUDA compiler if it's not set
     # FIXME: this assumes a standard cuda install: re-evaluate if
     # LCG_XXcudaYY is used
