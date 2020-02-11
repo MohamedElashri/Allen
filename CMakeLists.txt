@@ -159,13 +159,6 @@ else()
 	list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static" )
   endif()
 
-  # Determine whether to use Tensor Cores
-  # Note: Tensor cores are only supported in CUDA
-  option(TENSOR "Produce CUDA code with Tensor Cores enabled if available" OFF)
-  if(DEVICE_TARGET STREQUAL "CUDA" AND TENSOR)
-	add_compile_definitions(TENSOR_CORES_ENABLED)
-  endif()
-
   find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
@@ -303,6 +296,7 @@ if(DEVICE_TARGET STREQUAL "CUDA")
   message(STATUS "Cuda architecture set to ${ARCH_FLAG}")
 
   # Cuda: Deal with build type
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
   if(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
     set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL Release)
