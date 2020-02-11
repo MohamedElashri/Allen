@@ -7,8 +7,8 @@ import pprint
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('header')
-arg_parser.add_argument('-o', '--output-opts', dest='opts', type=str,
-                        default='allen_opts.py')
+arg_parser.add_argument(
+    '-o', '--output-opts', dest='opts', type=str, default='allen_opts.py')
 args = arg_parser.parse_args()
 
 
@@ -39,7 +39,7 @@ def system_include_paths(compiler, cpp=True):
     start = lines.index('#include <...> search starts here:')
     end = lines.index('End of search list.')
 
-    lines = lines[start+1:end]
+    lines = lines[start + 1:end]
     paths = []
     for line in lines:
         line = line.replace('(framework directory)', '')
@@ -54,22 +54,26 @@ clang_args += [(b'-I' + inc).decode("utf-8") for inc in include_paths]
 
 
 def get_annotations(node):
-    return [c.displayname for c in node.get_children()
-            if c.kind == clang.cindex.CursorKind.ANNOTATE_ATTR]
+    return [
+        c.displayname for c in node.get_children()
+        if c.kind == clang.cindex.CursorKind.ANNOTATE_ATTR
+    ]
 
 
 class Enum(object):
     def __init__(self, cursor):
         self.name = cursor.spelling
-        self.constants = [c.spelling for c in cursor.get_children()
-                          if c.kind == clang.cindex.CursorKind.ENUM_CONSTANT_DECL]
+        self.constants = [
+            c.spelling for c in cursor.get_children()
+            if c.kind == clang.cindex.CursorKind.ENUM_CONSTANT_DECL
+        ]
         self.documentation = cursor.raw_comment
 
 
 class Class(object):
     def __init__(self, cursor):
         self.name = cursor.spelling
-#        self.functions = []
+        #        self.functions = []
         self.annotations = get_annotations(cursor)
 
 
@@ -82,13 +86,14 @@ def traverse(c, path, objects, namespace):
         pass
 
     elif c.kind == clang.cindex.CursorKind.NAMESPACE:
-        if namespace :
+        if namespace:
             namespace = namespace + tuple([c.spelling])
         else:
             namespace = tuple([c.spelling])
         if namespace not in objects:
             objects[namespace] = []
         pass
+
 
 #     elif c.kind == clang.cindex.CursorKind.FUNCTION_TEMPLATE:
 # #        print("Function Template", c.spelling, c.raw_comment)
@@ -123,9 +128,14 @@ def traverse(c, path, objects, namespace):
     for child_node in c.get_children():
         traverse(child_node, path, objects, namespace)
 
-
-opts = {'HltANNSvc': {'Hlt1SelectionID': {}},
-        'ExecutionReportsWriter': {'Persist': []}}
+opts = {
+    'HltANNSvc': {
+        'Hlt1SelectionID': {}
+    },
+    'ExecutionReportsWriter': {
+        'Persist': []
+    }
+}
 
 index = clang.cindex.Index.create()
 error = None
@@ -133,8 +143,8 @@ try:
     tu = index.parse(args.header, args=clang_args)
     objects = {}
     traverse(tu.cursor, args.header, objects, ())
-    if ('Hlt1',) in objects:
-        enums = {o.name: o for o in objects[('Hlt1',)] if type(o) is Enum}
+    if ('Hlt1', ) in objects:
+        enums = {o.name: o for o in objects[('Hlt1', )] if type(o) is Enum}
         lines_enum = enums.get('Hlt1Lines', None)
         if lines_enum is not None:
             for i, c in enumerate(lines_enum.constants):

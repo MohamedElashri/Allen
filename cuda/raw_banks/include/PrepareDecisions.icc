@@ -24,18 +24,18 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
                                                  parameters.dev_scifi_track_ut_indices,
                                                  event_number,
                                                  number_of_events};
-  
+
   // Tracks.
   int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(event_number);
   const int n_tracks_event = scifi_tracks.number_of_tracks(event_number);
   uint* event_saved_tracks_list = parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(event_number);
-  const ParKalmanFilter::FittedTrack* event_kf_tracks = parameters.dev_kf_tracks + scifi_tracks.tracks_offset(event_number);
 
   // Vertices.
   int* event_save_sv = parameters.dev_save_sv + parameters.dev_sv_offsets[event_number];
-  const int n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
+  const uint n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
   uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[event_number];
-  const VertexFit::TrackMVAVertex* event_svs = parameters.dev_consolidated_svs + parameters.dev_sv_offsets[event_number];
+  const VertexFit::TrackMVAVertex* event_svs =
+    parameters.dev_consolidated_svs + parameters.dev_sv_offsets[event_number];
 
   const int n_hlt1_lines = std::tuple_size<T>::value;
   uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
@@ -45,13 +45,13 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
   uint insert_index = 0;
   for (uint i_sv = threadIdx.x; i_sv < n_vertices_event; i_sv += blockDim.x) {
     uint32_t save_sv = 0;
-    const auto lambda_fn = [&] (const unsigned long i_line) {
-      const bool* decisions = parameters.dev_sel_results +
-        parameters.dev_sel_results_offsets[i_line] + parameters.dev_sv_offsets[event_number];
+    const auto lambda_fn = [&](const unsigned long i_line) {
+      const bool* decisions = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
+                              parameters.dev_sv_offsets[event_number];
 
       uint* candidate_counts = parameters.dev_candidate_counts + i_line * number_of_events + event_number;
       uint* candidate_list = parameters.dev_candidate_lists + number_of_events * Hlt1::maxCandidates * i_line +
-      event_number * Hlt1::maxCandidates;
+                             event_number * Hlt1::maxCandidates;
       uint32_t dec = ((decisions[i_sv] ? 1 : 0) & dec_mask);
       atomicOr(event_dec_reports + 2 + i_line, dec);
       insert_index = atomicAdd(candidate_counts, dec);
@@ -72,19 +72,19 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
       event_save_track[event_svs[i_sv].trk2] = 1;
     }
   }
-  
+
   __syncthreads();
 
   // Set track decisions.
   for (int i_track = threadIdx.x; i_track < n_tracks_event; i_track += blockDim.x) {
     uint32_t save_track = 0;
-    const auto lambda_fn = [&] (const unsigned long i_line) {
-      const bool* decisions = parameters.dev_sel_results +
-        parameters.dev_sel_results_offsets[i_line] + scifi_tracks.tracks_offset(event_number);
+    const auto lambda_fn = [&](const unsigned long i_line) {
+      const bool* decisions = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
+                              scifi_tracks.tracks_offset(event_number);
 
       uint* candidate_counts = parameters.dev_candidate_counts + i_line * number_of_events + event_number;
       uint* candidate_list = parameters.dev_candidate_lists + number_of_events * Hlt1::maxCandidates * i_line +
-        event_number * Hlt1::maxCandidates;
+                             event_number * Hlt1::maxCandidates;
       uint32_t dec = ((decisions[i_track] ? 1 : 0) & dec_mask);
       atomicOr(event_dec_reports + 2 + i_line, dec);
       insert_index = atomicAdd(candidate_counts, dec);
@@ -103,8 +103,8 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
     if (event_save_track[i_track] >= 0) {
       const int i_ut_track = scifi_tracks.ut_track(i_track);
       const int i_velo_track = ut_tracks.velo_track(i_ut_track);
-      const int n_hits = scifi_tracks.number_of_hits(i_track) +
-        ut_tracks.number_of_hits(i_ut_track) + velo_tracks.number_of_hits(i_velo_track);
+      const int n_hits = scifi_tracks.number_of_hits(i_track) + ut_tracks.number_of_hits(i_ut_track) +
+                         velo_tracks.number_of_hits(i_velo_track);
       const uint track_insert_index = atomicAdd(parameters.dev_n_tracks_saved + event_number, 1);
       atomicAdd(parameters.dev_n_hits_saved + event_number, n_hits);
       event_saved_tracks_list[track_insert_index] = (uint) i_track;
@@ -113,12 +113,10 @@ __global__ void prepare_decisions::prepare_decisions(prepare_decisions::Paramete
   }
 
   // Set special line decisions.
-  const auto lambda_fn = [&] (const unsigned long i_line) {
-    const bool* decisions = parameters.dev_sel_results +
-      parameters.dev_sel_results_offsets[i_line] + event_number;
+  const auto lambda_fn = [&](const unsigned long i_line) {
+    const bool* decisions = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + event_number;
     uint32_t dec = ((decisions[0] ? 1 : 0) & dec_mask);
     atomicOr(event_dec_reports + 2 + i_line, dec);
   };
   Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
-  
 }

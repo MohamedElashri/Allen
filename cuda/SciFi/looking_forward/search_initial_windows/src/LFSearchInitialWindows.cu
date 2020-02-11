@@ -4,7 +4,6 @@
 __global__ void lf_search_initial_windows::lf_search_initial_windows(
   lf_search_initial_windows::Parameters parameters,
   const char* dev_scifi_geometry,
-  const float* dev_inv_clus_res,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   const uint number_of_events = gridDim.x;

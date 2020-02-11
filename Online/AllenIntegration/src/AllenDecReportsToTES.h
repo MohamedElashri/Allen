@@ -23,7 +23,6 @@
 #include "Logger.h"
 #include "RawBanksDefinitions.cuh"
 
-
 class AllenDecReportsToTES final : public Gaudi::Functional::Transformer<LHCb::RawEvent(const HostBuffers&)> {
 public:
   /// Standard constructor

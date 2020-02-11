@@ -15,7 +15,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
 
 file(GLOB pat_pv "src/*cu")
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(DEVICE_TARGET STREQUAL "CPU")
   set_source_files_properties(${pat_pv} PROPERTIES LANGUAGE CXX)
 endif()
 

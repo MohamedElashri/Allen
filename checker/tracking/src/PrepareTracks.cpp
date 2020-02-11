@@ -127,7 +127,7 @@ std::vector<Checker::Tracks> prepareSciFiTracks(
   const float* scifi_qop,
   const MiniState* scifi_states,
   const char* scifi_geometry,
-  const std::array<float, 9>& inv_clus_res,
+  const std::array<float, 9>&,
   const float* muon_catboost_output,
   const bool* is_muon,
   const uint number_of_events)

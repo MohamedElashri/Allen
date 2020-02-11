@@ -49,7 +49,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
       host_buffers.host_sel_results,
       host_buffers.host_sel_results_atomics,
       host_buffers.host_atomics_scifi,
-      host_buffers.host_sv_atomics,
+      host_buffers.host_sv_offsets,
       host_buffers.host_mf_sv_offsets,
       host_buffers.host_number_of_selected_events[0]);
 #else

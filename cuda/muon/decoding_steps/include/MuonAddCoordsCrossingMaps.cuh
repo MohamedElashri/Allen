@@ -28,9 +28,9 @@ namespace muon_add_coords_crossing_maps {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_muon_hits_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_station_ocurrences_sizes_t>(
@@ -41,11 +41,11 @@ namespace muon_add_coords_crossing_maps {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      HostBuffers& host_buffers,
+      const RuntimeOptions&,
+      const Constants&,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_station_ocurrences_sizes_t>(arguments, 0, cuda_stream);
 

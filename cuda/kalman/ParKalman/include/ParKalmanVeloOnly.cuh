@@ -96,20 +96,20 @@ namespace kalman_velo_only {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_kf_tracks_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
     }
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
+      const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),

@@ -70,6 +70,8 @@ __device__ void no_neighbour_sp(
           module_cluster_start[module_number + 1] -
           module_cluster_start[module_number];
         assert(cluster_num <= module_estimated_num);
+#else
+        _unused(module_cluster_start);
 #endif
 
         const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];

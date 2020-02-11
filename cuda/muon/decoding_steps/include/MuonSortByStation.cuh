@@ -28,9 +28,9 @@ namespace muon_sort_by_station {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_permutation_station_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Muon::Constants::max_numhits_per_event);
@@ -38,11 +38,11 @@ namespace muon_sort_by_station {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      HostBuffers& host_buffers,
+      const RuntimeOptions&,
+      const Constants&,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_permutation_station_t>(arguments, 0, cuda_stream);
 

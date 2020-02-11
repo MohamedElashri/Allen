@@ -33,7 +33,6 @@ namespace lf_search_initial_windows {
   __global__ void lf_search_initial_windows(
     Parameters,
     const char* dev_scifi_geometry,
-    const float* dev_inv_clus_res,
     const LookingForward::Constants* dev_looking_forward_constants);
 
   template<typename T, char... S>
@@ -43,9 +42,9 @@ namespace lf_search_initial_windows {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_scifi_lf_initial_windows_t>(
         arguments,
@@ -57,11 +56,11 @@ namespace lf_search_initial_windows {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
+      const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_scifi_lf_initial_windows_t>(arguments, 0, cuda_stream);
 
@@ -82,7 +81,6 @@ namespace lf_search_initial_windows {
                     begin<dev_ut_states_t>(arguments),
                     begin<dev_scifi_lf_process_track_t>(arguments)},
         constants.dev_scifi_geometry,
-        constants.dev_inv_clus_res,
         constants.dev_looking_forward_constants);
     }
 

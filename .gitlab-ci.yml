@@ -41,11 +41,11 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
-    - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DTARGET_${TARGET}=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH="ivybridge" ${ADDITIONAL_OPTIONS} ..
+    - cmake -DDEVICE_TARGET=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
     expire_in: 2 hrs
@@ -71,11 +71,11 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
-    - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DBUILD_TESTS=ON -DTARGET_${TARGET}=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH="ivybridge" ${ADDITIONAL_OPTIONS} ..
+    - cmake -DBUILD_TESTS=ON -DDEVICE_TARGET=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
     expire_in: 2 hrs
@@ -101,12 +101,10 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
-    - source /cvmfs/sft.cern.ch/lcg/releases/clang/8.0.0.1/x86_64-centos7/setup.sh
-    - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-clang8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DTARGET_${TARGET}=ON -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH="ivybridge" ${ADDITIONAL_OPTIONS} ..
+    - cmake -DDEVICE_TARGET=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
     expire_in: 2 hrs
@@ -135,8 +133,8 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
     - RUN_OPTIONS="-n 1000 -m 700"
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
-    - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir validation_output
     - ln -s validation_output output # Needed by Root build
     - cd build_${TARGET}
@@ -174,8 +172,8 @@ check-formatting:
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
-    - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -205,9 +203,9 @@ check-formatting:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
-    - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t ${THREADS} -c 0" # If we ever execute on other CPUs we'll have to set this configurable
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
-    - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+    - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t ${THREADS} -c 0" # If we ever execute on other CPUs
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -244,8 +242,8 @@ check-formatting:
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
-    - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
     - ls
@@ -276,8 +274,8 @@ check-formatting:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
-    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_95apython3 x86_64-centos7-gcc8-opt
-    - export PATH=/usr/local/cuda/bin:/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+    - export PATH=$PATH:/usr/local/cuda/bin
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
     # - python3 checker/plotting/csv_plotter.py -t "Algorithm Groups of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "%" -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_summary.csv
 
@@ -294,7 +292,7 @@ test_physics_efficiency:
     - ls validation_output
     - ls ${TOPLEVEL}/test/reference
     - cd validation_output
-    - for i in $( ls ); do echo "Checking ${i}"; tail -n133 ${i} | head -n129 > efficiency_${i}; colordiff ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
+    - for i in $( ls ); do echo "Checking ${i}"; tail -n92 ${i} | head -n89 > efficiency_${i}; colordiff ${TOPLEVEL}/test/reference/${i} efficiency_${i} | tee ${i}_diff || true; done
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
@@ -366,25 +364,25 @@ CUDA:DefaultSequence:RelWithDebInfo::build:
   tags:
     - cuda
 
-# CUDA:DefaultSequence:Debug::build:
-#   <<: *build_test_job_def
-#   tags:
-#     - cuda
+CPU:DefaultSequence:Debug::build:
+  <<: *build_test_job_def
+  tags:
+    - x86
 
-# CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build:
-#   <<: *build_job_def
-#   tags:
-#     - cuda
+CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build:
+  <<: *build_job_def
+  tags:
+    - x86
 
 CPU:DefaultSequence:RelWithDebInfo::build_x86:
   <<: *build_job_def
   tags:
     - x86
 
-# CPU:DefaultSequence:RelWithDebInfo::build_x86_clang:
-#   <<: *build_clang_job_def
-#   tags:
-#     - x86
+CPU:DefaultSequence:RelWithDebInfo::build_x86_clang:
+  <<: *build_clang_job_def
+  tags:
+    - x86
 
 # Run on all platforms
 # Performance runs
@@ -474,19 +472,19 @@ x862630v4:CPU:DefaultSequence:run_physics_efficiency:
   dependencies:
     - CPU:DefaultSequence:RelWithDebInfo::build_x86
 
-# gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug:
-#   <<: *run_physics_efficiency_job_def
-#   tags:
-#     - cuda
-#   dependencies:
-#     - CUDA:DefaultSequence:Debug::build
+x86:CPU:DefaultSequence:run_physics_efficiency_debug:
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - x86
+  dependencies:
+    - CPU:DefaultSequence:Debug::build
 
-# gpu0:CUDA:DefaultSequence:run_physics_efficiency_debug_root:
-#   <<: *run_physics_efficiency_job_def
-#   tags:
-#     - cuda
-#   dependencies:
-#     - CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build
+x86:CPU:DefaultSequence:run_physics_efficiency_debug_root:
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - x86
+  dependencies:
+    - CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build
 
 # Publish
 

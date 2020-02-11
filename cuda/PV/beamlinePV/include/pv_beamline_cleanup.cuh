@@ -29,9 +29,9 @@ namespace pv_beamline_cleanup {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_multi_final_vertices_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * PV::max_number_vertices);
@@ -40,11 +40,11 @@ namespace pv_beamline_cleanup {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
+      const RuntimeOptions&,
+      const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, cuda_stream);
 

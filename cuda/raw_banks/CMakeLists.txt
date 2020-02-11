@@ -20,7 +20,7 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 file(GLOB raw_banks_src "src/*cu")
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(DEVICE_TARGET STREQUAL "CPU")
   set_source_files_properties(${raw_banks_src} PROPERTIES LANGUAGE CXX)
 endif()
 

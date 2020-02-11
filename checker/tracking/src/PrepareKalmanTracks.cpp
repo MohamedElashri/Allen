@@ -172,7 +172,7 @@ std::vector<Checker::Tracks> prepareKalmanTracks(
   const float* scifi_qop,
   const MiniState* scifi_states,
   const char* scifi_geometry,
-  const std::array<float, 9>& inv_clus_res,
+  const std::array<float, 9>&,
   const ParKalmanFilter::FittedTrack* kf_tracks,
   char* velo_states_base,
   PV::Vertex* rec_vertex,

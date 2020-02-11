@@ -20,17 +20,18 @@
 DECLARE_COMPONENT(RunAllen)
 
 namespace {
-  std::string resolveEnvVars(std::string s) {
-    std::regex envExpr{"\\$\\{([A-Za-z0-9_]+)\\}"};
+  std::string resolveEnvVars(std::string s)
+  {
+    std::regex envExpr {"\\$\\{([A-Za-z0-9_]+)\\}"};
     std::smatch m;
-    while(std::regex_search(s, m, envExpr)) {
+    while (std::regex_search(s, m, envExpr)) {
       std::string rep;
       System::getEnv(m[1].str(), rep);
       s = s.replace(m[1].first - 2, m[1].second + 1, rep);
     }
     return s;
   }
-}
+} // namespace
 
 RunAllen::RunAllen(const std::string& name, ISvcLocator* pSvcLocator) :
   MultiTransformerFilter(
@@ -66,11 +67,9 @@ StatusCode RunAllen::initialize()
   std::string geometry_path = resolveEnvVars(m_paramDir);
 
   std::vector<float> muon_field_of_interest_params;
-  read_muon_field_of_interest(
-    muon_field_of_interest_params, geometry_path + "/field_of_interest_params.bin");
+  read_muon_field_of_interest(muon_field_of_interest_params, geometry_path + "/field_of_interest_params.bin");
 
-  m_constants.reserve_and_initialize(
-    muon_field_of_interest_params, geometry_path + "/params_kalman_FT6x2/");
+  m_constants.reserve_and_initialize(muon_field_of_interest_params, geometry_path + "/params_kalman_FT6x2/");
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader =
     std::make_unique<CatboostModelReader>(geometry_path + "/muon_catboost_model.json");

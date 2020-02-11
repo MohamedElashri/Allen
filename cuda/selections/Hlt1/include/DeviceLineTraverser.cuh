@@ -8,17 +8,17 @@ namespace Hlt1 {
   template<>
   struct TraverseImpl<std::tuple<>, std::index_sequence<>, void> {
     constexpr static __device__ void traverse(
-      bool* dev_sel_results,
-      const uint* dev_sel_results_offsets,
-      const uint* dev_offsets_forward_tracks,
-      const uint* dev_sv_offsets,
-      const ParKalmanFilter::FittedTrack* event_tracks,
-      const VertexFit::TrackMVAVertex* event_vertices,
-      const char* event_odin_data,
-      const uint number_of_velo_tracks,
-      const uint event_number,
-      const uint number_of_tracks_in_event,
-      const uint number_of_vertices_in_event)
+      bool*,
+      const uint*,
+      const uint*,
+      const uint*,
+      const ParKalmanFilter::FittedTrack*,
+      const VertexFit::TrackMVAVertex*,
+      const char*,
+      const uint,
+      const uint,
+      const uint,
+      const uint)
     {}
   };
 

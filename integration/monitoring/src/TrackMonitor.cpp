@@ -20,7 +20,7 @@ void TrackMonitor::fill(uint i_buf, bool)
 
     m_histograms[KalmanTrackN]->Fill(ntrk);
 
-    for (int itrk = 0; itrk < ntrk; ++itrk) {
+    for (uint itrk = 0; itrk < ntrk; ++itrk) {
       const auto& track = buf->host_kf_tracks[trk_offset + itrk];
 
       m_histograms[KalmanTrackP]->Fill(track.p());

@@ -20,7 +20,7 @@ void PVMonitor::fill(uint i_buf, bool)
 
     m_histograms[PrimaryVertexN]->Fill(npv);
 
-    for (int ipv = 0; ipv < npv; ++ipv) {
+    for (uint ipv = 0; ipv < npv; ++ipv) {
       const auto& pv = buf->host_reconstructed_multi_pvs[pv_offset + ipv];
 
       m_histograms[PrimaryVertexX]->Fill(pv.position.x);

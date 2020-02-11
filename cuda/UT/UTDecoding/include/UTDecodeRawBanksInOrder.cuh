@@ -37,19 +37,19 @@ namespace ut_decode_raw_banks_in_order {
     decltype(global_function(ut_decode_raw_banks_in_order_mep)) function_mep {ut_decode_raw_banks_in_order_mep};
 
     void set_arguments_size(
-      ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      ArgumentRefManager<T>,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {}
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       const auto parameters = Parameters {begin<dev_ut_raw_input_t>(arguments),
                                           begin<dev_ut_raw_input_offsets_t>(arguments),

@@ -1,28 +1,25 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
-# Determine whether to produce a CPU version
-option(TARGET_CPU "Produce a CPU version" OFF)
-option(TARGET_HIP "Produce a HIP version" OFF)
+# Determine device target architecture
+set(DEVICE_TARGET "CUDA" CACHE STRING "Target architecture of the device")
+set_property(CACHE DEVICE_TARGET PROPERTY STRINGS CUDA CPU HIP CUDACLANG)
+
 if(DEFINED ENV{LHCBRELEASES})
   message(STATUS "Forcing CPU target for Gaudi build")
-  set(TARGET_DEVICE "CPU")
-elseif(TARGET_CPU)
-  set(TARGET_DEVICE "CPU")
-elseif(TARGET_HIP)
+  set(DEVICE_TARGET "CPU")
+elseif(DEVICE_TARGET STREQUAL "HIP")
   # Note: HIP with nvcc backend is not supported
   #       Instead, compile with CUDA target
   if(HIP_PLATFORM STREQUAL "nvcc")
     message(STATUS "HIP with nvcc backend is not supported (HIP_PLATFORM=nvcc)")
     message(STATUS "Please unset HIP_PLATFORM to trigger a HIP compilation")
     message(STATUS "Continuing with CUDA backend")
-    set(TARGET_DEVICE "CUDA")
-  else()
-    set(TARGET_DEVICE "HIP")
+    set(DEVICE_TARGET "CUDA")
   endif()
-else()
-  set(TARGET_DEVICE "CUDA")
+# elseif(DEVICE_TARGET STREQUAL "CUDACLANG")
+#   message(STATUS "Note: Support for CUDACLANG is experimental")
 endif()
-message(STATUS "Allen target: ${TARGET_DEVICE}")
+message(STATUS "Allen device target: " ${DEVICE_TARGET})
 
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
@@ -56,12 +53,11 @@ macro(allen_project)
 
     # Always enable ROOT for Gaudi builds
     set(USE_ROOT ON)
-    set(USE_MPI ON)
 
     # Find the CUDA compiler if it's not set
     # FIXME: this assumes a standard cuda install: re-evaluate if
     # LCG_XXcudaYY is used
-    if (TARGET_DEVICE STREQUAL "CUDA")
+    if (DEVICE_TARGET STREQUAL "CUDA")
       if (NOT CMAKE_CUDA_COMPILER)
         find_program(CMAKE_CUDA_COMPILER nvcc
                      HINTS /usr/local/cuda/bin)
@@ -85,7 +81,7 @@ macro(allen_project)
 endmacro()
 
 # Setup project for the configured target
-if(TARGET_DEVICE STREQUAL "CPU")
+if(DEVICE_TARGET STREQUAL "CPU")
   add_compile_definitions(CPU)
   allen_project()
 
@@ -103,13 +99,13 @@ if(TARGET_DEVICE STREQUAL "CPU")
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIRS})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
-
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "")
+  
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
     set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
   endif()
-elseif(TARGET_DEVICE STREQUAL "HIP")
+elseif(DEVICE_TARGET STREQUAL "HIP")
   add_compile_definitions(HIP)
 
   # Setup HIPCC compiler
@@ -160,13 +156,6 @@ else()
 	list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static" )
   endif()
 
-  # Determine whether to use Tensor Cores
-  # Note: Tensor cores are only supported in CUDA
-  option(TENSOR "Produce CUDA code with Tensor Cores enabled if available" OFF)
-  if(TARGET_DEVICE STREQUAL "CUDA" AND TENSOR)
-	add_compile_definitions(TENSOR_CORES_ENABLED)
-  endif()
-
   find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
@@ -183,7 +172,7 @@ else()
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "")
+  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
     set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
@@ -195,15 +184,12 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 # Deal with build type
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif(NOT CMAKE_BUILD_TYPE)
-MESSAGE(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
+set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
+message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 # Configured sequence
-if(NOT SEQUENCE)
-  set(SEQUENCE DefaultSequence)
-endif(NOT SEQUENCE)
+set(SEQUENCE DefaultSequence CACHE STRING "Configured sequence")
+message(STATUS "Configured sequence: " ${SEQUENCE})
 
 add_custom_command(
   OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -212,50 +198,41 @@ add_custom_command(
   DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
   COMMENT "Configuring sequence "
   VERBATIM
-  )
+)
 
 add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h")
 
-message(STATUS "Configured sequence: " ${SEQUENCE})
-
-# Deal with build type
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif(NOT CMAKE_BUILD_TYPE)
-MESSAGE(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
-
-if(NOT DEFINED CPU_ARCH)
-  set(CPU_ARCH native)
-endif()
+# Configured CPU architecture
+set(CPU_ARCH native CACHE STRING "Target CPU architecture")
 
 # Detect target CPU architecture
 include(TargetArch.cmake)
-SET(TARGET_CPU_ARCHITECTURE "")
+set(TARGET_CPU_ARCHITECTURE "")
 target_architecture(TARGET_CPU_ARCHITECTURE)
-MESSAGE(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
+message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
 
 # Specific optimizations for different architectures
 if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
   # x86 family
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
-  MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+  message(STATUS "CPU_ARCH: " ${CPU_ARCH})
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
   # PowerPC family
   # More options on: https://developer.ibm.com/linuxonpower/compiler-options-table/
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=${CPU_ARCH}")
-  MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+  message(STATUS "CPU_ARCH: " ${CPU_ARCH})
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
   # ARM family
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
-  MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+  message(STATUS "CPU_ARCH: " ${CPU_ARCH})
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
   # ARM64 family
   # Options from: http://www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH} -floop-optimize \
 -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
-  MESSAGE(STATUS "CPU_ARCH: " ${CPU_ARCH})
+  message(STATUS "CPU_ARCH: " ${CPU_ARCH})
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -265,31 +242,58 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DALLEN_DEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-if(TARGET_DEVICE STREQUAL "CUDA")
+if(DEVICE_TARGET STREQUAL "CUDA")
   set(CUDA_SEPARABLE_COMPILATION ON)
   option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
   set(CMAKE_CUDA_STANDARD 14)
 
-  # By default, build for maximum compatibility.
-  # * These settings support natively archs 3.0, 5.0, 6.0, 7.0 and 7.5.
-  # * All other 3.X, 5.X and 6.X architectures are supported through their respective
-  #   major number builds, specifics of those architectures are not used.
-  # * Forward compatibility with newer devices is also supported by generating PTX from 7.5
-  #   (-gencode=arch=compute_75,compute=compute_75)
-  foreach(arch 30 50 60 70 75)
-    set(DEFAULT_CUDA_ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG} -gencode=arch=compute_${arch},code=sm_${arch}")
-  endforeach()
-  set(DEFAULT_CUDA_ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG} -gencode=arch=compute_75,code=compute_75")
-
-  if(DEFINED OVERRIDE_ARCH_FLAG)
-    message(STATUS "Cuda architecture set to ${OVERRIDE_ARCH_FLAG}")
+  # Settings can be overriden by setting OVERRIDE_ARCH_FLAG
+  if(DEFINED OVERRIDE_ARCH_FLAG AND NOT OVERRIDE_ARCH_FLAG STREQUAL "")
+    message(STATUS "Overriding CUDA architecture setting:")
     set(ARCH_FLAG ${OVERRIDE_ARCH_FLAG})
+  # Or by setting CUDA_ARCH to MAX
+  elseif(CUDA_ARCH STREQUAL "MAX")
+    set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
+    set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
+    execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -ccbin=${CMAKE_CXX_COMPILER} -std=c++14 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
+    if(CUDA_ARCH STREQUAL "MAX")
+      set(CHECK_ARGS "-l")
+    endif()
+    message(STATUS "Detecting highest CUDA compute capability available...")
+    execute_process(COMMAND ${OUTPUTFILE} ${CHECK_ARGS}
+      RESULT_VARIABLE CUDA_RETURN_CODE
+      OUTPUT_VARIABLE CUDA_ARCH_OUTPUT)
+
+    if(${CUDA_RETURN_CODE} EQUAL 1)
+      message(FATAL_ERROR "${CUDA_ARCH}")
+    else()
+      message(STATUS "Detected architecture: " ${CUDA_ARCH_OUTPUT})
+      set(ARCH_FLAG "-gencode=arch=compute_${CUDA_ARCH_OUTPUT},code=sm_${CUDA_ARCH_OUTPUT}")
+    endif()
+  # Or by setting CUDA_ARCH to MIN
+  elseif(CUDA_ARCH STREQUAL "MIN")
+    message(STATUS "Setting lowest CUDA compute capability:")
+    set(ARCH_FLAG "-gencode=arch=compute_30,code=compute_30")
+  # By default, compile for compatibility
   else()
-    message(STATUS "Cuda architecture set to ${DEFAULT_CUDA_ARCH_FLAG}")
-    set(ARCH_FLAG "${DEFAULT_CUDA_ARCH_FLAG}")
+    message(STATUS "Setting default CUDA architecture:")
+
+    # Compatibility arch flag.
+    # * These settings support natively archs 3.0, 5.0, 6.0, 7.0 and 7.5.
+    # * All other 3.X, 5.X and 6.X architectures are supported through their respective
+    #   major number builds, specifics of those architectures are not used.
+    # * Forward compatibility with newer devices is also supported by generating PTX from 7.5
+    #   (-gencode=arch=compute_75,compute=compute_75)
+    foreach(arch 30 50 60 70 75)
+      set(COMPATIBILITY_CUDA_ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG} -gencode=arch=compute_${arch},code=sm_${arch}")
+    endforeach()
+    set(COMPATIBILITY_CUDA_ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG} -gencode=arch=compute_75,code=compute_75")
+    set(ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG}")
   endif()
+  message(STATUS "Cuda architecture set to ${ARCH_FLAG}")
 
   # Cuda: Deal with build type
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
   if(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
     set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
   elseif(${CMAKE_BUILD_TYPE} STREQUAL Release)
@@ -309,7 +313,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
 
   string(APPEND CMAKE_CUDA_FLAGS " ${ARCH_FLAG} --ftemplate-depth=500 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
-elseif(TARGET_DEVICE STREQUAL "HIP")
+elseif(DEVICE_TARGET STREQUAL "HIP")
   # HCC Options (HIPCC compiler)
   # Other warning options: -Wall -Wno-bitwise-op-parentheses -Wno-unused-variable -Wno-logical-op-parentheses
   if(${CMAKE_BUILD_TYPE} STREQUAL RelWithDebInfo)
@@ -542,7 +546,7 @@ else()
 endif()
 target_link_libraries(Common mdf allen_fs)
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(DEVICE_TARGET STREQUAL "CPU")
   set_source_files_properties(${common_cuda_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
@@ -550,7 +554,7 @@ allen_add_library(CudaCommon STATIC ${common_cuda_sources})
 
 set(allen_lib_sources ${Allen_cpp_path} ${OutputHandler_cpp_path} ${ZMQOutputSender_cpp_path})
 
-if(TARGET_DEVICE STREQUAL "HIP")
+if(DEVICE_TARGET STREQUAL "HIP")
   # Produce self-contained application
   # Otherwise, HIP doesn't seem to link properly
   allen_add_library(AllenLib STATIC ${allen_lib_sources})

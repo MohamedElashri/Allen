@@ -29,13 +29,11 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Tracks.
     const int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(event_number);
-    const int n_tracks_event = scifi_tracks.number_of_tracks(event_number);
     const uint* event_saved_tracks_list = parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(event_number);
     const ParKalmanFilter::FittedTrack* event_kf_tracks =
       parameters.dev_kf_tracks + scifi_tracks.tracks_offset(event_number);
 
     // Vertices.
-    const int n_vertices_event = parameters.dev_sv_offsets[event_number + 1] - parameters.dev_sv_offsets[event_number];
     const uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[event_number];
     const VertexFit::TrackMVAVertex* event_svs =
       parameters.dev_consolidated_svs + parameters.dev_sv_offsets[event_number];
@@ -90,9 +88,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Create the hits sub-bank.
     HltSelRepRBHits hits_bank(
-      parameters.dev_n_tracks_saved[event_number],
-      parameters.dev_n_hits_saved[event_number],
-      event_sel_rb_hits);
+      parameters.dev_n_tracks_saved[event_number], parameters.dev_n_hits_saved[event_number], event_sel_rb_hits);
 
     // Create the substructure sub-bank.
     // Use default allocation size.
@@ -102,12 +98,10 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     uint nAllInfo = Hlt1::nStdInfoDecision * n_decisions +
                     Hlt1::nStdInfoTrack * (parameters.dev_n_tracks_saved[event_number]) +
                     Hlt1::nStdInfoSV * (parameters.dev_n_svs_saved[event_number]);
-    uint nObj = n_decisions +
-         parameters.dev_n_tracks_saved[event_number] +
-         parameters.dev_n_svs_saved[event_number];
+    uint nObj = n_decisions + parameters.dev_n_tracks_saved[event_number] + parameters.dev_n_svs_saved[event_number];
     bool writeStdInfo = nAllInfo < Hlt1::maxStdInfoEvent;
     HltSelRepRBStdInfo stdinfo_bank(nObj, nAllInfo, event_sel_rb_stdinfo);
-    
+
     // Create the object type sub-bank.
     HltSelRepRBObjTyp objtyp_bank(Hlt1::nObjTyp, event_sel_rb_objtyp);
     objtyp_bank.addObj(Hlt1::selectionCLID, n_decisions);
@@ -149,7 +143,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         stdinfo_bank.addInfo(event_kf_tracks[i_track].state[3]);
         stdinfo_bank.addInfo(event_kf_tracks[i_track].state[4]);
       }
-      
+
       // Add to Substr.
       // No substructure. Ptr will be to hits.
       substr_bank.addSubstr(0, 1);
@@ -204,7 +198,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         stdinfo_bank.addInfo(event_svs[i_sv].z);
       }
     }
-    
+
     // Get the sizes of the banks.
     objtyp_bank.saveSize();
     substr_bank.saveSize();

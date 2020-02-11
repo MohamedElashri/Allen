@@ -58,9 +58,9 @@ namespace prepare_raw_banks {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_passing_event_list_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_number_of_passing_events_t>(arguments, 1);
@@ -77,11 +77,11 @@ namespace prepare_raw_banks {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
+      const RuntimeOptions&,
+      const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_sel_rb_hits_t>(arguments, 0, cuda_stream);
       initialize<dev_sel_rb_stdinfo_t>(arguments, 0, cuda_stream);
