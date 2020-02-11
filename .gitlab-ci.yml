@@ -204,7 +204,7 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
     - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t ${THREADS} -c 0" # If we ever execute on other CPUs
-    - export PATH=$PATH:/usr/local/cuda/bin we'll have to set this configurable
+    - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
