@@ -63,7 +63,7 @@ struct MEPProviderConfig {
   bool check_checksum = false;
 
   // number of prefetch buffers
-  size_t n_buffers = 10;
+  size_t n_buffers = 8;
 
   // number of transpose threads
   size_t n_transpose_threads = 5;
@@ -195,6 +195,7 @@ public:
     m_done = true;
     m_transpose_done = true;
     m_mpi_cond.notify_one();
+    m_control_cond.notify_all();
     m_input_thread.join();
 
     // Set a flat to indicate all transpose threads should exit, wake
@@ -281,7 +282,8 @@ public:
       if (m_transposed.empty()) {
         auto wakeup = [this] {
           auto n_writable = count_writable();
-          return (!m_transposed.empty() || m_read_error || (m_transpose_done && n_writable == m_buffer_status.size()));
+          return (!m_transposed.empty() || m_read_error || (m_transpose_done && n_writable == m_buffer_status.size())
+                  || (m_stopping && n_writable == m_buffer_status.size()));
         };
         if (timeout) {
           timed_out = !m_transpose_cond.wait_for(lock, std::chrono::milliseconds {*timeout}, wakeup);
@@ -298,9 +300,9 @@ public:
 
     // Check if I/O and transposition is done and return a slice index
     auto n_writable = count_writable();
-    done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_status.size();
+    done = ((m_transpose_done && m_transposed.empty()) || m_stopping) && n_writable == m_buffer_status.size();
 
-    if (timed_out && logger::ll.verbosityLevel >= logger::verbose) {
+    if (timed_out && logger::verbosity() >= logger::verbose) {
       this->debug_output(
         "get_slice timed out; error " + std::to_string(m_read_error) + " done " + std::to_string(done) + " n_filled " +
         std::to_string(n_filled));
@@ -371,8 +373,8 @@ public:
     auto const& blocks = std::get<2>(m_net_slices[i_buffer]);
     for (unsigned int i = 0; i < selected_events.size(); ++i) {
       auto event = selected_events[i];
-      sizes[i] +=
-        std::accumulate(blocks.begin(), blocks.end(), 0ul, [event, interval_start](size_t s, const auto& entry) {
+      sizes[i] += std::accumulate(blocks.begin(), blocks.end(), 0ul,
+        [event, interval_start] (size_t s, const auto& entry) {
           auto const& block_header = std::get<0>(entry);
           return s + bank_header_size + block_header.sizes[interval_start + event];
         });
@@ -416,6 +418,30 @@ public:
     }
   }
 
+  int start() override {
+    if (!m_started) {
+      std::unique_lock<std::mutex> lock {m_control_mutex};
+      this->debug_output("Starting", 0);
+      m_started = true;
+      m_stopping = false;
+    }
+    m_control_cond.notify_one();
+    return true;
+  };
+
+  int stop() override {
+    {
+      std::unique_lock<std::mutex> lock {m_control_mutex};
+      m_stopping = true;
+      m_started = false;
+    }
+    // Make sure all threads wait for start in case they were waiting
+    // for a buffer
+    m_mpi_cond.notify_all();
+
+    return true;
+  };
+
 private:
   void init_mpi()
   {
@@ -440,7 +466,7 @@ private:
 
     hwloc_obj_t osdev = nullptr;
 
-    if (receivers.size() > 1) {
+    if (!receivers.empty()) {
       // Find NUMA domain of receivers
       while ((osdev = hwloc_get_next_osdev(m_topology, osdev))) {
         // We're interested in InfiniBand cards
@@ -459,19 +485,14 @@ private:
       }
     }
 #else
-    if (receivers.size() > 1) {
-      warning_cout << "hwloc is not available, assuming NUMA domain 0 for all receivers.\n";
+    if (!receivers.empty()) {
+      info_cout << "hwloc is not available, assuming NUMA domain 0 for all receivers.\n";
       for (auto [rec, rank] : receivers) {
         m_domains.emplace_back(rank, 0);
       }
-    }
 #endif
-    else if (receivers.size() == 1) {
-      auto [rec, rank] = *receivers.begin();
-      m_domains.emplace_back(rank, 0);
-    }
-    else {
-      throw StrException {"MPI requested, but no receivers specified"};
+    } else {
+      throw StrException{"MPI requested, but no receivers specified"};
     }
 
 #ifdef HAVE_HWLOC
@@ -512,8 +533,11 @@ private:
     // Packing factor can be done dynamically if needed
     size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
     for (size_t i = 0; i < m_config.n_buffers; ++i) {
-      [[maybe_unused]] auto numa_node = i % m_config.n_receivers();
+      auto i_rec = i % m_config.n_receivers();
+      auto const& numa_obj = numa_objs[i_rec];
       char* contents = nullptr;
+
+      info_cout << "Allocating buffer " << i << " in NUMA domain " << numa_obj->os_index << "\n";
       MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
 
       // Only bind explicitly if there are multiple receivers,
@@ -524,7 +548,8 @@ private:
         auto s = hwloc_set_area_membind(
           m_topology, contents, n_bytes, numa_obj->nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET);
         if (s != 0) {
-          throw StrException {"Failed to bind memory to node "s + std::to_string(numa_node) + " " + strerror(errno)};
+          throw StrException{"Failed to bind memory to node "s + std::to_string(numa_obj->os_index)
+                             + " " + strerror(errno)};
         }
       }
 #endif
@@ -682,7 +707,7 @@ private:
     if (it == m_buffer_status.end() && !m_transpose_done) {
       m_mpi_cond.wait(lock, [this, &it, &find_buffer] {
         it = find_buffer();
-        return it != m_buffer_status.end() || m_transpose_done;
+        return it != m_buffer_status.end() || m_transpose_done || m_stopping;
       });
     }
     return {it, distance(m_buffer_status.begin(), it)};
@@ -717,6 +742,15 @@ private:
     while (!receive_done) {
       // info_cout << MPI::rank_str() << "round " << current_file << "\n";
 
+      // If we've been stopped, wait for start or exit
+      if (!m_started || m_stopping) {
+        std::unique_lock<std::mutex> lock {m_control_mutex};
+        this->debug_output("Waiting for start", 0);
+        m_control_cond.wait(lock, [this] { return m_started || m_done;  });
+      }
+
+      if (m_done) break;
+
       // open the first file
       if (!m_input && !open_file()) {
         m_read_error = true;
@@ -728,7 +762,12 @@ private:
         std::unique_lock<std::mutex> lock {m_mpi_mutex};
         std::tie(m_buffer_reading, i_buffer) =
           get_mep_buffer([](BufferStatus const& s) { return s.writable; }, m_buffer_reading, lock);
-        m_buffer_reading->writable = false;
+        if (m_buffer_reading != m_buffer_status.end()) {
+          m_buffer_reading->writable = false;
+          assert(m_buffer_reading->work_counter == 0);
+        } else {
+          continue;
+        }
       }
       if (m_done) {
         receive_done = true;
@@ -817,13 +856,11 @@ private:
 
     // Iterate over the slices
     size_t reporting_period = 5;
-    size_t bytes_received = 0;
-    size_t meps_received = 0;
+    std::vector<std::tuple<size_t, size_t>> data_received(m_config.n_receivers());
     std::vector<size_t> n_meps(m_config.n_receivers());
     Timer t;
     Timer t_origin;
     bool error = false;
-    bool receive_done = false;
 
     for (size_t i = 0; i < m_config.n_receivers(); ++i) {
       auto [mpi_rank, numa_domain] = m_domains[i];
@@ -832,8 +869,17 @@ private:
     size_t number_of_meps = std::accumulate(n_meps.begin(), n_meps.end(), 0u);
 
     size_t current_mep = 0;
-    while (m_config.non_stop || current_mep < number_of_meps) {
+    while (!m_done && (m_config.non_stop || current_mep < number_of_meps)) {
       // info_cout << MPI::rank_str() << "round " << current_file << "\n";
+
+      // If we've been stopped, wait for start or exit
+      if (!m_started || m_stopping) {
+        std::unique_lock<std::mutex> lock {m_control_mutex};
+        this->debug_output("Waiting for start", 0);
+        m_control_cond.wait(lock, [this] { return m_started || m_done;  });
+      }
+
+      if (m_done) break;
 
       // Obtain a prefetch buffer to read into, if none is available,
       // wait until one of the transpose threads is done with its
@@ -843,14 +889,20 @@ private:
         std::unique_lock<std::mutex> lock {m_mpi_mutex};
         std::tie(m_buffer_reading, i_buffer) =
           get_mep_buffer([](BufferStatus const& s) { return s.writable; }, m_buffer_reading, lock);
-        m_buffer_reading->writable = false;
-        assert(m_buffer_reading->work_counter == 0);
+        if (m_buffer_reading != m_buffer_status.end()) {
+          m_buffer_reading->writable = false;
+          assert(m_buffer_reading->work_counter == 0);
+        } else {
+          continue;
+        }
       }
-
-      this->debug_output("Writing to MEP slice index " + std::to_string(i_buffer));
 
       auto receiver = i_buffer % m_config.n_receivers();
       auto [sender_rank, numa_node] = m_domains[receiver];
+
+      this->debug_output("Receiving from rank " + std::to_string(sender_rank) + " into buffer "
+                         + std::to_string(i_buffer) + "  NUMA domain " + std::to_string(numa_node));
+
       auto& [mep_header, buffer_span, blocks, input_offsets, buffer_size] = m_net_slices[i_buffer];
       char*& contents = m_mpi_buffers[i_buffer];
 
@@ -958,18 +1010,31 @@ private:
         allocate_storage(i_buffer);
       }
 
+      auto& [meps_received, bytes_received] = data_received[receiver];
       bytes_received += mep_size;
       meps_received += 1;
       if (t.get_elapsed_time() >= reporting_period) {
         const auto seconds = t.get_elapsed_time();
-        const double rate = (double) meps_received / seconds;
-        double bandwidth = ((double) (bytes_received * 8)) / (1024 * 1024 * 1024 * seconds);
+        auto total_rate = 0.;
+        auto total_bandwidth = 0.;
+        for (size_t i_rec = 0; i_rec < m_config.n_receivers(); ++i_rec) {
+          auto& [mr, br] = data_received[i_rec];
+          auto [rec_rank, rec_node] = m_domains[i_rec];
 
-        printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n", t_origin.get_elapsed_time(), seconds, rate, bandwidth);
+          const double rate = (double) mr / seconds;
+          const double bandwidth = ((double) (br * 8)) / (1024 * 1024 * 1024 * seconds);
+          total_rate += rate;
+          total_bandwidth += bandwidth;
+          printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s; Domain %2i; Rank %2i\n",
+                 t_origin.get_elapsed_time(), seconds, rate, bandwidth, rec_node, rec_rank);
 
-        bytes_received = 0;
-        meps_received = 0;
-
+          br = 0;
+          mr = 0;
+        }
+        if (m_config.n_receivers() > 1) {
+          printf("[%lf, %lf] Throughput: %lf MEP/s, %lf Gb/s\n",
+                 t_origin.get_elapsed_time(), seconds, total_rate, total_bandwidth);
+        }
         t.restart();
       }
 
@@ -981,19 +1046,18 @@ private:
           set_intervals(m_buffer_status[i_buffer].intervals, size_t {mep_header.packing_factor});
           assert(m_buffer_status[i_buffer].work_counter == 0);
         }
-        if (receive_done) {
-          m_done = receive_done;
-          this->debug_output("Prefetch notifying all");
-          m_mpi_cond.notify_all();
-        }
-        else {
-          this->debug_output("Prefetch notifying one");
-          m_mpi_cond.notify_one();
-        }
+        this->debug_output("Prefetch notifying one");
+        m_mpi_cond.notify_one();
       }
       m_mpi_cond.notify_one();
 
       current_mep++;
+    }
+
+    if (!m_done) {
+      m_done = true;
+      this->debug_output("Prefetch notifying all");
+      m_mpi_cond.notify_all();
     }
   }
 #endif
@@ -1024,6 +1088,8 @@ private:
         std::tie(m_buffer_transpose, i_buffer) = get_mep_buffer(has_intervals, m_buffer_transpose, lock);
         if (m_transpose_done) {
           break;
+        } else if (m_buffer_transpose == m_buffer_status.end()) {
+          continue;
         }
         auto& status = *m_buffer_transpose;
         assert(!status.intervals.empty());
@@ -1143,6 +1209,12 @@ private:
   std::vector<std::vector<char>> m_read_buffers;
   std::vector<char*> m_mpi_buffers;
   MEP::Slices m_net_slices;
+
+  // data members for mpi thread
+  bool m_started = false;
+  bool m_stopping = false;
+  std::mutex m_control_mutex;
+  std::condition_variable m_control_cond;
 
   // data members for mpi thread
   std::mutex m_mpi_mutex;

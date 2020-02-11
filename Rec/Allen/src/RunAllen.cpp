@@ -112,7 +112,7 @@ StatusCode RunAllen::initialize()
   m_stream->set_host_buffer_manager(m_host_buffers_manager.get());
 
   // Set verbosity level
-  logger::ll.verbosityLevel = 3;
+  logger::setVerbosity(3);
 
   return StatusCode::SUCCESS;
 }

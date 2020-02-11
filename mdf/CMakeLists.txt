@@ -11,6 +11,13 @@ endif()
 
 allen_add_library(mdf ${mdf_sources})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+if (NOT GaudiProject_FOUND)
+  target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lhcb)
+else()
+  find_package(Boost COMPONENTS filesystem thread regex)
+  target_link_libraries(mdf PUBLIC GaudiKernel Boost::filesystem Boost::thread Boost::regex)
+  target_include_directories(mdf SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+endif()
 
 if (ROOT_FOUND AND USE_ROOT)
   target_compile_definitions(mdf PUBLIC ${ALLEN_ROOT_DEFINITIONS})
@@ -66,7 +73,7 @@ function(test_program)
     ${CMAKE_SOURCE_DIR}/mdf/include
     ${CMAKE_SOURCE_DIR}/main/include)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE mdf MdfTestCommon)
+  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE MdfTestCommon)
 
   if (USE_MPI AND MPI_FOUND)
     target_compile_definitions(${PARSED_ARGS_NAME} PRIVATE HAVE_MPI)
@@ -88,8 +95,7 @@ if (BUILD_TESTS)
     list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
   endforeach()
   allen_add_library(MdfTestCommon STATIC ${common_sources})
-  target_include_directories(MdfTestCommon PUBLIC ${CMAKE_SOURCE_DIR}/main/include include)
-  target_link_libraries(MdfTestCommon PUBLIC allen_fs)
+  target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs)
 
   test_program(NAME dump_banks)
   test_program(NAME test_read)
@@ -103,5 +109,3 @@ if (BUILD_TESTS)
     gaudi_add_test(allen_providers COMMAND test_providers --directory ${CMAKE_SOURCE_DIR}/input/minbias)
   endif()
 endif()
-
-include_directories(${CPPGSL_INCLUDE_DIRS})

@@ -31,7 +31,7 @@ namespace velo_calculate_number_of_candidates {
       const Constants& constants,
       const HostBuffers& host_buffers) const
     {
-      if (logger::ll.verbosityLevel >= logger::debug) {
+      if (logger::verbosity() >= logger::debug) {
         debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
       }
 

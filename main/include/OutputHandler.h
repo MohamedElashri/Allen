@@ -5,7 +5,7 @@
 #include <BankTypes.h>
 #include <Timer.h>
 
-#include <zmq.hpp>
+#include <zmq/zmq.hpp>
 
 struct IInputProvider;
 

@@ -4,8 +4,12 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 option(TARGET_CPU "Produce a CPU version" OFF)
 option(TARGET_HIP "Produce a HIP version" OFF)
 if(DEFINED ENV{LHCBRELEASES})
-  message(STATUS "Forcing CPU target for Gaudi build")
-  set(TARGET_DEVICE "CPU")
+  if(TARGET_DEVICE AND ("${TARGET_DEVICE}" STREQUAL "CUDA"))
+    message(STATUS "Using CUDA target for Gaudi build")
+  else()
+    message(STATUS "Setting CPU target for Gaudi build")
+    set(TARGET_DEVICE "CPU")
+  endif()
 elseif(TARGET_CPU)
   set(TARGET_DEVICE "CPU")
 elseif(TARGET_HIP)
@@ -68,7 +72,6 @@ macro(allen_project)
     endif()
 
     find_package(cppgsl REQUIRED)
-
   else()
     project(Allen C CXX)
     if (BUILD_TESTS)
@@ -77,9 +80,9 @@ macro(allen_project)
 
     find_package(cppgsl QUIET)
     if (cppgsl_FOUND)
-      message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIRS})
+      message(STATUS "Found external gsl at " ${CPPGSL_INCLUDE_DIR})
     else()
-      set(CPPGSL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
+      set(CPPGSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/main/cppgsl)
       message(STATUS "Using internal gsl-lite")
 endif()
 
@@ -96,13 +99,13 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
   function(allen_add_library)
     add_library(${ARGV})
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIRS})
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIRS})
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -169,19 +172,18 @@ else()
 	add_compile_definitions(TENSOR_CORES_ENABLED)
   endif()
 
-  find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
   function(allen_add_library)
     add_library(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIRS})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
     set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIRS})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
@@ -219,12 +221,6 @@ add_custom_command(
 add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h")
 
 message(STATUS "Configured sequence: " ${SEQUENCE})
-
-# Deal with build type
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE RelWithDebInfo)
-endif(NOT CMAKE_BUILD_TYPE)
-MESSAGE(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 if(NOT DEFINED CPU_ARCH)
   set(CPU_ARCH native)
@@ -340,7 +336,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     set_property(TARGET ${ARGV0} PROPERTY
       HIP_SEPARABLE_COMPILATION ON)
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIRS})
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
@@ -349,14 +345,13 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set_target_properties(${ARGV0}
          PROPERTIES HIP_SEPARABLE_COMPILATION ON
                   HIP_RESOLVE_DEVICE_SYMBOLS ON)
-    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIRS})
+    target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 endif()
 
 find_package(ZLIB REQUIRED)
 
-option(USE_MPI "Build the MPI sender and enable receiving MEPs over MPI" OFF)
 if (USE_MPI)
   find_package(MPI REQUIRED)
   # hwloc is also needed
@@ -400,8 +395,10 @@ if (USE_ROOT)
    else()
      if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-     else() # ROOT was compiled with configure/make
+     elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
        set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
+     else()
+       message(FATAL "ROOTSYS must be set to use ROOT with a standalone build of Allen")
      endif()
      find_package(ROOT QUIET HINTS ${ALLEN_ROOT_CMAKE} NO_DEFAULT_PATH COMPONENTS Core Hist Tree)
      if (ROOT_FOUND)
@@ -511,16 +508,15 @@ include_directories(cuda/kalman/ParKalman/include)
 include_directories(mdf/include)
 include_directories(integration/monitoring/include)
 include_directories(integration/non_event_data/include)
-include_directories(stream/gear/include)
 include_directories(SYSTEM ${ZMQ_INCLUDE_DIRS})
-include_directories(${CPPGSL_INCLUDE_DIRS})
+include_directories(${CPPGSL_INCLUDE_DIR})
 
 # Main Allen executable
 file(GLOB common_sources "main/src/*.cpp")
 file(GLOB common_cuda_sources "main/src/*.cu")
 
 # Remove main.cpp from common_sources
-foreach(source main Allen OutputHandler ZMQOutputSender MPISend)
+foreach(source main Allen AllenThreads OutputHandler ZMQOutputSender MPISend)
   get_filename_component(${source}_cpp_path ${CMAKE_CURRENT_SOURCE_DIR}/main/src/${source}.cpp ABSOLUTE)
   list(REMOVE_ITEM common_sources "${${source}_cpp_path}")
 endforeach()
@@ -531,7 +527,7 @@ endif()
 
 
 # common libraries
-add_library(Common STATIC ${common_sources})
+allen_add_library(Common STATIC ${common_sources})
 
 add_library(allen_fs INTERFACE)
 if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0))
@@ -550,7 +546,10 @@ endif()
 
 allen_add_library(CudaCommon STATIC ${common_cuda_sources})
 
-set(allen_lib_sources ${Allen_cpp_path} ${OutputHandler_cpp_path} ${ZMQOutputSender_cpp_path})
+set(allen_lib_sources ${Allen_cpp_path}
+                      ${AllenThreads_cpp_path}
+                      ${OutputHandler_cpp_path}
+                      ${ZMQOutputSender_cpp_path})
 
 if(TARGET_DEVICE STREQUAL "HIP")
   # Produce self-contained application
@@ -564,6 +563,7 @@ endif()
 target_link_libraries(AllenLib PUBLIC
   Stream
   Common
+  CudaCommon
   TrackChecking
   PVChecking
   CheckClustering
@@ -585,6 +585,11 @@ if (USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(AllenLib PUBLIC ${ALLEN_ROOT_DEFINITIONS})
   target_include_directories(AllenLib SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
   target_link_libraries(AllenLib PUBLIC ${ALLEN_ROOT_LIBRARIES})
+endif()
+
+if (GaudiProject_FOUND)
+  find_package(AIDA)
+  target_include_directories(AllenLib PUBLIC ${AIDA_INCLUDE_DIRS})
 endif()
 
 allen_add_executable(Allen ${main_cpp_path})

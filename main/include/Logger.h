@@ -77,5 +77,7 @@ namespace logger {
 
   std::ostream& logger(int requestedLogLevel);
 
-  extern Logger ll;
+  int verbosity();
+
+  void setVerbosity(int level);
 } // namespace logger

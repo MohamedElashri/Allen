@@ -61,7 +61,7 @@ struct MemoryManager {
     const size_t aligned_request =
       requested_size + guarantee_alignment - 1 - ((requested_size + guarantee_alignment - 1) % guarantee_alignment);
 
-    if (logger::ll.verbosityLevel >= 5) {
+    if (logger::verbosity() >= 5) {
       verbose_cout << "MemoryManager: Requested to reserve " << requested_size << " B (" << aligned_request
                    << " B aligned) for argument " << Argument::name << std::endl;
     }
@@ -111,7 +111,7 @@ struct MemoryManager {
   {
     const auto tag = std::string(Argument::name);
 
-    if (logger::ll.verbosityLevel >= 5) {
+    if (logger::verbosity() >= 5) {
       verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
     }
 

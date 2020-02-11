@@ -91,17 +91,17 @@ find_package(Rangev3 REQUIRED)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIRS} ${RANGEV3_INCLUDE_DIR} ${GSL_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}/configuration/sequences")
 
-gaudi_add_module(AllenIntegration
+gaudi_add_module(AllenWrapper
                  src/*.cpp
                  INCLUDE_DIRS Online/OnlineKernel
-                 LINK_LIBRARIES OnlineKernel AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
+                 LINK_LIBRARIES AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
                                 PrKernel VPDetLib UTDetLib UTKernelLib
                                 FTDetLib)
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
-  target_compile_definitions(AllenIntegration PRIVATE ALLEN_DEBUG)
+  target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
 endif()
-target_compile_definitions(AllenIntegration PRIVATE ALLEN_DEBUG)
+target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
 
 if(TARGET_DEVICE STREQUAL "CPU")
-  target_compile_definitions(AllenIntegration PRIVATE CPU)
+  target_compile_definitions(AllenWrapper PRIVATE CPU)
 endif()

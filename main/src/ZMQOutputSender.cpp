@@ -1,19 +1,38 @@
+#include <limits.h>
+#include <unistd.h>
+
 #include <string>
 
 #include <ZMQOutputSender.h>
 #include <InputProvider.h>
-#include <ZeroMQSvc.h>
+#include <ZeroMQ/IZeroMQSvc.h>
 #include <Logger.h>
 
 namespace {
   using namespace std::string_literals;
+  using namespace zmq;
+}
+
+namespace Utils {
+  std::string hostname() {
+    char hname[HOST_NAME_MAX];
+    std::string hn;
+    if (!gethostname(hname, sizeof(hname))) {
+      hn = std::string{hname};
+      auto pos = hn.find('.');
+      if (pos != std::string::npos) {
+        hn = hn.substr(0, pos);
+      }
+    }
+    return hn;
+  }
 }
 
 ZMQOutputSender::ZMQOutputSender(
   IInputProvider const* input_provider,
   std::string const receiver_connection,
   size_t const events_per_slice,
-  ZeroMQSvc* zmqSvc,
+  IZeroMQSvc* zmqSvc,
   const uint number_of_hlt1_lines,
   bool const checksum) :
   OutputHandler {input_provider, events_per_slice, number_of_hlt1_lines},
@@ -26,7 +45,7 @@ ZMQOutputSender::ZMQOutputSender(
   zmq::setsockopt(*m_request, zmq::LINGER, 0);
   m_request->connect(receiver_connection.c_str());
   m_id = "Allen_"s + Utils::hostname() + "_" + std::to_string(::getpid());
-  m_zmq->send(*m_request, "PORT", zmq::SNDMORE);
+  m_zmq->send(*m_request, "PORT", send_flags::sndmore);
   m_zmq->send(*m_request, m_id);
 
   // Wait for reply for a second
@@ -50,7 +69,7 @@ ZMQOutputSender::ZMQOutputSender(
 ZMQOutputSender::~ZMQOutputSender()
 {
   if (m_connected && m_request) {
-    m_zmq->send(*m_request, "CLIENT_EXIT", zmq::SNDMORE);
+    m_zmq->send(*m_request, "CLIENT_EXIT", send_flags::sndmore);
     m_zmq->send(*m_request, m_id);
     zmq::pollitem_t items[] = {{*m_request, 0, zmq::POLLIN, 0}};
     zmq::poll(&items[0], 1, 500);
@@ -92,7 +111,7 @@ bool ZMQOutputSender::write_buffer(size_t)
   }
 
   if (m_connected) {
-    m_zmq->send(*m_socket, "EVENT", zmq::SNDMORE);
+    m_zmq->send(*m_socket, "EVENT", send_flags::sndmore);
     m_zmq->send(*m_socket, m_buffer);
   }
 

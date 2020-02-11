@@ -70,7 +70,7 @@ public:
     const VertexFit::TrackMVAVertex* svs,
     const bool* sel_results,
     const uint* sel_results_offsets,
-    const uint* track_offsets,
+    const uint* event_tracks_offsets,
     const uint* sv_offsets,
     const uint*,
     const uint selected_events)
@@ -118,7 +118,6 @@ public:
       m_event_pass_gec.push_back(1.);
       const auto& event_tracks = tracks[i_event];
       MCAssociator mcassoc {mcps};
-      const uint* event_tracks_offsets = track_offsets + selected_events;
       const uint event_n_svs = sv_offsets[i_event + 1] - sv_offsets[i_event];
       const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
 

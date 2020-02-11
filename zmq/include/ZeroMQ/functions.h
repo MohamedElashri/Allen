@@ -1,7 +1,7 @@
 #ifndef ZEROMQ_FUNCTIONS_H
 #define ZEROMQ_FUNCTIONS_H 1
 
-#include <zmq.hpp>
+#include <zmq/zmq.hpp>
 
 namespace zmq {
 
@@ -112,11 +112,6 @@ namespace ZMQ {
 
   size_t stringLength(const char& cs);
 
-  std::string connection(const size_t id, std::string suffix = std::string {});
-
 } // namespace ZMQ
 
-namespace Utils {
-  std::string hostname();
-}
 #endif // ZEROMQ_FUNCTIONS_H
