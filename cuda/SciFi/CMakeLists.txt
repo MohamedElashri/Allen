@@ -42,7 +42,7 @@ include_directories(looking_forward/fit/include)
 include_directories(looking_forward/calculate_parametrization/include)
 include_directories(consolidate/include)
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(DEVICE_TARGET STREQUAL "CPU")
   foreach(source_file ${scifi_common} ${scifi_preprocessing}
     ${scifi_lf_common} ${scifi_lf_calculate_first_layer_window}
     ${scifi_lf_calculate_second_layer_window} ${scifi_lf_form_seeds_from_candidates}

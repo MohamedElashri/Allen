@@ -14,7 +14,7 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/PV/beamlinePV/include)
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(DEVICE_TARGET STREQUAL "CPU")
   set_source_files_properties(${blPV} PROPERTIES LANGUAGE CXX)
 endif()
 

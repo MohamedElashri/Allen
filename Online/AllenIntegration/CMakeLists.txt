@@ -102,6 +102,6 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
 endif()
 target_compile_definitions(AllenIntegration PRIVATE ALLEN_DEBUG)
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(DEVICE_TARGET STREQUAL "CPU")
   target_compile_definitions(AllenIntegration PRIVATE CPU)
 endif()

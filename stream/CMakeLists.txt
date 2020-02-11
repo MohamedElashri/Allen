@@ -84,7 +84,7 @@ add_custom_command(
 
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(DEVICE_TARGET STREQUAL "CPU")
   foreach(source_file ${stream_sequence})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
