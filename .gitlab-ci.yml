@@ -41,6 +41,7 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
+    - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
@@ -70,6 +71,7 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
+    - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
@@ -131,6 +133,7 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
     - RUN_OPTIONS="-n 1000 -m 700"
+    - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir validation_output
     - ln -s validation_output output # Needed by Root build
@@ -169,6 +172,7 @@ check-formatting:
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
+    - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
@@ -199,7 +203,8 @@ check-formatting:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - THREADS=$(lscpu | egrep "^CPU\(s\):.*[0-9]+$" --color=none | awk '{ print $2; }')
-    - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t ${THREADS} -c 0" # If we ever execute on other CPUs we'll have to set this configurable
+    - RUN_OPTIONS="-n 1000 -m 700 -r 10 -t ${THREADS} -c 0" # If we ever execute on other CPUs
+    - export PATH=$PATH:/usr/local/cuda/bin we'll have to set this configurable
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
@@ -237,6 +242,7 @@ check-formatting:
     - if [ "${D_MEMORY}" = "LOW" ]; then
     -   RUN_OPTIONS="-n 1000 -r 100 -t 2 -m 700 -c 0"
     - fi
+    - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir output_${DEVICE_ID}
     - cd build_${TARGET}
@@ -268,6 +274,7 @@ check-formatting:
     - DEVICE_ID=${JOB_NAME_SPLIT[0]}
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - D_NUMBER=${DEVICE_NUMBERS_MAP[${DEVICE_ID}]}
+    - export PATH=$PATH:/usr/local/cuda/bin
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - python3 checker/plotting/csv_plotter.py -t "Algorithm Breakdown of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "%" -x 30 -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_breakdown.csv
     # - python3 checker/plotting/csv_plotter.py -t "Algorithm Groups of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "%" -m ${MATTERMOST_KEY} output_${DEVICE_ID}/algo_summary.csv
