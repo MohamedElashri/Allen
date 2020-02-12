@@ -98,4 +98,4 @@ target_compile_definitions(mep_gec PUBLIC CPU NO_CUDA)
 
 install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)
 
-include_directories(${CPPGSL_INCLUDE_DIRS})
+include_directories(${CPPGSL_INCLUDE_DIR})

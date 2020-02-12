@@ -91,4 +91,4 @@ if (BUILD_TESTS)
   zmq_program(NAME allen_mdf_sender SRC test/mdf_sender.cpp)
 endif()
 
-include_directories(${CPPGSL_INCLUDE_DIRS})
+include_directories(${CPPGSL_INCLUDE_DIR})

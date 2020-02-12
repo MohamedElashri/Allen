@@ -1,4 +1,4 @@
-stages:
+tages:
   - build   # Builds all projects
   - run     # Runs the tests across architectures
   - test    # Runs various tests of the software
@@ -45,7 +45,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DDEVICE_TARGET=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge ${ADDITIONAL_OPTIONS} ..
+    - cmake -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
     expire_in: 2 hrs
@@ -75,7 +75,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DBUILD_TESTS=ON -DDEVICE_TARGET=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge ${ADDITIONAL_OPTIONS} ..
+    - cmake -DBUILD_TESTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
     expire_in: 2 hrs
@@ -104,7 +104,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-clang8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DDEVICE_TARGET=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge ${ADDITIONAL_OPTIONS} ..
+    - cmake -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
     expire_in: 2 hrs

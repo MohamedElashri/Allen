@@ -89,7 +89,7 @@ find_package(Rangev3 REQUIRED)
 find_package(cppgsl REQUIRED)
 find_package(Rangev3 REQUIRED)
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIRS} ${RANGEV3_INCLUDE_DIR} ${GSL_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}/configuration/sequences")
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIR} ${RANGEV3_INCLUDE_DIR} ${GSL_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}/configuration/sequences")
 
 gaudi_add_module(AllenWrapper
                  src/*.cpp
