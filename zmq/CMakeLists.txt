@@ -54,6 +54,16 @@ if (GaudiProject_FOUND)
     Boost::filesystem
     ${ZMQ_LIBRARIES}
     ${ALLEN_ROOT_LIBRARIES})
+
+  find_library(SODIUM_LIBRARY NAMES sodium
+               HINTS $ENV{libsodium_ROOT_DIR}/lib ${libsodium_ROOT_DIR}/lib)
+  if(SODIUM_LIBRARY)
+    message(STATUS "Found ${SODIUM_LIBRARY}")
+    get_filename_component(SODIUM_LIBRARY_DIR "${SODIUM_LIBRARY}" PATH)
+    gaudi_env(PREPEND LD_LIBRARY_PATH "${SODIUM_LIBRARY_DIR}")
+    target_link_libraries(ZMQSvc PUBLIC ${SODIUM_LIBRARY})
+  endif()
+
   target_link_libraries(AllenZMQ INTERFACE ZMQSvc ZMQ)
 else()
   allen_add_library(AllenZMQ src/functions.cpp src/svc.cpp)
