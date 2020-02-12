@@ -70,7 +70,7 @@ public:
     const VertexFit::TrackMVAVertex* svs,
     const bool* sel_results,
     const uint* sel_results_offsets,
-    const uint* event_tracks_offsets,
+    const uint* track_offsets,
     const uint* sv_offsets,
     const uint*,
     const uint selected_events)
