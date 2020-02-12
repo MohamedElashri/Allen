@@ -44,21 +44,23 @@ if (GaudiProject_FOUND)
   find_package(ROOT REQUIRED)
   add_library(AllenZMQ INTERFACE)
   add_library(ZMQSvc SHARED src/svc.cpp)
+  target_include_directories(ZMQSvc PUBLIC compat include)
   target_include_directories(ZMQSvc SYSTEM PUBLIC
-    include
     ${ROOT_INCLUDE_DIRS}
     ${ZMQ_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIR}
     ${AIDA_INCLUDE_DIRS})
-  target_link_libraries(ZMQSvc PUBLIC GaudiKernel ZMQLib
+  target_link_libraries(ZMQSvc PUBLIC GaudiKernel
     Boost::filesystem
     ${ZMQ_LIBRARIES}
     ${ALLEN_ROOT_LIBRARIES})
-  target_link_libraries(AllenZMQ INTERFACE ZMQSvc ZMQLib)
+  target_link_libraries(AllenZMQ INTERFACE ZMQSvc ZMQ)
 else()
   allen_add_library(AllenZMQ src/functions.cpp src/svc.cpp)
-  target_include_directories(AllenZMQ PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-  target_include_directories(AllenZMQ PUBLIC ${CMAKE_SOURCE_DIR}/main/include)
+  target_include_directories(AllenZMQ PUBLIC
+    include
+    compat
+    ${CMAKE_SOURCE_DIR}/main/include)
   target_include_directories(AllenZMQ PUBLIC SYSTEM ${ZMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
   target_compile_definitions(AllenZMQ PUBLIC STANDALONE)
   target_link_libraries(AllenZMQ PUBLIC ${ZMQ_LIBRARIES})

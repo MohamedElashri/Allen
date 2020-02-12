@@ -6,6 +6,7 @@
 #include <ZMQOutputSender.h>
 #include <InputProvider.h>
 #include <ZeroMQ/IZeroMQSvc.h>
+#include <zmq_compat.h>
 #include <Logger.h>
 
 namespace {

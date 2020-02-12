@@ -27,6 +27,7 @@
 
 #include <zmq/zmq.hpp>
 #include <ZeroMQ/IZeroMQSvc.h>
+#include <zmq_compat.h>
 
 #include "CudaCommon.h"
 #include "RuntimeOptions.h"

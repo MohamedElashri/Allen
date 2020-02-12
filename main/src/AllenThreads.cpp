@@ -1,6 +1,7 @@
 #include <string>
 #include <thread>
 
+#include <zmq_compat.h>
 #include <ZeroMQ/IZeroMQSvc.h>
 #include <AllenThreads.h>
 
