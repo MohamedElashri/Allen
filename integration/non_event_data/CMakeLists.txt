@@ -2,7 +2,7 @@ file(GLOB SOURCES "src/*.cpp")
 
 allen_add_library(NonEventData ${SOURCES})
 
-include_directories(${CPPGSL_INCLUDE_DIRS})
+include_directories(${CPPGSL_INCLUDE_DIR})
 
 target_link_libraries(NonEventData
   x86Clustering
