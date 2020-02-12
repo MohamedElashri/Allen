@@ -83,15 +83,17 @@ size_t MEP::allen_offsets(
 
   auto [event_start, event_end] = interval;
 
-  // First check for run changes in ODIN banks
-  if (split_by_run) {
-    for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
-      auto const& [block_header, block_data] = blocks[i_block];
-      auto lhcb_type = block_header.types[0];
-      if (lhcb_type == LHCb::RawBank::ODIN) {
-        auto& source_offsets = input_offsets[i_block];
-        uint run_number = 0;
-        for (size_t i = event_start; i < event_end; ++i) {
+  // Loop over all bank sizes in all blocks
+  for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
+    auto const& [block_header, block_data] = blocks[i_block];
+    auto lhcb_type = block_header.types[0];
+    auto allen_type = bank_ids[lhcb_type];
+    auto& source_offsets = input_offsets[i_block];
+    uint run_number = 0;
+    if (allen_type != -1) {
+      for (size_t i = event_start; i < event_end; ++i) {
+        // First check for run changes in ODIN banks
+        if (split_by_run && lhcb_type == LHCb::RawBank::ODIN) {
           // decode ODIN banks to check for run changes
           auto odin_version = mep_header.versions[i_block];
           auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + source_offsets[i]);
@@ -102,19 +104,9 @@ size_t MEP::allen_offsets(
           }
           else if (odin.run_number != run_number) {
             event_end = i;
+	    break;
           }
-        }
-      }
-    }
-  }
-
-  // Loop over all bank sizes in all blocks
-  for (size_t i_block = 0; i_block < blocks.size(); ++i_block) {
-    auto const& [block_header, block_data] = blocks[i_block];
-    auto lhcb_type = block_header.types[0];
-    auto allen_type = bank_ids[lhcb_type];
-    if (allen_type != -1) {
-      for (size_t i = event_start; i < event_end; ++i) {
+	}
         // Anticipate offset structure already here, i.e. don't assign to the first one
         auto idx = i - event_start + 1;
         auto& event_offsets = std::get<2>(slices[allen_type][slice_index]);
