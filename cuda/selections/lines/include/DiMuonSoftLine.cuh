@@ -29,7 +29,7 @@ namespace DiMuonSoft {
       const bool decision = vertex.chi2 > 0 && (vertex.mdimu < DMSoftM0 || vertex.mdimu > DMSoftM1) &&  (vertex.mdimu < DMSoftM2) && vertex.eta > 0 &&
                             (vertex.x * vertex.x + vertex.y * vertex.y) > DMSoftMinRho2 &&
                             (vertex.z > DMSoftMinZ) & (vertex.z < DMSoftMaxZ) && vertex.doca < DMSoftMaxDOCA &&
-                            vertex.dimu_ip / vertex.dz < DMSoftMaxIPDZ && vertex.dimu_clone_sin2 > DMSoftGhost;
+                            vertex.vertex_ip / vertex.dz < DMSoftMaxIPDZ && vertex.vertex_clone_sin2 > DMSoftGhost;
       return decision;
     }
   };

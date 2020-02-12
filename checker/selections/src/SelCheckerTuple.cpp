@@ -52,7 +52,7 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("sv_eta", &m_sv_eta);
   m_tree->Branch("sv_minipchi2", &m_sv_minipchi2);
   m_tree->Branch("sv_minpt", &m_sv_minpt);
-  m_tree->Branch("sv_ntrksassoc", &m_sv_ntrksassoc);
+  m_tree->Branch("sv_ntrks16", &m_sv_ntrks16);
   m_tree->Branch("sv_idx_trk1", &m_sv_idx_trk1);
   m_tree->Branch("sv_idx_trk2", &m_sv_idx_trk2);
 
@@ -119,7 +119,7 @@ void SelCheckerTuple::clear()
   m_sv_eta.clear();
   m_sv_minipchi2.clear();
   m_sv_minpt.clear();
-  m_sv_ntrksassoc.clear();
+  m_sv_ntrks16.clear();
   m_sv_idx_trk1.clear();
   m_sv_idx_trk2.clear();
   m_trk_p.clear();
@@ -197,7 +197,7 @@ size_t SelCheckerTuple::addSV(const VertexFit::TrackMVAVertex& sv, const int idx
   m_sv_eta.push_back((double) sv.eta);
   m_sv_minipchi2.push_back((double) sv.minipchi2);
   m_sv_minpt.push_back((double) sv.minpt);
-  m_sv_ntrksassoc.push_back((double) sv.ntrksassoc);
+  m_sv_ntrks16.push_back((double) sv.ntrks16);
   m_sv_idx_trk1.push_back((double) idx1);
   m_sv_idx_trk2.push_back((double) idx2);
   return idx;

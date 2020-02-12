@@ -40,10 +40,10 @@ namespace VertexFit {
     float cos = 1.f;
 
     // Variables for dimuon lines
-    float dimu_ip = 0.0f;
+    float vertex_ip = 0.0f;
     float dz = 0.0f;
     float doca = -1.f;
-    float dimu_clone_sin2 = 0.0f;
+    float vertex_clone_sin2 = 0.0f;
 
     // Additional variables for MVA lines.
     // Sum of track pT.
@@ -61,7 +61,7 @@ namespace VertexFit {
     // Minimum pt of the tracks.
     float minpt = 0.0f;
     // Number of tracks associated to a PV (min IP chi2 < 16).
-    int ntrksassoc = 0;
+    int ntrks16 = 0;
 
     // Degrees of freedom.
     int ndof = 0;
@@ -71,6 +71,8 @@ namespace VertexFit {
     uint trk2 = 0;
 
     // Muon ID.
+    bool trk1_is_muon;
+    bool trk2_is_muon;
     bool is_dimuon;
 
     __device__ __host__ float pt() const { return sqrtf(px * px + py * py); }
