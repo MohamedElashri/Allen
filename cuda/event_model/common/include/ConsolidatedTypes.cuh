@@ -34,13 +34,17 @@ namespace Consolidated {
 
     __device__ __host__ uint tracks_offset(const uint event_number) const
     {
+#ifdef ALLEN_DEBUG
       assert(event_number <= m_number_of_events);
+#endif
       return m_event_tracks_offsets[event_number];
     }
 
     __device__ __host__ uint number_of_tracks(const uint event_number) const
     {
+#ifdef ALLEN_DEBUG
       assert(event_number < m_number_of_events);
+#endif
       return m_event_tracks_offsets[event_number + 1] - m_event_tracks_offsets[event_number];
     }
 
