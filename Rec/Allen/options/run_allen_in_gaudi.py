@@ -8,6 +8,8 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
+from Configurables import PrTrackChecker, PrUTHitChecker
+from Configurables import PrTrackerDumper, DumpVeloUTState, PVDumper
 from Configurables import Brunel
 from Configurables import (TrackSys, GaudiSequencer)
 from Configurables import FTRawBankDecoder
@@ -150,7 +152,7 @@ dump_seq.Members += [dump_banks]
 
 # call Allen
 allen_seq = GaudiSequencer("RecoAllenSeq")
-run_allen = RunAllen()
+run_allen = RunAllen(OutputLevel=3)
 allen_seq.Members += [run_allen]
 
 # check Allen tracks
@@ -171,11 +173,11 @@ for tracktype in tracksToConvert:
 
     trassociator = PrTrackAssociator("Allen" + tracktype + "Associator")
     trassociator.SingleContainer = "Allen/Track/v1/" + tracktype + "Converted"
-    trassociator.OutputLocation = "Link/" + "Allen/Track/v1/" + tracktype + "Converted"
+    trassociator.OutputLocation = "Link/" + \
+        "Allen/Track/v1/" + tracktype + "Converted"
     checker_seq.Members += [trassociator]
 
 mc_dumper_seq = GaudiSequencer("MCDumper")
-from Configurables import PrTrackerDumper, DumpVeloUTState, PVDumper
 dump_mc = PrTrackerDumper("DumpMCInfo", DumpToBinary=True, DumpToROOT=False)
 dump_mc.OutputDirectory = outputdirectory + "TrackerDumper"
 dump_mc.MCOutputDirectory = outputdirectory + "MC_info/tracks"
@@ -210,7 +212,7 @@ def modifySequences():
         GaudiSequencer("CheckPatSeq").Members.remove(
             PrimaryVertexChecker("PVChecker"))
         from Configurables import PrGECFilter
-        #GaudiSequencer("RecoDecodingSeq").Members.remove(PrGECFilter())
+        # GaudiSequencer("RecoDecodingSeq").Members.remove(PrGECFilter())
         from Configurables import MuonRec
         GaudiSequencer("RecoDecodingSeq").Members.append(MuonRec())
     except ValueError:
@@ -218,8 +220,6 @@ def modifySequences():
 
 
 appendPostConfigAction(modifySequences)
-
-from Configurables import PrTrackChecker, PrUTHitChecker
 
 
 def addPrCheckerCutsAndPlots():
