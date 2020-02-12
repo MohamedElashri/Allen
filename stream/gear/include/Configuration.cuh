@@ -47,7 +47,7 @@ namespace Configuration {
 
   // General template
   template<typename T>
-  std::string to_string_impl(const T& holder)
+  std::string to_string(const T& holder)
   {
     // very basic implementation based on streaming
     std::stringstream s;
@@ -56,13 +56,7 @@ namespace Configuration {
   }
 
   template<>
-  std::string to_string_impl<DeviceDimensions>(const DeviceDimensions& holder);
-
-  template<typename T>
-  std::string to_string(T const& holder)
-  {
-    return to_string_impl<typename T::t>(holder.get());
-  }
+  std::string to_string<DeviceDimensions>(const DeviceDimensions& holder);
 } // namespace Configuration
 
 namespace Allen {
@@ -239,7 +233,7 @@ namespace Allen {
 
     std::string to_string() const override
     {
-      return Configuration::to_string(get_value());
+      return Configuration::to_string(m_cached_value.get());
     }
 
     std::string print() const override

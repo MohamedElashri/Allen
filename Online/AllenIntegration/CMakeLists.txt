@@ -29,4 +29,15 @@ include_directories(${CMAKE_SOURCE_DIR}/main/include)
 gaudi_add_module(AllenIntegration
                  src/*.cpp
                  INCLUDE_DIRS OnlineBase ROOT Online/DIM GaudiKernel cppgsl Online/OnlineKernel Online/ZeroMQ
-                 LINK_LIBRARIES GaudiKernel GaudiAlgLib dim OnlineBase GaudiOnline ZMQ ZMQLib RPC Parsers -lrt)
+                 LINK_LIBRARIES GaudiKernel dim OnlineBase GaudiOnline ZMQ ZMQLib RPC Parsers
+                                OnlineKernel AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
+                                PrKernel VPDetLib UTDetLib UTKernelLib
+                                FTDetLib -lrt)
+if(CMAKE_BUILD_TYPE STREQUAL Debug)
+  target_compile_definitions(AllenIntegration PRIVATE ALLEN_DEBUG)
+endif()
+target_compile_definitions(AllenIntegration PRIVATE ALLEN_DEBUG)
+
+if(DEVICE_TARGET STREQUAL "CPU")
+  target_compile_definitions(AllenIntegration PRIVATE CPU)
+endif()

@@ -37,7 +37,7 @@ namespace ut_calculate_number_of_hits {
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const HostBuffers&) const
     {
       set_size<dev_ut_raw_input_t>(arguments, std::get<1>(runtime_options.host_ut_events));
       set_size<dev_ut_raw_input_offsets_t>(
@@ -51,9 +51,9 @@ namespace ut_calculate_number_of_hits {
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       data_to_device<dev_ut_raw_input_t, dev_ut_raw_input_offsets_t>
         (arguments, runtime_options.host_ut_events, cuda_stream);

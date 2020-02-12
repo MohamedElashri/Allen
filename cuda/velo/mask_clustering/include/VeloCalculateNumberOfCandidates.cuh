@@ -28,8 +28,8 @@ namespace velo_calculate_number_of_candidates {
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const Constants&,
+      const HostBuffers&) const
     {
       if (logger::verbosity() >= logger::debug) {
         debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
@@ -44,10 +44,10 @@ namespace velo_calculate_number_of_candidates {
     void operator()(
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      HostBuffers& host_buffers,
+      const Constants&,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       data_to_device<dev_velo_raw_input_t, dev_velo_raw_input_offsets_t>(
         arguments, runtime_options.host_velo_events, cuda_stream);

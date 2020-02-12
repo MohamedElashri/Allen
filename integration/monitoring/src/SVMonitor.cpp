@@ -20,7 +20,7 @@ void SVMonitor::fill(uint i_buf, bool)
 
     m_histograms[SecondaryVertexN]->Fill(nsv);
 
-    for (int isv = 0; isv < nsv; ++isv) {
+    for (uint isv = 0; isv < nsv; ++isv) {
       const auto& sv = buf->host_secondary_vertices[sv_offset + isv];
 
       m_histograms[SecondaryVertexX]->Fill(sv.x);

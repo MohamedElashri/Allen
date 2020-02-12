@@ -128,7 +128,7 @@ public:
         size_t idx1 = addTrack(trackA, mcassoc);
         if (idx1 == m_trk_p.size() - 1) {
           const auto lambda_one_track_fn = [&](const unsigned long i_line, const std::string& line_name) {
-            const bool* decs = sel_results + sel_results_offsets[i_line] + event_tracks_offsets[i_event];
+            const bool* decs = sel_results + sel_results_offsets[i_line] + track_offsets[i_event];
             m_trk_decisions[line_name].push_back(decs[i_track] ? 1. : 0.);
           };
           Hlt1::TraverseLinesNames<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);

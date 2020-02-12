@@ -182,7 +182,6 @@ struct HltSelRepRBStdInfo {
   
   // Prepare to add info for an object with nInfo floats.
   __device__ __host__ void addObj(uint nInfo) {
-    uint s = sizeStored();
     uint iObj = numberOfObj();
     uint iWord = 1 + (iObj / 4);
     m_location[0] = (m_location[0] & ~0xFFFFu) | (iObj + 1);
@@ -328,7 +327,6 @@ struct HltSelRepRBSubstr {
   
   __device__ __host__ uint size()
   {
-    uint s = allocatedSize();
     uint itera = InitialPositionOfIterator::kInitialPosition;
     for (uint iSub = 0; iSub != numberOfObj(); ++iSub) {
       uint iWord = itera / 2;

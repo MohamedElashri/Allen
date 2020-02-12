@@ -23,13 +23,13 @@ namespace postscaler {
     state = mix32(state, extra_lo);
     return postscaler::mix32(state, extra_hi);
   }
-}; // namespace postscaler
+} // namespace postscaler
 
 struct DeterministicPostscaler {
   __device__ DeterministicPostscaler(uint initial, float frac) :
     initial_value(initial), scale_factor(frac),
     accept_threshold(
-      frac >= 1. ? std::numeric_limits<uint32_t>::max() : uint32_t(frac * std::numeric_limits<uint32_t>::max()))
+      frac >= 1.f ? std::numeric_limits<uint32_t>::max() : uint32_t(frac * std::numeric_limits<uint32_t>::max()))
   {}
 
   __device__ void operator()(
@@ -56,6 +56,6 @@ struct DeterministicPostscaler {
   }
 
   uint32_t initial_value {0};
+  float scale_factor {1.f};
   uint32_t accept_threshold {std::numeric_limits<uint32_t>::max()};
-  float scale_factor {1.};
 };

@@ -13,17 +13,17 @@ g.attr(rankdir='LR')
 previous_algorithm = "start"
 
 for algorithm in all_dependencies:
-  algorithm_name = algorithm[0]
-  
-  with g.subgraph(name=algorithm_name) as c:
-    c.attr(style="filled", color=process_background_color, shape="rectangle")
-    # c.edges(algorithm[1])
+    algorithm_name = algorithm[0]
 
-  # g.node(algorithm_name, )
-  g.edge(previous_algorithm, algorithm_name)
+    with g.subgraph(name=algorithm_name) as c:
+        c.attr(
+            style="filled", color=process_background_color, shape="rectangle")
+        # c.edges(algorithm[1])
 
-  previous_algorithm = algorithm_name
+    # g.node(algorithm_name, )
+    g.edge(previous_algorithm, algorithm_name)
 
+    previous_algorithm = algorithm_name
 
 # NOTE: the subgraph name needs to begin with 'cluster' (all lowercase)
 #       so that Graphviz recognizes it as a special cluster subgraph

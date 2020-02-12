@@ -29,10 +29,10 @@ void RateMonitor::fill(uint i_buf, bool useWallTime)
 
     bool pass(false);
 
-    for (uint i_line=0; i_line<m_number_of_hlt1_lines; ++i_line) {
+    for (uint i_line = 0; i_line < m_number_of_hlt1_lines; ++i_line) {
       if (dec_reports[i_line] & HltDecReport::decisionMask) {
         m_histograms[LineRatesStart + i_line]->Fill(time, 1. / m_time_step);
-	pass = true;
+        pass = true;
       }
     }
 
@@ -47,11 +47,11 @@ void RateMonitor::init()
   double max = nBins * m_time_step;
 
   m_histograms.emplace(InclusiveRate, new TH1D("inclusiveRate", "", nBins, 0., max));
-  for (uint i_line=0; i_line<m_number_of_hlt1_lines; ++i_line) {
+  for (uint i_line = 0; i_line < m_number_of_hlt1_lines; ++i_line) {
     TString name = "line";
     name += i_line;
     name += "Rate";
-    m_histograms.emplace(LineRatesStart+i_line, new TH1D(name, "", nBins, 0., max));
+    m_histograms.emplace(LineRatesStart + i_line, new TH1D(name, "", nBins, 0., max));
   }
 
   for (auto kv : m_histograms) {

@@ -20,7 +20,7 @@ __device__ void track_forwarding(
   uint* dev_number_of_velo_tracks,
   const float forward_phi_tolerance,
   const int ttf_modulo_mask,
-  const uint ttf_modulo,
+  [[maybe_unused]] const uint ttf_modulo,
   const float max_scatter_forwarding,
   const uint max_skipped_modules)
 {
@@ -36,7 +36,7 @@ __device__ void track_forwarding(
       track_flag ? track_number < ttf_modulo :
                    track_number < Velo::Constants::max_tracks);
 
-    int number_of_hits;
+    uint number_of_hits;
     Velo::TrackHits* t;
 
     if (track_flag) {

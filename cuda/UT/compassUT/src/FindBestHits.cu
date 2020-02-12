@@ -296,7 +296,7 @@ __device__ int
 calc_index(const int index, const TrackCandidates& ranges, const int layer, const UT::HitOffsets& ut_hit_offsets)
 {
   auto temp_index = index;
-  for (int i = 0; i < CompassUT::num_sectors; ++i) {
+  for (uint i = 0; i < CompassUT::num_sectors; ++i) {
     const auto ranges_size = ranges.get_size(layer, i);
     if (temp_index < ranges_size) {
       return temp_index + ut_hit_offsets.layer_offset(layer) + ranges.get_from(layer, i);
@@ -320,7 +320,7 @@ __device__ int calc_index(
   const UT::HitOffsets& ut_hit_offsets)
 {
   auto temp_index = index;
-  for (int i = 0; i < CompassUT::num_sectors; ++i) {
+  for (uint i = 0; i < CompassUT::num_sectors; ++i) {
     const auto ranges_size = ranges.get_size(layer0, i);
     if (temp_index < ranges_size) {
       return temp_index + ut_hit_offsets.layer_offset(layer0) + ranges.get_from(layer0, i);

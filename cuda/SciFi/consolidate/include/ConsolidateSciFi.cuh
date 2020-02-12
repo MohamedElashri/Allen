@@ -37,9 +37,9 @@ namespace scifi_consolidate_tracks {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_scifi_track_hits_t>(
         arguments, value<host_accumulated_number_of_hits_in_scifi_tracks_t>(arguments) * sizeof(SciFi::Hit));
@@ -51,10 +51,10 @@ namespace scifi_consolidate_tracks {
     void operator()(
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
+      const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_scifi_hits_t>(arguments),

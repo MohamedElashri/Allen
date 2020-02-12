@@ -40,9 +40,9 @@ namespace FilterMFTracks {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_mf_sv_atomics_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_svs_kf_idx_t>(
@@ -53,11 +53,11 @@ namespace FilterMFTracks {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      HostBuffers& host_buffers,
+      const RuntimeOptions&,
+      const Constants&,
+      HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_mf_sv_atomics_t>(arguments, 0, cuda_stream);
       initialize<dev_svs_kf_idx_t>(arguments, 0, cuda_stream);

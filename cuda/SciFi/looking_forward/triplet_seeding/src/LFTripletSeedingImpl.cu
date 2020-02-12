@@ -123,6 +123,8 @@ __device__ void lf_triplet_seeding_impl(
     }
 
     // Store number of found triplets by this thread
-    scifi_lf_number_of_found_triplets[tid_x] = number_of_found_triplets;
+    if (number_of_found_triplets > 0) {
+      scifi_lf_number_of_found_triplets[tid_x] = number_of_found_triplets;
+    }
   }
 }

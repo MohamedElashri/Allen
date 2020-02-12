@@ -323,7 +323,6 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
                                                  event_number,
                                                  number_of_events};
   const uint event_tracks_offset = scifi_tracks.tracks_offset(event_number);
-  const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
 
   // Track-PV association table.
   Associate::Consolidated::ConstTable kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,

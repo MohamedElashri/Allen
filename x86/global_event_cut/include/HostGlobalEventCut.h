@@ -42,8 +42,8 @@ namespace host_global_event_cut {
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const Constants&,
+      const HostBuffers&) const
     {
       const auto event_start = std::get<0>(runtime_options.event_interval);
       const auto event_end = std::get<1>(runtime_options.event_interval);
@@ -57,10 +57,10 @@ namespace host_global_event_cut {
     void operator()(
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
+      const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       const auto event_start = std::get<0>(runtime_options.event_interval);
       const auto event_end = std::get<1>(runtime_options.event_interval);

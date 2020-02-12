@@ -8,7 +8,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/global_event_cut/include)
-
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
@@ -98,3 +97,5 @@ target_link_libraries(mep_gec PUBLIC Common mdf HostGEC
 target_compile_definitions(mep_gec PUBLIC CPU NO_CUDA)
 
 install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)
+
+include_directories(${CPPGSL_INCLUDE_DIRS})

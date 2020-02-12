@@ -7,8 +7,8 @@
 // D -> K K
 namespace D2KK {
 
-  constexpr float mK = 493.667 / Gaudi::Units::MeV;
-  constexpr float mD = 1864.83 / Gaudi::Units::MeV;
+  constexpr float mK = 493.667f / Gaudi::Units::MeV;
+  constexpr float mD = 1864.83f / Gaudi::Units::MeV;
 
   constexpr float minComboPt = 2000.0f / Gaudi::Units::MeV;
   constexpr float maxVertexChi2 = 10.f;

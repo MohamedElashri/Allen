@@ -7,7 +7,7 @@ __device__ void populate(const SciFi::TrackHits& track, const F& assign)
     const auto hit_index = track.hits[i];
     assign(i, hit_index);
   }
-};
+}
 
 __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(scifi_consolidate_tracks::Parameters parameters)
 {

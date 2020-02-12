@@ -32,20 +32,20 @@ namespace MFVertexFit {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
     {
       set_size<dev_mf_svs_t>(arguments, value<host_number_of_mf_svs_t>(arguments));
     }
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
+      const RuntimeOptions&,
+      const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t& cuda_generic_event) const
+      cudaEvent_t&) const
     {
       initialize<dev_mf_svs_t>(arguments, 0, cuda_stream);
 
