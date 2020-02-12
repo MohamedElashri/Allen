@@ -11,18 +11,19 @@
 #include <GaudiKernel/SmartIF.h>
 #endif
 
-IZeroMQSvc* makeZmqSvc() {
+IZeroMQSvc* makeZmqSvc()
+{
 #ifdef STANDALONE
-  static std::unique_ptr<IZeroMQSvc> svc{};
+  static std::unique_ptr<IZeroMQSvc> svc {};
   if (!svc) {
-    svc.reset(new IZeroMQSvc{});
+    svc.reset(new IZeroMQSvc {});
   }
   return svc.get();
 #else
   SmartIF<IStateful> app = Gaudi::createApplicationMgr();
   auto prop = app.as<IProperty>();
   prop->setProperty("ExtSvc", "[\"ZeroMQSvc\"]");
-  prop->setProperty("JobOptionsType",  "\"NONE\"");
+  prop->setProperty("JobOptionsType", "\"NONE\"");
   app->configure();
   app->initialize();
   app->start();

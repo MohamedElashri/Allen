@@ -89,7 +89,7 @@ void write_files(
 
         auto const skip = 4 * sizeof(int);
         char const* data = event_buffer.data();
-        while(data - event_buffer.data() < offset) {
+        while (data - event_buffer.data() < offset) {
           auto* header = reinterpret_cast<LHCb::MDFHeader const*>(data);
           auto const event_size = header->recordSize();
           if (header->checkSum() != 0) {
@@ -103,9 +103,10 @@ void write_files(
 
         if (!discard) {
           if (output_file->good) {
-          output_file->write(event_buffer.data(), offset);
-          size_bytes += offset;
-          } else {
+            output_file->write(event_buffer.data(), offset);
+            size_bytes += offset;
+          }
+          else {
             zmqSvc->send(control, "ERROR");
           }
         }
@@ -115,7 +116,7 @@ void write_files(
         zmqSvc->send(control, buffer);
 
         if (!discard && output_file->good) {
-          if (size_bytes > size_t{max_file_size} * 1024 * 1024) {
+          if (size_bytes > size_t {max_file_size} * 1024 * 1024) {
             output_file->close();
             output_file.reset();
             zmqSvc->send(control, "CLOSED", send_flags::sndmore);
@@ -166,17 +167,19 @@ int main(int argc, char* argv[])
 
   // Declare the supported options.
   po::options_description desc("Allowed options");
-  desc.add_options()
-    ("help,h", "produce help message")
-    ("directory", po::value<std::string>(&directory), "output directory")
-    ("filename,f", po::value<std::string>(&file_pattern)->default_value("AllenOutput_%1$03d.mdf"), "filename pattern")
-    ("request-port", po::value<unsigned int>(&request_port)->default_value(35000u), "port on which to listen to connection requests")
-    ("data-port", po::value<unsigned int>(&data_port)->default_value(40000u), "port on which to listen to connection requests")
-    ("file-size,s", po::value<unsigned int>(&file_size)->default_value(10240u), "File size [MB]")
-    ("max-files", po::value<unsigned int>(&max_files)->default_value(10), "Maximum number of files")
-    ("buffer-size,b", po::value<unsigned int>(&buffer_size)->default_value(32), "Receive buffer size [MB]")
-    ("discard,d", po::value<bool>(&discard)->default_value(false), "Discard events instead of writing them to disk")
-    ;
+  desc.add_options()("help,h", "produce help message")(
+    "directory", po::value<std::string>(&directory), "output directory")(
+    "filename,f", po::value<std::string>(&file_pattern)->default_value("AllenOutput_%1$03d.mdf"), "filename pattern")(
+    "request-port",
+    po::value<unsigned int>(&request_port)->default_value(35000u),
+    "port on which to listen to connection requests")(
+    "data-port",
+    po::value<unsigned int>(&data_port)->default_value(40000u),
+    "port on which to listen to connection requests")(
+    "file-size,s", po::value<unsigned int>(&file_size)->default_value(10240u), "File size [MB]")(
+    "max-files", po::value<unsigned int>(&max_files)->default_value(10), "Maximum number of files")(
+    "buffer-size,b", po::value<unsigned int>(&buffer_size)->default_value(32), "Receive buffer size [MB]")(
+    "discard,d", po::value<bool>(&discard)->default_value(false), "Discard events instead of writing them to disk");
 
   po::positional_options_description p;
   p.add("directory", 1);
@@ -209,7 +212,7 @@ int main(int argc, char* argv[])
   tick_socket.bind(tick_connection.c_str());
 
   // Start tick thread
-  std::thread tick_thread{timer, zmqSvc, tick_connection};
+  std::thread tick_thread {timer, zmqSvc, tick_connection};
 
   // Storage for incoming events
   Buffers buffers;
@@ -227,11 +230,10 @@ int main(int argc, char* argv[])
   writer_socket.bind(writer_connection.c_str());
 
   // Start writing thread
-  std::thread writer_thread{[&zmqSvc, writer_connection, directory, file_pattern,
-                             max_files, file_size, discard, &buffers] {
-                              write_files(zmqSvc, writer_connection, directory, file_pattern,
-                                          max_files, file_size, discard, buffers);
-                            }};
+  std::thread writer_thread {
+    [&zmqSvc, writer_connection, directory, file_pattern, max_files, file_size, discard, &buffers] {
+      write_files(zmqSvc, writer_connection, directory, file_pattern, max_files, file_size, discard, buffers);
+    }};
 
   std::vector<zmq::pollitem_t> items(3);
   items.reserve(13);
@@ -253,7 +255,8 @@ int main(int argc, char* argv[])
 
   std::vector<std::tuple<std::string, size_t>> written;
 
-  auto get_buffer = [&zmqSvc, &writable, &submitted, &buffers, &writer_socket](size_t buffer, size_t msg_size) -> size_t {
+  auto get_buffer =
+    [&zmqSvc, &writable, &submitted, &buffers, &writer_socket](size_t buffer, size_t msg_size) -> size_t {
     if (writable[buffer]) {
       auto& [event_buffer, offset] = buffers[buffer];
       if (offset + msg_size < event_buffer.size()) {
@@ -298,7 +301,7 @@ int main(int argc, char* argv[])
         zmq::setsockopt(data_socket, zmq::SNDTIMEO, 500);
         auto data_con = "tcp://*:"s + std::to_string(port);
         data_socket.bind(data_con.c_str());
-        items.emplace_back(zmq::pollitem_t{data_socket, 0, zmq::POLLIN, 0});
+        items.emplace_back(zmq::pollitem_t {data_socket, 0, zmq::POLLIN, 0});
         zmqSvc->send(server, std::to_string(port));
         std::cout << "Client " << client_name << " given port " << port << "\n";
       }
@@ -317,7 +320,8 @@ int main(int argc, char* argv[])
       else if (msg == "CLIENT_EXIT") {
         auto id = zmqSvc->receive<std::string>(server);
         zmqSvc->send(server, "OK");
-        auto it = std::find_if(clients.begin(), clients.end(), [id] (const auto& entry) { return std::get<0>(entry) == id; });
+        auto it =
+          std::find_if(clients.begin(), clients.end(), [id](const auto& entry) { return std::get<0>(entry) == id; });
         if (it != clients.end()) {
           auto& [client_id, socket] = *it;
           std::cout << client_id << " is exiting\n";
@@ -346,10 +350,10 @@ int main(int argc, char* argv[])
         auto dt = double {n_wait * 0.5};
         auto event_rate = n_events / dt;
         auto mb_received = bytes_received / (1024 * 1024);
-        auto data_rate =   mb_received /dt;
+        auto data_rate = mb_received / dt;
         zmqSvc->send(rate_socket, std::to_string(event_rate));
-        std::cout << "Received " << n_events << " events (" << event_rate << " events/s) and "
-                  << mb_received << " MB (" << data_rate << " MB/s)\n";
+        std::cout << "Received " << n_events << " events (" << event_rate << " events/s) and " << mb_received << " MB ("
+                  << data_rate << " MB/s)\n";
         n_received = {0, 0};
         n_wait = 0;
       }
@@ -361,7 +365,8 @@ int main(int argc, char* argv[])
         auto free_buffer = zmqSvc->receive<size_t>(writer_socket);
         submitted[free_buffer] = false;
         writable[free_buffer] = true;
-      } else if (msg == "CLOSED") {
+      }
+      else if (msg == "CLOSED") {
         auto filename = zmqSvc->receive<std::string>(writer_socket);
         auto bytes_written = zmqSvc->receive<size_t>(writer_socket);
         written.emplace_back(filename, bytes_written);

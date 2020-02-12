@@ -37,11 +37,12 @@ namespace ConditionHolders {
       X {(c.param<double>("ResolPosRC") + c.param<double>("ResolPosLA")) / 2}, Y {c.param<double>("ResolPosY")}
     {}
   };
-} // namespace
+} // namespace ConditionHolders
 
-class AllenPVsToRecVertexV2 final : public Gaudi::Functional::Transformer<
-                                      std::vector<LHCb::Event::v2::RecVertex>(const HostBuffers&, const ConditionHolders::Beamline_t&),
-                                      LHCb::DetDesc::usesConditions<ConditionHolders::Beamline_t>> {
+class AllenPVsToRecVertexV2 final
+  : public Gaudi::Functional::Transformer<
+      std::vector<LHCb::Event::v2::RecVertex>(const HostBuffers&, const ConditionHolders::Beamline_t&),
+      LHCb::DetDesc::usesConditions<ConditionHolders::Beamline_t>> {
 public:
   /// Standard constructor
   AllenPVsToRecVertexV2(const std::string& name, ISvcLocator* pSvcLocator);
@@ -50,7 +51,8 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::vector<LHCb::Event::v2::RecVertex> operator()(const HostBuffers&, const ConditionHolders::Beamline_t&) const override;
+  std::vector<LHCb::Event::v2::RecVertex> operator()(const HostBuffers&, const ConditionHolders::Beamline_t&)
+    const override;
 
 private:
   Gaudi::Property<uint32_t> m_minNumTracksPerVertex {this, "MinNumTracksPerVertex", 4};

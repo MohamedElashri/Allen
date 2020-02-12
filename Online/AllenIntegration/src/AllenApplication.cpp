@@ -34,32 +34,31 @@
 namespace {
   using namespace std::string_literals;
 
-  std::string resolveEnvVars(std::string s) {
-    std::regex envExpr{"\\$\\{([A-Za-z0-9_]+)\\}"};
+  std::string resolveEnvVars(std::string s)
+  {
+    std::regex envExpr {"\\$\\{([A-Za-z0-9_]+)\\}"};
     std::smatch m;
-    while(std::regex_search(s, m, envExpr)) {
+    while (std::regex_search(s, m, envExpr)) {
       std::string rep;
       System::getEnv(m[1].str(), rep);
       s = s.replace(m[1].first - 2, m[1].second + 1, rep);
     }
     return s;
   }
-}
+} // namespace
 
 /// Factory instantiation
-DECLARE_COMPONENT( AllenApplication )
+DECLARE_COMPONENT(AllenApplication)
 
 /// Reset counters at start
-void AllenApplication::monitor_t::reset()   {
-  mepsIn          = 0;
-  eventsOut         = 0;
+void AllenApplication::monitor_t::reset()
+{
+  mepsIn = 0;
+  eventsOut = 0;
 }
 
 /// Specialized constructor
-AllenApplication::AllenApplication(Options opts)
-  : OnlineApplication(opts)
-{
-}
+AllenApplication::AllenApplication(Options opts) : OnlineApplication(opts) {}
 
 // Default destructor
 AllenApplication::~AllenApplication()
@@ -70,7 +69,8 @@ AllenApplication::~AllenApplication()
 }
 
 /// Stop the application                             (RUNNING    -> READY)
-int AllenApplication::stop()   {
+int AllenApplication::stop()
+{
   fireIncident("DAQ_CANCEL");
 
   m_zmqSvc->send(*m_allenControl, "STOP");
@@ -81,7 +81,8 @@ int AllenApplication::stop()   {
     auto msg = m_zmqSvc->receive<std::string>(*m_allenControl);
     if (msg == "READY") {
       m_logger->info("Allen event loop is stopped");
-    } else {
+    }
+    else {
       m_logger->error("Allen event loop failed to stop");
       return Online::ONLINE_ERROR;
     }
@@ -91,14 +92,13 @@ int AllenApplication::stop()   {
 }
 
 /// Cancel the application: Cancel IO request/Event loop
-int AllenApplication::cancel()  {
-  return 1;
-}
+int AllenApplication::cancel() { return 1; }
 
 /// Internal: Initialize the application            (NOT_READY  -> READY)
-int AllenApplication::configureApplication()   {
+int AllenApplication::configureApplication()
+{
   int ret = OnlineApplication::configureApplication();
-  if ( ret != Online::ONLINE_OK ) return ret;
+  if (ret != Online::ONLINE_OK) return ret;
 
   // dlopen libAllenLib
   m_handle = dlopen("libAllenLib.so", RTLD_LAZY);
@@ -111,7 +111,7 @@ int AllenApplication::configureApplication()   {
   dlerror();
   // load the symbol
   m_allenFun = (allen_t) dlsym(m_handle, "allen");
-  const char *dlsym_error = dlerror();
+  const char* dlsym_error = dlerror();
   if (dlsym_error) {
     m_logger->error("Failed to get 'allen' from libAllenLib");
     dlclose(m_handle);
@@ -120,23 +120,19 @@ int AllenApplication::configureApplication()   {
 
   SmartIF<ISvcLocator> sloc = app.as<ISvcLocator>();
 
-  if ( !m_config->monitorType.empty() )   {
+  if (!m_config->monitorType.empty()) {
 
     m_monMEPs.reset(new Service("MEPs", sloc));
     m_monEvents.reset(new Service("Events", sloc));
 
     m_monSvc = sloc->service<IMonitorSvc>(m_config->monitorType);
-    if ( !m_monSvc.get() )  {
-      m_logger->error("Cannot access monitoring service of type %s.",
-                      m_config->monitorType.c_str());
+    if (!m_monSvc.get()) {
+      m_logger->error("Cannot access monitoring service of type %s.", m_config->monitorType.c_str());
       return Online::ONLINE_ERROR;
     }
-    m_monSvc->declareInfo("IN",        m_monitor.mepsIn,
-                          "Number of MEPs received for processing", m_monMEPs);
-    m_monSvc->declareInfo("OUT",       m_monitor.mepsDone,
-                          "Number of MEPs fully processed", m_monMEPs);
-    m_monSvc->declareInfo("OUT",       m_monitor.eventsOut,
-                          "Number of events fully output", m_monEvents);
+    m_monSvc->declareInfo("IN", m_monitor.mepsIn, "Number of MEPs received for processing", m_monMEPs);
+    m_monSvc->declareInfo("OUT", m_monitor.mepsDone, "Number of MEPs fully processed", m_monMEPs);
+    m_monSvc->declareInfo("OUT", m_monitor.eventsOut, "Number of events fully output", m_monEvents);
   }
 
   auto config = sloc->service("AllenConfiguration/AllenConfiguration").as<AllenConfiguration>();
@@ -174,7 +170,7 @@ int AllenApplication::configureApplication()   {
   m_allenControl = m_zmqSvc->socket(zmq::PAIR);
   m_allenControl->bind(m_controlConnection.c_str());
 
-  m_allenThread = std::thread{&AllenApplication::allenLoop, this};
+  m_allenThread = std::thread {&AllenApplication::allenLoop, this};
 
   zmq::pollitem_t items[] = {{*m_allenControl, 0, zmq::POLLIN, 0}};
   m_zmqSvc->poll(&items[0], 1, -1);
@@ -189,7 +185,8 @@ int AllenApplication::configureApplication()   {
 }
 
 /// Internal: Finalize the application              (READY      -> NOT_READY)
-int AllenApplication::finalizeApplication()   {
+int AllenApplication::finalizeApplication()
+{
   m_zmqSvc->send(*m_allenControl, "RESET");
 
   zmq::pollitem_t items[] = {{*m_allenControl, 0, zmq::POLLIN, 0}};
@@ -200,13 +197,14 @@ int AllenApplication::finalizeApplication()   {
       m_logger->info("Allen event loop has exited");
 
       m_allenThread.join();
-    } else {
+    }
+    else {
       m_logger->error("Allen event loop failed to exit");
       return Online::ONLINE_ERROR;
     }
   }
 
-  if ( m_monSvc.get() )  {
+  if (m_monSvc.get()) {
     m_monSvc->undeclareAll(m_monMEPs);
     m_monSvc->undeclareAll(m_monEvents);
     m_monSvc.reset();
@@ -217,9 +215,10 @@ int AllenApplication::finalizeApplication()   {
 }
 
 /// Internal: Start the application                 (READY      -> RUNNING)
-int AllenApplication::startApplication()   {
+int AllenApplication::startApplication()
+{
   StatusCode sc = app->start();
-  if ( !sc.isSuccess() ) {
+  if (!sc.isSuccess()) {
     return Online::ONLINE_ERROR;
   }
 
@@ -231,7 +230,8 @@ int AllenApplication::startApplication()   {
     auto msg = m_zmqSvc->receive<std::string>(*m_allenControl);
     if (msg == "RUNNING") {
       m_logger->info("Allen event loop is running");
-    } else {
+    }
+    else {
       m_logger->error("Allen event loop failed to start");
       return Online::ONLINE_ERROR;
     }
@@ -243,19 +243,21 @@ int AllenApplication::startApplication()   {
 }
 
 /// Pause the application                            (RUNNING    -> READY)
-int AllenApplication::pauseProcessing()   {
+int AllenApplication::pauseProcessing()
+{
   m_logger->debug("Pause the application.");
   return OnlineApplication::pauseProcessing();
 }
 
 /// Continue the application                        (PAUSED -> RUNNING )
-int AllenApplication::continueProcessing()    {
+int AllenApplication::continueProcessing()
+{
   m_logger->debug("Resume application processing.");
   return OnlineApplication::continueProcessing();
 }
 
-
-bool AllenApplication::initMPI() {
+bool AllenApplication::initMPI()
+{
 #ifdef HAVE_MPI
   // MPI initialization
   auto len = name().length();
@@ -284,7 +286,8 @@ bool AllenApplication::initMPI() {
   if (m_rank != MPI::receiver) {
     m_logger->error("AllenApplication can only function as MPI receiver.");
     return false;
-  } else {
+  }
+  else {
     return true;
   }
 #else
@@ -293,12 +296,14 @@ bool AllenApplication::initMPI() {
 #endif
 }
 
-void AllenApplication::allenLoop() {
+void AllenApplication::allenLoop()
+{
 
   auto json = resolveEnvVars(m_allenConfig->json);
   auto paramDir = resolveEnvVars(m_allenConfig->paramDir);
 
-  //--events-per-slice 1000 --non-stop 1 --with-mpi $1:1 -c 0 -v 3 -t 8 -s 18 --output-file tcp://192.168.1.101:35000 --device 23:00.0
+  //--events-per-slice 1000 --non-stop 1 --with-mpi $1:1 -c 0 -v 3 -t 8 -s 18 --output-file tcp://192.168.1.101:35000
+  //--device 23:00.0
   std::map<std::string, std::string> allen_options = {{"events-per-slice", std::to_string(m_allenConfig->eps.value())},
                                                       {"non-stop", std::to_string(m_allenConfig->nonStop.value())},
                                                       {"c", std::to_string(m_allenConfig->check.value())},
@@ -320,16 +325,19 @@ void AllenApplication::allenLoop() {
   if (m_allenConfig->withMPI.value() == true) {
     if (!m_allenConfig->receivers.value().empty()) {
       allen_options["with-mpi"] = m_allenConfig->receivers.value();
-    } else {
+    }
+    else {
       allen_options["with-mpi"] = "1";
     }
-  } else if (input.empty()) {
+  }
+  else if (input.empty()) {
     m_logger->throwError("No input files specified");
-  } else {
+  }
+  else {
     std::stringstream ss;
     bool mep = false;
-    for(size_t i = 0; i < input.size(); ++i) {
-      if(i != 0) ss << ",";
+    for (size_t i = 0; i < input.size(); ++i) {
+      if (i != 0) ss << ",";
       if (input[i].find(".mep") != std::string::npos) mep = true;
       ss << input[i];
     }
@@ -338,5 +346,4 @@ void AllenApplication::allenLoop() {
   }
 
   m_allenFun(allen_options, m_updater, m_zmqSvc.get(), m_controlConnection);
-
 }

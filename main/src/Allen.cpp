@@ -107,8 +107,11 @@ void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& const
  *
  * @return     int
  */
-extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEventData::IUpdater* updater,
-                     IZeroMQSvc* zmqSvc, std::string_view control_connection)
+extern "C" int allen(
+  std::map<std::string, std::string> options,
+  Allen::NonEventData::IUpdater* updater,
+  IZeroMQSvc* zmqSvc,
+  std::string_view control_connection)
 {
   // Folder containing raw, MC and muon information
   std::string folder_data = "../input/minbias/";
@@ -519,9 +522,7 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
   // input provider for slices.
   const auto slice_thread = [&](uint thread_id, uint) {
     return std::make_tuple(
-      std::thread {
-        run_slices, thread_id, zmqSvc, input_provider.get()},
-      std::optional<zmq::socket_t> {});
+      std::thread {run_slices, thread_id, zmqSvc, input_provider.get()}, std::optional<zmq::socket_t> {});
   };
 
   // Lambda with the execution of the output thread
@@ -772,7 +773,8 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
       auto& socket = std::get<1>(io_workers[i]);
       zmqSvc->send(socket, "START");
     }
-  } else {
+  }
+  else {
     zmqSvc->send(*allen_control, "READY");
   }
 
@@ -973,7 +975,8 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
       if (msg == "STOP") {
         stop = true;
         input_provider->stop();
-      } else if (msg == "START") {
+      }
+      else if (msg == "START") {
         // Start the input provider
         io_done = false;
         input_provider->start();
@@ -986,7 +989,8 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
 
         // Respond to steering
         zmqSvc->send(*allen_control, "RUNNING");
-      } else if (msg == "RESET") {
+      }
+      else if (msg == "RESET") {
         io_done = true;
         exit_loop = true;
       }
@@ -1004,13 +1008,15 @@ extern "C" int allen(std::map<std::string, std::string> options, Allen::NonEvent
     }
 
     // Check if we're done
-    if (stream_ready.count() == number_of_threads && buffer_manager->buffersEmpty() && io_cond &&
+    if (
+      stream_ready.count() == number_of_threads && buffer_manager->buffersEmpty() && io_cond &&
       (!enable_async_io || (enable_async_io && count_status(SliceStatus::Empty) == number_of_slices))) {
       info_cout << "Processing complete\n";
       if (allen_control && stop) {
         stop = false;
         zmqSvc->send(*allen_control, "READY");
-      } else if (!allen_control || (allen_control && exit_loop)) {
+      }
+      else if (!allen_control || (allen_control && exit_loop)) {
         break;
       }
     }

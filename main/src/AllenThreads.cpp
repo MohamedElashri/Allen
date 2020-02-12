@@ -26,7 +26,11 @@ std::string connection(const size_t id, std::string suffix)
   return con;
 }
 
-void run_output(const size_t thread_id, IZeroMQSvc* zmqSvc, OutputHandler* output_handler, HostBuffersManager* buffer_manager)
+void run_output(
+  const size_t thread_id,
+  IZeroMQSvc* zmqSvc,
+  OutputHandler* output_handler,
+  HostBuffersManager* buffer_manager)
 {
   // Create a control socket and connect it.
   zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
@@ -48,7 +52,6 @@ void run_output(const size_t thread_id, IZeroMQSvc* zmqSvc, OutputHandler* outpu
     items[1] = {*client_socket, 0, zmq::POLLIN, 0};
   }
 
-
   while (true) {
 
     // Check if there are messages
@@ -69,9 +72,11 @@ void run_output(const size_t thread_id, IZeroMQSvc* zmqSvc, OutputHandler* outpu
         auto buf_idx = zmqSvc->receive<size_t>(control);
 
         bool success = true;
-        auto [passing_event_list, dec_reports, sel_reports, sel_report_offsets] = buffer_manager->getBufferOutputData(buf_idx);
+        auto [passing_event_list, dec_reports, sel_reports, sel_report_offsets] =
+          buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
-          success = output_handler->output_selected_events(slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
+          success = output_handler->output_selected_events(
+            slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
         }
 
         zmqSvc->send(control, "WRITTEN", send_flags::sndmore);
@@ -121,7 +126,8 @@ void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* inpu
       auto msg = zmqSvc->receive<std::string>(control);
       if (msg == "DONE") {
         break;
-      } else if (msg == "START") {
+      }
+      else if (msg == "START") {
         timeout = 0;
       }
     }

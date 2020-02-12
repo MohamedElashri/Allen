@@ -18,10 +18,7 @@ void run_output(
   OutputHandler* output_handler,
   HostBuffersManager* buffer_manager);
 
-void run_slices(
-  const size_t thread_id,
-  IZeroMQSvc* zmqSvc,
-  IInputProvider* input_provider);
+void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* input_provider);
 
 void run_stream(
   size_t const thread_id,

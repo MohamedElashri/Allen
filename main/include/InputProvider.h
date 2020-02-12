@@ -175,7 +175,6 @@ public:
 
   int stop() override { return true; };
 
-
 protected:
   template<typename MSG>
   void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) const

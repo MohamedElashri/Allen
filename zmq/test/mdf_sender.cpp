@@ -15,13 +15,13 @@ namespace {
   using namespace std;
 } // namespace
 
-
 namespace Utils {
-  std::string hostname() {
+  std::string hostname()
+  {
     char hname[HOST_NAME_MAX];
     std::string hn;
     if (!gethostname(hname, sizeof(hname))) {
-      hn = std::string{hname};
+      hn = std::string {hname};
       auto pos = hn.find('.');
       if (pos != std::string::npos) {
         hn = hn.substr(0, pos);
@@ -29,9 +29,10 @@ namespace Utils {
     }
     return hn;
   }
-}
+} // namespace Utils
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 
   string filename;
   size_t n_events;

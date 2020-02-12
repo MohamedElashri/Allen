@@ -17,14 +17,12 @@ app = LHCbApp(
 # Upgrade DBs
 CondDB().Upgrade = True
 
-producers = [p(DumpToFile=False) for p in (DumpVPGeometry,
-                                           DumpUTGeometry,
-                                           DumpFTGeometry,
-                                           DumpMuonGeometry,
-                                           DumpMuonTable,
-                                           DumpMagneticField,
-                                           DumpBeamline,
-                                           DumpUTLookupTables)]
+producers = [
+    p(DumpToFile=False)
+    for p in (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry, DumpMuonGeometry,
+              DumpMuonTable, DumpMagneticField, DumpBeamline,
+              DumpUTLookupTables)
+]
 
 online_conf = OnlineConfiguration("Application")
 online_conf.debug = False
@@ -36,7 +34,6 @@ online_conf.logDeviceFormat = '%TIME%LEVEL%-8NODE: %-32PROCESS %-20SOURCE'
 online_conf.OutputLevel = 3
 online_conf.IOOutputLevel = 3
 
-
 allen_conf = AllenConfiguration()
 allen_conf.EventsPerSlice = 1000
 allen_conf.NonStop = True
@@ -47,7 +44,8 @@ allen_conf.NSlices = 16
 # allen_conf.Output = "tcp://192.168.1.101:35000"
 # allen_conf.Device = "01:00.0"
 allen_conf.Input = [
-    "/scratch/raaij/mep/upgrade_mc_minbias_scifi_v5_pf3000.mep"]
+    "/scratch/raaij/mep/upgrade_mc_minbias_scifi_v5_pf3000.mep"
+]
 allen_conf.Device = "0"
 allen_conf.OutputLevel = 2
 
@@ -65,7 +63,9 @@ ApplicationMgr().ExtSvc += [
 
 # Some extra stuff for timing table
 ApplicationMgr().EvtSel = "NONE"
-ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc', 'AllenConfiguration',
-                            'Online::Configuration/Application', 'ZeroMQSvc']
+ApplicationMgr().ExtSvc += [
+    'ToolSvc', 'AuditorSvc', 'AllenConfiguration',
+    'Online::Configuration/Application', 'ZeroMQSvc'
+]
 
 # gaudi = AppMgr()
