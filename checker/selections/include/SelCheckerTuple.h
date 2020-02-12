@@ -235,7 +235,7 @@ private:
   std::vector<double> m_sv_eta;
   std::vector<double> m_sv_minipchi2;
   std::vector<double> m_sv_minpt;
-  std::vector<double> m_sv_ntrksassoc;
+  std::vector<double> m_sv_ntrks16;
   std::vector<double> m_sv_idx_trk1;
   std::vector<double> m_sv_idx_trk2;
   std::map<std::string, std::vector<double>> m_sv_decisions;

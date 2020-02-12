@@ -216,7 +216,9 @@ namespace VertexFit {
 
     // Muon ID.
     sv.is_dimuon = trackA.is_muon && trackB.is_muon;
-
+    sv.trk1_is_muon = trackA.is_muon;
+    sv.trk2_is_muon = trackB.is_muon;
+    
     // Dimuon mass.
     if (sv.is_dimuon) {
       const float mdimu2 =
@@ -238,7 +240,7 @@ namespace VertexFit {
     const float max_assoc_ipchi2)
   {
     // Number of tracks with ip chi2 < 16.
-    sv.ntrksassoc = (trackA.ipChi2 < max_assoc_ipchi2) +
+    sv.ntrks16 = (trackA.ipChi2 < max_assoc_ipchi2) +
                     (trackB.ipChi2 < max_assoc_ipchi2);
 
     // Get PV-SV separation.
@@ -268,7 +270,7 @@ namespace VertexFit {
     sv.dz = dz;
 
    if (sv.is_dimuon) {
-     sv.dimu_ip = ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px/sv.pz, sv.py/sv.pz); 
+     sv.vertex_ip = ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px/sv.pz, sv.py/sv.pz); 
      const float txA = trackA.state[2];
      const float tyA = trackA.state[3];
    
@@ -278,12 +280,12 @@ namespace VertexFit {
      const float vx = tyA - tyB;
      const float vy = -txA + txB;
      const float vz = txA*tyB - txB*tyA;
-     sv.dimu_clone_sin2 = (vx*vx + vy*vy + vz*vz) / ( (txA*txA + tyA*tyA + 1.f) * (txB*txB + tyB*tyB + 1.f)); 
+     sv.vertex_clone_sin2 = (vx*vx + vy*vy + vz*vz) / ( (txA*txA + tyA*tyA + 1.f) * (txB*txB + tyB*tyB + 1.f)); 
 
    }
    else {
-     sv.dimu_ip = -1.f;
-     sv.dimu_clone_sin2 = -1.f;
+     sv.vertex_ip = -1.f;
+     sv.vertex_clone_sin2 = -1.f;
   }
 
     // Corrected mass.
