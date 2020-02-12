@@ -8,7 +8,7 @@ namespace PassThrough {
 
     static __device__ bool function(const char*, const uint)
     {
-      return false;
+      return true;
     }
   };
 } // namespace DiMuonSoft
