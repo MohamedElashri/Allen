@@ -12,14 +12,13 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
-include_directories(SYSTEM ${ROOT_INCLUDE_DIRS})
 
 file(GLOB tracking_checker_sources "src/*cpp")
 
 add_library(TrackChecking STATIC
   ${tracking_checker_sources}
 )
-target_include_directories(TrackChecking PUBLIC ${CPPGSL_INCLUDE_DIRS})
+target_include_directories(TrackChecking PUBLIC ${CPPGSL_INCLUDE_DIR})
 
 if(ROOT_FOUND)
   target_compile_definitions(TrackChecking PRIVATE ${ALLEN_ROOT_DEFINITIONS})

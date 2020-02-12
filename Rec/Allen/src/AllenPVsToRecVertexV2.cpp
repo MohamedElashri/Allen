@@ -33,6 +33,7 @@ AllenPVsToRecVertexV2::AllenPVsToRecVertexV2(const std::string& name, ISvcLocato
 
 StatusCode AllenPVsToRecVertexV2::initialize()
 {
+  using namespace ConditionHolders;
   auto sc = Transformer::initialize().andThen(
     [&] { addConditionDerivation<Beamline_t(Condition const&)>(beamSpotCond, inputLocation<Beamline_t>()); });
 
@@ -44,7 +45,7 @@ StatusCode AllenPVsToRecVertexV2::initialize()
 
 std::vector<LHCb::Event::v2::RecVertex> AllenPVsToRecVertexV2::operator()(
   const HostBuffers& host_buffers,
-  const Beamline_t& beamline) const
+  const ConditionHolders::Beamline_t& beamline) const
 {
 
   const uint i_event = 0;

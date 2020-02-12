@@ -14,13 +14,16 @@
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
 
-#include <ZeroMQSvc.h>
+#include <ZeroMQ/IZeroMQSvc.h>
 #include "Timer.h"
 
 #include <read_mdf.hpp>
+#include <raw_helpers.hpp>
+#include <zmq/svc.h>
 
 namespace {
   using namespace std::string_literals;
+  using namespace zmq;
   namespace po = boost::program_options;
 
 #ifdef USE_BOOST_FILESYSTEM
@@ -33,17 +36,19 @@ namespace {
 } // namespace
 
 void write_files(
+  IZeroMQSvc* zmqSvc,
   std::string connection,
   std::string const& directory,
   std::string const& file_pattern,
   unsigned int const max_files,
   unsigned int const max_file_size,
+  bool const discard,
   Buffers const& buffers)
 {
 
-  zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
+  zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
   zmq::setsockopt(control, zmq::LINGER, 0);
-  control.connect(connection);
+  control.connect(connection.c_str());
 
   std::optional<Allen::IO> output_file {};
   unsigned int n_file = 0;
@@ -53,18 +58,20 @@ void write_files(
 
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
   while (true) {
-    zmq::poll(&items[0], 1, -1);
+    zmqSvc->poll(&items[0], 1, -1);
     if (items[0].revents & zmq::POLLIN) {
-      auto msg = zmqSvc().receive<std::string>(control);
+      auto msg = zmqSvc->receive<std::string>(control);
       if (msg == "DONE") {
-        zmqSvc().send(control, filename.string(), zmq::SNDMORE);
-        zmqSvc().send(control, size_bytes);
+        if (!discard) {
+          zmqSvc->send(control, filename.string(), send_flags::sndmore);
+          zmqSvc->send(control, size_bytes);
+        }
         break;
       }
       else if (msg == "WRITE" && good) {
-        size_t buffer = zmqSvc().receive<size_t>(control);
+        size_t buffer = zmqSvc->receive<size_t>(control);
 
-        if (!output_file) {
+        if (!discard && !output_file) {
           n_file = (n_file == max_files) ? 1 : n_file + 1;
           filename = fs::path {directory} / (boost::format {file_pattern} % n_file).str();
           output_file = MDF::open(filename.string(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | O_DIRECT);
@@ -78,26 +85,44 @@ void write_files(
           }
         }
 
-        if (output_file->good) {
-          auto const& [event_buffer, offset] = buffers[buffer];
+        auto const& [event_buffer, offset] = buffers[buffer];
+
+        auto const skip = 4 * sizeof(int);
+        char const* data = event_buffer.data();
+        while(data - event_buffer.data() < offset) {
+          auto* header = reinterpret_cast<LHCb::MDFHeader const*>(data);
+          auto const event_size = header->recordSize();
+          if (header->checkSum() != 0) {
+            auto c = LHCb::genChecksum(1, data + skip, event_size - skip);
+            if (header->checkSum() != c) {
+              std::cout << "Checksum failed.\n";
+            }
+          }
+          data += event_size;
+        }
+
+        if (!discard) {
+          if (output_file->good) {
           output_file->write(event_buffer.data(), offset);
-          // reply "FREE" i_buffer
-          zmqSvc().send(control, "FREE", zmq::SNDMORE);
-          zmqSvc().send(control, buffer);
-
           size_bytes += offset;
-
-          if (size_bytes > size_t {max_file_size} * 1024 * 1024) {
-            output_file->close();
-            output_file.reset();
-            zmqSvc().send(control, "CLOSED", zmq::SNDMORE);
-            zmqSvc().send(control, filename.string(), zmq::SNDMORE);
-            zmqSvc().send(control, size_bytes);
-            size_bytes = 0;
+          } else {
+            zmqSvc->send(control, "ERROR");
           }
         }
-        else {
-          zmqSvc().send(control, "ERROR");
+
+        // reply "FREE" i_buffer
+        zmqSvc->send(control, "FREE", send_flags::sndmore);
+        zmqSvc->send(control, buffer);
+
+        if (!discard && output_file->good) {
+          if (size_bytes > size_t{max_file_size} * 1024 * 1024) {
+            output_file->close();
+            output_file.reset();
+            zmqSvc->send(control, "CLOSED", send_flags::sndmore);
+            zmqSvc->send(control, filename.string(), send_flags::sndmore);
+            zmqSvc->send(control, size_bytes);
+            size_bytes = 0;
+          }
         }
       }
     }
@@ -108,20 +133,20 @@ void write_files(
   }
 }
 
-void timer(std::string connection)
+void timer(IZeroMQSvc* zmqSvc, std::string connection)
 {
-  zmq::socket_t control = zmqSvc().socket(zmq::PAIR);
+  zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
   zmq::setsockopt(control, zmq::LINGER, 0);
-  control.connect(connection);
+  control.connect(connection.c_str());
 
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
   while (true) {
-    zmq::poll(&items[0], 1, 500);
+    zmqSvc->poll(&items[0], 1, 500);
     if (items[0].revents & zmq::POLLIN) {
-      auto msg = zmqSvc().receive<std::string>(control);
+      auto msg = zmqSvc->receive<std::string>(control);
       if (msg == "DONE") break;
     }
-    zmqSvc().send(control, "TICK");
+    zmqSvc->send(control, "TICK");
   }
 }
 
@@ -135,21 +160,23 @@ int main(int argc, char* argv[])
   unsigned int file_size;
   unsigned int max_files;
   unsigned int buffer_size;
+  bool discard;
+
+  auto zmqSvc = makeZmqSvc();
 
   // Declare the supported options.
   po::options_description desc("Allowed options");
-  desc.add_options()("help,h", "produce help message")(
-    "directory", po::value<std::string>(&directory), "output directory")(
-    "filename,f", po::value<std::string>(&file_pattern)->default_value("AllenOutput_%1$03d.mdf"), "filename pattern")(
-    "request-port",
-    po::value<unsigned int>(&request_port)->default_value(35000u),
-    "port on which to listen to connection requests")(
-    "data-port",
-    po::value<unsigned int>(&data_port)->default_value(40000u),
-    "port on which to listen to connection requests")(
-    "file-size,s", po::value<unsigned int>(&file_size)->default_value(10240u), "File size [MB]")(
-    "max-files", po::value<unsigned int>(&max_files)->default_value(10), "Maximum number of files")(
-    "buffer-size,b", po::value<unsigned int>(&buffer_size)->default_value(32), "Receive buffer size [MB]");
+  desc.add_options()
+    ("help,h", "produce help message")
+    ("directory", po::value<std::string>(&directory), "output directory")
+    ("filename,f", po::value<std::string>(&file_pattern)->default_value("AllenOutput_%1$03d.mdf"), "filename pattern")
+    ("request-port", po::value<unsigned int>(&request_port)->default_value(35000u), "port on which to listen to connection requests")
+    ("data-port", po::value<unsigned int>(&data_port)->default_value(40000u), "port on which to listen to connection requests")
+    ("file-size,s", po::value<unsigned int>(&file_size)->default_value(10240u), "File size [MB]")
+    ("max-files", po::value<unsigned int>(&max_files)->default_value(10), "Maximum number of files")
+    ("buffer-size,b", po::value<unsigned int>(&buffer_size)->default_value(32), "Receive buffer size [MB]")
+    ("discard,d", po::value<bool>(&discard)->default_value(false), "Discard events instead of writing them to disk")
+    ;
 
   po::positional_options_description p;
   p.add("directory", 1);
@@ -164,23 +191,25 @@ int main(int argc, char* argv[])
   }
 
   // Create a server socket and connect it.
-  zmq::socket_t server = zmqSvc().socket(zmq::REP);
+  zmq::socket_t server = zmqSvc->socket(zmq::REP);
   zmq::setsockopt(server, zmq::LINGER, 0);
-  server.bind("tcp://*:"s + std::to_string(request_port));
+  auto server_con = "tcp://*:"s + std::to_string(request_port);
+  server.bind(server_con.c_str());
 
   // Create socket to monitor the output rate.
-  zmq::socket_t rate_socket = zmqSvc().socket(zmq::PUB);
+  zmq::socket_t rate_socket = zmqSvc->socket(zmq::PUB);
   zmq::setsockopt(rate_socket, zmq::LINGER, 0);
-  rate_socket.bind("tcp://*:"s + std::to_string(request_port + 1));
+  auto const rate_con = "tcp://*:"s + std::to_string(request_port + 1);
+  rate_socket.bind(rate_con.c_str());
 
   // Create a control socket for the tick thread and bind it.
   std::string tick_connection = "inproc://tick";
-  zmq::socket_t tick_socket = zmqSvc().socket(zmq::PAIR);
+  zmq::socket_t tick_socket = zmqSvc->socket(zmq::PAIR);
   zmq::setsockopt(tick_socket, zmq::LINGER, 0);
-  tick_socket.bind(tick_connection);
+  tick_socket.bind(tick_connection.c_str());
 
   // Start tick thread
-  std::thread tick_thread {timer, tick_connection};
+  std::thread tick_thread{timer, zmqSvc, tick_connection};
 
   // Storage for incoming events
   Buffers buffers;
@@ -193,14 +222,16 @@ int main(int argc, char* argv[])
 
   // Create a control socket for the writer thread and bind it.
   std::string writer_connection = "inproc://writer";
-  zmq::socket_t writer_socket = zmqSvc().socket(zmq::PAIR);
+  zmq::socket_t writer_socket = zmqSvc->socket(zmq::PAIR);
   zmq::setsockopt(writer_socket, zmq::LINGER, 0);
-  writer_socket.bind(writer_connection);
+  writer_socket.bind(writer_connection.c_str());
 
   // Start writing thread
-  std::thread writer_thread {[writer_connection, directory, file_pattern, max_files, file_size, &buffers] {
-    write_files(writer_connection, directory, file_pattern, max_files, file_size, buffers);
-  }};
+  std::thread writer_thread{[&zmqSvc, writer_connection, directory, file_pattern,
+                             max_files, file_size, discard, &buffers] {
+                              write_files(zmqSvc, writer_connection, directory, file_pattern,
+                                          max_files, file_size, discard, buffers);
+                            }};
 
   std::vector<zmq::pollitem_t> items(3);
   items.reserve(13);
@@ -222,7 +253,7 @@ int main(int argc, char* argv[])
 
   std::vector<std::tuple<std::string, size_t>> written;
 
-  auto get_buffer = [&writable, &submitted, &buffers, &writer_socket](size_t buffer, size_t msg_size) -> size_t {
+  auto get_buffer = [&zmqSvc, &writable, &submitted, &buffers, &writer_socket](size_t buffer, size_t msg_size) -> size_t {
     if (writable[buffer]) {
       auto& [event_buffer, offset] = buffers[buffer];
       if (offset + msg_size < event_buffer.size()) {
@@ -231,8 +262,8 @@ int main(int argc, char* argv[])
       }
       else if (!submitted[buffer]) {
         // Event doesn't fit in current buffer, send it for writing
-        zmqSvc().send(writer_socket, "WRITE", zmq::SNDMORE);
-        zmqSvc().send(writer_socket, buffer);
+        zmqSvc->send(writer_socket, "WRITE", send_flags::sndmore);
+        zmqSvc->send(writer_socket, buffer);
         submitted[buffer] = true;
         writable[buffer] = false;
       }
@@ -255,27 +286,28 @@ int main(int argc, char* argv[])
   while (!stopping || (stopping && !clients.empty()) || (stopping && n_wait < 10)) {
 
     // Check if there are messages
-    zmq::poll(&items[0], items.size(), -1);
+    zmqSvc->poll(&items[0], items.size(), -1);
 
     if (items[0].revents & zmq::POLLIN) {
-      auto msg = zmqSvc().receive<std::string>(server);
+      auto msg = zmqSvc->receive<std::string>(server);
       if (msg == "PORT") {
-        auto client_id = zmqSvc().receive<std::string>(server);
+        auto client_id = zmqSvc->receive<std::string>(server);
         auto port = data_port++;
-        auto& [client_name, data_socket] = clients.emplace_back(std::move(client_id), zmqSvc().socket(zmq::PAIR));
+        auto& [client_name, data_socket] = clients.emplace_back(std::move(client_id), zmqSvc->socket(zmq::PAIR));
         zmq::setsockopt(data_socket, zmq::LINGER, 500);
         zmq::setsockopt(data_socket, zmq::SNDTIMEO, 500);
-        data_socket.bind("tcp://*:"s + std::to_string(port));
-        items.emplace_back(zmq::pollitem_t {data_socket, 0, zmq::POLLIN, 0});
-        zmqSvc().send(server, std::to_string(port));
+        auto data_con = "tcp://*:"s + std::to_string(port);
+        data_socket.bind(data_con.c_str());
+        items.emplace_back(zmq::pollitem_t{data_socket, 0, zmq::POLLIN, 0});
+        zmqSvc->send(server, std::to_string(port));
         std::cout << "Client " << client_name << " given port " << port << "\n";
       }
       else if (msg == "EXIT") {
-        zmqSvc().send(server, "OK");
+        zmqSvc->send(server, "OK");
 
         for (auto& [name, socket] : clients) {
           try {
-            zmqSvc().send(socket, "RECEIVER_STOP");
+            zmqSvc->send(socket, "RECEIVER_STOP");
           } catch (ZMQ::TimeOutException const&) {
           }
         }
@@ -283,10 +315,9 @@ int main(int argc, char* argv[])
         stopping = true;
       }
       else if (msg == "CLIENT_EXIT") {
-        auto id = zmqSvc().receive<std::string>(server);
-        zmqSvc().send(server, "OK");
-        auto it =
-          std::find_if(clients.begin(), clients.end(), [id](const auto& entry) { return std::get<0>(entry) == id; });
+        auto id = zmqSvc->receive<std::string>(server);
+        zmqSvc->send(server, "OK");
+        auto it = std::find_if(clients.begin(), clients.end(), [id] (const auto& entry) { return std::get<0>(entry) == id; });
         if (it != clients.end()) {
           auto& [client_id, socket] = *it;
           std::cout << client_id << " is exiting\n";
@@ -297,17 +328,17 @@ int main(int argc, char* argv[])
       else if (msg == "REPORT") {
         for (size_t i = 0; i < written.size(); ++i) {
           auto const& [filename, size] = written[i];
-          zmqSvc().send(server, filename, zmq::SNDMORE);
-          zmqSvc().send(server, std::to_string(size), (i < written.size() - 1) ? zmq::SNDMORE : 0);
+          zmqSvc->send(server, filename, send_flags::sndmore);
+          zmqSvc->send(server, std::to_string(size), (i < written.size() - 1) ? send_flags::sndmore : send_flags::none);
         }
         if (written.empty()) {
-          zmqSvc().send(server, "Waiting for data");
+          zmqSvc->send(server, "Waiting for data");
         }
       }
     }
 
     if (items[1].revents & zmq::POLLIN) {
-      auto msg = zmqSvc().receive<std::string>(tick_socket);
+      auto msg = zmqSvc->receive<std::string>(tick_socket);
       if (msg == "TICK") ++n_wait;
 
       if (n_wait == 10 && !stopping) {
@@ -315,25 +346,24 @@ int main(int argc, char* argv[])
         auto dt = double {n_wait * 0.5};
         auto event_rate = n_events / dt;
         auto mb_received = bytes_received / (1024 * 1024);
-        auto data_rate = mb_received / dt;
-        zmqSvc().send(rate_socket, std::to_string(event_rate));
-        std::cout << "Received " << n_events << " events (" << event_rate << " events/s) and " << mb_received << " MB ("
-                  << data_rate << " MB/s)\n";
+        auto data_rate =   mb_received /dt;
+        zmqSvc->send(rate_socket, std::to_string(event_rate));
+        std::cout << "Received " << n_events << " events (" << event_rate << " events/s) and "
+                  << mb_received << " MB (" << data_rate << " MB/s)\n";
         n_received = {0, 0};
         n_wait = 0;
       }
     }
 
     if (items[2].revents & zmq::POLLIN) {
-      auto msg = zmqSvc().receive<std::string>(writer_socket);
+      auto msg = zmqSvc->receive<std::string>(writer_socket);
       if (msg == "FREE") {
-        auto free_buffer = zmqSvc().receive<size_t>(writer_socket);
+        auto free_buffer = zmqSvc->receive<size_t>(writer_socket);
         submitted[free_buffer] = false;
         writable[free_buffer] = true;
-      }
-      else if (msg == "CLOSED") {
-        auto filename = zmqSvc().receive<std::string>(writer_socket);
-        auto bytes_written = zmqSvc().receive<size_t>(writer_socket);
+      } else if (msg == "CLOSED") {
+        auto filename = zmqSvc->receive<std::string>(writer_socket);
+        auto bytes_written = zmqSvc->receive<size_t>(writer_socket);
         written.emplace_back(filename, bytes_written);
       }
       else if (msg == "ERROR") {
@@ -346,9 +376,9 @@ int main(int argc, char* argv[])
     for (size_t i = 0; i < items.size() - 3; ++i) {
       if (items[i + 3].revents & zmq::POLLIN) {
         auto& client_socket = std::get<1>(clients[i]);
-        auto msg = zmqSvc().receive<std::string>(client_socket);
+        auto msg = zmqSvc->receive<std::string>(client_socket);
         if (msg == "EVENT") {
-          auto msg = zmqSvc().receive<zmq::message_t>(client_socket);
+          auto msg = zmqSvc->receive<zmq::message_t>(client_socket);
           // Get buffer to write to
           buffer = get_buffer(buffer, msg.size());
           if (writable[buffer]) {
@@ -375,11 +405,11 @@ int main(int argc, char* argv[])
   }
 
   // Exit the tick thread;
-  zmqSvc().send(tick_socket, "DONE");
+  zmqSvc->send(tick_socket, "DONE");
   tick_thread.join();
 
   // Exit the writing thread
-  zmqSvc().send(writer_socket, "DONE");
+  zmqSvc->send(writer_socket, "DONE");
   writer_thread.join();
 
   if (!written.empty()) std::cout << "Wrote:\n";

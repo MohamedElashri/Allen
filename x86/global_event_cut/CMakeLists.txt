@@ -86,12 +86,12 @@ allen_add_library(HostGEC STATIC
 add_executable(mep_gec test/mep_gec.cpp)
 
 target_include_directories(mep_gec PUBLIC
-  ${CMAKE_SOURCE_DIR}/mdf/include
+  ${CPPGSL_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}/stream/gear/include
   ${CMAKE_SOURCE_DIR}/x86/global_event_cut/include
   ${CMAKE_SOURCE_DIR}/main/include)
 
-target_link_libraries(mep_gec PRIVATE Common mdf HostGEC
+target_link_libraries(mep_gec PUBLIC Common mdf HostGEC
   ${MPI_CXX_LIBRARIES})
 
 target_compile_definitions(mep_gec PUBLIC CPU NO_CUDA)

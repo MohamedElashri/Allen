@@ -130,7 +130,7 @@ ConfigurationReader::ConfigurationReader(const std::string& file_name)
     }
   }
 
-  if (logger::ll.verbosityLevel >= logger::verbose) {
+  if (logger::verbosity() >= logger::verbose) {
     for (auto it = m_params.begin(); it != m_params.end(); ++it) {
       for (auto it2 = (*it).second.begin(); it2 != (*it).second.end(); ++it2) {
         verbose_cout << (*it).first << ":" << (*it2).first << ":" << (*it2).second << std::endl;

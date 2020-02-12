@@ -52,6 +52,10 @@ struct IInputProvider {
    */
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
 
+  virtual int start() = 0;
+
+  virtual int stop() = 0;
+
   virtual void event_sizes(
     size_t const slice_index,
     gsl::span<unsigned int const> const selected_events,
@@ -167,11 +171,16 @@ public:
     return static_cast<const Derived<Banks...>*>(this)->copy_banks(slice_index, event, buffer);
   }
 
+  int start() override { return true; };
+
+  int stop() override { return true; };
+
+
 protected:
   template<typename MSG>
   void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) const
   {
-    if (logger::ll.verbosityLevel >= logger::debug) {
+    if (logger::verbosity() >= logger::debug) {
       std::unique_lock<std::mutex> lock {m_output_mut};
       debug_cout << (thread_id ? std::to_string(*thread_id) + " " : std::string {}) << msg << "\n";
     }

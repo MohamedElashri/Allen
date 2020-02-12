@@ -9,7 +9,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/float_operations/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/sorting/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/utils/binary_search/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include) 
+include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/UT/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
@@ -65,11 +65,16 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
-include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include) 
+include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Postscale/include)
 include_directories(${CMAKE_SOURCE_DIR}/mdf/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
 include_directories(${CPPGSL_INCLUDE_DIRS})
+
+if (NOT GaudiProject_FOUND)
+  include_directories(${CMAKE_SOURCE_DIR}/mdf/lhcb)
+endif()
+
 
 file(GLOB stream_gear "gear/src/*cpp")
 file(GLOB stream_sequence "sequence/src/*cu")
@@ -84,7 +89,7 @@ add_custom_command(
 
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
-if(DEVICE_TARGET STREQUAL "CPU")
+if(TARGET_DEVICE STREQUAL "CPU")
   foreach(source_file ${stream_sequence})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
@@ -117,7 +122,7 @@ target_link_libraries(Stream PRIVATE
   Muon
   Utils)
 
-set_property(TARGET Stream PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+# set_property(TARGET Stream PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})

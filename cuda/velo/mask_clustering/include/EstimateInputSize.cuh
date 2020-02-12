@@ -34,7 +34,7 @@ namespace velo_estimate_input_size {
       const Constants&,
       const HostBuffers&) const
     {
-      if (logger::ll.verbosityLevel >= logger::debug) {
+      if (logger::verbosity() >= logger::debug) {
         debug_cout << "# of events = " << value<host_number_of_selected_events_t>(arguments) << std::endl;
       }
 

@@ -54,12 +54,17 @@ def main():
     }
     for connection, (ids, app_name, rate_name) in connections.items():
         for socket_id in ids:
-            con = connection % socket_id
+            if len(socket_id) > 1:
+                con = connection % socket_id[:-1]
+                app_id = socket_id[-1]
+            else:
+                con = connection % socket_id
+                app_id = socket_id
             print("connecting to: " + con)
             s = ctx.socket(zmq.SUB)
             s.connect(con)
             s.setsockopt(zmq.SUBSCRIBE, b'')
-            sockets[s] = (app_name, rate_name, '_'.join(socket_id))
+            sockets[s] = (app_name, rate_name, app_id)
 
     poller = zmq.Poller()
     for socket in sockets.keys():

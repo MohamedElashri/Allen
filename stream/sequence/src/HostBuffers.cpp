@@ -105,7 +105,7 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
       malloc(max_number_of_events * Velo::Constants::max_tracks * sizeof(VeloState)));
 
     host_atomics_ut =
-      reinterpret_cast<decltype(host_atomics_ut)>(malloc(UT::num_atomics * max_number_of_events * sizeof(int)));
+      reinterpret_cast<decltype(host_atomics_ut)>(malloc(UT::num_atomics * (max_number_of_events + 1) * sizeof(int)));
     host_ut_tracks = reinterpret_cast<decltype(host_ut_tracks)>(
       malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(UT::TrackHits)));
     host_ut_track_hit_number = reinterpret_cast<decltype(host_ut_track_hit_number)>(

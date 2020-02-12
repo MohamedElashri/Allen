@@ -11,7 +11,7 @@ class TFile;
 
 struct CheckerInvoker {
 
-  CheckerInvoker(std::string output_folder = "../output", const bool check_events = false) :
+  CheckerInvoker(std::string output_folder = "output", const bool check_events = false) :
     m_check_events {check_events}, m_output_dir {std::move(output_folder)}
   {}
 

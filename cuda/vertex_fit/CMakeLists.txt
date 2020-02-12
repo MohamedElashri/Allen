@@ -22,7 +22,7 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 file(GLOB vertex_fitter_src "vertex_fitter/src/*cu")
 
-if(DEVICE_TARGET STREQUAL "CPU")
+if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${vertex_fitter_src} PROPERTIES LANGUAGE CXX)
 endif()
 

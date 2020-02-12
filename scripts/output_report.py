@@ -25,7 +25,7 @@ poller.register(request, zmq.POLLIN)
 
 if args.command == "report":
     request.send_string("REPORT")
-    result = dict(poller.poll(500))
+    result = dict(poller.poll(1000))
     if request in result:
         report = request.recv_multipart()
         if len(report) == 1:

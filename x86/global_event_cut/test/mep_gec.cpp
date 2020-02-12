@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
   bool count_success = false;
   std::array<unsigned int, LHCb::NBankTypes> banks_count;
 
-  Slices slices;
+  ::Slices slices;
   EventIDs events;
 
   size_t interval = 1000;

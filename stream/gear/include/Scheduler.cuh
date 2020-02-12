@@ -40,21 +40,6 @@ struct Scheduler {
     device_memory_manager.set_reserved_memory(device_reserved_mb);
     host_memory_manager.set_reserved_memory(host_reserved_mb);
     argument_manager.set_base_pointers(device_base_pointer, host_base_pointer);
-
-    if (logger::ll.verbosityLevel >= logger::verbose) {
-      // TODO
-      // verbose_cout << "All arguments:" << std::endl << "[" << std::endl;
-      // Sch::PrintAlgorithmSequenceDetailed<ConfiguredSequence>::print();
-      // verbose_cout << "]\n\n";
-
-      // verbose_cout << "IN deps:" << std::endl << "[" << std::endl;
-      // Sch::PrintAlgorithmDependencies<in_deps_t>::print();
-      // verbose_cout << "]\n\n";
-
-      // verbose_cout << "OUT deps:" << std::endl << "[" << std::endl;
-      // Sch::PrintAlgorithmDependencies<out_deps_t>::print();
-      // verbose_cout << "]\n\n";
-    }
   }
 
   /**

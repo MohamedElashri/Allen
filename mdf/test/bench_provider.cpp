@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     files[i] = argv[i + 1];
   }
 
-  logger::ll.verbosityLevel = 3;
+  logger::setVerbosity(3);
 
   Timer t;
 

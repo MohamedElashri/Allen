@@ -27,7 +27,7 @@
 #include "PV_Definitions.cuh"
 #include "patPV_Definitions.cuh"
 
-namespace {
+namespace ConditionHolders {
   inline const std::string beamSpotCond = "/dd/Conditions/Online/Velo/MotionSystem";
 
   struct Beamline_t {
@@ -40,8 +40,8 @@ namespace {
 } // namespace
 
 class AllenPVsToRecVertexV2 final : public Gaudi::Functional::Transformer<
-                                      std::vector<LHCb::Event::v2::RecVertex>(const HostBuffers&, const Beamline_t&),
-                                      LHCb::DetDesc::usesConditions<Beamline_t>> {
+                                      std::vector<LHCb::Event::v2::RecVertex>(const HostBuffers&, const ConditionHolders::Beamline_t&),
+                                      LHCb::DetDesc::usesConditions<ConditionHolders::Beamline_t>> {
 public:
   /// Standard constructor
   AllenPVsToRecVertexV2(const std::string& name, ISvcLocator* pSvcLocator);
@@ -50,7 +50,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::vector<LHCb::Event::v2::RecVertex> operator()(const HostBuffers&, const Beamline_t&) const override;
+  std::vector<LHCb::Event::v2::RecVertex> operator()(const HostBuffers&, const ConditionHolders::Beamline_t&) const override;
 
 private:
   Gaudi::Property<uint32_t> m_minNumTracksPerVertex {this, "MinNumTracksPerVertex", 4};

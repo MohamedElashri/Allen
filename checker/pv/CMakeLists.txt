@@ -16,7 +16,7 @@ file(GLOB pv_checker_sources "src/*cpp")
 add_library(PVChecking STATIC
   ${pv_checker_sources}
 )
-target_include_directories(PVChecking PUBLIC ${CPPGSL_INCLUDE_DIRS})
+target_include_directories(PVChecking PUBLIC ${CPPGSL_INCLUDE_DIR})
 
 if(USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(PVChecking PRIVATE WITH_ROOT)

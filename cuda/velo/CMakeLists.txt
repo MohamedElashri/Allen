@@ -24,7 +24,7 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 
-if(DEVICE_TARGET STREQUAL "CPU")
+if(TARGET_DEVICE STREQUAL "CPU")
   foreach(source_file ${velo_common} ${velo_clustering_sources} ${velo_prefix_sum}
     ${velo_phi_and_sort} ${velo_search_by_triplet}
     ${velo_simplified_kalman_filter} ${velo_consolidate_tracks})

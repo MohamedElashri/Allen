@@ -17,7 +17,7 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 file(GLOB kalman_ParKalman "ParKalman/src/*cu")
 
-if(DEVICE_TARGET STREQUAL "CPU")
+if(TARGET_DEVICE STREQUAL "CPU")
   set_source_files_properties(${kalman_ParKalman} PROPERTIES LANGUAGE CXX)
 endif()
 

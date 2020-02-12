@@ -24,7 +24,7 @@ add_library(SelChecking STATIC
   ${selection_checker_sources}
 )
 set_target_properties(SelChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_include_directories(SelChecking PUBLIC ${CPPGSL_INCLUDE_DIRS})
+target_include_directories(SelChecking PUBLIC ${CPPGSL_INCLUDE_DIR})
 
 if(USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(SelChecking PRIVATE ${ALLEN_ROOT_DEFINITIONS})
