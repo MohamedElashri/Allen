@@ -1,4 +1,4 @@
-tages:
+stages:
   - build   # Builds all projects
   - run     # Runs the tests across architectures
   - test    # Runs various tests of the software
