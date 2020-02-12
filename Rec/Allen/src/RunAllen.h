@@ -63,7 +63,6 @@ private:
                                                    LHCb::RawBank::FTCluster,
                                                    LHCb::RawBank::Muon};
 
-  const uint m_number_of_events = 1;
   const uint m_number_of_repetitions = 1;
   const bool m_cpu_offload = true;
   const uint m_n_buffers = 1;

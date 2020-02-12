@@ -104,14 +104,14 @@ StatusCode RunAllen::initialize()
   Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
 
   m_host_buffers_manager.reset(
-    new HostBuffersManager(m_n_buffers, m_number_of_events, m_do_check, m_number_of_hlt1_lines, passthrough_line));
+    new HostBuffersManager(m_n_buffers, 2, m_do_check, m_number_of_hlt1_lines, passthrough_line));
   m_stream.reset(new Stream());
   m_stream->configure_algorithms(configuration_reader.params());
   m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants);
   m_stream->set_host_buffer_manager(m_host_buffers_manager.get());
 
   // Set verbosity level
-  logger::setVerbosity(3);
+  logger::setVerbosity(6 - this->msgLevel());
 
   return StatusCode::SUCCESS;
 }
@@ -147,9 +147,9 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
     banks_and_offsets[LHCb::RawBank::FTCluster],
     banks_and_offsets[LHCb::RawBank::Muon],
     banks_and_offsets[LHCb::RawBank::ODIN],
-    {0u, m_number_of_events},
+    {0u, 1u},
     m_number_of_repetitions,
-    m_do_check,
+    m_do_check.value(),
     m_cpu_offload,
     false);
 
