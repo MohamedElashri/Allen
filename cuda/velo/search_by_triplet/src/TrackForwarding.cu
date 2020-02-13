@@ -49,7 +49,6 @@ __device__ void track_forwarding(
     }
 
     // Load last two hits in h0, h1
-    assert(number_of_hits < Velo::Constants::max_track_size);
     const auto h0_num = t->hits[number_of_hits - 2];
     const auto h1_num = t->hits[number_of_hits - 1];
 
@@ -123,10 +122,6 @@ __device__ void track_forwarding(
       // Mark h2 as used
       hit_used[best_h2] = true;
 
-      // Update the tracks to follow, we'll have to follow up
-      // this track on the next iteration :)
-      assert(number_of_hits + 1 < Velo::Constants::max_track_size);
-
       // Update the track in the bag
       if (number_of_hits == 3) {
         // Also mark the first three as used
@@ -147,9 +142,11 @@ __device__ void track_forwarding(
         t->hits[t->hitsNum++] = best_h2;
       }
 
-      // Add the tracks to the bag of tracks to_follow
-      const auto ttf_p = atomicAdd(dev_atomics_velo + 2, 1) & ttf_modulo_mask;
-      tracks_to_follow[ttf_p] = track_number;
+      if (number_of_hits + 1 < Velo::Constants::max_track_size) {
+        // Add the tracks to the bag of tracks to_follow
+        const auto ttf_p = atomicAdd(dev_atomics_velo + 2, 1) & ttf_modulo_mask;
+        tracks_to_follow[ttf_p] = track_number;
+      }
     }
     // A track just skipped a module
     // We keep it for another round
