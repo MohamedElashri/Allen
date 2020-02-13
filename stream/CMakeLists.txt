@@ -122,7 +122,10 @@ target_link_libraries(Stream PRIVATE
   Muon
   Utils)
 
-# set_property(TARGET Stream PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+if (GaudiProject_FOUND)
+  find_package(Boost)
+  target_include_directories(Stream SYSTEM PUBLIC ${Boost_INCLUDE_DIRS})
+endif()
 
 if (ROOT_FOUND)
   target_compile_definitions(Stream PUBLIC ${ALLEN_ROOT_DEFINITIONS})
