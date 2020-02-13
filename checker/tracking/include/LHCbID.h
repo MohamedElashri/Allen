@@ -18,8 +18,8 @@ using LHCbIDs = std::vector<LHCbID>;
 namespace lhcb_id {
   enum class LHCbIDType {
     VELO = 0x8,
-    UT = 0xa,
-    SciFi = 0xb
+    UT = 0xb,
+    FT = 0xa
   };
 
   inline uint detector_type_lhcbid(const uint id) {
@@ -35,6 +35,6 @@ namespace lhcb_id {
   }
 
   inline bool is_scifi(const uint id) {
-    return detector_type_lhcbid(id) == (uint) LHCbIDType::SciFi;
+    return detector_type_lhcbid(id) == (uint) LHCbIDType::FT;
   }
 }
