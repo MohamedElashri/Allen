@@ -16,19 +16,25 @@ using LHCbID = uint;
 using LHCbIDs = std::vector<LHCbID>;
 
 namespace lhcb_id {
+  enum class LHCbIDType {
+    VELO = 0x8,
+    UT = 0xa,
+    SciFi = 0xb
+  };
+
   inline uint detector_type_lhcbid(const uint id) {
     return (uint) ((id & 0xF0000000L) >> 28);
   }
 
   inline bool is_velo(const uint id) {
-    return detector_type_lhcbid(id) == 0x8;
+    return detector_type_lhcbid(id) == (uint) LHCbIDType::VELO;
   }
 
   inline bool is_ut(const uint id) {
-    return detector_type_lhcbid(id) == 0xa;
+    return detector_type_lhcbid(id) == (uint) LHCbIDType::UT;
   }
 
   inline bool is_scifi(const uint id) {
-    return detector_type_lhcbid(id) == 0xb;
+    return detector_type_lhcbid(id) == (uint) LHCbIDType::SciFi;
   }
 }
