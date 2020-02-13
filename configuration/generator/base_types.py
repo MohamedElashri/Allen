@@ -444,9 +444,12 @@ class Sequence():
                             ) + "\", "
                     s = s[:-2]
                     s += "},\n"
-            if s[-2] == ",":
+            s += prefix(i) + "\"configured_lines\": ["
+            for _, line in iter(self.__lines.items()):
+                s += "\"" + line.namespace() + "\", "
+            if len(self.__lines) > 0:
                 s = s[:-2]
-            s += "\n}\n"
+            s += "]\n}\n"
             f = open(json_configuration_filename, "w")
             f.write(s)
             f.close()
