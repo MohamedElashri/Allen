@@ -20,7 +20,7 @@
 bool OutputHandler::output_selected_events(
   size_t const slice_index,
   size_t const event_offset,
-  gsl::span<unsigned int const> const selected_events,
+  gsl::span<bool const> const selected_events_bool,
   gsl::span<uint32_t const> const dec_reports,
   gsl::span<uint32_t const> const sel_reports,
   gsl::span<uint const> const sel_report_offsets)
@@ -28,6 +28,13 @@ bool OutputHandler::output_selected_events(
   auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
 
   // m_sizes will contain the total size of all banks in the event
+  std::vector<uint> selected_events;
+  for (uint i = 0; i < selected_events_bool.size(); ++i) {
+    if (selected_events_bool[i]) {
+      selected_events.push_back(i);
+    }
+  }
+
   std::fill_n(m_sizes.begin(), selected_events.size(), 0);
   m_input_provider->event_sizes(slice_index, selected_events, m_sizes);
   auto event_ids = m_input_provider->event_ids(slice_index);

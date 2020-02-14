@@ -43,43 +43,50 @@ public:
     const uint* decisions_offsets,
     const uint* event_tracks_offsets,
     const uint* sv_offsets,
-    const uint selected_events)
+    const uint total_number_of_events,
+    const uint selected_number_of_events)
   {
+    const bool counters_initialized = m_counters.size() > 0;
+
     m_event_decs.resize(std::tuple_size<T>::value);
     m_counters.resize(std::tuple_size<T>::value);
     m_line_names.resize(std::tuple_size<T>::value);
 
     const auto lambda_all_tracks_fn0 = [&](const unsigned long i, const std::string& line_name) {
-      m_counters[i] = 0;
+      if (!counters_initialized) {
+        m_counters[i] = 0;
+      }
       m_line_names[i] = line_name;
     };
     Hlt1::TraverseLinesNames<T, Hlt1::Line, decltype(lambda_all_tracks_fn0)>::traverse(lambda_all_tracks_fn0);
 
     // Event loop.
-    for (uint i_event = 0; i_event < selected_events; i_event++) {
-      // Initialize counters
-      const auto lambda_all_tracks_fn2 = [&](const unsigned long i) { m_event_decs[i] = false; };
-      Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_all_tracks_fn2)>::traverse(lambda_all_tracks_fn2);
+    for (uint i_event = 0; i_event < total_number_of_events; i_event++) {
+      if (i_event < selected_number_of_events) {
+        // Initialize counters
+        const auto lambda_all_tracks_fn2 = [&](const unsigned long i) { m_event_decs[i] = false; };
+        Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_all_tracks_fn2)>::traverse(lambda_all_tracks_fn2);
 
-      // Check one track decisions
-      const int n_tracks_event = event_tracks_offsets[i_event + 1] - event_tracks_offsets[i_event];
-      const auto lambda_one_track_fn = [&](const unsigned long i_line) {
-        const bool* decs = decisions + decisions_offsets[i_line] + event_tracks_offsets[i_event];
-        for (int i_track = 0; i_track < n_tracks_event; i_track++) {
-          if (decs[i_track]) m_event_decs[i_line] = true;
-        }
-      };
-      Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
+        // Check one track decisions
+        const int n_tracks_event = event_tracks_offsets[i_event + 1] - event_tracks_offsets[i_event];
+        const auto lambda_one_track_fn = [&](const unsigned long i_line) {
+          const bool* decs = decisions + decisions_offsets[i_line] + event_tracks_offsets[i_event];
+          for (int i_track = 0; i_track < n_tracks_event; i_track++) {
+            if (decs[i_track]) m_event_decs[i_line] = true;
+          }
+        };
+        Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
 
-      // Check two track decisions.
-      const unsigned int n_svs_event = sv_offsets[i_event + 1] - sv_offsets[i_event];
-      const auto lambda_two_track_fn = [&](const unsigned long i_line) {
-        const bool* decs = decisions + decisions_offsets[i_line] + sv_offsets[i_event];
-        for (unsigned int i_sv = 0; i_sv < n_svs_event; i_sv++) {
-          if (decs[i_sv]) m_event_decs[i_line] = true;
-        }
-      };
-      Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+        // Check two track decisions.
+        const unsigned int n_svs_event = sv_offsets[i_event + 1] - sv_offsets[i_event];
+        const auto lambda_two_track_fn = [&](const unsigned long i_line) {
+          const bool* decs = decisions + decisions_offsets[i_line] + sv_offsets[i_event];
+          for (unsigned int i_sv = 0; i_sv < n_svs_event; i_sv++) {
+            if (decs[i_sv]) m_event_decs[i_line] = true;
+          }
+        };
+        Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+      }
 
       // Check special decisions.
       const auto lambda_special_fn = [&](const unsigned long i_line) {

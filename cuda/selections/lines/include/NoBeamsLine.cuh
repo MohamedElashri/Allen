@@ -10,7 +10,7 @@ namespace NoBeams {
     constexpr static auto name {"NoBeams"};
     constexpr static auto scale_factor = 1e-3f;
 
-    static __device__ bool function(const char* odin, const uint)
+    static __device__ bool function(const char* odin)
     {
       const uint hdr_size(8);
       const uint32_t* odinData = reinterpret_cast<const uint32_t*>(

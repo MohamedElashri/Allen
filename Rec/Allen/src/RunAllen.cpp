@@ -161,7 +161,7 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   }
   bool filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_selected_events[0];
   if (m_filter_hlt1) {
-    filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_passing_events[0];
+    filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_events;
   }
   info() << "Event selected by Allen: " << uint(filter) << endmsg;
   return std::make_tuple(filter, *(m_stream->host_buffers_manager->getBuffers(buf_idx)));

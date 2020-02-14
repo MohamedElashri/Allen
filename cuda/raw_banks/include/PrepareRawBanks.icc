@@ -1,22 +1,54 @@
 template<typename T>
 __global__ void prepare_raw_banks::prepare_raw_banks(
   prepare_raw_banks::Parameters parameters,
-  const uint number_of_events)
+  const uint selected_number_of_events,
+  const uint total_number_of_events,
+  const uint event_start)
 {
-  for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-       event_number += blockDim.x * gridDim.x) {
+
+  // Handle special lines for events that don't pass the GEC.
+  for (uint selected_event_number = blockIdx.x * blockDim.x + threadIdx.x + selected_number_of_events; selected_event_number < total_number_of_events; selected_event_number += blockDim.x * gridDim.x) {
+    const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
+    const int n_hlt1_lines = std::tuple_size<T>::value;
+    
+    // Set the DecReport.
+    uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
+    event_dec_reports[0] = Hlt1::TCK;
+    event_dec_reports[1] = Hlt1::taskID;
+    uint n_decisions = 0;
+    const auto lambda_fn = [&](const unsigned long i_line) {
+      uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
+      HltDecReport dr;
+      dr.setDecision(false);
+      dr.setErrorBits(0);
+      dr.setNumberOfCandidates(0);
+      dr.setIntDecisionID(i_line);
+      event_dec_reports[2 + i_line] |= dr.getDecReport();
+      if (event_dec_reports[2 + i_line] & dec_mask) {
+        n_decisions++;
+      }
+    };
+    Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_fn)>::traverse(lambda_fn);
+
+    // TODO: Handle SelReports.
+  }
+
+  // Handle all lines for events that pass the GEC.
+  for (auto selected_event_number = blockIdx.x * blockDim.x + threadIdx.x; selected_event_number < selected_number_of_events;
+       selected_event_number += blockDim.x * gridDim.x) {
+    const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
 
     // Create velo tracks.
     Velo::Consolidated::ConstTracks velo_tracks {
-      parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+      parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, selected_event_number, selected_number_of_events};
 
     // Create UT tracks.
     UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
                                                      parameters.dev_ut_track_hit_number,
                                                      parameters.dev_ut_qop,
                                                      parameters.dev_ut_track_velo_indices,
-                                                     event_number,
-                                                     number_of_events};
+                                                     selected_event_number,
+                                                     selected_number_of_events};
 
     // Create SciFi tracks.
     SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_offsets_forward_tracks,
@@ -24,26 +56,26 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
                                                    parameters.dev_scifi_qop,
                                                    parameters.dev_scifi_states,
                                                    parameters.dev_scifi_track_ut_indices,
-                                                   event_number,
-                                                   number_of_events};
+                                                   selected_event_number,
+                                                   selected_number_of_events};
 
     // Tracks.
-    const int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(event_number);
-    const uint* event_saved_tracks_list = parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(event_number);
+    const int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(selected_event_number);
+    const uint* event_saved_tracks_list = parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(selected_event_number);
     const ParKalmanFilter::FittedTrack* event_kf_tracks =
-      parameters.dev_kf_tracks + scifi_tracks.tracks_offset(event_number);
+      parameters.dev_kf_tracks + scifi_tracks.tracks_offset(selected_event_number);
 
     // Vertices.
-    const uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[event_number];
+    const uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[selected_event_number];
     const VertexFit::TrackMVAVertex* event_svs =
-      parameters.dev_consolidated_svs + parameters.dev_sv_offsets[event_number];
+      parameters.dev_consolidated_svs + parameters.dev_sv_offsets[selected_event_number];
 
     // Dec reports.
     const int n_hlt1_lines = std::tuple_size<T>::value;
     uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
 
     // Sel reports.
-    const uint event_sel_rb_hits_offset = scifi_tracks.tracks_offset(event_number) * ParKalmanFilter::nMaxMeasurements;
+    const uint event_sel_rb_hits_offset = scifi_tracks.tracks_offset(selected_event_number) * ParKalmanFilter::nMaxMeasurements;
     uint* event_sel_rb_hits = parameters.dev_sel_rb_hits + event_sel_rb_hits_offset;
     const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
     uint* event_sel_rb_stdinfo = parameters.dev_sel_rb_stdinfo + event_sel_rb_stdinfo_offset;
@@ -63,10 +95,10 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         break;
       }
     }
-    if (!pass) return;
+    if (!pass) continue;
 
-    const uint n_pass = atomicAdd(parameters.dev_number_of_passing_events.get(), 1);
-    parameters.dev_passing_event_list[n_pass] = event_number;
+    // Populate dev_passing_event_list
+    parameters.dev_passing_event_list[event_number] = true;
 
     // Create the rest of the dec report.
     event_dec_reports[0] = Hlt1::TCK;
@@ -85,7 +117,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         n_decisions++;
       }
     }
-
+    
     // Create the hits sub-bank.
     HltSelRepRBHits hits_bank(
       parameters.dev_n_tracks_saved[event_number], parameters.dev_n_hits_saved[event_number], event_sel_rb_hits);
@@ -121,9 +153,9 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Add decisions to the substr bank.
     const auto lambda_fn = [&](const unsigned long i_line) {
-      const uint* candidate_counts = parameters.dev_candidate_counts + i_line * number_of_events + event_number;
+      const uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
       const uint* candidate_list =
-        parameters.dev_candidate_lists + (i_line * number_of_events + event_number) * Hlt1::maxCandidates;
+        parameters.dev_candidate_lists + (i_line * total_number_of_events + event_number) * Hlt1::maxCandidates;
       for (uint i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {
         substr_bank.addPtr(n_decisions + event_save_track[candidate_list[i_sub]]);
       }
@@ -131,6 +163,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
 
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
+    // TODO: dev_n_tracks_saved was 0s at the beginning! ./Allen -m3
     for (uint i_saved_track = 0; i_saved_track < parameters.dev_n_tracks_saved[event_number]; i_saved_track++) {
       uint i_track = event_saved_tracks_list[i_saved_track];
       // Add track parameters to StdInfo.
@@ -205,6 +238,6 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     stdinfo_bank.saveSize();
     uint selrep_size = HltSelRepRawBank::Header::kHeaderSize + hits_bank.size() + objtyp_bank.size() +
                        substr_bank.size() + writeStdInfo * stdinfo_bank.size();
-    parameters.dev_sel_rep_sizes[n_pass] = selrep_size;
+    parameters.dev_sel_rep_sizes[event_number] = selrep_size;
   }
 }

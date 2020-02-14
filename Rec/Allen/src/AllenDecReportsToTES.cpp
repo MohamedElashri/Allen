@@ -48,8 +48,8 @@ LHCb::RawEvent AllenDecReportsToTES::operator()(const HostBuffers& host_buffers)
   dec_reports.reserve(2 + host_buffers.host_number_of_hlt1_lines);
   for (uint i = 0; i < 2 + host_buffers.host_number_of_hlt1_lines; i++) {
     dec_reports.push_back(host_buffers.host_dec_reports[i]);
-    // std::cout << "adding " << std::hex << host_buffers.host_dec_reports[i] << " to dec report" << std::dec <<
-    // std::endl;
+    std::cout << "adding " << std::hex << host_buffers.host_dec_reports[i] << " to dec report" << std::dec <<
+      std::endl;
   }
   LHCb::RawEvent raw_event;
   // SourceID_Hlt1 = 1, SourceID_BitShift = 13, VersionNumber = 2

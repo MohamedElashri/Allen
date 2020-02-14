@@ -11,6 +11,7 @@ namespace prepare_raw_banks {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
+    DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
@@ -43,13 +44,13 @@ namespace prepare_raw_banks {
     DEVICE_OUTPUT(dev_sel_rb_objtyp_t, uint) dev_sel_rb_objtyp;
     DEVICE_OUTPUT(dev_sel_rb_substr_t, uint) dev_sel_rb_substr;
     DEVICE_OUTPUT(dev_sel_rep_sizes_t, uint) dev_sel_rep_sizes;
-    DEVICE_OUTPUT(dev_number_of_passing_events_t, uint) dev_number_of_passing_events;
-    DEVICE_OUTPUT(dev_passing_event_list_t, uint) dev_passing_event_list;
+    DEVICE_OUTPUT(dev_passing_event_list_t, bool) dev_passing_event_list;
     PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 16);
   };
 
   template<typename T>
-  __global__ void prepare_raw_banks(Parameters, const uint number_of_events);
+  __global__ void
+  prepare_raw_banks(Parameters, const uint number_of_events, const uint total_number_of_events, const uint event_start);
 
   template<typename T, typename U, char... S>
   struct prepare_raw_banks_t : public DeviceAlgorithm, Parameters {
@@ -58,37 +59,39 @@ namespace prepare_raw_banks {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions&,
+      const RuntimeOptions& runtime_options,
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_passing_event_list_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_number_of_passing_events_t>(arguments, 1);
+      const auto total_number_of_events =
+        std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
+
       set_size<dev_sel_rb_hits_t>(
         arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments) * ParKalmanFilter::nMaxMeasurements);
-      set_size<dev_sel_rb_stdinfo_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Hlt1::maxStdInfoEvent);
-      set_size<dev_sel_rb_objtyp_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * (Hlt1::nObjTyp + 1));
-      set_size<dev_sel_rb_substr_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Hlt1::subStrDefaultAllocationSize);
-      set_size<dev_sel_rep_sizes_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_sel_rb_stdinfo_t>(arguments, total_number_of_events * Hlt1::maxStdInfoEvent);
+      set_size<dev_sel_rb_objtyp_t>(arguments, total_number_of_events * (Hlt1::nObjTyp + 1));
+      set_size<dev_sel_rb_substr_t>(arguments, total_number_of_events * Hlt1::subStrDefaultAllocationSize);
+      set_size<dev_sel_rep_sizes_t>(arguments, total_number_of_events);
+      set_size<dev_passing_event_list_t>(arguments, total_number_of_events);
     }
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions&,
+      const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
+      const auto event_start = std::get<0>(runtime_options.event_interval);
+      const auto total_number_of_events =
+        std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
+
       initialize<dev_sel_rb_hits_t>(arguments, 0, cuda_stream);
       initialize<dev_sel_rb_stdinfo_t>(arguments, 0, cuda_stream);
       initialize<dev_sel_rb_objtyp_t>(arguments, 0, cuda_stream);
       initialize<dev_sel_rb_substr_t>(arguments, 0, cuda_stream);
       initialize<dev_sel_rep_sizes_t>(arguments, 0, cuda_stream);
-      initialize<dev_number_of_passing_events_t>(arguments, 0, cuda_stream);
       initialize<dev_passing_event_list_t>(arguments, 0, cuda_stream);
 
 #ifdef CPU
@@ -102,7 +105,8 @@ namespace prepare_raw_banks {
 #endif
 
       function(grid_dim, block_dim, cuda_stream)(
-        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
+        Parameters {begin<dev_event_list_t>(arguments),
+                    begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
                     begin<dev_velo_track_hits_t>(arguments),
                     begin<dev_offsets_ut_tracks_t>(arguments),
@@ -134,23 +138,16 @@ namespace prepare_raw_banks {
                     begin<dev_sel_rb_objtyp_t>(arguments),
                     begin<dev_sel_rb_substr_t>(arguments),
                     begin<dev_sel_rep_sizes_t>(arguments),
-                    begin<dev_number_of_passing_events_t>(arguments),
                     begin<dev_passing_event_list_t>(arguments)},
-        value<host_number_of_selected_events_t>(arguments));
+        value<host_number_of_selected_events_t>(arguments),
+        total_number_of_events,
+        event_start);
 
       // Copy raw bank data.
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_dec_reports,
         begin<dev_dec_reports_t>(arguments),
         size<dev_dec_reports_t>(arguments),
-        cudaMemcpyDeviceToHost,
-        cuda_stream));
-
-      // Copy list of passing events.
-      cudaCheck(cudaMemcpyAsync(
-        host_buffers.host_number_of_passing_events,
-        begin<dev_number_of_passing_events_t>(arguments),
-        size<dev_number_of_passing_events_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
 

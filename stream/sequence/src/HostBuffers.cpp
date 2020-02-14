@@ -36,18 +36,17 @@ void HostBuffers::reserve(const uint max_number_of_events, const bool do_check, 
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_tiles, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_svs, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_muon_total_number_of_hits, sizeof(uint)));
-  cudaCheck(cudaMallocHost((void**) &host_number_of_passing_events, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_number_of_sel_rep_words, sizeof(uint)));
   cudaCheck(cudaMallocHost((void**) &host_selected_events_mf, sizeof(uint)));
 
   // Initialize for sequences that don't fill this in.
-  host_number_of_passing_events[0] = 0;
+  host_number_of_events = 0;
 
   // Buffer for performing GEC on CPU
   cudaCheck(cudaMallocHost((void**) &host_event_list, max_number_of_events * sizeof(uint)));
 
   // Buffer for saving events passing Hlt1 selections.
-  cudaCheck(cudaMallocHost((void**) &host_passing_event_list, max_number_of_events * sizeof(uint)));
+  cudaCheck(cudaMallocHost((void**) &host_passing_event_list, max_number_of_events * sizeof(bool)));
 
   // Buffers for output of HLT1 lines
   host_number_of_hlt1_lines = number_of_hlt1_lines;

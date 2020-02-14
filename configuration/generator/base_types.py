@@ -11,6 +11,11 @@ class SpecialLine(Line):
         pass
 
 
+class VeloLine(Line):
+    def __init__(self):
+        pass
+        
+
 class OneTrackLine(Line):
     def __init__(self):
         pass
