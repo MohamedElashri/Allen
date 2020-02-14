@@ -7,6 +7,9 @@ namespace Hlt1 {
   struct SpecialLine : Line {
     constexpr static auto scale_factor = 1.f;
   };
+  struct VeloLine : Line {
+    constexpr static auto scale_factor = 1.f;
+  };
   struct OneTrackLine : Line {
     constexpr static auto scale_factor = 1.f;
   };

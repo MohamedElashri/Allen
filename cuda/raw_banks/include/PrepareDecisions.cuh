@@ -16,6 +16,7 @@ namespace prepare_decisions {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
     HOST_INPUT(host_number_of_svs_t, uint);
+    DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
@@ -50,7 +51,7 @@ namespace prepare_decisions {
   };
 
   template<typename T>
-  __global__ void prepare_decisions(Parameters);
+  __global__ void prepare_decisions(Parameters, const uint total_number_of_events, const uint event_start);
 
   template<typename T, typename U, char... S>
   struct prepare_decisions_t : public DeviceAlgorithm, Parameters {
@@ -59,38 +60,43 @@ namespace prepare_decisions {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions&,
+      const RuntimeOptions& runtime_options,
       const Constants&,
       const HostBuffers&) const
     {
+      const auto total_number_of_events =
+        std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
+
       const auto n_hlt1_lines = std::tuple_size<U>::value;
-      set_size<dev_dec_reports_t>(arguments, (2 + n_hlt1_lines) * value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_dec_reports_t>(arguments, (2 + n_hlt1_lines) * total_number_of_events);
 
       // This is not technically enough to save every single track, but
       // should be more than enough in practice.
       // TODO: Implement some check for this.
-      set_size<dev_candidate_lists_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Hlt1::maxCandidates * n_hlt1_lines);
-      set_size<dev_candidate_counts_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * n_hlt1_lines);
+      set_size<dev_candidate_lists_t>(arguments, total_number_of_events * Hlt1::maxCandidates * n_hlt1_lines);
+      set_size<dev_candidate_counts_t>(arguments, total_number_of_events * n_hlt1_lines);
       set_size<dev_saved_tracks_list_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
       set_size<dev_saved_svs_list_t>(arguments, value<host_number_of_svs_t>(arguments));
       set_size<dev_save_track_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
       set_size<dev_save_sv_t>(arguments, value<host_number_of_svs_t>(arguments));
-      set_size<dev_n_tracks_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_n_svs_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_n_hits_saved_t>(arguments, value<host_number_of_selected_events_t>(arguments));
-      set_size<dev_n_passing_decisions_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_n_tracks_saved_t>(arguments, total_number_of_events);
+      set_size<dev_n_svs_saved_t>(arguments, total_number_of_events);
+      set_size<dev_n_hits_saved_t>(arguments, total_number_of_events);
+      set_size<dev_n_passing_decisions_t>(arguments, total_number_of_events);
     }
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions&,
+      const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
+      const auto event_start = std::get<0>(runtime_options.event_interval);
+      const auto total_number_of_events =
+        std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
+
       initialize<dev_candidate_lists_t>(arguments, 0, cuda_stream);
       initialize<dev_candidate_counts_t>(arguments, 0, cuda_stream);
       initialize<dev_dec_reports_t>(arguments, 0, cuda_stream);
@@ -101,7 +107,8 @@ namespace prepare_decisions {
       initialize<dev_n_hits_saved_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
+        Parameters {begin<dev_event_list_t>(arguments),
+                    begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
                     begin<dev_velo_track_hits_t>(arguments),
                     begin<dev_offsets_ut_tracks_t>(arguments),
@@ -130,7 +137,9 @@ namespace prepare_decisions {
                     begin<dev_saved_svs_list_t>(arguments),
                     begin<dev_dec_reports_t>(arguments),
                     begin<dev_save_track_t>(arguments),
-                    begin<dev_save_sv_t>(arguments)});
+                    begin<dev_save_sv_t>(arguments)},
+        total_number_of_events,
+        event_start);
     }
 
   private:

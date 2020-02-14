@@ -22,9 +22,10 @@ void RateMonitor::fill(uint i_buf, bool useWallTime)
     time = getWallTimeBin();
   }
 
-  uint nevt = buf->host_number_of_selected_events[0];
+  uint nevt = buf->host_number_of_events;
 
   for (uint ievt = 0; ievt < nevt; ++ievt) {
+    if (!buf->host_passing_event_list[ievt]) continue;
     auto dec_reports = buf->host_dec_reports + 2 + ievt * (2 + m_number_of_hlt1_lines);
 
     bool pass(false);

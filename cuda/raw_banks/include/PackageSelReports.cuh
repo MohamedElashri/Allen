@@ -16,11 +16,10 @@ namespace package_sel_reports {
     DEVICE_OUTPUT(dev_sel_rb_substr_t, uint) dev_sel_rb_substr;
     DEVICE_OUTPUT(dev_sel_rep_raw_banks_t, uint) dev_sel_rep_raw_banks;
     DEVICE_OUTPUT(dev_sel_rep_offsets_t, uint) dev_sel_rep_offsets;
-    DEVICE_OUTPUT(dev_passing_event_list_t, uint) dev_passing_event_list;
     PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X", 256);
   };
 
-  __global__ void package_sel_reports(Parameters, const uint number_of_events);
+  __global__ void package_sel_reports(Parameters, const uint number_of_events, const uint selected_number_of_events);
 
   template<typename T, char... S>
   struct package_sel_reports_t : public DeviceAlgorithm, Parameters {
@@ -38,16 +37,19 @@ namespace package_sel_reports {
 
     void operator()(
       const ArgumentRefManager<T>& arguments,
-      const RuntimeOptions&,
+      const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
+      const auto total_number_of_events =
+        std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
+
       initialize<dev_sel_rep_raw_banks_t>(arguments, 0, cuda_stream);
 
       const auto grid_size = dim3(
-        (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) /
+        (total_number_of_events + property<block_dim_x_t>() - 1) /
         property<block_dim_x_t>());
 
       function(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
@@ -57,9 +59,9 @@ namespace package_sel_reports {
                     begin<dev_sel_rb_objtyp_t>(arguments),
                     begin<dev_sel_rb_substr_t>(arguments),
                     begin<dev_sel_rep_raw_banks_t>(arguments),
-                    begin<dev_sel_rep_offsets_t>(arguments),
-                    begin<dev_passing_event_list_t>(arguments)},
-        host_buffers.host_number_of_passing_events[0]);
+                    begin<dev_sel_rep_offsets_t>(arguments)},
+        total_number_of_events,
+        value<host_number_of_selected_events_t>(arguments));
 
       cudaCheck(cudaMemcpyAsync(
         host_buffers.host_sel_rep_offsets,
@@ -67,7 +69,7 @@ namespace package_sel_reports {
         size<dev_sel_rep_offsets_t>(arguments),
         cudaMemcpyDeviceToHost,
         cuda_stream));
-      
+
       safe_assign_to_host_buffer<dev_sel_rep_raw_banks_t>(
         host_buffers.host_sel_rep_raw_banks, host_buffers.host_sel_rep_raw_banks_size, arguments, cuda_stream);
     }

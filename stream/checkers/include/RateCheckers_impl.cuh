@@ -5,8 +5,11 @@
 
 template<typename T, typename U, char... S>
 struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
-  static void
-  check(HostBuffers& host_buffers, const Constants& constants, const CheckerInvoker& checker_invoker, MCEvents const& mc_events)
+  static void check(
+    HostBuffers& host_buffers,
+    [[maybe_unused]] const Constants& constants,
+    const CheckerInvoker& checker_invoker,
+    [[maybe_unused]] MCEvents const& mc_events)
   {
     auto& checker = checker_invoker.checker<RateChecker>("HLT1 rates:");
     checker.accumulate<U>(
@@ -14,9 +17,11 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
       host_buffers.host_sel_results_atomics,
       host_buffers.host_atomics_scifi,
       host_buffers.host_sv_offsets,
+      host_buffers.host_number_of_events,
       host_buffers.host_number_of_selected_events[0]);
 
-    [[maybe_unused]] const auto tracks = prepareKalmanTracks(
+#ifdef WITH_ROOT
+    const auto tracks = prepareKalmanTracks(
       host_buffers.host_atomics_velo,
       host_buffers.host_velo_track_hit_number,
       host_buffers.host_velo_track_hits,
@@ -39,7 +44,6 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
       host_buffers.host_number_of_multivertex,
       host_buffers.host_number_of_selected_events[0]);
 
-#ifdef WITH_ROOT
     auto& ntuple =
       checker_invoker.checker<SelCheckerTuple>("Making ntuple for efficiency studies.", "SelCheckerTuple.root");
     ntuple.accumulate<U>(
@@ -51,10 +55,7 @@ struct SequenceVisitor<run_hlt1::run_hlt1_t<T, U, S...>> {
       host_buffers.host_atomics_scifi,
       host_buffers.host_sv_offsets,
       host_buffers.host_mf_sv_offsets,
-      host_buffers.host_number_of_selected_events[0]);
-#else
-    // Avoid warning
-    [[maybe_unused]] const auto& mc_event = mc_events.front();
+      host_buffers.host_number_of_events);
 #endif
   }
 };

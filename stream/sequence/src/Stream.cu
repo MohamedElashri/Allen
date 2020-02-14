@@ -11,11 +11,12 @@
 
 StreamWrapper::StreamWrapper() {
   number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
-  uint passthrough_line_index = 0;
-  const auto lambda_fn = [&] (const unsigned long i) {
-    passthrough_line_index = i;
+  uint passthrough_line_index = number_of_hlt1_lines;
+
+  const auto lambda_fn = [&] (const unsigned long i, const std::string& line_name) {
+    if (line_name == "ErrorEvent") passthrough_line_index = i;
   };
-  Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
+  Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
   passthrough_line = passthrough_line_index;
 }
 
@@ -127,7 +128,7 @@ cudaError_t Stream::run_sequence(const uint buf_idx, const RuntimeOptions& runti
   if (event_end > event_start) {
     for (uint repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
       // Initialize selected_number_of_events with requested_number_of_events
-      host_buffers->host_number_of_selected_events[0] = event_end - event_start;
+      host_buffers->host_number_of_events = event_end - event_start;
 
       // Reset scheduler
       scheduler.reset();

@@ -24,11 +24,11 @@ namespace VertexFit {
 
 struct HostBuffers {
   // Pinned host datatypes
+  uint host_number_of_events;
   uint* host_number_of_selected_events;
   uint* host_event_list;
   uint* host_prefix_sum_buffer;
-  uint* host_number_of_passing_events;
-  uint* host_passing_event_list;
+  bool* host_passing_event_list;
   uint32_t* host_dec_reports;
   uint32_t* host_sel_rep_raw_banks;
   uint host_sel_rep_raw_banks_size;

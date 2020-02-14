@@ -99,8 +99,9 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
   }
   auto buf = host_buffers[b];
 
-  buf->host_number_of_passing_events[0] = 1u;
-  buf->host_passing_event_list[0] = 0u;
+  buf->host_number_of_events = 1u;
+  buf->host_number_of_selected_events[0] = 0u;
+  buf->host_passing_event_list[0] = true;
   // create DecReport
   buf->host_dec_reports[0] = Hlt1::TCK;
   buf->host_dec_reports[1] = Hlt1::taskID;
@@ -124,17 +125,17 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
   returnBufferFilled(b);
 }
 
-std::tuple<gsl::span<uint const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<uint const>>
+std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<uint const>>
 HostBuffersManager::getBufferOutputData(size_t b)
 {
   if (b > host_buffers.size()) return {};
 
   HostBuffers* buf = host_buffers.at(b);
-  auto const n_passing = buf->host_number_of_passing_events[0];
+  auto const n_passing = buf->host_number_of_events;
   const uint sel_rep_buf_size = buf->host_sel_rep_offsets[n_passing];
   const uint dec_rep_buf_size = (m_number_of_hlt1_lines + 2) * max_events;
 
-  gsl::span<uint const> passing_event_list {buf->host_passing_event_list, n_passing};
+  gsl::span<bool const> passing_event_list {buf->host_passing_event_list, n_passing};
   gsl::span<uint32_t const> dec_reports {buf->host_dec_reports, dec_rep_buf_size};
   gsl::span<uint32_t const> sel_reports {buf->host_sel_rep_raw_banks, sel_rep_buf_size};
   gsl::span<uint const> sel_report_offsets {buf->host_sel_rep_offsets, n_passing + 1};
