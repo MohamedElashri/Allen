@@ -7,10 +7,12 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 {
 
   // Handle special lines for events that don't pass the GEC.
-  for (uint selected_event_number = blockIdx.x * blockDim.x + threadIdx.x + selected_number_of_events; selected_event_number < total_number_of_events; selected_event_number += blockDim.x * gridDim.x) {
+  for (uint selected_event_number = blockIdx.x * blockDim.x + threadIdx.x + selected_number_of_events;
+       selected_event_number < total_number_of_events;
+       selected_event_number += blockDim.x * gridDim.x) {
     const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
     const int n_hlt1_lines = std::tuple_size<T>::value;
-    
+
     // Set the DecReport.
     uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
     event_dec_reports[0] = Hlt1::TCK;
@@ -34,13 +36,16 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
   }
 
   // Handle all lines for events that pass the GEC.
-  for (auto selected_event_number = blockIdx.x * blockDim.x + threadIdx.x; selected_event_number < selected_number_of_events;
+  for (auto selected_event_number = blockIdx.x * blockDim.x + threadIdx.x;
+       selected_event_number < selected_number_of_events;
        selected_event_number += blockDim.x * gridDim.x) {
     const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
 
     // Create velo tracks.
-    Velo::Consolidated::ConstTracks velo_tracks {
-      parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, selected_event_number, selected_number_of_events};
+    Velo::Consolidated::ConstTracks velo_tracks {parameters.dev_atomics_velo,
+                                                 parameters.dev_velo_track_hit_number,
+                                                 selected_event_number,
+                                                 selected_number_of_events};
 
     // Create UT tracks.
     UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
@@ -61,7 +66,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Tracks.
     const int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(selected_event_number);
-    const uint* event_saved_tracks_list = parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(selected_event_number);
+    const uint* event_saved_tracks_list =
+      parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(selected_event_number);
     const ParKalmanFilter::FittedTrack* event_kf_tracks =
       parameters.dev_kf_tracks + scifi_tracks.tracks_offset(selected_event_number);
 
@@ -75,7 +81,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
 
     // Sel reports.
-    const uint event_sel_rb_hits_offset = scifi_tracks.tracks_offset(selected_event_number) * ParKalmanFilter::nMaxMeasurements;
+    const uint event_sel_rb_hits_offset =
+      scifi_tracks.tracks_offset(selected_event_number) * ParKalmanFilter::nMaxMeasurements;
     uint* event_sel_rb_hits = parameters.dev_sel_rb_hits + event_sel_rb_hits_offset;
     const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
     uint* event_sel_rb_stdinfo = parameters.dev_sel_rb_stdinfo + event_sel_rb_stdinfo_offset;
@@ -117,7 +124,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         n_decisions++;
       }
     }
-    
+
     // Create the hits sub-bank.
     HltSelRepRBHits hits_bank(
       parameters.dev_n_tracks_saved[event_number], parameters.dev_n_hits_saved[event_number], event_sel_rb_hits);
