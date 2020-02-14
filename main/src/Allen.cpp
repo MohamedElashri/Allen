@@ -40,7 +40,6 @@
 #include "InputTools.h"
 #include "InputReader.h"
 #include "MDFProvider.h"
-#include "BinaryProvider.h"
 #include "MEPProvider.h"
 #include "Timer.h"
 #include "StreamWrapper.cuh"
@@ -351,7 +350,7 @@ int allen(
                               !disable_run_changes, // Whether to split slices by run number
                               receivers};           // Map of receiver to MPI rank to receive from
     input_provider =
-      std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+      std::make_unique<MEPProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN, BankTypes::ECal, BankTypes::HCal>>(
         number_of_slices, events_per_slice, n_events, split_string(mep_input, ","), config);
   }
   else if (!mdf_input.empty()) {
@@ -364,7 +363,7 @@ int allen(
                               n_io_reps,                 // number of loops over the input files
                               !disable_run_changes};     // Whether to split slices by run number
     input_provider =
-      std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
+      std::make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN, BankTypes::ECal, BankTypes::HCal>>(
         number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), config);
   }
   else {
