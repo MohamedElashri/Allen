@@ -148,7 +148,8 @@ int main(int argc, char* argv[])
     auto size_fun = [pf](BankTypes) -> std::tuple<size_t, size_t> {
       return {std::lround(average_event_size * pf * bank_size_fudge_factor * kB), pf};
     };
-    mep_slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(1, size_fun);
+    mep_slices =
+      allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(1, size_fun);
 
     transpose_mep(mep_slices, 0, mep_header, mep_span, s_config.n_events);
   }

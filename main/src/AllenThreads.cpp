@@ -16,7 +16,7 @@
 namespace {
   using namespace zmq;
   using namespace std::string_literals;
-}
+} // namespace
 
 std::string connection(const size_t id, std::string suffix)
 {
@@ -66,7 +66,7 @@ zmq::socket_t make_control(size_t thread_id, IZeroMQSvc* zmqSvc, std::string suf
 
   if (!connected) {
     auto msg = "Failed to connect control socket for thread "s + std::to_string(thread_id);
-    throw std::runtime_error{msg};
+    throw std::runtime_error {msg};
   }
 
   return control;

@@ -550,7 +550,6 @@ extern "C" int allen(
   workers_t mon_workers;
   mon_workers.reserve(n_mon);
 
-
   auto socket_ready = [zmqSvc](zmq::socket_t& socket) -> std::optional<size_t> {
     zmq::pollitem_t ready_items[] = {{socket, 0, zmq::POLLIN, 0}};
     int tries = 5;
@@ -588,11 +587,26 @@ extern "C" int allen(
 
   // Start all workers and check if the threads are ready
   size_t thread_id = 0;
-  for (auto& [workers, start, n, type, handle] :
-       {std::tuple {&streams, start_thread {stream_thread}, number_of_threads, std::string("GPU"), handle_ready {handle_stream_ready}},
-        std::tuple {&io_workers, start_thread {slice_thread}, static_cast<uint>(n_input), std::string("Slices"), handle_ready {handle_default_ready}},
-        std::tuple {&io_workers, start_thread {output_thread}, static_cast<uint>(n_write), std::string("Output"), handle_ready {handle_default_ready}},
-        std::tuple {&mon_workers, start_thread {mon_thread}, static_cast<uint>(n_mon), std::string("Mon"), handle_ready {handle_default_ready}}}) {
+  for (auto& [workers, start, n, type, handle] : {std::tuple {&streams,
+                                                              start_thread {stream_thread},
+                                                              number_of_threads,
+                                                              std::string("GPU"),
+                                                              handle_ready {handle_stream_ready}},
+                                                  std::tuple {&io_workers,
+                                                              start_thread {slice_thread},
+                                                              static_cast<uint>(n_input),
+                                                              std::string("Slices"),
+                                                              handle_ready {handle_default_ready}},
+                                                  std::tuple {&io_workers,
+                                                              start_thread {output_thread},
+                                                              static_cast<uint>(n_write),
+                                                              std::string("Output"),
+                                                              handle_ready {handle_default_ready}},
+                                                  std::tuple {&mon_workers,
+                                                              start_thread {mon_thread},
+                                                              static_cast<uint>(n_mon),
+                                                              std::string("Mon"),
+                                                              handle_ready {handle_default_ready}}}) {
     size_t n_ready = 0;
     for (uint i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
@@ -610,7 +624,8 @@ extern "C" int allen(
       // Check if thread is ready
       auto ready = thread_ready(workers->back());
       if (ready) handle(i);
-      debug_cout << type << " thread " << std::setw(2) << std::setw(2) << i + 1 << "/" << std::setw(2) << n << (ready ? " ready." : " failed to start.") << "\n";
+      debug_cout << type << " thread " << std::setw(2) << std::setw(2) << i + 1 << "/" << std::setw(2) << n
+                 << (ready ? " ready." : " failed to start.") << "\n";
       n_ready += ready.has_value();
       error_count += !ready;
       ++thread_id;
