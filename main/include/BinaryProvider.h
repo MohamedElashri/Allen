@@ -79,22 +79,20 @@ public:
         auto ib = to_integral<BankTypes>(bank_type);
         // Find files and order them if requested
         std::vector<std::string> contents;
-        if (file_list) {
-          if (!file_list.value().empty()) {
-            std::string line;
-            std::ifstream list(*file_list);
-            if (list.is_open()) {
-              while (std::getline(list, line)) {
-                contents.push_back(line);
-              }
-            }
-            else {
-              throw StrException {"Could not open list of files"};
+        if (file_list && !file_list.value().empty()) {
+          std::string line;
+          std::ifstream list(*file_list);
+          if (list.is_open()) {
+            while (std::getline(list, line)) {
+              contents.push_back(line);
             }
           }
           else {
-            contents = list_folder(*it);
+            throw StrException {"Could not open list of files"};
           }
+        }
+        else {
+          contents = list_folder(*it);
         }
         if (order) {
           order_files(contents, *order, *it);

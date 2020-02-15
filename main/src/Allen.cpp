@@ -351,7 +351,7 @@ extern "C" int allen(
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
-  items.resize(number_of_threads + n_io + n_mon + 1);
+  items.resize(number_of_threads + n_io + n_mon + !control_connection.empty());
 
   std::optional<zmq::socket_t> allen_control;
   size_t control_index = 0;
@@ -550,13 +550,50 @@ extern "C" int allen(
   workers_t mon_workers;
   mon_workers.reserve(n_mon);
 
-  // Start all workers
+
+  auto socket_ready = [zmqSvc](zmq::socket_t& socket) -> std::optional<size_t> {
+    zmq::pollitem_t ready_items[] = {{socket, 0, zmq::POLLIN, 0}};
+    int tries = 5;
+    std::optional<size_t> thread_id;
+    while (tries > 0) {
+      zmqSvc->send(socket, "STATUS");
+      zmqSvc->poll(&ready_items[0], 1, 200);
+      if (ready_items[0].revents & zmq::POLLIN) {
+        auto msg = zmqSvc->receive<std::string>(socket);
+        assert(msg == "READY");
+        thread_id = zmqSvc->receive<size_t>(socket);
+        break;
+      }
+      --tries;
+    }
+    return thread_id;
+  };
+
+  auto thread_ready = [&socket_ready](workers_t::value_type& worker) {
+    auto success = socket_ready(std::get<1>(worker));
+    auto& extra_socket = std::get<2>(worker);
+    if (success && extra_socket) {
+      return socket_ready(*extra_socket);
+    }
+    return success;
+  };
+
+  // processing stream status
+  std::bitset<max_stream_threads> stream_ready(false);
+  size_t error_count = 0;
+
+  auto handle_default_ready = [](size_t) {};
+  auto handle_stream_ready = [&stream_ready](size_t i) { stream_ready[i] = true; };
+  using handle_ready = std::function<void(size_t)>;
+
+  // Start all workers and check if the threads are ready
   size_t thread_id = 0;
-  for (auto& [workers, start, n, type] :
-       {std::tuple {&streams, start_thread {stream_thread}, number_of_threads, std::string("GPU")},
-        std::tuple {&io_workers, start_thread {slice_thread}, static_cast<uint>(n_input), std::string("Slices")},
-        std::tuple {&io_workers, start_thread {output_thread}, static_cast<uint>(n_write), std::string("Output")},
-        std::tuple {&mon_workers, start_thread {mon_thread}, static_cast<uint>(n_mon), std::string("Mon")}}) {
+  for (auto& [workers, start, n, type, handle] :
+       {std::tuple {&streams, start_thread {stream_thread}, number_of_threads, std::string("GPU"), handle_ready {handle_stream_ready}},
+        std::tuple {&io_workers, start_thread {slice_thread}, static_cast<uint>(n_input), std::string("Slices"), handle_ready {handle_default_ready}},
+        std::tuple {&io_workers, start_thread {output_thread}, static_cast<uint>(n_write), std::string("Output"), handle_ready {handle_default_ready}},
+        std::tuple {&mon_workers, start_thread {mon_thread}, static_cast<uint>(n_mon), std::string("Mon"), handle_ready {handle_default_ready}}}) {
+    size_t n_ready = 0;
     for (uint i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
       zmq::setsockopt(control, zmq::LINGER, 0);
@@ -569,8 +606,17 @@ extern "C" int allen(
       auto [thread, check_control] = start(thread_id, i);
       workers->emplace_back(std::move(thread), std::move(control), std::move(check_control));
       items[thread_id] = {std::get<1>(workers->back()), 0, zmq::POLLIN, 0};
-      debug_cout << "Started " << type << " thread " << std::setw(2) << i + 1 << "/" << std::setw(2) << n << "\n";
+
+      // Check if thread is ready
+      auto ready = thread_ready(workers->back());
+      if (ready) handle(i);
+      debug_cout << type << " thread " << std::setw(2) << std::setw(2) << i + 1 << "/" << std::setw(2) << n << (ready ? " ready." : " failed to start.") << "\n";
+      n_ready += ready.has_value();
+      error_count += !ready;
       ++thread_id;
+    }
+    if (n_ready == n) {
+      info_cout << "Started " << type << " threads\n";
     }
   }
 
@@ -580,8 +626,6 @@ extern "C" int allen(
   std::vector<std::map<size_t, SliceStatus>> input_slice_status(
     number_of_slices, std::map<size_t, SliceStatus> {{0, SliceStatus::Empty}});
   std::vector<std::map<size_t, size_t>> events_in_slice(number_of_slices, std::map<size_t, size_t> {{0, 0}});
-  // processing stream status
-  std::bitset<max_stream_threads> stream_ready(false);
 
   auto count_status = [&input_slice_status](SliceStatus const status) {
     return std::accumulate(
@@ -601,7 +645,6 @@ extern "C" int allen(
   std::optional<size_t> buffer_index;
 
   size_t n_events_output = 0, n_output_measured = 0;
-  size_t error_count = 0;
 
   std::optional<Timer> t;
   double previous_time_measurement = 0;
@@ -740,42 +783,15 @@ extern "C" int allen(
     }
   };
 
-  // Wait for all processors to be ready
-  while ((stream_ready.count() + error_count) < number_of_threads) {
-    std::optional<int> n;
-    do {
-      try {
-        n = zmq::poll(&items[0], number_of_threads, -1);
-      } catch (const zmq::error_t& err) {
-        if (err.num() == EINTR) continue;
-      }
-    } while (!n);
-    for (size_t i = 0; i < number_of_threads; ++i) {
-      if (items[i].revents & ZMQ_POLLIN) {
-        auto& socket = std::get<1>(streams[i]);
-        auto msg = zmqSvc->receive<std::string>(socket);
-        assert(msg == "READY");
-        auto success = zmqSvc->receive<bool>(socket);
-        stream_ready[i] = success;
-        debug_cout << "Stream " << std::setw(2) << i << " on device " << device_id
-                   << (success ? " ready." : " failed to start.") << "\n";
-        error_count += !success;
-      }
-    }
-  }
-  if (error_count == 0) {
-    info_cout << "Streams ready\n";
-  }
-
-  if (!allen_control) {
+  if (!allen_control && !error_count) {
     input_provider->start();
     for (size_t i = 0; i < n_io; ++i) {
       auto& socket = std::get<1>(io_workers[i]);
       zmqSvc->send(socket, "START");
     }
   }
-  else {
-    zmqSvc->send(*allen_control, "READY");
+  else if (allen_control) {
+    zmqSvc->send(*allen_control, (error_count ? "ERROR" : "READY"));
   }
 
   bool io_done = false;
@@ -799,14 +815,7 @@ extern "C" int allen(
   while (error_count == 0) {
 
     // Wait for messages to come in from the I/O, monitoring or stream threads
-    std::optional<int> n;
-    do {
-      try {
-        n = zmq::poll(&items[0], number_of_threads + n_io + n_mon + 1, -1);
-      } catch (const zmq::error_t& err) {
-        if (err.num() == EINTR) continue;
-      }
-    } while (!n);
+    zmqSvc->poll(&items[0], items.size(), -1);
 
     // Check if input slices are ready or events have been written
     for (size_t i = 0; i < n_io; ++i) {
@@ -816,7 +825,6 @@ extern "C" int allen(
         if (msg == "SLICE") {
           slice_index = zmqSvc->receive<size_t>(socket);
           auto n_filled = zmqSvc->receive<size_t>(socket);
-
           // FIXME: make the warmup time configurable
           if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
             info_cout << "Starting timer for throughput measurement\n";
@@ -1027,14 +1035,7 @@ loop_error:
   while ((stream_ready.count() + error_count) < number_of_threads) {
 
     // Wait for a message
-    std::optional<int> n;
-    do {
-      try {
-        n = zmq::poll(&items[0], number_of_threads, -1);
-      } catch (const zmq::error_t& err) {
-        if (err.num() == EINTR) continue;
-      }
-    } while (!n);
+    zmqSvc->poll(&items[0], number_of_threads, -1);
 
     // Check if any processors are ready
     check_processors();
@@ -1075,8 +1076,12 @@ loop_error:
     info_cout << (*throughput_processed / t->get()) << " events/s\n"
               << "Ran test for " << t->get() << " seconds\n";
   }
-  else {
+  else if (!t) {
     warning_cout << "Timer wasn't started."
+                 << "\n";
+  }
+  else {
+    warning_cout << "No event count."
                  << "\n";
   }
 
