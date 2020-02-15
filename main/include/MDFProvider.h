@@ -192,13 +192,13 @@ public:
     // Set flag to indicate the prefetch thread should exit, wake it
     // up and join it
     m_done = true;
+    m_transpose_done = true;
     m_prefetch_cond.notify_one();
     if (m_prefetch_thread) m_prefetch_thread->join();
 
     // Set a flat to indicate all transpose threads should exit, wake
     // them up and join the threads. Ensure any waiting calls to
     // get_slice also return.
-    m_transpose_done = true;
     m_prefetch_cond.notify_all();
     m_transpose_cond.notify_all();
     m_slice_cond.notify_all();
@@ -392,7 +392,7 @@ private:
         if (m_prefetched.empty() && !m_transpose_done) {
           m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done; });
         }
-        if (m_prefetched.empty()) {
+        if (m_prefetched.empty() || m_transpose_done) {
           this->debug_output(
             "Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()),
             thread_id);

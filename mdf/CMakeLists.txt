@@ -89,14 +89,16 @@ function(test_program)
   install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin OPTIONAL)
 endfunction()
 
-if (BUILD_TESTS)
-  # Build our own common library to avoid circular dependency in Gaudi build
-  foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp TransposeMEP.cpp InputTools.cpp)
-    list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
-  endforeach()
-  allen_add_library(MdfTestCommon STATIC ${common_sources})
-  target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs)
+# Build our own common library to avoid circular dependency in Gaudi build
+foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp TransposeMEP.cpp InputTools.cpp)
+  list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
+endforeach()
+allen_add_library(MdfTestCommon STATIC ${common_sources})
+target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs)
 
+test_program(NAME mdf_to_mep)
+
+if (BUILD_TESTS)
   test_program(NAME dump_banks)
   test_program(NAME test_read)
   test_program(NAME bench_read)

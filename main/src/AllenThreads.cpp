@@ -15,6 +15,7 @@
 
 namespace {
   using namespace zmq;
+  using namespace std::string_literals;
 }
 
 std::string connection(const size_t id, std::string suffix)
@@ -26,31 +27,67 @@ std::string connection(const size_t id, std::string suffix)
   return con;
 }
 
+zmq::socket_t make_control(size_t thread_id, IZeroMQSvc* zmqSvc, std::string suffix = std::string {})
+{
+
+  auto make_socket = [thread_id, &suffix, zmqSvc] {
+    zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
+    zmq::setsockopt(control, zmq::LINGER, 0);
+    auto con = connection(thread_id, suffix);
+    try {
+      control.connect(con.c_str());
+    } catch (const zmq::error_t& e) {
+      error_cout << "failed to connect connection " << con << "\n";
+      throw e;
+    }
+    return control;
+  };
+
+  auto control = make_socket();
+  zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
+
+  bool connected = false;
+  unsigned int tries = 5;
+  while (!connected && tries > 0) {
+    zmqSvc->poll(&items[0], 1, 500);
+    if (items[0].revents & zmq::POLLIN) {
+      auto msg = zmqSvc->receive<std::string>(control);
+      assert(msg == "STATUS");
+      zmqSvc->send(control, "READY", send_flags::sndmore);
+      zmqSvc->send(control, thread_id);
+      connected = true;
+    }
+    else {
+      control = make_socket();
+      items[0] = {control, 0, zmq::POLLIN, 0};
+      --tries;
+    }
+  }
+
+  if (!connected) {
+    auto msg = "Failed to connect control socket for thread "s + std::to_string(thread_id);
+    throw std::runtime_error{msg};
+  }
+
+  return control;
+}
+
 void run_output(
   const size_t thread_id,
   IZeroMQSvc* zmqSvc,
   OutputHandler* output_handler,
   HostBuffersManager* buffer_manager)
 {
-  // Create a control socket and connect it.
-  zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
-  zmq::setsockopt(control, zmq::LINGER, 0);
-
-  auto con = connection(thread_id);
-  try {
-    control.connect(con.c_str());
-  } catch (const zmq::error_t& e) {
-    error_cout << "failed to connect connection " << con << "\n";
-    throw e;
-  }
-
   auto* client_socket = output_handler ? output_handler->client_socket() : nullptr;
 
   std::vector<zmq::pollitem_t> items(client_socket ? 2 : 1);
-  items[0] = {control, 0, zmq::POLLIN, 0};
   if (client_socket) {
     items[1] = {*client_socket, 0, zmq::POLLIN, 0};
   }
+
+  // Create a control socket and connect it.
+  zmq::socket_t control = make_control(thread_id, zmqSvc);
+  items[0] = {control, 0, zmq::POLLIN, 0};
 
   while (true) {
 
@@ -103,16 +140,7 @@ void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* inpu
 {
 
   // Create a control socket and connect it.
-  zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
-  zmq::setsockopt(control, zmq::LINGER, 0);
-
-  auto con = connection(thread_id);
-  try {
-    control.connect(con.c_str());
-  } catch (const zmq::error_t& e) {
-    error_cout << "failed to connect connection " << con << "\n";
-    throw e;
-  }
+  zmq::socket_t control = make_control(thread_id, zmqSvc);
 
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
@@ -177,54 +205,22 @@ void run_stream(
   bool mep_layout,
   std::string folder_name_imported_forward_tracks)
 {
-  auto make_control = [thread_id, zmqSvc](std::string suffix = std::string {}) {
-    zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
-    zmq::setsockopt(control, zmq::LINGER, 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds {50});
-    auto con = connection(thread_id, suffix);
-    try {
-      control.connect(con.c_str());
-    } catch (const zmq::error_t& e) {
-      error_cout << "failed to connect connection " << con << "\n";
-      throw e;
-    }
-    return control;
-  };
-
-  zmq::socket_t control = make_control();
-  std::optional<zmq::socket_t> check_control;
-  if (do_check) {
-    check_control = make_control("check");
-  }
 
   auto [device_set, device_name] = set_device(device_id, stream_id);
+
+  zmq::socket_t control = make_control(thread_id, zmqSvc);
+  std::optional<zmq::socket_t> check_control;
+  if (do_check) {
+    check_control = make_control(thread_id, zmqSvc, "check");
+  }
 
   zmq::pollitem_t items[] = {
     {control, 0, ZMQ_POLLIN, 0},
   };
 
-  // Indicate to the main thread that we are ready to process
-  zmqSvc->send(control, "READY", send_flags::sndmore);
-  zmqSvc->send(control, device_set);
-
   while (true) {
 
-    // Wait until we need to process
-    std::optional<int> n;
-    do {
-      try {
-        n = zmqSvc->poll(&items[0], 1, -1);
-      } catch (const zmq::error_t& err) {
-        if (err.num() == EINTR) {
-          continue;
-        }
-        else {
-          warning_cout << "processor caught exception." << err.what() << "\n";
-        }
-      }
-    } while (!n);
-
-    n.reset();
+    zmqSvc->poll(&items[0], 1, -1);
 
     std::string command;
     std::optional<size_t> idx;
@@ -322,19 +318,7 @@ void run_stream(
  */
 void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, uint i_monitor)
 {
-
-  // Create a control socket and connect it.
-  zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
-  zmq::setsockopt(control, zmq::LINGER, 0);
-
-  auto con = connection(mon_id);
-  try {
-    control.connect(con.c_str());
-  } catch (const zmq::error_t& e) {
-    error_cout << "failed to connect connection " << con << "\n";
-    throw e;
-  }
-
+  zmq::socket_t control = make_control(mon_id, zmqSvc);
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
   while (true) {
