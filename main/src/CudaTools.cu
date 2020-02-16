@@ -3,10 +3,6 @@
 
 void reserve_pinned(void** buffer, size_t size) { cudaCheck(cudaMallocHost(buffer, size)); }
 
-void populate_verbosity_constant_in_device(const uint verbosity) {
-  cudaMemcpyToSymbol(Configuration::verbosity_level, &verbosity, sizeof(uint));
-}
-
 #ifdef CPU
 
 #include <fstream>

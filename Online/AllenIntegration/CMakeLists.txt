@@ -38,6 +38,6 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
 endif()
 target_compile_definitions(AllenIntegration PRIVATE ALLEN_DEBUG)
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   target_compile_definitions(AllenIntegration PRIVATE CPU)
 endif()

@@ -152,11 +152,3 @@ __device__ __host__ half_t __float2half(const float f)
 }
 
 #endif
-
-#if defined(__CUDACC__) || defined(HIP)
-
-namespace Configuration {
-  __constant__ uint verbosity_level;
-}
-
-#endif

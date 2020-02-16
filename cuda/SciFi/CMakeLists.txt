@@ -41,8 +41,9 @@ include_directories(looking_forward/quality_filters/include)
 include_directories(looking_forward/fit/include)
 include_directories(looking_forward/calculate_parametrization/include)
 include_directories(consolidate/include)
+include_directories(${CPPGSL_INCLUDE_DIR})
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   foreach(source_file ${scifi_common} ${scifi_preprocessing}
     ${scifi_lf_common} ${scifi_lf_calculate_first_layer_window}
     ${scifi_lf_calculate_second_layer_window} ${scifi_lf_form_seeds_from_candidates}
@@ -57,7 +58,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
   endforeach(source_file)
 endif()
 
-allen_add_library(SciFi STATIC
+allen_add_device_library(SciFi STATIC
   ${scifi_common}
   ${scifi_preprocessing}
   ${scifi_lf_common}

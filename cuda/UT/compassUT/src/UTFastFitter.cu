@@ -1,6 +1,6 @@
 #include "UTFastFitter.cuh"
 
-__host__ __device__ float eval_log_function(const int N, float& init, const float* a, const float* b)
+__device__ float eval_log_function(const int N, float& init, const float* a, const float* b)
 {
   for (int i = 0; i < N; ++i) {
     init = init + a[i] * logf(b[i]);
@@ -10,7 +10,7 @@ __host__ __device__ float eval_log_function(const int N, float& init, const floa
 
 // -- Evaluate the linear discriminant
 // -- Coefficients derived with LD method for p, pT and chi2 with TMVA
-__host__ __device__ float evaluateLinearDiscriminant(const float inputValues[3], const int nHits)
+__device__ float evaluateLinearDiscriminant(const float inputValues[3], const int nHits)
 {
   float coeffs[4];
   if (nHits == 3) {
@@ -33,7 +33,7 @@ __host__ __device__ float evaluateLinearDiscriminant(const float inputValues[3],
    See this presentation for information:
    https://indico.cern.ch/event/786084/contributions/3326577/attachments/1800737/2937077/20190213_forward.pdf
 */
-__host__ __device__ float fastfitter(
+__device__ float fastfitter(
   const BestParams best_params,
   const MiniState& velo_state,
   const int best_hits[UT::Constants::n_layers],

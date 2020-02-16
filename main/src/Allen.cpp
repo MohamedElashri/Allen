@@ -213,7 +213,6 @@ extern "C" int allen(
     }
     else if (flag_in({"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
-      cudaMemcpyToSymbol(&Configuration::verbosity_level, &verbosity, sizeof(uint));
     }
     else if (flag_in({"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
@@ -264,8 +263,6 @@ extern "C" int allen(
     }
   }
 
-  populate_verbosity_constant_in_device(verbosity);
-
   // Options sanity check
   if (folder_data.empty() || folder_detector_configuration.empty()) {
     std::string missing_folder = "";
@@ -303,7 +300,7 @@ extern "C" int allen(
     enable_async_io = false;
     number_of_slices = 1;
     n_io_reps = 1;
-    warning_cout << "Disabling async I/O to measure throughput without it.\n";
+    debug_cout << "Disabling async I/O to measure throughput without it.\n";
   }
   else if (number_of_slices <= number_of_threads) {
     warning_cout << "Setting number of slices to " << number_of_threads + 1 << "\n";
@@ -661,6 +658,7 @@ extern "C" int allen(
 
   size_t n_events_output = 0, n_output_measured = 0;
 
+  // Create optional timer
   std::optional<Timer> t;
   double previous_time_measurement = 0;
 
@@ -841,7 +839,7 @@ extern "C" int allen(
           slice_index = zmqSvc->receive<size_t>(socket);
           auto n_filled = zmqSvc->receive<size_t>(socket);
           // FIXME: make the warmup time configurable
-          if (!t && (number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !enable_async_io)) {
+          if (!t && (number_of_repetitions == 1 || slices_processed >= 5 * number_of_threads || !enable_async_io)) {
             info_cout << "Starting timer for throughput measurement\n";
             throughput_start = n_events_processed * number_of_repetitions;
             t = Timer {};
