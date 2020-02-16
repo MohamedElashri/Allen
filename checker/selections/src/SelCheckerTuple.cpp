@@ -203,7 +203,7 @@ size_t SelCheckerTuple::addSV(const VertexFit::TrackMVAVertex& sv, const int idx
   return idx;
 }
 
-size_t SelCheckerTuple::addTrack(Checker::Track& track, const MCAssociator& mcassoc)
+size_t SelCheckerTuple::addTrack(const Checker::Track& track, const MCAssociator& mcassoc)
 {
   for (size_t i = 0; i < m_trk_p.size(); ++i) {
     if (
@@ -225,7 +225,8 @@ size_t SelCheckerTuple::addTrack(Checker::Track& track, const MCAssociator& mcas
   m_trk_velo_ip.push_back((double) track.velo_ip);
   m_trk_velo_ipchi2.push_back((double) track.velo_ip_chi2);
   const auto& ids = track.ids();
-  const auto assoc = mcassoc(ids.begin(), ids.end(), track.n_matched_total);
+  size_t n_matched = 0;
+  const auto assoc = mcassoc(ids.begin(), ids.end(), n_matched);
   if (!assoc)
     m_trk_idx_gen.push_back((double) -1.);
   else {

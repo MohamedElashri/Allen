@@ -124,7 +124,7 @@ public:
       // Loop over tracks.
       for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
         // First track.
-        auto trackA = event_tracks[i_track];
+        const auto& trackA = event_tracks[i_track];
         size_t idx1 = addTrack(trackA, mcassoc);
         if (idx1 == m_trk_p.size() - 1) {
           const auto lambda_one_track_fn = [&](const unsigned long i_line, const std::string& line_name) {
@@ -140,8 +140,8 @@ public:
         if (event_vertices[i_sv].chi2 < 0) {
           continue;
         }
-        auto trackA = event_tracks[(size_t) event_vertices[i_sv].trk1];
-        auto trackB = event_tracks[(size_t) event_vertices[i_sv].trk2];
+        const auto& trackA = event_tracks[(size_t) event_vertices[i_sv].trk1];
+        const auto& trackB = event_tracks[(size_t) event_vertices[i_sv].trk2];
         size_t i_track = addTrack(trackA, mcassoc);
         size_t j_track = addTrack(trackB, mcassoc);
         addSV(event_vertices[i_sv], i_track, j_track);
@@ -176,7 +176,7 @@ public:
   size_t addGen(MCParticles::const_reference& mcp);
   size_t addPV(const RecPVInfo& pv);
   size_t addSV(const VertexFit::TrackMVAVertex& sv, const int idx1, const int idx2);
-  size_t addTrack(Checker::Track& track, const MCAssociator& mcassoc);
+  size_t addTrack(const Checker::Track& track, const MCAssociator& mcassoc);
   void clear();
 
 private:
