@@ -3,11 +3,13 @@
 __global__ void package_sel_reports::package_sel_reports(
   package_sel_reports::Parameters parameters,
   const uint number_of_events,
-  const uint selected_number_of_events)
+  const uint selected_number_of_events,
+  const uint event_start)
 {
-  for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-     event_number += blockDim.x * gridDim.x) {
+  for (auto selected_event_number = blockIdx.x * blockDim.x + threadIdx.x; selected_event_number < number_of_events; selected_event_number += blockDim.x * gridDim.x) {
 
+    const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
+    
     const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
     uint32_t* event_sel_rb_stdinfo = parameters.dev_sel_rb_stdinfo + event_sel_rb_stdinfo_offset;
     const uint event_sel_rb_objtyp_offset = event_number * (Hlt1::nObjTyp + 1);
@@ -37,9 +39,9 @@ __global__ void package_sel_reports::package_sel_reports(
       substr_bank.m_location,
       substr_bank.size());
 
-    if (event_number < selected_number_of_events) {
+    if (selected_event_number < selected_number_of_events) {
       const uint event_sel_rb_hits_offset =
-        parameters.dev_offsets_forward_tracks[event_number] * ParKalmanFilter::nMaxMeasurements;
+        parameters.dev_offsets_forward_tracks[selected_event_number] * ParKalmanFilter::nMaxMeasurements;
       uint32_t* event_sel_rb_hits = parameters.dev_sel_rb_hits + event_sel_rb_hits_offset;
 
       HltSelRepRBHits hits_bank;

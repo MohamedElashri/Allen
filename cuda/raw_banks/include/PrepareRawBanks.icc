@@ -12,14 +12,25 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
        selected_event_number += blockDim.x * gridDim.x) {
     const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
     const int n_hlt1_lines = std::tuple_size<T>::value;
+    uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
 
     // Set the DecReport.
     uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
+    // Continue if event has not passed any selections.
+    bool pass = false;
+    for (int i_line = 0; i_line < n_hlt1_lines; i_line++) {
+      pass = pass || ((event_dec_reports[2 + i_line] & dec_mask) == (1 & dec_mask));
+      if (pass) {
+        break;
+      }
+    }
+    if (!pass) continue;
+
+    // Set the rest of the DecReport.
     event_dec_reports[0] = Hlt1::TCK;
     event_dec_reports[1] = Hlt1::taskID;
     uint n_decisions = 0;
     const auto lambda_fn = [&](const unsigned long i_line) {
-      uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
       HltDecReport dr;
       dr.setDecision(false);
       dr.setErrorBits(0);
@@ -33,6 +44,50 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_fn)>::traverse(lambda_fn);
 
     // TODO: Handle SelReports.
+    const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
+    uint* event_sel_rb_stdinfo = parameters.dev_sel_rb_stdinfo + event_sel_rb_stdinfo_offset;
+    const uint event_sel_rb_objtyp_offset = event_number * (Hlt1::nObjTyp + 1);
+    uint* event_sel_rb_objtyp = parameters.dev_sel_rb_objtyp + event_sel_rb_objtyp_offset;
+    const uint event_sel_rb_substr_offset = event_number * Hlt1::subStrDefaultAllocationSize;
+    uint* event_sel_rb_substr = parameters.dev_sel_rb_substr + event_sel_rb_substr_offset;
+
+    // Populate dev_passing_event_list
+    parameters.dev_passing_event_list[event_number] = true;
+
+    // Create the substructure sub-bank.
+    // Use default allocation size.
+    HltSelRepRBSubstr substr_bank(0, event_sel_rb_substr);
+
+    // Create the standard info sub-bank.
+    uint nAllInfo = Hlt1::nStdInfoDecision * n_decisions;
+    uint nObj = n_decisions;
+    bool writeStdInfo = nAllInfo < Hlt1::maxStdInfoEvent;
+    HltSelRepRBStdInfo stdinfo_bank(nObj, nAllInfo, event_sel_rb_stdinfo);
+
+    // Create the object type sub-bank.
+    HltSelRepRBObjTyp objtyp_bank(Hlt1::nObjTyp, event_sel_rb_objtyp);
+    objtyp_bank.addObj(Hlt1::selectionCLID, n_decisions);
+    // TODO: Check if these are actually necessary.
+    objtyp_bank.addObj(Hlt1::trackCLID, 0);
+    objtyp_bank.addObj(Hlt1::svCLID, 0);
+    
+    // Add special decisions to the substr bank.
+    const auto lambda_special_fn = [&](const unsigned int i_line) {
+      if (event_dec_reports[2 + i_line] & dec_mask) {
+        // Substructure is pointers, but there are no candidates.
+        stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
+        stdinfo_bank.addInfo(i_line);
+        substr_bank.addSubstr(0, 0);
+      }
+    };
+    Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+
+    // Set the sizes of the banks.
+    objtyp_bank.saveSize();
+    substr_bank.saveSize();
+    stdinfo_bank.saveSize();
+    uint selrep_size = HltSelRepRawBank::Header::kHeaderSize + objtyp_bank.size() + substr_bank.size() + writeStdInfo * stdinfo_bank.size();
+    parameters.dev_sel_rep_sizes[event_number] = selrep_size;
   }
 
   // Handle all lines for events that pass the GEC.
@@ -72,6 +127,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       parameters.dev_kf_tracks + scifi_tracks.tracks_offset(selected_event_number);
 
     // Vertices.
+    const int* event_save_sv = parameters.dev_save_sv + parameters.dev_sv_offsets[selected_event_number];
     const uint* event_saved_svs_list = parameters.dev_saved_svs_list + parameters.dev_sv_offsets[selected_event_number];
     const VertexFit::TrackMVAVertex* event_svs =
       parameters.dev_consolidated_svs + parameters.dev_sv_offsets[selected_event_number];
@@ -94,7 +150,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     // If any line is passed, add to selected events and create the rest of the DecReport.
     uint32_t dec_mask = HltDecReport::decReportMasks::decisionMask;
 
-    // Return if event has not passed any selections.
+    // Continue if event has not passed any selections.
     bool pass = false;
     for (int i_line = 0; i_line < n_hlt1_lines; i_line++) {
       pass = pass || ((event_dec_reports[2 + i_line] & dec_mask) == (1 & dec_mask));
@@ -147,28 +203,61 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     objtyp_bank.addObj(Hlt1::trackCLID, parameters.dev_n_tracks_saved[event_number]);
     objtyp_bank.addObj(Hlt1::svCLID, parameters.dev_n_svs_saved[event_number]);
 
-    // Add decision summaries to the StdInfo subbank. CLID = 1.
-    // TODO: Don't loop over the decision lines multiple times.
-    if (writeStdInfo) {
-      for (uint i_line = 0; i_line < n_hlt1_lines; i_line++) {
-        if (event_dec_reports[2 + i_line] & dec_mask) {
-          stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
-          stdinfo_bank.addInfo(i_line);
-        }
-      }
-    }
-
-    // Add decisions to the substr bank.
-    const auto lambda_fn = [&](const unsigned long i_line) {
+    // Note: This was moved because it needs to be in the same order
+    // as the lines in the substr
+    // Add decision summaries to the StdInfo subbank. CLID = 1.  
+    // if (writeStdInfo) {
+    //   for (uint i_line = 0; i_line < n_hlt1_lines; i_line++) {
+    //     if (event_dec_reports[2 + i_line] & dec_mask) {
+    //       stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
+    //       stdinfo_bank.addInfo(i_line);
+    //     }
+    //   }
+    // }
+    
+    // Add one-track decisions to the substr and stdinfo.
+    const auto lambda_onetrack_fn = [&](const unsigned int i_line) {
       const uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
       const uint* candidate_list =
         parameters.dev_candidate_lists + (i_line * total_number_of_events + event_number) * Hlt1::maxCandidates;
-      for (uint i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {
-        substr_bank.addPtr(n_decisions + event_save_track[candidate_list[i_sub]]);
+      // Substructure is pointers to candidates.
+      if (event_dec_reports[2 + i_line] & dec_mask) {
+        stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
+        stdinfo_bank.addInfo(i_line);
+        substr_bank.addSubstr(candidate_counts[0], 0);
+        for (uint i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {
+          substr_bank.addPtr(n_decisions + event_save_track[candidate_list[i_sub]]);
+        }
       }
     };
-    Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_fn)>::traverse(lambda_fn);
+    Hlt1::TraverseLines<T, Hlt1::OneTrackLine, decltype(lambda_onetrack_fn)>::traverse(lambda_onetrack_fn);
 
+    // Add two-track decisions to the substr and stdinfo.
+    const auto lambda_twotrack_fn = [&](const unsigned int i_line) {
+      const uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
+      const uint* candidate_list =
+        parameters.dev_candidate_lists + (i_line * total_number_of_events + event_number) * Hlt1::maxCandidates;
+      if (event_dec_reports[2 + i_line] & dec_mask) {
+        stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
+        stdinfo_bank.addInfo(i_line);
+        substr_bank.addSubstr(candidate_counts[0], 0);
+        for (uint i_sub = 0; i_sub < candidate_counts[0]; i_sub++) {
+          substr_bank.addPtr(n_decisions + event_save_sv[candidate_list[i_sub]]);
+        }
+      }
+    };
+    Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_twotrack_fn)>::traverse(lambda_twotrack_fn);
+
+    // Add special decisions to substr and stdinfo.
+    const auto lambda_special_fn = [&](const unsigned int i_line) {
+      if (event_dec_reports[2 + i_line] & dec_mask) {
+        stdinfo_bank.addObj(Hlt1::nStdInfoDecision);
+        stdinfo_bank.addInfo(i_line);
+        substr_bank.addSubstr(0, 0);
+      }
+    };
+    Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
+    
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
     // TODO: dev_n_tracks_saved was 0s at the beginning! ./Allen -m3
     for (uint i_saved_track = 0; i_saved_track < parameters.dev_n_tracks_saved[event_number]; i_saved_track++) {
