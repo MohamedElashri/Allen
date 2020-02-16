@@ -77,8 +77,8 @@ endif()
 
 
 file(GLOB stream_gear "gear/src/*cpp")
-file(GLOB stream_sequence "sequence/src/*cu")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
+file(GLOB stream_sequence "sequence/src/*cu")
 
 # TODO: Maybe remove in Gaudi build
 add_custom_command(
@@ -87,31 +87,28 @@ add_custom_command(
   DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
 )
 
-message(STATUS "Configured sequence: " ${SEQUENCE})
-
-if(TARGET_DEVICE STREQUAL "CPU")
+if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   foreach(source_file ${stream_sequence})
     set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
   endforeach(source_file)
 endif()
 
-allen_add_library(Stream STATIC
-  ${stream_gear}
-  ${stream_sequence}
-  ${stream_sequence_cpp}
-)
+allen_add_host_library(HostStream STATIC ${stream_gear} ${stream_sequence_cpp})
+
+allen_add_device_library(Stream STATIC ${stream_sequence})
 
 target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration/sequences")
 
 add_dependencies(Stream configured_sequence)
 
 target_link_libraries(Stream PRIVATE
+  HostStream
   CudaCommon
   Associate
   Velo
   AllenPatPV
   PV_beamline
-  x86Clustering
+  HostClustering
   HostPrefixSum
   UT
   Kalman

@@ -1,3 +1,5 @@
+include_directories(${CPPGSL_INCLUDE_DIR})
+
 set(mdf_sources
     src/compression.cpp
     src/raw_helpers.cpp
@@ -9,7 +11,7 @@ if (ROOT_FOUND AND USE_ROOT)
   list(APPEND mdf_sources src/root_mdf.cpp)
 endif()
 
-allen_add_library(mdf ${mdf_sources})
+add_library(mdf ${mdf_sources})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if (NOT GaudiProject_FOUND)
   target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lhcb)
@@ -93,7 +95,7 @@ endfunction()
 foreach(common_src BankTypes.cpp Timer.cpp Logger.cpp TransposeMEP.cpp InputTools.cpp)
   list(APPEND common_sources ${CMAKE_SOURCE_DIR}/main/src/${common_src})
 endforeach()
-allen_add_library(MdfTestCommon STATIC ${common_sources})
+allen_add_host_library(MdfTestCommon STATIC ${common_sources})
 target_link_libraries(MdfTestCommon PUBLIC mdf allen_fs)
 
 test_program(NAME mdf_to_mep)

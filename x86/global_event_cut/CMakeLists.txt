@@ -78,8 +78,9 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
+include_directories(${CPPGSL_INCLUDE_DIR})
 
-allen_add_library(HostGEC STATIC
+allen_add_host_library(HostGEC STATIC
   ${host_gec}
 )
 
@@ -97,5 +98,3 @@ target_link_libraries(mep_gec PUBLIC Common mdf HostGEC
 target_compile_definitions(mep_gec PUBLIC CPU NO_CUDA)
 
 install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)
-
-include_directories(${CPPGSL_INCLUDE_DIR})

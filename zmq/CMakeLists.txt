@@ -66,7 +66,7 @@ if (GaudiProject_FOUND)
 
   target_link_libraries(AllenZMQ INTERFACE ZMQSvc ZMQ)
 else()
-  allen_add_library(AllenZMQ src/functions.cpp src/svc.cpp)
+  add_library(AllenZMQ src/functions.cpp src/svc.cpp)
   target_include_directories(AllenZMQ PUBLIC
     include
     compat

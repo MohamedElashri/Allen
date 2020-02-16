@@ -19,14 +19,15 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+include_directories(${CPPGSL_INCLUDE_DIR})
 
 file(GLOB vertex_fitter_src "vertex_fitter/src/*cu")
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   set_source_files_properties(${vertex_fitter_src} PROPERTIES LANGUAGE CXX)
 endif()
 
-allen_add_library(VertexFitter STATIC
+allen_add_device_library(VertexFitter STATIC
   ${vertex_fitter_src}
 )
 

@@ -70,7 +70,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/vertex_fitter/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${PROJECT_BINARY_DIR}/configuration/sequences)
+include_directories(${CPPGSL_INCLUDE_DIR})
 
-allen_add_library(HostPrefixSum STATIC
+allen_add_device_library(HostPrefixSum STATIC
   ${host_prefix_sum}
 )

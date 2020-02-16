@@ -1,4 +1,5 @@
 file(GLOB blPV "src/*.cu")
+
 include_directories(include)
 include_directories(../common/include)
 include_directories(${CMAKE_SOURCE_DIR}/main/include)
@@ -13,12 +14,13 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CMAKE_SOURCE_DIR}/x86/PV/beamlinePV/include)
+include_directories(${CPPGSL_INCLUDE_DIR})
 
-if(TARGET_DEVICE STREQUAL "CPU")
+if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   set_source_files_properties(${blPV} PROPERTIES LANGUAGE CXX)
 endif()
 
-allen_add_library(PV_beamline STATIC
+allen_add_device_library(PV_beamline STATIC
   ${blPV})
 
 if(USE_ROOT AND ROOT_FOUND)

@@ -7,7 +7,7 @@
 #include "BankTypes.h"
 #include "LoggerCommon.h"
 
-#ifdef CPU
+#if defined(CPU) || (defined(__clang__) && !defined(__CUDA__))
 
 #include <cmath>
 #include <cstring>
@@ -194,10 +194,6 @@ half_t __float2half(float value);
     }                                                            \
   }
 
-namespace Configuration {
-  extern uint verbosity_level;
-}
-
 #elif defined(HIP)
 
 // ---------------
@@ -269,10 +265,6 @@ namespace Configuration {
 
 __device__ __host__ half_t __float2half(float value);
 
-namespace Configuration {
-  extern __constant__ uint verbosity_level;
-}
-
 #else
 
 // ------------
@@ -304,10 +296,6 @@ namespace Configuration {
       throw std::invalid_argument("cudaCheckKernelCall failed");                                                   \
     }                                                                                                              \
   }
-
-namespace Configuration {
-  extern __constant__ uint verbosity_level;
-}
 
 #endif
 
@@ -343,8 +331,6 @@ namespace cuda {
 void print_gpu_memory_consumption();
 
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
-
-void populate_verbosity_constant_in_device(const uint verbosity);
 
 // Helper structure to deal with constness of T
 template<typename T, typename U>

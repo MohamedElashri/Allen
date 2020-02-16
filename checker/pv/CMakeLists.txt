@@ -10,6 +10,7 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/PV/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 include_directories(${ROOT_INCLUDE_DIRS})
+include_directories(${CPPGSL_INCLUDE_DIR})
 
 file(GLOB pv_checker_sources "src/*cpp")
 
