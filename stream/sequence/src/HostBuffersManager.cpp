@@ -102,6 +102,7 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
   buf->host_number_of_events = 1u;
   buf->host_number_of_selected_events[0] = 0u;
   buf->host_passing_event_list[0] = true;
+  buf->host_number_of_multivertex[0] = 0u;
   // create DecReport
   buf->host_dec_reports[0] = Hlt1::TCK;
   buf->host_dec_reports[1] = Hlt1::taskID;

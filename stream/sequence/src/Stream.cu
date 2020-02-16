@@ -12,9 +12,8 @@
 StreamWrapper::StreamWrapper() {
   number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
   uint passthrough_line_index = number_of_hlt1_lines;
-
   const auto lambda_fn = [&] (const unsigned long i, const std::string& line_name) {
-    if (line_name == "ErrorEvent") passthrough_line_index = i;
+    if (line_name == "PassThrough") passthrough_line_index = i;
   };
   Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
   passthrough_line = passthrough_line_index;
