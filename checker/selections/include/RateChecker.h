@@ -62,11 +62,12 @@ public:
 
     // Event loop.
     for (uint i_event = 0; i_event < total_number_of_events; i_event++) {
-      if (i_event < selected_number_of_events) {
-        // Initialize counters
-        const auto lambda_all_tracks_fn2 = [&](const unsigned long i) { m_event_decs[i] = false; };
-        Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_all_tracks_fn2)>::traverse(lambda_all_tracks_fn2);
+      // Initialize counters
+      const auto lambda_all_tracks_fn2 = [&](const unsigned long i) { m_event_decs[i] = false; };
+      Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_all_tracks_fn2)>::traverse(lambda_all_tracks_fn2);
 
+      if (i_event < selected_number_of_events) {
+        
         // Check one track decisions
         const int n_tracks_event = event_tracks_offsets[i_event + 1] - event_tracks_offsets[i_event];
         const auto lambda_one_track_fn = [&](const unsigned long i_line) {
