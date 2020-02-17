@@ -140,6 +140,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
   function(allen_add_host_library)
     add_library(${ARGV})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
   function(allen_add_device_library)
@@ -196,11 +197,12 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 
   function(allen_add_host_library)
     add_library(${ARGV})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
   function(allen_add_device_library)
     add_library(${ARGV})
-    
+
     # TODO: Add custom commands for linkage
     # foreach(arg IN LISTS ARGN)
     #   if(${arg} MATCHES "\\.cu$")
@@ -248,6 +250,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   function(allen_add_host_library)
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
   function(allen_add_device_library)
@@ -414,6 +417,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   function(allen_add_host_library)
     add_library(${ARGV})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
 #Define allen_add_device_library and allen_add_executable HIP specializations
@@ -605,7 +609,7 @@ if (USE_MPI AND MPI_FOUND)
 endif()
 
 #common libraries
-add_library(Common STATIC ${common_sources})
+allen_add_host_library(Common STATIC ${common_sources})
 
 add_library(allen_fs INTERFACE)
 if(APPLE OR (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0))

@@ -88,6 +88,7 @@ find_package(Boost REQUIRED)
 find_package(Rangev3 REQUIRED)
 find_package(cppgsl REQUIRED)
 find_package(Rangev3 REQUIRED)
+find_package(ZMQ REQUIRED)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS} ${CPPGSL_INCLUDE_DIR} ${RANGEV3_INCLUDE_DIR} ${GSL_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}/configuration/sequences")
 

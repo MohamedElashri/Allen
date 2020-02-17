@@ -11,7 +11,7 @@ if (ROOT_FOUND AND USE_ROOT)
   list(APPEND mdf_sources src/root_mdf.cpp)
 endif()
 
-add_library(mdf ${mdf_sources})
+allen_add_host_library(mdf ${mdf_sources})
 target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if (NOT GaudiProject_FOUND)
   target_include_directories (mdf PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lhcb)
