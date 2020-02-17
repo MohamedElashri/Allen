@@ -43,7 +43,7 @@ if (GaudiProject_FOUND)
   find_package(AIDA REQUIRED)
   find_package(ROOT REQUIRED)
   add_library(AllenZMQ INTERFACE)
-  add_library(ZMQSvc SHARED src/svc.cpp)
+  allen_add_host_library(ZMQSvc SHARED src/svc.cpp)
   target_include_directories(ZMQSvc PUBLIC compat include)
   target_include_directories(ZMQSvc SYSTEM PUBLIC
     ${ROOT_INCLUDE_DIRS}
@@ -66,7 +66,7 @@ if (GaudiProject_FOUND)
 
   target_link_libraries(AllenZMQ INTERFACE ZMQSvc ZMQ)
 else()
-  add_library(AllenZMQ src/functions.cpp src/svc.cpp)
+  allen_add_host_library(AllenZMQ src/functions.cpp src/svc.cpp)
   target_include_directories(AllenZMQ PUBLIC
     include
     compat
