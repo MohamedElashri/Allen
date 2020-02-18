@@ -69,6 +69,7 @@ Ghost tracks identified as muon with isMuon:                              549/  
 
 
 HLT1 rates:
+ErrorEvent:           0/  1000, (    0.00 +/-     0.00) kHz
 PassThrough:       1000/  1000, (30000.00 +/-     0.00) kHz
 NoBeams:              0/  1000, (    0.00 +/-     0.00) kHz
 BeamOne:              0/  1000, (    0.00 +/-     0.00) kHz
