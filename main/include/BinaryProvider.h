@@ -112,9 +112,6 @@ public:
       }
     }
 
-    // Reinitialize to take the possible minimum into account
-    events_per_slice = this->events_per_slice();
-
     // Get event IDs from file names; assume they are all the same in
     // different folders
     auto const& some_files = std::get<1>(m_files.front());
@@ -134,14 +131,15 @@ public:
       if (it == end(BankSizes)) {
         throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
       }
-      return {std::lround((10 * sizeof(uint32_t) + it->second) * events_per_slice * bank_size_fudge_factor * kB),
+      auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
+      return {std::lround((10 * sizeof(uint32_t) + it->second) * allocate_events * bank_size_fudge_factor * kB),
               events_per_slice};
     };
     m_slices = allocate_slices<Banks...>(n_slices, size_fun);
 
     // Reserve space for event IDs
     for (size_t n = 0; n < n_slices; ++n) {
-      m_event_ids[n].reserve(events_per_slice);
+      m_event_ids[n].reserve(this->events_per_slice());
     }
 
     // start prefetch thread

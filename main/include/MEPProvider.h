@@ -137,10 +137,6 @@ public:
       m_net_slices.resize(m_config.n_buffers);
     }
 
-    // Reinitialize to take the possible minimum number of events per
-    // slice into account
-    events_per_slice = this->events_per_slice();
-
     // Initialize the current input filename
     m_current = m_connections.begin();
 
@@ -636,7 +632,8 @@ void allocate_storage(size_t i_read)
       return {0, 2 + n_blocks + (1 + eps) * (1 + n_blocks) - 2};
     }
     else {
-      return {std::lround(it->second * eps * bank_size_fudge_factor * kB), eps};
+      auto aps = eps < 100 ? 100 : eps;
+      return {std::lround(it->second * aps * bank_size_fudge_factor * kB), eps};
     }
   };
   m_slices = allocate_slices<Banks...>(this->n_slices(), size_fun);

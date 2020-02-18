@@ -106,7 +106,7 @@ public:
    *
    * @return     number of events per slice
    */
-  size_t events_per_slice() const { return m_events_per_slice < 100 ? 100 : m_events_per_slice; }
+  size_t events_per_slice() const { return m_events_per_slice; }
 
   std::optional<size_t> const& n_events() const { return m_nevents; }
 
