@@ -26,7 +26,7 @@ struct StreamWrapper {
   std::vector<Stream*> streams;
   bool do_check;
   uint number_of_hlt1_lines;
-  uint passthrough_line;
+  uint errorevent_line;
 
   StreamWrapper();
 
