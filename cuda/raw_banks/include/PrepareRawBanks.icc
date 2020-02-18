@@ -70,7 +70,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     // TODO: Check if these are actually necessary.
     objtyp_bank.addObj(Hlt1::trackCLID, 0);
     objtyp_bank.addObj(Hlt1::svCLID, 0);
-    
+
     // Add special decisions to the substr bank.
     const auto lambda_special_fn = [&](const unsigned int i_line) {
       if (event_dec_reports[2 + i_line] & dec_mask) {
@@ -86,7 +86,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     objtyp_bank.saveSize();
     substr_bank.saveSize();
     stdinfo_bank.saveSize();
-    uint selrep_size = HltSelRepRawBank::Header::kHeaderSize + objtyp_bank.size() + substr_bank.size() + writeStdInfo * stdinfo_bank.size();
+    uint selrep_size = HltSelRepRawBank::Header::kHeaderSize + objtyp_bank.size() + substr_bank.size() +
+                       writeStdInfo * stdinfo_bank.size();
     parameters.dev_sel_rep_sizes[event_number] = selrep_size;
   }
 
@@ -205,7 +206,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Note: This was moved because it needs to be in the same order
     // as the lines in the substr
-    // Add decision summaries to the StdInfo subbank. CLID = 1.  
+    // Add decision summaries to the StdInfo subbank. CLID = 1.
     // if (writeStdInfo) {
     //   for (uint i_line = 0; i_line < n_hlt1_lines; i_line++) {
     //     if (event_dec_reports[2 + i_line] & dec_mask) {
@@ -214,7 +215,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
     //     }
     //   }
     // }
-    
+
     // Add one-track decisions to the substr and stdinfo.
     const auto lambda_onetrack_fn = [&](const unsigned int i_line) {
       const uint* candidate_counts = parameters.dev_candidate_counts + i_line * total_number_of_events + event_number;
@@ -257,7 +258,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
       }
     };
     Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
-    
+
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.
     // TODO: dev_n_tracks_saved was 0s at the beginning! ./Allen -m3
     for (uint i_saved_track = 0; i_saved_track < parameters.dev_n_tracks_saved[event_number]; i_saved_track++) {

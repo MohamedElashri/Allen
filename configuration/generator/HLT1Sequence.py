@@ -27,6 +27,7 @@ def HLT1_sequence(validate=False):
 
     package_sel_reports = package_sel_reports_t()
 
+    ErrorEvent_line = ErrorEvent_t()
     PassThrough_line = PassThrough_t()
     NoBeams_line = NoBeams_t()
     BeamOne_line = BeamOne_t()
@@ -51,11 +52,12 @@ def HLT1_sequence(validate=False):
         muon_sequence, kalman_velo_only, kalman_pv_ipchi2, filter_tracks,
         prefix_sum_secondary_vertices, fit_secondary_vertices, run_hlt1,
         run_postscale, prepare_decisions, prepare_raw_banks,
-        prefix_sum_sel_reps, package_sel_reports, PassThrough_line,
-        NoBeams_line, BeamOne_line, BeamTwo_line, BothBeams_line,
-        ODINNoBias_line, ODINLumi_line, OneTrackMVA_line, SingleMuon_line,
-        TwoTrackMVA_line, HighMassDiMuon_line, DisplacedDiMuon_line,
-        DiMuonSoft_line, D2KPi_line, D2PiPi_line, D2KK_line)
+        prefix_sum_sel_reps, package_sel_reports, ErrorEvent_line,
+        PassThrough_line, NoBeams_line, BeamOne_line, BeamTwo_line,
+        BothBeams_line, ODINNoBias_line, ODINLumi_line, OneTrackMVA_line,
+        SingleMuon_line, TwoTrackMVA_line, HighMassDiMuon_line,
+        DisplacedDiMuon_line, DiMuonSoft_line, D2KPi_line, D2PiPi_line,
+        D2KK_line)
 
     if validate:
         hlt1_sequence.validate()
