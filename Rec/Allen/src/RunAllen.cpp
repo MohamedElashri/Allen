@@ -99,12 +99,14 @@ StatusCode RunAllen::initialize()
 
   m_number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
 
-  uint passthrough_line = 0;
-  const auto lambda_fn = [&passthrough_line](const unsigned long i) { passthrough_line = i; };
-  Hlt1::TraverseLines<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
+  uint error_line = 0;
+  const auto lambda_fn = [&error_line] (const unsigned long i, const std::string& line_name) {
+    if (line_name == "ErrorEvent") error_line = i;
+  };
+  Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
 
   m_host_buffers_manager.reset(
-    new HostBuffersManager(m_n_buffers, 2, m_do_check, m_number_of_hlt1_lines, passthrough_line));
+    new HostBuffersManager(m_n_buffers, 2, m_do_check, m_number_of_hlt1_lines, error_line));
   m_stream.reset(new Stream());
   m_stream->configure_algorithms(configuration_reader.params());
   m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants);
@@ -159,9 +161,9 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
     error() << "Allen exited with errorCode " << rv << endmsg;
     // how to exit a filter with failure?
   }
-  bool filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_selected_events[0];
-  if (m_filter_hlt1) {
-    filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_number_of_events;
+  bool filter = true;
+  if (m_filter_hlt1.value()) {
+    filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_passing_event_list[0];
   }
   info() << "Event selected by Allen: " << uint(filter) << endmsg;
   return std::make_tuple(filter, *(m_stream->host_buffers_manager->getBuffers(buf_idx)));
