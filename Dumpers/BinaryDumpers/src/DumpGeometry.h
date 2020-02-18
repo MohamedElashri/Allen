@@ -35,7 +35,7 @@ template<typename DETECTOR>
 class DumpGeometry : public Service {
 public:
   DumpGeometry(std::string name, ISvcLocator* loc, std::string detLoc) :
-    Service(name, loc), m_location {std::move(detLoc)}
+    Service(name, loc), m_location {this, "Location", std::move(detLoc)}
   {}
 
   StatusCode initialize() override;
@@ -143,7 +143,7 @@ private:
     this,
     "TagRegex",
     make_pair(std::string {".*/(\\w+)\\.git"}, std::string {".*/([a-zA-Z0-9\\-]+)\\[(.*)\\]"})};
-  std::string m_location;
+  Gaudi::Property<std::string> m_location;
   std::unordered_map<std::string, std::vector<char>> m_buffer;
 
   std::map<std::string, std::string> m_tags;

@@ -63,6 +63,7 @@ gaudi_subdir(Allen v1r0)
 
 gaudi_depends_on_subdirs(Det/FTDet
                          Det/VPDet
+                         Det/CaloDet
                          UT/UTDAQ
                          UT/UTKernel
                          Event/FTEvent
@@ -89,8 +90,8 @@ gaudi_env(SET ALLEN_INSTALL_DIR ${ALLEN_INSTALL_DIR})
 gaudi_add_module(AllenWrapper
                  src/*.cpp
                  LINK_LIBRARIES AllenLib DAQEventLib DAQKernelLib GaudiAlgLib
-                                PrKernel VPDetLib UTDetLib UTKernelLib
-                                FTDetLib HltEvent)
+                                PrKernel VPDetLib UTDetLib UTKernelLib CaloDetLib
+                                FTDetLib)
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
   target_compile_definitions(AllenWrapper PRIVATE ALLEN_DEBUG)
 endif()
