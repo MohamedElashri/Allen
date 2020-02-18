@@ -26,7 +26,7 @@ namespace run_postscale {
   };
 
   template<typename T>
-  __global__ void run_postscale(Parameters, const uint total_number_of_events, const uint event_start);
+  __global__ void run_postscale(Parameters, const uint selected_number_of_events, const uint event_start);
 
   template<typename T, typename U, char... S>
   struct run_postscale_t : public DeviceAlgorithm, Parameters {
@@ -58,7 +58,7 @@ namespace run_postscale {
       const auto total_number_of_events =
         std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      function(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_event_list_t>(arguments),
                     begin<dev_odin_raw_input_t>(arguments),
                     begin<dev_odin_raw_input_offsets_t>(arguments),
@@ -72,7 +72,7 @@ namespace run_postscale {
                     property<factor_disp_dimuon_t>(),
                     property<factor_high_mass_dimuon_t>(),
                     property<factor_dimuon_soft_t>()},
-        total_number_of_events,
+        value<host_number_of_selected_events_t>(arguments),
         event_start);
 
       if (runtime_options.do_check) {

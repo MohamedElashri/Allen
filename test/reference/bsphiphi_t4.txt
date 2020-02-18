@@ -69,14 +69,13 @@ Ghost tracks identified as muon with isMuon:                              549/  
 
 
 HLT1 rates:
-PassThrough:        856/  1000, (25680.00 +/-   333.07) kHz
+PassThrough:       1000/  1000, (30000.00 +/-     0.00) kHz
 NoBeams:              0/  1000, (    0.00 +/-     0.00) kHz
 BeamOne:              0/  1000, (    0.00 +/-     0.00) kHz
 BeamTwo:              0/  1000, (    0.00 +/-     0.00) kHz
 BothBeams:            0/  1000, (    0.00 +/-     0.00) kHz
 ODINNoBias:           0/  1000, (    0.00 +/-     0.00) kHz
 ODINLumi:             0/  1000, (    0.00 +/-     0.00) kHz
-VeloMicroBias:        0/  1000, (    0.00 +/-     0.00) kHz
 OneTrackMVA:         70/  1000, ( 2100.00 +/-   242.05) kHz
 SingleMuon:           1/  1000, (   30.00 +/-    29.98) kHz
 TwoTrackMVA:        419/  1000, (12570.00 +/-   468.08) kHz
@@ -86,4 +85,4 @@ DiMuonSoft:           1/  1000, (   30.00 +/-    29.98) kHz
 D2KPi:               41/  1000, ( 1230.00 +/-   188.11) kHz
 D2PiPi:              31/  1000, (  930.00 +/-   164.42) kHz
 D2KK:                21/  1000, (  630.00 +/-   136.03) kHz
-Inclusive:          856/  1000, (25680.00 +/-   333.07) kHz
+Inclusive:         1000/  1000, (30000.00 +/-     0.00) kHz
