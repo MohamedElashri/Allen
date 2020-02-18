@@ -100,13 +100,12 @@ StatusCode RunAllen::initialize()
   m_number_of_hlt1_lines = std::tuple_size<configured_lines_t>::value;
 
   uint error_line = 0;
-  const auto lambda_fn = [&error_line] (const unsigned long i, const std::string& line_name) {
+  const auto lambda_fn = [&error_line](const unsigned long i, const std::string& line_name) {
     if (line_name == "ErrorEvent") error_line = i;
   };
   Hlt1::TraverseLinesNames<configured_lines_t, Hlt1::SpecialLine, decltype(lambda_fn)>::traverse(lambda_fn);
 
-  m_host_buffers_manager.reset(
-    new HostBuffersManager(m_n_buffers, 2, m_do_check, m_number_of_hlt1_lines, error_line));
+  m_host_buffers_manager.reset(new HostBuffersManager(m_n_buffers, 2, m_do_check, m_number_of_hlt1_lines, error_line));
   m_stream.reset(new Stream());
   m_stream->configure_algorithms(configuration_reader.params());
   m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants);

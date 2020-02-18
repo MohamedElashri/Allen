@@ -10,7 +10,7 @@ __global__ void run_postscale::run_postscale(
   const uint event_start)
 {
   const auto event_number = blockIdx.x;
-  
+
   const uint hdr_size(8);
   const unsigned int* odinData = reinterpret_cast<const uint*>(
     parameters.dev_odin_raw_input + parameters.dev_odin_raw_input_offsets[event_number] + hdr_size);
@@ -55,15 +55,17 @@ __global__ void run_postscale::run_postscale(
       DeterministicPostscaler ps(i_line, scale_factor);
       ps(n_tracks_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
     };
-    Hlt1::TraverseLinesScaleFactors<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(lambda_one_track_fn);
+    Hlt1::TraverseLinesScaleFactors<T, Hlt1::OneTrackLine, decltype(lambda_one_track_fn)>::traverse(
+      lambda_one_track_fn);
 
     // Process 2-track lines.
     const auto lambda_two_track_fn = [&](const unsigned long i_line, const float scale_factor) {
-      bool* decs =
-        parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + parameters.dev_sv_offsets[event_number];
+      bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] +
+                   parameters.dev_sv_offsets[event_number];
       DeterministicPostscaler ps(i_line, scale_factor);
       ps(n_vertices_event, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
     };
-    Hlt1::TraverseLinesScaleFactors<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+    Hlt1::TraverseLinesScaleFactors<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(
+      lambda_two_track_fn);
   }
 }

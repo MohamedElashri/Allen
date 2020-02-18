@@ -48,7 +48,8 @@ __global__ void prepare_decisions::prepare_decisions(
     // Tracks.
     int* event_save_track = parameters.dev_save_track + scifi_tracks.tracks_offset(selected_event_number);
     const int n_tracks_event = scifi_tracks.number_of_tracks(selected_event_number);
-    uint* event_saved_tracks_list = parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(selected_event_number);
+    uint* event_saved_tracks_list =
+      parameters.dev_saved_tracks_list + scifi_tracks.tracks_offset(selected_event_number);
 
     // Vertices.
     int* event_save_sv = parameters.dev_save_sv + parameters.dev_sv_offsets[selected_event_number];

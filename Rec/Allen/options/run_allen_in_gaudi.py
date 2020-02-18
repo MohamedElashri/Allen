@@ -45,7 +45,6 @@ ids = {'Hlt1%sDecision' % l: i for i, l in enumerate(lines)}
 annSvc = HltANNSvc("HltANNSvc", Hlt1SelectionID=ids, OutputLevel=2)
 ApplicationMgr().ExtSvc += [annSvc]
 
-
 MCCuts = {
     "Velo": {
         "01_velo": "isVelo",
