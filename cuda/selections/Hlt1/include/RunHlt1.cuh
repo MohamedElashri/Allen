@@ -23,10 +23,12 @@ namespace run_hlt1 {
   };
 
   template<typename T>
-  __global__ void run_hlt1(Parameters parameters, const uint total_number_of_events, const uint event_start)
+  __global__ void run_hlt1(Parameters parameters, const uint selected_number_of_events, const uint event_start)
   {
-    // Run all events through the Special line traverser with the first block
-    if (blockIdx.x == 0) {
+    const uint total_number_of_events = gridDim.x;
+
+    // Run all events through the Special line traverser with the last block
+    if (blockIdx.x == gridDim.x - 1) {
       Hlt1::SpecialLineTraverse<T>::traverse(
         parameters.dev_sel_results,
         parameters.dev_sel_results_offsets,
@@ -35,43 +37,45 @@ namespace run_hlt1 {
         total_number_of_events);
     }
 
-    // Run all events that passed the filter (GEC) through the other line traversers
-    const uint selected_event_number = blockIdx.x;
-    // TODO: Revisit when making composable lists
-    const uint event_number = parameters.dev_event_list[blockIdx.x] - event_start;
+    if (blockIdx.x < selected_number_of_events) {
+      // Run all events that passed the filter (GEC) through the other line traversers
+      const uint selected_event_number = blockIdx.x;
+      // TODO: Revisit when making composable lists
+      const uint event_number = parameters.dev_event_list[blockIdx.x] - event_start;
 
-    // Fetch tracks
-    const ParKalmanFilter::FittedTrack* event_tracks =
-      parameters.dev_kf_tracks + parameters.dev_offsets_forward_tracks[selected_event_number];
-    const auto number_of_tracks_in_event = parameters.dev_offsets_forward_tracks[selected_event_number + 1] -
-                                           parameters.dev_offsets_forward_tracks[selected_event_number];
+      // Fetch tracks
+      const ParKalmanFilter::FittedTrack* event_tracks =
+        parameters.dev_kf_tracks + parameters.dev_offsets_forward_tracks[selected_event_number];
+      const auto number_of_tracks_in_event = parameters.dev_offsets_forward_tracks[selected_event_number + 1] -
+                                             parameters.dev_offsets_forward_tracks[selected_event_number];
 
-    // Fetch vertices
-    const VertexFit::TrackMVAVertex* event_vertices =
-      parameters.dev_consolidated_svs + parameters.dev_sv_offsets[selected_event_number];
-    const auto number_of_vertices_in_event =
-      parameters.dev_sv_offsets[selected_event_number + 1] - parameters.dev_sv_offsets[selected_event_number];
+      // Fetch vertices
+      const VertexFit::TrackMVAVertex* event_vertices =
+        parameters.dev_consolidated_svs + parameters.dev_sv_offsets[selected_event_number];
+      const auto number_of_vertices_in_event =
+        parameters.dev_sv_offsets[selected_event_number + 1] - parameters.dev_sv_offsets[selected_event_number];
 
-    // Fetch ODIN info.
-    const char* event_odin_data = parameters.dev_odin_raw_input + parameters.dev_odin_raw_input_offsets[event_number];
+      // Fetch ODIN info.
+      const char* event_odin_data = parameters.dev_odin_raw_input + parameters.dev_odin_raw_input_offsets[event_number];
 
-    // Fetch number of velo tracks.
-    const uint n_velo_tracks =
-      parameters.dev_velo_offsets[selected_event_number + 1] - parameters.dev_velo_offsets[selected_event_number];
+      // Fetch number of velo tracks.
+      const uint n_velo_tracks =
+        parameters.dev_velo_offsets[selected_event_number + 1] - parameters.dev_velo_offsets[selected_event_number];
 
-    // Process all lines
-    Hlt1::Traverse<T>::traverse(
-      parameters.dev_sel_results,
-      parameters.dev_sel_results_offsets,
-      parameters.dev_offsets_forward_tracks,
-      parameters.dev_sv_offsets,
-      event_tracks,
-      event_vertices,
-      event_odin_data,
-      n_velo_tracks,
-      selected_event_number,
-      number_of_tracks_in_event,
-      number_of_vertices_in_event);
+      // Process all lines
+      Hlt1::Traverse<T>::traverse(
+        parameters.dev_sel_results,
+        parameters.dev_sel_results_offsets,
+        parameters.dev_offsets_forward_tracks,
+        parameters.dev_sv_offsets,
+        event_tracks,
+        event_vertices,
+        event_odin_data,
+        n_velo_tracks,
+        selected_event_number,
+        number_of_tracks_in_event,
+        number_of_vertices_in_event);
+    }
   }
 
   template<typename T, typename U, char... S>
@@ -138,7 +142,7 @@ namespace run_hlt1 {
 
       initialize<dev_sel_results_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      function(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_event_list_t>(arguments),
                     begin<dev_kf_tracks_t>(arguments),
                     begin<dev_consolidated_svs_t>(arguments),
@@ -149,7 +153,7 @@ namespace run_hlt1 {
                     begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_sel_results_t>(arguments),
                     begin<dev_sel_results_offsets_t>(arguments)},
-        total_number_of_events,
+        value<host_number_of_selected_events_t>(arguments),
         event_start);
 
       if (runtime_options.do_check) {

@@ -627,7 +627,7 @@ extern "C" int allen(
       error_count += !ready;
       ++thread_id;
     }
-    if (n_ready == n) {
+    if (n_ready == n && print_status) {
       info_cout << "Started " << type << " threads\n";
     }
   }

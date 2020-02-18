@@ -5,9 +5,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
   const uint total_number_of_events,
   const uint event_start)
 {
-
   // Handle special lines for events that don't pass the GEC.
-  for (uint selected_event_number = blockIdx.x * blockDim.x + threadIdx.x + selected_number_of_events;
+  for (uint selected_event_number = selected_number_of_events + blockIdx.x * blockDim.x + threadIdx.x;
        selected_event_number < total_number_of_events;
        selected_event_number += blockDim.x * gridDim.x) {
     const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
