@@ -45,7 +45,7 @@ namespace prepare_raw_banks {
     DEVICE_OUTPUT(dev_sel_rb_substr_t, uint) dev_sel_rb_substr;
     DEVICE_OUTPUT(dev_sel_rep_sizes_t, uint) dev_sel_rep_sizes;
     DEVICE_OUTPUT(dev_passing_event_list_t, bool) dev_passing_event_list;
-    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 16);
+    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimensions X", 32);
   };
 
   template<typename T>

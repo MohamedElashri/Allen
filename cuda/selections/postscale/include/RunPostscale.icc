@@ -67,5 +67,13 @@ __global__ void run_postscale::run_postscale(
     };
     Hlt1::TraverseLinesScaleFactors<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(
       lambda_two_track_fn);
+
+    // Process Velo lines.
+    const auto lambda_velo_fn = [&](const unsigned long i_line, const float scale_factor) {
+      bool* decs = parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + selected_event_number;
+      DeterministicPostscaler ps(i_line, scale_factor);
+      ps(1, decs, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+    };
+    Hlt1::TraverseLinesScaleFactors<T, Hlt1::VeloLine, decltype(lambda_velo_fn)>::traverse(lambda_velo_fn);
   }
 }

@@ -61,44 +61,44 @@ namespace Hlt1 {
     }
   };
 
-  // template<typename T, typename... OtherLines, unsigned long I, unsigned long... Is>
-  // struct TraverseImpl<
-  //   std::tuple<T, OtherLines...>,
-  //   std::index_sequence<I, Is...>,
-  //   typename std::enable_if<std::is_base_of<VeloLine, T>::value>::type> {
-  //   constexpr static __device__ void traverse(
-  //     bool* dev_sel_results,
-  //     const uint* dev_sel_results_offsets,
-  //     const uint* dev_offsets_forward_tracks,
-  //     const uint* dev_sv_offsets,
-  //     const ParKalmanFilter::FittedTrack* event_tracks,
-  //     const VertexFit::TrackMVAVertex* event_vertices,
-  //     const char* event_odin_data,
-  //     const uint number_of_velo_tracks,
-  //     const uint event_number,
-  //     const uint number_of_tracks_in_event,
-  //     const uint number_of_vertices_in_event)
-  //   {
-  //     bool* decisions = dev_sel_results + dev_sel_results_offsets[I] + dev_offsets_forward_tracks[event_number];
+  template<typename T, typename... OtherLines, unsigned long I, unsigned long... Is>
+  struct TraverseImpl<
+    std::tuple<T, OtherLines...>,
+    std::index_sequence<I, Is...>,
+    typename std::enable_if<std::is_base_of<VeloLine, T>::value>::type> {
+    constexpr static __device__ void traverse(
+      bool* dev_sel_results,
+      const uint* dev_sel_results_offsets,
+      const uint* dev_offsets_forward_tracks,
+      const uint* dev_sv_offsets,
+      const ParKalmanFilter::FittedTrack* event_tracks,
+      const VertexFit::TrackMVAVertex* event_vertices,
+      const char* event_odin_data,
+      const uint number_of_velo_tracks,
+      const uint event_number,
+      const uint number_of_tracks_in_event,
+      const uint number_of_vertices_in_event)
+    {
+      bool* decisions = dev_sel_results + dev_sel_results_offsets[I] + event_number;
 
-  //     for (uint i = threadIdx.x; i < number_of_tracks_in_event; i += blockDim.x) {
-  //       decisions[i] = T::function(number_of_velo_tracks);
-  //     }
+      if (threadIdx.x == 0) {
+        decisions[0] = T::function(number_of_velo_tracks);
+      }
 
-  //     TraverseImpl<std::tuple<OtherLines...>, std::index_sequence<Is...>>::traverse(
-  //       dev_sel_results,
-  //       dev_sel_results_offsets,
-  //       dev_offsets_forward_tracks,
-  //       dev_sv_offsets,
-  //       event_tracks,
-  //       event_vertices,
-  //       event_odin_data,
-  //       number_of_velo_tracks,
-  //       event_number,
-  //       number_of_tracks_in_event,
-  //       number_of_vertices_in_event);
-  //   }
-  // };
+      TraverseImpl<std::tuple<OtherLines...>, std::index_sequence<Is...>>::traverse(
+        dev_sel_results,
+        dev_sel_results_offsets,
+        dev_offsets_forward_tracks,
+        dev_sv_offsets,
+        event_tracks,
+        event_vertices,
+        event_odin_data,
+        number_of_velo_tracks,
+        event_number,
+        number_of_tracks_in_event,
+        number_of_vertices_in_event);
+    }
+  };
 
   template<typename T, typename... OtherLines, unsigned long I, unsigned long... Is>
   struct TraverseImpl<

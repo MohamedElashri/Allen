@@ -62,6 +62,7 @@ public:
 
     // Event loop.
     for (uint i_event = 0; i_event < total_number_of_events; i_event++) {
+
       // Initialize counters
       const auto lambda_all_tracks_fn2 = [&](const unsigned long i) { m_event_decs[i] = false; };
       Hlt1::TraverseLines<T, Hlt1::Line, decltype(lambda_all_tracks_fn2)>::traverse(lambda_all_tracks_fn2);
@@ -87,6 +88,13 @@ public:
           }
         };
         Hlt1::TraverseLines<T, Hlt1::TwoTrackLine, decltype(lambda_two_track_fn)>::traverse(lambda_two_track_fn);
+
+        // Check velo line decisions.
+        const auto lambda_velo_fn = [&](const unsigned long i_line) {
+          const bool* decs = decisions + decisions_offsets[i_line] + i_event;
+          if (decs[0]) m_event_decs[i_line] = true;
+        };
+        Hlt1::TraverseLines<T, Hlt1::VeloLine, decltype(lambda_velo_fn)>::traverse(lambda_velo_fn);
       }
 
       // Check special decisions.
