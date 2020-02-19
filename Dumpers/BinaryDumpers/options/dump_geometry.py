@@ -8,7 +8,8 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from GaudiPython.Bindings import AppMgr
+from GaudiConf import IOHelper
+from GaudiPython.Bindings import AppMgr, gbl
 from Configurables import LHCbApp, CondDB
 from Configurables import GaudiSequencer
 from Configurables import FTRawBankDecoder
@@ -76,9 +77,30 @@ HistogramPersistencySvc().OutputFile = "dump-histos.root"
 # No error messages when reading MDF
 IODataManager().DisablePFNWarning = True
 
+IOHelper('MDF').inputFiles(
+    [
+        # SciFi v5, minbias
+        'PFN:/data/bfys/raaij/upgrade_scifi_v5_uncompressed/upgrade_mc_minbias_scifi_v5_%03d.mdf' % i for i in range(5)
+    ],
+    clear=True)
+
 # GaudiPython
 gaudi = AppMgr()
 gaudi.initialize()
-detSvc = gaudi.detSvc()
-ecal = detSvc[ecal_location]
-hcal = detSvc[hcal_location]
+
+TES = gaudi.evtSvc()
+det = gaudi.detSvc()
+ecal = det[ecal_location]
+hcal = det[hcal_location]
+
+ecal_type = gbl.LHCb.RawBank.EcalPacked
+hcal_type = gbl.LHCb.RawBank.HcalPacked
+
+while True:
+    gaudi.run(1)
+    if not TES['/Event']:
+        break
+    raw_event = TES['DAQ/RawEvent']
+    ecal_banks = raw_event.banks(ecal_type)
+    hcal_banks = raw_event.banks(hcal_type)
+    break
