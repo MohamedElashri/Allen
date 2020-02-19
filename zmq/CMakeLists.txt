@@ -64,7 +64,7 @@ if (GaudiProject_FOUND)
     target_link_libraries(ZMQSvc PUBLIC ${SODIUM_LIBRARY})
   endif()
 
-  target_link_libraries(AllenZMQ INTERFACE ZMQSvc ZMQLib)
+  target_link_libraries(AllenZMQ INTERFACE ZMQSvc ZMQ)
 else()
   allen_add_host_library(AllenZMQ src/functions.cpp src/svc.cpp)
   target_include_directories(AllenZMQ PUBLIC
