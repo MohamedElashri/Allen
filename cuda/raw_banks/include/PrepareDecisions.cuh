@@ -47,7 +47,7 @@ namespace prepare_decisions {
     DEVICE_OUTPUT(dev_dec_reports_t, uint) dev_dec_reports;
     DEVICE_OUTPUT(dev_save_track_t, int) dev_save_track;
     DEVICE_OUTPUT(dev_save_sv_t, int) dev_save_sv;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
   };
 
   template<typename T>

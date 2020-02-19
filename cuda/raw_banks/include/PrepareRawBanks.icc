@@ -256,6 +256,8 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
         substr_bank.addSubstr(0, 0);
       }
     };
+    // Can use this lambda for both the VELO and special lines.
+    Hlt1::TraverseLines<T, Hlt1::VeloLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
     Hlt1::TraverseLines<T, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
 
     // Add tracks to the hits subbank and to the StdInfo. CLID = 10010.

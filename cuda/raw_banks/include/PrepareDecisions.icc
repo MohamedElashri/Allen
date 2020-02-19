@@ -131,5 +131,19 @@ __global__ void prepare_decisions::prepare_decisions(
         event_save_track[i_track] = (int) track_insert_index;
       }
     }
+
+    // Set velo line decisions.
+    for (uint selected_event_number = blockIdx.x; selected_event_number < selected_number_of_events;
+         selected_event_number++) {
+      const uint event_number = parameters.dev_event_list[selected_event_number] - event_start;
+      uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_hlt1_lines) * event_number;
+      const auto lambda_fn = [&](const unsigned long i_line) {
+        const bool* decisions =
+          parameters.dev_sel_results + parameters.dev_sel_results_offsets[i_line] + selected_event_number;
+        uint32_t dec = ((decisions[0] ? 1 : 0) & dec_mask);
+        atomicOr(event_dec_reports + 2 + i_line, dec);
+      };
+      Hlt1::TraverseLines<T, Hlt1::VeloLine, decltype(lambda_fn)>::traverse(lambda_fn);
+    }
   }
 }

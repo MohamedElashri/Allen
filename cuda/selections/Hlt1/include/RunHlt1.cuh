@@ -127,9 +127,13 @@ namespace run_hlt1 {
       const auto lambda_special_fn = [&](const unsigned long i_line) {
         host_buffers.host_sel_results_atomics[i_line] = total_number_of_events;
       };
-
       Hlt1::TraverseLines<U, Hlt1::SpecialLine, decltype(lambda_special_fn)>::traverse(lambda_special_fn);
 
+      const auto lambda_velo_fn = [&](const unsigned long i_line) {
+        host_buffers.host_sel_results_atomics[i_line] = value<host_number_of_selected_events_t>(arguments);
+      };
+      Hlt1::TraverseLines<U, Hlt1::VeloLine, decltype(lambda_velo_fn)>::traverse(lambda_velo_fn);
+      
       // Prefix sum
       host_prefix_sum::host_prefix_sum_impl(host_buffers.host_sel_results_atomics, std::tuple_size<U>::value);
 
