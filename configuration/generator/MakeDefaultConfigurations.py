@@ -20,17 +20,22 @@ ut_sequence.generate(
     output_filename="generated/UT.h",
     json_configuration_filename="generated/UT.json")
 
-muon_sequence = Muon_sequence()
-muon_sequence.generate(
-    output_filename="generated/Muon.h",
-    json_configuration_filename="generated/Muon.json")
-
 forward_sequence = Forward_sequence()
 forward_sequence.generate(
     output_filename="generated/Forward.h",
     json_configuration_filename="generated/Forward.json")
 
+muon_sequence = Muon_sequence()
+muon_sequence.generate(
+    output_filename="generated/Muon.h",
+    json_configuration_filename="generated/Muon.json")
+
 default_sequence = HLT1_sequence()
 default_sequence.generate(
     output_filename="generated/DefaultSequence.h",
     json_configuration_filename="generated/DefaultSequence.json")
+
+default_sequence = HLT1_sequence(forward_decoding="v6")
+default_sequence.generate(
+    output_filename="generated/HLT1v6.h",
+    json_configuration_filename="generated/HLT1v6.json")

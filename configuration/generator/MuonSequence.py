@@ -2,7 +2,8 @@ from algorithms import *
 from ForwardSequence import Forward_sequence
 
 
-def Muon_sequence(validate=False):
+def Muon_sequence(validate=False,
+    forward_decoding="v4"):
     muon_pre_decoding = muon_pre_decoding_t()
 
     muon_pre_decoding_prefix_sum = host_prefix_sum_t(
@@ -25,7 +26,7 @@ def Muon_sequence(validate=False):
     muon_sort_by_station = muon_sort_by_station_t()
     is_muon = is_muon_t()
 
-    forward_sequence = Forward_sequence()
+    forward_sequence = Forward_sequence(forward_decoding=forward_decoding)
     muon_sequence = extend_sequence(
         forward_sequence, muon_pre_decoding, muon_pre_decoding_prefix_sum,
         muon_sort_station_region_quarter, muon_add_coords_crossing_maps,

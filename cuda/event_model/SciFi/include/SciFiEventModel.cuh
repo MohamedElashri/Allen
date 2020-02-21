@@ -62,12 +62,8 @@ namespace SciFi {
       return m_mat_offsets[corrected_mat_number];
     }
 
-    __host__ __device__ typename ForwardType<T, uint>::t* mat_offsets_p(const uint mat_number)
+    __host__ __device__ typename ForwardType<T, uint>::t* mat_offsets_p(const uint mat_number) const
     {
-      // assert(
-      //   mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
-      //   mat_number < SciFi::Constants::n_mats);
-      // const uint corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
       return m_mat_offsets + mat_number;
     }
 

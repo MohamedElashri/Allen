@@ -2,7 +2,8 @@ from algorithms import *
 from MuonSequence import Muon_sequence
 
 
-def HLT1_sequence(validate=False):
+def HLT1_sequence(validate=False,
+    forward_decoding="v4"):
     kalman_velo_only = kalman_velo_only_t()
     kalman_pv_ipchi2 = kalman_pv_ipchi2_t()
 
@@ -45,7 +46,7 @@ def HLT1_sequence(validate=False):
     D2PiPi_line = D2PiPi_t()
     D2KK_line = D2KK_t()
 
-    muon_sequence = Muon_sequence()
+    muon_sequence = Muon_sequence(forward_decoding=forward_decoding)
     # VeloMicroBias_line,
     hlt1_sequence = extend_sequence(
         muon_sequence, kalman_velo_only, kalman_pv_ipchi2, filter_tracks,
