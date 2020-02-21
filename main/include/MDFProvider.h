@@ -96,16 +96,13 @@ public:
     // Preallocate prefetch buffer memory
     m_buffers.resize(config.n_buffers);
     for (auto& [n_filled, event_offsets, buffer, transpose_start] : m_buffers) {
-      buffer.resize(config.events_per_buffer * average_event_size * bank_size_fudge_factor * kB);
+      auto epb = config.events_per_buffer;
+      buffer.resize((epb < 100 ? 100 : epb) * average_event_size * bank_size_fudge_factor * kB);
       event_offsets.resize(config.offsets_size);
       event_offsets[0] = 0;
       n_filled = 0;
       transpose_start = 0;
     }
-
-    // Reinitialize to take the possible minimum number of events per
-    // slice into account
-    events_per_slice = this->events_per_slice();
 
     // Initialize the current input filename
     m_current = m_connections.begin();
@@ -155,8 +152,10 @@ public:
               throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
             }
             auto n_banks = m_banks_count[ib];
+            // Allocate a minimum size
+            auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
             return {std::lround(
-                      ((1 + n_banks) * sizeof(uint32_t) + it->second) * events_per_slice * bank_size_fudge_factor * kB),
+                      ((1 + n_banks) * sizeof(uint32_t) + it->second) * allocate_events * bank_size_fudge_factor * kB),
                     events_per_slice};
           };
           m_slices = allocate_slices<Banks...>(n_slices, size_fun);

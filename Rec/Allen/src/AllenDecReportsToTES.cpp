@@ -53,8 +53,7 @@ LHCb::RawEvent AllenDecReportsToTES::operator()(const HostBuffers& host_buffers)
   }
   LHCb::RawEvent raw_event;
   // SourceID_Hlt1 = 1, SourceID_BitShift = 13, VersionNumber = 2
-  // SourceID_Hlt = 0
-  raw_event.addBank(int(0 << 13), LHCb::RawBank::HltDecReports, 2u, dec_reports);
+  raw_event.addBank(int(1 << 13), LHCb::RawBank::HltDecReports, 2u, dec_reports);
 
   return raw_event;
 }

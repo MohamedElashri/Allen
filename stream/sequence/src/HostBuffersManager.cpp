@@ -113,7 +113,7 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
     dec_report.setNumberOfCandidates(0);
     dec_report.setIntDecisionID(i_line);
     dec_report.setExecutionStage(1);
-    if (i_line == m_passthrough_line) {
+    if (i_line == m_errorevent_line) {
       dec_report.setDecision(true);
       dec_report.setNumberOfCandidates(1);
     }

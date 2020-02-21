@@ -29,8 +29,21 @@ from Configurables import DumpMuonGeometry, DumpVPGeometry
 from Configurables import DumpMagneticField, DumpBeamline, DumpUTLookupTables
 from Configurables import ApplicationMgr
 from Configurables import ProcessPhase
-
+from Configurables import HltDecReportsDecoder, HltANNSvc, AllenDecReportsToTES
+import json
 import os
+
+conf_path = os.path.expandvars(
+    "$ALLEN_PROJECT_ROOT/configuration/constants/DefaultSequence.json")
+lines = []
+with open(conf_path, 'r') as f:
+    j = json.load(f)
+    lines = [l.encode() for l in j['configured_lines']]
+
+ids = {'Hlt1%sDecision' % l: i for i, l in enumerate(lines)}
+
+annSvc = HltANNSvc("HltANNSvc", Hlt1SelectionID=ids, OutputLevel=2)
+ApplicationMgr().ExtSvc += [annSvc]
 
 MCCuts = {
     "Velo": {
@@ -248,6 +261,13 @@ def addPrCheckerCutsAndPlots():
         TriggerNumbers=True,
         HitTypesToCheck=getHitTypeMask(["FT"]),
         MyCuts=getMCCuts("Forward"))
+
+    allenReports = AllenDecReportsToTES()
+    reports = HltDecReportsDecoder()
+    reports.RawEventLocations = "Allen/Out/DecReports"
+    reports.SourceID = 1
+    GaudiSequencer("CheckAllenReportsSeq", Members=[allenReports, reports])
+    ProcessPhase("Check").DetectorList += ["AllenReports"]
 
     # as configurations are not yet uniformized and properly handled, there is an ugly trick here
     # all members are newly defined here as they have different names from the original ones

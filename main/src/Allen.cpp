@@ -437,7 +437,7 @@ extern "C" int allen(
     *events_per_slice,
     do_check,
     stream_wrapper.number_of_hlt1_lines,
-    stream_wrapper.passthrough_line);
+    stream_wrapper.errorevent_line);
 
   stream_wrapper.initialize_streams_host_buffers_manager(buffer_manager.get());
 
@@ -627,7 +627,7 @@ extern "C" int allen(
       error_count += !ready;
       ++thread_id;
     }
-    if (n_ready == n) {
+    if (n_ready == n && print_status) {
       info_cout << "Started " << type << " threads\n";
     }
   }

@@ -21,10 +21,10 @@ struct HostBuffersManager {
     const uint max_number_of_events,
     const bool do_check,
     const uint number_of_hlt1_lines,
-    const uint passthrough_line) :
+    const uint errorevent_line) :
     max_events(max_number_of_events),
     check(do_check), m_number_of_hlt1_lines(number_of_hlt1_lines),
-    m_passthrough_line(passthrough_line)
+    m_errorevent_line(errorevent_line)
   {
     init(nBuffers);
   }
@@ -58,5 +58,5 @@ private:
   const uint max_events;
   const bool check;
   const uint m_number_of_hlt1_lines;
-  const uint m_passthrough_line;
+  const uint m_errorevent_line;
 };

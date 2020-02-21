@@ -167,7 +167,7 @@ def write_algorithm_code(algorithm, i=0):
           + "(\"" + var_name + "\", \"" + var["type"] + "\")"
     for prop_name, prop in iter(algorithm["properties"].items()):
         s += ",\n" \
-          + prefix(i) + prop_name + "= Property" \
+          + prefix(i) + prop["name"].strip()[1:-1] + "=Property" \
           + "(\"" + prop["type"].strip() + "\", " \
           + "\"" + prop["default_value"].strip() + "\", " + prop["description"].strip() + ")"
     s += "):\n"
@@ -195,7 +195,7 @@ def write_algorithm_code(algorithm, i=0):
     for prop_name, prop in iter(algorithm["properties"].items()):
         s += "\n" + prefix(i) + "(" + prop["name"].strip() + ", Property" \
           + "(\"" + prop["type"].strip() + "\", " \
-          + "\"" + prop["default_value"].strip() + "\", " + prop["description"].strip() + ", " + prop_name + ")),"
+          + "\"" + prop["default_value"].strip() + "\", " + prop["description"].strip() + ", " + prop["name"].strip()[1:-1] + ")),"
     s = s[:-1]
     if len(algorithm["properties"]) > 0:
         s += "]"
@@ -237,7 +237,7 @@ def write_algorithm_code(algorithm, i=0):
         i -= 1
 
     for prop_name, prop in iter(algorithm["properties"].items()):
-        s += prefix(i) + "def property_" + prop_name + "(self):\n"
+        s += prefix(i) + "def " + prop_name + "(self):\n"
         i += 1
         s += prefix(
             i) + "return self.__ordered_properties[\"" + prop_name + "\"]\n\n"

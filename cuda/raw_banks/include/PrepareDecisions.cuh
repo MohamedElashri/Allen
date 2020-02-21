@@ -47,11 +47,11 @@ namespace prepare_decisions {
     DEVICE_OUTPUT(dev_dec_reports_t, uint) dev_dec_reports;
     DEVICE_OUTPUT(dev_save_track_t, int) dev_save_track;
     DEVICE_OUTPUT(dev_save_sv_t, int) dev_save_sv;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
   };
 
   template<typename T>
-  __global__ void prepare_decisions(Parameters, const uint total_number_of_events, const uint event_start);
+  __global__ void prepare_decisions(Parameters, const uint selected_number_of_events, const uint event_start);
 
   template<typename T, typename U, char... S>
   struct prepare_decisions_t : public DeviceAlgorithm, Parameters {
@@ -106,7 +106,7 @@ namespace prepare_decisions {
       initialize<dev_n_svs_saved_t>(arguments, 0, cuda_stream);
       initialize<dev_n_hits_saved_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      function(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_event_list_t>(arguments),
                     begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
@@ -138,7 +138,7 @@ namespace prepare_decisions {
                     begin<dev_dec_reports_t>(arguments),
                     begin<dev_save_track_t>(arguments),
                     begin<dev_save_sv_t>(arguments)},
-        total_number_of_events,
+        value<host_number_of_selected_events_t>(arguments),
         event_start);
     }
 
