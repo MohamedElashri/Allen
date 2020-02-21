@@ -22,17 +22,17 @@ ut_sequence.generate(
     output_filename="generated/UT.h",
     json_configuration_filename="generated/UT.json")
 
-muon_sequence = compose_sequences(VELO_sequence(), PV_sequence(), UT_sequence(), Muon_sequence())
-muon_sequence.generate(
-    output_filename="generated/Muon.h",
-    json_configuration_filename="generated/Muon.json")
-
-forward_sequence = compose_sequences(VELO_sequence(), PV_sequence(), UT_sequence(), Muon_sequence(), Forward_sequence())
+forward_sequence = compose_sequences(VELO_sequence(), PV_sequence(), UT_sequence(), Forward_sequence())
 forward_sequence.generate(
     output_filename="generated/Forward.h",
     json_configuration_filename="generated/Forward.json")
 
-hlt1_sequence = compose_sequences(VELO_sequence(), PV_sequence(), UT_sequence(), Muon_sequence(), Forward_sequence(), HLT1_sequence())
+muon_sequence = compose_sequences(VELO_sequence(), PV_sequence(), UT_sequence(), Forward_sequence(), Muon_sequence())
+muon_sequence.generate(
+    output_filename="generated/Muon.h",
+    json_configuration_filename="generated/Muon.json")
+
+hlt1_sequence = compose_sequences(VELO_sequence(), PV_sequence(), UT_sequence(), Forward_sequence(), Muon_sequence(), HLT1_sequence())
 hlt1_sequence.generate(
     output_filename="generated/DefaultSequence.h",
     json_configuration_filename="generated/DefaultSequence.json")
@@ -41,7 +41,7 @@ hlt1_sequence.generate(
     output_filename="generated/HLT1.h",
     json_configuration_filename="generated/HLT1.json")
 
-hlt1_noutcut_sequence = compose_sequences(VELO_sequence(), PV_sequence(), UT_sequence(restricted=False), Muon_sequence(), Forward_sequence(), HLT1_sequence())
+hlt1_noutcut_sequence = compose_sequences(VELO_sequence(), PV_sequence(), UT_sequence(restricted=False), Forward_sequence(), Muon_sequence(), HLT1_sequence())
 hlt1_noutcut_sequence.generate(
     output_filename="generated/HLT1_NoUTCut.h",
     json_configuration_filename="generated/HLT1_NoUTCut.json")

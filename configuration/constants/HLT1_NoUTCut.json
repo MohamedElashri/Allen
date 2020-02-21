@@ -1,3 +1,5 @@
 {
-  "configured_lines": []
+  "ut_search_windows_t": {"min_momentum": "3000.0"},
+  "compass_ut_t": {"min_momentum_final": "0.0", "min_pt_final": "0.0", "max_considered_before_found": "16"},
+  "configured_lines": ["ErrorEvent", "PassThrough", "NoBeams", "BeamOne", "BeamTwo", "BothBeams", "ODINNoBias", "ODINLumi", "VeloMicroBias", "OneTrackMVA", "SingleMuon", "TwoTrackMVA", "HighMassDiMuon", "DisplacedDiMuon", "DiMuonSoft", "D2KPi", "D2PiPi", "D2KK"]
 }

@@ -510,6 +510,8 @@ class Sequence():
     def __iter__(self):
         for _, algorithm in iter(self.__sequence.items()):
             yield algorithm
+        for _, line in iter(self.__lines.items()):
+            yield line
 
     def __getitem__(self, value):
         return self.__sequence[value]
@@ -525,7 +527,8 @@ def extend_sequence(sequence, *args):
 
 
 def compose_sequences(*args):
-    sequence = []
-    for item in args:
-        sequence.append(item)
-    return Sequence(sequence)
+    new_sequence = []
+    for sequence in args:
+        for item in sequence:
+            new_sequence.append(item)
+    return Sequence(new_sequence)
