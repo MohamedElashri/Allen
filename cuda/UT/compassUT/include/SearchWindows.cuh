@@ -17,7 +17,7 @@ namespace ut_search_windows {
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, uint) dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, uint) dev_ut_selected_velo_tracks;
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
-    PROPERTY(min_momentum_t, float, "min_momentum", "min momentum cut [MeV/c]", 3.0f * Gaudi::Units::GeV) min_momentum;
+    PROPERTY(min_momentum_t, float, "min_momentum", "min momentum cut [MeV/c]", 1.5f * Gaudi::Units::GeV) min_momentum;
     PROPERTY(min_pt_t, float, "min_pt", "min pT cut [MeV/c]", 0.f) min_pt;
     PROPERTY(y_tol_t, float, "y_tol", "y tol [mm]", 0.5f * Gaudi::Units::mm) y_tol;
     PROPERTY(y_tol_slope_t, float, "y_tol_slope", "y tol slope [mm]", 0.08f) y_tol_slope;

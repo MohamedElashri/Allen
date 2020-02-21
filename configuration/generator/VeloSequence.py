@@ -1,7 +1,7 @@
 from algorithms import *
 
 
-def VELO_sequence(validate=False):
+def VELO_sequence():
     populate_odin_banks = populate_odin_banks_t()
     host_global_event_cut = host_global_event_cut_t()
     velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t(
@@ -71,8 +71,5 @@ def VELO_sequence(validate=False):
         prefix_sum_offsets_number_of_three_hit_tracks_filtered,
         velo_copy_track_hit_number, prefix_sum_offsets_velo_track_hit_number,
         velo_consolidate_tracks)
-
-    if validate:
-        velo_sequence.validate()
 
     return velo_sequence

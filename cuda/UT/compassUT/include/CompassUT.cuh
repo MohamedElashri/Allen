@@ -32,13 +32,13 @@ namespace compass_ut {
       float,
       "min_momentum_final",
       "final min momentum cut [MeV/c]",
-      0.f)
+      2500.f)
     min_momentum_final;
-    PROPERTY(min_pt_final_t, float, "min_pt_final", "final min pT cut [MeV/c]", 0.f)
+    PROPERTY(min_pt_final_t, float, "min_pt_final", "final min pT cut [MeV/c]", 425.f)
     min_pt_final;
     PROPERTY(hit_tol_2_t, float, "hit_tol_2", "hit_tol_2 [mm]", 0.8f * Gaudi::Units::mm) hit_tol_2;
     PROPERTY(delta_tx_2_t, float, "delta_tx_2", "delta_tx_2", 0.018f) delta_tx_2;
-    PROPERTY(max_considered_before_found_t, uint, "max_considered_before_found", "max_considered_before_found", 16u)
+    PROPERTY(max_considered_before_found_t, uint, "max_considered_before_found", "max_considered_before_found", 6)
     max_considered_before_found;
   };
 
