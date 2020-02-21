@@ -18,10 +18,10 @@ def UT_sequence(restricted=True):
     ut_search_windows = None
     compass_ut = None
     if restricted:
-        ut_search_windows = ut_search_windows_t(min_momentum="1500.0")
+        ut_search_windows = ut_search_windows_t(min_momentum="1500.0", min_pt="300.0")
         compass_ut = compass_ut_t(max_considered_before_found="6", min_momentum_final="2500.0", min_pt_final="425.0")
     else:
-        ut_search_windows = ut_search_windows_t(min_momentum="3000.0")
+        ut_search_windows = ut_search_windows_t(min_momentum="3000.0", min_pt="0.0")
         compass_ut = compass_ut_t(max_considered_before_found="16", min_momentum_final="0.0", min_pt_final="0.0")
 
     ut_select_velo_tracks_with_windows = ut_select_velo_tracks_with_windows_t()
