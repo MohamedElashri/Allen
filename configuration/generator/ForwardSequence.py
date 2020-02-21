@@ -47,8 +47,9 @@ def Forward_sequence(forward_decoding="v4"):
         forward_sequence = Sequence(
             scifi_calculate_cluster_count_v4, prefix_sum_scifi_hits,
             scifi_pre_decode_v4, scifi_raw_bank_decoder_v4,
-            scifi_direct_decoder_v4, lf_search_initial_windows, lf_triplet_seeding,
-            lf_triplet_keep_best, lf_calculate_parametrization, lf_extend_tracks_x,
+            scifi_direct_decoder_v4, lf_search_initial_windows,
+            lf_triplet_seeding, lf_triplet_keep_best,
+            lf_calculate_parametrization, lf_extend_tracks_x,
             lf_extend_tracks_uv, lf_quality_filter_length, lf_quality_filter,
             prefix_sum_forward_tracks, scifi_copy_track_hit_number,
             prefix_sum_scifi_track_hit_number, scifi_consolidate_tracks)
@@ -69,9 +70,10 @@ def Forward_sequence(forward_decoding="v4"):
             scifi_calculate_cluster_count_v6, prefix_sum_scifi_hits,
             scifi_pre_decode_v6, scifi_raw_bank_decoder_v6,
             lf_search_initial_windows, lf_triplet_seeding,
-            lf_triplet_keep_best, lf_calculate_parametrization, lf_extend_tracks_x,
-            lf_extend_tracks_uv, lf_quality_filter_length, lf_quality_filter,
-            prefix_sum_forward_tracks, scifi_copy_track_hit_number,
-            prefix_sum_scifi_track_hit_number, scifi_consolidate_tracks)
+            lf_triplet_keep_best, lf_calculate_parametrization,
+            lf_extend_tracks_x, lf_extend_tracks_uv, lf_quality_filter_length,
+            lf_quality_filter, prefix_sum_forward_tracks,
+            scifi_copy_track_hit_number, prefix_sum_scifi_track_hit_number,
+            scifi_consolidate_tracks)
 
     return forward_sequence
