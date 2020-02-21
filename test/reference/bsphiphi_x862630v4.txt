@@ -197,5 +197,5 @@ D2PiPi:              34/  1000, ( 1020.00 +/-   171.93) kHz
 D2KK:                21/  1000, (  630.00 +/-   136.03) kHz
 Inclusive:         1000/  1000, (30000.00 +/-     0.00) kHz
 
-96.795448 events/s
-Ran test for 10.331064 seconds
+98.566807 events/s
+Ran test for 10.145403 seconds
