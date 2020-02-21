@@ -1,1 +1,4 @@
-{}
+{
+  "ut_search_windows_t": {"min_momentum" : "1500.0", "min_pt" : "300.0", "y_tol" : "0.5", "y_tol_slope" : "0.08"},
+  "compass_ut_t": {"max_considered_before_found" : "6", "min_momentum_final" : "2500.0", "min_pt_final" : "425.0", "hit_tol_2" : "0.8", "delta_tx_2" : "0.018"}
+}

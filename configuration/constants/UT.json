@@ -1,5 +1,5 @@
 {
-  "ut_search_windows_t": {"min_momentum": "1500.0"},
+  "ut_search_windows_t": {"min_momentum": "1500.0", "min_pt": "300.0"},
   "compass_ut_t": {"min_momentum_final": "2500.0", "min_pt_final": "425.0", "max_considered_before_found": "6"},
   "configured_lines": []
 }

@@ -467,7 +467,8 @@ class Sequence():
                 i = 1
                 for _, algorithm in iter(self.__sequence.items()):
                     has_modified_properties = False
-                    for prop_name, prop in iter(algorithm.properties().items()):
+                    for prop_name, prop in iter(
+                            algorithm.properties().items()):
                         if prop.default_value() != "":
                             has_modified_properties = True
                             break
