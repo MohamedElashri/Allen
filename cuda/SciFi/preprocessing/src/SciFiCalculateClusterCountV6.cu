@@ -28,11 +28,17 @@ __global__ void scifi_calculate_cluster_count_v6::scifi_calculate_cluster_count_
     for (; it < last; ++it) {     // loop over the clusters
       uint16_t c = *it;
       uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
-      if (current_raw_bank < SciFi::Constants::n_consecutive_raw_banks)
-        hits_module = hit_count.mat_offsets_p(i);
+
+      const auto chid = SciFiChannelID(ch);
+      const uint32_t uniqueMat = chid.correctedUniqueMat();
+      uint uniqueGroupOrMat;
+      if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
+        uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
       else
-        hits_module =
-          hit_count.mat_offsets_p(SciFiChannelID(ch).correctedUniqueMat() - SciFi::Constants::mat_index_substract);
+        uniqueGroupOrMat = uniqueMat - SciFi::Constants::mat_index_substract;
+
+      hits_module = hit_count.mat_offsets_p(uniqueGroupOrMat);
+      
       if (!cSize(c)) { // Not flagged as large
         atomicAdd(hits_module, 1);
       }

@@ -72,7 +72,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
     uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
-    if (starting_it >= last) return;
+    if (starting_it >= last) continue;
 
     const uint number_of_iterations = last - starting_it;
     for (uint it_number = 0; it_number < number_of_iterations; ++it_number) {
@@ -82,28 +82,25 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
       const auto chid = SciFiChannelID(ch);
       const uint32_t correctedMat = chid.correctedUniqueMat();
 
-      const auto store_sorted_v6_fn =
-        [&](const int condition, const int delta) {
-          store_sorted_cluster_reference_v6(
-            hit_count,
-            correctedMat,
-            ch,
-            shared_mat_offsets,
-            shared_mat_count,
-            current_raw_bank,
-            it_number,
-            hits,
-            condition,
-            delta);
-        };
+      const auto store_sorted_v6_fn = [&](const int condition, const int delta) {
+        store_sorted_cluster_reference_v6(
+          hit_count,
+          correctedMat,
+          ch,
+          shared_mat_offsets,
+          shared_mat_count,
+          current_raw_bank,
+          it_number,
+          hits,
+          condition,
+          delta);
+      };
 
-      if (!cSize(c))
-      {
+      if (!cSize(c)) {
         // Single cluster
         store_sorted_v6_fn(0x01, 0x00);
       }
-      else if (fraction(c))
-      {
+      else if (fraction(c)) {
         if (it + 1 == last || getLinkInBank(c) != getLinkInBank(*(it + 1))) {
           // last cluster in bank or in sipm
           store_sorted_v6_fn(0x02, 0x00);
@@ -168,7 +165,7 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
     uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
-    if (starting_it >= last) return;
+    if (starting_it >= last) continue;
 
     const uint number_of_iterations = last - starting_it;
     for (uint it_number = 0; it_number < number_of_iterations; ++it_number) {
@@ -178,19 +175,25 @@ __global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
       const auto chid = SciFiChannelID(ch);
       const uint32_t correctedMat = chid.correctedUniqueMat();
 
-      const auto store_sorted_v6_fn =
-        [&](const int condition, const int delta) {
-          store_sorted_cluster_reference_v6(
-            hit_count, correctedMat, ch, shared_mat_offsets, shared_mat_count, i, it_number, hits, condition, delta);
-        };
+      const auto store_sorted_v6_fn = [&](const int condition, const int delta) {
+        store_sorted_cluster_reference_v6(
+          hit_count,
+          correctedMat,
+          ch,
+          shared_mat_offsets,
+          shared_mat_count,
+          i,
+          it_number,
+          hits,
+          condition,
+          delta);
+      };
 
-      if (!cSize(c))
-      {
+      if (!cSize(c)) {
         // Single cluster
         store_sorted_v6_fn(0x01, 0x00);
       }
-      else if (fraction(c))
-      {
+      else if (fraction(c)) {
         if (it + 1 == last || getLinkInBank(c) != getLinkInBank(*(it + 1))) {
           // last cluster in bank or in sipm
           store_sorted_v6_fn(0x02, 0x00);
