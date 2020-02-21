@@ -1,5 +1,4 @@
 from algorithms import *
-from ForwardSequence import Forward_sequence
 
 
 def Muon_sequence(validate=False):
@@ -25,13 +24,9 @@ def Muon_sequence(validate=False):
     muon_sort_by_station = muon_sort_by_station_t()
     is_muon = is_muon_t()
 
-    forward_sequence = Forward_sequence()
-    muon_sequence = extend_sequence(
-        forward_sequence, muon_pre_decoding, muon_pre_decoding_prefix_sum,
+    muon_sequence = Sequence(
+        muon_pre_decoding, muon_pre_decoding_prefix_sum,
         muon_sort_station_region_quarter, muon_add_coords_crossing_maps,
         muon_station_ocurrence_prefix_sum, muon_sort_by_station, is_muon)
-
-    if validate:
-        muon_sequence.validate()
 
     return muon_sequence

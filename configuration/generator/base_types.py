@@ -350,7 +350,8 @@ class Sequence():
             output_filename="generated/ConfiguredSequence.h",
             json_configuration_filename="generated/Configuration.json",
             json_defaults_configuration_filename="generated/ConfigurationGuide.json",
-            prefix_includes="../../"):
+            prefix_includes="../../",
+            generate_json_defaults=False):
         # Check that sequence is valid
         print("Validating sequence...")
         if self.validate():
@@ -460,32 +461,34 @@ class Sequence():
             f.close()
             print("Generated JSON configuration file " +
                   json_configuration_filename)
-            print("Generating JSON defaults configuration file...")
-            s = "{\n"
-            i = 1
-            for _, algorithm in iter(self.__sequence.items()):
-                has_modified_properties = False
-                for prop_name, prop in iter(algorithm.properties().items()):
-                    if prop.default_value() != "":
-                        has_modified_properties = True
-                        break
-                if has_modified_properties:
-                    s += prefix(i) + "\"" + algorithm.name() + "\": {"
+            if generate_json_defaults:
+                print("Generating JSON defaults configuration file...")
+                s = "{\n"
+                i = 1
+                for _, algorithm in iter(self.__sequence.items()):
+                    has_modified_properties = False
                     for prop_name, prop in iter(
                             algorithm.properties().items()):
                         if prop.default_value() != "":
-                            s += "\"" + prop_name + "\": \"" + prop.default_value(
-                            ) + "\", "
+                            has_modified_properties = True
+                            break
+                    if has_modified_properties:
+                        s += prefix(i) + "\"" + algorithm.name() + "\": {"
+                        for prop_name, prop in iter(
+                                algorithm.properties().items()):
+                            if prop.default_value() != "":
+                                s += "\"" + prop_name + "\": \"" + prop.default_value(
+                                ) + "\", "
+                        s = s[:-2]
+                        s += "},\n"
+                if s[-2] == ",":
                     s = s[:-2]
-                    s += "},\n"
-            if s[-2] == ",":
-                s = s[:-2]
-            s += "\n}\n"
-            f = open(json_defaults_configuration_filename, "w")
-            f.write(s)
-            f.close()
-            print("Generated JSON defaults configuration file " +
-                  json_defaults_configuration_filename)
+                s += "\n}\n"
+                f = open(json_defaults_configuration_filename, "w")
+                f.write(s)
+                f.close()
+                print("Generated JSON defaults configuration file " +
+                      json_defaults_configuration_filename)
         else:
             print(
                 "The sequence contains errors. Please fix them and generate again."
@@ -508,6 +511,8 @@ class Sequence():
     def __iter__(self):
         for _, algorithm in iter(self.__sequence.items()):
             yield algorithm
+        for _, line in iter(self.__lines.items()):
+            yield line
 
     def __getitem__(self, value):
         return self.__sequence[value]
@@ -522,10 +527,9 @@ def extend_sequence(sequence, *args):
     return Sequence(new_sequence)
 
 
-def compose_sequences(sequence_a, sequence_b):
+def compose_sequences(*args):
     new_sequence = []
-    for item in sequence_a:
-        new_sequence.append(item)
-    for item in sequence_b:
-        new_sequence.append(item)
+    for sequence in args:
+        for item in sequence:
+            new_sequence.append(item)
     return Sequence(new_sequence)
