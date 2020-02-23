@@ -1,4 +1,5 @@
 #include "SciFiRawBankDecoderV6.cuh"
+#include <MEPTools.h>
 #include "assert.h"
 
 using namespace SciFi;
@@ -55,8 +56,8 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
     SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
-                    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
-  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const uint number_of_hits_in_event = hit_count.event_number_of_hits();
 
   for (uint i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
@@ -67,6 +68,72 @@ __global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6(
     const int delta_parameter = cluster_reference & 0xFF;
 
     const auto rawbank = event.getSciFiRawBank(raw_bank_number);
+    const uint16_t* it = rawbank.data + 2;
+    it += it_number;
+
+    const uint16_t c = *it;
+    const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
+
+    // Call parameters for make_cluster
+    uint32_t cluster_chan = ch;
+    uint8_t cluster_fraction = fraction(c);
+    uint8_t pseudoSize = 4;
+
+    assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
+
+    if (condition == 0x02) {
+      pseudoSize = 0;
+    }
+    else if (condition > 0x02) {
+      const auto c2 = *(it + 1);
+      const auto widthClus = (cell(c2) - cell(c) + 2);
+
+      if (condition == 0x03) {
+        pseudoSize = 0;
+        cluster_fraction = 1;
+        cluster_chan += delta_parameter;
+      }
+      else if (condition == 0x04) {
+        pseudoSize = 0;
+        cluster_fraction = (widthClus - 1) % 2;
+        cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
+      }
+      else if (condition == 0x05) {
+        pseudoSize = widthClus;
+        cluster_fraction = (widthClus - 1) % 2;
+        cluster_chan += (widthClus - 1) / 2 - 1;
+      }
+    }
+
+    make_cluster_v6(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
+  }
+}
+
+__global__ void scifi_raw_bank_decoder_v6::scifi_raw_bank_decoder_v6_mep(
+  scifi_raw_bank_decoder_v6::Parameters parameters,
+  const char* scifi_geometry)
+{
+  const uint number_of_events = gridDim.x;
+  const uint event_number = blockIdx.x;
+  const uint selected_event_number = parameters.dev_event_list[event_number];
+
+  const SciFiGeometry geom {scifi_geometry};
+
+  SciFi::Hits hits {parameters.dev_scifi_hits,
+                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
+  const uint number_of_hits_in_event = hit_count.event_number_of_hits();
+
+  for (uint i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
+    const uint32_t cluster_reference = hits.cluster_reference(hit_count.event_offset() + i);
+    const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
+    const int it_number = (cluster_reference >> 16) & 0xFF;
+    const int condition = (cluster_reference >> 13) & 0x07;
+    const int delta_parameter = cluster_reference & 0xFF;
+
+    auto const rawbank = MEP::raw_bank<SciFiRawBank>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets,
+                                                      selected_event_number, raw_bank_number);
+    
     const uint16_t* it = rawbank.data + 2;
     it += it_number;
 

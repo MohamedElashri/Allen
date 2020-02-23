@@ -13,7 +13,7 @@ namespace Muon {
     static constexpr uint n_regions = 4;
     static constexpr uint n_quarters = 4;
     /* Cut-offs */
-    static constexpr uint max_numhits_per_event = 400 * n_stations;
+    static constexpr uint max_numhits_per_event = 600 * n_stations;
 
     static constexpr float SQRT3 = 1.7320508075688772;
     static constexpr float INVSQRT3 = 0.5773502691896258;

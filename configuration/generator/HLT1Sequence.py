@@ -1,7 +1,7 @@
 from algorithms import *
 
 
-def HLT1_sequence(validate=False):
+def HLT1_sequence():
     kalman_velo_only = kalman_velo_only_t()
     kalman_pv_ipchi2 = kalman_pv_ipchi2_t()
 
