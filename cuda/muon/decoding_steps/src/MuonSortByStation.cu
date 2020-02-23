@@ -33,18 +33,9 @@ __global__ void muon_sort_by_station::muon_sort_by_station(muon_sort_by_station:
 
   __syncthreads();
 
-  __shared__ uint64_t sorted_array[Muon::Constants::max_numhits_per_event];
-
-  // Apply permutation to shared memory buffer
-  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
-    sorted_array[i] = muon_compact_hit[permutation_station[i]];
-  }
-
-  __syncthreads();
-
   // Do actual decoding
   for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
-    const uint64_t compact_hit = sorted_array[i];
+    const uint64_t compact_hit = muon_compact_hit[permutation_station[i]];
 
     const uint8_t uncrossed = compact_hit >> 63;
     const uint digitsOneIndex_index = (compact_hit >> 48) & 0x7FFF;
