@@ -26,18 +26,19 @@ namespace {
 }
 
 AllenForwardToV2Tracks::AllenForwardToV2Tracks(const std::string& name, ISvcLocator* pSvcLocator) :
-  Transformer(
+  MultiTransformer(
     name,
     pSvcLocator,
     // Inputs
     {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}},
     // Outputs
-    {KeyValue {"OutputTracks", "Allen/Out/ForwardTracks"}})
+    {KeyValue {"OutputTracks", "Allen/Out/ForwardTracks"},
+     KeyValue {"OutputMuonTracks", "Allen/Out/ForwardMuonTracks"}})
 {}
 
 StatusCode AllenForwardToV2Tracks::initialize()
 {
-  auto sc = Transformer::initialize();
+  auto sc = MultiTransformer::initialize();
   if (sc.isFailure()) return sc;
   if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
 
@@ -84,7 +85,7 @@ LHCb::State propagate_state_from_first_measurement_to_beam(const LHCb::State sta
   return beamline_state;
 }
 
-std::vector<LHCb::Event::v2::Track> AllenForwardToV2Tracks::operator()(const HostBuffers& host_buffers) const
+std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Track> > AllenForwardToV2Tracks::operator()(const HostBuffers& host_buffers) const
 {
 
   // Make the consolidated tracks.
@@ -111,11 +112,12 @@ std::vector<LHCb::Event::v2::Track> AllenForwardToV2Tracks::operator()(const Hos
   const uint number_of_tracks = scifi_tracks.number_of_tracks(i_event);
   info() << "Number of SciFi tracks to convert = " << number_of_tracks << endmsg;
 
-  std::vector<LHCb::Event::v2::Track> output;
-  output.reserve(number_of_tracks);
+  std::vector<LHCb::Event::v2::Track> forward_tracks;
+  forward_tracks.reserve(number_of_tracks);
+  std::vector<LHCb::Event::v2::Track> forward_muon_tracks;
   for (uint t = 0; t < number_of_tracks; t++) {
     ParKalmanFilter::FittedTrack track = kf_tracks[t];
-    auto& newTrack = output.emplace_back();
+    auto& newTrack = forward_tracks.emplace_back();
 
     // set track flags
     newTrack.setType(LHCb::Event::v2::Track::Type::Long);
@@ -190,6 +192,11 @@ std::vector<LHCb::Event::v2::Track> AllenForwardToV2Tracks::operator()(const Hos
       newTrack.addToLhcbIDs(lhcbid);
     }
 
+    // fill list of tracks identified as muon
+    if (host_buffers.host_is_muon[t]) {
+      forward_muon_tracks.push_back(newTrack);
+    }
+
     // Fill histograms
     auto hist = m_histos.find("x");
     hist->second->fill(closesttobeam_state.x());
@@ -211,5 +218,5 @@ std::vector<LHCb::Event::v2::Track> AllenForwardToV2Tracks::operator()(const Hos
     hist->second->fill(track.ndof);
   }
 
-  return output;
+  return std::make_tuple(forward_tracks, forward_muon_tracks);
 }

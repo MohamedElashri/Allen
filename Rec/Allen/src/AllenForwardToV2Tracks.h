@@ -29,8 +29,8 @@
 
 #include <AIDA/IHistogram1D.h>
 
-class AllenForwardToV2Tracks final : public Gaudi::Functional::Transformer<
-                                       std::vector<LHCb::Event::v2::Track>(const HostBuffers&),
+class AllenForwardToV2Tracks final : public Gaudi::Functional::MultiTransformer<
+std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Track> >(const HostBuffers&),
                                        Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
 
 public:
@@ -41,7 +41,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::vector<LHCb::Event::v2::Track> operator()(const HostBuffers&) const override;
+  std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Track> > operator()(const HostBuffers&) const override;
 
 private:
   const std::array<float, 5> default_covarianceValues {4.0, 400.0, 4.e-6, 1.e-4, 0.1};
