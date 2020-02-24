@@ -41,7 +41,7 @@ namespace ConditionHolders {
 
 class AllenPVsToRecVertexV2 final
   : public Gaudi::Functional::Transformer<
-      std::vector<LHCb::Event::v2::RecVertex>(const HostBuffers&, const ConditionHolders::Beamline_t&),
+      LHCb::Event::v2::RecVertices(const HostBuffers&, const ConditionHolders::Beamline_t&),
       LHCb::DetDesc::usesConditions<ConditionHolders::Beamline_t>> {
 public:
   /// Standard constructor
@@ -51,7 +51,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::vector<LHCb::Event::v2::RecVertex> operator()(const HostBuffers&, const ConditionHolders::Beamline_t&)
+   LHCb::Event::v2::RecVertices operator()(const HostBuffers&, const ConditionHolders::Beamline_t&)
     const override;
 
 private:

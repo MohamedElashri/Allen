@@ -43,7 +43,7 @@ StatusCode AllenPVsToRecVertexV2::initialize()
   return StatusCode::SUCCESS;
 }
 
-std::vector<LHCb::Event::v2::RecVertex> AllenPVsToRecVertexV2::operator()(
+ LHCb::Event::v2::RecVertices AllenPVsToRecVertexV2::operator()(
   const HostBuffers& host_buffers,
   const ConditionHolders::Beamline_t& beamline) const
 {
@@ -53,7 +53,7 @@ std::vector<LHCb::Event::v2::RecVertex> AllenPVsToRecVertexV2::operator()(
 
   info() << "Number of PVs to convert = " << n_pvs << endmsg;
 
-  std::vector<LHCb::Event::v2::RecVertex> recvertexcontainer;
+  LHCb::Event::v2::RecVertices recvertexcontainer;
   recvertexcontainer.reserve(n_pvs);
   const auto maxVertexRho2 = m_maxVertexRho.value() * m_maxVertexRho.value();
 
