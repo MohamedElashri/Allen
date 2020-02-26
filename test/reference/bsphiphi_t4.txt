@@ -78,13 +78,13 @@ BothBeams:            0/  1000, (    0.00 +/-     0.00) kHz
 ODINNoBias:           0/  1000, (    0.00 +/-     0.00) kHz
 ODINLumi:             0/  1000, (    0.00 +/-     0.00) kHz
 VeloMicroBias:        0/  1000, (    0.00 +/-     0.00) kHz
-OneTrackMVA:         67/  1000, ( 2010.00 +/-   237.19) kHz
+OneTrackMVA:         69/  1000, ( 2070.00 +/-   240.45) kHz
 SingleMuon:           1/  1000, (   30.00 +/-    29.98) kHz
-TwoTrackMVA:        413/  1000, (12390.00 +/-   467.11) kHz
-HighMassDiMuon:       8/  1000, (  240.00 +/-    84.51) kHz
-DisplacedDiMuon:      5/  1000, (  150.00 +/-    66.91) kHz
+TwoTrackMVA:        403/  1000, (12090.00 +/-   465.33) kHz
+HighMassDiMuon:       7/  1000, (  210.00 +/-    79.09) kHz
+DisplacedDiMuon:      6/  1000, (  180.00 +/-    73.26) kHz
 DiMuonSoft:           1/  1000, (   30.00 +/-    29.98) kHz
-D2KPi:               41/  1000, ( 1230.00 +/-   188.11) kHz
-D2PiPi:              33/  1000, (  990.00 +/-   169.47) kHz
+D2KPi:               38/  1000, ( 1140.00 +/-   181.38) kHz
+D2PiPi:              31/  1000, (  930.00 +/-   164.42) kHz
 D2KK:                21/  1000, (  630.00 +/-   136.03) kHz
 Inclusive:         1000/  1000, (30000.00 +/-     0.00) kHz
