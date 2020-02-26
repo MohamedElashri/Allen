@@ -120,17 +120,112 @@ __device__ void fill_candidates_impl(
 
     // Calculate phi limits
     const auto h1_phi = hit_Phis[h1_index];
-    const auto phi_window = phi_extrapolation_base + fabsf(velo_cluster_container.z(h1_index)) * phi_extrapolation_coef;
+    const Velo::HitBase h1 {velo_cluster_container.x(h1_index),
+                            velo_cluster_container.y(h1_index),
+                            velo_cluster_container.z(h1_index)};
+    const auto phi_window = phi_extrapolation_base + fabsf(h1.z) * phi_extrapolation_coef;
 
     const auto found_h0_candidates = candidate_binary_search(hit_Phis, m0_hitStarts, m0_hitNums, h1_phi, phi_window);
-
-    h0_candidates[2 * h1_index] = std::get<0>(found_h0_candidates) + m0_hitStarts - hit_offset;
-    h0_candidates[2 * h1_index + 1] = std::get<1>(found_h0_candidates);
-
     const auto found_h2_candidates = candidate_binary_search(hit_Phis, m2_hitStarts, m2_hitNums, h1_phi, phi_window);
 
-    h2_candidates[2 * h1_index] = std::get<0>(found_h2_candidates) + m2_hitStarts - hit_offset;
-    h2_candidates[2 * h1_index + 1] = std::get<1>(found_h2_candidates);
+    // // Check if there is at least a compatible triplet
+    // constexpr float max_scatter = 0.1f;
+    // bool found = false;
+
+    // for (uint i = 0; !found && i < std::get<1>(found_h0_candidates); ++i) {
+    //   const auto h0_index = m0_hitStarts + std::get<0>(found_h0_candidates) + i;
+    //   const Velo::HitBase h0 {velo_cluster_container.x(h0_index),
+    //                           velo_cluster_container.y(h0_index),
+    //                           velo_cluster_container.z(h0_index)};
+
+    //   const auto partial_tz = 1.f / (h1.z - h0.z);
+
+    //   for (uint j = 0; !found && j < std::get<1>(found_h2_candidates); ++j) {
+    //     const auto h2_index = m2_hitStarts + std::get<0>(found_h2_candidates) + j;
+    //     const Velo::HitBase h2 {velo_cluster_container.x(h2_index),
+    //                             velo_cluster_container.y(h2_index),
+    //                             velo_cluster_container.z(h2_index)};
+
+    //     // Calculate prediction
+    //     const auto z2_tz = (h2.z - h0.z) * partial_tz;
+    //     const auto x = h0.x + (h1.x - h0.x) * z2_tz;
+    //     const auto y = h0.y + (h1.y - h0.y) * z2_tz;
+    //     const auto dx = x - h2.x;
+    //     const auto dy = y - h2.y;
+
+    //     // Calculate fit
+    //     const auto scatter = (dx * dx) + (dy * dy);
+
+    //     if (scatter < max_scatter) {
+    //       found = true;
+    //     }
+    //   }
+    // }
+
+    // if (found) {
+      // h0_candidates[2 * h1_index] = std::get<0>(found_h0_candidates) + m0_hitStarts - hit_offset;
+      // h0_candidates[2 * h1_index + 1] = std::get<1>(found_h0_candidates);
+      // h2_candidates[2 * h1_index] = std::get<0>(found_h2_candidates) + m2_hitStarts - hit_offset;
+      // h2_candidates[2 * h1_index + 1] = std::get<1>(found_h2_candidates);
+    // }
+
+    // constexpr auto lumi_region = 130.f;
+    // const auto r1 = sqrtf(h1.x * h1.x + h1.y * h1.y);
+    // uint first_h0_candidate = 0, first_h2_candidate = 0;
+
+    // for (uint i = 0; i < std::get<1>(found_h0_candidates); ++i) {
+    //   const auto h0_index = m0_hitStarts + std::get<0>(found_h0_candidates) + i;
+    //   const Velo::HitBase h0 {velo_cluster_container.x(h0_index),
+    //                           velo_cluster_container.y(h0_index),
+    //                           velo_cluster_container.z(h0_index)};
+
+    //   const auto r0 = sqrtf(h0.x * h0.x + h0.y * h0.y);
+    //   const auto c0 = 0.8f * r0 * (h1.z - lumi_region) / (h0.z - lumi_region);
+    //   const auto c1 = 1.2f * r0 * (h1.z + lumi_region) / (h0.z + lumi_region);
+
+    //   const bool keep = (fabsf(h1.z) > lumi_region && r1 > c0 && r1 < c1) ||
+    //     (fabsf(h1.z) < lumi_region && (r1 > c0 || r1 < c1));
+
+    //   if (keep) {
+    //     break;
+    //   } else {
+    //     first_h0_candidate++;
+    //   }
+    // }
+
+    // for (uint i = 0; i < std::get<1>(found_h2_candidates); ++i) {
+    //   const auto h2_index = m2_hitStarts + std::get<0>(found_h2_candidates) + i;
+    //   const Velo::HitBase h2 {velo_cluster_container.x(h2_index),
+    //                           velo_cluster_container.y(h2_index),
+    //                           velo_cluster_container.z(h2_index)};
+
+    //   const auto r2 = sqrtf(h2.x * h2.x + h2.y * h2.y);
+    //   const auto c1 = 0.8f * r1 * (h2.z - lumi_region) / (h1.z - lumi_region);
+    //   const auto c2 = 1.2f * r1 * (h2.z + lumi_region) / (h1.z + lumi_region);
+
+    //   const bool keep = (fabsf(h2.z) > lumi_region && r2 > c1 && r2 < c2) ||
+    //     (fabsf(h2.z) < lumi_region && (r2 > c1 || r2 < c2));
+
+    //   if (keep) {
+    //     break;
+    //   } else {
+    //     first_h2_candidate++;
+    //   }
+    // }
+
+    // h0_candidates[2 * h1_index] = std::get<0>(found_h0_candidates) + first_h0_candidate + m0_hitStarts - hit_offset;
+    // h0_candidates[2 * h1_index + 1] = std::get<1>(found_h0_candidates) - first_h0_candidate;
+
+    // h2_candidates[2 * h1_index] = std::get<0>(found_h2_candidates) + first_h2_candidate + m2_hitStarts - hit_offset;
+    // h2_candidates[2 * h1_index + 1] = std::get<1>(found_h2_candidates) - first_h2_candidate;
+
+
+    if (std::get<1>(found_h0_candidates) && std::get<1>(found_h2_candidates)) {
+      h0_candidates[2 * h1_index] = std::get<0>(found_h0_candidates) + m0_hitStarts - hit_offset;
+      h0_candidates[2 * h1_index + 1] = std::get<1>(found_h0_candidates);
+      h2_candidates[2 * h1_index] = std::get<0>(found_h2_candidates) + m2_hitStarts - hit_offset;
+      h2_candidates[2 * h1_index + 1] = std::get<1>(found_h2_candidates);
+    }
   }
 }
 

@@ -72,6 +72,8 @@ __device__ void track_seeding(
                                 velo_cluster_container.y(h0_index),
                                 velo_cluster_container.z(h0_index)};
 
+        const auto partial_tz = 1.f / (h1.z - h0.z);
+
         // Finally, iterate over all h2 indices
         for (auto h2_index = h2_first_candidate; h2_index < h2_first_candidate + h2_size; ++h2_index) {
           if (!hit_used[h2_index]) {
@@ -83,7 +85,7 @@ __device__ void track_seeding(
                                     velo_cluster_container.z(h2_index)};
 
             // Calculate prediction
-            const auto z2_tz = (h2.z - h0.z) / (h1.z - h0.z);
+            const auto z2_tz = (h2.z - h0.z) * partial_tz;
             const auto x = h0.x + (h1.x - h0.x) * z2_tz;
             const auto y = h0.y + (h1.y - h0.y) * z2_tz;
             const auto dx = x - h2.x;
