@@ -43,7 +43,7 @@ StatusCode AllenPVsToRecVertexV2::initialize()
   return StatusCode::SUCCESS;
 }
 
- LHCb::Event::v2::RecVertices AllenPVsToRecVertexV2::operator()(
+LHCb::Event::v2::RecVertices AllenPVsToRecVertexV2::operator()(
   const HostBuffers& host_buffers,
   const ConditionHolders::Beamline_t& beamline) const
 {

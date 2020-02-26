@@ -85,7 +85,8 @@ LHCb::State propagate_state_from_first_measurement_to_beam(const LHCb::State sta
   return beamline_state;
 }
 
-std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Track> > AllenForwardToV2Tracks::operator()(const HostBuffers& host_buffers) const
+std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Track>> AllenForwardToV2Tracks::operator()(
+  const HostBuffers& host_buffers) const
 {
 
   // Make the consolidated tracks.
@@ -148,7 +149,7 @@ std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Tra
     LHCb::State closesttobeam_state;
     closesttobeam_state.setState(
       track.state[0], track.state[1], track.z, track.state[2], track.state[3], track.state[4]);
-    
+
     closesttobeam_state.covariance()(0, 0) = track.cov(0, 0);
     closesttobeam_state.covariance()(0, 2) = track.cov(2, 0);
     closesttobeam_state.covariance()(2, 2) = track.cov(2, 2);
@@ -156,7 +157,7 @@ std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Tra
     closesttobeam_state.covariance()(1, 3) = track.cov(3, 1);
     closesttobeam_state.covariance()(3, 3) = track.cov(3, 3);
     closesttobeam_state.covariance()(4, 4) = qopError;
-    
+
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
 
