@@ -179,7 +179,7 @@ __device__ __host__ float __half2float(const half_t f) {
 }
 
 half_t::operator float() {
-  return __half2float(value);
+  return __half2float(*this);
 }
 
 half_t::half_t(const float f) {
