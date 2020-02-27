@@ -97,9 +97,9 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
 
-  // TODO: Offset'ed container
+  // Offset'ed container
   const auto velo_cluster_container =
-    Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container + hit_offset, total_estimated_number_of_clusters};
+    Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters, hit_offset};
 
   for (uint i = threadIdx.x; i < event_number_of_tracks; i += blockDim.x) {
     Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i);

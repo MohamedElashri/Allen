@@ -151,4 +151,39 @@ __device__ __host__ half_t __float2half(const float f)
   return (o | (sign >> 16));
 }
 
+__device__ __host__ float __half2float(const half_t f) {
+  const auto x = f.value;
+  unsigned sign = ((x >> 15) & 1);
+  unsigned exponent = ((x >> 10) & 0x1f);
+  unsigned mantissa = ((x & 0x3ff) << 13);
+  if (exponent == 0x1f) {  /* NaN or Inf */
+    mantissa = (mantissa ? (sign = 0, 0x7fffff) : 0);
+    exponent = 0xff;
+  } else if (!exponent) {  /* Denorm or Zero */
+      if (mantissa) {
+          unsigned int msb;
+          exponent = 0x71;
+          do {
+              msb = (mantissa & 0x400000);
+              mantissa <<= 1;  /* normalize */
+              --exponent;
+          } while (!msb);
+          mantissa &= 0x7fffff;  /* 1.mantissa is implicit */
+      }
+  } else {
+      exponent += 0x70;
+  }
+  int temp = ((sign << 31) | (exponent << 23) | mantissa);
+
+  return *((float*)((void*)&temp));
+}
+
+half_t::operator float() {
+  return __half2float(value);
+}
+
+half_t::half_t(const float f) {
+  value = __float2half(f);
+}
+
 #endif
