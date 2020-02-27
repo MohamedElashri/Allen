@@ -19,7 +19,7 @@ namespace velo_search_by_triplet {
     DEVICE_INPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
     DEVICE_INPUT(dev_h0_candidates_t, short) dev_h0_candidates;
     DEVICE_INPUT(dev_h2_candidates_t, short) dev_h2_candidates;
-    DEVICE_INPUT(dev_hit_phi_t, float) dev_hit_phi;
+    DEVICE_INPUT(dev_hit_phi_t, half_t) dev_hit_phi;
     DEVICE_OUTPUT(dev_tracks_t, Velo::TrackHits) dev_tracks;
     DEVICE_OUTPUT(dev_tracklets_t, Velo::TrackletHits) dev_tracklets;
     DEVICE_OUTPUT(dev_tracks_to_follow_t, uint) dev_tracks_to_follow;

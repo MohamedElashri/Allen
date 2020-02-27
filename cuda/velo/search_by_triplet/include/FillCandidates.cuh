@@ -9,7 +9,7 @@ namespace velo_fill_candidates {
     DEVICE_INPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
     DEVICE_INPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
-    DEVICE_INPUT(dev_hit_phi_t, float) dev_hit_phi;
+    DEVICE_INPUT(dev_hit_phi_t, half_t) dev_hit_phi;
     DEVICE_OUTPUT(dev_h0_candidates_t, short) dev_h0_candidates;
     DEVICE_OUTPUT(dev_h2_candidates_t, short) dev_h2_candidates;
 

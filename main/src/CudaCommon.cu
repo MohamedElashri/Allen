@@ -169,4 +169,32 @@ half_t::operator float() const {
 
 int16_t half_t::get() const { return m_value; }
 
+bool half_t::operator<(const half_t& a) const {
+  const auto sign = (m_value >> 15) & 0x01;
+  const auto sign_a = (a.get() >> 15) & 0x01;
+  return (sign & sign_a & operator!=(a)) ^ (m_value < a.get());
+}
+
+bool half_t::operator>(const half_t& a) const {
+  const auto sign = (m_value >> 15) & 0x01;
+  const auto sign_a = (a.get() >> 15) & 0x01;
+  return (sign & sign_a & operator!=(a)) ^ (m_value > a.get());
+}
+
+bool half_t::operator<=(const half_t& a) const {
+  return !operator>(a);
+}
+
+bool half_t::operator>=(const half_t& a) const {
+  return !operator<(a);
+}
+
+bool half_t::operator==(const half_t& a) const {
+  return m_value == a.get();
+}
+
+bool half_t::operator!=(const half_t& a) const {
+  return !operator==(a);
+}
+
 #endif

@@ -17,7 +17,7 @@
  *        * size of window
  */
 __device__ std::tuple<int, int> candidate_binary_search(
-  const float* hit_Phis,
+  const half_t* hit_Phis,
   const int module_hit_start,
   const int module_number_of_hits,
   const float h1_phi,
@@ -25,17 +25,19 @@ __device__ std::tuple<int, int> candidate_binary_search(
 {
   // Do a binary search for the first candidate
   const auto first_candidate =
-    binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, h1_phi - phi_window);
+    binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, half_t(h1_phi - phi_window));
 
   if (
     first_candidate == module_number_of_hits ||
-    fabsf(hit_Phis[module_hit_start + first_candidate] - h1_phi) > phi_window) {
+    fabsf(static_cast<float>(hit_Phis[module_hit_start + first_candidate]) - h1_phi) > phi_window) {
     return {-1, 0};
   }
   else {
     // Find number of candidates with a second binary search
     const auto number_of_candidates = binary_search_leftmost(
-      hit_Phis + module_hit_start + first_candidate, module_number_of_hits - first_candidate, h1_phi + phi_window);
+      hit_Phis + module_hit_start + first_candidate,
+      module_number_of_hits - first_candidate,
+      half_t(h1_phi + phi_window));
     return {first_candidate, number_of_candidates};
   }
 }
@@ -45,7 +47,7 @@ __device__ std::tuple<int, int> candidate_binary_search(
  *        left and right wrt the h1 phi.
  */
 __device__ std::tuple<int, int> candidate_capped_search(
-  const float* hit_Phis,
+  const half_t* hit_Phis,
   const int module_hit_start,
   const int module_number_of_hits,
   const float h1_phi,
@@ -57,12 +59,13 @@ __device__ std::tuple<int, int> candidate_capped_search(
 
   if (module_number_of_hits > 0) {
     // Do a binary search for h0 candidates
-    const auto candidate_position = binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, h1_phi);
+    const auto candidate_position =
+      binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, half_t(h1_phi));
 
     if (
-      candidate_position < module_number_of_hits &&
-      hit_Phis[module_hit_start + candidate_position] > (h1_phi - phi_window) &&
-      hit_Phis[module_hit_start + candidate_position] < (h1_phi + phi_window)) {
+      candidate_position<module_number_of_hits&& static_cast<float>(hit_Phis[module_hit_start + candidate_position])>(
+        h1_phi - phi_window) &&
+      static_cast<float>(hit_Phis[module_hit_start + candidate_position]) < (h1_phi + phi_window)) {
 
       first_candidate = candidate_position;
       number_of_candidates = 1;
@@ -71,7 +74,8 @@ __device__ std::tuple<int, int> candidate_capped_search(
       for (int i = 0; i < maximum_candidates_side; ++i) {
         const auto current_left_candidate = candidate_position - i - 1;
         if (
-          current_left_candidate >= 0 && hit_Phis[module_hit_start + current_left_candidate] > (h1_phi - phi_window)) {
+          current_left_candidate >= 0 &&
+          static_cast<float>(hit_Phis[module_hit_start + current_left_candidate]) > (h1_phi - phi_window)) {
           first_candidate = current_left_candidate;
           number_of_candidates++;
         }
@@ -79,7 +83,7 @@ __device__ std::tuple<int, int> candidate_capped_search(
         const auto current_right_candidate = candidate_position + i + 1;
         if (
           current_right_candidate < module_number_of_hits &&
-          hit_Phis[module_hit_start + current_right_candidate] < (h1_phi + phi_window)) {
+          static_cast<float>(hit_Phis[module_hit_start + current_right_candidate]) < (h1_phi + phi_window)) {
           number_of_candidates++;
         }
       }
@@ -98,7 +102,7 @@ __device__ void fill_candidates_impl(
   const uint* module_hitStarts,
   const uint* module_hitNums,
   Velo::ConstClusters& velo_cluster_container,
-  const float* hit_Phis,
+  const half_t* hit_Phis,
   const uint hit_offset,
   const float phi_extrapolation_base,
   const float phi_extrapolation_coef)
@@ -119,10 +123,9 @@ __device__ void fill_candidates_impl(
     const auto h1_index = module_hitStarts[module_index] + h1_rel_index;
 
     // Calculate phi limits
-    const auto h1_phi = hit_Phis[h1_index];
-    const Velo::HitBase h1 {velo_cluster_container.x(h1_index),
-                            velo_cluster_container.y(h1_index),
-                            velo_cluster_container.z(h1_index)};
+    const float h1_phi = hit_Phis[h1_index];
+    const Velo::HitBase h1 {
+      velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
     const auto phi_window = phi_extrapolation_base + fabsf(h1.z) * phi_extrapolation_coef;
 
     const auto found_h0_candidates = candidate_binary_search(hit_Phis, m0_hitStarts, m0_hitNums, h1_phi, phi_window);
@@ -163,10 +166,10 @@ __device__ void fill_candidates_impl(
     // }
 
     // if (found) {
-      // h0_candidates[2 * h1_index] = std::get<0>(found_h0_candidates) + m0_hitStarts - hit_offset;
-      // h0_candidates[2 * h1_index + 1] = std::get<1>(found_h0_candidates);
-      // h2_candidates[2 * h1_index] = std::get<0>(found_h2_candidates) + m2_hitStarts - hit_offset;
-      // h2_candidates[2 * h1_index + 1] = std::get<1>(found_h2_candidates);
+    // h0_candidates[2 * h1_index] = std::get<0>(found_h0_candidates) + m0_hitStarts - hit_offset;
+    // h0_candidates[2 * h1_index + 1] = std::get<1>(found_h0_candidates);
+    // h2_candidates[2 * h1_index] = std::get<0>(found_h2_candidates) + m2_hitStarts - hit_offset;
+    // h2_candidates[2 * h1_index + 1] = std::get<1>(found_h2_candidates);
     // }
 
     // constexpr auto lumi_region = 130.f;
@@ -218,7 +221,6 @@ __device__ void fill_candidates_impl(
 
     // h2_candidates[2 * h1_index] = std::get<0>(found_h2_candidates) + first_h2_candidate + m2_hitStarts - hit_offset;
     // h2_candidates[2 * h1_index + 1] = std::get<1>(found_h2_candidates) - first_h2_candidate;
-
 
     if (std::get<1>(found_h0_candidates) && std::get<1>(found_h2_candidates)) {
       h0_candidates[2 * h1_index] = std::get<0>(found_h0_candidates) + m0_hitStarts - hit_offset;

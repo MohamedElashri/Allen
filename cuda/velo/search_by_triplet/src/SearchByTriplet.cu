@@ -6,29 +6,6 @@
  * @brief Track forwarding algorithm based on triplet finding
  * @detail For details, check out paper
  *         "A fast local algorithm for track reconstruction on parallel architectures"
- *
- *         Note: All hit arrays are contained in the dev_velo_cluster_container.
- *               By having a single array and offsetting it every time, less registers are
- *               required.
- *
- *               Hereby all the pointers and how to access them:
- *
- *         const float* hit_Xs = (float*) (dev_velo_cluster_container + 5 * number_of_hits + hit_offset);
- *         const float* hit_Ys = (float*) (dev_velo_cluster_container + hit_offset);
- *         const float* hit_Zs = (float*) (dev_velo_cluster_container + number_of_hits + hit_offset);
- *         const float* hit_Phis = (float*) (dev_velo_cluster_container + 4 * number_of_hits + hit_offset);
- *
- *         Note: Atomics is another case where we need several variables from an array.
- *               We just keep dev_atomics_velo, and access the required ones upon request.
- *
- *               Below are all atomics used by this algorithm:
- *
- *         const int ip_shift = gridDim.x + blockIdx.x * (Velo::num_atomics - 1);
- *         uint* tracks_insert_pointer = (uint*) dev_atomics_velo + event_number;
- *         uint* weaktracks_insert_pointer = (uint*) dev_atomics_velo + ip_shift;
- *         uint* tracklets_insert_pointer = (uint*) dev_atomics_velo + ip_shift + 1;
- *         uint* ttf_insert_pointer = (uint*) dev_atomics_velo + ip_shift + 2;
- *         uint* local_number_of_hits = (uint*) dev_atomics_velo + ip_shift + 3;
  */
 
 __global__ void velo_search_by_triplet::velo_search_by_triplet(
