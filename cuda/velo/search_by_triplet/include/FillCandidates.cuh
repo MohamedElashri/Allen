@@ -6,7 +6,7 @@ namespace velo_fill_candidates {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_total_number_of_velo_clusters_t, uint);
-    DEVICE_INPUT(dev_sorted_velo_cluster_container_t, uint) dev_sorted_velo_cluster_container;
+    DEVICE_INPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
     DEVICE_INPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
     DEVICE_INPUT(dev_hit_phi_t, float) dev_hit_phi;

@@ -174,16 +174,16 @@ T min(const T& a, const T& b)
 unsigned int atomicInc(unsigned int* address, unsigned int val);
 
 struct half_t {
-  unsigned short value;
-  operator float();
+private:
+  int16_t m_value;
+
+public:
   half_t() = default;
   half_t(const half_t&) = default;
   half_t(const float value);
+  operator float() const;
+  int16_t get() const;
 };
-
-half_t __float2half(float value);
-
-float __half2float(half_t value);
 
 #define cudaCheck(stmt)                                \
   {                                                    \

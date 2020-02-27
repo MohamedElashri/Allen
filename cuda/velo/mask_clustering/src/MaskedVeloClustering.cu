@@ -75,10 +75,10 @@ __device__ void no_neighbour_sp(
         const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
         const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
 
-        velo_cluster_container.x(cluster_start + cluster_num) = gx;
-        velo_cluster_container.y(cluster_start + cluster_num) = gy;
-        velo_cluster_container.z(cluster_start + cluster_num) = gz;
-        velo_cluster_container.id(cluster_start + cluster_num) = get_lhcb_id(cid);
+        velo_cluster_container.set_x(cluster_start + cluster_num, gx);
+        velo_cluster_container.set_y(cluster_start + cluster_num, gy);
+        velo_cluster_container.set_z(cluster_start + cluster_num, gz);
+        velo_cluster_container.set_id(cluster_start + cluster_num, get_lhcb_id(cid));
       }
 
       // if there is a second cluster for this pattern
@@ -109,10 +109,10 @@ __device__ void no_neighbour_sp(
         const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
         const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
 
-        velo_cluster_container.x(cluster_start + cluster_num) = gx;
-        velo_cluster_container.y(cluster_start + cluster_num) = gy;
-        velo_cluster_container.z(cluster_start + cluster_num) = gz;
-        velo_cluster_container.id(cluster_start + cluster_num) = get_lhcb_id(cid);
+        velo_cluster_container.set_x(cluster_start + cluster_num, gx);
+        velo_cluster_container.set_y(cluster_start + cluster_num, gy);
+        velo_cluster_container.set_z(cluster_start + cluster_num, gz);
+        velo_cluster_container.set_id(cluster_start + cluster_num, get_lhcb_id(cid));
       }
     }
   }
@@ -293,10 +293,10 @@ __device__ void rest_of_clusters(
 
     const uint cluster_start = module_cluster_start[module_number];
 
-    velo_cluster_container.x(cluster_start + cluster_num) = gx;
-    velo_cluster_container.y(cluster_start + cluster_num) = gy;
-    velo_cluster_container.z(cluster_start + cluster_num) = gz;
-    velo_cluster_container.id(cluster_start + cluster_num) = get_lhcb_id(cid);
+    velo_cluster_container.set_x(cluster_start + cluster_num, gx);
+    velo_cluster_container.set_y(cluster_start + cluster_num, gy);
+    velo_cluster_container.set_z(cluster_start + cluster_num, gz);
+    velo_cluster_container.set_id(cluster_start + cluster_num, get_lhcb_id(cid));
   }
 }
 

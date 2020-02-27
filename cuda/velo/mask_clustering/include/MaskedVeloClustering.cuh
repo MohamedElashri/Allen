@@ -18,7 +18,7 @@ namespace velo_masked_clustering {
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_candidates_offsets_t, uint) dev_candidates_offsets;
     DEVICE_OUTPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
-    DEVICE_OUTPUT(dev_velo_cluster_container_t, uint) dev_velo_cluster_container;
+    DEVICE_OUTPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
@@ -51,7 +51,8 @@ namespace velo_masked_clustering {
     {
       set_size<dev_module_cluster_num_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_modules);
-      set_size<dev_velo_cluster_container_t>(arguments, 4 * value<host_total_number_of_velo_clusters_t>(arguments));
+      set_size<dev_velo_cluster_container_t>(arguments,
+        value<host_total_number_of_velo_clusters_t>(arguments) * Velo::velo_cluster_size);
     }
 
     void operator()(

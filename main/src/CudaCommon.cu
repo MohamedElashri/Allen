@@ -74,12 +74,8 @@ cudaError_t cudaDeviceReset() { return 0; }
 
 cudaError_t cudaStreamCreate(cudaStream_t*) { return 0; }
 
-cudaError_t cudaMemcpyToSymbol(
-  void* symbol,
-  const void* src,
-  size_t count,
-  size_t offset,
-  enum cudaMemcpyKind) {
+cudaError_t cudaMemcpyToSymbol(void* symbol, const void* src, size_t count, size_t offset, enum cudaMemcpyKind)
+{
   std::memcpy(symbol, reinterpret_cast<const char*>(src) + offset, count);
   return 0;
 }
@@ -101,18 +97,19 @@ namespace Configuration {
 
 __device__ __host__ int32_t intbits(const float f)
 {
-  const int32_t* bits = reinterpret_cast<const int32_t*>(&f);
-  return *bits;
+  int32_t i;
+  std::memcpy(&i, &f, sizeof(float));
+  return i;
 }
 
 __device__ __host__ float floatbits(const int32_t i)
 {
-  const float* bits = reinterpret_cast<const float*>(&i);
-  return *bits;
+  float f;
+  std::memcpy(&f, &i, sizeof(float));
+  return f;
 }
 
-__device__ __host__ half_t __float2half(const float f)
-{
+half_t::half_t(const float f) {
   // via Fabian "ryg" Giesen.
   // https://gist.github.com/2156668
   uint32_t sign_mask = 0x80000000u;
@@ -148,42 +145,28 @@ __device__ __host__ half_t __float2half(const float f)
 
   if (fint < f32infty) o = fint2 >> 13; // Take the bits!
 
-  return (o | (sign >> 16));
+  m_value = (o | (sign >> 16));
 }
 
-__device__ __host__ float __half2float(const half_t f) {
-  const auto x = f.value;
-  unsigned sign = ((x >> 15) & 1);
-  unsigned exponent = ((x >> 10) & 0x1f);
-  unsigned mantissa = ((x & 0x3ff) << 13);
-  if (exponent == 0x1f) {  /* NaN or Inf */
-    mantissa = (mantissa ? (sign = 0, 0x7fffff) : 0);
-    exponent = 0xff;
-  } else if (!exponent) {  /* Denorm or Zero */
-      if (mantissa) {
-          unsigned int msb;
-          exponent = 0x71;
-          do {
-              msb = (mantissa & 0x400000);
-              mantissa <<= 1;  /* normalize */
-              --exponent;
-          } while (!msb);
-          mantissa &= 0x7fffff;  /* 1.mantissa is implicit */
-      }
-  } else {
-      exponent += 0x70;
+half_t::operator float() const {
+  constexpr uint32_t shifted_exp = 0x7c00 << 13; // exponent mask after shift
+
+  int32_t o = ((int32_t)(m_value & 0x7fff)) << 13; // exponent/mantissa bits
+  uint32_t exp = shifted_exp & o;            // just the exponent
+  o += (127 - 15) << 23;                     // exponent adjust
+
+  // handle exponent special cases
+  if (exp == shifted_exp)                                   // Inf/NaN?
+    o += (128 - 16) << 23;                                  // extra exp adjust
+  else if (exp == 0) {                                      // Zero/Denormal?
+    o += 1 << 23;                                           // extra exp adjust
+    o = intbits(floatbits(o) - floatbits(113 << 23)); // renormalize
   }
-  int temp = ((sign << 31) | (exponent << 23) | mantissa);
 
-  return *((float*)((void*)&temp));
+  o |= ((int32_t)(m_value & 0x8000)) << 16; // sign bit
+  return floatbits(o);
 }
 
-half_t::operator float() {
-  return __half2float(*this);
-}
-
-half_t::half_t(const float f) {
-  value = __float2half(f);
-}
+int16_t half_t::get() const { return m_value; }
 
 #endif

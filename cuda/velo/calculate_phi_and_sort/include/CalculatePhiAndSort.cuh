@@ -13,8 +13,8 @@ namespace velo_calculate_phi_and_sort {
     HOST_INPUT(host_total_number_of_velo_clusters_t, uint);
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
     DEVICE_INPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
-    DEVICE_INPUT(dev_velo_cluster_container_t, uint32_t) dev_velo_cluster_container;
-    DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, uint32_t) dev_sorted_velo_cluster_container;
+    DEVICE_INPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
+    DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_OUTPUT(dev_hit_permutation_t, uint) dev_hit_permutation;
     DEVICE_OUTPUT(dev_hit_phi_t, float) dev_hit_phi;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 1, 1});
@@ -47,7 +47,7 @@ namespace velo_calculate_phi_and_sort {
       const RuntimeOptions&,
       const Constants&,
       const HostBuffers&) const {
-      set_size<dev_sorted_velo_cluster_container_t>(arguments, size<dev_velo_cluster_container_t>(arguments) / sizeof(uint32_t));
+      set_size<dev_sorted_velo_cluster_container_t>(arguments, size<dev_velo_cluster_container_t>(arguments));
       set_size<dev_hit_permutation_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
       set_size<dev_hit_phi_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
     }

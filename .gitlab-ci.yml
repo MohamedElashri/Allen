@@ -382,10 +382,10 @@ CPU:DefaultSequence:RelWithDebInfo::build_x86:
   tags:
     - x86
 
-# CPU:DefaultSequence:RelWithDebInfo::build_x86_clang:
-#   <<: *build_clang_job_def
-#   tags:
-#     - x86
+CPU:DefaultSequence:RelWithDebInfo::build_x86_clang:
+  <<: *build_clang_job_def
+  tags:
+    - x86
 
 # Run on all platforms
 # Performance runs
