@@ -111,7 +111,7 @@ std::tuple<std::vector<LHCb::Event::v2::Track>, std::vector<LHCb::Event::v2::Tra
   // Do the conversion
   ParKalmanFilter::FittedTrack* kf_tracks = host_buffers.host_kf_tracks;
   const uint number_of_tracks = scifi_tracks.number_of_tracks(i_event);
-  info() << "Number of SciFi tracks to convert = " << number_of_tracks << endmsg;
+  debug() << "Number of SciFi tracks to convert = " << number_of_tracks << endmsg;
 
   std::vector<LHCb::Event::v2::Track> forward_tracks;
   forward_tracks.reserve(number_of_tracks);
