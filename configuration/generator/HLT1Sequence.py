@@ -2,6 +2,9 @@ from algorithms import *
 
 
 def HLT1_sequence():
+    # Needed for aligning selections with Moore.
+    velo_pv_ip = velo_pv_ip_t()
+
     kalman_velo_only = kalman_velo_only_t()
     kalman_pv_ipchi2 = kalman_pv_ipchi2_t()
 
@@ -35,10 +38,14 @@ def HLT1_sequence():
     ODINNoBias_line = ODINNoBias_t()
     ODINLumi_line = ODINLumi_t()
     VeloMicroBias_line = VeloMicroBias_t()
-    OneTrackMVA_line = OneTrackMVA_t()
-    SingleMuon_line = SingleMuon_t()
+    TrackMVA_line = TrackMVA_t()
+    TrackMuonMVA_line = TrackMuonMVA_t()
+    SingleHighPtMuon_line = SingleHighPtMuon_t()
+    LowPtMuon_line = LowPtMuon_t()
     TwoTrackMVA_line = TwoTrackMVA_t()
-    HighMassDiMuon_line = HighMassDiMuon_t()
+    DiMuonHighMass_line = DiMuonHighMass_t()
+    DiMuonLowMass_line = DiMuonLowMass_t()
+    LowPtDiMuon_line = LowPtDiMuon_t()
     DisplacedDiMuon_line = DisplacedDiMuon_t()
     DiMuonSoft_line = DiMuonSoft_t()
     D2KPi_line = D2KPi_t()
@@ -46,14 +53,15 @@ def HLT1_sequence():
     D2KK_line = D2KK_t()
 
     hlt1_sequence = Sequence(
-        kalman_velo_only, kalman_pv_ipchi2, filter_tracks,
+        velo_pv_ip, kalman_velo_only, kalman_pv_ipchi2, filter_tracks,
         prefix_sum_secondary_vertices, fit_secondary_vertices, run_hlt1,
         run_postscale, prepare_decisions, prepare_raw_banks,
         prefix_sum_sel_reps, package_sel_reports, ErrorEvent_line,
         PassThrough_line, NoBeams_line, BeamOne_line, BeamTwo_line,
         BothBeams_line, ODINNoBias_line, ODINLumi_line, VeloMicroBias_line,
-        OneTrackMVA_line, SingleMuon_line, TwoTrackMVA_line,
-        HighMassDiMuon_line, DisplacedDiMuon_line, DiMuonSoft_line, D2KPi_line,
+        TrackMVA_line, TrackMuonMVA_line, SingleHighPtMuon_line,
+        LowPtMuon_line, TwoTrackMVA_line, DiMuonHighMass_line,
+        DiMuonLowMass_line, LowPtDiMuon_line, DiMuonSoft_line, D2KPi_line,
         D2PiPi_line, D2KK_line)
 
     return hlt1_sequence

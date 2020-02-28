@@ -86,7 +86,7 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
   uint const event_number = blockIdx.x;
 
   // Consolidated Velo tracks for this event
-  Velo::Consolidated::Tracks const velo_tracks {
+  Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
   uint const event_tracks_offset = velo_tracks.tracks_offset(event_number);
 

@@ -338,9 +338,9 @@ __global__ void kalman_velo_only::kalman_velo_only(
   const uint event_number = blockIdx.x;
 
   // Create velo tracks.
-  Velo::Consolidated::ConstTracks velo_tracks {
+  Velo::Consolidated::Tracks const velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-
+  
   // Create UT tracks.
   UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
                                                    parameters.dev_ut_track_hit_number,
@@ -360,6 +360,10 @@ __global__ void kalman_velo_only::kalman_velo_only(
 
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
 
+  // Velo track <-> PV table.
+  Associate::Consolidated::ConstTable velo_pv_ip {parameters.dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
+  const auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
+  
   // Loop over SciFi tracks and get associated UT and VELO tracks.
   const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
   for (uint i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
@@ -374,5 +378,7 @@ __global__ void kalman_velo_only::kalman_velo_only(
       n_velo_hits,
       init_qop,
       parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
+    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track].ip =
+      pv_table.value(i_velo_track);
   }
 }
