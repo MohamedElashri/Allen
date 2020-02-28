@@ -69,22 +69,25 @@ Ghost tracks identified as muon with isMuon:                              181/  
 
 
 HLT1 rates:
-ErrorEvent:           0/  1000, (    0.00 +/-     0.00) kHz
-PassThrough:       1000/  1000, (30000.00 +/-     0.00) kHz
-NoBeams:              0/  1000, (    0.00 +/-     0.00) kHz
-BeamOne:              0/  1000, (    0.00 +/-     0.00) kHz
-BeamTwo:              0/  1000, (    0.00 +/-     0.00) kHz
-BothBeams:            0/  1000, (    0.00 +/-     0.00) kHz
-ODINNoBias:           0/  1000, (    0.00 +/-     0.00) kHz
-ODINLumi:             0/  1000, (    0.00 +/-     0.00) kHz
-VeloMicroBias:        0/  1000, (    0.00 +/-     0.00) kHz
-OneTrackMVA:         64/  1000, ( 1920.00 +/-   232.19) kHz
-SingleMuon:           1/  1000, (   30.00 +/-    29.98) kHz
-TwoTrackMVA:        397/  1000, (11910.00 +/-   464.17) kHz
-HighMassDiMuon:       7/  1000, (  210.00 +/-    79.09) kHz
-DisplacedDiMuon:      5/  1000, (  150.00 +/-    66.91) kHz
-DiMuonSoft:           1/  1000, (   30.00 +/-    29.98) kHz
-D2KPi:               37/  1000, ( 1110.00 +/-   179.08) kHz
-D2PiPi:              31/  1000, (  930.00 +/-   164.42) kHz
-D2KK:                20/  1000, (  600.00 +/-   132.82) kHz
-Inclusive:         1000/  1000, (30000.00 +/-     0.00) kHz
+ErrorEvent:            0/  1000, (    0.00 +/-     0.00) kHz
+PassThrough:        1000/  1000, (30000.00 +/-     0.00) kHz
+NoBeams:               0/  1000, (    0.00 +/-     0.00) kHz
+BeamOne:               0/  1000, (    0.00 +/-     0.00) kHz
+BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
+BothBeams:             0/  1000, (    0.00 +/-     0.00) kHz
+ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
+ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
+VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
+TrackMVA:            225/  1000, ( 6750.00 +/-   396.15) kHz
+TrackMuonMVA:          5/  1000, (  150.00 +/-    66.91) kHz
+SingleHighPtMuon:      4/  1000, (  120.00 +/-    59.88) kHz
+LowPtMuon:           114/  1000, ( 3420.00 +/-   301.50) kHz
+TwoTrackMVA:         397/  1000, (11910.00 +/-   464.17) kHz
+DiMuonHighMass:        9/  1000, (  270.00 +/-    89.59) kHz
+DiMuonLowMass:       512/  1000, (15360.00 +/-   474.21) kHz
+LowPtDiMuon:          45/  1000, ( 1350.00 +/-   196.67) kHz
+DiMuonSoft:            1/  1000, (   30.00 +/-    29.98) kHz
+D2KPi:                37/  1000, ( 1110.00 +/-   179.08) kHz
+D2PiPi:               31/  1000, (  930.00 +/-   164.42) kHz
+D2KK:                 20/  1000, (  600.00 +/-   132.82) kHz
+Inclusive:          1000/  1000, (30000.00 +/-     0.00) kHz
