@@ -83,7 +83,7 @@ __global__ void lf_extend_tracks_uv::lf_extend_tracks_uv(
       // If slopees are small the track is central,  the track bends a little, thee error on the estimation is small. +-2 mm windows is ok (2^{2}  = 4) .
       // If we have large slope the error on x can be big,  For super peripheral tracks ( delta-slope = 0.3, ty = 0.3) you want to open up up to :
       // sqrt(4+60*0.3+60*0.3) = 6 mm windows. Anyway, we need some retuning of this scaling windows.
-      const float max_chi2 = 4.f + 60.f * fabsf(ut_state.ty) + 60.f * fabsf(a1 - ut_state.tx);
+      const float max_chi2 = 50.f * fabsf(ut_state.ty) + 50.f * fabsf(ut_state.tx);
 
       int best_index = -1;
       float best_chi2 = max_chi2;
