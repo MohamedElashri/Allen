@@ -124,53 +124,49 @@ namespace Velo {
     __host__ __device__ float x(const uint index) const
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[3 * (m_offset + index)]);
+      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index)]);
     }
 
     __host__ __device__ void set_x(const uint index, const half_t value)
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      m_base_pointer[3 * (m_offset + index)] = half_t(value);
+      m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index)] = half_t(value);
     }
 
     __host__ __device__ float y(const uint index) const
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[3 * (m_offset + index) + 1]);
+      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index) + 1]);
     }
 
     __host__ __device__ void set_y(const uint index, const half_t value)
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      m_base_pointer[3 * (m_offset + index) + 1] = half_t(value);
+      m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index) + 1] = half_t(value);
     }
 
     __host__ __device__ float z(const uint index) const
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[3 * (m_offset + index) + 2]);
+      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index) + 2]);
     }
 
     __host__ __device__ void set_z(const uint index, const half_t value)
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      m_base_pointer[3 * (m_offset + index) + 2] = half_t(value);
+      m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index) + 2] = half_t(value);
     }
 
     __host__ __device__ uint32_t id(const uint index) const
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      auto id_base_pointer = reinterpret_cast<typename ForwardType<T, uint32_t>::t*>(
-        m_base_pointer + 3 * m_total_estimated_number_of_clusters);
-      return id_base_pointer[m_offset + index];
+      return reinterpret_cast<typename ForwardType<T, uint32_t>::t*>(m_base_pointer)[m_offset + index];
     }
 
     __host__ __device__ void set_id(const uint index, const uint value)
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      auto id_base_pointer = reinterpret_cast<typename ForwardType<T, uint32_t>::t*>(
-        m_base_pointer + 3 * m_total_estimated_number_of_clusters);
-      id_base_pointer[m_offset + index] = value;
+      reinterpret_cast<typename ForwardType<T, uint32_t>::t*>(m_base_pointer)[m_offset + index] = value;
     }
   };
 
