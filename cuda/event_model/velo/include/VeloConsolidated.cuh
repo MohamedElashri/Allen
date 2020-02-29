@@ -34,7 +34,8 @@ namespace Velo {
       __host__ __device__ float x(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_hits);
-        return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index)]);
+        return static_cast<typename ForwardType<T, float>::t>(
+          m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index)]);
       }
 
       __host__ __device__ void set_x(const uint index, const half_t value)
@@ -46,7 +47,8 @@ namespace Velo {
       __host__ __device__ float y(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_hits);
-        return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 1]);
+        return static_cast<typename ForwardType<T, float>::t>(
+          m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 1]);
       }
 
       __host__ __device__ void set_y(const uint index, const half_t value)
@@ -58,7 +60,8 @@ namespace Velo {
       __host__ __device__ float z(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_hits);
-        return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 2]);
+        return static_cast<typename ForwardType<T, float>::t>(
+          m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 2]);
       }
 
       __host__ __device__ void set_z(const uint index, const half_t value)
@@ -121,17 +124,14 @@ namespace Velo {
         return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
 
-      __host__ std::vector<uint32_t> get_lhcbids_for_track(char* hits_base_pointer, const uint track_number) const
+      __host__ std::vector<uint> get_lhcbids_for_track(const char* hits_base_pointer, const uint track_number) const
       {
-        uint32_t* LHCbID = reinterpret_cast<uint*>(hits_base_pointer + sizeof(float) * 3 * total_number_of_hits());
-        LHCbID += track_offset(track_number);
-        const uint n_hits = number_of_hits(track_number);
-        std::vector<uint32_t> lhcbids;
-        lhcbids.reserve(n_hits);
-        for (uint i_hit = 0; i_hit < n_hits; i_hit++) {
-          lhcbids.push_back(LHCbID[i_hit]);
+        std::vector<uint> ids;
+        const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        for (uint i = 0; i < number_of_hits(track_number); ++i) {
+          ids.push_back(hits.id(i));
         }
-        return lhcbids;
+        return ids;
       }
     };
 

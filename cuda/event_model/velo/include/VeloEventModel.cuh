@@ -124,7 +124,8 @@ namespace Velo {
     __host__ __device__ float x(const uint index) const
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index)]);
+      return static_cast<typename ForwardType<T, float>::t>(
+        m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index)]);
     }
 
     __host__ __device__ void set_x(const uint index, const half_t value)
@@ -136,7 +137,8 @@ namespace Velo {
     __host__ __device__ float y(const uint index) const
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index) + 1]);
+      return static_cast<typename ForwardType<T, float>::t>(
+        m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index) + 1]);
     }
 
     __host__ __device__ void set_y(const uint index, const half_t value)
@@ -148,7 +150,8 @@ namespace Velo {
     __host__ __device__ float z(const uint index) const
     {
       assert(m_offset + index < m_total_estimated_number_of_clusters);
-      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index) + 2]);
+      return static_cast<typename ForwardType<T, float>::t>(
+        m_base_pointer[2 * m_total_estimated_number_of_clusters + 3 * (m_offset + index) + 2]);
     }
 
     __host__ __device__ void set_z(const uint index, const half_t value)
