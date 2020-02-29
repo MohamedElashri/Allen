@@ -11,12 +11,10 @@ __device__ void simplified_step(
   KalmanFloat& covXX,
   KalmanFloat& covXTx,
   KalmanFloat& covTxTx,
-  KalmanFloat& chi2,
-  const ParKalmanFilter::KalmanParametrizations* params)
+  KalmanFloat& chi2)
 {
   // Predict the state.
   const KalmanFloat dz = zhit - z;
-  const auto& par = params->Par_predictV[dz > 0 ? 0 : 1];
   // For now don't use the momentum-dependent correction to ty. It doesn't work for some reason.
   // const KalmanFloat predTx = tx + corTx * par[4] * (1e-5 * dz * ((dz > 0 ? z : zhit) + par[5] * 1e3));
   // const KalmanFloat predx = x + 0.5 * (tx + predTx) * dz;
@@ -32,9 +30,13 @@ __device__ void simplified_step(
   KalmanFloat predcovTxTx = covTxTx;
 
   // Add noise.
-  const KalmanFloat sigTx = par[1] * ((KalmanFloat) 1e-5) + par[2] * fabsf(qop);
-  const KalmanFloat sigX = par[6] * sigTx * fabsf(dz);
-  const KalmanFloat corr = par[7];
+  const KalmanFloat par1 = scatterSensorParameters[0];
+  const KalmanFloat par2 = scatterSensorParameters[1];
+  const KalmanFloat par6 = scatterSensorParameters[2];
+  const KalmanFloat par7 = scatterSensorParameters[3];
+  const KalmanFloat sigTx = par1 * ((KalmanFloat) 1e-5) + par2 * fabsf(qop);
+  const KalmanFloat sigX = par6 * sigTx * fabsf(dz);
+  const KalmanFloat corr = par7;
   predcovXX += sigX * sigX;
   predcovXTx += corr * sigX * sigTx;
   predcovTxTx += sigTx * sigTx;
@@ -213,11 +215,45 @@ __device__ void velo_only_fit(
   track.nhits = n_velo_hits;
 }
 
+__device__ void propagate_to_beamline(FittedTrack& track)
+{
+  const KalmanFloat x = track.state[0];
+  const KalmanFloat y = track.state[1];
+  const KalmanFloat tx = track.state[2];
+  const KalmanFloat ty = track.state[3];
+  const KalmanFloat t2 = sqrtf(tx * tx + ty * ty);
+
+  // Get the beam position.
+  KalmanFloat zBeam = track.z;
+  KalmanFloat denom = t2 * t2;
+  const KalmanFloat tol = (KalmanFloat) 0.001;
+  zBeam = (denom < tol * tol) ? zBeam : track.z - (x * tx + y * ty) / denom;
+
+  // Propagate the covariance matrix.
+  const KalmanFloat dz = zBeam - track.z;
+  const KalmanFloat dz2 = dz * dz;
+  track.cov(0, 0) += dz2 * track.cov(2, 2) + 2 * dz * track.cov(0, 2);
+  track.cov(0, 2) += dz * track.cov(2, 2);
+  track.cov(1, 1) += dz2 * track.cov(3, 3) + 2 * dz * track.cov(1, 3);
+  track.cov(1, 3) += dz * track.cov(3, 3);
+
+  // Add RF foil scattering.
+  const KalmanFloat qop = track.state[4];
+  const KalmanFloat scat2RFFoil =
+    scatterFoilParameters[0] * (1.f + scatterFoilParameters[1] * t2) * qop * qop;
+  track.cov(2, 2) += scat2RFFoil;
+  track.cov(3, 3) += scat2RFFoil;
+
+  // Propagate the state.
+  track.state[0] = x + dz * tx;
+  track.state[1] = y + dz * ty;
+  track.z = zBeam;
+}
+
 __device__ void simplified_fit(
   Velo::Consolidated::ConstHits& velo_hits,
   const uint n_velo_hits,
   const KalmanFloat init_qop,
-  const ParKalmanFilter::KalmanParametrizations* kalman_params,
   FittedTrack& track)
 {
   int firsthit = 0;
@@ -243,6 +279,10 @@ __device__ void simplified_fit(
   // Initialize the chi2.
   KalmanFloat chi2 = 0;
 
+  // Calculate winv.
+  const KalmanFloat wx = pixelErr * pixelErr;
+  const KalmanFloat wy = wx;
+  
   // Fit loop.
   for (int i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
     int hitindex = i;
@@ -250,16 +290,16 @@ __device__ void simplified_fit(
     const auto hit_y = velo_hits.y(hitindex);
     const auto hit_z = velo_hits.z(hitindex);
     simplified_step(
-      z, hit_z, hit_x, Velo::Tracking::param_w_inverted, x, tx, qop, cXX, cXTx, cTxTx, chi2, kalman_params);
+      z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2);
     simplified_step(
-      z, hit_z, hit_y, Velo::Tracking::param_w_inverted, y, ty, qop, cYY, cYTy, cTyTy, chi2, kalman_params);
+      z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2);
     z = hit_z;
   }
   __syncthreads();
 
   // Add info to the output track.
   track.chi2 = chi2;
-  track.ndof = 2 * n_velo_hits;
+  track.ndof = 2 * n_velo_hits - 4;
   track.z = z;
   track.state[0] = x;
   track.state[1] = y;
@@ -285,20 +325,22 @@ __device__ void simplified_fit(
   track.first_qop = init_qop;
   track.best_qop = init_qop;
   track.nhits = n_velo_hits;
+
+  // Propagate track to beamline.
+  propagate_to_beamline(track);
 }
 
 __global__ void kalman_velo_only::kalman_velo_only(
   kalman_velo_only::Parameters parameters,
-  const char* dev_scifi_geometry,
-  const ParKalmanFilter::KalmanParametrizations* dev_kalman_params)
+  const char* dev_scifi_geometry)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
   // Create velo tracks.
-  Velo::Consolidated::ConstTracks velo_tracks {
+  Velo::Consolidated::Tracks const velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
-
+  
   // Create UT tracks.
   UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
                                                    parameters.dev_ut_track_hit_number,
@@ -318,6 +360,10 @@ __global__ void kalman_velo_only::kalman_velo_only(
 
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
 
+  // Velo track <-> PV table.
+  Associate::Consolidated::ConstTable velo_pv_ip {parameters.dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
+  const auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
+  
   // Loop over SciFi tracks and get associated UT and VELO tracks.
   const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
   for (uint i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
@@ -331,7 +377,8 @@ __global__ void kalman_velo_only::kalman_velo_only(
       velo_hits,
       n_velo_hits,
       init_qop,
-      dev_kalman_params,
       parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
+    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track].ip =
+      pv_table.value(i_velo_track);
   }
 }

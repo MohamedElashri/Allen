@@ -218,6 +218,9 @@ namespace VertexFit {
     sv.is_dimuon = trackA.is_muon && trackB.is_muon;
     sv.trk1_is_muon = trackA.is_muon;
     sv.trk2_is_muon = trackB.is_muon;
+
+    // Minimum IP of constituent tracks.
+    sv.minip = trackA.ip < trackB.ip ? trackA.ip : trackB.ip;
     
     // Dimuon mass.
     if (sv.is_dimuon) {

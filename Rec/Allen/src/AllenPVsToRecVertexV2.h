@@ -51,8 +51,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-   LHCb::Event::v2::RecVertices operator()(const HostBuffers&, const ConditionHolders::Beamline_t&)
-    const override;
+  LHCb::Event::v2::RecVertices operator()(const HostBuffers&, const ConditionHolders::Beamline_t&) const override;
 
 private:
   Gaudi::Property<uint32_t> m_minNumTracksPerVertex {this, "MinNumTracksPerVertex", 4};

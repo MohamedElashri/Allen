@@ -43,7 +43,7 @@ StatusCode AllenPVsToRecVertexV2::initialize()
   return StatusCode::SUCCESS;
 }
 
- LHCb::Event::v2::RecVertices AllenPVsToRecVertexV2::operator()(
+LHCb::Event::v2::RecVertices AllenPVsToRecVertexV2::operator()(
   const HostBuffers& host_buffers,
   const ConditionHolders::Beamline_t& beamline) const
 {
@@ -51,7 +51,7 @@ StatusCode AllenPVsToRecVertexV2::initialize()
   const uint i_event = 0;
   const uint n_pvs = host_buffers.host_number_of_multivertex[i_event];
 
-  info() << "Number of PVs to convert = " << n_pvs << endmsg;
+  debug() << "Number of PVs to convert = " << n_pvs << endmsg;
 
   LHCb::Event::v2::RecVertices recvertexcontainer;
   recvertexcontainer.reserve(n_pvs);

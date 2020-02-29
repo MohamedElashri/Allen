@@ -73,7 +73,7 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
   std::vector<LHCb::Event::v2::Track> output;
   output.reserve(number_of_tracks);
 
-  info() << "Number of Velo tracks to convert = " << number_of_tracks << endmsg;
+  debug() << "Number of Velo tracks to convert = " << number_of_tracks << endmsg;
 
   for (unsigned int t = 0; t < number_of_tracks; t++) {
     auto& newTrack = output.emplace_back();

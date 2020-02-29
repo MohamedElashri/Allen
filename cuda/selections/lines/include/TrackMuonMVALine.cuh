@@ -4,23 +4,26 @@
 #include "ParKalmanDefinitions.cuh"
 #include "SystemOfUnits.h"
 
-namespace OneTrackMVA {
+namespace TrackMuonMVA {
   // One track parameters.
-  constexpr float maxChi2Ndof =
-    10000.0f; // Large for now until we better understand the parameterized Kalman fit quality.
-  constexpr float minPt = 1000.0f / Gaudi::Units::GeV;
-  constexpr float maxPt = 25000.0f / Gaudi::Units::GeV;
-  constexpr float minIPChi2 = 10.0f;
+  constexpr float maxChi2Ndof = 100.0f;
+  constexpr float minPt = 2000.0f / Gaudi::Units::GeV;
+  constexpr float maxPt = 26000.0f / Gaudi::Units::GeV;
+  constexpr float minIPChi2 = 7.4f;
   constexpr float param1 = 1.0f;
-  constexpr float param2 = 1.0f;
-  constexpr float param3 = 1.1f;
-  constexpr float alpha = 2500.0f;
-
-  struct OneTrackMVA_t : public Hlt1::OneTrackLine {
-    constexpr static auto name {"OneTrackMVA"};
+  constexpr float param2 = 2.0f;
+  constexpr float param3 = 1.248f;
+  constexpr float alpha = 0.f;
+  
+  struct TrackMuonMVA_t : public Hlt1::OneTrackLine {
+    constexpr static auto name {"TrackMuonMVA"};
 
     static __device__ bool function(const ParKalmanFilter::FittedTrack& track)
     {
+      if (!track.is_muon) {
+        return false;
+      }
+      
       float ptShift = (track.pt() - alpha) / Gaudi::Units::GeV;
       const bool decision = track.chi2 / track.ndof < maxChi2Ndof &&
                             ((ptShift > maxPt && track.ipChi2 > minIPChi2) ||
@@ -30,4 +33,4 @@ namespace OneTrackMVA {
       return decision;
     }
   };
-} // namespace OneTrackMVA
+} // namespace TrackMuonMVA

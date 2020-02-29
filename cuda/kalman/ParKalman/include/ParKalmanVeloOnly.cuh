@@ -7,6 +7,7 @@
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
+#include "AssociateConsolidated.cuh"
 #include "States.cuh"
 #include "SciFiDefinitions.cuh"
 #include "DeviceAlgorithm.cuh"
@@ -16,6 +17,10 @@ typedef Vector<10> Vector10;
 typedef Vector<2> Vector2;
 typedef SquareMatrix<true, 2> SymMatrix2x2;
 typedef SquareMatrix<false, 2> Matrix2x2;
+
+static constexpr float scatterSensorParameters[4] = {0.54772, 1.478845, 0.626634, -0.78};
+static constexpr float scatterFoilParameters[2] = {1.67, 20.};
+static constexpr float pixelErr = 0.0125;
 
 __device__ void simplified_step(
   const float z,
@@ -28,8 +33,7 @@ __device__ void simplified_step(
   float& covXX,
   float& covXTx,
   float& covTxTx,
-  float& chi2,
-  const ParKalmanFilter::KalmanParametrizations* params);
+  float& chi2);
 
 __device__ void extrapolate_velo_only(
   KalmanFloat zFrom,
@@ -61,8 +65,9 @@ __device__ void simplified_fit(
   const Velo::Consolidated::Hits& velo_hits,
   const uint n_velo_hits,
   const KalmanFloat init_qop,
-  const KalmanParametrizations* kalman_params,
   FittedTrack& track);
+
+__device__ void propagate_to_beamline(FittedTrack& track);
 
 namespace kalman_velo_only {
   struct Parameters {
@@ -80,14 +85,14 @@ namespace kalman_velo_only {
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
+    DEVICE_INPUT(dev_velo_pv_ip_t, char) dev_velo_pv_ip;
     DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
 
   __global__ void kalman_velo_only(
     Parameters,
-    const char* dev_scifi_geometry,
-    const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
+    const char* dev_scifi_geometry);
 
   template<typename T, char... S>
   struct kalman_velo_only_t : public DeviceAlgorithm, Parameters {
@@ -124,9 +129,9 @@ namespace kalman_velo_only {
                     begin<dev_scifi_qop_t>(arguments),
                     begin<dev_scifi_states_t>(arguments),
                     begin<dev_scifi_track_ut_indices_t>(arguments),
+                    begin<dev_velo_pv_ip_t>(arguments),
                     begin<dev_kf_tracks_t>(arguments)},
-        constants.dev_scifi_geometry,
-        constants.dev_kalman_params);
+        constants.dev_scifi_geometry);
     }
 
   private:
