@@ -13,88 +13,30 @@ namespace Velo {
      * @brief Structure to access VELO hits.
      */
     template<typename T>
-    struct Hits_t {
-    private:
-      typename ForwardType<T, half_t>::t* m_base_pointer;
-      const uint m_total_number_of_hits;
-      const uint m_offset;
+    struct Hits_t : Velo::Clusters_t<T> {
+      using Velo::Clusters_t<T>::m_base_pointer;
+      using Velo::Clusters_t<T>::m_total_number_of_hits;
+      using Velo::Clusters_t<T>::m_offset;
 
-    public:
       __host__ __device__ Hits_t(T* base_pointer, const uint offset, const uint total_number_of_hits) :
-        m_base_pointer(reinterpret_cast<typename ForwardType<T, half_t>::t*>(base_pointer)),
-        m_total_number_of_hits(total_number_of_hits), m_offset(offset)
+        Velo::Clusters_t<T>(base_pointer, total_number_of_hits, offset)
       {}
 
-      __host__ __device__ Hits_t(const Hits_t<T>& hits) :
-        m_base_pointer(hits.m_base_pointer), m_total_number_of_hits(hits.m_total_number_of_hits),
-        m_offset(hits.m_offset)
-      {}
-
-      // Accessors and lvalue references for all types
-      __host__ __device__ float x(const uint index) const
-      {
-        assert(m_offset + index < m_total_number_of_hits);
-        return static_cast<typename ForwardType<T, float>::t>(
-          m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index)]);
-      }
-
-      __host__ __device__ void set_x(const uint index, const half_t value)
-      {
-        assert(m_offset + index < m_total_number_of_hits);
-        m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index)] = half_t(value);
-      }
-
-      __host__ __device__ float y(const uint index) const
-      {
-        assert(m_offset + index < m_total_number_of_hits);
-        return static_cast<typename ForwardType<T, float>::t>(
-          m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 1]);
-      }
-
-      __host__ __device__ void set_y(const uint index, const half_t value)
-      {
-        assert(m_offset + index < m_total_number_of_hits);
-        m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 1] = half_t(value);
-      }
-
-      __host__ __device__ float z(const uint index) const
-      {
-        assert(m_offset + index < m_total_number_of_hits);
-        return static_cast<typename ForwardType<T, float>::t>(
-          m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 2]);
-      }
-
-      __host__ __device__ void set_z(const uint index, const half_t value)
-      {
-        assert(m_offset + index < m_total_number_of_hits);
-        m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 2] = half_t(value);
-      }
-
-      __host__ __device__ uint id(const uint index) const
-      {
-        assert(m_offset + index < m_total_number_of_hits);
-        return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[m_offset + index];
-      }
-
-      __host__ __device__ void set_id(const uint index, const uint value)
-      {
-        assert(m_offset + index < m_total_number_of_hits);
-        reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[m_offset + index] = value;
-      }
+      __host__ __device__ Hits_t(const Hits_t<T>& hits) : Velo::Clusters_t<T>(hits) {}
 
       __host__ __device__ void set(const uint index, const Velo::Hit& hit)
       {
         assert(m_offset + index < m_total_number_of_hits);
-        x(index) = hit.x;
-        y(index) = hit.y;
-        z(index) = hit.z;
-        id(index) = hit.LHCbID;
+        this->set_x(index, hit.x);
+        this->set_y(index, hit.y);
+        this->set_z(index, hit.z);
+        this->set_id(index, hit.LHCbID);
       }
 
       __host__ __device__ Velo::Hit get(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_hits);
-        return Velo::Hit {x(index), y(index), z(index), id(index)};
+        return Velo::Hit {this->x(index), this->y(index), this->z(index), this->id(index)};
       }
     };
 
@@ -144,55 +86,92 @@ namespace Velo {
     private:
       typename ForwardType<T, float>::t* m_base_pointer;
       const uint m_total_number_of_tracks;
+      const uint m_offset;
 
     public:
-      __host__ __device__ States_t(T* base_pointer, const uint total_number_of_tracks) :
+      __host__ __device__ States_t(T* base_pointer, const uint total_number_of_tracks, const uint offset = 0) :
         m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
-        m_total_number_of_tracks(total_number_of_tracks)
+        m_total_number_of_tracks(total_number_of_tracks), m_offset(offset)
       {}
 
       __host__ __device__ States_t(const States_t<T>& states) :
-        m_base_pointer(states.m_base_pointer), m_total_number_of_tracks(states.m_total_number_of_tracks)
+        m_base_pointer(states.m_base_pointer), m_total_number_of_tracks(states.m_total_number_of_tracks),
+        m_offset(states.m_offset)
       {}
 
       // Accessors and lvalue references for all types
-      __host__ __device__ float x(const uint index) const { return m_base_pointer[index]; }
+      __host__ __device__ float x(const uint index) const
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[6 * (m_offset + index)];
+      }
 
-      __host__ __device__ float& x(const uint index) { return m_base_pointer[index]; }
+      __host__ __device__ float& x(const uint index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[6 * (m_offset + index)];
+      }
 
-      __host__ __device__ float y(const uint index) const { return m_base_pointer[m_total_number_of_tracks + index]; }
+      __host__ __device__ float y(const uint index) const
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[6 * (m_offset + index) + 1];
+      }
 
-      __host__ __device__ float& y(const uint index) { return m_base_pointer[m_total_number_of_tracks + index]; }
+      __host__ __device__ float& y(const uint index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[6 * (m_offset + index) + 1];
+      }
 
       __host__ __device__ float tx(const uint index) const
       {
-        return m_base_pointer[2 * m_total_number_of_tracks + index];
+        assert(m_offset + index < m_total_number_of_tracks);
+
+        return m_base_pointer[6 * (m_offset + index) + 2];
       }
 
-      __host__ __device__ float& tx(const uint index) { return m_base_pointer[2 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& tx(const uint index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[6 * (m_offset + index) + 2];
+      }
 
       __host__ __device__ float ty(const uint index) const
       {
-        return m_base_pointer[3 * m_total_number_of_tracks + index];
+        assert(m_offset + index < m_total_number_of_tracks);
+
+        return m_base_pointer[6 * (m_offset + index) + 3];
       }
 
-      __host__ __device__ float& ty(const uint index) { return m_base_pointer[3 * m_total_number_of_tracks + index]; }
+      __host__ __device__ float& ty(const uint index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[6 * (m_offset + index) + 3];
+      }
 
       __host__ __device__ float z(const uint index) const
       {
-        return m_base_pointer[4 * m_total_number_of_tracks + index];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[6 * (m_offset + index) + 4];
       }
 
-      __host__ __device__ float& z(const uint index) { return m_base_pointer[4 * m_total_number_of_tracks + index]; }
-
-      __host__ __device__ int backward(const uint index) const
+      __host__ __device__ float& z(const uint index)
       {
-        return reinterpret_cast<typename ForwardType<T, int>::t*>(m_base_pointer)[5 * m_total_number_of_tracks + index];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return m_base_pointer[6 * (m_offset + index) + 4];
       }
 
-      __host__ __device__ int& backward(const uint index)
+      __host__ __device__ bool backward(const uint index) const
       {
-        return reinterpret_cast<typename ForwardType<T, int>::t*>(m_base_pointer)[5 * m_total_number_of_tracks + index];
+        assert(m_offset + index < m_total_number_of_tracks);
+        return *reinterpret_cast<typename ForwardType<T, bool>::t*>(m_base_pointer + 6 * (m_offset + index) + 5);
+      }
+
+      __host__ __device__ bool& backward(const uint index)
+      {
+        assert(m_offset + index < m_total_number_of_tracks);
+        return *reinterpret_cast<typename ForwardType<T, bool>::t*>(m_base_pointer + 6 * (m_offset + index) + 5);
       }
 
       __host__ __device__ void set(const uint track_number, const VeloState& state)
