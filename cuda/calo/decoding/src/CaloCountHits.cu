@@ -11,17 +11,25 @@ __global__ void calo_count_hits::calo_count_hits(
     const char* raw_input = parameters.dev_ecal_raw_input + parameters.dev_ecal_raw_input_offsets[selected_event_number];
 
     // Read raw event
-    // const auto raw_event = VeloRawEvent(raw_input);
+    auto raw_event = CaloRawEvent(raw_input);
 
-    // uint number_of_candidates = 0;
-    // for (uint raw_bank_number = 0; raw_bank_number < raw_event.number_of_raw_banks; ++raw_bank_number) {
-    //   // Read raw bank
-    //   const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    //   number_of_candidates += raw_bank.sp_count;
-    // }
+    auto raw_bank = CaloRawBank();
+    for (uint raw_bank_number = 0; raw_bank_number < ECAL_BANKS; ++raw_bank_number) {
+      // Read raw bank
+      const auto raw_bank = CaloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
+      parameters.dev_ecal_number_of_hits[event_number * ECAL_BANKS + raw_bank.source_id] = raw_bank.adc_size;
+    }
 
-    // // The maximum number of candidates is two times the number of SPs
-    // parameters.dev_number_of_candidates[event_number] = 2 * number_of_candidates;
+    raw_input = parameters.dev_hcal_raw_input + parameters.dev_hcal_raw_input_offsets[selected_event_number];
+
+    // Read raw event
+    raw_event = CaloRawEvent(raw_input);
+
+    for (uint raw_bank_number = 0; raw_bank_number < raw_event.number_of_raw_banks; ++raw_bank_number) {
+      // Read raw bank
+      raw_bank = CaloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
+      parameters.dev_ecal_number_of_hits[event_number * HCAL_BANKS + raw_bank.source_id] = raw_bank.adc_size;
+    }
   }
 }
 
@@ -29,31 +37,32 @@ __global__ void calo_count_hits::calo_count_hits_mep(
   calo_count_hits::Parameters parameters,
   const uint number_of_events)
 {
+  printf("Hi I am event %d of %d\n", blockIdx.x * blockDim.x + threadIdx.x, number_of_events);
+  // Ecal
   for (auto event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
     const uint selected_event_number = parameters.dev_event_list[event_number];
     auto const number_of_ecal_raw_banks = parameters.dev_ecal_raw_input_offsets[0];
 
-    uint number_of_candidates = 0;
+    auto raw_bank = CaloRawBank();
     for (uint raw_bank_number = 0; raw_bank_number < number_of_ecal_raw_banks; ++raw_bank_number) {
       // Create raw bank from MEP layout
-      const auto raw_bank = MEP::raw_bank<CaloRawBank>(
-        parameters.dev_ecal_raw_input, parameters.dev_ecal_raw_input_offsets, selected_event_number, raw_bank_number);
-      // number_of_candidates += raw_bank.sp_count;
+      raw_bank = MEP::raw_bank<CaloRawBank>(parameters.dev_ecal_raw_input,
+        parameters.dev_ecal_raw_input_offsets, selected_event_number, raw_bank_number);
+      parameters.dev_ecal_number_of_hits[event_number * number_of_ecal_raw_banks
+        + raw_bank.source_id] = raw_bank.adc_size;
     }
 
-    parameters.dev_ecal_number_of_hits[event_number] = 2 * number_of_candidates;
-
+    // Hcal
     auto const number_of_hcal_raw_banks = parameters.dev_ecal_raw_input_offsets[0];
 
-    number_of_candidates = 0;
     for (uint raw_bank_number = 0; raw_bank_number < number_of_hcal_raw_banks; ++raw_bank_number) {
       // Create raw bank from MEP layout
-      const auto raw_bank = MEP::raw_bank<CaloRawBank>(
-        parameters.dev_hcal_raw_input, parameters.dev_hcal_raw_input_offsets, selected_event_number, raw_bank_number);
-      // number_of_candidates += raw_bank.sp_count;
+      raw_bank = MEP::raw_bank<CaloRawBank>(parameters.dev_hcal_raw_input,
+        parameters.dev_hcal_raw_input_offsets, selected_event_number, raw_bank_number);
+      parameters.dev_hcal_number_of_hits[event_number * number_of_hcal_raw_banks
+        + raw_bank.source_id] = raw_bank.adc_size;
     }
 
-    parameters.dev_hcal_number_of_hits[event_number] = 2 * number_of_candidates;
   }
 }

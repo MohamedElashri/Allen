@@ -1,7 +1,12 @@
 #pragma once
 
+#include "CaloRawEvent.cuh"
 #include "CaloRawBanks.cuh"
 #include "DeviceAlgorithm.cuh"
+
+#define ECAL_BANKS 28
+#define HCAL_BANKS 8
+
 
 namespace calo_count_hits {
   struct Parameters {
@@ -37,11 +42,13 @@ namespace calo_count_hits {
       set_size<dev_ecal_raw_input_t>(arguments, std::get<1>(runtime_options.host_ecal_events));
       set_size<dev_ecal_raw_input_offsets_t>(
         arguments, std::get<2>(runtime_options.host_ecal_events).size_bytes() / sizeof(uint));
-      set_size<dev_ecal_number_of_hits_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_ecal_number_of_hits_t>(
+        arguments, ECAL_BANKS * value<host_number_of_selected_events_t>(arguments));
       set_size<dev_hcal_raw_input_t>(arguments, std::get<1>(runtime_options.host_hcal_events));
       set_size<dev_hcal_raw_input_offsets_t>(
         arguments, std::get<2>(runtime_options.host_hcal_events).size_bytes() / sizeof(uint));
-      set_size<dev_hcal_number_of_hits_t>(arguments, value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_hcal_number_of_hits_t>(
+        arguments, HCAL_BANKS * value<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -84,4 +91,4 @@ namespace calo_count_hits {
   private:
     Property<block_dim_x_t> m_block_dim_x {this};
   };
-} // namespace velo_calculate_number_of_candidates
+} // namespace calo_count_hits
