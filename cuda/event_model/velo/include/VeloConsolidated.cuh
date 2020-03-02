@@ -103,75 +103,75 @@ namespace Velo {
       __host__ __device__ float x(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return m_base_pointer[6 * (m_offset + index)];
+        return m_base_pointer[m_offset + index];
       }
 
       __host__ __device__ float& x(const uint index)
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return m_base_pointer[6 * (m_offset + index)];
+        return m_base_pointer[m_offset + index];
       }
 
       __host__ __device__ float y(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return m_base_pointer[6 * (m_offset + index) + 1];
+        return m_base_pointer[m_offset + m_total_number_of_tracks + index];
       }
 
       __host__ __device__ float& y(const uint index)
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return m_base_pointer[6 * (m_offset + index) + 1];
+        return m_base_pointer[m_offset + m_total_number_of_tracks + index];
       }
 
       __host__ __device__ float tx(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_tracks);
 
-        return m_base_pointer[6 * (m_offset + index) + 2];
+        return m_base_pointer[m_offset + 2 * m_total_number_of_tracks + index];
       }
 
       __host__ __device__ float& tx(const uint index)
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return m_base_pointer[6 * (m_offset + index) + 2];
+        return m_base_pointer[m_offset + 2 * m_total_number_of_tracks + index];
       }
 
       __host__ __device__ float ty(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_tracks);
 
-        return m_base_pointer[6 * (m_offset + index) + 3];
+        return m_base_pointer[m_offset + 3 * m_total_number_of_tracks + index];
       }
 
       __host__ __device__ float& ty(const uint index)
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return m_base_pointer[6 * (m_offset + index) + 3];
+        return m_base_pointer[m_offset + 3 * m_total_number_of_tracks + index];
       }
 
       __host__ __device__ float z(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return m_base_pointer[6 * (m_offset + index) + 4];
+        return m_base_pointer[m_offset + 4 * m_total_number_of_tracks + index];
       }
 
       __host__ __device__ float& z(const uint index)
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return m_base_pointer[6 * (m_offset + index) + 4];
+        return m_base_pointer[m_offset + 4 * m_total_number_of_tracks + index];
       }
 
       __host__ __device__ bool backward(const uint index) const
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return *reinterpret_cast<typename ForwardType<T, bool>::t*>(m_base_pointer + 6 * (m_offset + index) + 5);
+        return reinterpret_cast<typename ForwardType<T, bool>::t*>(m_base_pointer + 5 * m_total_number_of_tracks)[m_offset + index];
       }
 
       __host__ __device__ bool& backward(const uint index)
       {
         assert(m_offset + index < m_total_number_of_tracks);
-        return *reinterpret_cast<typename ForwardType<T, bool>::t*>(m_base_pointer + 6 * (m_offset + index) + 5);
+        return reinterpret_cast<typename ForwardType<T, bool>::t*>(m_base_pointer + 5 * m_total_number_of_tracks)[m_offset + index];
       }
 
       __host__ __device__ void set(const uint track_number, const VeloState& state)
