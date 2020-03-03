@@ -19,12 +19,6 @@ include_directories(consolidate/include)
 include_directories(compassUT/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  foreach(source_file ${UT_common} ${UT_decoding} ${UT_consolidate} ${CompassUT_tracking})
-    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
-  endforeach(source_file)
-endif()
-
 allen_add_device_library(UTCommon STATIC
   ${UT_common}
 )

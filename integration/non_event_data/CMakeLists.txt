@@ -1,6 +1,6 @@
 file(GLOB SOURCES "src/*.cpp")
 
-allen_add_device_library(NonEventData ${SOURCES})
+allen_add_host_library(NonEventData ${SOURCES})
 
 include_directories(${CPPGSL_INCLUDE_DIR})
 

@@ -87,12 +87,6 @@ add_custom_command(
   DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
 )
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  foreach(source_file ${stream_sequence})
-    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
-  endforeach(source_file)
-endif()
-
 allen_add_host_library(HostStream STATIC ${stream_gear} ${stream_sequence_cpp})
 
 allen_add_device_library(Stream STATIC ${stream_sequence})

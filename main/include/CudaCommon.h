@@ -7,7 +7,7 @@
 #include "BankTypes.h"
 #include "LoggerCommon.h"
 
-#if defined(CPU)
+#if defined(CPU) || (defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__))
 
 #include <cmath>
 #include <cstring>

@@ -149,6 +149,12 @@ if(TARGET_DEVICE STREQUAL "CPU")
   endfunction()
 
   function(allen_add_device_library)
+    foreach(arg IN LISTS ARGN)
+      if(${arg} MATCHES "\\.cu$")
+        set_source_files_properties(${arg} PROPERTIES LANGUAGE CXX)
+      endif()
+    endforeach()
+
     add_library(${ARGV})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
@@ -198,19 +204,16 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wno-unused-result")
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
+  add_compile_definitions(TARGET_DEVICE_CUDACLANG)
+
   allen_project()
 
   function(allen_add_host_library)
     add_library(${ARGV})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
-
-  set(CMAKE_FILES_FULLDIR ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY})  
+  
   set(cuda_base_dir /usr/local/cuda-10.1)
-  set(cuda_bin_dir ${cuda_base_dir}/bin)
-  set(cuda_include_dir ${cuda_base_dir}/include)
-  set(nvlink_command ${cuda_bin_dir}/nvlink)
-  set(fatbinary_command ${cuda_bin_dir}/fatbinary)
 
   function(allen_add_device_library)
     foreach(arg IN LISTS ARGN)
@@ -220,76 +223,12 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
     endforeach()
 
     add_library(${ARGV})
-
-    set(single_string_link_command "")
-
-    set(cuda_o "")
-    foreach(arg IN LISTS ARGN)
-      if(${arg} MATCHES "\\.cu$")
-        string(REGEX REPLACE "^${CMAKE_SOURCE_DIR}(.*)\\.cu$" "${CMAKE_FILES_FULLDIR}/${ARGV0}.dir\\1" arg_no_ext ${arg})
-
-        set(current_cuda_o ${arg_no_ext}.cuda.o)
-        set(current_cu_o ${arg_no_ext}.cu.o)
-        set(cuda_o_string "${cuda_o_string} ${current_cuda_o}")
-        set(cu_o_string "${cu_o_string} ${current_cu_o}")
-        set(objcopy_string "objcopy -j '.nv*' -j '__nv*' ${current_cu_o} ${current_cuda_o}")
-
-        # message(STATUS ${objcopy_string})
-        set(single_string_link_command "${single_string_link_command} ${objcopy_string}\;")
-      endif()
-    endforeach()
-
-    set(ar_command_string "ar crs ${CMAKE_FILES_FULLDIR}/lib${ARGV0}.cuda.a${cuda_o_string}")
-
-    # message(STATUS ${ar_command_string})
-    set(single_string_link_command "${single_string_link_command} ${ar_command_string}\;")
-
-    # build a shared library with the host and device code
-    # message(STATUS "previously_built_device_libraries ${previously_built_device_libraries}")
-
-    set(reg_file ${CMAKE_FILES_FULLDIR}/${ARGV0}.reg.c)
-    foreach(cuda_arch sm_75)
-      set(current_cubin_file ${CMAKE_FILES_FULLDIR}/${ARGV0}.${cuda_arch}.cubin)
-      set(cubin_file_string "${cubin_file_string} --image=profile=${cuda_arch},file=${current_cubin_file}")
-
-      set(nvlink_string "${nvlink_string} ${nvlink_command} --arch=${cuda_arch} --register-link-binaries=${reg_file} -m64 -cpu-arch=X86_64 ${cu_o_string} -L${cuda_base_dir}/lib64/stubs -L${cuda_base_dir}/lib64 -L${CMAKE_FILES_FULLDIR} -lcudadevrt${previously_built_device_libraries} -o ${current_cubin_file}\;")
-    endforeach()
-
-    # message(STATUS ${nvlink_string})
-    set(single_string_link_command "${single_string_link_command} ${nvlink_string}")
-
-    # Make fatbinary
-    set(output_fatbin_file ${CMAKE_FILES_FULLDIR}/${ARGV0}.fatbin.c)
-    set(fatbinary_string "${fatbinary_command} --bin2c-path=${cuda_bin_dir} --create=${CMAKE_FILES_FULLDIR}/${ARGV0}.fatbin -64 --cmdline=--compile-only -link${cubin_file_string} --embedded-fatbin=${output_fatbin_file}")
-
-    # message(STATUS ${fatbinary_string})
-    set(single_string_link_command "${single_string_link_command} ${fatbinary_string}\;")
-
-    # Compile with clang
-    set(output_clang_build_step ${CMAKE_FILES_FULLDIR}/${ARGV0}.build.o)
-    set(clang_build_step_string "clang++ -x c++ -std=c++17 -O2 -I${cuda_include_dir} -I. -fPIC -Wall -D__NV_EXTRA_INITIALIZATION= -D__NV_EXTRA_FINALIZATION= -DFATBINFILE=\\\"${output_fatbin_file}\\\" -DREGISTERLINKBINARYFILE=\\\"${reg_file}\\\" -c ${cuda_base_dir}/bin/crt/link.stub -o ${output_clang_build_step}")
-
-    # message(STATUS ${clang_build_step_string})
-    set(single_string_link_command "${single_string_link_command} ${clang_build_step_string}\;")
-
-    # message(STATUS ${single_string_link_command})
-
-    # Finally, add the output to the target link libraries
-    add_custom_command(TARGET ${ARGV0}
-      PRE_LINK
-      COMMAND eval ${single_string_link_command}
-      COMMENT "Building ${ARGV0}.build.o"
-      VERBATIM
-    )
-
     set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
-    target_link_options(${ARGV0} BEFORE PUBLIC ${output_clang_build_step} ${previously_built_device_libraries_location})
-    target_compile_options(${ARGV0} PUBLIC -x cuda --cuda-path=${cuda_base_dir} -pthread --cuda-gpu-arch=sm_75 -fcuda-rdc --no-cuda-include-ptx=all)
-    set(previously_built_device_libraries ${previously_built_device_libraries} -l${ARGV0}.cuda PARENT_SCOPE)
-    set(previously_built_device_libraries_location ${previously_built_device_libraries_location} ${CMAKE_FILES_FULLDIR}/lib${ARGV0}.cuda.a PARENT_SCOPE)
+    target_compile_options(${ARGV0} PRIVATE -x cuda --cuda-path=${cuda_base_dir} -pthread --cuda-gpu-arch=sm_75 -fcuda-rdc --no-cuda-include-ptx=all)
   endfunction()
 
   function(allen_add_executable)
+    message(STATUS "Please use nvcc to link the executable.")
     add_executable(${ARGV})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
@@ -700,7 +639,7 @@ set(allen_lib_sources ${Allen_cpp_path}
                       ${OutputHandler_cpp_path}
                       ${ZMQOutputSender_cpp_path})
 
-if(TARGET_DEVICE STREQUAL "HIP")
+if(TARGET_DEVICE STREQUAL "HIP" OR TARGET_DEVICE STREQUAL "CUDACLANG")
 #Produce self - contained application
 #Otherwise, HIP doesn't seem to link properly
   allen_add_device_library(AllenLib STATIC ${allen_lib_sources})
