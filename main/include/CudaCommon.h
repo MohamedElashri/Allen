@@ -173,24 +173,25 @@ T min(const T& a, const T& b)
 
 unsigned int atomicInc(unsigned int* address, unsigned int val);
 
-int16_t __float2half(const float f);
+uint16_t __float2half(const float f);
 
-float __half2float(const int16_t h);
+float __half2float(const uint16_t h);
 
 #ifdef CPU_USE_REAL_HALF
+
 /**
  * @brief half_t with int16_t backend (real half).
  */
 struct half_t {
 private:
-  int16_t m_value;
+  uint16_t m_value;
 
 public:
   half_t() = default;
   half_t(const half_t&) = default;
   half_t(const float value);
   operator float() const;
-  int16_t get() const;
+  uint16_t get() const;
   
   bool operator>(const half_t&) const;
   bool operator<(const half_t&) const;
