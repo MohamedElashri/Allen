@@ -16,8 +16,7 @@ namespace UT {
       const uint m_track_offset;
 
     public:
-      __host__ __device__
-      Hits_t(T* base_pointer, const uint track_offset, const uint total_number_of_hits) :
+      __host__ __device__ Hits_t(T* base_pointer, const uint track_offset, const uint total_number_of_hits) :
         m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + track_offset),
         m_total_number_of_hits(total_number_of_hits), m_track_offset(track_offset)
       {}
@@ -31,15 +30,30 @@ namespace UT {
 
       __host__ __device__ float& yEnd(const uint index) { return m_base_pointer[m_total_number_of_hits + index]; }
 
-      __host__ __device__ float zAtYEq0(const uint index) const { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+      __host__ __device__ float zAtYEq0(const uint index) const
+      {
+        return m_base_pointer[2 * m_total_number_of_hits + index];
+      }
 
-      __host__ __device__ float& zAtYEq0(const uint index) { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+      __host__ __device__ float& zAtYEq0(const uint index)
+      {
+        return m_base_pointer[2 * m_total_number_of_hits + index];
+      }
 
-      __host__ __device__ float xAtYEq0(const uint index) const { return m_base_pointer[3 * m_total_number_of_hits + index]; }
+      __host__ __device__ float xAtYEq0(const uint index) const
+      {
+        return m_base_pointer[3 * m_total_number_of_hits + index];
+      }
 
-      __host__ __device__ float& xAtYEq0(const uint index) { return m_base_pointer[3 * m_total_number_of_hits + index]; }
+      __host__ __device__ float& xAtYEq0(const uint index)
+      {
+        return m_base_pointer[3 * m_total_number_of_hits + index];
+      }
 
-      __host__ __device__ float weight(const uint index) const { return m_base_pointer[4 * m_total_number_of_hits + index]; }
+      __host__ __device__ float weight(const uint index) const
+      {
+        return m_base_pointer[4 * m_total_number_of_hits + index];
+      }
 
       __host__ __device__ float& weight(const uint index) { return m_base_pointer[4 * m_total_number_of_hits + index]; }
 
@@ -117,19 +131,14 @@ namespace UT {
         return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
 
-       __host__ std::vector<uint32_t> get_lhcbids_for_track(
-        char* hits_base_pointer,
-        const uint track_number) const
+      __host__ std::vector<uint32_t> get_lhcbids_for_track(const char* hits_base_pointer, const uint track_number) const
       {
-        uint32_t* LHCbID = reinterpret_cast<uint32_t*>(hits_base_pointer + sizeof(uint32_t) * 5 * total_number_of_hits());
-        LHCbID += track_offset(track_number);
-        const uint n_hits = number_of_hits(track_number);
-        std::vector<uint32_t> lhcbids;
-        lhcbids.reserve(n_hits);
-        for (uint i_hit = 0; i_hit < n_hits; i_hit++) {
-          lhcbids.push_back(LHCbID[i_hit]);
+        std::vector<uint> ids;
+        const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        for (uint i = 0; i < number_of_hits(track_number); ++i) {
+          ids.push_back(hits.id(i));
         }
-        return lhcbids;
+        return ids;
       }
     };
 
@@ -151,11 +160,7 @@ namespace UT {
         typename ForwardType<T, uint>::t* velo_track_base_pointer,
         const uint current_event_number,
         const uint number_of_events) :
-        Tracks(
-          atomics_base_pointer,
-          track_hit_number_base_pointer,
-          current_event_number,
-          number_of_events),
+        Tracks(atomics_base_pointer, track_hit_number_base_pointer, current_event_number, number_of_events),
         m_velo_track(velo_track_base_pointer + tracks_offset(current_event_number)),
         m_qop(qop_base_pointer + tracks_offset(current_event_number))
       {}
