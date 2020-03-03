@@ -105,25 +105,24 @@ namespace Velo {
   /**
    * @brief Structure to access VELO clusters.
    */
-  constexpr uint velo_cluster_size = 3 * sizeof(half_t) + sizeof(uint);
   template<typename T>
   struct Clusters_t {
   protected:
-    typename ForwardType<T, half_t>::t* m_base_pointer;
+    typename ForwardType<T, uint>::t* m_base_pointer;
     const uint m_total_number_of_hits;
     const uint m_offset;
 
   public:
+    constexpr static uint element_size = sizeof(uint) + 3 * sizeof(half_t);
+
     __host__ __device__
     Clusters_t(T* base_pointer, const uint total_estimated_number_of_clusters, const uint offset = 0) :
-      m_base_pointer(reinterpret_cast<typename ForwardType<T, half_t>::t*>(base_pointer)),
+      m_base_pointer(reinterpret_cast<typename ForwardType<T, uint>::t*>(base_pointer)),
       m_total_number_of_hits(total_estimated_number_of_clusters), m_offset(offset)
     {}
 
-    __host__ __device__
-    Clusters_t(const Clusters_t<T>& clusters) :
-      m_base_pointer(clusters.m_base_pointer),
-      m_total_number_of_hits(clusters.m_total_number_of_hits),
+    __host__ __device__ Clusters_t(const Clusters_t<T>& clusters) :
+      m_base_pointer(clusters.m_base_pointer), m_total_number_of_hits(clusters.m_total_number_of_hits),
       m_offset(clusters.m_offset)
     {}
 
@@ -143,40 +142,51 @@ namespace Velo {
     __host__ __device__ float x(const uint index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
-      return static_cast<typename ForwardType<T, float>::t>(
-        m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index)]);
+      auto base_pointer_half_t =
+        reinterpret_cast<typename ForwardType<T, half_t>::t*>(m_base_pointer + m_total_number_of_hits);
+      return static_cast<typename ForwardType<T, float>::t>(base_pointer_half_t[3 * (m_offset + index)]);
     }
 
     __host__ __device__ void set_x(const uint index, const half_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
-      m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index)] = half_t(value);
+      auto base_pointer_half_t =
+        reinterpret_cast<typename ForwardType<T, half_t>::t*>(m_base_pointer + m_total_number_of_hits);
+      base_pointer_half_t[3 * (m_offset + index)] = half_t(value);
     }
 
     __host__ __device__ float y(const uint index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
+      auto base_pointer_half_t =
+        reinterpret_cast<typename ForwardType<T, half_t>::t*>(m_base_pointer + m_total_number_of_hits);
       return static_cast<typename ForwardType<T, float>::t>(
-        m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 1]);
+        base_pointer_half_t[3 * (m_offset + index) + 1]);
     }
 
     __host__ __device__ void set_y(const uint index, const half_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
-      m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 1] = half_t(value);
+      auto base_pointer_half_t =
+        reinterpret_cast<typename ForwardType<T, half_t>::t*>(m_base_pointer + m_total_number_of_hits);
+      base_pointer_half_t[3 * (m_offset + index) + 1] = half_t(value);
     }
 
     __host__ __device__ float z(const uint index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
+      auto base_pointer_half_t =
+        reinterpret_cast<typename ForwardType<T, half_t>::t*>(m_base_pointer + m_total_number_of_hits);
       return static_cast<typename ForwardType<T, float>::t>(
-        m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 2]);
+        base_pointer_half_t[3 * (m_offset + index) + 2]);
     }
 
     __host__ __device__ void set_z(const uint index, const half_t value)
     {
       assert(m_offset + index < m_total_number_of_hits);
-      m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 2] = half_t(value);
+      auto base_pointer_half_t =
+        reinterpret_cast<typename ForwardType<T, half_t>::t*>(m_base_pointer + m_total_number_of_hits);
+      base_pointer_half_t[3 * (m_offset + index) + 2] = half_t(value);
     }
   };
 

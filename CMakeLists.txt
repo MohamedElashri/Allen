@@ -22,7 +22,7 @@ option(USE_LZMA "build with lzma" OFF)
 option(USE_LZ4 "build with lz4" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
-option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" ON)
+option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 
 # -----------------------
 # Multiple-choice options

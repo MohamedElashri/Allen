@@ -4,6 +4,8 @@
 
 #include <cstring>
 #include "stdlib.h"
+// If supported, compile and use F16C extensions to convert from / to float16
+#include "CpuID.h"
 
 thread_local GridDimensions gridDim;
 thread_local BlockIndices blockIdx;
@@ -109,7 +111,7 @@ __device__ __host__ float floatbits(const int32_t i)
   return f;
 }
 
-uint16_t __float2half(const float f) {
+uint16_t __float2half_impl(const float f) {
   // via Fabian "ryg" Giesen.
   // https://gist.github.com/2156668
   uint32_t sign_mask = 0x80000000u;
@@ -148,7 +150,7 @@ uint16_t __float2half(const float f) {
   return (o | (sign >> 16));
 }
 
-float __half2float(const uint16_t h) {
+float __half2float_impl(const uint16_t h) {
   constexpr uint32_t shifted_exp = 0x7c00 << 13; // exponent mask after shift
 
   int32_t o = ((int32_t)(h & 0x7fff)) << 13; // exponent/mantissa bits
@@ -167,34 +169,39 @@ float __half2float(const uint16_t h) {
   return floatbits(o);
 }
 
-#ifdef CPU_USE_REAL_HALF
-
-// If supported, compile and use F16C extensions to convert from / to float16
-#include "CpuID.h"
-
-half_t::half_t(const float f) {
+uint16_t __float2half(const float f) {
 #ifdef __F16C__
   // Check at runtime if the processor supports the F16C extension
   if (cpu_id::supports_feature(bit_F16C)) {
-    m_value = _cvtss_sh(f, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+    return _cvtss_sh(f, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
   } else {
-    m_value = __float2half(f);
+    return __float2half_impl(f);
   }
 #else
-  m_value = __float2half(f);
+  return __float2half_impl(f);
 #endif
 }
 
-half_t::operator float() const {
+float __half2float(const uint16_t h) {
 #ifdef __F16C__
   if (cpu_id::supports_feature(bit_F16C)) {
-    return _cvtsh_ss(m_value);
+    return _cvtsh_ss(h);
   } else {
-    return __half2float(m_value);
+    return __half2float_impl(h);
   }
 #else
-  return __half2float(m_value);
+  return __half2float_impl(h);
 #endif
+}
+
+#ifdef CPU_USE_REAL_HALF
+
+half_t::half_t(const float f) {
+  m_value = __float2half(f);
+}
+
+half_t::operator float() const {
+  return __half2float(m_value);
 }
 
 uint16_t half_t::get() const { return m_value; }
