@@ -220,6 +220,12 @@ namespace Allen {
       algo->register_property(m_name, this);
     }
 
+    Property(BaseAlgorithm* algo, const typename V::t& default_value) :
+      m_algo {algo}, m_cached_value {V(default_value)}, m_name {V::name}, m_description {V::description}
+    {
+      algo->register_property(m_name, this);
+    }
+
     V get_value() const { return m_cached_value; }
 
     virtual bool from_string(const std::string& value) override

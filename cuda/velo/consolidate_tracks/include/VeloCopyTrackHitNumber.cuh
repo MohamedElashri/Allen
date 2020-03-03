@@ -12,7 +12,7 @@ namespace velo_copy_track_hit_number {
     DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint) dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_OUTPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_OUTPUT(dev_offsets_all_velo_tracks_t, uint) dev_offsets_all_velo_tracks;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {512, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void velo_copy_track_hit_number(Parameters);
@@ -66,6 +66,6 @@ namespace velo_copy_track_hit_number {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{512, 1, 1}}};
   };
 } // namespace velo_copy_track_hit_number

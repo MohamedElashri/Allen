@@ -17,11 +17,11 @@ namespace ut_search_windows {
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, uint) dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, uint) dev_ut_selected_velo_tracks;
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
-    PROPERTY(min_momentum_t, float, "min_momentum", "min momentum cut [MeV/c]", 1.5f * Gaudi::Units::GeV) min_momentum;
-    PROPERTY(min_pt_t, float, "min_pt", "min pT cut [MeV/c]", 300.f) min_pt;
-    PROPERTY(y_tol_t, float, "y_tol", "y tol [mm]", 0.5f * Gaudi::Units::mm) y_tol;
-    PROPERTY(y_tol_slope_t, float, "y_tol_slope", "y tol slope [mm]", 0.08f) y_tol_slope;
-    PROPERTY(block_dim_y_t, uint, "block_dim_y_t", "block dimension Y", 64);
+    PROPERTY(min_momentum_t, float, "min_momentum", "min momentum cut [MeV/c]") min_momentum;
+    PROPERTY(min_pt_t, float, "min_pt", "min pT cut [MeV/c]") min_pt;
+    PROPERTY(y_tol_t, float, "y_tol", "y tol [mm]") y_tol;
+    PROPERTY(y_tol_slope_t, float, "y_tol_slope", "y tol slope [mm]") y_tol_slope;
+    PROPERTY(block_dim_y_t, uint, "block_dim_y_t", "block dimension Y");
   };
 
   __global__ void ut_search_windows(
@@ -80,10 +80,10 @@ namespace ut_search_windows {
     }
 
   private:
-    Property<min_momentum_t> m_mom {this};
-    Property<min_pt_t> m_pt {this};
-    Property<y_tol_t> m_ytol {this};
-    Property<y_tol_slope_t> m_yslope {this};
-    Property<block_dim_y_t> m_block_dim_y {this};
+    Property<min_momentum_t> m_mom {this, 1.5f * Gaudi::Units::GeV};
+    Property<min_pt_t> m_pt {this, 300.f};
+    Property<y_tol_t> m_ytol {this, 0.5f * Gaudi::Units::mm};
+    Property<y_tol_slope_t> m_yslope {this, 0.08f};
+    Property<block_dim_y_t> m_block_dim_y {this, 64};
   };
 } // namespace ut_search_windows

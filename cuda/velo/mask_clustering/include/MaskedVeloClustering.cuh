@@ -19,7 +19,7 @@ namespace velo_masked_clustering {
     DEVICE_INPUT(dev_candidates_offsets_t, uint) dev_candidates_offsets;
     DEVICE_OUTPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
     DEVICE_OUTPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   // Function
@@ -96,6 +96,6 @@ namespace velo_masked_clustering {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace velo_masked_clustering

@@ -14,7 +14,7 @@ namespace ut_pre_decode {
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
     DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_OUTPUT(dev_ut_hit_count_t, uint) dev_ut_hit_count;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 4, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void ut_pre_decode(
@@ -91,6 +91,6 @@ namespace ut_pre_decode {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{64, 4, 1}}};
   };
 } // namespace ut_pre_decode
