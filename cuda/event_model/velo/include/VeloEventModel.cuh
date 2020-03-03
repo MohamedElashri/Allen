@@ -114,7 +114,7 @@ namespace Velo {
 
   public:
     constexpr static uint element_size = sizeof(uint) + 3 * sizeof(half_t);
-    constexpr uint offset_half_t = sizeof(uint) / sizeof(half_t);
+    constexpr static uint offset_half_t = sizeof(uint) / sizeof(half_t);
 
     __host__ __device__
     Clusters_t(T* base_pointer, const uint total_estimated_number_of_clusters, const uint offset = 0) :
@@ -143,7 +143,8 @@ namespace Velo {
     __host__ __device__ float x(const uint index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
-      return static_cast<typename ForwardType<T, float>::t>(m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index)]);
+      return static_cast<typename ForwardType<T, float>::t>(
+        m_base_pointer[offset_half_t * m_total_number_of_hits + 3 * (m_offset + index)]);
     }
 
     __host__ __device__ void set_x(const uint index, const half_t value)
