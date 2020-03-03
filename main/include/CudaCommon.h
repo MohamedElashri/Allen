@@ -7,7 +7,7 @@
 #include "BankTypes.h"
 #include "LoggerCommon.h"
 
-#if defined(CPU) || (defined(__clang__) && !defined(__CUDA__))
+#if defined(CPU)
 
 #include <cmath>
 #include <cstring>
@@ -173,6 +173,14 @@ T min(const T& a, const T& b)
 
 unsigned int atomicInc(unsigned int* address, unsigned int val);
 
+int16_t __float2half(const float f);
+
+float __half2float(const int16_t h);
+
+#ifdef CPU_USE_REAL_HALF
+/**
+ * @brief half_t with int16_t backend (real half).
+ */
 struct half_t {
 private:
   int16_t m_value;
@@ -191,6 +199,26 @@ public:
   bool operator==(const half_t&) const;
   bool operator!=(const half_t&) const;
 };
+#else
+/**
+ * @brief half_t with float backend.
+ * @details This class stores a float simulating the lost bits
+ *          that would result from a conversion to a half datatype.
+ *          It retains the functionality and frontend of the "real half",
+ *          but its sizeof() will return 4.
+ */
+struct half_t {
+private:
+  float m_value;
+
+public:
+  half_t() = default;
+  half_t(const half_t&) = default;
+  half_t(const float value);
+  operator float() const;
+  int16_t get() const;
+};
+#endif
 
 #define cudaCheck(stmt)                                \
   {                                                    \

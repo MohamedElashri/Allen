@@ -8,7 +8,7 @@ namespace ut_find_permutation {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_accumulated_number_of_ut_hits_t, uint);
-    DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
+    DEVICE_INPUT(dev_ut_pre_decoded_hits_t, char) dev_ut_pre_decoded_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
     DEVICE_OUTPUT(dev_ut_hit_permutations_t, uint) dev_ut_hit_permutations;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 1, 1});
@@ -42,7 +42,7 @@ namespace ut_find_permutation {
         dim3(value<host_number_of_selected_events_t>(arguments), constants.host_unique_x_sector_layer_offsets[4]),
         property<block_dim_t>(),
         cuda_stream)(
-        Parameters {begin<dev_ut_hits_t>(arguments),
+        Parameters {begin<dev_ut_pre_decoded_hits_t>(arguments),
                    begin<dev_ut_hit_offsets_t>(arguments),
                    begin<dev_ut_hit_permutations_t>(arguments)},
         constants.dev_unique_x_sector_layer_offsets.data());

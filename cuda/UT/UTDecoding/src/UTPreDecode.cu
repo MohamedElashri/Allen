@@ -9,7 +9,7 @@ __device__ void pre_decode_raw_bank(
   UTBoards const& boards,
   UTRawBank const& raw_bank,
   uint const raw_bank_index,
-  UT::Hits& ut_hits,
+  UT::PreDecodedHits& ut_pre_decoded_hits,
   uint32_t* hit_count)
 {
   const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
@@ -55,13 +55,11 @@ __device__ void pre_decode_raw_bank(
     // cases where yBegin was repeated.
     const auto yBegin = half_t(p0Y + numstrips * dp0diY);
     const auto xAtYEq0_local = half_t(numstrips * dp0diX);
-    const short* yBegin_p = reinterpret_cast<const short*>(&yBegin);
-    const short* xAtYEq0_local_p = reinterpret_cast<const short*>(&xAtYEq0_local);
 
     // The second value needs to be changed its sign using the 2's complement logic (operator-),
     // if the signs of both values differ.
-    const short composed_0 = yBegin_p[0];
-    short composed_1 = xAtYEq0_local_p[0];
+    const short composed_0 = yBegin.get();
+    short composed_1 = xAtYEq0_local.get();
     const bool sign_0 = composed_0 & 0x8000;
     const bool sign_1 = composed_1 & 0x8000;
     if (sign_0 ^ sign_1) {
@@ -78,15 +76,14 @@ __device__ void pre_decode_raw_bank(
     assert(current_hit_count < hit_offsets[base_sector_group_offset + 1] - hit_offsets[base_sector_group_offset]);
 
     const uint hit_index = hit_offsets[base_sector_group_offset] + current_hit_count;
-    ut_hits.yBegin(hit_index) = composed_value_float[0];
+    ut_pre_decoded_hits.sort_key(hit_index) = composed_value_float[0];
 
     // Raw bank hit index:
     // [raw bank 8 bits] [hit id inside raw bank 24 bits]
     assert(i < (0x1 << 24));
     const uint32_t raw_bank_hit_index = raw_bank_index << 24 | i;
-    ut_hits.raw_bank_index(hit_index) = raw_bank_hit_index;
+    ut_pre_decoded_hits.index(hit_index) = raw_bank_hit_index;
   }
-
 }
 
 /**
@@ -115,7 +112,8 @@ __global__ void ut_pre_decode::ut_pre_decode(
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
   uint32_t* hit_count = parameters.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
 
-  UT::Hits ut_hits {parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::PreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
+                                          parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
@@ -126,15 +124,16 @@ __global__ void ut_pre_decode::ut_pre_decode(
 
     // Create UT raw bank from MEP layout
     const UTRawBank raw_bank = raw_event.getUTRawBank(raw_bank_index);
-    pre_decode_raw_bank(dev_ut_region_offsets,
-                        dev_unique_x_sector_offsets,
-                        hit_offsets,
-                        geometry,
-                        boards,
-                        raw_bank,
-                        raw_bank_index,
-                        ut_hits,
-                        hit_count);
+    pre_decode_raw_bank(
+      dev_ut_region_offsets,
+      dev_unique_x_sector_offsets,
+      hit_offsets,
+      geometry,
+      boards,
+      raw_bank,
+      raw_bank_index,
+      ut_pre_decoded_hits,
+      hit_count);
   }
 }
 
@@ -162,28 +161,29 @@ __global__ void ut_pre_decode::ut_pre_decode_mep(
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
   uint32_t* hit_count = parameters.dev_ut_hit_count + event_number * number_of_unique_x_sectors;
 
-  UT::Hits ut_hits {parameters.dev_ut_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  UT::PreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
+                                          parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
   auto const number_of_ut_raw_banks = parameters.dev_ut_raw_input_offsets[0];
 
-  for (uint raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks;
-       raw_bank_index += blockDim.x) {
+  for (uint raw_bank_index = threadIdx.x; raw_bank_index < number_of_ut_raw_banks; raw_bank_index += blockDim.x) {
 
     // Create UT raw bank from MEP layout
-    const auto raw_bank = MEP::raw_bank<UTRawBank>(parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets,
-                                                   selected_event_number, raw_bank_index);
+    const auto raw_bank = MEP::raw_bank<UTRawBank>(
+      parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, selected_event_number, raw_bank_index);
 
-    pre_decode_raw_bank(dev_ut_region_offsets,
-                        dev_unique_x_sector_offsets,
-                        hit_offsets,
-                        geometry,
-                        boards,
-                        raw_bank,
-                        raw_bank_index,
-                        ut_hits,
-                        hit_count);
+    pre_decode_raw_bank(
+      dev_ut_region_offsets,
+      dev_unique_x_sector_offsets,
+      hit_offsets,
+      geometry,
+      boards,
+      raw_bank,
+      raw_bank_index,
+      ut_pre_decoded_hits,
+      hit_count);
   }
 }

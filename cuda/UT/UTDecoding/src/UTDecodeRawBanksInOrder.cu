@@ -88,6 +88,9 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
   UT::Hits ut_hits {parameters.dev_ut_hits,
                     parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
+  UT::ConstPreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
+                                               parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+                                               
   const UTRawEvent raw_event(parameters.dev_ut_raw_input + event_offset);
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
@@ -97,7 +100,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
 
   for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
     const uint hit_index = layer_offset + i;
-    const uint32_t raw_bank_hit_index = ut_hits.raw_bank_index(parameters.dev_ut_hit_permutations[hit_index]);
+    const uint raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
     const uint raw_bank_index = raw_bank_hit_index >> 24;
 
     const UTRawBank raw_bank = raw_event.getUTRawBank(raw_bank_index);
@@ -126,6 +129,9 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
   UT::Hits ut_hits {parameters.dev_ut_hits,
                     parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
+  UT::ConstPreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
+                                               parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+
   const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
@@ -135,7 +141,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_mep(
   for (uint i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
 
     const uint hit_index = layer_offset + i;
-    const uint raw_bank_hit_index = ut_hits.raw_bank_index(parameters.dev_ut_hit_permutations[hit_index]);
+    const uint raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
     const uint raw_bank_index = raw_bank_hit_index >> 24;
 
     // Create UT raw bank from MEP layout

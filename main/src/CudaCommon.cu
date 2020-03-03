@@ -109,7 +109,7 @@ __device__ __host__ float floatbits(const int32_t i)
   return f;
 }
 
-half_t::half_t(const float f) {
+int16_t __float2half(const float f) {
   // via Fabian "ryg" Giesen.
   // https://gist.github.com/2156668
   uint32_t sign_mask = 0x80000000u;
@@ -145,13 +145,13 @@ half_t::half_t(const float f) {
 
   if (fint < f32infty) o = fint2 >> 13; // Take the bits!
 
-  m_value = (o | (sign >> 16));
+  return (o | (sign >> 16));
 }
 
-half_t::operator float() const {
+float __half2float(const int16_t h) {
   constexpr uint32_t shifted_exp = 0x7c00 << 13; // exponent mask after shift
 
-  int32_t o = ((int32_t)(m_value & 0x7fff)) << 13; // exponent/mantissa bits
+  int32_t o = ((int32_t)(h & 0x7fff)) << 13; // exponent/mantissa bits
   uint32_t exp = shifted_exp & o;            // just the exponent
   o += (127 - 15) << 23;                     // exponent adjust
 
@@ -163,8 +163,17 @@ half_t::operator float() const {
     o = intbits(floatbits(o) - floatbits(113 << 23)); // renormalize
   }
 
-  o |= ((int32_t)(m_value & 0x8000)) << 16; // sign bit
+  o |= ((int32_t)(h & 0x8000)) << 16; // sign bit
   return floatbits(o);
+}
+
+#ifdef CPU_USE_REAL_HALF
+half_t::half_t(const float f) {
+  m_value = __float2half(f);
+}
+
+half_t::operator float() const {
+  return __half2float(m_value);
 }
 
 int16_t half_t::get() const { return m_value; }
@@ -196,5 +205,16 @@ bool half_t::operator==(const half_t& a) const {
 bool half_t::operator!=(const half_t& a) const {
   return !operator==(a);
 }
+#else
+half_t::half_t(const float f) {
+  m_value = __half2float(__float2half(f));
+}
+
+half_t::operator float() const {
+  return m_value;
+}
+
+int16_t half_t::get() const { return __float2half(m_value); }
+#endif
 
 #endif
