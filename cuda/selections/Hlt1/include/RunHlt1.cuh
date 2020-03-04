@@ -19,7 +19,7 @@ namespace run_hlt1 {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_velo_offsets;
     DEVICE_OUTPUT(dev_sel_results_t, bool) dev_sel_results;
     DEVICE_OUTPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   template<typename T>
@@ -167,6 +167,6 @@ namespace run_hlt1 {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace run_hlt1

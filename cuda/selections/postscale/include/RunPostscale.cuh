@@ -12,17 +12,17 @@ namespace run_postscale {
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
     DEVICE_OUTPUT(dev_sel_results_t, bool) dev_sel_results;
     DEVICE_OUTPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
-    PROPERTY(factor_one_track_t, float, "factor_one_track", "postscale for one-track line", 1.f) factor_one_track;
-    PROPERTY(factor_single_muon_t, float, "factor_single_muon", "postscale for single-muon line", 1.f)
+    PROPERTY(factor_one_track_t, float, "factor_one_track", "postscale for one-track line") factor_one_track;
+    PROPERTY(factor_single_muon_t, float, "factor_single_muon", "postscale for single-muon line")
     factor_single_muon;
-    PROPERTY(factor_two_tracks_t, float, "factor_two_tracks", "postscale for two-track line", 1.f) factor_two_tracks;
-    PROPERTY(factor_disp_dimuon_t, float, "factor_disp_dimuon", "postscale for displaced-dimuon line", 1.f)
+    PROPERTY(factor_two_tracks_t, float, "factor_two_tracks", "postscale for two-track line") factor_two_tracks;
+    PROPERTY(factor_disp_dimuon_t, float, "factor_disp_dimuon", "postscale for displaced-dimuon line")
     factor_disp_dimuon;
-    PROPERTY(factor_high_mass_dimuon_t, float, "factor_high_mass_dimuon", "postscale for high-mass-dimuon line", 1.f)
+    PROPERTY(factor_high_mass_dimuon_t, float, "factor_high_mass_dimuon", "postscale for high-mass-dimuon line")
     factor_high_mass_dimuon;
-    PROPERTY(factor_dimuon_soft_t, float, "factor_dimuon_soft", "postscale for soft-dimuon line", 1.f)
+    PROPERTY(factor_dimuon_soft_t, float, "factor_dimuon_soft", "postscale for soft-dimuon line")
     factor_dimuon_soft;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   template<typename T>
@@ -92,13 +92,13 @@ namespace run_postscale {
     }
 
   private:
-    Property<factor_one_track_t> m_factor_one_track {this};
-    Property<factor_single_muon_t> m_factor_single_muon {this};
-    Property<factor_two_tracks_t> m_factor_two_tracks {this};
-    Property<factor_disp_dimuon_t> m_factor_disp_dimuon {this};
-    Property<factor_high_mass_dimuon_t> m_factor_high_mass_dimuon {this};
-    Property<factor_dimuon_soft_t> m_factor_dimuon_soft {this};
-    Property<block_dim_t> m_block_dim {this};
+    Property<factor_one_track_t> m_factor_one_track {this, 1.f};
+    Property<factor_single_muon_t> m_factor_single_muon {this, 1.f};
+    Property<factor_two_tracks_t> m_factor_two_tracks {this, 1.f};
+    Property<factor_disp_dimuon_t> m_factor_disp_dimuon {this, 1.f};
+    Property<factor_high_mass_dimuon_t> m_factor_high_mass_dimuon {this, 1.f};
+    Property<factor_dimuon_soft_t> m_factor_dimuon_soft {this, 1.f};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace run_postscale
 

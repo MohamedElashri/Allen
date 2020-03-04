@@ -8,7 +8,7 @@ namespace muon_catboost_evaluator {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
     DEVICE_INPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
     DEVICE_OUTPUT(dev_muon_catboost_output_t, float) dev_muon_catboost_output;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void muon_catboost_evaluator(
@@ -64,6 +64,6 @@ namespace muon_catboost_evaluator {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
   };
 } // namespace muon_catboost_evaluator

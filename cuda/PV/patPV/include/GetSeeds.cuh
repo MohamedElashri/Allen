@@ -17,18 +17,18 @@ namespace pv_get_seeds {
     DEVICE_INPUT(dev_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_OUTPUT(dev_seeds_t, PatPV::XYZPoint) dev_seeds;
     DEVICE_OUTPUT(dev_number_seeds_t, uint) dev_number_seeds;
-    PROPERTY(max_chi2_merge_t, float, "max_chi2_merge", "max chi2 merge", 25.f) max_chi2_merge;
-    PROPERTY(factor_to_increase_errors_t, float, "factor_to_increase_errors", "factor to increase errors", 15.f)
+    PROPERTY(max_chi2_merge_t, float, "max_chi2_merge", "max chi2 merge") max_chi2_merge;
+    PROPERTY(factor_to_increase_errors_t, float, "factor_to_increase_errors", "factor to increase errors")
     factor_to_increase_errors;
-    PROPERTY(min_cluster_mult_t, int, "min_cluster_mult", "min cluster mult", 4) min_cluster_mult;
-    PROPERTY(min_close_tracks_in_cluster_t, int, "min_close_tracks_in_cluster", "min close tracks in cluster", 3)
+    PROPERTY(min_cluster_mult_t, int, "min_cluster_mult", "min cluster mult") min_cluster_mult;
+    PROPERTY(min_close_tracks_in_cluster_t, int, "min_close_tracks_in_cluster", "min close tracks in cluster")
     min_close_tracks_in_cluster;
-    PROPERTY(dz_close_tracks_in_cluster_t, float, "dz_close_tracks_in_cluster", "dz close tracks in cluster [mm]", 5.f)
+    PROPERTY(dz_close_tracks_in_cluster_t, float, "dz_close_tracks_in_cluster", "dz close tracks in cluster [mm]")
     dz_close_tracks_in_cluster;
-    PROPERTY(high_mult_t, int, "high_mult", "high mult", 10) high_mult;
-    PROPERTY(ratio_sig2_high_mult_t, float, "ratio_sig2_high_mult", "ratio sig2 high mult", 1.0f) ratio_sig2_high_mult;
-    PROPERTY(ratio_sig2_low_mult_t, float, "ratio_sig2_low_mult", "ratio sig2 low mult", 0.9f) ratio_sig2_low_mult;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(high_mult_t, int, "high_mult", "high mult") high_mult;
+    PROPERTY(ratio_sig2_high_mult_t, float, "ratio_sig2_high_mult", "ratio sig2 high mult") ratio_sig2_high_mult;
+    PROPERTY(ratio_sig2_low_mult_t, float, "ratio_sig2_low_mult", "ratio sig2 low mult") ratio_sig2_low_mult;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __device__ int
@@ -85,14 +85,14 @@ namespace pv_get_seeds {
     }
 
   private:
-    Property<max_chi2_merge_t> m_chi2 {this};
-    Property<factor_to_increase_errors_t> m_ferr {this};
-    Property<min_cluster_mult_t> m_mult {this};
-    Property<min_close_tracks_in_cluster_t> m_close {this};
-    Property<dz_close_tracks_in_cluster_t> m_dz {this};
-    Property<high_mult_t> m_himult {this};
-    Property<ratio_sig2_high_mult_t> m_ratiohi {this};
-    Property<ratio_sig2_low_mult_t> m_ratiolo {this};
-    Property<block_dim_t> m_block_dim {this};
+    Property<max_chi2_merge_t> m_chi2 {this, 25.f};
+    Property<factor_to_increase_errors_t> m_ferr {this, 15.f};
+    Property<min_cluster_mult_t> m_mult {this, 4};
+    Property<min_close_tracks_in_cluster_t> m_close {this, 3};
+    Property<dz_close_tracks_in_cluster_t> m_dz {this, 5.f};
+    Property<high_mult_t> m_himult {this, 10};
+    Property<ratio_sig2_high_mult_t> m_ratiohi {this, 1.0f};
+    Property<ratio_sig2_low_mult_t> m_ratiolo {this, 0.9f};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace pv_get_seeds

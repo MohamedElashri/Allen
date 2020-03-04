@@ -22,7 +22,7 @@ namespace ut_consolidate_tracks {
     DEVICE_OUTPUT(dev_ut_z_t, float) dev_ut_z;
     DEVICE_OUTPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
     DEVICE_INPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void ut_consolidate_tracks(Parameters, const uint* dev_unique_x_sector_layer_offsets);
@@ -132,6 +132,6 @@ namespace ut_consolidate_tracks {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace ut_consolidate_tracks
