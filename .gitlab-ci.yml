@@ -367,6 +367,11 @@ CUDA:DefaultSequence:RelWithDebInfo::build:
   tags:
     - cuda
 
+CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build:
+  <<: *build_job_def
+  tags:
+    - cuda
+
 CPU:DefaultSequence:Debug::build:
   <<: *build_test_job_def
   tags:
