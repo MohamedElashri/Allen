@@ -229,6 +229,13 @@ __device__ void propagate_to_beamline(FittedTrack& track)
   const KalmanFloat tol = (KalmanFloat) 0.001;
   zBeam = (denom < tol * tol) ? zBeam : track.z - (x * tx + y * ty) / denom;
 
+  // Add RF foil scattering.
+  const KalmanFloat qop = track.state[4];
+  const KalmanFloat scat2RFFoil =
+    scatterFoilParameters[0] * (1.f + scatterFoilParameters[1] * t2) * qop * qop;
+  track.cov(2, 2) += scat2RFFoil;
+  track.cov(3, 3) += scat2RFFoil;
+
   // Propagate the covariance matrix.
   const KalmanFloat dz = zBeam - track.z;
   const KalmanFloat dz2 = dz * dz;
@@ -236,13 +243,6 @@ __device__ void propagate_to_beamline(FittedTrack& track)
   track.cov(0, 2) += dz * track.cov(2, 2);
   track.cov(1, 1) += dz2 * track.cov(3, 3) + 2 * dz * track.cov(1, 3);
   track.cov(1, 3) += dz * track.cov(3, 3);
-
-  // Add RF foil scattering.
-  const KalmanFloat qop = track.state[4];
-  const KalmanFloat scat2RFFoil =
-    scatterFoilParameters[0] * (1.f + scatterFoilParameters[1] * t2) * qop * qop;
-  track.cov(2, 2) += scat2RFFoil;
-  track.cov(3, 3) += scat2RFFoil;
 
   // Propagate the state.
   track.state[0] = x + dz * tx;

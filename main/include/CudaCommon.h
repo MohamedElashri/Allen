@@ -183,7 +183,7 @@ public:
   half_t(const float value);
   operator float() const;
   int16_t get() const;
-  
+
   bool operator>(const half_t&) const;
   bool operator<(const half_t&) const;
   bool operator<=(const half_t&) const;
