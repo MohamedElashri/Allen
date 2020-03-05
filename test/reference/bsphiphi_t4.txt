@@ -77,6 +77,7 @@ BeamTwo:               0/  1000, (    0.00 +/-     0.00) kHz
 BothBeams:             0/  1000, (    0.00 +/-     0.00) kHz
 ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
+GECPassthrough:      856/  1000, (25680.00 +/-   333.07) kHz
 VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
 TrackMVA:            225/  1000, ( 6750.00 +/-   396.15) kHz
 TrackMuonMVA:          5/  1000, (  150.00 +/-    66.91) kHz
