@@ -33,3 +33,6 @@ checker/plotting/output
 configuration/generator/generated/*.h
 configuration/generator/generated/*.json
 configuration/generator/algorithms.py
+InstallArea*
+Makefile
+toolchain.cmake
