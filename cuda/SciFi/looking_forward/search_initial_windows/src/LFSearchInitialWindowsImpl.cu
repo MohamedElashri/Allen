@@ -8,6 +8,7 @@ __device__ void lf_search_initial_windows_impl(
   SciFi::ConstHitCount& scifi_hit_count,
   const MiniState& UT_state,
   const LookingForward::Constants* looking_forward_constants,
+  const float* magnet_polarity,
   const float qop,
   const bool side,
   int* initial_windows,
@@ -23,15 +24,22 @@ __device__ void lf_search_initial_windows_impl(
     const auto iZone = iZoneStartingPoint + i;
 
     const auto stateInZone = LookingForward::propagate_state_from_velo_multi_par(
-      UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
+                                                                                 UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants, magnet_polarity);
     const float xInZone = stateInZone.x;
 
-    const float xTol =
-      LookingForward::initial_window_offset_xtol + LookingForward::initial_window_factor_qop * fabsf(qop);
-    const float xMin = xInZone - xTol - LookingForward::initial_window_factor_assymmetric_opening * signbit(qop);
-    const float xMax =
-      xInZone + xTol + LookingForward::initial_window_factor_assymmetric_opening * (signbit(qop) ^ 0x01);
-
+    const float xTol =  
+      LookingForward::initial_window_offset_xtol + LookingForward::initial_window_factor_qop * fabsf(qop); 
+    float xMin, xMax;
+    if ( *magnet_polarity > 0.f ) { // MU
+      xMin = xInZone - xTol - LookingForward::initial_window_factor_assymmetric_opening * (signbit(qop) ^ 0x01);
+      xMax = xInZone + xTol + LookingForward::initial_window_factor_assymmetric_opening * signbit(qop);
+    }
+    else { // MD
+      xMin = xInZone - xTol - LookingForward::initial_window_factor_assymmetric_opening * signbit(qop);
+      xMax =                                                                                                                                                                                                                     
+        xInZone + xTol + LookingForward::initial_window_factor_assymmetric_opening * (signbit(qop) ^ 0x01);  
+    }
+    
     // Get the hits within the bounds
     const int x_zone_offset_begin = scifi_hit_count.zone_offset(looking_forward_constants->xZones[iZone]);
     const int x_zone_size = scifi_hit_count.zone_number_of_hits(looking_forward_constants->xZones[iZone]);

@@ -4,7 +4,8 @@
 __global__ void lf_search_initial_windows::lf_search_initial_windows(
   lf_search_initial_windows::Parameters parameters,
   const char* dev_scifi_geometry,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* dev_magnet_polarity)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
@@ -67,6 +68,7 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
       scifi_hit_count,
       state_at_z_last_ut_plane,
       dev_looking_forward_constants,
+      dev_magnet_polarity,
       ut_qop,
       y_projection >= 0.f,
       parameters.dev_scifi_lf_initial_windows + ut_event_tracks_offset + i,
