@@ -33,7 +33,8 @@ namespace lf_search_initial_windows {
   __global__ void lf_search_initial_windows(
     Parameters,
     const char* dev_scifi_geometry,
-    const LookingForward::Constants* dev_looking_forward_constants);
+    const LookingForward::Constants* dev_looking_forward_constants,
+    const float* dev_magnet_polarity);
 
   template<typename T, char... S>
   struct lf_search_initial_windows_t : public DeviceAlgorithm, Parameters {
@@ -81,7 +82,8 @@ namespace lf_search_initial_windows {
                     begin<dev_ut_states_t>(arguments),
                     begin<dev_scifi_lf_process_track_t>(arguments)},
         constants.dev_scifi_geometry,
-        constants.dev_looking_forward_constants);
+        constants.dev_looking_forward_constants,
+        constants.dev_magnet_polarity.data());
     }
 
   private:
