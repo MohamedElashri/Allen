@@ -7,7 +7,7 @@
  */
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
-  const float* hit_phi,
+  const half_t* hit_phi,
   bool* hit_used,
   const Velo::Module* module_data,
   const uint diff_ttf,
@@ -90,8 +90,8 @@ __device__ void track_forwarding(
       forward_phi_tolerance);
 
     // Search on both modules in the same for loop
-    const int total_odd_candidates = std::get<1>(odd_module_candidates) - std::get<0>(odd_module_candidates);
-    const int total_even_candidates = std::get<1>(even_module_candidates) - std::get<0>(even_module_candidates);
+    const int total_odd_candidates = std::get<1>(odd_module_candidates);
+    const int total_even_candidates = std::get<1>(even_module_candidates);
     const int total_candidates = total_odd_candidates + total_even_candidates;
 
     for (int j = 0; j < total_candidates; ++j) {

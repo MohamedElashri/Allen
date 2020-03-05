@@ -15,7 +15,7 @@ __device__ void process_modules(
   const uint* module_hitStarts,
   const uint* module_hitNums,
   Velo::ConstClusters& velo_cluster_container,
-  const float* hit_phi,
+  const half_t* hit_phi,
   uint* tracks_to_follow,
   Velo::TrackletHits* weak_tracks,
   Velo::TrackletHits* tracklets,

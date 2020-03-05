@@ -74,12 +74,8 @@ cudaError_t cudaDeviceReset() { return 0; }
 
 cudaError_t cudaStreamCreate(cudaStream_t*) { return 0; }
 
-cudaError_t cudaMemcpyToSymbol(
-  void* symbol,
-  const void* src,
-  size_t count,
-  size_t offset,
-  enum cudaMemcpyKind) {
+cudaError_t cudaMemcpyToSymbol(void* symbol, const void* src, size_t count, size_t offset, enum cudaMemcpyKind)
+{
   std::memcpy(symbol, reinterpret_cast<const char*>(src) + offset, count);
   return 0;
 }
@@ -101,18 +97,19 @@ namespace Configuration {
 
 __device__ __host__ int32_t intbits(const float f)
 {
-  const int32_t* bits = reinterpret_cast<const int32_t*>(&f);
-  return *bits;
+  int32_t i;
+  std::memcpy(&i, &f, sizeof(float));
+  return i;
 }
 
 __device__ __host__ float floatbits(const int32_t i)
 {
-  const float* bits = reinterpret_cast<const float*>(&i);
-  return *bits;
+  float f;
+  std::memcpy(&f, &i, sizeof(float));
+  return f;
 }
 
-__device__ __host__ half_t __float2half(const float f)
-{
+half_t::half_t(const float f) {
   // via Fabian "ryg" Giesen.
   // https://gist.github.com/2156668
   uint32_t sign_mask = 0x80000000u;
@@ -148,7 +145,56 @@ __device__ __host__ half_t __float2half(const float f)
 
   if (fint < f32infty) o = fint2 >> 13; // Take the bits!
 
-  return (o | (sign >> 16));
+  m_value = (o | (sign >> 16));
+}
+
+half_t::operator float() const {
+  constexpr uint32_t shifted_exp = 0x7c00 << 13; // exponent mask after shift
+
+  int32_t o = ((int32_t)(m_value & 0x7fff)) << 13; // exponent/mantissa bits
+  uint32_t exp = shifted_exp & o;            // just the exponent
+  o += (127 - 15) << 23;                     // exponent adjust
+
+  // handle exponent special cases
+  if (exp == shifted_exp)                                   // Inf/NaN?
+    o += (128 - 16) << 23;                                  // extra exp adjust
+  else if (exp == 0) {                                      // Zero/Denormal?
+    o += 1 << 23;                                           // extra exp adjust
+    o = intbits(floatbits(o) - floatbits(113 << 23)); // renormalize
+  }
+
+  o |= ((int32_t)(m_value & 0x8000)) << 16; // sign bit
+  return floatbits(o);
+}
+
+int16_t half_t::get() const { return m_value; }
+
+bool half_t::operator<(const half_t& a) const {
+  const auto sign = (m_value >> 15) & 0x01;
+  const auto sign_a = (a.get() >> 15) & 0x01;
+  return (sign & sign_a & operator!=(a)) ^ (m_value < a.get());
+}
+
+bool half_t::operator>(const half_t& a) const {
+  const auto sign = (m_value >> 15) & 0x01;
+  const auto sign_a = (a.get() >> 15) & 0x01;
+  return (sign & sign_a & operator!=(a)) ^ (m_value > a.get());
+}
+
+bool half_t::operator<=(const half_t& a) const {
+  return !operator>(a);
+}
+
+bool half_t::operator>=(const half_t& a) const {
+  return !operator<(a);
+}
+
+bool half_t::operator==(const half_t& a) const {
+  return m_value == a.get();
+}
+
+bool half_t::operator!=(const half_t& a) const {
+  return !operator==(a);
 }
 
 #endif

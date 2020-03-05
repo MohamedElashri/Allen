@@ -6,7 +6,7 @@
 
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
-  const float* hit_phi,
+  const half_t* hit_phi,
   bool* hit_used,
   const Velo::Module* module_data,
   const uint diff_ttf,
@@ -31,7 +31,7 @@ __device__ std::tuple<int, int> find_forward_candidates(
   const Velo::Module& module,
   const float tx,
   const float ty,
-  const float* hit_Phis,
+  const half_t* hit_Phis,
   const Velo::HitBase& h0,
   const T calculate_hit_phi,
   const float forward_phi_tolerance)
@@ -43,23 +43,12 @@ __device__ std::tuple<int, int> find_forward_candidates(
   const auto y_prediction = h0.y + predy;
   const auto track_extrapolation_phi = calculate_hit_phi(x_prediction, y_prediction);
 
-  int first_candidate = -1, last_candidate = -1;
-  first_candidate = binary_search_first_candidate(
-    hit_Phis + module.hitStart,
-    module.hitNums,
-    track_extrapolation_phi,
-    forward_phi_tolerance);
+  const half_t min_value_phi {track_extrapolation_phi - forward_phi_tolerance};
+  const int first_candidate = binary_search_leftmost(hit_Phis + module.hitStart, module.hitNums, min_value_phi);
 
-  if (first_candidate != -1) {
-    // Find last candidate
-    last_candidate = binary_search_second_candidate(
-      hit_Phis + module.hitStart + first_candidate,
-      module.hitNums - first_candidate,
-      track_extrapolation_phi,
-      forward_phi_tolerance);
-    first_candidate += module.hitStart;
-    last_candidate = first_candidate + last_candidate;
-  }
+  const half_t max_value_phi {track_extrapolation_phi + forward_phi_tolerance};
+  const int size = binary_search_leftmost(
+    hit_Phis + module.hitStart + first_candidate, module.hitNums - first_candidate, max_value_phi);
 
-  return std::tuple<int, int> {first_candidate, last_candidate};
+  return {module.hitStart + first_candidate, size};
 }

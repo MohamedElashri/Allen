@@ -30,7 +30,6 @@ using std::signbit;
 #define cudaStream_t int
 #define cudaSuccess 0
 #define cudaErrorMemoryAllocation 2
-#define half_t short
 #define __popcll __builtin_popcountll
 #define __ffs __builtin_ffs
 #define cudaEventBlockingSync 0x01
@@ -174,7 +173,24 @@ T min(const T& a, const T& b)
 
 unsigned int atomicInc(unsigned int* address, unsigned int val);
 
-half_t __float2half(float value);
+struct half_t {
+private:
+  int16_t m_value;
+
+public:
+  half_t() = default;
+  half_t(const half_t&) = default;
+  half_t(const float value);
+  operator float() const;
+  int16_t get() const;
+  
+  bool operator>(const half_t&) const;
+  bool operator<(const half_t&) const;
+  bool operator<=(const half_t&) const;
+  bool operator>=(const half_t&) const;
+  bool operator==(const half_t&) const;
+  bool operator!=(const half_t&) const;
+};
 
 #define cudaCheck(stmt)                                \
   {                                                    \

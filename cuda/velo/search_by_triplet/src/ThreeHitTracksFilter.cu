@@ -17,9 +17,9 @@ __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_contain
   // Iterate over hits
   for (unsigned short h = 0; h < 3; ++h) {
     const auto hit_number = track.hits[h];
-    const auto x = velo_cluster_container.x(hit_number);
-    const auto y = velo_cluster_container.y(hit_number);
-    const auto z = velo_cluster_container.z(hit_number);
+    const float x = velo_cluster_container.x(hit_number);
+    const float y = velo_cluster_container.y(hit_number);
+    const float z = velo_cluster_container.z(hit_number);
 
     const auto wx = Velo::Tracking::param_w;
     const auto wx_t_x = wx * x;
@@ -61,12 +61,12 @@ __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_contain
     for (uint h = 0; h < 3; ++h) {
       const auto hit_number = track.hits[h];
 
-      const auto z = velo_cluster_container.z(hit_number);
-      const auto x = state.x + state.tx * z;
-      const auto y = state.y + state.ty * z;
+      const float z = velo_cluster_container.z(hit_number);
+      const float x = state.x + state.tx * z;
+      const float y = state.y + state.ty * z;
 
-      const auto dx = x - velo_cluster_container.x(hit_number);
-      const auto dy = y - velo_cluster_container.y(hit_number);
+      const float dx = x - (float) velo_cluster_container.x(hit_number);
+      const float dy = y - (float) velo_cluster_container.y(hit_number);
 
       ch += dx * dx * Velo::Tracking::param_w + dy * dy * Velo::Tracking::param_w;
 
@@ -153,7 +153,7 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
 
   // Offseted VELO cluster container
   const auto velo_cluster_container =
-    Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container + hit_offset, total_estimated_number_of_clusters};
+    Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters, hit_offset};
 
   // Input three hit tracks
   const Velo::TrackletHits* input_tracks =

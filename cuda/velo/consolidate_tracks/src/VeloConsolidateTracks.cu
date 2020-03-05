@@ -97,9 +97,9 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
 
-  // TODO: Offset'ed container
+  // Offset'ed container
   const auto velo_cluster_container =
-    Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container + hit_offset, total_estimated_number_of_clusters};
+    Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters, hit_offset};
 
   for (uint i = threadIdx.x; i < event_number_of_tracks; i += blockDim.x) {
     Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i);
@@ -117,24 +117,18 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
       number_of_hits = 3;
     }
 
+    // Populate hits in a coalesced manner, taking into account
+    // the underlying container.
     populate(
       track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-        consolidated_hits.x(i) = velo_cluster_container.x(hit_index);
+        consolidated_hits.set_x(i, velo_cluster_container.x(hit_index));
+        consolidated_hits.set_y(i, velo_cluster_container.y(hit_index));
+        consolidated_hits.set_z(i, velo_cluster_container.z(hit_index));
       });
 
     populate(
       track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-        consolidated_hits.y(i) = velo_cluster_container.y(hit_index);
-      });
-
-    populate(
-      track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-        consolidated_hits.z(i) = velo_cluster_container.z(hit_index);
-      });
-
-    populate(
-      track, number_of_hits, [&velo_cluster_container, &consolidated_hits](const uint i, const uint hit_index) {
-        consolidated_hits.id(i) = velo_cluster_container.id(hit_index);
+        consolidated_hits.set_id(i, velo_cluster_container.id(hit_index));
       });
 
     // Calculate and store fit in consolidated container

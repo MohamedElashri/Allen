@@ -53,8 +53,8 @@ __device__ void pre_decode_raw_bank(
     // By using the first 16 bits of each, we get the sign, exponent and 7 bits
     // of the mantissa, for both Y and X, which is enough to account for the
     // cases where yBegin was repeated.
-    const half_t yBegin = __float2half(p0Y + numstrips * dp0diY);
-    const half_t xAtYEq0_local = __float2half(numstrips * dp0diX);
+    const auto yBegin = half_t(p0Y + numstrips * dp0diY);
+    const auto xAtYEq0_local = half_t(numstrips * dp0diX);
     const short* yBegin_p = reinterpret_cast<const short*>(&yBegin);
     const short* xAtYEq0_local_p = reinterpret_cast<const short*>(&xAtYEq0_local);
 
