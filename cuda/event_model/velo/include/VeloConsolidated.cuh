@@ -15,53 +15,86 @@ namespace Velo {
     template<typename T>
     struct Hits_t {
     private:
-      typename ForwardType<T, float>::t* m_base_pointer;
+      typename ForwardType<T, half_t>::t* m_base_pointer;
       const uint m_total_number_of_hits;
+      const uint m_offset;
 
     public:
-      __host__ __device__ Hits_t(T* base_pointer, const uint track_offset, const uint total_number_of_hits) :
-        m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + track_offset),
-        m_total_number_of_hits(total_number_of_hits)
+      __host__ __device__ Hits_t(T* base_pointer, const uint offset, const uint total_number_of_hits) :
+        m_base_pointer(reinterpret_cast<typename ForwardType<T, half_t>::t*>(base_pointer)),
+        m_total_number_of_hits(total_number_of_hits), m_offset(offset)
       {}
 
       __host__ __device__ Hits_t(const Hits_t<T>& hits) :
-        m_base_pointer(hits.m_base_pointer), m_total_number_of_hits(hits.m_total_number_of_hits)
+        m_base_pointer(hits.m_base_pointer), m_total_number_of_hits(hits.m_total_number_of_hits),
+        m_offset(hits.m_offset)
       {}
 
       // Accessors and lvalue references for all types
-      __host__ __device__ float x(const uint index) const { return m_base_pointer[index]; }
+      __host__ __device__ float x(const uint index) const
+      {
+        assert(m_offset + index < m_total_number_of_hits);
+        return static_cast<typename ForwardType<T, float>::t>(
+          m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index)]);
+      }
 
-      __host__ __device__ float& x(const uint index) { return m_base_pointer[index]; }
+      __host__ __device__ void set_x(const uint index, const half_t value)
+      {
+        assert(m_offset + index < m_total_number_of_hits);
+        m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index)] = half_t(value);
+      }
 
-      __host__ __device__ float y(const uint index) const { return m_base_pointer[m_total_number_of_hits + index]; }
+      __host__ __device__ float y(const uint index) const
+      {
+        assert(m_offset + index < m_total_number_of_hits);
+        return static_cast<typename ForwardType<T, float>::t>(
+          m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 1]);
+      }
 
-      __host__ __device__ float& y(const uint index) { return m_base_pointer[m_total_number_of_hits + index]; }
+      __host__ __device__ void set_y(const uint index, const half_t value)
+      {
+        assert(m_offset + index < m_total_number_of_hits);
+        m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 1] = half_t(value);
+      }
 
-      __host__ __device__ float z(const uint index) const { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+      __host__ __device__ float z(const uint index) const
+      {
+        assert(m_offset + index < m_total_number_of_hits);
+        return static_cast<typename ForwardType<T, float>::t>(
+          m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 2]);
+      }
 
-      __host__ __device__ float& z(const uint index) { return m_base_pointer[2 * m_total_number_of_hits + index]; }
+      __host__ __device__ void set_z(const uint index, const half_t value)
+      {
+        assert(m_offset + index < m_total_number_of_hits);
+        m_base_pointer[2 * m_total_number_of_hits + 3 * (m_offset + index) + 2] = half_t(value);
+      }
 
       __host__ __device__ uint id(const uint index) const
       {
-        return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+        assert(m_offset + index < m_total_number_of_hits);
+        return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[m_offset + index];
       }
 
-      __host__ __device__ uint& id(const uint index)
+      __host__ __device__ void set_id(const uint index, const uint value)
       {
-        return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+        assert(m_offset + index < m_total_number_of_hits);
+        reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[m_offset + index] = value;
       }
 
-      __host__ __device__ void set(const uint hit_number, const Velo::Hit& hit)
+      __host__ __device__ void set(const uint index, const Velo::Hit& hit)
       {
-        x(hit_number) = hit.x;
-        y(hit_number) = hit.y;
-        z(hit_number) = hit.z;
-        id(hit_number) = hit.LHCbID;
+        assert(m_offset + index < m_total_number_of_hits);
+        x(index) = hit.x;
+        y(index) = hit.y;
+        z(index) = hit.z;
+        id(index) = hit.LHCbID;
       }
 
-      __host__ __device__ Velo::Hit get(const uint hit_number) const
+      __host__ __device__ Velo::Hit get(const uint index) const
       {
-        return Velo::Hit {x(hit_number), y(hit_number), z(hit_number), id(hit_number)};
+        assert(m_offset + index < m_total_number_of_hits);
+        return Velo::Hit {x(index), y(index), z(index), id(index)};
       }
     };
 
@@ -91,19 +124,14 @@ namespace Velo {
         return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
 
-      __host__ std::vector<uint32_t> get_lhcbids_for_track(
-        char* hits_base_pointer,
-        const uint track_number) const
+      __host__ std::vector<uint> get_lhcbids_for_track(const char* hits_base_pointer, const uint track_number) const
       {
-        uint32_t* LHCbID = reinterpret_cast<uint*>(hits_base_pointer + sizeof(float) * 3 * total_number_of_hits());
-        LHCbID += track_offset(track_number);
-        const uint n_hits = number_of_hits(track_number);
-        std::vector<uint32_t> lhcbids;
-        lhcbids.reserve(n_hits);
-        for (uint i_hit = 0; i_hit < n_hits; i_hit++) {
-          lhcbids.push_back(LHCbID[i_hit]);
+        std::vector<uint> ids;
+        const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        for (uint i = 0; i < number_of_hits(track_number); ++i) {
+          ids.push_back(hits.id(i));
         }
-        return lhcbids;
+        return ids;
       }
     };
 

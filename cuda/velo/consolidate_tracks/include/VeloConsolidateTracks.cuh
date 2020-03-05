@@ -17,7 +17,7 @@ namespace velo_consolidate_tracks {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_offsets_all_velo_tracks;
     DEVICE_INPUT(dev_tracks_t, Velo::TrackHits) dev_tracks;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_offsets_velo_track_hit_number;
-    DEVICE_INPUT(dev_sorted_velo_cluster_container_t, uint) dev_sorted_velo_cluster_container;
+    DEVICE_INPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
     DEVICE_OUTPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_INPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits) dev_three_hit_tracks_output;
@@ -39,7 +39,7 @@ namespace velo_consolidate_tracks {
       const Constants&,
       const HostBuffers&) const {
       set_size<dev_velo_track_hits_t>(
-        arguments, value<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments) * sizeof(Velo::Hit));
+        arguments, value<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments) * Velo::velo_cluster_size);
       set_size<dev_velo_states_t>(
         arguments,
         (value<host_number_of_reconstructed_velo_tracks_t>(arguments) +

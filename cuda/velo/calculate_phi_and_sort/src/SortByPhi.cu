@@ -34,21 +34,21 @@ __device__ void velo_calculate_phi_and_sort::sort_by_phi(
 
   for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.x(event_hit_start + i) = velo_cluster_container.x(hit_index_global);
+    velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
   }
 
   for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.y(event_hit_start + i) = velo_cluster_container.y(hit_index_global);
+    velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
   }
 
   for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.z(event_hit_start + i) = velo_cluster_container.z(hit_index_global);
+    velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
   }
 
   for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
     const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.id(event_hit_start + i) = velo_cluster_container.id(hit_index_global);
+    velo_sorted_cluster_container.set_id(event_hit_start + i, velo_cluster_container.id(hit_index_global));
   }
 }

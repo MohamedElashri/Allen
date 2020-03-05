@@ -33,11 +33,9 @@ std::vector<Checker::Tracks> prepareVeloTracks(
       auto& t = tracks[i_track];
       t.p = 0.f;
 
-      const uint velo_track_number_of_hits = velo_tracks.number_of_hits(i_track);
-      Velo::Consolidated::ConstHits velo_track_hits = velo_tracks.get_hits(track_hits, i_track);
-      t.allids.reserve(velo_track_number_of_hits);
-      for (uint i_hit = 0; i_hit < velo_track_number_of_hits; ++i_hit) {
-        t.addId(velo_track_hits.id(i_hit));
+      const auto lhcb_ids = velo_tracks.get_lhcbids_for_track(track_hits, i_track);
+      for (uint i = 0; i < lhcb_ids.size(); ++i) {
+        t.addId(lhcb_ids[i]);
       }
     } // tracks
   }
