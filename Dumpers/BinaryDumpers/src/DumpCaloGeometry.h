@@ -15,7 +15,7 @@
 #include <CaloDet/DeCalorimeter.h>
 
 /** @class DumpCaloGeometry
- *  Dump muon geometry information
+ *  Dump calo geometry information
  *
  *  @author Roel Aaij
  *  @date   2019-02-21
