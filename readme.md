@@ -51,6 +51,14 @@ Input from 5k events for each of the following decay modes can be found here:
 If other inputs are required, follow these instructions for producing them:
 [https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md](https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md)
 
+Allen selections require ODIN banks, which were not included with these samples. Random ODIN banks can be generated using `makeODIN.py`. From the Allen root directory:
+
+```shell
+python3 scripts/makeODIN.py /path/to/data/banks/
+```
+
+This will create a random ODIN bank for each bank in `/path/to/data/banks/VP`.
+
 How to build it
 ---------------
 
