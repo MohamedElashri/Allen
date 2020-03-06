@@ -49,7 +49,7 @@ Input from 5k events for each of the following decay modes can be found here:
 * Ks0->MuMu, mag down: `/eos/lhcb/wg/rta/WP6/Allen/binary_input_2019-07/Ks0mumu/Ks02MuMu_mag_down.tar.gz`
 
 If other inputs are required, follow these instructions for producing them:
-[https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md](https://gitlab.cern.ch/lhcb/Rec/blob/master/GPU/readme.md)
+[https://gitlab.cern.ch/lhcb/Allen/blob/allen_tdr/Dumpers/readme.md](https://gitlab.cern.ch/lhcb/Allen/blob/allen_tdr/Dumpers/readme.md)
 
 Allen selections require ODIN banks, which were not included with these samples. Random ODIN banks can be generated using `makeODIN.py`. From the Allen root directory:
 
