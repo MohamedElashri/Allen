@@ -6,7 +6,7 @@ These are instructions for how to produce binary input for Allen from lxplus usi
 Brunel
 -------
 
-Follow instructions [here](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_Gaudi_Allen_integration/Online/AllenIntegration/readme.md#call-allen-from-brunel) to call Allen from Brunel.  
+Follow instructions [here](https://gitlab.cern.ch/lhcb/Allen/tree/allen_tdr/Rec/Allen#call-allen-from-brunel) to call Allen from Brunel.  
 
 Note that after the installation, all of the following commands are executed from within the Brunel directory.
   
@@ -43,7 +43,9 @@ By default, the following output directories will be created in the current dire
 * `MC_info/tracks`: binary files containing MC information needed to calculate track reconstruction efficiencies
 * `MC_info/PVs`: binary files containing MC information needed to calculate PV reconstruction efficiencies
 * `TrackerDumper`: ROOT files containing MC information for all dumped MCParticles as well as all hits in every sub-detector
-* `forward_tracks`: FastForward tracks are dumped with their LHCbIDs, eta, p and pt; to be read into Allen and checked with the track checker there as a cross check
+* `forward_tracks`: FastForward tracks are dumped with their LHCbIDs, eta, p and pt; to be read into Allen and checked with the track checker there as a cross check* 
+
+In addition to the banks dumped here, ODIN banks are required to run Allen in standalone mode. Please follow the instructions [here](https://gitlab.cern.ch/lhcb/Allen/blob/allen_tdr/readme.md#where-to-find-input) on how to create those.
 
 Saving of the ROOT files in the `TrackerDumper` directory is switched on by default in the configuration of the PrTrackerDumper, however it is explicitly set to false in the `dump_MC_info.py` and `dump_banks_and_MC_info.py` scripts to reduce the size of memory required by the dumped output.
 If the ROOT files are required, their dumping can be enabled by setting `DumpToROOT=True` in these scripts.
