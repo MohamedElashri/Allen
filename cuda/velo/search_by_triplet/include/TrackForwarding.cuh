@@ -6,7 +6,7 @@
 
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
-  const half_t* hit_phi,
+  const float* hit_phi,
   bool* hit_used,
   const Velo::Module* module_data,
   const uint diff_ttf,
@@ -31,7 +31,7 @@ __device__ std::tuple<int, int> find_forward_candidates(
   const Velo::Module& module,
   const float tx,
   const float ty,
-  const half_t* hit_Phis,
+  const float* hit_Phis,
   const Velo::HitBase& h0,
   const T calculate_hit_phi,
   const float forward_phi_tolerance)
@@ -43,10 +43,10 @@ __device__ std::tuple<int, int> find_forward_candidates(
   const auto y_prediction = h0.y + predy;
   const auto track_extrapolation_phi = calculate_hit_phi(x_prediction, y_prediction);
 
-  const half_t min_value_phi {track_extrapolation_phi - forward_phi_tolerance};
+  const float min_value_phi {track_extrapolation_phi - forward_phi_tolerance};
   const int first_candidate = binary_search_leftmost(hit_Phis + module.hitStart, module.hitNums, min_value_phi);
 
-  const half_t max_value_phi {track_extrapolation_phi + forward_phi_tolerance};
+  const float max_value_phi {track_extrapolation_phi + forward_phi_tolerance};
   const int size = binary_search_leftmost(
     hit_Phis + module.hitStart + first_candidate, module.hitNums - first_candidate, max_value_phi);
 

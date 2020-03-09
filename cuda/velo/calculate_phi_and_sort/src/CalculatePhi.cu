@@ -10,11 +10,11 @@ using namespace velo_calculate_phi_and_sort;
  */
 template<class T>
 __device__ void calculate_phi_side(
-  half_t* shared_hit_phis,
+  float* shared_hit_phis,
   const uint* module_hitStarts,
   const uint* module_hitNums,
   Velo::ConstClusters& velo_cluster_container,
-  half_t* hit_Phis,
+  float* hit_Phis,
   uint* hit_permutations,
   const uint starting_module,
   T calculate_hit_phi)
@@ -28,7 +28,7 @@ __device__ void calculate_phi_side(
     // Calculate phis
     for (uint hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
       const auto hit_index = hit_start + hit_rel_id;
-      const half_t hit_phi {calculate_hit_phi(velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index))};
+      const float hit_phi {calculate_hit_phi(velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index))};
       shared_hit_phis[hit_rel_id] = hit_phi;
     }
 
@@ -67,9 +67,9 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
   const uint* module_hitStarts,
   const uint* module_hitNums,
   Velo::ConstClusters& velo_cluster_container,
-  half_t* hit_Phis,
+  float* hit_Phis,
   uint* hit_permutations,
-  half_t* shared_hit_phis)
+  float* shared_hit_phis)
 {
   // Odd modules
   calculate_phi_side(
