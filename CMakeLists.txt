@@ -39,7 +39,7 @@ message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target compute capability")
-set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 30 32 37 50 52 53 60 61 62 70 72 75)
+set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 70 72 75)
 
 # --------------------
 # Unrestricted options
@@ -356,7 +356,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
 #CUDA_ARCH can be set to MIN
   elseif(CUDA_ARCH STREQUAL "MIN")
     message(STATUS "Setting lowest CUDA compute capability:")
-    set(ARCH_FLAG "-gencode=arch=compute_30,code=compute_30")
+    set(ARCH_FLAG "-gencode=arch=compute_53,code=compute_53")
 #By default, compile for compatibility
   elseif(CUDA_ARCH STREQUAL "COMPATIBILITY")
 #Compatibility arch flag.
@@ -366,7 +366,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
 #* Forward compatibility with newer devices is also supported by generating PTX from 7.5
 #(- gencode = arch = compute_75, compute = compute_75)
     message(STATUS "Setting compute capability to COMPATIBILITY:")
-    foreach(arch 30 50 60 70 75)
+    foreach(arch 53 60 70 75)
       set(COMPATIBILITY_CUDA_ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG} -gencode=arch=compute_${arch},code=sm_${arch}")
     endforeach()
     set(COMPATIBILITY_CUDA_ARCH_FLAG "${COMPATIBILITY_CUDA_ARCH_FLAG} -gencode=arch=compute_75,code=compute_75")

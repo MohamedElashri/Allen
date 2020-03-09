@@ -5,14 +5,14 @@
 
 #if defined(CPU) || defined(HIP)
 
-__device__ __host__ int32_t intbits(const float f)
+int32_t intbits(const float f)
 {
   int32_t i;
   std::memcpy(&i, &f, sizeof(float));
   return i;
 }
 
-__device__ __host__ float floatbits(const int32_t i)
+float floatbits(const int32_t i)
 {
   float f;
   std::memcpy(&f, &i, sizeof(float));
@@ -78,7 +78,7 @@ float __half2float_impl(const uint16_t h) {
 }
 
 uint16_t __float2half(const float f) {
-#ifdef __F16C__
+#if defined(__F16C__) && !defined(HIP)
   // Check at runtime if the processor supports the F16C extension
   if (cpu_id::supports_feature(bit_F16C, cpu_id::CpuIDRegister::ecx)) {
     return _cvtss_sh(f, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
@@ -91,7 +91,7 @@ uint16_t __float2half(const float f) {
 }
 
 float __half2float(const uint16_t h) {
-#ifdef __F16C__
+#if defined(__F16C__) && !defined(HIP)
   if (cpu_id::supports_feature(bit_F16C, cpu_id::CpuIDRegister::ecx)) {
     return _cvtsh_ss(h);
   } else {

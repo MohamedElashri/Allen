@@ -105,6 +105,7 @@ namespace Velo {
   /**
    * @brief Structure to access VELO clusters.
    */
+  constexpr uint velo_cluster_size = 3 * sizeof(half_t) + sizeof(uint32_t);
   template<typename T>
   struct Clusters_t {
   protected:
