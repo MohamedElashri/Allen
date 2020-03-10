@@ -16,9 +16,12 @@ namespace cpu_id {
 
   bool supports_feature(const uint bit, const CpuIDRegister reg_index)
   {
+    return cpu_id_instance->supports_feature(bit, reg_index);
+  }
+
+  void reset_cpuid() {
     if (!cpu_id::cpu_id_instance) {
       cpu_id::cpu_id_instance.reset(new CpuID {0x80000001});
     }
-    return cpu_id_instance->supports_feature(bit, reg_index);
   }
 } // namespace cpu_id
