@@ -173,8 +173,29 @@ of threads per block (`property<block_dim_t>()`). The struct `Parameters` contai
 Finally, the properties belonging to the algorithm are defined as private members of the `saxpy_t` struct.
 
 
+Next, we add the [source file](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_update_documentation/cuda/example/src/SAXPY_example.cu):
 
-Ready to move on.
+```clike
+#include "SAXPY_example.cuh"
+
+__global__ void saxpy::saxpy(
+  saxpy::Parameters parameters)
+  {
+    const uint number_of_events = gridDim.x;
+    const uint event_number = blockIdx.x * blockDim.x + threadIdx.x;
+
+    Velo::Consolidated::ConstTracks velo_tracks {
+      parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_evnts};
+    const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
+    
+    if (event_number < number_of_events)
+      parameters.dev_saxpy_output[event_number] = parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
+}
+```
+The source code looks like any other CUDA function, with the only difference being that Allen inputs and outputs, as well as properties are passed via the `saxpy::Parameters` struct. 
+The are accessed as in `parameters.dev_atomics_velo` (DEVICE_INPUT) or `parametres.saxpy_scale_factor` (PROPERTY).
+
+We can now insert the new algorithm into a sequence.
 
 ### Integrating the algorithm in the sequence
 
