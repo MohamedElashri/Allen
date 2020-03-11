@@ -54,17 +54,15 @@ def HLT1_sequence():
     D2KK_line = D2KK_t()
 
     hlt1_sequence = Sequence(
-        velo_pv_ip, kalman_velo_only,
-        kalman_pv_ipchi2, filter_tracks,
-        prefix_sum_secondary_vertices, fit_secondary_vertices,
-        run_hlt1, run_postscale, prepare_decisions, prepare_raw_banks,
+        velo_pv_ip, kalman_velo_only, kalman_pv_ipchi2, filter_tracks,
+        prefix_sum_secondary_vertices, fit_secondary_vertices, run_hlt1,
+        run_postscale, prepare_decisions, prepare_raw_banks,
         prefix_sum_sel_reps, package_sel_reports, ErrorEvent_line,
         PassThrough_line, NoBeams_line, BeamOne_line, BeamTwo_line,
-        BothBeams_line, ODINNoBias_line, ODINLumi_line,
-        GECPassthrough_line, VeloMicroBias_line, TrackMVA_line,
-        TrackMuonMVA_line, SingleHighPtMuon_line, LowPtMuon_line,
-        TwoTrackMVA_line, DiMuonHighMass_line, DiMuonLowMass_line,
-        LowPtDiMuon_line, DiMuonSoft_line, D2KPi_line, D2PiPi_line,
-        D2KK_line)
+        BothBeams_line, ODINNoBias_line, ODINLumi_line, GECPassthrough_line,
+        VeloMicroBias_line, TrackMVA_line, TrackMuonMVA_line,
+        SingleHighPtMuon_line, LowPtMuon_line, TwoTrackMVA_line,
+        DiMuonHighMass_line, DiMuonLowMass_line, LowPtDiMuon_line,
+        DiMuonSoft_line, D2KPi_line, D2PiPi_line, D2KK_line)
 
     return hlt1_sequence

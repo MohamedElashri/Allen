@@ -19,7 +19,8 @@ namespace cpu_id {
     return cpu_id_instance->supports_feature(bit, reg_index);
   }
 
-  void reset_cpuid() {
+  void reset_cpuid()
+  {
     if (!cpu_id::cpu_id_instance) {
       cpu_id::cpu_id_instance.reset(new CpuID {0x80000001});
     }
