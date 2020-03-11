@@ -91,6 +91,28 @@ If your new algorithm does not use any Velo related objects, this is not necessa
 
 The includes of main, gear and sequence are required for any new algorithm in Allen.
 
+Link the new library "Saxpy" to the stream librariy in `stream/CMakeLists.txt`:
+```cmake=
+target_link_libraries(Stream PRIVATE
+  HostStream
+  CudaCommon
+  Associate
+  Velo
+  AllenPatPV
+  PV_beamline
+  HostClustering
+  HostPrefixSum
+  UT
+  Kalman
+  VertexFitter
+  RawBanks
+  SciFi
+  HostGEC
+  Muon
+  Utils
+  Saxpy)
+```
+
 Next, we create the header file for our algorithm `SAXPY_example.cuh`, which is similar to an algorithm definition in Gaudi: inputs, outputs and properties are defined, as well as the algorithm function itself and an operator calling the function.
 There are slight differences to Gaudi, since we want to be able to run the algorithm on a GPU.
 The full file can be viewed [here](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_update_documentation/cuda/example/include/SAXPY_example.cuh). Let's take a look at the components:
