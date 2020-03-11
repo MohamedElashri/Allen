@@ -15,8 +15,6 @@ In order to generate a configuration, from the `configuration/generator/` folder
 
 Enjoy!
 
-
-
 ### Integrating the algorithm in the sequence
 
 `Allen` centers around the idea of running a __sequence of algorithms__ on input events. This sequence is predefined and will always be executed in the same order.
