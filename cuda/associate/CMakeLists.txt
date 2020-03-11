@@ -19,10 +19,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  set_source_files_properties(${associate_srcs} PROPERTIES LANGUAGE CXX)
-endif()
-
 allen_add_device_library(Associate STATIC
   ${associate_srcs}
 )

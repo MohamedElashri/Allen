@@ -7,7 +7,7 @@
  */
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
-  const half_t* hit_phi,
+  const float* hit_phi,
   bool* hit_used,
   const Velo::Module* module_data,
   const uint diff_ttf,

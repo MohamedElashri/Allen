@@ -21,7 +21,8 @@ namespace velo_consolidate_tracks {
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
     DEVICE_OUTPUT(dev_velo_states_t, char) dev_velo_states;
     DEVICE_INPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits) dev_three_hit_tracks_output;
-    DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint) dev_offsets_number_of_three_hit_tracks_filtered;
+    DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint)
+    dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_OUTPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
   };
@@ -37,9 +38,11 @@ namespace velo_consolidate_tracks {
       ArgumentRefManager<T> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const {
+      const HostBuffers&) const
+    {
       set_size<dev_velo_track_hits_t>(
-        arguments, value<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments) * Velo::velo_cluster_size);
+        arguments,
+        value<host_accumulated_number_of_hits_in_velo_tracks_t>(arguments) * Velo::Clusters::element_size);
       set_size<dev_velo_states_t>(
         arguments,
         (value<host_number_of_reconstructed_velo_tracks_t>(arguments) +
@@ -57,7 +60,8 @@ namespace velo_consolidate_tracks {
       const Constants&,
       HostBuffers& host_buffers,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const {
+      cudaEvent_t&) const
+    {
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters {
           begin<dev_offsets_all_velo_tracks_t>(arguments),

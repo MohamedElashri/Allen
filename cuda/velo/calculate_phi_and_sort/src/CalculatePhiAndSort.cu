@@ -6,7 +6,7 @@
 __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
   velo_calculate_phi_and_sort::Parameters parameters)
 {
-  __shared__ half_t shared_hit_phis[Velo::Constants::max_numhits_in_module];
+  __shared__ float shared_hit_phis[Velo::Constants::max_numhits_in_module];
 
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.

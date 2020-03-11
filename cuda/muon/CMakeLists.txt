@@ -40,13 +40,6 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding_steps/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include/)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  foreach(source_file ${muon_filtering} ${muon_features_extraction}
-    ${muon_classification} ${muon_decoding} ${muon_decoding_steps} ${muon_upstream_filtering} ${muon_filter})
-    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
-  endforeach(source_file)
-endif()
-
 allen_add_device_library(Muon STATIC
   ${muon_filtering}
   ${muon_features_extraction}
