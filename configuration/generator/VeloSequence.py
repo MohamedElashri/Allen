@@ -60,6 +60,8 @@ def VELO_sequence():
 
     velo_consolidate_tracks = velo_consolidate_tracks_t()
 
+    #saxpy = saxpy_t()
+
     velo_sequence = Sequence(
         populate_odin_banks, host_global_event_cut,
         velo_calculate_number_of_candidates,
@@ -70,6 +72,8 @@ def VELO_sequence():
         velo_three_hit_tracks_filter,
         prefix_sum_offsets_number_of_three_hit_tracks_filtered,
         velo_copy_track_hit_number, prefix_sum_offsets_velo_track_hit_number,
-        velo_consolidate_tracks)
+        velo_consolidate_tracks# ,
+        # saxpy
+    )
 
     return velo_sequence
