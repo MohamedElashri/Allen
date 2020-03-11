@@ -117,7 +117,8 @@ target_link_libraries(Stream PRIVATE
   SciFi
   HostGEC
   Muon
-  Utils)
+  Utils
+  Saxpy)
 
 if (GaudiProject_FOUND)
   find_package(Boost)

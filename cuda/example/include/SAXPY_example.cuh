@@ -43,8 +43,9 @@ __global__ void saxpy(Parameters);
       cudaEvent_t&) const
     {
       function(dim3(value<host_number_of_selected_events_t>(arguments) / property<block_dim_t>()), property<block_dim_t>(), cuda_stream)(
-        Parameters {begin<dev_saxpy_output_t>(arguments),
-            property<saxpy_scale_factor_t>()});
+                                                                                                              Parameters {begin<dev_offsets_all_velo_tracks_t>(arguments),
+                   begin<dev_offsets_velo_track_hit_number_t>(arguments),                            
+                   begin<dev_saxpy_output_t>(arguments),                                                                  property<saxpy_scale_factor_t>()});
     }
 
     private:
