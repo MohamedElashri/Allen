@@ -13,7 +13,8 @@ namespace LookingForward {
     const MiniState& UT_state,
     const float qop,
     const int layer,
-    const LookingForward::Constants* dev_looking_forward_constants);
+    const LookingForward::Constants* dev_looking_forward_constants,
+    const float* dev_magnet_polarity);
 
   __device__ inline float linear_propagation(float x_0, float tx, float dz) { return x_0 + tx * dz; }
 
@@ -39,17 +40,19 @@ namespace LookingForward {
     const MiniState& UT_state,
     const float qop,
     const int layer,
-    const LookingForward::Constants* dev_looking_forward_constants);
+    const LookingForward::Constants* dev_looking_forward_constants,
+    const float* dev_magnet_polarity);  
 
   __device__ float tx_ty_corr_multi_par(
     const MiniState& ut_state,
     const int station,
-    const LookingForward::Constants* dev_looking_forward_constants);
+    const LookingForward::Constants* dev_looking_forward_constants,
+    const float* dev_magnet_polarity);
 
   __device__ std::tuple<float, float, float> least_mean_square_y_fit(
     const SciFi::TrackHits& track,
     const uint number_of_uv_hits,
-    const SciFi::Hits& scifi_hits,
+    SciFi::ConstHits& scifi_hits,
     const float a1,
     const float b1,
     const float c1,

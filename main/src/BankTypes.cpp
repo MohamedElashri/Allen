@@ -6,7 +6,8 @@ namespace {
   const std::map<BankTypes, std::string> BankNames = {{BankTypes::VP, "VP"},
                                                       {BankTypes::UT, "UT"},
                                                       {BankTypes::FT, "FTCluster"},
-                                                      {BankTypes::MUON, "Muon"}};
+                                                      {BankTypes::MUON, "Muon"},
+                                                      {BankTypes::ODIN, "ODIN"}};
 }
 
 std::string bank_name(BankTypes type)

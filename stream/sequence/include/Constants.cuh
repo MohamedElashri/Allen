@@ -4,19 +4,30 @@
 #include <cstdint>
 #include <algorithm>
 #include <numeric>
+#include <gsl/gsl>
 #include "CudaCommon.h"
-#include "VeloDefinitions.cuh"
-#include "ClusteringDefinitions.cuh"
-#include "ClusteringCommon.h"
-#include "UTDefinitions.cuh"
 #include "Logger.h"
-#include "UTMagnetToolDefinitions.h"
-#include "KalmanParametrizations.cuh"
-#include "LookingForwardConstants.cuh"
-#include "MuonDefinitions.cuh"
-#include "MuonGeometry.cuh"
-#include "MuonTables.cuh"
-#include <gsl-lite.hpp>
+
+// Forward declarations
+struct VeloGeometry;
+struct UTMagnetTool;
+namespace Muon {
+  class MuonGeometry;
+  class MuonTables;
+  namespace Constants {
+    struct FieldOfInterest;
+  }
+}
+namespace LookingForward {
+  struct Constants;
+}
+namespace ParKalmanFilter {
+  struct KalmanParametrizations;
+}
+namespace MatchUpstreamMuon {
+  struct MuonChambers;
+  struct SearchWindows;
+}
 
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
@@ -36,9 +47,9 @@ struct Constants {
   VeloGeometry* dev_velo_geometry = nullptr;
 
   std::vector<char> host_ut_geometry;
-  std::array<uint, UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1> host_ut_region_offsets;
-  std::array<float, UT::Constants::n_layers> host_ut_dxDy;
-  std::array<uint, UT::Constants::n_layers + 1> host_unique_x_sector_layer_offsets;
+  std::vector<uint> host_ut_region_offsets;
+  std::vector<float> host_ut_dxDy;
+  std::vector<uint> host_unique_x_sector_layer_offsets;
   std::vector<uint> host_unique_x_sector_offsets;
   std::vector<float> host_unique_sector_xs;
 
@@ -65,7 +76,7 @@ struct Constants {
   gsl::span<float> dev_magnet_polarity;
 
   // Looking forward
-  LookingForward::Constants host_looking_forward_constants;
+  LookingForward::Constants* host_looking_forward_constants;
 
   // Muon
   char* dev_muon_geometry_raw = nullptr;
@@ -74,6 +85,10 @@ struct Constants {
   std::vector<char> host_muon_lookup_tables_raw;
   Muon::MuonGeometry* dev_muon_geometry = nullptr;
   Muon::MuonTables* dev_muon_tables = nullptr;
+
+  // Velo-UT-muon
+  MatchUpstreamMuon::MuonChambers* dev_muonmatch_search_muon_chambers = nullptr;
+  MatchUpstreamMuon::SearchWindows* dev_muonmatch_search_windows = nullptr;
 
   // Muon classification model constatns
   Muon::Constants::FieldOfInterest* dev_muon_foi = nullptr;
@@ -87,7 +102,7 @@ struct Constants {
   int* dev_muon_catboost_leaf_offsets = nullptr;
   LookingForward::Constants* dev_looking_forward_constants = nullptr;
 
-  // Kalman filter.
+  // Kalman filter
   ParKalmanFilter::KalmanParametrizations* dev_kalman_params = nullptr;
 
   /**

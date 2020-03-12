@@ -1,4 +1,4 @@
-#include "../include/PrefixSum.cuh"
+#include "PrefixSum.cuh"
 
 __global__ void prefix_sum_scan(uint* dev_main_array, uint* dev_auxiliary_array, const uint array_size)
 {

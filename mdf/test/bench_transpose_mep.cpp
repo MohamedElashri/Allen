@@ -9,8 +9,8 @@
 #include <vector>
 #include <cmath>
 
-#include <gsl-lite.hpp>
-#include <raw_bank.hpp>
+#include <gsl/gsl>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <read_mep.hpp>
 #include <eb_header.hpp>

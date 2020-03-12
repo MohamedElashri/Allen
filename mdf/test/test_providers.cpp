@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <map>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <read_mep.hpp>
 #include <Timer.h>
@@ -19,6 +19,7 @@
 #include <catch.hpp>
 
 using namespace std;
+using namespace std::string_literals;
 
 struct Config {
   vector<string> banks_dirs;
@@ -33,8 +34,8 @@ namespace {
   Config s_config;
   MDFProviderConfig mdf_config {true, 2, 1};
 
-  unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>> mdf;
-  unique_ptr<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>> binary;
+  unique_ptr<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> mdf;
+  unique_ptr<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>> binary;
 
   size_t slice_mdf = 0, slice_binary = 0;
   size_t filled_mdf = 0, filled_binary = 0;
@@ -51,7 +52,7 @@ BanksAndOffsets mep_banks(Slices& slices, BankTypes bank_type, size_t slice_inde
   auto ib = to_integral<BankTypes>(bank_type);
   auto const& [banks, banks_size, offsets, offsets_size] = slices[ib][slice_index];
   span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
-  span<unsigned int const> o {offsets.data(), offsets_size};
+  span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
   return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
 }
 
@@ -117,13 +118,13 @@ int main(int argc, char* argv[])
       }
     }
   }
-  for (auto sd : {string {"UT"}, string {"VP"}, string {"FTCluster"}, string {"Muon"}}) {
+  for (auto sd : {"UT"s, "VP"s, "FTCluster"s, "Muon"s, "ODIN"s}) {
     s_config.banks_dirs.push_back(directory + "/banks/" + sd);
   }
 
   if (s_config.run) {
     // Allocate providers and get slices
-    mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+    mdf = make_unique<MDFProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
 
     bool good = false, timed_out = false, done = false;
@@ -131,7 +132,7 @@ int main(int argc, char* argv[])
     std::tie(good, done, timed_out, slice_mdf, filled_mdf, runno) = mdf->get_slice();
     auto const& events_mdf = mdf->event_ids(slice_mdf);
 
-    binary = make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>>(
+    binary = make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
       s_config.n_slices, s_config.n_events, s_config.n_events, s_config.banks_dirs, false, std::nullopt, events_mdf);
 
     std::tie(good, done, timed_out, slice_binary, filled_binary, runno) = binary->get_slice();
@@ -148,7 +149,8 @@ int main(int argc, char* argv[])
     auto size_fun = [pf](BankTypes) -> std::tuple<size_t, size_t> {
       return {std::lround(average_event_size * pf * bank_size_fudge_factor * kB), pf};
     };
-    mep_slices = allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON>(1, size_fun);
+    mep_slices =
+      allocate_slices<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(1, size_fun);
 
     transpose_mep(mep_slices, 0, mep_header, mep_span, s_config.n_events);
   }
@@ -167,7 +169,7 @@ struct BTTag {
 void check_offsets(BanksAndOffsets const& left, BanksAndOffsets const& right)
 {
   REQUIRE(std::get<2>(left).size() == std::get<2>(right).size());
-  for (size_t i = 0; i < std::get<2>(left).size(); ++i) {
+  for (::offsets_size i = 0; i < std::get<2>(left).size(); ++i) {
     REQUIRE(std::get<2>(left)[i] == std::get<2>(right)[i]);
   }
 }
@@ -187,7 +189,7 @@ void check_banks(BanksAndOffsets const& left, BanksAndOffsets const& right)
   REQUIRE(lb.size() == rb.size());
   for (size_t i = 0; i < lb.size(); ++i) {
     REQUIRE(lb[i].size() == rb[i].size());
-    for (size_t j = 0; j < lb[i].size(); ++j) {
+    for (::events_size j = 0; j < lb[i].size(); ++j) {
       REQUIRE(lb[i][j] == rb[i][j]);
     }
   }

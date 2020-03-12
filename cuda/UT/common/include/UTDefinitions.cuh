@@ -30,9 +30,8 @@ namespace UT {
   static constexpr int num_atomics = 3;
 
   namespace Constants {
-
     static constexpr uint num_thr_compassut = 128;
-    static constexpr uint num_thr_searchwin = 128;
+    static constexpr uint max_value_considered_before_found = 16;
 
     /* Detector description
        There are two stations with two layers each
@@ -41,9 +40,6 @@ namespace UT {
     static constexpr uint n_regions_in_layer = 3;
 
     /* Cut-offs */
-    static constexpr uint max_numhits_per_layer = 500;
-    static constexpr uint max_numhits_per_event = 6000;
-    static constexpr uint max_hit_candidates_per_layer = 100;
     static constexpr uint max_num_tracks = 400; // to do: what is the best / safest value here?
     static constexpr uint max_track_size = 4;
 
@@ -59,13 +55,9 @@ namespace UT {
     static constexpr float maxXSlope = 0.350f;
     static constexpr float maxYSlope = 0.300f;
     static constexpr float centralHoleSize = 33.0f * Gaudi::Units::mm;
-    static constexpr float intraLayerDist = 15.0f * Gaudi::Units::mm;
-    static constexpr float overlapTol = 0.7f * Gaudi::Units::mm;
     static constexpr float passHoleSize = 40.0f * Gaudi::Units::mm;
-    static constexpr int minHighThres = 1;
-    static constexpr bool printVariables = false;
     static constexpr bool passTracks = false;
-    static constexpr bool doTiming = false;
+   
     // Scale the z-component, to not run into numerical problems with floats
     // first add to sum values from hit at xMidField, zMidField hit
     static constexpr float zDiff = 0.001f * (zKink - zMidUT);
@@ -73,8 +65,7 @@ namespace UT {
     constexpr float magFieldParams[3] = {2010.0f, -2240.0f, -71330.f};
     //
     static constexpr float LD3Hits = -0.5f;
-    static constexpr float LD4Hits = -0.5f;
-  } // namespace Constants
+     } // namespace Constants
 } // namespace UT
 
 struct UTBoards {

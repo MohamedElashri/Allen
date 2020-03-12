@@ -47,36 +47,29 @@ __device__ bool is_in_window(
          (fabsf(hit_y - extrapolation_y) < hit_dy * foi.second * dev_muon_foi->factor);
 }
 
-__global__ void is_muon(
-  uint* dev_atomics_scifi,
-  uint* dev_scifi_track_hit_number,
-  float* dev_scifi_qop,
-  MiniState* dev_scifi_states,
-  uint* dev_scifi_track_ut_indices,
-  const Muon::HitsSoA* muon_hits,
-  int* dev_muon_track_occupancies,
-  bool* dev_is_muon,
+__global__ void is_muon::is_muon(
+  is_muon::Parameters parameters,
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
   const float* dev_muon_momentum_cuts)
 {
   const uint number_of_events = gridDim.x;
   const uint event_id = blockIdx.x;
 
-  SciFi::Consolidated::Tracks scifi_tracks {(uint*) dev_atomics_scifi,
-                                            dev_scifi_track_hit_number,
-                                            dev_scifi_qop,
-                                            dev_scifi_states,
-                                            dev_scifi_track_ut_indices,
-                                            event_id,
-                                            number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 event_id,
+                                                 number_of_events};
 
-  const Muon::HitsSoA& muon_hits_event = muon_hits[event_id];
+  const Muon::HitsSoA& muon_hits_event = parameters.dev_muon_hits[event_id];
 
   const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_id);
   const uint event_offset = scifi_tracks.tracks_offset(event_id);
 
   for (uint track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
-    const float momentum = 1 / fabsf(scifi_tracks.qop[track_id]);
+    const float momentum = 1 / fabsf(scifi_tracks.qop(track_id));
     const uint track_offset = (event_offset + track_id) * Muon::Constants::n_stations;
 
     __syncthreads();
@@ -84,16 +77,16 @@ __global__ void is_muon(
     for (uint station_id = threadIdx.y; station_id < Muon::Constants::n_stations; station_id += blockDim.y) {
       const int station_offset = muon_hits_event.station_offsets[station_id] - muon_hits_event.station_offsets[0];
       const int number_of_hits = muon_hits_event.number_of_hits_per_station[station_id];
-      const float station_z = muon_hits_event.z[station_offset];
+      const auto& state = scifi_tracks.states(track_id);
 
-      const float extrapolation_x = scifi_tracks.states[track_id].x +
-                                    scifi_tracks.states[track_id].tx * (station_z - scifi_tracks.states[track_id].z);
-      const float extrapolation_y = scifi_tracks.states[track_id].y +
-                                    scifi_tracks.states[track_id].ty * (station_z - scifi_tracks.states[track_id].z);
+      parameters.dev_muon_track_occupancies[track_offset + station_id] = 0;
 
-      dev_muon_track_occupancies[track_offset + station_id] = 0;
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
         const int idx = station_offset + i_hit;
+        const float extrapolation_x = state.x +
+                                    state.tx * (muon_hits_event.z[idx] - state.z);
+        const float extrapolation_y = state.y +
+                                    state.ty * (muon_hits_event.z[idx]- state.z);
         if (is_in_window(
               muon_hits_event.x[idx],
               muon_hits_event.y[idx],
@@ -105,7 +98,7 @@ __global__ void is_muon(
               momentum,
               extrapolation_x,
               extrapolation_y)) {
-          dev_muon_track_occupancies[track_offset + station_id] += 1;
+          parameters.dev_muon_track_occupancies[track_offset + station_id] += 1;
         }
       }
     }
@@ -114,22 +107,40 @@ __global__ void is_muon(
 
     if (threadIdx.y == 0) {
       if (momentum < dev_muon_momentum_cuts[0]) {
-        dev_is_muon[event_offset + track_id] = false;
+        parameters.dev_is_muon[event_offset + track_id] = false;
       }
-      else if (dev_muon_track_occupancies[track_offset + 0] == 0 || dev_muon_track_occupancies[track_offset + 1] == 0) {
-        dev_is_muon[event_offset + track_id] = false;
+      else if (
+        parameters.dev_muon_track_occupancies[track_offset + 0] == 0 ||
+        parameters.dev_muon_track_occupancies[track_offset + 1] == 0) {
+        parameters.dev_is_muon[event_offset + track_id] = false;
       }
       else if (momentum < dev_muon_momentum_cuts[1]) {
-        dev_is_muon[event_offset + track_id] = true;
+        parameters.dev_is_muon[event_offset + track_id] = true;
       }
       else if (momentum < dev_muon_momentum_cuts[2]) {
-        dev_is_muon[event_offset + track_id] =
-          (dev_muon_track_occupancies[track_offset + 2] != 0) || (dev_muon_track_occupancies[track_offset + 3] != 0);
+        parameters.dev_is_muon[event_offset + track_id] =
+          (parameters.dev_muon_track_occupancies[track_offset + 2] != 0) ||
+          (parameters.dev_muon_track_occupancies[track_offset + 3] != 0);
       }
       else {
-        dev_is_muon[event_offset + track_id] =
-          (dev_muon_track_occupancies[track_offset + 2] != 0) && (dev_muon_track_occupancies[track_offset + 3] != 0);
+        parameters.dev_is_muon[event_offset + track_id] =
+          (parameters.dev_muon_track_occupancies[track_offset + 2] != 0) &&
+          (parameters.dev_muon_track_occupancies[track_offset + 3] != 0);
       }
     }
+
+    // TODO: Fix and use the following code, with less branches
+    // if (threadIdx.y == 0) {
+    //   parameters.dev_is_muon[event_offset + track_id] =
+    //     momentum >= dev_muon_momentum_cuts[0] &&                         // Condition 1
+    //     (parameters.dev_muon_track_occupancies[track_offset + 0] == 0 || // Condition 2
+    //      parameters.dev_muon_track_occupancies[track_offset + 1] == 0) &&
+    //     (momentum < dev_muon_momentum_cuts[1] ||  // Condition 3
+    //      (momentum < dev_muon_momentum_cuts[2] && // Condition 4
+    //       (parameters.dev_muon_track_occupancies[track_offset + 2] != 0 ||
+    //        parameters.dev_muon_track_occupancies[track_offset + 3] != 0)) ||
+    //      (parameters.dev_muon_track_occupancies[track_offset + 2] != 0 && // Condition 5
+    //       parameters.dev_muon_track_occupancies[track_offset + 3] != 0));
+    // }
   }
 }

@@ -9,34 +9,16 @@
 #include "VeloConsolidated.cuh"
 #include "AssociateConsolidated.cuh"
 #include "States.cuh"
-
-#include "Handler.cuh"
-#include "ArgumentsVelo.cuh"
-#include "ArgumentsUT.cuh"
-#include "ArgumentsSciFi.cuh"
-#include "ArgumentsVertex.cuh"
-#include "ArgumentsKalmanFilter.cuh"
-#include "ArgumentsPV.cuh"
-#include "ArgumentsSelections.cuh"
-#include "ArgumentsMuon.cuh"
+#include "DeviceAlgorithm.cuh"
 
 namespace VertexFit {
-
   __device__ bool poca(
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB,
     float& x,
     float& y,
     float& z);
-  __device__ float ip (
-    float x0,
-    float y0,
-    float z0,
-    float x,
-    float y,
-    float z,
-    float tx,
-    float ty);
+  __device__ float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
   __device__ float addToDerivatives(
     const ParKalmanFilter::FittedTrack& track,
@@ -82,68 +64,83 @@ namespace VertexFit {
     TrackMVAVertex& sv,
     const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,
-    const ParKalmanFilter::FittedTrack& trackB);
+    const ParKalmanFilter::FittedTrack& trackB,
+    const float max_assoc_ipchi2);
 
+  struct Parameters {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_number_of_svs_t, uint);
+    DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_scifi_track_hit_number, uint) dev_scifi_track_hit_number;
+    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
+    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
+    DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
+    DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
+    DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
+    DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
+    DEVICE_INPUT(dev_svs_trk1_idx_t, uint) dev_svs_trk1_idx;
+    DEVICE_INPUT(dev_svs_trk2_idx_t, uint) dev_svs_trk2_idx;
+    DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
+    DEVICE_OUTPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
+    PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", 16.0f)
+    max_assoc_ipchi2;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
+  };
+
+  __global__ void fit_secondary_vertices(Parameters);
+
+  template<typename T, char... S>
+  struct fit_secondary_vertices_t : public DeviceAlgorithm, Parameters {
+    constexpr static auto name = Name<S...>::s;
+    decltype(global_function(fit_secondary_vertices)) function {fit_secondary_vertices};
+
+    void set_arguments_size(
+      ArgumentRefManager<T> arguments,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
+    {
+      set_size<dev_consolidated_svs_t>(arguments, value<host_number_of_svs_t>(arguments));
+    }
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions&,
+      const Constants&,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t&) const
+    {
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {begin<dev_kf_tracks_t>(arguments),
+                    begin<dev_offsets_forward_tracks_t>(arguments),
+                    begin<dev_offsets_scifi_track_hit_number>(arguments),
+                    begin<dev_scifi_qop_t>(arguments),
+                    begin<dev_scifi_states_t>(arguments),
+                    begin<dev_scifi_track_ut_indices_t>(arguments),
+                    begin<dev_multi_fit_vertices_t>(arguments),
+                    begin<dev_number_of_multi_fit_vertices_t>(arguments),
+                    begin<dev_kalman_pv_ipchi2_t>(arguments),
+                    begin<dev_svs_trk1_idx_t>(arguments),
+                    begin<dev_svs_trk2_idx_t>(arguments),
+                    begin<dev_sv_offsets_t>(arguments),
+                    begin<dev_consolidated_svs_t>(arguments),
+                    property<max_assoc_ipchi2_t>()});
+
+      safe_assign_to_host_buffer<dev_consolidated_svs_t>(
+        host_buffers.host_secondary_vertices, host_buffers.host_secondary_vertices_size, arguments, cuda_stream);
+
+      cudaCheck(cudaMemcpyAsync(
+        host_buffers.host_sv_offsets,
+        begin<dev_sv_offsets_t>(arguments),
+        size<dev_sv_offsets_t>(arguments),
+        cudaMemcpyDeviceToHost,
+        cuda_stream));
+    };
+
+  private:
+    Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this};
+    Property<block_dim_t> m_block_dim {this};
+  };
 } // namespace VertexFit
-
-__global__ void fit_secondary_vertices(
-  const ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  uint* dev_n_scifi_tracks,
-  uint* dev_scifi_track_hit_number,
-  float* dev_scifi_qop,
-  MiniState* dev_scifi_states,
-  uint* dev_ut_indices,
-  PV::Vertex* dev_multi_fit_vertices,
-  uint* dev_number_of_multi_fit_vertices,
-  char* dev_kalman_pv_ipchi2,
-  uint* dev_sv_offsets,
-  VertexFit::TrackMVAVertex* dev_secondary_vertices);
-
-namespace Configuration {
-  namespace fit_secondary_vertices_t {
-    // Track pT cut.
-    extern __constant__ float track_min_pt;
-
-    // Track IP chi2 cut.
-    extern __constant__ float track_min_ipchi2;
-    extern __constant__ float track_muon_min_ipchi2;
-
-    // Maximum IP chi2 for a track to be associated to a PV.
-    extern __constant__ float max_assoc_ipchi2;
-  } // namespace fit_secondary_vertices_t
-} // namespace Configuration
-
-ALGORITHM(fit_secondary_vertices,
-          fit_secondary_vertices_t,
-          ARGUMENTS(
-            dev_kf_tracks,
-            dev_atomics_scifi,
-            dev_scifi_track_hit_number,
-            dev_scifi_qop,
-            dev_scifi_states,
-            dev_scifi_track_ut_indices,
-            dev_multi_fit_vertices,
-            dev_number_of_multi_fit_vertices,
-            dev_kalman_pv_ipchi2,
-            dev_sv_offsets,
-            dev_secondary_vertices),
-          Property<float> m_minpt {this,
-                                   "track_min_pt",
-                                   Configuration::fit_secondary_vertices_t::track_min_pt,
-                                   200.0f,
-                                   "minimum track pT"};
-          Property<float> m_minipchi2 {this,
-                                       "track_min_ipchi2",
-                                       Configuration::fit_secondary_vertices_t::track_min_ipchi2,
-                                       9.0f,
-                                       "minimum track IP chi2"};
-          Property<float> m_minmuipchi2 {this,
-                                         "track_muon_min_ipchi2",
-                                         Configuration::fit_secondary_vertices_t::track_muon_min_ipchi2,
-                                         4.0f,
-                                         "minimum muon IP chi2"};
-          Property<float> m_maxassocipchi2 {this,
-                                            "max_assoc_ipchi2",
-                                            Configuration::fit_secondary_vertices_t::max_assoc_ipchi2,
-                                            16.0f,
-                                            "maximum IP chi2 to associate to PV"};)

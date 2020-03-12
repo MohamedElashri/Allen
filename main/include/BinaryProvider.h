@@ -64,7 +64,6 @@ public:
     InputProvider<BinaryProvider<Banks...>> {n_slices, events_per_slice, n_events},
     m_slice_free(n_slices, true), m_repetitions {repetitions}, m_event_ids(n_slices)
   {
-
     // Check that there is a folder for each bank type, find all the
     // files it contains and store their sizes
     struct stat stat_buf;
@@ -80,22 +79,20 @@ public:
         auto ib = to_integral<BankTypes>(bank_type);
         // Find files and order them if requested
         std::vector<std::string> contents;
-        if (file_list) {
-          if (!file_list.value().empty()) {
-            std::string line;
-            std::ifstream list(*file_list);
-            if (list.is_open()) {
-              while (std::getline(list, line)) {
-                contents.push_back(line);
-              }
-            }
-            else {
-              throw StrException {"Could not open list of files"};
+        if (file_list && !file_list.value().empty()) {
+          std::string line;
+          std::ifstream list(*file_list);
+          if (list.is_open()) {
+            while (std::getline(list, line)) {
+              contents.push_back(line);
             }
           }
           else {
-            contents = list_folder(*it);
+            throw StrException {"Could not open list of files"};
           }
+        }
+        else {
+          contents = list_folder(*it);
         }
         if (order) {
           order_files(contents, *order, *it);
@@ -114,9 +111,6 @@ public:
         m_files[ib] = std::tuple {*it, std::move(contents)};
       }
     }
-
-    // Reinitialize to take the possible minimum into account
-    events_per_slice = this->events_per_slice();
 
     // Get event IDs from file names; assume they are all the same in
     // different folders
@@ -137,14 +131,15 @@ public:
       if (it == end(BankSizes)) {
         throw std::out_of_range {std::string {"Bank type "} + std::to_string(ib) + " has no known size"};
       }
-      return {std::lround((10 * sizeof(uint32_t) + it->second) * events_per_slice * bank_size_fudge_factor * kB),
+      auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
+      return {std::lround((10 * sizeof(uint32_t) + it->second) * allocate_events * bank_size_fudge_factor * kB),
               events_per_slice};
     };
     m_slices = allocate_slices<Banks...>(n_slices, size_fun);
 
     // Reserve space for event IDs
     for (size_t n = 0; n < n_slices; ++n) {
-      m_event_ids[n].reserve(events_per_slice);
+      m_event_ids[n].reserve(this->events_per_slice());
     }
 
     // start prefetch thread
@@ -250,7 +245,7 @@ public:
     auto ib = to_integral<BankTypes>(bank_type);
     auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
     span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
-    span<unsigned int const> o {offsets.data(), offsets_size};
+    span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
     return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o)};
   }
 
@@ -314,7 +309,7 @@ private:
         for (auto bank_type : {Banks...}) {
           auto ib = to_integral<BankTypes>(bank_type);
           const auto& [slice, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
-          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > slice[0].size()) {
+          if ((offsets[offsets_size - 1] + std::get<2>(inputs[ib])) > static_cast<size_t>(slice[0].size())) {
             this->debug_output(std::string {"Slice "} + std::to_string(slice_index) + " is full.");
             goto done;
           }

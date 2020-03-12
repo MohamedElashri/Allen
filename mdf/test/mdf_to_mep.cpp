@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <eb_header.hpp>
 #include <Transpose.h>
@@ -205,8 +205,8 @@ int main(int argc, char* argv[])
       }
 
       // Put the banks in the event-local buffers
-      char const* bank = bank_span.begin();
-      char const* end = bank_span.end();
+      char const* bank = bank_span.data();
+      char const* end = bank + bank_span.size();
       size_t source_offset = 0;
       auto prev_type = LHCb::RawBank::L0Calo;
       while (bank < end) {

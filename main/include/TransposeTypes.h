@@ -6,14 +6,15 @@
 #include <Common.h>
 #include <Logger.h>
 #include <SystemOfUnits.h>
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 
 #ifndef NO_CUDA
 #include <CudaCommon.h>
 #endif
 
 namespace {
-  constexpr auto header_size = sizeof(LHCb::MDFHeader);
+  constexpr auto mdf_header_size = sizeof(LHCb::MDFHeader);
+  constexpr auto bank_header_size = 4 * sizeof(short);
 
   using namespace Allen::Units;
 } // namespace

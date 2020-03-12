@@ -6,7 +6,7 @@
 #include <cmath>
 #include <mutex>
 
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 #include <Logger.h>
 #include <BankTypes.h>
 #include <Common.h>
@@ -51,6 +51,10 @@ struct IInputProvider {
    * @return     spans spanning bank and offset memory
    */
   virtual BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const = 0;
+
+  virtual int start() = 0;
+
+  virtual int stop() = 0;
 
   virtual void event_sizes(
     size_t const slice_index,
@@ -102,7 +106,7 @@ public:
    *
    * @return     number of events per slice
    */
-  size_t events_per_slice() const { return m_events_per_slice < 100 ? 100 : m_events_per_slice; }
+  size_t events_per_slice() const { return m_events_per_slice; }
 
   std::optional<size_t> const& n_events() const { return m_nevents; }
 
@@ -167,11 +171,15 @@ public:
     return static_cast<const Derived<Banks...>*>(this)->copy_banks(slice_index, event, buffer);
   }
 
+  int start() override { return true; };
+
+  int stop() override { return true; };
+
 protected:
   template<typename MSG>
   void debug_output(const MSG& msg, std::optional<size_t> const thread_id = {}) const
   {
-    if (logger::ll.verbosityLevel >= logger::debug) {
+    if (logger::verbosity() >= logger::debug) {
       std::unique_lock<std::mutex> lock {m_output_mut};
       debug_cout << (thread_id ? std::to_string(*thread_id) + " " : std::string {}) << msg << "\n";
     }

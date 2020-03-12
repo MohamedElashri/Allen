@@ -3,14 +3,19 @@
 #include "SciFiDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "CudaCommon.h"
+#if !defined(__NVCC__) && !defined(__CUDACC__)
+#include <cmath>
+#endif
 
 namespace VertexFit {
 
   // Charged pion mass for calculating Mcor.
-  const float mPi = 139.57f;
+  constexpr float mPi = 139.57f;
 
   // Muon mass.
-  const float mMu = 105.66f;
+  constexpr float mMu = 105.66f;
+
+  constexpr uint max_svs = 1000;
 
   struct TrackMVAVertex {
     // Fit results.
@@ -28,12 +33,17 @@ namespace VertexFit {
     float cov20 = 0.0f;
     float cov21 = 0.0f;
     float cov22 = 0.0f;
-    
+
+    // Store enough info to calculate masses on demand.
+    float p1 = 0.f;
+    float p2 = 0.f;
+    float cos = 1.f;
+
     // Variables for dimuon lines
-    float dimu_ip = 0.0f;
+    float vertex_ip = 0.0f;
     float dz = 0.0f;
     float doca = -1.f;
-    float dimu_clone_sin2 = 0.0f;
+    float vertex_clone_sin2 = 0.0f;
 
     // Additional variables for MVA lines.
     // Sum of track pT.
@@ -48,20 +58,32 @@ namespace VertexFit {
     float eta = 0.0f;
     // Minimum IP chi2 of the tracks.
     float minipchi2 = 0.0f;
+    // Minimum IP of the tracks.
+    float minip = 0.0f;
     // Minimum pt of the tracks.
     float minpt = 0.0f;
     // Number of tracks associated to a PV (min IP chi2 < 16).
-    int ntrksassoc = 0;
+    int ntrks16 = 0;
 
     // Degrees of freedom.
     int ndof = 0;
 
+    // Track indices.
+    uint trk1 = 0;
+    uint trk2 = 0;
 
     // Muon ID.
+    bool trk1_is_muon;
+    bool trk2_is_muon;
     bool is_dimuon;
 
-    __device__ __host__ float pt() { return sqrtf(px * px + py * py); }
     __device__ __host__ float pt() const { return sqrtf(px * px + py * py); }
+    __device__ __host__ float m(float m1, float m2) const {
+      const float E1 = sqrtf(p1 * p1 + m1 * m1);
+      const float E2 = sqrtf(p2 * p2 + m2 * m2);
+      return sqrtf(m1 * m1 + m2 * m2 + 2 * E1 * E2 - 2 * p1 * p2 * cos);
+    }
+
   };
 
 } // namespace VertexFit

@@ -1,35 +1,26 @@
 #include "pv_beamline_multi_fitter.cuh"
 
-__global__ void pv_beamline_multi_fitter(
-  uint* dev_atomics_storage,
-  uint* dev_velo_track_hit_number,
-  PVTrack* dev_pvtracks,
-  float* dev_pvtracks_denom,
-  float* dev_zpeaks,
-  uint* dev_number_of_zpeaks,
-  PV::Vertex* dev_multi_fit_vertices,
-  uint* dev_number_of_multi_fit_vertices,
-  float* dev_beamline,
-  const float* dev_pvtrack_z)
-{
+__global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
+  pv_beamline_multi_fitter::Parameters parameters,
+  const float* dev_beamline) {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  uint* number_of_multi_fit_vertices = dev_number_of_multi_fit_vertices + event_number;
+  uint* number_of_multi_fit_vertices = parameters.dev_number_of_multi_fit_vertices + event_number;
 
-  const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_storage, dev_velo_track_hit_number, event_number, number_of_events};
+  Velo::Consolidated::ConstTracks velo_tracks {
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
 
   const uint number_of_tracks = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
-  const float* zseeds = dev_zpeaks + event_number * PV::max_number_vertices;
-  const uint number_of_seeds = dev_number_of_zpeaks[event_number];
+  const float* zseeds = parameters.dev_zpeaks + event_number * PV::max_number_vertices;
+  const uint number_of_seeds = parameters.dev_number_of_zpeaks[event_number];
 
-  const PVTrack* tracks = dev_pvtracks + event_tracks_offset;
+  const PVTrack* tracks = parameters.dev_pvtracks + event_tracks_offset;
 
-  PV::Vertex* vertices = dev_multi_fit_vertices + event_number * PV::max_number_vertices;
+  PV::Vertex* vertices = parameters.dev_multi_fit_vertices + event_number * PV::max_number_vertices;
   PV::Vertex vertex;
-  float* pvtracks_denom = dev_pvtracks_denom + event_tracks_offset;
+  const float* pvtracks_denom = parameters.dev_pvtracks_denom + event_tracks_offset;
 
   const float2 seed_pos_xy {dev_beamline[0], dev_beamline[1]};
 
@@ -38,8 +29,8 @@ __global__ void pv_beamline_multi_fitter(
   int first_track_in_range = -1;
   uint number_of_tracks_in_range = 0;
   for (uint i = 0; i < number_of_tracks; i++) {
-    const auto z = dev_pvtrack_z[event_tracks_offset + i];
-    if (zmin < z && z < zmax) {
+    const auto z = parameters.dev_pvtrack_z[event_tracks_offset + i];
+    if (BeamlinePVConstants::Common::zmin < z && z < BeamlinePVConstants::Common::zmax) {
       if (first_track_in_range == -1) {
         first_track_in_range = i;
       }
@@ -49,6 +40,7 @@ __global__ void pv_beamline_multi_fitter(
 
   // make sure that we have one thread per seed
   for (uint i_thisseed = threadIdx.x; i_thisseed < number_of_seeds; i_thisseed += blockDim.x) {
+
     bool converged = false;
     bool accept = true;
     float vtxcov[6] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
@@ -59,16 +51,17 @@ __global__ void pv_beamline_multi_fitter(
     auto vtxpos_z = seed_pos_z;
     float chi2tot = 0.f;
     float sum_weights = 0.f;
-
-    for (uint iter = 0; iter < maxFitIter && !converged; ++iter) {
+    uint nselectedtracks = 0;
+    for (uint iter = 0; (iter < BeamlinePVConstants::MultiFitter::maxFitIter || iter < BeamlinePVConstants::MultiFitter::minFitIter) && !converged; ++iter) {
       auto halfD2Chi2DX2_00 = 0.f;
       auto halfD2Chi2DX2_11 = 0.f;
       auto halfD2Chi2DX2_20 = 0.f;
       auto halfD2Chi2DX2_21 = 0.f;
       auto halfD2Chi2DX2_22 = 0.f;
       float3 halfDChi2DX {0.f, 0.f, 0.f};
+      sum_weights = 0.f;
 
-      uint nselectedtracks = 0;
+      nselectedtracks = 0;
       chi2tot = 0.f;
       float local_chi2tot = 0.f;
       float local_sum_weights = 0.f;
@@ -81,22 +74,32 @@ __global__ void pv_beamline_multi_fitter(
         const float2 res = vtxpos_xy - (trk.x + trk.tx * dz);
         const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
 
+
         // compute the weight.
-        if (chi2 < maxChi2) {
+        if (chi2 < BeamlinePVConstants::MultiFitter::maxChi2) {
           ++nselectedtracks;
           // for more information on the weighted fitting, see e.g.
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
           // https://cds.cern.ch/record/803519/files/p280.pdf
-          const auto denom = chi2CutExp + expf(chi2 * (-0.5f));
-          // use seed position for chi2 calculation of nominator
+                    // use seed position for chi2 calculation of nominator
           const float dz_seed = seed_pos_z - trk.z;
           const float2 res_seed = seed_pos_xy - (trk.x + trk.tx * dz_seed);
           const float chi2_seed = res_seed.x * res_seed.x * trk.W_00 + res_seed.y * res_seed.y * trk.W_11;
-          const auto nom = expf(chi2_seed * (-0.5f));
-          const auto track_weight = nom / (denom + pvtracks_denom[first_track_in_range + i]);
+          const float exp_chi2_0 = expf(chi2_seed * (-0.5f));
+          //calculating chi w.r.t to vtx position and not seed posotion very important for resolution of high mult vetices
+          const auto nom = expf(chi2  * (-0.5f));
+          
+
+          const auto denom = BeamlinePVConstants::MultiFitter::chi2CutExp + nom;
+          //substract this term to avoid double counting
+
+          const auto track_weight = nom / (denom + pvtracks_denom[first_track_in_range + i] - exp_chi2_0);
+
+
 
           // unfortunately branchy, but reduces fake rate
-          if (track_weight > minWeight) {
+          // not cuttign on the weights seems to be important for reoslution of high multiplcitiy tracks
+           if (track_weight > BeamlinePVConstants::MultiFitter::minWeight) {
             const float3 HWr {
               res.x * trk.W_00, res.y * trk.W_11, -trk.tx.x * res.x * trk.W_00 - trk.tx.y * res.y * trk.W_11};
 
@@ -134,14 +137,16 @@ __global__ void pv_beamline_multi_fitter(
       if (threadIdx.y == 0) {
         chi2tot += local_chi2tot;
         sum_weights += local_sum_weights;
-
-        if (nselectedtracks >= 2) {
+       // printf("sum weights %f\n", sum_weights);
+        if (nselectedtracks >= BeamlinePVConstants::MultiFitter::minNumTracksPerVertex ) {
           // compute the new vertex covariance using analytical inversion
+          //dividing matrix elements not important for resoltuon of high mult pvs
           const auto a00 = halfD2Chi2DX2_00;
           const auto a11 = halfD2Chi2DX2_11;
           const auto a20 = halfD2Chi2DX2_20;
           const auto a21 = halfD2Chi2DX2_21;
           const auto a22 = halfD2Chi2DX2_22;
+
 
           const auto det = a00 * (a22 * a11 - a21 * a21) + a20 * (-a11 * a20);
           const auto inv_det = 1.f / det;
@@ -156,6 +161,7 @@ __global__ void pv_beamline_multi_fitter(
           vtxcov[4] = -(a21 * a00) * inv_det;
           vtxcov[5] = (a11 * a00) * inv_det;
 
+
           const float2 delta_xy {
             -1.f * (vtxcov[0] * halfDChi2DX.x + vtxcov[1] * halfDChi2DX.y + vtxcov[3] * halfDChi2DX.z),
             -1.f * (vtxcov[1] * halfDChi2DX.x + vtxcov[2] * halfDChi2DX.y + vtxcov[4] * halfDChi2DX.z)};
@@ -167,7 +173,7 @@ __global__ void pv_beamline_multi_fitter(
           // update the position
           vtxpos_xy = vtxpos_xy + delta_xy;
           vtxpos_z = vtxpos_z + delta_z;
-          converged = fabsf(delta_z) < maxDeltaZConverged;
+          converged = fabsf(delta_z) < BeamlinePVConstants::MultiFitter::maxDeltaZConverged;
         }
         else {
           // Finish loop and do not accept vertex
@@ -185,11 +191,10 @@ __global__ void pv_beamline_multi_fitter(
       vertex.setCovMatrix(vtxcov);
       vertex.nTracks = sum_weights;
 
-      // TODO integrate beamline position
       const auto beamlinedx = vertex.position.x - dev_beamline[0];
       const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      if (vertex.nTracks >= minNumTracksPerVertex && beamlinerho2 < maxVertexRho2) {
+      if ( nselectedtracks >= BeamlinePVConstants::MultiFitter::minNumTracksPerVertex && beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
         uint vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }

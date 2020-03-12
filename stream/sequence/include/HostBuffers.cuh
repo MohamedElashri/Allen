@@ -1,28 +1,41 @@
 #pragma once
 
-#include "CudaCommon.h"
-#include "VeloEventModel.cuh"
-#include "UTDefinitions.cuh"
-#include "SciFiDefinitions.cuh"
-#include "MuonDefinitions.cuh"
-#include "TrackChecker.h"
-#include "SciFiEventModel.cuh"
-#include "UTEventModel.cuh"
-#include "patPV_Definitions.cuh"
-#include "PV_Definitions.cuh"
-#include "ParKalmanDefinitions.cuh"
-#include "VertexDefinitions.cuh"
+#include <vector>
+#include <cstdint>
+#include <cstdlib>
+
+// Forward declarations
+namespace PV {
+  class Vertex;
+}
+namespace UT {
+  struct TrackHits;
+}
+namespace SciFi {
+  struct TrackHits;
+}
+struct MiniState;
+namespace ParKalmanFilter {
+  struct FittedTrack;
+}
+namespace VertexFit {
+  struct TrackMVAVertex;
+}
 
 struct HostBuffers {
   // Pinned host datatypes
+  uint host_number_of_events;
   uint* host_number_of_selected_events;
   uint* host_event_list;
   uint* host_prefix_sum_buffer;
-  uint* host_number_of_passing_events;
-  uint* host_passing_event_list;
+  bool* host_passing_event_list;
   uint32_t* host_dec_reports;
+  uint32_t* host_sel_rep_raw_banks;
+  uint host_sel_rep_raw_banks_size;
   size_t host_allocated_prefix_sum_space;
-  
+  uint* host_sel_rep_offsets;
+  uint* host_number_of_sel_rep_words;
+
   // Velo
   uint* host_atomics_velo;
   uint* host_velo_track_hit_number;
@@ -42,7 +55,7 @@ struct HostBuffers {
   int* host_number_of_multivertex;
 
   // UT
-  int* host_atomics_ut;
+  uint* host_atomics_ut;
   UT::TrackHits* host_ut_tracks;
   uint* host_number_of_reconstructed_ut_tracks;
   uint* host_accumulated_number_of_ut_hits;
@@ -59,7 +72,7 @@ struct HostBuffers {
   uint* host_accumulated_number_of_scifi_hits;
   uint* host_number_of_reconstructed_scifi_tracks;
   SciFi::TrackHits* host_scifi_tracks;
-  int* host_atomics_scifi;
+  uint* host_atomics_scifi;
   uint* host_accumulated_number_of_hits_in_scifi_tracks;
   uint* host_scifi_track_hit_number;
   char* host_scifi_track_hits;
@@ -77,24 +90,30 @@ struct HostBuffers {
   bool* host_is_muon;
   uint* host_muon_total_number_of_tiles;
   uint* host_muon_total_number_of_hits;
+  uint* host_selected_events_mf;
+  uint* host_event_list_mf;
+  bool* host_match_upstream_muon;
 
   // Secondary vertices
   uint* host_number_of_svs;
   uint* host_sv_offsets;
+  uint* host_sv_atomics;
+  uint* host_mf_sv_offsets;
+
+  uint host_secondary_vertices_size;
+  uint host_mf_secondary_vertices_size;
   VertexFit::TrackMVAVertex* host_secondary_vertices;
+  VertexFit::TrackMVAVertex* host_mf_secondary_vertices;
 
   // Selections
-  bool* host_one_track_decisions;
-  bool* host_two_track_decisions;
-  bool* host_single_muon_decisions;
-  bool* host_disp_dimuon_decisions;
-  bool* host_high_mass_dimuon_decisions;
-  bool* host_dimuon_soft_decisions;
+  uint host_number_of_hlt1_lines;
+  uint* host_sel_results_atomics;
+
+  uint host_sel_results_size;
+  bool* host_sel_results;
 
   // Non pinned datatypes: CPU algorithms
-  std::vector<SciFi::TrackHits> scifi_tracks_events;
   std::vector<char> host_velo_states;
-  // std::vector<uint> n_scifi_tracks;
   std::vector<std::vector<std::vector<uint32_t>>> scifi_ids_ut_tracks;
   std::vector<uint> host_scifi_hits;
   std::vector<uint> host_scifi_hit_count;
@@ -102,7 +121,12 @@ struct HostBuffers {
   /**
    * @brief Reserves all host buffers.
    */
-  void reserve(const uint max_number_of_events, const bool do_check);
+  void reserve(const uint max_number_of_events, const bool do_check, const uint number_of_hlt1_lines);
+
+  // /**
+  //  * @brief Frees all host buffers.
+  //  */
+  // cudaError_t free(const bool do_check);
 
   /**
    * @brief Returns total number of velo track hits.

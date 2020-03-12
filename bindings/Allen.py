@@ -45,7 +45,7 @@ app = LHCbApp(
 
 # Upgrade DBs
 CondDB().Upgrade = True
-
+# include from here
 producers = [
     p(DumpToFile=False)
     for p in (DumpVPGeometry, DumpUTGeometry, DumpFTGeometry, DumpMuonGeometry,
@@ -61,6 +61,8 @@ ApplicationMgr().ExtSvc += [
 # Some extra stuff for timing table
 ApplicationMgr().EvtSel = "NONE"
 ApplicationMgr().ExtSvc += ['ToolSvc', 'AuditorSvc']
+
+# until here
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()

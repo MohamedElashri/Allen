@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SystemOfUnits.h"
+#include "States.cuh"
 
 namespace Muon {
   namespace Constants {
@@ -12,7 +13,7 @@ namespace Muon {
     static constexpr uint n_regions = 4;
     static constexpr uint n_quarters = 4;
     /* Cut-offs */
-    static constexpr uint max_numhits_per_event = 400 * n_stations;
+    static constexpr uint max_numhits_per_event = 600 * n_stations;
 
     static constexpr float SQRT3 = 1.7320508075688772;
     static constexpr float INVSQRT3 = 0.5773502691896258;
@@ -43,19 +44,94 @@ namespace Muon {
     one Hits structure exists per event
   */
   struct HitsSoA {
-    int number_of_hits_per_station[Constants::n_stations] = {0};
-    int station_offsets[Constants::n_stations] = {0};
-    int tile[Constants::max_numhits_per_event] = {0};
-    float x[Constants::max_numhits_per_event] = {0};
-    float dx[Constants::max_numhits_per_event] = {0};
-    float y[Constants::max_numhits_per_event] = {0};
-    float dy[Constants::max_numhits_per_event] = {0};
-    float z[Constants::max_numhits_per_event] = {0};
-    float dz[Constants::max_numhits_per_event] = {0};
-    int uncrossed[Constants::max_numhits_per_event] = {0};
-    unsigned int time[Constants::max_numhits_per_event] = {0};
-    int delta_time[Constants::max_numhits_per_event] = {0};
-    int cluster_size[Constants::max_numhits_per_event] = {0};
-    int region_id[Constants::max_numhits_per_event] = {0};
+    int number_of_hits_per_station[Constants::n_stations];
+    int station_offsets[Constants::n_stations];
+    int tile[Constants::max_numhits_per_event];
+    float x[Constants::max_numhits_per_event];
+    float dx[Constants::max_numhits_per_event];
+    float y[Constants::max_numhits_per_event];
+    float dy[Constants::max_numhits_per_event];
+    float z[Constants::max_numhits_per_event];
+    float dz[Constants::max_numhits_per_event];
+    int uncrossed[Constants::max_numhits_per_event];
+    unsigned int time[Constants::max_numhits_per_event];
+    int delta_time[Constants::max_numhits_per_event];
+    int cluster_size[Constants::max_numhits_per_event];
+    int region_id[Constants::max_numhits_per_event];
   };
 } // namespace Muon
+
+namespace MatchUpstreamMuon {
+  static constexpr float kickOffset = 338.92f * Gaudi::Units::MeV; // KickOffset
+  static constexpr float kickScale = 1218.62f * Gaudi::Units::MeV; // KickScale
+  static constexpr float za = 5.331f * Gaudi::Units::m;           // MagnetPlaneParA
+  static constexpr float zb = -0.958f * Gaudi::Units::m;           // MagnetPlaneParB
+  static constexpr float ca = 25.17f * Gaudi::Units::mm;          // MagnetCorrParA
+  static constexpr float cb = -701.5f * Gaudi::Units::mm;          // MagnetCorrParB
+                                                      
+  static constexpr float maxChi2DoF = 20.f;
+  // static constexpr bool fitY = false;
+  // static constexpr bool setQOverP = false;
+
+
+  static constexpr int M2{0},M3{1},M4{2},M5{3};
+  static constexpr int VeryLowP{0}, LowP{1}, MediumP{2},HighP{3};
+
+
+
+  struct Hit {
+    /// Build a hit from a MuonID hit
+    __device__  Hit(const Muon::HitsSoA& hits, const uint& i_muonhit) :
+      x(hits.x[i_muonhit]), dx2(hits.dx[i_muonhit] * hits.dx[i_muonhit] / 12), y(hits.y[i_muonhit]),
+      dy2(hits.dy[i_muonhit] * hits.dy[i_muonhit] / 12), z(hits.z[i_muonhit])
+    {}
+    /// Build a hit extrapolating the values from a state to the given point.
+    __device__ Hit(const KalmanVeloState& state, const float& pz)
+    {
+      const float dz = pz - state.z;
+
+      const float dz2 = dz * dz;
+
+      x = state.x + dz * state.tx;
+
+      dx2 = state.c00 + dz2 * state.c22;
+
+      y = state.y + dz * state.ty;
+
+      dy2 = state.c11 + dz2 * state.c33;
+
+      z = pz;
+    };
+    __device__  Hit() : x {0.f}, dx2 {0.f}, y {0.f}, dy2 {0.f}, z {0.f} {};
+    float x, dx2, y, dy2, z;
+  };
+
+
+    
+  struct MuonChambers {
+    int first [4] {M3, M4,M5, M5};
+    int firstOffsets [4] {0,1,3,4};
+
+    int afterKick [6] {M2, M3,M2, M4,M3,M2};
+    int afterKickOffsets [4] {0,1,3,6};
+  };
+
+  struct SearchWindows{
+     float Windows [8] {500.f * Gaudi::Units::mm, //M2
+                        400.f * Gaudi::Units::mm, 
+
+                        600.f * Gaudi::Units::mm, //M3
+                        500.f * Gaudi::Units::mm, 
+
+                        700.f * Gaudi::Units::mm, //M4
+                        600.f * Gaudi::Units::mm, 
+
+                        800.f * Gaudi::Units::mm, //M5
+                        700.f * Gaudi::Units::mm  
+
+
+                       };
+  };
+
+
+} // namespace MatchUpstreamMuon

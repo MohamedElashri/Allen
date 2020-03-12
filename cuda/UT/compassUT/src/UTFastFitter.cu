@@ -1,6 +1,6 @@
 #include "UTFastFitter.cuh"
 
-__host__ __device__ float eval_log_function(const int N, float& init, const float* a, const float* b)
+__device__ float eval_log_function(const int N, float& init, const float* a, const float* b)
 {
   for (int i = 0; i < N; ++i) {
     init = init + a[i] * logf(b[i]);
@@ -10,7 +10,7 @@ __host__ __device__ float eval_log_function(const int N, float& init, const floa
 
 // -- Evaluate the linear discriminant
 // -- Coefficients derived with LD method for p, pT and chi2 with TMVA
-__host__ __device__ float evaluateLinearDiscriminant(const float inputValues[3], const int nHits)
+__device__ float evaluateLinearDiscriminant(const float inputValues[3], const int nHits)
 {
   float coeffs[4];
   if (nHits == 3) {
@@ -33,13 +33,13 @@ __host__ __device__ float evaluateLinearDiscriminant(const float inputValues[3],
    See this presentation for information:
    https://indico.cern.ch/event/786084/contributions/3326577/attachments/1800737/2937077/20190213_forward.pdf
 */
-__host__ __device__ float fastfitter(
+__device__ float fastfitter(
   const BestParams best_params,
   const MiniState& velo_state,
   const int best_hits[UT::Constants::n_layers],
   const float qpxz2p,
   const float* ut_dxDy,
-  const UT::Hits& ut_hits,
+  UT::ConstHits& ut_hits,
   float improvedParams[4])
 {
 
@@ -73,10 +73,10 @@ __host__ __device__ float fastfitter(
 
       const int plane_code = i;
       const float dxDy = ut_dxDy[plane_code];
-      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit]);
+      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0(hit));
       const float ui = ut_hits.xAt(hit, yy, dxDy);
-      const float dz = 0.001f * (ut_hits.zAtYEq0[hit] - UT::Constants::zMidUT);
-      const float w = ut_hits.weight[hit];
+      const float dz = 0.001f * (ut_hits.zAtYEq0(hit) - UT::Constants::zMidUT);
+      const float w = ut_hits.weight(hit);
       const float t = ut_hits.sinT(hit, dxDy);
 
       mat[0] += w;
@@ -118,11 +118,11 @@ __host__ __device__ float fastfitter(
     if (best_hits[i] != -1) {
       const auto hit = best_hits[i];
 
-      const float w = ut_hits.weight[hit];
-      const float dz = ut_hits.zAtYEq0[hit] - UT::Constants::zMidUT;
+      const float w = ut_hits.weight(hit);
+      const float dz = ut_hits.zAtYEq0(hit) - UT::Constants::zMidUT;
       const int plane_code = i;
       const float dxDy = ut_dxDy[plane_code];
-      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0[hit]);
+      const float yy = yyProto + (velo_state.ty * ut_hits.zAtYEq0(hit));
       const float x = ut_hits.xAt(hit, yy, dxDy);
       const float dist = (x - xUTFit - xSlopeUTFit * dz - offsetY * ut_hits.sinT(hit, dxDy));
       chi2 += w * dist * dist * distCorrectionX2;

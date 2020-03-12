@@ -15,7 +15,7 @@
 
 #include <Logger.h>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <eb_header.hpp>
 #include <read_mdf.hpp>
@@ -23,7 +23,7 @@
 #include <Transpose.h>
 #include <TransposeMEP.h>
 
-#include <CpuGlobalEventCut.cuh>
+#include <HostGlobalEventCut.h>
 
 using namespace std;
 
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
   bool count_success = false;
   std::array<unsigned int, LHCb::NBankTypes> banks_count;
 
-  Slices slices;
+  ::Slices slices;
   EventIDs events;
 
   size_t interval = 1000;
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
         if (allen_type == to_integral(at)) {
           auto& [spans, offset, offsets, offsets_size] = slices[allen_type][0];
           ids.get().emplace_back(i_block);
-          spans.emplace_back(const_cast<char*>(block_span.begin()), block_span.size());
+          spans.emplace_back(const_cast<char*>(block_span.data()), block_span.size());
           // auto* data_start = spans[0].begin();
           // std::memcpy(data_start + offset, block_span.data(), block_span.size());
           // offset += block_header.block_size;
@@ -152,7 +152,12 @@ int main(int argc, char* argv[])
     vector<uint> event_list(interval, 0);
     uint number_of_selected_events = 0;
 
-    cpu_global_event_cut_mep(ut_banks, scifi_banks, &number_of_selected_events, event_list.data(), interval);
+    host_global_event_cut::host_global_event_cut_mep(
+      ut_banks,
+      scifi_banks,
+      interval,
+      host_global_event_cut::Parameters {&number_of_selected_events, event_list.data(), 0, 9750});
+
     cout << "selected " << number_of_selected_events << " events" << endl;
   }
 

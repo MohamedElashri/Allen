@@ -5,31 +5,57 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "Handler.cuh"
-#include "ArgumentsVelo.cuh"
-#include "ArgumentsUT.cuh"
-#include "ArgumentsSciFi.cuh"
+#include "DeviceAlgorithm.cuh"
 
-__global__ void lf_extend_tracks_x(
-  const uint32_t* dev_scifi_hits,
-  const uint32_t* dev_scifi_hit_count,
-  const uint* dev_atomics_ut,
-  SciFi::TrackHits* dev_scifi_tracks,
-  uint* dev_atomics_scifi,
-  const char* dev_scifi_geometry,
-  const LookingForward::Constants* dev_looking_forward_constants,
-  const float* dev_inv_clus_res,
-  const int* dev_initial_windows,
-  const float* dev_scifi_lf_parametrization);
+namespace lf_extend_tracks_x {
+  struct Parameters {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
+    DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
+    DEVICE_OUTPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits) dev_scifi_lf_tracks;
+    DEVICE_INPUT(dev_scifi_lf_atomics_t, uint) dev_scifi_lf_atomics;
+    DEVICE_INPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
+    DEVICE_INPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+  };
 
-ALGORITHM(
-  lf_extend_tracks_x,
-  lf_extend_tracks_x_t,
-  ARGUMENTS(
-    dev_scifi_hits,
-    dev_scifi_hit_count,
-    dev_atomics_ut,
-    dev_scifi_lf_tracks,
-    dev_scifi_lf_atomics,
-    dev_scifi_lf_initial_windows,
-    dev_scifi_lf_parametrization))
+  __global__ void lf_extend_tracks_x(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
+
+  template<typename T, char... S>
+  struct lf_extend_tracks_x_t : public DeviceAlgorithm, Parameters {
+    constexpr static auto name = Name<S...>::s;
+    decltype(global_function(lf_extend_tracks_x)) function {lf_extend_tracks_x};
+
+    void set_arguments_size(
+      ArgumentRefManager<T>,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
+    {}
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions&,
+      const Constants& constants,
+      HostBuffers&,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t&) const
+    {
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {begin<dev_scifi_hits_t>(arguments),
+                    begin<dev_scifi_hit_offsets_t>(arguments),
+                    begin<dev_offsets_ut_tracks_t>(arguments),
+                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
+                    begin<dev_scifi_lf_tracks_t>(arguments),
+                    begin<dev_scifi_lf_atomics_t>(arguments),
+                    begin<dev_scifi_lf_initial_windows_t>(arguments),
+                    begin<dev_scifi_lf_parametrization_t>(arguments)},
+        constants.dev_looking_forward_constants);
+    }
+
+  private:
+    Property<block_dim_t> m_block_dim {this};
+  };
+} // namespace lf_extend_tracks_x

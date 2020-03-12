@@ -21,7 +21,7 @@
 #include <SystemOfUnits.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <eb_header.hpp>
 #include "TransposeTypes.h"
 

@@ -4,7 +4,8 @@
 __device__ float LookingForward::tx_ty_corr_multi_par(
   const MiniState& ut_state,
   const int station,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* dev_magnet_polarity)
 {
   float tx_ty_corr = 0.f;
   const float tx_pow[5] = {1,
@@ -14,9 +15,9 @@ __device__ float LookingForward::tx_ty_corr_multi_par(
                            ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx};
 
   const float ty_pow[5] = {1,
-                           ut_state.ty,
+                           ut_state.ty * (-1.f) * *dev_magnet_polarity,
                            ut_state.ty * ut_state.ty,
-                           ut_state.ty * ut_state.ty * ut_state.ty,
+                           ut_state.ty * ut_state.ty * ut_state.ty * (-1.f) * *dev_magnet_polarity,
                            ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty};
 
   for (int i = 0; i < 5; i++) {
@@ -32,16 +33,17 @@ __device__ MiniState LookingForward::propagate_state_from_velo_multi_par(
   const MiniState& UT_state,
   const float qop,
   const int layer,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* dev_magnet_polarity)
 {
   // center of the magnet
   const MiniState magnet_state = state_at_z(UT_state, dev_looking_forward_constants->zMagnetParams[0]);
 
   MiniState final_state = magnet_state;
 
-  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
+  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants, dev_magnet_polarity);
 
-  final_state.tx = tx_ty_corr * qop + UT_state.tx;
+  final_state.tx = tx_ty_corr * qop * (-1.f) * *dev_magnet_polarity + UT_state.tx;
 
   state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
   // final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
@@ -52,11 +54,12 @@ __device__ float LookingForward::propagate_x_from_velo_multi_par(
   const MiniState& UT_state,
   const float qop,
   const int layer,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* dev_magnet_polarity)  
 {
-  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants);
+  const float tx_ty_corr = LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants, dev_magnet_polarity);
 
-  const float final_tx = tx_ty_corr * qop + UT_state.tx;
+  const float final_tx = tx_ty_corr * qop * (-1.f) * *dev_magnet_polarity + UT_state.tx;
 
   // get x and y at center of magnet
   const auto magnet_x =
@@ -69,7 +72,7 @@ __device__ float LookingForward::propagate_x_from_velo_multi_par(
 __device__ std::tuple<float, float, float> LookingForward::least_mean_square_y_fit(
   const SciFi::TrackHits& track,
   const uint number_of_uv_hits,
-  const SciFi::Hits& scifi_hits,
+  SciFi::ConstHits& scifi_hits,
   const float a1,
   const float b1,
   const float c1,
@@ -86,11 +89,11 @@ __device__ std::tuple<float, float, float> LookingForward::least_mean_square_y_f
   for (uint j = 0; j < number_of_uv_hits; ++j) {
     const auto hit_index = event_offset + track.hits[track.hitsNum - number_of_uv_hits + j];
     const auto plane = scifi_hits.planeCode(hit_index) / 2;
-    const auto z = scifi_hits.z0[hit_index];
+    const auto z = scifi_hits.z0(hit_index);
     const auto dz = z - LookingForward::z_mid_t;
     const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
     const auto y =
-      (predicted_x - scifi_hits.x0[hit_index]) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
+      (predicted_x - scifi_hits.x0(hit_index)) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
 
     y_values[j] = y;
     z_values[j] = z;
@@ -134,6 +137,7 @@ __device__ float LookingForward::project_y(
   const auto ty = ut_state.ty;
   const auto ty3 = ut_state.ty * ut_state.ty * ut_state.ty;
   const auto ty5 = ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty;
+
   //NOTE : 
   //Y expected is evaluated as follow : 
   //You assume to know the x position at which the track is passing through via x(Hit), x(Hit) for xLayers is x(measured), 

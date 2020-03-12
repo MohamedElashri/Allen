@@ -5,14 +5,16 @@
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
-#include <gsl-lite.hpp>
+#include <vector>
+#include <cassert>
+#include <gsl/gsl>
 
 namespace {
   using gsl::span;
 }
 
 constexpr auto NBankTypes = 8;
-enum class BankTypes { VP, UT, FT, MUON, Rich, ECal, HCal, ODIN };
+enum class BankTypes { VP, UT, FT, MUON, ODIN, Rich, ECal, HCal };
 
 // Average size of all raw banks of a given type per
 // subdetector, in kB, measured in simulated minbias events.
@@ -53,5 +55,10 @@ std::unordered_set<BankTypes> banks_set()
 {
   return std::unordered_set<BankTypes> {BANKS...};
 }
+
+using events_span = gsl::span<char>;
+using events_size = gsl::span<char>::index_type;
+using offsets_span = gsl::span<unsigned int>;
+using offsets_size = gsl::span<unsigned int>::index_type;
 
 #endif

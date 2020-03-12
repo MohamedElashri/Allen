@@ -10,12 +10,12 @@
 
 #include <BankTypes.h>
 
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 #include <sys/types.h>
 
-#include "odin.hpp"
-#include "raw_bank.hpp"
+#include "Event/ODIN.h"
+#include "Event/RawBank.h"
 #include "mdf_header.hpp"
 
 namespace Allen {

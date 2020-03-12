@@ -6,79 +6,117 @@
 
 namespace SciFi {
   namespace Consolidated {
-
-    // Consolidated hits SoA.
-    struct Hits : BaseHits {
-      __device__ __host__ Hits(
-        char* base_pointer,
-        const uint track_offset,
-        const uint total_number_of_hits,
-        const SciFiGeometry* param_geom,
-        const float* param_dev_inv_clus_res)
-      {
-        x0 = reinterpret_cast<float*>(base_pointer);
-        z0 = reinterpret_cast<float*>(base_pointer + sizeof(float) * total_number_of_hits);
-        m_endPointY = reinterpret_cast<float*>(base_pointer + sizeof(float) * 2 * total_number_of_hits);
-        channel = reinterpret_cast<uint32_t*>(base_pointer + sizeof(float) * 3 * total_number_of_hits);
-        assembled_datatype = reinterpret_cast<uint32_t*>(base_pointer + sizeof(float) * 4 * total_number_of_hits);
-
-        x0 += track_offset;
-        z0 += track_offset;
-        m_endPointY += track_offset;
-        channel += track_offset;
-        assembled_datatype += track_offset;
-
-        geom = param_geom;
-        dev_inv_clus_res = param_dev_inv_clus_res;
-      }
-
-      __device__ __host__ SciFi::Hit get(const uint hit_number) const
-      {
-        return SciFi::Hit {
-          x0[hit_number], z0[hit_number], m_endPointY[hit_number], channel[hit_number], assembled_datatype[hit_number]};
-      }
-
-      __device__ __host__ uint32_t LHCbID(uint32_t index) const { return (10u << 28) + channel[index]; };
+    template<typename T>
+    struct Hits_t : public SciFi::Hits_t<T> {
+      __host__ __device__ Hits_t(T* base_pointer, const uint track_offset, const uint total_number_of_hits) :
+        SciFi::Hits_t<T>(base_pointer, total_number_of_hits, track_offset)
+      {}
     };
 
-    //----------------------------------------------------------------------
+    typedef const Hits_t<const char> ConstHits;
+    typedef Hits_t<char> Hits;
+
+    template<typename T>
+    struct ExtendedHits_t : public SciFi::ExtendedHits_t<T> {
+      __host__ __device__ ExtendedHits_t(
+        T* base_pointer,
+        const uint track_offset,
+        const uint total_number_of_hits,
+        const float* inv_clus_res,
+        const SciFiGeometry* geom) :
+        SciFi::ExtendedHits_t<T>(base_pointer, total_number_of_hits, inv_clus_res, geom, track_offset)
+      {}
+    };
+
+    typedef const ExtendedHits_t<const char> ConstExtendedHits;
+    typedef ExtendedHits_t<char> ExtendedHits;
+
+    //---------------------------------------------------------
     // Struct for holding consolidated SciFi track information.
-    struct Tracks : public ::Consolidated::Tracks {
-      // Indices of associated UT tracks.
-      uint* ut_track;
+    //---------------------------------------------------------
+    template<typename T>
+    struct Tracks_t : public ::Consolidated::Tracks {
+    private:
+      // Indices of associated UT tracks
+      typename ForwardType<T, uint>::t* m_ut_track;
+      typename ForwardType<T, float>::t* m_qop;
+      typename ForwardType<T, MiniState>::t* m_states;
 
-      float* qop;
-      MiniState* states;
-
-      __device__ __host__ Tracks(
-        uint* atomics_base_pointer,
-        uint* track_hit_number_base_pointer,
-        float* qop_base_pointer,
-        MiniState* states_base_pointer,
-        uint* ut_track_base_pointer,
+    public:
+      __host__ __device__ Tracks_t(
+        const uint* atomics_base_pointer,
+        const uint* track_hit_number_base_pointer,
+        typename ForwardType<T, float>::t* qop_base_pointer,
+        typename ForwardType<T, MiniState>::t* states_base_pointer,
+        typename ForwardType<T, uint>::t* ut_track_base_pointer,
         const uint current_event_number,
         const uint number_of_events) :
         ::Consolidated::Tracks(
           atomics_base_pointer,
           track_hit_number_base_pointer,
           current_event_number,
-          number_of_events)
+          number_of_events),
+        m_ut_track(ut_track_base_pointer + tracks_offset(current_event_number)),
+        m_qop(qop_base_pointer + tracks_offset(current_event_number)),
+        m_states(states_base_pointer + tracks_offset(current_event_number))
+      {}
+
+      __host__ __device__ uint ut_track(const uint index) const { return m_ut_track[index]; }
+
+      __host__ __device__ uint& ut_track(const uint index) { return m_ut_track[index]; }
+
+      __host__ __device__ float qop(const uint index) const { return m_qop[index]; }
+
+      __host__ __device__ float& qop(const uint index) { return m_qop[index]; }
+
+      __host__ __device__ MiniState states(const uint index) const { return m_states[index]; }
+
+      __host__ __device__ MiniState& states(const uint index) { return m_states[index]; }
+
+      __host__ __device__ Hits get_hits(char* hits_base_pointer, const uint track_number) const
       {
-        ut_track = ut_track_base_pointer + tracks_offset(current_event_number);
-        qop = qop_base_pointer + tracks_offset(current_event_number);
-        states = states_base_pointer + tracks_offset(current_event_number);
+        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
       }
 
-      __device__ __host__ Hits get_hits(
+      __host__ __device__ ConstHits get_hits(const char* hits_base_pointer, const uint track_number) const
+      {
+        return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ ExtendedHits get_hits(
         char* hits_base_pointer,
         const uint track_number,
-        const SciFiGeometry* scifi_geometry,
-        const float* dev_inv_clus_res) const
+        const SciFiGeometry* geom,
+        const float* inv_clus_res) const
       {
-        return Hits {
-          hits_base_pointer, track_offset(track_number), total_number_of_hits, scifi_geometry, dev_inv_clus_res};
+        return ExtendedHits {
+          hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
+      }
+
+      __host__ __device__ ConstExtendedHits get_hits(
+        const char* hits_base_pointer,
+        const uint track_number,
+        const SciFiGeometry* geom,
+        const float* inv_clus_res) const
+      {
+        return ConstExtendedHits {
+          hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
+      }
+
+      __host__ std::vector<uint> get_lhcbids_for_track(
+        const char* hits_base_pointer,
+        const uint track_number) const
+      {
+        std::vector<uint> ids;
+        const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        for (uint i = 0; i < number_of_hits(track_number); ++i) {
+          ids.push_back(hits.id(i));
+        }
+        return ids;
       }
     }; // namespace Consolidated
 
+    typedef const Tracks_t<const char> ConstTracks;
+    typedef Tracks_t<char> Tracks;
   } // namespace Consolidated
 } // end namespace SciFi

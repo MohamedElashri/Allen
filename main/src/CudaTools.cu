@@ -16,7 +16,7 @@ void print_gpu_memory_consumption() {}
 std::tuple<bool, std::string> set_device(int, size_t)
 {
   // Assume a linux system and try to get the CPU type
-  FILE* cmd = popen("cat /proc/cpuinfo | grep 'model name' | head -n1 | awk '{ print substr($0, index($0,$4)) }'", "r");
+  FILE* cmd = popen("grep -m1 -hoE 'model name\\s+.*' /proc/cpuinfo | awk '{ print substr($0, index($0,$4)) }'", "r");
   if (cmd == NULL) return {true, "CPU"};
 
   // Get a string that identifies the CPU
@@ -35,10 +35,8 @@ std::tuple<bool, std::string> set_device(int, size_t)
 std::tuple<bool, std::string> set_device(int, size_t) { return {true, "CPU"}; }
 #endif // linux-dependent CPU detection
 
-std::tuple<bool, int> get_device_id(std::string pci_bus_id) {
-  int device = 0;
-  error_cout << "Cannot get CPU device by bus ID\n";
-  return {false, device};
+std::tuple<bool, int> get_device_id(std::string) {
+  return {true, 0};
 }
 
 #else

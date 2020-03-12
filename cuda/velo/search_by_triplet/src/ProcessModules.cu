@@ -14,18 +14,24 @@ __device__ void process_modules(
   const short* h2_candidates,
   const uint* module_hitStarts,
   const uint* module_hitNums,
-  const float* dev_velo_cluster_container,
+  Velo::ConstClusters& velo_cluster_container,
+  const float* hit_phi,
   uint* tracks_to_follow,
   Velo::TrackletHits* weak_tracks,
   Velo::TrackletHits* tracklets,
   Velo::TrackHits* tracks,
-  const uint number_of_hits,
   unsigned short* h1_rel_indices,
   const uint hit_offset,
   const float* dev_velo_module_zs,
-  uint* dev_atomics_velo)
+  uint* dev_atomics_velo,
+  uint* dev_number_of_velo_tracks,
+  const int ttf_modulo_mask,
+  const float max_scatter_seeding,
+  const uint ttf_modulo,
+  const float max_scatter_forwarding,
+  const uint max_skipped_modules,
+  const float forward_phi_tolerance)
 {
-  const int ip_shift = gridDim.x + blockIdx.x * (Velo::num_atomics - 1);
   auto first_module = VP::NModules - 1;
 
   // Prepare the first seeding iteration
@@ -42,8 +48,7 @@ __device__ void process_modules(
 
   // Do first track seeding
   track_seeding(
-    dev_velo_cluster_container,
-    number_of_hits,
+    velo_cluster_container,
     module_data,
     h0_candidates,
     h2_candidates,
@@ -51,7 +56,9 @@ __device__ void process_modules(
     tracklets,
     tracks_to_follow,
     h1_rel_indices,
-    dev_atomics_velo + ip_shift);
+    dev_atomics_velo,
+    max_scatter_seeding,
+    ttf_modulo_mask);
 
   // Prepare forwarding - seeding loop
   uint last_ttf = 0;
@@ -72,19 +79,20 @@ __device__ void process_modules(
     }
 
     const auto prev_ttf = last_ttf;
-    last_ttf = dev_atomics_velo[ip_shift + 2];
+    last_ttf = dev_atomics_velo[2];
     const auto diff_ttf = last_ttf - prev_ttf;
 
     // Reset atomics
     // Note: local_number_of_hits
-    dev_atomics_velo[ip_shift + 3] = 0;
+    dev_atomics_velo[3] = 0;
 
     // Due to module data loading
     __syncthreads();
 
     // Track Forwarding
     track_forwarding(
-      dev_velo_cluster_container,
+      velo_cluster_container,
+      hit_phi,
       hit_used,
       module_data,
       diff_ttf,
@@ -93,17 +101,20 @@ __device__ void process_modules(
       prev_ttf,
       tracklets,
       tracks,
-      number_of_hits,
       dev_atomics_velo,
-      ip_shift);
+      dev_number_of_velo_tracks,
+      forward_phi_tolerance,
+      ttf_modulo_mask,
+      ttf_modulo,
+      max_scatter_forwarding,
+      max_skipped_modules);
 
     // Due to ttf_insert_pointer
     __syncthreads();
 
     // Seeding
     track_seeding(
-      dev_velo_cluster_container,
-      number_of_hits,
+      velo_cluster_container,
       module_data,
       h0_candidates,
       h2_candidates,
@@ -111,7 +122,9 @@ __device__ void process_modules(
       tracklets,
       tracks_to_follow,
       h1_rel_indices,
-      dev_atomics_velo + ip_shift);
+      dev_atomics_velo,
+      max_scatter_seeding,
+      ttf_modulo_mask);
 
     first_module -= 2;
   }
@@ -120,21 +133,20 @@ __device__ void process_modules(
   __syncthreads();
 
   const auto prev_ttf = last_ttf;
-  last_ttf = dev_atomics_velo[ip_shift + 2];
+  last_ttf = dev_atomics_velo[2];
   const auto diff_ttf = last_ttf - prev_ttf;
 
   // Process the last bunch of track_to_follows
   for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
     const int fulltrackno =
-      tracks_to_follow[(prev_ttf + ttf_element) & Configuration::velo_search_by_triplet_t::ttf_modulo_mask];
+      tracks_to_follow[(prev_ttf + ttf_element) & ttf_modulo_mask];
     const bool track_flag = (fulltrackno & 0x80000000) == 0x80000000;
     const int trackno = fulltrackno & 0x0FFFFFFF;
 
     // Here we are only interested in three-hit tracks,
     // to mark them as "doubtful"
     if (track_flag) {
-      const auto weakP = atomicAdd(dev_atomics_velo + ip_shift, 1);
-      assert(weakP < number_of_hits);
+      const auto weakP = atomicAdd(dev_atomics_velo, 1);
       weak_tracks[weakP] = tracklets[trackno];
     }
   }

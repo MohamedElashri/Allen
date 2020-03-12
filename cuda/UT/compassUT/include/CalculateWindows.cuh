@@ -15,14 +15,18 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const int layer,
   const MiniState& velo_state,
   const float* fudge_factors,
-  const UT::Hits& ut_hits,
+  UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_count,
   const float* ut_dxDy,
   const float* dev_unique_sector_xs,
-  const uint* dev_unique_x_sector_layer_offsets);
+  const uint* dev_unique_x_sector_layer_offsets,
+  const float y_tol,
+  const float y_tol_slope,
+  const float min_pt,
+  const float min_momentum);
 
 __device__ std::tuple<int, int> find_candidates_in_sector_group(
-  const UT::Hits& ut_hits,
+  UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
   const float* dev_unique_sector_xs,
@@ -31,13 +35,17 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
   const float dx_dy,
   const float invNormFact,
   const float xTol,
-  const int sector_group);
+  const int sector_group,
+  const float y_tol,
+  const float y_tol_slope);
 
 __device__ void tol_refine(
   int& first_candidate,
   int& last_candidate,
-  const UT::Hits& ut_hits,
+  UT::ConstHits& ut_hits,
   const MiniState& velo_state,
   const float invNormfact,
   const float xTolNormFact,
-  const float dxDy);
+  const float dxDy,
+  const float y_tol,
+  const float y_tol_slope);

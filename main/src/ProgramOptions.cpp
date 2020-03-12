@@ -41,7 +41,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"configuration"},
            "path to json file containing values of configurable algorithm constants",
            "../configuration/constants/default.json"},
-          {{"print-buffer-status"}, "show buffer status", "0"},
+          {{"print-status"}, "show status of buffer and socket", "0"},
           {{"print-config"}, "show current algorithm configuration", "0"},
           {{"write-configuration"}, "write current algorithm configuration to file", "0"},
           {{"n", "number-of-events"}, "number of events to process", "0", "all"},

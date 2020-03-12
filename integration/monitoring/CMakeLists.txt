@@ -15,14 +15,14 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/UT/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${ROOT_INCLUDE_DIRS})
+include_directories(${CPPGSL_INCLUDE_DIR})
 
-file(GLOB monitoring_sources "src/*cu")
 file(GLOB monitoring_sources_cpp "src/*cpp")
 
-allen_add_library(AllenMonitoring STATIC
-  ${monitoring_sources}
+add_library(AllenMonitoring STATIC
   ${monitoring_sources_cpp}
 )
 

@@ -28,17 +28,22 @@ __device__ bool velo_track_in_UTA_acceptance(const MiniState& state)
 //=========================================================================
 __device__ void tol_refine(
   int& first_candidate,
-  int& last_candidate,
-  const UT::Hits& ut_hits,
+  int& number_of_candidates,
+  UT::ConstHits& ut_hits,
   const MiniState& velo_state,
   const float invNormfact,
   const float xTolNormFact,
-  const float dxDy)
+  const float dxDy,
+  const float y_tol,
+  const float y_tol_slope)
 {
   bool first_found = false;
-  const auto const_last_candidate = last_candidate;
-  for (int i = first_candidate; i < const_last_candidate; ++i) {
-    const auto zInit = ut_hits.zAtYEq0[i];
+  const auto const_first_candidate = first_candidate;
+  int last_candidate = first_candidate;
+  for (int candidate_i = 0; candidate_i < number_of_candidates; ++candidate_i) {
+    const auto i = const_first_candidate + candidate_i;
+
+    const auto zInit = ut_hits.zAtYEq0(i);
     const auto yApprox = velo_state.y + velo_state.ty * (zInit - velo_state.z);
     const auto xOnTrackProto = velo_state.x + velo_state.tx * (zInit - velo_state.z);
     const auto xx = ut_hits.xAt(i, yApprox, dxDy);
@@ -46,11 +51,7 @@ __device__ void tol_refine(
 
     if (
       dx >= -xTolNormFact && dx <= xTolNormFact &&
-      !ut_hits.isNotYCompatible(
-        i,
-        yApprox,
-        Configuration::ut_search_windows_t::y_tol +
-          Configuration::ut_search_windows_t::y_tol_slope * fabsf(dx * invNormfact))) {
+      !ut_hits.isNotYCompatible(i, yApprox, y_tol + y_tol_slope * fabsf(dx * invNormfact))) {
       // It is compatible
       if (!first_found) {
         first_found = true;
@@ -61,11 +62,10 @@ __device__ void tol_refine(
   }
 
   if (!first_found) {
-    first_candidate = -1;
-    last_candidate = -1;
-  }
-  else {
-    ++last_candidate;
+    first_candidate = 0;
+    number_of_candidates = 0;
+  } else {
+    number_of_candidates = last_candidate - first_candidate + 1;
   }
 }
 
@@ -76,11 +76,15 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const int layer,
   const MiniState& velo_state,
   const float* fudge_factors,
-  const UT::Hits& ut_hits,
+  UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const float* ut_dxDy,
   const float* dev_unique_sector_xs,
-  const uint* dev_unique_x_sector_layer_offsets)
+  const uint* dev_unique_x_sector_layer_offsets,
+  const float y_tol,
+  const float y_tol_slope,
+  const float min_pt,
+  const float min_momentum)
 {
   // -- This is hardcoded, so faster
   // -- If you ever change the Table in the magnet tool, this will be wrong
@@ -93,15 +97,14 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   // -- this 500 seems a little odd...
   // to do: change back!
   const float invTheta = min(500.0f, 1.0f / sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
-  const float minMom =
-    max(Configuration::ut_search_windows_t::min_pt * invTheta, Configuration::ut_search_windows_t::min_momentum);
+  const float minMom = max(min_pt * invTheta, min_momentum);
   const float xTol = fabsf(1.0f / (UT::Constants::distToMomentum * minMom));
   // const float yTol     = UT::Constants::yTol + UT::Constants::yTolSlope * xTol;
 
   int layer_offset = ut_hit_offsets.layer_offset(layer);
 
   const float dx_dy = ut_dxDy[layer];
-  const float z_at_layer = ut_hits.zAtYEq0[layer_offset];
+  const float z_at_layer = ut_hits.zAtYEq0(layer_offset);
   const float y_track = velo_state.y + velo_state.ty * (z_at_layer - velo_state.z);
   const float x_track = velo_state.x + velo_state.tx * (z_at_layer - velo_state.z);
   const float invNormFact = 1.0f / normFact[layer];
@@ -119,11 +122,11 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
     binary_search_leftmost(dev_unique_sector_xs + first_sector_group_in_layer, sector_group_size, x_track);
   int sector_group = first_sector_group_in_layer + local_sector_group;
 
-  int first_candidate = -1, last_candidate = -1;
-  int left_group_first_candidate = -1, left_group_last_candidate = -1;
-  int left2_group_first_candidate = -1, left2_group_last_candidate = -1;
-  int right_group_first_candidate = -1, right_group_last_candidate = -1;
-  int right2_group_first_candidate = -1, right2_group_last_candidate = -1;
+  int first_candidate = 0, number_of_candidates = 0;
+  int left_group_first_candidate = 0, left_group_number_of_candidates = 0;
+  int left2_group_first_candidate = 0, left2_group_number_of_candidates = 0;
+  int right_group_first_candidate = 0, right_group_number_of_candidates = 0;
+  int right2_group_first_candidate = 0, right2_group_number_of_candidates = 0;
 
   // Get correct index position in array
   sector_group -= 1;
@@ -139,10 +142,12 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       dx_dy,
       invNormFact,
       xTolNormFact,
-      sector_group);
+      sector_group,
+      y_tol,
+      y_tol_slope);
 
     first_candidate = std::get<0>(sector_candidates);
-    last_candidate = std::get<1>(sector_candidates);
+    number_of_candidates = std::get<1>(sector_candidates);
   }
 
   // left sector group
@@ -159,10 +164,12 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       dx_dy,
       invNormFact,
       xTolNormFact,
-      left_group);
+      left_group,
+      y_tol,
+      y_tol_slope);
 
     left_group_first_candidate = std::get<0>(left_group_candidates);
-    left_group_last_candidate = std::get<1>(left_group_candidates);
+    left_group_number_of_candidates = std::get<1>(left_group_candidates);
   }
 
   // left-left sector group
@@ -179,10 +186,12 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       dx_dy,
       invNormFact,
       xTolNormFact,
-      left2_group);
+      left2_group,
+      y_tol,
+      y_tol_slope);
 
     left2_group_first_candidate = std::get<0>(left2_group_candidates);
-    left2_group_last_candidate = std::get<1>(left2_group_candidates);
+    left2_group_number_of_candidates = std::get<1>(left2_group_candidates);
   }
 
   // right sector group
@@ -199,10 +208,12 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       dx_dy,
       invNormFact,
       xTolNormFact,
-      right_group);
+      right_group,
+      y_tol,
+      y_tol_slope);
 
     right_group_first_candidate = std::get<0>(right_group_candidates);
-    right_group_last_candidate = std::get<1>(right_group_candidates);
+    right_group_number_of_candidates = std::get<1>(right_group_candidates);
   }
 
   // right-right sector group
@@ -219,26 +230,28 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
       dx_dy,
       invNormFact,
       xTolNormFact,
-      right2_group);
+      right2_group,
+      y_tol,
+      y_tol_slope );
 
     right2_group_first_candidate = std::get<0>(right2_group_candidates);
-    right2_group_last_candidate = std::get<1>(right2_group_candidates);
+    right2_group_number_of_candidates = std::get<1>(right2_group_candidates);
   }
 
   return std::tuple<int, int, int, int, int, int, int, int, int, int> {first_candidate,
-                                                                       last_candidate,
+                                                                       number_of_candidates,
                                                                        left_group_first_candidate,
-                                                                       left_group_last_candidate,
+                                                                       left_group_number_of_candidates,
                                                                        right_group_first_candidate,
-                                                                       right_group_last_candidate,
+                                                                       right_group_number_of_candidates,
                                                                        left2_group_first_candidate,
-                                                                       left2_group_last_candidate,
+                                                                       left2_group_number_of_candidates,
                                                                        right2_group_first_candidate,
-                                                                       right2_group_last_candidate};
+                                                                       right2_group_number_of_candidates};
 }
 
 __device__ std::tuple<int, int> find_candidates_in_sector_group(
-  const UT::Hits& ut_hits,
+  UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
   const float* dev_unique_sector_xs,
@@ -247,7 +260,9 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
   const float dx_dy,
   const float invNormFact,
   const float xTolNormFact,
-  const int sector_group)
+  const int sector_group,
+  const float y_tol,
+  const float y_tol_slope)
 {
   const float x_at_left_sector = dev_unique_sector_xs[sector_group];
   const float x_at_right_sector = dev_unique_sector_xs[sector_group + 1];
@@ -255,32 +270,34 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
   const float xx_at_right_sector = x_at_right_sector + y_track * dx_dy;
   const float dx_max = max(xx_at_left_sector - x_track, xx_at_right_sector - x_track);
 
-  const float tol = Configuration::ut_search_windows_t::y_tol +
-                    Configuration::ut_search_windows_t::y_tol_slope * fabsf(dx_max * invNormFact);
+  const float tol = y_tol + y_tol_slope * fabsf(dx_max * invNormFact);
   const uint sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group);
 
-  int first_candidate = -1, last_candidate = -1;
-  first_candidate = binary_search_first_candidate(
-    ut_hits.yEnd + sector_group_offset,
+  int number_of_candidates = 0;
+
+  // Find the first candidate (y_track - tol) employing a normal binary search
+  int first_candidate = binary_search_leftmost(
+    ut_hits.yEnd_p(sector_group_offset),
     ut_hit_offsets.sector_group_number_of_hits(sector_group),
-    y_track,
-    tol,
-    [&](const auto value, const auto array_element, const int index, const float margin) {
-      return (value + margin > ut_hits.yBegin[sector_group_offset + index] && value - margin < array_element);
-    });
+    y_track - tol);
 
-  if (first_candidate != -1) {
-    last_candidate = binary_search_second_candidate(
-      ut_hits.yBegin + sector_group_offset + first_candidate,
+  // In case we found a first candidate
+  if (first_candidate < static_cast<int>(ut_hit_offsets.sector_group_number_of_hits(sector_group))) {
+    // Find the last candidate (y_track + tol)
+    number_of_candidates = binary_search_leftmost(
+      ut_hits.yBegin_p(sector_group_offset + first_candidate),
       ut_hit_offsets.sector_group_number_of_hits(sector_group) - first_candidate,
-      y_track,
-      tol);
+      y_track + tol);
+  
     first_candidate += sector_group_offset;
-    last_candidate = last_candidate == 0 ? first_candidate + 1 : first_candidate + last_candidate;
 
-    // refine candidates
-    tol_refine(first_candidate, last_candidate, ut_hits, velo_state, invNormFact, xTolNormFact, dx_dy);
+    // If there is no last candidate, we are done
+    if (number_of_candidates > 0) {
+      // Refine the found candidate to fulfill some specific criteria
+      tol_refine(
+        first_candidate, number_of_candidates, ut_hits, velo_state, invNormFact, xTolNormFact, dx_dy, y_tol, y_tol_slope);
+    }
   }
 
-  return std::tuple<int, int> {first_candidate, last_candidate};
+  return std::tuple<int, int> {first_candidate, number_of_candidates};
 }

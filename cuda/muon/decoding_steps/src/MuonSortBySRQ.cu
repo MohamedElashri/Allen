@@ -1,16 +1,14 @@
 #include "MuonSortBySRQ.cuh"
 
-__global__ void muon_sort_station_region_quarter(
-  uint* dev_storage_tile_id,
-  uint* dev_storage_tdc_value,
-  const uint* dev_atomics_muon,
-  uint* dev_permutation_srq)
+__global__ void muon_sort_station_region_quarter::muon_sort_station_region_quarter(
+  muon_sort_station_region_quarter::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
-  const auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
-  const auto storage_tdc_value = dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
-  const auto number_of_hits = dev_atomics_muon[event_number];
-  auto permutation_srq = dev_permutation_srq + event_number * Muon::Constants::max_numhits_per_event;
+  auto storage_tile_id = parameters.dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
+  auto storage_tdc_value =
+    parameters.dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
+  const auto number_of_hits = parameters.dev_atomics_muon[event_number];
+  auto permutation_srq = parameters.dev_permutation_srq + event_number * Muon::Constants::max_numhits_per_event;
 
   // Create a permutation according to Muon::MuonTileID::stationRegionQuarter
   const auto get_srq = [&storage_tile_id](const uint a, const uint b) {

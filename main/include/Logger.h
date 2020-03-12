@@ -34,7 +34,10 @@ public:
     _old = _file_std_io->rdbuf(this);
   }
 
-  ~MessageLogger() { _file_std_io->rdbuf(_old); }
+  ~MessageLogger()
+  {
+    if (_file_std_io && _old) _file_std_io->rdbuf(_old);
+  }
 
   int overflow(int c) override
   {
@@ -57,7 +60,10 @@ public:
 
   VoidLogger(std::ostream* void_stream) : _void_stream(void_stream) { _old = _void_stream->rdbuf(this); }
 
-  ~VoidLogger() { _void_stream->rdbuf(_old); }
+  ~VoidLogger()
+  {
+    if ((_void_stream != nullptr) && (_old != nullptr)) _void_stream->rdbuf(_old);
+  }
 
   int overflow(int c) override
   {
@@ -77,5 +83,7 @@ namespace logger {
 
   std::ostream& logger(int requestedLogLevel);
 
-  extern Logger ll;
+  int verbosity();
+
+  void setVerbosity(int level);
 } // namespace logger

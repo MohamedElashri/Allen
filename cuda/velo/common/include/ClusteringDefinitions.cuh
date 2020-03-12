@@ -7,10 +7,6 @@
 #include "VeloDefinitions.cuh"
 
 namespace VeloClustering {
-  // Adjusted to minbias events. In the future, it should
-  // be adjusted on the go.
-  static constexpr uint32_t max_candidates_event = 3000;
-
   static constexpr uint32_t mask_bottom = 0xFFFEFFFF;
   static constexpr uint32_t mask_top = 0xFFFF7FFF;
   static constexpr uint32_t mask_top_left = 0x7FFF7FFF;
@@ -21,7 +17,7 @@ namespace VeloClustering {
   static constexpr uint32_t lookup_table_size = 9;
 } // namespace VeloClustering
 
-namespace LHCb {
+namespace Allen {
   namespace VPChannelID {
     /// Offsets of bitfield channelID
     enum channelIDBits { rowBits = 0, colBits = 8, chipBits = 16, sensorBits = 18 };
@@ -87,6 +83,6 @@ struct VeloGeometry {
   VeloGeometry(const std::vector<char>& geometry);
 };
 
-__device__ __host__ uint32_t get_channel_id(uint sensor, uint chip, uint col, uint row);
+__device__ __host__ uint32_t get_channel_id(const uint sensor, const uint chip, const uint col, const uint row);
 
-__device__ __host__ int32_t get_lhcb_id(int32_t cid);
+__device__ __host__ int32_t get_lhcb_id(const int32_t cid);

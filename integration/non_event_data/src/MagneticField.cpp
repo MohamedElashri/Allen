@@ -19,9 +19,9 @@ void Consumers::MagneticField::consume(std::vector<char> const& data)
     // Allocate space
     float* p = nullptr;
     cudaCheck(cudaMalloc((void**) &p, data.size()));
-    m_dev_magnet_polarity.get() = {p, data.size() / sizeof(float)};
+    m_dev_magnet_polarity.get() = {p, static_cast<gsl::span<char>::index_type>(data.size() / sizeof(float))};
   }
-  else if (data.size() / sizeof(float) != m_dev_magnet_polarity.get().size()) {
+  else if (data.size() != static_cast<size_t>(m_dev_magnet_polarity.get().size())) {
     throw StrException {string {"sizes don't match: "} + to_string(m_dev_magnet_polarity.get().size()) + " " +
                         to_string(data.size() / sizeof(float))};
   }

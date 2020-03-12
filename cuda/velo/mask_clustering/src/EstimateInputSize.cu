@@ -4,7 +4,7 @@
 __device__ void estimate_raw_bank_size(
   uint* estimated_input_size,
   uint32_t* cluster_candidates,
-  uint8_t* dev_velo_candidate_ks,
+  const uint8_t* dev_velo_candidate_ks,
   uint* event_candidate_num,
   uint raw_bank_number,
   VeloRawBank const& raw_bank)
@@ -43,7 +43,7 @@ __device__ void estimate_raw_bank_size(
       const uint number_of_clusters = (pattern_0 | pattern_1) ? 2 : 1;
 
       // Add the found clusters
-      uint current_estimated_module_size = atomicAdd(estimated_module_size, number_of_clusters);
+      [[maybe_unused]] uint current_estimated_module_size = atomicAdd(estimated_module_size, number_of_clusters);
       assert(current_estimated_module_size < Velo::Constants::max_numhits_in_module);
     }
     else {
@@ -156,7 +156,6 @@ __device__ void estimate_raw_bank_size(
         const uint8_t k = dev_velo_candidate_ks[candidates_uint8 & 0xF];
         auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
         const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | k;
-        assert(current_cluster_candidate < blockDim.x * VeloClustering::max_candidates_event);
         cluster_candidates[current_cluster_candidate] = candidate;
         ++found_cluster_candidates;
       }
@@ -168,7 +167,6 @@ __device__ void estimate_raw_bank_size(
         const uint8_t k = dev_velo_candidate_ks[(candidates_uint8 >> 4)] + 2;
         auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
         const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | k;
-        assert(current_cluster_candidate < blockDim.x * VeloClustering::max_candidates_event);
         cluster_candidates[current_cluster_candidate] = candidate;
         ++found_cluster_candidates;
       }
@@ -181,25 +179,19 @@ __device__ void estimate_raw_bank_size(
       }
     }
   }
-
 }
 
-__global__ void estimate_input_size(
-  char* dev_raw_input,
-  uint* dev_raw_input_offsets,
-  uint* dev_estimated_input_size,
-  uint* dev_event_candidate_num,
-  uint32_t* dev_cluster_candidates,
-  const uint* dev_event_list,
-  uint8_t* dev_velo_candidate_ks)
+__global__ void velo_estimate_input_size::velo_estimate_input_size(
+  velo_estimate_input_size::Parameters parameters,
+  const uint8_t* dev_velo_candidate_ks)
 {
   const auto event_number = blockIdx.x;
-  const auto selected_event_number = dev_event_list[event_number];
+  const auto selected_event_number = parameters.dev_event_list[event_number];
 
-  const char* raw_input = dev_raw_input + dev_raw_input_offsets[selected_event_number];
-  uint* estimated_input_size = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
-  uint* event_candidate_num = dev_event_candidate_num + event_number;
-  uint32_t* cluster_candidates = dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
+  const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
+  uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_modules;
+  uint* event_candidate_num = parameters.dev_module_candidate_num + event_number;
+  uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Read raw event
   const auto raw_event = VeloRawEvent(raw_input);
@@ -208,40 +200,32 @@ __global__ void estimate_input_size(
        raw_bank_number += blockDim.y) {
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    estimate_raw_bank_size(estimated_input_size, cluster_candidates, dev_velo_candidate_ks,
-                           event_candidate_num, raw_bank_number, raw_bank);
-
+    estimate_raw_bank_size(
+      estimated_input_size, cluster_candidates, dev_velo_candidate_ks, event_candidate_num, raw_bank_number, raw_bank);
   }
 }
 
-__global__ void estimate_input_size_mep(
-  char* dev_raw_input,
-  uint* dev_raw_input_offsets,
-  uint* dev_estimated_input_size,
-  uint* dev_event_candidate_num,
-  uint32_t* dev_cluster_candidates,
-  const uint* dev_event_list,
-  uint8_t* dev_velo_candidate_ks)
+__global__ void velo_estimate_input_size::velo_estimate_input_size_mep(
+  velo_estimate_input_size::Parameters parameters,
+  const uint8_t* dev_velo_candidate_ks)
 {
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = dev_event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
-  uint* estimated_input_size = dev_estimated_input_size + event_number * Velo::Constants::n_modules;
-  uint* event_candidate_num = dev_event_candidate_num + event_number;
-  uint32_t* cluster_candidates = dev_cluster_candidates + event_number * VeloClustering::max_candidates_event;
+  uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_modules;
+  uint* event_candidate_num = parameters.dev_module_candidate_num + event_number;
+  uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Read raw event
-  auto const number_of_raw_banks = dev_raw_input_offsets[0];
+  auto const number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
 
-  for (uint raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks;
-       raw_bank_number += blockDim.y) {
+  for (uint raw_bank_number = threadIdx.y; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.y) {
 
     // Create raw bank from MEP layout
-    const auto raw_bank = MEP::raw_bank<VeloRawBank>(dev_raw_input, dev_raw_input_offsets,
-                                                     selected_event_number, raw_bank_number);
+    const auto raw_bank = MEP::raw_bank<VeloRawBank>(
+      parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, selected_event_number, raw_bank_number);
 
-    estimate_raw_bank_size(estimated_input_size, cluster_candidates, dev_velo_candidate_ks,
-                           event_candidate_num, raw_bank_number, raw_bank);
-
+    estimate_raw_bank_size(
+      estimated_input_size, cluster_candidates, dev_velo_candidate_ks, event_candidate_num, raw_bank_number, raw_bank);
   }
 }

@@ -4,14 +4,9 @@
 #include "BinarySearch.cuh"
 #include <tuple>
 
-namespace Configuration {
-  namespace velo_search_by_triplet_t {
-    __constant__ extern float forward_phi_tolerance;
-  }
-} // namespace Configuration
-
 __device__ void track_forwarding(
-  const float* dev_velo_cluster_container,
+  Velo::ConstClusters& velo_cluster_container,
+  const float* hit_phi,
   bool* hit_used,
   const Velo::Module* module_data,
   const uint diff_ttf,
@@ -20,9 +15,13 @@ __device__ void track_forwarding(
   const uint prev_ttf,
   Velo::TrackletHits* tracklets,
   Velo::TrackHits* tracks,
-  const uint number_of_hits,
   uint* dev_atomics_velo,
-  const int ip_shift);
+  uint* dev_number_of_velo_tracks,
+  const float forward_phi_tolerance,
+  const int ttf_modulo_mask,
+  const uint ttf_modulo,
+  const float max_scatter_forwarding,
+  const uint max_skipped_modules);
 
 /**
  * @brief Finds candidates in the specified module.
@@ -34,7 +33,8 @@ __device__ std::tuple<int, int> find_forward_candidates(
   const float ty,
   const float* hit_Phis,
   const Velo::HitBase& h0,
-  const T calculate_hit_phi)
+  const T calculate_hit_phi,
+  const float forward_phi_tolerance)
 {
   const auto dz = module.z - h0.z;
   const auto predx = tx * dz;
@@ -43,23 +43,12 @@ __device__ std::tuple<int, int> find_forward_candidates(
   const auto y_prediction = h0.y + predy;
   const auto track_extrapolation_phi = calculate_hit_phi(x_prediction, y_prediction);
 
-  int first_candidate = -1, last_candidate = -1;
-  first_candidate = binary_search_first_candidate(
-    hit_Phis + module.hitStart,
-    module.hitNums,
-    track_extrapolation_phi,
-    Configuration::velo_search_by_triplet_t::forward_phi_tolerance);
+  const float min_value_phi {track_extrapolation_phi - forward_phi_tolerance};
+  const int first_candidate = binary_search_leftmost(hit_Phis + module.hitStart, module.hitNums, min_value_phi);
 
-  if (first_candidate != -1) {
-    // Find last candidate
-    last_candidate = binary_search_second_candidate(
-      hit_Phis + module.hitStart + first_candidate,
-      module.hitNums - first_candidate,
-      track_extrapolation_phi,
-      Configuration::velo_search_by_triplet_t::forward_phi_tolerance);
-    first_candidate += module.hitStart;
-    last_candidate = first_candidate + last_candidate;
-  }
+  const float max_value_phi {track_extrapolation_phi + forward_phi_tolerance};
+  const int size = binary_search_leftmost(
+    hit_Phis + module.hitStart + first_candidate, module.hitNums - first_candidate, max_value_phi);
 
-  return std::tuple<int, int> {first_candidate, last_candidate};
+  return {module.hitStart + first_candidate, size};
 }

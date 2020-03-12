@@ -9,7 +9,7 @@
 #include <cerrno>
 #include <cstring>
 
-#include "raw_bank.hpp"
+#include "Event/RawBank.h"
 #include "read_mdf.hpp"
 
 namespace {
@@ -66,14 +66,14 @@ int main(int argc, char* argv[])
     }
   }
 
-  unordered_set<BankTypes> types = {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON};
+  unordered_set<BankTypes> types = {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
 
   size_t n_read = 0;
   Allen::buffer_map buffers;
   vector<LHCb::ODIN> odins;
   std::tie(n_read, buffers, odins) = MDF::read_events(10, files, types);
   for (const auto& odin : odins) {
-    cout << odin.run_number << " " << odin.event_number << " " << odin.tck << endl;
+    cout << odin.runNumber() << " " << odin.eventNumber() << " " << odin.triggerConfigurationKey() << endl;
   }
 
   for (auto type : types) {
@@ -95,8 +95,8 @@ int main(int argc, char* argv[])
       const auto& odin = odins[i];
 
       string filename =
-        (output_dir + "/" + bank_name(entry.first) + "/" + to_string(odin.run_number) + "_" +
-         to_string(odin.event_number) + ".bin");
+        (output_dir + "/" + bank_name(entry.first) + "/" + to_string(odin.runNumber()) + "_" +
+         to_string(odin.eventNumber()) + ".bin");
       std::ofstream outfile {filename.c_str(), ios::out | ios::binary};
       outfile.write(buf.data() + offsets[i], offsets[i + 1] - offsets[i]);
       outfile.close();

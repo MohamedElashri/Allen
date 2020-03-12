@@ -20,6 +20,8 @@ namespace Muon {
 
   __device__ void setAtIndex(HitsSoA* hitsSoA, uint index, Hit* hit)
   {
+    assert(index < Constants::max_numhits_per_event);
+    
     hitsSoA->tile[index] = hit->tile;
     hitsSoA->x[index] = hit->x;
     hitsSoA->dx[index] = hit->dx;
@@ -50,6 +52,8 @@ namespace Muon {
     int cluster_size,
     int region)
   {
+    assert(index < Constants::max_numhits_per_event);
+
     hitsSoA->tile[index] = tile;
     hitsSoA->x[index] = x;
     hitsSoA->dx[index] = dx;

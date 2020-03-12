@@ -100,9 +100,9 @@ size_t MEP::allen_offsets(
           auto odin = MDF::decode_odin(odin_version, odin_data);
           // if splitting by run, check all events have same run number
           if (i == event_start) {
-            run_number = odin.run_number;
+            run_number = odin.runNumber();
           }
-          else if (odin.run_number != run_number) {
+          else if (odin.runNumber() != run_number) {
             event_end = i;
 	    break;
           }
@@ -186,13 +186,13 @@ std::tuple<bool, bool, size_t> MEP::mep_offsets(
           auto odin = MDF::decode_odin(odin_version, odin_data);
           // if splitting by run, check all events have same run number
           if (i_event == event_start) {
-            run_number = odin.run_number;
+            run_number = odin.runNumber();
           }
-          else if (split_by_run && odin.run_number != run_number) {
+          else if (split_by_run && odin.runNumber() != run_number) {
             event_end = i_event;
             break;
           }
-          event_ids.emplace_back(odin.run_number, odin.event_number);
+          event_ids.emplace_back(odin.runNumber(), odin.eventNumber());
         }
         fragment_offset += block_header.sizes[i_event];
       }
@@ -277,7 +277,7 @@ bool MEP::transpose_event(
       for (uint16_t i_event = start_event; i_event < end_event; ++i_event) {
         auto odin_data = reinterpret_cast<unsigned int const*>(block_data.data() + source_offsets[i_event]);
         auto odin = MDF::decode_odin(odin_version, odin_data);
-        event_ids.emplace_back(odin.run_number, odin.event_number);
+        event_ids.emplace_back(odin.runNumber(), odin.eventNumber());
       }
     }
 

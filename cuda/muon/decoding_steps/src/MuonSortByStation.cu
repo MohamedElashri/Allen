@@ -1,24 +1,18 @@
 #include "MuonSortByStation.cuh"
 
-__global__ void muon_sort_by_station(
-  uint* dev_storage_tile_id,
-  uint* dev_storage_tdc_value,
-  const uint* dev_atomics_muon,
-  uint* dev_permutation_station,
-  Muon::HitsSoA* muon_hits,
-  uint* dev_station_ocurrences_offset,
-  const uint64_t* dev_muon_compact_hit,
-  Muon::MuonRawToHits* muon_raw_to_hits)
+__global__ void muon_sort_by_station::muon_sort_by_station(muon_sort_by_station::Parameters parameters)
 {
   const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
-  const auto number_of_hits = dev_atomics_muon[number_of_events + event_number];
-  const auto station_ocurrences_offset = dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
-  const auto storage_tile_id = dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
-  const auto storage_tdc_value = dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
-  const auto muon_compact_hit = dev_muon_compact_hit + event_number * Muon::Constants::max_numhits_per_event;
-  auto permutation_station = dev_permutation_station + event_number * Muon::Constants::max_numhits_per_event;
-  auto event_muon_hits = muon_hits + event_number;
+  const auto number_of_hits = parameters.dev_atomics_muon[number_of_events + event_number];
+  const auto station_ocurrences_offset =
+    parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
+  const auto storage_tile_id = parameters.dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
+  const auto storage_tdc_value =
+    parameters.dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
+  const auto muon_compact_hit = parameters.dev_muon_compact_hit + event_number * Muon::Constants::max_numhits_per_event;
+  auto permutation_station = parameters.dev_permutation_station.get() + event_number * Muon::Constants::max_numhits_per_event;
+  auto event_muon_hits = parameters.dev_muon_hits.get() + event_number;
 
   // Populate number of hits per station and offsets
   // TODO: There should be no need to re-populate this
@@ -39,18 +33,9 @@ __global__ void muon_sort_by_station(
 
   __syncthreads();
 
-  __shared__ uint64_t sorted_array[Muon::Constants::max_numhits_per_event];
-
-  // Apply permutation to shared memory buffer
-  for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
-    sorted_array[i] = muon_compact_hit[permutation_station[i]];
-  }
-
-  __syncthreads();
-
   // Do actual decoding
   for (uint i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
-    const uint64_t compact_hit = sorted_array[i];
+    const uint64_t compact_hit = muon_compact_hit[permutation_station[i]];
 
     const uint8_t uncrossed = compact_hit >> 63;
     const uint digitsOneIndex_index = (compact_hit >> 48) & 0x7FFF;
@@ -72,7 +57,8 @@ __global__ void muon_sort_by_station(
       Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex_index]);
       padTile.setY(Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]));
       padTile.setLayout(Muon::MuonLayout(thisGridX, otherGridY_condition));
-      Muon::calcTilePos(muon_raw_to_hits->muonTables, padTile, x, dx, y, dy, z);
+
+      Muon::calcTilePos(parameters.dev_muon_raw_to_hits.get()->muonTables, padTile, x, dx, y, dy, z);
       region = padTile.region();
       id = padTile.id();
       delta_time = storage_tdc_value[digitsOneIndex_index] - storage_tdc_value[digitsTwoIndex];
@@ -81,13 +67,13 @@ __global__ void muon_sort_by_station(
       const auto tile = Muon::MuonTileID(storage_tile_id[digitsOneIndex_index]);
       region = tile.region();
       if (otherGridY_condition == 0) {
-        calcTilePos(muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
+        calcTilePos(parameters.dev_muon_raw_to_hits.get()->muonTables, tile, x, dx, y, dy, z);
       }
       else if (otherGridY_condition == 1) {
-        calcStripXPos(muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
+        calcStripXPos(parameters.dev_muon_raw_to_hits.get()->muonTables, tile, x, dx, y, dy, z);
       }
       else {
-        calcStripYPos(muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
+        calcStripYPos(parameters.dev_muon_raw_to_hits.get()->muonTables, tile, x, dx, y, dy, z);
       }
       id = tile.id();
       delta_time = storage_tdc_value[digitsOneIndex_index];

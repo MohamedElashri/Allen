@@ -37,28 +37,55 @@ else()
 
 endif()
 
-find_package(Boost COMPONENTS serialization iostreams program_options)
+find_package(Boost COMPONENTS serialization iostreams program_options filesystem)
 
-allen_add_library(AllenZMQ src/ZeroMQSvc.cpp src/functions.cpp)
-target_include_directories(AllenZMQ PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(AllenZMQ PUBLIC ${CMAKE_SOURCE_DIR}/main/include)
-target_include_directories(AllenZMQ SYSTEM PUBLIC ${ZMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
-target_link_libraries(AllenZMQ PUBLIC ${ZMQ_LIBRARIES})
+if (GaudiProject_FOUND)
+  find_package(AIDA REQUIRED)
+  find_package(ROOT REQUIRED)
+  add_library(AllenZMQ INTERFACE)
+  allen_add_host_library(ZMQSvc SHARED src/svc.cpp)
+  target_include_directories(ZMQSvc PUBLIC compat include)
+  target_include_directories(ZMQSvc SYSTEM PUBLIC
+    ${ROOT_INCLUDE_DIRS}
+    ${ZMQ_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIR}
+    ${AIDA_INCLUDE_DIRS})
+  target_link_libraries(ZMQSvc PUBLIC GaudiKernel
+    Boost::filesystem
+    ${ZMQ_LIBRARIES}
+    ${ALLEN_ROOT_LIBRARIES})
 
-if (WITH_ROOT AND USE_ROOT)
-target_include_directories(AllenZMQ SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
-endif()
-
-if (ZMQ_BUILTIN)
-  add_dependencies(AllenZMQ BuiltinZMQ-install)
-elseif(GaudiProject_FOUND)
   find_library(SODIUM_LIBRARY NAMES sodium
                HINTS $ENV{libsodium_ROOT_DIR}/lib ${libsodium_ROOT_DIR}/lib)
   if(SODIUM_LIBRARY)
     message(STATUS "Found ${SODIUM_LIBRARY}")
     get_filename_component(SODIUM_LIBRARY_DIR "${SODIUM_LIBRARY}" PATH)
     gaudi_env(PREPEND LD_LIBRARY_PATH "${SODIUM_LIBRARY_DIR}")
-    target_link_libraries(AllenZMQ PUBLIC ${SODIUM_LIBRARY})
+    target_link_libraries(ZMQSvc PUBLIC ${SODIUM_LIBRARY})
+  endif()
+
+  target_link_libraries(AllenZMQ INTERFACE ZMQSvc)
+  if(TARGET ZMQLib)
+    target_link_libraries(AllenZMQ INTERFACE ZMQLib)
+  else()
+    target_link_libraries(AllenZMQ INTERFACE ZMQ)
+  endif()
+else()
+  allen_add_host_library(AllenZMQ src/functions.cpp src/svc.cpp)
+  target_include_directories(AllenZMQ PUBLIC
+    include
+    compat
+    ${CMAKE_SOURCE_DIR}/main/include)
+  target_include_directories(AllenZMQ PUBLIC SYSTEM ${ZMQ_INCLUDE_DIRS} ${Boost_INCLUDE_DIR})
+  target_compile_definitions(AllenZMQ PUBLIC STANDALONE)
+  target_link_libraries(AllenZMQ PUBLIC ${ZMQ_LIBRARIES})
+
+  if (WITH_ROOT AND USE_ROOT)
+    target_include_directories(AllenZMQ SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
+  endif()
+
+  if (ZMQ_BUILTIN)
+    add_dependencies(AllenZMQ BuiltinZMQ-install)
   endif()
 endif()
 
@@ -78,3 +105,5 @@ if (BUILD_TESTS)
   # Simple MDF sender to test MDF receiver
   zmq_program(NAME allen_mdf_sender SRC test/mdf_sender.cpp)
 endif()
+
+include_directories(${CPPGSL_INCLUDE_DIR})

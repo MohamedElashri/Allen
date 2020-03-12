@@ -2,10 +2,8 @@
 #include "FindPermutation.cuh"
 #include <cstdio>
 
-__global__ void ut_find_permutation(
-  uint32_t* dev_ut_hits,
-  uint32_t* dev_ut_hit_offsets,
-  uint* dev_hit_permutations,
+__global__ void ut_find_permutation::ut_find_permutation(
+  ut_find_permutation::Parameters parameters,
   const uint* dev_unique_x_sector_layer_offsets)
 {
   const uint number_of_events = gridDim.x;
@@ -14,8 +12,10 @@ __global__ void ut_find_permutation(
   const uint number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[4];
 
   const UT::HitOffsets ut_hit_offsets {
-    dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  const UT::Hits ut_hits {dev_ut_hits, dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+
+  UT::ConstPreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
+                                               parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
   const uint sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group_number);
   const uint sector_group_number_of_hits = ut_hit_offsets.sector_group_number_of_hits(sector_group_number);
@@ -29,16 +29,18 @@ __global__ void ut_find_permutation(
     assert(sector_group_number_of_hits < UT::Decoding::ut_max_hits_shared_sector_group);
 
     for (uint i = threadIdx.x; i < sector_group_number_of_hits; i += blockDim.x) {
-      s_y_begin[i] = ut_hits.yBegin[sector_group_offset + i];
+      s_y_begin[i] = ut_pre_decoded_hits.sort_key(sector_group_offset + i);
     }
 
     __syncthreads();
 
     // Sort according to the natural order in s_y_begin
-    // Store the permutation found into dev_hit_permutations
+    // Store the permutation found into parameters.dev_ut_hit_permutations
     find_permutation(
-      0, sector_group_offset, sector_group_number_of_hits, dev_hit_permutations, [&](const int a, const int b) -> int {
-        return (s_y_begin[a] > s_y_begin[b]) - (s_y_begin[a] < s_y_begin[b]);
-      });
+      0,
+      sector_group_offset,
+      sector_group_number_of_hits,
+      parameters.dev_ut_hit_permutations,
+      [&](const int a, const int b) -> int { return (s_y_begin[a] > s_y_begin[b]) - (s_y_begin[a] < s_y_begin[b]); });
   }
 }

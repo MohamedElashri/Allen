@@ -7,7 +7,7 @@
 #include <numeric>
 #include <map>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <Timer.h>
 #include <MDFProvider.h>

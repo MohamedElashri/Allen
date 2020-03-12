@@ -1,34 +1,54 @@
 #include "VeloDefinitions.cuh"
-#include "ApplyPermutation.cuh"
-#include "CudaMathConstants.h"
+#include "CalculatePhiAndSort.cuh"
+
+template<typename L, typename R>
+__device__ void apply_permutation(
+  const uint event_hit_start,
+  const uint event_number_of_hits,
+  Velo::ConstClusters& velo_cluster_container,
+  Velo::Clusters& velo_sorted_cluster_container,
+  uint* hit_permutations,
+  const L& lvalue_accessor,
+  const R& const_accessor) {
+  for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    lvalue_accessor(velo_sorted_cluster_container, event_hit_start + i) = const_accessor(velo_cluster_container, hit_index_global);
+  }
+}
 
 /**
  * @brief Calculates phi for each hit
  */
-__device__ void sort_by_phi(
+__device__ void velo_calculate_phi_and_sort::sort_by_phi(
   const uint event_hit_start,
   const uint event_number_of_hits,
-  float* hit_Xs,
-  float* hit_Ys,
-  float* hit_Zs,
-  uint* hit_IDs,
-  int32_t* hit_temp,
+  Velo::ConstClusters& velo_cluster_container,
+  Velo::Clusters& velo_sorted_cluster_container,
   uint* hit_permutations)
 {
-  // Let's work with new pointers
-  // Note: It is important we populate later on in strictly
-  //       the same order, to not lose data
-  float* new_hit_Xs = (float*) hit_temp;
-  float* new_hit_Ys = hit_Xs;
-  float* new_hit_Zs = hit_Ys;
-  uint* new_hit_IDs = (uint*) hit_Zs;
-
   // Apply permutation across all arrays
-  apply_permutation(hit_permutations, event_hit_start, event_number_of_hits, hit_Xs, new_hit_Xs);
-  __syncthreads();
-  apply_permutation(hit_permutations, event_hit_start, event_number_of_hits, hit_Ys, new_hit_Ys);
-  __syncthreads();
-  apply_permutation(hit_permutations, event_hit_start, event_number_of_hits, hit_Zs, new_hit_Zs);
-  __syncthreads();
-  apply_permutation(hit_permutations, event_hit_start, event_number_of_hits, hit_IDs, new_hit_IDs);
+  // TODO: How to do this?
+  // apply_permutation(event_hit_start, event_number_of_hits, velo_cluster_container, velo_sorted_cluster_container, hit_permutations,
+  //   [] (auto container, const uint index) -> uint& { return container.x(index); },
+  //   [] (auto container, const uint index) { return container.x(index); });
+
+  for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
+  }
+
+  for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
+  }
+
+  for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
+  }
+
+  for (uint i = threadIdx.x; i < event_number_of_hits; i += blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_id(event_hit_start + i, velo_cluster_container.id(hit_index_global));
+  }
 }

@@ -21,31 +21,28 @@
 #include "SequenceVisitor.cuh"
 #include "SchedulerMachinery.cuh"
 #include "Scheduler.cuh"
-#include "OutputArguments.cuh"
 #include "CheckerInvoker.h"
-#include "ConfiguredSequence.cuh"
+#include "ConfiguredSequence.h"
 
 class Timer;
 
 struct Stream {
-  using scheduler_t = Scheduler<configured_sequence_t, output_arguments_t>;
-  using argument_manager_t = ArgumentManager<scheduler_t::arguments_tuple_t>;
+  using scheduler_t = Scheduler<configured_sequence_t>;
 
   Stream() = default;
-
+   
   // Dynamic scheduler
   scheduler_t scheduler;
 
   // Stream datatypes
   cudaStream_t cuda_stream;
   cudaEvent_t cuda_generic_event;
-  uint stream_number;
-
+  
   // Launch options
   bool do_print_memory_manager;
 
   // Host buffers
-  HostBuffersManager const* host_buffers_manager;
+  HostBuffersManager* host_buffers_manager;
   HostBuffers* host_buffers {0};
 
   // Start event offset
@@ -54,23 +51,21 @@ struct Stream {
   // Number of input events
   uint number_of_input_events;
 
-  // GPU Memory base pointer
+  // Memory base pointers for host and device
+  char* host_base_pointer;
   char* dev_base_pointer;
 
   // Constants
   Constants constants;
 
-  // Visitors for sequence algorithms
-  SequenceVisitor sequence_visitor;
-
   cudaError_t initialize(
     const bool param_print_memory_usage,
     const uint param_start_event_offset,
     const size_t param_reserve_mb,
-    const uint param_stream_number,
-    const Constants& param_constants,
-    HostBuffersManager const* buffers_manager);
+    const Constants& param_constants);
 
+  void set_host_buffer_manager(HostBuffersManager* buffers_manager);
+  
   std::vector<bool> reconstructed_events() const;
 
   void run_monte_carlo_test(

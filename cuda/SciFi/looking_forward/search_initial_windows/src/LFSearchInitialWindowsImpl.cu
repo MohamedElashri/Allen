@@ -4,10 +4,11 @@
 #include "BinarySearch.cuh"
 
 __device__ void lf_search_initial_windows_impl(
-  const SciFi::Hits& scifi_hits,
-  const SciFi::HitCount& scifi_hit_count,
+  SciFi::ConstHits& scifi_hits,
+  SciFi::ConstHitCount& scifi_hit_count,
   const MiniState& UT_state,
   const LookingForward::Constants* looking_forward_constants,
+  const float* magnet_polarity,
   const float qop,
   const bool side,
   int* initial_windows,
@@ -23,23 +24,30 @@ __device__ void lf_search_initial_windows_impl(
     const auto iZone = iZoneStartingPoint + i;
 
     const auto stateInZone = LookingForward::propagate_state_from_velo_multi_par(
-      UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants);
+                                                                                 UT_state, qop, looking_forward_constants->x_layers[i], looking_forward_constants, magnet_polarity);
     const float xInZone = stateInZone.x;
 
-    const float xTol =
-      LookingForward::initial_window_offset_xtol + LookingForward::initial_window_factor_qop * fabsf(qop);
-    const float xMin = xInZone - xTol - LookingForward::initial_window_factor_assymmetric_opening * signbit(qop);
-    const float xMax =
-      xInZone + xTol + LookingForward::initial_window_factor_assymmetric_opening * (signbit(qop) ^ 0x01);
-
+    const float xTol =  
+      LookingForward::initial_window_offset_xtol + LookingForward::initial_window_factor_qop * fabsf(qop); 
+    float xMin, xMax;
+    if ( *magnet_polarity > 0.f ) { // MU
+      xMin = xInZone - xTol - LookingForward::initial_window_factor_assymmetric_opening * (signbit(qop) ^ 0x01);
+      xMax = xInZone + xTol + LookingForward::initial_window_factor_assymmetric_opening * signbit(qop);
+    }
+    else { // MD
+      xMin = xInZone - xTol - LookingForward::initial_window_factor_assymmetric_opening * signbit(qop);
+      xMax =                                                                                                                                                                                                                     
+        xInZone + xTol + LookingForward::initial_window_factor_assymmetric_opening * (signbit(qop) ^ 0x01);  
+    }
+    
     // Get the hits within the bounds
     const int x_zone_offset_begin = scifi_hit_count.zone_offset(looking_forward_constants->xZones[iZone]);
     const int x_zone_size = scifi_hit_count.zone_number_of_hits(looking_forward_constants->xZones[iZone]);
-    const int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0 + x_zone_offset_begin, x_zone_size, xMin);
+    const int hits_within_bounds_start = binary_search_leftmost(scifi_hits.x0_p(x_zone_offset_begin), x_zone_size, xMin);
     const int hits_within_bounds_xInZone = binary_search_leftmost(
-      scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xInZone);
+      scifi_hits.x0_p(x_zone_offset_begin + hits_within_bounds_start), x_zone_size - hits_within_bounds_start, xInZone);
     const int hits_within_bounds_size = binary_search_leftmost(
-      scifi_hits.x0 + x_zone_offset_begin + hits_within_bounds_start, x_zone_size - hits_within_bounds_start, xMax);
+      scifi_hits.x0_p(x_zone_offset_begin + hits_within_bounds_start), x_zone_size - hits_within_bounds_start, xMax);
 
     // Cap the central windows to a certain size
     const int central_window_begin =
@@ -74,9 +82,9 @@ __device__ void lf_search_initial_windows_impl(
       const int uv_zone_offset_begin = scifi_hit_count.zone_offset(looking_forward_constants->uvZones[iZone]);
       const int uv_zone_size = scifi_hit_count.zone_number_of_hits(looking_forward_constants->uvZones[iZone]);
       const int hits_within_uv_bounds =
-        binary_search_leftmost(scifi_hits.x0 + uv_zone_offset_begin, uv_zone_size, xMinUV);
+        binary_search_leftmost(scifi_hits.x0_p(uv_zone_offset_begin), uv_zone_size, xMinUV);
       const int hits_within_uv_bounds_size = binary_search_leftmost(
-        scifi_hits.x0 + uv_zone_offset_begin + hits_within_uv_bounds, uv_zone_size - hits_within_uv_bounds, xMaxUV);
+        scifi_hits.x0_p(uv_zone_offset_begin + hits_within_uv_bounds), uv_zone_size - hits_within_uv_bounds, xMaxUV);
 
       initial_windows[(i * LookingForward::number_of_elements_initial_window + 2) * number_of_tracks] =
         hits_within_uv_bounds + uv_zone_offset_begin - event_offset;

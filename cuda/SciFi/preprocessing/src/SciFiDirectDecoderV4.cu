@@ -51,12 +51,12 @@ __device__ void direct_decode_raw_bank_v4(
 
       assert(pseudoSize < 9 && "Pseudosize of cluster is > 8. Out of range.");
 
-      hits.x0[hit_index] = x0;
-      hits.z0[hit_index] = z0;
-      hits.channel[hit_index] = ch;
-      hits.m_endPointY[hit_index] = endPointY;
+      hits.x0(hit_index) = x0;
+      hits.z0(hit_index) = z0;
+      hits.channel(hit_index) = ch;
+      hits.endPointY(hit_index) = endPointY;
       assert(cluster_fraction <= 0x1 && plane_code <= 0x1f && pseudoSize <= 0xf && mat <= 0x7ff);
-      hits.assembled_datatype[hit_index] = cluster_fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
+      hits.assembled_datatype(hit_index) = cluster_fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
     }
   }
 }
@@ -72,25 +72,21 @@ __device__ void direct_decode_raw_bank_v4(
  *         and using that information as a relative index, given the raw bank offset.
  *         This kind of decoding is what we call "direct decoding".
  */
-__global__ void scifi_direct_decoder_v4(
-  char* scifi_events,
-  uint* scifi_event_offsets,
-  uint* scifi_hit_count,
-  uint* scifi_hits,
-  const uint* event_list,
-  char* scifi_geometry,
-  const float* dev_inv_clus_res)
+__global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4(
+  scifi_direct_decoder_v4::Parameters parameters,
+  const char* scifi_geometry)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiGeometry geom(scifi_geometry);
-  const auto event = SciFiRawEvent(scifi_events + scifi_event_offsets[selected_event_number]);
+  const auto event =
+    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  SciFi::Hits hits {
-    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  const SciFi::HitCount hit_count {scifi_hit_count, event_number};
+  SciFi::Hits hits {parameters.dev_scifi_hits,
+                    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
 
@@ -113,24 +109,19 @@ __global__ void scifi_direct_decoder_v4(
  *         and using that information as a relative index, given the raw bank offset.
  *         This kind of decoding is what we call "direct decoding".
  */
-__global__ void scifi_direct_decoder_v4_mep(
-  char* scifi_events,
-  uint* scifi_event_offsets,
-  uint* scifi_hit_count,
-  uint* scifi_hits,
-  const uint* event_list,
-  char* scifi_geometry,
-  const float* dev_inv_clus_res)
+__global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4_mep(
+  scifi_direct_decoder_v4::Parameters parameters,
+  const char* scifi_geometry)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
   const SciFiGeometry geom(scifi_geometry);
 
-  SciFi::Hits hits {
-    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  const SciFi::HitCount hit_count {scifi_hit_count, event_number};
+  SciFi::Hits hits {parameters.dev_scifi_hits,
+                    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_consecutive_raw_banks; i += blockDim.x) {
 
@@ -138,8 +129,8 @@ __global__ void scifi_direct_decoder_v4_mep(
     const uint raw_bank_offset = hit_count.mat_group_offset(i);
 
     // Create SciFi raw bank from MEP layout
-    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(scifi_events, scifi_event_offsets,
-                                                      selected_event_number, current_raw_bank);
+    auto const raw_bank = MEP::raw_bank<SciFiRawBank>(
+      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, selected_event_number, current_raw_bank);
 
     direct_decode_raw_bank_v4(geom, raw_bank, i, raw_bank_offset, hits);
   }

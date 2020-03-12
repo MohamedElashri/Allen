@@ -3,30 +3,54 @@
 #include "LookingForwardConstants.cuh"
 #include "LookingForwardTools.cuh"
 #include "SciFiEventModel.cuh"
-#include "Handler.cuh"
-#include "ArgumentsSciFi.cuh"
-#include "ArgumentsUT.cuh"
-#include "ArgumentsVelo.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "UTConsolidated.cuh"
 
-__global__ void lf_least_mean_square_fit(
-  const uint32_t* dev_scifi_hits,
-  const uint32_t* dev_scifi_hit_count,
-  const uint* dev_atomics_ut,
-  SciFi::TrackHits* dev_scifi_tracks,
-  const uint* dev_atomics_scifi,
-  const char* dev_scifi_geometry,
-  const LookingForward::Constants* dev_looking_forward_constants,
-  const float* dev_inv_clus_res,
-  float* dev_scifi_lf_parametrization_x_filter);
+namespace lf_least_mean_square_fit {
+  struct Parameters {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
+    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
+    DEVICE_INPUT(dev_atomics_ut_t, uint) dev_atomics_ut;
+    DEVICE_OUTPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
+    DEVICE_INPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
+    DEVICE_OUTPUT(dev_scifi_lf_parametrization_x_filter_t, float) dev_scifi_lf_parametrization_x_filter;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+  };
 
-ALGORITHM(
-  lf_least_mean_square_fit,
-  lf_least_mean_square_fit_t,
-  ARGUMENTS(
-    dev_scifi_hits,
-    dev_scifi_hit_count,
-    dev_atomics_ut,
-    dev_scifi_lf_x_filtered_tracks,
-    dev_scifi_lf_x_filtered_atomics,
-    dev_scifi_lf_parametrization_x_filter))
+  __global__ void lf_least_mean_square_fit(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
+
+  template<typename T, char... S>
+  struct lf_least_mean_square_fit_t : public DeviceAlgorithm, Parameters {
+    constexpr static auto name = Name<S...>::s;
+    decltype(global_function(lf_least_mean_square_fit)) function {lf_least_mean_square_fit};
+
+    void set_arguments_size(
+      ArgumentRefManager<T>,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
+    {}
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions&,
+      const Constants& constants,
+      HostBuffers&,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t&) const
+    {
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {begin<dev_scifi_hits_t>(arguments),
+                    begin<dev_scifi_hit_count_t>(arguments),
+                    begin<dev_atomics_ut_t>(arguments),
+                    begin<dev_scifi_tracks_t>(arguments),
+                    begin<dev_atomics_scifi_t>(arguments),
+                    begin<dev_scifi_lf_parametrization_x_filter_t>(arguments)},
+        constants.dev_looking_forward_constants);
+    }
+
+  private:
+    Property<block_dim_t> m_block_dim {this};
+  };
+} // namespace lf_least_mean_square_fit

@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cassert>
 
+#include <gsl/gsl>
 #include <eb_header.hpp>
 #include <mdf_header.hpp>
 #include <read_mep.hpp>
@@ -64,7 +65,7 @@ std::tuple<bool, bool, EB::Header, gsl::span<char const>> MEP::read_mep(Allen::I
   buffer.resize(hdr_size + EB::Header::header_size(mep_header->n_blocks));
   mep_buffer = &buffer[0] + hdr_size;
   mep_header = reinterpret_cast<EB::Header*>(mep_buffer);
-  auto data_size = mep_header->mep_size;
+  auto data_size = static_cast<gsl::span<char const>::index_type>(mep_header->mep_size);
 
   buffer.resize(hdr_size + EB::Header::header_size(mep_header->n_blocks) + data_size);
   mdf_header = reinterpret_cast<LHCb::MDFHeader*>(&buffer[0]);
@@ -79,8 +80,6 @@ std::tuple<bool, bool, EB::Header, gsl::span<char const>> MEP::read_mep(Allen::I
     return {false, false, {}, {}};
   }
 
-  return {false,
-          true,
-          {reinterpret_cast<char const*>(mep_buffer)},
-          {buffer.data() + hdr_size, EB::Header::header_size(mep_header->n_blocks) + data_size}};
+  auto total_size = EB::Header::header_size(mep_header->n_blocks) + data_size;
+  return {false, true, {reinterpret_cast<char const*>(mep_buffer)}, {buffer.data() + hdr_size, total_size}};
 }

@@ -1,57 +1,95 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
-#include "Handler.cuh"
-#include "ArgumentsCommon.cuh"
-#include "ArgumentsUT.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "UTEventModel.cuh"
 
-__global__ void ut_decode_raw_banks_in_order(
-  const char* dev_ut_raw_input,
-  const uint32_t* dev_ut_raw_input_offsets,
-  const uint* dev_event_list,
-  const char* ut_boards,
-  const char* ut_geometry,
-  const uint* dev_ut_region_offsets,
-  const uint* dev_unique_x_sector_layer_offsets,
-  const uint32_t* dev_ut_hit_offsets,
-  uint32_t* dev_ut_hits,
-  uint* dev_hit_permutations);
+namespace ut_decode_raw_banks_in_order {
+  struct Parameters {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_accumulated_number_of_ut_hits_t, uint);
+    DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
+    DEVICE_INPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
+    DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
+    DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
+    DEVICE_INPUT(dev_ut_pre_decoded_hits_t, char) dev_ut_pre_decoded_hits;
+    DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;
+    DEVICE_INPUT(dev_ut_hit_permutations_t, uint) dev_ut_hit_permutations;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 1, 1});
+  };
 
-ALGORITHM(
-  ut_decode_raw_banks_in_order,
-  ut_decode_raw_banks_in_order_allen_t,
-  ARGUMENTS(
-    dev_ut_raw_input,
-    dev_ut_raw_input_offsets,
-    dev_ut_hits,
-    dev_ut_hit_offsets,
-    dev_ut_hit_permutations,
-    dev_event_list))
+  __global__ void ut_decode_raw_banks_in_order(
+    Parameters,
+    const char* ut_boards,
+    const char* ut_geometry,
+    const uint* dev_ut_region_offsets,
+    const uint* dev_unique_x_sector_layer_offsets);
 
-__global__ void ut_decode_raw_banks_in_order_mep(
-  const char* dev_ut_raw_input,
-  const uint32_t* dev_ut_raw_input_offsets,
-  const uint* dev_event_list,
-  const char* ut_boards,
-  const char* ut_geometry,
-  const uint* dev_ut_region_offsets,
-  const uint* dev_unique_x_sector_layer_offsets,
-  const uint32_t* dev_ut_hit_offsets,
-  uint32_t* dev_ut_hits,
-  uint* dev_hit_permutations);
+  __global__ void ut_decode_raw_banks_in_order_mep(
+    Parameters,
+    const char* ut_boards,
+    const char* ut_geometry,
+    const uint* dev_ut_region_offsets,
+    const uint* dev_unique_x_sector_layer_offsets);
 
-ALGORITHM(
-  ut_decode_raw_banks_in_order_mep,
-  ut_decode_raw_banks_in_order_mep_t,
-  ARGUMENTS(
-    dev_ut_raw_input,
-    dev_ut_raw_input_offsets,
-    dev_ut_hits,
-    dev_ut_hit_offsets,
-    dev_ut_hit_permutations,
-    dev_event_list))
+  template<typename T, char... S>
+  struct ut_decode_raw_banks_in_order_t : public DeviceAlgorithm, Parameters {
+    constexpr static auto name = Name<S...>::s;
+    decltype(global_function(ut_decode_raw_banks_in_order)) function {ut_decode_raw_banks_in_order};
+    decltype(global_function(ut_decode_raw_banks_in_order_mep)) function_mep {ut_decode_raw_banks_in_order_mep};
 
-XOR_ALGORITHM(ut_decode_raw_banks_in_order_mep_t,
-              ut_decode_raw_banks_in_order_allen_t,
-              ut_decode_raw_banks_in_order_t)
+    void set_arguments_size(
+      ArgumentRefManager<T> arguments,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
+    {
+      set_size<dev_ut_hits_t>(
+        arguments,
+        value<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Hits::element_size);
+    }
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers&,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t&) const
+    {
+      const auto parameters = Parameters {begin<dev_ut_raw_input_t>(arguments),
+                                          begin<dev_ut_raw_input_offsets_t>(arguments),
+                                          begin<dev_event_list_t>(arguments),
+                                          begin<dev_ut_hit_offsets_t>(arguments),
+                                          begin<dev_ut_pre_decoded_hits_t>(arguments),
+                                          begin<dev_ut_hits_t>(arguments),
+                                          begin<dev_ut_hit_permutations_t>(arguments)};
+
+      if (runtime_options.mep_layout) {
+        function_mep(
+          dim3(value<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+          property<block_dim_t>(),
+          cuda_stream)(
+          parameters,
+          constants.dev_ut_boards.data(),
+          constants.dev_ut_geometry.data(),
+          constants.dev_ut_region_offsets.data(),
+          constants.dev_unique_x_sector_layer_offsets.data());
+      }
+      else {
+        function(
+          dim3(value<host_number_of_selected_events_t>(arguments), UT::Constants::n_layers),
+          property<block_dim_t>(),
+          cuda_stream)(
+          parameters,
+          constants.dev_ut_boards.data(),
+          constants.dev_ut_geometry.data(),
+          constants.dev_ut_region_offsets.data(),
+          constants.dev_unique_x_sector_layer_offsets.data());
+      }
+    }
+
+  private:
+    Property<block_dim_t> m_block_dim {this};
+  };
+} // namespace ut_decode_raw_banks_in_order

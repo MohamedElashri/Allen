@@ -13,15 +13,18 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/event_model/SciFi/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/SciFi/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
-
+include_directories(${CMAKE_SOURCE_DIR}/cuda/raw_banks/include)
+include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
 include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
 
-file(GLOB selection_checker_sources "src/*cpp")
+file(GLOB selection_checker_sources "src/*.cpp")
 
 add_library(SelChecking STATIC
   ${selection_checker_sources}
 )
 set_target_properties(SelChecking PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(SelChecking PUBLIC ${CPPGSL_INCLUDE_DIR})
 
 if(USE_ROOT AND ROOT_FOUND)
   target_compile_definitions(SelChecking PRIVATE ${ALLEN_ROOT_DEFINITIONS})

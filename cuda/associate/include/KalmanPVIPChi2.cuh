@@ -5,42 +5,74 @@
 #include "PV_Definitions.cuh"
 #include "AssociateConsolidated.cuh"
 #include "Common.h"
-#include "Handler.cuh"
-#include "ArgumentsCommon.cuh"
-#include "ArgumentsVelo.cuh"
-#include "ArgumentsPV.cuh"
-#include "ArgumentsSciFi.cuh"
-#include "ArgumentsKalmanFilter.cuh"
-#include "ArgumentsSelections.cuh"
-#include "ArgumentsMuon.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "ParKalmanDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "States.cuh"
 
-__global__ void kalman_pv_ipchi2(
-  ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  uint* dev_n_scifi_tracks,
-  uint* dev_scifi_track_hit_number,
-  float* dev_scifi_qop,
-  MiniState* dev_scifi_states,
-  uint* dev_ut_indices,
-  PV::Vertex* dev_multi_fit_vertices,
-  uint* dev_number_of_multi_fit_vertices,
-  char* dev_kalman_pv_ipchi2,
-  const bool* dev_is_muon);
+namespace kalman_pv_ipchi2 {
+  struct Parameters {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
+    DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_scifi_track_hit_number, uint) dev_scifi_track_hit_number;
+    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
+    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
+    DEVICE_INPUT(dev_scifi_track_ut_indices_t, uint) dev_scifi_track_ut_indices;
+    DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
+    DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
+    DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
+    DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
+  };
 
-ALGORITHM(
-  kalman_pv_ipchi2,
-  kalman_pv_ipchi2_t,
-  ARGUMENTS(
-    dev_kf_tracks,
-    dev_atomics_scifi,
-    dev_scifi_track_hit_number,
-    dev_scifi_track_hits,
-    dev_scifi_qop,
-    dev_scifi_states,
-    dev_scifi_track_ut_indices,
-    dev_multi_fit_vertices,
-    dev_number_of_multi_fit_vertices,
-    dev_kalman_pv_ipchi2,
-    dev_is_muon))
+  __global__ void kalman_pv_ipchi2(Parameters);
+
+  template<typename T, char... S>
+  struct kalman_pv_ipchi2_t : public DeviceAlgorithm, Parameters {
+    constexpr static auto name = Name<S...>::s;
+    decltype(global_function(kalman_pv_ipchi2)) function {kalman_pv_ipchi2};
+
+    void set_arguments_size(
+      ArgumentRefManager<T> arguments,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const
+    {
+      auto n_scifi_tracks = value<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+      set_size<dev_kalman_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(n_scifi_tracks));
+    }
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions&,
+      const Constants&,
+      HostBuffers& host_buffers,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t&) const
+    {
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        Parameters {begin<dev_kf_tracks_t>(arguments),
+                    begin<dev_offsets_forward_tracks_t>(arguments),
+                    begin<dev_offsets_scifi_track_hit_number>(arguments),
+                    begin<dev_scifi_qop_t>(arguments),
+                    begin<dev_scifi_states_t>(arguments),
+                    begin<dev_scifi_track_ut_indices_t>(arguments),
+                    begin<dev_multi_fit_vertices_t>(arguments),
+                    begin<dev_number_of_multi_fit_vertices_t>(arguments),
+                    begin<dev_kalman_pv_ipchi2_t>(arguments),
+                    begin<dev_is_muon_t>(arguments)});
+
+      cudaCheck(cudaMemcpyAsync(
+        host_buffers.host_kf_tracks,
+        begin<dev_kf_tracks_t>(arguments),
+        size<dev_kf_tracks_t>(arguments),
+        cudaMemcpyDeviceToHost,
+        cuda_stream));
+    }
+    
+  private:
+    Property<block_dim_t> m_block_dim {this};
+  };
+} // namespace kalman_pv_ipchi2

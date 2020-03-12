@@ -1,9 +1,9 @@
-#include "../include/VeloKalmanFilter.cuh"
+#include "VeloKalmanFilter.cuh"
 
 /**
  * @brief Helper function to filter one hit
  */
-__device__ void velo_kalman_filter_step(
+__device__ void velo_kalman_filter::velo_kalman_filter_step(
   const float z,
   const float zhit,
   const float xhit,
@@ -40,29 +40,28 @@ __device__ void velo_kalman_filter_step(
   // const float chi2 = r * r * R;
 }
 
-__global__ void velo_kalman_fit(
-  uint* dev_atomics_velo,
-  uint* dev_velo_track_hit_number,
-  char* dev_velo_track_hits,
-  char* dev_velo_states,
-  char* dev_velo_kalman_beamline_states)
+__global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
   // Consolidated datatypes
-  const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_velo, dev_velo_track_hit_number, event_number, number_of_events};
-  Velo::Consolidated::States velo_states {dev_velo_states, velo_tracks.total_number_of_tracks};
-  Velo::Consolidated::KalmanStates kalmanvelo_states {dev_velo_kalman_beamline_states,
-                                                      velo_tracks.total_number_of_tracks};
+  const Velo::Consolidated::Tracks velo_tracks {parameters.dev_offsets_all_velo_tracks,
+                                                parameters.dev_offsets_velo_track_hit_number,
+                                                event_number,
+                                                number_of_events};
+
+  Velo::Consolidated::ConstStates velo_states {parameters.dev_velo_states, velo_tracks.total_number_of_tracks()};
+
+  Velo::Consolidated::KalmanStates kalmanvelo_states {parameters.dev_velo_kalman_beamline_states,
+                                                      velo_tracks.total_number_of_tracks()};
 
   const uint number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
   const uint event_tracks_offset = velo_tracks.tracks_offset(event_number);
 
   for (uint i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
 
-    Velo::Consolidated::Hits consolidated_hits = velo_tracks.get_hits(dev_velo_track_hits, i);
+    Velo::Consolidated::ConstHits consolidated_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits.get(), i);
     const uint n_hits = velo_tracks.number_of_hits(i);
 
     MiniState stateAtBeamline = velo_states.getMiniState(event_tracks_offset + i);

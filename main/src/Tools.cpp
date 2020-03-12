@@ -96,7 +96,7 @@ void check_muon_events(const Muon::HitsSoA* muon_station_hits, const int n_outpu
       n_hits_per_event += n_hits_per_station;
       debug_cout << "checks on station " << i_station << ", with " << n_hits_per_station << " hits" << std::endl;
       for (int i_hit = 0; i_hit < n_output_hits_per_event; ++i_hit) {
-        if (logger::ll.verbosityLevel >= logger::debug) {
+        if (logger::verbosity() >= logger::debug) {
           debug_cout << "\t at hit " << i_hit << ", "
                      << "tile = " << muon_station_hits[i_event].tile[station_offset + i_hit] << ", "
                      << "x = " << muon_station_hits[i_event].x[station_offset + i_hit] << ", "

@@ -3,6 +3,9 @@
 #include <CudaCommon.h>
 #include <Common.h>
 #include <Consumers.h>
+#include "MuonDefinitions.cuh"
+#include "MuonGeometry.cuh"
+#include "MuonTables.cuh"
 
 namespace {
   using std::string;
