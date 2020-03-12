@@ -57,4 +57,4 @@ namespace TrackMVA {
 The name of the namespace is given by the line name. This line inherits from `OneTrackLine`.
 The actual selection is coded in the `function`.
 
-Instructions for how to schedule a line to run in the sequence are given [here](https://gitlab.cern.ch/lhcb/Allen/edit/dovombru_update_documentation/configuration/readme.md).
+Instructions for how to schedule a line to run in the sequence are given [here](../../configuration/readme.md).
