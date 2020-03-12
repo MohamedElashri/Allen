@@ -19,10 +19,6 @@ include_directories(${CPPGSL_INCLUDE_DIR})
 
 file(GLOB kalman_ParKalman "ParKalman/src/*cu")
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  set_source_files_properties(${kalman_ParKalman} PROPERTIES LANGUAGE CXX)
-endif()
-
 allen_add_device_library(Kalman STATIC
   ${kalman_ParKalman}
 )

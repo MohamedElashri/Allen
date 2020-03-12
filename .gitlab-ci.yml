@@ -299,10 +299,10 @@ test_physics_efficiency:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
-    - t4:CUDA:DefaultSequence:run_physics_efficiency
+    - rtx2080ti:CUDA:DefaultSequence:run_physics_efficiency
     - x862630v4:CPU:DefaultSequence:run_physics_efficiency
   tags:
-    - rtx6000 # Note: colordiff must be installed
+    - x86 # Note: colordiff must be installed
   allow_failure: true
 
 # run_built_tests:
@@ -389,10 +389,10 @@ CPU:DefaultSequence:RelWithDebInfo::build_x86_clang:
 
 # Run on all platforms
 # Performance runs
-rtx2080tifan:CUDA:DefaultSequence:run_throughput:
+rtx2080ti:CUDA:DefaultSequence:run_throughput:
   <<: *run_throughput_job_def
   tags:
-    - rtx2080tifan
+    - rtx2080ti
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
@@ -461,10 +461,10 @@ x862630v4:CPU:DefaultSequence:run_throughput_cpu:
 
 # Physics runs
 
-t4:CUDA:DefaultSequence:run_physics_efficiency:
+rtx2080ti:CUDA:DefaultSequence:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
-    - t4
+    - rtx2080ti
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
@@ -492,19 +492,19 @@ x86:CPU:DefaultSequence:run_physics_efficiency_debug_root:
 # Publish
 
 # Plain results to mattermost
-# rtx2080tifan:DefaultSequence:publish_algo_breakdown_plot:
+# rtx2080ti:DefaultSequence:publish_algo_breakdown_plot:
 #   <<: *publish_algo_breakdown_plot_def
 #   tags:
 #     - gpu
 #   dependencies:
-#     - rtx2080tifan:CUDA:DefaultSequence:run_throughput
+#     - rtx2080ti:CUDA:DefaultSequence:run_throughput
 
-throughput:DefaultSequence:rtx2080tifan:publish_throughput:
+throughput:DefaultSequence:rtx2080ti:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - gpu
   dependencies:
-    - rtx2080tifan:CUDA:DefaultSequence:run_throughput
+    - rtx2080ti:CUDA:DefaultSequence:run_throughput
     - rtx6000:CUDA:DefaultSequence:run_throughput
     - v100:CUDA:DefaultSequence:run_throughput
     - t4:CUDA:DefaultSequence:run_throughput

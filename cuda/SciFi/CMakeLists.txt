@@ -43,21 +43,6 @@ include_directories(looking_forward/calculate_parametrization/include)
 include_directories(consolidate/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  foreach(source_file ${scifi_common} ${scifi_preprocessing}
-    ${scifi_lf_common} ${scifi_lf_calculate_first_layer_window}
-    ${scifi_lf_calculate_second_layer_window} ${scifi_lf_form_seeds_from_candidates}
-    ${scifi_lf_calculate_candidate_extrapolation_window} ${scifi_lf_promote_candidates}
-    ${scifi_lf_calculate_track_extrapolation_window} ${scifi_lf_extend_tracks}
-    ${scifi_lf_search_initial_windows} ${scifi_lf_collect_candidates}
-    ${scifi_lf_extend_tracks_x} ${scifi_lf_triplet_seeding}
-    ${scifi_lf_triplet_keep_best} ${scifi_lf_extend_tracks_uv} ${scifi_lf_quality_filters}
-    ${scifi_consolidate} ${scifi_lf_calculate_parametrization}
-    ${scifi_lf_fit})
-    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
-  endforeach(source_file)
-endif()
-
 allen_add_device_library(SciFi STATIC
   ${scifi_common}
   ${scifi_preprocessing}

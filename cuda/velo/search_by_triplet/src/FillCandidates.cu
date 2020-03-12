@@ -17,7 +17,7 @@
  *        * size of window
  */
 __device__ std::tuple<int, int> candidate_binary_search(
-  const half_t* hit_Phis,
+  const float* hit_Phis,
   const int module_hit_start,
   const int module_number_of_hits,
   const float h1_phi,
@@ -25,7 +25,7 @@ __device__ std::tuple<int, int> candidate_binary_search(
 {
   // Do a binary search for the first candidate
   const auto first_candidate =
-    binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, half_t(h1_phi - phi_window));
+    binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, h1_phi - phi_window);
 
   if (
     first_candidate == module_number_of_hits ||
@@ -37,7 +37,7 @@ __device__ std::tuple<int, int> candidate_binary_search(
     const auto number_of_candidates = binary_search_leftmost(
       hit_Phis + module_hit_start + first_candidate,
       module_number_of_hits - first_candidate,
-      half_t(h1_phi + phi_window));
+      h1_phi + phi_window);
     return {first_candidate, number_of_candidates};
   }
 }
@@ -47,7 +47,7 @@ __device__ std::tuple<int, int> candidate_binary_search(
  *        left and right wrt the h1 phi.
  */
 __device__ std::tuple<int, int> candidate_capped_search(
-  const half_t* hit_Phis,
+  const float* hit_Phis,
   const int module_hit_start,
   const int module_number_of_hits,
   const float h1_phi,
@@ -60,7 +60,7 @@ __device__ std::tuple<int, int> candidate_capped_search(
   if (module_number_of_hits > 0) {
     // Do a binary search for h0 candidates
     const auto candidate_position =
-      binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, half_t(h1_phi));
+      binary_search_leftmost(hit_Phis + module_hit_start, module_number_of_hits, h1_phi);
 
     if (
       candidate_position<module_number_of_hits&& static_cast<float>(hit_Phis[module_hit_start + candidate_position])>(
@@ -102,7 +102,7 @@ __device__ void fill_candidates_impl(
   const uint* module_hitStarts,
   const uint* module_hitNums,
   Velo::ConstClusters& velo_cluster_container,
-  const half_t* hit_Phis,
+  const float* hit_Phis,
   const uint hit_offset,
   const float phi_extrapolation_base,
   const float phi_extrapolation_coef)

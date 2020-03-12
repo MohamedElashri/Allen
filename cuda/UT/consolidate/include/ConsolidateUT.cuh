@@ -40,8 +40,7 @@ namespace ut_consolidate_tracks {
     {
       set_size<dev_ut_track_hits_t>(
         arguments,
-        value<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Consolidated::hits_number_of_arrays *
-          sizeof(uint32_t));
+        value<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Consolidated::Hits::element_size);
       set_size<dev_ut_qop_t>(arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
       set_size<dev_ut_track_velo_indices_t>(arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));
       set_size<dev_ut_x_t>(arguments, value<host_number_of_reconstructed_ut_tracks_t>(arguments));

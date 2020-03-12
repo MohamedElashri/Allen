@@ -25,14 +25,6 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  foreach(source_file ${velo_common} ${velo_clustering_sources} ${velo_prefix_sum}
-    ${velo_phi_and_sort} ${velo_search_by_triplet}
-    ${velo_simplified_kalman_filter} ${velo_consolidate_tracks})
-    set_source_files_properties(${source_file} PROPERTIES LANGUAGE CXX)
-  endforeach(source_file)
-endif()
-
 allen_add_device_library(VeloCommon STATIC
   ${velo_common}
 )

@@ -103,19 +103,16 @@ namespace SciFi {
           hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
       }
 
-      __host__ std::vector<uint32_t> get_lhcbids_for_track(
-        char* hits_base_pointer,
+      __host__ std::vector<uint> get_lhcbids_for_track(
+        const char* hits_base_pointer,
         const uint track_number) const
       {
-        uint32_t* channel = reinterpret_cast<uint32_t*>(hits_base_pointer + sizeof(float) * 3 * total_number_of_hits());
-        channel += track_offset(track_number);
-        const uint n_hits = number_of_hits(track_number);
-        std::vector<uint32_t> lhcbids;
-        lhcbids.reserve(n_hits);
-        for (uint i_hit = 0; i_hit < n_hits; i_hit++) {
-          lhcbids.push_back((10u << 28) + channel[i_hit]);
+        std::vector<uint> ids;
+        const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        for (uint i = 0; i < number_of_hits(track_number); ++i) {
+          ids.push_back(hits.id(i));
         }
-        return lhcbids;
+        return ids;
       }
     }; // namespace Consolidated
 

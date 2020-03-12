@@ -21,12 +21,8 @@ include_directories(${CPPGSL_INCLUDE_DIR})
 
 file(GLOB raw_banks_src "src/*cu")
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  set_source_files_properties(${raw_banks_src} PROPERTIES LANGUAGE CXX)
-endif()
-
 allen_add_device_library(RawBanks STATIC
   ${raw_banks_src}
-  )
+)
 
 set_property(TARGET RawBanks PROPERTY CUDA_SEPARABLE_COMPILATION ON)

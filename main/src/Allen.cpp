@@ -52,6 +52,7 @@
 #include "AllenThreads.h"
 #include "Allen.h"
 #include "RegisterConsumers.h"
+#include "CpuID.h"
 #include <tuple>
 
 namespace {
@@ -275,6 +276,9 @@ extern "C" int allen(
     error_cout << "No folder for " << missing_folder << " specified\n";
     return -1;
   }
+
+  // Generate CPU ID object
+  cpu_id::reset_cpuid();
 
   // Set verbosity level
   std::cout << std::fixed << std::setprecision(6);
