@@ -1,4 +1,4 @@
-Configuration
+Configuring the sequence of algorithms
 ===============
 
 `Allen` centers around the idea of running a __sequence of algorithms__ on input events. This sequence is predefined and will always be executed in the same order.
@@ -26,6 +26,37 @@ Generate a configuration from within the `generator` directory with python3:
 * Generate your own custom sequence along the same principles!
 
 Enjoy!
+
+Configuring the HLT1 lines
+---------------------------
+
+To add a specific line to the sequence, 
+edit the file `generator/HLT1Sequence.py`. 
+
+All available lines are found in `Allen/cuda/selections/lines`, with one header file for every line. 
+Adding a line is as simple as invoking the instance and adding it to the list of lines in the sequence. 
+For example for the Ds2KKPi line:
+
+```cclike=
+ D2KK_line = D2KK_t()
+
+    hlt1_sequence = Sequence(
+        velo_pv_ip, kalman_velo_only,
+        kalman_pv_ipchi2, filter_tracks,
+        prefix_sum_secondary_vertices, fit_secondary_vertices,
+        run_hlt1, run_postscale, prepare_decisions, prepare_raw_banks,
+        prefix_sum_sel_reps, package_sel_reports, ErrorEvent_line,
+        PassThrough_line, NoBeams_line, BeamOne_line, BeamTwo_line,
+        BothBeams_line, ODINNoBias_line, ODINLumi_line,
+        GECPassthrough_line, VeloMicroBias_line, TrackMVA_line,
+        TrackMuonMVA_line, SingleHighPtMuon_line, LowPtMuon_line,
+        TwoTrackMVA_line, DiMuonHighMass_line, DiMuonLowMass_line,
+        LowPtDiMuon_line, DiMuonSoft_line, D2KPi_line, D2PiPi_line,
+        D2KK_line)
+```
+
+If you would like write a new line, follow the instructions [here](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_update_documentation/cuda/selections/readme.md).
+
 
 ### To do: add the allocation of host memory to a readme
 
