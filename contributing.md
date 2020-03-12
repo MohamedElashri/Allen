@@ -194,6 +194,23 @@ In the call to `function` the first two arguments are the number of blocks per g
 of threads per block (`property<block_dim_t>()`). The struct `Parameters` contains the pointers to all `DEVICE_INPUT` and `DEVICE_OUTPUT` which were defined in the `Parameters` struct above, as well as the `PROPERTY`s.
 Finally, the properties belonging to the algorithm are defined as private members of the `saxpy_t` struct.
 
+If a new variable is required in host memory, allocate its memory like so:
+Go to `stream/sequence/include/HostBuffers.cuh` and add the new host memory pointer:
+
+```clike
+  // Pinned host datatypes
+  uint* host_velo_tracks_atomics;
+  uint* host_velo_track_hit_number;
+```
+
+Reserve that host memory in `stream/sequence/src/HostBuffers.cu`:
+
+```clike
+  cudaCheck(cudaMallocHost((void**)&host_velo_tracks_atomics, (2 * max_number_of_events + 1) * sizeof(int)));
+  cudaCheck(cudaMallocHost((void**)&host_velo_track_hit_number, max_number_of_events * VeloTracking::max_tracks * sizeof(uint)));
+ 
+```
+
 
 Next, we add the [source file](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_update_documentation/cuda/example/src/SAXPY_example.cu):
 
