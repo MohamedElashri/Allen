@@ -25,7 +25,57 @@ Generate a configuration from within the `generator` directory with python3:
   * set the "JSON" property of the RunAllen algorithm to the json file you just generated.
 * Generate your own custom sequence along the same principles!
 
-Enjoy!
+
+To understand the configuration in more detail, we let's take a look at how to configure
+the same algorithm with different properties. As example we take the UT tracking,
+with either loose or restricted cuts. The full code can be found in `generator/UTSequence.py`.
+
+```clike=
+ ut_search_windows = None
+    compass_ut = None
+    if restricted:
+        ut_search_windows = ut_search_windows_t(
+            min_momentum="1500.0", min_pt="300.0")
+        compass_ut = compass_ut_t(
+            max_considered_before_found="6",
+            min_momentum_final="2500.0",
+            min_pt_final="425.0")
+    else:
+        ut_search_windows = ut_search_windows_t(
+            min_momentum="3000.0", min_pt="0.0")
+        compass_ut = compass_ut_t(
+            max_considered_before_found="16",
+            min_momentum_final="0.0",
+            min_pt_final="0.0")
+```
+
+In this case, the search windows for the pattern recognition step are set differently,
+and the settings for the UT track reconstruction (compass_ut) also vary,
+depending on whether `restricted` is true or false.
+
+Alternatively, one can call the same algorithm twice in the same sequence, with different configurations.
+
+```clike=
+   ut_search_windows_restricted = ut_search_windows_t(
+            min_momentum="1500.0", min_pt="300.0",
+            dev_ut_windows_layers=dev_ut_windows_layers_restricted)
+            
+   ut_search_windows_loose = ut_search_windows_t(
+            min_momentum="3000.0", min_pt="0.0",
+            dev_ut_windows_layers=dev_ut_windows_layers_loose)
+            
+    ...
+    
+    ut_sequence = Sequence(
+        ut_calculate_number_of_hits, prefix_sum_ut_hits, ut_pre_decode,
+        ut_find_permutation, ut_decode_raw_banks_in_order,
+        ut_select_velo_tracks, ut_search_windows_restricted,
+        ut_search_windows_loose)
+    
+```
+Then, one can add other algorithms afterwards, for example one taking as input `dev_ut_windows_layers_restricted`,
+the other taking `dev_ut_windows_layers_loose`.
+
 
 Configuring the HLT1 lines
 ---------------------------
