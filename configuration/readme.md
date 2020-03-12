@@ -153,7 +153,7 @@ For example for the Ds2KKPi line:
         D2KK_line)
 ```
 
-If you would like write a new line, follow the instructions [here](https://gitlab.cern.ch/lhcb/Allen/blob/dovombru_update_documentation/cuda/selections/readme.md).
+If you would like write a new line, follow the instructions [here](../cuda/selections/readme.md).
 
 
 ### To do: add the allocation of host memory to a readme
