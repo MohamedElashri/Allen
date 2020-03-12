@@ -51,8 +51,8 @@ hlt1_noutcut_sequence = compose_sequences(VELO_sequence(), PV_sequence(),
                                           Forward_sequence(), Muon_sequence(),
                                           HLT1_sequence())
 hlt1_noutcut_sequence.generate(
-    output_filename="generated/HLT1_NoUTCut.h",
-    json_configuration_filename="generated/HLT1_NoUTCut.json")
+    output_filename="generated/HLT1NoUTCut.h",
+    json_configuration_filename="generated/HLT1NoUTCut.json")
 
 hlt1_scifiv6_sequence = compose_sequences(
     VELO_sequence(), PV_sequence(), UT_sequence(),
