@@ -125,33 +125,5 @@ Then, one can add other algorithms afterwards, for example one taking as input `
 the other taking `dev_ut_windows_layers_loose`.
 
 
-Configuring the HLT1 lines
----------------------------
-
-To add a specific line to the sequence, 
-edit the file `generator/HLT1Sequence.py`. 
-
-All available lines are found in `Allen/cuda/selections/lines`, with one header file for every line. 
-Adding a line is as simple as invoking the instance and adding it to the list of lines in the sequence. 
-For example for the Ds2KKPi line:
-
-```cclike=
- D2KK_line = D2KK_t()
-
-    hlt1_sequence = Sequence(
-        velo_pv_ip, kalman_velo_only,
-        kalman_pv_ipchi2, filter_tracks,
-        prefix_sum_secondary_vertices, fit_secondary_vertices,
-        run_hlt1, run_postscale, prepare_decisions, prepare_raw_banks,
-        prefix_sum_sel_reps, package_sel_reports, ErrorEvent_line,
-        PassThrough_line, NoBeams_line, BeamOne_line, BeamTwo_line,
-        BothBeams_line, ODINNoBias_line, ODINLumi_line,
-        GECPassthrough_line, VeloMicroBias_line, TrackMVA_line,
-        TrackMuonMVA_line, SingleHighPtMuon_line, LowPtMuon_line,
-        TwoTrackMVA_line, DiMuonHighMass_line, DiMuonLowMass_line,
-        LowPtDiMuon_line, DiMuonSoft_line, D2KPi_line, D2PiPi_line,
-        D2KK_line)
-```
-
-If you would like write a new line, follow the instructions [here](../cuda/selections/readme.md).
+To find out how to write a trigger line in Allen and how to add it to the sequence, follow the instructions [here](../selections.md).
 
