@@ -537,11 +537,7 @@ private:
   // Packing factor can be done dynamically if needed
   size_t n_bytes = std::lround(m_packing_factor * average_event_size * bank_size_fudge_factor * kB);
   for (size_t i = 0; i < m_config.n_buffers; ++i) {
-    auto i_rec = i % m_config.n_receivers();
-    auto const& numa_obj = numa_objs[i_rec];
     char* contents = nullptr;
-
-    info_cout << "Allocating buffer " << i << " in NUMA domain " << numa_obj->os_index << "\n";
     MPI_Alloc_mem(n_bytes, MPI_INFO_NULL, &contents);
 
     // Only bind explicitly if there are multiple receivers,

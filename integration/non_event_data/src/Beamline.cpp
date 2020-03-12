@@ -19,7 +19,7 @@ void Consumers::Beamline::consume(std::vector<char> const& data)
     cudaCheck(cudaMalloc((void**) &p, data.size()));
     m_dev_beamline.get() = {p, static_cast<gsl::span<char>::index_type>(data.size() / sizeof(float))};
   }
-  else if (data.size() != static_cast<size_t>(m_dev_beamline.get().size())) {
+  else if (data.size() != static_cast<size_t>(sizeof(float) * m_dev_beamline.get().size())) {
     throw StrException {string {"sizes don't match: "} + to_string(m_dev_beamline.get().size()) + " " +
                         to_string(data.size() / sizeof(float))};
   }
