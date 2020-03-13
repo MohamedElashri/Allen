@@ -46,7 +46,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG=${OVERRIDE_CUDA_ARCH_FLAG} ${ADDITIONAL_OPTIONS} ..
+    - cmake -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
     expire_in: 2 hrs
@@ -77,7 +77,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DBUILD_TESTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG=${OVERRIDE_CUDA_ARCH_FLAG} ${ADDITIONAL_OPTIONS} ..
+    - cmake -DBUILD_TESTS=ON -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
     expire_in: 2 hrs
@@ -107,7 +107,7 @@ check-formatting:
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-clang8-opt
     - mkdir build_${TARGET}
     - cd build_${TARGET}
-    - cmake -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG=${OVERRIDE_CUDA_ARCH_FLAG} ${ADDITIONAL_OPTIONS} ..
+    - cmake -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCE=${SEQUENCE} -DCPU_ARCH=ivybridge -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${ADDITIONAL_OPTIONS} ..
     - make -j
   artifacts:
     expire_in: 2 hrs
@@ -442,7 +442,7 @@ gtx1080ti:CUDA:HLT1NoUTCut:run_throughput:
     - gtx1080ti
   dependencies:
     - CUDA:HLT1NoUTCut:RelWithDebInfo::build
-    
+
 x862630v4:CPU:HLT1NoUTCut:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
   tags:
@@ -471,7 +471,7 @@ x862630v4:CPU:HLT1NoUTCut:run_physics_efficiency:
 rtx2080ti:CUDA:HLT1NoUTCut:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
-    - cuda
+    - rtx2080ti
   dependencies:
     - CUDA:HLT1NoUTCut:Debug:-DUSE_ROOT=ON:build
 
