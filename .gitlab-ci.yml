@@ -41,7 +41,7 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
-    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
+    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
@@ -72,7 +72,7 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
-    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
+    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
@@ -103,7 +103,7 @@ check-formatting:
     - SEQUENCE=${JOB_NAME_SPLIT[1]}
     - BUILD_TYPE=${JOB_NAME_SPLIT[2]}
     - ADDITIONAL_OPTIONS=${JOB_NAME_SPLIT[3]}
-    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_61,code=sm_61 -gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
+    - OVERRIDE_CUDA_ARCH_FLAG="-gencode=arch=compute_70,code=sm_70 -gencode=arch=compute_75,code=sm_75"
     - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-clang8-opt
     - source /cvmfs/sft.cern.ch/lcg/contrib/cuda/10.2/x86_64-centos7/setup.sh
     - mkdir build_${TARGET}
@@ -435,19 +435,22 @@ teslat4:CUDA:DefaultSequence:run_throughput:
   dependencies:
     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-geforcegtx10606g:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - geforcegtx10606g
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# Note: Add -gencode=arch=compute_61,code=sm_61
+#       to the configuration if these cards are enabled.
+ 
+# geforcegtx10606g:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - geforcegtx10606g
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
-geforcegtx1080ti:CUDA:DefaultSequence:run_throughput:
-  <<: *run_throughput_job_no_profiling_def
-  tags:
-    - geforcegtx1080ti
-  dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+# geforcegtx1080ti:CUDA:DefaultSequence:run_throughput:
+#   <<: *run_throughput_job_no_profiling_def
+#   tags:
+#     - geforcegtx1080ti
+#   dependencies:
+#     - CUDA:DefaultSequence:RelWithDebInfo::build
 
 x862630v4:CPU:DefaultSequence:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
@@ -509,5 +512,5 @@ throughput:DefaultSequence:geforcertx2080ti:publish_throughput:
     - teslav100:CUDA:DefaultSequence:run_throughput
     - teslat4:CUDA:DefaultSequence:run_throughput
     - x862630v4:CPU:DefaultSequence:run_throughput_cpu
-    - geforcegtx1080ti:CUDA:DefaultSequence:run_throughput
-    - geforcegtx10606g:CUDA:DefaultSequence:run_throughput
+    # - geforcegtx1080ti:CUDA:DefaultSequence:run_throughput
+    # - geforcegtx10606g:CUDA:DefaultSequence:run_throughput
