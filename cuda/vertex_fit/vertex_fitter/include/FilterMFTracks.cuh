@@ -25,10 +25,10 @@ namespace FilterMFTracks {
     DEVICE_OUTPUT(dev_mf_sv_atomics_t, uint) dev_mf_sv_atomics;
     DEVICE_OUTPUT(dev_svs_kf_idx_t, uint) dev_svs_kf_idx;
     DEVICE_OUTPUT(dev_svs_mf_idx_t, uint) dev_svs_mf_idx;
-    PROPERTY(kf_track_min_pt_t, float, "kf_track_min_pt", "minimum track pT", 800.f) kf_track_min_pt;
-    PROPERTY(kf_track_min_ipchi2_t, float, "kf_track_min_ipchi2", "minimum track IP chi2", 16.f) kf_track_min_ipchi2;
-    PROPERTY(mf_track_min_pt_t, float, "mf_track_min_pt", "minimum velo-UT-muon track pt", 200.f) mf_track_min_pt;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
+    PROPERTY(kf_track_min_pt_t, float, "kf_track_min_pt", "minimum track pT") kf_track_min_pt;
+    PROPERTY(kf_track_min_ipchi2_t, float, "kf_track_min_ipchi2", "minimum track IP chi2") kf_track_min_ipchi2;
+    PROPERTY(mf_track_min_pt_t, float, "mf_track_min_pt", "minimum velo-UT-muon track pt") mf_track_min_pt;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void filter_mf_tracks(Parameters, const uint number_of_events);
@@ -80,10 +80,10 @@ namespace FilterMFTracks {
     }
 
   private:
-    Property<kf_track_min_pt_t> m_kfminpt {this};
-    Property<kf_track_min_ipchi2_t> m_kfminipchi2 {this};
-    Property<mf_track_min_pt_t> m_mfminpt {this};
-    Property<block_dim_t> m_block_dim {this};
+    Property<kf_track_min_pt_t> m_kfminpt {this, 800.f};
+    Property<kf_track_min_ipchi2_t> m_kfminipchi2 {this, 16.f};
+    Property<mf_track_min_pt_t> m_mfminpt {this, 200.f};
+    Property<block_dim_t> m_block_dim {this, {{16, 16, 1}}};
   };
 
 } // namespace FilterMFTracks

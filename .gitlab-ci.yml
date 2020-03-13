@@ -361,8 +361,16 @@ test_physics_efficiency:
     - cat devices_throughputs.csv
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch _${CI_COMMIT_REF_NAME}_" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
-# Build for all platforms
+# =====
+# Build
+# =====
+
 CUDA:HLT1NoUTCut:RelWithDebInfo::build:
+  <<: *build_job_def
+  tags:
+    - cuda
+
+CUDA:HLT1NoUTCut:Debug:-DUSE_ROOT=ON:build:
   <<: *build_job_def
   tags:
     - cuda
@@ -377,18 +385,22 @@ CPU:HLT1NoUTCut:Debug:-DUSE_ROOT=ON:build:
   tags:
     - x86
 
-CPU:HLT1NoUTCut:RelWithDebInfo::build_x86:
+CPU:HLT1NoUTCut:RelWithDebInfo::build:
   <<: *build_job_def
   tags:
     - x86
 
-CPU:HLT1NoUTCut:RelWithDebInfo::build_x86_clang:
+CPU:HLT1NoUTCut:RelWithDebInfo::build_clang:
   <<: *build_clang_job_def
   tags:
     - x86
 
-# Run on all platforms
-# Performance runs
+# ===
+# Run
+# ===
+
+# Throughput runs
+
 rtx2080ti:CUDA:HLT1NoUTCut:run_throughput:
   <<: *run_throughput_job_def
   tags:
@@ -424,40 +436,19 @@ gtx10606g:CUDA:HLT1NoUTCut:run_throughput:
   dependencies:
     - CUDA:HLT1NoUTCut:RelWithDebInfo::build
 
-# gtx680:CUDA:HLT1NoUTCut:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx680
-#   dependencies:
-#     - CUDA:HLT1NoUTCut:RelWithDebInfo::build
-
-# gtxtitanx:CUDA:HLT1NoUTCut:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtxtitanx
-#   dependencies:
-#     - CUDA:HLT1NoUTCut:RelWithDebInfo::build
-
-x862630v4:CPU:HLT1NoUTCut:run_throughput_cpu:
-  <<: *run_throughput_job_no_profiling_def_cpu
-  tags:
-    - x862630v4
-  dependencies:
-    - CPU:HLT1NoUTCut:RelWithDebInfo::build_x86
-
-# gtx670:CUDA:HLT1NoUTCut:run_throughput:
-#   <<: *run_throughput_job_no_profiling_def
-#   tags:
-#     - gtx670
-#   dependencies:
-#     - CUDA:HLT1NoUTCut:RelWithDebInfo::build
-
 gtx1080ti:CUDA:HLT1NoUTCut:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - gtx1080ti
   dependencies:
     - CUDA:HLT1NoUTCut:RelWithDebInfo::build
+    
+x862630v4:CPU:HLT1NoUTCut:run_throughput_cpu:
+  <<: *run_throughput_job_no_profiling_def_cpu
+  tags:
+    - x862630v4
+  dependencies:
+    - CPU:HLT1NoUTCut:RelWithDebInfo::build
 
 # Physics runs
 
@@ -473,7 +464,16 @@ x862630v4:CPU:HLT1NoUTCut:run_physics_efficiency:
   tags:
     - x862630v4
   dependencies:
-    - CPU:HLT1NoUTCut:RelWithDebInfo::build_x86
+    - CPU:HLT1NoUTCut:RelWithDebInfo::build
+
+# Test runs
+
+rtx2080ti:CUDA:HLT1NoUTCut:run_physics_efficiency_debug:
+  <<: *run_physics_efficiency_job_def
+  tags:
+    - cuda
+  dependencies:
+    - CUDA:HLT1NoUTCut:Debug:-DUSE_ROOT=ON:build
 
 x86:CPU:HLT1NoUTCut:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
@@ -489,15 +489,9 @@ x86:CPU:HLT1NoUTCut:run_physics_efficiency_debug_root:
   dependencies:
     - CPU:HLT1NoUTCut:Debug:-DUSE_ROOT=ON:build
 
+# =======
 # Publish
-
-# Plain results to mattermost
-# rtx2080ti:HLT1NoUTCut:publish_algo_breakdown_plot:
-#   <<: *publish_algo_breakdown_plot_def
-#   tags:
-#     - gpu
-#   dependencies:
-#     - rtx2080ti:CUDA:HLT1NoUTCut:run_throughput
+# =======
 
 throughput:HLT1NoUTCut:rtx2080ti:publish_throughput:
   <<: *publish_throughput_job_def
@@ -511,6 +505,3 @@ throughput:HLT1NoUTCut:rtx2080ti:publish_throughput:
     - x862630v4:CPU:HLT1NoUTCut:run_throughput_cpu
     - gtx1080ti:CUDA:HLT1NoUTCut:run_throughput
     - gtx10606g:CUDA:HLT1NoUTCut:run_throughput
-    # - gtxtitanx:CUDA:HLT1NoUTCut:run_throughput
-    # - gtx670:CUDA:HLT1NoUTCut:run_throughput
-    # - gtx680:CUDA:HLT1NoUTCut:run_throughput

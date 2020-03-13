@@ -23,7 +23,7 @@ namespace lf_calculate_parametrization {
     DEVICE_INPUT(dev_scifi_lf_tracks_t, SciFi::TrackHits) dev_scifi_lf_tracks;
     DEVICE_INPUT(dev_scifi_lf_atomics_t, uint) dev_scifi_lf_atomics;
     DEVICE_OUTPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {128, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void lf_calculate_parametrization(
@@ -72,6 +72,6 @@ namespace lf_calculate_parametrization {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
   };
 } // namespace lf_calculate_parametrization

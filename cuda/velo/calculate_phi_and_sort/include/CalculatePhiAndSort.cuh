@@ -17,7 +17,7 @@ namespace velo_calculate_phi_and_sort {
     DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_OUTPUT(dev_hit_permutation_t, uint) dev_hit_permutation;
     DEVICE_OUTPUT(dev_hit_phi_t, float) dev_hit_phi;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __device__ void calculate_phi(
@@ -86,6 +86,6 @@ namespace velo_calculate_phi_and_sort {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
   };
 } // namespace velo_calculate_phi_and_sort

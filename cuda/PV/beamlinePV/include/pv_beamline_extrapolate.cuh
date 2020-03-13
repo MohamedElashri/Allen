@@ -19,7 +19,7 @@ namespace pv_beamline_extrapolate {
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
     DEVICE_OUTPUT(dev_pvtracks_t, PVTrack) dev_pvtracks;
     DEVICE_OUTPUT(dev_pvtrack_z_t, float) dev_pvtrack_z;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void pv_beamline_extrapolate(Parameters);
@@ -56,6 +56,6 @@ namespace pv_beamline_extrapolate {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace pv_beamline_extrapolate

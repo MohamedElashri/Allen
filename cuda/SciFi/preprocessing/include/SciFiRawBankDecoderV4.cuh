@@ -12,7 +12,7 @@ namespace scifi_raw_bank_decoder_v4 {
     DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void scifi_raw_bank_decoder_v4(Parameters, const char* scifi_geometry);
@@ -57,6 +57,6 @@ namespace scifi_raw_bank_decoder_v4 {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace scifi_raw_bank_decoder_v4
