@@ -76,15 +76,16 @@ for filename in all_filenames:
                                               ("type", v.group("type"))]))
                                         for v in variables])
 
-            property_map = OrderedDict([(v.group("typename"),
-                                         OrderedDict(
-                                             [("name", v.group("name")),
-                                              ("type", v.group("type")),
-                                              ("default_value",
-                                               ""), # v.group("default_value")
-                                              ("description",
-                                               v.group("description"))]))
-                                        for v in properties])
+            property_map = OrderedDict([
+                (
+                    v.group("typename"),
+                    OrderedDict([
+                        ("name", v.group("name")),
+                        ("type", v.group("type")),
+                        ("default_value", ""),  # v.group("default_value")
+                        ("description", v.group("description"))
+                    ])) for v in properties
+            ])
 
             parsed_algorithms.append(
                 OrderedDict([("name", algorithm.group("name")),
