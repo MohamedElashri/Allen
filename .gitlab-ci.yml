@@ -173,7 +173,6 @@ check-formatting:
     - TARGET=${JOB_NAME_SPLIT[1]}
     - SEQUENCE=${JOB_NAME_SPLIT[2]}
     - D_NUMBER=${CI_RUNNER_DESCRIPTION_SPLIT[1]}
-    - echo ${CI_RUNNER_DESCRIPTION}, ${D_NUMBER}
     - D_MEMORY=${DEVICE_MEMORY_MAP[${DEVICE_ID}]}
     - RUN_OPTIONS="-n 1000 -m 700 -r 100 -t 12 -c 0"
     - if [ "${D_MEMORY}" = "LOW" ]; then
