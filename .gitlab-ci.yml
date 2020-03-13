@@ -340,6 +340,7 @@ test_physics_efficiency:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - python3 checker/plotting/post_combined_message.py -l "Throughput of [sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_](https://gitlab.cern.ch/lhcb/Allen/pipelines/${CI_PIPELINE_ID})" -m ${MATTERMOST_KEY} -t devices_throughputs.csv -b output_${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv
     # - python3 checker/plotting/csv_plotter.py -t "Throughput of sequence __${SEQUENCE}__, branch _${CI_COMMIT_REF_NAME}_" -u "kHz" -x 70 -s 1e-3 -m ${MATTERMOST_KEY} devices_throughputs.csv
     - python3 checker/plotting/post_telegraf.py -d . -s ${SEQUENCE} -b ${CI_COMMIT_REF_NAME}
@@ -359,6 +360,7 @@ test_physics_efficiency:
     - cat throughputs.txt
     - paste -d, devices.txt throughputs.txt > devices_throughputs.csv
     - cat devices_throughputs.csv
+    - source /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_96bpython3 x86_64-centos7-gcc8-opt
     - python3 checker/plotting/csv_plotter.py -n -t "Speedup across GPUs, branch _${CI_COMMIT_REF_NAME}_" -u "x" -x 30 -m ${MATTERMOST_KEY} devices_throughputs.csv
 
 # =====
@@ -496,7 +498,7 @@ x86:CPU:HLT1NoUTCut:run_physics_efficiency_debug_root:
 throughput:HLT1NoUTCut:rtx2080ti:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
-    - gpu
+    - cvmfs
   dependencies:
     - rtx2080ti:CUDA:HLT1NoUTCut:run_throughput
     - rtx6000:CUDA:HLT1NoUTCut:run_throughput
