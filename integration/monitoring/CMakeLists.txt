@@ -17,14 +17,22 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/velo/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/selections/Hlt1/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
+include_directories(${CMAKE_SOURCE_DIR}/zmq/include)
 include_directories(${ROOT_INCLUDE_DIRS})
 include_directories(${CPPGSL_INCLUDE_DIR})
 
 file(GLOB monitoring_sources_cpp "src/*cpp")
 
-add_library(AllenMonitoring STATIC
+allen_add_host_library(AllenMonitoring STATIC
   ${monitoring_sources_cpp}
 )
+target_link_libraries(AllenMonitoring PRIVATE AllenZMQ)
+
+if (GaudiProject_FOUND)
+  target_compile_definitions(AllenMonitoring PUBLIC GAUDI_BUILD)
+  gaudi_resolve_link_libraries(GAUDI_UTILS_LIB GaudiUtilsLib)
+  target_link_libraries(AllenMonitoring PRIVATE ${GAUDI_UTILS_LIB})
+endif()
 
 if(ROOT_FOUND)
   target_compile_definitions(AllenMonitoring PRIVATE ${ALLEN_ROOT_DEFINITIONS})
