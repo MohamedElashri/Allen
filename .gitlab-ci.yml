@@ -252,7 +252,9 @@ check-formatting:
     - ls
     - export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
     - CUDA_VISIBLE_DEVICES=${D_NUMBER} ./Allen --configuration ../configuration/constants/${SEQUENCE}.json -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/output.txt
-    - CUDA_VISIBLE_DEVICES=${D_NUMBER} nvprof ./Allen --configuration ../configuration/constants/${SEQUENCE}.json -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
+    - NVPROF_TMPDIR=`mktemp -d`
+    - CUDA_VISIBLE_DEVICES=${D_NUMBER} TMPDIR=${NVPROF_TMPDIR} nvprof ./Allen --configuration ../configuration/constants/${SEQUENCE}.json -f /scratch/dcampora/allen_data/201907/minbias_mag_down ${RUN_OPTIONS} 2>&1 | tee ../output_${DEVICE_ID}/profiler_output.txt
+    - rm -rf ${NVPROF_TMPDIR}
     - python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -d ${TOPLEVEL}
   artifacts:
     expire_in: 2 hrs
