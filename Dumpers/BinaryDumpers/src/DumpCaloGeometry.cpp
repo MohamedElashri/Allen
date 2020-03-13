@@ -48,11 +48,13 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
 
   std::vector<int> cards{};
   std::vector<int> curCards{};
+  // Get all card indices for every source ID.
   for (int i = 0; i < det.nTell1s(); i++){
     curCards = det.tell1ToCards(i);
     cards.insert(cards.end(), curCards.begin(), curCards.end());
   }
 
+  // Determine Minimum and maximum card Codes.
   int min = det.cardCode(cards.at(0)); // Initialize to any value within possibilities.
   int max = 0;
   int curCode;
@@ -62,8 +64,10 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     max = MAX(curCode, max);
   }
 
-  std::vector<uint16_t> allChannels(32 * (max - min + 1), 1);
+  // Initialize array to size (max - min) * 32.
+  std::vector<uint16_t> allChannels(32 * (max - min + 1), 0);
 
+  // For every card: index based on code and store all 32 channel CellIDs at that index.
   for (int card : cards) {
     int code = det.cardCode(card);
     int index = (code - min) * 32;
@@ -73,7 +77,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     }
   }
 
-  // TODO actually write the output.
+  // Write the minimum card code and the array of CellIDs.
   DumpUtils::Writer output {};
   output.write((uint16_t) min);
   for ( uint16_t chan : allChannels) {

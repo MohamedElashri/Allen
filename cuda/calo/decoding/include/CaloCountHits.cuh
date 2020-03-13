@@ -6,6 +6,7 @@
 
 #define ECAL_BANKS 28
 #define HCAL_BANKS 8
+#define CARD_CHANNELS 32
 
 
 namespace calo_count_hits {

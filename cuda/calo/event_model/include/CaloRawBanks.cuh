@@ -3,8 +3,9 @@
 #include "CudaCommon.h"
 
 struct CaloRawBank {
-  uint32_t source_id;
-  uint32_t adc_size;
+  int source_id;
+  int pattern;
+  int code;
   uint32_t* data;
 
   // Empty constructor

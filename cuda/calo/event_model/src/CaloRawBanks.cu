@@ -10,10 +10,13 @@ __device__ __host__ CaloRawBank::CaloRawBank(const char* raw_bank)
   p += sizeof(uint32_t);
 
   uint32_t trig_size = *((uint32_t*) p) & 0x7F;
-  adc_size = ( *((uint32_t*) p) >> 7 ) & 0x7F;
+  code = ( *((uint32_t*) p) >> 14 ) & 0x1FF;
+  p += sizeof(uint32_t) + 4 * ((trig_size + 3) / 4); // Skip header and Trigger.
 
-  // Skipping header and trigger bits.
-  data = (uint32_t*) (p + 4 + (trig_size + 3) / 4);
+  pattern = *((uint32_t*) p);
+
+  // Skipping pattern bits.
+  data = (uint32_t*) (p + sizeof(uint32_t));
 }
 
 __device__ __host__ CaloRawBank::CaloRawBank(const uint32_t sid, const char* fragment)
@@ -21,8 +24,11 @@ __device__ __host__ CaloRawBank::CaloRawBank(const uint32_t sid, const char* fra
   source_id = sid;
 
   uint32_t trig_size = *((uint32_t*) fragment) & 0x7F;
-  adc_size = ( *((uint32_t*) fragment) >> 7 ) & 0x7F;
+  code = ( *((uint32_t*) fragment) >> 14 ) & 0x1FF;
+  fragment += sizeof(uint32_t) + 4 * ((trig_size + 3) / 4); // Skip header and Trigger.
 
-  // Skipping header and trigger bits.
-  data = (uint32_t*) (fragment + 4 + (trig_size + 3) / 4);
+  pattern = *((uint32_t*) fragment);
+
+  // Skipping pattern bits.
+  data = (uint32_t*) (fragment + sizeof(uint32_t));
 }
