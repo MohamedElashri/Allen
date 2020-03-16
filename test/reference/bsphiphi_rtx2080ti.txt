@@ -79,16 +79,16 @@ ODINNoBias:            0/  1000, (    0.00 +/-     0.00) kHz
 ODINLumi:              0/  1000, (    0.00 +/-     0.00) kHz
 GECPassthrough:      856/  1000, (25680.00 +/-   333.07) kHz
 VeloMicroBias:         0/  1000, (    0.00 +/-     0.00) kHz
-TrackMVA:            223/  1000, ( 6690.00 +/-   394.90) kHz
+TrackMVA:            209/  1000, ( 6270.00 +/-   385.73) kHz
 TrackMuonMVA:          5/  1000, (  150.00 +/-    66.91) kHz
 SingleHighPtMuon:      4/  1000, (  120.00 +/-    59.88) kHz
 LowPtMuon:           114/  1000, ( 3420.00 +/-   301.50) kHz
-TwoTrackMVA:         392/  1000, (11760.00 +/-   463.14) kHz
+TwoTrackMVA:         380/  1000, (11400.00 +/-   460.48) kHz
 DiMuonHighMass:        9/  1000, (  270.00 +/-    89.59) kHz
 DiMuonLowMass:        48/  1000, ( 1440.00 +/-   202.80) kHz
 LowPtDiMuon:          39/  1000, ( 1170.00 +/-   183.66) kHz
 DiMuonSoft:            1/  1000, (   30.00 +/-    29.98) kHz
-D2KPi:                36/  1000, ( 1080.00 +/-   176.73) kHz
-D2PiPi:               32/  1000, (  960.00 +/-   166.97) kHz
-D2KK:                 19/  1000, (  570.00 +/-   129.52) kHz
+D2KPi:                30/  1000, (  900.00 +/-   161.83) kHz
+D2PiPi:               27/  1000, (  810.00 +/-   153.77) kHz
+D2KK:                 17/  1000, (  510.00 +/-   122.64) kHz
 Inclusive:          1000/  1000, (30000.00 +/-     0.00) kHz
