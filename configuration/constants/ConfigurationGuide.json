@@ -1,0 +1,12 @@
+{
+  "host_global_event_cut_t": {"min_scifi_ut_clusters": "0", "max_scifi_ut_clusters": "9750"},
+  "velo_calculate_number_of_candidates_t": {"block_dim_x": "256"},
+  "velo_estimate_input_size_t": {"block_dim": "{16, 16, 1}"},
+  "velo_masked_clustering_t": {"block_dim": "{256, 1, 1}"},
+  "velo_calculate_phi_and_sort_t": {"block_dim": "{64, 1, 1}"},
+  "velo_fill_candidates_t": {"phi_extrapolation_base": "0.03f", "phi_extrapolation_coef": "0.0002f", "block_dim": "{128, 1, 1}"},
+  "velo_search_by_triplet_t": {"forward_phi_tolerance": "0.052f", "max_scatter_forwarding": "0.1f", "max_scatter_seeding": "0.1f", "max_skipped_modules": "1u", "max_weak_tracks": "500u", "ttf_modulo": "2048u", "ttf_modulo_mask": "0x7FF", "block_dim": "{32, 1, 1}"},
+  "velo_three_hit_tracks_filter_t": {"max_chi2": "20.0f", "max_weak_tracks": "500u", "block_dim": "{256, 1, 1}"},
+  "velo_copy_track_hit_number_t": {"block_dim": "{512, 1, 1}"},
+  "velo_consolidate_tracks_t": {"block_dim": "{256, 1, 1}"}
+}
