@@ -33,8 +33,8 @@ namespace FilterTracks {
     PROPERTY(track_min_pt_t, float, "track_min_pt", "minimum track pT", 200.0f) track_min_pt;
     PROPERTY(track_min_ipchi2_t, float, "track_min_ipchi2", "minimum track IP chi2", 9.0f) track_min_ipchi2;
     PROPERTY(track_muon_min_ipchi2_t, float, "track_muon_min_ipchi2", "minimum muon IP chi2", 4.0f) track_muon_min_ipchi2;
-    PROPERTY(track_max_chi2ndof_t, float, "track_max_chi2ndof", "max track chi2/ndof", 2.5) track_max_chi2ndof;
-    PROPERTY(track_muon_max_chi2ndof_t, float, "track_muon_max_chi2ndof", "max muon chi2/ndof", 100.) track_muon_max_chi2ndof;
+    PROPERTY(track_max_chi2ndof_t, float, "track_max_chi2ndof", "max track chi2/ndof", 2.5f) track_max_chi2ndof;
+    PROPERTY(track_muon_max_chi2ndof_t, float, "track_muon_max_chi2ndof", "max muon chi2/ndof", 100.f) track_muon_max_chi2ndof;
     PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", 16.0f)
     max_assoc_ipchi2;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
