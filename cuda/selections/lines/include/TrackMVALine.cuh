@@ -7,7 +7,7 @@
 namespace TrackMVA {
   // One track parameters.
   constexpr float maxChi2Ndof =
-    100.0f; // Large for now until we better understand the parameterized Kalman fit quality.
+    2.5f; // Large for now until we better understand the parameterized Kalman fit quality.
   constexpr float minPt = 2000.0f / Gaudi::Units::GeV;
   constexpr float maxPt = 26000.0f / Gaudi::Units::GeV;
   constexpr float minIPChi2 = 7.4f;

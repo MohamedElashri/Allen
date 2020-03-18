@@ -5,7 +5,7 @@
 #include "SystemOfUnits.h"
 
 namespace SingleHighPtMuon {
-  constexpr float maxChi2Ndof = 10000.f;
+  constexpr float maxChi2Ndof = 100.f;
   constexpr float singleMinPt = 6000.f / Gaudi::Units::MeV;
   constexpr float singleMinP = 6000.f / Gaudi::Units::MeV;
   
