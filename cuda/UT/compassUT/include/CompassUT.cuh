@@ -25,20 +25,19 @@ namespace compass_ut {
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, uint) dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_with_windows_t, uint) dev_ut_selected_velo_tracks;
 
-    PROPERTY(sigma_velo_slope_t, float, "sigma_velo_slope", "sigma velo slope [radians]", 0.1f * Gaudi::Units::mrad)
+    PROPERTY(sigma_velo_slope_t, float, "sigma_velo_slope", "sigma velo slope [radians]")
     sigma_velo_slope;
     PROPERTY(
       min_momentum_final_t,
       float,
       "min_momentum_final",
-      "final min momentum cut [MeV/c]",
-      2500.f)
+      "final min momentum cut [MeV/c]")
     min_momentum_final;
-    PROPERTY(min_pt_final_t, float, "min_pt_final", "final min pT cut [MeV/c]", 425.f)
+    PROPERTY(min_pt_final_t, float, "min_pt_final", "final min pT cut [MeV/c]")
     min_pt_final;
-    PROPERTY(hit_tol_2_t, float, "hit_tol_2", "hit_tol_2 [mm]", 0.8f * Gaudi::Units::mm) hit_tol_2;
-    PROPERTY(delta_tx_2_t, float, "delta_tx_2", "delta_tx_2", 0.018f) delta_tx_2;
-    PROPERTY(max_considered_before_found_t, uint, "max_considered_before_found", "max_considered_before_found", 6)
+    PROPERTY(hit_tol_2_t, float, "hit_tol_2", "hit_tol_2 [mm]") hit_tol_2;
+    PROPERTY(delta_tx_2_t, float, "delta_tx_2", "delta_tx_2") delta_tx_2;
+    PROPERTY(max_considered_before_found_t, uint, "max_considered_before_found", "max_considered_before_found")
     max_considered_before_found;
   };
 
@@ -145,11 +144,11 @@ namespace compass_ut {
     }
 
   private:
-    Property<sigma_velo_slope_t> m_slope {this};
-    Property<min_momentum_final_t> m_mom_fin {this};
-    Property<min_pt_final_t> m_pt_fin {this};
-    Property<hit_tol_2_t> m_hit_tol_2 {this};
-    Property<delta_tx_2_t> m_delta_tx_2 {this};
-    Property<max_considered_before_found_t> m_max_considered_before_found {this};
+    Property<sigma_velo_slope_t> m_slope {this, 0.1f * Gaudi::Units::mrad};
+    Property<min_momentum_final_t> m_mom_fin {this, 2500.f};
+    Property<min_pt_final_t> m_pt_fin {this, 425.f};
+    Property<hit_tol_2_t> m_hit_tol_2 {this, 0.8f * Gaudi::Units::mm};
+    Property<delta_tx_2_t> m_delta_tx_2 {this, 0.018f};
+    Property<max_considered_before_found_t> m_max_considered_before_found {this, 6};
   };
 } // namespace compass_ut

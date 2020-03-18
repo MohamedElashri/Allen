@@ -24,7 +24,7 @@ namespace velo_consolidate_tracks {
     DEVICE_INPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, uint)
     dev_offsets_number_of_three_hit_tracks_filtered;
     DEVICE_OUTPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void velo_consolidate_tracks(Parameters);
@@ -105,6 +105,6 @@ namespace velo_consolidate_tracks {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace velo_consolidate_tracks

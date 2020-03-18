@@ -13,7 +13,7 @@ namespace ut_copy_track_hit_number {
     DEVICE_INPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
     DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
     DEVICE_OUTPUT(dev_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {512, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void ut_copy_track_hit_number(Parameters);
@@ -47,6 +47,6 @@ namespace ut_copy_track_hit_number {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{512, 1, 1}}};
   };
 } // namespace ut_copy_track_hit_number

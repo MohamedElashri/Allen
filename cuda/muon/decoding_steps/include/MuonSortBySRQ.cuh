@@ -12,7 +12,7 @@ namespace muon_sort_station_region_quarter {
     DEVICE_OUTPUT(dev_storage_tdc_value_t, uint) dev_storage_tdc_value;
     DEVICE_INPUT(dev_atomics_muon_t, uint) dev_atomics_muon;
     DEVICE_OUTPUT(dev_permutation_srq_t, uint) dev_permutation_srq;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void muon_sort_station_region_quarter(Parameters);
@@ -50,6 +50,6 @@ namespace muon_sort_station_region_quarter {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace muon_sort_station_region_quarter

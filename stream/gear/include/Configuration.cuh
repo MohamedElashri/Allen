@@ -214,8 +214,8 @@ namespace Allen {
   public:
     Property() = delete;
 
-    Property(BaseAlgorithm* algo) :
-      m_algo {algo}, m_cached_value {V::default_value}, m_name {V::name}, m_description {V::description}
+    Property(BaseAlgorithm* algo, const typename V::t& default_value) :
+      m_algo {algo}, m_cached_value {V(default_value)}, m_name {V::name}, m_description {V::description}
     {
       algo->register_property(m_name, this);
     }

@@ -38,7 +38,9 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
     if (
       trackA.pt() < parameters.track_min_pt ||
-      (trackA.ipChi2 < parameters.track_min_ipchi2 && !trackA.is_muon)) {
+      (trackA.ipChi2 < parameters.track_min_ipchi2 && !trackA.is_muon) ||
+      (trackA.chi2 / trackA.ndof > parameters.track_max_chi2ndof && !trackA.is_muon) ||
+      (trackA.chi2 / trackA.ndof > parameters.track_muon_max_chi2ndof && trackA.is_muon)) {
       continue;
     }
 
@@ -48,7 +50,9 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
       if (
         trackB.pt() < parameters.track_min_pt ||
-        (trackB.ipChi2 < parameters.track_min_ipchi2 && !trackB.is_muon)) {
+        (trackB.ipChi2 < parameters.track_min_ipchi2 && !trackB.is_muon) ||
+        (trackB.chi2 / trackB.ndof > parameters.track_max_chi2ndof && !trackB.is_muon) ||
+        (trackB.chi2 / trackB.ndof > parameters.track_muon_max_chi2ndof && trackB.is_muon)) {
         continue;
       }
 

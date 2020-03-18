@@ -332,8 +332,8 @@ if(TARGET_DEVICE STREQUAL "CUDA")
 
 #Settings can be overriden by setting OVERRIDE_CUDA_ARCH_FLAG
   if(DEFINED OVERRIDE_CUDA_ARCH_FLAG AND NOT OVERRIDE_CUDA_ARCH_FLAG STREQUAL "")
-    message(STATUS "Overriding CUDA architecture setting:")
-    set(ARCH_FLAG ${OVERRIDE_CUDA_ARCH_FLAG})
+    message(STATUS "Overriding CUDA architecture setting.")
+    set(ARCH_FLAG "${OVERRIDE_CUDA_ARCH_FLAG}")
 #CUDA_ARCH can be set to MAX
   elseif(CUDA_ARCH STREQUAL "MAX")
     set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required

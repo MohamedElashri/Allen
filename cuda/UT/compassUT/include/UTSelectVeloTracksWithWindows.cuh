@@ -19,7 +19,7 @@ namespace ut_select_velo_tracks_with_windows {
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_OUTPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, uint) dev_ut_number_of_selected_velo_tracks_with_windows;
     DEVICE_OUTPUT(dev_ut_selected_velo_tracks_with_windows_t, uint) dev_ut_selected_velo_tracks_with_windows;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void ut_select_velo_tracks_with_windows(Parameters);
@@ -62,6 +62,6 @@ namespace ut_select_velo_tracks_with_windows {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace ut_select_velo_tracks_with_windows

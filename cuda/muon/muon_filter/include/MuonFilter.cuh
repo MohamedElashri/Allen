@@ -36,9 +36,9 @@ namespace MuonFilter {
     DEVICE_OUTPUT(dev_event_list_mf_t, uint) dev_event_list_mf;
     DEVICE_OUTPUT(dev_selected_events_mf_t, uint) dev_selected_events_mf;
     DEVICE_OUTPUT(dev_mf_track_atomics_t, uint) dev_mf_track_atomics;
-    PROPERTY(mf_min_pt_t, float, "mf_min_pt", "minimum track pT", 800.f) mf_min_pt;
-    PROPERTY(mf_min_ipchi2_t, float, "mf_min_ipchi2", "minimum track IP chi2", 16.f) mf_min_ipchi2;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(mf_min_pt_t, float, "mf_min_pt", "minimum track pT") mf_min_pt;
+    PROPERTY(mf_min_ipchi2_t, float, "mf_min_ipchi2", "minimum track IP chi2") mf_min_ipchi2;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void muon_filter(Parameters);
@@ -123,8 +123,8 @@ namespace MuonFilter {
     }
 
   private:
-    Property<mf_min_pt_t> m_minpt {this};
-    Property<mf_min_ipchi2_t> m_minipchi2 {this};
-    Property<block_dim_t> m_block_dim {this};
+    Property<mf_min_pt_t> m_minpt {this, 800.f};
+    Property<mf_min_ipchi2_t> m_minipchi2 {this, 16.f};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace MuonFilter

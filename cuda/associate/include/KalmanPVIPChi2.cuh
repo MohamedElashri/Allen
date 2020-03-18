@@ -24,7 +24,7 @@ namespace kalman_pv_ipchi2 {
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, uint) dev_number_of_multi_fit_vertices;
     DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void kalman_pv_ipchi2(Parameters);
@@ -73,6 +73,6 @@ namespace kalman_pv_ipchi2 {
     }
     
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
   };
 } // namespace kalman_pv_ipchi2
