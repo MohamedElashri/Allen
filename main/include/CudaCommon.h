@@ -7,7 +7,7 @@
 #include "BankTypes.h"
 #include "LoggerCommon.h"
 
-#if defined(CPU) || (defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__))
+#if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__))
 
 #include <cmath>
 #include <cstring>
@@ -191,7 +191,6 @@ public:
   half_t(const half_t&) = default;
   half_t(const float value);
   operator float() const;
-  uint16_t get() const;
 
   bool operator>(const half_t&) const;
   bool operator<(const half_t&) const;
@@ -217,7 +216,6 @@ public:
   half_t(const half_t&) = default;
   half_t(const float value);
   operator float() const;
-  int16_t get() const;
 };
 #endif
 
@@ -239,7 +237,7 @@ public:
     }                                                            \
   }
 
-#elif defined(HIP)
+#elif defined(TARGET_DEVICE_HIP)
 
 // ---------------
 // Support for HIP
@@ -272,19 +270,20 @@ public:
 #define cudaSetDevice hipSetDevice
 #define cudaGetDeviceProperties hipGetDeviceProperties
 #define cudaDeviceProp hipDeviceProp_t
-
 #define cudaError_t hipError_t
 #define cudaEvent_t hipEvent_t
 #define cudaStream_t hipStream_t
 #define cudaSuccess hipSuccess
 #define cudaErrorMemoryAllocation hipErrorMemoryAllocation
 #define cudaEventBlockingSync hipEventBlockingSync
-
 #define cudaMemcpyHostToHost hipMemcpyHostToHost
 #define cudaMemcpyHostToDevice hipMemcpyHostToDevice
 #define cudaMemcpyDeviceToHost hipMemcpyDeviceToHost
 #define cudaMemcpyDeviceToDevice hipMemcpyDeviceToDevice
 #define cudaMemcpyDefault hipMemcpyDefault
+#define cudaFuncCachePreferL1 hipFuncCachePreferL1
+#define cudaDeviceGetByPCIBusId hipDeviceGetByPCIBusId
+#define cudaDeviceSetCacheConfig hipDeviceSetCacheConfig
 
 #define cudaCheck(stmt)                                                                                           \
   {                                                                                                               \
@@ -306,9 +305,21 @@ public:
     }                                                                                                             \
   }
 
-#define half_t short
+#define half_t float
 
-__device__ __host__ half_t __float2half(float value);
+uint16_t __float2half(const float f);
+
+float __half2float(const uint16_t h);
+
+// struct half_t {
+// private:
+//   float m_value;
+// public:
+//   half_t() = default;
+//   half_t(const half_t&) = default;
+//   half_t(const float value);
+//   operator float() const;
+// };
 
 #else
 

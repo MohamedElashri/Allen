@@ -77,6 +77,17 @@ message(STATUS "Note: Support for CUDACLANG is experimental")
 endif()
 message(STATUS "Allen device target: " ${TARGET_DEVICE})
 
+# Add compile definition for target
+if(TARGET_DEVICE STREQUAL "CPU")
+  add_compile_definitions(TARGET_DEVICE_CPU)
+elseif(TARGET_DEVICE STREQUAL "HIP")
+  add_compile_definitions(TARGET_DEVICE_HIP)
+elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
+  add_compile_definitions(TARGET_DEVICE_CUDACLANG)
+elseif(TARGET_DEVICE STREQUAL "CUDA")
+  add_compile_definitions(TARGET_DEVICE_CUDA)
+endif()
+
 #Setup the project to build as a Gaudi project or else standalone
 macro(allen_project)
 #Gaudi build
@@ -133,7 +144,6 @@ endmacro()
 
 #Setup project for the configured target
 if(TARGET_DEVICE STREQUAL "CPU")
-  add_compile_definitions(CPU)
   allen_project()
 
 #This seems to be needed across compilers
@@ -172,8 +182,6 @@ if(TARGET_DEVICE STREQUAL "CPU")
     set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
   endif()
 elseif(TARGET_DEVICE STREQUAL "HIP")
-  add_compile_definitions(HIP)
-
 #Setup HIPCC compiler
   if(NOT DEFINED HIP_PATH)
     if(NOT DEFINED ENV{HIP_PATH})
@@ -204,8 +212,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wno-unused-result")
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
-  add_compile_definitions(TARGET_DEVICE_CUDACLANG)
-
   allen_project()
 
   function(allen_add_host_library)
@@ -432,6 +438,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set_property(TARGET ${ARGV0} PROPERTY
       HIP_SEPARABLE_COMPILATION ON)
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
+    target_link_options(${ARGV0} PRIVATE -amdgpu-target=gfx906)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
@@ -440,6 +447,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     set_target_properties(${ARGV0}
          PROPERTIES HIP_SEPARABLE_COMPILATION ON
                   HIP_RESOLVE_DEVICE_SYMBOLS ON)
+    target_link_options(${ARGV0} PRIVATE -amdgpu-target=gfx906)
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()

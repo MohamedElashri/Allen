@@ -3,20 +3,16 @@
 // If supported, compile and use F16C extensions to convert from / to float16
 #include "CpuID.h"
 
-#if defined(CPU) || defined(HIP)
-
 int32_t intbits(const float f)
 {
-  int32_t i;
-  std::memcpy(&i, &f, sizeof(float));
-  return i;
+  const int32_t* i_p = reinterpret_cast<const int32_t*>(&f);
+  return i_p[0];
 }
 
 float floatbits(const int32_t i)
 {
-  float f;
-  std::memcpy(&f, &i, sizeof(float));
-  return f;
+  const float* f_p = reinterpret_cast<const float*>(&i);
+  return f_p[0];
 }
 
 uint16_t __float2half_impl(const float f)
@@ -79,9 +75,11 @@ float __half2float_impl(const uint16_t h)
   return floatbits(o);
 }
 
+#if defined(TARGET_DEVICE_CPU)
+
 uint16_t __float2half(const float f)
 {
-#if defined(__F16C__) && !defined(HIP)
+#if defined(__F16C__)
   // Check at runtime if the processor supports the F16C extension
   if (cpu_id::supports_feature(bit_F16C, cpu_id::CpuIDRegister::ecx)) {
     return _cvtss_sh(f, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
@@ -96,7 +94,7 @@ uint16_t __float2half(const float f)
 
 float __half2float(const uint16_t h)
 {
-#if defined(__F16C__) && !defined(HIP)
+#if defined(__F16C__)
   if (cpu_id::supports_feature(bit_F16C, cpu_id::CpuIDRegister::ecx)) {
     return _cvtsh_ss(h);
   }
@@ -113,8 +111,6 @@ float __half2float(const uint16_t h)
 half_t::half_t(const float f) { m_value = __float2half(f); }
 
 half_t::operator float() const { return __half2float(m_value); }
-
-uint16_t half_t::get() const { return m_value; }
 
 bool half_t::operator<(const half_t& a) const
 {
@@ -141,8 +137,16 @@ bool half_t::operator!=(const half_t& a) const { return !operator==(a); }
 half_t::half_t(const float f) { m_value = __half2float(__float2half(f)); }
 
 half_t::operator float() const { return m_value; }
-
-int16_t half_t::get() const { return __float2half(m_value); }
 #endif
+
+#elif defined(DEVICE_TARGET_HIP)
+
+uint16_t __float2half(const float f) {
+  return __float2half_impl(f);
+}
+
+float __half2float(const uint16_t h) {
+  return __half2float_impl(h);
+}
 
 #endif

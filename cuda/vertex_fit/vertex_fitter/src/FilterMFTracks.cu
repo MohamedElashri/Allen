@@ -27,7 +27,7 @@ __global__ void FilterMFTracks::filter_mf_tracks(FilterMFTracks::Parameters para
   const ParKalmanFilter::FittedTrack* event_mf_tracks = parameters.dev_mf_tracks + event_mf_tracks_offset;
 
   // Loop over KF tracks.
-  for (auto i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
+  for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 
     const ParKalmanFilter::FittedTrack trackA = event_kf_tracks[i_track];
     if (
@@ -36,7 +36,7 @@ __global__ void FilterMFTracks::filter_mf_tracks(FilterMFTracks::Parameters para
     }
 
     // Loop over MF tracks.
-    for (auto j_track = threadIdx.y; j_track < n_mf_tracks; j_track += blockDim.x) {
+    for (uint j_track = threadIdx.y; j_track < n_mf_tracks; j_track += blockDim.x) {
 
       const ParKalmanFilter::FittedTrack trackB = event_mf_tracks[j_track];
       if (trackB.pt() < parameters.mf_track_min_pt || (!trackB.is_muon)) {

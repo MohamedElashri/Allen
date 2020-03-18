@@ -32,7 +32,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
   const ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_tracks_offset;
 
   // Loop over tracks.
-  for (auto i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
+  for (uint i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 
     // Filter first track.
     const ParKalmanFilter::FittedTrack trackA = event_tracks[i_track];
@@ -42,7 +42,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       continue;
     }
 
-    for (auto j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
+    for (uint j_track = threadIdx.y + i_track + 1; j_track < n_scifi_tracks; j_track += blockDim.y) {
 
       // Filter second track.
       const ParKalmanFilter::FittedTrack trackB = event_tracks[j_track];
