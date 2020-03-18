@@ -61,16 +61,22 @@ def VELO_sequence():
     velo_consolidate_tracks = velo_consolidate_tracks_t()
 
     velo_sequence = Sequence(
-        populate_odin_banks, host_global_event_cut,
+        populate_odin_banks,
+        host_global_event_cut,
         velo_calculate_number_of_candidates,
-        prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
-        prefix_sum_offsets_estimated_input_size, velo_masked_clustering,
-        velo_calculate_phi_and_sort, velo_fill_candidates,
-        velo_search_by_triplet, prefix_sum_offsets_velo_tracks,
+        prefix_sum_offsets_velo_candidates,
+        velo_estimate_input_size,
+        prefix_sum_offsets_estimated_input_size,
+        velo_masked_clustering,
+        velo_calculate_phi_and_sort,
+        velo_fill_candidates,
+        velo_search_by_triplet,
+        prefix_sum_offsets_velo_tracks,
         velo_three_hit_tracks_filter,
         prefix_sum_offsets_number_of_three_hit_tracks_filtered,
-        velo_copy_track_hit_number, prefix_sum_offsets_velo_track_hit_number,
-        velo_consolidate_tracks# ,
+        velo_copy_track_hit_number,
+        prefix_sum_offsets_velo_track_hit_number,
+        velo_consolidate_tracks  # ,
         # saxpy
     )
 
