@@ -5,7 +5,7 @@
 #include "SystemOfUnits.h"
 
 namespace DiMuonLowMass {
-  constexpr float minHighMassTrackPt = 0.f / Gaudi::Units::MeV;
+  constexpr float minHighMassTrackPt = 500.f / Gaudi::Units::MeV;
   constexpr float minHighMassTrackP = 3000.f / Gaudi::Units::MeV;
   constexpr float minMass = 0.f / Gaudi::Units::MeV;
   constexpr float maxDoca = 0.2f;
