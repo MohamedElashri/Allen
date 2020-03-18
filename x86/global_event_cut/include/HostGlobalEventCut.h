@@ -11,9 +11,9 @@ namespace host_global_event_cut {
     HOST_OUTPUT(host_event_list_t, uint) host_event_list;
     HOST_OUTPUT(host_number_of_selected_events_t, uint) host_number_of_selected_events;
     DEVICE_OUTPUT(dev_event_list_t, uint);
-    PROPERTY(min_scifi_ut_clusters_t, uint, "min_scifi_ut_clusters", "minimum number of scifi + ut clusters", 0)
+    PROPERTY(min_scifi_ut_clusters_t, uint, "min_scifi_ut_clusters", "minimum number of scifi + ut clusters")
     min_scifi_ut_clusters;
-    PROPERTY(max_scifi_ut_clusters_t, uint, "max_scifi_ut_clusters", "maximum number of scifi + ut clusters", 9750)
+    PROPERTY(max_scifi_ut_clusters_t, uint, "max_scifi_ut_clusters", "maximum number of scifi + ut clusters")
     max_scifi_ut_clusters;
   };
 
@@ -108,7 +108,7 @@ namespace host_global_event_cut {
     }
 
   private:
-    Property<min_scifi_ut_clusters_t> m_min_scifi_ut_clusters {this};
-    Property<max_scifi_ut_clusters_t> m_max_scifi_ut_clusters {this};
+    Property<min_scifi_ut_clusters_t> m_min_scifi_ut_clusters {this, 0};
+    Property<max_scifi_ut_clusters_t> m_max_scifi_ut_clusters {this, 9750};
   };
 } // namespace host_global_event_cut

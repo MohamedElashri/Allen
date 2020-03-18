@@ -18,7 +18,7 @@ namespace lf_extend_tracks_uv {
     DEVICE_INPUT(dev_ut_states_t, MiniState) dev_ut_states;
     DEVICE_INPUT(dev_scifi_lf_initial_windows_t, int) dev_scifi_lf_initial_windows;
     DEVICE_INPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {256, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void lf_extend_tracks_uv(
@@ -59,6 +59,6 @@ namespace lf_extend_tracks_uv {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace lf_extend_tracks_uv

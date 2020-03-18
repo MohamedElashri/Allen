@@ -10,7 +10,7 @@ namespace velo_calculate_number_of_candidates {
     DEVICE_OUTPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
     DEVICE_OUTPUT(dev_velo_raw_input_offsets_t, uint) dev_velo_raw_input_offsets;
     DEVICE_OUTPUT(dev_number_of_candidates_t, uint) dev_number_of_candidates;
-    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X", 256);
+    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X");
   };
 
   // Global function
@@ -73,6 +73,6 @@ namespace velo_calculate_number_of_candidates {
     }
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this};
+    Property<block_dim_x_t> m_block_dim_x {this, 256};
   };
 } // namespace velo_calculate_number_of_candidates

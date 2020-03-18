@@ -21,7 +21,7 @@ namespace MatchUpstreamMuon {
     DEVICE_INPUT(dev_muon_hits_t, Muon::HitsSoA) dev_muon_hits;
     DEVICE_INPUT(dev_event_list_mf_t, uint) dev_event_list_mf;
     DEVICE_OUTPUT(dev_match_upstream_muon_t, bool) dev_muon_match;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {128, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void match_upstream_muon(
@@ -82,8 +82,6 @@ namespace MatchUpstreamMuon {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
-
+    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
   };
-
 }

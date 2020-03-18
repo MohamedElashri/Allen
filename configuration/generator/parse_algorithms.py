@@ -21,7 +21,7 @@ def get_filenames(folder, extensions):
 algorithm_pattern = "template<typename T,[ ]*(?P<threetemplate>typename U,[ ]*)?char... S>.*?struct (?P<name>[\\w_]+) : public (?P<scope>Host|Device)Algorithm"
 variable_pattern = "(?P<scope>HOST|DEVICE)_(?P<io>INPUT|OUTPUT)\\((?P<name>[\\w_]+), (?P<type>[^)]+)\\)"  # ( [\\w_]+)?;
 namespace_pattern = "namespace (?P<name>[\\w_]+).*?public (?P<scope>Host|Device)Algorithm"
-property_pattern = "PROPERTY\\(.*?(?P<typename>[\\w_]+),.*?(?P<type>[^,]+),.*?(?P<name>[^,]+),.*?(?P<description>[^,]+),.*?(?P<default_value>[^\\)]+)\\)"  # ( [\\w_]+)?;
+property_pattern = "PROPERTY\\(.*?(?P<typename>[\\w_]+),.*?(?P<type>[^,]+),.*?(?P<name>[^,]+),.*?(?P<description>[^\\)]+)\\)"
 line_pattern = "struct (?P<name>[\\w_]+) : public Hlt1::(?P<line_type>[\\w_]+)Line"
 line_namespace_pattern = "namespace (?P<name>[\\w_]+)"
 
@@ -76,15 +76,16 @@ for filename in all_filenames:
                                               ("type", v.group("type"))]))
                                         for v in variables])
 
-            property_map = OrderedDict([(v.group("typename"),
-                                         OrderedDict(
-                                             [("name", v.group("name")),
-                                              ("type", v.group("type")),
-                                              ("default_value",
-                                               v.group("default_value")),
-                                              ("description",
-                                               v.group("description"))]))
-                                        for v in properties])
+            property_map = OrderedDict([
+                (
+                    v.group("typename"),
+                    OrderedDict([
+                        ("name", v.group("name")),
+                        ("type", v.group("type")),
+                        ("default_value", ""),  # v.group("default_value")
+                        ("description", v.group("description"))
+                    ])) for v in properties
+            ])
 
             parsed_algorithms.append(
                 OrderedDict([("name", algorithm.group("name")),

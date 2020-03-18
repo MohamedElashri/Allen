@@ -15,7 +15,7 @@ namespace ut_decode_raw_banks_in_order {
     DEVICE_INPUT(dev_ut_pre_decoded_hits_t, char) dev_ut_pre_decoded_hits;
     DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_permutations_t, uint) dev_ut_hit_permutations;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {64, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void ut_decode_raw_banks_in_order(
@@ -90,6 +90,6 @@ namespace ut_decode_raw_banks_in_order {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
   };
 } // namespace ut_decode_raw_banks_in_order

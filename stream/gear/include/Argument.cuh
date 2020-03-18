@@ -133,12 +133,11 @@ protected:
 };
 
 // TODO: Make the PROPERTY either explicit or less fragile
-#define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE, NAME, DESCRIPTION, ...) \
-  struct ARGUMENT_NAME : property_datatype<ARGUMENT_TYPE> {            \
-    constexpr static auto name {NAME};                                 \
-    constexpr static ARGUMENT_TYPE default_value {__VA_ARGS__};        \
-    constexpr static auto description {DESCRIPTION};                   \
-    using property_datatype<ARGUMENT_TYPE>::property_datatype;         \
+#define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE, NAME, DESCRIPTION) \
+  struct ARGUMENT_NAME : property_datatype<ARGUMENT_TYPE> {       \
+    constexpr static auto name {NAME};                            \
+    constexpr static auto description {DESCRIPTION};              \
+    using property_datatype<ARGUMENT_TYPE>::property_datatype;    \
   }
 
 /**

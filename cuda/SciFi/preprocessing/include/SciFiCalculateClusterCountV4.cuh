@@ -11,7 +11,7 @@ namespace scifi_calculate_cluster_count_v4 {
     DEVICE_OUTPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
     DEVICE_OUTPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {240, 1, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void scifi_calculate_cluster_count_v4(Parameters, const char* scifi_geometry);
@@ -66,6 +66,6 @@ namespace scifi_calculate_cluster_count_v4 {
     }
 
   private:
-    Property<block_dim_t> m_block_dim {this};
+    Property<block_dim_t> m_block_dim {this, {{240, 1, 1}}};
   };
 } // namespace scifi_calculate_cluster_count_v4

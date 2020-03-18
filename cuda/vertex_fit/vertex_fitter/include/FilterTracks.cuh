@@ -30,14 +30,14 @@ namespace FilterTracks {
     DEVICE_OUTPUT(dev_sv_atomics_t, uint) dev_sv_atomics;
     DEVICE_OUTPUT(dev_svs_trk1_idx_t, uint) dev_svs_trk1_idx;
     DEVICE_OUTPUT(dev_svs_trk2_idx_t, uint) dev_svs_trk2_idx;
-    PROPERTY(track_min_pt_t, float, "track_min_pt", "minimum track pT", 200.0f) track_min_pt;
-    PROPERTY(track_min_ipchi2_t, float, "track_min_ipchi2", "minimum track IP chi2", 9.0f) track_min_ipchi2;
-    PROPERTY(track_muon_min_ipchi2_t, float, "track_muon_min_ipchi2", "minimum muon IP chi2", 4.0f) track_muon_min_ipchi2;
-    PROPERTY(track_max_chi2ndof_t, float, "track_max_chi2ndof", "max track chi2/ndof", 2.5f) track_max_chi2ndof;
-    PROPERTY(track_muon_max_chi2ndof_t, float, "track_muon_max_chi2ndof", "max muon chi2/ndof", 100.f) track_muon_max_chi2ndof;
-    PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", 16.0f)
+    PROPERTY(track_min_pt_t, float, "track_min_pt", "minimum track pT") track_min_pt;
+    PROPERTY(track_min_ipchi2_t, float, "track_min_ipchi2", "minimum track IP chi2") track_min_ipchi2;
+    PROPERTY(track_muon_min_ipchi2_t, float, "track_muon_min_ipchi2", "minimum muon IP chi2") track_muon_min_ipchi2;
+    PROPERTY(track_max_chi2ndof_t, float, "track_max_chi2ndof", "max track chi2/ndof") track_max_chi2ndof;
+    PROPERTY(track_muon_max_chi2ndof_t, float, "track_muon_max_chi2ndof", "max muon chi2/ndof") track_muon_max_chi2ndof;
+    PROPERTY(max_assoc_ipchi2_t, float, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV")
     max_assoc_ipchi2;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {16, 16, 1});
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __global__ void filter_tracks(Parameters);
@@ -97,13 +97,13 @@ namespace FilterTracks {
     }
 
   private:
-    Property<track_min_pt_t> m_minpt {this};
-    Property<track_min_ipchi2_t> m_minipchi2 {this};
-    Property<track_muon_min_ipchi2_t> m_minmuipchi2 {this};
-    Property<track_max_chi2ndof_t> m_maxchi2ndof {this};
-    Property<track_muon_max_chi2ndof_t> m_muonmaxchi2ndof {this};
-    Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this};
-    Property<block_dim_t> m_block_dim {this};
+    Property<track_min_pt_t> m_minpt {this, 200.0f};
+    Property<track_min_ipchi2_t> m_minipchi2 {this, 9.0f};
+    Property<track_muon_min_ipchi2_t> m_minmuipchi2 {this, 4.0f};
+    Property<track_max_chi2ndof_t> m_maxchi2ndof {this, 2.5f};
+    Property<track_muon_max_chi2ndof_t> m_muonmaxchi2ndof {this, 100.f};
+    Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};
+    Property<block_dim_t> m_block_dim {this, {{16, 16, 1}}};
   };               
     
 } // namespace FilterTracks
