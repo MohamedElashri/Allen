@@ -85,7 +85,7 @@ SingleHighPtMuon:      4/  1000, (  120.00 +/-    59.88) kHz
 LowPtMuon:           114/  1000, ( 3420.00 +/-   301.50) kHz
 TwoTrackMVA:         379/  1000, (11370.00 +/-   460.24) kHz
 DiMuonHighMass:        9/  1000, (  270.00 +/-    89.59) kHz
-DiMuonLowMass:        48/  1000, ( 1440.00 +/-   202.80) kHz
+DiMuonLowMass:        20/  1000, (  600.00 +/-   132.82) kHz
 LowPtDiMuon:          39/  1000, ( 1170.00 +/-   183.66) kHz
 DiMuonSoft:            1/  1000, (   30.00 +/-    29.98) kHz
 D2KPi:                30/  1000, (  900.00 +/-   161.83) kHz
