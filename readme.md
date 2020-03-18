@@ -189,5 +189,5 @@ $> ./build.${CMTCONFIG}/run bindings/Allen.py
 The following readmes explain various aspects of Allen:
 
 * [This readme](contributing.md) explains how to add a new algorithm to Allen.
-* [This readme](cuda/selections/readme.md ) explains how to add a new HLT1 line to Allen.
-* [This readme](configuration/readme.md) explains how to configure an HLT1 sequence: which algorithms to run with which properties and which trigger lines to process.
+* [This readme](selections.md ) explains how to add a new HLT1 line to Allen.
+* [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.
