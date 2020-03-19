@@ -13,7 +13,7 @@ namespace BothBeams {
     constexpr static auto name {"BothBeams"};
     constexpr static auto scale_factor = 0.5f;
 
-    static __device__ bool function(const char* odin)
+    static __device__ bool function(const uint* odin)
     {
       const uint32_t word8 = odin[LHCb::ODIN::Data::Word8];
       const uint bxt = (word8 & LHCb::ODIN::BXTypeMask) >> LHCb::ODIN::BXTypeBits;

@@ -9,6 +9,6 @@ namespace PassThrough {
   struct PassThrough_t : public Hlt1::SpecialLine {
     constexpr static auto name {"PassThrough"};
 
-    static __device__ bool function(const char*) { return true; }
+    static __device__ bool function(const uint*) { return true; }
   };
 } // namespace PassThrough

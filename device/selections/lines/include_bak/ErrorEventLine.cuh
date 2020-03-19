@@ -9,6 +9,6 @@ namespace ErrorEvent {
   struct ErrorEvent_t : public Hlt1::SpecialLine {
     constexpr static auto name {"ErrorEvent"};
 
-    static __device__ bool function(const char*) { return false; }
+    static __device__ bool function(const uint*) { return false; }
   };
 } // namespace ErrorEvent
