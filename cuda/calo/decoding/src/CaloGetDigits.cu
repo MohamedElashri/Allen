@@ -29,22 +29,24 @@ __global__ void calo_get_digits::calo_get_digits(
     auto raw_bank = CaloRawBank();
     for (auto bank_number = threadIdx.x; bank_number < ECAL_BANKS; bank_number += blockDim.x) {
       raw_bank = CaloRawBank(raw_event.payload + raw_event.raw_bank_offset[bank_number]);
-      uint64_t* cur_data = (uint64_t *) raw_bank.data; // Use 64 bit integers in case of 12 bits coding at border regions.
+      uint64_t cur_data = raw_bank.data[1] << 32 + raw_bank.data[0]; // Use 64 bit integers in case of 12 bits coding at border regions.
       int offset = 0;
+      int item = 0; // Have to use an item count instead of pointer because of "misaligned address" bug.
       for (auto hit = 0; hit < CARD_CHANNELS; hit++) {
-        auto index = parameters.dev_ecal_hits_offsets[event_number * ECAL_BANKS + bank_number] + hit;
         if (offset > 31) {
           offset -= 32;
-          cur_data = (uint64_t *) (((uint32_t *) cur_data) + 1);
+          item++;
+          cur_data = raw_bank.data[item + 1] << 32 + raw_bank.data[item];
         }
         uint16_t adc = 0;
         int coding = (raw_bank.pattern >> hit) & 0x1;
-
+        
         // Retrieve adc.
-        adc = ((cur_data[0] >> offset) & coding_numbers[coding * 3]) - coding_numbers[coding * 3 + 1]; // TODO ask if this - is necessary as it results in negative adc. 
+        adc = ((cur_data >> offset) & coding_numbers[coding * 3]) - coding_numbers[coding * 3 + 1]; // TODO ask if this - is necessary as it results in negative adc.
         offset += coding_numbers[coding * 3 + 2];
-
-        // Store cellid and adc in result array.
+        
+        // // Store cellid and adc in result array.
+        auto index = parameters.dev_ecal_hits_offsets[event_number * ECAL_BANKS + bank_number] + hit;
         uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit];
         parameters.dev_ecal_digits[index] = (cellid << 16) + adc;
       }
@@ -57,22 +59,24 @@ __global__ void calo_get_digits::calo_get_digits(
     raw_bank = CaloRawBank();
     for (auto bank_number = threadIdx.x; bank_number < HCAL_BANKS; bank_number += blockDim.x) {
       raw_bank = CaloRawBank(raw_event.payload + raw_event.raw_bank_offset[bank_number]);
-      uint64_t* cur_data = (uint64_t *) raw_bank.data; // Use 64 bit integers in case of 12 bits coding at border regions.
+      uint64_t cur_data = raw_bank.data[1] << 32 + raw_bank.data[0]; // Use 64 bit integers in case of 12 bits coding at border regions.
       int offset = 0;
+      int item = 0; // Have to use an item count instead of pointer because of "misaligned address" bug.
       for (auto hit = 0; hit < CARD_CHANNELS; hit++) {
-        auto index = parameters.dev_hcal_hits_offsets[event_number * HCAL_BANKS + bank_number] + hit;
         if (offset > 31) {
           offset -= 32;
-          cur_data = (uint64_t *) (((uint32_t *) cur_data) + 1);
+          item++;
+          cur_data = raw_bank.data[item + 1] << 32 + raw_bank.data[item];
         }
         uint16_t adc = 0;
         int coding = (raw_bank.pattern >> hit) & 0x1;
-
+        
         // Retrieve adc.
-        adc = ((cur_data[0] >> offset) & coding_numbers[coding * 3]) - coding_numbers[coding * 3 + 1]; // TODO ask if this - is necessary as it results in negative adc. 
+        adc = ((cur_data >> offset) & coding_numbers[coding * 3]) - coding_numbers[coding * 3 + 1]; // TODO ask if this - is necessary as it results in negative adc. 
         offset += coding_numbers[coding * 3 + 2];
-
+        
         // Store cellid and adc in result array.
+        auto index = parameters.dev_hcal_hits_offsets[event_number * HCAL_BANKS + bank_number] + hit;
         uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit];
         parameters.dev_hcal_digits[index] = (cellid << 16) + adc;
       }
@@ -103,23 +107,25 @@ __global__ void calo_get_digits::calo_get_digits_mep(
     auto raw_bank = CaloRawBank();
     for (auto bank_number = threadIdx.x; bank_number < ECAL_BANKS; bank_number += blockDim.x) {
       raw_bank = MEP::raw_bank<CaloRawBank>(parameters.dev_ecal_raw_input,
-              parameters.dev_ecal_raw_input_offsets, selected_event_number, bank_number);
-      uint64_t* cur_data = (uint64_t *) raw_bank.data; // Use 64 bit integers in case of 12 bits coding at border regions.
+        parameters.dev_ecal_raw_input_offsets, selected_event_number, bank_number);
+      uint64_t cur_data = raw_bank.data[1] << 32 + raw_bank.data[0]; // Use 64 bit integers in case of 12 bits coding at border regions.
       int offset = 0;
+      int item = 0; // Have to use an item count instead of pointer because of "misaligned address" bug.
       for (auto hit = 0; hit < CARD_CHANNELS; hit++) {
-        auto index = parameters.dev_ecal_hits_offsets[event_number * ECAL_BANKS + bank_number] + hit;
         if (offset > 31) {
           offset -= 32;
-          cur_data = (uint64_t *) (((uint32_t *) cur_data) + 1);
+          item++;
+          cur_data = raw_bank.data[item + 1] << 32 + raw_bank.data[item];
         }
         uint16_t adc = 0;
         int coding = (raw_bank.pattern >> hit) & 0x1;
-
+        
         // Retrieve adc.
-        adc = ((cur_data[0] >> offset) & coding_numbers[coding * 3]) - coding_numbers[coding * 3 + 1]; // TODO ask if this - is necessary as it results in negative adc. 
+        adc = ((cur_data >> offset) & coding_numbers[coding * 3]) - coding_numbers[coding * 3 + 1]; // TODO ask if this - is necessary as it results in negative adc. 
         offset += coding_numbers[coding * 3 + 2];
-
+        
         // Store cellid and adc in result array.
+        auto index = parameters.dev_ecal_hits_offsets[event_number * ECAL_BANKS + bank_number] + hit;
         uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit];
         parameters.dev_ecal_digits[index] = (cellid << 16) + adc;
       }
@@ -131,22 +137,24 @@ __global__ void calo_get_digits::calo_get_digits_mep(
     for (auto bank_number = threadIdx.x; bank_number < HCAL_BANKS; bank_number += blockDim.x) {
       raw_bank = MEP::raw_bank<CaloRawBank>(parameters.dev_hcal_raw_input,
         parameters.dev_hcal_raw_input_offsets, selected_event_number, bank_number);
-      uint64_t* cur_data = (uint64_t *) raw_bank.data; // Use 64 bit integers in case of 12 bits coding at border regions.
+      uint64_t cur_data = raw_bank.data[1] << 32 + raw_bank.data[0]; // Use 64 bit integers in case of 12 bits coding at border regions.
       int offset = 0;
+      int item = 0; // Have to use an item count instead of pointer because of "misaligned address" bug.
       for (auto hit = 0; hit < CARD_CHANNELS; hit++) {
-        auto index = parameters.dev_hcal_hits_offsets[event_number * HCAL_BANKS + bank_number] + hit;
         if (offset > 31) {
           offset -= 32;
-          cur_data = (uint64_t *) (((uint32_t *) cur_data) + 1);
+          item++;
+          cur_data = raw_bank.data[item + 1] << 32 + raw_bank.data[item];
         }
         uint16_t adc = 0;
         int coding = (raw_bank.pattern >> hit) & 0x1;
 
         // Retrieve adc.
-        adc = ((cur_data[0] >> offset) & coding_numbers[coding * 3]) - coding_numbers[coding * 3 + 1]; // TODO ask if this - is necessary as it results in negative adc. 
+        adc = ((cur_data >> offset) & coding_numbers[coding * 3]) - coding_numbers[coding * 3 + 1]; // TODO ask if this - is necessary as it results in negative adc. 
         offset += coding_numbers[coding * 3 + 2];
 
         // Store cellid and adc in result array.
+        auto index = parameters.dev_hcal_hits_offsets[event_number * HCAL_BANKS + bank_number] + hit;
         uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit];
         parameters.dev_hcal_digits[index] = (cellid << 16) + adc;
       }

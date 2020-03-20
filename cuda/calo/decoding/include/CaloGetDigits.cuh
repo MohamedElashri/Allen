@@ -73,7 +73,6 @@ namespace calo_get_digits {
                                   begin<dev_hcal_raw_input_offsets_t>(arguments),
                                   begin<dev_hcal_hits_offsets_t>(arguments),
                                   begin<dev_hcal_digits_t>(arguments)};
-
       if (runtime_options.mep_layout) {
         function_mep(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(
           parameters, value<host_number_of_selected_events_t>(arguments),
