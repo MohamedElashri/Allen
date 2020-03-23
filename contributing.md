@@ -135,15 +135,15 @@ namespace saxpy {
         
     DEVICE_OUTPUT(dev_saxpy_output_t, float) dev_saxpy_output;
 
-    PROPERTY(saxpy_scale_factor_t, float, "saxpy_scale_factor", "scale factor a used in a*x + y", 2.f) saxpy_scale_factor;
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions", {32, 1, 1});
+    PROPERTY(saxpy_scale_factor_t, float, "saxpy_scale_factor", "scale factor a used in a*x + y") saxpy_scale_factor;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 ```
 
 
 In the `saxpy` namespace the inputs and outputs are specified. These can refer to data either on the host or on the device. So one can choose between `HOST_INPUT`, `HOST_OUTPUT`, `DEVICE_INPUT` and `DEVICE_OUTPUT`.
-In all cases the name and type are defined, e.g. ` DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint)`. An algorithm can be called several times in a sequence with different inputs, outputs and configurations.
-The default input name to be used can be set by ` DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;`.
+In all cases the name and type are defined, e.g. ` DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint)`. An algorithm can be called several times in a sequence with different inputs, outputs and properties.
+The default input name to be used can be set by ` DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;`. A `PROPERTY` describes a constant used in an algorithm, the default value of a property is set when declaring it, as described below.
 
 
 ```clike=
@@ -182,8 +182,8 @@ The function of the algorithm is defined.
     }
 
     private:
-      Property<saxpy_scale_factor_t> m_saxpy_factor {this};
-      Property<block_dim_t> m_block_dim {this};
+        Property<saxpy_scale_factor_t> m_saxpy_factor {this, 2.f};
+        Property<block_dim_t> m_block_dim {this, {32, 1, 1}};
   };
 } // namespace saxpy
 ```
@@ -192,7 +192,7 @@ In `set_arguments_size`, the sizes of `DEVICE_OUTPUT` parameters are defined. Th
 The `sizeof(float)` is implicit, because we set the type of `dev_saxpy_output_t` to float in the `Parameters` struct.
 In the call to `function` the first two arguments are the number of blocks per grid (`dim3(value<host_number_of_selected_events_t>(arguments) / property<block_dim_t>())`) and the number
 of threads per block (`property<block_dim_t>()`). The struct `Parameters` contains the pointers to all `DEVICE_INPUT` and `DEVICE_OUTPUT` which were defined in the `Parameters` struct above, as well as the `PROPERTY`s.
-Finally, the properties belonging to the algorithm are defined as private members of the `saxpy_t` struct.
+Finally, the properties belonging to the algorithm are defined as private members of the `saxpy_t` struct together with their default values.
 
 If a new variable is required in host memory, allocate its memory like so:
 Go to `stream/sequence/include/HostBuffers.cuh` and add the new host memory pointer:
