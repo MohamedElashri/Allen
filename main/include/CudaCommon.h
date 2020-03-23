@@ -307,9 +307,9 @@ public:
 
 #define half_t float
 
-uint16_t __float2half(const float f);
+__host__ __device__ uint16_t __float2half(const float f);
 
-float __half2float(const uint16_t h);
+__host__ __device__ float __half2float(const uint16_t h);
 
 // struct half_t {
 // private:

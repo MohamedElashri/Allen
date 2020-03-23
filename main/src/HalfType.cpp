@@ -3,19 +3,19 @@
 // If supported, compile and use F16C extensions to convert from / to float16
 #include "CpuID.h"
 
-int32_t intbits(const float f)
+__host__ __device__ int32_t intbits(const float f)
 {
   const int32_t* i_p = reinterpret_cast<const int32_t*>(&f);
   return i_p[0];
 }
 
-float floatbits(const int32_t i)
+__host__ __device__ float floatbits(const int32_t i)
 {
   const float* f_p = reinterpret_cast<const float*>(&i);
   return f_p[0];
 }
 
-uint16_t __float2half_impl(const float f)
+__host__ __device__ uint16_t __float2half_impl(const float f)
 {
   // via Fabian "ryg" Giesen.
   // https://gist.github.com/2156668
@@ -55,7 +55,7 @@ uint16_t __float2half_impl(const float f)
   return (o | (sign >> 16));
 }
 
-float __half2float_impl(const uint16_t h)
+__host__ __device__ float __half2float_impl(const uint16_t h)
 {
   constexpr uint32_t shifted_exp = 0x7c00 << 13; // exponent mask after shift
 
@@ -141,11 +141,11 @@ half_t::operator float() const { return m_value; }
 
 #elif defined(DEVICE_TARGET_HIP)
 
-uint16_t __float2half(const float f) {
+__host__ __device__ uint16_t __float2half(const float f) {
   return __float2half_impl(f);
 }
 
-float __half2float(const uint16_t h) {
+__host__ __device__ float __half2float(const uint16_t h) {
   return __half2float_impl(h);
 }
 
