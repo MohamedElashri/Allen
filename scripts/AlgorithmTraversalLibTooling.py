@@ -31,7 +31,7 @@ class Parameter():
         self.typedef = typedef
 
 
-def make_parsed_algorithm(filename, data):
+def make_parsed_algorithms(filename, data):
     parsed_algorithms = []
     for namespace_data in data:
         algorithm_data = namespace_data[2]
@@ -116,6 +116,8 @@ class AlgorithmTraversal():
 
     @staticmethod
     def algorithm_definition(c):
+        """Traverses an algorithm definition. Once a base class is found (Parameters),
+        it delegates traversing the parameters."""
         if c.kind == cindex.CursorKind.CXX_BASE_SPECIFIER:
             return AlgorithmTraversal.traverse_children(c.get_definition(), AlgorithmTraversal.parameters)
         else:
@@ -131,6 +133,10 @@ class AlgorithmTraversal():
 
     @staticmethod
     def algorithm(c):
+        """Traverses an algorithm. First, it identifies whether the struct has
+        either "HostAlgorithm" or "DeviceAlgorithm" among its tokens. If so,
+        it proceeds to find algorithm parameters, template parameters, and returns a quintuplet:
+        (kind, spelling, number of template parameters, algorithm class, algorithm parameters)."""
         if c.kind == cindex.CursorKind.CLASS_TEMPLATE:
             # Detecting inheritance from the algorithm needs to be done with tokens so far
             algorithm_class = None
@@ -158,12 +164,14 @@ class AlgorithmTraversal():
 
     @staticmethod
     def traverse(filename):
+        """Opens the file with libTooling, parses it and find algorithms.
+        Returns a list of ParsedAlgorithms."""
         extension = filename.split(".")[-1]
         try:
             clang_args = AlgorithmTraversal.__compile_flags[extension]
             tu = AlgorithmTraversal.__index.parse(filename, args=clang_args)
             if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:
-                return make_parsed_algorithm(filename, AlgorithmTraversal.traverse_children(tu.cursor, AlgorithmTraversal.namespace))
+                return make_parsed_algorithms(filename, AlgorithmTraversal.traverse_children(tu.cursor, AlgorithmTraversal.namespace))
             else:
                 return None
         except IndexError:

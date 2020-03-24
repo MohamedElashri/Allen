@@ -4,10 +4,12 @@ import re
 import os
 from collections import OrderedDict
 from AlgorithmTraversalLibTooling import AlgorithmTraversal
+from LineTraversalLibTooling import LineTraversal
 
 
-class AlgorithmParse():
+class Parser():
     __algorithm_pattern_compiled = re.compile("(?P<scope>Host|Device)Algorithm")
+    __line_pattern_compiled = re.compile("Hlt1::[\\w_]+Line")
     __sought_extensions_compiled = [re.compile(".*\\." + p + "$") for p in ["cuh", "h", "hpp"]]
     prefix_project_folder = "../"
     __device_folder = "cuda"
@@ -21,28 +23,38 @@ class AlgorithmParse():
                 for extension in extensions:
                     if extension.match(filename):
                         list_of_files.append(os.path.join(root, filename))
-                        break
         return list_of_files
 
     @staticmethod
     def get_all_filenames():
-        return AlgorithmParse.__get_filenames(AlgorithmParse.prefix_project_folder + AlgorithmParse.__device_folder, AlgorithmParse.__sought_extensions_compiled) + \
-            AlgorithmParse.__get_filenames(AlgorithmParse.prefix_project_folder + AlgorithmParse.__host_folder, AlgorithmParse.__sought_extensions_compiled)
+        return Parser.__get_filenames(Parser.prefix_project_folder + Parser.__device_folder, Parser.__sought_extensions_compiled) + \
+            Parser.__get_filenames(Parser.prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
 
     @staticmethod
-    def parse_all(parser=AlgorithmTraversal()):
-        all_filenames = AlgorithmParse.get_all_filenames()
+    def parse_all(algorithm_parser=AlgorithmTraversal(), line_parser=LineTraversal()):
+        """Parses all files and traverses algorithm and line definitions."""
+        all_filenames = Parser.get_all_filenames()
         algorithms = []
+        lines = []
         for filename in all_filenames:
             f = open(filename)
             s = f.read()
             f.close()
-            has_algorithm = AlgorithmParse.__algorithm_pattern_compiled.search(s)
+            # Invoke the libTooling algorithm parser only if we find the algorithm pattern
+            has_algorithm = Parser.__algorithm_pattern_compiled.search(s)
             if has_algorithm:
-                parsed_algorithms = parser.traverse(filename)
+                parsed_algorithms = algorithm_parser.traverse(filename)
+                print(filename, parsed_algorithms)
                 if parsed_algorithms:
                     algorithms += parsed_algorithms
-        return algorithms
+            # Invoke the libTooling line parser only if we find the line pattern
+            has_line = Parser.__line_pattern_compiled.search(s)
+            if has_line:
+                parsed_lines = line_parser.traverse(filename)
+                print(filename, parsed_lines)
+                if parsed_lines:
+                    lines += parsed_lines
+        return algorithms, lines
 
 
 class ConfGen():
@@ -71,14 +83,14 @@ class ConfGen():
     @staticmethod
     def write_line_code(line, i=0):
         s = ConfGen.prefix(
-            i) + "class " + line["name"] + "(" + line["line_type"] + "Line):\n"
+            i) + "class " + line.name + "(" + line.line_type + "):\n"
         i += 1
         s += ConfGen.prefix(i) + "def __init__(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "self.__name=\"" + line["name"] + "\"\n"
-        s += ConfGen.prefix(i) + "self.__filename=\"" + line["filename"][len(
-            AlgorithmParse().ConfGen.prefix_project_folder):] + "\"\n"
-        s += ConfGen.prefix(i) + "self.__namespace=\"" + line["namespace"] + "\"\n"
+        s += ConfGen.prefix(i) + "self.__name=\"" + line.name + "\"\n"
+        s += ConfGen.prefix(i) + "self.__filename=\"" + line.filename[len(
+            Parser().prefix_project_folder):] + "\"\n"
+        s += ConfGen.prefix(i) + "self.__namespace=\"" + line.namespace + "\"\n"
         i -= 1
         s += "\n"
 
@@ -118,7 +130,7 @@ class ConfGen():
               + "\"\", " + prop.description + ")"
         s += "):\n"
         s += ConfGen.prefix(i) + "self.__filename = \"" + algorithm.filename[len(
-            AlgorithmParse().prefix_project_folder):] + "\"\n"
+            Parser().prefix_project_folder):] + "\"\n"
         s += ConfGen.prefix(i) + "self.__name = name\n"
         s += ConfGen.prefix(i) + "self.__original_name = \"" + algorithm.name + "\"\n"
         if algorithm.threetemplate:
@@ -130,7 +142,7 @@ class ConfGen():
         i += 1
         for var in algorithm.parameters:
             s += "\n" + ConfGen.prefix(i) + "(\"" + var.typename + "\", " + ConfGen.create_var_type(var.kind) \
-              + "(\"" + var.typename + "\", \"" + var.typedef + "\")),"
+              + "(" + var.typename + ", \"" + var.typedef + "\")),"
         s = s[:-1]
         if len(algorithm.parameters) > 0:
             s += "]"
@@ -226,76 +238,19 @@ if __name__ == '__main__':
     filename = "algorithms.py"
     
     print("Parsing algorithms...")
-    parsed_algorithms = AlgorithmParse().parse_all()
+    parsed_algorithms, parsed_lines = Parser().parse_all()
 
     print("Generating " + filename + "...")
     s = ConfGen().write_preamble()
     for algorithm in parsed_algorithms:
         s += ConfGen().write_algorithm_code(algorithm)
 
-    # for line in parsed_lines:
-    #     s += write_line_code(line)
+    for line in parsed_lines:
+        s += ConfGen().write_line_code(line)
 
     f = open(filename, "w")
     f.write(s)
     f.close()
 
     print("File " + filename + " was successfully generated.")
-
-
-# # Iterate all filenames in search for our pattern
-# parsed_algorithms = []
-# parsed_lines = []
-# for filename in all_filenames:
-#     f = open(filename)
-#     s = f.read()
-#     f.close()
-
-#     line = line_pattern_compiled.search(s)
-#     if line:
-#         namespace = line_namespace_pattern_compiled.search(s)
-#         if namespace:
-#             parsed_lines.append(
-#                 OrderedDict([("name", line.group("name")),
-#                              ("line_type", line.group("line_type")),
-#                              ("namespace", namespace.group("name")),
-#                              ("filename", filename)]))
-
-#     algorithm = algorithm_pattern_compiled.search(s)
-#     if algorithm:
-#         namespace = namespace_pattern_compiled.search(s)
-#         if namespace:
-#             variables = variable_pattern_compiled.finditer(s)
-#             properties = property_pattern_compiled.finditer(s)
-
-#             variable_map = OrderedDict([(v.group("name"),
-#                                          OrderedDict(
-#                                              [("scope", v.group("scope")),
-#                                               ("io", v.group("io")),
-#                                               ("type", v.group("type"))]))
-#                                         for v in variables])
-
-#             property_map = OrderedDict([
-#                 (
-#                     v.group("typename"),
-#                     OrderedDict([
-#                         ("name", v.group("name")),
-#                         ("type", v.group("type")),
-#                         ("default_value", ""),  # v.group("default_value")
-#                         ("description", v.group("description"))
-#                     ])) for v in properties
-#             ])
-
-#             parsed_algorithms.append(
-#                 OrderedDict([("name", algorithm.group("name")),
-#                              ("scope", algorithm.group("scope")),
-#                              ("filename", filename),
-#                              ("namespace", namespace.group("name")),
-#                              ("threetemplate",
-#                               algorithm.group("threetemplate")),
-#                              ("variables", variable_map),
-#                              ("properties", property_map)]))
-
-# # print("Found", len(parsed_algorithms), "algorithms")
-# # print(parsed_algorithms)
 
