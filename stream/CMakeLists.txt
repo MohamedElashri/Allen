@@ -90,13 +90,32 @@ set(ALGORITHMS_GENERATION_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/ParseAlgorithms.py)
 file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 
 message(STATUS "Testing code generation with LLVM")
-execute_process(COMMAND python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE}
-      RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT
-      OUTPUT_VARIABLE ALGORITHMS_GENERATION_OUTPUT
-      ERROR_QUIET)
 
-if(${ALGORITHMS_GENERATION_RESULT} EQUAL 1)
-  message(WARNING "Testing code generation with LLVM - Failed. If you want to change the default available configurations, please install clang (minimum version 6.0.0).")
+# From CMake on execute_process:
+# "If a sequential execution of multiple commands is required, use multiple execute_process() calls with a single COMMAND argument."
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}"
+  WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
+  RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_0
+  OUTPUT_VARIABLE ALGORITHMS_GENERATION_OUTPUT
+  ERROR_QUIET)
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/"
+  WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
+  RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_1
+  OUTPUT_VARIABLE ALGORITHMS_GENERATION_OUTPUT
+  ERROR_QUIET)
+execute_process(COMMAND python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE}
+  RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_2
+  OUTPUT_VARIABLE ALGORITHMS_GENERATION_OUTPUT
+  ERROR_QUIET)
+execute_process(COMMAND python3 ${SEQUENCE}.py
+  WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
+  RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_3
+  OUTPUT_VARIABLE ALGORITHMS_GENERATION_OUTPUT
+  ERROR_QUIET)
+
+if(${ALGORITHMS_GENERATION_RESULT_0} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_1} EQUAL 1 OR
+  ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 1)
+  message(WARNING "Testing code generation with LLVM - Failed. If you want to change the default available configurations, please install clang (minimum version 9.0.0).")
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -109,7 +128,7 @@ else()
   message(STATUS "Testing code generation with LLVM - Success")
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${PROJECT_SEQUENCE_DIR}" && 
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions/*" "${SEQUENCE_DEFINITION_DIR}/" && 
       ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/" &&
       python3 ${SEQUENCE}.py &&
       ${CMAKE_COMMAND} -E copy "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"

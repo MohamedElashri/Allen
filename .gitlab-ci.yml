@@ -303,8 +303,8 @@ test_physics_efficiency:
     - cat *_diff > alldiffs
     - if [ -s alldiffs ]; then echo "Differences were found against reference files."; exit 1; else echo "No differences found against reference files."; exit 0; fi
   dependencies:
-    - geforcertx2080ti:CUDA:DefaultSequence:run_physics_efficiency
-    - x862630v4:CPU:DefaultSequence:run_physics_efficiency
+    - geforcertx2080ti:CUDA:HLT1:run_physics_efficiency
+    - x862630v4:CPU:HLT1:run_physics_efficiency
   tags:
     - x86 # Note: colordiff must be installed
   allow_failure: true
@@ -321,7 +321,7 @@ test_physics_efficiency:
 #     - cd build_CUDA
 #     - ctest -V
 #   dependencies:
-#     - CUDA:DefaultSequence:Debug::build
+#     - CUDA:HLT1:Debug::build
 #   allow_failure: true
 
 .publish_throughput_job: &publish_throughput_job_def
@@ -370,32 +370,32 @@ test_physics_efficiency:
 # Build
 # =====
 
-CUDA:DefaultSequence:RelWithDebInfo::build:
+CUDA:HLT1:RelWithDebInfo::build:
   <<: *build_job_def
   tags:
     - cvmfs
 
-CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build:
+CUDA:HLT1:Debug:-DUSE_ROOT=ON:build:
   <<: *build_job_def
   tags:
     - cvmfs
 
-CPU:DefaultSequence:Debug::build:
+CPU:HLT1:Debug::build:
   <<: *build_test_job_def
   tags:
     - cvmfs
 
-CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build:
+CPU:HLT1:Debug:-DUSE_ROOT=ON:build:
   <<: *build_job_def
   tags:
     - cvmfs
 
-CPU:DefaultSequence:RelWithDebInfo::build:
+CPU:HLT1:RelWithDebInfo::build:
   <<: *build_job_def
   tags:
     - cvmfs
 
-CPU:DefaultSequence:RelWithDebInfo::build_clang:
+CPU:HLT1:RelWithDebInfo::build_clang:
   <<: *build_clang_job_def
   tags:
     - cvmfs
@@ -406,110 +406,110 @@ CPU:DefaultSequence:RelWithDebInfo::build_clang:
 
 # Throughput runs
 
-geforcertx2080ti:CUDA:DefaultSequence:run_throughput:
+geforcertx2080ti:CUDA:HLT1:run_throughput:
   <<: *run_throughput_job_def
   tags:
     - geforcertx2080ti
   dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+    - CUDA:HLT1:RelWithDebInfo::build
 
-quadrortx6000:CUDA:DefaultSequence:run_throughput:
+quadrortx6000:CUDA:HLT1:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - quadrortx6000
   dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+    - CUDA:HLT1:RelWithDebInfo::build
 
-teslav100:CUDA:DefaultSequence:run_throughput:
+teslav100:CUDA:HLT1:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - teslav100
   dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+    - CUDA:HLT1:RelWithDebInfo::build
 
-teslat4:CUDA:DefaultSequence:run_throughput:
+teslat4:CUDA:HLT1:run_throughput:
   <<: *run_throughput_job_no_profiling_def
   tags:
     - teslat4
   dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+    - CUDA:HLT1:RelWithDebInfo::build
 
 # Note: Add -gencode=arch=compute_61,code=sm_61
 #       to the configuration if these cards are enabled.
  
-# geforcegtx10606g:CUDA:DefaultSequence:run_throughput:
+# geforcegtx10606g:CUDA:HLT1:run_throughput:
 #   <<: *run_throughput_job_no_profiling_def
 #   tags:
 #     - geforcegtx10606g
 #   dependencies:
-#     - CUDA:DefaultSequence:RelWithDebInfo::build
+#     - CUDA:HLT1:RelWithDebInfo::build
 
-# geforcegtx1080ti:CUDA:DefaultSequence:run_throughput:
+# geforcegtx1080ti:CUDA:HLT1:run_throughput:
 #   <<: *run_throughput_job_no_profiling_def
 #   tags:
 #     - geforcegtx1080ti
 #   dependencies:
-#     - CUDA:DefaultSequence:RelWithDebInfo::build
+#     - CUDA:HLT1:RelWithDebInfo::build
 
-x862630v4:CPU:DefaultSequence:run_throughput_cpu:
+x862630v4:CPU:HLT1:run_throughput_cpu:
   <<: *run_throughput_job_no_profiling_def_cpu
   tags:
     - x862630v4
   dependencies:
-    - CPU:DefaultSequence:RelWithDebInfo::build
+    - CPU:HLT1:RelWithDebInfo::build
 
 # Physics efficiency runs
 
-geforcertx2080ti:CUDA:DefaultSequence:run_physics_efficiency:
+geforcertx2080ti:CUDA:HLT1:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
   dependencies:
-    - CUDA:DefaultSequence:RelWithDebInfo::build
+    - CUDA:HLT1:RelWithDebInfo::build
 
-x862630v4:CPU:DefaultSequence:run_physics_efficiency:
+x862630v4:CPU:HLT1:run_physics_efficiency:
   <<: *run_physics_efficiency_job_def
   tags:
     - x862630v4
   dependencies:
-    - CPU:DefaultSequence:RelWithDebInfo::build
+    - CPU:HLT1:RelWithDebInfo::build
 
 # Test runs
 
-geforcertx2080ti:CUDA:DefaultSequence:run_physics_efficiency_debug:
+geforcertx2080ti:CUDA:HLT1:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - geforcertx2080ti
   dependencies:
-    - CUDA:DefaultSequence:Debug:-DUSE_ROOT=ON:build
+    - CUDA:HLT1:Debug:-DUSE_ROOT=ON:build
 
-x86:CPU:DefaultSequence:run_physics_efficiency_debug:
+x86:CPU:HLT1:run_physics_efficiency_debug:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86
   dependencies:
-    - CPU:DefaultSequence:Debug::build
+    - CPU:HLT1:Debug::build
 
-x86:CPU:DefaultSequence:run_physics_efficiency_debug_root:
+x86:CPU:HLT1:run_physics_efficiency_debug_root:
   <<: *run_physics_efficiency_job_def
   tags:
     - x86
   dependencies:
-    - CPU:DefaultSequence:Debug:-DUSE_ROOT=ON:build
+    - CPU:HLT1:Debug:-DUSE_ROOT=ON:build
 
 # =======
 # Publish
 # =======
 
-throughput:DefaultSequence:geforcertx2080ti:publish_throughput:
+throughput:HLT1:geforcertx2080ti:publish_throughput:
   <<: *publish_throughput_job_def
   tags:
     - x86
   dependencies:
-    - geforcertx2080ti:CUDA:DefaultSequence:run_throughput
-    - quadrortx6000:CUDA:DefaultSequence:run_throughput
-    - teslav100:CUDA:DefaultSequence:run_throughput
-    - teslat4:CUDA:DefaultSequence:run_throughput
-    - x862630v4:CPU:DefaultSequence:run_throughput_cpu
-    # - geforcegtx1080ti:CUDA:DefaultSequence:run_throughput
-    # - geforcegtx10606g:CUDA:DefaultSequence:run_throughput
+    - geforcertx2080ti:CUDA:HLT1:run_throughput
+    - quadrortx6000:CUDA:HLT1:run_throughput
+    - teslav100:CUDA:HLT1:run_throughput
+    - teslat4:CUDA:HLT1:run_throughput
+    - x862630v4:CPU:HLT1:run_throughput_cpu
+    # - geforcegtx1080ti:CUDA:HLT1:run_throughput
+    # - geforcegtx10606g:CUDA:HLT1:run_throughput
