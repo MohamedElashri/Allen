@@ -17,8 +17,8 @@ namespace ParKalmanFilter {
   [[maybe_unused]] __constant__ static KalmanFloat F_diag[25] = {1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
                                                                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1};
 
-  // Max number of measurements.
-  constexpr int nMaxMeasurements = 41; // 25 VELO + 4 UT + 12 SciFi
+  // 26 VELO + 4 UT + 12 SciFi.
+  constexpr int nMaxMeasurements = 42; 
 
   // Max number of bins for the UT <-> SciFi extrapolation.
   constexpr int nBinXMax = 60;

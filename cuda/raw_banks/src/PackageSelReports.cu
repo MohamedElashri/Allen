@@ -52,7 +52,7 @@ __global__ void package_sel_reports::package_sel_reports(
         hits_bank.m_location,
         hits_bank.size());
     }
-
+    
     if (stdinfo_bank.sizeStored() < Hlt1::maxStdInfoEvent) {
       selrep_bank.push_back(
         HltSelRepRBEnums::kStdInfoID,

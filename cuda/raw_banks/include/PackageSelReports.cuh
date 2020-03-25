@@ -79,6 +79,6 @@ namespace package_sel_reports {
     }
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
+    Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
 } // namespace package_sel_reports
