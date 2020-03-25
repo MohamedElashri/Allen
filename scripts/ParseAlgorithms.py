@@ -264,6 +264,97 @@ class ConfGen():
         return s
 
 
+class GaudiAllenConf():
+    """Static class that generates a python representation of
+    Allen algorithms and lines."""
+
+    @staticmethod
+    def prefix(indentation_level, indent_by=2):
+        return "".join([" "] * indentation_level * indent_by)
+
+    @staticmethod
+    def create_var_type(scope):
+        t = ""
+        if scope == "DEVICE_INPUT":
+            t = "R"
+        elif scope == "DEVICE_OUTPUT":
+            t = "W"
+        elif scope == "HOST_INPUT":
+            t = "R"
+        elif scope == "HOST_OUTPUT":
+            t = "W"
+        return t
+
+    @staticmethod
+    def write_preamble(i=0):
+        # Fetch base_types.py and include it here to make file self-contained
+        f = open(prefix_project_folder + "/scripts/BaseTypes.py")
+        s = f.read()
+        f.close()
+        return s
+
+    @staticmethod
+    def write_line_code(line, i=0):
+        s = ConfGen.prefix(
+            i) + "class " + line.name + "(" + line.line_type + "):\n"
+        i += 1
+        s += ConfGen.prefix(i) + "def __init__(self):\n"
+        i += 1
+        s += ConfGen.prefix(i) + "self.__name=\"" + line.name + "\"\n"
+        s += ConfGen.prefix(i) + "self.__filename=\"" + line.filename[len(
+            prefix_project_folder):] + "\"\n"
+        s += ConfGen.prefix(
+            i) + "self.__namespace=\"" + line.namespace + "\"\n"
+        i -= 1
+        s += "\n"
+
+        s += ConfGen.prefix(i) + "def filename(self):\n"
+        i += 1
+        s += ConfGen.prefix(i) + "return self.__filename\n\n"
+        i -= 1
+
+        s += ConfGen.prefix(i) + "def namespace(self):\n"
+        i += 1
+        s += ConfGen.prefix(i) + "return self.__namespace\n\n"
+        i -= 1
+
+        s += ConfGen.prefix(i) + "def name(self):\n"
+        i += 1
+        s += ConfGen.prefix(i) + "return self.__name\n\n"
+        i -= 2
+        s += "\n"
+
+        return s
+
+    @staticmethod
+    def write_algorithm_code(algorithm, i=0):
+        s = GaudiAllenConf.prefix(i) + "class " + algorithm.name + "(ConfigurableAlgorithm):\n"
+        i += 1
+        s += GaudiAllenConf.prefix(i) + "__slots__ = dict(\n"
+        i += 1
+        for param in algorithm.parameters:
+            s += GaudiAllenConf.prefix(i) + param.typename + " = DataObjectHandleBase(\"" + param.typename + "\", \"" \
+                + GaudiAllenConf.create_var_type(param.kind) + "\", \"" + str(param.typedef) + "\"),\n"
+        s = s[:-2]
+        i -= 1
+        s += "\n" + GaudiAllenConf.prefix(i) + ")\n\n"
+        s += GaudiAllenConf.prefix(i) + "def __init__(self, name = Configurable.DefaultName, **kwargs):\n"
+        i += 1
+        s += GaudiAllenConf.prefix(i) + "super(" + algorithm.name + ", self).__init__(name)\n" \
+            + GaudiAllenConf.prefix(i) + "for n,v in kwargs.items():\n"
+        i += 1
+        s += GaudiAllenConf.prefix(i) + "setattr(self, n, v)\n\n"
+        i -= 2
+        s += GaudiAllenConf.prefix(i) + "def getDlls(self):\n"
+        i += 1
+        s += GaudiAllenConf.prefix(i) + "return \"Allen\"\n\n"
+        i -= 1
+        s += GaudiAllenConf.prefix(i) + "def getType(self):\n"
+        i += 1
+        s += GaudiAllenConf.prefix(i) + "return \"" + algorithm["name"] + "\"\n\n\n"
+
+
+
 if __name__ == '__main__':
     filename = "algorithms.py"
     if len(sys.argv) > 1:
