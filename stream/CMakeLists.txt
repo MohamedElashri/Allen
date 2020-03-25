@@ -96,7 +96,7 @@ execute_process(COMMAND python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUT
       ERROR_QUIET)
 
 if(${ALGORITHMS_GENERATION_RESULT} EQUAL 1)
-  message(STATUS "Testing code generation with LLVM - Failed. If you want to change the default available configurations, please install clang (minimum version 6.0.0).")
+  message(WARNING "Testing code generation with LLVM - Failed. If you want to change the default available configurations, please install clang (minimum version 6.0.0).")
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
@@ -109,7 +109,10 @@ else()
   message(STATUS "Testing code generation with LLVM - Success")
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-    COMMAND ${CMAKE_COMMAND} -E copy -r "${CMAKE_SOURCE_DIR}/configuration/sequences/*" "${PROJECT_SEQUENCE_DIR}/" && ${CMAKE_COMMAND} -E python3 ${SEQUENCE}.py && ${CMAKE_COMMAND} -E copy "${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${PROJECT_SEQUENCE_DIR}" && 
+      ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/" &&
+      python3 ${SEQUENCE}.py &&
+      ${CMAKE_COMMAND} -E copy "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
     DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
   )
@@ -121,6 +124,7 @@ allen_add_device_library(Stream STATIC ${stream_sequence})
 
 target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration/sequences")
 
+add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h")
 add_dependencies(Stream configured_sequence)
 
 target_link_libraries(Stream PRIVATE
