@@ -2,6 +2,7 @@
 
 import re
 import os
+import sys
 from collections import OrderedDict
 from AlgorithmTraversalLibTooling import AlgorithmTraversal
 from LineTraversalLibTooling import LineTraversal
@@ -95,7 +96,7 @@ class ConfGen():
     @staticmethod
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
-        f = open("BaseTypes.py")
+        f = open(Parser().prefix_project_folder + "/scripts/BaseTypes.py")
         s = f.read()
         f.close()
         return s
@@ -265,6 +266,8 @@ class ConfGen():
 
 if __name__ == '__main__':
     filename = "algorithms.py"
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
 
     print("Parsing algorithms...")
     parsed_algorithms, parsed_lines = Parser().parse_all()

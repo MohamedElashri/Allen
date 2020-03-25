@@ -75,17 +75,45 @@ if (NOT GaudiProject_FOUND)
   include_directories(${CMAKE_SOURCE_DIR}/mdf/lhcb)
 endif()
 
-
 file(GLOB stream_gear "gear/src/*cpp")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
 file(GLOB stream_sequence "sequence/src/*cu")
 
-# TODO: Maybe remove in Gaudi build
-add_custom_command(
-  OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-  DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
-)
+# Deal with configuration generation machinery
+# Test by actually trying to generate "algorithms.py"
+# * If clang is available, we can and will generate the configuration files
+# * Otherwise, warn that it is not possible to generate configurations
+set(PROJECT_SEQUENCE_DIR ${CMAKE_BINARY_DIR}/sequences)
+set(SEQUENCE_DEFINITION_DIR ${PROJECT_SEQUENCE_DIR}/definitions)
+set(ALGORITHMS_OUTPUTFILE ${SEQUENCE_DEFINITION_DIR}/algorithms.py)
+set(ALGORITHMS_GENERATION_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/ParseAlgorithms.py)
+file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
+
+message(STATUS "Testing code generation with LLVM")
+execute_process(COMMAND python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE}
+      RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT
+      OUTPUT_VARIABLE ALGORITHMS_GENERATION_OUTPUT
+      ERROR_QUIET)
+
+if(${ALGORITHMS_GENERATION_RESULT} EQUAL 1)
+  message(STATUS "Testing code generation with LLVM - Failed. If you want to change the default available configurations, please install clang (minimum version 6.0.0).")
+  add_custom_command(
+    OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+    DEPENDS "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h"
+    COMMENT "Configuring sequence ${SEQUENCE}"
+    VERBATIM
+  )
+else()
+  message(STATUS "Testing code generation with LLVM - Success")
+  add_custom_command(
+    OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+    COMMAND ${CMAKE_COMMAND} -E copy -r "${CMAKE_SOURCE_DIR}/configuration/sequences/*" "${PROJECT_SEQUENCE_DIR}/" && ${CMAKE_COMMAND} -E python3 ${SEQUENCE}.py && ${CMAKE_COMMAND} -E copy "${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+    DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
+    WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
+  )
+endif()
 
 allen_add_host_library(HostStream STATIC ${stream_gear} ${stream_sequence_cpp})
 
