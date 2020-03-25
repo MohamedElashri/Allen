@@ -8,6 +8,9 @@ from AlgorithmTraversalLibTooling import AlgorithmTraversal
 from LineTraversalLibTooling import LineTraversal
 
 
+# Prefix folder, prepended to device / host folder
+prefix_project_folder = "../"
+
 class Parser():
     """A parser static class. This class steers the parsing of the
     codebase. It can be configured with the variables below."""
@@ -23,9 +26,6 @@ class Parser():
     __sought_extensions_compiled = [
         re.compile(".*\\." + p + "$") for p in ["cuh", "h", "hpp"]
     ]
-
-    # Prefix folder, prepended to device / host folder
-    prefix_project_folder = "../"
 
     # Folders storing device and host code
     __device_folder = "cuda"
@@ -43,8 +43,8 @@ class Parser():
 
     @staticmethod
     def get_all_filenames():
-        return Parser.__get_filenames(Parser.prefix_project_folder + Parser.__device_folder, Parser.__sought_extensions_compiled) + \
-            Parser.__get_filenames(Parser.prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
+        return Parser.__get_filenames(prefix_project_folder + Parser.__device_folder, Parser.__sought_extensions_compiled) + \
+            Parser.__get_filenames(prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
 
     @staticmethod
     def parse_all(algorithm_parser=AlgorithmTraversal(),
@@ -96,7 +96,7 @@ class ConfGen():
     @staticmethod
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
-        f = open(Parser().prefix_project_folder + "/scripts/BaseTypes.py")
+        f = open(prefix_project_folder + "/scripts/BaseTypes.py")
         s = f.read()
         f.close()
         return s
@@ -110,7 +110,7 @@ class ConfGen():
         i += 1
         s += ConfGen.prefix(i) + "self.__name=\"" + line.name + "\"\n"
         s += ConfGen.prefix(i) + "self.__filename=\"" + line.filename[len(
-            Parser().prefix_project_folder):] + "\"\n"
+            prefix_project_folder):] + "\"\n"
         s += ConfGen.prefix(
             i) + "self.__namespace=\"" + line.namespace + "\"\n"
         i -= 1
@@ -153,7 +153,7 @@ class ConfGen():
               + "\"\", " + prop.description + ")"
         s += "):\n"
         s += ConfGen.prefix(i) + "self.__filename = \"" + algorithm.filename[
-            len(Parser().prefix_project_folder):] + "\"\n"
+            len(prefix_project_folder):] + "\"\n"
         s += ConfGen.prefix(i) + "self.__name = name\n"
         s += ConfGen.prefix(
             i) + "self.__original_name = \"" + algorithm.name + "\"\n"
@@ -268,6 +268,8 @@ if __name__ == '__main__':
     filename = "algorithms.py"
     if len(sys.argv) > 1:
         filename = sys.argv[1]
+        if len(sys.argv) > 2:
+            prefix_project_folder = sys.argv[2] + "/"
 
     print("Parsing algorithms...")
     parsed_algorithms, parsed_lines = Parser().parse_all()
