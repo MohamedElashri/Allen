@@ -44,14 +44,12 @@ class Parser():
             has_algorithm = Parser.__algorithm_pattern_compiled.search(s)
             if has_algorithm:
                 parsed_algorithms = algorithm_parser.traverse(filename)
-                print(filename, parsed_algorithms)
                 if parsed_algorithms:
                     algorithms += parsed_algorithms
             # Invoke the libTooling line parser only if we find the line pattern
             has_line = Parser.__line_pattern_compiled.search(s)
             if has_line:
                 parsed_lines = line_parser.traverse(filename)
-                print(filename, parsed_lines)
                 if parsed_lines:
                     lines += parsed_lines
         return algorithms, lines

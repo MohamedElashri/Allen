@@ -47,19 +47,19 @@ class LineTraversal():
     __ignored_namespaces = ["std", "__gnu_cxx", "__cxxabiv1", "__gnu_debug"]
 
     # Arguments to pass to compiler, as function of file extension.
-    __compile_flags = {"cuh": ["-x", "cuda", "-std=c++14"], "hpp": ["-std=c++17"], "h": ["-std=c++17"]}
+    __compile_flags = {"cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++"], "hpp": ["-std=c++17"], "h": ["-std=c++17"]}
 
     # Clang index
     __index = cindex.Index.create()
 
     @staticmethod
-    def traverse_children(c, f):
+    def traverse_children(c, f, *args):
         """ Traverses the children of a cursor c by applying function f.
         Returns a list of traversed objects. If the result of traversing
         an object is None, it is ignored."""
         return_object = []
         for child_node in c.get_children():
-            parsed_children = f(child_node)
+            parsed_children = f(child_node, *args)
             if parsed_children.__class__ != None.__class__:
                 return_object.append(parsed_children)
         return return_object
@@ -85,9 +85,10 @@ class LineTraversal():
             return None
 
     @staticmethod
-    def namespace(c):
+    def namespace(c, filename):
         """Traverses the namespaces."""
-        if c.kind == cindex.CursorKind.NAMESPACE and c.spelling not in LineTraversal.__ignored_namespaces:
+        if c.kind == cindex.CursorKind.NAMESPACE and c.spelling not in LineTraversal.__ignored_namespaces and \
+            c.location.file.name == filename:
             return (c.kind, c.spelling, LineTraversal.traverse_children(c, LineTraversal.line))
         else:
             return None
@@ -101,7 +102,7 @@ class LineTraversal():
             clang_args = LineTraversal.__compile_flags[extension]
             tu = LineTraversal.__index.parse(filename, args=clang_args)
             if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:
-                return make_parsed_lines(filename, LineTraversal.traverse_children(tu.cursor, LineTraversal.namespace))
+                return make_parsed_lines(filename, LineTraversal.traverse_children(tu.cursor, LineTraversal.namespace, filename))
             else:
                 return None
         except IndexError:
