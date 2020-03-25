@@ -94,7 +94,10 @@ class ConfGen():
 
     @staticmethod
     def write_preamble(i=0):
-        s = "from collections import OrderedDict\nfrom base_types import *\n\n"
+        # Fetch base_types.py and include it here to make file self-contained
+        f = open("BaseTypes.py")
+        s = f.read()
+        f.close()
         return s
 
     @staticmethod

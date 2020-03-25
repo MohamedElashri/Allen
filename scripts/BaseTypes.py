@@ -347,11 +347,9 @@ class Sequence():
 
     def generate(
             self,
-            output_filename="generated/ConfiguredSequence.h",
-            json_configuration_filename="generated/Configuration.json",
-            json_defaults_configuration_filename="generated/ConfigurationGuide.json",
-            prefix_includes="../../",
-            generate_json_defaults=False):
+            output_filename="Sequence.h",
+            json_configuration_filename="Sequence.json",
+            prefix_includes="../../"):
         # Check that sequence is valid
         print("Validating sequence...")
         if self.validate():
@@ -461,34 +459,6 @@ class Sequence():
             f.close()
             print("Generated JSON configuration file " +
                   json_configuration_filename)
-            if generate_json_defaults:
-                print("Generating JSON defaults configuration file...")
-                s = "{\n"
-                i = 1
-                for _, algorithm in iter(self.__sequence.items()):
-                    has_modified_properties = False
-                    for prop_name, prop in iter(
-                            algorithm.properties().items()):
-                        if prop.default_value() != "":
-                            has_modified_properties = True
-                            break
-                    if has_modified_properties:
-                        s += prefix(i) + "\"" + algorithm.name() + "\": {"
-                        for prop_name, prop in iter(
-                                algorithm.properties().items()):
-                            if prop.default_value() != "":
-                                s += "\"" + prop_name + "\": \"" + prop.default_value(
-                                ) + "\", "
-                        s = s[:-2]
-                        s += "},\n"
-                if s[-2] == ",":
-                    s = s[:-2]
-                s += "\n}\n"
-                f = open(json_defaults_configuration_filename, "w")
-                f.write(s)
-                f.close()
-                print("Generated JSON defaults configuration file " +
-                      json_defaults_configuration_filename)
         else:
             print(
                 "The sequence contains errors. Please fix them and generate again."
@@ -533,3 +503,5 @@ def compose_sequences(*args):
         for item in sequence:
             new_sequence.append(item)
     return Sequence(new_sequence)
+
+
