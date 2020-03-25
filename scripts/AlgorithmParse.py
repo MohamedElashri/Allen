@@ -8,10 +8,22 @@ from LineTraversalLibTooling import LineTraversal
 
 
 class Parser():
+    """A parser static class. This class steers the parsing of the
+    codebase. It can be configured with the variables below."""
+
+    # Pattern sought in every file, prior to parsing the file for an algorithm
     __algorithm_pattern_compiled = re.compile("(?P<scope>Host|Device)Algorithm")
+
+    # Pattern sought in every file, prior to parsing the file for a line
     __line_pattern_compiled = re.compile("Hlt1::[\\w_]+Line")
+
+    # File extensions considered
     __sought_extensions_compiled = [re.compile(".*\\." + p + "$") for p in ["cuh", "h", "hpp"]]
+
+    # Prefix folder, prepended to device / host folder
     prefix_project_folder = "../"
+
+    # Folders storing device and host code
     __device_folder = "cuda"
     __host_folder = "x86"
 
@@ -56,6 +68,9 @@ class Parser():
 
 
 class ConfGen():
+    """Static class that generates a python representation of
+    Allen algorithms and lines."""
+
     @staticmethod
     def prefix(indentation_level, indent_by=2):
         return "".join([" "] * indentation_level * indent_by)
