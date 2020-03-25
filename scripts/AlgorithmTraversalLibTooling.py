@@ -2,7 +2,8 @@ import clang.cindex as cindex
 
 
 class ParsedAlgorithm():
-    def __init__(self, name, scope, filename, namespace, threetemplate, parameters, properties):
+    def __init__(self, name, scope, filename, namespace, threetemplate,
+                 parameters, properties):
         self.name = name
         self.scope = scope
         self.filename = filename
@@ -51,10 +52,14 @@ def make_parsed_algorithms(filename, data):
                 if kind == "PROPERTY":
                     property_name = t[2][2]
                     property_description = t[2][3]
-                    properties.append(Property(kind, typename, typedef, property_name, property_description))
+                    properties.append(
+                        Property(kind, typename, typedef, property_name,
+                                 property_description))
                 else:
                     parameters.append(Parameter(kind, typename, typedef))
-            parsed_algorithms.append(ParsedAlgorithm(name, scope, filename, namespace, threetemplate, parameters, properties))
+            parsed_algorithms.append(
+                ParsedAlgorithm(name, scope, filename, namespace,
+                                threetemplate, parameters, properties))
     return parsed_algorithms
 
 
@@ -79,7 +84,11 @@ class AlgorithmTraversal():
     __ignored_namespaces = ["std", "__gnu_cxx", "__cxxabiv1", "__gnu_debug"]
 
     # Arguments to pass to compiler, as function of file extension.
-    __compile_flags = {"cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++"], "hpp": ["-std=c++17"], "h": ["-std=c++17"]}
+    __compile_flags = {
+        "cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++"],
+        "hpp": ["-std=c++17"],
+        "h": ["-std=c++17"]
+    }
 
     # Clang index
     __index = cindex.Index.create()
@@ -103,14 +112,16 @@ class AlgorithmTraversal():
         for t in c.get_tokens():
             tokens.append(t)
         if tokens[0].spelling == "PROPERTY":
-            return (tokens[2].spelling, tokens[4].spelling, tokens[6].spelling, tokens[8].spelling)
+            return (tokens[2].spelling, tokens[4].spelling, tokens[6].spelling,
+                    tokens[8].spelling)
         return (tokens[2].spelling, tokens[4].spelling)
 
     @staticmethod
     def parameters(c):
         """Traverses all parameters of an Algorithm."""
         if c.kind == cindex.CursorKind.CXX_METHOD:
-            return (c.kind, c.spelling, AlgorithmTraversal.traverse_individual_parameters(c))
+            return (c.kind, c.spelling,
+                    AlgorithmTraversal.traverse_individual_parameters(c))
         else:
             return None
 
@@ -119,7 +130,8 @@ class AlgorithmTraversal():
         """Traverses an algorithm definition. Once a base class is found (Parameters),
         it delegates traversing the parameters."""
         if c.kind == cindex.CursorKind.CXX_BASE_SPECIFIER:
-            return AlgorithmTraversal.traverse_children(c.get_definition(), AlgorithmTraversal.parameters)
+            return AlgorithmTraversal.traverse_children(
+                c.get_definition(), AlgorithmTraversal.parameters)
         else:
             return None
 
@@ -146,9 +158,13 @@ class AlgorithmTraversal():
                     break
             if algorithm_class is not None:
                 # Fetch the parameters of the algorithm
-                algorithm_parameters = AlgorithmTraversal.traverse_children(c, AlgorithmTraversal.algorithm_definition)
-                template_parameters = len(AlgorithmTraversal.traverse_children(c, AlgorithmTraversal.algorithm_templates))
-                return (c.kind, c.spelling, template_parameters, algorithm_class, algorithm_parameters)
+                algorithm_parameters = AlgorithmTraversal.traverse_children(
+                    c, AlgorithmTraversal.algorithm_definition)
+                template_parameters = len(
+                    AlgorithmTraversal.traverse_children(
+                        c, AlgorithmTraversal.algorithm_templates))
+                return (c.kind, c.spelling, template_parameters,
+                        algorithm_class, algorithm_parameters)
             else:
                 return None
         else:
@@ -159,7 +175,9 @@ class AlgorithmTraversal():
         """Traverses the namespaces."""
         if c.kind == cindex.CursorKind.NAMESPACE and c.spelling not in AlgorithmTraversal.__ignored_namespaces and \
             c.location.file.name == filename:
-            return (c.kind, c.spelling, AlgorithmTraversal.traverse_children(c, AlgorithmTraversal.algorithm))
+            return (c.kind, c.spelling,
+                    AlgorithmTraversal.traverse_children(
+                        c, AlgorithmTraversal.algorithm))
         else:
             return None
 
@@ -172,7 +190,10 @@ class AlgorithmTraversal():
             clang_args = AlgorithmTraversal.__compile_flags[extension]
             tu = AlgorithmTraversal.__index.parse(filename, args=clang_args)
             if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:
-                return make_parsed_algorithms(filename, AlgorithmTraversal.traverse_children(tu.cursor, AlgorithmTraversal.namespace, filename))
+                return make_parsed_algorithms(
+                    filename,
+                    AlgorithmTraversal.traverse_children(
+                        tu.cursor, AlgorithmTraversal.namespace, filename))
             else:
                 return None
         except IndexError:

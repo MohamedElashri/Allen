@@ -12,13 +12,16 @@ class Parser():
     codebase. It can be configured with the variables below."""
 
     # Pattern sought in every file, prior to parsing the file for an algorithm
-    __algorithm_pattern_compiled = re.compile("(?P<scope>Host|Device)Algorithm")
+    __algorithm_pattern_compiled = re.compile(
+        "(?P<scope>Host|Device)Algorithm")
 
     # Pattern sought in every file, prior to parsing the file for a line
     __line_pattern_compiled = re.compile("Hlt1::[\\w_]+Line")
 
     # File extensions considered
-    __sought_extensions_compiled = [re.compile(".*\\." + p + "$") for p in ["cuh", "h", "hpp"]]
+    __sought_extensions_compiled = [
+        re.compile(".*\\." + p + "$") for p in ["cuh", "h", "hpp"]
+    ]
 
     # Prefix folder, prepended to device / host folder
     prefix_project_folder = "../"
@@ -43,7 +46,8 @@ class Parser():
             Parser.__get_filenames(Parser.prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
 
     @staticmethod
-    def parse_all(algorithm_parser=AlgorithmTraversal(), line_parser=LineTraversal()):
+    def parse_all(algorithm_parser=AlgorithmTraversal(),
+                  line_parser=LineTraversal()):
         """Parses all files and traverses algorithm and line definitions."""
         all_filenames = Parser.get_all_filenames()
         algorithms = []
@@ -103,7 +107,8 @@ class ConfGen():
         s += ConfGen.prefix(i) + "self.__name=\"" + line.name + "\"\n"
         s += ConfGen.prefix(i) + "self.__filename=\"" + line.filename[len(
             Parser().prefix_project_folder):] + "\"\n"
-        s += ConfGen.prefix(i) + "self.__namespace=\"" + line.namespace + "\"\n"
+        s += ConfGen.prefix(
+            i) + "self.__namespace=\"" + line.namespace + "\"\n"
         i -= 1
         s += "\n"
 
@@ -127,7 +132,8 @@ class ConfGen():
 
     @staticmethod
     def write_algorithm_code(algorithm, i=0):
-        s = ConfGen.prefix(i) + "class " + algorithm.name + "(" + algorithm.scope + "):\n"
+        s = ConfGen.prefix(
+            i) + "class " + algorithm.name + "(" + algorithm.scope + "):\n"
         i += 1
         s += ConfGen.prefix(i) + "def __init__(self,\n"
         i += 1
@@ -142,15 +148,17 @@ class ConfGen():
               + "(\"" + prop.typedef + "\", " \
               + "\"\", " + prop.description + ")"
         s += "):\n"
-        s += ConfGen.prefix(i) + "self.__filename = \"" + algorithm.filename[len(
-            Parser().prefix_project_folder):] + "\"\n"
+        s += ConfGen.prefix(i) + "self.__filename = \"" + algorithm.filename[
+            len(Parser().prefix_project_folder):] + "\"\n"
         s += ConfGen.prefix(i) + "self.__name = name\n"
-        s += ConfGen.prefix(i) + "self.__original_name = \"" + algorithm.name + "\"\n"
+        s += ConfGen.prefix(
+            i) + "self.__original_name = \"" + algorithm.name + "\"\n"
         if algorithm.threetemplate:
             s += ConfGen.prefix(i) + "self.__requires_lines = True\n"
         else:
             s += ConfGen.prefix(i) + "self.__requires_lines = False\n"
-        s += ConfGen.prefix(i) + "self.__namespace = \"" + algorithm.namespace + "\"\n"
+        s += ConfGen.prefix(
+            i) + "self.__namespace = \"" + algorithm.namespace + "\"\n"
         s += ConfGen.prefix(i) + "self.__ordered_parameters = OrderedDict(["
         i += 1
         for var in algorithm.parameters:
@@ -204,7 +212,8 @@ class ConfGen():
             s += ConfGen.prefix(i) + "def " + var.typename + "(self):\n"
             i += 1
             s += ConfGen.prefix(
-                i) + "return self.__ordered_parameters[\"" + var.typename + "\"]\n\n"
+                i
+            ) + "return self.__ordered_parameters[\"" + var.typename + "\"]\n\n"
             i -= 1
 
         for prop in algorithm.properties:
@@ -231,13 +240,17 @@ class ConfGen():
         s += ConfGen.prefix(
             i
         ) + "s = self.__original_name + \" \\\"\" + self.__name + \"\\\" (\"\n"
-        s += ConfGen.prefix(i) + "for k, v in iter(self.__ordered_parameters.items()):\n"
+        s += ConfGen.prefix(
+            i) + "for k, v in iter(self.__ordered_parameters.items()):\n"
         i += 1
-        s += ConfGen.prefix(i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
+        s += ConfGen.prefix(
+            i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
         i -= 1
-        s += ConfGen.prefix(i) + "for k, v in iter(self.__ordered_properties.items()):\n"
+        s += ConfGen.prefix(
+            i) + "for k, v in iter(self.__ordered_properties.items()):\n"
         i += 1
-        s += ConfGen.prefix(i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
+        s += ConfGen.prefix(
+            i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
         i -= 1
         s += ConfGen.prefix(i) + "s = s[:-2]\n"
         s += ConfGen.prefix(i) + "s += \")\"\n"
@@ -249,7 +262,7 @@ class ConfGen():
 
 if __name__ == '__main__':
     filename = "algorithms.py"
-    
+
     print("Parsing algorithms...")
     parsed_algorithms, parsed_lines = Parser().parse_all()
 
@@ -266,4 +279,3 @@ if __name__ == '__main__':
     f.close()
 
     print("File " + filename + " was successfully generated.")
-

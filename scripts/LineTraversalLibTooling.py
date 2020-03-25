@@ -22,7 +22,8 @@ def make_parsed_lines(filename, data):
             namespace = namespace_data[1]
             name = line_description[1]
             line_type = line_description[2]
-            parsed_lines.append(ParsedLine(name, line_type, namespace, filename))
+            parsed_lines.append(
+                ParsedLine(name, line_type, namespace, filename))
     return parsed_lines
 
 
@@ -39,15 +40,21 @@ class LineTraversal():
 
     # Accepted tokens for line definitions
     # TODO: This should be automatically fetched
-    __line_tokens = ["Line", "SpecialLine", "VeloLine", "OneTrackLine", "TwoTrackLine",
-        "VeloUTTwoTrackLine", "ThreeTrackLine", "FourTrackLine"]
+    __line_tokens = [
+        "Line", "SpecialLine", "VeloLine", "OneTrackLine", "TwoTrackLine",
+        "VeloUTTwoTrackLine", "ThreeTrackLine", "FourTrackLine"
+    ]
 
     # Ignored namespaces. Definition of algorithms start by looking into namespaces,
     # therefore ignoring some speeds up the traversal.
     __ignored_namespaces = ["std", "__gnu_cxx", "__cxxabiv1", "__gnu_debug"]
 
     # Arguments to pass to compiler, as function of file extension.
-    __compile_flags = {"cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++"], "hpp": ["-std=c++17"], "h": ["-std=c++17"]}
+    __compile_flags = {
+        "cuh": ["-x", "cuda", "-std=c++14", "-nostdinc++"],
+        "hpp": ["-std=c++17"],
+        "h": ["-std=c++17"]
+    }
 
     # Clang index
     __index = cindex.Index.create()
@@ -89,7 +96,8 @@ class LineTraversal():
         """Traverses the namespaces."""
         if c.kind == cindex.CursorKind.NAMESPACE and c.spelling not in LineTraversal.__ignored_namespaces and \
             c.location.file.name == filename:
-            return (c.kind, c.spelling, LineTraversal.traverse_children(c, LineTraversal.line))
+            return (c.kind, c.spelling,
+                    LineTraversal.traverse_children(c, LineTraversal.line))
         else:
             return None
 
@@ -102,7 +110,10 @@ class LineTraversal():
             clang_args = LineTraversal.__compile_flags[extension]
             tu = LineTraversal.__index.parse(filename, args=clang_args)
             if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:
-                return make_parsed_lines(filename, LineTraversal.traverse_children(tu.cursor, LineTraversal.namespace, filename))
+                return make_parsed_lines(
+                    filename,
+                    LineTraversal.traverse_children(
+                        tu.cursor, LineTraversal.namespace, filename))
             else:
                 return None
         except IndexError:

@@ -65,7 +65,6 @@ clang_args = ["-x", "cuda", "-std=c++14"]
 include_paths = system_include_paths("clang++")
 clang_args += [(b'-I' + inc).decode("utf-8") for inc in include_paths]
 
-
 algorithm_pattern = "public (?P<scope>Host|Device)Algorithm"
 variable_pattern = "(?P<scope>HOST|DEVICE)_(?P<io>INPUT|OUTPUT)\\((?P<name>[\\w_]+), (?P<type>[^)]+)\\)"  # ( [\\w_]+)?;
 namespace_pattern = "namespace (?P<name>[\\w_]+).*?public (?P<scope>Host|Device)Algorithm"
@@ -102,6 +101,8 @@ def traverse_children(c, path):
 
 def traverse(c, path):
     print(c.kind, c.get_children())
+
+
 #     if c.location.file and not c.location.file.name.endswith(path):
 #         # traverse_children(c, path)
 #         pass
@@ -120,7 +121,6 @@ def traverse(c, path):
 #         # traverse_children(c, path)
 #         pass
 
-
 # #     elif c.kind == clang.cindex.CursorKind.FUNCTION_TEMPLATE:
 # # #        print("Function Template", c.spelling, c.raw_comment)
 # #         objects["functions"].append(Function(c))
@@ -133,7 +133,7 @@ def traverse(c, path):
 
 #     elif c.kind == clang.cindex.CursorKind.ENUM_DECL:
 #         # print("ENUM_DECL", c.spelling, c.raw_comment)
-        
+
 #         return traverse_children(c, path)
 
 #     elif c.kind == clang.cindex.CursorKind.CLASS_DECL:
@@ -159,7 +159,6 @@ for filename in all_filenames:
         tu = index.parse(s, args=clang_args)
         m = traverse(tu.cursor, args.header)
         print(filename, m)
-
 
 # # Iterate all filenames in search for our pattern
 # parsed_algorithms = []
@@ -217,10 +216,8 @@ for filename in all_filenames:
 # # print("Found", len(parsed_algorithms), "algorithms")
 # # print(parsed_algorithms)
 
-
 # def prefix(indentation_level, indent_by=2):
 #     return "".join([" "] * indentation_level * indent_by)
-
 
 # def create_var_type(scope, io):
 #     t = ""
@@ -234,11 +231,9 @@ for filename in all_filenames:
 #         t += "Output"
 #     return t
 
-
 # def write_preamble(i=0):
 #     s = "from collections import OrderedDict\nfrom base_types import *\n\n"
 #     return s
-
 
 # def write_line_code(line, i=0):
 #     s = prefix(
@@ -270,7 +265,6 @@ for filename in all_filenames:
 #     s += "\n"
 
 #     return s
-
 
 # def write_algorithm_code(algorithm, i=0):
 #     s = prefix(i) + "class " + algorithm["name"] + "(" + algorithm[
@@ -392,7 +386,6 @@ for filename in all_filenames:
 #     s += "\n\n"
 
 #     return s
-
 
 # if __name__ == '__main__':
 #     filename = "algorithms.py"
