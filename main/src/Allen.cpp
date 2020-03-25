@@ -119,7 +119,7 @@ extern "C" int allen(
   const std::string folder_rawdata = "banks/";
   // Folder containing detector configuration and catboost model
   std::string folder_detector_configuration = "../input/detector_configuration/down/";
-  std::string json_constants_configuration_file = "../configuration/constants/default.json";
+  std::string json_constants_configuration_file = "Sequence.json";
 
   std::string folder_name_imported_forward_tracks = "";
   uint number_of_slices = 0;

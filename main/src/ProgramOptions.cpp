@@ -40,7 +40,7 @@ std::vector<ProgramOption> allen_program_options()
           {{"transpose-mep"}, "Transpose MEPs instead of decoding from MEP layout directly", "0", "don't transpose"},
           {{"configuration"},
            "path to json file containing values of configurable algorithm constants",
-           "../configuration/constants/default.json"},
+           "Sequence.json"},
           {{"print-status"}, "show status of buffer and socket", "0"},
           {{"print-config"}, "show current algorithm configuration", "0"},
           {{"write-configuration"}, "write current algorithm configuration to file", "0"},
