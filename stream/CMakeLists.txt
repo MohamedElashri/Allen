@@ -120,7 +120,7 @@ execute_process(COMMAND python3 ${SEQUENCE}.py
 
 if(${ALGORITHMS_GENERATION_RESULT_0} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_1} EQUAL 1 OR
   ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 1)
-  message(WARNING "Testing code generation with LLVM - Failed. CVMFS (sft.cern.ch) is required to be able to generate configurations.")
+  message(WARNING "Testing code generation with LLVM - Failed. CVMFS (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
