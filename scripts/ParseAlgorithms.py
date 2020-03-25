@@ -7,9 +7,9 @@ from collections import OrderedDict
 from AlgorithmTraversalLibTooling import AlgorithmTraversal
 from LineTraversalLibTooling import LineTraversal
 
-
 # Prefix folder, prepended to device / host folder
 prefix_project_folder = "../"
+
 
 class Parser():
     """A parser static class. This class steers the parsing of the

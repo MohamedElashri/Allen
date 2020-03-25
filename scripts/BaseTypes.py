@@ -345,11 +345,10 @@ class Sequence():
 
         return True
 
-    def generate(
-            self,
-            output_filename="Sequence.h",
-            json_configuration_filename="Sequence.json",
-            prefix_includes="../../"):
+    def generate(self,
+                 output_filename="Sequence.h",
+                 json_configuration_filename="Sequence.json",
+                 prefix_includes="../../"):
         # Check that sequence is valid
         print("Validating sequence...")
         if self.validate():
@@ -503,5 +502,3 @@ def compose_sequences(*args):
         for item in sequence:
             new_sequence.append(item)
     return Sequence(new_sequence)
-
-

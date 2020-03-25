@@ -6,8 +6,7 @@ from definitions.MuonSequence import MuonSequence
 from definitions.HLT1Sequence import HLT1Sequence
 from definitions.algorithms import compose_sequences
 
-
-hlt1_sequence = compose_sequences(VeloSequence(doGEC=False), PVSequence(),
-                                  UTSequence(), ForwardSequence(),
-                                  MuonSequence(), HLT1Sequence())
+hlt1_sequence = compose_sequences(
+    VeloSequence(doGEC=False), PVSequence(), UTSequence(), ForwardSequence(),
+    MuonSequence(), HLT1Sequence())
 hlt1_sequence.generate()
