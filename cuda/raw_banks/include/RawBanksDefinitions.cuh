@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ParKalmanDefinitions.cuh"
 #include <string>
 
 namespace Hlt1 {
@@ -42,4 +43,8 @@ namespace Hlt1 {
   const unsigned int trackCLID = 10010;
   const unsigned int svCLID = 10030;
 
+  // Maximum size of hits subbank. Can have up to 3 shorts at the
+  // beginning of the bank.
+  const unsigned int maxHitsBankSize = 3 + ParKalmanFilter::nMaxMeasurements;
+  
 } // namespace Hlt1
