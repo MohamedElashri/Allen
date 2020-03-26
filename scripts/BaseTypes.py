@@ -272,7 +272,7 @@ class Sequence():
         errors = 0
 
         # Check there are not two outputs with the same name
-        output_names = {}
+        output_names = OrderedDict([])
         for _, algorithm in iter(self.__sequence.items()):
             for parameter_name, parameter in iter(
                     algorithm.parameters().items()):
@@ -299,7 +299,7 @@ class Sequence():
                 warnings += 1
 
         # Check the inputs of all algorithms
-        output_parameters = {}
+        output_parameters = OrderedDict([])
         for _, algorithm in iter(self.__sequence.items()):
             for parameter_name, parameter in iter(
                     algorithm.parameters().items()):
@@ -363,7 +363,7 @@ class Sequence():
                 s += "#include \"" + prefix_includes + line.filename() + "\"\n"
             s += "\n"
             # Generate all parameters
-            parameters = {}
+            parameters = OrderedDict([])
             for _, algorithm in iter(self.__sequence.items()):
                 for parameter_t, parameter in iter(
                         algorithm.parameters().items()):
@@ -378,10 +378,11 @@ class Sequence():
             # Generate configuration
             for paramenter_name, v in iter(parameters.items()):
                 s += "struct " + paramenter_name + " : "
-                inheriting_classes = set()
+                inheriting_classes = []
                 for algorithm_name, algorithm_namespace, parameter_t in v:
-                    inheriting_classes.add(algorithm_namespace +
-                                           "::Parameters::" + parameter_t)
+                    parameter = algorithm_namespace + "::Parameters::" + parameter_t
+                    if parameter not in inheriting_classes:
+                        inheriting_classes.append(parameter)
                 for inheriting_class in inheriting_classes:
                     s += inheriting_class + ", "
                 s = s[:-2]
