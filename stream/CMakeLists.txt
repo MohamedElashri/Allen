@@ -102,7 +102,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/
   RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_0
   OUTPUT_VARIABLE ALGORITHMS_GENERATION_OUTPUT
   ERROR_QUIET)
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/"
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}"
   WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
   RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_1
   OUTPUT_VARIABLE ALGORITHMS_GENERATION_OUTPUT
@@ -134,8 +134,8 @@ else()
   message(STATUS "Testing code generation with LLVM - Success")
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions/*" "${SEQUENCE_DEFINITION_DIR}/" && 
-      ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/" &&
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
+      ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}" &&
       ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG9_LD_LIBRARY_PATH}" python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} &&
       python3 ${SEQUENCE}.py &&
       ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
@@ -155,7 +155,7 @@ target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration
 # By doing this, if the ${SEQUENCE}.py changes, a re-configuration will be triggered.
 # The json will always be updated, satisfying the dependence and not triggering a re-configuration
 # until the ${SEQUENCE}.py changes again.
-# However, since the Sequence.h is only copied *if different*, this will not trigger a re-compilation.
+# However, since the Sequence.h is only copied *if different*, this will not necessarily trigger a re-compilation.
 # In other words, the timestamp of Sequence.json is used to keep up with that of ${SEQUENCE}.py.
 add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/Sequence.json")
 add_dependencies(Stream configured_sequence)
