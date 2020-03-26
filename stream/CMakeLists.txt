@@ -122,8 +122,8 @@ if(${ALGORITHMS_GENERATION_RESULT_0} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_1
   ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 1)
   message(WARNING "Testing code generation with LLVM - Failed. CVMFS (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
   add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
+    OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
     ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.json" "${PROJECT_BINARY_DIR}/Sequence.json"
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
     DEPENDS "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h"
@@ -133,12 +133,12 @@ if(${ALGORITHMS_GENERATION_RESULT_0} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_1
 else()
   message(STATUS "Testing code generation with LLVM - Success")
   add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
+    OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions/*" "${SEQUENCE_DEFINITION_DIR}/" && 
       ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}/" &&
       ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG9_LD_LIBRARY_PATH}" python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} &&
       python3 ${SEQUENCE}.py &&
-      ${CMAKE_COMMAND} -E copy "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
+      ${CMAKE_COMMAND} -E copy_if_different "Sequence.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
       ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
     DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
@@ -151,7 +151,13 @@ allen_add_device_library(Stream STATIC ${stream_sequence})
 
 target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration/sequences")
 
-add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h")
+# Depend of Sequence.json instead of configuration/sequences/ConfiguredSequence.h.
+# By doing this, if the ${SEQUENCE}.py changes, a re-configuration will be triggered.
+# The json will always be updated, satisfying the dependence and not triggering a re-configuration
+# until the ${SEQUENCE}.py changes again.
+# However, since the Sequence.h is only copied *if different*, this will not trigger a re-compilation.
+# In other words, the timestamp of Sequence.json is used to keep up with that of ${SEQUENCE}.py.
+add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/Sequence.json")
 add_dependencies(Stream configured_sequence)
 
 target_link_libraries(Stream PRIVATE
