@@ -52,6 +52,7 @@ check-formatting:
     expire_in: 2 hrs
     paths:
       - build*/*Allen*
+      - build*/Sequence.json
       - input
   retry: 1
 
@@ -114,6 +115,7 @@ check-formatting:
     expire_in: 2 hrs
     paths:
       - build*/*Allen*
+      - build*/Sequence.json
       - input
   retry: 1
 
