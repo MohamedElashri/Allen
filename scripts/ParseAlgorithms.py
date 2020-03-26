@@ -72,7 +72,8 @@ class Parser():
         return algorithms, lines
 
 
-class ConfGen():
+
+class AllenConf():
     """Static class that generates a python representation of
     Allen algorithms and lines."""
 
@@ -103,32 +104,32 @@ class ConfGen():
 
     @staticmethod
     def write_line_code(line, i=0):
-        s = ConfGen.prefix(
+        s = AllenConf.prefix(
             i) + "class " + line.name + "(" + line.line_type + "):\n"
         i += 1
-        s += ConfGen.prefix(i) + "def __init__(self):\n"
+        s += AllenConf.prefix(i) + "def __init__(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "self.__name=\"" + line.name + "\"\n"
-        s += ConfGen.prefix(i) + "self.__filename=\"" + line.filename[len(
+        s += AllenConf.prefix(i) + "self.__name=\"" + line.name + "\"\n"
+        s += AllenConf.prefix(i) + "self.__filename=\"" + line.filename[len(
             prefix_project_folder):] + "\"\n"
-        s += ConfGen.prefix(
+        s += AllenConf.prefix(
             i) + "self.__namespace=\"" + line.namespace + "\"\n"
         i -= 1
         s += "\n"
 
-        s += ConfGen.prefix(i) + "def filename(self):\n"
+        s += AllenConf.prefix(i) + "def filename(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__filename\n\n"
+        s += AllenConf.prefix(i) + "return self.__filename\n\n"
         i -= 1
 
-        s += ConfGen.prefix(i) + "def namespace(self):\n"
+        s += AllenConf.prefix(i) + "def namespace(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__namespace\n\n"
+        s += AllenConf.prefix(i) + "return self.__namespace\n\n"
         i -= 1
 
-        s += ConfGen.prefix(i) + "def name(self):\n"
+        s += AllenConf.prefix(i) + "def name(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__name\n\n"
+        s += AllenConf.prefix(i) + "return self.__name\n\n"
         i -= 2
         s += "\n"
 
@@ -136,47 +137,47 @@ class ConfGen():
 
     @staticmethod
     def write_algorithm_code(algorithm, i=0):
-        s = ConfGen.prefix(
+        s = AllenConf.prefix(
             i) + "class " + algorithm.name + "(" + algorithm.scope + "):\n"
         i += 1
-        s += ConfGen.prefix(i) + "def __init__(self,\n"
+        s += AllenConf.prefix(i) + "def __init__(self,\n"
         i += 1
-        s += ConfGen.prefix(i) + "name=\"" + algorithm.name + "\""
+        s += AllenConf.prefix(i) + "name=\"" + algorithm.name + "\""
         for var in algorithm.parameters:
             s += ",\n" \
-              + ConfGen.prefix(i) + var.typename + "=" + ConfGen.create_var_type(var.kind) \
+              + AllenConf.prefix(i) + var.typename + "=" + AllenConf.create_var_type(var.kind) \
               + "(\"" + var.typename + "\", \"" + var.typedef + "\")"
         for prop in algorithm.properties:
             s += ",\n" \
-              + ConfGen.prefix(i) + prop.name[1:-1] + "=Property" \
+              + AllenConf.prefix(i) + prop.name[1:-1] + "=Property" \
               + "(\"" + prop.typedef + "\", " \
               + "\"\", " + prop.description + ")"
         s += "):\n"
-        s += ConfGen.prefix(i) + "self.__filename = \"" + algorithm.filename[
+        s += AllenConf.prefix(i) + "self.__filename = \"" + algorithm.filename[
             len(prefix_project_folder):] + "\"\n"
-        s += ConfGen.prefix(i) + "self.__name = name\n"
-        s += ConfGen.prefix(
+        s += AllenConf.prefix(i) + "self.__name = name\n"
+        s += AllenConf.prefix(
             i) + "self.__original_name = \"" + algorithm.name + "\"\n"
         if algorithm.threetemplate:
-            s += ConfGen.prefix(i) + "self.__requires_lines = True\n"
+            s += AllenConf.prefix(i) + "self.__requires_lines = True\n"
         else:
-            s += ConfGen.prefix(i) + "self.__requires_lines = False\n"
-        s += ConfGen.prefix(
+            s += AllenConf.prefix(i) + "self.__requires_lines = False\n"
+        s += AllenConf.prefix(
             i) + "self.__namespace = \"" + algorithm.namespace + "\"\n"
-        s += ConfGen.prefix(i) + "self.__ordered_parameters = OrderedDict(["
+        s += AllenConf.prefix(i) + "self.__ordered_parameters = OrderedDict(["
         i += 1
         for var in algorithm.parameters:
-            s += "\n" + ConfGen.prefix(i) + "(\"" + var.typename + "\", " + ConfGen.create_var_type(var.kind) \
+            s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + AllenConf.create_var_type(var.kind) \
               + "(" + var.typename + ", \"" + var.typedef + "\")),"
         s = s[:-1]
         if len(algorithm.parameters) > 0:
             s += "]"
         s += ")\n"
         i -= 1
-        s += ConfGen.prefix(i) + "self.__ordered_properties = OrderedDict(["
+        s += AllenConf.prefix(i) + "self.__ordered_properties = OrderedDict(["
         i += 1
         for prop in algorithm.properties:
-            s += "\n" + ConfGen.prefix(i) + "(" + prop.name + ", Property" \
+            s += "\n" + AllenConf.prefix(i) + "(" + prop.name + ", Property" \
               + "(\"" + prop.typedef + "\", " \
               + "\"\", " + prop.description + ", " + prop.name[1:-1] + ")),"
         s = s[:-1]
@@ -187,78 +188,78 @@ class ConfGen():
         s += "\n"
         i -= 1
 
-        s += ConfGen.prefix(i) + "def filename(self):\n"
+        s += AllenConf.prefix(i) + "def filename(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__filename\n\n"
+        s += AllenConf.prefix(i) + "return self.__filename\n\n"
         i -= 1
 
-        s += ConfGen.prefix(i) + "def namespace(self):\n"
+        s += AllenConf.prefix(i) + "def namespace(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__namespace\n\n"
+        s += AllenConf.prefix(i) + "return self.__namespace\n\n"
         i -= 1
 
-        s += ConfGen.prefix(i) + "def original_name(self):\n"
+        s += AllenConf.prefix(i) + "def original_name(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__original_name\n\n"
+        s += AllenConf.prefix(i) + "return self.__original_name\n\n"
         i -= 1
 
-        s += ConfGen.prefix(i) + "def name(self):\n"
+        s += AllenConf.prefix(i) + "def name(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__name\n\n"
+        s += AllenConf.prefix(i) + "return self.__name\n\n"
         i -= 1
 
-        s += ConfGen.prefix(i) + "def requires_lines(self):\n"
+        s += AllenConf.prefix(i) + "def requires_lines(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__requires_lines\n\n"
+        s += AllenConf.prefix(i) + "return self.__requires_lines\n\n"
         i -= 1
 
         for var in algorithm.parameters:
-            s += ConfGen.prefix(i) + "def " + var.typename + "(self):\n"
+            s += AllenConf.prefix(i) + "def " + var.typename + "(self):\n"
             i += 1
-            s += ConfGen.prefix(
+            s += AllenConf.prefix(
                 i
             ) + "return self.__ordered_parameters[\"" + var.typename + "\"]\n\n"
             i -= 1
 
         for prop in algorithm.properties:
-            s += ConfGen.prefix(i) + "def " + prop.name[1:-1] + "(self):\n"
+            s += AllenConf.prefix(i) + "def " + prop.name[1:-1] + "(self):\n"
             i += 1
-            s += ConfGen.prefix(
+            s += AllenConf.prefix(
                 i) + "return self.__ordered_properties[" + prop.name + "]\n\n"
             i -= 1
 
-        s += ConfGen.prefix(i) + "def parameters(self):\n"
+        s += AllenConf.prefix(i) + "def parameters(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__ordered_parameters\n"
+        s += AllenConf.prefix(i) + "return self.__ordered_parameters\n"
         i -= 1
         s += "\n"
 
-        s += ConfGen.prefix(i) + "def properties(self):\n"
+        s += AllenConf.prefix(i) + "def properties(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__ordered_properties\n"
+        s += AllenConf.prefix(i) + "return self.__ordered_properties\n"
         i -= 1
         s += "\n"
 
-        s += ConfGen.prefix(i) + "def __repr__(self):\n"
+        s += AllenConf.prefix(i) + "def __repr__(self):\n"
         i += 1
-        s += ConfGen.prefix(
+        s += AllenConf.prefix(
             i
         ) + "s = self.__original_name + \" \\\"\" + self.__name + \"\\\" (\"\n"
-        s += ConfGen.prefix(
+        s += AllenConf.prefix(
             i) + "for k, v in iter(self.__ordered_parameters.items()):\n"
         i += 1
-        s += ConfGen.prefix(
+        s += AllenConf.prefix(
             i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
         i -= 1
-        s += ConfGen.prefix(
+        s += AllenConf.prefix(
             i) + "for k, v in iter(self.__ordered_properties.items()):\n"
         i += 1
-        s += ConfGen.prefix(
+        s += AllenConf.prefix(
             i) + "s += \"\\n  \" + k + \" = \" + repr(v) + \", \"\n"
         i -= 1
-        s += ConfGen.prefix(i) + "s = s[:-2]\n"
-        s += ConfGen.prefix(i) + "s += \")\"\n"
-        s += ConfGen.prefix(i) + "return s\n"
+        s += AllenConf.prefix(i) + "s = s[:-2]\n"
+        s += AllenConf.prefix(i) + "s += \")\"\n"
+        s += AllenConf.prefix(i) + "return s\n"
         s += "\n\n"
 
         return s
@@ -288,39 +289,39 @@ class GaudiAllenConf():
     @staticmethod
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
-        f = open(prefix_project_folder + "/scripts/BaseTypes.py")
-        s = f.read()
-        f.close()
+        s = "from GaudiKernel.GaudiHandles import *\n" + \
+            "from GaudiKernel.DataObjectHandleBase import DataObjectHandleBase\n" + \
+            "from GaudiKernel.Proxy.Configurable import *\n\n\n"
         return s
 
     @staticmethod
     def write_line_code(line, i=0):
-        s = ConfGen.prefix(
+        s = GaudiAllenConf.prefix(
             i) + "class " + line.name + "(" + line.line_type + "):\n"
         i += 1
-        s += ConfGen.prefix(i) + "def __init__(self):\n"
+        s += GaudiAllenConf.prefix(i) + "def __init__(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "self.__name=\"" + line.name + "\"\n"
-        s += ConfGen.prefix(i) + "self.__filename=\"" + line.filename[len(
+        s += GaudiAllenConf.prefix(i) + "self.__name=\"" + line.name + "\"\n"
+        s += GaudiAllenConf.prefix(i) + "self.__filename=\"" + line.filename[len(
             prefix_project_folder):] + "\"\n"
-        s += ConfGen.prefix(
+        s += GaudiAllenConf.prefix(
             i) + "self.__namespace=\"" + line.namespace + "\"\n"
         i -= 1
         s += "\n"
 
-        s += ConfGen.prefix(i) + "def filename(self):\n"
+        s += GaudiAllenConf.prefix(i) + "def filename(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__filename\n\n"
+        s += GaudiAllenConf.prefix(i) + "return self.__filename\n\n"
         i -= 1
 
-        s += ConfGen.prefix(i) + "def namespace(self):\n"
+        s += GaudiAllenConf.prefix(i) + "def namespace(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__namespace\n\n"
+        s += GaudiAllenConf.prefix(i) + "return self.__namespace\n\n"
         i -= 1
 
-        s += ConfGen.prefix(i) + "def name(self):\n"
+        s += GaudiAllenConf.prefix(i) + "def name(self):\n"
         i += 1
-        s += ConfGen.prefix(i) + "return self.__name\n\n"
+        s += GaudiAllenConf.prefix(i) + "return self.__name\n\n"
         i -= 2
         s += "\n"
 
@@ -351,7 +352,9 @@ class GaudiAllenConf():
         i -= 1
         s += GaudiAllenConf.prefix(i) + "def getType(self):\n"
         i += 1
-        s += GaudiAllenConf.prefix(i) + "return \"" + algorithm["name"] + "\"\n\n\n"
+        s += GaudiAllenConf.prefix(i) + "return \"" + algorithm.name + "\"\n\n\n"
+
+        return s
 
 
 
@@ -366,12 +369,12 @@ if __name__ == '__main__':
     parsed_algorithms, parsed_lines = Parser().parse_all()
 
     print("Generating " + filename + "...")
-    s = ConfGen().write_preamble()
+    s = GaudiAllenConf().write_preamble()
     for algorithm in parsed_algorithms:
-        s += ConfGen().write_algorithm_code(algorithm)
+        s += GaudiAllenConf().write_algorithm_code(algorithm)
 
-    for line in parsed_lines:
-        s += ConfGen().write_line_code(line)
+    # for line in parsed_lines:
+    #     s += GaudiAllenConf().write_line_code(line)
 
     f = open(filename, "w")
     f.write(s)
