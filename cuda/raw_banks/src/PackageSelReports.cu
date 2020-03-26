@@ -41,7 +41,7 @@ __global__ void package_sel_reports::package_sel_reports(
 
     if (selected_event_number < selected_number_of_events) {
       const uint event_sel_rb_hits_offset =
-        parameters.dev_offsets_forward_tracks[selected_event_number] * ParKalmanFilter::nMaxMeasurements;
+        parameters.dev_offsets_forward_tracks[selected_event_number] * Hlt1::maxHitsBankSize;
       uint32_t* event_sel_rb_hits = parameters.dev_sel_rb_hits + event_sel_rb_hits_offset;
 
       HltSelRepRBHits hits_bank;
@@ -52,7 +52,7 @@ __global__ void package_sel_reports::package_sel_reports(
         hits_bank.m_location,
         hits_bank.size());
     }
-
+    
     if (stdinfo_bank.sizeStored() < Hlt1::maxStdInfoEvent) {
       selrep_bank.push_back(
         HltSelRepRBEnums::kStdInfoID,

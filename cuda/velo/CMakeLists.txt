@@ -1,4 +1,3 @@
-file(GLOB velo_common "common/src/*cu")
 file(GLOB velo_prefix_sum "prefix_sum/src/*cu")
 file(GLOB velo_clustering_sources "mask_clustering/src/*cu")
 file(GLOB velo_phi_and_sort "calculate_phi_and_sort/src/*cu")
@@ -25,10 +24,6 @@ include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
 include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
-allen_add_device_library(VeloCommon STATIC
-  ${velo_common}
-)
-
 allen_add_device_library(Velo STATIC
   ${velo_clustering_sources}
   ${velo_prefix_sum}
@@ -37,5 +32,3 @@ allen_add_device_library(Velo STATIC
   ${velo_simplified_kalman_filter}
   ${velo_consolidate_tracks}
 )
-
-target_link_libraries(Velo VeloCommon)
