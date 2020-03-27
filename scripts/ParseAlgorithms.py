@@ -11,6 +11,17 @@ from LineTraversalLibTooling import LineTraversal
 prefix_project_folder = "../"
 
 
+def get_clang_so_location():
+    """Function that fetches location of detected clang so."""
+    import clang.cindex
+    so_library = ""
+    try:
+        _ = clang.cindex.conf.lib.__test_undefined_symbol
+    except AttributeError as error:
+        so_library = error.args[0].split(":")[0]
+    return so_library
+
+
 class Parser():
     """A parser static class. This class steers the parsing of the
     codebase. It can be configured with the variables below."""
@@ -265,6 +276,8 @@ class ConfGen():
 
 
 if __name__ == '__main__':
+    print("Detected clang so:", get_clang_so_location())
+
     filename = "algorithms.py"
     if len(sys.argv) > 1:
         filename = sys.argv[1]
