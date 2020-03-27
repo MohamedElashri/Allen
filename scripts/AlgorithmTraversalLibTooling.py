@@ -112,9 +112,17 @@ class AlgorithmTraversal():
         for t in c.get_tokens():
             tokens.append(t)
         if tokens[0].spelling == "PROPERTY":
-            return (tokens[2].spelling, tokens[4].spelling, tokens[6].spelling,
-                    tokens[8].spelling)
-        return (tokens[2].spelling, tokens[4].spelling)
+            class_spelling_tokens = [a.spelling for a in tokens[4:]]
+            location_enclosing_token = class_spelling_tokens.index(",")
+            class_name = "".join(class_spelling_tokens[:location_enclosing_token])
+            return (tokens[2].spelling, class_name,
+                    tokens[4 + location_enclosing_token + 1].spelling,
+                    tokens[4 + location_enclosing_token + 3].spelling)
+        else:
+            class_spelling_tokens = [a.spelling for a in tokens[4:]]
+            location_enclosing_token = class_spelling_tokens.index(")")
+            class_name = "".join(class_spelling_tokens[:location_enclosing_token])
+            return (tokens[2].spelling, class_name)
 
     @staticmethod
     def parameters(c):
