@@ -82,7 +82,7 @@ class Parser():
                     if parsed_lines:
                         lines += parsed_lines
             except:
-                print("File", filename, "failed")
+                print("Parsing file", filename, "failed")
                 raise
         return algorithms, lines
 
@@ -280,8 +280,6 @@ class ConfGen():
 
 
 if __name__ == '__main__':
-    print("Detected clang so:", get_clang_so_location())
-
     filename = "algorithms.py"
     if len(sys.argv) > 1:
         filename = sys.argv[1]
