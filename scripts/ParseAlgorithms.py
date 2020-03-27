@@ -304,9 +304,8 @@ class GaudiAllenConf():
     @staticmethod
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
-        s = "from GaudiKernel.GaudiHandles import *\n" + \
-            "from GaudiKernel.DataObjectHandleBase import DataObjectHandleBase\n" + \
-            "from GaudiKernel.Proxy.Configurable import *\n\n\n"
+        s = "from GaudiKernel.DataObjectHandleBase import DataObjectHandleBase\n" + \
+            "from AllenKernel import AllenAlgorithm\n\n\n"
         return s
 
     @staticmethod
@@ -344,7 +343,7 @@ class GaudiAllenConf():
 
     @staticmethod
     def write_algorithm_code(algorithm, i=0):
-        s = GaudiAllenConf.prefix(i) + "class " + algorithm.name + "(ConfigurableAlgorithm):\n"
+        s = GaudiAllenConf.prefix(i) + "class " + algorithm.name + "(AllenAlgorithm):\n"
         i += 1
         s += GaudiAllenConf.prefix(i) + "__slots__ = dict(\n"
         i += 1
@@ -354,23 +353,29 @@ class GaudiAllenConf():
         s = s[:-2]
         i -= 1
         s += "\n" + GaudiAllenConf.prefix(i) + ")\n\n"
-        s += GaudiAllenConf.prefix(i) + "def __init__(self, name = Configurable.DefaultName, **kwargs):\n"
+        s += GaudiAllenConf.prefix(i) + "def __init__(self, name, **kwargs):\n"
         i += 1
         s += GaudiAllenConf.prefix(i) + "super(" + algorithm.name + ", self).__init__(name)\n" \
             + GaudiAllenConf.prefix(i) + "for n,v in kwargs.items():\n"
         i += 1
         s += GaudiAllenConf.prefix(i) + "setattr(self, n, v)\n\n"
         i -= 2
-        s += GaudiAllenConf.prefix(i) + "def getDlls(self):\n"
+        s += GaudiAllenConf.prefix(i) + "@classmethod\n"
+        s += GaudiAllenConf.prefix(i) + "def namespace(cls):\n"
         i += 1
-        s += GaudiAllenConf.prefix(i) + "return \"Allen\"\n\n"
+        s += GaudiAllenConf.prefix(i) + "return \"" + algorithm.namespace + "\"\n\n"
         i -= 1
-        s += GaudiAllenConf.prefix(i) + "def getType(self):\n"
+        s += GaudiAllenConf.prefix(i) + "@classmethod\n"
+        s += GaudiAllenConf.prefix(i) + "def filename(cls):\n"
+        i += 1
+        s += GaudiAllenConf.prefix(i) + "return \"" + algorithm.filename + "\"\n\n"
+        i -= 1
+        s += GaudiAllenConf.prefix(i) + "@classmethod\n"
+        s += GaudiAllenConf.prefix(i) + "def getType(cls):\n"
         i += 1
         s += GaudiAllenConf.prefix(i) + "return \"" + algorithm.name + "\"\n\n\n"
 
         return s
-
 
 
 if __name__ == '__main__':
