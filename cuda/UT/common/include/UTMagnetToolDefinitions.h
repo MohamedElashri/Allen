@@ -1,15 +1,7 @@
 #pragma once
 
 /**
-   *Constants mainly taken from PrVeloUT.h from Rec
-   *  @author Mariusz Witek
-   *  @date   2007-05-08
-   *  @update for A-Team framework 2007-08-20 SHM
-   *
-   *  2017-03-01: Christoph Hasse (adapt to future framework)
-   *  2018-05-05: Plácido Fernández (make standalone)
-   *  2018-07:    Dorothea vom Bruch (convert to C code for GPU compatability)
-
+ * Constants mainly taken from PrVeloUT.h from Rec
  */
 struct UTMagnetTool {
   static const int N_dxLay_vals = 124;

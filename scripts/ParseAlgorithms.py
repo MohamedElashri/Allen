@@ -7,9 +7,20 @@ from collections import OrderedDict
 from AlgorithmTraversalLibTooling import AlgorithmTraversal
 from LineTraversalLibTooling import LineTraversal
 
-
 # Prefix folder, prepended to device / host folder
 prefix_project_folder = "../"
+
+
+def get_clang_so_location():
+    """Function that fetches location of detected clang so."""
+    import clang.cindex
+    so_library = ""
+    try:
+        _ = clang.cindex.conf.lib.__test_undefined_symbol
+    except AttributeError as error:
+        so_library = error.args[0].split(":")[0]
+    return so_library
+
 
 class Parser():
     """A parser static class. This class steers the parsing of the
@@ -55,20 +66,24 @@ class Parser():
         lines = []
         for filename in all_filenames:
             f = open(filename)
-            s = f.read()
-            f.close()
-            # Invoke the libTooling algorithm parser only if we find the algorithm pattern
-            has_algorithm = Parser.__algorithm_pattern_compiled.search(s)
-            if has_algorithm:
-                parsed_algorithms = algorithm_parser.traverse(filename)
-                if parsed_algorithms:
-                    algorithms += parsed_algorithms
-            # Invoke the libTooling line parser only if we find the line pattern
-            has_line = Parser.__line_pattern_compiled.search(s)
-            if has_line:
-                parsed_lines = line_parser.traverse(filename)
-                if parsed_lines:
-                    lines += parsed_lines
+            try:
+                s = f.read()
+                f.close()
+                # Invoke the libTooling algorithm parser only if we find the algorithm pattern
+                has_algorithm = Parser.__algorithm_pattern_compiled.search(s)
+                if has_algorithm:
+                    parsed_algorithms = algorithm_parser.traverse(filename)
+                    if parsed_algorithms:
+                        algorithms += parsed_algorithms
+                # Invoke the libTooling line parser only if we find the line pattern
+                has_line = Parser.__line_pattern_compiled.search(s)
+                if has_line:
+                    parsed_lines = line_parser.traverse(filename)
+                    if parsed_lines:
+                        lines += parsed_lines
+            except:
+                print("Parsing file", filename, "failed")
+                raise
         return algorithms, lines
 
 
