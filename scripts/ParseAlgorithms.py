@@ -380,21 +380,28 @@ class GaudiAllenConf():
 
 if __name__ == '__main__':
     filename = "algorithms.py"
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 3:
         filename = sys.argv[1]
-        if len(sys.argv) > 2:
-            prefix_project_folder = sys.argv[2] + "/"
+        prefix_project_folder = sys.argv[2] + "/"
+        configured_generator = sys.argv[3]
 
     print("Parsing algorithms...")
     parsed_algorithms, parsed_lines = Parser().parse_all()
 
-    print("Generating " + filename + "...")
-    s = GaudiAllenConf().write_preamble()
-    for algorithm in parsed_algorithms:
-        s += GaudiAllenConf().write_algorithm_code(algorithm)
-
-    # for line in parsed_lines:
-    #     s += GaudiAllenConf().write_line_code(line)
+    if configured_generator == "Moore":
+        print("Generating " + filename + " in Gaudi format...")
+        s = GaudiAllenConf().write_preamble()
+        for algorithm in parsed_algorithms:
+            s += GaudiAllenConf().write_algorithm_code(algorithm)
+        # for line in parsed_lines:
+        #     s += GaudiAllenConf().write_line_code(line)
+    else:
+        print("Generating " + filename + " in Allen format...")
+        s = AllenConf().write_preamble()
+        for algorithm in parsed_algorithms:
+            s += AllenConf().write_algorithm_code(algorithm)
+        for line in parsed_lines:
+            s += AllenConf().write_line_code(line)
 
     f = open(filename, "w")
     f.write(s)

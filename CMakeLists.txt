@@ -53,6 +53,10 @@ message(STATUS "Configured sequence: " ${SEQUENCE})
 set(CPU_ARCH native CACHE STRING "Target CPU architecture")
 message(STATUS "CPU_ARCH: " ${CPU_ARCH})
 
+# Support generating configuration with Allen standalone, and with Moore
+set(MOORE_GENERATOR CACHE BOOL OFF)
+set(MOORE_INSTALL_DIR CACHE STRING "")
+
 # Deal with device target architecture
 if(DEFINED ENV{LHCBRELEASES})
   if(FORCE_CUDA)
