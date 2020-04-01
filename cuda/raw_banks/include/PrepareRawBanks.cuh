@@ -66,8 +66,9 @@ namespace prepare_raw_banks {
       const auto total_number_of_events =
         std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
 
-      set_size<dev_sel_rb_hits_t>(
-        arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments) * Hlt1::maxHitsBankSize);
+      const auto padding_size = 3 * value<host_number_of_selected_events_t>(arguments);
+      const auto hits_size = ParKalmanFilter::nMaxMeasurements * value<host_number_of_reconstructed_scifi_tracks_t>(arguments);
+      set_size<dev_sel_rb_hits_t>(arguments, hits_size + padding_size);
       set_size<dev_sel_rb_stdinfo_t>(arguments, total_number_of_events * Hlt1::maxStdInfoEvent);
       set_size<dev_sel_rb_objtyp_t>(arguments, total_number_of_events * (Hlt1::nObjTyp + 1));
       set_size<dev_sel_rb_substr_t>(arguments, total_number_of_events * Hlt1::subStrDefaultAllocationSize);
