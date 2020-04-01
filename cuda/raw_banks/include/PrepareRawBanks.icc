@@ -138,8 +138,7 @@ __global__ void prepare_raw_banks::prepare_raw_banks(
 
     // Sel reports.
     const uint event_sel_rb_hits_offset =
-      scifi_tracks.tracks_offset(selected_event_number) * ParKalmanFilter::nMaxMeasurements +
-      3 * selected_event_number;
+      scifi_tracks.tracks_offset(selected_event_number) * ParKalmanFilter::nMaxMeasurements + 3 * selected_event_number;
     uint* event_sel_rb_hits = parameters.dev_sel_rb_hits + event_sel_rb_hits_offset;
     const uint event_sel_rb_stdinfo_offset = event_number * Hlt1::maxStdInfoEvent;
     uint* event_sel_rb_stdinfo = parameters.dev_sel_rb_stdinfo + event_sel_rb_stdinfo_offset;
