@@ -52,3 +52,25 @@ __device__ std::tuple<int, int> find_forward_candidates(
 
   return {module.hitStart + first_candidate, size};
 }
+
+/**
+ * @brief Finds candidates in the specified module.
+ */
+template<typename T>
+__device__ int find_seeding_candidate(
+  const Velo::Module& module,
+  const float tx,
+  const float ty,
+  const float* hit_Phis,
+  const Velo::HitBase& h0,
+  const T calculate_hit_phi)
+{
+  const auto dz = module.z - h0.z;
+  const auto predx = tx * dz;
+  const auto predy = ty * dz;
+  const auto x_prediction = h0.x + predx;
+  const auto y_prediction = h0.y + predy;
+  const auto track_extrapolation_phi = calculate_hit_phi(x_prediction, y_prediction);
+
+  return binary_search_leftmost(hit_Phis + module.hitStart, module.hitNums, track_extrapolation_phi);
+}
