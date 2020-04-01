@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Configuration.cuh"
+#include "Algorithm.cuh"
+#include "Property.cuh"
 #include "CudaCommon.h"
 #include "Logger.h"
 #include "RuntimeOptions.h"

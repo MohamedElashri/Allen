@@ -1,7 +1,8 @@
 #pragma once
 
 #include "ArgumentManager.cuh"
-#include "Configuration.cuh"
+#include "Algorithm.cuh"
+#include "Property.cuh"
 #include <functional>
 #include <tuple>
 #include <utility>

@@ -65,22 +65,6 @@ std::string Configuration::to_string<DeviceDimensions>(const DeviceDimensions& h
   return s.str();
 }
 
-// // function to define one float property as the inverse of another
-// template<>
-// float Configuration::Relations::inverse<float>(std::vector<Allen::Property<float>*> pars)
-// {
-//   if (pars.size() > 1) {
-//     warning_cout << "inverse relation will only use the first input Property" << std::endl;
-//   }
-
-//   if (pars.empty()) {
-//     warning_cout << "inverse relation requires an input Property" << std::endl;
-//     return 0.;
-//   }
-
-//   return 1.f / pars[0]->get_value();
-// }
-
 /* Shared sets of properties may defined in classes that inherit from SharedPropertySet
  * To allow Algorithms to find the singleton, each such class must be included in Configuration::getSharedPropertySet
  * An example SharedPropertySet class (to be placed in its own header file) follows:
@@ -120,6 +104,6 @@ Allen::SharedPropertySet* Configuration::getSharedPropertySet(const std::string&
   //  if (std::get<1>(r)) return (*std::get<0>(r)).second;
   //}
 
-  warning_cout << "Unknown shared property set " << name << std::endl;
+  warning_cout << "Unknown shared property set " << name << "\n";
   return nullptr;
 }
