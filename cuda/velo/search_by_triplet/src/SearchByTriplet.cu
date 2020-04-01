@@ -7,21 +7,62 @@
 #include <cstdio>
 
 /**
- * @brief Track forwarding algorithm based on triplet finding
- * @detail For details, check out paper
- *         "A fast local algorithm for track reconstruction on parallel architectures"
+ * @brief Track forwarding algorithm based on triplet finding.
+ *
+ * @detail Search by triplet is a parallel local track forwarding algorithm, whose main building blocks are two steps:
+ *         track seeding and track forwarding. These two steps are applied iteratively
+ *         throughout the VELO detector. The forward end of the detector is used as the start of the search,
+ *         and the detector is traversed in the backwards direction, in groups of two modules at a time:
+ *
+ *         i-3    i-2   [i-1   i   i+1]
+ *                      =============== Track seeding of triplet of modules {i-1, i, i+1}
+ *
+ *         i-3   [i-2] [i-1   i   i+1]
+ *               =====                  Track forwarding to module i-2
+ *
+ *         i-3   [i-2   i-1   i]  i+1
+ *               ===============        Track seeding of triplet of modules {i-2, i-1, i}
+ *
+ *         [i-3] [i-2   i-1   i   i+1]
+ *         =====                        Track forwarding to module i-3
+ *
+ *         [i-3   i-2   i-1]  i   i+1
+ *         =================            Track seeding of triplet of modules {i-3, i-2, i-1}
+ *
+ *         * Track seeding: Triplets of hits in consecutive modules on the same side are sought.
+ *         The three hits composing a track seed must be on the same side - empirically it was found that
+ *         no physics efficiency is gained if allowing for triplets to be on both sides.
+ *         Incoming VELO cluster data is expected to be sorted by phi previously. This fact allows for several
+ *         optimizations in the triplet seed search. First, the closest hit in the previous module is sought with
+ *         a binary search. The closest n candidates in memory are found with a pendulum-like search (more details
+ *         in track_seeding). The doublet is extrapolated to the third module, and a triplet is formed. Hits used
+ *         to form triplets must be "not used".
+ *
+ *         * Track forwarding: Triplet track seeds and tracks with more than three hits are
+ *         extended to modules by extrapolating the last two hits into the next layer and finding the
+ *         best hits. Again, a binary search in phi is used to speed up the search. If hits are found,
+ *         the track is extended and all hits found are marked as "used".
+ *
+ *         Both for track seeding and for track forwarding, a "max_scatter" function is used to determine the best hit.
+ *         This function simply minimizes dx^2 + dy^2 in the detector plane.
+ *
+ *         The "hit used" array imposes a Read-After-Write dependency from every seeding stage to every forwarding
+ *         stage, and a Write-After-Read dependency from every forwarding stage to every seeding stage. Hence, execution
+ *         of these two stages is separated with control flow barriers.
+ *
+ *         For more details see:
+ *         * https://ieeexplore.ieee.org/document/8778210
  */
 __global__ void velo_search_by_triplet::velo_search_by_triplet(
   velo_search_by_triplet::Parameters parameters,
   const VeloGeometry* dev_velo_geometry)
 {
-  /* Data initialization */
-  // Each event is treated with two blocks, one for each side.
+  // Initialize event number and number of events based on kernel invoking parameters
   const uint event_number = blockIdx.x;
   const uint number_of_events = gridDim.x;
-  const uint tracks_offset = event_number * Velo::Constants::max_tracks;
 
   // Pointers to data within the event
+  const uint tracks_offset = event_number * Velo::Constants::max_tracks;
   const uint total_estimated_number_of_clusters =
     parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
   const uint* module_hitStarts =
@@ -29,16 +70,12 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const uint* module_hitNums = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   const uint hit_offset = module_hitStarts[0];
 
-  // Think whether this offset'ed container is a good solution
   const auto velo_cluster_container =
     Velo::ConstClusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters, hit_offset};
 
   const auto hit_phi = parameters.dev_hit_phi + hit_offset;
 
-  // Per event datatypes
   Velo::TrackHits* tracks = parameters.dev_tracks + tracks_offset;
-
-  // Per side datatypes
   bool* hit_used = parameters.dev_hit_used + hit_offset;
 
   uint* tracks_to_follow = parameters.dev_tracks_to_follow + event_number * parameters.ttf_modulo;
@@ -46,7 +83,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   Velo::TrackletHits* tracklets = parameters.dev_tracklets + event_number * parameters.ttf_modulo;
   unsigned short* h1_rel_indices = parameters.dev_rel_indices + event_number * 2000;
 
-  // Shared memory size is defined externally
+  // Shared memory size is constantly fixed, enough to fit information about six modules
+  // (three on each side).
   __shared__ float module_data[18];
 
   process_modules(
@@ -74,7 +112,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
 }
 
 /**
- * @brief Processes modules in decreasing order with some stride
+ * @brief Processes modules in decreasing order.
  */
 __device__ void process_modules(
   Velo::Module* module_data,
@@ -110,7 +148,7 @@ __device__ void process_modules(
     module_data[i].z = dev_velo_module_zs[module_number];
   }
 
-  // Due to shared module data loading
+  // Due to shared module data initialization
   __syncthreads();
 
   // Do first track seeding
@@ -132,7 +170,7 @@ __device__ void process_modules(
 
   while (first_module > 4) {
 
-    // Due to WAR between trackSeedingFirst and the code below
+    // Due to WAR between track_seeding and population of shared memory.
     __syncthreads();
 
     // Iterate in modules
@@ -436,20 +474,20 @@ __device__ void track_seeding(
     uint best_h0s[number_of_h0_candidates];
 
     // Iterate over previous module until the first n candidates are found
-    int phi_index = binary_search_leftmost(hit_phi + module_data[oddity].hitStart,
-      module_data[oddity].hitNums, h1_phi);
+    int phi_index = binary_search_leftmost(hit_phi + module_data[oddity].hitStart, module_data[oddity].hitNums, h1_phi);
 
-    // Do a "pendulum search" until
-    // all sought candidates are found
+    // Do a "pendulum search" to find the candidates, consisting in iterating in the following manner:
+    // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
     int found_h0_candidates = 0;
-    for (uint i = 0; i < 2 * module_data[oddity].hitNums &&
-      found_h0_candidates < number_of_h0_candidates; ++i) {
-      // Note: By setting the sign to the oddity of i, the following sequence is achieved:
-      // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
+    for (uint i = 0; i < 2 * module_data[oddity].hitNums && found_h0_candidates < number_of_h0_candidates; ++i) {
+      // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
+      //       The number of maximum iterations is 2 * module_data[oddity].hitNums,
+      //       since those iterations where phi_index is out of bounds must be discarded.
       const auto sign = i & 0x01;
       const int index_diff = sign ? i : -i;
       phi_index += index_diff;
 
+      // Discard the candidate if phi_index points out of bounds
       if (phi_index >= 0 && phi_index < static_cast<int>(module_data[oddity].hitNums)) {
         const auto h0_index = module_data[oddity].hitStart + phi_index;
         if (!hit_used[h0_index]) {
@@ -472,21 +510,24 @@ __device__ void track_seeding(
       const auto ty = tyn * td;
 
       // Get candidates by performing a binary search in expected phi
-      const int candidate_bin_search_result = find_seeding_candidate(
+      int candidate_h2 = find_seeding_candidate(
         module_data[4 + oddity], tx, ty, hit_phi, h0, [&hit_phi_function](const float x, const float y) {
           return hit_phi_function(x, y);
         });
 
-      // Allow a window of four hits in the next module
-      for (const auto candidate : {candidate_bin_search_result - 2,
-                                   candidate_bin_search_result - 1,
-                                   candidate_bin_search_result,
-                                   candidate_bin_search_result + 1}) {
-        const auto h2_index = module_data[4 + oddity].hitStart + candidate;
-        if (candidate >= 0 && candidate < static_cast<int>(module_data[4 + oddity].hitNums) && !hit_used[h2_index]) {
-          const Velo::HitBase h2 {velo_cluster_container.x(h2_index),
-                                  velo_cluster_container.y(h2_index),
-                                  velo_cluster_container.z(h2_index)};
+      // Allow a window of four hits in the next module. Use pendulum search.
+      constexpr int number_of_h2_candidates = 5;
+      for (int i = 0; i < number_of_h2_candidates; ++i) {
+        const auto sign = i & 0x01;
+        const int index_diff = sign ? i : -i;
+        candidate_h2 += index_diff;
+
+        const auto h2_index = module_data[4 + oddity].hitStart + candidate_h2;
+        if (
+          candidate_h2 >= 0 && candidate_h2 < static_cast<int>(module_data[4 + oddity].hitNums) &&
+          !hit_used[h2_index]) {
+          const Velo::HitBase h2 {
+            velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
 
           const auto dz = h2.z - h0.z;
           const auto predx = h0.x + tx * dz;
