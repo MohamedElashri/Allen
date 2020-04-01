@@ -6,8 +6,6 @@
 __device__ void process_modules(
   Velo::Module* module_data,
   bool* hit_used,
-  const short* h0_candidates,
-  const short* h2_candidates,
   const uint* module_hitStarts,
   const uint* module_hitNums,
   Velo::ConstClusters& velo_cluster_container,
