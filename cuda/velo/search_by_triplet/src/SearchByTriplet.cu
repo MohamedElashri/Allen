@@ -380,21 +380,6 @@ __device__ void track_forwarding(
   }
 }
 
-struct VeloCombinedValue {
-  float value = 1000.f;
-  int index = -1;
-};
-
-template<class T>
-__device__ void compare_and_swap(T& a, T& b)
-{
-  if (a.value < b.value) {
-    const T temp = a;
-    a = b;
-    b = temp;
-  }
-}
-
 /**
  * @brief Search for compatible triplets in
  *        three neighbouring modules on one side
@@ -446,67 +431,77 @@ __device__ void track_seeding(
       velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
     const auto h1_phi = hit_phi[h1_index];
 
-    // Get best h0s
-    constexpr int h0s_to_consider = 3;
-    VeloCombinedValue best_h0s[h0s_to_consider];
+    // Get candidates on previous module
+    constexpr int number_of_h0_candidates = 5;
+    uint best_h0s[number_of_h0_candidates];
 
-    // Iterate over all h2 combinations
-    for (uint h0_rel_index = 0; h0_rel_index < module_data[oddity].hitNums; ++h0_rel_index) {
-      const auto h0_index = module_data[oddity].hitStart + h0_rel_index;
-      if (!hit_used[h0_index]) {
-        const auto h0_phi = hit_phi[h0_index];
-        VeloCombinedValue combined_value {fabsf(h1_phi - h0_phi), static_cast<int>(h0_index)};
+    // Iterate over previous module until the first n candidates are found
+    int phi_index = binary_search_leftmost(hit_phi + module_data[oddity].hitStart,
+      module_data[oddity].hitNums, h1_phi);
 
-        compare_and_swap(combined_value, best_h0s[0]);
-        compare_and_swap(best_h0s[0], best_h0s[1]);
-        compare_and_swap(best_h0s[1], best_h0s[2]);
+    // Do a "pendulum search" until
+    // all sought candidates are found
+    int found_h0_candidates = 0;
+    for (uint i = 0; i < 2 * module_data[oddity].hitNums &&
+      found_h0_candidates < number_of_h0_candidates; ++i) {
+      // Note: By setting the sign to the oddity of i, the following sequence is achieved:
+      // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
+      const auto sign = i & 0x01;
+      const int index_diff = sign ? i : -i;
+      phi_index += index_diff;
+
+      if (phi_index >= 0 && phi_index < static_cast<int>(module_data[oddity].hitNums)) {
+        const auto h0_index = module_data[oddity].hitStart + phi_index;
+        if (!hit_used[h0_index]) {
+          best_h0s[found_h0_candidates++] = h0_index;
+        }
       }
     }
 
-    // Use the best_h2s to find the best triplet
-    for (int i = 0; i < h0s_to_consider; ++i) {
-      const auto h0_index = best_h0s[i].index;
-      if (h0_index != -1) {
-        const Velo::HitBase h0 {
-          velo_cluster_container.x(h0_index), velo_cluster_container.y(h0_index), velo_cluster_container.z(h0_index)};
+    // Use the candidates found previously (best_h0s) to find the best triplet
+    // Since data is sorted, search using a binary search
+    for (int i = 0; i < found_h0_candidates; ++i) {
+      const auto h0_index = best_h0s[i];
+      const Velo::HitBase h0 {
+        velo_cluster_container.x(h0_index), velo_cluster_container.y(h0_index), velo_cluster_container.z(h0_index)};
 
-        const auto td = 1.0f / (h1.z - h0.z);
-        const auto txn = (h1.x - h0.x);
-        const auto tyn = (h1.y - h0.y);
-        const auto tx = txn * td;
-        const auto ty = tyn * td;
+      const auto td = 1.0f / (h1.z - h0.z);
+      const auto txn = (h1.x - h0.x);
+      const auto tyn = (h1.y - h0.y);
+      const auto tx = txn * td;
+      const auto ty = tyn * td;
 
-        // Get candidates by performing a binary search in expected phi
-        const int candidate_bin_search_result = find_seeding_candidate(
-          module_data[4 + oddity], tx, ty, hit_phi, h0, [&hit_phi_function](const float x, const float y) {
-            return hit_phi_function(x, y);
-          });
+      // Get candidates by performing a binary search in expected phi
+      const int candidate_bin_search_result = find_seeding_candidate(
+        module_data[4 + oddity], tx, ty, hit_phi, h0, [&hit_phi_function](const float x, const float y) {
+          return hit_phi_function(x, y);
+        });
 
-        for (const auto candidate : {candidate_bin_search_result - 2,
-                                     candidate_bin_search_result - 1,
-                                     candidate_bin_search_result,
-                                     candidate_bin_search_result + 1}) {
-          const auto h2_index = module_data[4 + oddity].hitStart + candidate;
-          if (candidate >= 0 && candidate < static_cast<int>(module_data[4 + oddity].hitNums) && !hit_used[h2_index]) {
-            const Velo::HitBase h2 {velo_cluster_container.x(h2_index),
-                                    velo_cluster_container.y(h2_index),
-                                    velo_cluster_container.z(h2_index)};
+      // Allow a window of four hits in the next module
+      for (const auto candidate : {candidate_bin_search_result - 2,
+                                   candidate_bin_search_result - 1,
+                                   candidate_bin_search_result,
+                                   candidate_bin_search_result + 1}) {
+        const auto h2_index = module_data[4 + oddity].hitStart + candidate;
+        if (candidate >= 0 && candidate < static_cast<int>(module_data[4 + oddity].hitNums) && !hit_used[h2_index]) {
+          const Velo::HitBase h2 {velo_cluster_container.x(h2_index),
+                                  velo_cluster_container.y(h2_index),
+                                  velo_cluster_container.z(h2_index)};
 
-            const auto dz = h2.z - h0.z;
-            const auto predx = h0.x + tx * dz;
-            const auto predy = h0.y + ty * dz;
-            const auto dx = predx - h2.x;
-            const auto dy = predy - h2.y;
+          const auto dz = h2.z - h0.z;
+          const auto predx = h0.x + tx * dz;
+          const auto predy = h0.y + ty * dz;
+          const auto dx = predx - h2.x;
+          const auto dy = predy - h2.y;
 
-            // Scatter
-            const auto scatter = (dx * dx) + (dy * dy);
+          // Scatter
+          const auto scatter = (dx * dx) + (dy * dy);
 
-            // We keep the best one found
-            if (scatter < best_fit) {
-              best_fit = scatter;
-              best_h0 = h0_index;
-              best_h2 = h2_index;
-            }
+          // We keep the best one found
+          if (scatter < best_fit) {
+            best_fit = scatter;
+            best_h0 = h0_index;
+            best_h2 = h2_index;
           }
         }
       }
