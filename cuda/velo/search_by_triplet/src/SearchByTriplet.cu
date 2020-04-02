@@ -523,7 +523,7 @@ __device__ void track_seeding(
         h0,
         [&hit_phi_function](const float x, const float y) { return hit_phi_function(x, y); });
 
-      // Allow a window of four hits in the next module. Use pendulum search.
+      // Allow a window of hits in the next module. Use pendulum search.
       for (int i = 0; i < number_of_h2_candidates; ++i) {
         const auto sign = i & 0x01;
         const int index_diff = sign ? i : -i;
@@ -546,7 +546,7 @@ __device__ void track_seeding(
           // Scatter
           const auto scatter = (dx * dx) + (dy * dy);
 
-          // We keep the best one found
+          // Keep the best one found
           if (scatter < best_fit) {
             best_fit = scatter;
             best_h0 = h0_index;
