@@ -158,7 +158,7 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   // Input three hit tracks
   const Velo::TrackletHits* input_tracks =
     parameters.dev_three_hit_tracks_input + event_number * parameters.max_weak_tracks;
-  const auto number_of_input_tracks = parameters.dev_atomics_velo[event_number * Velo::num_atomics];
+  const auto number_of_input_tracks = parameters.dev_atomics_velo[event_number * Velo::num_atomics + Velo::Tracking::atomics::number_of_three_hit_tracks];
 
   // Output containers
   Velo::TrackletHits* output_tracks = parameters.dev_three_hit_tracks_output.get() + tracks_offset;

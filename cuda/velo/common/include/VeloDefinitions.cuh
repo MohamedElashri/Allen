@@ -17,7 +17,7 @@ namespace Velo {
     static constexpr float z_endVelo = 770; // FIXME_GEOMETRY_HARDCODING
 
     // Constant for maximum number of hits in a module
-    static constexpr uint max_numhits_in_module = 500;
+    static constexpr uint max_numhits_in_module = 1024;
 
     // High number of hits per event
     static constexpr uint max_number_of_hits_per_event = 9500;
@@ -35,6 +35,31 @@ namespace Velo {
     // Constants for filters
     static constexpr float param_w = 3966.94f;
     static constexpr float param_w_inverted = 0.000252083f;
-
+    static constexpr uint number_of_h0_candidates = 5;
+    static constexpr uint number_of_h2_candidates = 5;
+    // Atomics
+    namespace atomics {
+      enum atomic_types {
+        number_of_three_hit_tracks,
+        number_of_seeds,
+        tracks_to_follow,
+        local_number_of_hits
+      };
+    }
+    // Bits
+    namespace bits {
+      static constexpr uint seed = 0x80000000;
+      static constexpr uint track_number = 0x0FFFFFFF;
+      static constexpr uint hit_number = 0x7FFF;
+      static constexpr uint skipped_modules = 0x70000000;
+      static constexpr uint oddity_position = 15;
+      static constexpr uint skipped_module_position = 28;
+    }
+    // Shared memory
+    namespace shared {
+      static constexpr uint previous_module_pair = 0;
+      static constexpr uint current_module_pair = 2;
+      static constexpr uint next_module_pair = 4;
+    }
   } // namespace Tracking
 } // namespace Velo

@@ -11,5 +11,5 @@ __device__ void track_seeding(
   unsigned short* h1_rel_indices,
   uint* dev_shifted_atomics_velo,
   const float max_scatter_seeding,
-  const int ttf_modulo_mask,
+  const uint max_tracks_to_follow,
   const float* hit_phi);
