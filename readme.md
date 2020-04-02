@@ -76,29 +76,42 @@ There are some cmake options to configure the build process:
 * ROOT can be enabled to generate monitoring plots using `-DUSE_ROOT=ON`
 * If more verbose build output from the CUDA toolchain is desired, specify `-DCUDA_VERBOSE_BUILD=ON`
 * If multiple versions of CUDA are installed and CUDA 10.0 is not the default, it can be specified using: `-DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.0/bin/nvcc`
-* The MC validation is standalone, it was written by Manuel Schiller, Rainer Schwemmer, Daniel Cámpora and Dorothea vom Bruch.
 
 How to run it
 -------------
 
 Some binary input files are included with the project for testing.
-A run of the program with no arguments will let you know the basic options:
+A run of the program with the help option `-h` will let you know the basic options:
 
-    Usage: ./Allen
-    -f {folder containing directories with raw bank binaries for every sub-detector}
-    -b {folder containing .bin files with muon common hits}
-    --mdf {use MDF files as input instead of binary files}
-    -g {folder containing detector configuration}
-    -d {folder containing .bin files with MC truth information}
-    -n {number of events to process}=0 (all)
-    -o {offset of events from which to start}=0 (beginning)
-    -t {number of threads / streams}=1
-    -r {number of repetitions per thread / stream}=1
-    -c {run checkers}=0
-    -m {reserve Megabytes}=1024
-    -v {verbosity}=3 (info)
-    -p {print memory usage}=0
-    -a {run only data preparation algorithms: decoding, clustering, sorting}=0
+    Usage: ./Allen -h
+    -f, --folder {folder containing data directories}=../input/minbias/
+     -g, --geometry {folder containing detector configuration}=../input/detector_configuration/down/
+    --mdf {comma-separated list of MDF files to use as input}
+    --mep {comma-separated list of MEP files to use as input}
+    --transpose-mep {Transpose MEPs instead of decoding from MEP layout directly}=0 (don't transpose)
+    --configuration {path to json file containing values of configurable algorithm constants}=../configuration/constants/default.json
+    --print-status {show status of buffer and socket}=0
+    --print-config {show current algorithm configuration}=0
+    --write-configuration {write current algorithm configuration to file}=0
+    -n, --number-of-events {number of events to process}=0 (all)
+    -s, --number-of-slices {number of input slices to allocate}=0 (one more than the number of threads)
+    --events-per-slice {number of events per slice}=1000
+    -t, --threads {number of threads / streams}=1
+    -r, --repetitions {number of repetitions per thread / stream}=1
+    -c, --validate {run validation / checkers}=1
+    -m, --memory {memory to reserve per thread / stream (megabytes)}=1024
+    -v, --verbosity {verbosity [0-5]}=3 (info)
+    -p, --print-memory {print memory usage}=0
+    -i, --import-tracks {import forward tracks dumped from Brunel}
+    --cpu-offload {offload part of the computation to CPU}=1
+    --output-file {Write selected event to output file}
+    --device {select device to use}=0
+    --non-stop {Runs the program indefinitely}=0
+    --with-mpi {Read events with MPI}
+    --mpi-window-size {Size of MPI sliding window}=4
+    --mpi-number-of-slices {Number of MPI network slices}=6
+    -h {show this help}
+
 
 Here are some example run options:
 
@@ -172,4 +185,9 @@ $> cd Allen
 $> ./build.${CMTCONFIG}/run bindings/Allen.py
 ```
 
-[This readme](contributing.md) explains how to add a new algorithm to the sequence and how to use the memory scheduler to define global memory variables for this sequence and pass on the dependencies. It also explains which checks to do before placing a merge request with your changes.
+### Links to more readmes
+The following readmes explain various aspects of Allen:
+
+* [This readme](contributing.md) explains how to add a new algorithm to Allen.
+* [This readme](selections.md ) explains how to add a new HLT1 line to Allen.
+* [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.
