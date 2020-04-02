@@ -493,3 +493,8 @@ def compose_sequences(*args):
         for item in sequence:
             new_sequence.append(item)
     return Sequence(new_sequence)
+
+
+class AlgorithmRepr(type):
+    def __repr__(cls):
+        return f"class {cls.__name__} : {cls.__bases__[0].__name__}\n inputs: {cls.inputs}\n outputs: {cls.outputs}\n properties: {cls.props}"

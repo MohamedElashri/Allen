@@ -3,12 +3,19 @@ from definitions.algorithms import *
 
 def ForwardSequence(forward_decoding="v4"):
     lf_search_initial_windows = lf_search_initial_windows_t()
+
     lf_triplet_seeding = lf_triplet_seeding_t()
+
     lf_triplet_keep_best = lf_triplet_keep_best_t()
+
     lf_calculate_parametrization = lf_calculate_parametrization_t()
+
     lf_extend_tracks_x = lf_extend_tracks_x_t()
+
     lf_extend_tracks_uv = lf_extend_tracks_uv_t()
+
     lf_quality_filter_length = lf_quality_filter_length_t()
+    
     lf_quality_filter = lf_quality_filter_t()
 
     prefix_sum_forward_tracks = host_prefix_sum_t(

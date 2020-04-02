@@ -153,7 +153,7 @@ class AllenConf():
     @staticmethod
     def write_algorithm_code(algorithm, i=0):
         s = AllenConf.prefix(
-            i) + "class " + algorithm.name + "(" + algorithm.scope + "):\n"
+            i) + "class " + algorithm.name + "(" + algorithm.scope + ", metaclass=AlgorithmRepr):\n"
         i += 1
         s += AllenConf.prefix(i) + "inputs = ("
         i += 1
@@ -166,6 +166,11 @@ class AllenConf():
         for param in algorithm.parameters:
             if "Output" in AllenConf.create_var_type(param.kind):
                 s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
+        i -= 1
+        s += ")\n" + AllenConf.prefix(i) + "props = ("
+        i += 1
+        for prop in algorithm.properties:
+            s += "\n" + AllenConf.prefix(i) + "\"" + prop.name[1:-1] + "\","
         i -= 1
         s += ")\n\n"
         s += AllenConf.prefix(i) + "def __init__(self"
