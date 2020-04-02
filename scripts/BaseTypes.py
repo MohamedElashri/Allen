@@ -33,7 +33,9 @@ class VeloUTTwoTrackLine(Line):
 
 class Type():
     def __init__(self, vtype):
-        if vtype == "uint" or vtype == "unsigned int" or vtype == "unsigned int32_t":
+        if vtype.__class__ == Type:
+            self.__type = vtype.type()
+        elif vtype == "uint" or vtype == "unsigned int" or vtype == "unsigned int32_t":
             self.__type = "uint32_t"
         elif vtype == "int" or vtype == "signed int":
             self.__type = "int32_t"
@@ -101,21 +103,23 @@ class OutputParameter():
 
 def compatible_parameter_assignment(a, b):
     """Returns whether the parameter b can accept to be written
-  with class a."""
+    with class a."""
     return ((issubclass(b, DeviceParameter) and issubclass(a, DeviceParameter)) or \
       (issubclass(b, HostParameter) and issubclass(a, HostParameter))) and \
       (issubclass(b, InputParameter) or (issubclass(b, OutputParameter) and issubclass(a, OutputParameter)))
 
 
+def check_input_parameter(parameter, assign_class, typename):
+    assert compatible_parameter_assignment(parameter.__class__, assign_class)
+    assert parameter.type() == Type(typename)
+    return assign_class(parameter.name(), parameter.type(), parameter.producer())
+
+
 class HostInput(HostParameter, InputParameter):
-    def __init__(self, value, vtype):
-        if value.__class__ == str:
-            self.__name = value
-        else:
-            assert compatible_parameter_assignment(value.__class__, __class__)
-            assert value.type() == Type(vtype)
-            self.__name = value.name()
-        self.__type = Type(vtype)
+    def __init__(self, name, typename, producer):
+        self.__name = name
+        self.__type = Type(typename)
+        self.__producer = producer
 
     def name(self):
         return self.__name
@@ -123,25 +127,21 @@ class HostInput(HostParameter, InputParameter):
     def type(self):
         return self.__type
 
-    def set_name(self, value):
-        self.__name = value
+    def producer(self):
+        return self.__producer
 
-    def set_type(self, value):
-        self.__type = Type(value)
+    def fullname(self):
+        return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "HostInput(\"" + self.__name + "\", " + repr(self.__type) + ")"
+        return "HostInput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
 
 
 class HostOutput(HostParameter, OutputParameter):
-    def __init__(self, value, vtype):
-        if value.__class__ == str:
-            self.__name = value
-        else:
-            assert compatible_parameter_assignment(value.__class__, __class__)
-            assert value.type() == Type(vtype)
-            self.__name = value.name()
-        self.__type = Type(vtype)
+    def __init__(self, name, typename, producer):
+        self.__name = name
+        self.__type = Type(typename)
+        self.__producer = producer
 
     def name(self):
         return self.__name
@@ -149,25 +149,21 @@ class HostOutput(HostParameter, OutputParameter):
     def type(self):
         return self.__type
 
-    def set_name(self, value):
-        self.__name = value
+    def producer(self):
+        return self.__producer
 
-    def set_type(self, value):
-        self.__type = Type(value)
+    def fullname(self):
+        return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "HostOutput(\"" + self.__name + "\", " + repr(self.__type) + ")"
+        return "HostOutput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
 
 
 class DeviceInput(DeviceParameter, InputParameter):
-    def __init__(self, value, vtype):
-        if value.__class__ == str:
-            self.__name = value
-        else:
-            assert compatible_parameter_assignment(value.__class__, __class__)
-            assert value.type() == Type(vtype)
-            self.__name = value.name()
-        self.__type = Type(vtype)
+    def __init__(self, name, typename, producer):
+        self.__name = name
+        self.__type = Type(typename)
+        self.__producer = producer
 
     def name(self):
         return self.__name
@@ -175,26 +171,21 @@ class DeviceInput(DeviceParameter, InputParameter):
     def type(self):
         return self.__type
 
-    def set_name(self, value):
-        self.__name = value
+    def producer(self):
+        return self.__producer
 
-    def set_type(self, value):
-        self.__type = Type(value)
+    def fullname(self):
+        return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "DeviceInput(\"" + self.__name + "\", " + repr(
-            self.__type) + ")"
+        return "DeviceInput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
 
 
 class DeviceOutput(DeviceParameter, OutputParameter):
-    def __init__(self, value, vtype):
-        if value.__class__ == str:
-            self.__name = value
-        else:
-            assert compatible_parameter_assignment(value.__class__, __class__)
-            assert value.type() == Type(vtype)
-            self.__name = value.name()
-        self.__type = Type(vtype)
+    def __init__(self, name, typename, producer):
+        self.__name = name
+        self.__type = Type(typename)
+        self.__producer = producer
 
     def name(self):
         return self.__name
@@ -202,15 +193,14 @@ class DeviceOutput(DeviceParameter, OutputParameter):
     def type(self):
         return self.__type
 
-    def set_name(self, value):
-        self.__name = value
+    def producer(self):
+        return self.__producer
 
-    def set_type(self, value):
-        self.__type = Type(value)
+    def fullname(self):
+        return self.__producer + "__" + self.__name
 
     def __repr__(self):
-        return "DeviceOutput(\"" + self.__name + "\", " + repr(
-            self.__type) + ")"
+        return "DeviceOutput(\"" + self.__name + "\", " + repr(self.__type) + ", " + self.__producer + ")"
 
 
 class Property():
@@ -277,10 +267,10 @@ class Sequence():
             for parameter_name, parameter in iter(
                     algorithm.parameters().items()):
                 if issubclass(parameter.__class__, OutputParameter):
-                    if parameter.name() in output_names:
-                        output_names[parameter.name()].append(algorithm.name())
+                    if parameter.fullname() in output_names:
+                        output_names[parameter.fullname()].append(algorithm.name())
                     else:
-                        output_names[parameter.name()] = [algorithm.name()]
+                        output_names[parameter.fullname()] = [algorithm.name()]
 
         for k, v in iter(output_names.items()):
             # Note: This is a warning, as the sequence atm contains this
@@ -305,7 +295,7 @@ class Sequence():
                     algorithm.parameters().items()):
                 if issubclass(parameter.__class__, InputParameter):
                     # Check the input is not orphaned (ie. that there is a previous Output that generated it)
-                    if parameter.name() not in output_parameters:
+                    if parameter.fullname() not in output_parameters:
                         print("Error: Parameter " + repr(parameter) + " of algorithm " + algorithm.name() + \
                           " is an InputParameter not provided by any previous OutputParameter.")
                         errors += 1
@@ -313,26 +303,26 @@ class Sequence():
                 #       then we can move the following two if statements to be included in the
                 #       "if issubclass(parameter.__class__, InputParameter):".
                 # Check that the input and output types correspond
-                if parameter.name() in output_parameters and \
-                  output_parameters[parameter.name()]["parameter"].type() != parameter.type():
-                    print("Error: Type mismatch (" + repr(parameter.type()) + ", " + repr(output_parameters[parameter.name()]["parameter"].type()) + ") " \
+                if parameter.fullname() in output_parameters and \
+                  output_parameters[parameter.fullname()]["parameter"].type() != parameter.type():
+                    print("Error: Type mismatch (" + repr(parameter.type()) + ", " + repr(output_parameters[parameter.fullname()]["parameter"].type()) + ") " \
                       + "between " + algorithm.name() + "::" + repr(parameter) \
-                      + " and " + output_parameters[parameter.name()]["algorithm"].name() \
-                      + "::" + repr(output_parameters[parameter.name()]["parameter"]))
+                      + " and " + output_parameters[parameter.fullname()]["algorithm"].name() \
+                      + "::" + repr(output_parameters[parameter.fullname()]["parameter"]))
                     errors += 1
                 # Check the scope (Device, Host) of the input and output parameters matches
-                if parameter.name() in output_parameters and \
+                if parameter.fullname() in output_parameters and \
                   ((issubclass(parameter.__class__, DeviceParameter) and \
-                    issubclass(output_parameters[parameter.name()]["parameter"].__class__, HostParameter)) or \
+                    issubclass(output_parameters[parameter.fullname()]["parameter"].__class__, HostParameter)) or \
                   (issubclass(parameter.__class__, HostParameter) and \
-                    issubclass(output_parameters[parameter.name()]["parameter"].__class__, DeviceParameter))):
-                    print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.name()]["parameter"].__class__ + ") " \
+                    issubclass(output_parameters[parameter.fullname()]["parameter"].__class__, DeviceParameter))):
+                    print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.fullname()]["parameter"].__class__ + ") " \
                       + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
                     errors += 1
             for parameter_name, parameter in iter(
                     algorithm.parameters().items()):
                 if issubclass(parameter.__class__, OutputParameter):
-                    output_parameters[parameter.name()] = {
+                    output_parameters[parameter.fullname()] = {
                         "parameter": parameter,
                         "algorithm": algorithm
                     }
@@ -367,12 +357,12 @@ class Sequence():
             for _, algorithm in iter(self.__sequence.items()):
                 for parameter_t, parameter in iter(
                         algorithm.parameters().items()):
-                    if parameter.name() in parameters:
-                        parameters[parameter.name()].append(
+                    if parameter.fullname() in parameters:
+                        parameters[parameter.fullname()].append(
                             (algorithm.name(), algorithm.namespace(),
                              parameter_t))
                     else:
-                        parameters[parameter.name()] = [(algorithm.name(),
+                        parameters[parameter.fullname()] = [(algorithm.name(),
                                                          algorithm.namespace(),
                                                          parameter_t)]
             # Generate configuration
@@ -407,7 +397,7 @@ class Sequence():
                 for parameter_t, parameter in iter(
                         algorithm.parameters().items()):
                     i += 1
-                    s += parameter.name()
+                    s += parameter.fullname()
                     if i != len(algorithm.parameters()):
                         s += ", "
                 s += ">, "

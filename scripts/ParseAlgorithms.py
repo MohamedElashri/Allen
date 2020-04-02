@@ -115,7 +115,7 @@ class AllenConf():
         f = open(prefix_project_folder + "/scripts/BaseTypes.py")
         s = f.read()
         f.close()
-        return s
+        return s + "\n\n"
 
     @staticmethod
     def write_line_code(line, i=0):
@@ -155,18 +155,31 @@ class AllenConf():
         s = AllenConf.prefix(
             i) + "class " + algorithm.name + "(" + algorithm.scope + "):\n"
         i += 1
-        s += AllenConf.prefix(i) + "def __init__(self,\n"
+        s += AllenConf.prefix(i) + "inputs = ("
         i += 1
-        s += AllenConf.prefix(i) + "name=\"" + algorithm.name + "\""
+        for param in algorithm.parameters:
+            if "Input" in AllenConf.create_var_type(param.kind):
+                s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
+        i -= 1
+        s += ")\n" + AllenConf.prefix(i) + "outputs = ("
+        i += 1
+        for param in algorithm.parameters:
+            if "Output" in AllenConf.create_var_type(param.kind):
+                s += "\n" + AllenConf.prefix(i) + "\"" + param.typename + "\","
+        i -= 1
+        s += ")\n\n"
+        s += AllenConf.prefix(i) + "def __init__(self"
+        i += 1
         for var in algorithm.parameters:
-            s += ",\n" \
-              + AllenConf.prefix(i) + var.typename + "=" + AllenConf.create_var_type(var.kind) \
-              + "(\"" + var.typename + "\", \"" + var.typedef + "\")"
+            if "Output" not in AllenConf.create_var_type(var.kind):
+                s += ",\n" \
+                  + AllenConf.prefix(i) + var.typename
         for prop in algorithm.properties:
             s += ",\n" \
               + AllenConf.prefix(i) + prop.name[1:-1] + "=Property" \
               + "(\"" + prop.typedef + "\", " \
               + "\"\", " + prop.description + ")"
+        s += ",\n" + AllenConf.prefix(i) + "name=\"" + algorithm.name + "\""
         s += "):\n"
         s += AllenConf.prefix(i) + "self.__filename = \"" + algorithm.filename[
             len(prefix_project_folder):] + "\"\n"
@@ -182,8 +195,12 @@ class AllenConf():
         s += AllenConf.prefix(i) + "self.__ordered_parameters = OrderedDict(["
         i += 1
         for var in algorithm.parameters:
-            s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + AllenConf.create_var_type(var.kind) \
-              + "(" + var.typename + ", \"" + var.typedef + "\")),"
+            if "Output" in AllenConf.create_var_type(var.kind):
+                s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", " + AllenConf.create_var_type(var.kind) \
+                  + "(\"" + var.typename + "\", \"" + var.typedef + "\", self.__name)),"
+            else:
+                s += "\n" + AllenConf.prefix(i) + "(\"" + var.typename + "\", check_input_parameter(" + var.typename \
+                  + ", " + AllenConf.create_var_type(var.kind) + ", \"" + var.typedef + "\")),"
         s = s[:-1]
         if len(algorithm.parameters) > 0:
             s += "]"

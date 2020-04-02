@@ -16,7 +16,7 @@ namespace ut_select_velo_tracks_with_windows {
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
     DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, uint) dev_ut_number_of_selected_velo_tracks;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, uint) dev_ut_selected_velo_tracks;
-    DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
+    DEVICE_INPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
     DEVICE_OUTPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, uint) dev_ut_number_of_selected_velo_tracks_with_windows;
     DEVICE_OUTPUT(dev_ut_selected_velo_tracks_with_windows_t, uint) dev_ut_selected_velo_tracks_with_windows;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
