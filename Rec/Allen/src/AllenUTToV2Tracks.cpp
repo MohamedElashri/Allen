@@ -55,8 +55,7 @@ std::vector<LHCb::Event::v2::Track> AllenUTToV2Tracks::operator()(const HostBuff
   std::vector<LHCb::Event::v2::Track> output;
   output.reserve(number_of_tracks);
 
-  if (msgLevel(MSG::VERBOSE))
-    debug() << "Number of UT tracks to convert = " << number_of_tracks << endmsg;
+  if (msgLevel(MSG::VERBOSE)) debug() << "Number of UT tracks to convert = " << number_of_tracks << endmsg;
 
   for (unsigned int t = 0; t < number_of_tracks; t++) {
     auto& newTrack = output.emplace_back();
