@@ -71,15 +71,15 @@ private:
   std::unique_ptr<Stream> m_stream;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
 
-  Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
+  Gaudi::Property<std::string> m_updaterName {this, "UPDATERNAME", "AllenUpdater"};
 
   Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_PROJECT_ROOT}/configuration/constants/default.json"};
-  Gaudi::Property<std::string> m_paramDir {this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
+  Gaudi::Property<std::string> m_paramDir {this, "PARAMDIR", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
 
-  Gaudi::Property<bool> m_do_check {this, "do_check", true};
+  Gaudi::Property<bool> m_do_check {this, "DOCHECK", true};
   // If set to false, events are only filtered by the GEC
   // If set to true, events are filtered based on an OR of the Allen selection lines
-  Gaudi::Property<bool> m_filter_hlt1 {this, "filter_HLT1", false};
+  Gaudi::Property<bool> m_filter_hlt1 {this, "FILTERHLT1", false};
 };
 
 #endif

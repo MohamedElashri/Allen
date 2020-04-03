@@ -191,3 +191,4 @@ The following readmes explain various aspects of Allen:
 * [This readme](contributing.md) explains how to add a new algorithm to Allen.
 * [This readme](selections.md ) explains how to add a new HLT1 line to Allen.
 * [This readme](configuration/readme.md) explains how to configure the algorithms in an HLT1 sequence.
+* [This readme](Rec/Allen/readme.md) explains how to call Allen from Moore and Brunel.

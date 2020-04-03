@@ -31,15 +31,6 @@ AllenUTToV2Tracks::AllenUTToV2Tracks(const std::string& name, ISvcLocator* pSvcL
     {KeyValue {"OutputTracks", "Allen/Track/v2/VeloUT"}})
 {}
 
-StatusCode AllenUTToV2Tracks::initialize()
-{
-  auto sc = Transformer::initialize();
-  if (sc.isFailure()) return sc;
-  if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
-
-  return StatusCode::SUCCESS;
-}
-
 std::vector<LHCb::Event::v2::Track> AllenUTToV2Tracks::operator()(const HostBuffers& host_buffers) const
 {
 
@@ -64,7 +55,8 @@ std::vector<LHCb::Event::v2::Track> AllenUTToV2Tracks::operator()(const HostBuff
   std::vector<LHCb::Event::v2::Track> output;
   output.reserve(number_of_tracks);
 
-  debug() << "Number of UT tracks to convert = " << number_of_tracks << endmsg;
+  if (msgLevel(MSG::VERBOSE))
+    debug() << "Number of UT tracks to convert = " << number_of_tracks << endmsg;
 
   for (unsigned int t = 0; t < number_of_tracks; t++) {
     auto& newTrack = output.emplace_back();
