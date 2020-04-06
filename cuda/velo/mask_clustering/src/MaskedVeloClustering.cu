@@ -15,17 +15,61 @@ __device__ uint32_t mask_east(uint64_t cluster)
   return mask | (mask << 1) | (mask >> 1);
 }
 
+/**
+ * @brief Helper function to print contents of pixel array.
+ */
+__device__ void print_array(const uint32_t* p, const int row = -1, const int col = -1) {
+  for (int r = 0; r < 16; ++r) {
+    for (int c = 0; c < 6; ++c) {
+      if (r == row && c == col) {
+        printf("x");
+      }
+      else {
+        const int temp_sp_col = c / 2;
+        const bool temp_pixel = (p[temp_sp_col] >> (16 * (c % 2) + (r % 16))) & 0x01;
+        printf("%i", temp_pixel);
+      }
+      if (((c + 1) % 2) == 0) printf(" ");
+    }
+    printf("\n");
+    if (((r + 1) % 4) == 0) printf("\n");
+  }
+  printf("\n");
+}
+
+/**
+ * @brief Helper function to print contents of 64-bit forming cluster.
+ */
+__device__ void print_array_64(const uint64_t p, const int row = -1, const int col = -1) {
+  for (int r = 0; r < 16; ++r) {
+    for (int c = 0; c < 4; ++c) {
+      if (r == row && c == col) {
+        printf("x");
+      }
+      else {
+        const bool temp_pixel = (p >> ((c * 16) + r)) & 0x01;
+        printf("%i", temp_pixel);
+      }
+      if (((c + 1) % 2) == 0) printf(" ");
+    }
+    printf("\n");
+    if (((r + 1) % 4) == 0) printf("\n");
+  }
+  printf("\n");
+}
+
 __device__ void no_neighbour_sp(
- uint const* module_cluster_start,
- uint8_t const* dev_velo_sp_patterns,
- Velo::Clusters velo_cluster_container,
- uint* module_cluster_num,
- const float* dev_velo_sp_fx,
- const float* dev_velo_sp_fy,
- VeloGeometry const& g,
- int const module_number,
- uint const cluster_start,
- VeloRawBank const& raw_bank) {
+  uint const* module_cluster_start,
+  uint8_t const* dev_velo_sp_patterns,
+  Velo::Clusters velo_cluster_container,
+  uint* module_cluster_num,
+  const float* dev_velo_sp_fx,
+  const float* dev_velo_sp_fy,
+  VeloGeometry const& g,
+  int const module_number,
+  uint const cluster_start,
+  VeloRawBank const& raw_bank)
+{
 
   const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
 
@@ -63,9 +107,7 @@ __device__ void no_neighbour_sp(
         const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 
 #if ALLEN_DEBUG
-        const auto module_estimated_num =
-          module_cluster_start[module_number + 1] -
-          module_cluster_start[module_number];
+        const auto module_estimated_num = module_cluster_start[module_number + 1] - module_cluster_start[module_number];
         assert(cluster_num <= module_estimated_num);
 #else
         _unused(module_cluster_start);
@@ -99,9 +141,7 @@ __device__ void no_neighbour_sp(
         const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 
 #if ALLEN_DEBUG
-        const auto module_estimated_num =
-          module_cluster_start[module_number + 1] -
-          module_cluster_start[module_number];
+        const auto module_estimated_num = module_cluster_start[module_number + 1] - module_cluster_start[module_number];
         assert(cluster_num <= module_estimated_num);
 #endif
 
@@ -119,17 +159,17 @@ __device__ void no_neighbour_sp(
 }
 
 __device__ void rest_of_clusters(
- uint const* module_cluster_start,
- Velo::Clusters velo_cluster_container,
- uint* module_cluster_num,
- VeloGeometry const& g,
- uint32_t const candidate,
- VeloRawBank const& raw_bank) {
-
-  const uint8_t sp_index = candidate >> 11;
-  const uint8_t raw_bank_number = (candidate >> 3) & 0xFF;
-  const uint32_t module_number = raw_bank_number >> 2;
-  const uint8_t candidate_k = candidate & 0x7;
+  uint const* module_cluster_start,
+  Velo::Clusters velo_cluster_container,
+  uint* module_cluster_num,
+  VeloGeometry const& g,
+  uint32_t const candidate,
+  VeloRawBank const& raw_bank)
+{
+  const auto sp_index = candidate >> 11;
+  const auto raw_bank_number = (candidate >> 3) & 0xFF;
+  const auto module_number = raw_bank_number >> 2;
+  const auto starting_pixel_location = candidate & 0x7;
 
   const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
   const uint32_t sp_word = raw_bank.sp_word[sp_index];
@@ -218,17 +258,20 @@ __device__ void rest_of_clusters(
     }
   }
 
-  // Work with candidate k
-  const uint32_t row = sp_row * 4 + (candidate_k & 0x3);
-  const uint32_t col = sp_col * 2 + (candidate_k >= 4);
+  // Pixel array is now populated
+  // Work with candidate on starting_pixel_location
+  const auto sp_relative_row = starting_pixel_location & 0x3;
+  const auto sp_relative_col = starting_pixel_location < 4;
+  const uint32_t col = sp_col * 2 + sp_relative_col;
 
   // ---------------------
   // Simplified clustering
   // ---------------------
 
   // Work with a 64-bit number instead
-  const uint64_t start_pixel = ((uint64_t)(0x01 << (row - row_lower_limit)) << (16 * (col & 0x01))) << 32;
+  const uint64_t start_pixel = ((uint64_t)(0x01 << (11 - sp_relative_row)) << (16 * (col & 0x01))) << 32;
   const uint64_t pixel_map = (((uint64_t) pixel_array[1]) << 32) | pixel_array[0];
+
   uint64_t current_cluster = 0;
   uint64_t next_cluster = start_pixel;
 
@@ -243,11 +286,12 @@ __device__ void rest_of_clusters(
     // Hits to the east, populated in the first 16 bits
     (mask_east(current_cluster) & pixel_array[2]) |
     // Hits in the current cluster with precedence in the latter 16 bits
-    (current_cluster &
-     (start_pixel ^ -start_pixel ^ (~(-(start_pixel << 16)) & ((uint64_t) 0xFFFF000000000000) * ((col + 1) & 0x01))));
+    (current_cluster & (start_pixel ^ -start_pixel));
 
   const int n = __popcll(current_cluster);
-  if (n > 0 && hits_with_precedence == 0) {
+  assert(n > 0);
+
+  if (hits_with_precedence == 0) {
     // If there are no hits with precedence,
     // create the cluster
     const int x = col_lower_limit * n + __popcll(current_cluster & 0x00000000FFFF0000) +
@@ -272,8 +316,7 @@ __device__ void rest_of_clusters(
 
     // store target (3D point for tracking)
     const uint32_t chip = cx >> VP::ChipColumns_division;
-
-    uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+    const uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
 
     const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
     const float local_y = (cy + 0.5f + fy) * Velo::Constants::pixel_size;
@@ -281,9 +324,7 @@ __device__ void rest_of_clusters(
     const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 
 #if ALLEN_DEBUG
-    const auto module_estimated_num =
-    module_cluster_start[module_number + 1] -
-    module_cluster_start[module_number];
+    const auto module_estimated_num = module_cluster_start[module_number + 1] - module_cluster_start[module_number];
     assert(cluster_num <= module_estimated_num);
 #endif
 
@@ -312,13 +353,15 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
   const uint selected_event_number = parameters.dev_event_list[event_number];
 
   const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
-  const uint* module_cluster_start = parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
+  const uint* module_cluster_start =
+    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   uint* module_cluster_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   uint number_of_candidates = parameters.dev_module_candidate_num[event_number];
   const uint* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Local pointers to parameters.dev_velo_cluster_container
-  const uint estimated_number_of_clusters = parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint estimated_number_of_clusters =
+    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
   auto velo_cluster_container = Velo::Clusters {parameters.dev_velo_cluster_container, estimated_number_of_clusters};
 
   // Load Velo geometry (assume it is the same for all events)
@@ -335,9 +378,17 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
 
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    no_neighbour_sp(module_cluster_start, dev_velo_sp_patterns, velo_cluster_container, module_cluster_num,
-                    dev_velo_sp_fx, dev_velo_sp_fy, g,
-                    module_number, cluster_start, raw_bank);
+    no_neighbour_sp(
+      module_cluster_start,
+      dev_velo_sp_patterns,
+      velo_cluster_container,
+      module_cluster_num,
+      dev_velo_sp_fx,
+      dev_velo_sp_fy,
+      g,
+      module_number,
+      cluster_start,
+      raw_bank);
   }
 
   __syncthreads();
@@ -350,8 +401,7 @@ __global__ void velo_masked_clustering::velo_masked_clustering(
     assert(raw_bank_number < Velo::Constants::n_sensors);
 
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    rest_of_clusters(module_cluster_start, velo_cluster_container, module_cluster_num, g,
-                    candidate, raw_bank);
+    rest_of_clusters(module_cluster_start, velo_cluster_container, module_cluster_num, g, candidate, raw_bank);
   }
 }
 
@@ -366,13 +416,15 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
   const uint event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
 
-  const uint* module_cluster_start = parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
+  const uint* module_cluster_start =
+    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
   uint* module_cluster_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
   uint number_of_candidates = parameters.dev_module_candidate_num[event_number];
   const uint* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
   // Local pointers to parameters.dev_velo_cluster_container
-  const uint estimated_number_of_clusters = parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+  const uint estimated_number_of_clusters =
+    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
   auto velo_cluster_container = Velo::Clusters {parameters.dev_velo_cluster_container, estimated_number_of_clusters};
 
   // Load Velo geometry (assume it is the same for all events)
@@ -382,17 +434,24 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
   auto const number_of_raw_banks = parameters.dev_velo_raw_input_offsets[0];
 
   // process no neighbour sp
-  for (uint raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks;
-       raw_bank_number += blockDim.x) {
+  for (uint raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
     const auto module_number = raw_bank_number >> 2;
     const uint cluster_start = module_cluster_start[module_number];
 
     // Read raw bank
-    const auto raw_bank = MEP::raw_bank<VeloRawBank>(parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets,
-                                                     selected_event_number, raw_bank_number);
-    no_neighbour_sp(module_cluster_start, dev_velo_sp_patterns, velo_cluster_container, module_cluster_num,
-                    dev_velo_sp_fx, dev_velo_sp_fy, g,
-                    module_number, cluster_start, raw_bank);
+    const auto raw_bank = MEP::raw_bank<VeloRawBank>(
+      parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, selected_event_number, raw_bank_number);
+    no_neighbour_sp(
+      module_cluster_start,
+      dev_velo_sp_patterns,
+      velo_cluster_container,
+      module_cluster_num,
+      dev_velo_sp_fx,
+      dev_velo_sp_fy,
+      g,
+      module_number,
+      cluster_start,
+      raw_bank);
   }
 
   __syncthreads();
@@ -404,10 +463,9 @@ __global__ void velo_masked_clustering::velo_masked_clustering_mep(
 
     assert(raw_bank_number < Velo::Constants::n_sensors);
 
-    const auto raw_bank = MEP::raw_bank<VeloRawBank>(parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets,
-                                                     selected_event_number, raw_bank_number);
+    const auto raw_bank = MEP::raw_bank<VeloRawBank>(
+      parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, selected_event_number, raw_bank_number);
 
-    rest_of_clusters(module_cluster_start, velo_cluster_container, module_cluster_num, g,
-                    candidate, raw_bank);
+    rest_of_clusters(module_cluster_start, velo_cluster_container, module_cluster_num, g, candidate, raw_bank);
   }
 }

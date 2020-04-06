@@ -4,7 +4,6 @@
 __device__ void estimate_raw_bank_size(
   uint* estimated_input_size,
   uint32_t* cluster_candidates,
-  const uint8_t* dev_velo_candidate_ks,
   uint* event_candidate_num,
   uint raw_bank_number,
   VeloRawBank const& raw_bank)
@@ -124,15 +123,18 @@ __device__ void estimate_raw_bank_size(
       //  1   64  4096
       //      32  2048
       //
+      // 5 11 17
+      // 4 10 16
+      // 3  9 15
+      // 2  8 14
+      // 1  7 13
+      //    6 12
+      //
       // Look up pattern
       // x x
       // o x
       //   x
       //
-      uint found_cluster_candidates = 0;
-
-      assert(raw_bank_number < Velo::Constants::n_sensors);
-
       const uint32_t sp_inside_pixel = pixels & 0x3CF;
       const uint32_t mask =
         (sp_inside_pixel << 1) | (sp_inside_pixel << 5) | (sp_inside_pixel << 6) | (sp_inside_pixel << 7);
@@ -142,31 +144,37 @@ __device__ void estimate_raw_bank_size(
         (working_cluster >> 1) & (working_cluster >> 5) & (working_cluster >> 6) & (working_cluster >> 7);
 
       const uint32_t candidates = candidates_temp & pixels;
+      const uint32_t candidates_consolidated = (candidates & 0x0F) | ((candidates >> 2) & 0xF0);
 
-      const uint8_t candidates_uint8 =
-        (candidates & 0x03) | ((candidates & 0xC0) >> 4) | ((candidates & 0x0C) << 2) | ((candidates & 0x0300) >> 2);
+      const auto first_candidate = candidates_consolidated & 0x33;
+      const auto second_candidate = candidates_consolidated & 0xCC;
 
       // Add candidates 0, 1, 4, 5
       // Only one of those candidates can be flagged at a time
-      if (candidates_uint8 & 0xF) {
+      uint found_cluster_candidates = 0;
+      if (first_candidate) {
         // Verify candidates are correctly created
-        assert((candidates_uint8 & 0xF) < 9);
+        assert(__popc(first_candidate) <= 1);
 
         // Decode the candidate number (ie. find out the active bit)
-        const uint8_t k = dev_velo_candidate_ks[candidates_uint8 & 0xF];
+        const auto candidate_pixel = __clz(first_candidate) - 24;
+
         auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
-        const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | k;
+        const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | candidate_pixel;
         cluster_candidates[current_cluster_candidate] = candidate;
         ++found_cluster_candidates;
       }
 
       // Add candidates 2, 3, 6, 7
       // Only one of those candidates can be flagged at a time
-      if (candidates_uint8 & 0xF0) {
-        assert(((candidates_uint8 >> 4) & 0xF) < 9);
-        const uint8_t k = dev_velo_candidate_ks[(candidates_uint8 >> 4)] + 2;
+      if (second_candidate) {
+        assert(__popc(second_candidate) <= 1);
+
+        // Decode the candidate number (ie. find out the active bit)
+        const auto candidate_pixel = __clz(second_candidate) - 24;
+
         auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
-        const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | k;
+        const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | candidate_pixel;
         cluster_candidates[current_cluster_candidate] = candidate;
         ++found_cluster_candidates;
       }
@@ -181,9 +189,7 @@ __device__ void estimate_raw_bank_size(
   }
 }
 
-__global__ void velo_estimate_input_size::velo_estimate_input_size(
-  velo_estimate_input_size::Parameters parameters,
-  const uint8_t* dev_velo_candidate_ks)
+__global__ void velo_estimate_input_size::velo_estimate_input_size(velo_estimate_input_size::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
   const auto selected_event_number = parameters.dev_event_list[event_number];
@@ -200,14 +206,11 @@ __global__ void velo_estimate_input_size::velo_estimate_input_size(
        raw_bank_number += blockDim.y) {
     // Read raw bank
     const auto raw_bank = VeloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-    estimate_raw_bank_size(
-      estimated_input_size, cluster_candidates, dev_velo_candidate_ks, event_candidate_num, raw_bank_number, raw_bank);
+    estimate_raw_bank_size(estimated_input_size, cluster_candidates, event_candidate_num, raw_bank_number, raw_bank);
   }
 }
 
-__global__ void velo_estimate_input_size::velo_estimate_input_size_mep(
-  velo_estimate_input_size::Parameters parameters,
-  const uint8_t* dev_velo_candidate_ks)
+__global__ void velo_estimate_input_size::velo_estimate_input_size_mep(velo_estimate_input_size::Parameters parameters)
 {
   const uint event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
@@ -225,7 +228,6 @@ __global__ void velo_estimate_input_size::velo_estimate_input_size_mep(
     const auto raw_bank = MEP::raw_bank<VeloRawBank>(
       parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, selected_event_number, raw_bank_number);
 
-    estimate_raw_bank_size(
-      estimated_input_size, cluster_candidates, dev_velo_candidate_ks, event_candidate_num, raw_bank_number, raw_bank);
+    estimate_raw_bank_size(estimated_input_size, cluster_candidates, event_candidate_num, raw_bank_number, raw_bank);
   }
 }

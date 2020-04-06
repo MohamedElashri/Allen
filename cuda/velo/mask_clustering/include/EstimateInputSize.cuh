@@ -18,8 +18,8 @@ namespace velo_estimate_input_size {
   };
 
   // Global function
-  __global__ void velo_estimate_input_size(Parameters parameters, const uint8_t* candidate_ks);
-  __global__ void velo_estimate_input_size_mep(Parameters parameters, const uint8_t* candidate_ks);
+  __global__ void velo_estimate_input_size(Parameters parameters);
+  __global__ void velo_estimate_input_size_mep(Parameters parameters);
 
   // Algorithm
   template<typename T, char... S>
@@ -47,7 +47,7 @@ namespace velo_estimate_input_size {
     void operator()(
       const ArgumentRefManager<T>& arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
+      const Constants&,
       HostBuffers&,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
@@ -66,11 +66,11 @@ namespace velo_estimate_input_size {
 
       if (runtime_options.mep_layout) {
         function_mep(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-          parameters, constants.dev_velo_candidate_ks.data());
+          parameters);
       }
       else {
         function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-          parameters, constants.dev_velo_candidate_ks.data());
+          parameters);
       }
     }
 
