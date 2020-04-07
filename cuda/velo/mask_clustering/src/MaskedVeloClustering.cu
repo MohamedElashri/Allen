@@ -1,25 +1,40 @@
 #include <MEPTools.h>
 #include <MaskedVeloClustering.cuh>
 
-// 8-connectivity mask
-__device__ uint64_t make_8con_mask(uint64_t cluster)
+/**
+ * @brief Makes a 8-connectivity mask
+ * @details For a pixel x, constructs its 8-connectivity mask +:
+ *
+ *          +++
+ *          +x+
+ *          +++
+ *
+ *          Using the shift operation, it is possible to make the
+ *          connectivity mask of the 64 bits in the forming cluster with few operations.
+ */
+__device__ uint64_t make_8con_mask(const uint64_t cluster)
 {
-  return cluster | (cluster << 1) | (cluster << 15) | (cluster << 16) | (cluster << 17) | (cluster >> 1) |
-         (cluster >> 15) | (cluster >> 16) | (cluster >> 17);
+  return cluster | ((cluster & 0x7FFF7FFF7FFF7FFF) << 1) | ((cluster & 0xFFFEFFFEFFFEFFFE) << 15) | (cluster << 16) |
+         ((cluster & 0xFFFCFFFCFFFCFFFC) << 17) | ((cluster & 0xFFFEFFFEFFFEFFFE) >> 1) |
+         ((cluster & 0x7FFF7FFF7FFF7FFF) >> 15) | (cluster >> 16) | ((cluster & 0x3FFF3FFF3FFF3FFF) >> 17);
 }
 
-// East-most mask
-__device__ uint32_t mask_east(uint64_t cluster)
+/**
+ * @brief Makes a connectivity mask to the east of the current cluster.
+ */
+__device__ uint64_t mask_east(const uint64_t cluster)
 {
-  const uint32_t mask = (cluster >> 48);
-  return mask | (mask << 1) | (mask >> 1);
+  const auto mask = (cluster >> 48);
+  return mask | ((mask & 0x7FFF7FFF7FFF7FFF) << 1) | (mask >> 1);
 }
 
-// West-most mask
-__device__ uint64_t mask_west(uint64_t cluster)
+/**
+ * @brief Makes a connectivity mask to the west of the current cluster.
+ */
+__device__ uint64_t mask_west(const uint64_t cluster)
 {
   const auto mask = (cluster << 48);
-  return mask | (mask << 1) | (mask >> 1);
+  return mask | (mask << 1) | ((mask & 0xFFFEFFFEFFFEFFFE) >> 1);
 }
 
 /**
@@ -34,17 +49,21 @@ __device__ std::tuple<uint64_t, uint32_t, uint32_t, uint32_t> make_cluster(
   uint64_t current_cluster = 0;
   uint64_t next_cluster = starting_pixel;
 
+  // Extend cluster until the cluster does not update anymore
   while (current_cluster != next_cluster) {
     current_cluster = next_cluster;
     next_cluster = pixel_map & make_8con_mask(current_cluster);
   }
 
+  // Fetch the number of pixels in the cluster
   const uint n = __popcll(current_cluster);
 
+  // Get the weight of the cluster in x
   const uint x = col_lower_limit * n + __popcll(current_cluster & 0x00000000FFFF0000) +
                  __popcll(current_cluster & 0x0000FFFF00000000) * 2 +
                  __popcll(current_cluster & 0xFFFF000000000000) * 3;
 
+  // Get the weight of the cluster in y
   const uint y =
     row_lower_limit * n + __popcll(current_cluster & 0x0002000200020002) +
     __popcll(current_cluster & 0x0004000400040004) * 2 + __popcll(current_cluster & 0x0008000800080008) * 3 +
@@ -315,9 +334,9 @@ __device__ void rest_of_clusters(
   // Make cluster with mask clustering method
   const auto cluster = make_cluster(pixel_map, starting_pixel, col_lower_limit + 4, row_lower_limit);
 
-  // Check if there are any hits with precedence - in which case, discard the cluster, as another
-  // candidate will generate it:
-  // * Hits to the east
+  // Check if there are any hits with precedence, in which case discard the cluster,
+  // as another candidate will generate it. Hits with precedence are:
+  // * Hits to the east of the starting pixel
   // * Hits to the north of the starting pixel
   const uint64_t hits_with_precedence =
     // Hits to the east, populated in the first 16 bits
