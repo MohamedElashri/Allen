@@ -5,9 +5,6 @@
 #include "ClusteringDefinitions.cuh"
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
-#include "ProcessModules.cuh"
-#include "TrackForwarding.cuh"
-#include "TrackSeeding.cuh"
 #include "DeviceAlgorithm.cuh"
 
 namespace velo_search_by_triplet {
@@ -17,7 +14,7 @@ namespace velo_search_by_triplet {
     DEVICE_INPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
     DEVICE_INPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
-    DEVICE_INPUT(dev_hit_phi_t, float) dev_hit_phi;
+    DEVICE_INPUT(dev_hit_phi_t, int16_t) dev_hit_phi;
     DEVICE_OUTPUT(dev_tracks_t, Velo::TrackHits) dev_tracks;
     DEVICE_OUTPUT(dev_tracklets_t, Velo::TrackletHits) dev_tracklets;
     DEVICE_OUTPUT(dev_tracks_to_follow_t, uint) dev_tracks_to_follow;

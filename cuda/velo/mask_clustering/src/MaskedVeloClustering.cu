@@ -347,7 +347,7 @@ __device__ void rest_of_clusters(
   // Keep the cluster if:
   // * There are no hits with precedence
   // * There are no pixels in the north-most or the south-most row.
-  //   If that were the case, the cluster most likely is not complete.
+  //   If that were the case, the cluster very likely is not complete.
   bool keep_cluster = hits_with_precedence == 0 && !__popcll(std::get<0>(cluster) & 0x8000800080008000) &&
                       !__popcll(std::get<0>(cluster) & 0x0001000100010001);
 
@@ -370,7 +370,7 @@ __device__ void rest_of_clusters(
       n += std::get<3>(cluster_extension);
 
       // If there were pixels in the north-most row, the south-most row, or the west-most column,
-      // the cluster most likely is not complete, so don't keep it.
+      // the cluster very likely is not complete, so don't keep it.
       keep_cluster &= !__popcll(std::get<0>(cluster_extension) & 0x8000800080008000) &&
                       !__popcll(std::get<0>(cluster_extension) & 0xFFFF) &&
                       !__popcll(std::get<0>(cluster) & 0x0001000100010001);

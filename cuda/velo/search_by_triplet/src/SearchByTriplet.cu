@@ -1,5 +1,3 @@
-#include "ProcessModules.cuh"
-#include "TrackSeeding.cuh"
 #include "TrackForwarding.cuh"
 #include "ClusteringDefinitions.cuh"
 #include "SearchByTriplet.cuh"
@@ -121,7 +119,7 @@ __device__ void process_modules(
   const uint* module_hitStarts,
   const uint* module_hitNums,
   Velo::ConstClusters& velo_cluster_container,
-  const float* hit_phi,
+  const int16_t* hit_phi,
   uint* tracks_to_follow,
   Velo::TrackletHits* weak_tracks,
   Velo::TrackletHits* tracklets,
@@ -260,7 +258,7 @@ __device__ void process_modules(
  */
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
-  const float* hit_phi,
+  const int16_t* hit_phi,
   bool* hit_used,
   const Velo::Module* module_data,
   const uint diff_ttf,
@@ -318,6 +316,7 @@ __device__ void track_forwarding(
     // Find the best candidate
     float best_fit = max_scatter_forwarding;
     int best_h2 = -1;
+    const int16_t forward_phi_tolerance_int = static_cast<int16_t>(forward_phi_tolerance * Velo::Tools::convert_factor);
 
     // Get candidates by performing a binary search in expected phi
     const auto odd_module_candidates = find_forward_candidates(
@@ -326,8 +325,8 @@ __device__ void track_forwarding(
       ty,
       hit_phi,
       h0,
-      [](const float x, const float y) { return hit_phi_odd(x, y); },
-      forward_phi_tolerance);
+      1,
+      forward_phi_tolerance_int);
 
     const auto even_module_candidates = find_forward_candidates(
       module_data[shared::next_module_pair + 1],
@@ -335,8 +334,8 @@ __device__ void track_forwarding(
       ty,
       hit_phi,
       h0,
-      [](const float x, const float y) { return hit_phi_even(x, y); },
-      forward_phi_tolerance);
+      0,
+      forward_phi_tolerance_int);
 
     // Search on both modules in the same for loop
     const int total_odd_candidates = std::get<1>(odd_module_candidates);
@@ -433,7 +432,7 @@ __device__ void track_seeding(
   uint* dev_atomics_velo,
   const float max_scatter_seeding,
   const uint max_tracks_to_follow,
-  const float* hit_phi)
+  const int16_t* hit_phi)
 {
   // Add to an array all non-used h1 hits
   for (auto module_index : {shared::current_module_pair, shared::current_module_pair + 1}) {
@@ -464,7 +463,6 @@ __device__ void track_seeding(
     const auto h1_index_total = h1_indices[h1_rel_index];
     h1_index = h1_index_total & bits::hit_number;
     const auto oddity = h1_index_total >> bits::oddity_position;
-    const auto hit_phi_function = oddity == 0 ? hit_phi_odd : hit_phi_even;
 
     const Velo::HitBase h1 {
       velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
@@ -521,7 +519,7 @@ __device__ void track_seeding(
         ty,
         hit_phi,
         h0,
-        [&hit_phi_function](const float x, const float y) { return hit_phi_function(x, y); });
+        oddity == 0);
 
       // Allow a window of hits in the next module. Use pendulum search.
       for (int i = 0; i < number_of_h2_candidates; ++i) {

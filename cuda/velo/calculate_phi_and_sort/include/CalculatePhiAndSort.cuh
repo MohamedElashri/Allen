@@ -16,17 +16,17 @@ namespace velo_calculate_phi_and_sort {
     DEVICE_INPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
     DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_OUTPUT(dev_hit_permutation_t, uint) dev_hit_permutation;
-    DEVICE_OUTPUT(dev_hit_phi_t, float) dev_hit_phi;
+    DEVICE_OUTPUT(dev_hit_phi_t, int16_t) dev_hit_phi;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __device__ void calculate_phi(
+    int16_t* shared_hit_phis,
     const uint* module_hitStarts,
     const uint* module_hitNums,
     Velo::ConstClusters& velo_cluster_container,
-    float* hit_Phis,
-    uint* hit_permutations,
-    float* shared_hit_phis);
+    int16_t* hit_Phis,
+    uint* hit_permutations);
 
   __device__ void sort_by_phi(
     const uint event_hit_start,

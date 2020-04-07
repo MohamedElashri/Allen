@@ -35,8 +35,8 @@ namespace Velo {
     // Constants for filters
     static constexpr float param_w = 3966.94f;
     static constexpr float param_w_inverted = 0.000252083f;
-    static constexpr uint number_of_h0_candidates = 5;
-    static constexpr uint number_of_h2_candidates = 5;
+    static constexpr int number_of_h0_candidates = 5;
+    static constexpr int number_of_h2_candidates = 5;
     // Atomics
     namespace atomics {
       enum atomic_types {
