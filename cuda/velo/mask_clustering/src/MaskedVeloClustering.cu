@@ -15,10 +15,54 @@ __device__ uint32_t mask_east(uint64_t cluster)
   return mask | (mask << 1) | (mask >> 1);
 }
 
+// West-most mask
+__device__ uint64_t mask_west(uint64_t cluster)
+{
+  const auto mask = (cluster << 48);
+  return mask | (mask << 1) | (mask >> 1);
+}
+
+/**
+ * @brief Makes a cluster with a pixel map and a starting pixel.
+ */
+__device__ std::tuple<uint64_t, uint32_t, uint32_t, uint32_t> make_cluster(
+  const uint64_t pixel_map,
+  const uint64_t starting_pixel,
+  const uint col_lower_limit,
+  const uint row_lower_limit)
+{
+  uint64_t current_cluster = 0;
+  uint64_t next_cluster = starting_pixel;
+
+  while (current_cluster != next_cluster) {
+    current_cluster = next_cluster;
+    next_cluster = pixel_map & make_8con_mask(current_cluster);
+  }
+
+  const uint n = __popcll(current_cluster);
+
+  const uint x = col_lower_limit * n + __popcll(current_cluster & 0x00000000FFFF0000) +
+                 __popcll(current_cluster & 0x0000FFFF00000000) * 2 +
+                 __popcll(current_cluster & 0xFFFF000000000000) * 3;
+
+  const uint y =
+    row_lower_limit * n + __popcll(current_cluster & 0x0002000200020002) +
+    __popcll(current_cluster & 0x0004000400040004) * 2 + __popcll(current_cluster & 0x0008000800080008) * 3 +
+    __popcll(current_cluster & 0x0010001000100010) * 4 + __popcll(current_cluster & 0x0020002000200020) * 5 +
+    __popcll(current_cluster & 0x0040004000400040) * 6 + __popcll(current_cluster & 0x0080008000800080) * 7 +
+    __popcll(current_cluster & 0x0100010001000100) * 8 + __popcll(current_cluster & 0x0200020002000200) * 9 +
+    __popcll(current_cluster & 0x0400040004000400) * 10 + __popcll(current_cluster & 0x0800080008000800) * 11 +
+    __popcll(current_cluster & 0x1000100010001000) * 12 + __popcll(current_cluster & 0x2000200020002000) * 13 +
+    __popcll(current_cluster & 0x4000400040004000) * 14;
+
+  return {current_cluster, x, y, n};
+}
+
 /**
  * @brief Helper function to print contents of pixel array.
  */
-__device__ void print_array(const uint32_t* p, const int row = -1, const int col = -1) {
+__device__ void print_array(const uint32_t* p, const int row = -1, const int col = -1)
+{
   for (int r = 0; r < 16; ++r) {
     for (int c = 0; c < 6; ++c) {
       if (r == row && c == col) {
@@ -40,7 +84,8 @@ __device__ void print_array(const uint32_t* p, const int row = -1, const int col
 /**
  * @brief Helper function to print contents of 64-bit forming cluster.
  */
-__device__ void print_array_64(const uint64_t p, const int row = -1, const int col = -1) {
+__device__ void print_array_64(const uint64_t p, const int row = -1, const int col = -1)
+{
   for (int r = 0; r < 16; ++r) {
     for (int c = 0; c < 4; ++c) {
       if (r == row && c == col) {
@@ -70,7 +115,6 @@ __device__ void no_neighbour_sp(
   uint const cluster_start,
   VeloRawBank const& raw_bank)
 {
-
   const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
 
   for (uint sp_index = 0; sp_index < raw_bank.sp_count; ++sp_index) {
@@ -180,37 +224,37 @@ __device__ void rest_of_clusters(
   const int32_t sp_col = sp_addr >> 6;
 
   // Find candidates that follow this condition:
-  // For pixel x, all pixels o should *not* be populated
-  // o o
-  // x o
-  //   o
+  // For pixel +, all pixels - should *not* be populated
+  // - -
+  // + -
+  //   -
 
   // Load the following SPs,
   // where x is the SP containing the possible candidates, o are other SPs:
-  // oooo
-  // oxoo
-  // oooo
-  // oooo
+  // ooooo
+  // oooxo
+  // ooooo
+  // ooooo
   //
   // Each column of SPs are in one uint32_t
   // Order is from left to right
   //
-  // 0: o 1: o 2: o 3: o
-  //    o    x    o    o
-  //    o    o    o    o
-  //    o    o    o    o
+  // 0: o 1: o 2: o 3: o 4: o
+  //    o    o    o    x    o
+  //    o    o    o    o    o
+  //    o    o    o    o    o
   //
-  // Order inside an uint32_t is from bottom to top. Eg. 1:
+  // Order inside an uint32_t is from bottom to top. Eg. 3:
   // 3: o
   // 2: x
   // 1: o
   // 0: o
-  uint32_t pixel_array[3] = {0, 0, 0};
+  uint32_t pixel_array[5] = {0, 0, 0, 0, 0};
 
   // sp limits to load
   const int32_t sp_row_lower_limit = sp_row - 2;
   const int32_t sp_row_upper_limit = sp_row + 1;
-  const int32_t sp_col_lower_limit = sp_col - 1;
+  const int32_t sp_col_lower_limit = sp_col - 3;
   const int32_t sp_col_upper_limit = sp_col + 1;
 
   // Row limits
@@ -264,80 +308,88 @@ __device__ void rest_of_clusters(
   const auto sp_relative_col = starting_pixel_location < 4;
   const uint32_t col = sp_col * 2 + sp_relative_col;
 
-  // ---------------------
-  // Simplified clustering
-  // ---------------------
+  // Work with a 64-bit number
+  const uint64_t starting_pixel = ((uint64_t)(0x01 << (11 - sp_relative_row)) << (16 * (col & 0x01))) << 32;
+  const uint64_t pixel_map = (((uint64_t) pixel_array[3]) << 32) | pixel_array[2];
 
-  // Work with a 64-bit number instead
-  const uint64_t start_pixel = ((uint64_t)(0x01 << (11 - sp_relative_row)) << (16 * (col & 0x01))) << 32;
-  const uint64_t pixel_map = (((uint64_t) pixel_array[1]) << 32) | pixel_array[0];
+  // Make cluster with mask clustering method
+  const auto cluster = make_cluster(pixel_map, starting_pixel, col_lower_limit + 4, row_lower_limit);
 
-  uint64_t current_cluster = 0;
-  uint64_t next_cluster = start_pixel;
-
-  // Do clustering
-  while (current_cluster != next_cluster) {
-    current_cluster = next_cluster;
-    next_cluster = pixel_map & make_8con_mask(current_cluster);
-  }
-
-  // Check if there are any hits with precedence
+  // Check if there are any hits with precedence - in which case, discard the cluster, as another
+  // candidate will generate it:
+  // * Hits to the east
+  // * Hits to the north of the starting pixel
   const uint64_t hits_with_precedence =
     // Hits to the east, populated in the first 16 bits
-    (mask_east(current_cluster) & pixel_array[2]) |
+    (mask_east(std::get<0>(cluster)) & pixel_array[4]) |
     // Hits in the current cluster with precedence in the latter 16 bits
-    (current_cluster & (start_pixel ^ -start_pixel));
+    (std::get<0>(cluster) & (starting_pixel ^ -starting_pixel));
 
-  const int n = __popcll(current_cluster);
-  assert(n > 0);
+  // Keep the cluster if:
+  // * There are no hits with precedence
+  // * There are no pixels in the north-most or the south-most row.
+  //   If that were the case, the cluster most likely is not complete.
+  bool keep_cluster = hits_with_precedence == 0 && !__popcll(std::get<0>(cluster) & 0x8000800080008000) &&
+                      !__popcll(std::get<0>(cluster) & 0x0001000100010001);
 
-  if (hits_with_precedence == 0) {
-    // If there are no hits with precedence,
-    // create the cluster
-    const int x = col_lower_limit * n + __popcll(current_cluster & 0x00000000FFFF0000) +
-                  __popcll(current_cluster & 0x0000FFFF00000000) * 2 +
-                  __popcll(current_cluster & 0xFFFF000000000000) * 3;
+  if (keep_cluster) {
+    uint x = std::get<1>(cluster);
+    uint y = std::get<2>(cluster);
+    uint n = std::get<3>(cluster);
 
-    const int y =
-      row_lower_limit * n + __popcll(current_cluster & 0x0002000200020002) +
-      __popcll(current_cluster & 0x0004000400040004) * 2 + __popcll(current_cluster & 0x0008000800080008) * 3 +
-      __popcll(current_cluster & 0x0010001000100010) * 4 + __popcll(current_cluster & 0x0020002000200020) * 5 +
-      __popcll(current_cluster & 0x0040004000400040) * 6 + __popcll(current_cluster & 0x0080008000800080) * 7 +
-      __popcll(current_cluster & 0x0100010001000100) * 8 + __popcll(current_cluster & 0x0200020002000200) * 9 +
-      __popcll(current_cluster & 0x0400040004000400) * 10 + __popcll(current_cluster & 0x0800080008000800) * 11 +
-      __popcll(current_cluster & 0x1000100010001000) * 12 + __popcll(current_cluster & 0x2000200020002000) * 13 +
-      __popcll(current_cluster & 0x4000400040004000) * 14 + __popcll(current_cluster & 0x8000800080008000) * 15;
+    // Interrogate if cluster needs to be extended to the west
+    if (__popcll(std::get<0>(cluster) & 0xFFFF)) {
+      const uint64_t west_pixel_map = (((uint64_t) pixel_array[1]) << 32) | pixel_array[0];
+      const uint64_t west_start_pixel = mask_west(std::get<0>(cluster)) & west_pixel_map;
 
-    const uint cx = x / n;
-    const uint cy = y / n;
+      // Extend the cluster to the west
+      const auto cluster_extension = make_cluster(west_pixel_map, west_start_pixel, col_lower_limit, row_lower_limit);
 
-    const float fx = x / static_cast<float>(n) - cx;
-    const float fy = y / static_cast<float>(n) - cy;
+      // Update x, y, n
+      x += std::get<1>(cluster_extension);
+      y += std::get<2>(cluster_extension);
+      n += std::get<3>(cluster_extension);
 
-    // store target (3D point for tracking)
-    const uint32_t chip = cx >> VP::ChipColumns_division;
-    const uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+      // If there were pixels in the north-most row, the south-most row, or the west-most column,
+      // the cluster most likely is not complete, so don't keep it.
+      keep_cluster &= !__popcll(std::get<0>(cluster_extension) & 0x8000800080008000) &&
+                      !__popcll(std::get<0>(cluster_extension) & 0xFFFF) &&
+                      !__popcll(std::get<0>(cluster) & 0x0001000100010001);
+    }
 
-    const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-    const float local_y = (cy + 0.5f + fy) * Velo::Constants::pixel_size;
+    // Make the clusters that for sure are good clusters
+    if (keep_cluster) {
+      const uint cx = x / n;
+      const uint cy = y / n;
 
-    const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
+      const float fx = x / static_cast<float>(n) - cx;
+      const float fy = y / static_cast<float>(n) - cy;
+
+      // store target (3D point for tracking)
+      const uint32_t chip = cx >> VP::ChipColumns_division;
+      const uint cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+
+      const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
+      const float local_y = (cy + 0.5f + fy) * Velo::Constants::pixel_size;
+
+      const uint cluster_num = atomicAdd(module_cluster_num + module_number, 1);
 
 #if ALLEN_DEBUG
-    const auto module_estimated_num = module_cluster_start[module_number + 1] - module_cluster_start[module_number];
-    assert(cluster_num <= module_estimated_num);
+      const auto module_estimated_num = module_cluster_start[module_number + 1] - module_cluster_start[module_number];
+      assert(cluster_num <= module_estimated_num);
 #endif
 
-    const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-    const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-    const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+      const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+      const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+      const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
 
-    const uint cluster_start = module_cluster_start[module_number];
+      const uint cluster_start = module_cluster_start[module_number];
 
-    velo_cluster_container.set_x(cluster_start + cluster_num, gx);
-    velo_cluster_container.set_y(cluster_start + cluster_num, gy);
-    velo_cluster_container.set_z(cluster_start + cluster_num, gz);
-    velo_cluster_container.set_id(cluster_start + cluster_num, get_lhcb_id(cid));
+      velo_cluster_container.set_x(cluster_start + cluster_num, gx);
+      velo_cluster_container.set_y(cluster_start + cluster_num, gy);
+      velo_cluster_container.set_z(cluster_start + cluster_num, gz);
+      velo_cluster_container.set_id(cluster_start + cluster_num, get_lhcb_id(cid));
+    }
   }
 }
 

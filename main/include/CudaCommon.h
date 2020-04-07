@@ -30,6 +30,7 @@ using std::signbit;
 #define cudaStream_t int
 #define cudaSuccess 0
 #define cudaErrorMemoryAllocation 2
+#define __popc __builtin_popcount
 #define __popcll __builtin_popcountll
 #define __ffs __builtin_ffs
 #define __clz __builtin_clz
