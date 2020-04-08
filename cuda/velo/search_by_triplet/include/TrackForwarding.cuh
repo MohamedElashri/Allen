@@ -8,8 +8,8 @@
 __device__ void process_modules(
   Velo::Module* module_data,
   bool* hit_used,
-  const uint* module_hitStarts,
-  const uint* module_hitNums,
+  const uint* module_hit_start,
+  const uint* module_hit_num,
   Velo::ConstClusters& velo_cluster_container,
   const int16_t* hit_phi,
   uint* tracks_to_follow,
@@ -24,7 +24,8 @@ __device__ void process_modules(
   const float max_scatter_seeding,
   const float max_scatter_forwarding,
   const uint max_skipped_modules,
-  const float forward_phi_tolerance);
+  const int16_t seeding_phi_tolerance,
+  const int16_t forward_phi_tolerance);
 
 __device__ void track_seeding(
   Velo::ConstClusters& velo_cluster_container,
@@ -35,7 +36,8 @@ __device__ void track_seeding(
   unsigned short* h1_rel_indices,
   uint* dev_shifted_atomics_velo,
   const float max_scatter_seeding,
-  const int16_t* hit_phi);
+  const int16_t* hit_phi,
+  const int16_t seeding_phi_tolerance);
 
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
@@ -50,56 +52,33 @@ __device__ void track_forwarding(
   Velo::TrackHits* tracks,
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks,
-  const float forward_phi_tolerance,
+  const int16_t forward_phi_tolerance,
   const float max_scatter_forwarding,
   const uint max_skipped_modules);
 
 /**
- * @brief Finds candidates in the specified module.
+ * @brief Returns the first possible candidate, according to
+ *        extrapolation of the track to phi minus the tolerance.
+ *        Returns the candidate, and the extrapolated phi value.
  */
-__device__ inline std::tuple<int, int> find_forward_candidates(
+__device__ inline std::tuple<int, int16_t> find_forward_candidate(
   const Velo::Module& module,
-  const float tx,
-  const float ty,
   const int16_t* hit_Phis,
   const Velo::HitBase& h0,
-  const bool oddity,
+  const float tx,
+  const float ty,
+  const float dz,
   const int16_t forward_phi_tolerance)
 {
-  const auto dz = module.z - h0.z;
   const auto predx = tx * dz;
   const auto predy = ty * dz;
   const auto x_prediction = h0.x + predx;
   const auto y_prediction = h0.y + predy;
-  const int16_t track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction, oddity);
+  const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
-  const int16_t min_value_phi = track_extrapolation_phi - forward_phi_tolerance;
-  const int first_candidate = binary_search_leftmost(hit_Phis + module.hit_start, module.hit_num, min_value_phi);
-
-  const int16_t max_value_phi = track_extrapolation_phi + forward_phi_tolerance;
-  const int size = binary_search_leftmost(
-    hit_Phis + module.hit_start + first_candidate, module.hit_num - first_candidate, max_value_phi);
-
-  return {module.hit_start + first_candidate, size};
-}
-
-/**
- * @brief Finds candidates in the specified module.
- */
-__device__ inline int find_seeding_candidate(
-  const Velo::Module& module,
-  const float tx,
-  const float ty,
-  const int16_t* hit_Phis,
-  const Velo::HitBase& h0,
-  const bool oddity)
-{
-  const auto dz = module.z - h0.z;
-  const auto predx = tx * dz;
-  const auto predy = ty * dz;
-  const auto x_prediction = h0.x + predx;
-  const auto y_prediction = h0.y + predy;
-  const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction, oddity);
-
-  return binary_search_leftmost(hit_Phis + module.hit_start, module.hit_num, track_extrapolation_phi);
+  return {binary_search_leftmost(
+            hit_Phis + module.hit_start,
+            module.hit_num,
+            static_cast<int16_t>(track_extrapolation_phi - forward_phi_tolerance)),
+          track_extrapolation_phi};
 }

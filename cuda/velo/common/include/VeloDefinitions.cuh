@@ -12,6 +12,7 @@ namespace Velo {
 
     // Detector constants
     static constexpr uint n_modules = 52;
+    static constexpr uint n_module_pairs = n_modules / 2;
     static constexpr uint n_sensors_per_module = 4;
     static constexpr uint n_sensors = n_modules * n_sensors_per_module;
     static constexpr float z_endVelo = 770; // FIXME_GEOMETRY_HARDCODING
@@ -36,6 +37,7 @@ namespace Velo {
     static constexpr float param_w_inverted = 0.000252083f;
     static constexpr int number_of_h0_candidates = 5;
     static constexpr int number_of_h2_candidates = 5;
+    static constexpr int number_of_forward_candidates = 5;
     // Atomics
     namespace atomics {
       enum atomic_types {
@@ -57,8 +59,8 @@ namespace Velo {
     // Shared memory
     namespace shared {
       static constexpr uint previous_module_pair = 0;
-      static constexpr uint current_module_pair = 2;
-      static constexpr uint next_module_pair = 4;
+      static constexpr uint current_module_pair = 1;
+      static constexpr uint next_module_pair = 2;
     }
   } // namespace Tracking
 } // namespace Velo

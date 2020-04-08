@@ -25,7 +25,8 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_number_of_velo_tracks_t, uint) dev_number_of_velo_tracks;
 
     // Forward tolerance in phi
-    PROPERTY(forward_phi_tolerance_t, float, "forward_phi_tolerance", "tolerance of phi") forward_phi_tolerance;
+    PROPERTY(forward_phi_tolerance_t, float, "forward_phi_tolerance", "forwarding tolerance") forward_phi_tolerance;
+    PROPERTY(seeding_phi_tolerance_t, float, "seeding_phi_tolerance", "seeding tolerance") seeding_phi_tolerance;
 
     // Max scatter for forming triplets (seeding) and forwarding
     PROPERTY(max_scatter_forwarding_t, float, "max_scatter_forwarding", "scatter forwarding")
@@ -94,6 +95,7 @@ namespace velo_search_by_triplet {
                     begin<dev_rel_indices_t>(arguments),
                     begin<dev_number_of_velo_tracks_t>(arguments),
                     property<forward_phi_tolerance_t>(),
+                    property<seeding_phi_tolerance_t>(),
                     property<max_scatter_forwarding_t>(),
                     property<max_scatter_seeding_t>(),
                     property<max_skipped_modules_t>()},
@@ -101,7 +103,8 @@ namespace velo_search_by_triplet {
     }
 
   private:
-    Property<forward_phi_tolerance_t> m_tol {this, 0.052f};
+    Property<forward_phi_tolerance_t> m_forward_tol {this, 0.052f};
+    Property<seeding_phi_tolerance_t> m_seeding_tol {this, 0.052f};
     Property<max_scatter_forwarding_t> m_scat {this, 0.1f};
     Property<max_scatter_seeding_t> m_seed {this, 0.1f};
     Property<max_skipped_modules_t> m_skip {this, 1u};

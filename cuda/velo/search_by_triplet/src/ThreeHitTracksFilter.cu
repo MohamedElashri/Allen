@@ -145,9 +145,9 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
 
   // Pointers to data within the event
   const uint total_estimated_number_of_clusters =
-    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
+    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
   const uint* module_hitStarts =
-    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
+    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
   const uint hit_offset = module_hitStarts[0];
   const bool* hit_used = parameters.dev_hit_used + hit_offset;
 

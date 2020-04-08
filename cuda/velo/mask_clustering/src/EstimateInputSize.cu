@@ -8,7 +8,7 @@ __device__ void estimate_raw_bank_size(
   uint raw_bank_number,
   VeloRawBank const& raw_bank)
 {
-  uint* estimated_module_size = estimated_input_size + (raw_bank.sensor_index >> 2);
+  uint* estimated_module_pair_size = estimated_input_size + (raw_bank.sensor_index / 8);
   for (uint sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
     const uint32_t sp_word = raw_bank.sp_word[sp_index];
     const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
@@ -42,8 +42,8 @@ __device__ void estimate_raw_bank_size(
       const uint number_of_clusters = (pattern_0 | pattern_1) ? 2 : 1;
 
       // Add the found clusters
-      [[maybe_unused]] uint current_estimated_module_size = atomicAdd(estimated_module_size, number_of_clusters);
-      assert(current_estimated_module_size < Velo::Constants::max_numhits_in_module);
+      [[maybe_unused]] uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, number_of_clusters);
+      assert(current_estimated_module_pair_size < Velo::Constants::max_numhits_in_module);
     }
     else {
       // Find candidates that follow this condition:
@@ -181,9 +181,9 @@ __device__ void estimate_raw_bank_size(
 
       // Add the found cluster candidates
       if (found_cluster_candidates > 0) {
-        uint current_estimated_module_size = atomicAdd(estimated_module_size, found_cluster_candidates);
-        assert(current_estimated_module_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module);
-        _unused(current_estimated_module_size);
+        uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, found_cluster_candidates);
+        assert(current_estimated_module_pair_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module);
+        _unused(current_estimated_module_pair_size);
       }
     }
   }
@@ -195,7 +195,7 @@ __global__ void velo_estimate_input_size::velo_estimate_input_size(velo_estimate
   const auto selected_event_number = parameters.dev_event_list[event_number];
 
   const char* raw_input = parameters.dev_velo_raw_input + parameters.dev_velo_raw_input_offsets[selected_event_number];
-  uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_modules;
+  uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
   uint* event_candidate_num = parameters.dev_module_candidate_num + event_number;
   uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
@@ -215,7 +215,7 @@ __global__ void velo_estimate_input_size::velo_estimate_input_size_mep(velo_esti
   const uint event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
 
-  uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_modules;
+  uint* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
   uint* event_candidate_num = parameters.dev_module_candidate_num + event_number;
   uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
