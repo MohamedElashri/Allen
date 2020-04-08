@@ -39,7 +39,7 @@ namespace velo_estimate_input_size {
       }
 
       set_size<dev_estimated_input_size_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_modules);
+        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
       set_size<dev_module_candidate_num_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_cluster_candidates_t>(arguments, value<host_number_of_cluster_candidates_t>(arguments));
     }

@@ -6,13 +6,13 @@
 
 namespace Velo {
   struct Module {
-    uint hitStart;
-    uint hitNums;
+    uint hit_start;
+    uint hit_num;
     float z;
 
     __device__ Module() {}
-    __device__ Module(const uint _hitStart, const uint _hitNums, const float _z) :
-      hitStart(_hitStart), hitNums(_hitNums), z(_z)
+    __device__ Module(const uint param_hit_start, const uint param_hit_num, const float param_z) :
+      hit_start(param_hit_start), hit_num(param_hit_num), z(param_z)
     {}
   };
 

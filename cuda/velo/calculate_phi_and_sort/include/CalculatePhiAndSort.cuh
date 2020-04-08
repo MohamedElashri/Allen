@@ -6,6 +6,7 @@
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
+#include "VeloTools.cuh"
 
 namespace velo_calculate_phi_and_sort {
   struct Parameters {
@@ -46,7 +47,8 @@ namespace velo_calculate_phi_and_sort {
       ArgumentRefManager<T> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const {
+      const HostBuffers&) const
+    {
       set_size<dev_sorted_velo_cluster_container_t>(arguments, size<dev_velo_cluster_container_t>(arguments));
       set_size<dev_hit_permutation_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
       set_size<dev_hit_phi_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
@@ -58,31 +60,17 @@ namespace velo_calculate_phi_and_sort {
       const Constants&,
       HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const {
+      cudaEvent_t&) const
+    {
       initialize<dev_hit_permutation_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters{
-          begin<dev_offsets_estimated_input_size_t>(arguments),
-          begin<dev_module_cluster_num_t>(arguments),
-          begin<dev_velo_cluster_container_t>(arguments),
-          begin<dev_sorted_velo_cluster_container_t>(arguments),
-          begin<dev_hit_permutation_t>(arguments),
-          begin<dev_hit_phi_t>(arguments)
-        });
-
-      // Prints the x values
-      // std::vector<uint> a (size<dev_velo_cluster_container_t>(arguments) / sizeof(uint));
-      // cudaCheck(cudaMemcpy(
-      //   a.data(),
-      //   begin<dev_velo_cluster_container_t>(arguments),
-      //   size<dev_velo_cluster_container_t>(arguments),
-      //   cudaMemcpyDeviceToHost));
-      // const auto velo_cluster_container = Velo::Clusters<const uint>{a.data(), value<host_total_number_of_velo_clusters_t>(arguments)};
-      // for (uint i = 0; i < value<host_total_number_of_velo_clusters_t>(arguments); ++i) {
-      //   std::cout << velo_cluster_container.x(i) << ", ";
-      // }
-      // std::cout << "\n";
+        Parameters {begin<dev_offsets_estimated_input_size_t>(arguments),
+                    begin<dev_module_cluster_num_t>(arguments),
+                    begin<dev_velo_cluster_container_t>(arguments),
+                    begin<dev_sorted_velo_cluster_container_t>(arguments),
+                    begin<dev_hit_permutation_t>(arguments),
+                    begin<dev_hit_phi_t>(arguments)});
     }
 
   private:

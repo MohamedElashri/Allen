@@ -18,24 +18,24 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
 
   // Pointers to data within the event
   const uint total_estimated_number_of_clusters =
-    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_modules * number_of_events];
-  const uint* module_hitStarts =
-    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_modules;
-  const uint* module_hitNums = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_modules;
+    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
+  const uint* module_pair_hit_start =
+    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
+  const uint* module_pair_hit_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
   const auto velo_cluster_container =
     Velo::ConstClusters {parameters.dev_velo_cluster_container, total_estimated_number_of_clusters};
   auto velo_sorted_cluster_container =
     Velo::Clusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters};
 
-  const uint event_hit_start = module_hitStarts[0];
-  const uint event_number_of_hits = module_hitStarts[Velo::Constants::n_modules] - event_hit_start;
+  const uint event_hit_start = module_pair_hit_start[0];
+  const uint event_number_of_hits = module_pair_hit_start[Velo::Constants::n_module_pairs] - event_hit_start;
 
   // Calculate phi and populate hit_permutations
   calculate_phi(
     shared_hit_phis,
-    module_hitStarts,
-    module_hitNums,
+    module_pair_hit_start,
+    module_pair_hit_num,
     velo_cluster_container,
     parameters.dev_hit_phi,
     parameters.dev_hit_permutation);
@@ -57,22 +57,22 @@ __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
  */
 __device__ void velo_calculate_phi_and_sort::calculate_phi(
   int16_t* shared_hit_phis,
-  const uint* module_hitStarts,
-  const uint* module_hitNums,
+  const uint* module_pair_hit_start,
+  const uint* module_pair_hit_num,
   Velo::ConstClusters& velo_cluster_container,
   int16_t* hit_Phis,
   uint* hit_permutations)
 {
-  for (uint module = 0; module < Velo::Constants::n_modules; ++module) {
-    const auto hit_start = module_hitStarts[module];
-    const auto hit_num = module_hitNums[module];
+  for (uint module_pair = 0; module_pair < Velo::Constants::n_module_pairs; ++module_pair) {
+    const auto hit_start = module_pair_hit_start[module_pair];
+    const auto hit_num = module_pair_hit_num[module_pair];
 
     assert(hit_num < Velo::Constants::max_numhits_in_module);
 
     // Calculate phis
     for (uint hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
       const auto hit_index = hit_start + hit_rel_id;
-      const auto hit_phi_int = hit_phi_16(velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index), module % 2);
+      const auto hit_phi_int = hit_phi_16(velo_cluster_container.x(hit_index), velo_cluster_container.y(hit_index));
       shared_hit_phis[hit_rel_id] = hit_phi_int;
     }
 

@@ -8,8 +8,8 @@
 __device__ void process_modules(
   Velo::Module* module_data,
   bool* hit_used,
-  const uint* module_hitStarts,
-  const uint* module_hitNums,
+  const uint* module_hit_start,
+  const uint* module_hit_num,
   Velo::ConstClusters& velo_cluster_container,
   const int16_t* hit_phi,
   uint* tracks_to_follow,
@@ -63,7 +63,6 @@ __device__ inline std::tuple<int, int> find_forward_candidates(
   const float ty,
   const int16_t* hit_Phis,
   const Velo::HitBase& h0,
-  const bool oddity,
   const int16_t forward_phi_tolerance)
 {
   const auto dz = module.z - h0.z;
@@ -71,16 +70,16 @@ __device__ inline std::tuple<int, int> find_forward_candidates(
   const auto predy = ty * dz;
   const auto x_prediction = h0.x + predx;
   const auto y_prediction = h0.y + predy;
-  const int16_t track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction, oddity);
+  const int16_t track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
   const int16_t min_value_phi = track_extrapolation_phi - forward_phi_tolerance;
-  const int first_candidate = binary_search_leftmost(hit_Phis + module.hitStart, module.hitNums, min_value_phi);
+  const int first_candidate = binary_search_leftmost(hit_Phis + module.hit_start, module.hit_num, min_value_phi);
 
   const int16_t max_value_phi = track_extrapolation_phi + forward_phi_tolerance;
   const int size = binary_search_leftmost(
-    hit_Phis + module.hitStart + first_candidate, module.hitNums - first_candidate, max_value_phi);
+    hit_Phis + module.hit_start + first_candidate, module.hit_num - first_candidate, max_value_phi);
 
-  return {module.hitStart + first_candidate, size};
+  return {module.hit_start + first_candidate, size};
 }
 
 /**
@@ -92,14 +91,14 @@ __device__ inline int find_seeding_candidate(
   const float ty,
   const int16_t* hit_Phis,
   const Velo::HitBase& h0,
-  const bool oddity)
+  const float previous_module_z)
 {
-  const auto dz = module.z - h0.z;
+  const auto dz = module.z - previous_module_z;
   const auto predx = tx * dz;
   const auto predy = ty * dz;
   const auto x_prediction = h0.x + predx;
   const auto y_prediction = h0.y + predy;
-  const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction, oddity);
+  const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
-  return binary_search_leftmost(hit_Phis + module.hitStart, module.hitNums, track_extrapolation_phi);
+  return binary_search_leftmost(hit_Phis + module.hit_start, module.hit_num, track_extrapolation_phi);
 }
