@@ -2,9 +2,12 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <cassert>
+
+#include "BankTypes.h"
 #include "LoggerCommon.h"
 
-#ifdef CPU
+#if defined(CPU) || (defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__))
 
 #include <cmath>
 #include <cstring>
@@ -27,9 +30,10 @@ using std::signbit;
 #define cudaStream_t int
 #define cudaSuccess 0
 #define cudaErrorMemoryAllocation 2
-#define half_t short
 #define __popcll __builtin_popcountll
+#define __ffs __builtin_ffs
 #define cudaEventBlockingSync 0x01
+#define __forceinline__ inline
 
 enum cudaMemcpyKind {
   cudaMemcpyHostToHost,
@@ -104,6 +108,7 @@ cudaError_t cudaEventCreateWithFlags(cudaEvent_t* event, int flags);
 cudaError_t cudaEventSynchronize(cudaEvent_t event);
 cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream);
 cudaError_t cudaFreeHost(void* ptr);
+cudaError_t cudaFree(void* ptr);
 cudaError_t cudaDeviceReset();
 cudaError_t cudaStreamCreate(cudaStream_t* pStream);
 cudaError_t cudaMemcpyToSymbol(
@@ -113,9 +118,10 @@ cudaError_t cudaMemcpyToSymbol(
   size_t offset = 0,
   enum cudaMemcpyKind kind = cudaMemcpyDefault);
 
+// CUDA accepts more bindings to cudaMemcpyTo/FromSymbol
 template<class T>
 cudaError_t cudaMemcpyToSymbol(
-  const T& symbol,
+  T& symbol,
   const void* src,
   size_t count,
   size_t offset = 0,
@@ -167,29 +173,71 @@ T min(const T& a, const T& b)
 
 unsigned int atomicInc(unsigned int* address, unsigned int val);
 
-half_t __float2half(float value);
+uint16_t __float2half(const float f);
 
-#define cudaCheck(stmt)                                    \
-  {                                                        \
-    cudaError_t err = stmt;                                \
-    if (err != cudaSuccess) {                              \
-      std::cerr << "Failed to run " << #stmt << std::endl; \
-      throw std::invalid_argument("cudaCheck failed");     \
-    }                                                      \
+float __half2float(const uint16_t h);
+
+#ifdef CPU_USE_REAL_HALF
+
+/**
+ * @brief half_t with int16_t backend (real half).
+ */
+struct half_t {
+private:
+  uint16_t m_value;
+
+public:
+  half_t() = default;
+  half_t(const half_t&) = default;
+  half_t(const float value);
+  operator float() const;
+  uint16_t get() const;
+
+  bool operator>(const half_t&) const;
+  bool operator<(const half_t&) const;
+  bool operator<=(const half_t&) const;
+  bool operator>=(const half_t&) const;
+  bool operator==(const half_t&) const;
+  bool operator!=(const half_t&) const;
+};
+#else
+/**
+ * @brief half_t with float backend.
+ * @details This class stores a float simulating the lost bits
+ *          that would result from a conversion to a half datatype.
+ *          It retains the functionality and frontend of the "real half",
+ *          but its sizeof() will return 4.
+ */
+struct half_t {
+private:
+  float m_value;
+
+public:
+  half_t() = default;
+  half_t(const half_t&) = default;
+  half_t(const float value);
+  operator float() const;
+  int16_t get() const;
+};
+#endif
+
+#define cudaCheck(stmt)                                \
+  {                                                    \
+    cudaError_t err = stmt;                            \
+    if (err != cudaSuccess) {                          \
+      std::cerr << "Failed to run " << #stmt << "\n";  \
+      throw std::invalid_argument("cudaCheck failed"); \
+    }                                                  \
   }
 
-#define cudaCheckKernelCall(stmt, kernel_name)                      \
-  {                                                                 \
-    cudaError_t err = stmt;                                         \
-    if (err != cudaSuccess) {                                       \
-      std::cerr << "Failed to invoke " << kernel_name << std::endl; \
-      throw std::invalid_argument("cudaCheckKernelCall failed");    \
-    }                                                               \
+#define cudaCheckKernelCall(stmt)                                \
+  {                                                              \
+    cudaError_t err = stmt;                                      \
+    if (err != cudaSuccess) {                                    \
+      std::cerr << "Failed to invoke kernel.\n";                 \
+      throw std::invalid_argument("cudaCheckKernelCall failed"); \
+    }                                                            \
   }
-
-namespace Configuration {
-  extern uint verbosity_level;
-}
 
 #elif defined(HIP)
 
@@ -248,66 +296,51 @@ namespace Configuration {
     }                                                                                                             \
   }
 
-#define cudaCheckKernelCall(stmt, kernel_name)                   \
-  {                                                              \
-    cudaError_t err = stmt;                                      \
-    if (err != cudaSuccess) {                                    \
-      fprintf(                                                   \
-        stderr,                                                  \
-        "Failed to invoke %s\n%s (%d) at %s: %d\n",              \
-        kernel_name.c_str(),                                     \
-        hipGetErrorString(err),                                  \
-        err,                                                     \
-        __FILE__,                                                \
-        __LINE__);                                               \
-      throw std::invalid_argument("cudaCheckKernelCall failed"); \
-    }                                                            \
+#define cudaCheckKernelCall(stmt)                                                                                 \
+  {                                                                                                               \
+    cudaError_t err = stmt;                                                                                       \
+    if (err != cudaSuccess) {                                                                                     \
+      fprintf(                                                                                                    \
+        stderr, "Failed to invoke kernel\n%s (%d) at %s: %d\n", hipGetErrorString(err), err, __FILE__, __LINE__); \
+      throw std::invalid_argument("cudaCheckKernelCall failed");                                                  \
+    }                                                                                                             \
   }
 
 #define half_t short
 
 __device__ __host__ half_t __float2half(float value);
 
-namespace Configuration {
-  extern __constant__ uint verbosity_level;
-}
-
 #else
 
 // ------------
 // CUDA support
 // ------------
-
-#include "cuda_runtime.h"
-#include <mma.h>
+#include <cuda_runtime.h>
+#include <cuda_fp16.h>
 #define half_t half
 
 /**
  * @brief Macro to check cuda calls.
  */
-#define cudaCheck(stmt)                                    \
-  {                                                        \
-    cudaError_t err = stmt;                                \
-    if (err != cudaSuccess) {                              \
-      std::cerr << "Failed to run " << #stmt << std::endl; \
-      std::cerr << cudaGetErrorString(err) << std::endl;   \
-      throw std::invalid_argument("cudaCheck failed");     \
-    }                                                      \
+#define cudaCheck(stmt)                                \
+  {                                                    \
+    cudaError_t err = stmt;                            \
+    if (err != cudaSuccess) {                          \
+      std::cerr << "Failed to run " << #stmt << "\n";  \
+      std::cerr << cudaGetErrorString(err) << "\n";    \
+      throw std::invalid_argument("cudaCheck failed"); \
+    }                                                  \
   }
 
-#define cudaCheckKernelCall(stmt, kernel_name)                      \
-  {                                                                 \
-    cudaError_t err = stmt;                                         \
-    if (err != cudaSuccess) {                                       \
-      std::cerr << "Failed to invoke " << kernel_name << std::endl; \
-      std::cerr << cudaGetErrorString(err) << std::endl;            \
-      throw std::invalid_argument("cudaCheckKernelCall failed");    \
-    }                                                               \
+#define cudaCheckKernelCall(stmt)                                                                                  \
+  {                                                                                                                \
+    cudaError_t err = stmt;                                                                                        \
+    if (err != cudaSuccess) {                                                                                      \
+      fprintf(                                                                                                     \
+        stderr, "Failed to invoke kernel\n%s (%d) at %s: %d\n", cudaGetErrorString(err), err, __FILE__, __LINE__); \
+      throw std::invalid_argument("cudaCheckKernelCall failed");                                                   \
+    }                                                                                                              \
   }
-
-namespace Configuration {
-  extern __constant__ uint verbosity_level;
-}
 
 #endif
 
@@ -343,3 +376,33 @@ namespace cuda {
 void print_gpu_memory_consumption();
 
 std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id);
+
+// Helper structure to deal with constness of T
+template<typename T, typename U>
+struct ForwardType {
+  using t = U;
+};
+
+template<typename T, typename U>
+struct ForwardType<const T, U> {
+  using t = const U;
+};
+
+std::tuple<bool, int> get_device_id(std::string pci_bus_id);
+
+template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
+void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, cudaStream_t& cuda_stream)
+{
+  auto offset = args.template begin<DATA_ARG>();
+  for (gsl::span<char const> data_span : std::get<0>(bno)) {
+    cudaCheck(cudaMemcpyAsync(offset, data_span.data(), data_span.size_bytes(), cudaMemcpyHostToDevice, cuda_stream));
+    offset += data_span.size_bytes();
+  }
+
+  cudaCheck(cudaMemcpyAsync(
+    args.template begin<OFFSET_ARG>(),
+    std::get<2>(bno).data(),
+    std::get<2>(bno).size_bytes(),
+    cudaMemcpyHostToDevice,
+    cuda_stream));
+}

@@ -1,10 +1,11 @@
 #include "SciFiPreDecodeV6.cuh"
+#include <MEPTools.h>
 #include "assert.h"
 
 using namespace SciFi;
 
 __device__ void store_sorted_cluster_reference_v6(
-  const SciFi::HitCount& hit_count,
+  SciFi::ConstHitCount& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,
   const uint32_t* shared_mat_offsets,
@@ -32,35 +33,31 @@ __device__ void store_sorted_cluster_reference_v6(
   assert(uniqueGroupOrMat < SciFi::Constants::n_mat_groups_and_mats);
   hitIndex += shared_mat_offsets[uniqueGroupOrMat];
 
-  hits.cluster_reference[hitIndex] =
+  hits.cluster_reference(hitIndex) =
     (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition & 0x07) << 13 | (delta & 0xFF);
 }
 
-__global__ void scifi_pre_decode_v6(
-  char* scifi_events,
-  uint* scifi_event_offsets,
-  const uint* event_list,
-  uint* scifi_hit_count,
-  uint* scifi_hits,
-  char* scifi_geometry,
-  const float* dev_inv_clus_res)
+__global__ void scifi_pre_decode_v6::scifi_pre_decode_v6(
+  scifi_pre_decode_v6::Parameters parameters,
+  const char* scifi_geometry)
 {
   const int number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
-  const uint selected_event_number = event_list[event_number];
+  const uint selected_event_number = parameters.dev_event_list[event_number];
 
   SciFiGeometry geom(scifi_geometry);
-  const auto event = SciFiRawEvent(scifi_events + scifi_event_offsets[selected_event_number]);
+  const auto event =
+    SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
 
-  Hits hits {
-    scifi_hits, scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats], &geom, dev_inv_clus_res};
-  HitCount hit_count {scifi_hit_count, event_number};
+  Hits hits {parameters.dev_scifi_hits,
+             parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
   __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];
 
   for (uint i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
-    shared_mat_offsets[i] = hit_count.mat_offsets[i];
+    shared_mat_offsets[i] = *hit_count.mat_offsets_p(i);
     shared_mat_count[i] = 0;
   }
 
@@ -75,7 +72,7 @@ __global__ void scifi_pre_decode_v6(
     uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
-    if (starting_it >= last) return;
+    if (starting_it >= last) continue;
 
     const uint number_of_iterations = last - starting_it;
     for (uint it_number = 0; it_number < number_of_iterations; ++it_number) {
@@ -85,17 +82,28 @@ __global__ void scifi_pre_decode_v6(
       const auto chid = SciFiChannelID(ch);
       const uint32_t correctedMat = chid.correctedUniqueMat();
 
-// shortcut for better readability and less redundancy
-#define STOREARGS hit_count, correctedMat, ch, shared_mat_offsets, shared_mat_count, current_raw_bank, it_number, hits
+      const auto store_sorted_v6_fn = [&](const int condition, const int delta) {
+        store_sorted_cluster_reference_v6(
+          hit_count,
+          correctedMat,
+          ch,
+          shared_mat_offsets,
+          shared_mat_count,
+          current_raw_bank,
+          it_number,
+          hits,
+          condition,
+          delta);
+      };
 
       if (!cSize(c)) {
         // Single cluster
-        store_sorted_cluster_reference_v6(STOREARGS, 0x01, 0x00);
+        store_sorted_v6_fn(0x01, 0x00);
       }
       else if (fraction(c)) {
         if (it + 1 == last || getLinkInBank(c) != getLinkInBank(*(it + 1))) {
           // last cluster in bank or in sipm
-          store_sorted_cluster_reference_v6(STOREARGS, 0x02, 0x00);
+          store_sorted_v6_fn(0x02, 0x00);
         }
         else {
           const unsigned c2 = *(it + 1);
@@ -105,14 +113,107 @@ __global__ void scifi_pre_decode_v6(
             uint16_t j = 0;
             for (; j < widthClus - 4; j += 4) {
               // big cluster(s)
-              store_sorted_cluster_reference_v6(STOREARGS, 0x03, j);
+              store_sorted_v6_fn(0x03, j);
             }
 
             // add the last edge
-            store_sorted_cluster_reference_v6(STOREARGS, 0x04, j);
+            store_sorted_v6_fn(0x04, j);
           }
           else {
-            store_sorted_cluster_reference_v6(STOREARGS, 0x05, 0x00);
+            store_sorted_v6_fn(0x05, 0x00);
+          }
+          ++it_number;
+        }
+      }
+    }
+  }
+}
+
+__global__ void scifi_pre_decode_v6::scifi_pre_decode_v6_mep(
+  scifi_pre_decode_v6::Parameters parameters,
+  const char* scifi_geometry)
+{
+  const int number_of_events = gridDim.x;
+  const uint event_number = blockIdx.x;
+  const uint selected_event_number = parameters.dev_event_list[event_number];
+
+  SciFiGeometry geom(scifi_geometry);
+
+  Hits hits {parameters.dev_scifi_hits,
+             parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
+
+  __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
+  __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];
+
+  for (uint i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
+    shared_mat_offsets[i] = *hit_count.mat_offsets_p(i);
+    shared_mat_count[i] = 0;
+  }
+
+  __syncthreads();
+
+  auto const n_scifi_banks = parameters.dev_scifi_raw_input_offsets[0];
+
+  // Main execution loop
+  for (uint i = threadIdx.x; i < n_scifi_banks; i += blockDim.x) {
+    // Create SciFi raw bank from MEP layout
+    auto const rawbank = MEP::raw_bank<SciFiRawBank>(
+      parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, selected_event_number, i);
+
+    const uint16_t* starting_it = rawbank.data + 2;
+    uint16_t* last = rawbank.last;
+    if (*(last - 1) == 0) --last; // Remove padding at the end
+
+    if (starting_it >= last) continue;
+
+    const uint number_of_iterations = last - starting_it;
+    for (uint it_number = 0; it_number < number_of_iterations; ++it_number) {
+      auto it = starting_it + it_number;
+      const uint16_t c = *it;
+      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + channelInBank(c);
+      const auto chid = SciFiChannelID(ch);
+      const uint32_t correctedMat = chid.correctedUniqueMat();
+
+      const auto store_sorted_v6_fn = [&](const int condition, const int delta) {
+        store_sorted_cluster_reference_v6(
+          hit_count,
+          correctedMat,
+          ch,
+          shared_mat_offsets,
+          shared_mat_count,
+          i,
+          it_number,
+          hits,
+          condition,
+          delta);
+      };
+
+      if (!cSize(c)) {
+        // Single cluster
+        store_sorted_v6_fn(0x01, 0x00);
+      }
+      else if (fraction(c)) {
+        if (it + 1 == last || getLinkInBank(c) != getLinkInBank(*(it + 1))) {
+          // last cluster in bank or in sipm
+          store_sorted_v6_fn(0x02, 0x00);
+        }
+        else {
+          const unsigned c2 = *(it + 1);
+          assert(cSize(c2) && !fraction(c2));
+          const unsigned int widthClus = (cell(c2) - cell(c) + 2);
+          if (widthClus > 8) {
+            uint16_t j = 0;
+            for (; j < widthClus - 4; j += 4) {
+              // big cluster(s)
+              store_sorted_v6_fn(0x03, j);
+            }
+
+            // add the last edge
+            store_sorted_v6_fn(0x04, j);
+          }
+          else {
+            store_sorted_v6_fn(0x05, 0x00);
           }
           ++it_number;
         }

@@ -16,6 +16,16 @@
 #include <Allen.h>
 #include <Updater.h>
 #include <ProgramOptions.h>
+#include <Logger.h>
+#include <Timer.h>
+
+#include <ZeroMQ/IZeroMQSvc.h>
+#include <zmq/svc.h>
+
+#ifdef HAVE_MPI
+#include <MPIConfig.h>
+#include <MPISend.h>
+#endif
 
 int main(int argc, char* argv[])
 {
@@ -96,6 +106,38 @@ int main(int argc, char* argv[])
     }
   }
 
-  Allen::NonEventData::Updater updater {allen_options};
-  return allen(std::move(allen_options), &updater);
+  auto zmqSvc = makeZmqSvc();
+
+  if (allen_options.count("with-mpi")) {
+#ifdef HAVE_MPI
+    // MPI initialization
+    MPI_Init(&argc, &argv);
+
+    // Communication size
+    int comm_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &comm_size);
+    if (comm_size > MPI::comm_size) {
+      error_cout << "This program requires at most " << MPI::comm_size << " processes.\n";
+      return -1;
+    }
+
+    // MPI: Who am I?
+    MPI_Comm_rank(MPI_COMM_WORLD, &MPI::rank);
+
+    if (MPI::rank == MPI::receiver) {
+      Allen::NonEventData::Updater updater {allen_options};
+      return allen(std::move(allen_options), &updater, zmqSvc, "");
+    }
+    else {
+      return send_meps_mpi(allen_options);
+    }
+#else
+    error_cout << "MPI requested, but Allen was not built with MPI support.\n";
+    return -1;
+#endif
+  }
+  else {
+    Allen::NonEventData::Updater updater {allen_options};
+    return allen(std::move(allen_options), &updater, zmqSvc, "");
+  }
 }

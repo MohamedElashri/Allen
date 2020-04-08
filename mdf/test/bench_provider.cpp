@@ -6,7 +6,7 @@
 #include <unordered_set>
 #include <map>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <Timer.h>
 #include <MDFProvider.h>
@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
     files[i] = argv[i + 1];
   }
 
-  logger::ll.verbosityLevel = 3;
+  logger::setVerbosity(3);
 
   Timer t;
 

@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <raw_bank.hpp>
+#include <Event/RawBank.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Timer.h>
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
     bool eof = false;
     while (!eof) {
 
-      gsl::span<char> buffer_span {buffer.data() + offset, buffer.size() - offset};
+      gsl::span<char> buffer_span {buffer.data() + offset, static_cast<::events_size>(buffer.size() - offset)};
 
       ++n_filled;
       auto r = MDF::read_event(input, header, buffer_span, decompression_buffer, false);

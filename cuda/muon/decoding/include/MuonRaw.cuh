@@ -19,6 +19,15 @@ namespace Muon {
       last = (uint16_t*) end;
       m_size = end - p;
     }
+
+    __device__ MuonRawBank(const uint32_t sID, const char* bank_start, const char* bank_end)
+    {
+      sourceID = sID;
+      data = (uint16_t*) bank_start;
+      last = (uint16_t*) bank_end;
+      m_size = bank_start - bank_end;
+    }
+
   };
 
   struct MuonRawEvent {

@@ -52,13 +52,9 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("sv_eta", &m_sv_eta);
   m_tree->Branch("sv_minipchi2", &m_sv_minipchi2);
   m_tree->Branch("sv_minpt", &m_sv_minpt);
-  m_tree->Branch("sv_ntrksassoc", &m_sv_ntrksassoc);
+  m_tree->Branch("sv_ntrks16", &m_sv_ntrks16);
   m_tree->Branch("sv_idx_trk1", &m_sv_idx_trk1);
   m_tree->Branch("sv_idx_trk2", &m_sv_idx_trk2);
-  m_tree->Branch("sv_pass_two_track", &m_sv_pass_two_track);
-  m_tree->Branch("sv_pass_disp_dimuon", &m_sv_pass_disp_dimuon);
-  m_tree->Branch("sv_pass_high_mass_dimuon", &m_sv_pass_high_mass_dimuon);
-  m_tree->Branch("sv_pass_dimuon_soft", &m_sv_pass_dimuon_soft);
 
   m_tree->Branch("trk_p", &m_trk_p);
   m_tree->Branch("trk_pt", &m_trk_pt);
@@ -71,8 +67,7 @@ SelCheckerTuple::SelCheckerTuple(CheckerInvoker const* invoker, std::string cons
   m_tree->Branch("trk_velo_ip", &m_trk_velo_ip);
   m_tree->Branch("trk_velo_ipchi2", &m_trk_velo_ipchi2);
   m_tree->Branch("trk_idx_gen", &m_trk_idx_gen);
-  m_tree->Branch("trk_pass_one_track", &m_trk_pass_one_track);
-  m_tree->Branch("trk_pass_single_muon", &m_trk_pass_single_muon);
+
 #else
 SelCheckerTuple::SelCheckerTuple(CheckerInvoker const*, std::string const&)
 {
@@ -124,14 +119,9 @@ void SelCheckerTuple::clear()
   m_sv_eta.clear();
   m_sv_minipchi2.clear();
   m_sv_minpt.clear();
-  m_sv_ntrksassoc.clear();
+  m_sv_ntrks16.clear();
   m_sv_idx_trk1.clear();
   m_sv_idx_trk2.clear();
-  m_sv_pass_two_track.clear();
-  m_sv_pass_disp_dimuon.clear();
-  m_sv_pass_high_mass_dimuon.clear();
-  m_sv_pass_dimuon_soft.clear();
-
   m_trk_p.clear();
   m_trk_pt.clear();
   m_trk_eta.clear();
@@ -143,8 +133,6 @@ void SelCheckerTuple::clear()
   m_trk_velo_ip.clear();
   m_trk_velo_ipchi2.clear();
   m_trk_idx_gen.clear();
-  m_trk_pass_one_track.clear();
-  m_trk_pass_single_muon.clear();
 }
 
 size_t SelCheckerTuple::addGen(const MCParticle& mcp)
@@ -209,13 +197,13 @@ size_t SelCheckerTuple::addSV(const VertexFit::TrackMVAVertex& sv, const int idx
   m_sv_eta.push_back((double) sv.eta);
   m_sv_minipchi2.push_back((double) sv.minipchi2);
   m_sv_minpt.push_back((double) sv.minpt);
-  m_sv_ntrksassoc.push_back((double) sv.ntrksassoc);
+  m_sv_ntrks16.push_back((double) sv.ntrks16);
   m_sv_idx_trk1.push_back((double) idx1);
   m_sv_idx_trk2.push_back((double) idx2);
   return idx;
 }
 
-size_t SelCheckerTuple::addTrack(Checker::Track& track, const MCAssociator& mcassoc)
+size_t SelCheckerTuple::addTrack(const Checker::Track& track, const MCAssociator& mcassoc)
 {
   for (size_t i = 0; i < m_trk_p.size(); ++i) {
     if (
@@ -237,7 +225,8 @@ size_t SelCheckerTuple::addTrack(Checker::Track& track, const MCAssociator& mcas
   m_trk_velo_ip.push_back((double) track.velo_ip);
   m_trk_velo_ipchi2.push_back((double) track.velo_ip_chi2);
   const auto& ids = track.ids();
-  const auto assoc = mcassoc(ids.begin(), ids.end(), track.n_matched_total);
+  size_t n_matched = 0;
+  const auto assoc = mcassoc(ids.begin(), ids.end(), n_matched);
   if (!assoc)
     m_trk_idx_gen.push_back((double) -1.);
   else {
@@ -253,106 +242,20 @@ size_t SelCheckerTuple::addTrack(Checker::Track& track, const MCAssociator& mcas
 }
 
 #ifdef WITH_ROOT
-void SelCheckerTuple::accumulate(
-  MCEvents const& mc_events,
-  std::vector<Checker::Tracks> const& tracks,
-  const VertexFit::TrackMVAVertex* svs,
-  const bool* one_track_decisions,
-  const bool* two_track_decisions,
-  const bool* single_muon_decisions,
-  const bool* disp_dimuon_decisions,
-  const bool* high_mass_dimuon_decisions,
-  const bool* dimuon_soft_decisions,
-
-  const int* track_atomics,
-  const uint* sv_atomics,
-  const uint selected_events)
+void SelCheckerTuple::make_branch(
+  const std::string& line_name,
+  const std::string& prefix,
+  std::map<std::string, std::vector<double>>& decisions)
 {
-
-  for (size_t i_event = 0; i_event < mc_events.size(); ++i_event) {
-
-    clear();
-
-    const auto& mc_event = mc_events[i_event];
-    const auto& mcps = mc_event.m_mcps;
-
-    // Loop over MC particles
-    for (auto mcp : mcps) {
-      if (mcp.fromBeautyDecay || mcp.fromCharmDecay || mcp.fromStrangeDecay || mcp.DecayOriginMother_pid == 23) {
-        addGen(mcp);
-      }
-    }
-
-    if (i_event < selected_events) {
-      m_event_pass_gec.push_back(1.);
-      const auto& event_tracks = tracks[i_event];
-      MCAssociator mcassoc {mcps};
-      const int* event_tracks_offsets = track_atomics + selected_events;
-      const uint* sv_offsets = sv_atomics + selected_events;
-      const uint event_n_svs = sv_atomics[i_event];
-      const VertexFit::TrackMVAVertex* event_vertices = svs + sv_offsets[i_event];
-      const bool* event_one_track_decisions = one_track_decisions + event_tracks_offsets[i_event];
-      const bool* event_two_track_decisions = two_track_decisions + sv_offsets[i_event];
-      const bool* event_single_muon_decisions = single_muon_decisions + event_tracks_offsets[i_event];
-      const bool* event_disp_dimuon_decisions = disp_dimuon_decisions + sv_offsets[i_event];
-      const bool* event_high_mass_dimuon_decisions = high_mass_dimuon_decisions + sv_offsets[i_event];
-      const bool* event_dimuon_soft_decisions = dimuon_soft_decisions + sv_offsets[i_event];
-
-      // Loop over tracks.
-      for (size_t i_track = 0; i_track < event_tracks.size(); i_track++) {
-        // First track.
-        auto trackA = event_tracks[i_track];
-        size_t idx1 = addTrack(trackA, mcassoc);
-        if (idx1 == m_trk_p.size() - 1) {
-          m_trk_pass_one_track.push_back(event_one_track_decisions[i_track] ? 1. : 0.);
-          m_trk_pass_single_muon.push_back(event_single_muon_decisions[i_track] ? 1. : 0.);
-        }
-      }
-
-      // Loop over SVs.
-      for (size_t i_sv = 0; i_sv < event_n_svs; i_sv++) {
-        if (event_vertices[i_sv].chi2 < 0) {
-          continue;
-        }
-        auto trackA = event_tracks[(size_t)event_vertices[i_sv].trk1];
-        auto trackB = event_tracks[(size_t)event_vertices[i_sv].trk2];
-        size_t i_track = addTrack(trackA, mcassoc);
-        size_t j_track = addTrack(trackB, mcassoc);
-        addSV(event_vertices[i_sv], i_track, j_track);
-        m_sv_pass_two_track.push_back(event_two_track_decisions[i_sv] ? 1. : 0.);
-        m_sv_pass_disp_dimuon.push_back(event_disp_dimuon_decisions[i_sv] ? 1. : 0.);
-        m_sv_pass_high_mass_dimuon.push_back(event_high_mass_dimuon_decisions[i_sv] ? 1. : 0.);
-        m_sv_pass_dimuon_soft.push_back(event_dimuon_soft_decisions[i_sv] ? 1. : 0.);
-      }
-    }
-    else {
-      m_event_pass_gec.push_back(0.);
-    }
-
-    m_tree->Fill();
-  }
+  decisions[line_name] = std::vector<double>();
+  std::string branch_name = prefix + line_name;
+  m_tree->Branch(branch_name.c_str(), &decisions[line_name]);
 }
-#else
-void SelCheckerTuple::accumulate(
-  MCEvents const&,
-  std::vector<Checker::Tracks> const&,
-  const VertexFit::TrackMVAVertex*,
-  const bool*,
-  const bool*,
-  const bool*,
-  const bool*,
-  const bool*,
-  const bool*,
-  const int*,
-  const uint*,
-  const uint)
-{}
-#endif
 
-#ifdef WITH_ROOT
+void SelCheckerTuple::fill() { m_tree->Fill(); }
+
 void SelCheckerTuple::report(size_t requested_events) const
 {
-  ;
   TArrayI nEvents(1);
   nEvents[0] = (int) requested_events;
   m_file->cd();

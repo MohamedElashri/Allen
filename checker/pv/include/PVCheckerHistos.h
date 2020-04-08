@@ -71,9 +71,9 @@ private:
   double m_x = 0.;
   double m_y = 0.;
   double m_z = 0.;
-  double m_errx = 0.;
-  double m_erry = 0.;
-  double m_errz = 0.;
+  float m_errx = 0.;
+  float m_erry = 0.;
+  float m_errz = 0.;
   bool m_isFake = false;
 
   int const m_bins_norm_z = 50;

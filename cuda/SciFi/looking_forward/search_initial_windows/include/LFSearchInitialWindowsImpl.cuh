@@ -11,10 +11,11 @@
 #include "LookingForwardConstants.cuh"
 
 __device__ void lf_search_initial_windows_impl(
-  const SciFi::Hits& scifi_hits,
-  const SciFi::HitCount& scifi_hit_count,
+  SciFi::ConstHits& scifi_hits,
+  SciFi::ConstHitCount& scifi_hit_count,
   const MiniState& UT_state,
   const LookingForward::Constants* looking_forward_constants,
+  const float* magnet_polarity,
   const float qop,
   const bool side,
   int* initial_windows,

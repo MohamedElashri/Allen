@@ -10,7 +10,7 @@ typedef SquareMatrix<false, 2> Matrix2x2;
 //----------------------------------------------------------------------
 // Create a VELO seed state.
 __device__ void CreateVeloSeedState(
-  const Velo::Consolidated::Hits& hits,
+  Velo::Consolidated::ConstHits& hits,
   const int nVeloHits,
   int nHit,
   Vector5& x,
@@ -19,12 +19,12 @@ __device__ void CreateVeloSeedState(
   trackInfo& tI)
 {
   // Set the state.
-  x(0) = (KalmanFloat) hits.x[nVeloHits - 1 - nHit];
-  x(1) = (KalmanFloat) hits.y[nVeloHits - 1 - nHit];
-  x(2) = (KalmanFloat)((hits.x[0] - hits.x[nVeloHits - 1 - nHit]) / (hits.z[0] - hits.z[nVeloHits - 1 - nHit]));
-  x(3) = (KalmanFloat)((hits.y[0] - hits.y[nVeloHits - 1 - nHit]) / (hits.z[0] - hits.z[nVeloHits - 1 - nHit]));
+  x(0) = (KalmanFloat) hits.x(nVeloHits - 1 - nHit);
+  x(1) = (KalmanFloat) hits.y(nVeloHits - 1 - nHit);
+  x(2) = (KalmanFloat)((hits.x(0) - hits.x(nVeloHits - 1 - nHit)) / (hits.z(0) - hits.z(nVeloHits - 1 - nHit)));
+  x(3) = (KalmanFloat)((hits.y(0) - hits.y(nVeloHits - 1 - nHit)) / (hits.z(0) - hits.z(nVeloHits - 1 - nHit)));
   x(4) = tI.m_BestMomEst;
-  lastz = (KalmanFloat) hits.z[nVeloHits - 1 - nHit];
+  lastz = (KalmanFloat) hits.z(nVeloHits - 1 - nHit);
 
   // Set covariance matrix with large uncertainties and no correlations.
   C(0, 0) = (KalmanFloat) 100.0;
@@ -47,7 +47,7 @@ __device__ void CreateVeloSeedState(
 //----------------------------------------------------------------------
 // Predict inside the VELO.
 __device__ void PredictStateV(
-  const Velo::Consolidated::Hits& hits,
+  Velo::Consolidated::ConstHits& hits,
   int nHit,
   Vector5& x,
   SymMatrix5x5& C,
@@ -58,7 +58,7 @@ __device__ void PredictStateV(
   // Transportation and noise.
   Matrix5x5 F;
   SymMatrix5x5 Q;
-  ExtrapolateInV(lastz, (KalmanFloat) hits.z[nHit], x, F, Q, tI);
+  ExtrapolateInV(lastz, (KalmanFloat) hits.z(nHit), x, F, Q, tI);
 
   // Transport the covariance matrix.
   C = similarity_5_5(F, C);
@@ -67,13 +67,13 @@ __device__ void PredictStateV(
   C = C + Q;
 
   // Set current z position.
-  lastz = (KalmanFloat) hits.z[nHit];
+  lastz = (KalmanFloat) hits.z(nHit);
 }
 
 //----------------------------------------------------------------------
 // Predict VELO <-> UT
 __device__ bool PredictStateVUT(
-  const UT::Consolidated::Hits& hitsUT, // These probably don't exist yet.
+  UT::Consolidated::ConstHits& hitsUT, // These probably don't exist yet.
   Vector5& x,
   SymMatrix5x5& C,
   KalmanFloat& lastz,
@@ -93,7 +93,7 @@ __device__ bool PredictStateVUT(
 
   // Extrapolate to first layer if there's a hit.
   if (tI.m_UTLayerIdxs[0] >= 0) {
-    z = (KalmanFloat) hitsUT.zAtYEq0[tI.m_UTLayerIdxs[0]];
+    z = (KalmanFloat) hitsUT.zAtYEq0(tI.m_UTLayerIdxs[0]);
     returnVal = ExtrapolateVUT(lastz, z, x, F, Q, tI);
   }
   // Otherwise extrapolate to end of VUT region.
@@ -120,7 +120,7 @@ __device__ bool PredictStateVUT(
 //----------------------------------------------------------------------
 // Predict UT <-> UT.
 __device__ void PredictStateUT(
-  const UT::Consolidated::Hits& hits,
+  UT::Consolidated::ConstHits& hits,
   const uint layer,
   Vector5& x,
   SymMatrix5x5& C,
@@ -133,7 +133,7 @@ __device__ void PredictStateUT(
 
   // Check if there's a hit in this layer and extrapolate to it.
   if (tI.m_UTLayerIdxs[layer] >= 0) {
-    z = (KalmanFloat) hits.zAtYEq0[tI.m_UTLayerIdxs[layer]];
+    z = (KalmanFloat) hits.zAtYEq0(tI.m_UTLayerIdxs[layer]);
     ExtrapolateInUT(lastz, layer, z, x, F, Q, tI);
   }
   // Otherwise add noise without changing the state.
@@ -196,7 +196,7 @@ __device__ void PredictStateUTFUT(Vector5& x, SymMatrix5x5& C, KalmanFloat& last
 //----------------------------------------------------------------------
 // Predict T <-> T.
 __device__ void PredictStateT(
-  const SciFi::Consolidated::Hits& hits,
+  SciFi::Consolidated::ConstExtendedHits& hits,
   uint layer,
   Vector5& x,
   SymMatrix5x5& C,
@@ -210,7 +210,7 @@ __device__ void PredictStateT(
   // Check if this layer has a hit.
   if (tI.m_SciFiLayerIdxs[layer] >= 0) {
     const uint32_t idx = (uint32_t) tI.m_SciFiLayerIdxs[layer];
-    KalmanFloat z0 = (KalmanFloat) hits.z0[idx];
+    KalmanFloat z0 = (KalmanFloat) hits.z0(idx);
     KalmanFloat y0 = (KalmanFloat) hits.yMin(idx);
     KalmanFloat dydz = ((KalmanFloat) 1.) / hits.dzdy(idx);
     z = (lastz * x[3] - z0 * dydz - x[1] + y0) / (x[3] - dydz);
@@ -232,7 +232,7 @@ __device__ void PredictStateT(
 //----------------------------------------------------------------------
 // Predict T (fixed z) <-> first T layer.
 __device__ void
-PredictStateTFT(const SciFi::Consolidated::Hits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
+PredictStateTFT(SciFi::Consolidated::ConstExtendedHits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
 {
   KalmanFloat z;
   Matrix5x5 F;
@@ -241,7 +241,7 @@ PredictStateTFT(const SciFi::Consolidated::Hits& hits, Vector5& x, SymMatrix5x5&
   // if (forward > 0) {
   if (tI.m_SciFiLayerIdxs[0] >= 0) {
     int idx = tI.m_SciFiLayerIdxs[0];
-    KalmanFloat z0 = (KalmanFloat) hits.z0[idx];
+    KalmanFloat z0 = (KalmanFloat) hits.z0(idx);
     KalmanFloat y0 = (KalmanFloat) hits.yMin(idx);
     KalmanFloat dydz = ((KalmanFloat) 1.) / (KalmanFloat) hits.dzdy(idx);
     z = (lastz * x[3] - z0 * dydz + y0) / (x[3] - dydz);
@@ -278,13 +278,13 @@ __device__ void PredictStateTFT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz,
 //----------------------------------------------------------------------
 // Update state with VELO measurement.
 __device__ void
-UpdateStateV(const Velo::Consolidated::Hits& hits, int forward, int nHit, Vector5& x, SymMatrix5x5& C, trackInfo& tI)
+UpdateStateV(Velo::Consolidated::ConstHits& hits, int forward, int nHit, Vector5& x, SymMatrix5x5& C, trackInfo& tI)
 {
   // Get residual.
-  // Vector2 res({hits.x[nHit]-x(0), hits.y[nHit]-x(1)});
+  // Vector2 res({hits.x(nHit)-x(0), hits.y(nHit)-x(1)});
   Vector2 res;
-  res(0) = (KalmanFloat) hits.x[nHit] - x(0);
-  res(1) = (KalmanFloat) hits.y[nHit] - x(1);
+  res(0) = (KalmanFloat) hits.x(nHit) - x(0);
+  res(1) = (KalmanFloat) hits.y(nHit) - x(1);
 
   // TODO: For now, I'm assuming xErr == yErr == 0.015 mm. This
   // roughly matches what Daniel uses in the simplified Kalman
@@ -320,7 +320,7 @@ UpdateStateV(const Velo::Consolidated::Hits& hits, int forward, int nHit, Vector
 //----------------------------------------------------------------------
 // Update state with a UT measurement.
 __device__ void UpdateStateUT(
-  const UT::Consolidated::Hits& hits,
+  UT::Consolidated::ConstHits& hits,
   uint layer,
   Vector5& x,
   SymMatrix5x5& C,
@@ -331,9 +331,9 @@ __device__ void UpdateStateUT(
   // Get the hit information.
   const KalmanFloat slopes[4] = {0., 0.0874886, -0.0874886, 0.};
   const int nHit = tI.m_UTLayerIdxs[layer];
-  const KalmanFloat y0 = (KalmanFloat) hits.yBegin[nHit];
-  const KalmanFloat y1 = (KalmanFloat) hits.yEnd[nHit];
-  const KalmanFloat x0 = (KalmanFloat) hits.xAtYEq0[nHit] + y0 * slopes[layer];
+  const KalmanFloat y0 = (KalmanFloat) hits.yBegin(nHit);
+  const KalmanFloat y1 = (KalmanFloat) hits.yEnd(nHit);
+  const KalmanFloat x0 = (KalmanFloat) hits.xAtYEq0(nHit) + y0 * slopes[layer];
   const KalmanFloat x1 = x0 + (y1 - y0) * slopes[layer];
 
   // Rotate by alpha = atan(dx/dy).
@@ -346,7 +346,7 @@ __device__ void UpdateStateUT(
   const KalmanFloat res = H[0] * x0 + H[1] * y0 - (H[0] * x[0] + H[1] * x[1]);
   KalmanFloat CRes;
   similarity_1x2_S5x5_2x1(H, C, CRes);
-  KalmanFloat err2 = ((KalmanFloat) 1.) / (KalmanFloat) hits.weight[nHit];
+  KalmanFloat err2 = ((KalmanFloat) 1.) / (KalmanFloat) hits.weight(nHit);
   CRes += err2;
 
   // K = P*H
@@ -368,13 +368,13 @@ __device__ void UpdateStateUT(
   tI.m_chi2 += res * res / CRes;
 
   // Update z.
-  lastz = (KalmanFloat) hits.zAtYEq0[nHit];
+  lastz = (KalmanFloat) hits.zAtYEq0(nHit);
 }
 
 //----------------------------------------------------------------------
 // Update state with a SciFi measurement.
 __device__ void UpdateStateT(
-  const SciFi::Consolidated::Hits& hits,
+  SciFi::Consolidated::ConstExtendedHits& hits,
   const uint layer,
   Vector5& x,
   SymMatrix5x5& C,
@@ -389,9 +389,9 @@ __device__ void UpdateStateT(
   const KalmanFloat dzdy = (KalmanFloat) hits.dzdy(nHit);
   const KalmanFloat y0 = (KalmanFloat) hits.yMin(nHit);
   const KalmanFloat y1 = (KalmanFloat) hits.yMax(nHit);
-  const KalmanFloat x0 = (KalmanFloat) hits.x0[nHit] + y0 * dxdy;
+  const KalmanFloat x0 = (KalmanFloat) hits.x0(nHit) + y0 * dxdy;
   const KalmanFloat x1 = x0 + (y1 - y0) * dxdy;
-  const KalmanFloat z0 = (KalmanFloat) hits.z0[nHit];
+  const KalmanFloat z0 = (KalmanFloat) hits.z0(nHit);
   const KalmanFloat x2y2 = sqrtf((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
   Vector2 H;
   H(0) = (y1 - y0) / x2y2;

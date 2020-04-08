@@ -10,19 +10,20 @@
 
 #include <BankTypes.h>
 
-#include <gsl-lite.hpp>
+#include <gsl/gsl>
 
 #include <sys/types.h>
 
-#include "odin.hpp"
-#include "raw_bank.hpp"
+#include "Event/ODIN.h"
+#include "Event/RawBank.h"
 #include "mdf_header.hpp"
 
 namespace Allen {
   const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_types = {{LHCb::RawBank::VP, BankTypes::VP},
                                                                              {LHCb::RawBank::UT, BankTypes::UT},
                                                                              {LHCb::RawBank::FTCluster, BankTypes::FT},
-                                                                             {LHCb::RawBank::Muon, BankTypes::MUON}};
+                                                                             {LHCb::RawBank::Muon, BankTypes::MUON},
+                                                                             {LHCb::RawBank::ODIN, BankTypes::ODIN}};
 
   using buffer_map = std::unordered_map<BankTypes, std::pair<std::vector<char>, std::vector<unsigned int>>>;
 
@@ -63,6 +64,6 @@ namespace MDF {
     bool checkChecksum = true,
     size_t offset = 0);
 
-  LHCb::ODIN decode_odin(const LHCb::RawBank* bank);
+  LHCb::ODIN decode_odin(unsigned int version, unsigned int const* odinData);
 
 } // namespace MDF

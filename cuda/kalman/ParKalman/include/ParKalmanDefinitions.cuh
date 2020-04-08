@@ -3,7 +3,9 @@
 #include "States.cuh"
 #include "ParKalmanMath.cuh"
 #include <cstdio>
+#if !defined(__NVCC__) && !defined(__CUDACC__)
 #include <cmath>
+#endif
 
 namespace ParKalmanFilter {
 
@@ -15,53 +17,53 @@ namespace ParKalmanFilter {
   [[maybe_unused]] __constant__ static KalmanFloat F_diag[25] = {1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
                                                                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1};
 
-  // Max number of measurements.
-  const int nMaxMeasurements = 41; // 25 VELO + 4 UT + 12 SciFi
+  // 26 VELO + 4 UT + 12 SciFi.
+  constexpr int nMaxMeasurements = 42; 
 
   // Max number of bins for the UT <-> SciFi extrapolation.
-  const int nBinXMax = 60;
-  const int nBinYMax = 50;
+  constexpr int nBinXMax = 60;
+  constexpr int nBinYMax = 50;
 
   // Number of velo parameters.
-  const int nParsV = 10;
-  const int nSetsV = 2;
+  constexpr int nParsV = 10;
+  constexpr int nSetsV = 2;
 
   // Number of velo-UT parameters.
-  const int nParsVUT = 30;
-  const int nSetsVUT = 2;
+  constexpr int nParsVUT = 30;
+  constexpr int nSetsVUT = 2;
 
   // Number of UT parameters.
-  const int nParsUT = 20;
-  const int nSetsUT = 7;
+  constexpr int nParsUT = 20;
+  constexpr int nSetsUT = 7;
 
   // Number of UTFUT parameters.
-  const int nParsUTFUT = 1;
-  const int nSetsUTFUT = 1;
+  constexpr int nParsUTFUT = 1;
+  constexpr int nSetsUTFUT = 1;
 
   // Number of UTTF parameters.
-  const int nParsUTTF = 20;
-  const int nSetsUTTF = 2;
+  constexpr int nParsUTTF = 20;
+  constexpr int nSetsUTTF = 2;
 
   // Number of TFT parameters.
-  const int nParsTFT = 20;
-  const int nSetsTFT = 2;
+  constexpr int nParsTFT = 20;
+  constexpr int nSetsTFT = 2;
 
   // Number of T parameters.
-  const int nParsT = 20;
-  const int nSetsT = 46;
+  constexpr int nParsT = 20;
+  constexpr int nSetsT = 46;
 
   // Number of TLayer parameters.
-  const int nParsTLayer = 12;
-  const int nSetsTLayer = 2;
+  constexpr int nParsTLayer = 12;
+  constexpr int nSetsTLayer = 2;
 
   // Number of UTLayer parameters.
-  const int nParsUTLayer = 4;
-  const int nSetsUTLayer = 1;
+  constexpr int nParsUTLayer = 4;
+  constexpr int nSetsUTLayer = 1;
 
   // Some options.
-  const bool m_UseForwardMomEstimate = true;
-  const bool m_UseForwardChi2Estimate = true;
-  const int nMaxOutliers = 2;
+  constexpr bool m_UseForwardMomEstimate = true;
+  constexpr bool m_UseForwardChi2Estimate = true;
+  constexpr int nMaxOutliers = 2;
 
   //----------------------------------------------------------------------
   // Tentative output structure.
@@ -77,7 +79,8 @@ namespace ParKalmanFilter {
     KalmanFloat chi2V;
     KalmanFloat chi2T;
     KalmanFloat ipChi2;
-
+    KalmanFloat ip;
+    
     uint ndof;
     uint ndofV;
     uint ndofT;
@@ -85,7 +88,6 @@ namespace ParKalmanFilter {
 
     bool is_muon;
 
-    // Default constructor.
     __device__ __host__ FittedTrack() {}
 
     // Constructor from a VELO state.
@@ -151,5 +153,4 @@ namespace ParKalmanFilter {
 
     __device__ __host__ KalmanFloat eta() const { return atanhf(pz() / p()); }
   };
-
 } // namespace ParKalmanFilter

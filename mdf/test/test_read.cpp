@@ -11,9 +11,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "raw_bank.hpp"
+#include "Event/RawBank.h"
 #include "read_mdf.hpp"
-#include "Logger.h"
 
 using namespace std;
 
@@ -38,7 +37,7 @@ int main(int argc, char* argv[])
 
   auto input = MDF::open(filename.c_str(), O_RDONLY);
   if (input.good) {
-    info_cout << "Opened " << filename << "\n";
+    cout << "Opened " << filename << "\n";
   }
   else {
     cerr << "Failed to open file " << filename << " " << strerror(errno) << "\n";
@@ -56,8 +55,8 @@ int main(int argc, char* argv[])
     array<size_t, LHCb::RawBank::LastType + 1> bank_counts {0};
 
     // Put the banks in the event-local buffers
-    char const* bank = bank_span.begin();
-    char const* end = bank_span.end();
+    char const* bank = bank_span.data();
+    char const* end = bank_span.data() + bank_span.size();
     while (bank < end) {
       const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
       if (b->magic() != LHCb::RawBank::MagicPattern) {
@@ -67,6 +66,7 @@ int main(int argc, char* argv[])
 
       if (b->type() < LHCb::RawBank::LastType) {
         ++bank_counts[b->type()];
+        cout << "bank: " << b->type() << " " << b->sourceID() << "\n";
       }
       else {
         ++bank_counts[LHCb::RawBank::LastType];
@@ -77,8 +77,7 @@ int main(int argc, char* argv[])
     }
 
     cout << "Event " << std::setw(7) << i_event << "\n";
-    cout << "Type | #Banks"
-            "\n";
+    cout << "Type | #Banks\n";
     for (size_t i = 0; i < bank_counts.size(); ++i) {
       if (bank_counts[i] != 0) {
         cout << std::setw(4) << i << " | " << std::setw(6) << bank_counts[i] << "\n";

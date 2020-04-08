@@ -21,12 +21,12 @@ void pv_beamline_monitor(uint n_events, float* zhisto)
   outtree.Branch("index", &mindex);
   for (i_event = 0; i_event < n_events; i_event++) {
     info_cout << "number event " << i_event << std::endl;
-    for (int i = 0; i < Nbins; i++) {
-      int index = Nbins * i_event + i;
+    for (int i = 0; i < BeamlinePVConstants::Common::Nbins; i++) {
+      int index = BeamlinePVConstants::Common::Nbins * i_event + i;
       mindex = i;
 
       z_histo = zhisto[index];
-      z_bin = zmin + i * dz;
+      z_bin = BeamlinePVConstants::Common::zmin + i * BeamlinePVConstants::Common::dz;
       if (z_histo > 5) {
         info_cout << "zhisto: " << i << " " << z_bin << " " << z_histo << std::endl << std::endl;
         outtree.Fill();

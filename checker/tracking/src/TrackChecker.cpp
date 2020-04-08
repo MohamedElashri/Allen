@@ -310,7 +310,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
 
   const auto& ids = track.ids();
   for (const auto& id : ids) {
-    if (id.isVelo()) {
+    if (lhcb_id::is_velo(id)) {
       n_meas++;
       total_counter.n_velo++;
       const auto it_vec = mc_assoc.find_ids(id);
@@ -318,7 +318,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
         truth_counters[it->second].n_velo++;
       }
     }
-    else if (id.isUT()) {
+    else if (lhcb_id::is_ut(id)) {
       n_meas++;
       total_counter.n_ut++;
       const auto it_vec = mc_assoc.find_ids(id);
@@ -326,7 +326,7 @@ std::tuple<bool, MCParticles::const_iterator> TrackChecker::match_track_to_MCPs(
         truth_counters[it->second].n_ut++;
       }
     }
-    else if (id.isSciFi()) {
+    else if (lhcb_id::is_scifi(id)) {
       n_meas++;
       total_counter.n_scifi++;
       const auto it_vec = mc_assoc.find_ids(id);

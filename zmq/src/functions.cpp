@@ -1,20 +1,11 @@
-#include <zmq.hpp>
+#include <limits.h>
+#include <unistd.h>
 
-#include <ZeroMQSvc.h>
-
-#include <functions.h>
+#include <zmq/zmq.hpp>
+#include <ZeroMQ/functions.h>
 
 namespace ZMQ {
   size_t stringLength(const char& cs) { return strlen(&cs); }
-
-  std::string connection(const size_t id, std::string suffix)
-  {
-    auto con = std::string {"inproc://control_"} + std::to_string(id);
-    if (!suffix.empty()) {
-      con += "_" + suffix;
-    }
-    return con;
-  }
 } // namespace ZMQ
 
 namespace zmq {

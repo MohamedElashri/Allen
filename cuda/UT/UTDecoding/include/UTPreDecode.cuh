@@ -1,31 +1,96 @@
 #pragma once
 
 #include "UTDefinitions.cuh"
-#include "Handler.cuh"
-#include "ArgumentsCommon.cuh"
-#include "ArgumentsUT.cuh"
+#include "DeviceAlgorithm.cuh"
 #include "UTEventModel.cuh"
 
-__global__ void ut_pre_decode(
-  const char* dev_ut_raw_input,
-  const uint32_t* dev_ut_raw_input_offsets,
-  const uint* dev_event_list,
-  const char* ut_boards,
-  const char* ut_geometry,
-  const uint* dev_ut_region_offsets,
-  const uint* dev_unique_x_sector_layer_offsets,
-  const uint* dev_unique_x_sector_offsets,
-  const uint32_t* dev_ut_hit_offsets,
-  uint32_t* dev_ut_hits,
-  uint32_t* dev_ut_hit_count);
+namespace ut_pre_decode {
+  struct Parameters {
+    HOST_INPUT(host_number_of_selected_events_t, uint);
+    HOST_INPUT(host_accumulated_number_of_ut_hits_t, uint);
+    DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
+    DEVICE_INPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
+    DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
+    DEVICE_INPUT(dev_ut_hit_offsets_t, uint) dev_ut_hit_offsets;
+    DEVICE_OUTPUT(dev_ut_pre_decoded_hits_t, char) dev_ut_pre_decoded_hits;
+    DEVICE_OUTPUT(dev_ut_hit_count_t, uint) dev_ut_hit_count;
+    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+  };
 
-ALGORITHM(
-  ut_pre_decode,
-  ut_pre_decode_t,
-  ARGUMENTS(
-    dev_ut_raw_input,
-    dev_ut_raw_input_offsets,
-    dev_ut_hits,
-    dev_ut_hit_offsets,
-    dev_ut_hit_count,
-    dev_event_list))
+  __global__ void ut_pre_decode(
+    Parameters,
+    const char* ut_boards,
+    const char* ut_geometry,
+    const uint* dev_ut_region_offsets,
+    const uint* dev_unique_x_sector_layer_offsets,
+    const uint* dev_unique_x_sector_offsets);
+
+  __global__ void ut_pre_decode_mep(
+    Parameters,
+    const char* ut_boards,
+    const char* ut_geometry,
+    const uint* dev_ut_region_offsets,
+    const uint* dev_unique_x_sector_layer_offsets,
+    const uint* dev_unique_x_sector_offsets);
+
+  template<typename T, char... S>
+  struct ut_pre_decode_t : public DeviceAlgorithm, Parameters {
+    constexpr static auto name = Name<S...>::s;
+    decltype(global_function(ut_pre_decode)) function {ut_pre_decode};
+    decltype(global_function(ut_pre_decode_mep)) function_mep {ut_pre_decode_mep};
+
+    void set_arguments_size(
+      ArgumentRefManager<T> arguments,
+      const RuntimeOptions&,
+      const Constants& constants,
+      const HostBuffers&) const
+    {
+      set_size<dev_ut_pre_decoded_hits_t>(
+        arguments,
+        value<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
+      set_size<dev_ut_hit_count_t>(
+        arguments,
+        value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
+    }
+
+    void operator()(
+      const ArgumentRefManager<T>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants,
+      HostBuffers&,
+      cudaStream_t& cuda_stream,
+      cudaEvent_t&) const
+    {
+      initialize<dev_ut_hit_count_t>(arguments, 0, cuda_stream);
+
+      const auto parameters = Parameters {begin<dev_ut_raw_input_t>(arguments),
+                                          begin<dev_ut_raw_input_offsets_t>(arguments),
+                                          begin<dev_event_list_t>(arguments),
+                                          begin<dev_ut_hit_offsets_t>(arguments),
+                                          begin<dev_ut_pre_decoded_hits_t>(arguments),
+                                          begin<dev_ut_hit_count_t>(arguments)};
+
+      if (runtime_options.mep_layout) {
+        function_mep(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+          parameters,
+          constants.dev_ut_boards.data(),
+          constants.dev_ut_geometry.data(),
+          constants.dev_ut_region_offsets.data(),
+          constants.dev_unique_x_sector_layer_offsets.data(),
+          constants.dev_unique_x_sector_offsets.data());
+      }
+      else {
+        function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+          parameters,
+          constants.dev_ut_boards.data(),
+          constants.dev_ut_geometry.data(),
+          constants.dev_ut_region_offsets.data(),
+          constants.dev_unique_x_sector_layer_offsets.data(),
+          constants.dev_unique_x_sector_offsets.data());
+      }
+    }
+
+  private:
+    Property<block_dim_t> m_block_dim {this, {{64, 4, 1}}};
+  };
+} // namespace ut_pre_decode

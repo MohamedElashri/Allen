@@ -2,13 +2,13 @@
 
 #include "CudaCommon.h"
 
-namespace ParKalmanFilter {
-
 #ifdef KALMAN_DOUBLE_PRECISION
-  typedef double KalmanFloat;
+  using KalmanFloat = double;
 #else
-  typedef float KalmanFloat;
+  using KalmanFloat = float;
 #endif
+  
+namespace ParKalmanFilter {
 
   //----------------------------------------------------------------------
   // Template declaration

@@ -3,6 +3,18 @@
 #include "CheckerInvoker.h"
 #include <unordered_map>
 
+#ifdef USE_BOOST_FILESYSTEM
+#include <boost/filesystem.hpp>
+namespace {
+  namespace fs = boost::filesystem;
+}
+#else
+#include <filesystem>
+namespace {
+  namespace fs = std::filesystem;
+}
+#endif
+
 CheckerInvoker::~CheckerInvoker()
 {
 #ifdef WITH_ROOT
@@ -16,6 +28,9 @@ TFile* CheckerInvoker::root_file(std::string const& root_file) const
 {
   if (root_file.empty()) return nullptr;
 #ifdef WITH_ROOT
+  if (!fs::exists(m_output_dir)) {
+    fs::create_directory(m_output_dir);
+  }
   auto it = m_files.find(root_file);
   if (it == m_files.end()) {
     auto full_name = m_output_dir + "/" + root_file;

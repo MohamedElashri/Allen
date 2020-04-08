@@ -1,5 +1,4 @@
 file(GLOB prefix_sum "prefix_sum/src/*cu")
-file(GLOB binary_search "binary_search/src/*cu")
 
 include_directories(prefix_sum/include/)
 include_directories(binary_search/include/)
@@ -19,13 +18,8 @@ include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/muon/decoding/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/kalman/ParKalman/include)
 include_directories(${CMAKE_SOURCE_DIR}/cuda/vertex_fit/common/include)
+include_directories(${CPPGSL_INCLUDE_DIR})
 
-if(TARGET_DEVICE STREQUAL "CPU")
-  set_source_files_properties(${prefix_sum} PROPERTIES LANGUAGE CXX)
-  set_source_files_properties(${binary_search} PROPERTIES LANGUAGE CXX)
-endif()
-
-allen_add_library(Utils STATIC
+allen_add_device_library(Utils STATIC
   ${prefix_sum}
-  ${binary_search}
 )

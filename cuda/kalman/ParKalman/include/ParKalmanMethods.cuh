@@ -135,7 +135,7 @@ __device__ int extrapUTT(
 //----------------------------------------------------------------------
 // Create a seed state at the first VELO hit.
 __device__ void CreateVeloSeedState(
-  const Velo::Consolidated::Hits& hits,
+  Velo::Consolidated::ConstHits& hits,
   const int nVeloHits,
   int nHit,
   Vector5& x,
@@ -146,7 +146,7 @@ __device__ void CreateVeloSeedState(
 //----------------------------------------------------------------------
 // Predict in the VELO.
 __device__ void PredictStateV(
-  const Velo::Consolidated::Hits& hits,
+  Velo::Consolidated::ConstHits& hits,
   int nHit,
   Vector5& x,
   SymMatrix5x5& C,
@@ -156,12 +156,12 @@ __device__ void PredictStateV(
 //----------------------------------------------------------------------
 // Predict VELO <-> UT.
 __device__ bool
-PredictStateVUT(const UT::Consolidated::Hits& hitsUT, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
+PredictStateVUT(UT::Consolidated::ConstHits& hitsUT, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict UT <-> UT.
 __device__ void PredictStateUT(
-  const UT::Consolidated::Hits& hits,
+  UT::Consolidated::ConstHits& hits,
   const uint layer,
   Vector5& x,
   SymMatrix5x5& C,
@@ -179,7 +179,7 @@ __device__ void PredictStateUTT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz,
 //----------------------------------------------------------------------
 // Predict T <-> T.
 __device__ void PredictStateT(
-  const SciFi::Consolidated::Hits& hits,
+  SciFi::Consolidated::ConstExtendedHits& hits,
   uint layer,
   Vector5& x,
   SymMatrix5x5& C,
@@ -189,7 +189,7 @@ __device__ void PredictStateT(
 //----------------------------------------------------------------------
 // Predict T(fixed z=7783) <-> first T layer.
 __device__ void
-PredictStateTFT(const SciFi::Consolidated::Hits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
+PredictStateTFT(SciFi::Consolidated::ConstExtendedHits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict T(fixed z=7783) <-> first T layer.
@@ -198,12 +198,12 @@ __device__ void PredictStateTFT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz,
 //----------------------------------------------------------------------
 // Update state with velo measurement.
 __device__ void
-UpdateStateV(const Velo::Consolidated::Hits& hits, int forward, int nHit, Vector5& x, SymMatrix5x5& C, trackInfo& tI);
+UpdateStateV(Velo::Consolidated::ConstHits& hits, int forward, int nHit, Vector5& x, SymMatrix5x5& C, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Update state with UT measurement.
 __device__ void UpdateStateUT(
-  const UT::Consolidated::Hits& hits,
+  UT::Consolidated::ConstHits& hits,
   uint layer,
   Vector5& x,
   SymMatrix5x5& C,
@@ -213,7 +213,7 @@ __device__ void UpdateStateUT(
 //----------------------------------------------------------------------
 // Update state with T measurement.
 __device__ void UpdateStateT(
-  const SciFi::Consolidated::Hits& hits,
+  SciFi::Consolidated::ConstExtendedHits& hits,
   uint layer,
   Vector5& x,
   SymMatrix5x5& C,

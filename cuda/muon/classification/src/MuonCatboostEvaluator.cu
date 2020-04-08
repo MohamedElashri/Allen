@@ -1,4 +1,5 @@
 #include "MuonCatboostEvaluator.cuh"
+
 /**
 * Computes probability of being a muon.
 * CatBoost uses oblivious trees as base predictors. In such trees same splitting criterion is used
@@ -11,9 +12,8 @@ across an entire level of a tree.
 * CatBoost: gradient boosting with categorical features support:
 * http://learningsys.org/nips17/assets/papers/paper_11.pdf
 */
-__global__ void muon_catboost_evaluator(
-  const float* dev_muon_catboost_features,
-  float* dev_muon_catboost_output,
+__global__ void muon_catboost_evaluator::muon_catboost_evaluator(
+  muon_catboost_evaluator::Parameters parameters,
   const float* dev_muon_catboost_leaf_values,
   const int* dev_muon_catboost_leaf_offsets,
   const float* dev_muon_catboost_split_borders,
@@ -34,7 +34,7 @@ __global__ void muon_catboost_evaluator(
     const int tree_offset = dev_muon_catboost_tree_offsets[tree_id];
     for (int depth = 0; depth < dev_muon_catboost_tree_sizes[tree_id]; ++depth) {
       const int feature_id = dev_muon_catboost_split_features[tree_offset + depth];
-      const float feature_value = dev_muon_catboost_features[object_offset + feature_id];
+      const float feature_value = parameters.dev_muon_catboost_features[object_offset + feature_id];
       const float border = dev_muon_catboost_split_borders[tree_offset + depth];
       const int bin_feature = (int) (feature_value > border);
       index |= (bin_feature << depth);
@@ -52,5 +52,5 @@ __global__ void muon_catboost_evaluator(
     __syncthreads();
   }
 
-  if (threadIdx.x == 0) dev_muon_catboost_output[object_id] = values[0];
+  if (threadIdx.x == 0) parameters.dev_muon_catboost_output[object_id] = values[0];
 }

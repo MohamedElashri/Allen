@@ -7,14 +7,14 @@
 #include "SciFiDefinitions.cuh"
 
 namespace SciFi {
-
-  //----------------------------------------------------------------------
-  // Struct for hit information. For now don't use a HitBase.
+  //----------------------------
+  // Struct for hit information.
+  //----------------------------
   struct Hit {
     float x0;
     float z0;
     float endPointY;
-    uint32_t channel;
+    uint channel;
 
     // Cluster reference:
     //   raw bank: 8 bits
@@ -22,7 +22,7 @@ namespace SciFi {
     //   Condition 1-2-3: 2 bits
     //   Condition 2.1-2.2: 1 bit
     //   Condition 2.1: log2(n+1) - 8 bits
-    uint32_t assembled_datatype;
+    uint assembled_datatype;
 
     friend std::ostream& operator<<(std::ostream& stream, const Hit& hit)
     {
@@ -36,52 +36,64 @@ namespace SciFi {
   /**
    * @brief Offset and number of hits of each layer.
    */
-  struct HitCount {
-    uint* mat_offsets;
+  template<typename T>
+  struct HitCount_t {
+  private:
+    typename ForwardType<T, uint>::t* m_mat_offsets;
+    // TODO: Add "total number of hits" to information of this struct
 
-    __device__ __host__ HitCount() {}
+  public:
+    __host__ __device__ HitCount_t(typename ForwardType<T, uint>::t* base_pointer, const uint event_number) :
+      m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_mat_groups_and_mats)
+    {}
 
-    __device__ __host__ HitCount(uint* base_pointer, const uint event_number)
+    __host__ __device__ void set_mat_offsets(const uint mat_number, const uint value)
     {
-      mat_offsets = base_pointer + event_number * SciFi::Constants::n_mat_groups_and_mats;
+      assert(mat_number < SciFi::Constants::n_mats);
+      m_mat_offsets[mat_number] = value;
     }
 
-    __device__ __host__ uint mat_offset(const uint mat_number) const
+    __host__ __device__ uint mat_offsets(const uint mat_number) const
     {
       assert(
         mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
         mat_number < SciFi::Constants::n_mats);
       const uint corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
-      return mat_offsets[corrected_mat_number];
+      return m_mat_offsets[corrected_mat_number];
     }
 
-    __device__ __host__ uint mat_number_of_hits(const uint mat_number) const
+    __host__ __device__ typename ForwardType<T, uint>::t* mat_offsets_p(const uint mat_number) const
+    {
+      return m_mat_offsets + mat_number;
+    }
+
+    __host__ __device__ uint mat_number_of_hits(const uint mat_number) const
     {
       assert(mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank);
       assert(mat_number < SciFi::Constants::n_mats);
       const uint corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
-      return mat_offsets[corrected_mat_number + 1] - mat_offsets[corrected_mat_number];
+      return m_mat_offsets[corrected_mat_number + 1] - m_mat_offsets[corrected_mat_number];
     }
 
-    __device__ __host__ uint mat_group_offset(const uint mat_group_number) const
+    __host__ __device__ uint mat_group_offset(const uint mat_group_number) const
     {
       assert(mat_group_number < SciFi::Constants::n_consecutive_raw_banks);
-      return mat_offsets[mat_group_number];
+      return m_mat_offsets[mat_group_number];
     }
 
-    __device__ __host__ uint mat_group_number_of_hits(const uint mat_group_number) const
+    __host__ __device__ uint mat_group_number_of_hits(const uint mat_group_number) const
     {
       assert(mat_group_number < SciFi::Constants::n_consecutive_raw_banks);
-      return mat_offsets[mat_group_number + 1] - mat_offsets[mat_group_number];
+      return m_mat_offsets[mat_group_number + 1] - m_mat_offsets[mat_group_number];
     }
 
-    __device__ __host__ uint mat_group_or_mat_number_of_hits(const uint mat_or_mat_group_number) const
+    __host__ __device__ uint mat_group_or_mat_number_of_hits(const uint mat_or_mat_group_number) const
     {
       assert(mat_or_mat_group_number < SciFi::Constants::n_mat_groups_and_mats);
-      return mat_offsets[mat_or_mat_group_number + 1] - mat_offsets[mat_or_mat_group_number];
+      return m_mat_offsets[mat_or_mat_group_number + 1] - m_mat_offsets[mat_or_mat_group_number];
     }
 
-    __device__ __host__ uint zone_offset(const uint zone_number) const
+    __host__ __device__ uint zone_offset(const uint zone_number) const
     {
       // TODO: Make this a constant
       // constexpr uint32_t first_corrected_unique_mat_in_zone[] = {
@@ -90,116 +102,209 @@ namespace SciFi {
       constexpr uint32_t first_corrected_unique_mat_in_zone[] = {0,   10,  20,  30,  40,  50,  60,  70,  80,
                                                                  90,  100, 110, 120, 130, 140, 150, 160, 208,
                                                                  256, 304, 352, 400, 448, 496, 544};
-      return mat_offsets[first_corrected_unique_mat_in_zone[zone_number]];
+      return m_mat_offsets[first_corrected_unique_mat_in_zone[zone_number]];
     }
 
-    __device__ __host__ uint zone_number_of_hits(const uint zone_number) const
+    __host__ __device__ uint zone_number_of_hits(const uint zone_number) const
     {
       return zone_offset(zone_number + 1) - zone_offset(zone_number);
     }
 
-    __device__ __host__ uint event_number_of_hits() const
+    __host__ __device__ uint event_number_of_hits() const
     {
-      return mat_offsets[SciFi::Constants::n_mat_groups_and_mats] - mat_offsets[0];
+      return m_mat_offsets[SciFi::Constants::n_mat_groups_and_mats] - m_mat_offsets[0];
     }
 
-    __device__ __host__ uint number_of_hits_in_zones_without_mat_groups() const
+    __host__ __device__ uint number_of_hits_in_zones_without_mat_groups() const
     {
-      return mat_offsets[SciFi::Constants::n_mat_groups_and_mats] -
-             mat_offsets[SciFi::Constants::n_consecutive_raw_banks];
+      return m_mat_offsets[SciFi::Constants::n_mat_groups_and_mats] -
+             m_mat_offsets[SciFi::Constants::n_consecutive_raw_banks];
     }
 
-    __device__ __host__ uint event_offset() const { return mat_offsets[0]; }
+    __host__ __device__ uint event_offset() const { return m_mat_offsets[0]; }
 
-    __device__ __host__ uint offset_zones_without_mat_groups() const
+    __host__ __device__ uint offset_zones_without_mat_groups() const
     {
-      return mat_offsets[SciFi::Constants::n_consecutive_raw_banks];
+      return m_mat_offsets[SciFi::Constants::n_consecutive_raw_banks];
     }
   };
 
-  struct BaseHits {
-    float* x0;
-    float* z0;
-    float* m_endPointY;
-    uint32_t* channel;
-    uint32_t* assembled_datatype;
+  typedef const HitCount_t<const char> ConstHitCount;
+  typedef HitCount_t<char> HitCount;
 
-    // TODO: Move this out of the class
-    const SciFiGeometry* geom;
-    const float* dev_inv_clus_res;
+  constexpr uint hits_number_of_arrays = 6;
 
-    __device__ __host__ BaseHits() {}
+  template<typename T>
+  struct Hits_t {
+  private:
+    typename ForwardType<T, float>::t* m_base_pointer;
+    const uint m_total_number_of_hits;
 
-    __device__ __host__ float w(uint32_t index) const
+  public:
+    __host__ __device__
+    Hits_t(T* base_pointer, const uint total_number_of_hits, const uint offset = 0) :
+      m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + offset),
+      m_total_number_of_hits(total_number_of_hits)
+    {}
+
+    // Const and lvalue accessors
+    __host__ __device__ float x0(const uint index) const
+    {
+      assert(index < m_total_number_of_hits);
+      return m_base_pointer[index];
+    }
+
+    __host__ __device__ float& x0(const uint index)
+    {
+      assert(index < m_total_number_of_hits);
+      return m_base_pointer[index];
+    }
+
+    __host__ __device__ float z0(const uint index) const
+    {
+      assert(index < m_total_number_of_hits);
+      return m_base_pointer[m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ float& z0(const uint index)
+    {
+      assert(index < m_total_number_of_hits);
+      return m_base_pointer[m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ float endPointY(const uint index) const
+    {
+      assert(index < m_total_number_of_hits);
+      return m_base_pointer[2 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ float& endPointY(const uint index)
+    {
+      assert(index < m_total_number_of_hits);
+      return m_base_pointer[2 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ uint channel(const uint index) const
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ uint& channel(const uint index)
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[3 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ uint assembled_datatype(const uint index) const
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[4 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ uint& assembled_datatype(const uint index)
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[4 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ uint cluster_reference(const uint index) const
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ uint& cluster_reference(const uint index)
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ uint id(const uint index) const { return (10u << 28) + channel(index); };
+
+    __host__ __device__ uint mat(const uint index) const { return assembled_datatype(index) & 0x7ff; };
+
+    __host__ __device__ uint pseudoSize(const uint index) const { return (assembled_datatype(index) >> 11) & 0xf; };
+
+    __host__ __device__ uint planeCode(const uint index) const { return (assembled_datatype(index) >> 15) & 0x1f; };
+
+    __host__ __device__ uint fraction(const uint index) const { return (assembled_datatype(index) >> 20) & 0x1; };
+
+    __host__ __device__ Hit get(const uint hit_number) const
+    {
+      return SciFi::Hit {
+        x0(hit_number), z0(hit_number), endPointY(hit_number), channel(hit_number), assembled_datatype(hit_number)};
+    }
+
+    // Pointer accessor for binary search
+    __host__ __device__ typename ForwardType<T, float>::t* x0_p(const uint index) const
+    {
+      return m_base_pointer + index;
+    }
+  };
+
+  typedef const Hits_t<const char> ConstHits;
+  typedef Hits_t<char> Hits;
+
+  template<typename T>
+  struct ExtendedHits_t : public Hits_t<T> {
+  private:
+    const float* m_inv_clus_res;
+    const SciFiGeometry* m_geom;
+
+  public:
+    __host__ __device__ ExtendedHits_t(
+      T* base_pointer,
+      const uint total_number_of_hits,
+      const float* inv_clus_res,
+      const SciFiGeometry* geom,
+      const uint offset = 0) :
+      Hits_t<T>(base_pointer, total_number_of_hits, offset),
+      m_inv_clus_res(inv_clus_res), m_geom(geom)
+    {}
+
+    using Hits_t<T>::pseudoSize;
+    using Hits_t<T>::endPointY;
+    using Hits_t<T>::channel;
+    using Hits_t<T>::mat;
+
+    // Additional accessors provided by having inv clus res and geometry information
+    __host__ __device__ float w(const uint index) const
     {
       assert(pseudoSize(index) < 9 && "Wrong pseudo size.");
-      float werrX = dev_inv_clus_res[pseudoSize(index)];
+      const auto werrX = m_inv_clus_res[pseudoSize(index)];
       return werrX * werrX;
     };
 
-    __device__ __host__ float dxdy(uint32_t index) const { return geom->dxdy[mat(index)]; };
+    __host__ __device__ float dxdy(const uint index) const { return m_geom->dxdy[mat(index)]; };
 
-    __device__ __host__ float dzdy(uint32_t index) const { return geom->dzdy[mat(index)]; };
+    __host__ __device__ float dzdy(const uint index) const { return m_geom->dzdy[mat(index)]; };
 
-    __device__ __host__ float endPointY(uint32_t index) const
+    __host__ __device__ float yMin(const uint index) const
     {
-      const SciFiChannelID id(channel[index]);
-      float uFromChannel =
-        geom->uBegin[mat(index)] + (2 * id.channel() + 1 + fraction(index)) * geom->halfChannelPitch[mat(index)];
-      if (id.die()) uFromChannel += geom->dieGap[mat(index)];
-      return geom->mirrorPointY[mat(index)] + geom->ddxY[mat(index)] * uFromChannel;
-    }
-
-    __device__ __host__ float yMin(uint32_t index) const
-    {
-      const SciFiChannelID id(channel[index]);
-      return m_endPointY[index] + id.isBottom() * geom->globaldy[mat(index)];
+      const SciFiChannelID id(channel(index));
+      return endPointY(index) + id.isBottom() * m_geom->globaldy[mat(index)];
     };
 
-    __device__ __host__ float yMax(uint32_t index) const
+    __host__ __device__ float yMax(const uint index) const
     {
-      const SciFiChannelID id(channel[index]);
-      return m_endPointY[index] + !id.isBottom() * geom->globaldy[mat(index)];
+      const SciFiChannelID id(channel(index));
+      return endPointY(index) + !id.isBottom() * m_geom->globaldy[mat(index)];
     };
 
-    __device__ __host__ uint32_t LHCbID(uint32_t index) const { return (10u << 28) + channel[index]; };
-
-    __device__ __host__ uint32_t mat(uint32_t index) const { return assembled_datatype[index] & 0x7ff; };
-
-    __device__ __host__ uint32_t pseudoSize(uint32_t index) const { return (assembled_datatype[index] >> 11) & 0xf; };
-
-    __device__ __host__ uint32_t planeCode(uint32_t index) const { return (assembled_datatype[index] >> 15) & 0x1f; };
-
-    __device__ __host__ uint32_t fraction(uint32_t index) const { return (assembled_datatype[index] >> 20) & 0x1; };
+    // Deprecated code?
+    // __host__ __device__ float endPointY(const uint index) const
+    // {
+    //   const SciFiChannelID id(channel[index]);
+    //   float uFromChannel =
+    //     m_geom->uBegin[mat(index)] + (2 * id.channel() + 1 + fraction(index)) * m_geom->halfChannelPitch[mat(index)];
+    //   if (id.die()) uFromChannel += m_geom->dieGap[mat(index)];
+    //   return m_geom->mirrorPointY[mat(index)] + m_geom->ddxY[mat(index)] * uFromChannel;
+    // }
   };
 
-  struct Hits : BaseHits {
-    // Cluster reference:
-    //   raw bank: 8 bits
-    //   element (it): 8 bits
-    //   Condition 1-2-3: 2 bits
-    //   Condition 2.1-2.2: 1 bit
-    //   Condition 2.1: log2(n+1) - 8 bits
-    uint32_t* cluster_reference;
-
-    __device__ __host__ Hits() : BaseHits() {}
-
-    __device__ __host__ Hits(
-      uint* base,
-      const uint32_t total_number_of_hits,
-      const SciFiGeometry* param_geom,
-      const float* param_dev_inv_clus_res)
-    {
-      geom = param_geom;
-      x0 = reinterpret_cast<float*>(base);
-      z0 = reinterpret_cast<float*>(base + total_number_of_hits);
-      m_endPointY = reinterpret_cast<float*>(base + 2 * total_number_of_hits);
-      channel = reinterpret_cast<uint32_t*>(base + 3 * total_number_of_hits);
-      assembled_datatype = reinterpret_cast<uint32_t*>(base + 4 * total_number_of_hits);
-      cluster_reference = reinterpret_cast<uint32_t*>(base + 5 * total_number_of_hits);
-      dev_inv_clus_res = param_dev_inv_clus_res;
-    }
-  };
+  typedef const ExtendedHits_t<const char> ConstExtendedHits;
+  typedef ExtendedHits_t<char> ExtendedHits;
 
   /**
    * Track object used for storing tracks
@@ -358,17 +463,15 @@ namespace SciFi {
       return quality / ((float) hitsNum - 2);
     }
 
-    __host__ __device__ void print(int event_number = -1) const {
+    __host__ __device__ void print(int event_number = -1) const
+    {
       printf("Track with %i hits:", hitsNum);
       for (int i = 0; i < hitsNum; ++i) {
         printf(" %i,", hits[i]);
       }
       printf(
-        " qop %f, quality %f, UT track %i",
-        static_cast<double>(qop),
-        static_cast<double>(quality),
-        ut_track_index);
-      if (event_number >= 0)  {
+        " qop %f, quality %f, UT track %i", static_cast<double>(qop), static_cast<double>(quality), ut_track_index);
+      if (event_number >= 0) {
         printf(" (event %i)", event_number);
       }
       printf("\n");

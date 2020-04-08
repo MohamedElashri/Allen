@@ -3,6 +3,7 @@
 #include <map>
 #include <queue>
 #include <vector>
+#include <gsl/gsl>
 
 // Forward definition of Stream, to avoid
 // inability to compile kernel calls (due to <<< >>>
@@ -14,11 +15,21 @@ struct HostBuffers;
 
 struct HostBuffersManager {
   enum class BufferStatus { Empty, Filling, Filled, Processing, Processed, Written };
-  
-  HostBuffersManager(size_t nBuffers, const uint max_number_of_events, const bool do_check)
-    : max_events(max_number_of_events), check(do_check) {init(nBuffers);}
 
-  HostBuffers* getBuffers(size_t i) const { return (i<host_buffers.size()?host_buffers.at(i):0); }
+  HostBuffersManager(
+    size_t nBuffers,
+    const uint max_number_of_events,
+    const bool do_check,
+    const uint number_of_hlt1_lines,
+    const uint errorevent_line) :
+    max_events(max_number_of_events),
+    check(do_check), m_number_of_hlt1_lines(number_of_hlt1_lines),
+    m_errorevent_line(errorevent_line)
+  {
+    init(nBuffers);
+  }
+
+  HostBuffers* getBuffers(size_t i) const { return (i < host_buffers.size() ? host_buffers.at(i) : 0); }
 
   size_t assignBufferToFill();
   size_t assignBufferToProcess();
@@ -28,12 +39,12 @@ struct HostBuffersManager {
   void returnBufferProcessed(size_t);
   void returnBufferWritten(size_t);
 
-  void writeSingleEventPassthrough(size_t);
+  void writeSingleEventPassthrough(const size_t b);
 
-  std::tuple<uint, uint*, uint32_t*> getBufferOutputData(size_t b);
+  std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<uint const>> getBufferOutputData(size_t b);
 
   void printStatus() const;
-  bool buffersEmpty() const { return (empty_buffers.size()==host_buffers.size());}
+  bool buffersEmpty() const { return (empty_buffers.size() == host_buffers.size()); }
 
 private:
   void init(size_t nBuffers);
@@ -46,4 +57,6 @@ private:
 
   const uint max_events;
   const bool check;
+  const uint m_number_of_hlt1_lines;
+  const uint m_errorevent_line;
 };

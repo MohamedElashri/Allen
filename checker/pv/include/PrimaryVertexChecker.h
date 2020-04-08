@@ -54,12 +54,12 @@ private:
 };
 
 struct GPUPVChecker : public PVChecker {
-  using subdetector_t = PVChecker::GPUTag;
+  using subdetector_t = typename PVChecker::GPUTag;
   using PVChecker::PVChecker;
 };
 
 struct CPUPVChecker : public PVChecker {
-  using subdetector_t = PVChecker::CPUTag;
+  using subdetector_t = typename PVChecker::CPUTag;
   using PVChecker::PVChecker;
 };
 

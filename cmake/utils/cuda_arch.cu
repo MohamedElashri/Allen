@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     return 1;
   }
   else {
-    std::cout << "sm_" << best_cc.first << best_cc.second;
+    std::cout << best_cc.first << best_cc.second;
     return 0;
   }
 }

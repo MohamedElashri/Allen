@@ -11,12 +11,10 @@ __device__ void simplified_step(
   KalmanFloat& covXX,
   KalmanFloat& covXTx,
   KalmanFloat& covTxTx,
-  KalmanFloat& chi2,
-  const ParKalmanFilter::KalmanParametrizations* params)
+  KalmanFloat& chi2)
 {
   // Predict the state.
   const KalmanFloat dz = zhit - z;
-  const auto& par = params->Par_predictV[dz > 0 ? 0 : 1];
   // For now don't use the momentum-dependent correction to ty. It doesn't work for some reason.
   // const KalmanFloat predTx = tx + corTx * par[4] * (1e-5 * dz * ((dz > 0 ? z : zhit) + par[5] * 1e3));
   // const KalmanFloat predx = x + 0.5 * (tx + predTx) * dz;
@@ -32,9 +30,13 @@ __device__ void simplified_step(
   KalmanFloat predcovTxTx = covTxTx;
 
   // Add noise.
-  const KalmanFloat sigTx = par[1] * ((KalmanFloat) 1e-5) + par[2] * fabsf(qop);
-  const KalmanFloat sigX = par[6] * sigTx * fabsf(dz);
-  const KalmanFloat corr = par[7];
+  const KalmanFloat par1 = scatterSensorParameters[0];
+  const KalmanFloat par2 = scatterSensorParameters[1];
+  const KalmanFloat par6 = scatterSensorParameters[2];
+  const KalmanFloat par7 = scatterSensorParameters[3];
+  const KalmanFloat sigTx = par1 * ((KalmanFloat) 1e-5) + par2 * fabsf(qop);
+  const KalmanFloat sigX = par6 * sigTx * fabsf(dz);
+  const KalmanFloat corr = par7;
   predcovXX += sigX * sigX;
   predcovXTx += corr * sigX * sigTx;
   predcovTxTx += sigTx * sigTx;
@@ -95,7 +97,7 @@ __device__ void extrapolate_velo_only(
 }
 
 __device__ void predict_velo_only(
-  const Velo::Consolidated::Hits& hits,
+  Velo::Consolidated::ConstHits& hits,
   int nHit,
   Vector5& x,
   SymMatrix5x5& C,
@@ -105,7 +107,7 @@ __device__ void predict_velo_only(
   // Extrapolate.
   Matrix5x5 F;
   SymMatrix5x5 Q;
-  extrapolate_velo_only(lastz, (KalmanFloat) hits.z[nHit], x, F, Q, params);
+  extrapolate_velo_only(lastz, (KalmanFloat) hits.z(nHit), x, F, Q, params);
 
   // Transport the covariance matrix.
   C = similarity_5_5(F, C);
@@ -114,16 +116,16 @@ __device__ void predict_velo_only(
   C = C + Q;
 
   // Set the current z position.
-  lastz = (KalmanFloat) hits.z[nHit];
+  lastz = (KalmanFloat) hits.z(nHit);
 }
 
 __device__ void
-update_velo_only(const Velo::Consolidated::Hits& hits, int nHit, Vector5& x, SymMatrix5x5& C, KalmanFloat& chi2)
+update_velo_only(Velo::Consolidated::ConstHits& hits, int nHit, Vector5& x, SymMatrix5x5& C, KalmanFloat& chi2)
 {
   // Get the residual.
   Vector2 res;
-  res(0) = (KalmanFloat) hits.x[nHit] - x(0);
-  res(1) = (KalmanFloat) hits.y[nHit] - x(1);
+  res(0) = (KalmanFloat) hits.x(nHit) - x(0);
+  res(1) = (KalmanFloat) hits.y(nHit) - x(1);
 
   // TODO: For now, I'm assuming xErr == yErr == 0.015 mm. This
   // roughly matches what Daniel uses in the simplified Kalman
@@ -154,7 +156,7 @@ update_velo_only(const Velo::Consolidated::Hits& hits, int nHit, Vector5& x, Sym
 }
 
 __device__ void velo_only_fit(
-  const Velo::Consolidated::Hits& velo_hits,
+  Velo::Consolidated::ConstHits& velo_hits,
   const uint n_velo_hits,
   const KalmanFloat init_qop,
   const KalmanParametrizations* kalman_params,
@@ -164,14 +166,14 @@ __device__ void velo_only_fit(
 
   // Set the initial state.
   Vector5 x;
-  x(0) = (KalmanFloat) velo_hits.x[0];
-  x(1) = (KalmanFloat) velo_hits.y[0];
+  x(0) = (KalmanFloat) velo_hits.x(0);
+  x(1) = (KalmanFloat) velo_hits.y(0);
   x(2) =
-    (KalmanFloat)((velo_hits.x[0] - velo_hits.x[n_velo_hits - 1]) / (velo_hits.z[0] - velo_hits.z[n_velo_hits - 1]));
+    (KalmanFloat)((velo_hits.x(0) - velo_hits.x(n_velo_hits - 1)) / (velo_hits.z(0) - velo_hits.z(n_velo_hits - 1)));
   x(3) =
-    (KalmanFloat)((velo_hits.y[0] - velo_hits.y[n_velo_hits - 1]) / (velo_hits.z[0] - velo_hits.z[n_velo_hits - 1]));
+    (KalmanFloat)((velo_hits.y(0) - velo_hits.y(n_velo_hits - 1)) / (velo_hits.z(0) - velo_hits.z(n_velo_hits - 1)));
   x(4) = init_qop;
-  KalmanFloat lastz = (KalmanFloat) velo_hits.z[0];
+  KalmanFloat lastz = (KalmanFloat) velo_hits.z(0);
 
   // Set covariance matrix with large uncertainties and no correlations.
   SymMatrix5x5 C;
@@ -213,11 +215,45 @@ __device__ void velo_only_fit(
   track.nhits = n_velo_hits;
 }
 
+__device__ void propagate_to_beamline(FittedTrack& track)
+{
+  const KalmanFloat x = track.state[0];
+  const KalmanFloat y = track.state[1];
+  const KalmanFloat tx = track.state[2];
+  const KalmanFloat ty = track.state[3];
+  const KalmanFloat t2 = sqrtf(tx * tx + ty * ty);
+
+  // Get the beam position.
+  KalmanFloat zBeam = track.z;
+  KalmanFloat denom = t2 * t2;
+  const KalmanFloat tol = (KalmanFloat) 0.001;
+  zBeam = (denom < tol * tol) ? zBeam : track.z - (x * tx + y * ty) / denom;
+
+  // Add RF foil scattering.
+  const KalmanFloat qop = track.state[4];
+  const KalmanFloat scat2RFFoil =
+    scatterFoilParameters[0] * (1.f + scatterFoilParameters[1] * t2) * qop * qop;
+  track.cov(2, 2) += scat2RFFoil;
+  track.cov(3, 3) += scat2RFFoil;
+
+  // Propagate the covariance matrix.
+  const KalmanFloat dz = zBeam - track.z;
+  const KalmanFloat dz2 = dz * dz;
+  track.cov(0, 0) += dz2 * track.cov(2, 2) + 2 * dz * track.cov(0, 2);
+  track.cov(0, 2) += dz * track.cov(2, 2);
+  track.cov(1, 1) += dz2 * track.cov(3, 3) + 2 * dz * track.cov(1, 3);
+  track.cov(1, 3) += dz * track.cov(3, 3);
+
+  // Propagate the state.
+  track.state[0] = x + dz * tx;
+  track.state[1] = y + dz * ty;
+  track.z = zBeam;
+}
+
 __device__ void simplified_fit(
-  const Velo::Consolidated::Hits& velo_hits,
+  Velo::Consolidated::ConstHits& velo_hits,
   const uint n_velo_hits,
   const KalmanFloat init_qop,
-  const ParKalmanFilter::KalmanParametrizations* kalman_params,
   FittedTrack& track)
 {
   int firsthit = 0;
@@ -225,12 +261,12 @@ __device__ void simplified_fit(
   int dhit = 1;
 
   // Initialize the state.
-  KalmanFloat x = velo_hits.x[firsthit];
-  KalmanFloat y = velo_hits.y[firsthit];
-  KalmanFloat tx = ((velo_hits.x[firsthit] - velo_hits.x[lasthit]) / (velo_hits.z[firsthit] - velo_hits.z[lasthit]));
-  KalmanFloat ty = ((velo_hits.y[firsthit] - velo_hits.y[lasthit]) / (velo_hits.z[firsthit] - velo_hits.z[lasthit]));
+  KalmanFloat x = velo_hits.x(firsthit);
+  KalmanFloat y = velo_hits.y(firsthit);
+  KalmanFloat tx = ((velo_hits.x(firsthit) - velo_hits.x(lasthit)) / (velo_hits.z(firsthit) - velo_hits.z(lasthit)));
+  KalmanFloat ty = ((velo_hits.y(firsthit) - velo_hits.y(lasthit)) / (velo_hits.z(firsthit) - velo_hits.z(lasthit)));
   KalmanFloat qop = init_qop;
-  KalmanFloat z = velo_hits.z[firsthit];
+  KalmanFloat z = velo_hits.z(firsthit);
 
   // Initialize the covariance.
   KalmanFloat cXX = 100.0;
@@ -243,23 +279,27 @@ __device__ void simplified_fit(
   // Initialize the chi2.
   KalmanFloat chi2 = 0;
 
+  // Calculate winv.
+  const KalmanFloat wx = pixelErr * pixelErr;
+  const KalmanFloat wy = wx;
+  
   // Fit loop.
   for (int i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
     int hitindex = i;
-    const auto hit_x = velo_hits.x[hitindex];
-    const auto hit_y = velo_hits.y[hitindex];
-    const auto hit_z = velo_hits.z[hitindex];
+    const auto hit_x = velo_hits.x(hitindex);
+    const auto hit_y = velo_hits.y(hitindex);
+    const auto hit_z = velo_hits.z(hitindex);
     simplified_step(
-      z, hit_z, hit_x, Velo::Tracking::param_w_inverted, x, tx, qop, cXX, cXTx, cTxTx, chi2, kalman_params);
+      z, hit_z, hit_x, wx, x, tx, qop, cXX, cXTx, cTxTx, chi2);
     simplified_step(
-      z, hit_z, hit_y, Velo::Tracking::param_w_inverted, y, ty, qop, cYY, cYTy, cTyTy, chi2, kalman_params);
+      z, hit_z, hit_y, wy, y, ty, qop, cYY, cYTy, cTyTy, chi2);
     z = hit_z;
   }
   __syncthreads();
 
   // Add info to the output track.
   track.chi2 = chi2;
-  track.ndof = 2 * n_velo_hits;
+  track.ndof = 2 * n_velo_hits - 4;
   track.z = z;
   track.state[0] = x;
   track.state[1] = y;
@@ -285,65 +325,60 @@ __device__ void simplified_fit(
   track.first_qop = init_qop;
   track.best_qop = init_qop;
   track.nhits = n_velo_hits;
+
+  // Propagate track to beamline.
+  propagate_to_beamline(track);
 }
 
-__global__ void velo_filter(
-  uint* dev_atomics_storage,
-  uint* dev_velo_track_hit_number,
-  char* dev_velo_track_hits,
-  uint* dev_atomics_veloUT,
-  uint* dev_ut_track_hit_number,
-  float* dev_ut_qop,
-  uint* dev_velo_indices,
-  uint* dev_n_scifi_tracks,
-  uint* dev_scifi_track_hit_number,
-  float* dev_scifi_qop,
-  MiniState* dev_scifi_states,
-  uint* dev_ut_indices,
-  ParKalmanFilter::FittedTrack* dev_kf_tracks,
-  const char* dev_scifi_geometry,
-  const ParKalmanFilter::KalmanParametrizations* dev_kalman_params)
+__global__ void kalman_velo_only::kalman_velo_only(
+  kalman_velo_only::Parameters parameters,
+  const char* dev_scifi_geometry)
 {
-
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
 
   // Create velo tracks.
-  const Velo::Consolidated::Tracks velo_tracks {
-    (uint*) dev_atomics_storage, (uint*) dev_velo_track_hit_number, event_number, number_of_events};
-
+  Velo::Consolidated::Tracks const velo_tracks {
+    parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
+  
   // Create UT tracks.
-  const UT::Consolidated::Tracks ut_tracks {(uint*) dev_atomics_veloUT,
-                                            (uint*) dev_ut_track_hit_number,
-                                            (float*) dev_ut_qop,
-                                            (uint*) dev_velo_indices,
-                                            event_number,
-                                            number_of_events};
+  UT::Consolidated::ConstExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+                                                   parameters.dev_ut_track_hit_number,
+                                                   parameters.dev_ut_qop,
+                                                   parameters.dev_ut_track_velo_indices,
+                                                   event_number,
+                                                   number_of_events};
 
   // Create SciFi tracks.
-  const SciFi::Consolidated::Tracks scifi_tracks {(uint*) dev_n_scifi_tracks,
-                                                  (uint*) dev_scifi_track_hit_number,
-                                                  (float*) dev_scifi_qop,
-                                                  (MiniState*) dev_scifi_states,
-                                                  (uint*) dev_ut_indices,
-                                                  event_number,
-                                                  number_of_events};
+  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
+                                                 parameters.dev_scifi_track_hit_number,
+                                                 parameters.dev_scifi_qop,
+                                                 parameters.dev_scifi_states,
+                                                 parameters.dev_scifi_track_ut_indices,
+                                                 event_number,
+                                                 number_of_events};
+
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
 
+  // Velo track <-> PV table.
+  Associate::Consolidated::ConstTable velo_pv_ip {parameters.dev_velo_pv_ip, velo_tracks.total_number_of_tracks()};
+  const auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
+  
   // Loop over SciFi tracks and get associated UT and VELO tracks.
   const uint n_scifi_tracks = scifi_tracks.number_of_tracks(event_number);
   for (uint i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
     // Prepare fit input.
-    const int i_ut_track = scifi_tracks.ut_track[i_scifi_track];
-    const int i_velo_track = ut_tracks.velo_track[i_ut_track];
-    const Velo::Consolidated::Hits velo_hits = velo_tracks.get_hits((char*) dev_velo_track_hits, i_velo_track);
+    const int i_ut_track = scifi_tracks.ut_track(i_scifi_track);
+    const int i_velo_track = ut_tracks.velo_track(i_ut_track);
+    Velo::Consolidated::ConstHits velo_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i_velo_track);
     const uint n_velo_hits = velo_tracks.number_of_hits(i_velo_track);
-    const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop[i_scifi_track];
+    const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop(i_scifi_track);
     simplified_fit(
       velo_hits,
       n_velo_hits,
       init_qop,
-      dev_kalman_params,
-      dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
+      parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track]);
+    parameters.dev_kf_tracks[scifi_tracks.tracks_offset(event_number) + i_scifi_track].ip =
+      pv_table.value(i_velo_track);
   }
 }

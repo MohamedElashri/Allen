@@ -16,7 +16,7 @@ void print_gpu_memory_consumption() {}
 std::tuple<bool, std::string> set_device(int, size_t)
 {
   // Assume a linux system and try to get the CPU type
-  FILE* cmd = popen("cat /proc/cpuinfo | grep 'model name' | head -n1 | awk '{ print substr($0, index($0,$4)) }'", "r");
+  FILE* cmd = popen("grep -m1 -hoE 'model name\\s+.*' /proc/cpuinfo | awk '{ print substr($0, index($0,$4)) }'", "r");
   if (cmd == NULL) return {true, "CPU"};
 
   // Get a string that identifies the CPU
@@ -34,6 +34,10 @@ std::tuple<bool, std::string> set_device(int, size_t)
 #else
 std::tuple<bool, std::string> set_device(int, size_t) { return {true, "CPU"}; }
 #endif // linux-dependent CPU detection
+
+std::tuple<bool, int> get_device_id(std::string) {
+  return {true, 0};
+}
 
 #else
 
@@ -96,6 +100,17 @@ std::tuple<bool, std::string> set_device(int cuda_device, size_t stream_id)
   }
 
   return {true, device_properties.name};
+}
+
+std::tuple<bool, int> get_device_id(std::string pci_bus_id) {
+  int device = 0;
+  try {
+    cudaCheck(cudaDeviceGetByPCIBusId(&device, pci_bus_id.c_str()));
+  } catch (std::invalid_argument& a) {
+    error_cout << "Failed to get device by PCI bus ID: " << pci_bus_id << "\n";
+    return {false, 0};
+  }
+  return {true, device};
 }
 
 #endif
