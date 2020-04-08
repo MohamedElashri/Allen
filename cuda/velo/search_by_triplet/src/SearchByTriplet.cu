@@ -139,8 +139,8 @@ __device__ void process_modules(
   // Load shared module information
   for (uint i = threadIdx.x; i < 6; i += blockDim.x) {
     const auto module_number = first_module - i;
-    module_data[i].hitStart = module_hitStarts[module_number] - hit_offset;
-    module_data[i].hitNums = module_hitNums[module_number];
+    module_data[i].hit_start = module_hitStarts[module_number] - hit_offset;
+    module_data[i].hit_num = module_hitNums[module_number];
     module_data[i].z = dev_velo_module_zs[module_number];
   }
 
@@ -173,8 +173,8 @@ __device__ void process_modules(
     // Load in shared
     for (int i = threadIdx.x; i < 6; i += blockDim.x) {
       const auto module_number = first_module - i;
-      module_data[i].hitStart = module_hitStarts[module_number] - hit_offset;
-      module_data[i].hitNums = module_hitNums[module_number];
+      module_data[i].hit_start = module_hitStarts[module_number] - hit_offset;
+      module_data[i].hit_num = module_hitNums[module_number];
       module_data[i].z = dev_velo_module_zs[module_number];
     }
 
@@ -418,9 +418,9 @@ __device__ void track_seeding(
 {
   // Add to an array all non-used h1 hits
   for (auto module_index : {shared::current_module_pair, shared::current_module_pair + 1}) {
-    for (uint h1_rel_index = threadIdx.x; h1_rel_index < module_data[module_index].hitNums;
+    for (uint h1_rel_index = threadIdx.x; h1_rel_index < module_data[module_index].hit_num;
          h1_rel_index += blockDim.x) {
-      const auto h1_index = module_data[module_index].hitStart + h1_rel_index;
+      const auto h1_index = module_data[module_index].hit_start + h1_rel_index;
       if (!hit_used[h1_index]) {
         const auto current_hit = atomicAdd(dev_atomics_velo + atomics::local_number_of_hits, 1);
         const auto oddity = module_index % 2;
@@ -455,14 +455,14 @@ __device__ void track_seeding(
 
     // Iterate over previous module until the first n candidates are found
     int phi_index = binary_search_leftmost(
-      hit_phi + module_data[shared::previous_module_pair + oddity].hitStart,
-      module_data[shared::previous_module_pair + oddity].hitNums,
+      hit_phi + module_data[shared::previous_module_pair + oddity].hit_start,
+      module_data[shared::previous_module_pair + oddity].hit_num,
       h1_phi);
 
     // Do a "pendulum search" to find the candidates, consisting in iterating in the following manner:
     // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
     int found_h0_candidates = 0;
-    for (uint i = 0; i < module_data[shared::previous_module_pair + oddity].hitNums &&
+    for (uint i = 0; i < module_data[shared::previous_module_pair + oddity].hit_num &&
                      found_h0_candidates < number_of_h0_candidates;
          ++i) {
       // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
@@ -470,11 +470,11 @@ __device__ void track_seeding(
       const int index_diff = sign ? i : -i;
       phi_index += index_diff;
 
-      const auto index_in_bounds = (phi_index < 0 ? phi_index + module_data[shared::previous_module_pair + oddity].hitNums :
-        (phi_index >= static_cast<int>(module_data[shared::previous_module_pair + oddity].hitNums) ?
-          phi_index - static_cast<int>(module_data[shared::previous_module_pair + oddity].hitNums) :
+      const auto index_in_bounds = (phi_index < 0 ? phi_index + module_data[shared::previous_module_pair + oddity].hit_num :
+        (phi_index >= static_cast<int>(module_data[shared::previous_module_pair + oddity].hit_num) ?
+          phi_index - static_cast<int>(module_data[shared::previous_module_pair + oddity].hit_num) :
           phi_index));
-      const auto h0_index = module_data[shared::previous_module_pair + oddity].hitStart + index_in_bounds;
+      const auto h0_index = module_data[shared::previous_module_pair + oddity].hit_start + index_in_bounds;
 
       // Discard the candidate if it is used
       if (!hit_used[h0_index]) {
@@ -496,20 +496,24 @@ __device__ void track_seeding(
       const auto ty = tyn * td;
 
       // Get candidates by performing a binary search in expected phi
-      int candidate_h2 =
+      int candidate_h2_index =
         find_seeding_candidate(module_data[shared::next_module_pair + oddity], tx, ty, hit_phi, h0, oddity == 0);
 
       // Allow a window of hits in the next module. Use pendulum search.
-      for (int i = 0; i < number_of_h2_candidates; ++i) {
+      int found_h2_candidates = 0;
+      for (int i = 0; i < static_cast<int>(module_data[shared::next_module_pair + oddity].hit_num) &&
+                      found_h2_candidates < number_of_h2_candidates;
+           ++i) {
         const auto sign = i & 0x01;
         const int index_diff = sign ? i : -i;
-        candidate_h2 += index_diff;
+        candidate_h2_index += index_diff;
 
-        const auto h2_index = module_data[shared::next_module_pair + oddity].hitStart + candidate_h2;
-        if (
-          candidate_h2 >= 0 &&
-          candidate_h2 < static_cast<int>(module_data[shared::next_module_pair + oddity].hitNums) &&
+        const auto h2_index = module_data[shared::next_module_pair + oddity].hit_start + candidate_h2_index;
+        ++found_h2_candidates;
+        if (candidate_h2_index >= 0 &&
+          candidate_h2_index < static_cast<int>(module_data[shared::next_module_pair + oddity].hit_num) &&
           !hit_used[h2_index]) {
+
           const Velo::HitBase h2 {
             velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
 

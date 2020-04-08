@@ -74,13 +74,13 @@ __device__ inline std::tuple<int, int> find_forward_candidates(
   const int16_t track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction, oddity);
 
   const int16_t min_value_phi = track_extrapolation_phi - forward_phi_tolerance;
-  const int first_candidate = binary_search_leftmost(hit_Phis + module.hitStart, module.hitNums, min_value_phi);
+  const int first_candidate = binary_search_leftmost(hit_Phis + module.hit_start, module.hit_num, min_value_phi);
 
   const int16_t max_value_phi = track_extrapolation_phi + forward_phi_tolerance;
   const int size = binary_search_leftmost(
-    hit_Phis + module.hitStart + first_candidate, module.hitNums - first_candidate, max_value_phi);
+    hit_Phis + module.hit_start + first_candidate, module.hit_num - first_candidate, max_value_phi);
 
-  return {module.hitStart + first_candidate, size};
+  return {module.hit_start + first_candidate, size};
 }
 
 /**
@@ -101,5 +101,5 @@ __device__ inline int find_seeding_candidate(
   const auto y_prediction = h0.y + predy;
   const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction, oddity);
 
-  return binary_search_leftmost(hit_Phis + module.hitStart, module.hitNums, track_extrapolation_phi);
+  return binary_search_leftmost(hit_Phis + module.hit_start, module.hit_num, track_extrapolation_phi);
 }
