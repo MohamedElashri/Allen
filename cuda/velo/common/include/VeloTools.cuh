@@ -31,6 +31,29 @@ __device__ inline int16_t hit_phi_16(const float x, const float y)
   return *int16_pointer;
 }
 
+/**
+ * @brief Converts a hit phi from float to int16.
+ * @pre   hit_phi is assumed to be in range [0, 2 PI].
+ */
+__device__ inline int16_t hit_phi_float_to_16(const float hit_phi)
+{
+  const float float_value = hit_phi * Velo::Tools::convert_factor;
+  const uint16_t uint16_value = static_cast<uint16_t>(float_value);
+  const int16_t* int16_pointer = reinterpret_cast<const int16_t*>(&uint16_value);
+  return *int16_pointer;
+}
+
+/**
+ * @brief Converts a hit phi from int16 to float.
+ */
+__device__ inline float hit_phi_16_to_float(const int16_t phi)
+{
+  return static_cast<float>(phi) / Velo::Tools::convert_factor;
+}
+
+/**
+ * @brief Prints a VELO cluster container.
+ */
 template<
   typename VeloContainer,
   typename Offsets,

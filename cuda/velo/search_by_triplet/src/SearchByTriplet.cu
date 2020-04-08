@@ -86,7 +86,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
 
   // Shared memory size is constantly fixed, enough to fit information about six modules
   // (three on each side).
-  __shared__ float module_data[9];
+  __shared__ float module_data[12];
 
   process_modules(
     (Velo::Module*) &module_data[0],
@@ -107,7 +107,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     parameters.max_scatter_seeding,
     parameters.max_scatter_forwarding,
     parameters.max_skipped_modules,
-    parameters.forward_phi_tolerance);
+    hit_phi_float_to_16(parameters.seeding_phi_tolerance),
+    hit_phi_float_to_16(parameters.forward_phi_tolerance));
 }
 
 /**
@@ -132,7 +133,8 @@ __device__ void process_modules(
   const float max_scatter_seeding,
   const float max_scatter_forwarding,
   const uint max_skipped_modules,
-  const float forward_phi_tolerance)
+  const int16_t seeding_phi_tolerance,
+  const int16_t forward_phi_tolerance)
 {
   auto first_module_pair = Velo::Constants::n_module_pairs - 1;
 
@@ -142,7 +144,8 @@ __device__ void process_modules(
     const auto module_pair_number = first_module_pair - i;
     module_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
     module_data[i].hit_num = module_hit_num[module_pair_number];
-    module_data[i].z = dev_velo_module_zs[2 * module_pair_number];
+    module_data[i].z[0] = dev_velo_module_zs[2 * module_pair_number];
+    module_data[i].z[1] = dev_velo_module_zs[2 * module_pair_number + 1];
   }
 
   // Due to shared module data initialization
@@ -158,7 +161,8 @@ __device__ void process_modules(
     h1_rel_indices,
     dev_atomics_velo,
     max_scatter_seeding,
-    hit_phi);
+    hit_phi,
+    seeding_phi_tolerance);
 
   // Prepare forwarding - seeding loop
   // For an explanation on ttf, see below
@@ -176,7 +180,8 @@ __device__ void process_modules(
       const auto module_pair_number = first_module_pair - i;
       module_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
       module_data[i].hit_num = module_hit_num[module_pair_number];
-      module_data[i].z = dev_velo_module_zs[module_pair_number];
+      module_data[i].z[0] = dev_velo_module_zs[2 * module_pair_number];
+      module_data[i].z[1] = dev_velo_module_zs[2 * module_pair_number + 1];
     }
 
     // ttf stands for "tracks to forward"
@@ -207,8 +212,7 @@ __device__ void process_modules(
       dev_number_of_velo_tracks,
       forward_phi_tolerance,
       max_scatter_forwarding,
-      max_skipped_modules,
-      dev_velo_module_zs + 2 * (first_module_pair - 2));
+      max_skipped_modules);
 
     // Due to module data reading
     __syncthreads();
@@ -223,7 +227,8 @@ __device__ void process_modules(
       h1_rel_indices,
       dev_atomics_velo,
       max_scatter_seeding,
-      hit_phi);
+      hit_phi,
+      seeding_phi_tolerance);
 
     --first_module_pair;
   }
@@ -267,10 +272,9 @@ __device__ void track_forwarding(
   Velo::TrackHits* tracks,
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks,
-  const float forward_phi_tolerance,
+  const int16_t forward_phi_tolerance,
   const float max_scatter_forwarding,
-  const uint max_skipped_modules,
-  const float* dev_velo_module_zs)
+  const uint max_skipped_modules)
 {
   // Assign a track to follow to each thread
   for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
@@ -319,24 +323,29 @@ __device__ void track_forwarding(
     int best_h2 = -1;
 
     // Get candidates by performing a binary search in expected phi
-    int candidate_h2_index = find_forward_candidates(
-      module_data[shared::next_module_pair], tx, ty, hit_phi, h0, dev_velo_module_zs[h0_module % 2]);
+    const auto candidate_h2 = find_forward_candidate(
+      module_data[shared::next_module_pair],
+      hit_phi,
+      h0,
+      tx,
+      ty,
+      module_data[shared::next_module_pair].z[h0_module % 2] - h0.z,
+      forward_phi_tolerance);
 
-    const int max_candidates = number_of_forward_candidates < module_data[shared::next_module_pair].hit_num ?
-                                 number_of_forward_candidates :
-                                 module_data[shared::next_module_pair].hit_num;
-    for (int i = 0; i < max_candidates; ++i) {
-      const auto sign = i & 0x01;
-      const int index_diff = sign ? i : -i;
-      candidate_h2_index += index_diff;
+    // First candidate in the next module pair.
+    // Since the buffer is circular, finding the container size means finding the first element.
+    const auto candidate_h2_index = std::get<0>(candidate_h2) % module_data[shared::next_module_pair].hit_num;
+    const auto extrapolated_phi = std::get<1>(candidate_h2);
 
-      const auto index_in_bounds =
-        (candidate_h2_index < 0 ?
-           candidate_h2_index + module_data[shared::next_module_pair].hit_num :
-           (candidate_h2_index >= static_cast<int>(module_data[shared::next_module_pair].hit_num) ?
-              candidate_h2_index - static_cast<int>(module_data[shared::next_module_pair].hit_num) :
-              candidate_h2_index));
+    for (uint i = 0; i < module_data[shared::next_module_pair].hit_num; ++i) {
+      const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
       const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
+      
+      // Note: Phi circular buffer guarantees correctness of this check.
+      const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
+      if (phi_diff > forward_phi_tolerance || -phi_diff > forward_phi_tolerance) {
+        break;
+      }
 
       const Velo::HitBase h2 {
         velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
@@ -425,7 +434,8 @@ __device__ void track_seeding(
   unsigned short* h1_indices,
   uint* dev_atomics_velo,
   const float max_scatter_seeding,
-  const int16_t* hit_phi)
+  const int16_t* hit_phi,
+  const int16_t seeding_phi_tolerance)
 {
   // Add to an array all non-used h1 hits
   for (uint h1_rel_index = threadIdx.x; h1_rel_index < module_data[shared::current_module_pair].hit_num;
@@ -504,28 +514,31 @@ __device__ void track_seeding(
       const auto ty = tyn * td;
 
       // Get candidates by performing a binary search in expected phi
-      int candidate_h2_index = find_seeding_candidate(
-        module_data[shared::next_module_pair], tx, ty, hit_phi, h0, module_data[shared::previous_module_pair].z);
+      const auto candidate_h2 = find_forward_candidate(
+        module_data[shared::next_module_pair],
+        hit_phi,
+        h0,
+        tx,
+        ty,
+        module_data[shared::next_module_pair].z[0] - module_data[shared::previous_module_pair].z[0],
+        seeding_phi_tolerance);
 
-      // Allow a window of hits in the next module. Use pendulum search.
-      int found_h2_candidates = 0;
-      for (int i = 0; i < static_cast<int>(module_data[shared::next_module_pair].hit_num) &&
-                      found_h2_candidates < number_of_h2_candidates;
-           ++i) {
-        const auto sign = i & 0x01;
-        const int index_diff = sign ? i : -i;
-        candidate_h2_index += index_diff;
+      // First candidate in the next module pair.
+      // Since the buffer is circular, finding the container size means finding the first element.
+      const auto candidate_h2_index = std::get<0>(candidate_h2) % module_data[shared::next_module_pair].hit_num;
+      const auto extrapolated_phi = std::get<1>(candidate_h2);
 
-        const auto index_in_bounds =
-          (candidate_h2_index < 0 ?
-             candidate_h2_index + module_data[shared::next_module_pair].hit_num :
-             (candidate_h2_index >= static_cast<int>(module_data[shared::next_module_pair].hit_num) ?
-                candidate_h2_index - static_cast<int>(module_data[shared::next_module_pair].hit_num) :
-                candidate_h2_index));
+      for (uint i = 0; i < module_data[shared::next_module_pair].hit_num; ++i) {
+        const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
         const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
+        
+        // Note: Phi circular buffer guarantees correctness of this check.
+        const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
+        if (phi_diff > seeding_phi_tolerance || -phi_diff > seeding_phi_tolerance) {
+          break;
+        }
 
         if (!hit_used[h2_index]) {
-          ++found_h2_candidates;
           const Velo::HitBase h2 {
             velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
 
