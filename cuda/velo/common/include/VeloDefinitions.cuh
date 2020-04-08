@@ -19,12 +19,11 @@ namespace Velo {
     // Constant for maximum number of hits in a module
     static constexpr uint max_numhits_in_module = 1024;
 
-    // High number of hits per event
-    static constexpr uint max_number_of_hits_per_event = 9500;
-
     // Constants for requested storage on device
     static constexpr uint max_tracks = 1200;
     static constexpr uint max_track_size = 26;
+    static constexpr uint max_three_hit_tracks = 600;
+    static constexpr uint max_tracks_to_follow = 2048;
 
     static constexpr uint32_t number_of_sensor_columns = 768; // FIXME_GEOMETRY_HARDCODING
     static constexpr uint32_t ltg_size = 16 * number_of_sensor_columns;

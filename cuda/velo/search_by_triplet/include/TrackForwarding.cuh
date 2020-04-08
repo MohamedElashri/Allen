@@ -22,7 +22,6 @@ __device__ void process_modules(
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks,
   const float max_scatter_seeding,
-  const uint max_tracks_to_follow,
   const float max_scatter_forwarding,
   const uint max_skipped_modules,
   const float forward_phi_tolerance);
@@ -36,7 +35,6 @@ __device__ void track_seeding(
   unsigned short* h1_rel_indices,
   uint* dev_shifted_atomics_velo,
   const float max_scatter_seeding,
-  const uint max_tracks_to_follow,
   const int16_t* hit_phi);
 
 __device__ void track_forwarding(
@@ -53,7 +51,6 @@ __device__ void track_forwarding(
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks,
   const float forward_phi_tolerance,
-  const uint max_tracks_to_follow,
   const float max_scatter_forwarding,
   const uint max_skipped_modules);
 
