@@ -52,34 +52,28 @@ __device__ void track_forwarding(
   uint* dev_number_of_velo_tracks,
   const float forward_phi_tolerance,
   const float max_scatter_forwarding,
-  const uint max_skipped_modules);
+  const uint max_skipped_modules,
+  const float* dev_velo_module_zs);
 
 /**
  * @brief Finds candidates in the specified module.
  */
-__device__ inline std::tuple<int, int> find_forward_candidates(
+__device__ inline int find_forward_candidates(
   const Velo::Module& module,
   const float tx,
   const float ty,
   const int16_t* hit_Phis,
   const Velo::HitBase& h0,
-  const int16_t forward_phi_tolerance)
+  const float module_z)
 {
-  const auto dz = module.z - h0.z;
+  const auto dz = module_z - h0.z;
   const auto predx = tx * dz;
   const auto predy = ty * dz;
   const auto x_prediction = h0.x + predx;
   const auto y_prediction = h0.y + predy;
-  const int16_t track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
+  const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
-  const int16_t min_value_phi = track_extrapolation_phi - forward_phi_tolerance;
-  const int first_candidate = binary_search_leftmost(hit_Phis + module.hit_start, module.hit_num, min_value_phi);
-
-  const int16_t max_value_phi = track_extrapolation_phi + forward_phi_tolerance;
-  const int size = binary_search_leftmost(
-    hit_Phis + module.hit_start + first_candidate, module.hit_num - first_candidate, max_value_phi);
-
-  return {module.hit_start + first_candidate, size};
+  return binary_search_leftmost(hit_Phis + module.hit_start, module.hit_num, track_extrapolation_phi);
 }
 
 /**

@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include <vector>
+#include <cstring>
 #include "CudaCommon.h"
 #include "Logger.h"
 #include "TupleTools.cuh"

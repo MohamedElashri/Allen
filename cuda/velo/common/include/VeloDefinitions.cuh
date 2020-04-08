@@ -37,6 +37,7 @@ namespace Velo {
     static constexpr float param_w_inverted = 0.000252083f;
     static constexpr int number_of_h0_candidates = 5;
     static constexpr int number_of_h2_candidates = 5;
+    static constexpr int number_of_forward_candidates = 5;
     // Atomics
     namespace atomics {
       enum atomic_types {

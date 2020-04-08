@@ -207,7 +207,8 @@ __device__ void process_modules(
       dev_number_of_velo_tracks,
       forward_phi_tolerance,
       max_scatter_forwarding,
-      max_skipped_modules);
+      max_skipped_modules,
+      dev_velo_module_zs + 2 * (first_module_pair - 2));
 
     // Due to module data reading
     __syncthreads();
@@ -268,7 +269,8 @@ __device__ void track_forwarding(
   uint* dev_number_of_velo_tracks,
   const float forward_phi_tolerance,
   const float max_scatter_forwarding,
-  const uint max_skipped_modules)
+  const uint max_skipped_modules,
+  const float* dev_velo_module_zs)
 {
   // Assign a track to follow to each thread
   for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
@@ -298,6 +300,8 @@ __device__ void track_forwarding(
 
     const Velo::HitBase h0 {
       velo_cluster_container.x(h0_num), velo_cluster_container.y(h0_num), velo_cluster_container.z(h0_num)};
+    const auto h0_module =
+      ((velo_cluster_container.id(h0_num) & Allen::VPChannelID::sensorMask) >> Allen::VPChannelID::sensorBits) / 4;
 
     const Velo::HitBase h1 {
       velo_cluster_container.x(h1_num), velo_cluster_container.y(h1_num), velo_cluster_container.z(h1_num)};
@@ -314,8 +318,26 @@ __device__ void track_forwarding(
     float best_fit = max_scatter_forwarding;
     int best_h2 = -1;
 
-    for (uint i = 0; i < module_data[shared::next_module_pair].hit_num; ++i) {
-      const int h2_index = module_data[shared::next_module_pair].hit_start + i;
+    // Get candidates by performing a binary search in expected phi
+    int candidate_h2_index = find_forward_candidates(
+      module_data[shared::next_module_pair], tx, ty, hit_phi, h0, dev_velo_module_zs[h0_module % 2]);
+
+    const int max_candidates = number_of_forward_candidates < module_data[shared::next_module_pair].hit_num ?
+                                 number_of_forward_candidates :
+                                 module_data[shared::next_module_pair].hit_num;
+    for (int i = 0; i < max_candidates; ++i) {
+      const auto sign = i & 0x01;
+      const int index_diff = sign ? i : -i;
+      candidate_h2_index += index_diff;
+
+      const auto index_in_bounds =
+        (candidate_h2_index < 0 ?
+           candidate_h2_index + module_data[shared::next_module_pair].hit_num :
+           (candidate_h2_index >= static_cast<int>(module_data[shared::next_module_pair].hit_num) ?
+              candidate_h2_index - static_cast<int>(module_data[shared::next_module_pair].hit_num) :
+              candidate_h2_index));
+      const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
+
       const Velo::HitBase h2 {
         velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
 
@@ -334,45 +356,6 @@ __device__ void track_forwarding(
         best_h2 = h2_index;
       }
     }
-
-    // const int16_t forward_phi_tolerance_int = static_cast<int16_t>(forward_phi_tolerance *
-    // Velo::Tools::convert_factor);
-
-    // // Get candidates by performing a binary search in expected phi
-    // const auto odd_module_candidates =
-    //   find_forward_candidates(module_data[shared::next_module_pair], tx, ty, hit_phi, h0, 1,
-    //   forward_phi_tolerance_int);
-
-    // const auto even_module_candidates = find_forward_candidates(
-    //   module_data[shared::next_module_pair + 1], tx, ty, hit_phi, h0, 0, forward_phi_tolerance_int);
-
-    // // Search on both modules in the same for loop
-    // const int total_odd_candidates = std::get<1>(odd_module_candidates);
-    // const int total_even_candidates = std::get<1>(even_module_candidates);
-    // const int total_candidates = total_odd_candidates + total_even_candidates;
-
-    // for (int j = 0; j < total_candidates; ++j) {
-    //   const int h2_index = j < total_odd_candidates ? std::get<0>(odd_module_candidates) + j :
-    //                                                   std::get<0>(even_module_candidates) + j - total_odd_candidates;
-
-    //   const Velo::HitBase h2 {
-    //     velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
-
-    //   const auto dz = h2.z - h0.z;
-    //   const auto predx = h0.x + tx * dz;
-    //   const auto predy = h0.y + ty * dz;
-    //   const auto dx = predx - h2.x;
-    //   const auto dy = predy - h2.y;
-
-    //   // Scatter
-    //   const auto scatter = (dx * dx) + (dy * dy);
-
-    //   // We keep the best one found
-    //   if (scatter < best_fit) {
-    //     best_fit = scatter;
-    //     best_h2 = h2_index;
-    //   }
-    // }
 
     // Condition for finding a h2
     if (best_h2 != -1) {
@@ -526,7 +509,9 @@ __device__ void track_seeding(
 
       // Allow a window of hits in the next module. Use pendulum search.
       int found_h2_candidates = 0;
-      for (int i = 0; i < module_data[shared::next_module_pair].hit_num && found_h2_candidates < 10; ++i) {
+      for (int i = 0; i < static_cast<int>(module_data[shared::next_module_pair].hit_num) &&
+                      found_h2_candidates < number_of_h2_candidates;
+           ++i) {
         const auto sign = i & 0x01;
         const int index_diff = sign ? i : -i;
         candidate_h2_index += index_diff;
