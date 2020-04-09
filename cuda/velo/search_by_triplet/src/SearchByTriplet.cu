@@ -15,25 +15,23 @@ using namespace Velo::Tracking;
  *         and the detector is traversed in the backwards direction, in groups of two modules at a time:
  *
  *         i-3    i-2   [i-1   i   i+1]
- *                      =============== Track seeding of triplet of modules {i-1, i, i+1}
+ *                      =============== Track seeding of triplet of module pairs {i-1, i, i+1}
  *
  *         i-3   [i-2] [i-1   i   i+1]
- *               =====                  Track forwarding to module i-2
+ *               =====                  Track forwarding to module pair i-2
  *
  *         i-3   [i-2   i-1   i]  i+1
- *               ===============        Track seeding of triplet of modules {i-2, i-1, i}
+ *               ===============        Track seeding of triplet of module pairs {i-2, i-1, i}
  *
  *         [i-3] [i-2   i-1   i   i+1]
- *         =====                        Track forwarding to module i-3
+ *         =====                        Track forwarding to module pair i-3
  *
  *         [i-3   i-2   i-1]  i   i+1
- *         =================            Track seeding of triplet of modules {i-3, i-2, i-1}
+ *         =================            Track seeding of triplet of module pairs {i-3, i-2, i-1}
  *
- *         * Track seeding: Triplets of hits in consecutive modules on the same side are sought.
- *         The three hits composing a track seed must be on the same side - empirically it was found that
- *         no physics efficiency is gained if allowing for triplets to be on both sides.
+ *         * Track seeding: Triplets of hits in consecutive module pairs are sought.
  *         Incoming VELO cluster data is expected to be sorted by phi previously. This fact allows for several
- *         optimizations in the triplet seed search. First, the closest hit in the previous module is sought with
+ *         optimizations in the triplet seed search. First, the closest hit in the previous module pair is sought with
  *         a binary search. The closest n candidates in memory are found with a pendulum-like search (more details
  *         in track_seeding). The doublet is extrapolated to the third module, and a triplet is formed. Hits used
  *         to form triplets must be "not used".
@@ -84,8 +82,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   Velo::TrackletHits* tracklets = parameters.dev_tracklets + event_number * Velo::Constants::max_tracks_to_follow;
   unsigned short* h1_rel_indices = parameters.dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
 
-  // Shared memory size is constantly fixed, enough to fit information about six modules
-  // (three on each side).
+  // Shared memory size is a constant, enough to fit information about three module pairs.
   __shared__ float module_data[12];
 
   process_modules(
@@ -334,13 +331,16 @@ __device__ void track_forwarding(
 
     // First candidate in the next module pair.
     // Since the buffer is circular, finding the container size means finding the first element.
-    const auto candidate_h2_index = std::get<0>(candidate_h2) % module_data[shared::next_module_pair].hit_num;
+    const auto candidate_h2_index =
+      std::get<0>(candidate_h2) < static_cast<int>(module_data[shared::next_module_pair].hit_num) ?
+        std::get<0>(candidate_h2) :
+        0;
     const auto extrapolated_phi = std::get<1>(candidate_h2);
 
     for (uint i = 0; i < module_data[shared::next_module_pair].hit_num; ++i) {
       const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
       const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
-      
+
       // Note: Phi circular buffer guarantees correctness of this check.
       const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
       if (phi_diff > forward_phi_tolerance || -phi_diff > forward_phi_tolerance) {
@@ -525,13 +525,16 @@ __device__ void track_seeding(
 
       // First candidate in the next module pair.
       // Since the buffer is circular, finding the container size means finding the first element.
-      const auto candidate_h2_index = std::get<0>(candidate_h2) % module_data[shared::next_module_pair].hit_num;
+      const auto candidate_h2_index =
+        std::get<0>(candidate_h2) < static_cast<int>(module_data[shared::next_module_pair].hit_num) ?
+          std::get<0>(candidate_h2) :
+          0;
       const auto extrapolated_phi = std::get<1>(candidate_h2);
 
       for (uint i = 0; i < module_data[shared::next_module_pair].hit_num; ++i) {
         const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
         const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
-        
+
         // Note: Phi circular buffer guarantees correctness of this check.
         const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
         if (phi_diff > seeding_phi_tolerance || -phi_diff > seeding_phi_tolerance) {

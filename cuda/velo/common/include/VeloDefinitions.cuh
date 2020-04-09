@@ -36,8 +36,6 @@ namespace Velo {
     static constexpr float param_w = 3966.94f;
     static constexpr float param_w_inverted = 0.000252083f;
     static constexpr int number_of_h0_candidates = 5;
-    static constexpr int number_of_h2_candidates = 5;
-    static constexpr int number_of_forward_candidates = 5;
     // Atomics
     namespace atomics {
       enum atomic_types {
@@ -53,7 +51,6 @@ namespace Velo {
       static constexpr uint track_number = 0x0FFFFFFF;
       static constexpr uint hit_number = 0x7FFF;
       static constexpr uint skipped_modules = 0x70000000;
-      static constexpr uint oddity_position = 15;
       static constexpr uint skipped_module_position = 28;
     }
     // Shared memory

@@ -18,17 +18,25 @@
 #include <ProgramOptions.h>
 #include <Logger.h>
 #include <Timer.h>
-
 #include <ZeroMQ/IZeroMQSvc.h>
 #include <zmq/svc.h>
+
+#ifdef DEBUG
+#include <fenv.h>
+#endif
 
 #ifdef HAVE_MPI
 #include <MPIConfig.h>
 #include <MPISend.h>
 #endif
 
+
 int main(int argc, char* argv[])
 {
+#ifdef DEBUG
+  feenableexcept(FE_INVALID | FE_DIVBYZERO);
+#endif
+
   const auto program_options = allen_program_options();
 
   // Options object that will be passed to Allen
