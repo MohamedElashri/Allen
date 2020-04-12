@@ -73,9 +73,7 @@ def VeloSequence(doGEC=True):
         velo_calculate_phi_and_sort, velo_search_by_triplet,
         prefix_sum_offsets_velo_tracks, velo_three_hit_tracks_filter,
         prefix_sum_offsets_number_of_three_hit_tracks_filtered,
-        velo_copy_track_hit_number,
-        prefix_sum_offsets_velo_track_hit_number,
-        velo_consolidate_tracks
-    )
+        velo_copy_track_hit_number, prefix_sum_offsets_velo_track_hit_number,
+        velo_consolidate_tracks)
 
     return velo_sequence

@@ -30,7 +30,6 @@
 #include <MPISend.h>
 #endif
 
-
 int main(int argc, char* argv[])
 {
 #ifdef DEBUG
