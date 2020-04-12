@@ -21,11 +21,11 @@ __device__ void process_modules(
   const float* dev_velo_module_zs,
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks,
-  const float max_scatter_seeding,
-  const float max_scatter_forwarding,
+  const float max_scatter,
   const uint max_skipped_modules,
-  const int16_t seeding_phi_tolerance,
-  const int16_t forward_phi_tolerance);
+  const float phi_tolerance,
+  const float weight_dz_tolerance,
+  const float weight_dz_scatter);
 
 __device__ void track_seeding(
   Velo::ConstClusters& velo_cluster_container,
@@ -35,9 +35,9 @@ __device__ void track_seeding(
   uint* tracks_to_follow,
   unsigned short* h1_rel_indices,
   uint* dev_shifted_atomics_velo,
-  const float max_scatter_seeding,
+  const float max_scatter,
   const int16_t* hit_phi,
-  const int16_t seeding_phi_tolerance);
+  const int16_t phi_tolerance);
 
 __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
@@ -52,8 +52,8 @@ __device__ void track_forwarding(
   Velo::TrackHits* tracks,
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks,
-  const int16_t forward_phi_tolerance,
-  const float max_scatter_forwarding,
+  const int16_t phi_tolerance,
+  const float max_scatter,
   const uint max_skipped_modules);
 
 /**
@@ -68,7 +68,7 @@ __device__ inline std::tuple<int, int16_t> find_forward_candidate(
   const float tx,
   const float ty,
   const float dz,
-  const int16_t forward_phi_tolerance)
+  const int16_t phi_tolerance)
 {
   const auto predx = tx * dz;
   const auto predy = ty * dz;
@@ -79,6 +79,6 @@ __device__ inline std::tuple<int, int16_t> find_forward_candidate(
   return {binary_search_leftmost(
             hit_Phis + module.hit_start,
             module.hit_num,
-            static_cast<int16_t>(track_extrapolation_phi - forward_phi_tolerance)),
+            static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
           track_extrapolation_phi};
 }

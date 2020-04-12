@@ -101,11 +101,11 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     dev_velo_geometry->module_zs,
     parameters.dev_atomics_velo + blockIdx.x * Velo::num_atomics,
     parameters.dev_number_of_velo_tracks,
-    parameters.max_scatter_seeding,
-    parameters.max_scatter_forwarding,
+    parameters.max_scatter,
     parameters.max_skipped_modules,
-    hit_phi_float_to_16(parameters.seeding_phi_tolerance),
-    hit_phi_float_to_16(parameters.forward_phi_tolerance));
+    parameters.phi_tolerance,
+    parameters.weight_dz_tolerance,
+    parameters.weight_dz_scatter);
 }
 
 /**
@@ -127,11 +127,11 @@ __device__ void process_modules(
   const float* dev_velo_module_zs,
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks,
-  const float max_scatter_seeding,
-  const float max_scatter_forwarding,
+  const float max_scatter,
   const uint max_skipped_modules,
-  const int16_t seeding_phi_tolerance,
-  const int16_t forward_phi_tolerance)
+  const float phi_tolerance,
+  const float weight_dz_tolerance,
+  const float weight_dz_scatter)
 {
   auto first_module_pair = Velo::Constants::n_module_pairs - 1;
 
@@ -149,6 +149,7 @@ __device__ void process_modules(
   __syncthreads();
 
   // Do first track seeding
+  const auto dz_next_module = dev_velo_module_zs[2 * first_module_pair - 2] - dev_velo_module_zs[2 * first_module_pair - 4];
   track_seeding(
     velo_cluster_container,
     module_data,
@@ -157,9 +158,9 @@ __device__ void process_modules(
     tracks_to_follow,
     h1_rel_indices,
     dev_atomics_velo,
-    max_scatter_seeding,
+    max_scatter + weight_dz_scatter * (dz_next_module - dz_module_min),
     hit_phi,
-    seeding_phi_tolerance);
+    hit_phi_float_to_16(phi_tolerance + weight_dz_scatter * (dz_next_module - dz_module_min)));
 
   // Prepare forwarding - seeding loop
   // For an explanation on ttf, see below
@@ -193,6 +194,8 @@ __device__ void process_modules(
     // Due to module data loading
     __syncthreads();
 
+    const auto dz_next_module = dev_velo_module_zs[2 * first_module_pair - 2] - dev_velo_module_zs[2 * first_module_pair - 4];
+
     // Track Forwarding
     track_forwarding(
       velo_cluster_container,
@@ -207,14 +210,15 @@ __device__ void process_modules(
       tracks,
       dev_atomics_velo,
       dev_number_of_velo_tracks,
-      forward_phi_tolerance,
-      max_scatter_forwarding,
+      hit_phi_float_to_16(phi_tolerance + weight_dz_tolerance * (dz_next_module - dz_module_min)),
+      max_scatter + weight_dz_scatter * (dz_next_module - dz_module_min),
       max_skipped_modules);
 
     // Due to module data reading
     __syncthreads();
 
     // Seeding
+
     track_seeding(
       velo_cluster_container,
       module_data,
@@ -223,9 +227,9 @@ __device__ void process_modules(
       tracks_to_follow,
       h1_rel_indices,
       dev_atomics_velo,
-      max_scatter_seeding,
+      max_scatter + weight_dz_scatter * (dz_next_module - dz_module_min),
       hit_phi,
-      seeding_phi_tolerance);
+      hit_phi_float_to_16(phi_tolerance + weight_dz_tolerance * (dz_next_module - dz_module_min)));
 
     --first_module_pair;
   }
@@ -269,8 +273,8 @@ __device__ void track_forwarding(
   Velo::TrackHits* tracks,
   uint* dev_atomics_velo,
   uint* dev_number_of_velo_tracks,
-  const int16_t forward_phi_tolerance,
-  const float max_scatter_forwarding,
+  const int16_t phi_tolerance,
+  const float max_scatter,
   const uint max_skipped_modules)
 {
   // Assign a track to follow to each thread
@@ -316,7 +320,7 @@ __device__ void track_forwarding(
     const auto ty = tyn * td;
 
     // Find the best candidate
-    float best_fit = max_scatter_forwarding;
+    float best_fit = max_scatter;
     int best_h2 = -1;
 
     // Get candidates by performing a binary search in expected phi
@@ -327,7 +331,7 @@ __device__ void track_forwarding(
       tx,
       ty,
       module_data[shared::next_module_pair].z[h0_module % 2] - h0.z,
-      forward_phi_tolerance);
+      phi_tolerance);
 
     // First candidate in the next module pair.
     // Since the buffer is circular, finding the container size means finding the first element.
@@ -343,7 +347,7 @@ __device__ void track_forwarding(
 
       // Note: Phi circular buffer guarantees correctness of this check.
       const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
-      if (phi_diff > forward_phi_tolerance || -phi_diff > forward_phi_tolerance) {
+      if (phi_diff > phi_tolerance || -phi_diff > phi_tolerance) {
         break;
       }
 
@@ -433,9 +437,9 @@ __device__ void track_seeding(
   uint* tracks_to_follow,
   unsigned short* h1_indices,
   uint* dev_atomics_velo,
-  const float max_scatter_seeding,
+  const float max_scatter,
   const int16_t* hit_phi,
-  const int16_t seeding_phi_tolerance)
+  const int16_t phi_tolerance)
 {
   // Add to an array all non-used h1 hits
   for (uint h1_rel_index = threadIdx.x; h1_rel_index < module_data[shared::current_module_pair].hit_num;
@@ -456,7 +460,7 @@ __device__ void track_seeding(
     // The output we are searching for
     uint16_t best_h0 = 0;
     uint16_t best_h2 = 0;
-    float best_fit = max_scatter_seeding;
+    float best_fit = max_scatter;
 
     // Fetch h1
     const auto h1_index_total = h1_indices[h1_rel_index];
@@ -521,7 +525,7 @@ __device__ void track_seeding(
         tx,
         ty,
         module_data[shared::next_module_pair].z[0] - module_data[shared::previous_module_pair].z[0],
-        seeding_phi_tolerance);
+        phi_tolerance);
 
       // First candidate in the next module pair.
       // Since the buffer is circular, finding the container size means finding the first element.
@@ -537,7 +541,7 @@ __device__ void track_seeding(
 
         // Note: Phi circular buffer guarantees correctness of this check.
         const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
-        if (phi_diff > seeding_phi_tolerance || -phi_diff > seeding_phi_tolerance) {
+        if (phi_diff > phi_tolerance || -phi_diff > phi_tolerance) {
           break;
         }
 
@@ -564,7 +568,7 @@ __device__ void track_seeding(
       }
     }
 
-    if (best_fit < max_scatter_seeding) {
+    if (best_fit < max_scatter) {
       // Add the track to the container of seeds
       const auto trackP =
         atomicAdd(dev_atomics_velo + atomics::number_of_seeds, 1) % Velo::Constants::max_tracks_to_follow;

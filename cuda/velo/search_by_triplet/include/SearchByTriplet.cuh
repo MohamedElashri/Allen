@@ -24,21 +24,21 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_rel_indices_t, unsigned short) dev_rel_indices;
     DEVICE_OUTPUT(dev_number_of_velo_tracks_t, uint) dev_number_of_velo_tracks;
 
-    // Forward tolerance in phi
-    PROPERTY(forward_phi_tolerance_t, float, "forward_phi_tolerance", "forwarding tolerance") forward_phi_tolerance;
-    PROPERTY(seeding_phi_tolerance_t, float, "seeding_phi_tolerance", "seeding tolerance") seeding_phi_tolerance;
+    // Tolerance in phi
+    PROPERTY(phi_tolerance_t, float, "phi_tolerance", "tolerance in phi") phi_tolerance;
+    PROPERTY(weight_dz_tolerance_t, float, "weight_dz_tolerance", "weight the dz factor has on tolerance")
+    weight_dz_tolerance;
 
     // Max scatter for forming triplets (seeding) and forwarding
-    PROPERTY(max_scatter_forwarding_t, float, "max_scatter_forwarding", "scatter forwarding")
-    max_scatter_forwarding;
-    PROPERTY(max_scatter_seeding_t, float, "max_scatter_seeding", "scatter seeding") max_scatter_seeding;
+    PROPERTY(max_scatter_t, float, "max_scatter", "maximum scatter for seeding and forwarding") max_scatter;
+    PROPERTY(weight_dz_scatter_t, float, "weight_dz_scatter", "weight the dz factor has on scatter") weight_dz_scatter;
 
     // Maximum number of skipped modules allowed for a track
     // before storing it
     PROPERTY(max_skipped_modules_t, uint, "max_skipped_modules", "skipped modules") max_skipped_modules;
 
-    // Block dimensions of kernel
-    PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
+    // Block dimension x of kernel
+    PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension x");
   };
 
   __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
@@ -81,7 +81,8 @@ namespace velo_search_by_triplet {
       initialize<dev_hit_used_t>(arguments, 0, cuda_stream);
       initialize<dev_number_of_velo_tracks_t>(arguments, 0, cuda_stream);
 
-      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+      function(
+        dim3(value<host_number_of_selected_events_t>(arguments)), dim3(property<block_dim_x_t>().get()), cuda_stream)(
         Parameters {begin<dev_sorted_velo_cluster_container_t>(arguments),
                     begin<dev_offsets_estimated_input_size_t>(arguments),
                     begin<dev_module_cluster_num_t>(arguments),
@@ -94,20 +95,20 @@ namespace velo_search_by_triplet {
                     begin<dev_atomics_velo_t>(arguments),
                     begin<dev_rel_indices_t>(arguments),
                     begin<dev_number_of_velo_tracks_t>(arguments),
-                    property<forward_phi_tolerance_t>(),
-                    property<seeding_phi_tolerance_t>(),
-                    property<max_scatter_forwarding_t>(),
-                    property<max_scatter_seeding_t>(),
+                    property<phi_tolerance_t>(),
+                    property<weight_dz_tolerance_t>(),
+                    property<max_scatter_t>(),
+                    property<weight_dz_scatter_t>(),
                     property<max_skipped_modules_t>()},
         constants.dev_velo_geometry);
     }
 
   private:
-    Property<forward_phi_tolerance_t> m_forward_tol {this, 0.052f};
-    Property<seeding_phi_tolerance_t> m_seeding_tol {this, 0.052f};
-    Property<max_scatter_forwarding_t> m_scat {this, 0.1f};
-    Property<max_scatter_seeding_t> m_seed {this, 0.1f};
+    Property<phi_tolerance_t> m_tolerance {this, 0.026f};
+    Property<max_scatter_t> m_max_scatter {this, 0.1f};
+    Property<weight_dz_tolerance_t> m_weight_dz_tolerance {this, 0.0f};
+    Property<weight_dz_scatter_t> m_weight_dz_scatter {this, 0.0f};
     Property<max_skipped_modules_t> m_skip {this, 1u};
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
 } // namespace velo_search_by_triplet
