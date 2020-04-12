@@ -103,9 +103,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     parameters.dev_number_of_velo_tracks,
     parameters.max_scatter,
     parameters.max_skipped_modules,
-    parameters.phi_tolerance,
-    parameters.weight_dz_tolerance,
-    parameters.weight_dz_scatter);
+    hit_phi_float_to_16(parameters.phi_tolerance));
 }
 
 /**
@@ -129,9 +127,7 @@ __device__ void process_modules(
   uint* dev_number_of_velo_tracks,
   const float max_scatter,
   const uint max_skipped_modules,
-  const float phi_tolerance,
-  const float weight_dz_tolerance,
-  const float weight_dz_scatter)
+  const int16_t phi_tolerance)
 {
   auto first_module_pair = Velo::Constants::n_module_pairs - 1;
 
@@ -149,7 +145,6 @@ __device__ void process_modules(
   __syncthreads();
 
   // Do first track seeding
-  const auto dz_next_module = dev_velo_module_zs[2 * first_module_pair - 2] - dev_velo_module_zs[2 * first_module_pair - 4];
   track_seeding(
     velo_cluster_container,
     module_data,
@@ -158,9 +153,9 @@ __device__ void process_modules(
     tracks_to_follow,
     h1_rel_indices,
     dev_atomics_velo,
-    max_scatter + weight_dz_scatter * (dz_next_module - dz_module_min),
+    max_scatter,
     hit_phi,
-    hit_phi_float_to_16(phi_tolerance + weight_dz_scatter * (dz_next_module - dz_module_min)));
+    phi_tolerance);
 
   // Prepare forwarding - seeding loop
   // For an explanation on ttf, see below
@@ -194,8 +189,6 @@ __device__ void process_modules(
     // Due to module data loading
     __syncthreads();
 
-    const auto dz_next_module = dev_velo_module_zs[2 * first_module_pair - 2] - dev_velo_module_zs[2 * first_module_pair - 4];
-
     // Track Forwarding
     track_forwarding(
       velo_cluster_container,
@@ -210,8 +203,8 @@ __device__ void process_modules(
       tracks,
       dev_atomics_velo,
       dev_number_of_velo_tracks,
-      hit_phi_float_to_16(phi_tolerance + weight_dz_tolerance * (dz_next_module - dz_module_min)),
-      max_scatter + weight_dz_scatter * (dz_next_module - dz_module_min),
+      phi_tolerance,
+      max_scatter,
       max_skipped_modules);
 
     // Due to module data reading
@@ -227,9 +220,9 @@ __device__ void process_modules(
       tracks_to_follow,
       h1_rel_indices,
       dev_atomics_velo,
-      max_scatter + weight_dz_scatter * (dz_next_module - dz_module_min),
+      max_scatter,
       hit_phi,
-      hit_phi_float_to_16(phi_tolerance + weight_dz_tolerance * (dz_next_module - dz_module_min)));
+      phi_tolerance);
 
     --first_module_pair;
   }
@@ -539,7 +532,7 @@ __device__ void track_seeding(
         const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
         const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
 
-        // Note: Phi circular buffer guarantees correctness of this check.
+        // Note: Phi circular buffer guarantees validity of this check.
         const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
         if (phi_diff > phi_tolerance || -phi_diff > phi_tolerance) {
           break;

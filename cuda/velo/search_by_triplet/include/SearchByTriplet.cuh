@@ -26,12 +26,9 @@ namespace velo_search_by_triplet {
 
     // Tolerance in phi
     PROPERTY(phi_tolerance_t, float, "phi_tolerance", "tolerance in phi") phi_tolerance;
-    PROPERTY(weight_dz_tolerance_t, float, "weight_dz_tolerance", "weight the dz factor has on tolerance")
-    weight_dz_tolerance;
 
     // Max scatter for forming triplets (seeding) and forwarding
     PROPERTY(max_scatter_t, float, "max_scatter", "maximum scatter for seeding and forwarding") max_scatter;
-    PROPERTY(weight_dz_scatter_t, float, "weight_dz_scatter", "weight the dz factor has on scatter") weight_dz_scatter;
 
     // Maximum number of skipped modules allowed for a track
     // before storing it
@@ -96,19 +93,15 @@ namespace velo_search_by_triplet {
                     begin<dev_rel_indices_t>(arguments),
                     begin<dev_number_of_velo_tracks_t>(arguments),
                     property<phi_tolerance_t>(),
-                    property<weight_dz_tolerance_t>(),
                     property<max_scatter_t>(),
-                    property<weight_dz_scatter_t>(),
                     property<max_skipped_modules_t>()},
         constants.dev_velo_geometry);
     }
 
   private:
-    Property<phi_tolerance_t> m_tolerance {this, 0.026f};
-    Property<max_scatter_t> m_max_scatter {this, 0.1f};
-    Property<weight_dz_tolerance_t> m_weight_dz_tolerance {this, 0.0f};
-    Property<weight_dz_scatter_t> m_weight_dz_scatter {this, 0.0f};
-    Property<max_skipped_modules_t> m_skip {this, 1u};
+    Property<phi_tolerance_t> m_tolerance {this, 0.045f};
+    Property<max_scatter_t> m_max_scatter {this, 0.08f};
+    Property<max_skipped_modules_t> m_skip {this, 1};
     Property<block_dim_x_t> m_block_dim_x {this, 64};
   };
 } // namespace velo_search_by_triplet

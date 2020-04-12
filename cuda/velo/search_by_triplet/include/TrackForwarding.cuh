@@ -23,9 +23,7 @@ __device__ void process_modules(
   uint* dev_number_of_velo_tracks,
   const float max_scatter,
   const uint max_skipped_modules,
-  const float phi_tolerance,
-  const float weight_dz_tolerance,
-  const float weight_dz_scatter);
+  const int16_t phi_tolerance);
 
 __device__ void track_seeding(
   Velo::ConstClusters& velo_cluster_container,
