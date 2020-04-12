@@ -65,23 +65,34 @@ make configure
 make install
 ```
 
-Call the executable from within the Moore directory:
+Call the executable from within the Moore directory as in the following examples:
 ```
-./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_baseline_and_Allen_with_mcchecking.py
+./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_track_reconstruction.py
 ```
-This will run both the baseline HLT1 reconstruction sequence and Allen. It will call the MC checkers for track reconstruction efficiencies and PV reconstruction efficiencies and resolutions.
-If you want to run the PV checker, you need to use [this](https://gitlab.cern.ch/lhcb/Rec/tree/dovombru_twojton_pvchecker) branch in Rec.
+This will call the full Allen sequence, convert reconstructed tracks to Rec objects and run the MC checkers for track reconstruction efficiencies. The input sample is defined in `Hlt/Moore/tests/options/default_input_and_conds_hlt1.py`.
+
+If you want to run the PV checker, you need to use [this](https://gitlab.cern.ch/lhcb/Rec/tree/dovombru_twojton_pvchecker) branch in Rec and the following executable:
+```
+./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_pvchecker.py
+```
 
 To check the IP resolution:
 ```
 ./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_IPresolution.py
 ```
-To check the track resolution:
+To check the track momentum resolution:
 ```
 ./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_trackresolution.py
 ```
 
-Call HLT1 efficiency script
+To check the muon identification efficiency and misID efficiency:
+```
+./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_muonid_efficiency.py
+```
+
+The scripts in `Moore/Hlt/RecoConf/scripts/` can be used to produce plots of the various efficiencies and resolutions from the ROOT files produced by one of the previous calls to Moore.
+
+Call HLT1 selection efficiency script
 ------------------------------
 The [mooreanalysis](https://gitlab.cern.ch/lhcb/mooreanalysis) repository contains the HLT efficiency checking script.
 If this [branch](https://gitlab.cern.ch/lhcb/mooreanalysis/tree/dovombru_rjhunter-HltEfficiencyChecker_for_Allen) is not yet merged in the mooreanalysis repository, switch to this branch.
