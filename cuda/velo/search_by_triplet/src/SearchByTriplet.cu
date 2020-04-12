@@ -211,7 +211,6 @@ __device__ void process_modules(
     __syncthreads();
 
     // Seeding
-
     track_seeding(
       velo_cluster_container,
       module_data,
@@ -338,7 +337,7 @@ __device__ void track_forwarding(
       const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
       const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
 
-      // Note: Phi circular buffer guarantees correctness of this check.
+      // Check the phi difference is within the tolerance with modulo arithmetic.
       const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
       if (phi_diff > phi_tolerance || -phi_diff > phi_tolerance) {
         break;
@@ -458,10 +457,8 @@ __device__ void track_seeding(
     // Fetch h1
     const auto h1_index_total = h1_indices[h1_rel_index];
     const uint16_t h1_index = h1_index_total & bits::hit_number;
-
     const Velo::HitBase h1 {
       velo_cluster_container.x(h1_index), velo_cluster_container.y(h1_index), velo_cluster_container.z(h1_index)};
-
     const auto h1_phi = hit_phi[h1_index];
 
     // Get candidates on previous module
@@ -532,7 +529,7 @@ __device__ void track_seeding(
         const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
         const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
 
-        // Note: Phi circular buffer guarantees validity of this check.
+        // Check the phi difference is within the tolerance with modulo arithmetic.
         const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
         if (phi_diff > phi_tolerance || -phi_diff > phi_tolerance) {
           break;
