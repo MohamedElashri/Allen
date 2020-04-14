@@ -57,7 +57,7 @@ namespace UT {
     static constexpr float centralHoleSize = 33.0f * Gaudi::Units::mm;
     static constexpr float passHoleSize = 40.0f * Gaudi::Units::mm;
     static constexpr bool passTracks = false;
-   
+
     // Scale the z-component, to not run into numerical problems with floats
     // first add to sum values from hit at xMidField, zMidField hit
     static constexpr float zDiff = 0.001f * (zKink - zMidUT);
@@ -65,7 +65,7 @@ namespace UT {
     constexpr float magFieldParams[3] = {2010.0f, -2240.0f, -71330.f};
     //
     static constexpr float LD3Hits = -0.5f;
-     } // namespace Constants
+  } // namespace Constants
 } // namespace UT
 
 struct UTBoards {
@@ -78,9 +78,27 @@ struct UTBoards {
   uint32_t* sectors;
   uint32_t* chanIDs;
 
-  UTBoards(const std::vector<char>& ut_boards);
+  __device__ __host__ UTBoards(const char* ut_boards)
+  {
+    uint32_t* p = (uint32_t*) ut_boards;
+    number_of_boards = *p;
+    p += 1;
+    number_of_channels = UT::Decoding::ut_number_of_sectors_per_board * number_of_boards;
+    stripsPerHybrids = p;
+    p += number_of_boards;
+    stations = p;
+    p += number_of_channels;
+    layers = p;
+    p += number_of_channels;
+    detRegions = p;
+    p += number_of_channels;
+    sectors = p;
+    p += number_of_channels;
+    chanIDs = p;
+    p += number_of_channels;
+  }
 
-  __device__ __host__ UTBoards(const char* ut_boards);
+  UTBoards(const std::vector<char>& ut_boards) : UTBoards {ut_boards.data()} {}
 };
 
 struct UTGeometry {
@@ -96,7 +114,32 @@ struct UTGeometry {
   float* p0Z = nullptr;
   float* cos = nullptr;
 
-  UTGeometry(const std::vector<char>& ut_geometry);
+  __device__ __host__ UTGeometry(const char* ut_geometry)
+  {
+    uint32_t* p = (uint32_t*) ut_geometry;
+    number_of_sectors = *((uint32_t*) p);
+    p += 1;
+    firstStrip = (uint32_t*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+    pitch = (float*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+    dy = (float*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+    dp0diX = (float*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+    dp0diY = (float*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+    dp0diZ = (float*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+    p0X = (float*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+    p0Y = (float*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+    p0Z = (float*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+    cos = (float*) p;
+    p += UT::Decoding::ut_number_of_geometry_sectors;
+  }
 
-  __device__ __host__ UTGeometry(const char* ut_geometry);
+  UTGeometry(const std::vector<char>& ut_geometry) : UTGeometry {ut_geometry.data()} {}
 };

@@ -1,4 +1,3 @@
-file(GLOB UT_common "common/src/*cu")
 file(GLOB UT_decoding "UTDecoding/src/*cu")
 file(GLOB UT_consolidate "consolidate/src/*cu")
 file(GLOB CompassUT_tracking "compassUT/src/*cu")
@@ -19,14 +18,8 @@ include_directories(consolidate/include)
 include_directories(compassUT/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
-allen_add_device_library(UTCommon STATIC
-  ${UT_common}
-)
-
 allen_add_device_library(UT STATIC
   ${UT_decoding}
   ${UT_consolidate}
   ${CompassUT_tracking}
 )
-
-target_link_libraries(UT UTCommon)
