@@ -1,7 +1,7 @@
-from algorithms import *
+from definitions.algorithms import *
 
 
-def Forward_sequence(forward_decoding="v4"):
+def ForwardSequence(forward_decoding="v4"):
     lf_search_initial_windows = lf_search_initial_windows_t()
     lf_triplet_seeding = lf_triplet_seeding_t()
     lf_triplet_keep_best = lf_triplet_keep_best_t()

@@ -1,7 +1,7 @@
-from algorithms import *
+from definitions.algorithms import *
 
 
-def UT_sequence(restricted=True):
+def UTSequence(restricted=True):
     ut_calculate_number_of_hits = ut_calculate_number_of_hits_t()
 
     prefix_sum_ut_hits = host_prefix_sum_t(

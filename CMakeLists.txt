@@ -46,7 +46,7 @@ set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 
 # --------------------
 
 # Configured sequence
-set(SEQUENCE DefaultSequence CACHE STRING "Configured sequence")
+set(SEQUENCE HLT1 CACHE STRING "Configured sequence")
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
 #Configured CPU architecture
@@ -283,21 +283,10 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-gnu-zero-variadic-macro-arguments")
 endif()
 
-add_custom_command(
-  OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-  WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-  DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
-  COMMENT "Configuring sequence "
-  VERBATIM
-)
-
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DALLEN_DEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
-
-add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h")
 
 #Detect target CPU architecture
 include(TargetArch.cmake)

@@ -1,7 +1,7 @@
-from algorithms import *
+from definitions.algorithms import *
 
 
-def PV_sequence():
+def PVSequence():
     velo_kalman_filter = velo_kalman_filter_t()
     pv_beamline_extrapolate = pv_beamline_extrapolate_t()
     pv_beamline_histo = pv_beamline_histo_t()

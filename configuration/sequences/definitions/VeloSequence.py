@@ -1,9 +1,15 @@
-from algorithms import *
+from definitions.algorithms import *
 
 
-def VELO_sequence():
+def VeloSequence(doGEC=True):
     populate_odin_banks = populate_odin_banks_t()
-    host_global_event_cut = host_global_event_cut_t()
+
+    initialize_lists = None
+    if doGEC:
+        initialize_lists = host_global_event_cut_t()
+    else:
+        initialize_lists = host_init_event_list_t()
+
     velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t(
     )
 
@@ -25,7 +31,6 @@ def VELO_sequence():
 
     velo_masked_clustering = velo_masked_clustering_t()
     velo_calculate_phi_and_sort = velo_calculate_phi_and_sort_t()
-    velo_fill_candidates = velo_fill_candidates_t()
     velo_search_by_triplet = velo_search_by_triplet_t()
 
     prefix_sum_offsets_velo_tracks = host_prefix_sum_t(
@@ -61,23 +66,14 @@ def VELO_sequence():
     velo_consolidate_tracks = velo_consolidate_tracks_t()
 
     velo_sequence = Sequence(
-        populate_odin_banks,
-        host_global_event_cut,
+        populate_odin_banks, initialize_lists,
         velo_calculate_number_of_candidates,
-        prefix_sum_offsets_velo_candidates,
-        velo_estimate_input_size,
-        prefix_sum_offsets_estimated_input_size,
-        velo_masked_clustering,
-        velo_calculate_phi_and_sort,
-        velo_fill_candidates,
-        velo_search_by_triplet,
-        prefix_sum_offsets_velo_tracks,
-        velo_three_hit_tracks_filter,
+        prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
+        prefix_sum_offsets_estimated_input_size, velo_masked_clustering,
+        velo_calculate_phi_and_sort, velo_search_by_triplet,
+        prefix_sum_offsets_velo_tracks, velo_three_hit_tracks_filter,
         prefix_sum_offsets_number_of_three_hit_tracks_filtered,
-        velo_copy_track_hit_number,
-        prefix_sum_offsets_velo_track_hit_number,
-        velo_consolidate_tracks  # ,
-        # saxpy
-    )
+        velo_copy_track_hit_number, prefix_sum_offsets_velo_track_hit_number,
+        velo_consolidate_tracks)
 
     return velo_sequence

@@ -30,9 +30,8 @@ input/10kevents_*
 input/test/*
 input/UT_*
 checker/plotting/output
-configuration/generator/generated/*.h
-configuration/generator/generated/*.json
-configuration/generator/algorithms.py
 InstallArea*
 Makefile
 toolchain.cmake
+configuration/sequences/definitions/algorithms.py
+scripts/algorithms.py
