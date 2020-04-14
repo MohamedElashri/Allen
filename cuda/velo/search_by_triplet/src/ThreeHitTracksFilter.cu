@@ -6,8 +6,6 @@
  */
 __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_container, const Velo::TrackletHits& track)
 {
-  VeloState state;
-
   // Fit parameters
   float s0, sx, sz, sxz, sz2;
   float u0, uy, uz, uyz, uz2;
@@ -15,7 +13,7 @@ __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_contain
   u0 = uy = uz = uyz = uz2 = 0.0f;
 
   // Iterate over hits
-  for (unsigned short h = 0; h < 3; ++h) {
+  for (uint h = 0; h < 3; ++h) {
     const auto hit_number = track.hits[h];
     const float x = velo_cluster_container.x(hit_number);
     const float y = velo_cluster_container.y(hit_number);
@@ -40,75 +38,31 @@ __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_contain
     uz2 += wy_t_z * z;
   }
 
-  {
-    // Calculate tx, ty and backward
-    const auto dens = 1.0f / (sz2 * s0 - sz * sz);
-    state.tx = (sxz * s0 - sx * sz) * dens;
-    state.x = (sx * sz2 - sxz * sz) * dens;
+  // Calculate tx and ty
+  const auto dens = 1.0f / (sz2 * s0 - sz * sz);
+  const auto state_tx = (sxz * s0 - sx * sz) * dens;
+  const auto state_x = (sx * sz2 - sxz * sz) * dens;
 
-    const auto denu = 1.0f / (uz2 * u0 - uz * uz);
-    state.ty = (uyz * u0 - uy * uz) * denu;
-    state.y = (uy * uz2 - uyz * uz) * denu;
+  const auto denu = 1.0f / (uz2 * u0 - uz * uz);
+  const auto state_ty = (uyz * u0 - uy * uz) * denu;
+  const auto state_y = (uy * uz2 - uyz * uz) * denu;
+
+  // Chi2 / degrees-of-freedom of straight-line fit
+  float chi2 = 0.0f;
+  for (uint h = 0; h < 3; ++h) {
+    const auto hit_number = track.hits[h];
+
+    const float z = velo_cluster_container.z(hit_number);
+    const float x = state_x + state_tx * z;
+    const float y = state_y + state_ty * z;
+
+    const float dx = x - velo_cluster_container.x(hit_number);
+    const float dy = y - velo_cluster_container.y(hit_number);
+
+    chi2 += dx * dx * Velo::Tracking::param_w + dy * dy * Velo::Tracking::param_w;
   }
 
-  float chi2;
-  {
-    //=========================================================================
-    // Chi2 / degrees-of-freedom of straight-line fit
-    //=========================================================================
-    float ch = 0.0f;
-    int nDoF = -4;
-    for (uint h = 0; h < 3; ++h) {
-      const auto hit_number = track.hits[h];
-
-      const float z = velo_cluster_container.z(hit_number);
-      const float x = state.x + state.tx * z;
-      const float y = state.y + state.ty * z;
-
-      const float dx = x - (float) velo_cluster_container.x(hit_number);
-      const float dy = y - (float) velo_cluster_container.y(hit_number);
-
-      ch += dx * dx * Velo::Tracking::param_w + dy * dy * Velo::Tracking::param_w;
-
-      // Nice :)
-      // TODO: We can get rid of the X and Y read here
-      // float sum_w_xzi_2 = CL_Velo::Tracking::param_w * x; // for each hit
-      // float sum_w_xi_2 = CL_Velo::Tracking::param_w * velo_cluster_container.x(hit_number]; // for each hit
-      // ch = (sum_w_xzi_2 - sum_w_xi_2) + (sum_w_yzi_2 - sum_w_yi_2);
-
-      nDoF += 2;
-    }
-    chi2 = ch / nDoF;
-  }
-
-  return chi2;
-}
-
-/**
- * @brief Calculates the scatter of the three hits.
- *        Unused, but it can be a replacement of the above if needed.
- */
-__device__ float scatter(Velo::ConstClusters& velo_cluster_container, const Velo::TrackletHits& track)
-{
-  const Velo::HitBase h0 {velo_cluster_container.x(track.hits[0]),
-                          velo_cluster_container.y(track.hits[0]),
-                          velo_cluster_container.z(track.hits[0])};
-  const Velo::HitBase h1 {velo_cluster_container.x(track.hits[1]),
-                          velo_cluster_container.y(track.hits[1]),
-                          velo_cluster_container.z(track.hits[1])};
-  const Velo::HitBase h2 {velo_cluster_container.x(track.hits[2]),
-                          velo_cluster_container.y(track.hits[2]),
-                          velo_cluster_container.z(track.hits[2])};
-
-  // Calculate prediction
-  const auto z2_tz = (h2.z - h0.z) / (h1.z - h0.z);
-  const auto x = h0.x + (h1.x - h0.x) * z2_tz;
-  const auto y = h0.y + (h1.y - h0.y) * z2_tz;
-  const auto dx = x - h2.x;
-  const auto dy = y - h2.y;
-
-  // Calculate scatter
-  return (dx * dx) + (dy * dy);
+  return chi2 * 0.5f;
 }
 
 __device__ void three_hit_tracks_filter_impl(
@@ -126,7 +80,7 @@ __device__ void three_hit_tracks_filter_impl(
     const bool any_used = hit_used[t.hits[0]] || hit_used[t.hits[1]] || hit_used[t.hits[2]];
     const float chi2 = means_square_fit_chi2(velo_cluster_container, t);
 
-    // Store them in the tracks bag
+    // Store them in the tracks container
     if (!any_used && chi2 < max_chi2) {
       const uint track_insert_number = atomicAdd(number_of_output_tracks, 1);
       assert(track_insert_number < Velo::Constants::max_tracks);

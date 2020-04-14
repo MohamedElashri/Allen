@@ -9,6 +9,7 @@ __device__ void estimate_raw_bank_size(
   VeloRawBank const& raw_bank)
 {
   uint* estimated_module_pair_size = estimated_input_size + (raw_bank.sensor_index / 8);
+  uint found_cluster_candidates = 0;
   for (uint sp_index = threadIdx.x; sp_index < raw_bank.sp_count; sp_index += blockDim.x) { // Decode sp
     const uint32_t sp_word = raw_bank.sp_word[sp_index];
     const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
@@ -42,7 +43,7 @@ __device__ void estimate_raw_bank_size(
       const uint number_of_clusters = (pattern_0 | pattern_1) ? 2 : 1;
 
       // Add the found clusters
-      [[maybe_unused]] uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, number_of_clusters);
+      [[maybe_unused]] const uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, number_of_clusters);
       assert(current_estimated_module_pair_size < Velo::Constants::max_numhits_in_module);
     }
     else {
@@ -151,7 +152,6 @@ __device__ void estimate_raw_bank_size(
 
       // Add candidates 0, 1, 4, 5
       // Only one of those candidates can be flagged at a time
-      uint found_cluster_candidates = 0;
       if (first_candidate) {
         // Verify candidates are correctly created
         assert(__popc(first_candidate) <= 1);
@@ -178,14 +178,13 @@ __device__ void estimate_raw_bank_size(
         cluster_candidates[current_cluster_candidate] = candidate;
         ++found_cluster_candidates;
       }
-
-      // Add the found cluster candidates
-      if (found_cluster_candidates > 0) {
-        uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, found_cluster_candidates);
-        assert(current_estimated_module_pair_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module);
-        _unused(current_estimated_module_pair_size);
-      }
     }
+  }
+
+  // Add the found cluster candidates
+  if (found_cluster_candidates > 0) {
+    [[maybe_unused]] const uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, found_cluster_candidates);
+    assert(current_estimated_module_pair_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module);
   }
 }
 
