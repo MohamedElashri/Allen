@@ -313,16 +313,6 @@ __host__ __device__ uint16_t __float2half(const float f);
 
 __host__ __device__ float __half2float(const uint16_t h);
 
-// struct half_t {
-// private:
-//   float m_value;
-// public:
-//   half_t() = default;
-//   half_t(const half_t&) = default;
-//   half_t(const float value);
-//   operator float() const;
-// };
-
 #else
 
 // ------------

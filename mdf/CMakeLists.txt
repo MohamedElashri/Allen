@@ -65,7 +65,7 @@ if (LZ4_FOUND)
 endif (LZ4_FOUND)
 
 # These tests don't need CUDA
-add_compile_definitions(NO_CUDA)
+add_compile_definitions(TARGET_DEVICE_CPU)
 
 function(test_program)
   cmake_parse_arguments(PARSED_ARGS "" "NAME" "" ${ARGN})

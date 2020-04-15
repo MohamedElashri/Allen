@@ -16,16 +16,13 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <CudaCommon.h>
 #include <Common.h>
 #include <Logger.h>
 #include <SystemOfUnits.h>
 #include <mdf_header.hpp>
 #include <read_mdf.hpp>
 #include <Event/RawBank.h>
-
-#ifndef NO_CUDA
-#include <CudaCommon.h>
-#endif
 
 #include "TransposeTypes.h"
 
