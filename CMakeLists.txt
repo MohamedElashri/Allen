@@ -30,7 +30,7 @@ option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 
 # Device target architecture
 set(TARGET_DEVICE CUDA CACHE STRING "Target architecture of the device")
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CUDA CPU HIP CUDACLANG)
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CUDA CPU HIP CUDACLANG HIPCLANG)
 
 # Build type
 set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
@@ -74,6 +74,8 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endif()
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 message(STATUS "Note: Support for CUDACLANG is experimental")
+elseif(TARGET_DEVICE STREQUAL "HIPCLANG")
+message(STATUS "Note: Support for HIPCLANG is experimental")
 endif()
 message(STATUS "Allen device target: " ${TARGET_DEVICE})
 
@@ -84,6 +86,8 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   add_compile_definitions(TARGET_DEVICE_HIP)
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
   add_compile_definitions(TARGET_DEVICE_CUDACLANG)
+elseif(TARGET_DEVICE STREQUAL "HIPCLANG")
+  add_compile_definitions(TARGET_DEVICE_HIPCLANG)
 elseif(TARGET_DEVICE STREQUAL "CUDA")
   add_compile_definitions(TARGET_DEVICE_CUDA)
 endif()
@@ -230,7 +234,32 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 
     add_library(${ARGV})
     set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
-    target_compile_options(${ARGV0} PRIVATE -x cuda --cuda-path=${cuda_base_dir} -pthread --cuda-gpu-arch=sm_75 -fcuda-rdc --no-cuda-include-ptx=all)
+    target_compile_options(${ARGV0} PRIVATE -x cuda --cuda-path=${cuda_base_dir} -pthread --cuda-gpu-arch=sm_75)
+  endfunction()
+
+  function(allen_add_executable)
+    message(STATUS "Please use nvcc to link the executable.")
+    add_executable(${ARGV})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+  endfunction()
+elseif(TARGET_DEVICE STREQUAL "HIPCLANG")
+  allen_project()
+
+  function(allen_add_host_library)
+    add_library(${ARGV})
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
+  endfunction()
+
+  function(allen_add_device_library)
+    foreach(arg IN LISTS ARGN)
+      if(${arg} MATCHES "\\.cu$")
+        set_source_files_properties(${arg} PROPERTIES LANGUAGE CXX)
+      endif()
+    endforeach()
+
+    add_library(${ARGV})
+    set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
+    target_compile_options(${ARGV0} PRIVATE -x hip -pthread -I/opt/apps/clang-9.0.1.src/test/Driver/Inputs/hip_dev_lib)
   endfunction()
 
   function(allen_add_executable)
@@ -423,14 +452,14 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   function(allen_add_device_library)
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
-    target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
+    # target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     # set_target_properties(${ARGV0} PROPERTIES HIP_RESOLVE_DEVICE_SYMBOLS ON)
-    target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
+    # target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
@@ -619,7 +648,7 @@ else()
 endif()
 target_link_libraries(Common mdf allen_fs)
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
+if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG" OR TARGET_DEVICE STREQUAL "HIPCLANG")
   set_source_files_properties(${common_cuda_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
@@ -630,7 +659,7 @@ set(allen_lib_sources ${Allen_cpp_path}
                       ${OutputHandler_cpp_path}
                       ${ZMQOutputSender_cpp_path})
 
-if(TARGET_DEVICE STREQUAL "HIP" OR TARGET_DEVICE STREQUAL "CUDACLANG")
+if(TARGET_DEVICE STREQUAL "HIP" OR TARGET_DEVICE STREQUAL "CUDACLANG" OR TARGET_DEVICE STREQUAL "HIPCLANG")
 #Produce self - contained application
 #Otherwise, HIP doesn't seem to link properly
   allen_add_device_library(AllenLib STATIC ${allen_lib_sources})

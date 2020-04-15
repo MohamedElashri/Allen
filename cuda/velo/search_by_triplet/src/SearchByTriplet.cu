@@ -547,7 +547,7 @@ __device__ void track_seeding(
           const auto dy = predy - h2.y;
 
           // Scatter
-          const auto scatter = (dx * dx) + (dy * dy);
+          const auto scatter = dx * dx + dy * dy;
 
           // Keep the best one found
           if (scatter < best_fit) {
@@ -574,4 +574,3 @@ __device__ void track_seeding(
     }
   }
 }
- 
