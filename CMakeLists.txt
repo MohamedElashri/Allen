@@ -208,7 +208,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     message(FATAL_ERROR "Could not find HIP. Ensure that HIP is either installed in /opt/rocm/hip or the variable HIP_PATH is set.")
   endif()
 
-  set(HIP_SEPARABLE_COMPILATION ON)
+  set(HIP_SEPARABLE_COMPILATION OFF)
 
   set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wno-unused-result")
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
@@ -422,8 +422,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 #Define allen_add_device_library and allen_add_executable HIP specializations
   function(allen_add_device_library)
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    set_property(TARGET ${ARGV0} PROPERTY
-      HIP_SEPARABLE_COMPILATION ON)
+    set_property(TARGET ${ARGV0})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
@@ -431,9 +430,8 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   function(allen_add_executable)
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    set_target_properties(${ARGV0}
-         PROPERTIES HIP_SEPARABLE_COMPILATION ON
-                  HIP_RESOLVE_DEVICE_SYMBOLS ON)
+    set_target_properties(${ARGV0})
+#[[         PROPERTIES HIP_RESOLVE_DEVICE_SYMBOLS ON]])
     target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
