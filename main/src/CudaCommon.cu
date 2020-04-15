@@ -1,6 +1,6 @@
 #include "CudaCommon.h"
 
-#ifdef CPU
+#ifdef TARGET_DEVICE_CPU
 
 #include <cstring>
 #include "stdlib.h"
