@@ -337,8 +337,9 @@ __device__ void track_forwarding(
       const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
 
       // Check the phi difference is within the tolerance with modulo arithmetic.
-      const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
-      if (phi_diff > phi_tolerance || -phi_diff > phi_tolerance) {
+      const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
+      const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
+      if (abs_phi_diff > phi_tolerance) {
         break;
       }
 
@@ -529,8 +530,9 @@ __device__ void track_seeding(
         const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
 
         // Check the phi difference is within the tolerance with modulo arithmetic.
-        const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
-        if (phi_diff > phi_tolerance || -phi_diff > phi_tolerance) {
+        const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
+        const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
+        if (abs_phi_diff > phi_tolerance) {
           break;
         }
 
@@ -556,6 +558,8 @@ __device__ void track_seeding(
         }
       }
     }
+
+    printf("\n");
 
     if (best_fit < max_scatter) {
       // Add the track to the container of seeds
