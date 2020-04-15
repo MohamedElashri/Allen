@@ -38,6 +38,7 @@ namespace VertexFit {
     }
     return false;
   }
+  
  __device__ float ip (
     float x0,
     float y0,

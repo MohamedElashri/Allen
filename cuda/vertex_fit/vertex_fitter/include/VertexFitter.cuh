@@ -12,15 +12,16 @@
 #include "DeviceAlgorithm.cuh"
 
 namespace VertexFit {
-  __device__ bool poca(
+  __device__ inline bool poca(
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB,
     float& x,
     float& y,
     float& z);
-  __device__ float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
+  
+  __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
-  __device__ float addToDerivatives(
+  __device__ inline float addToDerivatives(
     const ParKalmanFilter::FittedTrack& track,
     const float& x,
     const float& y,
@@ -34,7 +35,7 @@ namespace VertexFit {
     float& halfD2Chi2_21,
     float& halfD2Chi2_22);
 
-  __device__ float solve(
+  __device__ inline float solve(
     float& x,
     float& y,
     float& z,
@@ -52,15 +53,15 @@ namespace VertexFit {
     const float& halfD2Chi2_21,
     const float& halfD2Chi2_22);
 
-  __device__ bool
+  __device__ inline bool
   doFit(const ParKalmanFilter::FittedTrack& trackA, const ParKalmanFilter::FittedTrack& trackB, TrackMVAVertex& vertex);
 
-  __device__ void fill_extra_info(
+  __device__ inline void fill_extra_info(
     TrackMVAVertex& sv,
     const ParKalmanFilter::FittedTrack& trackA,
     const ParKalmanFilter::FittedTrack& trackB);
 
-  __device__ void fill_extra_pv_info(
+  __device__ inline void fill_extra_pv_info(
     TrackMVAVertex& sv,
     const PV::Vertex& pv,
     const ParKalmanFilter::FittedTrack& trackA,

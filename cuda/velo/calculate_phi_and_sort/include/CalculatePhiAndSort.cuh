@@ -71,6 +71,12 @@ namespace velo_calculate_phi_and_sort {
                     begin<dev_sorted_velo_cluster_container_t>(arguments),
                     begin<dev_hit_permutation_t>(arguments),
                     begin<dev_hit_phi_t>(arguments)});
+
+      // printf("After velo_calculate_phi_and_sort:\n");
+      // print_velo_clusters<dev_sorted_velo_cluster_container_t,
+      //   dev_offsets_estimated_input_size_t,
+      //   dev_module_cluster_num_t,
+      //   host_total_number_of_velo_clusters_t>(arguments);
     }
 
   private:

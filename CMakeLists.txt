@@ -412,7 +412,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 #- funroll - loops
 #- fstack - protector - strong
 #- fPIC - shared
-  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn -fgpu-rdc --amdgpu-target=gfx906")
+  set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn")
 
   function(allen_add_host_library)
     add_library(${ARGV})
@@ -422,7 +422,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 #Define allen_add_device_library and allen_add_executable HIP specializations
   function(allen_add_device_library)
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    set_property(TARGET ${ARGV0})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
@@ -430,8 +429,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   function(allen_add_executable)
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    set_target_properties(${ARGV0})
-#[[         PROPERTIES HIP_RESOLVE_DEVICE_SYMBOLS ON]])
+    # set_target_properties(${ARGV0} PROPERTIES HIP_RESOLVE_DEVICE_SYMBOLS ON)
     target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)

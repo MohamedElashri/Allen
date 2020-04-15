@@ -96,6 +96,10 @@ namespace velo_search_by_triplet {
                     property<max_scatter_t>(),
                     property<max_skipped_modules_t>()},
         constants.dev_velo_geometry);
+
+      printf("After sbt:\n");
+      print_velo_tracks<dev_tracks_t, dev_number_of_velo_tracks_t>(arguments);
+      print_velo_tracklets<dev_tracklets_t, dev_atomics_velo_t>(arguments);
     }
 
   private:

@@ -64,8 +64,8 @@ __host__ inline void print_velo_clusters(Arguments arguments)
 {
   // Prints the velo clusters
   std::vector<char> a(size<VeloContainer>(arguments));
-  std::vector<uint> offsets_estimated_input_size(size<Offsets>(arguments));
-  std::vector<uint> module_cluster_num(size<ClusterNum>(arguments));
+  std::vector<uint> offsets_estimated_input_size(size<Offsets>(arguments) / sizeof(uint));
+  std::vector<uint> module_cluster_num(size<ClusterNum>(arguments) / sizeof(uint));
 
   cudaCheck(
     cudaMemcpy(a.data(), begin<VeloContainer>(arguments), size<VeloContainer>(arguments), cudaMemcpyDeviceToHost));
@@ -85,6 +85,75 @@ __host__ inline void print_velo_clusters(Arguments arguments)
       std::cout << " " << velo_cluster_container.x(hit_index) << ", " << velo_cluster_container.y(hit_index) << ", "
                 << velo_cluster_container.z(hit_index) << ", " << velo_cluster_container.id(hit_index) << "\n";
     }
+    std::cout << "\n";
+  }
+}
+
+/**
+ * @brief Prints the VELO track numbers.
+ */
+template<
+  typename VeloTracks,
+  typename NumberOfVeloTracks,
+  typename Arguments>
+__host__ inline void print_velo_tracks(Arguments arguments)
+{
+  // Prints the velo clusters
+  std::vector<Velo::TrackHits> trackhits(size<VeloTracks>(arguments) / sizeof(Velo::TrackHits));
+  std::vector<uint> number_of_velo_tracks(size<NumberOfVeloTracks>(arguments) / sizeof(uint));
+
+  cudaCheck(
+    cudaMemcpy(trackhits.data(), begin<VeloTracks>(arguments), size<VeloTracks>(arguments), cudaMemcpyDeviceToHost));
+  cudaCheck(
+    cudaMemcpy(number_of_velo_tracks.data(), begin<NumberOfVeloTracks>(arguments), size<NumberOfVeloTracks>(arguments), cudaMemcpyDeviceToHost));
+
+  for (uint event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
+    const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
+    std::cout << "Event #" << event_number << ": " << event_number_of_velo_tracks << " VELO tracks:\n";
+
+    const auto tracks_offset = event_number * Velo::Constants::max_tracks;
+    for (uint i = 0; i < event_number_of_velo_tracks; ++i) {
+      std::cout << " Track #" << i << ": ";
+      const auto track = trackhits[tracks_offset + i];
+      for (uint j = 0; j < track.hitsNum; ++j) {
+        std::cout << track.hits[j] << ", ";
+      }
+      std::cout << "\n";
+    }
+
+    std::cout << "\n";
+  }
+}
+
+template<
+  typename VeloTracks,
+  typename NumberOfVeloTracks,
+  typename Arguments>
+__host__ inline void print_velo_tracklets(Arguments arguments)
+{
+  // Prints the velo clusters
+  std::vector<Velo::TrackletHits> trackhits(size<VeloTracks>(arguments) / sizeof(Velo::TrackletHits));
+  std::vector<uint> number_of_velo_tracks(size<NumberOfVeloTracks>(arguments) / sizeof(uint));
+
+  cudaCheck(
+    cudaMemcpy(trackhits.data(), begin<VeloTracks>(arguments), size<VeloTracks>(arguments), cudaMemcpyDeviceToHost));
+  cudaCheck(
+    cudaMemcpy(number_of_velo_tracks.data(), begin<NumberOfVeloTracks>(arguments), size<NumberOfVeloTracks>(arguments), cudaMemcpyDeviceToHost));
+
+  for (uint event_number = 0; event_number < number_of_velo_tracks.size() / Velo::num_atomics; ++event_number) {
+    const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number * Velo::num_atomics + Velo::Tracking::atomics::number_of_three_hit_tracks];
+    std::cout << "Event #" << event_number << ": " << event_number_of_velo_tracks << " VELO tracklets:\n";
+
+    const auto tracks_offset = event_number * Velo::Constants::max_three_hit_tracks;
+    for (uint i = 0; i < event_number_of_velo_tracks; ++i) {
+      std::cout << " Track #" << i << ": ";
+      const auto track = trackhits[tracks_offset + i];
+      for (uint j = 0; j < 3; ++j) {
+        std::cout << track.hits[j] << ", ";
+      }
+      std::cout << "\n";
+    }
+
     std::cout << "\n";
   }
 }
