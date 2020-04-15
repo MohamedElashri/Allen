@@ -55,6 +55,9 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   velo_search_by_triplet::Parameters parameters,
   const VeloGeometry* dev_velo_geometry)
 {
+  // Shared memory size is a constant, enough to fit information about three module pairs.
+  __shared__ uint32_t module_data[12];
+
   // Initialize event number and number of events based on kernel invoking parameters
   const uint event_number = blockIdx.x;
   const uint number_of_events = gridDim.x;
@@ -82,11 +85,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   Velo::TrackletHits* tracklets = parameters.dev_tracklets + event_number * Velo::Constants::max_tracks_to_follow;
   unsigned short* h1_rel_indices = parameters.dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
 
-  // Shared memory size is a constant, enough to fit information about three module pairs.
-  __shared__ float module_data[12];
-
   process_modules(
-    (Velo::Module*) &module_data[0],
+    reinterpret_cast<Velo::Module*>(module_data),
     hit_used,
     module_hit_start,
     module_hit_num,
@@ -129,7 +129,7 @@ __device__ void process_modules(
   const uint max_skipped_modules,
   const int16_t phi_tolerance)
 {
-  auto first_module_pair = Velo::Constants::n_module_pairs - 1;
+  uint first_module_pair = Velo::Constants::n_module_pairs - 1;
 
   // Prepare the first seeding iteration
   // Load shared module information
@@ -163,7 +163,6 @@ __device__ void process_modules(
   --first_module_pair;
 
   while (first_module_pair > 1) {
-
     // Due to WAR between track_seeding and population of shared memory.
     __syncthreads();
 
@@ -338,8 +337,9 @@ __device__ void track_forwarding(
       const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
 
       // Check the phi difference is within the tolerance with modulo arithmetic.
-      const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
-      if (phi_diff > phi_tolerance || -phi_diff > phi_tolerance) {
+      const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
+      const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
+      if (abs_phi_diff > phi_tolerance) {
         break;
       }
 
@@ -530,8 +530,9 @@ __device__ void track_seeding(
         const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
 
         // Check the phi difference is within the tolerance with modulo arithmetic.
-        const auto phi_diff = hit_phi[h2_index] - extrapolated_phi;
-        if (phi_diff > phi_tolerance || -phi_diff > phi_tolerance) {
+        const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
+        const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
+        if (abs_phi_diff > phi_tolerance) {
           break;
         }
 
@@ -573,3 +574,4 @@ __device__ void track_seeding(
     }
   }
 }
+ 
