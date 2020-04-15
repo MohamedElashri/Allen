@@ -8,6 +8,7 @@
 #include "VeloEventModel.cuh"
 #include "patPV_Definitions.cuh"
 #include "FloatOperations.cuh"
+#include "States.cuh"
 #include <cstdint>
 
 namespace pv_beamline_extrapolate {

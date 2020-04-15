@@ -68,25 +68,59 @@ namespace ParKalmanFilter {
       return 1;
     }
 
-    __device__ __host__ float& x00(int idx) { return coefs[idx]; }
-    __device__ __host__ float& x10(int idx) { return coefs[Degx2 + idx]; }
-    __device__ __host__ float& x01(int idx) { return coefs[Degx1 + Degx2 + idx]; }
-    __device__ __host__ float& tx00(int idx) { return coefs[2 * Degx1 + Degx2 + idx]; }
-    __device__ __host__ float& tx10(int idx) { return coefs[2 * Degx1 + 2 * Degx2 + idx]; }
-    __device__ __host__ float& tx01(int idx) { return coefs[3 * Degx1 + 2 * Degx2 + idx]; }
-    __device__ __host__ float& y00(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + idx]; }
-    __device__ __host__ float& y10(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + Degy2 + idx]; }
-    __device__ __host__ float& y01(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + Degy1 + Degy2 + idx]; }
-    __device__ __host__ float& ty00(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + 2 * Degy1 + Degy2 + idx]; }
-    __device__ __host__ float& ty10(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + 2 * Degy1 + 2 * Degy2 + idx]; }
-    __device__ __host__ float& ty01(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + 3 * Degy1 + 2 * Degy2 + idx]; }
+    __device__ __host__ inline float& x00(int idx) { return coefs[idx]; }
+    __device__ __host__ inline float& x10(int idx) { return coefs[Degx2 + idx]; }
+    __device__ __host__ inline float& x01(int idx) { return coefs[Degx1 + Degx2 + idx]; }
+    __device__ __host__ inline float& tx00(int idx) { return coefs[2 * Degx1 + Degx2 + idx]; }
+    __device__ __host__ inline float& tx10(int idx) { return coefs[2 * Degx1 + 2 * Degx2 + idx]; }
+    __device__ __host__ inline float& tx01(int idx) { return coefs[3 * Degx1 + 2 * Degx2 + idx]; }
+    __device__ __host__ inline float& y00(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + idx]; }
+    __device__ __host__ inline float& y10(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + Degy2 + idx]; }
+    __device__ __host__ inline float& y01(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + Degy1 + Degy2 + idx]; }
+    __device__ __host__ inline float& ty00(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + 2 * Degy1 + Degy2 + idx]; }
+    __device__ __host__ inline float& ty10(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + 2 * Degy1 + 2 * Degy2 + idx]; }
+    __device__ __host__ inline float& ty01(int idx) { return coefs[4 * Degx1 + 2 * Degx2 + 3 * Degy1 + 2 * Degy2 + idx]; }
   };
 
   // Operators for Kalman coefficients.
   typedef KalmanParametrizationsCoef<7, 9, 5, 7> StandardCoefs;
 
-  __device__ __host__ StandardCoefs operator+(const StandardCoefs& a, const StandardCoefs& b);
-  __device__ __host__ StandardCoefs operator-(const StandardCoefs& a, const StandardCoefs& b);
-  __device__ __host__ StandardCoefs operator*(const StandardCoefs& a, const float p);
+  __device__ __host__ inline StandardCoefs operator+(const StandardCoefs& a, const StandardCoefs& b);
+  __device__ __host__ inline StandardCoefs operator-(const StandardCoefs& a, const StandardCoefs& b);
+  __device__ __host__ inline StandardCoefs operator*(const StandardCoefs& a, const float p);
+
+} // namespace ParKalmanFilter
+
+namespace ParKalmanFilter {
+
+  __device__ __host__ StandardCoefs operator+(const StandardCoefs& a, const StandardCoefs& b)
+  {
+    StandardCoefs c;
+    int nMax = 4 * a.degx1 + 2 * a.degx2 + 4 * a.degy1 + 2 * a.degy2;
+    for (int i = 0; i < nMax; i++) {
+      c.coefs[i] = a.coefs[i] + b.coefs[i];
+    }
+    return c;
+  }
+
+  __device__ __host__ StandardCoefs operator-(const StandardCoefs& a, const StandardCoefs& b)
+  {
+    StandardCoefs c;
+    int nMax = 4 * a.degx1 + 2 * a.degx2 + 4 * a.degy1 + 2 * a.degy2;
+    for (int i = 0; i < nMax; i++) {
+      c.coefs[i] = a.coefs[i] - b.coefs[i];
+    }
+    return c;
+  }
+
+  __device__ __host__ StandardCoefs operator*(const StandardCoefs& a, const float p)
+  {
+    StandardCoefs c;
+    int nMax = 4 * a.degx1 + 2 * a.degx2 + 4 * a.degy1 + 2 * a.degy2;
+    for (int i = 0; i < nMax; i++) {
+      c.coefs[i] = p * a.coefs[i];
+    }
+    return c;
+  }
 
 } // namespace ParKalmanFilter

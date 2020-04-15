@@ -144,3 +144,5 @@ namespace VertexFit {
     Property<block_dim_t> m_block_dim {this, {{16, 16, 1}}};
   };
 } // namespace VertexFit
+
+#include "VertexFitter.icc"

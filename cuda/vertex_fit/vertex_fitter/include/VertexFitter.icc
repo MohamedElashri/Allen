@@ -1,7 +1,3 @@
-#include "VertexFitter.cuh"
-#include "ParKalmanMath.cuh"
-#include "ParKalmanDefinitions.cuh"
-
 namespace VertexFit {
 
   //----------------------------------------------------------------------

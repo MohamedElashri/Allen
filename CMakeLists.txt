@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}) # for find_package
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake) # for find_package
-set(CUDA_SEPARABLE_COMPILATION ON)
+set(CUDA_SEPARABLE_COMPILATION OFF)
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -262,7 +262,6 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   function(allen_add_device_library)
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
-    set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
@@ -315,7 +314,6 @@ elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
 endif()
 
 if(TARGET_DEVICE STREQUAL "CUDA")
-  set(CUDA_SEPARABLE_COMPILATION ON)
   option(CUDA_PROPAGATE_HOST_FLAGS "Propagate CUDA host flags" OFF)
   set(CMAKE_CUDA_STANDARD 14)
 

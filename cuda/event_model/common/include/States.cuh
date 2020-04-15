@@ -19,6 +19,13 @@
 struct KalmanVeloState {
   float x, y, z, tx, ty;
   float c00, c20, c22, c11, c31, c33;
+
+  __host__ __device__ KalmanVeloState() {}
+
+  __host__ __device__ KalmanVeloState(const KalmanVeloState& other) :
+    x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty), c00(other.c00), c20(other.c20), c22(other.c22),
+    c11(other.c11), c31(other.c31), c33(other.c33)
+  {}
 };
 
 /**
@@ -28,7 +35,7 @@ struct VeloState {
   float x, y, z, tx, ty;
   bool backward;
 
-  __host__ __device__ VeloState() {};
+  __host__ __device__ VeloState() {}
 
   __host__ __device__ VeloState(const VeloState& other) :
     x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty), backward(other.backward)
@@ -47,7 +54,7 @@ struct VeloState {
 struct MiniState {
   float x, y, z, tx, ty;
 
-  __host__ __device__ MiniState() {};
+  __host__ __device__ MiniState() {}
 
   __host__ __device__ MiniState(const VeloState& other) : x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
   {}

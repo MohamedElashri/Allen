@@ -64,15 +64,15 @@ using namespace ParKalmanFilter;
 
 ////////////////////////////////////////////////////////////////////////
 // Functions for doing the extrapolation.
-__device__ void
+__device__ inline void
 ExtrapolateInV(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackInfo& tI);
 
-__device__ bool
+__device__ inline bool
 ExtrapolateVUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackInfo& tI);
 
-__device__ void GetNoiseVUTBackw(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, SymMatrix5x5& Q, trackInfo& tI);
+__device__ inline void GetNoiseVUTBackw(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, SymMatrix5x5& Q, trackInfo& tI);
 
-__device__ void ExtrapolateInUT(
+__device__ inline void ExtrapolateInUT(
   KalmanFloat zFrom,
   uint nLayer,
   KalmanFloat zTo,
@@ -81,15 +81,15 @@ __device__ void ExtrapolateInUT(
   SymMatrix5x5& Q,
   trackInfo& tI);
 
-__device__ void ExtrapolateUTFUTDef(KalmanFloat& zFrom, Vector5& x, Matrix5x5& F, trackInfo& tI);
+__device__ inline void ExtrapolateUTFUTDef(KalmanFloat& zFrom, Vector5& x, Matrix5x5& F, trackInfo& tI);
 
-__device__ void ExtrapolateUTFUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, trackInfo& tI);
+__device__ inline void ExtrapolateUTFUT(KalmanFloat zFrom, KalmanFloat zTo, Vector5& x, Matrix5x5& F, trackInfo& tI);
 
-__device__ void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackInfo& tI);
+__device__ inline void ExtrapolateUTT(Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackInfo& tI);
 
-__device__ void GetNoiseUTTBackw(const Vector5& x, SymMatrix5x5& Q, trackInfo& tI);
+__device__ inline void GetNoiseUTTBackw(const Vector5& x, SymMatrix5x5& Q, trackInfo& tI);
 
-__device__ void ExtrapolateInT(
+__device__ inline void ExtrapolateInT(
   KalmanFloat zFrom,
   uint nLayer,
   KalmanFloat& zTo,
@@ -98,7 +98,7 @@ __device__ void ExtrapolateInT(
   SymMatrix5x5& Q,
   trackInfo& tI);
 
-__device__ void ExtrapolateInT(
+__device__ inline void ExtrapolateInT(
   KalmanFloat zFrom,
   uint nLayer,
   KalmanFloat zTo,
@@ -109,13 +109,13 @@ __device__ void ExtrapolateInT(
   SymMatrix5x5& Q,
   trackInfo& tI);
 
-__device__ void
+__device__ inline void
 ExtrapolateTFT(KalmanFloat zFrom, KalmanFloat& zTo, Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackInfo& tI);
 
-__device__ void
+__device__ inline void
 ExtrapolateTFTDef(KalmanFloat zFrom, KalmanFloat& zTo, Vector5& x, Matrix5x5& F, SymMatrix5x5& Q, trackInfo& tI);
 
-__device__ int extrapUTT(
+__device__ inline int extrapUTT(
   KalmanFloat zi,
   KalmanFloat zf,
   KalmanFloat& x,
@@ -134,7 +134,7 @@ __device__ int extrapUTT(
 
 //----------------------------------------------------------------------
 // Create a seed state at the first VELO hit.
-__device__ void CreateVeloSeedState(
+__device__ inline void CreateVeloSeedState(
   Velo::Consolidated::ConstHits& hits,
   const int nVeloHits,
   int nHit,
@@ -145,7 +145,7 @@ __device__ void CreateVeloSeedState(
 
 //----------------------------------------------------------------------
 // Predict in the VELO.
-__device__ void PredictStateV(
+__device__ inline void PredictStateV(
   Velo::Consolidated::ConstHits& hits,
   int nHit,
   Vector5& x,
@@ -155,12 +155,12 @@ __device__ void PredictStateV(
 
 //----------------------------------------------------------------------
 // Predict VELO <-> UT.
-__device__ bool
+__device__ inline bool
 PredictStateVUT(UT::Consolidated::ConstHits& hitsUT, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict UT <-> UT.
-__device__ void PredictStateUT(
+__device__ inline void PredictStateUT(
   UT::Consolidated::ConstHits& hits,
   const uint layer,
   Vector5& x,
@@ -170,15 +170,15 @@ __device__ void PredictStateUT(
 
 //----------------------------------------------------------------------
 // Predict last UT layer <-> start of UTTF.
-__device__ void PredictStateUTFUT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
+__device__ inline void PredictStateUTFUT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict UT <-> T precise version(?)
-__device__ void PredictStateUTT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
+__device__ inline void PredictStateUTT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict T <-> T.
-__device__ void PredictStateT(
+__device__ inline void PredictStateT(
   SciFi::Consolidated::ConstExtendedHits& hits,
   uint layer,
   Vector5& x,
@@ -188,21 +188,21 @@ __device__ void PredictStateT(
 
 //----------------------------------------------------------------------
 // Predict T(fixed z=7783) <-> first T layer.
-__device__ void
+__device__ inline void
 PredictStateTFT(SciFi::Consolidated::ConstExtendedHits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict T(fixed z=7783) <-> first T layer.
-__device__ void PredictStateTFT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
+__device__ inline void PredictStateTFT(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Update state with velo measurement.
-__device__ void
+__device__ inline void
 UpdateStateV(Velo::Consolidated::ConstHits& hits, int forward, int nHit, Vector5& x, SymMatrix5x5& C, trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Update state with UT measurement.
-__device__ void UpdateStateUT(
+__device__ inline void UpdateStateUT(
   UT::Consolidated::ConstHits& hits,
   uint layer,
   Vector5& x,
@@ -212,7 +212,7 @@ __device__ void UpdateStateUT(
 
 //----------------------------------------------------------------------
 // Update state with T measurement.
-__device__ void UpdateStateT(
+__device__ inline void UpdateStateT(
   SciFi::Consolidated::ConstExtendedHits& hits,
   uint layer,
   Vector5& x,
@@ -222,4 +222,6 @@ __device__ void UpdateStateT(
 
 //----------------------------------------------------------------------
 // Extrapolate to the vertex using straight line extrapolation.
-__device__ void ExtrapolateToVertex(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz);
+__device__ inline void ExtrapolateToVertex(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz);
+
+#include "ParKalmanMethods.icc"
