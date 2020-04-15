@@ -259,7 +259,7 @@ elseif(TARGET_DEVICE STREQUAL "HIPCLANG")
 
     add_library(${ARGV})
     set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
-    target_compile_options(${ARGV0} PRIVATE -x hip -pthread -I/opt/apps/clang-9.0.1.src/test/Driver/Inputs/hip_dev_lib)
+    target_compile_options(${ARGV0} PRIVATE -x hip -pthread --hip-device-lib-path=/opt/rocm-3.3.0/lib -mcpu=gfx906)
   endfunction()
 
   function(allen_add_executable)
