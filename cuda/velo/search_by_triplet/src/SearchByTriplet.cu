@@ -559,8 +559,6 @@ __device__ void track_seeding(
       }
     }
 
-    printf("\n");
-
     if (best_fit < max_scatter) {
       // Add the track to the container of seeds
       const auto trackP =
