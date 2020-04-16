@@ -7,8 +7,7 @@
 #include "BankTypes.h"
 #include "LoggerCommon.h"
 
-#if defined(TARGET_DEVICE_CPU) || \
-  defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__) || (defined(TARGET_DEVICE_HIPCLANG) && !defined(__CUDA__))
+#if defined(TARGET_DEVICE_CPU) || defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__)
 
 #include <cmath>
 #include <cstring>
@@ -246,12 +245,16 @@ public:
 // Support for HIP
 // ---------------
 
-#if defined(__HCC__) || defined(__HIP__) || defined(__NVCC__) || defined(__CUDACC__)
-#include <hip/hip_runtime.h>
-#else
+#if (defined(TARGET_DEVICE_HIPCLANG) && !defined(__HIPDETECTED__)) || (defined(TARGET_DEVICE_HIP) && !defined(__HCC__) && !defined(__HIP__))
 #define __HIP_PLATFORM_HCC__
 #include <hip/hip_runtime_api.h>
+#else
+#include <hip/hip_runtime.h>
+#include <hip/math_functions.h>
 #endif
+
+#include <hip/hip_fp16.h>
+#define half_t half
 
 // Support for CUDA to HIP conversion
 #define cudaMalloc hipMalloc
@@ -307,12 +310,6 @@ public:
       throw std::invalid_argument("cudaCheckKernelCall failed");                                                  \
     }                                                                                                             \
   }
-
-#define half_t float
-
-__host__ __device__ uint16_t __float2half(const float f);
-
-__host__ __device__ float __half2float(const uint16_t h);
 
 #else
 
