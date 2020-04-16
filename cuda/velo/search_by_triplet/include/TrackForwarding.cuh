@@ -5,26 +5,6 @@
 #include "VeloTools.cuh"
 #include <tuple>
 
-__device__ void process_modules(
-  Velo::Module* module_data,
-  bool* hit_used,
-  const uint* module_hit_start,
-  const uint* module_hit_num,
-  Velo::ConstClusters& velo_cluster_container,
-  const int16_t* hit_phi,
-  uint* tracks_to_follow,
-  Velo::TrackletHits* weak_tracks,
-  Velo::TrackletHits* tracklets,
-  Velo::TrackHits* tracks,
-  unsigned short* h1_rel_indices,
-  const uint hit_offset,
-  const float* dev_velo_module_zs,
-  uint* dev_atomics_velo,
-  uint* dev_number_of_velo_tracks,
-  const float max_scatter,
-  const uint max_skipped_modules,
-  const int16_t phi_tolerance);
-
 __device__ void track_seeding(
   Velo::ConstClusters& velo_cluster_container,
   const Velo::Module* module_data,

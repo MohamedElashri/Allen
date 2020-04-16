@@ -56,7 +56,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const VeloGeometry* dev_velo_geometry)
 {
   // Shared memory size is a constant, enough to fit information about three module pairs.
-  __shared__ uint32_t module_data[12];
+  __shared__ Velo::Module module_data[3];
 
   // Initialize event number and number of events based on kernel invoking parameters
   const uint event_number = blockIdx.x;
@@ -85,50 +85,9 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   Velo::TrackletHits* tracklets = parameters.dev_tracklets + event_number * Velo::Constants::max_tracks_to_follow;
   unsigned short* h1_rel_indices = parameters.dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
 
-  process_modules(
-    reinterpret_cast<Velo::Module*>(module_data),
-    hit_used,
-    module_hit_start,
-    module_hit_num,
-    velo_cluster_container,
-    hit_phi,
-    tracks_to_follow,
-    three_hit_tracks,
-    tracklets,
-    tracks,
-    h1_rel_indices,
-    hit_offset,
-    dev_velo_geometry->module_zs,
-    parameters.dev_atomics_velo + blockIdx.x * Velo::num_atomics,
-    parameters.dev_number_of_velo_tracks,
-    parameters.max_scatter,
-    parameters.max_skipped_modules,
-    hit_phi_float_to_16(parameters.phi_tolerance));
-}
+  uint* dev_atomics_velo = parameters.dev_atomics_velo + blockIdx.x * Velo::num_atomics;
+  const int16_t phi_tolerance = hit_phi_float_to_16(parameters.phi_tolerance);
 
-/**
- * @brief Processes modules in decreasing order.
- */
-__device__ void process_modules(
-  Velo::Module* module_data,
-  bool* hit_used,
-  const uint* module_hit_start,
-  const uint* module_hit_num,
-  Velo::ConstClusters& velo_cluster_container,
-  const int16_t* hit_phi,
-  uint* tracks_to_follow,
-  Velo::TrackletHits* three_hit_tracks,
-  Velo::TrackletHits* tracklets,
-  Velo::TrackHits* tracks,
-  unsigned short* h1_rel_indices,
-  const uint hit_offset,
-  const float* dev_velo_module_zs,
-  uint* dev_atomics_velo,
-  uint* dev_number_of_velo_tracks,
-  const float max_scatter,
-  const uint max_skipped_modules,
-  const int16_t phi_tolerance)
-{
   uint first_module_pair = Velo::Constants::n_module_pairs - 1;
 
   // Prepare the first seeding iteration
@@ -137,8 +96,8 @@ __device__ void process_modules(
     const auto module_pair_number = first_module_pair - i;
     module_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
     module_data[i].hit_num = module_hit_num[module_pair_number];
-    module_data[i].z[0] = dev_velo_module_zs[2 * module_pair_number];
-    module_data[i].z[1] = dev_velo_module_zs[2 * module_pair_number + 1];
+    module_data[i].z[0] = dev_velo_geometry->module_zs[2 * module_pair_number];
+    module_data[i].z[1] = dev_velo_geometry->module_zs[2 * module_pair_number + 1];
   }
 
   // Due to shared module data initialization
@@ -153,7 +112,7 @@ __device__ void process_modules(
     tracks_to_follow,
     h1_rel_indices,
     dev_atomics_velo,
-    max_scatter,
+    parameters.max_scatter,
     hit_phi,
     phi_tolerance);
 
@@ -172,8 +131,8 @@ __device__ void process_modules(
       const auto module_pair_number = first_module_pair - i;
       module_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
       module_data[i].hit_num = module_hit_num[module_pair_number];
-      module_data[i].z[0] = dev_velo_module_zs[2 * module_pair_number];
-      module_data[i].z[1] = dev_velo_module_zs[2 * module_pair_number + 1];
+      module_data[i].z[0] = dev_velo_geometry->module_zs[2 * module_pair_number];
+      module_data[i].z[1] = dev_velo_geometry->module_zs[2 * module_pair_number + 1];
     }
 
     // ttf stands for "tracks to forward"
@@ -201,10 +160,10 @@ __device__ void process_modules(
       tracklets,
       tracks,
       dev_atomics_velo,
-      dev_number_of_velo_tracks,
+      parameters.dev_number_of_velo_tracks,
       phi_tolerance,
-      max_scatter,
-      max_skipped_modules);
+      parameters.max_scatter,
+      parameters.max_skipped_modules);
 
     // Due to module data reading
     __syncthreads();
@@ -218,7 +177,7 @@ __device__ void process_modules(
       tracks_to_follow,
       h1_rel_indices,
       dev_atomics_velo,
-      max_scatter,
+      parameters.max_scatter,
       hit_phi,
       phi_tolerance);
 
@@ -245,175 +204,6 @@ __device__ void process_modules(
       const auto three_hit_tracks_p = atomicAdd(dev_atomics_velo + atomics::number_of_three_hit_tracks, 1);
       three_hit_tracks[three_hit_tracks_p] = Velo::TrackletHits {t->hits[0], t->hits[1], t->hits[2]};
     }
-  }
-}
-
-/**
- * @brief Performs the track forwarding of forming tracks
- */
-__device__ void track_forwarding(
-  Velo::ConstClusters& velo_cluster_container,
-  const int16_t* hit_phi,
-  bool* hit_used,
-  const Velo::Module* module_data,
-  const uint diff_ttf,
-  uint* tracks_to_follow,
-  Velo::TrackletHits* three_hit_tracks,
-  const uint prev_ttf,
-  Velo::TrackletHits* tracklets,
-  Velo::TrackHits* tracks,
-  uint* dev_atomics_velo,
-  uint* dev_number_of_velo_tracks,
-  const int16_t phi_tolerance,
-  const float max_scatter,
-  const uint max_skipped_modules)
-{
-  // Assign a track to follow to each thread
-  for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
-    const auto full_track_number = tracks_to_follow[(prev_ttf + ttf_element) % Velo::Constants::max_tracks_to_follow];
-    const bool track_flag = (full_track_number & bits::seed) == bits::seed;
-    const auto skipped_modules = (full_track_number & bits::skipped_modules) >> bits::skipped_module_position;
-    auto track_number = full_track_number & bits::track_number;
-
-    assert(
-      track_flag ? track_number < Velo::Constants::max_tracks_to_follow : track_number < Velo::Constants::max_tracks);
-
-    uint number_of_hits;
-    Velo::TrackHits* t;
-
-    if (track_flag) {
-      t = (Velo::TrackHits*) &(tracklets[track_number]);
-      number_of_hits = 3;
-    }
-    else {
-      t = tracks + track_number;
-      number_of_hits = t->hitsNum;
-    }
-
-    // Load last two hits in h0, h1
-    const auto h0_num = t->hits[number_of_hits - 2];
-    const auto h1_num = t->hits[number_of_hits - 1];
-
-    const Velo::HitBase h0 {
-      velo_cluster_container.x(h0_num), velo_cluster_container.y(h0_num), velo_cluster_container.z(h0_num)};
-    const auto h0_module =
-      ((velo_cluster_container.id(h0_num) & Allen::VPChannelID::sensorMask) >> Allen::VPChannelID::sensorBits) / 4;
-
-    const Velo::HitBase h1 {
-      velo_cluster_container.x(h1_num), velo_cluster_container.y(h1_num), velo_cluster_container.z(h1_num)};
-
-    // Track forwarding over t, for all hits in the next module
-    // Line calculations
-    const auto td = 1.0f / (h1.z - h0.z);
-    const auto txn = (h1.x - h0.x);
-    const auto tyn = (h1.y - h0.y);
-    const auto tx = txn * td;
-    const auto ty = tyn * td;
-
-    // Find the best candidate
-    float best_fit = max_scatter;
-    int best_h2 = -1;
-
-    // Get candidates by performing a binary search in expected phi
-    const auto candidate_h2 = find_forward_candidate(
-      module_data[shared::next_module_pair],
-      hit_phi,
-      h0,
-      tx,
-      ty,
-      module_data[shared::next_module_pair].z[h0_module % 2] - h0.z,
-      phi_tolerance);
-
-    // First candidate in the next module pair.
-    // Since the buffer is circular, finding the container size means finding the first element.
-    const auto candidate_h2_index =
-      std::get<0>(candidate_h2) < static_cast<int>(module_data[shared::next_module_pair].hit_num) ?
-        std::get<0>(candidate_h2) :
-        0;
-    const auto extrapolated_phi = std::get<1>(candidate_h2);
-
-    for (uint i = 0; i < module_data[shared::next_module_pair].hit_num; ++i) {
-      const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
-      const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
-
-      // Check the phi difference is within the tolerance with modulo arithmetic.
-      const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
-      const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
-      if (abs_phi_diff > phi_tolerance) {
-        break;
-      }
-
-      const Velo::HitBase h2 {
-        velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
-
-      const auto dz = h2.z - h0.z;
-      const auto predx = h0.x + tx * dz;
-      const auto predy = h0.y + ty * dz;
-      const auto dx = predx - h2.x;
-      const auto dy = predy - h2.y;
-
-      // Scatter
-      const auto scatter = (dx * dx) + (dy * dy);
-
-      // We keep the best one found
-      if (scatter < best_fit) {
-        best_fit = scatter;
-        best_h2 = h2_index;
-      }
-    }
-
-    // Condition for finding a h2
-    if (best_h2 != -1) {
-      // Mark h2 as used
-      hit_used[best_h2] = true;
-
-      // Update the track in the bag
-      if (number_of_hits == 3) {
-        // Also mark the first three as used
-        hit_used[t->hits[0]] = true;
-        hit_used[t->hits[1]] = true;
-        hit_used[t->hits[2]] = true;
-
-        // If it is a track made out of less than or equal to 4 hits,
-        // we have to allocate it in the tracks pointer
-        track_number = atomicAdd(dev_number_of_velo_tracks + blockIdx.x, 1);
-        tracks[track_number].hits[0] = t->hits[0];
-        tracks[track_number].hits[1] = t->hits[1];
-        tracks[track_number].hits[2] = t->hits[2];
-        tracks[track_number].hits[3] = best_h2;
-        tracks[track_number].hitsNum = 4;
-      }
-      else {
-        t->hits[t->hitsNum++] = best_h2;
-      }
-
-      if (number_of_hits + 1 < Velo::Constants::max_track_size) {
-        // Add the tracks to the bag of tracks to_follow
-        const auto ttf_p =
-          atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
-        tracks_to_follow[ttf_p] = track_number;
-      }
-    }
-    // A track just skipped a module
-    // We keep it for another round
-    else if (skipped_modules < max_skipped_modules) {
-      // Form the new mask
-      track_number = ((skipped_modules + 1) << bits::skipped_module_position) |
-                     (full_track_number & (bits::seed | bits::track_number));
-
-      // Add the tracks to the bag of tracks to_follow
-      const auto ttf_p =
-        atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
-      tracks_to_follow[ttf_p] = track_number;
-    }
-    // If there are only three hits in this track,
-    // mark it as "doubtful"
-    else if (number_of_hits == 3) {
-      const auto three_hit_tracks_p = atomicAdd(dev_atomics_velo + atomics::number_of_three_hit_tracks, 1);
-      three_hit_tracks[three_hit_tracks_p] = Velo::TrackletHits {t->hits[0], t->hits[1], t->hits[2]};
-    }
-    // In the "else" case, we couldn't follow up the track,
-    // so we won't be track following it anymore.
   }
 }
 
@@ -572,5 +362,174 @@ __device__ void track_seeding(
         atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
       tracks_to_follow[ttfP] = bits::seed | trackP;
     }
+  }
+}
+
+/**
+ * @brief Performs the track forwarding of forming tracks
+ */
+__device__ void track_forwarding(
+  Velo::ConstClusters& velo_cluster_container,
+  const int16_t* hit_phi,
+  bool* hit_used,
+  const Velo::Module* module_data,
+  const uint diff_ttf,
+  uint* tracks_to_follow,
+  Velo::TrackletHits* three_hit_tracks,
+  const uint prev_ttf,
+  Velo::TrackletHits* tracklets,
+  Velo::TrackHits* tracks,
+  uint* dev_atomics_velo,
+  uint* dev_number_of_velo_tracks,
+  const int16_t phi_tolerance,
+  const float max_scatter,
+  const uint max_skipped_modules)
+{
+  // Assign a track to follow to each thread
+  for (uint ttf_element = threadIdx.x; ttf_element < diff_ttf; ttf_element += blockDim.x) {
+    const auto full_track_number = tracks_to_follow[(prev_ttf + ttf_element) % Velo::Constants::max_tracks_to_follow];
+    const bool track_flag = (full_track_number & bits::seed) == bits::seed;
+    const auto skipped_modules = (full_track_number & bits::skipped_modules) >> bits::skipped_module_position;
+    auto track_number = full_track_number & bits::track_number;
+
+    assert(
+      track_flag ? track_number < Velo::Constants::max_tracks_to_follow : track_number < Velo::Constants::max_tracks);
+
+    uint number_of_hits;
+    Velo::TrackHits* t;
+
+    if (track_flag) {
+      t = (Velo::TrackHits*) &(tracklets[track_number]);
+      number_of_hits = 3;
+    }
+    else {
+      t = tracks + track_number;
+      number_of_hits = t->hitsNum;
+    }
+
+    // Load last two hits in h0, h1
+    const auto h0_num = t->hits[number_of_hits - 2];
+    const auto h1_num = t->hits[number_of_hits - 1];
+
+    const Velo::HitBase h0 {
+      velo_cluster_container.x(h0_num), velo_cluster_container.y(h0_num), velo_cluster_container.z(h0_num)};
+    const auto h0_module =
+      ((velo_cluster_container.id(h0_num) & Allen::VPChannelID::sensorMask) >> Allen::VPChannelID::sensorBits) / 4;
+
+    const Velo::HitBase h1 {
+      velo_cluster_container.x(h1_num), velo_cluster_container.y(h1_num), velo_cluster_container.z(h1_num)};
+
+    // Track forwarding over t, for all hits in the next module
+    // Line calculations
+    const auto td = 1.0f / (h1.z - h0.z);
+    const auto txn = (h1.x - h0.x);
+    const auto tyn = (h1.y - h0.y);
+    const auto tx = txn * td;
+    const auto ty = tyn * td;
+
+    // Find the best candidate
+    float best_fit = max_scatter;
+    int best_h2 = -1;
+
+    // Get candidates by performing a binary search in expected phi
+    const auto candidate_h2 = find_forward_candidate(
+      module_data[shared::next_module_pair],
+      hit_phi,
+      h0,
+      tx,
+      ty,
+      module_data[shared::next_module_pair].z[h0_module % 2] - h0.z,
+      phi_tolerance);
+
+    // First candidate in the next module pair.
+    // Since the buffer is circular, finding the container size means finding the first element.
+    const auto candidate_h2_index =
+      std::get<0>(candidate_h2) < static_cast<int>(module_data[shared::next_module_pair].hit_num) ?
+        std::get<0>(candidate_h2) :
+        0;
+    const auto extrapolated_phi = std::get<1>(candidate_h2);
+
+    for (uint i = 0; i < module_data[shared::next_module_pair].hit_num; ++i) {
+      const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
+      const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
+
+      // Check the phi difference is within the tolerance with modulo arithmetic.
+      const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
+      const int16_t abs_phi_diff = phi_diff < 0 ? -phi_diff : phi_diff;
+      if (abs_phi_diff > phi_tolerance) {
+        break;
+      }
+
+      const Velo::HitBase h2 {
+        velo_cluster_container.x(h2_index), velo_cluster_container.y(h2_index), velo_cluster_container.z(h2_index)};
+
+      const auto dz = h2.z - h0.z;
+      const auto predx = h0.x + tx * dz;
+      const auto predy = h0.y + ty * dz;
+      const auto dx = predx - h2.x;
+      const auto dy = predy - h2.y;
+
+      // Scatter
+      const auto scatter = dx * dx + dy * dy;
+
+      // We keep the best one found
+      if (scatter < best_fit) {
+        best_fit = scatter;
+        best_h2 = h2_index;
+      }
+    }
+
+    // Condition for finding a h2
+    if (best_h2 != -1) {
+      // Mark h2 as used
+      hit_used[best_h2] = true;
+
+      // Update the track in the bag
+      if (number_of_hits == 3) {
+        // Also mark the first three as used
+        hit_used[t->hits[0]] = true;
+        hit_used[t->hits[1]] = true;
+        hit_used[t->hits[2]] = true;
+
+        // If it is a track made out of less than or equal to 4 hits,
+        // we have to allocate it in the tracks pointer
+        track_number = atomicAdd(dev_number_of_velo_tracks + blockIdx.x, 1);
+        tracks[track_number].hits[0] = t->hits[0];
+        tracks[track_number].hits[1] = t->hits[1];
+        tracks[track_number].hits[2] = t->hits[2];
+        tracks[track_number].hits[3] = best_h2;
+        tracks[track_number].hitsNum = 4;
+      }
+      else {
+        t->hits[t->hitsNum++] = best_h2;
+      }
+
+      if (number_of_hits + 1 < Velo::Constants::max_track_size) {
+        // Add the tracks to the bag of tracks to_follow
+        const auto ttf_p =
+          atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
+        tracks_to_follow[ttf_p] = track_number;
+      }
+    }
+    // A track just skipped a module
+    // We keep it for another round
+    else if (skipped_modules < max_skipped_modules) {
+      // Form the new mask
+      track_number = ((skipped_modules + 1) << bits::skipped_module_position) |
+                     (full_track_number & (bits::seed | bits::track_number));
+
+      // Add the tracks to the bag of tracks to_follow
+      const auto ttf_p =
+        atomicAdd(dev_atomics_velo + atomics::tracks_to_follow, 1) % Velo::Constants::max_tracks_to_follow;
+      tracks_to_follow[ttf_p] = track_number;
+    }
+    // If there are only three hits in this track,
+    // mark it as "doubtful"
+    else if (number_of_hits == 3) {
+      const auto three_hit_tracks_p = atomicAdd(dev_atomics_velo + atomics::number_of_three_hit_tracks, 1);
+      three_hit_tracks[three_hit_tracks_p] = Velo::TrackletHits {t->hits[0], t->hits[1], t->hits[2]};
+    }
+    // In the "else" case, we couldn't follow up the track,
+    // so we won't be track following it anymore.
   }
 }
