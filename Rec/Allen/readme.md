@@ -6,10 +6,11 @@ The described setup works on lxplus.
 
 ```
 LbLogin -c x86_64-centos7-gcc9-opt
+export PATH=/cvmfs/sft.cern.ch/lcg/contrib/CMake/3.14.2/Linux-x86_64/bin:$PATH
+export CMAKE_PREFIX_PATH=/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/:$CMAKE_PREFIX_PATH
 ```
 
 If a specific version of [Rec](https://gitlab.cern.ch/lhcb/Rec) is needed, Rec needs to be compiled as well. If not, you can skip these instructions and use Rec from the nightlies instead.
-If https://gitlab.cern.ch/lhcb/Rec/merge_requests/1897 is not yet merged, checkout that branch in Rec.
 
 Create a new directory `Allen_Gaudi_integration` and clone both `Allen` and `Rec` into this new directory. 
 ```
@@ -19,7 +20,6 @@ Allen Rec
 ```
 
 ```
-export CMAKE_PREFIX_PATH=/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/:$CMAKE_PREFIX_PATH
 cd Rec
 lb-project-init
 make configure
