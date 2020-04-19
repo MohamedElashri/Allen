@@ -57,6 +57,10 @@ namespace Configuration {
 
   template<>
   std::string to_string<DeviceDimensions>(const DeviceDimensions& holder);
+
+  template<>
+  std::string to_string<BankTypes>(const BankTypes& holder);
+
 } // namespace Configuration
 
 namespace Allen {

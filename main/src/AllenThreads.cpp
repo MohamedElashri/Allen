@@ -248,7 +248,8 @@ void run_stream(
       auto status = wrapper->run_stream(
         stream_id,
         buf,
-        {input_provider->banks(BankTypes::VP, *idx),
+        {input_provider,
+         *idx,
          input_provider->banks(BankTypes::UT, *idx),
          input_provider->banks(BankTypes::FT, *idx),
          input_provider->banks(BankTypes::MUON, *idx),

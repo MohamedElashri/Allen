@@ -1,4 +1,6 @@
 #include "Configuration.cuh"
+#include "BankTypes.h"
+#include "Common.h"
 #include "Logger.h"
 
 template<>
@@ -23,6 +25,16 @@ template<>
 uint Configuration::from_string<uint>(const std::string& s)
 {
   return strtoul(s.c_str(), 0, 0);
+}
+
+template<>
+BankTypes Configuration::from_string<BankTypes>(const std::string& s)
+{
+  auto bt = bank_type(s);
+  if (bt == BankTypes::Unknown) {
+    throw StrException{"Failed to parse " + s + " into a BankType."};
+  }
+  return bt;
 }
 
 // Specialization for DeviceDimensions
@@ -63,6 +75,12 @@ std::string Configuration::to_string<DeviceDimensions>(const DeviceDimensions& h
   std::stringstream s;
   s << "[" << holder.x << ", " << holder.y << ", " << holder.z << "]";
   return s.str();
+}
+
+template<>
+std::string Configuration::to_string<BankTypes>(const BankTypes& holder)
+{
+  return bank_name(holder);
 }
 
 // // function to define one float property as the inverse of another

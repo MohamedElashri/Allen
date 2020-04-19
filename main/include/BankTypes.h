@@ -13,8 +13,8 @@ namespace {
   using gsl::span;
 }
 
-constexpr auto NBankTypes = 8;
-enum class BankTypes { VP, UT, FT, MUON, ODIN, Rich, ECal, HCal };
+constexpr auto NBankTypes = 10;
+enum class BankTypes { VP, UT, FT, MUON, ODIN, Rich, ECal, HCal, OTRaw, OTError, Unknown };
 
 // Average size of all raw banks of a given type per
 // subdetector, in kB, measured in simulated minbias events.
@@ -26,7 +26,9 @@ const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 12.f},
                                                         {BankTypes::Rich, 21.f},
                                                         {BankTypes::HCal, 2.1},
                                                         {BankTypes::ECal, 8.f},
-                                                        {BankTypes::ODIN, 0.1f}};
+                                                        {BankTypes::ODIN, 0.1f},
+                                                        {BankTypes::OTRaw, 110.f},
+                                                        {BankTypes::OTError, 0.3f}};
 
 // Average measured event size, measured
 // FIXME: make this configurable
@@ -41,6 +43,13 @@ constexpr float bank_size_fudge_factor = 1.2f;
  * @return     bank type name
  */
 std::string bank_name(BankTypes type);
+
+/**
+ * @brief      Get the type of a bank from its name
+ * @param      BankType
+ * @return     bank type name
+ */
+BankTypes bank_type(std::string bank_name);
 
 template<typename ENUM>
 constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type

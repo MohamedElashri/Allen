@@ -2,12 +2,14 @@
 
 #include <vector>
 #include "BankTypes.h"
+#include "InputProvider.h"
 
 /**
  * @brief Runtime options singleton.
  */
 struct RuntimeOptions {
-  BanksAndOffsets host_velo_events;
+  IInputProvider const* input_provider;
+  size_t const slice_index;
   BanksAndOffsets host_ut_events;
   BanksAndOffsets host_scifi_events;
   BanksAndOffsets host_muon_events;
@@ -22,7 +24,8 @@ struct RuntimeOptions {
   RuntimeOptions() = default;
 
   RuntimeOptions(
-    BanksAndOffsets velo_events,
+    IInputProvider const* ip,
+    size_t const index,
     BanksAndOffsets ut_events,
     BanksAndOffsets scifi_events,
     BanksAndOffsets muon_events,
@@ -32,7 +35,7 @@ struct RuntimeOptions {
     bool param_do_check,
     bool param_cpu_offload,
     bool param_mep_layout) :
-    host_velo_events {std::move(velo_events)},
+    input_provider{ip}, slice_index{index},
     host_ut_events {std::move(ut_events)}, host_scifi_events {std::move(scifi_events)},
     host_muon_events {std::move(muon_events)}, host_odin_events {std::move(odin_events)},
     event_interval(param_event_interval),

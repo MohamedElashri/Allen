@@ -125,7 +125,7 @@ extern "C" int allen(
   uint number_of_slices = 0;
   uint number_of_buffers = 0;
   long number_of_events_requested = 0;
-  std::optional<uint> events_per_slice;
+  boost::optional<uint> events_per_slice;
   uint start_event_offset = 0;
   uint number_of_threads = 1;
   uint number_of_repetitions = 1;
@@ -345,7 +345,7 @@ extern "C" int allen(
   std::unique_ptr<IInputProvider> input_provider {};
 
   // Number of requested events as an optional
-  std::optional<size_t> n_events;
+  boost::optional<size_t> n_events;
   if (number_of_events_requested != 0) {
     n_events = number_of_events_requested;
   }
