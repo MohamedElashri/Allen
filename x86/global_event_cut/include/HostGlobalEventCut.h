@@ -19,10 +19,8 @@ namespace host_global_event_cut {
 
   // Function
   void host_global_event_cut(
-    const char* ut_raw_input,
-    const uint* ut_raw_input_offsets,
-    const char* scifi_raw_input,
-    const uint* scifi_raw_input_offsets,
+    BanksAndOffsets const& ut_raw,
+    BanksAndOffsets const& scifi_raw,
     uint number_of_events,
     Parameters parameters);
 
@@ -36,8 +34,6 @@ namespace host_global_event_cut {
   template<typename T, char... S>
   struct host_global_event_cut_t : public HostAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
-    decltype(host_function(host_global_event_cut)) function {host_global_event_cut};
-    decltype(host_function(host_global_event_cut_mep)) function_mep {host_global_event_cut_mep};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -79,19 +75,16 @@ namespace host_global_event_cut {
                                           property<min_scifi_ut_clusters_t>(),
                                           property<max_scifi_ut_clusters_t>()};
 
-      // Runtime selector based on layout of input data
-      if (runtime_options.mep_layout) {
-        function_mep(runtime_options.host_ut_events, runtime_options.host_scifi_events, number_of_events, parameters);
-      }
-      else {
-        function(
-          std::get<0>(runtime_options.host_ut_events)[0].data(),
-          std::get<2>(runtime_options.host_ut_events).data(),
-          std::get<0>(runtime_options.host_scifi_events)[0].data(),
-          std::get<2>(runtime_options.host_scifi_events).data(),
-          number_of_events,
-          parameters);
-      }
+      using function_t = decltype(host_function(host_global_event_cut));
+
+      // Select the function to run, MEP or Allen layout
+      function_t function = runtime_options.mep_layout ? function_t{host_global_event_cut_mep} : function_t{host_global_event_cut};
+
+      // Run the function
+      auto const slice = runtime_options.slice_index;
+      function(runtime_options.input_provider->banks(BankTypes::UT, slice),
+               runtime_options.input_provider->banks(BankTypes::FT, slice),
+               number_of_events, parameters);
 
       cudaCheck(cudaMemcpyAsync(
         begin<dev_event_list_t>(arguments),

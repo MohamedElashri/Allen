@@ -1,13 +1,17 @@
 #include "HostGlobalEventCut.h"
 
 void host_global_event_cut::host_global_event_cut(
-  const char* ut_raw_input,
-  const uint* ut_raw_input_offsets,
-  const char* scifi_raw_input,
-  const uint* scifi_raw_input_offsets,
+  BanksAndOffsets const& ut_raw,
+  BanksAndOffsets const& scifi_raw,
   const uint number_of_events,
   host_global_event_cut::Parameters parameters)
 {
+
+  const char* ut_raw_input = std::get<0>(ut_raw)[0].data();
+  const uint* ut_raw_input_offsets = std::get<2>(ut_raw).data();
+  const char* scifi_raw_input = std::get<0>(scifi_raw)[0].data();
+  const uint* scifi_raw_input_offsets = std::get<2>(scifi_raw).data();
+
   uint insert_index = 0;
   uint reverse_insert_index = number_of_events - 1;
   uint first_event = parameters.host_event_list[0];
