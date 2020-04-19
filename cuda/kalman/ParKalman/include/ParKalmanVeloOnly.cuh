@@ -18,8 +18,13 @@ typedef Vector<2> Vector2;
 typedef SquareMatrix<true, 2> SymMatrix2x2;
 typedef SquareMatrix<false, 2> Matrix2x2;
 
-static constexpr float scatterSensorParameters[4] = {0.54772, 1.478845, 0.626634, -0.78};
-static constexpr float scatterFoilParameters[2] = {1.67, 20.};
+static constexpr float scatterSensorParameters_0 = 0.54772f;
+static constexpr float scatterSensorParameters_1 = 1.478845f;
+static constexpr float scatterSensorParameters_2 = 0.626634f;
+static constexpr float scatterSensorParameters_3 = -0.78f;
+
+static constexpr float scatterFoilParameters_0 = 1.67f;
+static constexpr float scatterFoilParameters_1 = 20.f;
 static constexpr float pixelErr = 0.0125;
 
 __device__ void simplified_step(

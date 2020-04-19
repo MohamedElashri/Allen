@@ -39,21 +39,18 @@ namespace Distance {
   }
 } // namespace Distance
 
-typedef float (*distance_fun)(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& vertex);
-
 __device__ void associate_and_muon_id(
   ParKalmanFilter::FittedTrack* tracks,
   const bool* is_muon,
   cuda::span<const PV::Vertex> const& vertices,
-  Associate::Consolidated::EventTable& table,
-  distance_fun fun)
+  Associate::Consolidated::EventTable& table)
 {
   for (uint i = threadIdx.x; i < table.size(); i += blockDim.x) {
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;
     for (uint j = 0; j < vertices.size(); ++j) {
-      float val = fabsf(fun(tracks[i], *(vertices.data() + j)));
+      float val = fabsf(Distance::kalman_ipchi2(tracks[i], *(vertices.data() + j)));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
       first = false;
@@ -95,5 +92,9 @@ __global__ void kalman_pv_ipchi2::kalman_pv_ipchi2(kalman_pv_ipchi2::Parameters 
   Associate::Consolidated::EventTable pv_table = kalman_pv_ipchi2.event_table(scifi_tracks, event_number);
 
   // Perform the association for this event.
-  associate_and_muon_id(event_tracks, event_is_muon, vertices, pv_table, Distance::kalman_ipchi2);
+  associate_and_muon_id(
+    event_tracks,
+    event_is_muon,
+    vertices,
+    pv_table);
 }
