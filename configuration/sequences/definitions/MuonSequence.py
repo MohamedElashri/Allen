@@ -2,6 +2,11 @@ from definitions.algorithms import *
 
 
 def MuonSequence():
+    muon_banks = data_provider_t("muon_banks",
+        dev_raw_banks_t="dev_muon_raw_t",
+        dev_raw_offsets_t="dev_muon_raw_offsets_t",
+        bank_type="Muon")
+
     muon_pre_decoding = muon_pre_decoding_t()
 
     muon_pre_decoding_prefix_sum = host_prefix_sum_t(
@@ -25,7 +30,7 @@ def MuonSequence():
     is_muon = is_muon_t()
 
     muon_sequence = Sequence(
-        muon_pre_decoding, muon_pre_decoding_prefix_sum,
+        muon_banks, muon_pre_decoding, muon_pre_decoding_prefix_sum,
         muon_sort_station_region_quarter, muon_add_coords_crossing_maps,
         muon_station_ocurrence_prefix_sum, muon_sort_by_station, is_muon)
 
