@@ -102,6 +102,7 @@ class OutputParameter():
 def compatible_parameter_assignment(a, b):
     """Returns whether the parameter b can accept to be written
   with class a."""
+    a, b = type(a), type(b)
     return ((issubclass(b, DeviceParameter) and issubclass(a, DeviceParameter)) or \
       (issubclass(b, HostParameter) and issubclass(a, HostParameter))) and \
       (issubclass(b, InputParameter) or (issubclass(b, OutputParameter) and issubclass(a, OutputParameter)))
@@ -112,7 +113,7 @@ class HostInput(HostParameter, InputParameter):
         if type(value) == str:
             self.__name = value
         else:
-            assert compatible_parameter_assignment(type(value), __class__)
+            assert compatible_parameter_assignment(value, self)
             assert value.type() == Type(vtype)
             self.__name = value.name()
         self.__type = Type(vtype)
@@ -138,7 +139,7 @@ class HostOutput(HostParameter, OutputParameter):
         if type(value) == str:
             self.__name = value
         else:
-            assert compatible_parameter_assignment(type(value), __class__)
+            assert compatible_parameter_assignment(value, self)
             assert value.type() == Type(vtype)
             self.__name = value.name()
         self.__type = Type(vtype)
@@ -164,7 +165,7 @@ class DeviceInput(DeviceParameter, InputParameter):
         if type(value) == str:
             self.__name = value
         else:
-            assert compatible_parameter_assignment(type(value), __class__)
+            assert compatible_parameter_assignment(value, self)
             assert value.type() == Type(vtype)
             self.__name = value.name()
         self.__type = Type(vtype)
@@ -191,7 +192,7 @@ class DeviceOutput(DeviceParameter, OutputParameter):
         if type(value) == str:
             self.__name = value
         else:
-            assert compatible_parameter_assignment(type(value), __class__)
+            assert compatible_parameter_assignment(value, self)
             assert value.type() == Type(vtype)
             self.__name = value.name()
         self.__type = Type(vtype)
