@@ -35,7 +35,7 @@ StatusCode AllenPVsToRecVertexV2::initialize()
 {
   using namespace ConditionHolders;
   auto sc = Transformer::initialize().andThen(
-    [&] { addConditionDerivation<Beamline_t(Condition const&)>(beamSpotCond, inputLocation<Beamline_t>()); });
+        [&] { addConditionDerivation<Beamline_t( Condition const& )>( {beamSpotCond}, inputLocation<Beamline_t>() ); } );
 
   if (sc.isFailure()) return sc;
   if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
