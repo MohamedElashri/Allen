@@ -9,8 +9,8 @@ TrackChecker output                               :      1331/   231150   0.58% 
 07_long_fromB_P>5GeV                              :      3189/     3219  99.07% ( 99.20%),        25 (  0.78%) clones, pur  99.73%, hit eff  98.27%
 08_long_electrons                                 :      4406/     4548  96.88% ( 97.09%),       111 (  2.46%) clones, pur  98.01%, hit eff  97.00%
 09_long_fromB_electrons                           :       193/      202  95.54% ( 96.01%),         6 (  3.02%) clones, pur  97.70%, hit eff  95.74%
-10_long_fromB_electrons_P>5GeV                    :       127/      130  97.69% ( 98.18%),         4 (  3.05%) clones, pur  98.34%, hit eff  97.01% 
-
+10_long_fromB_electrons_P>5GeV                    :       127/      130  97.69% ( 98.18%),         4 (  3.05%) clones, pur  98.34%, hit eff  97.01%
+ 
 
 Primary vertices:
 REC and MC vertices matched by dz distance
@@ -34,7 +34,7 @@ TrackChecker output                               :      3257/    48940   6.66% 
 04_velo+notLong                                   :      8837/    44089  20.04% ( 20.06%),        43 (  0.48%) clones, pur  99.24%, hit eff  95.52%
 05_velo+UT+notLong                                :      8759/    31713  27.62% ( 27.67%),        43 (  0.49%) clones, pur  99.33%, hit eff  95.51%
 06_velo+UT+notLong_P>5GeV                         :      4991/     8265  60.39% ( 60.51%),        23 (  0.46%) clones, pur  99.53%, hit eff  97.32%
- 07_long                                           :     34782/    57988  59.98% ( 60.53%),       225 (  0.64%) clones, pur  99.52%, hit eff  96.97%
+07_long                                           :     34782/    57988  59.98% ( 60.53%),       225 (  0.64%) clones, pur  99.52%, hit eff  96.97%
 08_long_P>5GeV                                    :     26664/    36811  72.43% ( 73.11%),       182 (  0.68%) clones, pur  99.58%, hit eff  97.49%
 09_long_fromB                                     :      3221/     3930  81.96% ( 84.60%),        21 (  0.65%) clones, pur  99.56%, hit eff  97.67%
 10_long_fromB_P>5GeV                              :      2903/     3219  90.18% ( 91.81%),        18 (  0.62%) clones, pur  99.59%, hit eff  97.84%
