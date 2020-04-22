@@ -10,7 +10,7 @@ TrackChecker output                               :      1331/   231150   0.58% 
 08_long_electrons                                 :      4406/     4548  96.88% ( 97.09%),       111 (  2.46%) clones, pur  98.01%, hit eff  97.00%
 09_long_fromB_electrons                           :       193/      202  95.54% ( 96.01%),         6 (  3.02%) clones, pur  97.70%, hit eff  95.74%
 10_long_fromB_electrons_P>5GeV                    :       127/      130  97.69% ( 98.18%),         4 (  3.05%) clones, pur  98.34%, hit eff  97.01%
- 
+
 
 Primary vertices:
 REC and MC vertices matched by dz distance
@@ -65,7 +65,7 @@ Correctly identified muons with isMuon:                                   283/  
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
 Correctly identified muons from B decays with isMuon:                      79/       98  80.61% 
 Tracks identified as muon with isMuon, but matched to non-muon MCP:      3247/    33905   9.58% 
-Ghost tracks identified as muon with isMuon:                              183/     1797  10.18%
+Ghost tracks identified as muon with isMuon:                              183/     1797  10.18% 
 
 
 HLT1 rates:
