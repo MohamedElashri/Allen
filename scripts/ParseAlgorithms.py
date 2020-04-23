@@ -326,8 +326,14 @@ class GaudiAllenConf():
     @staticmethod
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
-        s = "from GaudiKernel.DataObjectHandleBase import DataObjectHandleBase\n" + \
-            "from AllenKernel import AllenAlgorithm\n\n\n"
+        s = "from GaudiKernel.DataObjectHandleBase import DataObjectHandleBase\n\
+from AllenKernel import AllenAlgorithm\n\
+from collections import OrderedDict\n\
+def algorithm_dict(*algorithms):\n\
+    d = OrderedDict([])\n\
+    for alg in algorithms:\n\
+        d[alg.name] = alg\n\
+    return d\n\n\n"
         return s
 
     @staticmethod

@@ -497,4 +497,6 @@ def compose_sequences(*args):
 
 class AlgorithmRepr(type):
     def __repr__(cls):
-        return f"class {cls.__name__} : {cls.__bases__[0].__name__}\n inputs: {cls.inputs}\n outputs: {cls.outputs}\n properties: {cls.props}"
+        return "class " + cls.__class__.__name__ + " : " + cls.__bases__[0].__name__ + "\n inputs: " + \
+            str(cls.inputs) + "\n outputs: " + str(cls.outputs) + "\n properties: " + str(cls.props) + "\n"
+        # return f"class {type(cls)} : {cls.__bases__[0].__name__}\n inputs: {cls.inputs}\n outputs: {cls.outputs}\n properties: {cls.props}\n"

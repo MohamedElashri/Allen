@@ -1,6 +1,8 @@
 from collections import OrderedDict
+
 class AllenAlgorithm(object):
   _all_algs = OrderedDict()
+  
   def __new__(cls, name, **kwargs):
     # print(kwargs)
     i = super(AllenAlgorithm, cls).__new__(cls)
