@@ -5,28 +5,25 @@
 #define MAX_NEIGH 9
 
 struct CaloDigit {
-  uint16_t cellID;
   uint16_t adc;
-  struct CaloDigit* neighbors[MAX_NEIGH];
   uint16_t clusters[MAX_NEIGH];
 
   __device__ __host__ CaloDigit() {
-      cellID = adc = 0;
+      adc = 0;
       for (int i = 0; i < MAX_NEIGH; i++) {
-          neighbors[i] = NULL;
           clusters[i] = 0;
       }
   }
 
-  __device__ __host__ uint8_t area() const{
+  __device__ __host__ static uint8_t area(uint16_t cellID) {
     return (cellID >> 12) & 0x3;
   }
 
-  __device__ __host__ uint8_t row() const{
+  __device__ __host__ static uint8_t row(uint16_t cellID) {
     return (cellID >> 6) & 0x3F;
   }
   
-  __device__ __host__ uint8_t col() const{
+  __device__ __host__ static uint8_t col(uint16_t cellID) {
     return cellID & 0x3F;
   }
 };

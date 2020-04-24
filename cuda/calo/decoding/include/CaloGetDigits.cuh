@@ -9,21 +9,18 @@
 #define ECAL_BANKS 28
 #define HCAL_BANKS 8
 #define CARD_CHANNELS 32
+#define MAX_CELLID 0b100000000000000
 
 
 namespace calo_get_digits {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    HOST_INPUT(host_number_of_ecal_hits_t, uint);
-    HOST_INPUT(host_number_of_hcal_hits_t, uint);
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    DEVICE_INPUT(dev_ecal_raw_input_t, char) dev_ecal_raw_input;
-    DEVICE_INPUT(dev_ecal_raw_input_offsets_t, uint) dev_ecal_raw_input_offsets;
-    DEVICE_INPUT(dev_ecal_hits_offsets_t, uint) dev_ecal_hits_offsets;
+    DEVICE_OUTPUT(dev_ecal_raw_input_t, char) dev_ecal_raw_input;
+    DEVICE_OUTPUT(dev_ecal_raw_input_offsets_t, uint) dev_ecal_raw_input_offsets;
     DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
-    DEVICE_INPUT(dev_hcal_raw_input_t, char) dev_hcal_raw_input;
-    DEVICE_INPUT(dev_hcal_raw_input_offsets_t, uint) dev_hcal_raw_input_offsets;
-    DEVICE_INPUT(dev_hcal_hits_offsets_t, uint) dev_hcal_hits_offsets;
+    DEVICE_OUTPUT(dev_hcal_raw_input_t, char) dev_hcal_raw_input;
+    DEVICE_OUTPUT(dev_hcal_raw_input_offsets_t, uint) dev_hcal_raw_input_offsets;
     DEVICE_OUTPUT(dev_hcal_digits_t, CaloDigit) dev_hcal_digits;
     PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X", 32);
   };
@@ -48,8 +45,15 @@ namespace calo_get_digits {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_ecal_digits_t>(arguments, value<host_number_of_ecal_hits_t>(arguments));
-      set_size<dev_hcal_digits_t>(arguments, value<host_number_of_ecal_hits_t>(arguments));
+      set_size<dev_ecal_raw_input_t>(arguments, std::get<1>(runtime_options.host_ecal_events));
+      set_size<dev_ecal_raw_input_offsets_t>(
+        arguments, std::get<2>(runtime_options.host_ecal_events).size_bytes() / sizeof(uint));
+      set_size<dev_hcal_raw_input_t>(arguments, std::get<1>(runtime_options.host_hcal_events));
+      set_size<dev_hcal_raw_input_offsets_t>(
+        arguments, std::get<2>(runtime_options.host_hcal_events).size_bytes() / sizeof(uint));
+
+      set_size<dev_ecal_digits_t>(arguments, MAX_CELLID * value<host_number_of_selected_events_t>(arguments));
+      set_size<dev_hcal_digits_t>(arguments, MAX_CELLID * value<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
@@ -60,6 +64,12 @@ namespace calo_get_digits {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
+      data_to_device<dev_ecal_raw_input_t, dev_ecal_raw_input_offsets_t>(
+        arguments, runtime_options.host_ecal_events, cuda_stream);
+
+      data_to_device<dev_hcal_raw_input_t, dev_hcal_raw_input_offsets_t>(
+        arguments, runtime_options.host_hcal_events, cuda_stream);
+
       // Enough blocks to cover all events
       const auto grid_size = dim3(
         (value<host_number_of_selected_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
@@ -68,11 +78,9 @@ namespace calo_get_digits {
       const Parameters parameters{begin<dev_event_list_t>(arguments),
                                   begin<dev_ecal_raw_input_t>(arguments),
                                   begin<dev_ecal_raw_input_offsets_t>(arguments),
-                                  begin<dev_ecal_hits_offsets_t>(arguments),
                                   begin<dev_ecal_digits_t>(arguments),
                                   begin<dev_hcal_raw_input_t>(arguments),
                                   begin<dev_hcal_raw_input_offsets_t>(arguments),
-                                  begin<dev_hcal_hits_offsets_t>(arguments),
                                   begin<dev_hcal_digits_t>(arguments)};
       if (runtime_options.mep_layout) {
         function_mep(grid_size, dim3(property<block_dim_x_t>().get()), cuda_stream)(

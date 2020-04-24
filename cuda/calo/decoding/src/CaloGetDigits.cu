@@ -51,10 +51,8 @@ __global__ void calo_get_digits::calo_get_digits(
           offset += coding_numbers[coding * 3 + 2];
           
           // Store cellid and adc in result array.
-          auto index = parameters.dev_ecal_hits_offsets[event_number * ECAL_BANKS + bank_number] + card * CARD_CHANNELS + hit;
-          uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit];
-          parameters.dev_ecal_digits[index].cellID = cellid;
-          parameters.dev_ecal_digits[index].adc = adc;
+          uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit] & 0b11111111111111;
+          parameters.dev_ecal_digits[event_number * MAX_CELLID + cellid].adc = adc;
 
           // Determine where the next card will start.
           length = (raw_bank.get_length() + 31) / 32;
@@ -92,10 +90,8 @@ __global__ void calo_get_digits::calo_get_digits(
           offset += coding_numbers[coding * 3 + 2];
           
           // Store cellid and adc in result array.
-          auto index = parameters.dev_hcal_hits_offsets[event_number * HCAL_BANKS + bank_number] + card * CARD_CHANNELS + hit;
-          uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit];
-          parameters.dev_hcal_digits[index].cellID = cellid;
-          parameters.dev_hcal_digits[index].adc = adc;
+          uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit] & 0b11111111111111;
+          parameters.dev_hcal_digits[event_number * MAX_CELLID + cellid].adc = adc;
 
           // Determine where the next card will start.
           length = (raw_bank.get_length() + 31) / 32;
@@ -154,10 +150,8 @@ __global__ void calo_get_digits::calo_get_digits_mep(
           offset += coding_numbers[coding * 3 + 2];
           
           // Store cellid and adc in result array.
-          auto index = parameters.dev_ecal_hits_offsets[event_number * ECAL_BANKS + bank_number] + card * CARD_CHANNELS + hit;
-          uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit];
-          parameters.dev_ecal_digits[index].cellID = cellid;
-          parameters.dev_ecal_digits[index].adc = adc;
+          uint16_t cellid = ecal_geometry.channels[(raw_bank.code - ecal_geometry.code_offset) * CARD_CHANNELS + hit] & 0b11111111111111;
+          parameters.dev_ecal_digits[event_number * MAX_CELLID + cellid].adc = adc;
 
           // Determine where the next card will start.
           length = (raw_bank.get_length() + 31) / 32;
@@ -196,10 +190,8 @@ __global__ void calo_get_digits::calo_get_digits_mep(
           offset += coding_numbers[coding * 3 + 2];
 
           // Store cellid and adc in result array.
-          auto index = parameters.dev_hcal_hits_offsets[event_number * HCAL_BANKS + bank_number] + card * CARD_CHANNELS + hit;
-          uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit];
-          parameters.dev_hcal_digits[index].cellID = cellid;
-          parameters.dev_hcal_digits[index].adc = adc;
+          uint16_t cellid = hcal_geometry.channels[(raw_bank.code - hcal_geometry.code_offset) * CARD_CHANNELS + hit] & 0b11111111111111;
+          parameters.dev_hcal_digits[event_number * MAX_CELLID + cellid].adc = adc;
 
           // Determine where the next card will start.
           length = (raw_bank.get_length() + 31) / 32;
