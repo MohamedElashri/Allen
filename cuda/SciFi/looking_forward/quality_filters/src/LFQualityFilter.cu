@@ -36,7 +36,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
   for (uint i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto scifi_track_index =
       ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
-    SciFi::TrackHits& track = parameters.dev_scifi_lf_length_filtered_tracks[scifi_track_index];
+    const SciFi::TrackHits& track = parameters.dev_scifi_lf_length_filtered_tracks[scifi_track_index];
     const auto& ut_state = parameters.dev_ut_states[ut_event_tracks_offset + track.ut_track_index];
 
     bool hit_in_T1_UV = false;
@@ -88,21 +88,23 @@ __global__ void lf_quality_filter::lf_quality_filter(
     // Combined value
     const auto combined_value = track.quality / (track.hitsNum - 3);
 
-    track.quality = acceptable ? combined_value + y_fit_contribution : 10000.f;
+    float updated_track_quality = acceptable ? combined_value + y_fit_contribution : 10000.f;
 
     // Apply multipliers to quality of tracks depending on number of hits
     if (track.hitsNum == 9) {
-      track.quality *= LookingForward::track_9_hits_quality_multiplier;
+      updated_track_quality *= LookingForward::track_9_hits_quality_multiplier;
     }
     else if (track.hitsNum == 10) {
-      track.quality *= LookingForward::track_10_hits_quality_multiplier;
+      updated_track_quality *= LookingForward::track_10_hits_quality_multiplier;
     }
     else if (track.hitsNum == 11) {
-      track.quality *= LookingForward::track_11_hits_quality_multiplier;
+      updated_track_quality *= LookingForward::track_11_hits_quality_multiplier;
     }
     else if (track.hitsNum == 12) {
-      track.quality *= LookingForward::track_12_hits_quality_multiplier;
+      updated_track_quality *= LookingForward::track_12_hits_quality_multiplier;
     }
+
+    parameters.dev_scifi_quality_of_tracks[scifi_track_index] = updated_track_quality;
 
     // // This code is to keep all the tracks
     // const auto insert_index = atomicAdd(parameters.dev_atomics_scifi + event_number, 1);
@@ -110,6 +112,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
     // insert_index] = track;
   }
 
+  // Due to parameters.dev_scifi_quality_of_tracks RAW dependency
   __syncthreads();
 
   for (uint i = threadIdx.x; i < ut_event_number_of_tracks; i += blockDim.x) {
@@ -117,11 +120,14 @@ __global__ void lf_quality_filter::lf_quality_filter(
     short best_track_index = -1;
 
     for (uint j = 0; j < number_of_tracks; j++) {
+      const auto index = ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + j;
+      const auto track_quality = parameters.dev_scifi_quality_of_tracks[index];
       const SciFi::TrackHits& track =
         parameters.dev_scifi_lf_length_filtered_tracks
-          [ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + j];
-      if (track.ut_track_index == i && track.quality < best_quality) {
-        best_quality = track.quality;
+          [index];
+
+      if (track.ut_track_index == i && track_quality < best_quality) {
+        best_quality = track_quality;
         best_track_index = j;
       }
     }

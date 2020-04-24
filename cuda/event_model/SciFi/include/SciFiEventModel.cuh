@@ -132,8 +132,6 @@ namespace SciFi {
   typedef const HitCount_t<const char> ConstHitCount;
   typedef HitCount_t<char> HitCount;
 
-  constexpr uint hits_number_of_arrays = 6;
-
   template<typename T>
   struct Hits_t {
   private:
@@ -141,6 +139,8 @@ namespace SciFi {
     const uint m_total_number_of_hits;
 
   public:
+    static constexpr uint number_of_arrays = 5;
+
     __host__ __device__
     Hits_t(T* base_pointer, const uint total_number_of_hits, const uint offset = 0) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer) + offset),
@@ -206,18 +206,6 @@ namespace SciFi {
     {
       assert(index < m_total_number_of_hits);
       return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[4 * m_total_number_of_hits + index];
-    }
-
-    __host__ __device__ uint cluster_reference(const uint index) const
-    {
-      assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
-    }
-
-    __host__ __device__ uint& cluster_reference(const uint index)
-    {
-      assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, uint>::t*>(m_base_pointer)[5 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ uint id(const uint index) const { return (10u << 28) + channel(index); };

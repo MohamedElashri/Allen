@@ -61,7 +61,7 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4(
   const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
   for (uint i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
-    const uint32_t cluster_reference = hits.cluster_reference(hit_count.offset_zones_without_mat_groups() + i);
+    const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.offset_zones_without_mat_groups() + i];
     const int raw_bank_number = (cluster_reference >> 8) & 0xFF;
     const int it_number = (cluster_reference) &0xFF;
     const auto rawbank = event.getSciFiRawBank(raw_bank_number);
@@ -97,7 +97,7 @@ __global__ void scifi_raw_bank_decoder_v4::scifi_raw_bank_decoder_v4_mep(
   const uint number_of_hits_in_last_zones = hit_count.number_of_hits_in_zones_without_mat_groups();
 
   for (uint i = threadIdx.x; i < number_of_hits_in_last_zones; i += blockDim.x) {
-    const uint32_t cluster_reference = hits.cluster_reference(hit_count.offset_zones_without_mat_groups() + i);
+    const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.offset_zones_without_mat_groups() + i];
 
     const int raw_bank_number = (cluster_reference >> 8) & 0xFF;
     const int it_number = (cluster_reference) &0xFF;
