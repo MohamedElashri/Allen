@@ -4,10 +4,7 @@ from definitions.algorithms import *
 def ForwardSequence(forward_decoding="v4"):
     lf_search_initial_windows = lf_search_initial_windows_t()
     lf_triplet_seeding = lf_triplet_seeding_t()
-    lf_triplet_keep_best = lf_triplet_keep_best_t()
-    lf_calculate_parametrization = lf_calculate_parametrization_t()
-    lf_extend_tracks_x = lf_extend_tracks_x_t()
-    lf_extend_tracks_uv = lf_extend_tracks_uv_t()
+    lf_create_tracks = lf_create_tracks_t()
     lf_quality_filter_length = lf_quality_filter_length_t()
     lf_quality_filter = lf_quality_filter_t()
 
@@ -47,9 +44,8 @@ def ForwardSequence(forward_decoding="v4"):
             scifi_calculate_cluster_count_v4, prefix_sum_scifi_hits,
             scifi_pre_decode_v4, scifi_raw_bank_decoder_v4,
             lf_search_initial_windows,
-            lf_triplet_seeding, lf_triplet_keep_best,
-            lf_calculate_parametrization, lf_extend_tracks_x,
-            lf_extend_tracks_uv, lf_quality_filter_length, lf_quality_filter,
+            lf_triplet_seeding, lf_create_tracks,
+            lf_quality_filter_length, lf_quality_filter,
             prefix_sum_forward_tracks, scifi_copy_track_hit_number,
             prefix_sum_scifi_track_hit_number, scifi_consolidate_tracks)
     elif forward_decoding == "v6":
@@ -69,8 +65,7 @@ def ForwardSequence(forward_decoding="v4"):
             scifi_calculate_cluster_count_v6, prefix_sum_scifi_hits,
             scifi_pre_decode_v6, scifi_raw_bank_decoder_v6,
             lf_search_initial_windows, lf_triplet_seeding,
-            lf_triplet_keep_best, lf_calculate_parametrization,
-            lf_extend_tracks_x, lf_extend_tracks_uv, lf_quality_filter_length,
+            lf_create_tracks, lf_quality_filter_length,
             lf_quality_filter, prefix_sum_forward_tracks,
             scifi_copy_track_hit_number, prefix_sum_scifi_track_hit_number,
             scifi_consolidate_tracks)

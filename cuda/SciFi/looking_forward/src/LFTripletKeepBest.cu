@@ -1,7 +1,7 @@
-#include "LFTripletKeepBest.cuh"
+#include "LFCreateTracks.cuh"
 
-__global__ void lf_triplet_keep_best::lf_triplet_keep_best(
-  lf_triplet_keep_best::Parameters parameters,
+__global__ void lf_create_tracks::lf_triplet_keep_best(
+  lf_create_tracks::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   // Keep best for each h1 hit
