@@ -20,8 +20,10 @@ def CALO_sequence(validate=False):
 
     calo_get_digits = calo_get_digits_t()
 
+    calo_find_clusters = calo_find_clusters_t()
+
     calo_sequence = Sequence(
         populate_odin_banks, host_global_event_cut, calo_count_hits,
         prefix_sum_offsets_ecal_hits, prefix_sum_offsets_hcal_hits,
-        calo_get_digits)
+        calo_get_digits, calo_find_clusters)
     return calo_sequence

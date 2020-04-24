@@ -16,4 +16,8 @@ struct CaloRawBank {
 
   // For MEP format
   __device__ __host__ CaloRawBank(const uint32_t source_id, const char* fragment);
+
+  __device__ __host__ void update(int length);
+
+  __device__ __host__ int get_length();
 };

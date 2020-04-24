@@ -14,12 +14,18 @@ __global__ void calo_count_hits::calo_count_hits(
 
     // Read raw event
     auto raw_event = CaloRawEvent(raw_input);
-
     auto raw_bank = CaloRawBank();
     for (uint raw_bank_number = 0; raw_bank_number < ECAL_BANKS; ++raw_bank_number) {
       // Read raw bank
-      const auto raw_bank = CaloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-      parameters.dev_ecal_number_of_hits[event_number * ECAL_BANKS + raw_bank.source_id] = CARD_CHANNELS;
+      raw_bank = CaloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
+      uint cards = 1;
+      int length = (raw_bank.get_length() + 31) / 32;
+      while ((char*) (raw_bank.data + length) != raw_event.payload + raw_event.raw_bank_offset[raw_bank_number + 1]) {
+        raw_bank.update(length);
+        cards++;
+        length = (raw_bank.get_length() + 31) / 32;
+      }
+      parameters.dev_ecal_number_of_hits[event_number * ECAL_BANKS + raw_bank.source_id] = cards * CARD_CHANNELS;
     }
 
     // Hcal
@@ -28,10 +34,17 @@ __global__ void calo_count_hits::calo_count_hits(
     // Read raw event
     raw_event = CaloRawEvent(raw_input);
 
-    for (uint raw_bank_number = 0; raw_bank_number < raw_event.number_of_raw_banks; ++raw_bank_number) {
+    for (uint raw_bank_number = 0; raw_bank_number < HCAL_BANKS; ++raw_bank_number) {
       // Read raw bank
       raw_bank = CaloRawBank(raw_event.payload + raw_event.raw_bank_offset[raw_bank_number]);
-      parameters.dev_hcal_number_of_hits[event_number * HCAL_BANKS + raw_bank.source_id] = CARD_CHANNELS;
+      uint cards = 1;
+      int length = (raw_bank.get_length() + 31) / 32;
+      while ((char*) (raw_bank.data + length) != raw_event.payload + raw_event.raw_bank_offset[raw_bank_number + 1]) {
+        raw_bank.update(length);
+        cards++;
+        length = (raw_bank.get_length() + 31) / 32;
+      }
+      parameters.dev_hcal_number_of_hits[event_number * HCAL_BANKS + raw_bank.source_id] = cards * CARD_CHANNELS;
     }
   }
 }
@@ -50,9 +63,18 @@ __global__ void calo_count_hits::calo_count_hits_mep(
     for (uint raw_bank_number = 0; raw_bank_number < number_of_ecal_raw_banks; ++raw_bank_number) {
       // Create raw bank from MEP layout
       raw_bank = MEP::raw_bank<CaloRawBank>(parameters.dev_ecal_raw_input,
-        parameters.dev_ecal_raw_input_offsets, selected_event_number, raw_bank_number);
+      parameters.dev_ecal_raw_input_offsets, selected_event_number, raw_bank_number);
+      uint cards = 1;
+      int length = (raw_bank.get_length() + 31) / 32;
+      while ((char*) (raw_bank.data + length) !=
+             parameters.dev_ecal_raw_input + parameters.dev_ecal_raw_input_offsets[
+             MEP::offset_index(number_of_ecal_raw_banks, selected_event_number + 1, raw_bank_number)]) {
+        raw_bank.update(length);
+        cards++;
+        length = (raw_bank.get_length() + 31) / 32;
+      }
       parameters.dev_ecal_number_of_hits[event_number * number_of_ecal_raw_banks
-        + raw_bank.source_id] = CARD_CHANNELS;
+        + raw_bank.source_id] = cards * CARD_CHANNELS;
     }
 
     // Hcal
@@ -62,9 +84,17 @@ __global__ void calo_count_hits::calo_count_hits_mep(
       // Create raw bank from MEP layout
       raw_bank = MEP::raw_bank<CaloRawBank>(parameters.dev_hcal_raw_input,
         parameters.dev_hcal_raw_input_offsets, selected_event_number, raw_bank_number);
+      uint cards = 1;
+      int length = (raw_bank.get_length() + 31) / 32;
+      while ((char*) (raw_bank.data + length) !=
+             parameters.dev_hcal_raw_input + parameters.dev_hcal_raw_input_offsets[
+             MEP::offset_index(number_of_hcal_raw_banks, selected_event_number + 1, raw_bank_number)]) {
+        raw_bank.update(length);
+        cards++;
+        length = (raw_bank.get_length() + 31) / 32;
+      }
       parameters.dev_hcal_number_of_hits[event_number * number_of_hcal_raw_banks
-        + raw_bank.source_id] = CARD_CHANNELS;
+        + raw_bank.source_id] = cards * CARD_CHANNELS;
     }
-
   }
 }

@@ -32,3 +32,24 @@ __device__ __host__ CaloRawBank::CaloRawBank(const uint32_t sid, const char* fra
   // Skipping pattern bits.
   data = (uint32_t*) (fragment + sizeof(uint32_t));
 }
+
+__device__ __host__ void CaloRawBank::update(int length) {
+  char* p = (char*) (data + length);
+  uint32_t trig_size = *((uint32_t*) p) & 0x7F;
+  code = ( *((uint32_t*) p) >> 14 ) & 0x1FF;
+  p += sizeof(uint32_t) + 4 * ((trig_size + 3) / 4); // Skip header and Trigger.
+
+  pattern = *((uint32_t*) p);
+
+  // Skipping pattern bits.
+  data = (uint32_t*) (p + sizeof(uint32_t));
+}
+
+/* Return bit length of ADC data for current card. */
+__device__ __host__ int CaloRawBank::get_length() {
+  int length = 0;
+  for (int i = 0; i < 32; i++) {
+    length += 4 + 8 * ((pattern >> i) & 0x1);
+  }
+  return length;
+}

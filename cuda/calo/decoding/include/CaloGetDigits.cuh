@@ -3,6 +3,7 @@
 #include "CaloRawEvent.cuh"
 #include "CaloRawBanks.cuh"
 #include "CaloGeometry.cuh"
+#include "CaloDigit.cuh"
 #include "DeviceAlgorithm.cuh"
 
 #define ECAL_BANKS 28
@@ -19,11 +20,11 @@ namespace calo_get_digits {
     DEVICE_INPUT(dev_ecal_raw_input_t, char) dev_ecal_raw_input;
     DEVICE_INPUT(dev_ecal_raw_input_offsets_t, uint) dev_ecal_raw_input_offsets;
     DEVICE_INPUT(dev_ecal_hits_offsets_t, uint) dev_ecal_hits_offsets;
-    DEVICE_OUTPUT(dev_ecal_digits_t, uint) dev_ecal_digits;
+    DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_hcal_raw_input_t, char) dev_hcal_raw_input;
     DEVICE_INPUT(dev_hcal_raw_input_offsets_t, uint) dev_hcal_raw_input_offsets;
     DEVICE_INPUT(dev_hcal_hits_offsets_t, uint) dev_hcal_hits_offsets;
-    DEVICE_OUTPUT(dev_hcal_digits_t, uint) dev_hcal_digits;
+    DEVICE_OUTPUT(dev_hcal_digits_t, CaloDigit) dev_hcal_digits;
     PROPERTY(block_dim_x_t, uint, "block_dim_x", "block dimension X", 32);
   };
 

@@ -19,6 +19,9 @@
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
+#define MAX_NEIGH 9
+#define AREA_SIZE 64 * 64 * MAX_NEIGH // 4096 * 9
+#define ROW_SIZE 64 * MAX_NEIGH
 
 DECLARE_COMPONENT(DumpCaloGeometry)
 
@@ -39,7 +42,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   // check codes in Python; check feCards to code if this is standard somehow.
 
   // 192 cards -> 192 codes.
-  // Could maintain list of sourceID to number of cards and than use this to get index of code respective to sourceID.
+  // Could maintain list of sourceID to number of cards and then use this to get index of code respective to sourceID.
   // Or use max size (which is 8 now, but should be considered a variable) and use this to find code index.
   // 
   // Idea: use code as index (technically code - min(codes) * 32). The 32 channels associated with this card
@@ -49,7 +52,7 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
   std::vector<int> cards{};
   std::vector<int> curCards{};
   // Get all card indices for every source ID.
-  for (int i = 0; i < det.nTell1s(); i++){
+  for (int i = 0; i < det.nTell1s(); i++) {
     curCards = det.tell1ToCards(i);
     cards.insert(cards.end(), curCards.begin(), curCards.end());
   }
@@ -77,11 +80,31 @@ DumpUtils::Dumps DumpCaloGeometry::dumpGeometry() const
     }
   }
 
-  // Write the minimum card code and the array of CellIDs.
+  // Create neighbours per cellID.
+  const CaloVector<CellParam>& params = det.cellParams();
+  // Check if 'E'cal or 'H'cal
+  int levels = det.caloName()[0] == 'E' ? 3 : 2;
+  std::vector<uint16_t> neighbors(levels * AREA_SIZE, 0);
+  for (auto param : params) {
+    auto cid = param.cellID();
+    auto ns = param.neighbors();
+    for (size_t i = 0; i < ns.size(); i++) {
+      // Use 4D indexing based on Area, row, column and neighbor index.
+      neighbors[cid.area() * AREA_SIZE + cid.row() * ROW_SIZE + cid.col() * MAX_NEIGH + i] =
+        (uint16_t) ns.at(i).all();
+    }
+  }
+
+  // Write the neighbors offset, minimum card code, array of CellIDs and the array of neighbors.
   DumpUtils::Writer output {};
+  output.write((uint16_t) allChannels.size() * sizeof(uint16_t));
   output.write((uint16_t) min);
-  for ( uint16_t chan : allChannels) {
+  for (uint16_t chan : allChannels) {
     output.write(chan);
+  }
+  
+  for (uint16_t neigh : neighbors) {
+    output.write(neigh);
   }
 
 
