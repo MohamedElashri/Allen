@@ -58,7 +58,7 @@ def UTSequence(restricted=True):
     ut_consolidate_tracks = ut_consolidate_tracks_t()
 
     ut_sequence = Sequence(
-        ut_banks, ut_calculate_number_of_hits, prefix_sum_ut_hits,
+        ut_calculate_number_of_hits, prefix_sum_ut_hits,
         ut_pre_decode, ut_find_permutation, ut_decode_raw_banks_in_order,
         ut_select_velo_tracks, ut_search_windows,
         ut_select_velo_tracks_with_windows, compass_ut, prefix_sum_ut_tracks,

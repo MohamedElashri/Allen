@@ -1,3 +1,7 @@
 {
+  "populate_odin_banks": {"bank_type": "ODIN"},
+  "ut_banks": {"bank_type": "UT"},
+  "scifi_banks": {"bank_type": "FTCluster"},
+  "velo_banks": {"bank_type": "VP"},
   "configured_lines": []
 }

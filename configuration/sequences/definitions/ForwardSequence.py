@@ -75,4 +75,4 @@ def ForwardSequence(forward_decoding="v4"):
                       scifi_copy_track_hit_number, prefix_sum_scifi_track_hit_number,
                       scifi_consolidate_tracks]
 
-    return Sequence([scifi_banks] + scifi_decoding + scifi_tracking)
+    return Sequence(scifi_decoding + scifi_tracking)

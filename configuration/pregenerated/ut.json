@@ -1,10 +1,10 @@
 {
   "populate_odin_banks": {"bank_type": "ODIN"},
-  "velo_banks": {"bank_type": "VP"},
   "ut_banks": {"bank_type": "UT"},
+  "scifi_banks": {"bank_type": "FTCluster"},
+  "velo_banks": {"bank_type": "VP"},
   "ut_search_windows_t": {"min_momentum": "1500.0", "min_pt": "300.0"},
   "compass_ut_t": {"min_momentum_final": "2500.0", "min_pt_final": "425.0", "max_considered_before_found": "6"},
-  "scifi_banks": {"bank_type": "FTCluster"},
   "muon_banks": {"bank_type": "Muon"},
   "configured_lines": []
 }
