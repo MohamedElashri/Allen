@@ -12,7 +12,7 @@ namespace scifi_pre_decode_v4 {
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
-    DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
+    DEVICE_OUTPUT(dev_cluster_references_t, uint) dev_cluster_references;
   };
 
   __global__ void scifi_pre_decode_v4(Parameters, const char* scifi_geometry);
@@ -31,9 +31,9 @@ namespace scifi_pre_decode_v4 {
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_scifi_hits_t>(
+      set_size<dev_cluster_references_t>(
         arguments,
-        value<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::hits_number_of_arrays * sizeof(uint32_t));
+        value<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
     }
 
     void operator()(
@@ -48,7 +48,7 @@ namespace scifi_pre_decode_v4 {
                                           begin<dev_scifi_raw_input_offsets_t>(arguments),
                                           begin<dev_event_list_t>(arguments),
                                           begin<dev_scifi_hit_offsets_t>(arguments),
-                                          begin<dev_scifi_hits_t>(arguments)};
+                                          begin<dev_cluster_references_t>(arguments)};
 
       if (runtime_options.mep_layout) {
         function_mep(

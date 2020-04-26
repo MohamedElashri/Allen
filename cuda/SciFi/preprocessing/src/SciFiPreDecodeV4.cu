@@ -12,7 +12,7 @@ __device__ void store_sorted_cluster_reference_v4(
   uint32_t& shared_mat_count,
   const int raw_bank,
   const int it,
-  SciFi::Hits& hits)
+  uint32_t* cluster_references)
 {
   uint32_t hitIndex = shared_mat_count++;
 
@@ -27,7 +27,7 @@ __device__ void store_sorted_cluster_reference_v4(
   // Cluster reference:
   //   raw bank: 8 bits
   //   element (it): 8 bits
-  hits.cluster_reference(hitIndex) = (raw_bank & 0xFF) << 8 | (it & 0xFF);
+  cluster_references[hitIndex] = (raw_bank & 0xFF) << 8 | (it & 0xFF);
 }
 
 __device__ void pre_decode_raw_bank_v4(
@@ -37,7 +37,7 @@ __device__ void pre_decode_raw_bank_v4(
   const uint bank_index,
   uint32_t const* shared_mat_offsets,
   uint32_t* shared_mat_count,
-  SciFi::Hits& hits)
+  uint32_t* cluster_references)
 {
   const uint16_t* starting_it = rawbank.data + 2;
   uint16_t* last = rawbank.last;
@@ -60,7 +60,7 @@ __device__ void pre_decode_raw_bank_v4(
         shared_mat_count[correctedMat - SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank],
         bank_index,
         it_number,
-        hits);
+        cluster_references);
     }
   }
 }
@@ -75,9 +75,6 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
 
   SciFiGeometry geom(scifi_geometry);
   const auto event = SciFiRawEvent(parameters.dev_scifi_raw_input + parameters.dev_scifi_raw_input_offsets[selected_event_number]);
-
-  SciFi::Hits hits {
-    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mats_without_group];
@@ -100,7 +97,7 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
                            i,
                            (const uint32_t*) &shared_mat_offsets,
                            (uint32_t*) &shared_mat_count,
-                           hits);
+                           parameters.dev_cluster_references);
   }
 }
 
@@ -114,9 +111,6 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4_mep(
   const uint selected_event_number = parameters.dev_event_list[event_number];
 
   SciFiGeometry geom(scifi_geometry);
-
-  SciFi::Hits hits {
-    parameters.dev_scifi_hits, parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mats_without_group];
@@ -143,6 +137,6 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4_mep(
                            i,
                            (const uint32_t*) &shared_mat_offsets,
                            (uint32_t*) &shared_mat_count,
-                           hits);
+                           parameters.dev_cluster_references);
   }
 }
