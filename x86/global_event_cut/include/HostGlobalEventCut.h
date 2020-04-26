@@ -7,6 +7,10 @@
 
 namespace host_global_event_cut {
   struct Parameters {
+    HOST_INPUT(host_ut_raw_banks_t, gsl::span<char const>) ut_banks;
+    HOST_INPUT(host_ut_raw_offsets_t, gsl::span<unsigned int const>) ut_offsets;
+    HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>) scifi_banks;
+    HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>) scifi_offsets;
     HOST_OUTPUT(host_total_number_of_events_t, uint);
     HOST_OUTPUT(host_event_list_t, uint) host_event_list;
     HOST_OUTPUT(host_number_of_selected_events_t, uint) host_number_of_selected_events;
@@ -19,14 +23,10 @@ namespace host_global_event_cut {
 
   // Function
   void host_global_event_cut(
-    BanksAndOffsets const& ut_raw,
-    BanksAndOffsets const& scifi_raw,
     uint number_of_events,
     Parameters parameters);
 
   void host_global_event_cut_mep(
-    BanksAndOffsets const& ut_raw,
-    BanksAndOffsets const& scifi_raw,
     const uint number_of_events,
     Parameters parameters);
 
@@ -70,21 +70,21 @@ namespace host_global_event_cut {
       }
 
       // Parameters for the function call
-      const auto parameters = Parameters {begin<host_event_list_t>(arguments),
+      const auto parameters = Parameters {begin<host_ut_raw_banks_t>(arguments),
+                                          begin<host_ut_raw_offsets_t>(arguments),
+                                          begin<host_scifi_raw_banks_t>(arguments),
+                                          begin<host_scifi_raw_offsets_t>(arguments),
+                                          begin<host_event_list_t>(arguments),
                                           begin<host_number_of_selected_events_t>(arguments),
                                           property<min_scifi_ut_clusters_t>(),
                                           property<max_scifi_ut_clusters_t>()};
 
-      using function_t = decltype(host_function(host_global_event_cut));
-
       // Select the function to run, MEP or Allen layout
+      using function_t = decltype(host_function(host_global_event_cut));
       function_t function = runtime_options.mep_layout ? function_t{host_global_event_cut_mep} : function_t{host_global_event_cut};
 
       // Run the function
-      auto const slice = runtime_options.slice_index;
-      function(runtime_options.input_provider->banks(BankTypes::UT, slice),
-               runtime_options.input_provider->banks(BankTypes::FT, slice),
-               number_of_events, parameters);
+      function(number_of_events, parameters);
 
       cudaCheck(cudaMemcpyAsync(
         begin<dev_event_list_t>(arguments),
