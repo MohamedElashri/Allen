@@ -1,6 +1,6 @@
 #include <MEPTools.h>
-#include <SciFiDirectDecoderV4.cuh>
-#include <assert.h>
+#include <SciFiRawBankDecoderV4.cuh>
+#include <cassert>
 
 using namespace SciFi;
 
@@ -72,8 +72,8 @@ __device__ void direct_decode_raw_bank_v4(
  *         and using that information as a relative index, given the raw bank offset.
  *         This kind of decoding is what we call "direct decoding".
  */
-__global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4(
-  scifi_direct_decoder_v4::Parameters parameters,
+__global__ void scifi_raw_bank_decoder_v4::scifi_direct_decoder_v4(
+  scifi_raw_bank_decoder_v4::Parameters parameters,
   const char* scifi_geometry)
 {
   const uint number_of_events = gridDim.x;
@@ -109,8 +109,8 @@ __global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4(
  *         and using that information as a relative index, given the raw bank offset.
  *         This kind of decoding is what we call "direct decoding".
  */
-__global__ void scifi_direct_decoder_v4::scifi_direct_decoder_v4_mep(
-  scifi_direct_decoder_v4::Parameters parameters,
+__global__ void scifi_raw_bank_decoder_v4::scifi_direct_decoder_v4_mep(
+  scifi_raw_bank_decoder_v4::Parameters parameters,
   const char* scifi_geometry)
 {
   const uint number_of_events = gridDim.x;

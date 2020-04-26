@@ -208,9 +208,9 @@ class Property():
         self.__type = Type(vtype)
         self.__default_value = default_value
         self.__description = description
-        if value.__class__ == str:
+        if type(value) == str:
             self.__value = value
-        elif value.__class__ == Property:
+        elif type(value) == Property:
             self.__value = value.value()
         else:
             self.__value = ""
@@ -244,17 +244,17 @@ class Sequence():
     def __init__(self, *args):
         self.__sequence = OrderedDict()
         self.__lines = OrderedDict()
-        if args[0].__class__ == list:
+        if type(args[0]) == list:
             for item in args[0]:
-                if issubclass(item.__class__, Algorithm):
+                if issubclass(type(item), Algorithm):
                     self.__sequence[item.name()] = item
-                elif issubclass(item.__class__, Line):
+                elif issubclass(type(item), Line):
                     self.__lines[item.name()] = item
         else:
             for item in args:
-                if issubclass(item.__class__, Algorithm):
+                if issubclass(type(item), Algorithm):
                     self.__sequence[item.name()] = item
-                elif issubclass(item.__class__, Line):
+                elif issubclass(type(item), Line):
                     self.__lines[item.name()] = item
 
     def validate(self):
@@ -293,7 +293,7 @@ class Sequence():
         for _, algorithm in iter(self.__sequence.items()):
             for parameter_name, parameter in iter(
                     algorithm.parameters().items()):
-                if issubclass(parameter.__class__, InputParameter):
+                if issubclass(type(parameter), InputParameter):
                     # Check the input is not orphaned (ie. that there is a previous Output that generated it)
                     if parameter.fullname() not in output_parameters:
                         print("Error: Parameter " + repr(parameter) + " of algorithm " + algorithm.name() + \
@@ -301,7 +301,7 @@ class Sequence():
                         errors += 1
                 # Note: Whenever we enforce InputParameters to come from OutputParameters always,
                 #       then we can move the following two if statements to be included in the
-                #       "if issubclass(parameter.__class__, InputParameter):".
+                #       "if issubclass(type(parameter), InputParameter):".
                 # Check that the input and output types correspond
                 if parameter.fullname() in output_parameters and \
                   output_parameters[parameter.fullname()]["parameter"].type() != parameter.type():

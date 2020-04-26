@@ -1,7 +1,7 @@
-#include "LFCalculateParametrization.cuh"
+#include "LFCreateTracks.cuh"
 
-__global__ void lf_calculate_parametrization::lf_calculate_parametrization(
-  lf_calculate_parametrization::Parameters parameters,
+__global__ void lf_create_tracks::lf_calculate_parametrization(
+  lf_create_tracks::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   const auto number_of_events = gridDim.x;

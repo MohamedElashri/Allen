@@ -69,7 +69,6 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4(
   scifi_pre_decode_v4::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
 
@@ -106,7 +105,6 @@ __global__ void scifi_pre_decode_v4::scifi_pre_decode_v4_mep(
   scifi_pre_decode_v4::Parameters parameters,
   const char* scifi_geometry)
 {
-  const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;
   const uint selected_event_number = parameters.dev_event_list[event_number];
 

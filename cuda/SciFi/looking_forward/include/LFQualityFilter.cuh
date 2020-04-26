@@ -16,8 +16,9 @@ namespace lf_quality_filter {
     DEVICE_INPUT(dev_scifi_hit_offsets_t, uint) dev_scifi_hit_count;
     DEVICE_INPUT(dev_offsets_ut_tracks_t, uint) dev_atomics_ut;
     DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
-    DEVICE_OUTPUT(dev_scifi_lf_length_filtered_tracks_t, SciFi::TrackHits) dev_scifi_lf_length_filtered_tracks;
+    DEVICE_INPUT(dev_scifi_lf_length_filtered_tracks_t, SciFi::TrackHits) dev_scifi_lf_length_filtered_tracks;
     DEVICE_INPUT(dev_scifi_lf_length_filtered_atomics_t, uint) dev_scifi_lf_length_filtered_atomics;
+    DEVICE_OUTPUT(dev_lf_quality_of_tracks_t, float) dev_scifi_quality_of_tracks;
     DEVICE_OUTPUT(dev_atomics_scifi_t, uint) dev_atomics_scifi;
     DEVICE_OUTPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
     DEVICE_INPUT(dev_scifi_lf_parametrization_length_filter_t, float) dev_scifi_lf_parametrization_length_filter;
@@ -60,6 +61,10 @@ namespace lf_quality_filter {
         arguments,
         6 * value<host_number_of_reconstructed_ut_tracks_t>(arguments) *
           SciFi::Constants::max_SciFi_tracks_per_UT_track);
+      set_size<dev_lf_quality_of_tracks_t>(
+        arguments,
+        LookingForward::maximum_number_of_candidates_per_ut_track * 
+        value<host_number_of_reconstructed_ut_tracks_t>(arguments));
     }
 
     void operator()(
@@ -79,6 +84,7 @@ namespace lf_quality_filter {
                     begin<dev_offsets_ut_track_hit_number_t>(arguments),
                     begin<dev_scifi_lf_length_filtered_tracks_t>(arguments),
                     begin<dev_scifi_lf_length_filtered_atomics_t>(arguments),
+                    begin<dev_lf_quality_of_tracks_t>(arguments),
                     begin<dev_atomics_scifi_t>(arguments),
                     begin<dev_scifi_tracks_t>(arguments),
                     begin<dev_scifi_lf_parametrization_length_filter_t>(arguments),

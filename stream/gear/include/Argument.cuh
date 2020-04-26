@@ -132,25 +132,12 @@ protected:
   t m_value;
 };
 
-// TODO: Make the PROPERTY either explicit or less fragile
 #define PROPERTY(ARGUMENT_NAME, ARGUMENT_TYPE, NAME, DESCRIPTION) \
   struct ARGUMENT_NAME : property_datatype<ARGUMENT_TYPE> {       \
     constexpr static auto name {NAME};                            \
     constexpr static auto description {DESCRIPTION};              \
     using property_datatype<ARGUMENT_TYPE>::property_datatype;    \
   }
-
-/**
- * @brief Defines dependencies for an algorithm.
- *
- * @tparam T The algorithm type.
- * @tparam Args The dependencies.
- */
-template<typename T, typename ArgumentsTuple>
-struct AlgorithmDependencies {
-  using Algorithm = T;
-  using Arguments = ArgumentsTuple;
-};
 
 /**
  * @brief Dependencies for an algorithm, after

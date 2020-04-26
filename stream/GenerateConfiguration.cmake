@@ -1,4 +1,3 @@
-
 # Deal with configuration generation machinery
 # Test by actually trying to generate "algorithms.py"
 # * If clang is available, we can and will generate the configuration files
@@ -50,6 +49,7 @@ endif()
 if(${ALGORITHMS_GENERATION_RESULT_0} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_1} EQUAL 1 OR
   ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 1)
   message(WARNING "Testing code generation with LLVM - Failed. Make sure /cvmfs/sft.cern.ch or clang >= 9.0.0 are available to generate configurations.")
+
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
