@@ -6,8 +6,8 @@ These are instructions for how to produce binary input for Allen from lxplus usi
 Moore
 --------
 
-The binary bank output can also be dumped with Moore. In this case follow [these](../Rec/Allen/readme.md) instruction to call Allen from Moore and use the options script `hlt1_reco_allen_track_reconstruction.py`.
-The dumping of banks to file needs to be enabled in the script by setting `dumpBinaries = True`. The output directory where the dumped binaries are stored can be specified with `outputDir = "dump/"`.
+To dump the binary files from Moore follow [these](../Rec/Allen/readme.md) instruction to call Allen from Moore and use the options script [dump_binary_input_for_standalone_Allen.py](lhcb/Moore/Hlt/RecoConf/options/dump_binary_input_for_standalone_Allen.py).
+The output directory where the dumped binaries are stored can be specified with `outputDir = "dump/"`.
 
 Brunel
 -------
