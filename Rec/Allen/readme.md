@@ -70,6 +70,8 @@ Call the executable from within the Moore directory as in the following examples
 ./build.x86_64-centos7-gcc9-opt/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1.py Hlt/RecoConf/options/hlt1_reco_allen_track_reconstruction.py
 ```
 This will call the full Allen sequence, convert reconstructed tracks to Rec objects and run the MC checkers for track reconstruction efficiencies. The input sample is defined in `Hlt/Moore/tests/options/default_input_and_conds_hlt1.py`.
+For a comparison of the Allen standalone track checker and the PrChecker called from Moore, it can be helpful to dump the binary files required for Allen standalone running at the same time
+as calling the track reconstruction checker in Moore. For this, the dumping can be enabled in the script by setting `dumpBinaries = True`.
 
 If you want to run the PV checker, you need to use [this](https://gitlab.cern.ch/lhcb/Rec/tree/dovombru_twojton_pvchecker) branch in Rec and the following executable:
 ```
