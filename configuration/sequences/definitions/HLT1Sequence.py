@@ -6,7 +6,6 @@ def HLT1Sequence():
     velo_pv_ip = velo_pv_ip_t()
 
     kalman_velo_only = kalman_velo_only_t()
-    kalman_pv_ipchi2 = kalman_pv_ipchi2_t()
 
     filter_tracks = filter_tracks_t()
     fit_secondary_vertices = fit_secondary_vertices_t()
@@ -54,7 +53,7 @@ def HLT1Sequence():
     D2KK_line = D2KK_t()
 
     hlt1_sequence = Sequence(
-        velo_pv_ip, kalman_velo_only, kalman_pv_ipchi2, filter_tracks,
+        velo_pv_ip, kalman_velo_only, filter_tracks,
         prefix_sum_secondary_vertices, fit_secondary_vertices, run_hlt1,
         run_postscale, prepare_decisions, prepare_raw_banks,
         prefix_sum_sel_reps, package_sel_reports, ErrorEvent_line,
