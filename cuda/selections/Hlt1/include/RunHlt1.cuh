@@ -19,6 +19,17 @@ namespace run_hlt1 {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_velo_offsets;
     DEVICE_OUTPUT(dev_sel_results_t, bool) dev_sel_results;
     DEVICE_OUTPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
+    PROPERTY(factor_one_track_t, float, "factor_one_track", "postscale for one-track line") factor_one_track;
+    PROPERTY(factor_single_muon_t, float, "factor_single_muon", "postscale for single-muon line")
+    factor_single_muon;
+    PROPERTY(factor_two_tracks_t, float, "factor_two_tracks", "postscale for two-track line") factor_two_tracks;
+    PROPERTY(factor_disp_dimuon_t, float, "factor_disp_dimuon", "postscale for displaced-dimuon line")
+    factor_disp_dimuon;
+    PROPERTY(factor_high_mass_dimuon_t, float, "factor_high_mass_dimuon", "postscale for high-mass-dimuon line")
+    factor_high_mass_dimuon;
+    PROPERTY(factor_dimuon_soft_t, float, "factor_dimuon_soft", "postscale for soft-dimuon line")
+    factor_dimuon_soft;
+
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
@@ -78,11 +89,18 @@ namespace run_hlt1 {
     }
   }
 
+  template<typename T>
+  __global__ void run_postscale(
+    Parameters,
+    const uint selected_number_of_events,
+    const uint event_start);
+  
   template<typename T, typename U, char... S>
   struct run_hlt1_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
-    decltype(global_function(run_hlt1<U>)) function {run_hlt1<U>};
-
+    decltype(global_function(run_hlt1<U>)) hlt1_function {run_hlt1<U>};
+    decltype(global_function(run_postscale<U>)) postscale_function {run_postscale<U>};
+    
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
       const RuntimeOptions& runtime_options,
@@ -146,7 +164,7 @@ namespace run_hlt1 {
 
       initialize<dev_sel_results_t>(arguments, 0, cuda_stream);
 
-      function(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
+      hlt1_function(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_event_list_t>(arguments),
                     begin<dev_kf_tracks_t>(arguments),
                     begin<dev_consolidated_svs_t>(arguments),
@@ -156,17 +174,56 @@ namespace run_hlt1 {
                     begin<dev_odin_raw_input_offsets_t>(arguments),
                     begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_sel_results_t>(arguments),
-                    begin<dev_sel_results_offsets_t>(arguments)},
+                    begin<dev_sel_results_offsets_t>(arguments),
+                    property<factor_one_track_t>(),
+                    property<factor_single_muon_t>(),
+                    property<factor_two_tracks_t>(),
+                    property<factor_disp_dimuon_t>(),
+                    property<factor_high_mass_dimuon_t>(),
+                    property<factor_dimuon_soft_t>()},
         value<host_number_of_selected_events_t>(arguments),
         event_start);
 
       if (runtime_options.do_check) {
         safe_assign_to_host_buffer<dev_sel_results_t>(
-          host_buffers.host_sel_results, host_buffers.host_sel_results_size, arguments, cuda_stream);
+          host_buffers.host_sel_results,
+          host_buffers.host_sel_results_size,
+          arguments,
+          cuda_stream);
       }
+
+      // Run the postscaler.
+      postscale_function(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
+        Parameters {begin<dev_event_list_t>(arguments),
+                    begin<dev_kf_tracks_t>(arguments),
+                    begin<dev_consolidated_svs_t>(arguments),
+                    begin<dev_offsets_forward_tracks_t>(arguments),
+                    begin<dev_sv_offsets_t>(arguments),
+                    begin<dev_odin_raw_input_t>(arguments),
+                    begin<dev_odin_raw_input_offsets_t>(arguments),
+                    begin<dev_offsets_all_velo_tracks_t>(arguments),
+                    begin<dev_sel_results_t>(arguments),
+                    begin<dev_sel_results_offsets_t>(arguments),
+                    property<factor_one_track_t>(),
+                    property<factor_single_muon_t>(),
+                    property<factor_two_tracks_t>(),
+                    property<factor_disp_dimuon_t>(),
+                    property<factor_high_mass_dimuon_t>(),
+                    property<factor_dimuon_soft_t>()},
+        value<host_number_of_selected_events_t>(arguments),
+        event_start);
+      
     }
 
   private:
+    Property<factor_one_track_t> m_factor_one_track {this, 1.f};
+    Property<factor_single_muon_t> m_factor_single_muon {this, 1.f};
+    Property<factor_two_tracks_t> m_factor_two_tracks {this, 1.f};
+    Property<factor_disp_dimuon_t> m_factor_disp_dimuon {this, 1.f};
+    Property<factor_high_mass_dimuon_t> m_factor_high_mass_dimuon {this, 1.f};
+    Property<factor_dimuon_soft_t> m_factor_dimuon_soft {this, 1.f};
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 } // namespace run_hlt1
+
+#include "RunPostscale.icc"
