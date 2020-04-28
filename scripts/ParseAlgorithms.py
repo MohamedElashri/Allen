@@ -110,10 +110,7 @@ class ConfGen():
 
     @staticmethod
     def write_preamble(i=0):
-        # Fetch base_types.py and include it here to make file self-contained
-        f = open(prefix_project_folder + "/scripts/BaseTypes.py")
-        s = f.read()
-        f.close()
+        s = "from definitions.BaseTypes import *\n\n"
         return s
 
     @staticmethod
