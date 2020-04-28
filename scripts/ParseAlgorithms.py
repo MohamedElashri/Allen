@@ -6,6 +6,7 @@ import sys
 from collections import OrderedDict
 from AlgorithmTraversalLibTooling import AlgorithmTraversal
 from LineTraversalLibTooling import LineTraversal
+import argparse
 
 # Prefix folder, prepended to device / host folder
 prefix_project_folder = "../"
@@ -277,16 +278,20 @@ class ConfGen():
 
 
 if __name__ == '__main__':
-    filename = "algorithms.py"
-    if len(sys.argv) > 1:
-        filename = sys.argv[1]
-        if len(sys.argv) > 2:
-            prefix_project_folder = sys.argv[2] + "/"
+    parser = argparse.ArgumentParser(description='Parse the Allen codebase and generate a python representation of all algorithms.')
+    
+    parser.add_argument('filename', type=str, default="algorithms.py",
+                        help='output filename')
+    parser.add_argument('prefix_project_folder', type=str, default="./",
+                        help='project location')
+    args = parser.parse_args()
+
+    prefix_project_folder = args.prefix_project_folder + "/"
 
     print("Parsing algorithms...")
     parsed_algorithms, parsed_lines = Parser().parse_all()
 
-    print("Generating " + filename + "...")
+    print("Generating " + args.filename + "...")
     s = ConfGen().write_preamble()
     for algorithm in parsed_algorithms:
         s += ConfGen().write_algorithm_code(algorithm)
@@ -294,8 +299,8 @@ if __name__ == '__main__':
     for line in parsed_lines:
         s += ConfGen().write_line_code(line)
 
-    f = open(filename, "w")
+    f = open(args.filename, "w")
     f.write(s)
     f.close()
 
-    print("File " + filename + " was successfully generated.")
+    print("File " + args.filename + " was successfully generated.")
