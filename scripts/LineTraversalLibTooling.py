@@ -67,7 +67,7 @@ class LineTraversal():
         return_object = []
         for child_node in c.get_children():
             parsed_children = f(child_node, *args)
-            if parsed_children.__class__ != None.__class__:
+            if type(parsed_children) != type(None):
                 return_object.append(parsed_children)
         return return_object
 
@@ -94,8 +94,8 @@ class LineTraversal():
     @staticmethod
     def namespace(c, filename):
         """Traverses the namespaces."""
-        if c.kind == cindex.CursorKind.NAMESPACE and c.spelling not in LineTraversal.__ignored_namespaces and \
-            c.location.file.name == filename:
+        if (c.kind == cindex.CursorKind.NAMESPACE and c.spelling not in LineTraversal.__ignored_namespaces and 
+            c.location.file.name == filename):
             return (c.kind, c.spelling,
                     LineTraversal.traverse_children(c, LineTraversal.line))
         else:
