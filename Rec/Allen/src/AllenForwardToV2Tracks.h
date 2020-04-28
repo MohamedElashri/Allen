@@ -46,8 +46,8 @@ public:
     const HostBuffers&) const override;
 
 private:
-  const std::array<float, 5> default_covarianceValues {4.0, 400.0, 4.e-6, 1.e-4, 0.1};
-  Gaudi::Property<std::array<float, 5>> m_covarianceValues {this, "covarianceValues", default_covarianceValues};
+  const std::array<float, 5> m_default_covarianceValues {4.0, 400.0, 4.e-6, 1.e-4, 0.1};
+  Gaudi::Property<std::array<float, 5>> m_covarianceValues {this, "COVARIANCEVALUES", m_default_covarianceValues};
 
   std::unordered_map<std::string, AIDA::IHistogram1D*> m_histos;
 };

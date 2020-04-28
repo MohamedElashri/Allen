@@ -35,7 +35,7 @@ StatusCode AllenPVsToRecVertexV2::initialize()
 {
   using namespace ConditionHolders;
   auto sc = Transformer::initialize().andThen(
-    [&] { addConditionDerivation<Beamline_t(Condition const&)>(beamSpotCond, inputLocation<Beamline_t>()); });
+    [&] { addConditionDerivation<Beamline_t(Condition const&)>({beamSpotCond}, inputLocation<Beamline_t>()); });
 
   if (sc.isFailure()) return sc;
   if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
@@ -51,7 +51,7 @@ LHCb::Event::v2::RecVertices AllenPVsToRecVertexV2::operator()(
   const uint i_event = 0;
   const uint n_pvs = host_buffers.host_number_of_multivertex[i_event];
 
-  debug() << "Number of PVs to convert = " << n_pvs << endmsg;
+  if (msgLevel(MSG::DEBUG)) debug() << "Number of PVs to convert = " << n_pvs << endmsg;
 
   LHCb::Event::v2::RecVertices recvertexcontainer;
   recvertexcontainer.reserve(n_pvs);

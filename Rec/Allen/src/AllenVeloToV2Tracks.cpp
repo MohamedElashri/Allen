@@ -21,7 +21,7 @@
 DECLARE_COMPONENT(AllenVeloToV2Tracks)
 
 // function copied from Rec/Tr/TrackUtils/src/TracksVPConverter.cpp
-void SetFlagsAndPt(LHCb::Event::v2::Track& outtrack, float ptVelo)
+void setFlagsAndPt(LHCb::Event::v2::Track& outtrack, float ptVelo)
 {
   outtrack.setType(LHCb::Event::v2::Track::Type::Velo); // CHECKME!!!
   outtrack.setHistory(LHCb::Event::v2::Track::History::PatFastVelo);
@@ -48,15 +48,6 @@ AllenVeloToV2Tracks::AllenVeloToV2Tracks(const std::string& name, ISvcLocator* p
     {KeyValue {"OutputTracks", "Allen/Track/v2/Velo"}})
 {}
 
-StatusCode AllenVeloToV2Tracks::initialize()
-{
-  auto sc = Transformer::initialize();
-  if (sc.isFailure()) return sc;
-  if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
-
-  return StatusCode::SUCCESS;
-}
-
 std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBuffers& host_buffers) const
 {
 
@@ -73,7 +64,7 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
   std::vector<LHCb::Event::v2::Track> output;
   output.reserve(number_of_tracks);
 
-  debug() << "Number of Velo tracks to convert = " << number_of_tracks << endmsg;
+  if (msgLevel(MSG::DEBUG)) debug() << "Number of Velo tracks to convert = " << number_of_tracks << endmsg;
 
   for (unsigned int t = 0; t < number_of_tracks; t++) {
     auto& newTrack = output.emplace_back();
@@ -94,7 +85,7 @@ std::vector<LHCb::Event::v2::Track> AllenVeloToV2Tracks::operator()(const HostBu
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
 
-    SetFlagsAndPt(newTrack, m_ptVelo);
+    setFlagsAndPt(newTrack, m_ptVelo);
   }
 
   return output;

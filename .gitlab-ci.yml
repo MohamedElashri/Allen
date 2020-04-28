@@ -6,10 +6,8 @@ stages:
 
 check-formatting:
   stage: build
-  image: ubuntu:latest
+  image: gitlab-registry.cern.ch/lhcb-docker/style-checker
   script:
-    - apt update && apt install -y clang-format-8 python-pip git curl
-    - pip install yapf==0.24.0 whichcraft
     - if [ ! -e .clang-format ] ; then
     -   curl -o .clang-format "https://gitlab.cern.ch/lhcb-parallelization/Allen/raw/master/.clang-format?inline=false"
     -   echo '.clang-format' >> .gitignore
