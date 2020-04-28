@@ -1,7 +1,7 @@
-from algorithms import *
+from definitions.algorithms import *
 
 
-def HLT1_sequence():
+def HLT1Sequence():
     # Needed for aligning selections with Moore.
     velo_pv_ip = velo_pv_ip_t()
 

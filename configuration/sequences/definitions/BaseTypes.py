@@ -109,10 +109,10 @@ def compatible_parameter_assignment(a, b):
 
 class HostInput(HostParameter, InputParameter):
     def __init__(self, value, vtype):
-        if value.__class__ == str:
+        if type(value) == str:
             self.__name = value
         else:
-            assert compatible_parameter_assignment(value.__class__, __class__)
+            assert compatible_parameter_assignment(type(value), __class__)
             assert value.type() == Type(vtype)
             self.__name = value.name()
         self.__type = Type(vtype)
@@ -135,10 +135,10 @@ class HostInput(HostParameter, InputParameter):
 
 class HostOutput(HostParameter, OutputParameter):
     def __init__(self, value, vtype):
-        if value.__class__ == str:
+        if type(value) == str:
             self.__name = value
         else:
-            assert compatible_parameter_assignment(value.__class__, __class__)
+            assert compatible_parameter_assignment(type(value), __class__)
             assert value.type() == Type(vtype)
             self.__name = value.name()
         self.__type = Type(vtype)
@@ -161,10 +161,10 @@ class HostOutput(HostParameter, OutputParameter):
 
 class DeviceInput(DeviceParameter, InputParameter):
     def __init__(self, value, vtype):
-        if value.__class__ == str:
+        if type(value) == str:
             self.__name = value
         else:
-            assert compatible_parameter_assignment(value.__class__, __class__)
+            assert compatible_parameter_assignment(type(value), __class__)
             assert value.type() == Type(vtype)
             self.__name = value.name()
         self.__type = Type(vtype)
@@ -188,10 +188,10 @@ class DeviceInput(DeviceParameter, InputParameter):
 
 class DeviceOutput(DeviceParameter, OutputParameter):
     def __init__(self, value, vtype):
-        if value.__class__ == str:
+        if type(value) == str:
             self.__name = value
         else:
-            assert compatible_parameter_assignment(value.__class__, __class__)
+            assert compatible_parameter_assignment(type(value), __class__)
             assert value.type() == Type(vtype)
             self.__name = value.name()
         self.__type = Type(vtype)
@@ -218,9 +218,9 @@ class Property():
         self.__type = Type(vtype)
         self.__default_value = default_value
         self.__description = description
-        if value.__class__ == str:
+        if type(value) == str:
             self.__value = value
-        elif value.__class__ == Property:
+        elif type(value) == Property:
             self.__value = value.value()
         else:
             self.__value = ""
@@ -254,17 +254,17 @@ class Sequence():
     def __init__(self, *args):
         self.__sequence = OrderedDict()
         self.__lines = OrderedDict()
-        if args[0].__class__ == list:
+        if type(args[0]) == list:
             for item in args[0]:
-                if issubclass(item.__class__, Algorithm):
+                if issubclass(type(item), Algorithm):
                     self.__sequence[item.name()] = item
-                elif issubclass(item.__class__, Line):
+                elif issubclass(type(item), Line):
                     self.__lines[item.name()] = item
         else:
             for item in args:
-                if issubclass(item.__class__, Algorithm):
+                if issubclass(type(item), Algorithm):
                     self.__sequence[item.name()] = item
-                elif issubclass(item.__class__, Line):
+                elif issubclass(type(item), Line):
                     self.__lines[item.name()] = item
 
     def validate(self):
@@ -272,11 +272,11 @@ class Sequence():
         errors = 0
 
         # Check there are not two outputs with the same name
-        output_names = {}
+        output_names = OrderedDict([])
         for _, algorithm in iter(self.__sequence.items()):
             for parameter_name, parameter in iter(
                     algorithm.parameters().items()):
-                if issubclass(parameter.__class__, OutputParameter):
+                if issubclass(type(parameter), OutputParameter):
                     if parameter.name() in output_names:
                         output_names[parameter.name()].append(algorithm.name())
                     else:
@@ -299,11 +299,11 @@ class Sequence():
                 warnings += 1
 
         # Check the inputs of all algorithms
-        output_parameters = {}
+        output_parameters = OrderedDict([])
         for _, algorithm in iter(self.__sequence.items()):
             for parameter_name, parameter in iter(
                     algorithm.parameters().items()):
-                if issubclass(parameter.__class__, InputParameter):
+                if issubclass(type(parameter), InputParameter):
                     # Check the input is not orphaned (ie. that there is a previous Output that generated it)
                     if parameter.name() not in output_parameters:
                         print("Error: Parameter " + repr(parameter) + " of algorithm " + algorithm.name() + \
@@ -311,7 +311,7 @@ class Sequence():
                         errors += 1
                 # Note: Whenever we enforce InputParameters to come from OutputParameters always,
                 #       then we can move the following two if statements to be included in the
-                #       "if issubclass(parameter.__class__, InputParameter):".
+                #       "if issubclass(type(parameter), InputParameter):".
                 # Check that the input and output types correspond
                 if parameter.name() in output_parameters and \
                   output_parameters[parameter.name()]["parameter"].type() != parameter.type():
@@ -322,16 +322,16 @@ class Sequence():
                     errors += 1
                 # Check the scope (Device, Host) of the input and output parameters matches
                 if parameter.name() in output_parameters and \
-                  ((issubclass(parameter.__class__, DeviceParameter) and \
-                    issubclass(output_parameters[parameter.name()]["parameter"].__class__, HostParameter)) or \
-                  (issubclass(parameter.__class__, HostParameter) and \
-                    issubclass(output_parameters[parameter.name()]["parameter"].__class__, DeviceParameter))):
-                    print("Error: Scope mismatch (" + parameter.__class__ + ", " + output_parameters[parameter.name()]["parameter"].__class__ + ") " \
+                  ((issubclass(type(parameter), DeviceParameter) and \
+                    issubclass(type(output_parameters[parameter.name()]["parameter"]), HostParameter)) or \
+                  (issubclass(type(parameter), HostParameter) and \
+                    issubclass(type(output_parameters[parameter.name()]["parameter"]), DeviceParameter))):
+                    print("Error: Scope mismatch (" + type(parameter) + ", " + type(output_parameters[parameter.name()]["parameter"]) + ") " \
                       + "of InputParameter " + repr(parameter) + " of algorithm " + algorithm.name())
                     errors += 1
             for parameter_name, parameter in iter(
                     algorithm.parameters().items()):
-                if issubclass(parameter.__class__, OutputParameter):
+                if issubclass(type(parameter), OutputParameter):
                     output_parameters[parameter.name()] = {
                         "parameter": parameter,
                         "algorithm": algorithm
@@ -345,13 +345,10 @@ class Sequence():
 
         return True
 
-    def generate(
-            self,
-            output_filename="generated/ConfiguredSequence.h",
-            json_configuration_filename="generated/Configuration.json",
-            json_defaults_configuration_filename="generated/ConfigurationGuide.json",
-            prefix_includes="../../",
-            generate_json_defaults=False):
+    def generate(self,
+                 output_filename="Sequence.h",
+                 json_configuration_filename="Sequence.json",
+                 prefix_includes="../../"):
         # Check that sequence is valid
         print("Validating sequence...")
         if self.validate():
@@ -366,7 +363,7 @@ class Sequence():
                 s += "#include \"" + prefix_includes + line.filename() + "\"\n"
             s += "\n"
             # Generate all parameters
-            parameters = {}
+            parameters = OrderedDict([])
             for _, algorithm in iter(self.__sequence.items()):
                 for parameter_t, parameter in iter(
                         algorithm.parameters().items()):
@@ -381,10 +378,11 @@ class Sequence():
             # Generate configuration
             for paramenter_name, v in iter(parameters.items()):
                 s += "struct " + paramenter_name + " : "
-                inheriting_classes = set()
+                inheriting_classes = []
                 for algorithm_name, algorithm_namespace, parameter_t in v:
-                    inheriting_classes.add(algorithm_namespace +
-                                           "::Parameters::" + parameter_t)
+                    parameter = algorithm_namespace + "::Parameters::" + parameter_t
+                    if parameter not in inheriting_classes:
+                        inheriting_classes.append(parameter)
                 for inheriting_class in inheriting_classes:
                     s += inheriting_class + ", "
                 s = s[:-2]
@@ -461,34 +459,6 @@ class Sequence():
             f.close()
             print("Generated JSON configuration file " +
                   json_configuration_filename)
-            if generate_json_defaults:
-                print("Generating JSON defaults configuration file...")
-                s = "{\n"
-                i = 1
-                for _, algorithm in iter(self.__sequence.items()):
-                    has_modified_properties = False
-                    for prop_name, prop in iter(
-                            algorithm.properties().items()):
-                        if prop.default_value() != "":
-                            has_modified_properties = True
-                            break
-                    if has_modified_properties:
-                        s += prefix(i) + "\"" + algorithm.name() + "\": {"
-                        for prop_name, prop in iter(
-                                algorithm.properties().items()):
-                            if prop.default_value() != "":
-                                s += "\"" + prop_name + "\": \"" + prop.default_value(
-                                ) + "\", "
-                        s = s[:-2]
-                        s += "},\n"
-                if s[-2] == ",":
-                    s = s[:-2]
-                s += "\n}\n"
-                f = open(json_defaults_configuration_filename, "w")
-                f.write(s)
-                f.close()
-                print("Generated JSON defaults configuration file " +
-                      json_defaults_configuration_filename)
         else:
             print(
                 "The sequence contains errors. Please fix them and generate again."

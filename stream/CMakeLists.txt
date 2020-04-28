@@ -75,17 +75,11 @@ if (NOT GaudiProject_FOUND)
   include_directories(${CMAKE_SOURCE_DIR}/mdf/lhcb)
 endif()
 
-
 file(GLOB stream_gear "gear/src/*cpp")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
 file(GLOB stream_sequence "sequence/src/*cu")
 
-# TODO: Maybe remove in Gaudi build
-add_custom_command(
-  OUTPUT "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h"
-  DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.h"
-)
+include(GenerateConfiguration.cmake)
 
 allen_add_host_library(HostStream STATIC ${stream_gear} ${stream_sequence_cpp})
 
@@ -93,6 +87,13 @@ allen_add_device_library(Stream STATIC ${stream_sequence})
 
 target_include_directories(Stream INTERFACE "${PROJECT_BINARY_DIR}/configuration/sequences")
 
+# Depend of Sequence.json instead of configuration/sequences/ConfiguredSequence.h.
+# By doing this, if the ${SEQUENCE}.py changes, a re-configuration will be triggered.
+# The json will always be updated, satisfying the dependence and not triggering a re-configuration
+# until the ${SEQUENCE}.py changes again.
+# However, since the Sequence.h is only copied *if different*, this will not necessarily trigger a re-compilation.
+# In other words, the timestamp of Sequence.json is used to keep up with that of ${SEQUENCE}.py.
+add_custom_target(configured_sequence DEPENDS "${PROJECT_BINARY_DIR}/Sequence.json")
 add_dependencies(Stream configured_sequence)
 
 target_link_libraries(Stream PRIVATE
