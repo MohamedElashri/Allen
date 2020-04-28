@@ -16,7 +16,6 @@ def HLT1Sequence():
         dev_output_buffer_t="dev_sv_offsets_t")
 
     run_hlt1 = run_hlt1_t()
-    prepare_decisions = prepare_decisions_t()
     prepare_raw_banks = prepare_raw_banks_t()
 
     prefix_sum_sel_reps = host_prefix_sum_t(
@@ -54,7 +53,7 @@ def HLT1Sequence():
     hlt1_sequence = Sequence(
         velo_pv_ip, kalman_velo_only, filter_tracks,
         prefix_sum_secondary_vertices, fit_secondary_vertices, run_hlt1,
-        prepare_decisions, prepare_raw_banks,
+        prepare_raw_banks,
         prefix_sum_sel_reps, package_sel_reports, ErrorEvent_line,
         PassThrough_line, NoBeams_line, BeamOne_line, BeamTwo_line,
         BothBeams_line, ODINNoBias_line, ODINLumi_line, GECPassthrough_line,

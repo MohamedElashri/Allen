@@ -6,11 +6,16 @@
 #include "DeviceAlgorithm.cuh"
 #include "LineInfo.cuh"
 #include "ParKalmanFilter.cuh"
+#include "SciFiConsolidated.cuh"
+#include "UTConsolidated.cuh"
+#include "VeloConsolidated.cuh"
+#include "LineTraverser.cuh"
 
 namespace prepare_raw_banks {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, uint);
+    HOST_INPUT(host_number_of_svs_t, uint);
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, uint) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, uint) dev_velo_track_hit_number;
@@ -29,15 +34,18 @@ namespace prepare_raw_banks {
     DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_consolidated_svs;
     DEVICE_INPUT(dev_offsets_forward_tracks_t, uint) dev_offsets_forward_tracks;
     DEVICE_INPUT(dev_sv_offsets_t, uint) dev_sv_offsets;
-    DEVICE_INPUT(dev_candidate_lists_t, uint) dev_candidate_lists;
-    DEVICE_INPUT(dev_candidate_counts_t, uint) dev_candidate_counts;
-    DEVICE_INPUT(dev_n_svs_saved_t, uint) dev_n_svs_saved;
-    DEVICE_INPUT(dev_n_tracks_saved_t, uint) dev_n_tracks_saved;
-    DEVICE_INPUT(dev_n_hits_saved_t, uint) dev_n_hits_saved;
-    DEVICE_INPUT(dev_saved_tracks_list_t, uint) dev_saved_tracks_list;
-    DEVICE_INPUT(dev_saved_svs_list_t, uint) dev_saved_svs_list;
-    DEVICE_INPUT(dev_save_track_t, int) dev_save_track;
-    DEVICE_INPUT(dev_save_sv_t, int) dev_save_sv;
+    DEVICE_INPUT(dev_sel_results_t, bool) dev_sel_results;
+    DEVICE_INPUT(dev_sel_results_offsets_t, uint) dev_sel_results_offsets;
+    DEVICE_OUTPUT(dev_candidate_lists_t, uint) dev_candidate_lists;
+    DEVICE_OUTPUT(dev_candidate_counts_t, uint) dev_candidate_counts;
+    DEVICE_OUTPUT(dev_n_passing_decisions_t, uint) dev_n_passing_decisions;
+    DEVICE_OUTPUT(dev_n_svs_saved_t, uint) dev_n_svs_saved;
+    DEVICE_OUTPUT(dev_n_tracks_saved_t, uint) dev_n_tracks_saved;
+    DEVICE_OUTPUT(dev_n_hits_saved_t, uint) dev_n_hits_saved;
+    DEVICE_OUTPUT(dev_saved_tracks_list_t, uint) dev_saved_tracks_list;
+    DEVICE_OUTPUT(dev_saved_svs_list_t, uint) dev_saved_svs_list;
+    DEVICE_OUTPUT(dev_save_track_t, int) dev_save_track;
+    DEVICE_OUTPUT(dev_save_sv_t, int) dev_save_sv;
     DEVICE_OUTPUT(dev_dec_reports_t, uint) dev_dec_reports;
     DEVICE_OUTPUT(dev_sel_rb_hits_t, uint) dev_sel_rb_hits;
     DEVICE_OUTPUT(dev_sel_rb_stdinfo_t, uint) dev_sel_rb_stdinfo;
@@ -49,13 +57,17 @@ namespace prepare_raw_banks {
   };
 
   template<typename T>
+  __global__ void prepare_decisions(Parameters, const uint selected_number_of_events, const uint event_start);
+  
+  template<typename T>
   __global__ void
   prepare_raw_banks(Parameters, const uint number_of_events, const uint total_number_of_events, const uint event_start);
 
   template<typename T, typename U, char... S>
   struct prepare_raw_banks_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
-    decltype(global_function(prepare_raw_banks<U>)) function {prepare_raw_banks<U>};
+    decltype(global_function(prepare_raw_banks<U>)) raw_banks_function {prepare_raw_banks<U>};
+    decltype(global_function(prepare_decisions<U>)) decisions_function {prepare_decisions<U>};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
@@ -73,6 +85,23 @@ namespace prepare_raw_banks {
       set_size<dev_sel_rb_substr_t>(arguments, total_number_of_events * Hlt1::subStrDefaultAllocationSize);
       set_size<dev_sel_rep_sizes_t>(arguments, total_number_of_events);
       set_size<dev_passing_event_list_t>(arguments, total_number_of_events);
+
+      const auto n_hlt1_lines = std::tuple_size<U>::value;
+      set_size<dev_dec_reports_t>(arguments, (2 + n_hlt1_lines) * total_number_of_events);
+
+      // This is not technically enough to save every single track, but
+      // should be more than enough in practice.
+      // TODO: Implement some check for this.
+      set_size<dev_candidate_lists_t>(arguments, total_number_of_events * Hlt1::maxCandidates * n_hlt1_lines);
+      set_size<dev_candidate_counts_t>(arguments, total_number_of_events * n_hlt1_lines);
+      set_size<dev_saved_tracks_list_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+      set_size<dev_saved_svs_list_t>(arguments, value<host_number_of_svs_t>(arguments));
+      set_size<dev_save_track_t>(arguments, value<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+      set_size<dev_save_sv_t>(arguments, value<host_number_of_svs_t>(arguments));
+      set_size<dev_n_tracks_saved_t>(arguments, total_number_of_events);
+      set_size<dev_n_svs_saved_t>(arguments, total_number_of_events);
+      set_size<dev_n_hits_saved_t>(arguments, total_number_of_events);
+      set_size<dev_n_passing_decisions_t>(arguments, total_number_of_events);
     }
 
     void operator()(
@@ -86,13 +115,21 @@ namespace prepare_raw_banks {
       const auto event_start = std::get<0>(runtime_options.event_interval);
       const auto total_number_of_events =
         std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
-
+      
       initialize<dev_sel_rb_hits_t>(arguments, 0, cuda_stream);
       initialize<dev_sel_rb_stdinfo_t>(arguments, 0, cuda_stream);
       initialize<dev_sel_rb_objtyp_t>(arguments, 0, cuda_stream);
       initialize<dev_sel_rb_substr_t>(arguments, 0, cuda_stream);
       initialize<dev_sel_rep_sizes_t>(arguments, 0, cuda_stream);
       initialize<dev_passing_event_list_t>(arguments, 0, cuda_stream);
+      initialize<dev_candidate_lists_t>(arguments, 0, cuda_stream);
+      initialize<dev_candidate_counts_t>(arguments, 0, cuda_stream);
+      initialize<dev_dec_reports_t>(arguments, 0, cuda_stream);
+      initialize<dev_save_track_t>(arguments, -1, cuda_stream);
+      initialize<dev_save_sv_t>(arguments, -1, cuda_stream);
+      initialize<dev_n_tracks_saved_t>(arguments, 0, cuda_stream);
+      initialize<dev_n_svs_saved_t>(arguments, 0, cuda_stream);
+      initialize<dev_n_hits_saved_t>(arguments, 0, cuda_stream);
 
 #ifdef CPU
       const uint grid_dim = 1;
@@ -107,7 +144,7 @@ namespace prepare_raw_banks {
       const uint block_dim = property<block_dim_x_t>().get();
 #endif
 
-      function(dim3(grid_dim), dim3(block_dim), cuda_stream)(
+      decisions_function(dim3(grid_dim), dim3(block_dim), cuda_stream)(
         Parameters {begin<dev_event_list_t>(arguments),
                     begin<dev_offsets_all_velo_tracks_t>(arguments),
                     begin<dev_offsets_velo_track_hit_number_t>(arguments),
@@ -126,8 +163,52 @@ namespace prepare_raw_banks {
                     begin<dev_consolidated_svs_t>(arguments),
                     begin<dev_offsets_forward_tracks_t>(arguments),
                     begin<dev_sv_offsets_t>(arguments),
+                    begin<dev_sel_results_t>(arguments),
+                    begin<dev_sel_results_offsets_t>(arguments),
                     begin<dev_candidate_lists_t>(arguments),
                     begin<dev_candidate_counts_t>(arguments),
+                    begin<dev_n_passing_decisions_t>(arguments),
+                    begin<dev_n_svs_saved_t>(arguments),
+                    begin<dev_n_tracks_saved_t>(arguments),
+                    begin<dev_n_hits_saved_t>(arguments),
+                    begin<dev_saved_tracks_list_t>(arguments),
+                    begin<dev_saved_svs_list_t>(arguments),
+                    begin<dev_save_track_t>(arguments),
+                    begin<dev_save_sv_t>(arguments),
+                    begin<dev_dec_reports_t>(arguments),
+                    begin<dev_sel_rb_hits_t>(arguments),
+                    begin<dev_sel_rb_stdinfo_t>(arguments),
+                    begin<dev_sel_rb_objtyp_t>(arguments),
+                    begin<dev_sel_rb_substr_t>(arguments),
+                    begin<dev_sel_rep_sizes_t>(arguments),
+                    begin<dev_passing_event_list_t>(arguments)},
+        value<host_number_of_selected_events_t>(arguments),
+        event_start);
+
+      raw_banks_function(dim3(grid_dim), dim3(block_dim), cuda_stream)(
+        Parameters {begin<dev_event_list_t>(arguments),
+                    begin<dev_offsets_all_velo_tracks_t>(arguments),
+                    begin<dev_offsets_velo_track_hit_number_t>(arguments),
+                    begin<dev_velo_track_hits_t>(arguments),
+                    begin<dev_offsets_ut_tracks_t>(arguments),
+                    begin<dev_offsets_ut_track_hit_number_t>(arguments),
+                    begin<dev_ut_qop_t>(arguments),
+                    begin<dev_ut_track_velo_indices_t>(arguments),
+                    begin<dev_offsets_scifi_track_hit_number>(arguments),
+                    begin<dev_scifi_qop_t>(arguments),
+                    begin<dev_scifi_states_t>(arguments),
+                    begin<dev_scifi_track_ut_indices_t>(arguments),
+                    begin<dev_ut_track_hits_t>(arguments),
+                    begin<dev_scifi_track_hits_t>(arguments),
+                    begin<dev_kf_tracks_t>(arguments),
+                    begin<dev_consolidated_svs_t>(arguments),
+                    begin<dev_offsets_forward_tracks_t>(arguments),
+                    begin<dev_sv_offsets_t>(arguments),
+                    begin<dev_sel_results_t>(arguments),
+                    begin<dev_sel_results_offsets_t>(arguments),
+                    begin<dev_candidate_lists_t>(arguments),
+                    begin<dev_candidate_counts_t>(arguments),
+                    begin<dev_n_passing_decisions_t>(arguments),
                     begin<dev_n_svs_saved_t>(arguments),
                     begin<dev_n_tracks_saved_t>(arguments),
                     begin<dev_n_hits_saved_t>(arguments),
@@ -167,4 +248,5 @@ namespace prepare_raw_banks {
   };
 } // namespace prepare_raw_banks
 
+#include "PrepareDecisions.icc"
 #include "PrepareRawBanks.icc"

@@ -184,14 +184,6 @@ namespace run_hlt1 {
         value<host_number_of_selected_events_t>(arguments),
         event_start);
 
-      if (runtime_options.do_check) {
-        safe_assign_to_host_buffer<dev_sel_results_t>(
-          host_buffers.host_sel_results,
-          host_buffers.host_sel_results_size,
-          arguments,
-          cuda_stream);
-      }
-
       // Run the postscaler.
       postscale_function(dim3(total_number_of_events), property<block_dim_t>(), cuda_stream)(
         Parameters {begin<dev_event_list_t>(arguments),
@@ -212,7 +204,16 @@ namespace run_hlt1 {
                     property<factor_dimuon_soft_t>()},
         value<host_number_of_selected_events_t>(arguments),
         event_start);
+
       
+      if (runtime_options.do_check) {
+        safe_assign_to_host_buffer<dev_sel_results_t>(
+          host_buffers.host_sel_results,
+          host_buffers.host_sel_results_size,
+          arguments,
+          cuda_stream);
+      }
+
     }
 
   private:
