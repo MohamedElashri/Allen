@@ -11,7 +11,7 @@ file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 # We need to pass a custom LD_LIBRARY_PATH to point to a compatible clang version
 # TODO: Figure out if there is a cleaner way to do this
 set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64)
-set(DEFAULT_MOORE_RUN /cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/stable/x86_64-centos7/bin/lb-run --nightly lhcb-gaudi-head/2587 Moore/HEAD)
+set(DEFAULT_MOORE_RUN /cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/stable/x86_64-centos7/bin/lb-run --nightly lhcb-gaudi-head/latest Moore/HEAD)
 
 message(STATUS "Testing code generation with LLVM")
 
