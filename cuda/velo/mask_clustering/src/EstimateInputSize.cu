@@ -44,7 +44,7 @@ __device__ void estimate_raw_bank_size(
 
       // Add the found clusters
       [[maybe_unused]] const uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, number_of_clusters);
-      assert(current_estimated_module_pair_size < Velo::Constants::max_numhits_in_module);
+      assert(current_estimated_module_pair_size < Velo::Constants::max_numhits_in_module_pair);
     }
     else {
       // Find candidates that follow this condition:
@@ -184,7 +184,7 @@ __device__ void estimate_raw_bank_size(
   // Add the found cluster candidates
   if (found_cluster_candidates > 0) {
     [[maybe_unused]] const uint current_estimated_module_pair_size = atomicAdd(estimated_module_pair_size, found_cluster_candidates);
-    assert(current_estimated_module_pair_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module);
+    assert(current_estimated_module_pair_size + found_cluster_candidates < Velo::Constants::max_numhits_in_module_pair);
   }
 }
 

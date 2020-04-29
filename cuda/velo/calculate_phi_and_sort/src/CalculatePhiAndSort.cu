@@ -9,7 +9,7 @@
 __global__ void velo_calculate_phi_and_sort::velo_calculate_phi_and_sort(
   velo_calculate_phi_and_sort::Parameters parameters)
 {
-  __shared__ int16_t shared_hit_phis[Velo::Constants::max_numhits_in_module];
+  __shared__ int16_t shared_hit_phis[Velo::Constants::max_numhits_in_module_pair];
 
   /* Data initialization */
   // Each event is treated with two blocks, one for each side.
@@ -67,7 +67,7 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
     const auto hit_start = module_pair_hit_start[module_pair];
     const auto hit_num = module_pair_hit_num[module_pair];
 
-    assert(hit_num < Velo::Constants::max_numhits_in_module);
+    assert(hit_num < Velo::Constants::max_numhits_in_module_pair);
 
     // Calculate phis
     for (uint hit_rel_id = threadIdx.x; hit_rel_id < hit_num; hit_rel_id += blockDim.x) {
@@ -91,7 +91,7 @@ __device__ void velo_calculate_phi_and_sort::calculate_phi(
         // Stable sorting
         position += phi > other_phi || (phi == other_phi && hit_rel_id > j);
       }
-      assert(position < Velo::Constants::max_numhits_in_module);
+      assert(position < Velo::Constants::max_numhits_in_module_pair);
 
       // Store it in hit permutations and in hit_Phis, already ordered
       const auto global_position = hit_start + position;

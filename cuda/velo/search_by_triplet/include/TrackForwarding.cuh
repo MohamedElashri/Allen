@@ -5,29 +5,9 @@
 #include "VeloTools.cuh"
 #include <tuple>
 
-__device__ void process_modules(
-  Velo::Module* module_data,
-  bool* hit_used,
-  const uint* module_hit_start,
-  const uint* module_hit_num,
-  Velo::ConstClusters& velo_cluster_container,
-  const int16_t* hit_phi,
-  uint* tracks_to_follow,
-  Velo::TrackletHits* weak_tracks,
-  Velo::TrackletHits* tracklets,
-  Velo::TrackHits* tracks,
-  unsigned short* h1_rel_indices,
-  const uint hit_offset,
-  const float* dev_velo_module_zs,
-  uint* dev_atomics_velo,
-  uint* dev_number_of_velo_tracks,
-  const float max_scatter,
-  const uint max_skipped_modules,
-  const int16_t phi_tolerance);
-
 __device__ void track_seeding(
   Velo::ConstClusters& velo_cluster_container,
-  const Velo::Module* module_data,
+  const Velo::ModulePair* module_pair_data,
   bool* hit_used,
   Velo::TrackletHits* tracklets,
   uint* tracks_to_follow,
@@ -41,7 +21,7 @@ __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
   const int16_t* hit_phi,
   bool* hit_used,
-  const Velo::Module* module_data,
+  const Velo::ModulePair* module_pair_data,
   const uint diff_ttf,
   uint* tracks_to_follow,
   Velo::TrackletHits* weak_tracks,
@@ -60,7 +40,7 @@ __device__ void track_forwarding(
  *        Returns the candidate, and the extrapolated phi value.
  */
 __device__ inline std::tuple<int, int16_t> find_forward_candidate(
-  const Velo::Module& module,
+  const Velo::ModulePair& module_pair,
   const int16_t* hit_Phis,
   const Velo::HitBase& h0,
   const float tx,
@@ -75,8 +55,8 @@ __device__ inline std::tuple<int, int16_t> find_forward_candidate(
   const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
   return {binary_search_leftmost(
-            hit_Phis + module.hit_start,
-            module.hit_num,
+            hit_Phis + module_pair.hit_start,
+            module_pair.hit_num,
             static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
           track_extrapolation_phi};
 }
