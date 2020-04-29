@@ -31,7 +31,6 @@ def VeloSequence(doGEC=True):
 
     velo_masked_clustering = velo_masked_clustering_t()
     velo_calculate_phi_and_sort = velo_calculate_phi_and_sort_t()
-    velo_fill_candidates = velo_fill_candidates_t()
     velo_search_by_triplet = velo_search_by_triplet_t()
 
     prefix_sum_offsets_velo_tracks = host_prefix_sum_t(
@@ -69,19 +68,12 @@ def VeloSequence(doGEC=True):
     velo_sequence = Sequence(
         populate_odin_banks, initialize_lists,
         velo_calculate_number_of_candidates,
-        prefix_sum_offsets_velo_candidates,
-        velo_estimate_input_size,
-        prefix_sum_offsets_estimated_input_size,
-        velo_masked_clustering,
-        velo_calculate_phi_and_sort,
-        velo_fill_candidates,
-        velo_search_by_triplet,
-        prefix_sum_offsets_velo_tracks,
-        velo_three_hit_tracks_filter,
+        prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
+        prefix_sum_offsets_estimated_input_size, velo_masked_clustering,
+        velo_calculate_phi_and_sort, velo_search_by_triplet,
+        prefix_sum_offsets_velo_tracks, velo_three_hit_tracks_filter,
         prefix_sum_offsets_number_of_three_hit_tracks_filtered,
-        velo_copy_track_hit_number,
-        prefix_sum_offsets_velo_track_hit_number,
-        velo_consolidate_tracks
-    )
+        velo_copy_track_hit_number, prefix_sum_offsets_velo_track_hit_number,
+        velo_consolidate_tracks)
 
     return velo_sequence
