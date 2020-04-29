@@ -141,12 +141,8 @@ half_t::operator float() const { return m_value; }
 
 #elif defined(DEVICE_TARGET_HIP)
 
-__host__ __device__ uint16_t __float2half(const float f) {
-  return __float2half_impl(f);
-}
+__host__ __device__ uint16_t __float2half(const float f) { return __float2half_impl(f); }
 
-__host__ __device__ float __half2float(const uint16_t h) {
-  return __half2float_impl(h);
-}
+__host__ __device__ float __half2float(const uint16_t h) { return __half2float_impl(h); }
 
 #endif

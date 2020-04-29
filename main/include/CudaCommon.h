@@ -245,7 +245,8 @@ public:
 // Support for HIP
 // ---------------
 
-#if (defined(TARGET_DEVICE_HIPCLANG) && !defined(__HIPDETECTED__)) || (defined(TARGET_DEVICE_HIP) && !defined(__HCC__) && !defined(__HIP__))
+#if (defined(TARGET_DEVICE_HIPCLANG) && !defined(__HIPDETECTED__)) || \
+  (defined(TARGET_DEVICE_HIP) && !defined(__HCC__) && !defined(__HIP__))
 #define __HIP_PLATFORM_HCC__
 #include <hip/hip_runtime_api.h>
 #else
