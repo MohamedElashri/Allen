@@ -17,8 +17,8 @@ namespace Velo {
     static constexpr uint n_sensors = n_modules * n_sensors_per_module;
     static constexpr float z_endVelo = 770; // FIXME_GEOMETRY_HARDCODING
 
-    // Constant for maximum number of hits in a module
-    static constexpr uint max_numhits_in_module = 1024;
+    // Constant for maximum number of hits in a module pair
+    static constexpr uint max_numhits_in_module_pair = 1024;
 
     // Constants for requested storage on device
     static constexpr uint max_tracks = 1200;
@@ -36,7 +36,6 @@ namespace Velo {
     static constexpr float param_w = 3966.94f;
     static constexpr float param_w_inverted = 0.000252083f;
     static constexpr int number_of_h0_candidates = 5;
-    static constexpr float dz_module_min = 25.f;
     // Atomics
     namespace atomics {
       enum atomic_types {

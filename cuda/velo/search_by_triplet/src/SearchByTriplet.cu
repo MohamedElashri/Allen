@@ -56,7 +56,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   const VeloGeometry* dev_velo_geometry)
 {
   // Shared memory size is a constant, enough to fit information about three module pairs.
-  __shared__ Velo::Module module_data[3];
+  __shared__ Velo::ModulePair module_pair_data[3];
 
   // Initialize event number and number of events based on kernel invoking parameters
   const uint event_number = blockIdx.x;
@@ -83,7 +83,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   Velo::TrackletHits* three_hit_tracks =
     parameters.dev_three_hit_tracks + event_number * Velo::Constants::max_three_hit_tracks;
   Velo::TrackletHits* tracklets = parameters.dev_tracklets + event_number * Velo::Constants::max_tracks_to_follow;
-  unsigned short* h1_rel_indices = parameters.dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module;
+  unsigned short* h1_rel_indices = parameters.dev_rel_indices + event_number * Velo::Constants::max_numhits_in_module_pair;
 
   uint* dev_atomics_velo = parameters.dev_atomics_velo + blockIdx.x * Velo::num_atomics;
   const int16_t phi_tolerance = hit_phi_float_to_16(parameters.phi_tolerance);
@@ -94,10 +94,10 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   // Load shared module information
   for (uint i = threadIdx.x; i < 3; i += blockDim.x) {
     const auto module_pair_number = first_module_pair - i;
-    module_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
-    module_data[i].hit_num = module_hit_num[module_pair_number];
-    module_data[i].z[0] = dev_velo_geometry->module_zs[2 * module_pair_number];
-    module_data[i].z[1] = dev_velo_geometry->module_zs[2 * module_pair_number + 1];
+    module_pair_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
+    module_pair_data[i].hit_num = module_hit_num[module_pair_number];
+    module_pair_data[i].z[0] = dev_velo_geometry->module_zs[2 * module_pair_number];
+    module_pair_data[i].z[1] = dev_velo_geometry->module_zs[2 * module_pair_number + 1];
   }
 
   // Due to shared module data initialization
@@ -106,7 +106,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   // Do first track seeding
   track_seeding(
     velo_cluster_container,
-    module_data,
+    module_pair_data,
     hit_used,
     tracklets,
     tracks_to_follow,
@@ -129,10 +129,10 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     // Load in shared
     for (int i = threadIdx.x; i < 3; i += blockDim.x) {
       const auto module_pair_number = first_module_pair - i;
-      module_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
-      module_data[i].hit_num = module_hit_num[module_pair_number];
-      module_data[i].z[0] = dev_velo_geometry->module_zs[2 * module_pair_number];
-      module_data[i].z[1] = dev_velo_geometry->module_zs[2 * module_pair_number + 1];
+      module_pair_data[i].hit_start = module_hit_start[module_pair_number] - hit_offset;
+      module_pair_data[i].hit_num = module_hit_num[module_pair_number];
+      module_pair_data[i].z[0] = dev_velo_geometry->module_zs[2 * module_pair_number];
+      module_pair_data[i].z[1] = dev_velo_geometry->module_zs[2 * module_pair_number + 1];
     }
 
     // ttf stands for "tracks to forward"
@@ -152,7 +152,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       velo_cluster_container,
       hit_phi,
       hit_used,
-      module_data,
+      module_pair_data,
       diff_ttf,
       tracks_to_follow,
       three_hit_tracks,
@@ -171,7 +171,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     // Seeding
     track_seeding(
       velo_cluster_container,
-      module_data,
+      module_pair_data,
       hit_used,
       tracklets,
       tracks_to_follow,
@@ -213,7 +213,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
  */
 __device__ void track_seeding(
   Velo::ConstClusters& velo_cluster_container,
-  const Velo::Module* module_data,
+  const Velo::ModulePair* module_pair_data,
   bool* hit_used,
   Velo::TrackletHits* tracklets,
   uint* tracks_to_follow,
@@ -224,9 +224,9 @@ __device__ void track_seeding(
   const int16_t phi_tolerance)
 {
   // Add to an array all non-used h1 hits
-  for (uint h1_rel_index = threadIdx.x; h1_rel_index < module_data[shared::current_module_pair].hit_num;
+  for (uint h1_rel_index = threadIdx.x; h1_rel_index < module_pair_data[shared::current_module_pair].hit_num;
        h1_rel_index += blockDim.x) {
-    const auto h1_index = module_data[shared::current_module_pair].hit_start + h1_rel_index;
+    const auto h1_index = module_pair_data[shared::current_module_pair].hit_start + h1_rel_index;
     if (!hit_used[h1_index]) {
       const auto current_hit = atomicAdd(dev_atomics_velo + atomics::local_number_of_hits, 1);
       h1_indices[current_hit] = h1_index;
@@ -256,15 +256,15 @@ __device__ void track_seeding(
 
     // Iterate over previous module until the first n candidates are found
     int phi_index = binary_search_leftmost(
-      hit_phi + module_data[shared::previous_module_pair].hit_start,
-      module_data[shared::previous_module_pair].hit_num,
+      hit_phi + module_pair_data[shared::previous_module_pair].hit_start,
+      module_pair_data[shared::previous_module_pair].hit_num,
       h1_phi);
 
     // Do a "pendulum search" to find the candidates, consisting in iterating in the following manner:
     // phi_index, phi_index + 1, phi_index - 1, phi_index + 2, ...
     int found_h0_candidates = 0;
     for (uint i = 0;
-         i < module_data[shared::previous_module_pair].hit_num && found_h0_candidates < number_of_h0_candidates;
+         i < module_pair_data[shared::previous_module_pair].hit_num && found_h0_candidates < number_of_h0_candidates;
          ++i) {
       // Note: By setting the sign to the oddity of i, the search behaviour is achieved.
       const auto sign = i & 0x01;
@@ -272,11 +272,11 @@ __device__ void track_seeding(
       phi_index += index_diff;
 
       const auto index_in_bounds =
-        (phi_index < 0 ? phi_index + module_data[shared::previous_module_pair].hit_num :
-                         (phi_index >= static_cast<int>(module_data[shared::previous_module_pair].hit_num) ?
-                            phi_index - static_cast<int>(module_data[shared::previous_module_pair].hit_num) :
+        (phi_index < 0 ? phi_index + module_pair_data[shared::previous_module_pair].hit_num :
+                         (phi_index >= static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) ?
+                            phi_index - static_cast<int>(module_pair_data[shared::previous_module_pair].hit_num) :
                             phi_index));
-      const auto h0_index = module_data[shared::previous_module_pair].hit_start + index_in_bounds;
+      const auto h0_index = module_pair_data[shared::previous_module_pair].hit_start + index_in_bounds;
 
       // Discard the candidate if it is used
       if (!hit_used[h0_index]) {
@@ -299,25 +299,25 @@ __device__ void track_seeding(
 
       // Get candidates by performing a binary search in expected phi
       const auto candidate_h2 = find_forward_candidate(
-        module_data[shared::next_module_pair],
+        module_pair_data[shared::next_module_pair],
         hit_phi,
         h0,
         tx,
         ty,
-        module_data[shared::next_module_pair].z[0] - module_data[shared::previous_module_pair].z[0],
+        module_pair_data[shared::next_module_pair].z[0] - module_pair_data[shared::previous_module_pair].z[0],
         phi_tolerance);
 
       // First candidate in the next module pair.
       // Since the buffer is circular, finding the container size means finding the first element.
       const auto candidate_h2_index =
-        std::get<0>(candidate_h2) < static_cast<int>(module_data[shared::next_module_pair].hit_num) ?
+        std::get<0>(candidate_h2) < static_cast<int>(module_pair_data[shared::next_module_pair].hit_num) ?
           std::get<0>(candidate_h2) :
           0;
       const auto extrapolated_phi = std::get<1>(candidate_h2);
 
-      for (uint i = 0; i < module_data[shared::next_module_pair].hit_num; ++i) {
-        const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
-        const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
+      for (uint i = 0; i < module_pair_data[shared::next_module_pair].hit_num; ++i) {
+        const auto index_in_bounds = (candidate_h2_index + i) % module_pair_data[shared::next_module_pair].hit_num;
+        const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
 
         // Check the phi difference is within the tolerance with modulo arithmetic.
         const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
@@ -372,7 +372,7 @@ __device__ void track_forwarding(
   Velo::ConstClusters& velo_cluster_container,
   const int16_t* hit_phi,
   bool* hit_used,
-  const Velo::Module* module_data,
+  const Velo::ModulePair* module_pair_data,
   const uint diff_ttf,
   uint* tracks_to_follow,
   Velo::TrackletHits* three_hit_tracks,
@@ -433,25 +433,25 @@ __device__ void track_forwarding(
 
     // Get candidates by performing a binary search in expected phi
     const auto candidate_h2 = find_forward_candidate(
-      module_data[shared::next_module_pair],
+      module_pair_data[shared::next_module_pair],
       hit_phi,
       h0,
       tx,
       ty,
-      module_data[shared::next_module_pair].z[h0_module % 2] - h0.z,
+      module_pair_data[shared::next_module_pair].z[h0_module % 2] - h0.z,
       phi_tolerance);
 
     // First candidate in the next module pair.
     // Since the buffer is circular, finding the container size means finding the first element.
     const auto candidate_h2_index =
-      std::get<0>(candidate_h2) < static_cast<int>(module_data[shared::next_module_pair].hit_num) ?
+      std::get<0>(candidate_h2) < static_cast<int>(module_pair_data[shared::next_module_pair].hit_num) ?
         std::get<0>(candidate_h2) :
         0;
     const auto extrapolated_phi = std::get<1>(candidate_h2);
 
-    for (uint i = 0; i < module_data[shared::next_module_pair].hit_num; ++i) {
-      const auto index_in_bounds = (candidate_h2_index + i) % module_data[shared::next_module_pair].hit_num;
-      const auto h2_index = module_data[shared::next_module_pair].hit_start + index_in_bounds;
+    for (uint i = 0; i < module_pair_data[shared::next_module_pair].hit_num; ++i) {
+      const auto index_in_bounds = (candidate_h2_index + i) % module_pair_data[shared::next_module_pair].hit_num;
+      const auto h2_index = module_pair_data[shared::next_module_pair].hit_start + index_in_bounds;
 
       // Check the phi difference is within the tolerance with modulo arithmetic.
       const int16_t phi_diff = hit_phi[h2_index] - extrapolated_phi;
