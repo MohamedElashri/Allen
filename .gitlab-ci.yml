@@ -117,6 +117,19 @@ check-formatting:
       - input
   retry: 1
 
+docker_image:build:
+  stage: build
+  only:
+    refs:
+      - master
+  tags:
+    - docker-image-build
+  script: "echo 'Building Allen dev docker image"
+  variables:
+    TO: $CI_REGISTRY_IMAGE:latest
+
+
+
 .run_physics_efficiency_job: &run_physics_efficiency_job_def
   only:
     refs:
