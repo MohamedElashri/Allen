@@ -125,7 +125,7 @@ extern "C" int allen(
   uint number_of_slices = 0;
   uint number_of_buffers = 0;
   long number_of_events_requested = 0;
-  boost::optional<uint> events_per_slice;
+  auto events_per_slice = boost::make_optional(false, uint{});
   uint start_event_offset = 0;
   uint number_of_threads = 1;
   uint number_of_repetitions = 1;
