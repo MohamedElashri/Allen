@@ -3,7 +3,6 @@
 #include "UTDefinitions.cuh"
 #include "UTMagnetToolDefinitions.h"
 #include "CompassUTDefinitions.cuh"
-#include "CalculateWindows.cuh"
 #include "DeviceAlgorithm.cuh"
 
 namespace ut_select_velo_tracks {
@@ -18,6 +17,8 @@ namespace ut_select_velo_tracks {
     DEVICE_OUTPUT(dev_ut_selected_velo_tracks_t, uint) dev_ut_selected_velo_tracks;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
+
+  __device__ bool velo_track_in_UTA_acceptance(const MiniState& state);
 
   __global__ void ut_select_velo_tracks(Parameters);
 

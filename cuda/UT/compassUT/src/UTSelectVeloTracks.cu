@@ -28,3 +28,23 @@ __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_trac
     }
   }
 }
+
+//=============================================================================
+// Reject tracks outside of acceptance or pointing to the beam pipe
+//=============================================================================
+__device__ bool ut_select_velo_tracks::velo_track_in_UTA_acceptance(const MiniState& state)
+{
+  const float xMidUT = state.x + state.tx * (UT::Constants::zMidUT - state.z);
+  const float yMidUT = state.y + state.ty * (UT::Constants::zMidUT - state.z);
+
+  if (xMidUT * xMidUT + yMidUT * yMidUT < UT::Constants::centralHoleSize * UT::Constants::centralHoleSize) return false;
+  if ((fabsf(state.tx) > UT::Constants::maxXSlope) || (fabsf(state.ty) > UT::Constants::maxYSlope)) return false;
+
+  if (
+    UT::Constants::passTracks && fabsf(xMidUT) < UT::Constants::passHoleSize &&
+    fabsf(yMidUT) < UT::Constants::passHoleSize) {
+    return false;
+  }
+
+  return true;
+}

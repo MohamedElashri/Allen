@@ -18,9 +18,19 @@ struct TrackCandidates {
 
   __device__ TrackCandidates(const short* base_pointer) : m_base_pointer(base_pointer) {}
 
-  __device__ short get_from(int layer, int sector) const;
+  __device__ inline short get_from(int layer, int sector) const
+  {
+    return m_base_pointer
+      [sector * UT::Constants::n_layers * UT::Constants::num_thr_compassut + layer * UT::Constants::num_thr_compassut +
+       threadIdx.x];
+  }
 
-  __device__ short get_size(int layer, int sector) const;
+  __device__ inline short get_size(int layer, int sector) const
+  {
+    return m_base_pointer
+      [(sector + (CompassUT::num_elems / 2)) * UT::Constants::n_layers * UT::Constants::num_thr_compassut +
+       layer * UT::Constants::num_thr_compassut + threadIdx.x];
+  }
 };
 
 //=========================================================================

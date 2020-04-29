@@ -6,7 +6,6 @@ include_directories(${CPPGSL_INCLUDE_DIR})
 
 target_link_libraries(NonEventData
   HostClustering
-  UTCommon
   CudaCommon
   Common)
 

@@ -1,6 +1,4 @@
-file(GLOB scifi_common "common/src/*cu")
 file(GLOB scifi_preprocessing "preprocessing/src/*cu")
-file(GLOB scifi_lf_common "looking_forward/common/src/*cu")
 file(GLOB scifi_lf_search_initial_windows "looking_forward/search_initial_windows/src/*cu")
 file(GLOB scifi_lf_extend_tracks_x "looking_forward/extend_tracks_x/src/*cu")
 file(GLOB scifi_lf_triplet_seeding "looking_forward/triplet_seeding/src/*cu")
@@ -44,9 +42,7 @@ include_directories(consolidate/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
 allen_add_device_library(SciFi STATIC
-  ${scifi_common}
   ${scifi_preprocessing}
-  ${scifi_lf_common}
   ${scifi_lf_search_initial_windows}
   ${scifi_lf_extend_tracks_x}
   ${scifi_lf_triplet_seeding}
