@@ -63,7 +63,7 @@ namespace velo_search_by_triplet {
       set_size<dev_atomics_velo_t>(arguments, value<host_number_of_selected_events_t>(arguments) * Velo::num_atomics);
       set_size<dev_number_of_velo_tracks_t>(arguments, value<host_number_of_selected_events_t>(arguments));
       set_size<dev_rel_indices_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_numhits_in_module);
+        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::max_numhits_in_module_pair);
     }
 
     void operator()(

@@ -466,11 +466,6 @@ void TrackChecker::operator()(
 
     auto [match, track_best_matched_MCP] = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
 
-    bool eta25 = track.eta > 2.f && track.eta < 5.f;
-    bool skipEtaCut = (m_trackerName == "Velo");
-    bool eta25Cut = eta25 | skipEtaCut;
-
-    if (!eta25Cut) continue;
     ++ntracksperevt;
 
     const bool triggerCondition = track.p > 3000.f && track.pt > 500.f;

@@ -46,7 +46,7 @@ set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 
 # --------------------
 
 # Configured sequence
-set(SEQUENCE HLT1 CACHE STRING "Configured sequence")
+set(SEQUENCE hlt1_pp_default CACHE STRING "Configured sequence")
 message(STATUS "Configured sequence: " ${SEQUENCE})
 
 #Configured CPU architecture

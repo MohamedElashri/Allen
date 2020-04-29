@@ -5,13 +5,15 @@
 #include "VeloDefinitions.cuh"
 
 namespace Velo {
-  struct Module {
+  struct ModulePair {
     uint hit_start;
     uint hit_num;
+    // z of both modules in module pair
     float z [2];
 
-    __host__ __device__ Module() {}
-    __host__ __device__ Module(const uint param_hit_start, const uint param_hit_num, const float param_z0, const float param_z1) :
+    __device__ ModulePair() {}
+    
+    __device__ ModulePair(const uint param_hit_start, const uint param_hit_num, const float param_z0, const float param_z1) :
       hit_start(param_hit_start), hit_num(param_hit_num), z{param_z0, param_z1}
     {}
   };

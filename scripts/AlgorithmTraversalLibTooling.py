@@ -101,7 +101,7 @@ class AlgorithmTraversal():
         return_object = []
         for child_node in c.get_children():
             parsed_children = f(child_node, *args)
-            if parsed_children.__class__ != None.__class__:
+            if type(parsed_children) != type(None):
                 return_object.append(parsed_children)
         return return_object
 
