@@ -212,7 +212,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
     add_library(${ARGV})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
-  
+
   set(cuda_base_dir /usr/local/cuda-10.1)
 
   function(allen_add_device_library)
@@ -289,7 +289,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DALLEN_DEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 
 #Detect target CPU architecture
-include(TargetArch.cmake)
+include(TargetArch)
 set(TARGET_CPU_ARCHITECTURE "")
 target_architecture(TARGET_CPU_ARCHITECTURE)
 message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
