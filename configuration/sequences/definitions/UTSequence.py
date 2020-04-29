@@ -2,7 +2,8 @@ from definitions.algorithms import *
 
 
 def UTSequence(restricted=True):
-    ut_banks = data_provider_t("ut_banks",
+    ut_banks = data_provider_t(
+        "ut_banks",
         dev_raw_banks_t="dev_ut_raw_input_t",
         dev_raw_offsets_t="dev_ut_raw_input_offsets_t",
         bank_type="UT")
@@ -58,8 +59,8 @@ def UTSequence(restricted=True):
     ut_consolidate_tracks = ut_consolidate_tracks_t()
 
     ut_sequence = Sequence(
-        ut_calculate_number_of_hits, prefix_sum_ut_hits,
-        ut_pre_decode, ut_find_permutation, ut_decode_raw_banks_in_order,
+        ut_calculate_number_of_hits, prefix_sum_ut_hits, ut_pre_decode,
+        ut_find_permutation, ut_decode_raw_banks_in_order,
         ut_select_velo_tracks, ut_search_windows,
         ut_select_velo_tracks_with_windows, compass_ut, prefix_sum_ut_tracks,
         ut_copy_track_hit_number, prefix_sum_ut_track_hit_number,

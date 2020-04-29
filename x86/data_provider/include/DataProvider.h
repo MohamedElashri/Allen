@@ -31,7 +31,6 @@ namespace data_provider {
       set_size<host_raw_offsets_t>(arguments, 1);
       set_size<dev_raw_banks_t>(arguments, std::get<1>(bno));
       set_size<dev_raw_offsets_t>(arguments, std::get<2>(bno).size());
-
     }
 
     void operator()(
@@ -43,11 +42,9 @@ namespace data_provider {
       cudaEvent_t&) const
     {
       auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
-      debug_cout << name << " copying banks of type " << bank_name(m_bank_type.get_value()) << " " << std::get<1>(bno) << "\n";
 
       // Copy data to device
-      data_to_device<dev_raw_banks_t, dev_raw_offsets_t>(
-        arguments, bno, cuda_stream);
+      data_to_device<dev_raw_banks_t, dev_raw_offsets_t>(arguments, bno, cuda_stream);
 
       // memcpy the span directly
       auto const& offsets = std::get<2>(bno);
@@ -55,10 +52,13 @@ namespace data_provider {
 
       // Copy the spans for the blocks
       auto const& blocks = std::get<0>(bno);
-      ::memcpy(begin<host_raw_banks_t>(arguments), blocks.data(), blocks.size() * sizeof(typename std::remove_reference_t<decltype(blocks)>::value_type));
+      ::memcpy(
+        begin<host_raw_banks_t>(arguments),
+        blocks.data(),
+        blocks.size() * sizeof(typename std::remove_reference_t<decltype(blocks)>::value_type));
     }
 
   private:
     Property<raw_bank_type_t> m_bank_type {this, BankTypes::ODIN};
   };
-} // namespace host_global_event_cut
+} // namespace data_provider

@@ -25,8 +25,8 @@ struct RuntimeOptions {
     bool param_do_check,
     bool param_cpu_offload,
     bool param_mep_layout) :
-    input_provider{ip}, slice_index{index},
-    event_interval(param_event_interval),
+    input_provider {ip},
+    slice_index {index}, event_interval(param_event_interval),
     number_of_selected_events(std::get<1>(param_event_interval) - std::get<0>(param_event_interval)),
     number_of_repetitions(param_number_of_repetitions), do_check(param_do_check),
     cpu_offload(param_cpu_offload), mep_layout {param_mep_layout}

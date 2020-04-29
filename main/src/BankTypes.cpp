@@ -30,7 +30,8 @@ std::string bank_name(BankTypes type)
 
 BankTypes bank_type(std::string bank_name)
 {
-  auto it = std::find_if(BankNames.begin(), BankNames.end(), [bank_name] (const auto& entry) { return entry.second == bank_name; });
+  auto it = std::find_if(
+    BankNames.begin(), BankNames.end(), [bank_name](const auto& entry) { return entry.second == bank_name; });
   if (it != end(BankNames)) {
     return it->first;
   }

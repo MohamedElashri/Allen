@@ -378,7 +378,7 @@ private:
   {
 
     size_t i_read = 0;
-    auto slice_index = boost::make_optional(false, size_t{});
+    auto slice_index = boost::make_optional(false, size_t {});
 
     bool good = false, transpose_full = false;
     size_t n_transposed = 0;

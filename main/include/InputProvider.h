@@ -24,7 +24,8 @@ struct IInputProvider {
    *
    * @return     event ids
    */
-  virtual EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {}) const = 0;
+  virtual EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
+    const = 0;
 
   /**
    * @brief      Indicate a slice is free for filling

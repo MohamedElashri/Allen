@@ -32,7 +32,7 @@ BankTypes Configuration::from_string<BankTypes>(const std::string& s)
 {
   auto bt = bank_type(s);
   if (bt == BankTypes::Unknown) {
-    throw StrException{"Failed to parse " + s + " into a BankType."};
+    throw StrException {"Failed to parse " + s + " into a BankType."};
   }
   return bt;
 }

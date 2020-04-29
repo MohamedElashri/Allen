@@ -22,13 +22,9 @@ namespace host_global_event_cut {
   };
 
   // Function
-  void host_global_event_cut(
-    uint number_of_events,
-    Parameters parameters);
+  void host_global_event_cut(uint number_of_events, Parameters parameters);
 
-  void host_global_event_cut_mep(
-    const uint number_of_events,
-    Parameters parameters);
+  void host_global_event_cut_mep(const uint number_of_events, Parameters parameters);
 
   // Algorithm
   template<typename T, char... S>
@@ -81,7 +77,8 @@ namespace host_global_event_cut {
 
       // Select the function to run, MEP or Allen layout
       using function_t = decltype(host_function(host_global_event_cut));
-      function_t function = runtime_options.mep_layout ? function_t{host_global_event_cut_mep} : function_t{host_global_event_cut};
+      function_t function =
+        runtime_options.mep_layout ? function_t {host_global_event_cut_mep} : function_t {host_global_event_cut};
 
       // Run the function
       function(number_of_events, parameters);

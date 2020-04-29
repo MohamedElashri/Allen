@@ -2,7 +2,8 @@ from definitions.algorithms import *
 
 
 def MuonSequence():
-    muon_banks = data_provider_t("muon_banks",
+    muon_banks = data_provider_t(
+        "muon_banks",
         dev_raw_banks_t="dev_muon_raw_t",
         dev_raw_offsets_t="dev_muon_raw_offsets_t",
         bank_type="Muon")

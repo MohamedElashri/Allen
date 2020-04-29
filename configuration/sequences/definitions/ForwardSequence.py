@@ -3,7 +3,8 @@ from definitions.algorithms import *
 
 def ForwardSequence(forward_decoding="v4"):
 
-    scifi_banks = data_provider_t("scifi_banks",
+    scifi_banks = data_provider_t(
+        "scifi_banks",
         dev_raw_banks_t="dev_scifi_raw_input_t",
         dev_raw_offsets_t="dev_scifi_raw_input_offsets_t",
         bank_type="FTCluster")
@@ -23,9 +24,11 @@ def ForwardSequence(forward_decoding="v4"):
         scifi_raw_bank_decoder_v4 = scifi_raw_bank_decoder_v4_t()
         scifi_direct_decoder_v4 = scifi_direct_decoder_v4_t()
 
-        scifi_decoding = [scifi_calculate_cluster_count_v4, prefix_sum_scifi_hits,
-                          scifi_pre_decode_v4, scifi_raw_bank_decoder_v4,
-                          scifi_direct_decoder_v4]
+        scifi_decoding = [
+            scifi_calculate_cluster_count_v4, prefix_sum_scifi_hits,
+            scifi_pre_decode_v4, scifi_raw_bank_decoder_v4,
+            scifi_direct_decoder_v4
+        ]
     elif forward_decoding == "v6":
         scifi_calculate_cluster_count_v6 = scifi_calculate_cluster_count_v6_t()
 
@@ -38,8 +41,10 @@ def ForwardSequence(forward_decoding="v4"):
 
         scifi_pre_decode_v6 = scifi_pre_decode_v6_t()
         scifi_raw_bank_decoder_v6 = scifi_raw_bank_decoder_v6_t()
-        scifi_decoding = [scifi_calculate_cluster_count_v6, prefix_sum_scifi_hits,
-                          scifi_pre_decode_v6, scifi_raw_bank_decoder_v6]
+        scifi_decoding = [
+            scifi_calculate_cluster_count_v6, prefix_sum_scifi_hits,
+            scifi_pre_decode_v6, scifi_raw_bank_decoder_v6
+        ]
 
     lf_search_initial_windows = lf_search_initial_windows_t()
     lf_triplet_seeding = lf_triplet_seeding_t()
@@ -68,11 +73,12 @@ def ForwardSequence(forward_decoding="v4"):
 
     scifi_consolidate_tracks = scifi_consolidate_tracks_t()
 
-    scifi_tracking = [lf_search_initial_windows, lf_triplet_seeding,
-                      lf_triplet_keep_best, lf_calculate_parametrization,
-                      lf_extend_tracks_x, lf_extend_tracks_uv, lf_quality_filter_length,
-                      lf_quality_filter, prefix_sum_forward_tracks,
-                      scifi_copy_track_hit_number, prefix_sum_scifi_track_hit_number,
-                      scifi_consolidate_tracks]
+    scifi_tracking = [
+        lf_search_initial_windows, lf_triplet_seeding, lf_triplet_keep_best,
+        lf_calculate_parametrization, lf_extend_tracks_x, lf_extend_tracks_uv,
+        lf_quality_filter_length, lf_quality_filter, prefix_sum_forward_tracks,
+        scifi_copy_track_hit_number, prefix_sum_scifi_track_hit_number,
+        scifi_consolidate_tracks
+    ]
 
     return Sequence(scifi_decoding + scifi_tracking)

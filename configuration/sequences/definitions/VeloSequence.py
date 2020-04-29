@@ -2,21 +2,24 @@ from definitions.algorithms import *
 
 
 def VeloSequence(doGEC=True):
-    odin_banks = data_provider_t("populate_odin_banks",
+    odin_banks = data_provider_t(
+        "populate_odin_banks",
         host_raw_banks_t="host_odin_raw_input_t",
         host_raw_offsets_t="host_odin_raw_input_offsets_t",
         dev_raw_banks_t="dev_odin_raw_input_t",
         dev_raw_offsets_t="dev_odin_raw_input_offsets_t",
         bank_type="ODIN")
 
-    ut_banks = data_provider_t("ut_banks",
+    ut_banks = data_provider_t(
+        "ut_banks",
         host_raw_banks_t="host_ut_raw_input_t",
         host_raw_offsets_t="host_ut_raw_input_offsets_t",
         dev_raw_banks_t="dev_ut_raw_input_t",
         dev_raw_offsets_t="dev_ut_raw_input_offsets_t",
         bank_type="UT")
 
-    scifi_banks = data_provider_t("scifi_banks",
+    scifi_banks = data_provider_t(
+        "scifi_banks",
         host_raw_banks_t="host_scifi_raw_input_t",
         host_raw_offsets_t="host_scifi_raw_input_offsets_t",
         dev_raw_banks_t="dev_scifi_raw_input_t",
@@ -25,15 +28,17 @@ def VeloSequence(doGEC=True):
 
     initialize_lists = None
     if doGEC:
-        initialize_lists = host_global_event_cut_t("host_global_event_cut",
+        initialize_lists = host_global_event_cut_t(
+            "host_global_event_cut",
             host_ut_raw_banks_t="host_ut_raw_input_t",
             host_ut_raw_offsets_t="host_ut_raw_input_offsets_t",
             host_scifi_raw_banks_t="host_scifi_raw_input_t",
             host_scifi_raw_offsets_t="host_scifi_raw_input_offsets_t")
     else:
         initialize_lists = host_init_event_list_t()
-    
-    velo_banks = data_provider_t("velo_banks",
+
+    velo_banks = data_provider_t(
+        "velo_banks",
         host_raw_banks_t="host_velo_raw_input_t",
         host_raw_offsets_t="host_velo_raw_input_offsets_t",
         dev_raw_banks_t="dev_velo_raw_input_t",
@@ -96,11 +101,7 @@ def VeloSequence(doGEC=True):
     velo_consolidate_tracks = velo_consolidate_tracks_t()
 
     velo_sequence = Sequence(
-        odin_banks,
-        ut_banks,
-        scifi_banks,
-        initialize_lists,
-        velo_banks,
+        odin_banks, ut_banks, scifi_banks, initialize_lists, velo_banks,
         velo_calculate_number_of_candidates,
         prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
         prefix_sum_offsets_estimated_input_size, velo_masked_clustering,
