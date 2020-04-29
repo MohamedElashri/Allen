@@ -128,8 +128,6 @@ docker_image:build:
   variables:
     TO: $CI_REGISTRY_IMAGE:latest
 
-
-
 .run_physics_efficiency_job: &run_physics_efficiency_job_def
   only:
     refs:
