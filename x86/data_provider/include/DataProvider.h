@@ -55,7 +55,7 @@ namespace data_provider {
 
       // Copy the spans for the blocks
       auto const& blocks = std::get<0>(bno);
-      ::memcpy(begin<host_raw_banks_t>(arguments), blocks.data(), blocks.size() * sizeof(std::remove_reference<decltype(blocks)>::type::value_type));
+      ::memcpy(begin<host_raw_banks_t>(arguments), blocks.data(), blocks.size() * sizeof(typename std::remove_reference_t<decltype(blocks)>::value_type));
     }
 
   private:

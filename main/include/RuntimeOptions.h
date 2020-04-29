@@ -17,8 +17,6 @@ struct RuntimeOptions {
   bool cpu_offload;
   bool mep_layout;
 
-  RuntimeOptions() = default;
-
   RuntimeOptions(
     IInputProvider const* ip,
     size_t const index,
