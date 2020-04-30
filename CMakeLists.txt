@@ -374,7 +374,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   function(allen_add_device_library)
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
       # TODO: Disabling CUDA_SEPARABLE_COMPILATION has the undesired effect that DEBUG builds
       #       don't link properly. Revisit this and turn off separable compilation once the
       #       algorithms become non-templated.
