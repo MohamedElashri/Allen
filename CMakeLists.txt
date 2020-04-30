@@ -30,7 +30,7 @@ option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 
 # Device target architecture
 set(TARGET_DEVICE CUDA CACHE STRING "Target architecture of the device")
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CUDA CPU HIP CUDACLANG HIPCLANG)
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS CUDA CPU HIP CUDACLANG)
 
 # Build type
 set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type")
@@ -38,8 +38,13 @@ set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS RelWithDebInfo Release Debu
 message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
 # CUDA compute capability
-set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target compute capability")
+set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
 set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 70 72 75)
+
+# HIP architecture
+# https://llvm.org/docs/AMDGPUUsage.html
+set(HIP_ARCH gfx906 CACHE STRING "HIP target architecture")
+set_property(CACHE HIP_ARCH PROPERTY STRINGS gfx900 gfx902 gfx904 gfx906 gfx908 gfx909 gfx1010 gfx1011 gfx1012)
 
 # --------------------
 # Unrestricted options
@@ -74,8 +79,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   endif()
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
 message(STATUS "Note: Support for CUDACLANG is experimental")
-elseif(TARGET_DEVICE STREQUAL "HIPCLANG")
-message(STATUS "Note: Support for HIPCLANG is experimental")
 endif()
 message(STATUS "Allen device target: " ${TARGET_DEVICE})
 
@@ -86,8 +89,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   add_compile_definitions(TARGET_DEVICE_HIP)
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
   add_compile_definitions(TARGET_DEVICE_CUDACLANG)
-elseif(TARGET_DEVICE STREQUAL "HIPCLANG")
-  add_compile_definitions(TARGET_DEVICE_HIPCLANG)
 elseif(TARGET_DEVICE STREQUAL "CUDA")
   add_compile_definitions(TARGET_DEVICE_CUDA)
 endif()
@@ -180,10 +181,10 @@ if(TARGET_DEVICE STREQUAL "CPU")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
+  append(CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
-    set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
+    append(CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
   endif()
 elseif(TARGET_DEVICE STREQUAL "HIP")
 #Setup HIPCC compiler
@@ -214,7 +215,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   set(HIP_SEPARABLE_COMPILATION OFF)
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wno-unused-result")
+  append(CMAKE_CXX_FLAGS " -Wno-unused-result")
 elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
   allen_project()
 
@@ -235,37 +236,6 @@ elseif(TARGET_DEVICE STREQUAL "CUDACLANG")
     add_library(${ARGV})
     set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
     target_compile_options(${ARGV0} PRIVATE -x cuda --cuda-path=${cuda_base_dir} -pthread --cuda-gpu-arch=sm_75)
-  endfunction()
-
-  function(allen_add_executable)
-    message(STATUS "Please use nvcc to link the executable.")
-    add_executable(${ARGV})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
-  endfunction()
-elseif(TARGET_DEVICE STREQUAL "HIPCLANG")
-  allen_project()
-
-  function(allen_add_host_library)
-    add_library(${ARGV})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
-  endfunction()
-
-  function(allen_add_device_library)
-    set(DETECTED_HIP "OFF")
-    foreach(arg IN LISTS ARGN)
-      if(${arg} MATCHES "\\.cu$")
-        set(DETECTED_HIP "ON")
-        set_source_files_properties(${arg} PROPERTIES LANGUAGE CXX)
-      endif()
-    endforeach()
-
-    add_library(${ARGV})
-    set_property(TARGET ${ARGV0} PROPERTY LINKER_LANGUAGE CXX)
-    if(DETECTED_HIP STREQUAL "OFF")
-      target_compile_options(${ARGV0} PRIVATE -pthread)
-    else()
-      target_compile_options(${ARGV0} PRIVATE -x hip -pthread --hip-device-lib-path=/opt/rocm-3.3.0/lib -mcpu=gfx906 -D__HIPDETECTED__)
-    endif()
   endfunction()
 
   function(allen_add_executable)
@@ -312,21 +282,21 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "-Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
+  append(CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
 
   if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
-    set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-maybe-uninitialized")
+    append(CMAKE_CXX_FLAGS " -Wno-maybe-uninitialized")
   endif()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS_ADDITIONAL "${CMAKE_CXX_FLAGS_ADDITIONAL} -Wno-gnu-zero-variadic-macro-arguments")
+  append(CMAKE_CXX_FLAGS " -Wno-gnu-zero-variadic-macro-arguments")
 endif()
 
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -g -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_ADDITIONAL} -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_ADDITIONAL} -O0 -g -DALLEN_DEBUG")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
+set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
 
 #Detect target CPU architecture
 include(TargetArch.cmake)
@@ -338,19 +308,19 @@ message(STATUS "Detected CPU architecture: ${TARGET_CPU_ARCHITECTURE}")
 if(TARGET_CPU_ARCHITECTURE STREQUAL "x86_64" OR TARGET_CPU_ARCHITECTURE STREQUAL "i386"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "ia64")
 #x86 family
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
+  append(CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "ppc" OR TARGET_CPU_ARCHITECTURE STREQUAL "ppc64")
 #PowerPC family
 #More options on : https: // developer.ibm.com/linuxonpower/compiler-options-table/
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=${CPU_ARCH}")
+  append(CMAKE_CXX_FLAGS " -mcpu=${CPU_ARCH}")
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "arm" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv5"
   OR TARGET_CPU_ARCHITECTURE STREQUAL "armv6" OR TARGET_CPU_ARCHITECTURE STREQUAL "armv7")
 #ARM family
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH}")
+  append(CMAKE_CXX_FLAGS " -march=${CPU_ARCH}")
 elseif(TARGET_CPU_ARCHITECTURE STREQUAL "aarch64")
 #ARM64 family
 #Options from : http: // www.prace-ri.eu/IMG/pdf/Best-Practice-Guide-ARM64.pdf
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=${CPU_ARCH} -floop-optimize \
+  append(CMAKE_CXX_FLAGS " -march=${CPU_ARCH} -floop-optimize \
 -falign-loops -falign-labels -falign-functions -falign-jumps -fomit-frame-pointer")
 endif()
 
@@ -406,16 +376,10 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   endif()
   message(STATUS "Cuda architecture set to ${ARCH_FLAG}")
 
-  if(${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-    set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
-  elseif(${CMAKE_BUILD_TYPE} STREQUAL "Release")
-    set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
-  elseif(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DALLEN_DEBUG ")
-  else()
-    message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
-  endif()
-
+  set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
+  set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DALLEN_DEBUG ")
+  
   option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
   if (CUDA_VERBOSE_BUILD)
     set(CUDA_VERBOSE_FLAGS "--resource-usage --verbose --nvlink-options=--verbose -Xptxas=--verbose")
@@ -440,13 +404,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     message(FATAL_ERROR "Build type ${CMAKE_BUILD_TYPE} is unknown. Use RelWithDebInfo, Release or Debug.")
   endif()
 
-#Other options tested:
-#- hc - hc - function - calls
-#- finline - functions - finline - hint - functions
-#- flto - fwhole - program - vtables
-#- funroll - loops
-#- fstack - protector - strong
-#- fPIC - shared
   set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} -std=c++17 -Wno-unused-result -Wno-invalid-noreturn")
 
   function(allen_add_host_library)
@@ -458,14 +415,11 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   function(allen_add_device_library)
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
-    # target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
-    # set_target_properties(${ARGV0} PROPERTIES HIP_RESOLVE_DEVICE_SYMBOLS ON)
-    # target_link_options(${ARGV0} PRIVATE --amdgpu-target=gfx906)
     target_include_directories(${ARGV0} PUBLIC ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
@@ -654,7 +608,7 @@ else()
 endif()
 target_link_libraries(Common mdf allen_fs)
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG" OR TARGET_DEVICE STREQUAL "HIPCLANG")
+if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
   set_source_files_properties(${common_cuda_sources} PROPERTIES LANGUAGE CXX)
 endif()
 
@@ -665,7 +619,7 @@ set(allen_lib_sources ${Allen_cpp_path}
                       ${OutputHandler_cpp_path}
                       ${ZMQOutputSender_cpp_path})
 
-if(TARGET_DEVICE STREQUAL "HIP" OR TARGET_DEVICE STREQUAL "CUDACLANG" OR TARGET_DEVICE STREQUAL "HIPCLANG")
+if(TARGET_DEVICE STREQUAL "HIP" OR TARGET_DEVICE STREQUAL "CUDACLANG")
 #Produce self - contained application
 #Otherwise, HIP doesn't seem to link properly
   allen_add_device_library(AllenLib STATIC ${allen_lib_sources})

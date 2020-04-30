@@ -7,7 +7,7 @@
 #include "BankTypes.h"
 #include "LoggerCommon.h"
 
-#if defined(TARGET_DEVICE_CPU) || defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__)
+#if defined(TARGET_DEVICE_CPU) || (defined(TARGET_DEVICE_CUDACLANG) && !defined(__CUDA__))
 
 #include <cmath>
 #include <cstring>
@@ -241,14 +241,13 @@ public:
     }                                                            \
   }
 
-#elif defined(TARGET_DEVICE_HIP) || defined(TARGET_DEVICE_HIPCLANG)
+#elif defined(TARGET_DEVICE_HIP)
 
 // ---------------
 // Support for HIP
 // ---------------
 
-#if (defined(TARGET_DEVICE_HIPCLANG) && !defined(__HIPDETECTED__)) || \
-  (defined(TARGET_DEVICE_HIP) && !defined(__HCC__) && !defined(__HIP__))
+#if defined(TARGET_DEVICE_HIP) && !defined(__HCC__) && !defined(__HIP__)
 #define __HIP_PLATFORM_HCC__
 #include <hip/hip_runtime_api.h>
 #else
