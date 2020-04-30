@@ -280,9 +280,9 @@ class ConfGen():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parse the Allen codebase and generate a python representation of all algorithms.')
     
-    parser.add_argument('filename', type=str, default="algorithms.py",
+    parser.add_argument('filename', nargs='?', type=str, default="algorithms.py",
                         help='output filename')
-    parser.add_argument('prefix_project_folder', type=str, default="./",
+    parser.add_argument('prefix_project_folder', nargs='?', type=str, default="../",
                         help='project location')
     args = parser.parse_args()
 
