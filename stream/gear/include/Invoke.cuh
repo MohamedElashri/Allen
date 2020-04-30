@@ -41,7 +41,7 @@ void invoke_impl(
       }
     }
   }
-#elif defined(TARGET_DEVICE_HIP) || defined(TARGET_DEVICE_HIPCLANG)
+#elif defined(TARGET_DEVICE_HIP)
   hipLaunchKernelGGL(function, grid_dim, block_dim, 0, *stream, std::get<I>(invoke_arguments)...);
 #else
   function<<<grid_dim, block_dim, 0, *stream>>>(std::get<I>(invoke_arguments)...);

@@ -362,41 +362,25 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
-# Unclear what do we need from all this:
-# #Workaround 1 / 2 for shared cuda runtime
-#   set(CMAKE_CUDA_FLAGS "" CACHE STRING "")
-#   if(CMAKE_CUDA_FLAGS)
-# 	list(REMOVE_ITEM CMAKE_CUDA_FLAGS "-cudart static")
-#   endif()
-# #Workaround 2 / 2 for shared cuda runtime
-#   if(CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES)
-# 	list(REMOVE_ITEM CMAKE_CUDA_HOST_IMPLICIT_LINK_LIBRARIES "cudart_static")
-#   endif()
-#   if(CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES)
-# 	list(REMOVE_ITEM CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES "cudart_static" )
-#   endif()
-# -cudart shared --shared --compiler-options -fPIC 
-
   string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} --ftemplate-depth=500 --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
 
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
   function(allen_add_host_library)
     add_library(${ARGV})
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 
   function(allen_add_device_library)
     add_library(${ARGV})
-    # target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     set_property(TARGET ${ARGV0} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
   function(allen_add_executable)
     add_executable(${ARGV})
-    # target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin OPTIONAL)
   endfunction()
 

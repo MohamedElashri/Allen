@@ -16,10 +16,6 @@ include_directories(${CPPGSL_INCLUDE_DIR})
 
 file(GLOB pat_pv "src/*cu")
 
-if(TARGET_DEVICE STREQUAL "CPU" OR TARGET_DEVICE STREQUAL "CUDACLANG")
-  set_source_files_properties(${pat_pv} PROPERTIES LANGUAGE CXX)
-endif()
-
 allen_add_device_library(AllenPatPV STATIC
   ${pat_pv}
 )
