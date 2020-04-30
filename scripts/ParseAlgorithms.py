@@ -71,7 +71,8 @@ class Parser():
                 try:
                     s = f.read()
                     # Invoke the libTooling algorithm parser only if we find the algorithm pattern
-                    has_algorithm = Parser.__algorithm_pattern_compiled.search(s)
+                    has_algorithm = Parser.__algorithm_pattern_compiled.search(
+                        s)
                     if has_algorithm:
                         parsed_algorithms = algorithm_parser.traverse(filename)
                         if parsed_algorithms:
@@ -278,12 +279,23 @@ class ConfGen():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Parse the Allen codebase and generate a python representation of all algorithms.')
-    
-    parser.add_argument('filename', nargs='?', type=str, default="algorithms.py",
-                        help='output filename')
-    parser.add_argument('prefix_project_folder', nargs='?', type=str, default="../",
-                        help='project location')
+    parser = argparse.ArgumentParser(
+        description=
+        'Parse the Allen codebase and generate a python representation of all algorithms.'
+    )
+
+    parser.add_argument(
+        'filename',
+        nargs='?',
+        type=str,
+        default="algorithms.py",
+        help='output filename')
+    parser.add_argument(
+        'prefix_project_folder',
+        nargs='?',
+        type=str,
+        default="../",
+        help='project location')
     args = parser.parse_args()
 
     prefix_project_folder = args.prefix_project_folder + "/"
