@@ -84,17 +84,17 @@ allen_add_host_library(HostGEC STATIC
   ${host_gec}
 )
 
-# add_executable(mep_gec test/mep_gec.cpp)
+add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/main/src/CudaCommon.cpp)
 
-# target_include_directories(mep_gec PUBLIC
-#   ${CPPGSL_INCLUDE_DIR}
-#   ${CMAKE_SOURCE_DIR}/stream/gear/include
-#   ${CMAKE_SOURCE_DIR}/x86/global_event_cut/include
-#   ${CMAKE_SOURCE_DIR}/main/include)
+target_include_directories(mep_gec PUBLIC
+  ${CPPGSL_INCLUDE_DIR}
+  ${CMAKE_SOURCE_DIR}/stream/gear/include
+  ${CMAKE_SOURCE_DIR}/x86/global_event_cut/include
+  ${CMAKE_SOURCE_DIR}/main/include)
 
-# target_link_libraries(mep_gec PUBLIC Common CudaCommon mdf HostGEC
-#   ${MPI_CXX_LIBRARIES})
+target_link_libraries(mep_gec PUBLIC Common mdf HostGEC
+  ${MPI_CXX_LIBRARIES})
 
-# target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
+target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
 
-# install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)
+install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)

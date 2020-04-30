@@ -7,14 +7,11 @@
 #include <map>
 #include <cassert>
 #include <cmath>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-
 #include <Logger.h>
-
 #include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <eb_header.hpp>
@@ -22,7 +19,7 @@
 #include <read_mep.hpp>
 #include <Transpose.h>
 #include <TransposeMEP.h>
-
+#include <CudaCommon.h>
 #include <HostGlobalEventCut.h>
 
 using namespace std;
