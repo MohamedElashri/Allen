@@ -9,13 +9,13 @@ set(ALGORITHMS_GENERATION_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/ParseAlgorithms.py)
 file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 
 # We need Python 3
-find_package (Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package (Python3 COMPONENTS Interpreter Development QUIET)
 
 # We need to pass a custom LD_LIBRARY_PATH to point to a compatible clang version
 # TODO: Figure out if there is a cleaner way to do this
 set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64)
 
-message(STATUS "Testing code generation with LLVM")
+message(STATUS "Generating sequence using LLVM")
 
 # From CMake on execute_process:
 # "If a sequential execution of multiple commands is required, use multiple execute_process() calls with a single COMMAND argument."
@@ -32,20 +32,9 @@ execute_process(COMMAND python3 ${SEQUENCE}.py
   WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
   RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_3)
 
-if(${ALGORITHMS_GENERATION_RESULT_0} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_1} EQUAL 1 OR
-  ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 1 OR ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 1)
-  message(WARNING "Testing code generation with LLVM - Failed. CVMFS (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
-  add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
-    ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.json" "${PROJECT_BINARY_DIR}/Sequence.json"
-    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-    DEPENDS "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h"
-    COMMENT "Configuring sequence ${SEQUENCE}"
-    VERBATIM
-  )
-else()
-  message(STATUS "Testing code generation with LLVM - Success")
+if(Python3_FOUND AND ${ALGORITHMS_GENERATION_RESULT_0} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_1} EQUAL 0 AND
+  ${ALGORITHMS_GENERATION_RESULT_2} EQUAL 0 AND ${ALGORITHMS_GENERATION_RESULT_3} EQUAL 0)
+  message(STATUS "Sequence generation with LLVM - Success")
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/configuration/sequences/definitions" "${SEQUENCE_DEFINITION_DIR}" &&
@@ -56,5 +45,21 @@ else()
       ${CMAKE_COMMAND} -E copy "Sequence.json" "${PROJECT_BINARY_DIR}/Sequence.json"
     DEPENDS "${CMAKE_SOURCE_DIR}/configuration/sequences/${SEQUENCE}.py"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
+  )
+else()
+  if (Python3_FOUND)
+    message(WARNING "Sequence generation with LLVM - Failed. CVMFS (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
+    message(WARNING "A pregenerated sequence will be used instead.")
+  else()
+    message(WARNING "Failed to find Python 3. Python 3 AND (CVMFS (sft.cern.ch) OR clang >= 9.0.0) are required to be able to generate configurations.")
+  endif()
+  add_custom_command(
+    OUTPUT "${PROJECT_BINARY_DIR}/Sequence.json"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h" "${PROJECT_BINARY_DIR}/configuration/sequences/ConfiguredSequence.h" &&
+    ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.json" "${PROJECT_BINARY_DIR}/Sequence.json"
+    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+    DEPENDS "${CMAKE_SOURCE_DIR}/configuration/pregenerated/${SEQUENCE}.h"
+    COMMENT "Configuring sequence ${SEQUENCE}"
+    VERBATIM
   )
 endif()
