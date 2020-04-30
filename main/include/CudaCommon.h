@@ -319,7 +319,11 @@ public:
 // ------------
 // CUDA support
 // ------------
-#include <cuda_runtime.h>
+
+#if !defined(__CUDACC__)
+#include <cuda_runtime_api.h>
+#endif
+
 #include <cuda_fp16.h>
 #define half_t half
 

@@ -351,8 +351,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   set(CMAKE_CUDA_STANDARD 14)
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
-  set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -G -g -DALLEN_DEBUG ")
-  set(CUDA_SEPARABLE_COMPILATION OFF)
+  set(CMAKE_CUDA_FLAGS_DEBUG "-G -g -DALLEN_DEBUG ")
   set(CUDA_PROPAGATE_HOST_FLAGS OFF)
   
   option(CUDA_VEBOSE_BUILD "CUDA verbose build" OFF)
@@ -375,7 +374,14 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   function(allen_add_device_library)
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    set_property(TARGET ${ARGV0} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+      # TODO: Disabling CUDA_SEPARABLE_COMPILATION has the undesired effect that DEBUG builds
+      #       don't link properly. Revisit this and turn off separable compilation once the
+      #       algorithms become non-templated.
+      set_target_properties(${ARGV0} PROPERTIES CUDA_SEPARABLE_COMPILATION ON CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+    else()
+      set_target_properties(${ARGV0} PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
+    endif()
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
