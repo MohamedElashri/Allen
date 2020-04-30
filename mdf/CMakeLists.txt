@@ -65,6 +65,7 @@ if (LZ4_FOUND)
 endif (LZ4_FOUND)
 
 # These tests don't need CUDA
+remove_definitions(-DTARGET_DEVICE_CUDA)
 add_compile_definitions(TARGET_DEVICE_CPU)
 
 function(test_program)

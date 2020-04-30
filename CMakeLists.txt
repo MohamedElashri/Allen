@@ -389,6 +389,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   function(allen_add_device_library)
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${CPPGSL_INCLUDE_DIR})
+    set_property(TARGET ${ARGV} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS ON)
     install(TARGETS ${ARGV0} DESTINATION lib OPTIONAL)
   endfunction()
 
