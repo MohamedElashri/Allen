@@ -9,7 +9,7 @@ def ForwardSequence(forward_decoding="v4"):
         dev_raw_offsets_t="dev_scifi_raw_input_offsets_t",
         bank_type="FTCluster")
 
-    scifi_decoding = None
+    scifi_decoding = [scifi_banks]
     if forward_decoding == "v4":
         scifi_calculate_cluster_count_v4 = scifi_calculate_cluster_count_v4_t()
 
@@ -24,7 +24,7 @@ def ForwardSequence(forward_decoding="v4"):
         scifi_raw_bank_decoder_v4 = scifi_raw_bank_decoder_v4_t()
         scifi_direct_decoder_v4 = scifi_direct_decoder_v4_t()
 
-        scifi_decoding = [
+        scifi_decoding += [
             scifi_calculate_cluster_count_v4, prefix_sum_scifi_hits,
             scifi_pre_decode_v4, scifi_raw_bank_decoder_v4,
             scifi_direct_decoder_v4
@@ -41,7 +41,7 @@ def ForwardSequence(forward_decoding="v4"):
 
         scifi_pre_decode_v6 = scifi_pre_decode_v6_t()
         scifi_raw_bank_decoder_v6 = scifi_raw_bank_decoder_v6_t()
-        scifi_decoding = [
+        scifi_decoding += [
             scifi_calculate_cluster_count_v6, prefix_sum_scifi_hits,
             scifi_pre_decode_v6, scifi_raw_bank_decoder_v6
         ]
