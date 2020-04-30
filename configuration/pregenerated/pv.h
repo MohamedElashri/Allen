@@ -54,8 +54,8 @@ struct host_ut_raw_input_t : data_provider::Parameters::host_raw_banks_t,
   size_t size;
   char* offset;
 };
-struct host_ut_raw_input_offsets_t : host_global_event_cut::Parameters::host_ut_raw_offsets_t,
-                                     data_provider::Parameters::host_raw_offsets_t {
+struct host_ut_raw_input_offsets_t : data_provider::Parameters::host_raw_offsets_t,
+                                     host_global_event_cut::Parameters::host_ut_raw_offsets_t {
   constexpr static auto name {"host_ut_raw_input_offsets_t"};
   size_t size;
   char* offset;
@@ -103,31 +103,30 @@ struct host_event_list_t : host_global_event_cut::Parameters::host_event_list_t 
   char* offset;
 };
 struct host_number_of_selected_events_t
-  : pv_beamline_peak::Parameters::host_number_of_selected_events_t,
-    pv_beamline_cleanup::Parameters::host_number_of_selected_events_t,
-    velo_calculate_phi_and_sort::Parameters::host_number_of_selected_events_t,
-    pv_beamline_histo::Parameters::host_number_of_selected_events_t,
-    velo_copy_track_hit_number::Parameters::host_number_of_selected_events_t,
-    pv_beamline_multi_fitter::Parameters::host_number_of_selected_events_t,
-    pv_beamline_extrapolate::Parameters::host_number_of_selected_events_t,
-    velo_masked_clustering::Parameters::host_number_of_selected_events_t,
+  : host_global_event_cut::Parameters::host_number_of_selected_events_t,
     velo_calculate_number_of_candidates::Parameters::host_number_of_selected_events_t,
-    velo_kalman_filter::Parameters::host_number_of_selected_events_t,
-    host_global_event_cut::Parameters::host_number_of_selected_events_t,
-    pv_beamline_calculate_denom::Parameters::host_number_of_selected_events_t,
-    velo_three_hit_tracks_filter::Parameters::host_number_of_selected_events_t,
-    velo_fill_candidates::Parameters::host_number_of_selected_events_t,
-    velo_consolidate_tracks::Parameters::host_number_of_selected_events_t,
+    velo_estimate_input_size::Parameters::host_number_of_selected_events_t,
+    velo_masked_clustering::Parameters::host_number_of_selected_events_t,
+    velo_calculate_phi_and_sort::Parameters::host_number_of_selected_events_t,
     velo_search_by_triplet::Parameters::host_number_of_selected_events_t,
-    velo_estimate_input_size::Parameters::host_number_of_selected_events_t {
+    velo_three_hit_tracks_filter::Parameters::host_number_of_selected_events_t,
+    velo_copy_track_hit_number::Parameters::host_number_of_selected_events_t,
+    velo_consolidate_tracks::Parameters::host_number_of_selected_events_t,
+    velo_kalman_filter::Parameters::host_number_of_selected_events_t,
+    pv_beamline_extrapolate::Parameters::host_number_of_selected_events_t,
+    pv_beamline_histo::Parameters::host_number_of_selected_events_t,
+    pv_beamline_peak::Parameters::host_number_of_selected_events_t,
+    pv_beamline_calculate_denom::Parameters::host_number_of_selected_events_t,
+    pv_beamline_multi_fitter::Parameters::host_number_of_selected_events_t,
+    pv_beamline_cleanup::Parameters::host_number_of_selected_events_t {
   constexpr static auto name {"host_number_of_selected_events_t"};
   size_t size;
   char* offset;
 };
 struct dev_event_list_t : host_global_event_cut::Parameters::dev_event_list_t,
+                          velo_calculate_number_of_candidates::Parameters::dev_event_list_t,
                           velo_estimate_input_size::Parameters::dev_event_list_t,
-                          velo_masked_clustering::Parameters::dev_event_list_t,
-                          velo_calculate_number_of_candidates::Parameters::dev_event_list_t {
+                          velo_masked_clustering::Parameters::dev_event_list_t {
   constexpr static auto name {"dev_event_list_t"};
   size_t size;
   char* offset;
@@ -142,18 +141,18 @@ struct host_velo_raw_input_offsets_t : data_provider::Parameters::host_raw_offse
   size_t size;
   char* offset;
 };
-struct dev_velo_raw_input_t : velo_masked_clustering::Parameters::dev_velo_raw_input_t,
-                              data_provider::Parameters::dev_raw_banks_t,
+struct dev_velo_raw_input_t : data_provider::Parameters::dev_raw_banks_t,
+                              velo_calculate_number_of_candidates::Parameters::dev_velo_raw_input_t,
                               velo_estimate_input_size::Parameters::dev_velo_raw_input_t,
-                              velo_calculate_number_of_candidates::Parameters::dev_velo_raw_input_t {
+                              velo_masked_clustering::Parameters::dev_velo_raw_input_t {
   constexpr static auto name {"dev_velo_raw_input_t"};
   size_t size;
   char* offset;
 };
-struct dev_velo_raw_input_offsets_t : velo_masked_clustering::Parameters::dev_velo_raw_input_offsets_t,
+struct dev_velo_raw_input_offsets_t : data_provider::Parameters::dev_raw_offsets_t,
                                       velo_calculate_number_of_candidates::Parameters::dev_velo_raw_input_offsets_t,
                                       velo_estimate_input_size::Parameters::dev_velo_raw_input_offsets_t,
-                                      data_provider::Parameters::dev_raw_offsets_t {
+                                      velo_masked_clustering::Parameters::dev_velo_raw_input_offsets_t {
   constexpr static auto name {"dev_velo_raw_input_offsets_t"};
   size_t size;
   char* offset;
@@ -170,15 +169,15 @@ struct host_number_of_cluster_candidates_t : host_prefix_sum::Parameters::host_t
   size_t size;
   char* offset;
 };
-struct dev_candidates_offsets_t : velo_masked_clustering::Parameters::dev_candidates_offsets_t,
-                                  host_prefix_sum::Parameters::dev_output_buffer_t,
-                                  velo_estimate_input_size::Parameters::dev_candidates_offsets_t {
+struct dev_candidates_offsets_t : host_prefix_sum::Parameters::dev_output_buffer_t,
+                                  velo_estimate_input_size::Parameters::dev_candidates_offsets_t,
+                                  velo_masked_clustering::Parameters::dev_candidates_offsets_t {
   constexpr static auto name {"dev_candidates_offsets_t"};
   size_t size;
   char* offset;
 };
-struct dev_estimated_input_size_t : host_prefix_sum::Parameters::dev_input_buffer_t,
-                                    velo_estimate_input_size::Parameters::dev_estimated_input_size_t {
+struct dev_estimated_input_size_t : velo_estimate_input_size::Parameters::dev_estimated_input_size_t,
+                                    host_prefix_sum::Parameters::dev_input_buffer_t {
   constexpr static auto name {"dev_estimated_input_size_t"};
   size_t size;
   char* offset;
@@ -189,16 +188,15 @@ struct dev_module_candidate_num_t : velo_estimate_input_size::Parameters::dev_mo
   size_t size;
   char* offset;
 };
-struct dev_cluster_candidates_t : velo_masked_clustering::Parameters::dev_cluster_candidates_t,
-                                  velo_estimate_input_size::Parameters::dev_cluster_candidates_t {
+struct dev_cluster_candidates_t : velo_estimate_input_size::Parameters::dev_cluster_candidates_t,
+                                  velo_masked_clustering::Parameters::dev_cluster_candidates_t {
   constexpr static auto name {"dev_cluster_candidates_t"};
   size_t size;
   char* offset;
 };
 struct host_total_number_of_velo_clusters_t
-  : velo_fill_candidates::Parameters::host_total_number_of_velo_clusters_t,
+  : host_prefix_sum::Parameters::host_total_sum_holder_t,
     velo_masked_clustering::Parameters::host_total_number_of_velo_clusters_t,
-    host_prefix_sum::Parameters::host_total_sum_holder_t,
     velo_calculate_phi_and_sort::Parameters::host_total_number_of_velo_clusters_t,
     velo_search_by_triplet::Parameters::host_total_number_of_velo_clusters_t {
   constexpr static auto name {"host_total_number_of_velo_clusters_t"};
@@ -207,35 +205,32 @@ struct host_total_number_of_velo_clusters_t
 };
 struct dev_offsets_estimated_input_size_t
   : host_prefix_sum::Parameters::dev_output_buffer_t,
-    velo_search_by_triplet::Parameters::dev_offsets_estimated_input_size_t,
+    velo_masked_clustering::Parameters::dev_offsets_estimated_input_size_t,
     velo_calculate_phi_and_sort::Parameters::dev_offsets_estimated_input_size_t,
-    velo_consolidate_tracks::Parameters::dev_offsets_estimated_input_size_t,
+    velo_search_by_triplet::Parameters::dev_offsets_estimated_input_size_t,
     velo_three_hit_tracks_filter::Parameters::dev_offsets_estimated_input_size_t,
-    velo_fill_candidates::Parameters::dev_offsets_estimated_input_size_t,
-    velo_masked_clustering::Parameters::dev_offsets_estimated_input_size_t {
+    velo_consolidate_tracks::Parameters::dev_offsets_estimated_input_size_t {
   constexpr static auto name {"dev_offsets_estimated_input_size_t"};
   size_t size;
   char* offset;
 };
-struct dev_module_cluster_num_t : velo_calculate_phi_and_sort::Parameters::dev_module_cluster_num_t,
-                                  velo_fill_candidates::Parameters::dev_module_cluster_num_t,
-                                  velo_masked_clustering::Parameters::dev_module_cluster_num_t,
+struct dev_module_cluster_num_t : velo_masked_clustering::Parameters::dev_module_cluster_num_t,
+                                  velo_calculate_phi_and_sort::Parameters::dev_module_cluster_num_t,
                                   velo_search_by_triplet::Parameters::dev_module_cluster_num_t {
   constexpr static auto name {"dev_module_cluster_num_t"};
   size_t size;
   char* offset;
 };
-struct dev_velo_cluster_container_t : velo_calculate_phi_and_sort::Parameters::dev_velo_cluster_container_t,
-                                      velo_masked_clustering::Parameters::dev_velo_cluster_container_t {
+struct dev_velo_cluster_container_t : velo_masked_clustering::Parameters::dev_velo_cluster_container_t,
+                                      velo_calculate_phi_and_sort::Parameters::dev_velo_cluster_container_t {
   constexpr static auto name {"dev_velo_cluster_container_t"};
   size_t size;
   char* offset;
 };
 struct dev_sorted_velo_cluster_container_t
-  : velo_fill_candidates::Parameters::dev_sorted_velo_cluster_container_t,
-    velo_calculate_phi_and_sort::Parameters::dev_sorted_velo_cluster_container_t,
-    velo_three_hit_tracks_filter::Parameters::dev_sorted_velo_cluster_container_t,
+  : velo_calculate_phi_and_sort::Parameters::dev_sorted_velo_cluster_container_t,
     velo_search_by_triplet::Parameters::dev_sorted_velo_cluster_container_t,
+    velo_three_hit_tracks_filter::Parameters::dev_sorted_velo_cluster_container_t,
     velo_consolidate_tracks::Parameters::dev_sorted_velo_cluster_container_t {
   constexpr static auto name {"dev_sorted_velo_cluster_container_t"};
   size_t size;
@@ -246,28 +241,15 @@ struct dev_hit_permutation_t : velo_calculate_phi_and_sort::Parameters::dev_hit_
   size_t size;
   char* offset;
 };
-struct dev_hit_phi_t : velo_fill_candidates::Parameters::dev_hit_phi_t,
-                       velo_search_by_triplet::Parameters::dev_hit_phi_t,
-                       velo_calculate_phi_and_sort::Parameters::dev_hit_phi_t {
+struct dev_hit_phi_t : velo_calculate_phi_and_sort::Parameters::dev_hit_phi_t,
+                       velo_search_by_triplet::Parameters::dev_hit_phi_t {
   constexpr static auto name {"dev_hit_phi_t"};
   size_t size;
   char* offset;
 };
-struct dev_h0_candidates_t : velo_fill_candidates::Parameters::dev_h0_candidates_t,
-                             velo_search_by_triplet::Parameters::dev_h0_candidates_t {
-  constexpr static auto name {"dev_h0_candidates_t"};
-  size_t size;
-  char* offset;
-};
-struct dev_h2_candidates_t : velo_fill_candidates::Parameters::dev_h2_candidates_t,
-                             velo_search_by_triplet::Parameters::dev_h2_candidates_t {
-  constexpr static auto name {"dev_h2_candidates_t"};
-  size_t size;
-  char* offset;
-};
 struct dev_tracks_t : velo_search_by_triplet::Parameters::dev_tracks_t,
-                      velo_consolidate_tracks::Parameters::dev_tracks_t,
-                      velo_copy_track_hit_number::Parameters::dev_tracks_t {
+                      velo_copy_track_hit_number::Parameters::dev_tracks_t,
+                      velo_consolidate_tracks::Parameters::dev_tracks_t {
   constexpr static auto name {"dev_tracks_t"};
   size_t size;
   char* offset;
@@ -288,8 +270,8 @@ struct dev_three_hit_tracks_t : velo_search_by_triplet::Parameters::dev_three_hi
   size_t size;
   char* offset;
 };
-struct dev_hit_used_t : velo_three_hit_tracks_filter::Parameters::dev_hit_used_t,
-                        velo_search_by_triplet::Parameters::dev_hit_used_t {
+struct dev_hit_used_t : velo_search_by_triplet::Parameters::dev_hit_used_t,
+                        velo_three_hit_tracks_filter::Parameters::dev_hit_used_t {
   constexpr static auto name {"dev_hit_used_t"};
   size_t size;
   char* offset;
@@ -305,8 +287,8 @@ struct dev_rel_indices_t : velo_search_by_triplet::Parameters::dev_rel_indices_t
   size_t size;
   char* offset;
 };
-struct dev_number_of_velo_tracks_t : host_prefix_sum::Parameters::dev_input_buffer_t,
-                                     velo_search_by_triplet::Parameters::dev_number_of_velo_tracks_t {
+struct dev_number_of_velo_tracks_t : velo_search_by_triplet::Parameters::dev_number_of_velo_tracks_t,
+                                     host_prefix_sum::Parameters::dev_input_buffer_t {
   constexpr static auto name {"dev_number_of_velo_tracks_t"};
   size_t size;
   char* offset;
@@ -331,15 +313,15 @@ struct dev_three_hit_tracks_output_t : velo_three_hit_tracks_filter::Parameters:
   char* offset;
 };
 struct dev_number_of_three_hit_tracks_output_t
-  : host_prefix_sum::Parameters::dev_input_buffer_t,
-    velo_three_hit_tracks_filter::Parameters::dev_number_of_three_hit_tracks_output_t {
+  : velo_three_hit_tracks_filter::Parameters::dev_number_of_three_hit_tracks_output_t,
+    host_prefix_sum::Parameters::dev_input_buffer_t {
   constexpr static auto name {"dev_number_of_three_hit_tracks_output_t"};
   size_t size;
   char* offset;
 };
 struct host_number_of_three_hit_tracks_filtered_t
-  : velo_copy_track_hit_number::Parameters::host_number_of_three_hit_tracks_filtered_t,
-    host_prefix_sum::Parameters::host_total_sum_holder_t,
+  : host_prefix_sum::Parameters::host_total_sum_holder_t,
+    velo_copy_track_hit_number::Parameters::host_number_of_three_hit_tracks_filtered_t,
     velo_consolidate_tracks::Parameters::host_number_of_three_hit_tracks_filtered_t {
   constexpr static auto name {"host_number_of_three_hit_tracks_filtered_t"};
   size_t size;
@@ -354,12 +336,12 @@ struct dev_offsets_number_of_three_hit_tracks_filtered_t
   char* offset;
 };
 struct host_number_of_reconstructed_velo_tracks_t
-  : velo_kalman_filter::Parameters::host_number_of_reconstructed_velo_tracks_t,
-    pv_beamline_calculate_denom::Parameters::host_number_of_reconstructed_velo_tracks_t,
-    pv_beamline_multi_fitter::Parameters::host_number_of_reconstructed_velo_tracks_t,
+  : velo_copy_track_hit_number::Parameters::host_number_of_reconstructed_velo_tracks_t,
     velo_consolidate_tracks::Parameters::host_number_of_reconstructed_velo_tracks_t,
+    velo_kalman_filter::Parameters::host_number_of_reconstructed_velo_tracks_t,
     pv_beamline_extrapolate::Parameters::host_number_of_reconstructed_velo_tracks_t,
-    velo_copy_track_hit_number::Parameters::host_number_of_reconstructed_velo_tracks_t {
+    pv_beamline_calculate_denom::Parameters::host_number_of_reconstructed_velo_tracks_t,
+    pv_beamline_multi_fitter::Parameters::host_number_of_reconstructed_velo_tracks_t {
   constexpr static auto name {"host_number_of_reconstructed_velo_tracks_t"};
   size_t size;
   char* offset;
@@ -370,32 +352,32 @@ struct dev_velo_track_hit_number_t : velo_copy_track_hit_number::Parameters::dev
   size_t size;
   char* offset;
 };
-struct dev_offsets_all_velo_tracks_t : pv_beamline_extrapolate::Parameters::dev_offsets_all_velo_tracks_t,
-                                       pv_beamline_histo::Parameters::dev_offsets_all_velo_tracks_t,
+struct dev_offsets_all_velo_tracks_t : velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t,
+                                       velo_consolidate_tracks::Parameters::dev_offsets_all_velo_tracks_t,
                                        velo_kalman_filter::Parameters::dev_offsets_all_velo_tracks_t,
-                                       velo_copy_track_hit_number::Parameters::dev_offsets_all_velo_tracks_t,
-                                       pv_beamline_multi_fitter::Parameters::dev_offsets_all_velo_tracks_t,
+                                       pv_beamline_extrapolate::Parameters::dev_offsets_all_velo_tracks_t,
+                                       pv_beamline_histo::Parameters::dev_offsets_all_velo_tracks_t,
                                        pv_beamline_calculate_denom::Parameters::dev_offsets_all_velo_tracks_t,
-                                       velo_consolidate_tracks::Parameters::dev_offsets_all_velo_tracks_t {
+                                       pv_beamline_multi_fitter::Parameters::dev_offsets_all_velo_tracks_t {
   constexpr static auto name {"dev_offsets_all_velo_tracks_t"};
   size_t size;
   char* offset;
 };
 struct host_accumulated_number_of_hits_in_velo_tracks_t
-  : velo_consolidate_tracks::Parameters::host_accumulated_number_of_hits_in_velo_tracks_t,
-    host_prefix_sum::Parameters::host_total_sum_holder_t {
+  : host_prefix_sum::Parameters::host_total_sum_holder_t,
+    velo_consolidate_tracks::Parameters::host_accumulated_number_of_hits_in_velo_tracks_t {
   constexpr static auto name {"host_accumulated_number_of_hits_in_velo_tracks_t"};
   size_t size;
   char* offset;
 };
 struct dev_offsets_velo_track_hit_number_t
-  : velo_consolidate_tracks::Parameters::dev_offsets_velo_track_hit_number_t,
-    host_prefix_sum::Parameters::dev_output_buffer_t,
-    pv_beamline_extrapolate::Parameters::dev_offsets_velo_track_hit_number_t,
-    pv_beamline_calculate_denom::Parameters::dev_offsets_velo_track_hit_number_t,
-    pv_beamline_multi_fitter::Parameters::dev_offsets_velo_track_hit_number_t,
+  : host_prefix_sum::Parameters::dev_output_buffer_t,
+    velo_consolidate_tracks::Parameters::dev_offsets_velo_track_hit_number_t,
     velo_kalman_filter::Parameters::dev_offsets_velo_track_hit_number_t,
-    pv_beamline_histo::Parameters::dev_offsets_velo_track_hit_number_t {
+    pv_beamline_extrapolate::Parameters::dev_offsets_velo_track_hit_number_t,
+    pv_beamline_histo::Parameters::dev_offsets_velo_track_hit_number_t,
+    pv_beamline_calculate_denom::Parameters::dev_offsets_velo_track_hit_number_t,
+    pv_beamline_multi_fitter::Parameters::dev_offsets_velo_track_hit_number_t {
   constexpr static auto name {"dev_offsets_velo_track_hit_number_t"};
   size_t size;
   char* offset;
@@ -411,22 +393,22 @@ struct dev_velo_states_t : velo_consolidate_tracks::Parameters::dev_velo_states_
   size_t size;
   char* offset;
 };
-struct dev_velo_track_hits_t : velo_kalman_filter::Parameters::dev_velo_track_hits_t,
-                               velo_consolidate_tracks::Parameters::dev_velo_track_hits_t {
+struct dev_velo_track_hits_t : velo_consolidate_tracks::Parameters::dev_velo_track_hits_t,
+                               velo_kalman_filter::Parameters::dev_velo_track_hits_t {
   constexpr static auto name {"dev_velo_track_hits_t"};
   size_t size;
   char* offset;
 };
-struct dev_velo_kalman_beamline_states_t : pv_beamline_extrapolate::Parameters::dev_velo_kalman_beamline_states_t,
-                                           velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t {
+struct dev_velo_kalman_beamline_states_t : velo_kalman_filter::Parameters::dev_velo_kalman_beamline_states_t,
+                                           pv_beamline_extrapolate::Parameters::dev_velo_kalman_beamline_states_t {
   constexpr static auto name {"dev_velo_kalman_beamline_states_t"};
   size_t size;
   char* offset;
 };
-struct dev_pvtracks_t : pv_beamline_calculate_denom::Parameters::dev_pvtracks_t,
-                        pv_beamline_multi_fitter::Parameters::dev_pvtracks_t,
+struct dev_pvtracks_t : pv_beamline_extrapolate::Parameters::dev_pvtracks_t,
                         pv_beamline_histo::Parameters::dev_pvtracks_t,
-                        pv_beamline_extrapolate::Parameters::dev_pvtracks_t {
+                        pv_beamline_calculate_denom::Parameters::dev_pvtracks_t,
+                        pv_beamline_multi_fitter::Parameters::dev_pvtracks_t {
   constexpr static auto name {"dev_pvtracks_t"};
   size_t size;
   char* offset;
@@ -437,21 +419,21 @@ struct dev_pvtrack_z_t : pv_beamline_extrapolate::Parameters::dev_pvtrack_z_t,
   size_t size;
   char* offset;
 };
-struct dev_zhisto_t : pv_beamline_peak::Parameters::dev_zhisto_t, pv_beamline_histo::Parameters::dev_zhisto_t {
+struct dev_zhisto_t : pv_beamline_histo::Parameters::dev_zhisto_t, pv_beamline_peak::Parameters::dev_zhisto_t {
   constexpr static auto name {"dev_zhisto_t"};
   size_t size;
   char* offset;
 };
 struct dev_zpeaks_t : pv_beamline_peak::Parameters::dev_zpeaks_t,
-                      pv_beamline_multi_fitter::Parameters::dev_zpeaks_t,
-                      pv_beamline_calculate_denom::Parameters::dev_zpeaks_t {
+                      pv_beamline_calculate_denom::Parameters::dev_zpeaks_t,
+                      pv_beamline_multi_fitter::Parameters::dev_zpeaks_t {
   constexpr static auto name {"dev_zpeaks_t"};
   size_t size;
   char* offset;
 };
-struct dev_number_of_zpeaks_t : pv_beamline_calculate_denom::Parameters::dev_number_of_zpeaks_t,
-                                pv_beamline_multi_fitter::Parameters::dev_number_of_zpeaks_t,
-                                pv_beamline_peak::Parameters::dev_number_of_zpeaks_t {
+struct dev_number_of_zpeaks_t : pv_beamline_peak::Parameters::dev_number_of_zpeaks_t,
+                                pv_beamline_calculate_denom::Parameters::dev_number_of_zpeaks_t,
+                                pv_beamline_multi_fitter::Parameters::dev_number_of_zpeaks_t {
   constexpr static auto name {"dev_number_of_zpeaks_t"};
   size_t size;
   char* offset;
@@ -815,38 +797,6 @@ using configured_sequence_t = std::tuple<
     't',
     '_',
     't'>,
-  velo_fill_candidates::velo_fill_candidates_t<
-    std::tuple<
-      host_number_of_selected_events_t,
-      host_total_number_of_velo_clusters_t,
-      dev_sorted_velo_cluster_container_t,
-      dev_offsets_estimated_input_size_t,
-      dev_module_cluster_num_t,
-      dev_hit_phi_t,
-      dev_h0_candidates_t,
-      dev_h2_candidates_t>,
-    'v',
-    'e',
-    'l',
-    'o',
-    '_',
-    'f',
-    'i',
-    'l',
-    'l',
-    '_',
-    'c',
-    'a',
-    'n',
-    'd',
-    'i',
-    'd',
-    'a',
-    't',
-    'e',
-    's',
-    '_',
-    't'>,
   velo_search_by_triplet::velo_search_by_triplet_t<
     std::tuple<
       host_number_of_selected_events_t,
@@ -854,8 +804,6 @@ using configured_sequence_t = std::tuple<
       dev_sorted_velo_cluster_container_t,
       dev_offsets_estimated_input_size_t,
       dev_module_cluster_num_t,
-      dev_h0_candidates_t,
-      dev_h2_candidates_t,
       dev_hit_phi_t,
       dev_tracks_t,
       dev_tracklets_t,

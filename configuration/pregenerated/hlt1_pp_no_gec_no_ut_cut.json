@@ -1,5 +1,10 @@
 {
+  "populate_odin_banks": {"bank_type": "ODIN"},
+  "ut_banks": {"bank_type": "UT"},
+  "scifi_banks": {"bank_type": "FTCluster"},
+  "velo_banks": {"bank_type": "VP"},
   "ut_search_windows_t": {"min_momentum": "3000.0", "min_pt": "0.0"},
   "compass_ut_t": {"min_momentum_final": "0.0", "min_pt_final": "0.0", "max_considered_before_found": "16"},
+  "muon_banks": {"bank_type": "Muon"},
   "configured_lines": ["ErrorEvent", "PassThrough", "NoBeams", "BeamOne", "BeamTwo", "BothBeams", "ODINNoBias", "ODINLumi", "GECPassthrough", "VeloMicroBias", "TrackMVA", "TrackMuonMVA", "SingleHighPtMuon", "LowPtMuon", "TwoTrackMVA", "DiMuonHighMass", "DiMuonLowMass", "LowPtDiMuon", "DiMuonSoft", "D2KPi", "D2PiPi", "D2KK"]
 }
