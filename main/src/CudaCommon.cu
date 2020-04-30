@@ -91,4 +91,12 @@ namespace Configuration {
   uint verbosity_level;
 }
 
+cudaError_t cudaHostUnregister(void*) {
+  return 0;
+}
+
+cudaError_t cudaHostRegister(void*, size_t, unsigned int) {
+  return 0;
+}
+
 #endif

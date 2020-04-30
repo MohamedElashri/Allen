@@ -3,14 +3,6 @@
 #include "Common.h"
 #include "CudaCommon.h"
 
-// #if defined(TARGET_DEVICE_CUDA)
-// #define __device__ inline __forceinline__ __device__
-// #elif defined(TARGET_DEVICE_HIP) || defined(TARGET_DEVICE_CUDACLANG)
-// #define __device__ inline __device__
-// #else
-// #define __device__ inline inline
-// #endif
-
 namespace MEP {
 
   __device__ inline unsigned int source_id(unsigned int const* offsets, unsigned int const bank)

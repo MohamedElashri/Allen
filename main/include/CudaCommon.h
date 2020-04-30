@@ -119,6 +119,8 @@ cudaError_t cudaMemcpyToSymbol(
   size_t count,
   size_t offset = 0,
   enum cudaMemcpyKind kind = cudaMemcpyDefault);
+cudaError_t cudaHostUnregister(void* ptr);
+cudaError_t cudaHostRegister(void* ptr, size_t size, unsigned int flags);
 
 // CUDA accepts more bindings to cudaMemcpyTo/FromSymbol
 template<class T>
@@ -291,6 +293,7 @@ public:
 #define cudaFuncCachePreferL1 hipFuncCachePreferL1
 #define cudaDeviceGetByPCIBusId hipDeviceGetByPCIBusId
 #define cudaDeviceSetCacheConfig hipDeviceSetCacheConfig
+#define cudaHostUnregister hipHostUnregister
 
 #define cudaCheck(stmt)                                                                                           \
   {                                                                                                               \
