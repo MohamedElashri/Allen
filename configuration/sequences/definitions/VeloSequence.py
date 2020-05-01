@@ -2,13 +2,40 @@ from definitions.algorithms import *
 
 
 def VeloSequence(doGEC=True):
-    populate_odin_banks = populate_odin_banks_t()
+    odin_banks = data_provider_t(
+        "populate_odin_banks",
+        dev_raw_banks_t="dev_odin_raw_input_t",
+        dev_raw_offsets_t="dev_odin_raw_input_offsets_t",
+        bank_type="ODIN")
+
+    host_ut_banks = host_data_provider_t(
+        "host_ut_banks",
+        host_raw_banks_t="host_ut_raw_input_t",
+        host_raw_offsets_t="host_ut_raw_input_offsets_t",
+        bank_type="UT")
+
+    host_scifi_banks = host_data_provider_t(
+        "host_scifi_banks",
+        host_raw_banks_t="host_scifi_raw_input_t",
+        host_raw_offsets_t="host_scifi_raw_input_offsets_t",
+        bank_type="FTCluster")
 
     initialize_lists = None
     if doGEC:
-        initialize_lists = host_global_event_cut_t()
+        initialize_lists = host_global_event_cut_t(
+            "host_global_event_cut",
+            host_ut_raw_banks_t="host_ut_raw_input_t",
+            host_ut_raw_offsets_t="host_ut_raw_input_offsets_t",
+            host_scifi_raw_banks_t="host_scifi_raw_input_t",
+            host_scifi_raw_offsets_t="host_scifi_raw_input_offsets_t")
     else:
         initialize_lists = host_init_event_list_t()
+
+    velo_banks = data_provider_t(
+        "velo_banks",
+        dev_raw_banks_t="dev_velo_raw_input_t",
+        dev_raw_offsets_t="dev_velo_raw_input_offsets_t",
+        bank_type="VP")
 
     velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t(
     )
@@ -66,8 +93,8 @@ def VeloSequence(doGEC=True):
     velo_consolidate_tracks = velo_consolidate_tracks_t()
 
     velo_sequence = Sequence(
-        populate_odin_banks, initialize_lists,
-        velo_calculate_number_of_candidates,
+        odin_banks, host_ut_banks, host_scifi_banks, initialize_lists,
+        velo_banks, velo_calculate_number_of_candidates,
         prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
         prefix_sum_offsets_estimated_input_size, velo_masked_clustering,
         velo_calculate_phi_and_sort, velo_search_by_triplet,

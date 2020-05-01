@@ -15,9 +15,7 @@ interpreter.Declare("#include <main/include/Allen.h>")
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
 
 # Handle commandline arguments
-parser = argparse.ArgumentParser(
-    usage=('usage: %(prog)s app'
-           ' <node|subfarm|top> <runtime[s]>'))
+parser = argparse.ArgumentParser()
 parser.add_argument("-f", dest="folder", default="../input/minbias")
 parser.add_argument(
     "-g", dest="det_folder", default="../input/detector_configuration/down")
