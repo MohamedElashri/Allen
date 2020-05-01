@@ -56,11 +56,11 @@ public:
   BinaryProvider(
     size_t n_slices,
     size_t events_per_slice,
-    std::optional<size_t> n_events,
+    boost::optional<size_t> n_events,
     std::vector<std::string> connections,
     size_t repetitions = 1,
-    std::optional<std::string> file_list = {},
-    std::optional<EventIDs> order = std::optional<EventIDs> {}) :
+    boost::optional<std::string> file_list = {},
+    boost::optional<EventIDs> order = {}) :
     InputProvider<BinaryProvider<Banks...>> {n_slices, events_per_slice, n_events},
     m_slice_free(n_slices, true), m_repetitions {repetitions}, m_event_ids(n_slices)
   {
@@ -165,7 +165,7 @@ public:
    *
    * @return     event IDs in slice
    */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+  EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
     const override
   {
     auto const& ids = m_event_ids[slice_index];
@@ -180,7 +180,7 @@ public:
    * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
   std::tuple<bool, bool, bool, size_t, size_t> get_slice(
-    std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
+    boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
   {
     bool timed_out = false;
     size_t slice_index = 0, n_filled = 0;

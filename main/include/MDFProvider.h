@@ -82,7 +82,7 @@ public:
   MDFProvider(
     size_t n_slices,
     size_t events_per_slice,
-    std::optional<size_t> n_events,
+    boost::optional<size_t> n_events,
     std::vector<std::string> connections,
     MDFProviderConfig config = MDFProviderConfig {}) :
     InputProvider<MDFProvider<Banks...>> {n_slices, events_per_slice, n_events},
@@ -211,7 +211,7 @@ public:
    *
    * @return     EventIDs of events in given slice
    */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+  EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
     const override
   {
     auto const& ids = m_event_ids[slice_index];
@@ -245,7 +245,7 @@ public:
    * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
   std::tuple<bool, bool, bool, size_t, size_t> get_slice(
-    std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
+    boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
@@ -375,7 +375,7 @@ private:
   {
 
     size_t i_read = 0;
-    std::optional<size_t> slice_index;
+    auto slice_index = boost::make_optional(false, size_t {});
 
     bool good = false, transpose_full = false;
     size_t n_transposed = 0;
@@ -708,7 +708,7 @@ private:
   std::vector<std::string> m_connections;
 
   // Storage for the currently open file
-  mutable std::optional<Allen::IO> m_input;
+  mutable boost::optional<Allen::IO> m_input;
 
   // Iterator that points to the filename of the currently open file
   mutable std::vector<std::string>::const_iterator m_current;

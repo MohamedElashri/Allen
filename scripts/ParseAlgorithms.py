@@ -3,6 +3,7 @@
 import re
 import os
 import sys
+import codecs
 from collections import OrderedDict
 from AlgorithmTraversalLibTooling import AlgorithmTraversal
 from LineTraversalLibTooling import LineTraversal
@@ -66,25 +67,25 @@ class Parser():
         algorithms = []
         lines = []
         for filename in all_filenames:
-            f = open(filename)
-            try:
-                s = f.read()
-                f.close()
-                # Invoke the libTooling algorithm parser only if we find the algorithm pattern
-                has_algorithm = Parser.__algorithm_pattern_compiled.search(s)
-                if has_algorithm:
-                    parsed_algorithms = algorithm_parser.traverse(filename)
-                    if parsed_algorithms:
-                        algorithms += parsed_algorithms
-                # Invoke the libTooling line parser only if we find the line pattern
-                has_line = Parser.__line_pattern_compiled.search(s)
-                if has_line:
-                    parsed_lines = line_parser.traverse(filename)
-                    if parsed_lines:
-                        lines += parsed_lines
-            except:
-                print("Parsing file", filename, "failed")
-                raise
+            with codecs.open(filename, 'r', 'utf-8') as f:
+                try:
+                    s = f.read()
+                    # Invoke the libTooling algorithm parser only if we find the algorithm pattern
+                    has_algorithm = Parser.__algorithm_pattern_compiled.search(
+                        s)
+                    if has_algorithm:
+                        parsed_algorithms = algorithm_parser.traverse(filename)
+                        if parsed_algorithms:
+                            algorithms += parsed_algorithms
+                    # Invoke the libTooling line parser only if we find the line pattern
+                    has_line = Parser.__line_pattern_compiled.search(s)
+                    if has_line:
+                        parsed_lines = line_parser.traverse(filename)
+                        if parsed_lines:
+                            lines += parsed_lines
+                except:
+                    print("Parsing file", filename, "failed")
+                    raise
         return algorithms, lines
 
 
@@ -278,12 +279,23 @@ class ConfGen():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Parse the Allen codebase and generate a python representation of all algorithms.')
-    
-    parser.add_argument('filename', type=str, default="algorithms.py",
-                        help='output filename')
-    parser.add_argument('prefix_project_folder', type=str, default="./",
-                        help='project location')
+    parser = argparse.ArgumentParser(
+        description=
+        'Parse the Allen codebase and generate a python representation of all algorithms.'
+    )
+
+    parser.add_argument(
+        'filename',
+        nargs='?',
+        type=str,
+        default="algorithms.py",
+        help='output filename')
+    parser.add_argument(
+        'prefix_project_folder',
+        nargs='?',
+        type=str,
+        default="../",
+        help='project location')
     args = parser.parse_args()
 
     prefix_project_folder = args.prefix_project_folder + "/"
