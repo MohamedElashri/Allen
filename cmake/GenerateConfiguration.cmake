@@ -9,7 +9,9 @@ set(ALGORITHMS_GENERATION_SCRIPT ${CMAKE_SOURCE_DIR}/scripts/ParseAlgorithms.py)
 file(MAKE_DIRECTORY ${SEQUENCE_DEFINITION_DIR})
 
 # We need Python 3
-find_package (Python3 COMPONENTS Interpreter Development QUIET)
+# find_package (Python3 COMPONENTS Interpreter Development QUIET)
+# Note: Doesn't work in my current setup
+set(Python3_FOUND TRUE)
 
 # We need to pass a custom LD_LIBRARY_PATH to point to a compatible clang version
 # TODO: Figure out if there is a cleaner way to do this
@@ -90,7 +92,7 @@ else()
     message(WARNING "Sequence generation with LLVM - Failed. CVMFS (sft.cern.ch) or clang >= 9.0.0 are required to be able to generate configurations.")
     message(WARNING "A pregenerated sequence will be used instead.")
   else()
-    message(WARNING "Failed to find Python 3. Python 3 AND (CVMFS (sft.cern.ch) OR clang >= 9.0.0) are required to be able to generate configurations.")
+    message(WARNING "Failed to generate sequence. Please note Python 3 AND (CVMFS (sft.cern.ch) OR clang >= 9.0.0) are required to be able to generate configurations.")
   endif()
 
   add_custom_command(

@@ -33,7 +33,9 @@ def VeloSequence(doGEC = True):
     velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t(
         name = "velo_calculate_number_of_candidates",
         host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
-        dev_event_list_t = initialize_lists.dev_event_list_t())
+        dev_event_list_t = initialize_lists.dev_event_list_t(),
+        dev_velo_raw_input_t = velo_banks.dev_raw_banks_t(),
+        dev_velo_raw_input_offsets_t = velo_banks.dev_raw_offsets_t())
 
     prefix_sum_offsets_velo_candidates = host_prefix_sum_t(
         name = "prefix_sum_offsets_velo_candidates",
@@ -72,15 +74,6 @@ def VeloSequence(doGEC = True):
         dev_module_cluster_num_t = velo_masked_clustering.dev_module_cluster_num_t(),
         dev_velo_cluster_container_t = velo_masked_clustering.dev_velo_cluster_container_t())
 
-    velo_fill_candidates = velo_fill_candidates_t(
-        name = "velo_fill_candidates",
-        host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
-        host_total_number_of_velo_clusters_t = prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t(),
-        dev_sorted_velo_cluster_container_t = velo_calculate_phi_and_sort.dev_sorted_velo_cluster_container_t(),
-        dev_offsets_estimated_input_size_t = prefix_sum_offsets_estimated_input_size.dev_output_buffer_t(),
-        dev_module_cluster_num_t = velo_masked_clustering.dev_module_cluster_num_t(),
-        dev_hit_phi_t = velo_calculate_phi_and_sort.dev_hit_phi_t())
-
     velo_search_by_triplet = velo_search_by_triplet_t(
         name = "velo_search_by_triplet",
         host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
@@ -88,8 +81,6 @@ def VeloSequence(doGEC = True):
         dev_sorted_velo_cluster_container_t = velo_calculate_phi_and_sort.dev_sorted_velo_cluster_container_t(),
         dev_offsets_estimated_input_size_t = prefix_sum_offsets_estimated_input_size.dev_output_buffer_t(),
         dev_module_cluster_num_t = velo_masked_clustering.dev_module_cluster_num_t(),
-        dev_h0_candidates_t = velo_fill_candidates.dev_h0_candidates_t(),
-        dev_h2_candidates_t = velo_fill_candidates.dev_h2_candidates_t(),
         dev_hit_phi_t = velo_calculate_phi_and_sort.dev_hit_phi_t())
 
     prefix_sum_offsets_velo_tracks = host_prefix_sum_t(

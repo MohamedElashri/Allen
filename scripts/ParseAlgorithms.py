@@ -423,6 +423,12 @@ if __name__ == '__main__':
         type=str,
         default="../",
         help='project location')
+    parser.add_argument(
+        'configured_generator',
+        nargs='?',
+        type=str,
+        default="Allen",
+        help='configured generator')
     args = parser.parse_args()
 
     prefix_project_folder = args.prefix_project_folder + "/"
@@ -430,7 +436,7 @@ if __name__ == '__main__':
     print("Parsing algorithms...")
     parsed_algorithms, parsed_lines = Parser().parse_all()
 
-    if configured_generator == "Moore":
+    if args.configured_generator == "Moore":
         print("Generating " + args.filename + " in Gaudi format...")
         s = GaudiAllenConf().write_preamble()
         for algorithm in parsed_algorithms:
