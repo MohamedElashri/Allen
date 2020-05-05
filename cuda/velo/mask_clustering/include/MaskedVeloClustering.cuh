@@ -5,6 +5,7 @@
 #include "ClusteringDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
+#include "VeloTools.cuh"
 
 namespace velo_masked_clustering {
   struct Parameters {
@@ -13,11 +14,11 @@ namespace velo_masked_clustering {
     DEVICE_INPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
     DEVICE_INPUT(dev_velo_raw_input_offsets_t, uint) dev_velo_raw_input_offsets;
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, uint) dev_offsets_estimated_input_size;
-    DEVICE_INPUT(dev_module_candidate_num_t, uint) dev_module_candidate_num;
+    DEVICE_INPUT(dev_module_candidate_num_t, uint) dev_module_pair_candidate_num;
     DEVICE_INPUT(dev_cluster_candidates_t, uint) dev_cluster_candidates;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
     DEVICE_INPUT(dev_candidates_offsets_t, uint) dev_candidates_offsets;
-    DEVICE_OUTPUT(dev_module_cluster_num_t, uint) dev_module_cluster_num;
+    DEVICE_OUTPUT(dev_module_cluster_num_t, uint) dev_module_pair_cluster_num;
     DEVICE_OUTPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
@@ -50,7 +51,7 @@ namespace velo_masked_clustering {
       const HostBuffers&) const
     {
       set_size<dev_module_cluster_num_t>(
-        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_modules);
+        arguments, value<host_number_of_selected_events_t>(arguments) * Velo::Constants::n_module_pairs);
       set_size<dev_velo_cluster_container_t>(arguments,
         value<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
     }
@@ -77,7 +78,7 @@ namespace velo_masked_clustering {
           begin<dev_velo_cluster_container_t>(arguments)
         };
 
-        // Selector from layout
+      // Selector from layout
       if (runtime_options.mep_layout) {
         function_mep(dim3(begin<host_number_of_selected_events_t>(arguments)[0]), property<block_dim_t>(), cuda_stream)(
           parameters,

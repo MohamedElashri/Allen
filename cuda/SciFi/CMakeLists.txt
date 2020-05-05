@@ -1,4 +1,3 @@
-file(GLOB scifi_common "common/src/*cu")
 file(GLOB scifi_preprocessing "preprocessing/src/*cu")
 file(GLOB scifi_looking_forward "looking_forward/src/*cu")
 file(GLOB scifi_consolidate "consolidate/src/*cu")
@@ -28,7 +27,6 @@ include_directories(consolidate/include)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
 allen_add_device_library(SciFi STATIC
-  ${scifi_common}
   ${scifi_preprocessing}
   ${scifi_looking_forward}
   ${scifi_consolidate}

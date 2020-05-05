@@ -132,7 +132,13 @@ int main(int argc, char* argv[])
     auto const& events_mdf = mdf->event_ids(slice_mdf);
 
     binary = make_unique<BinaryProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(
-      s_config.n_slices, s_config.n_events, s_config.n_events, s_config.banks_dirs, false, std::nullopt, events_mdf);
+      s_config.n_slices,
+      s_config.n_events,
+      s_config.n_events,
+      s_config.banks_dirs,
+      false,
+      boost::optional<std::string> {},
+      events_mdf);
 
     std::tie(good, done, timed_out, slice_binary, filled_binary) = binary->get_slice();
   }

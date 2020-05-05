@@ -68,7 +68,7 @@ file(GLOB stream_gear "gear/src/*cpp")
 file(GLOB stream_sequence_cpp "sequence/src/*cpp")
 file(GLOB stream_sequence "sequence/src/*cu")
 
-include(GenerateConfiguration.cmake)
+include(GenerateConfiguration)
 
 allen_add_host_library(HostStream STATIC ${stream_gear} ${stream_sequence_cpp})
 

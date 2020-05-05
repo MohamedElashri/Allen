@@ -26,17 +26,10 @@
 #include <read_mep.hpp>
 #include <Event/RawBank.h>
 #include <write_mdf.hpp>
-
+#include <CudaCommon.h>
+#include <MEPTools.h>
 #include "Transpose.h"
 #include "TransposeMEP.h"
-
-#ifndef CPU
-#define CPU
-#include <MEPTools.h>
-#undef CPU
-#else
-#include <MEPTools.h>
-#endif
 
 #ifdef HAVE_MPI
 #include "MPIConfig.h"
@@ -44,10 +37,6 @@
 
 #ifdef HAVE_HWLOC
 #include <hwloc.h>
-#endif
-
-#ifndef NO_CUDA
-#include <CudaCommon.h>
 #endif
 
 namespace {
@@ -111,7 +100,7 @@ public:
   MEPProvider(
     size_t n_slices,
     size_t events_per_slice,
-    std::optional<size_t> n_events,
+    boost::optional<size_t> n_events,
     std::vector<std::string> connections,
     MEPProviderConfig config = MEPProviderConfig {}) noexcept(false) :
     InputProvider<MEPProvider<Banks...>> {n_slices, events_per_slice, n_events},
@@ -207,9 +196,7 @@ public:
 
 #ifdef HAVE_MPI
     for (auto* buf : m_mpi_buffers) {
-#if !defined(NO_CUDA) && !defined(CPU)
       cudaCheck(cudaHostUnregister(buf));
-#endif
       MPI_Free_mem(buf);
     }
 #ifdef HAVE_HWLOC
@@ -227,7 +214,7 @@ public:
    *
    * @return     EventIDs of events in given slice
    */
-  EventIDs event_ids(size_t slice_index, std::optional<size_t> first = {}, std::optional<size_t> last = {})
+  EventIDs event_ids(size_t slice_index, boost::optional<size_t> first = {}, boost::optional<size_t> last = {})
     const override
   {
     auto const& ids = m_event_ids[slice_index];
@@ -266,7 +253,7 @@ public:
    * @return     (good slice, timed out, slice index, number of events in slice)
    */
   std::tuple<bool, bool, bool, size_t, size_t> get_slice(
-    std::optional<unsigned int> timeout = std::optional<unsigned int> {}) override
+    boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
@@ -551,9 +538,7 @@ private:
       }
     }
 #endif
-#if !defined(NO_CUDA) && !defined(CPU)
     cudaCheck(cudaHostRegister(contents, n_bytes, cudaHostRegisterDefault));
-#endif
     m_net_slices.emplace_back(
       EB::Header {},
       gsl::span<char const> {contents, static_cast<events_size>(n_bytes)},
@@ -915,10 +900,9 @@ void mpi_read()
     // Reallocate if needed
     if (mep_size > buffer_size) {
       buffer_size = mep_size * bank_size_fudge_factor;
-#if !defined(NO_CUDA) && !defined(CPU)
       // Unregister memory
       cudaCheck(cudaHostUnregister(contents));
-#endif
+
       // Free memory
       MPI_Free_mem(contents);
 
@@ -940,7 +924,6 @@ void mpi_read()
         }
       }
 #endif
-#if !defined(NO_CUDA) && !defined(CPU)
       // Register memory with CUDA
       try {
         cudaCheck(cudaHostRegister(contents, buffer_size, cudaHostRegisterDefault));
@@ -948,7 +931,7 @@ void mpi_read()
         m_read_error = true;
         break;
       }
-#endif
+
       buffer_span = gsl::span {contents, static_cast<events_size>(buffer_size)};
     }
 
@@ -1086,7 +1069,7 @@ void transpose(int thread_id)
 
   size_t i_buffer = 0;
   std::tuple<size_t, size_t> interval;
-  std::optional<size_t> slice_index;
+  boost::optional<size_t> slice_index;
 
   bool good = false, transpose_full = false;
   size_t n_transposed = 0;
@@ -1289,7 +1272,7 @@ std::vector<EventIDs> m_event_ids;
 std::vector<std::string> m_connections;
 
 // Storage for the currently open input file
-mutable std::optional<Allen::IO> m_input;
+mutable boost::optional<Allen::IO> m_input;
 
 // Iterator that points to the filename of the currently open file
 mutable std::vector<std::string>::const_iterator m_current;

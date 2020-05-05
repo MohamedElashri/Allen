@@ -84,7 +84,7 @@ allen_add_host_library(HostGEC STATIC
   ${host_gec}
 )
 
-add_executable(mep_gec test/mep_gec.cpp)
+add_executable(mep_gec test/mep_gec.cpp ${CMAKE_SOURCE_DIR}/main/src/CudaCommon.cpp)
 
 target_include_directories(mep_gec PUBLIC
   ${CPPGSL_INCLUDE_DIR}
@@ -95,6 +95,6 @@ target_include_directories(mep_gec PUBLIC
 target_link_libraries(mep_gec PUBLIC Common mdf HostGEC
   ${MPI_CXX_LIBRARIES})
 
-target_compile_definitions(mep_gec PUBLIC CPU NO_CUDA)
+target_compile_definitions(mep_gec PUBLIC TARGET_DEVICE_CPU)
 
 install(TARGETS mep_gec RUNTIME DESTINATION bin OPTIONAL)

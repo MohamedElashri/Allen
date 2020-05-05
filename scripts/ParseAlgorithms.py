@@ -3,9 +3,11 @@
 import re
 import os
 import sys
+import codecs
 from collections import OrderedDict
 from AlgorithmTraversalLibTooling import AlgorithmTraversal
 from LineTraversalLibTooling import LineTraversal
+import argparse
 
 # Prefix folder, prepended to device / host folder
 prefix_project_folder = "../"
@@ -65,25 +67,25 @@ class Parser():
         algorithms = []
         lines = []
         for filename in all_filenames:
-            f = open(filename)
-            try:
-                s = f.read()
-                f.close()
-                # Invoke the libTooling algorithm parser only if we find the algorithm pattern
-                has_algorithm = Parser.__algorithm_pattern_compiled.search(s)
-                if has_algorithm:
-                    parsed_algorithms = algorithm_parser.traverse(filename)
-                    if parsed_algorithms:
-                        algorithms += parsed_algorithms
-                # Invoke the libTooling line parser only if we find the line pattern
-                has_line = Parser.__line_pattern_compiled.search(s)
-                if has_line:
-                    parsed_lines = line_parser.traverse(filename)
-                    if parsed_lines:
-                        lines += parsed_lines
-            except:
-                print("Parsing file", filename, "failed")
-                raise
+            with codecs.open(filename, 'r', 'utf-8') as f:
+                try:
+                    s = f.read()
+                    # Invoke the libTooling algorithm parser only if we find the algorithm pattern
+                    has_algorithm = Parser.__algorithm_pattern_compiled.search(
+                        s)
+                    if has_algorithm:
+                        parsed_algorithms = algorithm_parser.traverse(filename)
+                        if parsed_algorithms:
+                            algorithms += parsed_algorithms
+                    # Invoke the libTooling line parser only if we find the line pattern
+                    has_line = Parser.__line_pattern_compiled.search(s)
+                    if has_line:
+                        parsed_lines = line_parser.traverse(filename)
+                        if parsed_lines:
+                            lines += parsed_lines
+                except:
+                    print("Parsing file", filename, "failed")
+                    raise
         return algorithms, lines
 
 
@@ -111,11 +113,8 @@ class AllenConf():
 
     @staticmethod
     def write_preamble(i=0):
-        # Fetch base_types.py and include it here to make file self-contained
-        f = open(prefix_project_folder + "/scripts/BaseTypes.py")
-        s = f.read()
-        f.close()
-        return s + "\n\n"
+        s = "from definitions.BaseTypes import *\n\n"
+        return s
 
     @staticmethod
     def write_line_code(line, i=0):
@@ -407,32 +406,47 @@ def algorithm_dict(*algorithms):\n\
 
 
 if __name__ == '__main__':
-    filename = "algorithms.py"
-    if len(sys.argv) > 3:
-        filename = sys.argv[1]
-        prefix_project_folder = sys.argv[2] + "/"
-        configured_generator = sys.argv[3]
+    parser = argparse.ArgumentParser(
+        description=
+        'Parse the Allen codebase and generate a python representation of all algorithms.'
+    )
+
+    parser.add_argument(
+        'filename',
+        nargs='?',
+        type=str,
+        default="algorithms.py",
+        help='output filename')
+    parser.add_argument(
+        'prefix_project_folder',
+        nargs='?',
+        type=str,
+        default="../",
+        help='project location')
+    args = parser.parse_args()
+
+    prefix_project_folder = args.prefix_project_folder + "/"
 
     print("Parsing algorithms...")
     parsed_algorithms, parsed_lines = Parser().parse_all()
 
     if configured_generator == "Moore":
-        print("Generating " + filename + " in Gaudi format...")
+        print("Generating " + args.filename + " in Gaudi format...")
         s = GaudiAllenConf().write_preamble()
         for algorithm in parsed_algorithms:
             s += GaudiAllenConf().write_algorithm_code(algorithm)
         # for line in parsed_lines:
         #     s += GaudiAllenConf().write_line_code(line)
     else:
-        print("Generating " + filename + " in Allen format...")
+        print("Generating " + args.filename + " in Allen format...")
         s = AllenConf().write_preamble()
         for algorithm in parsed_algorithms:
             s += AllenConf().write_algorithm_code(algorithm)
         for line in parsed_lines:
             s += AllenConf().write_line_code(line)
 
-    f = open(filename, "w")
+    f = open(args.filename, "w")
     f.write(s)
     f.close()
 
-    print("File " + filename + " was successfully generated.")
+    print("File " + args.filename + " was successfully generated.")

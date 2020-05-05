@@ -54,23 +54,17 @@ namespace Distance {
   }
 } // namespace Distance
 
-typedef float (*distance_fun)(
-  Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
-  const uint state_index,
-  const PV::Vertex& vertex);
-
 __device__ void associate(
   Velo::Consolidated::ConstKalmanStates& velo_kalman_states,
   cuda::span<const PV::Vertex> const& vertices,
-  Associate::Consolidated::EventTable& table,
-  distance_fun fun)
+  Associate::Consolidated::EventTable& table)
 {
   for (uint i = threadIdx.x; i < table.size(); i += blockDim.x) {
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;
     for (uint j = 0; j < vertices.size(); ++j) {
-      float val = fabsf(fun(velo_kalman_states, i, *(vertices.data() + j)));
+      float val = fabsf(Distance::velo_ip(velo_kalman_states, i, *(vertices.data() + j)));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
       first = false;
@@ -104,5 +98,5 @@ __global__ void velo_pv_ip::velo_pv_ip(velo_pv_ip::Parameters parameters)
   auto pv_table = velo_pv_ip.event_table(velo_tracks, event_number);
 
   // Perform the association for this event
-  associate(velo_kalman_states, vertices, pv_table, Distance::velo_ip);
+  associate(velo_kalman_states, vertices, pv_table);
 }

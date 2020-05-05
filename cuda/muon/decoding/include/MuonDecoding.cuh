@@ -9,8 +9,8 @@ namespace muon_decoding {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    DEVICE_OUTPUT(dev_muon_raw_t, char) dev_muon_raw;
-    DEVICE_OUTPUT(dev_muon_raw_offsets_t, uint) dev_muon_raw_offsets;
+    DEVICE_INPUT(dev_muon_raw_t, char) dev_muon_raw;
+    DEVICE_INPUT(dev_muon_raw_offsets_t, uint) dev_muon_raw_offsets;
     DEVICE_OUTPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
     DEVICE_OUTPUT(dev_muon_hits_t, Muon::HitsSoA) dev_muon_hits;
   };
@@ -24,12 +24,10 @@ namespace muon_decoding {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
+      const RuntimeOptions&,
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_muon_raw_t>(arguments, std::get<1>(runtime_options.host_muon_events));
-      set_size<dev_muon_raw_offsets_t>(arguments, std::get<2>(runtime_options.host_muon_events).size_bytes() / sizeof(uint32_t));
       set_size<dev_muon_raw_to_hits_t>(arguments, 1);
       set_size<dev_muon_hits_t>(arguments, value<host_number_of_selected_events_t>(arguments));
     }
@@ -53,9 +51,6 @@ namespace muon_decoding {
         sizeof(muonRawToHits),
         cudaMemcpyHostToDevice,
         cuda_stream));
-
-      data_to_device<dev_muon_raw_t, dev_muon_raw_offsets_t>
-        (arguments, runtime_options.host_muon_events, cuda_stream);
 
       function(
         dim3(value<host_number_of_selected_events_t>(arguments)),

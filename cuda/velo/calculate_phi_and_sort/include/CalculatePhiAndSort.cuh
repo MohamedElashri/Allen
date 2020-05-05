@@ -6,6 +6,7 @@
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "DeviceAlgorithm.cuh"
+#include "VeloTools.cuh"
 
 namespace velo_calculate_phi_and_sort {
   struct Parameters {
@@ -16,17 +17,17 @@ namespace velo_calculate_phi_and_sort {
     DEVICE_INPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
     DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_OUTPUT(dev_hit_permutation_t, uint) dev_hit_permutation;
-    DEVICE_OUTPUT(dev_hit_phi_t, float) dev_hit_phi;
+    DEVICE_OUTPUT(dev_hit_phi_t, int16_t) dev_hit_phi;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
   __device__ void calculate_phi(
+    int16_t* shared_hit_phis,
     const uint* module_hitStarts,
     const uint* module_hitNums,
     Velo::ConstClusters& velo_cluster_container,
-    float* hit_Phis,
-    uint* hit_permutations,
-    float* shared_hit_phis);
+    int16_t* hit_Phis,
+    uint* hit_permutations);
 
   __device__ void sort_by_phi(
     const uint event_hit_start,
@@ -46,7 +47,8 @@ namespace velo_calculate_phi_and_sort {
       ArgumentRefManager<T> arguments,
       const RuntimeOptions&,
       const Constants&,
-      const HostBuffers&) const {
+      const HostBuffers&) const
+    {
       set_size<dev_sorted_velo_cluster_container_t>(arguments, size<dev_velo_cluster_container_t>(arguments));
       set_size<dev_hit_permutation_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
       set_size<dev_hit_phi_t>(arguments, value<host_total_number_of_velo_clusters_t>(arguments));
@@ -58,31 +60,23 @@ namespace velo_calculate_phi_and_sort {
       const Constants&,
       HostBuffers&,
       cudaStream_t& cuda_stream,
-      cudaEvent_t&) const {
+      cudaEvent_t&) const
+    {
       initialize<dev_hit_permutation_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-        Parameters{
-          begin<dev_offsets_estimated_input_size_t>(arguments),
-          begin<dev_module_cluster_num_t>(arguments),
-          begin<dev_velo_cluster_container_t>(arguments),
-          begin<dev_sorted_velo_cluster_container_t>(arguments),
-          begin<dev_hit_permutation_t>(arguments),
-          begin<dev_hit_phi_t>(arguments)
-        });
+        Parameters {begin<dev_offsets_estimated_input_size_t>(arguments),
+                    begin<dev_module_cluster_num_t>(arguments),
+                    begin<dev_velo_cluster_container_t>(arguments),
+                    begin<dev_sorted_velo_cluster_container_t>(arguments),
+                    begin<dev_hit_permutation_t>(arguments),
+                    begin<dev_hit_phi_t>(arguments)});
 
-      // Prints the x values
-      // std::vector<uint> a (size<dev_velo_cluster_container_t>(arguments) / sizeof(uint));
-      // cudaCheck(cudaMemcpy(
-      //   a.data(),
-      //   begin<dev_velo_cluster_container_t>(arguments),
-      //   size<dev_velo_cluster_container_t>(arguments),
-      //   cudaMemcpyDeviceToHost));
-      // const auto velo_cluster_container = Velo::Clusters<const uint>{a.data(), value<host_total_number_of_velo_clusters_t>(arguments)};
-      // for (uint i = 0; i < value<host_total_number_of_velo_clusters_t>(arguments); ++i) {
-      //   std::cout << velo_cluster_container.x(i) << ", ";
-      // }
-      // std::cout << "\n";
+      // printf("After velo_calculate_phi_and_sort:\n");
+      // print_velo_clusters<dev_sorted_velo_cluster_container_t,
+      //   dev_offsets_estimated_input_size_t,
+      //   dev_module_cluster_num_t,
+      //   host_total_number_of_velo_clusters_t>(arguments);
     }
 
   private:

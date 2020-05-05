@@ -164,13 +164,13 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
   if (m_filter_hlt1.value()) {
     filter = m_stream->host_buffers_manager->getBuffers(buf_idx)->host_passing_event_list[0];
   }
-  debug() << "Event selected by Allen: " << uint(filter) << endmsg;
+  if (msgLevel(MSG::DEBUG)) debug() << "Event selected by Allen: " << uint(filter) << endmsg;
   return std::make_tuple(filter, *(m_stream->host_buffers_manager->getBuffers(buf_idx)));
 }
 
 StatusCode RunAllen::finalize()
 {
-  debug() << "Finalizing Allen..." << endmsg;
+  if (msgLevel(MSG::DEBUG)) debug() << "Finalizing Allen..." << endmsg;
 
   return MultiTransformerFilter::finalize();
 }

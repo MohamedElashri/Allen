@@ -221,20 +221,19 @@ StatusCode DumpGeometry<DETECTOR>::initialize()
   // m_buffer will be filled and identifiers known
   updMgrSvc->update(this);
 
-  if (!m_dumpToFile.value()) {
-    auto svc = service(m_updaterName, true);
-    if (!svc) {
-      error() << "Failed get updater " << m_updaterName.value() << endmsg;
-      return StatusCode::FAILURE;
-    }
-    auto* updater = dynamic_cast<Allen::NonEventData::IUpdater*>(svc.get());
-    if (!updater) {
-      error() << "Failed cast updater " << m_updaterName.value() << " to Allen::NonEventData::IUpdater " << endmsg;
-      return StatusCode::FAILURE;
-    }
-    for (auto const& entry : m_buffer) {
-      auto const& id = std::get<0>(entry);
-      updater->registerProducer(id, [this, id]() -> std::optional<std::vector<char>> {
+  auto svc = service(m_updaterName, true);
+  if (!svc) {
+    error() << "Failed get updater " << m_updaterName.value() << endmsg;
+    return StatusCode::FAILURE;
+  }
+  auto* updater = dynamic_cast<Allen::NonEventData::IUpdater*>(svc.get());
+  if (!updater) {
+    error() << "Failed cast updater " << m_updaterName.value() << " to Allen::NonEventData::IUpdater " << endmsg;
+    return StatusCode::FAILURE;
+  }
+  for (auto const& entry : m_buffer) {
+    auto const& id = std::get<0>(entry);
+    updater->registerProducer(id, [this, id]() -> std::optional<std::vector<char>> {
         auto it = m_buffer.find(id);
         if (it == m_buffer.end()) {
           throw GaudiException {"Data for " + id + " not produced.", name(), StatusCode::FAILURE};
@@ -243,9 +242,8 @@ StatusCode DumpGeometry<DETECTOR>::initialize()
           return it->second;
         }
       });
-    }
   }
-
+  
   return sc;
 }
 
@@ -264,12 +262,10 @@ StatusCode DumpGeometry<DETECTOR>::dump()
         std::ofstream output {name, std::ios::out | std::ios::binary};
         output.write(data.data(), data.size());
       }
-      else {
-        auto r = m_buffer.emplace(id, data);
-        if (!r.second) {
-          error() << "Failed to insert data for " << id << " in buffer." << endmsg;
-          return StatusCode::FAILURE;
-        }
+      auto r = m_buffer.emplace(id, data);
+      if (!r.second) {
+        error() << "Failed to insert data for " << id << " in buffer." << endmsg;
+        return StatusCode::FAILURE;
       }
     }
     return StatusCode::SUCCESS;

@@ -7,14 +7,11 @@
 #include <map>
 #include <cassert>
 #include <cmath>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-
 #include <Logger.h>
-
 #include <Event/RawBank.h>
 #include <read_mdf.hpp>
 #include <eb_header.hpp>
@@ -22,7 +19,7 @@
 #include <read_mep.hpp>
 #include <Transpose.h>
 #include <TransposeMEP.h>
-
+#include <CudaCommon.h>
 #include <HostGlobalEventCut.h>
 
 using namespace std;
@@ -152,11 +149,15 @@ int main(int argc, char* argv[])
     vector<uint> event_list(interval, 0);
     uint number_of_selected_events = 0;
 
-    host_global_event_cut::host_global_event_cut_mep(
-      ut_banks,
-      scifi_banks,
-      interval,
-      host_global_event_cut::Parameters {&number_of_selected_events, event_list.data(), 0, 9750});
+    host_global_event_cut::Parameters pars {std::get<0>(ut_banks).data(),
+                                            &std::get<2>(ut_banks),
+                                            std::get<0>(scifi_banks).data(),
+                                            &std::get<2>(scifi_banks),
+                                            &number_of_selected_events,
+                                            event_list.data(),
+                                            0,
+                                            9750};
+    host_global_event_cut::host_global_event_cut_mep(interval, pars);
 
     cout << "selected " << number_of_selected_events << " events" << endl;
   }

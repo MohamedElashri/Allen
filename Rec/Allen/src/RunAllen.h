@@ -76,10 +76,11 @@ private:
   Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_PROJECT_ROOT}/configuration/constants/default.json"};
   Gaudi::Property<std::string> m_paramDir {this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
 
-  Gaudi::Property<bool> m_do_check {this, "do_check", true};
+  // Run Allen standalone checker
+  Gaudi::Property<bool> m_do_check {this, "DoCheck", true};
   // If set to false, events are only filtered by the GEC
   // If set to true, events are filtered based on an OR of the Allen selection lines
-  Gaudi::Property<bool> m_filter_hlt1 {this, "filter_HLT1", false};
+  Gaudi::Property<bool> m_filter_hlt1 {this, "FilterHLT1", false};
 };
 
 #endif

@@ -6,6 +6,9 @@ def UTSequence(initialize_lists,
     velo_copy_track_hit_number,
     velo_consolidate_tracks,
     restricted=True):
+    ut_banks = data_provider_t(
+        name = "ut_banks",
+        bank_type = "UT")
 
     ut_calculate_number_of_hits = ut_calculate_number_of_hits_t(
         name = "ut_calculate_number_of_hits",
@@ -20,8 +23,8 @@ def UTSequence(initialize_lists,
         name = "ut_pre_decode",
         host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
         host_accumulated_number_of_ut_hits_t = prefix_sum_ut_hits.host_total_sum_holder_t(),
-        dev_ut_raw_input_t = ut_calculate_number_of_hits.dev_ut_raw_input_t(),
-        dev_ut_raw_input_offsets_t = ut_calculate_number_of_hits.dev_ut_raw_input_offsets_t(),
+        dev_ut_raw_input_t = ut_banks.dev_raw_banks_t(),
+        dev_ut_raw_input_offsets_t = ut_banks.dev_raw_offsets_t(),
         dev_event_list_t = initialize_lists.dev_event_list_t(),
         dev_ut_hit_offsets_t = prefix_sum_ut_hits.dev_output_buffer_t())
 
@@ -36,8 +39,8 @@ def UTSequence(initialize_lists,
         name = "ut_decode_raw_banks_in_order",
         host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
         host_accumulated_number_of_ut_hits_t = prefix_sum_ut_hits.host_total_sum_holder_t(),
-        dev_ut_raw_input_t = ut_calculate_number_of_hits.dev_ut_raw_input_t(),
-        dev_ut_raw_input_offsets_t = ut_calculate_number_of_hits.dev_ut_raw_input_offsets_t(),
+        dev_ut_raw_input_t = ut_banks.dev_raw_banks_t(),
+        dev_ut_raw_input_offsets_t = ut_banks.dev_raw_offsets_t(),
         dev_event_list_t = initialize_lists.dev_event_list_t(),
         dev_ut_hit_offsets_t = prefix_sum_ut_hits.dev_output_buffer_t(),
         dev_ut_pre_decoded_hits_t = ut_pre_decode.dev_ut_pre_decoded_hits_t(),
@@ -165,8 +168,8 @@ def UTSequence(initialize_lists,
         dev_ut_tracks_t = compass_ut.dev_ut_tracks_t())
 
     ut_sequence = Sequence(
-        ut_calculate_number_of_hits, prefix_sum_ut_hits, ut_pre_decode,
-        ut_find_permutation, ut_decode_raw_banks_in_order,
+        ut_banks, ut_calculate_number_of_hits, prefix_sum_ut_hits,
+        ut_pre_decode, ut_find_permutation, ut_decode_raw_banks_in_order,
         ut_select_velo_tracks, ut_search_windows,
         ut_select_velo_tracks_with_windows, compass_ut, prefix_sum_ut_tracks,
         ut_copy_track_hit_number, prefix_sum_ut_track_hit_number,

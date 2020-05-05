@@ -134,4 +134,4 @@ def make_velo_tracks(doGEC = True):
         dev_three_hit_tracks_output_t = velo_three_hit_tracks_filter.dev_three_hit_tracks_output_t,
         dev_offsets_number_of_three_hit_tracks_filtered_t = prefix_sum_offsets_number_of_three_hit_tracks_filtered.dev_output_buffer_t)
 
-    return (velo_consolidate_tracks, velo_consolidate_tracks.dev_velo_track_hits_t, velo_consolidate_tracks.dev_velo_states_t, velo_copy_track_hit_number.dev_offsets_all_velo_tracks_t)
+    return (velo_consolidate_tracks.dev_velo_track_hits_t, velo_consolidate_tracks.dev_velo_states_t, velo_copy_track_hit_number.dev_offsets_all_velo_tracks_t)

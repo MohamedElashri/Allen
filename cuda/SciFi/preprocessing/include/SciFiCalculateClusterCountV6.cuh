@@ -7,10 +7,10 @@
 namespace scifi_calculate_cluster_count_v6 {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
-    DEVICE_OUTPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
-    DEVICE_OUTPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
-    DEVICE_OUTPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
+    DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
+    DEVICE_INPUT(dev_scifi_raw_input_offsets_t, uint) dev_scifi_raw_input_offsets;
+    DEVICE_OUTPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
   };
 
   __global__ void scifi_calculate_cluster_count_v6(Parameters, const char* scifi_geometry);
@@ -25,13 +25,10 @@ namespace scifi_calculate_cluster_count_v6 {
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
+      const RuntimeOptions&,
       const Constants&,
       const HostBuffers&) const
     {
-      set_size<dev_scifi_raw_input_t>(arguments, std::get<1>(runtime_options.host_scifi_events));
-      set_size<dev_scifi_raw_input_offsets_t>(
-        arguments, std::get<2>(runtime_options.host_scifi_events).size_bytes() / sizeof(uint32_t));
       set_size<dev_scifi_hit_count_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
     }
@@ -44,15 +41,12 @@ namespace scifi_calculate_cluster_count_v6 {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      data_to_device<dev_scifi_raw_input_t, dev_scifi_raw_input_offsets_t>(
-        arguments, runtime_options.host_scifi_events, cuda_stream);
-
       initialize<dev_scifi_hit_count_t>(arguments, 0, cuda_stream);
 
-      const auto parameters = Parameters {begin<dev_scifi_raw_input_t>(arguments),
+      const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
+                                          begin<dev_scifi_raw_input_t>(arguments),
                                           begin<dev_scifi_raw_input_offsets_t>(arguments),
-                                          begin<dev_scifi_hit_count_t>(arguments),
-                                          begin<dev_event_list_t>(arguments)};
+                                          begin<dev_scifi_hit_count_t>(arguments)};
 
       if (runtime_options.mep_layout) {
         function_mep(

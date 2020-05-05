@@ -10,6 +10,10 @@ def ForwardSequence(
     prefix_sum_ut_track_hit_number,
     ut_consolidate_tracks,
     forward_decoding="v4"):
+    
+    scifi_banks = data_provider_t(
+        name = "scifi_banks",
+        bank_type = "FTCluster")
 
     scifi_calculate_cluster_count_algorithm = None
     scifi_pre_decode_algorithm = None
@@ -38,15 +42,15 @@ def ForwardSequence(
         host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
         dev_event_list_t = initialize_lists.dev_event_list_t(),
         host_accumulated_number_of_scifi_hits_t = prefix_sum_scifi_hits.host_total_sum_holder_t(),
-        dev_scifi_raw_input_t = scifi_calculate_cluster_count.dev_scifi_raw_input_t(),
-        dev_scifi_raw_input_offsets_t = scifi_calculate_cluster_count.dev_scifi_raw_input_offsets_t(),
+        dev_scifi_raw_input_t = scifi_banks.dev_raw_banks_t(),
+        dev_scifi_raw_input_offsets_t = scifi_banks.dev_raw_offsets_t(),
         dev_scifi_hit_offsets_t = prefix_sum_scifi_hits.dev_output_buffer_t())
 
     scifi_raw_bank_decoder = scifi_raw_bank_decoder_algorithm(
         host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
         host_accumulated_number_of_scifi_hits_t = prefix_sum_scifi_hits.host_total_sum_holder_t(),
-        dev_scifi_raw_input_t = scifi_calculate_cluster_count.dev_scifi_raw_input_t(),
-        dev_scifi_raw_input_offsets_t = scifi_calculate_cluster_count.dev_scifi_raw_input_offsets_t(),
+        dev_scifi_raw_input_t = scifi_banks.dev_raw_banks_t(),
+        dev_scifi_raw_input_offsets_t = scifi_banks.dev_raw_offsets_t(),
         dev_scifi_hit_offsets_t = prefix_sum_scifi_hits.dev_output_buffer_t(),
         dev_event_list_t = initialize_lists.dev_event_list_t(),
         dev_cluster_references_t = scifi_pre_decode.dev_cluster_references_t())

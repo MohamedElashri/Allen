@@ -2,16 +2,33 @@ from definitions.algorithms import *
 
 
 def VeloSequence(doGEC = True):
-    populate_odin_banks = populate_odin_banks_t(
-        name = "populate_odin_banks")
+    odin_banks = data_provider_t(
+        name = "populate_odin_banks",
+        bank_type = "ODIN")
+
+    host_ut_banks = host_data_provider_t(
+        name = "host_ut_banks",
+        bank_type = "UT")
+
+    host_scifi_banks = host_data_provider_t(
+        name = "host_scifi_banks",
+        bank_type = "FTCluster")
 
     initialize_lists = None
     if doGEC:
         initialize_lists = host_global_event_cut_t(
-            name = "initialize_lists")
+            name = "host_global_event_cut",
+            host_ut_raw_banks_t = host_ut_banks.host_raw_banks_t(),
+            host_ut_raw_offsets_t = host_ut_banks.host_raw_offsets_t(),
+            host_scifi_raw_banks_t = host_scifi_banks.host_raw_banks_t(),
+            host_scifi_raw_offsets_t = host_scifi_banks.host_raw_offsets_t())
     else:
         initialize_lists = host_init_event_list_t(
             name = "initialize_lists")
+
+    velo_banks = data_provider_t(
+        name = "velo_banks",
+        bank_type = "VP")
 
     velo_calculate_number_of_candidates = velo_calculate_number_of_candidates_t(
         name = "velo_calculate_number_of_candidates",
@@ -28,8 +45,8 @@ def VeloSequence(doGEC = True):
         host_number_of_cluster_candidates_t = prefix_sum_offsets_velo_candidates.host_total_sum_holder_t(),
         dev_event_list_t = initialize_lists.dev_event_list_t(),
         dev_candidates_offsets_t = prefix_sum_offsets_velo_candidates.dev_output_buffer_t(),
-        dev_velo_raw_input_t = velo_calculate_number_of_candidates.dev_velo_raw_input_t(),
-        dev_velo_raw_input_offsets_t = velo_calculate_number_of_candidates.dev_velo_raw_input_offsets_t())
+        dev_velo_raw_input_t = velo_banks.dev_raw_banks_t(),
+        dev_velo_raw_input_offsets_t = velo_banks.dev_raw_offsets_t())
 
     prefix_sum_offsets_estimated_input_size = host_prefix_sum_t(
         name = "prefix_sum_offsets_estimated_input_size",
@@ -39,8 +56,8 @@ def VeloSequence(doGEC = True):
         name = "velo_masked_clustering",
         host_total_number_of_velo_clusters_t = prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t(),
         host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
-        dev_velo_raw_input_t = velo_calculate_number_of_candidates.dev_velo_raw_input_t(),
-        dev_velo_raw_input_offsets_t = velo_calculate_number_of_candidates.dev_velo_raw_input_offsets_t(),
+        dev_velo_raw_input_t = velo_banks.dev_raw_banks_t(),
+        dev_velo_raw_input_offsets_t = velo_banks.dev_raw_offsets_t(),
         dev_offsets_estimated_input_size_t = prefix_sum_offsets_estimated_input_size.dev_output_buffer_t(),
         dev_module_candidate_num_t = velo_estimate_input_size.dev_module_candidate_num_t(),
         dev_cluster_candidates_t = velo_estimate_input_size.dev_cluster_candidates_t(),
@@ -120,21 +137,14 @@ def VeloSequence(doGEC = True):
         dev_offsets_number_of_three_hit_tracks_filtered_t = prefix_sum_offsets_number_of_three_hit_tracks_filtered.dev_output_buffer_t())
 
     velo_sequence = Sequence(
-        populate_odin_banks, initialize_lists,
-        velo_calculate_number_of_candidates,
-        prefix_sum_offsets_velo_candidates,
-        velo_estimate_input_size,
-        prefix_sum_offsets_estimated_input_size,
-        velo_masked_clustering,
-        velo_calculate_phi_and_sort,
-        velo_fill_candidates,
-        velo_search_by_triplet,
-        prefix_sum_offsets_velo_tracks,
-        velo_three_hit_tracks_filter,
+        odin_banks, host_ut_banks, host_scifi_banks, initialize_lists,
+        velo_banks, velo_calculate_number_of_candidates,
+        prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
+        prefix_sum_offsets_estimated_input_size, velo_masked_clustering,
+        velo_calculate_phi_and_sort, velo_search_by_triplet,
+        prefix_sum_offsets_velo_tracks, velo_three_hit_tracks_filter,
         prefix_sum_offsets_number_of_three_hit_tracks_filtered,
-        velo_copy_track_hit_number,
-        prefix_sum_offsets_velo_track_hit_number,
-        velo_consolidate_tracks
-    )
+        velo_copy_track_hit_number, prefix_sum_offsets_velo_track_hit_number,
+        velo_consolidate_tracks)
 
     return velo_sequence

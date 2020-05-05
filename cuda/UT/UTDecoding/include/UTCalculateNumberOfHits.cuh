@@ -7,8 +7,8 @@ namespace ut_calculate_number_of_hits {
   struct Parameters {
     HOST_INPUT(host_number_of_selected_events_t, uint);
     DEVICE_INPUT(dev_event_list_t, uint) dev_event_list;
-    DEVICE_OUTPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
-    DEVICE_OUTPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
+    DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
+    DEVICE_INPUT(dev_ut_raw_input_offsets_t, uint) dev_ut_raw_input_offsets;
     DEVICE_OUTPUT(dev_ut_hit_sizes_t, uint) dev_ut_hit_sizes;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
@@ -30,18 +30,13 @@ namespace ut_calculate_number_of_hits {
   template<typename T, char... S>
   struct ut_calculate_number_of_hits_t : public DeviceAlgorithm, Parameters {
     constexpr static auto name = Name<S...>::s;
-    decltype(global_function(ut_calculate_number_of_hits)) function {ut_calculate_number_of_hits};
-    decltype(global_function(ut_calculate_number_of_hits_mep)) function_mep {ut_calculate_number_of_hits_mep};
 
     void set_arguments_size(
       ArgumentRefManager<T> arguments,
-      const RuntimeOptions& runtime_options,
+      const RuntimeOptions&,
       const Constants& constants,
       const HostBuffers&) const
     {
-      set_size<dev_ut_raw_input_t>(arguments, std::get<1>(runtime_options.host_ut_events));
-      set_size<dev_ut_raw_input_offsets_t>(
-        arguments, std::get<2>(runtime_options.host_ut_events).size_bytes() / sizeof(uint));
       set_size<dev_ut_hit_sizes_t>(
         arguments,
         value<host_number_of_selected_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[4]);
@@ -55,9 +50,6 @@ namespace ut_calculate_number_of_hits {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
-      data_to_device<dev_ut_raw_input_t, dev_ut_raw_input_offsets_t>
-        (arguments, runtime_options.host_ut_events, cuda_stream);
-
       initialize<dev_ut_hit_sizes_t>(arguments, 0, cuda_stream);
 
       const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
@@ -65,22 +57,14 @@ namespace ut_calculate_number_of_hits {
                                           begin<dev_ut_raw_input_offsets_t>(arguments),
                                           begin<dev_ut_hit_sizes_t>(arguments)};
 
-      if (runtime_options.mep_layout) {
-        function_mep(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-          parameters,
-          constants.dev_ut_boards.data(),
-          constants.dev_ut_region_offsets.data(),
-          constants.dev_unique_x_sector_layer_offsets.data(),
-          constants.dev_unique_x_sector_offsets.data());
-      }
-      else {
-        function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
-          parameters,
-          constants.dev_ut_boards.data(),
-          constants.dev_ut_region_offsets.data(),
-          constants.dev_unique_x_sector_layer_offsets.data(),
-          constants.dev_unique_x_sector_offsets.data());
-      }
+      using function_t = decltype(global_function(ut_calculate_number_of_hits));
+      function_t function = runtime_options.mep_layout ? function_t{ut_calculate_number_of_hits_mep} : function_t{ut_calculate_number_of_hits};
+      function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
+        parameters,
+        constants.dev_ut_boards.data(),
+        constants.dev_ut_region_offsets.data(),
+        constants.dev_unique_x_sector_layer_offsets.data(),
+        constants.dev_unique_x_sector_offsets.data());
     }
 
   private:

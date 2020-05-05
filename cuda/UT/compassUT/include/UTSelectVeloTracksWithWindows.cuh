@@ -3,7 +3,6 @@
 #include "UTDefinitions.cuh"
 #include "UTMagnetToolDefinitions.h"
 #include "CompassUTDefinitions.cuh"
-#include "CalculateWindows.cuh"
 #include "DeviceAlgorithm.cuh"
 
 namespace ut_select_velo_tracks_with_windows {
