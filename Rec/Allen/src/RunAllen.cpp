@@ -49,7 +49,7 @@ StatusCode RunAllen::initialize()
   if (sc.isFailure()) return sc;
   if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
 
-  // initialize Allen
+  /* initialize Allen */
 
   // Get updater service and register all consumers
   auto svc = service(m_updaterName);
@@ -111,6 +111,13 @@ StatusCode RunAllen::initialize()
   m_stream->initialize(print_memory_usage, start_event_offset, reserve_mb, m_constants);
   m_stream->set_host_buffer_manager(m_host_buffers_manager.get());
 
+  // Initialize input provider
+  // to do:: check whether slice info is required
+  const size_t number_of_slices = 1;
+  const size_t events_per_slice = 1;
+  const size_t n_events = 1;
+  m_input_provider = std::make_unique<TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>>(number_of_slices, events_per_slice, n_events);
+
   // Set verbosity level
   logger::setVerbosity(6 - this->msgLevel());
 
@@ -120,39 +127,25 @@ StatusCode RunAllen::initialize()
 /** Calls Allen for one event
  */
 std::tuple<bool, HostBuffers> RunAllen::operator()(
-  const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
+  const std::array<std::vector<char>, int(BankTypes::Unknown)>& allen_banks,
   const LHCb::ODIN&) const
 {
 
-  // Get raw input and event offsets for every detector
-  std::array<BanksAndOffsets, LHCb::RawBank::LastType> banks_and_offsets;
-  std::array<std::array<unsigned int, 2>, LHCb::RawBank::LastType> event_offsets;
-  for (const auto bankType : m_bankTypes) {
-    // to do: catch that raw bank type was not dumped
-
-    // Offsets to events (we only process one event)
-    // unsigned int offsets_mem[2];
-    event_offsets[bankType][0] = 0;
-    event_offsets[bankType][1] = allen_banks[bankType].size();
-    gsl::span<unsigned int const> offsets {event_offsets[bankType].data(), 2};
-    using data_span = gsl::span<char const>;
-    auto data_size = static_cast<data_span::index_type>(allen_banks[bankType].size());
-    std::vector<data_span> spans(1, data_span {allen_banks[bankType].data(), data_size});
-    banks_and_offsets[bankType] = std::make_tuple(std::move(spans), data_size, std::move(offsets));
-  }
+  m_input_provider.get()->set_banks(allen_banks);
 
   // initialize RuntimeOptions
+  const uint event_start = 0;
+  const uint event_end = 1;
+  const size_t slice_index = 0;
+  const bool mep_layout = false;
   RuntimeOptions runtime_options(
-    banks_and_offsets[LHCb::RawBank::VP],
-    banks_and_offsets[LHCb::RawBank::UT],
-    banks_and_offsets[LHCb::RawBank::FTCluster],
-    banks_and_offsets[LHCb::RawBank::Muon],
-    banks_and_offsets[LHCb::RawBank::ODIN],
-    {0u, 1u},
+    m_input_provider.get(),
+    slice_index,
+    {event_start, event_end},
     m_number_of_repetitions,
     m_do_check.value(),
     m_cpu_offload,
-    false);
+    mep_layout);
 
   const uint buf_idx = m_n_buffers - 1;
   cudaError_t rv = m_stream->run_sequence(buf_idx, runtime_options);

@@ -36,9 +36,10 @@
 #include "BankTypes.h"
 #include "Stream.cuh"
 #include "Logger.h"
+#include "TESProvider.h"
 
 class RunAllen final : public Gaudi::Functional::MultiTransformerFilter<std::tuple<HostBuffers>(
-                         const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
+                         const std::array<std::vector<char>, int(BankTypes::Unknown)>& allen_banks,
                          const LHCb::ODIN& odin)> {
 public:
   /// Standard constructor
@@ -49,7 +50,7 @@ public:
 
   /// Algorithm execution
   std::tuple<bool, HostBuffers> operator()(
-    const std::array<std::vector<char>, LHCb::RawBank::LastType>& allen_banks,
+    const std::array<std::vector<char>, int(BankTypes::Unknown)>& allen_banks,
     const LHCb::ODIN& odin) const override;
 
   /// Finalize
@@ -70,6 +71,7 @@ private:
 
   std::unique_ptr<Stream> m_stream;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
+  std::unique_ptr<IInputProvider> m_input_provider {};
 
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
 

@@ -49,7 +49,7 @@ namespace {
  * @param      loop on input files
  * @param      optional: order of event IDs in which to provide bank data
  *
- */
+ */ 
 template<BankTypes... Banks>
 class BinaryProvider final : public InputProvider<BinaryProvider<Banks...>> {
 public:
@@ -439,3 +439,4 @@ private:
   // Folder and file names per bank type
   std::array<std::tuple<std::string, std::vector<std::string>>, sizeof...(Banks)> m_files;
 };
+ 
