@@ -31,6 +31,8 @@ def ForwardSequence(
         raise
 
     scifi_calculate_cluster_count = scifi_calculate_cluster_count_algorithm(
+        dev_scifi_raw_input_t = scifi_banks.dev_raw_banks_t(),
+        dev_scifi_raw_input_offsets_t = scifi_banks.dev_raw_offsets_t(),
         host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
         dev_event_list_t = initialize_lists.dev_event_list_t())
 
@@ -157,7 +159,7 @@ def ForwardSequence(
         dev_scifi_tracks_t = lf_quality_filter.dev_scifi_tracks_t(),
         dev_scifi_lf_parametrization_consolidate_t = lf_quality_filter.dev_scifi_lf_parametrization_consolidate_t())
 
-    return Sequence(scifi_calculate_cluster_count, prefix_sum_scifi_hits, scifi_pre_decode,
+    return Sequence(scifi_banks, scifi_calculate_cluster_count, prefix_sum_scifi_hits, scifi_pre_decode,
         scifi_raw_bank_decoder, lf_search_initial_windows, lf_triplet_seeding, lf_create_tracks,
         lf_quality_filter_length, lf_quality_filter, prefix_sum_forward_tracks,
         scifi_copy_track_hit_number, prefix_sum_scifi_track_hit_number, scifi_consolidate_tracks)

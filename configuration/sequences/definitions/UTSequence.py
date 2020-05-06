@@ -12,6 +12,8 @@ def UTSequence(initialize_lists,
 
     ut_calculate_number_of_hits = ut_calculate_number_of_hits_t(
         name = "ut_calculate_number_of_hits",
+        dev_ut_raw_input_t = ut_banks.dev_raw_banks_t(),
+        dev_ut_raw_input_offsets_t = ut_banks.dev_raw_offsets_t(),
         host_number_of_selected_events_t = initialize_lists.host_number_of_selected_events_t(),
         dev_event_list_t = initialize_lists.dev_event_list_t())
 
