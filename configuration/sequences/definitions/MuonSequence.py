@@ -17,7 +17,7 @@ def MuonSequence():
         dev_storage_station_region_quarter_sizes_t(),
         dev_output_buffer_t="dev_storage_station_region_quarter_offsets_t")
 
-    muon_sort_station_region_quarter = muon_sort_station_region_quarter_t()
+    # muon_sort_station_region_quarter = muon_sort_station_region_quarter_t()
     muon_add_coords_crossing_maps = muon_add_coords_crossing_maps_t()
 
     muon_station_ocurrence_prefix_sum = host_prefix_sum_t(
@@ -32,7 +32,7 @@ def MuonSequence():
 
     muon_sequence = Sequence(
         muon_banks, muon_pre_decoding, muon_pre_decoding_prefix_sum,
-        muon_sort_station_region_quarter, muon_add_coords_crossing_maps,
+        muon_add_coords_crossing_maps,
         muon_station_ocurrence_prefix_sum, muon_sort_by_station, is_muon)
 
     return muon_sequence

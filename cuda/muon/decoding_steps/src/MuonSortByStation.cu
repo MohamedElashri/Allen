@@ -41,7 +41,7 @@ __global__ void muon_sort_by_station::muon_sort_by_station(muon_sort_by_station:
     const uint digitsOneIndex_index = (compact_hit >> 48) & 0x7FFF;
     const uint digitsTwoIndex = (compact_hit >> 32) & 0xFFFF;
     const uint thisGridX = (compact_hit >> 18) & 0x3FFF;
-    const uint otherGridY_condition = (compact_hit >> 4) & 0x3FFF;
+    const uint otherGridY_condition = (compact_hit >> 4) & 0x3;
 
     float x = 0.f;
     float dx = 0.f;
