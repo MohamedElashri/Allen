@@ -15,6 +15,7 @@ target_include_directories(NonEventData PUBLIC
   ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
   ${CMAKE_SOURCE_DIR}/cuda/UT/PrVeloUT/include
   ${CMAKE_SOURCE_DIR}/cuda/event_model/velo/include
+  ${CMAKE_SOURCE_DIR}/cuda/event_model/muon/include
   ${CMAKE_SOURCE_DIR}/cuda/event_model/common/include
   ${CMAKE_SOURCE_DIR}/cuda/velo/common/include
   ${CMAKE_SOURCE_DIR}/cuda/PV/beamlinePV/include

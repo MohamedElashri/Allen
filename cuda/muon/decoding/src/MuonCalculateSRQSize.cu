@@ -3,7 +3,6 @@
 
 __device__ void calculate_srq_size(
   Muon::MuonRawToHits const* muon_raw_to_hits,
-  unsigned int const event_number,
   int const batch_index,
   Muon::MuonRawBank const& raw_bank,
   unsigned int* storage_station_region_quarter_sizes)
@@ -54,7 +53,6 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size(muon_calculate_
 
     calculate_srq_size(
       parameters.dev_muon_raw_to_hits,
-      event_number,
       batch_index,
       raw_bank,
       storage_station_region_quarter_sizes);
@@ -82,7 +80,6 @@ __global__ void muon_calculate_srq_size::muon_calculate_srq_size_mep(muon_calcul
 
     calculate_srq_size(
       parameters.dev_muon_raw_to_hits,
-      event_number,
       batch_index,
       raw_bank,
       storage_station_region_quarter_sizes);

@@ -53,20 +53,25 @@ __global__ void is_muon::is_muon(
   const float* dev_muon_momentum_cuts)
 {
   const uint number_of_events = gridDim.x;
-  const uint event_id = blockIdx.x;
+  const uint event_number = blockIdx.x;
+
+  const auto muon_total_number_of_hits =
+    parameters.dev_station_ocurrences_offset[number_of_events * Muon::Constants::n_stations];
+  const auto station_ocurrences_offset =
+    parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
 
   SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
                                                  parameters.dev_scifi_track_hit_number,
                                                  parameters.dev_scifi_qop,
                                                  parameters.dev_scifi_states,
                                                  parameters.dev_scifi_track_ut_indices,
-                                                 event_id,
+                                                 event_number,
                                                  number_of_events};
 
-  const Muon::HitsSoA& muon_hits_event = parameters.dev_muon_hits[event_id];
+  const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 
-  const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_id);
-  const uint event_offset = scifi_tracks.tracks_offset(event_id);
+  const uint number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
+  const uint event_offset = scifi_tracks.tracks_offset(event_number);
 
   for (uint track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
     const float momentum = 1 / fabsf(scifi_tracks.qop(track_id));
@@ -75,26 +80,25 @@ __global__ void is_muon::is_muon(
     __syncthreads();
 
     for (uint station_id = threadIdx.y; station_id < Muon::Constants::n_stations; station_id += blockDim.y) {
-      const int station_offset = muon_hits_event.station_offsets[station_id] - muon_hits_event.station_offsets[0];
-      const int number_of_hits = muon_hits_event.number_of_hits_per_station[station_id];
+      const int number_of_hits = station_ocurrences_offset[station_id + 1] - station_ocurrences_offset[station_id];
       const auto& state = scifi_tracks.states(track_id);
 
       parameters.dev_muon_track_occupancies[track_offset + station_id] = 0;
 
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
-        const int idx = station_offset + i_hit;
+        const int idx = station_ocurrences_offset[station_id] + i_hit;
         const float extrapolation_x = state.x +
-                                    state.tx * (muon_hits_event.z[idx] - state.z);
+                                    state.tx * (muon_hits.z(idx) - state.z);
         const float extrapolation_y = state.y +
-                                    state.ty * (muon_hits_event.z[idx]- state.z);
+                                    state.ty * (muon_hits.z(idx)- state.z);
         if (is_in_window(
-              muon_hits_event.x[idx],
-              muon_hits_event.y[idx],
-              muon_hits_event.dx[idx],
-              muon_hits_event.dy[idx],
+              muon_hits.x(idx),
+              muon_hits.y(idx),
+              muon_hits.dx(idx),
+              muon_hits.dy(idx),
               dev_muon_foi,
               station_id,
-              muon_hits_event.region_id[idx],
+              muon_hits.region(idx),
               momentum,
               extrapolation_x,
               extrapolation_y)) {
