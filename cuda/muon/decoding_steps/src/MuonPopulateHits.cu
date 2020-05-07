@@ -1,17 +1,18 @@
-#include "MuonSortByStation.cuh"
+#include "MuonPopulateHits.cuh"
 
-__global__ void muon_sort_by_station::muon_sort_by_station(muon_sort_by_station::Parameters parameters)
+__global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Parameters parameters)
 {
-  const auto number_of_events = gridDim.x;
   const auto event_number = blockIdx.x;
-  const auto number_of_hits = parameters.dev_atomics_muon[number_of_events + event_number];
   const auto station_ocurrences_offset =
     parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
-  const auto storage_tile_id = parameters.dev_storage_tile_id + event_number * Muon::Constants::max_numhits_per_event;
-  const auto storage_tdc_value =
-    parameters.dev_storage_tdc_value + event_number * Muon::Constants::max_numhits_per_event;
-  const auto muon_compact_hit = parameters.dev_muon_compact_hit + event_number * Muon::Constants::max_numhits_per_event;
-  auto permutation_station = parameters.dev_permutation_station.get() + event_number * Muon::Constants::max_numhits_per_event;
+  
+  const auto event_offset = station_ocurrences_offset[0];
+  const auto number_of_hits = station_ocurrences_offset[Muon::Constants::n_stations] - event_offset;
+
+  const auto storage_tile_id = parameters.dev_storage_tile_id + event_offset;
+  const auto storage_tdc_value = parameters.dev_storage_tdc_value + event_offset;
+  const auto muon_compact_hit = parameters.dev_muon_compact_hit + event_offset;
+  auto permutation_station = parameters.dev_permutation_station.get() + event_offset;
   auto event_muon_hits = parameters.dev_muon_hits.get() + event_number;
 
   // Populate number of hits per station and offsets
