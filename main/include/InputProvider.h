@@ -11,6 +11,7 @@
 #include <Logger.h>
 #include <BankTypes.h>
 #include <Common.h>
+#include <AllenUnits.h>
 
 struct IInputProvider {
 
@@ -43,17 +44,7 @@ struct IInputProvider {
    */ 
   virtual std::tuple<bool, bool, bool, size_t, size_t> get_slice(
     boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) = 0;
-
   
-  /**
-   * @brief      Set banks, needed when calling Allen from Moore
-   *
-   * @param      banks in the format stored in TES
-   *
-   * @return     banks set successfully
-   */ 
-  virtual int set_banks(boost::optional<std::array<std::vector<char>, int(BankTypes::Unknown)>> banks = boost::optional<std::array<std::vector<char>, int(BankTypes::Unknown)>> {}) = 0; 
- 
   /**
    * @brief      Get banks and offsets of a given type
    *
@@ -147,19 +138,6 @@ public:
   {
     return static_cast<Derived<Banks...>*>(this)->slice_free(slice_index);
   }
-
-  
-  /**
-   * @brief      Set banks, needed when calling Allen from Moore
-   *
-   * @param      banks in the format stored in TES
-   *
-   * @return     banks set successfully
-   */ 
-  int set_banks(boost::optional<std::array<std::vector<char>, int(BankTypes::Unknown)>> banks = boost::optional<std::array<std::vector<char>, int(BankTypes::Unknown)>> {}) override{
-    return 0;
-  }
- 
 
   /**
    * @brief      Get banks and offsets of a given type
