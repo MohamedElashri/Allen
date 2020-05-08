@@ -98,17 +98,26 @@ StatusCode RunAllen::initialize()
   const size_t reserve_mb = 10; // to do: how much do we need maximally for one event?
 
   m_stream_wrapper.reset(new StreamWrapper());
-  m_stream_wrapper->initialize_streams(m_number_of_streams, print_memory_usage, start_event_offset, reserve_mb, m_constants, configuration_reader.params());
-  
+  m_stream_wrapper->initialize_streams(
+    m_number_of_streams,
+    print_memory_usage,
+    start_event_offset,
+    reserve_mb,
+    m_constants,
+    configuration_reader.params());
+
   // Initialize host buffers (where Allen output is stored)
-  m_host_buffers_manager.reset(new HostBuffersManager(m_n_buffers, 2, m_do_check, m_stream_wrapper->number_of_hlt1_lines, m_stream_wrapper->errorevent_line));
+  m_host_buffers_manager.reset(new HostBuffersManager(
+    m_n_buffers, 2, m_do_check, m_stream_wrapper->number_of_hlt1_lines, m_stream_wrapper->errorevent_line));
   m_stream_wrapper->initialize_streams_host_buffers_manager(m_host_buffers_manager.get());
 
   // Initialize input provider
   const size_t number_of_slices = 1;
   const size_t events_per_slice = 1;
   const size_t n_events = 1;
-  m_tes_input_provider.reset(new TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(number_of_slices, events_per_slice, n_events));
+  m_tes_input_provider.reset(
+    new TESProvider<BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN>(
+      number_of_slices, events_per_slice, n_events));
 
   // Set verbosity level
   logger::setVerbosity(6 - this->msgLevel());
@@ -150,7 +159,7 @@ std::tuple<bool, HostBuffers> RunAllen::operator()(
     // how to exit a filter with failure?
   }
   bool filter = true;
-  HostBuffers * buffer = m_host_buffers_manager->getBuffers(buf_idx);
+  HostBuffers* buffer = m_host_buffers_manager->getBuffers(buf_idx);
   if (m_filter_hlt1.value()) {
     filter = buffer->host_passing_event_list[0];
   }

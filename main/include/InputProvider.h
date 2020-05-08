@@ -41,10 +41,10 @@ struct IInputProvider {
    * @param      optional timeout in ms to wait for slice
    *
    * @return     tuple of (success, eof, timed_out, slice_index, n_filled)
-   */ 
+   */
   virtual std::tuple<bool, bool, bool, size_t, size_t> get_slice(
     boost::optional<unsigned int> timeout = boost::optional<unsigned int> {}) = 0;
-  
+
   /**
    * @brief      Get banks and offsets of a given type
    *

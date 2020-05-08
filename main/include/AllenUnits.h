@@ -10,4 +10,3 @@ namespace Allen {
     constexpr unsigned GB = MB * kB;
   } // namespace Units
 } // namespace Allen
- 
