@@ -69,7 +69,7 @@ private:
   const bool m_cpu_offload = true;
   const uint m_n_buffers = 1;
   uint m_number_of_hlt1_lines = 0;
-  const bool m_do_check = false;
+  const bool m_do_check = true;
 
   std::unique_ptr<StreamWrapper> m_stream_wrapper;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
