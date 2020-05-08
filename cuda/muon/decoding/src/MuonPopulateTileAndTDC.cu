@@ -10,9 +10,7 @@ __device__ void decode_muon_bank(
   uint* dev_storage_tile_id,
   uint* dev_storage_tdc_value)
 {
-
   const auto tell_number = raw_bank.sourceID;
-
   uint16_t* p = raw_bank.data;
 
   // Note: Review this logic

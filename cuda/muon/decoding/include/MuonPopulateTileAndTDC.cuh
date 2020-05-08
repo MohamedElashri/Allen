@@ -51,6 +51,8 @@ namespace muon_populate_tile_and_tdc {
       cudaEvent_t&) const
     {
       initialize<dev_atomics_muon_t>(arguments, 0, cuda_stream);
+      initialize<dev_storage_tile_id_t>(arguments, 0, cuda_stream);
+      initialize<dev_storage_tdc_value_t>(arguments, 0, cuda_stream);
 
       const auto parameters = Parameters {begin<dev_event_list_t>(arguments),
                                           begin<dev_muon_raw_t>(arguments),

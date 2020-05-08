@@ -10,9 +10,9 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
     event_number * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
   const auto event_offset = storage_station_region_quarter_offsets[0];
 
+  auto current_hit_index = parameters.dev_atomics_index_insert + event_number;
   auto muon_compact_hit = parameters.dev_muon_compact_hit + event_offset;
   auto storage_tile_id = parameters.dev_storage_tile_id + event_offset;
-  auto current_hit_index = parameters.dev_atomics_muon + event_number;
   auto used = parameters.dev_muon_tile_used + event_offset;
   auto station_ocurrences_sizes = parameters.dev_station_ocurrences_sizes + event_number * Muon::Constants::n_stations;
 
@@ -28,10 +28,6 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
       const auto region = tile.region();
       uint number_of_hits_in_station = 0;
 
-      if (station > 4) {
-        printf("%i, %i, %i, %i\n", event_number, start_index, station, region);
-      }
-
       const auto x1 = getLayoutX(
         parameters.dev_muon_raw_to_hits.get()->muonTables, Muon::MuonTables::stripXTableNumber, station, region);
       const auto y1 = getLayoutY(
@@ -44,31 +40,30 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
       const auto layout1 = (x1 > x2 ? Muon::MuonLayout {x1, y1} : Muon::MuonLayout {x2, y2});
       const auto layout2 = (x1 > x2 ? Muon::MuonLayout {x2, y2} : Muon::MuonLayout {x1, y1});
 
-      const auto xFrac = layout2.xGrid() / layout1.xGrid();
-      const auto yFrac = layout1.yGrid() / layout2.yGrid();
+      if (layout1 != layout2) {
+        for (uint digitsOneIndex = start_index; digitsOneIndex < end_index; digitsOneIndex++) {
+          if (Muon::MuonTileID::layout(storage_tile_id[digitsOneIndex]) == layout1) {
+            const unsigned int keyX = Muon::MuonTileID::nX(storage_tile_id[digitsOneIndex]) * layout2.xGrid() / layout1.xGrid();
+            const unsigned int keyY = Muon::MuonTileID::nY(storage_tile_id[digitsOneIndex]);
 
-      for (uint digitsOneIndex = start_index; digitsOneIndex < end_index; digitsOneIndex++) {
-        if (Muon::MuonTileID::layout(storage_tile_id[digitsOneIndex]) == layout1) {
-          const unsigned int keyX = Muon::MuonTileID::nX(storage_tile_id[digitsOneIndex]) * xFrac;
-          const unsigned int keyY = Muon::MuonTileID::nY(storage_tile_id[digitsOneIndex]);
+            for (uint digitsTwoIndex = start_index; digitsTwoIndex < end_index; digitsTwoIndex++) {
+              if (Muon::MuonTileID::layout(storage_tile_id[digitsTwoIndex]) == layout2) {
+                const unsigned int candidateX = Muon::MuonTileID::nX(storage_tile_id[digitsTwoIndex]);
+                const unsigned int candidateY = Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]) * layout1.yGrid() / layout2.yGrid();
 
-          for (uint digitsTwoIndex = start_index; digitsTwoIndex < end_index; digitsTwoIndex++) {
-            if (Muon::MuonTileID::layout(storage_tile_id[digitsTwoIndex]) == layout2) {
-              const unsigned int candidateX = Muon::MuonTileID::nX(storage_tile_id[digitsTwoIndex]);
-              const unsigned int candidateY = Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]) * yFrac;
+                if (keyX == candidateX && keyY == candidateY) {
+                  Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex]);
+                  const int localCurrentHitIndex = atomicAdd(current_hit_index, 1);
+                  number_of_hits_in_station++;
 
-              if (keyX == candidateX && keyY == candidateY) {
-                Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex]);
-                const int localCurrentHitIndex = atomicAdd(current_hit_index, 1);
-                number_of_hits_in_station++;
+                  const uint64_t compact_hit =
+                    (((uint64_t)(digitsOneIndex & 0x7FFF)) << 48) | (((uint64_t)(digitsTwoIndex & 0xFFFF)) << 32) |
+                    ((layout1.xGrid() & 0x3FFF) << 18) | ((layout2.yGrid() & 0x3FFF) << 4) |
+                    (((padTile.id() & Muon::MuonBase::MaskStation) >> Muon::MuonBase::ShiftStation) & 0xF);
 
-                const uint64_t compact_hit =
-                  (((uint64_t)(digitsOneIndex & 0x7FFF)) << 48) | (((uint64_t)(digitsTwoIndex & 0xFFFF)) << 32) |
-                  ((layout1.xGrid() & 0x3FFF) << 18) | ((layout2.yGrid() & 0x3FFF) << 4) |
-                  (((padTile.id() & Muon::MuonBase::MaskStation) >> Muon::MuonBase::ShiftStation) & 0xF);
-
-                muon_compact_hit[localCurrentHitIndex] = compact_hit;
-                used[digitsOneIndex] = used[digitsTwoIndex] = true;
+                  muon_compact_hit[localCurrentHitIndex] = compact_hit;
+                  used[digitsOneIndex] = used[digitsTwoIndex] = true;
+                }
               }
             }
           }
@@ -86,12 +81,7 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
           }
           else {
             const auto hit_layout = Muon::MuonTileID::layout(storage_tile_id[index]);
-            condition = 1 + (hit_layout == layout2);
-            
-            if (hit_layout != layout1 && hit_layout != layout2) {
-              continue;
-            }
-
+            condition = (hit_layout == layout1 ? 1 : 2);
             assert(hit_layout == layout1 || hit_layout == layout2);
           }
 

@@ -17,6 +17,7 @@ namespace muon_populate_hits {
     DEVICE_INPUT(dev_station_ocurrences_offset_t, uint) dev_station_ocurrences_offset;
     DEVICE_INPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
     DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
+    DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, uint) dev_storage_station_region_quarter_offsets;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
   };
 
@@ -56,7 +57,8 @@ namespace muon_populate_hits {
           begin<dev_muon_hits_t>(arguments),
           begin<dev_station_ocurrences_offset_t>(arguments),
           begin<dev_muon_compact_hit_t>(arguments),
-          begin<dev_muon_raw_to_hits_t>(arguments)});
+          begin<dev_muon_raw_to_hits_t>(arguments),
+          begin<dev_storage_station_region_quarter_offsets_t>(arguments)});
     }
 
   private:

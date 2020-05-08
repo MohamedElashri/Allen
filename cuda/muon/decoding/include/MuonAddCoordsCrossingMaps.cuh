@@ -12,7 +12,7 @@ namespace muon_add_coords_crossing_maps {
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, uint) dev_storage_station_region_quarter_offsets;
     DEVICE_INPUT(dev_storage_tile_id_t, uint) dev_storage_tile_id;
     DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
-    DEVICE_OUTPUT(dev_atomics_index_insert_t, uint) dev_atomics_muon;
+    DEVICE_OUTPUT(dev_atomics_index_insert_t, uint) dev_atomics_index_insert;
     DEVICE_OUTPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
     DEVICE_OUTPUT(dev_muon_tile_used_t, bool) dev_muon_tile_used;
     DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, uint) dev_station_ocurrences_sizes;
@@ -39,9 +39,7 @@ namespace muon_add_coords_crossing_maps {
       set_size<dev_station_ocurrences_sizes_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations);
       set_size<dev_atomics_index_insert_t>(
-        arguments,
-        value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations * Muon::Constants::n_regions *
-            Muon::Constants::n_quarters);
+        arguments, value<host_number_of_selected_events_t>(arguments));
     }
 
     void operator()(
