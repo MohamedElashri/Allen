@@ -32,10 +32,12 @@ namespace muon_add_coords_crossing_maps {
       const Constants&,
       const HostBuffers&) const
     {
+      // Note: It is not known at this time how many muon hits will be created, considering crossings.
+      //       Either we would have to decode twice, or we allocate a safe margin.
       set_size<dev_muon_compact_hit_t>(
-        arguments, value<host_muon_total_number_of_tiles_t>(arguments));
+        arguments, Muon::Constants::compact_hit_allocate_factor * value<host_muon_total_number_of_tiles_t>(arguments));
       set_size<dev_muon_tile_used_t>(
-        arguments, value<host_muon_total_number_of_tiles_t>(arguments));
+        arguments, Muon::Constants::compact_hit_allocate_factor * value<host_muon_total_number_of_tiles_t>(arguments));
       set_size<dev_station_ocurrences_sizes_t>(
         arguments, value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations);
       set_size<dev_atomics_index_insert_t>(

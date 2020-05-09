@@ -11,9 +11,9 @@ __global__ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps(
   const auto event_offset = storage_station_region_quarter_offsets[0];
 
   auto current_hit_index = parameters.dev_atomics_index_insert + event_number;
-  auto muon_compact_hit = parameters.dev_muon_compact_hit + event_offset;
+  auto muon_compact_hit = parameters.dev_muon_compact_hit + Muon::Constants::compact_hit_allocate_factor * event_offset;
+  auto used = parameters.dev_muon_tile_used + Muon::Constants::compact_hit_allocate_factor * event_offset;
   auto storage_tile_id = parameters.dev_storage_tile_id + event_offset;
-  auto used = parameters.dev_muon_tile_used + event_offset;
   auto station_ocurrences_sizes = parameters.dev_station_ocurrences_sizes + event_number * Muon::Constants::n_stations;
 
   for (uint i = threadIdx.x; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;

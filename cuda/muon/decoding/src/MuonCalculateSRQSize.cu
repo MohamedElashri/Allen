@@ -22,7 +22,6 @@ __device__ void calculate_srq_size(
   for (int j = 1; j < batch_size + 1; ++j) {
     const auto pp = *(p + j);
     const auto add = (pp & 0x0FFF);
-    const auto tdc_value = ((pp & 0xF000) >> 12);
     const auto tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(tell_number, add);
 
     if (tileId != 0) {

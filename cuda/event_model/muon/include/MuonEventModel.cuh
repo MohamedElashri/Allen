@@ -28,7 +28,7 @@ namespace Muon {
     const uint m_offset;
 
   public:
-    constexpr static uint element_size = 6 * sizeof(float) + 5 * sizeof(int) + sizeof(uint);
+    constexpr static uint element_size = 5 * sizeof(float) + 4 * sizeof(int) + sizeof(uint);
 
     __host__ __device__ Hits_t(T* base_pointer, const uint total_estimated_number_of_clusters, const uint offset = 0) :
       m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
@@ -92,22 +92,10 @@ namespace Muon {
     __host__ __device__ float z(const uint index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
-      return m_base_pointer[3 * m_total_number_of_hits + m_offset + index];
-    }
-
-    __host__ __device__ float& z(const uint index)
-    {
-      assert(m_offset + index < m_total_number_of_hits);
-      return m_base_pointer[3 * m_total_number_of_hits + m_offset + index];
-    }
-
-    __host__ __device__ float dz(const uint index) const
-    {
-      assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[4 * m_total_number_of_hits + m_offset + index];
     }
 
-    __host__ __device__ float& dz(const uint index)
+    __host__ __device__ float& z(const uint index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[4 * m_total_number_of_hits + m_offset + index];
@@ -169,32 +157,18 @@ namespace Muon {
         m_base_pointer)[8 * m_total_number_of_hits + m_offset + index];
     }
 
-    __host__ __device__ int cluster_size(const uint index) const
-    {
-      assert(m_offset + index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, int>::t*>(
-        m_base_pointer)[9 * m_total_number_of_hits + m_offset + index];
-    }
-
-    __host__ __device__ int& cluster_size(const uint index)
-    {
-      assert(m_offset + index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, int>::t*>(
-        m_base_pointer)[9 * m_total_number_of_hits + m_offset + index];
-    }
-
     __host__ __device__ int region(const uint index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return reinterpret_cast<typename ForwardType<T, int>::t*>(
-        m_base_pointer)[10 * m_total_number_of_hits + m_offset + index];
+        m_base_pointer)[9 * m_total_number_of_hits + m_offset + index];
     }
 
     __host__ __device__ int& region(const uint index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return reinterpret_cast<typename ForwardType<T, int>::t*>(
-        m_base_pointer)[10 * m_total_number_of_hits + m_offset + index];
+        m_base_pointer)[9 * m_total_number_of_hits + m_offset + index];
     }
   };
 

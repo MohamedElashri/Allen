@@ -24,6 +24,9 @@ namespace Muon {
     /*Muon Catboost model uses 5 features for each station: Delta time, Time, Crossed, X residual, Y residual*/
     static constexpr uint n_catboost_features = 5 * n_stations;
 
+    // Safe margin to account for hit crossings
+    static constexpr uint compact_hit_allocate_factor = 2;
+
     /* IsMuon constants */
     static constexpr float momentum_cuts[] = {3 * Gaudi::Units::GeV, 6 * Gaudi::Units::GeV, 10 * Gaudi::Units::GeV};
     struct FieldOfInterest {

@@ -49,6 +49,8 @@ namespace is_muon {
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const
     {
+      initialize<dev_muon_track_occupancies_t>(arguments, 0, cuda_stream);
+
       function(
         dim3(value<host_number_of_selected_events_t>(arguments)), dim3(32, Muon::Constants::n_stations), cuda_stream)(
         Parameters {begin<dev_offsets_forward_tracks_t>(arguments),

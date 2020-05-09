@@ -83,8 +83,6 @@ __global__ void is_muon::is_muon(
       const int number_of_hits = station_ocurrences_offset[station_id + 1] - station_ocurrences_offset[station_id];
       const auto& state = scifi_tracks.states(track_id);
 
-      parameters.dev_muon_track_occupancies[track_offset + station_id] = 0;
-
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
         const int idx = station_ocurrences_offset[station_id] + i_hit;
         const float extrapolation_x = state.x +

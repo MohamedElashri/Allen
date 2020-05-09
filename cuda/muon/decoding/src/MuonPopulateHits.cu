@@ -18,14 +18,14 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
     event_number * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
   const auto event_offset_tiles = storage_station_region_quarter_offsets[0];
 
-  const auto muon_compact_hit = parameters.dev_muon_compact_hit + event_offset_tiles;
+  const auto muon_compact_hit = parameters.dev_muon_compact_hit + Muon::Constants::compact_hit_allocate_factor * event_offset_tiles;
   const auto storage_tile_id = parameters.dev_storage_tile_id + event_offset_tiles;
   const auto storage_tdc_value = parameters.dev_storage_tdc_value + event_offset_tiles;
 
   auto permutation_station = parameters.dev_permutation_station.get() + event_offset_hits;
   auto event_muon_hits = Muon::Hits {parameters.dev_muon_hits, total_number_of_hits, event_offset_hits};
 
-  // Create a permutation according to Muon::MuonTileID::stationRegionQuarter
+  // Create a permutation according to station
   const auto get_station = [&muon_compact_hit](const uint a, const uint b) {
     const auto muon_compact_hit_a = muon_compact_hit[a] & 0xF;
     const auto muon_compact_hit_b = muon_compact_hit[b] & 0xF;
@@ -52,7 +52,6 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
     float y = 0.f;
     float dy = 0.f;
     float z = 0.f;
-    float dz = 0.f;
     int delta_time;
     int id;
     int region;
@@ -61,6 +60,7 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
       Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex_index]);
       padTile.setY(Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]));
       padTile.setLayout(Muon::MuonLayout(thisGridX, otherGridY_condition));
+
       Muon::calcTilePos(parameters.dev_muon_raw_to_hits.get()->muonTables, padTile, x, dx, y, dy, z);
       region = padTile.region();
       id = padTile.id();
@@ -87,12 +87,10 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
     event_muon_hits.y(i) = y;
     event_muon_hits.dy(i) = dy;
     event_muon_hits.z(i) = z;
-    event_muon_hits.dz(i) = dz;
     event_muon_hits.time(i) = storage_tdc_value[digitsOneIndex_index];
     event_muon_hits.tile(i) = id;
     event_muon_hits.uncrossed(i) = uncrossed;
     event_muon_hits.delta_time(i) = delta_time;
-    event_muon_hits.cluster_size(i) = 0;
     event_muon_hits.region(i) = region;
   }
 }
