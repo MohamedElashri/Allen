@@ -38,7 +38,7 @@ namespace muon_populate_tile_and_tdc {
       set_size<dev_storage_tdc_value_t>(
         arguments, value<host_muon_total_number_of_tiles_t>(arguments));
       set_size<dev_atomics_muon_t>(arguments,
-        value<host_number_of_selected_events_t>(arguments) * Muon::Constants::n_stations * Muon::Constants::n_regions *
+        value<host_number_of_selected_events_t>(arguments) * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions *
             Muon::Constants::n_quarters);
     }
 
