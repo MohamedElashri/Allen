@@ -18,7 +18,8 @@ def MuonSequence():
         dev_output_buffer_t="dev_storage_station_region_quarter_offsets_t")
 
     muon_populate_tile_and_tdc = muon_populate_tile_and_tdc_t(
-        dev_storage_station_region_quarter_offsets_t = muon_srq_prefix_sum.dev_output_buffer_t())
+        dev_storage_station_region_quarter_offsets_t=muon_srq_prefix_sum.
+        dev_output_buffer_t())
     muon_add_coords_crossing_maps = muon_add_coords_crossing_maps_t()
 
     muon_station_ocurrence_prefix_sum = host_prefix_sum_t(
