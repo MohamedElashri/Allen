@@ -2,10 +2,6 @@ from definitions.algorithms import *
 
 
 def VeloSequence(doGEC = True):
-    odin_banks = data_provider_t(
-        name = "populate_odin_banks",
-        bank_type = "ODIN")
-
     host_ut_banks = host_data_provider_t(
         name = "host_ut_banks",
         bank_type = "UT")
@@ -128,7 +124,7 @@ def VeloSequence(doGEC = True):
         dev_offsets_number_of_three_hit_tracks_filtered_t = prefix_sum_offsets_number_of_three_hit_tracks_filtered.dev_output_buffer_t())
 
     velo_sequence = Sequence(
-        odin_banks, host_ut_banks, host_scifi_banks, initialize_lists,
+        host_ut_banks, host_scifi_banks, initialize_lists,
         velo_banks, velo_calculate_number_of_candidates,
         prefix_sum_offsets_velo_candidates, velo_estimate_input_size,
         prefix_sum_offsets_estimated_input_size, velo_masked_clustering,

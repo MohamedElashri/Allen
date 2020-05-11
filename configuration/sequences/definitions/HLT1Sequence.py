@@ -2,6 +2,10 @@ from definitions.algorithms import *
 
 
 def HLT1Sequence():
+    odin_banks = data_provider_t(
+        name = "populate_odin_banks",
+        bank_type = "ODIN")
+
     # Needed for aligning selections with Moore.
     velo_pv_ip = velo_pv_ip_t()
 
