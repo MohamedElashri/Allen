@@ -1,5 +1,5 @@
 #include <Common.h>
-#include <KalmanPVIPChi2.cuh>
+#include <ParKalmanVeloOnly.cuh>
 #include <PV_Definitions.cuh>
 #include <SciFiConsolidated.cuh>
 #include <AssociateConsolidated.cuh>
@@ -62,7 +62,7 @@ __device__ void associate_and_muon_id(
   }
 }
 
-__global__ void kalman_pv_ipchi2::kalman_pv_ipchi2(kalman_pv_ipchi2::Parameters parameters)
+__global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters parameters)
 {
   const uint number_of_events = gridDim.x;
   const uint event_number = blockIdx.x;

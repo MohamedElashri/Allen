@@ -8,7 +8,7 @@ def initialize_lists(doGEC = True):
     initialize_lists = None
     if doGEC:
         initialize_lists = Algorithm(host_global_event_cut_t,
-            name = "initialize_lists")
+            name = "global_event_cut")
     else:
         initialize_lists = Algorithm(host_init_event_list_t,
             name = "initialize_lists")

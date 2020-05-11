@@ -1,11 +1,11 @@
 #include "LineInfo.cuh"
-#include "RunPostscale.cuh"
+#include "RunHlt1.cuh"
 #include "DeterministicPostscaler.cuh"
 #include "Event/ODIN.h"
 
 template<typename T>
-__global__ void run_postscale::run_postscale(
-  run_postscale::Parameters parameters,
+__global__ void run_hlt1::run_postscale(
+  run_hlt1::Parameters parameters,
   const uint selected_number_of_events,
   const uint event_start)
 {
