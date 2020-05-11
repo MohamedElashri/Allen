@@ -78,10 +78,7 @@ private:
 
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
 
-  // Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_INSTALL_DIR}/constants/Sequence.json"};
-  Gaudi::Property<std::string> m_json {this,
-                                       "JSON",
-                                       "${ALLEN_PROJECT_ROOT}/build.x86_64-centos7-gcc9-opt/Sequence.json"};
+  Gaudi::Property<std::string> m_json {this, "JSON", "${ALLEN_INSTALL_DIR}/constants/Sequence.json"};
   Gaudi::Property<std::string> m_paramDir {this, "ParamDir", "${ALLEN_PROJECT_ROOT}/input/detector_configuration/down"};
 
   // If set to false, events are only filtered by the GEC
