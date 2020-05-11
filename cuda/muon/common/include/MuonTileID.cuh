@@ -30,6 +30,12 @@ namespace Muon {
              MuonTileID::region(id) * Constants::n_regions + MuonTileID::quarter(id);
     }
 
+    __device__ unsigned int stationRegionQuarter() const
+    {
+      return MuonTileID::station(m_muonid) * Constants::n_stations * Constants::n_regions +
+             MuonTileID::region(m_muonid) * Constants::n_regions + MuonTileID::quarter(m_muonid);
+    }
+
     __device__ static unsigned int station(unsigned int id)
     {
       return (id & MuonBase::MaskStation) >> MuonBase::ShiftStation;

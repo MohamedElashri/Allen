@@ -18,7 +18,8 @@ namespace MatchUpstreamMuon {
     DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, uint) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, uint) dev_ut_track_velo_indices;
-    DEVICE_INPUT(dev_muon_hits_t, Muon::HitsSoA) dev_muon_hits;
+    DEVICE_INPUT(dev_station_ocurrences_offset_t, uint) dev_station_ocurrences_offset;
+    DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
     DEVICE_INPUT(dev_event_list_mf_t, uint) dev_event_list_mf;
     DEVICE_OUTPUT(dev_match_upstream_muon_t, bool) dev_muon_match;
     PROPERTY(block_dim_t, DeviceDimensions, "block_dim", "block dimensions");
@@ -63,6 +64,7 @@ namespace MatchUpstreamMuon {
             begin<dev_offsets_ut_track_hit_number_t>(arguments),
             begin<dev_ut_qop_t>(arguments),
             begin<dev_ut_track_velo_indices_t>(arguments),
+            begin<dev_station_ocurrences_offset_t>(arguments),
             begin<dev_muon_hits_t>(arguments),
             begin<dev_event_list_mf_t>(arguments),
             begin<dev_match_upstream_muon_t>(arguments)},

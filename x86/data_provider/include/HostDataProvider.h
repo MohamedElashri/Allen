@@ -34,7 +34,7 @@ namespace host_data_provider {
       const RuntimeOptions& runtime_options,
       const Constants&,
       HostBuffers&,
-      cudaStream_t& cuda_stream,
+      cudaStream_t&,
       cudaEvent_t&) const
     {
       auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
