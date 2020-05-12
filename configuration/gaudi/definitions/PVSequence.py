@@ -3,7 +3,7 @@ from algorithms import *
 from VeloSequence import initialize_lists, make_velo_tracks
 
 
-def velo_kalman_filter(**kwargs):
+def run_velo_kalman_filter(**kwargs):
   velo_tracks = make_velo_tracks(**kwargs)
   host_number_of_reconstructed_velo_tracks = velo_tracks["host_number_of_reconstructed_velo_tracks"]
 
@@ -38,7 +38,7 @@ def make_pvs(**kwargs):
     dev_offsets_velo_track_hit_number = velo_tracks["dev_offsets_velo_track_hit_number"]
     dev_velo_track_hits = velo_tracks["dev_velo_track_hits"]
 
-    velo_kalman_filter = velo_kalman_filter(**kwargs)
+    velo_kalman_filter = run_velo_kalman_filter(**kwargs)
 
     pv_beamline_extrapolate = Algorithm(pv_beamline_extrapolate_t,
       name = "pv_beamline_extrapolate",
@@ -89,4 +89,6 @@ def make_pvs(**kwargs):
       dev_number_of_multi_fit_vertices_t = pv_beamline_multi_fitter.dev_number_of_multi_fit_vertices_t)
 
     return {"dev_multi_final_vertices": pv_beamline_cleanup_t.dev_multi_final_vertices_t,
-            "dev_number_of_multi_final_vertices": pv_beamline_cleanup_t.dev_number_of_multi_final_vertices_t}
+            "dev_number_of_multi_final_vertices": pv_beamline_cleanup_t.dev_number_of_multi_final_vertices_t,
+            "dev_multi_fit_vertices": pv_beamline_multi_fitter.dev_multi_fit_vertices_t,
+            "dev_number_of_multi_fit_vertices": pv_beamline_multi_fitter.dev_number_of_multi_fit_vertices_t}

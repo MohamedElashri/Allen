@@ -1,6 +1,7 @@
 from PyConf.components import Algorithm
 from algorithms import *
 from ForwardSequence import make_forward_tracks
+from VeloSequence import initialize_lists
 
 
 def is_muon(**kwargs):

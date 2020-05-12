@@ -1,6 +1,6 @@
 from PyConf.components import Algorithm
 from algorithms import *
-from PVSequence import velo_kalman_filter, make_pvs
+from PVSequence import run_velo_kalman_filter, make_pvs
 from VeloSequence import initialize_lists, make_velo_tracks
 from UTSequence import make_ut_tracks
 from ForwardSequence import make_forward_tracks
@@ -8,12 +8,12 @@ from MuonSequence import is_muon
 
 
 def run_selections(**kwargs):
-    initalized_lists = initialize_lists(**kwargs)
+    initialized_lists = initialize_lists(**kwargs)
     velo_tracks = make_velo_tracks(**kwargs)
     pvs = make_pvs(**kwargs)    
     ut_tracks = make_ut_tracks(**kwargs)
     forward_tracks = make_forward_tracks(**kwargs)
-    velo_kalman_filter = velo_kalman_filter(**kwargs)
+    velo_kalman_filter = run_velo_kalman_filter(**kwargs)
     is_muon_result = is_muon(**kwargs)
 
     velo_pv_ip = Algorithm(velo_pv_ip_t,
@@ -97,7 +97,7 @@ def run_selections(**kwargs):
         dev_sv_offsets_t = prefix_sum_secondary_vertices.dev_output_buffer_t,
         dev_odin_raw_input_t = odin_banks.dev_raw_banks_t,
         dev_odin_raw_input_offsets_t = odin_banks.dev_raw_offsets_t,
-        dev_offsets_all_velo_tracks_t = dev_offsets_all_velo_tracks)
+        dev_offsets_all_velo_tracks_t = velo_tracks["dev_offsets_all_velo_tracks"])
 
     prepare_raw_banks = Algorithm(prepare_raw_banks_t,
         name = "prepare_raw_banks",
@@ -116,8 +116,8 @@ def run_selections(**kwargs):
         dev_scifi_qop_t = forward_tracks["dev_scifi_qop"],
         dev_scifi_states_t = forward_tracks["dev_scifi_states"],
         dev_scifi_track_ut_indices_t = forward_tracks["dev_scifi_track_ut_indices"],
-        dev_ut_track_hits_t = ut_consolidate_tracks.dev_ut_track_hits_t,
-        dev_scifi_track_hits_t = scifi_consolidate_tracks.dev_scifi_track_hits_t,
+        dev_ut_track_hits_t = ut_tracks["dev_ut_track_hits"],
+        dev_scifi_track_hits_t = forward_tracks["dev_scifi_track_hits"],
         dev_kf_tracks_t = kalman_velo_only.dev_kf_tracks_t,
         dev_consolidated_svs_t = fit_secondary_vertices.dev_consolidated_svs_t,
         dev_offsets_forward_tracks_t = forward_tracks["dev_offsets_forward_tracks"],

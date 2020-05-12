@@ -153,7 +153,7 @@ def ForwardSequence(
         dev_scifi_hits_t = scifi_raw_bank_decoder.dev_scifi_hits_t(),
         dev_scifi_hit_offsets_t = prefix_sum_scifi_hits.dev_output_buffer_t(),
         dev_offsets_forward_tracks_t = prefix_sum_forward_tracks.dev_output_buffer_t(),
-        dev_offsets_scifi_track_hit_number = prefix_sum_scifi_track_hit_number.dev_output_buffer_t(),
+        dev_offsets_scifi_track_hit_number_t = prefix_sum_scifi_track_hit_number.dev_output_buffer_t(),
         dev_offsets_ut_tracks_t = prefix_sum_ut_tracks.dev_output_buffer_t(),
         dev_offsets_ut_track_hit_number_t = prefix_sum_ut_track_hit_number.dev_output_buffer_t(),
         dev_scifi_tracks_t = lf_quality_filter.dev_scifi_tracks_t(),
