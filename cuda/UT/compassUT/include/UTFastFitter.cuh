@@ -49,14 +49,14 @@ __device__ inline float fastfitter(
 {
 
   const float ty = velo_state.ty;
-  const float zKink = UT::Constants::magFieldParams[0] - ty * ty * UT::Constants::magFieldParams[1] -
-                      ty * ty * ty * ty * UT::Constants::magFieldParams[2];
+  const float zKink = UT::Constants::magFieldParams_0 - ty * ty * UT::Constants::magFieldParams_1 -
+                      ty * ty * ty * ty * UT::Constants::magFieldParams_2;
   const float xMidField = velo_state.x + velo_state.tx * (zKink - velo_state.z);
 
   const float zDiff = 0.001f * (zKink - UT::Constants::zMidUT);
 
   // -- This is to avoid division by zero...
-  const float pHelper = max(float(fabsf(best_params.qp * qpxz2p)), float(1e-9));
+  const float pHelper = max(float(fabsf(best_params.qp * qpxz2p)), 1e-9f);
   const float invP = pHelper * sqrtf(1.0f + ty * ty);
 
   // these resolution are semi-empirical, could be tuned and might not be correct for low momentum.

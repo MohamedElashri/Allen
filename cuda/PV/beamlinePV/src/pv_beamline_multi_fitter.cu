@@ -103,7 +103,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
             const float3 HWr {
               res.x * trk.W_00, res.y * trk.W_11, -trk.tx.x * res.x * trk.W_00 - trk.tx.y * res.y * trk.W_11};
 
-            halfDChi2DX += HWr * track_weight;
+            halfDChi2DX = halfDChi2DX + HWr * track_weight;
             halfD2Chi2DX2_00 += track_weight * trk.HWH_00;
             halfD2Chi2DX2_11 += track_weight * trk.HWH_11;
             halfD2Chi2DX2_20 += track_weight * trk.HWH_20;

@@ -1,11 +1,7 @@
-#include "ParKalmanMethods.cuh"
-
-using namespace ParKalmanFilter;
-
-typedef Vector<10> Vector10;
-typedef Vector<2> Vector2;
-typedef SquareMatrix<true, 2> SymMatrix2x2;
-typedef SquareMatrix<false, 2> Matrix2x2;
+using Vector10 = Vector<10>;
+using Vector2 = Vector<2>;
+using SymMatrix2x2 = SquareMatrix<true, 2>;
+using Matrix2x2 = SquareMatrix<false, 2>;
 
 //----------------------------------------------------------------------
 // Create a VELO seed state.
@@ -231,8 +227,12 @@ __device__ void PredictStateT(
 
 //----------------------------------------------------------------------
 // Predict T (fixed z) <-> first T layer.
-__device__ void
-PredictStateTFT(SciFi::Consolidated::ConstExtendedHits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI)
+__device__ void PredictStateTFT(
+  SciFi::Consolidated::ConstExtendedHits& hits,
+  Vector5& x,
+  SymMatrix5x5& C,
+  KalmanFloat& lastz,
+  trackInfo& tI)
 {
   KalmanFloat z;
   Matrix5x5 F;

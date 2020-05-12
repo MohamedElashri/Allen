@@ -42,11 +42,7 @@ namespace velo_copy_track_hit_number {
       HostBuffers&,
       cudaStream_t& cuda_stream,
       cudaEvent_t&) const {
-      cudaCheck(cudaMemsetAsync(
-        begin<dev_offsets_all_velo_tracks_t>(arguments),
-        0,
-        sizeof(uint), // Note: Only the first element needs to be initialized here.
-        cuda_stream));
+      initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, cuda_stream);
 
       function(dim3(value<host_number_of_selected_events_t>(arguments)), property<block_dim_t>(), cuda_stream)(
         Parameters{

@@ -12,9 +12,9 @@ __host__ __device__ inline float2 operator+(const float2& l, const float2& r) { 
 
 __host__ __device__ inline float2 operator-(const float2& l, const float2& r) { return {l.x - r.x, l.y - r.y}; }
 
-__host__ __device__ inline float2 operator*(const float2& l, float r) { return {l.x * r, l.y * r}; }
+__host__ __device__ inline float2 operator*(const float2& l, const float r) { return {l.x * r, l.y * r}; }
 
-__host__ __device__ inline float2 operator/(const float2& l, float r) { return {l.x / r, l.y / r}; }
+__host__ __device__ inline float2 operator/(const float2& l, const float r) { return {l.x / r, l.y / r}; }
 
 __host__ __device__ inline float2& operator+=(float2& l, const float2& r)
 {
@@ -41,9 +41,9 @@ __host__ __device__ inline float3 operator-(const float3& l, const float3& r)
   return {l.x - r.x, l.y - r.y, l.z - r.z};
 }
 
-__host__ __device__ inline float3 operator*(const float3& l, float r) { return {l.x * r, l.y * r, l.z * r}; }
+__host__ __device__ inline float3 operator*(const float3& l, const float r) { return {l.x * r, l.y * r, l.z * r}; }
 
-__host__ __device__ inline float3 operator/(const float3& l, float r) { return {l.x / r, l.y / r, l.z / r}; }
+__host__ __device__ inline float3 operator/(const float3& l, const float r) { return {l.x / r, l.y / r, l.z / r}; }
 
 __host__ __device__ inline float3& operator+=(float3& l, const float3& r)
 {

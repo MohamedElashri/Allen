@@ -29,7 +29,7 @@ void invoke_impl(
     return;
   }
 
-#ifdef CPU
+#if defined(TARGET_DEVICE_CPU)
   _unused(stream);
 
   gridDim = {grid_dim.x, grid_dim.y, grid_dim.z};
@@ -41,8 +41,8 @@ void invoke_impl(
       }
     }
   }
-#elif defined(HIP)
-  hipLaunchKernelGGL(function, grid_dim, block_dim, *stream, std::get<I>(invoke_arguments)...);
+#elif defined(TARGET_DEVICE_HIP)
+  hipLaunchKernelGGL(function, grid_dim, block_dim, 0, *stream, std::get<I>(invoke_arguments)...);
 #else
   function<<<grid_dim, block_dim, 0, *stream>>>(std::get<I>(invoke_arguments)...);
 #endif

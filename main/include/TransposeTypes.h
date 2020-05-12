@@ -7,10 +7,7 @@
 #include <Logger.h>
 #include <SystemOfUnits.h>
 #include <Event/RawBank.h>
-
-#ifndef NO_CUDA
 #include <CudaCommon.h>
-#endif
 
 namespace {
   constexpr auto mdf_header_size = sizeof(LHCb::MDFHeader);
