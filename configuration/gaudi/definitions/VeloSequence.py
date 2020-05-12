@@ -1,27 +1,51 @@
-from algorithms import *
 from PyConf.components import Algorithm
-from Moore import options, run_moore
-from Moore.config import Reconstruction
+from algorithms import *
 
 
 def initialize_lists(doGEC = True):
+    host_ut_banks = Algorithm(host_data_provider_t,
+        name = "host_ut_banks",
+        bank_type = "UT")
+
+    host_scifi_banks = Algorithm(host_data_provider_t,
+        name = "host_scifi_banks",
+        bank_type = "FTCluster")
+    
     initialize_lists = None
     if doGEC:
         initialize_lists = Algorithm(host_global_event_cut_t,
-            name = "global_event_cut")
+            name = "global_event_cut",
+            host_ut_raw_banks_t = host_ut_banks.host_raw_banks_t,
+            host_ut_raw_offsets_t = host_ut_banks.host_raw_offsets_t,
+            host_scifi_raw_banks_t = host_scifi_banks.host_raw_banks_t,
+            host_scifi_raw_offsets_t = host_scifi_banks.host_raw_offsets_t)
     else:
         initialize_lists = Algorithm(host_init_event_list_t,
-            name = "initialize_lists")
-    return (initialize_lists.host_number_of_selected_events_t, initialize_lists.dev_event_list_t)
+            name = "initialize_lists",
+            host_ut_raw_banks_t = host_ut_banks.host_raw_banks_t,
+            host_ut_raw_offsets_t = host_ut_banks.host_raw_offsets_t,
+            host_scifi_raw_banks_t = host_scifi_banks.host_raw_banks_t,
+            host_scifi_raw_offsets_t = host_scifi_banks.host_raw_offsets_t)
+    
+    return {"host_number_of_selected_events": initialize_lists.host_number_of_selected_events_t,
+            "dev_event_list": initialize_lists.dev_event_list_t}
 
 
 def decode_velo(doGEC = True):
-    host_number_of_selected_events, dev_event_list = initialize_lists(doGEC)
+    initalized_lists = initialize_lists(doGEC)
+    host_number_of_selected_events = initalized_lists["host_number_of_selected_events"]
+    dev_event_list = initalized_lists["dev_event_list"]
+
+    velo_banks = Algorithm(data_provider_t,
+        name = "velo_banks",
+        bank_type = "VP")
 
     velo_calculate_number_of_candidates = Algorithm(velo_calculate_number_of_candidates_t,
         name = "velo_calculate_number_of_candidates",
         host_number_of_selected_events_t = host_number_of_selected_events,
-        dev_event_list_t = dev_event_list)
+        dev_event_list_t = dev_event_list,
+        dev_velo_raw_input_t = velo_banks.dev_raw_banks_t,
+        dev_velo_raw_input_offsets_t = velo_banks.dev_raw_offsets_t)
 
     prefix_sum_offsets_velo_candidates = Algorithm(host_prefix_sum_t,
         name = "prefix_sum_offsets_velo_candidates",
@@ -33,8 +57,8 @@ def decode_velo(doGEC = True):
         host_number_of_cluster_candidates_t = prefix_sum_offsets_velo_candidates.host_total_sum_holder_t,
         dev_event_list_t = dev_event_list,
         dev_candidates_offsets_t = prefix_sum_offsets_velo_candidates.dev_output_buffer_t,
-        dev_velo_raw_input_t = velo_calculate_number_of_candidates.dev_velo_raw_input_t,
-        dev_velo_raw_input_offsets_t = velo_calculate_number_of_candidates.dev_velo_raw_input_offsets_t)
+        dev_velo_raw_input_t = velo_banks.dev_raw_banks_t,
+        dev_velo_raw_input_offsets_t = velo_banks.dev_raw_offsets_t)
 
     prefix_sum_offsets_estimated_input_size = Algorithm(host_prefix_sum_t,
         name = "prefix_sum_offsets_estimated_input_size",
@@ -44,23 +68,30 @@ def decode_velo(doGEC = True):
         name = "velo_masked_clustering",
         host_total_number_of_velo_clusters_t = prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
         host_number_of_selected_events_t = host_number_of_selected_events,
-        dev_velo_raw_input_t = velo_calculate_number_of_candidates.dev_velo_raw_input_t,
-        dev_velo_raw_input_offsets_t = velo_calculate_number_of_candidates.dev_velo_raw_input_offsets_t,
+        dev_velo_raw_input_t = velo_banks.dev_raw_banks_t,
+        dev_velo_raw_input_offsets_t = velo_banks.dev_raw_offsets_t,
         dev_offsets_estimated_input_size_t = prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
         dev_module_candidate_num_t = velo_estimate_input_size.dev_module_candidate_num_t,
         dev_cluster_candidates_t = velo_estimate_input_size.dev_cluster_candidates_t,
         dev_event_list_t = dev_event_list,
         dev_candidates_offsets_t = prefix_sum_offsets_velo_candidates.dev_output_buffer_t)
 
-    return (velo_masked_clustering.dev_velo_cluster_container_t,
-        velo_masked_clustering.dev_module_cluster_num_t,
-        prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
-        prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t)
+    return {"dev_velo_cluster_container": velo_masked_clustering.dev_velo_cluster_container_t,
+        "dev_module_cluster_num": velo_masked_clustering.dev_module_cluster_num_t,
+        "dev_offsets_estimated_input_size": prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
+        "host_total_number_of_velo_clusters": prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t}
 
 
 def make_velo_tracks(doGEC = True):
-    host_number_of_selected_events, dev_event_list = initialize_lists(doGEC)
-    dev_velo_cluster_container, dev_module_cluster_num, dev_offsets_estimated_input_size, host_total_number_of_velo_clusters = decode_velo(doGEC)
+    initalized_lists = initialize_lists(doGEC)
+    host_number_of_selected_events = initalized_lists["host_number_of_selected_events"]
+    dev_event_list = initalized_lists["dev_event_list"]
+
+    decoded_velo = decode_velo(doGEC)
+    dev_velo_cluster_container = decoded_velo["dev_velo_cluster_container"]
+    dev_module_cluster_num = decoded_velo["dev_module_cluster_num"]
+    dev_offsets_estimated_input_size = decoded_velo["dev_offsets_estimated_input_size"]
+    host_total_number_of_velo_clusters = decoded_velo["host_total_number_of_velo_clusters"]
 
     velo_calculate_phi_and_sort = Algorithm(velo_calculate_phi_and_sort_t,
         name = "velo_calculate_phi_and_sort",
@@ -70,15 +101,6 @@ def make_velo_tracks(doGEC = True):
         dev_module_cluster_num_t = dev_module_cluster_num,
         dev_velo_cluster_container_t = dev_velo_cluster_container)
 
-    velo_fill_candidates = Algorithm(velo_fill_candidates_t,
-        name = "velo_fill_candidates",
-        host_number_of_selected_events_t = host_number_of_selected_events,
-        host_total_number_of_velo_clusters_t = host_total_number_of_velo_clusters,
-        dev_sorted_velo_cluster_container_t = velo_calculate_phi_and_sort.dev_sorted_velo_cluster_container_t,
-        dev_offsets_estimated_input_size_t = dev_offsets_estimated_input_size,
-        dev_module_cluster_num_t = dev_module_cluster_num,
-        dev_hit_phi_t = velo_calculate_phi_and_sort.dev_hit_phi_t)
-
     velo_search_by_triplet = Algorithm(velo_search_by_triplet_t,
         name = "velo_search_by_triplet",
         host_number_of_selected_events_t = host_number_of_selected_events,
@@ -86,8 +108,6 @@ def make_velo_tracks(doGEC = True):
         dev_sorted_velo_cluster_container_t = velo_calculate_phi_and_sort.dev_sorted_velo_cluster_container_t,
         dev_offsets_estimated_input_size_t = dev_offsets_estimated_input_size,
         dev_module_cluster_num_t = dev_module_cluster_num,
-        dev_h0_candidates_t = velo_fill_candidates.dev_h0_candidates_t,
-        dev_h2_candidates_t = velo_fill_candidates.dev_h2_candidates_t,
         dev_hit_phi_t = velo_calculate_phi_and_sort.dev_hit_phi_t)
 
     prefix_sum_offsets_velo_tracks = Algorithm(host_prefix_sum_t,
@@ -134,4 +154,9 @@ def make_velo_tracks(doGEC = True):
         dev_three_hit_tracks_output_t = velo_three_hit_tracks_filter.dev_three_hit_tracks_output_t,
         dev_offsets_number_of_three_hit_tracks_filtered_t = prefix_sum_offsets_number_of_three_hit_tracks_filtered.dev_output_buffer_t)
 
-    return (velo_consolidate_tracks.dev_velo_track_hits_t, velo_consolidate_tracks.dev_velo_states_t, velo_copy_track_hit_number.dev_offsets_all_velo_tracks_t)
+    return {"host_number_of_reconstructed_velo_tracks": velo_copy_track_hit_number.host_number_of_reconstructed_velo_tracks_t,
+            "dev_velo_track_hits": velo_consolidate_tracks.dev_velo_track_hits_t,
+            "dev_velo_states": velo_consolidate_tracks.dev_velo_states_t,
+            "dev_offsets_all_velo_tracks": velo_copy_track_hit_number.dev_offsets_all_velo_tracks_t,
+            "dev_offsets_velo_track_hit_number": prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t,
+            "dev_accepted_velo_tracks": velo_consolidate_tracks.dev_accepted_velo_tracks_t}

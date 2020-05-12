@@ -327,7 +327,7 @@ class GaudiAllenConf():
         # Fetch base_types.py and include it here to make file self-contained
         s = "from GaudiKernel.DataObjectHandleBase import DataObjectHandleBase\n\
 from AllenKernel import AllenAlgorithm\n\
-from collections import OrderedDict\n\
+from collections import OrderedDict\n\n\n\
 def algorithm_dict(*algorithms):\n\
     d = OrderedDict([])\n\
     for alg in algorithms:\n\
@@ -377,6 +377,8 @@ def algorithm_dict(*algorithms):\n\
         for param in algorithm.parameters:
             s += GaudiAllenConf.prefix(i) + param.typename + " = DataObjectHandleBase(\"" + param.typename + "\", \"" \
                 + GaudiAllenConf.create_var_type(param.kind) + "\", \"" + str(param.typedef) + "\"),\n"
+        for prop in algorithm.properties:
+            s += GaudiAllenConf.prefix(i) + prop.name[1:-1] + " = \"\",\n"
         s = s[:-2]
         i -= 1
         s += "\n" + GaudiAllenConf.prefix(i) + ")\n\n"

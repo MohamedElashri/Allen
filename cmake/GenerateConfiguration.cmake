@@ -16,7 +16,7 @@ set(Python3_FOUND TRUE)
 # We need to pass a custom LD_LIBRARY_PATH to point to a compatible clang version
 # TODO: Figure out if there is a cleaner way to do this
 set(CLANG10_LD_LIBRARY_PATH /cvmfs/sft.cern.ch/lcg/releases/clang/10.0.0-62e61/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib:/cvmfs/sft.cern.ch/lcg/releases/gcc/9.2.0-afc57/x86_64-centos7/lib64)
-set(DEFAULT_MOORE_RUN /cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/stable/x86_64-centos7/bin/lb-run --nightly lhcb-gaudi-head/latest Moore/HEAD)
+set(DEFAULT_MOORE_RUN "/cvmfs/lhcb.cern.ch/lib/var/lib/LbEnv/stable/x86_64-centos7/bin/lb-run --nightly lhcb-gaudi-head/latest Moore/HEAD")
 
 message(STATUS "Generating sequence using LLVM")
 
@@ -36,10 +36,11 @@ if(${MOORE_GENERATOR})
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/configuration/gaudi/${SEQUENCE}.py" "${PROJECT_SEQUENCE_DIR}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_1)
+  message(STATUS "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH} python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} Moore")
   execute_process(COMMAND ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=${CLANG10_LD_LIBRARY_PATH}" python3 ${ALGORITHMS_GENERATION_SCRIPT} ${ALGORITHMS_OUTPUTFILE} ${CMAKE_SOURCE_DIR} "Moore"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_2)
-  execute_process(COMMAND ${MOORE_RUN} ${SEQUENCE_DEFINITION_DIR}/allenrun.py ${SEQUENCE}.py
+  execute_process(COMMAND "${MOORE_RUN} ${SEQUENCE_DEFINITION_DIR}/allenrun.py ${SEQUENCE}.py"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     RESULT_VARIABLE ALGORITHMS_GENERATION_RESULT_3)
 else()
