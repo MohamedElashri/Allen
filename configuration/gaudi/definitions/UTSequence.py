@@ -3,12 +3,12 @@ from algorithms import *
 from VeloSequence import initialize_lists, make_velo_tracks
 
 
-def make_ut_tracks(restricted=True, doGEC=True):
-    initalized_lists = initialize_lists(doGEC)
+def make_ut_tracks(restricted=True, **kwargs):
+    initalized_lists = initialize_lists(**kwargs)
     host_number_of_selected_events_t = initalized_lists["host_number_of_selected_events"]
     dev_event_list_t = initalized_lists["dev_event_list"]
 
-    velo_tracks = make_velo_tracks(doGEC)
+    velo_tracks = make_velo_tracks(**kwargs)
     host_number_of_reconstructed_velo_tracks_t = velo_tracks["host_number_of_reconstructed_velo_tracks"]
     dev_velo_states_t = velo_tracks["dev_velo_states"]
     dev_offsets_all_velo_tracks_t = velo_tracks["dev_offsets_all_velo_tracks"]
@@ -147,4 +147,12 @@ def make_ut_tracks(restricted=True, doGEC=True):
         dev_offsets_ut_track_hit_number_t = prefix_sum_ut_track_hit_number.dev_output_buffer_t,
         dev_ut_tracks_t = compass_ut.dev_ut_tracks_t)
 
-    return {"dev_ut_track_hits": ut_consolidate_tracks_t.dev_ut_track_hits_t}
+    return {"host_number_of_reconstructed_ut_tracks": prefix_sum_ut_tracks.host_total_sum_holder_t,
+            "dev_offsets_ut_tracks": prefix_sum_ut_tracks.dev_output_buffer_t,
+            "dev_offsets_ut_track_hit_number": prefix_sum_ut_track_hit_number.dev_output_buffer_t,
+            "dev_ut_track_hits": ut_consolidate_tracks_t.dev_ut_track_hits_t,
+            "dev_ut_x": ut_consolidate_tracks_t.dev_ut_x_t,
+            "dev_ut_tx": ut_consolidate_tracks_t.dev_ut_tx_t,
+            "dev_ut_z": ut_consolidate_tracks_t.dev_ut_z_t,
+            "dev_ut_qop": ut_consolidate_tracks_t.dev_ut_qop_t,
+            "dev_ut_track_velo_indices": ut_consolidate_tracks_t.dev_ut_track_velo_indices_t}

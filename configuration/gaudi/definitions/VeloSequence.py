@@ -2,7 +2,7 @@ from PyConf.components import Algorithm
 from algorithms import *
 
 
-def initialize_lists(doGEC = True):
+def initialize_lists(doGEC=True, **kwargs):
     host_ut_banks = Algorithm(host_data_provider_t,
         name = "host_ut_banks",
         bank_type = "UT")
@@ -31,8 +31,8 @@ def initialize_lists(doGEC = True):
             "dev_event_list": initialize_lists.dev_event_list_t}
 
 
-def decode_velo(doGEC = True):
-    initalized_lists = initialize_lists(doGEC)
+def decode_velo(**kwargs):
+    initalized_lists = initialize_lists(**kwargs)
     host_number_of_selected_events = initalized_lists["host_number_of_selected_events"]
     dev_event_list = initalized_lists["dev_event_list"]
 
@@ -82,12 +82,12 @@ def decode_velo(doGEC = True):
         "host_total_number_of_velo_clusters": prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t}
 
 
-def make_velo_tracks(doGEC = True):
-    initalized_lists = initialize_lists(doGEC)
+def make_velo_tracks(**kwargs):
+    initalized_lists = initialize_lists(**kwargs)
     host_number_of_selected_events = initalized_lists["host_number_of_selected_events"]
     dev_event_list = initalized_lists["dev_event_list"]
 
-    decoded_velo = decode_velo(doGEC)
+    decoded_velo = decode_velo(**kwargs)
     dev_velo_cluster_container = decoded_velo["dev_velo_cluster_container"]
     dev_module_cluster_num = decoded_velo["dev_module_cluster_num"]
     dev_offsets_estimated_input_size = decoded_velo["dev_offsets_estimated_input_size"]
