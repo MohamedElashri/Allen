@@ -1,3 +1,5 @@
+#pragma once
+
 #include "CudaCommon.h"
 #include "Logger.h"
 #include "BaseTypes.cuh"
@@ -15,6 +17,9 @@ namespace Allen {
    */
   class Algorithm : public BaseAlgorithm {
   public:
+    template<typename T>
+    using Property = Allen::Property<T>;
+
     void set_properties(const std::map<std::string, std::string>& algo_config) override
     {
       for (auto kv : algo_config) {
@@ -62,39 +67,6 @@ namespace Allen {
       return std::get<1>(r);
     }
 
-    bool property_used(std::string const&) const override { return true; }
-
-    void set_shared_properties(const std::string& set_name, const std::map<std::string, std::string>& algo_config)
-    {
-      if (m_shared_sets.find(set_name) != m_shared_sets.end()) {
-        m_shared_sets.at(set_name)->set_properties(algo_config);
-      }
-    }
-
-    std::map<std::string, std::string> get_shared_properties(const std::string& set_name) const
-    {
-      if (m_shared_sets.find(set_name) != m_shared_sets.end()) {
-        return m_shared_sets.at(set_name)->get_properties();
-      }
-      return std::map<std::string, std::string>();
-    }
-
-    std::vector<std::string> get_shared_sets() const
-    {
-      std::vector<std::string> ret;
-      for (auto kv : m_shared_sets) {
-        ret.push_back(kv.first);
-      }
-      return ret;
-    }
-
-    bool
-    register_shared_property(std::string const& set_name, std::string const&, BaseAlgorithm* prop_set, BaseProperty*)
-    {
-      m_shared_sets.emplace(set_name, prop_set);
-      return true;
-    }
-
   protected:
     BaseProperty const* get_prop(const std::string& prop_name) const override
     {
@@ -106,7 +78,5 @@ namespace Allen {
 
   private:
     std::map<std::string, BaseProperty*> m_properties;
-    std::map<std::string, BaseAlgorithm*> m_shared_sets;
   };
-
 }

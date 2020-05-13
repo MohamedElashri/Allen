@@ -8,6 +8,7 @@
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
 #include "GlobalFunction.cuh"
+#include "Property.cuh"
 #include "Argument.cuh"
 
 struct DeviceAlgorithm : public Allen::Algorithm {};

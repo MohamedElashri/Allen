@@ -262,10 +262,6 @@ namespace Sch {
       if (config.find(Algo::name) != config.end()) {
         auto& a = std::get<I>(algs);
         a.set_properties(config.at(Algo::name));
-        for (auto const& s : a.get_shared_sets()) {
-          if (config.find(s) == config.end()) continue;
-          a.set_shared_properties(s, config.at(s));
-        }
       }
       ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<Is...>>::configure(algs, config);
     }
@@ -299,18 +295,6 @@ namespace Sch {
       auto const& a = std::get<I>(algs);
       auto props = a.get_properties();
       config.emplace(std::string(Algo::name), props);
-      for (auto s : a.get_shared_sets()) {
-        auto props = a.get_shared_properties(s);
-        if (config.find(s) == config.end()) {
-          config.emplace(s, props);
-        }
-        else {
-          auto c = config.at(s);
-          for (auto kv : props) {
-            c.emplace(kv.first, kv.second);
-          }
-        }
-      }
       return GetSequenceConfigurationImpl<Tuple, std::index_sequence<Is...>>::get(algs, config);
     }
   };

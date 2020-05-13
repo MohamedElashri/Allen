@@ -63,7 +63,7 @@ namespace Configuration {
 
 namespace Allen {
   /**
-   * @brief      Store, update and readout the value of a single configurable algorithm property
+   * @brief      Store and readout the value of a single configurable algorithm property
    *
    */
   template<typename V>
@@ -84,7 +84,6 @@ namespace Allen {
       V holder;
       if (!Configuration::from_string<V>(holder, value)) return false;
       set_value(holder);
-      update();
       return true;
     }
 
@@ -101,16 +100,7 @@ namespace Allen {
       return s.str();
     }
 
-    void register_derived_property(DerivedProperty<V>* p) { m_derived.push_back(p); }
-
   protected:
-    virtual void update()
-    {
-      for (auto i : m_derived) {
-        i->update();
-      }
-    }
-
     void set_value(V value) { m_cached_value = value; }
 
   private:
@@ -118,64 +108,6 @@ namespace Allen {
     V m_cached_value;
     std::string m_name;
     std::string m_description;
-    std::vector<DerivedProperty<V>*> m_derived;
   };
   
-} // namespace Allen
-
-// function to access singleton instances of all SharedPropertySets
-namespace Configuration {
-  Allen::SharedPropertySet* getSharedPropertySet(const std::string& name);
-}
-
-/**
- * @brief      Register a property from a shared set with an algorithm that uses it
- *
- */
-namespace Allen {
-  template<typename V>
-  class SharedProperty : public BaseProperty {
-  public:
-    SharedProperty() = delete;
-    SharedProperty(Algorithm* algo, const std::string& set_name, const std::string& prop_name) : m_algo(algo)
-    {
-      init(set_name, prop_name);
-      algo->register_shared_property(set_name, prop_name, m_set, this);
-    }
-
-    bool from_string(const std::string&) override
-    {
-      std::cout << "shared properties may not be set directly" << std::endl;
-      return false;
-    }
-
-    std::string to_string() const override
-    {
-      if (m_prop) return m_prop->to_string();
-      return "";
-    }
-
-    std::string print() const override
-    {
-      if (m_prop) return m_prop->print();
-      return "";
-    }
-
-  private:
-    void init(const std::string& set_name, const std::string& prop_name)
-    {
-      m_set = Configuration::getSharedPropertySet(set_name);
-      if (!m_set) {
-        std::cout << "Unknown shared property set " << set_name << std::endl;
-      }
-      m_prop = dynamic_cast<Property<V> const*>(m_set->get_and_register_prop(prop_name));
-      if (!m_prop) {
-        std::cout << "Unknown shared property " << prop_name << std::endl;
-      }
-    }
-
-    BaseAlgorithm* m_algo = nullptr;
-    SharedPropertySet* m_set = nullptr;
-    Property<V> const* m_prop = nullptr;
-  };
 } // namespace Allen

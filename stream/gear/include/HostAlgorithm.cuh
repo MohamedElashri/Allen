@@ -8,6 +8,7 @@
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
 #include "HostFunction.cuh"
+#include "Property.cuh"
 #include "Argument.cuh"
 
 // Note: For the moment, a HostAlgorithm does not
