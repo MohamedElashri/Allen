@@ -29,12 +29,14 @@ void StreamWrapper::initialize_streams(
 {
   for (uint i = 0; i < n; ++i) {
     streams.push_back(new Stream());
-    streams.back()->configure_algorithms(config);
   }
 
   for (size_t i = 0; i < streams.size(); ++i) {
     streams[i]->initialize(
       print_memory_usage, start_event_offset, reserve_mb, constants);
+
+    // Configuration of the algorithms must happen after stream initialization
+    streams[i]->configure_algorithms(config);
   }
 }
 
@@ -107,6 +109,9 @@ cudaError_t Stream::initialize(
 
   // Prepare scheduler
   scheduler.initialize(do_print_memory_manager, reserve_mb * 1024 * 1024, dev_base_pointer, 10 * 1024 * 1024, host_base_pointer);
+
+  // Populate names of the algorithms in the sequence
+  populate_sequence_algorithm_names(scheduler.sequence_tuple);
 
   return cudaSuccess;
 }

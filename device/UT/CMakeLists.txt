@@ -16,6 +16,7 @@ include_directories(common/include)
 include_directories(UTDecoding/include)
 include_directories(consolidate/include)
 include_directories(compassUT/include)
+include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
 allen_add_device_library(UT STATIC

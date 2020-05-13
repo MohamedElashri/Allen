@@ -12,6 +12,7 @@ include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/utils/sorting/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/utils/prefix_sum/include)
 include_directories(${CMAKE_SOURCE_DIR}/device/PV/beamlinePV/include)
+include_directories(${CMAKE_SOURCE_DIR}/external)
 include_directories(${CPPGSL_INCLUDE_DIR})
 
 file(GLOB pat_pv "src/*cu")

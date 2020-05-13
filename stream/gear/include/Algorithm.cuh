@@ -5,7 +5,6 @@
 #include "BaseTypes.cuh"
 
 namespace Allen {
-
   // Forward declare to use in Algorithm
   template<typename V>
   class Property;
@@ -67,6 +66,15 @@ namespace Allen {
       return std::get<1>(r);
     }
 
+    // Setter and getter of name of the algorithm
+    void set_name(const std::string& name) {
+      m_name = name;
+    }
+
+    std::string thename() const {
+      return m_name;
+    }
+
   protected:
     BaseProperty const* get_prop(const std::string& prop_name) const override
     {
@@ -78,5 +86,6 @@ namespace Allen {
 
   private:
     std::map<std::string, BaseProperty*> m_properties;
+    std::string m_name = "";
   };
 }

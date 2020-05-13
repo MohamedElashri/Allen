@@ -86,7 +86,7 @@ struct Scheduler {
 
     // Print memory manager state
     if (do_print) {
-      info_cout << "Sequence step " << I << " \"" << T::name << "\":\n";
+      info_cout << "Sequence step " << I << " \"" << std::get<I>(sequence_tuple).thename() << "\":\n";
       device_memory_manager.print();
       host_memory_manager.print();
     }

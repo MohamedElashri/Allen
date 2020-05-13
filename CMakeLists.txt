@@ -163,9 +163,9 @@ if(TARGET_DEVICE STREQUAL "CUDA" OR TARGET_DEVICE STREQUAL "CUDACLANG")
     set(CUDA_ARCH_LIST)
   #CUDA_ARCH can be set to MAX
     if(CUDA_ARCH STREQUAL "MAX")
-      set(OUTPUTFILE ${CMAKE_BINARY_DIR}/device_arch) # No suffix required
-      set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/device_arch.cu)
-      execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -ccbin=${CMAKE_CXX_COMPILER} -std=c++14 -ldevice ${CUDAFILE} -o ${OUTPUTFILE})
+      set(OUTPUTFILE ${CMAKE_BINARY_DIR}/cuda_arch) # No suffix required
+      set(CUDAFILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/utils/cuda_arch.cu)
+      execute_process(COMMAND ${CMAKE_CUDA_COMPILER} -ccbin=${CMAKE_CXX_COMPILER} -std=c++14 -lcuda ${CUDAFILE} -o ${OUTPUTFILE})
       if(CUDA_ARCH STREQUAL "MAX")
         set(CHECK_ARGS "-l")
       endif()

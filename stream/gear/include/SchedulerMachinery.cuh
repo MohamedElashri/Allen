@@ -197,9 +197,9 @@ namespace Sch {
     std::tuple<ScheduledDependencies<Algorithm, std::tuple<Arguments...>>, Dependencies...>> {
     static constexpr void print()
     {
-      info_cout << "  ['" << Algorithm::name << "', [";
-      PrintArguments<std::tuple<Arguments...>>::print();
-      info_cout << "]]," << std::endl;
+      // info_cout << "  ['" << Algorithm::name << "', [";
+      // PrintArguments<std::tuple<Arguments...>>::print();
+      // info_cout << "]]," << std::endl;
 
       PrintAlgorithmDependencies<std::tuple<Dependencies...>>::print();
     }
@@ -218,7 +218,7 @@ namespace Sch {
   struct PrintAlgorithmSequence<std::tuple<Algorithm, Algorithms...>> {
     static constexpr void print()
     {
-      info_cout << " " << Algorithm::name << std::endl;
+      // info_cout << " " << Algorithm::name << std::endl;
       PrintAlgorithmSequence<std::tuple<Algorithms...>>::print();
     }
   };
@@ -235,9 +235,9 @@ namespace Sch {
   struct PrintAlgorithmSequenceDetailed<std::tuple<Algorithm, Algorithms...>> {
     static constexpr void print()
     {
-      info_cout << "  ['" << Algorithm::name << "', [";
-      PrintArguments<typename Algorithm::Arguments>::print();
-      info_cout << "]]," << std::endl;
+      // info_cout << "  ['" << Algorithm::name << "', [";
+      // PrintArguments<typename Algorithm::Arguments>::print();
+      // info_cout << "]]," << std::endl;
 
       PrintAlgorithmSequenceDetailed<std::tuple<Algorithms...>>::print();
     }
@@ -258,10 +258,10 @@ namespace Sch {
       Tuple& algs,
       const std::map<std::string, std::map<std::string, std::string>>& config)
     {
-      using Algo = typename std::tuple_element<I, Tuple>::type;
-      if (config.find(Algo::name) != config.end()) {
+      const auto algorithm_name = std::get<I>(algs).thename();
+      if (config.find(algorithm_name) != config.end()) {
         auto& a = std::get<I>(algs);
-        a.set_properties(config.at(Algo::name));
+        a.set_properties(config.at(algorithm_name));
       }
       ConfigureAlgorithmSequenceImpl<Tuple, std::index_sequence<Is...>>::configure(algs, config);
     }
@@ -291,10 +291,9 @@ namespace Sch {
   struct GetSequenceConfigurationImpl<Tuple, std::index_sequence<I, Is...>> {
     static auto get(Tuple const& algs, std::map<std::string, std::map<std::string, std::string>>& config)
     {
-      using Algo = typename std::tuple_element<I, Tuple>::type;
-      auto const& a = std::get<I>(algs);
-      auto props = a.get_properties();
-      config.emplace(std::string(Algo::name), props);
+      const auto& algorithm = std::get<I>(algs);
+      auto props = algorithm.get_properties();
+      config.emplace(algorithm.thename(), props);
       return GetSequenceConfigurationImpl<Tuple, std::index_sequence<Is...>>::get(algs, config);
     }
   };

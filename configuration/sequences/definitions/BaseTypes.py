@@ -400,22 +400,23 @@ class Sequence():
                     s += parameter.fullname()
                     if i != len(algorithm.parameters()):
                         s += ", "
-                s += ">, "
+                s += ">"
                 i = 0
                 # In case it is needed, pass the lines as an argument to the template
                 if algorithm.requires_lines():
-                    s += "configured_lines_t, "
-                # Add name
-                for c in algorithm.name():
-                    i += 1
-                    s += "'" + c + "'"
-                    if i != len(algorithm.name()):
-                        s += ", "
+                    s += ", configured_lines_t"
                 s += ">"
                 if i_alg != len(self.__sequence):
                     s += ","
                 s += "\n"
-            s += ">;\n"
+            s += ">;\n\n"
+            # Generate populate_sequence_algorithm_names function
+            s += "void inline populate_sequence_algorithm_names(configured_sequence_t& sequence) {\n"
+            i = 0
+            for _, algorithm in iter(self.__sequence.items()):
+                s += prefix(1) + "std::get<" + str(i) + ">(sequence).set_name(\"" + algorithm.name() + "\");\n"
+                i += 1
+            s += "}\n"
             f = open(output_filename, "w")
             f.write(s)
             f.close()
@@ -499,4 +500,3 @@ class AlgorithmRepr(type):
     def __repr__(cls):
         return "class " + cls.__class__.__name__ + " : " + cls.__bases__[0].__name__ + "\n inputs: " + \
             str(cls.inputs) + "\n outputs: " + str(cls.outputs) + "\n properties: " + str(cls.props) + "\n"
-        # return f"class {type(cls)} : {cls.__bases__[0].__name__}\n inputs: {cls.inputs}\n outputs: {cls.outputs}\n properties: {cls.props}\n"
