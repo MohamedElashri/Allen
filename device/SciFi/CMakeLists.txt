@@ -1,0 +1,33 @@
+file(GLOB scifi_preprocessing "preprocessing/src/*cu")
+file(GLOB scifi_looking_forward "looking_forward/src/*cu")
+file(GLOB scifi_consolidate "consolidate/src/*cu")
+
+include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/velo/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/UT/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/event_model/SciFi/include)
+include_directories(${CMAKE_SOURCE_DIR}/checker/tracking/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/UT/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/UT/PrVeloUT/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/UT/UTDecoding/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/velo/common/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/utils/sorting/include)
+include_directories(${CMAKE_SOURCE_DIR}/device/utils/binary_search/include)
+include_directories(${CMAKE_SOURCE_DIR}/main/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/gear/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/setup/include)
+include_directories(${CMAKE_SOURCE_DIR}/stream/sequence/include)
+include_directories(${CMAKE_SOURCE_DIR}/host/SciFi/LookingForward/include)
+include_directories(${CMAKE_SOURCE_DIR}/host/SciFi/MomentumForward/include)
+include_directories(common/include)
+include_directories(preprocessing/include)
+include_directories(looking_forward/include)
+include_directories(consolidate/include)
+include_directories(${CPPGSL_INCLUDE_DIR})
+
+allen_add_device_library(SciFi STATIC
+  ${scifi_preprocessing}
+  ${scifi_looking_forward}
+  ${scifi_consolidate}
+)

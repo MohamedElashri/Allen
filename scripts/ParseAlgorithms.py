@@ -41,8 +41,8 @@ class Parser():
     ]
 
     # Folders storing device and host code
-    __device_folder = "cuda"
-    __host_folder = "x86"
+    __device_folder = "device"
+    __host_folder = "host"
 
     @staticmethod
     def __get_filenames(folder, extensions):

@@ -2,6 +2,7 @@
 
 #include "Common.h"
 #include "HostAlgorithm.cuh"
+#include "InputProvider.h"
 #include <gsl/gsl>
 
 namespace host_data_provider {

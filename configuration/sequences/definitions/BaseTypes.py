@@ -345,7 +345,7 @@ class Sequence():
             print("Generating sequence file...")
             # Add all the includes
             s = "#pragma once\n\n#include <tuple>\n"
-            s += "#include \"" + prefix_includes + "cuda/selections/Hlt1/include/LineTraverser.cuh\"\n"
+            s += "#include \"" + prefix_includes + "device/selections/Hlt1/include/LineTraverser.cuh\"\n"
             for _, algorithm in iter(self.__sequence.items()):
                 s += "#include \"" + prefix_includes + algorithm.filename(
                 ) + "\"\n"
